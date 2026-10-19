@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Migrate to server-side data
-metaTitle: Migrate to server-side data - JavaScript Data Grid | Handsontable
+metaTitle: Migrate to server-side data | Handsontable DataGrid for JavaScript
 description: Move from a full in-memory data array and afterChange saves to Handsontable dataProvider -- stable row ids, fetchRows, CRUD callbacks, pagination, and filters.
 permalink: /server-side-data-migration
 canonicalUrl: /server-side-data-migration
@@ -10,11 +10,11 @@ tags:
   - server-side
   - migration
 react:
-  metaTitle: Migrate to server-side data - React Data Grid | Handsontable
+  metaTitle: Migrate to server-side data | Handsontable DataGrid for React
 angular:
-  metaTitle: Migrate to server-side data - Angular Data Grid | Handsontable
+  metaTitle: Migrate to server-side data | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Migrate to server-side data - Vue Data Grid | Handsontable
+  metaTitle: Migrate to server-side data | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Server-side data
 addedIn: "17.1.0"

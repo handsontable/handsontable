@@ -75,7 +75,7 @@ function getSchemaDefault(
  *
  * - Enable and disable built-in features
  * - Enable and configure additional [plugins](@/api/plugins.md)
- * - Personalize Handsontable's look
+ * - Personalize Handsontable DataGrid's look
  * - Adjust Handsontable's behavior
  * - Implement your own custom features
  *
@@ -1149,8 +1149,8 @@ export default (): Record<string, unknown> => {
      * colHeaders: ['One', 'Two', 'Three'],
      *
      * // set your own column headers, using a function
-     * colHeaders: function(visualColumnIndex) {
-     *   return `${visualColumnIndex} + : AB`;
+     * colHeaders: function(physicalColumnIndex) {
+     *   return `${physicalColumnIndex} + : AB`;
      * },
      * ```
      */
@@ -1461,9 +1461,16 @@ export default (): Record<string, unknown> => {
      * | ----------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
      * | A number    | Set the same width for every column                                                                  | `colWidths: 100`                                                  |
      * | A string    | Set the same width for every column                                                                  | `colWidths: '100px'`                                              |
-     * | An array    | Set widths separately for each column                                                                | `colWidths: [100, 120, undefined]`                                |
-     * | A function  | Set column widths dynamically,<br>on each render                                                     | `colWidths(visualColumnIndex) { return visualColumnIndex * 10; }` |
+     * | An array    | Set widths separately for each column,<br>by physical column index                                   | `colWidths: [100, 120, undefined]`                                |
+     * | A function  | Set column widths dynamically,<br>on each render, by physical column index                           | `colWidths(physicalColumnIndex) { return physicalColumnIndex * 10; }` |
      * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                            |
+     *
+     * The array and the function address a column by its physical index, so a width stays with its column
+     * when the user moves the column. The physical index doesn't change when columns are moved
+     * or hidden. When you insert or remove a column with [`alter()`](@/api/core.md#alter), an array
+     * `colWidths` is updated to match, so the other widths stay with their columns.
+     * The [`rowHeights`](#rowHeights) option still uses the visual index, so with {@link ManualRowMove}
+     * a row height stays at its screen position.
      *
      * Setting `colWidths` even for a single column disables the {@link AutoColumnSize} plugin
      * for all columns. For this reason, if you use `colWidths`, we recommend you set a width for each one
@@ -1512,15 +1519,15 @@ export default (): Record<string, unknown> => {
      * // set every column's width to 100px
      * colWidths: '100px',
      *
-     * // set the first (by visual index) column's width to 100
-     * // set the second (by visual index) column's width to 120
-     * // set the third (by visual index) column's width to `undefined`, so that it defaults to 50px
+     * // set the first (by physical index) column's width to 100
+     * // set the second (by physical index) column's width to 120
+     * // set the third (by physical index) column's width to `undefined`, so that it defaults to 50px
      * // set any other column's width to the default 50px (note that longer cell values and column names can get cut)
      * colWidths: [100, 120, undefined],
      *
      * // set each column's width individually, using a function
-     * colWidths(visualColumnIndex) {
-     *   return visualColumnIndex * 10;
+     * colWidths(physicalColumnIndex) {
+     *   return physicalColumnIndex * 10;
      * },
      * ```
      */
@@ -2251,6 +2258,13 @@ export default (): Record<string, unknown> => {
      * You can set the `dataSchema` option to one of the following:
      * - An object
      * - A function
+     *
+     * If you don't set the [`columns`](#columns) option, `dataSchema` also defines the columns of the grid.
+     * When you change it with [`updateSettings()`](@/api/core.md#updatesettings) and the columns it defines change,
+     * Handsontable resets the column and row index state, as it does for a new [`columns`](#columns) value.
+     * Sorting, filtering, and columns that users moved, hid, or resized start over. Options you declare in your
+     * settings apply again. A change that only affects the default values of new rows resets nothing.
+     * A new [`data`](#data) value alone doesn't reset the index state.
      *
      * Read more:
      * - [Binding to data: Array of objects with custom data schema](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects-with-custom-data-schema)
@@ -3333,6 +3347,9 @@ export default (): Record<string, unknown> => {
      *
      * Rows appended this way bypass [`allowInsertRow`](#allowInsertRow): only `autoInsertRow` governs them.
      *
+     * The fill handle is shown only when the selection is a single range. A selection of several separate ranges
+     * (for example, made with <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+click) has no fill handle.
+     *
      * Read more:
      * - [AutoFill values](@/guides/cell-features/autofill-values/autofill-values.md)
      *
@@ -3693,7 +3710,7 @@ export default (): Record<string, unknown> => {
      * and [`fixedRowsBottom`](#fixedrowsbottom) to freeze all four edges.
      *
      * ::: tip
-     * Freeze only as many columns as fit within the grid's width. Frozen columns are always drawn in full.
+     * Freeze only as many columns as fit within the grid's width. By default, Handsontable draws frozen columns in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
      * the remaining columns into view.
      * :::
@@ -3770,7 +3787,7 @@ export default (): Record<string, unknown> => {
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL, the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing/column-freezing.md) at the right-hand edge of the grid.
      *
      * ::: tip
-     * Freeze only as many columns as fit within the grid's width. Frozen columns are always drawn in full.
+     * Freeze only as many columns as fit within the grid's width. By default, Handsontable draws frozen columns in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
      * the remaining columns into view.
      * :::
@@ -3825,7 +3842,7 @@ export default (): Record<string, unknown> => {
      * :::
      *
      * ::: tip
-     * Freeze only as many rows as fit within the grid's height. Frozen rows are always drawn in full.
+     * Freeze only as many rows as fit within the grid's height. By default, Handsontable draws frozen rows in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
      * the remaining rows into view.
      * :::
@@ -3861,7 +3878,7 @@ export default (): Record<string, unknown> => {
      * :::
      *
      * ::: tip
-     * Freeze only as many rows as fit within the grid's height. Frozen rows are always drawn in full.
+     * Freeze only as many rows as fit within the grid's height. By default, Handsontable draws frozen rows in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
      * the remaining rows into view.
      * :::
@@ -4163,6 +4180,50 @@ export default (): Record<string, unknown> => {
      * ```
      */
     headerClassName: undefined,
+
+    /**
+     * @description
+     * The `headerCheckbox` option adds a "check all" checkbox to the header of a
+     * [checkbox](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) column. A click on it checks every
+     * checkbox in the column, or unchecks them when all of them are checked, and writes the values into
+     * the data in one undo step. When only some cells are checked, the header checkbox shows the mixed
+     * state. Read-only cells are skipped.
+     *
+     * You can set the `headerCheckbox` option to one of the following:
+     *
+     * | Setting                  | Description                                                                    |
+     * | ------------------------ | ------------------------------------------------------------------------------ |
+     * | `false` or unset (default) | No header checkbox                                                           |
+     * | `true`                   | A header checkbox that writes to the rows that pass the filters (all pages)    |
+     * | `{ scope: 'filtered' }`  | The same as `true`                                                             |
+     * | `{ scope: 'all' }`       | Also writes to the rows the filters hide                                       |
+     * | `{ scope: 'currentPage' }` | Writes only to the rows on the current page of the [`Pagination`](@/api/pagination.md) plugin |
+     *
+     * The option works only on columns whose [`type`](#type) is `'checkbox'`. Rows hidden with the
+     * [`HiddenRows`](@/api/hiddenRows.md) plugin and rows trimmed with the [`TrimRows`](@/api/trimRows.md)
+     * plugin are never written.
+     *
+     * Read more:
+     * - [Checkbox cell type: Check all in the column header](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#check-all-in-the-column-header)
+     * - [Plugins: `CheckboxHeader`](@/api/checkboxHeader.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category CheckboxHeader
+     * @since 19.0.0
+     * @configScope grid columns
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   { data: 'name' },
+     *   // a "check all" checkbox in the header of the `active` column
+     *   { data: 'active', type: 'checkbox', headerCheckbox: true },
+     * ],
+     * ```
+     */
+    headerCheckbox: undefined,
 
     /**
      * The `height` option configures the height of your grid.
@@ -4753,6 +4814,53 @@ export default (): Record<string, unknown> => {
     licenseKey: undefined,
 
     /**
+     * The `limitFixedToViewport` option keeps the [frozen rows and columns](@/guides/columns/column-freezing/column-freezing.md)
+     * from growing larger than the space the grid has.
+     *
+     * By default, Handsontable draws the frozen area in full. If the frozen rows and columns need more space than
+     * the grid has, they cover the whole grid, and you can no longer scroll the rest of it into view.
+     *
+     * When you set `limitFixedToViewport` to `true`, Handsontable draws only as many frozen columns and rows as fit,
+     * and keeps a strip of the grid scrollable. The option changes what is drawn, not what you configured:
+     * - [`getSettings()`](@/api/core.md#getsettings) still returns the values of [`fixedColumnsStart`](#fixedcolumnsstart),
+     * [`fixedColumnsEnd`](#fixedcolumnsend), [`fixedRowsTop`](#fixedrowstop), and [`fixedRowsBottom`](#fixedrowsbottom).
+     * - The count is measured again when the grid is resized, so the frozen area returns when the grid grows.
+     * - A strip of at least 40 px stays scrollable on each axis.
+     * - The start columns have priority over the end columns, and the top rows have priority over the bottom rows.
+     * When the start columns or top rows fill the grid, the end columns or bottom rows are not drawn as frozen at all.
+     * - When a user changes the frozen area with the [`FreezeBar`](@/api/freezeBar.md) plugin, the new count replaces the
+     * configured one, and the frozen area no longer returns when the grid grows.
+     * - When one more frozen column would not fit, [`freezeColumn()`](@/api/manualColumnFreeze.md#freezecolumn) does
+     * nothing, and its `afterColumnFreeze` hook reports that the freeze was not performed.
+     *
+     * Handsontable measures the frozen area while it renders. When the first measurement was off (a row that was never
+     * drawn, or a scrollbar that appeared), it draws once more, so [`beforeViewRender`](@/api/hooks.md#beforeviewrender) and
+     * [`afterViewRender`](@/api/hooks.md#afterviewrender) can run twice for one render. A change that makes a frozen row
+     * taller can cost that extra draw each time.
+     *
+     * Read more:
+     * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md#frozen-area-size-limit)
+     * - [Row freezing](@/guides/rows/row-freezing/row-freezing.md#frozen-area-size-limit)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @since 19.0.0
+     * @category Core
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // draw only the frozen columns and rows that fit the grid
+     * limitFixedToViewport: true,
+     * ```
+     */
+    limitFixedToViewport: false,
+
+    /**
      * The `locale` option configures Handsontable's [locale](@/guides/internationalization/locale/locale.md) settings.
      *
      * You can set the `locale` option to any valid and canonicalized Unicode BCP 47 locale tag,
@@ -4894,6 +5002,55 @@ export default (): Record<string, unknown> => {
      * ```
      */
     notification: false,
+
+    /**
+     * The `freezeBar` option configures the [`FreezeBar`](@/api/freezeBar.md) plugin.
+     *
+     * The plugin draws a bar on each edge of the frozen area. You drag the bar, or focus it and press the arrow keys,
+     * to change how many rows or columns are frozen. An edge with nothing frozen has a short handle on a corner of
+     * the headers, so users can start freezing from there.
+     *
+     * You can set the `freezeBar` option to one of the following:
+     *
+     * | Setting   | Description                                                                              |
+     * | --------- | ---------------------------------------------------------------------------------------- |
+     * | `true`    | Enable the [`FreezeBar`](@/api/freezeBar.md) plugin for rows and columns                  |
+     * | `false`   | Disable the [`FreezeBar`](@/api/freezeBar.md) plugin                                      |
+     * | An object | Enable the [`FreezeBar`](@/api/freezeBar.md) plugin and choose the axes                   |
+     *
+     * The object form accepts the following properties:
+     *
+     * | Property  | Type      | Default | Description                           |
+     * | --------- | --------- | ------- | ------------------------------------- |
+     * | `rows`    | `boolean` | `true`  | Show the bar for frozen rows          |
+     * | `columns` | `boolean` | `true`  | Show the bar for frozen columns       |
+     *
+     * The plugin changes the frozen counts on the grid only. It does not write them back to the settings you passed
+     * in, so an application that keeps the counts in its own state copies them in the
+     * [`afterFreezeChange`](@/api/hooks.md#afterfreezechange) hook.
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category FreezeBar
+     * @configScope grid
+     * @since 19.0.0
+     *
+     * @example
+     * ```js
+     * // enable the `FreezeBar` plugin
+     * freezeBar: true,
+     *
+     * // enable the `FreezeBar` plugin for columns only
+     * freezeBar: {
+     *   rows: false,
+     * },
+     * ```
+     */
+    freezeBar: undefined,
 
     /**
      * The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.
@@ -6925,9 +7082,12 @@ export default (): Record<string, unknown> => {
      * | ----------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
      * | A number    | Set the same height for every row                                                                   | `rowHeights: 100`                                            |
      * | A string    | Set the same height for every row                                                                   | `rowHeights: '100px'`                                        |
-     * | An array    | Set heights separately for each row                                                                 | `rowHeights: [100, 120, undefined]`                          |
+     * | An array    | Set heights separately for each row,<br>by visual row index                                         | `rowHeights: [100, 120, undefined]`                          |
      * | A function  | Set row heights dynamically,<br>on each render                                                      | `rowHeights(visualRowIndex) { return visualRowIndex * 10; }` |
      * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                      |
+     *
+     * Unlike [`colWidths`](#colWidths), which uses the physical column index, `rowHeights` uses the
+     * visual row index, so with {@link ManualRowMove} a height stays at its screen position.
      *
      * When the {@link AutoRowSize} plugin is enabled, `rowHeights` sets the minimum row height, so a
      * row still grows to fit its content.
@@ -6986,6 +7146,75 @@ export default (): Record<string, unknown> => {
      * ```
      */
     rowHeights: undefined,
+
+    /**
+     * @description
+     * The `rowSelection` option configures the [`RowSelection`](@/api/rowSelection.md) plugin, which
+     * lets the user select rows with checkboxes, including a "select all" checkbox.
+     *
+     * The row selection is a state of its own. It is not the cell selection, and the plugin never
+     * writes it into the data.
+     *
+     * You can set the `rowSelection` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`RowSelection`](@/api/rowSelection.md) plugin                  |
+     * | `true`    | Enable the [`RowSelection`](@/api/rowSelection.md) plugin with its defaults |
+     * | An object | Enable the plugin and configure it                                          |
+     *
+     * If you set the `rowSelection` option to an object, you can configure the following options:
+     *
+     * | Option                   | Possible settings                                             | Default       |
+     * | ------------------------ | ------------------------------------------------------------- | ------------- |
+     * | `mode`                   | `'multiRow'` \| `'singleRow'`                                  | `'multiRow'`  |
+     * | `checkboxes`             | A boolean, or a function `(rowData, physicalRow) => boolean`  | `true`        |
+     * | `headerCheckbox`         | A boolean                                                     | `true`        |
+     * | `selectAll`              | `'all'` \| `'filtered'` \| `'currentPage'`                     | `'all'`       |
+     * | `enableClickSelection`   | `true` \| `false` \| `'enableSelection'` \| `'enableDeselection'` | `false`  |
+     * | `isRowSelectable`        | A function `(rowData, physicalRow) => boolean`                | -             |
+     * | `hideDisabledCheckboxes` | A boolean                                                     | `false`       |
+     * | `checkboxLocation`       | `'rowHeader'` \| `'firstColumn'` \| `{ column }`                | `'rowHeader'` |
+     * | `groupSelects`           | `'descendants'` \| `'self'` \| `'topLevel'`                    | `'descendants'` |
+     *
+     * With the [`NestedRows`](@/api/nestedRows.md) plugin, `groupSelects` sets how the rows of the tree are
+     * selected. With `'descendants'`, selecting a parent row selects every row under it, and a parent shows a
+     * mixed state while only some of the rows under it are selected. With `'self'`, every row is selected on its
+     * own. With `'topLevel'`, only the top-level rows can be selected. The `'singleRow'` mode and a bound
+     * checkbox column (`checkboxLocation: { column }`) use `'self'` in place of `'descendants'`.
+     *
+     * With `checkboxLocation: { column: 'selected' }`, the values of a checkbox column (its `data` property,
+     * or its physical index) are the selection: selecting a row checks its cell, and checking a cell
+     * selects its row.
+     *
+     * Read more:
+     * - [Row selection](@/guides/rows/row-selection/row-selection.md)
+     * - [Server-side row selection](@/guides/getting-started/server-side-data-row-selection/server-side-data-row-selection.md)
+     * - [Plugins: `RowSelection`](@/api/rowSelection.md)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category RowSelection
+     * @since 19.0.0
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // enable the `RowSelection` plugin with its defaults
+     * rowSelection: true,
+     *
+     * // "select all" acts on the filtered rows, and archived rows cannot be selected
+     * rowSelection: {
+     *   selectAll: 'filtered',
+     *   isRowSelectable: (rowData) => rowData.status !== 'archived',
+     * },
+     * ```
+     */
+    rowSelection: undefined,
 
     /**
      * @description

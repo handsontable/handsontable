@@ -6,11 +6,11 @@
     "cells",
     "cell"
   ],
-  "total": 179,
+  "total": 183,
   "counts": {
-    "grid": 108,
+    "grid": 111,
     "grid columns cells cell": 64,
-    "grid columns": 6,
+    "grid columns": 7,
     "columns": 1
   },
   "options": [
@@ -703,6 +703,15 @@
       "note": null
     },
     {
+      "name": "freezeBar",
+      "category": "FreezeBar",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
+      "note": null
+    },
+    {
       "name": "hashLength",
       "category": "Core",
       "levels": [
@@ -736,6 +745,16 @@
         "cell"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "headerCheckbox",
+      "category": "CheckboxHeader",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -887,6 +906,15 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "limitFixedToViewport",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -1329,6 +1357,15 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "rowSelection",
+      "category": "RowSelection",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {

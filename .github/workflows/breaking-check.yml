@@ -25,7 +25,7 @@ concurrency:
 jobs:
   check:
     name: Check for a possible breaking change
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       # Two commits are enough: the checkout is the `refs/pull/N/merge` commit

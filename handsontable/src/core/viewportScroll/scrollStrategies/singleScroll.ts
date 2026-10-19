@@ -160,8 +160,7 @@ export function getRenderedRowHeight(hot: HotInstance, visualRow: number): numbe
  * @returns {boolean}
  */
 export function isColumnOversized(hot: HotInstance, col: number): boolean {
-  const settings = hot.getSettings();
-  const fixedColumnsStart = settings.fixedColumnsStart ?? 0;
+  const fixedColumnsStart = hot.view.countFixedColumnsStart();
   const totalColumns = hot.countCols();
   const fixedColumnsEnd = hot.view.countFixedColumnsEnd();
 
@@ -193,9 +192,8 @@ export function isColumnOversized(hot: HotInstance, col: number): boolean {
  * @returns {boolean}
  */
 export function isRowOversized(hot: HotInstance, row: number): boolean {
-  const settings = hot.getSettings();
-  const fixedRowsTop = settings.fixedRowsTop ?? 0;
-  const fixedRowsBottom = settings.fixedRowsBottom ?? 0;
+  const fixedRowsTop = hot.view.countFixedRowsTop();
+  const fixedRowsBottom = hot.view.countFixedRowsBottom();
 
   if (row < fixedRowsTop || row >= hot.countRows() - fixedRowsBottom) {
     return false;

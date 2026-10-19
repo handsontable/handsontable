@@ -1679,6 +1679,16 @@ still do, deliberately, to pin that the escape hatch keeps working
 `__tests__/settings/fixedColumnsStart.spec.js`). `tests/e2e/walkontable/overlay-self-resize.spec.ts` asserts that
 none of the deleted plugin paths ask for a resize on its fixture.
 
+## The selection pass measures every border, then paints them (DEV-3459)
+
+`SelectionManager#render` collects `[border, corners]` for every selection layer, then calls `Border#measure()` on all of them and `Border#paint()` on all of them. `Border#appear()` is only `paint(corners, measure(corners))`, kept for direct callers. The split exists because a style write between two geometry reads makes the browser lay the table out again. With 2,100 custom borders, each visible border read cell geometry right after the previous one wrote its edges: about 180 forced layouts per scroll draw (18 ms of layout per frame, 61% of scroll time in `offset()`), and 31 FPS against 60 for the same grid without borders. After the split it is about 1 layout per draw (318 layouts over 388 frames, against ~22,400 over 126 frames before).
+
+- **`measure()` never writes.** Not a style, not a class, not `disappear()`: where `appear()` used to hide the border and return, `measure()` returns `null` and `paint()` hides it. One write in the measure pass puts the thrash back for every border after it. Read computed-style numbers inside `measure()` too, never keep the live declaration for `paint()`.
+- **`paint()` reads no layout for a plain edge.** `drawFrozenBoundaryEdge()` (which also makes `measure()` wasted work for those borders), the fill handle corner (`cornerVisible`, and `isCellEndWithinHolder` in the `top` overlay) and the move zone still read geometry after writes, which is fine for the few selection borders that use them. Core custom borders use none of them. A new feature that adds a geometry read to the paint path of every border brings the cost back, so measure it in `measure()` and carry the number in `BorderMeasurement`.
+- **`beforeDrawBorders` listeners run before the measure pass, not just before their own border.** The hook gets a fresh visual-index copy of the corners (`tableView.ts` `onBeforeDrawBorders`), and Walkontable ignores what it returns, so a listener cannot change what is drawn. A listener that reads DOM state of other borders now sees none of this pass painted.
+- **The mobile selection handles clamp to the table size**, so `measure()` reads `wtTable.getWidth()/getHeight()` when a border owns handles (phones and iPad create them for every border) and `paint()` takes the numbers from the measurement.
+- Pinned by `tests/e2e/custom-borders-scroll-layout.spec.ts`, which counts Chromium `LayoutCount` per scroll draw against the same grid without borders.
+
 ## Known Tech Debt
 
 - The DAO layer has been replaced by constructor injection + the `wire.ts` composition root (see the DI section above) — do not reintroduce DAO getters or `wot`-god-object passing.

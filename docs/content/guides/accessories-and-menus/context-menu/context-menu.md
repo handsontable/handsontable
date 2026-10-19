@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Context menu
-metaTitle: Context menu - JavaScript Data Grid | Handsontable
+metaTitle: Context menu | Handsontable DataGrid for JavaScript
 description: Quickly access contextual actions such as removing rows, inserting columns or copying data, by opening the context menu.
 permalink: /context-menu
 canonicalUrl: /context-menu
@@ -11,11 +11,11 @@ tags:
   - pop-up menu
   - right-click menu
 react:
-  metaTitle: Context menu - React Data Grid | Handsontable
+  metaTitle: Context menu | Handsontable DataGrid for React
 angular:
-  metaTitle: Context menu - Angular Data Grid | Handsontable
+  metaTitle: Context menu | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Context menu - Vue Data Grid | Handsontable
+  metaTitle: Context menu | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated
@@ -126,7 +126,7 @@ The `filter_by_condition`, `filter_by_condition2`, `filter_operators`, `filter_b
 menu, not in the context menu. See [Filter menu items](@/guides/accessories-and-menus/column-menu/column-menu.md#filter-menu-items).
 
 The table above lists every key you can use in the array form of `contextMenu`. An array key that
-matches no available item is skipped, and Handsontable logs a console warning naming it and the
+matches no available item is skipped, and Handsontable DataGrid logs a console warning naming it and the
 menu it came from. That covers a key with a typo in it, and a key whose plugin is not enabled --
 so check the required plugin named beside the key when an item does not appear.
 

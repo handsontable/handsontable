@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the fill handle filling no cells after a diagonal drag, and leaving the rows it inserts with `autoInsertRow` empty.",
+  "type": "fixed",
+  "issueOrPR": 13860,
+  "breaking": false,
+  "framework": "none"
+}

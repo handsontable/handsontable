@@ -303,13 +303,13 @@ Other rules:
   `undefined`, `''`) that matches neither — the renderer's `noValue` state — and `false` for anything
   else. Checking `uncheckedTemplate` first is what keeps `uncheckedTemplate: ''` exporting `false`.
   Before this, an empty checkbox wrote `<c t="b"><v>0</v></c>` and re-imported as unchecked.
-  Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 33 of the 18.1 → 19.0
+  Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 37 of the 18.1 → 19.0
   migration guide, together with the frozen-pane change above.
 - **The `_HotValidation` helper sheet is `hidden`, NOT `veryHidden`.** Apple Numbers discards a very
   hidden sheet on open together with every validation that points at it, so every dropdown of a
   native or ExcelJS export was lost there (18.1 wrote it `veryHidden` too). `hidden` keeps them in
   Numbers; the cost is that Excel lists the sheet under Unhide. Inlining short lists (255 characters)
-  was the alternative and stays open. Named in the export guide's cell-type table and in section 33
+  was the alternative and stays open. Named in the export guide's cell-type table and in section 37
   of the migration guide.
 - **Every currency symbol except a lone `$` is QUOTED in the `numFmt`** (a lone `€`/`£` too: Numbers
   and Quick Look misread it bare, `#,##0.00€` showed 1235 for 1234.5 in Numbers) (`numeric-utils.ts`,
@@ -357,6 +357,10 @@ Other rules:
   `workbook.worksheets[1].state === 'hidden'` for the validation sheet, and "should write the rows
   before merging, so a merged range keeps its master value" is the row-before-merge regression test —
   run it before reordering `writeColumnLayout`/`writeRows`/`writeSheetFeatures` in `exceljs.ts`.
+
+## Column widths come from `_getColWidthFromSettings()`
+
+`DataProvider#_getNaturalColWidth()` reads a column's configured width through `hot._getColWidthFromSettings(visualColumn)`, which takes a VISUAL index and reads the `colWidths` array and function by the physical one. Do not copy that translation or index `colWidths` yourself. A width that is not a finite number falls back to `defaultColumnWidth`. See `../autoColumnSize/AGENTS.md`, "Known concerns".
 
 ## Where to look next
 

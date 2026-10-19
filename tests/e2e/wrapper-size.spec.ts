@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { WrapperSizePage } from '../fixtures/pages/WrapperSizePage';
 
 /**
@@ -9,7 +9,7 @@ import { WrapperSizePage } from '../fixtures/pages/WrapperSizePage';
 
 const EDGE_TOLERANCE_PX = 0.5;
 
-test('a grid sized 100% by 100% fills its container and scrolls inside it', async({ page, theme, bundle }) => {
+test('a grid sized 100% by 100% fills its container and scrolls inside it', { tag: THEMES_TAG }, async({ page, theme, bundle }) => {
   const wrapperPage = new WrapperSizePage(page, theme, bundle);
 
   await wrapperPage.goto();

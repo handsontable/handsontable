@@ -299,9 +299,6 @@ function isThenable(value: unknown): value is PromiseLike<unknown> {
  *   one is passed through the `engines` option, e.g. [ExcelJS](https://github.com/exceljs/exceljs).
  *   Features the engine cannot write are reported in one console warning per export.
  *
- * See [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md) and
- * [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md) for examples.
- *
  * @example
  * ::: only-for javascript
  * ```js

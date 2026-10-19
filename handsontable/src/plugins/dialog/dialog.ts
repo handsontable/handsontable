@@ -19,7 +19,7 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * @class Dialog
  *
  * @description
- * The dialog plugin provides a modal dialog system for Handsontable. It allows you to display custom content in modal dialogs
+ * The dialog plugin provides a modal dialog system for Handsontable DataGrid. It allows you to display custom content in modal dialogs
  * that overlay the table, providing a way to show notifications, error messages, loading indicators, or any other interactive content.
  *
  * In order to enable the dialog mechanism, {@link Options#dialog} option must be set to `true`.

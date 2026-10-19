@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Custom shortcuts
-metaTitle: Custom shortcuts - JavaScript Data Grid | Handsontable
-description: Customize Handsontable's keyboard shortcuts.
+metaTitle: Custom shortcuts | Handsontable DataGrid for JavaScript
+description: Customize Handsontable DataGrid's keyboard shortcuts.
 permalink: /custom-shortcuts
 canonicalUrl: /custom-shortcuts
 tags:
@@ -17,16 +17,16 @@ tags:
   - custom shortcuts
   - shortcut keys
 react:
-  metaTitle: Custom shortcuts - React Data Grid | Handsontable
+  metaTitle: Custom shortcuts | Handsontable DataGrid for React
 angular:
-  metaTitle: Custom shortcuts - Angular Data Grid | Handsontable
+  metaTitle: Custom shortcuts | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Custom shortcuts - Vue Data Grid | Handsontable
+  metaTitle: Custom shortcuts | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Navigation
 menuTag: updated
 ---
-Use the [`ShortcutManager`](@/api/shortcutManager.md) API to add, remove, replace, or block keyboard shortcuts in Handsontable.
+Use the [`ShortcutManager`](@/api/shortcutManager.md) API to add, remove, replace, or block keyboard shortcuts in Handsontable DataGrid.
 
 [[toc]]
 

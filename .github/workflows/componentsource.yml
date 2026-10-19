@@ -45,7 +45,7 @@ permissions:
 jobs:
   build-componentsource:
     name: Build component source artifact
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # A manual dispatch always runs. An automatic run needs a green `Publish`
     # run that actually pushed a customer-facing version to npm: a `release`
     # event (stable release, or the first RC) or a push to a release branch

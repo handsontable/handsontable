@@ -162,8 +162,6 @@ function isAppliedConditionsState(value: unknown): value is AppliedConditionsSta
  * To choose the operators one column offers, set `filters: { availableConditions: [...] }` for that
  * column in the `columns` option. It replaces the grid-level `availableConditions` for that column.
  *
- * See [the filtering demo](@/guides/columns/column-filter/column-filter.md) for examples.
- *
  * @example
  * ::: only-for javascript
  * ```js
@@ -552,6 +550,22 @@ export class Filters extends BasePlugin {
     const trimmingMaps = this.hot.rowIndexMapper.trimmingMapsCollection.get() as IndexMap[];
 
     return trimmingMaps.some(map => map !== this.filtersRowsMap && map.getValueAtIndex(physicalRow) === true);
+  }
+
+  /**
+   * Tells the plugin that the rows pinned by `fixedRowsTop` and `fixedRowsBottom` changed without an
+   * `updateSettings()` call (the freeze bar writes the counts straight on the table meta), so the
+   * next full render re-checks which rows `filterFixedRows: false` exempts. Does nothing while this plugin is
+   * disabled. Internal; not public API.
+   *
+   * @private
+   */
+  _markPinnedRowsStale(): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.#markPinnedRowsStale(false);
   }
 
   /**
@@ -1128,7 +1142,7 @@ export class Filters extends BasePlugin {
    * | `date_yesterday` | Yesterday | `[]` |
    * | `empty` | Empty | `[]` |
    * | `ends_with` | Ends with | `[value: string]`, e.g. `['ing']` |
-   * | `eq` | Equal | `[value: string\|number]`, e.g. `['John']` |
+   * | `eq` | Equal | `[value: string\|number]`, e.g. `['John']`. On `date` and `intl-date` columns, pass an ISO 8601 date string, e.g. `['2023-01-01']`. |
    * | `gt` | Greater than | `[value: number]`, e.g. `[95]` |
    * | `gte` | Greater than or equal | `[value: number]`, e.g. `[95]` |
    * | `intl_date_after` | After a date, exclusive (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
@@ -1148,7 +1162,7 @@ export class Filters extends BasePlugin {
    * | `not_between` | Not between | `[from: number\|string, to: number\|string]`, e.g. `[10, 50]` |
    * | `not_contains` | Not contains | `[value: string]`, e.g. `['ing']` |
    * | `not_empty` | Not empty | `[]` |
-   * | `neq` | Not equal | `[value: string\|number]`, e.g. `['John']` |
+   * | `neq` | Not equal | `[value: string\|number]`, e.g. `['John']`. On `date` and `intl-date` columns, pass an ISO 8601 date string, e.g. `['2023-01-01']`. |
    *
    * Possible operations on collection of conditions:
    *  * `conjunction` - [**Conjunction**](https://en.wikipedia.org/wiki/Logical_conjunction) on conditions collection (by default), i.e. for such operation: <br/> c1 AND c2 AND c3 AND c4 ... AND cn === TRUE, where c1 ... cn are conditions.

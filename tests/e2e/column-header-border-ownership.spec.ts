@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { ColumnHeaderBorderOwnershipPage } from '../fixtures/pages/ColumnHeaderBorderOwnershipPage';
 
 /**
@@ -23,7 +23,7 @@ import { ColumnHeaderBorderOwnershipPage } from '../fixtures/pages/ColumnHeaderB
  * `main`, `horizon` and `classic` alike, so a color assertion on the seam would be true on all six
  * legs whichever element drew it. Everything below is measured instead.
  */
-test.describe('Column header border ownership', () => {
+test.describe('Column header border ownership', { tag: THEMES_TAG }, () => {
   let grid: ColumnHeaderBorderOwnershipPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

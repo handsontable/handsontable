@@ -138,6 +138,14 @@ jobs:
       run-e2e: ${{ needs.checks.outputs.test-handsontable-e2e == 'true' }}
       run-e2e-min: ${{ needs.checks.outputs.test-handsontable-e2e-min == 'true' }}
       run-playwright: ${{ needs.checks.outputs.build-handsontable-umd == 'true' }}
+      # The full theme × bundle matrix (every Playwright spec on every leg) on the rc/stable path,
+      # which publish.yml reaches with test-all: true, and on a master push, which has no nightly of
+      # its own. A pull request runs the shape each spec declares (tests/AGENTS.md, "Declaring the
+      # legs"); develop's push keeps that shape too, and the E2E nightly runs the matrix there.
+      full-matrix: ${{ inputs.test-all || github.ref_name == 'master' }}
+      # The six frozen Jasmine legs (three themes × UMD / UMD.min) on the same two paths. A pull
+      # request and develop's push run the one leg, UMD × main; the E2E nightly runs the six on develop.
+      jasmine-full-matrix: ${{ inputs.test-all || github.ref_name == 'master' }}
     secrets: inherit
 
   integration:
@@ -221,6 +229,7 @@ jobs:
     with:
       run-all: ${{ needs.checks.outputs.run-all == 'true' }}
       run-angular: ${{ needs.checks.outputs.docs-angular == 'true' }}
+      run-content-types: ${{ needs.checks.outputs.docs-content-types == 'true' }}
       is-pr: ${{ github.event_name == 'pull_request' }}
     secrets: inherit
 
@@ -254,7 +263,7 @@ jobs:
       - performance
       - visual
       - docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Verify every pipeline job passed or was scope-skipped
         run: |

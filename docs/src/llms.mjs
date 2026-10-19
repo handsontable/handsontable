@@ -137,9 +137,9 @@ export function buildLlmsIndex(pageMeta, sections) {
   const lines = [
     '# Handsontable',
     '',
-    '> Handsontable is a JavaScript data grid component with spreadsheet-like UX, available for React, Angular, Vue, and vanilla JavaScript. It ships editing, sorting, filtering, validation, and Excel-compatible formulas (via HyperFormula) as one embeddable component.',
+    '> Handsontable is the brand name for two products: Handsontable DataGrid and HyperFormula. Handsontable DataGrid is a JavaScript data grid component with spreadsheet-like UX, available for React, Angular, Vue, and vanilla JavaScript. It ships editing, sorting, filtering, validation, and Excel-compatible formulas (via HyperFormula, which is also a Handsontable product) as one embeddable component.',
     '',
-    'Handsontable is developed by Handsoncode. The documentation below covers the JavaScript data grid and its framework wrappers. Guides exist in a JavaScript, React, Angular, and Vue variant at the same slug; to switch, swap the framework segment of a URL. Framework-specific guides are listed under their own framework prefix.',
+    'Handsontable is developed by Handsoncode. The documentation below covers Handsontable DataGrid and its framework wrappers. Guides exist in a JavaScript, React, Angular, and Vue variant at the same slug; to switch, swap the framework segment of a URL. Framework-specific guides are listed under their own framework prefix.',
     '',
     '## Site',
     '',
@@ -152,8 +152,8 @@ export function buildLlmsIndex(pageMeta, sections) {
     '',
     `- [Full guides corpus (Markdown)](${SITE_URL}/docs/llms-full.txt): Every guide page concatenated into one plain-text file`,
     `- [Docs pages as Markdown](${SITE_URL}/docs/_md/${CANONICAL_PREFIX}/installation.md): Every docs page, guides and API alike, has a Markdown twin at /docs/_md/{framework}/{slug}.md`,
-    `- [Skills for Claude Code](${SITE_URL}/docs/${CANONICAL_PREFIX}/skills-for-claude-code/): Versioned skills for Handsontable and HyperFormula (repo: https://github.com/handsontable/handsontable-skills)`,
-    `- [Docs MCP server](${SITE_URL}/docs/${CANONICAL_PREFIX}/docs-mcp-server/): First-party MCP server (streamable HTTP) with semantic search over Handsontable and HyperFormula docs guides, API reference, code recipes, release notes, blog posts, and GitHub issues, always current with the latest release (endpoint: https://docs-assistant.handsontable.com/mcp)`,
+    `- [Skills for Claude Code](${SITE_URL}/docs/${CANONICAL_PREFIX}/skills-for-claude-code/): Versioned skills for Handsontable DataGrid and HyperFormula (repo: https://github.com/handsontable/handsontable-skills)`,
+    `- [Docs MCP server](${SITE_URL}/docs/${CANONICAL_PREFIX}/docs-mcp-server/): First-party MCP server (streamable HTTP) with semantic search over Handsontable DataGrid and HyperFormula docs guides, API reference, code recipes, release notes, blog posts, and GitHub issues, always current with the latest release (endpoint: https://docs-assistant.handsontable.com/mcp)`,
     '- [Context7](https://context7.com/handsontable/handsontable): Third-party MCP route serving these docs to any agent',
     '',
     '## API reference',
@@ -220,7 +220,7 @@ export function buildLlmsIndex(pageMeta, sections) {
  */
 export function buildLlmsFull(routeMap, sections) {
   const parts = [
-    '# Handsontable Documentation',
+    '# Handsontable DataGrid documentation',
     '',
     '> Full guides corpus for LLM consumption. One canonical copy per page (JavaScript',
     '> variant, or the page\'s own framework for framework-specific guides); the other',

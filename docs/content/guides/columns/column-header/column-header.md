@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Column headers
-metaTitle: Column headers - JavaScript Data Grid | Handsontable
+metaTitle: Column headers | Handsontable DataGrid for JavaScript
 description: Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
 permalink: /column-header
 canonicalUrl: /column-header
 react:
-  metaTitle: Column headers - React Data Grid | Handsontable
+  metaTitle: Column headers | Handsontable DataGrid for React
 angular:
-  metaTitle: Column headers - Angular Data Grid | Handsontable
+  metaTitle: Column headers | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column headers - Vue Data Grid | Handsontable
+  metaTitle: Column headers | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: updated
@@ -320,7 +320,7 @@ You can set this option to one of the following:
 The height is a number of pixels. A string that states a pixel size works too, so a value coming from
 an attribute, a JSON config, or a framework template still applies. You can mix both forms inside the
 array. A value that states no pixel count, such as `'50%'` or `'20em'`, is ignored - the header keeps
-its default height, and Handsontable reports the value once in the browser console.
+its default height, and Handsontable DataGrid reports the value once in the browser console.
 
 A negative number is kept as it is, because numbers behave exactly as they did before this option
 read strings. A negative string is rejected, so a typo cannot collapse the header.

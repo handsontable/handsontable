@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { DropdownEditorClipPage, type PlacementBoxes } from '../fixtures/pages/DropdownEditorClipPage';
 
 /**
@@ -34,7 +34,7 @@ function expectAnchoredToCell({ list, cell }: PlacementBoxes): void {
  * or a `contain: paint` on any host-page ancestor moves the origin, and reading coordinates
  * straight off the viewport put the list 313px below and 384px across from its cell.
  */
-test.describe('dropdown editor list escapes the grid clip (#8688)', () => {
+test.describe('dropdown editor list escapes the grid clip (#8688)', { tag: THEMES_TAG }, () => {
   let grid: DropdownEditorClipPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

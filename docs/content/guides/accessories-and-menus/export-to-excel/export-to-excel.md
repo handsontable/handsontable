@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Export to Excel
-metaTitle: Export to Excel - JavaScript Data Grid | Handsontable
+metaTitle: Export to Excel | Handsontable DataGrid for JavaScript
 description: Export your grid to an Excel (.xlsx) file - cell types, styling, merged cells, comments, and frozen panes go with the data, and formulas too with exportFormulas.
 permalink: /export-to-excel
 canonicalUrl: /export-to-excel
@@ -11,11 +11,11 @@ tags:
   - xlsx
   - excel
 react:
-  metaTitle: Export to Excel - React Data Grid | Handsontable
+  metaTitle: Export to Excel | Handsontable DataGrid for React
 angular:
-  metaTitle: Export to Excel - Angular Data Grid | Handsontable
+  metaTitle: Export to Excel | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Export to Excel - Vue Data Grid | Handsontable
+  metaTitle: Export to Excel | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Import and export
 menuTag: updated

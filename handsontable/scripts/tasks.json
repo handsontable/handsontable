@@ -69,6 +69,12 @@
       "cmd": "node scripts/downlevel-dts.mjs",
       "deps": ["build:types"]
     },
+    "verify:esm-consumer-types": {
+      "cmd": "node scripts/verify-esm-consumer-types.mjs",
+      "deps": [],
+      "mode": "inherit",
+      "note": "Compiles .config/emitted-types/theme-presets.ts as an ES module under node16 and nodenext against the composed package in tmp/ (resolved through its exports map). Run it after `build:types`, `downlevel:types` and the ES/CJS build, then `postbuild` or `postbuild:partial` (it reads the composed tmp/ and fails with a hint when that is missing). The Emitted Types workflow runs the same script with its pinned TS 5.1 (TSC env). Catches a .d.mts whose default export is typed as the CJS namespace (DEV-3421), which attw and the .d.ts type-check both miss."
+    },
     "build:umd": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./src/index.ts",
       "deps": ["build:styles", "build:themes-css"]

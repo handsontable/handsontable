@@ -1,20 +1,20 @@
 ---
 type: explanation
 title: Versioning policy
-metaTitle: Versioning policy - JavaScript Data Grid | Handsontable
-description: Handsontable follows the principles of Semantic Versioning (SemVer). Each version is numbered in the X.Y.Z (Major.Minor.Patch) format.
+metaTitle: Versioning policy | Handsontable DataGrid for JavaScript
+description: Handsontable DataGrid follows the principles of Semantic Versioning (SemVer). Each version is numbered in the X.Y.Z (Major.Minor.Patch) format.
 permalink: /versioning-policy
 canonicalUrl: /versioning-policy
 react:
-  metaTitle: Versioning policy - React Data Grid | Handsontable
+  metaTitle: Versioning policy | Handsontable DataGrid for React
 angular:
-  metaTitle: Versioning policy - Angular Data Grid | Handsontable
+  metaTitle: Versioning policy | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Versioning policy - Vue Data Grid | Handsontable
+  metaTitle: Versioning policy | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Upgrade and migration
 ---
-Handsontable follows the principles of [Semantic Versioning](https://semver.org/) (SemVer).
+Handsontable DataGrid follows the principles of [Semantic Versioning](https://semver.org/) (SemVer).
 
 [[toc]]
 

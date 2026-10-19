@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { PageOffsetReverseSplitPage, type PageOffsetLayout } from '../fixtures/pages/PageOffsetReverseSplitPage';
 
 /**
@@ -24,7 +24,7 @@ function withTwin(layout: PageOffsetLayout): [PageOffsetLayout, PageOffsetLayout
   ];
 }
 
-test.describe('grid offset from the page edge inside a vertically clipping ancestor', () => {
+test.describe('grid offset from the page edge inside a vertically clipping ancestor', { tag: THEMES_TAG }, () => {
   let grid: PageOffsetReverseSplitPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

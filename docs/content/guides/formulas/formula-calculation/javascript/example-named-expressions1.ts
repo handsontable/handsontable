@@ -2,7 +2,6 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
 import { Formulas } from 'handsontable/plugins';
-import { DetailedSettings } from 'handsontable/plugins/formulas';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -29,7 +28,7 @@ const hot = new Handsontable(container, {
         expression: 100,
       },
     ],
-  } as DetailedSettings,
+  },
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',

@@ -1,7 +1,7 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarPage } from '../fixtures/pages/SheetsBarPage';
 
-test.describe('sheets bar', () => {
+test.describe('sheets bar', { tag: THEMES_TAG }, () => {
   test('clicking a tab switches the grid to that sheet', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 

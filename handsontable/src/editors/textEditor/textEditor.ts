@@ -14,7 +14,7 @@ import {
 } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { createInputElementResizer } from '../../utils/autoResize';
-import { isDefined } from '../../helpers/mixed';
+import { isDefined, stringify } from '../../helpers/mixed';
 import { getCharacterLength, removeCharactersBefore } from '../../helpers/string';
 import { isMaxLengthActive } from '../../validators/maxLengthValidator';
 import { updateCaretPosition } from './caretPositioner';
@@ -242,7 +242,7 @@ export class TextEditor extends BaseEditor {
    * @param {*} newValue The editor value.
    */
   setValue(newValue?: unknown): void {
-    this.TEXTAREA.value = newValue as string;
+    this.TEXTAREA.value = stringify(newValue);
   }
 
   /**

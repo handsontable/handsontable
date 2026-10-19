@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, inject, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import {GridSettings, HotTableComponent, NON_COMMERCIAL_LICENSE, HotTableModule} from '@handsontable/angular-wrapper';
 import {PredefinedMenuItemKey} from 'handsontable/plugins/contextMenu';
 import {mainTheme, horizonTheme, classicTheme, registerTheme, getTheme, ThemeColorScheme} from 'handsontable/themes';
@@ -1255,6 +1255,8 @@ export const data = [
 export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
   readonly hotData = data;
 
   hotSettings!: GridSettings;
@@ -1369,6 +1371,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     this.selectedTheme = currentTheme;
     this.setTheme(currentTheme);
+    // Nothing marks the OnPush-by-default component dirty after ngAfterViewInit, so refresh selectedTheme and the menu label.
+    this.changeDetectorRef.detectChanges();
   }
 
   selectTheme(value: string): void {

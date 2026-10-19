@@ -55,10 +55,23 @@ HOT_TEST_PORT=8124 npm test
 
 The functional suite is six projects — theme (`main`/`horizon`/`classic`) ×
 bundle (`umd` = `dist/handsontable.js`, `full-min` =
-`dist/handsontable.full.min.js`), 1:1 with the Puppeteer matrix. The local
-gates (pre-push, the Claude Stop hook, `test:e2e`) run `e2e-main` (plain UMD)
-only; the `-min` legs run in CI. Run a single other leg by hand with
-`npx playwright test --project=e2e-horizon-min`.
+`dist/handsontable.full.min.js`), the shape the Puppeteer matrix has on the E2E nightly. A spec runs on
+`e2e-main` only unless its top-level blocks declare the axes it is sensitive
+to with `THEMES_TAG` / `BUNDLES_TAG` (`AGENTS.md`, "Declaring the legs"); a
+static sweep refuses a spec that touches theme or bundle surface without the
+tag, and the E2E nightly runs every spec on all six legs (and the frozen Jasmine
+suite on its six; a pull request runs that suite on UMD × main alone). The local gates
+(pre-push, the Claude Stop hook, `test:e2e`) run `e2e-main` (plain UMD) only;
+the other legs run in CI, where a long leg runs as several jobs
+(`--shard=<i>/<n>` on the same project: `main` in 3, `horizon` and `classic` in
+2, the `-min` legs whole) at a pinned worker count (`workers` in
+`playwright.config.ts`, CI only; the engines config pins its own; a local run
+keeps Playwright's default). To
+run one shard the way a CI job does: `npx playwright test --project=e2e-main
+--shard=1/3`. Run a single other leg by hand with
+`npx playwright test --project=e2e-horizon-min` (it lists "No tests found" for a
+spec that does not declare both axes), or every leg of one spec with
+`HOT_E2E_FULL_MATRIX=1 npx playwright test e2e/<spec>.spec.ts`.
 
 Tests tagged `@cross-browser` also run on Firefox and WebKit, through a separate
 config with two projects (`e2e-firefox`, `e2e-webkit`) that CI runs in its own job.
@@ -89,6 +102,10 @@ npm --prefix handsontable run test:e2e         # full legacy suite (base bundle)
 npm --prefix handsontable run test:production  # the same suite against handsontable.full.min.js
 npm --prefix handsontable run test:walkontable # the rendering engine's own pipeline
 ```
+
+In CI a pull request runs `test:e2e` on the main theme only (`E2E / UMD (theme: main)`); the
+six legs — three themes, `test:e2e` and `test:production` — run on the E2E nightly, the
+rc/stable publish path and a master push (`.ai/CI.md`, the Jasmine single-leg entry).
 
 ## One Playwright version across the monorepo
 

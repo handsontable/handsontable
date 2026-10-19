@@ -1,6 +1,6 @@
 ---
 title: Persist and restore column widths and order
-metaTitle: Persist and restore column widths and order - JavaScript Data Grid | Handsontable
+metaTitle: Persist and restore column widths and order | Handsontable DataGrid for JavaScript
 description: Save column widths and column order to localStorage as the user resizes or reorders columns, then restore that layout on grid initialization -- so preferences survive a page refresh.
 permalink: /recipes/performance/persist-column-layout
 canonicalUrl: /recipes/performance/persist-column-layout
@@ -14,11 +14,11 @@ tags:
   - afterColumnMove
   - performance
 react:
-  metaTitle: Persist and restore column widths and order - React Data Grid | Handsontable
+  metaTitle: Persist and restore column widths and order | Handsontable DataGrid for React
 angular:
-  metaTitle: Persist and restore column widths and order - Angular Data Grid | Handsontable
+  metaTitle: Persist and restore column widths and order | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Persist and restore column widths and order - Vue Data Grid | Handsontable
+  metaTitle: Persist and restore column widths and order | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Performance
 type: how-to
@@ -78,7 +78,7 @@ A product-inventory grid with six columns (SKU, Name, Category, Price, Stock, St
 
 ## Before you begin
 
-This recipe uses only built-in Handsontable features. No extra dependencies are required.
+This recipe uses only built-in Handsontable DataGrid features. No extra dependencies are required.
 
 You should be familiar with:
 
@@ -88,7 +88,7 @@ You should be familiar with:
 ## Step 1 -- Define defaults and a storage key
 
 ```javascript
-const STORAGE_KEY = 'ht-column-layout-v1';
+const STORAGE_KEY = 'ht-column-layout-v2';
 
 const DEFAULT_COL_WIDTHS = [90, 200, 120, 90, 70, 110];
 const DEFAULT_COL_ORDER = [0, 1, 2, 3, 4, 5];
@@ -96,9 +96,9 @@ const DEFAULT_COL_ORDER = [0, 1, 2, 3, 4, 5];
 
 **What's happening:** `STORAGE_KEY` is a namespaced key used for every `localStorage` read and write in this recipe. Namespacing prevents collisions with other data stored by the same page.
 
-`DEFAULT_COL_WIDTHS` lists the pixel width for each column in its default order. `DEFAULT_COL_ORDER` is an array of physical column indices -- `[0, 1, 2, 3, 4, 5]` means the visual order matches the source order. Both are used when no saved layout exists and when the user clicks **Reset layout**.
+`DEFAULT_COL_WIDTHS` lists the pixel width for each column, by physical column index. `DEFAULT_COL_ORDER` is an array of physical column indices -- `[0, 1, 2, 3, 4, 5]` means the visual order matches the source order. Both are used when no saved layout exists and when the user clicks **Reset layout**.
 
-**Why include a version suffix (`-v1`) in the key?** When you change the column count or column schema, old saved data becomes incompatible. Bumping the version suffix (`-v2`, `-v3`, ...) means the next page load finds nothing under the new key, falls back to defaults, and starts fresh. Old data under the previous key is left to expire naturally.
+**Why include a version suffix (`-v2`) in the key?** When you change the column count, the column schema, or the meaning of the saved data, old saved data becomes incompatible. This recipe uses `-v2` because the widths are now saved in physical column order, where `-v1` saved them in visual order. Bumping the version suffix (`-v3`, `-v4`, ...) means the next page load finds nothing under the new key, falls back to defaults, and starts fresh. Old data under the previous key is left to expire naturally.
 
 ## Step 2 -- Read and validate the saved layout
 
@@ -137,7 +137,7 @@ function saveLayout(widths, order) {
 
 **What's happening:** `saveLayout` serializes both arrays into a single JSON object and writes it under the storage key. Grouping them in one object means a single `setItem` call -- `localStorage` operations are synchronous and blocking, so minimizing calls reduces the chance of a partial write.
 
-## Step 4 -- Initialize Handsontable with the saved or default layout
+## Step 4 -- Initialize Handsontable DataGrid with the saved or default layout
 
 ```javascript
 const saved = loadLayout();
@@ -158,7 +158,7 @@ const hot = new Handsontable(container, {
 
 **What's happening:**
 
-- `colWidths: initialWidths` sets the pixel widths for each column at startup. When `initialWidths` is the saved array, the columns start at exactly the sizes the user last saved.
+- `colWidths: initialWidths` sets the pixel widths for each column at startup. The array is addressed by physical column index, so each width stays with its column when the user moves it. When `initialWidths` is the saved array, the columns start at exactly the sizes the user last saved.
 - `manualColumnResize: true` activates the resize handle on every column header border, so the user can drag to resize.
 - `manualColumnMove: initialOrder || true` deserves attention. When `manualColumnMove` receives an **array of physical indices**, Handsontable treats it as the initial visual-to-physical mapping and re-orders columns accordingly. When it receives `true`, columns start in their default order. Passing `null` or `false` would disable the feature entirely, so the fallback is `true`.
 
@@ -168,8 +168,8 @@ const hot = new Handsontable(container, {
 
 ```javascript
 afterColumnResize() {
-  const widths = hot.getColHeader().map((_, visualIndex) =>
-    hot.getColWidth(visualIndex)
+  const widths = hot.getColHeader().map((_, physicalIndex) =>
+    hot.getColWidth(hot.toVisualColumn(physicalIndex))
   );
 
   saveLayout(widths, getCurrentOrder());
@@ -180,7 +180,7 @@ afterColumnResize() {
 
 - `afterColumnResize` fires after the user finishes dragging a column border. At that point the column's new width is already applied.
 - `hot.getColHeader()` returns the current column headers array. Its length equals the number of columns, so mapping over it produces an index from `0` to `colCount - 1`.
-- `hot.getColWidth(visualIndex)` returns the current pixel width for that visual column. Widths are read in **visual** order so the saved array aligns with the visual order at the time of saving.
+- `hot.getColWidth(hot.toVisualColumn(physicalIndex))` returns the current pixel width of the column with that physical index. Widths are saved in **physical** order, the order that `colWidths` reads them in, so each width stays with its column when you restore the layout.
 - `getCurrentOrder()` (defined in Step 6) reads the current visual order. Both are saved together so the two arrays always stay in sync.
 
 **Why save all widths, not just the resized one?** If only the changed column's width is stored, restoring requires knowing which column was last resized. Storing the full array keeps the saved state self-contained.
@@ -217,8 +217,8 @@ function getCurrentWidths() {
   const count = hot.countCols();
   const widths = [];
 
-  for (let visualIndex = 0; visualIndex < count; visualIndex++) {
-    widths.push(hot.getColWidth(visualIndex));
+  for (let physicalIndex = 0; physicalIndex < count; physicalIndex++) {
+    widths.push(hot.getColWidth(hot.toVisualColumn(physicalIndex)));
   }
 
   return widths;
@@ -270,7 +270,7 @@ document.querySelector('#reset-layout-btn').addEventListener('click', () => {
 ## What you learned
 
 - Use `colWidths` to set initial column widths and `manualColumnMove` (with an array of physical indices) to set an initial visual order.
-- Read all column widths with `hot.getColWidth(visualIndex)` and translate visual positions to physical indices with `hot.toPhysicalColumn(visualIndex)`.
+- The `colWidths` array uses physical column indices. Read the width of a column with `hot.getColWidth(hot.toVisualColumn(physicalIndex))`, and translate visual positions to physical indices with `hot.toPhysicalColumn(visualIndex)`.
 - Use `afterColumnResize` and `afterColumnMove` to detect when the user changes the layout and persist those changes immediately.
 - Validate data read from `localStorage` before using it, so malformed or stale entries fall back to defaults gracefully.
 - Call `hot.columnIndexMapper.setIndexesSequence()` and `resizePlugin.setManualSize()` to reset column order and widths at runtime without recreating the grid.
@@ -278,6 +278,6 @@ document.querySelector('#reset-layout-btn').addEventListener('click', () => {
 ## Next steps
 
 - Extend the recipe to also persist `colHeaders` label overrides or hidden column state.
-- If your page has multiple grids, give each grid its own storage key (e.g., `ht-column-layout-v1-products`, `ht-column-layout-v1-orders`).
+- If your page has multiple grids, give each grid its own storage key (e.g., `ht-column-layout-v2-products`, `ht-column-layout-v2-orders`).
 - Replace `localStorage` with a server-side API call to sync layout preferences across devices and browsers.
 - Combine this recipe with [Build a dynamic column visibility toggle](@/recipes/column-management/column-visibility/column-visibility.md) to let users both hide columns and remember their visibility state.

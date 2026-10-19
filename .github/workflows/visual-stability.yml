@@ -98,7 +98,7 @@ env:
 jobs:
   render:
     name: render ${{ matrix.iteration }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -127,6 +127,10 @@ jobs:
       - uses: ./.github/actions/setup-workspace
         if: steps.gate.outputs.run == 'true'
 
+      - name: Read the runner image
+        if: steps.gate.outputs.run == 'true'
+        id: runner-image
+        run: echo "name=$ImageOS" >> "$GITHUB_OUTPUT"
       - name: Cache Playwright browsers
         if: steps.gate.outputs.run == 'true'
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
@@ -134,7 +138,7 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           # Same key shape as visual.yml, so the two workflows share the cache.
-          key: playwright-all-${{ runner.os }}-${{ hashFiles('visual-tests/package.json', 'pnpm-workspace.yaml') }}
+          key: playwright-all-${{ runner.os }}-${{ steps.runner-image.outputs.name }}-${{ hashFiles('visual-tests/package.json', 'pnpm-workspace.yaml') }}
       # All three browsers, although this job runs two: the cache key is visual.yml's
       # `all` key, so what this job saves is what the cross-browser leg restores. A
       # cache saved here without webkit would leave that leg with no webkit binary.
@@ -267,7 +271,7 @@ jobs:
     name: verdict
     needs: [ render ]
     if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
@@ -299,7 +303,7 @@ jobs:
     name: Notify Slack
     needs: [ render, verdict ]
     if: ${{ failure() && github.event_name == 'schedule' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
     steps:

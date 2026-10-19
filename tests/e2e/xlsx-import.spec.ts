@@ -1,5 +1,5 @@
 import { deflateRawSync } from 'node:zlib';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxImportPage } from '../fixtures/pages/XlsxImportPage';
 
 /**
@@ -67,7 +67,7 @@ function withFlippedCentralCrc(zip: Buffer): Buffer {
 }
 
 for (const engine of ['exceljs', 'native'] as const) {
-  test.describe(`xlsx import (${engine})`, () => {
+  test.describe(`xlsx import (${engine})`, { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
     let grids: XlsxImportPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {

@@ -24,7 +24,7 @@ concurrency:
 jobs:
   dispatch:
     name: Trigger examples snapshot import
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       # Push events are already filtered by the branch patterns above, but
       # workflow_dispatch bypasses that filter, so validate the ref here

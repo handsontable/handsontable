@@ -33,6 +33,7 @@ on:
       test-performance: { value: '${{ jobs.scope.outputs.test-performance }}' }
       verify-types: { value: '${{ jobs.scope.outputs.verify-types }}' }
       docs-angular: { value: '${{ jobs.scope.outputs.docs-angular }}' }
+      docs-content-types: { value: '${{ jobs.scope.outputs.docs-content-types }}' }
       pkg-preview: { value: '${{ jobs.scope.outputs.pkg-preview }}' }
       docs: { value: '${{ jobs.scope.outputs.docs }}' }
       # True when the PR touches anything outside the CI pipeline (.github/**).
@@ -59,7 +60,7 @@ on:
 jobs:
   scope:
     name: scope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       run-all: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/develop') || contains(github.ref, '/release/') || inputs.test-all == true }}
       build-handsontable-es-cjs: ${{ steps.path-filter.outputs.build-handsontable-es-cjs }}
@@ -76,6 +77,7 @@ jobs:
       test-performance: ${{ steps.path-filter.outputs.test-performance }}
       verify-types: ${{ steps.path-filter.outputs.verify-types }}
       docs-angular: ${{ steps.path-filter.outputs.docs-angular }}
+      docs-content-types: ${{ steps.path-filter.outputs.docs-content-types }}
       pkg-preview: ${{ steps.path-filter.outputs.pkg-preview }}
       docs: ${{ steps.path-filter.outputs.docs }}
       outside-ci: ${{ steps.path-filter.outputs.outside-ci }}
@@ -264,11 +266,22 @@ jobs:
               # paths, where GitHub-native path filters ARE subtractive. On a PR an
               # AGENTS.md edit sets this flag but is inert unless the docs job also
               # runs (it needs the `docs` flag), so it never routes a typecheck alone.
+            # Gates the CHANGED examples only (check.mjs diffs against the PR base), so a core
+            # change with no example change has nothing to check and is deliberately absent.
+            docs-content-types:
+              - './docs/content/**/javascript/*.ts'
+              - './docs/content/**/react/*.tsx'
+              - './docs/content/**/vue/*.vue'
+              - './docs/content-type-check/**'
+              - './.github/actions/docs-content-typecheck/**'
             pkg-preview:
               - './handsontable/**'
               - './wrappers/**'
             docs:
               - './docs/**'
+              # The examples type check lives in docs.yml, which test.yml starts only on this flag, so
+              # every `docs-content-types` glob must also match here (pinned by the wiring test).
+              - './.github/actions/docs-content-typecheck/**'
               - './handsontable/package.json'
               # docs' Playwright version comes from the workspace catalog too.
               - './pnpm-lock.yaml'
@@ -365,7 +378,7 @@ jobs:
 
   presence:
     name: test presence
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Pillar 1: source changed ⇒ a matching test changed. BLOCKS (DEV-3066):
     # a red verdict fails this job, which stops the pipeline the way the
     # changelog gate does. PR-only; needs git history, no build.
@@ -427,7 +440,7 @@ jobs:
 
   changelog:
     name: changelog
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # PR-only, and path-aware: an entry is required only when shippable source
     # changed (handsontable/src/** or wrappers/**, tests + markdown excluded) —
     # docs/test/CI-only PRs pass automatically, and `[skip changelog]` (outside
@@ -457,7 +470,7 @@ jobs:
 
   tooling-tests:
     name: tooling tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Runs the enforcement machinery's OWN unit tests (node --test) so a regression
     # in the presence-gate classifier, diff-coverage parser, weakening detector, eval
     # scorer, or the hooks is caught in CI — otherwise those tests exist but nothing

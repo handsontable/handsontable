@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Row parent-child
-metaTitle: Row parent-child - JavaScript Data Grid | Handsontable
+metaTitle: Row parent-child | Handsontable DataGrid for JavaScript
 description:
   Reflect the parent-child relationship of your data, using Handsontable's interactive UI elements such as expand and collapse buttons or an extended context
   menu.
@@ -15,11 +15,11 @@ tags:
   - grouping rows
   - master detail
 react:
-  metaTitle: Row parent-child - React Data Grid | Handsontable
+  metaTitle: Row parent-child | Handsontable DataGrid for React
 angular:
-  metaTitle: Row parent-child - Angular Data Grid | Handsontable
+  metaTitle: Row parent-child | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row parent-child - Vue Data Grid | Handsontable
+  metaTitle: Row parent-child | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated
@@ -27,7 +27,7 @@ menuTag: updated
 Reflect the parent-child relationship of your data, using the [`NestedRows`](@/api/nestedRows.md) plugin's interactive UI elements such as expand and collapse
 buttons or an extended context menu.
 
-Handsontable renders this structure as a tree grid. The same pattern is also called a master-detail view or grouping rows.
+Handsontable DataGrid renders this structure as a tree grid. The same pattern is also called a master-detail view or grouping rows.
 
 [[toc]]
 
@@ -422,6 +422,19 @@ When you use the parent-child row structure, the following Handsontable features
 - [Manual row moving via `moveRows()`](@/api/manualRowMove.md#moverows) - use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead
 
 When the `NestedRows` plugin is enabled, the `ManualRowMove` plugin's [`moveRows()`](@/api/manualRowMove.md#moverows) method has no effect and logs a console warning. To move rows programmatically, use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead.
+
+### Rows added below the last row
+
+When [`fillHandle.autoInsertRow`](@/api/options.md#fillhandle) is enabled, dragging the fill handle
+past the last row adds new rows. The new rows continue the level of the last row you can see. If that
+row is a child, the new rows are added to the same parent. If it's a top-level row, or a collapsed
+parent at the top level, the new rows are top-level rows.
+
+When you call [`alter('insert_row_below', index)`](@/api/core.md#alter) with the index of the last row,
+and that row is not a collapsed parent, the new row is added to the same parent as the last row.
+Inserting a row by index below a collapsed parent isn't supported: expand the parent first. A call
+without an index, a row added by [`minSpareRows`](@/api/options.md#minsparerows), and a paste or an edit
+past the last row still add top-level rows.
 
 ### Row header width with custom labels
 

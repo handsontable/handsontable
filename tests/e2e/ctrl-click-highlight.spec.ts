@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 /**
@@ -21,7 +21,7 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
  * `moveCells` and `selectionHandles` are off: both put grab bands on the selection border, and a
  * click near a selected cell's edge would land on those instead of the cell.
  */
-test.describe('Ctrl+click inside a multiple selection', () => {
+test.describe('Ctrl+click inside a multiple selection', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

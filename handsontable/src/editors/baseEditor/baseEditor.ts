@@ -26,11 +26,12 @@ export const EDITOR_STATE = Object.freeze({
 });
 
 /**
- * The abstract base class for Handsontable cell editors.
+ * The abstract base class for Handsontable DataGrid cell editors.
  *
  * Extend it to create an editor that controls how a cell enters edit mode, reads and writes values,
  * and returns focus to the grid. Concrete editors implement `init()`, `getValue()`, `setValue()`,
- * `open()`, `close()`, and `focus()`.
+ * `open()`, `close()`, and `focus()`. `beginEditing()` passes the cell value to `setValue()`. An
+ * editor that needs a string stringifies that value itself.
  *
  * @class BaseEditor
  * @see https://handsontable.com/docs/javascript-data-grid/cell-editor/
@@ -131,18 +132,27 @@ export class BaseEditor {
    */
   originalValue: unknown = null;
   /**
-   * What the editor held the moment it finished opening, captured only when it was seeded from the
-   * cell's own value. `finishEditing()` compares against it to tell a real edit from a confirm that
-   * changed nothing.
+   * The string form of the value the editor was opened with, when it was opened from the cell.
    *
-   * Stays `null` whenever the guard must not apply: the editor was not seeded (fast edit mode, where
-   * the user's first keystroke supplies the value), or it was seeded with a caller-supplied string.
-   * Both keep the unconditional save they have always had.
+   * Taken from the seed in `beginEditing()`, not from `getValue()` after `setValue()`. `DateEditor`
+   * substitutes `defaultDate` inside `setValue()`, so a later `getValue()` is not the cell. A text
+   * editor's `getValue()` is this string, and an untouched confirm has to match it. Reading
+   * `getValue()` instead would save `''` over a `null` cell (#3927).
    */
-  #valueBeforeEdit: unknown = null;
+  #seededString: unknown = null;
 
   /**
-   * Whether `#valueBeforeEdit` holds a baseline at all.
+   * The same seed after the value getter and before stringifying, when the editor was opened from
+   * the cell.
+   *
+   * An editor whose `getValue()` returns the argument `setValue()` received matches this on an
+   * untouched confirm. Seeded the same way as `#seededString`, and for the same reason. `DateEditor`
+   * may have substituted `defaultDate`, so `getValue()` after `setValue()` is not the cell.
+   */
+  #seededCellValue: unknown = null;
+
+  /**
+   * Whether the seeded baselines hold a value at all.
    *
    * Kept separate from the value: `getValue()` is typed `unknown`, and a custom editor is free to
    * return `null` or `undefined` from it. Using the value itself as the "armed" marker would arm the
@@ -157,9 +167,14 @@ export class BaseEditor {
    * opened. Does nothing while the guard is disarmed.
    */
   protected resetValueBeforeEdit(): void {
-    if (this.#hasValueBeforeEdit) {
-      this.#valueBeforeEdit = this.getValue();
+    if (!this.#hasValueBeforeEdit) {
+      return;
     }
+
+    this.#seededString = this.getValue();
+    // The same post-getter value `beginEditing()` stores. `originalValue` is the stored cell,
+    // and seeding that here treats a later edit of the stored value as untouched.
+    this.#seededCellValue = getValueGetterValue(this.originalValue, this.cellProperties);
   }
   /**
    * Object containing the cell's properties.
@@ -222,8 +237,13 @@ export class BaseEditor {
 
   /**
    * Required method to set new value into editable element.
+   *
+   * `beginEditing()` passes the cell value after the value getter, or the string it was given.
+   * When the editor needs a string, use `value == null ? '' : String(value)`.
+   *
+   * @param {*} value The editor value.
    */
-  setValue(_value?: unknown): void {
+  setValue(value?: unknown): void {
     throwWithCause('Editor setValue() method unimplemented');
   }
 
@@ -358,6 +378,9 @@ export class BaseEditor {
   /**
    * Begins editing on a highlighted cell and hides fillHandle corner if was present.
    *
+   * In full edit mode, a string `newInitialValue` is passed to `setValue()` unchanged. Any other
+   * value, including `undefined`, passes the cell value after the value getter.
+   *
    * @param {*} newInitialValue The initial editor value.
    * @param {Event} event The keyboard event object.
    */
@@ -387,34 +410,28 @@ export class BaseEditor {
 
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
     // otherwise IME (editor for Asia users) doesn't work.
-    // `seededFromCell` records whether the editor was filled from the cell's own value, which is the
-    // only case the no-op guard in `finishEditing()` may act on.
     let seededFromCell = false;
     let seededValue: unknown = null;
+    let rawSeed: unknown = null;
 
     if (this.isInFullEditMode()) {
       const originalValue = getValueGetterValue(this.originalValue, this.hot.getCellMeta(this.row, this.col));
-      const stringifiedInitialValue = typeof newInitialValue === 'string' ?
-        newInitialValue : stringify(originalValue);
+      const openedFromCell = typeof newInitialValue !== 'string';
 
-      seededFromCell = typeof newInitialValue !== 'string';
-      seededValue = stringifiedInitialValue;
+      seededFromCell = openedFromCell;
+      seededValue = openedFromCell ? stringify(originalValue) : newInitialValue;
+      rawSeed = openedFromCell ? originalValue : null;
 
-      this.setValue(stringifiedInitialValue);
+      this.setValue(openedFromCell ? originalValue : newInitialValue);
     }
 
     this.open(event);
     this._opened = true;
     this.focus();
 
-    // The baseline is the string the CELL's value produced, not what the editor ended up showing.
-    // The two differ whenever an editor substitutes something of its own - `DateEditor` swaps in
-    // `defaultDate` for an empty cell - and in that case the editor is genuinely offering a value the
-    // cell does not hold, so confirming has to save it. Reading `getValue()` back here instead made
-    // every confirm on such a cell compare equal, and a `date` column could no longer store its
-    // `defaultDate` from the editor at all.
     this.#hasValueBeforeEdit = seededFromCell;
-    this.#valueBeforeEdit = seededFromCell ? seededValue : null;
+    this.#seededString = seededFromCell ? seededValue : null;
+    this.#seededCellValue = rawSeed;
 
     // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
     hotInstance.view.render();
@@ -466,12 +483,14 @@ export class BaseEditor {
 
       let value = this.getValue();
 
-      // Normalization runs BEFORE the comparison, so an unchanged confirm still trims whitespace and
-      // still runs `valueParser` exactly as it always did. Comparing first would silently drop both
-      // for a cell whose content the user did not touch.
+      // Compared after trim and `valueParser`, so an untouched `"5"` still becomes the number 5.
+      // `held` has to match as well: a parser result equal to the getter display is a new edit when
+      // that text changed. Trim stays in front, so an untouched `"  hi  "` still saves `"hi"`.
       if (this.cellProperties.trimWhitespace) {
         value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
       }
+
+      const held = value;
 
       if (typeof this.cellProperties.valueParser === 'function') {
         value = this.cellProperties.valueParser(value, this.cellProperties);
@@ -492,10 +511,9 @@ export class BaseEditor {
       const fillsOtherCells = ctrlDown === true &&
         selectionFillsOtherCells(this.hot, value, this.row, this.col);
 
-      // The editor still holds exactly what it was opened with, so the user confirmed without changing
-      // anything. Writing the editor's stringified value back over the cell is what turned a `null`
-      // into `''` (#3927), so an unchanged confirm must not go through the normal save path.
-      const isUnchanged = !fillsOtherCells && this.#hasValueBeforeEdit && value === this.#valueBeforeEdit;
+      const heldIsSeed = held === this.#seededString || held === this.#seededCellValue;
+      const valueIsSeed = value === this.#seededString || value === this.#seededCellValue;
+      const isUnchanged = !fillsOtherCells && this.#hasValueBeforeEdit && heldIsSeed && valueIsSeed;
 
       if (isUnchanged) {
         this.#finishUnchangedEdit();
@@ -595,7 +613,8 @@ export class BaseEditor {
       // rejected edit leaves the same editor open, and disarming here would let the NEXT confirm of
       // that session write the editor's stringified value, reintroducing #3927.
       this.#hasValueBeforeEdit = false;
-      this.#valueBeforeEdit = null;
+      this.#seededString = null;
+      this.#seededCellValue = null;
       this.state = EDITOR_STATE.VIRGIN;
       this._fireCallbacks(true);
 
@@ -947,15 +966,15 @@ export class BaseEditor {
 
     const totalRows = this.hot.countRows();
     const totalColumns = this.hot.countCols();
-    const settings = this.hot.getSettings();
-    const fixedColumnsStart = settings.fixedColumnsStart ?? 0;
+    const fixedColumnsStart = this.hot.view.countFixedColumnsStart();
+    const fixedRowsBottom = this.hot.view.countFixedRowsBottom();
     // The start band has priority, so only the columns it leaves can belong to the end band.
     const firstFixedColumnEnd = totalColumns - this.hot.view.countFixedColumnsEnd();
     const isInlineStart = this.col < fixedColumnsStart;
     const isInlineEnd = !isInlineStart && this.col >= firstFixedColumnEnd;
     let section = '';
 
-    if (this.row < (settings.fixedRowsTop ?? 0)) {
+    if (this.row < this.hot.view.countFixedRowsTop()) {
       if (isInlineStart) {
         section = 'top-inline-start-corner';
       } else if (isInlineEnd) {
@@ -963,8 +982,7 @@ export class BaseEditor {
       } else {
         section = 'top';
       }
-    } else if (settings.fixedRowsBottom &&
-               this.row >= totalRows - settings.fixedRowsBottom) {
+    } else if (fixedRowsBottom && this.row >= totalRows - fixedRowsBottom) {
       if (isInlineStart) {
         section = 'bottom-inline-start-corner';
       } else if (isInlineEnd) {

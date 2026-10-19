@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Server-side fetching and examples
-metaTitle: Server-side fetching and examples - JavaScript Data Grid | Handsontable
+metaTitle: Server-side fetching and examples | Handsontable DataGrid for JavaScript
 description: Handsontable DataProvider fetch hooks, loading UI with emptyDataState, plugin methods fetchData and getQueryParameters, REST and GraphQL sample servers, and CodeSandbox projects.
 permalink: /server-side-data-fetching
 canonicalUrl: /server-side-data-fetching
@@ -11,11 +11,11 @@ tags:
   - REST
   - GraphQL
 react:
-  metaTitle: Server-side fetching and examples - React Data Grid | Handsontable
+  metaTitle: Server-side fetching and examples | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side fetching and examples - Angular Data Grid | Handsontable
+  metaTitle: Server-side fetching and examples | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side fetching and examples - Vue Data Grid | Handsontable
+  metaTitle: Server-side fetching and examples | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Server-side data
 addedIn: "17.1.0"
@@ -40,7 +40,7 @@ The [Empty data state / loading](@/guides/accessories-and-menus/empty-data-state
 
 From `hot.getPlugin('dataProvider')`:
 
-- [`fetchData`](@/api/dataProvider.md#fetchdata) — fetches the visible sheet, with optional overrides (`page`, `pageSize`, `sort`, `filters`, and client-only `skipLoading`). Overrides are merged into the current query; `page` is clamped to at least 1, and Handsontable may issue a follow-up fetch if `totalRows` from the server implies a lower last page than requested. After init, changing the `dataProvider` object through [`updateSettings`](@/api/core.md#updatesettings) runs the plugin's update path and triggers a **refetch** when the grid is already rendered. A sheets bar switch is the exception: it applies the arriving sheet's `dataProvider` without refetching (see [Use DataProvider with the sheets bar](#use-dataprovider-with-the-sheets-bar) below).
+- [`fetchData`](@/api/dataProvider.md#fetchdata) — fetches the visible sheet, with optional overrides (`page`, `pageSize`, `sort`, `filters`, and client-only `skipLoading`). Overrides are merged into the current query; `page` is clamped to at least 1, and Handsontable DataGrid may issue a follow-up fetch if `totalRows` from the server implies a lower last page than requested. After init, changing the `dataProvider` object through [`updateSettings`](@/api/core.md#updatesettings) runs the plugin's update path and triggers a **refetch** when the grid is already rendered. A sheets bar switch is the exception: it applies the arriving sheet's `dataProvider` without refetching (see [Use DataProvider with the sheets bar](#use-dataprovider-with-the-sheets-bar) below).
 - [`isFetching`](@/api/dataProvider.md#isfetching) — whether the visible sheet is waiting for a `fetchRows` response that shows the loading overlay. A fetch that passes `skipLoading` (like the refetch after a sort or a row change) does not count, and inside the `afterDataProviderFetch`, `afterDataProviderFetchError`, and `afterDataProviderFetchAbort` listeners of the fetch that settled, it's already `false`.
 - **`updateSettings` and loaded rows** — When [`hasExternalDataSource`](@/api/hooks.md#hasexternaldatasource) is `true`, Handsontable only resets the in-memory placeholder to an empty array during init or when the `updateSettings` payload includes [`data`](@/api/options.md#data) or [`dataProvider`](@/api/options.md#dataprovider). Other keys alone (for example `height` or `colHeaders`) do not clear the current page of rows or force a refetch; the DataProvider plugin refetches when its settings change. If you update `columns` without `data` or `dataProvider`, the data map is rebuilt but the same rule avoids wiping the grid with an empty dataset by accident. The [`Pagination`](@/api/pagination.md) and [`Filters`](@/api/filters.md) plugins follow a `dataProvider` added or removed this way too: both read live whether a data provider backs the grid, so they switch between server-side and client-side behavior the moment the setting changes. Destroying the grid while a fetch is in flight aborts that fetch without logging a console error.
 - [`getQueryParameters`](@/api/dataProvider.md#getqueryparameters) — current `page`, `pageSize`, `sort`, `filters`.

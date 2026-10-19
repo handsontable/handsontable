@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Column widths
-metaTitle: Column widths - JavaScript Data Grid | Handsontable
-description: Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable's interface.
+metaTitle: Column widths | Handsontable DataGrid for JavaScript
+description: Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable DataGrid's interface.
 permalink: /column-width
 canonicalUrl: /column-width
 tags:
@@ -15,16 +15,16 @@ tags:
   - column dimensions
   - manual resize
 react:
-  metaTitle: Column widths - React Data Grid | Handsontable
+  metaTitle: Column widths | Handsontable DataGrid for React
 angular:
-  metaTitle: Column widths - Angular Data Grid | Handsontable
+  metaTitle: Column widths | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column widths - Vue Data Grid | Handsontable
+  metaTitle: Column widths | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: updated
 ---
-Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable's interface.
+Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable DataGrid's interface.
 
 [[toc]]
 
@@ -33,6 +33,8 @@ Configure column widths, using an array or a function. Let your users manually c
 By default, the column width adjusts to the width of the content. However, if the width of the content is less than `50px`, including `1px` for borders on the sides, the column width remains constant at `50px`. You can pass the column size as a constant, an array, or a function.
 
 The content inside a cell will be wrapped if it doesn't fit the cell's width.
+
+An auto-sized column grows to fit its widest value, even when that value is wider than the grid. The text stays on one line, and the grid scrolls horizontally. The size of the container doesn't change the measured width. To limit how wide a column can grow, see [Set a dynamic maximum column width](#set-a-dynamic-maximum-column-width).
 
 ## Set the column width as a constant
 
@@ -88,6 +90,8 @@ In this example, each of the ten columns gets its own width, from `70px` for the
 ::: tip
 
 Setting `colWidths` for even one column disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin for the entire grid. Any column left out of the array does **not** auto-adjust to its content -- it falls back to the default `50px` column width, which can cut off longer content. For this reason, if you use `colWidths`, set a width for every column.
+
+The `colWidths` array and function address columns by their physical index, so a width stays with its column when the user moves it with [`manualColumnMove`](@/api/options.md#manualcolumnmove). The physical index doesn't change when columns are moved or hidden. To read the physical index of a column on the screen, use [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn).
 
 :::
 

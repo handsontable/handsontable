@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed `setValue()` on a custom editor that extends `BaseEditor` so it receives the cell value instead of a string. A React `useHotEditor` or `EditorComponent`, and an Angular `HotCellEditorComponent`, receive that value too. When the editor needs a string, use `value == null ? '' : String(value)`.",
+  "type": "changed",
+  "issueOrPR": 13896,
+  "breaking": true,
+  "framework": "none"
+}

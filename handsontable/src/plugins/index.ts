@@ -19,6 +19,7 @@ import { ExportFile } from './exportFile';
 import { ImportFile } from './importFile';
 import { Filters } from './filters';
 import { Formulas } from './formulas';
+import { FreezeBar } from './freezeBar';
 import { HiddenColumns } from './hiddenColumns';
 import { HiddenRows } from './hiddenRows';
 import { ManualColumnFreeze } from './manualColumnFreeze';
@@ -33,6 +34,8 @@ import { MultipleSelectionHandles } from './multipleSelectionHandles';
 import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
 import { Pagination } from './pagination';
+import { CheckboxHeader } from './checkboxHeader';
+import { RowSelection } from './rowSelection';
 import { Search } from './search';
 import { SelectionHandles } from './selectionHandles';
 import { SheetsBar } from './sheetsBar';
@@ -75,6 +78,7 @@ declare module './registry' {
     importFile: typeof ImportFile;
     filters: typeof Filters;
     formulas: typeof Formulas;
+    freezeBar: typeof FreezeBar;
     hiddenColumns: typeof HiddenColumns;
     hiddenRows: typeof HiddenRows;
     manualColumnFreeze: typeof ManualColumnFreeze;
@@ -89,6 +93,8 @@ declare module './registry' {
     nestedHeaders: typeof NestedHeaders;
     nestedRows: typeof NestedRows;
     pagination: typeof Pagination;
+    rowSelection: typeof RowSelection;
+    checkboxHeader: typeof CheckboxHeader;
     search: typeof Search;
     selectionHandles: typeof SelectionHandles;
     sheetsBar: typeof SheetsBar;
@@ -127,6 +133,7 @@ export function registerAllPlugins() {
   registerPlugin(ImportFile);
   registerPlugin(Filters);
   registerPlugin(Formulas);
+  registerPlugin(FreezeBar);
   registerPlugin(HiddenColumns);
   registerPlugin(HiddenRows);
   registerPlugin(ManualColumnFreeze);
@@ -141,6 +148,8 @@ export function registerAllPlugins() {
   registerPlugin(NestedHeaders);
   registerPlugin(NestedRows);
   registerPlugin(Pagination);
+  registerPlugin(RowSelection);
+  registerPlugin(CheckboxHeader);
   registerPlugin(Search);
   registerPlugin(SelectionHandles);
   registerPlugin(SheetsBar);
@@ -175,6 +184,7 @@ export {
   ImportFile,
   Filters,
   Formulas,
+  FreezeBar,
   HiddenColumns,
   HiddenRows,
   ManualColumnFreeze,
@@ -189,6 +199,8 @@ export {
   NestedHeaders,
   NestedRows,
   Pagination,
+  RowSelection,
+  CheckboxHeader,
   Search,
   SelectionHandles,
   SheetsBar,

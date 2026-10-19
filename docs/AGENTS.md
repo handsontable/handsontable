@@ -98,6 +98,7 @@ This is the docs-**site** voice — it overrides the monorepo-wide documentation
 - Inline code for API names: `columnSorting`, `readOnly`.
 - Oxford comma in lists of three or more items.
 - American English spelling.
+- Product name: the first prose mention on a page that names the product, and a `description:` that names it, say `Handsontable DataGrid`. Later mentions and generic references keep `Handsontable`, and so do migration guides and version references such as "Handsontable 10.0". The `metaTitle:` templates below use the shape `<Page> | Handsontable DataGrid for <Framework>`: `<Page>` is the page title or a short form of it, with the same casing as `title:` (sentence case applies to `title:` itself), a pipe as the only separator, no dashes, and no `DataGrid` alone. Changelog and migration pages (`changelog*`, `migrating-from-*` under `guides/upgrade-and-migration/`) keep their old `metaTitle:` shape on purpose; do not rewrite them. Code, package names, and API names stay `Handsontable`. Full rule: `.ai/DOC-STANDARDS.md`, "Product naming". A renamed heading changes its anchor, so grep for inbound links first.
 
 ---
 
@@ -111,7 +112,7 @@ Use the appropriate template for each Diátaxis type. Do not omit required secti
 ---
 type: tutorial
 title: <Verb phrase — Build/Create/Set up X>
-metaTitle: <title> - JavaScript Data Grid | Handsontable
+metaTitle: <title> | Handsontable DataGrid for JavaScript
 description: <1-2 sentences summarizing outcome and who benefits>
 permalink: /<slug>
 tags: [keyword1, keyword2]
@@ -151,7 +152,7 @@ In this tutorial, you will [concrete outcome]. You will learn [skill or concept]
 ---
 type: how-to
 title: How to [specific goal]
-metaTitle: How to [specific goal] - JavaScript Data Grid | Handsontable
+metaTitle: How to [specific goal] | Handsontable DataGrid for JavaScript
 description: <1-2 sentences: what this achieves and when to use it>
 permalink: /<slug>
 tags: [keyword1, keyword2]
@@ -193,7 +194,7 @@ The ordered list under `## Steps` is rendered as a Starlight step list -- number
 ---
 type: reference
 title: [Component/API/option name]
-metaTitle: [Component/API name] - JavaScript Data Grid | Handsontable
+metaTitle: [Component/API name] | Handsontable DataGrid for JavaScript
 description: <1-2 sentences describing what this is>
 permalink: /<slug>
 tags: [keyword1, keyword2]
@@ -235,7 +236,7 @@ category: <nav category>
 ---
 type: explanation
 title: Understanding [concept]
-metaTitle: Understanding [concept] - JavaScript Data Grid | Handsontable
+metaTitle: Understanding [concept] | Handsontable DataGrid for JavaScript
 description: <1-2 sentences: why this concept matters and who should read this>
 permalink: /<slug>
 tags: [keyword1, keyword2]
@@ -358,7 +359,7 @@ Content for React only.
 ### Vue example rules
 
 - **Swapping in a new `data` array does not reload the grid.** The `@handsontable/vue3` `$props` watcher assumes data is synchronized by reference and deletes `data` from the update unless column modification is disallowed *and* the source column count changed. So an example that replaces its dataset (an import, a "load sample" button) gets new `colHeaders` and `columns` over the old rows, or over empty cells when the keys change. Remount the grid with `:key` bumped on every load, as `recipes/import-export/import-csv-excel/vue/example1.vue` does, or call `hotInstance.loadData()` through a template ref.
-- **Async results need no zone workaround.** Refs set after an `await` (a Web Worker, a `Promise` from a parser) re-render the template like any other change. Unlike Angular's `NgZone.run`, nothing extra is required.
+- **Async results need no zone workaround.** Refs set after an `await` (a Web Worker, a `Promise` from a parser) re-render the template like any other change. Angular needs the component marked dirty for the same write (`markForCheck()`, see the Angular rules above). Vue needs nothing extra.
 
 ### Angular component rules (standalone pattern)
 
@@ -380,6 +381,8 @@ All Angular docs examples use `standalone: true` bootstrapped via `bootstrapAppl
 - **Constructor DI**: Never inject services via the constructor. Use the `inject()` function instead -- constructors are not processed by Angular JIT without TypeScript decorator metadata.
 - **Lifecycle hooks**: Put `afterInit`, `afterChange`, and other Handsontable hook functions inside `gridSettings`, not as template event bindings (e.g., `(afterInit)="..."` fails in JIT mode).
 - **`@ViewChild`**: Safe to use. It is populated after the component view is initialized.
+- **No template-bound state in `ngAfterViewInit`**: Angular 22 makes components `OnPush` by default. A write nothing marks dirty (see the next bullet) is never rendered, and `ngAfterViewInit` is one such place: a field that an `@if` or binding reads stays stale, and a grid inside `@if (hotSettings)` never renders. Build `hotSettings` in `ngOnInit` (or a field initializer), and read the instance lazily inside callbacks (`this` in a hook, the first argument of a renderer). If the write needs the view, hold `ChangeDetectorRef` in a field (`private readonly cdr = inject(ChangeDetectorRef)`) and call `markForCheck()` after it.
+- **Mark the component dirty for template-bound state written outside an Angular event**: Angular 22 makes components `OnPush` by default (`onPush: changeDetection !== ChangeDetectionStrategy.Eager` in `@angular/core`). The zone still ticks, but it skips the root component unless something marked it dirty. A template event, an input change, or an `async` pipe marks it. A write made after an `await`, inside a `setTimeout`, or from a Handsontable callback (a hook or a shortcut action) does not, so the text, button state, or `@if` branch stays stale. `NgZone.run` changes nothing, because it only ticks the zone. The grid still renders, so the layout gate stays green. Inject `ChangeDetectorRef` and call `markForCheck()`. Outside the zone (a Handsontable callback, `ngAfterViewInit`) it schedules its own tick (`shouldScheduleTick()` in the Angular 22.2.2 scheduler), so no `detectChanges()` is needed there. Keep `detectChanges()` only where the view must render synchronously. Call it in a `finally`, when the method has one. A sync write in a click handler is unaffected. Check by loading the page and waiting, with no interaction.
 - **Control flow**: Use `@for`, `@if`, `@switch` (Angular 17+ built-in control flow). Do **not** use `*ngFor`, `*ngIf`, or `*ngSwitch` with structural directives — they require importing `NgFor`, `NgIf`, etc. from `@angular/common`, which is error-prone. The built-in control flow syntax requires no imports.
 - **Imports**: Only import symbols you actually use. Unused imports (e.g., `RowObject`, `ViewChild`, `NgFor`) can cause module resolution errors.
 - **`registerAllModules()` placement**: `app.config.ts` is the default home for it, but if `app.component.ts` reaches into a registry at module scope -- `getValidator('numeric')`, `getEditor('numeric')`, `getRenderer(...)` outside a function body -- call `registerAllModules()` at the top of `app.component.ts` instead. ES imports are hoisted, so the component module body runs before `app.config.ts` is ever evaluated, and the lookup throws `No registered validator found under "..." name`. Only the built-ins that core registers on import (for example the `text` editor) survive the wrong order, which is why the bug hides until an example uses a module-provided cell type.
@@ -404,6 +407,27 @@ export class AppComponent {
 }
 ```
 
+### Type-checking the examples (changed files only)
+
+CI type-checks the **JavaScript** (`javascript/*.ts`), **React** (`react/*.tsx`) and **Vue** (`vue/*.vue`) examples a pull request changes. Angular examples have their own job (`docs/angular-type-check`).
+
+- **Rule: base against head, per file.** Each changed example is compiled twice against the current core types (`handsontable/tmp`) and the wrapper sources: once as it is now, once as it was at the base revision. The base copy of the example's folder comes from the base revision too, so an edited or deleted sibling helper counts. Every example folder (one page, one framework) is its own program, so `declare global` blocks of different examples never merge. The errors are compared as a multiset of code and message shape, never by line, with the quoted names and types removed (`Parameter 'value' implicitly has an 'any' type` and the same error for `cellValue` are one error). Only errors the head has beyond the base fail. Many examples already carry errors (for example `TS2345` for `querySelector` returning `Element`, `TS2683` for `this`), and you can edit those files without fixing them, but you cannot add a second copy or a new kind. A new file has no base, so every error in it fails.
+- **Type the container.** In a `.ts` or `.tsx` example write `document.querySelector<HTMLElement>('#exampleN')!`. An untyped `querySelector` returns `Element | null`, so `new Handsontable(container, {...})` already fails on its first argument, and TypeScript then never checks the settings object. In an edited example that old error is tolerated, so **a mistake in the settings object of such an example passes the check**. Most existing JavaScript examples have the untyped container, and typing them is a separate mechanical change. In a new file the untyped container fails the check.
+- **Limits.** Fixing one error and adding another with the same code and message shape in the same file nets to zero. An unresolved import of an already-unresolved package that you newly add is flagged by count. A failing check also skips the docs preview deploy, the same as the Angular job. A core change with no example change is not checked, so a removed core export that an example imports breaks the example without failing this job. The shipped typings cannot catch a misspelled option key (the settings type has an index signature), an unknown React prop, or any prop binding on the Vue `HotTable` and `HotColumn`, so the check passes those. The check compiles against the ES version in `browser-targets.js` (`ES_TARGET`) and the Vite client types.
+- **It is not a full gate.** Many examples carry old errors, and `@handsontable/react-wrapper` resolves to the wrapper source, not to a published build. Do not turn the check into a whole-tree gate without a baseline decision.
+- **A tooling error is never a pass.** Any compiler or config error (`TS5xxx`, `TS6xxx`) exits with code 2, because `tsc` skips every semantic check after one.
+- **Run it locally.** Build the types once, then check your branch or explicit files:
+
+```bash
+npm run build:types --prefix handsontable
+npm run docs:type-check-content --prefix docs -- --base origin/develop
+npm run docs:type-check-content --prefix docs -- --files docs/content/guides/<area>/<page>/react/example1.tsx
+```
+
+  `--base <ref>` takes the files changed since the merge base, uncommitted and untracked edits included. `--files` takes explicit paths, resolved against the directory you ran `npm run` in, and compares them with `HEAD` (or with `--base`). A path that is not a checked example exits with code 2. Once an edit is committed, `--files` against `HEAD` sees no diff and prints a warning: pass `--base origin/develop` then. Add `--show-existing` to list the tolerated errors. The tools are `tsc` from `docs/` and `vue-tsc` from `wrappers/vue3`, both installed by the root `pnpm install`.
+- **A real fix, not a shim.** Type an import with no declarations with `// @ts-expect-error` above it, the same as in the Angular rule above. Never add a `declare module` shim for the check.
+- **Config gaps stay quiet.** Packages the check cannot resolve fail the same way at base and head, so they are tolerated in an edited file. In a new file they fail. Fix the import, or add the `// @ts-expect-error` line.
+
 ---
 
 ## 2.6 Frontmatter Schema
@@ -413,13 +437,13 @@ Required fields for all pages:
 ```yaml
 ---
 type: tutorial | how-to | reference | explanation   # Diátaxis type (required)
-title: Feature Name       # Matches H1; do NOT add H1 in body (Starlight renders title once)
-metaTitle: Feature Name - JavaScript Data Grid | Handsontable
+title: Feature name       # Matches H1; do NOT add H1 in body (Starlight renders title once)
+metaTitle: Feature name | Handsontable DataGrid for JavaScript
 description: Short SEO description (1-2 sentences)
 permalink: /feature-name
 tags: [keyword1, keyword2]  # Optional; kebab-case
 react:
-  metaTitle: Feature Name - React Data Grid | Handsontable
+  metaTitle: Feature name | Handsontable DataGrid for React
 searchCategory: Guides
 category: Cell features
 menuTag: new | updated    # Optional; sidebar badge -- see rule below
@@ -560,6 +584,7 @@ Copy and complete this checklist in your PR description:
 - [ ] Heading hierarchy is correct (no skipped levels, e.g., H2 → H4)
 - [ ] Headings and the frontmatter `title:` use sentence case
 - [ ] Active voice and second person ("you") used throughout
+- [ ] Where the page names the product, the first prose mention and `description:` say `Handsontable DataGrid`; later mentions, generic references, code, and API names keep `Handsontable`
 - [ ] No banned words: simply, just, easy, straightforward, note that, please
 - [ ] Tutorials and how-tos have a Prerequisites section
 - [ ] Tutorials have "What you learned" and "Next steps" sections
@@ -1003,3 +1028,12 @@ the same way – that is how the spec was proven red on the #13381 deploy and gr
 `.github/scripts/__tests__/docs-visual-baseline.test.mjs` pins the contract above against the config, the
 spec, the action, and the workflows.
 
+## 2.19 Plugin, Hooks, and BaseEditor API pages link to their guide
+
+`content/api/*.md` is generated (gitignored) by `npm run docs:api`, so a hand edit there is lost. A plugin API page, and the `Hooks` and `BaseEditor` pages, open with one line, right after `[[toc]]`: `See the [<guide title>](@/guides/...md) guide for examples and configuration details.` The renderer (`scripts/jsdoc-convert/renderer/renderer.mjs`) adds it from the `apiGuideLinks` map in `scripts/jsdoc-convert/apiGuideLinks.mjs`, and reads the title from the guide's frontmatter (DEV-2809, extended by DEV-3426).
+
+- **Add or change a link** by editing that map: `'<pluginName>.md': 'guides/<section>/<page>/<page>.md'`. A new plugin with a guide needs an entry; one without a guide gets none. One primary guide per page. A value is a path, or an array of paths when a feature has two real guides (`exportFile.md` has CSV and Excel); the renderer then writes one sentence per guide, so a single guide reads exactly as before. Do not also write a pointer to the same guide by hand in the class JSDoc of a mapped page (a `See ...` or `Read more ...` sentence, or a bullet that is only the link): the generated line is the one. A link with an anchor (`guide.md#section`), or a link inside a sentence about something else, is fine. The validator enforces this by scanning that class description (the block with `@class <Name>` in the plugin file; the first block of `core/hooks/constants.ts` for Hooks; `baseEditor.ts` for BaseEditor), so it fails in `npm run build` and in `docs:test:plugins`, which does not need `docs:api`. Class descriptions are not rendered into the generated page body, so the generated-page test cannot see them.
+- **Plugins, `Hooks`, and `BaseEditor`.** The map keys are plugin directories plus `hooks.md` and `baseEditor.md` (`NON_PLUGIN_API_PAGES` in the validator). `Core` is skipped, and `Options` already links a guide from each option. The other editors are not mapped. A plugin with no guide goes in `unmappedPlugins` (same module), so every plugin directory is either mapped or listed on purpose.
+- **The guide must be framework-neutral and have a `permalink`.** The loader builds every page that has a `permalink` for all four frameworks, so an `onlyFor` guide is not a dead link, but one API page serves every framework and the target would be missing from the other frameworks' navigation. A guide with no `permalink` is skipped by the loader, so its link would 404.
+- **The gate is `npm run docs:validate-api-guide-links`.** `npm run build` runs it before `docs:api`, so a renamed guide fails with a readable message instead of an ENOENT from the generator. Unit tests are in `scripts/__tests__/validate-api-guide-links.test.mjs`, run by `docs:test:plugins`. It fails on a missing guide, a guide with no title or permalink, a guide missing from the sidebar, an `onlyFor` guide (array or string), a key that is neither a plugin directory nor `hooks.md`/`baseEditor.md` (so `core.md` fails), an empty guide array, every guide of an array that breaks a rule above, an `unmappedPlugins` name that is not a plugin directory, and a plugin directory that is neither mapped nor listed. It reads the sources and `content/guides` only, so it does not need `docs:api` first. The test that checks the generated `content/api/*.md` skips until `docs:api` has run, and fails on a missing or stale page after that.
+- **Tooling, not content.** The map and the renderer are outside `docs/content/**`, so the docs sync does not port them to `prod-docs/*`. The line reaches the live site at the next prod-docs cut, or through a hand cherry-pick.

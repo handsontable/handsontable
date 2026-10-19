@@ -1,25 +1,25 @@
 ---
 title: Filtering and Search Recipes
-metaTitle: Filtering and Search Recipes - JavaScript Data Grid | Handsontable
+metaTitle: Filtering and Search Recipes | Handsontable DataGrid for JavaScript
 permalink: /recipes/filtering-search
 canonicalUrl: /recipes/filtering-search
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-description: Practical recipes for building external filtering and search interfaces with Handsontable.
+description: Practical recipes for building external filtering and search interfaces with Handsontable DataGrid.
 react:
-  metaTitle: Filtering and Search Recipes - React Data Grid | Handsontable
+  metaTitle: Filtering and Search Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Filtering and Search Recipes - Angular Data Grid | Handsontable
+  metaTitle: Filtering and Search Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Filtering and Search Recipes - Vue Data Grid | Handsontable
+  metaTitle: Filtering and Search Recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 
 ## Overview
 
-This section provides practical recipes for building external filtering and search workflows with Handsontable. Each recipe includes complete working examples with step-by-step implementation details.
+This section provides practical recipes for building external filtering and search workflows with Handsontable DataGrid. Each recipe includes complete working examples with step-by-step implementation details.
 
 ## Getting Started
 

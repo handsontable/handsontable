@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Formula calculation
-metaTitle: Formula calculation - JavaScript Data Grid | Handsontable
+metaTitle: Formula calculation | Handsontable DataGrid for JavaScript
 description: Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.
 permalink: /formula-calculation
 canonicalUrl: /formula-calculation
@@ -16,16 +16,16 @@ tags:
   - function
   - hyperformula
 react:
-  metaTitle: Formula calculation - React Data Grid | Handsontable
+  metaTitle: Formula calculation | Handsontable DataGrid for React
 angular:
-  metaTitle: Formula calculation - Angular Data Grid | Handsontable
+  metaTitle: Formula calculation | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Formula calculation - Vue Data Grid | Handsontable
+  metaTitle: Formula calculation | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Formulas
 menuTag: updated
 ---
-The `Formulas` plugin adds spreadsheet-style calculation to Handsontable, powered by [HyperFormula](https://hyperformula.handsontable.com/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
+The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://hyperformula.handsontable.com/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
 
 Filling formula cells with [autofill](@/guides/cell-features/autofill-values/autofill-values.md) adjusts relative references per target cell, the same way a spreadsheet application does. See [Autofill and formulas](@/guides/cell-features/autofill-values/autofill-values.md#autofill-and-formulas).
 
@@ -146,6 +146,12 @@ instance. Choose the pattern that matches your use case.
 
 HyperFormula is licensed separately from Handsontable. For how to set a HyperFormula license key,
 see [License HyperFormula](@/guides/formulas/installation/installation.md#license-hyperformula).
+
+::: tip
+
+Since Handsontable 18.0, HyperFormula is no longer installed with the `handsontable` npm package. Install it separately, and pass it to the `formulas.engine` option. For details, see [Install HyperFormula separately](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#install-hyperformula-separately).
+
+:::
 
 All patterns require importing HyperFormula:
 
@@ -692,6 +698,52 @@ With `hyperlinks` enabled, `=HYPERLINK("https://handsontable.com", "Handsontable
 `Handsontable` as a link that points to `https://handsontable.com`. When you omit the second
 argument, the URL becomes the label.
 
+The example below renders a column of company websites as links. Click a link, or select its cell and press <kbd>**Alt**</kbd>/<kbd>⌥</kbd>+<kbd>**Enter**</kbd>, to open it in a new tab:
+
+::: only-for javascript
+
+::: example #example-hyperlinks --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-hyperlinks.html)
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-hyperlinks.js)
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-hyperlinks.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example-hyperlinks :react --js 1 --ts 2
+
+@[code](@/content/guides/formulas/formula-calculation/react/example-hyperlinks.jsx)
+@[code](@/content/guides/formulas/formula-calculation/react/example-hyperlinks.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example-hyperlinks :angular --ts 1 --html 2
+
+@[code](@/content/guides/formulas/formula-calculation/angular/example-hyperlinks.ts)
+@[code](@/content/guides/formulas/formula-calculation/angular/example-hyperlinks.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example-hyperlinks :vue3
+
+@[code](@/content/guides/formulas/formula-calculation/vue/example-hyperlinks.vue)
+
+:::
+
+:::
+
 The cell keeps its own renderer. Handsontable wraps whatever the renderer produced in a link element,
 so a custom renderer, a [cell type](@/guides/cell-types/cell-type/cell-type.md), and the cell's
 configuration all keep working.
@@ -722,7 +774,7 @@ the URL that the formula produces, so a URL that comes from cell data is checked
 ### Keyboard access
 
 A link inside a cell stays out of the tab order, so tabbing still moves between cells. To open the
-link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. Links open where the `target` setting says, a new browser tab by default.
+link of the selected cell, press <kbd>**Alt**</kbd>/<kbd>⌥</kbd>+<kbd>**Enter**</kbd>. Links open where the `target` setting says, a new browser tab by default.
 
 ### Styling
 

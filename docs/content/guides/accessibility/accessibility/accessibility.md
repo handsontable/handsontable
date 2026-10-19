@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Accessibility
-metaTitle: Accessibility - JavaScript Data Grid | Handsontable
-description: Learn about Handsontable's accessibility features.
+metaTitle: Accessibility | Handsontable DataGrid for JavaScript
+description: Learn about Handsontable DataGrid's accessibility features.
 permalink: /accessibility
 canonicalUrl: /accessibility
 tags:
@@ -18,16 +18,16 @@ tags:
   - compliance
   - vpat
 react:
-  metaTitle: Accessibility - React Data Grid | Handsontable
+  metaTitle: Accessibility | Handsontable DataGrid for React
 angular:
-  metaTitle: Accessibility - Angular Data Grid | Handsontable
+  metaTitle: Accessibility | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Accessibility - Vue Data Grid | Handsontable
+  metaTitle: Accessibility | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessibility
 addedIn: "14.0.0"
 ---
-Handsontable supports keyboard navigation, screen readers, and ARIA roles. Use these steps to configure accessible behavior for your users.
+Handsontable DataGrid supports keyboard navigation, screen readers, and ARIA roles. Use these steps to configure accessible behavior for your users.
 
 Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by people with disabilities.
 

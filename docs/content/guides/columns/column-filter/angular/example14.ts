@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import Handsontable from 'handsontable';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 
@@ -16,6 +16,8 @@ import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
   `,
 })
 export class AppComponent {
+  private readonly cdr = inject(ChangeDetectorRef);
+
   rowCountInfo = '';
 
   readonly hotData = [
@@ -71,6 +73,8 @@ export class AppComponent {
         // `getData()` returns only the rows that pass the current filters
         // `getSourceData()` always returns every row, filtered or not
         this.rowCountInfo = `Showing ${hotInstance.getData().length} of ${hotInstance.getSourceData().length} rows.`;
+        // Nothing marks the OnPush-by-default component dirty here, so mark it.
+        this.cdr.markForCheck();
       }, 0);
     };
 

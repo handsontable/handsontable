@@ -1,18 +1,18 @@
 ---
 type: how-to
 title: Pinia state management
-metaTitle: Pinia state management - Vue 3 Data Grid | Handsontable
+metaTitle: Pinia state management | Handsontable DataGrid for JavaScript
 description: Use the Pinia store to maintain the data and configuration options of your Vue 3 data grid.
 permalink: /vue-pinia
 canonicalUrl: /vue-pinia
 vue:
-  metaTitle: Pinia state management - Vue Data Grid | Handsontable
+  metaTitle: Pinia state management | Handsontable DataGrid for Vue
 searchCategory: Guides
 onlyFor: vue
 category: Getting started
 ---
 
-Use [Pinia](https://pinia.vuejs.org/) -- the officially recommended state-management library for Vue 3 -- to manage your Handsontable data and settings.
+Use [Pinia](https://pinia.vuejs.org/) -- the officially recommended state-management library for Vue 3 -- to manage the current data and settings of Handsontable DataGrid.
 
 [[toc]]
 

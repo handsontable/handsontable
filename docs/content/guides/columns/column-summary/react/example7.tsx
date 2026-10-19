@@ -1,6 +1,6 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import { DetailedSettings } from 'handsontable/plugins/columnSummary';
+import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
 
 // register Handsontable's modules
 registerAllModules();
@@ -32,7 +32,7 @@ const ExampleComponent = () => {
       rowHeaders={true}
       colHeaders={['sum', 'min', 'max', 'count', 'average']}
       columnSummary={function () {
-        const configArray = [];
+        const configArray: SummaryEndpoint[] = [];
         const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
 
         for (let i = 0; i < this.hot.countCols(); i++) {
@@ -50,7 +50,7 @@ const ExampleComponent = () => {
           });
         }
 
-        return configArray as DetailedSettings[];
+        return configArray;
       }}
     />
   );

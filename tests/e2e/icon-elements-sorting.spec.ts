@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { IconElementsPage } from '../fixtures/pages/IconElementsPage';
 
 /**
@@ -11,7 +11,7 @@ import { IconElementsPage } from '../fixtures/pages/IconElementsPage';
  * stand-in at the glyph's own width. A tap on the arrow sorted, because the arrow was part of
  * the label.
  */
-test.describe('Icon elements: sort indicator 18.1 parity', () => {
+test.describe('Icon elements: sort indicator 18.1 parity', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test.describe('`headerAction: false`', () => {
     test('a column sorted through the API shows no indicator, keeps `aria-sort`, and a clickable column still shows one', async({
       page, theme, bundle,

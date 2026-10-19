@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FixedColumnsEndPage } from '../fixtures/pages/FixedColumnsEndPage';
 
 /**
@@ -15,7 +15,7 @@ const COLUMN_WIDTH = 72;
 for (const direction of ['ltr', 'rtl'] as const) {
   const rtl = direction === 'rtl';
 
-  test.describe(`fixedColumnsEnd and ManualColumnMove (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd and ManualColumnMove (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -66,7 +66,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
     });
   });
 
-  test.describe(`fixedColumnsEnd and ManualColumnMove, window scroll (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd and ManualColumnMove, window scroll (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     test('puts the guideline on the drop edge when the page scrolls and the grid has an offset in it', async ({
       page, theme, bundle,
     }) => {
@@ -91,7 +91,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
     });
   });
 
-  test.describe(`fixedColumnsEnd and ManualColumnResize (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd and ManualColumnResize (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -144,7 +144,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
     });
   });
 
-  test.describe(`fixedColumnsEnd and CustomBorders (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd and CustomBorders (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -181,7 +181,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
     });
   });
 
-  test.describe(`fixedColumnsEnd and UndoRedo (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd and UndoRedo (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {

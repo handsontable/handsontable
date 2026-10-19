@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
 import { CloneHolderScrollPage } from '../fixtures/pages/CloneHolderScrollPage';
 
 /**
@@ -9,7 +9,7 @@ import { CloneHolderScrollPage } from '../fixtures/pages/CloneHolderScrollPage';
  * happens. The grid has to make the conversion itself. Driven with real wheel input over the
  * element-scrolled grid of the clone-holder fixture.
  */
-test.describe('Shift + mouse wheel', { tag: CROSS_BROWSER_TAG }, () => {
+test.describe('Shift + mouse wheel', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   let grid: CloneHolderScrollPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

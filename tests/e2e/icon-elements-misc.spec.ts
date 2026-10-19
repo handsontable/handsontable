@@ -1,7 +1,7 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { IconElementsMiscPage } from '../fixtures/pages/IconElementsMiscPage';
 
-test.describe('icon elements - collapsible indicator with an external icon', () => {
+test.describe('icon elements - collapsible indicator with an external icon', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('an inline renderer glyph stays centered on the indicator', async({ page, theme, bundle }) => {
     const grid = new IconElementsMiscPage(page, theme, bundle);
 
@@ -24,7 +24,7 @@ test.describe('icon elements - collapsible indicator with an external icon', () 
   });
 });
 
-test.describe('icon elements - pagination under forced colors', () => {
+test.describe('icon elements - pagination under forced colors', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('re-enabled first/prev buttons paint the enabled border, not the disabled one', async({
     page, theme, bundle,
   }) => {
@@ -68,7 +68,7 @@ test.describe('icon elements - pagination under forced colors', () => {
   });
 });
 
-test.describe('icon elements - sheets-bar all-sheets menu', () => {
+test.describe('icon elements - sheets-bar all-sheets menu', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('the active-sheet mark stays on the menu inline end for a right-to-left sheet name', async({
     page, theme, bundle,
   }) => {

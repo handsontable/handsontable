@@ -6,7 +6,7 @@ registerAllModules();
 
 const container = document.querySelector('#example4')!;
 
-new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', 'Drinkware', 'Seattle'],
     ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', 'Electronics', 'Denver'],
@@ -22,4 +22,12 @@ new Handsontable(container, {
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
+});
+
+// Demonstrates ManualRowResize#clearManualSizes(): drag the bottom edge of a row header
+// to resize a row, then click this button to drop the dragged heights.
+const clearSizesButton = document.querySelector('#example4-clearSizes')!;
+clearSizesButton.addEventListener('click', () => {
+  hot.getPlugin('manualRowResize').clearManualSizes();
+  hot.render();
 });

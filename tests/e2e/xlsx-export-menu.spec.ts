@@ -1,5 +1,5 @@
 import ExcelJS from 'exceljs';
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxExportMenuPage } from '../fixtures/pages/XlsxExportMenuPage';
 
 /**
@@ -8,7 +8,7 @@ import { XlsxExportMenuPage } from '../fixtures/pages/XlsxExportMenuPage';
  * the export options it builds from the selection, passed every other test.
  */
 for (const engine of ['exceljs', 'native'] as const) {
-  test.describe(`Export > To Excel (${engine})`, () => {
+  test.describe(`Export > To Excel (${engine})`, { tag: BUNDLES_TAG }, () => {
     test('downloads the selected rows as a workbook with the header row and the frozen pane', async ({
       page, theme, bundle,
     }) => {

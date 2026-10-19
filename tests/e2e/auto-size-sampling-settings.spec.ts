@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { AutoSizeSamplingSettingsPage } from '../fixtures/pages/AutoSizeSamplingSettingsPage';
 
 /**
@@ -18,7 +18,7 @@ import { AutoSizeSamplingSettingsPage } from '../fixtures/pages/AutoSizeSampling
  * the only text that wraps. All of it is content-driven geometry, which reads as zero in jsdom, so
  * it can only be checked in a real browser.
  */
-test.describe('Auto-size sampling settings through updateSettings()', () => {
+test.describe('Auto-size sampling settings through updateSettings()', { tag: THEMES_TAG }, () => {
   let grid: AutoSizeSamplingSettingsPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

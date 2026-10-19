@@ -1,7 +1,7 @@
 ---
 title: Sync rows to a Chart.js chart
-metaTitle: Sync selected rows to a Chart.js chart - JavaScript Data Grid | Handsontable
-description: Learn how to sync selected rows from a Handsontable grid to a Chart.js bar chart in real time using the afterSelectionEnd hook.
+metaTitle: Sync selected rows to a Chart.js chart | Handsontable DataGrid for JavaScript
+description: Learn how to sync selected rows from Handsontable DataGrid to a Chart.js bar chart in real time using the afterSelectionEnd hook.
 permalink: /recipes/real-time/chartjs-sync
 canonicalUrl: /recipes/real-time/chartjs-sync
 tags:
@@ -11,17 +11,17 @@ tags:
   - selection
   - real-time
 react:
-  metaTitle: Sync selected rows to a Chart.js chart - React Data Grid | Handsontable
+  metaTitle: Sync selected rows to a Chart.js chart | Handsontable DataGrid for React
 angular:
-  metaTitle: Sync selected rows to a Chart.js chart - Angular Data Grid | Handsontable
+  metaTitle: Sync selected rows to a Chart.js chart | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Sync selected rows to a Chart.js chart - Vue Data Grid | Handsontable
+  metaTitle: Sync selected rows to a Chart.js chart | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Real-time and Integrations
 type: how-to
 ---
 
-In this tutorial, you will sync selected rows from a Handsontable grid to a Chart.js bar chart in real time. You will learn how to use `afterSelectionEnd` and `afterDeselect` hooks to read the current selection and update the chart without destroying and recreating it.
+In this tutorial, you will sync selected rows from Handsontable DataGrid to a Chart.js bar chart in real time. You will learn how to use `afterSelectionEnd` and `afterDeselect` hooks to read the current selection and update the chart without destroying and recreating it.
 
 ::: only-for javascript vue
 
@@ -194,7 +194,7 @@ The function uses a `Set` to collect unique row indices. This prevents duplicate
 
 Assigning new arrays to `chart.data.labels` and `chart.data.datasets[i].data` then calling `chart.update()` is the recommended Chart.js pattern for in-place updates. It avoids the cost of destroying and recreating the chart instance.
 
-## Step 5: Initialize Handsontable with `selectionMode: 'range'`
+## Step 5: Initialize Handsontable DataGrid with `selectionMode: 'range'`
 
 ```javascript
 const hot = new Handsontable(container, {

@@ -51,7 +51,7 @@ jobs:
     # run. The approval (who, when, optional comment) is the recorded
     # sign-off — on the run page and via the deployment reviews API.
     environment: manual-qa
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       # Fail CLOSED on configuration drift. Reaching this step is NOT proof a
       # human approved: a missing environment is auto-created UNPROTECTED, and

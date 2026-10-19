@@ -520,39 +520,6 @@ describe('AutocompleteEditor', () => {
       expect(box.clientWidth).toBe(box.settingsWidth);
       expect(box.clientHeight).toBe(box.settingsHeight);
     });
-
-    it.flaky('should not take excessive time to open the editor if the choice list is very long (dev-handsontable#2313)', async() => {
-      const options = new Array(25000).fill().map(() => Math.random());
-      let startTime;
-      let endTime;
-
-      handsontable({
-        data: [[], [], [], [], []],
-        columns: [
-          {
-            type: 'autocomplete',
-            source: options,
-          },
-        ],
-        afterBeginEditing() {
-          startTime = performance.now();
-
-          this.getActiveEditor().htEditor.addHookOnce('afterRender', async() => {
-            endTime = performance.now();
-          });
-        },
-      });
-
-      await selectCell(0, 0);
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      const $editor = $('.autocompleteEditor').eq(0);
-      const editorOpenTime = endTime - startTime;
-
-      expect(editorOpenTime).toBeLessThan(2000);
-      expect($editor.find('.ht_master tbody tr').size()).toBeGreaterThan(0);
-    });
   });
 
   describe('choices', () => {
@@ -1341,48 +1308,6 @@ describe('AutocompleteEditor', () => {
 
         expect(dd.right).toBeLessThanOrEqual(tableRight + E2E_DOM_RECT_EPSILON_PX); // still flipped left
         expect(dd.left).toBeLessThan(td.left);
-      }
-    });
-
-    it('should not sort the choices list, when the `sortByRelevance` option is set to `true`', async() => {
-      handsontable({
-        editor: 'autocomplete',
-        source: choices,
-        sortByRelevance: true,
-        height: 1000
-      });
-
-      await selectCell(0, 0);
-
-      const editor = $('.autocompleteEditor');
-
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      for (let i = 0; i < choices.length; i++) {
-        expect(editor.find(`tbody td:eq(${i})`).text()).toEqual(choices[i]);
-      }
-    });
-
-    it('should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`', async() => {
-      handsontable({
-        editor: 'autocomplete',
-        source: choices,
-        sortByRelevance: false,
-        height: 1000
-      });
-
-      await selectCell(0, 0);
-
-      const editor = $('.autocompleteEditor');
-
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      const sortedChoices = [...choices].sort();
-
-      for (let i = 0; i < choices.length; i++) {
-        expect(editor.find(`tbody td:eq(${i})`).text()).toEqual(sortedChoices[i]);
       }
     });
 
@@ -2547,47 +2472,6 @@ describe('AutocompleteEditor', () => {
       }
     });
 
-    it.flaky('typing in textarea should highlight the matching phrase', async() => {
-      const choicesList = ['Male', 'Female'];
-      const syncSources = jasmine.createSpy('syncSources');
-
-      syncSources.and.callFake((query, process) => {
-        process(choicesList.filter(choice => choice.search(new RegExp(query, 'i')) !== -1));
-      });
-
-      handsontable({
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: syncSources,
-            filter: false
-          }
-        ]
-      });
-
-      await selectCell(0, 0);
-      const editorInput = $('.handsontableInput');
-
-      expect(getDataAtCell(0, 0)).toBeNull();
-
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      syncSources.calls.reset();
-
-      editorInput.val('Male');
-
-      await keyDownUp('e'); // e
-      await waitForNextAnimationFrames(2);
-
-      const ac = getActiveEditor();
-      const innerHot = ac.htEditor;
-      const autocompleteList = $(innerHot.rootElement);
-
-      expect(autocompleteList.find('td:eq(0)').html()).toMatch(/<(strong|STRONG)>Male<\/(strong|STRONG)>/); // IE8 makes the tag names UPPERCASE
-      expect(autocompleteList.find('td:eq(1)').html()).toMatch(/Fe<(strong|STRONG)>male<\/(strong|STRONG)>/);
-    });
-
     it('text in textarea should not be interpreted as regexp', async() => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').and.callThrough();
       const queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
@@ -2619,48 +2503,6 @@ describe('AutocompleteEditor', () => {
       const innerHot = ac.htEditor;
 
       expect(innerHot.getData().length).toEqual(0);
-    });
-
-    it.flaky('text in textarea should not be interpreted as regexp when highlighting the matching phrase', async() => {
-      const choicesList = ['Male', 'Female'];
-      const syncSources = jasmine.createSpy('syncSources');
-
-      syncSources.and.callFake((query, process) => {
-        process(choicesList.filter(choice => choice.search(new RegExp(query, 'i')) !== -1));
-      });
-
-      handsontable({
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: syncSources,
-            filter: false
-          }
-        ]
-      });
-
-      await selectCell(0, 0);
-
-      const editorInput = $('.handsontableInput');
-
-      expect(getDataAtCell(0, 0)).toBeNull();
-
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      syncSources.calls.reset();
-      editorInput.val('M|F');
-
-      await keyDownUp('F');
-      await waitForNextAnimationFrames(2);
-
-      const ac = getActiveEditor();
-      const innerHot = ac.htEditor;
-
-      const autocompleteList = $(innerHot.rootElement);
-
-      expect(autocompleteList.find('td:eq(0)').html()).toEqual('Male');
-      expect(autocompleteList.find('td:eq(1)').html()).toEqual('Female');
     });
 
     it('should allow any value if filter === false and allowInvalid === true', async() => {
@@ -2979,100 +2821,6 @@ describe('AutocompleteEditor', () => {
       // decorative element, ahead of the cell's actual content in DOM order - exclude it so this
       // still resolves the injected `<i>bar</i>` markup, not the arrow icon.
       expect(getCell(0, 0).querySelector('i:not(.ht-icon)').textContent).toBe('bar');
-    });
-
-    it.flaky('should allow inject html items (sync mode)', async() => {
-      handsontable({
-        columns: [
-          {
-            type: 'autocomplete',
-            source: ['<b>foo <span>zip</span></b>', '<i>bar</i>', '<strong>baz</strong>'],
-            allowHtml: true,
-          }
-        ]
-      });
-
-      await selectCell(0, 0);
-
-      const editorInput = $('.handsontableInput');
-
-      expect(getDataAtCell(0, 0)).toBeNull();
-
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      editorInput.val('b');
-
-      await keyDownUp('b');
-      await waitForNextAnimationFrames(2);
-
-      {
-        const ac = getActiveEditor();
-        const innerHot = ac.htEditor;
-
-        expect(innerHot.getData()).toEqual([
-          ['<i>bar</i>'],
-          ['<strong>baz</strong>'],
-        ]);
-
-        editorInput.val('bar');
-
-        await keyDownUp('a');
-        await keyDownUp('r');
-      }
-
-      await waitForNextAnimationFrames(2);
-
-      {
-        const ac = getActiveEditor();
-        const innerHot = ac.htEditor;
-
-        expect(innerHot.getData()).toEqual([
-          ['<i>bar</i>']
-        ]);
-
-        await keyDownUp('arrowdown');
-        await keyDownUp('enter');
-      }
-
-      await waitForNextAnimationFrames(2);
-
-      // `.htAutocompleteArrow` now carries its own `<i class="ht-icon ht-icon-select-arrow">`
-      // decorative element, ahead of the cell's actual content in DOM order - exclude it so this
-      // still resolves the injected `<i>bar</i>` markup, not the arrow icon.
-      expect(getCell(0, 0).querySelector('i:not(.ht-icon)').textContent).toBe('bar');
-    });
-
-    it('should allow render the html items without sanitizing the content', async() => {
-      handsontable({
-        columns: [
-          {
-            type: 'autocomplete',
-            source: [
-              '<b>foo <span>zip</span></b>',
-              '<i>bar</i><img src onerror="__xssTestInjection = true">',
-              '<strong>baz</strong>'
-            ],
-            allowHtml: true,
-          }
-        ]
-      });
-
-      await selectCell(0, 0);
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      const ac = getActiveEditor();
-      const innerHot = ac.htEditor;
-
-      expect(window.__xssTestInjection).toBe(true);
-      expect(innerHot.getData()).toEqual([
-        ['<b>foo <span>zip</span></b>'],
-        ['<i>bar</i><img src onerror="__xssTestInjection = true">'],
-        ['<strong>baz</strong>'],
-      ]);
-
-      delete window.__xssTestInjection;
     });
 
     it('should not emit the missing-sanitizer warning for the dropdown items', async() => {

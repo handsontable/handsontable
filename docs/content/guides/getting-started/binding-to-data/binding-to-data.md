@@ -1,8 +1,8 @@
 ---
 type: tutorial
 title: Binding to data
-metaTitle: Binding to data - JavaScript Data Grid | Handsontable
-description: Use Handsontable's configuration options or API methods to fill your data grid with various data structures, including an array of arrays or an array of objects.
+metaTitle: Binding to data | Handsontable DataGrid for JavaScript
+description: Use Handsontable DataGrid's configuration options or API methods to fill your data grid with various data structures, including an array of arrays or an array of objects.
 permalink: /binding-to-data
 canonicalUrl: /binding-to-data
 tags:
@@ -10,11 +10,11 @@ tags:
   - data connect
   - data sources
 react:
-  metaTitle: Binding to data - React Data Grid | Handsontable
+  metaTitle: Binding to data | Handsontable DataGrid for React
 angular:
-  metaTitle: Binding to data - Angular Data Grid | Handsontable
+  metaTitle: Binding to data | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Binding to data - Vue Data Grid | Handsontable
+  metaTitle: Binding to data | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
 menuTag: updated
@@ -170,7 +170,7 @@ An array of objects can be used as a data source as follows:
 
 :::
 
-If your data arrives as a JSON string (for example, from an API response), parse it with `JSON.parse()` into an array of objects before passing it to Handsontable -- the resulting structure matches the array of objects shown above.
+If your data arrives as a JSON string (for example, from an API response), parse it with `JSON.parse()` into an array of objects before passing it to Handsontable DataGrid -- the resulting structure matches the array of objects shown above.
 
 To combine an array-of-objects data source with a custom cell renderer, a checkbox cell type, and currency-formatted numeric columns, see the [built-in cell types example](@/guides/cell-types/cell-type/cell-type.md#built-in-cell-types-example) and [format numbers](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md#format-numbers) sections.
 

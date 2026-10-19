@@ -216,6 +216,8 @@ export class ResizeGesture {
     eventManager.addEventListener(rootWindow, 'mousemove', this.#onMouseMove);
     eventManager.addEventListener(rootWindow, 'mouseup', this.#onMouseUp);
     eventManager.addEventListener(this.#handle, 'contextmenu', this.#onContextMenu);
+    this.#hot.addHook('afterUndo', this.#onHistoryRestored);
+    this.#hot.addHook('afterRedo', this.#onHistoryRestored);
   }
 
   /**
@@ -267,6 +269,15 @@ export class ResizeGesture {
     this.#handle.remove();
     this.#guide.remove();
     this.#closeStep();
+  }
+
+  /**
+   * Removes the undo and redo listeners and detaches the handle and the guide.
+   */
+  destroy() {
+    this.#hot.removeHook('afterUndo', this.#onHistoryRestored);
+    this.#hot.removeHook('afterRedo', this.#onHistoryRestored);
+    this.detach();
   }
 
   /**
@@ -509,7 +520,31 @@ export class ResizeGesture {
     this.#handle.style[this.#alongProp()] = `${this.#startOffset + this.#startRenderedSize}px`;
     this.#handle.style[this.#acrossProp()] = `${acrossOffset}px`;
     this.#handle.style[this.#acrossExtentProp()] = `${headerAcrossSize}px`;
+    this.#markFrozenEdge(this.#currentIndex);
     this.#hot.rootElement.appendChild(this.#handle);
+  }
+
+  /**
+   * Marks the handle when the edge it sits on is the edge of a frozen band: `--freeze-before` when the band ends
+   * there (the first rows or columns), `--freeze-after` when it starts there (the last ones). The marks only
+   * describe the grid; a stylesheet that draws something on the frozen edge uses them to keep the handle clear
+   * of it.
+   *
+   * @param {number} visualIndex The visual index of the header the handle belongs to.
+   */
+  #markFrozenEdge(visualIndex: number) {
+    const hot = this.#hot;
+    const vertical = this.#isVertical();
+    // the number of tracks before the edge the handle sits on
+    const tracksBefore = this.#anchoredAtInlineEnd ? visualIndex : visualIndex + 1;
+    const total = vertical ? hot.countRows() : hot.countCols();
+    // The bands the grid DRAWS: with `limitFixedToViewport` they can be smaller than the configured counts, and a
+    // freeze bar sits on the drawn line.
+    const before = vertical ? hot.view.countFixedRowsTop() : hot.view.countFixedColumnsStart();
+    const after = vertical ? hot.view.countFixedRowsBottom() : hot.view.countFixedColumnsEnd();
+
+    this.#handle.classList.toggle('ht-resize-handle--freeze-before', !!before && tracksBefore === before);
+    this.#handle.classList.toggle('ht-resize-handle--freeze-after', !!after && tracksBefore === total - after);
   }
 
   /**
@@ -595,6 +630,27 @@ export class ResizeGesture {
   }
 
   /**
+   * Repositions the attached handle from the header it belongs to.
+   */
+  #onHistoryRestored = () => {
+    // The press holds an empty undo step, so undo stays available. Rebuilding the snapshot
+    // here would make the next mousemove apply the original pointer delta to the new size.
+    if (this.#pressed || !this.#handle.isConnected) {
+      return;
+    }
+
+    // Undo can remove the hovered header. Positioning then returns early and the handle
+    // stays over the empty space where that header was.
+    if (this.#currentTH === null || !this.#currentTH.isConnected) {
+      this.detach();
+
+      return;
+    }
+
+    this.#setupHandlePosition(this.#currentTH);
+  };
+
+  /**
    * "mouseover" listener – positions the handle over the hovered header.
    *
    * @param {MouseEvent} event The mouse event.
@@ -652,6 +708,8 @@ export class ResizeGesture {
       this.#dblclick += 1;
       this.#startPointer = this.#readPointer(event);
       this.#newSize = this.#startSize;
+      // A handle press never reaches `onCellMouseDown`, which is what listens for a header TH.
+      this.#hot.listen();
     }
   };
 

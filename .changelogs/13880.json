@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Hid the fill handle when the selection consists of more than one range (a non-contiguous selection), so a drag can no longer fill from the last range alone and ignore the others.",
+  "type": "fixed",
+  "issueOrPR": 13880,
+  "breaking": false,
+  "framework": "none"
+}

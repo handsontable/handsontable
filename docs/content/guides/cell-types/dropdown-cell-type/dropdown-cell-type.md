@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Dropdown cell type
-metaTitle: Dropdown cell type - JavaScript Data Grid | Handsontable
+metaTitle: Dropdown cell type | Handsontable DataGrid for JavaScript
 description: Collect user input with a searchable list of choices, by using the dropdown cell type.
 permalink: /dropdown-cell-type
 canonicalUrl: /dropdown-cell-type
@@ -11,11 +11,11 @@ tags:
   - autocomplete
   - key value
 react:
-  metaTitle: Dropdown cell type - React Data Grid | Handsontable
+  metaTitle: Dropdown cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Dropdown cell type - Angular Data Grid | Handsontable
+  metaTitle: Dropdown cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Dropdown cell type - Vue Data Grid | Handsontable
+  metaTitle: Dropdown cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
@@ -105,7 +105,7 @@ Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocompl
 
 The `source` option can be provided in two formats:
 
-You can also assign a function to load the options from a remote source, as described in [Autocomplete strict mode with asynchronous data](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode-with-asynchronous-data). Handsontable ignores a response that arrives after the editor closed - including a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer query has superseded, which happens as you type. Call the callback whenever the request completes, even late.
+You can also assign a function to load the options from a remote source, as described in [Autocomplete strict mode with asynchronous data](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode-with-asynchronous-data). Handsontable DataGrid ignores a response that arrives after the editor closed - including a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer query has superseded, which happens as you type. Call the callback whenever the request completes, even late.
 
 ### Array of values
 

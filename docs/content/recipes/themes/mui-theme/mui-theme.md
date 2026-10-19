@@ -1,8 +1,8 @@
 ---
 type: how-to
-title: Handsontable with MUI
-metaTitle: Handsontable with MUI - JavaScript Data Grid | Handsontable
-description: Integrate Handsontable into a React app with MUI so your grid follows Material UI colors, typography, and spacing.
+title: Handsontable DataGrid with MUI
+metaTitle: MUI theme | Handsontable DataGrid for JavaScript
+description: Integrate Handsontable DataGrid into a React app with MUI so your grid follows Material UI colors, typography, and spacing.
 permalink: /recipes/themes/mui-theme
 canonicalUrl: /recipes/themes/mui-theme
 tags:
@@ -16,16 +16,16 @@ tags:
   - themes
   - Theme API
 react:
-  metaTitle: Handsontable with MUI - React Data Grid | Handsontable
+  metaTitle: MUI theme | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with MUI - Angular Data Grid | Handsontable
+  metaTitle: MUI theme | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Handsontable with MUI - Vue Data Grid | Handsontable
+  metaTitle: MUI theme | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Themes
 ---
 
-This tutorial shows you how to integrate Handsontable into a React app that uses MUI, registering a custom theme that maps MUI palette values to Handsontable colors and tokens.
+This tutorial shows you how to integrate Handsontable DataGrid into a React app that uses MUI, registering a custom theme that maps MUI palette values to Handsontable colors and tokens.
 
 <iframe src="https://demos.handsontable.com/embed/2n1i1s6572"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -65,7 +65,7 @@ In your project root:
 npm install handsontable @handsontable/react-wrapper @mui/material @emotion/react @emotion/styled
 ```
 
-## Step 2: Register Handsontable modules
+## Step 2: Register Handsontable DataGrid modules
 
 Register Handsontable modules once in your grid module:
 
@@ -114,7 +114,7 @@ export function createHandsontableMuiColors(theme: Theme) {
 }
 ```
 
-## Step 4: Register your MUI Handsontable theme
+## Step 4: Register your MUI Handsontable DataGrid theme
 
 Register a custom Handsontable theme that uses your mapped colors and Horizon tokens.
 
@@ -232,6 +232,6 @@ You registered a custom Handsontable theme that maps MUI palette values to Hands
 
 ## Next steps
 
-- [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) - The same pattern using shadcn CSS variables and Lucide icons.
-- [Handsontable with Base Web](@/recipes/themes/base-theme/base-theme.md) - The same pattern using Base Web design tokens.
+- [Handsontable DataGrid with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) - The same pattern using shadcn CSS variables and Lucide icons.
+- [Handsontable DataGrid with Base Web](@/recipes/themes/base-theme/base-theme.md) - The same pattern using Base Web design tokens.
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Full reference for Theme API parameters and CSS variables.

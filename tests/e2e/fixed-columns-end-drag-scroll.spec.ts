@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FixedColumnsEndPage } from '../fixtures/pages/FixedColumnsEndPage';
 
 /**
@@ -18,7 +18,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
   const rowHeaderSide = rtl ? 'right' : 'left';
   const oppositeSide = rtl ? 'left' : 'right';
 
-  test.describe(`DragToScroll with row headers (${direction})`, { tag: '@core' }, () => {
+  test.describe(`DragToScroll with row headers (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {

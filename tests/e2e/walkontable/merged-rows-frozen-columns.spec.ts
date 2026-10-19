@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures/test';
+import { test, expect, THEMES_TAG } from '../../fixtures/test';
 import { MergedCellsFrozenColumnsPage } from '../../fixtures/pages/MergedCellsFrozenColumnsPage';
 
 /**
@@ -12,7 +12,7 @@ import { MergedCellsFrozenColumnsPage } from '../../fixtures/pages/MergedCellsFr
  * The grid below is the reported shape: no row headers, two frozen top rows, frozen columns holding
  * two-row blocks, and a one-row block among the two-row blocks of the scrollable columns.
  */
-test.describe('row heights of merged rows next to frozen columns', { tag: '@walkontable' }, () => {
+test.describe('row heights of merged rows next to frozen columns', { tag: ['@walkontable', THEMES_TAG] }, () => {
   let grid: MergedCellsFrozenColumnsPage;
 
   const ROWS = [0, 1, 2, 3, 4];

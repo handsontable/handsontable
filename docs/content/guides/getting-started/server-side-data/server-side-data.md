@@ -1,7 +1,7 @@
 ---
 type: tutorial
 title: Server-side data
-metaTitle: Server-side data - JavaScript Data Grid | Handsontable
+metaTitle: Server-side data | Handsontable DataGrid for JavaScript
 description: Load paged data with Handsontable DataProvider -- fetchRows, CRUD callbacks, migration from client-side arrays, pagination, sorting, filters, REST and GraphQL examples, and a JavaScript monorepo project with two Node servers.
 permalink: /server-side-data
 canonicalUrl: /server-side-data
@@ -11,16 +11,16 @@ tags:
   - pagination
   - REST
 react:
-  metaTitle: Server-side data - React Data Grid | Handsontable
+  metaTitle: Server-side data | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side data - Angular Data Grid | Handsontable
+  metaTitle: Server-side data | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side data - Vue Data Grid | Handsontable
+  metaTitle: Server-side data | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
 addedIn: "17.1.0"
 ---
-Use the [`dataProvider`](@/api/options.md#dataprovider) option so Handsontable loads row data from your backend instead of keeping the full dataset in the browser. The grid stays aligned with paging, column sorting, and (optionally) column filters that run on the server. The same configuration wires **create**, **update**, and **remove** to your API. When the `dataProvider` object is **complete** (all required keys valid), Handsontable ignores a static [`data`](@/api/options.md#data) array and loads rows only through `fetchRows`. If you still pass a `data` array with a complete provider, Handsontable logs a console warning that `data` is ignored.
+Use the [`dataProvider`](@/api/options.md#dataprovider) option so Handsontable DataGrid loads row data from your backend instead of keeping the full dataset in the browser. The grid stays aligned with paging, column sorting, and (optionally) column filters that run on the server. The same configuration wires **create**, **update**, and **remove** to your API. When the `dataProvider` object is **complete** (all required keys valid), Handsontable ignores a static [`data`](@/api/options.md#data) array and loads rows only through `fetchRows`. If you still pass a `data` array with a complete provider, Handsontable logs a console warning that `data` is ignored.
 
 [[toc]]
 

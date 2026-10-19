@@ -220,6 +220,8 @@ interface HandsontableFactory {
     NestedRows: typeof import('./plugins/nestedRows').NestedRows;
     Notification: typeof import('./plugins/notification').Notification;
     Pagination: typeof import('./plugins/pagination').Pagination;
+    RowSelection: typeof import('./plugins/rowSelection').RowSelection;
+    CheckboxHeader: typeof import('./plugins/checkboxHeader').CheckboxHeader;
     Search: typeof import('./plugins/search').Search;
     SelectionHandles: typeof import('./plugins/selectionHandles').SelectionHandles;
     StretchColumns: typeof import('./plugins/stretchColumns').StretchColumns;
@@ -327,6 +329,38 @@ declare namespace Handsontable {
   export type CellChange = CellChangeType;
   export type ChangeSource = ChangeSourceType;
   export type RowObject = RowObjectType;
+  export type Events = import('./core/settings').Events;
+  export type HotInstance = import('./core/types').HotInstance;
+  export type RangeType = import('./core/types').RangeType;
+  export type OverlayType = import('./3rdparty/walkontable/src/types').OverlayType;
+  export type BaseEditorInstance = import('./editors/baseEditor/baseEditor').BaseEditor;
+  export type HooksRegistry = import('./base').HooksRegistry;
+  export type CellCoords = import('./3rdparty/walkontable/src').CellCoords;
+  export type CellRange = import('./3rdparty/walkontable/src').CellRange;
+  export type IndexMapper = import('./translations').IndexMapper;
+  export type SourceRowData = import('./settings').SourceRowData;
+  export type ColumnDataGetterSetterFunction = import('./settings').ColumnDataGetterSetterFunction;
+  export type SelectOptionsObject = import('./settings').SelectOptionsObject;
+  export type RemoveIndexSignature<T> = import('./settings').RemoveIndexSignature<T>;
+  export type OmitHooks<T> = import('./settings').OmitHooks<T>;
+  export type CellType = import('./cellTypes/registry').CellType;
+  export type EditorType = import('./editors/registry').EditorType;
+  export type RendererType = import('./renderers/registry').RendererType;
+  export type ValidatorType = import('./validators/registry').ValidatorType;
+  export type BaseTheme = import('./themes').BaseTheme;
+  export type DensityType = import('./themes').DensityType;
+  export type ThemeBuilder = import('./themes').ThemeBuilder;
+  export type ThemeColorScheme = import('./themes').ThemeColorScheme;
+  export type ThemeColorsConfig = import('./themes').ThemeColorsConfig;
+  export type ThemeConfig = import('./themes').ThemeConfig;
+  export type ThemeDensityConfig = import('./themes').ThemeDensityConfig;
+  export type ThemeDensitySizes = import('./themes').ThemeDensitySizes;
+  export type ThemeIconsConfig = import('./themes').ThemeIconsConfig;
+  export type ThemeLightDarkValue = import('./themes').ThemeLightDarkValue;
+  export type ThemeParams = import('./themes').ThemeParams;
+  export type ThemeSizingConfig = import('./themes').ThemeSizingConfig;
+  export type ThemeTokenValue = import('./themes').ThemeTokenValue;
+  export type ThemeTokensConfig = import('./themes').ThemeTokensConfig;
 
   export namespace editors {
     export type AutocompleteEditor = import('./editors/autocompleteEditor').AutocompleteEditor;
@@ -452,6 +486,14 @@ declare namespace Handsontable {
     export type NestedRows = import('./plugins/nestedRows').NestedRows;
     export type Notification = import('./plugins/notification').Notification;
     export type Pagination = import('./plugins/pagination').Pagination;
+    export type RowSelection = import('./plugins/rowSelection').RowSelection;
+    export namespace RowSelection {
+      export type Settings = import('./plugins/rowSelection').RowSelectionSettings;
+      export type BoundColumn = import('./plugins/rowSelection').RowSelectionBoundColumn;
+      export type GroupSelects = import('./plugins/rowSelection').RowSelectionGroupSelects;
+      export type ServerSelection = import('./plugins/rowSelection').ServerRowSelection;
+    }
+    export type CheckboxHeader = import('./plugins/checkboxHeader').CheckboxHeader;
     export type Search = import('./plugins/search').Search;
     export type SelectionHandles = import('./plugins/selectionHandles').SelectionHandles;
     export type StretchColumns = import('./plugins/stretchColumns').StretchColumns;

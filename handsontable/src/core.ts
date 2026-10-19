@@ -61,6 +61,8 @@ import {
   isSizeLowered,
   type MinimumSizes,
 } from './core/minimumSizes';
+import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
+import { isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
 import {
@@ -329,7 +331,7 @@ const FROZEN_COUNT_OPTIONS = new Set([
  * @class Core
  * @description
  *
- * The `Handsontable` class (known as the `Core`) lets you modify the grid's behavior by using Handsontable's public API methods.
+ * The `Handsontable` class (known as the `Core`) lets you modify the grid's behavior by using Handsontable DataGrid's public API methods.
  *
  * ::: only-for react
  * To use these methods, associate a Handsontable instance with your instance
@@ -1633,11 +1635,21 @@ export default function Core(
             } = datamap.createCol(colIndex, amount, { source, mode: insertColumnMode });
 
             if (colDelta) {
+              // `getColHeader()` reads the array by the physical index, so the empty entries go in at the
+              // physical index the created column takes, the same as `colWidths` below. The array is changed
+              // in place, because the user holds it and UndoRedo refills it in place.
               if (Array.isArray(tableMeta.colHeaders)) {
-                const spliceArray = [instance.toVisualColumn(startColumnPhysicalIndex!), 0];
+                const spliceArray = [startColumnPhysicalIndex!, 0];
 
                 spliceArray.length += colDelta as number; // inserts empty (undefined) elements at the end of an array
                 Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray as [number, number]); // inserts empty (undefined) elements into the colHeader array
+              }
+
+              // `colWidths` is addressed by the physical index, which a created column takes in the middle of
+              // the physical order after any column move, so the widths after it shift with their columns.
+              if (Array.isArray(tableMeta.colWidths)) {
+                tableMeta.colWidths =
+                  insertColWidths(tableMeta.colWidths, startColumnPhysicalIndex!, colDelta as number);
               }
 
               selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex!), colDelta as number);
@@ -1784,8 +1796,6 @@ export default function Core(
 
                 const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
 
-                let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
-
                 // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
                 // compatible with datamap.removeCol method.
                 if (Number.isInteger(groupIndex)) {
@@ -1793,6 +1803,22 @@ export default function Core(
                 }
 
                 const totalColumnsBefore = instance.countCols();
+
+                // The physical indexes of the columns the removal takes, read before it renumbers them.
+                const removedPhysicalColumns: number[] = [];
+
+                if (Array.isArray(tableMeta.colWidths) || Array.isArray(tableMeta.colHeaders)) {
+                  const firstRemovedVisualColumn = isEmpty(groupIndex) ?
+                    Math.max(totalColumnsBefore - groupAmount, 0) : calcIndex;
+
+                  rangeEach(firstRemovedVisualColumn, firstRemovedVisualColumn + groupAmount - 1, (visualColumn) => {
+                    const removedPhysicalColumn = instance.toPhysicalColumn(visualColumn);
+
+                    if (removedPhysicalColumn !== null) {
+                      removedPhysicalColumns.push(removedPhysicalColumn);
+                    }
+                  });
+                }
 
                 // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
                 // inside the datamap.removeCol breaks the removing functionality.
@@ -1872,10 +1898,17 @@ export default function Core(
                 }
 
                 if (Array.isArray(tableMeta.colHeaders)) {
-                  if (typeof physicalColumnIndex === 'undefined') {
-                    physicalColumnIndex = -1;
-                  }
-                  tableMeta.colHeaders.splice(physicalColumnIndex!, groupAmount);
+                  const colHeaders = tableMeta.colHeaders;
+
+                  // The removed columns are not always next to each other physically, so each entry goes on its
+                  // own, from the last one, which keeps the lower indexes valid.
+                  [...removedPhysicalColumns].sort((a, b) => b - a).forEach((removedPhysicalColumn) => {
+                    colHeaders.splice(removedPhysicalColumn, 1);
+                  });
+                }
+
+                if (Array.isArray(tableMeta.colWidths)) {
+                  tableMeta.colWidths = removeColWidths(tableMeta.colWidths, removedPhysicalColumns);
                 }
 
                 offset += groupAmount;
@@ -2527,10 +2560,10 @@ export default function Core(
           return;
         }
 
-        let width = view.isHorizontallyScrollableByWindow()
-          ? view.getTotalTableWidth() : view.getWorkspaceWidth();
+        const isWindowAxis = view.isHorizontallyScrollableByWindow();
+        let width = isWindowAxis ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-        if (width === 0 && instance.rootWrapperElement) {
+        if ((width === 0 || (isWindowAxis && instance.countRenderedCols() <= 0)) && instance.rootWrapperElement) {
           width = instance.rootWrapperElement.offsetWidth;
         }
 
@@ -2547,7 +2580,7 @@ export default function Core(
         // table downwards – pinned by the `inline-block-host` case of `bottom-slot-sizing.spec.ts`.
         const wrapperWidth = instance.rootWrapperElement?.clientWidth ?? 0;
 
-        if (view.isHorizontallyScrollableByWindow() && wrapperWidth > 0) {
+        if (isWindowAxis && wrapperWidth > 0) {
           width = Math.min(width, wrapperWidth);
         }
 
@@ -4589,6 +4622,8 @@ export default function Core(
     if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       view.setLastSize(width, height);
       instance.render();
+    } else {
+      view.renderWhenWindowResizeMovedFixed();
     }
 
     instance.runHooks(
@@ -5030,6 +5065,33 @@ export default function Core(
   };
 
   /**
+   * Reads what decides the columns of a grid without a `columns` option: the number of columns the schema or the
+   * data resolves to, and the property each one reads.
+   *
+   * @private
+   * @returns {ColumnLayout}
+   */
+  function readColumnLayout(): ColumnLayout {
+    return {
+      count: instance.getInitialColumnCount(),
+      props: datamap.colToPropCache.slice(),
+    };
+  }
+
+  /**
+   * Checks whether a settings update changed the columns the grid resolves, comparing them with the layout read
+   * before the update. A grid with a `columns` option has its columns decided by that option, not by the schema.
+   *
+   * @private
+   * @param {ColumnLayout|null} previousLayout The layout read before the update, `null` when the update could not
+   * change it.
+   * @returns {boolean}
+   */
+  function hasColumnLayoutChanged(previousLayout: ColumnLayout | null): boolean {
+    return previousLayout !== null && !tableMeta.columns && !isSameColumnLayout(previousLayout, readColumnLayout());
+  }
+
+  /**
    * The body of `updateSettings()`, run with recording suppressed. It is called directly, not through
    * the instance, so a spy on `updateSettings()` sees each call once.
    *
@@ -5065,6 +5127,13 @@ export default function Core(
       minCols: tableMeta.minCols,
       minSpareCols: tableMeta.minSpareCols,
     };
+
+    // Read for the same reason: a call that carries `dataSchema` may change the columns the grid resolves, and the
+    // data phase below can only tell by comparing them with the ones the grid has now. Without `columns`, the
+    // schema decides both the number of columns and the property each one reads. The key counts even when its value
+    // is `undefined`, which falls back to the schema read off the data.
+    const previousColumnLayout: ColumnLayout | null = !firstRun && !tableMeta.columns &&
+      hasOwnProperty(settings, 'dataSchema') ? readColumnLayout() : null;
 
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
       warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
@@ -5367,11 +5436,26 @@ export default function Core(
     } else if (settings.data !== undefined) {
       dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
 
+      // `updateData()` keeps the index state, which would now apply to the properties of a new schema.
+      if (hasColumnLayoutChanged(previousColumnLayout)) {
+        instance.initIndexMappers();
+      }
+
     } else if (settings.columns !== undefined) {
       datamap.createMap();
 
       // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
       instance.initIndexMappers();
+
+    } else if (previousColumnLayout !== null && !tableMeta.columns) {
+      // Without `columns`, a new `dataSchema` can change the number of columns and the property each one reads.
+      // The index mappers and the column-to-property map start over when it did, as for `columns`. A schema that
+      // only changes the default values of new rows leaves the grid as it is.
+      datamap.createMap();
+
+      if (hasColumnLayoutChanged(previousColumnLayout)) {
+        instance.initIndexMappers();
+      }
     }
 
     if (!firstRun && settings.language) {
@@ -6023,6 +6107,10 @@ export default function Core(
    * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
    * sorted or trimmed only physical indexes are correct.
    *
+   * For an array of objects, each returned row holds a place for every column declared by the `columns` option
+   * (up to `maxCols`), in visual column order. A column declared without `data` keeps its place, and its value is
+   * `undefined`.
+   *
    * @memberof Core#
    * @function getSourceDataArray
    * @param {number} [row] From physical row index.
@@ -6135,10 +6223,14 @@ export default function Core(
       changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction, changeValue: unknown,
     ) => (isReplay ? changeValue : getValueSetterValue(changeValue, getCellProperties(changeRow, changeProp), source));
 
-    if (isThereAnySetSourceListener) {
-      arrayEach(input, ([changeRow, changeProp, changeValue]) => {
-        const newValue = toStoredValue(changeRow, changeProp, changeValue);
+    // One pass: each `valueSetter` runs once, right before its own write, so a setter can read a value
+    // written earlier in the same call, and a non-idempotent setter never applies twice. The hook's
+    // payload is built in the same pass, with the value the write stores. A listener does not change the
+    // order: AutoColumnSize registers one in almost every grid.
+    arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+      const newValue = toStoredValue(changeRow, changeProp, changeValue);
 
+      if (isThereAnySetSourceListener) {
         changesForHook.push([
           changeRow,
           changeProp,
@@ -6146,11 +6238,7 @@ export default function Core(
           dataSource.getAtCellByProp(changeRow, changeProp), // The previous value.
           newValue,
         ]);
-      });
-    }
-
-    arrayEach(input, ([changeRow, changeProp, changeValue]) => {
-      const newValue = toStoredValue(changeRow, changeProp, changeValue);
+      }
 
       if (isReplay || runSourceDataValidator(newValue, getCellProperties(changeRow, changeProp),
         source ?? 'setSourceDataAtCell')) {
@@ -7186,12 +7274,23 @@ export default function Core(
   };
 
   /**
+   * Translates a visual column index to the index that the `colWidths` array and function use.
+   * Headers (negative indexes) and columns outside the index mapper have no physical index,
+   * so they keep the index they were given.
+   *
+   * @param {number} col Visual col index.
+   * @returns {number}
+   */
+  const toPhysicalWidthIndex = (col: number): number => (col >= 0 ? instance.toPhysicalColumn(col) : null) ?? col;
+
+  /**
    * Return column width from settings (no guessing). Private use intended.
    *
    * @private
    * @memberof Core#
    * @function _getColWidthFromSettings
-   * @param {number} col Visual col index.
+   * @param {number} col Visual col index. The `colWidths` array and function are read by the
+   * matching physical index.
    * @returns {number}
    */
   this._getColWidthFromSettings = function(col: number) {
@@ -7208,12 +7307,12 @@ export default function Core(
 
     if (width !== undefined && width !== null) {
       switch (typeof width) {
-        case 'object': // array
-          width = (width as Record<number, unknown>)[col];
+        case 'object': // array, addressed by the physical column index
+          width = (width as Record<number, unknown>)[toPhysicalWidthIndex(col)];
           break;
 
-        case 'function':
-          width = (width as (col: number) => unknown)(col);
+        case 'function': // called with the physical column index
+          width = (width as (col: number) => unknown)(toPhysicalWidthIndex(col));
           break;
         default:
           break;

@@ -7,7 +7,7 @@ module.exports = {
     {
       title: 'Columns',
       children: [
-        'autoColumnSize', 'collapsibleColumns', 'columnSorting', 'columnSummary',
+        'autoColumnSize', 'collapsibleColumns', 'columnSorting', 'columnSummary', 'freezeBar',
         'hiddenColumns', 'manualColumnFreeze', 'manualColumnMove',
         'manualColumnResize', 'multiColumnSorting', 'nestedHeaders', 'stretchColumns',
       ],

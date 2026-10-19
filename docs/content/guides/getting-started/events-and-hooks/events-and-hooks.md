@@ -1,8 +1,8 @@
 ---
 type: explanation
 title: Events and hooks
-metaTitle: Events and hooks - JavaScript Data Grid | Handsontable
-description: Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
+metaTitle: Events and hooks | Handsontable DataGrid for JavaScript
+description: Run your code before or after data grid actions, using Handsontable DataGrid's API hooks (callbacks). For example, control what happens with the user's input.
 permalink: /events-and-hooks
 canonicalUrl: /events-and-hooks
 tags:
@@ -16,16 +16,16 @@ tags:
 - events
 - hooks
 react:
-  metaTitle: Events and hooks - React Data Grid | Handsontable
+  metaTitle: Events and hooks | Handsontable DataGrid for React
 angular:
-  metaTitle: Events and hooks - Angular Data Grid | Handsontable
+  metaTitle: Events and hooks | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Events and hooks - Vue Data Grid | Handsontable
+  metaTitle: Events and hooks | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Data management
 menuTag: updated
 ---
-Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
+Run your code before or after specific data grid actions, using Handsontable DataGrid's API hooks (callbacks). For example, control what happens with the user's input.
 
 [[toc]]
 

@@ -1,6 +1,6 @@
 ---
 title: Highlight search matches
-metaTitle: Highlight Search Matches - JavaScript Data Grid | Handsontable
+metaTitle: Highlight search matches | Handsontable DataGrid for JavaScript
 description: Learn how to highlight matched text fragments with a custom renderer that safely uses mark tags and updates in real time from a search input.
 permalink: /recipes/filtering-and-search/highlight-search-matches
 canonicalUrl: /recipes/filtering-and-search/highlight-search-matches
@@ -11,11 +11,11 @@ tags:
   - search
   - renderer
 react:
-  metaTitle: Highlight Search Matches - React Data Grid | Handsontable
+  metaTitle: Highlight search matches | Handsontable DataGrid for React
 angular:
-  metaTitle: Highlight Search Matches - Angular Data Grid | Handsontable
+  metaTitle: Highlight search matches | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Highlight Search Matches - Vue Data Grid | Handsontable
+  metaTitle: Highlight search matches | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Filtering and Search
 type: how-to
@@ -62,7 +62,7 @@ This recipe shows how to highlight matched text fragments with a custom renderer
 
 **Difficulty:** Beginner
 **Time:** ~15 minutes
-**Libraries:** None (pure Handsontable + browser APIs)
+**Libraries:** None (pure Handsontable DataGrid + browser APIs)
 
 ## What You'll Build
 

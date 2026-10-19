@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Undo and redo
-metaTitle: Undo and redo - JavaScript Data Grid | Handsontable
+metaTitle: Undo and redo | Handsontable DataGrid for JavaScript
 description: Revert and restore your changes, using the undo and redo features.
 permalink: /undo-redo
 canonicalUrl: /undo-redo
@@ -14,11 +14,11 @@ tags:
   - erase last change
   - roll back changes
 react:
-  metaTitle: Undo and redo - React Data Grid | Handsontable
+  metaTitle: Undo and redo | Handsontable DataGrid for React
 angular:
-  metaTitle: Undo and redo - Angular Data Grid | Handsontable
+  metaTitle: Undo and redo | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Undo and redo - Vue Data Grid | Handsontable
+  metaTitle: Undo and redo | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated
@@ -111,6 +111,22 @@ The tracked actions include:
 - [Comments](@/guides/cell-features/comments/comments.md): adding, editing, and removing a comment, and making it read-only.
 - The [pagination](@/guides/rows/rows-pagination/rows-pagination.md) page and page size.
 
+## Make an API change undoable
+
+You don't need to register changes you make with the API. UndoRedo records them the same way it records edits in the UI.
+
+```js
+hot.setDataAtCell(0, 0, 'New value');
+
+// The user can press Ctrl/Cmd+Z to revert the change,
+// or you can revert it from code:
+hot.getPlugin('undoRedo').undo();
+```
+
+To make several API calls revert with one undo, group them with [`batch()`](@/api/core.md#batch). See [One action, one undo step](#one-action-one-undo-step).
+
+For a change that UndoRedo doesn't record, see [Known limitations](#known-limitations). To see what clears the history, for example [`loadData()`](@/api/core.md#loaddata), see [Hooks and stack lifecycle](#hooks-and-stack-lifecycle). To cover state that lives outside the grid, register your own step with [`done()`](#registering-a-custom-undoable-action).
+
 ## One action, one undo step
 
 UndoRedo records everything a single action changes as one step. When a paste adds rows to satisfy [`minSpareRows`](@/api/options.md#minsparerows), one undo removes the pasted values and the added rows together.
@@ -148,7 +164,7 @@ While such an action waits for its validator, [`isUndoAvailable()`](@/api/undoRe
 
 For each step, UndoRedo stores the grid state before and after the action, and a record of the values and the cell metadata the action changed. The grid state covers the row and column order, the hidden and trimmed rows and columns, the sizes, the sort order, the filter conditions, the merged cells, and the state of the other plugins. An undo puts back the state from before the action, and a redo puts back the state from after it.
 
-An undo puts each value back on the record you edited, even when that row was moved, sorted, filtered, or trimmed since. Handsontable writes the value straight to the source data. Four things follow from that:
+An undo puts each value back on the record you edited, even when that row was moved, sorted, filtered, or trimmed since. Handsontable DataGrid writes the value straight to the source data. Four things follow from that:
 
 - [`beforeChange`](@/api/hooks.md#beforechange) does not run for restored values, and neither does a cell's `valueSetter`. The restored value is the value the source data held.
 - [`afterChange`](@/api/hooks.md#afterchange) runs once per undo or redo, with every visible cell the restore wrote and the `UndoRedo.undo` or `UndoRedo.redo` source. [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell) runs too.

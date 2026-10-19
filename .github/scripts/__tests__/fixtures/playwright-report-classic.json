@@ -1,0 +1,1982 @@
+{
+  "config": {
+    "version": "1.62.1",
+    "workers": 2,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "projects": [
+      {
+        "name": "e2e-classic"
+      }
+    ]
+  },
+  "suites": [
+    {
+      "title": "e2e/amd-loader.spec.ts",
+      "file": "e2e/amd-loader.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "bundle on a page with an AMD loader",
+          "file": "e2e/amd-loader.spec.ts",
+          "line": 17,
+          "column": 6,
+          "specs": [
+            {
+              "title": "loads and renders while a global define.amd is present",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 507,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:20:53.545Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "8f5361019423a8343599-5ac4a01982204c4fe7c0",
+              "file": "e2e/amd-loader.spec.ts",
+              "line": 18,
+              "column": 3
+            }
+          ],
+          "suites": []
+        }
+      ]
+    },
+    {
+      "title": "e2e/notification-placement.spec.ts",
+      "file": "e2e/notification-placement.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "notification placement",
+          "file": "e2e/notification-placement.spec.ts",
+          "line": 66,
+          "column": 6,
+          "specs": [
+            {
+              "title": "a top-start toast in a LTR grid is the info variant, laid out ltr in its corner of the notification layer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 530,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:47.046Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-1b61858d1cdc9b859df0",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 71,
+              "column": 7
+            },
+            {
+              "title": "a top-start toast sits in that corner of a LTR grid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 478,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:47.069Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-e5b81393a68b71ee652d",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 137,
+              "column": 9
+            },
+            {
+              "title": "a top-end toast in a LTR grid is the success variant, laid out ltr in its corner of the notification layer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 513,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:47.562Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-a2b29af03b7254341fdd",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 71,
+              "column": 7
+            },
+            {
+              "title": "a top-end toast sits in that corner of a LTR grid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [
+                    {
+                      "type": "fixme",
+                      "location": {
+                        "file": "/__w/handsontable/handsontable/tests/e2e/notification-placement.spec.ts",
+                        "line": 135,
+                        "column": 14
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": -1,
+                      "parallelIndex": -1,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:47.604Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-15b595117d114049534a",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 135,
+              "column": 14
+            },
+            {
+              "title": "a bottom-start toast in a LTR grid is the warning variant, laid out ltr in its corner of the notification layer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 516,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:47.605Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-55301b23af3602b875d0",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 71,
+              "column": 7
+            },
+            {
+              "title": "a bottom-start toast sits in that corner of a LTR grid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 469,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:48.088Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-e25f51296caf617bdb9c",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 137,
+              "column": 9
+            },
+            {
+              "title": "a bottom-end toast in a LTR grid is the error variant, laid out ltr in its corner of the notification layer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 518,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:48.137Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-d0e57e5d8c8a6a3a647b",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 71,
+              "column": 7
+            },
+            {
+              "title": "a bottom-end toast sits in that corner of a LTR grid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [
+                    {
+                      "type": "fixme",
+                      "location": {
+                        "file": "/__w/handsontable/handsontable/tests/e2e/notification-placement.spec.ts",
+                        "line": 135,
+                        "column": 14
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": -1,
+                      "parallelIndex": -1,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:48.570Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-e61252598d4357edde91",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 135,
+              "column": 14
+            },
+            {
+              "title": "a top-start toast in a RTL grid is the info variant, laid out rtl in its corner of the notification layer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 523,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:48.571Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-6c2910c98db09ed37309",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 71,
+              "column": 7
+            },
+            {
+              "title": "a top-start toast sits in that corner of a RTL grid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 517,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:48.669Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-9444830a9788beddf94b",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 137,
+              "column": 9
+            },
+            {
+              "title": "a top-end toast in a RTL grid is the success variant, laid out rtl in its corner of the notification layer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 511,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:49.110Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-b731ac3a582b255dfd65",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 71,
+              "column": 7
+            },
+            {
+              "title": "a top-end toast sits in that corner of a RTL grid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [
+                    {
+                      "type": "fixme",
+                      "location": {
+                        "file": "/__w/handsontable/handsontable/tests/e2e/notification-placement.spec.ts",
+                        "line": 135,
+                        "column": 14
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": -1,
+                      "parallelIndex": -1,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:49.201Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-bbb0dabd416db82e9548",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 135,
+              "column": 14
+            },
+            {
+              "title": "a bottom-start toast in a RTL grid is the warning variant, laid out rtl in its corner of the notification layer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 522,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:49.202Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-9a0383ce455c79c67c0b",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 71,
+              "column": 7
+            },
+            {
+              "title": "a bottom-start toast sits in that corner of a RTL grid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 472,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:49.636Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-3a334471611d94405835",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 137,
+              "column": 9
+            },
+            {
+              "title": "a bottom-end toast in a RTL grid is the error variant, laid out rtl in its corner of the notification layer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 506,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:49.742Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-7e4237e67524aaee0e6c",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 71,
+              "column": 7
+            },
+            {
+              "title": "a bottom-end toast sits in that corner of a RTL grid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [
+                    {
+                      "type": "fixme",
+                      "location": {
+                        "file": "/__w/handsontable/handsontable/tests/e2e/notification-placement.spec.ts",
+                        "line": 135,
+                        "column": 14
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": -1,
+                      "parallelIndex": -1,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:50.118Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-9d0962ff4c0e4888dfb5",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 135,
+              "column": 14
+            },
+            {
+              "title": "a toast takes no focus: a selected cell keeps it while a second, animated toast shows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 773,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:50.119Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-e1501ccecef792fa90b0",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 142,
+              "column": 3
+            },
+            {
+              "title": "a bottom-start toast in a grid with a pager sits in the grid's corner, above the pager",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [
+                    {
+                      "type": "fixme",
+                      "location": {
+                        "file": "/__w/handsontable/handsontable/tests/e2e/notification-placement.spec.ts",
+                        "line": 162,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": -1,
+                      "parallelIndex": -1,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:32:50.259Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "73af65524b2fa54927fb-e0c28cd9dcf0c6ae1d3a",
+              "file": "e2e/notification-placement.spec.ts",
+              "line": 162,
+              "column": 8
+            }
+          ],
+          "suites": []
+        }
+      ]
+    },
+    {
+      "title": "e2e/page-offset-reverse-split-clones.spec.ts",
+      "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "clones, page scroll range and pointer bounds in the reverse split",
+          "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+          "line": 27,
+          "column": 6,
+          "specs": [
+            {
+              "title": "sizes the clones and the page like the hidden twin: `overflow-y: clip` ancestor, ltr, 0 frozen columns",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 988,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:38:43.715Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcf8413c4f83ac6f028b-6a84ade4447ae7e82453",
+              "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+              "line": 37,
+              "column": 9
+            },
+            {
+              "title": "sizes the clones and the page like the hidden twin: `preventOverflow: vertical`, ltr, 0 frozen columns",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 711,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:38:43.883Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcf8413c4f83ac6f028b-da86aa0cc321fd50eeac",
+              "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+              "line": 37,
+              "column": 9
+            },
+            {
+              "title": "sizes the clones and the page like the hidden twin: `overflow-y: clip` ancestor, ltr, 2 frozen columns",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 893,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:38:44.750Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcf8413c4f83ac6f028b-d0458725219bf2455049",
+              "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+              "line": 37,
+              "column": 9
+            },
+            {
+              "title": "sizes the clones and the page like the hidden twin: `preventOverflow: vertical`, ltr, 2 frozen columns",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 649,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:38:44.848Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcf8413c4f83ac6f028b-b38da792834fe79af942",
+              "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+              "line": 37,
+              "column": 9
+            },
+            {
+              "title": "sizes the clones and the page like the hidden twin: `overflow-y: clip` ancestor, rtl, 0 frozen columns",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 898,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:38:45.523Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcf8413c4f83ac6f028b-7eb029fe8e0a91cc0414",
+              "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+              "line": 37,
+              "column": 9
+            },
+            {
+              "title": "sizes the clones and the page like the hidden twin: `preventOverflow: vertical`, rtl, 0 frozen columns",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 683,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:38:45.668Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcf8413c4f83ac6f028b-447c70b4f2f815dfa770",
+              "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+              "line": 37,
+              "column": 9
+            },
+            {
+              "title": "sizes the clones and the page like the hidden twin: `overflow-y: clip` ancestor, rtl, 2 frozen columns",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 850,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:38:46.367Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcf8413c4f83ac6f028b-6b384940a5be7b41dc23",
+              "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+              "line": 37,
+              "column": 9
+            },
+            {
+              "title": "sizes the clones and the page like the hidden twin: `preventOverflow: vertical`, rtl, 2 frozen columns",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 665,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:38:46.439Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcf8413c4f83ac6f028b-ae40bb742b87612ffb17",
+              "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+              "line": 37,
+              "column": 9
+            },
+            {
+              "title": "tracks a drag that moves inside the page offset gap like the hidden twin (ltr)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 1357,
+                      "errors": [
+                        {
+                          "message": "Error: expect(received).toEqual(expected) // deep equality"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:38:47.123Z",
+                      "annotations": [],
+                      "attachments": []
+                    },
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3510,
+                      "errors": [
+                        {
+                          "message": "Error: expect(received).toEqual(expected) // deep equality"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-10-13T10:38:49.024Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "bcf8413c4f83ac6f028b-73d30b11cefabf2c7ee7",
+              "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+              "line": 62,
+              "column": 5
+            },
+            {
+              "title": "tracks a drag that moves inside the page offset gap like the hidden twin (rtl)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 1361,
+                      "errors": [
+                        {
+                          "message": "Error: expect(received).toEqual(expected) // deep equality"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:38:47.242Z",
+                      "annotations": [],
+                      "attachments": []
+                    },
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 3463,
+                      "errors": [
+                        {
+                          "message": "Error: expect(received).toEqual(expected) // deep equality"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-10-13T10:38:49.182Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "bcf8413c4f83ac6f028b-d8f7d13669faf5ba532e",
+              "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+              "line": 62,
+              "column": 5
+            },
+            {
+              "title": "control: a page the window scrolls on both axes keeps its page-wide clones and scroll range",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 628,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:38:53.293Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcf8413c4f83ac6f028b-088a9bf61f4c542745bc",
+              "file": "e2e/page-offset-reverse-split-clones.spec.ts",
+              "line": 76,
+              "column": 3
+            }
+          ],
+          "suites": []
+        }
+      ]
+    },
+    {
+      "title": "e2e/submenu-hover-delay.spec.ts",
+      "file": "e2e/submenu-hover-delay.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "context menu submenu hover delay",
+          "file": "e2e/submenu-hover-delay.spec.ts",
+          "line": 33,
+          "column": 6,
+          "specs": [
+            {
+              "title": "keeps the submenu open while the pointer travels diagonally to any of its items",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9857,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:36:08.729Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2da033013e2e0e8eb062-f1ebc78aa83b2fdaff6b",
+              "file": "e2e/submenu-hover-delay.spec.ts",
+              "line": 42,
+              "column": 3
+            },
+            {
+              "title": "keeps the submenu open along the reported path, which leaves the menu and crosses the grid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2547,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:36:09.179Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2da033013e2e0e8eb062-933f5a66b094cd0d99f1",
+              "file": "e2e/submenu-hover-delay.spec.ts",
+              "line": 75,
+              "column": 3
+            },
+            {
+              "title": "closes the submenu once the pointer rests on another item",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1464,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:36:11.735Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2da033013e2e0e8eb062-3cca2a1b80cb77903e67",
+              "file": "e2e/submenu-hover-delay.spec.ts",
+              "line": 101,
+              "column": 3
+            },
+            {
+              "title": "does not open a submenu after the pointer has left the menu",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1707,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:36:13.211Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2da033013e2e0e8eb062-62115b383d2a42ad899f",
+              "file": "e2e/submenu-hover-delay.spec.ts",
+              "line": 115,
+              "column": 3
+            },
+            {
+              "title": "reopens on hover after the submenu was closed from its own side",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2060,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:36:14.930Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2da033013e2e0e8eb062-d0375204ba289e3a9b10",
+              "file": "e2e/submenu-hover-delay.spec.ts",
+              "line": 145,
+              "column": 3
+            },
+            {
+              "title": "keeps a keyboard-opened submenu when the pointer rests on another row",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1738,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:36:17.002Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2da033013e2e0e8eb062-3022b433fa9fc9d4855f",
+              "file": "e2e/submenu-hover-delay.spec.ts",
+              "line": 174,
+              "column": 3
+            },
+            {
+              "title": "opens the submenu with no delay when the keyboard asks for it",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 20000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "e2e-classic",
+                  "projectName": "e2e-classic",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 637,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-13T10:36:18.599Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2da033013e2e0e8eb062-1c0c51ea4560674ecc29",
+              "file": "e2e/submenu-hover-delay.spec.ts",
+              "line": 207,
+              "column": 3
+            }
+          ],
+          "suites": []
+        }
+      ]
+    },
+    {
+      "title": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+      "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "walkontable inline-start header border refresh",
+          "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+          "line": 19,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "with one declared column width (the single-pass layout path)",
+              "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+              "line": 22,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "takes the single-pass calculator path",
+                  "ok": true,
+                  "tags": [
+                    "walkontable"
+                  ],
+                  "tests": [
+                    {
+                      "timeout": 20000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-classic",
+                      "projectName": "e2e-classic",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 462,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-10-13T10:37:23.323Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c64bc37b79305769fe87-af4182590398b99671a7",
+                  "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                  "line": 28,
+                  "column": 5
+                },
+                {
+                  "title": "costs no reconciliation draw when the grid crosses horizontal offset 0",
+                  "ok": true,
+                  "tags": [
+                    "walkontable"
+                  ],
+                  "tests": [
+                    {
+                      "timeout": 20000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-classic",
+                      "projectName": "e2e-classic",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 580,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-10-13T10:37:23.673Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c64bc37b79305769fe87-5545c9dff2ce55c9700b",
+                  "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                  "line": 34,
+                  "column": 5
+                }
+              ],
+              "suites": []
+            },
+            {
+              "title": "with the window as the scroll container (off the single-pass layout path)",
+              "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+              "line": 56,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "drops off the single-pass calculator path",
+                  "ok": true,
+                  "tags": [
+                    "walkontable"
+                  ],
+                  "tests": [
+                    {
+                      "timeout": 20000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-classic",
+                      "projectName": "e2e-classic",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 470,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-10-13T10:37:23.800Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c64bc37b79305769fe87-e1925d770d2dbee945b3",
+                  "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                  "line": 62,
+                  "column": 5
+                },
+                {
+                  "title": "costs no reconciliation draw when the grid crosses horizontal offset 0",
+                  "ok": true,
+                  "tags": [
+                    "walkontable"
+                  ],
+                  "tests": [
+                    {
+                      "timeout": 20000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-classic",
+                      "projectName": "e2e-classic",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 622,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-10-13T10:37:24.269Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c64bc37b79305769fe87-cbb1c86de492e3e42774",
+                  "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                  "line": 67,
+                  "column": 5
+                },
+                {
+                  "title": "keeps stamping the backward-compatibility classes on the master",
+                  "ok": true,
+                  "tags": [
+                    "walkontable"
+                  ],
+                  "tests": [
+                    {
+                      "timeout": 20000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-classic",
+                      "projectName": "e2e-classic",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 584,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-10-13T10:37:24.285Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c64bc37b79305769fe87-b7d0a586230c7e6e2989",
+                  "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                  "line": 76,
+                  "column": 5
+                }
+              ],
+              "suites": []
+            },
+            {
+              "title": "with a colWidths array (off the single-pass layout path)",
+              "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+              "line": 92,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "drops off the single-pass calculator path",
+                  "ok": true,
+                  "tags": [
+                    "walkontable"
+                  ],
+                  "tests": [
+                    {
+                      "timeout": 20000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-classic",
+                      "projectName": "e2e-classic",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 462,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-10-13T10:37:24.881Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c64bc37b79305769fe87-b199ddfa38a13bce52ec",
+                  "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                  "line": 98,
+                  "column": 5
+                },
+                {
+                  "title": "costs no reconciliation draw when the grid crosses horizontal offset 0",
+                  "ok": true,
+                  "tags": [
+                    "walkontable"
+                  ],
+                  "tests": [
+                    {
+                      "timeout": 20000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-classic",
+                      "projectName": "e2e-classic",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 594,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-10-13T10:37:24.907Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c64bc37b79305769fe87-f75e125827c02cf5d571",
+                  "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                  "line": 104,
+                  "column": 5
+                },
+                {
+                  "title": "costs no reconciliation draw on a VERTICAL crossing either",
+                  "ok": true,
+                  "tags": [
+                    "walkontable"
+                  ],
+                  "tests": [
+                    {
+                      "timeout": 20000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-classic",
+                      "projectName": "e2e-classic",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 631,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-10-13T10:37:25.357Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c64bc37b79305769fe87-29a4e9a55e51e0f64ba0",
+                  "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                  "line": 121,
+                  "column": 5
+                },
+                {
+                  "title": "leaves the master sizes alone when the crossing draw skips its render",
+                  "ok": true,
+                  "tags": [
+                    "walkontable"
+                  ],
+                  "tests": [
+                    {
+                      "timeout": 20000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "e2e-classic",
+                      "projectName": "e2e-classic",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 579,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2026-10-13T10:37:25.531Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c64bc37b79305769fe87-f5fa2ccb2e63035f3435",
+                  "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                  "line": 141,
+                  "column": 5
+                }
+              ],
+              "suites": []
+            },
+            {
+              "title": "regardless of the layout path",
+              "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+              "line": 163,
+              "column": 8,
+              "specs": [],
+              "suites": [
+                {
+                  "title": "with uniform column widths",
+                  "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                  "line": 165,
+                  "column": 12,
+                  "specs": [
+                    {
+                      "title": "keeps stamping the backward-compatibility classes on the master",
+                      "ok": true,
+                      "tags": [
+                        "walkontable"
+                      ],
+                      "tests": [
+                        {
+                          "timeout": 20000,
+                          "annotations": [],
+                          "expectedStatus": "passed",
+                          "projectId": "e2e-classic",
+                          "projectName": "e2e-classic",
+                          "results": [
+                            {
+                              "workerIndex": 0,
+                              "parallelIndex": 0,
+                              "status": "passed",
+                              "duration": 567,
+                              "errors": [],
+                              "stdout": [],
+                              "stderr": [],
+                              "retry": 0,
+                              "startTime": "2026-10-13T10:37:26.000Z",
+                              "annotations": [],
+                              "attachments": []
+                            }
+                          ],
+                          "status": "expected"
+                        }
+                      ],
+                      "id": "c64bc37b79305769fe87-0335a068e95d3001ee6d",
+                      "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                      "line": 171,
+                      "column": 9
+                    },
+                    {
+                      "title": "leaves every overlay correctly sized and aligned after a round trip",
+                      "ok": true,
+                      "tags": [
+                        "walkontable"
+                      ],
+                      "tests": [
+                        {
+                          "timeout": 20000,
+                          "annotations": [],
+                          "expectedStatus": "passed",
+                          "projectId": "e2e-classic",
+                          "projectName": "e2e-classic",
+                          "results": [
+                            {
+                              "workerIndex": 1,
+                              "parallelIndex": 1,
+                              "status": "passed",
+                              "duration": 537,
+                              "errors": [],
+                              "stdout": [],
+                              "stderr": [],
+                              "retry": 0,
+                              "startTime": "2026-10-13T10:37:26.138Z",
+                              "annotations": [],
+                              "attachments": []
+                            }
+                          ],
+                          "status": "expected"
+                        }
+                      ],
+                      "id": "c64bc37b79305769fe87-90424e8cda563dba3eb7",
+                      "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                      "line": 188,
+                      "column": 9
+                    }
+                  ],
+                  "suites": []
+                },
+                {
+                  "title": "with varied column widths",
+                  "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                  "line": 165,
+                  "column": 12,
+                  "specs": [
+                    {
+                      "title": "keeps stamping the backward-compatibility classes on the master",
+                      "ok": true,
+                      "tags": [
+                        "walkontable"
+                      ],
+                      "tests": [
+                        {
+                          "timeout": 20000,
+                          "annotations": [],
+                          "expectedStatus": "passed",
+                          "projectId": "e2e-classic",
+                          "projectName": "e2e-classic",
+                          "results": [
+                            {
+                              "workerIndex": 0,
+                              "parallelIndex": 0,
+                              "status": "passed",
+                              "duration": 567,
+                              "errors": [],
+                              "stdout": [],
+                              "stderr": [],
+                              "retry": 0,
+                              "startTime": "2026-10-13T10:37:26.585Z",
+                              "annotations": [],
+                              "attachments": []
+                            }
+                          ],
+                          "status": "expected"
+                        }
+                      ],
+                      "id": "c64bc37b79305769fe87-c984261eae4e4dac7b2b",
+                      "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                      "line": 171,
+                      "column": 9
+                    },
+                    {
+                      "title": "leaves every overlay correctly sized and aligned after a round trip",
+                      "ok": true,
+                      "tags": [
+                        "walkontable"
+                      ],
+                      "tests": [
+                        {
+                          "timeout": 20000,
+                          "annotations": [],
+                          "expectedStatus": "passed",
+                          "projectId": "e2e-classic",
+                          "projectName": "e2e-classic",
+                          "results": [
+                            {
+                              "workerIndex": 1,
+                              "parallelIndex": 1,
+                              "status": "passed",
+                              "duration": 550,
+                              "errors": [],
+                              "stdout": [],
+                              "stderr": [],
+                              "retry": 0,
+                              "startTime": "2026-10-13T10:37:26.694Z",
+                              "annotations": [],
+                              "attachments": []
+                            }
+                          ],
+                          "status": "expected"
+                        }
+                      ],
+                      "id": "c64bc37b79305769fe87-30c9860ffd68ab145ba2",
+                      "file": "e2e/walkontable/inline-start-border-refresh.spec.ts",
+                      "line": 188,
+                      "column": 9
+                    }
+                  ],
+                  "suites": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-13T10:20:47.267Z",
+    "duration": 1089639.0019999999,
+    "expected": 43,
+    "skipped": 5,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

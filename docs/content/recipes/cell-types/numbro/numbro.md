@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Numbro
-metaTitle: Numbro Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a Handsontable custom numbro cell type using the Numbro library
+metaTitle: Numbro cell type | Handsontable DataGrid for JavaScript
+description: Learn how to create a Handsontable DataGrid custom numbro cell type using the Numbro library
 permalink: /recipes/cell-types/numbro
 canonicalUrl: /recipes/cell-types/numbro
 tags:
@@ -11,11 +11,11 @@ tags:
   - recipes
   - numbro
 react:
-  metaTitle: Numbro Cell Type - React Data Grid | Handsontable
+  metaTitle: Numbro cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Numbro Cell Type - Angular Data Grid | Handsontable
+  metaTitle: Numbro cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Numbro Cell Type - Vue Data Grid | Handsontable
+  metaTitle: Numbro cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
 ---
@@ -67,7 +67,7 @@ This guide shows how to create a custom numbro cell type using the [Numbro](http
 A cell that:
 - Displays numbers with locale-aware formatting via Numbro (e.g., `$350,000.00`)
 - Accepts `numericFormat` options for per-column formatting customization
-- Validates input using Handsontable's built-in numeric validator
+- Validates input using Handsontable DataGrid's built-in numeric validator
 - Automatically right-aligns numeric values
 
 ## Prerequisites
@@ -181,7 +181,7 @@ registerCellType('numbro', cellTypeDefinition);
 - **editor**: Uses the built-in numeric editor for input
 - **registerCellType**: Registers the `numbro` cell type for use in column config
 
-## Step 5: Use in Handsontable
+## Step 5: Use in Handsontable DataGrid
 
 ```typescript
 registerCellType('numbro', cellTypeDefinition);

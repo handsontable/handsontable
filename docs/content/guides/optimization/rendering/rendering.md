@@ -1,7 +1,7 @@
 ---
 type: explanation
 title: Understanding rendering
-metaTitle: Understanding rendering - JavaScript Data Grid | Handsontable
+metaTitle: Understanding rendering | Handsontable DataGrid for JavaScript
 description: Learn what a render does, which cells it covers, what it costs, and when you need to call render() yourself.
 permalink: /rendering
 canonicalUrl: /rendering
@@ -12,11 +12,11 @@ tags:
   - rendering-cycle
   - performance
 react:
-  metaTitle: Understanding rendering - React Data Grid | Handsontable
+  metaTitle: Understanding rendering | Handsontable DataGrid for React
 angular:
-  metaTitle: Understanding rendering - Angular Data Grid | Handsontable
+  metaTitle: Understanding rendering | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Understanding rendering - Vue Data Grid | Handsontable
+  metaTitle: Understanding rendering | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Optimization
 menuTag: new
@@ -27,7 +27,7 @@ Learn what a render does, which cells it covers, what it costs, and when you nee
 
 ## Background
 
-Handsontable does not keep every cell of your data set in the DOM. It renders only the part of the grid that you can see, plus a small buffer around it. As you scroll, it reuses the same DOM elements for new cells. This is called [row virtualization](@/guides/rows/row-virtualization/row-virtualization.md) and [column virtualization](@/guides/columns/column-virtualization/column-virtualization.md), and it is what lets the grid hold hundreds of thousands of records without freezing the browser.
+Handsontable DataGrid does not keep every cell of your data set in the DOM. It renders only the part of the grid that you can see, plus a small buffer around it. As you scroll, it reuses the same DOM elements for new cells. This is called [row virtualization](@/guides/rows/row-virtualization/row-virtualization.md) and [column virtualization](@/guides/columns/column-virtualization/column-virtualization.md), and it is what lets the grid hold hundreds of thousands of records without freezing the browser.
 
 A render is the step that brings those DOM elements back in sync with your data and your configuration. Handsontable runs it for you at the right moments, so most applications never call [`render()`](@/api/core.md#render) at all. You need it when you change something that Handsontable cannot detect on its own -- cell metadata, or a value outside the grid that one of your renderers reads.
 

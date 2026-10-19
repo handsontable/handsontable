@@ -103,6 +103,8 @@ When run in CI (`GITHUB_ACTIONS=true`) the script adds, on top of the exit code:
 | `handsontable` runtime (peer dep) | `handsontable/tmp` (pnpm `link:`, requires core to be built) |
 | `@angular/*`, `rxjs`, `zone.js` | `node_modules/` (managed by pnpm workspace) |
 
+Keep the `@angular/*` majors in `package.json` equal to the wrapper's (`wrappers/angular-wrapper/package.json`). The docs site runs the live Angular examples on the wrapper's `node_modules` (`NG_MODULES` in `docs/astro.config.mjs`), so this check must compile the examples against the same major. A different major also makes the linked wrapper dist and the examples load two copies of `@angular/core`, which fails with `TemplateRef<...> is missing the following properties from type 'TemplateRef<any>'`.
+
 ## Adding a new third-party library to an example
 
 This package is a pnpm workspace member. Its dependencies are managed alongside the rest of the monorepo in the root `pnpm-lock.yaml`.

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { NarrowHeaderMenuButtonPage } from '../fixtures/pages/NarrowHeaderMenuButtonPage';
 
 /**
@@ -20,7 +20,7 @@ import { NarrowHeaderMenuButtonPage } from '../fixtures/pages/NarrowHeaderMenuBu
  * inner element. `className` styles body cells only, so a grid built with it would run the default
  * header layout and prove nothing about the opposite-side rules; the spec asserts the class landed.
  */
-test.describe('Narrow header with a menu button', () => {
+test.describe('Narrow header with a menu button', { tag: THEMES_TAG }, () => {
   let grid: NarrowHeaderMenuButtonPage;
 
   // Column 1 has the longest label, so it is the one that fights the menu button hardest.

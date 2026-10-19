@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Row heights
-metaTitle: Row heights - JavaScript Data Grid | Handsontable
-description: Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
+metaTitle: Row heights | Handsontable DataGrid for JavaScript
+description: Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable DataGrid's interface.
 permalink: /row-height
 canonicalUrl: /row-height
 tags:
@@ -20,16 +20,16 @@ tags:
   - line clamp
   - ellipsis
 react:
-  metaTitle: Row heights - React Data Grid | Handsontable
+  metaTitle: Row heights | Handsontable DataGrid for React
 angular:
-  metaTitle: Row heights - Angular Data Grid | Handsontable
+  metaTitle: Row heights | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row heights - Vue Data Grid | Handsontable
+  metaTitle: Row heights | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated
 ---
-Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
+Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable DataGrid's interface.
 
 [[toc]]
 
@@ -223,8 +223,11 @@ hot.render();
 
 ::: only-for javascript
 
-::: example #example4 --js 1 --ts 2
+Try it in the demo below: drag the bottom edge of a row header to resize a row, then select **Clear manual sizes**, which runs the snippet above.
 
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/rows/row-height/javascript/example4.html)
 @[code](@/content/guides/rows/row-height/javascript/example4.js)
 @[code](@/content/guides/rows/row-height/javascript/example4.ts)
 

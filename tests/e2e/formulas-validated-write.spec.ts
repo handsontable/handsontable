@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasValidatedWritePage } from '../fixtures/pages/FormulasValidatedWritePage';
 
 /**
@@ -8,7 +8,7 @@ import { FormulasValidatedWritePage } from '../fixtures/pages/FormulasValidatedW
  * yet - so the cell kept showing the raw `=SUM(A1:A2)` text. The plugin now writes the change back
  * when the Core applies it.
  */
-test.describe('Formulas: a validated write across a settings update', () => {
+test.describe('Formulas: a validated write across a settings update', { tag: BUNDLES_TAG }, () => {
   test('shows the result of a formula typed in the editor, not its raw text', async ({ page, theme, bundle }) => {
     const grid = new FormulasValidatedWritePage(page, theme, bundle);
 

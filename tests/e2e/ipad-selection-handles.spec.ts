@@ -1,5 +1,5 @@
 import { devices, type Page } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { MobileHandlesPage } from '../fixtures/pages/MobileHandlesPage';
 
 /**
@@ -45,7 +45,7 @@ test.use({
   viewport: { width: 1024, height: 768 },
 });
 
-test.describe('iPadOS selection range handles', () => {
+test.describe('iPadOS selection range handles', { tag: THEMES_TAG }, () => {
   let grid: MobileHandlesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -116,7 +116,7 @@ test.describe('iPadOS selection range handles', () => {
   });
 });
 
-test.describe('iPadOS double-tap to edit with range handles present', () => {
+test.describe('iPadOS double-tap to edit with range handles present', { tag: THEMES_TAG }, () => {
   let grid: MobileHandlesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -142,7 +142,7 @@ test.describe('iPadOS double-tap to edit with range handles present', () => {
   });
 });
 
-test.describe('iPadOS frozen-top corner reserve', () => {
+test.describe('iPadOS frozen-top corner reserve', { tag: THEMES_TAG }, () => {
   let grid: MobileHandlesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -189,7 +189,7 @@ test.describe('iPadOS frozen-top corner reserve', () => {
   });
 });
 
-test.describe('iPadOS range handles on a merged cell across the freeze lines', () => {
+test.describe('iPadOS range handles on a merged cell across the freeze lines', { tag: THEMES_TAG }, () => {
   let grid: MobileHandlesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

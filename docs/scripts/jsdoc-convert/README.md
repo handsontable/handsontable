@@ -11,7 +11,7 @@ module.exports = {
   seo: {
     'dataMap/metaManager/metaSchema.js': {
       title: 'Options',
-      metaTitle: 'Options - API Reference - Handsontable Documentation',
+      metaTitle: 'Options API reference | Handsontable DataGrid for JavaScript',
     },
     /* ... */
   },
