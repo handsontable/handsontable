@@ -1270,30 +1270,6 @@ test.describe('sheets bar', { tag: THEMES_TAG }, () => {
     ).toBeLessThan(scrollLeftBefore);
   });
 
-  test('dragging a tab past its neighbour reorders the strip', async ({ page, theme, bundle }) => {
-    const bar = new SheetsBarPage(page, theme, bundle);
-
-    await bar.goto();
-
-    const names = () => page.evaluate(() => Array.from(
-      document.querySelectorAll('.ht-sheets-bar__tab-label'),
-    ).map(label => label.textContent));
-
-    expect(await names()).toEqual(['Alpha', 'Beta', 'Gamma']);
-
-    const first = (await bar.tab(0).boundingBox())!;
-    const third = (await bar.tab(2).boundingBox())!;
-
-    await page.mouse.move(first.x + (first.width / 2), first.y + (first.height / 2));
-    await page.mouse.down();
-    // Two moves: the first passes the threshold, the second carries the tab across.
-    await page.mouse.move(first.x + first.width, first.y + (first.height / 2));
-    await page.mouse.move(third.x + (third.width / 2) + 5, third.y + (third.height / 2));
-    await page.mouse.up();
-
-    await expect.poll(names).toEqual(['Beta', 'Gamma', 'Alpha']);
-  });
-
   test('Escape during a drag leaves the order untouched', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 

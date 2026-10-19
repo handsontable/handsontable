@@ -48,9 +48,15 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   composition (`isComposing`/keyCode 229).
 - **Drag decisions use transform-neutral geometry.** `#reorder` subtracts each tab's in-flight
   FLIP translation before comparing centres; measuring the animated rects makes a 2px pointer
-  wobble swap two tabs back and forth for as long as the slide runs. A DOM reorder also drops
-  the pointer capture — `lostpointercapture` re-captures while the tab is still in the strip
-  and only cancels when the pointer is truly gone.
+  wobble swap two tabs back and forth for as long as the slide runs. **A reorder moves the
+  neighbors, never the dragged tab** (`#moveAround`). Re-inserting the captured tab drops its
+  pointer capture, and taking it back from the `lostpointercapture` handler crashes the desktop
+  WebKit content process, so do not reintroduce `insertBefore(tab, …)` mid-drag and do not
+  re-capture from that handler. A capture loss on the tab therefore means the pointer is gone, and
+  the gesture is canceled. The handler ignores a loss bubbled up from a child: a touch press
+  captures the pointer on the label under the finger, and the drag's own `setPointerCapture`
+  takes it from there. Pinned by `tests/e2e/sheets-bar-tab-drag.spec.ts` (tagged
+  `@cross-browser`, so the WebKit leg runs it) and the reorder cases in `__tests__/tabDrag.unit.js`.
 - **Per-sheet `settings` go through `updateSettings()` with a baseline.** The grid-level value
   of every key any sheet overrides is captured the first time that key is applied
   (`#withBaselineFor`); `undefined` baselines are restored as `null`, because `updateSettings`
