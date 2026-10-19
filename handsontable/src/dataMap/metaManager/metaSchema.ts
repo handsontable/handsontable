@@ -2059,6 +2059,10 @@ export default (): Record<string, unknown> => {
      * are populated incrementally, so they may be incomplete until the
      * [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires.
      *
+     * When you replace [`customBorders`](#customborders) with `updateSettings()`, the borders that are
+     * already drawn stay visible until the new ones are applied. A border missing from the new
+     * configuration disappears when the load ends.
+     *
      * @since 18.1.0
      * @memberof Options#
      * @type {boolean|object}

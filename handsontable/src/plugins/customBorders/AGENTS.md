@@ -103,6 +103,29 @@ progressive paths write under `operationScope.suppress()`: a batch run from the 
 action's step - an undo of the row insert that finished the load then removed the borders it wrote.
 Pinned in `../undoRedo/__tests__/pluginState.unit.js` ("a progressive border load").
 
+## A progressive replace keeps the outgoing borders drawn
+
+`updateSettings({ customBorders })` with `customBordersProgressive` empties the model and the meta at once and refills
+them in batches, so for a few frames there is nothing to draw. The previous borders are kept on screen anyway, and
+only the rendered selections are involved: `getBorders()` stays empty right after the call.
+
+- **The snapshot is taken in `updatePlugin()`, and a progressive replace skips the disable/enable cycle.** Disabling
+  destroys every rendered selection (`hideBorders()`), and `#resetBorderModel()` does it again, so the replace swaps
+  the model in place and passes `keepRendered` to the reset. Do not add a flag that turns `#destroyAllSelections()`
+  into a no-op: a `beforeRemoveCellMeta`/`afterRemoveCellMeta` listener that calls `clearBorders()` during the reset
+  would then keep the selections it cleared. Any reset without `keepRendered` also drops `#carriedBorders`. A second
+  replace during a load carries the first one's outgoing borders along with the model.
+- **Replacement is per cell, by id.** `#syncViewportSelections` draws the model first and the outgoing borders only for
+  ids the model does not hold, and it destroys an outgoing selection the moment the model has a border with the same
+  id. That also covers a border whose removal `beforeRemoveCellMeta` vetoed: it stays in the model, and without the
+  id check the cell would be drawn twice. Do not wait for "the first batch" instead: with a scrolled viewport the
+  first batch can miss every visible row.
+- **Every exit drops the outgoing state.** The last batch clears the row index before its render (a border that only
+  the old configuration had goes in that frame). The flush from a structural hook fires `afterCustomBordersUpdate`
+  before the render that follows, so the old borders can still be painted when the hook runs. The outgoing borders
+  are not in the model or the meta, so the Borders context menu and `setBorders()` do not see them. So do `#finishProgressiveApply()`, `#cancelProgressiveApply()`
+  and `destroy()`. A border that only the old configuration had stays visible until the load ends. A cell the user clears meanwhile (`removeAllBorders`, an external meta removal, or a new configuration that hides all four sides) is dropped from the outgoing index by `#dropOutgoingBorder`, or the sync would draw it again.
+
 ## `setCellMeta('borders', …)` written directly is supported
 
 The value may be a complete plugin-shaped object (UndoRedo restoring an undone removal) **or** a partial

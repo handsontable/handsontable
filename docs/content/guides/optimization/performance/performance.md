@@ -178,6 +178,8 @@ By default, Handsontable builds the whole [`customBorders`](@/api/options.md#cus
 
 If your initial configuration borders thousands of cells or more, set [`customBordersProgressive`](@/api/options.md#custombordersprogressive) to `true`. The grid renders first, without the borders, and the borders are applied in background batches. This applies when the `customBorders` array is set at initialization or replaced with `updateSettings()`. The option is opt-in (the default is `false`) and available since 18.1.0.
 
+When you replace the array with `updateSettings()`, the borders that are already drawn stay visible while the new ones are applied. Each cell switches to its new border as soon as that border is applied. A border that the new configuration no longer contains disappears when the load ends. A structural change, such as inserting a row, ends the load early. While the load runs, the Borders context menu and `setBorders()` work on the new configuration, which does not hold the older borders yet.
+
 Progressive application splits the work by `customBorders` entry, but the cost depends on the number of bordered cells. An entry with a `range` is applied in one batch, so a single very large range is not split and can still block rendering.
 
 ::: only-for javascript
