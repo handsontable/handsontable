@@ -104,9 +104,15 @@ export class RowIdentity {
   #nextGeneratedId = 1;
 
   /**
-   * Physical rows by id, built on the first lookup after a change. `null` means it must be rebuilt.
+   * Physical rows by id, built on the first lookup. It stays after a change, because every hit is verified
+   * against the row before it is returned, so a lookup between two writes does not read every row again.
    */
   #physicalRowsById: Map<unknown, number> | null = null;
+
+  /**
+   * Whether the data may have changed since the lookup cache was built, so a miss must rebuild it.
+   */
+  #isStale = true;
 
   /**
    * Whether `loadData()` is replacing the data, so the generated ids start over.
@@ -173,11 +179,12 @@ export class RowIdentity {
     }
 
     // A clean cache without the id answers at once, so asking for a removed row repeatedly stays cheap.
-    if (cached === undefined && this.#physicalRowsById !== null) {
+    if (cached === undefined && !this.#isStale) {
       return null;
     }
 
     this.#physicalRowsById = this.#buildIndex();
+    this.#isStale = false;
 
     return this.#physicalRowsById.get(id) ?? null;
   }
@@ -342,9 +349,9 @@ export class RowIdentity {
   };
 
   /**
-   * Drops the lookup cache, so the next lookup rebuilds it.
+   * Marks the lookup cache stale, so the next lookup that misses or finds another id rebuilds it.
    */
   #invalidate = (): void => {
-    this.#physicalRowsById = null;
+    this.#isStale = true;
   };
 }

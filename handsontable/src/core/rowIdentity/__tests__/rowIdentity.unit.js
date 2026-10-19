@@ -335,6 +335,22 @@ describe('Row identity', () => {
       expect(hot.getVisualRowById('id-3')).toBeNull();
     });
 
+    it('should not read every row again for a lookup made between two writes and a settings update', () => {
+      const readId = jest.fn(row => row.id);
+
+      createGrid({ rowId: readId, data: createRecords(60) });
+
+      expect(hot.getVisualRowById('id-10')).toBe(10);
+
+      readId.mockClear();
+      hot.setDataAtRowProp(3, 'value', 1);
+      hot.updateSettings({ colHeaders: true });
+
+      expect(hot.getVisualRowById('id-40')).toBe(40);
+      expect(hot.getVisualRowById('id-50')).toBe(50);
+      expect(readId.mock.calls.length).toBeLessThan(5);
+    });
+
     it('should not return a row whose id changed directly in the source data', () => {
       const data = createRecords(6);
 
