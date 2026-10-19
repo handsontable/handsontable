@@ -263,6 +263,8 @@ const hotSettings = {
 
 Switching sheets captures the outgoing sheet's view state and restores it the next time you switch back to it. The view state covers the scroll position, the selection, and the [`Pagination`](@/api/pagination.md) page and page size. It also covers sort, filters, hidden and trimmed indexes, merged cells, and custom borders. Manual column widths and row heights are included too, along with any cell-meta changes you made while the sheet was active.
 
+To capture and restore a view without the sheets bar, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
+
 A sheet you have not visited yet opens with a neutral view state and no selected cells, so it never inherits the previous sheet's filters, sizes, or selection. It opens on the configured [`initialPage`](@/api/options.md#pagination) and page size.
 
 Every switch clears the selection before the arriving sheet loads, so [`afterDeselect`](@/api/hooks.md#afterdeselect) fires on each switch. When the arriving sheet has a stored selection, the selection hooks such as [`afterSelection`](@/api/hooks.md#afterselection) fire after it, as the selection comes back. A listener that reacts to `afterDeselect` therefore also runs on a sheet switch.

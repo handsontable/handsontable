@@ -1,17 +1,17 @@
 import Handsontable from '../../../base';
-import { registerPlugin } from '../../registry';
-import { ManualColumnResize } from '../../manualColumnResize';
-import { ColumnSorting } from '../../columnSorting';
-import { Filters } from '../../filters';
-import { DropdownMenu } from '../../dropdownMenu';
-import { AutoColumnSize } from '../../autoColumnSize';
-import { HiddenRows } from '../../hiddenRows';
-import { HiddenColumns } from '../../hiddenColumns';
-import { Pagination } from '../../pagination';
-import { CustomBorders } from '../../customBorders';
+import { registerPlugin } from '../../../plugins/registry';
+import { ManualColumnResize } from '../../../plugins/manualColumnResize';
+import { ColumnSorting } from '../../../plugins/columnSorting';
+import { Filters } from '../../../plugins/filters';
+import { DropdownMenu } from '../../../plugins/dropdownMenu';
+import { AutoColumnSize } from '../../../plugins/autoColumnSize';
+import { HiddenRows } from '../../../plugins/hiddenRows';
+import { HiddenColumns } from '../../../plugins/hiddenColumns';
+import { Pagination } from '../../../plugins/pagination';
+import { CustomBorders } from '../../../plugins/customBorders';
 import { createSpreadsheetData } from '../../../helpers/data';
 import { registerCellType, CheckboxCellType } from '../../../cellTypes';
-import { SheetsBar } from '../sheetsBar';
+import { SheetsBar } from '../../../plugins/sheetsBar/sheetsBar';
 import { captureViewState, keepSelectionOnPage, restoreViewState, restoreViewport } from '../viewState';
 
 describe('SheetsBar view state', () => {

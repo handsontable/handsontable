@@ -1884,8 +1884,7 @@ class Selection {
    * @returns {boolean} `true` if the corner element has to be visible, `false` otherwise.
    */
   isCellCornerVisible() {
-    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.#isNonContiguous() &&
-      !this.isMultiple();
+    return this.#isFillHandleAvailable() && !this.isMultiple();
   }
 
   /**
@@ -1912,8 +1911,25 @@ class Selection {
       return false;
     }
 
-    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.#isNonContiguous() &&
-      this.isMultiple();
+    return this.#isFillHandleAvailable() && this.isMultiple();
+  }
+
+  /**
+   * Tells whether the fill handle may be drawn at all. The `fillHandle` setting alone is not enough:
+   * once the Autofill plugin is disabled or destroyed at runtime (`getPlugin('autofill').destroy()`)
+   * the setting still reads `true`, and a handle drawn from it does nothing when dragged (DEV-775).
+   * A grid that never registered the plugin (a tree-shaken build without `AutofillPlugin`) keeps
+   * drawing the handle from the setting, as it always has - that is a separate question, and hiding
+   * it there would change every such grid's look. A non-contiguous selection hides it too (DEV-540).
+   *
+   * @returns {boolean}
+   */
+  #isFillHandleAvailable() {
+    if (!this.settings.fillHandle || this.tableProps.isEditorOpened() || this.#isNonContiguous()) {
+      return false;
+    }
+
+    return !this.tableProps.isPluginRegistered('autofill') || this.tableProps.isPluginEnabled('autofill');
   }
 
   /**

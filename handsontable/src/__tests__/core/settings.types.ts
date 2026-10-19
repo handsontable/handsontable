@@ -100,6 +100,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   customBordersProgressive: oneOf(true, { chunkSize: 5000 }),
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataDotNotation: oneOf(true),
+  rowId: oneOf('id', 'meta.id', (row: Handsontable.RowObject | unknown[]) => row, true, false),
   dataProvider: {
     rowId: 'id',
     fetchRows: async() => ({ rows: [], totalRows: 0 }),
@@ -599,6 +600,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
                    successfullyExpanded) => {},
   afterRowMove: (movedRows, finalIndex, dropIndex, movePossible,
                  orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
+  afterRowIdsRemoved: (rowIds, source) => rowIds.forEach(id => id === source),
+  afterRowIdsReset: () => {},
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterRowSelectionChange: (selectedRows, deselectedRows, source) => {},
   afterRowSequenceChange: (source) => {},

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - view state API</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back: a typo
+    // in the project config must be one red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } .grid-box { margin-bottom: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Fixture for the ViewState plugin (getViewState / setViewState). Two grids with the same settings and data:
+    `window.source` is changed by the test, and its view state is restored onto `window.target`
+    through JSON. ?pagination=1 pages both grids by 10 rows. Cells carry
+    data-testid="<grid>-cell-<row>-<col>" by visual position.
+  -->
+  <div id="source" class="grid-box" data-testid="source"></div>
+  <div id="target" class="grid-box" data-testid="target"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const paginated = new URLSearchParams(location.search).get('pagination') === '1';
+
+    const createGrid = (name) => {
+      const container = document.querySelector(`[data-testid="${name}"]`);
+
+      container.className = `grid-box ht-theme-${window.htTheme}`;
+
+      const testIdRenderer = function(instance, td, row, col) {
+        Handsontable.renderers.TextRenderer.apply(this, arguments);
+        td.setAttribute('data-testid', `${name}-cell-${row}-${col}`);
+      };
+
+      return new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(200, 30),
+        width: 500,
+        height: 300,
+        colHeaders: true,
+        rowHeaders: true,
+        pagination: paginated ? { pageSize: 10 } : false,
+        renderer: testIdRenderer,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    };
+
+    window.source = createGrid('source');
+    window.target = createGrid('target');
+  </script>
+</body>
+</html>
