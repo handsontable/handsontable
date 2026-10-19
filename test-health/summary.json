@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-19T07:09:43.644Z",
+  "generatedAt": "2026-10-19T07:51:44.804Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -20,7 +20,7 @@
       "file": "visual-tests/tests/multi-frameworks/mergeCells/column-selection.spec.ts",
       "line": null,
       "title": "multi-frameworks/mergeCells/column-selection-1",
-      "count7": 18,
+      "count7": 10,
       "count30": 18,
       "countAll": 18,
       "runs30": 3,
@@ -134,7 +134,7 @@
       "file": "e2e/selection-viewport-scroll.spec.ts",
       "line": 72,
       "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "count7": 10,
+      "count7": 9,
       "count30": 14,
       "countAll": 14,
       "runs30": 10,
