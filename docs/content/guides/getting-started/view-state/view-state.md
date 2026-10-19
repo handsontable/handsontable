@@ -133,7 +133,7 @@ The view state does not depend on your data, but it does depend on its shape. Re
 |---|---|---|---|
 | `columnOrder` | Physical column indexes in their visual order | Physical | None |
 | `rowOrder` | Physical row indexes in their visual order | Physical | None |
-| `sort` | `columns`: a list of `{ column, sortOrder }`. `unsortedRowOrder` (optional): the row order before the sort | `column` is visual | [`ColumnSorting`](@/api/columnSorting.md) or [`MultiColumnSorting`](@/api/multiColumnSorting.md) |
+| `sort` | `columns`: a list of `{ column, sortOrder }`, where `sortOrder` is `'asc'` or `'desc'`. More than one column needs `MultiColumnSorting` | `column` is visual | [`ColumnSorting`](@/api/columnSorting.md) or [`MultiColumnSorting`](@/api/multiColumnSorting.md) |
 | `filters` | The filter conditions, in the shape that [`exportConditions()`](@/api/filters.md#exportconditions) returns | Physical columns | [`Filters`](@/api/filters.md) |
 | `hiddenRows` | Hidden row indexes | Physical | [`HiddenRows`](@/api/hiddenRows.md) |
 | `hiddenColumns` | Hidden column indexes | Physical | [`HiddenColumns`](@/api/hiddenColumns.md) |
@@ -200,14 +200,15 @@ Each entry names the `part` and gives a `reason`:
 | `externalDataSource` | The grid uses a `dataProvider`, which owns `sort`, `filters`, and `pagination`. |
 | `sizeMismatch` | The stored row or column order has a different length than the grid has rows or columns now. |
 | `outOfRange` | The stored selection does not fit the grid. |
-| `invalid` | The part does not have the expected shape. |
+| `invalid` | The part does not have the expected shape, or names something this grid does not have: a row order that does not list every row exactly once, a sort column past the last column, or a filter condition that is not registered on the page. |
 | `unsupportedVersion` | The object has a `version` this build does not read. Handsontable applies nothing, and logs a console warning. |
 
 Use the list to tell the user, to fall back to a default view, or to drop a stored view that no longer fits.
 
 ## Limitations
 
-- **The restore is not an undo step.** [`UndoRedo`](@/api/undoRedo.md) does not record `setViewState()`, so one undo does not roll back a restore. The undo steps from before the restore stay available.
+- **The restore is not an undo step.** [`UndoRedo`](@/api/undoRedo.md) does not record `setViewState()`, so one undo does not roll back a restore. The undo steps from before the restore stay available, and an undo after a restore reverts an earlier action on top of the restored view.
+- **Filters and the page can move the selection.** Restoring the filters moves a selected cell to the first row of its column, as any filtering does. Restoring the page clears a selection the new page does not show. To control the selection, include `selection` in the state.
 - **Content is not part of the view.** The view state excludes your data, [merged cells](@/guides/cell-features/merge-cells/merge-cells.md), custom borders, and cell meta. To persist them, save them with their own APIs. For data, see [Saving data](@/guides/getting-started/saving-data/saving-data.md).
 - **Server-side data.** With a `dataProvider`, the view state leaves out sorting, filters, and pagination.
 - **Version.** The object carries `version: 1`. A stored object from a future version is skipped as a whole.
