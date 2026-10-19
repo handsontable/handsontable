@@ -170,10 +170,6 @@ export class RowSelectionPage {
   }
 
   /**
-   * Returns the "select all" checkbox: in the corner with the row header location, in the first
-   * column's header with the first column location.
-   */
-  /**
    * The column header label in the top clone. The first column's header also holds the
    * "select all" checkbox, so the label is the part that selects the column.
    */
@@ -181,6 +177,10 @@ export class RowSelectionPage {
     return this.page.locator('.ht_clone_top').locator('span.colHeader').getByText(label, { exact: true });
   }
 
+  /**
+   * Returns the "select all" checkbox: in the corner with the row header location, in the first
+   * column's header with the first column location.
+   */
   headerCheckbox(location: 'rowHeader' | 'firstColumn' = 'rowHeader'): Locator {
     const scope = this.page.locator(
       location === 'rowHeader' ? '.ht_clone_top_inline_start_corner' : '.ht_clone_top'
