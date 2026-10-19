@@ -56,7 +56,7 @@ Four groups of keys end in a value: `cellType:` in the inferred type name, and `
 | `formula:otherSheet` | Both | A formula referencing a sheet the Formulas plugin's engine does not hold, another workbook, or a range of sheets. Its cached value is imported, and the formula is listed in `result.formulas`. A reference to the imported sheet's own name is read as a reference to the grid. |
 | `formula:definedName` | Both | A formula using a workbook name the Formulas plugin's engine does not define. Its cached value is imported. Add the name to a pre-built HyperFormula instance before the import to keep it live. The ExcelJS engine reports only names over a range; a constant name stays live and shows `#NAME?`. |
 | `formula:tooLong` | Built-in | A formula longer than 32,768 characters. The cell keeps its cached value. |
-| `formula:dataTable` | Built-in | An Excel what-if data table. Its cells keep their cached values; nothing recalculates. The ExcelJS engine imports the cached values with no entry. |
+| `formula:dataTable` | Built-in | An Excel what-if data table. Its cells keep their cached values; nothing recalculates. The ExcelJS engine does not report it. |
 | `definedNames:truncated` | Built-in | The workbook defines more than 65,536 names. A formula over a later name can show `#NAME?`. |
 | `cellValue:date` | Built-in | A `t="d"` date cell whose value is not an ISO 8601 date. The cell imports empty. |
 | `cellValue:sharedString` | Built-in | A text cell pointing at a shared string the workbook does not hold. The cell imports empty. |
