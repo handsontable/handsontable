@@ -8649,6 +8649,7 @@ export default (): Record<string, unknown> => {
      * | ------------------- | ----------------------------------------------------------------------- |
      * | A custom alias      | Your [custom cell validator](@/guides/cell-functions/cell-validator/cell-validator.md) |
      * | `'autocomplete'`    | `AutocompleteValidator`                                                 |
+     * | `'checkbox'`        | `CheckboxValidator` (opt-in; the `checkbox` cell type doesn't apply it) |
      * | `'date'`            | `DateValidator`                                                         |
      * | `'intl-date'`       | `IntlDateValidator`                                                     |
      * | `'dropdown'`        | `DropdownValidator`                                                     |

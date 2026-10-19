@@ -139,6 +139,33 @@ export class SelectionFeaturesPage {
     return this.grid.locator('.wtBorder.corner:visible');
   }
 
+  /**
+   * Select a cell and paste text into it through the CopyPaste plugin's `paste()` – the same write
+   * a Ctrl/Cmd+V makes (source `CopyPaste.paste`), without depending on the system clipboard.
+   */
+  async pasteText(row: number, col: number, text: string): Promise<void> {
+    await this.page.evaluate(([r, c, t]) => {
+      window.hot.selectCell(r, c);
+      window.hot.getPlugin('copyPaste').paste(t);
+    }, [row, col, text] as const);
+  }
+
+  /**
+   * What a checkbox cell holds and shows: the stored source value, whether the renderer drew the
+   * `#bad-value#` state, and whether the cell carries the invalid class.
+   */
+  async checkboxCell(row: number, col: number): Promise<{ value: unknown, badValue: boolean, invalid: boolean }> {
+    return this.page.evaluate(([r, c]) => {
+      const td = window.hot.getCell(r, c, true);
+
+      return {
+        value: window.hot.getSourceDataAtCell(r, c),
+        badValue: Boolean(td?.querySelector('.htBadValue')),
+        invalid: td?.classList.contains('htInvalid') ?? false,
+      };
+    }, [row, col] as const);
+  }
+
   /** Clear the selection through the instance API. */
   async deselect(): Promise<void> {
     await this.page.evaluate(() => window.hot.deselectCell());

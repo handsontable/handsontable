@@ -10,7 +10,7 @@ import {
   getCellContentRoot,
 } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
-import { localeLowerCase } from '../../helpers/string';
+import { matchCheckboxTemplate } from '../../utils/checkboxColumn';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import { Hooks } from '../../core/hooks';
 import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
@@ -93,8 +93,6 @@ export function checkboxRenderer(
 
   empty(contentRoot); // TODO identify under what circumstances this line can be removed
 
-  const locale = cellProperties.locale as string | undefined;
-
   applyCheckedState();
 
   // The tick is a real element, not the input's own `::after` - an `<input>` can hold no
@@ -125,9 +123,10 @@ export function checkboxRenderer(
    * Determine and apply the checked state of the input element based on the cell value.
    */
   function applyCheckedState() {
-    if (value === cellProperties.checkedTemplate ||
-      localeLowerCase(stringify(value), locale) ===
-      localeLowerCase(stringify(cellProperties.checkedTemplate), locale)) {
+    // One matcher for the renderer, the value setter and the `checkbox` validator (DEV-355).
+    const state = matchCheckboxTemplate(value, cellProperties);
+
+    if (state === 'checked') {
       input.checked = true;
       // Reflect the checked state as the `checked` HTML attribute (via `defaultChecked`), not only as
       // the IDL property. A custom renderer that chains this renderer and then rebuilds the cell with
@@ -137,9 +136,7 @@ export function checkboxRenderer(
       // render, so the attribute defaults to absent on the unchecked path with nothing to clear.
       input.defaultChecked = true;
 
-    } else if (value === cellProperties.uncheckedTemplate ||
-      localeLowerCase(stringify(value), locale) ===
-      localeLowerCase(stringify(cellProperties.uncheckedTemplate), locale)) {
+    } else if (state === 'unchecked') {
       input.checked = false;
 
     } else if (isEmpty(value)) { // default value

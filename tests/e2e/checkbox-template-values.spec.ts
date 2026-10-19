@@ -1,0 +1,87 @@
+import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
+
+/**
+ * Values written into a checkbox cell by paste and by the fill handle (DEV-355).
+ *
+ * The checkbox renderer matched its templates regardless of letter case, but the checkbox value
+ * setter compared them exactly, so a pasted `'False'` showed an unchecked box while the data held the
+ * string `'False'` – which a backend may read as true. Both now match through one function and the
+ * template value is stored. A value that matches neither template (`'Ted'`) is still stored and shown
+ * as `#bad-value#` by default; the new `checkbox` validator is opt-in and lets a column flag it, or
+ * reject it with `allowInvalid: false`.
+ */
+test.describe('checkbox cells and written values', { tag: THEMES_TAG }, () => {
+  let grid: SelectionFeaturesPage;
+
+  // A: names (a fill-handle source), B: default checkbox, C: text (the drag target, so the drag
+  // crosses B), D: yes/no checkbox.
+  const DATA = [
+    ['Ted', true, 'c1', 'yes'],
+    ['Ann', false, 'c2', 'no'],
+    ['Bob', true, 'c3', 'yes'],
+  ];
+  const columns = (checkbox: Record<string, unknown> = {}) => [
+    {},
+    { type: 'checkbox', ...checkbox },
+    {},
+    { type: 'checkbox', checkedTemplate: 'yes', uncheckedTemplate: 'no', ...checkbox },
+  ];
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
+    await grid.goto();
+  });
+
+  test('stores the template value for a pasted case variant of a template', async () => {
+    await grid.initGrid({ data: DATA, columns: columns() });
+
+    await grid.pasteText(0, 1, 'False');
+    await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: false, badValue: false, invalid: false });
+
+    await grid.pasteText(1, 1, 'TRUE');
+    await expect.poll(() => grid.checkboxCell(1, 1)).toEqual({ value: true, badValue: false, invalid: false });
+
+    await grid.pasteText(1, 3, 'YES');
+    await expect.poll(() => grid.checkboxCell(1, 3)).toEqual({ value: 'yes', badValue: false, invalid: false });
+  });
+
+  // Pins the default: no validator on the cell type, so a non-template value is kept and shown as
+  // `#bad-value#`, exactly as before.
+  test('keeps a non-template value as #bad-value# when the cell has no validator', async () => {
+    await grid.initGrid({ data: DATA, columns: columns() });
+
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.dragFillHandleTo(0, 2);
+
+    await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: 'Ted', badValue: true, invalid: false });
+  });
+
+  test('marks a non-template value invalid with the opt-in checkbox validator', async () => {
+    await grid.initGrid({ data: DATA, columns: columns({ validator: 'checkbox' }) });
+
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.dragFillHandleTo(0, 2);
+
+    await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: 'Ted', badValue: true, invalid: true });
+
+    await grid.pasteText(1, 1, 'false');
+    await expect.poll(() => grid.checkboxCell(1, 1)).toEqual({ value: false, badValue: false, invalid: false });
+  });
+
+  test('rejects a non-template value with the checkbox validator and allowInvalid: false', async () => {
+    await grid.initGrid({ data: DATA, columns: columns({ validator: 'checkbox', allowInvalid: false }) });
+
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.dragFillHandleTo(0, 2);
+
+    // The text column the drag also covered is filled; the checkbox keeps its value.
+    await expect(grid.cell(0, 2)).toHaveText('Ted');
+    await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: true, badValue: false, invalid: false });
+
+    await grid.pasteText(1, 3, 'maybe');
+    await grid.pasteText(2, 1, 'Ted');
+    await expect.poll(() => grid.checkboxCell(1, 3)).toEqual({ value: 'no', badValue: false, invalid: false });
+    await expect.poll(() => grid.checkboxCell(2, 1)).toEqual({ value: true, badValue: false, invalid: false });
+  });
+});

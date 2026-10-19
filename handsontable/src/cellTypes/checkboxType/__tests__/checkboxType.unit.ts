@@ -60,4 +60,27 @@ describe('CheckboxCellType', () => {
       });
     });
   });
+
+  describe('valueSetter (DEV-355)', () => {
+    const set = (value: unknown, meta: Record<string, unknown> = {}) => CheckboxCellType.valueSetter.call(
+      { getCellMetaTransient: () => meta }, value, 0, 0,
+    );
+
+    it('should store the template a case variant stands for', () => {
+      expect(set('TRUE')).toBe(true);
+      expect(set('False')).toBe(false);
+      expect(set('YES', { checkedTemplate: 'yes', uncheckedTemplate: 'no' })).toBe('yes');
+    });
+
+    it('should apply the `true`/`false` defaults for a cell whose templates are not in the meta', () => {
+      // A cell that was never rendered: the renderer is what writes the defaults into the meta.
+      expect(set('true')).toBe(true);
+      expect(set('false')).toBe(false);
+    });
+
+    it('should store a value that matches neither template unchanged', () => {
+      expect(set('Ted')).toBe('Ted');
+      expect(set('')).toBe('');
+    });
+  });
 });
