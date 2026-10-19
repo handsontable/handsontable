@@ -469,22 +469,27 @@ describe('AsyncValues: progress, retry, and request options', () => {
       destroy();
     });
 
-    it('should apply `meta` and record the step once a timer-based validator lets the value in', async() => {
+    it('should apply `meta` and record the step once a validator answering in a later task lets the value in', async() => {
+      // The test answers for the validator, as a remote validator answers tasks later.
+      const answers: Array<(valid: boolean) => void> = [];
       const { hot, plugin, destroy } = createGrid({
         undo: true,
         columns: [
           { data: 'sku' },
-          {
-            data: 'name',
-            validator: (value: unknown, callback: (valid: boolean) => void) => setTimeout(() => callback(true), 20),
-          },
+          { data: 'name', validator: (value: unknown, callback: (valid: boolean) => void) => answers.push(callback) },
           { data: 'price' },
         ],
       });
       const undoRedo = hot.getPlugin('undoRedo');
 
       await plugin.setAsyncValue(0, 1, Promise.resolve('new A'), { undo: 'record', meta: { className: 'fromAsync' } });
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await settle();
+
+      expect(answers).toHaveLength(1);
+      expect(hot.getDataAtCell(0, 1)).toBe('old A');
+      expect(undoRedo.isUndoAvailable()).toBe(false);
+
+      answers[0](true);
       await settle();
 
       expect(hot.getDataAtCell(0, 1)).toBe('new A');
@@ -499,8 +504,9 @@ describe('AsyncValues: progress, retry, and request options', () => {
     });
 
     it('should finalize a call whose value a validator rejected under `allowInvalid: false`', async() => {
+      const answers: Array<() => void> = [];
       const validator = (value: unknown, callback: (valid: boolean) => void) => {
-        setTimeout(() => callback(value !== 'bad'), 0);
+        answers.push(() => callback(value !== 'bad'));
       };
       const { hot, plugin, destroy } = createGrid({
         undo: true,
@@ -511,7 +517,8 @@ describe('AsyncValues: progress, retry, and request options', () => {
       await plugin.setAsyncValues(0, 1, 1, 1, async({ row }) => (row === 0 ? 'bad' : 'good'), {
         undo: 'record', meta: { className: 'fromAsync' },
       });
-      await new Promise(resolve => setTimeout(resolve, 20));
+      await settle();
+      answers.forEach(answer => answer());
       await settle();
 
       expect(hot.getDataAtCol(1)).toEqual(['old A', 'good', 'old C', 'old D']);

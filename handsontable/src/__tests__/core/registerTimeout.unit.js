@@ -59,7 +59,8 @@ describe('Core#_registerTimeout', () => {
   it('should keep a handle that was passed in, as it cannot tell when that one fires', () => {
     const hot = buildGrid();
     const before = hot.timeouts.length;
-    const handle = setTimeout(() => {}, 10);
+    // A handle made outside, by any timer API; the number itself is all the method keeps.
+    const handle = 987654;
 
     expect(hot._registerTimeout(handle)).toBe(handle);
 
