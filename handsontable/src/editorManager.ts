@@ -59,9 +59,8 @@ class EditorManager {
    */
   declare activeEditor: BaseEditor | undefined;
   /**
-   * Cell meta for the current edit cycle. Absent until `prepareEditor` assigns it.
-   * A header highlight, and a selection applied under `loadData` or `updateData`,
-   * leave it unset on purpose.
+   * Cell meta for the current edit cycle. Undefined until the first `prepareEditor()`,
+   * and may be stale afterwards.
    *
    * @private
    * @type {CellProperties | undefined}
@@ -354,6 +353,13 @@ class EditorManager {
    *                                             when arrow keys are pressed.
    */
   openEditor(newInitialValue: string | null, event: Event, enableFullEditMode = false) {
+    // The stored prepare belongs to the highlight and the meta it was built from. `loadData`
+    // clears the meta cache and leaves both in place, so refresh before the editability check
+    // unless an edit is already on screen.
+    if (!this.activeEditor?.isOpened() && !this.activeEditor?.isWaiting()) {
+      this.prepareEditor();
+    }
+
     if (!this.isCellEditable()) {
       this.clearActiveEditor();
 
@@ -460,8 +466,8 @@ class EditorManager {
       return false;
     }
 
-    // `getCellEditor` reads `editor` off this object. Header highlights and selections
-    // applied under `loadData` or `updateData` never assign it, and that absence is legitimate.
+    // `getCellEditor` reads `editor` off this object. It stays unset until `prepareEditor()`
+    // assigns it, and a header highlight returns before that assignment.
     const cellProperties = this.cellProperties;
 
     if (!cellProperties) {

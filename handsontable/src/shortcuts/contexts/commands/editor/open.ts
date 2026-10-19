@@ -41,7 +41,10 @@ export const command = {
 
     // supports editor opening with enter key
     if (hot.getSettings().enterBeginsEditing) {
-      // Meta is absent until `prepareEditor` assigns it. `openEditor` bails in that case.
+      // Stored meta is missing until the first prepare and stale after `loadData`. The read-only
+      // check has to follow a fresh one, or Enter neither opens nor moves.
+      editorManager.prepareEditor();
+
       if (editorManager.cellProperties?.readOnly) {
         editorManager.moveSelectionAfterEnter(event);
 
