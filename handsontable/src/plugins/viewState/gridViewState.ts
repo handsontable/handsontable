@@ -87,8 +87,20 @@ export interface GridViewState {
    * The filter conditions, as `Filters#exportConditions()` returns them.
    */
   filters?: ColumnConditions[];
+
+  /**
+   * The hidden rows, as physical indexes.
+   */
   hiddenRows?: number[];
+
+  /**
+   * The hidden columns, as physical indexes.
+   */
   hiddenColumns?: number[];
+
+  /**
+   * The trimmed rows, as physical indexes.
+   */
   trimmedRows?: number[];
 
   /**
@@ -151,7 +163,11 @@ export type GridViewStateSkipReason =
  * What `setViewState()` could not apply.
  */
 export interface GridViewStateIssue {
-  part: GridViewStatePart;
+  /**
+   * The part the issue is about. A key that is not a part of the view state is reported under its own
+   * name, so a misspelled part does not pass as valid.
+   */
+  part: GridViewStatePart | (string & {});
   reason: GridViewStateSkipReason;
 
   /**
@@ -218,6 +234,10 @@ export interface GridViewStateValidationResult {
    * The parts it would skip, and why.
    */
   skipped: GridViewStateIssue[];
+
+  /**
+   * Set when the whole state would be rejected, as `setViewState()` reports it.
+   */
   error?: GridViewStateError;
 }
 
@@ -282,17 +302,7 @@ const SERVER_DRIVEN_PARTS: ReadonlySet<GridViewStatePart> = new Set(['sort', 'fi
  * Returns why a part cannot be captured or restored on this grid, or `null` when it can.
  */
 function getUnavailability(hot: HotInstance, part: GridViewStatePart): GridViewStateSkipReason | null {
-  const plugins = REQUIRED_PLUGINS[part];
-
-  if (plugins && !plugins.some(name => getEnabledPlugin(hot, name))) {
-    return 'pluginDisabled';
-  }
-
-  if (SERVER_DRIVEN_PARTS.has(part) && hot.runHooks('hasExternalDataSource') === true) {
-    return 'externalDataSource';
-  }
-
-  return null;
+  return describeUnavailability(hot, part)?.reason ?? null;
 }
 
 /**
@@ -517,6 +527,42 @@ function describeIndexList(path: string, value: unknown): Failure | null {
 }
 
 /**
+ * Describes an index that lies past the end of the axis the part addresses, or returns `null`. The
+ * restore would drop such an index without a word, so a stale state is reported instead.
+ */
+function describeRange(
+  hot: HotInstance,
+  part: GridViewStatePart,
+  indexes: number[],
+  axis: 'row' | 'column',
+  path = part,
+): Failure | null {
+  const count = axis === 'row' ? hot.rowIndexMapper.getNumberOfIndexes() : hot.columnIndexMapper.getNumberOfIndexes();
+  const bad = indexes.findIndex(index => index >= count);
+
+  return bad === -1 ? null : fail('outOfRange', `${path}[${bad}]`,
+    `${path}[${bad}] is ${indexes[bad]}, and the grid has ${count} ${axis}s`);
+}
+
+/**
+ * Describes a hidden or trimmed index past the end of its axis.
+ */
+function describeIndexRange(hot: HotInstance, part: GridViewStatePart, indexes: number[]): Failure | null {
+  if (part === 'hiddenRows' || part === 'trimmedRows') {
+    return describeRange(hot, part, indexes, 'row');
+  }
+
+  return part === 'hiddenColumns' ? describeRange(hot, part, indexes, 'column') : null;
+}
+
+/**
+ * Describes a size entry whose index is past the end of its axis.
+ */
+function describeSizeRange(hot: HotInstance, part: GridViewStatePart, pairs: Array<[number, number]>): Failure | null {
+  return describeRange(hot, part, pairs.map(([index]) => index), part === 'rowHeights' ? 'row' : 'column');
+}
+
+/**
  * Describes why a value is not a list of `[index, size]` pairs with a positive size.
  */
 function describeSizePairs(path: string, value: unknown): Failure | null {
@@ -599,7 +645,7 @@ function writePart(hot: HotInstance, state: ViewState, part: GridViewStatePart, 
   }
 
   if (part in INDEX_LIST_FIELDS) {
-    const failure = describeIndexList(part, value);
+    const failure = describeIndexList(part, value) ?? describeIndexRange(hot, part, value as number[]);
 
     if (!failure) {
       state[INDEX_LIST_FIELDS[part as keyof typeof INDEX_LIST_FIELDS]] = (value as number[]).slice();
@@ -609,7 +655,7 @@ function writePart(hot: HotInstance, state: ViewState, part: GridViewStatePart, 
   }
 
   if (part in SIZE_FIELDS) {
-    const failure = describeSizePairs(part, value);
+    const failure = describeSizePairs(part, value) ?? describeSizeRange(hot, part, value as Array<[number, number]>);
 
     if (!failure) {
       state[SIZE_FIELDS[part as keyof typeof SIZE_FIELDS]] =
@@ -734,60 +780,83 @@ function writeObjectPart(hot: HotInstance, state: ViewState, part: GridViewState
   const record = value as Record<string, unknown>;
 
   switch (part) {
-    case 'frozen': {
-      const bad = (['rowsTop', 'rowsBottom', 'columnsStart', 'columnsEnd'] as const)
-        .find(key => !(isInteger(record[key]) && (record[key] as number) >= 0));
-
-      if (bad) {
-        return fail('invalid', `frozen.${bad}`, `frozen.${bad} must be a non-negative integer`);
-      }
-
-      const conflict = describeFrozenConflict(hot, value);
-
-      if (conflict) {
-        return conflict;
-      }
-
-      state.fixedRowsTop = record.rowsTop as number;
-      state.fixedRowsBottom = record.rowsBottom as number;
-      state.fixedColumnsStart = record.columnsStart as number;
-      state.fixedColumnsEnd = record.columnsEnd as number;
-
-      return null;
-    }
-
+    case 'frozen':
+      return writeFrozen(hot, state, record);
     case 'pagination':
-      if (!(isInteger(record.page) && record.page >= 1)) {
-        return fail('invalid', 'pagination.page', 'pagination.page must be an integer from 1');
-      }
-
-      if (!(record.pageSize === 'auto' || (isInteger(record.pageSize) && record.pageSize >= 1))) {
-        return fail('invalid', 'pagination.pageSize', 'pagination.pageSize must be a positive integer or \'auto\'');
-      }
-
-      state.pagination = { page: record.page, pageSize: record.pageSize as number | 'auto' };
-
-      return null;
-
+      return writePagination(state, record);
     case 'selection':
       return writeSelection(hot, state, value);
-
     case 'scroll':
-      if (!isInteger(record.row) || record.row < 0) {
-        return fail('invalid', 'scroll.row', 'scroll.row must be a non-negative integer');
-      }
-
-      if (!isInteger(record.col) || record.col < 0) {
-        return fail('invalid', 'scroll.col', 'scroll.col must be a non-negative integer');
-      }
-
-      state.scroll = { row: record.row, col: record.col };
-
-      return null;
-
+      return writeScroll(hot, state, record);
     default:
       return fail('invalid', part, `${part} is not a part of the view state`);
   }
+}
+
+/**
+ * Writes the frozen counts.
+ */
+function writeFrozen(hot: HotInstance, state: ViewState, record: Record<string, unknown>): Failure | null {
+  const bad = (['rowsTop', 'rowsBottom', 'columnsStart', 'columnsEnd'] as const)
+    .find(key => !(isInteger(record[key]) && (record[key] as number) >= 0));
+
+  if (bad) {
+    return fail('invalid', `frozen.${bad}`, `frozen.${bad} must be a non-negative integer`);
+  }
+
+  const conflict = describeFrozenConflict(hot, record);
+
+  if (conflict) {
+    return conflict;
+  }
+
+  state.fixedRowsTop = record.rowsTop as number;
+  state.fixedRowsBottom = record.rowsBottom as number;
+  state.fixedColumnsStart = record.columnsStart as number;
+  state.fixedColumnsEnd = record.columnsEnd as number;
+
+  return null;
+}
+
+/**
+ * Writes the page and the page size.
+ */
+function writePagination(state: ViewState, record: Record<string, unknown>): Failure | null {
+  if (!(isInteger(record.page) && record.page >= 1)) {
+    return fail('invalid', 'pagination.page', 'pagination.page must be an integer from 1');
+  }
+
+  if (!(record.pageSize === 'auto' || (isInteger(record.pageSize) && record.pageSize >= 1))) {
+    return fail('invalid', 'pagination.pageSize', 'pagination.pageSize must be a positive integer or \'auto\'');
+  }
+
+  state.pagination = { page: record.page, pageSize: record.pageSize as number | 'auto' };
+
+  return null;
+}
+
+/**
+ * Writes the scroll position. It must lie inside the grid, or the restore would scroll nowhere.
+ */
+function writeScroll(hot: HotInstance, state: ViewState, record: Record<string, unknown>): Failure | null {
+  const axes = [['row', hot.countRows()], ['col', hot.countCols()]] as const;
+
+  for (const [key, count] of axes) {
+    const index = record[key];
+
+    if (!isInteger(index) || index < 0) {
+      return fail('invalid', `scroll.${key}`, `scroll.${key} must be a non-negative integer`);
+    }
+
+    if (index >= count) {
+      return fail('outOfRange', `scroll.${key}`,
+        `scroll.${key} is ${index}, and the grid has ${count} ${key === 'row' ? 'rows' : 'columns'}`);
+    }
+  }
+
+  state.scroll = { row: record.row as number, col: record.col as number };
+
+  return null;
 }
 
 /**
@@ -827,14 +896,12 @@ function toPlainData<T>(value: T): T {
  * @returns {GridViewState}
  */
 export function getGridViewState(hot: HotInstance): GridViewState {
-  const captured = captureViewState(hot, []);
+  const available = PARTS.filter(part => getUnavailability(hot, part) === null);
+  // Only the parts the state carries are read, so a grid with merges and borders pays no scan for them.
+  const captured = captureViewState(hot, [], new Set<ViewStatePart>(available));
   const result: Record<string, unknown> = { version: GRID_VIEW_STATE_VERSION };
 
-  PARTS.forEach((part) => {
-    if (getUnavailability(hot, part) !== null) {
-      return;
-    }
-
+  available.forEach((part) => {
     const value = readPart(hot, captured, part);
 
     if (value !== undefined) {
@@ -850,6 +917,11 @@ export function getGridViewState(hot: HotInstance): GridViewState {
  */
 interface RestorePlan {
   error?: GridViewStateError;
+
+  /**
+   * How many parts the state names, the unknown keys included.
+   */
+  total: number;
   internal: ViewState;
   parts: Set<ViewStatePart>;
   presentParts: GridViewStatePart[];
@@ -863,6 +935,7 @@ interface RestorePlan {
 function planRestore(hot: HotInstance, state: unknown): RestorePlan {
   const plan: RestorePlan = {
     internal: createNeutralViewState(),
+    total: 0,
     parts: new Set(),
     presentParts: [],
     skipped: [],
@@ -881,6 +954,10 @@ function planRestore(hot: HotInstance, state: unknown): RestorePlan {
 
   plan.presentParts = PARTS.filter(part => record[part] !== undefined);
 
+  const unknownKeys = Object.keys(record).filter(key => key !== 'version' && !PARTS.includes(key as GridViewStatePart));
+
+  plan.total = plan.presentParts.length + unknownKeys.length;
+
   if (record.version !== GRID_VIEW_STATE_VERSION) {
     plan.error = {
       reason: 'unsupportedVersion',
@@ -895,6 +972,15 @@ function planRestore(hot: HotInstance, state: unknown): RestorePlan {
 
     return plan;
   }
+
+  unknownKeys.forEach((key) => {
+    plan.skipped.push({
+      part: key,
+      reason: 'invalid',
+      path: key,
+      message: `${key} is not a part of the view state, the parts are: ${PARTS.join(', ')}`,
+    });
+  });
 
   plan.presentParts.forEach((part) => {
     const failure = describeUnavailability(hot, part) ?? writePart(hot, plan.internal, part, record[part]);
@@ -968,7 +1054,7 @@ export function setGridViewState(
       skipped: plan.skipped,
       error: {
         reason: 'atomicRejected',
-        message: `${plan.skipped.length} of ${plan.presentParts.length} parts cannot be applied, ` +
+        message: `${plan.skipped.length} of ${plan.total} parts cannot be applied, ` +
           'so nothing was applied',
       },
     };
@@ -997,8 +1083,16 @@ export function setGridViewState(
 
 /**
  * Reads the view the given parts have now, in the public shape, so that passing it back reverts them.
+ * A row order restored without a sort clears the sort, so the sort is part of what a revert has to put
+ * back, and it is read as well.
  */
-function readPreviousState(hot: HotInstance, parts: Set<ViewStatePart>): GridViewState {
+function readPreviousState(hot: HotInstance, restored: Set<ViewStatePart>): GridViewState {
+  const parts = new Set(restored);
+
+  if (parts.has('rowOrder') && !parts.has('sort') && describeUnavailability(hot, 'sort') === null) {
+    parts.add('sort');
+  }
+
   const captured = captureViewState(hot, [], parts);
   const previous: Record<string, unknown> = { version: GRID_VIEW_STATE_VERSION };
 

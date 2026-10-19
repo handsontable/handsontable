@@ -134,8 +134,10 @@ export class ViewState extends BasePlugin {
    * (`externalDataSource`), a stored row or column order no longer matches the number of rows or
    * columns (`sizeMismatch`), the selection does not fit the grid (`outOfRange`), or the value is
    * wrong (`invalid`): for example a row order that does not name every row exactly once, a sort column
-   * past the last column, more than one sort column without `MultiColumnSorting`, or a filter condition
-   * that is not registered on the page or cannot take its arguments.
+   * past the last column, more than one sort column without `MultiColumnSorting`, a filter condition
+   * that is not registered on the page or cannot take its arguments, or a key that is not a part of the
+   * view state at all. A hidden or trimmed index, a size, or a scroll position past the end of the grid is
+   * `outOfRange`. With another `version`, every part is skipped as `unsupportedVersion`, next to the `error`.
    *
    * A value that is not an object, such as the `null` that `JSON.parse(localStorage.getItem('my-view'))`
    * gives on a first visit, an object with another `version`, and (with `atomic`) a state with a
@@ -153,11 +155,14 @@ export class ViewState extends BasePlugin {
    * steps recorded before it stay available, so an undo after a restore reverts an earlier action,
    * which may then apply to the restored view. Pass `{ undo: 'record' }` to record the restore as one
    * undo step instead: a single undo then reverts every restored part, and a redo applies them again.
+   * Nothing is recorded while the UndoRedo plugin is disabled.
    * Every restore also returns `previous`, the view its parts had before, in the same shape: pass it
    * to `setViewState()` to revert without UndoRedo.
    *
-   * Pass `{ atomic: true }` to apply nothing when any part is rejected. To check a state without
-   * applying it, use {@link ViewState#validateViewState}.
+   * Pass `{ atomic: true }` to apply nothing when any part is rejected by the checks made before the
+   * restore starts. A step a listener vetoes (a `beforeFilter` that returns `false`, say) and a selection
+   * the grid cannot show are only found while applying, and are reported after the rest was applied. To
+   * check a state without applying it, use {@link ViewState#validateViewState}.
    *
    * ```js
    * const stored = localStorage.getItem('my-view');

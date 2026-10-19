@@ -1580,7 +1580,8 @@ export class Filters extends BasePlugin {
    * An entry is refused when its `column` is not a physical column of this grid, its operation or a
    * condition name is not registered, or the arguments of a condition cannot be bound (a condition's
    * own input decorator throws on arguments of the wrong shape). Two entries for one column are
-   * refused too, because the collection throws when they name different operations.
+   * refused when they name different operations, which the collection throws on; the same operation
+   * twice is imported as one list.
    *
    * @private
    * @param {unknown} conditions The conditions to check.
@@ -1593,7 +1594,7 @@ export class Filters extends BasePlugin {
     }
 
     const columnCount = this.hot.columnIndexMapper.getNumberOfIndexes();
-    const columns = new Set<unknown>();
+    const operations = new Map<unknown, unknown>();
 
     for (let index = 0; index < conditions.length; index++) {
       const entry = conditions[index] as Partial<ColumnConditions> | null;
@@ -1607,18 +1608,22 @@ export class Filters extends BasePlugin {
         return { path: `${at}.column`, message: `must be a physical column index from 0 to ${columnCount - 1}` };
       }
 
-      if (columns.has(entry.column)) {
-        return { path: `${at}.column`, message: `column ${entry.column} appears in more than one entry` };
-      }
-
-      columns.add(entry.column);
-
       if (typeof entry.operation !== 'string' || !Object.hasOwn(registeredOperations, entry.operation)) {
         return {
           path: `${at}.operation`,
           message: `must be one of: ${Object.keys(registeredOperations).join(', ')}`,
         };
       }
+
+      if (operations.has(entry.column) && operations.get(entry.column) !== entry.operation) {
+        return {
+          path: `${at}.operation`,
+          message: `column ${entry.column} already has a ${operations.get(entry.column)} entry, ` +
+            'and one column cannot mix operations',
+        };
+      }
+
+      operations.set(entry.column, entry.operation);
 
       if (!Array.isArray(entry.conditions)) {
         return { path: `${at}.conditions`, message: 'must be an array of conditions' };

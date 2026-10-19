@@ -288,11 +288,12 @@ captured when the plugin is enabled.
 `importConditions()` empties the collection first and throws on an entry it cannot take (an unregistered
 operation or condition name, two entries for one column with different operations, arguments an input
 decorator rejects such as `by_value` with a non-array), which leaves the grid with no conditions. A caller
-that holds input it did not build (the view state restore, `Core#setViewState()`) asks the `@private`
+that holds input it did not build (the `ViewState` plugin's restore) asks the `@private`
 `_findInvalidConditions()` first. It answers with the path (`[2].conditions[0].args`) and the reason of the first
 entry it cannot take, or `null`. It binds every condition with `getCondition()` inside a `try`, because
-the decorator is where wrong arguments throw. Core must ask the plugin rather than import
-`conditionRegisterer`/`logicalOperationRegisterer`, which would put Filters internals in every build.
+the decorator is where wrong arguments throw. The restore must ask the plugin rather than import
+`conditionRegisterer`/`logicalOperationRegisterer`: the engine is shared with SheetsBar, and a caller outside
+the Filters folder reading the registries is how a rename there breaks it silently.
 
 ## Where to look next
 

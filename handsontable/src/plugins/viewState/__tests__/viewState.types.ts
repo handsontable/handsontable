@@ -56,5 +56,5 @@ setOptions.atomic === true;
 
 // @ts-expect-error the undo option takes 'record' or 'skip'
 viewStatePlugin.setViewState(viewState, { undo: 'yes' });
-// @ts-expect-error a part must be named by its key
-viewStatePlugin.setViewState({ version: 1 }).skipped[0].part === 'unknownPart';
+// An issue about a key that is not a part carries that key as a plain string.
+issue.part === 'unknownPart';

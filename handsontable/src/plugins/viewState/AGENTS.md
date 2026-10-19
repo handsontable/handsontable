@@ -19,8 +19,9 @@ any of them.
   when it is registered. Do not move the methods back for convenience.
 - It reaches other plugins only through `getPlugin()` and their `@private` methods
   (`Filters#_findInvalidConditions()`, `HiddenRows#_replaceHiddenRows()`), never their internals.
-- No priority ordering matters: it registers no hook. `PLUGIN_PRIORITY` is 920, in the `900`+ band, only
-  because it must not run before what it reads.
+- No priority ordering matters: it registers no hook and keeps no state, so `enablePlugin()` has nothing to
+  order. `PLUGIN_PRIORITY` is 920, in the `900`+ band with the other plugins that look at everyone else's
+  state, and it must stay unique in the table.
 
 ## The traps
 
@@ -42,9 +43,12 @@ any of them.
   pagination case of `tests/e2e/view-state-api.spec.ts`; the jsdom unit case cannot see it.
 - **A part is skipped, never thrown on.** A disabled plugin (`pluginDisabled`), a `dataProvider`
   grid for sort, filters and pagination (`externalDataSource`, those would fetch), a stored order
-  whose length no longer matches (`sizeMismatch`, reported by `restoreViewState()`), a selection that
+  whose length no longer matches (`sizeMismatch`, found by `writeOrder()` in `planRestore()`; the engine's own
+  length check, which `applyParts()` still reports, is only a net for a hook that changes the count mid-restore),
+  a hidden or trimmed index, a size or a scroll position past the end of its axis, or a selection that
   does not fit (`outOfRange`), and a value of the wrong shape (`invalid`) are all reported in
-  `skipped`. Another `version` applies nothing and warns. A new part needs a validator in
+  `skipped`. Another `version` applies nothing and warns, and a key that is not a part is reported `invalid`
+  under its own name (an LLM or a URL misspells keys, and a silent ignore reads as success). A new part needs a validator in
   `writePart()`: a state may come from an LLM or a URL, and a malformed value must not reach a
   plugin API that throws.
 - **Validate against the grid, not only the shape.** A value that passes a type check can still
@@ -89,7 +93,8 @@ any of them.
 - **Undo is suppressed twice by default, and not at all with `undo: 'record'`.** `withoutUndoEntry()`
   wraps the call in core's `operationScope.suppress()`, which also keeps a held continuation (a validator's
   answer that settles later) unrecorded, and sets UndoRedo's `ignoreNewActions` flag, which covers the
-  actions the plugin registers from `beforeColumnSort` and `beforeFilter`. With `undo: 'record'` the whole
+  second guard for a transaction that would open meanwhile (UndoRedo records from the operation journal,
+  so `suppress()` is what carries the weight). With `undo: 'record'` the whole
   apply runs inside one `operationScope.run('view_state', 'setViewState', ...)`: the plugin mutators it
   calls join that transaction, and UndoRedo records one step from the index-map snapshots, the plugin
   states and the settings it already captures (sort states, hidden and trimmed maps, sizes, frozen
@@ -106,6 +111,14 @@ any of them.
 - **`previous` is read after the check and before the apply**, only for the parts being applied
   (`captureViewState(hot, [], parts)` skips the scans of the parts it was not asked for), in the same
   public shape, so `setViewState(previous)` reverts. Parts the state names but the grid skipped are not in it.
+  A `rowOrder` restored without a `sort` clears the sort, so `previous` carries the sort too; without it
+  a revert would bring the rows back and leave the indicator and `getSortConfig()` empty.
+- **`atomic` covers the checks made before the apply, and only those.** A step a listener vetoes
+  (`beforeFilter`, `beforeHideRows`, `beforeColumnSort`) and a selection `restoreViewport()` cannot land are
+  found while applying, so `applied` can name a part a listener stopped, and the selection skip is reported
+  after the rest was written. Moving such a check into `planRestore()` is the only way to make it atomic.
+- **`getViewState()` reads only the parts the grid can give.** Passing the available parts to
+  `captureViewState()` keeps a grid with merges and borders from paying for scans whose result is dropped.
 - **The NestedRows collapse is replaced, not merged.** `restoreCollapsedParents()` expands every
   parent collapsed now before it collapses the stored ones. On a sheet switch nothing is collapsed
   by then (`loadData()` drops it), so that step is a no-op there.

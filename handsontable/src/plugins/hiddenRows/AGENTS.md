@@ -127,7 +127,7 @@ parent trims. So neither can show or hide such a row, and `showRows(getHiddenRow
 while any hidden row is trimmed. The `@private` `_replaceHiddenRows(physicalRows)` takes the full set of
 hidden physical rows (anything outside the data is ignored), runs `beforeUnhideRows`/`beforeHideRows`
 and the two after hooks with the visual rows among the ones it touches, and changes nothing when a before
-hook returns `false`. The view-state restore uses it, so core never writes into this plugin's hiding map.
+hook returns `false`. The view-state restore uses it, so no other plugin writes into this one's hiding map.
 
 ## Testing
 

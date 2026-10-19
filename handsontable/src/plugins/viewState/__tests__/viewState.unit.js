@@ -437,7 +437,7 @@ describe('ViewState plugin', () => {
 
   describe('undo', () => {
     it('records no undo step for the restore', () => {
-      const hot = createGrid({ ...ALL_PLUGINS, undoRedo: true });
+      const hot = createGrid({ ...ALL_PLUGINS, undo: true });
       const undoRedo = hot.getPlugin('undoRedo');
 
       vs(hot).setViewState({
@@ -451,7 +451,7 @@ describe('ViewState plugin', () => {
     });
 
     it('records no undo step for a restore of every part, including rows written to the hiding map', () => {
-      const hot = createGrid({ ...ALL_PLUGINS, undoRedo: true, pagination: true });
+      const hot = createGrid({ ...ALL_PLUGINS, undo: true, pagination: true });
       const undoRedo = hot.getPlugin('undoRedo');
       const filters = hot.getPlugin('filters');
 
@@ -482,7 +482,7 @@ describe('ViewState plugin', () => {
     });
 
     it('keeps the undo steps recorded before the restore', () => {
-      const hot = createGrid({ ...ALL_PLUGINS, undoRedo: true });
+      const hot = createGrid({ ...ALL_PLUGINS, undo: true });
       const undoRedo = hot.getPlugin('undoRedo');
 
       hot.setDataAtCell(0, 0, 'edited');
@@ -841,7 +841,7 @@ describe('ViewState plugin', () => {
     });
 
     it('does not record a held validation of the restore as an undo step', () => {
-      const hot = createGrid({ ...ALL_PLUGINS, undoRedo: true });
+      const hot = createGrid({ ...ALL_PLUGINS, undo: true });
       const undoRedo = hot.getPlugin('undoRedo');
 
       vs(hot).setViewState({ version: 1, hiddenRows: [1], columnWidths: [[0, 90]] });
@@ -872,7 +872,7 @@ describe('ViewState plugin', () => {
     }
 
     it('records the restore as one undo step that one undo reverts and one redo applies again', () => {
-      const hot = createGrid({ ...ALL_PLUGINS, undoRedo: true });
+      const hot = createGrid({ ...ALL_PLUGINS, undo: true });
       const undoRedo = hot.getPlugin('undoRedo');
       const before = readView(hot);
 
@@ -894,7 +894,7 @@ describe('ViewState plugin', () => {
     });
 
     it('records nothing by default, and with undo: skip', () => {
-      const hot = createGrid({ ...ALL_PLUGINS, undoRedo: true });
+      const hot = createGrid({ ...ALL_PLUGINS, undo: true });
       const undoRedo = hot.getPlugin('undoRedo');
 
       vs(hot).setViewState(everyPart);
@@ -905,7 +905,7 @@ describe('ViewState plugin', () => {
     });
 
     it('lets an undo after a recorded restore reach the edit made before it only on the second undo', () => {
-      const hot = createGrid({ ...ALL_PLUGINS, undoRedo: true });
+      const hot = createGrid({ ...ALL_PLUGINS, undo: true });
       const undoRedo = hot.getPlugin('undoRedo');
 
       hot.setDataAtCell(0, 0, 'edited');
@@ -1068,7 +1068,8 @@ describe('ViewState plugin', () => {
       expect(onlyIssue(hot, { filters: [{ ...entry, conditions: [{ name: 'nope', args: [] }] }] }).path)
         .toBe('filters[0].conditions[0].name');
       expect(onlyIssue(hot, { filters: [{ ...entry, column: 9 }] }).path).toBe('filters[0].column');
-      expect(onlyIssue(hot, { filters: [entry, entry] }).path).toBe('filters[1].column');
+      expect(onlyIssue(hot, { filters: [entry, { ...entry, operation: 'disjunction' }] }).path)
+        .toBe('filters[1].operation');
       expect(onlyIssue(hot, { filters: [{ ...entry, conditions: [{ name: 'eq', args: 'a' }] }] }).message)
         .toBe('filters[0].conditions[0].args eq expects an array of arguments');
     });
@@ -1224,6 +1225,186 @@ describe('ViewState plugin', () => {
         filters: [{ column: 0, operation: 'conjunction', conditions: [{ name: 'by_value', args: [5] }] }],
       })).not.toThrow();
       expect(importConditions).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('keys and indexes the grid cannot honor', () => {
+    it('reports a key that is not a part, so a misspelled part is not valid', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const result = vs(hot).validateViewState({ version: 1, hiddenColumn: [1], hiddenRows: [1] });
+
+      expect(result.valid).toBe(false);
+      expect(result.applicable).toEqual(['hiddenRows']);
+      expect(result.skipped).toEqual([{
+        part: 'hiddenColumn',
+        reason: 'invalid',
+        path: 'hiddenColumn',
+        message: expect.stringMatching(/^hiddenColumn is not a part of the view state, the parts are: columnOrder,/),
+      }]);
+      expect(vs(hot).setViewState({ version: 1, sorting: {} }, { atomic: true }).error.reason)
+        .toBe('atomicRejected');
+    });
+
+    it.each([
+      ['hiddenRows', [999], 'hiddenRows[0]'],
+      ['hiddenColumns', [0, 4], 'hiddenColumns[1]'],
+      ['trimmedRows', [6], 'trimmedRows[0]'],
+      ['columnWidths', [[4, 80]], 'columnWidths[0]'],
+      ['rowHeights', [[6, 40]], 'rowHeights[0]'],
+      ['scroll', { row: 500, col: 0 }, 'scroll.row'],
+      ['scroll', { row: 0, col: 4 }, 'scroll.col'],
+    ])('reports %s %j as out of range instead of dropping it', (part, value, path) => {
+      const hot = createGrid(ALL_PLUGINS);
+      const before = vs(hot).getViewState();
+      const { skipped, applied } = vs(hot).setViewState({ version: 1, [part]: value });
+
+      expect(skipped.map(issue => ({ part: issue.part, reason: issue.reason, path: issue.path })))
+        .toEqual([{ part, reason: 'outOfRange', path }]);
+      expect(applied).toEqual([]);
+      expect(vs(hot).getViewState()).toEqual(before);
+    });
+
+    it('accepts the last index of each axis', () => {
+      const hot = createGrid(ALL_PLUGINS);
+
+      expect(vs(hot).setViewState({
+        version: 1,
+        hiddenRows: [5],
+        hiddenColumns: [3],
+        columnWidths: [[3, 80]],
+        scroll: { row: 5, col: 3 },
+      }).skipped).toEqual([]);
+    });
+
+    it('imports the same filter operation named twice for one column', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const state = {
+        version: 1,
+        filters: [
+          { column: 0, operation: 'conjunction', conditions: [{ name: 'neq', args: ['0-0'] }] },
+          { column: 0, operation: 'conjunction', conditions: [{ name: 'neq', args: ['1-0'] }] },
+        ],
+      };
+
+      expect(vs(hot).validateViewState(state).valid).toBe(true);
+      expect(vs(hot).setViewState(state).applied).toEqual(['filters']);
+      expect(hot.countRows()).toBe(4);
+    });
+
+    it('does not scan merged cells or borders when it reads the view', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const getVisibleMergedAreas = jest.fn(() => []);
+
+      hot.getPlugin = new Proxy(hot.getPlugin, {
+        apply: (target, thisArg, args) => (args[0] === 'mergeCells' ?
+          { enabled: true, getVisibleMergedAreas } : Reflect.apply(target, thisArg, args)),
+      });
+
+      vs(hot).getViewState();
+
+      expect(getVisibleMergedAreas).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('undo: record, part by part', () => {
+    const tree = () => [
+      { name: 'A', __children: [{ name: 'A1' }, { name: 'A2' }] },
+      { name: 'B', __children: [{ name: 'B1' }, { name: 'B2' }] },
+    ];
+
+    /**
+     * Reads the view the parts describe, without the selection and the scroll position, which no step holds.
+     * @param hot
+     */
+    function readView(hot) {
+      const { selection, scroll, ...view } = vs(hot).getViewState();
+
+      return { ...view, rows: hot.getData() };
+    }
+
+    it.each([
+      ['rowOrder', { settings: ALL_PLUGINS, state: { rowOrder: [5, 4, 3, 2, 1, 0] } }],
+      ['rowOrder under a sort', {
+        settings: ALL_PLUGINS,
+        before: hot => hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' }),
+        state: { rowOrder: [1, 0, 2, 3, 4, 5] },
+      }],
+      ['trimmedRows', { settings: ALL_PLUGINS, state: { trimmedRows: [0, 5] } }],
+      ['hiddenRows', { settings: ALL_PLUGINS, state: { hiddenRows: [1, 4] } }],
+      ['hiddenRows over a trimmed hidden row', {
+        settings: ALL_PLUGINS,
+        before: (hot) => {
+          hot.getPlugin('hiddenRows').hideRows([1, 4]);
+          hot.getPlugin('filters').addCondition(0, 'neq', ['4-0']);
+          hot.getPlugin('filters').filter();
+        },
+        state: { hiddenRows: [2] },
+      }],
+      ['rowHeights', { settings: ALL_PLUGINS, state: { rowHeights: [[1, 70]] } }],
+      ['pagination', { settings: { pagination: { pageSize: 2 } }, state: { pagination: { page: 3, pageSize: 2 } } }],
+      ['collapsedRows', {
+        settings: { data: tree(), nestedRows: true, rowHeaders: true },
+        state: { collapsedRows: [[1]] },
+      }],
+    ])('reverts and reapplies %s with one undo and one redo', (_, { settings, before, state }) => {
+      const hot = createGrid({ ...settings, undo: true });
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      before?.(hot);
+      undoRedo.clear();
+
+      const original = readView(hot);
+
+      expect(vs(hot).setViewState({ version: 1, ...state }, { undo: 'record' }).skipped).toEqual([]);
+
+      const restored = readView(hot);
+
+      expect(restored).not.toEqual(original);
+      expect(undoRedo.isUndoAvailable()).toBe(true);
+
+      undoRedo.undo();
+      expect(readView(hot)).toEqual(original);
+      expect(undoRedo.isUndoAvailable()).toBe(false);
+
+      undoRedo.redo();
+      expect(readView(hot)).toEqual(restored);
+    });
+
+    it('does not record a restore while UndoRedo is off', () => {
+      const hot = createGrid({ ...ALL_PLUGINS, undo: false });
+
+      expect(vs(hot).setViewState({ version: 1, hiddenColumns: [1] }, { undo: 'record' }).applied)
+        .toEqual(['hiddenColumns']);
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+    });
+  });
+
+  describe('previous after a row order that clears the sort', () => {
+    it('brings back the rows and the sort', () => {
+      const hot = createGrid(ALL_PLUGINS);
+
+      hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      const sortedRows = hot.getData();
+      const { previous } = vs(hot).setViewState({ version: 1, rowOrder: [0, 1, 2, 3, 4, 5] });
+
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([]);
+      expect(previous.sort).toEqual({ columns: [{ column: 1, sortOrder: 'desc' }] });
+
+      expect(vs(hot).setViewState(previous).skipped).toEqual([]);
+      expect(hot.getData()).toEqual(sortedRows);
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
+    });
+
+    it('does not add the sort to previous for a state that carries it', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const { previous } = vs(hot).setViewState({
+        version: 1,
+        sort: { columns: [{ column: 0, sortOrder: 'desc' }] },
+        rowOrder: [5, 4, 3, 2, 1, 0],
+      });
+
+      expect(Object.keys(previous).sort()).toEqual(['rowOrder', 'sort', 'version']);
     });
   });
 });
