@@ -1,7 +1,7 @@
 ---
 type: explanation
 title: Import and export
-metaTitle: Import and export - JavaScript Data Grid | Handsontable
+metaTitle: Import and export | Handsontable DataGrid for JavaScript
 description: Move data between your grid and files - export to Excel and CSV, import Excel workbooks, and pick the XLSX engine that fits your app.
 permalink: /import-and-export
 canonicalUrl: /import-and-export
@@ -12,11 +12,11 @@ tags:
   - csv
   - excel
 react:
-  metaTitle: Import and export - React Data Grid | Handsontable
+  metaTitle: Import and export | Handsontable DataGrid for React
 angular:
-  metaTitle: Import and export - Angular Data Grid | Handsontable
+  metaTitle: Import and export | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Import and export - Vue Data Grid | Handsontable
+  metaTitle: Import and export | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Import and export
 menuTag: new

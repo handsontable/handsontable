@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Dropped features reference
-metaTitle: Dropped features reference - JavaScript Data Grid | Handsontable
+metaTitle: Dropped features reference | Handsontable DataGrid for JavaScript
 description: Every key the ImportFile and ExportFile plugins report when an XLSX file carries something the grid or the file cannot hold, and which engine reports it.
 permalink: /dropped-features
 canonicalUrl: /dropped-features
@@ -12,11 +12,11 @@ tags:
   - export to file
   - dropped features
 react:
-  metaTitle: Dropped features reference - React Data Grid | Handsontable
+  metaTitle: Dropped features reference | Handsontable DataGrid for React
 angular:
-  metaTitle: Dropped features reference - Angular Data Grid | Handsontable
+  metaTitle: Dropped features reference | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Dropped features reference - Vue Data Grid | Handsontable
+  metaTitle: Dropped features reference | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Import and export
 menuTag: new

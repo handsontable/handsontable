@@ -1,7 +1,7 @@
 ---
 type: reference
 title: XLSX engines
-metaTitle: XLSX engines - JavaScript Data Grid | Handsontable
+metaTitle: XLSX engines | Handsontable DataGrid for JavaScript
 description: The built-in XLSX engine and ExcelJS behind the ImportFile and ExportFile plugins - how they compare, when to choose ExcelJS, bundle size, moving from 18.1, known differences, limits, and security bounds.
 permalink: /xlsx-engine
 canonicalUrl: /xlsx-engine
@@ -11,11 +11,11 @@ tags:
   - import from file
   - export to file
 react:
-  metaTitle: XLSX engines - React Data Grid | Handsontable
+  metaTitle: XLSX engines | Handsontable DataGrid for React
 angular:
-  metaTitle: XLSX engines - Angular Data Grid | Handsontable
+  metaTitle: XLSX engines | Handsontable DataGrid for Angular
 vue:
-  metaTitle: XLSX engines - Vue Data Grid | Handsontable
+  metaTitle: XLSX engines | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Import and export
 menuTag: new
