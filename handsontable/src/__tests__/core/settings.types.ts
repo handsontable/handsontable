@@ -100,6 +100,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   customBordersProgressive: oneOf(true, { chunkSize: 5000 }),
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataDotNotation: oneOf(true),
+  rowId: oneOf('id', 'meta.id', (row: Handsontable.RowObject | unknown[]) => row, true, false),
   dataProvider: {
     rowId: 'id',
     fetchRows: async() => ({ rows: [], totalRows: 0 }),

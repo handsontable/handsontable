@@ -247,6 +247,10 @@ hot.toPhysicalColumn(123) === 123;
 hot.toPhysicalRow(123) === 123;
 hot.toVisualColumn(123) === 123;
 hot.toVisualRow(123) === 123;
+const rowId: unknown = hot.getRowId(123);
+const visualRowById: number | null = hot.getVisualRowById(rowId);
+const physicalRowById: number | null = hot.getPhysicalRowById('id');
+
 hot.unlisten();
 (hot as any).updateData([[1, 2, 3], [1, 2, 3]]);
 (hot as any).updateData([{ a: 'a', b: 2, c: '' }, { a: 'a', b: 2, c: '' }]);

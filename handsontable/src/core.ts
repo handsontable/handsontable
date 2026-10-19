@@ -113,6 +113,7 @@ import {
   type ReversedCellRun,
 } from './dataMap/dataJournal';
 import DataMap from './dataMap/dataMap';
+import { RowIdentity } from './core/rowIdentity/rowIdentity';
 import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
 
@@ -5943,6 +5944,63 @@ export default function Core(
     instance.columnIndexMapper.getPhysicalFromVisualIndex(column) as number;
 
   /**
+   * Returns the id of a row, as the [`rowId`](@/api/options.md#rowid) option (or `dataProvider.rowId`) defines it.
+   *
+   * A row's id stays with the row's record when you sort, filter, move, trim, insert, or remove rows, and when
+   * you undo or redo any of those actions.
+   *
+   * @memberof Core#
+   * @function getRowId
+   * @since 19.0.0
+   * @param {number} row Visual row index.
+   * @returns {*} The row's id, or `null` when the row does not exist, has no id, or no row ids are configured.
+   */
+  this.getRowId = function(row: number): unknown {
+    const physicalRow = Number.isInteger(row) && row >= 0 && row < instance.countRows() ?
+      instance.toPhysicalRow(row) : null;
+
+    return physicalRow === null ? null : rowIdentity.getRowIdAtPhysicalRow(physicalRow);
+  };
+
+  /**
+   * Returns the visual index of the row that has the given id.
+   *
+   * The id is defined by the [`rowId`](@/api/options.md#rowid) option (or `dataProvider.rowId`).
+   *
+   * @memberof Core#
+   * @function getVisualRowById
+   * @since 19.0.0
+   * @param {*} id The row's id.
+   * @returns {number|null} The visual row index, or `null` when no row has the id (for example, the row was
+   * removed), or the row is trimmed, filtered out, or past [`maxRows`](@/api/options.md#maxrows). A hidden row
+   * keeps its visual index.
+   */
+  this.getVisualRowById = function(id: unknown): number | null {
+    const physicalRow = rowIdentity.getPhysicalRowById(id);
+    const visualRow = physicalRow === null ? null : instance.toVisualRow(physicalRow);
+
+    // A row past `maxRows` keeps a visual index, but the grid does not show it.
+    return visualRow !== null && visualRow < instance.countRows() ? visualRow : null;
+  };
+
+  /**
+   * Returns the physical index of the row that has the given id.
+   *
+   * The id is defined by the [`rowId`](@/api/options.md#rowid) option (or `dataProvider.rowId`). Unlike
+   * [`getVisualRowById()`](@/api/core.md#getvisualrowbyid), it also finds a row that is trimmed or filtered out.
+   *
+   * @memberof Core#
+   * @function getPhysicalRowById
+   * @since 19.0.0
+   * @param {*} id The row's id.
+   * @returns {number|null} The physical row index, or `null` when no row has the id (for example, the row was
+   * removed).
+   */
+  this.getPhysicalRowById = function(id: unknown): number | null {
+    return rowIdentity.getPhysicalRowById(id);
+  };
+
+  /**
    * @description
    * Returns the cell value at `row`, `column`.
    *
@@ -8764,6 +8822,8 @@ export default function Core(
 
     ownerWindow: this.rootWindow,
   });
+
+  const rowIdentity = new RowIdentity(instance, physicalRow => dataSource.modifyRowData(physicalRow));
 
   this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => {
     // Releasing keys as some browser/system shortcuts break events sequence (thus the `keyup` event isn't triggered).

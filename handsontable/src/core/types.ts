@@ -137,6 +137,11 @@ export interface HotInstance {
   propToCol(prop: string | number): number | null;
   colToProp(column: number): string | number | null;
 
+  // Row identity
+  getRowId(row: number): unknown;
+  getVisualRowById(id: unknown): number | null;
+  getPhysicalRowById(id: unknown): number | null;
+
   // Data access
   getSchema(): unknown[] | Record<string, unknown>;
   getData(row?: number, column?: number, row2?: number, column2?: number): unknown[][];
