@@ -2161,8 +2161,7 @@ export default (): Record<string, unknown> => {
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
      * A string **`rowId`** is read the same way as the [`rowId`](#rowid) option: a property named exactly as the string
-     * wins, dots included, and otherwise the dots read a nested property while [`dataDotNotation`](#datadotnotation) is
-     * `true`.
+     * wins, dots included, and otherwise the dots read a nested property.
      *
      * Set it to `null` to turn server-backed loading off again, for example through
      * [`updateSettings()`](@/api/core.md#updatesettings).
@@ -2322,9 +2321,9 @@ export default (): Record<string, unknown> => {
      * | `true`     | Handsontable generates the ids: a number for each row, never reused within the instance   |
      * | `false`    | No row ids                                                                               |
      *
-     * A string with a dot is read the way a column's `data` property is read. A property named exactly as the string
-     * wins (`{ 'meta.id': 'SKU-4821' }`). Otherwise, while [`dataDotNotation`](#datadotnotation) is `true`, the dots
-     * read a nested property (`{ meta: { id: 'SKU-4821' } }`).
+     * For a string with a dot, a property named exactly as the string wins (`{ 'meta.id': 'SKU-4821' }`), the same as
+     * for a column's `data` property. Otherwise, the dots read a nested property (`{ meta: { id: 'SKU-4821' } }`), even
+     * when [`dataDotNotation`](#datadotnotation) is `false`.
      *
      * Keep the ids unique. If two rows share an id, the lookups return the row with the lower physical index.
      *

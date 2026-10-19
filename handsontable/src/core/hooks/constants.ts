@@ -890,8 +890,7 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired after a settings update changed how rows get their ids (the [`rowId`](@/api/options.md#rowid)
-   * option, `dataProvider.rowId`, or [`dataDotNotation`](@/api/options.md#datadotnotation) while the row key is a
-   * string with a dot), while the rows had ids before it. Every id read before the update may now
+   * option, or `dataProvider.rowId`), while the rows had ids before it. Every id read before the update may now
    * name another row or none, so look the rows up again or cancel the pending work made for them.
    *
    * A function passed as `rowId` is compared by reference: pass the same function on every settings update, or

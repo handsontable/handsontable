@@ -161,12 +161,6 @@ export class RowIdentity {
   #appliedKey: RowIdSetting = undefined;
 
   /**
-   * The `dataDotNotation` value the ids were last read with. It changes what a dotted string key reads, so a change
-   * under such a key fires `afterRowIdsReset`.
-   */
-  #appliedDataDotNotation = true;
-
-  /**
    * The ids every row had when the current burst of removals and data replacements started, or `null` outside
    * one. Taken only while something listens to `afterRowIdsRemoved`.
    */
@@ -215,7 +209,7 @@ export class RowIdentity {
       return null;
     }
 
-    return this.#readKeyedId(physicalRow, key, this.#readDataDotNotation());
+    return this.#readKeyedId(physicalRow, key);
   }
 
   /**
@@ -290,24 +284,14 @@ export class RowIdentity {
   }
 
   /**
-   * Reads whether a dotted string key walks nested objects, the `dataDotNotation` rule cells are read with.
-   *
-   * @returns {boolean}
-   */
-  #readDataDotNotation(): boolean {
-    return Boolean(this.#hot.getSettings().dataDotNotation);
-  }
-
-  /**
    * Reads the id of a physical row with a row key.
    *
    * @param {number} physicalRow The physical row index.
    * @param {string|Function} key The row key.
-   * @param {boolean} dataDotNotation Whether a dotted string key walks nested objects.
    * @returns {*} The id, or `null` when the row has none.
    */
-  #readKeyedId(physicalRow: number, key: RowIdKey, dataDotNotation: boolean): unknown {
-    return getRowIdFromRowData(this.#readSourceRow(physicalRow), key, dataDotNotation) ?? null;
+  #readKeyedId(physicalRow: number, key: RowIdKey): unknown {
+    return getRowIdFromRowData(this.#readSourceRow(physicalRow), key) ?? null;
   }
 
   /**
@@ -324,9 +308,8 @@ export class RowIdentity {
     }
 
     const key = this.#readKey();
-    const dataDotNotation = this.#readDataDotNotation();
 
-    return isRowIdKey(key) ? physicalRow => this.#readKeyedId(physicalRow, key, dataDotNotation) : null;
+    return isRowIdKey(key) ? physicalRow => this.#readKeyedId(physicalRow, key) : null;
   }
 
   /**
@@ -372,12 +355,8 @@ export class RowIdentity {
     const generates = key === true;
     const rowIndexMapper = this.#hot.rowIndexMapper;
     const previousKey = this.#appliedKey;
-    const dataDotNotation = this.#readDataDotNotation();
-    const readsOtherPath = typeof key === 'string' && key.includes('.') &&
-      dataDotNotation !== this.#appliedDataDotNotation;
 
     this.#appliedKey = key;
-    this.#appliedDataDotNotation = dataDotNotation;
 
     this.#toggleDataHooks(isRowIdKey(key));
 
@@ -402,7 +381,7 @@ export class RowIdentity {
 
     this.#invalidate();
 
-    if ((key !== previousKey || readsOtherPath) && isActiveKey(previousKey)) {
+    if (key !== previousKey && isActiveKey(previousKey)) {
       this.#hot.runHooks('afterRowIdsReset');
     }
   };

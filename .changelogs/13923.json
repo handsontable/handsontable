@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Changed a string `dataProvider.rowId` to read a row's id the way a cell is read: a property named exactly as the key wins, and the dots read a nested property only while `dataDotNotation` is `true`.",
-  "type": "changed",
+  "title": "Fixed a string `dataProvider.rowId` reading a nested property instead of the row's own property with a dot in its name, the value the cell shows.",
+  "type": "fixed",
   "issueOrPR": 13923,
-  "breaking": true,
+  "breaking": false,
   "framework": "none"
 }

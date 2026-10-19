@@ -128,7 +128,7 @@ describe('Row identity with a server-backed grid', () => {
     expect(server.onRowsRemove).toHaveBeenCalledWith(['SKU-4821']);
   });
 
-  it('should not walk a dotted `dataProvider.rowId` key while `dataDotNotation` is off', async() => {
+  it('should keep reading a nested `dataProvider.rowId` path while `dataDotNotation` is off', async() => {
     const server = {
       ...createServer(),
       rowId: 'sku.code',
@@ -146,9 +146,12 @@ describe('Row identity with a server-backed grid', () => {
     });
     await settle();
 
-    expect(hot.getRowIds()).toEqual([null]);
-    expect(hot.getPlugin('dataProvider').getRowId(0)).toBeUndefined();
-    expect(() => hot.alter('remove_row', 0, 1)).toThrow(/cannot remove row at visual index 0/);
-    expect(server.onRowsRemove).not.toHaveBeenCalled();
+    expect(hot.getRowIds()).toEqual(['SKU-4821']);
+    expect(hot.getPlugin('dataProvider').getRowId(0)).toBe('SKU-4821');
+
+    hot.alter('remove_row', 0, 1);
+    await settle();
+
+    expect(server.onRowsRemove).toHaveBeenCalledWith(['SKU-4821']);
   });
 });

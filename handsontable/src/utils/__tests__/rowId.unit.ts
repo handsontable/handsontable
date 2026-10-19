@@ -16,20 +16,13 @@ describe('rowId', () => {
       expect(getRowIdFromRowData({ meta: { id: null } }, 'meta.id')).toBeNull();
     });
 
-    it('should read an own literal dotted key first, with and without dot notation', () => {
+    it('should read an own literal dotted key before walking the path', () => {
       expect(getRowIdFromRowData({ 'meta.id': 'flat-1' }, 'meta.id')).toBe('flat-1');
-      expect(getRowIdFromRowData({ 'meta.id': 'flat-1' }, 'meta.id', false)).toBe('flat-1');
       expect(getRowIdFromRowData({ 'meta.id': 'flat-1', meta: { id: 'nested-1' } }, 'meta.id')).toBe('flat-1');
-      expect(getRowIdFromRowData({ 'meta.id': 'flat-1', meta: { id: 'nested-1' } }, 'meta.id', false))
-        .toBe('flat-1');
+      expect(getRowIdFromRowData({ meta: { id: 'nested-1' } }, 'meta.id')).toBe('nested-1');
     });
 
-    it('should walk a dotted path only while dot notation is on', () => {
-      expect(getRowIdFromRowData({ meta: { id: 'nested-1' } }, 'meta.id', true)).toBe('nested-1');
-      expect(getRowIdFromRowData({ meta: { id: 'nested-1' } }, 'meta.id', false)).toBeUndefined();
-    });
-
-    it('should read a key without a dot through the prototype chain, with and without dot notation', () => {
+    it('should read a key without a dot through the prototype chain', () => {
       class SkuRecord {
         code: number;
 
@@ -43,7 +36,6 @@ describe('rowId', () => {
       }
 
       expect(getRowIdFromRowData(new SkuRecord(4821), 'id')).toBe('SKU-4821');
-      expect(getRowIdFromRowData(new SkuRecord(4821), 'id', false)).toBe('SKU-4821');
     });
 
     it('should read a row array by index', () => {
