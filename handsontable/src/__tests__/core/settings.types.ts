@@ -38,7 +38,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   allowRemoveColumn: true,
   allowRemoveRow: true,
   ariaTags: true,
-  asyncValues: true,
+  asyncValues: oneOf(true, { flush: 'frame' as const, concurrency: 4, copyPendingAs: 'empty' as const }, { flush: 50 }),
   autoColumnSize: true,
   autoLink: oneOf(true, {
     target: '_self' as const,
@@ -422,17 +422,19 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
   // Hooks via settings object
   afterAddChild: (parent, element, index) => {},
-  afterAsyncValueCancel: (physicalRow, prop, reason) => {
+  afterAsyncValueCancel: (physicalRow, prop, reason, rowId) => {
     const _physicalRow: number = physicalRow;
     const _prop: string | number = prop;
     const _reason: 'edit' | 'dependency' | 'restart' | 'rowRemoved' | 'columnsChanged' | 'dataReplaced' |
-      'manual' | 'disabled' = reason;
+      'manual' | 'disabled' | 'vetoed' = reason;
+    const _rowId: unknown = rowId;
   },
-  afterAsyncValueReject: (physicalRow, prop, error, message) => {
+  afterAsyncValueReject: (physicalRow, prop, error, message, rowId) => {
     const _message: string = message;
   },
-  afterAsyncValueResolve: (physicalRow, prop, value) => {},
-  afterAsyncValueStart: (physicalRow, prop) => {
+  afterAsyncValueResolve: (physicalRow, prop, value, rowId) => {},
+  afterAsyncValuesIdle: () => {},
+  afterAsyncValueStart: (physicalRow, prop, rowId) => {
     const _physicalRow: number = physicalRow;
   },
   afterAutofill: (start, end, data) => {},
@@ -683,6 +685,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterViewportRowCalculatorOverride: (calc) => {},
   afterViewRender: (isForced) => {},
   beforeAddChild: (parent, element, index) => {},
+  beforeAsyncValueResolve: (value, physicalRow, prop, rowId) => (value === 'spam' ? false : value),
+  beforeAsyncValueStart: (physicalRow, prop, rowId) => physicalRow !== 0,
   beforeAutofill: (start, end, data) => {},
   beforeBeginEditing: (row: number, column: number, initialValue, event, fullEditMode: boolean) => {
     event.preventDefault();

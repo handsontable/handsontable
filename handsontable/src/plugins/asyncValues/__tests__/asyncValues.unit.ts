@@ -114,7 +114,7 @@ describe('AsyncValues', () => {
       expect(TD.querySelector('.htAsyncIndicator')).not.toBeNull();
       expect(TD.getAttribute('aria-busy')).toBe('true');
       expect(hot.getDataAtCell(1, 1)).toBe('old B');
-      expect(start).toHaveBeenCalledWith(1, 'name');
+      expect(start).toHaveBeenCalledWith(1, 'name', null);
       expect(plugin.isPending(0, 1)).toBe(false);
       expect(plugin.getAsyncState(0, 1)).toBeNull();
 
@@ -169,7 +169,7 @@ describe('AsyncValues', () => {
       expect(hot.getCellMeta(0, 1).asyncState).toBeNull();
       expect(hot.getCell(0, 1)!.classList.contains('htAsyncPending')).toBe(false);
       expect(hot.getCell(0, 1)!.hasAttribute('aria-busy')).toBe(false);
-      expect(resolved).toHaveBeenCalledWith(0, 'name', 'new A');
+      expect(resolved).toHaveBeenCalledWith(0, 'name', 'new A', null);
       expect(changes).toHaveBeenCalledWith([[0, 'name', 'old A', 'new A']], 'AsyncValues.resolve');
 
       destroy();
@@ -277,7 +277,7 @@ describe('AsyncValues', () => {
       expect(TD.classList.contains('htAsyncError')).toBe(true);
       expect(TD.getAttribute('title')).toBe('Lookup failed');
       expect(TD.getAttribute('aria-invalid')).toBe('true');
-      expect(rejected).toHaveBeenCalledWith(0, 'name', error, 'Lookup failed');
+      expect(rejected).toHaveBeenCalledWith(0, 'name', error, 'Lookup failed', null);
 
       destroy();
     });
@@ -415,7 +415,7 @@ describe('AsyncValues', () => {
 
       expect(signal!.aborted).toBe(true);
       expect(await result).toEqual({ status: 'cancelled', reason: 'edit' });
-      expect(cancelled).toHaveBeenCalledWith(0, 'name', 'edit');
+      expect(cancelled).toHaveBeenCalledWith(0, 'name', 'edit', null);
 
       request.resolve('late');
       await settle();
@@ -602,13 +602,21 @@ describe('AsyncValues', () => {
       destroy();
     });
 
-    it('should cancel every request when the data is updated', async() => {
+    it('should keep the requests on their rows when the data is updated without row ids', async() => {
       const { hot, plugin, destroy } = createGrid();
-      const result = plugin.setAsyncValue(0, 1, () => deferred().promise);
+      const request = deferred();
+      const result = plugin.setAsyncValue(0, 1, () => request.promise);
+      const removed = plugin.setAsyncValue(3, 1, () => deferred().promise);
 
-      hot.updateData([{ sku: 'X', name: 'x', price: 9 }]);
+      hot.updateData([{ sku: 'X', name: 'x', price: 9 }, { sku: 'Y', name: 'y', price: 8 }]);
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'dataReplaced' });
+      expect(plugin.isPending(0, 1)).toBe(true);
+      expect(await removed).toEqual({ status: 'cancelled', reason: 'rowRemoved' });
+
+      request.resolve('new X');
+
+      expect(await result).toEqual({ status: 'resolved', value: 'new X' });
+      expect(hot.getSourceDataAtRow(0)).toEqual({ sku: 'X', name: 'new X', price: 9 });
 
       destroy();
     });
@@ -921,7 +929,7 @@ describe('AsyncValues', () => {
       hot.alter('remove_row', 0);
 
       expect(await result).toEqual({ status: 'cancelled', reason: 'manual' });
-      expect(cancelled).toHaveBeenCalledWith(1, 'name', 'manual');
+      expect(cancelled).toHaveBeenCalledWith(1, 'name', 'manual', null);
       expect(plugin.isPending(1, 1)).toBe(false);
       expect(hot.getCell(1, 1)!.classList.contains('htAsyncPending')).toBe(false);
 
