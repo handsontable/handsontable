@@ -56,6 +56,11 @@ export interface Detection {
    * A factor below `1` when the reading is ambiguous.
    */
   certainty: number;
+  /**
+   * Set on a type that is only a fallback for strings. It reads every string, so it always has the
+   * largest share; it wins only when no other detector reaches the confidence floor.
+   */
+  fallback?: boolean;
 }
 
 /**
@@ -323,7 +328,12 @@ function detectDropdown(values: unknown[], context: DetectionContext): Detection
     return null;
   }
 
-  return { column: { settings: { type: 'dropdown', source } }, matched: strings.length, certainty: 1 };
+  return {
+    column: { settings: { type: 'dropdown', source } },
+    matched: strings.length,
+    certainty: 1,
+    fallback: true,
+  };
 }
 
 /**

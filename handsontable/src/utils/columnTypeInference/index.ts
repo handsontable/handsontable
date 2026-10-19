@@ -162,9 +162,11 @@ interface Winner {
 }
 
 /**
- * Runs the detectors in order. The one that reads the largest share wins once that share reaches the
- * floor, and an earlier detector keeps a tie. With `collectRivals`, or when the winner reads less than
- * every value, the rest still run: a later one may read more.
+ * Runs the detectors in order. Among the typed detectors the one that reads the largest share wins
+ * once that share reaches the floor, and an earlier one keeps a tie. A fallback detector (`dropdown`)
+ * reads every string, so it is tried on its own: it wins only when no typed detector reaches the floor.
+ * With `collectRivals`, or when the winner reads less than every value, the rest still run: a later
+ * one may read more.
  */
 function runDetectors(
   nonBlank: unknown[],
@@ -183,7 +185,9 @@ function runDetectors(
       continue;
     }
 
-    if (share >= minConfidence && (winner === null || share > winner.share)) {
+    const outranks = winner === null || (share > winner.share && !detection.fallback);
+
+    if (share >= minConfidence && outranks) {
       if (winner !== null) {
         rivals.push({ type: winner.column.settings.type, share: winner.share });
       }
@@ -204,10 +208,11 @@ function runDetectors(
 }
 
 /**
- * Picks a column's type: the first detector whose share of read values reaches the floor, or
- * `text`. The floor is checked against the share alone; the detector's certainty only scales the
- * reported confidence, so a fully read date column whose order came from the locale still wins.
- * With `wantRunnerUp` every detector runs, and the best other type is reported.
+ * Picks a column's type: the typed detector with the largest share of read values that reaches the
+ * floor (an earlier one wins a tie), then `dropdown`, then `text`. The floor is checked against the
+ * share alone; the detector's certainty only scales the reported confidence, so a fully read date
+ * column whose order came from the locale still wins. With `wantRunnerUp` every detector runs, and the
+ * best other type is reported.
  */
 function inferColumn(
   nonBlank: unknown[],
@@ -395,6 +400,11 @@ function inferColumns(
 const MISSING_VALUE_WORDS = new Set(['-', '--', '?', 'n/a', 'na', '#n/a', 'null', 'none', 'nan', 'unknown', 'tbd']);
 
 /**
+ * The types that can tell a header cell from a data cell: they read some strings and not others.
+ */
+const HEADER_EVIDENCE_TYPES = new Set<InferredCellType>(['numeric', 'date', 'time', 'checkbox']);
+
+/**
  * Whether the first row reads as a header: array data, every cell a non-blank string across the
  * full width and none of them a missing-value word, and at least one typed column below it, with
  * every typed column rejecting its cell. A column of text has no type for a header to differ from, so
@@ -416,7 +426,8 @@ function looksLikeHeader(first: unknown, columns: InferredColumn[]): boolean {
   }
 
   const typed = columns.flatMap((column, index) => {
-    const reader = createReader(column);
+    // A dropdown reads any string, header text included, so it is no evidence either way.
+    const reader = HEADER_EVIDENCE_TYPES.has(column.settings.type) ? createReader(column) : null;
 
     return reader ? [{ reader, cell: row[index] }] : [];
   });

@@ -48,9 +48,16 @@ data) and converts the values to what each type stores. Read this before touchin
   values set the minimum too, so one computed float (`1 / 3`) cannot pad `1` to `1.000000000000000`.
 - **A dot separator is a day-first vote** for a year-last date (`12.03.2026`), unless a part says month
   first. It is the one separator that carries evidence without a part above 12.
-- **The detector that reads the largest share wins**, an earlier one keeps a tie (`runDetectors`). First
-  over the floor was wrong: with `minConfidence: 0.4`, four `true` and six numbers became a checkbox and
-  left the numbers as strings. It still stops at a detector that reads every value.
+- **The TYPED detector that reads the largest share wins**, an earlier one keeps a tie (`runDetectors`).
+  First over the floor was wrong: with `minConfidence: 0.4`, four `true` and six numbers became a checkbox
+  and left the numbers as strings. It still stops at a detector that reads every value. **`dropdown` is a
+  fallback (`Detection.fallback`) and never competes on share**: it reads every string, so it always has
+  the larger share, and `1`..`3` repeated plus one `n/a` became a dropdown that sorts as text. It wins
+  only when no typed detector reaches the floor.
+- **Only numeric, date, time and checkbox columns count as header evidence** (`HEADER_EVIDENCE_TYPES`).
+  The dropdown reader returns the trimmed string for any string, header text included, so counting it
+  made every table with a dropdown column read row 0 as data, and the guide's own example lost its
+  header. The guide's lead example is pinned by the `the guide example` tests.
 - **A dropdown compares and converts TRIMMED values**, like every other reader. Untrimmed, `Open` and
   `Open ` were two options (`source` listed `Open` twice while `stats.distinctCount` said 2), and one
   more padded value pushed the column over `maxOptions` to text. The reader for `dropdown` returns the

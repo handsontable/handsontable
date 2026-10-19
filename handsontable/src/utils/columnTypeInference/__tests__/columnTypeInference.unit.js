@@ -482,6 +482,36 @@ describe('inferColumnTypes', () => {
       expect(convertOne(values)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 'n/a']);
     });
 
+    it('keeps a typed column typed when one stray value would let a dropdown read every string', () => {
+      // Few distinct values, so a dropdown would qualify and read every string (a share of 1).
+      const repeat = (items, times, stray) => [
+        ...Array.from({ length: times }, () => items).flat(),
+        stray,
+      ];
+      const cases = [
+        ['numeric', repeat(['1', '2', '3'], 3, 'n/a'), 1],
+        ['date', repeat(['01.01.2026', '02.01.2026', '03.01.2026'], 3, '?'), '2026-01-01'],
+        ['checkbox', repeat(['true', 'false'], 5, 'n/a'), true],
+        ['numeric', repeat(['5%', '10%'], 5, '-'), 0.05],
+      ];
+
+      cases.forEach(([type, values, firstConverted]) => {
+        const column = inferOne(values);
+
+        expect(column.type).toBe(type);
+        expect(column.source).toBeUndefined();
+        expect(convertOne(values)[0]).toBe(firstConverted);
+      });
+    });
+
+    it('tries a dropdown only when no typed detector reaches the floor, and names it the runner-up', () => {
+      const values = ['1', '2', '3', '1', '2', '3', '1', '2', '3', 'n/a'];
+
+      expect(inferOne(values, { stats: true }).type).toBe('numeric');
+      expect(inferOne(values, { stats: true }).stats.runnerUpType).toBe('dropdown');
+      expect(inferOne(['1', '2', '1', '2', '1', '2', 'x', 'y', 'x', 'y']).type).toBe('dropdown');
+    });
+
     it('gives the type that reads the most values, and the earlier detector a tie', () => {
       const values = ['true', 'true', 'true', 'true', '1', '2', '3', '4', '5', '6'];
 
@@ -780,6 +810,29 @@ describe('inferColumnTypes', () => {
         expect(detect([['Name'], ['Alice', '6'], ['Bob', '7']]).headerRow).toBe(false);
       });
 
+      it('finds a header over a table that has a dropdown column', () => {
+        const rows = [['Name', 'Status'], ['A', 'Open'], ['B', 'Closed'], ['C', 'Open'], ['D', 'Closed'],
+          ['E', 'Open'], ['F', 'Open']];
+
+        expect(detect(rows).headerRow).toBe(false);
+
+        const withNumbers = [['Qty', 'Status'], ['1', 'Open'], ['2', 'Closed'], ['3', 'Open'], ['4', 'Closed'],
+          ['5', 'Open'], ['6', 'Open']];
+        const result = detect(withNumbers);
+
+        expect(result.headerRow).toBe(true);
+        expect(result.columns.map(column => [column.title, column.settings.type]))
+          .toEqual([['Qty', 'numeric'], ['Status', 'dropdown']]);
+        expect(convertToInferredTypes(withNumbers, result)).toHaveLength(6);
+      });
+
+      it('reads a first row as data when a dropdown is the only non-text column', () => {
+        const rows = [['Name', 'Status'], ['A', 'Open'], ['B', 'Closed'], ['C', 'Open'], ['D', 'Closed'],
+          ['E', 'Open'], ['F', 'Open']];
+
+        expect(detect(rows).headerRow).toBe(false);
+      });
+
       it('reads a first row that holds a missing-value word as a record, and keeps it', () => {
         const rows = [['Alice', 'n/a'], ['Bob', '5'], ['Carol', '7'], ['Dave', '9'], ['Eve', '11']];
 
@@ -941,6 +994,55 @@ describe('inferColumnTypes', () => {
       const without = inferColumnTypes(rows, { locale: 'de-DE', minConfidence: 0.5 });
 
       expect(withStats.columns.map(({ stats: omitted, ...column }) => column)).toEqual(without.columns);
+    });
+  });
+
+  describe('the guide example', () => {
+    const header = ['Name', 'Balance', 'Joined', 'Active', 'Status'];
+    const body = [
+      ['Alice', '1.234,56', '12.03.2026', 'TRUE', 'Open'],
+      ['Bob', '12,5', '13.03.2026', 'false', 'Closed'],
+      ['Carol', '7', '14.03.2026', 'true', 'Open'],
+      ['Dave', '99', '15.03.2026', 'false', 'Open'],
+      ['Eve', '3,5', '16.03.2026', 'true', 'Closed'],
+      ['Frank', '40', '17.03.2026', 'false', 'Open'],
+    ];
+    const types = ['text', 'numeric', 'date', 'checkbox', 'dropdown'];
+
+    it('infers the types, the titles, and the converted first row the guide prints', () => {
+      const rows = [header, ...body];
+      const result = inferColumnTypes(rows, { locale: 'de-DE', headerRow: 'auto' });
+
+      expect(result.headerRow).toBe(true);
+      expect(result.columns.map(column => [column.title, column.settings.type]))
+        .toEqual(header.map((title, index) => [title, types[index]]));
+      expect(convertToInferredTypes(rows, result)).toHaveLength(6);
+      expect(convertToInferredTypes(rows, result)[0]).toEqual(['Alice', 1234.56, '2026-03-12', true, 'Open']);
+    });
+
+    it('keeps its types and its header when the rows repeat', () => {
+      const rows = [header, ...body, ...body, ...body];
+      const result = inferColumnTypes(rows, { locale: 'de-DE', headerRow: 'auto' });
+
+      expect(result.headerRow).toBe(true);
+      // The names repeat three times each, so the first column is now a dropdown too.
+      expect(result.columns.map(column => column.settings.type))
+        .toEqual(['dropdown', ...types.slice(1)]);
+      expect(convertToInferredTypes(rows, result)).toHaveLength(18);
+    });
+
+    it('prints the statistics the guide shows', () => {
+      const [, balance] = inferColumnTypes([header, ...body], { headerRow: true, stats: true }).columns;
+
+      expect(balance.stats).toEqual({
+        count: 6,
+        emptyCount: 0,
+        distinctCount: 6,
+        examples: ['1.234,56', '12,5', '7', '99', '3,5'],
+        min: 3.5,
+        max: 1234.56,
+        runnerUpType: 'text',
+      });
     });
   });
 
