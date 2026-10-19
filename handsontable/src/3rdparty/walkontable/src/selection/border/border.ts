@@ -830,6 +830,37 @@ class Border {
   }
 
   /**
+   * Tells which of the two mobile selection handles this overlay draws. Each handle is drawn only by
+   * the overlay that owns its corner cell: the top handle by the owner of the selection's top-start
+   * cell, the bottom handle by the owner of its bottom-end cell, and only when this overlay renders
+   * that corner at all. The master also renders the frozen panes' cells under the clones, and its
+   * copy would hang out past the freeze line next to the clone's own (DEV-749).
+   *
+   * @private
+   * @param {number[]} corners The raw `[fromRow, fromColumn, toRow, toColumn]` corners.
+   * @param {number} checkRow The row of the selection's real bottom-end corner (a merged block's own).
+   * @param {number} checkCol The column of the selection's real bottom-end corner.
+   * @param {boolean} rendersBottomEnd Whether this overlay renders the bottom-end corner.
+   * @returns {{top: boolean, bottom: boolean}}
+   */
+  getMultipleSelectionHandlesOwnership(
+    corners: number[],
+    checkRow: number,
+    checkCol: number,
+    rendersBottomEnd: boolean,
+  ): { top: boolean, bottom: boolean } {
+    const layout: AdjustHandlesLayout = {
+      row: this.getAdjustHandlesAxisLayout('row'),
+      column: this.getAdjustHandlesAxisLayout('column'),
+    };
+
+    return {
+      top: ownsCornerCell(layout, corners[0], corners[1]),
+      bottom: rendersBottomEnd && ownsCornerCell(layout, checkRow, checkCol),
+    };
+  }
+
+  /**
    * Tells whether this overlay's top mobile selection handle, drawn hanging outside the selection's
    * top-start corner, would land under an overlay clone.
    *
@@ -2114,13 +2145,9 @@ class Border {
     }
 
     if (this.selectionHandles) {
-      // Each handle is drawn only by the overlay that owns its corner cell. The master also renders
-      // the frozen panes' cells under the clones, and its copy would hang out past the freeze line
-      // next to the clone's own (DEV-749).
-      const handlesLayout: AdjustHandlesLayout = {
-        row: this.getAdjustHandlesAxisLayout('row'),
-        column: this.getAdjustHandlesAxisLayout('column'),
-      };
+      const handlesOwnership = this.getMultipleSelectionHandlesOwnership(
+        corners, checkRow, checkCol, rendersFillCorner,
+      );
 
       this.updateMultipleSelectionHandlesPosition(
         corners[0],
@@ -2131,9 +2158,9 @@ class Border {
         inlineStartPos,
         width,
         height,
-        rendersFillCorner && ownsCornerCell(handlesLayout, checkRow, checkCol),
+        handlesOwnership.bottom,
         tableSize,
-        ownsCornerCell(handlesLayout, corners[0], corners[1]),
+        handlesOwnership.top,
       );
     }
 
