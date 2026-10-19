@@ -216,6 +216,12 @@ export class AsyncValues extends BasePlugin {
   #settled: SettledRequest[] = [];
 
   /**
+   * Whether a `loadData()` or `updateData()` is running. Its spare rows fire `afterCreateRow` before
+   * `afterLoadData`, and the requests then belong to the data replacement, not to a row removal.
+   */
+  #replacingData = false;
+
+  /**
    * Whether a flush is queued.
    */
   #flushQueued = false;
@@ -250,6 +256,8 @@ export class AsyncValues extends BasePlugin {
     this.addHook('afterRemoveRow', this.#syncRows);
     this.addHook('afterCreateCol', this.#onAfterCreateCol);
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
+    this.addHook('beforeLoadData', this.#onBeforeDataReplaced);
+    this.addHook('beforeUpdateData', this.#onBeforeDataReplaced);
     this.addHook('afterLoadData', this.#onDataReplaced);
     this.addHook('afterUpdateData', this.#onDataReplaced);
 
@@ -351,9 +359,16 @@ export class AsyncValues extends BasePlugin {
     options: AsyncValueOptions = {},
   ): Promise<AsyncValueResult[]> {
     const results: Promise<AsyncValueResult>[] = [];
+    const [fromRow, toRow] = [Math.min(rowFrom, rowTo), Math.max(rowFrom, rowTo)];
+    const [fromColumn, toColumn] = [Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo)];
 
-    for (let row = Math.min(rowFrom, rowTo); row <= Math.max(rowFrom, rowTo); row++) {
-      for (let column = Math.min(columnFrom, columnTo); column <= Math.max(columnFrom, columnTo); column++) {
+    // Checked up front, so a range that reaches outside the grid starts no cell at all.
+    if (!this.#isInGrid(fromRow, fromColumn) || !this.#isInGrid(toRow, toColumn)) {
+      throwWithCause(`The range (${rowFrom}, ${columnFrom}) - (${rowTo}, ${columnTo}) cannot hold async values.`);
+    }
+
+    for (let row = fromRow; row <= toRow; row++) {
+      for (let column = fromColumn; column <= toColumn; column++) {
         results.push(this.#start(row, column, source, options));
       }
     }
@@ -821,7 +836,7 @@ export class AsyncValues extends BasePlugin {
    * holds for a removal another listener vetoed, widened, or nested inside its own.
    */
   #syncRows = (): void => {
-    if (this.#entries.size === 0 || !this.#rowsMap) {
+    if (this.#entries.size === 0 || !this.#rowsMap || this.#replacingData) {
       return;
     }
 
@@ -962,10 +977,18 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
+   * `beforeLoadData` and `beforeUpdateData` hook callback.
+   */
+  #onBeforeDataReplaced = (): void => {
+    this.#replacingData = true;
+  };
+
+  /**
    * `afterLoadData` and `afterUpdateData` hook callback. The requests target the replaced data, so
    * they are cancelled.
    */
   #onDataReplaced = (): void => {
+    this.#replacingData = false;
     this.#settled = [];
 
     if (this.#entries.size > 0) {

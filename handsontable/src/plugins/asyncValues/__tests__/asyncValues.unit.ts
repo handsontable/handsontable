@@ -199,6 +199,18 @@ describe('AsyncValues', () => {
       destroy();
     });
 
+    it('should start nothing when a range reaches outside the grid', () => {
+      const { plugin, destroy } = createGrid();
+      const source = jest.fn(() => deferred().promise);
+
+      expect(() => plugin.setAsyncValues(2, 1, 4, 1, source)).toThrow('cannot hold async values');
+      expect(() => plugin.setAsyncValues(0, 1, -1, 1, source)).toThrow('cannot hold async values');
+      expect(source).not.toHaveBeenCalled();
+      expect(plugin.isPending(2, 1)).toBe(false);
+
+      destroy();
+    });
+
     it('should throw for coordinates outside the grid', () => {
       const { plugin, destroy } = createGrid();
 
@@ -653,6 +665,37 @@ describe('AsyncValues', () => {
       destroy();
     });
 
+    it('should cancel the requests of a row removed inside `batch()` and keep the rest on their records', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const kept = deferred();
+      const removedResult = plugin.setAsyncValue(1, 1, () => deferred().promise);
+      const keptResult = plugin.setAsyncValue(2, 1, () => kept.promise);
+
+      hot.batch(() => {
+        hot.alter('remove_row', 1);
+      });
+
+      expect(await removedResult).toEqual({ status: 'cancelled', reason: 'rowRemoved' });
+
+      kept.resolve('new C');
+      await keptResult;
+
+      expect(hot.getSourceDataAtRow(1)).toEqual({ sku: 'C', name: 'new C', price: 3 });
+
+      destroy();
+    });
+
+    it('should report a load that also adds spare rows as a data replacement', async() => {
+      const { hot, plugin, destroy } = createGrid({ minSpareRows: 1 });
+      const result = plugin.setAsyncValue(0, 1, () => deferred().promise);
+
+      hot.loadData([{ sku: 'X', name: 'x', price: 9 }]);
+
+      expect(await result).toEqual({ status: 'cancelled', reason: 'dataReplaced' });
+
+      destroy();
+    });
+
     it('should drop a result whose cell is edited between the settle and the write', async() => {
       const { hot, plugin, destroy } = createGrid();
       const request = deferred();
@@ -797,6 +840,27 @@ describe('AsyncValues', () => {
 
       expect(hot.getSourceDataAtRow(0)).toEqual({ sku: 'A', name: 'new A', price: 1 });
       expect(hot.getDataAtRowProp(3, 'name')).toBe('new A');
+
+      destroy();
+    });
+
+    it('should land the result on its record after a row is moved', async() => {
+      const { hot, plugin, destroy } = createGrid({ manualRowMove: true });
+      const request = deferred();
+      const result = plugin.setAsyncValue(0, 1, () => request.promise);
+
+      hot.getPlugin('manualRowMove').moveRow(1, 0);
+      hot.render();
+
+      expect(plugin.isPending(1, 1)).toBe(true);
+      expect(hot.getCell(1, 1)!.classList.contains('htAsyncPending')).toBe(true);
+      expect(hot.getCell(0, 1)!.classList.contains('htAsyncPending')).toBe(false);
+
+      request.resolve('new A');
+      await result;
+
+      expect(hot.getDataAtRowProp(1, 'name')).toBe('new A');
+      expect(hot.getSourceDataAtRow(0)).toEqual({ sku: 'A', name: 'new A', price: 1 });
 
       destroy();
     });

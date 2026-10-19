@@ -143,6 +143,7 @@ someone reading that plugin will find it:
 |---|---|---|
 | `pagination` | `nestedRows`, `mergeCells`, `fixedRowsTop`, `fixedRowsBottom` | `../pagination/pagination.ts` |
 | `dataProvider` | `manualRowMove`, `manualColumnMove`, `trimRows`, `multiColumnSorting` | `../dataProvider/dataProvider.ts` |
+| `asyncValues` | `nestedRows` | `../asyncValues/asyncValues.ts` |
 
 A hard conflict is a blunt instrument: it disables the plugin outright. Use it only for combinations that
 cannot be made to work. Anything softer belongs in the plugin's own logic.
