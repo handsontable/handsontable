@@ -29,6 +29,12 @@ import { isMaxLengthActive, withMaxLength } from './validators/maxLengthValidato
 import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
+import {
+  getGridViewState,
+  setGridViewState,
+  type GridViewState,
+  type GridViewStateRestoreResult,
+} from './core/viewState/gridViewState';
 import { spreadsheetColumnLabel, hasChangeForCell } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
@@ -8071,6 +8077,63 @@ export default function Core(
     }
 
     return isScrolled;
+  };
+
+  /**
+   * Returns the grid's view state as a plain, JSON-serializable object: the column and row order,
+   * the sort, the filters, the hidden and trimmed rows, the hidden columns, the collapsed nested
+   * rows, the manual column widths and row heights, the frozen rows and columns, the pagination
+   * page and page size, the selection, and the scroll position.
+   *
+   * A part that needs a plugin is included only while that plugin is enabled. On a grid that
+   * loads its rows through [`dataProvider`](@/api/options.md#dataprovider), the sort, the filters,
+   * and the page are left out, because the server owns them.
+   *
+   * Pass the object to {@link Core#setViewState} to restore the view, on this grid or another one.
+   *
+   * ```js
+   * const viewState = hot.getViewState();
+   *
+   * localStorage.setItem('my-view', JSON.stringify(viewState));
+   * ```
+   *
+   * @since 19.0.0
+   * @memberof Core#
+   * @function getViewState
+   * @returns {object} The view state. Its `version` property identifies the shape.
+   */
+  this.getViewState = function(): GridViewState {
+    return getGridViewState(instance);
+  };
+
+  /**
+   * Restores a view state that {@link Core#getViewState} returned.
+   *
+   * Only the parts the object carries are restored, so you can also pass a partial object, for
+   * example `{ version: 1, sort: { columns: [{ column: 2, sortOrder: 'desc' }] } }`. Every other
+   * part of the view stays as it is.
+   *
+   * A part is skipped, and reported in the returned `skipped` list, when the plugin it needs is
+   * disabled (`pluginDisabled`), when the grid loads its rows through `dataProvider`
+   * (`externalDataSource`), when a stored row or column order no longer matches the number of rows
+   * or columns (`sizeMismatch`), when the selection does not fit the grid (`outOfRange`), or when
+   * the value has the wrong shape (`invalid`). An object with another `version` is not applied
+   * at all (`unsupportedVersion`).
+   *
+   * The restore is not recorded by the [`UndoRedo`](@/api/undoRedo.md) plugin.
+   *
+   * ```js
+   * const { skipped } = hot.setViewState(JSON.parse(localStorage.getItem('my-view')));
+   * ```
+   *
+   * @since 19.0.0
+   * @memberof Core#
+   * @function setViewState
+   * @param {object} state The view state to restore.
+   * @returns {object} An object whose `skipped` array lists each part that was not restored, as `{ part, reason }`.
+   */
+  this.setViewState = function(state: GridViewState): GridViewStateRestoreResult {
+    return setGridViewState(instance, state);
   };
 
   /**

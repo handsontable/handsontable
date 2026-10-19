@@ -9,4 +9,4 @@ export type {
   ViewState as SheetsBarViewState,
   TrackedCellMeta as SheetsBarTrackedCellMeta,
   PaginationState as SheetsBarPaginationState,
-} from './viewState';
+} from '../../core/viewState/viewState';

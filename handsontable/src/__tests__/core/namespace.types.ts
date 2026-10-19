@@ -21,6 +21,13 @@ import type {
   HooksRegistry,
   OverlayType,
   RangeType,
+  GridViewState,
+  GridViewStateCoords,
+  GridViewStatePart,
+  GridViewStateRange,
+  GridViewStateRestoreResult,
+  GridViewStateSelection,
+  GridViewStateSkipReason,
   RendererType,
   SelectOptionsObject,
   SourceRowData,
@@ -289,6 +296,13 @@ type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const _sameEvents: Same<Handsontable.Events, Events> = true;
 const _sameHotInstance: Same<Handsontable.HotInstance, HotInstance> = true;
 const _sameRangeType: Same<Handsontable.RangeType, RangeType> = true;
+const _sameGridViewState: Same<Handsontable.GridViewState, GridViewState> = true;
+const _sameGridViewStateCoords: Same<Handsontable.GridViewStateCoords, GridViewStateCoords> = true;
+const _sameGridViewStatePart: Same<Handsontable.GridViewStatePart, GridViewStatePart> = true;
+const _sameGridViewStateRange: Same<Handsontable.GridViewStateRange, GridViewStateRange> = true;
+const _sameGridViewStateRestoreResult: Same<Handsontable.GridViewStateRestoreResult, GridViewStateRestoreResult> = true;
+const _sameGridViewStateSelection: Same<Handsontable.GridViewStateSelection, GridViewStateSelection> = true;
+const _sameGridViewStateSkipReason: Same<Handsontable.GridViewStateSkipReason, GridViewStateSkipReason> = true;
 const _sameOverlayType: Same<Handsontable.OverlayType, OverlayType> = true;
 const _sameBaseEditorInstance: Same<Handsontable.BaseEditorInstance, BaseEditorInstance> = true;
 const _sameHooksRegistry: Same<Handsontable.HooksRegistry, HooksRegistry> = true;

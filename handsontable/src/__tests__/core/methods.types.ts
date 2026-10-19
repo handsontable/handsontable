@@ -192,6 +192,21 @@ hot.render();
 (hot as any).resumeExecution();
 (hot as any).resumeRender();
 hot.runHooks('afterChange', 123, 'foo', true, {}, [], () => {});
+const viewState: Handsontable.GridViewState = hot.getViewState();
+
+viewState.version === 1;
+viewState.sort?.columns[0].sortOrder === 'asc';
+viewState.selection?.ranges[0].from[0] === 0;
+hot.setViewState(viewState).skipped[0].part === 'sort';
+hot.setViewState({
+  version: 1,
+  hiddenColumns: [1],
+  frozen: { rowsTop: 1, rowsBottom: 0, columnsStart: 0, columnsEnd: 0 },
+});
+hot.setViewState({ version: 1, selection: null }).skipped[0].reason === 'outOfRange';
+// @ts-expect-error a part must be named by its key
+hot.setViewState({ version: 1 }).skipped[0].part === 'unknownPart';
+
 hot.scrollViewportTo({ row: 0 });
 hot.scrollViewportTo({ col: 0 });
 hot.scrollViewportTo({ row: 0, col: 0 });

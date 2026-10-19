@@ -27,6 +27,7 @@ import type { BaseEditor as BaseEditorInstance } from '../editors/baseEditor/bas
 import type { StylesHandler } from '../utils/stylesHandler';
 import type { ThemeManager } from '../themes/engine/manager';
 import type { BaseRenderer } from '../renderers/baseRenderer';
+import type { GridViewState, GridViewStateRestoreResult } from './viewState/gridViewState';
 
 /**
  * Represents a selection range with start/end row/col coordinates.
@@ -242,6 +243,10 @@ export interface HotInstance {
     ...args: unknown[]
   ): boolean;
   scrollToFocusedCell(callback?: () => void): boolean;
+
+  // View state
+  getViewState(): GridViewState;
+  setViewState(state: GridViewState): GridViewStateRestoreResult;
 
   // View
   view: ViewInstance;
