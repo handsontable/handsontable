@@ -2,7 +2,7 @@ import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { AsyncValuesPage } from '../fixtures/pages/AsyncValuesPage';
 
 /**
- * The AsyncValues plugin (DEV-3466): a cell filled from a promise shows a spinner while the request
+ * The AsyncValues plugin: a cell filled from a promise shows a spinner while the request
  * is pending and an error state when it fails, an edit cancels the request and drops its late result,
  * and a sort while the request is pending still lands the value on its record.
  */

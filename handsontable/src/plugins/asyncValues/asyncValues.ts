@@ -267,8 +267,10 @@ export class AsyncValues extends BasePlugin {
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
     this.addHook('beforeLoadData', this.#onBeforeDataReplaced);
     this.addHook('beforeUpdateData', this.#onBeforeDataReplaced);
-    this.addHook('afterLoadData', this.#onDataReplaced);
-    this.addHook('afterUpdateData', this.#onDataReplaced);
+    // Before the application's listeners, so requests an application starts when the data loads are not
+    // cancelled as belonging to the replaced data.
+    this.addHook('afterLoadData', this.#onDataReplaced, -1);
+    this.addHook('afterUpdateData', this.#onDataReplaced, -1);
     // `updateSettings()` re-initializes the row index (a `columns` or `dataSchema` change) without a data
     // load, which resets this plugin's map too.
     this.hot.rowIndexMapper.addLocalHook('init', this.#onRowIndexInit);

@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable/base';
+import { HyperFormula } from 'hyperformula';
 import { registerAllModules } from 'handsontable/registry';
 import * as announcer from '../../../utils/a11yAnnouncer';
 import type { AsyncValueContext } from '../types';
@@ -986,6 +987,28 @@ describe('AsyncValues', () => {
       destroy();
     });
 
+    it('should keep a request the application starts from its own `afterLoadData`', async() => {
+      const request = deferred();
+      let result: Promise<unknown> | undefined;
+      const { hot, destroy } = createGrid({
+        afterLoadData(sourceData: unknown[], initialLoad: boolean) {
+          if (!initialLoad) {
+            result = hot.getPlugin('asyncValues').setAsyncValue(0, 1, () => request.promise);
+          }
+        },
+      });
+
+      // Re-enable at runtime, so the plugin's hooks are registered after the settings listener.
+      hot.updateSettings({ asyncValues: false });
+      hot.updateSettings({ asyncValues: true });
+      hot.loadData([{ sku: 'X', name: 'x', price: 9 }]);
+      request.resolve('Product X');
+
+      expect(await result).toEqual({ status: 'resolved', value: 'Product X' });
+
+      destroy();
+    });
+
     it('should resolve the promises of pending requests as cancelled when the grid is destroyed', async() => {
       const { plugin, destroy } = createGrid();
       let signal: AbortSignal | undefined;
@@ -1026,6 +1049,22 @@ describe('AsyncValues', () => {
 
       expect(await result).toEqual({ status: 'resolved', value: 'new B' });
       expect(hot.getSourceDataAtRow(1)).toEqual({ sku: 'B', name: 'new B', price: 2 });
+
+      destroy();
+    });
+
+    it('should recompute a formula that references a resolved cell', async() => {
+      const { hot, plugin, destroy } = createGrid({
+        data: [{ sku: 'A', name: 'old A', price: 1, total: '=C1*2' }],
+        columns: [{ data: 'sku' }, { data: 'name' }, { data: 'price' }, { data: 'total' }],
+        formulas: { engine: HyperFormula },
+      });
+
+      expect(hot.getDataAtCell(0, 3)).toBe(2);
+
+      await plugin.setAsyncValue(0, 2, Promise.resolve(10));
+
+      expect(hot.getDataAtCell(0, 3)).toBe(20);
 
       destroy();
     });
