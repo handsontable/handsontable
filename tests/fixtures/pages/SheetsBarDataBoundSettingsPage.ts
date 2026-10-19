@@ -1,13 +1,13 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
-export type DataBoundWorkbook = 'nestedRows' | 'columnSummary' | 'mergeCells';
+export type DataBoundWorkbook = 'nestedRows' | 'nestedRowsPadded' | 'nestedSummary' | 'columnSummary' | 'mergeCells';
 
 /**
  * Page object for the sheets-bar-data-bound-settings fixture
  * (fixtures/demo/sheets-bar-data-bound-settings.html): a workbook, picked by `?workbook=`, whose
- * second sheet declares a plugin that reads the grid's data when its settings are applied. The
- * fixture records every `console.error` and `console.warn` the page makes.
+ * sheets declare a plugin that reads the grid's data when its settings are applied, opened on the
+ * sheet `?open=` names. The fixture records every `console.error` and `console.warn` the page makes.
  */
 export class SheetsBarDataBoundSettingsPage {
   readonly page: Page;
@@ -21,11 +21,13 @@ export class SheetsBarDataBoundSettingsPage {
     this.bundle = bundle;
   }
 
-  async goto(workbook: DataBoundWorkbook): Promise<void> {
+  async goto(workbook: DataBoundWorkbook, { open }: { open?: 0 | 1 } = {}): Promise<void> {
     this.page.on('pageerror', error => this.pageErrors.push(error.message));
 
+    const openParam = open === undefined ? '' : `&open=${open}`;
+
     await this.page.goto(
-      `/tests/fixtures/demo/sheets-bar-data-bound-settings.html?theme=${this.theme}&bundle=${this.bundle}&workbook=${workbook}`
+      `/tests/fixtures/demo/sheets-bar-data-bound-settings.html?theme=${this.theme}&bundle=${this.bundle}&workbook=${workbook}${openParam}`
     );
     await awaitBundle(this.page);
 
@@ -50,12 +52,16 @@ export class SheetsBarDataBoundSettingsPage {
   }
 
   /**
-   * Switches sheets through the API, one name after another.
+   * Switches sheets through the API, one name after another, and returns what each
+   * `setActiveSheet()` call answered.
    */
-  async switchTo(...names: string[]): Promise<void> {
-    await this.page.evaluate((sheetNames) => {
-      sheetNames.forEach(name => window.hot.getPlugin('sheetsBar').setActiveSheet(name));
-    }, names);
+  switchTo(...names: string[]): Promise<boolean[]> {
+    return this.page.evaluate(sheetNames => sheetNames
+      .map(name => window.hot.getPlugin('sheetsBar').setActiveSheet(name)), names);
+  }
+
+  activeSheetName(): Promise<string | undefined> {
+    return this.page.evaluate(() => window.hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive)?.name);
   }
 
   consoleMessages(): Promise<string[]> {
@@ -64,6 +70,10 @@ export class SheetsBarDataBoundSettingsPage {
 
   isPluginEnabled(pluginName: 'nestedRows' | 'columnSummary'): Promise<boolean> {
     return this.page.evaluate(name => window.hot.getPlugin(name).enabled, pluginName);
+  }
+
+  isRowHidden(row: number): Promise<boolean> {
+    return this.page.evaluate(visualRow => window.hot.getPlugin('hiddenRows').isHidden(visualRow), row);
   }
 
   countRows(): Promise<number> {
@@ -84,5 +94,16 @@ export class SheetsBarDataBoundSettingsPage {
 
       return workbook.sheets[index].data[r][c];
     }, [sheetIndex, row, col]);
+  }
+
+  /**
+   * The number of top-level entries in a sheet's own declared data array.
+   */
+  declaredSheetLength(sheetIndex: number): Promise<number> {
+    return this.page.evaluate((index) => {
+      const { workbook } = window as unknown as { workbook: { sheets: Array<{ data: unknown[] }> } };
+
+      return workbook.sheets[index].data.length;
+    }, sheetIndex);
   }
 }

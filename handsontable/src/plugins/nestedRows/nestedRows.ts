@@ -167,6 +167,25 @@ export class NestedRows extends BasePlugin {
   #insertAnchor: RowObject | null = null;
 
   /**
+   * Set by a caller that loads a new dataset right after a settings update, while the grid still
+   * holds the previous one (the sheets bar on a sheet switch). An enable during that update then
+   * takes its data from the `loadData()` that follows, through `#onBeforeLoadData`, instead of
+   * validating the previous dataset, which is not nested and would turn the plugin off.
+   *
+   * @private
+   * @type {boolean}
+   */
+  deferDataCheck = false;
+
+  /**
+   * `true` from an enable that `deferDataCheck` held back until the `loadData()` that brings the
+   * plugin its data.
+   *
+   * @type {boolean}
+   */
+  #awaitsDataLoad = false;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
    *
@@ -279,6 +298,14 @@ export class NestedRows extends BasePlugin {
     let currentSourceData = this.dataManager!.getData();
     const isDataManagerEmpty = currentSourceData === null;
 
+    if (isDataManagerEmpty && this.deferDataCheck) {
+      this.enablePlugin();
+      this.#awaitsDataLoad = true;
+      super.updatePlugin();
+
+      return;
+    }
+
     if (isDataManagerEmpty) {
       currentSourceData = this.hot.getSettings().data as RowObject[];
 
@@ -326,7 +353,7 @@ export class NestedRows extends BasePlugin {
 
     super.onUpdateSettings(newSettings);
 
-    if (wasEnabled === this.enabled) {
+    if (wasEnabled === this.enabled || this.#awaitsDataLoad) {
       return;
     }
 
@@ -1753,6 +1780,10 @@ export class NestedRows extends BasePlugin {
    * @param {Array} data The source data.
    */
   #onBeforeLoadData = (data: unknown[]) => {
+    const awaitedLoad = this.#awaitsDataLoad;
+
+    this.#awaitsDataLoad = false;
+
     if (!this.#acceptsData(data)) {
       return;
     }
@@ -1761,6 +1792,10 @@ export class NestedRows extends BasePlugin {
 
     this.dataManager!.setData(data as RowObject[]);
     this.dataManager!.rewriteCache();
+
+    if (awaitedLoad && this.hot.view) {
+      this.headersUI!.updateRowHeaderWidth(undefined, false);
+    }
   };
 
   /**

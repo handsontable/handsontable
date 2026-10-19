@@ -124,13 +124,14 @@ function applyEngineRewritesToSheetData(data: unknown[], serialized: unknown[][]
 const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
 
 /**
- * Settings whose plugins read the grid's data when they are applied. A switch applies the
- * arriving sheet's settings while the grid still holds the departing sheet's data, so a truthy
- * value of one of these keys is applied after the arriving sheet's `loadData()` instead. NestedRows
- * validates the dataset shape and turns itself off on a flat one, and ColumnSummary checks its
- * endpoints against the table size and writes its results into the data.
+ * Settings whose plugins read the grid's data when they are applied and need nothing from the
+ * load itself. A switch applies the arriving sheet's settings while the grid still holds the
+ * departing sheet's data, so a truthy value of one of these keys is applied after the arriving
+ * sheet's `loadData()` instead. ColumnSummary checks its endpoints against the table size and
+ * writes its results into the data. NestedRows is not on the list: the load has to run with it
+ * on, so it is applied before the load with its data check held back (`#withoutNestedRowsDataCheck`).
  */
-const DATA_BOUND_SETTING_KEYS = ['nestedRows', 'columnSummary'] as const;
+const DATA_BOUND_SETTING_KEYS = ['columnSummary'] as const;
 
 /**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
@@ -1606,9 +1607,10 @@ export class SheetsBar extends BasePlugin {
    * is already constructed; during initial plugin setup the view does not exist yet and
    * the grid's own startup render covers it. The settings update runs with core's `min*` padding
    * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
-   * the arriving sheet's data before its `afterLoadData`. On a live grid the settings of plugins
-   * that read the data when they are applied (NestedRows, ColumnSummary) are applied after the
-   * load instead, through a second `updateSettings()` (`#splitDataBoundSettings`).
+   * the arriving sheet's data before its `afterLoadData`. NestedRows takes its data from that
+   * load, not from the departing sheet (`#withoutNestedRowsDataCheck`), and on a live grid
+   * ColumnSummary is configured after the load, through a second `updateSettings()`
+   * (`#splitDataBoundSettings`).
    *
    * The merges the settings declare are built after the load, against the arriving sheet's data.
    * With `restoresMerges` set they are not built at all: a sheet that returns with a stored view
@@ -1623,7 +1625,9 @@ export class SheetsBar extends BasePlugin {
       if (beforeLoad) {
         this.#withoutAutoPadding(() => {
           this.#withoutMergeCellsSettingsPass(() => {
-            this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(beforeLoad));
+            this.#withoutNestedRowsDataCheck(() => {
+              this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(beforeLoad));
+            });
           });
         });
       }
@@ -1653,8 +1657,9 @@ export class SheetsBar extends BasePlugin {
    * against the arriving data during the load (ColumnSummary writing its results into it). A falsy
    * value turns the plugin off, which reads no data, so it stays before the load.
    *
-   * Without a view the grid is still being built: the plugins configure themselves against the
-   * loaded sheet from their own `beforeLoadData` and `afterInit` listeners, and nothing is split.
+   * Without a view the grid is still being built and nothing is split: ColumnSummary computes its
+   * endpoints from its own `afterInit`, against the loaded sheet, and applied after the load it
+   * would write through `setDataAtCell()` before the editor manager exists.
    *
    * @param {object|null} settings The settings `#withBaselineFor` built for the arriving sheet.
    * @returns {object} The settings to apply before and after the load, each `null` when empty.
@@ -2493,6 +2498,34 @@ export class SheetsBar extends BasePlugin {
       update();
     } finally {
       mergeCells.deferSettingsPass = false;
+    }
+  }
+
+  /**
+   * Runs a settings update with NestedRows' data check held back. An update that turns the plugin
+   * on runs while the grid still holds the departing sheet's data, and the plugin would validate
+   * that flat array, log an error, and turn itself off for good. With `deferDataCheck` set it takes
+   * the arriving sheet's tree from the `loadData()` that follows, so the load runs with the plugin
+   * on and sizes the rows, the declared hidden and trimmed rows, and the `min*` padding against the
+   * flattened tree.
+   *
+   * @param {Function} update The operation to run.
+   */
+  #withoutNestedRowsDataCheck(update: () => void) {
+    const nestedRows = this.hot.getPlugin('nestedRows');
+
+    if (!nestedRows || nestedRows.deferDataCheck) {
+      update();
+
+      return;
+    }
+
+    nestedRows.deferDataCheck = true;
+
+    try {
+      update();
+    } finally {
+      nestedRows.deferDataCheck = false;
     }
   }
 
