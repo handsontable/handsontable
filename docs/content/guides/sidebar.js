@@ -46,6 +46,7 @@ const serverSideItems = [
 const dataManagementItems = [
   { path: 'guides/getting-started/binding-to-data/binding-to-data' },
   { path: 'guides/getting-started/saving-data/saving-data' },
+  { path: 'guides/getting-started/view-state/view-state' },
   { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
   { path: 'guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes' },
   { path: 'guides/cell-features/clipboard/clipboard' },

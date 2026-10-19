@@ -11,7 +11,21 @@ This file covers only what is different: three small files, `multiColumnSorting.
 
 `ColumnSorting#enablePlugin` keeps a module-level `WeakMap` keyed on the instance (`pluginConflictsState`).
 Whichever of the two enables first wins; the second one calls `warnAboutPluginsConflict()` and returns
-without enabling. Registration is cleared on disable.
+without enabling. Registration is cleared on disable, and only by the plugin that holds it.
+
+**A swap in one `updateSettings()` call is not a conflict.** `{ columnSorting: true, multiColumnSorting: false }`
+on a grid running MultiColumnSorting reaches `ColumnSorting#enablePlugin()` first (priority 50 against 170),
+while MultiColumnSorting still holds the registration. The check therefore asks the merged settings whether
+the holder is still on. When its key is already falsy, the new plugin **disables the holder first** and only
+then sets itself up; the holder's own `onUpdateSettings()` later in the call finds it disabled and does
+nothing. The order is load-bearing, because the two plugins share state that the holder's teardown would
+otherwise wipe after the newcomer built it: both register their Enter header shortcut under the group
+`'columnSorting'` (`removeShortcutsByGroup()` matches by name only), and `disablePlugin()` writes the holder's
+`indexesSequenceCache` back over the row order, which put a previous MultiColumnSorting sort back under a
+ColumnSorting sort indicator. Without the check the swap disabled both plugins, and the warning named an empty
+plugin, because the nested `updateSettings()` had cleared the registration before the message read it.
+`disablePlugin()` clears the registration only when it holds it. `columnSorting/__tests__/pluginSwap.unit.js`
+pins both directions, the shortcut, and the swap after a sort.
 
 The consequence when debugging: **`columnSorting: true` and `multiColumnSorting: true` on one grid is not a
 supported combination, and the loser is decided by `PLUGIN_PRIORITY`** — ColumnSorting is 50, this plugin is

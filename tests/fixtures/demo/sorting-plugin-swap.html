@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - swapping the sorting plugins</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back: a typo
+    // in the project config must be one red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Fixture for swapping ColumnSorting and MultiColumnSorting through `updateSettings`.
+
+    ?start=multi builds the grid with `multiColumnSorting: true`, ?start=column with
+    `columnSorting: true`. The spec then turns one plugin off and the other on in a single
+    `updateSettings` call and clicks a header label, as a user would after an app switches modes.
+
+    Rows are seeded unsorted so an ascending sort visibly reorders them, and cells carry
+    data-testid="cell-<row>-<col>" so the order is read from what the user sees.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const startsWithMulti = htPick(
+      { multi: true, column: false }, new URLSearchParams(location.search).get('start'), 'multi', 'start');
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    window.hot = new Handsontable(container, {
+      data: [
+        ['Mia', 34],
+        ['Liam', 27],
+        ['Olivia', 45],
+        ['Ethan', 19],
+        ['Ava', 52],
+      ],
+      colHeaders: ['Name', 'Age'],
+      rowHeaders: true,
+      navigableHeaders: true,
+      columnSorting: !startsWithMulti,
+      multiColumnSorting: startsWithMulti,
+      renderer: testIdRenderer,
+      afterGetColHeader(col, TH) {
+        if (col >= 0) {
+          TH.setAttribute('data-testid', `col-header-${col}`);
+        }
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

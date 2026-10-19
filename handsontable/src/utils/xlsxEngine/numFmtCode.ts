@@ -8,36 +8,13 @@
  * `\u` escape.
  */
 
+import { CURRENCY_SYMBOL_TO_CODE, CURRENCY_SYMBOLS } from '../currencySymbols';
+
 /**
  * The longest number format code Excel accepts. Anything longer did not come from Excel, and is
  * neither parsed nor classified.
  */
 export const MAX_NUMBER_FORMAT_LENGTH = 255;
-
-/**
- * Currency symbols the export can write, mapped back to their ISO 4217 codes.
- */
-const CURRENCY_SYMBOL_TO_CODE: Record<string, string> = {
-  $: 'USD',
-  '\u20AC': 'EUR',
-  '\u00A3': 'GBP',
-  '\u00A5': 'JPY',
-  // eslint-disable-next-line quote-props
-  'z\u0142': 'PLN',
-  '\u20B9': 'INR',
-  '\u20A9': 'KRW',
-  CHF: 'CHF',
-  kr: 'SEK',
-  // eslint-disable-next-line quote-props
-  'kr.': 'DKK',
-  R$: 'BRL',
-  // eslint-disable-next-line quote-props
-  'K\u010D': 'CZK',
-  Ft: 'HUF',
-  '\u20BD': 'RUB',
-  '\u20BA': 'TRY',
-  '\uFFE5': 'JPY',
-};
 
 /**
  * Symbols several currencies share, mapped to the LCIDs (Windows locale IDs) that tell them apart in
@@ -152,12 +129,6 @@ function currencyForToken(symbol: string, lcid: string | undefined): string | nu
 
   return currencyForSymbol(symbol);
 }
-
-/**
- * `CURRENCY_SYMBOL_TO_CODE`'s symbols, longest first, so a multi-character symbol wins over a
- * single-character one that is its suffix (`R$` never reads as `$`).
- */
-const CURRENCY_SYMBOLS = Object.keys(CURRENCY_SYMBOL_TO_CODE).sort((a, b) => b.length - a.length);
 
 /**
  * Maps a currency symbol read from a number format to its ISO 4217 code, or `null` for a symbol the

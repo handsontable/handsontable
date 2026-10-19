@@ -54,7 +54,7 @@ pointer moves while the button is held, Handsontable treats the gesture as a col
 
 Both plugins sort the view only. The source data array is never modified. To persist the sorted order back to the data source, see [Saving data](@/guides/getting-started/saving-data/saving-data.md).
 
-`ColumnSorting` and `MultiColumnSorting` are mutually exclusive. Enable only one at a time. If both options are set to `true`, `ColumnSorting` is automatically disabled.
+`ColumnSorting` and `MultiColumnSorting` are mutually exclusive. Enable only one at a time. If both options are set to `true`, `MultiColumnSorting` is automatically disabled. To switch from one plugin to the other, turn one on and the other off in the same call, for example `hot.updateSettings({ columnSorting: true, multiColumnSorting: false })`.
 
 ## Sorting demo
 
@@ -991,7 +991,7 @@ The [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin extends [`ColumnS
 
 The <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> shortcut requires a focused column header. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys.
 
-`ColumnSorting` and `MultiColumnSorting` are mutually exclusive. If both are set to `true`, `ColumnSorting` is automatically disabled.
+`ColumnSorting` and `MultiColumnSorting` are mutually exclusive. If both are set to `true`, `MultiColumnSorting` is automatically disabled.
 
 ### Enable multi-column sorting
 

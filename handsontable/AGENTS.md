@@ -170,6 +170,7 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 | Walkontable engine | `src/3rdparty/walkontable/src/` (TypeScript, separate build pipeline) |
 | Hooks system | `src/core/hooks/` |
 | Incremental render (`renderMode`): paint gate, paint stamps, render epoch | `src/core/incrementalRender/` (`cellPainter.ts`, `cellPaintStamps.ts`, `renderChangeTracker.ts`) |
+| View state (`getPlugin('viewState')`, SheetsBar's per-sheet restore) | `src/plugins/viewState/` (public layer), `src/utils/viewState/` (the shared engine, never imported by core) |
 | DataProvider plugin | `src/plugins/dataProvider/dataProvider.ts` |
 | Error helpers | `src/helpers/errors.ts` |
 | XLSX engine (neutral workbook model, engine detection, adapters) | `src/utils/xlsxEngine/` — shared by `exportFile` and `importFile`; the plugins never touch an engine object directly |
