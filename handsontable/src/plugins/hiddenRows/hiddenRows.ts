@@ -422,6 +422,72 @@ export class HiddenRows extends BasePlugin {
   }
 
   /**
+   * Replaces the hidden rows with a set of physical rows, in one step. {@link HiddenRows#showRows} and
+   * {@link HiddenRows#hideRows} take visual indexes, and a row that a filter, `TrimRows`, or a collapsed
+   * `NestedRows` parent trims has none, so neither can show or hide it. This method addresses rows
+   * physically, so it can. It runs the same hooks as the two public methods, with the visual rows among
+   * the ones it touches, and applies nothing when a `beforeUnhideRows` or `beforeHideRows` listener returns
+   * `false`. Indexes outside the data are ignored.
+   *
+   * @private
+   * @param {number[]} physicalRows The physical indexes of the rows to hide. Every other row is shown.
+   */
+  _replaceHiddenRows(physicalRows: number[]): void {
+    this.runOperation('hide_rows', () => this.#replaceHiddenRows(physicalRows));
+  }
+
+  /**
+   * The body of `_replaceHiddenRows()`, run inside its operation.
+   *
+   * @param {number[]} physicalRows The physical indexes of the rows to hide.
+   */
+  #replaceHiddenRows(physicalRows: number[]): void {
+    const rowCount = this.hot.rowIndexMapper.getNumberOfIndexes();
+    const destination = new Set(physicalRows.filter(row => Number.isInteger(row) && row >= 0 && row < rowCount));
+    const current = new Set(this.#hiddenRowsMap!.getHiddenIndexes());
+    const toVisual = (rows: Iterable<number>) => Array.from(rows)
+      .map(row => this.hot.toVisualRow(row))
+      .filter((row): row is number => row !== null);
+    const currentHideConfig = this.getHiddenRows();
+    const destinationHideConfig = toVisual(destination);
+    const isUnhiding = Array.from(current).some(row => !destination.has(row));
+    const isHiding = Array.from(destination).some(row => !current.has(row));
+
+    if (isUnhiding &&
+        this.hot.runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, true) === false) {
+      return;
+    }
+
+    if (isHiding &&
+        this.hot.runHooks('beforeHideRows', currentHideConfig, destinationHideConfig, true) === false) {
+      return;
+    }
+
+    this.hot.batchExecution(() => {
+      current.forEach((row) => {
+        if (!destination.has(row)) {
+          this.#hiddenRowsMap!.setValueAtIndex(row, false);
+        }
+      });
+      destination.forEach((row) => {
+        if (!current.has(row)) {
+          this.#hiddenRowsMap!.setValueAtIndex(row, true);
+        }
+      });
+    }, true);
+
+    // `isUnhiding` and `isHiding` already prove that a row changed. The visual lists cannot say so: a swap
+    // keeps their length, and a row a filter trims is in neither.
+    if (isUnhiding) {
+      this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, true, true);
+    }
+
+    if (isHiding) {
+      this.hot.runHooks('afterHideRows', currentHideConfig, destinationHideConfig, true, true);
+    }
+  }
+
+  /**
    * Hides the row provided as row index (counting from 0).
    *
    * @param {...number} row Visual row index.

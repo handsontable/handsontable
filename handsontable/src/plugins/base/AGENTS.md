@@ -200,6 +200,7 @@ without a priority in registration order. Registering two plugins on the same pr
 | | | 390 | checkboxHeader |
 | | | 900 | pagination |
 | | | 910 | sheetsBar |
+| | | 920 | viewState |
 | | | 950 | dataProvider |
 | | | 1000 | undoRedo |
 
