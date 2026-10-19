@@ -73,6 +73,13 @@ const YEAR_LAST_DATE_REGEX = /^(\d{1,2})([-/.])(\d{1,2})\2(\d{4})$/;
 const TIME_VALUE_REGEX = /^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*([ap])m)?$/i;
 
 /**
+ * A date followed by a time (`2026-03-12T14:30`, `12/03/2026 9:05 PM`, `3/12/2026, 2:30 PM`): the date
+ * part, then a `T`, whitespace, or a comma and whitespace (what `Intl` writes under `en-US`), then the
+ * rest, which has to read as a time.
+ */
+const DATE_TIME_VALUE_REGEX = /^([\d/.-]+)(?:T|,?\s+)(\S.*)$/;
+
+/**
  * A number value split into the parts the column-level reading needs.
  */
 export interface NumberParts {
@@ -151,6 +158,43 @@ export interface TimeReading {
    * Whether the value carried an `AM`/`PM` marker.
    */
   hour12: boolean;
+}
+
+/**
+ * A date-time value read into the `YYYY-MM-DDTHH:mm:ss` form, plus the parts the column's format
+ * follows. A date without a time reads as midnight.
+ */
+export interface DateTimeReading {
+  /**
+   * The date and time as `YYYY-MM-DDTHH:mm:ss`.
+   */
+  iso: string;
+  /**
+   * Whether the value carried a time. A `Date` always does.
+   */
+  hasTime: boolean;
+  /**
+   * The written form of a string value, which the column's format follows, or `null` for a `Date`,
+   * whose text says nothing about how the column is written.
+   */
+  written: {
+    /**
+     * Whether the month was written with two digits.
+     */
+    paddedMonth: boolean;
+    /**
+     * Whether the day was written with two digits.
+     */
+    paddedDay: boolean;
+    /**
+     * Whether the time carried seconds.
+     */
+    hasSeconds: boolean;
+    /**
+     * Whether the time carried an `AM`/`PM` marker.
+     */
+    hour12: boolean;
+  } | null;
 }
 
 /**
@@ -476,6 +520,73 @@ export function readDate(value: unknown, order: 'DMY' | 'MDY'): DateReading | nu
 }
 
 /**
+ * Splits a date-time string into its date part and its time part. A value with no time part comes
+ * back whole as the date part, with a `null` time.
+ */
+export function splitDateTime(value: unknown): { date: string; time: string | null } | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const text = value.trim();
+  const match = DATE_TIME_VALUE_REGEX.exec(text);
+
+  return match ? { date: match[1], time: match[2] } : { date: text, time: null };
+}
+
+/**
+ * Pads a part of a date or a time to two digits.
+ */
+function padTwo(part: number): string {
+  return String(part).padStart(2, '0');
+}
+
+/**
+ * Reads a `Date` by its local wall clock, which is how the grid reads an `intl-datetime` value. The
+ * milliseconds are dropped, since the stored shape has none. Returns `null` for an invalid `Date`.
+ */
+function readDateObject(value: Date): DateTimeReading | null {
+  if (Number.isNaN(value.getTime())) {
+    return null;
+  }
+
+  const date = `${value.getFullYear()}-${padTwo(value.getMonth() + 1)}-${padTwo(value.getDate())}`;
+  const time = `${padTwo(value.getHours())}:${padTwo(value.getMinutes())}:${padTwo(value.getSeconds())}`;
+
+  return { iso: `${date}T${time}`, hasTime: true, written: null };
+}
+
+/**
+ * Reads a value as a date-time: a date as `readDate()` reads it, optionally followed by a time as
+ * `readTime()` reads it, or a valid `Date`. Returns `null` for anything else, including a time zone or
+ * an offset (`Z`, `+02:00`) and milliseconds, which the stored shape cannot hold.
+ */
+export function readDateTime(value: unknown, order: 'DMY' | 'MDY'): DateTimeReading | null {
+  if (value instanceof Date) {
+    return readDateObject(value);
+  }
+
+  const parts = splitDateTime(value);
+  const date = parts ? readDate(parts.date, order) : null;
+  const time = parts?.time ? readTime(parts.time) : null;
+
+  if (!date || (parts?.time && !time)) {
+    return null;
+  }
+
+  return {
+    iso: `${date.iso}T${time?.value ?? '00:00:00'}`,
+    hasTime: time !== null,
+    written: {
+      paddedMonth: date.paddedMonth,
+      paddedDay: date.paddedDay,
+      hasSeconds: time?.hasSeconds ?? false,
+      hour12: time?.hour12 ?? false,
+    },
+  };
+}
+
+/**
  * Converts a 12-hour clock hour to a 24-hour one, or returns `null` when it is out of range.
  */
 function toTwentyFourHour(hour: number, meridiem: string | undefined): number | null {
@@ -509,10 +620,8 @@ export function readTime(value: unknown): TimeReading | null {
     return null;
   }
 
-  const pad = (part: number) => String(part).padStart(2, '0');
-
   return {
-    value: `${pad(hour)}:${pad(minute)}:${pad(second)}`,
+    value: `${padTwo(hour)}:${padTwo(minute)}:${padTwo(second)}`,
     hasSeconds: match[3] !== undefined,
     hour12: match[4] !== undefined,
   };

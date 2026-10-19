@@ -43,7 +43,7 @@ export interface InferColumnTypesOptions {
 /**
  * The cell types `inferColumnTypes()` can return.
  */
-export type InferredCellType = 'numeric' | 'date' | 'time' | 'checkbox' | 'dropdown' | 'text';
+export type InferredCellType = 'numeric' | 'date' | 'intl-datetime' | 'time' | 'checkbox' | 'dropdown' | 'text';
 
 /**
  * How the raw values of a column were written, which `convertToInferredTypes()` needs to read them.
@@ -63,8 +63,8 @@ export interface InferredInputFormat {
    */
   currencySymbol?: string;
   /**
-   * The day and month order of a `date` column's year-last values: the one the sampled values
-   * show, or the locale's when they show none.
+   * The day and month order of a `date` or `intl-datetime` column's year-last values: the one the
+   * sampled values show, or the locale's when they show none.
    */
   dateOrder?: 'DMY' | 'MDY';
 }
@@ -95,6 +95,11 @@ export interface InferredColumnSettings {
    * The `Intl.DateTimeFormatOptions` of a `time` column.
    */
   timeFormat?: Intl.DateTimeFormatOptions;
+  /**
+   * The `Intl.DateTimeFormatOptions` of an `intl-datetime` column: the date part as for `dateFormat`,
+   * the time part as for `timeFormat`.
+   */
+  dateTimeFormat?: Intl.DateTimeFormatOptions;
   /**
    * The options of a `dropdown` column, in the order they first appear in the sampled rows. A value
    * that appears only past `sampleSize` is not listed, so the dropdown validator rejects it.
@@ -138,8 +143,10 @@ export interface InferredColumnStats {
    */
   examples: string[];
   /**
-   * The smallest value of a `numeric` column (a number), a `date` column (`YYYY-MM-DD`), or a
-   * `time` column (`HH:mm:ss`), after conversion. Not set for the other types.
+   * The smallest value of a `numeric` column (a number), a `date` column (`YYYY-MM-DD`), an
+   * `intl-datetime` column (`YYYY-MM-DDTHH:mm:ss`), or a `time` column (`HH:mm:ss`), after conversion.
+   * `Date` objects are left out, because their converted text follows the host's time zone. Not set
+   * for the other types.
    */
   min?: number | string;
   /**
@@ -170,8 +177,8 @@ export interface InferredColumn {
    */
   confidence: number;
   /**
-   * How the raw values were written. Set on `numeric` and `date` columns, and read by
-   * `convertToInferredTypes()`.
+   * How the raw values were written. Set on `numeric`, `date`, and `intl-datetime` columns, and read
+   * by `convertToInferredTypes()`.
    */
   inputFormat?: InferredInputFormat;
   /**

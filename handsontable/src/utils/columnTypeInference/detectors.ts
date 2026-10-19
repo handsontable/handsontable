@@ -8,8 +8,10 @@ import {
   isNumberBody,
   readBoolean,
   readDate,
+  readDateTime,
   readSplitNumber,
   readTime,
+  splitDateTime,
   splitNumberParts,
   splitYearLastDate,
   type NumberMode,
@@ -285,6 +287,43 @@ function detectDate(values: unknown[], context: DetectionContext): Detection | n
 }
 
 /**
+ * Detects date-time columns: a date as `detectDate` reads it followed by a time as `detectTime` reads
+ * it, and `Date` objects. A date without a time is read too, as midnight, because the `intl-datetime`
+ * type stores both, so a column of dates and date-times settles by share. A column with no time at all
+ * is left to `detectDate`. The day and month order is voted on the date parts, and the format follows
+ * the written values only: a `Date` says nothing about how the column is written.
+ */
+function detectDateTime(values: unknown[], context: DetectionContext): Detection | null {
+  const yearLastParts = values.map(value => splitYearLastDate(splitDateTime(value)?.date))
+    .filter(parts => parts !== null);
+  const voted = voteDateOrder(yearLastParts);
+  const dateOrder = voted ?? context.localeDateOrder;
+  const readings = values.map(value => readDateTime(value, dateOrder)).filter(reading => reading !== null);
+
+  if (!readings.some(reading => reading.hasTime)) {
+    return null;
+  }
+
+  const written = readings.flatMap(reading => (reading.written ? [reading.written] : []));
+  const hour12 = written.some(reading => reading.hour12);
+  const dateTimeFormat: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: written.every(reading => reading.paddedMonth) ? '2-digit' : 'numeric',
+    day: written.every(reading => reading.paddedDay) ? '2-digit' : 'numeric',
+    hour: hour12 ? 'numeric' : '2-digit',
+    minute: '2-digit',
+    ...(written.some(reading => reading.hasSeconds) ? { second: '2-digit' } : {}),
+    hour12,
+  };
+
+  return {
+    column: { settings: { type: 'intl-datetime', dateTimeFormat }, inputFormat: { dateOrder } },
+    matched: readings.length,
+    certainty: yearLastParts.length > 0 && voted === null ? LOCALE_ORDER_CERTAINTY : 1,
+  };
+}
+
+/**
  * Detects time columns, in 24-hour or 12-hour form.
  */
 function detectTime(values: unknown[]): Detection | null {
@@ -345,6 +384,7 @@ export const DETECTORS: Detector[] = [
   detectCheckbox,
   detectNumeric,
   detectDate,
+  detectDateTime,
   detectTime,
   detectDropdown,
 ];

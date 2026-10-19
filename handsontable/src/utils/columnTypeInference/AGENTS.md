@@ -12,8 +12,8 @@ data) and converts the values to what each type stores. Read this before touchin
   `ImportFile#convertToInferredTypes` (`../../plugins/importFile/importFile.ts`) default `locale` to the
   grid's, and the plugin barrel re-exports the functions for grid-less use. It lives in `utils/`, not in
   the plugin, so the planned paste and CSV paths can use it without importing from a plugin.
-- Not here yet: a CSV importer, typing on paste, date-time values as `intl-datetime`, `Date` objects, a
-  `sampling: 'spread'` option, and custom date formats and boolean words. All are additive.
+- Not here yet: a CSV importer, typing on paste, a `sampling: 'spread'` option, and custom date formats
+  and boolean words. All are additive.
 
 ## Traps
 
@@ -23,9 +23,10 @@ data) and converts the values to what each type stores. Read this before touchin
   falls back to the HOST locale, so `resolveLocale` checks `supportedLocalesOf`), and separators and
   the day/month order come from `Intl.NumberFormat(locale).formatToParts` /
   `Intl.DateTimeFormat(locale).formatToParts`. The result is the same for the same input in one
-  browser; another engine's ICU data can differ for a locale. Sampling is
+  browser; another engine's ICU data can differ for a locale. The one exception is the converted value of
+  a `Date`, which is its local wall clock (see the `Date` trap below); its inferred type is not. Sampling is
   the first `sampleSize` rows, dropdown sources are in first-appearance order, and `DETECTORS` order is
-  the tie-break (checkbox, numeric, date, time, dropdown, then text).
+  the tie-break (checkbox, numeric, date, intl-datetime, time, dropdown, then text).
 - **The column decides before the locale.** A value only one separator can read (`0,5`, `1,234.56`)
   votes, and only a tie falls back to the locale; same for a year-last date with a part above 12. A
   date column settled by the locale scores `0.95` of its share, so `confidence` shows the guess; the
@@ -57,8 +58,8 @@ data) and converts the values to what each type stores. Read this before touchin
   fallback (`Detection.fallback`) and never competes on share**: it reads every string, so it always has
   the larger share, and `1`..`3` repeated plus one `n/a` became a dropdown that sorts as text. It wins
   only when no typed detector reaches the floor.
-- **Only numeric, date, time and checkbox columns count as header evidence** (`HEADER_EVIDENCE_TYPES`).
-  The dropdown reader returns the trimmed string for any string, header text included, so counting it
+- **Only numeric, date, intl-datetime, time and checkbox columns count as header evidence**
+  (`HEADER_EVIDENCE_TYPES`). The dropdown reader returns the trimmed string for any string, header text included, so counting it
   made every table with a dropdown column read row 0 as data, and the guide's own example lost its
   header. The guide's lead example is pinned by the `the guide example` tests.
 - **A dropdown compares and converts TRIMMED values**, like every other reader. Untrimmed, `Open` and
@@ -78,8 +79,8 @@ data) and converts the values to what each type stores. Read this before touchin
   to turn a code back into a symbol.
 - **Inference without conversion is a trap.** The `date` and `time` cell types validate source data as
   ISO only, so `12/03/2026` loaded raw is flagged on every cell. `convertToInferredTypes` rewrites
-  values to the stored shape (number, `YYYY-MM-DD`, `HH:mm:ss`, boolean) and reads them with the same
-  functions the detectors count with (`values.ts`), so a value the detector accepted always converts.
+  values to the stored shape (number, `YYYY-MM-DD`, `YYYY-MM-DDTHH:mm:ss`, `HH:mm:ss`, boolean) and
+  reads them with the same functions the detectors count with (`values.ts`), so a value the detector accepted always converts.
   Keep it that way: a converter with its own parsing drifts from what `confidence` promised.
 - **`getParsedNumber` (`helpers/number.ts`) is deliberately NOT used.** It falls back to
   `parseFloat`, so `12 apples` reads as `12`, and it cannot read a comma-grouped float (`1,234.56`
@@ -90,8 +91,28 @@ data) and converts the values to what each type stores. Read this before touchin
   Neither is a value with more than 15 significant digits (a card number), which a double rounds.
   Fraction digits are capped at 20 (`Intl.NumberFormat` throws above 100, inside the renderer) and a
   JS number is counted at 15 significant digits, so `0.1 + 0.2` does not ask for 17 decimals.
-  `1`/`0` stay numeric, not checkbox. Date-time values stay `text`, because the `date` validator
-  accepts date-only values; mapping them to `intl-datetime` is a follow-up.
+  `1`/`0` stay numeric, not checkbox.
+- **A date-time column is `intl-datetime`, never `date`**, because the `date` validator accepts
+  date-only values. `readDateTime` (`values.ts`) reads a date as `readDate` does, then a `T`,
+  whitespace, or `, ` + whitespace (what `Intl` writes under `en-US`), then a time as `readTime` does,
+  so the grammar is the date and time grammars, not a third copy. It converts to `YYYY-MM-DDTHH:mm:ss`,
+  the shape the editor writes back. A `Z`, an offset, and milliseconds are unread: the validator rejects
+  the first two, the grid reads local time, and the stored shape has no milliseconds. Three rules.
+  (1) **The reader also reads a date without a time, as midnight**, because `isValidISODateTime` accepts
+  one, so a column of dates with a few date-times settles by share (19 dates and 1 date-time is
+  `intl-datetime` at 1.0, ahead of `date` at 0.95). (2) **`detectDateTime` returns `null` when no value
+  carries a time**, so a column of dates never meets it, and `runnerUpType` of a date column stays `text`.
+  The `DETECTORS` order (after `date`) would keep `date` on a tie anyway, but the `null` is what keeps the
+  stats clean. (3) **The day/month vote runs on the DATE PART** (`splitDateTime`), because
+  `splitYearLastDate('12/03/2026 14:30')` is `null`. The `dateTimeFormat` options follow the shape the
+  XLSX import uses (Intl keys, with `hour12` stated whenever `hour` is set).
+- **A `Date` is always `intl-datetime`, and it converts to its LOCAL wall clock.** It is the one output
+  that reads the host: the grid parses an `intl-datetime` value as local time, so the local getters are
+  the only reading that shows the same instant. The TYPE never depends on the time zone: a `Date` at
+  local midnight is not a `date`, or the inferred type would change with the host. A `Date` casts no
+  vote on the format (its text says nothing about how the column is written), drops its milliseconds,
+  and is left out of `stats.min`/`max`. The tests build `Date`s with the local constructor, so they pass
+  in any time zone; run them under another `TZ` after a change here.
 - **A percent column divides by moving the exponent** (`'7.25' + 'e-2'`), not by `/ 100`, which keeps
   `7.25%` exactly `0.0725`.
 - **The currency table is shared** with `../../plugins/importFile/inference.ts` through
@@ -122,7 +143,7 @@ data) and converts the values to what each type stores. Read this before touchin
 - **`headerRow: 'auto'` needs evidence, and a table of text has none.** Row 0 is a header only when
   every cell is a non-blank string across the full width, none of them a missing-value word
   (`MISSING_VALUE_WORDS`: `n/a`, `-`, `null`...), AND there is a typed column below it (numeric, date,
-  time, checkbox) with EVERY typed column rejecting its cell. "Some typed column rejects" was too weak:
+  intl-datetime, time, checkbox) with EVERY typed column rejecting its cell. "Some typed column rejects" was too weak:
   `['Alice', 'n/a']` over a numeric column read as a header, and `convertToInferredTypes` then dropped
   the Alice record without a word. A placeholder written another way still fools it; the guide says so. `Name, City / Alice, Paris` stays data, and so does `1, 2 /
   3, 4`. Do not loosen it to "all strings": that turns every text table's first record into titles. The
@@ -131,7 +152,7 @@ data) and converts the values to what each type stores. Read this before touchin
   as data.
 - **`stats` costs a full detector pass, so it is opt-in.** Without it `inferColumn` stops at the first
   detector that reaches the floor; with it, every detector runs so `runnerUpType` can name the next
-  best type (ties keep `DETECTORS` order). `min`/`max` exist only for numeric, date and time:
+  best type (ties keep `DETECTORS` order). `min`/`max` exist only for numeric, date, intl-datetime and time:
   a checkbox's booleans compare, and a text column has no order worth reporting. `examples: 0` is a
   valid limit, so "stats off" is `null` in `toExampleLimit`, never `0`.
 - **A `Date` is described by its ISO string** (`toText`), because its own text follows the host time
@@ -143,7 +164,7 @@ data) and converts the values to what each type stores. Read this before touchin
   at module level. A module-level `Hooks.register()` or a new `sideEffects` entry for `importFile`
   would change that: re-measure first. The CommonJS build is not shakeable, as for every plugin.
 - **Accepted, not fixed:** `Open` and `open` are two dropdown options; `1:30` reads as a time; Indian lakh grouping (`1,23,456`) and times with milliseconds stay
-  text; a JS `Date` stays text. The guide names the ones a user will meet.
+  text. The guide names the ones a user will meet.
 
 ## Where to look next
 
