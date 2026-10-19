@@ -4,7 +4,12 @@ import { isObject } from '../../helpers/object';
 import {
   detectXlsxEngine, resolveEngineOverride, tryDetectXlsxEngine, type DetectedXlsxEngine,
 } from '../../utils/xlsxEngine/detect';
-import { DROPPED_FEATURES, DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
+import {
+  DROPPED_FEATURES,
+  DroppedFeatures,
+  ENGINE_DISPLAY_NAMES,
+  type XlsxEngineKind,
+} from '../../utils/xlsxEngine/capabilities';
 import { mapWorkbook, resolveImportOptions, type MappedResult, type ResolvedImportOptions } from './mapper';
 import { applyImportResult, removeImportedStyles } from './applier';
 import { hasCellType } from '../../cellTypes/registry';
@@ -319,7 +324,7 @@ function requireEngine(hot: HotInstance, format: string, override: object | null
 
   if (!detected.capabilities.readFormats.includes(format)) {
     throwWithCause(
-      `The "${detected.kind}" xlsx engine cannot import "${format}" files. ` +
+      `The ${ENGINE_DISPLAY_NAMES[detected.kind]} xlsx engine cannot import "${format}" files. ` +
       `Supported formats: ${detected.capabilities.readFormats.join(', ')}.`
     );
   }

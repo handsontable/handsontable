@@ -145,7 +145,7 @@ describe('Xlsx column widths and row heights past what Excel stores', () => {
     expect(sheet.rowHeights[0]).toBe(409.5);
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy.mock.calls[0][0]).toBe(
-      'The "native" xlsx engine dropped features it cannot write or read: columnWidth:clamped, rowHeight:clamped.'
+      'The built-in xlsx engine dropped features it cannot write or read: columnWidth:clamped, rowHeight:clamped.'
     );
   });
 

@@ -7,6 +7,15 @@ import { warn } from '../../helpers/console';
 export type XlsxEngineKind = 'exceljs' | 'native';
 
 /**
+ * The name each engine goes by in a message. The guides call the built-in engine "built-in", so a
+ * console warning or an error says the same, not the internal `native` kind.
+ */
+export const ENGINE_DISPLAY_NAMES: Record<XlsxEngineKind, string> = {
+  exceljs: 'ExcelJS',
+  native: 'built-in',
+};
+
+/**
  * What an engine can honor when writing or recover when reading.
  */
 export interface XlsxEngineCapabilities {
@@ -294,6 +303,9 @@ export class DroppedFeatures {
       return;
     }
 
-    warn(`The "${kind}" xlsx engine dropped features it cannot write or read: ${features.join(', ')}.`);
+    warn(
+      `The ${ENGINE_DISPLAY_NAMES[kind]} xlsx engine dropped features it cannot write or read: ` +
+      `${features.join(', ')}.`
+    );
   }
 }

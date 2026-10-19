@@ -72,7 +72,7 @@ describe('DroppedFeatures', () => {
 
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy.mock.calls[0][0]).toBe(
-      'The "exceljs" xlsx engine dropped features it cannot write or read: cellStyles, conditionalFormatting.'
+      'The ExcelJS xlsx engine dropped features it cannot write or read: cellStyles, conditionalFormatting.'
     );
   });
 
