@@ -340,6 +340,8 @@ declare namespace Handsontable {
   export type CellRange = import('./3rdparty/walkontable/src').CellRange;
   export type IndexMapper = import('./translations').IndexMapper;
   export type SourceRowData = import('./settings').SourceRowData;
+  export type RowIdSetting = import('./core/rowIdentity/rowIdentity').RowIdSetting;
+  export type RowIdKey = import('./utils/rowId').RowIdKey;
   export type ColumnDataGetterSetterFunction = import('./settings').ColumnDataGetterSetterFunction;
   export type SelectOptionsObject = import('./settings').SelectOptionsObject;
   export type RemoveIndexSignature<T> = import('./settings').RemoveIndexSignature<T>;
@@ -530,6 +532,8 @@ export type {
   CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature, OmitHooks
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
+export type { RowIdSetting } from './core/rowIdentity/rowIdentity';
+export type { RowIdKey } from './utils/rowId';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
 export { IndexMapper } from './translations';

@@ -83,6 +83,7 @@ const rowsItems = [
   { path: 'guides/rows/rows-sorting/rows-sorting' },
   { path: 'guides/rows/rows-pagination/rows-pagination' },
   { path: 'guides/rows/row-trimming/row-trimming' },
+  { path: 'guides/rows/row-identity/row-identity' },
   { path: 'guides/rows/row-prepopulating/row-prepopulating' },
 ];
 
