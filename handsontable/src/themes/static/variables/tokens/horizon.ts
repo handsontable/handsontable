@@ -280,7 +280,6 @@ const horizonTokens: ThemeTokensConfig = {
   sheetsBarTabForegroundColor: 'tokens.foregroundSecondaryColor',
   sheetsBarTabBackgroundColor: 'tokens.barBackgroundColor',
   sheetsBarTabHoverForegroundColor: ['colors.palette.950', 'colors.white'],
-  sheetsBarTabHoverBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
   sheetsBarTabActiveForegroundColor: ['colors.palette.700', 'colors.palette.200'],
   sheetsBarTabActiveBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
   sheetsBarTabActiveBorderWidth: '1px',

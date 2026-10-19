@@ -1,6 +1,16 @@
 import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarPage } from '../fixtures/pages/SheetsBarPage';
 
+/**
+ * Each theme's `--ht-table-transition`, as a computed duration: the tabs a drag pushes aside
+ * slide over it, so the classic theme's `0s` makes that displacement instant.
+ */
+const THEME_TRANSITION: Record<string, string> = {
+  main: '0.15s',
+  horizon: '0.2s',
+  classic: '0s',
+};
+
 test.describe('sheets bar', { tag: THEMES_TAG }, () => {
   test('clicking a tab switches the grid to that sheet', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
@@ -1381,7 +1391,7 @@ test.describe('sheets bar', { tag: THEMES_TAG }, () => {
     await expect(bar.tab(0)).toHaveCSS('pointer-events', 'auto');
     await expect.poll(() => bar.tab(0).evaluate(
       element => getComputedStyle(element).transitionDuration.split(',')[0].trim(),
-    )).toBe('0.15s');
+    )).toBe(THEME_TRANSITION[theme]);
   });
 
   test('a dragged tab keeps its opaque resting surface', async ({ page, theme, bundle }) => {

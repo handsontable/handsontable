@@ -353,9 +353,10 @@ export class SheetsBar extends BasePlugin {
    */
   #isSwitching = false;
   /**
-   * Holds every tab entrance, tab slide, and marker slide back until the grid has been on
-   * screen for a frame. Shut on a genuine teardown, never on a workbook-preserving round trip, and
-   * armed by the first render after it.
+   * Holds every tab entrance, tab slide, and marker slide back until the grid has been painted:
+   * the gate opens in the second animation frame after the render that armed it. Shut on a
+   * genuine teardown, never on a workbook-preserving round trip, and armed by the first render
+   * after it.
    */
   #motionGate = new MotionGate();
   /**
@@ -699,8 +700,9 @@ export class SheetsBar extends BasePlugin {
         ariaTags: this.hot.getSettings().ariaTags !== false,
         isRtl: this.hot.isRtl(),
         syncIcon: syncIconForHot,
-        registerTimeout: (callback: () => void, delay: number) => this.hot._registerTimeout(callback, delay),
+        rootWindow: this.hot.rootWindow,
       });
+      this.#tabStrip.setDragSlide(this.#animation().move);
       this.#tabStrip
         .addLocalHook('tabClick', (id: number) => this.setActiveSheet(id, SOURCE_UI))
         .addLocalHook('tabMenuClick', (
@@ -2672,8 +2674,9 @@ export class SheetsBar extends BasePlugin {
   };
 
   /**
-   * Arms the motion gate after a render, so the bar's motion starts in the next animation frame,
-   * once the grid is on screen. A no-op once the gate is open or its frame is pending.
+   * Arms the motion gate after a render, so the bar's motion starts in the second animation frame
+   * after it, once the first frame has painted the grid. A no-op once the gate is open or one of
+   * its frames is pending.
    */
   #onAfterRenderArmMotionGate = (): void => {
     this.#motionGate.arm(this.hot.rootWindow, () => this.enabled && !this.hot.isDestroyed);

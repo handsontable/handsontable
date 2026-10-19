@@ -418,7 +418,6 @@ export type TokenKey =
   | 'sheetsBarTabForegroundColor'
   | 'sheetsBarTabBackgroundColor'
   | 'sheetsBarTabHoverForegroundColor'
-  | 'sheetsBarTabHoverBackgroundColor'
   | 'sheetsBarTabActiveForegroundColor'
   | 'sheetsBarTabActiveBackgroundColor'
   | 'sheetsBarTabActiveBorderWidth'

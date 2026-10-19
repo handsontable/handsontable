@@ -107,7 +107,7 @@ interface LeavingTab {
   /**
    * The handle of the timeout that removes the copy.
    */
-  timeout: ReturnType<typeof setTimeout>;
+  timeout: number;
 }
 
 /**
@@ -146,7 +146,7 @@ interface EnteringTab {
   /**
    * The handle of the timeout that ends the entrance.
    */
-  timeout: ReturnType<typeof setTimeout>;
+  timeout: number;
 }
 
 /**
@@ -224,10 +224,11 @@ export interface TabStripOptions {
    */
   syncIcon: IconSlotSync;
   /**
-   * Schedules a callback that the grid clears on destroy (`hot._registerTimeout()` bound to the
-   * grid), and returns its handle.
+   * The grid's window, whose `setTimeout()` ends the strip's motion. The strip clears every
+   * pending timeout itself (`destroy()` and the `finish*()` methods), so none is registered on
+   * the grid, where a cleared handle would stay listed for the grid's whole life.
    */
-  registerTimeout: (callback: () => void, delay: number) => ReturnType<typeof setTimeout>;
+  rootWindow: Window;
 }
 
 /**
@@ -307,9 +308,9 @@ export class TabStrip {
    */
   #pointerHeldOnTab = false;
   /**
-   * Schedules a callback that the grid clears on destroy.
+   * The grid's window, which runs the timeouts that end the strip's motion.
    */
-  readonly #registerTimeout: (callback: () => void, delay: number) => ReturnType<typeof setTimeout>;
+  readonly #rootWindow: Window;
   /**
    * The element that slides the active tab marker, or `null` when no slide is running.
    */
@@ -317,7 +318,7 @@ export class TabStrip {
   /**
    * The handle of the timeout that ends the running slide, or `null` when none is pending.
    */
-  #indicatorTimeout: ReturnType<typeof setTimeout> | null = null;
+  #indicatorTimeout: number | null = null;
   /**
    * The span of the strip the running slide covers, from its start box to its end box, or
    * `null` when no slide is running.
@@ -340,7 +341,12 @@ export class TabStrip {
    * The handle of the timeout that ends the running slide of the tabs, or `null` when none is
    * pending.
    */
-  #slideTimeout: ReturnType<typeof setTimeout> | null = null;
+  #slideTimeout: number | null = null;
+  /**
+   * The slide duration the strip carries while no slide runs, or `null` for none. The tabs a drag
+   * pushes aside read it, so `0ms` makes that displacement instant.
+   */
+  #restingSlideDuration: string | null = null;
   /**
    * The copies of removed tabs still leaving the strip. A repaint clears the strip, so the entry
    * is what puts each copy back at the point its exit reached.
@@ -356,7 +362,7 @@ export class TabStrip {
     this.#ariaTags = options.ariaTags;
     this.#isRtl = options.isRtl;
     this.#syncIcon = options.syncIcon;
-    this.#registerTimeout = options.registerTimeout;
+    this.#rootWindow = options.rootWindow;
     this.#drag = new TabDrag(
       {
         host: options.host,
@@ -454,9 +460,9 @@ export class TabStrip {
     const slide = this.#takeSlide();
     const leaving = this.#leaving.map(({ element, start, duration }) => ({ element, start, duration }));
 
-    this.#entering.forEach(entry => clearTimeout(entry.timeout));
+    this.#entering.forEach(entry => this.#rootWindow.clearTimeout(entry.timeout));
     this.#entering.clear();
-    this.#leaving.forEach(entry => clearTimeout(entry.timeout));
+    this.#leaving.forEach(entry => this.#rootWindow.clearTimeout(entry.timeout));
     this.#leaving = [];
     this.finishIndicator();
 
@@ -548,7 +554,7 @@ export class TabStrip {
    */
   finishLeaving(): void {
     this.#leaving.forEach((entry) => {
-      clearTimeout(entry.timeout);
+      this.#rootWindow.clearTimeout(entry.timeout);
       entry.element.remove();
     });
     this.#leaving = [];
@@ -563,7 +569,7 @@ export class TabStrip {
       element,
       start,
       duration,
-      timeout: this.#registerTimeout(() => {
+      timeout: this.#rootWindow.setTimeout(() => {
         this.#leaving = this.#leaving.filter(leaving => leaving !== entry);
         element.remove();
       }, remainingMs),
@@ -615,6 +621,31 @@ export class TabStrip {
   }
 
   /**
+   * Sets whether the tabs a drag pushes aside slide to their new places, the way a move slides
+   * them. When off, the drag displacement is instant. A running move slide keeps its own
+   * duration until it ends.
+   */
+  setDragSlide(enabled: boolean): void {
+    this.#restingSlideDuration = enabled ? null : '0ms';
+
+    if (this.#slide === null) {
+      this.#applyRestingSlideDuration();
+    }
+  }
+
+  /**
+   * Writes the resting slide duration onto the strip, or takes the property off when there is
+   * none.
+   */
+  #applyRestingSlideDuration(): void {
+    if (this.#restingSlideDuration === null) {
+      this.#host.style.removeProperty(SLIDE_DURATION_PROPERTY);
+    } else {
+      this.#host.style.setProperty(SLIDE_DURATION_PROPERTY, this.#restingSlideDuration);
+    }
+  }
+
+  /**
    * Ends the running slide of the tabs at once, leaving each tab in its place. A no-op when no
    * slide runs.
    */
@@ -648,13 +679,13 @@ export class TabStrip {
     const slide = { ...this.#slide, from: this.captureTabPositions() };
 
     if (this.#slideTimeout !== null) {
-      clearTimeout(this.#slideTimeout);
+      this.#rootWindow.clearTimeout(this.#slideTimeout);
       this.#slideTimeout = null;
     }
 
     this.#slide = null;
     removeClass(this.#host, SLIDING_CLASS);
-    this.#host.style.removeProperty(SLIDE_DURATION_PROPERTY);
+    this.#applyRestingSlideDuration();
 
     return slide;
   }
@@ -695,7 +726,7 @@ export class TabStrip {
     });
 
     this.#slide = { from, endsAt: this.#now() + durationMs, leadId };
-    this.#slideTimeout = this.#registerTimeout(() => {
+    this.#slideTimeout = this.#rootWindow.setTimeout(() => {
       this.#slideTimeout = null;
       this.finishSlide();
     }, durationMs);
@@ -706,7 +737,7 @@ export class TabStrip {
    */
   #scheduleIndicatorEnd(durationMs: number): void {
     this.#indicatorEndsAt = this.#now() + durationMs;
-    this.#indicatorTimeout = this.#registerTimeout(() => {
+    this.#indicatorTimeout = this.#rootWindow.setTimeout(() => {
       this.#indicatorTimeout = null;
       this.finishIndicator();
     }, durationMs);
@@ -753,7 +784,7 @@ export class TabStrip {
    */
   finishIndicator(): void {
     if (this.#indicatorTimeout !== null) {
-      clearTimeout(this.#indicatorTimeout);
+      this.#rootWindow.clearTimeout(this.#indicatorTimeout);
       this.#indicatorTimeout = null;
     }
 
@@ -786,7 +817,7 @@ export class TabStrip {
   #trackEntrance(id: number, start: number, duration: number, remainingMs: number): void {
     this.#endEntrance(id);
 
-    const timeout = this.#registerTimeout(() => this.#endEntrance(id), remainingMs);
+    const timeout = this.#rootWindow.setTimeout(() => this.#endEntrance(id), remainingMs);
 
     this.#entering.set(id, { start, duration, timeout });
   }
@@ -810,7 +841,7 @@ export class TabStrip {
       return;
     }
 
-    clearTimeout(entry.timeout);
+    this.#rootWindow.clearTimeout(entry.timeout);
     this.#entering.delete(id);
 
     const tab = this.getTab(id);

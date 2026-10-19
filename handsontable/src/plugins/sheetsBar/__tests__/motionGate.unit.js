@@ -36,7 +36,7 @@ function createFrameWindow() {
 }
 
 describe('SheetsBar MotionGate', () => {
-  it('starts closed and opens in the frame after it is armed, not before', () => {
+  it('starts closed and opens in the second frame after it is armed, not before', () => {
     const rootWindow = createFrameWindow();
     const gate = new MotionGate();
 
@@ -45,13 +45,18 @@ describe('SheetsBar MotionGate', () => {
     gate.arm(rootWindow, () => true);
 
     expect(gate.isOpen()).toBe(false);
+
+    rootWindow.runFrame();
+
+    expect(gate.isOpen()).toBe(false);
+    expect(rootWindow.pendingFrames()).toBe(1);
 
     rootWindow.runFrame();
 
     expect(gate.isOpen()).toBe(true);
   });
 
-  it('requests one frame however often it is armed, and none once open', () => {
+  it('requests one chain of two frames however often it is armed, and none once open', () => {
     const rootWindow = createFrameWindow();
     const gate = new MotionGate();
 
@@ -63,16 +68,22 @@ describe('SheetsBar MotionGate', () => {
     rootWindow.runFrame();
     gate.arm(rootWindow, () => true);
 
-    expect(rootWindow.requested).toBe(1);
+    expect(rootWindow.requested).toBe(2);
+
+    rootWindow.runFrame();
+    gate.arm(rootWindow, () => true);
+
+    expect(rootWindow.requested).toBe(2);
     expect(rootWindow.pendingFrames()).toBe(0);
   });
 
-  it('stays closed when the frame finds it may not open', () => {
+  it('stays closed when the second frame finds it may not open', () => {
     const rootWindow = createFrameWindow();
     const gate = new MotionGate();
     let canOpen = true;
 
     gate.arm(rootWindow, () => canOpen);
+    rootWindow.runFrame();
     canOpen = false;
     rootWindow.runFrame();
 
@@ -80,15 +91,17 @@ describe('SheetsBar MotionGate', () => {
 
     gate.arm(rootWindow, () => true);
     rootWindow.runFrame();
+    rootWindow.runFrame();
 
     expect(gate.isOpen()).toBe(true);
   });
 
-  it('closes an open gate and cancels a pending frame', () => {
+  it('closes an open gate and cancels whichever of its frames is pending', () => {
     const rootWindow = createFrameWindow();
     const gate = new MotionGate();
 
     gate.arm(rootWindow, () => true);
+    rootWindow.runFrame();
     rootWindow.runFrame();
     gate.close();
 
@@ -99,12 +112,21 @@ describe('SheetsBar MotionGate', () => {
 
     expect(rootWindow.pendingFrames()).toBe(0);
 
+    gate.arm(rootWindow, () => true);
+    rootWindow.runFrame();
+
+    expect(rootWindow.pendingFrames()).toBe(1);
+
+    gate.close();
+
+    expect(rootWindow.pendingFrames()).toBe(0);
+
     rootWindow.runFrame();
 
     expect(gate.isOpen()).toBe(false);
 
     gate.arm(rootWindow, () => true);
 
-    expect(rootWindow.requested).toBe(3);
+    expect(rootWindow.requested).toBe(6);
   });
 });

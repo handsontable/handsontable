@@ -284,6 +284,38 @@ test.describe('sheets bar switch animation – active tab marker', { tag: [THEME
     expectSameBox(await bar.indicatorBoxAt(1), await bar.tabBox(1));
   });
 
+  test('an afterSheetTabChange listener that switches again leaves one marker sliding from the tab it left', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await openPaused(bar);
+    await bar.recordIndicators();
+    await page.evaluate(() => {
+      const hot = (window as never as { hot: any }).hot;
+      const plugin = hot.getPlugin('sheetsBar');
+      const gammaId = plugin.getSheets().find((sheet: { name: string }) => sheet.name === 'Gamma').id;
+
+      hot.addHookOnce('afterSheetTabChange', () => plugin.setActiveSheet(gammaId));
+    });
+
+    const firstTab = await bar.tabBox(0);
+    const secondTab = await bar.tabBox(1);
+
+    await bar.clickTab(1);
+
+    await bar.expectActiveTab(2);
+    await bar.expectCell(0, 0, 'G1');
+    await expect(bar.indicator).toHaveCount(1);
+    expect(await bar.indicatorsAdded()).toBe(1);
+    expect(Math.abs(secondTab.left - firstTab.left)).toBeGreaterThan(10);
+
+    const start = await bar.indicatorBoxAt(0);
+
+    expectSameBox(start, secondTab);
+    expectSameBox(await bar.indicatorBoxAt(1), await bar.tabBox(2));
+  });
+
   test('reduced motion never shows the marker', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 

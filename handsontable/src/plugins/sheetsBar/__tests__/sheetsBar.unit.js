@@ -94,6 +94,7 @@ function buildTabStrip(sheets) {
     ariaTags: true,
     isRtl: false,
     syncIcon: stubSyncIcon,
+    rootWindow: window,
   });
 
   strip.render(sheets);

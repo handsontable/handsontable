@@ -280,7 +280,7 @@ $all-sheets-visible-items: 8;
         // transition, and only the text color: a tab has no hover surface.
         transition:
           transform
-          var(--ht-private-tab-slide-duration, 150ms)
+          var(--ht-private-tab-slide-duration, var(--ht-table-transition))
           var(--ht-private-tab-slide-easing, ease-out),
           color var(--ht-table-transition) ease-out;
 

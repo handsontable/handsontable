@@ -5,10 +5,68 @@ const NO_MOTION = { indicators: 0, entrances: 0 };
 
 type HotWindow = { hot: any, htSheets: Array<{ name: string, data: unknown[][] }> };
 
+type SecondGrid = { container: HTMLElement, hot: any, record: { sliding: boolean, indicators: number } };
+
+type SecondGridWindow = { htSecond: SecondGrid, Handsontable: any };
+
 /**
- * The bar's motion starts only once the grid has been on screen for a frame. Every case records
- * from before the fixture's first script, and proves the motion runs afterwards, so an instant
- * load is never the result of an animation that cannot run at all.
+ * Adds an empty container in the theme of the fixture's grid, and records from now on whether a
+ * sheets bar built inside it slides its tabs and how many tab markers it inserts. The grid itself
+ * is built later, in the task that also acts on it, so the test decides what runs while it loads.
+ */
+async function prepareSecondGrid(bar: SheetsBarPage): Promise<void> {
+  await bar.page.evaluate((theme) => {
+    const container = document.createElement('div');
+    const record = { sliding: false, indicators: 0 };
+
+    container.className = `ht-theme-${theme}`;
+    document.body.appendChild(container);
+    new MutationObserver((mutations) => {
+      record.sliding ||= container.querySelector('.ht-sheets-bar__tabs--sliding') !== null;
+      mutations.forEach(mutation => mutation.addedNodes.forEach((node) => {
+        if (node instanceof Element && node.classList.contains('ht-sheets-bar__tab-indicator')) {
+          record.indicators += 1;
+        }
+      }));
+    }).observe(container, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    (window as never as SecondGridWindow).htSecond = { container, hot: null, record };
+  }, bar.theme);
+}
+
+/**
+ * What the recorder of `prepareSecondGrid()` saw so far. Mutation records are delivered as
+ * microtasks, so everything a finished evaluation did is counted.
+ */
+async function secondGridRecord(bar: SheetsBarPage): Promise<{ sliding: boolean, indicators: number }> {
+  return bar.page.evaluate(() => ({ ...(window as never as SecondGridWindow).htSecond.record }));
+}
+
+/**
+ * The tab names of the second grid, in strip order.
+ */
+async function secondGridTabNames(bar: SheetsBarPage): Promise<string[]> {
+  return bar.page.evaluate(() => Array.from(
+    (window as never as SecondGridWindow).htSecond.container.querySelectorAll('.ht-sheets-bar__tab-label'),
+    label => label.textContent ?? '',
+  ));
+}
+
+/**
+ * Moves the first sheet of the second grid one place to the right, through the API.
+ */
+async function moveSecondGridFirstSheet(bar: SheetsBarPage): Promise<void> {
+  await bar.page.evaluate(() => {
+    const plugin = (window as never as SecondGridWindow).htSecond.hot.getPlugin('sheetsBar');
+
+    plugin.moveSheetToIndex(plugin.getSheets()[0].id, 1);
+  });
+}
+
+/**
+ * The bar's motion starts only once the grid has been painted: the motion gate opens in the
+ * second animation frame after the first render. Every case records from before the grid is
+ * built, and proves the motion runs afterwards, so an instant load is never the result of an
+ * animation that cannot run at all.
  */
 test.describe('sheets bar switch animation – while the grid loads', { tag: [THEMES_TAG, MOTION_TAG] }, () => {
   test('switches, adds, and duplicates made in the constructor\'s task do not animate', async ({
@@ -104,6 +162,67 @@ test.describe('sheets bar switch animation – while the grid loads', { tag: [TH
     await page.evaluate(() => (window as never as HotWindow).hot.getPlugin('sheetsBar').setActiveSheet('Gamma'));
 
     expect((await bar.motionRecord()).indicators).toBe(1);
+  });
+
+  test('a switch made in an animation frame requested right after the constructor does not animate', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+    await prepareSecondGrid(bar);
+    await page.evaluate(() => new Promise<void>((resolve) => {
+      const target = window as never as SecondGridWindow;
+
+      target.htSecond.hot = new target.Handsontable(target.htSecond.container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        sheetsBar: { sheets: [{ name: 'One' }, { name: 'Two' }, { name: 'Three' }] },
+      });
+      requestAnimationFrame(() => {
+        target.htSecond.hot.getPlugin('sheetsBar').setActiveSheet('Two');
+        resolve();
+      });
+    }));
+
+    expect(await page.evaluate(() => (window as never as SecondGridWindow).htSecond.hot
+      .getPlugin('sheetsBar').getSheets().find((sheet: { isActive: boolean }) => sheet.isActive).name)).toBe('Two');
+    expect(await secondGridRecord(bar)).toEqual({ sliding: false, indicators: 0 });
+
+    await bar.waitForFrames();
+    await page.evaluate(() => (window as never as SecondGridWindow).htSecond.hot
+      .getPlugin('sheetsBar').setActiveSheet('Three'));
+
+    expect((await secondGridRecord(bar)).indicators).toBe(1);
+  });
+
+  test('a move made while the grid loads is instant, and a later move slides', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+    await prepareSecondGrid(bar);
+    await page.evaluate(() => {
+      const target = window as never as SecondGridWindow;
+
+      target.htSecond.hot = new target.Handsontable(target.htSecond.container, {
+        licenseKey: 'non-commercial-and-evaluation',
+        sheetsBar: { sheets: [{ name: 'One' }, { name: 'Two' }] },
+      });
+
+      const plugin = target.htSecond.hot.getPlugin('sheetsBar');
+
+      plugin.moveSheetToIndex(plugin.getSheets()[0].id, 1);
+    });
+
+    expect(await secondGridTabNames(bar)).toEqual(['Two', 'One']);
+    expect((await secondGridRecord(bar)).sliding).toBe(false);
+
+    await bar.waitForFrames();
+    await moveSecondGridFirstSheet(bar);
+
+    expect(await secondGridTabNames(bar)).toEqual(['One', 'Two']);
+    expect((await secondGridRecord(bar)).sliding).toBe(true);
   });
 
   test('a settings update that keeps the workbook leaves the motion on', async ({ page, theme, bundle }) => {

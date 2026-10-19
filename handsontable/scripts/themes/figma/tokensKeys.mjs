@@ -407,7 +407,6 @@ const tokensKeys = [
   'sheets-bar-tab-foreground-color',
   'sheets-bar-tab-background-color',
   'sheets-bar-tab-hover-foreground-color',
-  'sheets-bar-tab-hover-background-color',
   'sheets-bar-tab-active-foreground-color',
   'sheets-bar-tab-active-background-color',
   'sheets-bar-tab-active-border-width',

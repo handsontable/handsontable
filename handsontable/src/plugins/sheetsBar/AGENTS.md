@@ -432,9 +432,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - Nothing moves while the grid loads. `#switchTransition()` answers `0` until the motion gate
     (`ui/motionGate.ts`) opens, so a tab entrance, a tab slide, or a marker slide made before then
     is exactly the instant path, with no DOM read. The first `afterRender` after a genuine enable
-    (init, `sheetsBar` turned on later, a workbook rebuild) arms it with one
-    `rootWindow.requestAnimationFrame`, and the gate opens in that frame. A host that calls
-    `setActiveSheet()` or `addSheet()` in the constructor's task therefore animates nothing.
+    (init, `sheetsBar` turned on later, a workbook rebuild) arms it with a
+    `rootWindow.requestAnimationFrame` that requests a second one, and the gate opens in that second
+    frame, after the first has been painted. Opening in the first frame is too early: its callbacks
+    run before its paint, and a host's own `requestAnimationFrame()` scheduled right after the
+    constructor runs after the gate's, so a saved sheet restored there slid the marker on the first
+    painted frame. A host that calls `setActiveSheet()` or `addSheet()` in the constructor's task, or
+    in a frame it requested then, therefore animates nothing. `close()` cancels whichever of the two
+    frames is pending.
     `#releaseState()` shuts the gate and cancels the frame on a genuine teardown only: a
     workbook-preserving round trip (every wrapper re-render) must keep it open, or the wrappers
     would never animate. Pinned by `tests/e2e/sheets-bar-switch-animation-load.spec.ts` and
@@ -446,23 +451,40 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     `#switchTransition(motion)` answers `0` for a motion whose key is off, exactly as it does
     before the gate opens, so the marker, the entrance (`add`, which covers duplicate), the leaving
     copy and the gap slide (`remove`), and `slideTabs()` (`move`) all take the existing
-    zero-duration branch. Reduced motion and a `0s` token still win, because the key is checked
+    zero-duration branch. The tabs a drag pushes aside belong to `move` too, and they are pure CSS
+    (`TabDrag#slideIntoPlace()` only resets the inline transform), so the plugin calls
+    `TabStrip.setDragSlide()` after building the strip: with `move` off the strip carries
+    `--ht-private-tab-slide-duration: 0ms` at rest, and `#takeSlide()` puts that resting value back
+    instead of removing the property. Without a resting value the tabs fall back to
+    `var(--ht-table-transition)`, so the `0s` token of classic makes the drag displacement instant
+    too. Reduced motion and a `0s` token still win, because the key is checked
     first and the gate and token after it. A preserved `updatePlugin()` filters the handed-over
     motion through `keepAnimatedMotion()` before `resumeMotion()`, so a slide whose key was just
     turned off is not resumed and the rebuilt strip shows its end. The tab slide is shared by
     `remove` and `move`, so `#playTabMotion()` records which one started it (`#tabSlideMotion`).
     The hover text-color fade is deliberately not a key: it is CSS only (the tab's `transition`
     over `--ht-table-transition`, dropped by reduced motion), and `animation: false` leaves it
-    running. Pinned by `__tests__/animationSettings.unit.js` and
+    running. The guide tells a host to remove it with `transition-property: transform` on
+    `.handsontable.ht-sheets-bar .ht-sheets-bar__tabs .ht-sheets-bar__tab` (0,4,0), never
+    `transition: none`, which also drops the `transform` slides the option keeps on. The extra
+    `__tabs` class is load-bearing: the core stylesheet is injected at the end of `<head>` when the
+    first grid is built, after the host's own stylesheet, so a host rule at the bar's own (0,3,0)
+    loses the tie and the fade keeps running. Only the property list changes, so the dragged tab
+    and reduced motion keep their `0s` durations from `transition: none`. Pinned by `__tests__/animationSettings.unit.js` and
     `tests/e2e/sheets-bar-animation-option.spec.ts`.
   - The marker's start box is read inside the commit callback, before `#switchTo()`, and the slide
     starts only after `#commit()` returns, which is after `afterSheetTabChange`. A listener there
     may switch again: that later switch slides the marker itself, so the outer one starts nothing
     once `#switchCount` moved on or the plugin is off (`#ownsMarkerSlide()`).
-  - Cleanup is timer-based, through `hot._registerTimeout()` (the marker, tab entrances, tab
-    slides, and the leaving copy), never `animationend`/`transitionend`. The visual-test runner
-    disables CSS animations and reduced motion turns them off, so those events never fire there,
-    and the grid's destroy clears registered timeouts.
+  - Cleanup is timer-based (the marker, tab entrances, tab slides, and the leaving copy), never
+    `animationend`/`transitionend`. The visual-test runner disables CSS animations and reduced
+    motion turns them off, so those events never fire there. The timers run on
+    `rootWindow.setTimeout()`, not `hot._registerTimeout()`, a deliberate exception to the core
+    rule: `hot.timeouts` keeps every registered handle until the grid is destroyed, even one that
+    was cleared, so it grew by one entry per animated switch. The strip owns every handle and
+    clears it in the `finish*()` methods, `releaseMotion()` (a preserved round trip), and
+    `TabStrip.destroy()`, which `#releaseState()` runs on a genuine teardown and on the grid's
+    destroy, so no callback outlives the strip. Pinned by `__tests__/motionTimers.unit.js`.
   - Never move the tab marker by transforming a tab element: the drag FLIP owns each tab's inline
     `transform`. The marker is a separate `aria-hidden` element, and `TabStrip.render()` clears the
     host, so while a slide runs it puts the element back and restarts the slide from the marker's
@@ -478,8 +500,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     in-flight translation only while a slide already runs), and after the repaint each tab starts
     at its old place through an inline `translateX` and transitions to its new one. The duration
     is `tabSlideDurationMs()` (the marker's `2.25 × T`), written on the strip as
-    `--ht-private-tab-slide-duration`, which the tabs' one `transform` transition reads (the drag
-    keeps its `150ms` fallback). The moved active tab carries its own marker (background and
+    `--ht-private-tab-slide-duration`, which the tabs' one `transform` transition reads (a drag
+    reads the resting value, or `var(--ht-table-transition)` when there is none). The moved active tab carries its own marker (background and
     underline are its own styles), so no indicator element runs. A drag commit skips the slide
     (the drag already placed the tab); a drag start, a rename, and `destroy()` finish it; a
     repaint and a preserved rebuild continue it from the on-screen positions over the time left.
@@ -489,7 +511,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     never carry the `ht-sheets-bar__tab` class or `--active`: every tab query (`#tabs()`, the drag,
     `#activeTabBox()`, the focusable list in `bar.ts`, the fixtures' test-id stamping) would count it.
     It fades out toward the inline start over `T` (`ht-sheets-bar-tab-leave`, the entrance offset
-    reversed) and is removed by a registered timeout, while the tabs after it close the gap through
+    reversed) and is removed by a timeout, while the tabs after it close the gap through
     the move slide. `render()` clears the strip, so it re-inserts each copy first in the strip, under
     the tabs and the marker, with a negative `animation-delay`; a drag start, a rename, and
     `destroy()` remove it, and a preserved rebuild hands it over in `releaseMotion()`.

@@ -48,23 +48,21 @@ async function forceHoverColor(bar: SheetsBarPage): Promise<void> {
 
 /**
  * Resolves one of the bar's color tokens inside a sheet tab, the way the tab's own rules read it,
- * as the computed value of `property`.
+ * as a computed text color.
  */
-async function resolveTabToken(
-  bar: SheetsBarPage, name: string, token: string, property: 'color' | 'backgroundColor' = 'color',
-): Promise<string> {
-  return bar.tabByName(name).evaluate((element, { variable, key }) => {
+async function resolveTabToken(bar: SheetsBarPage, name: string, token: string): Promise<string> {
+  return bar.tabByName(name).evaluate((element, variable) => {
     const probe = element.ownerDocument.createElement('span');
 
-    probe.style[key] = `var(${variable})`;
+    probe.style.color = `var(${variable})`;
     element.appendChild(probe);
 
-    const color = getComputedStyle(probe)[key];
+    const color = getComputedStyle(probe).color;
 
     probe.remove();
 
     return color;
-  }, { variable: token, key: property });
+  }, token);
 }
 
 /**
@@ -562,38 +560,6 @@ test.describe('sheets bar tab motion – instant', { tag: THEMES_TAG }, () => {
     expect(await bar.stripMotionRecord()).toEqual({ sliding: false, ghosts: 0, animations: 0 });
     await expect(bar.ghost).toHaveCount(0);
   });
-
-  test('a move made while the grid loads is instant', async ({ page, theme, bundle }) => {
-    const bar = new SheetsBarPage(page, theme, bundle);
-
-    await page.addInitScript(() => {
-      const record = { sliding: false };
-
-      (window as never as { htLoadMove: typeof record }).htLoadMove = record;
-      new MutationObserver(() => {
-        record.sliding ||= document.querySelector('.ht-sheets-bar__tabs--sliding') !== null;
-      }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] });
-    });
-    await bar.goto();
-    await page.evaluate(() => {
-      const target = window as never as { hot: any, htLoadMove: { sliding: boolean } };
-      const container = document.createElement('div');
-
-      document.body.appendChild(container);
-
-      const grid = new (window as never as { Handsontable: any }).Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
-        themeName: target.hot.getSettings().themeName,
-        sheetsBar: { sheets: [{ name: 'One' }, { name: 'Two' }] },
-      });
-      const plugin = grid.getPlugin('sheetsBar');
-
-      plugin.moveSheetToIndex(plugin.getSheets()[0].id, 1);
-    });
-
-    expect(await page.evaluate(() => (window as never as { htLoadMove: { sliding: boolean } }).htLoadMove.sliding))
-      .toBe(false);
-  });
 });
 
 test.describe('sheets bar tab motion – hover', { tag: [THEMES_TAG, MOTION_TAG] }, () => {
@@ -670,11 +636,8 @@ test.describe('sheets bar tab motion – instant hover', { tag: THEMES_TAG }, ()
 
     const resting = await bar.tabColorMotion('Beta');
     const hoverColor = await resolveTabToken(bar, 'Beta', '--ht-sheets-bar-tab-hover-foreground-color');
-    const hoverSurface = await resolveTabToken(
-      bar, 'Beta', '--ht-sheets-bar-tab-hover-background-color', 'backgroundColor',
-    );
 
-    expect(hoverSurface).not.toBe(resting.background);
+    expect(hoverColor).not.toBe(resting.color);
 
     await bar.tabByName('Beta').hover();
     await expect.poll(() => bar.tabByName('Beta').evaluate(element => element.getAnimations().length)).toBe(0);
@@ -750,5 +713,23 @@ test.describe('sheets bar tab motion – instant hover', { tag: THEMES_TAG }, ()
     await page.mouse.move(0, 0);
 
     expect((await bar.tabColorMotion('Beta')).colorDurationMs).toBe(150);
+  });
+});
+
+test.describe('sheets bar tab motion – instant drag', { tag: THEMES_TAG }, () => {
+  test('the classic theme moves the tabs a drag pushes aside at once', async ({ page, bundle }) => {
+    const bar = new SheetsBarPage(page, 'classic', bundle);
+
+    await bar.goto();
+    await bar.holdStripMotion();
+    await bar.dragTabPast('Alpha', 'Beta');
+
+    await expect.poll(() => bar.tabNames()).toEqual(['Beta', 'Alpha', 'Gamma']);
+    await expect(bar.tabByName('Alpha')).toHaveClass(/ht-sheets-bar__tab--dragging/);
+    expect(await bar.tabTransformDurationMs('Beta')).toBe(0);
+    expect(await bar.runningTabSlides()).toBe(0);
+
+    await page.mouse.up();
+    await expect.poll(() => bar.tabNames()).toEqual(['Beta', 'Alpha', 'Gamma']);
   });
 });

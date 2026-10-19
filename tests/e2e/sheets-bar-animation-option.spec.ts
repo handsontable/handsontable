@@ -143,6 +143,41 @@ test.describe('sheets bar animation option – one motion off', { tag: [THEMES_T
     await expect.poll(() => bar.tabNames()).toEqual(['Beta', 'Alpha']);
     await expect(bar.ghost).toHaveCount(1);
     await expect(bar.strip).toHaveClass(/ht-sheets-bar__tabs--sliding/);
+    expect(await bar.runningTabSlides()).toBeGreaterThan(0);
+  });
+});
+
+[
+  { label: '`animation: false`', animation: false },
+  { label: '`move: false`', animation: { move: false } },
+].forEach(({ label, animation }) => {
+  test.describe(`sheets bar animation option – drag with ${label}`, { tag: [THEMES_TAG, MOTION_TAG] }, () => {
+    test('moves the tabs a drag pushes aside at once, and slides them again once motion is back on', async({
+      page, theme, bundle,
+    }) => {
+      const bar = new SheetsBarPage(page, theme, bundle);
+
+      await bar.goto();
+      await bar.holdStripMotion();
+      await bar.setAnimation(animation);
+      await bar.dragTabPast('Alpha', 'Beta');
+
+      await expect.poll(() => bar.tabNames()).toEqual(['Beta', 'Alpha', 'Gamma']);
+      await expect(bar.tabByName('Alpha')).toHaveClass(/ht-sheets-bar__tab--dragging/);
+      expect(await bar.tabTransformDurationMs('Beta')).toBe(0);
+      expect(await bar.runningTabSlides()).toBe(0);
+
+      await page.mouse.up();
+      await expect.poll(() => bar.tabNames()).toEqual(['Beta', 'Alpha', 'Gamma']);
+      await bar.setAnimation(true);
+      await bar.dragTabPast('Alpha', 'Gamma');
+
+      await expect.poll(() => bar.tabNames()).toEqual(['Beta', 'Gamma', 'Alpha']);
+      expect(await bar.tabTransformDurationMs('Gamma')).toBeGreaterThan(0);
+      expect(await bar.runningTabSlides()).toBeGreaterThan(0);
+
+      await page.mouse.up();
+    });
   });
 });
 

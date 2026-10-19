@@ -280,7 +280,6 @@ const classicTokens: ThemeTokensConfig = {
   sheetsBarTabForegroundColor: 'tokens.foregroundColor',
   sheetsBarTabBackgroundColor: 'tokens.barBackgroundColor',
   sheetsBarTabHoverForegroundColor: ['colors.palette.950', 'colors.white'],
-  sheetsBarTabHoverBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
   sheetsBarTabActiveForegroundColor: ['colors.palette.800', 'colors.palette.300'],
   sheetsBarTabActiveBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
   sheetsBarTabActiveBorderWidth: '1px',

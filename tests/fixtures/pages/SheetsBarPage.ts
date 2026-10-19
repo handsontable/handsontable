@@ -451,6 +451,44 @@ export class SheetsBarPage {
   }
 
   /**
+   * Presses a sheet's tab and drags it until its centre passes the centre of the tab of
+   * `pastName`, without releasing it, so the strip pushes that tab aside. Release with
+   * `page.mouse.up()`.
+   */
+  async dragTabPast(name: string, pastName: string): Promise<void> {
+    const dragged = await this.tabByName(name).boundingBox();
+    const past = await this.tabByName(pastName).boundingBox();
+
+    if (dragged === null || past === null) {
+      throw new Error(`The tabs of ${name} and ${pastName} are not rendered`);
+    }
+
+    const startX = dragged.x + (dragged.width / 2);
+    const y = dragged.y + (dragged.height / 2);
+    const shift = (past.x + (past.width / 2)) - startX;
+
+    await this.page.mouse.move(startX, y);
+    await this.page.mouse.down();
+    await this.page.mouse.move(startX + Math.sign(shift) * 5, y, { steps: 2 });
+    await this.page.mouse.move(startX + shift + Math.sign(shift) * 6, y, { steps: 6 });
+  }
+
+  /**
+   * The duration a sheet's tab gives its `transform` transition, in milliseconds.
+   */
+  async tabTransformDurationMs(name: string): Promise<number> {
+    return this.tabByName(name).evaluate((tab) => {
+      const style = getComputedStyle(tab);
+      const properties = style.transitionProperty.split(',').map(value => value.trim());
+      const durations = style.transitionDuration.split(',').map(value => value.trim());
+      const index = properties.findIndex(property => property === 'transform' || property === 'all');
+      const duration = index === -1 ? '0s' : durations[index % durations.length];
+
+      return Math.round(duration.endsWith('ms') ? parseFloat(duration) : parseFloat(duration) * 1000);
+    });
+  }
+
+  /**
    * How far the tab strip is scrolled from its start, and how far it can scroll. Under RTL the
    * strip scrolls into negative `scrollLeft`, so the distance is its magnitude.
    */
@@ -502,23 +540,24 @@ export class SheetsBarPage {
    * Pauses, from now on, every CSS transition and animation inside the tab strip the moment it
    * starts, so a later seek reads it from its start. Both run on real time, which the page clock
    * does not control. Mutation records are delivered as microtasks, so the motion a move or a
-   * removal starts is paused before any frame is drawn.
+   * removal starts is paused before any frame is drawn. The observer watches the whole page and
+   * looks the strip up on every record, because a settings update that rebuilds the bar
+   * replaces the strip element.
    */
   async holdStripMotion(): Promise<void> {
     await this.page.evaluate(() => {
-      const strip = document.querySelector('.ht-sheets-bar__tabs');
-
-      if (strip === null) {
+      if (document.querySelector('.ht-sheets-bar__tabs') === null) {
         throw new Error('No tab strip to hold');
       }
 
-      const hold = () => strip.getAnimations({ subtree: true }).forEach((animation) => {
-        if (animation.playState === 'running') {
-          animation.pause();
-        }
-      });
+      const hold = () => document.querySelector('.ht-sheets-bar__tabs')?.getAnimations({ subtree: true })
+        .forEach((animation) => {
+          if (animation.playState === 'running') {
+            animation.pause();
+          }
+        });
 
-      new MutationObserver(hold).observe(strip, {
+      new MutationObserver(hold).observe(document.body, {
         childList: true,
         subtree: true,
         attributes: true,
