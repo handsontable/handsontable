@@ -8860,9 +8860,19 @@ export default function Core(
 
     this.microtasks.push(entry);
     this.rootWindow.queueMicrotask(() => {
-      if (!entry.cancelled) {
-        callback();
+      // A cancelled entry was dropped by `_clearMicrotasks()`, which `destroy()` calls before it clears the instance.
+      if (entry.cancelled) {
+        return;
       }
+
+      const index = this.microtasks.indexOf(entry);
+
+      // Drop the entry once it ran, or every validated edit and every data load keeps one until `destroy()`.
+      if (index !== -1) {
+        this.microtasks.splice(index, 1);
+      }
+
+      callback();
     });
   };
 

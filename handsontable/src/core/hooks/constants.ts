@@ -875,7 +875,8 @@ export const REGISTERED_HOOKS = [
    *
    * A grid backed by an external data source (the [`DataProvider`](@/api/dataProvider.md) plugin) loads every
    * page, sort, and filter with `loadData()`, and the rows it drops still exist on the server, so a data load
-   * there reports nothing.
+   * there reports nothing. A removal the server confirms (`afterRowsMutation` with `'remove'`) is reported with
+   * the `'dataProvider'` source.
    *
    * The hook reads the ids only while it has listeners, so a grid that does not listen to it pays nothing.
    *

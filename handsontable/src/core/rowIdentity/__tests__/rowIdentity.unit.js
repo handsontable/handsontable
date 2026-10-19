@@ -1035,6 +1035,17 @@ describe('Row identity', () => {
       expect(removed).not.toHaveBeenCalled();
     });
 
+    it('should not keep the microtasks it queued once they ran', async() => {
+      createGrid({ rowId: true, afterRowIdsRemoved: () => {} });
+
+      hot.loadData(createRecords(3));
+      hot.alter('remove_row', 0, 1);
+      hot.updateData(createRecords(2));
+      await flushReports();
+
+      expect(hot.microtasks.length).toBe(0);
+    });
+
     it('should report nothing after the grid is destroyed', async() => {
       createGrid({ rowId: 'id' });
 

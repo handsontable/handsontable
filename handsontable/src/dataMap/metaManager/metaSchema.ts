@@ -2341,8 +2341,8 @@ export default (): Record<string, unknown> => {
      * // read the id from the `id` property of each row object
      * rowId: 'id',
      *
-     * // read the id with a function
-     * rowId: (row) => `${row.country}-${row.code}`,
+     * // read the id with a function (return `null` while a row lacks the values, as an empty row does)
+     * rowId: (row) => (row.country == null || row.code == null ? null : `${row.country}-${row.code}`),
      *
      * // let Handsontable generate the ids
      * rowId: true,

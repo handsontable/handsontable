@@ -185,6 +185,7 @@ export class RowIdentity {
     hot.addHook('beforeUpdateData', this.#onBeforeDataReplacement);
     // Last, so it sees a veto as the `false` the earlier listeners hand on.
     hot.addHook('beforeRemoveRow', this.#onBeforeRemoveRow, Number.MAX_SAFE_INTEGER);
+    hot.addHook('afterRowsMutation', this.#onAfterRowsMutation);
   }
 
   /**
@@ -416,6 +417,26 @@ export class RowIdentity {
   };
 
   /**
+   * Reports the ids of the rows a server-backed grid (the DataProvider plugin) removed. That plugin removes rows
+   * on the server and then reloads the page, so no `beforeRemoveRow` fires and the reload is not tracked.
+   *
+   * @param {string} operation The mutation: `'create'`, `'update'`, or `'remove'`.
+   * @param {object} payload The mutation payload; a removal carries the removed ids in `rowsRemove`.
+   */
+  #onAfterRowsMutation = (operation: string, payload: object): void => {
+    if (operation !== 'remove' || !this.#hot.hasHook('afterRowIdsRemoved') || payload === null ||
+        typeof payload !== 'object' || !('rowsRemove' in payload) || !Array.isArray(payload.rowsRemove)) {
+      return;
+    }
+
+    const removedIds = payload.rowsRemove.filter(id => id !== null && id !== undefined);
+
+    if (removedIds.length > 0) {
+      this.#hot.runHooks('afterRowIdsRemoved', removedIds, 'dataProvider');
+    }
+  };
+
+  /**
    * Reads the ids every row has, once per burst of changes, and schedules the report for when the call that made
    * the changes has finished. Reporting then, and not from `afterRemoveRow`, leaves out the rows that come back
    * within the same call: a NestedRows detach removes a subtree and adds it back under another parent, and an
@@ -513,6 +534,12 @@ export class RowIdentity {
    */
   #onBeforeLoadData = (data: unknown, firstRun: boolean, source?: string): void => {
     this.#onBeforeDataReplacement(data, firstRun, source);
+
+    // Only generated ids read the flag, and a grid with an external data source calls `loadData()` for every page.
+    if (!this.#generatedIds) {
+      return;
+    }
+
     this.#isReplacingData = true;
     // `loadData()` runs synchronously, so a load that throws before `afterLoadData` cannot leave the flag on for
     // a later settings update.
