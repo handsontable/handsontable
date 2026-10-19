@@ -132,12 +132,22 @@ export class BaseEditor {
    */
   originalValue: unknown = null;
   /**
+   * The string form of the value the editor was opened with, when it was opened from the cell.
    *
+   * Taken from the seed in `beginEditing()`, not from `getValue()` after `setValue()`. `DateEditor`
+   * substitutes `defaultDate` inside `setValue()`, so a later `getValue()` is not the cell. A text
+   * editor's `getValue()` is this string, and an untouched confirm has to match it. Reading
+   * `getValue()` instead would save `''` over a `null` cell (#3927).
    */
   #seededString: unknown = null;
 
   /**
+   * The same seed after the value getter and before stringifying, when the editor was opened from
+   * the cell.
    *
+   * An editor whose `getValue()` returns the argument `setValue()` received matches this on an
+   * untouched confirm. Seeded the same way as `#seededString`, and for the same reason. `DateEditor`
+   * may have substituted `defaultDate`, so `getValue()` after `setValue()` is not the cell.
    */
   #seededCellValue: unknown = null;
 
@@ -157,10 +167,17 @@ export class BaseEditor {
    * opened. Does nothing while the guard is disarmed.
    */
   protected resetValueBeforeEdit(): void {
-    if (this.#hasValueBeforeEdit) {
-      this.#seededString = this.getValue();
-      this.#seededCellValue = this.originalValue;
+    if (!this.#hasValueBeforeEdit || this.row === null || this.col === null) {
+      return;
     }
+
+    this.#seededString = this.getValue();
+    // The same post-getter value `beginEditing()` stores. `originalValue` is the stored cell,
+    // and seeding that here treats a later edit of the stored value as untouched.
+    this.#seededCellValue = getValueGetterValue(
+      this.originalValue,
+      this.hot.getCellMeta(this.row, this.col),
+    );
   }
   /**
    * Object containing the cell's properties.
@@ -469,12 +486,15 @@ export class BaseEditor {
 
       let value = this.getValue();
 
-      // Normalization runs BEFORE the comparison, so an unchanged confirm still trims whitespace and
-      // still runs `valueParser` exactly as it always did. Comparing first would silently drop both
-      // for a cell whose content the user did not touch.
+      // `held` is what the editor shows, after trim and before `valueParser`. The unchanged question
+      // is whether that is still the value the editor was opened with. A parser result that equals
+      // the getter's display is a new edit, because the cell may store something else. Trim stays in
+      // front of the compare, so an untouched `"  hi  "` still saves the trimmed `"hi"`.
       if (this.cellProperties.trimWhitespace) {
         value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
       }
+
+      const held = value;
 
       if (typeof this.cellProperties.valueParser === 'function') {
         value = this.cellProperties.valueParser(value, this.cellProperties);
@@ -496,7 +516,7 @@ export class BaseEditor {
         selectionFillsOtherCells(this.hot, value, this.row, this.col);
 
       const isUnchanged = !fillsOtherCells && this.#hasValueBeforeEdit
-        && (value === this.#seededString || value === this.#seededCellValue);
+        && (held === this.#seededString || held === this.#seededCellValue);
 
       if (isUnchanged) {
         this.#finishUnchangedEdit();
