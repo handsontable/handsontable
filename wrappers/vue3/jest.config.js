@@ -1,6 +1,6 @@
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'jsdom',
+  testEnvironment: 'warpdom',
   transform: {
     '.*\\.(vue)$': '@vue/vue3-jest',
     '^.+\\.ts?$': 'ts-jest',

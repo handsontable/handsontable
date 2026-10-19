@@ -79,7 +79,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "handsontable": "^18.0.0",
     "jest": "^27.5.1",
-    "jest-environment-jsdom": "^27.5.1",
+    "jest-environment-warpdom": "^0.1.0",
     "prop-types": "^15.7.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -89,7 +89,8 @@
     "rollup-plugin-alias": "^1.5.2",
     "rollup-plugin-typescript2": "^0.36.0",
     "typescript": "3.8.2",
-    "uglify-js": "^3.4.9"
+    "uglify-js": "^3.4.9",
+    "warpdom": "^0.1.3"
   },
   "peerDependencies": {
     "handsontable": "^18.0.0"
@@ -111,7 +112,7 @@
     "watch:es": "cross-env NODE_ENV=es rollup -c --watch --bundleConfigAsCjs"
   },
   "jest": {
-    "testEnvironment": "jsdom",
+    "testEnvironment": "warpdom",
     "testURL": "http://localhost/",
     "testTimeout": 60000,
     "transform": {

@@ -76,7 +76,7 @@ The spec file is known because `test/e2e/index.js` records which `require.contex
 To reproduce a verdict locally, re-run one file alone against the same dump: `npm run test:e2e.puppeteer -- --specFile=<path-pattern>` (`--spec=<pattern>` also exists, but it has to match the spec names as well as the file path). With a `--testPathPattern` baked into the dump, either parameter narrows it rather than replacing it. The helpers behind the report are pure and unit-tested with `node:test` (`test/scripts/lib/failed-specs.mjs`, `test/scripts/__tests__/`), part of the root `npm run test:tooling`.
 
 **Test Environment:**
-- Unit tests: jsdom (JavaScript DOM implementation)
+- Unit tests: warpdom (a JavaScript DOM implementation that models jsdom, `jest-environment-warpdom`)
 - New E2E: Playwright (real Chromium, plus Firefox and WebKit for tests tagged `@cross-browser`; `tests/` package)
 - Legacy E2E: Puppeteer with real headless Chrome
 - Default legacy-Jasmine timeout: 15000ms (set in `test/bootstrap.js`)
@@ -333,7 +333,7 @@ Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`)
 - `resizeObserverMock.js` -- `ResizeObserverMock` class with no-op `observe()`, `unobserve()`, `disconnect()`
 - `intersectionObserverMock.js` -- `IntersectionObserverMock` class
 - `styleMock.js` -- Returns empty object `{}` for CSS/SCSS imports (Jest `moduleNameMapper`)
-- `cssPolyfill.js` -- CSS polyfill mock
+- `cryptoPolyfill.js` -- `initCryptoPolyfill()` for the wrapper bootstraps (the test DOM has no `crypto`)
 
 **Mock Setup in `test/bootstrap.js`:**
 ```javascript
@@ -364,7 +364,7 @@ expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
 ```
 
 **What to Mock:**
-- Browser APIs not in jsdom (ResizeObserver, IntersectionObserver)
+- Browser APIs not in the test DOM (ResizeObserver, IntersectionObserver)
 - CSS imports (handled by styleMock.js)
 - Callbacks and hooks (use Jasmine spies)
 
@@ -554,7 +554,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 ## Test Types
 
 **Unit Tests (`*.unit.js`, `*.unit.ts`):**
-- Framework: Jest with jsdom (`jest-jasmine2` runner)
+- Framework: Jest with warpdom (`jest-jasmine2` runner)
 - Location: mostly `src/**/__tests__/`; also `test/__tests__/` and `test/helpers/__tests__/`, Walkontable's `src/3rdparty/walkontable/test/unit/`, and `src/3rdparty/SheetClip/test/`
 - CI: the `Unit` job runs on a pull request only when `test-handsontable-unit` in `.github/workflows/checks.yml` matches a changed file. A pin that reads a file outside that route belongs in the root tooling suite (see the root `.ai/CI.md`).
 - Scope: Individual functions and classes in isolation
@@ -708,12 +708,12 @@ it('should maintain selections after render', async() => {
 **Jest Configuration** (`handsontable/jest.config.js`):
 ```javascript
 {
-  testEnvironment: 'jsdom',
+  testEnvironment: 'warpdom',
   setupFiles: ['<rootDir>/test/cryptoSetup.js'],
   roots: ['<rootDir>/src', '<rootDir>/test'],
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['json', 'lcov', 'clover'],
-  setupFilesAfterEnv: ['<rootDir>/test/bootstrap.js', '<rootDir>/test/jsdomThemeVars.js'],
+  setupFilesAfterEnv: ['<rootDir>/test/bootstrap.js', '<rootDir>/test/jestThemeVars.js', '<rootDir>/test/jestWindowScroll.js'],
   testRegex: '\\.(unit\\.js|unit\\.ts)$',
   testPathIgnorePatterns: ['<rootDir>/node_modules/'],
   testRunner: 'jest-jasmine2',

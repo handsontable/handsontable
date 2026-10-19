@@ -10,7 +10,7 @@ module.exports = {
       },
     ],
   },
-  testEnvironment: 'jsdom',
+  testEnvironment: 'warpdom',
   transformIgnorePatterns: [
     'node_modules/(?!.*\\.mjs$|zone\\.js|@angular|rxjs)',
   ],

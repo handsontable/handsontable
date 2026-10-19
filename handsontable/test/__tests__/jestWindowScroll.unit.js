@@ -1,10 +1,10 @@
 import Handsontable from '../../src/base';
 
 /**
- * Pins the Jest-only `window.scrollTo` stub (see `test/jsdomWindowScroll.js`).
+ * Pins the Jest-only `window.scrollTo` stub (see `test/jestWindowScroll.js`).
  */
-describe('jsdom window.scrollTo stub', () => {
-  it('should not report jsdom\'s "Not implemented" error', () => {
+describe('Jest window.scrollTo stub', () => {
+  it('should not report the "Not implemented" error', () => {
     // eslint-disable-next-line no-console
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
