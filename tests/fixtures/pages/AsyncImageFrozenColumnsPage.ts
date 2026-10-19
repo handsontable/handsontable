@@ -25,8 +25,8 @@ export class AsyncImageFrozenColumnsPage {
   readonly theme: string;
   readonly bundle: string;
   #release: () => void = () => {};
-  #releaseHeld: () => void = () => {};
-  #heldSource: string | null = null;
+  #heldReleases = new Map<string, () => void>();
+  #heldGates = new Map<string, Promise<void>>();
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -42,14 +42,13 @@ export class AsyncImageFrozenColumnsPage {
     const released = new Promise<void>((resolve) => {
       this.#release = resolve;
     });
-    const heldReleased = new Promise<void>((resolve) => {
-      this.#releaseHeld = resolve;
-    });
     const gate = async(url: string) => {
       await released;
 
-      if (this.#heldSource !== null && url.endsWith(this.#heldSource)) {
-        await heldReleased;
+      const held = [...this.#heldGates].find(([source]) => url.endsWith(source));
+
+      if (held) {
+        await held[1];
       }
     };
 
@@ -84,19 +83,23 @@ export class AsyncImageFrozenColumnsPage {
   }
 
   /**
-   * Lets the held image responses through. With `holdBack`, the response whose URL ends with it stays held
-   * until `releaseHeldImage()`.
+   * Lets the held image responses through. Each response whose URL ends with one of `holdBack` stays held
+   * until `releaseHeldImage()` names it.
    */
-  releaseImages({ holdBack }: { holdBack?: string } = {}): void {
-    this.#heldSource = holdBack ?? null;
+  releaseImages({ holdBack = [] }: { holdBack?: string[] } = {}): void {
+    holdBack.forEach((source) => {
+      this.#heldGates.set(source, new Promise<void>((resolve) => {
+        this.#heldReleases.set(source, resolve);
+      }));
+    });
     this.#release();
   }
 
   /**
-   * Lets the response kept by `releaseImages({ holdBack })` through.
+   * Lets one response kept by `releaseImages({ holdBack })` through.
    */
-  releaseHeldImage(): void {
-    this.#releaseHeld();
+  releaseHeldImage(source: string): void {
+    this.#heldReleases.get(source)?.();
   }
 
   /**

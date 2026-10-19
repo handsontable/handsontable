@@ -794,9 +794,9 @@ draws made after the first arrival by the batches
 draws: a draw closes an interval, so a grid that drew once per arrival would
 open a new interval with each one and pass. A redraw loop that the budget ends
 still fails the bound, because its redraws bring no new image. The bound is
-loose by design (at most one batch per source), so keep a test that holds one
-response back and a test where one response settles every row (both in that
-spec). It also assumes nothing but arriving content makes the grid draw: a
+loose by design (at most one batch per source), so keep a test that lets held
+responses through in separate frames and asserts more draws than the old
+ceiling, and a test where one response settles every row (both in that spec). It also assumes nothing but arriving content makes the grid draw: a
 fixture with a stretched or percentage-sized grid needs its draws to settle
 before the release. And a loop that the budget ends runs as long as its
 responses take, so wait until the draw count holds still

@@ -27,9 +27,9 @@ test.describe('Async image in a scrolling column beside frozen columns', { tag: 
     await grid.waitForFrames(60);
 
     expect(await grid.renderCount()).toBe(stats.draws);
-    expect(stats.drawsBeforeContent).not.toBeNull();
-    expect(stats.draws - (stats.drawsBeforeContent ?? 0), JSON.stringify(stats))
-      .toBeLessThanOrEqual(stats.contentBatches);
+    // The grid draws once before any image arrives, in every variant.
+    expect(stats.drawsBeforeContent, JSON.stringify(stats)).toBe(1);
+    expect(stats.draws - 1, JSON.stringify(stats)).toBeLessThanOrEqual(stats.contentBatches);
   };
 
   test('keeps the frozen overlay rows as tall as the master rows once the images load', async({
@@ -164,23 +164,30 @@ test.describe('Async image in a scrolling column beside frozen columns', { tag: 
     await expectSettledInOneDrawPerBatch(grid);
   });
 
-  test('draws once per batch when one failing image arrives after the others', async({ page, theme, bundle }) => {
+  test('draws once per batch when failing images arrive in separate frames', async({ page, theme, bundle }) => {
     const grid = new AsyncImageFrozenColumnsPage(page, theme, bundle);
 
     await grid.goto('&broken=1&reuse=1');
-    // The first row is rendered whatever the theme makes the others, so its image cannot fail unseen.
-    grid.releaseImages({ holdBack: 'missing-0.svg' });
+    // The first two rows are rendered whatever the theme makes the others, so their images cannot fail unseen.
+    grid.releaseImages({ holdBack: ['missing-0.svg', 'missing-1.svg'] });
 
-    // The redraw for the other five images runs before the held one is let through, so the images arrive in
-    // at least two batches however fast the machine is.
+    // Each held image is let through only after the redraw for the images before it, so the images arrive in
+    // at least three batches however fast the machine is.
+    await expect.poll(() => grid.contentArrivals()).toBe(4);
+    await grid.waitForFrames(2);
+    grid.releaseHeldImage('missing-0.svg');
     await expect.poll(() => grid.contentArrivals()).toBe(5);
     await grid.waitForFrames(2);
-    grid.releaseHeldImage();
+    grid.releaseHeldImage('missing-1.svg');
 
     await expect.poll(async() => (await grid.rowHeights()).master.every(height => height > 60)
       && await grid.overlaysMatchMaster()).toBe(true);
 
-    expect((await grid.drawStats()).contentBatches).toBeGreaterThanOrEqual(2);
+    const { draws, contentBatches } = await grid.drawStats();
+
+    // Each batch grows a row, so each one redraws: more draws than a fixed ceiling of 3 allowed.
+    expect(contentBatches).toBeGreaterThanOrEqual(3);
+    expect(draws).toBeGreaterThan(3);
     await expectSettledInOneDrawPerBatch(grid);
   });
 
