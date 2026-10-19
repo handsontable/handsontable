@@ -1,8 +1,8 @@
 ---
 type: reference
 title: Keyboard shortcuts
-metaTitle: Keyboard shortcuts - JavaScript Data Grid | Handsontable
-description: Access all Handsontable features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
+metaTitle: Keyboard shortcuts | Handsontable DataGrid for JavaScript
+description: Access all Handsontable DataGrid features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
 permalink: /keyboard-shortcuts
 canonicalUrl: /keyboard-shortcuts
 tags:
@@ -16,16 +16,16 @@ tags:
   - commands
   - shortcut keys
 react:
-  metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
+  metaTitle: Keyboard shortcuts | Handsontable DataGrid for React
 angular:
-  metaTitle: Keyboard shortcuts - Angular Data Grid | Handsontable
+  metaTitle: Keyboard shortcuts | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Keyboard shortcuts - Vue Data Grid | Handsontable
+  metaTitle: Keyboard shortcuts | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Navigation
 menuTag: updated
 ---
-Access all Handsontable features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
+Access all Handsontable DataGrid features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
 
 ## Overview
 

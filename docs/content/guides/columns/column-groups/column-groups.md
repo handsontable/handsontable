@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Column groups
-metaTitle: Column groups - JavaScript Data Grid | Handsontable
+metaTitle: Column groups | Handsontable DataGrid for JavaScript
 description: Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
 permalink: /column-groups
 canonicalUrl: /column-groups
@@ -12,11 +12,11 @@ tags:
   - colspan
   - rowspan
 react:
-  metaTitle: Column groups - React Data Grid | Handsontable
+  metaTitle: Column groups | Handsontable DataGrid for React
 angular:
-  metaTitle: Column groups - Angular Data Grid | Handsontable
+  metaTitle: Column groups | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column groups - Vue Data Grid | Handsontable
+  metaTitle: Column groups | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: updated
@@ -51,7 +51,7 @@ Each `nestedHeaders` entry is either a string label or an object with these prop
 For defaults and full details, see the [`nestedHeaders` API reference](@/api/options.md#nestedheaders).
 
 ::: warning
-A `label` is written to the DOM as HTML, so a label built from user input or an external system can inject markup. Handsontable does not sanitize it by default. Set the [`sanitizer`](@/api/options.md#sanitizer) option, which receives nested header labels under the `'header'` source. See [Content sanitizing](@/guides/security/security/security.md#content-sanitizing).
+A `label` is written to the DOM as HTML, so a label built from user input or an external system can inject markup. Handsontable DataGrid does not sanitize it by default. Set the [`sanitizer`](@/api/options.md#sanitizer) option, which receives nested header labels under the `'header'` source. See [Content sanitizing](@/guides/security/security/security.md#content-sanitizing).
 :::
 
 ### Configuration

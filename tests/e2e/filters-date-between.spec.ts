@@ -111,21 +111,43 @@ test.describe('Filters - "Is between" input type', { tag: CROSS_BROWSER_TAG }, (
     await expect(grid.conditionInputs().nth(1)).toHaveAttribute('type', 'text');
   });
 
-  test('drops text the date input cannot hold when the condition changes to "Is between"', async({ page }) => {
+  test('carries a date from "Is equal to" over to the first bound of "Is between"', async({ page }) => {
     await grid.openMenu('Sell date');
     await grid.openConditionSelect();
     await grid.pickCondition('Is equal to');
-    await grid.typeConditionValue('1/15/20');
+    await grid.conditionInputs().first().fill('2020-01-15');
     await grid.openConditionSelect();
     await grid.pickCondition('Is between');
     await grid.conditionInputs().nth(1).fill('2020-06-30');
     await grid.confirmMenu();
 
-    // The hidden first bound must not submit the text the date input blanked.
     const args = await page.evaluate(
       () => window.hot.getPlugin('filters').exportConditions()
         .flatMap((column: { conditions: { args: unknown[] }[] }) => column.conditions.map(({ args }) => args)));
 
-    expect(args).toEqual([['', '2020-06-30']]);
+    expect(args).toEqual([['2020-01-15', '2020-06-30']]);
+  });
+
+  test('drops text the time input cannot hold when the condition changes to "Is between"', async({ page }) => {
+    await grid.rebuild({
+      data: [['09:00'], ['10:30'], ['12:15']],
+      colHeaders: ['Starts'],
+      columns: [{ type: 'intl-time', locale: 'en-US' }],
+    });
+    await grid.openMenu('Starts');
+    await grid.openConditionSelect();
+    await grid.pickCondition('Contains');
+    await grid.typeConditionValue('1/15/20');
+    await grid.openConditionSelect();
+    await grid.pickCondition('Is between');
+    await grid.conditionInputs().nth(1).fill('10:00');
+    await grid.confirmMenu();
+
+    // The hidden first bound must not submit the text the time input blanked.
+    const args = await page.evaluate(
+      () => window.hot.getPlugin('filters').exportConditions()
+        .flatMap((column: { conditions: { args: unknown[] }[] }) => column.conditions.map(({ args }) => args)));
+
+    expect(args).toEqual([['', '10:00']]);
   });
 });

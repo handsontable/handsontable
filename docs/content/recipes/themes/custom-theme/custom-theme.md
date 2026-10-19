@@ -1,8 +1,8 @@
 ---
 type: how-to
-title: Handsontable with shadcn/ui
-metaTitle: Handsontable with shadcn/ui - React Data Grid | Handsontable
-description: Integrate Handsontable into a React app using shadcn/ui so the grid matches your design system colors, typography, and dark mode via the Theme API.
+title: Handsontable DataGrid with shadcn/ui
+metaTitle: shadcn/ui theme | Handsontable DataGrid for JavaScript
+description: Integrate Handsontable DataGrid into a React app using shadcn/ui so the grid matches your design system colors, typography, and dark mode via the Theme API.
 permalink: /recipes/themes/custom-theme
 canonicalUrl: /recipes/themes/custom-theme
 tags:
@@ -17,15 +17,15 @@ tags:
   - Theme API
   - custom theme
 react:
-  metaTitle: Handsontable with shadcn/ui - React Data Grid | Handsontable
+  metaTitle: shadcn/ui theme | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with shadcn/ui - Angular Data Grid | Handsontable
+  metaTitle: shadcn/ui theme | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Themes
 ---
 
-This tutorial shows you how to integrate Handsontable into a Next.js app that uses shadcn/ui, registering a custom theme that maps shadcn CSS variables and Lucide icons to the Handsontable Theme API.
+This tutorial shows you how to integrate Handsontable DataGrid into a Next.js app that uses shadcn/ui, registering a custom theme that maps shadcn CSS variables and Lucide icons to the Handsontable Theme API.
 
 <iframe src="https://demos.handsontable.com/embed/6k14o3s142"
      style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -56,7 +56,7 @@ This recipe shows how to integrate Handsontable into a Next.js that uses [shadcn
 - shadcn's CSS variables defined (e.g. `--primary`, `--background`, `--foreground`, `--muted`, `--border`, `--radius`).
 - This recipe uses `lib/` for theme and helpers and `components/` for the grid, adjust paths if your structure differs.
 
-## Step 1: Install Handsontable
+## Step 1: Install Handsontable DataGrid
 
 In your project root:
 
@@ -399,8 +399,8 @@ You registered a custom Handsontable theme that maps shadcn CSS variables to Han
 
 ## Next steps
 
-- [Handsontable with Base Web](@/recipes/themes/base-theme/base-theme.md) - The same pattern using Base Web design tokens.
-- [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) - The same pattern reading colors from the MUI `Theme` object.
+- [Handsontable DataGrid with Base Web](@/recipes/themes/base-theme/base-theme.md) - The same pattern using Base Web design tokens.
+- [Handsontable DataGrid with MUI](@/recipes/themes/mui-theme/mui-theme.md) - The same pattern reading colors from the MUI `Theme` object.
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Full reference for Theme API parameters and CSS variables.
 
 ## Related

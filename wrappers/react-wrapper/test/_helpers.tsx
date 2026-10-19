@@ -155,7 +155,7 @@ export function mockElementDimensions(element: HTMLElement, width: number, heigh
   });
 }
 
-export function simulateKeyboardEvent(type: string, keyCode: number): void {
+export function simulateKeyboardEvent(type: string, keyCode: number): KeyboardEvent {
   const newEvent: any = document.createEvent('KeyboardEvent');
   const KEY_CODES: Record<number, string> = {
     8: 'backspace',
@@ -193,6 +193,8 @@ export function simulateKeyboardEvent(type: string, keyCode: number): void {
   newEvent.keyCodeVal = keyCode;
 
   document.activeElement!.dispatchEvent(newEvent);
+
+  return newEvent;
 }
 
 export function simulateMouseEvent(element: Element | null, type: string): void {

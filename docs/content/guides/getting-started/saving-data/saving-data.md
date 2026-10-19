@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Saving data
-metaTitle: Saving data - JavaScript Data Grid | Handsontable
-description: Saving data after each change to the data set, using Handsontable's API hooks. Preserve the table's state by saving data to the local storage.
+metaTitle: Saving data | Handsontable DataGrid for JavaScript
+description: Saving data after each change to the data set, using Handsontable DataGrid's API hooks. Preserve the table's state by saving data to the local storage.
 permalink: /saving-data
 canonicalUrl: /saving-data
 tags:
@@ -10,16 +10,16 @@ tags:
   - server
   - ajax
 react:
-  metaTitle: Saving data - React Data Grid | Handsontable
+  metaTitle: Saving data | Handsontable DataGrid for React
 angular:
-  metaTitle: Saving data - Angular Data Grid | Handsontable
+  metaTitle: Saving data | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Saving data - Vue Data Grid | Handsontable
+  metaTitle: Saving data | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
 menuTag: updated
 ---
-Save data after each change to the data set, using Handsontable's API hooks. Preserve the table's state by saving data to the local storage.
+Save data after each change to the data set, using Handsontable DataGrid's API hooks. Preserve the table's state by saving data to the local storage.
 
 [[toc]]
 

@@ -1,8 +1,8 @@
 ---
 type: how-to
-title: Handsontable with Base Web
-metaTitle: Handsontable with Base Web - React Data Grid | Handsontable
-description: Integrate Handsontable into a React app using Base Web and style a custom theme with your design tokens so the grid matches your design system.
+title: Handsontable DataGrid with Base Web
+metaTitle: Base Web theme | Handsontable DataGrid for JavaScript
+description: Integrate Handsontable DataGrid into a React app using Base Web and style a custom theme with your design tokens so the grid matches your design system.
 permalink: /recipes/themes/base-theme
 canonicalUrl: /recipes/themes/base-theme
 tags:
@@ -16,15 +16,15 @@ tags:
   - Theme API
   - custom theme
 react:
-  metaTitle: Handsontable with Base Web - React Data Grid | Handsontable
+  metaTitle: Base Web theme | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with Base Web - Angular Data Grid | Handsontable
+  metaTitle: Base Web theme | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Themes
 ---
 
-This tutorial shows you how to integrate Handsontable into a React app that uses Base Web, mapping Base design tokens to Handsontable colors and tokens so the grid follows your design system.
+This tutorial shows you how to integrate Handsontable DataGrid into a React app that uses Base Web, mapping Base design tokens to Handsontable colors and tokens so the grid follows your design system.
 
 <iframe src="https://demos.handsontable.com/embed/1pi3y3p3h2"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -70,7 +70,7 @@ If you are creating a new Base setup, install Base Web and Styletron as well:
 pnpm add baseui styletron-engine-atomic styletron-react
 ```
 
-## Step 2: Register Handsontable modules
+## Step 2: Register Handsontable DataGrid modules
 
 Register Handsontable modules once before rendering the grid.
 
@@ -81,7 +81,7 @@ import { registerTheme } from 'handsontable/themes';
 registerAllModules();
 ```
 
-## Step 3: Map Base design tokens to Handsontable colors
+## Step 3: Map Base design tokens to Handsontable DataGrid colors
 
 Create a colors object that maps Handsontable color keys to your Base CSS variables.
 
@@ -232,6 +232,6 @@ You registered a custom Handsontable theme that maps Base Web design tokens to H
 
 ## Next steps
 
-- [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) - The same pattern using shadcn/ui CSS variables and Lucide icons.
-- [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) - The same pattern reading colors from the MUI `Theme` object via `useTheme()`.
+- [Handsontable DataGrid with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) - The same pattern using shadcn/ui CSS variables and Lucide icons.
+- [Handsontable DataGrid with MUI](@/recipes/themes/mui-theme/mui-theme.md) - The same pattern reading colors from the MUI `Theme` object via `useTheme()`.
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Full reference for Theme API parameters and CSS variables.

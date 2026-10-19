@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Custom builds
-metaTitle: Custom builds - JavaScript Data Grid | Handsontable
-description: Handsontable's building process transforms the source files located in the code repository into dedicated packages.
+metaTitle: Custom builds | Handsontable DataGrid for JavaScript
+description: Handsontable DataGrid's building process transforms the source files located in the code repository into dedicated packages.
 permalink: /custom-builds
 canonicalUrl: /custom-builds
 tags:
@@ -10,15 +10,15 @@ tags:
   - bundling
   - contributing
 react:
-  metaTitle: Custom builds - React Data Grid | Handsontable
+  metaTitle: Custom builds | Handsontable DataGrid for React
 angular:
-  metaTitle: Custom builds - Angular Data Grid | Handsontable
+  metaTitle: Custom builds | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Custom builds - Vue Data Grid | Handsontable
+  metaTitle: Custom builds | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
 ---
-Handsontable's building process transforms the source files located in the code repository into dedicated packages.
+Handsontable DataGrid's building process transforms the source files located in the code repository into dedicated packages.
 
 [[toc]]
 

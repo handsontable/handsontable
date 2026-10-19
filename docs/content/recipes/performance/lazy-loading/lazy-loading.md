@@ -1,6 +1,6 @@
 ---
 title: Lazy loading with pagination
-metaTitle: Lazy loading with pagination - JavaScript Data Grid | Handsontable
+metaTitle: Lazy loading with pagination | Handsontable DataGrid for JavaScript
 description: Load data page-by-page as the user scrolls to the bottom of the grid, using the afterScrollVertically hook and hot.updateData() to append rows without resetting scroll position.
 permalink: /recipes/performance/lazy-loading
 canonicalUrl: /recipes/performance/lazy-loading
@@ -13,11 +13,11 @@ tags:
   - lazy loading
   - infinite scroll
 react:
-  metaTitle: Lazy loading with pagination - React Data Grid | Handsontable
+  metaTitle: Lazy loading with pagination | Handsontable DataGrid for React
 angular:
-  metaTitle: Lazy loading with pagination - Angular Data Grid | Handsontable
+  metaTitle: Lazy loading with pagination | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Lazy loading with pagination - Vue Data Grid | Handsontable
+  metaTitle: Lazy loading with pagination | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Performance
 type: how-to
@@ -62,7 +62,7 @@ In this tutorial, you will load grid data page by page as the user scrolls to th
 **Difficulty:** Intermediate
 **Time:** ~25 minutes
 
-This tutorial shows how to load data in pages as the user scrolls toward the bottom of a Handsontable grid. The grid starts with an initial data set and silently fetches the next page when the user approaches the last visible row -- without resetting the scroll position, selection, or column configuration.
+This tutorial shows how to load data in pages as the user scrolls toward the bottom of the grid. The grid starts with an initial data set and silently fetches the next page when the user approaches the last visible row -- without resetting the scroll position, selection, or column configuration.
 
 This pattern is useful when working with large remote data sets where loading everything upfront would be too slow or memory-intensive.
 
@@ -81,7 +81,7 @@ A task-list grid that:
 
 ## Before you begin
 
-- You need a working Handsontable installation. See the [Getting started](@/guides/getting-started/introduction/introduction.md) guide.
+- You need a working Handsontable DataGrid installation. See the [Getting started](@/guides/getting-started/introduction/introduction.md) guide.
 - This example fetches data from [JSONPlaceholder](https://jsonplaceholder.typicode.com/), a free public API. An active internet connection is required to run the live demo. The grid falls back to the built-in `INITIAL_DATA` array when the network is unavailable.
 - Familiarity with `async/await` and the browser `fetch` API is helpful.
 

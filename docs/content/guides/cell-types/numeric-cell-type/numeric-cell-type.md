@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Numeric cell type
-metaTitle: Numeric cell type - JavaScript Data Grid | Handsontable
+metaTitle: Numeric cell type | Handsontable DataGrid for JavaScript
 description: Display, format, sort, and filter numbers correctly by using the numeric cell type.
 permalink: /numeric-cell-type
 canonicalUrl: /numeric-cell-type
 react:
-  metaTitle: Numeric cell type - React Data Grid | Handsontable
+  metaTitle: Numeric cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Numeric cell type - Angular Data Grid | Handsontable
+  metaTitle: Numeric cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Numeric cell type - Vue Data Grid | Handsontable
+  metaTitle: Numeric cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
@@ -23,7 +23,7 @@ The numeric cell type formats numbers using Intl.NumberFormat, right-aligns valu
 
 ## Overview
 
-The default cell type in Handsontable is text. The data of a text cell is processed as a `string`
+The default cell type in Handsontable DataGrid is text. The data of a text cell is processed as a `string`
 type that corresponds to the value of the text editor's internal `<textarea>` element. However,
 there are many cases where you need cell values to be treated as a `number` type. The numeric cell
 type allows you to format displayed numbers nicely and sort them correctly.

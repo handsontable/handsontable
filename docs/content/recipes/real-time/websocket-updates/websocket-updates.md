@@ -1,7 +1,7 @@
 ---
 title: Real-time cell updates via WebSocket
-metaTitle: Real-time WebSocket Updates - JavaScript Data Grid | Handsontable
-description: Learn how to connect Handsontable to a WebSocket and update individual cells in real time using setDataAtCell, without re-rendering the entire grid.
+metaTitle: Real-time WebSocket updates | Handsontable DataGrid for JavaScript
+description: Learn how to connect Handsontable DataGrid to a WebSocket and update individual cells in real time using setDataAtCell, without re-rendering the entire grid.
 permalink: /recipes/real-time/websocket-updates
 canonicalUrl: /recipes/real-time/websocket-updates
 tags:
@@ -12,17 +12,17 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Real-time WebSocket Updates - React Data Grid | Handsontable
+  metaTitle: Real-time WebSocket updates | Handsontable DataGrid for React
 angular:
-  metaTitle: Real-time WebSocket Updates - Angular Data Grid | Handsontable
+  metaTitle: Real-time WebSocket updates | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Real-time WebSocket Updates - Vue Data Grid | Handsontable
+  metaTitle: Real-time WebSocket updates | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Real-time & Integrations
 type: how-to
 ---
 
-In this tutorial, you will connect Handsontable to a WebSocket and update individual cells in real time. You will learn how to use `setDataAtCell` to apply streaming updates without re-rendering the entire grid.
+In this tutorial, you will connect Handsontable DataGrid to a WebSocket and update individual cells in real time. You will learn how to use `setDataAtCell` to apply streaming updates without re-rendering the entire grid.
 
 ::: only-for javascript
 

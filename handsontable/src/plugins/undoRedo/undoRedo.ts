@@ -123,7 +123,7 @@ function isValidMaxHistory(value: unknown): value is number {
 
 /**
  * @description
- * Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
+ * The UndoRedo plugin lets you undo and redo certain actions done in the table.
  *
  * The plugin is enabled by default. Each user action – an edit, a paste, a row removal, a sort, a
  * [`batch()`](@/api/core.md#batch) of calls – is recorded as one step. For the list of tracked actions and

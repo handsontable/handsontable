@@ -36,6 +36,7 @@ describe('ResizeGesture', () => {
     const microtasks = [];
     const state = { rtl };
     const operationScope = new OperationScope();
+    const hookCallbacks = new Map();
     const hot = {
       _getOperationScope: () => operationScope,
       runOperation: (name, callback, source) => operationScope.run(name, source, callback),
@@ -51,6 +52,23 @@ describe('ResizeGesture', () => {
       }),
       _registerMicrotask: jest.fn(callback => microtasks.push(callback)),
       runHooks: jest.fn(),
+      addHook: (name, callback) => {
+        const callbacks = hookCallbacks.get(name) ?? [];
+
+        if (!callbacks.includes(callback)) {
+          callbacks.push(callback);
+          hookCallbacks.set(name, callbacks);
+        }
+      },
+      removeHook: (name, callback) => {
+        const callbacks = hookCallbacks.get(name) ?? [];
+
+        hookCallbacks.set(name, callbacks.filter(entry => entry !== callback));
+      },
+      fireHook: (name) => {
+        (hookCallbacks.get(name) ?? []).forEach(callback => callback());
+      },
+      listen: jest.fn(),
       render: jest.fn(),
       getSelectedRange: () => selectedRanges,
       getSettings: () => ({ fixedRowsTop: 0, fixedRowsBottom: 0, fixedColumnsStart: 0, ...frozen }),
@@ -323,9 +341,114 @@ describe('ResizeGesture', () => {
 
       expect(hot.runHooks).not.toHaveBeenCalled();
     });
+
+    it('should listen when the handle is pressed', () => {
+      const { hot, th, handle } = createGesture();
+
+      mouse('mouseover', th);
+
+      expect(hot.listen).not.toHaveBeenCalled();
+
+      mouse('mousedown', handle(), { pageY: 10 });
+
+      expect(hot.listen).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('geometry', () => {
+    it('should move the handle onto the header an undo or a redo leaves behind', () => {
+      let top = 100;
+      const { hot, th, handle } = createGesture({
+        axis: { getHeaderPosition: () => ({ top, start: 50 }) },
+      });
+
+      mouse('mouseover', th);
+
+      expect(handle().style.top).toBe('94px');
+
+      top = 60;
+      hot.fireHook('afterUndo');
+
+      expect(handle().style.top).toBe('54px');
+
+      top = 20;
+      hot.fireHook('afterRedo');
+
+      expect(handle().style.top).toBe('14px');
+    });
+
+    it('should keep the handle where the drag put it when an undo runs during the press', () => {
+      let top = 100;
+      const { hot, th, owner, handle } = createGesture({
+        axis: { getHeaderPosition: () => ({ top, start: 50 }) },
+      });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageY: 10 });
+      mouse('mousemove', window, { pageY: 40 });
+
+      expect(handle().style.top).toBe('124px');
+
+      top = 60;
+      hot.fireHook('afterUndo');
+
+      expect(handle().style.top).toBe('124px');
+
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenCalledWith(2, 30);
+    });
+
+    it('should leave the handle detached when an undo runs after it was removed', () => {
+      let top = 100;
+      const { hot, th, gesture, handle } = createGesture({
+        axis: { getHeaderPosition: () => ({ top, start: 50 }) },
+      });
+
+      mouse('mouseover', th);
+      gesture.detach();
+
+      top = 60;
+      hot.fireHook('afterUndo');
+
+      expect(handle()).toBeNull();
+    });
+
+    it('should detach the handle when an undo removes the header it sits on', () => {
+      const { hot, th, handle } = createGesture();
+
+      mouse('mouseover', th);
+      expect(handle()).not.toBeNull();
+
+      th.remove();
+      hot.fireHook('afterUndo');
+
+      expect(handle()).toBeNull();
+    });
+
+    it('should ignore undo and redo after destroy', () => {
+      let top = 100;
+      const { hot, th, gesture, handle } = createGesture({
+        axis: { getHeaderPosition: () => ({ top, start: 50 }) },
+      });
+
+      mouse('mouseover', th);
+
+      const element = handle();
+
+      expect(element.style.top).toBe('94px');
+
+      gesture.destroy();
+      rootElement.appendChild(element);
+
+      top = 60;
+      hot.fireHook('afterUndo');
+      hot.fireHook('afterRedo');
+
+      expect(element.isConnected).toBe(true);
+      expect(element.style.top).toBe('94px');
+    });
+
     it('should move the top of the handle for a vertical axis', () => {
       const { th, handle } = createGesture({ orientation: 'vertical' });
 

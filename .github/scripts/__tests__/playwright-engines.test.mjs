@@ -82,6 +82,15 @@ test('the engines config runs only tagged tests on Firefox and WebKit, inheritin
     assert.doesNotMatch(config, new RegExp(`\\b${key}\\s*:`),
       `${ENGINES_CONFIG} must inherit ${key} from tests/playwright.config.ts. ${DOC}`);
   });
+
+  // The one setting the engines do NOT inherit: the base config pins 4 CI workers for the Chromium legs,
+  // measured there; Firefox and WebKit are heavier per worker and this job is off the critical path, so
+  // it keeps the runner's default of 2 until a measurement says otherwise.
+  const workers = [...config.matchAll(/\bworkers\s*:\s*([^,\n}]+)/g)].map(([, value]) => value.trim());
+
+  assert.deepEqual(workers, ['process.env.CI ? 2 : undefined'],
+    `${ENGINES_CONFIG} sets \`workers: process.env.CI ? 2 : undefined\` exactly once: the Chromium legs' 4 workers were `
+    + `measured on Chromium, and a contention flake on an engine holds back Visual and the publish paths. ${DOC}`);
 });
 
 test('the tags the config filters by are the ones the fixtures export', () => {

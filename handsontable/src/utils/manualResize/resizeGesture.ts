@@ -216,6 +216,8 @@ export class ResizeGesture {
     eventManager.addEventListener(rootWindow, 'mousemove', this.#onMouseMove);
     eventManager.addEventListener(rootWindow, 'mouseup', this.#onMouseUp);
     eventManager.addEventListener(this.#handle, 'contextmenu', this.#onContextMenu);
+    this.#hot.addHook('afterUndo', this.#onHistoryRestored);
+    this.#hot.addHook('afterRedo', this.#onHistoryRestored);
   }
 
   /**
@@ -267,6 +269,15 @@ export class ResizeGesture {
     this.#handle.remove();
     this.#guide.remove();
     this.#closeStep();
+  }
+
+  /**
+   * Removes the undo and redo listeners and detaches the handle and the guide.
+   */
+  destroy() {
+    this.#hot.removeHook('afterUndo', this.#onHistoryRestored);
+    this.#hot.removeHook('afterRedo', this.#onHistoryRestored);
+    this.detach();
   }
 
   /**
@@ -619,6 +630,27 @@ export class ResizeGesture {
   }
 
   /**
+   * Repositions the attached handle from the header it belongs to.
+   */
+  #onHistoryRestored = () => {
+    // The press holds an empty undo step, so undo stays available. Rebuilding the snapshot
+    // here would make the next mousemove apply the original pointer delta to the new size.
+    if (this.#pressed || !this.#handle.isConnected) {
+      return;
+    }
+
+    // Undo can remove the hovered header. Positioning then returns early and the handle
+    // stays over the empty space where that header was.
+    if (this.#currentTH === null || !this.#currentTH.isConnected) {
+      this.detach();
+
+      return;
+    }
+
+    this.#setupHandlePosition(this.#currentTH);
+  };
+
+  /**
    * "mouseover" listener – positions the handle over the hovered header.
    *
    * @param {MouseEvent} event The mouse event.
@@ -676,6 +708,8 @@ export class ResizeGesture {
       this.#dblclick += 1;
       this.#startPointer = this.#readPointer(event);
       this.#newSize = this.#startSize;
+      // A handle press never reaches `onCellMouseDown`, which is what listens for a header TH.
+      this.#hot.listen();
     }
   };
 

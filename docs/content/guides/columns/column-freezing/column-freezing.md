@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Column freezing
-metaTitle: Column freezing - JavaScript Data Grid | Handsontable
+metaTitle: Column freezing | Handsontable DataGrid for JavaScript
 description: Lock (freeze) the position of specified columns at the start or end of the grid, keeping them visible while scrolling to another area of the grid.
 permalink: /column-freezing
 canonicalUrl: /column-freezing
@@ -16,11 +16,11 @@ tags:
   - freeze bar
   - draggable freeze
 react:
-  metaTitle: Column freezing - React Data Grid | Handsontable
+  metaTitle: Column freezing | Handsontable DataGrid for React
 angular:
-  metaTitle: Column freezing - Angular Data Grid | Handsontable
+  metaTitle: Column freezing | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column freezing - Vue Data Grid | Handsontable
+  metaTitle: Column freezing | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: updated
@@ -266,7 +266,7 @@ In the following example, the first row (Target) and the last row (Total) stay a
 
 ### How fixedColumnsEnd interacts with other settings
 
-- **Overlap.** If `fixedColumnsStart` and `fixedColumnsEnd` together exceed the number of columns, `fixedColumnsStart` takes priority. Handsontable reduces the end columns to the columns that remain. The `fixedColumnsEnd` value you set doesn't change.
+- **Overlap.** If `fixedColumnsStart` and `fixedColumnsEnd` together exceed the number of columns, `fixedColumnsStart` takes priority. Handsontable DataGrid reduces the end columns to the columns that remain. The `fixedColumnsEnd` value you set doesn't change.
 - **Hidden and trimmed columns.** A hidden column keeps its slot in the end band. The band is always the last `fixedColumnsEnd` columns, so hiding a column inside it shrinks the frozen area by that column, and no other column moves in. A trimmed column gives up its slot. When you trim a column inside the band, the column before the band moves in and the frozen area keeps its size.
 - **Size limit.** The [frozen area size limit](#frozen-area-size-limit) applies to the start and end columns together. Keep the combined width of all frozen columns smaller than the width of the grid.
 - **Changing the value.** You can change `fixedColumnsEnd` at any time with [`updateSettings()`](@/api/core.md#updatesettings). When you remove columns that belong to the end band, Handsontable lowers the value by the number of removed frozen columns.

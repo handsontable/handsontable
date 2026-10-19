@@ -220,7 +220,7 @@ export function buildLlmsIndex(pageMeta, sections) {
  */
 export function buildLlmsFull(routeMap, sections) {
   const parts = [
-    '# Handsontable Documentation',
+    '# Handsontable DataGrid documentation',
     '',
     '> Full guides corpus for LLM consumption. One canonical copy per page (JavaScript',
     '> variant, or the page\'s own framework for framework-specific guides); the other',

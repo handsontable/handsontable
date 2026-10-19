@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Theme customization
-metaTitle: Theme Customization - JavaScript Data Grid | Handsontable
-description: Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
+metaTitle: Theme customization | Handsontable DataGrid for JavaScript
+description: Customize Handsontable DataGrid's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
 permalink: /theme-customization
 canonicalUrl: /theme-customization
 tags:
@@ -17,16 +17,16 @@ tags:
   - local variables
   - tokens
 react:
-  metaTitle: Theme Customization - React Data Grid | Handsontable
+  metaTitle: Theme customization | Handsontable DataGrid for React
 angular:
-  metaTitle: Theme Customization - Angular Data Grid | Handsontable
+  metaTitle: Theme customization | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Theme Customization - Vue Data Grid | Handsontable
+  metaTitle: Theme customization | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Styling
 menuTag: updated
 ---
-Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
+Customize Handsontable DataGrid's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
 
 [[toc]]
 

@@ -1,7 +1,7 @@
 ---
 title: Programmatic row operations
-metaTitle: Programmatic row operations - JavaScript Data Grid | Handsontable
-description: Learn how to add, delete, and reorder rows in Handsontable using external toolbar buttons wired to the alter() API and the ManualRowMove plugin.
+metaTitle: Programmatic row operations | Handsontable DataGrid for JavaScript
+description: Learn how to add, delete, and reorder rows in Handsontable DataGrid using external toolbar buttons wired to the alter() API and the ManualRowMove plugin.
 permalink: /recipes/context-menu/row-operations
 canonicalUrl: /recipes/context-menu/row-operations
 tags:
@@ -9,17 +9,17 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Programmatic row operations - React Data Grid | Handsontable
+  metaTitle: Programmatic row operations | Handsontable DataGrid for React
 angular:
-  metaTitle: Programmatic row operations - Angular Data Grid | Handsontable
+  metaTitle: Programmatic row operations | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Programmatic row operations - Vue Data Grid | Handsontable
+  metaTitle: Programmatic row operations | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Context Menu and Interaction
 type: how-to
 ---
 
-In this tutorial, you will add, delete, and reorder rows in Handsontable using external toolbar buttons. You will learn how to wire buttons to the `alter()` API and the `ManualRowMove` plugin to give users full programmatic control over row order.
+In this tutorial, you will add, delete, and reorder rows in Handsontable DataGrid using external toolbar buttons. You will learn how to wire buttons to the `alter()` API and the `ManualRowMove` plugin to give users full programmatic control over row order.
 
 ::: only-for javascript vue
 
@@ -86,7 +86,7 @@ Make sure you have a container element with four buttons in your HTML:
 <div id="example1"></div>
 ```
 
-## Step 1: Enable ManualRowMove and initialize Handsontable
+## Step 1: Enable ManualRowMove and initialize Handsontable DataGrid
 
 ```javascript
 import Handsontable from 'handsontable/base';

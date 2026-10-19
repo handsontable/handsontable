@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Import from Excel
-metaTitle: Import from Excel - JavaScript Data Grid | Handsontable
+metaTitle: Import from Excel | Handsontable DataGrid for JavaScript
 description: Load an Excel (.xlsx) workbook into your grid, with cell types, dropdown sources, formulas, merged cells, hidden rows and columns, and frozen panes derived from the file.
 permalink: /import-from-excel
 canonicalUrl: /import-from-excel
@@ -11,11 +11,11 @@ tags:
   - xlsx
   - excel
 react:
-  metaTitle: Import from Excel - React Data Grid | Handsontable
+  metaTitle: Import from Excel | Handsontable DataGrid for React
 angular:
-  metaTitle: Import from Excel - Angular Data Grid | Handsontable
+  metaTitle: Import from Excel | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Import from Excel - Vue Data Grid | Handsontable
+  metaTitle: Import from Excel | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
 menuTag: new
@@ -152,7 +152,7 @@ These are the keys the import can report, beyond `cellStyles`:
 | `merge:overlap` | Two merged ranges overlap. The later one is skipped. |
 | `cellStyles:borders` | The workbook carries borders and the `CustomBorders` plugin is not enabled on the target grid. |
 | `comments` | The workbook carries cell comments and the `Comments` plugin is not enabled on the target grid. Set `comments: true` on the grid to import them. |
-| `layoutDirection` | The sheet's layout direction disagrees with the grid's. Handsontable resolves [`layoutDirection`](@/api/options.md#layoutdirection) at initialization and ignores it afterwards, so construct the grid with `layoutDirection: 'rtl'` to follow a right-to-left workbook. The direction is on `result.layoutDirection` either way. |
+| `layoutDirection` | The sheet's layout direction disagrees with the grid's. Handsontable DataGrid resolves [`layoutDirection`](@/api/options.md#layoutdirection) at initialization and ignores it afterwards, so construct the grid with `layoutDirection: 'rtl'` to follow a right-to-left workbook. The direction is on `result.layoutDirection` either way. |
 | `dataValidation:<type>` | A non-list data validation, which has no grid equivalent. |
 | `conditionalFormatting:unparsedRef` | A conditional formatting range the plugin could not parse. The rule's other ranges still apply. |
 | `dataValidation:unresolvedList` | A list validation whose source cannot be read - a formula such as `INDIRECT()`, or a range on a sheet the workbook does not contain. An inline list and a range on the same or another sheet become a `dropdown` column. |

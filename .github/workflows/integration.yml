@@ -25,7 +25,7 @@ jobs:
   # ready, alongside the E2E jobs.
   wrapper:
     name: ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: ${{ inputs.wrapper-matrix != '' && inputs.wrapper-matrix != '[]' }}
     strategy:
       fail-fast: false
@@ -79,7 +79,7 @@ jobs:
   # unexpanded "matrix.label". They share the reusable esm-cjs composite.
   esm:
     name: ESM
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: inputs.run-all
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -89,7 +89,7 @@ jobs:
 
   cjs:
     name: CJS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: inputs.run-all
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -101,7 +101,7 @@ jobs:
   # publish step to post a PR comment with install links.
   preview-packages:
     name: preview packages
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Only THIS job needs pull-requests: write (it posts the preview comment) —
     # job-level keeps the rest of the module least-privilege. NOTE: job-scoping
     # alone does NOT protect the release path: GitHub validates every job-level

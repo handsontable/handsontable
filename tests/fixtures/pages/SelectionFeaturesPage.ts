@@ -128,6 +128,22 @@ export class SelectionFeaturesPage {
     );
   }
 
+  /**
+   * Select several ranges at once through the instance API, the way `selectCells()` builds a
+   * non-contiguous selection. Each range is `[fromRow, fromCol, toRow, toCol]`.
+   */
+  async selectRanges(ranges: [number, number, number, number][]): Promise<void> {
+    await this.page.evaluate(selection => window.hot.selectCells(selection), ranges);
+  }
+
+  /**
+   * Every fill handle drawn in any overlay – the cell corner (`.current`) and the area corner
+   * (`.area`) alike. Counting across overlays keeps a handle drawn by a frozen clone from hiding.
+   */
+  fillHandlesInAnyOverlay(): Locator {
+    return this.grid.locator('.wtBorder.corner:visible');
+  }
+
   /** Clear the selection through the instance API. */
   async deselect(): Promise<void> {
     await this.page.evaluate(() => window.hot.deselectCell());
@@ -807,6 +823,73 @@ export class SelectionFeaturesPage {
    * @param {number} row Visual row index.
    */
   async ctrlClickRowHeader(row: number): Promise<void> {
+    await this.#clickRowHeader(row, true);
+  }
+
+  /**
+   * Clicks a row header with no modifier, which selects the whole row as the only range.
+   *
+   * @param {number} row Visual row index.
+   */
+  async clickRowHeader(row: number): Promise<void> {
+    await this.#clickRowHeader(row, false);
+  }
+
+  /**
+   * Drag-selects a range with the real pointer while Ctrl/Cmd is held, which adds it as a new
+   * selection layer instead of replacing the selection.
+   */
+  async ctrlDragSelectCells(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
+    await this.page.keyboard.down('ControlOrMeta');
+    await this.dragSelectCells(fromRow, fromCol, toRow, toCol);
+    await this.page.keyboard.up('ControlOrMeta');
+  }
+
+  /**
+   * Presses Ctrl/Cmd+A, which selects the whole grid as one range.
+   */
+  async pressSelectAll(): Promise<void> {
+    await this.page.keyboard.press('ControlOrMeta+a');
+  }
+
+  /**
+   * Clicks a cell where it is drawn on top, with or without Ctrl/Cmd held. A cell in a frozen row or
+   * column is drawn by a clone that covers the master copy, and `cell()` cannot tell the copies apart,
+   * so the point comes from `getCell(row, col, true)` – the topmost overlay's element.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   * @param {boolean} [withModifier=false] Whether to hold Ctrl/Cmd during the click.
+   */
+  async clickTopmostCell(row: number, col: number, withModifier = false): Promise<void> {
+    const point = await this.page.evaluate(([r, c]) => {
+      const rect = window.hot.getCell(r, c, true)?.getBoundingClientRect();
+
+      return rect ? { x: rect.x + (rect.width / 2), y: rect.y + (rect.height / 2) } : null;
+    }, [row, col] as const);
+
+    if (!point) {
+      throw new Error(`Cell (${row}, ${col}) is not rendered, so it cannot be clicked`);
+    }
+
+    if (withModifier) {
+      await this.page.keyboard.down('ControlOrMeta');
+    }
+
+    await this.page.mouse.click(point.x, point.y);
+
+    if (withModifier) {
+      await this.page.keyboard.up('ControlOrMeta');
+    }
+  }
+
+  /**
+   * Clicks a row header, resolved through the row's own cell and the inline-start header strip.
+   *
+   * @param {number} row Visual row index.
+   * @param {boolean} withModifier Whether to hold Ctrl/Cmd during the click.
+   */
+  async #clickRowHeader(row: number, withModifier: boolean): Promise<void> {
     const cellBox = await this.cell(row, 0).boundingBox();
     const headerBox = await this.grid.locator('.ht_clone_inline_start tbody th').first().boundingBox();
 
@@ -816,9 +899,15 @@ export class SelectionFeaturesPage {
 
     // The row comes from its own cell and the column from the header strip, so neither depends on
     // a position in the rendered rows — which a scrolled grid renumbers.
-    await this.page.keyboard.down('ControlOrMeta');
+    if (withModifier) {
+      await this.page.keyboard.down('ControlOrMeta');
+    }
+
     await this.page.mouse.click(headerBox.x + (headerBox.width / 2), cellBox.y + (cellBox.height / 2));
-    await this.page.keyboard.up('ControlOrMeta');
+
+    if (withModifier) {
+      await this.page.keyboard.up('ControlOrMeta');
+    }
   }
 
   /**

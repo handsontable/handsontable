@@ -1,15 +1,15 @@
 ---
 type: explanation
 title: Skills for Claude Code
-metaTitle: Skills for Claude Code - JavaScript Data Grid | Handsontable
+metaTitle: Skills for Claude Code | Handsontable DataGrid for JavaScript
 description: Reusable instructions that teach the Claude coding agent how to work with Handsontable DataGrid, covering plugin development, cell editors, tests, and documentation examples.
 permalink: /skills-for-claude-code
 react:
-  metaTitle: Skills for Claude Code - React Data Grid | Handsontable
+  metaTitle: Skills for Claude Code | Handsontable DataGrid for React
 angular:
-  metaTitle: Skills for Claude Code - Angular Data Grid | Handsontable
+  metaTitle: Skills for Claude Code | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Skills for Claude Code - Vue Data Grid | Handsontable
+  metaTitle: Skills for Claude Code | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: AI Tools
 ---
@@ -19,7 +19,7 @@ Skills for Claude Code are bundled instructions that give Claude deep knowledge 
 
 The <a href="https://github.com/handsontable/handsontable-skills" target="_blank" rel="noopener noreferrer">repo</a> ships two skills:
 
-- **handsontable** -- the Handsontable DataGrid component. Covers React, Angular, Vue, and vanilla JS setup, configuration, theming, cell types, sorting, filtering, formulas, hooks, performance, and version migration.
+- **handsontable** -- the core Handsontable DataGrid skill. Covers React, Angular, Vue, and vanilla JS setup, configuration, theming, cell types, sorting, filtering, formulas, hooks, performance, and version migration.
 - **hyperformula** -- the headless calculation engine. Covers instance creation, CRUD, custom functions, named expressions, error handling, batch operations, and Node.js usage.
 
 Use **handsontable** when you're building a visible grid in a web app. Use **hyperformula** when you're evaluating formulas programmatically without a UI -- server-side calculations, pricing engines, what-if analysis. Claude loads whichever is relevant based on what you ask.

@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Rows pagination
-metaTitle: Rows pagination - JavaScript Data Grid | Handsontable
+metaTitle: Rows pagination | Handsontable DataGrid for JavaScript
 description: The pagination component splits the data into a range of pages, allowing users to easily navigate through large data sets.
 permalink: /rows-pagination
 canonicalUrl: /rows-pagination
@@ -19,11 +19,11 @@ tags:
   - range of pages
   - chunks
 react:
-  metaTitle: Row pagination - React Data Grid | Handsontable
+  metaTitle: Rows pagination | Handsontable DataGrid for React
 angular:
-  metaTitle: Row pagination - Angular Data Grid | Handsontable
+  metaTitle: Rows pagination | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row pagination - Vue Data Grid | Handsontable
+  metaTitle: Rows pagination | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated
@@ -304,7 +304,7 @@ Sometimes you need to modify data only on the currently visible page. Core metho
 
 ## Use pagination hooks
 
-You can run your code before or after different stages of pagination, using the following [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md):
+You can run your code before or after different stages of pagination, using the following [Handsontable DataGrid hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md):
 
 - [`beforePageChange()`](@/api/hooks.md#beforepagechange)
 - [`afterPageChange()`](@/api/hooks.md#afterpagechange)

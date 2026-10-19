@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Read-only cells
-metaTitle: Read-only cells - JavaScript Data Grid | Handsontable
+metaTitle: Read-only cells | Handsontable DataGrid for JavaScript
 description: Make specified cells read-only to protect them from unwanted changes but still allow navigation and copying of data.
 permalink: /read-only-cells
 canonicalUrl: /read-only-cells
@@ -12,11 +12,11 @@ tags:
   - noneditable
   - locked
 react:
-  metaTitle: Read-only cells - React Data Grid | Handsontable
+  metaTitle: Read-only cells | Handsontable DataGrid for React
 angular:
-  metaTitle: Read-only cells - Angular Data Grid | Handsontable
+  metaTitle: Read-only cells | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Read-only cells - Vue Data Grid | Handsontable
+  metaTitle: Read-only cells | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
 menuTag: updated
@@ -397,7 +397,7 @@ The [`readOnly`](@/api/options.md#readonly) and [`editor`](@/api/options.md#edit
 
 ## Accessibility
 
-When [`ariaTags`](@/api/options.md#ariatags) is enabled (the default), Handsontable adds `aria-readonly="true"` to the DOM element of every read-only cell, so screen readers announce that the cell can't be edited. Non-editable cells (`editor: false`) don't get this attribute, because Handsontable doesn't treat them as read-only in the data model -- only their editor is disabled.
+When [`ariaTags`](@/api/options.md#ariatags) is enabled (the default), Handsontable DataGrid adds `aria-readonly="true"` to the DOM element of every read-only cell, so screen readers announce that the cell can't be edited. Non-editable cells (`editor: false`) don't get this attribute, because Handsontable doesn't treat them as read-only in the data model -- only their editor is disabled.
 
 For more accessibility features and testing guidance, see [Accessibility](@/guides/accessibility/accessibility/accessibility.md).
 

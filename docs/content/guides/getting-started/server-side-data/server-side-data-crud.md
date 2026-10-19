@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Server-side CRUD
-metaTitle: Server-side CRUD - JavaScript Data Grid | Handsontable
+metaTitle: Server-side CRUD | Handsontable DataGrid for JavaScript
 description: Handsontable dataProvider create, update, and remove -- onRowsCreate, onRowsUpdate, onRowsRemove, mutation hooks, optimistic UI, validators, and programmatic CRUD.
 permalink: /server-side-data-crud
 canonicalUrl: /server-side-data-crud
@@ -10,18 +10,18 @@ tags:
   - server-side
   - CRUD
 react:
-  metaTitle: Server-side CRUD - React Data Grid | Handsontable
+  metaTitle: Server-side CRUD | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side CRUD - Angular Data Grid | Handsontable
+  metaTitle: Server-side CRUD | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side CRUD - Vue Data Grid | Handsontable
+  metaTitle: Server-side CRUD | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Server-side data
 menuTag: updated
 addedIn: "17.1.0"
 ---
 
-With a complete [`dataProvider`](@/api/options.md#dataprovider) configuration, Handsontable sends **create**, **update**, and **remove** operations to your backend. For loading and `fetchRows`, see [Configuration and query parameters](@/guides/getting-started/server-side-data/server-side-data-configuration.md) and [Fetching, hooks, and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md).
+With a complete [`dataProvider`](@/api/options.md#dataprovider) configuration, Handsontable DataGrid sends **create**, **update**, and **remove** operations to your backend. For loading and `fetchRows`, see [Configuration and query parameters](@/guides/getting-started/server-side-data/server-side-data-configuration.md) and [Fetching, hooks, and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md).
 
 [[toc]]
 

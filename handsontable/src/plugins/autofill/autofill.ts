@@ -8,7 +8,13 @@ import { isObject, isObjectEqual } from '../../helpers/object';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { isEmpty } from '../../helpers/mixed';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
-import { getDragDirectionAndRange } from './utils';
+import {
+  countCellsPastEdge,
+  getDragDirectionAndRange,
+  getDistanceOutsideRange,
+  resolveDragDirection,
+} from './utils';
+import type { DragDirection } from './utils';
 import { DIRECTIONS } from './constants';
 
 Hooks.getSingleton().register('modifyAutofillRange');
@@ -143,7 +149,7 @@ export class Autofill extends BasePlugin {
    *
    * @type {string|null}
    */
-  #currentDragDirection: string | null = null;
+  #currentDragDirection: DragDirection | null = null;
   /**
    * Whether the plugin is being torn down and rebuilt by `updatePlugin()` rather than genuinely
    * disabled. `updateSettings()` reaches `updatePlugin()` whenever `fillHandle` is merely *present*
@@ -595,9 +601,28 @@ export class Autofill extends BasePlugin {
    */
   addRow() {
     this.hot._registerTimeout(() => {
+      // A gesture released before the insertion was due no longer has a fill to extend into the
+      // new row, which would stay empty (DEV-140).
+      if (!this.mouseDownOnCellCorner) {
+        this.addingStarted = false;
+
+        return;
+      }
+
       this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, undefined, 1, `${this.pluginName}.fill`);
 
       this.addingStarted = false;
+
+      // A hook run by the insertion can end the gesture, or destroy the grid with it.
+      if (!this.hot || !this.mouseDownOnCellCorner) {
+        return;
+      }
+
+      // The row appears under a pointer that may not move again before the release, so follow it
+      // here. Counted as a drag step, unlike a scroll replay: the drag itself grew the grid.
+      if (this.#lastMouseClientPosition) {
+        this.#followPointer(this.#lastMouseClientPosition, true);
+      }
     }, INTERVAL_FOR_ADDING_ROW);
   }
 
@@ -767,8 +792,13 @@ export class Autofill extends BasePlugin {
    *
    * @private
    * @param {CellCoords} cellCoords `CellCoords` coord object.
+   * @param {{rows: number, columns: number}} [cellsPastTable] How many cells the pointer reached past
+   * the table's bottom and inline-end edges, counted on top of the cell under it.
    */
-  redrawBorders(cellCoords: { row: number | null, col: number | null }) {
+  redrawBorders(
+    cellCoords: { row: number | null, col: number | null },
+    cellsPastTable: { rows: number, columns: number } = { rows: 0, columns: 0 },
+  ) {
     const allowedDirections = this.directions;
     const lastRange = this.hot.getSelectedRangeLast();
 
@@ -781,38 +811,19 @@ export class Autofill extends BasePlugin {
     const topStartCorner = lastRange.getTopStartCorner();
     const bottomEndCorner = lastRange.getBottomEndCorner();
 
-    const rowChanged = (coords.row ?? 0) < (topStartCorner.row ?? 0) ||
-      (coords.row ?? 0) > (bottomEndCorner.row ?? 0);
-    const colChanged = (coords.col ?? 0) < (topStartCorner.col ?? 0) ||
-      (coords.col ?? 0) > (bottomEndCorner.col ?? 0);
-    const isAtHighlightPosition = lastRange.includes(coords);
-
-    if (isAtHighlightPosition) {
-      this.#currentDragDirection = null;
-    }
-
-    if (this.#currentDragDirection === 'vertical' && !rowChanged && colChanged) {
-      if (allowedDirections.includes('horizontal')) {
-        this.#currentDragDirection = 'horizontal';
-      }
-
-    } else if (this.#currentDragDirection === 'horizontal' && !colChanged && rowChanged) {
-      if (allowedDirections.includes('vertical')) {
-        this.#currentDragDirection = 'vertical';
-      }
-    }
+    // The fill handle sits on the selection's corner, so a diagonal pointer leaves the selection on
+    // both axes at once. See this plugin's AGENTS.md ("Resolving the drag direction", DEV-140).
+    this.#currentDragDirection = resolveDragDirection(
+      this.#currentDragDirection,
+      getDistanceOutsideRange(coords.row ?? 0, topStartCorner.row ?? 0, bottomEndCorner.row ?? 0) +
+        cellsPastTable.rows,
+      getDistanceOutsideRange(coords.col ?? 0, topStartCorner.col ?? 0, bottomEndCorner.col ?? 0) +
+        cellsPastTable.columns,
+      allowedDirections,
+    );
 
     let toRow = highlight.row;
     let toCol = highlight.col;
-
-    if (this.#currentDragDirection === null) {
-      if (rowChanged && !colChanged && allowedDirections.includes('vertical')) {
-        this.#currentDragDirection = 'vertical';
-
-      } else if (colChanged && !rowChanged && allowedDirections.includes('horizontal')) {
-        this.#currentDragDirection = 'horizontal';
-      }
-    }
 
     if (this.#currentDragDirection === 'vertical' && allowedDirections.includes('vertical')) {
       toRow = coords.row ?? 0;
@@ -845,9 +856,14 @@ export class Autofill extends BasePlugin {
   getIfMouseWasDraggedOutside(event: Pick<MouseEvent, 'clientX' | 'clientY'>) {
     // Viewport coordinates straight from the box: unlike the offset chain, it follows the transform
     // that places the spreader (`walkontable/src/overlay/spreaderOffset.ts`).
-    const { bottom: tableBottom, right: tableRight } = this.hot.table.getBoundingClientRect();
+    const { bottom: tableBottom } = this.hot.table.getBoundingClientRect();
 
-    return event.clientY > tableBottom && event.clientX <= tableRight;
+    // The drag direction already weighs how far below and beside the table the pointer is (see
+    // `#followPointer()`), so a new row is due exactly when a vertical drag reaches below the table –
+    // the end of the data, which the table's edge is only while the last row is rendered.
+    return event.clientY > tableBottom &&
+      this.#currentDragDirection === DIRECTIONS.vertical &&
+      this.#isLastRowRendered();
   }
 
   /**
@@ -1002,28 +1018,17 @@ export class Autofill extends BasePlugin {
    */
   #onMouseMove(event: Pick<MouseEvent, 'clientX' | 'clientY'>, countDragStep = true) {
     if (this.mouseDownOnCellCorner) {
-      const { clientX, clientY } = event;
-      const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
-      const selectedRange = this.hot.getSelectedRangeLast();
-
-      this.#lastMouseClientPosition = { clientX, clientY };
-
-      // The `beforeOnCellMouseOver`-based counting doesn't fire when the pointer leaves
-      // the table element (e.g. dragging the last column's fill handle at a slight angle,
-      // past the table's edge), so count the drag here as well. Otherwise the fill made
-      // with such a drag would never be committed on mouseup.
-      if (countDragStep && this.handleDraggedCells > 0 && selectedRange && !selectedRange.includes(cellCoords)) {
-        this.handleDraggedCells += 1;
-      }
-
-      this.redrawBorders(cellCoords);
+      this.#followPointer(event, countDragStep);
     }
 
     // Short-circuited on purpose: the measurement reads `this.hot.table`, which is `undefined` on
     // an instance whose init aborted before the view existed. See this plugin's AGENTS.md
     // ("The `documentElement` listeners outlive a failed init").
+    // A scroll replay (`countDragStep` off) may extend a drag into a new row, but it cannot start one:
+    // until a real move has counted a drag step, the gesture has no fill to put into the row.
     const shouldMarkDragOutside = this.addingStarted === false &&
       this.handleDraggedCells > 0 &&
+      (countDragStep || this.handleDraggedCells > 1) &&
       this.getIfMouseWasDraggedOutside(event);
 
     if (shouldMarkDragOutside) {
@@ -1037,6 +1042,91 @@ export class Autofill extends BasePlugin {
     if (this.mouseDragOutside && this.autoInsertRow) {
       this.addRow();
     }
+  }
+
+  /**
+   * Redraws the fill border for the cell under the pointer of a live corner gesture, and counts the
+   * move as a drag step when it lands outside the selection.
+   *
+   * @param {{clientX: number, clientY: number}} position The pointer's viewport position.
+   * @param {boolean} countDragStep Whether a move onto a new cell counts as a drag step.
+   */
+  #followPointer(position: Pick<MouseEvent, 'clientX' | 'clientY'>, countDragStep: boolean) {
+    const { clientX, clientY } = position;
+    const cellsPastTable = this.#countCellsPastTable(clientX, clientY);
+    let cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
+    const selectedRange = this.hot.getSelectedRangeLast();
+
+    // Below the whole table, the pointer points past its last row. That includes a row just inserted
+    // below the visible part of a grid with a fixed height, which the clamp to the viewport above
+    // cannot reach, so the fill would stop short of it.
+    if (cellsPastTable.rows > 0 && cellsPastTable.lastRow !== null && cellCoords.col !== null) {
+      cellCoords = this.hot._createCellCoords(cellsPastTable.lastRow, cellCoords.col);
+    }
+
+    this.#lastMouseClientPosition = { clientX, clientY };
+
+    // The `beforeOnCellMouseOver`-based counting doesn't fire when the pointer leaves
+    // the table element (e.g. dragging the last column's fill handle at a slight angle,
+    // past the table's edge), so count the drag here as well. Otherwise the fill made
+    // with such a drag would never be committed on mouseup.
+    if (countDragStep && this.handleDraggedCells > 0 && selectedRange && !selectedRange.includes(cellCoords)) {
+      this.handleDraggedCells += 1;
+    }
+
+    this.redrawBorders(cellCoords, cellsPastTable);
+  }
+
+  /**
+   * Counts how many cells the pointer reached past the table's bottom and inline-end edges, sized by
+   * the last row and column. The cell under such a pointer is clamped to the table's edge, so without
+   * this a pointer far below the last row would weigh as much as one level with it.
+   *
+   * @param {number} clientX The pointer's horizontal viewport position.
+   * @param {number} clientY The pointer's vertical viewport position.
+   * @returns {{rows: number, columns: number, lastRow: number|null}} The counts, and the visual index
+   * of the last row that is not hidden (`null` when there is none).
+   */
+  #countCellsPastTable(clientX: number, clientY: number) {
+    const { bottom, left, right } = this.hot.table.getBoundingClientRect();
+    const lastRow = this.#getLastNotHiddenRow();
+    const lastColumn = this.hot.columnIndexMapper.getNearestNotHiddenIndex(this.hot.countCols() - 1, -1);
+    const rowHeight = lastRow === null ?
+      0 : this.hot.getRowHeight(lastRow) ?? this.hot.stylesHandler.getDefaultRowHeight(lastRow);
+    const columnWidth = lastColumn === null ? 0 : this.hot.getColWidth(lastColumn);
+    const pixelsPastInlineEnd = this.hot.isRtl() ? left - clientX : clientX - right;
+
+    // The table element holds only the rendered rows and columns. A long grid with a fixed height
+    // renders a few rows past its viewport and stops there, so the table's edge is the data's edge
+    // only while the last row (or column) is rendered. Past any other edge, nothing is counted.
+    const isLastColumnRendered = lastColumn !== null && lastColumn === this.hot.getLastRenderedVisibleColumn();
+
+    return {
+      rows: this.#isLastRowRendered() ? countCellsPastEdge(clientY - bottom, rowHeight) : 0,
+      columns: isLastColumnRendered ? countCellsPastEdge(pixelsPastInlineEnd, columnWidth) : 0,
+      lastRow,
+    };
+  }
+
+  /**
+   * The visual index of the last row that is not hidden, or `null` when there is none.
+   *
+   * @returns {number|null}
+   */
+  #getLastNotHiddenRow(): number | null {
+    return this.hot.rowIndexMapper.getNearestNotHiddenIndex(this.hot.countRows() - 1, -1);
+  }
+
+  /**
+   * Whether the last row that is not hidden is rendered, which makes the bottom edge of the table
+   * element the end of the data.
+   *
+   * @returns {boolean}
+   */
+  #isLastRowRendered(): boolean {
+    const lastRow = this.#getLastNotHiddenRow();
+
+    return lastRow !== null && lastRow === this.hot.getLastRenderedVisibleRow();
   }
 
   /**

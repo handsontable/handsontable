@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Autocomplete cell type
-metaTitle: Autocomplete cell type - JavaScript Data Grid | Handsontable
+metaTitle: Autocomplete cell type | Handsontable DataGrid for JavaScript
 description: Collect user input with a list of choices, by using the autocomplete cell type.
 permalink: /autocomplete-cell-type
 canonicalUrl: /autocomplete-cell-type
@@ -11,11 +11,11 @@ tags:
   - autocomplete
   - key value
 react:
-  metaTitle: Autocomplete cell type - React Data Grid | Handsontable
+  metaTitle: Autocomplete cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Autocomplete cell type - Angular Data Grid | Handsontable
+  metaTitle: Autocomplete cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Autocomplete cell type - Vue Data Grid | Handsontable
+  metaTitle: Autocomplete cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
@@ -152,7 +152,7 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 Autocomplete can also use asynchronous data sources. In the example below, suggestions for the "Supplier" column are loaded from the server with the Fetch API. To load data from a remote source, assign a function to the `source` option. The function receives the query string and the `process` callback. Call `process()` with the result array when the request completes.
 
-Handsontable ignores a response that arrives after the editor closed - including a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer query has superseded, which happens as you type. Call `process()` whenever the request completes, even late.
+Handsontable DataGrid ignores a response that arrives after the editor closed - including a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer query has superseded, which happens as you type. Call `process()` whenever the request completes, even late.
 
 ::: only-for javascript
 

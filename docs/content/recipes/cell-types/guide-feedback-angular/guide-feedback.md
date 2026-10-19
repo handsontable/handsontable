@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: "Feedback Editor"
-metaTitle: "Feedback Editor - JavaScript Data Grid | Handsontable"
-description: Learn how to create a custom Handsontable cell type using emoji buttons for quick feedback selection directly in your data grid.
+metaTitle: "Feedback Editor | Handsontable DataGrid for JavaScript"
+description: Learn how to create a custom Handsontable DataGrid cell type using emoji buttons for quick feedback selection directly in your data grid.
 permalink: /recipes/cell-types/feedback-angular
 canonicalUrl: /recipes/cell-types/feedback-angular
 framework: angular
@@ -11,16 +11,16 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: "Feedback Editor - React Data Grid | Handsontable"
+  metaTitle: "Feedback Editor | Handsontable DataGrid for React"
 angular:
-  metaTitle: "Feedback Editor - Angular Data Grid | Handsontable"
+  metaTitle: "Feedback Editor | Handsontable DataGrid for Angular"
 vue:
-  metaTitle: "Feedback Editor - Vue Data Grid | Handsontable"
+  metaTitle: "Feedback Editor | Handsontable DataGrid for Vue"
 searchCategory: Recipes
 category: Cells
 ---
 
-This tutorial shows you how to build an emoji feedback cell in Angular using `HotCellEditorAdvancedComponent`, with Handsontable CSS tokens for theme-aware styling and keyboard navigation.
+This tutorial shows you how to build an emoji feedback cell in Angular using `HotCellEditorAdvancedComponent`, with Handsontable DataGrid CSS tokens for theme-aware styling and keyboard navigation.
 
 ::: only-for angular
 
@@ -382,7 +382,7 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 - **Change detection**: Manual trigger with `ChangeDetectorRef`
 - **Styling**: External CSS with theme-aware tokens (same look as the [Feedback recipe](@/javascript/recipes/cell-types/feedback/feedback.md))
 
-## Step 7: Use in Handsontable
+## Step 7: Use in Handsontable DataGrid
 
 Use the editor component in your Angular component (same table structure as the [Feedback recipe](@/javascript/recipes/cell-types/feedback/feedback.md)):
 

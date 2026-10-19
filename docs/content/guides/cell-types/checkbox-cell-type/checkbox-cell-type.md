@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Checkbox cell type
-metaTitle: Checkbox cell type - JavaScript Data Grid | Handsontable
+metaTitle: Checkbox cell type | Handsontable DataGrid for JavaScript
 description: Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
 permalink: /checkbox-cell-type
 canonicalUrl: /checkbox-cell-type
 react:
-  metaTitle: Checkbox cell type - React Data Grid | Handsontable
+  metaTitle: Checkbox cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Checkbox cell type - Angular Data Grid | Handsontable
+  metaTitle: Checkbox cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Checkbox cell type - Vue Data Grid | Handsontable
+  metaTitle: Checkbox cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
@@ -82,7 +82,7 @@ This is the default usage scenario where column data has a `true` or `false` val
 
 ## Checkbox template
 
-If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable will then update your data using the appropriate template.
+If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable DataGrid will then update your data using the appropriate template.
 
 ::: only-for javascript
 

@@ -1,18 +1,18 @@
 ---
 type: how-to
 title: Modules
-metaTitle: Modules - JavaScript Data Grid | Handsontable
+metaTitle: Modules | Handsontable DataGrid for JavaScript
 description: Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
 permalink: /modules
 canonicalUrl: /modules
 tags:
   - tree shaking
 react:
-  metaTitle: Modules - React Data Grid | Handsontable
+  metaTitle: Modules | Handsontable DataGrid for React
 angular:
-  metaTitle: Modules - Angular Data Grid | Handsontable
+  metaTitle: Modules | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Modules - Vue Data Grid | Handsontable
+  metaTitle: Modules | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
 ---
@@ -22,7 +22,7 @@ Reduce the size of your JavaScript bundle, by importing only the modules that yo
 
 ## Overview
 
-Handsontable is a comprehensive tool with a broad range of features. If you don't use all of them, you can pick just the parts that you need, and get rid of the rest (e.g., unnecessary translations). This approach reduces Handsontable's impact on the overall size of your app.
+Handsontable DataGrid is a comprehensive tool with a broad range of features. If you don't use all of them, you can pick just the parts that you need, and get rid of the rest (e.g., unnecessary translations). This approach reduces Handsontable's impact on the overall size of your app.
 
 To make this possible, Handsontable is divided into modules.
 

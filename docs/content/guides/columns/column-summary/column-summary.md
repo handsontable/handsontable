@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Column summary
-metaTitle: Column summary - JavaScript Data Grid | Handsontable
-description: Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
+metaTitle: Column summary | Handsontable DataGrid for JavaScript
+description: Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable DataGrid's aggregate functions.
 permalink: /column-summary
 canonicalUrl: /column-summary
 tags:
@@ -14,16 +14,16 @@ tags:
   - destinationColumn
   - reversedRowCoords
 react:
-  metaTitle: Column summary - React Data Grid | Handsontable
+  metaTitle: Column summary | Handsontable DataGrid for React
 angular:
-  metaTitle: Column summary - Angular Data Grid | Handsontable
+  metaTitle: Column summary | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column summary - Vue Data Grid | Handsontable
+  metaTitle: Column summary | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: updated
 ---
-Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
+Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable DataGrid's aggregate functions.
 
 [[toc]]
 
