@@ -93,6 +93,12 @@ function toErrorMessage(error: unknown): string {
     return error.message;
   }
 
+  if (typeof error === 'object' && error !== null) {
+    const { message } = error as { message?: unknown };
+
+    return typeof message === 'string' ? message : '';
+  }
+
   return error === undefined || error === null ? '' : String(error);
 }
 
@@ -209,7 +215,7 @@ export class AsyncValues extends BasePlugin {
   /**
    * Every entry in `#rowsMap`, for the walks that do not start from a cell.
    */
-  #entries = new Set<AsyncValueEntry>();
+  readonly #entries = new Set<AsyncValueEntry>();
 
   /**
    * The settled requests waiting for the next flush.
@@ -555,18 +561,14 @@ export class AsyncValues extends BasePlugin {
       return result;
     }
 
-    let request: PromiseLike<unknown>;
-
-    try {
-      request = typeof source === 'function'
+    // The executor turns a source that throws synchronously into a rejection.
+    const request = new Promise<unknown>((resolve) => {
+      resolve(typeof source === 'function'
         ? source({ signal: controller.signal, row, column, physicalRow, prop })
-        : source;
+        : source);
+    });
 
-    } catch (error) {
-      request = Promise.reject(error);
-    }
-
-    Promise.resolve(request).then(
+    request.then(
       value => this.#onSettled({ entry, outcome: { status: 'resolved', value } }),
       error => this.#onSettled({ entry, outcome: { status: 'rejected', error } }),
     );
@@ -630,7 +632,7 @@ export class AsyncValues extends BasePlugin {
    * per path and renders once. Results that settle in the same task share a flush; results that
    * arrive in separate tasks (separate network responses) get one flush each.
    */
-  #flush = (): void => {
+  readonly #flush = (): void => {
     this.#flushQueued = false;
 
     // A settled request can be cancelled between the settle and this flush (an edit in between).
@@ -710,7 +712,7 @@ export class AsyncValues extends BasePlugin {
    *
    * @param {object} settled The settled request.
    */
-  #settleResult = ({ entry, outcome }: SettledRequest): void => {
+  readonly #settleResult = ({ entry, outcome }: SettledRequest): void => {
     entry.settle(outcome.status === 'resolved'
       ? { status: 'resolved', value: outcome.value }
       : { status: 'rejected', error: entry.error, message: entry.message });
@@ -722,7 +724,7 @@ export class AsyncValues extends BasePlugin {
    *
    * @param {object} settled The settled request.
    */
-  #reportSettled = ({ entry, outcome }: SettledRequest): void => {
+  readonly #reportSettled = ({ entry, outcome }: SettledRequest): void => {
     if (outcome.status === 'resolved') {
       this.hot.runHooks('afterAsyncValueResolve', entry.physicalRow, entry.prop, outcome.value);
 
@@ -926,7 +928,7 @@ export class AsyncValues extends BasePlugin {
    * to a removed row. Comparing against the map, rather than stashing the rows in `beforeRemoveRow`,
    * holds for a removal another listener vetoed, widened, or nested inside its own.
    */
-  #syncRows = (): void => {
+  readonly #syncRows = (): void => {
     if (this.#entries.size === 0 || !this.#rowsMap || this.#replacingData) {
       return;
     }
@@ -951,7 +953,7 @@ export class AsyncValues extends BasePlugin {
    * from `afterLoadData`. Outside a load (`updateSettings()` with `columns` or `dataSchema`) the data and
    * its physical rows stay, so the entries are put back into the reset map.
    */
-  #onRowIndexInit = (): void => {
+  readonly #onRowIndexInit = (): void => {
     const rowsMap = this.#rowsMap;
 
     if (this.#replacingData || !rowsMap || this.#entries.size === 0) {
@@ -1032,7 +1034,7 @@ export class AsyncValues extends BasePlugin {
    *
    * @param {Array} changes The changes (visual rows).
    */
-  #onAfterChange = (changes: CellChange[] | null): void => {
+  readonly #onAfterChange = (changes: CellChange[] | null): void => {
     if (!changes || this.#entries.size === 0) {
       return;
     }
@@ -1046,7 +1048,7 @@ export class AsyncValues extends BasePlugin {
    *
    * @param {Array} changes The changes (physical rows).
    */
-  #onAfterSetSourceDataAtCell = (changes: CellChange[]): void => {
+  readonly #onAfterSetSourceDataAtCell = (changes: CellChange[]): void => {
     if (this.#entries.size === 0) {
       return;
     }
@@ -1059,7 +1061,7 @@ export class AsyncValues extends BasePlugin {
    *
    * @param {number} index Visual index of the first inserted column.
    */
-  #onAfterCreateCol = (index: number, amount: number): void => {
+  readonly #onAfterCreateCol = (index: number, amount: number): void => {
     const physicalColumn = this.hot.toPhysicalColumn(index);
 
     // `amount` is 0 when `maxCols` stopped the insert; a `null` column means it appended past the end.
@@ -1075,7 +1077,7 @@ export class AsyncValues extends BasePlugin {
    * @param {number} amount The number of removed columns.
    * @param {number[]} physicalColumns Physical indexes of the removed columns.
    */
-  #onAfterRemoveCol = (index: number, amount: number, physicalColumns: number[]): void => {
+  readonly #onAfterRemoveCol = (index: number, amount: number, physicalColumns: number[]): void => {
     if (physicalColumns.length > 0) {
       this.#onColumnsShifted(physicalColumns.reduce((min, column) => Math.min(min, column), Infinity));
     }
@@ -1105,7 +1107,7 @@ export class AsyncValues extends BasePlugin {
   /**
    * `beforeLoadData` and `beforeUpdateData` hook callback.
    */
-  #onBeforeDataReplaced = (): void => {
+  readonly #onBeforeDataReplaced = (): void => {
     this.#replacingData = true;
 
     // A load that throws never reaches `after*Data`, so the flag is cleared and the requests it orphaned
@@ -1121,7 +1123,7 @@ export class AsyncValues extends BasePlugin {
    * `afterLoadData` and `afterUpdateData` hook callback. The requests target the replaced data, so
    * they are cancelled.
    */
-  #onDataReplaced = (): void => {
+  readonly #onDataReplaced = (): void => {
     this.#replacingData = false;
     this.#settled = [];
 
@@ -1138,7 +1140,7 @@ export class AsyncValues extends BasePlugin {
    * @param {number} column Visual column index.
    * @param {object} cellProperties The cell meta object.
    */
-  #onAfterGetCellMeta = (row: number, column: number, cellProperties: CellProperties): void => {
+  readonly #onAfterGetCellMeta = (row: number, column: number, cellProperties: CellProperties): void => {
     const physicalRow = this.#entries.size === 0 ? null : this.hot.toPhysicalRow(row);
     const entry = physicalRow === null ? undefined : this.#getEntry(physicalRow, cellProperties.prop);
 
@@ -1163,7 +1165,7 @@ export class AsyncValues extends BasePlugin {
    * @param {*} value The cell value.
    * @param {object} cellProperties The cell meta object.
    */
-  #onAfterRenderer = (
+  readonly #onAfterRenderer = (
     TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: unknown,
     cellProperties: CellProperties,
   ): void => {

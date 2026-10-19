@@ -348,6 +348,27 @@ describe('AsyncValues', () => {
       destroy();
     });
 
+    it('should read the message of a rejection reason that is a plain object', async() => {
+      const { plugin, destroy } = createGrid();
+      // Rejected through the helper: a service can reject with something that is not an `Error`.
+      const rejectedWith = (reason: unknown) => {
+        const request = deferred();
+
+        request.reject(reason);
+
+        return request.promise;
+      };
+
+      expect(await plugin.setAsyncValue(0, 1, rejectedWith({ message: 'Rate limited' })))
+        .toEqual(expect.objectContaining({ status: 'rejected', message: 'Rate limited' }));
+      expect(await plugin.setAsyncValue(1, 1, rejectedWith({ code: 429 })))
+        .toEqual(expect.objectContaining({ status: 'rejected', message: '' }));
+      expect(await plugin.setAsyncValue(2, 1, rejectedWith('Timed out')))
+        .toEqual(expect.objectContaining({ status: 'rejected', message: 'Timed out' }));
+
+      destroy();
+    });
+
     it('should treat a source that throws as a rejection', async() => {
       const { plugin, destroy } = createGrid();
       const result = await plugin.setAsyncValue(0, 1, () => {

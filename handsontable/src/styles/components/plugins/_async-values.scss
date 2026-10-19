@@ -35,10 +35,10 @@
       user-select: none;
     }
 
-    .htAsyncError {
+    // Above the row-striping rule (`tr.ht__row_even > td`), without `!important`.
+    tbody tr > td.htAsyncError {
       position: relative;
-      // Gives priority over the `td.area` selection background, like `.htInvalid`.
-      background-color: var(--ht-cell-error-background-color) !important;
+      background-color: var(--ht-cell-error-background-color);
     }
   }
 

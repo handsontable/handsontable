@@ -68,6 +68,14 @@ test.describe('async cell values', { tag: THEMES_TAG }, () => {
     const colors = await asyncPage.errorColors(2, 1);
 
     expect(colors.cell).toBe(colors.token);
+
+    // The other row parity, which the row-striping rule paints with another selector.
+    await asyncPage.reject(await asyncPage.start(1, 1), 'Product not found');
+    await expect(asyncPage.cell(1, 1)).toHaveClass(/htAsyncError/);
+
+    const otherColors = await asyncPage.errorColors(1, 1);
+
+    expect(otherColors.cell).toBe(otherColors.token);
   });
 
   test('typing into a pending cell cancels the request and ignores its late result', async({ page, theme, bundle }) => {
