@@ -1023,7 +1023,7 @@ const cellDefinition = {
       return editor.input.value;
     },
     setValue(editor, value) {
-      editor.input.value = value;
+      editor.input.value = value == null ? '' : String(value);
     }
   })
 };
@@ -1162,7 +1162,7 @@ editor: editorFactory<{input: HTMLInputElement}>({
     return editor.input.value;
   },
   setValue(editor, value) {
-    editor.input.value = value;
+    editor.input.value = value == null ? '' : String(value);
   }
 })
 ```
@@ -1530,7 +1530,7 @@ const editor = editorFactory<{input: HTMLInputElement}>({
     return editor.input.value;
   }
   setValue(editor, value) {
-    editor.input.value = value;
+    editor.input.value = value == null ? '' : String(value);
   }
 });
 ```

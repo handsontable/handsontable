@@ -182,7 +182,7 @@ Opening a cell editor and pressing <kbd>**Enter**</kbd> without typing used to w
 
 The write also fired [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) each time, so opening a cell and closing it again reported an edit that never happened.
 
-Such a confirm now writes nothing at all, and neither hook fires.
+Such a confirm now writes nothing at all, and neither hook fires. That includes an editor whose `getValue()` returns the cell value it was opened with. Section 35 names those editors.
 
 ### Validation is unchanged
 
@@ -1821,13 +1821,15 @@ To fix the width of a single column and keep it independent of the column order,
 
 In 18.1, [`beginEditing()`](@/guides/cell-functions/cell-editor/cell-editor.md#common-methods) turned the cell value into a string before it called `setValue()`. An array such as `[[1, 2], [3, 4]]` arrived as `"1,2,3,4"`, an object arrived as `"[object Object]"`, and a number arrived as a string of digits. In 19.0, `setValue()` receives the cell value after the value getter.
 
-The built-in text editors still show a string. `TextEditor`, and the editors that extend it, stringify inside `setValue()`. That covers `autocomplete`, `dropdown`, `numeric`, `date`, `time`, `password`, `handsontable`, and the intl date, time, and datetime editors. [`SelectEditor`](@/guides/cell-functions/cell-editor/cell-editor.md) still converts its argument to a string. The checkbox editor and the multiselect editor do not read `setValue()`.
+The built-in text editors still show a string. `TextEditor`, and the editors that extend it, stringify inside `setValue()`. That covers `autocomplete`, `dropdown`, `numeric`, `date`, `time`, `password`, `handsontable`, and the intl date, time, and datetime editors. [`SelectEditor`](@/guides/cell-functions/cell-editor/cell-editor.md) still converts its argument to a string. The checkbox editor and the multiselect editor ignore the value passed to `setValue()`.
 
 ### Who is affected
 
 You are affected if your editor extends `BaseEditor` directly, or you built it with `editorFactory`, and `setValue()` treats its argument as a string. You are also affected if you extend `TextEditor` and override `setValue()` without calling `super.setValue()`. `super.setValue()` stringifies for you.
 
-You are also affected when `getValue()` returns the value `setValue()` stored, and you rely on Enter writing nothing when the user does not change the cell. [`finishEditing()`](@/guides/cell-functions/cell-editor/cell-editor.md#common-methods) still compares `getValue()` with the string the cell value produces. A raw array, object, or number does not match that string, so confirming the editor saves the value and runs the change hooks. Stringify in `setValue()`, and return that string from `getValue()`, to keep the confirm that writes nothing.
+A React editor built with `useHotEditor` or `EditorComponent`, and an Angular editor that extends `HotCellEditorComponent`, receive this value even when you do not write `setValue()` yourself. The value is a number, an object, or `null`. In React, `<input value={value}>` warns on an empty cell, because `value` is `null`. Pass `value == null ? '' : String(value)` to the input.
+
+A factory editor that does not define `setValue` stores the cell value and returns it from `getValue()`. The rating recipe is one. Confirming that editor without a change writes nothing. Section 3 describes that confirm for every grid.
 
 ### How to migrate
 
@@ -1845,14 +1847,14 @@ class MyEditor extends Handsontable.editors.BaseEditor {
 }
 ```
 
-In 19.0, stringify the value yourself when the editor needs a string:
+In 19.0, turn the value into a string yourself when the editor needs one:
 
 ```js
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 
 class MyEditor extends Handsontable.editors.BaseEditor {
   setValue(value) {
-    this.input.value = Handsontable.helper.stringify(value);
+    this.input.value = value == null ? '' : String(value);
   }
 
   getValue() {
@@ -1861,6 +1863,6 @@ class MyEditor extends Handsontable.editors.BaseEditor {
 }
 ```
 
-In a script-tag project, `Handsontable` is already global, so call `Handsontable.helper.stringify(value)` the same way.
+`handsontable/base` leaves `Handsontable.helper` empty, so `Handsontable.helper.stringify` throws there. `value == null ? '' : String(value)` works in that build and in a script-tag project.
 
 A factory editor does the same inside the `setValue` function you pass to `editorFactory`. See the [cell editor guide](@/guides/cell-functions/cell-editor/cell-editor.md).

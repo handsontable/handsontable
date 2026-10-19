@@ -339,13 +339,13 @@ Initialize the editor with the cell's current date value.
 
 ```typescript
 setValue(editor, value) {
-  editor.input.value = value;
+  editor.input.value = value == null ? '' : String(value);
   editor.flatpickr.setDate(value ? new Date(value) : new Date());
 }
 ```
 
 **What's happening:**
-- Set the input's value to the provided date string
+- Set the input's value to the cell value, or to an empty string when the cell is empty
 - Update Flatpickr's selected date using `setDate()` -- use the cell value if present, otherwise the current date
 - This ensures Flatpickr displays the correct date when opened
 - Called to initialize the editor with the cell's current value
@@ -457,7 +457,7 @@ const cellDefinition = {
       return editor.input.value;
     },
     setValue(editor, value) {
-      editor.input.value = value;
+      editor.input.value = value == null ? '' : String(value);
       editor.flatpickr.setDate(value ? new Date(value) : new Date());
     },
   }),
