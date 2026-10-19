@@ -10,8 +10,8 @@ import {
   inferColumnTypes,
   type ConvertedData,
   type InferColumnTypesOptions,
+  type InferColumnTypesResult,
   type InferenceData,
-  type InferredColumn,
 } from '../../utils/columnTypeInference';
 import type { ImportedBorder } from './styles';
 import type { HotInstance } from '../../core/types';
@@ -437,11 +437,12 @@ export class ImportFile extends BasePlugin {
    * Infers a cell type and format for every column of raw, untyped data: rows parsed from a CSV
    * file, pasted text split into cells, or values from an API. Works without an engine.
    *
-   * Each returned entry carries `type` (`'numeric'`, `'date'`, `'time'`, `'checkbox'`,
-   * `'dropdown'`, or `'text'`), the format option of that type (`numericFormat`, `dateFormat`,
-   * `timeFormat`, or `source`), `data` for object rows, a `confidence` from `0` to `1`, and the
-   * `inputFormat` {@link ImportFile#convertToInferredTypes} reads the values with. A column that no
-   * type reads with at least `minConfidence` falls back to `'text'`.
+   * Returns `{ columns, headerRow }`. Each column is `{ settings, confidence, inputFormat, title,
+   * stats }`. `settings` holds the column options (`type`, `numericFormat`, `dateFormat`,
+   * `timeFormat`, `source`, and `data` for object rows) and can be passed to `columns` as it is.
+   * `confidence` is the share of values the type reads, `inputFormat` is how the raw values were
+   * written, `title` is the header (see the `headerRow` option), and `stats` is set with the `stats`
+   * option. A column that no type reads with at least `minConfidence` falls back to `'text'`.
    *
    * The result is deterministic: it reads the first `sampleSize` rows and settles an ambiguous
    * column (`1.234`, `12/03/2026`) with `options.locale`, which defaults to the grid's `locale`.
@@ -449,15 +450,16 @@ export class ImportFile extends BasePlugin {
    * @example
    * ```js
    * const importFile = hot.getPlugin('importFile');
-   * const columns = importFile.inferColumnTypes(rows, { locale: 'de-DE' });
+   * const result = importFile.inferColumnTypes(rows, { locale: 'de-DE', headerRow: 'auto' });
    *
    * hot.updateSettings({
-   *   columns,
-   *   data: importFile.convertToInferredTypes(rows, columns),
+   *   columns: result.columns.map(({ settings }) => settings),
+   *   colHeaders: result.columns.map(({ title }) => title),
+   *   data: importFile.convertToInferredTypes(rows, result),
    * });
    * ```
    */
-  inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions | null = {}): InferredColumn[] {
+  inferColumnTypes(data: InferenceData, options: InferColumnTypesOptions | null = {}): InferColumnTypesResult {
     return inferColumnTypes(data, { ...options, locale: options?.locale ?? this.hot.getSettings().locale });
   }
 
@@ -465,10 +467,11 @@ export class ImportFile extends BasePlugin {
    * Returns a copy of `data` with every value converted to what its column's inferred cell type
    * stores: a number for `numeric`, `YYYY-MM-DD` for `date`, `HH:mm:ss` for `time`, and a boolean
    * for `checkbox`. A value the column cannot read, such as a `Total` row, is kept as it is, so the
-   * cell type's validator marks it. `data` itself is not changed.
+   * cell type's validator marks it. When the result found a header row, that row is left out.
+   * `data` itself is not changed.
    */
-  convertToInferredTypes<T extends InferenceData>(data: T, columns: InferredColumn[]): ConvertedData<T> {
-    return convertToInferredTypes(data, columns);
+  convertToInferredTypes<T extends InferenceData>(data: T, result: InferColumnTypesResult): ConvertedData<T> {
+    return convertToInferredTypes(data, result);
   }
 
   /**

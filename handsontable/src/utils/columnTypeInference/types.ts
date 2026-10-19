@@ -3,8 +3,8 @@
  */
 export interface InferColumnTypesOptions {
   /**
-   * How many rows, from the top, to read. `Infinity` reads every row; a value below `1` reads the
-   * default. Defaults to `1000`.
+   * How many data rows, from the top, to read. The header row, when there is one, is not counted.
+   * `Infinity` reads every row; a value below `1` reads the default. Defaults to `1000`.
    */
   sampleSize?: number;
   /**
@@ -24,6 +24,20 @@ export interface InferColumnTypesOptions {
    * may have. Defaults to `true`, with `maxOptions` at `10`.
    */
   dropdown?: boolean | { maxOptions?: number };
+  /**
+   * Whether the first row of array data is a header row. `true` takes it as a header, `false` as
+   * data, and `'auto'` takes it as a header when every cell of it is a non-blank string and at
+   * least one column below it reads as a number, a date, a time, or a checkbox that the header cell
+   * does not. A table of text only has no such evidence, so `'auto'` reads it as data. A header row
+   * is left out of the inference and its cells come back as each column's `title`. Rows of
+   * objects have no header row; the keys are the titles. Defaults to `false`.
+   */
+  headerRow?: boolean | 'auto';
+  /**
+   * Whether to return `stats` for every column. `true` keeps the first 5 distinct values as
+   * examples; `{ examples }` sets how many. Defaults to `false`.
+   */
+  stats?: boolean | { examples?: number };
 }
 
 /**
@@ -56,10 +70,10 @@ export interface InferredInputFormat {
 }
 
 /**
- * One column's inferred settings. The cell type and format keys use the names of the grid's column
- * options, so an entry can be passed to the `columns` option as it is.
+ * The column options of one inferred column. The names are the grid's column options, so the
+ * object can be passed to the `columns` option as it is.
  */
-export interface InferredColumn {
+export interface InferredColumnSettings {
   /**
    * The property the column reads, set when the data is an array of objects.
    */
@@ -86,6 +100,68 @@ export interface InferredColumn {
    * that appears only past `sampleSize` is not listed, so the dropdown validator rejects it.
    */
   source?: string[];
+}
+
+/**
+ * What a detector proposes for a column: the settings, plus how the values were written.
+ */
+export interface DetectedColumn {
+  /**
+   * The proposed column options.
+   */
+  settings: Omit<InferredColumnSettings, 'data'>;
+  /**
+   * How the values were written, when the converter needs to know.
+   */
+  inputFormat?: InferredInputFormat;
+}
+
+/**
+ * What the sampled values of one column look like. Computed only when the `stats` option is set.
+ * Every field is derived from the sampled rows, so it is deterministic.
+ */
+export interface InferredColumnStats {
+  /**
+   * How many sampled values are not blank.
+   */
+  count: number;
+  /**
+   * How many sampled values are blank (`null`, `undefined`, or whitespace only).
+   */
+  emptyCount: number;
+  /**
+   * How many different non-blank values were sampled, compared as trimmed text.
+   */
+  distinctCount: number;
+  /**
+   * The first distinct non-blank values, as trimmed text, in the order they appear.
+   */
+  examples: string[];
+  /**
+   * The smallest value of a `numeric` column (a number), a `date` column (`YYYY-MM-DD`), or a
+   * `time` column (`HH:mm:ss`), after conversion. Not set for the other types.
+   */
+  min?: number | string;
+  /**
+   * The largest value, under the same rules as `min`.
+   */
+  max?: number | string;
+  /**
+   * The next best type: the other type that reads the largest share of the values. For a `text`
+   * column it is the type that came closest to the confidence floor, and it is not set when no
+   * type reads any value. For any other type with no rival it is `'text'`.
+   */
+  runnerUpType?: InferredCellType;
+}
+
+/**
+ * One inferred column: the settings to give the grid, kept apart from what describes the inference.
+ */
+export interface InferredColumn {
+  /**
+   * The column options, assignable to one entry of the grid's `columns` option as they are.
+   */
+  settings: InferredColumnSettings;
   /**
    * The share of the column's non-blank sampled values the type reads, from `0` to `1`. A date
    * column whose day and month order came from the locale rather than the data scores `0.95` of
@@ -94,7 +170,33 @@ export interface InferredColumn {
    */
   confidence: number;
   /**
-   * How the raw values were written. Set on `numeric` and `date` columns.
+   * How the raw values were written. Set on `numeric` and `date` columns, and read by
+   * `convertToInferredTypes()`.
    */
   inputFormat?: InferredInputFormat;
+  /**
+   * The column's header: the text of its header row cell, or the property name for rows of objects.
+   * Not set when array data has no header row.
+   */
+  title?: string;
+  /**
+   * What the sampled values look like. Set only when the `stats` option is on.
+   */
+  stats?: InferredColumnStats;
+}
+
+/**
+ * What `inferColumnTypes()` returns.
+ */
+export interface InferColumnTypesResult {
+  /**
+   * One entry per column, in column order.
+   */
+  columns: InferredColumn[];
+  /**
+   * Whether the first row of the data was read as a header row. It is `true` when `headerRow` was
+   * `true`, or was `'auto'` and found one. `convertToInferredTypes()` leaves that row out of its
+   * result.
+   */
+  headerRow: boolean;
 }

@@ -12,7 +12,8 @@ data) and converts the values to what each type stores. Read this before touchin
   `ImportFile#convertToInferredTypes` (`../../plugins/importFile/importFile.ts`) default `locale` to the
   grid's, and the plugin barrel re-exports the functions for grid-less use. It lives in `utils/`, not in
   the plugin, so the planned paste and CSV paths can use it without importing from a plugin.
-- Not here yet: a CSV importer and typing on paste. Both are follow-ups.
+- Not here yet: a CSV importer, typing on paste, date-time values as `intl-datetime`, `Date` objects, a
+  `sampling: 'spread'` option, and custom date formats and boolean words. All are additive.
 
 ## Traps
 
@@ -72,9 +73,34 @@ data) and converts the values to what each type stores. Read this before touchin
   `readSplitNumber`), and the converter builds one reader per column (`createReader`). Splitting per
   pass cost five `splitNumberParts` calls per value, and a mode object per cell cost 1.3 s on
   50,000 x 100 cells.
-- **Accepted, not fixed:** a header row in the data reads as one stray value (a column of prices with
-  a `Price` header still infers currency at the 0.9 floor); `Open` and `open` are two dropdown
-  options; `1:30` reads as a time; Indian lakh grouping (`1,23,456`) and times with milliseconds stay
+- **The result is `{ columns, headerRow }`, and a column keeps `settings` apart from the rest.**
+  `settings` is exactly the grid's column options (`type`, a format, `source`, `data`), so it goes to
+  `columns` untouched; `confidence`, `inputFormat`, `title` and `stats` describe the inference and must
+  never be spread into it. They were mixed in once, and the guide had to tell users to strip them.
+  `headerRow` is on the result and not only an option because `'auto'` decides it: the converter has no
+  other way to know whether to drop row 0. The result is the converter's input
+  (`convertToInferredTypes(data, result)`), not `result.columns`.
+- **`headerRow: 'auto'` needs evidence, and a table of text has none.** Row 0 is a header only when
+  every cell is a non-blank string across the full width AND some typed column below it (numeric, date,
+  time, checkbox) fails to read that cell. `Name, City / Alice, Paris` stays data, and so does `1, 2 /
+  3, 4`. Do not loosen it to "all strings": that turns every text table's first record into titles. The
+  data rows are inferred WITHOUT the header, so a title is never counted as a stray value, and
+  `sampleSize` counts data rows. In `'auto'`, a table that is not a header is inferred a second time
+  as data.
+- **`stats` costs a full detector pass, so it is opt-in.** Without it `inferColumn` stops at the first
+  detector that reaches the floor; with it, every detector runs so `runnerUpType` can name the next
+  best type (ties keep `DETECTORS` order). `min`/`max` exist only for numeric, date and time:
+  a checkbox's booleans compare, and a text column has no order worth reporting. `examples: 0` is a
+  valid limit, so "stats off" is `null` in `toExampleLimit`, never `0`.
+- **A `Date` is described by its ISO string** (`toText`), because its own text follows the host time
+  zone and the stats must not.
+- **Tree-shaking was measured, not assumed.** Bundling `inferColumnTypes` through the plugin barrel
+  (`plugins/importFile`) and straight from `utils/columnTypeInference` with rspack production gave the
+  same 7,672 bytes and no plugin, engine or `BasePlugin` code. It holds because `package.json`
+  `sideEffects` lists only CSS, languages and two Filters folders, and `importFile` registers nothing
+  at module level. A module-level `Hooks.register()` or a new `sideEffects` entry for `importFile`
+  would change that: re-measure first. The CommonJS build is not shakeable, as for every plugin.
+- **Accepted, not fixed:** `Open` and `open` are two dropdown options; `1:30` reads as a time; Indian lakh grouping (`1,23,456`) and times with milliseconds stay
   text; a JS `Date` stays text. The guide names the ones a user will meet.
 
 ## Where to look next

@@ -1,7 +1,8 @@
 import Handsontable from 'handsontable';
 import type {
   ImportedBorder, ImportedConditionalFormatting, ImportedNestedHeader, ImportFileSettings, ImportOptions,
-  ImportResult, InferColumnTypesOptions, InferredCellType, InferredColumn, InferredInputFormat,
+  ImportResult, InferColumnTypesOptions, InferColumnTypesResult, InferredCellType, InferredColumn,
+  InferredColumnSettings, InferredColumnStats, InferredInputFormat,
 } from 'handsontable/plugins/importFile';
 import { convertToInferredTypes, inferColumnTypes } from 'handsontable/plugins/importFile';
 
@@ -65,20 +66,41 @@ const inferOptions: InferColumnTypesOptions = {
   locale: 'de-DE',
   minConfidence: 0.8,
   dropdown: { maxOptions: 5 },
+  headerRow: 'auto',
+  stats: { examples: 3 },
 };
-const rawRows: string[][] = [['1,5', '12.03.2026']];
+const rawRows: string[][] = [['Price', 'Joined'], ['1,5', '12.03.2026']];
 const objectRows: Array<Record<string, unknown>> = [{ amount: '1,5' }];
-const inferred: InferredColumn[] = plugin.inferColumnTypes(rawRows, inferOptions);
-const inferredObjects: InferredColumn[] = inferColumnTypes(objectRows, { dropdown: false });
+const inferred: InferColumnTypesResult = plugin.inferColumnTypes(rawRows, inferOptions);
+const inferredObjects: InferColumnTypesResult = inferColumnTypes(objectRows, { dropdown: false, headerRow: true });
 const convertedRows: unknown[][] = plugin.convertToInferredTypes(rawRows, inferred);
 // @ts-expect-error - a converted cell is no longer the input's type.
 const stillStrings: string[][] = plugin.convertToInferredTypes(rawRows, inferred);
 const convertedObjects: Array<Record<string, unknown>> = convertToInferredTypes(objectRows, inferredObjects);
-const inferredType: InferredCellType = inferred[0].type;
-const inputFormat: InferredInputFormat | undefined = inferred[0].inputFormat;
-const confidence: number = inferred[0].confidence;
+const headerRow: boolean = inferred.headerRow;
+const column: InferredColumn = inferred.columns[0];
+const columnSettings: InferredColumnSettings = column.settings;
+const inferredType: InferredCellType = columnSettings.type;
+const inputFormat: InferredInputFormat | undefined = column.inputFormat;
+const confidence: number = column.confidence;
+const title: string | undefined = column.title;
+const stats: InferredColumnStats | undefined = column.stats;
+const runnerUp: InferredCellType | undefined = stats?.runnerUpType;
+const range: Array<number | string | undefined> = [stats?.min, stats?.max];
+const examples: string[] | undefined = stats?.examples;
 
-hot.updateSettings({ columns: inferred, data: convertedRows });
+// The settings go to `columns` as they are; the description of the inference stays out of them.
+hot.updateSettings({
+  columns: inferred.columns.map(entry => entry.settings),
+  colHeaders: inferred.columns.map(({ title: header }) => header ?? ''),
+  data: convertedRows,
+});
 
 // @ts-expect-error - the dropdown option takes a boolean or an object only.
 inferColumnTypes(rawRows, { dropdown: 5 });
+// @ts-expect-error - headerRow takes a boolean or 'auto' only.
+inferColumnTypes(rawRows, { headerRow: 'yes' });
+// @ts-expect-error - the converter takes the result, not its columns.
+convertToInferredTypes(rawRows, inferred.columns);
+// @ts-expect-error - confidence is not a column option.
+const notAColumnOption: InferredColumnSettings = { type: 'text', confidence: 1 };

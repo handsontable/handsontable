@@ -16,8 +16,11 @@ export { inferColumnTypes, convertToInferredTypes } from '../../utils/columnType
 export type {
   ConvertedData,
   InferColumnTypesOptions,
+  InferColumnTypesResult,
   InferenceData,
   InferredCellType,
   InferredColumn,
+  InferredColumnSettings,
+  InferredColumnStats,
   InferredInputFormat,
 } from '../../utils/columnTypeInference';

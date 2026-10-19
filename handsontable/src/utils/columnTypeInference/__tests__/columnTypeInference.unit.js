@@ -21,7 +21,11 @@ function columnsToRows(...columns) {
  * @param options
  */
 function inferOne(values, options) {
-  return inferColumnTypes(columnsToRows(values), options)[0];
+  const [column] = inferColumnTypes(columnsToRows(values), options).columns;
+
+  // The settings and the description of the inference are asserted together here; the nesting itself
+  // is pinned in "the result shape".
+  return { ...column.settings, ...column, settings: undefined };
 }
 
 /**
@@ -31,9 +35,9 @@ function inferOne(values, options) {
  */
 function convertOne(values, options) {
   const rows = columnsToRows(values);
-  const columns = inferColumnTypes(rows, options);
+  const result = inferColumnTypes(rows, options);
 
-  return convertToInferredTypes(rows, columns).map(row => row[0]);
+  return convertToInferredTypes(rows, result).map(row => row[0]);
 }
 
 /**
@@ -277,10 +281,10 @@ describe('inferColumnTypes', () => {
       const rows = [['2026-01-02'], ['2026-01-03'], ['03/04/2026']];
 
       ['en-US', 'en-GB'].forEach((locale) => {
-        const columns = inferColumnTypes(rows, { sampleSize: 2, locale });
+        const result = inferColumnTypes(rows, { sampleSize: 2, locale });
 
-        expect(columns[0].inputFormat).toEqual({ dateOrder: locale === 'en-US' ? 'MDY' : 'DMY' });
-        expect(convertToInferredTypes(rows, columns)[2][0]).toBe(locale === 'en-US' ? '2026-03-04' : '2026-04-03');
+        expect(result.columns[0].inputFormat).toEqual({ dateOrder: locale === 'en-US' ? 'MDY' : 'DMY' });
+        expect(convertToInferredTypes(rows, result)[2][0]).toBe(locale === 'en-US' ? '2026-03-04' : '2026-04-03');
       });
     });
 
@@ -413,10 +417,11 @@ describe('inferColumnTypes', () => {
         ['Carol', '7', '14.03.2026', 'true', 'Open'],
         ['Dave', '99', '15.03.2026', 'false', 'Open'],
       ];
-      const columns = inferColumnTypes(rows, { locale: 'de-DE' });
+      const result = inferColumnTypes(rows, { locale: 'de-DE' });
 
-      expect(columns.map(column => column.type)).toEqual(['text', 'numeric', 'date', 'checkbox', 'dropdown']);
-      expect(convertToInferredTypes(rows, columns)).toEqual([
+      expect(result.columns.map(column => column.settings.type))
+        .toEqual(['text', 'numeric', 'date', 'checkbox', 'dropdown']);
+      expect(convertToInferredTypes(rows, result)).toEqual([
         ['Alice', 1234.56, '2026-03-12', true, 'Open'],
         ['Bob', 12.5, '2026-03-13', false, 'Closed'],
         ['Carol', 7, '2026-03-14', true, 'Open'],
@@ -429,11 +434,11 @@ describe('inferColumnTypes', () => {
         { name: 'Alice', amount: '10.5', joined: '2026-01-02' },
         { name: 'Bob', amount: '7', joined: '2026-02-03' },
       ];
-      const columns = inferColumnTypes(rows);
+      const result = inferColumnTypes(rows);
 
-      expect(columns.map(column => [column.data, column.type]))
+      expect(result.columns.map(({ settings }) => [settings.data, settings.type]))
         .toEqual([['name', 'text'], ['amount', 'numeric'], ['joined', 'date']]);
-      expect(convertToInferredTypes(rows, columns)).toEqual([
+      expect(convertToInferredTypes(rows, result)).toEqual([
         { name: 'Alice', amount: 10.5, joined: '2026-01-02' },
         { name: 'Bob', amount: 7, joined: '2026-02-03' },
       ]);
@@ -441,10 +446,11 @@ describe('inferColumnTypes', () => {
 
     it('infers every key the sampled object rows carry, in the order the keys first appear', () => {
       const rows = [{ id: '1' }, { id: '2', joined: '2026-01-01' }, { id: '3', joined: '2026-01-02' }];
-      const columns = inferColumnTypes(rows);
+      const result = inferColumnTypes(rows);
 
-      expect(columns.map(column => [column.data, column.type])).toEqual([['id', 'numeric'], ['joined', 'date']]);
-      expect(convertToInferredTypes(rows, columns)).toEqual([
+      expect(result.columns.map(({ settings }) => [settings.data, settings.type]))
+        .toEqual([['id', 'numeric'], ['joined', 'date']]);
+      expect(convertToInferredTypes(rows, result)).toEqual([
         { id: 1 },
         { id: 2, joined: '2026-01-01' },
         { id: 3, joined: '2026-01-02' },
@@ -453,9 +459,9 @@ describe('inferColumnTypes', () => {
 
     it('converts ragged and empty rows', () => {
       const rows = [['1', '2026-01-02'], ['2'], null, ['3', '2026-01-04', 'extra']];
-      const columns = inferColumnTypes(rows);
+      const result = inferColumnTypes(rows);
 
-      expect(convertToInferredTypes(rows, columns)).toEqual([[1, '2026-01-02'], [2], null, [3, '2026-01-04', 'extra']]);
+      expect(convertToInferredTypes(rows, result)).toEqual([[1, '2026-01-02'], [2], null, [3, '2026-01-04', 'extra']]);
     });
 
     it('reads every row for sampleSize Infinity, and 1000 rows by default', () => {
@@ -488,9 +494,12 @@ describe('inferColumnTypes', () => {
     });
 
     it('returns plain, JSON-serializable column settings', () => {
-      const columns = inferColumnTypes([['1,5', '2026-01-02', 'a'], ['2', '2026-01-03', 'a']], { locale: 'de-DE' });
+      const result = inferColumnTypes(
+        [['Price', 'Joined', 'Tag'], ['1,5', '2026-01-02', 'a'], ['2', '2026-01-03', 'a']],
+        { locale: 'de-DE', headerRow: true, stats: true }
+      );
 
-      expect(JSON.parse(JSON.stringify(columns))).toEqual(columns);
+      expect(JSON.parse(JSON.stringify(result))).toEqual(result);
     });
 
     it('defaults to the en-US locale, not the host one, and falls back to it for an invalid locale', () => {
@@ -505,7 +514,303 @@ describe('inferColumnTypes', () => {
     });
 
     it('returns an empty list for empty data', () => {
-      expect(inferColumnTypes([])).toEqual([]);
+      expect(inferColumnTypes([])).toEqual({ columns: [], headerRow: false });
+    });
+  });
+
+  describe('the result shape', () => {
+    it('keeps the grid column options apart from what describes the inference', () => {
+      const result = inferColumnTypes([['1,5', '2026-01-02'], ['2', '2026-01-03']], { locale: 'de-DE' });
+
+      expect(Object.keys(result)).toEqual(['columns', 'headerRow']);
+      expect(result.columns).toEqual([
+        {
+          settings: {
+            type: 'numeric',
+            numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false },
+          },
+          confidence: 1,
+          inputFormat: { decimalSeparator: ',' },
+        },
+        {
+          settings: { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
+          confidence: 1,
+          inputFormat: { dateOrder: 'DMY' },
+        },
+      ]);
+    });
+
+    it('leaves confidence, inputFormat, title and stats out of the settings', () => {
+      const [column] = inferColumnTypes([['Price'], ['1.5'], ['2']], { headerRow: true, stats: true }).columns;
+
+      expect(Object.keys(column.settings).sort()).toEqual(['numericFormat', 'type']);
+      expect(column.title).toBe('Price');
+      expect(column.stats).toBeDefined();
+      expect(column.confidence).toBe(1);
+    });
+
+    it('sets title and stats only when asked for', () => {
+      const [column] = inferColumnTypes([['1'], ['2']]).columns;
+
+      expect(Object.keys(column).sort()).toEqual(['confidence', 'inputFormat', 'settings']);
+    });
+
+    it('puts the object key into settings.data and title', () => {
+      const [column] = inferColumnTypes([{ price: '1' }, { price: '2' }]).columns;
+
+      expect(column.settings.data).toBe('price');
+      expect(column.title).toBe('price');
+    });
+  });
+
+  describe('headerRow', () => {
+    const table = [
+      ['Name', 'Amount', 'Joined'],
+      ['Alice', '1.5', '2026-01-02'],
+      ['Bob', '7', '2026-02-03'],
+      ['Carol', '12', '2026-03-04'],
+    ];
+
+    it('takes the first row as data by default', () => {
+      const result = inferColumnTypes(table);
+
+      expect(result.headerRow).toBe(false);
+      expect(result.columns.map(column => column.title)).toEqual([undefined, undefined, undefined]);
+      expect(result.columns.map(column => column.settings.type)).toEqual(['text', 'text', 'text']);
+    });
+
+    it('leaves the header row out of the inference and returns its cells as titles', () => {
+      const result = inferColumnTypes(table, { headerRow: true, minConfidence: 1 });
+
+      expect(result.headerRow).toBe(true);
+      expect(result.columns.map(column => column.title)).toEqual(['Name', 'Amount', 'Joined']);
+      expect(result.columns.map(column => column.settings.type)).toEqual(['text', 'numeric', 'date']);
+      expect(result.columns.map(column => column.confidence)).toEqual([1, 1, 1]);
+    });
+
+    it('leaves the header row out of the converted data', () => {
+      const result = inferColumnTypes(table, { headerRow: true });
+
+      expect(convertToInferredTypes(table, result)).toEqual([
+        ['Alice', 1.5, '2026-01-02'],
+        ['Bob', 7, '2026-02-03'],
+        ['Carol', 12, '2026-03-04'],
+      ]);
+    });
+
+    it('keeps every row when no header row was found', () => {
+      const result = inferColumnTypes(table, { headerRow: false });
+
+      expect(convertToInferredTypes(table, result)).toHaveLength(4);
+    });
+
+    it('counts sampleSize in data rows, not in the header row', () => {
+      const result = inferColumnTypes(
+        [['Amount'], ['1'], ['2'], ['x']],
+        { headerRow: true, sampleSize: 2, minConfidence: 1, stats: true }
+      );
+
+      expect(result.columns[0].settings.type).toBe('numeric');
+      expect(result.columns[0].stats.count).toBe(2);
+    });
+
+    it('trims a title, and gives a blank header cell an empty title', () => {
+      const result = inferColumnTypes([['  Price ', ''], ['1', '2'], ['3', '4']], { headerRow: true });
+
+      expect(result.columns.map(column => column.title)).toEqual(['Price', '']);
+    });
+
+    it('titles a column the data rows reach past the header', () => {
+      const result = inferColumnTypes([['A'], ['1', '2']], { headerRow: true });
+
+      expect(result.columns.map(column => column.title)).toEqual(['A', '']);
+    });
+
+    it('reads a lone header row as a header over empty text columns', () => {
+      const result = inferColumnTypes([['A', 'B']], { headerRow: true });
+
+      expect(result.columns.map(column => [column.title, column.settings.type, column.confidence]))
+        .toEqual([['A', 'text', 0], ['B', 'text', 0]]);
+      expect(convertToInferredTypes([['A', 'B']], result)).toEqual([]);
+    });
+
+    it('has no header row to take in empty data or object rows', () => {
+      expect(inferColumnTypes([], { headerRow: true })).toEqual({ columns: [], headerRow: false });
+
+      const rows = [{ price: '1' }, { price: '2' }];
+      const result = inferColumnTypes(rows, { headerRow: true });
+
+      expect(result.headerRow).toBe(false);
+      expect(result.columns[0].title).toBe('price');
+      expect(convertToInferredTypes(rows, result)).toEqual([{ price: 1 }, { price: 2 }]);
+    });
+
+    describe('the auto value', () => {
+      const detect = (rows, options) => inferColumnTypes(rows, { headerRow: 'auto', ...options });
+
+      it('finds a header over typed columns', () => {
+        const result = detect(table);
+
+        expect(result.headerRow).toBe(true);
+        expect(result.columns.map(column => column.title)).toEqual(['Name', 'Amount', 'Joined']);
+      });
+
+      it('finds a header over a checkbox, a time, and a currency column', () => {
+        expect(detect([['Active'], ['TRUE'], ['false']]).headerRow).toBe(true);
+        expect(detect([['Start'], ['9:05'], ['14:30']]).headerRow).toBe(true);
+        expect(detect([['Price'], ['$5'], ['$7.50']]).headerRow).toBe(true);
+      });
+
+      it('reads a table of text only as data, since nothing tells a header from a row', () => {
+        const result = detect([['Name', 'City'], ['Alice', 'Paris'], ['Bob', 'Rome']]);
+
+        expect(result.headerRow).toBe(false);
+        expect(result.columns.map(column => column.title)).toEqual([undefined, undefined]);
+      });
+
+      it('reads a first row the typed column reads as data', () => {
+        expect(detect([['1', '2'], ['3', '4'], ['5', '6']]).headerRow).toBe(false);
+        expect(detect([['true'], ['false'], ['TRUE']]).headerRow).toBe(false);
+        expect(detect([['2026-01-01'], ['2026-01-02']]).headerRow).toBe(false);
+      });
+
+      it('reads a first row with a number, a blank cell, or too few cells as data', () => {
+        expect(detect([['Name', 5], ['Alice', 6], ['Bob', 7]]).headerRow).toBe(false);
+        expect(detect([['Name', ''], ['Alice', '6'], ['Bob', '7']]).headerRow).toBe(false);
+        expect(detect([['Name'], ['Alice', '6'], ['Bob', '7']]).headerRow).toBe(false);
+      });
+
+      it('settles on one header column that differs from its data', () => {
+        expect(detect([['Name', 'City', 'Rank'], ['Alice', 'Paris', '1'], ['Bob', 'Rome', '2']]).headerRow).toBe(true);
+      });
+
+      it('infers the data rows the same way whether or not it finds a header', () => {
+        const withHeader = detect(table);
+
+        expect(withHeader.columns).toEqual(inferColumnTypes(table, { headerRow: true }).columns);
+        expect(detect([['Alice', '1'], ['Bob', '2']]).columns)
+          .toEqual(inferColumnTypes([['Alice', '1'], ['Bob', '2']]).columns);
+      });
+
+      it('converts the way it inferred', () => {
+        const result = detect(table);
+
+        expect(convertToInferredTypes(table, result)).toHaveLength(3);
+
+        const dataOnly = [['Alice', '1'], ['Bob', '2']];
+
+        expect(convertToInferredTypes(dataOnly, detect(dataOnly))).toEqual([['Alice', 1], ['Bob', 2]]);
+      });
+    });
+  });
+
+  describe('stats', () => {
+    const stats = (values, options) => inferOne(values, { stats: true, ...options }).stats;
+
+    it('is not returned unless asked for', () => {
+      expect(inferOne(['1', '2']).stats).toBeUndefined();
+      expect(inferOne(['1', '2'], { stats: false }).stats).toBeUndefined();
+      expect(inferOne(['1', '2'], { stats: null }).stats).toBeUndefined();
+    });
+
+    it('counts values, blanks, and distinct values, and lists examples', () => {
+      expect(stats(['10', '2', '2', null, 'abc', '7', '  ', ''], { minConfidence: 0.7 })).toEqual({
+        count: 5,
+        emptyCount: 3,
+        distinctCount: 4,
+        examples: ['10', '2', 'abc', '7'],
+        min: 2,
+        max: 10,
+        runnerUpType: 'text',
+      });
+    });
+
+    it('compares distinct values as trimmed text', () => {
+      expect(stats(['a', ' a', 'a ']).distinctCount).toBe(1);
+      expect(stats([1, '1', ' 1 ']).distinctCount).toBe(1);
+    });
+
+    it('keeps the first examples, in order, up to the limit', () => {
+      const values = ['d', 'c', 'b', 'a', 'e', 'f', 'g', 'a'];
+
+      expect(stats(values).examples).toEqual(['d', 'c', 'b', 'a', 'e']);
+      expect(stats(values, { stats: { examples: 2 } }).examples).toEqual(['d', 'c']);
+      expect(stats(values, { stats: { examples: 0 } })).toEqual(expect.objectContaining({ examples: [], count: 8 }));
+      expect(stats(values, { stats: { examples: -1 } }).examples).toHaveLength(5);
+    });
+
+    it('lists a Date by its ISO string, not by the host time zone', () => {
+      expect(stats([new Date(Date.UTC(2026, 0, 2, 3, 4, 5))]).examples).toEqual(['2026-01-02T03:04:05.000Z']);
+    });
+
+    it('takes min and max over the converted values of a numeric column', () => {
+      expect(stats(['$1,234.50', '$12.00', '-$3.25'])).toEqual(expect.objectContaining({ min: -3.25, max: 1234.5 }));
+      expect(stats(['12.5%', '50%'])).toEqual(expect.objectContaining({ min: 0.125, max: 0.5 }));
+    });
+
+    it('takes min and max of date and time columns as ISO text', () => {
+      expect(stats(['2026-03-12', '2025-12-01', '2026-01-05']))
+        .toEqual(expect.objectContaining({ min: '2025-12-01', max: '2026-03-12' }));
+      expect(stats(['9:05 PM', '12:00 am', '14:30']))
+        .toEqual(expect.objectContaining({ min: '00:00:00', max: '21:05:00' }));
+    });
+
+    it('sets no min and max for the other types', () => {
+      ['text', 'checkbox', 'dropdown'].forEach((type) => {
+        const values = {
+          text: ['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank'],
+          checkbox: ['TRUE', 'false'],
+          dropdown: ['Open', 'Closed', 'Open', 'Closed'],
+        }[type];
+        const result = stats(values);
+
+        expect(inferOne(values).type).toBe(type);
+        expect('min' in result).toBe(false);
+        expect('max' in result).toBe(false);
+      });
+    });
+
+    it('names the type that came closest as the runner-up of a text column', () => {
+      expect(inferOne(['1', '2', '3', 'x'], { stats: true })).toEqual(expect.objectContaining({
+        type: 'text',
+        stats: expect.objectContaining({ runnerUpType: 'numeric' }),
+      }));
+    });
+
+    it('names a rival type that reads the same values, in detector order for a tie', () => {
+      expect(stats(['1', '2', '1', '2']).runnerUpType).toBe('dropdown');
+      expect(stats(['TRUE', 'false', 'TRUE', 'false']).runnerUpType).toBe('dropdown');
+    });
+
+    it('names text as the runner-up of a type with no rival', () => {
+      expect(stats(['2026-01-01', '2026-01-02']).runnerUpType).toBe('text');
+    });
+
+    it('sets no runner-up when nothing reads any value', () => {
+      expect(stats(['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank'])).toEqual({
+        count: 6,
+        emptyCount: 0,
+        distinctCount: 6,
+        examples: ['Alice', 'Bob', 'Carol', 'Dave', 'Eve'],
+      });
+      expect(stats([null, '', ' '])).toEqual({ count: 0, emptyCount: 3, distinctCount: 0, examples: [] });
+    });
+
+    it('describes only the sampled rows', () => {
+      expect(stats(['1', '2', 'x', 'y'], { sampleSize: 2 })).toEqual(expect.objectContaining({
+        count: 2,
+        distinctCount: 2,
+        min: 1,
+        max: 2,
+      }));
+    });
+
+    it('does not change the settings or the confidence', () => {
+      const rows = [['1,5', '12.03.2026', 'a'], ['2', '13.03.2026', 'a'], ['x', '14.03.2026', 'b']];
+      const withStats = inferColumnTypes(rows, { locale: 'de-DE', minConfidence: 0.5, stats: true });
+      const without = inferColumnTypes(rows, { locale: 'de-DE', minConfidence: 0.5 });
+
+      expect(withStats.columns.map(({ stats: omitted, ...column }) => column)).toEqual(without.columns);
     });
   });
 

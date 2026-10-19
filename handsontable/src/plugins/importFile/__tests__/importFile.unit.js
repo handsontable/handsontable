@@ -120,38 +120,45 @@ describe('ImportFile#inferColumnTypes', () => {
   const localeCtx = locale => ({ hot: { getSettings: () => ({ importFile: true, locale }) } });
   const rows = [['1.234', '12/03/2026'], ['5.678', '01/02/2026']];
 
-  it('should read the grid locale and need no engine', () => {
-    const columns = ImportFile.prototype.inferColumnTypes.call(localeCtx('de-DE'), rows);
+  const infer = (locale, options) => ImportFile.prototype.inferColumnTypes.call(localeCtx(locale), rows, options);
+  const inputFormats = result => result.columns.map(column => column.inputFormat);
 
-    expect(columns.map(column => column.inputFormat)).toEqual([
-      { decimalSeparator: ',' },
-      { dateOrder: 'DMY' },
-    ]);
-    expect(ImportFile.prototype.convertToInferredTypes.call(localeCtx('de-DE'), rows, columns)).toEqual([
+  it('should read the grid locale and need no engine', () => {
+    const result = infer('de-DE');
+
+    expect(inputFormats(result)).toEqual([{ decimalSeparator: ',' }, { dateOrder: 'DMY' }]);
+    expect(ImportFile.prototype.convertToInferredTypes.call(localeCtx('de-DE'), rows, result)).toEqual([
       [1234, '2026-03-12'],
       [5678, '2026-02-01'],
     ]);
   });
 
   it('should let an explicit locale option override the grid locale', () => {
-    const columns = ImportFile.prototype.inferColumnTypes.call(localeCtx('de-DE'), rows, { locale: 'en-US' });
-
-    expect(columns.map(column => column.inputFormat)).toEqual([
+    expect(inputFormats(infer('de-DE', { locale: 'en-US' }))).toEqual([
       { decimalSeparator: '.' },
       { dateOrder: 'MDY' },
     ]);
   });
 
   it('should accept null options', () => {
-    const columns = ImportFile.prototype.inferColumnTypes.call(localeCtx('de-DE'), rows, null);
-
-    expect(columns[0].inputFormat).toEqual({ decimalSeparator: ',' });
+    expect(inputFormats(infer('de-DE', null))[0]).toEqual({ decimalSeparator: ',' });
   });
 
   it('should keep the grid locale when the locale option is undefined', () => {
-    const columns = ImportFile.prototype.inferColumnTypes.call(localeCtx('de-DE'), rows, { locale: undefined });
+    expect(inputFormats(infer('de-DE', { locale: undefined }))[0]).toEqual({ decimalSeparator: ',' });
+  });
 
-    expect(columns[0].inputFormat).toEqual({ decimalSeparator: ',' });
+  it('should pass the headerRow and stats options through', () => {
+    const table = [['Price', 'Joined'], ...rows];
+    const result = ImportFile.prototype.inferColumnTypes.call(localeCtx('de-DE'), table, {
+      headerRow: 'auto',
+      stats: true,
+    });
+
+    expect(result.headerRow).toBe(true);
+    expect(result.columns.map(column => column.title)).toEqual(['Price', 'Joined']);
+    expect(result.columns[0].stats).toEqual(expect.objectContaining({ count: 2, min: 1234, max: 5678 }));
+    expect(ImportFile.prototype.convertToInferredTypes.call(localeCtx('de-DE'), table, result)).toHaveLength(2);
   });
 });
 

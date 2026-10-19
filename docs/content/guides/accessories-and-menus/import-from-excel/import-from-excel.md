@@ -248,10 +248,11 @@ Font size and font name aren't imported: the model doesn't carry them today. Con
 
 ## Infer column types from raw values
 
-Data that doesn't come from a workbook carries no number formats: rows you parsed from a CSV file, text pasted into cells, or values from an API. To type that data, use the plugin's `inferColumnTypes()` method. It reads the values and returns one column setting per column. The method needs no engine.
+Data that doesn't come from a workbook carries no number formats: rows you parsed from a CSV file, text pasted into cells, or values from an API. To type that data, use the plugin's `inferColumnTypes()` method. It reads the values and returns the column settings, with a header for each column and a measure of how sure it is. The method needs no engine.
 
 ```javascript
 const rows = [
+  ['Name', 'Balance', 'Joined', 'Active', 'Status'],
   ['Alice', '1.234,56', '12.03.2026', 'TRUE', 'Open'],
   ['Bob', '12,5', '13.03.2026', 'false', 'Closed'],
   ['Carol', '7', '14.03.2026', 'true', 'Open'],
@@ -259,40 +260,96 @@ const rows = [
 ];
 
 const importFile = hot.getPlugin('importFile');
-const columns = importFile.inferColumnTypes(rows, { locale: 'de-DE' });
+const result = importFile.inferColumnTypes(rows, { locale: 'de-DE', headerRow: 'auto' });
 
-console.log(columns.map(column => column.type));
-// ['text', 'numeric', 'date', 'checkbox', 'dropdown']
+console.log(result.headerRow);
+// true
+console.log(result.columns.map(column => [column.title, column.settings.type]));
+// [['Name', 'text'], ['Balance', 'numeric'], ['Joined', 'date'], ['Active', 'checkbox'], ['Status', 'dropdown']]
 
 hot.updateSettings({
-  columns,
-  data: importFile.convertToInferredTypes(rows, columns),
+  columns: result.columns.map(column => column.settings),
+  colHeaders: result.columns.map(column => column.title),
+  data: importFile.convertToInferredTypes(rows, result),
 });
 ```
 
-Each entry uses the names of the column options, so you can pass the array to [`columns`](@/api/options.md#columns) as it is. Before you load the data, convert it with `convertToInferredTypes()`. Each cell type stores its values in a fixed form: a number for `numeric`, `YYYY-MM-DD` for `date`, `HH:mm:ss` for `time`, and a boolean for `checkbox`. If you skip the conversion, the cells keep the raw strings, and `date` and `time` cells reject them. The conversion returns a copy and leaves your rows unchanged.
+The method returns `{ columns, headerRow }`. Each entry of `columns` keeps the grid's column options apart from what describes the inference:
+
+| Key | Holds |
+|---|---|
+| `settings` | The column options: `type`, the format of that type (`numericFormat`, `dateFormat`, `timeFormat`, or `source`), and `data` for rows of objects. Pass it to [`columns`](@/api/options.md#columns) as it is. |
+| `confidence` | The share of non-blank values the type reads, from `0` to `1`. |
+| `inputFormat` | How the raw values were written (the decimal separator, a percent sign, the currency symbol, the day and month order). `convertToInferredTypes()` reads it. |
+| `title` | The column's header. Set with a header row, and for rows of objects, where it is the property name. |
+| `stats` | A description of the sampled values. Set with the [`stats`](#column-statistics) option. |
+
+Before you load the data, convert it with `convertToInferredTypes(rows, result)`. Each cell type stores its values in a fixed form: a number for `numeric`, `YYYY-MM-DD` for `date`, `HH:mm:ss` for `time`, and a boolean for `checkbox`. If you skip the conversion, the cells keep the raw strings, and `date` and `time` cells reject them. The conversion returns a copy, leaves your rows unchanged, and leaves out the header row, which is in `title`.
 
 Inference works this way:
 
 - **Types.** The method infers `numeric`, `date`, `time`, `checkbox` (`true` and `false`, in any case), `dropdown` (a column of a few repeated strings), and `text`. Date-time values such as `2026-03-12 14:30` and JavaScript `Date` objects stay `text`.
 - **Numbers.** A numeric value may carry a sign, a currency symbol on either side (`$1,234.50`, `12,5 zł`), or a trailing percent sign (`12.5%`, converted to `0.125`). Digits may be grouped with a comma, a dot, or a space of any width. With a dot decimal, an apostrophe works too (`1'234.50`). A symbol that several currencies share takes the currency of the locale's region for the common cases: `$` is `CAD` under `en-CA` and `ARS` under `es-AR`, and `kr` is `NOK` under `nb-NO`. Any other region gets the symbol's default currency: `USD` for `$`, `SEK` for `kr`.
-- **Confidence.** `confidence` is the share of non-blank values the type reads. A column whose share is below `minConfidence` falls back to `text`. Blank values don't count. A value the type can't read, such as a `Total` row, keeps its raw form after the conversion, so the cell's validator marks it.
+- **Confidence.** A column whose share of readable values is below `minConfidence` falls back to `text`. Blank values don't count. A value the type can't read, such as a `Total` row, keeps its raw form after the conversion, so the cell's validator marks it.
 - **Ambiguous values.** The column decides first: `0,5` in a column makes `1.234` mean 1234, and `25/03/2026` makes `12/03/2026` mean 12 March. When nothing in the column decides, the `locale` option does. It defaults to the grid's [`locale`](@/api/options.md#locale). A date column whose order came from the locale reports `0.95` times its share as its confidence.
 - **Codes stay text.** Some values look like numbers but are codes: a number with a leading zero (`00123`), one with more than 15 significant digits (a card number), and a phone number such as `+48 601 234 567`. These are read as text, because converting them to numbers would lose digits.
-- **Sampling.** The method reads only the first `sampleSize` rows. A `dropdown` column lists only the options found there, so a later row with another option is marked invalid. Raise `sampleSize` if your data needs it. For rows of objects, every key the sampled rows carry becomes a column.
+- **Sampling.** The method reads only the first `sampleSize` data rows. A `dropdown` column lists only the options found there, so a later row with another option is marked invalid. Raise `sampleSize` if your data needs it. For rows of objects, every key the sampled rows carry becomes a column.
 - **Deterministic results.** In a given browser, the same rows and options always give the same result. The method never reads the browser's locale, and an unsupported locale falls back to `'en-US'`. Separators and date order come from the browser's locale data, so two browsers can disagree on a rare locale.
-- **Headers.** Remove a header row from the data before you infer. A header is read as one more value. In a column of ten prices, it still lets the column become `numeric`, but the header itself stays unconverted.
+
+### Header row
+
+Set `headerRow` when the first row of array data holds column names. The header row is left out of the inference, so a name such as `Price` doesn't count as a stray value in a column of prices. Its cells come back as each column's `title`, and `convertToInferredTypes()` drops the row from the data.
+
+| `headerRow` | Effect |
+|---|---|
+| `false` (default) | The first row is data. |
+| `true` | The first row is a header. |
+| `'auto'` | The first row is a header when every cell of it is a non-blank string and at least one column below it reads as a number, a date, a time, or a checkbox that the header cell does not. |
+
+`result.headerRow` tells you what `'auto'` decided. A table of text only has nothing that tells a header from a row, so `'auto'` reads it as data: set `headerRow: true` for such a table. Rows of objects have no header row, and `title` is the property name.
+
+### Column statistics
+
+Set `stats: true` to add a `stats` object to each column. It describes the sampled values, which is what you want to show a person, or to send to a language model that decides what the column means.
+
+```javascript
+const { columns } = importFile.inferColumnTypes(rows, { headerRow: true, stats: true });
+
+console.log(columns[1].stats);
+// {
+//   count: 4,
+//   emptyCount: 0,
+//   distinctCount: 4,
+//   examples: ['1.234,56', '12,5', '7', '99'],
+//   min: 7,
+//   max: 1234.56,
+//   runnerUpType: 'text',
+// }
+```
+
+| Key | Holds |
+|---|---|
+| `count` | How many sampled values are not blank. |
+| `emptyCount` | How many sampled values are blank. |
+| `distinctCount` | How many different non-blank values there are, compared as trimmed text. |
+| `examples` | The first distinct values, as trimmed text. `stats: { examples: 3 }` sets how many. The default is 5. |
+| `min`, `max` | The smallest and largest value of a `numeric` (a number), `date` (`YYYY-MM-DD`), or `time` (`HH:mm:ss`) column, after conversion. |
+| `runnerUpType` | The other type that reads the largest share of the values. For a `text` column, the type that came closest to `minConfidence`. A type with no rival gets `'text'`. |
+
+The statistics come from the sampled rows only, in a fixed order, so they are deterministic too.
+
+### Options
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `sampleSize` | `number` | `1000` | How many rows, from the top, to read. `Infinity` reads every row. |
+| `sampleSize` | `number` | `1000` | How many data rows, from the top, to read. `Infinity` reads every row. |
 | `locale` | `string` | the grid's `locale` | Settles a column whose values don't decide the decimal separator or the day and month order. |
 | `minConfidence` | `number` | `0.9` | The share of non-blank values a type has to read, from `0` to `1`. |
 | `dropdown` | `boolean \| { maxOptions?: number }` | `true` | Whether a column of repeated strings becomes a `dropdown`, and how many distinct values it may have (`10` by default, `0` turns it off). |
+| `headerRow` | `boolean \| 'auto'` | `false` | Whether the first row of array data is a header. See [Header row](#header-row). |
+| `stats` | `boolean \| { examples?: number }` | `false` | Whether to describe the sampled values of each column. See [Column statistics](#column-statistics). |
 
-Each entry also carries `confidence` and `inputFormat`. Passed to `columns`, they become cell meta that nothing reads. To pass plain settings, remove them first: `columns.map(({ confidence, inputFormat, ...settings }) => settings)`.
-
-To infer types without a grid, import the same functions from the plugin module: `import { inferColumnTypes, convertToInferredTypes } from 'handsontable/plugins/importFile';`. Without a grid, `locale` defaults to `'en-US'`.
+To infer types without a grid, import the same functions from the plugin module: `import { inferColumnTypes, convertToInferredTypes } from 'handsontable/plugins/importFile';`. Without a grid, `locale` defaults to `'en-US'`. A bundler drops the rest of the plugin from your build when you use only these two functions.
 
 ## Security
 

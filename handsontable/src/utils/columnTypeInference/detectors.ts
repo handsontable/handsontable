@@ -14,7 +14,7 @@ import {
   type NumberMode,
   type NumberParts,
 } from './values';
-import type { InferredColumn } from './types';
+import type { DetectedColumn } from './types';
 
 /**
  * The column-wide inputs every detector shares.
@@ -44,9 +44,9 @@ export interface DetectionContext {
  */
 export interface Detection {
   /**
-   * The proposed column settings, without the confidence.
+   * The proposed column settings and the way the values were written.
    */
-  column: Omit<InferredColumn, 'confidence'>;
+  column: DetectedColumn;
   /**
    * How many of the non-blank values the proposed settings read.
    */
@@ -80,7 +80,7 @@ function countMatches(values: unknown[], read: (value: unknown) => unknown): num
  * here, so a column of them stays numeric.
  */
 function detectCheckbox(values: unknown[]): Detection | null {
-  return { column: { type: 'checkbox' }, matched: countMatches(values, readBoolean), certainty: 1 };
+  return { column: { settings: { type: 'checkbox' } }, matched: countMatches(values, readBoolean), certainty: 1 };
 }
 
 /**
@@ -213,7 +213,7 @@ function detectNumeric(values: unknown[], context: DetectionContext): Detection 
   };
 
   return {
-    column: { type: 'numeric', numericFormat: toNumericFormat(read, mode, context), inputFormat },
+    column: { settings: { type: 'numeric', numericFormat: toNumericFormat(read, mode, context) }, inputFormat },
     matched: read.length,
     certainty: 1,
   };
@@ -252,11 +252,13 @@ function detectDate(values: unknown[], context: DetectionContext): Detection | n
 
   return {
     column: {
-      type: 'date',
-      dateFormat: {
-        year: 'numeric',
-        month: readings.every(reading => reading.paddedMonth) ? '2-digit' : 'numeric',
-        day: readings.every(reading => reading.paddedDay) ? '2-digit' : 'numeric',
+      settings: {
+        type: 'date',
+        dateFormat: {
+          year: 'numeric',
+          month: readings.every(reading => reading.paddedMonth) ? '2-digit' : 'numeric',
+          day: readings.every(reading => reading.paddedDay) ? '2-digit' : 'numeric',
+        },
       },
       // Recorded even when no sampled value is year-last, so rows past the sample convert in the
       // same order the locale settles.
@@ -280,7 +282,7 @@ function detectTime(values: unknown[]): Detection | null {
     hour12,
   };
 
-  return { column: { type: 'time', timeFormat }, matched: readings.length, certainty: 1 };
+  return { column: { settings: { type: 'time', timeFormat } }, matched: readings.length, certainty: 1 };
 }
 
 /**
@@ -296,7 +298,7 @@ function detectDropdown(values: unknown[], context: DetectionContext): Detection
     return null;
   }
 
-  return { column: { type: 'dropdown', source }, matched: strings.length, certainty: 1 };
+  return { column: { settings: { type: 'dropdown', source } }, matched: strings.length, certainty: 1 };
 }
 
 /**

@@ -2,9 +2,24 @@ import { isObject } from '../../helpers/object';
 import { DETECTORS, type DetectionContext } from './detectors';
 import { getLocaleDateOrder, getLocaleDecimalSeparator, getLocaleRegion, resolveLocale } from './locale';
 import { isBlank, readBoolean, readDate, readNumber, readTime } from './values';
-import type { InferColumnTypesOptions, InferredColumn } from './types';
+import type {
+  DetectedColumn,
+  InferColumnTypesOptions,
+  InferColumnTypesResult,
+  InferredCellType,
+  InferredColumn,
+  InferredColumnStats,
+} from './types';
 
-export type { InferColumnTypesOptions, InferredCellType, InferredColumn, InferredInputFormat } from './types';
+export type {
+  InferColumnTypesOptions,
+  InferColumnTypesResult,
+  InferredCellType,
+  InferredColumn,
+  InferredColumnSettings,
+  InferredColumnStats,
+  InferredInputFormat,
+} from './types';
 
 /**
  * How many rows are read when `sampleSize` is not given.
@@ -15,6 +30,16 @@ const DEFAULT_SAMPLE_SIZE = 1000;
  * The confidence floor when `minConfidence` is not given.
  */
 const DEFAULT_MIN_CONFIDENCE = 0.9;
+
+/**
+ * The types whose values have an order worth reporting as `min` and `max`.
+ */
+const RANGE_TYPES: InferredCellType[] = ['numeric', 'date', 'time'];
+
+/**
+ * How many example values `stats` keeps when `stats: true` does not say.
+ */
+const DEFAULT_STATS_EXAMPLES = 5;
 
 /**
  * The most distinct values a dropdown column may have when `dropdown.maxOptions` is not given.
@@ -100,64 +125,67 @@ function readCell(row: unknown, key: number | string): unknown {
 }
 
 /**
+ * What one column's inference found before it is shaped into an `InferredColumn`.
+ */
+interface ColumnVerdict {
+  /**
+   * The winning column options and how its values were written.
+   */
+  column: DetectedColumn;
+  /**
+   * The winner's confidence.
+   */
+  confidence: number;
+  /**
+   * The next best type, collected only when stats were asked for.
+   */
+  runnerUpType?: InferredCellType;
+}
+
+/**
  * Picks a column's type: the first detector whose share of read values reaches the floor, or
  * `text`. The floor is checked against the share alone; the detector's certainty only scales the
  * reported confidence, so a fully read date column whose order came from the locale still wins.
+ * With `wantRunnerUp` every detector runs, and the best other type is reported.
  */
-function inferColumn(values: unknown[], context: DetectionContext, minConfidence: number): InferredColumn {
-  const nonBlank = values.filter(value => !isBlank(value));
-
+function inferColumn(
+  nonBlank: unknown[],
+  context: DetectionContext,
+  minConfidence: number,
+  wantRunnerUp: boolean
+): ColumnVerdict {
   if (nonBlank.length === 0) {
-    return { type: 'text', confidence: 0 };
+    return { column: { settings: { type: 'text' } }, confidence: 0 };
   }
+
+  let winner: { column: DetectedColumn; confidence: number } | null = null;
+  const rivals: Array<{ type: InferredCellType; share: number }> = [];
 
   for (const detect of DETECTORS) {
     const detection = detect(nonBlank, context);
     const share = detection ? detection.matched / nonBlank.length : 0;
 
-    if (detection && detection.matched > 0 && share >= minConfidence) {
-      return { ...detection.column, confidence: share * detection.certainty };
+    if (detection && detection.matched > 0) {
+      if (winner === null && share >= minConfidence) {
+        winner = { column: detection.column, confidence: share * detection.certainty };
+
+        if (!wantRunnerUp) {
+          break;
+        }
+
+      } else {
+        rivals.push({ type: detection.column.settings.type, share });
+      }
     }
   }
 
-  return { type: 'text', confidence: 1 };
-}
+  // `sort` is stable, so equal shares keep the order of `DETECTORS`.
+  const [rival] = rivals.sort((a, b) => b.share - a.share);
+  const runnerUpType = rival?.type ?? (winner ? 'text' : undefined);
 
-/**
- * Infers a cell type and format for every column of raw, untyped data: rows parsed from a CSV
- * file, pasted text split into cells, or values from an API. The function is pure and
- * deterministic. It reads the first `sampleSize` rows, never the host's locale, and returns the same
- * result for the same input.
- *
- * Each returned entry uses the names of the grid's column options (`type`, `numericFormat`,
- * `dateFormat`, `timeFormat`, `source`, and `data` for object rows), plus `confidence` and
- * `inputFormat`. Pass the data through `convertToInferredTypes()` before loading it, so the values
- * match what each cell type stores.
- */
-export function inferColumnTypes(
-  data: InferenceData,
-  options: InferColumnTypesOptions | null = {},
-): InferredColumn[] {
-  if (!Array.isArray(data)) {
-    return [];
-  }
-
-  const { locale: localeOption, sampleSize, minConfidence: minConfidenceOption, dropdown } = options ?? {};
-  const locale = resolveLocale(localeOption);
-  const rows = data.slice(0, toPositiveInteger(sampleSize, DEFAULT_SAMPLE_SIZE)) as unknown[];
-  const minConfidence = toConfidence(minConfidenceOption);
-  const context: DetectionContext = {
-    localeDecimalSeparator: getLocaleDecimalSeparator(locale),
-    localeDateOrder: getLocaleDateOrder(locale),
-    region: getLocaleRegion(locale),
-    maxDropdownOptions: toMaxDropdownOptions(dropdown),
-  };
-
-  return listColumnKeys(rows).map((key) => {
-    const column = inferColumn(rows.map(row => readCell(row, key)), context, minConfidence);
-
-    return typeof key === 'string' ? { data: key, ...column } : column;
-  });
+  return winner
+    ? { ...winner, runnerUpType }
+    : { column: { settings: { type: 'text' } }, confidence: 1, runnerUpType };
 }
 
 /**
@@ -172,7 +200,7 @@ type ValueReader = (value: unknown) => unknown;
 function createReader(column: InferredColumn): ValueReader | null {
   const { inputFormat = {} } = column;
 
-  switch (column.type) {
+  switch (column.settings.type) {
     case 'numeric': {
       const mode = {
         decimalSeparator: inputFormat.decimalSeparator ?? '.',
@@ -194,6 +222,179 @@ function createReader(column: InferredColumn): ValueReader | null {
     default:
       return null;
   }
+}
+
+/**
+ * Turns a value into text for counting and listing, trimmed. A `Date` becomes its ISO string, since
+ * its own text follows the host's time zone.
+ */
+function toText(value: unknown): string {
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? 'Invalid Date' : value.toISOString();
+  }
+
+  return String(value).trim();
+}
+
+/**
+ * Describes the sampled values of one column. `min` and `max` are taken over the values the
+ * inferred type reads, after conversion, so they compare as numbers or as ISO text.
+ */
+function describeColumn(
+  values: unknown[],
+  column: InferredColumn,
+  runnerUpType: InferredCellType | undefined,
+  exampleLimit: number
+): InferredColumnStats {
+  const nonBlank = values.filter(value => !isBlank(value));
+  const distinct = Array.from(new Set(nonBlank.map(toText)));
+  const reader = RANGE_TYPES.includes(column.settings.type) ? createReader(column) : null;
+  const converted = reader
+    ? nonBlank.map(reader).filter((value): value is number | string => value !== null)
+    : [];
+  const stats: InferredColumnStats = {
+    count: nonBlank.length,
+    emptyCount: values.length - nonBlank.length,
+    distinctCount: distinct.length,
+    examples: distinct.slice(0, exampleLimit),
+  };
+
+  if (converted.length > 0) {
+    // Numbers and ISO strings both order correctly under `<`; a column holds only one of the two.
+    stats.min = converted.reduce((least, value) => (value < least ? value : least));
+    stats.max = converted.reduce((most, value) => (value > most ? value : most));
+  }
+
+  if (runnerUpType !== undefined) {
+    stats.runnerUpType = runnerUpType;
+  }
+
+  return stats;
+}
+
+/**
+ * Reads the `stats` option into the number of examples to keep, or `null` when stats are off.
+ */
+function toExampleLimit(stats: InferColumnTypesOptions['stats']): number | null {
+  if (stats === undefined || stats === null || stats === false) {
+    return null;
+  }
+
+  const requested = typeof stats === 'object' && stats !== null ? stats.examples : undefined;
+
+  return typeof requested === 'number' && requested >= 0 ? Math.floor(requested) : DEFAULT_STATS_EXAMPLES;
+}
+
+/**
+ * Reads the header text of a header row cell.
+ */
+function toTitle(cell: unknown): string {
+  return isBlank(cell) ? '' : toText(cell);
+}
+
+/**
+ * Infers every column of `rows`, which hold no header row.
+ */
+function inferColumns(
+  rows: unknown[],
+  header: unknown[] | null,
+  context: DetectionContext,
+  minConfidence: number,
+  exampleLimit: number | null
+): InferredColumn[] {
+  return listColumnKeys(header ? [header, ...rows] : rows).map((key) => {
+    const values = rows.map(row => readCell(row, key));
+    const verdict = inferColumn(values.filter(value => !isBlank(value)), context, minConfidence, exampleLimit !== null);
+    const column: InferredColumn = {
+      settings: typeof key === 'string' ? { data: key, ...verdict.column.settings } : verdict.column.settings,
+      confidence: verdict.confidence,
+    };
+
+    if (verdict.column.inputFormat) {
+      column.inputFormat = verdict.column.inputFormat;
+    }
+
+    if (typeof key === 'string') {
+      column.title = key;
+
+    } else if (header) {
+      column.title = toTitle(header[key]);
+    }
+
+    if (exampleLimit !== null) {
+      column.stats = describeColumn(values, column, verdict.runnerUpType, exampleLimit);
+    }
+
+    return column;
+  });
+}
+
+/**
+ * Whether the first row reads as a header: array data, every cell a non-blank string across the
+ * full width, and at least one column below it that the header cell does not belong to. A column
+ * of text has no type for a header to differ from, so a table of text reads as data.
+ */
+function looksLikeHeader(first: unknown, columns: InferredColumn[]): boolean {
+  if (!Array.isArray(first) || first.length < columns.length || columns.length === 0) {
+    return false;
+  }
+
+  if (!first.every(cell => typeof cell === 'string' && !isBlank(cell))) {
+    return false;
+  }
+
+  return columns.some((column, index) => {
+    const reader = createReader(column);
+
+    return reader !== null && reader(first[index]) === null;
+  });
+}
+
+/**
+ * Infers a cell type and format for every column of raw, untyped data: rows parsed from a CSV
+ * file, pasted text split into cells, or values from an API. The function is pure and
+ * deterministic. It reads the first `sampleSize` rows, never the host's locale, and returns the same
+ * result for the same input.
+ *
+ * Each column comes back as `{ settings, confidence, inputFormat, title, stats }`. `settings` uses
+ * the names of the grid's column options (`type`, `numericFormat`, `dateFormat`, `timeFormat`,
+ * `source`, and `data` for object rows), so it can be passed to `columns` as it is; the rest
+ * describes the inference. Pass the data through `convertToInferredTypes()` before loading it, so
+ * the values match what each cell type stores.
+ */
+export function inferColumnTypes(
+  data: InferenceData,
+  options: InferColumnTypesOptions | null = {}
+): InferColumnTypesResult {
+  if (!Array.isArray(data)) {
+    return { columns: [], headerRow: false };
+  }
+
+  const { locale: localeOption, sampleSize, minConfidence: minConfidenceOption, dropdown, headerRow, stats } =
+    options ?? {};
+  const locale = resolveLocale(localeOption);
+  const limit = toPositiveInteger(sampleSize, DEFAULT_SAMPLE_SIZE);
+  const minConfidence = toConfidence(minConfidenceOption);
+  const exampleLimit = toExampleLimit(stats);
+  const context: DetectionContext = {
+    localeDecimalSeparator: getLocaleDecimalSeparator(locale),
+    localeDateOrder: getLocaleDateOrder(locale),
+    region: getLocaleRegion(locale),
+    maxDropdownOptions: toMaxDropdownOptions(dropdown),
+  };
+  const rows = data as unknown[];
+  const first = rows[0];
+
+  if (Array.isArray(first) && (headerRow === true || headerRow === 'auto')) {
+    const header = first as unknown[];
+    const columns = inferColumns(rows.slice(1, 1 + limit), header, context, minConfidence, exampleLimit);
+
+    if (headerRow === true || looksLikeHeader(header, columns)) {
+      return { columns, headerRow: true };
+    }
+  }
+
+  return { columns: inferColumns(rows.slice(0, limit), null, context, minConfidence, exampleLimit), headerRow: false };
 }
 
 /**
@@ -226,8 +427,10 @@ function convertRow(row: unknown, columns: InferredColumn[], readers: Array<Valu
   const copy: Record<string, unknown> = { ...(row as Record<string, unknown>) };
 
   columns.forEach((column, index) => {
-    if (column.data !== undefined && Object.prototype.hasOwnProperty.call(copy, column.data)) {
-      copy[column.data] = convertValue(copy[column.data], readers[index]);
+    const { data } = column.settings;
+
+    if (data !== undefined && Object.prototype.hasOwnProperty.call(copy, data)) {
+      copy[data] = convertValue(copy[data], readers[index]);
     }
   });
 
@@ -240,13 +443,21 @@ function convertRow(row: unknown, columns: InferredColumn[], readers: Array<Valu
  * `checkbox`. Every row is converted, not only the sampled ones. A value the column cannot read is
  * kept as it is, so the cell type's validator marks it. The input is never changed. The cells of the
  * result are no longer the input's type, which is why it is typed `unknown`.
+ *
+ * When the result says the first row is a header (`headerRow`), that row is left out: its cells are
+ * the columns' `title`s.
  */
-export function convertToInferredTypes<T extends InferenceData>(data: T, columns: InferredColumn[]): ConvertedData<T> {
+export function convertToInferredTypes<T extends InferenceData>(
+  data: T,
+  result: InferColumnTypesResult
+): ConvertedData<T> {
   if (!Array.isArray(data)) {
     return data as ConvertedData<T>;
   }
 
+  const { columns, headerRow } = result;
   const readers = columns.map(createReader);
+  const rows = headerRow && Array.isArray(data[0]) ? (data as unknown[]).slice(1) : (data as unknown[]);
 
-  return (data as unknown[]).map(row => convertRow(row, columns, readers)) as ConvertedData<T>;
+  return rows.map(row => convertRow(row, columns, readers)) as ConvertedData<T>;
 }
