@@ -133,7 +133,7 @@ const budgetData = [['Rent', 1200]];
 <HotTable sheetsBar={{ sheets: [{ name: 'Budget', data: budgetData }] }} />
 ```
 
-A new `settings` object on each render keeps the workbook. For the exact rule, see [Known limitations](#known-limitations).
+A new `settings` object on each render keeps the workbook only when its values are equal. Functions and class instances, such as a renderer or a HyperFormula engine, are compared by reference, so define them outside the component or memoize them. For the exact rule, see [Known limitations](#known-limitations).
 
 :::
 
@@ -172,7 +172,7 @@ Right-click a tab, or click the chevron on the active tab, to open its menu. On 
 
 ## Per-sheet view state
 
-Each sheet keeps its own view state: scroll position, selection, sort, filters, row and column order, hidden rows and columns, trimmed rows, frozen rows and columns, merged cells, custom borders, manual column widths and row heights, cell meta (except the `valid` flag, which the next validation sets again), and the [`Pagination`](@/api/pagination.md) page and page size. A sheet you haven't opened yet starts unsorted and unfiltered, with no selection or manual sizes.
+Each sheet keeps its own view state: scroll position, selection, sort, filters, row and column order, hidden rows and columns, trimmed rows, frozen rows and columns, merged cells, custom borders, manual column widths and row heights, cell meta (except the `valid` flag, which the next validation sets again), and the [`Pagination`](@/api/pagination.md) page and page size. A sheet you haven't opened yet doesn't inherit the previous sheet's sort, filters, sizes, or selection. It opens with only what its own `settings` declare, on the configured [`initialPage`](@/api/options.md#pagination) and page size.
 
 A switch away from a sheet with a selection clears it before the next sheet loads, so [`afterDeselect`](@/api/hooks.md#afterdeselect) fires. Selection hooks such as [`afterSelection`](@/api/hooks.md#afterselection) fire when a saved selection comes back, and the page hooks fire when the switch changes the page.
 
@@ -257,7 +257,7 @@ A sheet added at runtime, with the add button or with `addSheet()` without `sett
 ## Known limitations
 
 - The grid holds one sheet at a time, so methods such as [`getData()`](@/api/core.md#getdata) and [`getDataAtCell()`](@/api/core.md#getdataatcell) read only the active sheet.
-- Passing a changed `sheets` value to [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the workbook and drops sheets added with `addSheet()`. A `sheets` value counts as unchanged when it has the same number of sheets, and each has the same `name`, `settings` with the same content, and the same `data` array. In framework wrappers, keep your `data` arrays stable. Changing only `controls`, `paging`, or `position` never rebuilds the workbook.
+- Passing a changed `sheets` value to [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the workbook and drops sheets added with `addSheet()`. A `sheets` value counts as unchanged when it has the same number of sheets, and each has the same `name`, `settings` with the same content (functions and class instances are compared by reference), and the same `data` array. In framework wrappers, keep your `data` arrays stable. Changing only `controls`, `paging`, or `position` never rebuilds the workbook.
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
 - If the window scrolls the grid (no [`height`](@/api/options.md#height) and no scrollable parent), the bar sits below the last row. To keep it in view, set `height`, or put the grid in a container with a fixed height and `overflow: auto`.
 
