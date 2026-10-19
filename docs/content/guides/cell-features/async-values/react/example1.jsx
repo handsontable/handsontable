@@ -44,17 +44,15 @@ const data = [
 const ExampleComponent = () => {
   const hotRef = useRef(null);
 
-  const lookUpRow = (row) => {
+  const lookUpRows = (fromRow, toRow) => {
     const hot = hotRef.current?.hotInstance;
 
-    if (!hot || row === null) {
-      return;
-    }
-
     hot
-      .getPlugin('asyncValues')
-      .setAsyncValue(
-        row,
+      ?.getPlugin('asyncValues')
+      .setAsyncValues(
+        fromRow,
+        1,
+        toRow,
         1,
         ({ physicalRow, signal }) => lookUpProduct(hot.getSourceDataAtCell(physicalRow, 'sku'), signal),
         { dependsOn: ['sku'] },
@@ -62,11 +60,7 @@ const ExampleComponent = () => {
   };
 
   const lookUpAll = () => {
-    const hot = hotRef.current?.hotInstance;
-
-    for (let row = 0; row < (hot?.countRows() ?? 0); row++) {
-      lookUpRow(row);
-    }
+    lookUpRows(0, (hotRef.current?.hotInstance?.countRows() ?? 0) - 1);
   };
 
   return (
@@ -90,10 +84,12 @@ const ExampleComponent = () => {
         height="auto"
         asyncValues={true}
         // Look the product up again when its SKU changes.
-        afterAsyncValueCancel={(physicalRow, prop, reason) => {
-          if (reason === 'dependency') {
-            lookUpRow(hotRef.current?.hotInstance?.toVisualRow(physicalRow) ?? null);
-          }
+        afterChange={(changes) => {
+          changes?.forEach(([row, prop]) => {
+            if (prop === 'sku') {
+              lookUpRows(row, row);
+            }
+          });
         }}
         autoWrapRow={true}
         autoWrapCol={true}
