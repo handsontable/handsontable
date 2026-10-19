@@ -51,6 +51,10 @@ data) and converts the values to what each type stores. Read this before touchin
 - **The detector that reads the largest share wins**, an earlier one keeps a tie (`runDetectors`). First
   over the floor was wrong: with `minConfidence: 0.4`, four `true` and six numbers became a checkbox and
   left the numbers as strings. It still stops at a detector that reads every value.
+- **A dropdown compares and converts TRIMMED values**, like every other reader. Untrimmed, `Open` and
+  `Open ` were two options (`source` listed `Open` twice while `stats.distinctCount` said 2), and one
+  more padded value pushed the column over `maxOptions` to text. The reader for `dropdown` returns the
+  trimmed string, or the strict validator would reject `Open `.
 - **A dropdown needs two options and six values.** A single repeated value is no choice, and four rows
   repeat by chance; a strict dropdown then rejects everything it has not seen.
 - **The input types accept read-only arrays and interface-typed rows**
@@ -104,8 +108,11 @@ data) and converts the values to what each type stores. Read this before touchin
   other way to know whether to drop row 0. The result is the converter's input
   (`convertToInferredTypes(data, result)`), not `result.columns`.
 - **`headerRow: 'auto'` needs evidence, and a table of text has none.** Row 0 is a header only when
-  every cell is a non-blank string across the full width AND some typed column below it (numeric, date,
-  time, checkbox) fails to read that cell. `Name, City / Alice, Paris` stays data, and so does `1, 2 /
+  every cell is a non-blank string across the full width, none of them a missing-value word
+  (`MISSING_VALUE_WORDS`: `n/a`, `-`, `null`...), AND there is a typed column below it (numeric, date,
+  time, checkbox) with EVERY typed column rejecting its cell. "Some typed column rejects" was too weak:
+  `['Alice', 'n/a']` over a numeric column read as a header, and `convertToInferredTypes` then dropped
+  the Alice record without a word. A placeholder written another way still fools it; the guide says so. `Name, City / Alice, Paris` stays data, and so does `1, 2 /
   3, 4`. Do not loosen it to "all strings": that turns every text table's first record into titles. The
   data rows are inferred WITHOUT the header, so a title is never counted as a stray value, and
   `sampleSize` counts data rows. In `'auto'`, a table that is not a header is inferred a second time

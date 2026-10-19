@@ -260,6 +260,10 @@ function createReader(column: InferredColumn): ValueReader | null {
       return value => readTime(value)?.value ?? null;
     case 'checkbox':
       return readBoolean;
+    case 'dropdown':
+      // The detector compares trimmed values, so the converter writes the trimmed one: `source` lists
+      // `Open` once, and the strict dropdown validator would reject `Open `.
+      return value => (typeof value === 'string' ? value.trim() : null);
     default:
       return null;
   }
@@ -385,24 +389,39 @@ function inferColumns(
 }
 
 /**
+ * Words a CSV or an API writes for a missing value. A first row that holds one is a record with a
+ * gap, not a header.
+ */
+const MISSING_VALUE_WORDS = new Set(['-', '--', '?', 'n/a', 'na', '#n/a', 'null', 'none', 'nan', 'unknown', 'tbd']);
+
+/**
  * Whether the first row reads as a header: array data, every cell a non-blank string across the
- * full width, and at least one column below it that the header cell does not belong to. A column
- * of text has no type for a header to differ from, so a table of text reads as data.
+ * full width and none of them a missing-value word, and at least one typed column below it, with
+ * every typed column rejecting its cell. A column of text has no type for a header to differ from, so
+ * a table of text reads as data. One typed column that reads its cell (`2026-01-01`) is enough to
+ * say the row holds data.
  */
 function looksLikeHeader(first: unknown, columns: InferredColumn[]): boolean {
   if (!Array.isArray(first) || first.length < columns.length || columns.length === 0) {
     return false;
   }
 
-  if (!first.every(cell => typeof cell === 'string' && !isBlank(cell))) {
+  const row = first as unknown[];
+  const cellsAreNames = row.every(cell => (
+    typeof cell === 'string' && !isBlank(cell) && !MISSING_VALUE_WORDS.has(cell.trim().toLowerCase())
+  ));
+
+  if (!cellsAreNames) {
     return false;
   }
 
-  return columns.some((column, index) => {
+  const typed = columns.flatMap((column, index) => {
     const reader = createReader(column);
 
-    return reader !== null && reader(first[index]) === null;
+    return reader ? [{ reader, cell: row[index] }] : [];
   });
+
+  return typed.length > 0 && typed.every(({ reader, cell }) => reader(cell) === null);
 }
 
 /**

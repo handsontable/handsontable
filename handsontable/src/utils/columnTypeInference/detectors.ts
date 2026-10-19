@@ -314,7 +314,8 @@ const MIN_DROPDOWN_VALUES = 6;
  * with `dropdown: false` when that is wrong for the data.
  */
 function detectDropdown(values: unknown[], context: DetectionContext): Detection | null {
-  const strings = values.filter(value => typeof value === 'string');
+  // Trimmed, like every other reader: padded CSV values are one option, not several.
+  const strings = values.filter(value => typeof value === 'string').map(value => value.trim());
   const source = Array.from(new Set(strings));
   const tooFew = source.length < MIN_DROPDOWN_OPTIONS || strings.length < MIN_DROPDOWN_VALUES;
 

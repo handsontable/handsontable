@@ -429,6 +429,17 @@ describe('inferColumnTypes', () => {
       expect(inferOne(['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank']).type).toBe('text');
     });
 
+    it('counts padded values as one option, and converts them trimmed', () => {
+      const values = ['Open', 'Open ', 'Closed', 'Closed', 'Open', 'Open', 'Closed'];
+      const column = inferOne(values, { stats: true });
+
+      expect(column.type).toBe('dropdown');
+      expect(column.source).toEqual(['Open', 'Closed']);
+      expect(column.stats.distinctCount).toBe(column.source.length);
+      expect(convertOne(values)).toEqual(['Open', 'Open', 'Closed', 'Closed', 'Open', 'Open', 'Closed']);
+      expect(inferOne([...values, ' Open']).source).toEqual(['Open', 'Closed']);
+    });
+
     it('needs two options and six values', () => {
       expect(inferOne(['yes', 'yes', 'yes', 'yes', 'yes', 'yes']).type).toBe('text');
       expect(inferOne(['yes', 'no', 'yes', 'no']).type).toBe('text');
@@ -767,6 +778,29 @@ describe('inferColumnTypes', () => {
         expect(detect([['Name', 5], ['Alice', 6], ['Bob', 7]]).headerRow).toBe(false);
         expect(detect([['Name', ''], ['Alice', '6'], ['Bob', '7']]).headerRow).toBe(false);
         expect(detect([['Name'], ['Alice', '6'], ['Bob', '7']]).headerRow).toBe(false);
+      });
+
+      it('reads a first row that holds a missing-value word as a record, and keeps it', () => {
+        const rows = [['Alice', 'n/a'], ['Bob', '5'], ['Carol', '7'], ['Dave', '9'], ['Eve', '11']];
+
+        ['n/a', 'N/A', '-', '--', 'null', 'NA', '#N/A', '?', ' none '].forEach((word) => {
+          const withGap = [['Alice', word], ...rows.slice(1)];
+          const result = detect(withGap);
+
+          expect(result.headerRow).toBe(false);
+          expect(convertToInferredTypes(withGap, result)).toHaveLength(5);
+        });
+
+        expect(convertToInferredTypes(rows, detect(rows))[0]).toEqual(['Alice', 'n/a']);
+      });
+
+      it('reads a first row as data when any typed column reads its cell', () => {
+        const rows = [['Score', '2026-01-01'], ['5', '2026-02-01'], ['7', '2026-02-02'], ['9', '2026-02-03']];
+
+        expect(detect(rows).headerRow).toBe(false);
+        expect(detect([['Alice', '-', '2026-01-01'], ['Bob', '5', '2026-02-01'], ['Eve', '7', '2026-02-02']]).headerRow)
+          .toBe(false);
+        expect(detect([['Score', 'Joined'], ['5', '2026-02-01'], ['7', '2026-02-02']]).headerRow).toBe(true);
       });
 
       it('settles on one header column that differs from its data', () => {
