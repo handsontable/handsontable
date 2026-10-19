@@ -57,12 +57,27 @@ any of them.
   break a plugin: the Filters import throws on an operation or condition name that is not registered
   on the page and on two entries for one column with
   different operations, after it has already emptied the live conditions; a sort the plugin rejects
-  (a column past `countCols()`, a duplicate, more than one column without MultiColumnSorting) leaves
+  (a duplicate, more than one column without MultiColumnSorting, a column past the end) leaves
   the grid unsorted, because the restore clears the sort first; and `setIndexesSequence()` stores any
   array, so a row order that is not a permutation of `0..n-1` shows one record twice and hides
   another. `writePart()` rejects all of those as `invalid` before anything is applied, and
-  `writeOrder()` reports another length as `sizeMismatch`. The `it.each` table in
+  `writeOrder()` reports another length as `sizeMismatch` (a sort column past the end is `outOfRange`). The `it.each` table in
   `viewState.unit.js` holds one case per rule.
+- **One index space: an index that names a record or a column is physical, a position on screen is
+  visual.** The sort, the filters, the hidden columns, the column widths and the orders are physical, so
+  every part of one state addresses the same columns after a column move; the selection, the scroll and
+  the frozen counts are visual. The sort used to be the one visual exception. It is physical in the
+  engine too, which translates it right before each call into the sorting plugin (the stale-cache trap in
+  `../../utils/viewState/AGENTS.md`), so `readPart()` and `writePart()` pass it through unchanged. Do not
+  convert it here against `columnOrder`: the plugin translates against the cache from before the restore.
+- **A column may be named by its property, on input only.** `resolveColumnKeys()` turns a string in
+  `sort`, `filters`, `hiddenColumns` and `columnWidths` into the physical index of its column
+  (`propToCol()`, then `toPhysicalColumn()`) before any other check, so the checks, the duplicate test
+  and the Filters validation see indexes only. An unknown property is `invalid` at its own path;
+  `propToCol()` hands it back unchanged, which is how it is told apart. A property two columns share
+  resolves to the last one, as `propToCol()` does. `getViewState()` and `previous` never emit properties:
+  a `columns[].data` can be a function, a property can be shared, and array data has none. The row parts
+  and `columnOrder` take integers only.
 - **The public sort carries no pre-sort order.** The sorting plugin builds its pre-sort cache on its
   first sort and keeps it until it is disabled, so an order handed to it later is overwritten on a
   grid that has sorted before. The restore hands it the current order, and `rowOrder` restores the

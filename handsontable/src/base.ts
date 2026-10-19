@@ -504,6 +504,8 @@ declare namespace Handsontable {
     export type ViewState = import('./plugins/viewState').ViewState;
     export namespace ViewState {
       export type State = import('./plugins/viewState').GridViewState;
+      export type Input = import('./plugins/viewState').GridViewStateInput;
+      export type ColumnKey = import('./plugins/viewState').GridViewStateColumnKey;
       export type Part = import('./plugins/viewState').GridViewStatePart;
       export type SkipReason = import('./plugins/viewState').GridViewStateSkipReason;
       export type Issue = import('./plugins/viewState').GridViewStateIssue;
