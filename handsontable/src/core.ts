@@ -6164,6 +6164,22 @@ export default function Core(
   };
 
   /**
+   * Returns the last visual row a whole-column read covers.
+   *
+   * The read runs in visual rows, so it has to reach `countRows()`: under NestedRows the source
+   * array holds only the top-level records, and its length stops the read short of every row past
+   * it. The source length stays in the `max` so a grid with no visual rows reads what it always did:
+   * with an empty data set the end is `-1`, so `getRange()` starts at the header row and returns
+   * `[null]`, while a fully trimmed one returns `[]`. A row past `countRows()` has no physical index,
+   * and `getRange()` skips it.
+   *
+   * @returns {number} Visual row index.
+   */
+  function getLastColumnReadRow(): number {
+    return Math.max(instance.countRows(), tableMeta.data.length) - 1;
+  }
+
+  /**
    * @description
    * Returns array of column values from the data source.
    *
@@ -6178,7 +6194,7 @@ export default function Core(
     const columnData = [];
     const dataByRows = datamap.getRange(
       instance._createCellCoords(0, column) as { row: number; col: number },
-      instance._createCellCoords(tableMeta.data.length - 1, column) as { row: number; col: number },
+      instance._createCellCoords(getLastColumnReadRow(), column) as { row: number; col: number },
       DataMap.DESTINATION_RENDERER
     );
 
@@ -6215,7 +6231,7 @@ export default function Core(
     const dataByRows = datamap.getRange(
       instance._createCellCoords(0, visualColumn as number) as { row: number; col: number },
       instance._createCellCoords(
-        tableMeta.data.length - 1, visualColumn as number
+        getLastColumnReadRow(), visualColumn as number
       ) as { row: number; col: number },
       DataMap.DESTINATION_RENDERER
     );

@@ -581,6 +581,12 @@ They are written in different places and can drift. Keep this in mind:
   their constructors. Reassigning `plugin.dataManager` later leaves four stale references.
 - **The `recursive` parameters of `collapseChildRows()` and `expandChildRows()` are never read.**
   Recursion is unconditional. Do not rely on passing `false`.
+- **`tableMeta.data.length` is the TOP-LEVEL count here, never the row count.** The source array
+  holds the top-level records only; the flattened rows come from the index mapper. A Core read that
+  walks visual rows must end at `countRows()`. `getDataAtCol()` and `getDataAtProp()` ended at
+  `data.length - 1` and dropped every row past it (`getLastColumnReadRow()` in `core.ts`, pinned by
+  `src/core/__tests__/getDataAtColNestedRows.unit.js`). No other grid exposed it, because trimming
+  and filtering only shrink the visual rows below `data.length`.
 - **Do not use `arr.push(...bigArray)` here.** `collapsing.ts` and `nestedRows.ts` are both listed in
   `handsontable/.ai/CONCERNS.md` as stack-overflow risks with 10k+ rows. Build index lists with a loop.
 - **`batchExecution` does not suspend rendering.** Use `hot.batch()` when a method performs two
