@@ -311,6 +311,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the type check. Under a cast, a rename in MergeCells still compiles here and the first switch
   throws `… is not a function`. Do not reach into `mergedCellsCollection` or call `mergeRange()`
   from here again.
+- **Custom borders are restored with the logical sides only.** `getBorders()` records carry both
+  `start`/`end` and their legacy `left`/`right` copies (`denormalizeBorder()`), and `setBorders()`
+  throws when it gets both pairs, and on `left`/`right` alone in RTL. `restoreCustomBorders()`
+  therefore passes `top`, `bottom`, `start` and `end` only. Passing every side made the switch back
+  to any bordered sheet throw, which dropped its borders and its stored selection. Pinned by the
+  `custom borders` block in `__tests__/viewState.unit.js`.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).

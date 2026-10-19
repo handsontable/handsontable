@@ -96,6 +96,16 @@ export class BottomSlotSizingPage {
   }
 
   /**
+   * Rebuilds the grid with grid option overrides that leave it with no rendered columns (empty
+   * data, every column hidden), so no data cell can be waited for; waits for the bar instead.
+   */
+  async rebuildWithoutColumns(overrides: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(o => window.initSlotGrid(undefined, undefined, o), overrides);
+    await expect(this.paginationBar.or(this.sheetsBar)).toBeVisible();
+    await expect.poll(() => this.page.evaluate(() => window.hot.countRenderedCols())).toBe(0);
+  }
+
+  /**
    * Waits for the first data row. Row 1 sits right under the header on every theme, so it is
    * inside the rendered band whatever the layout.
    */

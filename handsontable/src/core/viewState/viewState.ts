@@ -875,9 +875,10 @@ function restoreMergedCells(hot: HotInstance, state: ViewState) {
 
 /**
  * The keys of a saved border record that describe its sides. The record also carries its
- * position and id, which `setBorders()` does not take.
+ * position and id, which `setBorders()` does not take, and the legacy `left`/`right` copies of
+ * `start`/`end`, which `setBorders()` rejects next to them (and rejects outright in RTL).
  */
-const BORDER_SIDES = ['top', 'bottom', 'start', 'end', 'left', 'right'];
+const BORDER_SIDES = ['top', 'bottom', 'start', 'end'];
 
 /**
  * Restores custom borders, clearing the current set first.
