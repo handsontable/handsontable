@@ -55,17 +55,18 @@ describe('EditorManager', () => {
     expect(hot.getActiveEditor()?.isOpened() ?? false).toBe(false);
   });
 
-  it('should not throw when a double-click asks to edit a cell selected while data was loading', () => {
+  it('should open the editor when a double-click asks to edit a cell selected while data was loading', () => {
     hot.selection.markSource('loadData');
     hot.selectCell(1, 1);
     hot.selection.markEndSource();
 
     expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
     expect(() => openFromDoubleClick()).not.toThrow();
-    expect(hot.getActiveEditor()?.isOpened() ?? false).toBe(false);
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(hot.getActiveEditor().getValue()).toBe('d');
   });
 
-  it('should not throw when Enter asks to edit a cell selected while data was loading', () => {
+  it('should open the editor when Enter asks to edit a cell selected while data was loading', () => {
     hot.selection.markSource('loadData');
     hot.selectCell(1, 1);
     hot.selection.markEndSource();
@@ -73,7 +74,8 @@ describe('EditorManager', () => {
     expect(() => {
       editorOpenCommand.callback(hot, new KeyboardEvent('keydown', { key: 'Enter' }), ['enter']);
     }).not.toThrow();
-    expect(hot.getActiveEditor()?.isOpened() ?? false).toBe(false);
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(hot.getActiveEditor().getValue()).toBe('d');
   });
 
   it('should open the editor when Enter is pressed on a selected cell', () => {
@@ -83,6 +85,51 @@ describe('EditorManager', () => {
     expect(hot.getActiveEditor().isOpened()).toBe(true);
     expect(hot.getActiveEditor().row).toBe(0);
     expect(hot.getActiveEditor().col).toBe(0);
+  });
+
+  it('should not open the editor when Enter follows a loadData that made the selected cell read-only', () => {
+    hot.updateSettings({
+      cells(row, col) {
+        if (row === 0 && col === 1 && this.instance.getDataAtCell(row, col) === 'locked') {
+          return { readOnly: true };
+        }
+
+        return {};
+      },
+    });
+    hot.selectCell(0, 1);
+    hot.loadData([
+      ['a', 'locked'],
+      ['c', 'd'],
+    ]);
+
+    editorOpenCommand.callback(hot, new KeyboardEvent('keydown', { key: 'Enter' }), ['enter']);
+
+    expect(hot.getActiveEditor()?.isOpened() ?? false).toBe(false);
+    expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
+  });
+
+  it('should open the editor on the value loadData wrote', () => {
+    hot.selectCell(0, 0);
+    hot.loadData([
+      ['next', 'b'],
+      ['c', 'd'],
+    ]);
+
+    editorOpenCommand.callback(hot, new KeyboardEvent('keydown', { key: 'Enter' }), ['enter']);
+
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(hot.getActiveEditor().getValue()).toBe('next');
+  });
+
+  it('should not open the previously selected cell after the highlight moves to a header', () => {
+    hot.updateSettings({ navigableHeaders: true });
+    hot.selectCell(1, 1);
+    hot.selectColumns(0, 0, -1);
+
+    expect(hot.getSelectedRangeActive().highlight.isHeader()).toBe(true);
+    expect(() => openFromDoubleClick()).not.toThrow();
+    expect(hot.getActiveEditor()?.isOpened() ?? false).toBe(false);
   });
 
   it('should still open the editor when that cell is double-clicked with the mouse', () => {
