@@ -157,6 +157,15 @@ export class BasePlugin {
    * Collection of the reference to the plugins hooks.
    */
   #hooks: Record<string, HookCallback[]> = {};
+  /**
+   * The lifecycle listeners the constructor registers directly on the Handsontable instance. They
+   * bypass `addHook()`, so `clearHooks()` never removes them - `destroy()` does.
+   */
+  #lifecycleHooks: Record<string, HookCallback> = {
+    afterPluginsInitialized: () => this.onAfterPluginsInitialized(),
+    afterUpdateSettings: (newSettings: Record<string, unknown>) => this.onUpdateSettings(newSettings),
+    beforeInit: () => this.init(),
+  };
 
   /**
    * @param {object} hotInstance Handsontable instance.
@@ -173,11 +182,9 @@ export class BasePlugin {
 
     initializedPlugins = null;
 
-    this.hot.addHook('afterPluginsInitialized', () => this.onAfterPluginsInitialized());
-    this.hot.addHook('afterUpdateSettings', (newSettings: Record<string, unknown>) => {
-      this.onUpdateSettings(newSettings);
+    objectEach(this.#lifecycleHooks, (callback: HookCallback, name: string) => {
+      this.hot.addHook(name, callback);
     });
-    this.hot.addHook('beforeInit', () => this.init());
   }
 
   /**
@@ -710,6 +717,16 @@ export class BasePlugin {
    * Destroy plugin.
    */
   destroy(): void {
+    // A plugin destroyed on its own, ahead of the grid, must stop answering the grid's lifecycle
+    // hooks: `onUpdateSettings()` reads `this.hot`, which is gone below, so the next
+    // `updateSettings()` would throw (DEV-775). The grid destroys every plugin again on its own
+    // `destroy()`, when `hot` is already gone and there is nothing left to remove.
+    if (this.hot) {
+      objectEach(this.#lifecycleHooks, (callback: HookCallback, name: string) => {
+        this.hot.removeHook(name, callback);
+      });
+    }
+
     this.#pluginSettings = null;
     this.eventManager?.destroy();
     this.clearHooks();

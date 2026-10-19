@@ -874,6 +874,7 @@ export default function Core(
       return editor ? (editor.isOpened() as boolean) : false;
     },
     isPluginEnabled: (pluginName: string) => instance.getPlugin(pluginName)?.enabled === true,
+    isPluginRegistered: (pluginName: string) => instance.getPlugin(pluginName) !== undefined,
     countRenderableColumns: () => instance.view.countRenderableColumns() as number,
     countRenderableRows: () => instance.view.countRenderableRows() as number,
     countRowHeaders: () => instance.countRowHeaders() as number,
@@ -8081,6 +8082,10 @@ export default function Core(
    * @fires Hooks#afterDestroy
    */
   this.destroy = function() {
+    // Never resumed: nothing may render a grid that is being torn down. A plugin whose `destroy()`
+    // re-renders to reflect its own removal at runtime (Autofill hides the fill handle) would
+    // otherwise render the view destroyed below (DEV-775).
+    instance.suspendRender();
     instance._clearTimeouts();
     instance._clearMicrotasks();
     // A transaction held by a pending validator must not settle on a destroyed instance.
@@ -8142,7 +8147,12 @@ export default function Core(
       pluginsRegistry
         .getItems()
         .forEach(([, plugin]) => {
-          (plugin as BasePlugin).destroy();
+          // A plugin destroyed on its own, ahead of the grid, has no `hot` left. Its `destroy()`
+          // override may read `hot` or its own nulled fields again before reaching the base class,
+          // and a throw here would skip every later plugin and the `afterDestroy` hook (DEV-775).
+          if ((plugin as BasePlugin).hot) {
+            (plugin as BasePlugin).destroy();
+          }
         });
       pluginsRegistry.clear();
       instance.runHooks('afterDestroy');

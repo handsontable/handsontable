@@ -33,6 +33,7 @@ function createTableProps(overrides: Partial<SelectionTableProps> = {}): Selecti
     propToCol: (prop: string | number) => Number(prop),
     isEditorOpened: () => false,
     isPluginEnabled: () => false,
+    isPluginRegistered: () => false,
     isDisabledCellSelection: () => false,
     visualToRenderableCoords: (coords: CellCoords) => new CellCoords(coords.row ?? 0, coords.col ?? 0),
     renderableToVisualCoords: (coords: CellCoords) => new CellCoords(coords.row ?? 0, coords.col ?? 0),
@@ -61,6 +62,43 @@ function createSettings(overrides: Partial<SelectionSettings> = {}): SelectionSe
 }
 
 describe('Selection', () => {
+  describe('fill handle visibility (DEV-775)', () => {
+    it('should draw the fill handle when the Autofill plugin is registered and enabled', () => {
+      const selection = new Selection(createSettings({ fillHandle: true }), createTableProps({
+        isPluginRegistered: name => name === 'autofill',
+        isPluginEnabled: name => name === 'autofill',
+      }));
+
+      expect(selection.isCellCornerVisible()).toBe(true);
+    });
+
+    it('should not draw the fill handle when the Autofill plugin is registered but disabled or destroyed', () => {
+      const selection = new Selection(createSettings({ fillHandle: true }), createTableProps({
+        isPluginRegistered: name => name === 'autofill',
+        isPluginEnabled: () => false,
+      }));
+
+      expect(selection.isCellCornerVisible()).toBe(false);
+      expect(selection.isAreaCornerVisible(0)).toBe(false);
+    });
+
+    // A tree-shaken build that never registered `AutofillPlugin` keeps the handle the setting asks for.
+    it('should keep drawing the fill handle from the setting when the Autofill plugin is not registered', () => {
+      const selection = new Selection(createSettings({ fillHandle: true }), createTableProps());
+
+      expect(selection.isCellCornerVisible()).toBe(true);
+    });
+
+    it('should not draw the fill handle when the `fillHandle` setting is off', () => {
+      const selection = new Selection(createSettings({ fillHandle: false }), createTableProps({
+        isPluginRegistered: () => true,
+        isPluginEnabled: () => true,
+      }));
+
+      expect(selection.isCellCornerVisible()).toBe(false);
+    });
+  });
+
   describe('fill handle with a non-contiguous selection (DEV-540)', () => {
     // `multiple` is the grid's default selection mode; the shared `createSettings()` uses `range`,
     // which keeps one range only.

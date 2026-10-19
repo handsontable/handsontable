@@ -295,6 +295,14 @@ the decorator is where wrong arguments throw. The restore must ask the plugin ra
 `conditionRegisterer`/`logicalOperationRegisterer`: the engine is shared with SheetsBar, and a caller outside
 the Filters folder reading the registries is how a rename there breaks it silently.
 
+## The header listener outlives `disablePlugin()`, not `destroy()` (DEV-775)
+
+The constructor binds `afterGetColHeader` straight on the grid (`this.hot.addHook`), so the
+`htFiltersActive` marker keeps updating while the plugin is disabled. `destroy()` must remove it itself,
+first, while `hot` still exists: the callback starts with `this.hot.toPhysicalColumn()`, so a Filters
+instance destroyed ahead of the grid threw on the next header render. Pinned by
+`tests/e2e/plugin-destroy-update-settings.spec.ts`.
+
 ## Where to look next
 
 - Coordinate translation rules and `IndexMapper` usage: `coordinate-systems` skill and `handsontable/.ai/ARCHITECTURE.md`.
