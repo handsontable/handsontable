@@ -47,12 +47,20 @@
 
     // An image arrives with the first `load` or `error` of its source: that is when its row can grow. A
     // renderer that recreates its images gets them again from the cache without growing a row, so later
-    // events of a source do not count. The grid redraws at most once for all the arrivals between two
-    // draws (and only for a row whose height changed), so `contentBatches` counts the draw intervals that
-    // saw an arrival, and `drawsBeforeContent` the draws made before the first one.
+    // events of a source do not count. The grid redraws at most once per animation frame for all the
+    // arrivals in it (and only for a row whose height changed), so `contentBatches` counts the frames that
+    // saw an arrival, and `drawsBeforeContent` the draws made before the first one. A frame is counted
+    // here rather than a draw interval: a draw closes an interval, so a grid that drew once per arrival
+    // would open a new interval with every arrival and pass.
     const arrivedSources = new Set();
-    let arrivedSinceDraw = false;
+    const arrivalFrames = new Set();
+    let frame = 0;
+    const countFrame = () => {
+      frame += 1;
+      requestAnimationFrame(countFrame);
+    };
 
+    requestAnimationFrame(countFrame);
     window.arrivedSources = arrivedSources;
 
     window.contentArrivals = 0;
@@ -70,10 +78,8 @@
       window.contentArrivals = arrivedSources.size;
       window.drawsBeforeContent ??= window.renderCount;
 
-      if (!arrivedSinceDraw) {
-        arrivedSinceDraw = true;
-        window.contentBatches += 1;
-      }
+      arrivalFrames.add(frame);
+      window.contentBatches = arrivalFrames.size;
     };
 
     // `load` and `error` do not bubble, so they are caught on the capture phase.
@@ -115,7 +121,6 @@
         { renderer: imageRenderer, width: failing ? 60 : undefined } : {})),
       afterRender() {
         window.renderCount += 1;
-        arrivedSinceDraw = false;
       },
       licenseKey: 'non-commercial-and-evaluation',
     });

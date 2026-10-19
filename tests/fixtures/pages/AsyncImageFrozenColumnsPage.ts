@@ -53,7 +53,8 @@ export class AsyncImageFrozenColumnsPage {
       }
     };
 
-    await this.page.route('**/fixture-image/*.svg', async(route) => {
+    // The trailing `*` keeps the `?small=1` URLs routed: a glob must match the whole URL, query included.
+    await this.page.route('**/fixture-image/*.svg*', async(route) => {
       const url = route.request().url();
 
       if (url.includes('missing-')) {
@@ -133,7 +134,7 @@ export class AsyncImageFrozenColumnsPage {
 
   /**
    * Returns the draw count together with what bounds it, read in one evaluation: the draws made before
-   * the first image arrived, and the batches (draw intervals in which at least one image source arrived
+   * the first image arrived, and the batches (animation frames in which at least one image source arrived
    * for the first time). The grid redraws at most once per batch, so the draws
    * after the first arrival cannot outnumber the batches. That holds while nothing but arriving images
    * makes the grid draw, as in this fixture (a fixed-size container, no stretching).
@@ -163,6 +164,22 @@ export class AsyncImageFrozenColumnsPage {
       return [...document.querySelectorAll('.ht_master tbody img')]
         .filter(image => !arrivedSources.has(image.getAttribute('src') ?? '')).length;
     });
+  }
+
+  /**
+   * Tells whether the draw count stays the same over the given number of frames, read in one evaluation.
+   */
+  async drawsHoldStill(frames: number): Promise<boolean> {
+    return this.page.evaluate(async(count) => {
+      const fixture = window as unknown as FixtureWindow;
+      const before = fixture.renderCount;
+
+      for (let i = 0; i < count; i++) {
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
+
+      return fixture.renderCount === before;
+    }, frames);
   }
 
   /**
