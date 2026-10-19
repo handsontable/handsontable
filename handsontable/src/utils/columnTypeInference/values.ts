@@ -2,17 +2,27 @@ import { isValidISODate } from '../../helpers/dateTime';
 import { CURRENCY_SYMBOLS } from '../currencySymbols';
 
 /**
- * A number body with a dot decimal and optional grouping (`1,234.56`, `1 234.56`, `1'234.56`,
- * `0.5`, `.5`, `1234`). One grouping character is used throughout a value (the backreference), and a
- * grouped value never starts with `0`, so `0.123` reads as a dot decimal only.
+ * An ungrouped number body with a dot decimal (`1234`, `0.5`, `.5`).
  */
-const DOT_DECIMAL_REGEX = /^(?:[1-9]\d{0,2}([,\u0020\u00a0\u202f'\u2019])\d{3}(?:\1\d{3})*|\d+)(?:\.\d+)?$|^\.\d+$/;
+const DOT_PLAIN_REGEX = /^(?:\d+(?:\.\d+)?|\.\d+)$/;
 
 /**
- * A number body with a comma decimal and optional grouping (`1.234,56`, `1 234,56`, `0,5`, `,5`,
- * `1234`), under the same rules as `DOT_DECIMAL_REGEX`.
+ * A grouped number body with a dot decimal (`1,234.56`, `1 234.56`, `1'234.56`). One grouping
+ * character is used throughout a value (the backreference), and a grouped value never starts with
+ * `0`, so `0.123` reads as a dot decimal only.
  */
-const COMMA_DECIMAL_REGEX = /^(?:[1-9]\d{0,2}([.\u0020\u00a0\u202f])\d{3}(?:\1\d{3})*|\d+)(?:,\d+)?$|^,\d+$/;
+const DOT_GROUPED_REGEX = /^[1-9]\d{0,2}([,\u0020\u00a0\u202f'\u2019])\d{3}(?:\1\d{3})*(?:\.\d+)?$/;
+
+/**
+ * An ungrouped number body with a comma decimal (`1234`, `0,5`, `,5`).
+ */
+const COMMA_PLAIN_REGEX = /^(?:\d+(?:,\d+)?|,\d+)$/;
+
+/**
+ * A grouped number body with a comma decimal (`1.234,56`, `1 234,56`), under the same rules as
+ * `DOT_GROUPED_REGEX`.
+ */
+const COMMA_GROUPED_REGEX = /^[1-9]\d{0,2}([.\u0020\u00a0\u202f])\d{3}(?:\1\d{3})*(?:,\d+)?$/;
 
 /**
  * The characters a number body may hold: digits, the two decimal separators, and the grouping
@@ -171,7 +181,7 @@ export function splitNumberParts(text: string): NumberParts | null {
     rest = rest.slice(0, -1).trim();
   }
 
-  const signed = /^[+-]/.test(rest);
+  const signed = rest.startsWith('+') || rest.startsWith('-');
   let negative = signed && rest[0] === '-';
 
   if (signed) {
@@ -202,7 +212,16 @@ export function splitNumberParts(text: string): NumberParts | null {
 function countSignificantDigits(body: string, decimalSeparator: '.' | ','): number {
   const separator = body.indexOf(decimalSeparator);
   const integerPart = separator === -1 ? body : body.slice(0, separator);
-  const fraction = separator === -1 ? '' : body.slice(separator + 1).replace(/0+$/, '');
+  let fraction = separator === -1 ? '' : body.slice(separator + 1);
+
+  // A loop, not `replace(/0+$/, '')`: that pattern backtracks quadratically on a long run of zeros.
+  let end = fraction.length;
+
+  while (end > 0 && fraction[end - 1] === '0') {
+    end -= 1;
+  }
+
+  fraction = fraction.slice(0, end);
 
   return `${integerPart.replace(/\D/g, '')}${fraction}`.replace(/^0+/, '').length;
 }
@@ -217,7 +236,9 @@ export function isNumberBody(body: string, decimalSeparator: '.' | ','): boolean
     return false;
   }
 
-  return decimalSeparator === '.' ? DOT_DECIMAL_REGEX.test(body) : COMMA_DECIMAL_REGEX.test(body);
+  return decimalSeparator === '.'
+    ? DOT_PLAIN_REGEX.test(body) || DOT_GROUPED_REGEX.test(body)
+    : COMMA_PLAIN_REGEX.test(body) || COMMA_GROUPED_REGEX.test(body);
 }
 
 /**
@@ -267,12 +288,13 @@ export function readSplitNumber(value: unknown, parts: NumberParts | null, mode:
     return Number.isFinite(value) && !mode.percent ? value : null;
   }
 
-  if (
-    parts === null ||
-    parts.percent !== mode.percent ||
-    (parts.currencySymbol !== null && parts.currencySymbol !== mode.currencySymbol) ||
-    !isNumberBody(parts.body, mode.decimalSeparator)
-  ) {
+  if (parts === null) {
+    return null;
+  }
+
+  const otherCurrency = parts.currencySymbol !== null && parts.currencySymbol !== mode.currencySymbol;
+
+  if (parts.percent !== mode.percent || otherCurrency || !isNumberBody(parts.body, mode.decimalSeparator)) {
     return null;
   }
 

@@ -34,7 +34,7 @@ const DEFAULT_MIN_CONFIDENCE = 0.9;
 /**
  * The types whose values have an order worth reporting as `min` and `max`.
  */
-const RANGE_TYPES: InferredCellType[] = ['numeric', 'date', 'time'];
+const RANGE_TYPES = new Set<InferredCellType>(['numeric', 'date', 'time']);
 
 /**
  * How many example values `stats` keeps when `stats: true` does not say.
@@ -143,6 +143,56 @@ interface ColumnVerdict {
 }
 
 /**
+ * A detector's proposal that reached the confidence floor.
+ */
+interface Winner {
+  /**
+   * The proposed column options and how its values were written.
+   */
+  column: DetectedColumn;
+  /**
+   * The share of values it read, scaled by the detector's certainty.
+   */
+  confidence: number;
+}
+
+/**
+ * Runs the detectors in order. The first whose share reaches the floor wins, and with
+ * `collectRivals` the rest still run so the other types that read some values are known.
+ */
+function runDetectors(
+  nonBlank: unknown[],
+  context: DetectionContext,
+  minConfidence: number,
+  collectRivals: boolean
+): { winner: Winner | null; rivals: Array<{ type: InferredCellType; share: number }> } {
+  let winner: Winner | null = null;
+  const rivals: Array<{ type: InferredCellType; share: number }> = [];
+
+  for (const detect of DETECTORS) {
+    const detection = detect(nonBlank, context);
+    const share = detection ? detection.matched / nonBlank.length : 0;
+
+    if (detection === null || detection.matched === 0) {
+      continue;
+    }
+
+    if (winner === null && share >= minConfidence) {
+      winner = { column: detection.column, confidence: share * detection.certainty };
+
+      if (!collectRivals) {
+        break;
+      }
+
+    } else {
+      rivals.push({ type: detection.column.settings.type, share });
+    }
+  }
+
+  return { winner, rivals };
+}
+
+/**
  * Picks a column's type: the first detector whose share of read values reaches the floor, or
  * `text`. The floor is checked against the share alone; the detector's certainty only scales the
  * reported confidence, so a fully read date column whose order came from the locale still wins.
@@ -158,29 +208,9 @@ function inferColumn(
     return { column: { settings: { type: 'text' } }, confidence: 0 };
   }
 
-  let winner: { column: DetectedColumn; confidence: number } | null = null;
-  const rivals: Array<{ type: InferredCellType; share: number }> = [];
-
-  for (const detect of DETECTORS) {
-    const detection = detect(nonBlank, context);
-    const share = detection ? detection.matched / nonBlank.length : 0;
-
-    if (detection && detection.matched > 0) {
-      if (winner === null && share >= minConfidence) {
-        winner = { column: detection.column, confidence: share * detection.certainty };
-
-        if (!wantRunnerUp) {
-          break;
-        }
-
-      } else {
-        rivals.push({ type: detection.column.settings.type, share });
-      }
-    }
-  }
-
-  // `sort` is stable, so equal shares keep the order of `DETECTORS`.
-  const [rival] = rivals.sort((a, b) => b.share - a.share);
+  const { winner, rivals } = runDetectors(nonBlank, context, minConfidence, wantRunnerUp);
+  // `toSorted` is stable, so equal shares keep the order of `DETECTORS`.
+  const [rival] = rivals.toSorted((a, b) => b.share - a.share);
   const runnerUpType = rival?.type ?? (winner ? 'text' : undefined);
 
   return winner
@@ -248,7 +278,7 @@ function describeColumn(
 ): InferredColumnStats {
   const nonBlank = values.filter(value => !isBlank(value));
   const distinct = Array.from(new Set(nonBlank.map(toText)));
-  const reader = RANGE_TYPES.includes(column.settings.type) ? createReader(column) : null;
+  const reader = RANGE_TYPES.has(column.settings.type) ? createReader(column) : null;
   const converted = reader
     ? nonBlank.map(reader).filter((value): value is number | string => value !== null)
     : [];
@@ -261,8 +291,22 @@ function describeColumn(
 
   if (converted.length > 0) {
     // Numbers and ISO strings both order correctly under `<`; a column holds only one of the two.
-    stats.min = converted.reduce((least, value) => (value < least ? value : least));
-    stats.max = converted.reduce((most, value) => (value > most ? value : most));
+    // A loop, since spreading into `Math.min` overflows the stack on a large sample.
+    let [least] = converted;
+    let most = least;
+
+    for (const value of converted) {
+      if (value < least) {
+        least = value;
+      }
+
+      if (value > most) {
+        most = value;
+      }
+    }
+
+    stats.min = least;
+    stats.max = most;
   }
 
   if (runnerUpType !== undefined) {
@@ -429,7 +473,7 @@ function convertRow(row: unknown, columns: InferredColumn[], readers: Array<Valu
   columns.forEach((column, index) => {
     const { data } = column.settings;
 
-    if (data !== undefined && Object.prototype.hasOwnProperty.call(copy, data)) {
+    if (data !== undefined && Object.hasOwn(copy, data)) {
       copy[data] = convertValue(copy[data], readers[index]);
     }
   });

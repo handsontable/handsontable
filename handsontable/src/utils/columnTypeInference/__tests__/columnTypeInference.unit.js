@@ -209,6 +209,13 @@ describe('inferColumnTypes', () => {
       expect(convertOne(['12345678901234.50', '1.00'])).toEqual([12345678901234.5, 1]);
     });
 
+    it('reads a long run of fraction zeros in linear time', () => {
+      const values = [`1.${'0'.repeat(300000)}1`, '2'];
+
+      expect(inferOne(values).type).toBe('text');
+      expect(inferOne([`1.5${'0'.repeat(300000)}`, '2']).type).toBe('numeric');
+    });
+
     it('counts the fraction digits of numbers printed in exponent form', () => {
       expect(inferOne([1.5e-7, 2.5e-7, 3e-7]).numericFormat.maximumFractionDigits).toBe(8);
     });
@@ -753,6 +760,13 @@ describe('inferColumnTypes', () => {
         .toEqual(expect.objectContaining({ min: '2025-12-01', max: '2026-03-12' }));
       expect(stats(['9:05 PM', '12:00 am', '14:30']))
         .toEqual(expect.objectContaining({ min: '00:00:00', max: '21:05:00' }));
+    });
+
+    it('takes min and max over a very large sample', () => {
+      const values = Array.from({ length: 100000 }, (_, index) => String((index * 7919) % 100003));
+      const result = stats(values, { sampleSize: Infinity });
+
+      expect(result).toEqual(expect.objectContaining({ count: 100000, min: 0, max: 100002 }));
     });
 
     it('sets no min and max for the other types', () => {
