@@ -1102,7 +1102,7 @@ export class AsyncValues extends BasePlugin {
    * @param {object[]} targets The cells.
    * @param {Function} source The batch source.
    * @param {object} run The call.
-   * @returns {Promise<object>[]}
+   * @returns {Array<Promise<object>>}
    */
   #startBatches(targets: Target[], source: AsyncValueBatchSource, run: Run): Promise<AsyncValueResult>[] {
     const results: Promise<AsyncValueResult>[] = [];
@@ -1183,7 +1183,7 @@ export class AsyncValues extends BasePlugin {
    * Starts failed cells again: a cell source per cell, and a batch source in batches per source and call.
    *
    * @param {object[]} failed The failed entries, each with an origin.
-   * @returns {Promise<object>[]} The promises, in the order of `failed`.
+   * @returns {Array<Promise<object>>} The promises, in the order of `failed`.
    */
   #retry(failed: AsyncValueEntry[]): Promise<AsyncValueResult>[] {
     const results = new Map<AsyncValueEntry, Promise<AsyncValueResult>>();
