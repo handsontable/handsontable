@@ -213,6 +213,32 @@ export class CustomBorders extends BasePlugin {
   #bordersByRowDirty: boolean = true;
 
   /**
+   * Visual-row index of the borders a progressive `updateSettings()` replace is taking over from.
+   * The viewport sync keeps drawing them, cell by cell, until the new configuration reaches the cell
+   * or the load ends. `null` outside such a replace.
+   */
+  #outgoingBordersByRow: Map<number, BorderObject[]> | null = null;
+
+  /**
+   * Ids of the rendered selections in `#customSelectionsCache` that draw an outgoing border rather
+   * than one of the current model. The viewport sync replaces them as soon as the model holds a
+   * border for the same cell.
+   */
+  #outgoingSelectionIds: Set<string> = new Set();
+
+  /**
+   * The borders on screen when `updatePlugin()` started a progressive replace, handed over to
+   * `changeBorderSettings()` once the model reset is done. `null` when the update is not one.
+   */
+  #carriedBorders: BorderObject[] | null = null;
+
+  /**
+   * `true` while `updatePlugin()` swaps the border model for a progressive replace: the rendered
+   * selections are not destroyed then, so the previous borders stay drawn.
+   */
+  #retainRenderedSelections: boolean = false;
+
+  /**
    * During a `createCustomBorders` pass, holds the `row,col` keys already written in this pass, so a
    * cell touched for the first time can skip the existing-meta merge read (there is nothing to merge
    * on a fresh cell - the pass starts after the previous borders' meta is cleared). Only cells hit by
@@ -349,10 +375,20 @@ export class CustomBorders extends BasePlugin {
    *  - [`customBorders`](@/api/options.md#customborders)
    */
   updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
+    // Disabling the plugin destroys every rendered border, so a progressive replace has to take the
+    // borders on screen before that happens and keep them drawn until the new ones land.
+    this.#carriedBorders = this.#collectBordersForProgressiveReplace();
+    this.#retainRenderedSelections = this.#carriedBorders !== null;
 
-    this.changeBorderSettings();
+    try {
+      this.disablePlugin();
+      this.enablePlugin();
+
+      this.changeBorderSettings();
+    } finally {
+      this.#carriedBorders = null;
+      this.#retainRenderedSelections = false;
+    }
 
     super.updatePlugin();
   }
@@ -862,6 +898,7 @@ export class CustomBorders extends BasePlugin {
 
     this.spliceBorder(borderId);
     this.#unindexBorderByRow(row, borderId);
+    this.#dropOutgoingBorder(row, borderId);
     // Destroy the rendered selection if this border is currently in the viewport working set; if it
     // is off-screen there is nothing rendered to remove.
     this.#destroyBorderSelection(borderId);
@@ -1065,6 +1102,10 @@ export class CustomBorders extends BasePlugin {
    * the entries tracked in its working-set cache. Does not touch the `savedBorders` model.
    */
   #destroyAllSelections() {
+    if (this.#retainRenderedSelections) {
+      return;
+    }
+
     const { customSelections } = this.hot.selection.highlight;
     const owned = new Set(this.#customSelectionsCache.values());
 
@@ -1076,6 +1117,7 @@ export class CustomBorders extends BasePlugin {
     }
 
     this.#customSelectionsCache.clear();
+    this.#outgoingSelectionIds.clear();
   }
 
   /**
@@ -1165,6 +1207,27 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
+   * Forgets the outgoing border of one cell, so a running progressive replace does not draw it again
+   * after the cell was cleared on purpose (a removal, or a new configuration that hides every side).
+   *
+   * @param {number} row Visual row index the border sits on.
+   * @param {string} borderId The id of the border to forget.
+   */
+  #dropOutgoingBorder(row: number, borderId: string) {
+    const rowBorders = this.#outgoingBordersByRow?.get(row);
+
+    if (!rowBorders) {
+      return;
+    }
+
+    const at = rowBorders.findIndex(border => border.id === borderId);
+
+    if (at > -1) {
+      rowBorders.splice(at, 1);
+    }
+  }
+
+  /**
    * Drops a single border from the visual-row index. Runs only when the index is current, for the
    * same reason as {@link #indexBorderByRow}.
    *
@@ -1232,26 +1295,14 @@ export class CustomBorders extends BasePlugin {
     const fixedColumnsEnd = this.hot.view.countFixedColumnsEnd();
     const rowRanges = getViewportUnionRanges(firstRow, lastRow, fixedRowsTop, fixedRowsBottom, totalRows);
     const shouldBeVisible = new Set<string>();
+    const isColumnInWindow = (column: number) => isIndexInViewportUnion(
+      column, firstColumn, lastColumn, fixedColumnsStart, fixedColumnsEnd, totalColumns
+    );
 
     arrayEach(rowRanges, ([fromRow, toRow]) => {
       for (let row = fromRow; row <= toRow; row++) {
-        const rowBorders = this.#bordersByRow.get(row);
-
-        if (!rowBorders) {
-          continue; // eslint-disable-line no-continue
-        }
-
-        arrayEach(rowBorders, (border) => {
-          if (isIndexInViewportUnion(
-            border.col, firstColumn, lastColumn, fixedColumnsStart, fixedColumnsEnd, totalColumns
-          )) {
-            shouldBeVisible.add(border.id);
-
-            if (!this.#customSelectionsCache.has(border.id)) {
-              this.#addSelectionForBorder(border);
-            }
-          }
-        });
+        this.#syncRowSelections(this.#bordersByRow.get(row), isColumnInWindow, shouldBeVisible);
+        this.#syncOutgoingRowSelections(this.#outgoingBordersByRow?.get(row), isColumnInWindow, shouldBeVisible);
       }
     });
 
@@ -1259,6 +1310,73 @@ export class CustomBorders extends BasePlugin {
     arrayEach(Array.from(this.#customSelectionsCache.keys()), (borderId) => {
       if (!shouldBeVisible.has(borderId)) {
         this.#destroyBorderSelection(borderId);
+      }
+    });
+  }
+
+  /**
+   * Makes sure every model border of one row that lies in the working window has a rendered
+   * selection, and records it as one that should stay visible.
+   *
+   * @param {object[]|undefined} rowBorders The model borders on the row.
+   * @param {Function} isColumnInWindow Tells whether a visual column is in the working window.
+   * @param {Set<string>} shouldBeVisible Collects the ids that should stay rendered.
+   */
+  #syncRowSelections(
+    rowBorders: BorderObject[] | undefined,
+    isColumnInWindow: (column: number) => boolean,
+    shouldBeVisible: Set<string>
+  ) {
+    if (!rowBorders) {
+      return;
+    }
+
+    arrayEach(rowBorders, (border) => {
+      if (!isColumnInWindow(border.col)) {
+        return;
+      }
+
+      shouldBeVisible.add(border.id);
+
+      // The cell still shows the border of the previous configuration: replace it in this pass.
+      if (this.#outgoingSelectionIds.has(border.id)) {
+        this.#destroyBorderSelection(border.id);
+      }
+
+      if (!this.#customSelectionsCache.has(border.id)) {
+        this.#addSelectionForBorder(border);
+      }
+    });
+  }
+
+  /**
+   * Keeps drawing the borders of the previous configuration on one row, for the cells the model of
+   * a running progressive replace has not reached yet.
+   *
+   * @param {object[]|undefined} rowBorders The outgoing borders on the row.
+   * @param {Function} isColumnInWindow Tells whether a visual column is in the working window.
+   * @param {Set<string>} shouldBeVisible Collects the ids that should stay rendered.
+   */
+  #syncOutgoingRowSelections(
+    rowBorders: BorderObject[] | undefined,
+    isColumnInWindow: (column: number) => boolean,
+    shouldBeVisible: Set<string>
+  ) {
+    if (!rowBorders) {
+      return;
+    }
+
+    arrayEach(rowBorders, (border) => {
+      // A cell the model holds a border for is drawn from the model.
+      if (this.#savedBordersIndex.has(border.id) || !isColumnInWindow(border.col)) {
+        return;
+      }
+
+      shouldBeVisible.add(border.id);
+
+      if (!this.#customSelectionsCache.has(border.id)) {
+        this.#addSelectionForBorder(border);
+        this.#outgoingSelectionIds.add(border.id);
       }
     });
   }
@@ -1322,6 +1440,7 @@ export class CustomBorders extends BasePlugin {
 
     if (hideCount === 4) {
       this.spliceBorder(border.id);
+      this.#dropOutgoingBorder(border.row, border.id);
       check = true;
 
     } else {
@@ -1358,13 +1477,20 @@ export class CustomBorders extends BasePlugin {
       // Reset the model and clear the previous cells' meta first so `prepareBorderFromCustomAdded`
       // starts from a clean slate instead of merging the new config onto stale meta.
       this.#resetBorderModel();
+      // The reset was the last place that must leave the rendered selections alone.
+      this.#retainRenderedSelections = false;
 
       const progressive = this.#resolveProgressiveSetting();
 
       if (progressive.enabled && bordersClone.length > 0) {
-        // Apply borders in background batches: render the (border-less) grid now so it is
-        // interactive immediately; batches fill in and `afterCustomBordersUpdate` fires on drain.
+        // Apply borders in background batches: render the grid now so it is interactive immediately;
+        // batches fill in and `afterCustomBordersUpdate` fires on drain. The borders of a replaced
+        // configuration stay drawn until the batches reach their cells.
         this.#startProgressiveApply(bordersClone, progressive.chunkSize);
+
+        if (this.#carriedBorders) {
+          this.#adoptOutgoingBorders(this.#carriedBorders);
+        }
 
         if (render) {
           this.hot.render();
@@ -1373,6 +1499,8 @@ export class CustomBorders extends BasePlugin {
         return;
       }
 
+      // Nothing takes over from the rendered borders here, so none of them may outlive the reset.
+      this.#destroyAllSelections();
       this.createCustomBorders(bordersClone);
 
     } else if (customBorders !== undefined) {
@@ -1384,6 +1512,66 @@ export class CustomBorders extends BasePlugin {
     }
 
     this.hot.runHooks('afterCustomBordersUpdate');
+  }
+
+  /**
+   * Returns the borders on screen when the update that `updatePlugin()` handles replaces them
+   * progressively, or `null` when it does not. Takes the borders of a running replace too, so a
+   * second `updateSettings()` call keeps drawing what the first one has not replaced yet.
+   *
+   * @returns {object[]|null}
+   */
+  #collectBordersForProgressiveReplace(): BorderObject[] | null {
+    const customBorders = this.hot.getSettings()[PLUGIN_KEY];
+
+    if (!this.enabled
+        || !Array.isArray(customBorders)
+        || !customBorders.some(isRecord)
+        || !this.#resolveProgressiveSetting().enabled) {
+      return null;
+    }
+
+    const carried: BorderObject[] = [];
+
+    this.#outgoingBordersByRow?.forEach((rowBorders) => {
+      arrayEach(rowBorders, (border) => {
+        carried.push(border);
+      });
+    });
+    arrayEach(this.savedBorders, (border) => {
+      carried.push(border);
+    });
+
+    return carried;
+  }
+
+  /**
+   * Indexes the carried borders by visual row, the last one winning for an id, and marks every
+   * selection that is rendered right now as one that draws an outgoing border.
+   *
+   * @param {object[]} borders The borders the progressive replace takes over from.
+   */
+  #adoptOutgoingBorders(borders: BorderObject[]) {
+    const byId = new Map<string, BorderObject>();
+
+    arrayEach(borders, (border) => {
+      byId.set(border.id, border);
+    });
+
+    const byRow = new Map<number, BorderObject[]>();
+
+    byId.forEach((border) => {
+      const rowBorders = byRow.get(border.row);
+
+      if (rowBorders) {
+        rowBorders.push(border);
+      } else {
+        byRow.set(border.row, [border]);
+      }
+    });
+
+    this.#outgoingBordersByRow = byRow;
+    this.#outgoingSelectionIds = new Set(this.#customSelectionsCache.keys());
   }
 
   /**
@@ -1456,6 +1644,12 @@ export class CustomBorders extends BasePlugin {
       this.createCustomBorders(queue.slice(this.#progressiveIndex, end));
     });
     this.#progressiveIndex = end;
+
+    // The last batch ends the replace: the render below drops what the old configuration left behind.
+    if (end >= queue.length) {
+      this.#outgoingBordersByRow = null;
+    }
+
     this.hot.render();
 
     if (this.#progressiveIndex >= queue.length) {
@@ -1499,6 +1693,7 @@ export class CustomBorders extends BasePlugin {
     this.#progressiveQueue = null;
     this.#progressiveIndex = 0;
     this.#configPassTouched = null;
+    this.#outgoingBordersByRow = null;
     this.hot.runHooks('afterCustomBordersUpdate');
   }
 
@@ -1515,6 +1710,7 @@ export class CustomBorders extends BasePlugin {
     this.#progressiveQueue = null;
     this.#progressiveIndex = 0;
     this.#configPassTouched = null;
+    this.#outgoingBordersByRow = null;
   }
 
   /**
@@ -1673,6 +1869,8 @@ The border style will be ignored.`);
    * @param {string} borderId The id of the border whose selection should be destroyed.
    */
   #destroyBorderSelection(borderId: string) {
+    this.#outgoingSelectionIds.delete(borderId);
+
     const customSelection = this.#customSelectionsCache.get(borderId);
 
     if (!customSelection) {
@@ -1850,6 +2048,7 @@ The border style will be ignored.`);
 
     this.spliceBorder(borderId);
     this.#unindexBorderByRow(row, borderId);
+    this.#dropOutgoingBorder(row, borderId);
     this.#destroyBorderSelection(borderId);
   };
 
@@ -2079,6 +2278,9 @@ The border style will be ignored.`);
     this.#savedBordersIndex.clear();
     this.#bordersByRow.clear();
     this.#customSelectionsCache.clear();
+    this.#outgoingBordersByRow = null;
+    this.#outgoingSelectionIds.clear();
+    this.#carriedBorders = null;
     this.#rowMoveSnapshot = null;
     this.#columnMoveSnapshot = null;
 

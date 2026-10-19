@@ -1119,6 +1119,209 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
     expect(await lab.cellBorders(19, 0)).toBeNull();
   });
 
+  test('keeps the current borders drawn while a progressive replace is applied', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 20, dataCols: 4,
+      customBorders: bordersForRows(20),
+      customBordersProgressive: { chunkSize: 5 },
+    });
+    await expect.poll(() => lab.bordersUpdateCount()).toBe(1);
+
+    const result = await page.evaluate(() => new Promise<{
+      before: number, afterCall: number, lowestFrame: number, colorsAfterLoad: string[],
+    }>((resolve) => {
+      const win = window as any;
+      const count = () => win.borderUtils.countVisibleCustomBorders();
+      const before = count();
+
+      win.hot.updateSettings({
+        customBorders: Array.from({ length: 20 }, (_, row) => (
+          { row, col: 0, top: { color: 'red', width: 2 } }
+        )),
+      });
+
+      const afterCall = count();
+      let lowestFrame = afterCall;
+      const startedAt = win.bordersUpdateCount;
+      const sample = () => {
+        lowestFrame = Math.min(lowestFrame, count());
+
+        if (win.bordersUpdateCount === startedAt) {
+          win.requestAnimationFrame(sample);
+
+          return;
+        }
+
+        resolve({ before, afterCall, lowestFrame, colorsAfterLoad: win.borderUtils.visibleBorderColors() });
+      };
+
+      win.requestAnimationFrame(sample);
+    }));
+
+    expect(result.before).toBeGreaterThan(0);
+    // The call itself renders the grid with the model still empty - the old borders must stay.
+    expect(result.afterCall).toBe(result.before);
+    // And no frame until the load ends may show fewer of them.
+    expect(result.lowestFrame).toBe(result.before);
+    // Once the load ends only the new configuration is drawn.
+    expect(result.colorsAfterLoad.length).toBeGreaterThan(0);
+    expect(new Set(result.colorsAfterLoad)).toEqual(new Set(['red']));
+    // Nothing of the old configuration is left next to the new borders.
+    expect(await lab.countVisibleCustomBorders()).toBe(result.before);
+  });
+
+  test('drops the borders a progressive replace no longer configures when the load ends', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 20, dataCols: 4,
+      customBorders: bordersForRows(20),
+      customBordersProgressive: { chunkSize: 5 },
+    });
+    await expect.poll(() => lab.bordersUpdateCount()).toBe(1);
+
+    const result = await page.evaluate(() => {
+      const win = window as any;
+      const before = win.borderUtils.countVisibleCustomBorders();
+
+      win.hot.updateSettings({
+        customBorders: [
+          ...Array.from({ length: 10 }, (_, row) => ({ row, col: 0, top: { color: 'green', width: 1 } })),
+          { row: 3, col: 2, top: { color: 'red', width: 2 } },
+        ],
+      });
+
+      return { before, afterCall: win.borderUtils.countVisibleCustomBorders() };
+    });
+
+    // Rows 10-19 are not configured any more, yet they stay drawn until the load completes.
+    expect(result.afterCall).toBe(result.before);
+
+    await expect.poll(() => lab.bordersUpdateCount()).toBe(2);
+    await expect.poll(() => lab.borderCoords().then(coords => coords.length)).toBe(11);
+    // Only the 11 configured cells are drawn - one top edge each, nothing left of rows 10-19.
+    await expect.poll(() => lab.visibleBorderColors().then(colors => colors.length)).toBe(11);
+    expect((await lab.visibleBorderColors()).filter(color => color === 'red')).toHaveLength(1);
+  });
+
+  test('leaves no outgoing border behind when a progressive replace is cancelled', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    for (const cancel of [
+      'hot.getPlugin("customBorders").clearBorders()',
+      'hot.updateSettings({ customBorders: false })',
+      'hot.updateSettings({ customBordersProgressive: false, customBorders: [] })',
+    ]) {
+      await lab.createGrid({
+        dataRows: 20, dataCols: 4,
+        customBorders: bordersForRows(20),
+        customBordersProgressive: { chunkSize: 5 },
+      });
+      await expect.poll(() => lab.bordersUpdateCount()).toBe(1);
+
+      await page.evaluate((script) => {
+        const win = window as any;
+
+        win.hot.updateSettings({ customBorders: [{ row: 2, col: 1, top: { color: 'red', width: 2 } }] });
+        // eslint-disable-next-line no-new-func -- evaluates the fixed cancel statements listed above
+        new Function('hot', script)(win.hot);
+        win.hot.render();
+      }, cancel);
+
+      await macrotaskBarrier(page);
+      expect(await lab.countVisibleCustomBorders(), cancel).toBe(0);
+    }
+  });
+
+  test('does not draw an outgoing border at its old coordinates after a structural change mid-load', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 20, dataCols: 4,
+      customBorders: bordersForRows(20),
+      customBordersProgressive: { chunkSize: 5 },
+    });
+    await expect.poll(() => lab.bordersUpdateCount()).toBe(1);
+
+    await page.evaluate(() => {
+      const win = window as any;
+
+      win.hot.updateSettings({
+        customBorders: Array.from({ length: 3 }, (_, row) => ({ row, col: 0, top: { color: 'red', width: 2 } })),
+      });
+      win.hot.alter('insert_row_above', 1, 1);
+    });
+
+    // The flush finished the load: rows 0, 2 and 3 carry the new borders; the old ones are gone.
+    await expect.poll(() => lab.visibleBorderColors()).toEqual(['red', 'red', 'red']);
+    expect((await lab.borderCoords()).map(coord => coord.row).sort((a, b) => a - b)).toEqual([0, 2, 3]);
+  });
+
+  test('does not draw an outgoing border again after the cell was cleared mid-load', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 20, dataCols: 4,
+      customBorders: bordersForRows(20),
+      customBordersProgressive: { chunkSize: 5 },
+    });
+    await expect.poll(() => lab.bordersUpdateCount()).toBe(1);
+
+    const result = await page.evaluate(() => {
+      const win = window as any;
+      const count = () => win.borderUtils.countVisibleCustomBorders();
+      const before = count();
+
+      win.hot.updateSettings({
+        customBorders: Array.from({ length: 20 }, (_, row) => ({ row, col: 0, top: { color: 'red', width: 2 } })),
+      });
+      win.hot.getPlugin('customBorders').removeAllBorders(2, 0);
+      win.hot.render();
+
+      return { before, afterClear: count() };
+    });
+
+    // The cleared cell loses its outgoing border at once, the others keep theirs.
+    expect(result.afterClear).toBe(result.before - 1);
+
+    // The new configuration then borders it again, like every other cell.
+    await expect.poll(() => lab.bordersUpdateCount()).toBe(2);
+    expect(await lab.countVisibleCustomBorders()).toBe(result.before);
+  });
+
+  test('keeps the outgoing borders drawn when a second progressive replace arrives mid-load', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 20, dataCols: 4,
+      customBorders: bordersForRows(20),
+      customBordersProgressive: { chunkSize: 5 },
+    });
+    await expect.poll(() => lab.bordersUpdateCount()).toBe(1);
+
+    const result = await page.evaluate(() => {
+      const win = window as any;
+      const count = () => win.borderUtils.countVisibleCustomBorders();
+      const before = count();
+      const config = (color: string) => Array.from({ length: 20 }, (_, row) => (
+        { row, col: 0, top: { color, width: 2 } }
+      ));
+
+      win.hot.updateSettings({ customBorders: config('red') });
+      win.hot.updateSettings({ customBorders: config('blue') });
+
+      return { before, afterSecond: count() };
+    });
+
+    expect(result.afterSecond).toBe(result.before);
+
+    await expect.poll(() => lab.visibleBorderColors().then(colors => new Set(colors).size)).toBe(1);
+    expect(new Set(await lab.visibleBorderColors())).toEqual(new Set(['blue']));
+    expect(await lab.countVisibleCustomBorders()).toBe(result.before);
+  });
+
   test('cancels an in-flight progressive load without firing the hook when the plugin is disabled', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 
