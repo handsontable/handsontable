@@ -1,5 +1,5 @@
 import Xlsx from '../types/xlsx';
-import DataProvider from '../dataProvider';
+import ExportDataProvider from '../dataProvider';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import * as consoleHelpers from '../../../helpers/console';
@@ -117,7 +117,7 @@ async function roundTrip(width, height) {
   mockProviderState.widths = [width];
   mockProviderState.heights = [height];
 
-  const xlsx = new Xlsx(new DataProvider(instance), {});
+  const xlsx = new Xlsx(new ExportDataProvider(instance), {});
   const bytes = await xlsx.export();
   const copy = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
   const snapshot = await nativeAdapter.read(copy, undefined, new DroppedFeatures());
@@ -145,7 +145,7 @@ describe('Xlsx column widths and row heights past what Excel stores', () => {
     expect(sheet.rowHeights[0]).toBe(409.5);
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy.mock.calls[0][0]).toBe(
-      'The "native" xlsx engine dropped features it cannot write or read: columnWidth:clamped, rowHeight:clamped.'
+      'The built-in xlsx engine dropped features it cannot write or read: columnWidth:clamped, rowHeight:clamped.'
     );
   });
 

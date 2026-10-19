@@ -1,15 +1,18 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
+import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
+  selector: 'app-example3',
   standalone: true,
   imports: [HotTableModule],
-  selector: 'app-example3',
   template: `
     <div class="example-controls-container">
       <div class="controls">
-        <button (click)="exportString()">Export as a string</button>
+        <button (click)="downloadCSVWithNoSanitization()">Download CSV with no sanitization</button>
+        <button (click)="downloadCSVWithRecommendedSanitization()">Download CSV with recommended sanitization</button>
+        <button (click)="downloadCSVWithRegexpSanitization()">Download CSV with sanitization using a regexp</button>
+        <button (click)="downloadCSVWithFunctionSanitization()">Download CSV with sanitization using a function</button>
       </div>
     </div>
 
@@ -17,56 +20,103 @@ import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/an
       [settings]="hotSettings!" [data]="hotData">
     </hot-table>
   `,
+  encapsulation: ViewEncapsulation.None
 })
 export class AppComponent {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
   readonly hotData = [
-    ['Spring Launch', 'Email', 'North America', '1240', '4.2%', '$12000', 'Q1 2025'],
-    ['Partner Webinar', 'Paid Search', 'EMEA', '860', '6.1%', '$9400', 'Q1 2025'],
-    ['Summer Upsell', 'Social', 'APAC', '1520', '3.7%', '$13800', 'Q2 2025'],
-    ['Product Video', 'Email', 'North America', '980', '5.4%', '$8600', 'Q2 2025'],
-    ['Back-to-School', 'Display', 'LATAM', '1110', '4.8%', '$10100', 'Q3 2025'],
-    ['Holiday Teaser', 'Affiliate', 'EMEA', '1340', '5.9%', '$12700', 'Q4 2025'],
-    ['Loyalty Drive', 'SMS', 'APAC', '790', '7.3%', '$6200', 'Q4 2025'],
+    ['https://api.acme-inventory.com/live-stock', '=WEBSERVICE("https://api.acme-inventory.com/live-stock")'],
+    ['https://status.vertex-logistics.com/feed', '=WEBSERVICE("https://status.vertex-logistics.com/feed")'],
+    ['http://malicious.example/payload.exe', '=CMD("| calc.exe")'],
+    ['https://news.example.com/q2-briefing', '=HYPERLINK("http://malicious.example","Open report")'],
+    ['https://cdn.example.com/daily.csv', '+SUM(1,1)'],
   ];
 
   readonly hotSettings: GridSettings = {
     colHeaders: true,
     rowHeaders: true,
-    hiddenRows: { rows: [1, 3, 5], indicators: true },
-    hiddenColumns: { columns: [1, 3, 5], indicators: true },
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true,
   };
 
-  exportString() {
+  downloadCSVWithNoSanitization() {
     const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
 
-    const exportedString = exportPlugin.exportAsString('csv', {
+    exportPlugin.downloadFile('csv', {
       bom: false,
       columnDelimiter: ',',
       colHeaders: false,
-      exportHiddenColumns: false,
-      exportHiddenRows: false,
+      exportHiddenColumns: true,
+      exportHiddenRows: true,
+      fileExtension: 'csv',
+      filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+      mimeType: 'text/csv',
       rowDelimiter: '\r\n',
-      rowHeaders: true,
     });
+  }
 
-    console.log(exportedString);
+  downloadCSVWithRecommendedSanitization() {
+    const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
+
+    exportPlugin.downloadFile('csv', {
+      bom: false,
+      columnDelimiter: ',',
+      colHeaders: false,
+      exportHiddenColumns: true,
+      exportHiddenRows: true,
+      fileExtension: 'csv',
+      filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+      mimeType: 'text/csv',
+      rowDelimiter: '\r\n',
+      sanitizeValues: true,
+    });
+  }
+
+  downloadCSVWithRegexpSanitization() {
+    const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
+
+    exportPlugin.downloadFile('csv', {
+      bom: false,
+      columnDelimiter: ',',
+      colHeaders: false,
+      exportHiddenColumns: true,
+      exportHiddenRows: true,
+      fileExtension: 'csv',
+      filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+      mimeType: 'text/csv',
+      rowDelimiter: '\r\n',
+      sanitizeValues: /WEBSERVICE|CMD|HYPERLINK|^\+/,
+    });
+  }
+
+  downloadCSVWithFunctionSanitization() {
+    const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
+
+    exportPlugin.downloadFile('csv', {
+      bom: false,
+      columnDelimiter: ',',
+      colHeaders: false,
+      exportHiddenColumns: true,
+      exportHiddenRows: true,
+      fileExtension: 'csv',
+      filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+      mimeType: 'text/csv',
+      rowDelimiter: '\r\n',
+      sanitizeValues: (value: string) => {
+        return /WEBSERVICE|CMD|HYPERLINK|^\+/.test(value) ? 'REMOVED SUSPICIOUS CELL CONTENT' : value;
+      },
+    });
   }
 }
 /* end-file */
-
-
 
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
 import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-// register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
@@ -74,7 +124,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        license: NON_COMMERCIAL_LICENSE,
+      } as HotGlobalConfig,
     },
   ],
 };

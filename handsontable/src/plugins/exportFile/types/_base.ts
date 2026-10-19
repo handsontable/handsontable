@@ -2,7 +2,7 @@ import { extend, clone } from '../../../helpers/object';
 import { substitute } from '../../../helpers/string';
 import { throwWithCause } from '../../../helpers/errors';
 import { normalizeExportOptions } from '../utils';
-import type DataProvider from '../dataProvider';
+import type ExportDataProvider from '../dataProvider';
 
 /**
  * @private
@@ -65,7 +65,7 @@ class BaseType {
   /**
    * Data provider.
    *
-   * @type {DataProvider}
+   * @type {ExportDataProvider}
    */
   dataProvider;
   /**
@@ -78,7 +78,7 @@ class BaseType {
   /**
    * Initializes the export type with the data provider and merges the given options with the class defaults.
    */
-  constructor(dataProvider: DataProvider, options: Record<string, unknown>) {
+  constructor(dataProvider: ExportDataProvider, options: Record<string, unknown>) {
     this.dataProvider = dataProvider;
     this.options = this._mergeOptions(options);
     this.dataProvider.setOptions(this.options);

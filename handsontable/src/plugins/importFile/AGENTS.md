@@ -108,8 +108,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   kept, the per-run formatting is not), `images`, `tables`,
   `autoFilter`, `sheetProtection:password` (the file carries a salted hash, never a password — it is
   deliberately NOT modelled, so a re-export cannot claim one; `readOnly` is still derived from the
-  protection) and `merge:overlap` from the write direction. They are listed in the import guide's
-  dropped-features table; add to both or neither.
+  protection). They are listed in the XLSX engine page's "Dropped features on import" table
+  (`docs/content/guides/accessories-and-menus/xlsx-engine/`); add to both or neither.
+  `merge:overlap` is a WRITE-direction name and belongs in the export table only - it sat in the import
+  table until DEV-3414 because of an over-literal reading of this rule.
 - **A number index in `sheet` skips very-hidden sheets AND a hidden sheet named `_HotValidation<n>`**
   (`selectSheet` in `mapper.ts`). The export writes its dropdown sources into a `_HotValidation` sheet,
   now `hidden` rather than `veryHidden` (Apple Numbers dropped every dropdown pointing at a very hidden
@@ -347,13 +349,16 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   rejected) rule set removes the element rather than leaving an empty one — that is what clears the previous
   import's rules when the next workbook carries no styling at all. Guarding the call behind
   `if (result.styles)` left the stale stylesheet in the document.
-- **`result.customBorders` REPLACES the target's existing borders, and a workbook without borders leaves
-  them alone.** `toSettings` passes the array straight to `updateSettings`, and `CustomBorders#updatePlugin`
+- **`result.customBorders` REPLACES the target's existing borders, and a workbook without borders clears
+  them too.** `toSettings` passes the array straight to `updateSettings`, and `CustomBorders#updatePlugin`
   is disable → enable → `changeBorderSettings()`, so whatever the user had configured before the import is
-  gone once the import carries any border at all. The other half follows from `stripUndefined`: a workbook
-  with no borders produces no `customBorders` key, so `updateSettings` never sees one and the target keeps
-  its own. Both are the chosen semantics (an import describes a whole sheet, not a patch) — they are
-  documented in the guide's `## Styles` section, so change them in both places or not at all.
+  gone once the import carries any border at all. A workbook with no borders produces no `customBorders`
+  key, but `resetOmittedLayout` (with `importLayout` on, the default) then resets every
+  `RESETTABLE_LAYOUT_KEYS` entry the result omits and the grid carries, `customBorders` included — pinned
+  by `applier.unit.js` ("should clear the layout a previous import left"). Both are the chosen semantics
+  (an import describes a whole sheet, not a patch) — they are documented in the guide's `## Styles`
+  section, so change them in both places or not at all. Until DEV-3414 this bullet and the guide said the
+  opposite about the no-border case; the code was right.
 - **The read-only sentinel colors live in `../../utils/xlsxEngine/readOnlyStyle.ts`**, shared with the
   export. `READ_ONLY_FILL_ARGB`/`READ_ONLY_TEXT_ARGB` are what the export paints on a `readOnly` cell with
   no color of its own, and `fontFillRule` drops exactly those two values on a cell the import is about to

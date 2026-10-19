@@ -221,7 +221,7 @@ describe('ImportFile#importFromArrayBuffer', () => {
     // then comes from that engine's own format check and names it, so the message proves which
     // engine the fallback picked.
     await expect(plugin.importFromArrayBuffer('csv', fixture('values')))
-      .rejects.toThrow(/The "native" xlsx engine cannot import "csv" files.*Supported formats: xlsx/);
+      .rejects.toThrow(/The built-in xlsx engine cannot import "csv" files.*Supported formats: xlsx/);
     // A per-call engine still goes through the format check of the engine it detects.
     await expect(plugin.importFromArrayBuffer('csv', fixture('values'), { engine: ExcelJS }))
       .rejects.toThrow(/cannot import "csv".*xlsx/);

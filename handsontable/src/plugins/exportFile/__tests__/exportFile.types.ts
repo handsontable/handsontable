@@ -209,7 +209,7 @@ void legacySettings;
 
 // `normalizeExportOptions` has two overloads: a definite object comes back definite, and a missing
 // options argument (`undefined`) comes back `undefined`. Nothing in `src/` exercises the second one,
-// so pin it here; the first is what makes `DataProvider#setOptions` compile.
+// so pin it here; the first is what makes `ExportDataProvider#setOptions` compile.
 const definiteOptions: { colHeaders?: boolean } = normalizeExportOptions({ colHeaders: true });
 const noOptions: Record<string, unknown> | undefined = normalizeExportOptions(undefined);
 

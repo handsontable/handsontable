@@ -4,7 +4,12 @@ import { isObject } from '../../helpers/object';
 import {
   detectXlsxEngine, resolveEngineOverride, tryDetectXlsxEngine, type DetectedXlsxEngine,
 } from '../../utils/xlsxEngine/detect';
-import { DROPPED_FEATURES, DroppedFeatures, type XlsxEngineKind } from '../../utils/xlsxEngine/capabilities';
+import {
+  DROPPED_FEATURES,
+  DroppedFeatures,
+  ENGINE_DISPLAY_NAMES,
+  type XlsxEngineKind,
+} from '../../utils/xlsxEngine/capabilities';
 import { mapWorkbook, resolveImportOptions, type MappedResult, type ResolvedImportOptions } from './mapper';
 import { applyImportResult, removeImportedStyles } from './applier';
 import { hasCellType } from '../../cellTypes/registry';
@@ -31,11 +36,14 @@ export interface ImportFileSettings {
  */
 export interface ImportOptions {
   /**
-   * Sheet to import, by 0-based index among the workbook's sheets or by name. Defaults to `0`.
+   * Sheet to import, by exact name or by 0-based index. The index counts the sheets that are not
+   * very hidden and skips the `_HotValidation` sheet an export writes for its dropdown lists.
+   * Defaults to `0`.
    */
   sheet?: string | number;
   /**
-   * `'firstRow'` promotes the first sheet row to column headers. Defaults to `false`.
+   * `'firstRow'` promotes the first row of the imported range (the sheet's first row without
+   * `range`) to column headers. `true` behaves like `false`. Defaults to `false`.
    */
   colHeaders?: boolean | 'firstRow';
   /**
@@ -45,8 +53,8 @@ export interface ImportOptions {
   /**
    * How many rows the header band spans when `colHeaders` is `'firstRow'`. `1` promotes the first
    * row to `colHeaders`; a value above `1` promotes that many rows to `nestedHeaders` instead and
-   * starts the data after them. Has to be an integer of at least `1`. Ignored unless `colHeaders`
-   * is `'firstRow'`. Defaults to `1`.
+   * starts the data after them. Has to be an integer of at least `1`, and is validated on every
+   * call; it is used only when `colHeaders` is `'firstRow'`. Defaults to `1`.
    */
   headerRows?: number;
   /**
@@ -54,8 +62,9 @@ export interface ImportOptions {
    */
   range?: number[];
   /**
-   * Derive `numeric`, `date`, `time`, `checkbox` and `dropdown` cell types from number formats and
-   * list validations. Defaults to `true`.
+   * Derive `numeric`, `date`, `intl-datetime`, `time`, `checkbox` and `dropdown` cell types from
+   * number formats, cell values and list validations. `false` turns dropdowns off too, and dates and
+   * times then import as raw serials. Defaults to `true`.
    */
   inferCellTypes?: boolean;
   /**
@@ -63,7 +72,9 @@ export interface ImportOptions {
    */
   importFormulas?: boolean;
   /**
-   * Import merges, hidden rows and columns, frozen panes, column widths and row heights. Defaults to `true`.
+   * Import merges, hidden rows and columns, frozen panes, column widths and row heights. Each of these, and
+   * `customBorders`, that the grid has and the result does not carry is reset. Borders come from
+   * `importStyles`, so with `importStyles` off an import clears the grid's custom borders. Defaults to `true`.
    */
   importLayout?: boolean;
   /**
@@ -76,8 +87,9 @@ export interface ImportOptions {
    */
   engine?: object | null;
   /**
-   * Apply alignment, font, fill and borders from the workbook as generated class names
-   * (`result.cellsMeta[].meta.className`), style rules (`result.styles`) and `customBorders`
+   * Apply alignment, font, fill and borders from the workbook as generated class names (on
+   * `result.columns[].className` when every cell of a column shares them, otherwise on
+   * `result.cellsMeta[].meta.className`), style rules (`result.styles`) and `customBorders`
    * entries (`result.customBorders`). Defaults to `false`.
    */
   importStyles?: boolean;
@@ -104,8 +116,8 @@ export interface ImportColumn {
   numericFormat?: Intl.NumberFormatOptions;
   /**
    * The `Intl.DateTimeFormatOptions` derived for the column, when the source cells carried a date
-   * number format. Handsontable 18 takes `dateFormat` as `Intl.DateTimeFormatOptions`
-   * and rejects a pattern string, so the Excel pattern is inverted into options rather than copied.
+   * number format. Handsontable takes `dateFormat` as `Intl.DateTimeFormatOptions` and rejects a
+   * pattern string, so the Excel pattern is inverted into options rather than copied.
    */
   dateFormat?: Intl.DateTimeFormatOptions;
   /**
@@ -123,8 +135,9 @@ export interface ImportColumn {
    */
   source?: string[];
   /**
-   * Set when every cell of the column is locked under sheet protection. A column that only partly
-   * agrees carries the flag per cell in `cellsMeta` instead.
+   * Set when more than half the rows of the column are locked under sheet protection. The unlocked
+   * rows of such a column carry `readOnly: false` in `cellsMeta`. A column locked on half its rows
+   * or fewer carries `readOnly: true` per locked cell in `cellsMeta` instead.
    */
   readOnly?: boolean;
   /**
@@ -178,7 +191,8 @@ export interface ImportResult {
    */
   nestedHeaders?: ImportedNestedHeader[][];
   /**
-   * Whether row headers were derived from the sheet's first column.
+   * `true` when the `rowHeaders` import option dropped the sheet's first column. The column's
+   * values are discarded; the grid generates its own row headers.
    */
   rowHeaders?: boolean;
   /**
@@ -226,11 +240,14 @@ export interface ImportResult {
    */
   layoutDirection?: 'rtl' | 'ltr';
   /**
-   * Cell formulas read from the workbook.
+   * Formulas that were not imported live, because the Formulas plugin is off, `importFormulas` is
+   * `false`, or the formula cannot resolve in the grid. Their cells hold the cached value in `data`.
+   * Live formulas are in `data` as `=` strings.
    */
   formulas?: Array<{ row: number; col: number; formula: string }>;
   /**
-   * Cell comments read from the workbook.
+   * Cell comments read from the workbook, present only when the `Comments` plugin is enabled.
+   * Otherwise `comments` is listed in `dropped`.
    */
   comments?: Array<{ row: number; col: number; value: string }>;
   /**
@@ -255,11 +272,13 @@ export interface ImportResult {
    */
   sheetNames: string[];
   /**
-   * The engine that produced this result.
+   * The engine that produced this result. `version` is always `null`: neither engine reports one.
    */
   engine: { kind: XlsxEngineKind; version: string | null };
   /**
-   * Names of features the engine could not recover from the file.
+   * Names of the features the file carried and the grid did not take: what the engine could not
+   * read, and what the plugin could not apply (an unregistered cell type, a missing plugin, a
+   * layout direction the grid does not follow).
    */
   dropped: string[];
 }
@@ -305,7 +324,7 @@ function requireEngine(hot: HotInstance, format: string, override: object | null
 
   if (!detected.capabilities.readFormats.includes(format)) {
     throwWithCause(
-      `The "${detected.kind}" xlsx engine cannot import "${format}" files. ` +
+      `The ${ENGINE_DISPLAY_NAMES[detected.kind]} xlsx engine cannot import "${format}" files. ` +
       `Supported formats: ${detected.capabilities.readFormats.join(', ')}.`
     );
   }
@@ -476,13 +495,16 @@ function toArrayBuffer(buffer: ArrayBuffer | ArrayBufferView): ArrayBuffer {
  * @class ImportFile
  *
  * @description
- * The `ImportFile` plugin loads a workbook file into the grid: data, column headers, cell types
- * derived from number formats, dropdown sources from list validations, formulas, merged cells,
- * hidden rows and columns, frozen panes, column widths and row heights.
+ * The `ImportFile` plugin loads a workbook file into the grid: data, column headers (nested headers
+ * with `headerRows`), cell types derived from number formats, dropdown sources from list
+ * validations, formulas, comments, read-only cells from sheet protection, merged cells, hidden rows
+ * and columns, frozen panes, column widths and row heights. Cell styling is applied with
+ * `importStyles: true`; conditional formatting is returned on the result and never applied.
  *
  * XLSX import works out of the box through the built-in engine. Pass an engine module through the
  * `engines` option to read through [ExcelJS](https://github.com/exceljs/exceljs) instead. The plugin
- * reports, in one console warning, anything the engine could not recover from the file.
+ * reports, in one console warning per import, what the file carried and the grid did not take:
+ * what the engine could not read, and what the plugin could not apply.
  *
  * @example
  * ::: only-for javascript
@@ -557,6 +579,9 @@ export class ImportFile extends BasePlugin {
   /**
    * Returns `true` when the format can be read: `xlsx`, through the built-in engine or the one
    * configured in `engines`. An engine of unknown shape reads nothing and answers `false`.
+   *
+   * @param {string} format The import format, e.g. `'xlsx'`.
+   * @returns {boolean}
    */
   supportsImportFormat(format: string): boolean {
     const detected = tryDetectEngine(this.hot, undefined, format);
@@ -566,12 +591,17 @@ export class ImportFile extends BasePlugin {
 
   /**
    * Reads a workbook from an `ArrayBuffer` (or a view onto one, such as a `Uint8Array`) and maps it
-   * into an {@link ImportResult}. Applies the result to the grid unless `options.apply` is `false`
+   * into an `ImportResult`. Applies the result to the grid unless `options.apply` is `false`
    * or a `beforeImport` hook returns `false`.
    *
    * When a newer import that applies its result starts on the same instance before this one
    * finishes, this one is not applied and the returned promise rejects: the import started last
    * wins. An `apply: false` import neither cancels another import nor is cancelled by one.
+   *
+   * @param {string} format The import format, e.g. `'xlsx'`.
+   * @param {ArrayBuffer|ArrayBufferView} buffer The file's bytes.
+   * @param {ImportOptions} [options] Import options.
+   * @returns {Promise<ImportResult>}
    */
   async importFromArrayBuffer(
     format: string, buffer: ArrayBuffer | ArrayBufferView, options: ImportOptions = {}
@@ -588,12 +618,17 @@ export class ImportFile extends BasePlugin {
 
   /**
    * Reads a workbook from a `Blob` (e.g. a `File` from an `<input type="file">`) and maps it into
-   * an {@link ImportResult}. Applies the result to the grid unless `options.apply` is `false` or a
+   * an `ImportResult`. Applies the result to the grid unless `options.apply` is `false` or a
    * `beforeImport` hook returns `false`.
    *
    * When a newer import that applies its result starts on the same instance before this one
    * finishes, this one is not applied and the returned promise rejects: the import started last
    * wins. An `apply: false` import neither cancels another import nor is cancelled by one.
+   *
+   * @param {string} format The import format, e.g. `'xlsx'`.
+   * @param {Blob} blob The file.
+   * @param {ImportOptions} [options] Import options.
+   * @returns {Promise<ImportResult>}
    */
   async importFromBlob(format: string, blob: Blob, options: ImportOptions = {}): Promise<ImportResult> {
     this.#assertEnabled();

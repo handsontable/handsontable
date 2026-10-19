@@ -1,38 +1,86 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+
 // Register all Handsontable's modules.
 registerAllModules();
+
 const container = document.querySelector('#example3');
+
 const hot = new Handsontable(container, {
-    data: [
-        ['Spring Launch', 'Email', 'North America', '1240', '4.2%', '$12000', 'Q1 2025'],
-        ['Partner Webinar', 'Paid Search', 'EMEA', '860', '6.1%', '$9400', 'Q1 2025'],
-        ['Summer Upsell', 'Social', 'APAC', '1520', '3.7%', '$13800', 'Q2 2025'],
-        ['Product Video', 'Email', 'North America', '980', '5.4%', '$8600', 'Q2 2025'],
-        ['Back-to-School', 'Display', 'LATAM', '1110', '4.8%', '$10100', 'Q3 2025'],
-        ['Holiday Teaser', 'Affiliate', 'EMEA', '1340', '5.9%', '$12700', 'Q4 2025'],
-        ['Loyalty Drive', 'SMS', 'APAC', '790', '7.3%', '$6200', 'Q4 2025'],
-    ],
-    colHeaders: true,
-    rowHeaders: true,
-    hiddenRows: { rows: [1, 3, 5], indicators: true },
-    hiddenColumns: { columns: [1, 3, 5], indicators: true },
-    height: 'auto',
-    autoWrapRow: true,
-    autoWrapCol: true,
-    licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    ['https://api.acme-inventory.com/live-stock', '=WEBSERVICE("https://api.acme-inventory.com/live-stock")'],
+    ['https://status.vertex-logistics.com/feed', '=WEBSERVICE("https://status.vertex-logistics.com/feed")'],
+    ['http://malicious.example/payload.exe', '=CMD("| calc.exe")'],
+    ['https://news.example.com/q2-briefing', '=HYPERLINK("http://malicious.example","Open report")'],
+    ['https://cdn.example.com/daily.csv', '+SUM(1,1)'],
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
 });
+
 const exportPlugin = hot.getPlugin('exportFile');
-const button = document.querySelector('#export-string');
-button.addEventListener('click', () => {
-    const exportedString = exportPlugin.exportAsString('csv', {
-        bom: false,
-        columnDelimiter: ',',
-        colHeaders: false,
-        exportHiddenColumns: false,
-        exportHiddenRows: false,
-        rowDelimiter: '\r\n',
-        rowHeaders: true,
-    });
-    console.log(exportedString);
+
+document.querySelector('#no-sanitization').addEventListener('click', () => {
+  exportPlugin.downloadFile('csv', {
+    bom: false,
+    columnDelimiter: ',',
+    colHeaders: false,
+    exportHiddenColumns: true,
+    exportHiddenRows: true,
+    fileExtension: 'csv',
+    filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+    mimeType: 'text/csv',
+    rowDelimiter: '\r\n',
+  });
+});
+
+document.querySelector('#recommended-sanitization').addEventListener('click', () => {
+  exportPlugin.downloadFile('csv', {
+    bom: false,
+    columnDelimiter: ',',
+    colHeaders: false,
+    exportHiddenColumns: true,
+    exportHiddenRows: true,
+    fileExtension: 'csv',
+    filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+    mimeType: 'text/csv',
+    rowDelimiter: '\r\n',
+    sanitizeValues: true,
+  });
+});
+
+document.querySelector('#regexp-sanitization').addEventListener('click', () => {
+  exportPlugin.downloadFile('csv', {
+    bom: false,
+    columnDelimiter: ',',
+    colHeaders: false,
+    exportHiddenColumns: true,
+    exportHiddenRows: true,
+    fileExtension: 'csv',
+    filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+    mimeType: 'text/csv',
+    rowDelimiter: '\r\n',
+    sanitizeValues: /WEBSERVICE|CMD|HYPERLINK|^\+/,
+  });
+});
+
+document.querySelector('#function-sanitization').addEventListener('click', () => {
+  exportPlugin.downloadFile('csv', {
+    bom: false,
+    columnDelimiter: ',',
+    colHeaders: false,
+    exportHiddenColumns: true,
+    exportHiddenRows: true,
+    fileExtension: 'csv',
+    filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+    mimeType: 'text/csv',
+    rowDelimiter: '\r\n',
+    sanitizeValues: (value) => {
+      return /WEBSERVICE|CMD|HYPERLINK|^\+/.test(value) ? 'REMOVED SUSPICIOUS CELL CONTENT' : value;
+    },
+  });
 });

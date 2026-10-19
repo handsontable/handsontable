@@ -15,32 +15,38 @@ const data = [
   ['Loyalty Drive', 'SMS', 'APAC', '790', '7.3%', '$6200', 'Q4 2025'],
 ];
 
+// Hidden rows and columns stay out of both exports.
+const options = {
+  colHeaders: true,
+  rowHeaders: true,
+  exportHiddenColumns: false,
+  exportHiddenRows: false,
+};
+
 const ExampleComponent = () => {
   const hotRef = useRef(null);
 
-  const buttonClickCallback = () => {
-    const hot = hotRef.current?.hotInstance;
-    const exportPlugin = hot?.getPlugin('exportFile');
-    const exportedBlob = exportPlugin?.exportAsBlob('csv', {
-      bom: false,
-      columnDelimiter: ',',
-      colHeaders: false,
-      exportHiddenColumns: false,
-      exportHiddenRows: false,
-      mimeType: 'text/csv',
-      rowDelimiter: '\r\n',
-      rowHeaders: true,
-    });
+  const exportBlob = () => {
+    const exportPlugin = hotRef.current?.hotInstance?.getPlugin('exportFile');
 
-    console.log(exportedBlob);
+    console.log(exportPlugin?.exportAsBlob('csv', options));
+  };
+
+  const exportString = () => {
+    const exportPlugin = hotRef.current?.hotInstance?.getPlugin('exportFile');
+
+    console.log(exportPlugin?.exportAsString('csv', options));
   };
 
   return (
     <>
       <div className="example-controls-container">
         <div className="controls">
-          <button id="export-blob" onClick={() => buttonClickCallback()}>
+          <button id="export-blob" onClick={exportBlob}>
             Export as a Blob
+          </button>
+          <button id="export-string" onClick={exportString}>
+            Export as a string
           </button>
         </div>
       </div>

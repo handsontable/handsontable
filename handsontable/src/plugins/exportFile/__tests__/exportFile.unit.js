@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin } from 'handsontable/plugins';
 import { ExportFile } from '../exportFile';
-import DataProvider from '../dataProvider';
+import ExportDataProvider from '../dataProvider';
 import BaseType from '../types/_base';
 import { normalizeExportOptions } from '../utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
@@ -198,10 +198,10 @@ describe('ExportFile#_createBlob', () => {
   });
 });
 
-describe('DataProvider#setOptions', () => {
+describe('ExportDataProvider#setOptions', () => {
   it('should print a one-time deprecation warning when `columnHeaders` is used', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const dataProvider = new DataProvider({});
+    const dataProvider = new ExportDataProvider({});
 
     dataProvider.setOptions({ columnHeaders: true });
     dataProvider.setOptions({ columnHeaders: false });
@@ -216,7 +216,7 @@ describe('DataProvider#setOptions', () => {
   });
 
   it('should support the deprecated `columnHeaders` alias', () => {
-    const dataProvider = new DataProvider({});
+    const dataProvider = new ExportDataProvider({});
 
     dataProvider.setOptions({ columnHeaders: true });
 
@@ -224,7 +224,7 @@ describe('DataProvider#setOptions', () => {
   });
 
   it('should prefer `colHeaders` when both aliases are provided', () => {
-    const dataProvider = new DataProvider({});
+    const dataProvider = new ExportDataProvider({});
 
     dataProvider.setOptions({ columnHeaders: true, colHeaders: false });
 
@@ -399,11 +399,14 @@ describe('ExportFile downloads and the grid lifecycle', () => {
   });
 });
 
-describe('DataProvider#getLayoutDirection', () => {
+describe('ExportDataProvider#getLayoutDirection', () => {
   it('should follow the direction the grid renders in, not the raw setting', () => {
     // `layoutDirection: 'inherit'` on a right-to-left page renders the grid right to left, and the
     // import already compares against `isRtl()`. Reading the setting exported an LTR sheet there.
-    const provider = rtl => new DataProvider({ getSettings: () => ({ layoutDirection: 'inherit' }), isRtl: () => rtl });
+    const provider = rtl => new ExportDataProvider({
+      getSettings: () => ({ layoutDirection: 'inherit' }),
+      isRtl: () => rtl,
+    });
 
     expect(provider(true).getLayoutDirection()).toBe('rtl');
     expect(provider(false).getLayoutDirection()).toBe('ltr');
