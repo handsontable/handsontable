@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where auto-sized columns kept a wrapped, narrow width after the grid's container collapsed and returned. A column wider than its grid is now measured at its content width again instead of being capped at the grid's width, as it was before 16.2.0.",
+  "type": "fixed",
+  "issueOrPR": 13907,
+  "breaking": false,
+  "framework": "none"
+}
