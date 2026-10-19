@@ -81,4 +81,36 @@ describe('Row identity with a server-backed grid', () => {
     expect(removed).toHaveBeenCalledTimes(1);
     expect(removed).toHaveBeenCalledWith(['SKU-0093'], 'dataProvider');
   });
+
+  it('should read a literal dotted `dataProvider.rowId` key the way the cell does, in CRUD as well', async() => {
+    const server = {
+      ...createServer(),
+      rowId: 'sku.code',
+      fetchRows: jest.fn(async() => ({
+        rows: [
+          { 'sku.code': 'SKU-4821', sku: { code: 'legacy-1' }, name: 'Wireless Mouse' },
+          { 'sku.code': 'SKU-0093', sku: { code: 'legacy-2' }, name: 'Stainless Steel Water Bottle' },
+        ],
+        totalRows: 2,
+      })),
+    };
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      dataProvider: server,
+      columns: [{ data: 'sku.code' }, { data: 'name' }],
+    });
+    await settle();
+
+    const plugin = hot.getPlugin('dataProvider');
+
+    expect(hot.getDataAtCol(0)).toEqual(['SKU-4821', 'SKU-0093']);
+    expect(hot.getRowIds()).toEqual(['SKU-4821', 'SKU-0093']);
+    expect(plugin.getRowId(1)).toBe('SKU-0093');
+
+    hot.alter('remove_row', 0, 1);
+    await settle();
+
+    expect(server.onRowsRemove).toHaveBeenCalledWith(['SKU-4821']);
+  });
 });

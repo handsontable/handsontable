@@ -80,7 +80,9 @@ export function enqueueMutation(state: { tail: Promise<void> }, fn: () => Promis
 export { getRowIdFromRowData };
 
 /**
- * Row id for a visual row index.
+ * Row id for a visual row index. The id comes from Core's row identity, which reads `dataProvider.rowId` from the
+ * source row itself. `getSourceDataAtRow()` would hand over a copy that `dataDotNotation` rebuilds, turning a
+ * literal dotted key into a nested object, so a string key would read another value than the cell shows.
  *
  * @param {Core} hot Handsontable instance.
  * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
@@ -90,7 +92,13 @@ export { getRowIdFromRowData };
 export function getRowIdByVisualRow(
   hot: HotInstance, rowIdOption: RowIdOption, visualRow: number
 ): unknown {
-  return getRowIdFromRowData(hot.getSourceDataAtRow(hot.toPhysicalRow(visualRow)), rowIdOption);
+  if (rowIdOption === undefined || rowIdOption === null) {
+    return undefined;
+  }
+
+  const physicalRow = hot.toPhysicalRow(visualRow);
+
+  return physicalRow === null ? undefined : (hot.getRowIdAtPhysicalRow(physicalRow) ?? undefined);
 }
 
 /**

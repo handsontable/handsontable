@@ -16,6 +16,36 @@ describe('rowId', () => {
       expect(getRowIdFromRowData({ meta: { id: null } }, 'meta.id')).toBeNull();
     });
 
+    it('should read an own literal dotted key first, with and without dot notation', () => {
+      expect(getRowIdFromRowData({ 'meta.id': 'flat-1' }, 'meta.id')).toBe('flat-1');
+      expect(getRowIdFromRowData({ 'meta.id': 'flat-1' }, 'meta.id', false)).toBe('flat-1');
+      expect(getRowIdFromRowData({ 'meta.id': 'flat-1', meta: { id: 'nested-1' } }, 'meta.id')).toBe('flat-1');
+      expect(getRowIdFromRowData({ 'meta.id': 'flat-1', meta: { id: 'nested-1' } }, 'meta.id', false))
+        .toBe('flat-1');
+    });
+
+    it('should walk a dotted path only while dot notation is on', () => {
+      expect(getRowIdFromRowData({ meta: { id: 'nested-1' } }, 'meta.id', true)).toBe('nested-1');
+      expect(getRowIdFromRowData({ meta: { id: 'nested-1' } }, 'meta.id', false)).toBeUndefined();
+    });
+
+    it('should read a key without a dot through the prototype chain, with and without dot notation', () => {
+      class SkuRecord {
+        code: number;
+
+        constructor(code: number) {
+          this.code = code;
+        }
+
+        get id() {
+          return `SKU-${this.code}`;
+        }
+      }
+
+      expect(getRowIdFromRowData(new SkuRecord(4821), 'id')).toBe('SKU-4821');
+      expect(getRowIdFromRowData(new SkuRecord(4821), 'id', false)).toBe('SKU-4821');
+    });
+
     it('should read a row array by index', () => {
       expect(getRowIdFromRowData(['a', 'b'], '1')).toBe('b');
     });

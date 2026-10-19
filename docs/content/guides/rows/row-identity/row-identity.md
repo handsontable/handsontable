@@ -45,7 +45,7 @@ Set the [`rowId`](@/api/options.md#rowid) option at the grid level. It accepts o
 
 | Setting    | Description                                                                                      |
 | ---------- | ------------------------------------------------------------------------------------------------ |
-| A string   | The property that holds the id in each row object. Dot notation reads a nested property (`'meta.id'`). For arrays of arrays, the index of the value as a string (`'0'`). |
+| A string   | The property that holds the id in each row object, read the way a column's `data` property is read: a property named exactly as the string wins, and otherwise, while [`dataDotNotation`](@/api/options.md#datadotnotation) is `true`, dot notation reads a nested property (`'meta.id'`). For arrays of arrays, the index of the value as a string (`'0'`). |
 | A function | A function that receives the source row and returns its id.                                       |
 | `true`     | Handsontable generates the ids: a number for each row, never reused within the instance.          |
 | `false`    | No row ids. This is the default behavior.                                                         |
@@ -256,8 +256,6 @@ When the [`dataProvider`](@/api/options.md#dataprovider) option sets its own `ro
 - A row key is read from the data every time. Change ids through the API (for example, [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)), so the lookups find a new id right away. A new id written directly into the source data may not be found until Handsontable tracks another change to the data.
 
 - With [nested rows](@/guides/rows/row-parent-child/row-parent-child.md), use a row key. Generated ids stay with row positions when a row is moved or detached between parents, so they no longer match the moved records. Handsontable logs a console warning for this combination.
-
-- A string key walks dot notation (`'meta.id'`) even when [`dataDotNotation`](@/api/options.md#datadotnotation) is `false`, the same way `dataProvider.rowId` does.
 
 ## Related API reference
 

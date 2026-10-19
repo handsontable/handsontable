@@ -542,6 +542,78 @@ describe('Row identity', () => {
     });
   });
 
+  describe('with a dotted string key', () => {
+    const ROWS = [
+      { title: 'a literal dotted key', row: { 'meta.id': 'flat-1' }, ids: { on: 'flat-1', off: 'flat-1' } },
+      {
+        title: 'a literal dotted key next to the nested path',
+        row: { 'meta.id': 'flat-1', meta: { id: 'nested-1' } },
+        ids: { on: 'flat-1', off: 'flat-1' },
+      },
+      { title: 'only the nested path', row: { meta: { id: 'nested-1' } }, ids: { on: 'nested-1', off: null } },
+    ];
+
+    ROWS.forEach(({ title, row, ids }) => {
+      [true, false].forEach((dataDotNotation) => {
+        it(`should read the id the cell shows for ${title} with \`dataDotNotation: ${dataDotNotation}\``, () => {
+          const expectedId = dataDotNotation ? ids.on : ids.off;
+
+          createGrid({
+            data: [JSON.parse(JSON.stringify(row)), { 'meta.id': 'other' }],
+            columns: [{ data: 'meta.id' }],
+            rowId: 'meta.id',
+            dataDotNotation,
+          });
+
+          expect(hot.getDataAtCell(0, 0)).toBe(expectedId);
+          expect(hot.getRowId(0)).toBe(expectedId);
+          expect(hot.getVisualRowById('nested-1')).toBe(expectedId === 'nested-1' ? 0 : null);
+
+          if (expectedId !== null) {
+            expect(hot.getVisualRowById(expectedId)).toBe(0);
+          }
+        });
+      });
+    });
+
+    it('should follow a `dataDotNotation` change and report a reset', () => {
+      const reset = jest.fn();
+
+      createGrid({
+        data: [{ meta: { id: 'nested-1' } }],
+        columns: [{ data: 'meta.id' }],
+        rowId: 'meta.id',
+        afterRowIdsReset: reset,
+      });
+
+      expect(hot.getVisualRowById('nested-1')).toBe(0);
+
+      hot.updateSettings({ dataDotNotation: false });
+
+      expect(hot.getRowId(0)).toBeNull();
+      expect(hot.getVisualRowById('nested-1')).toBeNull();
+      expect(reset).toHaveBeenCalledTimes(1);
+
+      hot.updateSettings({ colHeaders: true });
+
+      expect(reset).toHaveBeenCalledTimes(1);
+
+      hot.updateSettings({ dataDotNotation: true });
+
+      expect(hot.getVisualRowById('nested-1')).toBe(0);
+      expect(reset).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not report a reset for a `dataDotNotation` change while the key is a function', () => {
+      const reset = jest.fn();
+
+      createGrid({ rowId: row => row.id, afterRowIdsReset: reset });
+      hot.updateSettings({ dataDotNotation: false });
+
+      expect(reset).not.toHaveBeenCalled();
+    });
+  });
+
   describe('with nested rows', () => {
     /**
      * Builds two parents with two children each.

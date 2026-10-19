@@ -268,6 +268,7 @@ describe('dataProvider crud', () => {
         countRows: () => 1,
         toPhysicalRow: vr => vr,
         getSourceDataAtRow: () => ({ name: 'only' }),
+        getRowIdAtPhysicalRow: () => null,
       };
 
       expect(() => rowIdsFromAlterRemove(hot, 'id', 0, 1)).toThrow();
@@ -281,6 +282,7 @@ describe('dataProvider crud', () => {
       const hot = {
         toPhysicalRow: vr => vr,
         getSourceDataAtRow: () => ({ name: 'A' }),
+        getRowIdAtPhysicalRow: () => null,
         propToCol: () => 0,
         colToProp: () => 'name',
         countRows: () => 1,
@@ -310,6 +312,7 @@ describe('dataProvider crud', () => {
       const hot = {
         toPhysicalRow: vr => vr,
         getSourceDataAtRow: vr => ({ id: `ORD-${vr}`, name: 'A' }),
+        getRowIdAtPhysicalRow: physicalRow => `ORD-${physicalRow}`,
         propToCol: () => 0,
         colToProp: () => 'name',
       };
@@ -327,6 +330,7 @@ describe('dataProvider crud', () => {
       const hot = {
         toPhysicalRow: vr => vr,
         getSourceDataAtRow: () => ({ id: 1, name: 'A' }),
+        getRowIdAtPhysicalRow: () => 1,
         propToCol: () => 0,
         colToProp: () => 'name',
         getCellMeta: () => ({ allowInvalid: false }),
@@ -346,6 +350,7 @@ describe('dataProvider crud', () => {
       const commitRowsUpdate = jest.fn(() => Promise.resolve());
       const hot = {
         getSourceDataAtRow: jest.fn(),
+        getRowIdAtPhysicalRow: jest.fn(),
         runHooks: jest.fn(),
       };
       const prepared = {
@@ -360,6 +365,7 @@ describe('dataProvider crud', () => {
       }, [[0, 'name', 'A', 'B']], prepared);
 
       expect(hot.getSourceDataAtRow).not.toHaveBeenCalled();
+      expect(hot.getRowIdAtPhysicalRow).not.toHaveBeenCalled();
       expect(commitRowsUpdate).toHaveBeenCalledWith(prepared.rowPayloads, expect.any(Object));
     });
 
@@ -465,6 +471,7 @@ describe('dataProvider crud', () => {
         countRows: () => 1,
         toPhysicalRow: vr => vr,
         getSourceDataAtRow: () => ({ id: 1, name: 'a' }),
+        getRowIdAtPhysicalRow: () => 1,
         propToCol: () => 0,
         colToProp: () => 'name',
         getCellMeta: () => ({ allowInvalid: false }),
