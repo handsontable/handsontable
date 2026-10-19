@@ -3,8 +3,11 @@ import type { HotInstance } from '../types';
 /**
  * Runs an operation without recording it on the undo stack. A view-state restore re-applies a
  * sort, filters, and merges through the public APIs, which the user did not just perform, so
- * their UndoRedo actions must not land on the stack. Runs the operation as is when UndoRedo is
- * off or already ignoring new actions, and leaves that flag as it found it.
+ * their UndoRedo actions must not land on the stack. Two guards cover it. Core's operation scope
+ * suppresses recording for the journaled mutators, and keeps it for a continuation the operation
+ * holds (a validator's answer) that settles later. UndoRedo's `ignoreNewActions` flag covers the
+ * actions the plugin registers from `beforeColumnSort` and `beforeFilter`. The flag is left as it
+ * was found when UndoRedo is off or already ignoring new actions.
  *
  * @param {HotInstance} hot The Handsontable instance.
  * @param {Function} operation The operation to run.
@@ -14,15 +17,17 @@ export function withoutUndoEntry<T>(hot: HotInstance, operation: () => T): T {
   const undoRedo = hot.getPlugin('undoRedo') as
     { enabled?: boolean, ignoreNewActions: boolean } | undefined;
 
-  if (!undoRedo?.enabled || undoRedo.ignoreNewActions) {
-    return operation();
-  }
+  return hot._getOperationScope().suppress(() => {
+    if (!undoRedo?.enabled || undoRedo.ignoreNewActions) {
+      return operation();
+    }
 
-  undoRedo.ignoreNewActions = true;
+    undoRedo.ignoreNewActions = true;
 
-  try {
-    return operation();
-  } finally {
-    undoRedo.ignoreNewActions = false;
-  }
+    try {
+      return operation();
+    } finally {
+      undoRedo.ignoreNewActions = false;
+    }
+  });
 }

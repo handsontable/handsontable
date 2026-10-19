@@ -55,13 +55,48 @@ and scroll. Two callers share it:
   no `loadData()` to empty the stacks, so a later undo of an older sort or filter step acts on the
   restored view. `Core#setViewState`'s JSDoc says so; recording the restore as one step is a possible
   follow-up.
-- **A hidden row without a visual index is written to the hiding map directly.** `HiddenRows`
-  rejects a whole `showRows()`/`hideRows()` list when one row in it has no visual index, which is the
-  case for every row a filter, TrimRows, or a collapsed NestedRows parent trims. `restoreHiddenRows()`
-  therefore sends the rows that have one through the plugin (so the hiding hooks fire) and sets the
-  others in the plugin's hiding map. Before, a live-grid restore could not show a trimmed hidden
-  row, and a row the state hid while it was trimmed came back visible once the trim lifted (the same
-  held for a sheet switch whose arriving sheet filters a hidden row out).
+- **A hidden row without a visual index goes through `HiddenRows#_replaceHiddenRows()`.** The plugin's
+  visual `showRows()`/`hideRows()` reject a whole list when one row in it has no visual index, which is
+  the case for every row a filter, TrimRows, or a collapsed NestedRows parent trims. The `@private`
+  physical method takes the full set, runs the hiding hooks, and applies nothing when a
+  `beforeUnhideRows` or `beforeHideRows` listener returns `false`, so the plugin keeps its own map and
+  its veto. Core must never write into the plugin's hiding map itself. Before, a live-grid restore could
+  not show a trimmed hidden row, and a row the state hid while it was trimmed came back visible once the
+  trim lifted (the same held for a sheet switch whose arriving sheet filters a hidden row out).
+- **The filter validation lives in the Filters plugin.** `Filters#_findInvalidConditions()` checks the
+  columns, the operation, the condition names and the arguments, and answers with the path and the reason of
+  the first problem, which the public layer turns into the skipped entry's `path` and `message` (binding a condition runs its input
+  decorator, which throws on arguments of the wrong shape). Core must not import the condition
+  registries: that would pull Filters internals into every build, `handsontable/base` included.
+- **Frozen rows skip a paginated grid.** The restore writes the frozen counts onto the table meta, which
+  skips the Pagination conflict `updateSettings()` raises for `fixedRowsTop`/`fixedRowsBottom`, so the
+  public layer reports the part as `pluginConflict` instead of leaving both on.
+- **A row order without a sort clears the sort.** The sort indicator and `getSortConfig()` would
+  otherwise describe an order the rows no longer have.
+- **The public restore starts from `createNeutralViewState()`, not a capture.** The engine reads only the
+  fields of the parts it was given, so capturing the live view first only cost a scan of the filters,
+  borders, merges and sizes. The view batch runs only when a part outside pagination, selection and
+  scroll is in the request, and the viewport batch only for those three.
+- **Undo is suppressed twice by default, and not at all with `undo: 'record'`.** `withoutUndoEntry()`
+  wraps the call in core's `operationScope.suppress()`, which also keeps a held continuation (a validator's
+  answer that settles later) unrecorded, and sets UndoRedo's `ignoreNewActions` flag, which covers the
+  actions the plugin registers from `beforeColumnSort` and `beforeFilter`. With `undo: 'record'` the whole
+  apply runs inside one `operationScope.run('view_state', 'setViewState', ...)`: the plugin mutators it
+  calls join that transaction, and UndoRedo records one step from the index-map snapshots, the plugin
+  states and the settings it already captures (sort states, hidden and trimmed maps, sizes, frozen
+  counts, Filters, Pagination, NestedRows). Selection and scroll are not part of a step. The unit suite
+  undoes and redoes a state that carries every part; add a part there before relying on it.
+- **A skipped entry is `{ part, reason, path, message }`, and the whole check runs before any write.**
+  `planRestore()` reads every part into the neutral internal state and collects the failures; nothing
+  on the grid changes until it is done. That is what `validateViewState()` returns, what `atomic` tests,
+  and why a filter the plugin cannot import never reaches `importConditions()`. A check that can only
+  be made while applying (the selection's fit is the one that used to be) belongs in `planRestore()`, or
+  `atomic` stops being atomic. The result's `error` is for a state rejected as a whole
+  (`notAnObject`, `unsupportedVersion`, `atomicRejected`); a missing or non-object state is an error,
+  never an empty success.
+- **`previous` is read after the check and before the apply**, only for the parts being applied
+  (`captureViewState(hot, [], parts)` skips the scans of the parts it was not asked for), in the same
+  public shape, so `setViewState(previous)` reverts. Parts the state names but the grid skipped are not in it.
 - **The NestedRows collapse is replaced, not merged.** `restoreCollapsedParents()` expands every
   parent collapsed now before it collapses the stored ones. On a sheet switch nothing is collapsed
   by then (`loadData()` drops it), so that step is a no-op there.

@@ -4,11 +4,11 @@ import type { SelectionState } from '../../selection/types';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { isPlainObject } from '../../helpers/object';
-import { conditions as registeredConditions } from '../../plugins/filters/conditionRegisterer';
-import { operations as registeredOperations } from '../../plugins/filters/logicalOperationRegisterer';
 import { warn } from '../../helpers/console';
 import {
   captureViewState,
+  createNeutralViewState,
+  fitsGrid,
   getEnabledPlugin,
   keepSelectionOnPage,
   restoreViewState,
@@ -144,13 +144,97 @@ export type GridViewStateSkipReason =
   'sizeMismatch' |
   'outOfRange' |
   'invalid' |
+  'pluginConflict' |
   'unsupportedVersion';
 
 /**
  * What `setViewState()` could not apply.
  */
+export interface GridViewStateIssue {
+  part: GridViewStatePart;
+  reason: GridViewStateSkipReason;
+
+  /**
+   * Where the problem is, as a path into the state: `filters[2].conditions[0].args`.
+   */
+  path: string;
+
+  /**
+   * What is wrong, in a sentence a caller can use to correct the state and retry.
+   */
+  message: string;
+}
+
+/**
+ * Why a whole {@link GridViewState} was rejected, as opposed to one of its parts.
+ */
+export interface GridViewStateError {
+  reason: 'notAnObject' | 'unsupportedVersion' | 'atomicRejected';
+  message: string;
+}
+
+/**
+ * What `setViewState()` did.
+ */
 export interface GridViewStateRestoreResult {
-  skipped: Array<{ part: GridViewStatePart, reason: GridViewStateSkipReason }>;
+  /**
+   * The parts that were restored. Empty when nothing was applied.
+   */
+  applied: GridViewStatePart[];
+
+  /**
+   * The parts that were not restored, and why.
+   */
+  skipped: GridViewStateIssue[];
+
+  /**
+   * Set when the whole state was rejected: it is not an object, it has another `version`, or `atomic`
+   * was on and a part was invalid. Nothing was applied then.
+   */
+  error?: GridViewStateError;
+
+  /**
+   * The view the restored parts had before the restore, in the same shape. Pass it to `setViewState()`
+   * to revert. Left out when nothing was applied.
+   */
+  previous?: GridViewState;
+}
+
+/**
+ * What `validateViewState()` found, without applying anything.
+ */
+export interface GridViewStateValidationResult {
+  /**
+   * Whether `setViewState()` with `atomic: true` would apply the whole state.
+   */
+  valid: boolean;
+
+  /**
+   * The parts `setViewState()` would apply.
+   */
+  applicable: GridViewStatePart[];
+
+  /**
+   * The parts it would skip, and why.
+   */
+  skipped: GridViewStateIssue[];
+  error?: GridViewStateError;
+}
+
+/**
+ * The options of `setViewState()`.
+ */
+export interface GridViewStateSetOptions {
+  /**
+   * Whether the restore is one undo step (`'record'`) or none (`'skip'`, the default).
+   */
+  undo?: 'record' | 'skip';
+
+  /**
+   * When `true`, nothing is applied if any part cannot be applied. Defaults to `false`: the parts that
+   * can be applied are, and the rest are reported.
+   */
+  atomic?: boolean;
 }
 
 /**
@@ -386,110 +470,201 @@ const SIZE_FIELDS = {
 } as const;
 
 /**
- * Whether a value is one entry of `Filters#exportConditions()` the Filters plugin can import: a
- * physical column of this grid, and an operation and conditions registered on this page. A
- * condition registered on the page the state was saved on may be missing here, and the import
- * throws on an unknown name.
+ * A part that cannot be applied: why, where, and what to change.
  */
-function isColumnConditions(value: unknown, columnCount: number): value is ColumnConditions {
-  if (!isPlainObject(value)) {
-    return false;
+interface Failure {
+  reason: GridViewStateSkipReason;
+  path: string;
+  message: string;
+}
+
+/**
+ * Builds a {@link Failure}.
+ */
+function fail(reason: GridViewStateSkipReason, path: string, message: string): Failure {
+  return { reason, path, message };
+}
+
+/**
+ * Describes why a part is not available on this grid, or returns `null` when it is.
+ */
+function describeUnavailability(hot: HotInstance, part: GridViewStatePart): Failure | null {
+  const plugins = REQUIRED_PLUGINS[part];
+
+  if (plugins && !plugins.some(name => getEnabledPlugin(hot, name))) {
+    return fail('pluginDisabled', part, `${part} needs the ${plugins.join(' or ')} plugin enabled on this grid`);
   }
 
-  const entry = value as Record<string, unknown>;
+  if (SERVER_DRIVEN_PARTS.has(part) && hot.runHooks('hasExternalDataSource') === true) {
+    return fail('externalDataSource', part,
+      `the server owns ${part} on a grid that loads its rows through dataProvider`);
+  }
 
-  return isInteger(entry.column) && entry.column >= 0 && entry.column < columnCount &&
-    typeof entry.operation === 'string' && Object.hasOwn(registeredOperations, entry.operation) &&
-    Array.isArray(entry.conditions) &&
-    entry.conditions.every(condition => isPlainObject(condition) &&
-      typeof condition.name === 'string' && Object.hasOwn(registeredConditions, condition.name) &&
-      Array.isArray(condition.args));
+  return null;
 }
 
 /**
- * Whether a value is a list of filter entries the Filters plugin can import. Two entries for one
- * column are rejected: the plugin throws when they name different operations.
+ * Describes why a value is not a list of non-negative integers, or returns `null` when it is one.
  */
-function isFilterList(hot: HotInstance, value: unknown): value is ColumnConditions[] {
-  const columnCount = hot.columnIndexMapper.getNumberOfIndexes();
+function describeIndexList(path: string, value: unknown): Failure | null {
+  if (!Array.isArray(value)) {
+    return fail('invalid', path, `${path} must be an array of non-negative integers`);
+  }
 
-  return Array.isArray(value) &&
-    value.every(entry => isColumnConditions(entry, columnCount)) &&
-    new Set(value.map(entry => (entry as ColumnConditions).column)).size === value.length;
+  const bad = value.findIndex(index => !(isInteger(index) && index >= 0));
+
+  return bad === -1 ? null : fail('invalid', `${path}[${bad}]`, `${path}[${bad}] must be a non-negative integer`);
 }
 
 /**
- * Whether a value is a sort configuration the enabled sorting plugin accepts: visual columns of
- * this grid, each once, and at most one of them unless `MultiColumnSorting` is on. The restore
- * clears the current sort before the plugin checks the configuration, so a rejected one would
- * leave the grid unsorted.
+ * Describes why a value is not a list of `[index, size]` pairs with a positive size.
  */
-function isSortConfig(hot: HotInstance, value: unknown): value is GridViewStateSortColumn[] {
+function describeSizePairs(path: string, value: unknown): Failure | null {
+  if (!Array.isArray(value)) {
+    return fail('invalid', path, `${path} must be an array of [index, size] pairs`);
+  }
+
+  const bad = value.findIndex(pair => !isSizePairs([pair]));
+
+  return bad === -1 ? null : fail(
+    'invalid',
+    `${path}[${bad}]`,
+    `${path}[${bad}] must be [index, size] with a non-negative index and a positive size`,
+  );
+}
+
+/**
+ * Describes the first filter entry the Filters plugin cannot import on this grid. The plugin answers
+ * because the import empties the current conditions first and throws on an entry it cannot take, so a
+ * bad entry has to be refused before the restore starts.
+ */
+function describeFilters(hot: HotInstance, value: unknown): Failure | null {
+  const filters = getEnabledPlugin(hot, 'filters') as
+    { _findInvalidConditions: (value: unknown) => { path: string, message: string } | null } | undefined;
+  const problem = filters?._findInvalidConditions(value);
+
+  return problem ? fail('invalid', `filters${problem.path}`, `filters${problem.path} ${problem.message}`) : null;
+}
+
+/**
+ * Describes why a value is not a sort configuration the enabled sorting plugin accepts: visual columns
+ * of this grid, each once, and at most one of them unless `MultiColumnSorting` is on. The restore
+ * clears the current sort before the plugin checks the configuration, so a rejected one would leave
+ * the grid unsorted.
+ */
+function describeSort(hot: HotInstance, value: unknown): Failure | null {
+  const columns = isPlainObject(value) ? (value as Record<string, unknown>).columns : undefined;
   const columnCount = hot.countCols();
   const maxColumns = getEnabledPlugin(hot, 'multiColumnSorting') ? columnCount : 1;
 
-  return Array.isArray(value) && value.length <= maxColumns &&
-    value.every(entry => isPlainObject(entry) &&
-      isInteger(entry.column) && entry.column >= 0 && entry.column < columnCount &&
-      (entry.sortOrder === 'asc' || entry.sortOrder === 'desc')) &&
-    new Set(value.map(entry => (entry as GridViewStateSortColumn).column)).size === value.length;
+  if (!Array.isArray(columns)) {
+    return fail('invalid', 'sort.columns', 'sort.columns must be an array of { column, sortOrder }');
+  }
+
+  if (columns.length > maxColumns) {
+    return fail('invalid', 'sort.columns', 'more than one sort column needs the MultiColumnSorting plugin');
+  }
+
+  const seen = new Set<unknown>();
+
+  for (let index = 0; index < columns.length; index++) {
+    const entry = columns[index] as Record<string, unknown> | null;
+    const at = `sort.columns[${index}]`;
+
+    if (!isPlainObject(entry) || !isInteger(entry.column) || entry.column < 0 || entry.column >= columnCount) {
+      return fail('invalid', `${at}.column`, `${at}.column must be a visual column index from 0 to ${columnCount - 1}`);
+    }
+
+    if (entry.sortOrder !== 'asc' && entry.sortOrder !== 'desc') {
+      return fail('invalid', `${at}.sortOrder`, `${at}.sortOrder must be 'asc' or 'desc'`);
+    }
+
+    if (seen.has(entry.column)) {
+      return fail('invalid', `${at}.column`, `column ${entry.column} is sorted more than once`);
+    }
+
+    seen.add(entry.column);
+  }
+
+  return null;
 }
 
 /**
- * Writes one part of a public state into a captured view state. Returns why the part cannot be
- * applied, or `null` when it was written.
+ * Writes one part of a public state into a captured view state. Returns what is wrong with the part,
+ * or `null` when it was written.
  */
-function writePart(
-  hot: HotInstance,
-  state: ViewState,
-  part: GridViewStatePart,
-  value: unknown,
-): GridViewStateSkipReason | null {
+function writePart(hot: HotInstance, state: ViewState, part: GridViewStatePart, value: unknown): Failure | null {
   if (part === 'columnOrder' || part === 'rowOrder') {
     return writeOrder(hot, state, part, value);
   }
 
   if (part in INDEX_LIST_FIELDS) {
-    if (!isIndexList(value)) {
-      return 'invalid';
+    const failure = describeIndexList(part, value);
+
+    if (!failure) {
+      state[INDEX_LIST_FIELDS[part as keyof typeof INDEX_LIST_FIELDS]] = (value as number[]).slice();
     }
 
-    state[INDEX_LIST_FIELDS[part as keyof typeof INDEX_LIST_FIELDS]] = value.slice();
-
-    return null;
+    return failure;
   }
 
   if (part in SIZE_FIELDS) {
-    if (!isSizePairs(value)) {
-      return 'invalid';
+    const failure = describeSizePairs(part, value);
+
+    if (!failure) {
+      state[SIZE_FIELDS[part as keyof typeof SIZE_FIELDS]] =
+        (value as Array<[number, number]>).map(([index, size]) => [index, size]);
     }
 
-    state[SIZE_FIELDS[part as keyof typeof SIZE_FIELDS]] = value.map(([index, size]) => [index, size]);
-
-    return null;
+    return failure;
   }
 
   if (part === 'collapsedRows') {
-    if (!Array.isArray(value) || !value.every(isIndexList)) {
-      return 'invalid';
+    const bad = Array.isArray(value) ? value.findIndex(path => describeIndexList('', path) !== null) : -1;
+
+    if (!Array.isArray(value) || bad !== -1) {
+      return fail('invalid', Array.isArray(value) ? `collapsedRows[${bad}]` : 'collapsedRows',
+        'collapsedRows must be an array of tree paths, each an array of non-negative integers');
     }
 
-    state.collapsedParents = value.map(path => path.slice());
+    state.collapsedParents = value.map(path => (path as number[]).slice());
 
     return null;
   }
 
   if (part === 'filters') {
-    if (!isFilterList(hot, value)) {
-      return 'invalid';
+    const failure = describeFilters(hot, value);
+
+    if (!failure) {
+      state.filterConditions = toPlainData(value as ColumnConditions[]);
     }
 
-    state.filterConditions = toPlainData(value);
+    return failure;
+  }
 
+  return writeObjectPart(hot, state, part, value);
+}
+
+/**
+ * Describes frozen rows on a paginated grid. The restore writes the frozen counts onto the table meta,
+ * which skips the check `updateSettings()` makes, and Pagination refuses to run next to `fixedRowsTop`
+ * and `fixedRowsBottom`. A value of the wrong shape is not a conflict, and is reported as invalid.
+ */
+function describeFrozenConflict(hot: HotInstance, value: unknown): Failure | null {
+  if (!isPlainObject(value) || !getEnabledPlugin(hot, 'pagination')) {
     return null;
   }
 
-  return writeObjectPart(hot, state, part, value) ? null : 'invalid';
+  const frozen = value as Record<string, unknown>;
+  const counts = [frozen.rowsTop, frozen.rowsBottom, frozen.columnsStart, frozen.columnsEnd];
+
+  if (!counts.every(count => isInteger(count) && count >= 0) ||
+      (frozen.rowsTop as number) + (frozen.rowsBottom as number) === 0) {
+    return null;
+  }
+
+  return fail('pluginConflict', 'frozen',
+    'frozen rows cannot run on a grid with Pagination; send rowsTop and rowsBottom as 0, or turn Pagination off');
 }
 
 /**
@@ -502,60 +677,75 @@ function writeOrder(
   state: ViewState,
   part: 'columnOrder' | 'rowOrder',
   value: unknown,
-): GridViewStateSkipReason | null {
+): Failure | null {
   const mapper = part === 'columnOrder' ? hot.columnIndexMapper : hot.rowIndexMapper;
+  const failure = describeIndexList(part, value);
 
-  if (!isIndexList(value)) {
-    return 'invalid';
+  if (failure) {
+    return failure;
   }
 
-  if (value.length !== mapper.getNumberOfIndexes()) {
-    return 'sizeMismatch';
+  const order = value as number[];
+  const count = mapper.getNumberOfIndexes();
+  const noun = part === 'columnOrder' ? 'columns' : 'rows';
+
+  if (order.length !== count) {
+    return fail('sizeMismatch', part, `${part} lists ${order.length} ${noun}, and the grid has ${count}`);
   }
 
-  if (!isPermutation(value, value.length)) {
-    return 'invalid';
+  if (!isPermutation(order, count)) {
+    return fail('invalid', part, `${part} must name each of the ${count} ${noun} (0 to ${count - 1}) exactly once`);
   }
 
-  state[INDEX_LIST_FIELDS[part]] = value.slice();
+  state[INDEX_LIST_FIELDS[part]] = order.slice();
 
   return null;
 }
 
 /**
- * Writes the parts whose value is an object, see {@link writePart}. Returns `false` when the value
- * does not have the part's shape.
+ * Writes the parts whose value is an object, see {@link writePart}. Returns what is wrong with the part,
+ * or `null` when it was written.
  */
-function writeObjectPart(hot: HotInstance, state: ViewState, part: GridViewStatePart, value: unknown): boolean {
+function writeObjectPart(hot: HotInstance, state: ViewState, part: GridViewStatePart, value: unknown): Failure | null {
   if (part === 'selection' && value === null) {
     state.selection = undefined;
     state.selectionState = null;
 
-    return true;
+    return null;
+  }
+
+  if (part === 'sort') {
+    const failure = describeSort(hot, value);
+
+    if (!failure) {
+      state.sortConfig = toPlainData((value as { columns: unknown }).columns);
+      // The sorting plugin sorts from the pre-sort order it caches on its first sort, built from the
+      // rows' order at that moment, so a grid that has not sorted yet starts from the order shown now.
+      state.unsortedRowSequence = hot.rowIndexMapper.getIndexesSequence().slice();
+    }
+
+    return failure;
   }
 
   if (!isPlainObject(value)) {
-    return false;
+    return fail('invalid', part, `${part} must be an object`);
   }
 
   const record = value as Record<string, unknown>;
 
   switch (part) {
-    case 'sort':
-      if (!isSortConfig(hot, record.columns)) {
-        return false;
+    case 'frozen': {
+      const bad = (['rowsTop', 'rowsBottom', 'columnsStart', 'columnsEnd'] as const)
+        .find(key => !(isInteger(record[key]) && (record[key] as number) >= 0));
+
+      if (bad) {
+        return fail('invalid', `frozen.${bad}`, `frozen.${bad} must be a non-negative integer`);
       }
 
-      state.sortConfig = toPlainData(record.columns);
-      // The sorting plugin sorts from the pre-sort order it caches on its first sort, built from the
-      // rows' order at that moment, so a grid that has not sorted yet starts from the order shown now.
-      state.unsortedRowSequence = hot.rowIndexMapper.getIndexesSequence().slice();
+      const conflict = describeFrozenConflict(hot, value);
 
-      return true;
-    case 'frozen':
-      if (![record.rowsTop, record.rowsBottom, record.columnsStart, record.columnsEnd]
-        .every(count => isInteger(count) && count >= 0)) {
-        return false;
+      if (conflict) {
+        return conflict;
       }
 
       state.fixedRowsTop = record.rowsTop as number;
@@ -563,35 +753,63 @@ function writeObjectPart(hot: HotInstance, state: ViewState, part: GridViewState
       state.fixedColumnsStart = record.columnsStart as number;
       state.fixedColumnsEnd = record.columnsEnd as number;
 
-      return true;
+      return null;
+    }
+
     case 'pagination':
-      if (!(isInteger(record.page) && (record.page as number) >= 1) ||
-          !(record.pageSize === 'auto' || (isInteger(record.pageSize) && (record.pageSize as number) >= 1))) {
-        return false;
+      if (!(isInteger(record.page) && record.page >= 1)) {
+        return fail('invalid', 'pagination.page', 'pagination.page must be an integer from 1');
       }
 
-      state.pagination = { page: record.page as number, pageSize: record.pageSize as number | 'auto' };
+      if (!(record.pageSize === 'auto' || (isInteger(record.pageSize) && record.pageSize >= 1))) {
+        return fail('invalid', 'pagination.pageSize', 'pagination.pageSize must be a positive integer or \'auto\'');
+      }
 
-      return true;
+      state.pagination = { page: record.page, pageSize: record.pageSize as number | 'auto' };
+
+      return null;
+
     case 'selection':
-      if (!isSelection(value)) {
-        return false;
+      return writeSelection(hot, state, value);
+
+    case 'scroll':
+      if (!isInteger(record.row) || record.row < 0) {
+        return fail('invalid', 'scroll.row', 'scroll.row must be a non-negative integer');
       }
 
-      Object.assign(state, deserializeSelection(hot, value));
-
-      return true;
-    case 'scroll':
-      if (!isInteger(record.row) || !isInteger(record.col) || record.row < 0 || record.col < 0) {
-        return false;
+      if (!isInteger(record.col) || record.col < 0) {
+        return fail('invalid', 'scroll.col', 'scroll.col must be a non-negative integer');
       }
 
       state.scroll = { row: record.row, col: record.col };
 
-      return true;
+      return null;
+
     default:
-      return false;
+      return fail('invalid', part, `${part} is not a part of the view state`);
   }
+}
+
+/**
+ * Writes the selection. The ranges are measured against the grid here, so a selection that does not
+ * fit is reported with the other problems, before anything is applied.
+ */
+function writeSelection(hot: HotInstance, state: ViewState, value: unknown): Failure | null {
+  if (!isSelection(value)) {
+    return fail('invalid', 'selection', 'selection must have ranges (each with from, to and highlight as ' +
+      '[row, column]), an activeLayer inside them, and the header and span lists of indexes');
+  }
+
+  const restored = deserializeSelection(hot, value);
+
+  if (restored.selectionState && !fitsGrid(hot, restored.selectionState)) {
+    return fail('outOfRange', 'selection',
+      `the selection lies outside the grid (${hot.countRows()} rows, ${hot.countCols()} columns)`);
+  }
+
+  Object.assign(state, restored);
+
+  return null;
 }
 
 /**
@@ -628,65 +846,205 @@ export function getGridViewState(hot: HotInstance): GridViewState {
 }
 
 /**
- * Applies a {@link GridViewState} to the grid. Only the parts the state carries are applied, in
- * the order a sheet switch applies them, and none of them is recorded on the undo stack.
- *
- * @param {HotInstance} hot The Handsontable instance.
- * @param {GridViewState} state The state to apply.
- * @returns {GridViewStateRestoreResult} The parts that were not applied, and why.
+ * What checking a state against a grid found, before anything is applied.
  */
-export function setGridViewState(hot: HotInstance, state: GridViewState): GridViewStateRestoreResult {
-  const presentParts = isPlainObject(state) ? PARTS.filter(part => state[part] !== undefined) : [];
-  const skipped: GridViewStateRestoreResult['skipped'] = [];
-
-  if (!isPlainObject(state) || state.version !== GRID_VIEW_STATE_VERSION) {
-    warn(`setViewState(): the view state version is not supported (expected ${GRID_VIEW_STATE_VERSION}), ` +
-      'so nothing was applied.');
-
-    return { skipped: presentParts.map(part => ({ part, reason: 'unsupportedVersion' })) };
-  }
-
-  // The current view is the base: a part the state leaves out keeps the value the grid has now.
-  const internal = captureViewState(hot, []);
-  const parts = new Set<ViewStatePart>();
-
-  presentParts.forEach((part) => {
-    const unavailability = getUnavailability(hot, part);
-
-    if (unavailability !== null) {
-      skipped.push({ part, reason: unavailability });
-    } else {
-      const writeFailure = writePart(hot, internal, part, state[part]);
-
-      if (writeFailure === null) {
-        parts.add(part);
-      } else {
-        skipped.push({ part, reason: writeFailure });
-      }
-    }
-  });
-
-  withoutUndoEntry(hot, () => applyParts(hot, internal, parts, skipped));
-
-  return { skipped };
+interface RestorePlan {
+  error?: GridViewStateError;
+  internal: ViewState;
+  parts: Set<ViewStatePart>;
+  presentParts: GridViewStatePart[];
+  skipped: GridViewStateIssue[];
 }
 
 /**
- * Runs the restore for the accepted parts and records the ones the grid turned down.
+ * Checks a state against the grid and reads the parts it can apply into the internal form. Nothing on
+ * the grid changes.
+ */
+function planRestore(hot: HotInstance, state: unknown): RestorePlan {
+  const plan: RestorePlan = {
+    internal: createNeutralViewState(),
+    parts: new Set(),
+    presentParts: [],
+    skipped: [],
+  };
+
+  if (!isPlainObject(state)) {
+    plan.error = {
+      reason: 'notAnObject',
+      message: `expected a view state object, got ${state === null ? 'null' : typeof state}`,
+    };
+
+    return plan;
+  }
+
+  const record = state as Record<string, unknown>;
+
+  plan.presentParts = PARTS.filter(part => record[part] !== undefined);
+
+  if (record.version !== GRID_VIEW_STATE_VERSION) {
+    plan.error = {
+      reason: 'unsupportedVersion',
+      message: `the view state version is not supported (expected ${GRID_VIEW_STATE_VERSION})`,
+    };
+    plan.skipped = plan.presentParts.map(part => ({
+      part,
+      reason: 'unsupportedVersion',
+      path: 'version',
+      message: `${part} comes from an unsupported view state version`,
+    }));
+
+    return plan;
+  }
+
+  plan.presentParts.forEach((part) => {
+    const failure = describeUnavailability(hot, part) ?? writePart(hot, plan.internal, part, record[part]);
+
+    if (failure) {
+      plan.skipped.push({ part, ...failure });
+    } else {
+      plan.parts.add(part);
+    }
+  });
+
+  return plan;
+}
+
+/**
+ * Lists parts in the order a restore applies them.
+ */
+function toPartList(parts: Iterable<ViewStatePart>): GridViewStatePart[] {
+  const wanted = new Set<ViewStatePart>(parts);
+
+  return PARTS.filter(part => wanted.has(part));
+}
+
+/**
+ * Checks a {@link GridViewState} against the grid, without applying anything.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {GridViewState} state The state to check.
+ * @returns {GridViewStateValidationResult} Whether the whole state can be applied, which parts can, and
+ * what is wrong with the others.
+ */
+export function validateGridViewState(hot: HotInstance, state: GridViewState): GridViewStateValidationResult {
+  const plan = planRestore(hot, state);
+
+  return {
+    valid: !plan.error && plan.skipped.length === 0,
+    applicable: toPartList(plan.parts),
+    skipped: plan.skipped,
+    ...(plan.error ? { error: plan.error } : {}),
+  };
+}
+
+/**
+ * Applies a {@link GridViewState} to the grid. Only the parts the state carries are applied, in
+ * the order a sheet switch applies them. The parts are checked first, and a part that cannot be
+ * applied is reported, never thrown on. By default the rest is applied and no undo step is recorded;
+ * `options.undo: 'record'` records the restore as one step, and `options.atomic` applies nothing
+ * when any part is rejected.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {GridViewState} state The state to apply.
+ * @param {GridViewStateSetOptions} [options] The undo and atomic options.
+ * @returns {GridViewStateRestoreResult} The parts that were applied and skipped, and the view they replaced.
+ */
+export function setGridViewState(
+  hot: HotInstance,
+  state: GridViewState,
+  options: GridViewStateSetOptions = {},
+): GridViewStateRestoreResult {
+  const plan = planRestore(hot, state);
+
+  if (plan.error) {
+    warn(`setViewState(): ${plan.error.message}, so nothing was applied.`);
+
+    return { applied: [], skipped: plan.skipped, error: plan.error };
+  }
+
+  if (options.atomic && plan.skipped.length > 0) {
+    return {
+      applied: [],
+      skipped: plan.skipped,
+      error: {
+        reason: 'atomicRejected',
+        message: `${plan.skipped.length} of ${plan.presentParts.length} parts cannot be applied, ` +
+          'so nothing was applied',
+      },
+    };
+  }
+
+  if (plan.parts.size === 0) {
+    return { applied: [], skipped: plan.skipped };
+  }
+
+  const previous = readPreviousState(hot, plan.parts);
+  const skipped = plan.skipped.slice();
+  const apply = () => applyParts(hot, plan.internal, plan.parts, skipped);
+
+  if (options.undo === 'record') {
+    hot._getOperationScope().run('view_state', 'setViewState', apply);
+  } else {
+    withoutUndoEntry(hot, apply);
+  }
+
+  return {
+    applied: toPartList(plan.parts).filter(part => !skipped.some(entry => entry.part === part)),
+    skipped,
+    previous,
+  };
+}
+
+/**
+ * Reads the view the given parts have now, in the public shape, so that passing it back reverts them.
+ */
+function readPreviousState(hot: HotInstance, parts: Set<ViewStatePart>): GridViewState {
+  const captured = captureViewState(hot, [], parts);
+  const previous: Record<string, unknown> = { version: GRID_VIEW_STATE_VERSION };
+
+  toPartList(parts).forEach((part) => {
+    const value = readPart(hot, captured, part);
+
+    if (value !== undefined) {
+      previous[part] = toPlainData(value);
+    }
+  });
+
+  return previous as unknown as GridViewState;
+}
+
+/**
+ * The parts restored after the render batch, once the grid is painted at the restored sizes.
+ */
+const VIEWPORT_PARTS: ReadonlySet<ViewStatePart> = new Set(['pagination', 'selection', 'scroll']);
+
+/**
+ * Runs the restore for the accepted parts and records the ones the grid turned down. The batch
+ * that restores the view and the one that restores the viewport each run only when a part of theirs
+ * is in the request, so a state that carries only a scroll position renders once.
  */
 function applyParts(
   hot: HotInstance,
   state: ViewState,
   parts: Set<ViewStatePart>,
-  skipped: GridViewStateRestoreResult['skipped'],
+  skipped: GridViewStateIssue[],
 ) {
-  if (parts.size === 0) {
-    return;
+  const requested = Array.from(parts);
+
+  if (requested.some(part => !VIEWPORT_PARTS.has(part))) {
+    restoreViewState(hot, state, parts).forEach((part) => {
+      skipped.push({
+        part: part as GridViewStatePart,
+        reason: 'sizeMismatch',
+        path: part,
+        message: `${part} no longer matches the number of ${part === 'rowOrder' ? 'rows' : 'columns'} in the grid`,
+      });
+    });
   }
 
-  restoreViewState(hot, state, parts).forEach((part) => {
-    skipped.push({ part: part as GridViewStatePart, reason: 'sizeMismatch' });
-  });
+  if (!requested.some(part => VIEWPORT_PARTS.has(part))) {
+    return;
+  }
 
   const coversSelection = parts.has('selection');
   let selectionRestored = false;
@@ -703,7 +1061,12 @@ function applyParts(
       hot.deselectCell();
 
       if (state.selectionState) {
-        skipped.push({ part: 'selection', reason: 'outOfRange' });
+        skipped.push({
+          part: 'selection',
+          reason: 'outOfRange',
+          path: 'selection',
+          message: 'the selection could not be restored on this grid',
+        });
       }
     }
   } finally {

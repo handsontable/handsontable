@@ -276,10 +276,10 @@ function getResizePlugin(hot: HotInstance, axis: 'column' | 'row') {
  * effective `getColWidth`/`getRowHeight` would pin every column as manually sized and stop
  * AutoColumnSize and StretchColumns from adapting after a switch.
  */
-function captureSizes(hot: HotInstance) {
+function captureSizes(hot: HotInstance, covers: PartFilter = () => true) {
   return {
-    colWidths: getResizePlugin(hot, 'column')?.getManualSizes() ?? [],
-    rowHeights: getResizePlugin(hot, 'row')?.getManualSizes() ?? [],
+    colWidths: (covers('columnWidths') ? getResizePlugin(hot, 'column')?.getManualSizes() : undefined) ?? [],
+    rowHeights: (covers('rowHeights') ? getResizePlugin(hot, 'row')?.getManualSizes() : undefined) ?? [],
   };
 }
 
@@ -414,7 +414,7 @@ function isHeaderSelection(state: SelectionState): boolean {
 /**
  * Whether every range of a captured selection, and its focus, still fits the grid.
  */
-function fitsGrid(hot: HotInstance, state: SelectionState): boolean {
+export function fitsGrid(hot: HotInstance, state: SelectionState): boolean {
   const tableParams = {
     countRows: hot.countRows(),
     countCols: hot.countCols(),
@@ -539,27 +539,37 @@ function restoreSelection(hot: HotInstance, state: ViewState): boolean {
 /**
  * Captures the current runtime view state of the grid.
  */
-export function captureViewState(hot: HotInstance, trackedCellMeta: TrackedCellMeta[]): ViewState {
-  const { colWidths, rowHeights } = captureSizes(hot);
+export function captureViewState(
+  hot: HotInstance,
+  trackedCellMeta: TrackedCellMeta[],
+  parts?: ReadonlySet<ViewStatePart>,
+): ViewState {
+  const covers = toPartFilter(parts);
+  const neutral = createNeutralViewState();
+  const { colWidths, rowHeights } = captureSizes(hot, covers);
 
+  // The cheap reads (the index sequences, the hidden and trimmed sets, the frozen counts) are always
+  // taken. A part left out of `parts` keeps its neutral value, so a caller that asks for a few parts
+  // does not pay for the scan of the filters, the merges, the borders and the selection.
   return {
     ...captureAxisState(hot),
-    collapsedParents: captureCollapsedParents(hot),
+    collapsedParents: covers('collapsedRows') ? captureCollapsedParents(hot) : neutral.collapsedParents,
     colWidths,
     rowHeights,
-    sortConfig: captureSortConfig(hot),
-    filterConditions: captureFilterConditions(hot),
-    mergedCells: captureMergedCells(hot),
+    sortConfig: covers('sort') ? captureSortConfig(hot) : neutral.sortConfig,
+    filterConditions: covers('filters') ? captureFilterConditions(hot) : neutral.filterConditions,
+    mergedCells: covers('mergedCells') ? captureMergedCells(hot) : neutral.mergedCells,
     fixedColumnsStart: hot.getSettings().fixedColumnsStart as number | undefined,
     fixedColumnsEnd: hot.getSettings().fixedColumnsEnd as number | undefined,
     fixedRowsTop: hot.getSettings().fixedRowsTop as number | undefined,
     fixedRowsBottom: hot.getSettings().fixedRowsBottom as number | undefined,
-    customBorders: captureCustomBorders(hot),
+    customBorders: covers('customBorders') ? captureCustomBorders(hot) : neutral.customBorders,
     cellMeta: trackedCellMeta.slice(),
-    pagination: capturePagination(hot),
-    selection: hot.getSelected(),
-    selectionState: captureSelectionState(hot),
-    scroll: { row: hot.getFirstFullyVisibleRow(), col: hot.getFirstFullyVisibleColumn() },
+    pagination: covers('pagination') ? capturePagination(hot) : neutral.pagination,
+    selection: covers('selection') ? hot.getSelected() : neutral.selection,
+    selectionState: covers('selection') ? captureSelectionState(hot) : neutral.selectionState,
+    scroll: covers('scroll') ?
+      { row: hot.getFirstFullyVisibleRow(), col: hot.getFirstFullyVisibleColumn() } : neutral.scroll,
   };
 }
 
@@ -591,45 +601,14 @@ function restoreTrimmedState(hot: HotInstance, state: ViewState) {
 }
 
 /**
- * Replaces the hidden rows with a set of physical rows. The rows that have a visual index go
- * through the plugin's `showRows()`/`hideRows()`, which run the hiding hooks. A row a filter,
- * TrimRows, or a collapsed NestedRows parent trims has none: the plugin rejects the whole list
- * when it holds one, so such a row is written straight into the plugin's hiding map instead.
- * Without that, a trimmed hidden row could never be shown again, and a row the state hides while
- * it is trimmed would come back visible once the trim lifts.
+ * Replaces the hidden rows with a set of physical rows. A row a filter, TrimRows, or a collapsed
+ * NestedRows parent trims has no visual index, so the plugin's visual `showRows()`/`hideRows()` reject
+ * a list that holds one and could never show or hide it. The plugin's own physical method takes the
+ * whole set, runs the hiding hooks, and leaves its map untouched when a listener vetoes the change.
  */
-function restoreHiddenRows(
-  hot: HotInstance,
-  plugin: { pluginName: string, showRows: (rows: number[]) => void, hideRows: (rows: number[]) => void },
-  physicalRows: number[],
-) {
-  const hidingMap = hot.rowIndexMapper.hidingMapsCollection.get(plugin.pluginName) as {
-    getHiddenIndexes: () => number[],
-    setValueAtIndex: (index: number, value: boolean) => boolean,
-  } | undefined;
-  const rowCount = hot.rowIndexMapper.getNumberOfIndexes();
-  const apply = (rows: number[], isHidden: boolean) => {
-    const visualRows: number[] = [];
-
-    rows.forEach((physicalRow) => {
-      const visualRow = hot.toVisualRow(physicalRow);
-
-      if (visualRow !== null) {
-        visualRows.push(visualRow);
-      } else if (physicalRow < rowCount) {
-        hidingMap?.setValueAtIndex(physicalRow, isHidden);
-      }
-    });
-
-    if (isHidden) {
-      plugin.hideRows(visualRows);
-    } else {
-      plugin.showRows(visualRows);
-    }
-  };
-
-  apply(hidingMap?.getHiddenIndexes() ?? [], false);
-  apply(physicalRows, true);
+function restoreHiddenRows(hot: HotInstance, physicalRows: number[]) {
+  (getEnabledPlugin(hot, 'hiddenRows') as { _replaceHiddenRows: (rows: number[]) => void } | undefined)
+    ?._replaceHiddenRows(physicalRows);
 }
 
 /**
@@ -637,15 +616,12 @@ function restoreHiddenRows(
  * first. Runs after trimming and filters, since it addresses rows by their visual index.
  */
 function restoreHiddenState(hot: HotInstance, state: ViewState, covers: PartFilter = () => true) {
-  const hiddenRowsPlugin = covers('hiddenRows') ? getEnabledPlugin(hot, 'hiddenRows') as
-    { pluginName: string, showRows: (rows: number[]) => void, hideRows: (rows: number[]) => void }
-    | undefined : undefined;
   const hiddenColumnsPlugin = covers('hiddenColumns') ? getEnabledPlugin(hot, 'hiddenColumns') as unknown as
     { getHiddenColumns: () => number[], showColumns: (cols: number[]) => void, hideColumns: (cols: number[]) => void }
     | undefined : undefined;
 
-  if (hiddenRowsPlugin) {
-    restoreHiddenRows(hot, hiddenRowsPlugin, state.hiddenRows);
+  if (covers('hiddenRows')) {
+    restoreHiddenRows(hot, state.hiddenRows);
   }
 
   if (hiddenColumnsPlugin) {
@@ -711,6 +687,12 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
 
   if (!covers('rowOrder')) {
     return notApplied;
+  }
+
+  // A row order written under a sort the state does not mention would leave the header indicator and
+  // `getSortConfig()` describing an order the rows no longer have, so that sort is cleared first.
+  if (!covers('sort')) {
+    getSortingPlugin(hot)?.sort([]);
   }
 
   const isRowOrderRestored = restoreSequence(hot.rowIndexMapper, state.rowSequence);
@@ -1117,7 +1099,7 @@ export function keepSelectionOnPage(hot: HotInstance, follow: boolean): void {
  * sorted, filtered, merged, bordered, or manually sized. The row/column sequences are
  * left empty because `loadData` has already reset both mappers by the time this runs.
  */
-function createNeutralViewState(): ViewState {
+export function createNeutralViewState(): ViewState {
   return {
     rowSequence: [],
     unsortedRowSequence: [],

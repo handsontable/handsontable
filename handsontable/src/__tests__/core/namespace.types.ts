@@ -29,6 +29,10 @@ import type {
   GridViewStateSelection,
   GridViewStateSkipReason,
   GridViewStateSortColumn,
+  GridViewStateIssue,
+  GridViewStateError,
+  GridViewStateSetOptions,
+  GridViewStateValidationResult,
   RendererType,
   SelectOptionsObject,
   SourceRowData,
@@ -305,6 +309,11 @@ const _sameGridViewStateRestoreResult: Same<Handsontable.GridViewStateRestoreRes
 const _sameGridViewStateSelection: Same<Handsontable.GridViewStateSelection, GridViewStateSelection> = true;
 const _sameGridViewStateSkipReason: Same<Handsontable.GridViewStateSkipReason, GridViewStateSkipReason> = true;
 const _sameGridViewStateSortColumn: Same<Handsontable.GridViewStateSortColumn, GridViewStateSortColumn> = true;
+const _sameGridViewStateIssue: Same<Handsontable.GridViewStateIssue, GridViewStateIssue> = true;
+const _sameGridViewStateError: Same<Handsontable.GridViewStateError, GridViewStateError> = true;
+const _sameGridViewStateSetOptions: Same<Handsontable.GridViewStateSetOptions, GridViewStateSetOptions> = true;
+const _sameGridViewStateValidationResult: Same<
+  Handsontable.GridViewStateValidationResult, GridViewStateValidationResult> = true;
 const _sameOverlayType: Same<Handsontable.OverlayType, OverlayType> = true;
 const _sameBaseEditorInstance: Same<Handsontable.BaseEditorInstance, BaseEditorInstance> = true;
 const _sameHooksRegistry: Same<Handsontable.HooksRegistry, HooksRegistry> = true;

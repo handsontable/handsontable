@@ -221,6 +221,7 @@ export type { RangeType, HotInstance } from './core/types';
 export type {
   GridViewState, GridViewStatePart, GridViewStateSkipReason, GridViewStateRestoreResult,
   GridViewStateSelection, GridViewStateRange, GridViewStateCoords, GridViewStateSortColumn,
+  GridViewStateIssue, GridViewStateError, GridViewStateSetOptions, GridViewStateValidationResult,
 } from './core/viewState/gridViewState';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
