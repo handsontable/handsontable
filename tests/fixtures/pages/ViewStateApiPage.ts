@@ -48,9 +48,9 @@ export class ViewStateApiPage {
    */
   async copyViewState(): Promise<unknown[]> {
     return this.page.evaluate(() => {
-      const json = JSON.stringify((window as any).source.getViewState());
+      const json = JSON.stringify((window as any).source.getPlugin('viewState').getViewState());
 
-      return (window as any).target.setViewState(JSON.parse(json)).skipped;
+      return (window as any).target.getPlugin('viewState').setViewState(JSON.parse(json)).skipped;
     });
   }
 

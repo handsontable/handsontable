@@ -1,8 +1,8 @@
-import type { HotInstance } from '../types';
-import type { MergeAreaGeometry } from '../../utils/mergeAreas';
+import type { HotInstance } from '../../core/types';
+import type { MergeAreaGeometry } from '../mergeAreas';
 import type { SelectionState } from '../../selection/types';
 import { clamp } from '../../helpers/number';
-import { safeBatch } from '../../utils/safeBatch';
+import { safeBatch } from '../safeBatch';
 
 /**
  * One tracked explicit cell-meta write. The indexes are physical: a visual index only means

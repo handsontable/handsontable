@@ -228,6 +228,7 @@ interface HandsontableFactory {
     TouchScroll: typeof import('./plugins/touchScroll').TouchScroll;
     TrimRows: typeof import('./plugins/trimRows').TrimRows;
     UndoRedo: typeof import('./plugins/undoRedo').UndoRedo;
+    ViewState: typeof import('./plugins/viewState').ViewState;
     registerPlugin: typeof import('./plugins/registry').registerPlugin;
     getPlugin: typeof import('./plugins/registry').getPlugin;
     [key: string]: unknown;
@@ -332,19 +333,6 @@ declare namespace Handsontable {
   export type Events = import('./core/settings').Events;
   export type HotInstance = import('./core/types').HotInstance;
   export type RangeType = import('./core/types').RangeType;
-  export type GridViewState = import('./core/viewState/gridViewState').GridViewState;
-  export type GridViewStatePart = import('./core/viewState/gridViewState').GridViewStatePart;
-  export type GridViewStateSkipReason = import('./core/viewState/gridViewState').GridViewStateSkipReason;
-  export type GridViewStateRestoreResult = import('./core/viewState/gridViewState').GridViewStateRestoreResult;
-  export type GridViewStateSelection = import('./core/viewState/gridViewState').GridViewStateSelection;
-  export type GridViewStateRange = import('./core/viewState/gridViewState').GridViewStateRange;
-  export type GridViewStateCoords = import('./core/viewState/gridViewState').GridViewStateCoords;
-  export type GridViewStateSortColumn = import('./core/viewState/gridViewState').GridViewStateSortColumn;
-  export type GridViewStateIssue = import('./core/viewState/gridViewState').GridViewStateIssue;
-  export type GridViewStateError = import('./core/viewState/gridViewState').GridViewStateError;
-  export type GridViewStateSetOptions = import('./core/viewState/gridViewState').GridViewStateSetOptions;
-  export type GridViewStateValidationResult =
-    import('./core/viewState/gridViewState').GridViewStateValidationResult;
   export type OverlayType = import('./3rdparty/walkontable/src/types').OverlayType;
   export type BaseEditorInstance = import('./editors/baseEditor/baseEditor').BaseEditor;
   export type HooksRegistry = import('./base').HooksRegistry;
@@ -513,6 +501,19 @@ declare namespace Handsontable {
     export type TouchScroll = import('./plugins/touchScroll').TouchScroll;
     export type TrimRows = import('./plugins/trimRows').TrimRows;
     export type UndoRedo = import('./plugins/undoRedo').UndoRedo;
+    export type ViewState = import('./plugins/viewState').ViewState;
+    export namespace ViewState {
+      export type State = import('./plugins/viewState').GridViewState;
+      export type Part = import('./plugins/viewState').GridViewStatePart;
+      export type SkipReason = import('./plugins/viewState').GridViewStateSkipReason;
+      export type Issue = import('./plugins/viewState').GridViewStateIssue;
+      export type StateError = import('./plugins/viewState').GridViewStateError;
+      export type SetOptions = import('./plugins/viewState').GridViewStateSetOptions;
+      export type RestoreResult = import('./plugins/viewState').GridViewStateRestoreResult;
+      export type ValidationResult = import('./plugins/viewState').GridViewStateValidationResult;
+      export type Selection = import('./plugins/viewState').GridViewStateSelection;
+      export type SortColumn = import('./plugins/viewState').GridViewStateSortColumn;
+    }
   }
 }
 
@@ -529,11 +530,6 @@ export type {
   CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature, OmitHooks
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
-export type {
-  GridViewState, GridViewStatePart, GridViewStateSkipReason, GridViewStateRestoreResult,
-  GridViewStateSelection, GridViewStateRange, GridViewStateCoords, GridViewStateSortColumn,
-  GridViewStateIssue, GridViewStateError, GridViewStateSetOptions, GridViewStateValidationResult,
-} from './core/viewState/gridViewState';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
 export { IndexMapper } from './translations';

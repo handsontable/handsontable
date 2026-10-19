@@ -16,8 +16,8 @@ import {
   restoreViewport,
   type TrackedCellMeta,
   type ViewState,
-} from '../../core/viewState/viewState';
-import { withoutUndoEntry } from '../../core/viewState/withoutUndoEntry';
+} from '../../utils/viewState/viewState';
+import { withoutUndoEntry } from '../../utils/viewState/withoutUndoEntry';
 import * as C from '../../i18n/constants';
 import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';

@@ -1,5 +1,5 @@
-import type { HotInstance } from '../types';
-import type { ColumnConditions } from '../../plugins/filters/filters';
+import type { HotInstance } from '../../core/types';
+import type { ColumnConditions } from '../filters/filters';
 import type { SelectionState } from '../../selection/types';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
@@ -15,8 +15,8 @@ import {
   restoreViewport,
   type ViewState,
   type ViewStatePart,
-} from './viewState';
-import { withoutUndoEntry } from './withoutUndoEntry';
+} from '../../utils/viewState/viewState';
+import { withoutUndoEntry } from '../../utils/viewState/withoutUndoEntry';
 
 /**
  * The version of the {@link GridViewState} shape this build reads and writes.

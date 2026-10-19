@@ -1,23 +1,33 @@
-# View state (core)
+# ViewState plugin – a versioned, JSON-safe view state
 
-Capture and restore of the grid's runtime view: row and column order, sort, filters, hidden and
-trimmed indexes, collapsed NestedRows parents, manual sizes, frozen counts, pagination, selection,
-and scroll. Two callers share it:
+The plugin behind `getPlugin('viewState').getViewState()`, `.setViewState()` and `.validateViewState()`.
+It covers `viewState.ts` (the class), `gridViewState.ts` (the conversion, the checks and the restore
+orchestration) and the engine it drives, `../../utils/viewState/viewState.ts`. Read this before touching
+any of them.
 
-- `viewState.ts` is the engine. SheetsBar uses it on every sheet switch, with no part filter, so
-  every step runs (merges, custom borders, and the lazily served cell meta included). It is not
-  public; `ViewState` is published only as the type `SheetsBarViewState`.
-- `gridViewState.ts` is the public layer behind `Core#getViewState()` and `Core#setViewState()`.
-  It turns the internal state into the versioned, JSON-safe `GridViewState` and back.
-- `withoutUndoEntry.ts` runs an operation with UndoRedo ignoring new actions. Both callers use it.
+## What it owns and what it does not
 
-## The public layer
+- It owns the public shape (`GridViewState`), its version, the checks that decide whether a part can be
+  applied, and the result (`applied`, `skipped`, `previous`, `error`). It owns none of the restore steps:
+  those are the engine's, `utils/viewState/AGENTS.md`.
+- It has **no setting and no state**. `isEnabled()` returns `true`, as `ExportFile` does, so the plugin is on
+  whenever its module is registered and `updateSettings()` never touches it. That is also why it adds nothing
+  to `metaSchema.ts`, `GridSettings` or the wrappers.
+- **Core must not import it, and neither may anything core imports.** The first version put the methods on
+  `Core`: every `handsontable/base` build then carried the engine and the public layer, +19 KB minified and
+  +6 KB gzip (measured by bundling `tmp/base.mjs` with and without them). As a plugin it costs a build only
+  when it is registered. Do not move the methods back for convenience.
+- It reaches other plugins only through `getPlugin()` and their `@private` methods
+  (`Filters#_findInvalidConditions()`, `HiddenRows#_replaceHiddenRows()`), never their internals.
+- No priority ordering matters: it registers no hook. `PLUGIN_PRIORITY` is 920, in the `900`+ band, only
+  because it must not run before what it reads.
+
+## The traps
 
 - **Missing means "leave it alone", not "reset".** Internally an empty or missing part is the
   neutral value: `hiddenRows: []` un-hides everything and a missing frozen count unfreezes. The
-  public restore therefore starts from a fresh `captureViewState()` of the live grid, writes the
-  parts the object carries over it, and passes `restoreViewState()`/`restoreViewport()` the set of
-  those parts. Every step outside the set is skipped. Never call the restore without the set from
+  public restore therefore starts from the neutral state, writes the parts the object carries over it,
+  and passes `restoreViewState()`/`restoreViewport()` the set of those parts. Every step outside the set is skipped. Never call the restore without the set from
   the public path: the merges and custom borders it would re-apply were captured under the grid's
   current row order, and a restored order moves them onto other rows.
 - **Live selection objects never cross JSON.** `SelectionState` holds `CellRange`/`CellCoords`
@@ -39,22 +49,21 @@ and scroll. Two callers share it:
   plugin API that throws.
 - **Validate against the grid, not only the shape.** A value that passes a type check can still
   break a plugin: the Filters import throws on an operation or condition name that is not registered
-  on the page (`registeredOperations`/`registeredConditions`) and on two entries for one column with
+  on the page and on two entries for one column with
   different operations, after it has already emptied the live conditions; a sort the plugin rejects
   (a column past `countCols()`, a duplicate, more than one column without MultiColumnSorting) leaves
   the grid unsorted, because the restore clears the sort first; and `setIndexesSequence()` stores any
   array, so a row order that is not a permutation of `0..n-1` shows one record twice and hides
   another. `writePart()` rejects all of those as `invalid` before anything is applied, and
   `writeOrder()` reports another length as `sizeMismatch`. The `it.each` table in
-  `gridViewState.unit.js` holds one case per rule.
+  `viewState.unit.js` holds one case per rule.
 - **The public sort carries no pre-sort order.** The sorting plugin builds its pre-sort cache on its
   first sort and keeps it until it is disabled, so an order handed to it later is overwritten on a
   grid that has sorted before. The restore hands it the current order, and `rowOrder` restores the
   exact sequence when the state carries it.
-- **The restore records no undo step, and keeps the earlier ones.** Unlike a sheet switch there is
-  no `loadData()` to empty the stacks, so a later undo of an older sort or filter step acts on the
-  restored view. `Core#setViewState`'s JSDoc says so; recording the restore as one step is a possible
-  follow-up.
+- **By default the restore records no undo step, and keeps the earlier ones.** Unlike a sheet switch there
+  is no `loadData()` to empty the stacks, so a later undo of an older sort or filter step acts on the
+  restored view. `ViewState#setViewState()`'s JSDoc says so, and `undo: 'record'` is the way out (below).
 - **A hidden row without a visual index goes through `HiddenRows#_replaceHiddenRows()`.** The plugin's
   visual `showRows()`/`hideRows()` reject a whole list when one row in it has no visual index, which is
   the case for every row a filter, TrimRows, or a collapsed NestedRows parent trims. The `@private`
@@ -101,65 +110,15 @@ and scroll. Two callers share it:
   parent collapsed now before it collapses the stored ones. On a sheet switch nothing is collapsed
   by then (`loadData()` drops it), so that step is a no-op there.
 
-## The engine
+## Where to look next
 
-- **Order is load-bearing** in `restoreViewState()`:
-  the column order goes before the sort re-apply (the sort config addresses its column
-  visually), sort is cleared and re-applied around the row order (the sorting plugin resets
-  rows to its own pre-sort cache on every `sort()`), filters and trimming re-apply before the
-  hidden sets (hidden indexes are stored as physical, and so are the tracked cell-meta
-  entries), and the selection and scroll run through `restoreViewport()` **after** the render
-  batch, once the arriving sheet is painted at its own sizes. `restoreViewport()` puts the
-  Pagination page and page size back first (`setPageSize()` then `setPage()`, each skipped when
-  unchanged, the page clamped to the arriving count first): Pagination holds one page for the
-  whole grid and clamps it on every load, so a switch through a shorter sheet moves it, and a
-  selection or scroll aimed at a row on another page lands on a hidden row and does nothing. A
-  never-visited sheet gets `resetViewport()` instead — the configured `initialPage` and
-  `pageSize`. Both go through the public API, so the page hooks fire on a switch that changes
-  the page. With an external data source (`hasExternalDataSource`) the page is neither captured
-  nor restored: DataProvider answers a page change with a fetch, and the result would load into
-  whichever sheet is active when it resolves. After that batch `keepSelectionOnPage()` checks the
-  focus against the shown page — a `'auto'` page size decides its boundaries from the row heights
-  of that paint, a `beforePageSizeChange` veto leaves the page counted in the old size, and a
-  `beforePageChange` veto keeps the clamped page. A restored selection is followed to its page —
-  one `setPage()` to the estimated page (the number page size as the page length, the shown
-  span for `'auto'`), so a gap of many pages fires the page hooks once, then a one-page walk.
-  Never re-estimate from each page reached: a short last page or `'auto'` pages of other
-  lengths make repeated estimates bounce past the row; a selection that was not restored (one
-  a plugin or a listener made during the switch), or one the follow could not reach, is
-  deselected rather than left on a hidden row.
-  The selection itself is kept twice: `selection` (`getSelected()`) and `selectionState`, a copy
-  of `Selection#exportSelection()` (the active range is cloned — the export hands it out live —
-  and so are the ranges handed to the import, or the stored state would become the live
-  selection). A selection made from a header or spanning a whole axis (any header or
-  extent-spans flag in `selectionState`) cannot be judged from its coordinates: `selectCells()`
-  rejects a range that contains headers (beyond a single header, even with `navigableHeaders`),
-  while a whole column on page 2 or later has none — Pagination moves its start to the page's
-  first row — so `selectCells()` would accept it and drop the header and span flags. Such a
-  selection is replayed instead: one layer through `selectRows()`/`selectColumns()`/`selectAll()`,
-  which run the selection hooks and set the `ht__selection--rows`/`--columns` classes; several
-  layers through `importSelection()`, followed by one `setRangeEnd()` + `finish()` on the last
-  layer, the step core answers with those classes and hooks — and since that step makes the last
-  layer active, a `setRangeFocus()` after it puts the captured focus and active layer back. A
-  plain cell selection goes through
-  `selectCells()` and gets its focus and active layer back with `setRangeFocus()`. A stored
-  order whose length no longer matches the data is skipped. Stored trimmed rows at or past `countSourceRows()` —
-  read after the arriving sheet's `loadData()`, so rows padded by `minRows`/`minSpareRows`
-  count — are dropped one by one before `trimRows()`, which rejects the whole list when any
-  index is out of range. Like the hidden sets and manual sizes, the kept ones follow physical
-  position, not the record, after the host changed the sheet's data while it was away.
-  Manual sizes are stored as sparse `[physicalIndex, size]` pairs read and written through the
-  resize plugins' `getManualSizes()`/`setManualSizes()` (physical, so a trimmed row keeps its
-  height) and cleared through their bulk `clearManualSizes()`. NestedRows drops its collapsed parents on
-  every `loadData()`, so the view state carries them as tree paths (`collapsedParents`, via the
-  data manager's `getRowTreePath()`/`getRowIndexByTreePath()` — a physical index shifts when the
-  sheet's data gains a row while it is away) and replays them after the hidden sets, with hooks
-  off (DEV-3042). Before the hidden sets, the collapse would trim a hidden child out of the
-  visual space its stored index is mapped through. For the same reason the hidden rows are
-  captured physically off the plugin's hiding map (`hidingMapsCollection.get(pluginName)` –
-  the map is registered under the upper-cased `HiddenRows`, not `hiddenRows`), not through
-  `getHiddenRows()`: a hidden child of a collapsed parent has no visual index at capture time.
+- `../../utils/viewState/AGENTS.md` for the engine and the order of the restore steps.
+- `../sheetsBar/AGENTS.md` for the sheet switch that shares the engine.
+- `../base/AGENTS.md` for the plugin contract, and the `handsontable-plugin-dev` skill.
 
-Tests: `__tests__/viewState.unit.js` (the engine), `__tests__/gridViewState.unit.js` (the public
-API, JSON round trips per part), `tests/e2e/view-state-api.spec.ts` (scroll, header selection,
-pagination), plus SheetsBar's own suites.
+## Testing
+
+- `npm run test:unit --prefix handsontable -- --testPathPattern='plugins/viewState|utils/viewState|sheetsBar'`
+- `tests/e2e/view-state-api.spec.ts` for the parts jsdom cannot judge (scroll, a header selection, the page
+  with a selection on it): `cd tests && npx playwright test --project=e2e-main e2e/view-state-api.spec.ts`
+- `src/plugins/viewState/__tests__/viewState.types.ts` pins the public types and the `ViewState` namespace aliases.

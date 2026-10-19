@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures/test';
 import { ViewStateApiPage } from '../fixtures/pages/ViewStateApiPage';
 
 /**
- * `Core#getViewState()` / `Core#setViewState()`: the parts of a view state that need a laid-out
+ * `ViewState#getViewState()` / `ViewState#setViewState()`: the parts of a view state that need a laid-out
  * grid, restored onto a second grid through JSON. The unit suite covers the other parts.
  */
 test.describe('view state API', () => {

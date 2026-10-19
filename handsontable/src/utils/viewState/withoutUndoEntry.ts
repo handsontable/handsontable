@@ -1,4 +1,4 @@
-import type { HotInstance } from '../types';
+import type { HotInstance } from '../../core/types';
 
 /**
  * Runs an operation without recording it on the undo stack. A view-state restore re-applies a

@@ -29,15 +29,6 @@ import { isMaxLengthActive, withMaxLength } from './validators/maxLengthValidato
 import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
-import {
-  getGridViewState,
-  setGridViewState,
-  validateGridViewState,
-  type GridViewState,
-  type GridViewStateRestoreResult,
-  type GridViewStateSetOptions,
-  type GridViewStateValidationResult,
-} from './core/viewState/gridViewState';
 import { spreadsheetColumnLabel, hasChangeForCell } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
@@ -8080,123 +8071,6 @@ export default function Core(
     }
 
     return isScrolled;
-  };
-
-  /**
-   * Returns the grid's view state as a plain, JSON-serializable object: the column and row order,
-   * the sort, the filters, the hidden and trimmed rows, the hidden columns, the collapsed nested
-   * rows, the manual column widths and row heights, the frozen rows and columns, the pagination
-   * page and page size, the selection, and the scroll position.
-   *
-   * A part that needs a plugin is included only while that plugin is enabled. On a grid that
-   * loads its rows through [`dataProvider`](@/api/options.md#dataprovider), the sort, the filters,
-   * and the page are left out, because the server owns them.
-   *
-   * Pass the object to {@link Core#setViewState} to restore the view, on this grid or another one.
-   *
-   * ```js
-   * const viewState = hot.getViewState();
-   *
-   * localStorage.setItem('my-view', JSON.stringify(viewState));
-   * ```
-   *
-   * @since 19.0.0
-   * @memberof Core#
-   * @function getViewState
-   * @returns {object} The view state. Its `version` property identifies the shape.
-   */
-  this.getViewState = function(): GridViewState {
-    return getGridViewState(instance);
-  };
-
-  /**
-   * Restores a view state that {@link Core#getViewState} returned.
-   *
-   * Only the parts the object carries are restored, so you can also pass a partial object, for
-   * example `{ version: 1, sort: { columns: [{ column: 2, sortOrder: 'desc' }] } }`. Every other
-   * part of the view stays as it is.
-   *
-   * Every part is checked against the grid before anything changes, and a part that cannot be applied
-   * is reported in the returned `skipped` list, never thrown on. Each entry is
-   * `{ part, reason, path, message }`: `path` points into the state (`filters[2].conditions[0].args`),
-   * and `message` says what to change, so a caller can correct the state and retry. The reasons are:
-   * the plugin the part needs is disabled (`pluginDisabled`), the frozen rows would run next to
-   * Pagination (`pluginConflict`), the grid loads its rows through `dataProvider`
-   * (`externalDataSource`), a stored row or column order no longer matches the number of rows or
-   * columns (`sizeMismatch`), the selection does not fit the grid (`outOfRange`), or the value is
-   * wrong (`invalid`): for example a row order that does not name every row exactly once, a sort column
-   * past the last column, more than one sort column without `MultiColumnSorting`, or a filter condition
-   * that is not registered on the page or cannot take its arguments.
-   *
-   * A value that is not an object, such as the `null` that `JSON.parse(localStorage.getItem('my-view'))`
-   * gives on a first visit, an object with another `version`, and (with `atomic`) a state with a
-   * rejected part are not applied at all. The result carries an `error` then, and an empty `applied`.
-   *
-   * The selection, the scroll position, the frozen counts, and the sort columns are visual: they
-   * are read against the row and column order in force after the restore. Every other index is
-   * physical.
-   *
-   * Restoring the filters moves a selected cell to the first row of its column, as any filtering
-   * does, and restoring the page drops a selection the new page does not show. Include `selection`
-   * in the state to control the selection either way.
-   *
-   * By default the restore is not recorded by the [`UndoRedo`](@/api/undoRedo.md) plugin, and the undo
-   * steps recorded before it stay available, so an undo after a restore reverts an earlier action,
-   * which may then apply to the restored view. Pass `{ undo: 'record' }` to record the restore as one
-   * undo step instead: a single undo then reverts every restored part, and a redo applies them again.
-   * Every restore also returns `previous`, the view its parts had before, in the same shape: pass it
-   * to `setViewState()` to revert without UndoRedo.
-   *
-   * Pass `{ atomic: true }` to apply nothing when any part is rejected. To check a state without
-   * applying it, use {@link Core#validateViewState}.
-   *
-   * ```js
-   * const stored = localStorage.getItem('my-view');
-   *
-   * if (stored !== null) {
-   *   const { applied, skipped, previous } = hot.setViewState(JSON.parse(stored), { undo: 'record' });
-   * }
-   * ```
-   *
-   * @since 19.0.0
-   * @memberof Core#
-   * @function setViewState
-   * @param {object} state The view state to restore.
-   * @param {object} [options] The restore options.
-   * @param {'record' | 'skip'} [options.undo='skip'] Whether the restore is one undo step (`'record'`) or none.
-   * @param {boolean} [options.atomic=false] When `true`, nothing is applied if any part is rejected.
-   * @returns {object} An object with an `applied` array of the parts that were restored, a `skipped` array of
-   * `{ part, reason, path, message }` for the parts that were not, the `previous` view of the restored parts,
-   * and an `error` when the whole state was rejected.
-   */
-  this.setViewState = function(state: GridViewState, options?: GridViewStateSetOptions): GridViewStateRestoreResult {
-    return setGridViewState(instance, state, options);
-  };
-
-  /**
-   * Checks a view state against the grid, without applying anything. The answer is the one
-   * {@link Core#setViewState} acts on: which parts it would apply, and for each part it would skip,
-   * the `{ part, reason, path, message }` entry that says why. Use it to give a stored or generated
-   * state a second chance before it reaches the grid.
-   *
-   * ```js
-   * const { valid, skipped } = hot.validateViewState(generatedState);
-   *
-   * if (!valid) {
-   *   // send `skipped` back to the author of the state, and ask for a corrected one
-   * }
-   * ```
-   *
-   * @since 19.0.0
-   * @memberof Core#
-   * @function validateViewState
-   * @param {object} state The view state to check.
-   * @returns {object} An object with `valid` (whether the whole state can be applied), `applicable` (the parts
-   * `setViewState()` would apply), `skipped` (the parts it would not, as `{ part, reason, path, message }`), and an
-   * `error` when the whole state would be rejected.
-   */
-  this.validateViewState = function(state: GridViewState): GridViewStateValidationResult {
-    return validateGridViewState(instance, state);
   };
 
   /**

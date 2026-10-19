@@ -12,11 +12,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   Handsontable access. Names are compared NFC-normalized; length is counted in grapheme
   clusters (`Intl.Segmenter`), not UTF-16 units — the rename input enforces the same limit in
   its `input` handler, never through `maxlength`.
-- The view-state capture and restore live in core (`src/core/viewState/viewState.ts`), shared with the
-  public `getViewState()`/`setViewState()`. The bar calls `captureViewState()`, `restoreViewState()`,
+- The view-state capture and restore live in `src/utils/viewState/viewState.ts`, shared with the
+  public `ViewState` plugin. The bar calls `captureViewState()`, `restoreViewState()`,
   `restoreViewport()`, `resetViewState()`, `resetViewport()` and `keepSelectionOnPage()` with no part
   filter, so every step runs. The load-bearing order and the per-part traps are in
-  `src/core/viewState/AGENTS.md`. Only the tracked cell meta (`cellMeta`, served lazily, see below), the
+  `src/utils/viewState/AGENTS.md`. Only the tracked cell meta (`cellMeta`, served lazily, see below), the
   merges and the custom borders are SheetsBar's alone: the public API never restores them.
 - `ui/` — `bar.ts` (DOM via `buildTemplate`, labels re-applied by `refreshLabels()` on language
   change), `tabStrip.ts` (tabs, inline rename, focus capture/restore across repaints),
@@ -398,7 +398,7 @@ never visited. The rows were not tracked at first, so a frozen row carried over 
 **A count can be a shadow on the table meta, and `updateSettings()` leaves a shadow alone.** The freeze bar,
 `ManualColumnFreeze`, `alter()` and undo write a frozen count as an own property of `getSettings()`, and
 `updateSettings()` drops it only when the new value differs from the previous GRID-level one. A sheet's count must win,
-so every write of a count goes through `setFrozenCount()` / `clearFrozenCountShadow()` in `src/core/viewState/viewState.ts`, which
+so every write of a count goes through `setFrozenCount()` / `clearFrozenCountShadow()` in `src/utils/viewState/viewState.ts`, which
 removes the shadow (and `_fixedColumnsStart`, the backing field of the start freeze) first, and then writes the count
 as a shadow of its own when it differs from the grid-level value. It does not call `updateSettings()`: that would make
 the sheet's count the grid-level one, and a wrapper re-sends the app's own value on each render, which differs from it

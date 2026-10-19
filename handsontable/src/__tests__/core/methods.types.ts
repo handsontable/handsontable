@@ -192,31 +192,6 @@ hot.render();
 (hot as any).resumeExecution();
 (hot as any).resumeRender();
 hot.runHooks('afterChange', 123, 'foo', true, {}, [], () => {});
-const viewState: Handsontable.GridViewState = hot.getViewState();
-
-viewState.version === 1;
-viewState.sort?.columns[0].sortOrder === 'asc';
-viewState.selection?.ranges[0].from[0] === 0;
-hot.setViewState(viewState).skipped[0].part === 'sort';
-hot.setViewState(viewState).applied[0] === 'sort';
-hot.setViewState({
-  version: 1,
-  hiddenColumns: [1],
-  frozen: { rowsTop: 1, rowsBottom: 0, columnsStart: 0, columnsEnd: 0 },
-});
-hot.setViewState({ version: 1, selection: null }).skipped[0].reason === 'outOfRange';
-hot.setViewState(viewState, { undo: 'record', atomic: true }).previous?.version === 1;
-hot.setViewState(viewState, { undo: 'skip' }).error?.reason === 'atomicRejected';
-hot.setViewState(viewState).skipped[0].path === 'filters[0].column';
-hot.setViewState(viewState).skipped[0].message === 'text';
-hot.validateViewState(viewState).valid === true;
-hot.validateViewState(viewState).applicable[0] === 'sort';
-hot.validateViewState(viewState).skipped[0].reason === 'invalid';
-// @ts-expect-error the undo option takes 'record' or 'skip'
-hot.setViewState(viewState, { undo: 'yes' });
-// @ts-expect-error a part must be named by its key
-hot.setViewState({ version: 1 }).skipped[0].part === 'unknownPart';
-
 hot.scrollViewportTo({ row: 0 });
 hot.scrollViewportTo({ col: 0 });
 hot.scrollViewportTo({ row: 0, col: 0 });
