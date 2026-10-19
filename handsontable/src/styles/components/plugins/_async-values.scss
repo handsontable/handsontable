@@ -25,7 +25,17 @@
       }
     }
 
+    .htAsyncErrorMessage {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
     .htAsyncError {
+      position: relative;
       // Gives priority over the `td.area` selection background, like `.htInvalid`.
       background-color: var(--ht-cell-error-background-color) !important;
     }

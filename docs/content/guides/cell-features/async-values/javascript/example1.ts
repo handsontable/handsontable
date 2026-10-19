@@ -47,28 +47,24 @@ const hot = new Handsontable(container, {
   height: 'auto',
   asyncValues: true,
   // Look the product up again when its SKU changes.
-  afterAsyncValueCancel(physicalRow, prop, reason) {
-    if (reason === 'dependency') {
-      lookUpRow(hot.toVisualRow(physicalRow));
-    }
+  afterChange(changes) {
+    changes?.forEach(([row, prop]) => {
+      if (prop === 'sku') {
+        lookUpRows(row, row);
+      }
+    });
   },
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-function lookUpRow(row: number | null) {
-  if (row === null) {
-    return;
-  }
-
-  hot.getPlugin('asyncValues').setAsyncValue(row, 1, ({ physicalRow, signal }) => (
+function lookUpRows(fromRow: number, toRow: number) {
+  hot.getPlugin('asyncValues').setAsyncValues(fromRow, 1, toRow, 1, ({ physicalRow, signal }) => (
     lookUpProduct(hot.getSourceDataAtCell(physicalRow, 'sku') as string, signal)
   ), { dependsOn: ['sku'] });
 }
 
 document.querySelector<HTMLButtonElement>('#lookup')!.addEventListener('click', () => {
-  for (let row = 0; row < hot.countRows(); row++) {
-    lookUpRow(row);
-  }
+  lookUpRows(0, hot.countRows() - 1);
 });

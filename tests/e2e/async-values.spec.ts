@@ -58,8 +58,11 @@ test.describe('async cell values', { tag: THEMES_TAG }, () => {
     await asyncPage.reject(id, 'Product not found');
 
     await expect(asyncPage.cell(2, 1)).toHaveClass(/htAsyncError/);
-    await expect(asyncPage.cell(2, 1)).toHaveText('Old C');
+    await expect(asyncPage.cell(2, 1)).toContainText('Old C');
     await expect(asyncPage.cell(2, 1)).toHaveAttribute('title', 'Product not found');
+    // The message is part of the cell's accessible text, and takes no room on screen.
+    await expect(asyncPage.cell(2, 1).locator('.htAsyncErrorMessage')).toHaveText('Product not found');
+    expect((await asyncPage.cell(2, 1).locator('.htAsyncErrorMessage').boundingBox())!.width).toBeLessThanOrEqual(1);
     await expect(asyncPage.indicator(2, 1)).toHaveCount(0);
 
     const colors = await asyncPage.errorColors(2, 1);

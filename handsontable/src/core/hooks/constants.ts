@@ -1538,7 +1538,9 @@ export const REGISTERED_HOOKS = [
   'afterAsyncValueStart',
 
   /**
-   * Fired by the {@link AsyncValues} plugin after it writes a resolved value into a cell.
+   * Fired by the {@link AsyncValues} plugin after it passes a resolved value to the grid. A `beforeChange`
+   * listener or the cell's validator can still change or reject the value, and an asynchronous validator
+   * delays the write.
    *
    * @event Hooks#afterAsyncValueResolve
    * @since 19.0.0
@@ -1570,7 +1572,7 @@ export const REGISTERED_HOOKS = [
    * @param {number} physicalRow Physical row index of the cell, at the time of the cancellation.
    * @param {string|number} prop The property of the cell's column.
    * @param {string} reason Why the request was cancelled: `'edit'`, `'dependency'`, `'restart'`,
-   * `'rowRemoved'`, `'columnRemoved'`, `'dataReplaced'`, `'manual'`, or `'disabled'`.
+   * `'rowRemoved'`, `'columnsChanged'`, `'dataReplaced'`, `'manual'`, or `'disabled'`.
    */
   'afterAsyncValueCancel',
 

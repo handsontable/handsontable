@@ -424,7 +424,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterAsyncValueCancel: (physicalRow, prop, reason) => {
     const _physicalRow: number = physicalRow;
     const _prop: string | number = prop;
-    const _reason: 'edit' | 'dependency' | 'restart' | 'rowRemoved' | 'columnRemoved' | 'dataReplaced' |
+    const _reason: 'edit' | 'dependency' | 'restart' | 'rowRemoved' | 'columnsChanged' | 'dataReplaced' |
       'manual' | 'disabled' = reason;
   },
   afterAsyncValueReject: (physicalRow, prop, error, message) => {

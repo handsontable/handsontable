@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { CellChange } from 'handsontable';
 
 const products: Record<string, string> = {
   'A-100': 'Desk lamp',
@@ -61,29 +62,25 @@ export class AppComponent {
     height: 'auto',
     asyncValues: true,
     // Look the product up again when its SKU changes.
-    afterAsyncValueCancel: (physicalRow: number, prop: string | number, reason: string) => {
-      if (reason === 'dependency') {
-        this.lookUpRow(this.hotTable.hotInstance!.toVisualRow(physicalRow));
-      }
+    afterChange: (changes: CellChange[] | null) => {
+      changes?.forEach(([row, prop]) => {
+        if (prop === 'sku') {
+          this.lookUpRows(row, row);
+        }
+      });
     },
     autoWrapRow: true,
     autoWrapCol: true,
   };
 
   lookUpAll(): void {
-    for (let row = 0; row < this.hotTable.hotInstance!.countRows(); row++) {
-      this.lookUpRow(row);
-    }
+    this.lookUpRows(0, this.hotTable.hotInstance!.countRows() - 1);
   }
 
-  lookUpRow(row: number | null): void {
+  lookUpRows(fromRow: number, toRow: number): void {
     const hot = this.hotTable.hotInstance!;
 
-    if (row === null) {
-      return;
-    }
-
-    hot.getPlugin('asyncValues').setAsyncValue(row, 1, ({ physicalRow, signal }) => (
+    hot.getPlugin('asyncValues').setAsyncValues(fromRow, 1, toRow, 1, ({ physicalRow, signal }) => (
       lookUpProduct(hot.getSourceDataAtCell(physicalRow, 'sku') as string, signal)
     ), { dependsOn: ['sku'] });
   }

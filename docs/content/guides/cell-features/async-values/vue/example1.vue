@@ -33,24 +33,16 @@ function lookUpProduct(sku: string, signal: AbortSignal): Promise<string> {
 
 const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
-function lookUpRow(row: number | null) {
+function lookUpRows(fromRow: number, toRow: number) {
   const hot = hotRef.value?.hotInstance;
 
-  if (!hot || row === null) {
-    return;
-  }
-
-  hot.getPlugin('asyncValues').setAsyncValue(row, 1, ({ physicalRow, signal }) => (
+  hot?.getPlugin('asyncValues').setAsyncValues(fromRow, 1, toRow, 1, ({ physicalRow, signal }) => (
     lookUpProduct(hot.getSourceDataAtCell(physicalRow, 'sku') as string, signal)
   ), { dependsOn: ['sku'] });
 }
 
 function lookUpAll() {
-  const hot = hotRef.value?.hotInstance;
-
-  for (let row = 0; row < (hot?.countRows() ?? 0); row++) {
-    lookUpRow(row);
-  }
+  lookUpRows(0, (hotRef.value?.hotInstance?.countRows() ?? 0) - 1);
 }
 
 const hotSettings = ref<GridSettings>({
@@ -70,10 +62,12 @@ const hotSettings = ref<GridSettings>({
   height: 'auto',
   asyncValues: true,
   // Look the product up again when its SKU changes.
-  afterAsyncValueCancel(physicalRow, prop, reason) {
-    if (reason === 'dependency') {
-      lookUpRow(hotRef.value?.hotInstance?.toVisualRow(physicalRow) ?? null);
-    }
+  afterChange(changes) {
+    changes?.forEach(([row, prop]) => {
+      if (prop === 'sku') {
+        lookUpRows(row, row);
+      }
+    });
   },
   autoWrapRow: true,
   autoWrapCol: true,
