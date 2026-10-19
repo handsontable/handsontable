@@ -51,6 +51,11 @@ Consequences:
   the previous rendered selection, so without a render the old border DOM is gone and the new one waits for
   some unrelated render — the cell appears to lose its border.
 
+Scroll cost is **not** about how many borders have DOM. The viewport sync keeps that bounded, yet 2,100
+borders scrolled at half the speed of none because each visible border forced a layout in the border paint
+(DEV-3459). If scrolling a bordered grid is slow again, profile `Border#measure`/`paint` in Walkontable
+before looking at the model or the row index. See `../../3rdparty/walkontable/AGENTS.md`.
+
 ## Merging: a descriptor means "update these sides"
 
 `#buildRangeCellBorder` starts from the cell's existing borders and layers the descriptor on top, so sides
