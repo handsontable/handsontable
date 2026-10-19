@@ -2,7 +2,7 @@ name: Tests
 
 # ── PR pipeline ORCHESTRATOR ────────────────────────────────────────────────
 # This file is the DAG only: it wires the module reusable workflows (one per
-# domain — Checks, Lint, Code Quality, Unit, Types, Build, E2E, Walkontable,
+# domain — Checks, Lint, Code Quality, Unit, Types, Build, E2E, A11y, Walkontable,
 # Integration, Emitted Types, Visual, Docs, Performance) via `needs` (tiers +
 # artifact ordering) and `if` (scope gating from the Checks router's outputs).
 # The jobs/steps live in the module files, so each is small and reviewable.
@@ -148,6 +148,17 @@ jobs:
       jasmine-full-matrix: ${{ inputs.test-all || github.ref_name == 'master' }}
     secrets: inherit
 
+  # The accessibility scan (axe-core over the Playwright fixture pages), one job in warn
+  # mode: a finding outside the baseline is an annotation and a summary row, never a red
+  # job. Gated like the Playwright legs, on the UMD build it consumes (the build-umd scope
+  # includes tests/**). See a11y.yml and tests/AGENTS.md, "A11y: the axe scan and its baseline".
+  a11y:
+    name: A11y
+    needs: [ checks, build ]
+    if: ${{ !failure() && !cancelled() && (needs.checks.outputs.run-all == 'true' || needs.checks.outputs.build-handsontable-umd == 'true') }}
+    uses: ./.github/workflows/a11y.yml
+    secrets: inherit
+
   integration:
     name: Integration
     needs: [ checks, build ]
@@ -258,6 +269,7 @@ jobs:
       - build
       - walkontable
       - e2e
+      - a11y
       - integration
       - emitted-types
       - performance

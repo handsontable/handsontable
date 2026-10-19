@@ -402,6 +402,17 @@ gaming signals are covered by the inline-source unit tests in
 `evals/__tests__/score.test.mjs` only. All of it runs under the root
 `npm run test:tooling` (CI: `Checks / tooling tests`).
 
+**The accessibility scan is not a local gate.** `npm --prefix tests run test:a11y` runs axe-core
+over the curated fixture pages on the three themes and compares the findings with
+`tests/a11y/axe-baseline.json`; no hook runs it, because it needs the built UMD bundle and the
+minified stylesheets (an unstyled grid gives wrong contrast results), and a violation never fails
+it (warn mode; CI runs it as `A11y / axe`). What the local tooling suite does enforce is the
+baseline's shape: `tests/lib/__tests__/a11y-baseline.test.mjs`, in the root `test:tooling` glob,
+refuses an entry without an owning task id, a malformed one, an unknown theme, a page that is not
+in `tests/a11y/pages.mjs`, or a duplicate key, and pins the mode constant. Run the scan by hand
+after a change to an accessible surface, and read the policy in `tests/AGENTS.md`, "A11y: the axe
+scan and its baseline".
+
 ### The visual tier's enforcement map
 
 Anything syntactic is lint, and therefore local and immediate; anything that

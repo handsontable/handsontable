@@ -25,6 +25,7 @@ npm run test:walkontable           # Run Walkontable-specific tests
 npm run test:types                 # TypeScript type checking only
 # New Playwright E2E (from the repo root):
 cd tests && npm test               # Playwright functional E2E (visual regression is the separate visual-tests/ package)
+cd tests && npm run test:a11y      # axe-core scan over the curated fixture pages, three themes, compared with tests/a11y/axe-baseline.json
 
 # From monorepo root (npm --prefix):
 npm --prefix handsontable run test:unit
@@ -586,6 +587,13 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Config: `visual-tests/playwright.config.ts` and `playwright-cross-browser.config.ts`
 - Screenshots stored in `visual-tests/screenshots/`
 - What earns a capture, and why a visual spec is in addition to, never instead of a Playwright assertion: `visual-tests/AGENTS.md` → Decision rule
+
+**Accessibility scan (axe):**
+- Framework: Playwright + `@axe-core/playwright` (axe-core, WCAG 2.2 A and AA rule tags)
+- Location: `tests/a11y/` — `axe.spec.ts` (the scan), `pages.mjs` (the curated fixture pages, one per accessible surface, each on the three themes), `axe-baseline.json` (the known findings, each owned by a task)
+- Config: `tests/playwright.a11y.config.ts`; the comparator is `tests/lib/a11y-baseline.mjs`, the reporter `tests/reporters/a11y.ts`
+- CI: one job, `A11y / axe`, in warn mode — a finding outside the baseline is an annotation and a summary row, never a red job; the only reds are tooling failures. The baseline only shrinks: the change that fixes a finding deletes its entries
+- It is not a test of a change: a pull request that touches an accessible surface still proves its behavior with a Playwright spec in `tests/e2e/`. How to add a page, baseline a finding, and when warn mode flips: `tests/AGENTS.md` → "A11y: the axe scan and its baseline"
 
 ## Plugin Testing Requirements
 

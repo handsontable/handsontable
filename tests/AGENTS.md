@@ -930,3 +930,141 @@ policy module; change them there, in this section, in the G5 bullet of
 `$comment` together. The visual quarantine imports them, and
 `visual-tests/lib/__tests__/visual-quarantine.test.mjs` pins 6 and 30, so it
 fails until you do.
+
+## A11y: the axe scan and its baseline
+
+`a11y/axe.spec.ts` runs axe-core (`@axe-core/playwright`) over the pages of `a11y/pages.mjs`, each
+on the three themes, and `reporters/a11y.ts` compares every finding with the committed baseline,
+`a11y/axe-baseline.json`, through the pure comparator in `lib/a11y-baseline.mjs`. CI runs it as
+one job, `A11y / axe` (`.github/workflows/a11y.yml`, gated like the Playwright legs on the UMD
+build), in **warn mode**: a finding outside the baseline is a `::warning` annotation and a row in
+the job summary, a baseline entry that no longer reproduces is reported the same way, and the job
+stays green. The only reds are tooling failures: a fixture that does not load, a constructor
+throw, a menu or an editor the keyboard did not open, an invalid baseline, a run that completed no
+scan. The baseline is a ratchet that only shrinks: the pull request that fixes a finding deletes
+its entries. Locally: `npm --prefix tests run test:a11y`, after `build:umd`, `build:styles.min` and
+`build:themes-css.min` (an unstyled grid gives wrong contrast results; `README.md`).
+
+- **The scan includes the grid's root container and its portal, nothing else.** `.include(root)`
+  plus `.include('.ht-portal')`, where the portal is the `body`-level element the core appends
+  for menus and the comment editor (`rootPortalElement`). The fixture page's own buttons, inputs
+  and headings are not the product, and a finding on them would be baselined forever. A page
+  whose fixture holds several grids names its `root` (`nested-headers`, `read-only`); the default
+  is `[data-testid="grid"]`.
+- **WCAG 2.2 A and AA, violations only.** The rule set is the tags `wcag2a`, `wcag2aa`, `wcag21a`,
+  `wcag21aa` and `wcag22aa`, the level the published conformance report claims
+  (`docs/content/guides/accessibility/accessibility-conformance-report/`); best-practice rules are
+  not in it, on purpose. An `incomplete` result (axe could not decide, most often a contrast it
+  could not compute) is counted in the raw scan JSON and never a finding.
+- **One bundle, three themes.** The scan runs on the plain UMD bundle: the minified full bundle
+  renders the same DOM. It runs on `main`, `horizon` and `classic`, because the contrast and the
+  target-size results depend on the theme, and a baseline entry names its theme.
+- **A separate config, one project.** `playwright.a11y.config.ts` spreads `playwright.config.ts`
+  (server, port, base URL, traces) and replaces the projects, the way the engines config does.
+  The e2e config's project list is pinned by `e2e/leg-declarations.spec.ts` and
+  `.github/scripts/__tests__/e2e-legs.test.mjs`, and the leg-declaration sweep reads every spec
+  under `e2e/`, so a scan that is not a functional test stays out of both: no leg tags, no shards.
+  The quarantine reporter is not in its list either (nothing is quarantined in a scan). The a11y
+  reporter resolves the baseline from its own location, not from `config.rootDir`, which is the
+  config's `testDir` (`a11y/`), one level below the package.
+- **Every opener drives the keyboard where the surface has a shortcut.** Shift+F10 for the
+  context menu, Shift+Alt+ArrowDown for the dropdown menu, Enter for an editor, ArrowDown and
+  ArrowRight to reach a submenu, after `selectCell()` through the API so the keys reach the grid;
+  the comment editor opens through `showAtCell()`, and the data-provider page releases its parked
+  fetch, because neither has a shortcut. The scanned DOM is the one a keyboard user reaches,
+  which is what the menu findings are about. The instance is read inside the page through the
+  `__hotInstance` the core stamps on `.ht-root-wrapper`, so no page says which global holds its
+  grid, and the lookup is spelled out inside each `evaluate` (Playwright serializes the callback's
+  source; a helper defined in the spec is not visible in the page).
+
+### Adding a page
+
+Add an entry to `a11y/pages.mjs`: `id` (a kebab-case slug that names the surface, not the
+fixture; one fixture can be scanned in several states), `fixture` (under `fixtures/demo/`),
+`query` (appended after the theme), `root` (when the fixture has several grids), `cell` (where a
+menu or an editor opens; `[1, 1]` when absent), `state` (one of `STATES` in the spec: add a new
+opener there for a new kind of surface, keyboard first) and `surface` (what it covers). The
+fixture keeps the fixture contract above: the `?theme=`/`?bundle=` block, `window.htBuildError` or
+`data-init-error` on a constructor throw, which the spec turns into a red test. Run the scan;
+every finding the new page reproduces is new to the baseline, and each gets an entry with the
+task that owns it, mostly the same task the finding carries on the other pages. The tooling test
+refuses a baseline entry whose page is not in the list, so removing a page means deleting its
+entries in the same change.
+
+### Baselining a finding
+
+A finding is keyed by `page`, `theme`, `rule` (the axe rule id) and `target`, and the baseline
+holds one entry per key: the comparator reports a run in four sets, new (not in the baseline:
+fix it, or add an entry with an owner), matched (nothing to do), stale (the page and theme were
+scanned and the finding did not reproduce: delete the entry) and unverified (the page or theme
+was not scanned this run, because its test failed: nothing to do until it runs). The job summary
+and the `comparison.json` in the `a11y-axe-results` artifact carry the one-line remedy for each,
+and a new finding's remedy is the entry to paste, with the `task` left to fill in.
+
+`target` is the node's own compound selector, taken from the selector axe chose for it
+(`targetFingerprint()` in `lib/a11y-baseline.mjs`): the ancestors axe added for uniqueness are
+dropped, a positional index is collapsed (`td:nth-child(n)`), an attribute value other than
+`role` and `type` is dropped (`td[aria-label]`), and a generated instance id
+(`#ht_2748fc73094c28f8`, different on every load) is replaced by what the node's own start tag
+says it is (`div[role="treegrid"]`, or `div.wtHolder` without a role). Two measured reasons. The
+root element gets a random id per instance and axe anchors on an id when it has one, so the raw
+target was never the same twice. And axe picks each menu item's `aria-label` as its unique
+selector, so one structural finding (menu items with no `menu` parent) fanned out into one key
+per item, and a baseline keyed on it would change with every renamed or added item. The key
+therefore names the kind of element, and `nodes` in the summary says how many carried it.
+
+Every entry carries `task`, the ClickUp id that owns the fix (`DEV-1234`, validated by
+`lib/__tests__/a11y-baseline.test.mjs`, which the root `test:tooling` runs on every pull request),
+and `note`, one line on what the finding is. A finding no task owns yet carries the id of the task
+that added it as a placeholder, is listed in that pull request's description for triage, and gets
+its own task after. The pull request that fixes a finding deletes its entries (the task id is the
+handle: every entry with `"task": "DEV-1234"`), and a stale entry left behind is what the stale
+set is for. One entry per line, sorted by page, theme, rule and target, so a diff reads as a
+list of findings. `axeCoreVersion` is the exact version the baseline was taken with: both axe
+packages are pinned exact in `package.json`, a bump changes what the rules find, so it re-runs the
+scan and refreshes the baseline in the same pull request, and the reporter warns when the
+installed version differs from the file's.
+
+The schema, which the conformance-report generator reads too:
+
+```json
+{
+  "axeCoreVersion": "4.14.0",
+  "entries": [
+    {
+      "page": "context-menu",
+      "theme": "main",
+      "rule": "aria-required-parent",
+      "target": ".htSeparator[aria-label][role=\"menuitem\"]",
+      "impact": "critical",
+      "task": "DEV-2944",
+      "note": "a menu separator is a td with role=menuitem and the label \"---------\", and no menu or group parent in its ancestry"
+    }
+  ]
+}
+```
+
+`page` is an `id` of `a11y/pages.mjs`; `theme` is `main`, `horizon` or `classic`; `rule` is the axe
+rule id; `target` is the fingerprint above; `impact` is axe's (`minor`, `moderate`, `serious`,
+`critical`, or `null`); `task` and `note` are described above. Nothing else is read.
+
+### Warn mode, and when it flips
+
+`A11Y_MODE` in `lib/a11y-baseline.mjs` is the whole switch, and the tooling test pins its value.
+In `warn` the run's status is Playwright's own: a violation never fails it, so every new finding
+and stale entry reaches the summary and the annotations without blocking a merge. In `block` a
+new finding or a stale entry fails the run as well: the ratchet then holds both ways, since a
+fixed finding whose entry was not deleted is a red run too. An unverified entry never changes the
+status in either mode. The flip comes after a replay of the comparator over recent pull requests
+shows it reports what changed and nothing else (precise before blocking); it changes the
+constant, the pinned test and this section together. The comparator's mode is covered in both
+modes by `lib/__tests__/a11y-baseline.test.mjs`, so the flip needs no new test.
+
+The chain from the orchestrator to the config is pinned by
+`.github/scripts/__tests__/a11y-workflow.test.mjs`, which fails with the reason when a link moves.
+
+GitHub shows at most ten warning annotations per step, so a run with many new findings shows the
+first ten and the summary table holds them all. The raw axe result per page and theme is in the
+`a11y-axe-results` artifact (`scans/<page>--<theme>.json`, three days), beside `comparison.json`
+and `summary.md`; read a finding's `failureSummary` there before fixing it, because the summary
+table carries the rule's help text, not the node's reason.
