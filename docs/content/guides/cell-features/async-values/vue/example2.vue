@@ -101,7 +101,7 @@ const hotSettings = ref<GridSettings>({
       <button class="button button--primary" @click="classify">Classify</button>
       <button class="button button--primary" @click="getPlugin().retryErrors()">Retry failed</button>
       <button class="button button--primary" @click="getPlugin().cancelAll()">Stop</button>
-      <output aria-live="polite">{{ progress }}</output>
+      <span>{{ progress }}</span>
     </div>
   </div>
   <div id="example2">

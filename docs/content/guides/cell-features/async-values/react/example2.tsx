@@ -81,7 +81,7 @@ const ExampleComponent = () => {
           <button className="button button--primary" onClick={classify}>Classify</button>
           <button className="button button--primary" onClick={() => getPlugin().retryErrors()}>Retry failed</button>
           <button className="button button--primary" onClick={() => getPlugin().cancelAll()}>Stop</button>
-          <output aria-live="polite">{progress}</output>
+          <span>{progress}</span>
         </div>
       </div>
       <HotTable

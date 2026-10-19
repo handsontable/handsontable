@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Added the AsyncValues plugin, which fills cells from promises, with a pending and an error state per cell and cancellation of stale requests.",
+  "title": "Added the AsyncValues plugin, which fills cells from promises, one cell at a time or in batches, with a pending and an error state per cell, cancellation of stale requests, a concurrency limit, retries, and an optional undo step per run.",
   "type": "added",
   "issueOrPR": 13916,
   "breaking": false,

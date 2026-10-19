@@ -90,9 +90,15 @@ export class Launch {
  */
 export class LaunchQueue {
   /**
-   * The launches waiting for a slot.
+   * The launches waiting for a slot, from `#head` on.
    */
   #waiting: Launch[] = [];
+
+  /**
+   * The index of the first waiting launch. A head index rather than `shift()`, which moves every waiting
+   * launch on each start.
+   */
+  #head = 0;
 
   /**
    * The number of slots taken.
@@ -140,8 +146,10 @@ export class LaunchQueue {
     this.#pumping = true;
 
     try {
-      while (this.#waiting.length > 0 && this.#active < this.#limit()) {
-        const launch = this.#waiting.shift()!;
+      while (this.#head < this.#waiting.length && this.#active < this.#limit()) {
+        const launch = this.#waiting[this.#head];
+
+        this.#head += 1;
 
         if (launch.isLive()) {
           this.#active += 1;
@@ -151,16 +159,11 @@ export class LaunchQueue {
 
     } finally {
       this.#pumping = false;
-    }
-  }
 
-  /**
-   * The number of launches waiting for a slot.
-   *
-   * @returns {number}
-   */
-  countWaiting(): number {
-    return this.#waiting.length;
+      if (this.#head === this.#waiting.length) {
+        this.clear();
+      }
+    }
   }
 
   /**
@@ -168,6 +171,7 @@ export class LaunchQueue {
    */
   clear(): void {
     this.#waiting = [];
+    this.#head = 0;
   }
 
   /**

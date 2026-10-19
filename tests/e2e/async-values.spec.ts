@@ -33,6 +33,26 @@ test.describe('async cell values', { tag: THEMES_TAG }, () => {
     expect(indicatorBox.y + indicatorBox.height).toBeLessThanOrEqual(cellBox.y + cellBox.height);
   });
 
+  test('the spinner and the error background follow their own theme variables', async({ page, theme, bundle }) => {
+    const asyncPage = new AsyncValuesPage(page, theme, bundle);
+
+    await asyncPage.goto();
+    // Values no theme uses, so a rule that read another variable cannot match them by accident.
+    await asyncPage.setThemeVariables({
+      '--ht-async-indicator-color': 'rgb(1, 2, 3)',
+      '--ht-async-error-background-color': 'rgb(4, 5, 6)',
+    });
+    await asyncPage.start(0, 1);
+
+    await expect(asyncPage.indicator(0, 1)).toBeVisible();
+    expect(await asyncPage.indicatorColor(0, 1)).toBe('rgb(1, 2, 3)');
+
+    await asyncPage.reject(await asyncPage.start(2, 1), 'Product not found');
+
+    await expect(asyncPage.cell(2, 1)).toHaveClass(/htAsyncError/);
+    expect((await asyncPage.errorColors(2, 1)).cell).toBe('rgb(4, 5, 6)');
+  });
+
   test('a resolved request writes the value and removes the spinner', async({ page, theme, bundle }) => {
     const asyncPage = new AsyncValuesPage(page, theme, bundle);
 

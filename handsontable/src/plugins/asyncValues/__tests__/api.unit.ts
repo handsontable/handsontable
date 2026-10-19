@@ -88,6 +88,32 @@ describe('AsyncValues: progress, retry, and request options', () => {
       destroy();
     });
 
+    it('should cancel and retry a cell by its row id', async() => {
+      const { plugin, destroy } = createGrid({ rowId: 'id' });
+      let attempt = 0;
+
+      plugin.setAsyncValueAt({ rowId: 'c', prop: 'name' }, () => deferred().promise);
+      plugin.cancelAt({ rowId: 'c', prop: 'name' });
+
+      expect(plugin.countPending()).toBe(0);
+
+      await plugin.setAsyncValueAt({ rowId: 'b', prop: 'name' }, async() => {
+        attempt += 1;
+
+        if (attempt === 1) {
+          throw new Error('Timeout');
+        }
+
+        return 'new B';
+      });
+
+      expect(plugin.getAsyncStateAt({ rowId: 'b', prop: 'name' }))
+        .toEqual({ status: 'error', error: expect.any(Error), message: 'Timeout' });
+      expect(await plugin.retryAt({ rowId: 'b', prop: 'name' })).toEqual({ status: 'resolved', value: 'new B' });
+
+      destroy();
+    });
+
     it('should not retry a cell whose source was not kept', async() => {
       const { plugin, destroy } = createGrid();
 
@@ -119,6 +145,34 @@ describe('AsyncValues: progress, retry, and request options', () => {
       expect(after).toHaveBeenCalledWith([[0, 'name', 'old A', 'Desk lamp']], 'AI.fill');
       expect(hot.getCellMeta(0, 1).aiGenerated).toBe(true);
       expect(hot.getCellMeta(1, 1).aiGenerated).toBeUndefined();
+
+      destroy();
+    });
+
+    it('should not apply `meta` to a filtered-out row, nor to a value the grid rejected', async() => {
+      const { hot, plugin, destroy } = createGrid({
+        trimRows: [3],
+        beforeChange(changes: Array<[number, string, unknown, unknown] | null>) {
+          // Rejects the write of row 1.
+          changes.forEach((change, index) => {
+            if (change?.[0] === 1) {
+              changes[index] = null;
+            }
+          });
+        },
+      });
+      const meta = { className: 'fromAsync' };
+
+      await plugin.setAsyncValueAt({ physicalRow: 3, prop: 'name' }, async() => 'new D', { meta });
+      await plugin.setAsyncValues(0, 1, 1, 1, async() => 'new', { meta });
+
+      expect(hot.getCellMeta(0, 1).className).toBe('fromAsync');
+      expect(hot.getCellMeta(1, 1).className).toBeUndefined();
+
+      hot.getPlugin('trimRows').untrimAll();
+
+      expect(hot.getDataAtCell(3, 1)).toBe('new D');
+      expect(hot.getCellMeta(3, 1).className).toBeUndefined();
 
       destroy();
     });
@@ -286,6 +340,102 @@ describe('AsyncValues: progress, retry, and request options', () => {
       price.resolve(10);
 
       expect(await priceResult).toEqual({ status: 'resolved', value: 10 });
+
+      destroy();
+    });
+
+    it('should record the value the grid stored, after a `valueSetter` changed it', async() => {
+      const { hot, plugin, destroy } = createGrid({
+        undo: true,
+        columns: [
+          { data: 'sku' },
+          { data: 'name', valueSetter: (value: unknown) => String(value).toUpperCase() },
+          { data: 'price' },
+        ],
+      });
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      await plugin.setAsyncValues(0, 1, 1, 1, async({ row }) => `new ${row}`, { undo: 'record' });
+      await settle();
+
+      expect(hot.getDataAtCol(1)).toEqual(['NEW 0', 'NEW 1', 'old C', 'old D']);
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCol(1)).toEqual(['old A', 'old B', 'old C', 'old D']);
+
+      undoRedo.redo();
+
+      expect(hot.getDataAtCol(1)).toEqual(['NEW 0', 'NEW 1', 'old C', 'old D']);
+
+      destroy();
+    });
+
+    it('should keep a call\'s written values with their rows through a row insert', async() => {
+      const { hot, plugin, destroy } = createGrid({ undo: true });
+      const undoRedo = hot.getPlugin('undoRedo');
+      const requests = [deferred(), deferred()];
+      const results = plugin.setAsyncValues(0, 1, 1, 1, ({ row }) => requests[row!].promise, { undo: 'record' });
+
+      requests[0].resolve('new A');
+      await settle();
+      hot.alter('insert_row_above', 0);
+      requests[1].resolve('new B');
+      await results;
+      await settle();
+
+      expect(hot.getDataAtCol(1)).toEqual([null, 'new A', 'new B', 'old C', 'old D']);
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCol(1)).toEqual([null, 'old A', 'old B', 'old C', 'old D']);
+
+      destroy();
+    });
+
+    it('should keep a call\'s written values through `updateSettings()` with `columns`', async() => {
+      const { hot, plugin, destroy } = createGrid({ undo: true });
+      const undoRedo = hot.getPlugin('undoRedo');
+      const requests = [deferred(), deferred()];
+      const results = plugin.setAsyncValues(0, 1, 1, 1, ({ row }) => requests[row!].promise, { undo: 'record' });
+
+      requests[0].resolve('new A');
+      await settle();
+      hot.updateSettings({ columns: [{ data: 'sku' }, { data: 'name' }, { data: 'price' }] });
+      requests[1].resolve('new B');
+      await results;
+      await settle();
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCol(1)).toEqual(['old A', 'old B', 'old C', 'old D']);
+
+      destroy();
+    });
+
+    it('should keep a call\'s written values on their records through an `updateData()` that reorders them', async() => {
+      const { hot, plugin, destroy } = createGrid({ undo: true, rowId: 'id' });
+      const undoRedo = hot.getPlugin('undoRedo');
+      const requests = { a: deferred(), b: deferred() };
+      const results = plugin.setAsyncValuesForRows(
+        [{ rowId: 'a' }, { rowId: 'b' }],
+        'name',
+        ({ rowId }) => requests[rowId as 'a' | 'b'].promise,
+        { undo: 'record' },
+      );
+
+      requests.a.resolve('new A');
+      await settle();
+      hot.updateData((hot.getSourceData() as Array<Record<string, unknown>>).slice().reverse());
+      requests.b.resolve('new B');
+      await results;
+      await settle();
+
+      expect(hot.getDataAtCol(1)).toEqual(['old D', 'old C', 'new B', 'new A']);
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCol(1)).toEqual(['old D', 'old C', 'old B', 'old A']);
 
       destroy();
     });

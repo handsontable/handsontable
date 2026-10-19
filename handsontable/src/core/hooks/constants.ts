@@ -1572,7 +1572,14 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by the {@link AsyncValues} plugin before it starts an asynchronous computation of a cell's
    * value. Return `false` to skip the request: the cell does not become pending, its source is not
-   * called, and the request ends as cancelled with the `'vetoed'` reason.
+   * called, and the request's promise resolves as cancelled with the `'vetoed'` reason. No
+   * `afterAsyncValueCancel` hook fires for a skipped request, because nothing was pending.
+   *
+   * The callbacks run one after another, and each one receives the previous callback's result as its first
+   * argument instead of the row index when that result is not `undefined`. So a callback that only allows a
+   * request returns `undefined`, never `true`, and a callback that checks the decision of an earlier one
+   * compares its first argument with `false`. A callback that throws skips its cell's request, and the error
+   * is thrown again once the call has started its other cells.
    *
    * @event Hooks#beforeAsyncValueStart
    * @since 19.0.0
@@ -1588,6 +1595,12 @@ export const REGISTERED_HOOKS = [
    * to write it instead, or `false` to discard the value: the cell keeps its previous value, and the
    * request ends as cancelled with the `'vetoed'` reason. Because `false` discards, a listener cannot
    * replace a value with a literal `false`; a resolved `false` that no listener changes is written.
+   *
+   * The callbacks run one after another, and each one receives the previous callback's result as its first
+   * argument when that result is not `undefined`. So a callback that keeps the value returns `undefined`, and
+   * a callback that checks for an earlier discard compares its first argument with `false`. Every callback of
+   * a flush runs before any value is written. A callback that throws fails its own cell with the error it
+   * threw, and the error is thrown again once the other cells are written.
    *
    * @event Hooks#beforeAsyncValueResolve
    * @since 19.0.0

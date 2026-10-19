@@ -36,6 +36,26 @@ export function isProp(prop: unknown): prop is AsyncValueProp {
 }
 
 /**
+ * Tells whether a value is array-like: an array, or an object with a non-negative integer `length`.
+ *
+ * @param {*} value The value.
+ * @returns {boolean}
+ */
+export function isArrayLike(value: unknown): value is ArrayLike<unknown> {
+  if (Array.isArray(value)) {
+    return true;
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const { length } = value as { length?: unknown };
+
+  return Number.isInteger(length) && (length as number) >= 0;
+}
+
+/**
  * Pushes a change into the list of a write source.
  *
  * @param {Map} lists The lists, by write source.

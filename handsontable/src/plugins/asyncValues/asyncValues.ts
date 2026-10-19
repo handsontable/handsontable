@@ -2,9 +2,11 @@ import { BasePlugin } from '../base';
 import { registerConflict } from '../base/conflictRegistry';
 import { hasOwnProperty } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
+import { warnOnce } from '../../helpers/console';
 import { announce } from '../../utils/a11yAnnouncer';
+import { detachValue, recordCellChange } from '../../dataMap/dataJournal';
 import { Launch, LaunchQueue } from './launchQueue';
-import { isProp, pushChange, readCopiedAxes, toErrorMessage, type Change } from './utils';
+import { isArrayLike, isProp, pushChange, readCopiedAxes, toErrorMessage, type Change } from './utils';
 import { decorateCell, undecorateCell } from './decoration';
 import type { CellChange, CellProperties } from '../../settings';
 import type { PhysicalIndexToValueMap } from '../../translations';
@@ -41,6 +43,11 @@ export { PENDING_CLASS_NAME, ERROR_CLASS_NAME, INDICATOR_CLASS_NAME, ERROR_MESSA
 const DEFAULT_BATCH_SIZE = 25;
 
 /**
+ * The default number of sources running at once: the per-host connection limit of HTTP/1.1 browsers.
+ */
+const DEFAULT_CONCURRENCY = 6;
+
+/**
  * The answer of a `beforeAsyncValueResolve` listener that discards a value.
  */
 const VETOED = Symbol('vetoed');
@@ -62,13 +69,13 @@ interface ResolvedOptions {
 }
 
 /**
- * One public call: the requests it started share it, and with `undo: 'record'` the values it wrote
- * become one undo step when its last request settles.
+ * One public call: the requests it started share it. When its last request settles, the writes it
+ * left behind are finalized: recorded as one undo step (`undo: 'record'`) and forgotten.
  */
 interface Run {
   options: ResolvedOptions;
   live: number;
-  hasRecords: boolean;
+  hasWrites: boolean;
 }
 
 /**
@@ -92,7 +99,7 @@ interface Batch {
  */
 interface AsyncValueEntry {
   status: AsyncValueStatus;
-  physicalRow: number;
+  state: RowState;
   prop: AsyncValueProp;
   controller: AbortController | null;
   error: unknown;
@@ -103,23 +110,28 @@ interface AsyncValueEntry {
   batch: Batch | null;
   launch: Launch | null;
   finished: boolean;
+  reported: boolean;
 }
 
 /**
- * A value a `undo: 'record'` call wrote, kept until the call's step is recorded.
+ * A value a call wrote, kept until the call is finalized when the call records an undo step or applies
+ * meta. It is `landed` once the grid stored it (the write's own change event), and dropped when any
+ * other change reaches the cell first.
  */
-interface RecordedWrite {
+interface PendingWrite {
   run: Run;
   oldValue: unknown;
-  newValue: unknown;
+  landed: boolean;
 }
 
 /**
- * The plugin's state of one row: its requests and errors, and the writes waiting for an undo step.
+ * The plugin's state of one row. Entries point at it, so moving the state to another physical row
+ * moves every request and pending write of the row with it.
  */
 interface RowState {
+  physicalRow: number;
   entries: Map<AsyncValueProp, AsyncValueEntry>;
-  recorded: Map<AsyncValueProp, RecordedWrite>;
+  writes: Map<AsyncValueProp, PendingWrite>;
 }
 
 /**
@@ -131,11 +143,20 @@ interface SettledRequest {
 }
 
 /**
- * A row state captured before a data replacement, with what is needed to find its row again.
+ * What a flush does with its settled requests.
+ */
+interface Decisions {
+  rejected: SettledRequest[];
+  vetoed: AsyncValueEntry[];
+  resolved: SettledRequest[];
+  failure: { error: unknown } | null;
+}
+
+/**
+ * A row state captured before a data replacement, with its row id.
  */
 interface ReplacedRow {
   state: RowState;
-  physicalRow: number;
   rowId: unknown;
 }
 
@@ -153,7 +174,16 @@ interface Target {
 interface Writes {
   visible: Map<string, Change[]>;
   source: Map<string, Change[]>;
-  meta: Array<[number, number, Record<string, unknown>]>;
+}
+
+/**
+ * The physical row of an entry.
+ *
+ * @param {object} entry The entry.
+ * @returns {number}
+ */
+function rowOf(entry: AsyncValueEntry): number {
+  return entry.state.physicalRow;
 }
 
 /**
@@ -227,9 +257,12 @@ interface Writes {
  *
  * const asyncValues = hotRef.current.hotInstance.getPlugin('asyncValues');
  *
- * asyncValues.setAsyncValuesForRows('all', 'name', ({ physicalRow, signal }) => fetchProductName(physicalRow, signal), {
- *   dependsOn: ['sku'],
- * });
+ * asyncValues.setAsyncValuesForRows(
+ *   'all',
+ *   'name',
+ *   ({ physicalRow, signal }) => fetchProductName(physicalRow, signal),
+ *   { dependsOn: ['sku'] },
+ * );
  * ```
  * :::
  *
@@ -244,9 +277,12 @@ interface Writes {
  *
  * const asyncValues = this.hotTable.hotInstance.getPlugin('asyncValues');
  *
- * asyncValues.setAsyncValuesForRows('all', 'name', ({ physicalRow, signal }) => fetchProductName(physicalRow, signal), {
- *   dependsOn: ['sku'],
- * });
+ * asyncValues.setAsyncValuesForRows(
+ *   'all',
+ *   'name',
+ *   ({ physicalRow, signal }) => fetchProductName(physicalRow, signal),
+ *   { dependsOn: ['sku'] },
+ * );
  * ```
  *
  * ```html
@@ -275,7 +311,7 @@ export class AsyncValues extends BasePlugin {
   static get DEFAULT_SETTINGS() {
     return {
       flush: 'microtask' as AsyncValuesSettings['flush'],
-      concurrency: Infinity,
+      concurrency: DEFAULT_CONCURRENCY,
       copyPendingAs: 'previous' as AsyncValuesSettings['copyPendingAs'],
     };
   }
@@ -287,7 +323,7 @@ export class AsyncValues extends BasePlugin {
     return {
       flush: (value: unknown) => value === 'microtask' || value === 'frame' ||
         (typeof value === 'number' && value >= 0 && Number.isFinite(value)),
-      concurrency: (value: unknown) => typeof value === 'number' && value >= 1,
+      concurrency: (value: unknown) => value === Infinity || (Number.isInteger(value) && (value as number) >= 1),
       copyPendingAs: (value: unknown) => value === 'previous' || value === 'empty',
     };
   }
@@ -300,7 +336,12 @@ export class AsyncValues extends BasePlugin {
   #rowsMap: PhysicalIndexToValueMap | null = null;
 
   /**
-   * Every entry in `#rowsMap`, for the walks that do not start from a cell.
+   * Every row state in `#rowsMap`, for the walks that do not start from a row.
+   */
+  readonly #states = new Set<RowState>();
+
+  /**
+   * Every entry, for the walks that do not start from a cell.
    */
   readonly #entries = new Set<AsyncValueEntry>();
 
@@ -315,6 +356,12 @@ export class AsyncValues extends BasePlugin {
   #busy = false;
 
   /**
+   * How deep the plugin is in a flush. `#afterSettling()` waits for the outermost one, so the idle hook
+   * never fires before the flush's own resolve hooks.
+   */
+  #settlingDepth = 0;
+
+  /**
    * The settled requests waiting for the next flush.
    */
   #settled: SettledRequest[] = [];
@@ -322,7 +369,7 @@ export class AsyncValues extends BasePlugin {
   /**
    * The sources waiting for a concurrency slot.
    */
-  readonly #queue = new LaunchQueue(() => this.getSetting<number>('concurrency') ?? Infinity);
+  readonly #queue = new LaunchQueue(() => this.getSetting<number>('concurrency') ?? DEFAULT_CONCURRENCY);
 
   /**
    * Cancels the queued flush, or `null` when none is queued.
@@ -337,7 +384,7 @@ export class AsyncValues extends BasePlugin {
 
   /**
    * Whether a `loadData()` or `updateData()` is running. Its spare rows fire `afterCreateRow` before
-   * `after*Data`, and the requests then belong to the data replacement, not to a row removal.
+   * `after*Data`, and the row states then belong to the data replacement, not to a row removal.
    */
   #replacingData = false;
 
@@ -347,14 +394,10 @@ export class AsyncValues extends BasePlugin {
   #replacedRows: ReplacedRow[] = [];
 
   /**
-   * Whether the plugin is writing an undo step. Its own writes then cancel nothing.
+   * The first error a hook listener threw while the plugin was starting requests. It is thrown again
+   * once the call has finished starting everything, so a throwing listener cannot strand other cells.
    */
-  #recording = false;
-
-  /**
-   * The finished `undo: 'record'` calls whose step is still to be written.
-   */
-  #runsToRecord: Run[] = [];
+  #deferredError: { error: unknown } | null = null;
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings.
@@ -384,7 +427,7 @@ export class AsyncValues extends BasePlugin {
     this.addHook('afterChange', this.#onAfterChange, -1);
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell, -1);
     // Before the application's listeners, so a listener that cancels or writes a cell there already sees
-    // every entry on its current physical row.
+    // every row state on its current physical row.
     this.addHook('afterCreateRow', this.#syncRows, -1);
     this.addHook('afterRemoveRow', this.#syncRows, -1);
     this.addHook('afterCreateCol', this.#onAfterCreateCol);
@@ -438,9 +481,9 @@ export class AsyncValues extends BasePlugin {
     this.#cancelFlush = null;
     this.#settled = [];
     this.#queue.clear();
+    this.#states.clear();
     this.#replacingData = false;
     this.#replacedRows = [];
-    this.#runsToRecord = [];
     this.hot.rowIndexMapper.removeLocalHook('init', this.#onRowIndexInit);
 
     if (this.#rowsMap) {
@@ -513,9 +556,14 @@ export class AsyncValues extends BasePlugin {
     }
 
     const run = this.#createRun(options);
-    const result = this.#startCell(target, source, run);
+    let result: Promise<AsyncValueResult>;
 
-    this.#afterStarting(run);
+    try {
+      result = this.#startCell(target, source, run);
+
+    } finally {
+      this.#afterStarting(run);
+    }
 
     return result;
   }
@@ -598,8 +646,9 @@ export class AsyncValues extends BasePlugin {
    *
    * `source` receives the cells' contexts and the batch's `AbortSignal`, and resolves with an array aligned
    * with the cells: an element that is an `Error` rejects that cell, and a missing element rejects it with
-   * an empty message. A rejection rejects every cell of the batch. Each cell settles on its own, and the
-   * batch's signal aborts only when every cell of the batch was cancelled. A batch takes one concurrency slot.
+   * an empty message. A rejection, or an answer that is not an array, rejects every cell of the batch. Each
+   * cell settles on its own, and the batch's signal aborts only when every cell of the batch was cancelled.
+   * A batch takes one concurrency slot. A row listed twice is computed once.
    *
    * @param {string|Array} rows `'all'`, or the rows as `{ physicalRow }` or `{ rowId }` objects.
    * @param {string|number} prop The property of the column.
@@ -622,9 +671,14 @@ export class AsyncValues extends BasePlugin {
 
     const targets = this.#resolveRows(rows, prop);
     const run = this.#createRun(options);
-    const results = this.#startBatches(targets, source, run);
+    let results: Promise<AsyncValueResult>[] = [];
 
-    this.#afterStarting(run);
+    try {
+      results = this.#startBatches(targets, source, run);
+
+    } finally {
+      this.#afterStarting(run);
+    }
 
     return Promise.all(results);
   }
@@ -673,6 +727,8 @@ export class AsyncValues extends BasePlugin {
    *
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
+   * @fires Hooks#beforeAsyncValueStart
+   * @fires Hooks#afterAsyncValueStart
    * @returns {Promise<object>|null} A promise of how the new request ended, or `null` when the cell has
    * no error, or no source to retry (a plain promise, or `keepSource: false`).
    */
@@ -685,6 +741,8 @@ export class AsyncValues extends BasePlugin {
    * {@link AsyncValues#retry}).
    *
    * @param {object} cell The cell.
+   * @fires Hooks#beforeAsyncValueStart
+   * @fires Hooks#afterAsyncValueStart
    * @returns {Promise<object>|null} A promise of how the new request ended, or `null`.
    */
   retryAt(cell: AsyncCellRef): Promise<AsyncValueResult> | null {
@@ -701,6 +759,8 @@ export class AsyncValues extends BasePlugin {
    * Starts the requests of every failed cell again. Cells that failed in one batch are retried in batches
    * again.
    *
+   * @fires Hooks#beforeAsyncValueStart
+   * @fires Hooks#afterAsyncValueStart
    * @returns {Promise<object[]>} A promise of the results of the retried cells.
    */
   retryErrors(): Promise<AsyncValueResult[]> {
@@ -788,8 +848,8 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
-   * Destroys the plugin instance. Pending requests are aborted, and their promises resolve as
-   * cancelled with the `'disabled'` reason.
+   * Destroys the plugin instance. Pending requests and batches are aborted, and their promises resolve
+   * as cancelled with the `'disabled'` reason.
    */
   destroy(): void {
     const entries = [...this.#entries];
@@ -797,12 +857,14 @@ export class AsyncValues extends BasePlugin {
     this.#cancelFlush?.();
     this.#cancelFlush = null;
     this.#entries.clear();
+    this.#states.clear();
     this.#settled = [];
     this.#queue.clear();
     this.#rowsMap = null;
     entries.forEach((entry) => {
       if (entry.status === 'pending') {
         entry.controller?.abort();
+        entry.batch?.controller.abort();
         entry.controller = null;
         entry.settle({ status: 'cancelled', reason: 'disabled' });
       }
@@ -839,7 +901,7 @@ export class AsyncValues extends BasePlugin {
         batchSize: typeof batchSize === 'number' && batchSize >= 1 ? Math.floor(batchSize) : DEFAULT_BATCH_SIZE,
       },
       live: 0,
-      hasRecords: false,
+      hasWrites: false,
     };
   }
 
@@ -857,25 +919,56 @@ export class AsyncValues extends BasePlugin {
     options: AsyncValueOptions,
   ): Promise<AsyncValueResult[]> {
     const run = this.#createRun(options);
-    const results = targets.map(target => this.#startCell(target, source, run));
+    const results: Promise<AsyncValueResult>[] = [];
 
-    this.#afterStarting(run);
+    try {
+      targets.forEach(target => results.push(this.#startCell(target, source, run)));
+
+    } finally {
+      this.#afterStarting(run);
+    }
 
     return Promise.all(results);
   }
 
   /**
-   * Renders the cells a call started, and records the call right away when nothing in it is pending.
+   * Renders the cells a call started, finalizes the call right away when nothing in it is pending, and
+   * throws the first error a hook listener threw meanwhile.
    *
    * @param {object} run The call.
    */
   #afterStarting(run: Run): void {
+    const deferred = this.#deferredError;
+
+    this.#deferredError = null;
+
     if (this.#rowsMap) {
       this.hot.render();
     }
 
     if (run.live === 0) {
       this.#afterSettling();
+    }
+
+    if (deferred) {
+      throw deferred.error;
+    }
+  }
+
+  /**
+   * Runs a hook listener call, keeping the first error it throws for `#afterStarting()`.
+   *
+   * @param {Function} call The call.
+   * @returns {object|null} What the call returned, as `{ value }`, or `null` when it threw.
+   */
+  #runDeferringErrors<T>(call: () => T): { value: T } | null {
+    try {
+      return { value: call() };
+
+    } catch (error) {
+      this.#deferredError ??= { error };
+
+      return null;
     }
   }
 
@@ -985,7 +1078,9 @@ export class AsyncValues extends BasePlugin {
 
   /**
    * Installs a cell's entry: asks `beforeAsyncValueStart`, replaces a previous request, marks the cell
-   * pending, and fires `afterAsyncValueStart`. Calls no source.
+   * pending, and fires `afterAsyncValueStart`. Calls no source. A listener that throws is treated as a
+   * veto (`beforeAsyncValueStart`) or ignored (`afterAsyncValueStart`), and its error is thrown again by
+   * `#afterStarting()`.
    *
    * @param {object} target The cell.
    * @param {object} run The call.
@@ -1000,8 +1095,11 @@ export class AsyncValues extends BasePlugin {
     }
 
     const { physicalRow, prop } = target;
+    const answer = this.#runDeferringErrors(() => (
+      this.hot.runHooks('beforeAsyncValueStart', physicalRow, prop, this.#rowIdOf(physicalRow))
+    ));
 
-    if (this.hot.runHooks('beforeAsyncValueStart', physicalRow, prop, this.#rowIdOf(physicalRow)) === false) {
+    if (!answer || answer.value === false) {
       return { entry: null, result: Promise.resolve({ status: 'cancelled', reason: 'vetoed' }) };
     }
 
@@ -1013,9 +1111,10 @@ export class AsyncValues extends BasePlugin {
     const result = new Promise<AsyncValueResult>((resolve) => {
       settle = resolve;
     });
+    const state = this.#getRowState(physicalRow);
     const entry: AsyncValueEntry = {
       status: 'pending',
-      physicalRow,
+      state,
       prop,
       controller: new AbortController(),
       error: null,
@@ -1026,19 +1125,22 @@ export class AsyncValues extends BasePlugin {
       batch: null,
       launch: null,
       finished: false,
+      reported: false,
     };
-    const previous = this.#getEntry(physicalRow, prop);
+    const previous = state.entries.get(prop);
 
     run.live += 1;
 
     // The new entry takes the cell before the previous one's cancel hook runs, so a listener that
     // starts a request for the same cell from that hook replaces this entry instead of leaving it
-    // orphaned next to its own.
+    // orphaned next to its own. It is stored first, so detaching the previous one never finds the row
+    // empty and drops its state.
+    this.#setEntry(entry);
+
     if (previous) {
       this.#detach(previous);
     }
 
-    this.#setEntry(entry);
     this.#markChanged(entry);
 
     if (previous) {
@@ -1046,7 +1148,9 @@ export class AsyncValues extends BasePlugin {
     }
 
     if (this.#isPending(entry)) {
-      this.hot.runHooks('afterAsyncValueStart', physicalRow, prop, this.#rowIdOf(physicalRow));
+      this.#runDeferringErrors(() => (
+        this.hot.runHooks('afterAsyncValueStart', physicalRow, prop, this.#rowIdOf(physicalRow))
+      ));
     }
 
     return { entry: this.#isPending(entry) ? entry : null, result };
@@ -1097,31 +1201,56 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
-   * Starts batched requests for cells, without rendering.
+   * Starts batched requests for cells, without rendering. A batch whose installing was interrupted by a
+   * throwing listener still starts for the cells it has.
    *
    * @param {object[]} targets The cells.
    * @param {Function} source The batch source.
    * @param {object} run The call.
-   * @returns {Array<Promise<object>>}
+   * @returns {Array<Promise<object>>} The promises, in the order of `targets`.
    */
   #startBatches(targets: Target[], source: AsyncValueBatchSource, run: Run): Promise<AsyncValueResult>[] {
     const results: Promise<AsyncValueResult>[] = [];
+    const started = new Map<number, Map<AsyncValueProp, Promise<AsyncValueResult>>>();
     const { batchSize } = run.options;
+    let batch: Batch = { controller: new AbortController(), entries: [], cancelled: 0 };
 
-    for (let from = 0; from < targets.length; from += batchSize) {
-      const batch: Batch = { controller: new AbortController(), entries: [], cancelled: 0 };
+    try {
+      targets.forEach(({ physicalRow, prop }) => {
+        let row = started.get(physicalRow);
+        const known = row?.get(prop);
 
-      targets.slice(from, from + batchSize).forEach((target) => {
-        const { entry, result } = this.#install(target, run, { kind: 'batch', source });
+        // A row listed twice is computed once: a second install would restart the first entry, which would
+        // count as a cancelled cell of its batch.
+        if (known) {
+          results.push(known);
+
+          return;
+        }
+
+        const { entry, result } = this.#install({ physicalRow, prop }, run, { kind: 'batch', source });
+
+        if (!row) {
+          row = new Map();
+          started.set(physicalRow, row);
+        }
+
+        row.set(prop, result);
+        results.push(result);
 
         if (entry) {
           entry.batch = batch;
           batch.entries.push(entry);
         }
 
-        results.push(result);
+        if (batch.entries.length === batchSize) {
+          this.#launchBatch(batch, source);
+          batch = { controller: new AbortController(), entries: [], cancelled: 0 };
+        }
       });
 
+    } finally {
+      // Also when installing threw, so the cells already pending are computed.
       if (batch.entries.length > 0) {
         this.#launchBatch(batch, source);
       }
@@ -1154,17 +1283,7 @@ export class AsyncValues extends BasePlugin {
       request.then(
         (values) => {
           release();
-          live.forEach((entry, index) => {
-            const value = values !== null && values !== undefined && index < values.length ? values[index] : undefined;
-            const missing = values === null || values === undefined || index >= values.length;
-
-            this.#onSettled({
-              entry,
-              outcome: missing || value instanceof Error
-                ? { status: 'rejected', error: missing ? undefined : value }
-                : { status: 'resolved', value },
-            });
-          });
+          this.#distributeBatch(live, values);
         },
         (error) => {
           release();
@@ -1180,6 +1299,34 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
+   * Settles a batch's cells from its answer, by index.
+   *
+   * @param {object[]} entries The cells the batch source was called with.
+   * @param {*} values The answer.
+   */
+  #distributeBatch(entries: AsyncValueEntry[], values: unknown): void {
+    if (!isArrayLike(values)) {
+      warnOnce(this, 'asyncValues.batchAnswer',
+        'The AsyncValues plugin: a batch source resolved with something that is not an array, so every cell ' +
+        'of the batch was rejected.');
+      entries.forEach(entry => this.#onSettled({ entry, outcome: { status: 'rejected', error: undefined } }));
+
+      return;
+    }
+
+    entries.forEach((entry, index) => {
+      const value = values[index];
+
+      this.#onSettled({
+        entry,
+        outcome: index >= values.length || value instanceof Error
+          ? { status: 'rejected', error: index >= values.length ? undefined : value }
+          : { status: 'resolved', value },
+      });
+    });
+  }
+
+  /**
    * Starts failed cells again: a cell source per cell, and a batch source in batches per source and call.
    *
    * @param {object[]} failed The failed entries, each with an origin.
@@ -1190,36 +1337,50 @@ export class AsyncValues extends BasePlugin {
     const runs = new Map<ResolvedOptions, Run>();
     const batches = new Map<AsyncValueBatchSource, Map<Run, AsyncValueEntry[]>>();
 
-    failed.forEach((entry) => {
-      let run = runs.get(entry.run.options);
+    try {
+      failed.forEach((entry) => {
+        let run = runs.get(entry.run.options);
 
-      if (!run) {
-        run = { options: entry.run.options, live: 0, hasRecords: false };
-        runs.set(entry.run.options, run);
-      }
+        if (!run) {
+          run = { options: entry.run.options, live: 0, hasWrites: false };
+          runs.set(entry.run.options, run);
+        }
 
-      const origin = entry.origin!;
+        const origin = entry.origin!;
 
-      if (origin.kind === 'cell') {
-        results.set(entry, this.#startCell(entry, origin.source, run));
+        if (origin.kind === 'cell') {
+          results.set(entry, this.#startCell({ physicalRow: rowOf(entry), prop: entry.prop }, origin.source, run));
 
-        return;
-      }
+          return;
+        }
 
-      const byRun = batches.get(origin.source) ?? new Map<Run, AsyncValueEntry[]>();
+        let byRun = batches.get(origin.source);
 
-      byRun.set(run, [...(byRun.get(run) ?? []), entry]);
-      batches.set(origin.source, byRun);
-    });
+        if (!byRun) {
+          byRun = new Map();
+          batches.set(origin.source, byRun);
+        }
 
-    batches.forEach((byRun, source) => {
-      byRun.forEach((entries, run) => {
-        this.#startBatches(entries.map(({ physicalRow, prop }) => ({ physicalRow, prop })), source, run)
-          .forEach((result, index) => results.set(entries[index], result));
+        const list = byRun.get(run);
+
+        if (list) {
+          list.push(entry);
+
+        } else {
+          byRun.set(run, [entry]);
+        }
       });
-    });
 
-    runs.forEach(run => this.#afterStarting(run));
+      batches.forEach((byRun, source) => {
+        byRun.forEach((entries, run) => {
+          this.#startBatches(entries.map(entry => ({ physicalRow: rowOf(entry), prop: entry.prop })), source, run)
+            .forEach((result, index) => results.set(entries[index], result));
+        });
+      });
+
+    } finally {
+      runs.forEach(run => this.#afterStarting(run));
+    }
 
     return failed.map(entry => results.get(entry)!);
   }
@@ -1231,15 +1392,16 @@ export class AsyncValues extends BasePlugin {
    * @returns {object}
    */
   #contextOf(entry: AsyncValueEntry): AsyncValueContext {
+    const physicalRow = rowOf(entry);
     const column = this.hot.propToCol(entry.prop);
 
     return {
       signal: entry.controller!.signal,
-      row: this.hot.toVisualRow(entry.physicalRow),
+      row: this.hot.toVisualRow(physicalRow),
       column: typeof column === 'number' && column >= 0 ? column : null,
-      physicalRow: entry.physicalRow,
+      physicalRow,
       prop: entry.prop,
-      rowId: this.#rowIdOf(entry.physicalRow),
+      rowId: this.#rowIdOf(physicalRow),
     };
   }
 
@@ -1296,8 +1458,10 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
-   * Applies every request that settled since the last flush: writes the resolved values in one call
-   * per write source and path, and renders once.
+   * Applies every request that settled since the last flush. Every `beforeAsyncValueResolve` listener
+   * runs first, before anything is written, so a listener that moves rows cannot misplace a write. Then
+   * the values are written in one call per write source and path, and the grid renders once. A listener
+   * that throws fails its own cell with the error it threw, and the error is thrown again at the end.
    */
   readonly #flush = (): void => {
     this.#cancelFlush = null;
@@ -1311,46 +1475,114 @@ export class AsyncValues extends BasePlugin {
       return;
     }
 
-    const writes: Writes = { visible: new Map(), source: new Map(), meta: [] };
     const done: SettledRequest[] = [];
-    const vetoed: AsyncValueEntry[] = [];
+    let vetoed: AsyncValueEntry[] = [];
+    let failure: { error: unknown } | null = null;
 
-    settled.forEach(({ entry, outcome }) => {
-      if (outcome.status === 'rejected') {
-        this.#fail(entry, outcome.error);
-        done.push({ entry, outcome });
-
-        return;
-      }
-
-      const value = this.#askBeforeResolve(entry, outcome.value);
-
-      if (value === VETOED) {
-        if (this.#isPending(entry)) {
-          vetoed.push(entry);
-        }
-
-        return;
-      }
-
-      this.#planWrite(entry, value, writes);
-      done.push({ entry, outcome: { status: 'resolved', value } });
-    });
-
-    vetoed.forEach(entry => this.#detach(entry));
+    this.#settlingDepth += 1;
 
     try {
-      this.#write(writes);
+      const decided = this.#decide(settled);
+
+      vetoed = decided.vetoed;
+      failure = decided.failure;
+      this.#apply(decided, done);
 
     } finally {
-      // Every promise settles before the first hook runs, so a throwing listener cannot leave another
-      // caller's promise pending.
       done.forEach(this.#settleResult);
-      this.#notifyCleared(vetoed.map(entry => [entry, 'vetoed']));
-      done.forEach(this.#reportSettled);
-      this.#afterSettling();
+
+      try {
+        this.#notifyCleared(vetoed.map(entry => [entry, 'vetoed']));
+
+      } finally {
+        try {
+          done.forEach(this.#reportSettled);
+
+        } finally {
+          this.#settlingDepth -= 1;
+          this.#afterSettling();
+        }
+      }
+    }
+
+    if (failure) {
+      throw failure.error;
     }
   };
+
+  /**
+   * Applies a flush's decisions: takes the vetoed entries off their cells, turns the rejected ones into
+   * error states, and writes the resolved values.
+   *
+   * @param {object} decided The decisions (see `#decide()`).
+   * @param {object[]} done Collects the requests that settled.
+   */
+  #apply(decided: Decisions, done: SettledRequest[]): void {
+    decided.vetoed.forEach((entry) => {
+      this.#detach(entry);
+      this.#finish(entry);
+    });
+    decided.rejected.forEach((request) => {
+      if (this.#isPending(request.entry)) {
+        this.#fail(request.entry, request.outcome.status === 'rejected' ? request.outcome.error : undefined);
+        done.push(request);
+      }
+    });
+
+    const writes: Writes = { visible: new Map(), source: new Map() };
+
+    decided.resolved.forEach((request) => {
+      if (this.#isPending(request.entry) && request.outcome.status === 'resolved') {
+        this.#planWrite(request.entry, request.outcome.value, writes);
+        done.push(request);
+      }
+    });
+
+    this.#write(writes);
+  }
+
+  /**
+   * Splits a flush's settled requests into rejected, vetoed, and resolved ones, asking every
+   * `beforeAsyncValueResolve` listener about the resolved values.
+   *
+   * @param {object[]} settled The settled requests.
+   * @returns {object}
+   */
+  #decide(settled: SettledRequest[]): Decisions {
+    const rejected: SettledRequest[] = [];
+    const vetoed: AsyncValueEntry[] = [];
+    const resolved: SettledRequest[] = [];
+    let failure: { error: unknown } | null = null;
+
+    settled.forEach((request) => {
+      const { entry, outcome } = request;
+
+      if (outcome.status === 'rejected') {
+        rejected.push(request);
+
+        return;
+      }
+
+      try {
+        const value = this.#askBeforeResolve(entry, outcome.value);
+
+        if (value === VETOED) {
+          if (this.#isPending(entry)) {
+            vetoed.push(entry);
+          }
+
+        } else {
+          resolved.push({ entry, outcome: { status: 'resolved', value } });
+        }
+
+      } catch (error) {
+        failure ??= { error };
+        rejected.push({ entry, outcome: { status: 'rejected', error } });
+      }
+    });
+
+    return { rejected, vetoed, resolved, failure };
+  }
 
   /**
    * Turns a pending entry into an error state.
@@ -1381,8 +1613,9 @@ export class AsyncValues extends BasePlugin {
       return value;
     }
 
+    const physicalRow = rowOf(entry);
     const answer = this.hot.runHooks(
-      'beforeAsyncValueResolve', value, entry.physicalRow, entry.prop, this.#rowIdOf(entry.physicalRow),
+      'beforeAsyncValueResolve', value, physicalRow, entry.prop, this.#rowIdOf(physicalRow),
     );
 
     if (!this.#isPending(entry) || (answer === false && value !== false)) {
@@ -1393,22 +1626,23 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
-   * Takes a resolved entry off its cell and adds its value to the flush's writes.
+   * Takes a resolved entry off its cell and adds its value to the flush's writes. A call that records an
+   * undo step or applies meta keeps the write pending until the grid stores it.
    *
    * @param {object} entry The entry.
    * @param {*} value The value to write.
    * @param {object} writes The flush's writes.
    */
   #planWrite(entry: AsyncValueEntry, value: unknown, writes: Writes): void {
-    const { physicalRow, prop, run } = entry;
+    const { state, prop, run } = entry;
+    const physicalRow = state.physicalRow;
     const visualRow = this.hot.toVisualRow(physicalRow);
-    const column = this.hot.propToCol(prop);
 
-    if (run.options.undo === 'record') {
-      this.#getRowState(physicalRow).recorded.set(prop, {
-        run, oldValue: this.hot.getSourceDataAtCell(physicalRow, prop), newValue: value,
+    if (run.options.undo === 'record' || run.options.meta) {
+      state.writes.set(prop, {
+        run, oldValue: detachValue(this.hot.getSourceDataAtCell(physicalRow, prop)), landed: false,
       });
-      run.hasRecords = true;
+      run.hasWrites = true;
     }
 
     this.#deleteEntry(entry);
@@ -1420,22 +1654,22 @@ export class AsyncValues extends BasePlugin {
     if (visualRow === null) {
       pushChange(writes.source, run.options.source, [physicalRow, prop, value]);
 
-      return;
-    }
-
-    pushChange(writes.visible, run.options.source, [visualRow, prop, value]);
-
-    if (run.options.meta && typeof column === 'number' && column >= 0) {
-      writes.meta.push([visualRow, column, run.options.meta]);
+    } else {
+      pushChange(writes.visible, run.options.source, [visualRow, prop, value]);
     }
   }
 
   /**
-   * Writes a flush's values and meta without recording them for undo, and renders once.
+   * Writes a flush's values without recording them for undo, and renders once. A source write refreshes
+   * the open editor's value (core does it for every `setSourceDataAtCell()`), so what the user is typing
+   * is put back after it.
    *
    * @param {object} writes The flush's writes.
    */
   #write(writes: Writes): void {
+    const editor = writes.source.size > 0 ? this.hot.getActiveEditor() : undefined;
+    const typing = editor?.isOpened() ? editor.getValue() : undefined;
+
     this.hot.suspendRender();
 
     try {
@@ -1446,10 +1680,11 @@ export class AsyncValues extends BasePlugin {
         writes.source.forEach((changes, source) => {
           this.hot.setSourceDataAtCell(changes, '', undefined, source);
         });
-        writes.meta.forEach(([row, column, meta]) => {
-          Object.keys(meta).forEach(key => this.hot.setCellMeta(row, column, key, meta[key]));
-        });
       });
+
+      if (editor && typing !== undefined && editor.isOpened()) {
+        editor.setValue(typing);
+      }
 
       this.hot.render();
 
@@ -1476,10 +1711,11 @@ export class AsyncValues extends BasePlugin {
    * @param {object} settled The settled request.
    */
   readonly #reportSettled = ({ entry, outcome }: SettledRequest): void => {
-    const rowId = this.#rowIdOf(entry.physicalRow);
+    const physicalRow = rowOf(entry);
+    const rowId = this.#rowIdOf(physicalRow);
 
     if (outcome.status === 'resolved') {
-      this.hot.runHooks('afterAsyncValueResolve', entry.physicalRow, entry.prop, outcome.value, rowId);
+      this.hot.runHooks('afterAsyncValueResolve', physicalRow, entry.prop, outcome.value, rowId);
 
       return;
     }
@@ -1495,11 +1731,11 @@ export class AsyncValues extends BasePlugin {
       announce(entry.message, 'polite');
     }
 
-    this.hot.runHooks('afterAsyncValueReject', entry.physicalRow, entry.prop, entry.error, entry.message, rowId);
+    this.hot.runHooks('afterAsyncValueReject', physicalRow, entry.prop, entry.error, entry.message, rowId);
   };
 
   /**
-   * Counts a pending entry as done for its call, its batch, and the pending count.
+   * Counts a pending entry as done for its call and the pending count.
    *
    * @param {object} entry The entry.
    */
@@ -1512,21 +1748,20 @@ export class AsyncValues extends BasePlugin {
     this.#pendingCount -= 1;
     entry.run.live -= 1;
 
-    if (entry.run.live === 0 && entry.run.hasRecords) {
-      this.#runsToRecord.push(entry.run);
+    if (entry.run.live === 0 && entry.run.hasWrites) {
+      const run = entry.run;
+
+      // A macrotask later, so a write a quick asynchronous validator delays has landed first.
+      this.hot._registerTimeout(() => this.#finalizeRun(run), 0);
     }
   }
 
   /**
-   * Runs what follows any settle: records the finished calls' undo steps and reports an idle grid.
+   * Runs what follows any settle: reports an idle grid. Waits for the outermost flush.
    */
   #afterSettling(): void {
-    if (this.#runsToRecord.length > 0 && this.#rowsMap) {
-      const runs = this.#runsToRecord;
-
-      this.#runsToRecord = [];
-      // A macrotask later, so a write an asynchronous validator delays has landed before it is recorded.
-      this.hot._registerTimeout(() => runs.forEach(run => this.#recordRun(run)), 0);
+    if (this.#settlingDepth > 0) {
+      return;
     }
 
     if (this.#busy && this.#pendingCount === 0) {
@@ -1536,58 +1771,45 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
-   * Records the values a finished `undo: 'record'` call wrote as one undo step. A value the user changed
-   * since is left out: their edit is a step of its own.
+   * Finalizes a finished call: forgets its pending writes and, with `undo: 'record'`, journals the ones
+   * that landed as one undo step. The step is journaled directly, without writing, so nothing is written
+   * again: no open editor is reset and no listener sees the values go back and forth.
    *
    * @param {object} run The call.
    */
-  #recordRun(run: Run): void {
-    const rowsMap = this.#rowsMap;
-
-    if (!rowsMap || this.hot.isDestroyed) {
+  #finalizeRun(run: Run): void {
+    if (!this.#rowsMap || this.hot.isDestroyed) {
       return;
     }
 
-    const before: Change[] = [];
-    const after: Change[] = [];
+    const changes: Array<{ physicalRow: number; prop: AsyncValueProp; oldValue: unknown; newValue: unknown }> = [];
 
-    (rowsMap.getValues() as Array<RowState | null>).forEach((state, physicalRow) => {
-      state?.recorded.forEach((write, prop) => {
+    [...this.#states].forEach((state) => {
+      state.writes.forEach((write, prop) => {
         if (write.run !== run) {
           return;
         }
 
-        state.recorded.delete(prop);
+        state.writes.delete(prop);
 
-        if (Object.is(this.hot.getSourceDataAtCell(physicalRow, prop), write.newValue)) {
-          before.push([physicalRow, prop, write.oldValue]);
-          after.push([physicalRow, prop, write.newValue]);
+        const current = this.hot.getSourceDataAtCell(state.physicalRow, prop);
+
+        if (write.landed && run.options.undo === 'record' && !Object.is(current, write.oldValue)) {
+          changes.push({
+            physicalRow: state.physicalRow, prop, oldValue: write.oldValue, newValue: detachValue(current),
+          });
         }
       });
 
-      this.#releaseRowState(physicalRow);
+      this.#releaseRowState(state);
     });
 
-    if (after.length === 0) {
-      return;
-    }
+    if (changes.length > 0) {
+      const scope = this.hot._getOperationScope();
 
-    const scope = this.hot._getOperationScope();
-
-    this.#recording = true;
-    this.hot.suspendRender();
-
-    try {
       scope.run('async_values', run.options.source, () => {
-        // The values go back to what they were and forward again inside one operation, so the step holds
-        // the old values as its "before" and the async ones as its "after".
-        scope.suppress(() => this.hot.setSourceDataAtCell(before, '', undefined, run.options.source));
-        this.hot.setSourceDataAtCell(after, '', undefined, run.options.source);
+        changes.forEach(change => recordCellChange(scope, change));
       });
-
-    } finally {
-      this.#recording = false;
-      this.hot.resumeRender();
     }
   }
 
@@ -1601,7 +1823,7 @@ export class AsyncValues extends BasePlugin {
     const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
     return !!highlight &&
-      highlight.row === this.hot.toVisualRow(entry.physicalRow) &&
+      highlight.row === this.hot.toVisualRow(rowOf(entry)) &&
       highlight.col === this.hot.propToCol(entry.prop);
   }
 
@@ -1635,9 +1857,11 @@ export class AsyncValues extends BasePlugin {
    * @param {Array} cleared The detached entries, each with the reason it was removed.
    */
   #notifyCleared(cleared: Array<[AsyncValueEntry, AsyncValueCancelReason]>): void {
-    const cancelled = cleared.filter(([entry]) => entry.status === 'pending' && !entry.finished);
+    const cancelled = cleared.filter(([entry]) => entry.status === 'pending' && !entry.reported);
 
-    if (cleared.length === 0) {
+    if (cancelled.length === 0) {
+      this.#afterSettling();
+
       return;
     }
 
@@ -1646,15 +1870,16 @@ export class AsyncValues extends BasePlugin {
         const controller = entry.controller;
 
         entry.controller = null;
+        entry.reported = true;
         this.#finish(entry);
         entry.settle({ status: 'cancelled', reason });
         controller?.abort();
         this.#releaseSlot(entry);
       });
       cancelled.forEach(([entry, reason]) => {
-        this.hot.runHooks(
-          'afterAsyncValueCancel', entry.physicalRow, entry.prop, reason, this.#rowIdOf(entry.physicalRow),
-        );
+        const physicalRow = rowOf(entry);
+
+        this.hot.runHooks('afterAsyncValueCancel', physicalRow, entry.prop, reason, this.#rowIdOf(physicalRow));
       });
 
     } finally {
@@ -1715,7 +1940,7 @@ export class AsyncValues extends BasePlugin {
   #listCells(status: AsyncValueStatus): AsyncCellInfo[] {
     return [...this.#entries]
       .filter(entry => entry.status === status)
-      .map(({ physicalRow, prop }) => ({ physicalRow, prop, rowId: this.#rowIdOf(physicalRow) }));
+      .map(entry => ({ physicalRow: rowOf(entry), prop: entry.prop, rowId: this.#rowIdOf(rowOf(entry)) }));
   }
 
   /**
@@ -1760,23 +1985,30 @@ export class AsyncValues extends BasePlugin {
     let state = rowsMap.getValueAtIndex<RowState | null>(physicalRow);
 
     if (!state) {
-      state = { entries: new Map(), recorded: new Map() };
+      state = { physicalRow, entries: new Map(), writes: new Map() };
       rowsMap.setValueAtIndex(physicalRow, state);
+      this.#states.add(state);
     }
 
     return state;
   }
 
   /**
-   * Drops the state of a row once it holds nothing.
+   * Drops a row's state once it holds nothing.
    *
-   * @param {number} physicalRow Physical row index.
+   * @param {object} state The row state.
    */
-  #releaseRowState(physicalRow: number): void {
-    const state = this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
+  #releaseRowState(state: RowState): void {
+    if (state.entries.size > 0 || state.writes.size > 0) {
+      return;
+    }
 
-    if (state && state.entries.size === 0 && state.recorded.size === 0) {
-      this.#rowsMap!.setValueAtIndex(physicalRow, null);
+    this.#states.delete(state);
+
+    // While a row insert or removal is reported, `physicalRow` can be stale; `#syncRows()` drops the
+    // empty state from the map then.
+    if (this.#rowsMap?.getValueAtIndex(state.physicalRow) === state) {
+      this.#rowsMap.setValueAtIndex(state.physicalRow, null);
     }
   }
 
@@ -1786,7 +2018,7 @@ export class AsyncValues extends BasePlugin {
    * @param {object} entry The entry.
    */
   #setEntry(entry: AsyncValueEntry): void {
-    this.#getRowState(entry.physicalRow).entries.set(entry.prop, entry);
+    entry.state.entries.set(entry.prop, entry);
     this.#entries.add(entry);
 
     if (entry.status === 'pending') {
@@ -1801,24 +2033,12 @@ export class AsyncValues extends BasePlugin {
    * @param {object} entry The entry.
    */
   #deleteEntry(entry: AsyncValueEntry): void {
-    const rowsMap = this.#rowsMap;
-
-    if (rowsMap && this.#entries.has(entry)) {
-      let physicalRow = entry.physicalRow;
-
-      // `physicalRow` is stale while a row insert or removal is being reported; find the entry instead.
-      if (rowsMap.getValueAtIndex<RowState | null>(physicalRow)?.entries.get(entry.prop) !== entry) {
-        physicalRow = (rowsMap.getValues() as Array<RowState | null>)
-          .findIndex(state => state?.entries.get(entry.prop) === entry);
-      }
-
-      if (physicalRow >= 0) {
-        rowsMap.getValueAtIndex<RowState | null>(physicalRow)?.entries.delete(entry.prop);
-        this.#releaseRowState(physicalRow);
-      }
+    if (entry.state.entries.get(entry.prop) === entry) {
+      entry.state.entries.delete(entry.prop);
     }
 
     this.#entries.delete(entry);
+    this.#releaseRowState(entry.state);
   }
 
   /**
@@ -1828,7 +2048,7 @@ export class AsyncValues extends BasePlugin {
    * @param {object} entry The entry.
    */
   #markChanged(entry: AsyncValueEntry): void {
-    const row = this.hot.toVisualRow(entry.physicalRow);
+    const row = this.hot.toVisualRow(rowOf(entry));
     const column = this.hot.propToCol(entry.prop);
 
     if (row !== null && typeof column === 'number' && column >= 0) {
@@ -1837,83 +2057,103 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
+   * Drops row states that no row holds any more, cancelling their requests.
+   *
+   * @param {Set} kept The states the map still holds.
+   */
+  #dropRowStates(kept: Set<RowState>): void {
+    const lost: Array<[AsyncValueEntry, AsyncValueCancelReason]> = [];
+
+    [...this.#states].forEach((state) => {
+      if (!kept.has(state)) {
+        this.#states.delete(state);
+        state.entries.forEach((entry) => {
+          this.#entries.delete(entry);
+          lost.push([entry, 'rowRemoved']);
+        });
+      }
+    });
+
+    this.#notifyCleared(lost);
+  }
+
+  /**
    * `afterCreateRow` and `afterRemoveRow` hook callback. The index map shifted its values, so the
-   * physical row of every entry is read again from it, and an entry the map no longer holds belonged
+   * physical row of every row state is read again from it, and a state the map no longer holds belonged
    * to a removed row. Comparing against the map, rather than stashing the rows in `beforeRemoveRow`,
    * holds for a removal another listener vetoed, widened, or nested inside its own.
    */
   readonly #syncRows = (): void => {
-    if (this.#entries.size === 0 || !this.#rowsMap || this.#replacingData) {
+    if (this.#states.size === 0 || !this.#rowsMap || this.#replacingData) {
       return;
     }
 
-    const live = new Set<AsyncValueEntry>();
+    const rowsMap = this.#rowsMap;
+    const kept = new Set<RowState>();
 
-    (this.#rowsMap.getValues() as Array<RowState | null>).forEach((state, physicalRow) => {
-      state?.entries.forEach((entry) => {
-        entry.physicalRow = physicalRow;
-        live.add(entry);
-      });
+    (rowsMap.getValues() as Array<RowState | null>).forEach((state, physicalRow) => {
+      if (!state) {
+        return;
+      }
+
+      state.physicalRow = physicalRow;
+
+      if (state.entries.size === 0 && state.writes.size === 0) {
+        rowsMap.setValueAtIndex(physicalRow, null);
+
+      } else {
+        kept.add(state);
+      }
     });
 
-    const removed = [...this.#entries].filter(entry => !live.has(entry));
-
-    removed.forEach(entry => this.#entries.delete(entry));
-    this.#notifyCleared(removed.map(entry => [entry, 'rowRemoved']));
+    this.#dropRowStates(kept);
   };
 
   /**
-   * The row index mapper's `init` local hook. A data load re-initializes it and puts the entries back
-   * from `after*Data`. Outside a load (`updateSettings()` with `columns` or `dataSchema`) the data and
-   * its physical rows stay, so the row states are put back into the reset map.
+   * The row index mapper's `init` local hook. A data load re-initializes it and puts the states back
+   * from `after*Data`. Outside a load (`updateSettings()` with `columns` or `dataSchema`) the data and its
+   * physical rows stay, so every row state (its requests and pending writes) is put back on its row.
    */
   readonly #onRowIndexInit = (): void => {
     const rowsMap = this.#rowsMap;
 
-    if (this.#replacingData || !rowsMap || this.#entries.size === 0) {
+    if (this.#replacingData || !rowsMap || this.#states.size === 0) {
       return;
     }
 
-    const states = new Map<number, RowState>();
+    const kept = new Set<RowState>();
 
-    this.#entries.forEach((entry) => {
-      const state = states.get(entry.physicalRow) ?? { entries: new Map(), recorded: new Map() };
-
-      state.entries.set(entry.prop, entry);
-      states.set(entry.physicalRow, state);
-    });
-
-    const lost: AsyncValueEntry[] = [];
-
-    states.forEach((state, physicalRow) => {
-      if (physicalRow < rowsMap.getLength()) {
-        rowsMap.setValueAtIndex(physicalRow, state);
-
-      } else {
-        lost.push(...state.entries.values());
+    this.#states.forEach((state) => {
+      if (state.physicalRow < rowsMap.getLength()) {
+        rowsMap.setValueAtIndex(state.physicalRow, state);
+        kept.add(state);
       }
     });
-    lost.forEach(entry => this.#entries.delete(entry));
-    this.#notifyCleared(lost.map(entry => [entry, 'rowRemoved']));
+
+    this.#dropRowStates(kept);
   };
 
   /**
-   * Cancels the requests of the cell a change wrote, and the requests and errors of the cells that
-   * depend on it.
+   * Cancels the request of the cell a change wrote, and the requests and errors of the cells that depend
+   * on it. A change made with a call's own source lands that call's pending write; any other change to a
+   * cell with a pending write drops the write (the change is a step of its own).
    *
    * @param {number} physicalRow Physical row index of the changed cell.
    * @param {string|number} prop The property of the changed cell.
+   * @param {string|undefined} source The source of the change.
    * @returns {boolean} `true` when an entry was removed.
    */
-  #onCellChanged(physicalRow: number, prop: AsyncValueProp): boolean {
-    const entries = this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow)?.entries;
+  #onCellChanged(physicalRow: number, prop: AsyncValueProp, source: string | undefined): boolean {
+    const state = this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
 
-    if (!entries || entries.size === 0) {
+    if (!state) {
       return false;
     }
 
-    const own = entries.get(prop);
-    const dependents = [...entries.values()]
+    this.#landWrite(state, prop, source);
+
+    const own = state.entries.get(prop);
+    const dependents = [...state.entries.values()]
       .filter(entry => entry !== own && entry.run.options.dependsOn.includes(prop));
 
     if (own) {
@@ -1921,7 +2161,6 @@ export class AsyncValues extends BasePlugin {
     }
 
     dependents.forEach(entry => this.#detach(entry));
-
     this.#notifyCleared([
       ...(own ? [[own, 'edit'] as [AsyncValueEntry, AsyncValueCancelReason]] : []),
       ...dependents.map(entry => [entry, 'dependency'] as [AsyncValueEntry, AsyncValueCancelReason]),
@@ -1931,16 +2170,57 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
+   * Lands a call's pending write when the change carries the call's source, or drops it for any other
+   * change. A landed write gets the call's `meta`.
+   *
+   * @param {object} state The row state.
+   * @param {string|number} prop The property of the changed cell.
+   * @param {string|undefined} source The source of the change.
+   */
+  #landWrite(state: RowState, prop: AsyncValueProp, source: string | undefined): void {
+    const write = state.writes.get(prop);
+
+    if (!write) {
+      return;
+    }
+
+    if (write.landed || source !== write.run.options.source) {
+      state.writes.delete(prop);
+      this.#releaseRowState(state);
+
+      return;
+    }
+
+    const { meta, undo } = write.run.options;
+    const row = this.hot.toVisualRow(state.physicalRow);
+    const column = this.hot.propToCol(prop);
+
+    write.landed = true;
+
+    if (meta && row !== null && typeof column === 'number' && column >= 0) {
+      this.hot._getOperationScope().suppress(() => {
+        Object.keys(meta).forEach(key => this.hot.setCellMeta(row, column, key, meta[key]));
+      });
+    }
+
+    if (undo !== 'record') {
+      state.writes.delete(prop);
+      this.#releaseRowState(state);
+    }
+  }
+
+  /**
    * Cancels the requests a list of changes affects, and renders when one was cancelled.
    *
    * @param {Array} changes The changes, as `[physicalRow, prop]` pairs.
+   * @param {string|undefined} source The source of the changes.
    */
-  #onCellsChanged(changes: Array<[number | null, unknown]>): void {
+  #onCellsChanged(changes: Array<[number | null, unknown]>, source: string | undefined): void {
     let changed = false;
 
     changes.forEach(([physicalRow, prop]) => {
       if (physicalRow !== null && isProp(prop)) {
-        changed = this.#onCellChanged(physicalRow, prop) || changed;
+        changed = this.#onCellChanged(physicalRow, prop, source) || changed;
       }
     });
 
@@ -1953,13 +2233,14 @@ export class AsyncValues extends BasePlugin {
    * `afterChange` hook callback. A write through the visual API cancels the cell's request.
    *
    * @param {Array} changes The changes (visual rows).
+   * @param {string} source The source of the changes.
    */
-  readonly #onAfterChange = (changes: CellChange[] | null): void => {
-    if (!changes || this.#entries.size === 0 || this.#recording) {
+  readonly #onAfterChange = (changes: CellChange[] | null, source: string): void => {
+    if (!changes || this.#states.size === 0) {
       return;
     }
 
-    this.#onCellsChanged(changes.map(([row, prop]) => [this.hot.toPhysicalRow(row), prop]));
+    this.#onCellsChanged(changes.map(([row, prop]) => [this.hot.toPhysicalRow(row), prop]), source);
   };
 
   /**
@@ -1967,13 +2248,14 @@ export class AsyncValues extends BasePlugin {
    * cancels the cell's request.
    *
    * @param {Array} changes The changes (physical rows).
+   * @param {string} [source] The source of the changes.
    */
-  readonly #onAfterSetSourceDataAtCell = (changes: CellChange[]): void => {
-    if (this.#entries.size === 0 || this.#recording) {
+  readonly #onAfterSetSourceDataAtCell = (changes: CellChange[], source?: string): void => {
+    if (this.#states.size === 0) {
       return;
     }
 
-    this.#onCellsChanged(changes.map(([row, prop]) => [row, prop]));
+    this.#onCellsChanged(changes.map(([row, prop]) => [row, prop]), source);
   };
 
   /**
@@ -2031,18 +2313,10 @@ export class AsyncValues extends BasePlugin {
    */
   readonly #onBeforeDataReplaced = (): void => {
     this.#replacingData = true;
-    this.#replacedRows = [];
+    this.#replacedRows = [...this.#states].map(state => ({ state, rowId: this.#rowIdOf(state.physicalRow) }));
 
-    if (this.#rowsMap && this.#entries.size > 0) {
-      (this.#rowsMap.getValues() as Array<RowState | null>).forEach((state, physicalRow) => {
-        if (state) {
-          this.#replacedRows.push({ state, physicalRow, rowId: this.#rowIdOf(physicalRow) });
-        }
-      });
-    }
-
-    // A load that throws never reaches `after*Data`, so the flag is cleared and the requests it orphaned
-    // are cancelled once the load's task ends.
+    // A load that throws never reaches `after*Data`, so the flag is cleared and the states it orphaned
+    // are dropped once the load's task ends.
     this.hot.rootWindow.queueMicrotask(() => {
       if (this.#replacingData && this.enabled) {
         this.#onDataReplaced(true);
@@ -2065,9 +2339,8 @@ export class AsyncValues extends BasePlugin {
   };
 
   /**
-   * Puts the captured row states back after a data replacement. A row with an id goes to the row that
-   * holds the same id now. Without ids, `updateData()` keeps every row in place (as it keeps cell meta),
-   * and `loadData()` starts a new dataset. A request whose row is not found is cancelled.
+   * Puts the captured row states back after a data replacement (see `#targetRowOf()`). A request whose
+   * row is not found is cancelled, and the pending writes of its row are dropped.
    *
    * @param {boolean} isLoad Whether the data was replaced with `loadData()`.
    */
@@ -2083,36 +2356,79 @@ export class AsyncValues extends BasePlugin {
     }
 
     const length = rowsMap.getLength();
-    const lost: Array<[AsyncValueEntry, AsyncValueCancelReason]> = [];
+    const kept = new Set<RowState>();
+    const lostReasons = new Map<RowState, AsyncValueCancelReason>();
 
-    replaced.forEach(({ physicalRow }) => {
-      if (physicalRow < length && rowsMap.getValueAtIndex(physicalRow) !== null) {
-        rowsMap.setValueAtIndex(physicalRow, null);
+    replaced.forEach(({ state }) => {
+      if (rowsMap.getValueAtIndex(state.physicalRow) === state) {
+        rowsMap.setValueAtIndex(state.physicalRow, null);
       }
     });
-    replaced.forEach(({ state, physicalRow, rowId }) => {
-      const hasId = rowId !== null && rowId !== undefined;
-      let target: number | null = isLoad ? null : physicalRow;
-
-      if (hasId) {
-        target = this.hot.getPhysicalRowById(rowId);
-      }
+    replaced.forEach((row) => {
+      const target = this.#targetRowOf(row, isLoad);
 
       if (target === null || target >= length || rowsMap.getValueAtIndex(target) !== null) {
-        state.entries.forEach(entry => lost.push([entry, hasId || !isLoad ? 'rowRemoved' : 'dataReplaced']));
+        lostReasons.set(row.state, isLoad && !this.#hasId(row) ? 'dataReplaced' : 'rowRemoved');
 
         return;
       }
 
-      rowsMap.setValueAtIndex(target, state);
-      state.entries.forEach((entry) => {
-        entry.physicalRow = target;
-      });
+      rowsMap.setValueAtIndex(target, row.state);
+      row.state.physicalRow = target;
+      kept.add(row.state);
     });
 
-    lost.forEach(([entry]) => this.#entries.delete(entry));
-    this.#notifyCleared(lost);
+    this.#dropReplacedRowStates(kept, lostReasons);
     this.hot.markAllCellsChanged();
+  }
+
+  /**
+   * Tells whether a captured row had an id.
+   *
+   * @param {object} row The captured row.
+   * @returns {boolean}
+   */
+  #hasId(row: ReplacedRow): boolean {
+    return row.rowId !== null && row.rowId !== undefined;
+  }
+
+  /**
+   * Returns the physical row a captured row state belongs on after a data replacement: the row that holds
+   * the same id now, or, without ids, the same physical row for `updateData()` (as it keeps cell meta) and
+   * none for `loadData()` (a new dataset).
+   *
+   * @param {object} row The captured row.
+   * @param {boolean} isLoad Whether the data was replaced with `loadData()`.
+   * @returns {number|null}
+   */
+  #targetRowOf(row: ReplacedRow, isLoad: boolean): number | null {
+    if (this.#hasId(row)) {
+      return this.hot.getPhysicalRowById(row.rowId);
+    }
+
+    return isLoad ? null : row.state.physicalRow;
+  }
+
+  /**
+   * Drops the row states a data replacement did not place, cancelling their requests.
+   *
+   * @param {Set} kept The placed states.
+   * @param {Map} reasons The cancel reason of each state not placed.
+   */
+  #dropReplacedRowStates(kept: Set<RowState>, reasons: Map<RowState, AsyncValueCancelReason>): void {
+    const lost: Array<[AsyncValueEntry, AsyncValueCancelReason]> = [];
+
+    reasons.forEach((reason, state) => {
+      if (!kept.has(state)) {
+        this.#states.delete(state);
+        state.entries.forEach((entry) => {
+          this.#entries.delete(entry);
+          lost.push([entry, reason]);
+        });
+      }
+    });
+
+    this.#notifyCleared(lost);
   }
 
   /**
@@ -2138,6 +2454,7 @@ export class AsyncValues extends BasePlugin {
 
   /**
    * `beforeCopy` hook callback. With `copyPendingAs: 'empty'`, a pending cell is copied as an empty value.
+   * Walks the pending cells rather than the copied ones, so a large copy costs nothing extra.
    *
    * @param {Array[]} data The copied data.
    * @param {object[]} coords The copied ranges (visual).
@@ -2148,13 +2465,20 @@ export class AsyncValues extends BasePlugin {
     }
 
     const { rows, columns } = readCopiedAxes(coords);
+    const rowIndexes = new Map(rows.map((row, index) => [row, index]));
+    const columnIndexes = new Map(columns.map((column, index) => [column, index]));
 
-    rows.forEach((row, rowIndex) => {
-      columns.forEach((column, columnIndex) => {
-        if (row >= 0 && column >= 0 && this.isPending(row, column) && data[rowIndex]) {
-          data[rowIndex][columnIndex] = '';
-        }
-      });
+    this.#entries.forEach((entry) => {
+      if (entry.status !== 'pending') {
+        return;
+      }
+
+      const rowIndex = rowIndexes.get(this.hot.toVisualRow(rowOf(entry)) ?? -1);
+      const columnIndex = columnIndexes.get(this.hot.propToCol(entry.prop) as number);
+
+      if (rowIndex !== undefined && columnIndex !== undefined && data[rowIndex]) {
+        data[rowIndex][columnIndex] = '';
+      }
     });
   };
 

@@ -54,8 +54,8 @@ export interface AsyncValueContext {
    */
   row: number | null;
   /**
-   * The visual column index of the cell when the source is called, or `null` for a hidden column with
-   * no visual index.
+   * The visual column index of the cell when the source is called, or `null` when the column has no
+   * visual index (a column trimmed out of the grid).
    */
   column: number | null;
   /**

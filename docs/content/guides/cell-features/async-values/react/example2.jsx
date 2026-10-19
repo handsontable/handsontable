@@ -99,7 +99,7 @@ const ExampleComponent = () => {
           <button className="button button--primary" onClick={() => getPlugin().cancelAll()}>
             Stop
           </button>
-          <output aria-live="polite">{progress}</output>
+          <span>{progress}</span>
         </div>
       </div>
       <HotTable

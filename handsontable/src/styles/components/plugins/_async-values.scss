@@ -14,7 +14,7 @@
       width: calc(var(--ht-icon-size) * 0.75);
       height: calc(var(--ht-icon-size) * 0.75);
       margin-top: calc(var(--ht-icon-size) * -0.375);
-      border: 2px solid var(--ht-async-indicator-color);
+      border: 2px solid var(--ht-async-indicator-color, var(--ht-accent-color));
       border-inline-end-color: transparent;
       border-radius: 50%;
       pointer-events: none;
@@ -38,7 +38,7 @@
     // Above the row-striping rule (`tr.ht__row_even > td`), without `!important`.
     tbody tr > td.htAsyncError {
       position: relative;
-      background-color: var(--ht-async-error-background-color);
+      background-color: var(--ht-async-error-background-color, var(--ht-cell-error-background-color));
     }
   }
 

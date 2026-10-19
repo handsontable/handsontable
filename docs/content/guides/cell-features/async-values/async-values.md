@@ -150,7 +150,7 @@ asyncValues.setAsyncValuesInBatches('all', 'category', async (cells, signal) => 
 }, { batchSize: 20, dependsOn: ['product'] });
 ```
 
-Each cell settles on its own: an `Error` element rejects only its cell, and a missing element rejects it with an empty message. A rejected batch rejects every cell of the batch. The batch's `signal` aborts only when every cell of the batch is cancelled, so cancelling a few cells doesn't stop the request for the others.
+Each cell settles on its own: an `Error` element rejects only its cell, and a missing element rejects it with an empty message. A rejected batch rejects every cell of the batch, and so does an answer that isn't an array (the plugin also logs a warning). The batch's `signal` aborts only when every cell of the batch is cancelled, so cancelling a few cells doesn't stop the request for the others. A row listed twice is computed once, and both of its results settle with the same value.
 
 ## Limit concurrent requests and coalesce writes
 
@@ -158,12 +158,12 @@ For hundreds of rows, set the plugin's options:
 
 ```js
 asyncValues: {
-  concurrency: 4, // at most four sources (or batches) run at once
+  concurrency: 4, // at most four sources (or batches) run at once (default: 6)
   flush: 'frame', // write the results that arrived once per animation frame
 },
 ```
 
-With `concurrency`, the cells beyond the limit stay pending and wait for a free slot. A cancelled cell gives its slot back at once, even when its request ignores the signal.
+With `concurrency`, the cells beyond the limit stay pending and wait for a free slot. The default of `6` matches the number of connections a browser opens to one server; set `Infinity` to start every source at once. A cancelled cell gives its slot back at once, even when its request ignores the signal. A batch gives its slot back once every cell of the batch is cancelled.
 
 `flush` decides when settled requests are written:
 
@@ -173,7 +173,7 @@ With `concurrency`, the cells beyond the limit stay pending and wait for a free 
 | `'frame'` | Once per animation frame. |
 | A number | After that many milliseconds, collecting every result that settled meanwhile. |
 
-Each write is one change, so `afterChange` fires once and the grid renders once per flush.
+The grid renders once per flush. Each flush writes one change per write [`source`](#request-options): `afterChange` fires once for the rows the grid shows, and the rows hidden by a filter are written separately, without `afterChange` (see [Validation](#how-async-values-work-with-other-features)).
 
 ## Show progress, retry, and stop
 
@@ -253,14 +253,14 @@ Every method that starts requests takes these options:
 | ------ | ------- | ----------- |
 | `dependsOn` | `[]` | The columns, in the same row, whose change cancels the request. |
 | `source` | `'AsyncValues.resolve'` | The source the value is written with, as `beforeChange` and `afterChange` receive it. Use your own (for example, `'AI.classify'`) to tell AI writes apart in your hooks, in a backend sync, or in an audit log. |
-| `meta` | none | Cell meta merged into the cell when its value is written, for example `{ aiGenerated: true }`. Applied to rows with a visual index only, and never part of an undo step. |
+| `meta` | none | Cell meta merged into the cell once the grid stores its value, for example `{ aiGenerated: true }`. A value that `beforeChange` or a validator rejects gets no meta. Applied to rows with a visual index only. Never part of an undo step, so an undo doesn't remove it. |
 | `undo` | `'skip'` | `'skip'` writes the values without an undo step. `'record'` records every value the call wrote as one undo step (see [Undo](#undo)). |
 | `keepSource` | `true` | Whether a failed cell keeps its source for `retry()`. |
 | `batchSize` | `25` | The cells per call of a batch source ([`setAsyncValuesInBatches()`](@/api/asyncValues.md#setasyncvaluesinbatches) only). |
 
 ## Review values before they're written
 
-The [`beforeAsyncValueStart`](@/api/hooks.md#beforeasyncvaluestart) hook can skip a request: return `false`, and the cell doesn't become pending and its source isn't called. Use it to throttle or to skip rows that already have a value.
+The [`beforeAsyncValueStart`](@/api/hooks.md#beforeasyncvaluestart) hook can skip a request: return `false`, and the cell doesn't become pending and its source isn't called. Use it to throttle or to skip rows that already have a value. A skipped request's promise resolves as cancelled with the `'vetoed'` reason, but no `afterAsyncValueCancel` hook fires, because nothing was pending.
 
 The [`beforeAsyncValueResolve`](@/api/hooks.md#beforeasyncvalueresolve) hook receives each resolved value before it's written. Return another value to write that one instead, or `false` to discard it (the cell keeps its previous value):
 
@@ -278,7 +278,14 @@ const hot = new Handsontable(container, {
 });
 ```
 
-Both end a skipped or discarded request as cancelled, with the `'vetoed'` reason. Because `false` discards, a listener can't replace a value with a literal `false`.
+A discarded value ends its request as cancelled, with the `'vetoed'` reason, and fires `afterAsyncValueCancel`. Because `false` discards, a listener can't replace a value with a literal `false`.
+
+When several listeners are added to one of these hooks, each one receives the previous listener's result as its first argument, unless that result is `undefined`. So:
+
+- Return `undefined` (or nothing) to keep a request or a value. Returning `true` from `beforeAsyncValueStart` passes `true` to the next listener in place of the row index.
+- To respect an earlier listener's decision, check whether the first argument is `false`.
+
+Every `beforeAsyncValueResolve` listener of a flush runs before any value is written. A listener that throws fails its own cell with the error it threw, and the error is thrown again once the other cells are written. A `beforeAsyncValueStart` listener that throws skips its cell, and the error is thrown from the method that started the requests, once it has started the other cells.
 
 ## Read the state of a cell
 
@@ -329,7 +336,13 @@ With `undo: 'record'`, every value one call wrote becomes one undo step, recorde
 asyncValues.setAsyncValuesInBatches('all', 'category', classify, { undo: 'record' });
 ```
 
-One undo then reverts the whole run, and one redo applies it again. The values appear while the run is in progress, and the step lands on the undo stack when the run finishes, so the user can keep editing and undoing meanwhile. A cell the user edits after its value landed is left out of the run's step: the user's edit is a step of its own.
+One undo then reverts the whole run, and one redo applies it again. The values appear while the run is in progress, and the step lands on the undo stack right after the run's last request settles, so the user can keep editing and undoing meanwhile. The step records what the grid stored, after a `valueSetter` or a validator changed the value.
+
+A few values stay out of the run's step:
+
+- A cell the user edits after its value landed: the user's edit is a step of its own.
+- A value that an asynchronous validator writes after the run finishes.
+- The `meta` the run merged into the cells: an undo doesn't remove it.
 
 An undo or redo that changes a pending cell cancels its request, and redo does not start it again.
 

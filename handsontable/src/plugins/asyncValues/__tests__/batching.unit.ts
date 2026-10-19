@@ -109,6 +109,79 @@ describe('AsyncValues: batches, concurrency, and flushing', () => {
 
       destroy();
     });
+    it('should retry one failed batch cell in a batch of its own', async() => {
+      const { plugin, destroy } = createGrid({ rowId: 'id' });
+      const calls: unknown[][] = [];
+
+      await plugin.setAsyncValuesInBatches('all', 'name', async(cells) => {
+        calls.push(cells.map(cell => cell.rowId));
+
+        const isFirstTry = calls.length === 1;
+
+        return cells.map(cell => (cell.rowId === 'b' && isFirstTry ? new Error('Timeout') : `new ${cell.rowId}`));
+      });
+
+      expect(await plugin.retryAt({ rowId: 'b', prop: 'name' })).toEqual({ status: 'resolved', value: 'new b' });
+      expect(calls).toEqual([['a', 'b', 'c', 'd'], ['b']]);
+
+      destroy();
+    });
+
+    it('should reject every cell of a batch whose answer is not an array, and warn once', async() => {
+      const { plugin, destroy } = createGrid();
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const source = async() => ({ value: 'not an array' }) as unknown as unknown[];
+      const results = await plugin.setAsyncValuesInBatches('all', 'name', source);
+
+      expect(results.map(result => result.status)).toEqual(['rejected', 'rejected', 'rejected', 'rejected']);
+      expect(results[0]).toEqual({ status: 'rejected', error: undefined, message: '' });
+
+      await plugin.setAsyncValuesInBatches('all', 'name', source);
+
+      expect(warn).toHaveBeenCalledTimes(1);
+
+      warn.mockRestore();
+      destroy();
+    });
+
+    it('should compute a row listed twice once, and settle both of its results', async() => {
+      const { plugin, destroy } = createGrid({ rowId: 'id' });
+      const calls: number[][] = [];
+      const results = await plugin.setAsyncValuesInBatches(
+        [{ rowId: 'a' }, { physicalRow: 0 }, { rowId: 'b' }],
+        'name',
+        async(cells) => {
+          calls.push(cells.map(cell => cell.physicalRow));
+
+          return cells.map(cell => `new ${cell.physicalRow}`);
+        },
+      );
+
+      expect(calls).toEqual([[0, 1]]);
+      expect(results).toEqual([
+        { status: 'resolved', value: 'new 0' },
+        { status: 'resolved', value: 'new 0' },
+        { status: 'resolved', value: 'new 1' },
+      ]);
+      expect(plugin.countPending()).toBe(0);
+
+      destroy();
+    });
+
+    it('should abort a running batch when the grid is destroyed', async() => {
+      const { plugin, destroy } = createGrid();
+      let signal: AbortSignal | undefined;
+      const results = plugin.setAsyncValuesInBatches('all', 'name', (cells, batchSignal) => {
+        signal = batchSignal;
+
+        return new Promise(() => {});
+      });
+
+      destroy();
+
+      expect(signal?.aborted).toBe(true);
+      expect((await results)[0]).toEqual({ status: 'cancelled', reason: 'disabled' });
+    });
   });
 
   describe('concurrency', () => {
@@ -133,6 +206,19 @@ describe('AsyncValues: batches, concurrency, and flushing', () => {
 
       expect((await results).map(result => result.status)).toEqual(['resolved', 'resolved', 'resolved', 'cancelled']);
       expect(source).toHaveBeenCalledTimes(3);
+
+      destroy();
+    });
+
+    it('should run six sources at once by default', () => {
+      const data = Array.from({ length: 10 }, (_, index) => ({ id: index, sku: `S${index}`, name: null }));
+      const { plugin, destroy } = createGrid({ data });
+      const source = jest.fn(() => deferred().promise);
+
+      plugin.setAsyncValuesForRows('all', 'name', source);
+
+      expect(source).toHaveBeenCalledTimes(6);
+      expect(plugin.countPending()).toBe(10);
 
       destroy();
     });
@@ -169,7 +255,8 @@ describe('AsyncValues: batches, concurrency, and flushing', () => {
 
   describe('flushing', () => {
     it('should write the results that settle within the flush window in one change', async() => {
-      const { hot, plugin, destroy } = createGrid({ asyncValues: { flush: 20 } });
+      // A window far longer than the settles below take, so a slow machine still lands them in one flush.
+      const { hot, plugin, destroy } = createGrid({ asyncValues: { flush: 300 } });
       const changes = jest.fn();
       const requests = [deferred(), deferred(), deferred(), deferred()];
 

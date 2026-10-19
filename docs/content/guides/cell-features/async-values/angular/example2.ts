@@ -44,7 +44,7 @@ function classifyProducts(products: string[], signal: AbortSignal): Promise<(str
         <button class="button button--primary" (click)="classify()">Classify</button>
         <button class="button button--primary" (click)="plugin.retryErrors()">Retry failed</button>
         <button class="button button--primary" (click)="plugin.cancelAll()">Stop</button>
-        <output aria-live="polite">{{ progress }}</output>
+        <span>{{ progress }}</span>
       </div>
     </div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>

@@ -89,6 +89,25 @@ export class AsyncValuesPage {
   }
 
   /**
+   * Sets theme variables on every element of the grid that carries the theme class: the container and the
+   * grid's root, which declares the theme's variables again.
+   */
+  async setThemeVariables(variables: Record<string, string>): Promise<void> {
+    await this.page.getByTestId('grid').evaluate((container, values) => {
+      [container, ...container.querySelectorAll('[class*="ht-theme-"]')].forEach((element) => {
+        Object.entries(values).forEach(([name, value]) => (element as HTMLElement).style.setProperty(name, value));
+      });
+    }, variables);
+  }
+
+  /**
+   * The computed border color of a pending cell's spinner, on its painted (block-start) side.
+   */
+  async indicatorColor(row: number, column: number): Promise<string> {
+    return this.indicator(row, column).evaluate(element => getComputedStyle(element).borderTopColor);
+  }
+
+  /**
    * A cell's background color, and the `--ht-async-error-background-color` token resolved to a color on
    * a probe inside the grid, for a theme-independent comparison.
    */

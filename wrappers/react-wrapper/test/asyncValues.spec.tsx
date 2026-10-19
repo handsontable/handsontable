@@ -36,8 +36,7 @@ function createProducts() {
 }
 
 /**
- * Mounts a grid that holds its data in state and exposes a way to replace that data and to re-render
- * without touching it.
+ * Mounts a grid that holds its data in state and exposes a way to replace that data.
  *
  * @param {object} options The grid options.
  * @param {boolean} [options.rowId] Whether the grid identifies rows by the `id` field.
@@ -49,14 +48,11 @@ function mountGrid({ rowId = false } = {}) {
     replaceData: (data: object[]) => {
       void data;
     },
-    rerender: () => {},
   };
   const Grid = () => {
     const [data, setData] = React.useState<object[]>(createProducts);
-    const [height, setHeight] = React.useState(200);
 
     api.replaceData = setData;
-    api.rerender = () => setHeight(value => value + 1);
 
     return (
       <HotTable
@@ -66,7 +62,7 @@ function mountGrid({ rowId = false } = {}) {
         columns={[{ data: 'sku' }, { data: 'name' }]}
         rowId={rowId ? 'id' : undefined}
         asyncValues={true}
-        height={height}
+        height={200}
         autoRowSize={false}
         autoColumnSize={false}
       />
