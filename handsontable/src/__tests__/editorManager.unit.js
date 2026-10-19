@@ -87,6 +87,28 @@ describe('EditorManager', () => {
     expect(hot.getActiveEditor().col).toBe(0);
   });
 
+  it('should not open the editor when Enter follows an updateData that made the selected cell read-only', () => {
+    hot.updateSettings({
+      cells(row, col) {
+        if (row === 0 && col === 1 && this.instance.getDataAtCell(row, col) === 'locked') {
+          return { readOnly: true };
+        }
+
+        return {};
+      },
+    });
+    hot.selectCell(0, 1);
+    hot.updateData([
+      ['a', 'locked'],
+      ['c', 'd'],
+    ]);
+
+    editorOpenCommand.callback(hot, new KeyboardEvent('keydown', { key: 'Enter' }), ['enter']);
+
+    expect(hot.getActiveEditor()?.isOpened() ?? false).toBe(false);
+    expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
+  });
+
   it('should not open the editor when Enter follows a loadData that made the selected cell read-only', () => {
     hot.updateSettings({
       cells(row, col) {
@@ -129,6 +151,18 @@ describe('EditorManager', () => {
 
     expect(hot.getSelectedRangeActive().highlight.isHeader()).toBe(true);
     expect(() => openFromDoubleClick()).not.toThrow();
+    expect(hot.getActiveEditor()?.isOpened() ?? false).toBe(false);
+  });
+
+  it('should not open the previously selected cell when openEditor is called on a header highlight', () => {
+    hot.updateSettings({ navigableHeaders: true });
+    hot.selectCell(1, 1);
+    hot.selectColumns(0, 0, -1);
+
+    expect(hot.getSelectedRangeActive().highlight.isHeader()).toBe(true);
+    expect(() => {
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'F2' }), true);
+    }).not.toThrow();
     expect(hot.getActiveEditor()?.isOpened() ?? false).toBe(false);
   });
 

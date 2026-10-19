@@ -451,7 +451,7 @@ class EditorManager {
   /**
    * Checks if the currently selected cell (pointed by selection highlight coords) is editable.
    * Editable cell is when:
-   *   - prepared cell meta exists;
+   *   - the highlight is a cell, not a header;
    *   - the cell has defined an editor type;
    *   - the cell is not marked as read-only;
    *   - the cell is not hidden.
@@ -460,26 +460,22 @@ class EditorManager {
    * @returns {boolean}
    */
   isCellEditable() {
-    const selection = this.hot.getSelectedRangeActive();
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-    if (!selection) {
+    // A header is not a cell. Meta from an earlier cell can still be stored here, and
+    // `getCellEditor` would read that cell's `editor`.
+    if (!highlight || highlight.isHeader()) {
       return false;
     }
 
-    // `getCellEditor` reads `editor` off this object. It stays unset until `prepareEditor()`
-    // assigns it, and a header highlight returns before that assignment.
     const cellProperties = this.cellProperties;
+    const { row, col } = highlight;
 
-    if (!cellProperties) {
+    if (row === null || col === null || !cellProperties) {
       return false;
     }
 
     const editorClass = this.hot.getCellEditor(cellProperties);
-    const { row, col } = selection.highlight;
-
-    if (row === null || col === null) {
-      return false;
-    }
 
     if (cellProperties.readOnly || !editorClass || this.#isCellHidden(row, col)) {
       return false;
@@ -674,9 +670,8 @@ class EditorManager {
   }): void {
     const editor = this.activeEditor;
     const isEditing = editor?.state === EDITOR_STATE.EDITING;
-    // A prepared-but-untyped editor is just as stale as an editing one, and more quietly so: nothing
-    // re-prepares it, `openEditor()` skips `prepareEditor()` while a reference exists, and the first
-    // keystroke then calls `beginEditing()` on the pre-change coordinates.
+    // VIRGIN is a prepared editor that has not taken a keystroke. An index-map change in that
+    // window leaves it on the pre-change coordinates, the same as one that is already typing.
     const isPrepared = editor?.state === EDITOR_STATE.VIRGIN;
 
     if ((!indexesChangesState.trimmedIndexesChanged && !indexesChangesState.indexesSequenceChanged) ||
