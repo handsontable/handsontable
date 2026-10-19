@@ -72,13 +72,6 @@
 
     window.hot = hot;
 
-    // Planted for the A11y / axe warn-mode proof, reverted in the next commit: an image without
-    // alt text inside the grid root is a WCAG 2 A violation (image-alt) the scan must report.
-    const plantedImage = document.createElement('img');
-
-    plantedImage.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
-    container.appendChild(plantedImage);
-
     document.querySelector('[data-testid="add-row"]').addEventListener('click', () => {
       hot.alter('insert_row_below', hot.countRows() - 1);
     });
