@@ -11,9 +11,22 @@ export const DEFAULT_LOCALE = 'en-US';
  * A region missing here takes the symbol's entry in `CURRENCY_SYMBOL_TO_CODE`.
  */
 const REGIONAL_CURRENCY_CODES: Record<string, Record<string, string>> = {
-  $: { AU: 'AUD', CA: 'CAD', HK: 'HKD', MX: 'MXN', NZ: 'NZD', SG: 'SGD', TW: 'TWD' },
+  $: {
+    AR: 'ARS',
+    AU: 'AUD',
+    CA: 'CAD',
+    CL: 'CLP',
+    CO: 'COP',
+    DO: 'DOP',
+    HK: 'HKD',
+    MX: 'MXN',
+    NZ: 'NZD',
+    SG: 'SGD',
+    TW: 'TWD',
+    UY: 'UYU',
+  },
   kr: { DK: 'DKK', IS: 'ISK', NO: 'NOK' },
-  '¥': { CN: 'CNY' },
+  '\u00a5': { CN: 'CNY' },
 };
 
 /**
@@ -49,12 +62,13 @@ export function getLocaleDecimalSeparator(locale: string): '.' | ',' {
 }
 
 /**
- * The order the locale writes a numeric day and month in, read from `Intl.DateTimeFormat`. A locale
- * that writes the year first (`ja-JP`) still has a month-before-day order, so it answers `MDY` for a
- * date whose year comes last.
+ * The order the locale writes a numeric day and month in, read from `Intl.DateTimeFormat` without
+ * the year: with it, a year-first locale such as `sv-SE` prints `2026-03-12` and hides that it puts
+ * the day first everywhere else (`12/3`). A locale that writes month before day (`ja-JP`) answers
+ * `MDY`.
  */
 export function getLocaleDateOrder(locale: string): 'DMY' | 'MDY' {
-  const parts = new Intl.DateTimeFormat(locale, { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC' })
+  const parts = new Intl.DateTimeFormat(locale, { month: 'numeric', day: 'numeric', timeZone: 'UTC' })
     .formatToParts(Date.UTC(2026, 2, 12))
     .map(part => part.type);
 

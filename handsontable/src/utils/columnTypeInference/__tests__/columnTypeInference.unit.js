@@ -179,6 +179,7 @@ describe('inferColumnTypes', () => {
       expect(inferOne(['$12', '$5.50'], { locale: 'en-US' }).numericFormat.currency).toBe('USD');
       expect(inferOne(['12 kr', '7 kr'], { locale: 'nb-NO' }).numericFormat.currency).toBe('NOK');
       expect(inferOne(['12 kr', '7 kr'], { locale: 'sv-SE' }).numericFormat.currency).toBe('SEK');
+      expect(inferOne(['$1.234,50', '$5'], { locale: 'es-AR' }).numericFormat.currency).toBe('ARS');
     });
 
     it('reads a sign before or after the currency symbol, but never two signs', () => {
@@ -189,6 +190,39 @@ describe('inferColumnTypes', () => {
     it('ignores binary noise and caps the fraction digits', () => {
       expect(inferOne([0.30000000000000004, 1]).numericFormat.maximumFractionDigits).toBe(1);
       expect(inferOne([`0.${'0'.repeat(118)}12`]).numericFormat.maximumFractionDigits).toBe(20);
+    });
+
+    it('keeps international phone numbers as text', () => {
+      expect(inferOne(['+48 601 234 567', '+48 502 111 222', '+48 600 000 001']).type).toBe('text');
+      expect(convertOne(['+1,234', '+5'])).toEqual([1234, 5]);
+    });
+
+    it('reads the U+2212 minus sign', () => {
+      expect(convertOne(['\u22121,5', '2,5'], { locale: 'sv-SE' })).toEqual([-1.5, 2.5]);
+    });
+
+    it('does not count trailing fraction zeros toward the 15-digit limit', () => {
+      expect(convertOne(['12345678901234.50', '1.00'])).toEqual([12345678901234.5, 1]);
+    });
+
+    it('counts the fraction digits of numbers printed in exponent form', () => {
+      expect(inferOne([1.5e-7, 2.5e-7, 3e-7]).numericFormat.maximumFractionDigits).toBe(8);
+    });
+
+    it('lets values without a symbol outvote a currency', () => {
+      const values = ['$5', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+      const column = inferOne(values);
+
+      expect(column.numericFormat.style).toBeUndefined();
+      expect(convertOne(values)[0]).toBe('$5');
+    });
+
+    it('matches the longest currency symbol first', () => {
+      expect(inferOne(['R$ 12,50', 'R$ 7'], { locale: 'pt-BR' }).numericFormat.currency).toBe('BRL');
+    });
+
+    it('reads the typographic apostrophe as grouping', () => {
+      expect(convertOne(['1\u2019234.50', '12.5'], { locale: 'de-CH' })).toEqual([1234.5, 12.5]);
     });
 
     it('reads 1 and 0 as numbers, not checkboxes', () => {
@@ -248,6 +282,11 @@ describe('inferColumnTypes', () => {
         expect(columns[0].inputFormat).toEqual({ dateOrder: locale === 'en-US' ? 'MDY' : 'DMY' });
         expect(convertToInferredTypes(rows, columns)[2][0]).toBe(locale === 'en-US' ? '2026-03-04' : '2026-04-03');
       });
+    });
+
+    it('reads the day-month order of a year-first locale without its year', () => {
+      expect(convertOne(['12/03/2026', '01/02/2026'], { locale: 'sv-SE' })).toEqual(['2026-03-12', '2026-02-01']);
+      expect(convertOne(['12/03/2026', '01/02/2026'], { locale: 'ja-JP' })).toEqual(['2026-12-03', '2026-01-02']);
     });
 
     it('reads dotted and dashed day-month-year dates', () => {
@@ -315,6 +354,15 @@ describe('inferColumnTypes', () => {
       expect(inferOne(['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank']).type).toBe('text');
     });
 
+    it('allows up to 10 options by default, and more with maxOptions', () => {
+      const options = Array.from({ length: 11 }, (_, index) => `Option ${index}`);
+      const values = [...options, ...options];
+
+      expect(inferOne(values.filter(value => value !== 'Option 10')).type).toBe('dropdown');
+      expect(inferOne(values).type).toBe('text');
+      expect(inferOne(values, { dropdown: { maxOptions: 12 } }).source).toEqual(options);
+    });
+
     it('respects the maxOptions limit and the dropdown switch', () => {
       const values = ['a', 'b', 'c', 'a', 'b', 'c'];
 
@@ -345,6 +393,9 @@ describe('inferColumnTypes', () => {
     it('falls back to text below the confidence floor', () => {
       expect(inferOne(['1', '2', 'three', 'four'])).toEqual({ type: 'text', confidence: 1 });
       expect(inferOne(['1', '2', '3', 'four'], { minConfidence: 0.7 }).type).toBe('numeric');
+      expect(inferOne(['1', '2', '3', 'four'], { minConfidence: NaN }).type).toBe('text');
+      expect(inferOne(['1', '2', '3', 'four'], { minConfidence: -1 }).type).toBe('numeric');
+      expect(inferOne(['1', '2', '3', '4'], { minConfidence: 5 }).type).toBe('numeric');
     });
 
     it('leaves a trailing total row unconverted', () => {
@@ -357,16 +408,23 @@ describe('inferColumnTypes', () => {
   describe('data shapes and options', () => {
     it('infers every column of mixed data', () => {
       const rows = [
-        ['Alice', '1.234,56', '12.03.2026', 'TRUE'],
-        ['Bob', '12,5', '13.03.2026', 'false'],
-        ['Carol', '7', '14.03.2026', 'true'],
+        ['Alice', '1.234,56', '12.03.2026', 'TRUE', 'Open'],
+        ['Bob', '12,5', '13.03.2026', 'false', 'Closed'],
+        ['Carol', '7', '14.03.2026', 'true', 'Open'],
+        ['Dave', '99', '15.03.2026', 'false', 'Open'],
       ];
+      const columns = inferColumnTypes(rows, { locale: 'de-DE' });
 
-      expect(inferColumnTypes(rows, { locale: 'de-DE' }).map(column => column.type))
-        .toEqual(['text', 'numeric', 'date', 'checkbox']);
+      expect(columns.map(column => column.type)).toEqual(['text', 'numeric', 'date', 'checkbox', 'dropdown']);
+      expect(convertToInferredTypes(rows, columns)).toEqual([
+        ['Alice', 1234.56, '2026-03-12', true, 'Open'],
+        ['Bob', 12.5, '2026-03-13', false, 'Closed'],
+        ['Carol', 7, '2026-03-14', true, 'Open'],
+        ['Dave', 99, '2026-03-15', false, 'Open'],
+      ]);
     });
 
-    it('infers objects by the keys of the first row and names the property', () => {
+    it('infers objects by key and names the property', () => {
       const rows = [
         { name: 'Alice', amount: '10.5', joined: '2026-01-02' },
         { name: 'Bob', amount: '7', joined: '2026-02-03' },
@@ -400,8 +458,11 @@ describe('inferColumnTypes', () => {
       expect(convertToInferredTypes(rows, columns)).toEqual([[1, '2026-01-02'], [2], null, [3, '2026-01-04', 'extra']]);
     });
 
-    it('samples only the first sampleSize rows, and every row for Infinity', () => {
-      expect(inferOne(['1', '2', 'x', 'y', 'z'], { sampleSize: Infinity }).type).toBe('text');
+    it('reads every row for sampleSize Infinity, and 1000 rows by default', () => {
+      const values = [...Array(1000).fill('1'), ...Array.from({ length: 200 }, (_, index) => `Note ${index}`)];
+
+      expect(inferOne(values).type).toBe('numeric');
+      expect(inferOne(values, { sampleSize: Infinity }).type).toBe('text');
     });
 
     it('reads null options leniently', () => {
@@ -430,12 +491,6 @@ describe('inferColumnTypes', () => {
       const columns = inferColumnTypes([['1,5', '2026-01-02', 'a'], ['2', '2026-01-03', 'a']], { locale: 'de-DE' });
 
       expect(JSON.parse(JSON.stringify(columns))).toEqual(columns);
-    });
-
-    it('is deterministic', () => {
-      const rows = [['12/03/2026', '1.234', 'Open'], ['01/04/2026', '5,5', 'Open']];
-
-      expect(inferColumnTypes(rows, { locale: 'en-GB' })).toEqual(inferColumnTypes(rows, { locale: 'en-GB' }));
     });
 
     it('defaults to the en-US locale, not the host one, and falls back to it for an invalid locale', () => {

@@ -163,7 +163,8 @@ function takeCurrency(text: string): { currencySymbol: string | null; rest: stri
  * column.
  */
 export function splitNumberParts(text: string): NumberParts | null {
-  let rest = text.trim();
+  // `Intl` writes U+2212 MINUS SIGN for negative numbers under some locales (`sv-SE`, `fi-FI`).
+  let rest = text.trim().replaceAll('\u2212', '-');
   const percent = rest.endsWith('%');
 
   if (percent) {
@@ -186,14 +187,24 @@ export function splitNumberParts(text: string): NumberParts | null {
     body = body.slice(1).trim();
   }
 
+  // A `+` in front of digits grouped by spaces is a phone number (`+48 601 234 567`), not a quantity.
+  if (signed && !negative && /\s/.test(body)) {
+    return null;
+  }
+
   return NUMBER_BODY_CHARS_REGEX.test(body) ? { body, negative, currencySymbol, percent } : null;
 }
 
 /**
- * Counts the significant digits of a number body: every digit after the leading zeros.
+ * Counts the significant digits of a number body: every digit after the leading zeros, without the
+ * trailing zeros of the fraction, which change nothing in the stored number.
  */
-function countSignificantDigits(body: string): number {
-  return body.replace(/\D/g, '').replace(/^0+/, '').length;
+function countSignificantDigits(body: string, decimalSeparator: '.' | ','): number {
+  const separator = body.indexOf(decimalSeparator);
+  const integerPart = separator === -1 ? body : body.slice(0, separator);
+  const fraction = separator === -1 ? '' : body.slice(separator + 1).replace(/0+$/, '');
+
+  return `${integerPart.replace(/\D/g, '')}${fraction}`.replace(/^0+/, '').length;
 }
 
 /**
@@ -202,7 +213,7 @@ function countSignificantDigits(body: string): number {
  * with more significant digits than a number holds.
  */
 export function isNumberBody(body: string, decimalSeparator: '.' | ','): boolean {
-  if (LEADING_ZERO_REGEX.test(body) || countSignificantDigits(body) > MAX_SIGNIFICANT_DIGITS) {
+  if (LEADING_ZERO_REGEX.test(body) || countSignificantDigits(body, decimalSeparator) > MAX_SIGNIFICANT_DIGITS) {
     return false;
   }
 
@@ -228,13 +239,14 @@ export function countFractionDigits(body: string, decimalSeparator: '.' | ','): 
 
 /**
  * Counts the fraction digits of a number as it prints at 15 significant digits, which drops the
- * noise of binary arithmetic (`0.30000000000000004` counts 1), or `0` for one printed in exponent
- * form.
+ * noise of binary arithmetic (`0.30000000000000004` counts 1). A number printed in exponent form
+ * counts the digits it has after the decimal point once written out (`1.5e-7` counts 8).
  */
 export function countNumberFractionDigits(value: number): number {
-  const [, fraction = ''] = String(Number(value.toPrecision(MAX_SIGNIFICANT_DIGITS))).split('.');
+  const printed = String(Number(value.toPrecision(MAX_SIGNIFICANT_DIGITS)));
+  const match = /^-?\d+(?:\.(\d+))?(?:e([+-]\d+))?$/i.exec(printed);
 
-  return /e/i.test(fraction) ? 0 : fraction.length;
+  return match ? Math.max(0, (match[1]?.length ?? 0) - Number(match[2] ?? 0)) : 0;
 }
 
 /**
@@ -243,11 +255,17 @@ export function countNumberFractionDigits(value: number): number {
  * `0.0725` instead of the nearest result of a floating-point division.
  */
 export function readNumber(value: unknown, mode: NumberMode): number | null {
+  return readSplitNumber(value, typeof value === 'string' ? splitNumberParts(value) : null, mode);
+}
+
+/**
+ * `readNumber()` for a value whose string form was already split, so a detector that reads every
+ * value several ways splits each one once.
+ */
+export function readSplitNumber(value: unknown, parts: NumberParts | null, mode: NumberMode): number | null {
   if (typeof value === 'number') {
     return Number.isFinite(value) && !mode.percent ? value : null;
   }
-
-  const parts = typeof value === 'string' ? splitNumberParts(value) : null;
 
   if (
     parts === null ||

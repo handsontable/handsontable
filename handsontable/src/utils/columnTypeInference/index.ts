@@ -41,7 +41,7 @@ function toPositiveInteger(value: unknown, fallback: number): number {
 }
 
 /**
- * Reads the confidence floor, clamped to `0`–`1`, or returns the default for a non-number.
+ * Reads the confidence floor, clamped to `0` through `1`, or returns the default for a non-number.
  */
 function toConfidence(value: unknown): number {
   return typeof value === 'number' && !Number.isNaN(value)
@@ -161,37 +161,51 @@ export function inferColumnTypes(
 }
 
 /**
- * Converts one value to the shape its inferred cell type stores, or returns it unchanged when the
- * column cannot read it (a blank, a `Total` row, an `n/a`).
+ * Reads one value into the shape a column's cell type stores, or returns `null` when it cannot.
  */
-function convertValue(value: unknown, column: InferredColumn): unknown {
-  if (isBlank(value)) {
-    return value;
-  }
+type ValueReader = (value: unknown) => unknown;
 
-  let converted: unknown = null;
+/**
+ * Builds the reader for one column once, so converting a large dataset does not rebuild the
+ * column's reading mode for every cell.
+ */
+function createReader(column: InferredColumn): ValueReader | null {
   const { inputFormat = {} } = column;
 
   switch (column.type) {
-    case 'numeric':
-      converted = readNumber(value, {
+    case 'numeric': {
+      const mode = {
         decimalSeparator: inputFormat.decimalSeparator ?? '.',
         currencySymbol: inputFormat.currencySymbol ?? null,
         percent: inputFormat.percent === true,
-      });
-      break;
-    case 'date':
-      converted = readDate(value, inputFormat.dateOrder ?? 'MDY')?.iso ?? null;
-      break;
+      };
+
+      return value => readNumber(value, mode);
+    }
+    case 'date': {
+      const order = inputFormat.dateOrder ?? 'MDY';
+
+      return value => readDate(value, order)?.iso ?? null;
+    }
     case 'time':
-      converted = readTime(value)?.value ?? null;
-      break;
+      return value => readTime(value)?.value ?? null;
     case 'checkbox':
-      converted = readBoolean(value);
-      break;
+      return readBoolean;
     default:
-      break;
+      return null;
   }
+}
+
+/**
+ * Converts one value with its column's reader, or returns it unchanged when the column has no
+ * reader or cannot read it (a blank, a `Total` row, an `n/a`).
+ */
+function convertValue(value: unknown, reader: ValueReader | null | undefined): unknown {
+  if (!reader || isBlank(value)) {
+    return value;
+  }
+
+  const converted = reader(value);
 
   return converted === null ? value : converted;
 }
@@ -200,9 +214,9 @@ function convertValue(value: unknown, column: InferredColumn): unknown {
  * Converts one row: an array by column position, an object by each column's `data` property.
  * Anything else is returned as it is.
  */
-function convertRow(row: unknown, columns: InferredColumn[]): unknown {
+function convertRow(row: unknown, columns: InferredColumn[], readers: Array<ValueReader | null>): unknown {
   if (Array.isArray(row)) {
-    return (row as unknown[]).map((value, index) => (columns[index] ? convertValue(value, columns[index]) : value));
+    return (row as unknown[]).map((value, index) => convertValue(value, readers[index]));
   }
 
   if (!isObject(row)) {
@@ -211,9 +225,9 @@ function convertRow(row: unknown, columns: InferredColumn[]): unknown {
 
   const copy: Record<string, unknown> = { ...(row as Record<string, unknown>) };
 
-  columns.forEach((column) => {
+  columns.forEach((column, index) => {
     if (column.data !== undefined && Object.prototype.hasOwnProperty.call(copy, column.data)) {
-      copy[column.data] = convertValue(copy[column.data], column);
+      copy[column.data] = convertValue(copy[column.data], readers[index]);
     }
   });
 
@@ -232,5 +246,7 @@ export function convertToInferredTypes<T extends InferenceData>(data: T, columns
     return data as ConvertedData<T>;
   }
 
-  return (data as unknown[]).map(row => convertRow(row, columns)) as ConvertedData<T>;
+  const readers = columns.map(createReader);
+
+  return (data as unknown[]).map(row => convertRow(row, columns, readers)) as ConvertedData<T>;
 }

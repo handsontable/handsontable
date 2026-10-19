@@ -7,11 +7,12 @@ import {
   isNumberBody,
   readBoolean,
   readDate,
-  readNumber,
+  readSplitNumber,
   readTime,
   splitNumberParts,
   splitYearLastDate,
   type NumberMode,
+  type NumberParts,
 } from './values';
 import type { InferredColumn } from './types';
 
@@ -83,16 +84,28 @@ function detectCheckbox(values: unknown[]): Detection | null {
 }
 
 /**
+ * A value of a numeric candidate column, split once so every pass reads the same parts.
+ */
+interface SplitValue {
+  /**
+   * The value itself.
+   */
+  value: unknown;
+  /**
+   * Its split string form, or `null` for a non-string or a string that is not number-shaped.
+   */
+  parts: NumberParts | null;
+}
+
+/**
  * Settles a numeric column's decimal separator by vote: a value only one separator can read votes
  * for it, and a tie (`1.234`, `123`) leaves it to the locale.
  */
-function voteDecimalSeparator(values: unknown[], context: DetectionContext): '.' | ',' {
+function voteDecimalSeparator(values: SplitValue[], context: DetectionContext): '.' | ',' {
   let dot = 0;
   let comma = 0;
 
-  values.forEach((value) => {
-    const parts = typeof value === 'string' ? splitNumberParts(value) : null;
-
+  values.forEach(({ parts }) => {
     if (parts) {
       const readsDot = isNumberBody(parts.body, '.');
       const readsComma = isNumberBody(parts.body, ',');
@@ -133,45 +146,38 @@ function majority<T>(entries: T[], fallback: T): T {
 }
 
 /**
- * Settles how a numeric column reads its values: the decimal separator by vote, whether the column
- * holds percentages by majority, and the currency symbol by majority among the values that carry one.
+ * Settles how a numeric column reads its values: the decimal separator by vote, and the currency
+ * symbol and whether the column holds percentages by majority. A number-shaped value without a
+ * symbol or a percent sign, and a real number, vote for none.
  */
-function resolveNumberMode(values: unknown[], context: DetectionContext): NumberMode {
-  const parts = values
-    .map(value => (typeof value === 'string' ? splitNumberParts(value) : null))
-    .filter(part => part !== null);
-  const symbols = parts.map(part => part.currencySymbol).filter(symbol => symbol !== null);
+function resolveNumberMode(values: SplitValue[], context: DetectionContext): NumberMode {
+  const voters = values.filter(({ value, parts }) => parts !== null || typeof value === 'number');
 
   return {
     decimalSeparator: voteDecimalSeparator(values, context),
-    currencySymbol: majority<string | null>(symbols, null),
-    percent: majority(parts.map(part => part.percent), false),
+    currencySymbol: majority(voters.map(({ parts }) => parts?.currencySymbol ?? null), null),
+    percent: majority(voters.map(({ parts }) => parts?.percent ?? false), false),
   };
 }
 
 /**
- * Builds the `Intl.NumberFormat` options that print a numeric column the way it was written. The
- * fraction digits are capped at `MAX_FRACTION_DIGITS`, since `Intl.NumberFormat` throws above 100.
+ * Builds the `Intl.NumberFormat` options that print a numeric column the way it was written, from
+ * the values the column reads. The fraction digits are capped at `MAX_FRACTION_DIGITS`, since
+ * `Intl.NumberFormat` throws above 100.
  */
-function toNumericFormat(values: unknown[], mode: NumberMode, context: DetectionContext): Intl.NumberFormatOptions {
+function toNumericFormat(read: SplitValue[], mode: NumberMode, context: DetectionContext): Intl.NumberFormatOptions {
   let fractionDigits = 0;
   let useGrouping = false;
 
-  values.forEach((value) => {
-    if (readNumber(value, mode) === null) {
-      return;
-    }
-
-    if (typeof value === 'number') {
-      fractionDigits = Math.max(fractionDigits, countNumberFractionDigits(value));
+  read.forEach(({ value, parts }) => {
+    if (parts === null) {
+      fractionDigits = Math.max(fractionDigits, countNumberFractionDigits(value as number));
 
       return;
     }
 
-    const { body } = splitNumberParts(value as string) as { body: string };
-
-    fractionDigits = Math.max(fractionDigits, countFractionDigits(body, mode.decimalSeparator));
-    useGrouping = useGrouping || isGroupedBody(body, mode.decimalSeparator);
+    fractionDigits = Math.max(fractionDigits, countFractionDigits(parts.body, mode.decimalSeparator));
+    useGrouping = useGrouping || isGroupedBody(parts.body, mode.decimalSeparator);
   });
 
   const style: Intl.NumberFormatOptions = {};
@@ -190,10 +196,16 @@ function toNumericFormat(values: unknown[], mode: NumberMode, context: Detection
 }
 
 /**
- * Detects numeric columns, including currency amounts and percentages.
+ * Detects numeric columns, including currency amounts and percentages. Each value is split once,
+ * and the format is built only from the values the column reads.
  */
 function detectNumeric(values: unknown[], context: DetectionContext): Detection | null {
-  const mode = resolveNumberMode(values, context);
+  const split = values.map(value => ({
+    value,
+    parts: typeof value === 'string' ? splitNumberParts(value) : null,
+  }));
+  const mode = resolveNumberMode(split, context);
+  const read = split.filter(({ value, parts }) => readSplitNumber(value, parts, mode) !== null);
   const inputFormat = {
     decimalSeparator: mode.decimalSeparator,
     ...(mode.percent ? { percent: true } : {}),
@@ -201,8 +213,8 @@ function detectNumeric(values: unknown[], context: DetectionContext): Detection 
   };
 
   return {
-    column: { type: 'numeric', numericFormat: toNumericFormat(values, mode, context), inputFormat },
-    matched: countMatches(values, value => readNumber(value, mode)),
+    column: { type: 'numeric', numericFormat: toNumericFormat(read, mode, context), inputFormat },
+    matched: read.length,
     certainty: 1,
   };
 }
@@ -211,17 +223,13 @@ function detectNumeric(values: unknown[], context: DetectionContext): Detection 
  * Settles a date column's day and month order by vote: a first part above 12 can only be a day,
  * and a second part above 12 can only be a day too. Returns `null` when no value decides it.
  */
-function voteDateOrder(values: unknown[]): 'DMY' | 'MDY' | null {
+function voteDateOrder(yearLastParts: Array<[number, number]>): 'DMY' | 'MDY' | null {
   let dayFirst = 0;
   let monthFirst = 0;
 
-  values.forEach((value) => {
-    const parts = splitYearLastDate(value);
-
-    if (parts) {
-      dayFirst += parts[0] > 12 && parts[1] <= 12 ? 1 : 0;
-      monthFirst += parts[1] > 12 && parts[0] <= 12 ? 1 : 0;
-    }
+  yearLastParts.forEach(([first, second]) => {
+    dayFirst += first > 12 && second <= 12 ? 1 : 0;
+    monthFirst += second > 12 && first <= 12 ? 1 : 0;
   });
 
   if (dayFirst === monthFirst) {
@@ -236,10 +244,11 @@ function voteDateOrder(values: unknown[]): 'DMY' | 'MDY' | null {
  * day and month order.
  */
 function detectDate(values: unknown[], context: DetectionContext): Detection | null {
-  const voted = voteDateOrder(values);
+  const yearLastParts = values.map(splitYearLastDate).filter(parts => parts !== null);
+  const voted = voteDateOrder(yearLastParts);
   const dateOrder = voted ?? context.localeDateOrder;
   const readings = values.map(value => readDate(value, dateOrder)).filter(reading => reading !== null);
-  const hasYearLast = values.some(value => splitYearLastDate(value) !== null);
+  const hasYearLast = yearLastParts.length > 0;
 
   return {
     column: {

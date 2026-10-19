@@ -5,15 +5,16 @@
  */
 export const CURRENCY_SYMBOL_TO_CODE: Record<string, string> = {
   $: 'USD',
-  '€': 'EUR',
-  '£': 'GBP',
-  '¥': 'JPY',
-  // An escape, not a bare `z\u0142` key: a raw non-ASCII identifier stops the non-minified bundles from
-  // parsing on a page that is not served as UTF-8 (see the Build section of AGENTS.md).
+  '\u20ac': 'EUR',
+  '\u00a3': 'GBP',
+  '\u00a5': 'JPY',
+  // Escapes, not raw characters: a raw non-ASCII identifier stops the non-minified bundles from
+  // parsing on a page that is not served as UTF-8, and a raw character in a string decodes wrongly
+  // there (see the Build section of `handsontable/AGENTS.md`).
   // eslint-disable-next-line quote-props
   'z\u0142': 'PLN',
-  '₹': 'INR',
-  '₩': 'KRW',
+  '\u20b9': 'INR',
+  '\u20a9': 'KRW',
   CHF: 'CHF',
   kr: 'SEK',
   R$: 'BRL',

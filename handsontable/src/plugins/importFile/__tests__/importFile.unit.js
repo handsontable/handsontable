@@ -142,6 +142,12 @@ describe('ImportFile#inferColumnTypes', () => {
     ]);
   });
 
+  it('should accept null options', () => {
+    const columns = ImportFile.prototype.inferColumnTypes.call(localeCtx('de-DE'), rows, null);
+
+    expect(columns[0].inputFormat).toEqual({ decimalSeparator: ',' });
+  });
+
   it('should keep the grid locale when the locale option is undefined', () => {
     const columns = ImportFile.prototype.inferColumnTypes.call(localeCtx('de-DE'), rows, { locale: undefined });
 

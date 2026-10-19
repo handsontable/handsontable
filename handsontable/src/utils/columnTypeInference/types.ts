@@ -3,12 +3,15 @@
  */
 export interface InferColumnTypesOptions {
   /**
-   * How many rows, from the top, to read. Defaults to `1000`.
+   * How many rows, from the top, to read. `Infinity` reads every row; a value below `1` reads the
+   * default. Defaults to `1000`.
    */
   sampleSize?: number;
   /**
-   * The locale that settles an ambiguous column: the decimal separator of `1.234`, and the day and
-   * month order of `12/03/2026`. Defaults to `'en-US'`.
+   * The locale that settles an ambiguous column: the decimal separator of `1.234`, the day and
+   * month order of `12/03/2026`, and the currency a shared symbol such as `$` stands for. Defaults to
+   * `'en-US'`, or to the grid's `locale` through the `ImportFile` plugin method. A locale the
+   * browser does not support falls back to `'en-US'`.
    */
   locale?: string;
   /**
@@ -58,8 +61,7 @@ export interface InferredInputFormat {
  */
 export interface InferredColumn {
   /**
-   * The property the column reads, set when the data is an array of objects. The grid reads a key
-   * with a dot (`price.usd`) as a nested path.
+   * The property the column reads, set when the data is an array of objects.
    */
   data?: string;
   /**
