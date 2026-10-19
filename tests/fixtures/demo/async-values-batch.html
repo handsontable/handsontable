@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>asyncValues batch e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects,
+    // mapped through fixed allowlists to literals so a crafted param is never reflected into the
+    // document. An absent param keeps the default; an unknown one throws, so a typo in the project
+    // config is a red leg rather than a mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    An AI column: the Classify button fills the `category` column in batches of two, with at most two
+    batches running at once. Every batch waits until the spec calls `resolveBatch(index, values)` or
+    `rejectBatch(index, message)`; each call's cells and AbortSignal are recorded on `window.batches`.
+    The progress text is the one the docs example shows.
+  -->
+  <button type="button" data-testid="classify">Classify</button>
+  <button type="button" data-testid="stop">Stop</button>
+  <output data-testid="progress" aria-live="polite"></output>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const output = document.querySelector('[data-testid="progress"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.batches = [];
+    window.resolveBatch = (index, values) => window.batches[index].resolve(values);
+    window.rejectBatch = (index, message) => window.batches[index].reject(new Error(message));
+
+    window.hot = new Handsontable(container, {
+      data: [
+        { id: 1, product: 'Stainless Steel Water Bottle', category: null },
+        { id: 2, product: 'Wireless Mouse', category: null },
+        { id: 3, product: 'Ergonomic Office Chair', category: null },
+        { id: 4, product: 'USB-C Charging Cable', category: null },
+        { id: 5, product: 'Canvas Tote Bag', category: null },
+        { id: 6, product: 'Desk Lamp', category: null },
+      ],
+      columns: [{ data: 'product' }, { data: 'category', readOnly: true }],
+      colHeaders: ['Product', 'Category'],
+      colWidths: [240, 140],
+      rowHeaders: true,
+      width: 500,
+      height: 300,
+      rowId: 'id',
+      asyncValues: { concurrency: 2 },
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const plugin = window.hot.getPlugin('asyncValues');
+    const updateProgress = () => {
+      const done = window.hot.getSourceDataAtCol(1).filter(category => category !== null).length;
+
+      output.textContent = `${done} of ${window.hot.countRows()} done, ${plugin.countErrors()} failed`;
+    };
+
+    ['afterAsyncValueStart', 'afterAsyncValueResolve', 'afterAsyncValueReject', 'afterAsyncValueCancel',
+      'afterAsyncValuesIdle'].forEach(hook => window.hot.addHook(hook, updateProgress));
+    updateProgress();
+
+    document.querySelector('[data-testid="classify"]').addEventListener('click', () => {
+      plugin.setAsyncValuesInBatches('all', 'category', (cells, signal) => {
+        const batch = { rows: cells.map(cell => cell.physicalRow), signal };
+
+        window.batches.push(batch);
+
+        return new Promise((resolve, reject) => {
+          batch.resolve = resolve;
+          batch.reject = reject;
+        });
+      }, { batchSize: 2, source: 'AI.classify' });
+    });
+    document.querySelector('[data-testid="stop"]').addEventListener('click', () => plugin.cancelAll());
+  </script>
+</body>
+</html>
