@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `getDataAtCol()` and `getDataAtProp()` returning only as many values as there are top-level rows when the `nestedRows` option is enabled.",
+  "type": "fixed",
+  "issueOrPR": 13919,
+  "breaking": false,
+  "framework": "none"
+}
