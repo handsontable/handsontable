@@ -124,6 +124,23 @@ function isInRange([from, to]: [number, number], index: number): boolean {
 }
 
 /**
+ * Tells whether the overlay owns a cell: the cell lies in the overlay's segment on both axes. Each
+ * mobile selection handle sits on one corner cell of the selection, and only the overlay owning that
+ * cell draws it. The master renders the frozen panes' cells too, under the clones, and a handle it
+ * drew there would hang out past the freeze line next to the clone's own (DEV-749). A header index
+ * (below 0) counts as the first track.
+ *
+ * @param {AdjustHandlesLayout} layout The per-axis layout.
+ * @param {number} row The renderable row of the cell.
+ * @param {number} column The renderable column of the cell.
+ * @returns {boolean}
+ */
+export function ownsCornerCell(layout: AdjustHandlesLayout, row: number, column: number): boolean {
+  return getAxisSegment(layout.row, Math.max(row, 0)) === layout.row.overlaySegment &&
+    getAxisSegment(layout.column, Math.max(column, 0)) === layout.column.overlaySegment;
+}
+
+/**
  * Tells whether the start or end edge of a scrollable track is on screen. A track the viewport shows
  * only part of has one edge cut off: the first partially visible track loses its start edge (behind a
  * frozen pane or before the holder), the last one its end edge, unless the track is also fully visible.

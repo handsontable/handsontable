@@ -104,10 +104,11 @@ export class MobileHandlesPage {
 
   /**
    * The hit area of the bottom-right mobile selection handle — the element a
-   * finger grabs. It is larger than the painted handle.
+   * finger grabs. It is larger than the painted handle. A frozen pane's cell has
+   * its handles drawn by that pane's overlay clone, so pass the clone's class there.
    */
-  bottomHitArea(): Locator {
-    return this.page.locator('.ht_master .htBorders .bottomSelectionHandle-HitArea:visible').first();
+  bottomHitArea(overlay = 'ht_master'): Locator {
+    return this.page.locator(`.${overlay} .htBorders .bottomSelectionHandle-HitArea:visible`).first();
   }
 
   /**
@@ -241,16 +242,45 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Tap a cell at the point where it is painted. A cell of a frozen pane is painted by its overlay
+   * clone, which sits on top of the master's copy, so `locator.tap()` on the master cell would be
+   * refused as intercepted. Before any scroll both copies share the same position.
+   */
+  async tapPaintedCell(row: number, col: number): Promise<void> {
+    const box = await this.cell(row, col).boundingBox();
+
+    expect(box, 'the cell must be laid out').not.toBeNull();
+
+    await this.page.touchscreen.tap(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+  }
+
+  /**
    * The overlays whose bottom mobile selection handle a finger can actually reach: the handle's hit
    * area (the element a finger grabs) displayed, and the topmost element at its own center. Every
    * overlay draws its own handles, and a copy drawn under a frozen pane still passes a `:visible`
    * count.
    */
   async reachableBottomHandles(): Promise<string[]> {
-    return this.page.evaluate(() => {
+    return this.#reachableHandles('bottomSelectionHandle-HitArea');
+  }
+
+  /**
+   * The overlays whose top mobile selection handle a finger can actually reach. See
+   * {@link MobileHandlesPage#reachableBottomHandles}.
+   */
+  async reachableTopHandles(): Promise<string[]> {
+    return this.#reachableHandles('topSelectionHandle-HitArea');
+  }
+
+  /**
+   * The overlays whose hit area of the given class is displayed and is the topmost element at its
+   * own center.
+   */
+  async #reachableHandles(hitAreaClass: string): Promise<string[]> {
+    return this.page.evaluate((className) => {
       const overlays: string[] = [];
 
-      document.querySelectorAll('.bottomSelectionHandle-HitArea').forEach((handle) => {
+      document.querySelectorAll(`.${className}`).forEach((handle) => {
         const rect = handle.getBoundingClientRect();
 
         if (getComputedStyle(handle).display === 'none' || rect.width === 0 || rect.height === 0) {
@@ -268,7 +298,7 @@ export class MobileHandlesPage {
       });
 
       return overlays.sort();
-    });
+    }, hitAreaClass);
   }
 
   /**
@@ -393,13 +423,14 @@ export class MobileHandlesPage {
   /**
    * Drags the bottom range handle onto another cell with a trusted touch
    * gesture. Playwright's `touchscreen` only taps, so this goes through CDP.
+   * `overlay` names the overlay that draws the handle (see `bottomHitArea()`).
    */
-  async dragBottomHandleToCell(row: number, col: number): Promise<void> {
+  async dragBottomHandleToCell(row: number, col: number, overlay = 'ht_master'): Promise<void> {
     if (!this.#cdp) {
       this.#cdp = await this.page.context().newCDPSession(this.page);
     }
 
-    const startBox = await this.bottomHitArea().boundingBox();
+    const startBox = await this.bottomHitArea(overlay).boundingBox();
     const targetBox = await this.cell(row, col).boundingBox();
 
     expect(startBox, 'the bottom handle hit area must be laid out').not.toBeNull();

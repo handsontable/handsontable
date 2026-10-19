@@ -85,4 +85,52 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
 
     await expect.poll(() => mobileGrid.isTopHandleHitAreaAtHandleCenter()).toBe(true);
   });
+
+  // DEV-749: the master renders the frozen panes' cells too, under the clones, and drew a second
+  // pair of handles there. Its bottom handle hung out past the freeze line next to the clone's own.
+  test('draw one pair of handles for a cell in a frozen column', async () => {
+    await mobileGrid.goto({ frozen: true });
+    await mobileGrid.tapPaintedCell(2, 0);
+
+    await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual(['ht_clone_inline_start']);
+    await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_clone_inline_start']);
+  });
+
+  test('draw one pair of handles for a cell in a frozen row', async () => {
+    await mobileGrid.goto({ frozen: true });
+    await mobileGrid.tapPaintedCell(0, 2);
+
+    await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual(['ht_clone_top']);
+    await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_clone_top']);
+  });
+
+  test('split a range across the freeze line between the frozen column and the master', async () => {
+    await mobileGrid.goto({ frozen: true });
+    await mobileGrid.tapPaintedCell(2, 0);
+    await mobileGrid.selectRange(2, 0, 4, 3);
+
+    await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual(['ht_clone_inline_start']);
+    await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_master']);
+  });
+
+  test('keep the handles of a frozen-column cell after a horizontal scroll', async () => {
+    // Row 1 sits on the frozen-row line, so the frozen column's top handle has to clear the corner
+    // clone above it, which the master's copy used to do for it.
+    await mobileGrid.goto({ frozen: true, cols: 'wide' });
+    await mobileGrid.tapPaintedCell(1, 0);
+    await mobileGrid.scrollColumnEndUnderFrozenPane(2);
+
+    await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual(['ht_clone_inline_start']);
+    await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_clone_inline_start']);
+  });
+
+  test('extend the selection from the bottom handle of a frozen-column cell', async () => {
+    await mobileGrid.goto({ frozen: true });
+    await mobileGrid.tapPaintedCell(2, 0);
+    await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_clone_inline_start']);
+
+    await mobileGrid.dragBottomHandleToCell(4, 2, 'ht_clone_inline_start');
+
+    await expect.poll(() => mobileGrid.selectedLast()).toEqual([2, 0, 4, 2]);
+  });
 });

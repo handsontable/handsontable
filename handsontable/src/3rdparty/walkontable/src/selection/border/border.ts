@@ -33,6 +33,7 @@ import {
   getMoveZoneOwnership,
   getOverlaySegment,
   isTrackEdgeVisible,
+  ownsCornerCell,
 } from './adjustHandlesOwnership';
 import type {
   AdjustHandleEdge,
@@ -710,6 +711,8 @@ class Border {
    *   the block's real corner.
    * @param {{width: number, height: number}|null} [tableSize] The table size `measure()` read, so the
    *   handles are positioned without a geometry read between style writes.
+   * @param {boolean} [rendersTopStart=true] Whether this overlay draws the top handle. `false` when the
+   *   selection's top-start cell lies in another overlay's pane (DEV-749).
    */
   updateMultipleSelectionHandlesPosition(
     fromRow: number,
@@ -722,6 +725,7 @@ class Border {
     height: number,
     rendersBottomEnd = true,
     tableSize: { width: number, height: number } | null = null,
+    rendersTopStart = true,
   ) {
     const handles = this.selectionHandles;
 
@@ -793,8 +797,10 @@ class Border {
     const cornerVisible = this.settings.border?.cornerVisible;
 
     if (cornerVisible && typeof cornerVisible === 'function' && cornerVisible()) {
-      topStyles.display = 'block';
-      topHitAreaStyles.display = 'block';
+      const topDisplay = rendersTopStart ? 'block' : 'none';
+
+      topStyles.display = topDisplay;
+      topHitAreaStyles.display = topDisplay;
 
       if (rendersBottomEnd && this.isSouthEastOfAreaSelection(toRow, toCol)) {
         bottomStyles.display = 'block';
@@ -824,15 +830,17 @@ class Border {
   }
 
   /**
-   * Tells whether the master's top mobile selection handle, drawn hanging outside the selection's
+   * Tells whether this overlay's top mobile selection handle, drawn hanging outside the selection's
    * top-start corner, would land under an overlay clone.
    *
    * The question is which clone renders, not how many rows or columns are frozen, and the two are
    * not the same: with `fixedRowsTop: 0` and column headers on, the `top` clone still renders and
    * row 0's top edge sits flush against it, exactly where row `fixedRowsTop` sits with a frozen
    * pane. {@link Border#isFrozenBoundaryEdge} answers the narrower freeze-line question and is
-   * therefore wrong here. Only the master needs the test: a clone draws its own copy of the handle,
-   * and its `.wtHolder` clips that copy instead of hiding it under a higher layer.
+   * therefore wrong here. The test applies to every overlay that is on the scrollable side of the
+   * axis, not only to the master: the `inline_start` clone owns the handles of its frozen cells
+   * (DEV-749), and the `top_inline_start_corner` clone covers row 0 of it just as the `top` clone
+   * covers the master's.
    *
    * @private
    * @param {'row'|'column'} axis The clone axis to test (`row` for `top`, `column` for `inline_start`).
@@ -840,7 +848,7 @@ class Border {
    * @returns {boolean}
    */
   isTopHandleOccludedByClone(axis: 'row' | 'column', fromIndex: number): boolean {
-    if (this.wot.wtTable.name !== 'master') {
+    if (getOverlaySegment(this.wot.wtTable.name, axis) !== 'main') {
       return false;
     }
 
@@ -863,7 +871,7 @@ class Border {
    * @returns {boolean}
    */
   isBottomHandleOccludedByClone(toRow: number): boolean {
-    return this.wot.wtTable.name === 'master' && this.isFrozenBottomBoundaryEdge(toRow);
+    return getOverlaySegment(this.wot.wtTable.name, 'row') === 'main' && this.isFrozenBottomBoundaryEdge(toRow);
   }
 
   /**
@@ -2106,6 +2114,14 @@ class Border {
     }
 
     if (this.selectionHandles) {
+      // Each handle is drawn only by the overlay that owns its corner cell. The master also renders
+      // the frozen panes' cells under the clones, and its copy would hang out past the freeze line
+      // next to the clone's own (DEV-749).
+      const handlesLayout: AdjustHandlesLayout = {
+        row: this.getAdjustHandlesAxisLayout('row'),
+        column: this.getAdjustHandlesAxisLayout('column'),
+      };
+
       this.updateMultipleSelectionHandlesPosition(
         corners[0],
         corners[1],
@@ -2115,8 +2131,9 @@ class Border {
         inlineStartPos,
         width,
         height,
-        rendersFillCorner,
+        rendersFillCorner && ownsCornerCell(handlesLayout, checkRow, checkCol),
         tableSize,
+        ownsCornerCell(handlesLayout, corners[0], corners[1]),
       );
     }
 
