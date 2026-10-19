@@ -8,49 +8,12 @@ import {
   createSpreadsheetData,
   mockElementDimensions,
   mountComponentWithRef,
+  simulateKeyboardEvent,
 } from './_helpers';
 
 registerAllModules();
 
 type OpenSurface = 'useHotEditor' | 'EditorComponent';
-
-/**
- * Builds a keyboard event the shortcut manager and the editor manager can both read.
- * jsdom leaves `keyCode` at 0 on a constructed `KeyboardEvent`, and the fast-edit
- * path decides from that code whether the key opens an editor.
- * @param keyCode
- * @param key
- */
-function dispatchKey(keyCode: number, key: string): KeyboardEvent {
-  const event = document.createEvent('KeyboardEvent') as KeyboardEvent & { keyCodeVal: number };
-
-  Object.defineProperty(event, 'keyCode', {
-    get() {
-      return this.keyCodeVal;
-    }
-  });
-  Object.defineProperty(event, 'which', {
-    get() {
-      return this.keyCodeVal;
-    }
-  });
-  Object.defineProperty(event, 'key', {
-    get() {
-      return key;
-    }
-  });
-
-  if (event.initKeyboardEvent) {
-    event.initKeyboardEvent('keydown', true, true, window, key, key, '', '', false, '');
-  } else {
-    event.initKeyEvent('keydown', true, true, window, false, false, false, false, keyCode, 0);
-  }
-
-  event.keyCodeVal = keyCode;
-  document.activeElement!.dispatchEvent(event);
-
-  return event;
-}
 
 /**
  * Handsontable treats two left-button clicks on the same cell as a double-click
@@ -131,7 +94,7 @@ describe.each(['useHotEditor', 'EditorComponent'] as const)('%s onOpen', (surfac
 
     await act(async() => {
       hot.selectCell(0, 0);
-      enter = dispatchKey(13, 'enter');
+      enter = simulateKeyboardEvent('keydown', 13);
     });
 
     expect(opened).toHaveLength(1);
@@ -147,7 +110,7 @@ describe.each(['useHotEditor', 'EditorComponent'] as const)('%s onOpen', (surfac
 
     await act(async() => {
       hot.selectCell(0, 0);
-      typed = dispatchKey(65, 'a');
+      typed = simulateKeyboardEvent('keydown', 65);
     });
 
     expect(opened).toHaveLength(1);
@@ -184,28 +147,33 @@ describe.each(['useHotEditor', 'EditorComponent'] as const)('%s onOpen', (surfac
 
     expect(opened).toEqual([undefined]);
   });
+});
 
-  it('should still run a callback that takes no arguments', async() => {
-    let calls = 0;
-    const Editor: React.FC = surface === 'useHotEditor' ?
-      function NoArgHookEditor() {
-        useHotEditor({
-          onOpen() {
-            calls += 1;
-          },
-        });
+/**
+ * jsdom reports 0 for every cell's offset, so two cells would land the editor
+ * in the same place and the assertion could not tell them apart.
+ * @param cell
+ * @param left
+ * @param top
+ */
+function pinCellOffset(cell: HTMLElement, left: number, top: number) {
+  Object.defineProperty(cell, 'offsetLeft', {
+    configurable: true,
+    get() {
+      return left;
+    },
+  });
+  Object.defineProperty(cell, 'offsetTop', {
+    configurable: true,
+    get() {
+      return top;
+    },
+  });
+}
 
-        return <div />;
-      } :
-      function NoArgComponentEditor() {
-        return (
-          <EditorComponent onOpen={() => {
-            calls += 1;
-          }}>
-            {() => <span />}
-          </EditorComponent>
-        );
-      };
+describe('EditorComponent onOpen position', () => {
+  it('should position the editor on the new cell before onOpen runs', async() => {
+    const seen: string[] = [];
 
     const hot = mountComponentWithRef<HotTableRef>((
       <HotTable
@@ -218,15 +186,47 @@ describe.each(['useHotEditor', 'EditorComponent'] as const)('%s onOpen', (surfac
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
         }}
-        editor={Editor}
+        editor={function PositionEditor() {
+          return (
+            <EditorComponent
+              onOpen={() => {
+                const root = document.getElementById('editor-anchor')?.parentElement as HTMLElement;
+
+                seen.push(root.style.left);
+              }}
+            >
+              {() => <span id="editor-anchor" />}
+            </EditorComponent>
+          );
+        }}
       />
     )).hotInstance!;
 
+    const openCell = async(row: number, col: number, left: number) => {
+      let cell: HTMLElement;
+
+      await act(async() => {
+        hot.selectCell(row, col);
+        cell = hot.getCell(row, col)!;
+        pinCellOffset(cell, left, 30);
+        simulateKeyboardEvent('keydown', 13);
+      });
+    };
+
+    await openCell(0, 0, 40);
+
+    const root = document.getElementById('editor-anchor')!.parentElement as HTMLElement;
+    const firstCell = root.style.left;
+
     await act(async() => {
-      hot.selectCell(0, 0);
-      dispatchKey(13, 'enter');
+      hot.destroyEditor();
     });
 
-    expect(calls).toBe(1);
+    await openCell(0, 1, 140);
+
+    expect(seen).toHaveLength(2);
+    expect(firstCell).not.toBe('');
+    expect(root.style.left).not.toBe(firstCell);
+    expect(seen[1]).toBe(root.style.left);
   });
 });

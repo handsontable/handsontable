@@ -32,9 +32,9 @@ export interface HotEditorHooks {
   /**
    * Called when the editor opens.
    *
-   * @param {Event} [event] The DOM event that opened the editor. The argument is undefined when editing starts from the API.
+   * @param {Event} [event] The DOM event that opened the editor. It is `undefined` when you call `beginEditing()`.
    */
-  onOpen?: (event?: Event) => void
+  onOpen?(event?: Event): void
   onClose?: () => void
   onPrepare?: (
     row: number,
