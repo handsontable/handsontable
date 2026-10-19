@@ -23,6 +23,9 @@ interface FixtureWindow {
       getTopStartCorner(): { row: number; col: number };
       getBottomEndCorner(): { row: number; col: number };
     } | undefined;
+    getSelectedRangeActive(): {
+      highlight: { row: number; col: number; isHeader(): boolean };
+    } | undefined;
     getDataAtCell(row: number, col: number): unknown;
     countRows(): number;
     getSourceData(): Array<{ name: string }>;
@@ -167,6 +170,14 @@ export class RowSelectionPage {
   }
 
   /**
+   * The column header label in the top clone. The first column's header also holds the
+   * "select all" checkbox, so the label is the part that selects the column.
+   */
+  columnHeader(label: string): Locator {
+    return this.page.locator('.ht_clone_top').locator('span.colHeader').getByText(label, { exact: true });
+  }
+
+  /**
    * Returns the "select all" checkbox: in the corner with the row header location, in the first
    * column's header with the first column location.
    */
@@ -206,6 +217,17 @@ export class RowSelectionPage {
   async selectedPhysicalRows(): Promise<number[]> {
     return this.page.evaluate(() => (window as unknown as FixtureWindow).hot
       .getPlugin('rowSelection').getSelectedPhysicalRows());
+  }
+
+  /**
+   * The active highlight, so a spec can tell a column header selection from a cell selection.
+   */
+  async selectionHighlight(): Promise<{ row: number; col: number; header: boolean } | null> {
+    return this.page.evaluate(() => {
+      const highlight = (window as unknown as FixtureWindow).hot.getSelectedRangeActive()?.highlight;
+
+      return highlight ? { row: highlight.row, col: highlight.col, header: highlight.isHeader() } : null;
+    });
   }
 
   /**
