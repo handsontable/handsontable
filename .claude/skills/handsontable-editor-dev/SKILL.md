@@ -37,7 +37,7 @@ Registry: `src/editors/registry.ts`. Factory: `src/editors/factory.ts`.
 ## Key patterns
 
 - Extend `BaseEditor` from `src/editors/baseEditor/baseEditor.ts`.
-- `beginEditing()` passes the cell value (after the value getter) to `setValue()`. Stringify there only when the editor needs a string. `TextEditor#setValue` already calls `stringify()`, so an editor that extends it still receives a string in the textarea. The unchanged-confirm baseline stays that string. Do not compare `finishEditing()` against the raw seed. Full trap: `handsontable/AGENTS.md`.
+- `beginEditing()` passes the cell value (after the value getter) to `setValue()`. Stringify there only when the editor needs a string. `TextEditor#setValue` already calls `stringify()`, so an editor that extends it still receives a string in the textarea. An untouched confirm matches that string or the raw cell value. Do not read the baseline from `getValue()` after `setValue()`, because `DateEditor` may substitute `defaultDate`. Full trap: `handsontable/AGENTS.md`.
 - Position with `getEditedCellRect()` (viewport-, scroll-, and overlay-aware; manual math breaks with frozen rows/columns and scrolled viewports).
 - Support **full edit mode** (Enter opens, all keys go to the editor) and **fast edit mode** (typing a character opens the editor with it).
 - `finishEditing()` supports async validation (WAITING until the validator resolves).

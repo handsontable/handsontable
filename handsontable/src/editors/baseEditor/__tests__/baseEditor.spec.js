@@ -138,6 +138,47 @@ describe('BaseEditor', () => {
     expect(getActiveEditor().received).toBe(5);
   });
 
+  it('should not fire afterChange when a custom BaseEditor confirms a number or a null cell', async() => {
+    class EchoEditor extends Handsontable.editors.BaseEditor {
+      init() {}
+      getValue() {
+        return this.received;
+      }
+      setValue(value) {
+        this.received = value;
+      }
+      open() {}
+      close() {}
+      focus() {}
+    }
+
+    const edits = [];
+
+    handsontable({
+      data: [[12345], [null]],
+      editor: EchoEditor,
+      afterChange(changes, source) {
+        if (source === 'edit') {
+          edits.push(changes);
+        }
+      },
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('enter');
+
+    expect(edits).toEqual([]);
+    expect(getDataAtCell(0, 0)).toBe(12345);
+
+    await selectCell(1, 0);
+    await keyDownUp('enter');
+    await keyDownUp('enter');
+
+    expect(edits).toEqual([]);
+    expect(getDataAtCell(1, 0)).toBe(null);
+  });
+
   describe('should populate value from the currently active cell to every cell in the selected range', () => {
     it('Ctrl/Meta + Enter when editor is active', async() => {
       handsontable({

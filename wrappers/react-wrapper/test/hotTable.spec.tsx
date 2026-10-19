@@ -682,6 +682,58 @@ describe('Editor configuration using React components', () => {
     expect(document.querySelector('#immediateValueDisplay')!.textContent).toEqual('typed');
   });
 
+  it('should not fire afterChange when a useHotEditor confirms a number or null without typing', async() => {
+    const edits: unknown[] = [];
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey="non-commercial-and-evaluation"
+        id="test-hot"
+        data={[[12345], [null]]}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        afterChange={(changes, source) => {
+          if (source === 'edit') {
+            edits.push(changes);
+          }
+        }}
+        editor={ImmediateValueEditor} />
+    )).hotInstance!;
+
+    await act(async() => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.isOpened()).toBe(true);
+
+    await act(async() => {
+      hotInstance.getActiveEditor()!.finishEditing(false);
+    });
+
+    expect(hotInstance.getActiveEditor()!.isOpened()).toBe(false);
+    expect(edits).toEqual([]);
+    expect(hotInstance.getDataAtCell(0, 0)).toBe(12345);
+
+    await act(async() => {
+      hotInstance.selectCell(1, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.isOpened()).toBe(true);
+
+    await act(async() => {
+      hotInstance.getActiveEditor()!.finishEditing(false);
+    });
+
+    expect(hotInstance.getActiveEditor()!.isOpened()).toBe(false);
+    expect(edits).toEqual([]);
+    expect(hotInstance.getDataAtCell(1, 0)).toBe(null);
+  });
+
   it('should use the editor component as Handsontable editor, when it\'s passed as component to HotTable editor prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
