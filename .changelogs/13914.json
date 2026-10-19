@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `rowId` option and the `getRowId()`, `getVisualRowById()`, and `getPhysicalRowById()` methods, which give each row an id that stays with its record when you sort, filter, move, insert, or remove rows.",
+  "type": "added",
+  "issueOrPR": 13914,
+  "breaking": false,
+  "framework": "none"
+}
