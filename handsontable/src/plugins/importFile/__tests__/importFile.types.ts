@@ -1,8 +1,10 @@
 import Handsontable from 'handsontable';
 import type {
   ImportedBorder, ImportedConditionalFormatting, ImportedNestedHeader, ImportFileSettings, ImportOptions,
-  ImportResult,
+  ImportResult, InferColumnTypesOptions, InferColumnTypesResult, InferredCellType, InferredColumn,
+  InferredColumnSettings, InferredColumnStats, InferredInputFormat,
 } from 'handsontable/plugins/importFile';
+import { convertToInferredTypes, inferColumnTypes } from 'handsontable/plugins/importFile';
 
 new Handsontable(document.createElement('div'), {
   importFile: { engines: { xlsx: {} } },
@@ -58,3 +60,70 @@ hot.updateSettings({
   beforeImport: result => result.data.length > 0,
   afterImport: () => {},
 });
+
+const inferOptions: InferColumnTypesOptions = {
+  sampleSize: 100,
+  locale: 'de-DE',
+  minConfidence: 0.8,
+  dropdown: { maxOptions: 5 },
+  headerRow: 'auto',
+  stats: { examples: 3 },
+};
+const rawRows: string[][] = [['Price', 'Joined'], ['1,5', '12.03.2026']];
+const objectRows: Array<Record<string, unknown>> = [{ amount: '1,5' }];
+const inferred: InferColumnTypesResult = plugin.inferColumnTypes(rawRows, inferOptions);
+const inferredObjects: InferColumnTypesResult = inferColumnTypes(objectRows, { dropdown: false, headerRow: true });
+const convertedRows: unknown[][] = plugin.convertToInferredTypes(rawRows, inferred);
+// @ts-expect-error - a converted cell is no longer the input's type.
+const stillStrings: string[][] = plugin.convertToInferredTypes(rawRows, inferred);
+const convertedObjects: Array<Record<string, unknown>> = convertToInferredTypes(objectRows, inferredObjects);
+const headerRow: boolean = inferred.headerRow;
+const column: InferredColumn = inferred.columns[0];
+const columnSettings: InferredColumnSettings = column.settings;
+const inferredType: InferredCellType = columnSettings.type;
+const inputFormat: InferredInputFormat | undefined = column.inputFormat;
+const confidence: number = column.confidence;
+const title: string | undefined = column.title;
+const stats: InferredColumnStats | undefined = column.stats;
+const runnerUp: InferredCellType | undefined = stats?.runnerUpType;
+const range: Array<number | string | undefined> = [stats?.min, stats?.max];
+const examples: string[] | undefined = stats?.examples;
+
+// The settings go to `columns` as they are; the description of the inference stays out of them.
+hot.updateSettings({
+  columns: inferred.columns.map(entry => entry.settings),
+  colHeaders: inferred.columns.map(({ title: header }) => header ?? ''),
+  data: convertedRows,
+});
+
+// @ts-expect-error - the dropdown option takes a boolean or an object only.
+inferColumnTypes(rawRows, { dropdown: 5 });
+// @ts-expect-error - headerRow takes a boolean or 'auto' only.
+inferColumnTypes(rawRows, { headerRow: 'yes' });
+// @ts-expect-error - the converter takes the result, not its columns.
+convertToInferredTypes(rawRows, inferred.columns);
+// @ts-expect-error - confidence is not a column option.
+const notAColumnOption: InferredColumnSettings = { type: 'text', confidence: 1 };
+
+// Rows typed with an interface, read-only arrays, and tuples are accepted.
+interface Order {
+  id: string;
+  amount: string;
+}
+
+const orders: Order[] = [{ id: '1', amount: '2' }];
+const readonlyRows: ReadonlyArray<ReadonlyArray<string>> = [['1', '2']];
+const tupleRows: Array<[string, string]> = [['1', '2']];
+const readonlyOrders: readonly Order[] = orders;
+const fromInterface: InferColumnTypesResult = inferColumnTypes(orders);
+const fromReadonly: InferColumnTypesResult = inferColumnTypes(readonlyRows);
+const fromTuples: InferColumnTypesResult = inferColumnTypes(tupleRows);
+const convertedOrders: Array<Record<string, unknown>> = convertToInferredTypes(orders, fromInterface);
+const convertedReadonly: unknown[][] = convertToInferredTypes(readonlyRows, fromReadonly);
+const convertedTuples: unknown[][] = convertToInferredTypes(tupleRows, fromTuples);
+const convertedReadonlyOrders: Array<Record<string, unknown>> = convertToInferredTypes(
+  readonlyOrders,
+  inferColumnTypes(readonlyOrders)
+);
+// @ts-expect-error - an array of rows is not an array of objects.
+const wrongRows: Array<Record<string, unknown>> = convertToInferredTypes(readonlyRows, fromReadonly);

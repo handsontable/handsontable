@@ -7,6 +7,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 
 - Owns: option defaults (`mapper.ts#resolveImportOptions`), the snapshot → `ImportResult` mapping,
   type inference from number formats, and applying a result to the grid.
+- Exposes, but does not own, type inference from RAW values: `inferColumnTypes` and
+  `convertToInferredTypes` live in `../../utils/columnTypeInference/`, so a later paste or CSV path can
+  use them without importing from this plugin. The plugin methods of the same names only default
+  `locale` to the grid's, and the barrel re-exports the functions for grid-less use. There is no CSV
+  importer and no paste integration yet; both are follow-ups.
 - Does not own: parsing. Every engine call lives in `src/utils/xlsxEngine/adapters/<engine>.ts`, shared
   with `exportFile`. Never import from `../exportFile`; the unit constants both directions share
   (`PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT`, `POINTS_PER_PIXEL`) live in `src/utils/xlsxEngine/units.ts` and are
@@ -319,6 +324,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `../../utils/xlsxEngine/cellRef.ts#parseMultiRangeRef`, beside the single-range parser both directions
   already share; do not grow a second A1 parser in the plugin.
 
+## Raw-value inference
+
+The plugin only exposes it. The rules and traps live in `../../utils/columnTypeInference/AGENTS.md`.
+
 ## Deferred, with the reasoning
 
 - **Lazy per-sheet snapshots (review round 4, R16).** `excelJsAdapter.read` snapshots every worksheet while
@@ -346,7 +355,7 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 
 ## Testing
 
-- `npm run test:unit -- --testPathPattern='importFile|xlsxEngine'`
+- `npm run test:unit -- --testPathPattern='importFile|xlsxEngine|columnTypeInference'`
 - Adapter tests parse real `.xlsx` fixtures under `src/utils/xlsxEngine/__tests__/fixtures/`; regenerate
   them with `node src/utils/xlsxEngine/__tests__/fixtures/generate.mjs` after changing a case, and commit.
   They run with `@jest-environment node` because ExcelJS parses through Node streams. Three things make
