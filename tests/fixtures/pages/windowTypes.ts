@@ -108,6 +108,7 @@ export interface FixtureHotInstance {
     getCommentAtCell(row: number, column: number): string | undefined,
     showAtCell(row: number, column: number): boolean,
     focusEditor(): void,
+    destroy(): void,
   };
   getPlugin(name: 'pagination'): {
     setPage(page: number): void,
@@ -124,7 +125,9 @@ export interface FixtureHotInstance {
     clearConditions(column?: number): void,
     filter(): void,
     exportConditions(): unknown[],
+    destroy(): void,
   };
+  getPlugin(name: 'autoColumnSize' | 'nestedHeaders'): { destroy(): void };
   /**
    * Both sorting plugins expose the same `sort()` signature - `MultiColumnSorting` extends
    * `ColumnSorting` and only widens what an array of configs means - so one overload covers
@@ -136,7 +139,15 @@ export interface FixtureHotInstance {
     clearSort(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
-  getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean, addingStarted: boolean };
+  getPlugin(name: 'autofill'): {
+    mouseDownOnCellCorner: boolean,
+    addingStarted: boolean,
+    enabled: boolean,
+    enablePlugin(): void,
+    disablePlugin(): void,
+    updatePlugin(): void,
+    destroy(): void,
+  };
   getPlugin(name: 'multipleSelectionHandles'): {
     isDragged(): boolean;
     enabled: boolean;
@@ -219,6 +230,7 @@ export interface FixtureHotInstance {
   /** The master overlay's `<table>` element. */
   table: HTMLTableElement;
   render(): void;
+  destroy(): void;
   listen(): void;
   view: {
     isVerticallyScrollableByWindow(): boolean,
@@ -318,6 +330,11 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /**
+     * DEV-775: a reference to the Autofill plugin kept after `destroy()`, the way an application that
+     * cached `getPlugin('autofill')` still holds it.
+     */
+    destroyedAutofill?: { enablePlugin(): void, disablePlugin(): void, updatePlugin(): void };
     /** Undo fixture: how many vetoed meta writes the listener `UndoGridPage#vetoMetaWrites()` adds saw. */
     metaWriteAttempts: number;
     /**
