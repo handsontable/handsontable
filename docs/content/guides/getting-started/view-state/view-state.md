@@ -36,10 +36,19 @@ The view state is everything a user sets up to look at the data their own way. U
 - Offer saved views, such as "Overdue orders" or "My columns".
 - Share a layout between users or devices.
 
-Two methods do the work:
+The [`ViewState`](@/api/viewState.md) plugin does the work. It has no setting: it is on as soon as its module is registered, which `registerAllModules()` does. It has three methods, and you reach them through `hot.getPlugin('viewState')`:
 
-- [`getViewState()`](@/api/core.md#getviewstate) returns the current view as a JSON-serializable object.
-- [`setViewState()`](@/api/core.md#setviewstate) applies such an object to the grid.
+- [`getViewState()`](@/api/viewState.md#getviewstate) returns the current view as a JSON-serializable object.
+- [`setViewState()`](@/api/viewState.md#setviewstate) applies such an object to the grid.
+- [`validateViewState()`](@/api/viewState.md#validateviewstate) checks such an object against the grid without applying it.
+
+To load only this module, register the plugin yourself:
+
+```js
+import { registerPlugin, ViewState } from 'handsontable/plugins';
+
+registerPlugin(ViewState);
+```
 
 The object holds no functions, class instances, or references to the grid, so you can pass it through `JSON.stringify()` and store the result anywhere.
 
@@ -99,14 +108,14 @@ To keep the view across page reloads, write the JSON to [`localStorage`](https:/
 
 ```js
 // Save
-localStorage.setItem('gridView', JSON.stringify(hot.getViewState()));
+localStorage.setItem('gridView', JSON.stringify(hot.getPlugin('viewState').getViewState()));
 
 // Restore, for example right after you create the grid
 const stored = localStorage.getItem('gridView');
 
 // Nothing is stored on a first visit, and `setViewState()` applies nothing for a value that is not an object
 if (stored !== null) {
-  hot.setViewState(JSON.parse(stored));
+  hot.getPlugin('viewState').setViewState(JSON.parse(stored));
 }
 ```
 
@@ -161,7 +170,7 @@ Keep these rules in mind:
 To sort the grid by the third column in descending order and leave everything else alone, pass only `sort`:
 
 ```js
-hot.setViewState({
+hot.getPlugin('viewState').setViewState({
   version: 1,
   sort: { columns: [{ column: 2, sortOrder: 'desc' }] },
 });
@@ -175,17 +184,17 @@ const saved = JSON.parse(localStorage.getItem('gridView'));
 // Restore the layout, but not the selection and the scroll position
 const { selection, scroll, ...layout } = saved;
 
-hot.setViewState(layout);
+hot.getPlugin('viewState').setViewState(layout);
 ```
 
 The restore changes the view, not the data. It does not overwrite cell values.
 
 ## Check a state before you apply it
 
-[`validateViewState()`](@/api/core.md#validateviewstate) runs the same checks as `setViewState()` and changes nothing. Use it on a state you did not build yourself, such as one a user pasted or a model generated:
+[`validateViewState()`](@/api/viewState.md#validateviewstate) runs the same checks as `setViewState()` and changes nothing. Use it on a state you did not build yourself, such as one a user pasted or a model generated:
 
 ```js
-const { valid, applicable, skipped } = hot.validateViewState(generatedState);
+const { valid, applicable, skipped } = hot.getPlugin('viewState').validateViewState(generatedState);
 
 if (!valid) {
   // `skipped` says what to correct. Send it back to the author of the state and ask again.
@@ -207,7 +216,7 @@ if (!valid) {
 | `error` | Set when the whole state was rejected. See the table below. |
 
 ```js
-const { applied, skipped, previous } = hot.setViewState(savedView);
+const { applied, skipped, previous } = hot.getPlugin('viewState').setViewState(savedView);
 
 console.log(skipped);
 // [{
@@ -247,7 +256,7 @@ Handsontable applies nothing in these cases, `applied` is empty, and a console w
 By default a rejected part does not stop the others. To apply nothing when any part is rejected, pass `atomic: true`:
 
 ```js
-const result = hot.setViewState(generatedState, { atomic: true });
+const result = hot.getPlugin('viewState').setViewState(generatedState, { atomic: true });
 
 if (result.error?.reason === 'atomicRejected') {
   console.log(result.skipped);
@@ -261,7 +270,7 @@ By default `setViewState()` is not recorded by [`UndoRedo`](@/api/undoRedo.md). 
 To make the restore one undo step, pass `undo: 'record'`. One undo then reverts every restored part, and one redo applies them again:
 
 ```js
-hot.setViewState(generatedState, { undo: 'record' });
+hot.getPlugin('viewState').setViewState(generatedState, { undo: 'record' });
 
 hot.getPlugin('undoRedo').undo(); // the view before the restore
 ```
@@ -269,10 +278,10 @@ hot.getPlugin('undoRedo').undo(); // the view before the restore
 Without UndoRedo, use `previous`. It holds the view the restored parts had, in the same shape as the state, so passing it back reverts them:
 
 ```js
-const { previous } = hot.setViewState(generatedState);
+const { previous } = hot.getPlugin('viewState').setViewState(generatedState);
 
 // Later, to go back
-hot.setViewState(previous);
+hot.getPlugin('viewState').setViewState(previous);
 ```
 
 ## Limitations
@@ -287,13 +296,14 @@ To store a separate view per sheet, the [sheets bar](@/guides/accessories-and-me
 
 ## Related API reference
 
-**Core methods**
+**Plugin**
 
 <div class="boxes-list">
 
-- [`getViewState()`](@/api/core.md#getviewstate)
-- [`setViewState()`](@/api/core.md#setviewstate)
-- [`validateViewState()`](@/api/core.md#validateviewstate)
+- [`ViewState`](@/api/viewState.md)
+- [`getViewState()`](@/api/viewState.md#getviewstate)
+- [`setViewState()`](@/api/viewState.md#setviewstate)
+- [`validateViewState()`](@/api/viewState.md#validateviewstate)
 
 </div>
 

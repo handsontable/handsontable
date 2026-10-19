@@ -38,7 +38,7 @@ const hotSettings: GridSettings = {
 function saveClickCallback() {
   const hot = hotRef.value!.hotInstance!;
 
-  savedView = JSON.stringify(hot.getViewState());
+  savedView = JSON.stringify(hot.getPlugin('viewState').getViewState());
   output.value = 'View saved';
 }
 
@@ -51,7 +51,7 @@ function restoreClickCallback() {
     return;
   }
 
-  const { skipped } = hot.setViewState(JSON.parse(savedView));
+  const { skipped } = hot.getPlugin('viewState').setViewState(JSON.parse(savedView));
 
   output.value = skipped.length === 0
     ? 'View restored'

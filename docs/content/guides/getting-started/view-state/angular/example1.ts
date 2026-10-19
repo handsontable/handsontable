@@ -59,7 +59,7 @@ export class AppComponent {
   saveClickCallback(): void {
     const hot = this.hotTable.hotInstance!;
 
-    this.savedView = JSON.stringify(hot.getViewState());
+    this.savedView = JSON.stringify(hot.getPlugin('viewState').getViewState());
     this.output = 'View saved';
     this.cdr.markForCheck();
   }
@@ -74,7 +74,7 @@ export class AppComponent {
       return;
     }
 
-    const { skipped } = hot.setViewState(JSON.parse(this.savedView));
+    const { skipped } = hot.getPlugin('viewState').setViewState(JSON.parse(this.savedView));
 
     this.output = skipped.length === 0
       ? 'View restored'

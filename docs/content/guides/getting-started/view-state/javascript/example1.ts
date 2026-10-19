@@ -36,7 +36,7 @@ const hot = new Handsontable(container, {
 });
 
 saveButton.addEventListener('click', () => {
-  savedView = JSON.stringify(hot.getViewState());
+  savedView = JSON.stringify(hot.getPlugin('viewState').getViewState());
   output.textContent = 'View saved';
 });
 
@@ -47,7 +47,7 @@ restoreButton.addEventListener('click', () => {
     return;
   }
 
-  const { skipped } = hot.setViewState(JSON.parse(savedView));
+  const { skipped } = hot.getPlugin('viewState').setViewState(JSON.parse(savedView));
 
   output.textContent = skipped.length === 0
     ? 'View restored'

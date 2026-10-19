@@ -74,6 +74,7 @@ export const apiGuideLinks = {
   'stretchColumns.md': 'guides/columns/column-width/column-width.md',
   'trimRows.md': 'guides/rows/row-trimming/row-trimming.md',
   'undoRedo.md': 'guides/accessories-and-menus/undo-redo/undo-redo.md',
+  'viewState.md': 'guides/getting-started/view-state/view-state.md',
 };
 
 /**

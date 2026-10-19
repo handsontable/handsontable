@@ -25,7 +25,7 @@ const ExampleComponent: React.FC = () => {
   const saveClickCallback = () => {
     const hot = hotRef.current!.hotInstance!;
 
-    savedView.current = JSON.stringify(hot.getViewState());
+    savedView.current = JSON.stringify(hot.getPlugin('viewState').getViewState());
     setOutput('View saved');
   };
 
@@ -38,7 +38,7 @@ const ExampleComponent: React.FC = () => {
       return;
     }
 
-    const { skipped } = hot.setViewState(JSON.parse(savedView.current));
+    const { skipped } = hot.getPlugin('viewState').setViewState(JSON.parse(savedView.current));
 
     setOutput(
       skipped.length === 0
