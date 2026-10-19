@@ -6,12 +6,14 @@ import {
   hasLeadingZero,
   isGroupedBody,
   isNumberBody,
-  readBoolean,
   readDate,
   readSplitNumber,
   readTime,
   splitNumberParts,
   splitYearLastDate,
+  type BooleanValues,
+  type CompiledDateFormat,
+  type DateReading,
   type NumberMode,
   type NumberParts,
 } from './values';
@@ -37,6 +39,19 @@ export interface DetectionContext {
    * The most distinct values a dropdown column may have, or `0` when dropdowns are off.
    */
   maxDropdownOptions: number;
+  /**
+   * The formats from the `dateFormats` option. When there are any, they replace the built-in
+   * year-last reading.
+   */
+  dateFormats: CompiledDateFormat[];
+  /**
+   * The words from the `booleanValues` option, or `null` when it is not set.
+   */
+  booleanValues: BooleanValues | null;
+  /**
+   * Reads a value as a boolean, the `booleanValues` words included.
+   */
+  readBoolean: (value: unknown) => boolean | null;
 }
 
 /**
@@ -82,11 +97,19 @@ function countMatches(values: unknown[], read: (value: unknown) => unknown): num
 }
 
 /**
- * Detects `true`/`false` columns. Runs before the numeric detector, but `1` and `0` are not read
- * here, so a column of them stays numeric.
+ * Detects `true`/`false` columns, and columns of the `booleanValues` words. Runs before the numeric
+ * detector, but `1` and `0` are not read here unless they are listed words, so a column of them
+ * stays numeric. The words travel in `inputFormat`, because the converter has no options to read
+ * them from.
  */
-function detectCheckbox(values: unknown[]): Detection | null {
-  return { column: { settings: { type: 'checkbox' } }, matched: countMatches(values, readBoolean), certainty: 1 };
+function detectCheckbox(values: unknown[], context: DetectionContext): Detection | null {
+  const column: DetectedColumn = { settings: { type: 'checkbox' } };
+
+  if (context.booleanValues) {
+    column.inputFormat = { booleanValues: context.booleanValues };
+  }
+
+  return { column, matched: countMatches(values, context.readBoolean), certainty: 1 };
 }
 
 /**
@@ -255,10 +278,56 @@ function voteDateOrder(yearLastParts: Array<[number, number, string]>): 'DMY' | 
 }
 
 /**
+ * Builds a date column's settings from the values it reads: the zero padding follows them.
+ */
+function toDateSettings(readings: DateReading[]): DetectedColumn['settings'] {
+  return {
+    type: 'date',
+    dateFormat: {
+      year: 'numeric',
+      month: readings.every(reading => reading.paddedMonth) ? '2-digit' : 'numeric',
+      day: readings.every(reading => reading.paddedDay) ? '2-digit' : 'numeric',
+    },
+  };
+}
+
+/**
+ * Detects date columns with the `dateFormats` formats: the column takes the format that reads the
+ * most values, the earlier one on a tie, and ISO dates are read alongside. The format is recorded
+ * even when no sampled value needs it, so rows past the sample convert with it.
+ */
+function detectListedDate(values: unknown[], formats: CompiledDateFormat[]): Detection {
+  const readAll = (candidate: CompiledDateFormat) => values
+    .map(value => readDate(value, 'MDY', candidate))
+    .filter(reading => reading !== null);
+  let [format] = formats;
+  let readings = readAll(format);
+
+  formats.slice(1).forEach((candidate) => {
+    const candidateReadings = readAll(candidate);
+
+    if (candidateReadings.length > readings.length) {
+      format = candidate;
+      readings = candidateReadings;
+    }
+  });
+
+  return {
+    column: { settings: toDateSettings(readings), inputFormat: { dateFormat: format.pattern } },
+    matched: readings.length,
+    certainty: 1,
+  };
+}
+
+/**
  * Detects date columns: ISO dates and their `/` and `.` variants, and year-last dates in either
- * day and month order.
+ * day and month order, or the `dateFormats` formats instead of the year-last dates.
  */
 function detectDate(values: unknown[], context: DetectionContext): Detection | null {
+  if (context.dateFormats.length > 0) {
+    return detectListedDate(values, context.dateFormats);
+  }
+
   const yearLastParts = values.map(splitYearLastDate).filter(parts => parts !== null);
   const voted = voteDateOrder(yearLastParts);
   const dateOrder = voted ?? context.localeDateOrder;
@@ -267,14 +336,7 @@ function detectDate(values: unknown[], context: DetectionContext): Detection | n
 
   return {
     column: {
-      settings: {
-        type: 'date',
-        dateFormat: {
-          year: 'numeric',
-          month: readings.every(reading => reading.paddedMonth) ? '2-digit' : 'numeric',
-          day: readings.every(reading => reading.paddedDay) ? '2-digit' : 'numeric',
-        },
-      },
+      settings: toDateSettings(readings),
       // Recorded even when no sampled value is year-last, so rows past the sample convert in the
       // same order the locale settles.
       inputFormat: { dateOrder },
@@ -348,3 +410,22 @@ export const DETECTORS: Detector[] = [
   detectTime,
   detectDropdown,
 ];
+
+/**
+ * The detectors when the `dateFormats` option lists a format: dates before numbers, so a column of
+ * digits that a listed format reads (`YYYYMMDD`) becomes a date on a tie.
+ */
+const DATE_FIRST_DETECTORS: Detector[] = [
+  detectCheckbox,
+  detectDate,
+  detectNumeric,
+  detectTime,
+  detectDropdown,
+];
+
+/**
+ * Returns the detectors in the order they are tried for the given options.
+ */
+export function getDetectors(context: DetectionContext): Detector[] {
+  return context.dateFormats.length > 0 ? DATE_FIRST_DETECTORS : DETECTORS;
+}

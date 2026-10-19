@@ -12,8 +12,8 @@ data) and converts the values to what each type stores. Read this before touchin
   `ImportFile#convertToInferredTypes` (`../../plugins/importFile/importFile.ts`) default `locale` to the
   grid's, and the plugin barrel re-exports the functions for grid-less use. It lives in `utils/`, not in
   the plugin, so the planned paste and CSV paths can use it without importing from a plugin.
-- Not here yet: a CSV importer, typing on paste, date-time values as `intl-datetime`, `Date` objects, a
-  `sampling: 'spread'` option, and custom date formats and boolean words. All are additive.
+- Not here yet: a CSV importer, typing on paste, date-time values as `intl-datetime`, `Date` objects,
+  and month names or two-digit years in `dateFormats`. All are additive.
 
 ## Traps
 
@@ -24,8 +24,10 @@ data) and converts the values to what each type stores. Read this before touchin
   the day/month order come from `Intl.NumberFormat(locale).formatToParts` /
   `Intl.DateTimeFormat(locale).formatToParts`. The result is the same for the same input in one
   browser; another engine's ICU data can differ for a locale. Sampling is
-  the first `sampleSize` rows, dropdown sources are in first-appearance order, and `DETECTORS` order is
-  the tie-break (checkbox, numeric, date, time, dropdown, then text).
+  the first `sampleSize` rows, or with `sampling: 'spread'` evenly spaced rows picked by integer
+  arithmetic and kept in row order (`pickSampleRows`); dropdown sources are in first-appearance order,
+  and the detector order is the tie-break (checkbox, numeric, date, time, dropdown, then text; date
+  moves ahead of numeric when `dateFormats` lists a format, see below).
 - **The column decides before the locale.** A value only one separator can read (`0,5`, `1,234.56`)
   votes, and only a tie falls back to the locale; same for a year-last date with a part above 12. A
   date column settled by the locale scores `0.95` of its share, so `confidence` shows the guess; the
@@ -142,6 +144,28 @@ data) and converts the values to what each type stores. Read this before touchin
   `sideEffects` lists only CSS, languages and two Filters folders, and `importFile` registers nothing
   at module level. A module-level `Hooks.register()` or a new `sideEffects` entry for `importFile`
   would change that: re-measure first. The CommonJS build is not shakeable, as for every plugin.
+- **The `dateFormats` and `booleanValues` options travel in `inputFormat`, because the converter has no
+  options.** `convertToInferredTypes(data, result)` sees only the result, so a date column records the
+  ONE format it picked (`inputFormat.dateFormat`, the pattern string, recompiled by `createReader`) and
+  a checkbox column records the whole word lists (`inputFormat.booleanValues`), not only the words it
+  saw: a row past the sample may hold any listed word. Both are plain strings, so the result stays
+  JSON-serializable. A checkbox column without the option has no `inputFormat`, as before.
+- **Listed date formats REPLACE the built-in year-last reading; they do not add to it.** Added, the
+  built-in reading would keep winning ties under the locale, and `dateFormats: ['DD/MM/YYYY']` under
+  `en-US` would still read `12/03/2026` as 3 December. ISO year-first dates are always read. The
+  column takes the format that reads the most values (the earlier one on a tie, like
+  `resolveNumberMode`), and that format is recorded even when no sampled value needed it. With a format
+  listed the confidence is never discounted: the user settled the order, not the locale.
+- **A listed format moves the date detector ahead of numeric** (`getDetectors`). `YYYYMMDD` values read
+  as numbers too, and the default order gives numeric the tie and stops there, since it reads every
+  value. Only digit-only formats can tie, so nothing else changes. Checkbox is already first, which is
+  why listed `1`/`0` words win over numeric without a rule of their own.
+- **The format grammar is numeric on purpose**: `YYYY`, `MM`/`DD` (two digits), `M`/`D` (one or two),
+  every non-letter matched literally. A run of any other letter (`MMM`, `YY`, `dd`) drops the whole
+  format, because month names depend on the locale and a two-digit year needs a century pivot. Never
+  read a format with `new Date()` or a date library: the module must stay deterministic and small.
+- **A boolean word listed on both sides reads as neither**, `true` and `false` included
+  (`createBooleanReader`). Words compare as `.trim().toLowerCase()`, never `toLocaleLowerCase`.
 - **Accepted, not fixed:** `Open` and `open` are two dropdown options; `1:30` reads as a time; Indian lakh grouping (`1,23,456`) and times with milliseconds stay
   text; a JS `Date` stays text. The guide names the ones a user will meet.
 

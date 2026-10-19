@@ -136,6 +136,39 @@ export interface DateReading {
 }
 
 /**
+ * A date format from the `dateFormats` option, compiled once into the regular expression that reads
+ * it.
+ */
+export interface CompiledDateFormat {
+  /**
+   * The format as it was given (`DD/MM/YYYY`).
+   */
+  pattern: string;
+  /**
+   * Matches a whole trimmed value written in the format.
+   */
+  regex: RegExp;
+  /**
+   * The capture group of the year, the month, and the day.
+   */
+  groups: { year: number; month: number; day: number };
+}
+
+/**
+ * The words a checkbox column reads as `true` and as `false`, besides `true` and `false` themselves.
+ */
+export interface BooleanValues {
+  /**
+   * The words read as `true`.
+   */
+  true: string[];
+  /**
+   * The words read as `false`.
+   */
+  false: string[];
+}
+
+/**
  * A time value read into the `HH:mm:ss` form, plus the parts the column's format follows.
  */
 export interface TimeReading {
@@ -425,6 +458,36 @@ export function readBoolean(value: unknown): boolean | null {
 }
 
 /**
+ * Builds a boolean reader that also reads the given words, compared trimmed and in any case. A word
+ * listed on both sides, `true` and `false` included, reads as neither.
+ */
+export function createBooleanReader(words: BooleanValues): (value: unknown) => boolean | null {
+  const lookup = new Map<string, boolean>([['true', true], ['false', false]]);
+  const conflicts = new Set<string>();
+  const add = (word: string, meaning: boolean) => {
+    const key = word.trim().toLowerCase();
+
+    if (lookup.has(key) && lookup.get(key) !== meaning) {
+      conflicts.add(key);
+    }
+
+    lookup.set(key, meaning);
+  };
+
+  words.true.forEach(word => add(word, true));
+  words.false.forEach(word => add(word, false));
+  conflicts.forEach(key => lookup.delete(key));
+
+  return (value) => {
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    return typeof value === 'string' ? lookup.get(value.trim().toLowerCase()) ?? null : null;
+  };
+}
+
+/**
  * Builds an ISO date from its parts, or returns `null` for a date the calendar does not have.
  */
 function toIsoDate(year: string, month: string, day: string): string | null {
@@ -444,30 +507,110 @@ export function splitYearLastDate(value: unknown): [number, number, string] | nu
 }
 
 /**
- * Reads a value as a date. A year-first date is read as year, month, day; a year-last one follows
- * `order`. Returns `null` for anything else, including a day the month does not have.
+ * The tokens a date format may hold, the part of the date each one names, and what it matches.
  */
-export function readDate(value: unknown, order: 'DMY' | 'MDY'): DateReading | null {
+const DATE_FORMAT_TOKENS: Record<string, { field: 'year' | 'month' | 'day'; source: string }> = {
+  YYYY: { field: 'year', source: '(\\d{4})' },
+  MM: { field: 'month', source: '(\\d{2})' },
+  M: { field: 'month', source: '(\\d{1,2})' },
+  DD: { field: 'day', source: '(\\d{2})' },
+  D: { field: 'day', source: '(\\d{1,2})' },
+};
+
+/**
+ * Splits a date format into runs of one repeated letter (`YYYY`, `MM`) and runs of anything else.
+ */
+const DATE_FORMAT_PART_REGEX = /([A-Za-z])\1*|[^A-Za-z]+/g;
+
+/**
+ * Compiles a date format such as `DD/MM/YYYY` or `YYYYMMDD`. The tokens are `YYYY`, `MM` and `DD`
+ * (two digits), and `M` and `D` (one or two); every other character is matched as it is. Returns
+ * `null` for a format that does not hold exactly one year, one month and one day token, or that
+ * holds another letter.
+ */
+export function compileDateFormat(pattern: unknown): CompiledDateFormat | null {
+  if (typeof pattern !== 'string') {
+    return null;
+  }
+
+  const groups: Partial<CompiledDateFormat['groups']> = {};
+  let source = '';
+  let group = 0;
+
+  for (const [part] of pattern.matchAll(DATE_FORMAT_PART_REGEX)) {
+    const isLetters = /^[A-Za-z]/.test(part);
+    const token = isLetters ? DATE_FORMAT_TOKENS[part] : undefined;
+
+    if (isLetters && (token === undefined || groups[token.field] !== undefined)) {
+      return null;
+    }
+
+    if (token) {
+      group += 1;
+      groups[token.field] = group;
+      source += token.source;
+
+    } else {
+      source += part.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
+    }
+  }
+
+  const { year, month, day } = groups;
+
+  return year !== undefined && month !== undefined && day !== undefined
+    ? { pattern, regex: new RegExp(`^${source}$`), groups: { year, month, day } }
+    : null;
+}
+
+/**
+ * Reads the year-last or the listed-format part of a trimmed value: the listed format when there
+ * is one, the built-in year-last reading in `order` otherwise.
+ */
+function splitOtherDate(
+  text: string,
+  order: 'DMY' | 'MDY',
+  format: CompiledDateFormat | null
+): { year: string; month: string; day: string } | null {
+  if (format) {
+    const match = format.regex.exec(text);
+
+    return match
+      ? { year: match[format.groups.year], month: match[format.groups.month], day: match[format.groups.day] }
+      : null;
+  }
+
+  const yearLast = YEAR_LAST_DATE_REGEX.exec(text);
+
+  if (!yearLast) {
+    return null;
+  }
+
+  const [first, second] = [yearLast[1], yearLast[3]];
+
+  return order === 'MDY'
+    ? { year: yearLast[4], month: first, day: second }
+    : { year: yearLast[4], month: second, day: first };
+}
+
+/**
+ * Reads a value as a date. A year-first date is read as year, month, day. Any other value is read
+ * with `format` when one is given, and as a year-last date in `order` when not. Returns `null` for
+ * anything else, including a day the month does not have.
+ */
+export function readDate(
+  value: unknown,
+  order: 'DMY' | 'MDY',
+  format: CompiledDateFormat | null = null
+): DateReading | null {
   if (typeof value !== 'string') {
     return null;
   }
 
   const text = value.trim();
   const yearFirst = YEAR_FIRST_DATE_REGEX.exec(text);
-  const yearLast = yearFirst ? null : YEAR_LAST_DATE_REGEX.exec(text);
-  let parts: { year: string; month: string; day: string } | null = null;
-
-  if (yearFirst) {
-    parts = { year: yearFirst[1], month: yearFirst[3], day: yearFirst[4] };
-
-  } else if (yearLast) {
-    const [first, second] = [yearLast[1], yearLast[3]];
-
-    parts = order === 'MDY'
-      ? { year: yearLast[4], month: first, day: second }
-      : { year: yearLast[4], month: second, day: first };
-  }
-
+  const parts = yearFirst
+    ? { year: yearFirst[1], month: yearFirst[3], day: yearFirst[4] }
+    : splitOtherDate(text, order, format);
   const iso = parts ? toIsoDate(parts.year, parts.month, parts.day) : null;
 
   return parts && iso

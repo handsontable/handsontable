@@ -293,13 +293,13 @@ Before you load the data, convert it with `convertToInferredTypes(rows, result)`
 
 Inference works this way:
 
-- **Types.** The method infers `numeric`, `date`, `time`, `checkbox` (`true` and `false`, in any case), `dropdown`, and `text`. When two types read values, the one that reads more of them wins, and the earlier one in that list wins a tie. A `dropdown` is the exception: it reads every string, so it is tried only when no other type reaches `minConfidence`. A numeric column with one `n/a` stays numeric. Date-time values such as `2026-03-12 14:30` and JavaScript `Date` objects stay `text`.
+- **Types.** The method infers `numeric`, `date`, `time`, `checkbox` (`true` and `false` in any case, plus the words you list in [`booleanValues`](#date-formats-and-boolean-words)), `dropdown`, and `text`. When two types read values, the one that reads more of them wins, and the earlier one in that list wins a tie. A `dropdown` is the exception: it reads every string, so it is tried only when no other type reaches `minConfidence`. A numeric column with one `n/a` stays numeric. Date-time values such as `2026-03-12 14:30` and JavaScript `Date` objects stay `text`.
 - **Dropdowns.** A column becomes a `dropdown` when it has at least six values, between two and ten distinct ones (see `dropdown`), and each value repeats at least twice on average. Values are compared trimmed, so `Open` and `Open ` are one option, and the conversion writes the trimmed value. A short list of names that repeat can pass that test. Set `dropdown: false` when it is wrong for your data.
 - **Numbers.** A numeric value may carry a sign, accounting parentheses (`(1,234.00)`), a currency symbol on either side (`$1,234.50`, `12,5 zł`), a common ISO code set apart by a space (`12.00 USD`, `SEK 7.50`), an exponent (`1.23E+15`), or a trailing percent sign (`12.5%`, converted to `0.125`). A column with a currency reads its bare numbers as that currency. Text values set the fraction digits of the format, so `1.50` and `2.00` print with two. Real numbers don't pad the column: one computed float only raises the maximum. Digits may be grouped with a comma, a dot, or a space of any width. With a dot decimal, an apostrophe works too (`1'234.50`). A symbol that several currencies share takes the currency of the locale's region for the common cases: `$` is `CAD` under `en-CA` and `ARS` under `es-AR`, and `kr` is `NOK` under `nb-NO`. Any other region gets the symbol's default currency: `USD` for `$`, `SEK` for `kr`.
 - **Confidence.** A column whose share of readable values is below `minConfidence` falls back to `text`. Blank values don't count. A value the type can't read, such as a `Total` row, keeps its raw form after the conversion, so the cell's validator marks it.
-- **Ambiguous values.** The column decides first: `0,5` in a column makes `1.234` mean 1234, and `25/03/2026` makes `12/03/2026` mean 12 March. A date written with dots (`12.03.2026`) reads as day first. When nothing in the column decides, the `locale` option does. It defaults to the grid's [`locale`](@/api/options.md#locale). A date column whose order came from the locale reports `0.95` times its share as its confidence.
+- **Ambiguous values.** The column decides first: `0,5` in a column makes `1.234` mean 1234, and `25/03/2026` makes `12/03/2026` mean 12 March. A date written with dots (`12.03.2026`) reads as day first. When nothing in the column decides, the `locale` option does. It defaults to the grid's [`locale`](@/api/options.md#locale). A date column whose order came from the locale reports `0.95` times its share as its confidence. To read dates in a format you know, list it in [`dateFormats`](#date-formats-and-boolean-words).
 - **Codes stay text.** Some values look like numbers but are codes. One value with a leading zero (`02134`) keeps the whole column text, so a ZIP column doesn't lose its zeros. A number with more than 15 significant digits (a card number), and a phone number such as `+48 601 234 567` or `601 234 567` (digits grouped by plain spaces, nine or more, with no currency), also stay text. Converting them to numbers would lose digits. A large amount grouped the way `Intl` writes it, with a no-break space or with a currency (`1 234 567 890 €`), is still a number.
-- **Sampling.** The method reads only the first `sampleSize` data rows. A `dropdown` column lists only the options found there, so a later row with another option is marked invalid. Raise `sampleSize` if your data needs it. For rows of objects, every key the sampled rows carry becomes a column.
+- **Sampling.** The method reads only `sampleSize` data rows: the first ones by default, or rows spaced evenly from the first to the last with `sampling: 'spread'`. Use `'spread'` for sorted data, where the first rows don't show the rest. A `dropdown` column lists only the options found in the sampled rows, so a row with another option is marked invalid. Raise `sampleSize`, or set `sampling: 'spread'`, if your data needs it. For rows of objects, every key the sampled rows carry becomes a column.
 - **Deterministic results.** In a given browser, the same rows and options always give the same result. The method never reads the browser's locale, and an unsupported locale falls back to `'en-US'`. Separators and date order come from the browser's locale data, so two browsers can disagree on a rare locale.
 
 ### Header row
@@ -344,16 +344,57 @@ console.log(columns[1].stats);
 
 The statistics come from the sampled rows only, in a fixed order, so they are deterministic too.
 
+### Date formats and boolean words
+
+Set `dateFormats` to read dates written in formats you know, and `booleanValues` to read your own words as checkbox values.
+
+```javascript
+const rows = [
+  ['Employee', 'Hired', 'Remote'],
+  ['Ana García', '14/03/2022', 'yes'],
+  ['James Okafor', '02/11/2023', 'no'],
+  ['Li Wei', '20/06/2021', 'Yes'],
+];
+
+const result = importFile.inferColumnTypes(rows, {
+  headerRow: true,
+  dateFormats: ['DD/MM/YYYY'],
+  booleanValues: { true: ['yes'], false: ['no'] },
+});
+
+console.log(importFile.convertToInferredTypes(rows, result));
+// [
+//   ['Ana García', '2022-03-14', true],
+//   ['James Okafor', '2023-11-02', false],
+//   ['Li Wei', '2021-06-20', true],
+// ]
+```
+
+A date format uses these tokens. Every other character is matched as it is:
+
+| Token | Matches |
+|---|---|
+| `YYYY` | A four-digit year. |
+| `MM`, `DD` | A two-digit month or day (`03`). |
+| `M`, `D` | A month or day of one or two digits (`3`, `03`). |
+
+For example, `DD/MM/YYYY`, `D.M.YYYY`, and `YYYYMMDD` are all valid. A format needs exactly one year, one month, and one day token. A format with any other letter, such as `MMM` or `YY`, is ignored. The listed formats replace the built-in reading of year-last dates, so the column doesn't depend on the `locale`. ISO dates (`2026-03-12`) are always read. A column takes the format that reads the most of its values, and the earlier format in the list wins a tie. The format a date column uses is in its `inputFormat`, so `convertToInferredTypes()` reads the rows past the sample the same way. A column of digits that a listed format reads, such as `20260312` with `YYYYMMDD`, becomes a `date`, not a `numeric` column.
+
+The words in `booleanValues` are read in addition to `true` and `false`. They are compared trimmed and in any case. A word listed on both sides reads as neither. If you list `1` and `0`, a column of them becomes a `checkbox` instead of a `numeric` column.
+
 ### Options
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `sampleSize` | `number` | `1000` | How many data rows, from the top, to read. `Infinity` reads every row. |
+| `sampleSize` | `number` | `1000` | How many data rows to read. `Infinity` reads every row. |
+| `sampling` | `'head' \| 'spread'` | `'head'` | Which rows `sampleSize` picks: the first ones, or rows spaced evenly from the first to the last. |
 | `locale` | `string` | the grid's `locale` | Settles a column whose values don't decide the decimal separator or the day and month order. |
 | `minConfidence` | `number` | `0.9` | The share of non-blank values a type has to read, from `0` to `1`. |
 | `dropdown` | `boolean \| { maxOptions?: number }` | `true` | Whether a column of repeated strings becomes a `dropdown`, and how many distinct values it may have (`10` by default, `0` turns it off). |
 | `headerRow` | `boolean \| 'auto'` | `false` | Whether the first row of array data is a header. See [Header row](#header-row). |
 | `stats` | `boolean \| { examples?: number }` | `false` | Whether to describe the sampled values of each column. See [Column statistics](#column-statistics). |
+| `dateFormats` | `string[]` | none | Date formats to read instead of the built-in year-last dates. See [Date formats and boolean words](#date-formats-and-boolean-words). |
+| `booleanValues` | `{ true?: string[], false?: string[] }` | none | Words a `checkbox` column reads as `true` and `false`. See [Date formats and boolean words](#date-formats-and-boolean-words). |
 
 To infer types without a grid, import the same functions from the plugin module: `import { inferColumnTypes, convertToInferredTypes } from 'handsontable/plugins/importFile';`. Without a grid, `locale` defaults to `'en-US'`. A bundler drops the rest of the plugin from your build when you use only these two functions.
 

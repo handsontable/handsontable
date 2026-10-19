@@ -1,7 +1,17 @@
 import { isObject } from '../../helpers/object';
-import { DETECTORS, type DetectionContext } from './detectors';
+import { getDetectors, type DetectionContext } from './detectors';
 import { getLocaleDateOrder, getLocaleDecimalSeparator, getLocaleRegion, resolveLocale } from './locale';
-import { isBlank, readBoolean, readDate, readNumber, readTime } from './values';
+import {
+  compileDateFormat,
+  createBooleanReader,
+  isBlank,
+  readBoolean,
+  readDate,
+  readNumber,
+  readTime,
+  type BooleanValues,
+  type CompiledDateFormat,
+} from './values';
 import type {
   DetectedColumn,
   InferColumnTypesOptions,
@@ -87,6 +97,53 @@ function toMaxDropdownOptions(dropdown: InferColumnTypesOptions['dropdown']): nu
   }
 
   return toPositiveInteger(maxOptions, DEFAULT_MAX_DROPDOWN_OPTIONS);
+}
+
+/**
+ * Reads the `dateFormats` option into the formats that compile, in the order given.
+ */
+function toDateFormats(dateFormats: unknown): CompiledDateFormat[] {
+  return Array.isArray(dateFormats)
+    ? dateFormats.map(compileDateFormat).filter(format => format !== null)
+    : [];
+}
+
+/**
+ * Reads one side of the `booleanValues` option into its non-blank words.
+ */
+function toWords(words: unknown): string[] {
+  return Array.isArray(words)
+    ? words.filter((word): word is string => typeof word === 'string' && word.trim() !== '')
+    : [];
+}
+
+/**
+ * Reads the `booleanValues` option, or returns `null` when it lists no word.
+ */
+function toBooleanValues(booleanValues: InferColumnTypesOptions['booleanValues'] | null): BooleanValues | null {
+  const words = { true: toWords(booleanValues?.true), false: toWords(booleanValues?.false) };
+
+  return words.true.length > 0 || words.false.length > 0 ? words : null;
+}
+
+/**
+ * Picks the data rows to read from `rows`, starting at `start`: the first `limit` rows, or with
+ * `sampling: 'spread'` rows spaced evenly from the first to the last. Integer arithmetic only, and
+ * the rows keep their order, so the sample and everything ordered by first appearance (dropdown
+ * options, examples) are deterministic.
+ */
+function pickSampleRows(rows: unknown[], start: number, limit: number, sampling: unknown): unknown[] {
+  const count = rows.length - start;
+
+  if (sampling !== 'spread' || limit >= count) {
+    return rows.slice(start, start + limit);
+  }
+
+  if (limit === 1) {
+    return rows.slice(start, start + 1);
+  }
+
+  return Array.from({ length: limit }, (_, index) => rows[start + Math.floor((index * (count - 1)) / (limit - 1))]);
 }
 
 /**
@@ -177,7 +234,7 @@ function runDetectors(
   let winner: Winner | null = null;
   const rivals: Array<{ type: InferredCellType; share: number }> = [];
 
-  for (const detect of DETECTORS) {
+  for (const detect of getDetectors(context)) {
     const detection = detect(nonBlank, context);
     const share = detection ? detection.matched / nonBlank.length : 0;
 
@@ -258,13 +315,17 @@ function createReader(column: InferredColumn): ValueReader | null {
     }
     case 'date': {
       const order = inputFormat.dateOrder ?? 'MDY';
+      const format = inputFormat.dateFormat === undefined ? null : compileDateFormat(inputFormat.dateFormat);
 
-      return value => readDate(value, order)?.iso ?? null;
+      return value => readDate(value, order, format)?.iso ?? null;
     }
     case 'time':
       return value => readTime(value)?.value ?? null;
-    case 'checkbox':
-      return readBoolean;
+    case 'checkbox': {
+      const words = toBooleanValues(inputFormat.booleanValues);
+
+      return words ? createBooleanReader(words) : readBoolean;
+    }
     case 'dropdown':
       // The detector compares trimmed values, so the converter writes the trimmed one: `source` lists
       // `Open` once, and the strict dropdown validator would reject `Open `.
@@ -436,10 +497,29 @@ function looksLikeHeader(first: unknown, columns: InferredColumn[]): boolean {
 }
 
 /**
+ * Builds what every detector shares from the options.
+ */
+function createDetectionContext(options: InferColumnTypesOptions): DetectionContext {
+  const locale = resolveLocale(options.locale);
+  const booleanValues = toBooleanValues(options.booleanValues);
+
+  return {
+    localeDecimalSeparator: getLocaleDecimalSeparator(locale),
+    localeDateOrder: getLocaleDateOrder(locale),
+    region: getLocaleRegion(locale),
+    maxDropdownOptions: toMaxDropdownOptions(options.dropdown),
+    dateFormats: toDateFormats(options.dateFormats),
+    booleanValues,
+    readBoolean: booleanValues ? createBooleanReader(booleanValues) : readBoolean,
+  };
+}
+
+/**
  * Infers a cell type and format for every column of raw, untyped data: rows parsed from a CSV
  * file, pasted text split into cells, or values from an API. The function is pure and
- * deterministic. It reads the first `sampleSize` rows, never the host's locale, and returns the same
- * result for the same input.
+ * deterministic. It reads `sampleSize` rows (the first ones, or with `sampling: 'spread'` rows
+ * spaced evenly across the data), never the host's locale, and returns the same result for the
+ * same input.
  *
  * Each column comes back as `{ settings, confidence, inputFormat, title, stats }`. `settings` uses
  * the names of the grid's column options (`type`, `numericFormat`, `dateFormat`, `timeFormat`,
@@ -455,31 +535,27 @@ export function inferColumnTypes(
     return { columns: [], headerRow: false };
   }
 
-  const { locale: localeOption, sampleSize, minConfidence: minConfidenceOption, dropdown, headerRow, stats } =
-    options ?? {};
-  const locale = resolveLocale(localeOption);
+  const { sampleSize, sampling, minConfidence: minConfidenceOption, headerRow, stats } = options ?? {};
   const limit = toPositiveInteger(sampleSize, DEFAULT_SAMPLE_SIZE);
   const minConfidence = toConfidence(minConfidenceOption);
   const exampleLimit = toExampleLimit(stats);
-  const context: DetectionContext = {
-    localeDecimalSeparator: getLocaleDecimalSeparator(locale),
-    localeDateOrder: getLocaleDateOrder(locale),
-    region: getLocaleRegion(locale),
-    maxDropdownOptions: toMaxDropdownOptions(dropdown),
-  };
+  const context = createDetectionContext(options ?? {});
   const rows = data as unknown[];
   const first = rows[0];
 
   if (Array.isArray(first) && (headerRow === true || headerRow === 'auto')) {
     const header = first as unknown[];
-    const columns = inferColumns(rows.slice(1, 1 + limit), header, context, minConfidence, exampleLimit);
+    const sample = pickSampleRows(rows, 1, limit, sampling);
+    const columns = inferColumns(sample, header, context, minConfidence, exampleLimit);
 
     if (headerRow === true || looksLikeHeader(header, columns)) {
       return { columns, headerRow: true };
     }
   }
 
-  return { columns: inferColumns(rows.slice(0, limit), null, context, minConfidence, exampleLimit), headerRow: false };
+  const sample = pickSampleRows(rows, 0, limit, sampling);
+
+  return { columns: inferColumns(sample, null, context, minConfidence, exampleLimit), headerRow: false };
 }
 
 /**
