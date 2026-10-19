@@ -5,8 +5,8 @@
  * - `'dependency'`: the value of a cell listed in `dependsOn` was changed.
  * - `'restart'`: a new request was started for the same cell.
  * - `'rowRemoved'`: the cell's row was removed.
- * - `'columnsChanged'`: a column was inserted or removed before the cell's column, which shifts the columns of
- *   array data.
+ * - `'columnsChanged'`: a column was inserted or removed at or before the cell's column, which shifts the columns
+ *   of array data.
  * - `'dataReplaced'`: the data was replaced with `loadData()` or `updateData()` (a `DataProvider` refetch included).
  * - `'manual'`: the request was cancelled with `cancel()` or `cancelAll()`.
  * - `'disabled'`: the plugin was disabled, or the grid destroyed.

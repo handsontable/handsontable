@@ -110,7 +110,8 @@ function toErrorMessage(error: unknown): string {
  * - the cell's value changes (an edit, a paste, an autofill, an undo, or an API write),
  * - the value of a cell listed in `dependsOn` changes,
  * - a new request starts for the same cell,
- * - the row is removed, or the data is replaced (which includes a refetch of the `DataProvider` plugin).
+ * - the row is removed, or the data is replaced (which includes a refetch of the `DataProvider` plugin),
+ * - a column is inserted or removed at or before the cell's column, in array data.
  *
  * A late result of a cancelled request is ignored. Requests are tied to the row's physical index, so
  * sorting, filtering, or moving rows on the client while a request is pending still lands the result
@@ -119,7 +120,7 @@ function toErrorMessage(error: unknown): string {
  * The plugin writes a resolved value with the `'AsyncValues.resolve'` source, and the write is not
  * added to the undo history. The write goes through `beforeChange` and the cell's validator, so
  * either can still change or reject the value. A cell's state is available in its cell meta as
- * `asyncState` (`'pending'` or `'error'`) and `asyncError` (the error message).
+ * `asyncState` (`'pending'`, `'error'`, or `null`) and `asyncError` (the error message, or `null`).
  *
  * To enable the plugin, set the {@link Options#asyncValues} option to `true`.
  *
@@ -222,6 +223,12 @@ export class AsyncValues extends BasePlugin {
   #replacingData = false;
 
   /**
+   * Whether `disablePlugin()` is clearing the requests. A cancel listener that starts a request then
+   * gets a cancelled result instead of a request that would outlive the plugin.
+   */
+  #disabling = false;
+
+  /**
    * Whether a flush is queued.
    */
   #flushQueued = false;
@@ -252,14 +259,19 @@ export class AsyncValues extends BasePlugin {
     // `afterChange` is not cancelled by the very change that started it.
     this.addHook('afterChange', this.#onAfterChange, -1);
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell, -1);
-    this.addHook('afterCreateRow', this.#syncRows);
-    this.addHook('afterRemoveRow', this.#syncRows);
+    // Before the application's listeners, so a listener that cancels or writes a cell there already sees
+    // every entry on its current physical row.
+    this.addHook('afterCreateRow', this.#syncRows, -1);
+    this.addHook('afterRemoveRow', this.#syncRows, -1);
     this.addHook('afterCreateCol', this.#onAfterCreateCol);
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
     this.addHook('beforeLoadData', this.#onBeforeDataReplaced);
     this.addHook('beforeUpdateData', this.#onBeforeDataReplaced);
     this.addHook('afterLoadData', this.#onDataReplaced);
     this.addHook('afterUpdateData', this.#onDataReplaced);
+    // `updateSettings()` re-initializes the row index (a `columns` or `dataSchema` change) without a data
+    // load, which resets this plugin's map too.
+    this.hot.rowIndexMapper.addLocalHook('init', this.#onRowIndexInit);
 
     super.enablePlugin();
   }
@@ -281,12 +293,22 @@ export class AsyncValues extends BasePlugin {
     // Unlike most plugins, the cleanup runs before `super.disablePlugin()`: the decoration is taken
     // off by `afterRenderer`, so the grid has to paint once while that hook is still registered.
     if (this.#entries.size > 0) {
-      this.#clearAll('disabled');
+      this.#disabling = true;
+
+      try {
+        this.#clearAll('disabled');
+
+      } finally {
+        this.#disabling = false;
+      }
+
       this.hot.markAllCellsChanged();
       this.hot.render();
     }
 
     this.#settled = [];
+    this.#replacingData = false;
+    this.hot.rowIndexMapper.removeLocalHook('init', this.#onRowIndexInit);
 
     if (this.#rowsMap) {
       this.hot.rowIndexMapper.unregisterMap(this.pluginName!);
@@ -363,7 +385,8 @@ export class AsyncValues extends BasePlugin {
     const [fromColumn, toColumn] = [Math.min(columnFrom, columnTo), Math.max(columnFrom, columnTo)];
 
     // Checked up front, so a range that reaches outside the grid starts no cell at all.
-    if (!this.#isInGrid(fromRow, fromColumn) || !this.#isInGrid(toRow, toColumn)) {
+    if (!this.#isInGrid(fromRow, fromColumn) || !this.#isInGrid(toRow, toColumn) ||
+        !this.#hasKeyedColumns(fromColumn, toColumn)) {
       throwWithCause(`The range (${rowFrom}, ${columnFrom}) - (${rowTo}, ${columnTo}) cannot hold async values.`);
     }
 
@@ -473,6 +496,10 @@ export class AsyncValues extends BasePlugin {
     source: AsyncValueSource,
     options: AsyncValueOptions,
   ): Promise<AsyncValueResult> {
+    if (this.#disabling) {
+      return Promise.resolve({ status: 'cancelled', reason: 'disabled' });
+    }
+
     if (!this.enabled || !this.#rowsMap) {
       throwWithCause('The AsyncValues plugin is not enabled.');
     }
@@ -512,7 +539,7 @@ export class AsyncValues extends BasePlugin {
     this.#markChanged(entry);
 
     if (previous) {
-      this.#notifyCleared(previous, 'restart');
+      this.#notifyCleared([[previous, 'restart']]);
     }
 
     if (!this.#isPending(entry)) {
@@ -520,6 +547,11 @@ export class AsyncValues extends BasePlugin {
     }
 
     this.hot.runHooks('afterAsyncValueStart', physicalRow, prop);
+
+    // A start listener may have cancelled or replaced the request already.
+    if (!this.#isPending(entry)) {
+      return result;
+    }
 
     let request: PromiseLike<unknown>;
 
@@ -553,6 +585,25 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
+   * Tells whether every column of a range has a string or numeric property (not a `data` function).
+   *
+   * @param {number} fromColumn Visual index of the first column.
+   * @param {number} toColumn Visual index of the last column.
+   * @returns {boolean}
+   */
+  #hasKeyedColumns(fromColumn: number, toColumn: number): boolean {
+    for (let column = fromColumn; column <= toColumn; column++) {
+      const prop = this.hot.colToProp(column);
+
+      if (typeof prop !== 'string' && typeof prop !== 'number') {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Queues a settled request for the next flush, unless it is no longer the cell's request.
    *
    * @param {object} settled The settled request.
@@ -566,7 +617,9 @@ export class AsyncValues extends BasePlugin {
 
     if (!this.#flushQueued) {
       this.#flushQueued = true;
-      this.hot._registerMicrotask(this.#flush);
+      // Not `_registerMicrotask()`: it keeps one record per call for the instance's life, and a column of
+      // separate network responses flushes once per response. `#flush` reads nothing after a destroy.
+      this.hot.rootWindow.queueMicrotask(this.#flush);
     }
   }
 
@@ -583,7 +636,7 @@ export class AsyncValues extends BasePlugin {
 
     this.#settled = [];
 
-    if (settled.length === 0) {
+    if (settled.length === 0 || !this.#rowsMap) {
       return;
     }
 
@@ -613,7 +666,10 @@ export class AsyncValues extends BasePlugin {
       this.#write(visibleChanges, sourceChanges);
 
     } finally {
-      settled.forEach(this.#notifySettled);
+      // Every promise settles before the first hook runs, so a throwing listener cannot leave another
+      // caller's promise pending.
+      settled.forEach(this.#settleResult);
+      settled.forEach(this.#reportSettled);
     }
   };
 
@@ -648,25 +704,41 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
-   * Fires the hook of a settled request and resolves the promise its caller holds. A rejection on the
-   * cell the user is on is announced, because its message is not part of the cell's visible text.
+   * Resolves the promise the caller of a settled request holds.
    *
    * @param {object} settled The settled request.
    */
-  #notifySettled = ({ entry, outcome }: SettledRequest): void => {
+  #settleResult = ({ entry, outcome }: SettledRequest): void => {
+    entry.settle(outcome.status === 'resolved'
+      ? { status: 'resolved', value: outcome.value }
+      : { status: 'rejected', error: entry.error, message: entry.message });
+  };
+
+  /**
+   * Fires the hook of a settled request. A rejection on the cell the user is on is announced, because
+   * its message is not part of the cell's visible text.
+   *
+   * @param {object} settled The settled request.
+   */
+  #reportSettled = ({ entry, outcome }: SettledRequest): void => {
     if (outcome.status === 'resolved') {
       this.hot.runHooks('afterAsyncValueResolve', entry.physicalRow, entry.prop, outcome.value);
-      entry.settle({ status: 'resolved', value: outcome.value });
 
       return;
     }
 
-    if (entry.message !== '' && this.#isActiveCell(entry)) {
+    // The write of another result in the same flush can clear the error already (a `dependsOn` change);
+    // then there is no error state to report.
+    if (!this.#entries.has(entry)) {
+      return;
+    }
+
+    if (entry.message !== '' && this.#isActiveCell(entry) && this.hot.getSettings().ariaTags &&
+        this.hot.isListening()) {
       announce(entry.message, 'polite');
     }
 
     this.hot.runHooks('afterAsyncValueReject', entry.physicalRow, entry.prop, entry.error, entry.message);
-    entry.settle({ status: 'rejected', error: entry.error, message: entry.message });
   };
 
   /**
@@ -691,34 +763,40 @@ export class AsyncValues extends BasePlugin {
    */
   #clear(entry: AsyncValueEntry, reason: AsyncValueCancelReason): void {
     this.#detach(entry);
-    this.#notifyCleared(entry, reason);
+    this.#notifyCleared([[entry, reason]]);
   }
 
   /**
-   * Removes an entry from its cell and aborts a pending request, without running any host code.
+   * Removes an entry from its cell, without running any host code. The request is aborted later, in
+   * `#notifyCleared()`, because `abort()` runs the source's own `abort` listeners.
    *
    * @param {object} entry The entry.
    */
   #detach(entry: AsyncValueEntry): void {
     this.#deleteEntry(entry);
     this.#markChanged(entry);
-    entry.controller?.abort();
-    entry.controller = null;
   }
 
   /**
-   * Reports a detached pending request as cancelled. A detached error state reports nothing.
+   * Aborts detached pending requests and reports them as cancelled. A detached error state reports
+   * nothing. Every promise settles before the first hook runs, so a throwing listener cannot leave
+   * another caller's promise pending.
    *
-   * @param {object} entry The entry.
-   * @param {string} reason Why the entry was removed.
+   * @param {Array} cleared The detached entries, each with the reason it was removed.
    */
-  #notifyCleared(entry: AsyncValueEntry, reason: AsyncValueCancelReason): void {
-    if (entry.status !== 'pending') {
-      return;
-    }
+  #notifyCleared(cleared: Array<[AsyncValueEntry, AsyncValueCancelReason]>): void {
+    const cancelled = cleared.filter(([entry]) => entry.status === 'pending');
 
-    this.hot.runHooks('afterAsyncValueCancel', entry.physicalRow, entry.prop, reason);
-    entry.settle({ status: 'cancelled', reason });
+    cancelled.forEach(([entry, reason]) => {
+      const controller = entry.controller;
+
+      entry.controller = null;
+      entry.settle({ status: 'cancelled', reason });
+      controller?.abort();
+    });
+    cancelled.forEach(([entry, reason]) => {
+      this.hot.runHooks('afterAsyncValueCancel', entry.physicalRow, entry.prop, reason);
+    });
   }
 
   /**
@@ -730,7 +808,7 @@ export class AsyncValues extends BasePlugin {
     const entries = [...this.#entries];
 
     entries.forEach(entry => this.#detach(entry));
-    entries.forEach(entry => this.#notifyCleared(entry, reason));
+    this.#notifyCleared(entries.map(entry => [entry, reason]));
   }
 
   /**
@@ -801,13 +879,24 @@ export class AsyncValues extends BasePlugin {
    */
   #deleteEntry(entry: AsyncValueEntry): void {
     const rowsMap = this.#rowsMap;
-    const rowEntries = rowsMap?.getValueAtIndex<RowEntries | null>(entry.physicalRow);
 
-    if (rowsMap && rowEntries?.get(entry.prop) === entry) {
-      rowEntries.delete(entry.prop);
+    if (rowsMap && this.#entries.has(entry)) {
+      let physicalRow = entry.physicalRow;
 
-      if (rowEntries.size === 0) {
-        rowsMap.setValueAtIndex(entry.physicalRow, null);
+      // `physicalRow` is stale while a row insert or removal is being reported; find the entry instead.
+      if (rowsMap.getValueAtIndex<RowEntries | null>(physicalRow)?.get(entry.prop) !== entry) {
+        physicalRow = (rowsMap.getValues() as Array<RowEntries | null>)
+          .findIndex(rowEntries => rowEntries?.get(entry.prop) === entry);
+      }
+
+      const rowEntries = physicalRow >= 0 ? rowsMap.getValueAtIndex<RowEntries | null>(physicalRow) : null;
+
+      if (rowEntries) {
+        rowEntries.delete(entry.prop);
+
+        if (rowEntries.size === 0) {
+          rowsMap.setValueAtIndex(physicalRow, null);
+        }
       }
     }
 
@@ -851,12 +940,37 @@ export class AsyncValues extends BasePlugin {
 
     const removed = [...this.#entries].filter(entry => !live.has(entry));
 
-    removed.forEach((entry) => {
-      this.#entries.delete(entry);
-      entry.controller?.abort();
-      entry.controller = null;
+    removed.forEach(entry => this.#entries.delete(entry));
+    this.#notifyCleared(removed.map(entry => [entry, 'rowRemoved']));
+  };
+
+  /**
+   * The row index mapper's `init` local hook. A data load re-initializes it and cancels the requests
+   * from `afterLoadData`. Outside a load (`updateSettings()` with `columns` or `dataSchema`) the data and
+   * its physical rows stay, so the entries are put back into the reset map.
+   */
+  #onRowIndexInit = (): void => {
+    const rowsMap = this.#rowsMap;
+
+    if (this.#replacingData || !rowsMap || this.#entries.size === 0) {
+      return;
+    }
+
+    const lost: AsyncValueEntry[] = [];
+
+    this.#entries.forEach((entry) => {
+      if (entry.physicalRow < rowsMap.getLength()) {
+        const rowEntries = rowsMap.getValueAtIndex<RowEntries | null>(entry.physicalRow) ?? new Map();
+
+        rowEntries.set(entry.prop, entry);
+        rowsMap.setValueAtIndex(entry.physicalRow, rowEntries);
+
+      } else {
+        lost.push(entry);
+      }
     });
-    removed.forEach(entry => this.#notifyCleared(entry, 'rowRemoved'));
+    lost.forEach(entry => this.#entries.delete(entry));
+    this.#notifyCleared(lost.map(entry => [entry, 'rowRemoved']));
   };
 
   /**
@@ -884,11 +998,10 @@ export class AsyncValues extends BasePlugin {
 
     dependents.forEach(entry => this.#detach(entry));
 
-    if (own) {
-      this.#notifyCleared(own, 'edit');
-    }
-
-    dependents.forEach(entry => this.#notifyCleared(entry, 'dependency'));
+    this.#notifyCleared([
+      ...(own ? [[own, 'edit'] as [AsyncValueEntry, AsyncValueCancelReason]] : []),
+      ...dependents.map(entry => [entry, 'dependency'] as [AsyncValueEntry, AsyncValueCancelReason]),
+    ]);
 
     return own !== undefined || dependents.length > 0;
   }
@@ -944,8 +1057,13 @@ export class AsyncValues extends BasePlugin {
    *
    * @param {number} index Visual index of the first inserted column.
    */
-  #onAfterCreateCol = (index: number): void => {
-    this.#onColumnsShifted(this.hot.toPhysicalColumn(index) ?? 0);
+  #onAfterCreateCol = (index: number, amount: number): void => {
+    const physicalColumn = this.hot.toPhysicalColumn(index);
+
+    // `amount` is 0 when `maxCols` stopped the insert; a `null` column means it appended past the end.
+    if (amount > 0 && physicalColumn !== null) {
+      this.#onColumnsShifted(physicalColumn);
+    }
   };
 
   /**
@@ -956,7 +1074,9 @@ export class AsyncValues extends BasePlugin {
    * @param {number[]} physicalColumns Physical indexes of the removed columns.
    */
   #onAfterRemoveCol = (index: number, amount: number, physicalColumns: number[]): void => {
-    this.#onColumnsShifted(physicalColumns.length > 0 ? Math.min(...physicalColumns) : 0);
+    if (physicalColumns.length > 0) {
+      this.#onColumnsShifted(physicalColumns.reduce((min, column) => Math.min(min, column), Infinity));
+    }
   };
 
   /**
@@ -966,12 +1086,16 @@ export class AsyncValues extends BasePlugin {
    * @param {number} firstShifted The first physical column index the change shifted.
    */
   #onColumnsShifted(firstShifted: number): void {
+    if (this.#entries.size === 0) {
+      return;
+    }
+
     const shifted = [...this.#entries]
       .filter(entry => typeof entry.prop === 'number' && entry.prop >= firstShifted);
 
     if (shifted.length > 0) {
       shifted.forEach(entry => this.#detach(entry));
-      shifted.forEach(entry => this.#notifyCleared(entry, 'columnsChanged'));
+      this.#notifyCleared(shifted.map(entry => [entry, 'columnsChanged']));
       this.hot.render();
     }
   }
@@ -981,6 +1105,14 @@ export class AsyncValues extends BasePlugin {
    */
   #onBeforeDataReplaced = (): void => {
     this.#replacingData = true;
+
+    // A load that throws never reaches `after*Data`, so the flag is cleared and the requests it orphaned
+    // are cancelled once the load's task ends.
+    this.hot.rootWindow.queueMicrotask(() => {
+      if (this.#replacingData && this.enabled) {
+        this.#onDataReplaced();
+      }
+    });
   };
 
   /**

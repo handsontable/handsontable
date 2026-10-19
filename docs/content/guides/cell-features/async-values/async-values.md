@@ -40,7 +40,7 @@ Each request gets an [`AbortSignal`](https://developer.mozilla.org/en-US/docs/We
 - A new request starts for the same cell.
 - The row is removed, or the data is replaced.
 
-Requests are tied to the row's physical index, so sorting, filtering, or moving rows while a request is pending still writes the result to the right record.
+Requests are tied to the row's physical index, so sorting, filtering, or moving rows on the client while a request is pending still writes the result to the right record.
 
 The plugin can't be enabled together with the [`NestedRows`](@/api/nestedRows.md) plugin.
 
@@ -135,7 +135,7 @@ asyncValues.setAsyncValue(row, 2, source, { dependsOn: ['sku', 'quantity'] });
 
 `dependsOn` takes column properties: the `data` keys of object data, or the physical column indexes of array data. A resolved value is a change too, so it cancels the pending requests that depend on its cell.
 
-The plugin does not start a new request on its own. Start one from your [`afterChange`](@/api/hooks.md#afterchange) hook when an input column changes, as the example above does. The plugin handles `afterChange` before your listeners, so the change cancels the old request first, and your new request stays.
+The plugin does not start a new request on its own. Start one from your [`afterChange`](@/api/hooks.md#afterchange) hook when an input column changes, as the example above does. The plugin handles `afterChange` before the listeners you add to the grid, so the change cancels the old request first, and your new request stays. A global listener (`Handsontable.hooks.add()` without an instance) runs before every instance listener, so it can't start the new request this way.
 
 To cancel requests from your code, use [`cancel()`](@/api/asyncValues.md#cancel) for one cell, or [`cancelAll()`](@/api/asyncValues.md#cancelall) for every cell. Both also clear the error state.
 
@@ -174,9 +174,10 @@ Each hook receives the cell's physical row index and column property. A row hidd
 - **Undo and redo:** a resolved value is not added to the undo history. Undo of an earlier edit of the same cell restores the value that edit replaced, over the async value. An undo or redo that changes a pending cell cancels its request, and redo does not start it again.
 - **Validation:** a resolved value goes through `beforeChange`, the cell's validator, and `afterChange`, with the `'AsyncValues.resolve'` source. A row hidden by a filter has no visual index, so its value is written with [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell): the cell's validator does not run, a [`sourceDataValidator`](@/api/options.md#sourcedatavalidator) does, and `afterChange` does not fire.
 - **Copy, paste, and export:** copy and export read the cell's current value -- its previous value while a request is pending or failed. A paste into a pending cell is an edit, so it cancels the request.
-- **Rows and columns:** inserting rows keeps every request on its record. Removing a row cancels its requests. In array data, whose column properties are indexes, inserting or removing a column cancels the requests of the columns after it.
-- **Data:** [`loadData()`](@/api/core.md#loaddata) and [`updateData()`](@/api/core.md#updatedata) cancel every request. With the [`DataProvider`](@/api/dataProvider.md) plugin, a server-side sort, filter, or page change loads new data, so it cancels every request too. A resolved value is saved through `onRowsUpdate` like any other edit, and a failed save reverts it.
-- **Settings:** [`updateSettings()`](@/api/core.md#updatesettings) keeps pending requests, even when it sends `asyncValues: true` again, as the framework wrappers do. Setting `asyncValues` to `false` cancels every request.
+- **Rows and columns:** inserting rows keeps every request on its record. Removing a row cancels its requests. In array data, whose column properties are indexes, inserting or removing a column cancels the requests of that column and the columns after it.
+- **Data:** [`loadData()`](@/api/core.md#loaddata) and [`updateData()`](@/api/core.md#updatedata) cancel every request.
+- **Server-side data:** with the [`DataProvider`](@/api/dataProvider.md) plugin, every refetch loads new data and cancels every pending request. That includes a sort, a filter, a page change, and the refetch that follows a saved edit. A resolved value is not sent to `onRowsUpdate`, so the next refetch replaces it. Use async values there only for values you don't save, or save them yourself.
+- **Settings:** [`updateSettings()`](@/api/core.md#updatesettings) keeps pending requests, even when it sends `asyncValues: true` again, as the framework wrappers do, and when it changes `columns`. Setting `asyncValues` to `false`, passing new `data`, or enabling [`nestedRows`](@/api/options.md#nestedrows) cancels every request.
 
 ## Styling
 

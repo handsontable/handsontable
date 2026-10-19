@@ -32,6 +32,7 @@
       overflow: hidden;
       clip-path: inset(50%);
       white-space: nowrap;
+      user-select: none;
     }
 
     .htAsyncError {

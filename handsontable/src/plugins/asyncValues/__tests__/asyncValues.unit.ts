@@ -211,6 +211,19 @@ describe('AsyncValues', () => {
       destroy();
     });
 
+    it('should start nothing when a column of the range has a `data` function', () => {
+      const { plugin, destroy } = createGrid({
+        columns: [{ data: 'sku' }, { data: 'name' }, { data: (row: { price: number }) => row.price }],
+      });
+      const source = jest.fn(() => deferred().promise);
+
+      expect(() => plugin.setAsyncValues(0, 1, 0, 2, source)).toThrow('cannot hold async values');
+      expect(source).not.toHaveBeenCalled();
+      expect(plugin.isPending(0, 1)).toBe(false);
+
+      destroy();
+    });
+
     it('should throw for coordinates outside the grid', () => {
       const { plugin, destroy } = createGrid();
 
@@ -297,6 +310,40 @@ describe('AsyncValues', () => {
       expect(announce.mock.calls).toEqual([['Lookup failed', 'polite']]);
 
       announce.mockRestore();
+      destroy();
+    });
+
+    it('should take its elements off a cell whose renderer keeps the cell content', async() => {
+      const { hot, plugin, destroy } = createGrid({
+        columns: [
+          { data: 'sku' },
+          {
+            data: 'name',
+            renderer(instance: Handsontable, TD: HTMLTableCellElement, row: number) {
+              if (!TD.hasAttribute('data-rendered')) {
+                TD.setAttribute('data-rendered', '');
+                TD.appendChild(document.createTextNode(`name ${row}`));
+              }
+            },
+          },
+          { data: 'price' },
+        ],
+      });
+
+      await plugin.setAsyncValue(0, 1, Promise.reject(new Error('Lookup failed')));
+
+      expect(hot.getCell(0, 1)!.querySelector('.htAsyncErrorMessage')).not.toBeNull();
+
+      plugin.cancel(0, 1);
+      plugin.setAsyncValue(0, 1, () => deferred().promise);
+      plugin.cancel(0, 1);
+
+      const TD = hot.getCell(0, 1)!;
+
+      expect(TD.querySelector('.htAsyncErrorMessage')).toBeNull();
+      expect(TD.querySelector('.htAsyncIndicator')).toBeNull();
+      expect(TD.textContent).toBe('name 0');
+
       destroy();
     });
 
@@ -494,8 +541,11 @@ describe('AsyncValues', () => {
       const { hot, plugin, destroy } = createGrid({ undo: true });
       const result = plugin.setAsyncValue(1, 1, () => deferred().promise);
 
+      const other = deferred();
+
       // A request elsewhere keeps the plugin's lookups live.
-      plugin.setAsyncValue(3, 1, () => deferred().promise);
+      const otherResult = plugin.setAsyncValue(3, 1, () => other.promise);
+
       hot.alter('remove_row', 1);
       hot.getPlugin('undoRedo').undo();
 
@@ -503,6 +553,11 @@ describe('AsyncValues', () => {
       expect(hot.getDataAtRowProp(1, 'sku')).toBe('B');
       expect(plugin.isPending(1, 1)).toBe(false);
       expect(hot.getCell(1, 1)!.classList.contains('htAsyncPending')).toBe(false);
+
+      other.resolve('new D');
+      await otherResult;
+
+      expect(hot.getSourceDataAtRow(3)).toEqual({ sku: 'D', name: 'new D', price: 4 });
 
       destroy();
     });
@@ -595,6 +650,21 @@ describe('AsyncValues', () => {
 
       destroy();
     });
+
+    it('should keep the requests when `maxCols` stops a column insert', async() => {
+      const { hot, plugin, destroy } = createGrid({
+        data: [['A', 'old A'], ['B', 'old B']],
+        columns: undefined,
+        maxCols: 2,
+      });
+
+      plugin.setAsyncValue(0, 1, () => deferred().promise);
+      hot.alter('insert_col_start', 0);
+
+      expect(plugin.isPending(0, 1)).toBe(true);
+
+      destroy();
+    });
   });
 
   describe('re-entrancy', () => {
@@ -622,8 +692,14 @@ describe('AsyncValues', () => {
       const result = plugin.setAsyncValue(1, 1, () => request.promise);
 
       hot.addHook('afterAsyncValueCancel', cancelled);
-      hot.addHook('beforeRemoveRow', () => false);
+
+      const veto = () => false;
+
+      hot.addHook('beforeRemoveRow', veto);
       hot.alter('remove_row', 1);
+      hot.removeHook('beforeRemoveRow', veto);
+      // A later removal of another row must not consume anything the vetoed one left behind.
+      hot.alter('remove_row', 3);
 
       expect(plugin.isPending(1, 1)).toBe(true);
 
@@ -761,6 +837,151 @@ describe('AsyncValues', () => {
       request.resolve('Product Z');
 
       expect(await result).toEqual({ status: 'resolved', value: 'Product Z' });
+
+      destroy();
+    });
+
+    it('should keep a pending request when `updateSettings()` rebuilds the row index', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const request = deferred();
+      const result = plugin.setAsyncValue(2, 1, () => request.promise);
+
+      hot.updateSettings({ columns: [{ data: 'sku' }, { data: 'name' }, { data: 'price', type: 'numeric' }] });
+
+      expect(plugin.isPending(2, 1)).toBe(true);
+
+      hot.alter('insert_row_below', 3);
+
+      expect(plugin.isPending(2, 1)).toBe(true);
+
+      request.resolve('new C');
+
+      expect(await result).toEqual({ status: 'resolved', value: 'new C' });
+      expect(hot.getSourceDataAtRow(2)).toEqual({ sku: 'C', name: 'new C', price: 3 });
+
+      destroy();
+    });
+
+    it('should not let a cancel listener start a request while the plugin is being disabled', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const restarted: Array<Promise<unknown>> = [];
+
+      plugin.setAsyncValue(0, 1, () => deferred().promise);
+      hot.addHook('afterAsyncValueCancel', () => {
+        restarted.push(plugin.setAsyncValue(0, 1, Promise.resolve('LEAKED')));
+      });
+      hot.updateSettings({ asyncValues: false });
+
+      expect(await restarted[0]).toEqual({ status: 'cancelled', reason: 'disabled' });
+
+      await settle();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('old A');
+
+      destroy();
+    });
+
+    it('should cancel a request cleanly from a row listener that runs before the plugin', async() => {
+      const cancelled = jest.fn();
+      const { hot, plugin, destroy } = createGrid({
+        asyncValues: false,
+        afterRemoveRow() {
+          hot.getPlugin('asyncValues').cancel(1, 1);
+        },
+      });
+
+      // Enabled at runtime, so the settings listener above was registered first.
+      hot.updateSettings({ asyncValues: true });
+      hot.addHook('afterAsyncValueCancel', cancelled);
+
+      const result = plugin.setAsyncValue(2, 1, () => deferred().promise);
+
+      hot.alter('remove_row', 0);
+
+      expect(await result).toEqual({ status: 'cancelled', reason: 'manual' });
+      expect(cancelled).toHaveBeenCalledWith(1, 'name', 'manual');
+      expect(plugin.isPending(1, 1)).toBe(false);
+      expect(hot.getCell(1, 1)!.classList.contains('htAsyncPending')).toBe(false);
+
+      // Another entry keeps the lookups live, so a leftover entry would show here.
+      plugin.setAsyncValue(0, 1, () => deferred().promise);
+
+      expect(plugin.isPending(1, 1)).toBe(false);
+
+      destroy();
+    });
+
+    it('should cancel the requests a load orphaned when the load throws', async() => {
+      const { hot, plugin, destroy } = createGrid({ minSpareRows: 1 });
+      const result = plugin.setAsyncValue(0, 1, () => deferred().promise);
+      const thrower = () => {
+        throw new Error('listener failure');
+      };
+
+      hot.addHook('afterLoadData', thrower, -10);
+
+      expect(() => hot.loadData([{ sku: 'X', name: 'x', price: 9 }])).toThrow('listener failure');
+
+      hot.removeHook('afterLoadData', thrower);
+
+      expect(await result).toEqual({ status: 'cancelled', reason: 'dataReplaced' });
+
+      const kept = deferred();
+      const keptResult = plugin.setAsyncValue(0, 1, () => kept.promise);
+
+      hot.alter('insert_row_above', 0);
+      kept.resolve('new X');
+      await keptResult;
+
+      expect(hot.getSourceDataAtRow(1)).toEqual({ sku: 'X', name: 'new X', price: 9 });
+
+      destroy();
+    });
+
+    it('should not report a rejection whose error a result in the same flush already cleared', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const rejected = jest.fn();
+
+      hot.addHook('afterAsyncValueReject', rejected);
+
+      const [skuResult, nameResult] = await Promise.all([
+        plugin.setAsyncValue(0, 0, Promise.resolve('Z')),
+        plugin.setAsyncValue(0, 1, Promise.reject(new Error('Unknown SKU')), { dependsOn: ['sku'] }),
+      ]);
+
+      expect(skuResult).toEqual({ status: 'resolved', value: 'Z' });
+      expect(nameResult).toEqual(expect.objectContaining({ status: 'rejected', message: 'Unknown SKU' }));
+      expect(plugin.getAsyncState(0, 1)).toBeNull();
+      expect(rejected).not.toHaveBeenCalled();
+
+      destroy();
+    });
+
+    it('should not call the source when a start listener cancels the request', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const source = jest.fn(() => deferred().promise);
+
+      hot.addHook('afterAsyncValueStart', () => plugin.cancel(0, 1));
+
+      expect(await plugin.setAsyncValue(0, 1, source)).toEqual({ status: 'cancelled', reason: 'manual' });
+      expect(source).not.toHaveBeenCalled();
+
+      destroy();
+    });
+
+    it('should settle every promise when a cancel listener throws', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const results = [
+        plugin.setAsyncValue(0, 1, () => deferred().promise),
+        plugin.setAsyncValue(1, 1, () => deferred().promise),
+      ];
+
+      hot.addHook('afterAsyncValueCancel', () => {
+        throw new Error('listener failure');
+      });
+
+      expect(() => plugin.cancelAll()).toThrow('listener failure');
+      expect((await Promise.all(results)).map(result => result.status)).toEqual(['cancelled', 'cancelled']);
 
       destroy();
     });
