@@ -54,6 +54,11 @@ const CLASS_ATTRIBUTE = /\bclass="([^"]*)"/;
 // Classes that say which instance or theme rendered the node, not what the node is.
 const NON_DESCRIPTIVE_CLASS = /^(ht|wt)_|^ht-theme-|\.\.\.$/;
 const KEY_FIELDS = ['page', 'theme', 'rule', 'target'];
+// What markdown or HTML reads inside a table cell (`escapeMarkdownText()`).
+const MARKDOWN_SPECIAL = /[\\`*_[\]<>&|~$]/g;
+// A help URL the summary links: https, and none of the characters that end a link destination or a
+// table cell. axe's own `helpUrl` always qualifies; anything else is shown as text.
+const SAFE_HELP_URL = /^https:\/\/[^\s()<>|\\`"']+$/;
 
 /**
  * The key a finding and a baseline entry are matched on.
@@ -262,7 +267,10 @@ export function compareViolations({ baseline, violations, scanned, mode }) {
 
 /**
  * The job-summary markdown for a verdict: the headline counts, one table per
- * non-empty set, and the remedies.
+ * non-empty set, and the remedies. Every value goes through
+ * `escapeMarkdownText()`, so GitHub displays it as written and none of it
+ * becomes markup; a new finding's remedy still copies out as valid JSON from
+ * the rendered summary.
  *
  * @param {object} verdict What `compareViolations()` returned.
  * @returns {string} Markdown.
@@ -280,17 +288,17 @@ export function renderSummary(verdict) {
   if (newViolations.length > 0) {
     lines.push('### New violations', '', '| page | theme | rule | impact | target | nodes | help |', '|---|---|---|---|---|---|---|');
     for (const item of newViolations) {
-      lines.push(`| ${item.page} | ${item.theme} | ${item.rule} | ${item.impact ?? ''} | \`${cell(item.target)}\` | ${item.nodes} `
-        + `| [${cell(item.help ?? item.rule)}](${item.helpUrl ?? ''}) |`);
+      lines.push(`| ${row([item.page, item.theme, item.rule, item.impact ?? ''])} | <code>${escapeMarkdownText(item.target)}</code> `
+        + `| ${item.nodes} | ${helpCell(item)} |`);
     }
-    lines.push('', ...newViolations.map(item => `- ${item.remedy}`), '');
+    lines.push('', ...newViolations.map(item => `- ${escapeMarkdownText(item.remedy)}`), '');
   }
   if (stale.length > 0) {
     lines.push('### Stale baseline entries', '', '| page | theme | rule | task | target |', '|---|---|---|---|---|');
     for (const item of stale) {
-      lines.push(`| ${item.page} | ${item.theme} | ${item.rule} | ${item.task} | \`${cell(item.target)}\` |`);
+      lines.push(`| ${row([item.page, item.theme, item.rule, item.task])} | <code>${escapeMarkdownText(item.target)}</code> |`);
     }
-    lines.push('', ...stale.map(item => `- ${item.remedy}`), '');
+    lines.push('', ...stale.map(item => `- ${escapeMarkdownText(item.remedy)}`), '');
   }
   if (matched.length > 0) {
     const byTask = new Map();
@@ -300,12 +308,12 @@ export function renderSummary(verdict) {
     }
     lines.push('### Matched baseline entries', '', '| task | findings |', '|---|---|');
     for (const [task, count] of [...byTask].sort(([a], [b]) => a.localeCompare(b))) {
-      lines.push(`| ${task} | ${count} |`);
+      lines.push(`| ${escapeMarkdownText(task)} | ${count} |`);
     }
     lines.push('');
   }
   if (unverified.length > 0) {
-    lines.push('### Unverified baseline entries', '', ...unverified.map(item => `- ${entryKey(item)}: ${item.remedy}`), '');
+    lines.push('### Unverified baseline entries', '', ...unverified.map(item => `- ${escapeMarkdownText(entryKey(item))}: ${escapeMarkdownText(item.remedy)}`), '');
   }
 
   return lines.join('\n');
@@ -362,13 +370,43 @@ function describe(item) {
 }
 
 /**
- * A value made safe for a markdown table cell.
+ * A value made safe for a cell of a GitHub-flavored markdown table, displayed as written.
  *
- * @param {string} value The value.
+ * Every character markdown or HTML reads is backslash-escaped, the backslash first among them in
+ * the same pass, so an escape the value carries cannot pair with one added here: the pipe (which
+ * ends a cell), the backslash, the backtick, emphasis and strikethrough marks, link brackets, the
+ * angle brackets of an HTML tag, the ampersand of an entity and the dollar sign of GitHub's math.
+ * A line break would end the table row, so it becomes a space. The values come from axe and from
+ * the fixture DOM; the summary is rendered by GitHub, so none of them may turn into markup there.
+ *
+ * @param {unknown} value The value.
  * @returns {string} The cell text.
  */
-function cell(value) {
-  return String(value).replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+export function escapeMarkdownText(value) {
+  return String(value).replace(/\r?\n/g, ' ').replace(MARKDOWN_SPECIAL, '\\$&');
+}
+
+/**
+ * The help cell of a finding: the help text, linked only when the URL is a plain https URL that
+ * cannot end the link or the cell early.
+ *
+ * @param {{rule: string, help?: string, helpUrl?: string}} item The finding.
+ * @returns {string} The cell text.
+ */
+function helpCell(item) {
+  const text = escapeMarkdownText(item.help ?? item.rule);
+
+  return SAFE_HELP_URL.test(item.helpUrl ?? '') ? `[${text}](${item.helpUrl})` : text;
+}
+
+/**
+ * Escaped cells joined into the inside of a table row.
+ *
+ * @param {unknown[]} values The cell values.
+ * @returns {string} The cells, joined with ` | `.
+ */
+function row(values) {
+  return values.map(escapeMarkdownText).join(' | ');
 }
 
 /**

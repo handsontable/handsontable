@@ -967,6 +967,13 @@ its entries. Locally: `npm --prefix tests run test:a11y`, after `build:umd`, `bu
   The quarantine reporter is not in its list either (nothing is quarantined in a scan). The a11y
   reporter resolves the baseline from its own location, not from `config.rootDir`, which is the
   config's `testDir` (`a11y/`), one level below the package.
+- **The job summary is markdown GitHub renders, and its values come from axe and the fixture DOM.**
+  Every value the summary writes goes through `escapeMarkdownText()` (`lib/a11y-baseline.mjs`), which
+  backslash-escapes the backslash together with every other character markdown or HTML reads, in one
+  pass. Escaping the pipe alone kept the cells apart but let a backslash in the value pair with the
+  added one and let `<`, backticks and emphasis through as markup (CodeQL's
+  `js/incomplete-sanitization`). The target sits in a `<code>` element, not a backtick span, because a
+  code span cannot escape a backslash, and a help URL is linked only when it is plain https.
 - **Every opener drives the keyboard where the surface has a shortcut.** Shift+F10 for the
   context menu, Shift+Alt+ArrowDown for the dropdown menu, Enter for an editor, ArrowDown and
   ArrowRight to reach a submenu, after `selectCell()` through the API so the keys reach the grid;

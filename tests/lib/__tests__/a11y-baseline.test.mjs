@@ -10,6 +10,7 @@ import {
   BASELINE_FILE,
   compareViolations,
   entryKey,
+  escapeMarkdownText,
   renderAnnotations,
   renderSummary,
   targetFingerprint,
@@ -254,11 +255,83 @@ test('renderSummary writes the job-summary tables with the counts and every reme
   assert.match(summary, /^## A11y \/ axe/m);
   assert.match(summary, /warn mode/);
   assert.match(summary, /1 new, 1 matched, 1 stale, 0 unverified/);
-  assert.match(summary, /\| context-menu \| main \| label \| serious \| `input\.htUIInput` \|/);
+  assert.match(summary, /\| context-menu \| main \| label \| serious \| <code>input\.htUIInput<\/code> \|/);
   assert.match(summary, /\| grid \| horizon \| color-contrast \| DEV-2946 \|/, 'a stale entry names the task that owned it');
   assert.match(summary, /dequeuniversity\.com\/rules\/axe/, 'the help link is in the table');
   assert.match(summary, /fix it, or add/i);
   assert.match(summary, /delete .* from/i);
+});
+
+/**
+ * The cells of one GFM table row, read the way GitHub reads them: the row is split before any inline
+ * markup, a pipe directly after a backslash belongs to its cell whatever comes before that backslash
+ * (cmark-gfm's cell scanner), and `\\|` then turns into `|`.
+ *
+ * @param {string} row The row, `| a | b |`.
+ * @returns {string[]} The raw cell texts.
+ */
+const splitRow = row => row.trim().slice(1, -1).split(/(?<!\\)\|/).map(text => text.trim().replace(/\\\|/g, '|'));
+
+/**
+ * What a cell's inline text displays: a backslash before ASCII punctuation is an escape.
+ *
+ * @param {string} text The cell text.
+ * @returns {string} The displayed text.
+ */
+const displayed = text => text.replace(/\\([!-/:-@[-`{-~])/g, '$1');
+
+// Values a page, a target or a help text could carry: a pipe after a backslash, markup, an
+// HTML tag, a code span, a link, an entity, emphasis, math, a newline.
+const HOSTILE = [
+  'x\\|y',
+  'a|b',
+  'trailing\\',
+  '<img src=x onerror=alert(1)>',
+  '`code` and **bold** and _em_ and ~strike~',
+  '[link](https://example.test) &amp; $x$',
+  'two\nlines',
+];
+
+test('escapeMarkdownText keeps a value in its table cell and displays it as written', () => {
+  for (const value of HOSTILE) {
+    const escaped = escapeMarkdownText(value);
+    const cells = splitRow(`| ${escaped} | next |`);
+
+    assert.equal(cells.length, 2, `${JSON.stringify(value)} must not open or close a cell`);
+    assert.equal(displayed(cells[0]), value.replace(/\r?\n/g, ' '), `${JSON.stringify(value)} displays as written`);
+    assert.doesNotMatch(escaped, /(?:^|[^\\])(?:\\\\)*[<>`*_[\]&|~$]/,
+      `${JSON.stringify(escaped)}: every character markdown or HTML reads is escaped`);
+  }
+});
+
+test('renderSummary escapes every value it writes into a table and links only a plain https help URL', () => {
+  const hostile = HOSTILE.join(' ');
+  const summary = renderSummary(compareViolations({
+    baseline: [entry({ page: 'context-menu', target: hostile, note: hostile })],
+    violations: [
+      violation({ target: hostile, help: hostile, helpUrl: 'https://example.test/rule|x' }),
+      violation({ rule: 'label', target: 'textarea', help: 'Form elements must have labels', helpUrl: 'javascript:alert(1)' }),
+    ],
+    scanned: ALL_SCANNED,
+    mode: 'warn',
+  }));
+  const rows = summary.split('\n').filter(line => /^\| (grid|context-menu) \|/.test(line));
+  const [newRow, labelRow, staleRow] = [
+    rows.find(line => line.startsWith('| grid | main | aria-required-children')),
+    rows.find(line => line.startsWith('| grid | main | label')),
+    rows.find(line => line.startsWith('| context-menu |')),
+  ];
+  const newCells = splitRow(newRow);
+
+  assert.equal(newCells.length, 7, 'a new finding row keeps its seven cells');
+  assert.equal(displayed(newCells[4].replace(/^<code>|<\/code>$/g, '')), hostile.replace(/\n/g, ' '));
+  assert.equal(displayed(newCells[6]), hostile.replace(/\n/g, ' '),
+    'a help URL with a pipe in it is not linked, so the help text is the whole cell');
+  assert.equal(splitRow(labelRow)[6], 'Form elements must have labels', 'a help URL that is not https is not linked');
+  assert.equal(splitRow(staleRow).length, 5, 'a stale entry row keeps its five cells');
+  assert.doesNotMatch(summary.replace(/<\/?code>/g, ''), /(?:^|[^\\])(?:\\\\)*</m,
+    'no unescaped angle bracket reaches the summary outside its own <code> tags, the remedy bullets included');
+  assert.doesNotMatch(summary, /javascript:/, 'a script URL is never linked or written');
 });
 
 test('renderSummary of a clean run says so in one line', () => {

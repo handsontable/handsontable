@@ -42,6 +42,7 @@ export interface Verdict {
 }
 
 export function entryKey(item: FindingKey): string;
+export function escapeMarkdownText(value: unknown): string;
 export function targetFingerprint(target: Array<string | string[]>, html?: string): string;
 export function validateBaseline(document: unknown, known: { pages: string[] }): string[];
 export function compareViolations(input: {
