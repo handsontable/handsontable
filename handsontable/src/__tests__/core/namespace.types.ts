@@ -24,6 +24,8 @@ import type {
   RendererType,
   SelectOptionsObject,
   SourceRowData,
+  RowIdKey,
+  RowIdSetting,
   ThemeBuilder,
   ThemeColorScheme,
   ThemeColorsConfig,
@@ -296,6 +298,8 @@ const _sameCellCoords: Same<Handsontable.CellCoords, CellCoords> = true;
 const _sameCellRange: Same<Handsontable.CellRange, CellRange> = true;
 const _sameIndexMapper: Same<Handsontable.IndexMapper, IndexMapper> = true;
 const _sameSourceRowData: Same<Handsontable.SourceRowData, SourceRowData> = true;
+const _sameRowIdSetting: Same<Handsontable.RowIdSetting, RowIdSetting> = true;
+const _sameRowIdKey: Same<Handsontable.RowIdKey, RowIdKey> = true;
 const _sameColumnDataGetterSetterFunction: Same<
   Handsontable.ColumnDataGetterSetterFunction, ColumnDataGetterSetterFunction
 > = true;

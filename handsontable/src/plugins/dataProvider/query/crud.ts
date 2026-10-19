@@ -1,19 +1,15 @@
 import { isFunction } from '../../../helpers/function';
-import { getProperty } from '../../../helpers/object';
 import { error as logError } from '../../../helpers/console';
 import { throwWithCause } from '../../../helpers/errors';
 import type { HotInstance } from '../../../core/types';
+import { getRowIdFromRowData } from '../../../utils/rowId';
+import type { RowIdOption } from '../../../utils/rowId';
 import {
   DATA_PROVIDER_BATCH_UPDATE_SOURCES,
   DATA_PROVIDER_ERROR_UPDATE_MISSING_ROW_ID,
   dataProviderErrorRemoveMissingRowId,
 } from '../constants';
 import type { RowUpdatePayload, RowsCreatePayload } from '../dataProvider';
-
-/**
- * Row id option — a property name string, a resolver function, or absent.
- */
-type RowIdOption = string | ((rowData: object | unknown[]) => unknown) | undefined | null;
 
 /**
  * A single afterChange tuple: `[visualRow, prop, oldValue, newValue]`.
@@ -81,28 +77,7 @@ export function enqueueMutation(state: { tail: Promise<void> }, fn: () => Promis
   return mutationPromise;
 }
 
-/**
- * Resolves stable row id from a row object using `rowId` option.
- *
- * @param {object|Array} rowData Source row.
- * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
- * @returns {*|undefined}
- */
-export function getRowIdFromRowData(
-  rowData: object | unknown[], rowIdOption: RowIdOption
-): unknown {
-  if (rowIdOption === undefined || rowIdOption === null) {
-    return undefined;
-  }
-  if (isFunction(rowIdOption)) {
-    return (rowIdOption as (rowData: object | unknown[]) => unknown)(rowData);
-  }
-  if (typeof rowIdOption === 'string') {
-    return getProperty(rowData as Record<string, unknown>, rowIdOption);
-  }
-
-  return undefined;
-}
+export { getRowIdFromRowData };
 
 /**
  * Row id for a visual row index.
@@ -115,10 +90,7 @@ export function getRowIdFromRowData(
 export function getRowIdByVisualRow(
   hot: HotInstance, rowIdOption: RowIdOption, visualRow: number
 ): unknown {
-  return getRowIdFromRowData(
-    hot.getSourceDataAtRow(hot.toPhysicalRow(visualRow)) as object | unknown[],
-    rowIdOption
-  );
+  return getRowIdFromRowData(hot.getSourceDataAtRow(hot.toPhysicalRow(visualRow)), rowIdOption);
 }
 
 /**
