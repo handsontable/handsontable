@@ -57,6 +57,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   captures the pointer on the label under the finger, and the drag's own `setPointerCapture`
   takes it from there. Pinned by `tests/e2e/sheets-bar-tab-drag.spec.ts` (tagged
   `@cross-browser`, so the WebKit leg runs it) and the reorder cases in `__tests__/tabDrag.unit.js`.
+- **Every tab is its own stacking context (`isolation: isolate`).** The chevron glyph carries
+  `z-index: 1` to stay above its `::before` hover surface. Without the isolation that z-index
+  competes in the strip at the dragged tab's level (`--dragging` is `z-index: 1` too), so a tab
+  later in the DOM painted its chevron over the dragged tab passing above it. Do not raise the
+  dragged tab's z-index instead: any new positioned child of a tab would bring the bug back. A
+  hit test cannot see it during a drag, because every tab is `pointer-events: none` then; the
+  spec turns pointer events back on for one `elementFromPoint` read.
 - **Per-sheet `settings` go through `updateSettings()` with a baseline.** The grid-level value
   of every key any sheet overrides is captured the first time that key is applied
   (`#withBaselineFor`); `undefined` baselines are restored as `null`, because `updateSettings`

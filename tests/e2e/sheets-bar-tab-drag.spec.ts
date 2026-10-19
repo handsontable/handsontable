@@ -67,4 +67,52 @@ test.describe('sheets bar tab drag', { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, (
     await expect.poll(() => tabNames(page)).toEqual(['Gamma', 'Alpha', 'Beta']);
     expect(crashed).toBe(false);
   });
+
+  test('the dragged tab paints over the chevron of the tab it covers', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    const first = (await bar.tab(0).boundingBox())!;
+    const y = first.y + (first.height / 2);
+    const glyphCenter = await bar.tab(1).locator('.ht-sheets-bar__tab-chevron .ht-icon').evaluate((glyph) => {
+      const rect = glyph.getBoundingClientRect();
+
+      return rect.left + (rect.width / 2);
+    });
+
+    await page.mouse.move(first.x + (first.width / 2), y);
+    await page.mouse.down();
+    await page.mouse.move(first.x + (first.width / 2) + 10, y);
+    await page.mouse.move(first.x + (first.width / 2) + (glyphCenter - (first.x + first.width)) + 4, y);
+
+    const topmost = await page.evaluate(() => {
+      const tabs = Array.from(document.querySelectorAll<HTMLElement>('.ht-sheets-bar__tab'));
+      const dragged = tabs.find(tab => tab.classList.contains('ht-sheets-bar__tab--dragging'))!;
+      const covered = tabs[tabs.indexOf(dragged) + 1];
+      const glyph = covered.querySelector('.ht-sheets-bar__tab-chevron .ht-icon')!.getBoundingClientRect();
+      const draggedRect = dragged.getBoundingClientRect();
+      const x = glyph.left + (glyph.width / 2);
+      const pointY = glyph.top + (glyph.height / 2);
+
+      const hitTestable = document.createElement('style');
+
+      hitTestable.textContent = '* { pointer-events: auto !important; }';
+      document.head.appendChild(hitTestable);
+
+      const hit = document.elementFromPoint(x, pointY);
+
+      hitTestable.remove();
+
+      return {
+        order: tabs.map(tab => tab.querySelector('.ht-sheets-bar__tab-label')?.textContent),
+        coversGlyph: draggedRect.left <= x && draggedRect.right >= x,
+        hitsDraggedTab: dragged.contains(hit),
+      };
+    });
+
+    await page.mouse.up();
+
+    expect(topmost).toEqual({ order: ['Alpha', 'Beta', 'Gamma'], coversGlyph: true, hitsDraggedTab: true });
+  });
 });
