@@ -228,6 +228,7 @@ interface HandsontableFactory {
     TouchScroll: typeof import('./plugins/touchScroll').TouchScroll;
     TrimRows: typeof import('./plugins/trimRows').TrimRows;
     UndoRedo: typeof import('./plugins/undoRedo').UndoRedo;
+    ViewState: typeof import('./plugins/viewState').ViewState;
     registerPlugin: typeof import('./plugins/registry').registerPlugin;
     getPlugin: typeof import('./plugins/registry').getPlugin;
     [key: string]: unknown;
@@ -502,6 +503,19 @@ declare namespace Handsontable {
     export type TouchScroll = import('./plugins/touchScroll').TouchScroll;
     export type TrimRows = import('./plugins/trimRows').TrimRows;
     export type UndoRedo = import('./plugins/undoRedo').UndoRedo;
+    export type ViewState = import('./plugins/viewState').ViewState;
+    export namespace ViewState {
+      export type State = import('./plugins/viewState').GridViewState;
+      export type Part = import('./plugins/viewState').GridViewStatePart;
+      export type SkipReason = import('./plugins/viewState').GridViewStateSkipReason;
+      export type Issue = import('./plugins/viewState').GridViewStateIssue;
+      export type StateError = import('./plugins/viewState').GridViewStateError;
+      export type SetOptions = import('./plugins/viewState').GridViewStateSetOptions;
+      export type RestoreResult = import('./plugins/viewState').GridViewStateRestoreResult;
+      export type ValidationResult = import('./plugins/viewState').GridViewStateValidationResult;
+      export type Selection = import('./plugins/viewState').GridViewStateSelection;
+      export type SortColumn = import('./plugins/viewState').GridViewStateSortColumn;
+    }
   }
 }
 

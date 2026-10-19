@@ -10,6 +10,12 @@ describe('rowId', () => {
       expect(getRowIdFromRowData({ meta: { key: 'k-1' } }, 'meta.key')).toBe('k-1');
     });
 
+    it('should return `undefined` when a step of the path is `null` or not an object', () => {
+      expect(getRowIdFromRowData({ meta: null }, 'meta.id')).toBeUndefined();
+      expect(getRowIdFromRowData({ meta: 'text' }, 'meta.id')).toBeUndefined();
+      expect(getRowIdFromRowData({ meta: { id: null } }, 'meta.id')).toBeNull();
+    });
+
     it('should read a row array by index', () => {
       expect(getRowIdFromRowData(['a', 'b'], '1')).toBe('b');
     });

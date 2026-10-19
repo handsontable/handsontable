@@ -869,6 +869,15 @@ export const REGISTERED_HOOKS = [
    * Use it to cancel pending work, such as an asynchronous request, made for those rows. A row that is trimmed
    * or filtered out still exists, so it is not reported.
    *
+   * The hook fires in a microtask once the call that removed the rows has finished, with every id that call
+   * removed. So the rows a call takes away and puts back, like a [`NestedRows`](@/api/nestedRows.md) detach or
+   * row move, are not reported.
+   *
+   * A grid backed by an external data source (the [`DataProvider`](@/api/dataProvider.md) plugin) loads every
+   * page, sort, and filter with `loadData()`, and the rows it drops still exist on the server, so a data load
+   * there reports nothing. A removal the server confirms (`afterRowsMutation` with `'remove'`) is reported with
+   * the `'dataProvider'` source.
+   *
    * The hook reads the ids only while it has listeners, so a grid that does not listen to it pays nothing.
    *
    * @since 19.0.0

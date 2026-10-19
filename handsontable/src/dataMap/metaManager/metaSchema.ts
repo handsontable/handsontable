@@ -2109,6 +2109,10 @@ export default (): Record<string, unknown> => {
      * are populated incrementally, so they may be incomplete until the
      * [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires.
      *
+     * When you replace [`customBorders`](#customborders) with `updateSettings()`, the borders that are
+     * already drawn stay visible until the new ones are applied. A border missing from the new
+     * configuration disappears when the load ends.
+     *
      * @since 18.1.0
      * @memberof Options#
      * @type {boolean|object}
@@ -2391,8 +2395,8 @@ export default (): Record<string, unknown> => {
      * // read the id from the `id` property of each row object
      * rowId: 'id',
      *
-     * // read the id with a function
-     * rowId: (row) => `${row.country}-${row.code}`,
+     * // read the id with a function (return `null` while a row lacks the values, as an empty row does)
+     * rowId: (row) => (row.country == null || row.code == null ? null : `${row.country}-${row.code}`),
      *
      * // let Handsontable generate the ids
      * rowId: true,

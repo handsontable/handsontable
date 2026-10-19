@@ -65,6 +65,7 @@ describe('`registerAllPlugins`', () => {
       'CheckboxHeader',
       'Pagination',
       'SheetsBar',
+      'ViewState',
       'DataProvider',
       'UndoRedo',
     ]);

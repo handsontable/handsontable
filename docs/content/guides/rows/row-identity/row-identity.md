@@ -114,10 +114,10 @@ gridSettings: GridSettings = {
 
 :::
 
-To build an id from several values, use a function:
+To build an id from several values, use a function. Return `null` while a row lacks the values, so empty rows (for example, the rows [`minSpareRows`](@/api/options.md#minsparerows) adds) do not all share one id:
 
 ```js
-rowId: (row) => `${row.country}-${row.code}`,
+rowId: (row) => (row.country == null || row.code == null ? null : `${row.country}-${row.code}`),
 ```
 
 When your data has no id field, let Handsontable generate the ids:
@@ -195,7 +195,11 @@ For a visible row (hidden rows included), the method works like [`setDataAtRowPr
 
 ## Cancel pending work when a row is removed
 
-The [`afterRowIdsRemoved`](@/api/hooks.md#afterrowidsremoved) hook passes the ids of rows that stopped existing. It fires after a row removal (an undo or a redo included), and after `loadData()` or `updateData()` replaced the data with data that no longer holds those ids. A trimmed or filtered-out row still exists, so the hook does not report it.
+The [`afterRowIdsRemoved`](@/api/hooks.md#afterrowidsremoved) hook passes the ids of rows that stopped existing. It fires after a row removal (an undo or a redo included), and after `loadData()` or `updateData()` replaced the data with data that no longer holds those ids.
+
+- The hook fires in a microtask, once the call that removed the rows has finished, with every id that call removed. Rows a call takes away and puts back, such as a nested rows detach or move, are not reported.
+- A trimmed or filtered-out row still exists, so the hook does not report it.
+- With a [data provider](@/api/options.md#dataprovider), loading a page, a sort, or a filter does not count as a removal, because the rows still exist on the server. A removal the server confirms is reported, with the `'dataProvider'` source.
 
 The [`afterRowIdsReset`](@/api/hooks.md#afterrowidsreset) hook fires when a settings update changes how rows get their ids. Every id read before it may now name another row, so cancel everything.
 
@@ -216,6 +220,32 @@ hot.addHook('afterRowIdsReset', () => {
 ```
 
 When you pass a function as `rowId`, pass the same function on every settings update. A new function counts as a change, and `afterRowIdsReset` fires each time.
+
+::: only-for react
+
+An inline arrow function in the `rowId` prop is a new function on every render, so `afterRowIdsReset` would fire on every re-render. Define the function outside the component, or wrap it in `useCallback`:
+
+```jsx
+const getRowId = (row) => row.sku;
+
+function InventoryGrid({ data }) {
+  return <HotTable data={data} rowId={getRowId} licenseKey="non-commercial-and-evaluation" />;
+}
+```
+
+:::
+
+::: only-for vue
+
+Define the `rowId` function once, outside the template expression, so every settings update passes the same function.
+
+:::
+
+::: only-for angular
+
+Define the `rowId` function once, as a class field, so every settings update passes the same function.
+
+:::
 
 ## Row ids with a data provider
 

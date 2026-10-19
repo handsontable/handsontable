@@ -167,7 +167,7 @@ These methods are already implemented in `BaseEditor`. Override them only when n
 | Method | Description |
 | --- | --- |
 | `prepare()` | Configures the editor for the selected cell. Sets `this.row`, `this.col`, `this.prop`, `this.TD`, and `this.cellProperties`. Parameters: `(row, col, prop, td, originalValue, cellProperties)`. |
-| `beginEditing()` | Sets the initial editor value and calls `open()`. Uses the original cell value when `newInitialValue` is `undefined`. Parameters: `(newInitialValue, event)`. |
+| `beginEditing()` | Sets the initial editor value and calls `open()`. Passes `newInitialValue` to `setValue()` when it is a string. Otherwise passes the cell value after the value getter. Parameters: `(newInitialValue, event)`. |
 | `finishEditing()` | Validates and saves the value, or restores the original when `restoreOriginalValue` is `true`. When `ctrlDown` is `true`, applies the value to all selected cells. Calls `close()` on success or `focus()` when validation fails. Parameters: `(restoreOriginalValue?, ctrlDown?, callback?)`. |
 | `discardEditor()` | Called after validation. If valid, calls `close()`; if invalid, calls `focus()` to keep the editor open. Parameter: `(result)`. |
 | `saveValue()` | Validates and saves `value`. Applies to all selected cells when `ctrlDown` is `true`. Parameters: `(value, ctrlDown)`. |
@@ -182,7 +182,7 @@ You must implement all of these in your custom editor class.
 | --- | --- |
 | `init()` | Called once when the editor object is created. Build the editor's DOM here. |
 | `getValue()` | Returns the current editor value to be saved as the new cell value. |
-| `setValue()` | Updates the editor to display the new value. Parameter: `(newValue)`. |
+| `setValue()` | Updates the editor to display the new value. `beginEditing()` passes the cell value after the value getter, or the string you passed to `beginEditing()`. When the editor needs a string, use `value == null ? '' : String(value)`. Parameter: `(value)`. |
 | `open()` | Shows the editor. |
 | `close()` | Hides the editor after editing ends. |
 | `focus()` | Focuses the editor input. Called when validation fails and the editor must stay open. |

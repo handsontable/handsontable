@@ -52,6 +52,7 @@ import type { StretchColumns } from './stretchColumns';
 import type { TouchScroll } from './touchScroll';
 import type { TrimRows } from './trimRows';
 import type { UndoRedo } from './undoRedo';
+import type { ViewState } from './viewState';
 
 /**
  * Maps plugin keys (as passed to getPlugin()) to their plugin class types.
@@ -105,4 +106,5 @@ export interface PluginTypeMap {
   touchScroll: TouchScroll;
   trimRows: TrimRows;
   undoRedo: UndoRedo;
+  viewState: ViewState;
 }

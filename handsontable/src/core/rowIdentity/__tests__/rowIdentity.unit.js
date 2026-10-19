@@ -814,8 +814,29 @@ describe('Row identity', () => {
   });
 
   describe('row lifecycle hooks', () => {
+    /**
+     * Waits until the removals of the current call are reported (they are, in a microtask).
+     *
+     * @returns {Promise}
+     */
+    function flushReports() {
+      return new Promise(resolve => setTimeout(resolve, 0));
+    }
+
+    /**
+     * Builds a parent with a child that has a child of its own, and a second parent.
+     *
+     * @returns {object[]}
+     */
+    function createTree() {
+      return [
+        { id: 'P1', name: 'P1', __children: [{ id: 'C11', name: 'C11', __children: [{ id: 'G1', name: 'G1' }] }] },
+        { id: 'P2', name: 'P2', __children: [{ id: 'C21', name: 'C21' }] },
+      ];
+    }
+
     MODES.forEach(({ title, rowId }) => {
-      it(`should report the ids of removed rows, with ${title}`, () => {
+      it(`should report the ids of removed rows once the removal finished, with ${title}`, async() => {
         createGrid({ rowId });
 
         const removed = jest.fn();
@@ -824,21 +845,43 @@ describe('Row identity', () => {
         hot.addHook('afterRowIdsRemoved', removed);
         hot.alter('remove_row', 1, 2, 'cleanup');
 
+        expect(removed).not.toHaveBeenCalled();
+
+        await flushReports();
+
         expect(removed).toHaveBeenCalledTimes(1);
         expect(removed).toHaveBeenCalledWith([ids.get('R1'), ids.get('R2')], 'cleanup');
 
         hot.getPlugin('undoRedo').undo();
+        await flushReports();
 
         expect(removed).toHaveBeenCalledTimes(1);
 
         hot.getPlugin('undoRedo').redo();
+        await flushReports();
 
         expect(removed).toHaveBeenCalledTimes(2);
         expect(removed.mock.calls[1][0]).toEqual([ids.get('R1'), ids.get('R2')]);
       });
     });
 
-    it('should report the id of a row an undo of its insertion removes', () => {
+    it('should report the removals of one call together', async() => {
+      createGrid({ rowId: 'id' });
+
+      const removed = jest.fn();
+
+      hot.addHook('afterRowIdsRemoved', removed);
+      hot.batch(() => {
+        hot.alter('remove_row', 0, 1, 'cleanup');
+        hot.alter('remove_row', 3, 1, 'cleanup');
+      });
+      await flushReports();
+
+      expect(removed).toHaveBeenCalledTimes(1);
+      expect(removed).toHaveBeenCalledWith(['id-0', 'id-4'], 'cleanup');
+    });
+
+    it('should report the id of a row an undo of its insertion removes', async() => {
       createGrid({ rowId: true });
 
       const removed = jest.fn();
@@ -849,11 +892,12 @@ describe('Row identity', () => {
       const insertedId = hot.getRowId(0);
 
       hot.getPlugin('undoRedo').undo();
+      await flushReports();
 
       expect(removed).toHaveBeenCalledWith([insertedId], 'UndoRedo.undo');
     });
 
-    it('should not report a removal that a listener canceled, or a trimmed row', () => {
+    it('should not report a removal that a listener canceled, or a trimmed row', async() => {
       createGrid({ rowId: 'id', trimRows: true });
 
       const removed = jest.fn();
@@ -863,54 +907,99 @@ describe('Row identity', () => {
       hot.alter('remove_row', 0, 1);
       hot.getPlugin('trimRows').trimRow(2);
       hot.render();
+      await flushReports();
 
       expect(hot.countRows()).toBe(5);
       expect(removed).not.toHaveBeenCalled();
     });
 
-    it('should report the ids of a removed parent and all its descendants', () => {
-      createGrid({
-        rowId: 'id',
-        columns: [{ data: 'name' }],
-        nestedRows: true,
-        rowHeaders: true,
-        data: [
-          { id: 'P1', name: 'P1', __children: [{ id: 'C11', name: 'C11', __children: [{ id: 'G1', name: 'G1' }] }] },
-          { id: 'P2', name: 'P2' },
-        ],
-      });
+    it('should report the ids of a removed parent and all its descendants', async() => {
+      createGrid({ rowId: 'id', columns: [{ data: 'name' }], nestedRows: true, rowHeaders: true, data: createTree() });
 
       const removed = jest.fn();
 
       hot.addHook('afterRowIdsRemoved', removed);
       hot.alter('remove_row', 0, 1);
+      await flushReports();
 
       expect(removed).toHaveBeenCalledTimes(1);
       expect(removed.mock.calls[0][0].slice().sort()).toEqual(['C11', 'G1', 'P1']);
     });
 
-    it('should report the ids that a data replacement leaves out', () => {
+    it('should not report the rows a nested rows detach or move puts back', async() => {
+      createGrid({
+        rowId: 'id',
+        columns: [{ data: 'name' }],
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true,
+        data: createTree(),
+      });
+
+      const removed = jest.fn();
+
+      const { dataManager } = hot.getPlugin('nestedRows');
+
+      hot.addHook('afterRowIdsRemoved', removed);
+      dataManager.detachFromParent(dataManager.getDataObject(1));
+      await flushReports();
+
+      expect(hot.getPhysicalRowsByIds(['P1', 'P2', 'C21', 'C11', 'G1'])).toEqual([0, 1, 2, 3, 4]);
+
+      hot.getPlugin('manualRowMove').dragRows([2], 1);
+      await flushReports();
+
+      expect(hot.getPhysicalRowsByIds(['P1', 'C21', 'P2', 'C11', 'G1'])).toEqual([0, 1, 2, 3, 4]);
+      expect(removed).not.toHaveBeenCalled();
+    });
+
+    // An UndoRedo restore of a nested rows step asks `beforeRemoveRow` for every change before it makes any.
+    it('should report each removed id once when a redo removes several nested subtrees', async() => {
+      createGrid({ rowId: 'id', columns: [{ data: 'name' }], nestedRows: true, rowHeaders: true, data: createTree() });
+
+      const removed = jest.fn();
+
+      hot.batch(() => {
+        hot.alter('remove_row', 3, 1);
+        hot.alter('remove_row', 0, 1);
+      });
+      hot.getPlugin('undoRedo').undo();
+
+      expect(hot.getPhysicalRowById('G1')).not.toBeNull();
+
+      hot.addHook('afterRowIdsRemoved', removed);
+      hot.getPlugin('undoRedo').redo();
+      await flushReports();
+
+      expect(removed).toHaveBeenCalledTimes(1);
+      expect(removed.mock.calls[0][0].slice().sort()).toEqual(['C11', 'C21', 'G1', 'P1', 'P2']);
+    });
+
+    it('should report the ids that a data replacement leaves out', async() => {
       createGrid({ rowId: 'id' });
 
       const removed = jest.fn();
 
       hot.addHook('afterRowIdsRemoved', removed);
       hot.updateData(createRecords(6).reverse());
+      await flushReports();
 
       expect(removed).not.toHaveBeenCalled();
 
       hot.updateData(createRecords(4), 'serverSync');
+      await flushReports();
 
       expect(removed).toHaveBeenCalledTimes(1);
       expect(removed.mock.calls[0][0].slice().sort()).toEqual(['id-4', 'id-5']);
       expect(removed.mock.calls[0][1]).toBe('serverSync');
 
       hot.loadData([{ id: 'id-0', name: 'R0', value: 0 }, { id: 'new', name: 'N', value: 1 }], 'reload');
+      await flushReports();
 
       expect(removed).toHaveBeenLastCalledWith(['id-1', 'id-2', 'id-3'], 'reload');
     });
 
-    it('should report every generated id when `loadData()` gives the rows new ones', () => {
+    it('should report every generated id when `loadData()` gives the rows new ones', async() => {
       createGrid({ rowId: true });
 
       const removed = jest.fn();
@@ -918,14 +1007,55 @@ describe('Row identity', () => {
 
       hot.addHook('afterRowIdsRemoved', removed);
       hot.loadData(createRecords(6), 'reload');
+      await flushReports();
 
       expect(removed).toHaveBeenCalledWith(ids, 'reload');
     });
 
-    it('should not report anything when the grid loads its first data', () => {
+    // The DataProvider plugin loads every page, sort, and filter with `loadData()`.
+    it('should not report the rows a grid backed by an external data source loads away', async() => {
+      createGrid({ rowId: 'id' });
+
+      const removed = jest.fn();
+
+      hot.addHook('afterRowIdsRemoved', removed);
+      hot.addHook('hasExternalDataSource', () => true);
+      hot.loadData(createRecords(2), 'dataProvider');
+      await flushReports();
+
+      expect(removed).not.toHaveBeenCalled();
+    });
+
+    it('should not report anything when the grid loads its first data', async() => {
       const removed = jest.fn();
 
       createGrid({ rowId: 'id', afterRowIdsRemoved: removed });
+      await flushReports();
+
+      expect(removed).not.toHaveBeenCalled();
+    });
+
+    it('should not keep the microtasks it queued once they ran', async() => {
+      createGrid({ rowId: true, afterRowIdsRemoved: () => {} });
+
+      hot.loadData(createRecords(3));
+      hot.alter('remove_row', 0, 1);
+      hot.updateData(createRecords(2));
+      await flushReports();
+
+      expect(hot.microtasks.length).toBe(0);
+    });
+
+    it('should report nothing after the grid is destroyed', async() => {
+      createGrid({ rowId: 'id' });
+
+      const removed = jest.fn();
+
+      hot.addHook('afterRowIdsRemoved', removed);
+      hot.alter('remove_row', 0, 1);
+      hot.destroy();
+      hot = null;
+      await flushReports();
 
       expect(removed).not.toHaveBeenCalled();
     });

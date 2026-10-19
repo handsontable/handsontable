@@ -875,6 +875,7 @@ export default function Core(
       return editor ? (editor.isOpened() as boolean) : false;
     },
     isPluginEnabled: (pluginName: string) => instance.getPlugin(pluginName)?.enabled === true,
+    isPluginRegistered: (pluginName: string) => instance.getPlugin(pluginName) !== undefined,
     countRenderableColumns: () => instance.view.countRenderableColumns() as number,
     countRenderableRows: () => instance.view.countRenderableRows() as number,
     countRowHeaders: () => instance.countRowHeaders() as number,
@@ -2561,10 +2562,10 @@ export default function Core(
           return;
         }
 
-        let width = view.isHorizontallyScrollableByWindow()
-          ? view.getTotalTableWidth() : view.getWorkspaceWidth();
+        const isWindowAxis = view.isHorizontallyScrollableByWindow();
+        let width = isWindowAxis ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-        if (width === 0 && instance.rootWrapperElement) {
+        if ((width === 0 || (isWindowAxis && instance.countRenderedCols() <= 0)) && instance.rootWrapperElement) {
           width = instance.rootWrapperElement.offsetWidth;
         }
 
@@ -2581,7 +2582,7 @@ export default function Core(
         // table downwards – pinned by the `inline-block-host` case of `bottom-slot-sizing.spec.ts`.
         const wrapperWidth = instance.rootWrapperElement?.clientWidth ?? 0;
 
-        if (view.isHorizontallyScrollableByWindow() && wrapperWidth > 0) {
+        if (isWindowAxis && wrapperWidth > 0) {
           width = Math.min(width, wrapperWidth);
         }
 
@@ -6033,9 +6034,12 @@ export default function Core(
    * @returns {Array} The ids, in the order of `rows`, with `null` for a row that does not exist or has no id.
    */
   this.getRowIds = function(rows?: number[]): unknown[] {
-    const visualRows = Array.isArray(rows) ? rows : Array.from({ length: instance.countRows() }, (_, row) => row);
+    const rowsCount = instance.countRows();
+    const visualRows = Array.isArray(rows) ? rows : Array.from({ length: rowsCount }, (_, row) => row);
+    const physicalRows = visualRows.map(row => (Number.isInteger(row) && row >= 0 && row < rowsCount ?
+      instance.toPhysicalRow(row) : null));
 
-    return visualRows.map(row => instance.getRowId(row));
+    return rowIdentity.getRowIdsAtPhysicalRows(physicalRows);
   };
 
   /**
@@ -8243,6 +8247,10 @@ export default function Core(
    * @fires Hooks#afterDestroy
    */
   this.destroy = function() {
+    // Never resumed: nothing may render a grid that is being torn down. A plugin whose `destroy()`
+    // re-renders to reflect its own removal at runtime (Autofill hides the fill handle) would
+    // otherwise render the view destroyed below (DEV-775).
+    instance.suspendRender();
     instance._clearTimeouts();
     instance._clearMicrotasks();
     // A transaction held by a pending validator must not settle on a destroyed instance.
@@ -8304,7 +8312,12 @@ export default function Core(
       pluginsRegistry
         .getItems()
         .forEach(([, plugin]) => {
-          (plugin as BasePlugin).destroy();
+          // A plugin destroyed on its own, ahead of the grid, has no `hot` left. Its `destroy()`
+          // override may read `hot` or its own nulled fields again before reaching the base class,
+          // and a throw here would skip every later plugin and the `afterDestroy` hook (DEV-775).
+          if ((plugin as BasePlugin).hot) {
+            (plugin as BasePlugin).destroy();
+          }
         });
       pluginsRegistry.clear();
       instance.runHooks('afterDestroy');
@@ -8857,9 +8870,19 @@ export default function Core(
 
     this.microtasks.push(entry);
     this.rootWindow.queueMicrotask(() => {
-      if (!entry.cancelled) {
-        callback();
+      // A cancelled entry was dropped by `_clearMicrotasks()`, which `destroy()` calls before it clears the instance.
+      if (entry.cancelled) {
+        return;
       }
+
+      const index = this.microtasks.indexOf(entry);
+
+      // Drop the entry once it ran, or every validated edit and every data load keeps one until `destroy()`.
+      if (index !== -1) {
+        this.microtasks.splice(index, 1);
+      }
+
+      callback();
     });
   };
 
