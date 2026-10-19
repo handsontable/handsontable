@@ -285,7 +285,11 @@ When several listeners are added to one of these hooks, each one receives the pr
 - Return `undefined` (or nothing) to keep a request or a value. Returning `true` from `beforeAsyncValueStart` passes `true` to the next listener in place of the row index.
 - To respect an earlier listener's decision, check whether the first argument is `false`.
 
-Every `beforeAsyncValueResolve` listener of a flush runs before any value is written. A listener that throws fails its own cell with the error it threw, and the error is thrown again once the other cells are written. A `beforeAsyncValueStart` listener that throws skips its cell, and the error is thrown from the method that started the requests, once it has started the other cells.
+Every `beforeAsyncValueResolve` listener of a flush runs before any value is written. A listener that throws fails its own cell with the error it threw. The plugin writes the other cells, then reports the error as an uncaught error.
+
+A `beforeAsyncValueStart` listener that throws skips its cell. The method that started the requests starts the other cells first, then throws the error.
+
+A listener of any other async values hook that throws doesn't keep the other cells from their hooks.
 
 ## Read the state of a cell
 
@@ -336,13 +340,18 @@ With `undo: 'record'`, every value one call wrote becomes one undo step, recorde
 asyncValues.setAsyncValuesInBatches('all', 'category', classify, { undo: 'record' });
 ```
 
-One undo then reverts the whole run, and one redo applies it again. The values appear while the run is in progress, and the step lands on the undo stack right after the run's last request settles, so the user can keep editing and undoing meanwhile. The step records what the grid stored, after a `valueSetter` or a validator changed the value.
+One undo then reverts the whole run, and one redo applies it again. The values appear while the run is in progress, so the user can keep editing and undoing meanwhile. The step lands on the undo stack once the run's last request settles and its last value passes the cell's validator. By the time the call's promise resolves, the step is there.
+
+The step is a `'change'` action with the call's `source`, as [`beforeUndo`](@/api/hooks.md#beforeundo) receives it. It records what the grid stored, after a `valueSetter` or a validator changed the value. Like any new step, it clears the redo history: an undo the user makes while a run is in progress can't be redone once the run's step lands.
 
 A few values stay out of the run's step:
 
 - A cell the user edits after its value landed: the user's edit is a step of its own.
-- A value that an asynchronous validator writes after the run finishes.
+- A cell that a later call writes before this call finishes: the later call's step owns it.
+- A cell that a data update, such as [`updateData()`](@/api/core.md#updatedata), changed after the value landed.
 - The `meta` the run merged into the cells: an undo doesn't remove it.
+
+If you disable the plugin while a call is in progress, the values that already landed get no undo step.
 
 An undo or redo that changes a pending cell cancels its request, and redo does not start it again.
 

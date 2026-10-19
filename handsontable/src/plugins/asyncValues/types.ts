@@ -185,7 +185,7 @@ export interface AsyncValuesSettings {
   flush?: 'microtask' | 'frame' | number;
   /**
    * The maximum number of sources running at once (a batch counts as one). Further requests stay pending
-   * and wait for a free slot. Default: no limit.
+   * and wait for a free slot. Default: `6`; `Infinity` lifts the limit.
    */
   concurrency?: number;
   /**

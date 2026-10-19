@@ -57,13 +57,22 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   open.** An `operationScope.hold()`ed step that has journaled data absorbs every user edit made meanwhile and
   keeps `isUndoAvailable()` false until it settles (`../undoRedo/AGENTS.md`), which an AI run of minutes cannot
   afford. So every write of the call is suppressed like a `'skip'` write, and `#planWrite` keeps a
-  `PendingWrite { run, oldValue, landed }` in the row's `writes` map (it follows the row through inserts,
-  removals, index resets and data replacements, because it lives on the `RowState`). The write LANDS when its
-  own change event arrives (`afterChange`/`afterSetSourceDataAtCell` with the call's `source`, in
-  `#landWrite`); any other change to the cell first drops it, so the user's edit stays a step of its own. When
-  the run's `live` count reaches 0, `#finalizeRun` (a macrotask later, so a write a quick asynchronous validator
-  delayed has landed) journals every landed write whose cell no longer holds `oldValue` with
-  `recordCellChange()` inside ONE `operationScope.run('async_values', source, …)`. Nothing is written again:
+  `PendingWrite` in the row's `writes` map (it follows the row through inserts, removals, index resets and
+  data replacements, because it lives on the `RowState`) and counts it in `run.unlanded`. The write LANDS when
+  its own change event arrives (`afterChange`/`afterSetSourceDataAtCell` with the call's `source`, in
+  `#landWrite`, which keeps the stored value as `landedValue`); any other change to the cell first drops it, so
+  the user's edit stays a step of its own. Core runs EVERY validator in a later microtask, so a validated
+  write cannot land inside the flush: `beforeValidate` (synchronous, inside the write) marks it `validating`,
+  `afterValidate` with `allowInvalid: false` drops a rejected one, and any write that neither landed nor
+  validates by the end of `#write` never lands (a `beforeChange` veto) and is dropped. A call is finalized
+  (`#maybeFinalize`) once `live` and `unlanded` are both 0: inside a flush right after the write (so the step
+  exists when the caller's promise resolves and when `afterAsyncValuesIdle` fires), anywhere else a microtask
+  later, out of the operation that triggered it. A fixed timeout was used before and lost the `meta` and the
+  step whenever a validator answered in a timer. `#finalizeRun` walks only the call's `writeStates` and
+  journals every landed write whose cell still holds `landedValue` (a data replacement can bring the
+  server's value in without any change event, and undo must not write the old value over it) with
+  `recordCellChange()` inside ONE `operationScope.run('change', source, …)`, so the step carries `changes` and
+  `selected` like any edit. Nothing is written again:
   an earlier design wrote the old values back suppressed and the new ones recorded, which reset an open editor
   (`setSourceDataAtCell` refreshes it), fired every change listener twice, and compared against the RESOLVED
   value, so a `valueSetter` or numeric parse that changed it dropped the cell from the step. The step records
@@ -103,11 +112,16 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
 - **A throwing listener must not strand a cell.** The flush runs in two phases: `#decide` asks every
   `beforeAsyncValueResolve` listener before anything is written (a listener that moves rows cannot misplace a
   write; a throw fails its own cell with the thrown error), then `#apply` writes, and the promises settle and
-  the hooks fire in nested `finally` blocks. The first listener error is thrown again at the end, from the
-  flush's task. Start listeners (`before`/`afterAsyncValueStart`) run through `#runDeferringErrors`: a throwing
+  the hooks fire in `finally` blocks. Every write group runs on its own (`#write`), and every per-cell hook
+  loop goes through `#runEach`, so one throwing listener costs no other cell its write or its hook. The first
+  error is thrown again at the end, from the flush's task. Start listeners (`before`/`afterAsyncValueStart`)
+  and the cancel hook of the request a restart replaces run through `#runDeferringErrors`: a throwing
   `beforeAsyncValueStart` counts as a veto of its cell, the call starts every other cell (batches launch in a
-  `finally`), and `#afterStarting` throws the first error. `#settlingDepth` holds `afterAsyncValuesIdle` until
-  the outermost flush is done, so it never fires before that flush's resolve hooks. Pinned by
+  `finally`), and `#afterStarting` throws the first error. `disablePlugin()` catches a cancel listener's error
+  and throws it after `super.disablePlugin()`, so the plugin is never left half disabled. A listener can also
+  destroy the grid: `BasePlugin#destroy()` drops `hot`, so `#runEach`, `#afterSettling`, `#apply` and
+  `#finalizeRun` check `#isGone()`. `#settlingDepth` holds `afterAsyncValuesIdle` until the outermost flush is
+  done, so it never fires before that flush's resolve hooks. Pinned by
   `__tests__/listeners.unit.ts`.
 - **`beforeAsyncValueResolve` takes the value as its FIRST argument** because a hook listener's return feeds the
   next listener's first argument. `false` discards, any other non-`undefined` return replaces the value. A
@@ -208,12 +222,20 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   the end of a long or right-aligned value; padding the cell instead would rewrap text and change the row
   height while the request runs.
 - **DataProvider: a resolved value is not saved.** `'AsyncValues.resolve'` is not in
-  `DATA_PROVIDER_BATCH_UPDATE_SOURCES` on purpose: a saved update refetches, and without `dataProvider.rowId`
-  a refetch cancels every request. With `dataProvider.rowId` the requests of the rows still on the page survive
-  a refetch (the data-replacement remap above); saving stays the application's job.
-- **The `'microtask'` flush is a bare `rootWindow.queueMicrotask()`**, not `_registerMicrotask()`, which keeps
-  one record per call for the instance's life (a column of separate responses flushes once per response).
-  `#flush` returns before touching `hot` when nothing is queued, which is the state after `destroy()`.
+  `DATA_PROVIDER_BATCH_UPDATE_SOURCES` on purpose. Every saved update is an `onRowsUpdate` call plus a full
+  refetch, so a column of separate responses would be N saves and N refetches, and a refetch cancels the
+  requests of the rows that left the page. The values of filtered-out rows go through `setSourceDataAtCell`,
+  which fires no `afterChange`, so only the visible rows would be saved. And DataProvider blocks undo for its
+  batch sources, which `undo: 'record'` relies on. `dataProvider.rowId` is required, so the requests of the
+  rows still on the page do survive a refetch (the data-replacement remap above). Saving stays the
+  application's job (`updateRows()` from `afterAsyncValueResolve` or `afterAsyncValuesIdle`).
+- **The `'microtask'` flush is a bare `rootWindow.queueMicrotask()`**, not `_registerMicrotask()`: `#cancelFlush`
+  cancels it, and `#flush` returns before touching `hot` when nothing is queued, which is the state after
+  `destroy()`, so it needs no core bookkeeping. A numeric `flush` uses `_registerTimeout()`, which drops each
+  handle once it fires.
+- **The launch queue compacts its array.** It advances a head index instead of `shift()`, and with a standing
+  backlog the array would never empty, keeping every started launch (and the cells its closure holds), so
+  `pump()` cuts the started part off once the head passes `COMPACT_THRESHOLD` and half the array.
 - **`copyPendingAs: 'empty'`** blanks pending cells in `beforeCopy`'s data. The data is laid out over the union
   of the copied ranges' rows and columns in first-seen order (`readCopiedAxes` mirrors copyPaste's
   `normalizeRanges`, which a plugin may not import). Export keeps the current value.
@@ -233,11 +255,12 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
 
 ## Testing
 
-- Unit: `npm run test:unit --prefix handsontable -- --testPathPattern=asyncValues` (jsdom grids). Six files:
+- Unit: `npm run test:unit --prefix handsontable -- --testPathPattern=asyncValues` (jsdom grids). Seven files:
   `asyncValues.unit.ts` (the lifecycle, cancellation, re-entrancy, rows, other plugins), `rows.unit.ts` (starting by
   physical row and row id, data replacement), `batching.unit.ts` (batch sources, concurrency, flush strategies),
   `api.unit.ts` (progress, retry, request options, before-hooks, copying, `undo: 'record'`), `listeners.unit.ts`
-  (throwing listeners, the order of the hooks, the counts and the editor during a write), `utils.unit.ts`
+  (throwing listeners, the order of the hooks, the counts and the editor during a write), `launchQueue.unit.ts`
+  (FIFO order through the compaction), `utils.unit.ts`
   (`readCopiedAxes` against copyPaste's `normalizeRanges`). Shared builders are in
   `__tests__/helpers/grid.ts`. Results settle through the returned promise; a late result needs a macrotask
   (`setTimeout(0)`) to prove it was dropped, because the default flush is a microtask. `flush: 'frame'` is tested

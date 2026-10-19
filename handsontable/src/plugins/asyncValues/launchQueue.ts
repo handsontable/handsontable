@@ -86,6 +86,11 @@ export class Launch {
 }
 
 /**
+ * How many started launches the queue keeps at its head before it compacts the array.
+ */
+const COMPACT_THRESHOLD = 1024;
+
+/**
  * Runs launches with at most `limit()` of them holding a slot at once, first in, first out.
  */
 export class LaunchQueue {
@@ -162,6 +167,12 @@ export class LaunchQueue {
 
       if (this.#head === this.#waiting.length) {
         this.clear();
+
+      } else if (this.#head > COMPACT_THRESHOLD && this.#head * 2 > this.#waiting.length) {
+        // With a standing backlog the array never empties, so the started launches (and the cells their
+        // closures hold) are cut off here.
+        this.#waiting = this.#waiting.slice(this.#head);
+        this.#head = 0;
       }
     }
   }

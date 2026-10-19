@@ -105,6 +105,143 @@ describe('AsyncValues: listeners that throw, and the order of the hooks', () => 
     destroy();
   });
 
+  it('should start a restarted request when the previous request\'s cancel listener throws', async() => {
+    const { hot, plugin, destroy } = createGrid();
+    const thrown = new Error('Listener failed');
+    const source = jest.fn(async() => 'new A');
+
+    plugin.setAsyncValue(0, 1, () => deferred().promise);
+    hot.addHook('afterAsyncValueCancel', () => {
+      throw thrown;
+    });
+
+    expect(() => plugin.setAsyncValue(0, 1, source)).toThrow(thrown);
+    expect(source).toHaveBeenCalledTimes(1);
+
+    await settle();
+
+    expect(hot.getDataAtCell(0, 1)).toBe('new A');
+    expect(plugin.countPending()).toBe(0);
+
+    destroy();
+  });
+
+  it('should start every cell of a batch that restarts a cell whose cancel listener throws', async() => {
+    const { hot, plugin, destroy } = createGrid();
+    const thrown = new Error('Listener failed');
+    const calls: number[][] = [];
+
+    plugin.setAsyncValue(1, 1, () => deferred().promise);
+    hot.addHook('afterAsyncValueCancel', () => {
+      throw thrown;
+    });
+
+    expect(() => plugin.setAsyncValuesInBatches('all', 'name', async(cells) => {
+      calls.push(cells.map(cell => cell.physicalRow));
+
+      return cells.map(() => 'new');
+    })).toThrow(thrown);
+    expect(calls).toEqual([[0, 1, 2, 3]]);
+
+    await settle();
+
+    expect(plugin.countPending()).toBe(0);
+
+    destroy();
+  });
+
+  it('should disable the plugin when a cancel listener throws while it disables', () => {
+    const { hot, plugin, destroy } = createGrid();
+    const thrown = new Error('Listener failed');
+
+    plugin.setAsyncValue(0, 1, () => deferred().promise);
+    hot.addHook('afterAsyncValueCancel', () => {
+      throw thrown;
+    });
+
+    expect(() => hot.updateSettings({ asyncValues: false })).toThrow(thrown);
+    expect(plugin.enabled).toBe(false);
+    expect(() => plugin.setAsyncValue(1, 1, async() => 'new')).toThrow('not enabled');
+
+    destroy();
+  });
+
+  it('should fire the hooks of the other cells when one cell\'s resolve or cancel listener throws', async() => {
+    const { hot, plugin, destroy } = createGrid();
+    const thrown = new Error('Listener failed');
+    const windowErrors = catchWindowErrors(hot.rootWindow);
+    const resolved: number[] = [];
+    const cancelled: number[] = [];
+
+    hot.addHook('afterAsyncValueResolve', (physicalRow) => {
+      resolved.push(physicalRow);
+
+      if (physicalRow === 0) {
+        throw thrown;
+      }
+    });
+    hot.addHook('afterAsyncValueCancel', (physicalRow) => {
+      cancelled.push(physicalRow);
+
+      if (physicalRow === 0) {
+        throw thrown;
+      }
+    });
+
+    await plugin.setAsyncValues(0, 1, 2, 1, async() => 'new');
+    await settle();
+
+    expect(resolved).toEqual([0, 1, 2]);
+    expect(windowErrors.errors).toEqual([thrown]);
+
+    plugin.setAsyncValues(0, 1, 2, 1, () => deferred().promise);
+
+    expect(() => plugin.cancelAll()).toThrow(thrown);
+    expect(cancelled).toEqual([0, 1, 2]);
+
+    windowErrors.stop();
+    destroy();
+  });
+
+  it('should write the other values of a flush when a `beforeChange` listener throws', async() => {
+    const thrown = new Error('Listener failed');
+    const { hot, plugin, destroy } = createGrid({
+      trimRows: [3],
+      beforeChange() {
+        throw thrown;
+      },
+    });
+    const windowErrors = catchWindowErrors(hot.rootWindow);
+    const results = Promise.all([
+      plugin.setAsyncValue(0, 1, Promise.resolve('new A')),
+      plugin.setAsyncValueAt({ physicalRow: 3, prop: 'name' }, Promise.resolve('new D')),
+    ]);
+
+    await results;
+    await settle();
+
+    expect(hot.getSourceDataAtCell(3, 'name')).toBe('new D');
+    expect(windowErrors.errors).toEqual([thrown]);
+
+    windowErrors.stop();
+    destroy();
+  });
+
+  it('should stop quietly when a resolve listener destroys the grid', async() => {
+    const { hot, plugin } = createGrid();
+    const windowErrors = catchWindowErrors(hot.rootWindow);
+
+    hot.addHook('afterAsyncValueResolve', () => hot.destroy());
+
+    await plugin.setAsyncValues(0, 1, 2, 1, async() => 'new', { undo: 'record', meta: { className: 'x' } });
+    await settle();
+
+    expect(hot.isDestroyed).toBe(true);
+    expect(windowErrors.errors).toEqual([]);
+
+    windowErrors.stop();
+  });
+
   it('should fire `afterAsyncValuesIdle` after the resolve hooks of the last flush', async() => {
     const { hot, plugin, destroy } = createGrid();
     const order: string[] = [];

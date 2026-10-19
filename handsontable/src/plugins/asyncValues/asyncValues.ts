@@ -69,13 +69,16 @@ interface ResolvedOptions {
 }
 
 /**
- * One public call: the requests it started share it. When its last request settles, the writes it
- * left behind are finalized: recorded as one undo step (`undo: 'record'`) and forgotten.
+ * One public call: the requests it started share it. When its last request has settled and every value
+ * it wrote has landed (or was dropped), the writes are finalized: recorded as one undo step
+ * (`undo: 'record'`) and forgotten.
  */
 interface Run {
   options: ResolvedOptions;
   live: number;
-  hasWrites: boolean;
+  unlanded: number;
+  writeStates: Set<RowState>;
+  finalized: boolean;
 }
 
 /**
@@ -115,13 +118,17 @@ interface AsyncValueEntry {
 
 /**
  * A value a call wrote, kept until the call is finalized when the call records an undo step or applies
- * meta. It is `landed` once the grid stored it (the write's own change event), and dropped when any
- * other change reaches the cell first.
+ * meta. It is `landed` once the grid stored it (the write's own change event), with the value the grid
+ * stored. It is `validating` while the cell's validator runs, and dropped when the write cannot land (a
+ * `beforeChange` veto, a rejection under `allowInvalid: false`) or when any other change reaches the cell
+ * first.
  */
 interface PendingWrite {
   run: Run;
   oldValue: unknown;
   landed: boolean;
+  landedValue: unknown;
+  validating: boolean;
 }
 
 /**
@@ -174,6 +181,7 @@ interface Target {
 interface Writes {
   visible: Map<string, Change[]>;
   source: Map<string, Change[]>;
+  planned: Array<[RowState, AsyncValueProp, PendingWrite]>;
 }
 
 /**
@@ -400,6 +408,17 @@ export class AsyncValues extends BasePlugin {
   #deferredError: { error: unknown } | null = null;
 
   /**
+   * How deep the plugin is in applying a flush. Calls finalized meanwhile wait in `#readyRuns` until the
+   * flush has written.
+   */
+  #applyDepth = 0;
+
+  /**
+   * The calls ready to be finalized once the running flush has written.
+   */
+  #readyRuns: Run[] = [];
+
+  /**
    * Checks if the plugin is enabled in the Handsontable settings.
    *
    * @returns {boolean}
@@ -426,6 +445,8 @@ export class AsyncValues extends BasePlugin {
     // `afterChange` is not cancelled by the very change that started it.
     this.addHook('afterChange', this.#onAfterChange, -1);
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell, -1);
+    this.addHook('beforeValidate', this.#onBeforeValidate);
+    this.addHook('afterValidate', this.#onAfterValidate);
     // Before the application's listeners, so a listener that cancels or writes a cell there already sees
     // every row state on its current physical row.
     this.addHook('afterCreateRow', this.#syncRows, -1);
@@ -461,13 +482,20 @@ export class AsyncValues extends BasePlugin {
    * and clears every error state.
    */
   disablePlugin(): void {
+    let failure: { error: unknown } | null = null;
+
     // Unlike most plugins, the cleanup runs before `super.disablePlugin()`: the decoration is taken
     // off by `afterRenderer`, so the grid has to paint once while that hook is still registered.
     if (this.#entries.size > 0) {
       this.#disabling = true;
 
+      // A cancel listener that throws must not leave the plugin half disabled: the error is thrown
+      // again once the plugin is off.
       try {
         this.#clearAll('disabled');
+
+      } catch (error) {
+        failure = { error };
 
       } finally {
         this.#disabling = false;
@@ -492,6 +520,10 @@ export class AsyncValues extends BasePlugin {
     }
 
     super.disablePlugin();
+
+    if (failure) {
+      throw failure.error;
+    }
   }
 
   /**
@@ -514,6 +546,7 @@ export class AsyncValues extends BasePlugin {
    * @fires Hooks#afterAsyncValueCancel
    * @fires Hooks#afterAsyncValueStart
    * @throws {Error} When the plugin is disabled, or the coordinates point outside the grid.
+   * A hook listener's error is thrown too, once the call has started its other cells.
    * @returns {Promise<object>} A promise that never rejects. It resolves with an object that describes
    * how the request ended: `{ status: 'resolved', value }`, `{ status: 'rejected', error, message }`,
    * or `{ status: 'cancelled', reason }`.
@@ -540,6 +573,7 @@ export class AsyncValues extends BasePlugin {
    * @fires Hooks#afterAsyncValueCancel
    * @fires Hooks#afterAsyncValueStart
    * @throws {Error} When the plugin is disabled, or the cell does not exist.
+   * A hook listener's error is thrown too, once the call has started its other cells.
    * @returns {Promise<object>} A promise of how the request ended (see {@link AsyncValues#setAsyncValue}).
    */
   setAsyncValueAt(
@@ -583,6 +617,7 @@ export class AsyncValues extends BasePlugin {
    * @fires Hooks#afterAsyncValueCancel
    * @fires Hooks#afterAsyncValueStart
    * @throws {Error} When the plugin is disabled, or the range reaches outside the grid.
+   * A hook listener's error is thrown too, once the call has started its other cells.
    * @returns {Promise<object[]>} A promise of the results, one per cell, in row-major order.
    */
   setAsyncValues(
@@ -627,6 +662,7 @@ export class AsyncValues extends BasePlugin {
    * @fires Hooks#afterAsyncValueCancel
    * @fires Hooks#afterAsyncValueStart
    * @throws {Error} When the plugin is disabled, a row does not exist, or the column cannot hold values.
+   * A hook listener's error is thrown too, once the call has started its other cells.
    * @returns {Promise<object[]>} A promise of the results, one per row, in the order of `rows`.
    */
   setAsyncValuesForRows(
@@ -659,6 +695,7 @@ export class AsyncValues extends BasePlugin {
    * @fires Hooks#afterAsyncValueCancel
    * @fires Hooks#afterAsyncValueStart
    * @throws {Error} When the plugin is disabled, a row does not exist, or the column cannot hold values.
+   * A hook listener's error is thrown too, once the call has started its other cells.
    * @returns {Promise<object[]>} A promise of the results, one per row, in the order of `rows`.
    */
   setAsyncValuesInBatches(
@@ -729,6 +766,7 @@ export class AsyncValues extends BasePlugin {
    * @param {number} column Visual column index.
    * @fires Hooks#beforeAsyncValueStart
    * @fires Hooks#afterAsyncValueStart
+   * @throws {Error} When a hook listener throws, once the cells are started.
    * @returns {Promise<object>|null} A promise of how the new request ended, or `null` when the cell has
    * no error, or no source to retry (a plain promise, or `keepSource: false`).
    */
@@ -743,6 +781,7 @@ export class AsyncValues extends BasePlugin {
    * @param {object} cell The cell.
    * @fires Hooks#beforeAsyncValueStart
    * @fires Hooks#afterAsyncValueStart
+   * @throws {Error} When a hook listener throws, once the cells are started.
    * @returns {Promise<object>|null} A promise of how the new request ended, or `null`.
    */
   retryAt(cell: AsyncCellRef): Promise<AsyncValueResult> | null {
@@ -761,6 +800,7 @@ export class AsyncValues extends BasePlugin {
    *
    * @fires Hooks#beforeAsyncValueStart
    * @fires Hooks#afterAsyncValueStart
+   * @throws {Error} When a hook listener throws, once the cells are started.
    * @returns {Promise<object[]>} A promise of the results of the retried cells.
    */
   retryErrors(): Promise<AsyncValueResult[]> {
@@ -901,7 +941,9 @@ export class AsyncValues extends BasePlugin {
         batchSize: typeof batchSize === 'number' && batchSize >= 1 ? Math.floor(batchSize) : DEFAULT_BATCH_SIZE,
       },
       live: 0,
-      hasWrites: false,
+      unlanded: 0,
+      writeStates: new Set(),
+      finalized: false,
     };
   }
 
@@ -932,7 +974,7 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
-   * Renders the cells a call started, finalizes the call right away when nothing in it is pending, and
+   * Renders the cells a call started, reports an idle grid when nothing in the call is pending, and
    * throws the first error a hook listener threw meanwhile.
    *
    * @param {object} run The call.
@@ -970,6 +1012,55 @@ export class AsyncValues extends BasePlugin {
 
       return null;
     }
+  }
+
+  /**
+   * Runs `#afterStarting()` for every call, and throws the first error once all of them ran.
+   *
+   * @param {object[]} runs The calls.
+   */
+  #afterStartingEach(runs: Run[]): void {
+    const failure = this.#runEach(runs, run => this.#afterStarting(run));
+
+    if (failure) {
+      throw failure.error;
+    }
+  }
+
+  /**
+   * Calls a function for every item, going on past the ones that throw, and stops once the grid is
+   * destroyed (a hook listener can destroy it).
+   *
+   * @param {Array} items The items.
+   * @param {Function} call The function.
+   * @returns {object|null} The first error, as `{ error }`, or `null`.
+   */
+  #runEach<T>(items: T[], call: (item: T) => void): { error: unknown } | null {
+    let failure: { error: unknown } | null = null;
+
+    items.forEach((item) => {
+      if (this.#isGone()) {
+        return;
+      }
+
+      try {
+        call(item);
+
+      } catch (error) {
+        failure ??= { error };
+      }
+    });
+
+    return failure;
+  }
+
+  /**
+   * Tells whether the grid was destroyed. `BasePlugin#destroy()` drops `hot`.
+   *
+   * @returns {boolean}
+   */
+  #isGone(): boolean {
+    return !this.hot || this.hot.isDestroyed;
   }
 
   /**
@@ -1143,8 +1234,10 @@ export class AsyncValues extends BasePlugin {
 
     this.#markChanged(entry);
 
+    // Deferred like the start hooks: a throwing cancel listener must not leave the new entry pending with
+    // no source launched for it.
     if (previous) {
-      this.#notifyCleared([[previous, 'restart']]);
+      this.#runDeferringErrors(() => this.#notifyCleared([[previous, 'restart']]));
     }
 
     if (this.#isPending(entry)) {
@@ -1342,7 +1435,7 @@ export class AsyncValues extends BasePlugin {
         let run = runs.get(entry.run.options);
 
         if (!run) {
-          run = { options: entry.run.options, live: 0, hasWrites: false };
+          run = { options: entry.run.options, live: 0, unlanded: 0, writeStates: new Set(), finalized: false };
           runs.set(entry.run.options, run);
         }
 
@@ -1379,7 +1472,7 @@ export class AsyncValues extends BasePlugin {
       });
 
     } finally {
-      runs.forEach(run => this.#afterStarting(run));
+      this.#afterStartingEach([...runs.values()]);
     }
 
     return failed.map(entry => results.get(entry)!);
@@ -1451,8 +1544,8 @@ export class AsyncValues extends BasePlugin {
       this.hot._registerTimeout(run, flush);
 
     } else {
-      // Not `_registerMicrotask()`: it keeps one record per call for the instance's life, and a column of
-      // separate network responses flushes once per response. `#flush` reads nothing after a destroy.
+      // A bare microtask: `#cancelFlush` cancels it, and `#flush` reads nothing after a destroy, so it
+      // needs none of `_registerMicrotask()`'s bookkeeping.
       rootWindow.queueMicrotask(run);
     }
   }
@@ -1476,8 +1569,8 @@ export class AsyncValues extends BasePlugin {
     }
 
     const done: SettledRequest[] = [];
+    const failures: Array<{ error: unknown } | null> = [];
     let vetoed: AsyncValueEntry[] = [];
-    let failure: { error: unknown } | null = null;
 
     this.#settlingDepth += 1;
 
@@ -1485,8 +1578,7 @@ export class AsyncValues extends BasePlugin {
       const decided = this.#decide(settled);
 
       vetoed = decided.vetoed;
-      failure = decided.failure;
-      this.#apply(decided, done);
+      failures.push(decided.failure, this.#apply(decided, done));
 
     } finally {
       done.forEach(this.#settleResult);
@@ -1494,16 +1586,17 @@ export class AsyncValues extends BasePlugin {
       try {
         this.#notifyCleared(vetoed.map(entry => [entry, 'vetoed']));
 
-      } finally {
-        try {
-          done.forEach(this.#reportSettled);
-
-        } finally {
-          this.#settlingDepth -= 1;
-          this.#afterSettling();
-        }
+      } catch (error) {
+        failures.push({ error });
       }
+
+      // One throwing listener must not cost the other cells their hooks.
+      failures.push(this.#runEach(done, this.#reportSettled));
+      this.#settlingDepth -= 1;
+      this.#afterSettling();
     }
+
+    const failure = failures.find(item => item !== null);
 
     if (failure) {
       throw failure.error;
@@ -1516,8 +1609,35 @@ export class AsyncValues extends BasePlugin {
    *
    * @param {object} decided The decisions (see `#decide()`).
    * @param {object[]} done Collects the requests that settled.
+   * @returns {object|null} The first error a write threw, as `{ error }`, or `null`.
    */
-  #apply(decided: Decisions, done: SettledRequest[]): void {
+  #apply(decided: Decisions, done: SettledRequest[]): { error: unknown } | null {
+    if (this.#isGone()) {
+      return null;
+    }
+
+    this.#applyDepth += 1;
+
+    try {
+      return this.#applyDecisions(decided, done);
+
+    } finally {
+      this.#applyDepth -= 1;
+
+      // Finalized here rather than a task later, so a caller that awaits the call, and an
+      // `afterAsyncValuesIdle` listener, already find the call's undo step.
+      this.#readyRuns.splice(0).forEach(run => this.#finalizeRun(run));
+    }
+  }
+
+  /**
+   * See `#apply()`.
+   *
+   * @param {object} decided The decisions (see `#decide()`).
+   * @param {object[]} done Collects the requests that settled.
+   * @returns {object|null} The first error a write threw, as `{ error }`, or `null`.
+   */
+  #applyDecisions(decided: Decisions, done: SettledRequest[]): { error: unknown } | null {
     decided.vetoed.forEach((entry) => {
       this.#detach(entry);
       this.#finish(entry);
@@ -1529,7 +1649,7 @@ export class AsyncValues extends BasePlugin {
       }
     });
 
-    const writes: Writes = { visible: new Map(), source: new Map() };
+    const writes: Writes = { visible: new Map(), source: new Map(), planned: [] };
 
     decided.resolved.forEach((request) => {
       if (this.#isPending(request.entry) && request.outcome.status === 'resolved') {
@@ -1538,7 +1658,18 @@ export class AsyncValues extends BasePlugin {
       }
     });
 
-    this.#write(writes);
+    const failure = this.#write(writes);
+
+    // A write that neither landed nor waits for its cell's validator never lands: a `beforeChange` listener
+    // vetoed it, or a source write was rejected. Every validator answers in a later task, which is what
+    // `validating` waits for.
+    writes.planned.forEach(([state, prop, write]) => {
+      if (!write.landed && !write.validating && state.writes.get(prop) === write) {
+        this.#dropWrite(state, prop);
+      }
+    });
+
+    return failure;
   }
 
   /**
@@ -1556,6 +1687,11 @@ export class AsyncValues extends BasePlugin {
 
     settled.forEach((request) => {
       const { entry, outcome } = request;
+
+      // A listener can destroy the grid.
+      if (this.#isGone()) {
+        return;
+      }
 
       if (outcome.status === 'rejected') {
         rejected.push(request);
@@ -1639,10 +1775,20 @@ export class AsyncValues extends BasePlugin {
     const visualRow = this.hot.toVisualRow(physicalRow);
 
     if (run.options.undo === 'record' || run.options.meta) {
-      state.writes.set(prop, {
-        run, oldValue: detachValue(this.hot.getSourceDataAtCell(physicalRow, prop)), landed: false,
-      });
-      run.hasWrites = true;
+      const write: PendingWrite = {
+        run,
+        oldValue: detachValue(this.hot.getSourceDataAtCell(physicalRow, prop)),
+        landed: false,
+        landedValue: undefined,
+        validating: false,
+      };
+
+      // A write of another call still kept for this cell is replaced: this value goes over it.
+      this.#dropWrite(state, prop);
+      state.writes.set(prop, write);
+      run.unlanded += 1;
+      run.writeStates.add(state);
+      writes.planned.push([state, prop, write]);
     }
 
     this.#deleteEntry(entry);
@@ -1665,20 +1811,32 @@ export class AsyncValues extends BasePlugin {
    * is put back after it.
    *
    * @param {object} writes The flush's writes.
+   * @returns {object|null} The first error a write threw, as `{ error }`, or `null`.
    */
-  #write(writes: Writes): void {
+  #write(writes: Writes): { error: unknown } | null {
     const editor = writes.source.size > 0 ? this.hot.getActiveEditor() : undefined;
     const typing = editor?.isOpened() ? editor.getValue() : undefined;
+    const errors: unknown[] = [];
+    // Each source and path is written on its own, so a throwing `beforeChange` listener cannot keep the
+    // other groups' values from the grid while their promises report them as resolved.
+    const attempt = (call: () => void) => {
+      try {
+        call();
+
+      } catch (error) {
+        errors.push(error);
+      }
+    };
 
     this.hot.suspendRender();
 
     try {
       this.hot._getOperationScope().suppress(() => {
         writes.visible.forEach((changes, source) => {
-          this.hot.setDataAtRowProp(changes, '', '', source);
+          attempt(() => this.hot.setDataAtRowProp(changes, '', '', source));
         });
         writes.source.forEach((changes, source) => {
-          this.hot.setSourceDataAtCell(changes, '', undefined, source);
+          attempt(() => this.hot.setSourceDataAtCell(changes, '', undefined, source));
         });
       });
 
@@ -1691,6 +1849,8 @@ export class AsyncValues extends BasePlugin {
     } finally {
       this.hot.resumeRender();
     }
+
+    return errors.length > 0 ? { error: errors[0] } : null;
   }
 
   /**
@@ -1747,20 +1907,37 @@ export class AsyncValues extends BasePlugin {
     entry.finished = true;
     this.#pendingCount -= 1;
     entry.run.live -= 1;
+    this.#maybeFinalize(entry.run);
+  }
 
-    if (entry.run.live === 0 && entry.run.hasWrites) {
-      const run = entry.run;
-
-      // A macrotask later, so a write a quick asynchronous validator delays has landed first.
-      this.hot._registerTimeout(() => this.#finalizeRun(run), 0);
+  /**
+   * Finalizes a call once its last request has settled and every value it kept has landed or was
+   * dropped. Inside a flush it is finalized when the flush has written; anywhere else (a validator's
+   * answer, a user's edit) a microtask later, so its step is never recorded inside another operation.
+   *
+   * @param {object} run The call.
+   */
+  #maybeFinalize(run: Run): void {
+    if (run.finalized || run.live > 0 || run.unlanded > 0 || run.writeStates.size === 0 || this.#isGone()) {
+      return;
     }
+
+    run.finalized = true;
+
+    if (this.#applyDepth > 0) {
+      this.#readyRuns.push(run);
+
+      return;
+    }
+
+    this.hot.rootWindow.queueMicrotask(() => this.#finalizeRun(run));
   }
 
   /**
    * Runs what follows any settle: reports an idle grid. Waits for the outermost flush.
    */
   #afterSettling(): void {
-    if (this.#settlingDepth > 0) {
+    if (this.#settlingDepth > 0 || this.#isGone()) {
       return;
     }
 
@@ -1773,18 +1950,19 @@ export class AsyncValues extends BasePlugin {
   /**
    * Finalizes a finished call: forgets its pending writes and, with `undo: 'record'`, journals the ones
    * that landed as one undo step. The step is journaled directly, without writing, so nothing is written
-   * again: no open editor is reset and no listener sees the values go back and forth.
+   * again: no open editor is reset and no listener sees the values go back and forth. It is a `'change'`
+   * step, so it carries `changes` and `selected` like any edit, with the call's `source`.
    *
    * @param {object} run The call.
    */
   #finalizeRun(run: Run): void {
-    if (!this.#rowsMap || this.hot.isDestroyed) {
+    if (this.#isGone() || !this.#rowsMap) {
       return;
     }
 
     const changes: Array<{ physicalRow: number; prop: AsyncValueProp; oldValue: unknown; newValue: unknown }> = [];
 
-    [...this.#states].forEach((state) => {
+    run.writeStates.forEach((state) => {
       state.writes.forEach((write, prop) => {
         if (write.run !== run) {
           return;
@@ -1792,9 +1970,15 @@ export class AsyncValues extends BasePlugin {
 
         state.writes.delete(prop);
 
+        if (!write.landed || run.options.undo !== 'record' || !this.#states.has(state)) {
+          return;
+        }
+
         const current = this.hot.getSourceDataAtCell(state.physicalRow, prop);
 
-        if (write.landed && run.options.undo === 'record' && !Object.is(current, write.oldValue)) {
+        // A cell that no longer holds the landed value is not this call's to undo: a data replacement
+        // brought the server's value in, which no change event reports.
+        if (Object.is(current, write.landedValue) && !Object.is(current, write.oldValue)) {
           changes.push({
             physicalRow: state.physicalRow, prop, oldValue: write.oldValue, newValue: detachValue(current),
           });
@@ -1803,11 +1987,12 @@ export class AsyncValues extends BasePlugin {
 
       this.#releaseRowState(state);
     });
+    run.writeStates.clear();
 
     if (changes.length > 0) {
       const scope = this.hot._getOperationScope();
 
-      scope.run('async_values', run.options.source, () => {
+      scope.run('change', run.options.source, () => {
         changes.forEach(change => recordCellChange(scope, change));
       });
     }
@@ -1858,6 +2043,7 @@ export class AsyncValues extends BasePlugin {
    */
   #notifyCleared(cleared: Array<[AsyncValueEntry, AsyncValueCancelReason]>): void {
     const cancelled = cleared.filter(([entry]) => entry.status === 'pending' && !entry.reported);
+    let failure: { error: unknown } | null = null;
 
     if (cancelled.length === 0) {
       this.#afterSettling();
@@ -1876,7 +2062,8 @@ export class AsyncValues extends BasePlugin {
         controller?.abort();
         this.#releaseSlot(entry);
       });
-      cancelled.forEach(([entry, reason]) => {
+      // One throwing listener must not cost the other cells their hooks.
+      failure = this.#runEach(cancelled, ([entry, reason]) => {
         const physicalRow = rowOf(entry);
 
         this.hot.runHooks('afterAsyncValueCancel', physicalRow, entry.prop, reason, this.#rowIdOf(physicalRow));
@@ -1884,6 +2071,10 @@ export class AsyncValues extends BasePlugin {
 
     } finally {
       this.#afterSettling();
+    }
+
+    if (failure) {
+      throw failure.error;
     }
   }
 
@@ -2067,6 +2258,7 @@ export class AsyncValues extends BasePlugin {
     [...this.#states].forEach((state) => {
       if (!kept.has(state)) {
         this.#states.delete(state);
+        this.#forgetWrites(state);
         state.entries.forEach((entry) => {
           this.#entries.delete(entry);
           lost.push([entry, 'rowRemoved']);
@@ -2185,17 +2377,19 @@ export class AsyncValues extends BasePlugin {
     }
 
     if (write.landed || source !== write.run.options.source) {
-      state.writes.delete(prop);
-      this.#releaseRowState(state);
+      this.#dropWrite(state, prop);
 
       return;
     }
 
-    const { meta, undo } = write.run.options;
+    const { run } = write;
+    const { meta, undo } = run.options;
     const row = this.hot.toVisualRow(state.physicalRow);
     const column = this.hot.propToCol(prop);
 
     write.landed = true;
+    write.landedValue = this.hot.getSourceDataAtCell(state.physicalRow, prop);
+    run.unlanded -= 1;
 
     if (meta && row !== null && typeof column === 'number' && column >= 0) {
       this.hot._getOperationScope().suppress(() => {
@@ -2207,6 +2401,108 @@ export class AsyncValues extends BasePlugin {
       state.writes.delete(prop);
       this.#releaseRowState(state);
     }
+
+    this.#maybeFinalize(run);
+  }
+
+  /**
+   * Drops a kept write: a change that is not the write's own reached the cell, the write cannot land, or
+   * another call's value replaces it.
+   *
+   * @param {object} state The row state.
+   * @param {string|number} prop The property of the cell.
+   */
+  #dropWrite(state: RowState, prop: AsyncValueProp): void {
+    const write = state.writes.get(prop);
+
+    if (!write) {
+      return;
+    }
+
+    state.writes.delete(prop);
+
+    if (!write.landed) {
+      write.run.unlanded -= 1;
+    }
+
+    this.#releaseRowState(state);
+    this.#maybeFinalize(write.run);
+  }
+
+  /**
+   * Counts the writes a discarded row state still waited for as never landing, so their calls can be
+   * finalized.
+   *
+   * @param {object} state The discarded row state.
+   */
+  #forgetWrites(state: RowState): void {
+    const writes = [...state.writes.values()];
+
+    state.writes.clear();
+    writes.forEach((write) => {
+      if (!write.landed) {
+        write.run.unlanded -= 1;
+      }
+
+      this.#maybeFinalize(write.run);
+    });
+  }
+
+  /**
+   * `beforeValidate` hook callback. Marks a kept write whose cell validator starts: it lands when the
+   * validator answers, in a later task.
+   *
+   * @param {*} value The validated value.
+   * @param {number} row Visual row index.
+   * @param {string|number} prop The property of the cell.
+   * @param {string} [source] The source of the change.
+   */
+  readonly #onBeforeValidate = (value: unknown, row: number, prop: string | number, source?: string): void => {
+    const write = this.#findWrite(row, prop, source);
+
+    if (write) {
+      write.validating = true;
+    }
+  };
+
+  /**
+   * `afterValidate` hook callback. Drops a kept write the validator rejected under `allowInvalid: false`:
+   * the grid takes such a change out, so it never lands.
+   *
+   * @param {boolean} isValid Whether the value is valid.
+   * @param {*} value The validated value.
+   * @param {number} row Visual row index.
+   * @param {string|number} prop The property of the cell.
+   * @param {string} [source] The source of the change.
+   */
+  readonly #onAfterValidate = (
+    isValid: boolean, value: unknown, row: number, prop: string | number, source?: string,
+  ): void => {
+    const write = isValid ? undefined : this.#findWrite(row, prop, source);
+    const column = write ? this.hot.propToCol(prop) : null;
+
+    if (typeof column === 'number' && this.hot.getCellMetaTransient(row, column).allowInvalid === false) {
+      const physicalRow = this.hot.toPhysicalRow(row)!;
+
+      this.#dropWrite(this.#rowsMap!.getValueAtIndex<RowState>(physicalRow)!, prop);
+    }
+  };
+
+  /**
+   * Returns the kept write of a visual cell that waits for the change of the given source.
+   *
+   * @param {number} row Visual row index.
+   * @param {string|number} prop The property of the cell.
+   * @param {string} [source] The source of the change.
+   * @returns {object|undefined}
+   */
+  #findWrite(row: number, prop: string | number, source?: string): PendingWrite | undefined {
+    const physicalRow = this.#states.size === 0 ? null : this.hot.toPhysicalRow(row);
+    const write = physicalRow === null
+      ? undefined
+      : this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow)?.writes.get(prop);
+
+    return write && !write.landed && write.run.options.source === source ? write : undefined;
   }
 
   /**
@@ -2421,6 +2717,7 @@ export class AsyncValues extends BasePlugin {
     reasons.forEach((reason, state) => {
       if (!kept.has(state)) {
         this.#states.delete(state);
+        this.#forgetWrites(state);
         state.entries.forEach((entry) => {
           this.#entries.delete(entry);
           lost.push([entry, reason]);

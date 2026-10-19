@@ -1609,7 +1609,7 @@ export const REGISTERED_HOOKS = [
    * argument when that result is not `undefined`. So a callback that keeps the value returns `undefined`, and
    * a callback that checks for an earlier discard compares its first argument with `false`. Every callback of
    * a flush runs before any value is written. A callback that throws fails its own cell with the error it
-   * threw, and the error is thrown again once the other cells are written.
+   * threw. The other cells are written, and then the error is reported as an uncaught error.
    *
    * @event Hooks#beforeAsyncValueResolve
    * @since 19.0.0

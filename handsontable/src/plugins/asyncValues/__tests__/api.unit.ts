@@ -321,25 +321,54 @@ describe('AsyncValues: progress, retry, and request options', () => {
       destroy();
     });
 
-    it('should not cancel a request that depends on the cells a recorded step writes', async() => {
+    it('should have the call\'s undo step once its promise resolves, without writing the cells again', async() => {
       const { hot, plugin, destroy } = createGrid({ undo: true });
+      const undoRedo = hot.getPlugin('undoRedo');
       const price = deferred();
+      const changes = jest.fn();
+      const idleUndo: boolean[] = [];
 
-      // The name lands first, and its step is written a task later, writing the name again.
+      hot.addHook('afterChange', changes);
+      hot.addHook('afterAsyncValuesIdle', () => idleUndo.push(undoRedo.isUndoAvailable()));
+
       await plugin.setAsyncValue(1, 1, Promise.resolve('new B'), { undo: 'record' });
 
-      const priceResult = plugin.setAsyncValue(1, 2, () => price.promise, { dependsOn: ['name'] });
+      expect(undoRedo.isUndoAvailable()).toBe(true);
+      expect(idleUndo).toEqual([true]);
+      expect(changes).toHaveBeenCalledTimes(1);
 
-      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+      // A request that depends on the name and starts after the step is not cancelled by it.
+      const priceResult = plugin.setAsyncValue(1, 2, () => price.promise, { dependsOn: ['name'] });
 
       await settle();
 
-      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
       expect(plugin.isPending(1, 2)).toBe(true);
 
       price.resolve(10);
 
       expect(await priceResult).toEqual({ status: 'resolved', value: 10 });
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCell(1, 1)).toBe('old B');
+
+      destroy();
+    });
+
+    it('should describe a recorded step as a change with the call\'s source', async() => {
+      const { hot, plugin, destroy } = createGrid({ undo: true });
+      const undoRedo = hot.getPlugin('undoRedo');
+      const actions: Array<Record<string, unknown>> = [];
+
+      hot.addHook('beforeUndo', action => actions.push(action as Record<string, unknown>));
+
+      await plugin.setAsyncValues(0, 1, 1, 1, async({ row }) => `new ${row}`, { undo: 'record', source: 'AI' });
+      undoRedo.undo();
+
+      expect(actions).toHaveLength(1);
+      expect(actions[0].actionType).toBe('change');
+      expect(actions[0].source).toBe('AI');
+      expect(actions[0].changes).toEqual([[0, 1, 'old A', 'new 0'], [1, 1, 'old B', 'new 1']]);
 
       destroy();
     });
@@ -436,6 +465,112 @@ describe('AsyncValues: progress, retry, and request options', () => {
       undoRedo.undo();
 
       expect(hot.getDataAtCol(1)).toEqual(['old D', 'old C', 'old B', 'old A']);
+
+      destroy();
+    });
+
+    it('should apply `meta` and record the step once a timer-based validator lets the value in', async() => {
+      const { hot, plugin, destroy } = createGrid({
+        undo: true,
+        columns: [
+          { data: 'sku' },
+          {
+            data: 'name',
+            validator: (value: unknown, callback: (valid: boolean) => void) => setTimeout(() => callback(true), 20),
+          },
+          { data: 'price' },
+        ],
+      });
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      await plugin.setAsyncValue(0, 1, Promise.resolve('new A'), { undo: 'record', meta: { className: 'fromAsync' } });
+      await new Promise(resolve => setTimeout(resolve, 50));
+      await settle();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('new A');
+      expect(hot.getCellMeta(0, 1).className).toBe('fromAsync');
+      expect(undoRedo.isUndoAvailable()).toBe(true);
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('old A');
+
+      destroy();
+    });
+
+    it('should finalize a call whose value a validator rejected under `allowInvalid: false`', async() => {
+      const validator = (value: unknown, callback: (valid: boolean) => void) => {
+        setTimeout(() => callback(value !== 'bad'), 0);
+      };
+      const { hot, plugin, destroy } = createGrid({
+        undo: true,
+        columns: [{ data: 'sku' }, { data: 'name', validator, allowInvalid: false }, { data: 'price' }],
+      });
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      await plugin.setAsyncValues(0, 1, 1, 1, async({ row }) => (row === 0 ? 'bad' : 'good'), {
+        undo: 'record', meta: { className: 'fromAsync' },
+      });
+      await new Promise(resolve => setTimeout(resolve, 20));
+      await settle();
+
+      expect(hot.getDataAtCol(1)).toEqual(['old A', 'good', 'old C', 'old D']);
+      expect(hot.getCellMeta(0, 1).className).toBeUndefined();
+      expect(hot.getCellMeta(1, 1).className).toBe('fromAsync');
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCol(1)).toEqual(['old A', 'old B', 'old C', 'old D']);
+
+      destroy();
+    });
+
+    it('should not undo a value a data replacement brought in over a call\'s write', async() => {
+      const { hot, plugin, destroy } = createGrid({ undo: true, rowId: 'id' });
+      const undoRedo = hot.getPlugin('undoRedo');
+      const requests = { a: deferred(), b: deferred() };
+      const results = plugin.setAsyncValuesForRows(
+        [{ rowId: 'a' }, { rowId: 'b' }],
+        'name',
+        ({ rowId }) => requests[rowId as 'a' | 'b'].promise,
+        { undo: 'record' },
+      );
+
+      requests.a.resolve('new A');
+      await settle();
+
+      const fromServer = (hot.getSourceData() as Array<Record<string, unknown>>).map(row => ({ ...row }));
+
+      fromServer[0].name = 'server A';
+      hot.updateData(fromServer);
+      requests.b.resolve('new B');
+      await results;
+      await settle();
+
+      expect(hot.getDataAtCol(1)).toEqual(['server A', 'new B', 'old C', 'old D']);
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCol(1)).toEqual(['server A', 'old B', 'old C', 'old D']);
+
+      destroy();
+    });
+
+    it('should record a write to a filtered-out row, and nothing for a value the cell already held', async() => {
+      const { hot, plugin, destroy } = createGrid({ undo: true, trimRows: [3] });
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      await plugin.setAsyncValue(0, 1, Promise.resolve('old A'), { undo: 'record' });
+
+      expect(undoRedo.isUndoAvailable()).toBe(false);
+
+      await plugin.setAsyncValueAt({ physicalRow: 3, prop: 'name' }, async() => 'new D', { undo: 'record' });
+
+      expect(hot.getSourceDataAtCell(3, 'name')).toBe('new D');
+
+      undoRedo.undo();
+
+      expect(hot.getSourceDataAtCell(3, 'name')).toBe('old D');
 
       destroy();
     });
