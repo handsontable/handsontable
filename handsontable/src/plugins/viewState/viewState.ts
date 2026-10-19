@@ -138,6 +138,8 @@ export class ViewState extends BasePlugin {
    * property its data is bound to, for example `{ column: 'amount', sortOrder: 'desc' }` or
    * `hiddenColumns: ['address.city']`. A property no column has is reported as `invalid`. A property
    * that two columns share names the last of them. `getViewState()` always reports physical indexes.
+   * The sort columns are physical too, unlike the visual ones that `getSortConfig()` of the sorting
+   * plugins reports: convert those with {@link Core#toPhysicalColumn} before you pass them here.
    *
    * Every part is checked against the grid before anything changes, and a part that cannot be applied
    * is reported in the returned `skipped` list, never thrown on. Each entry is

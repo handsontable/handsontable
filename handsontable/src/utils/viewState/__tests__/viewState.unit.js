@@ -80,6 +80,28 @@ describe('SheetsBar view state', () => {
     expect(hot.getDataAtCell(0, 0)).toBe(1);
   });
 
+  it('captures the sort by physical column, and restores it under another column order', () => {
+    hot = new Handsontable(container, {
+      data: [['b', 3], ['a', 1], ['c', 2]],
+      columnSorting: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.columnIndexMapper.setIndexesSequence([1, 0]);
+    hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' }); // physical 0
+
+    const state = captureViewState(hot, []);
+
+    expect(state.sortConfig).toEqual([{ column: 0, sortOrder: 'asc' }]);
+
+    hot.getPlugin('columnSorting').clearSort();
+    hot.columnIndexMapper.setIndexesSequence([0, 1]);
+    restoreViewState(hot, { ...state, columnSequence: [0, 1] });
+
+    expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+    expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'c']);
+  });
+
   it('captures row/column sequences defensively, unaffected by later mapper mutation', () => {
     hot = new Handsontable(container, {
       data: [['a'], ['b'], ['c']],

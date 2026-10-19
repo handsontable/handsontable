@@ -56,8 +56,13 @@ const filterInput: GridViewStateFilterInput = { column: 0, operation: 'disjuncti
 const inputAlias: Handsontable.plugins.ViewState.Input = { version: 1, hiddenColumns: [sortColumn.column] };
 const keyAlias: Handsontable.plugins.ViewState.ColumnKey = filterInput.column;
 
+const sortAlias: Handsontable.plugins.ViewState.SortColumnInput = sortColumn;
+const filterAlias: Handsontable.plugins.ViewState.FilterInput = filterInput;
+
 inputAlias.version === 1;
 keyAlias === 0;
+sortAlias.sortOrder === 'asc';
+filterAlias.operation === 'disjunction';
 
 // What getViewState() reports names every column by its physical index.
 const reportedHidden: number[] | undefined = viewState.hiddenColumns;

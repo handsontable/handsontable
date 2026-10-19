@@ -9,4 +9,5 @@ export type {
   ViewState as SheetsBarViewState,
   TrackedCellMeta as SheetsBarTrackedCellMeta,
   PaginationState as SheetsBarPaginationState,
+  SortedColumn as SheetsBarSortedColumn,
 } from '../../utils/viewState/viewState';

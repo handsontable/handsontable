@@ -57,11 +57,13 @@ any of them.
   break a plugin: the Filters import throws on an operation or condition name that is not registered
   on the page and on two entries for one column with
   different operations, after it has already emptied the live conditions; a sort the plugin rejects
-  (a duplicate, more than one column without MultiColumnSorting, a column past the end) leaves
+  (a duplicate, more than one column without MultiColumnSorting, a column past `countCols()`) leaves
   the grid unsorted, because the restore clears the sort first; and `setIndexesSequence()` stores any
   array, so a row order that is not a permutation of `0..n-1` shows one record twice and hides
-  another. `writePart()` rejects all of those as `invalid` before anything is applied, and
-  `writeOrder()` reports another length as `sizeMismatch` (a sort column past the end is `outOfRange`). The `it.each` table in
+  another. `writePart()` rejects all of those before anything is applied (a sort column the grid does not show
+  as `outOfRange`, the rest as `invalid`), and `writeOrder()` reports another length as `sizeMismatch`.
+  `describeSortColumn()` bounds the sort by the column's visual index against `countCols()`, the bound the
+  plugin itself checks, because `maxCols` and a trimming map lower it below the physical count. The `it.each` table in
   `viewState.unit.js` holds one case per rule.
 - **One index space: an index that names a record or a column is physical, a position on screen is
   visual.** The sort, the filters, the hidden columns, the column widths and the orders are physical, so
@@ -73,8 +75,9 @@ any of them.
 - **A column may be named by its property, on input only.** `resolveColumnKeys()` turns a string in
   `sort`, `filters`, `hiddenColumns` and `columnWidths` into the physical index of its column
   (`propToCol()`, then `toPhysicalColumn()`) before any other check, so the checks, the duplicate test
-  and the Filters validation see indexes only. An unknown property is `invalid` at its own path;
-  `propToCol()` hands it back unchanged, which is how it is told apart. A property two columns share
+  and the Filters validation see indexes only. An unknown property is `invalid` at its own path
+  (`propToCol()` hands it back unchanged); a property of a trimmed column is `outOfRange`, as the same
+  column named by its index is (`propToCol()` answers `null`). A property two columns share
   resolves to the last one, as `propToCol()` does. `getViewState()` and `previous` never emit properties:
   a `columns[].data` can be a function, a property can be shared, and array data has none. The row parts
   and `columnOrder` take integers only.

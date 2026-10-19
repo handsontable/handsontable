@@ -158,7 +158,7 @@ The view state does not depend on your data, but it does depend on its shape. Re
 
 Keep these rules in mind:
 
-- **An index that names a row or a column is physical.** A sorted column, a hidden row, a filter, or a manual width stays attached to the same data, however the user sorts or moves things afterward, so every part of one state addresses the same columns. Visual coordinates, such as the selection and the scroll position, describe what the user sees.
+- **An index that names a row or a column is physical.** A sorted column, a hidden row, a filter, or a manual width stays attached to the same data, however the user sorts or moves things afterward, so every part of one state addresses the same columns. The sort is physical too, unlike [`getSortConfig()`](@/api/columnSorting.md#getsortconfig), which reports visual columns: to pass its result to `setViewState()`, convert each column with [`toPhysicalColumn()`](@/api/core.md#tophysicalcolumn). Visual coordinates, such as the selection and the scroll position, describe what the user sees.
 - **A part that needs a plugin is only included while that plugin is enabled.** If you do not enable `HiddenColumns`, the result has no `hiddenColumns` property.
 - **Sizes are sparse.** `columnWidths` and `rowHeights` list only the sizes a user set by hand. Sizes that come from the `colWidths` and `rowHeights` options, or from auto-sizing, are not included.
 - **With a [`dataProvider`](@/api/options.md#dataprovider), the server owns the page.** The result leaves out `sort`, `filters`, and `pagination`, which would fetch from the server. It also leaves out `rowOrder`, `hiddenRows`, `trimmedRows`, `collapsedRows`, `rowHeights`, and `selection`, because they address rows by their position in the loaded page, and a state saved on page 3 would land on other records on page 1. `setViewState()` skips all of them. For details, see [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).
@@ -167,7 +167,7 @@ Keep these rules in mind:
 
 `setViewState()` applies only the parts the object carries. Every other part stays as it is. A partial object is therefore a valid input.
 
-To sort the grid by the third column of the source data in descending order and leave everything else alone, pass only `sort`:
+To sort the grid by the column at physical index 2 (the third column before any move) in descending order and leave everything else alone, pass only `sort`:
 
 ```js
 hot.getPlugin('viewState').setViewState({
@@ -178,7 +178,7 @@ hot.getPlugin('viewState').setViewState({
 
 ### Name a column by its property
 
-In `sort`, `filters`, `hiddenColumns`, and `columnWidths`, a column can also be named by the property its data is bound to: a [`columns.data`](@/api/options.md#columns) string, or a key of your row objects. This helps when the state comes from outside the grid, such as a URL or a language model, which knows your columns by name but not by position:
+In `sort`, `filters`, `hiddenColumns`, and `columnWidths`, you can also name a column by the property its data is bound to: a [`columns.data`](@/api/options.md#columns) string, or a key of your row objects. This helps when the state comes from outside the grid, such as a URL or a language model, which knows your columns by name but not by position:
 
 ```js
 hot.getPlugin('viewState').setViewState({
@@ -188,7 +188,7 @@ hot.getPlugin('viewState').setViewState({
 });
 ```
 
-A property that no column has is reported as `invalid`, with the path to it. If two columns share a property, it names the last of them. `getViewState()` always reports physical indexes.
+A property that no column has is reported as `invalid`, with the path to it, and a property of a column the grid does not show as `outOfRange`. If two columns share a property, it names the last of them. `getViewState()` always reports physical indexes.
 
 You can also build a view by hand, or merge parts from different sources:
 
