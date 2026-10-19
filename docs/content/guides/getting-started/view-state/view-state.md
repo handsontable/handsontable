@@ -235,9 +235,9 @@ console.log(skipped);
 | `pluginConflict` | The part would break a plugin that is on. Frozen rows would run next to [`Pagination`](@/api/pagination.md), which cannot work with them. |
 | `externalDataSource` | The grid uses a `dataProvider`, which owns `sort`, `filters`, and `pagination`. |
 | `sizeMismatch` | The stored row or column order has a different length than the grid has rows or columns now. |
-| `outOfRange` | The stored selection does not fit the grid. |
-| `invalid` | The part does not have the expected shape, or names something this grid does not have: a row order that does not list every row exactly once, a sort column past the last column, or a filter condition that is not registered on the page or cannot take its arguments. |
-| `unsupportedVersion` | The object has a `version` this build does not read. |
+| `outOfRange` | The stored selection does not fit the grid, or a hidden or trimmed index, a size, or the scroll position lies past the end of its axis. |
+| `invalid` | The part does not have the expected shape, or names something this grid does not have: a row order that does not list every row exactly once, a sort column past the last column, a filter condition that is not registered on the page or cannot take its arguments, or a key that is not a part of the view state at all (a misspelled `hiddenColumn`, say). |
+| `unsupportedVersion` | The object has a `version` this build does not read. Every part is skipped with this reason, next to the `error`. |
 
 The filter conditions are checked before the Filters plugin sees them. The plugin clears its current conditions before it imports new ones and throws on one it cannot take, so a bad condition would otherwise leave the grid with no filters. A bad condition is skipped instead, and the current filters stay.
 
@@ -253,7 +253,7 @@ Handsontable applies nothing in these cases, `applied` is empty, and a console w
 
 ### Apply everything or nothing
 
-By default a rejected part does not stop the others. To apply nothing when any part is rejected, pass `atomic: true`:
+By default a rejected part does not stop the others. To apply nothing when any part is rejected, pass `atomic: true`. It covers the checks made before the restore starts, which are every check `validateViewState()` makes:
 
 ```js
 const result = hot.getPlugin('viewState').setViewState(generatedState, { atomic: true });
@@ -263,11 +263,13 @@ if (result.error?.reason === 'atomicRejected') {
 }
 ```
 
+Two things are only found while the restore runs: a listener that vetoes a step (a [`beforeFilter`](@/api/hooks.md#beforefilter) that returns `false`, say), and a selection the grid cannot show. Those are reported after the other parts were applied.
+
 ## Undo a restore
 
 By default `setViewState()` is not recorded by [`UndoRedo`](@/api/undoRedo.md). The undo steps from before the restore stay available, so an undo after a restore reverts an earlier action on top of the restored view.
 
-To make the restore one undo step, pass `undo: 'record'`. One undo then reverts every restored part, and one redo applies them again:
+To make the restore one undo step, pass `undo: 'record'`. One undo then reverts every restored part, and one redo applies them again. Nothing is recorded while the `UndoRedo` plugin is disabled:
 
 ```js
 hot.getPlugin('viewState').setViewState(generatedState, { undo: 'record' });
@@ -275,7 +277,7 @@ hot.getPlugin('viewState').setViewState(generatedState, { undo: 'record' });
 hot.getPlugin('undoRedo').undo(); // the view before the restore
 ```
 
-Without UndoRedo, use `previous`. It holds the view the restored parts had, in the same shape as the state, so passing it back reverts them:
+Without UndoRedo, use `previous`. It holds the view the restored parts had, in the same shape as the state, so passing it back reverts them. A `rowOrder` without a `sort` clears the current sort, so `previous` carries that sort too:
 
 ```js
 const { previous } = hot.getPlugin('viewState').setViewState(generatedState);
