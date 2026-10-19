@@ -104,6 +104,23 @@ export class SortingPluginSwapPage {
   }
 
   /**
+   * Sort a column from the keyboard: select its first cell, move up onto the header, press Enter.
+   */
+  async pressEnterOnHeader(col: number): Promise<void> {
+    await this.cell(0, col).click();
+    await this.page.keyboard.press('ArrowUp');
+    await expect.poll(() => this.page.evaluate(() => {
+      const { hot } = window as unknown as {
+        hot: { getSelectedRangeActive(): { highlight: { row: number, col: number } } | undefined };
+      };
+      const highlight = hot.getSelectedRangeActive()?.highlight;
+
+      return highlight ? [highlight.row, highlight.col] : null;
+    })).toEqual([-1, col]);
+    await this.page.keyboard.press('Enter');
+  }
+
+  /**
    * Assert the rendered column, top to bottom (web-first, auto-retrying).
    */
   async expectColumn(col: number, values: string[]): Promise<void> {

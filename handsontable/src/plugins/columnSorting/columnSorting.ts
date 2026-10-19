@@ -255,17 +255,17 @@ export class ColumnSorting extends BasePlugin {
   enablePlugin(): void {
     const conflictingPluginKey = pluginConflictsState.get(this.hot);
 
-    if (
-      conflictingPluginKey !== undefined &&
-      conflictingPluginKey !== this.pluginKey &&
-      this.hot.getSettings()[conflictingPluginKey]
-    ) {
-      this.hot.updateSettings({
-        [this.pluginKey]: false
-      });
-      warnAboutPluginsConflict(conflictingPluginKey, this.pluginKey);
+    if (conflictingPluginKey !== undefined && conflictingPluginKey !== this.pluginKey) {
+      if (this.hot.getSettings()[conflictingPluginKey]) {
+        this.hot.updateSettings({
+          [this.pluginKey]: false
+        });
+        warnAboutPluginsConflict(conflictingPluginKey, this.pluginKey);
 
-      return;
+        return;
+      }
+
+      this.hot.getPlugin(conflictingPluginKey)?.disablePlugin();
     }
 
     if (this.enabled) {

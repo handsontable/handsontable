@@ -30,6 +30,17 @@ test.describe('swapping the sorting plugins through `updateSettings`', () => {
     expect(grid.sortingWarnings()).toEqual([]);
   });
 
+  test('Enter on a header sorts after switching from `multiColumnSorting` to `columnSorting`', async() => {
+    await grid.goto('multi');
+    await grid.swapTo('column');
+
+    await grid.pressEnterOnHeader(1);
+
+    await expect(grid.sortLabel(1)).toHaveClass(/ascending/);
+    await grid.expectColumn(1, ['19', '27', '34', '45', '52']);
+    expect(grid.sortingWarnings()).toEqual([]);
+  });
+
   test('a header click sorts after switching from `columnSorting` to `multiColumnSorting`', async() => {
     await grid.goto('column');
     await grid.expectColumn(1, ['34', '27', '45', '19', '52']);

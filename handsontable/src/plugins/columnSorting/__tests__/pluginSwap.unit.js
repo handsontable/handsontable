@@ -120,6 +120,41 @@ describe('ColumnSorting and MultiColumnSorting swapped in one updateSettings cal
     expect(hot.getDataAtCol(1)).toEqual([21, 28, 34, 39, 45]);
   });
 
+  it('keeps the Enter header shortcut of the plugin that takes over', () => {
+    hot = createGrid('multiColumnSorting');
+
+    const sortingEnterShortcuts = () => hot.getShortcutManager().getContext('grid')
+      .getShortcuts(['Enter'])
+      .filter(shortcut => shortcut.group === 'columnSorting');
+
+    expect(sortingEnterShortcuts()).toHaveLength(1);
+
+    hot.updateSettings({ columnSorting: true, multiColumnSorting: false });
+
+    expect(sortingEnterShortcuts()).toHaveLength(1);
+
+    hot.updateSettings({ columnSorting: false, multiColumnSorting: true });
+
+    expect(sortingEnterShortcuts()).toHaveLength(1);
+  });
+
+  it('sorts the rows when the replaced plugin had sorted them before the swap', () => {
+    hot = createGrid('multiColumnSorting');
+
+    hot.getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
+    hot.updateSettings({
+      columnSorting: { initialConfig: { column: 1, sortOrder: 'asc' } },
+      multiColumnSorting: false,
+    });
+
+    expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'asc' }]);
+    expect(hot.getDataAtCol(1)).toEqual([21, 28, 34, 39, 45]);
+
+    hot.getPlugin('columnSorting').clearSort();
+
+    expect(hot.getDataAtCol(0)).toEqual(['Lina', 'Arjun', 'Mateo', 'Chen', 'Femi']);
+  });
+
   it('still disables the second plugin and names the working one when both stay enabled', () => {
     hot = createGrid('columnSorting');
 
