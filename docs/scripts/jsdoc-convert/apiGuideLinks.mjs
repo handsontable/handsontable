@@ -24,6 +24,7 @@ const contentDir = path.resolve(__dirname, '../../content');
  */
 export const apiGuideLinks = {
   'autoColumnSize.md': 'guides/columns/column-width/column-width.md',
+  'asyncValues.md': 'guides/cell-features/async-values/async-values.md',
   'autoLink.md': 'guides/cell-features/clickable-links/clickable-links.md',
   'autoRowHeaderSize.md': 'guides/rows/row-header/row-header.md',
   'autoRowSize.md': 'guides/rows/row-height/row-height.md',

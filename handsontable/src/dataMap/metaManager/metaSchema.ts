@@ -589,6 +589,38 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
+     * The `asyncValues` option configures the [`AsyncValues`](@/api/asyncValues.md) plugin, which
+     * computes cell values asynchronously, from promises, and shows a pending and an error state per
+     * cell.
+     *
+     * You can set the `asyncValues` option to one of the following:
+     *
+     * | Setting           | Description                                                    |
+     * | ----------------- | -------------------------------------------------------------- |
+     * | `false` (default) | Disable the [`AsyncValues`](@/api/asyncValues.md) plugin       |
+     * | `true`            | Enable the [`AsyncValues`](@/api/asyncValues.md) plugin        |
+     *
+     * Read more:
+     * - [Async values](@/guides/cell-features/async-values/async-values.md)
+     * - [Plugins: `AsyncValues`](@/api/asyncValues.md)
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @since 19.0.0
+     * @category AsyncValues
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // enable the `AsyncValues` plugin
+     * asyncValues: true,
+     * ```
+     */
+    asyncValues: false,
+
+    /**
+     * @description
      * The `autoLink` option configures the [`AutoLink`](@/api/autoLink.md) plugin, which renders the
      * URLs found in cell values as clickable links.
      *

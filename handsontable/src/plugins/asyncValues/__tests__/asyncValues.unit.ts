@@ -1,0 +1,547 @@
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import type { AsyncValueContext } from '../types';
+
+registerAllModules();
+
+/**
+ * A promise with its settle functions exposed.
+ */
+function deferred<T = unknown>() {
+  let resolve: (value: T) => void = () => {};
+  let reject: (reason: unknown) => void = () => {};
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return { promise, resolve, reject };
+}
+
+/**
+ * Lets the plugin's flush (a microtask after the request settled) run.
+ */
+function settle() {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
+
+/**
+ * Builds a grid of products whose `name` column is filled asynchronously.
+ */
+function createGrid(settings: Record<string, unknown> = {}) {
+  const container = document.createElement('div');
+
+  document.body.appendChild(container);
+
+  const hot = new Handsontable(container, {
+    data: [
+      { sku: 'A', name: 'old A', price: 1 },
+      { sku: 'B', name: 'old B', price: 2 },
+      { sku: 'C', name: 'old C', price: 3 },
+      { sku: 'D', name: 'old D', price: 4 },
+    ],
+    columns: [{ data: 'sku' }, { data: 'name' }, { data: 'price' }],
+    asyncValues: true,
+    licenseKey: 'non-commercial-and-evaluation',
+    ...settings,
+  });
+
+  return {
+    hot,
+    plugin: hot.getPlugin('asyncValues'),
+    destroy() {
+      hot.destroy();
+      container.remove();
+    },
+  };
+}
+
+describe('AsyncValues', () => {
+  describe('enabling', () => {
+    it.each([false, null, undefined])('should stay disabled when the option is `%s`', (value) => {
+      const { plugin, destroy } = createGrid({ asyncValues: value });
+
+      expect(plugin.isEnabled()).toBe(false);
+      expect(() => plugin.setAsyncValue(0, 1, Promise.resolve('x'))).toThrow();
+
+      destroy();
+    });
+
+    it('should be enabled with `true`', () => {
+      const { plugin, destroy } = createGrid();
+
+      expect(plugin.isEnabled()).toBe(true);
+
+      destroy();
+    });
+
+    it('should cancel every request and clear the decoration when disabled with `updateSettings()`', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const request = deferred();
+      const result = plugin.setAsyncValue(0, 1, () => request.promise);
+
+      hot.updateSettings({ asyncValues: false });
+
+      expect(await result).toEqual({ status: 'cancelled', reason: 'disabled' });
+      expect(hot.getCell(0, 1)!.classList.contains('htAsyncPending')).toBe(false);
+      expect(hot.getCell(0, 1)!.querySelector('.htAsyncIndicator')).toBeNull();
+
+      request.resolve('late');
+      await settle();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('old A');
+
+      destroy();
+    });
+  });
+
+  describe('pending state', () => {
+    it('should mark the cell pending in its meta, its classes, and its ARIA attributes', () => {
+      const { hot, plugin, destroy } = createGrid();
+      const start = jest.fn();
+
+      hot.addHook('afterAsyncValueStart', start);
+      plugin.setAsyncValue(1, 1, () => deferred().promise);
+
+      const TD = hot.getCell(1, 1)!;
+
+      expect(plugin.isPending(1, 1)).toBe(true);
+      expect(plugin.getAsyncState(1, 1)).toEqual({ status: 'pending' });
+      expect(hot.getCellMeta(1, 1).asyncState).toBe('pending');
+      expect(TD.classList.contains('htAsyncPending')).toBe(true);
+      expect(TD.querySelector('.htAsyncIndicator')).not.toBeNull();
+      expect(TD.getAttribute('aria-busy')).toBe('true');
+      expect(hot.getDataAtCell(1, 1)).toBe('old B');
+      expect(start).toHaveBeenCalledWith(1, 'name');
+      expect(plugin.isPending(0, 1)).toBe(false);
+      expect(plugin.getAsyncState(0, 1)).toBeNull();
+
+      destroy();
+    });
+
+    it('should repaint the pending state under `renderMode: \'onChange\'`', () => {
+      const { hot, plugin, destroy } = createGrid({ renderMode: 'onChange' });
+
+      plugin.setAsyncValue(1, 1, () => deferred().promise);
+
+      expect(hot.getCell(1, 1)!.classList.contains('htAsyncPending')).toBe(true);
+
+      plugin.cancel(1, 1);
+
+      expect(hot.getCell(1, 1)!.classList.contains('htAsyncPending')).toBe(false);
+
+      destroy();
+    });
+
+    it('should pass the signal and the cell coordinates to the source', () => {
+      const { plugin, destroy } = createGrid();
+      const source = jest.fn((context: AsyncValueContext) => {
+        expect(context.signal.aborted).toBe(false);
+
+        return deferred().promise;
+      });
+
+      plugin.setAsyncValue(2, 1, source);
+
+      expect(source).toHaveBeenCalledWith(expect.objectContaining({
+        row: 2, column: 1, physicalRow: 2, prop: 'name',
+      }));
+
+      destroy();
+    });
+  });
+
+  describe('resolving', () => {
+    it('should write the resolved value and clear the pending state', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const resolved = jest.fn();
+      const changes = jest.fn();
+
+      hot.addHook('afterAsyncValueResolve', resolved);
+      hot.addHook('afterChange', changes);
+
+      expect(await plugin.setAsyncValue(0, 1, Promise.resolve('new A')))
+        .toEqual({ status: 'resolved', value: 'new A' });
+      expect(hot.getDataAtCell(0, 1)).toBe('new A');
+      expect(plugin.getAsyncState(0, 1)).toBeNull();
+      expect(hot.getCellMeta(0, 1).asyncState).toBeNull();
+      expect(hot.getCell(0, 1)!.classList.contains('htAsyncPending')).toBe(false);
+      expect(hot.getCell(0, 1)!.hasAttribute('aria-busy')).toBe(false);
+      expect(resolved).toHaveBeenCalledWith(0, 'name', 'new A');
+      expect(changes).toHaveBeenCalledWith([[0, 'name', 'old A', 'new A']], 'AsyncValues.resolve');
+
+      destroy();
+    });
+
+    it('should write the values of a range in one change', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const changes = jest.fn();
+
+      hot.addHook('afterChange', changes);
+
+      const results = await plugin.setAsyncValues(0, 1, 2, 1, async({ row }) => `new ${row}`);
+
+      expect(results.map(result => result.status)).toEqual(['resolved', 'resolved', 'resolved']);
+      expect(hot.getDataAtCol(1)).toEqual(['new 0', 'new 1', 'new 2', 'old D']);
+      expect(changes).toHaveBeenCalledTimes(1);
+
+      destroy();
+    });
+
+    it('should not add the resolved value to the undo history', async() => {
+      const { hot, plugin, destroy } = createGrid({ undo: true });
+
+      await plugin.setAsyncValue(0, 1, Promise.resolve('new A'));
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+
+      destroy();
+    });
+
+    it('should restore the recorded value over the async one when an earlier edit of the cell is undone', async() => {
+      const { hot, plugin, destroy } = createGrid({ undo: true });
+
+      hot.setDataAtCell(0, 1, 'typed');
+      await plugin.setAsyncValue(0, 1, Promise.resolve('async'));
+      hot.getPlugin('undoRedo').undo();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('old A');
+
+      destroy();
+    });
+  });
+
+  describe('rejecting', () => {
+    it('should keep the previous value and show the error state with the message', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const rejected = jest.fn();
+
+      hot.addHook('afterAsyncValueReject', rejected);
+
+      const error = new Error('Lookup failed');
+      const result = await plugin.setAsyncValue(0, 1, Promise.reject(error));
+      const TD = hot.getCell(0, 1)!;
+
+      expect(result).toEqual({ status: 'rejected', error, message: 'Lookup failed' });
+      expect(hot.getDataAtCell(0, 1)).toBe('old A');
+      expect(plugin.getAsyncState(0, 1)).toEqual({ status: 'error', error, message: 'Lookup failed' });
+      expect(hot.getCellMeta(0, 1).asyncState).toBe('error');
+      expect(hot.getCellMeta(0, 1).asyncError).toBe('Lookup failed');
+      expect(TD.classList.contains('htAsyncError')).toBe(true);
+      expect(TD.getAttribute('title')).toBe('Lookup failed');
+      expect(TD.getAttribute('aria-invalid')).toBe('true');
+      expect(rejected).toHaveBeenCalledWith(0, 'name', error, 'Lookup failed');
+
+      destroy();
+    });
+
+    it('should treat a source that throws as a rejection', async() => {
+      const { plugin, destroy } = createGrid();
+      const result = await plugin.setAsyncValue(0, 1, () => {
+        throw new Error('Bad input');
+      });
+
+      expect(result).toEqual(expect.objectContaining({ status: 'rejected', message: 'Bad input' }));
+
+      destroy();
+    });
+
+    it('should clear the error state when the cell is edited', async() => {
+      const { hot, plugin, destroy } = createGrid();
+
+      await plugin.setAsyncValue(0, 1, Promise.reject(new Error('Lookup failed')));
+      hot.setDataAtCell(0, 1, 'typed');
+
+      const TD = hot.getCell(0, 1)!;
+
+      expect(plugin.getAsyncState(0, 1)).toBeNull();
+      expect(TD.classList.contains('htAsyncError')).toBe(false);
+      expect(TD.hasAttribute('title')).toBe(false);
+
+      destroy();
+    });
+  });
+
+  describe('cancelling', () => {
+    it('should cancel the request and ignore its late result when the cell is edited', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const cancelled = jest.fn();
+      const request = deferred();
+      let signal: AbortSignal | undefined;
+
+      hot.addHook('afterAsyncValueCancel', cancelled);
+
+      const result = plugin.setAsyncValue(0, 1, (context) => {
+        signal = context.signal;
+
+        return request.promise;
+      });
+
+      hot.setDataAtCell(0, 1, 'typed');
+
+      expect(signal!.aborted).toBe(true);
+      expect(await result).toEqual({ status: 'cancelled', reason: 'edit' });
+      expect(cancelled).toHaveBeenCalledWith(0, 'name', 'edit');
+
+      request.resolve('late');
+      await settle();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('typed');
+
+      destroy();
+    });
+
+    it('should cancel the request when a cell it depends on is edited', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const request = deferred();
+      const result = plugin.setAsyncValue(0, 1, () => request.promise, { dependsOn: ['sku'] });
+
+      hot.setDataAtCell(0, 2, 10);
+
+      expect(plugin.isPending(0, 1)).toBe(true);
+
+      hot.setDataAtCell(0, 0, 'Z');
+
+      expect(await result).toEqual({ status: 'cancelled', reason: 'dependency' });
+
+      request.resolve('late');
+      await settle();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('old A');
+
+      destroy();
+    });
+
+    it('should cancel the request when the cell is pasted over', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const result = plugin.setAsyncValue(0, 1, () => deferred().promise);
+
+      hot.populateFromArray(0, 1, [['pasted']], undefined, undefined, 'CopyPaste.paste');
+
+      expect(await result).toEqual({ status: 'cancelled', reason: 'edit' });
+      expect(hot.getDataAtCell(0, 1)).toBe('pasted');
+
+      destroy();
+    });
+
+    it('should cancel the request when a source write or an undo changes the cell', async() => {
+      const { hot, plugin, destroy } = createGrid({ undo: true });
+
+      hot.setDataAtCell(0, 1, 'typed');
+
+      const result = plugin.setAsyncValue(0, 1, () => deferred().promise);
+
+      hot.getPlugin('undoRedo').undo();
+
+      expect(await result).toEqual({ status: 'cancelled', reason: 'edit' });
+      expect(hot.getDataAtCell(0, 1)).toBe('old A');
+
+      hot.getPlugin('undoRedo').redo();
+
+      expect(plugin.isPending(0, 1)).toBe(false);
+      expect(hot.getDataAtCell(0, 1)).toBe('typed');
+
+      destroy();
+    });
+
+    it('should cancel the request when the source data of the cell is written', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const result = plugin.setAsyncValue(0, 1, () => deferred().promise);
+
+      hot.setSourceDataAtCell(0, 'name', 'from source');
+
+      expect(await result).toEqual({ status: 'cancelled', reason: 'edit' });
+      expect(hot.getDataAtCell(0, 1)).toBe('from source');
+
+      destroy();
+    });
+
+    it('should cancel the previous request when a new one starts for the same cell', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const first = deferred();
+      const firstResult = plugin.setAsyncValue(0, 1, () => first.promise);
+      const secondResult = plugin.setAsyncValue(0, 1, Promise.resolve('second'));
+
+      expect(await firstResult).toEqual({ status: 'cancelled', reason: 'restart' });
+      expect(await secondResult).toEqual({ status: 'resolved', value: 'second' });
+
+      first.resolve('first');
+      await settle();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('second');
+
+      destroy();
+    });
+
+    it('should drop the late result of a source that ignores the signal', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const request = deferred();
+      const result = plugin.setAsyncValue(0, 1, request.promise);
+
+      plugin.cancel(0, 1);
+      request.resolve('late');
+      await settle();
+
+      expect(await result).toEqual({ status: 'cancelled', reason: 'manual' });
+      expect(hot.getDataAtCell(0, 1)).toBe('old A');
+
+      destroy();
+    });
+
+    it('should cancel every request with `cancelAll()`', async() => {
+      const { plugin, destroy } = createGrid();
+      const results = plugin.setAsyncValues(0, 1, 3, 1, () => deferred().promise);
+
+      plugin.cancelAll();
+
+      expect((await results).every(result => result.status === 'cancelled')).toBe(true);
+
+      destroy();
+    });
+
+    it('should cancel the requests of a removed row and keep the others on their records', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const second = deferred();
+      const third = deferred();
+      let removedSignal: AbortSignal | undefined;
+      const removedResult = plugin.setAsyncValue(1, 1, ({ signal }) => {
+        removedSignal = signal;
+
+        return second.promise;
+      });
+      const keptResult = plugin.setAsyncValue(2, 1, () => third.promise);
+
+      hot.alter('remove_row', 1);
+
+      expect(removedSignal!.aborted).toBe(true);
+      expect(await removedResult).toEqual({ status: 'cancelled', reason: 'rowRemoved' });
+      expect(plugin.isPending(1, 1)).toBe(true);
+
+      third.resolve('new C');
+      await keptResult;
+
+      expect(hot.getSourceDataAtRow(1)).toEqual({ sku: 'C', name: 'new C', price: 3 });
+
+      destroy();
+    });
+
+    it('should not bring a cancelled request back when the row removal is undone', async() => {
+      const { hot, plugin, destroy } = createGrid({ undo: true });
+      const result = plugin.setAsyncValue(1, 1, () => deferred().promise);
+
+      // A request elsewhere keeps the plugin's lookups live.
+      plugin.setAsyncValue(3, 1, () => deferred().promise);
+      hot.alter('remove_row', 1);
+      hot.getPlugin('undoRedo').undo();
+
+      expect(await result).toEqual({ status: 'cancelled', reason: 'rowRemoved' });
+      expect(hot.getDataAtRowProp(1, 'sku')).toBe('B');
+      expect(plugin.isPending(1, 1)).toBe(false);
+      expect(hot.getCell(1, 1)!.classList.contains('htAsyncPending')).toBe(false);
+
+      destroy();
+    });
+
+    it('should land the result on its record after a row is inserted above it', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const request = deferred();
+      const result = plugin.setAsyncValue(2, 1, () => request.promise);
+
+      hot.alter('insert_row_above', 0);
+
+      expect(plugin.isPending(3, 1)).toBe(true);
+
+      request.resolve('new C');
+      await result;
+
+      expect(hot.getDataAtRowProp(3, 'name')).toBe('new C');
+      expect(hot.getDataAtRowProp(3, 'sku')).toBe('C');
+
+      destroy();
+    });
+
+    it('should cancel every request when the data is replaced', async() => {
+      const { hot, plugin, destroy } = createGrid();
+      const result = plugin.setAsyncValue(0, 1, () => deferred().promise);
+
+      hot.loadData([{ sku: 'X', name: 'x', price: 9 }]);
+
+      expect(await result).toEqual({ status: 'cancelled', reason: 'dataReplaced' });
+
+      destroy();
+    });
+
+    it('should cancel the requests keyed by a column index when a column is inserted', async() => {
+      const { hot, plugin, destroy } = createGrid({
+        data: [['A', 'old A'], ['B', 'old B']],
+        columns: undefined,
+      });
+      const result = plugin.setAsyncValue(0, 1, () => deferred().promise);
+
+      hot.alter('insert_col_start', 0);
+
+      expect(await result).toEqual({ status: 'cancelled', reason: 'columnRemoved' });
+
+      destroy();
+    });
+  });
+
+  describe('row order', () => {
+    it('should land the result on its record after a sort', async() => {
+      const { hot, plugin, destroy } = createGrid({ columnSorting: true });
+      const request = deferred();
+      const result = plugin.setAsyncValue(0, 1, () => request.promise);
+
+      hot.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
+
+      expect(plugin.isPending(3, 1)).toBe(true);
+
+      request.resolve('new A');
+      await result;
+
+      expect(hot.getSourceDataAtRow(0)).toEqual({ sku: 'A', name: 'new A', price: 1 });
+      expect(hot.getDataAtRowProp(3, 'name')).toBe('new A');
+
+      destroy();
+    });
+
+    it('should write the result into the source data of a trimmed row', async() => {
+      const { hot, plugin, destroy } = createGrid({ trimRows: true });
+      const request = deferred();
+      const result = plugin.setAsyncValue(1, 1, () => request.promise);
+
+      hot.getPlugin('trimRows').trimRow(1);
+      request.resolve('new B');
+
+      expect(await result).toEqual({ status: 'resolved', value: 'new B' });
+      expect(hot.getSourceDataAtRow(1)).toEqual({ sku: 'B', name: 'new B', price: 2 });
+
+      destroy();
+    });
+  });
+
+  describe('reading values', () => {
+    it('should copy the current value of a pending cell', () => {
+      const { hot, plugin, destroy } = createGrid();
+
+      plugin.setAsyncValue(0, 1, () => deferred().promise);
+
+      expect(hot.getCopyableData(0, 1)).toBe('old A');
+
+      destroy();
+    });
+
+    it('should export the current value of a pending or failed cell', async() => {
+      const { hot, plugin, destroy } = createGrid();
+
+      plugin.setAsyncValue(0, 1, () => deferred().promise);
+      await plugin.setAsyncValue(1, 1, Promise.reject(new Error('Lookup failed')));
+
+      const csv = hot.getPlugin('exportFile').exportAsString('csv', { range: [0, 1, 1, 1], bom: false });
+
+      expect(csv).toBe('old A\r\nold B');
+
+      destroy();
+    });
+  });
+});

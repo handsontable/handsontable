@@ -1,3 +1,4 @@
+import { AsyncValues } from './asyncValues';
 import { AutoLink } from './autoLink';
 import { AutoColumnSize } from './autoColumnSize';
 import { Autofill } from './autofill';
@@ -58,6 +59,7 @@ import {
  */
 declare module './registry' {
   interface PluginClassMap {
+    asyncValues: typeof AsyncValues;
     autoLink: typeof AutoLink;
     autoColumnSize: typeof AutoColumnSize;
     autofill: typeof Autofill;
@@ -113,6 +115,7 @@ declare module './registry' {
  * Registers all available plugins.
  */
 export function registerAllPlugins() {
+  registerPlugin(AsyncValues);
   registerPlugin(AutoLink);
   registerPlugin(AutoColumnSize);
   registerPlugin(Autofill);
@@ -164,6 +167,7 @@ export function registerAllPlugins() {
 }
 
 export {
+  AsyncValues,
   AutoLink,
   AutoColumnSize,
   Autofill,

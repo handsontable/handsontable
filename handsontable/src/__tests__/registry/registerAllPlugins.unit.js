@@ -55,6 +55,7 @@ describe('`registerAllPlugins`', () => {
       'HiddenColumns',
       'HiddenRows',
       'TrimRows',
+      'AsyncValues',
       'Loading',
       'Dialog',
       'EmptyDataState',

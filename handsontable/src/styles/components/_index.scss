@@ -31,6 +31,7 @@
 @use "./plugins/pagination";
 @use "./plugins/sheets-bar";
 @use "./plugins/loading";
+@use "./plugins/async-values";
 @use "./plugins/empty-data-state";
 @use "./plugins/row-selection";
 @use "./plugins/checkbox-header";
@@ -104,6 +105,7 @@
   @include pagination.output();
   @include sheets-bar.output();
   @include loading.output();
+  @include async-values.output();
   @include empty-data-state.output();
   @include row-selection.output();
   @include checkbox-header.output();

@@ -41,6 +41,7 @@ describe('built-in plugins', () => {
       'HiddenColumns',
       'HiddenRows',
       'TrimRows',
+      'AsyncValues',
       'Loading',
       'Dialog',
       'EmptyDataState',

@@ -1527,6 +1527,54 @@ export const REGISTERED_HOOKS = [
   'afterAutofill',
 
   /**
+   * Fired by the {@link AsyncValues} plugin after it starts an asynchronous computation of a cell's
+   * value. The cell is in the pending state.
+   *
+   * @event Hooks#afterAsyncValueStart
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   */
+  'afterAsyncValueStart',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after it writes a resolved value into a cell.
+   *
+   * @event Hooks#afterAsyncValueResolve
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} value The resolved value.
+   */
+  'afterAsyncValueResolve',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after a cell's request rejects. The cell keeps its
+   * previous value and is in the error state.
+   *
+   * @event Hooks#afterAsyncValueReject
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} error The rejection reason.
+   * @param {string} message The error message shown on the cell.
+   */
+  'afterAsyncValueReject',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after it cancels a cell's pending request. A late result
+   * of the request is ignored.
+   *
+   * @event Hooks#afterAsyncValueCancel
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell, at the time of the cancellation.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {string} reason Why the request was cancelled: `'edit'`, `'dependency'`, `'restart'`,
+   * `'rowRemoved'`, `'columnRemoved'`, `'dataReplaced'`, `'manual'`, or `'disabled'`.
+   */
+  'afterAsyncValueCancel',
+
+  /**
    * Fired before aligning the cell contents.
    *
    * @event Hooks#beforeCellAlignment

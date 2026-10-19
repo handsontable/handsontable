@@ -22,6 +22,7 @@ import type { ManualColumnFreezeSettings } from '../plugins/manualColumnFreeze';
 import type { FreezeBarSettings, FreezeEdge, FreezeSource } from '../plugins/freezeBar';
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
 import type { UndoRedoSettings } from '../plugins/undoRedo';
+import type { AsyncValueCancelReason } from '../plugins/asyncValues';
 import type { PasteClipboardData } from '../plugins/copyPaste';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
@@ -280,6 +281,7 @@ export interface GridSettings {
   sortByRelevance?: boolean;
 
   // Plugins
+  asyncValues?: boolean;
   autoLink?: boolean | {
     target?: '_blank' | '_self';
     schemes?: Array<'http' | 'https' | 'mailto' | 'tel'>;
@@ -402,6 +404,10 @@ export interface GridSettings {
 
   // Hook callbacks
   afterAddChild?: (parent: RowObject, element: RowObject | undefined, index: number | undefined) => void;
+  afterAsyncValueCancel?: (physicalRow: number, prop: string | number, reason: AsyncValueCancelReason) => void;
+  afterAsyncValueReject?: (physicalRow: number, prop: string | number, error: unknown, message: string) => void;
+  afterAsyncValueResolve?: (physicalRow: number, prop: string | number, value: unknown) => void;
+  afterAsyncValueStart?: (physicalRow: number, prop: string | number) => void;
   afterAutofill?: (fillData: CellValue[][], sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange,
     direction: 'up' | 'down' | 'left' | 'right') => void;
   afterBeginEditing?: (row: number, column: number) => void;

@@ -1,4 +1,5 @@
 import {
+  AsyncValues,
   AutoColumnSize,
   Autofill,
   AutoRowSize,
@@ -45,6 +46,7 @@ import {
 
 registerAllPlugins();
 
+registerPlugin(AsyncValues);
 registerPlugin(AutoColumnSize);
 registerPlugin(Autofill);
 registerPlugin(AutoRowSize);
@@ -86,6 +88,7 @@ registerPlugin(UndoRedo);
 registerPlugin('custom', class CustomPlugin extends BasePlugin {});
 
 // getPlugin() infers the specific constructor type for each registered plugin name.
+const asyncValues: typeof AsyncValues | undefined = getPlugin('asyncValues');
 const autoColumnSize: typeof AutoColumnSize | undefined = getPlugin('autoColumnSize');
 const autofill: typeof Autofill | undefined = getPlugin('autofill');
 const autoRowSize: typeof AutoRowSize | undefined = getPlugin('autoRowSize');

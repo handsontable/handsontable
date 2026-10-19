@@ -1,0 +1,39 @@
+// Handsontable AsyncValues
+
+@mixin output {
+  .handsontable {
+    .htAsyncPending {
+      position: relative;
+    }
+
+    .htAsyncIndicator {
+      position: absolute;
+      top: 50%;
+      inset-inline-end: var(--ht-cell-horizontal-padding);
+      box-sizing: border-box;
+      width: calc(var(--ht-icon-size) * 0.75);
+      height: calc(var(--ht-icon-size) * 0.75);
+      margin-top: calc(var(--ht-icon-size) * -0.375);
+      border: 2px solid var(--ht-accent-color);
+      border-inline-end-color: transparent;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: ht-async-values-spin 1s linear infinite;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    }
+
+    .htAsyncError {
+      // Gives priority over the `td.area` selection background, like `.htInvalid`.
+      background-color: var(--ht-cell-error-background-color) !important;
+    }
+  }
+
+  @keyframes ht-async-values-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}

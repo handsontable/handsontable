@@ -5,6 +5,7 @@
  * Keeping all plugin imports in one place avoids polluting src/common.ts
  * with 40+ plugin-specific import statements.
  */
+import type { AsyncValues } from './asyncValues';
 import type { AutoColumnSize } from './autoColumnSize';
 import type { Autofill } from './autofill';
 import type { AutoLink } from './autoLink';
@@ -57,6 +58,7 @@ import type { UndoRedo } from './undoRedo';
  * Extend this interface via module augmentation when adding new plugins.
  */
 export interface PluginTypeMap {
+  asyncValues: AsyncValues;
   autoColumnSize: AutoColumnSize;
   autofill: Autofill;
   autoLink: AutoLink;

@@ -38,6 +38,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   allowRemoveColumn: true,
   allowRemoveRow: true,
   ariaTags: true,
+  asyncValues: true,
   autoColumnSize: true,
   autoLink: oneOf(true, {
     target: '_self' as const,
@@ -420,6 +421,19 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
   // Hooks via settings object
   afterAddChild: (parent, element, index) => {},
+  afterAsyncValueCancel: (physicalRow, prop, reason) => {
+    const _physicalRow: number = physicalRow;
+    const _prop: string | number = prop;
+    const _reason: 'edit' | 'dependency' | 'restart' | 'rowRemoved' | 'columnRemoved' | 'dataReplaced' |
+      'manual' | 'disabled' = reason;
+  },
+  afterAsyncValueReject: (physicalRow, prop, error, message) => {
+    const _message: string = message;
+  },
+  afterAsyncValueResolve: (physicalRow, prop, value) => {},
+  afterAsyncValueStart: (physicalRow, prop) => {
+    const _physicalRow: number = physicalRow;
+  },
   afterAutofill: (start, end, data) => {},
   afterBeginEditing: (row, column) => {},
   afterCellMetaReset: () => {},
