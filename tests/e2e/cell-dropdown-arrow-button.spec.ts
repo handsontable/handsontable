@@ -5,7 +5,9 @@ import { CellDropdownArrowPage, type CellType } from '../fixtures/pages/CellDrop
 // `dropdownRenderer` and `handsontableRenderer` both delegate to `autocompleteRenderer`.
 // `multiselect` reaches its own element and its own listener (#13316) and is included so the
 // affordance every list cell type shares is asserted in one place.
-const CELL_TYPES: CellType[] = ['autocomplete', 'dropdown', 'handsontable', 'multiselect'];
+// `dropdown` and `handsontable` render their arrow through `autocompleteRenderer`, so the autocomplete cases
+// cover them; `multiselect` builds its own indicator.
+const CELL_TYPES: CellType[] = ['autocomplete', 'multiselect'];
 
 /**
  * DEV-2677. `autocompleteRenderer` registers a `mousedown` listener that opens the editor when the

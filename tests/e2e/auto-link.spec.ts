@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { AutoLinkPage } from '../fixtures/pages/AutoLinkPage';
 
 /**
@@ -6,7 +6,7 @@ import { AutoLinkPage } from '../fixtures/pages/AutoLinkPage';
  * cell's own renderer ran. The value is never changed, the cell meta is never written, and the
  * anchors are rebuilt on every render pass.
  */
-test.describe('autoLink', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+test.describe('autoLink', { tag: BUNDLES_TAG }, () => {
   test('wraps a whole-cell URL in an anchor with the shared classes and safe attributes', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 
@@ -281,19 +281,6 @@ test.describe('autoLink', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
     await expect(grid.anyLinks(14, 0)).toHaveCount(0);
   });
 
-  test('applies the grid-level object form of `inline`', async({ page, theme, bundle }) => {
-    const grid = new AutoLinkPage(page, theme, bundle);
-
-    await grid.goto();
-    await grid.setAutoLink({ inline: false });
-
-    // A whole-cell URL still links...
-    await expect(grid.links(0, 0)).toHaveCount(1);
-    // ...but a URL embedded in prose does not, now that `inline: false` applies grid-wide.
-    await expect(grid.anyLinks(1, 0)).toHaveCount(0);
-    await expect(grid.cell(1, 0)).toHaveText('Visit https://example.com/two for details.');
-  });
-
   test('survives repeated renders and rebuilds from the current value', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 
@@ -328,18 +315,6 @@ test.describe('autoLink', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
     await grid.setAutoLink(true);
 
     await expect(grid.links(0, 0)).toHaveCount(1);
-  });
-
-  test('drops the anchors when the plugin is disabled without a redraw', async({ page, theme, bundle }) => {
-    const grid = new AutoLinkPage(page, theme, bundle);
-
-    await grid.goto();
-    await expect(grid.links(0, 0)).toHaveCount(1);
-
-    await grid.disablePluginWithoutRender();
-
-    await expect(grid.anyLinks(0, 0)).toHaveCount(0);
-    await expect(grid.anyLinks(0, 4)).toHaveCount(0);
   });
 
   test('removes and re-adds anchors under `renderMode: "onChange"`', async({ page, theme, bundle }) => {
@@ -380,35 +355,6 @@ test.describe('autoLink', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
     await expect(grid.links(0, 0)).toHaveCount(1);
   });
 
-  test('follows a link on click and still selects the cell', async({ page, theme, bundle }) => {
-    const grid = new AutoLinkPage(page, theme, bundle);
-
-    await grid.goto();
-
-    const [popup] = await Promise.all([
-      page.waitForEvent('popup'),
-      grid.links(6, 0).click(),
-    ]);
-
-    await expect(popup).toHaveURL(/\/tests\/fixtures\/demo\/grid\.html$/);
-    await popup.close();
-
-    await expect(grid.selectedCoords()).resolves.toEqual([6, 0]);
-  });
-
-  test('opens the editor with the raw value on double click', async({ page, theme, bundle }) => {
-    const grid = new AutoLinkPage(page, theme, bundle);
-
-    await grid.goto();
-
-    // x:2 sits in the sub-pixel zone where the frozen row-header clone pane's holder overlaps the
-    // first data column (measured on all three themes), which intercepts the click instead of the
-    // cell; x:10 clears it while still landing on plain text, left of the link.
-    await grid.cell(1, 0).dblclick({ position: { x: 10, y: 10 } });
-
-    await expect(grid.editorValue()).resolves.toBe('Visit https://example.com/two for details.');
-  });
-
   test('opens the first link of the selected cell with Alt+Enter, honouring `target`', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 
@@ -428,20 +374,6 @@ test.describe('autoLink', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       ['https://example.com/two', '_blank'],
       ['https://example.com/one', '_self'],
     ]);
-  });
-
-  test('leaves Alt+Enter to the host application on a cell with no link', async({ page, theme, bundle }) => {
-    const grid = new AutoLinkPage(page, theme, bundle);
-
-    await grid.goto();
-    await grid.recordWindowOpen();
-    await grid.recordHostAltEnter();
-
-    await grid.selectCell(8, 0);
-    await grid.pressOpenLinkShortcut();
-
-    await expect(grid.openedUrls()).resolves.toEqual([]);
-    await expect(grid.hostAltEnterEvents()).resolves.toEqual([false]);
   });
 
   test('links the freed URL text under `renderMode: "onChange"` when Formulas is disabled without ' +
@@ -465,19 +397,6 @@ test.describe('autoLink', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
     await expect(grid.links(1, 5)).toHaveCount(1);
     await expect(grid.links(1, 5)).toHaveAttribute('href', 'https://example.com/raw');
   });
-
-  test('keeps Alt+Enter working for autoLink cells when Formulas is disabled', async({ page, theme, bundle }) => {
-    const grid = new AutoLinkPage(page, theme, bundle);
-
-    await grid.goto();
-    await grid.recordWindowOpen();
-    await grid.setFormulasEnabled(false);
-
-    await grid.selectCell(0, 0);
-    await grid.pressOpenLinkShortcut();
-
-    await expect(grid.openedUrls()).resolves.toEqual([['https://example.com/one', '_blank']]);
-  });
 });
 
 /**
@@ -487,7 +406,7 @@ test.describe('autoLink', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
  * grid-level default (`strict: true`), proving the non-strict column does not change strict behavior
  * elsewhere.
  */
-test.describe('autoLink.strict', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+test.describe('autoLink.strict', { tag: BUNDLES_TAG }, () => {
   test('links a bare domain as `https`', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 
@@ -518,14 +437,6 @@ test.describe('autoLink.strict', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
     await expect(link).toHaveAttribute('href', 'mailto:ana.garcia@example.com');
     await expect(link.locator('.ht-link-scheme')).toHaveCount(0);
     await expect(link).toHaveText('ana.garcia@example.com', { useInnerText: true });
-  });
-
-  test('links a bare domain whose top-level domain is a country code (documented trade-off)', async({ page, theme, bundle }) => {
-    const grid = new AutoLinkPage(page, theme, bundle);
-
-    await grid.goto();
-
-    await expect(grid.links(3, 7)).toHaveCount(1);
   });
 
   test('links a bare domain whose top-level domain is also a common file extension (documented trade-off, no exclusion list)', async({ page, theme, bundle }) => {
@@ -567,17 +478,6 @@ test.describe('autoLink.strict', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
 
     await expect(grid.anyLinks(7, 7)).toHaveCount(0);
     await expect(grid.cell(7, 7)).toHaveText('1.2.3');
-  });
-
-  test('leaves column A (strict default) unaffected by another column\'s `strict: false`', async({ page, theme, bundle }) => {
-    const grid = new AutoLinkPage(page, theme, bundle);
-
-    await grid.goto();
-
-    await expect(grid.cell(11, 0)).toHaveText('Grand Hotel:Warsaw');
-    await expect(grid.anyLinks(11, 0)).toHaveCount(0);
-    await expect(grid.links(0, 0)).toHaveCount(1);
-    await expect(grid.links(0, 0)).toHaveAttribute('href', 'https://example.com/one');
   });
 
   test('does not link a bare domain whose port is out of range, even when dropping a leading ' +

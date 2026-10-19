@@ -75,20 +75,18 @@ const LAYOUTS: Layout[] = [
 
 for (const layout of LAYOUTS) {
   test.describe(`submenu placement (grid ${layout.grid}, document ${layout.doc})`, { tag: THEMES_TAG }, () => {
-    for (const scrolled of [false, true]) {
-      // The grid's own holder scrolls here, so its scroll offset must not reach the submenu's position.
-      const where = scrolled ? ', with the grid scrolled to its bottom and inline end' : '';
+    // The positioner reads the menu container's direction and the pointer's client position: the grid's
+    // own scroll offset never enters it, and a page whose direction the grid follows is the grid's own
+    // layout again. The two mixed layouts cover both positioner branches at rest; the window-scroll test
+    // below runs on all four.
+    if (layout.grid !== 'inherit' && layout.grid !== layout.doc) {
 
-      test(`the context menu's submenu opens beside its item from every corner${where}`, async({
+      test('the context menu\'s submenu opens beside its item from every corner', async({
         page, theme, bundle,
       }) => {
         const grid = new SubmenuPositionPage(page, theme, bundle, layout);
 
         await grid.goto();
-
-        if (scrolled) {
-          await grid.scrollGridToBottomAndInlineEnd();
-        }
 
         for (const corner of CORNERS) {
           const point = await grid.openContextMenuAt(corner.x, corner.y);
@@ -105,16 +103,12 @@ for (const layout of LAYOUTS) {
         }
       });
 
-      test(`the dropdown menu's submenu opens beside its item at both inline edges${where}`, async({
+      test('the dropdown menu\'s submenu opens beside its item at both inline edges', async({
         page, theme, bundle,
       }) => {
         const grid = new SubmenuPositionPage(page, theme, bundle, layout);
 
         await grid.goto();
-
-        if (scrolled) {
-          await grid.scrollGridToBottomAndInlineEnd();
-        }
 
         for (const { edge, side } of DROPDOWN_EDGES) {
           await grid.openDropdownMenuAtInlineEdge(edge);

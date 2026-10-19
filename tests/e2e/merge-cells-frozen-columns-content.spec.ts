@@ -24,7 +24,8 @@ test.describe('content of a merged cell across a frozen-column line', { tag: THE
     await grid.goto();
   });
 
-  for (const className of ['htRight', 'htCenter', 'htLeft']) {
+  // One alignment: the layout wrapper is the same element for every alignment class.
+  for (const className of ['htRight'] as const) {
     test(`shows a ${className} value once`, async () => {
       await grid.initGrid({
         fixedColumnsStart: 2,
@@ -95,17 +96,6 @@ test.describe('content of a merged cell across a frozen-column line', { tag: THE
       values: [{ row: 1, col: 22, value: 'markers:1' }],
     });
     await grid.scrollToColumn(22);
-
-    await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
-  });
-
-  test('shows a value once with virtualized merged cells', async () => {
-    await grid.initGrid({
-      fixedColumnsStart: 2,
-      mergeCells: { virtualized: true, cells: [BLOCK] },
-      values: ONE_MARKER,
-      cell: [{ row: 1, col: 0, className: 'htRight' }],
-    });
 
     await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
   });

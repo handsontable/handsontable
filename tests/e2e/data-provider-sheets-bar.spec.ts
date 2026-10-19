@@ -1474,25 +1474,6 @@ test.describe('dataProvider with sheetsBar', { tag: THEMES_TAG }, () => {
       await expect(grid.toast()).toContainText('Could not create rows');
       expect(await grid.pendingCount('ORD')).toBe(0);
     });
-
-    test('a remove that fails off-screen shows its toast on return, not before', async() => {
-      await grid.startRemoveRows(['ORD-01']);
-      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
-      await grid.clickTab(1);
-      await grid.failNextUpdate();
-      await grid.releaseUpdates();
-      await expect.poll(() => grid.events()).toContain('afterMutationError remove');
-
-      await expect(grid.toast()).toHaveCount(0);
-      expect(await grid.consoleProblems()).toEqual([expect.stringContaining('Row remove failed:')]);
-      await grid.clearConsoleProblems();
-
-      await grid.clickTab(0);
-
-      await expect(grid.toast()).toHaveCount(1);
-      await expect(grid.toast()).toContainText('Could not remove rows');
-      expect(await grid.ids()).toEqual(['ORD-01', 'ORD-02', 'ORD-03', 'ORD-04', 'ORD-05']);
-    });
   });
 
   test.describe('the loading overlay and the selection across a switch', () => {

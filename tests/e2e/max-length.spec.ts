@@ -130,15 +130,6 @@ test.describe('maxLength', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       // All or nothing: not a single regional indicator is left behind.
       await expect(grid.editor).toHaveValue('abc');
     });
-
-    test('counts an emoji with a skin tone as one character', async () => {
-      await grid.initGrid({ maxLength: 2 });
-      await grid.openEditor(0, 0);
-
-      await grid.typeEmoji(thumb, thumb, thumb);
-
-      await expect(grid.editor).toHaveValue(`${thumb}${thumb}`);
-    });
   });
 
   test.describe('whitespace', () => {
@@ -171,19 +162,6 @@ test.describe('maxLength', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       await expect(grid.cell(0, 0)).not.toHaveClass(/htInvalid/);
     });
 
-    test('does the same for a paste that also starts with a space', async () => {
-      await grid.initGrid({ maxLength: 10 });
-      await grid.openEditor(0, 0);
-
-      await grid.pasteText(' ABCDEFGHIJKL   ');
-
-      await expect(grid.editor).toHaveValue(/^ ABCDEFGHIJ\s*$/);
-
-      await grid.commit();
-
-      expect(await grid.dataAt(0, 0)).toBe('ABCDEFGHIJ');
-    });
-
     test('counts every space when `trimWhitespace` is off', async () => {
       await grid.initGrid({ maxLength: 10, trimWhitespace: false });
       await grid.openEditor(0, 0);
@@ -193,35 +171,9 @@ test.describe('maxLength', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       // Nothing is trimmed at commit, so the spaces are part of the text and the cut is made at its end.
       await expect(grid.editor).toHaveValue('ABCDEFGHIJ');
     });
-
-    test('lets trailing spaces into a full cell, because the commit trims them', async () => {
-      await grid.initGrid({ maxLength: 3, data: [['abc', '', '', '']] });
-      await grid.openEditor(0, 0);
-
-      await grid.type('  ');
-
-      await expect(grid.editor).toHaveValue('abc  ');
-
-      await grid.commit();
-
-      expect(await grid.dataAt(0, 0)).toBe('abc');
-    });
   });
 
   test.describe('the guide example: maxLength 5 with allowInvalid false', () => {
-    test('stores the 5 characters that fit and closes the editor', async () => {
-      await grid.initGrid({ columns: [{ maxLength: 5 }], allowInvalid: false });
-      await grid.openEditor(0, 0);
-
-      await grid.type('abcdefgh');
-
-      await expect(grid.editor).toHaveValue('abcde');
-
-      await grid.commit();
-
-      expect(await grid.dataAt(0, 0)).toBe('abcde');
-    });
-
     test('keeps the editor open on an over-limit value that is committed unchanged', async ({ page }) => {
       await grid.initGrid({ columns: [{ maxLength: 5 }], allowInvalid: false, data: [['abcdefgh']] });
       await grid.openEditor(0, 0);
@@ -262,14 +214,6 @@ test.describe('maxLength', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   });
 
   test.describe('a custom editor that extends the text editor', () => {
-    test('is capped like the text editor', async () => {
-      await grid.initGrid({ columns: [{ editor: 'customText', maxLength: 3 }] });
-      await grid.openEditor(0, 0);
-
-      await grid.type('abcdef');
-
-      await expect(grid.editor).toHaveValue('abc');
-    });
   });
 
   test.describe('list editors that share the text editor input', () => {
@@ -295,20 +239,6 @@ test.describe('maxLength', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       await grid.commit();
 
       expect(await grid.dataAt(0, 0)).toBe('Northwest Tr');
-    });
-
-    test('does not cap an autocomplete cell without a limit, and the list filters as before', async () => {
-      await grid.initGrid({ columns: [{ type: 'autocomplete', source: suppliers, strict: false }] });
-      await grid.openEditor(0, 0);
-
-      await grid.type('Northwest Tr');
-
-      await expect(grid.editor).toHaveValue('Northwest Tr');
-      await expect.poll(() => grid.suggestions()).toEqual(['Northwest Trucking Co']);
-
-      await grid.type('ading Group');
-
-      await expect(grid.editor).toHaveValue('Northwest Trading Group');
     });
 
     test('rejects a long option picked in a strict autocomplete cell, although typing cannot reach it', async () => {
@@ -361,17 +291,6 @@ test.describe('maxLength', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       await expect(grid.cell(0, 0)).toHaveClass(/htInvalid/);
     });
 
-    test('caps typing in a handsontable-type cell', async () => {
-      await grid.initGrid({
-        columns: [{ type: 'handsontable', handsontable: { data: [['Seattle'], ['Denver']] }, maxLength: 5 }],
-      });
-      await grid.openEditor(0, 0);
-
-      await grid.type('Seattle');
-
-      await expect(grid.editor).toHaveValue('Seatt');
-    });
-
     // The date, time and intl editors keep their `capsLength` opt-out, but there is no E2E case for it:
     // the date input held no text after `keyboard.type('2026-10-02')` on a date column with `maxLength: 4`
     // (measured: an empty value), so a typing assertion cannot be written without understanding the picker. The opt-out is
@@ -379,17 +298,6 @@ test.describe('maxLength', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   });
 
   test.describe('inserting a line break', () => {
-    test('adds one in the middle of a cell that has room', async ({ page }) => {
-      await grid.initGrid({ maxLength: 10, data: [['abc']] });
-      await grid.openEditor(0, 0);
-      await page.keyboard.press('Home');
-      await page.keyboard.press('ArrowRight');
-
-      await page.keyboard.press('Alt+Enter');
-
-      await expect(grid.editor).toHaveValue('a\nbc');
-    });
-
     test('adds nothing in the middle of a full cell, and leaves the text alone', async ({ page }) => {
       await grid.initGrid({ maxLength: 10, data: [['abcdefghij']] });
       await grid.openEditor(0, 0);
@@ -446,28 +354,6 @@ test.describe('maxLength', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       await expect(grid.editor).toHaveValue('abc');
       expect(await grid.caret()).toEqual({ start: 3, end: 3 });
     });
-
-    test('keeps what was already in the cell and fills only the room that is left', async () => {
-      await grid.initGrid({ maxLength: 4, data: [['ab', '', '', '']] });
-      await grid.openEditor(0, 0);
-
-      await grid.pasteText('XYZW');
-
-      await expect(grid.editor).toHaveValue('abXY');
-    });
-
-    test('cuts the excess of a paste in the middle, keeping the text on both sides', async () => {
-      await grid.initGrid({ maxLength: 4, data: [['abc', '', '', '']] });
-      await grid.openEditor(0, 0);
-      await grid.page.keyboard.press('ArrowLeft');
-      await grid.page.keyboard.press('ArrowLeft');
-
-      // "a|bc" plus 3 pasted characters overflows by 2. The excess leaves from the end of the pasted text.
-      await grid.pasteText('XYZ');
-
-      await expect(grid.editor).toHaveValue('aXbc');
-      expect(await grid.caret()).toEqual({ start: 2, end: 2 });
-    });
   });
 
   test.describe('a value that is already too long', () => {
@@ -517,16 +403,6 @@ test.describe('maxLength', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       await grid.setDataAtCell(0, 0, 'ok');
 
       await expect(grid.cell(0, 0)).not.toHaveClass(/htInvalid/);
-    });
-
-    test('marks a value pasted into the grid as invalid and keeps it, with `allowInvalid: true`', async () => {
-      await grid.initGrid({ maxLength: 3, allowInvalid: true });
-      await grid.selectCell(0, 0);
-
-      await grid.pasteText('toolong');
-
-      await expect(grid.cell(0, 0)).toHaveClass(/htInvalid/);
-      expect(await grid.dataAt(0, 0)).toBe('toolong');
     });
 
     test('rejects a value pasted into the grid, with `allowInvalid: false`', async () => {

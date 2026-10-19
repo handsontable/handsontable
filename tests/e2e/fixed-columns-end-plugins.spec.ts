@@ -152,33 +152,39 @@ for (const direction of ['ltr', 'rtl'] as const) {
       await grid.goto({ rtl, fixedColumnsEnd: 2, customBorders: true });
     });
 
-    test('draws the border of an end column although the main table renders no column near it', async () => {
-      const border = { width: 2, color: 'red' };
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('draws the border of an end column although the main table renders no column near it', async () => {
+        const border = { width: 2, color: 'red' };
 
-      await grid.updateSettings({
-        customBorders: [
-          { row: 3, col: COLS - 1, top: border, bottom: border, start: border, end: border },
-          // A scrolling column far from the viewport: the working set must still leave it out.
-          { row: 3, col: 15, top: border, bottom: border, start: border, end: border },
-        ],
+        await grid.updateSettings({
+          customBorders: [
+            { row: 3, col: COLS - 1, top: border, bottom: border, start: border, end: border },
+            // A scrolling column far from the viewport: the working set must still leave it out.
+            { row: 3, col: 15, top: border, bottom: border, start: border, end: border },
+          ],
+        });
+
+        await expect.poll(() => grid.hasRenderedCustomBorder(3, COLS - 1)).toBe(true);
+        expect(await grid.hasRenderedCustomBorder(3, 15)).toBe(false);
+        await expect.poll(() => grid.visibleBordersInEndOverlay()).toBeGreaterThan(0);
       });
+    }
 
-      await expect.poll(() => grid.hasRenderedCustomBorder(3, COLS - 1)).toBe(true);
-      expect(await grid.hasRenderedCustomBorder(3, 15)).toBe(false);
-      await expect.poll(() => grid.visibleBordersInEndOverlay()).toBeGreaterThan(0);
-    });
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('keeps the border of an end column while the grid scrolls', async () => {
+        const border = { width: 2, color: 'red' };
 
-    test('keeps the border of an end column while the grid scrolls', async () => {
-      const border = { width: 2, color: 'red' };
+        await grid.updateSettings({
+          customBorders: [{ row: 3, col: COLS - 1, top: border, bottom: border, start: border, end: border }],
+        });
+        await grid.scrollTo({ left: 400 });
 
-      await grid.updateSettings({
-        customBorders: [{ row: 3, col: COLS - 1, top: border, bottom: border, start: border, end: border }],
+        await expect.poll(() => grid.hasRenderedCustomBorder(3, COLS - 1)).toBe(true);
+        await expect.poll(() => grid.visibleBordersInEndOverlay()).toBeGreaterThan(0);
       });
-      await grid.scrollTo({ left: 400 });
-
-      await expect.poll(() => grid.hasRenderedCustomBorder(3, COLS - 1)).toBe(true);
-      await expect.poll(() => grid.visibleBordersInEndOverlay()).toBeGreaterThan(0);
-    });
+    }
   });
 
   test.describe(`fixedColumnsEnd and UndoRedo (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
@@ -189,19 +195,22 @@ for (const direction of ['ltr', 'rtl'] as const) {
       await grid.goto({ rtl, fixedColumnsEnd: 3 });
     });
 
-    test('gives the end columns back when it undoes the removal of some of them', async () => {
-      await grid.removeColumns(COLS - 2, 2);
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('gives the end columns back when it undoes the removal of some of them', async () => {
+        await grid.removeColumns(COLS - 2, 2);
 
-      expect(await grid.countCols()).toBe(COLS - 2);
-      expect(await grid.fixedColumnsEnd()).toBe(1);
+        expect(await grid.countCols()).toBe(COLS - 2);
+        expect(await grid.fixedColumnsEnd()).toBe(1);
 
-      await grid.undo();
+        await grid.undo();
 
-      expect(await grid.countCols()).toBe(COLS);
-      expect(await grid.fixedColumnsEnd()).toBe(3);
-      expect(await grid.overlayOf(5, COLS - 1)).toBe('inline_end');
-      expect(await grid.overlayOf(5, COLS - 3)).toBe('inline_end');
-      expect(await grid.overlayOf(5, COLS - 4)).not.toBe('inline_end');
-    });
+        expect(await grid.countCols()).toBe(COLS);
+        expect(await grid.fixedColumnsEnd()).toBe(3);
+        expect(await grid.overlayOf(5, COLS - 1)).toBe('inline_end');
+        expect(await grid.overlayOf(5, COLS - 3)).toBe('inline_end');
+        expect(await grid.overlayOf(5, COLS - 4)).not.toBe('inline_end');
+      });
+    }
   });
 }

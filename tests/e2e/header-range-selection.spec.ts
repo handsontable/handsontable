@@ -146,20 +146,23 @@ test.describe('a header click and a Shift+click select the range between them', 
       }
     });
 
-    test(`selects the rows between two row headers on the ${testCase.route} shape`, async() => {
-      const [first, last] = testCase.rows;
+    // Row headers have no direction term and no nested level, so those two shapes repeat the plain one.
+    if (!['/arabic-rtl-demo', '/nested-headers-demo'].includes(testCase.route)) {
+      test(`selects the rows between two row headers on the ${testCase.route} shape`, async() => {
+        const [first, last] = testCase.rows;
 
-      await grid.goto(testCase.layout);
+        await grid.goto(testCase.layout);
 
-      const { columns } = await grid.size();
+        const { columns } = await grid.size();
 
-      await grid.clickRowHeader(first);
-      await grid.clickRowHeader(last, ['Shift']);
+        await grid.clickRowHeader(first);
+        await grid.clickRowHeader(last, ['Shift']);
 
-      expect(await grid.selected()).toEqual([[first, -1, last, columns - 1]]);
-      expect(await grid.activeRowHeaders()).toEqual(testCase.drawnRows);
-      expect(await grid.focus()).toEqual(testCase.rowFocus);
-    });
+        expect(await grid.selected()).toEqual([[first, -1, last, columns - 1]]);
+        expect(await grid.activeRowHeaders()).toEqual(testCase.drawnRows);
+        expect(await grid.focus()).toEqual(testCase.rowFocus);
+      });
+    }
   }
 
   // On a grid with nested headers and navigableHeaders, a Shift+click extends the range from the header

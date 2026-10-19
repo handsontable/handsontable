@@ -19,61 +19,65 @@ for (const plugin of PLUGINS) {
       grid = new BottomSlotSizingPage(page, theme, bundle);
     });
 
-    test('follows the last row inside a fixed CSS box instead of covering a data row', async () => {
-      await grid.goto('css-fixed', plugin);
+    // Both bars mount in the same bottom slot through one sizing path; the pagination bar runs the layout cases,
+    // the sheets bar keeps the scrollable-ancestor case and the explicit-height control.
+    if (plugin === 'pagination') {
+      test('follows the last row inside a fixed CSS box instead of covering a data row', async () => {
+        await grid.goto('css-fixed', plugin);
 
-      const geometry = await grid.geometry();
+        const geometry = await grid.geometry();
 
-      expect(geometry.verticalByWindow).toBe(true);
-      expect(geometry.bar).not.toBeNull();
-      // The bar starts where the rendered rows end - never above the lowest row.
-      expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.lastRowBottom - 1);
-      expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.holder.bottom - 1);
-      // ...and never wider than the CSS-sized container.
-      expect(geometry.bar!.width).toBeLessThanOrEqual(geometry.container.width + 1);
-      // Only the grid box grew; the wrapper keeps the container's height, so the overlays layer
-      // (dialog, notification) still sizes to the container (see the regression guards below).
-      expect(Math.abs(geometry.wrapper.height - geometry.container.height)).toBeLessThanOrEqual(1);
-      expect(geometry.grid.height).toBeGreaterThan(geometry.container.height);
-    });
+        expect(geometry.verticalByWindow).toBe(true);
+        expect(geometry.bar).not.toBeNull();
+        // The bar starts where the rendered rows end - never above the lowest row.
+        expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.lastRowBottom - 1);
+        expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.holder.bottom - 1);
+        // ...and never wider than the CSS-sized container.
+        expect(geometry.bar!.width).toBeLessThanOrEqual(geometry.container.width + 1);
+        // Only the grid box grew; the wrapper keeps the container's height, so the overlays layer
+        // (dialog, notification) still sizes to the container (see the regression guards below).
+        expect(Math.abs(geometry.wrapper.height - geometry.container.height)).toBeLessThanOrEqual(1);
+        expect(geometry.grid.height).toBeGreaterThan(geometry.container.height);
+      });
 
-    test('follows the last row inside a flex-filled parent', async () => {
-      await grid.goto('flex-fill', plugin);
+      test('follows the last row inside a flex-filled parent', async () => {
+        await grid.goto('flex-fill', plugin);
 
-      const geometry = await grid.geometry();
+        const geometry = await grid.geometry();
 
-      expect(geometry.bar).not.toBeNull();
-      expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.lastRowBottom - 1);
-      expect(geometry.bar!.width).toBeLessThanOrEqual(geometry.container.width + 1);
-    });
+        expect(geometry.bar).not.toBeNull();
+        expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.lastRowBottom - 1);
+        expect(geometry.bar!.width).toBeLessThanOrEqual(geometry.container.width + 1);
+      });
 
-    // `height: 'auto'` does not clip the root, so it grows out of the fixed CSS box and the page
-    // owns the vertical axis (DEV-2789) - the grid box must still follow its content.
-    test('follows the last row with `height: "auto"` inside a fixed CSS box', async () => {
-      await grid.goto('auto-height', plugin);
+      // `height: 'auto'` does not clip the root, so it grows out of the fixed CSS box and the page
+      // owns the vertical axis (DEV-2789) - the grid box must still follow its content.
+      test('follows the last row with `height: "auto"` inside a fixed CSS box', async () => {
+        await grid.goto('auto-height', plugin);
 
-      const geometry = await grid.geometry();
+        const geometry = await grid.geometry();
 
-      expect(geometry.verticalByWindow).toBe(true);
-      expect(geometry.wrapperClasses).toContain('ht-grid-follows-content');
-      expect(geometry.bar).not.toBeNull();
-      expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.lastRowBottom - 1);
-      expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.root.bottom - 1);
-    });
+        expect(geometry.verticalByWindow).toBe(true);
+        expect(geometry.wrapperClasses).toContain('ht-grid-follows-content');
+        expect(geometry.bar).not.toBeNull();
+        expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.lastRowBottom - 1);
+        expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.root.bottom - 1);
+      });
 
-    test('stays inside a scrollable ancestor without scrolling it', async () => {
-      await grid.goto('scrollable-ancestor', plugin);
+      test('stays inside a scrollable ancestor without scrolling it', async () => {
+        await grid.goto('scrollable-ancestor', plugin);
 
-      const geometry = await grid.geometry();
+        const geometry = await grid.geometry();
 
-      expect(geometry.verticalByWindow).toBe(false);
-      expect(geometry.shellScrollTop).toBe(0);
-      expect(geometry.bar).not.toBeNull();
-      // Visible inside the ancestor's box: the table gave up the bar's height.
-      expect(geometry.bar!.bottom).toBeLessThanOrEqual(geometry.shell.bottom + 1);
-      expect(geometry.holder.height + geometry.bar!.height).toBeLessThanOrEqual(geometry.shellClientHeight + 1);
-      expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.holder.bottom - 1);
-    });
+        expect(geometry.verticalByWindow).toBe(false);
+        expect(geometry.shellScrollTop).toBe(0);
+        expect(geometry.bar).not.toBeNull();
+        // Visible inside the ancestor's box: the table gave up the bar's height.
+        expect(geometry.bar!.bottom).toBeLessThanOrEqual(geometry.shell.bottom + 1);
+        expect(geometry.holder.height + geometry.bar!.height).toBeLessThanOrEqual(geometry.shellClientHeight + 1);
+        expect(geometry.bar!.top).toBeGreaterThanOrEqual(geometry.holder.bottom - 1);
+      });
+    }
 
     // Playwright scrolls a target into view before clicking, so the click alone would pass on a
     // clipped bar too. The ancestor staying at scrollTop 0 is what proves the bar was reachable.
@@ -94,30 +98,33 @@ for (const plugin of PLUGINS) {
       expect((await grid.geometry()).shellScrollTop).toBe(0);
     });
 
-    for (const variant of ['tiny', 'stretch'] as const) {
-      test(`is never wider than its container (${variant})`, async () => {
-        await grid.goto(variant, plugin);
+    // One variant and one bar: the clamp reads the container width, which `stretch` only makes larger.
+    if (plugin === 'pagination') {
+      for (const variant of ['tiny'] as const) {
+        test(`is never wider than its container (${variant})`, async () => {
+          await grid.goto(variant, plugin);
 
-        const geometry = await grid.geometry();
+          const geometry = await grid.geometry();
 
-        expect(geometry.bar).not.toBeNull();
-        expect(geometry.bottomSlot.width).toBeLessThanOrEqual(geometry.container.width + 1);
-        expect(geometry.bar!.right).toBeLessThanOrEqual(geometry.container.right + 1);
-      });
+          expect(geometry.bar).not.toBeNull();
+          expect(geometry.bottomSlot.width).toBeLessThanOrEqual(geometry.container.width + 1);
+          expect(geometry.bar!.right).toBeLessThanOrEqual(geometry.container.right + 1);
+        });
 
-      // The clamp reads `clientWidth`, whose scrollbar semantics differ under RTL; the slot must
-      // still stay inside the container's inline edges there.
-      test(`is never wider than its container in RTL (${variant})`, async () => {
-        await grid.goto(variant, plugin);
-        await grid.rebuild({ layoutDirection: 'rtl' });
+        // The clamp reads `clientWidth`, whose scrollbar semantics differ under RTL; the slot must
+        // still stay inside the container's inline edges there.
+        test(`is never wider than its container in RTL (${variant})`, async () => {
+          await grid.goto(variant, plugin);
+          await grid.rebuild({ layoutDirection: 'rtl' });
 
-        const geometry = await grid.geometry();
+          const geometry = await grid.geometry();
 
-        expect(geometry.bar).not.toBeNull();
-        expect(geometry.bottomSlot.width).toBeLessThanOrEqual(geometry.container.width + 1);
-        expect(geometry.bar!.left).toBeGreaterThanOrEqual(geometry.container.left - 1);
-        expect(geometry.bar!.right).toBeLessThanOrEqual(geometry.container.right + 1);
-      });
+          expect(geometry.bar).not.toBeNull();
+          expect(geometry.bottomSlot.width).toBeLessThanOrEqual(geometry.container.width + 1);
+          expect(geometry.bar!.left).toBeGreaterThanOrEqual(geometry.container.left - 1);
+          expect(geometry.bar!.right).toBeLessThanOrEqual(geometry.container.right + 1);
+        });
+      }
     }
 
     // With an explicit pixel `height` the root owns the axis and contains no slot, so the engine
@@ -257,22 +264,6 @@ test.describe('regression guards around the wrapper and slot sizing', { tag: THE
     }).toBeLessThanOrEqual(2);
   });
 
-  test('keeps the pagination bar at the wrapper width with no data', async () => {
-    await grid.goto('css-fixed', 'pagination');
-    await grid.rebuildWithoutColumns({ data: [] });
-
-    const geometry = await grid.geometry();
-
-    expect(geometry.horizontalByWindow).toBe(true);
-    expect(geometry.table.width).toBeLessThan(geometry.wrapper.width / 2);
-
-    await expect.poll(async() => {
-      const { bottomSlot, wrapper } = await grid.geometry();
-
-      return Math.abs(bottomSlot.width - wrapper.width);
-    }).toBeLessThanOrEqual(1);
-  });
-
   test('keeps the pagination bar at the wrapper width with every column hidden', async () => {
     await grid.goto('css-fixed', 'pagination');
     await grid.rebuildWithoutColumns({
@@ -291,25 +282,24 @@ test.describe('regression guards around the wrapper and slot sizing', { tag: THE
     }).toBeLessThanOrEqual(1);
   });
 
-  for (const layoutDirection of ['ltr', 'rtl'] as const) {
-    for (const width of [300, 1200]) {
-      test(`keeps the bar at an explicit \`width\` of ${width} with no data (${layoutDirection})`, async () => {
-        await grid.goto('css-fixed', 'pagination');
-        await grid.rebuildWithoutColumns({ data: [], width, layoutDirection });
+  // One width per direction: the clamp reads the root width it is given, whatever the direction.
+  for (const [layoutDirection, width] of [['ltr', 300], ['rtl', 1200]] as const) {
+    test(`keeps the bar at an explicit \`width\` of ${width} with no data (${layoutDirection})`, async () => {
+      await grid.goto('css-fixed', 'pagination');
+      await grid.rebuildWithoutColumns({ data: [], width, layoutDirection });
 
-        const geometry = await grid.geometry();
+      const geometry = await grid.geometry();
 
-        expect(geometry.horizontalByWindow).toBe(false);
-        expect(Math.abs(geometry.root.width - width)).toBeLessThanOrEqual(1);
-        expect(Math.abs(geometry.wrapper.width - width)).toBeGreaterThan(100);
+      expect(geometry.horizontalByWindow).toBe(false);
+      expect(Math.abs(geometry.root.width - width)).toBeLessThanOrEqual(1);
+      expect(Math.abs(geometry.wrapper.width - width)).toBeGreaterThan(100);
 
-        await expect.poll(async() => {
-          const { bottomSlot, root } = await grid.geometry();
+      await expect.poll(async() => {
+        const { bottomSlot, root } = await grid.geometry();
 
-          return Math.abs(bottomSlot.left - root.left) + Math.abs(bottomSlot.right - root.right);
-        }).toBeLessThanOrEqual(2);
-      });
-    }
+        return Math.abs(bottomSlot.left - root.left) + Math.abs(bottomSlot.right - root.right);
+      }).toBeLessThanOrEqual(2);
+    });
   }
 
   // The grid box follows the table's content in window mode, so a data change grows it. The

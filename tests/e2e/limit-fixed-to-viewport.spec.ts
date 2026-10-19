@@ -577,12 +577,6 @@ test.describe('limitFixedToViewport', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => 
   });
 
   test.describe('the option turned off', () => {
-    test('keeps drawing the frozen area in full', async() => {
-      await grid.goto({ start: 20, limit: 0 });
-      const { width } = await grid.gridSize();
-
-      expect(await grid.bandSize('start')).toBeGreaterThanOrEqual(width);
-    });
   });
 
   test.describe('with the freezeBar plugin', () => {

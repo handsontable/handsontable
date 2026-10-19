@@ -102,62 +102,79 @@ const ROUND_TRIPS = [
   { mode: 'dialog', suffix: ', restored by the dialog plugin' },
 ] as const;
 
-for (const headers of [true, false]) {
-  for (const { mode: roundTrip, suffix } of ROUND_TRIPS) {
+/**
+ * The permutations that reach a branch of their own. Every shape runs once, on the user's own selection
+ * with headers on. Both restore trips go through the same repair; what a trip can lose on the way is the
+ * grid-span flag (the full column), the stranded far corner, and - on the export trip, which hands the
+ * captured record back itself - the record. Headers only move the clamp's lower bound, and the one shape
+ * whose clamp has no header state to fall back on is the select-all.
+ */
+const PERMUTATIONS: { headers: boolean, roundTrip: (typeof ROUND_TRIPS)[number]['mode'], shapes: 'all' | string[] }[] = [
+  { headers: true, roundTrip: 'none', shapes: 'all' },
+  {
+    headers: true,
+    roundTrip: 'export',
+    shapes: ['a single cell whose own record a trim removed', 'a cell range whose far corner a trim stranded', 'a full column'],
+  },
+  { headers: true, roundTrip: 'dialog', shapes: ['a cell range whose far corner a trim stranded', 'a full column'] },
+  { headers: false, roundTrip: 'none', shapes: ['a select-all'] },
+];
 
-    test.describe(`selection shapes against a trim, headers ${headers ? 'on' : 'off'}${suffix}`, () => {
-      for (const shape of SHAPES) {
-        test(`${shape.outcome}: ${shape.name}`, async({ page, theme, bundle }) => {
-          const grid = new EditorTrimmedRowPage(page, theme, bundle, { headers });
+for (const { headers, roundTrip, shapes } of PERMUTATIONS) {
+  const { suffix } = ROUND_TRIPS.find(({ mode }) => mode === roundTrip)!;
 
-          await grid.goto();
-          await shape.select(grid);
+  test.describe(`selection shapes against a trim, headers ${headers ? 'on' : 'off'}${suffix}`, () => {
+    for (const shape of SHAPES.filter(({ name }) => shapes === 'all' || shapes.includes(name))) {
+      test(`${shape.outcome}: ${shape.name}`, async({ page, theme, bundle }) => {
+        const grid = new EditorTrimmedRowPage(page, theme, bundle, { headers });
+
+        await grid.goto();
+        await shape.select(grid);
+
+        expect(await grid.selected()).toBeDefined();
+
+        if (roundTrip !== 'none') {
+          // `dialog` and `emptyDataState` stash the selection, deselect, and put it back. Whatever
+          // the repair relies on has to survive that trip, or a restored selection gets judged by
+          // a different rule than the one the user made.
+          if (roundTrip === 'dialog') {
+            await grid.roundTripSelectionThroughDialog();
+          } else {
+            await grid.roundTripSelectionThroughExport();
+          }
 
           expect(await grid.selected()).toBeDefined();
+        }
 
-          if (roundTrip !== 'none') {
-            // `dialog` and `emptyDataState` stash the selection, deselect, and put it back. Whatever
-            // the repair relies on has to survive that trip, or a restored selection gets judged by
-            // a different rule than the one the user made.
-            if (roundTrip === 'dialog') {
-              await grid.roundTripSelectionThroughDialog();
-            } else {
-              await grid.roundTripSelectionThroughExport();
-            }
+        await grid.trimRows(shape.trim);
 
-            expect(await grid.selected()).toBeDefined();
+        const selected = await grid.selected();
+
+        if (shape.outcome === 'dropped') {
+          expect(selected).toBeUndefined();
+        } else {
+          expect(selected).toBeDefined();
+
+          const visibleRows = await grid.visibleRowCount();
+
+          // Whatever survived has to be addressable: nothing may reach past the last visible row,
+          // which is the coordinate a write would grow the data set through.
+          for (const [fromRow, , toRow] of selected!) {
+            expect(fromRow).toBeLessThan(visibleRows);
+            expect(toRow).toBeLessThan(visibleRows);
           }
 
-          await grid.trimRows(shape.trim);
-
-          const selected = await grid.selected();
-
-          if (shape.outcome === 'dropped') {
-            expect(selected).toBeUndefined();
-          } else {
-            expect(selected).toBeDefined();
-
-            const visibleRows = await grid.visibleRowCount();
-
-            // Whatever survived has to be addressable: nothing may reach past the last visible row,
-            // which is the coordinate a write would grow the data set through.
-            for (const [fromRow, , toRow] of selected!) {
-              expect(fromRow).toBeLessThan(visibleRows);
-              expect(toRow).toBeLessThan(visibleRows);
-            }
-
-            if (shape.outcome === 'clamped') {
-              // A clamped extent still spans the axis it was created to span - it shrank with the
-              // grid rather than being cut back to some inner row.
-              expect(Math.max(...selected!.map(([, , toRow]) => toRow))).toBe(visibleRows - 1);
-            }
+          if (shape.outcome === 'clamped') {
+            // A clamped extent still spans the axis it was created to span - it shrank with the
+            // grid rather than being cut back to some inner row.
+            expect(Math.max(...selected!.map(([, , toRow]) => toRow))).toBe(visibleRows - 1);
           }
+        }
 
-          await grid.pasteIntoSelection('PASTED');
+        await grid.pasteIntoSelection('PASTED');
 
-          expect(await grid.sourceRowCount()).toBe(5);
-        });
-      }
-    });
-  }
+        expect(await grid.sourceRowCount()).toBe(5);
+      });
+    }
+  });
 }

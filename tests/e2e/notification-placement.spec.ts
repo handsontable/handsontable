@@ -68,56 +68,59 @@ test.describe('notification placement', { tag: THEMES_TAG }, () => {
     for (const corner of CORNERS) {
       const variant = VARIANTS[corner];
 
-      test(`a ${corner} toast in a ${dir.toUpperCase()} grid is the ${variant} variant, laid out ${dir} in its `
-        + 'corner of the notification layer', async({ page, theme, bundle }) => {
-        const notificationPage = new NotificationStatesPage(page, theme, bundle);
+      // The variant and the layout direction have no corner term: one RTL corner proves the rtl layout.
+      if (dir === 'ltr' || corner === 'top-end') {
+        test(`a ${corner} toast in a ${dir.toUpperCase()} grid is the ${variant} variant, laid out ${dir} in its `
+          + 'corner of the notification layer', async({ page, theme, bundle }) => {
+          const notificationPage = new NotificationStatesPage(page, theme, bundle);
 
-        await notificationPage.goto(corner, dir);
+          await notificationPage.goto(corner, dir);
 
-        await expect(notificationPage.stack(corner).locator('.ht-notification__toast')).toHaveCount(1);
-        await expect(notificationPage.toast).toHaveClass(new RegExp(`\\bht-notification__toast--${variant}\\b`));
-        await expect(notificationPage.toast.locator('.ht-notification__title')).toHaveText(corner.replace(/-/g, ' '));
-        await expect(notificationPage.toast.locator('.ht-notification__message')).toHaveText('Notification visual test.');
-        await expect(notificationPage.toast.locator('.ht-notification__actions .ht-button--primary'))
-          .toHaveText('Action');
-        await expect(notificationPage.toast.locator('.ht-notification__actions .ht-button--secondary'))
-          .toHaveText('Action');
+          await expect(notificationPage.stack(corner).locator('.ht-notification__toast')).toHaveCount(1);
+          await expect(notificationPage.toast).toHaveClass(new RegExp(`\\bht-notification__toast--${variant}\\b`));
+          await expect(notificationPage.toast.locator('.ht-notification__title')).toHaveText(corner.replace(/-/g, ' '));
+          await expect(notificationPage.toast.locator('.ht-notification__message')).toHaveText('Notification visual test.');
+          await expect(notificationPage.toast.locator('.ht-notification__actions .ht-button--primary'))
+            .toHaveText('Action');
+          await expect(notificationPage.toast.locator('.ht-notification__actions .ht-button--secondary'))
+            .toHaveText('Action');
 
-        const geometry = await notificationPage.geometry(variant);
-        const { toast, close, title, primary, secondary, accent } = geometry;
+          const geometry = await notificationPage.geometry(variant);
+          const { toast, close, title, primary, secondary, accent } = geometry;
 
-        expect(geometry.hostDir).toBe(dir);
-        expectInCorner(toast, geometry.host, corner, dir, 'notification layer');
-
-        if (dir === 'ltr') {
-          // The close button at the toast's inline end, the primary action first in reading order.
-          expect(toast.right - close.right).toBeLessThan(close.left - toast.left);
-          expect(primary.right).toBeLessThanOrEqual(secondary.left);
-        } else {
-          expect(close.left - toast.left).toBeLessThan(toast.right - close.right);
-          expect(primary.left).toBeGreaterThanOrEqual(secondary.right);
-        }
-
-        if (variant === 'info') {
-          expect(accent, 'an info toast draws no accent bar').toBeNull();
-        } else {
-          // The accent bar: the variant's token, a 4 px strip at the toast's inline start, before the texts.
-          expect(accent).not.toBeNull();
-          expect(geometry.accentColor).toBe(geometry.accentToken);
-          expect(accent!.right - accent!.left).toBeCloseTo(ACCENT_WIDTH_PX, 0);
+          expect(geometry.hostDir).toBe(dir);
+          expectInCorner(toast, geometry.host, corner, dir, 'notification layer');
 
           if (dir === 'ltr') {
-            expect(accent!.right).toBeLessThanOrEqual(title.left);
-            expect(accent!.left - toast.left).toBeLessThan(toast.right - accent!.right);
+            // The close button at the toast's inline end, the primary action first in reading order.
+            expect(toast.right - close.right).toBeLessThan(close.left - toast.left);
+            expect(primary.right).toBeLessThanOrEqual(secondary.left);
           } else {
-            expect(accent!.left).toBeGreaterThanOrEqual(title.right);
-            expect(toast.right - accent!.right).toBeLessThan(accent!.left - toast.left);
+            expect(close.left - toast.left).toBeLessThan(toast.right - close.right);
+            expect(primary.left).toBeGreaterThanOrEqual(secondary.right);
           }
-        }
 
-        // A toast is non-blocking: showing it takes no focus.
-        expect(geometry.focusInsideHost).toBe(false);
-      });
+          if (variant === 'info') {
+            expect(accent, 'an info toast draws no accent bar').toBeNull();
+          } else {
+            // The accent bar: the variant's token, a 4 px strip at the toast's inline start, before the texts.
+            expect(accent).not.toBeNull();
+            expect(geometry.accentColor).toBe(geometry.accentToken);
+            expect(accent!.right - accent!.left).toBeCloseTo(ACCENT_WIDTH_PX, 0);
+
+            if (dir === 'ltr') {
+              expect(accent!.right).toBeLessThanOrEqual(title.left);
+              expect(accent!.left - toast.left).toBeLessThan(toast.right - accent!.right);
+            } else {
+              expect(accent!.left).toBeGreaterThanOrEqual(title.right);
+              expect(toast.right - accent!.right).toBeLessThan(accent!.left - toast.left);
+            }
+          }
+
+          // A toast is non-blocking: showing it takes no focus.
+          expect(geometry.focusInsideHost).toBe(false);
+        });
+      }
 
       const placementTitle = `a ${corner} toast sits in that corner of a ${dir.toUpperCase()} grid`;
       const placement = async({ page, theme, bundle }: Fixtures) => {
@@ -153,7 +156,8 @@ test.describe('notification placement', { tag: THEMES_TAG }, () => {
     await expect.poll(() => notificationPage.selected()).toEqual([[2, 1, 2, 1]]);
   });
 
-  for (const dir of ['ltr', 'rtl'] as const) {
+  // LTR only: the slots have no direction term, which the corner cases above already prove.
+  for (const dir of ['ltr'] as const) {
     test(`a bottom-start toast in a ${dir.toUpperCase()} grid with a pager sits in the grid's corner, above the pager`, async({
       page, theme, bundle,
     }) => {

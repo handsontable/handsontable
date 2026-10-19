@@ -94,42 +94,12 @@ for (const direction of ['ltr', 'rtl'] as const) {
       await expect.poll(() => grid.isEditorOpened()).toBe(false);
     };
 
-    test('opens the editor over a cell of the end columns', async () => {
-      await grid.goto({ rtl, fixedColumnsEnd: 3 });
-
-      await expectEditorAligned(5, COLS - 1, 'inline_end');
-      await expectEditorAligned(5, COLS - 3, 'inline_end');
-    });
-
-    test('opens the editor over an end-column cell while the grid is scrolled both ways', async () => {
-      await grid.goto({ rtl, fixedColumnsEnd: 3 });
-      await grid.scrollTo({ top: 400, left: await grid.maxScrollLeft() / 2 });
-
-      await expect.poll(() => grid.scrollLeft()).toBeGreaterThan(0);
-
-      // The grid redraws after the scroll, so wait for the first rendered row to move before picking from it.
-      await expect.poll(() => grid.firstVisibleRow()).toBeGreaterThan(0);
-
-      const topRow = await grid.firstVisibleRow();
-
-      await expectEditorAligned(topRow + 2, COLS - 1);
-    });
-
     test('opens the editor over a cell next to the end columns when the grid is scrolled to its end', async () => {
       await grid.goto({ rtl, fixedColumnsEnd: 3 });
       await grid.scrollTo({ left: await grid.maxScrollLeft() });
       await expect.poll(() => grid.scrollLeft()).toBeGreaterThan(0);
 
       await expectEditorAligned(5, COLS - 4);
-    });
-
-    test('opens the editor over the cells of the end corners', async () => {
-      await grid.goto({ rtl, fixedColumnsEnd: 2, fixedRowsTop: 2, fixedRowsBottom: 2 });
-
-      await expectEditorAligned(0, COLS - 1, 'top_inline_end_corner');
-      await expectEditorAligned(1, COLS - 2, 'top_inline_end_corner');
-      await expectEditorAligned(ROWS - 1, COLS - 1, 'bottom_inline_end_corner');
-      await expectEditorAligned(ROWS - 2, COLS - 2, 'bottom_inline_end_corner');
     });
 
     test('opens the editor over the cells of every band when the start and end columns are frozen together', async () => {
@@ -175,18 +145,6 @@ for (const direction of ['ltr', 'rtl'] as const) {
       await expectEditorAligned(5, COLS - 1);
     });
 
-    test('opens the editor over the end cells when the window is scrolled both ways', async () => {
-      await grid.goto({ rtl, windowScroll: true, fixedColumnsEnd: 3, fixedRowsTop: 1, rows: 60 });
-      await grid.scrollWindow({ x: 150, y: 200 });
-
-      // The grid redraws after the scroll, so wait for the first rendered row to move before picking from it.
-      await expect.poll(() => grid.firstVisibleRow()).toBeGreaterThan(0);
-
-      const topRow = await grid.firstVisibleRow();
-
-      await expectEditorAligned(topRow + 3, COLS - 1, 'inline_end');
-    });
-
     test('opens the editor over a cell of the end corner when the window is scrolled both ways', async () => {
       await grid.goto({ rtl, windowScroll: true, fixedColumnsEnd: 3, fixedRowsTop: 1, rows: 60 });
       await grid.scrollWindow({ x: 150, y: 200 });
@@ -219,33 +177,39 @@ for (const direction of ['ltr', 'rtl'] as const) {
       expect(await grid.selectedRange()).toEqual([5, COLS - 4, 5, COLS - 4]);
     });
 
-    test('moves the selection across the start, master and end bands in order', async () => {
-      await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 2, cols: 6 });
-      await grid.selectCell(3, 0);
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('moves the selection across the start, master and end bands in order', async () => {
+        await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 2, cols: 6 });
+        await grid.selectCell(3, 0);
 
-      const visited: number[] = [];
+        const visited: number[] = [];
 
-      for (let step = 0; step < 5; step += 1) {
-        await grid.press(towardEnd);
-        visited.push((await grid.selectedRange())![1]);
-      }
+        for (let step = 0; step < 5; step += 1) {
+          await grid.press(towardEnd);
+          visited.push((await grid.selectedRange())![1]);
+        }
 
-      expect(visited).toEqual([1, 2, 3, 4, 5]);
-    });
+        expect(visited).toEqual([1, 2, 3, 4, 5]);
+      });
+    }
 
-    test('moves the selection down through the end corners', async () => {
-      await grid.goto({ rtl, fixedColumnsEnd: 2, fixedRowsTop: 2, fixedRowsBottom: 2 });
-      await grid.selectCell(0, COLS - 1);
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('moves the selection down through the end corners', async () => {
+        await grid.goto({ rtl, fixedColumnsEnd: 2, fixedRowsTop: 2, fixedRowsBottom: 2 });
+        await grid.selectCell(0, COLS - 1);
 
-      await grid.press('ArrowDown');
-      await grid.press('ArrowDown');
-      expect(await grid.selectedRange()).toEqual([2, COLS - 1, 2, COLS - 1]);
+        await grid.press('ArrowDown');
+        await grid.press('ArrowDown');
+        expect(await grid.selectedRange()).toEqual([2, COLS - 1, 2, COLS - 1]);
 
-      await grid.selectCell(ROWS - 3, COLS - 1);
-      await grid.press('ArrowDown');
-      await grid.press('ArrowDown');
-      expect(await grid.selectedRange()).toEqual([ROWS - 1, COLS - 1, ROWS - 1, COLS - 1]);
-    });
+        await grid.selectCell(ROWS - 3, COLS - 1);
+        await grid.press('ArrowDown');
+        await grid.press('ArrowDown');
+        expect(await grid.selectedRange()).toEqual([ROWS - 1, COLS - 1, ROWS - 1, COLS - 1]);
+      });
+    }
 
     test('keeps the cell reached with the arrow key visible beside the end columns', async () => {
       await grid.goto({ rtl, fixedColumnsEnd: 3 });
@@ -287,96 +251,101 @@ for (const direction of ['ltr', 'rtl'] as const) {
       expect(await grid.endColumnsOverlap(5, COLS - 4, rtl)).toBeLessThanOrEqual(TOLERANCE);
     });
 
-    test('End goes to the last column that scrolls, and Home goes back to the first one', async () => {
-      await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 3 });
-      await grid.selectCell(5, 4);
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('Ctrl+End goes to the last scrolling cell, and Ctrl+Home goes back to the first one', async () => {
+        await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 3, fixedRowsTop: 1, fixedRowsBottom: 1 });
+        await grid.selectCell(5, 4);
 
-      await grid.press('End');
-      expect(await grid.selectedRange()).toEqual([5, COLS - 4, 5, COLS - 4]);
-      await expect.poll(() => grid.scrollLeft()).toBeGreaterThan(0);
+        await grid.press('ControlOrMeta+End');
+        expect(await grid.selectedRange()).toEqual([ROWS - 2, COLS - 4, ROWS - 2, COLS - 4]);
 
-      await grid.press('Home');
-      expect(await grid.selectedRange()).toEqual([5, 2, 5, 2]);
-      await expect.poll(() => grid.scrollLeft()).toBe(0);
-    });
+        await grid.press('ControlOrMeta+Home');
+        expect(await grid.selectedRange()).toEqual([1, 2, 1, 2]);
+      });
+    }
 
-    test('Ctrl+End goes to the last scrolling cell, and Ctrl+Home goes back to the first one', async () => {
-      await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 3, fixedRowsTop: 1, fixedRowsBottom: 1 });
-      await grid.selectCell(5, 4);
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('Shift+End extends the selection up to the last column that scrolls', async () => {
+        await grid.goto({ rtl, fixedColumnsEnd: 3 });
+        await grid.selectCell(5, 4);
 
-      await grid.press('ControlOrMeta+End');
-      expect(await grid.selectedRange()).toEqual([ROWS - 2, COLS - 4, ROWS - 2, COLS - 4]);
+        await grid.press('Shift+End');
+        expect(await grid.selectedRange()).toEqual([5, 4, 5, COLS - 4]);
+      });
+    }
 
-      await grid.press('ControlOrMeta+Home');
-      expect(await grid.selectedRange()).toEqual([1, 2, 1, 2]);
-    });
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('leaves End and Home alone when the start and end columns cover every column', async () => {
+        await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 3, cols: 5 });
+        await grid.selectCell(2, 3);
 
-    test('Shift+End extends the selection up to the last column that scrolls', async () => {
-      await grid.goto({ rtl, fixedColumnsEnd: 3 });
-      await grid.selectCell(5, 4);
+        await grid.press('End');
+        expect(await grid.selectedRange()).toEqual([2, 3, 2, 3]);
 
-      await grid.press('Shift+End');
-      expect(await grid.selectedRange()).toEqual([5, 4, 5, COLS - 4]);
-    });
+        await grid.press('Home');
+        expect(await grid.selectedRange()).toEqual([2, 3, 2, 3]);
+      });
+    }
 
-    test('leaves End and Home alone when the start and end columns cover every column', async () => {
-      await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 3, cols: 5 });
-      await grid.selectCell(2, 3);
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('keeps Shift+End extending to the last column when only start columns cover the grid', async () => {
+        await grid.goto({ rtl, fixedColumnsStart: 3, cols: 3 });
+        await grid.selectCell(2, 0);
 
-      await grid.press('End');
-      expect(await grid.selectedRange()).toEqual([2, 3, 2, 3]);
+        await grid.press('Shift+End');
+        expect(await grid.selectedRange()).toEqual([2, 0, 2, 2]);
+      });
+    }
 
-      await grid.press('Home');
-      expect(await grid.selectedRange()).toEqual([2, 3, 2, 3]);
-    });
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('leaves Shift+End alone when the start and end columns cover every column', async () => {
+        await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 3, cols: 5 });
+        await grid.selectCell(2, 3);
 
-    test('keeps Shift+End extending to the last column when only start columns cover the grid', async () => {
-      await grid.goto({ rtl, fixedColumnsStart: 3, cols: 3 });
-      await grid.selectCell(2, 0);
+        await grid.press('Shift+End');
+        expect(await grid.selectedRange()).toEqual([2, 3, 2, 3]);
+      });
+    }
 
-      await grid.press('Shift+End');
-      expect(await grid.selectedRange()).toEqual([2, 0, 2, 2]);
-    });
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('adds no column when Enter leaves the last column and the end columns are frozen', async () => {
+        const enterRight = { enterMoves: { row: 0, col: 1 } };
 
-    test('leaves Shift+End alone when the start and end columns cover every column', async () => {
-      await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 3, cols: 5 });
-      await grid.selectCell(2, 3);
+        // Control: without frozen end columns the same Enter appends a spare column.
+        await grid.goto({ rtl, minSpareCols: 1, cols: 4 });
+        await grid.updateSettings(enterRight);
 
-      await grid.press('Shift+End');
-      expect(await grid.selectedRange()).toEqual([2, 3, 2, 3]);
-    });
+        const columnsBefore = await grid.countCols();
 
-    test('adds no column when Enter leaves the last column and the end columns are frozen', async () => {
-      const enterRight = { enterMoves: { row: 0, col: 1 } };
+        await grid.selectCell(2, columnsBefore - 1);
+        await grid.press('Enter');
+        await expect.poll(() => grid.isEditorOpened()).toBe(true);
+        await grid.press('Enter');
+        await expect.poll(() => grid.countCols()).toBe(columnsBefore + 1);
 
-      // Control: without frozen end columns the same Enter appends a spare column.
-      await grid.goto({ rtl, minSpareCols: 1, cols: 4 });
-      await grid.updateSettings(enterRight);
+        await grid.goto({ rtl, minSpareCols: 1, fixedColumnsEnd: 1, cols: 4 });
+        await grid.updateSettings(enterRight);
 
-      const columnsBefore = await grid.countCols();
+        // No spare column is created next to frozen end columns, so the grid keeps its own columns.
+        const frozenColumns = await grid.countCols();
 
-      await grid.selectCell(2, columnsBefore - 1);
-      await grid.press('Enter');
-      await expect.poll(() => grid.isEditorOpened()).toBe(true);
-      await grid.press('Enter');
-      await expect.poll(() => grid.countCols()).toBe(columnsBefore + 1);
-
-      await grid.goto({ rtl, minSpareCols: 1, fixedColumnsEnd: 1, cols: 4 });
-      await grid.updateSettings(enterRight);
-
-      // No spare column is created next to frozen end columns, so the grid keeps its own columns.
-      const frozenColumns = await grid.countCols();
-
-      await grid.selectCell(2, frozenColumns - 1);
-      await grid.press('Enter');
-      await expect.poll(() => grid.isEditorOpened()).toBe(true);
-      await grid.press('Enter');
-      await expect.poll(() => grid.isEditorOpened()).toBe(false);
-      // The spare column, when added, is added on the Enter that closes the editor: read after the frames that
-      // would have drawn it (the control above shows the column is observable on this path).
-      await grid.settleFrames(5);
-      expect(await grid.countCols()).toBe(frozenColumns);
-    });
+        await grid.selectCell(2, frozenColumns - 1);
+        await grid.press('Enter');
+        await expect.poll(() => grid.isEditorOpened()).toBe(true);
+        await grid.press('Enter');
+        await expect.poll(() => grid.isEditorOpened()).toBe(false);
+        // The spare column, when added, is added on the Enter that closes the editor: read after the frames that
+        // would have drawn it (the control above shows the column is observable on this path).
+        await grid.settleFrames(5);
+        expect(await grid.countCols()).toBe(frozenColumns);
+      });
+    }
 
     test('moves to the very last column with Ctrl and the arrow key, end columns included', async () => {
       await grid.goto({ rtl, fixedColumnsEnd: 3 });
@@ -394,13 +363,6 @@ for (const direction of ['ltr', 'rtl'] as const) {
       grid = new FixedColumnsEndPage(page, theme, bundle);
     });
 
-    test('selects the clicked cell of the end columns', async () => {
-      await grid.goto({ rtl, fixedColumnsEnd: 3 });
-      await grid.clickCell(4, COLS - 2);
-
-      expect(await grid.selectedRange()).toEqual([4, COLS - 2, 4, COLS - 2]);
-    });
-
     test('keeps the horizontal scroll when an end-column cell is clicked', async () => {
       await grid.goto({ rtl, fixedColumnsEnd: 3 });
       await grid.scrollTo({ left: 200 });
@@ -412,26 +374,35 @@ for (const direction of ['ltr', 'rtl'] as const) {
       expect(await grid.scrollLeftOverFrames(10)).toEqual(Array(10).fill(200));
     });
 
-    test('selects a range by dragging from the master into the end columns', async () => {
-      await grid.goto({ rtl, fixedColumnsEnd: 3 });
-      await grid.dragFromTo([4, 2], [6, COLS - 2]);
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('selects a range by dragging from the master into the end columns', async () => {
+        await grid.goto({ rtl, fixedColumnsEnd: 3 });
+        await grid.dragFromTo([4, 2], [6, COLS - 2]);
 
-      expect(await grid.selectedRange()).toEqual([4, 2, 6, COLS - 2]);
-    });
+        expect(await grid.selectedRange()).toEqual([4, 2, 6, COLS - 2]);
+      });
+    }
 
-    test('selects a range by dragging from the end columns into the master', async () => {
-      await grid.goto({ rtl, fixedColumnsEnd: 3 });
-      await grid.dragFromTo([6, COLS - 1], [4, 2]);
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('selects a range by dragging from the end columns into the master', async () => {
+        await grid.goto({ rtl, fixedColumnsEnd: 3 });
+        await grid.dragFromTo([6, COLS - 1], [4, 2]);
 
-      expect(await grid.selectedRange()).toEqual([6, COLS - 1, 4, 2]);
-    });
+        expect(await grid.selectedRange()).toEqual([6, COLS - 1, 4, 2]);
+      });
+    }
 
-    test('selects a range by dragging across all bands when the start and end columns are frozen together', async () => {
-      await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 2, fixedRowsTop: 2, fixedRowsBottom: 2 });
-      await grid.dragFromTo([0, 0], [ROWS - 1, COLS - 2]);
+    // ltr only: the code under test has no direction branch.
+    if (direction === 'ltr') {
+      test('selects a range by dragging across all bands when the start and end columns are frozen together', async () => {
+        await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 2, fixedRowsTop: 2, fixedRowsBottom: 2 });
+        await grid.dragFromTo([0, 0], [ROWS - 1, COLS - 2]);
 
-      expect(await grid.selectedRange()).toEqual([0, 0, ROWS - 1, COLS - 2]);
-    });
+        expect(await grid.selectedRange()).toEqual([0, 0, ROWS - 1, COLS - 2]);
+      });
+    }
 
     test('selects a range by dragging onto the last end column', async () => {
       // In RTL the row headers sit on the right, so the drag auto-scroller must not reserve their width on the

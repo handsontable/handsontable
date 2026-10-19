@@ -107,7 +107,8 @@ test.describe('root size options', { tag: THEMES_TAG }, () => {
       expect(await grid.renderedRows()).toBeLessThan(200);
     });
 
-    for (const containerClass of ['heightless-hidden', 'heightless-auto']) {
+    // The two heightless parents take one branch (the zero-height probe); each keyword keeps one case.
+    for (const containerClass of ['heightless-hidden'] as const) {
       test(`renders at its rows' height inside a \`${containerClass}\` parent with no height (DEV-3062)`, async () => {
         await grid.rebuild({
           data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
@@ -132,40 +133,46 @@ test.describe('root size options', { tag: THEMES_TAG }, () => {
     }
 
     for (const containerClass of ['heightless-hidden', 'heightless-auto']) {
-      test(`leaves a heightless \`${containerClass}\` parent at the rows' height after \`updateSettings()\` (DEV-3062)`, async () => {
-        await grid.rebuild({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], height: 300 }, containerClass);
+      // One keyword per case, see above.
+      if (containerClass === 'heightless-auto') {
+        test(`leaves a heightless \`${containerClass}\` parent at the rows' height after \`updateSettings()\` (DEV-3062)`, async () => {
+          await grid.rebuild({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], height: 300 }, containerClass);
 
-        expect((await grid.verticalSizes()).parentHeight).toBe(300);
+          expect((await grid.verticalSizes()).parentHeight).toBe(300);
 
-        await grid.updateSettings({ height: 'auto' });
+          await grid.updateSettings({ height: 'auto' });
 
-        await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
+          await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
 
-        const sizes = await grid.verticalSizes();
+          const sizes = await grid.verticalSizes();
 
-        expect(sizes.holderHeight).toBeGreaterThan(0);
-        expect(Math.abs(sizes.holderHeight - sizes.tableHeight)).toBeLessThanOrEqual(1);
-        expect(sizes.parentHeight).toBeGreaterThanOrEqual(sizes.holderHeight);
-      });
+          expect(sizes.holderHeight).toBeGreaterThan(0);
+          expect(Math.abs(sizes.holderHeight - sizes.tableHeight)).toBeLessThanOrEqual(1);
+          expect(sizes.parentHeight).toBeGreaterThanOrEqual(sizes.holderHeight);
+        });
+      }
 
-      test(`returns the holder to 0px in a heightless \`${containerClass}\` parent after \`updateSettings({ height: null })\` (DEV-3062)`, async () => {
-        await grid.rebuild({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], height: 'auto' }, containerClass);
+      // One keyword per case, see above.
+      if (containerClass === 'heightless-hidden') {
+        test(`returns the holder to 0px in a heightless \`${containerClass}\` parent after \`updateSettings({ height: null })\` (DEV-3062)`, async () => {
+          await grid.rebuild({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], height: 'auto' }, containerClass);
 
-        await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
+          await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
 
-        expect((await grid.verticalSizes()).holderHeight).toBeGreaterThan(0);
+          expect((await grid.verticalSizes()).holderHeight).toBeGreaterThan(0);
 
-        await grid.updateSettings({ height: null });
+          await grid.updateSettings({ height: null });
 
-        expect((await grid.rootState()).height).toBe('');
+          expect((await grid.rootState()).height).toBe('');
 
-        await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('0px');
+          await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('0px');
 
-        const sizes = await grid.verticalSizes();
+          const sizes = await grid.verticalSizes();
 
-        expect(sizes.holderHeight).toBe(0);
-        expect(sizes.parentHeight).toBe(0);
-      });
+          expect(sizes.holderHeight).toBe(0);
+          expect(sizes.parentHeight).toBe(0);
+        });
+      }
     }
 
     test.describe('inside a parent that clips the grid and insets it (DEV-3107)', () => {

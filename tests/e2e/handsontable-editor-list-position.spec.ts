@@ -193,8 +193,20 @@ const CASES: { title: string; variant: Omit<Variant, 'type'> }[] = [
   { title: `${LAYOUT_NAMES.sized} (an LTR grid on an RTL page)`, variant: { dir: 'ltr', layout: 'sized', doc: 'rtl' } },
 ];
 
+/**
+ * Which layouts each editor runs. `HandsontableEditor` owns the one positioning implementation;
+ * `AutocompleteEditor` only trims the list vertically and `DropdownEditor` adds nothing, so the two
+ * subclasses run the inset pair, which reaches every branch the plain window case does: the plain case
+ * is the inset case at 0 px, and the transformed LTR container is the translated one with another
+ * writer. `multiselect` keeps its own copy of the rule and runs the same set as `handsontable`.
+ */
+const SHARED_CASES = CASES.filter(({ title }) => title !== `${LAYOUT_NAMES.window} (LTR)`
+  && title !== `${LAYOUT_NAMES.window} (RTL)`
+  && title !== `${LAYOUT_NAMES.window}, in a transformed container (LTR)`);
+const SUBCLASS_CASES = CASES.filter(({ variant }) => variant.inset === 'start');
+
 test.describe('handsontable editor list position', { tag: THEMES_TAG }, () => {
-  for (const { title, variant } of CASES) {
+  for (const { title, variant } of SHARED_CASES) {
     test(`opens toward the room it has from every point, ${title}`, async({ page, theme, bundle }) => {
       const grid = new HandsontableEditorListPositionPage(page, theme, bundle, variant);
 
@@ -205,7 +217,7 @@ test.describe('handsontable editor list position', { tag: THEMES_TAG }, () => {
 });
 
 test.describe('dropdown editor list position', { tag: THEMES_TAG }, () => {
-  for (const { title, variant } of CASES) {
+  for (const { title, variant } of SUBCLASS_CASES) {
     test(`keeps its list on the cell and opens it toward the room it has, ${title}`, async({
       page, theme, bundle,
     }) => {
@@ -218,7 +230,7 @@ test.describe('dropdown editor list position', { tag: THEMES_TAG }, () => {
 });
 
 test.describe('autocomplete editor list position (not trimmed to the cell)', { tag: THEMES_TAG }, () => {
-  for (const { title, variant } of CASES) {
+  for (const { title, variant } of SUBCLASS_CASES) {
     test(`opens toward the room it has, ${title}`, async({ page, theme, bundle }) => {
       const grid = new HandsontableEditorListPositionPage(page, theme, bundle, { ...variant, type: 'autocomplete' });
 
@@ -229,7 +241,7 @@ test.describe('autocomplete editor list position (not trimmed to the cell)', { t
 });
 
 test.describe('multiselect editor list position', { tag: THEMES_TAG }, () => {
-  for (const { title, variant } of CASES) {
+  for (const { title, variant } of SHARED_CASES) {
     test(`opens toward the room it has, ${title}`, async({ page, theme, bundle }) => {
       const grid = new HandsontableEditorListPositionPage(page, theme, bundle, { ...variant, type: 'multiselect' });
 
@@ -245,7 +257,8 @@ test.describe('multiselect editor list position', { tag: THEMES_TAG }, () => {
 // than the list needs, so its top, and the search field, sat above the viewport. The cell is moved through
 // every position in a range that spans both thresholds, with the page scrolled to put it there.
 test.describe('multiselect editor list stays in the viewport at every cell position', { tag: THEMES_TAG }, () => {
-  for (const dir of ['ltr', 'rtl'] as const) {
+  // LTR only: the vertical rule has no direction input.
+  for (const dir of ['ltr'] as const) {
     test(`keeps the whole list on screen as the cell moves down the viewport (${dir.toUpperCase()})`, async({
       page, theme, bundle,
     }) => {
@@ -301,8 +314,10 @@ test.describe('multiselect editor list stays in the viewport at every cell posit
 // has the same top. The page is scrolled to take that cell's top down the viewport, and the editor is opened
 // on both at every step.
 test.describe('multiselect editor list side does not depend on the source length', { tag: THEMES_TAG }, () => {
-  for (const dir of ['ltr', 'rtl'] as const) {
-    for (const pairRows of [5, 10]) {
+  // LTR only, one list height: the side rule reads the room below the cell, which neither the direction
+  // nor the source length changes.
+  for (const dir of ['ltr'] as const) {
+    for (const pairRows of [5] as const) {
       test(`opens a long source where a short one opens, visibleRows ${pairRows} (${dir.toUpperCase()})`, async({
         page, theme, bundle,
       }) => {
@@ -423,8 +438,10 @@ const PARTWAY_POINTS: Record<EditorType, Record<'ltr' | 'rtl', Point[]>> = {
 };
 
 test.describe('editor list position in a transformed container, with the page scrolled partway', { tag: THEMES_TAG }, () => {
-  for (const type of ['handsontable', 'dropdown', 'autocomplete', 'multiselect'] as const) {
-    for (const dir of ['ltr', 'rtl'] as const) {
+  // One LTR case per implementation of the vertical flip: `dropdown` inherits `autocomplete`'s, and the
+  // flip has no direction input.
+  for (const type of ['handsontable', 'autocomplete', 'multiselect'] as const) {
+    for (const dir of ['ltr'] as const) {
       test(`the ${type} editor's list opens above a cell near the viewport's bottom (${dir.toUpperCase()})`, async({
         page, theme, bundle,
       }) => {

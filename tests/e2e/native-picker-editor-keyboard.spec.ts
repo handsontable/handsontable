@@ -64,45 +64,55 @@ test.describe('the native picker of the picker editors', () => {
   });
 
   for (const { name, col } of EDITORS) {
-    test(`${name}: Enter does not show the picker`, async() => {
-      await grid.openEditorWithEnter(0, col);
-      await expect(grid.openInput).toBeFocused();
+    // The date cases of these two are in date-editor-native-input.spec.ts.
+    if (name !== 'date') {
+      test(`${name}: Enter does not show the picker`, async() => {
+        await grid.openEditorWithEnter(0, col);
+        await expect(grid.openInput).toBeFocused();
 
-      expect(await grid.openInput.evaluate(input => input.matches(':open'))).toBe(false);
-    });
+        expect(await grid.openInput.evaluate(input => input.matches(':open'))).toBe(false);
+      });
+    }
 
-    test(`${name}: F2 does not show the picker`, async({ page }) => {
-      await grid.selectCell(0, col);
-      await page.keyboard.press('F2');
-      await expect.poll(() => grid.isEditorOpened()).toBe(true);
-      await expect(grid.openInput).toBeFocused();
+    // The three editors share the picker-opening rule; the date editor runs it, the others keep the two cases above.
+    if (name === 'date') {
+      test(`${name}: F2 does not show the picker`, async({ page }) => {
+        await grid.selectCell(0, col);
+        await page.keyboard.press('F2');
+        await expect.poll(() => grid.isEditorOpened()).toBe(true);
+        await expect(grid.openInput).toBeFocused();
 
-      expect(await grid.openInput.evaluate(input => input.matches(':open'))).toBe(false);
-    });
+        expect(await grid.openInput.evaluate(input => input.matches(':open'))).toBe(false);
+      });
 
-    test(`${name}: typing does not show the picker`, async({ page }) => {
-      await grid.selectCell(0, col);
-      await page.keyboard.press('1');
-      await expect.poll(() => grid.isEditorOpened()).toBe(true);
-      await expect(grid.openInput).toBeFocused();
+      test(`${name}: typing does not show the picker`, async({ page }) => {
+        await grid.selectCell(0, col);
+        await page.keyboard.press('1');
+        await expect.poll(() => grid.isEditorOpened()).toBe(true);
+        await expect(grid.openInput).toBeFocused();
 
-      expect(await grid.openInput.evaluate(input => input.matches(':open'))).toBe(false);
-    });
+        expect(await grid.openInput.evaluate(input => input.matches(':open'))).toBe(false);
+      });
 
-    test(`${name}: Alt+ArrowDown shows the picker`, async({ page }) => {
-      await grid.openEditorWithEnter(0, col);
-      await expect(grid.openInput).toBeFocused();
+      test(`${name}: Alt+ArrowDown shows the picker`, async({ page }) => {
+        await grid.openEditorWithEnter(0, col);
+        await expect(grid.openInput).toBeFocused();
 
-      await page.keyboard.press('Alt+ArrowDown');
+        await page.keyboard.press('Alt+ArrowDown');
 
-      await expect.poll(() => grid.openInput.evaluate(input => input.matches(':open'))).toBe(true);
-    });
+        await expect.poll(() => grid.openInput.evaluate(input => input.matches(':open'))).toBe(true);
+      });
+    }
 
-    test(`${name}: a double-click shows the picker`, async() => {
-      await grid.cell(0, col).dblclick();
-      await expect(grid.openInput).toBeFocused();
+    // The date case is in date-editor-native-input.spec.ts.
+    if (name !== 'date') {
+      test(`${name}: a double-click shows the picker`, async() => {
+        await grid.cell(0, col).dblclick();
+        await expect(grid.openInput).toBeFocused();
 
-      await expect.poll(() => grid.openInput.evaluate(input => input.matches(':open'))).toBe(true);
-    });
+        await expect.poll(() => grid.openInput.evaluate(input => input.matches(':open'))).toBe(true);
+      });
+    }
+
   }
 });

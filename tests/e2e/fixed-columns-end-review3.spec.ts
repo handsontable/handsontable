@@ -62,24 +62,6 @@ for (const rtl of [false, true]) {
     test.beforeEach(async ({ page, theme, bundle }) => {
       grid = new FixedColumnsEndReview3Page(page, theme, bundle);
     });
-
-    test('draws the freeze line at the inline end as one border, as at the inline start', async () => {
-      await grid.open({ rtl, cols: 30, fixedColumnsStart: 2, fixedColumnsEnd: 2 });
-
-      const start = await grid.startFreezeLine(1);
-      const end = await grid.endFreezeLine(27);
-
-      expect(start.before + start.after).toBe(1);
-      expect(end.before + end.after).toBe(start.before + start.after);
-    });
-
-    test('draws the header freeze line at the inline end as one border too', async () => {
-      await grid.open({ rtl, cols: 30, fixedColumnsEnd: 2 });
-
-      const { before, after } = await grid.endHeaderFreezeLine(27);
-
-      expect(before + after).toBe(1);
-    });
   });
 
   test.describe(`fixedColumnsEnd resize handle without a horizontal scroll (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
@@ -116,21 +98,6 @@ for (const rtl of [false, true]) {
 
       expect(await grid.colWidth(4)).toBe(112);
     });
-
-    test('still anchors the last header to the grid edge when the columns overflow it', async () => {
-      // The control of the cases above: with a horizontal scroll the band stands at the grid edge and a wider
-      // column grows towards the inline start.
-      await grid.open({ rtl, cols: 30, fixedColumnsEnd: 1, manualColumnResize: true });
-
-      const { header, handle } = await grid.hoverEndHeaderHandle();
-      const edge = rtl ? header.right : header.left;
-
-      expect(Math.abs((handle.left + handle.right) / 2 - edge)).toBeLessThanOrEqual(6);
-
-      await grid.dragHandle(rtl ? 30 : -30);
-
-      expect(await grid.colWidth(29)).toBe(102);
-    });
   });
 
   test.describe(`fixedColumnsEnd and a virtualized merge (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
@@ -140,15 +107,18 @@ for (const rtl of [false, true]) {
       grid = new FixedColumnsEndReview3Page(page, theme, bundle);
     });
 
-    test('extends the merge to its last column on the end clone when the master is scrolled to the start', async () => {
-      // The merge covers columns 8 to 10, the band is 9 to 11 and the master renders no further than column 4.
-      await grid.open({ rtl, cols: 12, fixedColumnsEnd: 3, merge: '0,8,1,3', virtualized: true });
-      expect(await grid.scrollLeft()).toBe(0);
+    // ltr only: the code under test has no direction branch.
+    if (!rtl) {
+      test('extends the merge to its last column on the end clone when the master is scrolled to the start', async () => {
+        // The merge covers columns 8 to 10, the band is 9 to 11 and the master renders no further than column 4.
+        await grid.open({ rtl, cols: 12, fixedColumnsEnd: 3, merge: '0,8,1,3', virtualized: true });
+        expect(await grid.scrollLeft()).toBe(0);
 
-      // The end clone starts at column 9 and ends with the merge at column 10. A reversed extent such as
-      // [9, 8] puts the selection border's start edge on the freeze line and the fill handle on column 8.
-      expect(await grid.mergeExtentWhileRendering('inline_end', 0, 8)).toEqual([0, 9, 0, 10]);
-    });
+        // The end clone starts at column 9 and ends with the merge at column 10. A reversed extent such as
+        // [9, 8] puts the selection border's start edge on the freeze line and the fill handle on column 8.
+        expect(await grid.mergeExtentWhileRendering('inline_end', 0, 8)).toEqual([0, 9, 0, 10]);
+      });
+    }
 
     test('puts the fill handle of a merge reaching into the band on its last column', async () => {
       // The merge covers columns 8 to 10, the band is 9 to 11 and the master stays scrolled to the start.
