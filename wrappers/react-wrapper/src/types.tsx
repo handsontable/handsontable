@@ -29,7 +29,12 @@ export interface HotRendererProps {
  * Interface for component-based editor overridden hooks object.
  */
 export interface HotEditorHooks {
-  onOpen?: () => void
+  /**
+   * Called when the editor opens.
+   *
+   * @param {Event} [event] The DOM event that opened the editor. It is `undefined` when you call `beginEditing()`.
+   */
+  onOpen?(event?: Event): void
   onClose?: () => void
   onPrepare?: (
     row: number,

@@ -3,6 +3,16 @@ import { awaitBundle } from '../bundle';
 
 interface FixtureWindow {
   renderCount: number;
+  contentArrivals: number;
+  contentBatches: number;
+  drawsBeforeContent: number | null;
+  arrivedSources: Set<string>;
+}
+
+interface DrawStats {
+  draws: number;
+  drawsBeforeContent: number | null;
+  contentBatches: number;
 }
 
 /**
@@ -15,6 +25,8 @@ export class AsyncImageFrozenColumnsPage {
   readonly theme: string;
   readonly bundle: string;
   #release: () => void = () => {};
+  #heldReleases = new Map<string, () => void>();
+  #heldGates = new Map<string, Promise<void>>();
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
@@ -30,12 +42,22 @@ export class AsyncImageFrozenColumnsPage {
     const released = new Promise<void>((resolve) => {
       this.#release = resolve;
     });
+    const gate = async(url: string) => {
+      await released;
 
-    await this.page.route('**/fixture-image/*.svg', async(route) => {
+      const held = [...this.#heldGates].find(([source]) => url.endsWith(source));
+
+      if (held) {
+        await held[1];
+      }
+    };
+
+    // The trailing `*` keeps the `?small=1` URLs routed: a glob must match the whole URL, query included.
+    await this.page.route('**/fixture-image/*.svg*', async(route) => {
       const url = route.request().url();
 
       if (url.includes('missing-')) {
-        await released;
+        await gate(url);
         await route.fulfill({ status: 404, body: '' });
 
         return;
@@ -44,7 +66,7 @@ export class AsyncImageFrozenColumnsPage {
       const row = Number(/(\d+)\.svg/.exec(url)?.[1]);
       const height = url.includes('small=1') ? 4 : 60 + row * 10;
 
-      await released;
+      await gate(url);
       await route.fulfill({
         contentType: 'image/svg+xml',
         body: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="${height}"></svg>`,
@@ -61,10 +83,23 @@ export class AsyncImageFrozenColumnsPage {
   }
 
   /**
-   * Lets the held image responses through.
+   * Lets the held image responses through. Each response whose URL ends with one of `holdBack` stays held
+   * until `releaseHeldImage()` names it.
    */
-  releaseImages(): void {
+  releaseImages({ holdBack = [] }: { holdBack?: string[] } = {}): void {
+    holdBack.forEach((source) => {
+      this.#heldGates.set(source, new Promise<void>((resolve) => {
+        this.#heldReleases.set(source, resolve);
+      }));
+    });
     this.#release();
+  }
+
+  /**
+   * Lets one response kept by `releaseImages({ holdBack })` through.
+   */
+  releaseHeldImage(source: string): void {
+    this.#heldReleases.get(source)?.();
   }
 
   /**
@@ -98,6 +133,56 @@ export class AsyncImageFrozenColumnsPage {
    */
   async renderCount(): Promise<number> {
     return this.page.evaluate(() => (window as unknown as FixtureWindow).renderCount);
+  }
+
+  /**
+   * Returns the draw count together with what bounds it, read in one evaluation: the draws made before
+   * the first image arrived, and the batches (animation frames in which at least one image source arrived
+   * for the first time). The grid redraws at most once per batch, so the draws
+   * after the first arrival cannot outnumber the batches. That holds while nothing but arriving images
+   * makes the grid draw, as in this fixture (a fixed-size container, no stretching).
+   */
+  async drawStats(): Promise<DrawStats> {
+    return this.page.evaluate(() => {
+      const { renderCount, drawsBeforeContent, contentBatches } = window as unknown as FixtureWindow;
+
+      return { draws: renderCount, drawsBeforeContent, contentBatches };
+    });
+  }
+
+  /**
+   * Returns how many image sources have loaded or failed at least once in the grid.
+   */
+  async contentArrivals(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).contentArrivals);
+  }
+
+  /**
+   * Returns how many images in the rendered master rows have a source that has not arrived yet.
+   */
+  async imagesYetToArrive(): Promise<number> {
+    return this.page.evaluate(() => {
+      const { arrivedSources } = window as unknown as FixtureWindow;
+
+      return [...document.querySelectorAll('.ht_master tbody img')]
+        .filter(image => !arrivedSources.has(image.getAttribute('src') ?? '')).length;
+    });
+  }
+
+  /**
+   * Tells whether the draw count stays the same over the given number of frames, read in one evaluation.
+   */
+  async drawsHoldStill(frames: number): Promise<boolean> {
+    return this.page.evaluate(async(count) => {
+      const fixture = window as unknown as FixtureWindow;
+      const before = fixture.renderCount;
+
+      for (let i = 0; i < count; i++) {
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
+
+      return fixture.renderCount === before;
+    }, frames);
   }
 
   /**

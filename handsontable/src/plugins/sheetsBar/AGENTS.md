@@ -386,6 +386,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   departing sheet's settings would then be in force during the load (NestedRows rejecting a flat
   sheet, a departing `columns` building the DataMap, Formulas bound to the wrong sheet). Pinned by
   `tests/e2e/sheets-bar-data-bound-settings.spec.ts`.
+- **Custom borders are restored with the logical sides only.** `getBorders()` records carry both
+  `start`/`end` and their legacy `left`/`right` copies (`denormalizeBorder()`), and `setBorders()`
+  throws when it gets both pairs, and on `left`/`right` alone in RTL. `restoreCustomBorders()`
+  therefore passes `top`, `bottom`, `start` and `end` only. Passing every side made the switch back
+  to any bordered sheet throw, which dropped its borders and its stored selection. Pinned by the
+  `custom borders` block in `__tests__/viewState.unit.js`.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).

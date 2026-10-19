@@ -255,9 +255,9 @@ export function useHotEditor<T>(
     hooksRef,
     () => ({
       ...overriddenHooks,
-      onOpen() {
+      onOpen(event?: Event) {
         setEditorValue(hotCustomEditorInstanceRef.current?.getValue() as T | undefined);
-        overriddenHooks?.onOpen?.();
+        overriddenHooks?.onOpen?.(event);
         setRerenderTrigger(t => t + 1);
       },
     }),
@@ -317,7 +317,7 @@ type EditorComponentProps = {
     originalValue: any,
     cellProperties: Handsontable.CellProperties
   ) => void;
-  onOpen?: () => void;
+  onOpen?(event?: Event): void;
   onClose?: () => void;
   onFocus?: () => void;
   shortcutsGroup?: string;
@@ -342,7 +342,7 @@ type EditorComponentProps = {
  * @param {object} root0 The component props.
  * @param {Function} [root0.onPrepare] Called when the editor is prepared for a cell.
  * @param {Function} [root0.onClose] Called when the editor closes.
- * @param {Function} [root0.onOpen] Called when the editor opens.
+ * @param {Function} [root0.onOpen] Called when the editor opens. Receives the DOM event that opened the editor. It is `undefined` when you call `beginEditing()`.
  * @param {Function} [root0.onFocus] Called when the editor is focused.
  * @param {EditorRenderProp} [root0.children] Render prop returning the editor's UI.
  * @param {string} [root0.shortcutsGroup] The shortcuts group name to register under.
@@ -450,7 +450,7 @@ export function EditorComponent<T = any>({
   }, [refreshDimensions]);
 
   const { value, setValue, finishEditing, isOpen, col, row } = useHotEditor<T>({
-    onOpen: () => {
+    onOpen: (event?: Event) => {
       if (!mainElementRef.current) {
         return;
       }
@@ -463,14 +463,14 @@ export function EditorComponent<T = any>({
 
       mainElementRef.current.style.display = 'block';
 
-      onOpen?.();
-
       const el = mainElementRef.current;
       const editor = hotCustomEditorInstanceRef.current as EditorWithPosition | null;
 
       if (el && editor?.hot) {
         applyEditorPosition(el, editor, editor.hot, null);
       }
+
+      onOpen?.(event);
 
       registerShortcuts();
       registerScrollHooks();
