@@ -92,7 +92,7 @@ In 18.1, an XLSX export required ExcelJS: you passed it as `exportFile: { engine
 - **To keep ExcelJS,** change nothing. `engines: { xlsx: ExcelJS }` still selects it.
 - **To switch to the built-in engine,** remove the `engines` entry and the `exceljs` dependency. Check the files you export against [Known differences](#known-differences) and the [comparison table](#compare-the-engines).
 
-Without an engine, `supportsExportFormat('xlsx')` now returns `true`, and the context menu shows **To Excel**. The full list of changes is in the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#33-xlsx-export-no-longer-needs-exceljs).
+Without an engine, `supportsExportFormat('xlsx')` now returns `true`, and the context menu shows **To Excel**. The full list of changes is in the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#xlsx-export-no-longer-needs-exceljs).
 
 ## Known differences
 
