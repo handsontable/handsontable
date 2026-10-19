@@ -2642,6 +2642,11 @@ export class Filters extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    // Registered in the constructor straight on the grid, so neither `disablePlugin()` nor the base
+    // class removes it. A plugin destroyed ahead of the grid would keep answering every header
+    // render with its `hot` gone (DEV-775).
+    this.hot?.removeHook('afterGetColHeader', this.#onAfterGetColHeader);
+
     if (this.enabled) {
       this.components.forEach((component, key) => {
         if (component !== null) {
