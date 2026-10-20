@@ -57,6 +57,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   captures the pointer on the label under the finger, and the drag's own `setPointerCapture`
   takes it from there. Pinned by `tests/e2e/sheets-bar-tab-drag.spec.ts` (tagged
   `@cross-browser`, so the WebKit leg runs it) and the reorder cases in `__tests__/tabDrag.unit.js`.
+  Moving a neighbor blurs a focused element inside it, so a press that starts a drag first ends an
+  open rename by focusing the pressed tab (the `pointerdown` handler in `tabStrip.ts`). A mouse
+  press moves the focus on its own; a touch press does not, and the rename input's blur-driven
+  commit used to repaint the strip in the middle of `#moveAround`, which then threw
+  `NotFoundError`. Pinned by the rename case in `tests/e2e/sheets-bar-touch-drag.spec.ts`.
 - **Every tab is its own stacking context (`isolation: isolate`).** The chevron glyph carries
   `z-index: 1` to stay above its `::before` hover surface. Without the isolation that z-index
   competes in the strip at the dragged tab's level (`--dragging` is `z-index: 1` too), so a tab
