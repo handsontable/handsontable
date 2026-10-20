@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 
-export type InFlightWorkbook = 'asyncValidator' | 'rejectedValue' | 'comments' | 'loading';
+export type InFlightWorkbook = 'asyncValidator' | 'rejectedValue' | 'comments' | 'loading' | 'drags';
 
 /**
  * Page object for the sheets-bar-in-flight-work fixture (fixtures/demo/sheets-bar-in-flight-work.html):

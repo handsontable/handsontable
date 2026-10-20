@@ -272,6 +272,20 @@ export class ResizeGesture {
   }
 
   /**
+   * Ends a drag without storing a size, the way opening a context menu over it does. The owner calls it
+   * when the grid's data is replaced under the drag: the indexes it resizes belong to the data that
+   * left, and the release would resize the tracks of the data that replaced it.
+   */
+  abort() {
+    if (!this.#pressed) {
+      return;
+    }
+
+    this.detach();
+    this.#pressed = false;
+  }
+
+  /**
    * Removes the undo and redo listeners and detaches the handle and the guide.
    */
   destroy() {

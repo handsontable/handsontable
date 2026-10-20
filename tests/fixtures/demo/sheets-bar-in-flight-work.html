@@ -32,6 +32,7 @@
       rejectedValue: 'rejectedValue',
       comments: 'comments',
       loading: 'loading',
+      drags: 'drags',
     })[htParams.get('workbook') ?? 'asyncValidator'];
     if (!window.htWorkbook) {
       throw new Error('Unknown ?workbook= value: ' + JSON.stringify(htParams.get('workbook')));
@@ -47,6 +48,8 @@
     - rejectedValue: 'Alpha' and 'Beta', `allowInvalid: false`, and a validator that rejects 'bad'.
     - comments: 'Alpha' and 'Beta', with `comments`.
     - loading: 'Alpha' and 'Beta', with `loading`.
+    - drags: 'Alpha' and 'Beta', with every drag gesture on: `moveCells`, `manualRowMove`,
+      `manualColumnResize`, `fillHandle` and `freezeBar`.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -100,6 +103,16 @@
       },
       loading: {
         grid: { loading: true },
+        sheets: twoSheets(),
+      },
+      drags: {
+        grid: {
+          moveCells: true,
+          manualRowMove: true,
+          manualColumnResize: true,
+          fillHandle: true,
+          freezeBar: true,
+        },
         sheets: twoSheets(),
       },
     };
