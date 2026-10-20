@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: How to use icons in cells
-metaTitle: How to use icons in cells - JavaScript Data Grid | Handsontable
+metaTitle: How to use icons in cells | Handsontable DataGrid for JavaScript
 description: Render an icon from the Handsontable DataGrid icon pack inside a custom cell renderer, and make an icon-only control accessible.
 permalink: /use-icons-in-cells
 canonicalUrl: /use-icons-in-cells
@@ -10,11 +10,11 @@ tags:
   - custom-renderer
   - accessibility
 react:
-  metaTitle: How to use icons in cells - React Data Grid | Handsontable
+  metaTitle: How to use icons in cells | Handsontable DataGrid for React
 angular:
-  metaTitle: How to use icons in cells - Angular Data Grid | Handsontable
+  metaTitle: How to use icons in cells | Handsontable DataGrid for Angular
 vue:
-  metaTitle: How to use icons in cells - Vue Data Grid | Handsontable
+  metaTitle: How to use icons in cells | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated

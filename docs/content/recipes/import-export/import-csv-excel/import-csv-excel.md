@@ -1,6 +1,6 @@
 ---
 title: Import from CSV or Excel
-metaTitle: Import CSV or Excel - JavaScript Data Grid | Handsontable
+metaTitle: Import CSV or Excel | Handsontable DataGrid for JavaScript
 description: Load CSV or XLSX files into Handsontable DataGrid with PapaParse and read-excel-file, preview headers, and handle errors in the browser.
 permalink: /recipes/import-export/import-csv-excel
 canonicalUrl: /recipes/import-export/import-csv-excel
@@ -11,11 +11,11 @@ tags:
   - excel
   - xlsx
 react:
-  metaTitle: Import CSV or Excel - React Data Grid | Handsontable
+  metaTitle: Import CSV or Excel | Handsontable DataGrid for React
 angular:
-  metaTitle: Import CSV or Excel - Angular Data Grid | Handsontable
+  metaTitle: Import CSV or Excel | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Import CSV or Excel - Vue Data Grid | Handsontable
+  metaTitle: Import CSV or Excel | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Import and Export
 type: how-to

@@ -1,6 +1,6 @@
 ---
 title: Export to PDF
-metaTitle: Export Handsontable to PDF - JavaScript Data Grid | Handsontable
+metaTitle: Export Handsontable to PDF | Handsontable DataGrid for JavaScript
 description: Export grid data to a downloadable PDF with jsPDF and jspdf-autotable, including headers and multi-page tables.
 permalink: /recipes/import-export/export-to-pdf
 canonicalUrl: /recipes/import-export/export-to-pdf
@@ -9,11 +9,11 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Export Handsontable to PDF - React Data Grid | Handsontable
+  metaTitle: Export Handsontable to PDF | Handsontable DataGrid for React
 angular:
-  metaTitle: Export Handsontable to PDF - Angular Data Grid | Handsontable
+  metaTitle: Export Handsontable to PDF | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Export Handsontable to PDF - Vue Data Grid | Handsontable
+  metaTitle: Export Handsontable to PDF | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Import and Export
 type: how-to

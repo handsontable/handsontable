@@ -1,6 +1,6 @@
 ---
 title: Server-side data with ASP.NET Core
-metaTitle: Server-side Data with ASP.NET Core - JavaScript Data Grid | Handsontable
+metaTitle: Server-side data with ASP.NET Core | Handsontable DataGrid for JavaScript
 description: Connect Handsontable DataGrid's dataProvider plugin to an ASP.NET Core Web API backend with paginated fetching, server-side sorting and filtering, and full CRUD using EF Core and SQLite.
 permalink: /recipes/data-management/server-side-aspnet
 canonicalUrl: /recipes/data-management/server-side-aspnet
@@ -13,11 +13,11 @@ tags:
   - data-provider
   - recipe
 react:
-  metaTitle: Server-side Data with ASP.NET Core - React Data Grid | Handsontable
+  metaTitle: Server-side data with ASP.NET Core | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side Data with ASP.NET Core - Angular Data Grid | Handsontable
+  metaTitle: Server-side data with ASP.NET Core | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side Data with ASP.NET Core - Vue Data Grid | Handsontable
+  metaTitle: Server-side data with ASP.NET Core | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 type: how-to

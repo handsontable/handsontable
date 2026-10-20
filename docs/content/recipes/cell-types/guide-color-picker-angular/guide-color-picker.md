@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Color picker
-metaTitle: Color Picker Cell - JavaScript Data Grid | Handsontable
+metaTitle: Color picker cell | Handsontable DataGrid for JavaScript
 description: Learn how to create a Handsontable DataGrid custom color picker cell in Angular using the native HTML5 color input, with live preview and hex validation.
 permalink: /recipes/cell-types/color-picker-angular
 canonicalUrl: /recipes/cell-types/color-picker-angular
@@ -11,11 +11,11 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Color Picker Cell - React Data Grid | Handsontable
+  metaTitle: Color picker cell | Handsontable DataGrid for React
 angular:
-  metaTitle: Color Picker Cell - Angular Data Grid | Handsontable
+  metaTitle: Color picker cell | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Color Picker Cell - Vue Data Grid | Handsontable
+  metaTitle: Color picker cell | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
 ---

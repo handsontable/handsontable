@@ -658,7 +658,9 @@ class TableView {
         selection.finish();
       }
 
-      const wasInsideGridClick = this.#mouseDown;
+      // A resize handle press sets `#selectionMouseDown` and never `#mouseDown`.
+      // Count that press as a grid click, or a release outside the grid unlistens the drag.
+      const wasInsideGridClick = this.#mouseDown || this.#selectionMouseDown;
       const wasOutsideClickHandled = this.#outsideClickHandled;
 
       this.#mouseDown = false;
@@ -698,7 +700,8 @@ class TableView {
         (!wasInsideGridClick && !this.hot.getFocusManager().hasBrowserFocus() && !isPathThroughGridUi));
 
       if (isForeignInputElement || isFocusLostToOutside ||
-          (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
+          (!wasInsideGridClick &&
+          !selection.isSelected() && !selection.isSelectedByAnyHeader() &&
           !this.#isPathWithinGrid(eventPath) && !isRightClick(event))) {
         this.hot.unlisten();
       }

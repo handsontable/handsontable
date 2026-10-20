@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Undo and redo
-metaTitle: Undo and redo - JavaScript Data Grid | Handsontable
+metaTitle: Undo and redo | Handsontable DataGrid for JavaScript
 description: Revert and restore your changes, using the undo and redo features.
 permalink: /undo-redo
 canonicalUrl: /undo-redo
@@ -14,11 +14,11 @@ tags:
   - erase last change
   - roll back changes
 react:
-  metaTitle: Undo and redo - React Data Grid | Handsontable
+  metaTitle: Undo and redo | Handsontable DataGrid for React
 angular:
-  metaTitle: Undo and redo - Angular Data Grid | Handsontable
+  metaTitle: Undo and redo | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Undo and redo - Vue Data Grid | Handsontable
+  metaTitle: Undo and redo | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated

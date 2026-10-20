@@ -1,16 +1,16 @@
 ---
 type: explanation
 title: Long-term support (LTS)
-metaTitle: Long Term Support (LTS) - JavaScript Data Grid | Handsontable
+metaTitle: Long-term support (LTS) | Handsontable DataGrid for JavaScript
 description: LTS (Long-Term Support) versions are Handsontable DataGrid releases that are maintained for an extended period. 
 permalink: /long-term-support
 canonicalUrl: /long-term-support
 react:
-  metaTitle: Long Term Support (LTS) - React Data Grid | Handsontable
+  metaTitle: Long-term support (LTS) | Handsontable DataGrid for React
 angular:
-  metaTitle: Long Term Support (LTS) - Angular Data Grid | Handsontable
+  metaTitle: Long-term support (LTS) | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Long Term Support (LTS) - Vue Data Grid | Handsontable
+  metaTitle: Long-term support (LTS) | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Upgrade and migration
 ---

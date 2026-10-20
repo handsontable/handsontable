@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Autocomplete cell type
-metaTitle: Autocomplete cell type - JavaScript Data Grid | Handsontable
+metaTitle: Autocomplete cell type | Handsontable DataGrid for JavaScript
 description: Collect user input with a list of choices, by using the autocomplete cell type.
 permalink: /autocomplete-cell-type
 canonicalUrl: /autocomplete-cell-type
@@ -11,11 +11,11 @@ tags:
   - autocomplete
   - key value
 react:
-  metaTitle: Autocomplete cell type - React Data Grid | Handsontable
+  metaTitle: Autocomplete cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Autocomplete cell type - Angular Data Grid | Handsontable
+  metaTitle: Autocomplete cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Autocomplete cell type - Vue Data Grid | Handsontable
+  metaTitle: Autocomplete cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated

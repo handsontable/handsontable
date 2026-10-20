@@ -1,7 +1,7 @@
 ---
 type: how-to
-title: Handsontable with Tabler Icons
-metaTitle: Handsontable with Tabler Icons - JavaScript Data Grid | Handsontable
+title: Handsontable DataGrid with Tabler Icons
+metaTitle: Tabler Icons | Handsontable DataGrid for JavaScript
 description: Replace every built-in Handsontable DataGrid icon with a Tabler Icons glyph by mapping the icon slots to class lists through the Theme API.
 permalink: /recipes/themes/tabler-icons
 canonicalUrl: /recipes/themes/tabler-icons
@@ -15,11 +15,11 @@ tags:
   - themes
   - Theme API
 react:
-  metaTitle: Handsontable with Tabler Icons - React Data Grid | Handsontable
+  metaTitle: Tabler Icons | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with Tabler Icons - Angular Data Grid | Handsontable
+  metaTitle: Tabler Icons | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Handsontable with Tabler Icons - Vue Data Grid | Handsontable
+  metaTitle: Tabler Icons | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Themes
 menuTag: new

@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Password cell type
-metaTitle: Password cell type - JavaScript Data Grid | Handsontable
+metaTitle: Password cell type | Handsontable DataGrid for JavaScript
 description: Use the password cell type to mask confidential values by rendering entered characters as symbols.
 permalink: /password-cell-type
 canonicalUrl: /password-cell-type
 react:
-  metaTitle: Password cell type - React Data Grid | Handsontable
+  metaTitle: Password cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Password cell type - Angular Data Grid | Handsontable
+  metaTitle: Password cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Password cell type - Vue Data Grid | Handsontable
+  metaTitle: Password cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated

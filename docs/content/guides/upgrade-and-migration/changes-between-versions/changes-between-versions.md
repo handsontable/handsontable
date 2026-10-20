@@ -1,12 +1,12 @@
 ---
 type: reference
 title: Changes between versions
-metaTitle: Changes between versions - JavaScript Data Grid | Handsontable
+metaTitle: Changes between versions | Handsontable DataGrid for JavaScript
 description: Compare two Handsontable DataGrid versions and see breaking changes, deprecations, new APIs, and fixes between them.
 permalink: /changes-between-versions
 canonicalUrl: /changes-between-versions
 react:
-  metaTitle: Changes between versions - React Data Grid | Handsontable
+  metaTitle: Changes between versions | Handsontable DataGrid for React
 searchCategory: Guides
 category: Upgrade and migration
 ---

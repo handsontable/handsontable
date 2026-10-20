@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Locale
-metaTitle: Locale - JavaScript Data Grid | Handsontable
+metaTitle: Locale | Handsontable DataGrid for JavaScript
 description: Configure Handsontable DataGrid's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
 permalink: /locale
 canonicalUrl: /locale
@@ -11,11 +11,11 @@ tags:
   - L10n
   - i18n
 react:
-  metaTitle: Locale - React Data Grid | Handsontable
+  metaTitle: Locale | Handsontable DataGrid for React
 angular:
-  metaTitle: Locale - Angular Data Grid | Handsontable
+  metaTitle: Locale | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Locale - Vue Data Grid | Handsontable
+  metaTitle: Locale | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Internationalization
 ---

@@ -1,6 +1,6 @@
 ---
 title: Performance Recipes
-metaTitle: Performance Recipes - JavaScript Data Grid | Handsontable
+metaTitle: Performance Recipes | Handsontable DataGrid for JavaScript
 description: Practical recipes for optimizing Handsontable DataGrid performance -- lazy loading large datasets, persisting user layout preferences, and more.
 permalink: /recipes/performance
 canonicalUrl: /recipes/performance
@@ -9,11 +9,11 @@ hotPlugin: false
 editLink: false
 type: how-to
 react:
-  metaTitle: Performance Recipes - React Data Grid | Handsontable
+  metaTitle: Performance Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Performance Recipes - Angular Data Grid | Handsontable
+  metaTitle: Performance Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Performance Recipes - Vue Data Grid | Handsontable
+  metaTitle: Performance Recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 

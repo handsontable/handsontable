@@ -466,6 +466,11 @@ These things about this pipeline are worth knowing before changing it.
 
 ## Determinism
 
+The goldens also depend on the machine that renders them: fonts and anti-aliasing come from the CI runner's
+own Ubuntu image, which is pinned in every workflow (`.ai/CI.md`). A PR that bumps the image has to touch
+`visual-tests/**`, so the full tier renders against `base/develop` and the new render is approved before the
+develop seed makes it the baseline.
+
 A visual spec has no assertion of its own — the screenshot is the assertion — so whatever state the
 page is in when `screenshot()` runs is what the golden records. The rules that keep that state the
 same on every render, enforced at `error` by `visual-tests/.eslintrc.js` (the functional tier's bans

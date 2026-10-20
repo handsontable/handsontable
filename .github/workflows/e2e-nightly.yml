@@ -1,25 +1,35 @@
 name: E2E nightly
 
-# The full Playwright matrix on develop, every weeknight. A pull request runs each spec on the legs
-# it declares (tests/AGENTS.md, "Declaring the legs": no tag is `e2e-main` only, THEMES_TAG adds the
+# The full E2E matrix on develop, every weeknight: every Playwright spec on all six Chromium legs, and
+# the frozen Jasmine suite on its six legs. A pull request runs each Playwright spec on the legs it
+# declares (tests/AGENTS.md, "Declaring the legs": no tag is `e2e-main` only, THEMES_TAG adds the
 # horizon and classic legs, BUNDLES_TAG adds `e2e-main-min`, both add the two `-min` theme legs),
 # because most specs assert DOM and API facts that cannot differ by theme or bundle, and the six legs
-# used to cost about a hundred runner-minutes per pull request. This run is the safety net for the
-# declarations: `full-matrix: true` sets HOT_E2E_FULL_MATRIX=1 in e2e.yml, the config drops every
-# project's grep, and all six Chromium legs run every spec. The engines job runs too, as on every
-# e2e.yml call; a flake it finds is extra signal, nothing more.
+# used to cost about a hundred runner-minutes per pull request; and it runs the Jasmine suite on ONE
+# leg, `UMD (theme: main)`, because that suite is frozen and retiring, and its six legs cost about
+# fifty-five more. This run is the safety net for both: `full-matrix: true` sets HOT_E2E_FULL_MATRIX=1
+# in e2e.yml, the config drops every project's grep, and all six Chromium legs run every spec;
+# `jasmine-full-matrix: true` (with both Jasmine scopes on) expands the puppeteer job to the three
+# themes × UMD / UMD.min, the minified bundle through test:production. The engines job runs too, as on
+# every e2e.yml call; a flake it finds is extra signal, nothing more.
 #
-# Triage. A test red here and green on pull requests runs on an axis its spec did not declare:
-# declare the axis (THEMES_TAG / BUNDLES_TAG on every top-level block of the spec), never quarantine
-# it. The flake ledger (https://handsontable.github.io/handsontable/test-health/) records every flaky
-# or failed test of this run with `branch: develop`, and `tests/scripts/leg-replay.mjs` replays the
-# ledger against the declared tree and names the declaration each off-main red asks for. The rc/stable
-# publish path and a master push also run the full matrix (test.yml forwards `full-matrix`); the
-# develop push keeps the pull-request shape, because the durations and the budget measure that shape.
+# Triage. A Playwright test red here and green on pull requests runs on an axis its spec did not
+# declare: declare the axis (THEMES_TAG / BUNDLES_TAG on every top-level block of the spec), never
+# quarantine it. A Jasmine spec red here and green on pull requests fails on another theme or on the
+# minified bundle, and its record's isolation verdict says which answer: `passes alone` (order-dependent)
+# is a migration ticket, `fails alone` is fixed or migrated before the next RC cut, because the rc/stable
+# path runs the six legs and its publish needs them green (handsontable/.ai/TESTING.md, "The Jasmine
+# suite is frozen"); neither is a leg added back to pull requests. The flake ledger
+# (https://handsontable.github.io/handsontable/test-health/) records every flaky or failed test of this
+# run with `branch: develop` – the Playwright reports and the `puppeteer-failed-specs-*` records alike –
+# and `tests/scripts/leg-replay.mjs` replays the ledger against the declared Playwright tree and names
+# the declaration each off-main red asks for. The rc/stable publish path and a master push also run
+# both full matrices (test.yml forwards `full-matrix` and `jasmine-full-matrix`); the develop push keeps
+# the pull-request shape, because the durations and the budget measure that shape.
 #
-# handsontable.full.js and handsontable.min.js, the two bundles the Puppeteer legs do not test either,
-# stay out of this run. The frozen Jasmine suite's own full-matrix night is meant to extend this
-# workflow with its inputs, not to add a third nightly.
+# handsontable.full.js and handsontable.min.js, the two bundles neither suite tests, stay out of this
+# run. This is the one E2E nightly: a suite that needs a full-matrix night extends it with e2e.yml's
+# inputs, as the Jasmine suite does, rather than adding a third nightly.
 on:
   schedule:
     # 03:30 UTC Tue–Sat: the night after each weekday's merges, clear of the visual nightly (02:00),
@@ -63,6 +73,10 @@ jobs:
     if: github.event_name != 'pull_request'
     uses: ./.github/workflows/e2e.yml
     with:
+      # Both Jasmine scopes on (they are one gate in e2e.yml) and the six-leg matrix.
+      run-e2e: true
+      run-e2e-min: true
+      jasmine-full-matrix: true
       run-playwright: true
       full-matrix: true
     secrets: inherit
@@ -74,7 +88,7 @@ jobs:
     name: Notify Slack
     needs: [ e2e ]
     if: ${{ failure() && github.event_name != 'pull_request' && github.ref_name == 'develop' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
     steps:
@@ -86,5 +100,5 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": ":red_circle: E2E nightly on ${{ github.ref_name }} failed: the full Playwright matrix found what the pull-request legs did not.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nIf the same spec is green on pull requests, it runs on an axis it did not declare (tests/AGENTS.md, Declaring the legs): declare the axis, never quarantine it."
+              "text": ":red_circle: E2E nightly on ${{ github.ref_name }} failed: the full matrix (every Playwright spec on six legs, the frozen Jasmine suite on six) found what the pull-request legs did not.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nA Playwright spec green on pull requests: it runs on an axis it did not declare (tests/AGENTS.md, Declaring the legs): declare the axis, never quarantine it. A Jasmine spec green on pull requests (which run UMD × main alone) is red on another theme or the minified bundle: fails alone in its record = fix or migrate before the next RC cut (the rc path runs the six legs); passes alone = a migration ticket."
             }

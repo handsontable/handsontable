@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Searching values
-metaTitle: Searching values - JavaScript Data Grid | Handsontable
+metaTitle: Searching values | Handsontable DataGrid for JavaScript
 description: Search data across Handsontable DataGrid, using built-in API methods and implementing your own search UI.
 permalink: /searching-values
 canonicalUrl: /searching-values
@@ -10,11 +10,11 @@ tags:
   - highlight values
   - search values
 react:
-  metaTitle: Searching values - React Data Grid | Handsontable
+  metaTitle: Searching values | Handsontable DataGrid for React
 angular:
-  metaTitle: Searching values - Angular Data Grid | Handsontable
+  metaTitle: Searching values | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Searching values - Vue Data Grid | Handsontable
+  metaTitle: Searching values | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Navigation
 ---

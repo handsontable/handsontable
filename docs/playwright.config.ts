@@ -32,7 +32,7 @@ export default defineConfig({
   /* Retry on CI only */
   retries: isCI ? 3 : 0,
   /*
-   * The CI runner (ubuntu-latest) has far fewer cores than a dev machine. With 8
+   * The CI runner has far fewer cores than a dev machine. With 8
    * workers, heavy doc pages (6-9 Handsontable grids, each running a sequential
    * bootstrap + autoRowSize RAF settle loop) oversubscribe the CPU: loading overlays
    * clear too slowly (line-93 wait) and the screenshot-stability loop never quiesces

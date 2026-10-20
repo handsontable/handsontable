@@ -1,7 +1,7 @@
 ---
 type: tutorial
 title: Demo
-metaTitle: Demo - JavaScript Data Grid | Handsontable
+metaTitle: Demo | Handsontable DataGrid for JavaScript
 description: Play around with a demo of Handsontable DataGrid, in your favorite framework.
 permalink: /demo
 canonicalUrl: /demo
@@ -9,13 +9,13 @@ tags:
   - demo
   - hello world
 react:
-  metaTitle: Demo - React Data Grid | Handsontable
+  metaTitle: Demo | Handsontable DataGrid for React
   description: Play around with a demo of Handsontable in React.
 angular:
-  metaTitle: Demo - Angular Data Grid | Handsontable
+  metaTitle: Demo | Handsontable DataGrid for Angular
   description: Play around with a demo of Handsontable in Angular.
 vue:
-  metaTitle: Demo - Vue Data Grid | Handsontable
+  metaTitle: Demo | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
 ---

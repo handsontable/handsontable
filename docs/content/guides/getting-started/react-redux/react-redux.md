@@ -1,12 +1,12 @@
 ---
 type: tutorial
 title: Integration with Redux
-metaTitle: Integration with Redux - JavaScript Data Grid | Handsontable
+metaTitle: Integration with Redux | Handsontable DataGrid for JavaScript
 description: Maintain the data and configuration options of your grid by using the Redux state container.
 permalink: /redux
 canonicalUrl: /redux
 react:
-  metaTitle: Integration with Redux - React Data Grid | Handsontable
+  metaTitle: Integration with Redux | Handsontable DataGrid for React
   tags:
     - state manager
     - react redux

@@ -249,6 +249,7 @@ export class SelectionManager {
     const selections: Selection[] = Array.from(this.#selections);
     const classNamesMap = new Map<HTMLElement, Map<string, number>>();
     const headerAttributesMap = new Map<HTMLElement, SelectionAttribute[]>();
+    const toDraw: Array<[Border, number[]]> = [];
 
     for (let i = 0; i < selections.length; i++) {
       const selection = selections[i];
@@ -260,11 +261,11 @@ export class SelectionManager {
       }
 
       // Virtualize custom borders. A per-cell custom-border selection outside this overlay's rendered
-      // range draws nothing anyway - `appear()` early-outs once `getCell()` reports the cell as not
+      // range draws nothing anyway - `measure()` finds nothing to draw once `getCell()` reports the cell as not
       // rendered. Skipping it here (without calling `getBorderInstance`) means its Border DOM is never
       // created while off-screen, which is what lets grids with very many bordered cells scale: only
       // the visible borders get DOM and layout work, mirroring cell virtualization. The visual result
-      // is identical to letting `appear()` early-out, just without the O(all-borders) DOM.
+      // is identical to letting the border hide itself, just without the O(all-borders) DOM.
       if (selectionType === CUSTOM_SELECTION_TYPE && this.#isCustomSelectionOffscreen(selection)) {
         this.#selectionBorders.get(selection)?.get(wot)?.disappear();
         this.#scanCache.delete(selection);
@@ -298,8 +299,17 @@ export class SelectionManager {
       }
 
       wot.getSetting('onBeforeDrawBorders', corners, selectionType);
-      borderInstance?.appear(corners);
+
+      if (borderInstance) {
+        toDraw.push([borderInstance, corners]);
+      }
     }
+
+    // Measure every border before painting any: a style write between two geometry reads makes the
+    // browser lay the table out again, which cost one layout per visible border.
+    const measurements = toDraw.map(([border, corners]) => border.measure(corners));
+
+    toDraw.forEach(([border, corners], index) => border.paint(corners, measurements[index]));
 
     this.#applyCollected(classNamesMap, headerAttributesMap);
   }

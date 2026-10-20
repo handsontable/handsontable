@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Adding and removing columns
-metaTitle: Adding and removing columns - JavaScript Data Grid | Handsontable
+metaTitle: Adding and removing columns | Handsontable DataGrid for JavaScript
 description: Insert and remove columns programmatically with the alter() method, through the context menu, or automatically with spare columns.
 permalink: /column-adding
 canonicalUrl: /column-adding
@@ -11,11 +11,11 @@ tags:
   - alter
   - add column
 react:
-  metaTitle: Adding and removing columns - React Data Grid | Handsontable
+  metaTitle: Adding and removing columns | Handsontable DataGrid for React
 angular:
-  metaTitle: Adding and removing columns - Angular Data Grid | Handsontable
+  metaTitle: Adding and removing columns | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Adding and removing columns - Vue Data Grid | Handsontable
+  metaTitle: Adding and removing columns | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: new

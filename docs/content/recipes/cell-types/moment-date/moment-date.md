@@ -1,7 +1,7 @@
 ---
 type: tutorial
 title: Moment.js-based date
-metaTitle: Moment.js Cell Type - JavaScript Data Grid | Handsontable
+metaTitle: Moment.js date cell type | Handsontable DataGrid for JavaScript
 description: Learn how to create a Handsontable DataGrid custom date cell type using the Moment.js library
 permalink: /recipes/cell-types/moment-date
 canonicalUrl: /recipes/cell-types/moment-date
@@ -12,11 +12,11 @@ tags:
   - moment.js
   - date
 react:
-  metaTitle: Moment.js date Cell Type - React Data Grid | Handsontable
+  metaTitle: Moment.js date cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Moment.js date Cell Type - Angular Data Grid | Handsontable
+  metaTitle: Moment.js date cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Moment.js date Cell Type - Vue Data Grid | Handsontable
+  metaTitle: Moment.js date cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
 menuTag: updated

@@ -58,11 +58,12 @@ function resolvePort(): number {
  * two are separated by projects so each can carry its own settings — e2e is
  * flake-strict, visual will add screenshot tolerances and masks.
  *
- * Matrix coverage: the functional suite mirrors the Puppeteer e2e matrix
- * 1:1 — theme (main/horizon/classic) × bundle (`umd` = dist/handsontable.js,
- * `full-min` = dist/handsontable.full.min.js) — one project per combination,
- * loading the exact files the Puppeteer `test:e2e` and `test:production` legs
- * load. Which specs a project runs is DECLARED per spec, with a tag on every
+ * Matrix coverage: the functional suite has the shape the Puppeteer e2e
+ * matrix has on the full-matrix runs — theme (main/horizon/classic) × bundle
+ * (`umd` = dist/handsontable.js, `full-min` = dist/handsontable.full.min.js) —
+ * one project per combination, loading the exact files the Puppeteer
+ * `test:e2e` and `test:production` legs load (a pull request runs that suite
+ * on `main` × UMD alone). Which specs a project runs is DECLARED per spec, with a tag on every
  * top-level block (`lib/leg-declarations.mjs`; tests/AGENTS.md, "Declaring
  * the legs"): `e2e-main` runs every spec, `e2e-horizon` and `e2e-classic` run
  * the specs tagged THEMES_TAG, `e2e-main-min` the specs tagged BUNDLES_TAG,
@@ -78,15 +79,16 @@ function resolvePort(): number {
  * job, never a green one that ran nothing; an empty shard, which Playwright
  * lets pass, is failed by the quarantine reporter). The bundles Puppeteer does not
  * test either (handsontable.full.js, handsontable.min.js) are deliberately
- * NOT here — extra coverage belongs to the nightly on develop (DEV-2058).
+ * NOT here, and not on the nightly either.
  *
  * Version parity rule: `@playwright/test` here and the CI container image
  * (`mcr.microsoft.com/playwright:v<same>-noble`) bump together, never apart, so
  * local, CI, and baseline generation render identically.
  */
 const E2E_THEMES = ['main', 'horizon', 'classic'] as const;
-// 1:1 with the Puppeteer bundle legs: UMD (dist/handsontable.js, `test:e2e`)
-// and UMD.min (dist/handsontable.full.min.js, `test:production`). The
+// The Puppeteer bundle pair: UMD (dist/handsontable.js, `test:e2e`) and
+// UMD.min (dist/handsontable.full.min.js, `test:production`), which a pull
+// request runs on UMD alone and the nightly on both. The
 // un-suffixed projects run the plain UMD so existing local commands and hooks
 // (`--project=e2e-main`) keep working. That also means every LOCAL gate
 // (pre-push, the Claude Stop hook, `npm run test:e2e` — all pinned to

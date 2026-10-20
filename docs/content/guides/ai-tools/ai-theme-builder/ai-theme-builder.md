@@ -1,15 +1,15 @@
 ---
 type: explanation
 title: AI Theme Builder
-metaTitle: AI Theme Builder - JavaScript Data Grid | Handsontable
+metaTitle: AI Theme Builder | Handsontable DataGrid for JavaScript
 description: An AI-assisted tool that turns a written description into a complete Handsontable DataGrid theme, generating the CSS variables that drive the grid's appearance.
 permalink: /ai-theme-builder
 react:
-  metaTitle: AI Theme Builder - React Data Grid | Handsontable
+  metaTitle: AI Theme Builder | Handsontable DataGrid for React
 angular:
-  metaTitle: AI Theme Builder - Angular Data Grid | Handsontable
+  metaTitle: AI Theme Builder | Handsontable DataGrid for Angular
 vue:
-  metaTitle: AI Theme Builder - Vue Data Grid | Handsontable
+  metaTitle: AI Theme Builder | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: AI Tools
 ---

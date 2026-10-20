@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Grid size
-metaTitle: Grid size - JavaScript Data Grid | Handsontable
+metaTitle: Grid size | Handsontable DataGrid for JavaScript
 description: Set the width and height of the grid, using either absolute values or values relative to the parent container.
 permalink: /grid-size
 canonicalUrl: /grid-size
@@ -11,11 +11,11 @@ tags:
   - height
   - dimensions
 react:
-  metaTitle: Grid size - React Data Grid | Handsontable
+  metaTitle: Grid size | Handsontable DataGrid for React
 angular:
-  metaTitle: Grid size - Angular Data Grid | Handsontable
+  metaTitle: Grid size | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Grid size - Vue Data Grid | Handsontable
+  metaTitle: Grid size | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
 menuTag: updated

@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Row selection
-metaTitle: Row selection - JavaScript Data Grid | Handsontable
+metaTitle: Row selection | Handsontable DataGrid for JavaScript
 description: Let users select rows with checkboxes, and select or clear every row at once with a "select all" checkbox that follows filters and pagination.
 permalink: /row-selection
 canonicalUrl: /row-selection
@@ -11,11 +11,11 @@ tags:
   - checkbox selection
   - RowSelection
 react:
-  metaTitle: Row selection - React Data Grid | Handsontable
+  metaTitle: Row selection | Handsontable DataGrid for React
 angular:
-  metaTitle: Row selection - Angular Data Grid | Handsontable
+  metaTitle: Row selection | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row selection - Vue Data Grid | Handsontable
+  metaTitle: Row selection | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: new

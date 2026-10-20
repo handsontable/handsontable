@@ -1,16 +1,16 @@
 ---
 type: explanation
 title: Deprecation policy
-metaTitle: Deprecation policy - JavaScript Data Grid | Handsontable
+metaTitle: Deprecation policy | Handsontable DataGrid for JavaScript
 description: Handsontable DataGrid ensures that if API is marked deprecated, we commit to a grace period (at least 3 months) during which the deprecated feature still works.
 permalink: /deprecation-policy
 canonicalUrl: /deprecation-policy
 react:
-  metaTitle: Deprecation policy - React Data Grid | Handsontable
+  metaTitle: Deprecation policy | Handsontable DataGrid for React
 angular:
-  metaTitle: Deprecation policy - Angular Data Grid | Handsontable
+  metaTitle: Deprecation policy | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Deprecation policy - Vue Data Grid | Handsontable
+  metaTitle: Deprecation policy | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Upgrade and migration
 ---

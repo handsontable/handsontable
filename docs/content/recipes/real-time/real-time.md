@@ -1,6 +1,6 @@
 ---
 title: Real-time and Integration Recipes
-metaTitle: Real-time and Integration Recipes - JavaScript Data Grid | Handsontable
+metaTitle: Real-time and Integration Recipes | Handsontable DataGrid for JavaScript
 description: Practical recipes for real-time data updates and third-party integrations with Handsontable DataGrid.
 permalink: /recipes/real-time
 canonicalUrl: /recipes/real-time
@@ -9,11 +9,11 @@ hotPlugin: false
 editLink: false
 type: how-to
 react:
-  metaTitle: Real-time and Integration Recipes - React Data Grid | Handsontable
+  metaTitle: Real-time and Integration Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Real-time and Integration Recipes - Angular Data Grid | Handsontable
+  metaTitle: Real-time and Integration Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Real-time and Integration Recipes - Vue Data Grid | Handsontable
+  metaTitle: Real-time and Integration Recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 

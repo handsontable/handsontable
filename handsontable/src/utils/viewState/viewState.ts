@@ -1,8 +1,8 @@
 import type { HotInstance } from '../../core/types';
-import type { MergeAreaGeometry } from '../../utils/mergeAreas';
+import type { MergeAreaGeometry } from '../mergeAreas';
 import type { SelectionState } from '../../selection/types';
 import { clamp } from '../../helpers/number';
-import { safeBatch } from '../../utils/safeBatch';
+import { safeBatch } from '../safeBatch';
 
 /**
  * One tracked explicit cell-meta write. The indexes are physical: a visual index only means
@@ -68,6 +68,40 @@ export interface PaginationState {
 }
 
 /**
+ * One independently restorable part of a view state. A restore given a set of parts runs only
+ * their steps, in the usual order; a restore given none runs every step.
+ */
+export type ViewStatePart =
+  'columnOrder' |
+  'rowOrder' |
+  'sort' |
+  'filters' |
+  'trimmedRows' |
+  'hiddenRows' |
+  'hiddenColumns' |
+  'collapsedRows' |
+  'columnWidths' |
+  'rowHeights' |
+  'mergedCells' |
+  'frozen' |
+  'customBorders' |
+  'pagination' |
+  'selection' |
+  'scroll';
+
+/**
+ * Answers whether a restore covers a part. No set means every part.
+ */
+type PartFilter = (part: ViewStatePart) => boolean;
+
+/**
+ * Builds the {@link PartFilter} for an optional set of parts.
+ */
+function toPartFilter(parts: ReadonlySet<ViewStatePart> | undefined): PartFilter {
+  return parts ? part => parts.has(part) : () => true;
+}
+
+/**
  * The part of the Pagination plugin the view state talks to.
  */
 interface PaginationPlugin {
@@ -86,7 +120,7 @@ interface PaginationPlugin {
  * `undefined` otherwise. Keeps every capture/restore helper safe when a feature
  * plugin is absent from the grid's configuration.
  */
-function getEnabledPlugin(hot: HotInstance, name: string): { enabled: boolean } | undefined {
+export function getEnabledPlugin(hot: HotInstance, name: string): { enabled: boolean } | undefined {
   const plugin = hot.getPlugin(name) as { enabled?: boolean } | undefined;
 
   return plugin?.enabled ? plugin as { enabled: boolean } : undefined;
@@ -123,7 +157,7 @@ interface SortingPlugin {
  * plugin's hiding map: a hidden row that a collapsed NestedRows parent trims has no visual
  * index, so reading it through `getHiddenRows()` would drop it from the capture.
  */
-function captureAxisState(hot: HotInstance) {
+function captureAxisState(hot: HotInstance, covers: PartFilter = () => true) {
   const hiddenRowsPlugin = getEnabledPlugin(hot, 'hiddenRows') as { pluginName: string } | undefined;
   const hiddenRowsMap = hiddenRowsPlugin
     ? hot.rowIndexMapper.hidingMapsCollection.get(hiddenRowsPlugin.pluginName) as
@@ -133,13 +167,16 @@ function captureAxisState(hot: HotInstance) {
     getEnabledPlugin(hot, 'hiddenColumns') as { getHiddenColumns: () => number[] } | undefined;
   const trimRowsPlugin = getEnabledPlugin(hot, 'trimRows') as { getTrimmedRows: () => number[] } | undefined;
 
+  // Each read is gated on the part that needs it: the sequences copy one entry per row or column, which a
+  // request for a scroll position on a million-row grid must not pay for.
   return {
-    rowSequence: hot.rowIndexMapper.getIndexesSequence().slice(),
-    unsortedRowSequence: captureUnsortedRowSequence(hot),
-    columnSequence: hot.columnIndexMapper.getIndexesSequence().slice(),
-    hiddenRows: hiddenRowsMap?.getHiddenIndexes() ?? [],
-    hiddenColumns: (hiddenColumnsPlugin?.getHiddenColumns() ?? []).map(col => hot.toPhysicalColumn(col)),
-    trimmedRows: trimRowsPlugin?.getTrimmedRows() ?? [],
+    rowSequence: covers('rowOrder') ? hot.rowIndexMapper.getIndexesSequence().slice() : [],
+    unsortedRowSequence: covers('sort') ? captureUnsortedRowSequence(hot) : [],
+    columnSequence: covers('columnOrder') ? hot.columnIndexMapper.getIndexesSequence().slice() : [],
+    hiddenRows: covers('hiddenRows') ? hiddenRowsMap?.getHiddenIndexes() ?? [] : [],
+    hiddenColumns: covers('hiddenColumns') ?
+      (hiddenColumnsPlugin?.getHiddenColumns() ?? []).map(col => hot.toPhysicalColumn(col)) : [],
+    trimmedRows: covers('trimmedRows') ? trimRowsPlugin?.getTrimmedRows() ?? [] : [],
   };
 }
 
@@ -167,7 +204,7 @@ interface NestedRowsPlugin {
   } | null;
   collapsingUI: {
     toggleCollapsedRows: (
-      parents: number[], action: 'collapse', shouldRunHooks?: boolean, forceRender?: boolean
+      parents: number[], action: 'collapse' | 'expand', shouldRunHooks?: boolean, forceRender?: boolean
     ) => boolean,
   } | null;
 }
@@ -193,13 +230,25 @@ function captureCollapsedParents(hot: HotInstance): number[][] {
 /**
  * Collapses the parents stored as tree paths again, skipping the ones the data no longer has or
  * that lost their children. The hooks stay silent — replaying a state the user already chose is
- * not a new collapse — and the render is left to the caller's batch.
+ * not a new collapse — and the render is left to the caller's batch. Parents collapsed on the
+ * grid now are expanded first: a sheet switch arrives with none (`loadData` drops them), but a
+ * restore onto a live grid would otherwise keep every branch the state leaves open collapsed.
  */
 function restoreCollapsedParents(hot: HotInstance, state: ViewState) {
   const nestedRows = getEnabledPlugin(hot, 'nestedRows') as NestedRowsPlugin | undefined;
   const dataManager = nestedRows?.dataManager;
 
-  if (!dataManager || !nestedRows.collapsingUI || state.collapsedParents.length === 0) {
+  if (!dataManager || !nestedRows.collapsingUI) {
+    return;
+  }
+
+  const collapsedNow = nestedRows.getCollapsedParents();
+
+  if (collapsedNow.length > 0) {
+    nestedRows.collapsingUI.toggleCollapsedRows(collapsedNow, 'expand', false, false);
+  }
+
+  if (state.collapsedParents.length === 0) {
     return;
   }
 
@@ -218,6 +267,7 @@ function getResizePlugin(hot: HotInstance, axis: 'column' | 'row') {
     {
       getManualSizes: () => Array<[number, number]>,
       setManualSizes: (sizes: Array<[number, number]>) => void,
+      clearManualSizes: () => void,
     } | undefined;
 }
 
@@ -229,10 +279,10 @@ function getResizePlugin(hot: HotInstance, axis: 'column' | 'row') {
  * effective `getColWidth`/`getRowHeight` would pin every column as manually sized and stop
  * AutoColumnSize and StretchColumns from adapting after a switch.
  */
-function captureSizes(hot: HotInstance) {
+function captureSizes(hot: HotInstance, covers: PartFilter = () => true) {
   return {
-    colWidths: getResizePlugin(hot, 'column')?.getManualSizes() ?? [],
-    rowHeights: getResizePlugin(hot, 'row')?.getManualSizes() ?? [],
+    colWidths: (covers('columnWidths') ? getResizePlugin(hot, 'column')?.getManualSizes() : undefined) ?? [],
+    rowHeights: (covers('rowHeights') ? getResizePlugin(hot, 'row')?.getManualSizes() : undefined) ?? [],
   };
 }
 
@@ -367,7 +417,7 @@ function isHeaderSelection(state: SelectionState): boolean {
 /**
  * Whether every range of a captured selection, and its focus, still fits the grid.
  */
-function fitsGrid(hot: HotInstance, state: SelectionState): boolean {
+export function fitsGrid(hot: HotInstance, state: SelectionState): boolean {
   const tableParams = {
     countRows: hot.countRows(),
     countCols: hot.countCols(),
@@ -492,27 +542,37 @@ function restoreSelection(hot: HotInstance, state: ViewState): boolean {
 /**
  * Captures the current runtime view state of the grid.
  */
-export function captureViewState(hot: HotInstance, trackedCellMeta: TrackedCellMeta[]): ViewState {
-  const { colWidths, rowHeights } = captureSizes(hot);
+export function captureViewState(
+  hot: HotInstance,
+  trackedCellMeta: TrackedCellMeta[],
+  parts?: ReadonlySet<ViewStatePart>,
+): ViewState {
+  const covers = toPartFilter(parts);
+  const neutral = createNeutralViewState();
+  const { colWidths, rowHeights } = captureSizes(hot, covers);
 
+  // The cheap reads (the index sequences, the hidden and trimmed sets, the frozen counts) are always
+  // taken. A part left out of `parts` keeps its neutral value, so a caller that asks for a few parts
+  // does not pay for the scan of the filters, the merges, the borders and the selection.
   return {
-    ...captureAxisState(hot),
-    collapsedParents: captureCollapsedParents(hot),
+    ...captureAxisState(hot, covers),
+    collapsedParents: covers('collapsedRows') ? captureCollapsedParents(hot) : neutral.collapsedParents,
     colWidths,
     rowHeights,
-    sortConfig: captureSortConfig(hot),
-    filterConditions: captureFilterConditions(hot),
-    mergedCells: captureMergedCells(hot),
+    sortConfig: covers('sort') ? captureSortConfig(hot) : neutral.sortConfig,
+    filterConditions: covers('filters') ? captureFilterConditions(hot) : neutral.filterConditions,
+    mergedCells: covers('mergedCells') ? captureMergedCells(hot) : neutral.mergedCells,
     fixedColumnsStart: hot.getSettings().fixedColumnsStart as number | undefined,
     fixedColumnsEnd: hot.getSettings().fixedColumnsEnd as number | undefined,
     fixedRowsTop: hot.getSettings().fixedRowsTop as number | undefined,
     fixedRowsBottom: hot.getSettings().fixedRowsBottom as number | undefined,
-    customBorders: captureCustomBorders(hot),
+    customBorders: covers('customBorders') ? captureCustomBorders(hot) : neutral.customBorders,
     cellMeta: trackedCellMeta.slice(),
-    pagination: capturePagination(hot),
-    selection: hot.getSelected(),
-    selectionState: captureSelectionState(hot),
-    scroll: { row: hot.getFirstFullyVisibleRow(), col: hot.getFirstFullyVisibleColumn() },
+    pagination: covers('pagination') ? capturePagination(hot) : neutral.pagination,
+    selection: covers('selection') ? hot.getSelected() : neutral.selection,
+    selectionState: covers('selection') ? captureSelectionState(hot) : neutral.selectionState,
+    scroll: covers('scroll') ?
+      { row: hot.getFirstFullyVisibleRow(), col: hot.getFirstFullyVisibleColumn() } : neutral.scroll,
   };
 }
 
@@ -544,25 +604,44 @@ function restoreTrimmedState(hot: HotInstance, state: ViewState) {
 }
 
 /**
+ * Replaces the hidden rows with a set of physical rows. A row a filter, TrimRows, or a collapsed
+ * NestedRows parent trims has no visual index, so the plugin's visual `showRows()`/`hideRows()` reject
+ * a list that holds one and could never show or hide it. The plugin's own physical method takes the
+ * whole set, runs the hiding hooks, and leaves its map untouched when a listener vetoes the change.
+ */
+function restoreHiddenRows(hot: HotInstance, physicalRows: number[]) {
+  (getEnabledPlugin(hot, 'hiddenRows') as { _replaceHiddenRows: (rows: number[]) => void } | undefined)
+    ?._replaceHiddenRows(physicalRows);
+}
+
+/**
  * Restores the hidden index sets, clearing whatever the previously active sheet left behind
  * first. Runs after trimming and filters, since it addresses rows by their visual index.
  */
-function restoreHiddenState(hot: HotInstance, state: ViewState) {
-  const hiddenRowsPlugin = getEnabledPlugin(hot, 'hiddenRows') as
-    { getHiddenRows: () => number[], showRows: (rows: number[]) => void, hideRows: (rows: number[]) => void }
-    | undefined;
-  const hiddenColumnsPlugin = getEnabledPlugin(hot, 'hiddenColumns') as unknown as
+function restoreHiddenState(hot: HotInstance, state: ViewState, covers: PartFilter = () => true) {
+  const hiddenColumnsPlugin = covers('hiddenColumns') ? getEnabledPlugin(hot, 'hiddenColumns') as unknown as
     { getHiddenColumns: () => number[], showColumns: (cols: number[]) => void, hideColumns: (cols: number[]) => void }
-    | undefined;
+    | undefined : undefined;
 
-  if (hiddenRowsPlugin) {
-    hiddenRowsPlugin.showRows(hiddenRowsPlugin.getHiddenRows());
-    hiddenRowsPlugin.hideRows(toVisualIndexes(state.hiddenRows, row => hot.toVisualRow(row)));
+  if (covers('hiddenRows')) {
+    restoreHiddenRows(hot, state.hiddenRows);
   }
 
   if (hiddenColumnsPlugin) {
     hiddenColumnsPlugin.showColumns(hiddenColumnsPlugin.getHiddenColumns());
     hiddenColumnsPlugin.hideColumns(toVisualIndexes(state.hiddenColumns, col => hot.toVisualColumn(col)));
+  }
+}
+
+/**
+ * Clears the sort when one is on and the grid sorts its own rows.
+ */
+function clearActiveSort(hot: HotInstance) {
+  const sorting = getSortingPlugin(hot);
+  const config = sorting?.getSortConfig();
+
+  if (sorting && Array.isArray(config) && config.length > 0 && hot.runHooks('hasExternalDataSource') !== true) {
+    sorting.sort([]);
   }
 }
 
@@ -596,15 +675,21 @@ function restoreSequence(
  * A `beforeColumnSort` listener can cancel either `sort()` call. The rows still land in the
  * captured order, which is written directly, so `restoreCanceledSortStates()` puts the sort
  * states back to match them.
+ *
+ * Returns the order parts whose stored sequence no longer matched the data's length and was
+ * therefore not written.
  */
-function restoreAxisState(hot: HotInstance, state: ViewState) {
-  const sorting = getSortingPlugin(hot);
+function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter): ViewStatePart[] {
+  const notApplied: ViewStatePart[] = [];
+  const sorting = covers('sort') ? getSortingPlugin(hot) : undefined;
   const hasSortConfig = Array.isArray(state.sortConfig) ? state.sortConfig.length > 0 : Boolean(state.sortConfig);
 
   // The column order goes first: the sort config addresses its column visually, so re-applying
   // the sort against the order `loadData` reset would sort the wrong physical column on a
   // sheet whose columns were manually moved.
-  restoreSequence(hot.columnIndexMapper, state.columnSequence);
+  if (covers('columnOrder') && !restoreSequence(hot.columnIndexMapper, state.columnSequence)) {
+    notApplied.push('columnOrder');
+  }
 
   if (sorting) {
     sorting.sort([]);
@@ -615,11 +700,30 @@ function restoreAxisState(hot: HotInstance, state: ViewState) {
     }
   }
 
+  if (!covers('rowOrder')) {
+    return notApplied;
+  }
+
+  // A row order written under a sort the state does not mention would leave the header indicator and
+  // `getSortConfig()` describing an order the rows no longer have, so that sort is cleared first. Only a
+  // sort that is on is cleared: `sort([])` on a grid that never sorted makes the sorting plugin cache the
+  // order from before the restore, which a later sort and clear would bring back over the restored one, and
+  // on a grid with an external data source it sends a fetch with an empty sort.
+  if (!covers('sort')) {
+    clearActiveSort(hot);
+  }
+
   const isRowOrderRestored = restoreSequence(hot.rowIndexMapper, state.rowSequence);
+
+  if (!isRowOrderRestored) {
+    notApplied.push('rowOrder');
+  }
 
   if (sorting && hasSortConfig && isRowOrderRestored) {
     restoreCanceledSortStates(sorting, state.sortConfig);
   }
+
+  return notApplied;
 }
 
 /**
@@ -671,10 +775,14 @@ function clearManualSizes(hot: HotInstance) {
  * writes them physically too, so a size follows its record through trimming and reorder — and
  * skips indexes the shrunken data no longer covers.
  */
-function restoreSizes(hot: HotInstance, state: ViewState) {
-  clearManualSizes(hot);
-  getResizePlugin(hot, 'column')?.setManualSizes(state.colWidths);
-  getResizePlugin(hot, 'row')?.setManualSizes(state.rowHeights);
+function restoreSizes(hot: HotInstance, state: ViewState, covers: PartFilter) {
+  const columnResize = covers('columnWidths') ? getResizePlugin(hot, 'column') : undefined;
+  const rowResize = covers('rowHeights') ? getResizePlugin(hot, 'row') : undefined;
+
+  columnResize?.clearManualSizes();
+  rowResize?.clearManualSizes();
+  columnResize?.setManualSizes(state.colWidths);
+  rowResize?.setManualSizes(state.rowHeights);
 }
 
 /**
@@ -767,9 +875,10 @@ function restoreMergedCells(hot: HotInstance, state: ViewState) {
 
 /**
  * The keys of a saved border record that describe its sides. The record also carries its
- * position and id, which `setBorders()` does not take.
+ * position and id, which `setBorders()` does not take, and the legacy `left`/`right` copies of
+ * `start`/`end`, which `setBorders()` rejects next to them (and rejects outright in RTL).
  */
-const BORDER_SIDES = ['top', 'bottom', 'start', 'end', 'left', 'right'];
+const BORDER_SIDES = ['top', 'bottom', 'start', 'end'];
 
 /**
  * Restores custom borders, clearing the current set first.
@@ -811,26 +920,57 @@ function restoreCustomBorders(hot: HotInstance, state: ViewState) {
  *
  * The selection and the scroll position are left to {@link restoreViewport}: both need the
  * grid painted with the arriving sheet's sizes, and this runs inside a render batch.
+ *
+ * With `parts` given, only those parts' steps run, still in this order, and every other part of
+ * the grid is left as it is. Returns the order parts that were not written because their stored
+ * sequence no longer matched the data's length.
  */
-export function restoreViewState(hot: HotInstance, state: ViewState): void {
+export function restoreViewState(
+  hot: HotInstance,
+  state: ViewState,
+  parts?: ReadonlySet<ViewStatePart>,
+): ViewStatePart[] {
+  const covers = toPartFilter(parts);
+  let notApplied: ViewStatePart[] = [];
+
   safeBatch(hot, () => {
-    restoreAxisState(hot, state);
-    restoreFilterConditions(hot, state);
-    restoreTrimmedState(hot, state);
-    restoreHiddenState(hot, state);
-    restoreCollapsedParents(hot, state);
-    restoreSizes(hot, state);
-    restoreMergedCells(hot, state);
+    notApplied = restoreAxisState(hot, state, covers);
+
+    if (covers('filters')) {
+      restoreFilterConditions(hot, state);
+    }
+
+    if (covers('trimmedRows')) {
+      restoreTrimmedState(hot, state);
+    }
+
+    restoreHiddenState(hot, state, covers);
+
+    if (covers('collapsedRows')) {
+      restoreCollapsedParents(hot, state);
+    }
+
+    restoreSizes(hot, state, covers);
+
+    if (covers('mergedCells')) {
+      restoreMergedCells(hot, state);
+    }
 
     // A captured `undefined` means no freeze was configured when the sheet was captured, so a
     // freeze another sheet set at runtime is cleared back to none rather than left in force. The
     // frozen end columns and the frozen rows follow the same rule as the start ones.
-    FROZEN_COUNT_KEYS.forEach(key => setFrozenCount(hot, key, state[key] ?? 0));
+    if (covers('frozen')) {
+      FROZEN_COUNT_KEYS.forEach(key => setFrozenCount(hot, key, state[key] ?? 0));
+    }
 
-    restoreCustomBorders(hot, state);
+    if (covers('customBorders')) {
+      restoreCustomBorders(hot, state);
+    }
   });
 
   hot.render();
+
+  return notApplied;
 }
 
 /**
@@ -839,16 +979,27 @@ export function restoreViewState(hot: HotInstance, state: ViewState): void {
  * the widths of the sheet that has just left, and lands short by the difference. The page goes
  * first, because the rows of every other page are hidden, and a selection or a scroll aimed at a
  * hidden row does nothing. Returns whether the captured selection was put back, which decides
- * what {@link keepSelectionOnPage} may do with it.
+ * what {@link keepSelectionOnPage} may do with it. With `parts` given, only the page, the
+ * selection, and the scroll position those parts name are put back; a selection left out counts
+ * as not restored.
  */
-export function restoreViewport(hot: HotInstance, state: ViewState): boolean {
-  if (state.pagination) {
+export function restoreViewport(hot: HotInstance, state: ViewState, parts?: ReadonlySet<ViewStatePart>): boolean {
+  const covers = toPartFilter(parts);
+
+  if (state.pagination && covers('pagination')) {
     applyPagination(hot, state.pagination);
   }
 
-  const restored = restoreSelection(hot, state);
+  const restored = covers('selection') && restoreSelection(hot, state);
 
-  hot.scrollViewportTo({ row: state.scroll.row, col: state.scroll.col, verticalSnap: 'top', horizontalSnap: 'start' });
+  if (covers('scroll')) {
+    hot.scrollViewportTo({
+      row: state.scroll.row,
+      col: state.scroll.col,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+  }
 
   return restored;
 }
@@ -944,8 +1095,9 @@ function followRow(hot: HotInstance, pagination: PaginationPlugin, row: number):
  * Keeps the focused cell on the page Pagination shows, once the arriving sheet is painted. With a
  * `'auto'` page size the page boundaries depend on row heights measured in that paint, so the
  * restored page can end a row short of the selection; a host can also veto the page change. A
- * restored selection is followed to its page (`follow`); one carried over from the previous sheet
- * is not, and a selection still off the page is dropped rather than left on a hidden row.
+ * restored selection is followed to its page (`follow`); one that was not restored (made by a
+ * plugin or a listener during the switch) is not, and a selection still off the page is dropped
+ * rather than left on a hidden row.
  */
 export function keepSelectionOnPage(hot: HotInstance, follow: boolean): void {
   const pagination = getLocalPagination(hot);
@@ -965,7 +1117,7 @@ export function keepSelectionOnPage(hot: HotInstance, follow: boolean): void {
  * sorted, filtered, merged, bordered, or manually sized. The row/column sequences are
  * left empty because `loadData` has already reset both mappers by the time this runs.
  */
-function createNeutralViewState(): ViewState {
+export function createNeutralViewState(): ViewState {
   return {
     rowSequence: [],
     unsortedRowSequence: [],

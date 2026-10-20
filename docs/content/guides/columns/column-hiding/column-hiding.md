@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Column hiding
-metaTitle: Column hiding - JavaScript Data Grid | Handsontable
+metaTitle: Column hiding | Handsontable DataGrid for JavaScript
 description:
   Hide individual columns to avoid rendering them as DOM elements. It helps you reduce screen
   clutter and improve the grid's performance.
@@ -12,11 +12,11 @@ tags:
   - hidden columns
   - HiddenColumns
 react:
-  metaTitle: Column hiding - React Data Grid | Handsontable
+  metaTitle: Column hiding | Handsontable DataGrid for React
 angular:
-  metaTitle: Column hiding - Angular Data Grid | Handsontable
+  metaTitle: Column hiding | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column hiding - Vue Data Grid | Handsontable
+  metaTitle: Column hiding | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 ---

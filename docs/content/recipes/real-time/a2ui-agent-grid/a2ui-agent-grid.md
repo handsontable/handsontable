@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Agent-driven grid with A2UI
-metaTitle: Agent-driven grid with A2UI - React Data Grid | Handsontable
+metaTitle: Agent-driven grid with A2UI | Handsontable DataGrid for JavaScript
 description: Let an AI agent render and update grids in Handsontable DataGrid through the A2UI protocol. Build a HotGrid catalog component that evaluates agent-authored formulas with HyperFormula and sends edits back to the agent.
 permalink: /recipes/real-time/a2ui-agent-grid
 canonicalUrl: /recipes/real-time/a2ui-agent-grid
@@ -16,7 +16,7 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Agent-driven grid with A2UI - React Data Grid | Handsontable
+  metaTitle: Agent-driven grid with A2UI | Handsontable DataGrid for React
 searchCategory: Recipes
 category: Real-time & Integrations
 menuTag: new

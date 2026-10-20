@@ -1,6 +1,6 @@
 ---
 title: External search box
-metaTitle: External search box recipe - JavaScript Data Grid | Handsontable
+metaTitle: External search box recipe | Handsontable DataGrid for JavaScript
 description: Learn how to add an external search input that highlights matching cells in Handsontable DataGrid as you type.
 permalink: /recipes/filtering-and-search/external-search-box
 canonicalUrl: /recipes/filtering-and-search/external-search-box
@@ -11,11 +11,11 @@ tags:
   - search
   - filtering
 react:
-  metaTitle: External search box recipe - React Data Grid | Handsontable
+  metaTitle: External search box recipe | Handsontable DataGrid for React
 angular:
-  metaTitle: External search box recipe - Angular Data Grid | Handsontable
+  metaTitle: External search box recipe | Handsontable DataGrid for Angular
 vue:
-  metaTitle: External search box recipe - Vue Data Grid | Handsontable
+  metaTitle: External search box recipe | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Filtering and Search
 type: how-to

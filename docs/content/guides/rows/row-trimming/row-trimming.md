@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Row trimming
-metaTitle: Row trimming - JavaScript Data Grid | Handsontable
+metaTitle: Row trimming | Handsontable DataGrid for JavaScript
 description: Hide individual rows from your interface and exclude them from the rendering process and DataMap. This feature is similar, but not the same, as "hiding rows".
 permalink: /row-trimming
 canonicalUrl: /row-trimming
@@ -10,11 +10,11 @@ tags:
   - trim rows
   - TrimRows
 react:
-  metaTitle: Row trimming - React Data Grid | Handsontable
+  metaTitle: Row trimming | Handsontable DataGrid for React
 angular:
-  metaTitle: Row trimming - Angular Data Grid | Handsontable
+  metaTitle: Row trimming | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row trimming - Vue Data Grid | Handsontable
+  metaTitle: Row trimming | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 ---

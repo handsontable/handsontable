@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Server-side Data with NestJS
-metaTitle: Server-side Data with NestJS - JavaScript Data Grid | Handsontable
+metaTitle: Server-side Data with NestJS | Handsontable DataGrid for JavaScript
 description: Wire Handsontable DataGrid's dataProvider plugin to a NestJS 10 backend with paginated, sorted, and filtered server-side data and full CRUD operations backed by PostgreSQL via TypeORM.
 permalink: /recipes/data-management/server-side-nestjs
 canonicalUrl: /recipes/data-management/server-side-nestjs
@@ -12,11 +12,11 @@ tags:
   - typescript
   - recipes
 react:
-  metaTitle: Server-side data with NestJS - React Data Grid | Handsontable
+  metaTitle: Server-side Data with NestJS | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side Data with NestJS - Angular Data Grid | Handsontable
+  metaTitle: Server-side Data with NestJS | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side Data with NestJS - Vue Data Grid | Handsontable
+  metaTitle: Server-side Data with NestJS | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 ---

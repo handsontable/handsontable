@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Context menu
-metaTitle: Context menu - JavaScript Data Grid | Handsontable
+metaTitle: Context menu | Handsontable DataGrid for JavaScript
 description: Quickly access contextual actions such as removing rows, inserting columns or copying data, by opening the context menu.
 permalink: /context-menu
 canonicalUrl: /context-menu
@@ -11,11 +11,11 @@ tags:
   - pop-up menu
   - right-click menu
 react:
-  metaTitle: Context menu - React Data Grid | Handsontable
+  metaTitle: Context menu | Handsontable DataGrid for React
 angular:
-  metaTitle: Context menu - Angular Data Grid | Handsontable
+  metaTitle: Context menu | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Context menu - Vue Data Grid | Handsontable
+  metaTitle: Context menu | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated

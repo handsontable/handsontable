@@ -1,6 +1,6 @@
 ---
-title: Handsontable with Ant Design
-metaTitle: Handsontable with Ant Design - React Data Grid | Handsontable
+title: Handsontable DataGrid with Ant Design
+metaTitle: Ant Design theme | Handsontable DataGrid for JavaScript
 description: Integrate Handsontable DataGrid into a React app that uses Ant Design, and align the grid with your design system tokens through the Theme API.
 permalink: /recipes/themes/ant-design
 canonicalUrl: /recipes/themes/ant-design
@@ -14,9 +14,9 @@ tags:
   - themes
   - Theme API
 react:
-  metaTitle: Handsontable with Ant Design - React Data Grid | Handsontable
+  metaTitle: Ant Design theme | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with Ant Design - Angular Data Grid | Handsontable
+  metaTitle: Ant Design theme | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Themes
@@ -258,8 +258,8 @@ export default function App() {
 
 ## Next steps
 
-- Explore [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) for the same token-mapping approach with Material UI.
-- Explore [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) for Tailwind-based design system integration.
+- Explore [Handsontable DataGrid with MUI](@/recipes/themes/mui-theme/mui-theme.md) for the same token-mapping approach with Material UI.
+- Explore [Handsontable DataGrid with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) for Tailwind-based design system integration.
 
 ## Related
 

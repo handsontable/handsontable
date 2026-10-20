@@ -44,7 +44,7 @@ jobs:
     # The prefix match is intentionally broader than the release/x.y.z version
     # pattern; any release/* head PR defers to its push build.
     if: ${{ !(github.event_name == 'pull_request' && startsWith(github.head_ref, 'release/')) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       preview-url: ${{ steps.cf-target.outputs.deploy == 'true' && format('https://{0}.handsontable-docs-staging.pages.dev/docs', steps.cf-target.outputs.branch) || '' }}
 

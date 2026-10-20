@@ -1,7 +1,7 @@
 ---
 type: how-to
-title: Handsontable with MUI
-metaTitle: Handsontable with MUI - JavaScript Data Grid | Handsontable
+title: Handsontable DataGrid with MUI
+metaTitle: MUI theme | Handsontable DataGrid for JavaScript
 description: Integrate Handsontable DataGrid into a React app with MUI so your grid follows Material UI colors, typography, and spacing.
 permalink: /recipes/themes/mui-theme
 canonicalUrl: /recipes/themes/mui-theme
@@ -16,11 +16,11 @@ tags:
   - themes
   - Theme API
 react:
-  metaTitle: Handsontable with MUI - React Data Grid | Handsontable
+  metaTitle: MUI theme | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with MUI - Angular Data Grid | Handsontable
+  metaTitle: MUI theme | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Handsontable with MUI - Vue Data Grid | Handsontable
+  metaTitle: MUI theme | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Themes
 ---
@@ -232,6 +232,6 @@ You registered a custom Handsontable theme that maps MUI palette values to Hands
 
 ## Next steps
 
-- [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) - The same pattern using shadcn CSS variables and Lucide icons.
-- [Handsontable with Base Web](@/recipes/themes/base-theme/base-theme.md) - The same pattern using Base Web design tokens.
+- [Handsontable DataGrid with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) - The same pattern using shadcn CSS variables and Lucide icons.
+- [Handsontable DataGrid with Base Web](@/recipes/themes/base-theme/base-theme.md) - The same pattern using Base Web design tokens.
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Full reference for Theme API parameters and CSS variables.

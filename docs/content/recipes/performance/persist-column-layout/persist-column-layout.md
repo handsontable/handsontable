@@ -1,6 +1,6 @@
 ---
 title: Persist and restore column widths and order
-metaTitle: Persist and restore column widths and order - JavaScript Data Grid | Handsontable
+metaTitle: Persist and restore column widths and order | Handsontable DataGrid for JavaScript
 description: Save column widths and column order to localStorage as the user resizes or reorders columns, then restore that layout on grid initialization -- so preferences survive a page refresh.
 permalink: /recipes/performance/persist-column-layout
 canonicalUrl: /recipes/performance/persist-column-layout
@@ -14,11 +14,11 @@ tags:
   - afterColumnMove
   - performance
 react:
-  metaTitle: Persist and restore column widths and order - React Data Grid | Handsontable
+  metaTitle: Persist and restore column widths and order | Handsontable DataGrid for React
 angular:
-  metaTitle: Persist and restore column widths and order - Angular Data Grid | Handsontable
+  metaTitle: Persist and restore column widths and order | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Persist and restore column widths and order - Vue Data Grid | Handsontable
+  metaTitle: Persist and restore column widths and order | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Performance
 type: how-to

@@ -1,16 +1,16 @@
 ---
 type: explanation
 title: Custom cells
-metaTitle: Simplified Custom Cell Definitions - JavaScript Data Grid | Handsontable
+metaTitle: Custom cell definitions | Handsontable DataGrid for JavaScript
 description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /custom-cells
 canonicalUrl: /custom-cells
 react:
-  metaTitle: Custom Cell Definitions - React Data Grid | Handsontable
+  metaTitle: Custom cell definitions | Handsontable DataGrid for React
 angular:
-  metaTitle: Custom Cell Definitions - Angular Data Grid | Handsontable
+  metaTitle: Custom cell definitions | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Custom Cell Definitions - Vue Data Grid | Handsontable
+  metaTitle: Custom cell definitions | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell functions
 addedIn: "17.0.0"
@@ -95,10 +95,10 @@ const App = () => {
 ```typescript
 <EditorComponent
   onPrepare={(row, column, prop, TD, originalValue, cellProperties) => {
-    // Called before editor opens - use for positioning or setup
+    // Called before the editor opens. Use it for per-cell setup.
   }}
-  onOpen={() => {
-    // Called when editor becomes visible
+  onOpen={(event) => {
+    // Called after the editor is positioned and visible. `event` is the DOM event that opened it. It is `undefined` when you call `beginEditing()`.
   }}
   onClose={() => {
     // Called when editor closes
@@ -139,10 +139,9 @@ The render prop function receives the following props:
 ### Lifecycle hooks
 
 1. **`onPrepare(row, column, prop, TD, originalValue, cellProperties)`** - Called before the editor opens
-   - Use for per-cell setup, reading custom properties, or positioning
-   - The container is automatically positioned, but you can override if needed
+   - Use for per-cell setup or reading custom properties
 
-2. **`onOpen()`** - Called after the editor is positioned and visible
+2. **`onOpen(event?)`** - Called after the editor is positioned and visible. `event` is the DOM event that opened the editor. It is `undefined` when you call `beginEditing()`.
    - Use to open dropdowns, trigger animations, or focus elements
 
 3. **`onClose()`** - Called when the editor closes
@@ -1023,7 +1022,7 @@ const cellDefinition = {
       return editor.input.value;
     },
     setValue(editor, value) {
-      editor.input.value = value;
+      editor.input.value = value == null ? '' : String(value);
     }
   })
 };
@@ -1162,7 +1161,7 @@ editor: editorFactory<{input: HTMLInputElement}>({
     return editor.input.value;
   },
   setValue(editor, value) {
-    editor.input.value = value;
+    editor.input.value = value == null ? '' : String(value);
   }
 })
 ```
@@ -1530,7 +1529,7 @@ const editor = editorFactory<{input: HTMLInputElement}>({
     return editor.input.value;
   }
   setValue(editor, value) {
-    editor.input.value = value;
+    editor.input.value = value == null ? '' : String(value);
   }
 });
 ```

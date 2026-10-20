@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Instance access
-metaTitle: Instance access - Javascript Data Grid | Handsontable
+metaTitle: Instance access | Handsontable DataGrid for JavaScript
 description: Reference a Handsontable instance from within an Angular component, to programmatically perform actions.
 permalink: /instance-access
 canonicalUrl: /instance-access
@@ -10,7 +10,7 @@ tags:
   - referencing
   - instance
 angular:
-  metaTitle: Instance access - Angular Data Grid | Handsontable
+  metaTitle: Instance access | Handsontable DataGrid for Angular
 searchCategory: Guides
 onlyFor: angular
 category: Getting started

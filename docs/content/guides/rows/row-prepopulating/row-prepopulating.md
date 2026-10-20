@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Row pre-populating
-metaTitle: Row pre-populating - JavaScript Data Grid | Handsontable
+metaTitle: Row pre-populating | Handsontable DataGrid for JavaScript
 description: Pre-populate spare rows with default values using minSpareRows, custom placeholder renderers, or auto-filling template values.
 permalink: /row-prepopulating
 canonicalUrl: /row-prepopulating
@@ -11,11 +11,11 @@ tags:
   - bottom rows
   - placeholder
 react:
-  metaTitle: Row pre-populating - React Data Grid | Handsontable
+  metaTitle: Row pre-populating | Handsontable DataGrid for React
 angular:
-  metaTitle: Row pre-populating - Angular Data Grid | Handsontable
+  metaTitle: Row pre-populating | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row pre-populating - Vue Data Grid | Handsontable
+  metaTitle: Row pre-populating | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 ---

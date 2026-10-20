@@ -1,16 +1,16 @@
 ---
 type: explanation
 title: Security
-metaTitle: Security - JavaScript Data Grid | Handsontable
+metaTitle: Security | Handsontable DataGrid for JavaScript
 description: Learn about the security measures we take to make sure you can safely implement Handsontable DataGrid in your client-side application.
 permalink: /security
 canonicalUrl: /security
 react:
-  metaTitle: Security - React Data Grid | Handsontable
+  metaTitle: Security | Handsontable DataGrid for React
 angular:
-  metaTitle: Security - Angular Data Grid | Handsontable
+  metaTitle: Security | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Security - Vue Data Grid | Handsontable
+  metaTitle: Security | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Security
 menuTag: updated

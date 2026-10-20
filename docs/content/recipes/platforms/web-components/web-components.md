@@ -1,7 +1,7 @@
 ---
 type: tutorial
 title: Wrap Handsontable in a web component
-metaTitle: Web Components Tutorial - JavaScript Data Grid | Handsontable
+metaTitle: Web components tutorial | Handsontable DataGrid for JavaScript
 description: Wrap Handsontable DataGrid in a custom element with its own shadow root. Load the stylesheets on both sides of the boundary, expose data and settings as properties, and emit cell edits as DOM events.
 permalink: /recipes/platforms/web-components
 canonicalUrl: /recipes/platforms/web-components

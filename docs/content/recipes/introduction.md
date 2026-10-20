@@ -1,17 +1,17 @@
 ---
 title: Recipes
-metaTitle: Recipes - JavaScript Data Grid | Handsontable
+metaTitle: Recipes | Handsontable DataGrid for JavaScript
 description: Developer recipes and step-by-step tutorials for building with Handsontable DataGrid
 permalink: /recipes/
 canonicalUrl: /recipes/
 searchCategory: Recipes
 type: how-to
 react:
-  metaTitle: Recipes - React Data Grid | Handsontable
+  metaTitle: Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Recipes - Angular Data Grid | Handsontable
+  metaTitle: Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Recipes - Vue Data Grid | Handsontable
+  metaTitle: Recipes | Handsontable DataGrid for Vue
 ---
 
 This is a collection of practical, production-ready recipes for common Handsontable DataGrid development tasks. Each recipe provides step-by-step instructions, complete working code, and real-world use cases.

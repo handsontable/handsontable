@@ -18,6 +18,43 @@ So `updateSettings({ autofill: … })` does **nothing** — the user-facing opti
 `SETTINGS_VALIDATORS`. `direction` accepts only the values in `DIRECTIONS` (or `undefined`, meaning both
 axes are allowed).
 
+## The handle follows the plugin, not only the setting (DEV-775)
+
+Selection draws the handle (`Selection#isCellCornerVisible()` / `isAreaCornerVisible()`), not this
+plugin, and it used to read only the `fillHandle` setting. `disablePlugin()` and `destroy()` leave that
+setting `true`, so the handle stayed on screen and a drag on it did nothing. Selection now also asks the
+grid whether this plugin is enabled (`tableProps.isPluginEnabled('autofill')`), the way it already does for
+`selectionHandles` and `moveCells`. One exception, on purpose: a grid that never **registered** the plugin
+(a tree-shaken build without `AutofillPlugin`, which four visual-test demos are) keeps drawing the handle
+from the setting (`tableProps.isPluginRegistered('autofill')`). Hiding it there is a separate change that
+would alter every such grid's look and its visual goldens.
+
+Selection only reads that state when the grid renders, so a runtime `enablePlugin()`, `disablePlugin()`
+or `destroy()` called on its own re-renders the grid (`#renderAfterRuntimeToggle()`), or the handle
+would change only on the next unrelated render. The render is skipped in the three cases that render
+anyway: before `isPluginsReady` (grid init), inside `onUpdateSettings()` (`#isApplyingSettings`; the
+grid renders right after `afterUpdateSettings`), and inside `updatePlugin()` (`#isReconfiguring`).
+`destroy()` renders after `super.destroy()`, because the handle checks `enabled`, which the base class
+nulls. During the grid's own `destroy()` that render is a no-op: core suspends rendering for the whole
+teardown, because the view is already destroyed when the plugins are.
+
+`enablePlugin()`, `updatePlugin()` and `disablePlugin()` return early on a destroyed instance
+(`!this.hot`), because an application may keep the `getPlugin('autofill')` reference and call it later.
+Each guard has its own case in `tests/e2e/plugin-destroy-update-settings.spec.ts`, and the handle cases
+there assert without any render forced from the test. Also pinned by
+`selection/__tests__/selection.unit.ts`.
+
+## No handle for a non-contiguous selection (DEV-540)
+
+Selection draws the handle, not this plugin: `Selection#isCellCornerVisible()` for a one-cell active
+range, `isAreaCornerVisible()` for a multi-cell one. Both used to look at the ACTIVE range only
+(`isMultiple()`), so a selection of two or more ranges (Ctrl/Cmd+click, or `selectCells()` with several
+ranges) still showed one handle, and `getSelectionData()` reads `getSelectedRangeLast()` – a drag filled
+from the last range and ignored the others. Both predicates now return `false` while
+`selectedRange.size() > 1`, as in spreadsheet applications. Do not "fix" this by teaching the fill to read
+every range: there is no defined way to extend several disjoint ranges at once. Pinned by
+`tests/e2e/fill-handle-non-contiguous.spec.ts` and `selection/__tests__/selection.unit.ts`.
+
 ## Three hooks it registers on the singleton
 
 `modifyAutofillRange`, `beforeAutofill`, `afterAutofill`. `beforeAutofill` is the veto point and

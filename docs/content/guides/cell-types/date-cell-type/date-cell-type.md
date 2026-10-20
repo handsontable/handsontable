@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Date cell type
-metaTitle: Date cell type - JavaScript Data Grid | Handsontable
+metaTitle: Date cell type | Handsontable DataGrid for JavaScript
 description: Display, format, sort, and filter dates correctly by using the date cell type.
 permalink: /date-cell-type
 canonicalUrl: /date-cell-type
 react:
-  metaTitle: Date cell type - React Data Grid | Handsontable
+  metaTitle: Date cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Date cell type - Angular Data Grid | Handsontable
+  metaTitle: Date cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Date cell type - Vue Data Grid | Handsontable
+  metaTitle: Date cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated

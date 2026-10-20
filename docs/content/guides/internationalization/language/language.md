@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Language
-metaTitle: Language - JavaScript Data Grid | Handsontable
+metaTitle: Language | Handsontable DataGrid for JavaScript
 description: Set Handsontable DataGrid's UI language to one of the built-in translations, or create your own language set using our templates.
 permalink: /language
 canonicalUrl: /language
@@ -12,11 +12,11 @@ tags:
   - L10n
   - i18n
 react:
-  metaTitle: Language - React Data Grid | Handsontable
+  metaTitle: Language | Handsontable DataGrid for React
 angular:
-  metaTitle: Language - Angular Data Grid | Handsontable
+  metaTitle: Language | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Language - Vue Data Grid | Handsontable
+  metaTitle: Language | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Internationalization
 menuTag: updated

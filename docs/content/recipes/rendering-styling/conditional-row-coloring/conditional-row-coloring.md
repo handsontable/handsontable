@@ -1,6 +1,6 @@
 ---
 title: Conditional row coloring
-metaTitle: Conditional row coloring - JavaScript Data Grid | Handsontable
+metaTitle: Conditional row coloring | Handsontable DataGrid for JavaScript
 description: Color entire rows from a status column using the cells callback, className, and scoped CSS that updates after edits.
 permalink: /recipes/rendering-styling/conditional-row-coloring
 canonicalUrl: /recipes/rendering-styling/conditional-row-coloring
@@ -10,11 +10,11 @@ tags:
   - recipes
   - styling
 react:
-  metaTitle: Conditional row coloring - React Data Grid | Handsontable
+  metaTitle: Conditional row coloring | Handsontable DataGrid for React
 angular:
-  metaTitle: Conditional row coloring - Angular Data Grid | Handsontable
+  metaTitle: Conditional row coloring | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Conditional row coloring - Vue Data Grid | Handsontable
+  metaTitle: Conditional row coloring | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Rendering and styling
 type: how-to

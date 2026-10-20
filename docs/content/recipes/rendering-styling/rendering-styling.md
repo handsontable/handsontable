@@ -1,6 +1,6 @@
 ---
 title: Rendering and styling recipes
-metaTitle: Rendering and styling recipes - JavaScript Data Grid | Handsontable
+metaTitle: Rendering and styling recipes | Handsontable DataGrid for JavaScript
 permalink: /recipes/rendering-styling
 canonicalUrl: /recipes/rendering-styling
 searchCategory: Recipes
@@ -9,11 +9,11 @@ editLink: false
 type: how-to
 description: Practical recipes for row layout, summaries, custom renderers, and visual styling in Handsontable DataGrid.
 react:
-  metaTitle: Rendering and styling recipes - React Data Grid | Handsontable
+  metaTitle: Rendering and styling recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Rendering and styling recipes - Angular Data Grid | Handsontable
+  metaTitle: Rendering and styling recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Rendering and styling recipes - Vue Data Grid | Handsontable
+  metaTitle: Rendering and styling recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 

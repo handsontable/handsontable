@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Conditional formatting
-metaTitle: Conditional formatting - JavaScript Data Grid | Handsontable
+metaTitle: Conditional formatting | Handsontable DataGrid for JavaScript
 description: Style cells dynamically based on their values, using CSS classes, custom renderers, or a color scale.
 permalink: /conditional-formatting
 canonicalUrl: /conditional-formatting
 react:
-  metaTitle: Conditional formatting - React Data Grid | Handsontable
+  metaTitle: Conditional formatting | Handsontable DataGrid for React
 angular:
-  metaTitle: Conditional formatting - Angular Data Grid | Handsontable
+  metaTitle: Conditional formatting | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Conditional formatting - Vue Data Grid | Handsontable
+  metaTitle: Conditional formatting | Handsontable DataGrid for Vue
 tags:
   - conditional-formatting
   - cell-styling

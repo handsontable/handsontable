@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Testing
-metaTitle: Testing - JavaScript Data Grid | Handsontable
+metaTitle: Testing | Handsontable DataGrid for JavaScript
 description: Run one or multiple tests, using Handsontable DataGrid's ready-made commands for Jasmine and Puppeteer.
 permalink: /testing
 canonicalUrl: /testing
@@ -13,11 +13,11 @@ tags:
   - puppeteer
   - spec
 react:
-  metaTitle: Testing - React Data Grid | Handsontable
+  metaTitle: Testing | Handsontable DataGrid for React
 angular:
-  metaTitle: Testing - Angular Data Grid | Handsontable
+  metaTitle: Testing | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Testing - Vue Data Grid | Handsontable
+  metaTitle: Testing | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
 ---

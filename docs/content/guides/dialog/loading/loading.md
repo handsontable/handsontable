@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Loading
-metaTitle: Loading - JavaScript Data Grid | Handsontable
+metaTitle: Loading | Handsontable DataGrid for JavaScript
 description: Display loading indicators and progress feedback in your data grid application using the Loading plugin.
 permalink: /loading
 canonicalUrl: /loading
@@ -13,11 +13,11 @@ tags:
   - spinner
   - indicator
 react:
-  metaTitle: Loading - React Data Grid | Handsontable
+  metaTitle: Loading | Handsontable DataGrid for React
 angular:
-  metaTitle: Loading - Angular Data Grid | Handsontable
+  metaTitle: Loading | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Loading - Vue Data Grid | Handsontable
+  metaTitle: Loading | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Dialog
 menuTag: updated

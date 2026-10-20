@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Server-side row selection
-metaTitle: Server-side row selection - JavaScript Data Grid | Handsontable
+metaTitle: Server-side row selection | Handsontable DataGrid for JavaScript
 description: Select rows across pages of server-side data, including a "select all" that covers rows the server never sent, and send the selection to your API.
 permalink: /server-side-data-row-selection
 canonicalUrl: /server-side-data-row-selection
@@ -11,11 +11,11 @@ tags:
   - row selection
   - select all
 react:
-  metaTitle: Server-side row selection - React Data Grid | Handsontable
+  metaTitle: Server-side row selection | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side row selection - Angular Data Grid | Handsontable
+  metaTitle: Server-side row selection | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side row selection - Vue Data Grid | Handsontable
+  metaTitle: Server-side row selection | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Server-side data
 menuTag: new

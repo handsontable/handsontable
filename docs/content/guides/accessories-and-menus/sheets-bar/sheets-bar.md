@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Sheets bar
-metaTitle: Sheets bar - JavaScript Data Grid | Handsontable
+metaTitle: Sheets bar | Handsontable DataGrid for JavaScript
 description: Render a tab bar above or below the grid and let users switch between the sheets of a multi-sheet workbook.
 permalink: /sheets-bar
 canonicalUrl: /sheets-bar
@@ -11,11 +11,11 @@ tags:
   - multi-sheet
   - sheet switching
 react:
-  metaTitle: Sheets bar - React Data Grid | Handsontable
+  metaTitle: Sheets bar | Handsontable DataGrid for React
 angular:
-  metaTitle: Sheets bar - Angular Data Grid | Handsontable
+  metaTitle: Sheets bar | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Sheets bar - Vue Data Grid | Handsontable
+  metaTitle: Sheets bar | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
 menuTag: new
@@ -263,7 +263,11 @@ const hotSettings = {
 
 Switching sheets captures the outgoing sheet's view state and restores it the next time you switch back to it. The view state covers the scroll position, the selection, and the [`Pagination`](@/api/pagination.md) page and page size. It also covers sort, filters, hidden and trimmed indexes, merged cells, and custom borders. Manual column widths and row heights are included too, along with any cell-meta changes you made while the sheet was active.
 
+To capture and restore a view without the sheets bar, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
+
 A sheet you have not visited yet opens with a neutral view state and no selected cells, so it never inherits the previous sheet's filters, sizes, or selection. It opens on the configured [`initialPage`](@/api/options.md#pagination) and page size.
+
+Every switch clears the selection before the arriving sheet loads, so [`afterDeselect`](@/api/hooks.md#afterdeselect) fires on each switch. When the arriving sheet has a stored selection, the selection hooks such as [`afterSelection`](@/api/hooks.md#afterselection) fire after it, as the selection comes back. A listener that reacts to `afterDeselect` therefore also runs on a sheet switch.
 
 Clicking anywhere on the sheets bar keeps the grid's selection, whatever [`outsideClickDeselects`](@/api/options.md#outsideclickdeselects) is set to, and saves a cell you are editing.
 

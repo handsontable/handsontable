@@ -47,7 +47,7 @@ const BORDER_STYLE_VERTICAL_SUFFIX = '-vertical';
 const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
 
 /**
- * A selection box in container-relative pixels, as `appear()` computes it for the border edges.
+ * A selection box in container-relative pixels, as `measure()` computes it for the border edges.
  */
 interface SelectionBox {
   top: number;
@@ -57,12 +57,36 @@ interface SelectionBox {
 }
 
 /**
- * What `appear()` resolved about the edge-adjustment handles before it wrote any style: which edges
+ * What `measure()` resolved about the edge-adjustment handles before it wrote any style: which edges
  * this overlay draws, and the box they are centered on.
  */
 interface AdjustHandlesPlan {
   owned: Record<AdjustHandleEdge, boolean>;
   box: SelectionBox;
+}
+
+/**
+ * Everything `Border#paint()` needs, read by `Border#measure()` before any border writes a style.
+ */
+interface BorderMeasurement {
+  fromRow: number;
+  fromColumn: number;
+  toRow: number;
+  toColumn: number;
+  toTDEl: HTMLElement;
+  toOffset: { top: number, left: number };
+  isMultiple: boolean;
+  isRtl: boolean;
+  top: number;
+  inlineStartPos: number;
+  width: number;
+  height: number;
+  adjustHandlesPlan: AdjustHandlesPlan | null;
+  firstRenderedRow: number;
+  lastRenderedRow: number;
+  firstRenderedColumn: number;
+  lastRenderedColumn: number;
+  tableSize: { width: number, height: number } | null;
 }
 
 /**
@@ -684,6 +708,8 @@ class Border {
    *   corner. `false` for an overlay that renders only part of a merged block, whose own box ends on a
    *   freeze line inside the block (DEV-143); the bottom handle belongs to the overlay that renders
    *   the block's real corner.
+   * @param {{width: number, height: number}|null} [tableSize] The table size `measure()` read, so the
+   *   handles are positioned without a geometry read between style writes.
    */
   updateMultipleSelectionHandlesPosition(
     fromRow: number,
@@ -695,6 +721,7 @@ class Border {
     width: number,
     height: number,
     rendersBottomEnd = true,
+    tableSize: { width: number, height: number } | null = null,
   ) {
     const handles = this.selectionHandles;
 
@@ -714,8 +741,8 @@ class Border {
     const handleBorderSize = parseInt(topStyles.borderWidth, 10);
     const handleSize = parseInt(topStyles.width, 10);
     const hitAreaSize = parseInt(topHitAreaStyles.width, 10);
-    const totalTableWidth = this.wot.wtTable.getWidth();
-    const totalTableHeight = this.wot.wtTable.getHeight();
+    const totalTableWidth = tableSize?.width ?? this.wot.wtTable.getWidth();
+    const totalTableHeight = tableSize?.height ?? this.wot.wtTable.getHeight();
     // The trigger is the clone, not the freeze count: a rendered `top`/`inline_start` clone owns the
     // band the handle would hang into, whether it holds a frozen pane or only the headers.
     const isTopHandleUnderTopClone = this.isTopHandleOccludedByClone('row', fromRow);
@@ -1651,13 +1678,8 @@ class Border {
   }
 
   /**
-   * Show border around one or many cells.
-   *
-   * The fill handle is normally centered on the selection's bottom-end corner, so half of it hangs
-   * past that corner. Where that overhang cannot survive — a container edge, or a frozen pane that
-   * clips or covers it — the handle is pulled back inside instead, and `wtCornerInlineEndEdge` /
-   * `wtCornerBlockEndEdge` pull its hit area along. See {@link Border#isCornerLiftedAtInlineEnd} and
-   * {@link Border#isCornerLiftedAtBlockEnd} for which edges those are.
+   * Show border around one or many cells: {@link Border#measure} first, then {@link Border#paint}.
+   * A pass over many borders measures all of them before painting any (see `SelectionManager#render`).
    *
    * @param {Array} corners The corner coordinates.
    */
@@ -1666,15 +1688,20 @@ class Border {
       return;
     }
 
-    // A selection flush against a frozen-pane boundary has its top/inline-start edge rendered by the
-    // master on the freeze line, where the frozen overlay occludes it. Re-draw it inside the frozen
-    // overlay so it stays visible; no-op unless `fixedRowsTop`/`fixedColumnsStart` is used.
-    //
-    // When it draws, we return early and intentionally skip the rest of `appear` (corner/fill handle,
-    // the other edges): in these overlays the selection's cell isn't rendered here — only the seam
-    // edge slice is — so there is nothing else to draw.
-    if (this.drawFrozenBoundaryEdge(corners)) {
-      return;
+    this.paint(corners, this.measure(corners));
+  }
+
+  /**
+   * Reads every piece of geometry {@link Border#paint} needs. It must not write to the DOM: a write
+   * between two geometry reads forces the browser to lay the table out again, and a pass over
+   * thousands of borders then costs one layout per border.
+   *
+   * @param {Array} corners The corner coordinates.
+   * @returns {BorderMeasurement|null} The measurement, or `null` when nothing is to be drawn.
+   */
+  measure(corners: number[]): BorderMeasurement | null {
+    if (this.disabled) {
+      return null;
     }
 
     let [fromRow, fromColumn, toRow, toColumn] = corners;
@@ -1683,17 +1710,13 @@ class Border {
     // master's boundary edge (so it isn't doubled by the frozen overlay's edge).
     const originalFromRow = fromRow;
     const originalFromColumn = fromColumn;
-    const originalToRow = toRow;
-    const originalToColumn = toColumn;
 
     // borders can not be rendered on headers so hide them
     if (fromRow < 0 && toRow < 0 || fromColumn < 0 && toColumn < 0) {
-      this.disappear();
-
-      return;
+      return null;
     }
 
-    const { wtTable, rootDocument, rootWindow } = this.wot;
+    const { wtTable, rootWindow } = this.wot;
     const { geometryReader } = this.wot.domBindings;
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     const firstRenderedRow = wtTable.getFirstRenderedRow();
@@ -1706,9 +1729,7 @@ class Border {
       firstRenderedRow < 0 && lastRenderedRow < 0
     ) {
       // ...also when overlays have rendered only headers skip it
-      this.disappear();
-
-      return;
+      return null;
     }
 
     let fromTD: HTMLElement | number;
@@ -1720,26 +1741,20 @@ class Border {
       toRow = Math.min(toRow, lastRenderedRow);
 
       if (toColumn < fromColumn || toRow < fromRow) {
-        this.disappear();
-
-        return;
+        return null;
       }
 
       fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
 
       if (!isHTMLElement(fromTD)) {
-        this.disappear();
-
-        return;
+        return null;
       }
     } else {
 
       fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
 
       if (!isHTMLElement(fromTD)) {
-        this.disappear();
-
-        return;
+        return null;
       }
     }
 
@@ -1840,6 +1855,71 @@ class Border {
       fromTDEl,
       toTDEl,
     );
+
+    return {
+      fromRow,
+      fromColumn,
+      toRow,
+      toColumn,
+      toTDEl,
+      toOffset,
+      isMultiple,
+      isRtl,
+      top,
+      inlineStartPos,
+      width,
+      height,
+      adjustHandlesPlan,
+      firstRenderedRow,
+      lastRenderedRow,
+      firstRenderedColumn,
+      lastRenderedColumn,
+      // The mobile handles are clamped to the table size, which paint() must not read between writes.
+      tableSize: this.selectionHandles ?
+        { width: wtTable.getWidth(), height: wtTable.getHeight() } : null,
+    };
+  }
+
+  /**
+   * Writes the border from the measurement {@link Border#measure} took.
+   *
+   * The fill handle is normally centered on the selection's bottom-end corner, so half of it hangs
+   * past that corner. Where that overhang cannot survive — a container edge, or a frozen pane that
+   * clips or covers it — the handle is pulled back inside instead, and `wtCornerInlineEndEdge` /
+   * `wtCornerBlockEndEdge` pull its hit area along. See {@link Border#isCornerLiftedAtInlineEnd} and
+   * {@link Border#isCornerLiftedAtBlockEnd} for which edges those are.
+   *
+   * @param {Array} corners The corner coordinates.
+   * @param {BorderMeasurement|null} measurement The measurement, or `null` to hide the border.
+   */
+  paint(corners: number[], measurement: BorderMeasurement | null) {
+    if (this.disabled) {
+      return;
+    }
+
+    // A selection flush against a frozen-pane boundary has its top/inline-start edge rendered by the
+    // master on the freeze line, where the frozen overlay occludes it. Re-draw it inside the frozen
+    // overlay so it stays visible; no-op unless `fixedRowsTop`/`fixedColumnsStart` is used.
+    //
+    // When it draws, we return early and intentionally skip the rest: in these overlays the
+    // selection's cell isn't rendered here, only the seam edge slice is.
+    if (this.drawFrozenBoundaryEdge(corners)) {
+      return;
+    }
+
+    if (!measurement) {
+      this.disappear();
+
+      return;
+    }
+
+    const { rootDocument, rootWindow, wtTable } = this.wot;
+    const {
+      fromRow, fromColumn, toRow, toColumn, toTDEl, toOffset, isMultiple, isRtl,
+      top, inlineStartPos, width, height, adjustHandlesPlan,
+      firstRenderedRow, lastRenderedRow, firstRenderedColumn, lastRenderedColumn, tableSize,
+    } = measurement;
+    const [originalFromRow, originalFromColumn, originalToRow, originalToColumn] = corners;
     const inlinePosProperty = isRtl ? 'right' : 'left';
 
     // Resolved before the long corner-geometry comment below because the extensions it describes
@@ -2036,6 +2116,7 @@ class Border {
         width,
         height,
         rendersFillCorner,
+        tableSize,
       );
     }
 

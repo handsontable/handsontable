@@ -41,11 +41,11 @@ export const command = {
 
     // supports editor opening with enter key
     if (hot.getSettings().enterBeginsEditing) {
-      if (editorManager.cellProperties.readOnly) {
-        editorManager.moveSelectionAfterEnter(event);
+      // `openEditor` prepares once. A read-only cell does not open, and Enter still moves.
+      editorManager.openEditor(null, event, true);
 
-      } else {
-        editorManager.openEditor(null, event, true);
+      if (!editorManager.isEditorOpened() && editorManager.cellProperties?.readOnly) {
+        editorManager.moveSelectionAfterEnter(event);
       }
 
     } else {

@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Row heights
-metaTitle: Row heights - JavaScript Data Grid | Handsontable
+metaTitle: Row heights | Handsontable DataGrid for JavaScript
 description: Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable DataGrid's interface.
 permalink: /row-height
 canonicalUrl: /row-height
@@ -20,11 +20,11 @@ tags:
   - line clamp
   - ellipsis
 react:
-  metaTitle: Row heights - React Data Grid | Handsontable
+  metaTitle: Row heights | Handsontable DataGrid for React
 angular:
-  metaTitle: Row heights - Angular Data Grid | Handsontable
+  metaTitle: Row heights | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row heights - Vue Data Grid | Handsontable
+  metaTitle: Row heights | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated

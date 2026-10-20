@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Autofill values
-metaTitle: Autofill values - JavaScript Data Grid | Handsontable
+metaTitle: Autofill values | Handsontable DataGrid for JavaScript
 description: Copy a cell's value into other cells using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable DataGrid's API.
 permalink: /autofill-values
 canonicalUrl: /autofill-values
@@ -14,11 +14,11 @@ tags:
   - auto-fill
   - auto fill
 react:
-  metaTitle: Autofill values - React Data Grid | Handsontable
+  metaTitle: Autofill values | Handsontable DataGrid for React
 angular:
-  metaTitle: Autofill values - Angular Data Grid | Handsontable
+  metaTitle: Autofill values | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Autofill values - Vue Data Grid | Handsontable
+  metaTitle: Autofill values | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
 menuTag: updated
@@ -32,6 +32,8 @@ Autofill lets users drag the fill handle to copy values across adjacent cells. U
 ## Autofill in all directions
 
 Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it to copy and repeat the selected values across adjacent cells.
+
+The fill handle appears only when the selection is a single range. When you select several separate ranges, for example with <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+click, the fill handle is hidden.
 
 You can also **double-click the fill handle** to autofill downward without dragging. Select the four cells from Symbol to Known Isotopes in the `Lithium` row (row header 3) and double-click the fill handle to see this in action.
 
