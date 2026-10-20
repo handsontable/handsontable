@@ -542,6 +542,64 @@ describe('Row identity', () => {
     });
   });
 
+  describe('with a dotted string key', () => {
+    const ROWS = [
+      { title: 'a literal dotted key', row: { 'meta.id': 'flat-1' }, cell: 'flat-1', id: 'flat-1' },
+      {
+        title: 'a literal dotted key next to the nested path',
+        row: { 'meta.id': 'flat-1', meta: { id: 'nested-1' } },
+        cell: 'flat-1',
+        id: 'flat-1',
+      },
+      { title: 'only the nested path', row: { meta: { id: 'nested-1' } }, cell: 'nested-1', id: 'nested-1' },
+    ];
+
+    ROWS.forEach(({ title, row, cell, id }) => {
+      it(`should read the id the cell shows for ${title}`, () => {
+        createGrid({
+          data: [JSON.parse(JSON.stringify(row)), { 'meta.id': 'other' }],
+          columns: [{ data: 'meta.id' }],
+          rowId: 'meta.id',
+        });
+
+        expect(hot.getDataAtCell(0, 0)).toBe(cell);
+        expect(hot.getRowId(0)).toBe(id);
+        expect(hot.getVisualRowById(id)).toBe(0);
+      });
+    });
+
+    it('should read a literal dotted key first and a nested path otherwise while `dataDotNotation` is off', () => {
+      createGrid({
+        data: [{ 'meta.id': 'flat-1', meta: { id: 'nested-1' } }, { meta: { id: 'nested-2' } }],
+        columns: [{ data: 'meta.id' }],
+        rowId: 'meta.id',
+        dataDotNotation: false,
+      });
+
+      expect(hot.getDataAtCell(0, 0)).toBe('flat-1');
+      expect(hot.getRowId(0)).toBe('flat-1');
+      expect(hot.getVisualRowById('nested-1')).toBeNull();
+      expect(hot.getDataAtCell(1, 0)).toBeNull();
+      expect(hot.getRowId(1)).toBe('nested-2');
+      expect(hot.getVisualRowById('nested-2')).toBe(1);
+    });
+
+    it('should keep the ids and report no reset on a `dataDotNotation` change', () => {
+      const reset = jest.fn();
+
+      createGrid({
+        data: [{ meta: { id: 'nested-1' } }],
+        columns: [{ data: 'meta.id' }],
+        rowId: 'meta.id',
+        afterRowIdsReset: reset,
+      });
+      hot.updateSettings({ dataDotNotation: false });
+
+      expect(hot.getVisualRowById('nested-1')).toBe(0);
+      expect(reset).not.toHaveBeenCalled();
+    });
+  });
+
   describe('with nested rows', () => {
     /**
      * Builds two parents with two children each.

@@ -2160,6 +2160,9 @@ export default (): Record<string, unknown> => {
      * a skipped refetch leaves the row total and the page count stale until the next `fetchRows` call, so reconcile them yourself.
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
+     * A string **`rowId`** is read the same way as the [`rowId`](#rowid) option: a property named exactly as the string
+     * wins, dots included, and otherwise the dots read a nested property.
+     *
      * Set it to `null` to turn server-backed loading off again, for example through
      * [`updateSettings()`](@/api/core.md#updatesettings).
      *
@@ -2317,6 +2320,10 @@ export default (): Record<string, unknown> => {
      * | A function | A function that receives the source row and returns its id                               |
      * | `true`     | Handsontable generates the ids: a number for each row, never reused within the instance   |
      * | `false`    | No row ids                                                                               |
+     *
+     * For a string with a dot, a property named exactly as the string wins (`{ 'meta.id': 'SKU-4821' }`), as it does
+     * for a column's `data` property. Otherwise, the dots read a nested property (`{ meta: { id: 'SKU-4821' } }`), even
+     * when [`dataDotNotation`](#datadotnotation) is `false` and a column with the same `data` shows nothing.
      *
      * Keep the ids unique. If two rows share an id, the lookups return the row with the lower physical index.
      *

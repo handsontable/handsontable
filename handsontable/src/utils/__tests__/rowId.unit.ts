@@ -16,6 +16,28 @@ describe('rowId', () => {
       expect(getRowIdFromRowData({ meta: { id: null } }, 'meta.id')).toBeNull();
     });
 
+    it('should read an own literal dotted key before walking the path', () => {
+      expect(getRowIdFromRowData({ 'meta.id': 'flat-1' }, 'meta.id')).toBe('flat-1');
+      expect(getRowIdFromRowData({ 'meta.id': 'flat-1', meta: { id: 'nested-1' } }, 'meta.id')).toBe('flat-1');
+      expect(getRowIdFromRowData({ meta: { id: 'nested-1' } }, 'meta.id')).toBe('nested-1');
+    });
+
+    it('should read a key without a dot through the prototype chain', () => {
+      class SkuRecord {
+        code: number;
+
+        constructor(code: number) {
+          this.code = code;
+        }
+
+        get id() {
+          return `SKU-${this.code}`;
+        }
+      }
+
+      expect(getRowIdFromRowData(new SkuRecord(4821), 'id')).toBe('SKU-4821');
+    });
+
     it('should read a row array by index', () => {
       expect(getRowIdFromRowData(['a', 'b'], '1')).toBe('b');
     });
