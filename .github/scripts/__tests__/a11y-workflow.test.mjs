@@ -57,6 +57,32 @@ test('a11y.yml is one job, axe, in the Playwright container, running the a11y co
     `${A11Y}: the artifact name stays outside the playwright-report-* glob test-health.yml reads, or a scan becomes a flake record. ${DOC}`);
   assert.match(upload, /^ {10}path: tests\/test-results\/a11y$/m, `${A11Y}: the upload is the config's outputDir. ${DOC}`);
   assert.match(upload, /^ {10}retention-days: 3$/m, `${A11Y}: short retention; the artifact is evidence, not a record.`);
+
+  const report = step('Upload the HTML report');
+
+  assert.match(report, /^ {8}id: report$/m, `${A11Y}: the summary link and the check run read the report's URL from this step. ${DOC}`);
+  assert.match(report, /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m, `${A11Y}: the report uploads on a red run too. ${DOC}`);
+  assert.match(report, /^ {10}path: tests\/test-results\/a11y\/a11y-report\.html$/m, `${A11Y}: the report is the reporter's one file. ${DOC}`);
+  assert.match(report, /^ {10}archive: false$/m,
+    `${A11Y}: the report goes up unzipped, so the browser opens it from the run page instead of downloading a zip. ${DOC}`);
+  assert.doesNotMatch(report, /^ {10}name:/m, `${A11Y}: an unzipped artifact is named after its file; a name is ignored. ${DOC}`);
+  assert.match(step('Link the HTML report in the job summary'), /REPORT_URL: \$\{\{ steps\.report\.outputs\.artifact-url \}\}/,
+    `${A11Y}: the link reaches the shell through env, never interpolated into the script. ${DOC}`);
+
+  const post = step('Post the report check run');
+
+  assert.match(post, /^ {8}run: node tests\/scripts\/a11y-check-run\.mjs$/m, `${A11Y}: the check run is posted by its script. ${DOC}`);
+  assert.match(post, /^ {8}continue-on-error: true$/m, `${A11Y}: the check run reports and never decides the job. ${DOC}`);
+  assert.match(post, /A11Y_REPORT_URL: \$\{\{ steps\.report\.outputs\.artifact-url \}\}/);
+});
+
+test('the axe job can write its check run on the pull request\'s head commit, and nothing else', () => {
+  const axe = job(stripYamlComments(read(A11Y)), 'axe');
+
+  assert.match(axe, /^ {4}permissions:\n {6}contents: read\n {6}checks: write$/m,
+    `${A11Y}: job-level permissions, read for the checkout and write for the check run only. ${DOC}`);
+  assert.match(axe, /^ {6}A11Y_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}$/m,
+    `${A11Y}: a check run on the merge commit never shows on the pull request; it goes on the head. ${DOC}`);
 });
 
 test('test.yml calls the A11y module on the UMD build scope and the CI gate needs it', () => {

@@ -408,8 +408,10 @@ over the curated fixture pages on the three themes and compares the findings wit
 minified stylesheets (an unstyled grid gives wrong contrast results), and a violation never fails
 it (warn mode; CI runs it as `A11y / axe`). What the local tooling suite does enforce is the
 baseline's shape: `tests/lib/__tests__/a11y-baseline.test.mjs`, in the root `test:tooling` glob,
-refuses an entry without an owning task id, a malformed one, an unknown theme, a page that is not
-in `tests/a11y/pages.mjs`, or a duplicate key, and pins the mode constant. Run the scan by hand
+refuses an entry whose issue is not in the catalog, an issue with no entry left, a missing or
+non-positive node count, an unknown field or theme, a page that is not in `tests/a11y/pages.mjs`,
+or a duplicate key, and pins the mode constant. Those tests import no package: the tooling job
+installs nothing. Run the scan by hand
 after a change to an accessible surface, and read the policy in `tests/AGENTS.md`, "A11y: the axe
 scan and its baseline".
 

@@ -703,6 +703,9 @@ importers:
       axe-core:
         specifier: 4.14.0
         version: 4.14.0
+      axe-html-reporter:
+        specifier: 2.2.11
+        version: 2.2.11(axe-core@4.14.0)
       eslint:
         specifier: 8.57.1
         version: 8.57.1
@@ -7305,6 +7308,12 @@ packages:
   axe-core@4.14.0:
     resolution: {integrity: sha512-9WTZxEjsZ7b13TH8JPmbV2z8CHbl80/2hm3XPEG4JgNdQLK81IBRXmSxHfMAOkSqQeRxT/0dwNDz2GOm3zzpcQ==}
     engines: {node: '>=4'}
+
+  axe-html-reporter@2.2.11:
+    resolution: {integrity: sha512-WlF+xlNVgNVWiM6IdVrsh+N0Cw7qupe5HT9N6Uyi+aN7f6SSi92RDomiP1noW8OWIV85V6x404m5oKMeqRV3tQ==}
+    engines: {node: '>=8.9.0'}
+    peerDependencies:
+      axe-core: '>=3'
 
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
@@ -21679,6 +21688,11 @@ snapshots:
       possible-typed-array-names: 1.1.0
 
   axe-core@4.14.0: {}
+
+  axe-html-reporter@2.2.11(axe-core@4.14.0):
+    dependencies:
+      axe-core: 4.14.0
+      mustache: 4.2.0
 
   axobject-query@4.1.0: {}
 

@@ -4,20 +4,27 @@ name: A11y
 # three themes, compared with the committed baseline (tests/a11y/axe-baseline.json;
 # the policy is tests/AGENTS.md, "A11y: the axe scan and its baseline"). One job, on
 # purpose: the run has about fifty jobs already, and the scan takes a minute, so it
-# does not fan out by theme. It runs in warn mode: a finding that is not in the
-# baseline is a ::warning annotation and a row in the job summary, and the job stays
-# green; a stale baseline entry (a finding that no longer reproduces) is reported the
-# same way. The only reds are tooling failures: a fixture that does not load, an
-# invalid baseline, a run that completed no scan. The flip to blocking is one
-# constant, `A11Y_MODE` in tests/lib/a11y-baseline.mjs, after a replay over recent
-# pull requests shows the comparator is precise.
+# does not fan out by theme. It runs in warn mode: a finding that needs action (new,
+# grown, improved or fixed) is a ::warning annotation, a row in the job summary, and a
+# `neutral` result on the `A11y / axe report` check run, and the job stays green. The
+# only reds are tooling failures: a fixture that does not load, an invalid baseline, a
+# run that completed no scan. The flip to blocking is one constant, `A11Y_MODE` in
+# tests/lib/a11y-baseline.mjs, after a replay over recent pull requests shows the
+# comparator is precise.
+#
+# Three reports leave the job. The job summary. The stock axe HTML report
+# (axe-html-reporter) over every scan, one file uploaded unzipped (`archive: false`), so
+# it opens in the browser from the run page. And the
+# `A11y / axe report` check run on the pull request's head commit: its icon is the
+# visible gate (neutral = something needs action in warn mode), its page carries the
+# summary and the report link, and its annotations sit on the line to change. The raw
+# axe results go up zipped beside them, with a short retention: they are the evidence
+# behind a warning, not a record.
 #
 # Build-dependent like the Playwright legs (e2e.yml): it downloads the UMD build
 # artifact, so the orchestrator gates it on the build-umd scope, which includes
 # tests/**. It runs inside the pinned Playwright container, so the contrast results
-# come from the same Chromium as the functional legs. The raw axe results and the
-# comparison are uploaded whatever the outcome, with a short retention: they are
-# the evidence behind a warning, not a record.
+# come from the same Chromium as the functional legs.
 on:
   workflow_call:
 
@@ -27,6 +34,15 @@ jobs:
     runs-on: ubuntu-26.04
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
+    # Job-level, like docs.yml's angular-types: `checks: write` posts the report check run.
+    # Kept off the workflow level so nothing else in the run inherits it.
+    permissions:
+      contents: read
+      checks: write
+    env:
+      # The commit the check run goes on and the report names. On a pull request it is the
+      # head, not the merge commit `github.sha` names, or the check never shows on the PR.
+      A11Y_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - name: Download the Handsontable UMD build artifact
@@ -38,13 +54,13 @@ jobs:
         name: Install pnpm
       - name: Install the Playwright test package
         run: pnpm install --filter handsontable-tests
-      # The reporter (tests/reporters/a11y.ts) writes the job summary, the annotations and the
-      # `new-violations` / `stale-entries` step outputs, and decides the exit status from the mode.
+      # The reporter (tests/reporters/a11y.ts) writes the job summary, the annotations, the HTML
+      # report and comparison.json, and decides the exit status from the mode.
       - name: Run the axe scan
         id: axe
         run: cd tests && npx playwright test --config playwright.a11y.config.ts
       # Every run, red or green: the raw axe result per page and theme (`scans/`), the
-      # comparison with the baseline (`comparison.json`) and the summary (`summary.md`).
+      # comparison with the baseline (`comparison.json`) and the summary.
       - name: Upload the axe results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
@@ -54,3 +70,30 @@ jobs:
           if-no-files-found: ignore
           retention-days: 3
           overwrite: true
+      # One file, unzipped, so the browser opens it from the run page; the artifact is named
+      # after the file. A week, so a reviewer who comes back to the pull request still has it.
+      - name: Upload the HTML report
+        id: report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          path: tests/test-results/a11y/a11y-report.html
+          archive: false
+          if-no-files-found: ignore
+          retention-days: 7
+          overwrite: true
+      - name: Link the HTML report in the job summary
+        if: ${{ !cancelled() && steps.report.outputs.artifact-url != '' }}
+        env:
+          REPORT_URL: ${{ steps.report.outputs.artifact-url }}
+        run: printf '\n📊 [Open the HTML report](%s)\n' "$REPORT_URL" >> "$GITHUB_STEP_SUMMARY"
+      # The visible gate on the pull request (tests/lib/a11y-check-run.mjs). A fork's or
+      # Dependabot's token cannot write checks, so the canonical guard skips it there; the job
+      # summary and the report still carry everything. It reports and never decides the job.
+      - name: Post the report check run
+        if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) }}
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          A11Y_REPORT_URL: ${{ steps.report.outputs.artifact-url }}
+        run: node tests/scripts/a11y-check-run.mjs

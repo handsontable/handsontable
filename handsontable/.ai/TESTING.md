@@ -590,9 +590,9 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 
 **Accessibility scan (axe):**
 - Framework: Playwright + `@axe-core/playwright` (axe-core, WCAG 2.2 A and AA rule tags)
-- Location: `tests/a11y/` — `axe.spec.ts` (the scan), `pages.mjs` (the curated fixture pages, one per accessible surface, each on the three themes), `axe-baseline.json` (the known findings, each owned by a task)
+- Location: `tests/a11y/` — `axe.spec.ts` (the scan), `pages.mjs` (the curated fixture pages, one per accessible surface, each on the three themes), `axe-baseline.json` (the catalog of known issues, and where each shows: one entry per page, theme, rule and element, with its node count)
 - Config: `tests/playwright.a11y.config.ts`; the comparator is `tests/lib/a11y-baseline.mjs`, the reporter `tests/reporters/a11y.ts`
-- CI: one job, `A11y / axe`, in warn mode — a finding outside the baseline is an annotation and a summary row, never a red job; the only reds are tooling failures. The baseline only shrinks: the change that fixes a finding deletes its entries
+- CI: one job, `A11y / axe`, in warn mode — a finding that needs action is an annotation, a summary row and a neutral `A11y / axe report` check run, never a red job; the only reds are tooling failures. The stock axe HTML report (`axe-html-reporter`) opens from the run page. The baseline moves only with the code: the change that fixes a finding deletes its entry
 - It is not a test of a change: a pull request that touches an accessible surface still proves its behavior with a Playwright spec in `tests/e2e/`. How to add a page, baseline a finding, and when warn mode flips: `tests/AGENTS.md` → "A11y: the axe scan and its baseline"
 
 ## Plugin Testing Requirements

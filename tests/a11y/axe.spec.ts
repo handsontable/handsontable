@@ -30,7 +30,6 @@ const PORTAL = '.ht-portal';
 // How many ArrowDown presses may be needed to reach a menu item; the default context menu has
 // fewer than twenty rows, separators included.
 const MENU_WALK_LIMIT = 30;
-
 type GridWindow = Window & {
   htBuildError?: string;
   htServer?: { release(prefix: string): void };
@@ -179,6 +178,10 @@ for (const theme of A11Y_THEMES) {
         .include(PORTAL)
         .analyze();
 
+      const scansDir = path.join(testInfo.project.outputDir, 'scans');
+
+      mkdirSync(scansDir, { recursive: true });
+
       const scan = {
         page: entry.id,
         theme,
@@ -196,12 +199,12 @@ for (const theme of A11Y_THEMES) {
           inapplicable: results.inapplicable.length,
         },
         violations: results.violations,
-        incomplete: results.incomplete.map(result => ({ id: result.id, impact: result.impact, nodes: result.nodes.length })),
+        // The stock HTML report lists what axe could not decide too ("incomplete"); passes and
+        // inapplicable rules are left out, which keeps every scan file small.
+        incomplete: results.incomplete,
       };
-      const scansDir = path.join(testInfo.project.outputDir, 'scans');
       const file = path.join(scansDir, `${entry.id}--${theme}.json`);
 
-      mkdirSync(scansDir, { recursive: true });
       writeFileSync(file, `${JSON.stringify(scan, null, 2)}\n`);
       await testInfo.attach('axe-scan', { path: file, contentType: 'application/json' });
     });

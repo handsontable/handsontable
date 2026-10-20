@@ -113,8 +113,8 @@ rc/stable publish path and a master push (`.ai/CI.md`, the Jasmine single-leg en
 ## The accessibility scan, locally
 
 `npm run test:a11y` runs axe-core over the pages of `a11y/pages.mjs` on the three themes and
-compares the findings with `a11y/axe-baseline.json`; the comparison and the summary land in
-`test-results/a11y/`. It needs the same build as the e2e tier, and the minified theme
+compares the findings with `a11y/axe-baseline.json`; the comparison, the summary and the stock
+axe HTML report (`a11y-report.html`) land in `test-results/a11y/`. It needs the same build as the e2e tier, and the minified theme
 stylesheets in particular: an unstyled grid gives wrong contrast results without an error. A
 finding outside the baseline is reported, never a red run (warn mode); what fails is a page that
 does not load or a baseline that does not validate. How to add a page or baseline a finding:
