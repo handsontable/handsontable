@@ -980,9 +980,16 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
   (`docs/content/guides/accessibility/accessibility-conformance-report/`); best-practice rules are
   not in it, on purpose. An `incomplete` result (axe could not decide, most often a contrast it
   could not compute) is counted in the raw scan JSON and the report, and is never a finding.
-- **One bundle, three themes.** The scan runs on the plain UMD bundle: the minified full bundle
-  renders the same DOM. It runs on `main`, `horizon` and `classic`, because the contrast and the
-  target-size results depend on the theme, and a baseline entry names its theme.
+- **One bundle, three themes, and the variants on pages of their own.** The scan runs on the plain
+  UMD bundle: the minified full bundle renders the same DOM. It runs on `main`, `horizon` and
+  `classic`, because the contrast and the target-size results depend on the theme, and a baseline
+  entry names its theme. The dark color scheme and right-to-left layout are pages, not another
+  axis: the `dark-*` pages load their fixture with `?scheme=dark`, which `grid.html`,
+  `filters-value-list.html` and `dialog-states.html` map through the same fail-loud allowlist as
+  `?theme=` to the theme's dark class (`ht-theme-<theme>-dark`), and the `rtl-*` pages use fixtures
+  that build a right-to-left grid. The `colorScheme` option cannot stand in for the class: it needs
+  the theme engine and does nothing on a grid themed by a CSS class, which is how every fixture
+  loads its theme.
 - **A separate config, one project.** `playwright.a11y.config.ts` spreads `playwright.config.ts`
   (server, port, base URL, traces) and replaces the projects, the way the engines config does.
   The e2e config's project list is pinned by `e2e/leg-declarations.spec.ts` and
@@ -996,8 +1003,13 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
 - **Every opener drives the keyboard.** Shift+F10 for the context menu, Shift+Alt+ArrowDown for
   the dropdown menu, Enter for an editor, Ctrl+Alt+M for the comment editor (which also focuses
   it; `showAtCell()` would only show it), ArrowDown and ArrowRight to reach a submenu, after
-  `selectCell()` through the API so the keys reach the grid; only the data-provider page, which
-  has no surface to open, releases its parked fetch instead. The scanned DOM is the one a keyboard user reaches,
+  `selectCell()` through the API so the keys reach the grid. Four states have no surface for a key
+  to open, and reach theirs through the API or the pointer: the data-provider page releases its
+  parked fetch, `selection` lays a selection (the phone's selection handles), `selection-hover`
+  selects a range and hovers it (the desktop selection handles draw only under the pointer), and
+  `async-pending` starts a value that never settles. A page with `device` (the phone handles) runs
+  in a describe block that emulates the device from the first load, because the core decides at
+  construction whether it runs on a phone. The scanned DOM is the one a keyboard user reaches,
   which is what the menu findings are about. The instance is read inside the page through the
   `__hotInstance` the core stamps on `.ht-root-wrapper`, so no page says which global holds its
   grid, and the lookup is spelled out inside each `evaluate` (Playwright serializes the callback's
@@ -1087,7 +1099,8 @@ Add an entry to `a11y/pages.mjs`: `id` (a kebab-case slug that names the surface
 fixture; one fixture can be scanned in several states), `fixture` (under `fixtures/demo/`),
 `query` (appended after the theme), `root` (when the fixture has several grids), `cell` (where a
 menu or an editor opens; `[1, 1]` when absent), `state` (one of `STATES` in the spec: add a new
-opener there for a new kind of surface, keyboard first) and `surface` (what it covers). Keep
+opener there for a new kind of surface, keyboard first), `device` (a Playwright device to emulate,
+for a surface that exists on a phone only) and `surface` (what it covers). Keep
 `{ id: '…'` at the start of the entry's first line: the check run annotates a new finding on that
 line, and `lib/__tests__/a11y-check-run.test.mjs` finds every page there. The fixture keeps the
 fixture contract above: the `?theme=`/`?bundle=` block, `window.htBuildError` or
