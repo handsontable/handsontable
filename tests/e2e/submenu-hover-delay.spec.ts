@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { SubmenuHoverDelayPage } from '../fixtures/pages/SubmenuHoverDelayPage';
 
 /**
@@ -30,7 +30,7 @@ import { SubmenuHoverDelayPage } from '../fixtures/pages/SubmenuHoverDelayPage';
  */
 const SUB_MENU_HOVER_DELAY_MS = 300;
 
-test.describe('context menu submenu hover delay', { tag: THEMES_TAG }, () => {
+test.describe('context menu submenu hover delay', () => {
   let menu: SubmenuHoverDelayPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

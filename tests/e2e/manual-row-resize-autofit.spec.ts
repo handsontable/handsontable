@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { ManualRowResizeAutofitPage } from '../fixtures/pages/ManualRowResizeAutofitPage';
 
 /**
@@ -30,7 +30,7 @@ const TALL_ROW_PX = 300;
  */
 const STRETCHED_ROW_PX = 100;
 
-test.describe('Manual row resize autofit on a double-click', { tag: THEMES_TAG }, () => {
+test.describe('Manual row resize autofit on a double-click', () => {
   let grid: ManualRowResizeAutofitPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

@@ -110,11 +110,30 @@ test('legGrep runs everything on e2e-main and in the full matrix, and greps for 
   assert.ok(legGrep({ theme: 'main', bundle: 'full-min' }) instanceof RegExp);
   assert.ok(legGrep({ theme: 'horizon', bundle: 'full-min' }) instanceof RegExp);
 
-  for (const theme of ['main', 'horizon', 'classic']) {
+  for (const theme of ['main', 'horizon']) {
     for (const bundle of ['umd', 'full-min']) {
       assert.equal(legGrep({ theme, bundle, fullMatrix: true }), undefined, `${theme} ${bundle} in the full matrix`);
     }
   }
+});
+
+test('legGrep leaves the motion specs out of the classic legs, in the full matrix too, and nowhere else', () => {
+  const motion = TAG_CONSTANTS.MOTION_TAG;
+  const title = tags => `e2e-classic e2e/some.spec.ts suite ${tags} does a thing`;
+
+  for (const bundle of ['umd', 'full-min']) {
+    for (const fullMatrix of [false, true]) {
+      const grep = legGrep({ theme: 'classic', bundle, fullMatrix });
+      const legTags = bundle === 'umd' ? THEMES_TAG : `${THEMES_TAG} ${BUNDLES_TAG}`;
+
+      assert.equal(grep.test(title(legTags)), true, `classic ${bundle} full=${fullMatrix} keeps a declared spec`);
+      assert.equal(grep.test(title(`${legTags} ${motion}`)), false, `classic ${bundle} full=${fullMatrix} drops a motion spec`);
+      assert.equal(grep.test(title(`${legTags} ${motion}-extra`)), true, 'a longer tag with the same prefix is not the motion tag');
+    }
+  }
+
+  assert.equal(legGrep({ theme: 'horizon', bundle: 'umd' }).test(title(`${THEMES_TAG} ${motion}`)), true, 'horizon keeps a motion spec');
+  assert.equal(legGrep({ theme: 'main', bundle: 'umd' }), undefined, 'main runs a motion spec');
 });
 
 test('the greps match the tags as tokens of the string Playwright greps, and nothing that merely looks like one', () => {

@@ -118,6 +118,22 @@ export class DataProviderSheetsBarPage {
   }
 
   /**
+   * Opens the fixture with the page clock installed, waits until the bar's motion gate is open, and
+   * then freezes the clock, so the timers that end a slide only run when the test advances time.
+   * The gate opens in the second animation frame after the first render, and a frame requested
+   * while the clock is paused never fires, so pausing before the gate opened leaves every motion
+   * instant for the rest of the test.
+   */
+  async gotoWithPausedClock(options: GotoOptions = {}): Promise<void> {
+    await this.page.clock.install();
+    await this.goto(options);
+    await this.page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+    await this.page.clock.pauseAt(Date.now() + 60_000);
+  }
+
+  /**
    * Navigate to the fixture, release the initial `ORD` fetch (Orders declares its own provider
    * whether or not `?gridLevel` is set), and wait for its rows to land.
    *
@@ -753,5 +769,14 @@ export class DataProviderSheetsBarPage {
    */
   toast(): Locator {
     return this.page.locator('.ht-notification__toast');
+  }
+
+  /**
+   * The temporary marker that slides between the tabs on a sheet switch.
+   *
+   * @returns {Locator} The marker locator.
+   */
+  tabIndicator(): Locator {
+    return this.grid.locator('.ht-sheets-bar__tab-indicator');
   }
 }

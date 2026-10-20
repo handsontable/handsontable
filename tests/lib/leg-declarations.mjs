@@ -43,6 +43,7 @@ export const TAG_CONSTANTS = Object.freeze({
   BUNDLES_TAG,
   CROSS_BROWSER_TAG: '@cross-browser',
   CLIPBOARD_SHORTCUT_TAG: '@clipboard-shortcut',
+  MOTION_TAG: '@motion',
 });
 
 /**
@@ -281,7 +282,9 @@ export function tagLookahead(tag) {
  * themes run the specs tagged `@themes`; `e2e-main-min` runs the specs tagged `@bundles`; the two
  * other `-min` legs run the specs tagged both, in one regex of two lookaheads (an AND, which an array
  * of regexes cannot express: Playwright ORs an array). With `fullMatrix` every project runs
- * everything, the nightly's shape.
+ * everything, the nightly's shape. The two classic legs also leave out every spec tagged `@motion`, in
+ * the full matrix too: the classic theme sets `--ht-table-transition` to `0s`, so a motion test has
+ * nothing to watch there.
  *
  * @param {object} leg The project's axes.
  * @param {string} leg.theme `main`, `horizon` or `classic`.
@@ -298,11 +301,16 @@ export function legGrep({ theme, bundle, fullMatrix = false }) {
   if (bundle !== 'umd') {
     tags.push(BUNDLES_TAG);
   }
-  if (fullMatrix || tags.length === 0) {
+  const lookaheads = fullMatrix ? [] : tags.map(tagLookahead);
+
+  if (theme === 'classic') {
+    lookaheads.push(tagLookahead(TAG_CONSTANTS.MOTION_TAG).replace('(?=', '(?!'));
+  }
+  if (lookaheads.length === 0) {
     return undefined;
   }
 
-  return new RegExp(`^${tags.map(tagLookahead).join('')}`);
+  return new RegExp(`^${lookaheads.join('')}`);
 }
 
 /**

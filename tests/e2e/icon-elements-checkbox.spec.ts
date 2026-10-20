@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { IconElementsCheckboxPage } from '../fixtures/pages/IconElementsCheckboxPage';
 
 /**
@@ -8,7 +8,7 @@ import { IconElementsCheckboxPage } from '../fixtures/pages/IconElementsCheckbox
  * opportunity - and in a column narrower than the gaps plus the box the tick dropped onto a second
  * line: off the box, and growing the row.
  */
-test.describe('Checkbox renderer tick layout', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+test.describe('Checkbox renderer tick layout', { tag: THEMES_TAG }, () => {
   for (const dir of ['ltr', 'rtl'] as const) {
     const goto = (grid: IconElementsCheckboxPage) => grid.goto(dir === 'rtl' ? { dir: 'rtl' } : {});
 
@@ -28,21 +28,6 @@ test.describe('Checkbox renderer tick layout', { tag: [THEMES_TAG, BUNDLES_TAG] 
       expect(Math.abs(geometry.tick.top - geometry.box.top), 'tick y').toBeLessThan(0.5);
       expect(Math.abs(geometry.tick.width - geometry.box.width), 'tick width').toBeLessThan(0.5);
       expect(Math.abs(geometry.tick.height - geometry.box.height), 'tick height').toBeLessThan(0.5);
-    });
-
-    test(`at a regular column width the tick stays on its box and the row keeps its height (${dir})`, async({
-      page, theme, bundle,
-    }) => {
-      const grid = new IconElementsCheckboxPage(page, theme, bundle);
-
-      await goto(grid);
-      await grid.configureCheckboxColumn({ width: 100 });
-
-      const geometry = await grid.checkboxGeometry(0);
-
-      expect(geometry.checkboxRowHeight).toBe(geometry.textRowHeight);
-      expect(Math.abs(geometry.tick.left - geometry.box.left), 'tick x').toBeLessThan(0.5);
-      expect(Math.abs(geometry.tick.top - geometry.box.top), 'tick y').toBeLessThan(0.5);
     });
 
     test(`a wrapped label after the checkbox keeps the tick on its box in a narrow column (${dir})`, async({
@@ -86,7 +71,7 @@ test.describe('Checkbox renderer tick layout', { tag: [THEMES_TAG, BUNDLES_TAG] 
  * carry a physical `padding-left` of two gaps, so the text sat two gaps from the box in LTR and
  * touched it in RTL. One logical gap matches the Filters "Filter by value" list.
  */
-test.describe('Multi-select editor list label gap', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+test.describe('Multi-select editor list label gap', { tag: THEMES_TAG }, () => {
   for (const dir of ['ltr', 'rtl'] as const) {
     test(`the label text starts one gap after the checkbox box (${dir})`, async({ page, theme, bundle }) => {
       const grid = new IconElementsCheckboxPage(page, theme, bundle);

@@ -269,7 +269,7 @@ class DataMap {
 
           lastColumn += 1;
         } else if (typeof value === 'object' && value !== null) {
-          lastColumn = this.recursiveDuckColumns(value, lastColumn, `${key}.`);
+          lastColumn = this.recursiveDuckColumns(value, lastColumn, `${propertyParent}${key}.`);
         }
       });
     }
@@ -1112,7 +1112,8 @@ class DataMap {
       for (let i = 0, ilen = sliced.length; i < ilen; i++) {
         out = out[sliced[i]] as Record<string, unknown>;
 
-        if (typeof out === 'undefined') {
+        // A `null` parent has nothing to read under it, while a `null` leaf is a value like any other.
+        if (typeof out === 'undefined' || (out === null && i < ilen - 1)) {
           return null;
         }
       }
@@ -1324,7 +1325,7 @@ class DataMap {
           return;
         }
 
-        if (typeof out[sliced[i]] === 'undefined') {
+        if (typeof out[sliced[i]] === 'undefined' || out[sliced[i]] === null) {
           out[sliced[i]] = {};
         }
         out = out[sliced[i]] as Record<string, unknown>;

@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { FillHandleDragPage } from '../fixtures/pages/FillHandleDragPage';
 
 /**
@@ -32,7 +32,7 @@ const CLOCK_START = new Date('2026-01-01T00:00:00Z');
 
 // Theme-sensitive: row heights decide whether an inserted row lands under the resting pointer (see
 // BELOW_INSERTED_ROW), and the long and short fixed-height grids render a theme-dependent band.
-test.describe('fill handle drag direction (DEV-140)', { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, () => {
+test.describe('fill handle drag direction (DEV-140)', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: FillHandleDragPage;
 
   test.beforeEach(({ page, theme, bundle }) => {
