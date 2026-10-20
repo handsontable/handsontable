@@ -10,16 +10,24 @@
 6. **Large dataset scenarios:** code handling data arrays is tested with 50k+ rows, and its unit tests include large-dataset cases.
 7. **Memory management:** plugins clean up in `disablePlugin()` and `destroy()`; no event listeners, maps, or references leak across enable/disable cycles.
 
-## Accessibility (WCAG 2.1 AA)
+## Accessibility (WCAG 2.2 AA)
+
+The bar is WCAG 2.2 Level A and AA, the level the published conformance report claims. The
+`handsontable-a11y` skill holds the patterns and the build rules; check the diff against them.
 
 1. **Keyboard navigation, both modes:**
    - Spreadsheet mode: `navigableHeaders: false`, `tabNavigation: true`.
    - Data grid mode: `navigableHeaders: true`, `tabNavigation: false`.
-   - New interactive elements are reachable and operable by keyboard alone.
-2. **ARIA semantics:** changes to rendering, selection, headers, frozen areas, or merged cells preserve correct roles and attributes: `role`, `aria-rowcount`, `aria-colcount`, `aria-rowindex`, `aria-colindex`, `aria-selected`, `aria-label`.
-3. **Semantic HTML:** `<button>` for actions, not `<div>` with click handlers.
-4. **Color contrast:** 4.5:1 for normal text, 3:1 for large text.
-5. **Focus management:** after cell editing, menu open/close, and dialog dismiss, focus returns to a logical position.
+   - New interactive elements are reachable and operable by keyboard alone, keys register in a shortcut context (never a raw `keydown` listener), and a drag has a keyboard or single-pointer alternative (2.5.7).
+2. **ARIA semantics:** changes to rendering, selection, headers, frozen areas, menus or merged cells preserve correct roles and attributes: `role`, `aria-rowcount`, `aria-colcount`, `aria-rowindex`, `aria-colindex`, `aria-selected`, `aria-label`. Roles and attributes go through `src/helpers/a11y.ts`.
+3. **Required structure:** every role has the parents and children it requires (`menuitem` in `menu`, `option` in `listbox`); a widget role drawn with table markup has `role="presentation"` on the table rows in between; no interactive element inside another; `aria-selected` and the other states only on roles that support them.
+4. **Names:** every control has an accessible name from an i18n phrase, never hard-coded English, and the visible text is part of the name (2.5.3). Decorative icons are `aria-hidden`.
+5. **Semantic HTML:** `<button>` for actions, not `<div>` with click handlers.
+6. **Color contrast and size, in all three themes:** 4.5:1 for normal text, 3:1 for large text and for icons, borders and focus rings (1.4.11); pointer targets at least 24 by 24 CSS pixels (2.5.8). Colors and sizes come from theme tokens.
+7. **Focus management:** a surface that takes focus registers a focus scope; after cell editing, menu open/close, and dialog dismiss, focus returns to a logical position, stays visible, and is not hidden under a sticky overlay (2.4.11).
+8. **Announcements:** a change without a focus move is announced through `announce()` (polite; assertive for errors only), once per user action.
+9. **`ariaTags`:** no behavior reads an `aria-*` attribute or depends on one existing.
+10. **Proof:** the change ships a keyboard-only Playwright flow asserting focus and accessible names; the `A11y / axe report` check shows no new or grown finding; a new plugin or editor has its entry in `tests/a11y/coverage.mjs` and, with UI, a page in `tests/a11y/pages.mjs`. A finding the change caused is fixed, not added to `tests/a11y/axe-baseline.json`.
 
 ## References
 

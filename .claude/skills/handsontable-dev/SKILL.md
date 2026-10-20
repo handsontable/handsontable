@@ -30,6 +30,7 @@ Load `handsontable-code-review` (architecture dimension) first for every change,
 | Make a test actually prove behavior | `test-writing-discipline` |
 | Build a **demo / test page** | `handsontable-demo-page` |
 | Work on **CSS / themes** | `handsontable-css-dev` |
+| Anything a user can **see or operate** (DOM, ARIA, keys, focus, announcements, theme colors and sizes) | `handsontable-a11y`, beside the task skill: write the accessibility plan before the code |
 | Walkontable rendering engine | `walkontable-dev` / `walkontable-testing` |
 | A rendering-engine **geometry** change needs a spec (viewport, overlays, sizing, scroll sync) | engine tier: edit an existing walkontable Jasmine spec, or add new coverage in `tests/e2e/walkontable/*.spec.ts` (`walkontable-dev`, Testing) |
 | Lint violations | `handsontable/AGENTS.md` (Lint) + `handsontable/.ai/CONVENTIONS.md` |

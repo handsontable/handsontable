@@ -410,8 +410,10 @@ it (warn mode; CI runs it as `A11y / axe`). What the local tooling suite does en
 baseline's shape: `tests/lib/__tests__/a11y-baseline.test.mjs`, in the root `test:tooling` glob,
 refuses an entry whose issue is not in the catalog, an issue with no entry left, a missing or
 non-positive node count, an unknown field or theme, a page that is not in `tests/a11y/pages.mjs`,
-or a duplicate key, and pins the mode constant. Those tests import no package: the tooling job
-installs nothing. Run the scan by hand
+or a duplicate key, and pins the mode constant. It also enforces what the scan covers:
+`tests/lib/__tests__/a11y-coverage.test.mjs` fails on a plugin or editor folder with no entry in
+`tests/a11y/coverage.mjs`, and on a new `gap` entry (`A11Y_GAP_LIMIT` only goes down). Those tests
+import no package: the tooling job installs nothing. Run the scan by hand
 after a change to an accessible surface, and read the policy in `tests/AGENTS.md`, "A11y: the axe
 scan and its baseline".
 

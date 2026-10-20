@@ -1081,7 +1081,22 @@ fixture contract above: the `?theme=`/`?bundle=` block, `window.htBuildError` or
 `data-init-error` on a constructor throw, which the spec turns into a red test. Run the scan;
 every finding the new page reproduces is new, and the report says which known issue each one
 belongs to. The tooling test refuses an entry whose page is not in the list, so removing a page
-means deleting its entries (and an issue left without any) in the same change.
+means deleting its entries (and an issue left without any) in the same change. List the new page
+under the plugin or editor it scans in `a11y/coverage.mjs`.
+
+### Coverage: every plugin and editor is accounted for
+
+`a11y/coverage.mjs` has one entry per folder under `handsontable/src/plugins/` and
+`handsontable/src/editors/`, and `lib/__tests__/a11y-coverage.test.mjs` (root `test:tooling`) reads
+the folders from disk and fails on one without an entry, on an entry without a folder, and on a page
+id that `pages.mjs` does not have. An entry is `pages` (the pages that scan it), `none` (it draws
+nothing a scan of a resting page could check, and why: sizing, data, events, a guide drawn only
+during a drag) or `gap` (it draws UI no page scans yet, and what is missing). The point is the
+decision, not the list: a new plugin or editor cannot land without someone saying how its UI is
+scanned. A gap is debt, so `A11Y_GAP_LIMIT` is exactly the number of gaps: a new one fails the test,
+and the change that closes one (adds its page, baselines what the page finds that already existed
+under an issue) lowers the limit. `none` is for code that really draws nothing at rest; a control
+that waits for a fixture to turn it on is a gap.
 
 ### Baselining a finding, and fixing one
 
