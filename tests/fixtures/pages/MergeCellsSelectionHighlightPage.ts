@@ -7,8 +7,23 @@ interface Highlight {
 }
 
 interface SelectionHookCounts {
+  beforeSetRangeStart: number;
+  beforeSetRangeStartOnly: number;
+  beforeSetRangeEnd: number;
+  beforeSelectionHighlightSet: number;
+  beforeSelectionFocusSet: number;
   afterSelection: number;
+  afterSelectionByProp: number;
+  afterSelectionFocusSet: number;
   afterSelectionEnd: number;
+  afterSelectionEndByProp: number;
+  afterIsMultipleSelection: number;
+  afterDeselect: number;
+}
+
+interface EditorState {
+  opened: boolean;
+  value: string;
 }
 
 interface HandsontableFixture {
@@ -16,6 +31,10 @@ interface HandsontableFixture {
   selectCell(row: number, column: number, endRow: number, endColumn: number, scrollToCell?: boolean): void;
   getSelected(): number[][] | undefined;
   getSelectedRangeLast(): { highlight: { row: number, col: number } } | undefined;
+  listen(): void;
+  getDataAtCell(row: number, column: number): unknown;
+  getActiveEditor(): { isOpened(): boolean, getValue(): string, beginEditing(initialValue?: string): void };
+  addHook(name: string, callback: () => void): void;
   getPlugin(name: string): {
     merge(startRow: number, startColumn: number, endRow: number, endColumn: number): void;
     unmerge(startRow: number, startColumn: number, endRow: number, endColumn: number): void;
@@ -62,6 +81,13 @@ export class MergeCellsSelectionHighlightPage {
    */
   columnHeader(column: number): Locator {
     return this.page.locator('.ht_clone_top').getByTestId(`col-header-${column}`);
+  }
+
+  /**
+   * The opacity of the cell's selection fill, painted on its `::before`.
+   */
+  async fillOpacity(row: number, col: number): Promise<string> {
+    return this.cell(row, col).evaluate(element => getComputedStyle(element, '::before').opacity);
   }
 
   /**
@@ -150,7 +176,80 @@ export class MergeCellsSelectionHighlightPage {
   }
 
   /**
-   * Merges the active selection the way the context menu does.
+   * Opens the editor on the current highlight. Enter does not do this while the selection covers
+   * more than one cell: that key moves inside the range. `beginEditing` is what F2 runs.
+   */
+  async openEditor(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+
+      hot.listen();
+      hot.getActiveEditor().beginEditing();
+    });
+    await expect.poll(() => this.editorState()).toMatchObject({ opened: true });
+  }
+
+  /**
+   * The value stored at a cell.
+   */
+  async dataAt(row: number, col: number): Promise<unknown> {
+    return this.page.evaluate(({ row: cellRow, col: cellColumn }) => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+
+      return hot.getDataAtCell(cellRow, cellColumn);
+    }, { row, col });
+  }
+
+  /**
+   * Whether the active editor is open, and the value it holds.
+   */
+  async editorState(): Promise<EditorState> {
+    return this.page.evaluate(() => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+      const editor = hot.getActiveEditor();
+
+      return { opened: editor.isOpened(), value: editor.getValue() };
+    });
+  }
+
+  /**
+   * From the next `afterSelection`, calls `merge()` or `unmerge()` on the same rectangle.
+   * Stops after a handful of calls so a loop ends as a failed assertion instead of a hung page.
+   */
+  async callAgainFromAfterSelection(
+    method: 'merge' | 'unmerge',
+    startRow: number,
+    startColumn: number,
+    endRow: number,
+    endColumn: number,
+  ): Promise<void> {
+    await this.page.evaluate(({ method: name, startRow: row, startColumn: column, endRow: lastRow, endColumn: lastColumn }) => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+      let calls = 0;
+
+      (window as Window & { htReentryCalls: number }).htReentryCalls = 0;
+      hot.addHook('afterSelection', () => {
+        calls += 1;
+        (window as Window & { htReentryCalls: number }).htReentryCalls = calls;
+
+        if (calls > 6) {
+          return;
+        }
+
+        hot.getPlugin('mergeCells')[name](row, column, lastRow, lastColumn);
+      });
+    }, { method, startRow, startColumn, endRow, endColumn });
+  }
+
+  /**
+   * How many times the re-entry hook installed by {@link callAgainFromAfterSelection} ran.
+   */
+  async reentryCalls(): Promise<number> {
+    return this.page.evaluate(() => (window as Window & { htReentryCalls: number }).htReentryCalls);
+  }
+
+  /**
+   * Merges the active selection through `mergeSelection()`.
    */
   async mergeSelection(): Promise<void> {
     await this.page.evaluate(() => {
@@ -161,7 +260,7 @@ export class MergeCellsSelectionHighlightPage {
   }
 
   /**
-   * Unmerges the active selection the way the context menu does.
+   * Unmerges the active selection through `unmergeSelection()`.
    */
   async unmergeSelection(): Promise<void> {
     await this.page.evaluate(() => {

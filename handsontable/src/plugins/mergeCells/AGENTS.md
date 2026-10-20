@@ -599,11 +599,11 @@ can fail.
 
 `area-N` is how many selection ranges cover a plain cell, minus 1. `getSelectedMergedCellClassName`
 used to append the range's own index, so a merge that only a later layer covered painted one step
-darker than the plain cells of that layer. The suffix is now the 0-based rank of this range among
-the ranges that `includesRange` the merge, capped at 7 (the stylesheet has no rule past that, and a
-missing rule paints the fill at full opacity). `-multiple` stays the union that no single range
-covers. A partial layer still adds `-multiple` when some other range fully covers; the numbered rule
-is later in the stylesheet and wins.
+darker than the plain cells of that layer. The suffix is the 0-based rank of this range among the
+ranges that `includesRange` the merge. A rank past 7 has no rule of its own. The lower ranks are on
+the cell too, so the level-7 rule still wins, the same way `area-7` wins for a plain cell.
+`-multiple` stays the union that no single range covers. A partial layer still adds `-multiple`
+when some other range fully covers. The numbered rule is later in the stylesheet and wins.
 
 ### `merge()` and `unmerge()` replay a selection that meets the area (DEV-741)
 
@@ -612,9 +612,15 @@ The area fill is committed while the range is still several cells. `mergeRange()
 `#onAfterIsMultipleSelection` then treats a range that equals one merge as a single cell.
 `merge()` and `unmerge()` replay through `selection.refresh()` under the `shift` source, and only
 when a current range overlaps the rectangle and the call actually changed a merge. `shift` does not
-scroll. The replay fires `afterSelection`, `afterSelectionByProp`, and `afterSelectionEnd`. It does
-not run for `mergeRange()` / `unmergeRange()`, so init, undo, and `mergeSelection()` (which already
-selects) are left alone. A selection that does not meet the rectangle is not replayed.
+scroll. The replay walks every selection layer, not only the one that overlaps. Each layer fires
+`beforeSetRangeStartOnly`, `beforeSetRangeEnd`, `beforeSelectionHighlightSet`, `afterSelection` and
+`afterSelectionByProp`. `afterIsMultipleSelection` fires five times for one range and twice per layer
+when there is more than one. `afterSelectionEnd` and `afterSelectionEndByProp` fire once. It does
+not run for `mergeRange()` /
+`unmergeRange()`, so init, undo, and `mergeSelection()` (which already selects) are left alone. A
+selection that does not meet the rectangle is not replayed. A second `merge()` of the same area
+returns `false`, and a second `unmerge()` finds nothing, so a selection hook that calls the same
+method again does not replay.
 
 ### An arrow-key horizontal exit is addressed by the merge's top row (DEV-102)
 

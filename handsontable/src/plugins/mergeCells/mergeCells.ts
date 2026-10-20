@@ -428,11 +428,6 @@ export class MergeCells extends BasePlugin {
    * @type {Array}
    */
   #pasteUnmergeSnapshot: MergeAreaGeometry[] = [];
-  /**
-   * Set while `merge()` / `unmerge()` replay the selection, so a selection hook that merges again
-   * cannot replay a second time.
-   */
-  #reselecting = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -1365,12 +1360,12 @@ export class MergeCells extends BasePlugin {
    * @private
    * @param {CellRange} cellRange Selection cell range.
    * @param {boolean} [auto=false] `true` if called automatically by the plugin.
-   *
+   * @returns {boolean} `true` when a merge inside the range was removed.
    * @fires Hooks#beforeUnmergeCells
    * @fires Hooks#afterUnmergeCells
    */
-  unmergeRange(cellRange: CellRange, auto = false) {
-    this.runOperation('unmerge_cells', () => this.#unmergeRange(cellRange, auto), {
+  unmergeRange(cellRange: CellRange, auto = false): boolean {
+    return this.runOperation('unmerge_cells', () => this.#unmergeRange(cellRange, auto), {
       cellRange: deepClone(cellRange),
     });
   }
@@ -1589,12 +1584,13 @@ export class MergeCells extends BasePlugin {
    *
    * @param {CellRange} cellRange Selection cell range.
    * @param {boolean} auto `true` if called automatically by the plugin.
+   * @returns {boolean} `true` when a merge inside the range was removed.
    */
-  #unmergeRange(cellRange: CellRange, auto: boolean) {
+  #unmergeRange(cellRange: CellRange, auto: boolean): boolean {
     const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange);
 
     if (mergedCells.length === 0) {
-      return;
+      return false;
     }
 
     this.hot.runHooks('beforeUnmergeCells', cellRange, auto);
@@ -1606,6 +1602,8 @@ export class MergeCells extends BasePlugin {
 
     this.hot.runHooks('afterUnmergeCells', cellRange, auto);
     this.hot.render();
+
+    return true;
   }
 
   /**
@@ -1639,12 +1637,26 @@ export class MergeCells extends BasePlugin {
   /**
    * Merges the specified range.
    *
+   * When the current selection meets the range, every selection layer is replayed. Each layer fires
+   * `beforeSetRangeStartOnly`, `beforeSetRangeEnd`, `beforeSelectionHighlightSet`, `afterSelection`
+   * and `afterSelectionByProp`. `afterIsMultipleSelection` fires five times for one range and twice
+   * per layer when there is more than one. `afterSelectionEnd` and `afterSelectionEndByProp` fire
+   * once. A selection that misses the range fires none of these.
+   *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
    * @param {number} endRow Visual end row of the merged cell.
    * @param {number} endColumn Visual end column of the merged cell.
    * @fires Hooks#beforeMergeCells
    * @fires Hooks#afterMergeCells
+   * @fires Hooks#beforeSetRangeStartOnly
+   * @fires Hooks#beforeSetRangeEnd
+   * @fires Hooks#beforeSelectionHighlightSet
+   * @fires Hooks#afterIsMultipleSelection
+   * @fires Hooks#afterSelection
+   * @fires Hooks#afterSelectionByProp
+   * @fires Hooks#afterSelectionEnd
+   * @fires Hooks#afterSelectionEndByProp
    */
   merge(startRow: number, startColumn: number, endRow: number, endColumn: number): void {
     const start = this.hot._createCellCoords(startRow, startColumn);
@@ -1659,32 +1671,48 @@ export class MergeCells extends BasePlugin {
   /**
    * Unmerges the merged cell in the provided range.
    *
+   * When the current selection meets the range, every selection layer is replayed. Each layer fires
+   * `beforeSetRangeStartOnly`, `beforeSetRangeEnd`, `beforeSelectionHighlightSet`, `afterSelection`
+   * and `afterSelectionByProp`. `afterIsMultipleSelection` fires five times for one range and twice
+   * per layer when there is more than one. `afterSelectionEnd` and `afterSelectionEndByProp` fire
+   * once. A selection that misses the range fires none of these.
+   *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
    * @param {number} endRow Visual end row of the merged cell.
    * @param {number} endColumn Visual end column of the merged cell.
    * @fires Hooks#beforeUnmergeCells
    * @fires Hooks#afterUnmergeCells
+   * @fires Hooks#beforeSetRangeStartOnly
+   * @fires Hooks#beforeSetRangeEnd
+   * @fires Hooks#beforeSelectionHighlightSet
+   * @fires Hooks#afterIsMultipleSelection
+   * @fires Hooks#afterSelection
+   * @fires Hooks#afterSelectionByProp
+   * @fires Hooks#afterSelectionEnd
+   * @fires Hooks#afterSelectionEndByProp
    */
   unmerge(startRow: number, startColumn: number, endRow: number, endColumn: number): void {
     const start = this.hot._createCellCoords(startRow, startColumn);
     const end = this.hot._createCellCoords(endRow, endColumn);
     const cellRange = this.hot._createCellRange(start, start, end);
-    const removed = this.mergedCellsCollection.getWithinRange(cellRange).length > 0;
 
-    this.unmergeRange(cellRange);
-
-    if (removed) {
+    if (this.unmergeRange(cellRange)) {
       this.#reselectIntersectingSelection(startRow, startColumn, endRow, endColumn);
     }
   }
 
   /**
-   * Replays the selection after `merge()` or `unmerge()` when a range meets the changed rectangle,
-   * which is what the context menu does with `selectCell`. The highlight committed before the merge
-   * existed otherwise stays on screen. `shift` keeps the viewport still. A selection that does not
-   * meet the rectangle is left alone, and so are the selection hooks. The replay does fire
-   * `afterSelection`, `afterSelectionByProp`, and `afterSelectionEnd`.
+   * Replays the selection after `merge()` or `unmerge()` when a range meets the changed rectangle.
+   * The highlight committed before the merge existed otherwise stays on screen. `shift` keeps the
+   * viewport still. A selection that does not meet the rectangle is left alone. A second `merge()`
+   * of an area that is already merged returns `false`, and a second `unmerge()` finds nothing, so
+   * neither calls this again.
+   *
+   * The replay walks every selection layer. Each layer fires `beforeSetRangeStartOnly`,
+   * `beforeSetRangeEnd`, `beforeSelectionHighlightSet`, `afterSelection` and `afterSelectionByProp`.
+   * `afterIsMultipleSelection` fires five times for one range and twice per layer when there is more
+   * than one. `afterSelectionEnd` and `afterSelectionEndByProp` fire once.
    *
    * @param {number} startRow Visual start row of the changed rectangle.
    * @param {number} startColumn Visual start column of the changed rectangle.
@@ -1694,7 +1722,7 @@ export class MergeCells extends BasePlugin {
   #reselectIntersectingSelection(
     startRow: number, startColumn: number, endRow: number, endColumn: number
   ): void {
-    if (this.#reselecting || !this.hot.selection.isSelected()) {
+    if (!this.hot.selection.isSelected()) {
       return;
     }
 
@@ -1720,13 +1748,9 @@ export class MergeCells extends BasePlugin {
       selection.markSource('shift');
     }
 
-    this.#reselecting = true;
-
     try {
       selection.refresh();
     } finally {
-      this.#reselecting = false;
-
       if (isSourceUnset) {
         selection.markEndSource();
       }

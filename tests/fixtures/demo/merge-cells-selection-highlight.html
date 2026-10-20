@@ -28,7 +28,26 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    window.htSelectionHooks = { afterSelection: 0, afterSelectionEnd: 0 };
+    const selectionHookNames = [
+      'beforeSetRangeStart',
+      'beforeSetRangeStartOnly',
+      'beforeSetRangeEnd',
+      'beforeSelectionHighlightSet',
+      'beforeSelectionFocusSet',
+      'afterSelection',
+      'afterSelectionByProp',
+      'afterSelectionFocusSet',
+      'afterSelectionEnd',
+      'afterSelectionEndByProp',
+      'afterIsMultipleSelection',
+      'afterDeselect',
+    ];
+
+    window.htSelectionHooks = Object.fromEntries(selectionHookNames.map(name => [name, 0]));
+
+    const selectionHookHandlers = Object.fromEntries(selectionHookNames.map(name => [name, () => {
+      window.htSelectionHooks[name] += 1;
+    }]));
 
     window.hot = new Handsontable(container, {
       data: Array.from({ length: 30 }, (unused, row) =>
@@ -50,12 +69,7 @@
       afterGetColHeader(column, th) {
         th.setAttribute('data-testid', `col-header-${column}`);
       },
-      afterSelection() {
-        window.htSelectionHooks.afterSelection += 1;
-      },
-      afterSelectionEnd() {
-        window.htSelectionHooks.afterSelectionEnd += 1;
-      },
+      ...selectionHookHandlers,
       licenseKey: 'non-commercial-and-evaluation',
     });
   </script>

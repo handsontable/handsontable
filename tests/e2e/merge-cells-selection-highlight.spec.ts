@@ -1,14 +1,15 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { MergeCellsSelectionHighlightPage } from '../fixtures/pages/MergeCellsSelectionHighlightPage';
 
 /**
  * A merged cell's `fullySelectedMergedCell-N` level matches a plain cell's `area` / `area-N`:
- * the number of ranges that fully cover the merge, minus 1.
+ * the number of ranges that fully cover the merge, minus 1. The fill opacity matches too.
  *
- * `merge()` and `unmerge()` leave the same highlight the context menu leaves when the selection
- * meets the changed area, and they leave a selection that does not meet it untouched.
+ * `merge()` and `unmerge()` leave the same highlight `mergeSelection()` and `unmergeSelection()`
+ * leave when the selection meets the changed area, and they leave a selection that does not meet
+ * it untouched.
  */
-test.describe('merged cell selection highlight', () => {
+test.describe('merged cell selection highlight', { tag: THEMES_TAG }, () => {
   let grid: MergeCellsSelectionHighlightPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
@@ -28,6 +29,7 @@ test.describe('merged cell selection highlight', () => {
     expect(merged).not.toContain('fullySelectedMergedCell-1');
     expect(plain).toContain('area');
     expect(plain).not.toContain('area-1');
+    expect(await grid.fillOpacity(1, 5)).toBe(await grid.fillOpacity(0, 5));
   });
 
   test('overlapping ranges darken a merged cell the way they darken a plain cell', async() => {
@@ -47,6 +49,8 @@ test.describe('merged cell selection highlight', () => {
     expect(coveredTwice).not.toContain('area-2');
     expect(coveredOnce).toContain('area');
     expect(coveredOnce).not.toContain('area-1');
+    expect(await grid.fillOpacity(1, 5)).toBe(await grid.fillOpacity(0, 5));
+    expect(await grid.fillOpacity(1, 5)).not.toBe(await grid.fillOpacity(0, 4));
   });
 
   test('a column selection then a ctrl-click on a merged cell matches a plain cell ctrl-click', async() => {
@@ -69,9 +73,10 @@ test.describe('merged cell selection highlight', () => {
     expect(clickedPlain).not.toContain('area-1');
     expect(await grid.classNames(1, 5)).toContain('fullySelectedMergedCell-0');
     expect(await grid.classNames(1, 5)).not.toContain('fullySelectedMergedCell-1');
+    expect(await grid.fillOpacity(1, 5)).toBe(await grid.fillOpacity(4, 0));
   });
 
-  test('merge() leaves the single-cell highlight the context menu leaves', async() => {
+  test('merge() leaves the single-cell highlight mergeSelection() leaves', async() => {
     await grid.selectCell(5, 2, 7, 4);
 
     const hooksBeforeMerge = await grid.selectionHookCounts();
@@ -102,7 +107,7 @@ test.describe('merged cell selection highlight', () => {
     expect(fromMenu.filter(name => name.startsWith('fullySelectedMergedCell'))).toEqual([]);
   });
 
-  test('unmerge() restores the range highlight the context menu restores', async() => {
+  test('unmerge() restores the range highlight unmergeSelection() restores', async() => {
     await grid.selectCell(1, 1, 3, 3);
 
     const hooksBeforeUnmerge = await grid.selectionHookCounts();
@@ -157,4 +162,154 @@ test.describe('merged cell selection highlight', () => {
     expect(await grid.classNames(0, 0)).not.toContain('area');
     await expect(grid.cell(1, 5)).not.toHaveAttribute('rowspan');
   });
+
+  test('an afterSelection hook that calls merge() again does not replay', async() => {
+    await grid.selectCell(5, 2, 7, 4);
+    await grid.callAgainFromAfterSelection('merge', 5, 2, 7, 4);
+
+    const hooksBefore = await grid.selectionHookCounts();
+
+    await grid.merge(5, 2, 7, 4);
+
+    const merged = await grid.classNames(5, 2);
+
+    expect(await grid.reentryCalls()).toBe(1);
+    expect((await grid.selectionHookCounts()).afterSelection - hooksBefore.afterSelection).toBe(1);
+    expect(merged).toContain('current');
+    expect(merged).not.toContain('area');
+    await expect(grid.cell(5, 2)).toHaveAttribute('rowspan', '3');
+  });
+
+  test('an afterSelection hook that calls unmerge() again does not replay', async() => {
+    await grid.selectCell(1, 1, 3, 3);
+    await grid.callAgainFromAfterSelection('unmerge', 1, 1, 3, 3);
+
+    const hooksBefore = await grid.selectionHookCounts();
+
+    await grid.unmerge(1, 1, 3, 3);
+
+    const anchor = await grid.classNames(1, 1);
+
+    expect(await grid.reentryCalls()).toBe(1);
+    expect((await grid.selectionHookCounts()).afterSelection - hooksBefore.afterSelection).toBe(1);
+    expect(anchor).toContain('current');
+    expect(anchor).toContain('area');
+    await expect(grid.cell(1, 1)).not.toHaveAttribute('rowspan');
+  });
+
+  test('merge() closes an open editor without writing its value, as mergeSelection() does', async() => {
+    await grid.selectCell(5, 2, 7, 4);
+    await grid.openEditor();
+    await grid.page.locator('textarea.handsontableInput').fill('kept');
+
+    expect(await grid.editorState()).toEqual({ opened: true, value: 'kept' });
+
+    await grid.merge(5, 2, 7, 4);
+
+    expect(await grid.editorState()).toEqual({ opened: false, value: '' });
+    expect(await grid.dataAt(5, 2)).toBe('C6');
+    await expect(grid.cell(5, 2)).toHaveAttribute('rowspan', '3');
+
+    await grid.goto();
+    await grid.selectCell(5, 2, 7, 4);
+    await grid.openEditor();
+    await grid.page.locator('textarea.handsontableInput').fill('kept');
+    await grid.mergeSelection();
+
+    expect(await grid.editorState()).toEqual({ opened: false, value: '' });
+    expect(await grid.dataAt(5, 2)).toBe('C6');
+  });
+
+  test('merge() keeps the scroll position when the overlapping selection runs out of view', async() => {
+    // Column H misses the merges that already exist, so the replay has nothing else to grow onto.
+    await grid.selectCell(0, 7, 8, 7);
+    await grid.scrollHolderTo(80);
+
+    const hooksBefore = await grid.selectionHookCounts();
+
+    await grid.merge(5, 7, 7, 7);
+
+    expect(await grid.holderScrollTop()).toBe(80);
+    expect(await grid.selected()).toEqual([[0, 7, 8, 7]]);
+    expect(await grid.highlight()).toEqual({ row: 0, col: 7 });
+    expect((await grid.selectionHookCounts()).afterSelection).toBeGreaterThan(hooksBefore.afterSelection);
+    await expect(grid.cell(5, 7)).toHaveAttribute('rowspan', '3');
+  });
+
+  test('merge() keeps every layer when only one of them meets the area', async() => {
+    await grid.selectCells([[0, 0, 0, 0], [5, 2, 7, 4], [4, 0, 4, 0]]);
+
+    const activeBefore = await grid.classNames(4, 0);
+    const otherBefore = await grid.classNames(0, 0);
+    const anchorBefore = await grid.classNames(5, 2);
+
+    await grid.merge(5, 2, 7, 4);
+
+    const anchorAfter = await grid.classNames(5, 2);
+
+    expect(await grid.selected()).toEqual([[0, 0, 0, 0], [5, 2, 7, 4], [4, 0, 4, 0]]);
+    expect(await grid.highlight()).toEqual({ row: 4, col: 0 });
+    expect(await grid.classNames(4, 0)).toEqual(activeBefore);
+    expect(await grid.classNames(0, 0)).toEqual(otherBefore);
+    expect(anchorAfter.filter(name => name === 'area' || name.startsWith('area-') || name === 'current'))
+      .toEqual(anchorBefore.filter(name => name === 'area' || name.startsWith('area-') || name === 'current'));
+    expect(anchorAfter).toContain('fullySelectedMergedCell-0');
+    await expect(grid.cell(5, 2)).toHaveAttribute('rowspan', '3');
+    await expect(grid.cell(5, 2)).toHaveAttribute('colspan', '3');
+  });
+
+  test('merge() fires the selection replay hooks once per layer, then the end hooks once', async() => {
+    await grid.selectCell(5, 2, 7, 4);
+
+    const oneLayerBefore = await grid.selectionHookCounts();
+
+    await grid.merge(5, 2, 7, 4);
+
+    expect(hookDelta(oneLayerBefore, await grid.selectionHookCounts())).toEqual({
+      beforeSetRangeStart: 0,
+      beforeSetRangeStartOnly: 1,
+      beforeSetRangeEnd: 1,
+      beforeSelectionHighlightSet: 1,
+      beforeSelectionFocusSet: 0,
+      afterSelection: 1,
+      afterSelectionByProp: 1,
+      afterSelectionFocusSet: 0,
+      afterSelectionEnd: 1,
+      afterSelectionEndByProp: 1,
+      afterIsMultipleSelection: 5,
+      afterDeselect: 0,
+    });
+
+    await grid.goto();
+    await grid.selectCells([[0, 0, 0, 0], [5, 2, 7, 4], [4, 0, 4, 0]]);
+
+    const threeLayersBefore = await grid.selectionHookCounts();
+
+    await grid.merge(5, 2, 7, 4);
+
+    expect(hookDelta(threeLayersBefore, await grid.selectionHookCounts())).toEqual({
+      beforeSetRangeStart: 0,
+      beforeSetRangeStartOnly: 3,
+      beforeSetRangeEnd: 3,
+      beforeSelectionHighlightSet: 3,
+      beforeSelectionFocusSet: 0,
+      afterSelection: 3,
+      afterSelectionByProp: 3,
+      afterSelectionFocusSet: 0,
+      afterSelectionEnd: 1,
+      afterSelectionEndByProp: 1,
+      afterIsMultipleSelection: 6,
+      afterDeselect: 0,
+    });
+  });
 });
+
+/**
+ * Counts each selection hook fired between two snapshots.
+ */
+function hookDelta(
+  before: Record<string, number>,
+  after: Record<string, number>,
+): Record<string, number> {
+  return Object.fromEntries(Object.keys(after).map(key => [key, after[key] - before[key]]));
+}
