@@ -1,0 +1,712 @@
+{
+  "ranAt": "2026-10-20T12:35:11.814Z",
+  "today": "2026-10-20",
+  "model": "gpt-5.6-luna",
+  "boot": {
+    "ready": "1",
+    "dataset": "orders",
+    "columns": [
+      "order_id",
+      "customer",
+      "country",
+      "region",
+      "product",
+      "category",
+      "quantity",
+      "unit_price",
+      "total",
+      "status",
+      "order_date",
+      "ship_date",
+      "priority",
+      "rep"
+    ],
+    "rows": 36,
+    "contract": true,
+    "conditions": [
+      "empty",
+      "not_empty",
+      "eq",
+      "neq",
+      "gt",
+      "gte",
+      "lt",
+      "lte",
+      "between",
+      "not_between"
+    ]
+  },
+  "consoleErrors": [],
+  "results": [
+    {
+      "id": "orders-paid",
+      "dataset": "orders",
+      "prompt": "show only paid orders",
+      "status": "applied",
+      "explanation": "Filtered the orders to show only those with paid status.",
+      "ms": 3902,
+      "wallMs": 4046,
+      "costUsd": 0.00019801999999999998,
+      "tokens": 2912,
+      "turns": 1,
+      "beforeRows": 36,
+      "afterRows": 8,
+      "headers": [
+        "order_id",
+        "customer",
+        "country",
+        "region",
+        "product",
+        "category",
+        "quantity",
+        "unit_price",
+        "total",
+        "status",
+        "order_date",
+        "ship_date",
+        "priority",
+        "rep"
+      ],
+      "state": {
+        "sort": {
+          "columns": []
+        },
+        "filters": [
+          {
+            "column": "status",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "by_value",
+                "args": [
+                  [
+                    "paid"
+                  ]
+                ]
+              }
+            ]
+          }
+        ],
+        "hiddenColumns": []
+      },
+      "undo": {
+        "before": 8,
+        "after": 36,
+        "available": true
+      }
+    },
+    {
+      "id": "orders-emea-high",
+      "dataset": "orders",
+      "prompt": "EMEA orders with high priority, newest order date first",
+      "status": "applied",
+      "explanation": "Filtered to EMEA orders with high priority and sorted by newest order date first.",
+      "ms": 3629,
+      "wallMs": 3635,
+      "costUsd": 0.0009605,
+      "tokens": 3018,
+      "turns": 1,
+      "beforeRows": 36,
+      "afterRows": 8,
+      "headers": [
+        "order_id",
+        "customer",
+        "country",
+        "region",
+        "product",
+        "category",
+        "quantity",
+        "unit_price",
+        "total",
+        "status",
+        "order_date",
+        "ship_date",
+        "priority",
+        "rep"
+      ],
+      "state": {
+        "sort": {
+          "columns": [
+            {
+              "column": "order_date",
+              "sortOrder": "desc"
+            }
+          ]
+        },
+        "filters": [
+          {
+            "column": "region",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "by_value",
+                "args": [
+                  [
+                    "EMEA"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "column": "priority",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "by_value",
+                "args": [
+                  [
+                    "high"
+                  ]
+                ]
+              }
+            ]
+          }
+        ],
+        "hiddenColumns": []
+      },
+      "undo": null
+    },
+    {
+      "id": "orders-hide",
+      "dataset": "orders",
+      "prompt": "hide the rep and region columns",
+      "status": "applied",
+      "explanation": "The rep and region columns are hidden.",
+      "ms": 2820,
+      "wallMs": 2911,
+      "costUsd": 0.00079605,
+      "tokens": 2877,
+      "turns": 1,
+      "beforeRows": 36,
+      "afterRows": 36,
+      "headers": [
+        "order_id",
+        "customer",
+        "country",
+        "region",
+        "product",
+        "category",
+        "quantity",
+        "unit_price",
+        "total",
+        "status",
+        "order_date",
+        "ship_date",
+        "priority",
+        "rep"
+      ],
+      "state": {
+        "sort": {
+          "columns": []
+        },
+        "filters": [],
+        "hiddenColumns": [
+          "rep",
+          "region"
+        ]
+      },
+      "undo": null
+    },
+    {
+      "id": "orders-last-7",
+      "dataset": "orders",
+      "prompt": "orders from the last 7 days",
+      "status": "applied",
+      "explanation": "Filtered orders to those placed in the last 7 days.",
+      "ms": 2719,
+      "wallMs": 2724,
+      "costUsd": 0.0008719,
+      "tokens": 2941,
+      "turns": 1,
+      "beforeRows": 36,
+      "afterRows": 7,
+      "headers": [
+        "order_id",
+        "customer",
+        "country",
+        "region",
+        "product",
+        "category",
+        "quantity",
+        "unit_price",
+        "total",
+        "status",
+        "order_date",
+        "ship_date",
+        "priority",
+        "rep"
+      ],
+      "state": {
+        "sort": {
+          "columns": []
+        },
+        "filters": [
+          {
+            "column": "order_date",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "between",
+                "args": [
+                  "2026-10-14",
+                  "2026-10-20"
+                ]
+              }
+            ]
+          }
+        ],
+        "hiddenColumns": []
+      },
+      "undo": null
+    },
+    {
+      "id": "orders-qty",
+      "dataset": "orders",
+      "prompt": "quantity at least 10, sort by total descending",
+      "status": "applied",
+      "explanation": "Filtered quantity to values at least 10 and sorted total in descending order.",
+      "ms": 3339,
+      "wallMs": 3345,
+      "costUsd": 0.0008666500000000001,
+      "tokens": 2939,
+      "turns": 1,
+      "beforeRows": 36,
+      "afterRows": 9,
+      "headers": [
+        "order_id",
+        "customer",
+        "country",
+        "region",
+        "product",
+        "category",
+        "quantity",
+        "unit_price",
+        "total",
+        "status",
+        "order_date",
+        "ship_date",
+        "priority",
+        "rep"
+      ],
+      "state": {
+        "sort": {
+          "columns": [
+            {
+              "column": "total",
+              "sortOrder": "desc"
+            }
+          ]
+        },
+        "filters": [
+          {
+            "column": "quantity",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "gte",
+                "args": [
+                  10
+                ]
+              }
+            ]
+          }
+        ],
+        "hiddenColumns": []
+      },
+      "undo": null
+    },
+    {
+      "id": "orders-countries",
+      "dataset": "orders",
+      "prompt": "only Germany or France",
+      "status": "applied",
+      "explanation": "Filtered the country column to Germany or France.",
+      "ms": 2602,
+      "wallMs": 2608,
+      "costUsd": 0.00084835,
+      "tokens": 2919,
+      "turns": 1,
+      "beforeRows": 36,
+      "afterRows": 8,
+      "headers": [
+        "order_id",
+        "customer",
+        "country",
+        "region",
+        "product",
+        "category",
+        "quantity",
+        "unit_price",
+        "total",
+        "status",
+        "order_date",
+        "ship_date",
+        "priority",
+        "rep"
+      ],
+      "state": {
+        "sort": {
+          "columns": []
+        },
+        "filters": [
+          {
+            "column": "country",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "by_value",
+                "args": [
+                  [
+                    "Germany",
+                    "France"
+                  ]
+                ]
+              }
+            ]
+          }
+        ],
+        "hiddenColumns": []
+      },
+      "undo": null
+    },
+    {
+      "id": "orders-clear",
+      "dataset": "orders",
+      "prompt": "clear all filters, sorting, and hidden columns",
+      "status": "applied",
+      "explanation": "All filters, sorting, and hidden columns are cleared.",
+      "ms": 2466,
+      "wallMs": 2474,
+      "costUsd": 0.0007907999999999999,
+      "tokens": 2875,
+      "turns": 1,
+      "beforeRows": 36,
+      "afterRows": 36,
+      "headers": [
+        "order_id",
+        "customer",
+        "country",
+        "region",
+        "product",
+        "category",
+        "quantity",
+        "unit_price",
+        "total",
+        "status",
+        "order_date",
+        "ship_date",
+        "priority",
+        "rep"
+      ],
+      "state": {
+        "sort": {
+          "columns": []
+        },
+        "filters": [],
+        "hiddenColumns": []
+      },
+      "undo": null
+    },
+    {
+      "id": "orders-group",
+      "dataset": "orders",
+      "prompt": "group by country and sum the total",
+      "status": "not_expressible",
+      "explanation": "Grouping by country and summing total require grouping and aggregation, which are not supported.",
+      "ms": 2790,
+      "wallMs": 2796,
+      "costUsd": 0.0008671,
+      "tokens": 2937,
+      "turns": 1,
+      "beforeRows": 36,
+      "afterRows": 36,
+      "headers": [
+        "order_id",
+        "customer",
+        "country",
+        "region",
+        "product",
+        "category",
+        "quantity",
+        "unit_price",
+        "total",
+        "status",
+        "order_date",
+        "ship_date",
+        "priority",
+        "rep"
+      ],
+      "state": {
+        "sort": {
+          "columns": []
+        },
+        "filters": [],
+        "hiddenColumns": []
+      },
+      "undo": null
+    },
+    {
+      "id": "tickets-open-p0",
+      "dataset": "tickets",
+      "prompt": "open P0 bugs",
+      "status": "applied",
+      "explanation": "Showing open bugs with priority P0.",
+      "ms": 3593,
+      "wallMs": 3662,
+      "costUsd": 0.0008715499999999999,
+      "tokens": 2742,
+      "turns": 1,
+      "beforeRows": 32,
+      "afterRows": 2,
+      "headers": [
+        "id",
+        "title",
+        "assignee",
+        "status",
+        "priority",
+        "type",
+        "created_at",
+        "due_date",
+        "story_points",
+        "component",
+        "reporter",
+        "tags"
+      ],
+      "state": {
+        "sort": {
+          "columns": []
+        },
+        "filters": [
+          {
+            "column": "status",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "open"
+                ]
+              }
+            ]
+          },
+          {
+            "column": "priority",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "P0"
+                ]
+              }
+            ]
+          },
+          {
+            "column": "type",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "bug"
+                ]
+              }
+            ]
+          }
+        ],
+        "hiddenColumns": []
+      },
+      "undo": null
+    },
+    {
+      "id": "tickets-hide-sort",
+      "dataset": "tickets",
+      "prompt": "hide story points and tags, sort by due date ascending",
+      "status": "applied",
+      "explanation": "Sorted by due date ascending and hid story points and tags.",
+      "ms": 2972,
+      "wallMs": 2987,
+      "costUsd": 0.0007664999999999999,
+      "tokens": 2660,
+      "turns": 1,
+      "beforeRows": 32,
+      "afterRows": 32,
+      "headers": [
+        "id",
+        "title",
+        "assignee",
+        "status",
+        "priority",
+        "type",
+        "created_at",
+        "due_date",
+        "story_points",
+        "component",
+        "reporter",
+        "tags"
+      ],
+      "state": {
+        "sort": {
+          "columns": [
+            {
+              "column": "due_date",
+              "sortOrder": "asc"
+            }
+          ]
+        },
+        "filters": [],
+        "hiddenColumns": [
+          "story_points",
+          "tags"
+        ]
+      },
+      "undo": null
+    },
+    {
+      "id": "tickets-month",
+      "dataset": "tickets",
+      "prompt": "created this month and not done",
+      "status": "applied",
+      "explanation": "Filtered issues created this month whose status is not done.",
+      "ms": 2814,
+      "wallMs": 2821,
+      "costUsd": 0.0008396499999999999,
+      "tokens": 2717,
+      "turns": 1,
+      "beforeRows": 32,
+      "afterRows": 11,
+      "headers": [
+        "id",
+        "title",
+        "assignee",
+        "status",
+        "priority",
+        "type",
+        "created_at",
+        "due_date",
+        "story_points",
+        "component",
+        "reporter",
+        "tags"
+      ],
+      "state": {
+        "sort": {
+          "columns": []
+        },
+        "filters": [
+          {
+            "column": "created_at",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "between",
+                "args": [
+                  "2026-10-01",
+                  "2026-10-31"
+                ]
+              }
+            ]
+          },
+          {
+            "column": "status",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "neq",
+                "args": [
+                  "done"
+                ]
+              }
+            ]
+          }
+        ],
+        "hiddenColumns": []
+      },
+      "undo": null
+    },
+    {
+      "id": "tickets-unassigned",
+      "dataset": "tickets",
+      "prompt": "unassigned tickets",
+      "status": "applied",
+      "explanation": "Filtered tickets to those with no assignee.",
+      "ms": 3212,
+      "wallMs": 3217,
+      "costUsd": 0.0007753,
+      "tokens": 2661,
+      "turns": 1,
+      "beforeRows": 32,
+      "afterRows": 7,
+      "headers": [
+        "id",
+        "title",
+        "assignee",
+        "status",
+        "priority",
+        "type",
+        "created_at",
+        "due_date",
+        "story_points",
+        "component",
+        "reporter",
+        "tags"
+      ],
+      "state": {
+        "sort": {
+          "columns": []
+        },
+        "filters": [
+          {
+            "column": "assignee",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "empty",
+                "args": []
+              }
+            ]
+          }
+        ],
+        "hiddenColumns": []
+      },
+      "undo": null
+    },
+    {
+      "id": "tickets-average",
+      "dataset": "tickets",
+      "prompt": "average story points by component",
+      "status": "not_expressible",
+      "explanation": "Averaging story points by component requires aggregation and grouping, which are not supported.",
+      "ms": 2777,
+      "wallMs": 2784,
+      "costUsd": 0.0007997999999999999,
+      "tokens": 2683,
+      "turns": 1,
+      "beforeRows": 32,
+      "afterRows": 32,
+      "headers": [
+        "id",
+        "title",
+        "assignee",
+        "status",
+        "priority",
+        "type",
+        "created_at",
+        "due_date",
+        "story_points",
+        "component",
+        "reporter",
+        "tags"
+      ],
+      "state": {
+        "sort": {
+          "columns": []
+        },
+        "filters": [],
+        "hiddenColumns": []
+      },
+      "undo": null
+    }
+  ]
+}

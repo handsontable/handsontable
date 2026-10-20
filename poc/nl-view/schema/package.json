@@ -1,0 +1,14 @@
+{
+  "name": "nl-view-schema",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5199 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 5199 --strictPort"
+  },
+  "devDependencies": {
+    "sass": "^1.89.0",
+    "vite": "^6.3.5"
+  }
+}

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>nl-view schema</title>
+  <link rel="icon" href="data:," />
+</head>
+<body>
+  <header>
+    <h1>nl-view A · schema</h1>
+    <p class="sub">Type a view. The grid filters, sorts, or hides columns. One prompt is one undo.</p>
+  </header>
+  <section class="controls">
+    <label>Dataset
+      <select id="dataset">
+        <option value="orders">orders</option>
+        <option value="tickets">tickets</option>
+      </select>
+    </label>
+    <label class="grow">Request
+      <input id="prompt" type="text" placeholder="paid EMEA orders from the last 7 days, newest first" />
+    </label>
+    <button id="apply" type="button">Apply</button>
+    <button id="undo" type="button">Undo</button>
+    <button id="reset" type="button">Reset view</button>
+    <label class="check"><input id="sample" type="checkbox" checked /> sample values</label>
+  </section>
+  <p id="explanation" class="explanation"></p>
+  <p id="not-expressible" class="not-expressible" hidden></p>
+  <p id="error" class="error" hidden></p>
+  <p id="meta" class="meta"></p>
+  <div id="grid"></div>
+  <details id="debug" open>
+    <summary>Debug</summary>
+    <pre id="debug-body"></pre>
+  </details>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
