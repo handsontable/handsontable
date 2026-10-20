@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MergeCells selection highlight fixture (DEV-542, DEV-741)</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.htSelectionHooks = { afterSelection: 0, afterSelectionEnd: 0 };
+
+    window.hot = new Handsontable(container, {
+      data: Array.from({ length: 30 }, (unused, row) =>
+        Array.from({ length: 8 }, (unusedCol, column) => `${String.fromCharCode(65 + column)}${row + 1}`)),
+      rowHeaders: true,
+      colHeaders: true,
+      width: 500,
+      height: 180,
+      // F2:G3 is the merged cell a later selection layer covers. B2:D4 is the merge `unmerge()`
+      // dissolves. The rest of the grid stays plain so a merge can be created on a free range.
+      mergeCells: [
+        { row: 1, col: 5, rowspan: 2, colspan: 2 },
+        { row: 1, col: 1, rowspan: 3, colspan: 3 },
+      ],
+      contextMenu: true,
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      afterGetColHeader(column, th) {
+        th.setAttribute('data-testid', `col-header-${column}`);
+      },
+      afterSelection() {
+        window.htSelectionHooks.afterSelection += 1;
+      },
+      afterSelectionEnd() {
+        window.htSelectionHooks.afterSelectionEnd += 1;
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

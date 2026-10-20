@@ -428,6 +428,11 @@ export class MergeCells extends BasePlugin {
    * @type {Array}
    */
   #pasteUnmergeSnapshot: MergeAreaGeometry[] = [];
+  /**
+   * Set while `merge()` / `unmerge()` replay the selection, so a selection hook that merges again
+   * cannot replay a second time.
+   */
+  #reselecting = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -1644,8 +1649,11 @@ export class MergeCells extends BasePlugin {
   merge(startRow: number, startColumn: number, endRow: number, endColumn: number): void {
     const start = this.hot._createCellCoords(startRow, startColumn);
     const end = this.hot._createCellCoords(endRow, endColumn);
+    const merged = this.mergeRange(this.hot._createCellRange(start, start, end));
 
-    this.mergeRange(this.hot._createCellRange(start, start, end));
+    if (merged !== false) {
+      this.#reselectIntersectingSelection(startRow, startColumn, endRow, endColumn);
+    }
   }
 
   /**
@@ -1661,8 +1669,68 @@ export class MergeCells extends BasePlugin {
   unmerge(startRow: number, startColumn: number, endRow: number, endColumn: number): void {
     const start = this.hot._createCellCoords(startRow, startColumn);
     const end = this.hot._createCellCoords(endRow, endColumn);
+    const cellRange = this.hot._createCellRange(start, start, end);
+    const removed = this.mergedCellsCollection.getWithinRange(cellRange).length > 0;
 
-    this.unmergeRange(this.hot._createCellRange(start, start, end));
+    this.unmergeRange(cellRange);
+
+    if (removed) {
+      this.#reselectIntersectingSelection(startRow, startColumn, endRow, endColumn);
+    }
+  }
+
+  /**
+   * Replays the selection after `merge()` or `unmerge()` when a range meets the changed rectangle,
+   * which is what the context menu does with `selectCell`. The highlight committed before the merge
+   * existed otherwise stays on screen. `shift` keeps the viewport still. A selection that does not
+   * meet the rectangle is left alone, and so are the selection hooks. The replay does fire
+   * `afterSelection`, `afterSelectionByProp`, and `afterSelectionEnd`.
+   *
+   * @param {number} startRow Visual start row of the changed rectangle.
+   * @param {number} startColumn Visual start column of the changed rectangle.
+   * @param {number} endRow Visual end row of the changed rectangle.
+   * @param {number} endColumn Visual end column of the changed rectangle.
+   */
+  #reselectIntersectingSelection(
+    startRow: number, startColumn: number, endRow: number, endColumn: number
+  ): void {
+    if (this.#reselecting || !this.hot.selection.isSelected()) {
+      return;
+    }
+
+    const topRow = Math.min(startRow, endRow);
+    const bottomRow = Math.max(startRow, endRow);
+    const leftColumn = Math.min(startColumn, endColumn);
+    const rightColumn = Math.max(startColumn, endColumn);
+    const area = this.hot._createCellRange(
+      this.hot._createCellCoords(topRow, leftColumn),
+      this.hot._createCellCoords(topRow, leftColumn),
+      this.hot._createCellCoords(bottomRow, rightColumn),
+    );
+    const ranges = this.hot.getSelectedRange();
+
+    if (!ranges?.some(range => range.overlaps(area))) {
+      return;
+    }
+
+    const { selection } = this.hot;
+    const isSourceUnset = selection.getSelectionSource() === 'unknown';
+
+    if (isSourceUnset) {
+      selection.markSource('shift');
+    }
+
+    this.#reselecting = true;
+
+    try {
+      selection.refresh();
+    } finally {
+      this.#reselecting = false;
+
+      if (isSourceUnset) {
+        selection.markEndSource();
+      }
+    }
   }
 
   /**
