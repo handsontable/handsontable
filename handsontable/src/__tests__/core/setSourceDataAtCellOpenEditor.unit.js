@@ -80,4 +80,31 @@ describe('setSourceDataAtCell() and an open editor', () => {
 
     hot.destroy();
   });
+
+  it('should compare a numeric column as the raw index it writes, with remapped columns', () => {
+    const hot = buildGridWithOpenEditor({ columns: [{ data: 1 }, { data: 0 }] });
+
+    // The editor edits visual column 1, which reads `dataRow[0]`; this writes `dataRow[1]`.
+    hot.setSourceDataAtCell(0, 1, 'from server');
+
+    expect(hot.getActiveEditor().getValue()).toBe('typed');
+
+    hot.setSourceDataAtCell(0, 0, 'from server');
+
+    expect(hot.getActiveEditor().getValue()).toBe('from server');
+
+    hot.destroy();
+  });
+
+  it('should still reposition the editor when it keeps the typed text', () => {
+    const hot = buildGridWithOpenEditor();
+    const refreshDimensions = jest.spyOn(hot.getActiveEditor(), 'refreshDimensions');
+
+    hot.setSourceDataAtCell(2, 1, 'from server');
+
+    expect(refreshDimensions).toHaveBeenCalled();
+    expect(hot.getActiveEditor().getValue()).toBe('typed');
+
+    hot.destroy();
+  });
 });

@@ -2843,10 +2843,8 @@ export default function Core(
     const physicalRow = instance.toPhysicalRow(activeEditor.row!);
     const editedProp = activeEditor.prop;
 
-    return changes.some(([changeRow, changeProp]) => changeRow === physicalRow && (
-      changeProp === editedProp ||
-      (typeof changeProp === 'number' && instance.colToProp(instance.toVisualColumn(changeProp)!) === editedProp)
-    ));
+    // `setAtCell()` writes a numeric column as the raw index (`dataRow[n]`), so it is compared as a prop.
+    return changes.some(([changeRow, changeProp]) => changeRow === physicalRow && changeProp === editedProp);
   }
 
   /**
@@ -3529,19 +3527,22 @@ export default function Core(
    * @returns {Array} List of changes finally applied to the dataset.
    */
   function processChanges(changes: Array<CellChange | null>, source: string | undefined): CellChange[] {
-    // Read before the hook, which can replace a change with `null`.
-    const requestedChanges = changes.filter((change): change is CellChange => change !== null);
+    const openedEditor = instance.getActiveEditor();
+    // Read before the hook, which can replace a change with `null`, and only while an editor is open: a
+    // paste or a fill writes with none, and must not pay for a copy of its changes.
+    const writesEditedCell = openedEditor?.isOpened()
+      ? hasChangeForCell(changes.filter((change): change is CellChange => change !== null), openedEditor.row!,
+        openedEditor.prop!)
+      : true;
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     // The `beforeChange` hook could add a `null` for purpose of canceling some dataset's change.
     const filteredChanges = changes.filter((change): change is CellChange => change !== null);
 
     if (beforeChangeResult === false || filteredChanges.length === 0) {
-      const activeEditor = instance.getActiveEditor();
-
       // An open editor is canceled only when the vetoed call wrote its own cell: a vetoed write to another
       // cell (an application's background update) must not throw away what the user is typing.
-      if (!activeEditor?.isOpened() || hasChangeForCell(requestedChanges, activeEditor.row!, activeEditor.prop!)) {
-        activeEditor?.cancelChanges();
+      if (writesEditedCell) {
+        instance.getActiveEditor()?.cancelChanges();
       }
 
       return [];
@@ -6465,6 +6466,10 @@ export default function Core(
       (!activeEditor.isOpened() || doesSourceChangeAffectOpenedEditor(input, activeEditor))
     ) {
       (activeEditor.refreshValue as () => void)();
+
+    } else if (activeEditor?.isOpened()) {
+      // `refreshValue()` also repositions the editor; the write can still have resized a row above it.
+      (activeEditor as BaseEditor & { refreshDimensions?: () => void }).refreshDimensions?.();
     }
   }
 
