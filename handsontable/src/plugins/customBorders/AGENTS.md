@@ -164,7 +164,22 @@ was set at, which by then held another record. Two defects drove it:
 
 Hidden rows (`hiddenRows`) keep their visual indexes, so `afterHideRows` needs no rebuild. Sorting and
 row moves are not covered by this rebuild. A progressive load still in flight is flushed first, so the
-rebuild (which cancels the load) cannot drop its pending batches. The trim plugin does not render after
+rebuild (which cancels the load) cannot drop its pending batches, and it is flushed from
+`beforeFilter`/`beforeTrimRow`/`beforeUntrimRow` (review round 12): flushed from the `after*` hooks,
+its queued VISUAL rows landed on the records the trim had shifted into those positions.
+
+Three more entry points, all from review round 12:
+
+- **`updateSettings({ trimRows })` defers the rebuild too** (`#onAfterUpdateSettings`). `TrimRows#updatePlugin`
+  writes the trimming map inside `batchExecution` and fires no `afterTrimRow`, so the model kept the
+  visual row a border was drawn at while its record moved. There is no `beforeUpdateSettings` hook, so
+  on this path only a progressive load still in flight completes after the map changed.
+- **A pending rebuild runs in `beforeLoadData`/`beforeUpdateData`** (`#onBeforeDataReplacement`).
+  `loadData` drops the cell meta and keeps the model (the section above), so a rebuild left for the next
+  read found no meta and emptied the model: `trimRow(0); loadData(same)` lost the border that
+  `loadData(same)` alone keeps. Run first, it keeps the border where it was drawn. A test of this must
+  not read the model between the two calls, because any read runs the rebuild and hides the defect.
+- Pinned by `__tests__/indexChangeTiming.unit.js`. The trim plugin does not render after
 its hooks, so the trim path schedules a render; `filter()` renders right after `afterFilter`.
 
 **The rebuild is deferred and coalesced, never run from the hook.** It walks every user-defined meta

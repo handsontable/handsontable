@@ -382,9 +382,15 @@ export class CustomBorders extends BasePlugin {
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterRemoveCellMeta', this.#onAfterRemoveCellMeta);
+    this.addHook('beforeFilter', this.#onBeforeTrimmingChange);
     this.addHook('afterFilter', this.#onAfterFilter);
+    this.addHook('beforeTrimRow', this.#onBeforeTrimmingChange);
+    this.addHook('beforeUntrimRow', this.#onBeforeTrimmingChange);
     this.addHook('afterTrimRow', this.#onAfterTrimmingChange);
     this.addHook('afterUntrimRow', this.#onAfterTrimmingChange);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    this.addHook('beforeLoadData', this.#onBeforeDataReplacement);
+    this.addHook('beforeUpdateData', this.#onBeforeDataReplacement);
 
     super.enablePlugin();
   }
@@ -2056,6 +2062,42 @@ The border style will be ignored.`);
    */
   #onBeforeViewRender = () => {
     this.#syncViewportSelections();
+  };
+
+  /**
+   * `beforeFilter`, `beforeTrimRow` and `beforeUntrimRow` hook callback. A progressive load still in
+   * flight is completed here, while its visual coordinates still name the rows it was configured
+   * for: completed from the `after*` hooks, its pending batches landed on the rows the trim had
+   * shifted into those positions (review round 12).
+   */
+  #onBeforeTrimmingChange = () => {
+    this.#flushProgressiveApply();
+  };
+
+  /**
+   * `afterUpdateSettings` hook callback. `updateSettings({ trimRows })` writes the trimming map in
+   * `TrimRows#updatePlugin` without firing `afterTrimRow`, so the model kept the visual rows the
+   * borders were drawn at while their records moved (review round 12). There is no
+   * `beforeUpdateSettings` hook, so a progressive load still in flight completes after the map
+   * changed on this path only.
+   *
+   * @param {object} settings The settings passed to `updateSettings()`.
+   */
+  #onAfterUpdateSettings = (settings: Record<string, unknown>) => {
+    if (settings && hasOwnProperty(settings, 'trimRows')) {
+      this.#deferRebuildAfterIndexChange();
+      this.#scheduleMetaSyncRender();
+    }
+  };
+
+  /**
+   * `beforeLoadData` and `beforeUpdateData` hook callback. Runs a rebuild a trim or a filter deferred
+   * while the `borders` meta is still there: `loadData` drops the cell meta and keeps the model, so a
+   * rebuild left for later read no meta and emptied the model, and `trimRow(0); loadData(same)` lost
+   * a border that `loadData(same)` alone keeps (review round 12).
+   */
+  #onBeforeDataReplacement = () => {
+    this.#flushPendingModelRebuild();
   };
 
   /**
