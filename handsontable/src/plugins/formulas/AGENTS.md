@@ -439,6 +439,14 @@ is never deferred, so it keeps relying on `switchSheet()` to fill the grid. Test
 pins the `doesSheetExist` fallback; "leaves the Formulas switch load and min padding working after a
 switch threw mid-update" pins that a throwing switch leaves the flag down.
 
+**The `afterCellMetaReset` that follows the call's own load resyncs only when `cell` declares entries.**
+The load already wrote the sheet with the call's column configuration, so a resync there was a second full
+engine write and a second AutoColumnSize sweep per switch (`tests/e2e/sheet-switch-autosize.spec.ts` pins
+one). The `cell` entries are applied after the load, though, and a cell type they set can change the value
+the engine reads (a key/value dropdown resolves an object to its label), so a call with `cell` entries
+resyncs once (`#hasCellOptionEntries()`, pinned by "feeds Formulas the value a cell type from the `cell`
+option resolves on the new data" in `../sheetsBar/__tests__/deferredPluginWork.unit.js`).
+
 **`#hotWasInitializedWithEmptyData` reads the loaded array, not only the `data` setting.** It decides
 whether the engine sheet is the grid's data source, and it is set in `beforeLoadData`. Core's first
 load can carry a real array before the `data` setting is stored (the sheets bar loads its opening sheet

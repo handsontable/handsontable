@@ -3012,6 +3012,17 @@ export class Formulas extends BasePlugin {
   };
 
   /**
+   * Whether the `cell` option declares any entry.
+   *
+   * @returns {boolean}
+   */
+  #hasCellOptionEntries(): boolean {
+    const { cell } = this.hot.getSettings();
+
+    return Array.isArray(cell) && cell.length > 0;
+  }
+
+  /**
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
    *
    * The Core fires it in the middle of `updateSettings()`, before `afterUpdateSettings` and so
@@ -3021,16 +3032,17 @@ export class Formulas extends BasePlugin {
    * has no `afterUpdateSettings` pass (the Core skips the hook on its first run), so the scan
    * stays eager there; `hot.view` is what the Core creates right after that first run.
    *
-   * The reset core's `_applySettingsAndData()` fires after its own load needs no resync: that load
-   * already wrote the sheet through `#onAfterLoadData`, with the column configuration of the call in
-   * force, and a second scan cost a full engine write and an AutoColumnSize sweep per sheet switch.
-   * Known limit: a per-cell `type` that only the `cell` option of that call sets is not re-read into the
-   * engine until the next resync.
+   * The reset core's `_applySettingsAndData()` fires after its own load needs no resync when the call
+   * declares no `cell` entries: that load already wrote the sheet through `#onAfterLoadData`, with the
+   * column configuration of the call in force, and a second scan cost a full engine write and an
+   * AutoColumnSize sweep per sheet switch. `cell` entries are applied after that load, and a cell type they
+   * set can change the value the engine reads (a key/value dropdown resolves an object to its label), so
+   * such a call resyncs as any settings update does.
    */
   #onAfterCellMetaReset = () => {
     this.#closeLeakedGuards();
 
-    if (this.isDataWorkDeferred()) {
+    if (this.isDataWorkDeferred() && !this.#hasCellOptionEntries()) {
       return;
     }
 

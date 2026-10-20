@@ -1,3 +1,4 @@
+import { HyperFormula } from 'hyperformula';
 import Handsontable from '../../../index';
 
 const LICENSE_KEY = 'non-commercial-and-evaluation';
@@ -62,5 +63,22 @@ describe('plugins applied ahead of their data', () => {
 
     expect(departing[2][0]).toBe('Keep me');
     expect(hot.getDataAtCell(2, 0)).toBe(3);
+  });
+
+  it('feeds Formulas the value a cell type from the `cell` option resolves on the new data', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      data: [['x']],
+      formulas: { engine, sheetName: 'First' },
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot._applySettingsAndData({
+      formulas: { engine, sheetName: 'Second' },
+      cell: [{ row: 0, col: 0, type: 'dropdown', source: [{ key: 1, value: 'Apple' }] }],
+    }, [[{ key: 1, value: 'Apple' }, '=A1']], 'test');
+
+    expect(hot.getDataAtCell(0, 1)).toBe('Apple');
   });
 });
