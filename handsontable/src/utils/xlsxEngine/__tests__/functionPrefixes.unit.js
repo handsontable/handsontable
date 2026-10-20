@@ -126,3 +126,42 @@ describe('functionPrefixes name boundaries (review round 12)', () => {
     expect(addFunctionPrefixes('×IFS(1)')).toBe('×_xlfn.IFS(1)');
   });
 });
+
+describe('functionPrefixes LET and LAMBDA parameters (review round 12)', () => {
+  it('should prefix the parameter names of a LET call, in their declarations and their uses', () => {
+    expect(addFunctionPrefixes('LET(x,1,x+1)')).toBe('_xlfn.LET(_xlpm.x,1,_xlpm.x+1)');
+    expect(addFunctionPrefixes('LET(total,SUM(A1:A3),rate,0.2,total*rate)'))
+      .toBe('_xlfn.LET(_xlpm.total,SUM(A1:A3),_xlpm.rate,0.2,_xlpm.total*_xlpm.rate)');
+  });
+
+  it('should prefix every parameter of a LAMBDA, and leave the arguments it is called with alone', () => {
+    expect(addFunctionPrefixes('LAMBDA(x,y,x*y)(2,3)')).toBe('_xlfn.LAMBDA(_xlpm.x,_xlpm.y,_xlpm.x*_xlpm.y)(2,3)');
+  });
+
+  it('should round-trip the stored form Excel writes', () => {
+    const stored = '_xlfn.LET(_xlpm.x,_xlfn.LAMBDA(_xlpm.n,_xlpm.n*2),_xlpm.x(5))';
+
+    expect(stripFunctionPrefixes(stored)).toBe('LET(x,LAMBDA(n,n*2),x(5))');
+    expect(addFunctionPrefixes(stripFunctionPrefixes(stored))).toBe(stored);
+  });
+
+  it('should not prefix a value position, a function name, a sheet-qualified name or text in quotes', () => {
+    expect(addFunctionPrefixes('LET(x,y,x&"x"&Sheet1!x&y)'))
+      .toBe('_xlfn.LET(_xlpm.x,y,_xlpm.x&"x"&Sheet1!x&y)');
+    expect(addFunctionPrefixes('LET(s,1,SUM(s))')).toBe('_xlfn.LET(_xlpm.s,1,SUM(_xlpm.s))');
+  });
+
+  it('should keep each call\'s parameters inside that call', () => {
+    expect(addFunctionPrefixes('LET(a,1,a)+a')).toBe('_xlfn.LET(_xlpm.a,1,_xlpm.a)+a');
+    expect(addFunctionPrefixes('LET(a,LET(b,2,b),a+b)'))
+      .toBe('_xlfn.LET(_xlpm.a,_xlfn.LET(_xlpm.b,2,_xlpm.b),_xlpm.a+b)');
+  });
+
+  it('should leave an unbalanced call as written', () => {
+    expect(addFunctionPrefixes('LET(x,1,x+1')).toBe('_xlfn.LET(x,1,x+1');
+  });
+
+  it('should not touch a formula without LET or LAMBDA', () => {
+    expect(addFunctionPrefixes('IFS(x,1)+x')).toBe('_xlfn.IFS(x,1)+x');
+  });
+});

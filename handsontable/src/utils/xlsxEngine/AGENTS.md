@@ -780,6 +780,14 @@ directions.
   (`stripFunctionPrefixes`). `NETWORKDAYS.INTL`, `WORKDAY.INTL`, `ISO.CEILING` and `ECMA.CEILING`
   are NOT in the add list: Excel for the web re-saves them bare, and LibreOffice shows `#NAME?` for
   the prefixed form. The strip still removes a prefix on them, because Google Sheets writes one.
+  `addFunctionPrefixes` also writes `_xlpm.` on every parameter of a `LET`/`LAMBDA` call, in the
+  declarations and the uses inside that call, a call of a bound lambda (`_xlpm.dbl(21)`) included
+  (review round 12). The strip removes `_xlpm.` on import, so writing the bare name back was the
+  only way an imported `LET` lost it. Parameters are scoped to their call (a nested call is
+  processed first), a sheet-qualified `Sheet1!x` is never a parameter, and inside its call a
+  parameter wins over a function of the same name. An unbalanced call is left as written. Desktop
+  Excel's reading of the bare form (`#NAME?`) was not checked in this session; the stored form
+  matches what Excel itself writes.
 - **A cached formula ERROR is written `t="e"`, and only when the snapshot says so** (QA round 7).
   `CellFormula.resultIsError` (`model.ts`) marks `result` as an OOXML error code; the native writer
   types the cell `e` (`formulaCellXml`) and the ExcelJS adapter hands `{ error: code }` to ExcelJS

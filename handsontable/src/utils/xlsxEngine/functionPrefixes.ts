@@ -148,15 +148,16 @@ export function stripFunctionPrefixes(formula: string): string {
 
 /**
  * Adds the prefix Excel expects in a stored formula in front of every function added after
- * Excel 2007 (`IFS(` becomes `_xlfn.IFS(`, `SORT(` becomes `_xlfn._xlws.SORT(`). A name is
- * prefixed only when a `(` follows it, so a defined name that happens to match is left alone, and
- * a name that already carries a prefix is kept as it is.
+ * Excel 2007 (`IFS(` becomes `_xlfn.IFS(`, `SORT(` becomes `_xlfn._xlws.SORT(`), and in front of
+ * every parameter name of a `LET` or `LAMBDA` call (`_xlpm.x`). A name is prefixed as a function
+ * only when a `(` follows it, so a defined name that happens to match is left alone, and a name that
+ * already carries a prefix is kept as it is.
  *
  * @param {string} formula The formula, without the leading `=`.
  * @returns {string}
  */
 export function addFunctionPrefixes(formula: string): string {
-  return mapNames(formula, (name, end) => {
+  const prefixed = mapNames(formula, (name, end) => {
     if (formula[end] !== '(') {
       return name;
     }
@@ -172,5 +173,190 @@ export function addFunctionPrefixes(formula: string): string {
     }
 
     return name;
+  });
+
+  return PARAMETER_CALL_HINT.test(prefixed) ? addParameterPrefixes(prefixed) : prefixed;
+}
+
+/**
+ * Matches a stored `LET` or `LAMBDA` call, the cheap test that decides whether the parameter pass
+ * has to walk the formula at all.
+ */
+const PARAMETER_CALL_HINT = /_xlfn\.(?:LET|LAMBDA)\(/i;
+
+/**
+ * A name a `LET` or `LAMBDA` call may declare as a parameter. Anything else in a parameter
+ * position (an expression, a name that already carries `_xlpm.`) is left as written.
+ */
+const PARAMETER_NAME = /^[\p{L}_\\][\p{L}\p{N}_.]*$/u;
+
+/**
+ * Returns the index of the `)` that closes the call whose `(` is at `open`, or `-1` when the formula
+ * ends first. Quoted runs are skipped.
+ *
+ * @param {string} formula The formula.
+ * @param {number} open The index of the opening parenthesis.
+ * @returns {number}
+ */
+function findClosingParen(formula: string, open: number): number {
+  let depth = 0;
+  let index = open;
+
+  while (index < formula.length) {
+    const char = formula[index];
+
+    if (char === '"' || char === '\'') {
+      index = skipQuoted(formula, index);
+    } else {
+      if (char === '(') {
+        depth += 1;
+      } else if (char === ')') {
+        depth -= 1;
+
+        if (depth === 0) {
+          return index;
+        }
+      }
+
+      index += 1;
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * Splits a call's argument text at its top-level commas. Quoted runs, parentheses and array
+ * constants (`{1,2}`) keep their commas.
+ *
+ * @param {string} args The text between the call's parentheses.
+ * @returns {string[]}
+ */
+function splitArguments(args: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  let index = 0;
+
+  while (index < args.length) {
+    const char = args[index];
+
+    if (char === '"' || char === '\'') {
+      index = skipQuoted(args, index);
+    } else {
+      if (char === '(' || char === '{') {
+        depth += 1;
+      } else if (char === ')' || char === '}') {
+        depth -= 1;
+      } else if (char === ',' && depth === 0) {
+        parts.push(args.slice(start, index));
+        start = index + 1;
+      }
+
+      index += 1;
+    }
+  }
+
+  parts.push(args.slice(start));
+
+  return parts;
+}
+
+/**
+ * The parameter names a stored `LET` or `LAMBDA` call declares, upper-cased: every argument but
+ * the last of a `LAMBDA`, and every other argument but the last of a `LET` (the rest are values).
+ *
+ * @param {string} upperFunction `_XLFN.LET` or `_XLFN.LAMBDA`.
+ * @param {string[]} args The call's arguments.
+ * @returns {Set<string>}
+ */
+function declaredParameters(upperFunction: string, args: string[]): Set<string> {
+  const names = new Set<string>();
+
+  args.slice(0, -1).forEach((arg, position) => {
+    const name = arg.trim();
+
+    if ((upperFunction === '_XLFN.LAMBDA' || position % 2 === 0) && PARAMETER_NAME.test(name)) {
+      names.add(name.toUpperCase());
+    }
+  });
+
+  return names;
+}
+
+/**
+ * Adds `_xlpm.` in front of every parameter name of every stored `LET` and `LAMBDA` call, in the
+ * declarations and in their uses inside the call. Excel stores them that way and, as the import
+ * strips the prefix, writing the bare name back made Excel read it as an unknown name and show
+ * `#NAME?` (review round 12). A parameter called as a function (`x(5)`, a `LAMBDA` bound by `LET`)
+ * is a use too, and inside its call the parameter wins over a function of the same name; a
+ * sheet-qualified name (`Sheet1!x`) is not. A nested call is handled first, so its own parameters are prefixed before the outer call's
+ * names are matched.
+ *
+ * @param {string} formula The formula, already carrying its `_xlfn.` prefixes.
+ * @returns {string}
+ */
+function addParameterPrefixes(formula: string): string {
+  let result = '';
+  let index = 0;
+
+  while (index < formula.length) {
+    const char = formula[index];
+
+    if (char === '"' || char === '\'') {
+      const end = skipQuoted(formula, index);
+
+      result += formula.slice(index, end);
+      index = end;
+
+    } else if (isNameChar(char)) {
+      let end = index + 1;
+
+      while (end < formula.length && isNameChar(formula[end])) {
+        end += 1;
+      }
+
+      const name = formula.slice(index, end);
+      const upperName = name.toUpperCase();
+      const close = formula[end] === '(' && (upperName === '_XLFN.LET' || upperName === '_XLFN.LAMBDA')
+        ? findClosingParen(formula, end) : -1;
+
+      if (close === -1) {
+        result += name;
+        index = end;
+      } else {
+        const inner = addParameterPrefixes(formula.slice(end + 1, close));
+        const parameters = declaredParameters(upperName, splitArguments(inner));
+
+        result += `${name}(${prefixParameterUses(inner, parameters)})`;
+        index = close + 1;
+      }
+
+    } else {
+      result += char;
+      index += 1;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Prefixes every use of the given parameter names in a call's argument text.
+ *
+ * @param {string} args The text between the call's parentheses.
+ * @param {Set<string>} parameters The upper-cased parameter names.
+ * @returns {string}
+ */
+function prefixParameterUses(args: string, parameters: Set<string>): string {
+  if (parameters.size === 0) {
+    return args;
+  }
+
+  return mapNames(args, (name, end) => {
+    const start = end - name.length;
+    const isUse = parameters.has(name.toUpperCase()) && args[start - 1] !== '!';
+
+    return isUse ? `_xlpm.${name}` : name;
   });
 }
