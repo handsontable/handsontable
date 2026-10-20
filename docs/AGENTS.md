@@ -982,11 +982,29 @@ concluding anything from a golden you read back.
   is the reason. Add the label and press "Re-run all jobs". Drop the label gate once the baseline has proven
   stable; the comment in `docs.yml`'s `visual` job marks the spot.
 - **The functional specs run on every docs pull request, report-only for one sprint.**
-  `playwright.config.ts` has two projects, `visual` (`visualDocs.spec.ts`) and `functional` (everything
-  else); a bare `npx playwright test` still runs both. `docs.yml`'s `functional` job runs
-  `--project=functional` against the preview with `continue-on-error: true`, writes one line to the job
-  summary, and uploads `docs-functional-report` (7 days). After a sprint of green, flip `continue-on-error`
-  off.
+  `playwright.config.ts` has two projects, `visual` (`visualDocs.spec.ts`) and `functional` (every other
+  `*.spec.ts`); a bare `npx playwright test` still runs both. `docs.yml`'s `functional` job runs
+  `--project=functional` against the preview with `continue-on-error: true`, writes one line with the
+  counts to the job summary, and uploads `docs-functional-report` (7 days). After a sprint of green, flip
+  `continue-on-error` off - and "green" means a run with a non-zero count, never the summary word alone.
+  Two rules keep the count honest. **Every project collects `*.spec.ts` only** (the top-level `testMatch`
+  in `playwright.config.ts`, so a project added later inherits it; `visual` narrows it further):
+  Playwright's default also takes `*.test.*`, which imported the `node:test` files under
+  `tests/lib/__tests__` (they belong to the root `npm run test:tooling`), one of them failed to load, and
+  the whole collection aborted, so every functional run listed 0 tests while the summary read "failed" like
+  any red spec. A `node:test` file stays `*.test.mjs`, and the pattern keeps it out. **Report-only covers a
+  failing spec, not a run that never started**: the job's last step, `Check that the functional specs ran`,
+  fails the job, and so blocks the merge, when `report.json` holds no test that ran. It reads only that count:
+  a load error always shows as 0, and an error outside a test in a run that did run its specs stays
+  report-only. It is not the seed's fast check (`Check that the example grids are laid out` in
+  `docs-visual-run`), which also refuses any skipped test; keep the two apart, because matching either to
+  the other loosens the seed gate or blocks a docs pull request over a `fixme`. A targeted run
+  (`npx playwright test --project=functional <file>`) never showed the bug, because a file filter skips the
+  files that break the load. To run the whole project by hand, point `BASE_URL` at a preview subdomain
+  (`https://pr-<number>.handsontable-docs-staging.pages.dev/docs`), not the bare
+  `https://handsontable-docs-staging.pages.dev/docs` alias: `demos.handsontable.com` allows framing only
+  from `https://*.handsontable-docs-staging.pages.dev`, so on the alias every recipe that embeds a demo
+  logs a `frame-ancestors` error and `recipeConsoleErrors.spec.ts` fails it (6 recipes).
 - **`PASS_COOKIE` is for `https://dev.handsontable.com/docs` only.** The spec sets it as a cookie on that
   domain; Cloudflare previews and the staging deploys need none. Callers pass `secrets.PASS_COOKIE` through
   the action's `pass-cookie` input.
