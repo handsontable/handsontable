@@ -61,4 +61,13 @@ describe('checkboxColumn template matching (DEV-355)', () => {
       expect(matchCheckboxTemplate('İ', { ...meta, locale: 'en-US' })).toBeNull();
     });
   });
+
+  describe('templates that differ only in letter case', () => {
+    it('should keep both states by matching either template exactly first', () => {
+      const meta = { checkedTemplate: 'Y', uncheckedTemplate: 'y' };
+
+      expect(matchCheckboxTemplate('Y', meta)).toBe('checked');
+      expect(matchCheckboxTemplate('y', meta)).toBe('unchecked');
+    });
+  });
 });

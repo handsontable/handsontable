@@ -78,6 +78,23 @@ describe('CheckboxCellType', () => {
       expect(set('false')).toBe(false);
     });
 
+    it('should keep both states for templates that differ only in letter case', () => {
+      const meta = { checkedTemplate: 'Y', uncheckedTemplate: 'y' };
+
+      expect(set('y', meta)).toBe('y');
+      expect(set('Y', meta)).toBe('Y');
+    });
+
+    it('should store an `UndoRedo.*` write verbatim', () => {
+      const setWithSource = (value: unknown, source: string) => CheckboxCellType.valueSetter.call(
+        { getCellMetaTransient: () => ({}) }, value, 0, 0, {}, source,
+      );
+
+      expect(setWithSource('False', 'UndoRedo.undo')).toBe('False');
+      expect(setWithSource('TRUE', 'UndoRedo.redo')).toBe('TRUE');
+      expect(setWithSource('False', 'edit')).toBe(false);
+    });
+
     it('should store a value that matches neither template unchanged', () => {
       expect(set('Ted')).toBe('Ted');
       expect(set('')).toBe('');

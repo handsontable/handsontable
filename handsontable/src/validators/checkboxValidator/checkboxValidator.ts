@@ -11,7 +11,9 @@ export const VALIDATOR_TYPE: 'checkbox' = 'checkbox';
  *
  * The `checkbox` cell type does not apply it on its own – set `validator: 'checkbox'` to opt in, and
  * add `allowInvalid: false` to reject a value such as `'Ted'` pasted or autofilled into the cell
- * instead of storing it and marking the cell invalid (DEV-355).
+ * instead of storing it and marking the cell invalid (DEV-355). The cell type does not register it
+ * either: `registerAllModules()` and `registerAllValidators()` do, and a modular build that registers
+ * only `CheckboxCellType` also calls `registerValidator(checkboxValidator)`.
  *
  * @private
  * @param {*} value Value of edited cell.
@@ -19,13 +21,15 @@ export const VALIDATOR_TYPE: 'checkbox' = 'checkbox';
  */
 export function checkboxValidator(
   this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
-  if (isEmpty(value)) {
-    callback(this.allowEmpty !== false);
+  // The templates come first: a template may itself be empty (`uncheckedTemplate: ''`), and the
+  // value it stands for is valid whatever `allowEmpty` says.
+  if (matchCheckboxTemplate(value, this) !== null) {
+    callback(true);
 
     return;
   }
 
-  callback(matchCheckboxTemplate(value, this) !== null);
+  callback(isEmpty(value) && this.allowEmpty !== false);
 }
 
 checkboxValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;

@@ -22,11 +22,16 @@ Cell validators run whenever a cell's value changes, whether a user edits, paste
 
 ## Overview
 
-When you create a validator, assign it an alias so you can reference it by name in column configuration. Handsontable DataGrid defines 5 aliases by default:
+When you create a validator, assign it an alias so you can reference it by name in column configuration. Handsontable DataGrid defines 10 aliases by default:
 
 - `autocomplete` for `Handsontable.validators.AutocompleteValidator`
+- `checkbox` for `Handsontable.validators.CheckboxValidator`
 - `date` for `Handsontable.validators.DateValidator`
 - `dropdown` for `Handsontable.validators.DropdownValidator`
+- `intl-date` for the `intlDateValidator` function
+- `intl-datetime` for the `intlDatetimeValidator` function
+- `intl-time` for the `intlTimeValidator` function
+- `multiselect` for `Handsontable.validators.MultiselectValidator`
 - `numeric` for `Handsontable.validators.NumericValidator`
 - `time` for `Handsontable.validators.TimeValidator`
 

@@ -147,7 +147,17 @@ columns: [
 ],
 ```
 
-With [`allowInvalid`](@/api/options.md#allowinvalid) set to `true` (the default), Handsontable stores the value and adds the `htInvalid` class to the cell. With `allowInvalid: false`, Handsontable rejects the value and the cell keeps its previous value. The validator accepts empty values unless you set [`allowEmpty`](@/api/options.md#allowempty) to `false`.
+With [`allowInvalid`](@/api/options.md#allowinvalid) set to `true` (the default), Handsontable stores the value and adds the `htInvalid` class to the cell. With `allowInvalid: false`, Handsontable rejects the value and the cell keeps its previous value. The validator accepts empty values unless you set [`allowEmpty`](@/api/options.md#allowempty) to `false`. A template that is itself empty (for example, `uncheckedTemplate: ''`) is always valid.
+
+The `checkbox` cell type doesn't register the validator. `registerAllModules()` does. If you register modules one by one, register the validator too:
+
+```js
+import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
+import { registerValidator, checkboxValidator } from 'handsontable/validators';
+
+registerCellType(CheckboxCellType);
+registerValidator(checkboxValidator);
+```
 
 ## Cells with no value
 

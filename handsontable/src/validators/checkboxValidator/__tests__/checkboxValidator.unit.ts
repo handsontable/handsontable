@@ -44,4 +44,12 @@ describe('checkboxValidator (DEV-355)', () => {
     expect(validate(undefined, { allowEmpty: true })).toBe(true);
     expect(validate('', { allowEmpty: false })).toBe(false);
   });
+
+  it('should accept an empty value that is itself a template, whatever `allowEmpty` says', () => {
+    expect(validate('', { uncheckedTemplate: '', allowEmpty: false })).toBe(true);
+    expect(validate('', { checkedTemplate: '', uncheckedTemplate: 'X', allowEmpty: false })).toBe(true);
+    // `null` reads as `''` in the matcher, the same as the renderer reads it, so it matches that template.
+    expect(validate(null, { uncheckedTemplate: '', allowEmpty: false })).toBe(true);
+    expect(validate(null, { checkedTemplate: 'X', uncheckedTemplate: 'Y', allowEmpty: false })).toBe(false);
+  });
 });

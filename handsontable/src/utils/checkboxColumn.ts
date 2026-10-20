@@ -44,9 +44,11 @@ export type CheckboxState = 'checked' | 'unchecked';
 /**
  * Tells which template a value matches: the value is the template itself, or reads the same as it,
  * ignoring case – so `'TRUE'` and `'False'` stand for `true` and `false`, and `'YES'` for a `'yes'`
- * template. The checkbox renderer, the checkbox value setter, the `checkbox` validator, and the
- * checkbox column helpers below all match through this function, so what a cell shows, what it
- * stores, and what passes validation cannot disagree (DEV-355).
+ * template. An exact match on either template wins over a case-insensitive one, so two templates that
+ * differ only in letter case keep both states. The checkbox renderer and its Space/Enter toggle, the
+ * checkbox value setter, the `checkbox` validator, the checkbox column sort, the XLSX export, and the
+ * checkbox column helpers below all match through this function, so they read a value the same way
+ * (DEV-355). A new surface that reads checkbox state calls it too.
  *
  * @param {*} value The cell value.
  * @param {object} meta The cell meta.
@@ -56,8 +58,17 @@ export function matchCheckboxTemplate(value: unknown, meta: CheckboxMeta): Check
   const templates = getCheckboxTemplates(meta);
   const locale = typeof meta.locale === 'string' ? meta.locale : undefined;
   const text = localeLowerCase(stringify(value), locale);
-  const matches = (template: unknown) => value === template ||
-    text === localeLowerCase(stringify(template), locale);
+  const matches = (template: unknown) => text === localeLowerCase(stringify(template), locale);
+
+  // An exact match on either template wins over a case-insensitive one, so two templates that
+  // differ only in letter case (`'Y'` and `'y'`) keep both states.
+  if (value === templates.checked) {
+    return 'checked';
+  }
+
+  if (value === templates.unchecked) {
+    return 'unchecked';
+  }
 
   if (matches(templates.checked)) {
     return 'checked';

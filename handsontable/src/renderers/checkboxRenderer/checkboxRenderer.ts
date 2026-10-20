@@ -19,6 +19,24 @@ import { BAD_VALUE_TEXT } from '../../helpers/constants';
 import { canAccessCellContent } from '../../shortcuts/guards';
 import { createIcon } from '../../themes/engine/icons';
 
+/**
+ * Tells which state the Space/Enter toggle reads a cell in: the template the value matches (the same
+ * case-insensitive match the renderer draws from, so a loaded `'TRUE'` toggles like `true`), or
+ * unchecked for an empty cell (`null` or `undefined`). A value that matches neither template is not
+ * toggled.
+ *
+ * @param {*} value The cell value.
+ * @param {object} meta The cell meta.
+ * @returns {string|null}
+ */
+function getToggleState(value: unknown, meta: CellProperties): 'checked' | 'unchecked' | null {
+  if (value === null || value === undefined) {
+    return 'unchecked';
+  }
+
+  return matchCheckboxTemplate(value, meta);
+}
+
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap<HotInstance, EventManager>();
 const BAD_VALUE_CLASS = 'htBadValue';
@@ -370,10 +388,12 @@ export function checkboxRenderer(
           const dataAtCell = hotInstance.getDataAtCell(visualRow, visualColumn);
 
           if (uncheckCheckbox === false) {
-            if ([cachedCellProperties.checkedTemplate, String(cachedCellProperties.checkedTemplate)].includes(dataAtCell)) { // eslint-disable-line max-len
+            const toggleState = getToggleState(dataAtCell, cachedCellProperties);
+
+            if (toggleState === 'checked') {
               changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate, templates]);
 
-            } else if ([cachedCellProperties.uncheckedTemplate, String(cachedCellProperties.uncheckedTemplate), null, undefined].includes(dataAtCell)) { // eslint-disable-line max-len
+            } else if (toggleState === 'unchecked') {
               changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate, templates]);
             }
 

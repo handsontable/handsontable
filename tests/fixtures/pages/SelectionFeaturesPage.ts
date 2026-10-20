@@ -171,6 +171,46 @@ export class SelectionFeaturesPage {
     }, [row, col] as const);
   }
 
+  /**
+   * Write a value through `setDataAtCell()` with an explicit change source.
+   */
+  async setCellValueWithSource(row: number, col: number, value: CellValue, source: string): Promise<void> {
+    await this.page.evaluate(([r, c, v, src]) => window.hot.setDataAtCell(r, c, v, src), [row, col, value, source] as const);
+  }
+
+  /**
+   * Whether the grid renders a cell right now (a row below the viewport has no element).
+   */
+  async isCellRendered(row: number, col: number): Promise<boolean> {
+    return this.page.evaluate(([r, c]) => window.hot.getCell(r, c) !== null, [row, col] as const);
+  }
+
+  /**
+   * Select a cell through the API, make the grid listen, and press a key the way a user does.
+   */
+  async pressKeyOnCell(row: number, col: number, key: string): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      window.hot.selectCell(r, c);
+      window.hot.listen();
+    }, [row, col] as const);
+    await this.page.keyboard.press(key);
+  }
+
+  /**
+   * The values of one column in visual order, read through the instance API.
+   */
+  async visualColumnData(col: number): Promise<CellValue[]> {
+    return this.page.evaluate(c => window.hot.getDataAtCol(c), col);
+  }
+
+  /**
+   * Sort one column through the ColumnSorting plugin.
+   */
+  async sortColumn(col: number, sortOrder: 'asc' | 'desc'): Promise<void> {
+    await this.page.evaluate(([c, order]) => window.hot.getPlugin('columnSorting').sort({ column: c, sortOrder: order }),
+      [col, sortOrder] as const);
+  }
+
   /** Clear the selection through the instance API. */
   async deselect(): Promise<void> {
     await this.page.evaluate(() => window.hot.deselectCell());

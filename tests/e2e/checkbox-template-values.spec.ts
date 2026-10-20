@@ -65,8 +65,9 @@ test.describe('checkbox cells and written values', { tag: THEMES_TAG }, () => {
 
     await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: 'Ted', badValue: true, invalid: true });
 
-    await grid.pasteText(1, 1, 'false');
-    await expect.poll(() => grid.checkboxCell(1, 1)).toEqual({ value: false, badValue: false, invalid: false });
+    // (2, 1) starts as `true`, so the paste is visible.
+    await grid.pasteText(2, 1, 'false');
+    await expect.poll(() => grid.checkboxCell(2, 1)).toEqual({ value: false, badValue: false, invalid: false });
   });
 
   test('rejects a non-template value with the checkbox validator and allowInvalid: false', async () => {
@@ -79,9 +80,95 @@ test.describe('checkbox cells and written values', { tag: THEMES_TAG }, () => {
     await expect(grid.cell(0, 2)).toHaveText('Ted');
     await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: true, badValue: false, invalid: false });
 
-    await grid.pasteText(1, 3, 'maybe');
-    await grid.pasteText(2, 1, 'Ted');
+    // Each paste also covers a text cell, the positive control that the paste landed.
+    await grid.pasteText(1, 2, 'pasted\tmaybe');
+    await grid.pasteText(2, 0, 'Zed\tTed');
+    await expect(grid.cell(1, 2)).toHaveText('pasted');
+    await expect(grid.cell(2, 0)).toHaveText('Zed');
     await expect.poll(() => grid.checkboxCell(1, 3)).toEqual({ value: 'no', badValue: false, invalid: false });
     await expect.poll(() => grid.checkboxCell(2, 1)).toEqual({ value: true, badValue: false, invalid: false });
   });
+
+  test('accepts an empty unchecked template under allowEmpty: false', async () => {
+    await grid.initGrid({
+      data: DATA,
+      columns: [{}, { type: 'checkbox', checkedTemplate: 'X', uncheckedTemplate: '', validator: 'checkbox',
+        allowEmpty: false, allowInvalid: false }, {}, {}],
+    });
+
+    await grid.pasteText(0, 1, 'X');
+    await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: 'X', badValue: false, invalid: false });
+
+    // Unticking writes the empty template, which is valid.
+    await grid.pressKeyOnCell(0, 1, 'Space');
+    await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: '', badValue: false, invalid: false });
+  });
+
+  test('keeps both states for templates that differ only in letter case', async () => {
+    await grid.initGrid({
+      data: [['a', 'Y'], ['b', 'Y']],
+      columns: [{}, { type: 'checkbox', checkedTemplate: 'Y', uncheckedTemplate: 'y' }],
+    });
+
+    await grid.pasteText(0, 1, 'y');
+    await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: 'y', badValue: false, invalid: false });
+
+    await grid.pressKeyOnCell(1, 1, 'Space');
+    await expect.poll(() => grid.checkboxCell(1, 1)).toEqual({ value: 'y', badValue: false, invalid: false });
+    await grid.pressKeyOnCell(1, 1, 'Space');
+    await expect.poll(() => grid.checkboxCell(1, 1)).toEqual({ value: 'Y', badValue: false, invalid: false });
+  });
+
+  test('leaves an UndoRedo write verbatim', async () => {
+    await grid.initGrid({ data: [['a', 'False']], columns: [{}, { type: 'checkbox' }] });
+
+    await grid.pasteText(0, 1, 'TRUE');
+    await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: true, badValue: false, invalid: false });
+
+    await grid.setCellValueWithSource(0, 1, 'False', 'UndoRedo.undo');
+    await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: 'False', badValue: false, invalid: false });
+
+    // Positive control: the same write from an edit stores the template.
+    await grid.setCellValueWithSource(0, 1, 'False', 'edit');
+    await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: false, badValue: false, invalid: false });
+  });
+
+  test('stores the template for a value written into a row that was never rendered', async () => {
+    const rows = Array.from({ length: 300 }, (_, row) => [`r${row}`, null]);
+
+    await grid.initGrid({ data: rows, columns: [{}, { type: 'checkbox' }] });
+    // The precondition: the row has never been rendered, so its meta has no templates yet.
+    await expect.poll(() => grid.isCellRendered(250, 1)).toBe(false);
+
+    await grid.setCellValueWithSource(250, 1, 'true', 'edit');
+    await grid.setCellValueWithSource(251, 1, 'FALSE', 'edit');
+
+    await expect.poll(() => grid.sourceCellValue(250, 1)).toBe(true);
+    await expect.poll(() => grid.sourceCellValue(251, 1)).toBe(false);
+  });
+
+  // The renderer draws a loaded `'TRUE'` as checked, so the toggle, the sort, and the export read it
+  // the same way (the export is pinned in `exportFile/__tests__/types/xlsx/cell-types.spec.js`).
+  test('toggles a loaded case variant with Space like the template it renders as', async () => {
+    await grid.initGrid({ data: [['a', 'TRUE'], ['b', 'False']], columns: [{}, { type: 'checkbox' }] });
+
+    await grid.pressKeyOnCell(0, 1, 'Space');
+    await expect.poll(() => grid.checkboxCell(0, 1)).toEqual({ value: false, badValue: false, invalid: false });
+
+    await grid.pressKeyOnCell(1, 1, 'Space');
+    await expect.poll(() => grid.checkboxCell(1, 1)).toEqual({ value: true, badValue: false, invalid: false });
+  });
+
+  test('sorts a case variant with the template it renders as', async () => {
+    await grid.initGrid({
+      data: [['a', 'YES'], ['b', 'No'], ['c', 'yes'], ['d', 'no'], ['e', 'Yes']],
+      columns: [{}, { type: 'checkbox', checkedTemplate: 'Yes', uncheckedTemplate: 'No' }],
+      columnSorting: true,
+    });
+
+    await grid.sortColumn(1, 'asc');
+
+    await expect.poll(() => grid.visualColumnData(0)).toEqual(['b', 'd', 'a', 'c', 'e']);
+  });
 });
+

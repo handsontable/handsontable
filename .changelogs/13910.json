@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed checkbox cells storing a pasted or written value that matches a template only by letter case (such as `\"False\"`) as text instead of the template value, and added an opt-in `checkbox` validator that marks or rejects values matching neither template.",
+  "title": "Fixed checkbox cells storing a pasted or written value that matches a template only by letter case (such as `\"False\"`) as text instead of the template value, and storing a written `\"true\"` or `\"false\"` as text in a row that was never rendered, and added an opt-in `checkbox` validator that marks or rejects values matching neither template.",
   "type": "fixed",
   "issueOrPR": 13910,
   "breaking": false,
