@@ -648,6 +648,39 @@ test('a pointer aimed a fixed number of pixels from a box edge counts, in a page
     assert.deepEqual(rulesOf(plain, { modules: [aim(line)] }), [], line);
   });
 
+  // The offset has to sit beside the box term it moves: index arithmetic and a call's argument move nothing
+  // (review of the first version), while a box term rounded or defaulted first still is one.
+  [
+    'await this.#dragTo({ x: cells[i + 1].x, y: cells[i - 1].y });',
+    'await this.page.mouse.move(this.cellBox(row + 1).x, this.cellBox(row - 1).y);',
+  ].forEach((line) => {
+    assert.deepEqual(rulesOf(plain, { modules: [aim(line)] }), [], line);
+  });
+  assert.match(messagesOf(plain, { modules: [aim('await this.page.mouse.click(Math.round(box.x) + 2, box.y);')] }),
+    /aimed at `Math\.round\(box\.x\) \+ 2`/);
+
+  // An offset kept in a variable first is the same shape a line earlier, followed within its scope.
+  const kept = probePage([
+    '  async aim(): Promise<void> {',
+    '    const box = (await this.cell.boundingBox())!;',
+    '    const right = box.x + box.width - 4;',
+    '    const x = right;',
+    '',
+    '    await this.page.mouse.click(x, box.y + (box.height / 2));',
+    '  }',
+    '',
+    '  async elsewhere(): Promise<void> {',
+    '    const box = (await this.cell.boundingBox())!;',
+    '',
+    '    await this.page.mouse.click(right, box.y);',
+    '  }',
+  ]);
+
+  assert.deepEqual(rulesOf(plain, { modules: [kept] }), ['undeclared-themes']);
+  assert.match(messagesOf(plain, { modules: [kept] }), /pointer-offset in fixtures\/pages\/ProbePage\.ts:7, aimed at `x` = `box\.x \+ box\.width - 4`/);
+  assert.equal(checkSpec({ file: 'e2e/probe.spec.ts', source: plain, modules: [kept] }).hits[0].count, 1,
+    'a variable of another method is out of scope');
+
   // In the spec text too, and the tag covers it.
   const inSpec = describe(null, 'test(\'t\', async({ page }) => {\n  await page.mouse.click(box.x + box.width - 4, box.y);\n});');
 
@@ -714,6 +747,7 @@ test('a page object\'s geometry read compared to a literal counts, in the spec a
     'expect(await grid.isInView()).toBe(false);',
     'expect(await grid.$edge()).toBe(0);',
     'const $left = await grid.$edge();\n\n  expect($left).toBe(0);',
+    'const before = { dx: await grid.headerVerticalOffset() };\n\n  expect(Math.abs(before.dx - 3)).toBeLessThanOrEqual(1);',
   ].forEach((body) => {
     assert.deepEqual(rulesOf(probe(body), { modules }), ['undeclared-themes'], body);
     assert.match(messagesOf(probe(body), { modules }), /geometry-helper in e2e\/probe\.spec\.ts:\d+, through (?:headerVerticalOffset|verticalOffsetInHeader|isInView|\$edge)\(\) at fixtures\//, body);
@@ -732,6 +766,8 @@ test('a page object\'s geometry read compared to a literal counts, in the spec a
     'expect(await grid.isInView()).toBeTruthy();',
     'expect(await grid.drawCount()).toBe(1);',
     'await grid.headerVerticalOffset();\n  expect(1).toBe(1);',
+    // A geometry value handed to another function as an argument: its result is that function's (here a time).
+    'const edge = await grid.headerVerticalOffset();\n  const msToLeave = await grid.leaveFrom(edge);\n\n  expect(msToLeave).toBeLessThan(300);',
   ].forEach((body) => {
     assert.deepEqual(rulesOf(probe(body), { modules }), [], body);
   });
@@ -808,9 +844,73 @@ test('readGeometryHelpers follows a read through the functions that call it, and
     { file: 'fixtures/types.ts', source: 'export interface Hot { box(): { offsetWidth: number }; }\n' },
   ]);
 
-  assert.deepEqual([...helpers.keys()].sort(), ['#box', 'corner', 'edge', 'inset']);
-  assert.deepEqual(helpers.get('inset'), { file: 'fixtures/pages/EdgePage.ts', line: 4 });
-  assert.deepEqual(helpers.get('edge'), { file: 'fixtures/edges.ts', line: 1 });
+  assert.deepEqual(helpers.map(helper => `${helper.owner ?? ''}.${helper.name}`).sort(),
+    ['.edge', 'EdgePage.#box', 'EdgePage.corner', 'EdgePage.inset']);
+  assert.deepEqual(helpers.find(helper => helper.name === 'inset'),
+    { name: 'inset', owner: 'EdgePage', file: 'fixtures/pages/EdgePage.ts', line: 4 });
+});
+
+test('a call reaches the function its receiver names, and a name two page objects define differently decides nothing', () => {
+  // Helpers were keyed by bare name across every module, so `this.cell(0)` in a page object whose own `cell()`
+  // returns a locator borrowed the geometry of another page object's `cell()` (review of the first version).
+  const measuring = {
+    file: 'fixtures/pages/MeasuringPage.ts',
+    source: 'export class MeasuringPage {\n  async cell(row: number): Promise<number> {\n'
+      + '    return this.root.evaluate(el => el.getBoundingClientRect().top);\n  }\n}\n',
+  };
+  const counting = {
+    file: 'fixtures/pages/CountingPage.ts',
+    source: [
+      'export class CountingPage {',
+      '  cell(row: number) {',
+      '    return this.page.getByTestId(`cell-${row}-0`);',
+      '  }',
+      '',
+      '  async selectedCount(): Promise<number> {',
+      '    return this.cell(0).count();',
+      '  }',
+      '',
+      '  async rowLabels(): Promise<string[]> {',
+      '    return this.page.evaluate(() => {',
+      '      function height(el) {',
+      '        return el.offsetHeight;',
+      '      }',
+      '',
+      '      return [...document.querySelectorAll(\'tr\')].filter(tr => height(tr) > 0).map(tr => tr.id);',
+      '    });',
+      '  }',
+      '}',
+    ].join('\n'),
+  };
+  const modules = [measuring, counting];
+  const probe = body => spec(describe(null, `test('t', async({ page }) => {\n  ${body}\n});`));
+
+  assert.deepEqual(readGeometryHelpers(modules).map(helper => `${helper.owner}.${helper.name}`), ['MeasuringPage.cell'],
+    'a this-call resolves in its own class, and a function inside a callback is no helper of its own');
+  assert.deepEqual(rulesOf(probe('const b = new CountingPage(page);\n  expect(await b.selectedCount()).toBe(3);'), { modules }), []);
+  assert.deepEqual(rulesOf(probe('expect(await other.cell(1)).toBe(3);'), { modules }), [],
+    'an unknown receiver of a name two page objects define differently');
+  assert.deepEqual(rulesOf(probe('expect(await grid.height()).toBe(3);'), { modules }), [], 'a nested function names nothing');
+  assert.deepEqual(rulesOf(probe('const a = new MeasuringPage(page);\n  expect(await a.cell(1)).toBe(3);'), { modules }),
+    ['undeclared-themes'], 'a receiver the spec types resolves to its class');
+  assert.deepEqual(rulesOf(probe('let a: MeasuringPage;\n  expect(await a.cell(1)).toBe(3);'), { modules }), ['undeclared-themes']);
+  assert.deepEqual(rulesOf(probe('expect(await grid.cell(1)).toBe(3);'), { modules: [measuring] }), ['undeclared-themes'],
+    'a name only one page object defines resolves on any receiver');
+
+  // A namespace import names module functions, and a method that delegates to one under its own name is a
+  // helper too (`FrozenTallCellPage.rowHeights()` calls `geometry.rowHeights()`).
+  const delegating = [
+    { file: 'fixtures/rows.ts', source: 'export async function rowHeights(grid: Locator): Promise<number[]> {\n  return grid.evaluate(el => [el.offsetHeight]);\n}\n' },
+    {
+      file: 'fixtures/pages/RowsPage.ts',
+      source: 'import * as geometry from \'../rows\';\n\nexport class RowsPage {\n  async rowHeights(): Promise<number[]> {\n'
+        + '    return geometry.rowHeights(this.grid);\n  }\n}\n',
+    },
+  ];
+
+  assert.deepEqual(readGeometryHelpers(delegating).map(helper => `${helper.owner}.${helper.name}`), ['null.rowHeights', 'RowsPage.rowHeights']);
+  assert.deepEqual(rulesOf(probe('const rows = new RowsPage(page);\n  expect(await rows.rowHeights()).toEqual([23]);'), { modules: delegating }),
+    ['undeclared-themes']);
 });
 
 test('a fixture that picks a file by the bundle\'s name branches on the bundle', () => {

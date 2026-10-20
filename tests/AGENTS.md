@@ -245,12 +245,19 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `hyperformula`, `bundle-compare`. The two geometry markers that read page objects are narrow on
   purpose, so a helper that only measures forces nothing. `pointer-offset` is a coordinate of a
   `mouse.click()`, `dblclick()`, `move()`, `touchscreen.tap()` or an `{ x, y }` point that adds or
-  subtracts a whole number of pixels to a box edge or size; a fraction of the box (`box.width / 2`)
-  scales with the box and is not one. `geometry-helper` is a function of a page object that reads
-  a box or a size (directly or through another such function, and not declared to return only
-  strings, locators or nothing), whose result an `expect()` compares to a literal: a number, a
-  `SCREAMING_CASE` constant, a boolean, or an array or object holding a number, also through a
-  variable declared from it in scope. `toBeGreaterThan(0)` (the box is laid out), a subject ending in
+  subtracts a whole number of pixels to a box edge or size, written in place or kept in a variable
+  first. The offset has to sit beside the box term: a fraction of the box (`box.width / 2`) scales
+  with the box, and arithmetic inside an index or a call's arguments (`cells[i + 1].x`) moves no
+  edge. `geometry-helper` is a page-object function that reads a box or a size, directly or through
+  another such function, and is not declared to return only strings, locators or nothing. It hits
+  where an `expect()` compares its result to a literal: a number, a `SCREAMING_CASE` constant, a
+  boolean, or an array or object holding a number. A variable carries the result through arithmetic
+  and `Math.*()`, never through another call's arguments. A call resolves the way the code does:
+  `this.x()` in its own class or one it extends, a receiver the spec types (`new GridPage(…)`,
+  `grid: GridPage`) in that class, a bare call or a namespace import to a module function. Any other
+  receiver counts only when every function of that name reads geometry, so a generic name such as
+  `cell()` decides nothing on a guess. A function nested inside another is part of that one's body,
+  never a helper of its own. `toBeGreaterThan(0)` (the box is laid out), a subject ending in
   `.length` and a comparison between two reads are not hits. A band-edge index (the matrix trap) is
   no marker: whether row 6 is on screen depends on the fixture's height and the theme's row
   heights, which the text does not say. A spec that hits that trap joins `THEMES_CANARIES` in the

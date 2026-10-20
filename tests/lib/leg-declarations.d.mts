@@ -7,14 +7,25 @@ export const IGNORE_COMMENT: 'leg-declarations: ignore';
 export const IGNORE_WHY_MIN_LENGTH: number;
 
 export interface GeometryHelper {
+  name: string;
+  owner: string | null;
   file: string;
   line: number;
+}
+
+/**
+ * The functions and classes of the page objects a spec reaches, with which functions are geometry
+ * helpers. Built inside `checkSpec()`; opaque to callers.
+ */
+export interface GeometryIndex {
+  functions: Array<GeometryHelper & { geometry: boolean }>;
+  classes: Map<string, { file: string; parent: string | null }>;
 }
 
 export interface MarkerFindContext {
   scope: 'spec' | 'module' | 'fixture';
   file: string;
-  geometryHelpers: Map<string, GeometryHelper>;
+  geometry: GeometryIndex;
 }
 
 export interface MarkerFinding {
@@ -137,9 +148,9 @@ export function findMarkerHits(
   code: string,
   scope: 'spec' | 'module' | 'fixture',
   file: string,
-  context?: { masked?: string; geometryHelpers?: Map<string, GeometryHelper> },
+  context?: { masked?: string; geometry?: GeometryIndex },
 ): MarkerHit[];
-export function readGeometryHelpers(modules: SpecText[]): Map<string, GeometryHelper>;
+export function readGeometryHelpers(modules: SpecText[]): GeometryHelper[];
 export function scanFixtureHtml(source: string, where?: string): string;
 export function isTypeOnlyModule(code: string): boolean;
 export function relativeImports(code: string): string[];

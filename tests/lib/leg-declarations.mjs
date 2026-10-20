@@ -104,6 +104,14 @@ const LITERAL_MATCHER = /^\s*(?:\.\s*(?:not|resolves|rejects)\s*)*\.\s*(toBe|toE
 const LITERAL_VALUE = /^(?:true|false|(?=[^a-z$]*[\dA-Z])[-+*/%().\s\d_A-Z]+)$/;
 const NUMBER_TOKEN = /(?<![\w$.])\d|(?<![\w$.])[A-Z][A-Z\d]*_[A-Z\d_]*\b/;
 const DECLARATION = /(?<![\w$.])(?:const|let|var)\s+(?=[A-Za-z_$[{])/g;
+// A call, a class header, and a variable the spec says holds a page object (`x = new GridPage(`, `x: GridPage`).
+const CALL = /(?<![\w$#])(#?[A-Za-z_$][\w$]*)\s*\(/g;
+const CLASS_HEADER = /\bclass\s+([A-Za-z_$][\w$]*)([^{;]*)\{/g;
+// The calls that hand a number through unchanged in kind. A variable inside the arguments of any other call
+// is given to a function the sweep cannot follow (`leave(anchor)` returns milliseconds), and carries nothing.
+const VALUE_PRESERVING_CALL = /(?:\bMath\.[\w$]+|\bNumber(?:\.[\w$]+)?|\bparse(?:Float|Int))\s*$/;
+const NAMESPACE_IMPORT = /\bimport\s+\*\s+as\s+([A-Za-z_$][\w$]*)\s+from\b/g;
+const TYPED_VARIABLE = /(?<![\w$.])([A-Za-z_$][\w$]*)\s*(?::\s*([A-Z][\w$]*)\b(?!\s*[.<(])|=\s*new\s+([A-Z][\w$]*)\s*[(<])/g;
 
 /**
  * The surface markers: the code shapes that make a spec sensitive to an axis. A marker is read by a
@@ -836,8 +844,8 @@ export function readIgnores(source) {
  * @param {string} file The file, for the report.
  * @param {object} [context] What the `find` markers read besides the text.
  * @param {string} [context.masked] The masked view of the same source (`scanSource()`); computed when absent.
- * @param {Map<string, {file: string, line: number}>} [context.geometryHelpers] The geometry helpers of the
- * page objects the spec reaches (`readGeometryHelpers()`).
+ * @param {object} [context.geometry] The geometry index of the page objects the spec reaches
+ * (`geometryIndexOf()`); none when absent.
  * @returns {Array<{id: string, axis: string, scope: string, file: string, line: number, count: number, detail?: string}>}
  * The hits; `detail` says what the first one found, where a finder can say more than the line.
  */
@@ -856,7 +864,7 @@ export function findMarkerHits(code, scope, file, context = {}) {
       if (masked === undefined) {
         masked = scanSource(code, file).masked;
       }
-      found = marker.find({ code, masked }, { scope, file, geometryHelpers: context.geometryHelpers ?? new Map() })
+      found = marker.find({ code, masked }, { scope, file, geometry: context.geometry ?? geometryIndexOf([]) })
         .sort((a, b) => a.index - b.index);
     } else {
       found = [...code.matchAll(new RegExp(marker.pattern.source, `${marker.pattern.flags.replace('g', '')}g`))];
@@ -906,17 +914,232 @@ function expressionEnd(masked, from) {
   return masked.length;
 }
 
+// The brace structure of each text the sweep has read, keyed by the masked text: the innermost open
+// brace at every index and where each brace closes. A spec reaches the same page objects as many others,
+// and a scan that walked back from every declaration was quadratic in the page object's length.
+const BRACE_STRUCTURES = new Map();
+
+/**
+ * The brace structure of a masked text, computed once per text.
+ *
+ * @param {string} masked The masked view of the source.
+ * @returns {{innermost: Int32Array, close: Map<number, number>}} The innermost open brace before each
+ * index (`-1` at the top), and the closing brace of each opening one.
+ */
+function braceStructure(masked) {
+  let structure = BRACE_STRUCTURES.get(masked);
+
+  if (!structure) {
+    const innermost = new Int32Array(masked.length + 1);
+    const close = new Map();
+    const open = [];
+
+    for (let at = 0; at <= masked.length; at += 1) {
+      innermost[at] = open.length > 0 ? open[open.length - 1] : -1;
+
+      if (masked[at] === '{') {
+        open.push(at);
+      } else if (masked[at] === '}' && open.length > 0) {
+        close.set(open.pop(), at);
+      }
+    }
+    structure = { innermost, close };
+    BRACE_STRUCTURES.set(masked, structure);
+  }
+
+  return structure;
+}
+
+/**
+ * The block a declaration at `index` belongs to: the innermost brace pair around it, or the whole text.
+ *
+ * @param {string} masked The masked view of the source.
+ * @param {number} index The declaration.
+ * @returns {{start: number, end: number}} The block.
+ */
+function enclosingBlock(masked, index) {
+  const { innermost, close } = braceStructure(masked);
+  const start = innermost[index];
+
+  return start === -1 ? { start: -1, end: masked.length } : { start, end: close.get(start) ?? masked.length };
+}
+
+/**
+ * The names a declaration binds: one identifier, or the names a destructuring pattern binds (the value
+ * side of `key: name`, without defaults).
+ *
+ * @param {string} pattern The binding's text.
+ * @returns {string[]} The names.
+ */
+function boundNames(pattern) {
+  if (!/^[{[]/.test(pattern)) {
+    return [pattern];
+  }
+
+  return pattern.slice(1, -1).split(',')
+    .map(part => part.replace(/=.*$/s, '').split(':').pop().replace(/^\s*\.\.\./, '').trim())
+    .filter(name => /^[A-Za-z_$][\w$]*$/.test(name));
+}
+
+/**
+ * The `const`/`let`/`var` declarations of a text that assign a value, in source order: the names each
+ * binds, the block it is visible in, and the span of its initializer.
+ *
+ * @param {{code: string, masked: string}} views The scanned text.
+ * @param {string} where The file, for the messages.
+ * @returns {Array<{start: number, names: string[], block: {start: number, end: number}, init: {start: number, end: number}}>}
+ * The declarations.
+ */
+function readDeclarations({ code, masked }, where) {
+  const declarations = [];
+
+  for (const match of masked.matchAll(DECLARATION)) {
+    const patternStart = match.index + match[0].length;
+    const pattern = /^[{[]/.test(masked[patternStart])
+      ? code.slice(patternStart, matchingBracket(masked, patternStart, where) + 1)
+      : code.slice(patternStart).match(/^[A-Za-z_$][\w$]*/)?.[0] ?? '';
+    const assign = masked.indexOf('=', patternStart + pattern.length);
+
+    if (pattern === '' || assign === -1 || masked[assign + 1] === '='
+      || /[;(){}]/.test(masked.slice(patternStart + pattern.length, assign))) {
+      continue;
+    }
+    declarations.push({
+      start: match.index,
+      names: boundNames(pattern),
+      block: enclosingBlock(masked, match.index),
+      init: { start: assign + 1, end: expressionEnd(masked, assign + 1) },
+    });
+  }
+
+  return declarations;
+}
+
+/**
+ * The value a text reaches through a variable: of the declarations visible at `at` (the latest one per
+ * name), the first whose name the text uses and whose `key` is set.
+ *
+ * @param {object[]} declarations The text's declarations (`readDeclarations()`), in source order.
+ * @param {string} text The expression, masked.
+ * @param {number} at Where the expression sits.
+ * @param {string} key The property of a declaration that holds the value.
+ * @returns {{name: string, value: string}|null} The variable and its value, or `null`.
+ */
+function valueThroughVariable(declarations, text, at, key) {
+  const visible = declaration => declaration.start < at && declaration.block.start < at && at < declaration.block.end;
+
+  for (const declaration of declarations) {
+    if (!declaration[key] || !visible(declaration)) {
+      continue;
+    }
+    for (const name of declaration.names) {
+      const shadowed = declarations.some(other => other.start > declaration.start && visible(other)
+        && other.names.includes(name));
+
+      if (!shadowed && new RegExp(`(?<![\\w$.])${escapeRegExp(name)}(?![\\w$])`).test(text)) {
+        return { name, value: declaration[key] };
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * An expression as a variable's value flows through it: the masked text with the arguments of every call
+ * blanked, except `Math.*()`, `Number()`, `parseFloat()` and `parseInt()`. A grouping parenthesis stays.
+ *
+ * @param {string} masked The masked view of the source.
+ * @param {number} start The expression's first index.
+ * @param {number} end The index just past it.
+ * @returns {string} The text to look for variables in.
+ */
+function valueText(masked, start, end) {
+  let out = '';
+
+  for (let at = start; at < end; at += 1) {
+    const before = masked.slice(Math.max(start, at - 40), at);
+    const word = before.match(/([\w$]+)\s*$/)?.[1];
+    const isCall = masked[at] === '(' && /[\w$\])]\s*$/.test(before) && !REGEX_AFTER_WORDS.has(word)
+      && !VALUE_PRESERVING_CALL.test(before);
+
+    if (isCall) {
+      const close = Math.min(matchingBracket(masked, at, 'call'), end - 1);
+
+      out += `(${' '.repeat(Math.max(close - at - 1, 0))})`;
+      at = close;
+    } else {
+      out += masked[at];
+    }
+  }
+
+  return out;
+}
+
+/**
+ * Whether an expression adds or subtracts a whole number of pixels to a box term of the same
+ * expression. It is read level by level: a group in parentheses (a call or a grouping) carries a box
+ * term up to the level around it, and an index in brackets carries nothing, so `(box?.x ?? 0) + 5` and
+ * `Math.round(box.x) + 2` are offsets and `cells[i + 1].x` is not.
+ *
+ * @param {string} masked The masked view of the source.
+ * @param {number} start The expression's first index.
+ * @param {number} end The index just past it.
+ * @returns {boolean} `true` for a pixel offset.
+ */
+function offsetBesideBox(masked, start, end) {
+  const level = (from, to) => {
+    let flat = '';
+    let carries = false;
+    let hit = false;
+
+    for (let at = from; at < to; at += 1) {
+      const char = masked[at];
+
+      if (char === '(' || char === '[' || char === '{') {
+        const close = matchingBracket(masked, at, 'coordinate');
+        const inner = level(at + 1, close);
+
+        hit = hit || inner.hit;
+        carries = carries || (char !== '[' && inner.carries);
+        flat += `${char}${' '.repeat(close - at - 1)}${masked[close]}`;
+        at = close;
+      } else {
+        flat += char;
+      }
+    }
+    carries = carries || BOX_TERM.test(flat);
+
+    return { carries, hit: hit || (carries && PIXEL_OFFSET.test(flat)) };
+  };
+
+  return level(start, end).hit;
+}
+
 /**
  * The `pointer-offset` finder: every coordinate a pointer is aimed at that adds or subtracts a fixed
- * number of pixels to a box edge or size. The coordinates are the arguments of `mouse.click()`,
+ * number of pixels to a box edge or size, written in place or kept in a variable first
+ * (`const x = box.x + box.width - 4`). The coordinates are the arguments of `mouse.click()`,
  * `mouse.dblclick()`, `mouse.move()` and `touchscreen.tap()`, and the `x`/`y` values of an object literal
  * (a CDP event, a `position` option, the point a drag helper takes).
  *
  * @param {{code: string, masked: string}} views The scanned text.
+ * @param {{file: string}} context The file, for the messages.
  * @returns {Array<{index: number, detail: string}>} One entry per coordinate, at its start.
  */
-function findPointerOffsets({ code, masked }) {
+function findPointerOffsets({ code, masked }, { file }) {
   const spans = [];
+  const declarations = readDeclarations({ code, masked }, file);
+  const shown = (start, end) => code.slice(start, end).trim().replace(/\s+/g, ' ');
+
+  // A variable aims when its value is an offset, or is built from a variable that aims.
+  declarations.forEach((declaration) => {
+    const { start, end } = declaration.init;
+
+    declaration.aim = offsetBesideBox(masked, start, end)
+      ? shown(start, end)
+      : valueThroughVariable(declarations, valueText(masked, start, end), declaration.start, 'aim')?.value;
+  });
 
   for (const match of masked.matchAll(POINTER_CALL)) {
     const open = match.index + match[0].length - 1;
@@ -932,14 +1155,20 @@ function findPointerOffsets({ code, masked }) {
   const found = [];
 
   spans.sort((a, b) => a.start - b.start).forEach((span) => {
-    const text = code.slice(span.start, span.end);
-
     // A point passed straight to a pointer call is one coordinate pair, not two.
     if (found.some(hit => hit.index <= span.start && span.end <= hit.end)) {
       return;
     }
-    if (BOX_TERM.test(text) && PIXEL_OFFSET.test(text)) {
-      found.push({ index: span.start, end: span.end, detail: `aimed at \`${text.trim().replace(/\s+/g, ' ')}\`` });
+    if (offsetBesideBox(masked, span.start, span.end)) {
+      found.push({ index: span.start, end: span.end, detail: `aimed at \`${shown(span.start, span.end)}\`` });
+
+      return;
+    }
+
+    const variable = valueThroughVariable(declarations, valueText(masked, span.start, span.end), span.start, 'aim');
+
+    if (variable) {
+      found.push({ index: span.start, end: span.end, detail: `aimed at \`${variable.name}\` = \`${variable.value}\`` });
     }
   });
 
@@ -992,22 +1221,56 @@ function bodyAfterReturnType(masked, at) {
 }
 
 /**
- * The named functions of a source: methods and function declarations, and arrow functions or function
- * expressions bound to a `const`/`let`, each with its declared return type and its body.
+ * The classes a source declares: each name, the class it extends, and the span of its body.
+ *
+ * @param {string} masked The masked view of the source.
+ * @returns {Array<{name: string, parent: string|null, start: number, end: number}>} The classes; `start` is
+ * the body's `{`.
+ */
+function readClasses(masked) {
+  return [...masked.matchAll(CLASS_HEADER)].map((match) => {
+    let header = match[2];
+
+    // Type parameters can carry their own `extends`: drop them before reading the class's.
+    while (/<[^<>]*>/.test(header)) {
+      header = header.replace(/<[^<>]*>/g, '');
+    }
+
+    const start = match.index + match[0].length - 1;
+
+    return {
+      name: match[1],
+      parent: header.match(/\bextends\s+([A-Za-z_$][\w$]*)/)?.[1] ?? null,
+      start,
+      end: matchingBracket(masked, start, 'class body'),
+    };
+  });
+}
+
+/**
+ * The named functions a source defines at the top: the methods of its classes, and the functions it
+ * declares or binds to a `const`/`let` outside any block. A function defined inside another (a helper
+ * inside an `evaluate()` callback) is part of that function's body, never one of its own, so a generic
+ * name such as `width()` there names nothing a spec could call.
  *
  * @param {{code: string, masked: string}} views The scanned source.
  * @param {string} where The file, for the messages.
- * @returns {Array<{name: string, line: number, returns: string, start: number, end: number}>} The functions;
- * `returns` is `''` when no type is declared, `start`/`end` bound the body.
+ * @param {Array<{name: string, start: number}>} classes The source's classes (`readClasses()`).
+ * @returns {Array<{name: string, owner: string|null, line: number, returns: string, start: number, end: number}>}
+ * The functions; `owner` is the class of a method, `returns` is `''` when no type is declared, and
+ * `start`/`end` bound the body.
  */
-function readFunctions({ code, masked }, where) {
+function readFunctions({ code, masked }, where, classes) {
   const functions = [];
+  const classAt = new Map(classes.map(cls => [cls.start, cls.name]));
 
   for (const definition of [METHOD_DEFINITION, BOUND_FUNCTION]) {
     for (const match of masked.matchAll(definition)) {
       const name = match[1];
+      const block = enclosingBlock(masked, match.index);
+      const owner = classAt.get(block.start) ?? null;
 
-      if (NOT_A_FUNCTION_NAME.has(name)) {
+      if (NOT_A_FUNCTION_NAME.has(name) || (block.start !== -1 && owner === null)) {
         continue;
       }
 
@@ -1033,10 +1296,13 @@ function readFunctions({ code, masked }, where) {
         at += 2;
         skipSpace();
       }
+
+      const line = lineOf(code, match.index);
+
       if (masked[at] === '{') {
-        functions.push({ name, line: lineOf(code, match.index), returns, start: at, end: matchingBracket(masked, at, where) + 1 });
+        functions.push({ name, owner, line, returns, start: at, end: matchingBracket(masked, at, where) + 1 });
       } else if (definition === BOUND_FUNCTION && masked.slice(match.index, at).includes('=>')) {
-        functions.push({ name, line: lineOf(code, match.index), returns, start: at, end: expressionEnd(masked, at) });
+        functions.push({ name, owner, line, returns, start: at, end: expressionEnd(masked, at) });
       }
     }
   }
@@ -1058,102 +1324,184 @@ function mayReturnGeometry(returns) {
 }
 
 /**
- * A pattern for a call to any of `names`, or `null` for none. A private name keeps its `#`, so
- * `this.#centreOf(` and a public `centreOf(` never match each other.
+ * The function a call resolves to: `this.name()` to the method of the calling class or the nearest class
+ * it extends, `receiver.name()` to the method of the receiver's class where the spec says it
+ * (`new GridPage(…)`, `grid: GridPage`), a bare `name()` or a member of a namespace import
+ * (`geometry.rowHeights()`) to a function of the calling file, else one the page objects declare
+ * outside a class, and any other receiver to every function of that name but the calling one.
  *
- * @param {Iterable<string>} names The function names.
- * @returns {RegExp|null} The pattern.
+ * @param {object} index The geometry index (`geometryIndexOf()`).
+ * @param {object} call The call.
+ * @param {string} call.name The called name, with the `#` of a private method.
+ * @param {'this'|'bare'|'member'} call.kind How it is called.
+ * @param {string|null} call.receiver The receiver's identifier, for a member call.
+ * @param {object} from Where the call sits.
+ * @param {string|null} from.owner The class of the calling method.
+ * @param {string} from.file The calling file.
+ * @param {Set<string>} [from.namespaces] The namespace imports of the calling file.
+ * @param {object} [from.self] The calling function, never its own candidate.
+ * @param {Map<string, Set<string>>} [from.receivers] The classes the spec's variables hold.
+ * @returns {object[]} The candidate functions; empty when the call names no page-object function.
  */
-function callOf(names) {
-  const list = [...names].map(escapeRegExp);
+function candidatesOf(index, { name, kind, receiver }, { owner, file, namespaces, self, receivers }) {
+  const memberOf = (cls) => {
+    for (let current = cls, steps = 0; current && steps < 20; current = index.classes.get(current)?.parent, steps += 1) {
+      const method = index.members.get(`${current} ${name}`);
 
-  return list.length === 0 ? null : new RegExp(`(?<![\\w$#])(?:${list.join('|')})\\s*\\(`);
+      if (method) {
+        return method;
+      }
+    }
+
+    return null;
+  };
+  const named = index.byName.get(name) ?? [];
+
+  if (kind === 'this') {
+    const method = owner && memberOf(owner);
+
+    return method ? [method] : [];
+  }
+  if (kind === 'bare' || namespaces?.has(receiver)) {
+    const declared = named.filter(fn => fn.owner === null);
+    const local = declared.filter(fn => fn.file === file);
+
+    return local.length > 0 ? local : declared;
+  }
+
+  const typed = receiver ? [...(receivers?.get(receiver) ?? [])].map(memberOf).filter(Boolean) : [];
+
+  return typed.length > 0 ? typed : named.filter(fn => fn !== self);
 }
 
 /**
- * The geometry helpers of a set of scanned page objects (`geometryHelpersOf()` reads the scan).
+ * The first call in an expression that resolves to geometry: a call whose candidates
+ * (`candidatesOf()`) are all geometry helpers. Requiring all of them keeps a generic name that one page
+ * object measures with and another does not (`cell()`, `box()`) from counting on a guess.
+ *
+ * @param {object} index The geometry index (`geometryIndexOf()`).
+ * @param {string} text The expression, masked.
+ * @param {object} from Where it sits (`candidatesOf()`).
+ * @returns {object|null} The helper, or `null`.
+ */
+function geometryCallIn(index, text, from) {
+  for (const match of text.matchAll(CALL)) {
+    const before = text.slice(0, match.index);
+    const member = before.match(/(?:\b(this)|([A-Za-z_$][\w$]*)|[\])]|)\s*\??\.\s*$/);
+    let call;
+
+    if (!member) {
+      call = { name: match[1], kind: 'bare', receiver: null };
+    } else {
+      call = { name: match[1], kind: member[1] ? 'this' : 'member', receiver: member[2] ?? null };
+    }
+
+    const candidates = candidatesOf(index, call, from);
+
+    if (candidates.length > 0 && candidates.every(fn => fn.geometry)) {
+      return candidates[0];
+    }
+  }
+
+  return null;
+}
+
+// The classes and functions of each page object, keyed by its masked text: every spec that reaches a
+// page object reads the same facts, and only which of them are geometry helpers depends on the spec.
+const MODULE_FACTS = new Map();
+
+/**
+ * The functions of a set of scanned page objects, with which of them are geometry helpers: a function
+ * whose body reads a layout box or a size (`getBoundingClientRect()`, `boundingBox()`, `offsetWidth`
+ * and the like) or calls a geometry helper, unless its declared return type cannot carry the result
+ * (`Promise<string[]>`, `Promise<void>`, a `Locator`).
  *
  * @param {Array<{file: string, views: {code: string, masked: string}}>} scanned The page objects.
- * @returns {Map<string, {file: string, line: number}>} Each helper's name and definition.
+ * @returns {object} The index: every function, by name and by class, and the classes.
  */
-function geometryHelpersOf(scanned) {
-  const functions = scanned.flatMap(({ file, views }) => readFunctions(views, file)
-    .filter(fn => mayReturnGeometry(fn.returns))
-    .map(fn => ({ name: fn.name, file, line: fn.line, body: views.code.slice(fn.start, fn.end) })));
-  const helpers = new Map();
+function geometryIndexOf(scanned) {
+  const functions = [];
+  const classes = new Map();
+
+  scanned.forEach(({ file, views }) => {
+    let facts = MODULE_FACTS.get(views.masked);
+
+    if (!facts) {
+      const declared = readClasses(views.masked);
+
+      facts = {
+        classes: declared,
+        functions: readFunctions(views, file, declared),
+        namespaces: new Set([...views.masked.matchAll(NAMESPACE_IMPORT)].map(match => match[1])),
+      };
+      MODULE_FACTS.set(views.masked, facts);
+    }
+    facts.classes.forEach(cls => classes.set(cls.name, { file, parent: cls.parent }));
+    facts.functions.forEach((fn) => {
+      functions.push({
+        ...fn, file, namespaces: facts.namespaces, body: views.masked.slice(fn.start, fn.end), geometry: false,
+      });
+    });
+  });
+
+  const index = { functions, classes, byName: new Map(), members: new Map() };
+
+  functions.forEach((fn) => {
+    index.byName.set(fn.name, [...(index.byName.get(fn.name) ?? []), fn]);
+    if (fn.owner !== null) {
+      index.members.set(`${fn.owner} ${fn.name}`, fn);
+    }
+  });
+
   let grew = true;
 
   while (grew) {
-    const calls = callOf(helpers.keys());
-
     grew = false;
     functions.forEach((fn) => {
-      if (!helpers.has(fn.name) && (GEOMETRY_READ.test(fn.body) || calls?.test(fn.body))) {
-        helpers.set(fn.name, { file: fn.file, line: fn.line });
+      if (!fn.geometry && mayReturnGeometry(fn.returns)
+        && (GEOMETRY_READ.test(fn.body)
+          || geometryCallIn(index, fn.body, { owner: fn.owner, file: fn.file, namespaces: fn.namespaces, self: fn }))) {
+        fn.geometry = true;
         grew = true;
       }
     });
   }
 
-  return helpers;
+  return index;
 }
 
 /**
- * The geometry helpers of the page objects a spec reaches: every named function whose body reads a
- * layout box or a size (`getBoundingClientRect()`, `boundingBox()`, `offsetWidth` and the like) or calls
- * another geometry helper, across the modules, unless its declared return type cannot carry the result
- * (`Promise<string[]>`, `Promise<void>`, a `Locator`). A module of types only declares none.
+ * The geometry helpers of the page objects a spec reaches (`geometryIndexOf()`). A module of types only
+ * declares none.
  *
  * @param {Array<{file: string, source: string}>} modules The page objects and helpers.
- * @returns {Map<string, {file: string, line: number}>} Each helper's name and definition.
+ * @returns {Array<{name: string, owner: string|null, file: string, line: number}>} The helpers, in the
+ * order the modules define them.
  */
 export function readGeometryHelpers(modules) {
-  return geometryHelpersOf(modules
+  return geometryIndexOf(modules
     .map(module => ({ file: module.file, views: scanSource(module.source, module.file) }))
-    .filter(({ views }) => !isTypeOnlyModule(views.code)));
+    .filter(({ views }) => !isTypeOnlyModule(views.code)))
+    .functions.filter(fn => fn.geometry)
+    .map(({ name, owner, file, line }) => ({ name, owner, file, line }));
 }
 
 /**
- * The block a declaration at `index` belongs to: the innermost brace pair around it, or the whole text.
+ * The classes a spec's variables hold, where the spec says so: `x = new GridPage(…)` and `x: GridPage`.
  *
- * @param {string} masked The masked view of the source.
- * @param {number} index The declaration.
- * @returns {{start: number, end: number}} The block.
+ * @param {string} masked The masked view of the spec.
+ * @returns {Map<string, Set<string>>} The classes per variable name.
  */
-function enclosingBlock(masked, index) {
-  let depth = 0;
+function readReceivers(masked) {
+  const receivers = new Map();
 
-  for (let at = index - 1; at >= 0; at -= 1) {
-    const char = masked[at];
+  for (const match of masked.matchAll(TYPED_VARIABLE)) {
+    const cls = match[2] ?? match[3];
 
-    if (char === '}') {
-      depth += 1;
-    } else if (char === '{') {
-      if (depth === 0) {
-        return { start: at, end: matchingBracket(masked, at, 'block') };
-      }
-      depth -= 1;
-    }
+    receivers.set(match[1], new Set([...(receivers.get(match[1]) ?? []), cls]));
   }
 
-  return { start: -1, end: masked.length };
-}
-
-/**
- * The names a declaration binds: one identifier, or the names a destructuring pattern binds (the value
- * side of `key: name`, without defaults).
- *
- * @param {string} pattern The binding's text.
- * @returns {string[]} The names.
- */
-function boundNames(pattern) {
-  if (!/^[{[]/.test(pattern)) {
-    return [pattern];
-  }
-
-  return pattern.slice(1, -1).split(',')
-    .map(part => part.replace(/=.*$/s, '').split(':').pop().replace(/^\s*\.\.\./, '').trim())
-    .filter(name => /^[A-Za-z_$][\w$]*$/.test(name));
+  return receivers;
 }
 
 /**
@@ -1165,66 +1513,38 @@ function boundNames(pattern) {
  * that ends in `.length` (a count of what a geometry filter picked), and a comparison with another read.
  *
  * @param {{code: string, masked: string}} views The scanned text.
- * @param {{scope: string, file: string, geometryHelpers: Map<string, {file: string, line: number}>}} context
- * Which text this is, and the helpers of the page objects the spec reaches.
+ * @param {{scope: string, file: string, geometry: object}} context Which text this is, and the geometry
+ * index of the page objects the spec reaches (`geometryIndexOf()`).
  * @returns {Array<{index: number, detail: string}>} One entry per comparison, at its `expect`.
  */
-function findGeometryComparisons({ code, masked }, { scope, file, geometryHelpers }) {
-  const names = scope === 'spec' ? [...geometryHelpers.keys()].filter(name => !name.startsWith('#')) : [...geometryHelpers.keys()];
-  const call = callOf(names);
+function findGeometryComparisons({ code, masked }, { scope, file, geometry }) {
   const inline = scope === 'spec' ? null : GEOMETRY_READ;
-  const declarations = [];
-  const visible = (declaration, at) => declaration.start < at && declaration.block.start < at && at < declaration.block.end;
+  const classes = scope === 'spec' ? [] : readClasses(masked);
+  const receivers = scope === 'spec' ? readReceivers(masked) : new Map();
+  const namespaces = new Set([...masked.matchAll(NAMESPACE_IMPORT)].map(match => match[1]));
+  const declarations = readDeclarations({ code, masked }, file);
+  const ownerAt = at => classes.filter(cls => cls.start < at && at < cls.end).pop()?.name ?? null;
   // What an expression reads geometry through, or `null`: a helper, a read, or a variable in scope.
-  const sourceOf = (text, at) => {
-    const helper = call && text.match(call);
+  const sourceOf = (start, end, at) => {
+    const text = masked.slice(start, end);
+    const helper = geometryCallIn(geometry, text, { owner: ownerAt(at), file, namespaces, receivers });
 
     if (helper) {
-      const name = helper[0].replace(/\s*\($/, '');
-      const where = geometryHelpers.get(name);
-
-      return `through ${name}() at ${where.file}:${where.line}`;
-    }
-    if (inline && inline.test(text)) {
-      return `through \`${text.match(inline)[0].replace(/\($/, '()')}\``;
+      return `through ${helper.name}() at ${helper.file}:${helper.line}`;
     }
 
-    const latest = new Map();
+    const read = inline && text.match(inline);
 
-    declarations.filter(declaration => visible(declaration, at)).forEach((declaration) => {
-      declaration.names.forEach(name => latest.set(name, declaration));
-    });
-    for (const [name, declaration] of latest) {
-      if (declaration.source && new RegExp(`(?<![\\w$.])${escapeRegExp(name)}(?![\\w$])`).test(text)) {
-        return declaration.source;
-      }
+    if (read) {
+      return `through \`${read[0].replace(/\($/, '()')}\``;
     }
 
-    return null;
+    return valueThroughVariable(declarations, valueText(masked, start, end), at, 'source')?.value ?? null;
   };
 
-  if (!call && !inline) {
-    return [];
-  }
-
-  for (const match of masked.matchAll(DECLARATION)) {
-    const patternStart = match.index + match[0].length;
-    const pattern = /^[{[]/.test(masked[patternStart])
-      ? code.slice(patternStart, matchingBracket(masked, patternStart, file) + 1)
-      : code.slice(patternStart).match(/^[A-Za-z_$][\w$]*/)?.[0] ?? '';
-    const assign = masked.indexOf('=', patternStart + pattern.length);
-
-    if (pattern === '' || assign === -1 || masked[assign + 1] === '=' || /[;(){}]/.test(masked.slice(patternStart + pattern.length, assign))) {
-      continue;
-    }
-
-    const declaration = {
-      start: match.index, names: boundNames(pattern), block: enclosingBlock(masked, match.index), source: null,
-    };
-
-    declaration.source = sourceOf(code.slice(assign + 1, expressionEnd(masked, assign + 1)), match.index);
-    declarations.push(declaration);
-  }
+  declarations.forEach((declaration) => {
+    declaration.source = sourceOf(declaration.init.start, declaration.init.end, declaration.start);
+  });
 
   const found = [];
 
@@ -1248,7 +1568,7 @@ function findGeometryComparisons({ code, masked }, { scope, file, geometryHelper
       continue;
     }
 
-    const source = sourceOf(subject, match.index);
+    const source = sourceOf(subjectSpan.start, subjectSpan.end, match.index);
 
     if (source) {
       found.push({ index: match.index, detail: source });
@@ -1530,11 +1850,11 @@ export function checkSpec({ file, source, modules = [], fixtures = [] }) {
   const scannedModules = modules
     .map(module => ({ module, file: module.file, views: scanSource(module.source, module.file) }))
     .filter(({ views }) => !isTypeOnlyModule(views.code));
-  const geometryHelpers = geometryHelpersOf(scannedModules);
-  const hits = findMarkerHits(spec.code, 'spec', file, { masked: spec.masked, geometryHelpers });
+  const geometry = geometryIndexOf(scannedModules);
+  const hits = findMarkerHits(spec.code, 'spec', file, { masked: spec.masked, geometry });
 
   scannedModules.forEach(({ module, views }) => {
-    hits.push(...findMarkerHits(views.code, 'module', module.file, { masked: views.masked, geometryHelpers }));
+    hits.push(...findMarkerHits(views.code, 'module', module.file, { masked: views.masked, geometry }));
 
     if (readIgnores(module.source).length > 0) {
       violate('ignore-misplaced', `${module.file} carries a "${IGNORE_COMMENT}" comment. An opt-out belongs in the spec `
