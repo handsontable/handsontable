@@ -205,8 +205,10 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
 - **The index mapper can change the row count with no row hook.** The Vue wrapper keeps the data array by
   reference and only resizes the mapper at its end (`matchHotMappersSize`). The `cacheUpdated` local hook
   notices the count change, and a microtask later (after an `alter()` has synced itself) `#followRows` re-reads
-  every state's row from the map, dropping the ones the map lost, and moves a state whose `rowId` hint (kept on
-  the `RowState`) another row now holds. Without ids the states keep their physical rows.
+  every state's row from the map, dropping the ones the map lost, moves a state whose `rowId` hint (kept on
+  the `RowState`) another row now holds, and cancels (`'rowRemoved'`) one whose id no row holds: a row spliced
+  out of the middle leaves its index to the next record, which the map cannot tell. Without ids the states keep
+  their physical rows.
 - **A load is guarded by `#replacingData`.** A load's spare rows fire `afterCreateRow` before `afterLoadData`,
   and the requests belong to the replacement, not to a row removal. A load that throws never reaches
   `after*Data`, so a microtask queued in `before*Data` clears the flag and runs the replacement as a load.

@@ -121,4 +121,37 @@ describe('`asyncValues` option', () => {
 
     testWrapper.unmount();
   });
+
+  it('should cancel a pending request whose row is spliced out of the middle of reactive data', async() => {
+    const App = {
+      components: { HotTable },
+      template: `
+        <HotTable
+          licenseKey="non-commercial-and-evaluation"
+          :data="products"
+          :columns="[{ data: 'sku' }, { data: 'name' }]"
+          rowId="id"
+          :asyncValues="true"
+        ></HotTable>`,
+      data() {
+        return { products: createProducts() };
+      },
+    };
+    const testWrapper = mount(App, { attachTo: document.getElementById('app') });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+    const plugin = hotInstance.getPlugin('asyncValues');
+    const stand = deferred();
+    const result = plugin.setAsyncValueAt({ rowId: 'b', prop: 'name' }, () => stand.promise);
+
+    testWrapper.vm.products.splice(1, 1);
+    await nextTick();
+    await Promise.resolve();
+    stand.resolve('Laptop stand');
+
+    await expect(result).resolves.toEqual({ status: 'canceled', reason: 'rowRemoved' });
+    expect(hotInstance.getSourceDataAtCol(1)).toEqual(['Desk lamp', 'USB-C cable']);
+
+    testWrapper.unmount();
+  });
 });
+

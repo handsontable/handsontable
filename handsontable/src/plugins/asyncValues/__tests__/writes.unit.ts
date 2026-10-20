@@ -301,6 +301,23 @@ describe('AsyncValues: rows the index mapper resizes without row hooks', () => {
     destroy();
   });
 
+  it('should cancel a request whose row was spliced out of the middle of the data, with row ids', async() => {
+    const data = products();
+    const { hot, plugin, destroy } = createGrid({ data, rowId: 'id' });
+    const request = deferred();
+    const result = plugin.setAsyncValueAt({ rowId: 'b', prop: 'name' }, () => request.promise);
+
+    data.splice(1, 1);
+    hot.batch(() => hot.rowIndexMapper.removeIndexes([3]));
+    await settle();
+    request.resolve('new B');
+
+    expect(await result).toEqual({ status: 'canceled', reason: 'rowRemoved' });
+    expect(hot.getSourceDataAtCol(1)).toEqual(['old A', 'old C', 'old D']);
+
+    destroy();
+  });
+
   it('should cancel a request whose row the index mapper drops from its end', async() => {
     const data = products();
     const { hot, plugin, destroy } = createGrid({ data });

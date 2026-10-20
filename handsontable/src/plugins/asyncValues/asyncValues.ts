@@ -3181,8 +3181,8 @@ export class AsyncValues extends BasePlugin {
 
   /**
    * Re-reads every row state's physical row from the map (dropping the states of removed rows) and, with
-   * row ids, moves a state whose id another row now holds: the data array was changed in place, so the
-   * index mapper only grew or shrank at its end.
+   * row ids, moves a state whose id another row now holds, or drops one whose id no row holds: the data
+   * array was changed in place, so the index mapper only grew or shrank at its end.
    */
   readonly #followRows = (): void => {
     if (this.#isGone() || !this.#rowsMap || this.#states.size === 0 || this.#replacingData) {
@@ -3192,30 +3192,43 @@ export class AsyncValues extends BasePlugin {
     this.#syncRows();
 
     const rowsMap = this.#rowsMap;
-    const moves = [...this.#states]
-      .map(state => ({ state, target: this.#physicalRowOfId(state.rowId) }))
-      .filter(({ state, target }) => target !== null && target !== state.physicalRow);
+    const lost = new Map<RowState, AsyncValueCancelReason>();
+    const moves: Array<{ state: RowState; target: number }> = [];
 
-    if (moves.length === 0) {
+    [...this.#states].forEach((state) => {
+      if (state.rowId === null || state.rowId === undefined) {
+        return;
+      }
+
+      const target = this.#physicalRowOfId(state.rowId);
+
+      // A row spliced out of the middle: its index now holds the next record.
+      if (target === null) {
+        lost.set(state, 'rowRemoved');
+
+      } else if (target !== state.physicalRow) {
+        moves.push({ state, target });
+      }
+    });
+
+    if (lost.size === 0 && moves.length === 0) {
       return;
     }
 
-    const lost = new Map<RowState, AsyncValueCancelReason>();
-
-    moves.forEach(({ state }) => {
+    [...lost.keys(), ...moves.map(({ state }) => state)].forEach((state) => {
       if (rowsMap.getValueAtIndex(state.physicalRow) === state) {
         rowsMap.setValueAtIndex(state.physicalRow, null);
       }
     });
     moves.forEach(({ state, target }) => {
-      if (rowsMap.getValueAtIndex(target!) !== null) {
+      if (rowsMap.getValueAtIndex(target) !== null) {
         lost.set(state, 'rowRemoved');
 
         return;
       }
 
-      rowsMap.setValueAtIndex(target!, state);
-      state.physicalRow = target!;
+      rowsMap.setValueAtIndex(target, state);
+      state.physicalRow = target;
     });
 
     this.#dropReplacedRowStates(new Set(), lost);
