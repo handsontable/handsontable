@@ -474,7 +474,7 @@ describe('ownsCornerCell', () => {
     ['top', 'start', 'main', 0, 1, false],
     ['top_inline_start_corner', 'start', 'start', 0, 0, true],
     ['top_inline_start_corner', 'start', 'start', 1, 0, false],
-  ])('should tell whether the %s overlay owns the cell (row %s, column %s): %s/%s -> %s', (
+  ])('should tell whether the %s overlay (row segment %s, column segment %s) owns the cell (row %s, column %s) -> %s', (
     _name, rowSegment, columnSegment, row, column, expected,
   ) => {
     expect(ownsCornerCell(layoutFor(rowSegment as AxisSegment, columnSegment as AxisSegment), row, column))
@@ -498,3 +498,16 @@ describe('ownsCornerCell', () => {
     expect(ownsCornerCell({ row, column }, 17, 5)).toBe(false);
   });
 });
+
+describe('ownsCornerCell with only the segments it needs', () => {
+  it('should not need the visible range', () => {
+    const layout = {
+      row: { main: [1, 18] as [number, number], overlaySegment: 'end' as AxisSegment },
+      column: { main: [0, 19] as [number, number], overlaySegment: 'main' as AxisSegment },
+    };
+
+    expect(ownsCornerCell(layout, 19, 4)).toBe(true);
+    expect(ownsCornerCell(layout, 18, 4)).toBe(false);
+  });
+});
+

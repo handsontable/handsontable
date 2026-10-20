@@ -40,6 +40,7 @@ import type {
   AdjustHandlesAxisLayout,
   AdjustHandlesLayout,
   AxisVisibleRange,
+  CornerCellLayout,
 } from './adjustHandlesOwnership';
 
 const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
@@ -88,6 +89,16 @@ interface BorderMeasurement {
   firstRenderedColumn: number;
   lastRenderedColumn: number;
   tableSize: { width: number, height: number } | null;
+  mergedBlockEdges: { checkRow: number, checkCol: number, interiorEdges: InteriorEdges | null };
+  handlesOwnership: MultipleSelectionHandlesOwnership;
+}
+
+/**
+ * Which of the two mobile selection handles an overlay draws (DEV-749).
+ */
+interface MultipleSelectionHandlesOwnership {
+  top: boolean;
+  bottom: boolean;
 }
 
 /**
@@ -711,8 +722,10 @@ class Border {
    *   the block's real corner.
    * @param {{width: number, height: number}|null} [tableSize] The table size `measure()` read, so the
    *   handles are positioned without a geometry read between style writes.
-   * @param {boolean} [rendersTopStart=true] Whether this overlay draws the top handle. `false` when the
-   *   selection's top-start cell lies in another overlay's pane (DEV-749).
+   * @param {{top: boolean, bottom: boolean}} [ownership] Which handles this overlay owns, by the pane
+   *   that holds each handle's corner cell (DEV-749, {@link Border#getMultipleSelectionHandlesOwnership}).
+   *   The bottom handle is drawn only when this overlay also renders the bottom-end corner
+   *   (`rendersBottomEnd`).
    */
   updateMultipleSelectionHandlesPosition(
     fromRow: number,
@@ -725,7 +738,7 @@ class Border {
     height: number,
     rendersBottomEnd = true,
     tableSize: { width: number, height: number } | null = null,
-    rendersTopStart = true,
+    ownership: MultipleSelectionHandlesOwnership = { top: true, bottom: true },
   ) {
     const handles = this.selectionHandles;
 
@@ -797,12 +810,12 @@ class Border {
     const cornerVisible = this.settings.border?.cornerVisible;
 
     if (cornerVisible && typeof cornerVisible === 'function' && cornerVisible()) {
-      const topDisplay = rendersTopStart ? 'block' : 'none';
+      const topDisplay = ownership.top ? 'block' : 'none';
 
       topStyles.display = topDisplay;
       topHitAreaStyles.display = topDisplay;
 
-      if (rendersBottomEnd && this.isSouthEastOfAreaSelection(toRow, toCol)) {
+      if (rendersBottomEnd && ownership.bottom && this.isSouthEastOfAreaSelection(toRow, toCol)) {
         bottomStyles.display = 'block';
         bottomHitAreaStyles.display = 'block';
       } else {
@@ -832,31 +845,56 @@ class Border {
   /**
    * Tells which of the two mobile selection handles this overlay draws. Each handle is drawn only by
    * the overlay that owns its corner cell: the top handle by the owner of the selection's top-start
-   * cell, the bottom handle by the owner of its bottom-end cell, and only when this overlay renders
-   * that corner at all. The master also renders the frozen panes' cells under the clones, and its
-   * copy would hang out past the freeze line next to the clone's own (DEV-749).
+   * cell, the bottom handle by the owner of its bottom-end cell. The master also renders the frozen
+   * panes' cells under the clones, and its copy would hang out past the freeze line into its own
+   * visible area, next to the clone's copy (DEV-749).
+   *
+   * Resolved once per draw in {@link Border#measure}, from the fixed-pane settings alone: the segments
+   * need no visible range and no geometry read. A border without mobile handles owns none.
    *
    * @private
    * @param {number[]} corners The raw `[fromRow, fromColumn, toRow, toColumn]` corners.
    * @param {number} checkRow The row of the selection's real bottom-end corner (a merged block's own).
    * @param {number} checkCol The column of the selection's real bottom-end corner.
-   * @param {boolean} rendersBottomEnd Whether this overlay renders the bottom-end corner.
    * @returns {{top: boolean, bottom: boolean}}
    */
   getMultipleSelectionHandlesOwnership(
     corners: number[],
     checkRow: number,
     checkCol: number,
-    rendersBottomEnd: boolean,
-  ): { top: boolean, bottom: boolean } {
-    const layout: AdjustHandlesLayout = {
-      row: this.getAdjustHandlesAxisLayout('row'),
-      column: this.getAdjustHandlesAxisLayout('column'),
+  ): MultipleSelectionHandlesOwnership {
+    if (!this.selectionHandles) {
+      return { top: false, bottom: false };
+    }
+
+    const layout: CornerCellLayout = {
+      row: this.getCornerCellAxisLayout('row'),
+      column: this.getCornerCellAxisLayout('column'),
     };
 
     return {
       top: ownsCornerCell(layout, corners[0], corners[1]),
-      bottom: rendersBottomEnd && ownsCornerCell(layout, checkRow, checkCol),
+      bottom: ownsCornerCell(layout, checkRow, checkCol),
+    };
+  }
+
+  /**
+   * Returns the segments of one axis and the one this overlay renders, without the visible range
+   * {@link Border#getAdjustHandlesAxisLayout} also reads.
+   *
+   * @private
+   * @param {'row'|'column'} axis The axis to resolve.
+   * @returns {{main: number[], overlaySegment: string}}
+   */
+  getCornerCellAxisLayout(axis: 'row' | 'column'): CornerCellLayout['row'] {
+    const isRow = axis === 'row';
+    const total = this.wot.getSetting(isRow ? 'totalRows' : 'totalColumns') as number;
+    const fixedStart = this.wot.getSetting(isRow ? 'fixedRowsTop' : 'fixedColumnsStart') as number;
+    const fixedEnd = this.wot.getSetting(isRow ? 'fixedRowsBottom' : 'fixedColumnsEnd') as number;
+
+    return {
+      main: [fixedStart, total - fixedEnd - 1],
+      overlaySegment: getOverlaySegment(this.wot.wtTable.name, axis),
     };
   }
 
@@ -870,8 +908,14 @@ class Border {
    * pane. {@link Border#isFrozenBoundaryEdge} answers the narrower freeze-line question and is
    * therefore wrong here. The test applies to every overlay that is on the scrollable side of the
    * axis, not only to the master: the `inline_start` clone owns the handles of its frozen cells
-   * (DEV-749), and the `top_inline_start_corner` clone covers row 0 of it just as the `top` clone
-   * covers the master's.
+   * (DEV-749), and the `top_inline_start_corner` clone covers the top handle of its row
+   * `fixedRowsTop` just as the `top` clone does for the master's.
+   *
+   * An overlay on the END side of an axis (the `bottom` clone, the `inline_end` clone, and their
+   * corners) owns the handles of its first track too, and its `.wtHolder` clips a handle hanging out
+   * past that track's start edge. So the handle is pulled inside there as well
+   * ({@link Border#isFirstTrackOfEndPane}). Before DEV-749 the master's copy reached past the freeze
+   * line into the master's visible area once the grid was scrolled to the end.
    *
    * @private
    * @param {'row'|'column'} axis The clone axis to test (`row` for `top`, `column` for `inline_start`).
@@ -879,7 +923,13 @@ class Border {
    * @returns {boolean}
    */
   isTopHandleOccludedByClone(axis: 'row' | 'column', fromIndex: number): boolean {
-    if (getOverlaySegment(this.wot.wtTable.name, axis) !== 'main') {
+    const overlaySegment = getOverlaySegment(this.wot.wtTable.name, axis);
+
+    if (overlaySegment === 'end') {
+      return this.isFirstTrackOfEndPane(axis, fromIndex);
+    }
+
+    if (overlaySegment !== 'main') {
       return false;
     }
 
@@ -890,6 +940,23 @@ class Border {
 
     return (this.wot.getSetting('shouldRenderInlineStartOverlay') as boolean)
       && fromIndex === (this.wot.getSetting('fixedColumnsStart') as number);
+  }
+
+  /**
+   * Tells whether an index is the first track of the frozen end pane on one axis: the first
+   * `fixedRowsBottom` row or the first `fixedColumnsEnd` column.
+   *
+   * @private
+   * @param {'row'|'column'} axis The axis to test.
+   * @param {number} index The renderable index.
+   * @returns {boolean}
+   */
+  isFirstTrackOfEndPane(axis: 'row' | 'column', index: number): boolean {
+    const isRow = axis === 'row';
+    const fixedEnd = this.wot.getSetting(isRow ? 'fixedRowsBottom' : 'fixedColumnsEnd') as number;
+    const total = this.wot.getSetting(isRow ? 'totalRows' : 'totalColumns') as number;
+
+    return fixedEnd > 0 && index === total - fixedEnd;
   }
 
   /**
@@ -1895,6 +1962,13 @@ class Border {
       toTDEl,
     );
 
+    const mergedBlockEdges = this.resolveMergedBlockEdges(toRow, toColumn, isMultiple, {
+      firstRow: firstRenderedRow,
+      lastRow: lastRenderedRow,
+      firstColumn: firstRenderedColumn,
+      lastColumn: lastRenderedColumn,
+    });
+
     return {
       fromRow,
       fromColumn,
@@ -1916,6 +1990,10 @@ class Border {
       // The mobile handles are clamped to the table size, which paint() must not read between writes.
       tableSize: this.selectionHandles ?
         { width: wtTable.getWidth(), height: wtTable.getHeight() } : null,
+      mergedBlockEdges,
+      handlesOwnership: this.getMultipleSelectionHandlesOwnership(
+        corners, mergedBlockEdges.checkRow, mergedBlockEdges.checkCol,
+      ),
     };
   }
 
@@ -1957,18 +2035,15 @@ class Border {
       fromRow, fromColumn, toRow, toColumn, toTDEl, toOffset, isMultiple, isRtl,
       top, inlineStartPos, width, height, adjustHandlesPlan,
       firstRenderedRow, lastRenderedRow, firstRenderedColumn, lastRenderedColumn, tableSize,
+      mergedBlockEdges, handlesOwnership,
     } = measurement;
     const [originalFromRow, originalFromColumn, originalToRow, originalToColumn] = corners;
     const inlinePosProperty = isRtl ? 'right' : 'left';
 
-    // Resolved before the long corner-geometry comment below because the extensions it describes
-    // depend on it: an edge inside a merged block is not drawn, so nothing extends toward it.
-    const { checkRow, checkCol, interiorEdges } = this.resolveMergedBlockEdges(toRow, toColumn, isMultiple, {
-      firstRow: firstRenderedRow,
-      lastRow: lastRenderedRow,
-      firstColumn: firstRenderedColumn,
-      lastColumn: lastRenderedColumn,
-    });
+    // Resolved in measure() (it asks a setting, never the DOM). Read before the long corner-geometry
+    // comment below because the extensions it describes depend on it: an edge inside a merged block is
+    // not drawn, so nothing extends toward it.
+    const { checkRow, checkCol, interiorEdges } = mergedBlockEdges;
 
     // Corner geometry is resolved per edge rather than from a single `settings.border.width` delta,
     // which misaligns edges whose own width differs from the border-object default - e.g. a cell
@@ -2145,10 +2220,6 @@ class Border {
     }
 
     if (this.selectionHandles) {
-      const handlesOwnership = this.getMultipleSelectionHandlesOwnership(
-        corners, checkRow, checkCol, rendersFillCorner,
-      );
-
       this.updateMultipleSelectionHandlesPosition(
         corners[0],
         corners[1],
@@ -2158,9 +2229,9 @@ class Border {
         inlineStartPos,
         width,
         height,
-        handlesOwnership.bottom,
+        rendersFillCorner,
         tableSize,
-        handlesOwnership.top,
+        handlesOwnership,
       );
     }
 

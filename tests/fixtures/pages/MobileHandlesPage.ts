@@ -10,6 +10,15 @@ import { type Page, type Locator, type CDPSession, expect } from '@playwright/te
  * script that sets `navigator.platform` to `MacIntel` and `maxTouchPoints`
  * to 5 before the grid script loads (see `e2e/ipad-selection-handles.spec.ts`).
  */
+/**
+ * The overlay root classes a handle can sit in, corners first, so the most specific one is found.
+ */
+const OVERLAY_NAMES = [
+  'ht_clone_top_inline_start_corner', 'ht_clone_bottom_inline_start_corner',
+  'ht_clone_top_inline_end_corner', 'ht_clone_bottom_inline_end_corner',
+  'ht_clone_inline_start', 'ht_clone_inline_end', 'ht_clone_top', 'ht_clone_bottom', 'ht_master',
+];
+
 export class MobileHandlesPage {
   readonly page: Page;
   readonly theme: string;
@@ -29,11 +38,13 @@ export class MobileHandlesPage {
    * headers are on, which is the configuration most grids run with.
    */
   async goto({
-    direction = 'ltr', frozen = false, frozenBottom = false, headers = true, rows = 'short', cols = 'short',
+    direction = 'ltr', frozen = false, frozenBottom = false, frozenEnd = false, headers = true, rows = 'short',
+    cols = 'short',
   }: {
     direction?: 'ltr' | 'rtl';
     frozen?: boolean;
     frozenBottom?: boolean;
+    frozenEnd?: boolean;
     headers?: boolean;
     rows?: 'short' | 'tall';
     cols?: 'short' | 'wide';
@@ -44,6 +55,7 @@ export class MobileHandlesPage {
       direction,
       frozen: frozen ? '1' : '0',
       frozenBottom: frozenBottom ? '2' : '0',
+      frozenEnd: frozenEnd ? '2' : '0',
       headers: headers ? 'on' : 'off',
       rows,
       cols,
@@ -277,8 +289,9 @@ export class MobileHandlesPage {
    * own center.
    */
   async #reachableHandles(hitAreaClass: string): Promise<string[]> {
-    return this.page.evaluate((className) => {
+    return this.page.evaluate(({ className, names }) => {
       const overlays: string[] = [];
+      const overlayName = (element: Element) => names.find(name => element.closest(`.${name}`)) ?? 'none';
 
       document.querySelectorAll(`.${className}`).forEach((handle) => {
         const rect = handle.getBoundingClientRect();
@@ -290,15 +303,109 @@ export class MobileHandlesPage {
         const hit = document.elementFromPoint(rect.x + (rect.width / 2), rect.y + (rect.height / 2));
 
         if (hit && (hit === handle || handle.contains(hit))) {
-          const overlay = ['ht_master', 'ht_clone_top_inline_start_corner', 'ht_clone_bottom_inline_start_corner',
-            'ht_clone_inline_start', 'ht_clone_top', 'ht_clone_bottom'].find(name => handle.closest(`.${name}`));
-
-          overlays.push(overlay ?? 'none');
+          overlays.push(overlayName(handle));
         }
       });
 
       return overlays.sort();
-    }, hitAreaClass);
+    }, { className: hitAreaClass, names: OVERLAY_NAMES });
+  }
+
+  /**
+   * The overlays whose hit area of the given class is displayed, whether or not anything paints
+   * over it. Stacked copies on the same pixel each count, which the reachable list cannot show: it
+   * keeps only the topmost element at a handle's center.
+   */
+  async displayedHandles(hitAreaClass: 'topSelectionHandle-HitArea' | 'bottomSelectionHandle-HitArea'):
+  Promise<string[]> {
+    return this.page.evaluate(({ className, names }) => {
+      const overlays: string[] = [];
+
+      document.querySelectorAll(`.${className}`).forEach((handle) => {
+        const rect = handle.getBoundingClientRect();
+
+        if (getComputedStyle(handle).display !== 'none' && rect.width > 0 && rect.height > 0) {
+          overlays.push(names.find(name => handle.closest(`.${name}`)) ?? 'none');
+        }
+      });
+
+      return overlays.sort();
+    }, { className: hitAreaClass, names: OVERLAY_NAMES });
+  }
+
+  /**
+   * How far the center of the reachable bottom handle sits from the bottom-end corner of a cell, as
+   * `{ dx, dy }` in CSS pixels (physical: right and down are positive). Read in one evaluation from
+   * the cell the user sees at that position, so a frozen pane's copy of the cell is the one measured.
+   */
+  async bottomHandleOffsetFromCellCorner(row: number, col: number): Promise<{ dx: number, dy: number } | null> {
+    const box = await this.cell(row, col).boundingBox();
+
+    expect(box, 'the cell must be laid out').not.toBeNull();
+
+    return this.page.evaluate(({ x, y, rtl }) => {
+      const td = document.elementFromPoint(x, y)?.closest('td');
+      const handle = [...document.querySelectorAll('.bottomSelectionHandle-HitArea')].find((element) => {
+        const rect = element.getBoundingClientRect();
+        const hit = rect.width > 0 ? document.elementFromPoint(rect.x + (rect.width / 2), rect.y + (rect.height / 2)) : null;
+
+        return getComputedStyle(element).display !== 'none' && hit !== null && (hit === element || element.contains(hit));
+      })?.parentElement?.querySelector('.bottomSelectionHandle');
+
+      if (!td || !handle) {
+        return null;
+      }
+
+      const cell = td.getBoundingClientRect();
+      const mark = handle.getBoundingClientRect();
+      const cornerX = rtl ? cell.left : cell.right;
+
+      return {
+        dx: Math.round((mark.x + (mark.width / 2)) - cornerX),
+        dy: Math.round((mark.y + (mark.height / 2)) - cell.bottom),
+      };
+    }, { x: box!.x + (box!.width / 2), y: box!.y + (box!.height / 2), rtl: await this.isRtl() });
+  }
+
+  /**
+   * Whether the grid lays its columns out right to left.
+   */
+  async isRtl(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.isRtl());
+  }
+
+  /**
+   * Scroll the grid to its last row and wait until the master renders it.
+   */
+  async scrollToLastRow(): Promise<void> {
+    await this.page.evaluate(() => window.hot.scrollViewportTo({ row: window.hot.countRows() - 1, verticalSnap: 'bottom' }));
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getLastRenderedRow()
+      === window.hot.countRows() - 1)).toBe(true);
+  }
+
+  /**
+   * Scroll the grid to the end of its scrollable columns and wait until the viewport calculators
+   * count the last one as fully visible. The frozen end columns are left out: the master does not
+   * render them, the inline-end pane does.
+   */
+  async scrollToLastScrollableColumn(): Promise<void> {
+    const lastScrollable = await this.page.evaluate(() => window.hot.countCols() - 1
+      - (window.hot.getSettings().fixedColumnsEnd ?? 0));
+
+    await this.page.evaluate(col => window.hot.scrollViewportTo({ col, horizontalSnap: 'end' }), lastScrollable);
+    await expect.poll(() => this.page.evaluate(() => window.hot.getLastFullyVisibleColumn()))
+      .toBe(lastScrollable);
+  }
+
+  /**
+   * Tap a cell in one overlay's copy, at the point where it is painted.
+   */
+  async tapCellIn(overlay: string, row: number, col: number): Promise<void> {
+    const box = await this.page.locator(`.${overlay}`).getByTestId(`cell-${row}-${col}`).boundingBox();
+
+    expect(box, 'the cell must be laid out').not.toBeNull();
+
+    await this.page.touchscreen.tap(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
   }
 
   /**

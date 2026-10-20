@@ -88,10 +88,15 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
 
   // DEV-749: the master renders the frozen panes' cells too, under the clones, and drew a second
   // pair of handles there. Its bottom handle hung out past the freeze line next to the clone's own.
+  // The displayed lists count stacked copies too: the master's top handle used to sit on the very
+  // pixel of the clone's, so a topmost-element check alone saw one handle either way.
   test('draw one pair of handles for a cell in a frozen column', async () => {
     await mobileGrid.goto({ frozen: true });
     await mobileGrid.tapPaintedCell(2, 0);
 
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).toEqual(['ht_clone_inline_start']);
+    await expect.poll(() => mobileGrid.displayedHandles('bottomSelectionHandle-HitArea'))
+      .toEqual(['ht_clone_inline_start']);
     await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual(['ht_clone_inline_start']);
     await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_clone_inline_start']);
   });
@@ -100,6 +105,8 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
     await mobileGrid.goto({ frozen: true });
     await mobileGrid.tapPaintedCell(0, 2);
 
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).toEqual(['ht_clone_top']);
+    await expect.poll(() => mobileGrid.displayedHandles('bottomSelectionHandle-HitArea')).toEqual(['ht_clone_top']);
     await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual(['ht_clone_top']);
     await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_clone_top']);
   });
@@ -132,5 +139,70 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
     await mobileGrid.dragBottomHandleToCell(4, 2, 'ht_clone_inline_start');
 
     await expect.poll(() => mobileGrid.selectedLast()).toEqual([2, 0, 4, 2]);
+  });
+
+  test('draw one pair of handles for a cell in a frozen column in RTL', async () => {
+    await mobileGrid.goto({ direction: 'rtl', frozen: true });
+    await mobileGrid.tapPaintedCell(2, 0);
+
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).toEqual(['ht_clone_inline_start']);
+    await expect.poll(() => mobileGrid.displayedHandles('bottomSelectionHandle-HitArea'))
+      .toEqual(['ht_clone_inline_start']);
+    await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual(['ht_clone_inline_start']);
+    await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_clone_inline_start']);
+  });
+
+  // The `top` clone owns a frozen-row cell's handles, and the corner clone covers the start of its
+  // first scrollable column, so the top handle there is pulled inside the cell.
+  test('keep the top handle of a frozen-row cell interactive next to the frozen column', async () => {
+    await mobileGrid.goto({ frozen: true });
+    await mobileGrid.tapPaintedCell(0, 1);
+
+    await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual(['ht_clone_top']);
+    await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_clone_top']);
+  });
+
+  test('keep the bottom handle of a frozen-column cell interactive above the bottom freeze line', async () => {
+    await mobileGrid.goto({ frozen: true, frozenBottom: true, rows: 'tall' });
+    await mobileGrid.scrollToLastRow();
+    await mobileGrid.tapPaintedCell(37, 0);
+
+    await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_clone_inline_start']);
+  });
+
+  // The first row of the bottom pane and the first column of the end pane: the pane owns the
+  // handles, and its holder clips a handle hanging out past the pane's start edge, so the top handle
+  // is pulled inside the cell. Before DEV-749 the master's copy reached it once scrolled to the end.
+  test('keep the top handle of the first frozen-bottom row interactive when scrolled to the end', async () => {
+    await mobileGrid.goto({ frozenBottom: true, rows: 'tall' });
+    await mobileGrid.scrollToLastRow();
+    await mobileGrid.tapPaintedCell(38, 2);
+
+    await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual(['ht_clone_bottom']);
+    await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_clone_bottom']);
+  });
+
+  test('keep the top handle of the first frozen-end column interactive when scrolled to the end', async () => {
+    await mobileGrid.goto({ frozenEnd: true, cols: 'wide' });
+    await mobileGrid.scrollToLastScrollableColumn();
+    await mobileGrid.tapCellIn('ht_clone_inline_end', 2, 18);
+
+    await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual(['ht_clone_inline_end']);
+    await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_clone_inline_end']);
+  });
+
+  // The clone's bottom handle is kept inside the clone's table, so for a cell in the last frozen row
+  // it sits a few pixels inside the corner rather than on it (accepted in DEV-749 review). This pins
+  // that it stays next to the corner.
+  test('keep the bottom handle of a frozen-row cell next to the cell corner', async () => {
+    await mobileGrid.goto({ frozen: true });
+    await mobileGrid.tapPaintedCell(0, 2);
+    await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_clone_top']);
+
+    const offset = await mobileGrid.bottomHandleOffsetFromCellCorner(0, 2);
+
+    expect(offset).not.toBeNull();
+    expect(Math.abs(offset!.dx)).toBeLessThanOrEqual(10);
+    expect(Math.abs(offset!.dy)).toBeLessThanOrEqual(10);
   });
 });
