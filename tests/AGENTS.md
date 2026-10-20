@@ -217,13 +217,18 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   one line (the engines pin reads that line).
 - **What needs `THEMES_TAG`:** anything the theme stylesheet decides – a computed style, a design
   token (`--ht-*`), a branch on the theme (a comparison on either side, a lookup keyed by it, a
-  `switch`, a membership test, on `theme` or `this.theme`), the theme class, a hit test (`elementFromPoint`: what
-  sits under a point depends on paddings and sizes), a pixel assertion in the spec
-  (`boundingBox()`, `getBoundingClientRect()`, `offsetWidth`, `toHaveCSS()` compared to a value),
-  and every trap the matrix section above describes (band edges, which side a popup opens on, a
-  short fixed-height fixture). **What needs `BUNDLES_TAG`:** HyperFormula and the Formulas plugin
+  `switch`, a membership test, a string test such as `htTheme.startsWith(…)`, on `theme` or
+  `this.theme`), the theme class, a hit test (`elementFromPoint`, `elementsFromPoint` and the caret
+  ones: what sits under a point depends on paddings and sizes), a pixel assertion (`boundingBox()`,
+  `getBoundingClientRect()`, `offsetWidth`, `toHaveCSS()` compared to a value) wherever the read
+  sits – in the spec, in a page-object helper whose result the spec compares to a literal, or in an
+  `expect()` inside the page object – a pointer aimed a fixed number of pixels from a box edge
+  (`box.x + box.width - 4`: whether that lands past a label is the theme's padding), and every trap
+  the matrix section above describes (band edges, which side a popup opens on, a short fixed-height
+  fixture). **What needs `BUNDLES_TAG`:** HyperFormula and the Formulas plugin
   (the plain UMD loads the engine as an external script, `full.min` bakes it in), a branch on the
-  bundle, and the load surface the minified full bundle changes (an AMD loader, Trusted Types, a
+  bundle (a fixture that picks a file by the bundle's name, `htBundle.indexOf('.min.')`, is one),
+  and the load surface the minified full bundle changes (an AMD loader, Trusted Types, a
   shadow root, an iframe, DOMPurify, the license bar). Both bundles build from the same
   `src/index.ts`: `full.min` adds the HyperFormula global, minification and the vendored
   `regexp-to-ast` wrapper, and neither ships numbro, moment, pikaday or a language pack. A page
@@ -236,7 +241,34 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   a spec that hits a marker without the tag: `theme-compare`, `computed-style`, `css-token`,
   `theme-class` (spec and page objects only; a fixture's own param block builds the class),
   `hit-test`, `geometry` (spec text only, or one base page object's `boundingBox()` helper would
-  force the axis on everything that imports it), `formulas`, `hyperformula`, `bundle-compare`. A
+  force the axis on everything that imports it), `pointer-offset`, `geometry-helper`, `formulas`,
+  `hyperformula`, `bundle-compare`. The two geometry markers that read page objects are narrow on
+  purpose: a page object that measures forces nothing until a spec, or the page object itself, decides
+  an outcome with what it measured. `pointer-offset` is a coordinate of a `mouse.click()`,
+  `dblclick()`, `move()`, `touchscreen.tap()` or an `{ x, y }` point that adds or subtracts a whole
+  number of pixels to a box edge or size, written in place or kept in a variable first. The offset has
+  to sit beside the box term: a fraction of the box (`box.width / 2`) scales with the box, and
+  arithmetic inside an index or a call's arguments (`cells[i + 1].x`) moves no edge. A locator
+  action's `position`, `sourcePosition` or `targetPosition` is measured from the element's corner
+  already, so a non-zero number there is an offset by itself (`click({ position: { x: 5, y: 5 } })`).
+  `geometry-helper` is a page-object function that reads a box or a size, directly or through another
+  such function, and is not declared to return only strings, locators or nothing; a getter and an
+  arrow function kept in a class field count as methods. It hits where an `expect()` compares its
+  result to a literal: a number, a `SCREAMING_CASE` constant, a boolean, or an array or object holding
+  a number (`toMatchObject()` included). `toBeTruthy()` and `toBeFalsy()` count on a helper declared to
+  return a boolean only; on a box they say no more than that the element exists. The result counts as
+  a whole: every property of it, a count returned beside a size included, so a spec that compares
+  only such a count says so with an ignore. A variable carries the result through arithmetic and
+  `Math.*()`, never through another call's arguments. A call resolves the way the code does:
+  `this.x()` in its own class or one it extends, a receiver the spec types (`new GridPage(…)`,
+  `grid: GridPage`) in that class, a bare call or a namespace import to a module function. Any other
+  receiver counts only when every function of that name reads geometry, so a generic name such as
+  `cell()` decides nothing on a guess. A function nested inside another is part of that one's body,
+  never a helper of its own. `toBeGreaterThan(0)` (the box is laid out), a subject ending in
+  `.length` and a comparison between two reads are not hits. A band-edge index (the matrix trap) is
+  no marker: whether row 6 is on screen depends on the fixture's height and the theme's row
+  heights, which the text does not say. A spec that hits that trap joins `THEMES_CANARIES` in the
+  sweep test, which keeps it declared. A
   marker that does not mean sensitivity here is opted out in the SPEC file, never in a shared page
   object: `// leg-declarations: ignore <marker-id> -- <why>`, with ten or more characters of why; a
   stale, redundant or misnamed ignore fails the sweep. `e2e/color-scheme-density.spec.ts` is the

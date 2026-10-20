@@ -13,6 +13,7 @@ import { MergeCellsDragOutsidePage } from '../fixtures/pages/MergeCellsDragOutsi
  * Grid of the fixture: 10 rows and 5 columns, nothing scrolls. The vertical scenario merges column A over
  * rows 3-8 (visual rows 2-7); the horizontal one merges row 1 over columns A-C.
  */
+// leg-declarations: ignore pointer-offset -- dragOut() ends 80 px past the grid's own edge, outside it on every theme, at the target cell's centre on the other axis
 test.describe('drag-selecting out of the grid over a merge', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: MergeCellsDragOutsidePage;
 

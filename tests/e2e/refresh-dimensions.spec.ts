@@ -20,6 +20,7 @@ const entry = (
  * DEV-2740 made the guard trip on delivery cycles instead of wall-clock gaps - see the block at the
  * bottom of this file.
  */
+// leg-declarations: ignore geometry-helper -- mainHolderWidth() is compared to the 200 px the spec resizes the root to, not to a size the theme sets
 test.describe('a sized grid in the main document (ResizeObserver pipeline)', { tag: BUNDLES_TAG }, () => {
   test('reports its dimensions once on the observer\'s initial delivery', async({ page, theme, bundle }) => {
     const grid = new RefreshDimensionsPage(page, theme, bundle);

@@ -9,6 +9,8 @@ import { SheetsBarPaginationPage } from '../fixtures/pages/SheetsBarPaginationPa
  * through a shorter sheet brought the long sheet back on the clamped page, and its restored
  * selection sat on a row hidden by pagination.
  */
+// leg-declarations: ignore computed-style -- SheetsBarPage's style readers serve the tab animation specs; this spec drives the pager and reads page and selection state through the API
+// leg-declarations: ignore pointer-offset -- SheetsBarPage.tabSurfaceColor() samples a tab's colour for the animation specs; this spec never calls it
 test.describe('SheetsBar keeps the pagination state of each sheet', () => {
   let grid: SheetsBarPaginationPage;
 

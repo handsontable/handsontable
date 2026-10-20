@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { EmptyDataStateLoadingSizePage } from '../fixtures/pages/EmptyDataStateLoadingSizePage';
 
 /**
@@ -11,7 +11,7 @@ import { EmptyDataStateLoadingSizePage } from '../fixtures/pages/EmptyDataStateL
  * pager, and checks the overlay against the size a render gives it. Comparing to a render keeps the
  * assertion free of theme-dependent pixel values.
  */
-test.describe('emptyDataState loading overlay shown between renders', () => {
+test.describe('emptyDataState loading overlay shown between renders', { tag: THEMES_TAG }, () => {
   let grid: EmptyDataStateLoadingSizePage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

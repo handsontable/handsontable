@@ -16,6 +16,7 @@ const INITIAL_TREE = [
  * more), so the specs assert the level of every inserted row and the value of the first one, not
  * the count.
  */
+// leg-declarations: ignore pointer-offset -- the drag goes 80 px below the grid's own box, past the last row on every theme, and then waits on the row count, not on a position
 test.describe('fill handle on nested rows', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: NestedRowsAutofillPage;
 
