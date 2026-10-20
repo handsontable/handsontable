@@ -157,9 +157,11 @@ function countBelow(set: Set<number>, threshold: number): number {
  * @param {string} separator HyperFormula's `functionArgSeparator` (e.g. `','` or `';'`).
  * @param {number} rowOffset Base number to add to every row number in a cell reference.
  * @param {number} colOffset Base number to add to every column number in a cell reference.
- * @param {Set<number>} [excludedHiddenRows] Physical HOT row indices that are hidden and
- *   excluded from the exported data matrix. When provided, each row reference is further
- *   reduced by the number of excluded rows that precede it.
+ * @param {Set<number>} [excludedHiddenRows] The rows left out of the exported data matrix, as the
+ *   row indexes the formula's references use (`ExportDataProvider#getExcludedHiddenRows`): with the
+ *   Formulas plugin on, the engine rows that are trimmed, filtered out, or hidden and excluded;
+ *   without it, the physical rows that are hidden and excluded. When provided, each row reference
+ *   is further reduced by the number of excluded rows that precede it.
  * @param {Set<number>} [excludedHiddenCols] Physical HOT column indices that are hidden
  *   and excluded from the exported data matrix. When provided, each column reference is
  *   further reduced by the number of excluded columns that precede it.

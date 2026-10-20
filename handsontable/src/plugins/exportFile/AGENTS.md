@@ -144,6 +144,16 @@ Other rules:
   under `strictNullChecks`; `exportFile.types.ts` and `importFile.types.ts` pin `{ xlsx: null }`.
 - **`exportFormulas` is off by default.** On, HyperFormula formula cells and ColumnSummary destinations
   export as **live Excel formulas**; off, the pre-calculated static values go out.
+- **`ExportDataProvider#getSourceData()` reads the formula by PHYSICAL row** (review round 12).
+  `_extractDataMatrix` walks visual indexes, and `getSourceDataAtCell` takes a physical row and a
+  visual column, so the row is translated with `toPhysicalRow` and the column is passed as it is.
+  Passing the visual row wrote another record's formula after a sort, a move, a trim or a filter,
+  next to this record's cached value and `t="e"` flag (`getFormulaErrorCodes()` maps through the
+  Formulas axis syncers, so it was right). The source formulas hold ENGINE row references (the
+  Formulas plugin rewrites them on every reorder, and the engine keeps trimmed rows), so
+  `getExcludedHiddenRows()` returns engine row indexes when the plugin is on: every row with no visual
+  index (the syncer answers `-1`) plus the excluded hidden rows. Without the plugin it keeps the
+  physical hidden rows. Pinned by `__tests__/xlsxFormulaRowOrder.unit.js`.
 - **`normalizeFormula` no longer owns the formula walk.** Splitting a formula into string literals, sheet
   names and A1 references lives in `../../utils/xlsxEngine/formulaRefs.ts` (`mapFormulaReferences`), shared
   with the import direction, which shifts the same references the other way. `normalizeFormula` keeps the

@@ -521,7 +521,10 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 - **The dropped-feature warning fires once per call, from the plugin, not from the adapter.** The adapter
   only records (`DroppedFeatures.record`); `importFile.ts` calls `dropped.warn(detected.kind)` exactly once
   per `importFromArrayBuffer`/`importFromBlob` call. Keep it that way, or a multi-sheet read would warn per
-  sheet.
+  sheet. On the apply path it runs AFTER `#assertEnabled()`/`#assertAlive()` (review round 12), so an import
+  those guards reject logs nothing; a stale or disabled-during-read import is rejected earlier still, by the
+  `#assertLatest` right after the read. A newer import started from a `beforeImport` handler is the one
+  rejection that comes after the warning.
 - **This plugin records under the same declared names the adapters use.** `importFile.ts` and `mapper.ts`
   raise names of their own (`cellStyles`, `cellStyles:borders`, `comments`, `comment:header` (a note on
   a promoted header-band cell, which a column header cannot hold, recorded whether or not the Comments

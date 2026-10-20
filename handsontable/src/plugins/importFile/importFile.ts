@@ -512,7 +512,9 @@ function toArrayBuffer(buffer: ArrayBuffer | ArrayBufferView): ArrayBuffer {
  * XLSX import works out of the box through the built-in engine. Pass an engine module through the
  * `engines` option to read through [ExcelJS](https://github.com/exceljs/exceljs) instead. The plugin
  * reports, in one console warning per import, what the file carried and the grid did not take:
- * what the engine could not read, and what the plugin could not apply.
+ * what the engine could not read, and what the plugin could not apply. An import that a newer
+ * import replaced while its file was being read, or that the plugin was disabled during, prints no
+ * warning.
  *
  * @example
  * ::: only-for javascript
@@ -655,7 +657,9 @@ export class ImportFile extends BasePlugin {
    *
    * When a newer import that applies its result starts on the same instance before this one
    * finishes, this one is not applied and the returned promise rejects: the import started last
-   * wins. An `apply: false` import neither cancels another import nor is cancelled by one.
+   * wins. An `apply: false` import neither cancels another import nor is cancelled by one. Turning
+   * the plugin off (`importFile: false`) while the file is being read rejects the import too, even
+   * when the plugin is turned back on before the read ends.
    *
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @param {ArrayBuffer|ArrayBufferView} buffer The file's bytes.
@@ -682,7 +686,9 @@ export class ImportFile extends BasePlugin {
    *
    * When a newer import that applies its result starts on the same instance before this one
    * finishes, this one is not applied and the returned promise rejects: the import started last
-   * wins. An `apply: false` import neither cancels another import nor is cancelled by one.
+   * wins. An `apply: false` import neither cancels another import nor is cancelled by one. Turning
+   * the plugin off (`importFile: false`) while the file is being read rejects the import too, even
+   * when the plugin is turned back on before the read ends.
    *
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @param {Blob} blob The file.

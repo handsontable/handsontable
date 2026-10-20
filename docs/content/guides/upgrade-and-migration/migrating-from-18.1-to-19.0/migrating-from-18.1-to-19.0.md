@@ -1992,8 +1992,9 @@ What to do: nothing, unless a tool reads the raw `<f>` text. Such a tool sees th
 What changed: with `exportFormulas: true`, each cell is now written with the formula of the row it
 shows. In 18.1, a grid whose rows were sorted, moved, trimmed, or filtered wrote another row's formula
 into the cell, next to this row's cached value. Excel and LibreOffice recalculate on open, so the file
-showed wrong numbers with no warning. When rows are trimmed or filtered out, the references below them
-now point at the rows they name in the file, as they already did for hidden rows left out of the export.
+showed wrong numbers with no warning. With the Formulas plugin on, when rows are trimmed or filtered out,
+the references below them now point at the rows they name in the file, as they already did for hidden
+rows left out of the export.
 This applies to both engines.
 
 What to do: nothing.
@@ -2047,7 +2048,7 @@ around a merge, LibreOffice drew the block without its right edge.
 
 The ExcelJS engine writes two more differences. A merge of a single cell is no longer written as a
 `<mergeCell>`, because it merges nothing. A merge whose first cell holds no value and no formatting now
-gives that cell a style of its own (`s="1"`, with one more `cellXfs` entry), so Apple Numbers and Quick
+gives that cell a style index of its own (an `s` attribute and one more `cellXfs` entry), so Apple Numbers and Quick
 Look place the cells after it in the right columns.
 
 What to do: nothing, unless a tool compares the raw XML of the files.
@@ -2060,7 +2061,7 @@ character, such as `USD`, `CHF`, or `zł`, is now written with the symbol in quo
 `#,##0.00USD`. Excel for the web repaired such a file when it opened it, and other spreadsheet
 applications dropped the number format. A one-character symbol other than `$`, such as `€` or `£`,
 is now quoted too, as `#,##0.00"€"`, because Apple Numbers and Quick Look misread it bare. A lone `$`
-is written as before. A symbol that several currencies share, such as `kr` or `¥`, is now written as an
+is written as before. A symbol that several currencies share, such as `kr`, `¥`, or `￥`, is now written as an
 Excel locale token that names the currency's home locale, such as `#,##0.00[$kr-41D]` for the Swedish
 krona or `[$¥-411]#,##0.00` for the yen. A file 18.1 wrote for a Norwegian krone column imports as the
 Swedish krona. A currency other than the US dollar that shows as `$`, such as the Australian,

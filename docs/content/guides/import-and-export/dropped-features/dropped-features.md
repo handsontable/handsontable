@@ -29,7 +29,7 @@ An XLSX import or export can meet something the other side cannot hold. The plug
 
 ## How keys are reported
 
-- **Import:** one console warning per call names the engine and every key that applied. The same keys come back on `result.dropped`, as a list of names. The counts are not reported.
+- **Import:** one console warning per call names the engine and every key that applied. An import that a newer import replaced while its file was being read, or that the plugin was disabled during, prints none. The same keys come back on `result.dropped`, as a list of names. The counts are not reported.
 - **Export:** one console warning per call names the engine and every key that applied.
 
 In the **Reported by** column, **Both** means the built-in engine and ExcelJS report the key. A key reported by one engine only says so.
@@ -69,7 +69,7 @@ Four groups of keys end in a value: `cellType:` in the inferred type name, and `
 | `autoFilter` | Both | The sheet carries an auto-filter range. Configure the [Filters](@/guides/columns/column-filter/column-filter.md) plugin instead. |
 | `hyperlink` | Both | A cell is a hyperlink. Its text is imported; the URL is not. |
 | `richText` | Both | A cell mixes formatting inside one string. The text is imported; the per-run formatting is not. |
-| `chartSheets`, `dialogSheets`, `macroSheets` | Built-in | The workbook holds such a sheet. It is skipped, and a numeric `sheet` option counts worksheets only. The ExcelJS engine skips it with no entry. |
+| `chartSheets`, `dialogSheets`, `macroSheets` | Built-in | The workbook holds such a sheet. It is skipped, and a numeric `sheet` option counts worksheets only. A legacy module sheet, a `<sheet>` with an empty relationship id, counts as a macro sheet; a `<sheet>` with no relationship id at all is refused. The ExcelJS engine skips it with no entry. |
 | `vbaProject` | Built-in | The workbook carries macros (an `.xlsm` file). The data is imported; the macros are never read or run. |
 
 Pivot tables, outline groups, sparklines, and scenarios are lost with no entry on either engine.
