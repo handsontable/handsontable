@@ -8,6 +8,7 @@ import { FormulasObjectColumnsPage } from '../fixtures/pages/FormulasObjectColum
  * so the sheet was narrower than the grid and every column after the missing one sat one place off.
  * The fill then read the cell next to the source, or nothing at all.
  */
+// leg-declarations: ignore geometry-helper -- selectCell() only waits for the fill handle to sit within 8 px of its cell's corner, true on every theme; the spec asserts the filled values
 test.describe('Formulas: fill handle over object rows read through `columns`', { tag: BUNDLES_TAG }, () => {
   let grid: FormulasObjectColumnsPage;
 

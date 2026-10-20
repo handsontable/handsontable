@@ -59,10 +59,11 @@ Statics (`PLUGIN_KEY`, `PLUGIN_PRIORITY`, `SETTING_KEYS`, `PLUGIN_DEPS`, `DEFAUL
    ```
    Git stores it as mode `120000`; a regular file in `git status` means you copied.
 6. **Add your `PLUGIN_PRIORITY` row to the table in `src/plugins/base/AGENTS.md`**, in the same change: nothing enforces it, so it drifts silently.
+7. **Add the plugin to `tests/a11y/coverage.mjs`**: the pages that scan it, why it draws nothing, or a counted gap. The root `test:tooling` fails until you do. A plugin with UI adds a page to `tests/a11y/pages.mjs` and follows the `handsontable-a11y` skill (plan, build rules, proof).
 
 ## Focus management
 
-A plugin with UI (buttons, inputs, navigation bars) integrates with `src/focusManager/`. Reference: Pagination (`#registerFocusScope` / `#unregisterFocusScope`).
+A plugin with UI (buttons, inputs, navigation bars) integrates with `src/focusManager/`. Reference: Pagination (`#registerFocusScope` / `#unregisterFocusScope`). Roles, names, keys and announcements for that UI: the `handsontable-a11y` skill.
 
 - Register a focus scope with a unique name for the plugin's UI region.
 - On scope activation, focus the first element for Tab and the last for Shift+Tab.

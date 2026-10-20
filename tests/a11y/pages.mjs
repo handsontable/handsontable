@@ -10,12 +10,15 @@
  * - `fixture` is the file under `tests/fixtures/demo/`; `query` is appended to its
  *   URL after the theme.
  * - `root` is the selector of the grid container the scan includes (the fixture's
- *   `data-testid="grid"` unless the page has several grids). The grid's portal
- *   (`.ht-portal`, where menus and the comment editor render) is always included
+ *   `data-testid="grid"` unless the page has several grids). That grid's own portal
+ *   (`rootPortalElement`, where menus and the comment editor render) is always included
  *   too; the rest of the fixture page is not the product and is left out.
  * - `state` names what the spec does before it scans (`STATES` in the spec): a menu
- *   or an editor opened from the keyboard on `cell`, a comment shown through the
- *   plugin API, a parked data-provider fetch released.
+ *   or an editor opened from the keyboard on `cell`, the comment editor opened with
+ *   Ctrl+Alt+M, a selection laid, a parked data-provider fetch released, or a cell left
+ *   pending.
+ * - `device` names a Playwright device to emulate from the first load, for a surface that
+ *   exists on a phone only.
  * - `surface` says what the page covers, for the reader of the baseline and of the
  *   summary.
  *
@@ -88,7 +91,42 @@ export const A11Y_PAGES = [
     surface: 'the open intl-datetime editor' },
   // Other popups.
   { id: 'comments', fixture: 'comments-editor-resize.html', state: 'comment',
-    surface: 'the comment editor shown at a commented cell' },
+    surface: 'the comment editor opened with Ctrl+Alt+M at a commented cell' },
+  // Surfaces that only draw when a plugin, a selection or a pending value asks for them.
+  { id: 'freeze-bar', fixture: 'freeze-bar.html', state: 'none',
+    surface: 'the freeze bars on the header corners' },
+  { id: 'selection-handles', fixture: 'selection-features.html', state: 'selection-hover',
+    surface: 'the drag handles on the edges of a desktop selection' },
+  { id: 'mobile-selection-handles', fixture: 'mobile-handles.html', device: 'iPhone 13', state: 'selection',
+    surface: 'the selection handles a phone draws on a selection' },
+  { id: 'auto-link', fixture: 'auto-link.html', state: 'none',
+    surface: 'the links the autoLink option draws in cells' },
+  { id: 'row-selection', fixture: 'checkbox-header.html', query: 'mode=bound', state: 'none',
+    surface: 'the row selection checkboxes and their select-all checkbox' },
+  { id: 'async-values', fixture: 'async-values.html', cell: [0, 1], state: 'async-pending',
+    surface: 'a cell whose value is pending: the indicator, the message and aria-busy' },
+  { id: 'time-editor', fixture: 'date-editor.html', cell: [0, 4], state: 'editor',
+    surface: 'the open time editor' },
+  { id: 'intl-date-editor', fixture: 'intl-date-editor-ime-fast-edit.html', cell: [0, 0], state: 'editor',
+    surface: 'the open intl-date editor (a native date input)' },
+  { id: 'intl-time-editor', fixture: 'intl-date-editor-ime-fast-edit.html', cell: [0, 2], state: 'editor',
+    surface: 'the open intl-time editor (a native time input)' },
+  { id: 'password-editor', fixture: 'filters-password-value-list.html', cell: [0, 0], state: 'editor',
+    surface: 'the open password editor' },
+  // The dark color scheme: the theme's dark class on the container (`?scheme=dark`).
+  { id: 'dark-grid', fixture: 'grid.html', query: 'scheme=dark', state: 'none',
+    surface: 'the plain grid in the dark color scheme' },
+  { id: 'dark-context-menu', fixture: 'grid.html', query: 'scheme=dark', state: 'context-menu',
+    surface: 'the context menu in the dark color scheme' },
+  { id: 'dark-dropdown-menu', fixture: 'filters-value-list.html', query: 'scheme=dark', state: 'dropdown-menu',
+    surface: 'the dropdown menu with the filters in the dark color scheme' },
+  { id: 'dark-dialog', fixture: 'dialog-states.html', query: 'template=confirm&scheme=dark', state: 'none',
+    surface: 'a modal dialog and its buttons in the dark color scheme' },
+  // Right to left.
+  { id: 'rtl-grid', fixture: 'grid-layouts.html', query: 'layout=rtl-nested-headers', state: 'none',
+    surface: 'a right-to-left grid with nested headers' },
+  { id: 'rtl-dropdown-menu', fixture: 'narrow-header-menu-button.html', root: '[data-testid="menu-sort-rtl"]',
+    state: 'dropdown-menu', surface: 'the dropdown menu of a right-to-left grid' },
 ];
 
 /**
@@ -113,8 +151,8 @@ export function fixtureUrl(page, theme) {
 export function stateSteps(page) {
   const [row, col] = page.cell ?? [1, 1];
   const select = `select cell (${row}, ${col}) (hot.selectCell(${row}, ${col}))`;
-
-  return {
+  const before = page.device ? `emulate ${page.device} (touch and a mobile user agent) before the page loads` : '';
+  const steps = {
     none: 'nothing: the page is scanned as it loads',
     'context-menu': `${select}, then press Shift+F10`,
     'context-menu-submenu': `${select}, press Shift+F10, ArrowDown to "Alignment", then ArrowRight`,
@@ -122,5 +160,10 @@ export function stateSteps(page) {
     editor: `${select}, then press Enter`,
     comment: `${select}, then press Ctrl+Alt+M`,
     'data-provider': 'release the parked first fetch (window.htServer.release(\'ORD\'))',
+    selection: select,
+    'selection-hover': `select cells (${row}, ${col}) to (${row + 2}, ${col + 2}) (hot.selectCells([[${row}, ${col}, ${row + 2}, ${col + 2}]])), then move the pointer over cell (${row + 1}, ${col + 1})`,
+    'async-pending': `start a request that never settles for cell (${row}, ${col}) (window.startRequest(${row}, ${col}))`,
   }[page.state];
+
+  return before && steps ? `${before}, then ${steps}` : steps;
 }

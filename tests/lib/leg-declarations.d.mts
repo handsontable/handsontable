@@ -6,10 +6,41 @@ export const LEG_TAG_LIKE: RegExp;
 export const IGNORE_COMMENT: 'leg-declarations: ignore';
 export const IGNORE_WHY_MIN_LENGTH: number;
 
+export interface GeometryHelper {
+  name: string;
+  owner: string | null;
+  file: string;
+  line: number;
+}
+
+/**
+ * The functions and classes of the page objects a spec reaches, with which functions are geometry
+ * helpers. Built inside `checkSpec()`; opaque to callers.
+ */
+export interface GeometryIndex {
+  functions: Array<GeometryHelper & { geometry: boolean }>;
+  classes: Map<string, { file: string; parent: string | null }>;
+}
+
+export interface MarkerFindContext {
+  scope: 'spec' | 'module' | 'fixture';
+  file: string;
+  geometry: GeometryIndex;
+}
+
+export interface MarkerFinding {
+  index: number;
+  detail?: string;
+}
+
 export interface SurfaceMarker {
   id: string;
   axis: 'themes' | 'bundles';
-  pattern: RegExp;
+  /**
+   * Read by a pattern over the comment-stripped text, or by `find`; never both.
+   */
+  pattern?: RegExp;
+  find?: (views: { code: string; masked: string }, context: MarkerFindContext) => MarkerFinding[];
   scopes: Array<'spec' | 'module' | 'fixture'>;
   why: string;
 }
@@ -73,6 +104,7 @@ export interface MarkerHit {
   file: string;
   line: number;
   count: number;
+  detail?: string;
 }
 
 export interface SpecText {
@@ -112,7 +144,13 @@ export function matchingBracket(masked: string, open: number, where: string): nu
 export function splitTopLevel(masked: string, from: number, to: number): Array<{ start: number; end: number }>;
 export function readBlocks(source: string, where?: string): Block[];
 export function readIgnores(source: string): Ignore[];
-export function findMarkerHits(code: string, scope: 'spec' | 'module' | 'fixture', file: string): MarkerHit[];
+export function findMarkerHits(
+  code: string,
+  scope: 'spec' | 'module' | 'fixture',
+  file: string,
+  context?: { masked?: string; geometry?: GeometryIndex },
+): MarkerHit[];
+export function readGeometryHelpers(modules: SpecText[]): GeometryHelper[];
 export function scanFixtureHtml(source: string, where?: string): string;
 export function isTypeOnlyModule(code: string): boolean;
 export function relativeImports(code: string): string[];

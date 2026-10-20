@@ -217,13 +217,18 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   one line (the engines pin reads that line).
 - **What needs `THEMES_TAG`:** anything the theme stylesheet decides – a computed style, a design
   token (`--ht-*`), a branch on the theme (a comparison on either side, a lookup keyed by it, a
-  `switch`, a membership test, on `theme` or `this.theme`), the theme class, a hit test (`elementFromPoint`: what
-  sits under a point depends on paddings and sizes), a pixel assertion in the spec
-  (`boundingBox()`, `getBoundingClientRect()`, `offsetWidth`, `toHaveCSS()` compared to a value),
-  and every trap the matrix section above describes (band edges, which side a popup opens on, a
-  short fixed-height fixture). **What needs `BUNDLES_TAG`:** HyperFormula and the Formulas plugin
+  `switch`, a membership test, a string test such as `htTheme.startsWith(…)`, on `theme` or
+  `this.theme`), the theme class, a hit test (`elementFromPoint`, `elementsFromPoint` and the caret
+  ones: what sits under a point depends on paddings and sizes), a pixel assertion (`boundingBox()`,
+  `getBoundingClientRect()`, `offsetWidth`, `toHaveCSS()` compared to a value) wherever the read
+  sits – in the spec, in a page-object helper whose result the spec compares to a literal, or in an
+  `expect()` inside the page object – a pointer aimed a fixed number of pixels from a box edge
+  (`box.x + box.width - 4`: whether that lands past a label is the theme's padding), and every trap
+  the matrix section above describes (band edges, which side a popup opens on, a short fixed-height
+  fixture). **What needs `BUNDLES_TAG`:** HyperFormula and the Formulas plugin
   (the plain UMD loads the engine as an external script, `full.min` bakes it in), a branch on the
-  bundle, and the load surface the minified full bundle changes (an AMD loader, Trusted Types, a
+  bundle (a fixture that picks a file by the bundle's name, `htBundle.indexOf('.min.')`, is one),
+  and the load surface the minified full bundle changes (an AMD loader, Trusted Types, a
   shadow root, an iframe, DOMPurify, the license bar). Both bundles build from the same
   `src/index.ts`: `full.min` adds the HyperFormula global, minification and the vendored
   `regexp-to-ast` wrapper, and neither ships numbro, moment, pikaday or a language pack. A page
@@ -236,7 +241,34 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   a spec that hits a marker without the tag: `theme-compare`, `computed-style`, `css-token`,
   `theme-class` (spec and page objects only; a fixture's own param block builds the class),
   `hit-test`, `geometry` (spec text only, or one base page object's `boundingBox()` helper would
-  force the axis on everything that imports it), `formulas`, `hyperformula`, `bundle-compare`. A
+  force the axis on everything that imports it), `pointer-offset`, `geometry-helper`, `formulas`,
+  `hyperformula`, `bundle-compare`. The two geometry markers that read page objects are narrow on
+  purpose: a page object that measures forces nothing until a spec, or the page object itself, decides
+  an outcome with what it measured. `pointer-offset` is a coordinate of a `mouse.click()`,
+  `dblclick()`, `move()`, `touchscreen.tap()` or an `{ x, y }` point that adds or subtracts a whole
+  number of pixels to a box edge or size, written in place or kept in a variable first. The offset has
+  to sit beside the box term: a fraction of the box (`box.width / 2`) scales with the box, and
+  arithmetic inside an index or a call's arguments (`cells[i + 1].x`) moves no edge. A locator
+  action's `position`, `sourcePosition` or `targetPosition` is measured from the element's corner
+  already, so a non-zero number there is an offset by itself (`click({ position: { x: 5, y: 5 } })`).
+  `geometry-helper` is a page-object function that reads a box or a size, directly or through another
+  such function, and is not declared to return only strings, locators or nothing; a getter and an
+  arrow function kept in a class field count as methods. It hits where an `expect()` compares its
+  result to a literal: a number, a `SCREAMING_CASE` constant, a boolean, or an array or object holding
+  a number (`toMatchObject()` included). `toBeTruthy()` and `toBeFalsy()` count on a helper declared to
+  return a boolean only; on a box they say no more than that the element exists. The result counts as
+  a whole: every property of it, a count returned beside a size included, so a spec that compares
+  only such a count says so with an ignore. A variable carries the result through arithmetic and
+  `Math.*()`, never through another call's arguments. A call resolves the way the code does:
+  `this.x()` in its own class or one it extends, a receiver the spec types (`new GridPage(…)`,
+  `grid: GridPage`) in that class, a bare call or a namespace import to a module function. Any other
+  receiver counts only when every function of that name reads geometry, so a generic name such as
+  `cell()` decides nothing on a guess. A function nested inside another is part of that one's body,
+  never a helper of its own. `toBeGreaterThan(0)` (the box is laid out), a subject ending in
+  `.length` and a comparison between two reads are not hits. A band-edge index (the matrix trap) is
+  no marker: whether row 6 is on screen depends on the fixture's height and the theme's row
+  heights, which the text does not say. A spec that hits that trap joins `THEMES_CANARIES` in the
+  sweep test, which keeps it declared. A
   marker that does not mean sensitivity here is opted out in the SPEC file, never in a shared page
   object: `// leg-declarations: ignore <marker-id> -- <why>`, with ten or more characters of why; a
   stale, redundant or misnamed ignore fails the sweep. `e2e/color-scheme-density.spec.ts` is the
@@ -980,9 +1012,16 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
   (`docs/content/guides/accessibility/accessibility-conformance-report/`); best-practice rules are
   not in it, on purpose. An `incomplete` result (axe could not decide, most often a contrast it
   could not compute) is counted in the raw scan JSON and the report, and is never a finding.
-- **One bundle, three themes.** The scan runs on the plain UMD bundle: the minified full bundle
-  renders the same DOM. It runs on `main`, `horizon` and `classic`, because the contrast and the
-  target-size results depend on the theme, and a baseline entry names its theme.
+- **One bundle, three themes, and the variants on pages of their own.** The scan runs on the plain
+  UMD bundle: the minified full bundle renders the same DOM. It runs on `main`, `horizon` and
+  `classic`, because the contrast and the target-size results depend on the theme, and a baseline
+  entry names its theme. The dark color scheme and right-to-left layout are pages, not another
+  axis: the `dark-*` pages load their fixture with `?scheme=dark`, which `grid.html`,
+  `filters-value-list.html` and `dialog-states.html` map through the same fail-loud allowlist as
+  `?theme=` to the theme's dark class (`ht-theme-<theme>-dark`), and the `rtl-*` pages use fixtures
+  that build a right-to-left grid. The `colorScheme` option cannot stand in for the class: it needs
+  the theme engine and does nothing on a grid themed by a CSS class, which is how every fixture
+  loads its theme.
 - **A separate config, one project.** `playwright.a11y.config.ts` spreads `playwright.config.ts`
   (server, port, base URL, traces) and replaces the projects, the way the engines config does.
   The e2e config's project list is pinned by `e2e/leg-declarations.spec.ts` and
@@ -996,8 +1035,13 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
 - **Every opener drives the keyboard.** Shift+F10 for the context menu, Shift+Alt+ArrowDown for
   the dropdown menu, Enter for an editor, Ctrl+Alt+M for the comment editor (which also focuses
   it; `showAtCell()` would only show it), ArrowDown and ArrowRight to reach a submenu, after
-  `selectCell()` through the API so the keys reach the grid; only the data-provider page, which
-  has no surface to open, releases its parked fetch instead. The scanned DOM is the one a keyboard user reaches,
+  `selectCell()` through the API so the keys reach the grid. Four states have no surface for a key
+  to open, and reach theirs through the API or the pointer: the data-provider page releases its
+  parked fetch, `selection` lays a selection (the phone's selection handles), `selection-hover`
+  selects a range and hovers it (the desktop selection handles draw only under the pointer), and
+  `async-pending` starts a value that never settles. A page with `device` (the phone handles) runs
+  in a describe block that emulates the device from the first load, because the core decides at
+  construction whether it runs on a phone. The scanned DOM is the one a keyboard user reaches,
   which is what the menu findings are about. The instance is read inside the page through the
   `__hotInstance` the core stamps on `.ht-root-wrapper`, so no page says which global holds its
   grid, and the lookup is spelled out inside each `evaluate` (Playwright serializes the callback's
@@ -1087,14 +1131,30 @@ Add an entry to `a11y/pages.mjs`: `id` (a kebab-case slug that names the surface
 fixture; one fixture can be scanned in several states), `fixture` (under `fixtures/demo/`),
 `query` (appended after the theme), `root` (when the fixture has several grids), `cell` (where a
 menu or an editor opens; `[1, 1]` when absent), `state` (one of `STATES` in the spec: add a new
-opener there for a new kind of surface, keyboard first) and `surface` (what it covers). Keep
+opener there for a new kind of surface, keyboard first), `device` (a Playwright device to emulate,
+for a surface that exists on a phone only) and `surface` (what it covers). Keep
 `{ id: '…'` at the start of the entry's first line: the check run annotates a new finding on that
 line, and `lib/__tests__/a11y-check-run.test.mjs` finds every page there. The fixture keeps the
 fixture contract above: the `?theme=`/`?bundle=` block, `window.htBuildError` or
 `data-init-error` on a constructor throw, which the spec turns into a red test. Run the scan;
 every finding the new page reproduces is new, and the report says which known issue each one
 belongs to. The tooling test refuses an entry whose page is not in the list, so removing a page
-means deleting its entries (and an issue left without any) in the same change.
+means deleting its entries (and an issue left without any) in the same change. List the new page
+under the plugin or editor it scans in `a11y/coverage.mjs`.
+
+### Coverage: every plugin and editor is accounted for
+
+`a11y/coverage.mjs` has one entry per folder under `handsontable/src/plugins/` and
+`handsontable/src/editors/`, and `lib/__tests__/a11y-coverage.test.mjs` (root `test:tooling`) reads
+the folders from disk and fails on one without an entry, on an entry without a folder, and on a page
+id that `pages.mjs` does not have. An entry is `pages` (the pages that scan it), `none` (it draws
+nothing a scan of a resting page could check, and why: sizing, data, events, a guide drawn only
+during a drag) or `gap` (it draws UI no page scans yet, and what is missing). The point is the
+decision, not the list: a new plugin or editor cannot land without someone saying how its UI is
+scanned. A gap is debt, so `A11Y_GAP_LIMIT` is exactly the number of gaps: a new one fails the test,
+and the change that closes one (adds its page, baselines what the page finds that already existed
+under an issue) lowers the limit. `none` is for code that really draws nothing at rest; a control
+that waits for a fixture to turn it on is a gap.
 
 ### Baselining a finding, and fixing one
 

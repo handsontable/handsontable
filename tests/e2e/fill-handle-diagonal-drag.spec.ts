@@ -32,6 +32,7 @@ const CLOCK_START = new Date('2026-01-01T00:00:00Z');
 
 // Theme-sensitive: row heights decide whether an inserted row lands under the resting pointer (see
 // BELOW_INSERTED_ROW), and the long and short fixed-height grids render a theme-dependent band.
+// leg-declarations: ignore pointer-offset -- jitterPointer() moves 1 px from the fill handle back over the selected cell, which holds on every theme; the spec asserts the fill direction
 test.describe('fill handle drag direction (DEV-140)', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: FillHandleDragPage;
 
