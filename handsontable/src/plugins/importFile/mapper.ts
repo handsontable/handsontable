@@ -987,7 +987,8 @@ function collectCells(
       ? unresolvedDefinedNames(workbook, context)
       : new Set(),
     inferredByFormat: new Map(),
-    walkedFormulaChars: 0,
+    // The reader's shared-formula translation already spent part of the same budget.
+    walkedFormulaChars: workbook.translatedFormulaChars ?? 0,
     ownSheetName: context.formulaSheetName?.toLowerCase() ?? null,
     workbookSheetNames: new Set(workbook.sheets.map(candidate => candidate.name.toLowerCase())),
   };

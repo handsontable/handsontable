@@ -100,6 +100,11 @@ export const MAX_FORMULA_LENGTH = 32768;
  * `A1+A1+...` text (developer machine), and the strip is a single pass, so one charge per formula
  * keeps the bound within about 15% of the measured one. Charging each walk separately spent the
  * budget two or three times per formula and refused workbooks the reader accepts.
+ *
+ * The two halves share ONE budget per import: the reader hands its count over on the snapshot
+ * (`translatedFormulaChars`) and the mapper starts from it. With a budget each, one 12 kB file (a
+ * 32,701-character shared master and 1,024 slaves) ran 17.4 s in the reader and about 12 s more in
+ * the mapper, so the figures above held per half, not per import.
  */
 export const MAX_TRANSLATED_FORMULA_CHARS = 32 * 1024 * 1024;
 

@@ -2143,3 +2143,25 @@ describe('native reader compatibility: whole-column array formulas on aliased sh
     expect(sheet.rows[2] ?? []).toHaveLength(0);
   });
 });
+
+describe('native reader compatibility: the shared-formula translation count (review round 12)', () => {
+  it('should hand the characters it translated to the import, which charges the same budget', async() => {
+    const sheet = worksheetXml('<row r="1"><c r="A1"><f t="shared" ref="A1:A3" si="0">B1+1</f><v>1</v></c></row>'
+      + '<row r="2"><c r="A2"><f t="shared" si="0"/><v>1</v></c></row>'
+      + '<row r="3"><c r="A3"><f t="shared" si="0"/><v>1</v></c></row>');
+    const { snapshot } = await readWorkbook(await packWorkbook([
+      { name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: sheet },
+    ]));
+
+    expect(snapshot.sheets[0].rows[2][0].formula.text).toBe('B3+1');
+    expect(snapshot.translatedFormulaChars).toBe('B1+1'.length * 2);
+  });
+
+  it('should leave the count out when no shared formula was translated', async() => {
+    const { snapshot } = await readWorkbook(await packWorkbook([
+      { name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: oneCellSheet(1) },
+    ]));
+
+    expect(snapshot.translatedFormulaChars).toBeUndefined();
+  });
+});

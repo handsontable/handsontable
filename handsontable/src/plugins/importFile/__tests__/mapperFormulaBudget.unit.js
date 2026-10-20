@@ -30,9 +30,10 @@ function formulaOf(head) {
  * @param {object} [settings] The import settings.
  * @param {boolean} [settings.header] Whether a header row precedes the formulas and is dropped.
  * @param {string[]} [settings.names] The names the workbook defines.
+ * @param {number} [settings.readerChars] What the reader's shared-formula translation spent.
  * @returns {object} The mapped result.
  */
-function mapFormulas(formula, count, { header = false, names = [] } = {}) {
+function mapFormulas(formula, count, { header = false, names = [], readerChars } = {}) {
   const sheet = createSheetSnapshot('Data');
   const workbook = createWorkbookSnapshot();
   const formulaCell = Object.assign(createCellSnapshot(), { formula: { text: formula, result: 1 } });
@@ -45,6 +46,10 @@ function mapFormulas(formula, count, { header = false, names = [] } = {}) {
 
   workbook.sheets.push(sheet);
   workbook.definedNames = names;
+
+  if (readerChars !== undefined) {
+    workbook.translatedFormulaChars = readerChars;
+  }
 
   return mapWorkbook(workbook, resolveImportOptions(header ? { colHeaders: 'firstRow' } : {}), {
     formulasEnabled: true,
@@ -132,5 +137,24 @@ describe('mapWorkbook formula walk budget', () => {
     const plain = formulaOf('A1');
 
     expect(mapFormulas(plain, fits * 3).data).toHaveLength(fits * 3);
+  });
+});
+
+describe('mapWorkbook formula walk budget shared with the reader (review round 12)', () => {
+  // A qualified formula is one the mapper walks, and so charges.
+  const formula = formulaOf('Rates!A1');
+  const fits = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / 100);
+
+  it('should start from what the reader spent translating shared formulas', () => {
+    // The reader and the mapper each had the whole budget, so one import could spend it twice:
+    // 17.4 s in the reader and about 12 s more in the mapper for one 12 kB file.
+    const error = refusalOf(() => mapFormulas(formula, 1, { readerChars: MAX_TRANSLATED_FORMULA_CHARS - 50 }));
+
+    expect(isLimitError(error)).toBe(true);
+    expect(error.message).toMatch(/rewrite to more than/);
+  });
+
+  it('should still map a workbook whose two halves fit the budget together', () => {
+    expect(refusalOf(() => mapFormulas(formula, fits - 10, { readerChars: 1000 }))).toBeNull();
   });
 });

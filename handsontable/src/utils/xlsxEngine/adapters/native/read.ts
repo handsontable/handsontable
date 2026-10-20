@@ -555,5 +555,9 @@ export async function readWorkbook(buffer: ArrayBuffer, dropped: DroppedFeatures
     opened.archive.release();
   }
 
+  if (budget.translatedFormulaChars) {
+    snapshot.translatedFormulaChars = budget.translatedFormulaChars;
+  }
+
   return snapshot;
 }

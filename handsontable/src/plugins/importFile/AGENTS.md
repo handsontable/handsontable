@@ -198,6 +198,9 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   the formula's length into `CollectContext.walkedFormulaChars` BEFORE the walk and refuses through
   `throwLimitExceeded` past `MAX_TRANSLATED_FORMULA_CHARS`: 4000 cells x 32 768-character formulas cost
   41 s of regex under `colHeaders: 'firstRow'`. A formula needing neither walk is not charged.
+  The count starts at the snapshot's `translatedFormulaChars`, what the native reader's shared-formula
+  translation already spent of the same budget (review round 12): with two separate budgets one 12 kB
+  file took 17.4 s in the reader and about 12 s more here before the mapper refused it.
 - **A list validation is resolved once per formula per pass** (`resolveDropdownMeta`, cache on
   `CollectContext.listMetaByFormula`). A validated column repeats the same formula on every cell and
   `readRangeValues` walks the whole range each time, so a 100k-row dropdown over a 1,000-row list used to

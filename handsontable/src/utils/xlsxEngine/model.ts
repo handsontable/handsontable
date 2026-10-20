@@ -162,6 +162,12 @@ export interface WorkbookSnapshot {
    * `_xlnm.` names (print areas, the filter database) are left out.
    */
   definedNames?: string[];
+  /**
+   * The formula characters the native reader's shared-formula translation ran over, read on import
+   * only. The import mapper starts its own formula-walk count from it, so one import spends
+   * `MAX_TRANSLATED_FORMULA_CHARS` once, not once in the reader and again in the mapper.
+   */
+  translatedFormulaChars?: number;
 }
 
 /**
