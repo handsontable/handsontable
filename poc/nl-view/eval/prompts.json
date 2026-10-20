@@ -1,0 +1,1391 @@
+[
+  {
+    "id": "ord-paid",
+    "dataset": "orders",
+    "prompt": "paid orders",
+    "category": "simple_filter",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "status",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "paid"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "status eq paid. The word is already the cell value."
+  },
+  {
+    "id": "ord-germany",
+    "dataset": "orders",
+    "prompt": "orders from Germnay",
+    "category": "simple_filter",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "country",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "Germany"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "Typo in the prompt. Gold is country eq Germany. importConditions lowercases the string argument, so the mixed-case cell still matches."
+  },
+  {
+    "id": "ord-high",
+    "dataset": "orders",
+    "prompt": "high priorty only",
+    "category": "simple_filter",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "priority",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "high"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "Typo in the prompt. priority eq high."
+  },
+  {
+    "id": "ord-north",
+    "dataset": "orders",
+    "prompt": "customers starting with North",
+    "category": "simple_filter",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "customer",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "begins_with",
+              "args": [
+                "North"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "begins_with North. The engine lowercases the argument on import. Hits Northwind Traders and Northern Lights Co."
+  },
+  {
+    "id": "ord-shipdate",
+    "dataset": "orders",
+    "prompt": "orders that have a ship date",
+    "category": "simple_filter",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "ship_date",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "not_empty",
+              "args": []
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "ship_date not_empty. null and empty string are empty. A present ISO date is not."
+  },
+  {
+    "id": "ord-emea-paid",
+    "dataset": "orders",
+    "prompt": "paid orders in EMEA",
+    "category": "multi_condition",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "region",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "EMEA"
+              ]
+            }
+          ]
+        },
+        {
+          "column": "status",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "paid"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "Two column entries. Filters across columns are AND."
+  },
+  {
+    "id": "ord-qty",
+    "dataset": "orders",
+    "prompt": "electronics where qty is over 5 and under 20",
+    "category": "multi_condition",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "category",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "Electronics"
+              ]
+            }
+          ]
+        },
+        {
+          "column": "quantity",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "gt",
+              "args": [
+                5
+              ]
+            },
+            {
+              "name": "lt",
+              "args": [
+                20
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "Exclusive range, so not between. gt and lt together keep null quantities out. A lone lt would keep them, because null coerces to 0."
+  },
+  {
+    "id": "ord-status-set",
+    "dataset": "orders",
+    "prompt": "only shipped or refunded",
+    "category": "by_value",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "status",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "by_value",
+              "args": [
+                [
+                  "shipped",
+                  "refunded"
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "acceptable": [
+      {
+        "version": 1,
+        "filters": [
+          {
+            "column": "status",
+            "operation": "disjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "shipped"
+                ]
+              },
+              {
+                "name": "eq",
+                "args": [
+                  "refunded"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "notes": "by_value is not in getAvailableConditions, and setViewState still accepts it. The disjunction of eq is the same rows. by_value is case-sensitive; these values are already lowercase."
+  },
+  {
+    "id": "ord-regions",
+    "dataset": "orders",
+    "prompt": "AMER and APAC, skip EMEA",
+    "category": "by_value",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "region",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "by_value",
+              "args": [
+                [
+                  "AMER",
+                  "APAC"
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "acceptable": [
+      {
+        "version": 1,
+        "filters": [
+          {
+            "column": "region",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "neq",
+                "args": [
+                  "EMEA"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "notes": "The \"and\" is the set of regions, not a row that is both. neq EMEA matches the same rows because region is never empty. by_value keeps the original case."
+  },
+  {
+    "id": "ord-total",
+    "dataset": "orders",
+    "prompt": "totals between 100 and 500",
+    "category": "numeric_range",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "total",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "between",
+              "args": [
+                100,
+                500
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "Numeric between is inclusive. Null totals stay out."
+  },
+  {
+    "id": "ord-qty20",
+    "dataset": "orders",
+    "prompt": "qty at least 20",
+    "category": "numeric_range",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "quantity",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "gte",
+              "args": [
+                20
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "quantity gte 20. Null quantities stay out."
+  },
+  {
+    "id": "ord-last-month",
+    "dataset": "orders",
+    "prompt": "orders from last month",
+    "category": "relative_date",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "order_date",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "between",
+              "args": [
+                "2026-09-01",
+                "2026-09-30"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "acceptable": [
+      {
+        "version": 1,
+        "filters": [
+          {
+            "column": "order_date",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "between",
+                "args": [
+                  "2026-09-20",
+                  "2026-10-20"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "distinctAcceptable": true,
+    "notes": "TODAY is 2026-10-20. Gold is calendar September. The trailing 30 days (2026-09-20 through 2026-10-20) is also a fair reading and is a different row set. date_today is not used: it follows the browser clock."
+  },
+  {
+    "id": "ord-quarter",
+    "dataset": "orders",
+    "prompt": "orders placed this quarter",
+    "category": "relative_date",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "order_date",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "between",
+              "args": [
+                "2026-10-01",
+                "2026-12-31"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "Q4 2026 is 2026-10-01 through 2026-12-31. order_date in this dataset never passes 2026-10-31, so this window shows the same rows as October. That is a sample collision, not a second accepted reading."
+  },
+  {
+    "id": "ord-sort-total",
+    "dataset": "orders",
+    "prompt": "sort by total, biggest first",
+    "category": "sort_single",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "sort": {
+        "columns": [
+          {
+            "column": "total",
+            "sortOrder": "desc"
+          }
+        ]
+      }
+    },
+    "notes": "Sort only. Every row stays visible. Null totals follow the grid sort."
+  },
+  {
+    "id": "ord-sort-multi",
+    "dataset": "orders",
+    "prompt": "sort by country A-Z, then newest order date first",
+    "category": "sort_multi",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "sort": {
+        "columns": [
+          {
+            "column": "country",
+            "sortOrder": "asc"
+          },
+          {
+            "column": "order_date",
+            "sortOrder": "desc"
+          }
+        ]
+      }
+    },
+    "notes": "First column is the primary key. order_date desc is the tie break. ISO dates sort chronologically."
+  },
+  {
+    "id": "ord-hide",
+    "dataset": "orders",
+    "prompt": "hide unit price and ship date",
+    "category": "hide_columns",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "hiddenColumns": [
+        "unit_price",
+        "ship_date"
+      ]
+    },
+    "notes": "hiddenColumns names properties. Rows are unchanged."
+  },
+  {
+    "id": "ord-show",
+    "dataset": "orders",
+    "prompt": "show only customer, product, total and status",
+    "category": "hide_columns",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "hiddenColumns": [
+        "order_id",
+        "country",
+        "region",
+        "category",
+        "quantity",
+        "unit_price",
+        "order_date",
+        "ship_date",
+        "priority",
+        "rep"
+      ]
+    },
+    "notes": "Show-only is the complement hidden. There is no showColumns part."
+  },
+  {
+    "id": "ord-combined",
+    "dataset": "orders",
+    "prompt": "shipped in EMEA, biggest total first, and hide the rep",
+    "category": "combined",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "region",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "EMEA"
+              ]
+            }
+          ]
+        },
+        {
+          "column": "status",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "shipped"
+              ]
+            }
+          ]
+        }
+      ],
+      "sort": {
+        "columns": [
+          {
+            "column": "total",
+            "sortOrder": "desc"
+          }
+        ]
+      },
+      "hiddenColumns": [
+        "rep"
+      ]
+    },
+    "notes": "Filter, sort, and one hidden column in one state."
+  },
+  {
+    "id": "ord-clear",
+    "dataset": "orders",
+    "prompt": "clear filters and sorting and show every column",
+    "category": "clear",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [],
+      "sort": {
+        "columns": []
+      },
+      "hiddenColumns": []
+    },
+    "notes": "A missing part is left alone. Clearing means filters [], sort columns [], and hiddenColumns []. After reset this is a no-op, and the model still has to apply it."
+  },
+  {
+    "id": "ord-top",
+    "dataset": "orders",
+    "prompt": "top 10 orders by total",
+    "category": "top_n",
+    "expressible": false,
+    "gold": null,
+    "notes": "No top-N condition. Sorting by total still shows every row. Hiding the other rows by physical index is a snapshot of this data, not a view, so sort-only does not count."
+  },
+  {
+    "id": "ord-group",
+    "dataset": "orders",
+    "prompt": "total revenue by country",
+    "category": "group",
+    "expressible": false,
+    "gold": null,
+    "notes": "The grid has no flat-data grouping or aggregation."
+  },
+  {
+    "id": "ord-big",
+    "dataset": "orders",
+    "prompt": "just the big ones",
+    "category": "ambiguous",
+    "expressible": false,
+    "gold": null,
+    "notes": "No agreed cutoff. gt 1000 and gt 5000 keep different rows, and neither is privileged."
+  },
+  {
+    "id": "ord-recent",
+    "dataset": "orders",
+    "prompt": "recent orders",
+    "category": "ambiguous",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "order_date",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "between",
+              "args": [
+                "2026-09-20",
+                "2026-10-20"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "acceptable": [
+      {
+        "version": 1,
+        "filters": [
+          {
+            "column": "order_date",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "between",
+                "args": [
+                  "2026-10-01",
+                  "2026-10-31"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "version": 1,
+        "filters": [
+          {
+            "column": "order_date",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "between",
+                "args": [
+                  "2026-10-14",
+                  "2026-10-20"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "distinctAcceptable": true,
+    "notes": "Vague but still a date window. Gold is the trailing 30 days ending TODAY 2026-10-20. Calendar October and the last 7 days are also fair, and the three sets differ. \"Big\" and \"urgent\" stay inexpressible because no window is this obvious."
+  },
+  {
+    "id": "ord-formula",
+    "dataset": "orders",
+    "prompt": "rows where qty times unit price doesn't match the total",
+    "category": "inexpressible",
+    "expressible": false,
+    "gold": null,
+    "notes": "No condition can compare two columns. A few totals are intentionally off by 3 so the ask is real."
+  },
+  {
+    "id": "ord-mutate",
+    "dataset": "orders",
+    "prompt": "mark all pending orders as paid",
+    "category": "inexpressible",
+    "expressible": false,
+    "gold": null,
+    "notes": "A data write, not a view."
+  },
+  {
+    "id": "ord-color",
+    "dataset": "orders",
+    "prompt": "highlight cancelled orders in red",
+    "category": "inexpressible",
+    "expressible": false,
+    "gold": null,
+    "notes": "ViewState has no cell styles."
+  },
+  {
+    "id": "tix-open",
+    "dataset": "tickets",
+    "prompt": "open tickets",
+    "category": "simple_filter",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "status",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "open"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "acceptable": [
+      {
+        "version": 1,
+        "filters": [
+          {
+            "column": "status",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "by_value",
+                "args": [
+                  [
+                    "open",
+                    "in_progress",
+                    "review"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "distinctAcceptable": true,
+    "notes": "Gold is the status value open. A looser reading, anything not done or wontfix, is accepted and keeps a different set."
+  },
+  {
+    "id": "tix-p0",
+    "dataset": "tickets",
+    "prompt": "P0s",
+    "category": "simple_filter",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "priority",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "P0"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "priority eq P0. The engine lowercases the argument; the cell P0 still matches."
+  },
+  {
+    "id": "tix-unassigned",
+    "dataset": "tickets",
+    "prompt": "unassigned tickets",
+    "category": "simple_filter",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "assignee",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "empty",
+              "args": []
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "assignee empty. Unassigned is stored as null, which is empty. An empty string would match too."
+  },
+  {
+    "id": "tix-crash",
+    "dataset": "tickets",
+    "prompt": "titles starting with Crash",
+    "category": "simple_filter",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "title",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "begins_with",
+              "args": [
+                "Crash"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "begins_with Crash. Argument is lowercased on import."
+  },
+  {
+    "id": "tix-bug-review",
+    "dataset": "tickets",
+    "prompt": "bugs in review",
+    "category": "multi_condition",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "type",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "bug"
+              ]
+            }
+          ]
+        },
+        {
+          "column": "status",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "review"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "type and status, AND across columns."
+  },
+  {
+    "id": "tix-core",
+    "dataset": "tickets",
+    "prompt": "P1 or P2 bugs in Core",
+    "category": "multi_condition",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "component",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "Core"
+              ]
+            }
+          ]
+        },
+        {
+          "column": "type",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "bug"
+              ]
+            }
+          ]
+        },
+        {
+          "column": "priority",
+          "operation": "disjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "P1"
+              ]
+            },
+            {
+              "name": "eq",
+              "args": [
+                "P2"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "acceptable": [
+      {
+        "version": 1,
+        "filters": [
+          {
+            "column": "component",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "Core"
+                ]
+              }
+            ]
+          },
+          {
+            "column": "type",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "bug"
+                ]
+              }
+            ]
+          },
+          {
+            "column": "priority",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "by_value",
+                "args": [
+                  [
+                    "P1",
+                    "P2"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "notes": "Component and type are AND. Priority is OR, either a disjunction of eq or by_value. Same rows."
+  },
+  {
+    "id": "tix-closed",
+    "dataset": "tickets",
+    "prompt": "done or wontfix",
+    "category": "by_value",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "status",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "by_value",
+              "args": [
+                [
+                  "done",
+                  "wontfix"
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "acceptable": [
+      {
+        "version": 1,
+        "filters": [
+          {
+            "column": "status",
+            "operation": "disjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "done"
+                ]
+              },
+              {
+                "name": "eq",
+                "args": [
+                  "wontfix"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "notes": "Same rows either way. wontfix has no hyphen."
+  },
+  {
+    "id": "tix-people",
+    "dataset": "tickets",
+    "prompt": "assigned to Anna Kowalska or Ben Ortiz",
+    "category": "by_value",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "assignee",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "by_value",
+              "args": [
+                [
+                  "Anna Kowalska",
+                  "Ben Ortiz"
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "acceptable": [
+      {
+        "version": 1,
+        "filters": [
+          {
+            "column": "assignee",
+            "operation": "disjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "Anna Kowalska"
+                ]
+              },
+              {
+                "name": "eq",
+                "args": [
+                  "Ben Ortiz"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "notes": "Exact names. by_value is case-sensitive. eq is lowercased on import and matches the same cells."
+  },
+  {
+    "id": "tix-points",
+    "dataset": "tickets",
+    "prompt": "story points from 3 to 8",
+    "category": "numeric_range",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "story_points",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "between",
+              "args": [
+                3,
+                8
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "Inclusive. 1, 2, and 13 stay out, and so do nulls."
+  },
+  {
+    "id": "tix-points-gt",
+    "dataset": "tickets",
+    "prompt": "more than 5 points",
+    "category": "numeric_range",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "story_points",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "gt",
+              "args": [
+                5
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "gt 5 keeps 8 and 13. 5 itself stays out."
+  },
+  {
+    "id": "tix-overdue",
+    "dataset": "tickets",
+    "prompt": "overdue tickets",
+    "category": "relative_date",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "due_date",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "date_before",
+              "args": [
+                "2026-10-20"
+              ]
+            }
+          ]
+        },
+        {
+          "column": "status",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "by_value",
+              "args": [
+                [
+                  "open",
+                  "in_progress",
+                  "review"
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "acceptable": [
+      {
+        "version": 1,
+        "filters": [
+          {
+            "column": "due_date",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "date_before",
+                "args": [
+                  "2026-10-20"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "distinctAcceptable": true,
+    "notes": "TODAY is 2026-10-20. date_before is strict, so a due date of today is not overdue. Gold also keeps only open, in_progress, and review. Due date alone is accepted and is a wider set. Null due dates match neither. date_today is not used."
+  },
+  {
+    "id": "tix-month",
+    "dataset": "tickets",
+    "prompt": "created this month",
+    "category": "relative_date",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "created_at",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "between",
+              "args": [
+                "2026-10-01",
+                "2026-10-31"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "notes": "Calendar October 2026 against TODAY 2026-10-20. created_at has no November rows."
+  },
+  {
+    "id": "tix-sort",
+    "dataset": "tickets",
+    "prompt": "sort by due date, soonest first",
+    "category": "sort_single",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "sort": {
+        "columns": [
+          {
+            "column": "due_date",
+            "sortOrder": "asc"
+          }
+        ]
+      }
+    },
+    "notes": "Every row stays. Null due dates follow the grid sort."
+  },
+  {
+    "id": "tix-sort-multi",
+    "dataset": "tickets",
+    "prompt": "sort by priority then story points, biggest points first",
+    "category": "sort_multi",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "sort": {
+        "columns": [
+          {
+            "column": "priority",
+            "sortOrder": "asc"
+          },
+          {
+            "column": "story_points",
+            "sortOrder": "desc"
+          }
+        ]
+      }
+    },
+    "notes": "P0 sorts before P3 because the text order is P0, P1, P2, P3. Desc on priority would put P3 first, and that reading is not accepted."
+  },
+  {
+    "id": "tix-hide",
+    "dataset": "tickets",
+    "prompt": "hide reporter and tags",
+    "category": "hide_columns",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "hiddenColumns": [
+        "reporter",
+        "tags"
+      ]
+    },
+    "notes": "Two hidden columns. Rows stay."
+  },
+  {
+    "id": "tix-show",
+    "dataset": "tickets",
+    "prompt": "show id, title, assignee, status and priority",
+    "category": "hide_columns",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "hiddenColumns": [
+        "type",
+        "created_at",
+        "due_date",
+        "story_points",
+        "component",
+        "reporter",
+        "tags"
+      ]
+    },
+    "notes": "The other seven columns are hidden."
+  },
+  {
+    "id": "tix-combined",
+    "dataset": "tickets",
+    "prompt": "open bugs, highest priority first, hide story points",
+    "category": "combined",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [
+        {
+          "column": "type",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "bug"
+              ]
+            }
+          ]
+        },
+        {
+          "column": "status",
+          "operation": "conjunction",
+          "conditions": [
+            {
+              "name": "eq",
+              "args": [
+                "open"
+              ]
+            }
+          ]
+        }
+      ],
+      "sort": {
+        "columns": [
+          {
+            "column": "priority",
+            "sortOrder": "asc"
+          }
+        ]
+      },
+      "hiddenColumns": [
+        "story_points"
+      ]
+    },
+    "notes": "Highest priority is P0, which is priority asc. status is the value open, not the looser not-finished set."
+  },
+  {
+    "id": "tix-clear",
+    "dataset": "tickets",
+    "prompt": "reset the grid",
+    "category": "clear",
+    "expressible": true,
+    "gold": {
+      "version": 1,
+      "filters": [],
+      "sort": {
+        "columns": []
+      },
+      "hiddenColumns": []
+    },
+    "notes": "Same clear state as the orders reset: empty filters, empty sort, no hidden columns."
+  },
+  {
+    "id": "tix-top",
+    "dataset": "tickets",
+    "prompt": "top 5 by story points",
+    "category": "top_n",
+    "expressible": false,
+    "gold": null,
+    "notes": "No top-N condition. Sort-only still shows every ticket."
+  },
+  {
+    "id": "tix-group",
+    "dataset": "tickets",
+    "prompt": "count of tickets by assignee and status",
+    "category": "group",
+    "expressible": false,
+    "gold": null,
+    "notes": "No flat-data grouping."
+  },
+  {
+    "id": "tix-urgent",
+    "dataset": "tickets",
+    "prompt": "the urgent stuff",
+    "category": "ambiguous",
+    "expressible": false,
+    "gold": null,
+    "notes": "P0 alone and P0 plus P1 are both plausible and they differ. No gold."
+  },
+  {
+    "id": "tix-mine",
+    "dataset": "tickets",
+    "prompt": "show my tickets",
+    "category": "ambiguous",
+    "expressible": false,
+    "gold": null,
+    "notes": "No current-user column. assignee empty is a different ask."
+  },
+  {
+    "id": "tix-cross",
+    "dataset": "tickets",
+    "prompt": "tickets due before they were created",
+    "category": "inexpressible",
+    "expressible": false,
+    "gold": null,
+    "notes": "That compares two date columns. One column condition cannot see the other."
+  },
+  {
+    "id": "tix-slack",
+    "dataset": "tickets",
+    "prompt": "ping the assignees on slack",
+    "category": "inexpressible",
+    "expressible": false,
+    "gold": null,
+    "notes": "Not a grid view."
+  }
+]
