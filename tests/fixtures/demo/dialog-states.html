@@ -22,6 +22,8 @@
     };
 
     window.htTheme = htPick('theme', { main: 'main', horizon: 'horizon', classic: 'classic' }, 'main');
+    // `?scheme=dark` adds the theme's dark class (`ht-theme-<theme>-dark`); the default is the light scheme.
+    window.htScheme = htPick('scheme', { light: '', dark: '-dark' }, 'light');
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
     // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min = handsontable.full.min.js).
@@ -57,7 +59,7 @@
   <script>
     const container = document.querySelector('[data-testid="grid"]');
 
-    container.className = `ht-theme-${window.htTheme}`;
+    container.className = `ht-theme-${window.htTheme}${window.htScheme}`;
 
     let content;
     let template;

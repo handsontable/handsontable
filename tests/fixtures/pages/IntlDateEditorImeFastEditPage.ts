@@ -12,8 +12,9 @@ interface FixtureWindow {
 }
 
 /**
- * Page object for the `imeFastEdit` fixture (`demo/intl-date-editor-ime-fast-edit.html`): a 2 x 2 grid
- * with an `intl-date` first column, built with `imeFastEdit: true`.
+ * Page object for the `imeFastEdit` fixture (`demo/intl-date-editor-ime-fast-edit.html`): a 2 x 3 grid
+ * with an `intl-date` first column (the third, `intl-time`, is for the a11y scan), built with
+ * `imeFastEdit: true`.
  *
  * With `imeFastEdit` the focus manager does not leave the browser focus on the selected cell. Once the
  * selection ends, a debounced `select()` (1 ms, `FocusGridManager#refocusDelay`) moves it to the active

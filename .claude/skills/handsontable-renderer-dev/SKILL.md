@@ -25,7 +25,7 @@ Call `baseRenderer` first: it applies the readonly and invalid CSS classes, ARIA
 - Set cell text with `fastInnerText(TD, value)` from `src/helpers/dom/element.ts` (XSS-safe).
 - Escape all user-provided content before any `innerHTML`.
 - Append or clear through `getCellContentRoot(TD)` when managing the cell's children (`empty(...)`, `appendChild(...)`, `insertBefore(x, root.firstChild)`). A row at an exact height keeps content in a `div.htCellClip` wrapper; the helper returns it when present and the cell otherwise. Writing straight into `TD` rebuilds the wrapper every draw, and a node left outside it grows the row back. `fastInnerText`/`fastInnerHTML` do this on their own. Models: `checkboxRenderer`, `autocompleteRenderer`, `multiSelectRenderer`.
-- If the renderer changes the cell's role or state, update ARIA attributes.
+- If the renderer changes the cell's role or state, update ARIA attributes through `src/helpers/a11y.ts`. A control drawn in a cell (a checkbox, a button, a link) needs an accessible name and a keyboard path (`handsontable-a11y` skill).
 - Handle `null` and `undefined` values.
 
 ## Files

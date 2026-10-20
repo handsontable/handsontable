@@ -16,6 +16,7 @@ Three themes, each with a `-no-icons` variant (6 bundles): `ht-theme-main` (defa
 - Renaming or removing a CSS class is a breaking change: keep the old class in the DOM.
 - CSS and JS live in separate files.
 - Every CSS feature must work in the `browser-targets.js` browsers (`eslint-plugin-compat` enforces it).
+- A color or size change is an accessibility change: text 4.5:1, icons, borders and focus rings 3:1, pointer targets 24 by 24 CSS pixels, in all three themes, light and dark. Run the axe scan before and after (`handsontable-a11y` skill).
 
 ## Cell padding comes from the variables
 
