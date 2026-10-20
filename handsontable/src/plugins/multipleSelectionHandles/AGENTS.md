@@ -35,7 +35,7 @@ Every overlay (the master and each frozen-pane clone) has its own border and its
 Consequences:
 
 - A clone's bottom handle is clamped inside its own table size (the clone clips overflow), so for a cell in the last frozen row (`fixedRowsTop`) or the last frozen column it sits a few pixels inside the corner, as it always did after a scroll. Accepted in review; `mobile-selection-handles.spec.ts` pins that it stays next to the corner.
-- The clone-occlusion checks (`isTopHandleOccludedByClone`, `isBottomHandleOccludedByClone`) apply to every overlay on the scrollable side of an axis, and an end pane (`fixedRowsBottom`, `fixedColumnsEnd`) pulls the top handle of its first track inside, so the handles stay reachable in every pane.
+- The clone-occlusion checks (`isTopHandleOccludedByClone`, `isBottomHandleOccludedByClone`, and its inline-axis twin `isBottomHandleOccludedByInlineEndClone`) apply to every overlay on the scrollable side of an axis. A handle that would hang into a frozen pane is pulled inside its cell: the top handle on the `fixedRowsTop`/`fixedColumnsStart` line and on the first track of an end pane, the bottom handle on the last scrollable row before `fixedRowsBottom` and the last scrollable column before `fixedColumnsEnd`.
 - Testing: a reachable-handle check keeps only the topmost element at a handle's center, so two copies stacked on one pixel read as one. Assert `displayedHandles()` too (`MobileHandlesPage`), which counts every displayed copy.
 
 ## Resolving the finger

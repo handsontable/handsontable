@@ -205,4 +205,18 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
     expect(Math.abs(offset!.dx)).toBeLessThanOrEqual(10);
     expect(Math.abs(offset!.dy)).toBeLessThanOrEqual(10);
   });
+
+  // The cell next to the `fixedColumnsEnd` pane: its bottom handle would hang into the end pane,
+  // which paints over the master, so it is pulled inside the cell like the one above the bottom
+  // freeze line.
+  for (const direction of ['ltr', 'rtl'] as const) {
+    test(`keep the bottom handle of the last scrollable column interactive next to the end pane (${direction})`, async () => {
+      await mobileGrid.goto({ direction, frozenEnd: true, cols: 'wide' });
+      await mobileGrid.scrollToLastScrollableColumn();
+      await mobileGrid.tapPaintedCell(2, 17);
+
+      await expect.poll(() => mobileGrid.reachableBottomHandles()).toEqual(['ht_master']);
+    });
+  }
 });
+

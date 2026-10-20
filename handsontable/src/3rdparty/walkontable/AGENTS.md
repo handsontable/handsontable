@@ -313,6 +313,9 @@ its frozen cells' handles, and the `top_inline_start_corner` clone covers its ro
 exactly as the `top` clone covers the master's. An overlay on the END side of an axis (the `bottom`
 clone, the `inline_end` clone, their corners) pulls the top handle of its FIRST track inside too
 (`Border#isFirstTrackOfEndPane`), because its `.wtHolder` clips the part hanging out before the pane.
+The bottom handle has the same rule on both axes: `isBottomHandleOccludedByClone` lifts it on the last
+scrollable row before `fixedRowsBottom`, and `isBottomHandleOccludedByInlineEndClone` pulls it inside
+on the last scrollable column before `fixedColumnsEnd`, where the `inline_end` clone paints over it.
 Restricting the helpers to the master again loses the frozen-column top handle after a horizontal
 scroll and the first frozen-bottom row's or end column's top handle after scrolling to the end.
 Note `.wtHolder` is the clipping box on the three scroll-mirrored clones

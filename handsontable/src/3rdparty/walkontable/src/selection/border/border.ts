@@ -777,12 +777,17 @@ class Border {
       parseInt(String(isTopHandleUnderInlineStartClone ? left : left - ((hitAreaSize / 4) * 3)), 10)
     }px`;
 
+    // Mirror of the row lift below on the inline axis: the `inline_end` clone owns the band past the
+    // `fixedColumnsEnd` line that the handle would otherwise hang into, so pull it inside the cell.
+    const isBottomHandleUnderInlineEndClone = this.isBottomHandleOccludedByInlineEndClone(toCol);
     const bottomHandlerInline = Math.min(
-      parseInt(String(left + width), 10),
+      parseInt(String(isBottomHandleUnderInlineEndClone ? left + width - handleSize - 1 : left + width), 10),
       totalTableWidth - handleSize - (handleBorderSize * 2),
     );
     const bottomHandlerAreaInline = Math.min(
-      parseInt(String(left + width - (hitAreaSize / 4)), 10),
+      parseInt(String(
+        isBottomHandleUnderInlineEndClone ? left + width - hitAreaSize : left + width - (hitAreaSize / 4)
+      ), 10),
       totalTableWidth - hitAreaSize - (handleBorderSize * 2),
     );
 
@@ -940,6 +945,26 @@ class Border {
 
     return (this.wot.getSetting('shouldRenderInlineStartOverlay') as boolean)
       && fromIndex === (this.wot.getSetting('fixedColumnsStart') as number);
+  }
+
+  /**
+   * Mirror of {@link Border#isBottomHandleOccludedByClone} on the inline axis: whether the bottom
+   * handle of a cell in the last scrollable column would hang into the `inline_end` clone, which
+   * paints over every overlay on the scrollable side of the column axis.
+   *
+   * @private
+   * @param {number} toColumn The selection's end corner column index, as drawn by this table.
+   * @returns {boolean}
+   */
+  isBottomHandleOccludedByInlineEndClone(toColumn: number): boolean {
+    if (getOverlaySegment(this.wot.wtTable.name, 'column') !== 'main') {
+      return false;
+    }
+
+    const fixedColumnsEnd = this.wot.getSetting('fixedColumnsEnd') as number;
+    const totalColumns = this.wot.getSetting('totalColumns') as number;
+
+    return fixedColumnsEnd > 0 && toColumn === totalColumns - fixedColumnsEnd - 1;
   }
 
   /**
