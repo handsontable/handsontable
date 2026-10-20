@@ -241,6 +241,7 @@ $all-sheets-visible-items: 8;
 
       .ht-sheets-bar__tab {
         position: relative;
+        isolation: isolate;
         display: flex;
         cursor: pointer;
         align-items: center;

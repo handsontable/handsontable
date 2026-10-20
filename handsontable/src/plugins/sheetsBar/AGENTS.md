@@ -48,9 +48,27 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   composition (`isComposing`/keyCode 229).
 - **Drag decisions use transform-neutral geometry.** `#reorder` subtracts each tab's in-flight
   FLIP translation before comparing centres; measuring the animated rects makes a 2px pointer
-  wobble swap two tabs back and forth for as long as the slide runs. A DOM reorder also drops
-  the pointer capture — `lostpointercapture` re-captures while the tab is still in the strip
-  and only cancels when the pointer is truly gone.
+  wobble swap two tabs back and forth for as long as the slide runs. **A reorder moves the
+  neighbors, never the dragged tab** (`#moveAround`). Re-inserting the captured tab drops its
+  pointer capture, and taking it back from the `lostpointercapture` handler crashes the desktop
+  WebKit content process, so do not reintroduce `insertBefore(tab, …)` mid-drag and do not
+  re-capture from that handler. A capture loss on the tab therefore means the pointer is gone, and
+  the gesture is canceled. The handler ignores a loss bubbled up from a child: a touch press
+  captures the pointer on the label under the finger, and the drag's own `setPointerCapture`
+  takes it from there. Pinned by `tests/e2e/sheets-bar-tab-drag.spec.ts` (tagged
+  `@cross-browser`, so the WebKit leg runs it) and the reorder cases in `__tests__/tabDrag.unit.js`.
+  Moving a neighbor blurs a focused element inside it, so a press that starts a drag first ends an
+  open rename by focusing the pressed tab (the `pointerdown` handler in `tabStrip.ts`). A mouse
+  press moves the focus on its own; a touch press does not, and the rename input's blur-driven
+  commit used to repaint the strip in the middle of `#moveAround`, which then threw
+  `NotFoundError`. Pinned by the rename case in `tests/e2e/sheets-bar-touch-drag.spec.ts`.
+- **Every tab is its own stacking context (`isolation: isolate`).** The chevron glyph carries
+  `z-index: 1` to stay above its `::before` hover surface. Without the isolation that z-index
+  competes in the strip at the dragged tab's level (`--dragging` is `z-index: 1` too), so a tab
+  later in the DOM painted its chevron over the dragged tab passing above it. Do not raise the
+  dragged tab's z-index instead: any new positioned child of a tab would bring the bug back. A
+  hit test cannot see it during a drag, because every tab is `pointer-events: none` then; the
+  spec turns pointer events back on for one `elementFromPoint` read.
 - **Per-sheet `settings` go through `updateSettings()` with a baseline.** The grid-level value
   of every key any sheet overrides is captured the first time that key is applied
   (`#withBaselineFor`); `undefined` baselines are restored as `null`, because `updateSettings`
