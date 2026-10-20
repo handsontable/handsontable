@@ -247,3 +247,28 @@ describe('mapWorkbook per-cell meta budget', () => {
     expect(result.cellsMeta).toBeUndefined();
   });
 });
+
+describe('mapWorkbook class-name runs on the lowered budget (review round 12)', () => {
+  const valued = () => ({ ...createCellSnapshot(), value: 1 });
+  const aligned = horizontal => ({ ...createCellSnapshot(), style: styleOf({ alignment: { horizontal } }) });
+  // One row of values sets the window and leaves the budget on its floor (1,000); the two styled rows
+  // below it give every column two class runs, and so two cell meta entries.
+  const sheetOf = width => [
+    Array.from({ length: width }, valued),
+    Array.from({ length: width }, () => aligned('center')),
+    Array.from({ length: width }, () => aligned('right')),
+  ];
+
+  it('should allocate one cell meta entry per run, so the charge has to count both runs', () => {
+    expect(mapRows(sheetOf(400), {}, { importStyles: true }).cellsMeta).toHaveLength(800);
+  });
+
+  it('should refuse a sheet whose runs allocate past the budget, though the early run charge is short', () => {
+    // The run charge counts only the second run of each column (600 units for 1,200 entries); the
+    // allocation itself charges every entry, so the sheet is still refused.
+    const error = refusalOf(sheetOf(600), {}, { importStyles: true });
+
+    expect(error).not.toBeNull();
+    expect(error.message).toMatch(/cell settings expand to more than/);
+  });
+});

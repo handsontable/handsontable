@@ -723,6 +723,10 @@ function collectStyle(
  * column that already had one. Such a column cannot be lifted to `columns`, so each of its runs
  * costs at least one `cellsMeta` entry later. The window is walked row by row, so a column's rows
  * arrive in ascending order.
+ *
+ * The charge this answer drives is an early pre-check, not the bound: a column's first run is not
+ * charged, so it runs up to one entry per column short. The bound is exact where the entries are
+ * allocated (`cellMetaEntries`), which charges every one of them (review round 12).
  */
 function recordClassName(runs: Map<number, ClassNameRun[]>, row: number, col: number, value: string): boolean {
   const columnRuns = runs.get(col);
