@@ -5251,7 +5251,10 @@ export default function Core(
    *
    * With `defersDataWork` set (only `_applySettingsAndData()` passes it), the data phase, the `min*`
    * sizing and the render are skipped, and the meta phase is returned instead of run, for the caller
-   * to run once its data is loaded.
+   * to run once its data is loaded. A `columns` value the early column pass cannot apply (`null`, or a
+   * function) resets the column meta before the caller's load, because that load validates and renders
+   * through the column meta layer and would otherwise read the previous columns' types; the meta phase
+   * applies the function form against the loaded data.
    *
    * @private
    * @param {object} settings A settings object (see {@link Options}).
@@ -5571,6 +5574,13 @@ export default function Core(
       applyColumnMeta(earlyColumnsSetting.length);
     }
 
+    const resetsColumnMetaBeforeLoad = defersDataWork && earlyColumnsSetting === null &&
+      settings.columns !== undefined;
+
+    if (resetsColumnMetaBeforeLoad) {
+      resetMetaCaches();
+    }
+
     const applyDataPhase = () => {
       // Load data or create data map
       if (instance.runHooks('hasExternalDataSource') === true) {
@@ -5634,7 +5644,7 @@ export default function Core(
       const clen = instance.countCols();
 
       // Clear the meta caches, unless the early pass above already did it for this call.
-      if (earlyColumnsSetting === null &&
+      if (earlyColumnsSetting === null && !resetsColumnMetaBeforeLoad &&
           (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined)) {
         resetMetaCaches();
       }

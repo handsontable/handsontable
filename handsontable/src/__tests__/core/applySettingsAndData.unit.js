@@ -198,6 +198,18 @@ describe('Core#_applySettingsAndData', () => {
     expect(hot.getDataAtCell(0, 0)).toBe('Alice');
   });
 
+  it('validates the new data without the previous column types once `columns: null` clears them', () => {
+    const arriving = [['hello', 'world']];
+    const dateColumn = { type: 'date', dateFormat: 'YYYY-MM-DD', allowInvalid: false };
+
+    createGrid({ data: [['2024-01-01', '2024-01-02']], columns: [dateColumn, dateColumn] });
+
+    hot._applySettingsAndData({ columns: null }, arriving, 'test');
+
+    expect(arriving).toEqual([['hello', 'world']]);
+    expect(hot.getCellMeta(0, 0).type).toBe('text');
+  });
+
   it('applies a `columns` function to the new data', () => {
     createGrid({ data: [['old']] });
 
@@ -262,15 +274,17 @@ describe('Core#_applySettingsAndData', () => {
   });
 
   it('applies a settings update a plugin makes while the call configures, and keeps the call\'s own meta phase', () => {
+    const departing = [['old']];
     const arriving = [['x']];
 
-    createGrid({ data: [['old']] });
+    createGrid({ data: departing });
 
     hot._applySettingsAndData({
       nestingProbe: true,
       cell: [{ row: 0, col: 0, readOnly: true }],
     }, arriving, 'test');
 
+    expect(departing).toEqual([['old']]);
     expect(hot.getSettings().minRows).toBe(4);
     expect(hot.countRows()).toBe(4);
     expect(arriving.length).toBe(4);

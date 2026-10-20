@@ -417,15 +417,6 @@ export class Formulas extends BasePlugin {
   #hotWasInitializedWithEmptyData = false;
 
   /**
-   * Whether a settings update applied ahead of its data (core's `_applySettingsAndData()`) named a
-   * `columns` value that is not an array. Core resolves such a value only in its meta phase, after the
-   * load wrote the sheet with the previous column meta.
-   *
-   * @type {boolean}
-   */
-  #columnMetaChangesAfterLoad = false;
-
-  /**
    * How many source rows the grid held the last time the sheet was written or reloaded - a scan,
    * a rejected-write clear, an `afterLoadData` write, or the empty-data reload - or `null` before
    * the first one. Recorded by `#recordSyncedLayout()`.
@@ -1039,7 +1030,6 @@ export class Formulas extends BasePlugin {
     // `onUpdateSettings` is one of them - which is the whole point: the row count is only final once
     // they have run. See `#onAfterUpdateSettingsRowCount`.
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettingsRowCount, 1);
-    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettingsColumns);
 
     // A restore that never reached `restoreState()` – an action registered through `done()` – still
     // gets its cell writes into the engine.
@@ -1085,7 +1075,6 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.#columnMetaChangesAfterLoad = false;
     this.#unregisterToggleFormulasShortcut();
     this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
@@ -3088,32 +3077,18 @@ export class Formulas extends BasePlugin {
 
   /**
    * Whether the meta phase core runs after the load of `_applySettingsAndData()` can change a value the
-   * engine reads: it applies the `cell` option, the `columns` function form, and the column meta reset a
-   * `columns: null` payload makes, and a cell type any of them sets or drops (a key/value dropdown
-   * resolves an object to its label) decides that value. The load wrote the sheet before any of them was
-   * applied.
+   * engine reads: it applies the `cell` option and the `columns` function form, and a cell type either
+   * sets (a key/value dropdown resolves an object to its label) decides that value. The load wrote the
+   * sheet before either was applied. Core resets the column meta before that load for `columns: null`,
+   * so the load already reads the values that call describes.
    *
    * @returns {boolean}
    */
   #metaPhaseMayChangeEngineValues(): boolean {
     const { cell, columns } = this.hot.getSettings();
 
-    return (Array.isArray(cell) && cell.length > 0) || typeof columns === 'function' ||
-      this.#columnMetaChangesAfterLoad;
+    return (Array.isArray(cell) && cell.length > 0) || typeof columns === 'function';
   }
-
-  /**
-   * `afterUpdateSettings` hook callback. Records a `columns` value that is not an array in a payload
-   * applied ahead of its data, which core resolves only after the load (see
-   * `#metaPhaseMayChangeEngineValues()`).
-   *
-   * @param {object} settings The settings passed to the update.
-   */
-  #onAfterUpdateSettingsColumns = (settings: Record<string, unknown>) => {
-    if (this.isDataWorkDeferred() && settings.columns !== undefined && !Array.isArray(settings.columns)) {
-      this.#columnMetaChangesAfterLoad = true;
-    }
-  };
 
   /**
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
@@ -3126,20 +3101,16 @@ export class Formulas extends BasePlugin {
    * stays eager there; `hot.view` is what the Core creates right after that first run.
    *
    * The reset core's `_applySettingsAndData()` fires after its own load needs no resync when the call
-   * declares no `cell` entries, no `columns` function and no `columns: null`: that load already wrote the
-   * sheet through `#onAfterLoadData`, with the column configuration of the call in force, and a second
-   * scan cost a full engine write and an AutoColumnSize sweep per sheet switch. Those three reach the cell
-   * meta only after that load, and a cell type they set or drop can change the value the engine reads (a
+   * declares no `cell` entries and no `columns` function: that load already wrote the sheet through
+   * `#onAfterLoadData`, with the column configuration of the call in force, and a second scan cost a full
+   * engine write and an AutoColumnSize sweep per sheet switch. `cell` entries and a `columns` function reach
+   * the cell meta only after that load, and a cell type they set can change the value the engine reads (a
    * key/value dropdown resolves an object to its label), so such a call resyncs as any settings update does.
    */
   #onAfterCellMetaReset = () => {
     this.#closeLeakedGuards();
 
-    const skipsResync = this.isDataWorkDeferred() && !this.#metaPhaseMayChangeEngineValues();
-
-    this.#columnMetaChangesAfterLoad = false;
-
-    if (skipsResync) {
+    if (this.isDataWorkDeferred() && !this.#metaPhaseMayChangeEngineValues()) {
       return;
     }
 

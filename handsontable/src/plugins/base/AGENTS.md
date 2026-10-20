@@ -144,8 +144,10 @@ data the grid still holds. The call has three phases:
 
 1. **Configure.** The settings merge and `onUpdateSettings` runs for every plugin as usual (enable, disable,
    update), while `isDataWorkDeferred()` answers `true`. Core skips the data phase, the late `columns` pass,
-   the `cell` option, `afterCellMetaReset`, the `min*` padding and surplus removal, and the render. On a grid
-   still being built there is no data map yet, so nothing may count rows here.
+   the `cell` option, `afterCellMetaReset`, the `min*` padding and surplus removal, and the render. A
+   `columns` value the early column pass cannot apply (`null`, or a function) resets the column meta here,
+   so the load does not read the previous columns' types. On a grid still being built there is no data map
+   yet, so nothing may count rows here.
 2. **Load.** A normal `loadData()` with the new configuration in force. The load hooks reach the plugins
    enabled in phase 1, every index map re-initializes, and the load sizes the new data to the new `min*`
    values. `isDataWorkDeferred()` still answers `true`.
