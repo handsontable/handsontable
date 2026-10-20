@@ -45,9 +45,7 @@ export class NestedDuckColumnsPage {
   }
 
   /**
-
    * A data cell by visual row and column.
-
    */
   cell(row: number, col: number): Locator {
     return this.page.getByTestId(`cell-${row}-${col}`);

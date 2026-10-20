@@ -438,4 +438,24 @@ describe('DataMap duck columns for nested object data without `columns`', () => 
     expect(hot.colToProp(0)).toBe('a.b.c');
     expect(hot.colToProp(1)).toBe('id');
   });
+
+  it('should read a nested column as `null` and not throw when a parent is `null` in some rows', () => {
+    hot = createGrid([{ a: { b: { c: 'deep0' } } }, { a: { b: null } }, { a: null }, { a: { b: { c: null } } }]);
+
+    expect(hot.colToProp(0)).toBe('a.b.c');
+    expect(hot.getDataAtCol(0)).toEqual(['deep0', null, null, null]);
+    expect(hot.getDataAtRowProp(1, 'a.b.c')).toBe(null);
+  });
+
+  it('should write into a nested column whose parent is `null` in that row', () => {
+    const data = [{ a: { b: { c: 'deep0' } } }, { a: { b: null } }, { a: null }];
+
+    hot = createGrid(data);
+    hot.setDataAtCell(1, 0, 'one');
+    hot.setDataAtCell(2, 0, 'two');
+
+    expect(data[1].a.b.c).toBe('one');
+    expect(data[2].a.b.c).toBe('two');
+    expect(hot.getDataAtCol(0)).toEqual(['deep0', 'one', 'two']);
+  });
 });
