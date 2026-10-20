@@ -11,6 +11,7 @@ import {
   isValidISODateTime,
   getDateTimeFormat,
 } from 'handsontable/helpers/dateTime';
+import Handsontable from 'handsontable';
 
 describe('Date helper', () => {
   describe('ISO_DATE_REGEX', () => {
@@ -392,6 +393,16 @@ describe('dateTime datetime helpers', () => {
 
     it('is false for non-strings', () => {
       expect(isValidISODateTime(20240315)).toBe(false);
+    });
+  });
+
+  describe('Handsontable.helper namespace', () => {
+    it('does not expose the xlsx serial constants', () => {
+      // `src/index.ts` copies every export of `helpers/dateTime` onto `Handsontable.helper`.
+      // The xlsx serial constants live in `utils/xlsxEngine/dates` so they do not leak there.
+      expect(Handsontable.helper.isValidISODate).toBe(isValidISODate);
+      expect(Handsontable.helper).not.toHaveProperty('MS_PER_DAY');
+      expect(Handsontable.helper).not.toHaveProperty('EXCEL_EPOCH_UTC');
     });
   });
 

@@ -374,7 +374,6 @@ const VALID_TOKEN_KEYS = new Set([
   'sheetsBarTabForegroundColor',
   'sheetsBarTabBackgroundColor',
   'sheetsBarTabHoverForegroundColor',
-  'sheetsBarTabHoverBackgroundColor',
   'sheetsBarTabActiveForegroundColor',
   'sheetsBarTabActiveBackgroundColor',
   'sheetsBarTabActiveBorderWidth',

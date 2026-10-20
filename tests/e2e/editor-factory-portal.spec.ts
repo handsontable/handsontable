@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { EditorFactoryPortalPage } from '../fixtures/pages/EditorFactoryPortalPage';
 
 /**
@@ -13,7 +13,7 @@ import { EditorFactoryPortalPage } from '../fixtures/pages/EditorFactoryPortalPa
  * margin moves the containing block off the viewport origin, which is why the `inset` page is
  * covered in both directions.
  */
-test.describe('An editorFactory editor with position "portal"', { tag: THEMES_TAG }, () => {
+test.describe('An editorFactory editor with position "portal"', () => {
   const layouts = [
     { name: 'LTR', dir: 'ltr', pageDir: 'ltr', edge: 'left' },
     { name: 'RTL', dir: 'rtl', pageDir: 'rtl', edge: 'right' },

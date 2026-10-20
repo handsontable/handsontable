@@ -144,7 +144,8 @@ function bundle(esbuild, entryCode) {
     '--minify',
     '--format=esm',
     '--log-level=error',
-  ], { encoding: 'buffer' });
+    // The bundle of every module is over 1 MB, the default `maxBuffer`, which fails with `ENOBUFS`.
+  ], { encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 });
 
   const gzipped = gzipSync(output);
 

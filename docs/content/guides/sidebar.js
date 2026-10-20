@@ -49,13 +49,18 @@ const dataManagementItems = [
   { path: 'guides/getting-started/view-state/view-state' },
   { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
   { path: 'guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes' },
-  { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
-  { path: 'guides/accessories-and-menus/import-from-excel/import-from-excel' },
-  { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
   { path: 'guides/cell-features/clipboard/clipboard' },
   { path: 'guides/data-management/collaboration/collaboration' },
 ];
 
+const importAndExportItems = [
+  { path: 'guides/import-and-export/import-and-export/import-and-export', title: 'Overview' },
+  { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
+  { path: 'guides/accessories-and-menus/import-from-excel/import-from-excel' },
+  { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
+  { path: 'guides/accessories-and-menus/xlsx-engine/xlsx-engine' },
+  { path: 'guides/import-and-export/dropped-features/dropped-features' },
+];
 
 const columnsItems = [
   { path: 'guides/columns/react-hot-column/react-hot-column', onlyFor: ['react'] },
@@ -245,6 +250,7 @@ module.exports = {
     { title: 'Formulas', children: formulasItems },
     { title: 'Server-side data', children: serverSideItems },
     { title: 'Data management', children: dataManagementItems },
+    { title: 'Import and export', children: importAndExportItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
     { title: 'Accessibility and navigation', children: navigationAndAccessibilityItems },

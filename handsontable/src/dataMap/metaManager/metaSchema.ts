@@ -3349,21 +3349,25 @@ export default (): Record<string, unknown> => {
      *
      * | Setting     | Description                                                                                |
      * | ----------- | ------------------------------------------------------------------------------------------ |
-     * | `undefined` | Use the [`ExportFile`](@/api/exportFile.md) plugin with the default configuration          |
+     * | `undefined` | Use the [`ExportFile`](@/api/exportFile.md) plugin with the default configuration, with the context-menu entry hidden |
+     * | `true`      | Use the plugin with the default configuration (built-in xlsx engine), with the context-menu entry shown |
+     * | `false`     | The same as `true`: the plugin stays enabled, its API keeps working, and the context-menu entry is shown. To hide the entry, leave the option `undefined` |
      * | An object   | Enable the [`ExportFile`](@/api/exportFile.md) plugin and modify the plugin options        |
      *
      * If you set the `exportFile` option to an object, you can configure the following options:
      *
      * | Option    | Type     | Default | Description                                                                         |
      * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
-     * | `engines` | `Object` | –       | A map of format keys to their engine constructors. Pass `{ xlsx: ExcelJS }` to enable XLSX export via [ExcelJS](https://github.com/exceljs/exceljs). |
+     * | `engines` | `Object` | –       | Optional. A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to export through ExcelJS instead of the built-in engine. |
      *
      * Read more:
      * - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
+     * - [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md)
+     * - [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
      * - [Plugins: `ExportFile`](@/api/exportFile.md)
      *
      * @memberof Options#
-     * @type {object}
+     * @type {boolean|object}
      * @default undefined
      * @since 17.1.0
      * @category ExportFile
@@ -3371,9 +3375,12 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
+     * // XLSX and CSV export with the built-in engine
+     * exportFile: true,
+     *
+     * // or export XLSX through ExcelJS
      * import ExcelJS from 'exceljs';
      *
-     * // enable XLSX export
      * exportFile: {
      *   engines: { xlsx: ExcelJS },
      * },
@@ -3397,16 +3404,17 @@ export default (): Record<string, unknown> => {
      *
      * | Option    | Type     | Default | Description                                                                         |
      * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
-     * | `engines` | `Object` | –       | A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to enable XLSX import. The key is the file format the engine reads; the import looks up `engines[format]`. |
+     * | `engines` | `Object` | –       | Optional. A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to import through ExcelJS instead of the built-in engine. |
      *
-     * `false` disables the plugin. `true` or an object enables it; an engine is still needed to import a file.
+     * `false` disables the plugin. Any other value, including leaving the option out, enables it.
      *
      * Read more:
      * - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
+     * - [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
      * - [Plugins: `ImportFile`](@/api/importFile.md)
      *
      * @memberof Options#
-     * @type {object}
+     * @type {boolean|object}
      * @default undefined
      * @since 19.0.0
      * @category ImportFile
@@ -3414,6 +3422,10 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
+     * // XLSX import with the built-in engine
+     * importFile: true,
+     *
+     * // or import XLSX through ExcelJS
      * import ExcelJS from 'exceljs';
      *
      * importFile: {
@@ -7514,6 +7526,7 @@ export default (): Record<string, unknown> => {
      * | `paging`      | Boolean (default: `true`)                            | Controls visibility of the tab-scrolling controls, shown when tabs overflow the bar's width    |
      * | `position`    | `'top'` \| `'bottom'` (default: `'bottom'`)          | The edge of the grid the bar renders on                                                        |
      * | `uiContainer` | An HTML element (default: `null`)                    | The container element where the sheets bar UI will be installed. If not provided, the bar is injected below the root table element |
+     * | `animation`   | Boolean, or an object of booleans (default: `true`) | Turns the tab animations on or off. `false` makes every tab change instant. An object turns single animations off: `switch` (the active tab marker's slide), `add` (a new or duplicated tab's entrance), `remove` (a removed tab's exit and the tabs closing the gap), and `move` (the tabs sliding to new places after a move, and the tabs a drag pushes aside). A key you leave out stays on. Reduced motion and a theme with `--ht-table-transition: 0s` make every tab change instant whatever this option says. The hover color fade is CSS only and is not affected. An invalid value is ignored with a console warning, and the previous value stays in force |
      *
      * Read more:
      * - [Plugins: `SheetsBar`](@/api/sheetsBar.md)
@@ -7540,6 +7553,21 @@ export default (): Record<string, unknown> => {
      *     { name: 'Notes', data: [['Draft']] },
      *   ],
      *   activeSheet: 0,
+     * },
+     *
+     * // animate every tab change (the default)
+     * sheetsBar: {
+     *   animation: true,
+     * },
+     *
+     * // make every tab change instant
+     * sheetsBar: {
+     *   animation: false,
+     * },
+     *
+     * // keep the tab animations, except the slide after a move
+     * sheetsBar: {
+     *   animation: { switch: true, add: true, remove: true, move: false },
      * },
      * ```
      */

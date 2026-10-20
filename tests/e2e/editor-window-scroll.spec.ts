@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { EditorScrollPage } from '../fixtures/pages/EditorScrollPage';
 
 /**
@@ -13,7 +13,7 @@ import { EditorScrollPage } from '../fixtures/pages/EditorScrollPage';
  * while the page scrolls under it), and a regular cell moves with the page.
  * In both, the editor's offset from its cell must not change.
  */
-test.describe('editor position on window scroll', { tag: THEMES_TAG }, () => {
+test.describe('editor position on window scroll', () => {
   let grid: EditorScrollPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

@@ -1,6 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
 
 registerAllModules();
 
@@ -29,6 +28,6 @@ new Handsontable(document.querySelector('#example3')!, {
   autoWrapRow: true,
   autoWrapCol: true,
   contextMenu: true,
-  exportFile: { engines: { xlsx: ExcelJS } },
+  exportFile: true,
   licenseKey: 'non-commercial-and-evaluation',
 });

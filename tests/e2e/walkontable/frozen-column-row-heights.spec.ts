@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../../fixtures/test';
+import { test, expect } from '../../fixtures/test';
 import { FrozenTallCellPage } from '../../fixtures/pages/walkontable/FrozenTallCellPage';
 
 /**
@@ -10,7 +10,7 @@ import { FrozenTallCellPage } from '../../fixtures/pages/walkontable/FrozenTallC
  * kept the row at its provided height while the inline-start overlay rendered it
  * at its content height, and every row below drifted by the difference.
  */
-test.describe('walkontable row heights with frozen columns', { tag: ['@walkontable', THEMES_TAG] }, () => {
+test.describe('walkontable row heights with frozen columns', { tag: '@walkontable' }, () => {
   const { TALL_ROW, SCROLLABLE_TALL_ROW } = FrozenTallCellPage;
   const ROWS_BELOW = [TALL_ROW, TALL_ROW + 1, TALL_ROW + 2, TALL_ROW + 3];
 

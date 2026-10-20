@@ -20,6 +20,7 @@ vue:
   metaTitle: Testing | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
+menuTag: updated
 ---
 Handsontable DataGrid has three test pipelines: unit tests (Jest), E2E tests (Puppeteer/Jasmine), and Walkontable tests. Run them when contributing to the core library or verifying a fix.
 
@@ -84,6 +85,48 @@ To avoid unintended changes to Handsontable's UI, we use automated visual regres
 
 Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/develop/visual-tests/README.md).
 
+## Test import and export in Jest or Vitest
+
+This section is for your own application's tests. The `ImportFile` and `ExportFile` plugins run under Jest and Vitest once the environment provides the browser APIs they use.
+
+The built-in [XLSX engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md) needs four globals: `CompressionStream`, `DecompressionStream`, `TextEncoder`, and `TextDecoder`. Every browser Handsontable DataGrid supports provides them. Jest's `jsdom` environment lacks all four, and Jest 27's `node` environment lacks `CompressionStream` and `DecompressionStream`; the plugins then reject with a message that names the missing globals. Jest's `node` environment provides all four from Jest 28 on, and Vitest's `jsdom` and `happy-dom` environments provide them in the default `forks` and `threads` pools (not in `vmThreads` or `vmForks`). Building a grid under jsdom also needs `ResizeObserver` and `IntersectionObserver` stubs.
+
+To run the engine under Jest's `jsdom` environment, assign the globals from Node.js in a `setupFiles` module:
+
+```javascript
+const { CompressionStream, DecompressionStream } = require('node:stream/web');
+const { TextEncoder, TextDecoder } = require('node:util');
+
+Object.assign(globalThis, { CompressionStream, DecompressionStream, TextEncoder, TextDecoder });
+```
+
+In jsdom before 28.1 (Jest 30 ships 26.1), `Blob` has no `arrayBuffer()` method, so `importFromBlob()` fails with any engine. Call `importFromArrayBuffer()` with the file's `ArrayBuffer` instead, or add the method in the same module:
+
+```javascript
+if (typeof Blob.prototype.arrayBuffer !== 'function') {
+  Blob.prototype.arrayBuffer = function arrayBuffer() {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsArrayBuffer(this);
+    });
+  };
+}
+```
+
+A download also needs `URL.createObjectURL`, which jsdom lacks. Mock it together with `URL.revokeObjectURL`, because the plugin revokes the URL from a timer 100 ms after the download:
+
+```javascript
+URL.createObjectURL = jest.fn(() => 'blob:mock'); // vi.fn() in Vitest
+URL.revokeObjectURL = jest.fn();
+```
+
+Keep the grids you export under jsdom small and give the test a longer timeout: every export under jsdom is slow, not only the first (2,000 rows by 10 columns took about 45 seconds per export under Jest 29, 200 rows about 3 seconds). Headless Chromium exports 20,000 rows by 10 columns in under half a second.
+
+To inject ExcelJS under Jest 29 with `jest-environment-jsdom`, set `testEnvironmentOptions: { customExportConditions: ['node', 'node-addons'] }`, or loading it fails with `SyntaxError: Unexpected token 'export'`.
+
 ## Result
 
 Your tests ran and reported pass or fail results. A green test suite confirms your change does not introduce regressions.
@@ -93,6 +136,7 @@ Your tests ran and reported pass or fail results. A green test suite confirms yo
 <div class="boxes-list">
 
 - [Building](@/guides/tools-and-building/custom-builds/custom-builds.md)
+- [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
 
 ::: only-for javascript
 

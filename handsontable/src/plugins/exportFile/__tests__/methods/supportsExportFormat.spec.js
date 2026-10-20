@@ -18,10 +18,10 @@ describe('ExportFile `supportsExportFormat` method', () => {
     expect(getPlugin('exportFile').supportsExportFormat('csv')).toBe(true);
   });
 
-  it('should return false for `xlsx` when no engine is configured', async() => {
+  it('should return true for `xlsx` through the built-in engine when no engine is configured', async() => {
     handsontable();
 
-    expect(getPlugin('exportFile').supportsExportFormat('xlsx')).toBe(false);
+    expect(getPlugin('exportFile').supportsExportFormat('xlsx')).toBe(true);
   });
 
   it('should return true for `xlsx` when an xlsx engine is configured in settings', async() => {

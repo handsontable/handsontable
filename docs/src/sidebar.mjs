@@ -159,7 +159,7 @@ function toLink(path, prefix) {
  * Converts a VuePress sidebar items array to Starlight sidebar items,
  * filtering out entries restricted to other frameworks.
  *
- * @param {Array<{ path: string, onlyFor?: string[] }>} items
+ * @param {Array<{ path: string, title?: string, onlyFor?: string[] }>} items
  * @param {string} framework
  * @param {string} prefix
  */
@@ -174,7 +174,7 @@ function toStarlightItems(items, framework, prefix) {
     })
     .map((item) => {
       const entry = {
-        label: getTitle(item.path),
+        label: item.title || getTitle(item.path),
         link: toLink(item.path, prefix),
       };
       const badge = tagToBadge(getMenuTag(item.path));

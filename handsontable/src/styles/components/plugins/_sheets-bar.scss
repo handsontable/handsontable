@@ -100,6 +100,8 @@ $all-sheets-visible-items: 8;
     }
 
     &.ht-sheets-bar {
+      --ht-private-tab-enter-offset: -2em;
+
       width: 100%;
       color: var(--ht-bar-foreground-color);
       background: var(--ht-sheets-bar-background-color);
@@ -120,6 +122,10 @@ $all-sheets-visible-items: 8;
       // (UX review). The bar always draws its own top border instead.
       &.ht-slot-element {
         border-top-width: 1px;
+      }
+
+      &[dir="rtl"] {
+        --ht-private-tab-enter-offset: 2em;
       }
 
       .ht-sheets-bar__inner {
@@ -223,6 +229,7 @@ $all-sheets-visible-items: 8;
       }
 
       .ht-sheets-bar__tabs {
+        position: relative;
         display: flex;
         align-items: stretch;
         flex: 1 1 auto;
@@ -270,16 +277,28 @@ $all-sheets-visible-items: 8;
 
         // Carries the tabs the drag displaces back from where they were, so the strip makes room
         // in a slide rather than a jump. The controller drives it; there is nothing to animate
-        // when no drag is in progress.
-        transition: transform 150ms ease-out;
+        // when no drag is in progress. The text color follows the pointer over the theme's
+        // transition, and only the text color: a tab has no hover surface.
+        transition:
+          transform
+          var(--ht-private-tab-slide-duration, var(--ht-table-transition))
+          var(--ht-private-tab-slide-easing, ease-out),
+          color var(--ht-table-transition) ease-out;
 
         @media (prefers-reduced-motion: reduce) {
           transition: none;
         }
 
+        &--entering {
+          animation: ht-sheets-bar-tab-enter var(--ht-table-transition) ease-out backwards;
+
+          @media (prefers-reduced-motion: reduce) {
+            animation: none;
+          }
+        }
+
         &:hover {
           color: var(--ht-sheets-bar-tab-hover-foreground-color);
-          background: var(--ht-sheets-bar-tab-hover-background-color);
         }
 
         &--active,
@@ -298,15 +317,16 @@ $all-sheets-visible-items: 8;
           pointer-events: none;
 
           // The pointer is on the tab for the whole gesture, but `pointer-events: none` means
-          // `:hover` never matches it. Wearing the hover surface directly is what keeps the tab
-          // looking held rather than dropping to its resting state the moment it is picked up.
-          // It is opaque, so it doubles as the backdrop the passing tabs travel behind.
+          // `:hover` never matches it, so the tab wears the hover text color directly. Hover
+          // changes no background, so the dragged tab keeps its own resting surface, painted
+          // opaque: it is the backdrop the passing tabs travel behind.
           color: var(--ht-sheets-bar-tab-hover-foreground-color);
-          background-color: var(--ht-sheets-bar-tab-hover-background-color);
+          background-color: var(--ht-sheets-bar-tab-background-color);
 
           // The dragged tab is positioned from the pointer on every move, so it must land where
           // the pointer is now — not ease toward where it was.
           transition: none;
+          animation: none;
 
           @include mixins.box-shadow;
         }
@@ -320,6 +340,77 @@ $all-sheets-visible-items: 8;
           background-color: var(--ht-sheets-bar-tab-active-background-color);
           box-shadow: $active-marker, mixins.box-shadow-value();
         }
+      }
+
+      .ht-sheets-bar__tab-ghost {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: var(--ht-private-tab-ghost-x, 0);
+        display: flex;
+        align-items: center;
+        gap: var(--ht-sizing-size-1);
+        box-sizing: border-box;
+        width: var(--ht-private-tab-ghost-width, 0);
+        padding-inline: var(--ht-sheets-bar-tab-horizontal-padding);
+        padding-block: var(--ht-sheets-bar-tab-vertical-padding);
+        color: var(--ht-sheets-bar-tab-foreground-color);
+        background: var(--ht-sheets-bar-tab-background-color);
+        pointer-events: none;
+        user-select: none;
+        animation: ht-sheets-bar-tab-leave var(--ht-table-transition) ease-in both;
+
+        @media (prefers-reduced-motion: reduce) {
+          animation: none;
+        }
+      }
+
+      .ht-sheets-bar__tabs--sliding {
+        --ht-private-tab-slide-easing: ease-in-out;
+      }
+
+      .ht-sheets-bar__tab--slide-lead {
+        z-index: 1;
+      }
+
+      .ht-sheets-bar__tab-indicator {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 0;
+        width: var(--ht-private-tab-indicator-width);
+        transform: translateX(var(--ht-private-tab-indicator-x));
+        background: var(--ht-sheets-bar-tab-active-background-color);
+        box-shadow: $active-marker;
+        pointer-events: none;
+        transition-property: transform, width;
+        transition-timing-function: ease-in-out;
+
+        @media (prefers-reduced-motion: reduce) {
+          transition: none;
+        }
+      }
+
+      .ht-sheets-bar__tabs--indicator-moving::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: var(--ht-private-tab-indicator-path-width, 0);
+        transform: translateX(var(--ht-private-tab-indicator-path-x, 0));
+        background: var(--ht-sheets-bar-tab-background-color);
+        pointer-events: none;
+      }
+
+      .ht-sheets-bar__tabs--indicator-moving .ht-sheets-bar__tab--indicator-path,
+      .ht-sheets-bar__tabs--indicator-moving .ht-sheets-bar__tab--active {
+        background: transparent;
+      }
+
+      .ht-sheets-bar__tabs--indicator-moving .ht-sheets-bar__tab--active {
+        box-shadow: none;
       }
 
       .ht-sheets-bar__tab-label,
@@ -465,6 +556,30 @@ $all-sheets-visible-items: 8;
       &.ht-sheets-bar-dragging .ht-sheets-bar__tab {
         pointer-events: none;
       }
+    }
+  }
+
+  @keyframes ht-sheets-bar-tab-enter {
+    from {
+      opacity: 0;
+      transform: translateX(var(--ht-private-tab-enter-offset));
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes ht-sheets-bar-tab-leave {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateX(var(--ht-private-tab-enter-offset));
     }
   }
 }

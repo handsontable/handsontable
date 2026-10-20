@@ -17,7 +17,15 @@ export const CURRENCY_SYMBOL_TO_CODE: Record<string, string> = {
   '\u20a9': 'KRW',
   CHF: 'CHF',
   kr: 'SEK',
+  // eslint-disable-next-line quote-props
+  'kr.': 'DKK',
   R$: 'BRL',
+  // eslint-disable-next-line quote-props
+  'K\u010d': 'CZK',
+  Ft: 'HUF',
+  '\u20bd': 'RUB',
+  '\u20ba': 'TRY',
+  '\uffe5': 'JPY',
 };
 
 /**

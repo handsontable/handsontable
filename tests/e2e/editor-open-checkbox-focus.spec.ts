@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { EditorOpenCheckboxFocusPage } from '../fixtures/pages/EditorOpenCheckboxFocusPage';
 
 /**
@@ -22,7 +22,7 @@ import { EditorOpenCheckboxFocusPage } from '../fixtures/pages/EditorOpenCheckbo
  * Both cases would go red if an editor ever survived that selection change, which is exactly when
  * the widening would start to matter and someone should look at it again.
  */
-test.describe('A checkbox taking the focus while a cell is being edited', { tag: THEMES_TAG }, () => {
+test.describe('A checkbox taking the focus while a cell is being edited', () => {
   test('has no open editor left by the time the mouseup verdict runs', async({ page, theme, bundle }) => {
     const grid = new EditorOpenCheckboxFocusPage(page, theme, bundle);
 

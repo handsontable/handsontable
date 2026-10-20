@@ -67,16 +67,6 @@ export class FormulasHyperlinkPage {
     }, [row, col, value] as [number, number, string]);
   }
 
-  /** Disable the Formulas plugin at runtime and force a redraw. */
-  async disableFormulasPlugin(): Promise<void> {
-    await this.page.evaluate(() => {
-      const hot = (window as any).hot;
-
-      hot.getPlugin('formulas').disablePlugin();
-      hot.render();
-    });
-  }
-
   /**
    * Disable the Formulas plugin WITHOUT forcing a redraw, which is what a caller that simply turns
    * the plugin off does. No render means no `afterRenderer` pass, so nothing rewrites the cells.
