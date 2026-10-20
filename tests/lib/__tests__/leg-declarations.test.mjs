@@ -20,6 +20,7 @@ import {
   parseFullMatrix,
   projectsOf,
   readBlocks,
+  readGeometryHelpers,
   readIgnores,
   relativeImports,
   scanFixtureHtml,
@@ -537,6 +538,273 @@ test('a geometry read counts in the spec text only', () => {
   assert.deepEqual(rulesOf(spec(describe('{ tag: THEMES_TAG }', PLAIN_TEST.replace('expect(1).toBe(1);', 'expect(await page.locator(\'td\').boundingBox()).toBeTruthy();')))), []);
 });
 
+// The shapes below are the ones the sweep missed on #13918, where five specs were narrowed while the sweep
+// stayed green and review put the axes back. Each probe passed the sweep before its marker existed.
+
+/**
+ * A synthetic page object in `fixtures/pages/ProbePage.ts`.
+ *
+ * @param {string[]} lines The class body, one member line per entry.
+ * @param {string} [imports] Import lines above the class.
+ * @returns {{file: string, source: string}} The module.
+ */
+function probePage(lines, imports = '') {
+  return { file: 'fixtures/pages/ProbePage.ts', source: `${imports}export class ProbePage {\n${lines.join('\n')}\n}\n` };
+}
+
+/**
+ * A synthetic test with a grid built from `ProbePage`.
+ *
+ * @param {string} body The lines after the grid is built.
+ * @param {string} [title] The test's title.
+ * @returns {string} The test's source.
+ */
+function gridTest(body, title = 't') {
+  return `test('${title}', async({ page, theme, bundle }) => {\n  const grid = new ProbePage(page, theme, bundle);\n\n  ${body}\n});`;
+}
+
+test('a hit test is every point API, elementsFromPoint and the caret ones included', () => {
+  // `WindowScrollPinnedOverlaysPage.cellAtViewportCenter()` takes the master cell under the middle of the
+  // viewport with `document.elementsFromPoint()`, which the marker did not match, so the spec read as
+  // theme-blind.
+  const page = probePage([
+    '  async cellAtViewportCenter(row: number): Promise<string | null> {',
+    '    return this.page.evaluate(r => document.elementsFromPoint(window.innerWidth / 2, 40)',
+    '      .find(el => el.getAttribute(\'data-testid\')?.startsWith(`cell-${r}-`))?.id ?? null, row);',
+    '  }',
+  ]);
+  const plain = spec(describe(null, PLAIN_TEST));
+
+  assert.deepEqual(rulesOf(plain, { modules: [page] }), ['undeclared-themes']);
+  assert.match(messagesOf(plain, { modules: [page] }), /hit-test in fixtures\/pages\/ProbePage\.ts:3/);
+  assert.deepEqual(rulesOf(spec(describe('{ tag: THEMES_TAG }', PLAIN_TEST)), { modules: [page] }), []);
+
+  for (const call of ['document.caretRangeFromPoint(10, 20)', 'document.caretPositionFromPoint(10, 20)',
+    'root.shadowRoot.elementsFromPoint(10, 20)', 'document.elementFromPoint(10, 20)']) {
+    const probe = describe(null, `test('t', async({ page }) => {\n  await page.evaluate(() => ${call});\n});`);
+
+    assert.deepEqual(rulesOf(spec(probe)), ['undeclared-themes'], call);
+  }
+});
+
+test('a pointer aimed a fixed number of pixels from a box edge counts, in a page object as well', () => {
+  // `FormulasHyperlinkPage.selectCell()` clicks 4 px inside the cell's right edge so the press lands past
+  // the label; how much room the label leaves there is the theme's padding and font.
+  const aim = line => probePage([
+    '  async aim(): Promise<void> {',
+    '    const box = (await this.cell.boundingBox())!;',
+    `    ${line}`,
+    '  }',
+  ]);
+  const plain = spec(describe(null, PLAIN_TEST));
+  const aimed = [
+    'await this.page.mouse.click(box.x + box.width - 4, box.y + box.height / 2);',
+    'await this.page.mouse.move(box.x + 4, box.y);',
+    'await this.page.mouse.dblclick(box.right - 2, box.top + 2);',
+    'await this.page.touchscreen.tap(box.x + 10, box.y + 10);',
+    'await this.#dragFrom(start, { x: start.x, y: box.y + box.height + 20 });',
+    'await this.cell.click({ position: { x: box.width - 4, y: 5 } });',
+    'await this.page.mouse.move((box?.x ?? 0) + 5, 0);',
+    'await this.cdp.send(\'Input.dispatchMouseEvent\', { type: \'mousePressed\', x: 3 + box.x, y: box.y });',
+  ];
+
+  aimed.forEach((line) => {
+    assert.deepEqual(rulesOf(plain, { modules: [aim(line)] }), ['undeclared-themes'], line);
+    assert.match(messagesOf(plain, { modules: [aim(line)] }), /pointer-offset in fixtures\/pages\/ProbePage\.ts:4/, line);
+  });
+  assert.match(messagesOf(plain, { modules: [aim(aimed[0])] }), /aimed at `box\.x \+ box\.width - 4`/);
+
+  // A fraction of the box scales with the box the theme sized, a corner is on the box whatever its size, and a
+  // wheel delta or a point that names no box aims at nothing: none of them is a hit.
+  [
+    'await this.page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);',
+    'await this.page.mouse.move(box.x + box.width * 0.75, box.y + 10 * this.row);',
+    'await this.page.mouse.move(box.x, box.y);',
+    'await this.page.mouse.click(20, 30);',
+    'await this.page.mouse.wheel(0, box.height + 40);',
+    'const point: { x: number; y: number } = { x: margin + 4, y: 2 };',
+  ].forEach((line) => {
+    assert.deepEqual(rulesOf(plain, { modules: [aim(line)] }), [], line);
+  });
+
+  // In the spec text too, and the tag covers it.
+  const inSpec = describe(null, 'test(\'t\', async({ page }) => {\n  await page.mouse.click(box.x + box.width - 4, box.y);\n});');
+
+  assert.deepEqual(rulesOf(spec(inSpec)), ['undeclared-themes']);
+  assert.deepEqual(rulesOf(spec(describe('{ tag: THEMES_TAG }', PLAIN_TEST)), { modules: [aim(aimed[0])] }), []);
+});
+
+test('a page object\'s geometry read compared to a literal counts, in the spec and in the page object', () => {
+  // `verticalOffsetInHeader()` (`fixtures/rowSelection.ts`) measures a header checkbox against its cell,
+  // and checkbox-header.spec.ts asserts the offset stays within 1 px. The read sits in a shared helper, so
+  // the spec text had no geometry in it.
+  const helper = {
+    file: 'fixtures/probeGeometry.ts',
+    source: [
+      'export async function verticalOffsetInHeader(checkbox: Locator): Promise<number> {',
+      '  return checkbox.evaluate((element) => {',
+      '    const input = element.getBoundingClientRect();',
+      '    const cell = element.closest(\'th\')!.getBoundingClientRect();',
+      '',
+      '    return (input.top + (input.height / 2)) - (cell.top + (cell.height / 2));',
+      '  });',
+      '}',
+      '',
+      'export async function visibleLabels(page: Page): Promise<string[]> {',
+      '  return page.evaluate(() => [...document.querySelectorAll(\'li\')]',
+      '    .filter(li => li.offsetHeight > 0).map(li => li.textContent ?? \'\'));',
+      '}',
+      '',
+    ].join('\n'),
+  };
+  const page = probePage([
+    '  async headerVerticalOffset(): Promise<number> {',
+    '    return verticalOffsetInHeader(this.headerCheckbox());',
+    '  }',
+    '',
+    '  async isInView(): Promise<boolean> {',
+    '    const box = await this.cell.boundingBox();',
+    '',
+    '    return box !== null && box.y + box.height <= 300;',
+    '  }',
+    '',
+    '  menuLabels(): Promise<string[]> {',
+    '    return visibleLabels(this.page);',
+    '  }',
+    '',
+    '  async drawCount(): Promise<number> {',
+    '    return this.page.evaluate(() => window.drawCount);',
+    '  }',
+  ], 'import { verticalOffsetInHeader, visibleLabels } from \'../probeGeometry\';\n\n');
+  const modules = [page, helper];
+  const probe = body => spec(describe(null, gridTest(body)));
+
+  [
+    'expect(Math.abs(await grid.headerVerticalOffset())).toBeLessThanOrEqual(1);',
+    'expect(await verticalOffsetInHeader(grid.headerCheckbox())).toBe(0);',
+    'await expect.poll(() => grid.headerVerticalOffset()).not.toBeCloseTo(0.5);',
+    'const offset = await grid.headerVerticalOffset();\n\n  expect(offset, \'centred\').toBeLessThan(MAX_OFFSET_PX);',
+    'const { offset } = { offset: await grid.headerVerticalOffset() };\n  const half = offset / 2;\n\n  expect(half).toBeGreaterThanOrEqual(-1);',
+    'expect([await grid.headerVerticalOffset()]).toEqual([0]);',
+    'expect(await grid.isInView()).toBe(false);',
+  ].forEach((body) => {
+    assert.deepEqual(rulesOf(probe(body), { modules }), ['undeclared-themes'], body);
+    assert.match(messagesOf(probe(body), { modules }), /geometry-helper in e2e\/probe\.spec\.ts:\d+, through (?:headerVerticalOffset|verticalOffsetInHeader|isInView)\(\) at fixtures\//, body);
+  });
+  assert.match(messagesOf(probe('expect(await grid.headerVerticalOffset()).toBe(0);'), { modules }),
+    /through headerVerticalOffset\(\) at fixtures\/pages\/ProbePage\.ts:4/);
+
+  // A read that is not compared to a literal, a list a geometry filter picked, a count, a box that only has
+  // to exist, and a value that came from elsewhere are not pixel assertions.
+  [
+    'expect(await grid.headerVerticalOffset()).toBe(await grid.headerVerticalOffset());',
+    'expect((await grid.menuLabels()).filter(label => label === \'Freeze\')).toHaveLength(1);',
+    'expect(countOf(await grid.menuLabels(), \'Freeze\')).toBe(1);',
+    'const offsets = [await grid.headerVerticalOffset()];\n\n  expect(offsets.length).toBe(1);',
+    'expect(await grid.headerVerticalOffset()).toBeGreaterThan(0);',
+    'expect(await grid.isInView()).toBeTruthy();',
+    'expect(await grid.drawCount()).toBe(1);',
+    'await grid.headerVerticalOffset();\n  expect(1).toBe(1);',
+  ].forEach((body) => {
+    assert.deepEqual(rulesOf(probe(body), { modules }), [], body);
+  });
+
+  // A variable is followed within its own scope: another test's `before` from a geometry read does not make
+  // this test's `before`, a draw count, one.
+  const scoped = spec(describe(null, [
+    gridTest('const before = await grid.headerVerticalOffset();\n  await grid.goto(before);', 'a'),
+    gridTest('const before = await grid.drawCount();\n\n  expect(await grid.drawCount() - before).toBe(1);', 'b'),
+  ].join('\n')));
+
+  assert.deepEqual(rulesOf(scoped, { modules }), []);
+
+  // Inside a page object, an assertion of its own on a geometry read decides the outcome the same way.
+  const asserting = probePage([
+    '  async expectCentred(): Promise<void> {',
+    '    expect(Math.abs(await verticalOffsetInHeader(this.headerCheckbox()))).toBeLessThanOrEqual(1);',
+    '  }',
+    '',
+    '  async expectWidth(): Promise<void> {',
+    '    const box = (await this.cell.boundingBox())!;',
+    '',
+    '    expect(box.width).toBe(50);',
+    '  }',
+  ], 'import { verticalOffsetInHeader } from \'../probeGeometry\';\n\n');
+
+  assert.deepEqual(rulesOf(probe('await grid.expectCentred();'), { modules: [asserting, helper] }), ['undeclared-themes']);
+  assert.match(messagesOf(probe('await grid.expectCentred();'), { modules: [asserting, helper] }),
+    /geometry-helper in fixtures\/pages\/ProbePage\.ts:5 \(2 hits\)/);
+  assert.deepEqual(rulesOf(spec(describe('{ tag: THEMES_TAG }', gridTest('await grid.expectCentred();'))), { modules: [asserting, helper] }), []);
+  assert.deepEqual(rulesOf(spec(describe('{ tag: THEMES_TAG }', gridTest('expect(await grid.isInView()).toBe(true);'))), { modules }), []);
+});
+
+test('readGeometryHelpers follows a read through the functions that call it, and drops one that cannot return a size', () => {
+  const helpers = readGeometryHelpers([
+    {
+      file: 'fixtures/edges.ts',
+      source: 'export async function edge(el: Locator): Promise<number> {\n  return el.evaluate(e => e.getBoundingClientRect().left);\n}\n',
+    },
+    {
+      file: 'fixtures/pages/EdgePage.ts',
+      source: [
+        'import { edge } from \'../edges\';',
+        '',
+        'export class EdgePage {',
+        '  async inset(): Promise<number> {',
+        '    return (await edge(this.cell)) - 4;',
+        '  }',
+        '',
+        '  async #box() {',
+        '    return this.cell.boundingBox();',
+        '  }',
+        '',
+        '  async corner(): Promise<{ x: number; y: number }> {',
+        '    const box = (await this.#box())!;',
+        '',
+        '    return { x: box.x, y: box.y };',
+        '  }',
+        '',
+        '  async labels(): Promise<string[]> {',
+        '    return this.page.evaluate(() => [...document.querySelectorAll(\'li\')].filter(li => li.offsetHeight > 0).map(li => li.id));',
+        '  }',
+        '',
+        '  async expectLaidOut(): Promise<void> {',
+        '    expect((await this.cell.boundingBox())!.width).toBeGreaterThan(0);',
+        '  }',
+        '',
+        '  async cellCount(): Promise<number> {',
+        '    return this.page.evaluate(() => document.querySelectorAll(\'td\').length);',
+        '  }',
+        '}',
+      ].join('\n'),
+    },
+    { file: 'fixtures/types.ts', source: 'export interface Hot { box(): { offsetWidth: number }; }\n' },
+  ]);
+
+  assert.deepEqual([...helpers.keys()].sort(), ['#box', 'corner', 'edge', 'inset']);
+  assert.deepEqual(helpers.get('inset'), { file: 'fixtures/pages/EdgePage.ts', line: 4 });
+  assert.deepEqual(helpers.get('edge'), { file: 'fixtures/edges.ts', line: 1 });
+});
+
+test('a fixture that picks a file by the bundle\'s name branches on the bundle', () => {
+  // icon-elements.html loads `dist/themes/<theme>.min.js` on the -min legs and `<theme>.js` on the others,
+  // chosen by `window.htBundle.indexOf('.min.')`, which none of the comparison shapes matched.
+  const fixture = {
+    file: 'fixtures/demo/probe.html',
+    source: '<script>\n  const themeScriptFile = window.htBundle.indexOf(\'.min.\') === -1 ?\n    \'main.js\' : \'main.min.js\';\n</script>\n',
+  };
+  const plain = spec(describe(null, PLAIN_TEST));
+
+  assert.deepEqual(rulesOf(plain, { fixtures: [fixture] }), ['undeclared-bundles']);
+  assert.match(messagesOf(plain, { fixtures: [fixture] }), /bundle-compare in fixtures\/demo\/probe\.html:2/);
+  assert.deepEqual(rulesOf(spec(describe('{ tag: BUNDLES_TAG }', PLAIN_TEST)), { fixtures: [fixture] }), []);
+
+  // The same string test on the theme reads as a branch on the theme.
+  const themed = { file: 'fixtures/demo/probe.html', source: '<script>\n  if (window.htTheme.startsWith(\'h\')) { pad = 8; }\n</script>\n' };
+
+  assert.deepEqual(rulesOf(plain, { fixtures: [themed] }), ['undeclared-themes']);
+});
+
 test('every marker in the table has a scope, an axis and a reason, and fires on its own example', () => {
   const examples = {
     'theme-compare': 'if (theme === \'horizon\') {}',
@@ -545,17 +813,34 @@ test('every marker in the table has a scope, an axis and a reason, and fires on 
     'theme-class': 'root.classList.contains(\'ht-theme-main\')',
     'hit-test': 'document.elementFromPoint(x, y)',
     geometry: 'el.getBoundingClientRect().width',
+    'pointer-offset': 'await page.mouse.click(box.x + box.width - 4, box.y);',
+    'geometry-helper': {
+      code: 'expect(await grid.offset()).toBe(1);',
+      modules: [{
+        file: 'fixtures/pages/P.ts',
+        source: 'export class P {\n  async offset(): Promise<number> {\n    return this.el.evaluate(el => el.getBoundingClientRect().top);\n  }\n}\n',
+      }],
+    },
     formulas: 'hot.getPlugin(\'formulas\')',
     hyperformula: 'window.HyperFormula',
     'bundle-compare': 'htBundle === \'handsontable.full.min.js\'',
   };
+  // The ids of the markers that hit a line of test code (and the page objects the example names).
+  const hitIds = example => checkSpec({
+    file: 'e2e/probe.spec.ts',
+    source: spec(describe(null, `test('t', async({ page }) => {\n  ${example.code ?? example}\n});`)),
+    modules: example.modules ?? [],
+  }).hits.map(hit => hit.id);
 
   assert.deepEqual(SURFACE_MARKERS.map(marker => marker.id).sort(), Object.keys(examples).sort());
   SURFACE_MARKERS.forEach((marker) => {
     assert.ok(['themes', 'bundles'].includes(marker.axis), marker.id);
     assert.ok(marker.scopes.includes('spec'), `${marker.id} is read in the spec at least`);
     assert.ok(marker.why.length > 20, `${marker.id} explains itself`);
-    assert.match(examples[marker.id], marker.pattern, marker.id);
+    assert.ok((marker.pattern instanceof RegExp) !== (typeof marker.find === 'function'),
+      `${marker.id} is read by a pattern or by a finder, never both`);
+    assert.ok(!marker.find || !marker.scopes.includes('fixture'), `${marker.id} reads code, and a fixture is markup`);
+    assert.deepEqual(hitIds(examples[marker.id]), [marker.id], marker.id);
   });
 
   // A branch on the axis has four shapes; a comparison is only the first (budnix, review of the first version).
@@ -564,16 +849,21 @@ test('every marker in the table has a scope, an axis and a reason, and fires on 
 
   for (const shape of ['theme !== \'main\'', '\'horizon\' === theme', 'const w = { main: 29, horizon: 37, classic: 23 }[theme];',
     'widths[ htTheme ]', 'const width = widths[this.theme];', 'switch (theme) {', 'switch(hotTheme){', 'switch (this.theme) {',
-    '[\'horizon\', \'classic\'].includes(theme)', 'TALL.includes(this.theme)', 'if (this.theme === \'horizon\')']) {
+    '[\'horizon\', \'classic\'].includes(theme)', 'TALL.includes(this.theme)', 'if (this.theme === \'horizon\')',
+    'window.htTheme.startsWith(\'h\')', 'this.theme.includes(\'o\')', '/horizon|classic/.test(theme)']) {
     assert.match(shape, themeCompare, shape);
   }
   for (const shape of ['bundle === \'full-min\'', '\'umd\' !== this.bundle', 'const file = BUNDLE_FILES[bundle];', 'FILES[this.bundle]',
-    'switch (htBundle) {', 'switch (this.bundle) {', 'MIN.includes(bundle)', 'if (window.htBundle === \'handsontable.full.min.js\')']) {
+    'switch (htBundle) {', 'switch (this.bundle) {', 'MIN.includes(bundle)', 'if (window.htBundle === \'handsontable.full.min.js\')',
+    'window.htBundle.indexOf(\'.min.\') === -1', 'htBundle.endsWith(\'.min.js\')', 'this.bundle?.startsWith(\'full\')',
+    'htBundle.match(/min/)', '/\\.min\\./.test(window.htBundle)']) {
     assert.match(shape, bundleCompare, shape);
   }
-  // Still not a branch: the fixture allowlist keyed by the query param, a template that prints the value.
+  // Still not a branch: the fixture allowlist keyed by the query param, a template that prints the value, a name
+  // built from the value, and a word that only starts with the axis's name.
   for (const shape of ['({ main: \'main\', horizon: \'horizon\' })[htParams.get(\'theme\') ?? \'main\']', '`?theme=${theme}&bundle=${bundle}`',
-    'themes.forEach(theme => …)', 'const [theme] = args;']) {
+    'themes.forEach(theme => …)', 'const [theme] = args;', 'window.htBundle.replace(\'.js\', \'.min.js\')', 'bundleFiles.includes(name)',
+    'themeNames.startsWith(\'h\')']) {
     assert.doesNotMatch(shape, themeCompare, shape);
     assert.doesNotMatch(shape, bundleCompare, shape);
   }
@@ -585,9 +875,7 @@ test('every marker in the table has a scope, an axis and a reason, and fires on 
     'showFormulas(): void; isShowingFormulas(): boolean;',
   ];
 
-  SURFACE_MARKERS.forEach((marker) => {
-    plumbing.forEach(line => assert.doesNotMatch(line, marker.pattern, `${marker.id} must not fire on: ${line}`));
-  });
+  plumbing.forEach(line => assert.deepEqual(hitIds(line), [], `no marker may fire on: ${line}`));
 });
 
 test('an ignore comment covers a marker, and a wrong one is a violation of its own', () => {
@@ -880,7 +1168,8 @@ test('the three declaration shapes are all in use, so no leg can be empty', () =
 });
 
 // Specs a documented single-axis regression came from (tests/AGENTS.md, the matrix section's traps, and
-// the ledger). Each must keep declaring its axis; a new tagged spec may join without touching this list.
+// the ledger), and specs that hit a trap no marker can read. Each must keep declaring its axis; a new tagged
+// spec may join without touching this list.
 const THEMES_CANARIES = [
   'e2e/cell-dropdown-arrow-button.spec.ts',
   'e2e/comments-editor-resize.spec.ts',
@@ -888,6 +1177,9 @@ const THEMES_CANARIES = [
   'e2e/fixed-columns-end.spec.ts',
   'e2e/handsontable-editor-list-position.spec.ts',
   'e2e/iframe-cross-realm-scroll.spec.ts',
+  // A band edge: it drags to row 6 of a 300 px grid, which only the row heights keep on screen. A text
+  // rule cannot tell an index near the band's edge from one well inside it.
+  'e2e/mobile-drag-to-scroll.spec.ts',
   'e2e/multiselect-open-left.spec.ts',
   'e2e/overlay-alignment-css-zoom.spec.ts',
   'e2e/row-header-border-ownership.spec.ts',

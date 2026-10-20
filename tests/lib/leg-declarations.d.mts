@@ -6,10 +6,30 @@ export const LEG_TAG_LIKE: RegExp;
 export const IGNORE_COMMENT: 'leg-declarations: ignore';
 export const IGNORE_WHY_MIN_LENGTH: number;
 
+export interface GeometryHelper {
+  file: string;
+  line: number;
+}
+
+export interface MarkerFindContext {
+  scope: 'spec' | 'module' | 'fixture';
+  file: string;
+  geometryHelpers: Map<string, GeometryHelper>;
+}
+
+export interface MarkerFinding {
+  index: number;
+  detail?: string;
+}
+
 export interface SurfaceMarker {
   id: string;
   axis: 'themes' | 'bundles';
-  pattern: RegExp;
+  /**
+   * Read by a pattern over the comment-stripped text, or by `find`; never both.
+   */
+  pattern?: RegExp;
+  find?: (views: { code: string; masked: string }, context: MarkerFindContext) => MarkerFinding[];
   scopes: Array<'spec' | 'module' | 'fixture'>;
   why: string;
 }
@@ -73,6 +93,7 @@ export interface MarkerHit {
   file: string;
   line: number;
   count: number;
+  detail?: string;
 }
 
 export interface SpecText {
@@ -112,7 +133,13 @@ export function matchingBracket(masked: string, open: number, where: string): nu
 export function splitTopLevel(masked: string, from: number, to: number): Array<{ start: number; end: number }>;
 export function readBlocks(source: string, where?: string): Block[];
 export function readIgnores(source: string): Ignore[];
-export function findMarkerHits(code: string, scope: 'spec' | 'module' | 'fixture', file: string): MarkerHit[];
+export function findMarkerHits(
+  code: string,
+  scope: 'spec' | 'module' | 'fixture',
+  file: string,
+  context?: { masked?: string; geometryHelpers?: Map<string, GeometryHelper> },
+): MarkerHit[];
+export function readGeometryHelpers(modules: SpecText[]): Map<string, GeometryHelper>;
 export function scanFixtureHtml(source: string, where?: string): string;
 export function isTypeOnlyModule(code: string): boolean;
 export function relativeImports(code: string): string[];

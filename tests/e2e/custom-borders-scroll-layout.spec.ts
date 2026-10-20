@@ -20,6 +20,7 @@ function everyCellBorders() {
   return borders;
 }
 
+// leg-declarations: ignore geometry-helper -- measureHorizontalScrollLayouts() reads scrollWidth only to size its scroll steps; the spec compares counts of draws and forced layouts
 test.describe('CustomBorders scrolling cost', () => {
   // `Performance.getMetrics` is a Chromium DevTools call; an untagged spec runs on Chromium only.
   test('a horizontal scroll forces no more layouts with 2,100 borders than without', async({ page, theme, bundle }) => {
