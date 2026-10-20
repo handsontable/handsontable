@@ -13,6 +13,7 @@ import {
   duckSchema,
   hasOwnProperty,
   isObject,
+  isPlainObject,
   objectEach
 } from '../helpers/object';
 import { extendArray, insertValuesInPlace, removeIndexesInPlace, to2dArray } from '../helpers/array';
@@ -248,7 +249,9 @@ class DataMap {
   }
 
   /**
-   * Generates columns' translation cache.
+   * Generates columns' translation cache. Every schema leaf gets a column, whatever its default
+   * value, the same set of leaves `deepObjectSize()` counts. A plain object is walked, and an
+   * array or the `__children` key gets none.
    *
    * @param {object} schema An object to generate schema from.
    * @param {number} lastCol The column index.
@@ -262,14 +265,18 @@ class DataMap {
 
     if (typeof schema === 'object' && schema !== null && !Array.isArray(schema)) {
       objectEach(schema, (value: unknown, key: string) => {
-        if (value === null) {
+        if (key === '__children' || Array.isArray(value)) {
+          return;
+        }
+
+        if (isPlainObject(value)) {
+          lastColumn = this.recursiveDuckColumns(value, lastColumn, `${propertyParent}${key}.`);
+        } else {
           prop = propertyParent + key;
           this.colToPropCache.push(prop);
           this.propToColCache!.set(prop, lastColumn);
 
           lastColumn += 1;
-        } else if (typeof value === 'object' && value !== null) {
-          lastColumn = this.recursiveDuckColumns(value, lastColumn, `${propertyParent}${key}.`);
         }
       });
     }
