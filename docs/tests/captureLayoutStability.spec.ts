@@ -1,16 +1,20 @@
 import { test, expect, type Page } from '@playwright/test';
-import { holdLayoutWidth } from './lib/hold-layout-width';
+import { settledExamples } from './lib/example-grid-layout';
 
 /**
- * A full-page capture must leave the example grids as they were. This pins what
- * `./lib/hold-layout-width.ts` exists for: on Linux CI the capture collapses the viewport to 1x1px,
- * and a grid that measures its columns in the collapsed page keeps wrapped column widths, so the
- * page the capture reports is taller than the page that was laid out (DEV-3458).
+ * A full-page capture must leave the example grids as they were.
  *
- * `export-to-csv` is the page that showed it: three grids with a hidden-column layout, no column
- * widths, and a last column of multi-word text. The test fails on a Linux runner without the hold,
- * and passes anywhere with it. It cannot fail on a machine whose capture does not collapse the
- * viewport, so a green local run says nothing about the fix.
+ * On Linux CI `page.screenshot({ fullPage: true })` shrinks the viewport to 1x1px for a moment, and the
+ * docs layout follows it: every example collapses to a 0px grid root. Until DEV-3460 a grid measured
+ * its columns in that root and kept the wrapped widths when the viewport came back, so the page the
+ * capture reported was taller than the page that was laid out, and the golden of `export-to-csv`
+ * flipped between two heights (DEV-3458). `export-to-csv` is that page: three grids with hidden
+ * columns, no column widths, and a last column of multi-word text.
+ *
+ * Two tests per framework. The first forces the collapse with `setViewportSize()`, so it fails on any
+ * machine when a grid keeps wrapped widths. The second takes the full-page captures the visual suite
+ * takes, which collapse the viewport only on Linux, and only in some renders. No retries: a render that
+ * keeps wrapped widths once is the failure, and a retry would report it as flaky and pass.
  */
 const SLUG = 'export-to-csv';
 
@@ -20,6 +24,8 @@ const FRAMEWORKS = [
   { prefix: 'angular', urlPath: 'angular-data-grid' },
   { prefix: 'vue', urlPath: 'vue-data-grid' },
 ];
+
+test.describe.configure({ retries: 0 });
 
 /**
  * Height of a PNG, read from its IHDR chunk.
@@ -43,6 +49,30 @@ const gridShapes = (page: Page): Promise<string[]> => page.evaluate(() => {
     return `${widths.join(',')} / ${heights.join(',')}`;
   });
 });
+
+/**
+ * Loads the page and returns its settled grids and height, the baseline both tests compare against.
+ *
+ * @param page The page under test.
+ * @param url The page's URL.
+ * @returns The grid shapes and the document height.
+ */
+async function loadSettled(page: Page, url: string): Promise<{ shapes: string[], height: number }> {
+  await page.goto(url);
+  await expect(page.getByText('We are verifying your connection')).toHaveCount(0, { timeout: 30000 });
+  await expect(page.getByText('Page not found (404)')).toHaveCount(0);
+  await expect(page.getByText('Password protected site')).toHaveCount(0);
+  await expect(page.locator('.hot-example-preview--loading')).toHaveCount(0, { timeout: 30000 });
+  // The runner clears the overlay of a React example before React commits it, so wait for the grids.
+  await settledExamples(page);
+
+  const shapes = await gridShapes(page);
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+
+  expect(shapes.length, 'the page renders its example grids').toBeGreaterThan(0);
+
+  return { shapes, height };
+}
 
 test.beforeEach(async({ page, baseURL }) => {
   const url = new URL(baseURL?.toString() || '');
@@ -73,28 +103,37 @@ test.beforeEach(async({ page, baseURL }) => {
 });
 
 FRAMEWORKS.forEach(({ prefix, urlPath }) => {
-  test(`${prefix} ${SLUG}: a full-page capture leaves the example grids as they were`, async({ page, baseURL }) => {
-    await page.goto(`${baseURL}/${urlPath}/${SLUG}`);
-    await expect(page.getByText('We are verifying your connection')).toHaveCount(0, { timeout: 30000 });
-    await expect(page.getByText('Page not found (404)')).toHaveCount(0);
-    await expect(page.getByText('Password protected site')).toHaveCount(0);
-    await expect(page.locator('.hot-example-preview--loading')).toHaveCount(0, { timeout: 30000 });
+  test(`${prefix} ${SLUG}: a viewport that collapses to 1x1 and comes back leaves the grids as they were`, async({ page, baseURL }) => {
+    const before = await loadSettled(page, `${baseURL}/${urlPath}/${SLUG}`);
+    const viewport = page.viewportSize()!;
 
-    await holdLayoutWidth(page);
+    await page.setViewportSize({ width: 1, height: 1 });
+    // The collapse the capture causes on Linux: without it this test proves nothing.
+    await expect.poll(
+      () => page.evaluate(() => document.querySelector('.hot-example-preview .ht_master')!.parentElement!.clientWidth),
+      { message: 'the grid root collapses with the viewport' },
+    ).toBe(0);
+    // Let each grid draw once in the collapsed root, which is when it used to measure wrapped widths.
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await page.setViewportSize(viewport);
+    await settledExamples(page);
 
-    const shapesBefore = await gridShapes(page);
-    const heightBefore = await page.evaluate(() => document.documentElement.scrollHeight);
+    expect(await gridShapes(page), 'the grids after the collapse').toEqual(before.shapes);
+    expect(await page.evaluate(() => document.documentElement.scrollHeight), 'the page height after the collapse')
+      .toBe(before.height);
+  });
 
-    expect(shapesBefore.length, 'the page renders its example grids').toBeGreaterThan(0);
+  test(`${prefix} ${SLUG}: a full-page capture leaves the grids as they were`, async({ page, baseURL }) => {
+    const before = await loadSettled(page, `${baseURL}/${urlPath}/${SLUG}`);
 
     // `toHaveScreenshot` keeps capturing until two shots agree, and the collapse comes with each one.
     for (let shot = 0; shot < 3; shot += 1) {
       const png = await page.screenshot({ fullPage: true, animations: 'disabled' });
 
-      expect(pngHeight(png), `capture ${shot + 1} is as tall as the page that was laid out`).toBe(heightBefore);
+      expect(pngHeight(png), `capture ${shot + 1} is as tall as the page that was laid out`).toBe(before.height);
     }
 
     await expect.poll(() => gridShapes(page), { timeout: 5000, message: 'the grids after the captures' })
-      .toEqual(shapesBefore);
+      .toEqual(before.shapes);
   });
 });
