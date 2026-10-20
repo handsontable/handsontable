@@ -144,11 +144,21 @@ describe('Core#getDataAtCol() and Core#getDataAtProp() row count', () => {
   it('should shift every row of the column in spliceCol()', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-    buildTree();
-    hot.spliceCol(0, 1, 1);
-    warnSpy.mockRestore();
+    try {
+      buildTree();
+      hot.spliceCol(0, 1, 1);
+    } finally {
+      warnSpy.mockRestore();
+    }
 
     expect(hot.getDataAtCol(0)).toEqual(['P1', 'G1', 'P2', 'C21', null]);
+
+    // The source tree itself: each record holds the value of the row below it.
+    const [p1, p2] = hot.getPlugin('nestedRows').dataManager.getRawSourceData();
+    const c11 = p1.__children[0];
+
+    expect([p1.name, c11.name, c11.__children[0].name, p2.name, p2.__children[0].name])
+      .toEqual(['P1', 'G1', 'P2', 'C21', null]);
   });
 
   describe('grids without NestedRows keep their results', () => {

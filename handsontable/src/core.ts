@@ -6186,7 +6186,8 @@ export default function Core(
    * @description
    * Returns array of column values from the data source, one value per visual row.
    * With the [`nestedRows`](@/api/options.md#nestedrows) option, the result includes the visible child rows
-   * and skips the children of collapsed parents.
+   * and skips the children of collapsed parents. A grid with no rows returns `[null]`, so the length
+   * is one more than `countRows()` there.
    *
    * __Note__: If columns were reordered or sorted, the currently visible order will be used.
    *
@@ -6216,7 +6217,8 @@ export default function Core(
    * Given the object property name (e.g. `'first.name'` or `'0'`), returns an array of column's values from the table data.
    * You can also provide a column index as the first argument. The result holds one value per visual row.
    * With the [`nestedRows`](@/api/options.md#nestedrows) option, it includes the visible child rows
-   * and skips the children of collapsed parents.
+   * and skips the children of collapsed parents. For an existing column of a grid with no rows, it
+   * returns `[null]`, so the length is one more than `countRows()` there.
    *
    * @memberof Core#
    * @function getDataAtProp

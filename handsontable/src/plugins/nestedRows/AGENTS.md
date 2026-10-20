@@ -583,7 +583,7 @@ They are written in different places and can drift. Keep this in mind:
   Recursion is unconditional. Do not rely on passing `false`.
 - **`tableMeta.data.length` is the TOP-LEVEL count here, never the row count.** The source array
   holds the top-level records only; the flattened rows come from the index mapper. A Core read that
-  walks visual rows must end at `countRows()`. `getDataAtCol()` and `getDataAtProp()` ended at
+  walks visual rows must reach `countRows()`. `getDataAtCol()` and `getDataAtProp()` ended at
   `data.length - 1` and dropped every row past it (`getLastColumnReadRow()` in `core.ts`, pinned by
   `src/__tests__/core/getDataAtColNestedRows.unit.js`). This plugin is not the only way past
   `data.length`: any `modifySourceLength` listener (this plugin is one) can report more rows than the
