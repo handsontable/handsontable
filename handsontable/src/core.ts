@@ -6414,6 +6414,23 @@ export default function Core(
       changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction
     ): CellProperties => {
       const visualRow = instance.toVisualRow(changeRow);
+
+      if (typeof changeProp === 'string') {
+        // A prop names its column, so the column meta resolves through the accessor-aware `propToCol`
+        // cache. The meta is read the way the source-data validator reads it: by physical row, with
+        // neither the `cells` function nor the get-meta hooks, so a trimmed row (no visual index) and
+        // a hook that writes back to the source cannot disturb the write. A prop that names no column
+        // comes back as itself and falls through to the table meta below.
+        const propColumn = datamap.propToCol(changeProp);
+
+        if (Number.isInteger(propColumn)) {
+          return metaManager.getCellMetaUncached(changeRow, instance.toPhysicalColumn(propColumn as number)!, {
+            visualRow: visualRow ?? changeRow,
+            visualColumn: propColumn as number,
+          });
+        }
+      }
+
       // A function prop resolves through the accessor-aware `propToCol` cache, so an accessor
       // column reads its own column meta (`valueSetter`, `sourceDataValidator`) instead of the
       // table-meta fallback; an unresolvable accessor comes back as the function itself and
