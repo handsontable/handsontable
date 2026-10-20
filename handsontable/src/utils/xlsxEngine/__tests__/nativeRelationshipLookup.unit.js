@@ -144,8 +144,9 @@ describe('parseWorkbook: the relationships namespace scope', () => {
   it('should keep the scope linear in the number of declarations', () => {
     // Every declaring element copied the whole list of prefixes in scope: 20,000 nested elements
     // reached about 2 GB, and a million self-closing siblings (278 kB deflated) about six minutes.
-    // Before the fix this case took tens of seconds; the bound leaves room for a slow runner.
-    const nested = 20000;
+    // Before the fix this case took tens of seconds; the bound leaves room for a slow runner. The
+    // nesting stays under `MAX_XML_NESTING_DEPTH` (review round 12); deeper is refused, below.
+    const nested = 250;
     const siblings = 100000;
     const xml = `<workbook xmlns:r="${relNs}">${`<x xmlns:p="${relNs}">`.repeat(nested)}<sheets>`
       + `${`<y xmlns:p="${relNs}"/>`.repeat(siblings)}<sheet name="A" r:id="rId1"/></sheets>`
@@ -155,5 +156,13 @@ describe('parseWorkbook: the relationships namespace scope', () => {
 
     expect(sheets.map(sheet => sheet.relId)).toEqual(['rId1']);
     expect(Date.now() - start).toBeLessThan(3000);
+  });
+
+  it('should refuse 20,000 nested declaring elements as a limit, before the scope grows', () => {
+    const nested = 20000;
+    const xml = `<workbook xmlns:r="${relNs}">${`<x xmlns:p="${relNs}">`.repeat(nested)}<sheets>`
+      + `<sheet name="A" r:id="rId1"/></sheets>${'</x>'.repeat(nested)}</workbook>`;
+
+    expect(() => packageParts.parseWorkbook(xml)).toThrow(/nested more than 256 elements deep/);
   });
 });
