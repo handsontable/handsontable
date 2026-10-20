@@ -22,6 +22,7 @@ import type { ManualColumnFreezeSettings } from '../plugins/manualColumnFreeze';
 import type { FreezeBarSettings, FreezeEdge, FreezeSource } from '../plugins/freezeBar';
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
 import type { UndoRedoSettings } from '../plugins/undoRedo';
+import type { AsyncValueCancelReason, AsyncValuesSettings } from '../plugins/asyncValues';
 import type { PasteClipboardData } from '../plugins/copyPaste';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
@@ -286,6 +287,7 @@ export interface GridSettings {
   sortByRelevance?: boolean;
 
   // Plugins
+  asyncValues?: boolean | AsyncValuesSettings;
   autoLink?: boolean | {
     target?: '_blank' | '_self';
     schemes?: Array<'http' | 'https' | 'mailto' | 'tel'>;
@@ -408,6 +410,13 @@ export interface GridSettings {
 
   // Hook callbacks
   afterAddChild?: (parent: RowObject, element: RowObject | undefined, index: number | undefined) => void;
+  afterAsyncValueCancel?: (physicalRow: number, prop: string | number, reason: AsyncValueCancelReason,
+    rowId: unknown) => void;
+  afterAsyncValueReject?: (physicalRow: number, prop: string | number, error: unknown, message: string,
+    rowId: unknown) => void;
+  afterAsyncValueResolve?: (physicalRow: number, prop: string | number, value: unknown, rowId: unknown) => void;
+  afterAsyncValuesIdle?: () => void;
+  afterAsyncValueStart?: (physicalRow: number, prop: string | number, rowId: unknown) => void;
   afterAutofill?: (fillData: CellValue[][], sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange,
     direction: 'up' | 'down' | 'left' | 'right') => void;
   afterBeginEditing?: (row: number, column: number) => void;
@@ -615,6 +624,8 @@ export interface GridSettings {
   beforeAddChild?: (parent: RowObject, element?: RowObject, index?: number) => void;
   beforeAlter?: (action: string, index: number | Array<[number, number]>, amount: number,
     source?: ChangeSource, keepEmptyRows?: boolean) => boolean | void;
+  beforeAsyncValueResolve?: (value: unknown, physicalRow: number, prop: string | number, rowId: unknown) => unknown;
+  beforeAsyncValueStart?: (physicalRow: number, prop: string | number, rowId: unknown) => void | boolean;
   beforeAutofill?: (selectionData: CellValue[][], sourceRange: WalkontableCellRange,
     targetRange: WalkontableCellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | void;
   beforeBeginEditing?: (row: number, column: number, initialValue: CellValue,

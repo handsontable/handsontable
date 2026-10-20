@@ -2828,6 +2828,26 @@ export default function Core(
   }
 
   /**
+   * Tells whether a `setSourceDataAtCell()` call writes the cell an opened editor edits. The changes name
+   * physical rows, and a column as its property or its physical index.
+   *
+   * @private
+   * @param {Array} changes The changes, in the form `[physicalRow, prop, value]`.
+   * @param {BaseEditor} activeEditor The opened editor.
+   * @returns {boolean}
+   */
+  function doesSourceChangeAffectOpenedEditor(
+    changes: Array<[number, string | number | ColumnDataGetterSetterFunction, unknown]>,
+    activeEditor: BaseEditor,
+  ) {
+    const physicalRow = instance.toPhysicalRow(activeEditor.row!);
+    const editedProp = activeEditor.prop;
+
+    // `setAtCell()` writes a numeric column as the raw index (`dataRow[n]`), so it is compared as a prop.
+    return changes.some(([changeRow, changeProp]) => changeRow === physicalRow && changeProp === editedProp);
+  }
+
+  /**
    * Reads the cell meta of a cell that a WRITE addresses, which may sit in a row that does not exist yet.
    *
    * A write can address a row past the last one, and `applyChanges()` creates it only after the
@@ -3507,12 +3527,23 @@ export default function Core(
    * @returns {Array} List of changes finally applied to the dataset.
    */
   function processChanges(changes: Array<CellChange | null>, source: string | undefined): CellChange[] {
+    const openedEditor = instance.getActiveEditor();
+    // Read before the hook, which can replace a change with `null`, and only while an editor is open: a
+    // paste or a fill writes with none, and must not pay for a copy of its changes.
+    const writesEditedCell = openedEditor?.isOpened()
+      ? hasChangeForCell(changes.filter((change): change is CellChange => change !== null), openedEditor.row!,
+        openedEditor.prop!)
+      : true;
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     // The `beforeChange` hook could add a `null` for purpose of canceling some dataset's change.
     const filteredChanges = changes.filter((change): change is CellChange => change !== null);
 
     if (beforeChangeResult === false || filteredChanges.length === 0) {
-      instance.getActiveEditor()?.cancelChanges();
+      // An open editor is canceled only when the vetoed call wrote its own cell: a vetoed write to another
+      // cell (an application's background update) must not throw away what the user is typing.
+      if (writesEditedCell) {
+        instance.getActiveEditor()?.cancelChanges();
+      }
 
       return [];
     }
@@ -6342,6 +6373,9 @@ export default function Core(
   /**
    * Set the provided value in the source data set at the provided coordinates.
    *
+   * An open editor keeps what the user typed, unless the call writes the edited cell itself: then the
+   * editor shows the new value.
+   *
    * @memberof Core#
    * @function setSourceDataAtCell
    * @param {number|Array} row Physical row index or array of changes in format `[[row, prop, value], ...]`.
@@ -6448,8 +6482,19 @@ export default function Core(
 
     const activeEditor = instance.getActiveEditor();
 
-    if (activeEditor && isDefined(activeEditor.refreshValue)) {
+    // An open editor is refreshed only when the call wrote its own cell: a write to any other cell, a
+    // filtered-out row's included, must not throw away what the user is typing (the `setData*` methods
+    // follow the same rule through `doesChangeAffectOpenedEditor()`). A closed editor is refreshed as before.
+    if (
+      activeEditor &&
+      isDefined(activeEditor.refreshValue) &&
+      (!activeEditor.isOpened() || doesSourceChangeAffectOpenedEditor(input, activeEditor))
+    ) {
       (activeEditor.refreshValue as () => void)();
+
+    } else if (activeEditor?.isOpened()) {
+      // `refreshValue()` also repositions the editor; the write can still have resized a row above it.
+      (activeEditor as BaseEditor & { refreshDimensions?: () => void }).refreshDimensions?.();
     }
   }
 
@@ -8860,15 +8905,29 @@ export default function Core(
    * @private
    */
   this._registerTimeout = function(this: HotInstance & CoreInternals, handle: Function | number, delay = 0) {
-    let handleFunc = handle;
+    if (typeof handle !== 'function') {
+      this.timeouts.push(handle);
 
-    if (typeof handleFunc === 'function') {
-      handleFunc = setTimeout(handleFunc, delay);
+      return handle;
     }
 
-    this.timeouts.push(handleFunc);
+    // Captured now: `destroy()` nulls the instance's fields after `_clearTimeouts()`, so a timer registered
+    // in between would otherwise read a nulled `this.timeouts` when it fires.
+    const timeouts = this.timeouts;
+    const timeoutId = setTimeout(() => {
+      const index = timeouts.indexOf(timeoutId);
 
-    return handleFunc;
+      // Drop the handle once it fired, or every call keeps one until `destroy()`.
+      if (index !== -1) {
+        timeouts.splice(index, 1);
+      }
+
+      handle();
+    }, delay);
+
+    this.timeouts.push(timeoutId);
+
+    return timeoutId;
   };
 
   /**

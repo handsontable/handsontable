@@ -6,9 +6,9 @@
     "cells",
     "cell"
   ],
-  "total": 184,
+  "total": 185,
   "counts": {
-    "grid": 112,
+    "grid": 113,
     "grid columns cells cell": 64,
     "grid columns": 7,
     "columns": 1
@@ -103,6 +103,15 @@
       ],
       "since": "14.0.0",
       "note": "The switch is grid level. A per-cell value only changes that cell's ARIA attributes."
+    },
+    {
+      "name": "asyncValues",
+      "category": "AsyncValues",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
+      "note": null
     },
     {
       "name": "autoColumnSize",
