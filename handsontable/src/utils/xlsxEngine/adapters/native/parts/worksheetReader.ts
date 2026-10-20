@@ -778,13 +778,19 @@ class WorksheetParser {
   }
 
   /**
-   * Opens a `<sheetView>`. Only the first one is the sheet's own view (`#inFirstSheetView`); a
-   * self-closing one holds no `<pane>`, so nothing is left open for it.
+   * Opens a `<sheetView>`. Only the first one is the sheet's own view (`#inFirstSheetView`), which
+   * gives the pane and the direction; a self-closing one holds no `<pane>`, so nothing is left open
+   * for it.
    */
   #openSheetView(attrs: XmlAttributes, selfClosing: boolean): void {
     this.#sheetViewCount += 1;
     this.#inFirstSheetView = this.#sheetViewCount === 1 && !selfClosing;
-    this.#sheet.rtl = attrs.rightToLeft === '1' || attrs.rightToLeft === 'true';
+
+    // The direction belongs to the sheet's own view too: a second window (`workbookViewId="1"`)
+    // used to reset it.
+    if (this.#sheetViewCount === 1) {
+      this.#sheet.rtl = attrs.rightToLeft === '1' || attrs.rightToLeft === 'true';
+    }
   }
 
   /**

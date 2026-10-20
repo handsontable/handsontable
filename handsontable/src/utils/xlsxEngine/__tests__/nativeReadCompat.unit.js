@@ -2064,3 +2064,23 @@ describe('native reader compatibility: a Normal font with an explicit black colo
     expect(sheet.rows.flat().map(cell => cell.style)).toEqual([null, null, null, null]);
   });
 });
+
+describe('native reader compatibility: the direction of a sheet with several views (review round 12)', () => {
+  it('should take the direction from the first sheet view only, as the frozen pane is', () => {
+    // A file saved with a second window open carries `<sheetView workbookViewId="1"/>`, which reset
+    // the right-to-left flag of the sheet's own view.
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetViews>`
+      + '<sheetView rightToLeft="1" workbookViewId="0"/><sheetView workbookViewId="1"/>'
+      + '</sheetViews><sheetData><row r="1"><c><v>1</v></c></row></sheetData></worksheet>');
+
+    expect(sheet.rtl).toBe(true);
+  });
+
+  it('should keep a left-to-right first view left to right whatever a later view says', () => {
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetViews>`
+      + '<sheetView workbookViewId="0"/><sheetView rightToLeft="1" workbookViewId="1"/>'
+      + '</sheetViews><sheetData><row r="1"><c><v>1</v></c></row></sheetData></worksheet>');
+
+    expect(sheet.rtl).toBe(false);
+  });
+});
