@@ -293,7 +293,8 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   `utils/copiedRanges.ts`). CopyPaste also puts the source data on the clipboard as its own flavor, which
   `beforeCopy` never receives; CopyPaste reconciles it against the hook's edits, so a blanked cell is blank in
   that flavor too (the flavor always carries objects and arrays as JSON, and another grid parses it only with
-  `parsePastedValue: true`, default `false`). Export keeps the current value.
+  `parsePastedValue: true`, which is off by default and on for the `autocomplete`, `dropdown` and
+  `multiSelect` types). Export keeps the current value.
 - **`afterAsyncValuesIdle` fires once per busy-to-idle transition**, from `#afterSettling()`, which every settle
   path (flush, cancel, removal, replacement) ends with. `#pendingCount` is kept by `#setEntry` and `#finish`, so
   the query methods and the idle check never walk the entries.

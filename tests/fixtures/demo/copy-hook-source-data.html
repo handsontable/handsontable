@@ -49,6 +49,9 @@
       mask: function(data) { data[0][0] = ''; },
     };
     const hook = HOOKS[htParams.get('hook') ?? 'mask'];
+    // A value no other test copies: the browser clipboard outlives a test, so a copy that wrote nothing
+    // would otherwise paste a leftover. The spec passes a fresh token per test.
+    const token = (htParams.get('token') ?? 'TOKEN').replace(/[^A-Za-z0-9-]/g, '');
 
     if (!hook) {
       throw new Error('Unknown ?hook= value: ' + JSON.stringify(htParams.get('hook')));
@@ -72,7 +75,7 @@
 
     try {
       hotA = new Handsontable(containerA, {
-        data: [[{ secret: 'COPY-HOOK-8101' }], [{ keep: 'COPY-HOOK-8102' }]],
+        data: [[{ secret: 'secret-' + token }], [{ keep: 'keep-' + token }]],
         columns: [{ renderer: testIdRenderer('a-cell'), width: 200 }],
         beforeCopy: hook,
         licenseKey: 'non-commercial-and-evaluation',

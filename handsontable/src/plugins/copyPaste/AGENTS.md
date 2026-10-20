@@ -147,13 +147,24 @@ Do not "tidy" either catch away.
 ## The source-data flavor follows what `beforeCopy` and `beforeCut` leave
 
 `onCopy`/`onCut` build `rangedSourceData` before the hook runs, and the hooks only ever see `rangedData`.
-`#reconcileSourceData()` therefore rebuilds the source rows after the hook: rows are matched by **identity**
-against a snapshot taken before it (so a `splice` or a reorder keeps the flavors aligned), and a cell the
-hook changed takes the hook's value (JSON for an object or array, in place edits included: the snapshot
-holds each object cell's JSON). A row the hook swapped for a new array (`data[i] = row.map(...)`) is matched
-by position while the row count is unchanged. A row that cannot be matched, or one whose length the hook
-changed, drops the flavor (`null`) and a paste falls back to the plain data. Do not pass `rangedSourceData` to the hooks instead: every existing listener would keep leaking,
-and `beforeCut` has no `copiedHeadersCount`, so the argument position would differ.
+`#reconcileSourceData()` therefore rebuilds the source rows after the hook, and **never drops the flavor**.
+
+- A row the hook kept as the **same array** is matched to its source row by **identity**, so a `splice`, a
+  `reverse` or a `sort` keeps the flavors aligned. In it a cell the hook did not change keeps its source
+  value, and a changed or appended cell takes the hook's value (JSON for an object or array). An in-place
+  edit of an object cell counts as a change: the snapshot holds each object cell's JSON, not its reference.
+- **Any other row takes the hook's values for every cell** (`data[i] = row.map(...)`, a pushed row). Do not
+  match it to a source row by position: after a reorder two rows can hold equal plain values, and a
+  `valueGetter` makes the plain value differ from the stored one, so a position match hands a row another
+  row's source value (an earlier version did, and swapped amounts between ids).
+- A value `JSON.stringify` cannot serialize (a `BigInt`, a circular reference) reduces to a fresh symbol, so
+  it counts as changed and is written as `String(value)`. The hook's value must never throw out of `onCopy`,
+  which runs after `preventDefault()`: nothing would reach the clipboard.
+- With no `beforeCopy`/`beforeCut` listener the snapshot is skipped and the source data is written as built.
+  Formulas, NestedHeaders and AsyncValues register a listener, so in most grids the snapshot does run.
+
+Do not pass `rangedSourceData` to the hooks instead: every existing listener would keep leaking, and
+`beforeCut` has no `copiedHeadersCount`, so the argument position would differ.
 
 ## The private flavor is often absent, and that is not an error
 

@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
-import { test, expect, BUNDLES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
+import type { Bundle } from '../fixtures/bundle';
 import { CopyHookSourceDataPage, type CopyHook } from '../fixtures/pages/CopyHookSourceDataPage';
 
 /**
@@ -8,12 +9,13 @@ import { CopyHookSourceDataPage, type CopyHook } from '../fixtures/pages/CopyHoo
  * Every case is a real copy and a real paste between two grids: a trusted event pair, with the data
  * on the real clipboard. Grid B has `parsePastedValue: true`, so it reads the private flavor and an
  * object cell reaches it as an object. Every assertion reads the data SOURCE of grid B, because an
- * object and its string form render alike. Each case uses its own hook and so its own values, and
- * the browser clipboard outlives a test, so a copy that silently did nothing would paste a leftover.
+ * object and its string form render alike. Each case copies values carrying a token of its own (a
+ * `randomUUID()` per test), and the browser clipboard outlives a test, so a copy that silently did
+ * nothing would paste a leftover and fail instead of passing.
  */
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
-async function openFixture(page: Page, theme: string, bundle: string, hook: CopyHook) {
+async function openFixture(page: Page, theme: string, bundle: Bundle, hook: CopyHook) {
   const grid = new CopyHookSourceDataPage(page, theme, bundle, hook);
 
   await grid.goto();
@@ -21,14 +23,14 @@ async function openFixture(page: Page, theme: string, bundle: string, hook: Copy
   return grid;
 }
 
-test.describe('source-data flavor and beforeCopy', { tag: BUNDLES_TAG }, () => {
+test.describe('source-data flavor and beforeCopy', () => {
   test('does not leak an object cell the hook masked', async({ page, theme, bundle }) => {
     const grid = await openFixture(page, theme, bundle, 'mask');
 
     await grid.copyBothRows();
     await grid.pasteIntoB();
 
-    await expect.poll(() => grid.sourceAtB(1, 0)).toBe('object:{"keep":"COPY-HOOK-8102"}');
+    await expect.poll(() => grid.sourceAtB(1, 0)).toBe(grid.keptSource());
     expect(await grid.sourceAtB(0, 0)).toBe('string:');
   });
 
@@ -38,7 +40,7 @@ test.describe('source-data flavor and beforeCopy', { tag: BUNDLES_TAG }, () => {
     await grid.copyBothRows();
     await grid.pasteIntoB();
 
-    await expect.poll(() => grid.sourceAtB(0, 0)).toBe('object:{"keep":"COPY-HOOK-8102"}');
+    await expect.poll(() => grid.sourceAtB(0, 0)).toBe(grid.keptSource());
     expect(await grid.sourceAtB(1, 0)).toBe('null');
   });
 
@@ -48,7 +50,7 @@ test.describe('source-data flavor and beforeCopy', { tag: BUNDLES_TAG }, () => {
     await grid.copyBothRows();
     await grid.pasteIntoB();
 
-    await expect.poll(() => grid.sourceAtB(1, 0)).toBe('object:{"keep":"COPY-HOOK-8102"}');
+    await expect.poll(() => grid.sourceAtB(1, 0)).toBe(grid.keptSource());
     expect(await grid.sourceAtB(0, 0)).toBe('string:');
   });
 });

@@ -127,6 +127,14 @@ describe('CopyPaste source-data flavor and the beforeCopy / beforeCut hooks', ()
     expect(target.getDataAtCell(1, 0)).toEqual({ b: 2 });
   });
 
+  it('should write the unchanged source data when a listener returns without editing', () => {
+    const source = createSource({ beforeCopy: () => {} });
+    const target = track(transfer(source));
+
+    expect(target.getDataAtCell(0, 0)).toEqual({ a: 1 });
+    expect(target.getDataAtCell(1, 0)).toEqual({ b: 2 });
+  });
+
   it('should keep the flavors aligned when beforeCopy removes a row', () => {
     const source = createSource({
       beforeCopy(data: unknown[][]) {
@@ -161,7 +169,6 @@ describe('CopyPaste source-data flavor and the beforeCopy / beforeCut hooks', ()
 
     expect(flavors['text/plain']).not.toContain('"a"');
     expect(flavors[SOURCE_FLAVOR]).not.toContain('"a"');
-    expect(flavors[SOURCE_FLAVOR]).toContain('{"b":2}');
 
     const target = track(transfer(source));
 
@@ -178,65 +185,7 @@ describe('CopyPaste source-data flavor and the beforeCopy / beforeCut hooks', ()
     const target = track(transfer(source));
 
     expect(target.getDataAtCell(0, 0)).toEqual({ z: 9 });
-  });
-
-  it('should match a row the hook swapped for a new array by position', () => {
-    const source = createSource({
-      beforeCopy(data: unknown[][]) {
-        data[0] = data[0].map(() => '');
-      },
-    });
-    const flavors = dispatch(source, 'onCopy');
-
-    expect(flavors[SOURCE_FLAVOR]).not.toContain('{"a":1}');
-    expect(flavors[SOURCE_FLAVOR]).toContain('{"b":2}');
-  });
-
-  it('should drop the source-data flavor when a hook swaps a row and removes another', () => {
-    const source = createSource({
-      beforeCopy(data: unknown[][]) {
-        data.splice(0, 2, ['replaced']);
-      },
-    });
-    const flavors = dispatch(source, 'onCopy');
-
-    expect(flavors['text/plain']).toContain('replaced');
-    expect(flavors).not.toHaveProperty(SOURCE_FLAVOR);
-  });
-
-  it('should drop the source-data flavor when a hook changes a row length', () => {
-    const source = createSource({
-      beforeCopy(data: unknown[][]) {
-        data[0].push('extra');
-      },
-    });
-    const flavors = dispatch(source, 'onCopy');
-
-    expect(flavors).not.toHaveProperty(SOURCE_FLAVOR);
-  });
-
-  it('should keep the flavors aligned when beforeCut removes a row', () => {
-    const source = createSource({
-      beforeCut(data: unknown[][]) {
-        data.splice(0, 1);
-      },
-    });
-    const target = track(transfer(source, 'onCut'));
-
-    expect(target.getDataAtCell(0, 0)).toEqual({ b: 2 });
-    expect(target.getDataAtCell(1, 0)).toBeNull();
-  });
-
-  it('should not leak the original value of a cell beforeCut masked', () => {
-    const source = createSource({
-      beforeCut(data: unknown[][]) {
-        data[1][0] = '';
-      },
-    });
-    const flavors = dispatch(source, 'onCut');
-
-    expect(flavors[SOURCE_FLAVOR]).not.toContain('"b"');
-    expect(flavors[SOURCE_FLAVOR]).toContain('{"a":1}');
+    expect(target.getDataAtCell(1, 0)).toEqual({ b: 2 });
   });
 
   it('should not leak a field a hook removed from an object cell in place', () => {
@@ -246,13 +195,91 @@ describe('CopyPaste source-data flavor and the beforeCopy / beforeCut hooks', ()
         delete (data[0][0] as Record<string, unknown>).secret;
       },
     });
-    const flavors = dispatch(source, 'onCopy');
+    const target = track(transfer(source));
 
-    expect(flavors[SOURCE_FLAVOR]).not.toContain('secret');
-    expect(flavors[SOURCE_FLAVOR]).toContain('{"a":1}');
+    expect(target.getDataAtCell(0, 0)).toEqual({ a: 1 });
+    expect(target.getDataAtCell(1, 0)).toEqual({ b: 2 });
   });
 
-  it('should write no source-data flavor when the hook cancels the copy', () => {
+  it('should keep the source of the rows a hook left alone when it appends a row', () => {
+    const source = createSource({
+      beforeCopy(data: unknown[][]) {
+        data.push(['Total']);
+      },
+    });
+    const target = track(transfer(source));
+
+    expect(target.getDataAtCell(0, 0)).toEqual({ a: 1 });
+    expect(target.getDataAtCell(1, 0)).toEqual({ b: 2 });
+    expect(target.getDataAtCell(2, 0)).toBe('Total');
+  });
+
+  it('should keep the source of the cells a hook left alone when it appends a cell to a row', () => {
+    const source = createSource({
+      columns: [{ parsePastedValue: true }, {}],
+      data: [[{ a: 1 }, null], [{ b: 2 }, null]],
+      beforeCopy(data: unknown[][]) {
+        data[0].push('extra');
+      },
+    });
+    const flavors = dispatch(source, 'onCopy');
+
+    expect(flavors[SOURCE_FLAVOR]).toContain('{"a":1}');
+    expect(flavors[SOURCE_FLAVOR]).toContain('extra');
+    expect(flavors[SOURCE_FLAVOR]).toContain('{"b":2}');
+  });
+
+  it('should write the values of a row the hook swapped for a new array', () => {
+    const source = createSource({
+      beforeCopy(data: unknown[][]) {
+        data[0] = data[0].map(() => '');
+      },
+    });
+    const target = track(transfer(source));
+
+    expect(target.getDataAtCell(0, 0)).toBe('');
+    expect(target.getDataAtCell(1, 0)).toEqual({ b: 2 });
+  });
+
+  it('should write the hook values for every cell of a row once the hook reordered and remapped the rows', () => {
+    const source = createSource({
+      columns: [{ parsePastedValue: true, valueGetter: (value: { n: string }) => value.n }],
+      data: [[{ n: 'x', id: 1 }], [{ n: 'x', id: 2 }]],
+      beforeCopy(data: unknown[][]) {
+        data.reverse();
+        data.forEach((row, index) => {
+          data[index] = row.map(value => value);
+        });
+      },
+    });
+    const flavors = dispatch(source, 'onCopy');
+
+    // Both rows hold the same plain value, so matching them to the source rows by position would hand
+    // the reversed rows each other's source value. The hook's own values are what is written.
+    expect(flavors['text/plain']).toBe('x\nx');
+    expect(flavors[SOURCE_FLAVOR]).not.toContain('"id"');
+  });
+
+  it('should copy a value that cannot be serialized as JSON', () => {
+    const circular: Record<string, unknown> = {};
+
+    circular.self = circular;
+
+    const source = createSource({
+      beforeCopy(data: unknown[][]) {
+        data[0][0] = circular;
+      },
+    });
+    let flavors: Record<string, string> = {};
+
+    expect(() => {
+      flavors = dispatch(source, 'onCopy');
+    }).not.toThrow();
+    expect(flavors['text/plain']).toBeDefined();
+    expect(flavors[SOURCE_FLAVOR]).toContain('{"b":2}');
+  });
+
+  it('should write no clipboard data when the hook cancels the copy', () => {
     const source = createSource({
       beforeCopy: () => false,
     });
@@ -277,9 +304,34 @@ describe('CopyPaste source-data flavor and the beforeCopy / beforeCut hooks', ()
     expect(flavors[SOURCE_FLAVOR]).toContain('{"y":2}');
   });
 
+  it('should keep the flavors aligned when beforeCut removes a row', () => {
+    const source = createSource({
+      beforeCut(data: unknown[][]) {
+        data.splice(0, 1);
+      },
+    });
+    const target = track(transfer(source, 'onCut'));
+
+    expect(target.getDataAtCell(0, 0)).toEqual({ b: 2 });
+    expect(target.getDataAtCell(1, 0)).toBeNull();
+  });
+
+  it('should not leak the original value of a cell beforeCut masked', () => {
+    const source = createSource({
+      beforeCut(data: unknown[][]) {
+        data[1][0] = '';
+      },
+    });
+    const target = track(transfer(source, 'onCut'));
+
+    expect(target.getDataAtCell(0, 0)).toEqual({ a: 1 });
+    expect(target.getDataAtCell(1, 0)).toBe('');
+  });
+
   it('should write a blank for a pending AsyncValues cell copied with copyPendingAs "empty"', () => {
     const source = track(createGrid({
       data: [[{ k: 'old' }], [{ b: 2 }]],
+      columns: [{ parsePastedValue: true }],
       asyncValues: { copyPendingAs: 'empty' },
     }));
 
@@ -289,9 +341,9 @@ describe('CopyPaste source-data flavor and the beforeCopy / beforeCut hooks', ()
 
     source.selectCell(0, 0, 1, 0);
 
-    const flavors = dispatch(source, 'onCopy');
+    const target = track(transfer(source));
 
-    expect(flavors[SOURCE_FLAVOR]).not.toContain('old');
-    expect(flavors[SOURCE_FLAVOR]).toContain('{"b":2}');
+    expect(target.getDataAtCell(0, 0)).toBe('');
+    expect(target.getDataAtCell(1, 0)).toEqual({ b: 2 });
   });
 });

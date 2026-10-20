@@ -42,13 +42,22 @@ interface RangedDataSnapshot {
 
 /**
  * Reduces a copied cell to a value that changes when the cell's content changes, even for an object or array
- * edited in place.
+ * edited in place. An object that cannot be serialized (a `BigInt`, a circular reference) reduces to a fresh
+ * symbol, so it always counts as changed instead of throwing out of the copy.
  *
  * @param {*} value The copied cell value.
  * @returns {*} The JSON of an object or array, the value itself otherwise.
  */
 function fingerprintCell(value: unknown): unknown {
-  return isObject(value) || Array.isArray(value) ? JSON.stringify(value) : value;
+  if (!isObject(value) && !Array.isArray(value)) {
+    return value;
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return Symbol('unserializable');
+  }
 }
 
 /**
@@ -1367,51 +1376,42 @@ export class CopyPaste extends BasePlugin {
    *
    * The hooks receive only the plain data, so an edit they make would otherwise never reach the source
    * data: a masked value would leak through it and a removed row would misalign the two flavors.
-   * Rows are matched by identity, so removing or reordering them keeps the flavors aligned. A cell the hook
-   * changed, including an object or array it edited in place, takes the hook's value. A row the hook
-   * replaced is matched by its position while the number of rows is unchanged. When it cannot be matched,
-   * or the hook changed a row's length, the whole flavor is dropped and the paste falls back to the plain data.
+   * A row the hook kept as the same array is matched to its source row by identity, so removing or
+   * reordering rows keeps the flavors aligned. In such a row a cell the hook did not change keeps its source
+   * value, and a cell it changed, including an object or array it edited in place, or one it appended,
+   * takes the hook's value. Any other row (a new array, or a row the hook added) is not matched to a source
+   * row: matching by position would hand a row another row's source value after a reorder. It takes the
+   * hook's values for every cell.
    *
    * @param {Array[]} rangedData The copied data, as the hook left it.
    * @param {object|null} snapshot The rows and cells recorded before the hook ran, or `null` when no hook listens.
    * @param {Array[]} rangedSourceData The source data built before the hook ran.
-   * @returns {Array[]|null} The source data matching `rangedData`, or `null` when it cannot be matched.
+   * @returns {Array[]} The source data matching `rangedData`.
    */
   #reconcileSourceData(
     rangedData: unknown[][],
     snapshot: RangedDataSnapshot | null,
     rangedSourceData: unknown[][]
-  ): unknown[][] | null {
+  ): unknown[][] {
     if (snapshot === null) {
       return rangedSourceData;
     }
 
     const originalIndexes = new Map(snapshot.rows.map((row, index) => [row, index]));
-    const sameRowCount = rangedData.length === snapshot.rows.length;
-    const reconciled: unknown[][] = [];
 
-    for (let rowIndex = 0; rowIndex < rangedData.length; rowIndex++) {
-      const row = rangedData[rowIndex];
-      // A row the hook swapped for a new array (`data[i] = row.map(...)`) is matched by position, which
-      // is safe only while the number of rows is unchanged. A changed cell still takes the hook's value.
-      const originalIndex = originalIndexes.get(row) ?? (sameRowCount ? rowIndex : undefined);
+    return rangedData.map((row) => {
+      const originalIndex = originalIndexes.get(row);
 
-      if (originalIndex === undefined || !Array.isArray(row) || snapshot.cells[originalIndex].length !== row.length) {
-        return null;
-      }
-
-      reconciled.push(row.map((value, column) => {
+      return row.map((value, column) => {
         const fingerprint = fingerprintCell(value);
 
-        if (Object.is(fingerprint, snapshot.cells[originalIndex][column])) {
+        if (originalIndex !== undefined && Object.is(fingerprint, snapshot.cells[originalIndex][column])) {
           return rangedSourceData[originalIndex][column];
         }
 
-        return fingerprint;
-      }));
-    }
-
-    return reconciled;
+        return typeof fingerprint === 'symbol' ? String(value) : fingerprint;
+      });
+    });
   }
 
   /**
@@ -1419,13 +1419,13 @@ export class CopyPaste extends BasePlugin {
    *
    * @param {ClipboardEvent} event The Clipboard event.
    * @param {Array} rangedData Ranged data to set to the clipboard.
-   * @param {Array|null} rangedSourceData Ranged source data to set to the clipboard. `null` leaves the flavor out.
+   * @param {Array} rangedSourceData Ranged source data to set to the clipboard.
    * @param {Set} [headerRows] The row arrays of `rangedData` that are column headers.
    */
   #setClipboardData(
     event: ClipboardEvent,
     rangedData: unknown[][],
-    rangedSourceData: unknown[][] | null,
+    rangedSourceData: unknown[][],
     headerRows: Set<unknown[]> = new Set()
   ) {
     const projectedData = this.#extractHeaderText(rangedData, headerRows);
@@ -1436,12 +1436,10 @@ export class CopyPaste extends BasePlugin {
 
       event.clipboardData.setData('text/plain', textPlain);
       event.clipboardData.setData('text/html', [META_HEAD, textHTML].join(''));
-
-      if (rangedSourceData !== null) {
-        const textSourceDataHTML = _dataToHTML(rangedSourceData);
-
-        event.clipboardData.setData(SOURCE_DATA_HTML_MIME_TYPE, [META_HEAD, textSourceDataHTML].join(''));
-      }
+      event.clipboardData.setData(
+        SOURCE_DATA_HTML_MIME_TYPE,
+        [META_HEAD, _dataToHTML(rangedSourceData)].join('')
+      );
 
     } else if (typeof ClipboardEvent === 'undefined') {
       (this.hot.rootWindow as unknown as IEWindow).clipboardData.setData('Text', textPlain);

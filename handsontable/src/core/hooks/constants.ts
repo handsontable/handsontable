@@ -2628,7 +2628,6 @@ export const REGISTERED_HOOKS = [
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
    * Changes the callback makes to `data` also apply to the data that a paste into another Handsontable grid reads.
-   * Changing the number of cells in a row, or the number of rows together with replacing a row array, leaves that data out: a paste then reads the plain values.
    *
    * @event Hooks#beforeCut
    * @param {Array[]} data An array of arrays which contains data to cut.
@@ -2719,7 +2718,6 @@ export const REGISTERED_HOOKS = [
    * Fired before values are copied to the clipboard.
    *
    * Changes the callback makes to `data` also apply to the data that a paste into another Handsontable grid reads.
-   * Changing the number of cells in a row, or the number of rows together with replacing a row array, leaves that data out: a paste then reads the plain values.
    *
    * @event Hooks#beforeCopy
    * @param {Array[]} data An array of arrays which contains data to copied.

@@ -1,5 +1,6 @@
+import { randomUUID } from 'node:crypto';
 import { type Locator, type Page, expect } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { awaitBundle, type Bundle } from '../bundle';
 
 /**
  * The fixture's `?hook=` allowlist: what the `beforeCopy` hook of grid A does to the copied data.
@@ -13,14 +14,19 @@ export type CopyHook = 'map' | 'splice' | 'mask';
 export class CopyHookSourceDataPage {
   readonly page: Page;
   readonly theme: string;
-  readonly bundle: string;
+  readonly bundle: Bundle;
   readonly hook: CopyHook;
+  /**
+   * A value unique to this test, written into the copied cells: the browser clipboard outlives a test.
+   */
+  readonly token: string;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd', hook: CopyHook = 'mask') {
+  constructor(page: Page, theme = 'main', bundle: Bundle = 'umd', hook: CopyHook = 'mask', token = randomUUID()) {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
     this.hook = hook;
+    this.token = token;
   }
 
   /**
@@ -28,9 +34,16 @@ export class CopyHookSourceDataPage {
    */
   async goto(): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/copy-hook-source-data.html?theme=${this.theme}&bundle=${this.bundle}&hook=${this.hook}`
+      `/tests/fixtures/demo/copy-hook-source-data.html?theme=${this.theme}&bundle=${this.bundle}&hook=${this.hook}&token=${this.token}`
     );
     await awaitBundle(this.page);
+
+    const initError = await this.page.getByTestId('grid-a').getAttribute('data-init-error');
+
+    if (initError !== null) {
+      throw new Error(`The copy-hook fixture failed to build its grids: ${initError}`);
+    }
+
     await expect(this.cellA(0, 0)).toBeVisible();
     await expect(this.cellB(0, 0)).toBeVisible();
   }
@@ -64,6 +77,13 @@ export class CopyHookSourceDataPage {
   async pasteIntoB(): Promise<void> {
     await this.cellB(0, 0).click();
     await this.page.keyboard.press('ControlOrMeta+v');
+  }
+
+  /**
+   * The `{ keep }` object cell the fixture's second row holds, as grid B's data source shows it.
+   */
+  keptSource(): string {
+    return `object:{"keep":"keep-${this.token}"}`;
   }
 
   /**
