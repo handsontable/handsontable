@@ -16,8 +16,10 @@ change, built with core's helpers, proven in tests, and reviewed like any other 
    the PR description (template below). A surface without a plan gets its roles, names and keys
    invented while coding, which is how the menus ended up with roles their structure contradicts.
 2. **Build** by the rules below. Pick the pattern from `references/patterns.md`.
-3. **Prove** it with the tests in `references/proving.md`: a keyboard-only Playwright flow,
-   accessible-name and state assertions, an announcement check where one fires, and the axe scan.
+3. **Prove** it with the proofs that apply, from `references/proving.md`: a change to something a
+   user operates (keys, focus, a control, a name, an announcement) ships a keyboard-only Playwright
+   flow with accessible-name and state assertions; a color or size change proves itself with the
+   axe scan in all three themes.
    A new plugin or editor adds its entry to `tests/a11y/coverage.mjs`, and the root
    `test:tooling` fails until it does.
 4. **Review** with the accessibility dimension of the `handsontable-code-review` skill
@@ -63,8 +65,9 @@ moves focus" is a decision; a missing line is not.
 - **`ariaTags: false` changes nothing but ARIA.** Where a surface writes its ARIA only when
   `hot.getSettings().ariaTags` is on (the grid, the menus), a new attribute there follows the same
   check. No behavior may read an `aria-*` attribute or depend on one existing.
-- **Every pointer action has a keyboard path** (2.1.1), and a drag has a single-pointer or keyboard
-  alternative (2.5.7). Keys register in a shortcut context
+- **Every pointer action has a keyboard path** (2.1.1), and a drag also has a single-pointer
+  alternative that needs no dragging, such as a button, a menu item or an input (2.5.7); a keyboard
+  path alone does not meet 2.5.7. Keys register in a shortcut context
   (`hot.getShortcutManager().getContext('grid')`, or the surface's own context, which its focus
   scope switches on), never as a raw `keydown` listener. A new shortcut goes into the keyboard
   shortcuts guide (`docs/content/guides/navigation/keyboard-shortcuts/`).
@@ -72,9 +75,11 @@ moves focus" is a decision; a missing line is not.
   (`hot.getFocusScopeManager().registerScope(id, container, { shortcutsContextName, … })`, as
   `dialog` and `pagination` do), puts focus inside on open, returns it to the cell or the opener on
   close, and unregisters in `disablePlugin()` and `destroy()`.
-- **A change without a focus move is announced** with `announce(message, 'polite')` from
-  `src/utils/a11yAnnouncer.ts` (a row selected, rows expanded, a page changed). `assertive` is for
-  errors only, and one user action makes one announcement.
+- **A change without a focus move is announced** through `announce()` from
+  `src/utils/a11yAnnouncer.ts`. It defaults to `'assertive'`, so a status message passes `'polite'`
+  explicitly, as nested rows do for a row expanded or collapsed. `assertive` is for errors only,
+  and one user action makes one announcement. Pagination, the sheets bar and row selection announce
+  assertively today: a known gap, not the model to copy.
 - **Colors and sizes come from theme tokens** (the `handsontable-css-dev` skill), and each pair
   clears its ratio in `main`, `horizon` and `classic`, light and dark: text 4.5:1 (3:1 from 24px, or
   18.66px bold), icons, borders and focus rings 3:1 (1.4.11), pointer targets 24 by 24 CSS pixels

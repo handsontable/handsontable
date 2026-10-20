@@ -19,7 +19,10 @@ contract and the leg tags). The accessibility part of a spec:
   `toHaveAccessibleName()`, `toHaveAccessibleDescription()` and `toHaveAttribute('aria-expanded',
   'true')` for the states the change sets. A header whose name a sort badge changes is the
   exception (`tests/AGENTS.md`, "A header's accessible name can change under a role locator").
-- **Read an announcement from its live region.** The announcer writes into the instance's portal:
+- **Read an announcement from its live region.** The announcer keeps two regions in the instance's
+  portal, `[role="status"][aria-live="polite"]` and `[role="status"][aria-live="assertive"]`, and
+  `announce()` writes to the assertive one unless the caller passes `'polite'`. Wait on the region
+  the code under test uses, for example
   `page.locator('.ht-portal [role="status"][aria-live="polite"]')`, then `toHaveText(message)`.
   Assert the text the user hears, not that `announce()` was called.
 - **Declare the legs.** A flow whose keys or focus an engine could get wrong carries

@@ -3,8 +3,9 @@
 Each Handsontable surface follows one pattern from the WAI-ARIA Authoring Practices Guide (APG,
 <https://www.w3.org/WAI/ARIA/apg/patterns/>). Pick the pattern before writing the markup, and keep
 every role's required parents and children. The "Known issue" column names the
-`tests/a11y/axe-baseline.json` issue where the code does not meet the pattern yet: do not copy that
-code as a model, and do not add to the issue's node count.
+`tests/a11y/axe-baseline.json` issue where the code does not meet the pattern yet, or the task that
+tracks a gap the scan cannot see: do not copy that code as a model, and do not add to the issue's
+node count. "None known" means nobody has filed one, not that the code was audited.
 
 | Surface | Pattern | Structure and states | Known issue |
 |---|---|---|---|
@@ -14,11 +15,12 @@ code as a model, and do not add to the issue's node count.
 | Cell editors: text, numeric, password, date, time, select | Native field | an `<input>`, `<textarea>` or `<select>` with an accessible name that says which cell it edits (column header plus row); the hidden editor input stays in the DOM, so it needs the name while hidden too | `editor-input-names` |
 | Comment editor | Native field | a named `<textarea>`; Ctrl+Alt+M opens and focuses it, Escape closes it and returns focus to the cell | `editor-input-names` |
 | Filters "Filter by value" list | Group of checkboxes | a named group (`role="group"` with `aria-labelledby` on the "Filter by value" heading) of native checkboxes, each named by its value; "Select all" and "Clear" are one `<button>` each, never a button inside a button | `filter-by-value-name`, `filters-nested-buttons` |
-| Checkbox cells, the header checkbox | Checkbox | a native checkbox named by its column header and row; the header checkbox shows a partial selection with the native `indeterminate` state, never `aria-checked` on an `<input>` | none open |
+| Checkbox cells, the header checkbox, row selection | Checkbox | a native checkbox named by its column header and row; the header checkbox shows a partial selection with the native `indeterminate` state, never `aria-checked` on an `<input>` | not in the scan, tracked by DEV-2947: the cell checkbox is named by its state ("Checked"/"Unchecked"), and the cell, header and row-selection checkboxes put `role="checkbox"` and `aria-checked` on the native input |
 | Dialog | Dialog (modal) | `dialog`, or `alertdialog` for a confirmation, with `aria-modal="true"` and `aria-labelledby` on its title; focus moves inside on open, stays inside (a focus scope with focus catchers), and returns to where it came from on close | `classic-contrast`, `horizon-contrast` (its primary button) |
 | Notification toast | Status message | `status` with `aria-live="polite"`, or `alert` with `assertive` for an error, as `notification/ui.ts` does; its actions are `<button>`s a keyboard reaches | contrast, as above |
-| Pagination, sheets bar | Bars of buttons | named `<button>`s (`aria-label` from i18n for icon-only ones), `aria-disabled` on a disabled one, a page change announced politely; each sheet tab is a button with one Tab stop and Arrow, Home and End inside the strip, by design (`plugins/sheetsBar/AGENTS.md`), so moving it to the APG tabs pattern is a design change, not a fix | `classic-target-size` |
-| Loading, empty data state | Busy region and status | `aria-busy="true"` on the region while it loads; a decorative spinner `aria-hidden="true"`; the message reaches screen readers through `announce()` or a live region | none open |
+| Pagination, sheets bar | Bars of buttons | named `<button>`s (`aria-label` from i18n for icon-only ones), `aria-disabled` on a disabled one, a page or sheet change announced politely (both announce assertively today, through `announce()`'s default); each sheet tab is a button with one Tab stop and Arrow, Home and End inside the strip, by design (`plugins/sheetsBar/AGENTS.md`), so moving it to the APG tabs pattern is a design change, not a fix | `classic-target-size` |
+| Loading | Alert dialog | the loading screen is an `alertdialog` (built on the dialog plugin) that takes focus while data loads, named by its title and described by its message; a decorative spinner is `aria-hidden="true"` | not in the scan, tracked by DEV-2949 (the spinner SVG is exposed) |
+| Empty data state | Busy region and status | `aria-busy="true"` on the region while a fetch is in flight; the message reaches screen readers through a live region | none known |
 
 ## Traps the scan has found
 
