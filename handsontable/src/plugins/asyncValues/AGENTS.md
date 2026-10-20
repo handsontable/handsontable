@@ -138,6 +138,12 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   after the plugin is off) and skips the states a row removal or a data replacement dropped (`state.dropped`).
 - **A promise source gets a no-op `catch`** in `#startCell`, because a canceled-while-queued or vetoed cell never
   awaits it, and its later rejection would be reported as unhandled.
+- **Read a cell's source by prop through `#readSource()`, never `getSourceDataAtCell(row, prop)` directly.** The
+  public method takes a number as a VISUAL column, so a numeric prop (array data, or `columns[].data` as an index)
+  read another column once columns were moved or remapped: a user's source write looked rejected, and the undo
+  step recorded the wrong old value. `#readSource()` maps the prop to its visual column first.
+- **A cell listed twice in one call is started once**, in `#startCells` as in `#startBatches`: a second start
+  would restart the first request and report it `'restart'`.
 - **`maxRows` hides rows `toVisualRow()` still returns.** `#visualRowOf` treats a visual row at or past
   `countRows()` as having none, so such a row is written through the source path (`setDataAtRowProp` skipped it
   while the promise said `resolved`) and its context `row` is `null`.
@@ -279,7 +285,8 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
 - **The launch queue compacts its array.** It advances a head index instead of `shift()`, and with a standing
   backlog the array would never empty, keeping every started launch (and the cells its closure holds), so
   `pump()` cuts the started part off once the head passes `COMPACT_THRESHOLD` and half the array.
-- **`copyPendingAs: 'empty'`** blanks pending cells in `beforeCopy`'s data. The data is laid out over the union
+- **`copyPendingAs: 'empty'`** blanks pending cells in `beforeCopy`'s and `beforeCut`'s data (a cut builds its own
+  data and runs only `beforeCut`). The data is laid out over the union
   of the copied ranges' rows and columns in first-seen order (`normalizeRanges()`, shared with CopyPaste in
   `utils/copiedRanges.ts`). CopyPaste also puts the source data on the clipboard as its own flavor, which
   `beforeCopy` never receives, so an object or array value in a pending cell still pastes into another grid

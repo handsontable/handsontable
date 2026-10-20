@@ -499,6 +499,8 @@ export class AsyncValues extends BasePlugin {
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
     this.addHook('afterRenderer', this.#onAfterRenderer);
     this.addHook('beforeCopy', this.#onBeforeCopy);
+    // A cut builds its own data and runs `beforeCut` instead.
+    this.addHook('beforeCut', this.#onBeforeCopy);
     // Before the application's listeners, so a request an application starts from its own
     // `afterChange` is not canceled by the very change that started it.
     this.addHook('afterChange', this.#onAfterChange, -1);
@@ -1102,9 +1104,28 @@ export class AsyncValues extends BasePlugin {
   ): Promise<AsyncValueResult[]> {
     const run = this.#createRun(options);
     const results: Promise<AsyncValueResult>[] = [];
+    const started = new Map<number, Map<AsyncValueProp, Promise<AsyncValueResult>>>();
 
     try {
-      targets.forEach(target => results.push(this.#startCell(target, source, run)));
+      targets.forEach((target) => {
+        // A cell listed twice (by physical row and by row id) is computed once, as in a batch: a second
+        // start would restart the first request.
+        let row = started.get(target.physicalRow);
+        let result = row?.get(target.prop);
+
+        if (!result) {
+          result = this.#startCell(target, source, run);
+
+          if (!row) {
+            row = new Map();
+            started.set(target.physicalRow, row);
+          }
+
+          row.set(target.prop, result);
+        }
+
+        results.push(result);
+      });
 
     } finally {
       this.#afterStarting(run);
@@ -1659,6 +1680,26 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
+   * Reads a cell's source value by its column property. `getSourceDataAtCell()` takes a number as a visual
+   * column, so a numeric property (a physical index of array data, or a `columns[].data` index) goes
+   * through its visual column first; reading the number directly reads another column once columns are
+   * moved or remapped.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {string|number} prop The column property.
+   * @returns {*}
+   */
+  #readSource(physicalRow: number, prop: AsyncValueProp): unknown {
+    if (typeof prop === 'string') {
+      return this.hot.getSourceDataAtCell(physicalRow, prop);
+    }
+
+    const column = this.hot.propToCol(prop);
+
+    return this.hot.getSourceDataAtCell(physicalRow, typeof column === 'number' && column >= 0 ? column : prop);
+  }
+
+  /**
    * Queues a settled request for the next flush, unless it is no longer the cell's request.
    *
    * @param {object} settled The settled request.
@@ -1991,7 +2032,7 @@ export class AsyncValues extends BasePlugin {
     if (run.options.undo === 'record' || run.options.meta) {
       write = {
         run,
-        oldValue: detachValue(this.hot.getSourceDataAtCell(physicalRow, prop)),
+        oldValue: detachValue(this.#readSource(physicalRow, prop)),
         landed: false,
         landedValue: undefined,
       };
@@ -2250,7 +2291,7 @@ export class AsyncValues extends BasePlugin {
           return;
         }
 
-        const current = this.hot.getSourceDataAtCell(state.physicalRow, prop);
+        const current = this.#readSource(state.physicalRow, prop);
 
         // A cell that no longer holds the landed value is not this call's to undo: a data replacement
         // brought the server's value in, which no change event reports.
@@ -2654,7 +2695,7 @@ export class AsyncValues extends BasePlugin {
     if (correction && write?.landed) {
       // Every validator answers in a later task, so a correction lands after the value it corrects: the
       // call's step records the corrected value.
-      write.landedValue = this.hot.getSourceDataAtCell(state.physicalRow, prop);
+      write.landedValue = this.#readSource(state.physicalRow, prop);
 
     } else if (flight) {
       if (flight.group) {
@@ -2719,7 +2760,7 @@ export class AsyncValues extends BasePlugin {
     const column = this.hot.propToCol(prop);
 
     write.landed = true;
-    write.landedValue = this.hot.getSourceDataAtCell(state.physicalRow, prop);
+    write.landedValue = this.#readSource(state.physicalRow, prop);
     run.unlanded -= 1;
 
     if (meta && row !== null && typeof column === 'number' && column >= 0) {
@@ -2931,7 +2972,7 @@ export class AsyncValues extends BasePlugin {
 
     // Core reports a change its `sourceDataValidator` rejected too: the cell does not hold the value.
     const applied = changes.filter(([row, prop, , newValue]) => {
-      if (!isProp(prop) || Object.is(this.hot.getSourceDataAtCell(row, prop), newValue)) {
+      if (!isProp(prop) || Object.is(this.#readSource(row, prop), newValue)) {
         return true;
       }
 

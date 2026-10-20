@@ -536,3 +536,68 @@ describe('AsyncValues: write groups, rejected writes, and data replacement', () 
   });
 
 });
+
+describe('AsyncValues: remapped columns, cut, and repeated cells', () => {
+  /**
+   * Builds a grid of array data whose two columns show the source columns in reverse order.
+   */
+  function createSwappedGrid(settings: Record<string, unknown> = {}) {
+    return createGrid({
+      data: [['a0', 'b0'], ['a1', 'b1']],
+      columns: [{ data: 1 }, { data: 0 }],
+      ...settings,
+    });
+  }
+
+  it('should cancel a request when its cell is written through `setSourceDataAtCell()` with remapped columns', async() => {
+    const { hot, plugin, destroy } = createSwappedGrid();
+    const result = plugin.setAsyncValueAt({ physicalRow: 0, prop: 1 }, () => deferred().promise);
+
+    // Writes `dataRow[1]`, the cell the request is for.
+    hot.setSourceDataAtCell(0, 1, 'typed');
+
+    expect(await result).toEqual({ status: 'canceled', reason: 'edit' });
+    expect(hot.getSourceDataAtRow(0)).toEqual(['a0', 'typed']);
+
+    destroy();
+  });
+
+  it('should record the old value of the written column with remapped columns', async() => {
+    const { hot, plugin, destroy } = createSwappedGrid({ undo: true });
+
+    await plugin.setAsyncValueAt({ physicalRow: 0, prop: 0 }, async() => 'new a0', { undo: 'record' });
+
+    expect(hot.getSourceDataAtRow(0)).toEqual(['new a0', 'b0']);
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getSourceDataAtRow(0)).toEqual(['a0', 'b0']);
+
+    destroy();
+  });
+
+  it('should cut a pending cell as an empty value with `copyPendingAs: \'empty\'`', () => {
+    const { hot, plugin, destroy } = createGrid({ asyncValues: { copyPendingAs: 'empty' } });
+
+    plugin.setAsyncValue(1, 1, () => deferred().promise);
+
+    const data = [['B', 'old B']];
+
+    hot.runHooks('beforeCut', data, [{ startRow: 1, startCol: 0, endRow: 1, endCol: 1 }]);
+
+    expect(data).toEqual([['B', '']]);
+
+    destroy();
+  });
+
+  it('should compute a cell listed twice once with `setAsyncValuesForRows()`', async() => {
+    const { plugin, destroy } = createGrid({ rowId: 'id' });
+    const source = jest.fn(async() => 'new B');
+    const results = await plugin.setAsyncValuesForRows([{ physicalRow: 1 }, { rowId: 'b' }], 'name', source);
+
+    expect(source).toHaveBeenCalledTimes(1);
+    expect(results).toEqual([{ status: 'resolved', value: 'new B' }, { status: 'resolved', value: 'new B' }]);
+
+    destroy();
+  });
+});
