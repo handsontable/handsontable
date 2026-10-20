@@ -69,7 +69,12 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   cell (only the cells that depend on it). Core runs EVERY validator in a later microtask, so a validated write
   cannot land inside the flush: `beforeValidate` (synchronous, inside the write) marks the flight
   `validating`, `afterValidate` with `allowInvalid: false` ends a rejected one, and any flight that neither
-  landed nor validates by the end of `#write` never lands (a `beforeChange` veto) and is ended. A change whose
+  landed nor validates by the end of `#write` never lands (a `beforeChange` veto) and is ended. Core holds a
+  whole `setDataAtRowProp()` call until every validator in it answered, so the flights of one write group
+  (`group`) all wait when one of them validates, and once the group's change lands a flight of it still queued
+  was vetoed and is ended. Core also reports a change its `sourceDataValidator` rejected in
+  `afterSetSourceDataAtCell`, so a source change whose cell does not hold the reported value is no change at
+  all: it only ends its flight. A change whose
   source ends with `Validator` is a correction: core applies it after the value it corrects, so it updates a
   landed write's `landedValue` instead of dropping it (and is ignored while the flight still validates).
   `'auto'`, the two `UndoRedo.*` sources, and a `*Validator` source are reserved for the `source` option
@@ -126,6 +131,13 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   same frame holds the render with `suspendRender()` (`#renderHeld`) until `#onFrame`. With `'microtask'`,
   2,000 separate responses rendered 2,000 times (11 s on 10k rows). A hidden tab pauses the frame, so the data
   lands and only painting waits. `disablePlugin()` releases the hold, `destroy()` only cancels the frame.
+- **Visual rows are read right before each write group.** `#planWrite` keeps the state, and `#write` turns
+  `state.physicalRow` into a visual row just before the group's `setDataAtRowProp()`: an `afterChange` listener
+  of an earlier group can sort or filter the grid, and a row read at plan time then wrote onto another record.
+- **A call canceled by `disablePlugin()` still gets its step.** `#finalizeRun` reads no map (it runs a microtask
+  after the plugin is off) and skips the states a row removal or a data replacement dropped (`state.dropped`).
+- **A promise source gets a no-op `catch`** in `#startCell`, because a canceled-while-queued or vetoed cell never
+  awaits it, and its later rejection would be reported as unhandled.
 - **`maxRows` hides rows `toVisualRow()` still returns.** `#visualRowOf` treats a visual row at or past
   `countRows()` as having none, so such a row is written through the source path (`setDataAtRowProp` skipped it
   while the promise said `resolved`) and its context `row` is `null`.
@@ -268,8 +280,10 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   backlog the array would never empty, keeping every started launch (and the cells its closure holds), so
   `pump()` cuts the started part off once the head passes `COMPACT_THRESHOLD` and half the array.
 - **`copyPendingAs: 'empty'`** blanks pending cells in `beforeCopy`'s data. The data is laid out over the union
-  of the copied ranges' rows and columns in first-seen order (`readCopiedAxes` mirrors copyPaste's
-  `normalizeRanges`, which a plugin may not import). Export keeps the current value.
+  of the copied ranges' rows and columns in first-seen order (`normalizeRanges()`, shared with CopyPaste in
+  `utils/copiedRanges.ts`). CopyPaste also puts the source data on the clipboard as its own flavor, which
+  `beforeCopy` never receives, so an object or array value in a pending cell still pastes into another grid
+  (documented). Export keeps the current value.
 - **`afterAsyncValuesIdle` fires once per busy-to-idle transition**, from `#afterSettling()`, which every settle
   path (flush, cancel, removal, replacement) ends with. `#pendingCount` is kept by `#setEntry` and `#finish`, so
   the query methods and the idle check never walk the entries.
@@ -292,8 +306,8 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   `api.unit.ts` (progress, retry, request options, before-hooks, copying, `undo: 'record'`), `listeners.unit.ts`
   (throwing listeners, the order of the hooks, the counts and the editor during a write), `launchQueue.unit.ts`
   (FIFO order through the compaction), `writes.unit.ts` (the flight queue, stale results, `maxRows`, the
-  mapper resize, the render hold, settings), `utils.unit.ts`
-  (`readCopiedAxes` against copyPaste's `normalizeRanges`). Shared builders are in
+  mapper resize, the render hold, settings, write groups, rejected writes), `utils.unit.ts` (`isArrayLike`).
+  Shared builders are in
   `__tests__/helpers/grid.ts`. Results settle through the returned promise; a late result needs a macrotask
   (`setTimeout(0)`) to prove it was dropped, because the default flush is a microtask. `flush: 'frame'` is tested
   with a stubbed `requestAnimationFrame`.

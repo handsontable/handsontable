@@ -378,3 +378,161 @@ describe('AsyncValues: settings', () => {
     invalid.destroy();
   });
 });
+
+describe('AsyncValues: write groups, rejected writes, and data replacement', () => {
+  it('should keep every write of a group waiting while one of its cells validates', async() => {
+    const { answers, validator } = manualValidator();
+    const { hot, plugin, destroy } = createGrid({
+      undo: true,
+      columns: [{ data: 'sku' }, { data: 'name' }, { data: 'price', validator }],
+    });
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    await plugin.setAsyncValues(0, 1, 0, 2, async({ column }) => (column === 1 ? 'new A' : 10), {
+      undo: 'record', meta: { className: 'fromAsync' },
+    });
+    await settle();
+
+    expect(hot.getDataAtRow(0)).toEqual(['A', 'old A', 1]);
+
+    answers.forEach(({ answer }) => answer(true));
+    await settle();
+
+    expect(hot.getDataAtRow(0)).toEqual(['A', 'new A', 10]);
+    expect(hot.getCellMeta(0, 1).className).toBe('fromAsync');
+    expect(hot.getCellMeta(0, 2).className).toBe('fromAsync');
+
+    undoRedo.undo();
+
+    expect(hot.getDataAtRow(0)).toEqual(['A', 'old A', 1]);
+
+    destroy();
+  });
+
+  it('should leave no unhandled rejection for a promise source it never awaited', async() => {
+    const { hot, plugin, destroy } = createGrid({ asyncValues: { concurrency: 1 } });
+    const unhandled = jest.fn();
+    const queued = deferred();
+    const vetoed = deferred();
+
+    process.on('unhandledRejection', unhandled);
+    plugin.setAsyncValue(0, 1, () => deferred().promise);
+    plugin.setAsyncValue(1, 1, queued.promise);
+    plugin.cancel(1, 1);
+    hot.addHook('beforeAsyncValueStart', () => false);
+    plugin.setAsyncValue(2, 1, vetoed.promise);
+    queued.reject(new Error('Timeout'));
+    vetoed.reject(new Error('Timeout'));
+    await settle();
+    await settle();
+
+    expect(unhandled).not.toHaveBeenCalled();
+
+    process.off('unhandledRejection', unhandled);
+    destroy();
+  });
+
+  it('should treat a source write a `sourceDataValidator` rejected as no change', async() => {
+    const nameValidator = (value: unknown) => value !== 'bad';
+    const { hot, plugin, destroy } = createGrid({
+      undo: true,
+      maxRows: 3,
+      // Grid level: core reads a prop-named source write's meta from the table meta.
+      sourceDataValidator: nameValidator,
+      allowInvalid: false,
+    });
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const price = plugin.setAsyncValueAt({ physicalRow: 3, prop: 'price' }, () => deferred().promise, {
+      dependsOn: ['name'],
+    });
+
+    // Row 3 is past `maxRows`, so its value is written with `setSourceDataAtCell()`.
+    await plugin.setAsyncValueAt({ physicalRow: 3, prop: 'name' }, async() => 'bad', { undo: 'record' });
+    await settle();
+
+    expect(hot.getSourceDataAtCell(3, 'name')).toBe('old D');
+    expect(plugin.isPendingAt({ physicalRow: 3, prop: 'price' })).toBe(true);
+    expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+
+    plugin.cancelAll();
+
+    expect(await price).toEqual({ status: 'canceled', reason: 'manual' });
+
+    warn.mockRestore();
+    destroy();
+  });
+
+  it('should still record the landed values of a call the plugin was disabled in the middle of', async() => {
+    const { hot, plugin, destroy } = createGrid({ undo: true });
+    const undoRedo = hot.getPlugin('undoRedo');
+    const requests = [deferred(), deferred()];
+
+    plugin.setAsyncValues(0, 1, 1, 1, ({ row }) => requests[row!].promise, { undo: 'record' });
+    requests[0].resolve('new A');
+    await settle();
+    hot.updateSettings({ asyncValues: false });
+    await settle();
+
+    expect(undoRedo.isUndoAvailable()).toBe(true);
+
+    undoRedo.undo();
+
+    expect(hot.getDataAtCol(1)).toEqual(['old A', 'old B', 'old C', 'old D']);
+
+    destroy();
+  });
+
+  it('should land each write group on its record when a listener sorts the grid between them', async() => {
+    const { hot, plugin, destroy } = createGrid({ columnSorting: true });
+
+    hot.addHook('afterChange', (changes, source) => {
+      if (source === 'first') {
+        hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      }
+    });
+
+    await Promise.all([
+      plugin.setAsyncValue(0, 1, Promise.resolve('new A'), { source: 'first' }),
+      plugin.setAsyncValue(1, 1, Promise.resolve('new B'), { source: 'second' }),
+    ]);
+
+    expect(hot.getSourceDataAtCol(1)).toEqual(['new A', 'new B', 'old C', 'old D']);
+
+    destroy();
+  });
+
+  it('should cancel the request of a row state an early row hook listener released', async() => {
+    const { hot, plugin, destroy } = createGrid();
+
+    plugin.setAsyncValue(2, 1, () => deferred().promise);
+    // Runs before the plugin's own listener, while the state's row is still the one before the insert.
+    hot.addHook('afterCreateRow', () => plugin.cancelAt({ physicalRow: 3, prop: 'name' }), -2);
+    hot.alter('insert_row_above', 0);
+
+    const result = plugin.setAsyncValue(3, 1, () => deferred().promise);
+
+    hot.loadData(products());
+
+    expect(await result).toEqual({ status: 'canceled', reason: 'dataReplaced' });
+
+    destroy();
+  });
+
+  it('should treat a failed `updateData()` as an update, keeping the requests on their rows', async() => {
+    const { hot, plugin } = createGrid();
+
+    plugin.setAsyncValue(1, 1, () => deferred().promise);
+    hot.addHook('beforeUpdateData', () => {
+      throw new Error('Listener failed');
+    });
+
+    expect(() => hot.updateData(products())).toThrow('Listener failed');
+
+    await settle();
+
+    // A load without row ids would have canceled it with `'dataReplaced'`. The grid has no data map
+    // after the throw, so only the count is read.
+    expect(plugin.countPending()).toBe(1);
+  });
+
+});

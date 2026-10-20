@@ -6,7 +6,8 @@ import { warnOnce } from '../../helpers/console';
 import { announce } from '../../utils/a11yAnnouncer';
 import { detachValue, recordCellChange } from '../../dataMap/dataJournal';
 import { Launch, LaunchQueue } from './launchQueue';
-import { isArrayLike, isProp, pushChange, readCopiedAxes, toErrorMessage, type Change } from './utils';
+import { isArrayLike, isProp, toErrorMessage, type Change } from './utils';
+import { normalizeRanges } from '../../utils/copiedRanges';
 import { decorateCell, undecorateCell } from './decoration';
 import { LOADING_TITLE } from '../../i18n/constants';
 import type { CellChange, CellProperties } from '../../settings';
@@ -147,6 +148,9 @@ interface Flight {
   source: string;
   write: PendingWrite | null;
   validating: boolean;
+  state: RowState;
+  prop: AsyncValueProp;
+  group: Flight[] | null;
 }
 
 /**
@@ -156,6 +160,7 @@ interface Flight {
 interface RowState {
   physicalRow: number;
   rowId: unknown;
+  dropped: boolean;
   entries: Map<AsyncValueProp, AsyncValueEntry>;
   writes: Map<AsyncValueProp, PendingWrite>;
   flights: Map<AsyncValueProp, Flight[]>;
@@ -199,9 +204,8 @@ interface Target {
  * The values one flush writes, by write source.
  */
 interface Writes {
-  visible: Map<string, Change[]>;
-  source: Map<string, Change[]>;
-  flights: Array<[RowState, AsyncValueProp, Flight]>;
+  bySource: Map<string, Array<{ prop: AsyncValueProp; value: unknown; flight: Flight }>>;
+  flights: Flight[];
 }
 
 /**
@@ -428,6 +432,11 @@ export class AsyncValues extends BasePlugin {
   #replacedRows: ReplacedRow[] = [];
 
   /**
+   * Whether the running data replacement is a `loadData()` (not an `updateData()`).
+   */
+  #replacingIsLoad = false;
+
+  /**
    * The first error a hook listener threw while the plugin was starting requests. It is thrown again
    * once the call has finished starting everything, so a throwing listener cannot strand other cells.
    */
@@ -502,8 +511,8 @@ export class AsyncValues extends BasePlugin {
     this.addHook('afterRemoveRow', this.#syncRows, -1);
     this.addHook('afterCreateCol', this.#onAfterCreateCol);
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
-    this.addHook('beforeLoadData', this.#onBeforeDataReplaced);
-    this.addHook('beforeUpdateData', this.#onBeforeDataReplaced);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
+    this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     // Before the application's listeners, so requests an application starts when the data loads are not
     // taken for requests of the replaced data.
     this.addHook('afterLoadData', this.#onAfterLoadData, -1);
@@ -1389,6 +1398,12 @@ export class AsyncValues extends BasePlugin {
    * @returns {Promise<object>}
    */
   #startCell(target: Target, source: AsyncValueSource, run: Run): Promise<AsyncValueResult> {
+    // A promise source the plugin never awaits (the cell is canceled while it waits for a slot, or a
+    // listener skips it) must not turn a later rejection into an unhandled one.
+    if (typeof source !== 'function') {
+      Promise.resolve(source).catch(() => {});
+    }
+
     const { entry, result } = this.#install(
       target, run, typeof source === 'function' ? { kind: 'cell', source } : null,
     );
@@ -1805,7 +1820,7 @@ export class AsyncValues extends BasePlugin {
     const resolved = decided.resolved
       .filter(({ entry, outcome }) => this.#isPending(entry) && outcome.status === 'resolved');
     const stale = this.#findStaleResults(resolved);
-    const writes: Writes = { visible: new Map(), source: new Map(), flights: [] };
+    const writes: Writes = { bySource: new Map(), flights: [] };
 
     resolved.forEach((request) => {
       const reason = stale.get(request.entry);
@@ -1824,9 +1839,16 @@ export class AsyncValues extends BasePlugin {
     // A write that neither landed nor waits for its cell's validator never lands: a `beforeChange` listener
     // vetoed it, or a source write was rejected. Every validator answers in a later task, which is what
     // `validating` waits for.
-    writes.flights.forEach(([state, prop, flight]) => {
+    // Core holds a whole `setDataAtRowProp()` call until every validator of it answered, so a group with
+    // one validated cell keeps all of its flights waiting.
+    writes.flights.forEach((flight) => {
+      if (flight.group?.some(item => item.validating)) {
+        flight.validating = true;
+      }
+    });
+    writes.flights.forEach((flight) => {
       if (!flight.validating) {
-        this.#endFlight(state, prop, flight, true);
+        this.#endFlight(flight.state, flight.prop, flight, true);
       }
     });
 
@@ -1964,7 +1986,6 @@ export class AsyncValues extends BasePlugin {
   #planWrite(entry: AsyncValueEntry, value: unknown, writes: Writes): void {
     const { state, prop, run } = entry;
     const physicalRow = state.physicalRow;
-    const visualRow = this.#visualRowOf(physicalRow);
     let write: PendingWrite | null = null;
 
     if (run.options.undo === 'record' || run.options.meta) {
@@ -1982,7 +2003,7 @@ export class AsyncValues extends BasePlugin {
       run.writeStates.add(state);
     }
 
-    const flight: Flight = { source: run.options.source, write, validating: false };
+    const flight: Flight = { source: run.options.source, write, validating: false, state, prop, group: null };
     const flights = state.flights.get(prop);
 
     if (flights) {
@@ -1992,7 +2013,7 @@ export class AsyncValues extends BasePlugin {
       state.flights.set(prop, [flight]);
     }
 
-    writes.flights.push([state, prop, flight]);
+    writes.flights.push(flight);
 
     this.#deleteEntry(entry);
     entry.controller = null;
@@ -2000,11 +2021,13 @@ export class AsyncValues extends BasePlugin {
     this.#finish(entry);
     this.#markChanged(entry);
 
-    if (visualRow === null) {
-      pushChange(writes.source, run.options.source, [physicalRow, prop, value]);
+    const planned = writes.bySource.get(run.options.source);
+
+    if (planned) {
+      planned.push({ prop, value, flight });
 
     } else {
-      pushChange(writes.visible, run.options.source, [visualRow, prop, value]);
+      writes.bySource.set(run.options.source, [{ prop, value, flight }]);
     }
   }
 
@@ -2037,11 +2060,33 @@ export class AsyncValues extends BasePlugin {
 
     try {
       this.hot._getOperationScope().suppress(() => {
-        writes.visible.forEach((changes, source) => {
-          attempt(() => this.hot.setDataAtRowProp(changes, '', '', source));
-        });
-        writes.source.forEach((changes, source) => {
-          attempt(() => this.hot.setSourceDataAtCell(changes, '', undefined, source));
+        writes.bySource.forEach((planned, source) => {
+          // Translated right before this source's write: a listener of an earlier write can sort, filter,
+          // or insert rows.
+          const visible: Change[] = [];
+          const hidden: Change[] = [];
+          const group: Flight[] = [];
+
+          planned.forEach(({ prop, value, flight }) => {
+            const visualRow = this.#visualRowOf(flight.state.physicalRow);
+
+            if (visualRow === null) {
+              hidden.push([flight.state.physicalRow, prop, value]);
+
+            } else {
+              visible.push([visualRow, prop, value]);
+              group.push(flight);
+              flight.group = group;
+            }
+          });
+
+          if (visible.length > 0) {
+            attempt(() => this.hot.setDataAtRowProp(visible, '', '', source));
+          }
+
+          if (hidden.length > 0) {
+            attempt(() => this.hot.setSourceDataAtCell(hidden, '', undefined, source));
+          }
         });
       });
 
@@ -2186,7 +2231,8 @@ export class AsyncValues extends BasePlugin {
    * @param {object} run The call.
    */
   #finalizeRun(run: Run): void {
-    if (this.#isGone() || !this.#rowsMap) {
+    // Runs after `disablePlugin()` too (the call it finalizes was canceled by it), so it reads no map.
+    if (this.#isGone()) {
       return;
     }
 
@@ -2200,7 +2246,7 @@ export class AsyncValues extends BasePlugin {
 
         state.writes.delete(prop);
 
-        if (!write.landed || run.options.undo !== 'record' || !this.#states.has(state)) {
+        if (!write.landed || run.options.undo !== 'record' || state.dropped) {
           return;
         }
 
@@ -2407,9 +2453,20 @@ export class AsyncValues extends BasePlugin {
 
     if (!state) {
       state = {
-        physicalRow, rowId: this.#rowIdOf(physicalRow), entries: new Map(), writes: new Map(), flights: new Map(),
+        physicalRow,
+        rowId: this.#rowIdOf(physicalRow),
+        dropped: false,
+        entries: new Map(),
+        writes: new Map(),
+        flights: new Map(),
       };
       rowsMap.setValueAtIndex(physicalRow, state);
+      this.#states.add(state);
+
+    } else if (!this.#states.has(state)) {
+      // An empty state released while its row was stale stays in the map until `#syncRows()`, which
+      // returns early once no state is left.
+      state.physicalRow = physicalRow;
       this.#states.add(state);
     }
 
@@ -2490,6 +2547,7 @@ export class AsyncValues extends BasePlugin {
     [...this.#states].forEach((state) => {
       if (!kept.has(state)) {
         this.#states.delete(state);
+        state.dropped = true;
         this.#forgetWrites(state);
         state.entries.forEach((entry) => {
           this.#entries.delete(entry);
@@ -2566,10 +2624,11 @@ export class AsyncValues extends BasePlugin {
    * @param {string|number} prop The property of the changed cell.
    * @param {string|undefined} source The source of the change.
    * @param {Array} cleared Collects the detached entries, with their reasons.
+   * @param {Set} landedGroups Collects the write groups whose flights landed.
    */
   #onCellChanged(
     physicalRow: number, prop: AsyncValueProp, source: string | undefined,
-    cleared: Array<[AsyncValueEntry, AsyncValueCancelReason]>,
+    cleared: Array<[AsyncValueEntry, AsyncValueCancelReason]>, landedGroups: Set<Flight[]>,
   ): void {
     const state = this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
 
@@ -2598,6 +2657,10 @@ export class AsyncValues extends BasePlugin {
       write.landedValue = this.hot.getSourceDataAtCell(state.physicalRow, prop);
 
     } else if (flight) {
+      if (flight.group) {
+        landedGroups.add(flight.group);
+      }
+
       this.#onFlightLanded(state, prop, flight);
 
     } else {
@@ -2810,13 +2873,24 @@ export class AsyncValues extends BasePlugin {
    */
   #onCellsChanged(changes: Array<[number | null, unknown]>, source: string | undefined): void {
     const cleared: Array<[AsyncValueEntry, AsyncValueCancelReason]> = [];
+    const landedGroups = new Set<Flight[]>();
 
     // Every cell is detached before any hook runs, so a throwing cancel listener cannot leave a later cell
     // of the change with a stale request.
     changes.forEach(([physicalRow, prop]) => {
       if (physicalRow !== null && isProp(prop)) {
-        this.#onCellChanged(physicalRow, prop, source, cleared);
+        this.#onCellChanged(physicalRow, prop, source, cleared, landedGroups);
       }
+    });
+
+    // The grid applies a write group in one change, so a flight of a landed group still queued was taken
+    // out of it (a `beforeChange` veto) and never lands.
+    landedGroups.forEach((group) => {
+      group.forEach((flight) => {
+        if (flight.state.flights.get(flight.prop)?.includes(flight)) {
+          this.#endFlight(flight.state, flight.prop, flight, true);
+        }
+      });
     });
 
     if (cleared.length > 0) {
@@ -2855,7 +2929,23 @@ export class AsyncValues extends BasePlugin {
       return;
     }
 
-    this.#onCellsChanged(changes.map(([row, prop]) => [row, prop]), source);
+    // Core reports a change its `sourceDataValidator` rejected too: the cell does not hold the value.
+    const applied = changes.filter(([row, prop, , newValue]) => {
+      if (!isProp(prop) || Object.is(this.hot.getSourceDataAtCell(row, prop), newValue)) {
+        return true;
+      }
+
+      const state = this.#rowsMap?.getValueAtIndex<RowState | null>(row);
+      const flight = state?.flights.get(prop)?.find(item => item.source === source);
+
+      if (state && flight) {
+        this.#endFlight(state, prop, flight, true);
+      }
+
+      return false;
+    });
+
+    this.#onCellsChanged(applied.map(([row, prop]) => [row, prop]), source);
   };
 
   /**
@@ -2917,21 +3007,38 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
-   * `beforeLoadData` and `beforeUpdateData` hook callback. Captures every row state, with its row id, so
-   * `after*Data` can put it back on the row that holds the same record.
+   * `beforeLoadData` hook callback.
    */
-  readonly #onBeforeDataReplaced = (): void => {
+  readonly #onBeforeLoadData = (): void => {
+    this.#onBeforeDataReplaced(true);
+  };
+
+  /**
+   * `beforeUpdateData` hook callback.
+   */
+  readonly #onBeforeUpdateData = (): void => {
+    this.#onBeforeDataReplaced(false);
+  };
+
+  /**
+   * Captures every row state, with its row id, so `after*Data` can put it back on the row that holds the
+   * same record.
+   *
+   * @param {boolean} isLoad Whether the data is replaced with `loadData()`.
+   */
+  #onBeforeDataReplaced(isLoad: boolean): void {
     this.#replacingData = true;
+    this.#replacingIsLoad = isLoad;
     this.#replacedRows = [...this.#states].map(state => ({ state, rowId: this.#rowIdOf(state.physicalRow) }));
 
     // A load that throws never reaches `after*Data`, so the flag is cleared and the states it orphaned
     // are dropped once the load's task ends.
     this.hot.rootWindow.queueMicrotask(() => {
       if (this.#replacingData && this.enabled) {
-        this.#onDataReplaced(true);
+        this.#onDataReplaced(this.#replacingIsLoad);
       }
     });
-  };
+  }
 
   /**
    * `afterLoadData` hook callback.
@@ -3114,6 +3221,7 @@ export class AsyncValues extends BasePlugin {
     reasons.forEach((reason, state) => {
       if (!kept.has(state)) {
         this.#states.delete(state);
+        state.dropped = true;
         this.#forgetWrites(state);
         state.entries.forEach((entry) => {
           this.#entries.delete(entry);
@@ -3159,7 +3267,7 @@ export class AsyncValues extends BasePlugin {
       return;
     }
 
-    const { rows, columns } = readCopiedAxes(coords);
+    const { rows, columns } = normalizeRanges(coords);
     const rowIndexes = new Map(rows.map((row, index) => [row, index]));
     const columnIndexes = new Map(columns.map((column, index) => [column, index]));
 
