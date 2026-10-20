@@ -288,6 +288,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     controls: true,
     paging: true,
     uiContainer: document.body,
+    animation: oneOf(true, false, { switch: true, add: false }, { move: false }),
   }),
   selectOptions: oneOf(
     ['A', 'B', 'C'],
@@ -1167,6 +1168,7 @@ hot.updateSettings({
     paging: false,
     position: 'top',
     uiContainer: document.createElement('div'),
+    animation: { switch: true, add: true, remove: true, move: false },
   },
   beforeSheetTabChange: (oldSheetId, newSheetId, source) => false,
   afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
