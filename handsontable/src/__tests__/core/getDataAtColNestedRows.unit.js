@@ -1,25 +1,15 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin } from 'handsontable/plugins';
-import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
-import { AutoColumnSize } from 'handsontable/plugins/autoColumnSize';
-import { DropdownMenu } from 'handsontable/plugins/dropdownMenu';
-import { HiddenRows } from 'handsontable/plugins/hiddenRows';
 import { NestedRows } from 'handsontable/plugins/nestedRows';
 import { TrimRows } from 'handsontable/plugins/trimRows';
-import { Filters } from 'handsontable/plugins/filters';
 
-registerCellType(CheckboxCellType);
-registerPlugin(AutoColumnSize);
-registerPlugin(DropdownMenu);
-registerPlugin(HiddenRows);
 registerPlugin(NestedRows);
 registerPlugin(TrimRows);
-registerPlugin(Filters);
 
 /**
- * `getDataAtCol()` and `getDataAtProp()` read one value per visual row. With NestedRows the visual
- * rows outnumber the top-level records of the source array, so a range sized by that array dropped
- * every row past its length.
+ * `getDataAtCol()` and `getDataAtProp()` read one value per visual row. With NestedRows, or with a
+ * `modifySourceLength` listener, the visual rows outnumber the records of the source array, so a
+ * range sized by that array dropped every row past its length.
  */
 describe('Core#getDataAtCol() and Core#getDataAtProp() row count', () => {
   let container;
@@ -139,13 +129,16 @@ describe('Core#getDataAtCol() and Core#getDataAtProp() row count', () => {
     expect(hot.getDataAtProp('name')).toEqual(['P1', 'C1']);
   });
 
-  it('should list every row in the Filters value list of a column with no conditions', () => {
-    buildTree();
-    hot.updateSettings({ filters: true });
+  it('should return every row when a `modifySourceLength` listener reports more rows than the source', () => {
+    build({
+      data: [['a'], ['b']],
+      modifySourceLength: () => 4,
+    });
 
-    const values = hot.getPlugin('filters')._getValueListDataAtColumn(0).map(({ value }) => value);
-
-    expect(values).toEqual(['P1', 'C11', 'G1', 'P2', 'C21']);
+    expect(hot.countRows()).toBe(4);
+    expect(firstColumnFromGetData()).toEqual(['a', 'b', null, null]);
+    expect(hot.getDataAtCol(0)).toEqual(['a', 'b', null, null]);
+    expect(hot.getDataAtProp(0)).toEqual(['a', 'b', null, null]);
   });
 
   it('should shift every row of the column in spliceCol()', () => {
