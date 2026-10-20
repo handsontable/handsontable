@@ -31,9 +31,8 @@ interface HandsontableFixture {
   selectCell(row: number, column: number, endRow: number, endColumn: number, scrollToCell?: boolean): void;
   getSelected(): number[][] | undefined;
   getSelectedRangeLast(): { highlight: { row: number, col: number } } | undefined;
-  listen(): void;
   getDataAtCell(row: number, column: number): unknown;
-  getActiveEditor(): { isOpened(): boolean, getValue(): string, beginEditing(initialValue?: string): void };
+  getActiveEditor(): { isOpened(): boolean, getValue(): string };
   addHook(name: string, callback: () => void): void;
   getPlugin(name: string): {
     merge(startRow: number, startColumn: number, endRow: number, endColumn: number): void;
@@ -176,16 +175,11 @@ export class MergeCellsSelectionHighlightPage {
   }
 
   /**
-   * Opens the editor on the current highlight. Enter does not do this while the selection covers
-   * more than one cell: that key moves inside the range. `beginEditing` is what F2 runs.
+   * Opens the editor on the current highlight. Enter moves inside a multi-cell range, so this
+   * presses F2, the shortcut that opens the editor there.
    */
   async openEditor(): Promise<void> {
-    await this.page.evaluate(() => {
-      const { hot } = window as Window & { hot: HandsontableFixture };
-
-      hot.listen();
-      hot.getActiveEditor().beginEditing();
-    });
+    await this.page.keyboard.press('F2');
     await expect.poll(() => this.editorState()).toMatchObject({ opened: true });
   }
 
