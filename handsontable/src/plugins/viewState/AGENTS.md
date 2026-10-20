@@ -62,7 +62,7 @@ any of them.
   array, so a row order that is not a permutation of `0..n-1` shows one record twice and hides
   another. `writePart()` rejects all of those before anything is applied (a sort column the grid does not show
   as `outOfRange`, the rest as `invalid`), and `writeOrder()` reports another length as `sizeMismatch`.
-  `describeShownColumn()` bounds every column part (sort, filters, hidden columns, widths) by the column's
+  `describeShownColumn()` bounds the sort, the filters and the hidden columns (not the widths) by the column's
   visual index against `countCols()`, the bound the sorting plugin checks, because `maxCols` and a trimming
   map lower it below the physical count, and the engine reaches the hiding plugin through visual indexes,
   where such a column was dropped without a word. `describeDuplicateColumn()` rejects one column named twice
@@ -82,7 +82,17 @@ any of them.
   (`propToCol()` hands it back unchanged); a property of a trimmed column is `outOfRange`, as the same
   column named by its index is (`propToCol()` answers `null`), and so is a property a `columns` array
   declares past `maxCols` (`isDeclaredColumn()`: the grid builds no such column, so `propToCol()` does not
-  know it). A string is always a property, `'2'` included. A property two columns share
+  know it; `columnWidths` resolves such a property to its declared index instead). A string is always a
+  property, `'2'` included.
+- **The column widths skip the shown-column check on purpose.** `setManualSizes()` stores a width by physical
+  index for every column the mapper has, so a width past `maxCols` or on a trimmed column restores, and
+  `getViewState()` reports it. A shown-column check there made a captured state skip its own widths, and
+  reject the whole state under `atomic`.
+- **The shown-column check reads the order in force now, not the state's `columnOrder`.** A sort column the
+  same state's order brings in under `maxCols` is reported `outOfRange`. Checking it against the planned order
+  would pass it, and the sorting plugin would drop it: it reads the column cache from before the restore
+  inside the batch (the stale-cache trap in `../../utils/viewState/AGENTS.md`), so visual column 0 sorts the
+  column that was first before the restore. A fix needs the column cache refreshed before the sort. A property two columns share
   resolves to the last one, as `propToCol()` does. `getViewState()` and `previous` never emit properties:
   a `columns[].data` can be a function, a property can be shared, and array data has none. The row parts
   and `columnOrder` take integers only.

@@ -138,7 +138,9 @@ export class ViewState extends BasePlugin {
    * property its data is bound to, for example `{ column: 'amount', sortOrder: 'desc' }` or
    * `hiddenColumns: ['address.city']`. A property no column has is reported as `invalid`, and a property
    * of a column the grid does not show (a trimming map removed it, or it lies past `maxCols`) as
-   * `outOfRange`, the same answer as for the column's index. A property that two columns share names the
+   * `outOfRange`, the same answer as for the column's index (not in `columnWidths`, which keeps a width
+   * for every column). The check reads the column order the grid has now, so a sort column that the
+   * same state's `columnOrder` brings in under `maxCols` is `outOfRange` too. A property that two columns share names the
    * last of them. A string is always read as a property, so `'2'` from a URL is not the index `2`.
    * `getViewState()` always reports physical indexes.
    * The sort columns are physical too, unlike the visual ones that `getSortConfig()` of the sorting
@@ -157,7 +159,7 @@ export class ViewState extends BasePlugin {
    * without `MultiColumnSorting`, a filter condition that is not registered on the page or cannot take
    * its arguments, or a key that is not a part of the view state at all. A hidden or trimmed index, a
    * sort column, a size, or a scroll position past the end of the grid is `outOfRange`, and so is a
-   * column, by index or by property, that the grid does not show. With another `version`, every part is skipped as
+   * column in `sort`, `filters`, or `hiddenColumns`, by index or by property, that the grid does not show. With another `version`, every part is skipped as
    * `unsupportedVersion`, next to the `error`.
    *
    * A value that is not an object, such as the `null` that `JSON.parse(localStorage.getItem('my-view'))`

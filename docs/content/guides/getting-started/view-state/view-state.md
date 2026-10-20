@@ -188,7 +188,7 @@ hot.getPlugin('viewState').setViewState({
 });
 ```
 
-A property that no column has is reported as `invalid`, with the path to it. A column the grid does not show, because a trimming map removed it or it lies past [`maxCols`](@/api/options.md#maxcols), is reported as `outOfRange`, whether you name it by property or by index. If two columns share a property, it names the last of them, and naming one column twice in `sort` or `columnWidths` (`'amount'` and `2`, say) is `invalid`. A string is always read as a property: `'2'`, as a URL query string gives it, is not the index `2`. `getViewState()` always reports physical indexes.
+A property that no column has is reported as `invalid`, with the path to it. In `sort`, `filters`, and `hiddenColumns`, a column the grid does not show, because a trimming map removed it or it lies past [`maxCols`](@/api/options.md#maxcols), is reported as `outOfRange`, whether you name it by property or by index. `columnWidths` accepts such a column, because a manual width is stored for every column. The check reads the column order the grid has now, so a `sort` on a column that the same state's `columnOrder` brings in under `maxCols` is reported as `outOfRange` too. If two columns share a property, it names the last of them, and naming one column twice in `sort` or `columnWidths` (`'amount'` and `2`, say) is `invalid`. A string is always read as a property: `'2'`, as a URL query string gives it, is not the index `2`. `getViewState()` always reports physical indexes.
 
 You can also build a view by hand, or merge parts from different sources:
 
@@ -249,7 +249,7 @@ console.log(skipped);
 | `pluginConflict` | The part would break a plugin that is on. Frozen rows would run next to [`Pagination`](@/api/pagination.md), which cannot work with them. |
 | `externalDataSource` | The grid uses a `dataProvider`, which owns the page and what depends on it: the sort, the filters, the pagination, the row order, the hidden, trimmed, and collapsed rows, the row heights, and the selection. |
 | `sizeMismatch` | The stored row or column order has a different length than the grid has rows or columns now. |
-| `outOfRange` | The stored selection does not fit the grid, a hidden or trimmed index, a sort column, a size, or the scroll position lies past the end of its axis, or a column, named by index or by property, is one the grid does not show (a trimming map removed it, or it lies past `maxCols`). |
+| `outOfRange` | The stored selection does not fit the grid, a hidden or trimmed index, a sort column, a size, or the scroll position lies past the end of its axis, or a column in `sort`, `filters`, or `hiddenColumns`, named by index or by property, is one the grid does not show (a trimming map removed it, or it lies past `maxCols`). |
 | `invalid` | The part does not have the expected shape, or names something this grid does not have: a row order that does not list every row exactly once, a column property that no column has, one column named twice in `sort` or `columnWidths`, a filter condition that is not registered on the page or cannot take its arguments, or a key that is not a part of the view state at all (a misspelled `hiddenColumn`, say). |
 | `unsupportedVersion` | The object has a `version` this build does not read. Every part is skipped with this reason, next to the `error`. |
 

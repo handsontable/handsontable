@@ -602,20 +602,22 @@ function describeRange(
       `${path}[${bad}] is ${indexes[bad]}, and the grid has ${count} ${axis}s`);
   }
 
-  return axis === 'column' ? describeShownColumns(hot, path, indexes) : null;
+  return null;
 }
 
 /**
  * Describes a physical column the grid does not show, or returns `null`: a trimming map removed it, or it
  * lies past `maxCols`. The restore reaches the hiding and sorting plugins through visual indexes, where
  * such a column would be dropped without a word, and its property does not resolve either, so a column
- * gets the same answer by index and by property.
+ * gets the same answer by index and by property. The manual widths are not checked: they are stored by
+ * physical index for every column the mapper has, so a width on such a column restores, and
+ * `getViewState()` reports it.
  */
-function describeShownColumn(hot: HotInstance, path: string, column: number): Failure | null {
+function describeShownColumn(hot: HotInstance, path: string, column: number, name = `${column}`): Failure | null {
   const visualColumn = hot.toVisualColumn(column);
 
   return visualColumn === null || visualColumn >= hot.countCols() ?
-    fail('outOfRange', path, `${path} is ${column}, a column the grid does not show`) : null;
+    fail('outOfRange', path, `${path} is ${name}, a column the grid does not show`) : null;
 }
 
 /**
@@ -662,7 +664,8 @@ function describeIndexRange(hot: HotInstance, part: GridViewStatePart, indexes: 
     return describeRange(hot, part, indexes, 'row');
   }
 
-  return part === 'hiddenColumns' ? describeRange(hot, part, indexes, 'column') : null;
+  return part === 'hiddenColumns' ?
+    describeRange(hot, part, indexes, 'column') ?? describeShownColumns(hot, part, indexes) : null;
 }
 
 /**
@@ -748,6 +751,10 @@ interface ColumnKeyLocation {
  * the part's value, how to put a resolved list back, and where each entry names its column.
  */
 interface ColumnKeyLocator {
+  /**
+   * Whether a column the grid does not show is refused, see {@link describeShownColumn}.
+   */
+  shown: boolean;
   unwrap: (value: unknown) => unknown;
   wrap: (value: unknown, list: unknown[]) => unknown;
   locate: (entry: unknown, index: number) => ColumnKeyLocation;
@@ -776,17 +783,20 @@ function asList(value: unknown): unknown {
  */
 const COLUMN_KEY_LOCATORS: Partial<Record<GridViewStatePart, ColumnKeyLocator>> = {
   sort: {
+    shown: true,
     unwrap: value => (isPlainObject(value) ? (value as Record<string, unknown>).columns : undefined),
     wrap: (value, columns) => ({ ...(value as Record<string, unknown>), columns }),
     locate: locateObjectColumn('sort.columns'),
   },
-  filters: { unwrap: asList, wrap: (value, list) => list, locate: locateObjectColumn('filters') },
+  filters: { shown: true, unwrap: asList, wrap: (value, list) => list, locate: locateObjectColumn('filters') },
   hiddenColumns: {
+    shown: true,
     unwrap: asList,
     wrap: (value, list) => list,
     locate: (entry, index) => ({ key: entry, path: `hiddenColumns[${index}]`, replace: column => column }),
   },
   columnWidths: {
+    shown: false,
     unwrap: asList,
     wrap: (value, list) => list,
     locate: (entry, index) => ({
@@ -803,7 +813,7 @@ const COLUMN_KEY_LOCATORS: Partial<Record<GridViewStatePart, ColumnKeyLocator>> 
  * whose column has no visual index (a trimming map removed it), which the same column named by its
  * index is reported as too.
  */
-function resolveColumnKey(hot: HotInstance, key: string, path: string): number | Failure {
+function resolveColumnKey(hot: HotInstance, key: string, path: string, shown: boolean): number | Failure {
   const column = hot.propToCol(key);
 
   if (column === null) {
@@ -811,23 +821,29 @@ function resolveColumnKey(hot: HotInstance, key: string, path: string): number |
   }
 
   if (!isInteger(column)) {
-    return isDeclaredColumn(hot, key) ?
-      fail('outOfRange', path, `${path} is '${key}', a column the grid does not show`) :
-      fail('invalid', path, `${path} is '${key}', and no column of this grid has that property`);
+    const declared = declaredColumnIndex(hot, key);
+
+    if (declared === -1) {
+      return fail('invalid', path, `${path} is '${key}', and no column of this grid has that property`);
+    }
+
+    return shown ? fail('outOfRange', path, `${path} is '${key}', a column the grid does not show`) : declared;
   }
 
-  return hot.toPhysicalColumn(column);
+  const physical = hot.toPhysicalColumn(column);
+
+  return (shown && describeShownColumn(hot, path, physical, `'${key}'`)) || physical;
 }
 
 /**
- * Whether a `columns` array declares a column bound to a property. The grid builds no column past `maxCols`,
- * so `propToCol()` does not know that property, though the index of the same column is out of range, not
- * unknown.
+ * Returns the physical index of the last column a `columns` array binds to a property, or `-1`. The grid
+ * builds no column past `maxCols`, so `propToCol()` does not know that property, though the index of the same
+ * column is out of range, not unknown.
  */
-function isDeclaredColumn(hot: HotInstance, key: string): boolean {
+function declaredColumnIndex(hot: HotInstance, key: string): number {
   const { columns } = hot.getSettings();
 
-  return Array.isArray(columns) && columns.some(column => isPlainObject(column) && column.data === key);
+  return Array.isArray(columns) ? columns.findLastIndex(column => isPlainObject(column) && column.data === key) : -1;
 }
 
 /**
@@ -851,7 +867,7 @@ function resolveColumnKeys(
 
   for (let index = 0; index < list.length; index++) {
     const { key, path, replace } = locator.locate(list[index], index);
-    const column = typeof key === 'string' ? resolveColumnKey(hot, key, path) : undefined;
+    const column = typeof key === 'string' ? resolveColumnKey(hot, key, path, locator.shown) : undefined;
 
     if (column !== undefined && !isInteger(column)) {
       return { value, failure: column };

@@ -1702,6 +1702,22 @@ describe('ViewState plugin', () => {
       expect(vs(reordered).getViewState()).toEqual({ ...vs(source).getViewState(), columnOrder: [1, 3, 0, 2] });
     });
 
+    it('reports a sort column the same state\'s columnOrder brings in under maxCols as out of range', () => {
+      const hot = createShuffledGrid({ maxCols: 3, columnOrder: undefined });
+      const state = {
+        version: 1,
+        columnOrder: [3, 0, 1, 2],
+        sort: { columns: [{ column: 3, sortOrder: 'desc' }] },
+      };
+
+      // The sorting plugin reads the column order from before the restore while it sorts inside the batch, so
+      // it would drop the sort of physical column 3, which the new order puts first. The check answers for
+      // the order in force now, and the part is reported instead of dropped.
+      expect(brief(vs(hot).validateViewState(state).skipped)).toEqual([{ part: 'sort', reason: 'outOfRange' }]);
+      expect(vs(hot).setViewState(state, { atomic: true }).error.reason).toBe('atomicRejected');
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([]);
+    });
+
     it('reports a sort column past the last physical column as out of range', () => {
       const hot = createGrid(ALL_PLUGINS);
 
@@ -1919,7 +1935,6 @@ describe('ViewState plugin', () => {
 
       [['name'], [1]].forEach(([column]) => {
         expect(reasons({ hiddenColumns: [column] })).toEqual([{ part: 'hiddenColumns', reason: 'outOfRange' }]);
-        expect(reasons({ columnWidths: [[column, 90]] })).toEqual([{ part: 'columnWidths', reason: 'outOfRange' }]);
         expect(reasons({ filters: [{ column, operation: 'conjunction', conditions: condition }] }))
           .toEqual([{ part: 'filters', reason: 'outOfRange' }]);
         expect(reasons({ sort: { columns: [{ column, sortOrder: 'asc' }] } }))
@@ -1929,26 +1944,61 @@ describe('ViewState plugin', () => {
 
     it('reports a column past maxCols as out of range, by index and by property', () => {
       const hot = createBoundGrid({ maxCols: 2 });
-      const { skipped } = vs(hot).validateViewState({
-        version: 1,
-        hiddenColumns: [2],
-        columnWidths: [['address.city', 90]],
-      });
 
-      expect(skipped).toEqual([
-        {
-          part: 'hiddenColumns',
-          reason: 'outOfRange',
-          path: 'hiddenColumns[0]',
-          message: 'hiddenColumns[0] is 2, a column the grid does not show',
-        },
-        {
+      expect(vs(hot).validateViewState({ version: 1, hiddenColumns: [2] }).skipped).toEqual([{
+        part: 'hiddenColumns',
+        reason: 'outOfRange',
+        path: 'hiddenColumns[0]',
+        message: 'hiddenColumns[0] is 2, a column the grid does not show',
+      }]);
+      expect(vs(hot).validateViewState({ version: 1, hiddenColumns: ['address.city'] }).skipped).toEqual([{
+        part: 'hiddenColumns',
+        reason: 'outOfRange',
+        path: 'hiddenColumns[0]',
+        message: 'hiddenColumns[0] is \'address.city\', a column the grid does not show',
+      }]);
+    });
+
+    it('keeps the raw property in the message, with and without a columns option', () => {
+      const withColumns = createBoundGrid({ maxCols: 2 });
+      const withoutColumns = createBoundGrid({ maxCols: 2, columns: undefined });
+      const state = { version: 1, sort: { columns: [{ column: 'address.city', sortOrder: 'asc' }] } };
+      const issue = {
+        part: 'sort',
+        reason: 'outOfRange',
+        path: 'sort.columns[0].column',
+        message: 'sort.columns[0].column is \'address.city\', a column the grid does not show',
+      };
+
+      expect(vs(withColumns).validateViewState(state).skipped).toEqual([issue]);
+      expect(vs(withoutColumns).validateViewState(state).skipped).toEqual([issue]);
+    });
+
+    it('restores a width past maxCols or on a trimmed column, so a captured state round-trips', () => {
+      const source = createBoundGrid({ maxCols: 2, manualColumnResize: [100, 110, 120] });
+
+      source.columnIndexMapper.createAndRegisterIndexMap('test', 'trimming', false).setValueAtIndex(1, true);
+
+      const state = throughJson(vs(source).getViewState());
+      const target = createBoundGrid({ maxCols: 2, manualColumnResize: [50, 50, 50] });
+      const result = vs(target).setViewState(state, { atomic: true });
+
+      expect(state.columnWidths).toEqual([[0, 100], [1, 110], [2, 120]]);
+      expect(result.error).toBeUndefined();
+      expect(result.skipped).toEqual([]);
+      expect(target.getPlugin('manualColumnResize').getManualSizes()).toEqual(state.columnWidths);
+    });
+
+    it('names a column by property in the widths even past maxCols, as the index form does', () => {
+      const hot = createBoundGrid({ maxCols: 2 });
+
+      expect(vs(hot).validateViewState({ version: 1, columnWidths: [['address.city', 90], [2, 90]] }).skipped)
+        .toEqual([{
           part: 'columnWidths',
-          reason: 'outOfRange',
-          path: 'columnWidths[0]',
-          message: 'columnWidths[0] is \'address.city\', a column the grid does not show',
-        },
-      ]);
+          reason: 'invalid',
+          path: 'columnWidths[1]',
+          message: 'columnWidths[1] names the same column as columnWidths[0]',
+        }]);
     });
 
     it.each([
