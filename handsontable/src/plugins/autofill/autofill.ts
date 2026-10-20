@@ -59,21 +59,26 @@ type HotInstanceInternal = HotInstance & {
  */
 export class Autofill extends BasePlugin {
   /**
-   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   * The key the plugin is registered under: `'autofill'`. Pass it to
+   * {@link Core#getPlugin} to get the plugin instance: `hot.getPlugin('autofill')`.
+   *
+   * The key is not the option name. To turn the plugin on and configure it, use the
+   * [`fillHandle`](@/api/options.md#fillhandle) option.
    */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
   /**
-   * Returns the priority order used to determine the order in which plugins are initialized.
+   * The plugin's priority: `20`. Plugins with a lower priority are enabled first.
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
   /**
-   * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
+   * The options that update the plugin when you pass them to {@link Core#updateSettings}:
+   * `['fillHandle']`.
    */
   static get SETTING_KEYS() {
     return [
@@ -82,7 +87,23 @@ export class Autofill extends BasePlugin {
   }
 
   /**
-   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   * The default values of the [`fillHandle`](@/api/options.md#fillhandle) object form:
+   * `{ direction: undefined, autoInsertRow: true }`.
+   *
+   * They fill in each property the option value leaves out (`true`, `'vertical'`, `'horizontal'`, or an
+   * object):
+   * - `direction: undefined`: autofill works in both directions.
+   * - `autoInsertRow: true`: dragging the fill handle below the last row adds new rows.
+   *   `direction: 'horizontal'` turns it off.
+   *
+   * If you don't set `fillHandle` at all, the grid's default (`{ autoInsertRow: false }`) goes through
+   * the same merge, so autofill still works in both directions, but no rows are added.
+   *
+   * @example
+   * ```js
+   * // vertical autofill only; `autoInsertRow` keeps its default, `true`
+   * fillHandle: { direction: 'vertical' },
+   * ```
    */
   static get DEFAULT_SETTINGS(): { direction: string | undefined; autoInsertRow: boolean } {
     return {
