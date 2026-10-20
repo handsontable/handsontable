@@ -182,6 +182,16 @@ A switch away from a sheet with a selection clears it before the next sheet load
 
 To run your code when a sheet's state is saved or restored, use the [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks.
 
+## Unfinished work when you switch sheets
+
+Work started on one sheet ends on that sheet, or is canceled. It never lands on the sheet you switch to.
+
+- A switch saves the cell you're editing, and a comment you're typing, on the sheet you leave.
+- A switch doesn't happen while a cell value waits for an asynchronous validator, or while the editor holds a value its validator rejected with [`allowInvalid: false`](@/api/options.md#allowinvalid). [`setActiveSheet()`](@/api/sheetsBar.md#setactivesheet) returns `false`, and a click on a tab does nothing. Correct the value, or wait for the validator, and switch again.
+- A drag you're still holding is canceled: moving cells or rows, resizing a column, the fill handle, and a freeze bar.
+- An import that is still reading its file is rejected and changes nothing. [`downloadFileAsync()`](@/api/exportFile.md#downloadfileasync) with the [`Dialog`](@/api/dialog.md) plugin is rejected when the switch happens before the export reads the data.
+- A [`beforeSheetTabChange`](@/api/hooks.md#beforesheettabchange) listener can't change the workbook. A switch, add, remove, rename, duplicate, or move it asks for returns `false` (`null` for an add or a duplicate).
+
 ## Tab animations
 
 When you switch sheets, the active tab marker slides from the old tab to the new one. A tab you create or duplicate slides into the strip. When you move a sheet with the tab menu or the API, the tabs slide to their new places. A tab you delete fades out, and the tabs after it slide over to close the gap. When you hover a tab, its text color fades in and out. The grid itself switches at once.
@@ -239,9 +249,33 @@ How server sheets behave when you switch:
 
 - A sheet fetches its rows the first time you open it.
 - When you come back, the sheet shows the rows, sort, filters, and page it had when you left, without a new fetch. To refresh it, call [`fetchData()`](@/api/dataProvider.md#fetchdata).
-- A fetch or a save that's still running when you switch away finishes for the sheet that started it.
+- A fetch or a save that's still running when you switch away finishes for the sheet that started it. A create on a sheet with `refetchAfterCreate: false` that finishes while its sheet is hidden refetches that sheet anyway, because there's no grid showing it to add the rows to.
 - If a request fails while its sheet is hidden, [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) or [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires right away. The error notification appears when you return to the sheet. `afterDataProviderFetchError` gets a third argument, `isVisible`, set to `false`.
 - A duplicated sheet starts with a copy of the original's rows. If the original has already loaded rows, the copy doesn't fetch on its first visit.
+
+With `refetchAfterCreate: false`, your [`onRowsCreate`](@/guides/getting-started/server-side-data/server-side-data-crud.md#onrowscreate) adds the new rows to the grid itself. The grid shows the active sheet, which can change while the request runs, so add the rows only when the sheet that made the request is still active:
+
+```js
+const isActive = sheetId => hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive)?.id === sheetId;
+
+const ordersProvider = {
+  refetchAfterCreate: false,
+  onRowsCreate: async(payload) => {
+    const sheetId = hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive)?.id;
+    const response = await fetch('/api/orders', { method: 'POST', body: JSON.stringify(payload) });
+    const created = await response.json();
+
+    if (isActive(sheetId)) {
+      hot.updateData([...hot.getSourceData(), ...created]);
+    }
+
+    return created;
+  },
+  // fetchRows, onRowsUpdate, onRowsRemove...
+};
+```
+
+When the sheet isn't active anymore, the plugin refetches it, so the new rows are there when you return.
 
 For the `dataProvider` setup itself, see [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).
 

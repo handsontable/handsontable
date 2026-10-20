@@ -284,6 +284,14 @@ so a difference of `<= 1` is reported as unscaled (factor `1`). Without it, `nor
 every resize one layout pixel short. Both helpers also fail safe to `1` on a non-finite or non-positive
 measurement, which is what a grid built inside a `display: none` container measures.
 
+## `abort()` ends a drag the owner's data left
+
+`abort()` ends a pressed drag the way the context menu does (`detach()`, which closes the held step, then
+`#pressed = false`), and stores no size. ManualColumnResize calls it on `beforeLoadData`/`beforeUpdateData`: the
+drag's indexes belong to the data that left, and the release resized the columns of the data that replaced it (a
+sheets bar switch). It is not called from `detach()` - see the fourth teardown trap. ManualRowResize does not call
+it yet (open).
+
 ## Where to look next
 
 - Row plugin: `../../plugins/manualRowResize/AGENTS.md`. Column plugin: `../../plugins/manualColumnResize/AGENTS.md`.

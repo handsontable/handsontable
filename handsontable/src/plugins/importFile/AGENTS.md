@@ -220,6 +220,13 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   plugin still off keeps its `the plugin is disabled` message, and a re-enabled one gets `the plugin was
   disabled while the file was being read`. Only a real `importFile: false` reaches `disablePlugin()`: the
   plugin has no `updatePlugin()`, so a wrapper re-sending its settings mid-read cancels nothing.
+- **A `loadData()` that is not the import's own takes an apply ticket as well** (`#onBeforeLoadData`,
+  recorded as `#dataReplacedAtTicket`), so an import still reading when the grid loads other data is rejected
+  with `the grid's data was replaced while the file was being read`. A sheets bar switch is that load: the
+  result would otherwise land in the arriving sheet. The import's own `applyImportResult()` runs under
+  `#isApplying` and takes no ticket, so a newer import that applies first still rejects an older one as
+  stale, not as replaced. Only `loadData()` counts, not `updateData()`. Pinned by `importFile.unit.js` ›
+  "ImportFile overlapping imports".
 - **Overlapping applying imports are ordered by when they STARTED, not when they finish (T90).** Each
   `apply: true` call takes a ticket from `#latestApplyTicket` before its first `await` (in
   `importFromBlob` that is before `blob.arrayBuffer()`, so the two entry points share one sequence), and

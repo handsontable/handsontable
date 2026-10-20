@@ -74,6 +74,12 @@ what `GHOST_BORDER_WIDTH = '1px'` is for — a fallback mirroring the `main` the
 inside the grid (`maxRow = totalRows − rangeHeight`). Clamping the pointer instead would let the block hang
 off the edge.
 
+## A drag ends when the data is replaced
+
+`beforeLoadData` and `beforeUpdateData` end a held drag through `#endDrag(false, null)`, the path Escape and
+`disablePlugin()` use. The drag names cells of the data it started on, and the release moved the cells of the data
+that replaced it (a sheets bar switch). Pinned by `tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
+
 ## Where to look next
 
 - Auto-scroll while dragging, and why this plugin's `isDragActive()` gates it: `../dragToScroll/AGENTS.md`.

@@ -232,8 +232,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   was lost — so `#onKeyDownWithinBar` marks keys and composition starts inside the bar at
   `orderIndex` -1. It sets only the `isImmediatePropagationEnabled` mark, never `cancelBubble`:
   the grid's key listener sits on the `documentElement`, and stopping the bubble there hides every
-  bar keystroke from the host page. (2) `setActiveSheet` closes an open editor before it captures
-  the outgoing sheet, so an API switch mid-edit saves into the sheet being left. (3) Every switch
+  bar keystroke from the host page. (2) `setActiveSheet` closes an open editor before it runs
+  `beforeSheetTabChange` (`#finishEditing`), so an API switch mid-edit saves into the sheet being
+  left; see "A switch never carries work onto the arriving sheet" below. (3) Every switch
   deselects at the start of the switch batch, before `loadData`, whether or not the arriving
   sheet has a stored selection: `loadData` only clamps the selection, so the previous sheet's
   cells used to carry over, and deselecting after the load would let a still-open editor save
@@ -552,6 +553,44 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - The token is parsed from `getComputedStyle()` (`resolveTransition()`), never
     `stylesHandler.getCSSVariableValue()`, which runs numeric values through `Math.ceil` and turns
     `0.15s` into `1`.
+
+- **A switch never carries work onto the arriving sheet.** A switch ends in `loadData()`, and
+  anything still running then used to finish on whatever data the grid held. The rules, pinned by
+  `__tests__/inFlightSwitch.unit.js`, `tests/e2e/sheets-bar-in-flight-work.spec.ts` and
+  `tests/e2e/sheets-bar-in-flight-drags.spec.ts`:
+  - **`#finishEditing` runs before `beforeSheetTabChange`.** It saves the cell editor and an open
+    comment editor (Comments' `@private` `_saveAndCloseEditor()`: an editor the API opened is not
+    blurred by an API switch), then refuses the switch while core's `@private`
+    `_hasPendingValidation()` answers `true` or the editor is still open (a value rejected under
+    `allowInvalid: false`). Core applies a validated change to the data loaded when the last
+    validator answers, so a switch in that window wrote the edit into the arriving sheet. A
+    refused click shows nothing: the editor stays open over its own cell. Do not "defer" the switch
+    until the validator answers instead – that was rejected for this bar.
+  - **`#loadedSheetId` is the sheet whose rows the grid holds**, set from `afterLoadData` (orderIndex
+    -1, so a later throwing listener cannot hide the load) while `#applySheet` loads. The model
+    points at the arriving sheet before its data loads, so when a switch throws before the load,
+    `#switchTo` points the model (and the tracked cell meta) back at that sheet and rethrows.
+    Without it the next switch stored the departing rows as the arriving sheet's data, and two tabs
+    shared one array. `#syncActiveSheetData` writes into the loaded sheet for the same reason.
+  - **A before-hook listener cannot change the workbook** (`#isRunningBeforeHook` in `#commit`). A
+    nested switch or remove from `beforeSheetTabChange` used to overwrite the departing sheet's
+    view state or throw. The flag covers the before-hook only, not `mutate()`: `#removeSheet`
+    switches to the neighbor from inside its own commit, and an `afterSheetTabChange` listener may
+    still switch again.
+  - **A listener that destroys the grid, turns the bar off, or rebuilds the workbook stops the
+    change** (`#isLive`, checked after the before-hook and after `afterSheetTabStateCapture`).
+  - **An open dialog takes the arriving sheet's selection** (Dialog's `@private`
+    `_adoptViewSelection()`, called after the switch). The dialog stashes the selection it hides
+    when it opens, and on hide it put the departing sheet's coordinates on the arriving sheet. This
+    mirrors EmptyDataState's `isViewChange`.
+  - **Gestures and async work are each plugin's own.** MoveCells, ManualRowMove,
+    ManualColumnResize (`ResizeGesture#abort()`), Autofill and FreezeBar cancel a held drag on
+    `beforeLoadData`/`beforeUpdateData`; AutoColumnSize cancels its idle-task sweep; ImportFile
+    rejects an import whose read spans a `loadData()`; ExportFile rejects a `downloadFileAsync()`
+    whose overlay wait spans one; DataProvider refetches a server sheet whose create finished while
+    it was hidden, even with `refetchAfterCreate: false`. The bar does not know about any of them,
+    and a new plugin with a gesture or async work that targets the loaded data needs the same.
+    ManualColumnMove and ManualRowResize still commit a held drag into replaced data (open).
 
 Tests: `__tests__/*.unit.js` (Jest), `tests/e2e/sheets-bar*.spec.ts` (Playwright),
 `visual-tests/tests/js-only/sheetsBar/`. The unit suite drives the strip through DOM events and

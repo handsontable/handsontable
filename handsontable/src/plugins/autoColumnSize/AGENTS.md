@@ -57,7 +57,7 @@ Rules that hold this together:
 
 `syncLimit` (a column count, or a percentage string) splits the work: those columns are measured *exactly*,
 over the whole row range, **before the first paint**. Everything past the limit runs asynchronously in
-`requestAnimationFrame` chunks. Do not move work out of the synchronous half to speed up init — the
+idle-task chunks (`requestIdleTask`). Do not move work out of the synchronous half to speed up init — the
 `syncLimit` contract is that the first paint is correct for those columns.
 
 The async loop must cancel its frame when the instance was destroyed mid-calculation.
@@ -175,6 +175,16 @@ width.
 `scrollViewportTo()` computes scroll positions from column widths, so a grid with custom renderers or
 styles that produce non-standard widths needs this plugin enabled or it scrolls to the wrong place. That
 caveat is in the class JSDoc — keep it there.
+
+## One sweep at a time, and never over replaced data
+
+The columns past `syncLimit` are measured in idle tasks (`requestIdleTask`), and each sweep keeps its row range and
+last column in its own closure. The plugin keeps the pending task in `#sweepTask`, and `#cancelSweep()` cancels it
+when a new sweep starts, on `beforeLoadData`/`beforeUpdateData`, and on a real disable or destroy (`updatePlugin()`
+does not disable, so a wrapper re-render keeps the sweep). Before that, a sweep left running when the data was
+replaced (a sheets bar switch away from a wide sheet) sampled cells the new data does not have, the ghost table kept a
+column it never built, and every later render threw `Cannot read properties of undefined (reading
+'getBoundingClientRect')`. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts` ("leaves a wide sheet...").
 
 ## Where to look next
 

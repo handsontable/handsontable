@@ -243,6 +243,13 @@ of its own to capture. What the plugin owns is how many steps a user action make
   cleared at once - a flag left set would skip the save of the next real edit. Pinned in
   `tests/e2e/undo-plugin-state.spec.ts`.
 
+## A sheet switch saves and closes the editor first
+
+`_saveAndCloseEditor()` (`@private`) saves the open editor's text the way a blur does (`#saveEditorComment`) and
+closes it without a second save (`#closeEditorWithoutSave`). The sheets bar calls it before it captures the sheet it
+leaves: an editor opened through the API is not blurred by a switch made through the API, so it stayed over the
+arriving sheet and its text was saved into that sheet's cell. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts`.
+
 ## Where to look next
 
 - The menu the items land in: `../contextMenu/AGENTS.md`.

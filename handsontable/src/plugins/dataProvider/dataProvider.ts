@@ -551,7 +551,9 @@ export class DataProvider extends BasePlugin {
    * {@link Hooks#afterRowsMutation} fires in both cases. With the refetch off, a `fetchRows` request that is
    * still in flight when the create finishes (a sort or filter change made just before) would otherwise resolve
    * later and `loadData()` the rows `onRowsCreate` applied out of the grid, so that one case refetches anyway
-   * (superseding the pending request, which fires {@link Hooks#afterDataProviderFetchAbort}).
+   * (superseding the pending request, which fires {@link Hooks#afterDataProviderFetchAbort}). With the
+   * {@link SheetsBar} plugin, a create that finishes while its sheet is not shown refetches that sheet anyway too:
+   * the grid shows another sheet then, so `onRowsCreate` has no grid to apply the rows to.
    *
    * @param {object} [options] `position`, `referenceRowId`, `rowsAmount`.
    * @returns {Promise<void>}
@@ -578,8 +580,9 @@ export class DataProvider extends BasePlugin {
       () => Promise.resolve(onRowsCreate(rowsCreatePayload)),
       async() => {
         const target = this.#mutationTarget(binding);
+        const isShown = target === null || this.#isVisible(target);
 
-        if (!this.#shouldRefetchAfterCreate(target) && !this.#inFlight.has(target?.context ?? null)) {
+        if (!this.#shouldRefetchAfterCreate(target) && !this.#inFlight.has(target?.context ?? null) && isShown) {
           return;
         }
 

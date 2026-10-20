@@ -1126,8 +1126,9 @@ export class SheetsBar extends BasePlugin {
    * Renames a sheet.
    *
    * Returns `false` when the id is unknown, the name is blank or unchanged, another sheet
-   * already uses the name (in the bar or in the sheet's formula engine), or a
-   * `beforeSheetTabRename` listener cancels the rename.
+   * already uses the name (in the bar or in the sheet's formula engine), a
+   * `beforeSheetTabRename` listener cancels the rename, or it is called from a listener of a
+   * workbook change's before-hook.
    *
    * @param {number} id The sheet's id.
    * @param {string} name The new name. Trimmed, and cut to the name length limit.
@@ -1143,8 +1144,8 @@ export class SheetsBar extends BasePlugin {
    *
    * The copy gets a deep clone of the sheet's data and settings, and a name based on the
    * original's. The `formulas` setting is not cloned: the copy shares the original's engine,
-   * under a sheet name of its own. Returns `null` when the id is unknown or a `beforeSheetTabAdd` listener
-   * cancels the copy.
+   * under a sheet name of its own. Returns `null` when the id is unknown, a `beforeSheetTabAdd` listener
+   * cancels the copy, or it is called from a listener of a workbook change's before-hook.
    *
    * @param {number} id The sheet to copy.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1159,7 +1160,8 @@ export class SheetsBar extends BasePlugin {
    *
    * Removing the active sheet first switches to its nearest neighbor. Returns `false` when the
    * id is unknown, the sheet is the last one, a `beforeSheetTabRemove` listener cancels the
-   * removal, or the switch to the neighbor is rejected.
+   * removal, the switch to the neighbor is rejected, or it is called from a listener of a
+   * workbook change's before-hook, such as `beforeSheetTabChange`.
    *
    * @param {number} id The sheet to remove.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1173,6 +1175,13 @@ export class SheetsBar extends BasePlugin {
    * Activates a sheet by id or name. Returns `false` when the sheet doesn't exist, is
    * already active, another switch is in progress, or a `beforeSheetTabChange` listener
    * cancels the switch.
+   *
+   * The switch first saves the cell editor and the comment editor on the sheet you leave. It
+   * returns `false`, and switches nothing, while a cell value waits for an asynchronous
+   * validator, or while the editor holds a value its validator rejected (`allowInvalid: false`):
+   * the value would otherwise be written into the arriving sheet. It also returns `false` when
+   * it is called from a listener of a workbook change's before-hook, such as
+   * `beforeSheetTabChange`.
    *
    * @param {number|string} idOrName The sheet's id, or its name.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1376,7 +1385,8 @@ export class SheetsBar extends BasePlugin {
    *
    * The index counts sheets in tab order, not on screen, so it is the same under RTL.
    * Returns `false` when the id is unknown, the index is out of range or is the sheet's
-   * current one, or a `beforeSheetTabMove` listener cancels the move.
+   * current one, a `beforeSheetTabMove` listener cancels the move, or it is called from a listener
+   * of a workbook change's before-hook.
    *
    * @param {number} id The sheet id.
    * @param {number} to The target index.
@@ -1389,7 +1399,7 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Appends a sheet and returns its descriptor, or `null` when a `beforeSheetTabAdd`
-   * listener cancels it.
+   * listener cancels it or it is called from a listener of a workbook change's before-hook.
    *
    * Without `settings`, the new sheet joins the workbook's shared formula engine, if there is
    * one, under its own name. Formulas and cross-sheet references then work on it right away.
