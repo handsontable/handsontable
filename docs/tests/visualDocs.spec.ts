@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { jsPaths, reactPaths, angularPaths, vuePaths } from './paths';
 import { layoutProblems, settledExamples } from './lib/example-grid-layout';
-import { holdLayoutWidth } from './lib/hold-layout-width';
 
 /*
  * Set only by the docs-visual-run action's `Render the baseline` step, the one run that writes golden
@@ -137,10 +136,6 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
         // Mask them so their load state can't make the comparison flaky. The
         // locator is a no-op on pages without a Figma iframe.
         const figmaEmbeds = page.locator('iframe[src*="figma.com"]');
-
-        // The capture collapses the viewport on CI, and a grid measured in a collapsed page keeps
-        // wrapped column widths. See ./lib/hold-layout-width.ts.
-        await holdLayoutWidth(page);
 
         // eslint-disable-next-line max-len
         await expect(page).toHaveScreenshot(screenshotName, { maxDiffPixelRatio: maxDiffPixelRatioValue, fullPage: true, animations: 'disabled', mask: [figmaEmbeds] });
