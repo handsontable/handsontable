@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-20T07:55:02.056Z",
+  "generatedAt": "2026-10-20T09:05:24.594Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -876,7 +876,7 @@
       "file": "e2e/date-editor-keyboard-focus.spec.ts",
       "line": 25,
       "title": "the date editor opened with the keyboard › takes the digits typed after Enter",
-      "count7": 2,
+      "count7": 1,
       "count30": 2,
       "countAll": 2,
       "runs30": 2,
@@ -3111,7 +3111,7 @@
       "file": "e2e/date-editor-keyboard-focus.spec.ts",
       "line": 50,
       "title": "the date editor opened with the keyboard › closes the picker with the editor on Escape",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
