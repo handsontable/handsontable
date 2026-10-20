@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a merged cell in a later selection layer being highlighted darker than the cells around it, and merge()/unmerge() leaving the old highlight. When the selection meets the changed area, both methods now replay every selection layer, firing the selection hooks again, and the fullySelectedMergedCell-N suffix now counts the ranges that cover the merge instead of using the range index.",
+  "type": "fixed",
+  "issueOrPR": 13938,
+  "breaking": false,
+  "framework": "none"
+}
