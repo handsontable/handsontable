@@ -36,71 +36,11 @@ test.describe('merged cell across the fixedRowsBottom line', { tag: THEMES_TAG }
     test.describe(mode, () => {
       const mergeCells = mergeCellsFor(mode, BLOCK_ACROSS_BOTTOM_LINE);
 
-      test('keeps the frozen bottom rows under their own headers', async () => {
-        await grid.initGrid({ fixedRowsBottom: 2, mergeCells });
-
-        for (const row of FROZEN_ROWS) {
-          for (const col of [0, 2, 3]) {
-            await expect.poll(() => grid.cellOffsetFromColumnHeader('bottom', row, col)).toBe(0);
-          }
-        }
-      });
-
-      test('carries the span on the first frozen row and leaves its content to the master', async () => {
-        await grid.initGrid({ fixedRowsBottom: 2, mergeCells });
-
-        await expect.poll(() => grid.overlayCellState('bottom', 8, 1))
-          .toEqual({ displayed: true, rowspan: '2', text: '', className: expect.any(String) });
-        expect((await grid.overlayCellState('bottom', 9, 1))?.displayed).toBe(false);
-        expect((await grid.overlayCellState('master', 6, 1))?.text).toBe('R7C2');
-        // Asked outside any draw, the clone's lookup finds the cell that stands for the block.
-        expect(await grid.topmostCellResolves(8, 1)).toBe(true);
-      });
-
-      test('draws one outline and one fill handle for the selected block', async () => {
-        await grid.initGrid({ fixedRowsBottom: 2, mergeCells });
-        await grid.selectCells(6, 1, 6, 1);
-
-        const { row, col, rowspan } = BLOCK_ACROSS_BOTTOM_LINE;
-
-        // No edge on the freeze line, an outline on every track of every side, and the fill handle on the
-        // block's bottom-end corner, which only the bottom clone renders. One poll over the whole read: on
-        // `horizon` the selection scrolls the master a few pixels to reveal the block (`scrollIntoView()`,
-        // a microtask after `selectCells()`), and the row headers that give the block's box follow on the
-        // next frame. A read in between measures the top side away from its edge.
-        await expect.poll(() => grid.mergedBlockSelection(row, col)).toEqual({
-          edgesInside: [],
-          outline: {
-            top: [true],
-            bottom: [true],
-            left: Array(rowspan).fill(true),
-            right: Array(rowspan).fill(true),
-          },
-          fillHandles: [expect.objectContaining({ overlay: 'ht_clone_bottom' })],
-        });
-      });
-
-      test('hands a real cell to the mouse hooks when the outline of the clone is pressed', async () => {
-        await grid.initGrid({ fixedRowsBottom: 2, mergeCells });
-        await grid.selectCells(6, 1, 6, 1);
-
-        await expect(grid.page.locator('.ht_clone_bottom .wtBorder.current:visible').first()).toBeVisible();
-        expect(await grid.pressOutlineOf('bottom')).toBe('element');
-      });
-
-      test('marks the span cell of the clone as selected when an area covers the whole block', async () => {
-        await grid.initGrid({ fixedRowsBottom: 2, mergeCells });
-        await grid.selectCells(5, 0, 9, 3);
-
-        await expect.poll(async () => (await grid.overlayCellState('bottom', 8, 1))?.className)
-          .toMatch(/fullySelectedMergedCell/);
-        expect((await grid.overlayCellState('master', 6, 1))?.className).toMatch(/fullySelectedMergedCell/);
-      });
-
-      for (const hiddenRow of [3, 7]) {
-        test(`keeps the frozen bottom rows under their own headers with row ${hiddenRow} hidden`, async () => {
-          // Row 3 sits above the block and row 7 inside it, so the visual and renderable indexes differ.
-          await grid.initGrid({ fixedRowsBottom: 2, mergeCells, hiddenRows: { rows: [hiddenRow], indicators: false } });
+      // In a 400px grid of ten rows the master renders every row, so the virtualized clamps are the identity
+      // and these cases would repeat the default ones.
+      if (mode === 'default') {
+        test('keeps the frozen bottom rows under their own headers', async () => {
+          await grid.initGrid({ fixedRowsBottom: 2, mergeCells });
 
           for (const row of FROZEN_ROWS) {
             for (const col of [0, 2, 3]) {
@@ -108,6 +48,70 @@ test.describe('merged cell across the fixedRowsBottom line', { tag: THEMES_TAG }
             }
           }
         });
+
+        test('carries the span on the first frozen row and leaves its content to the master', async () => {
+          await grid.initGrid({ fixedRowsBottom: 2, mergeCells });
+
+          await expect.poll(() => grid.overlayCellState('bottom', 8, 1))
+            .toEqual({ displayed: true, rowspan: '2', text: '', className: expect.any(String) });
+          expect((await grid.overlayCellState('bottom', 9, 1))?.displayed).toBe(false);
+          expect((await grid.overlayCellState('master', 6, 1))?.text).toBe('R7C2');
+          // Asked outside any draw, the clone's lookup finds the cell that stands for the block.
+          expect(await grid.topmostCellResolves(8, 1)).toBe(true);
+        });
+
+        test('draws one outline and one fill handle for the selected block', async () => {
+          await grid.initGrid({ fixedRowsBottom: 2, mergeCells });
+          await grid.selectCells(6, 1, 6, 1);
+
+          const { row, col, rowspan } = BLOCK_ACROSS_BOTTOM_LINE;
+
+          // No edge on the freeze line, an outline on every track of every side, and the fill handle on the
+          // block's bottom-end corner, which only the bottom clone renders. One poll over the whole read: on
+          // `horizon` the selection scrolls the master a few pixels to reveal the block (`scrollIntoView()`,
+          // a microtask after `selectCells()`), and the row headers that give the block's box follow on the
+          // next frame. A read in between measures the top side away from its edge.
+          await expect.poll(() => grid.mergedBlockSelection(row, col)).toEqual({
+            edgesInside: [],
+            outline: {
+              top: [true],
+              bottom: [true],
+              left: Array(rowspan).fill(true),
+              right: Array(rowspan).fill(true),
+            },
+            fillHandles: [expect.objectContaining({ overlay: 'ht_clone_bottom' })],
+          });
+        });
+
+        test('hands a real cell to the mouse hooks when the outline of the clone is pressed', async () => {
+          await grid.initGrid({ fixedRowsBottom: 2, mergeCells });
+          await grid.selectCells(6, 1, 6, 1);
+
+          await expect(grid.page.locator('.ht_clone_bottom .wtBorder.current:visible').first()).toBeVisible();
+          expect(await grid.pressOutlineOf('bottom')).toBe('element');
+        });
+
+        test('marks the span cell of the clone as selected when an area covers the whole block', async () => {
+          await grid.initGrid({ fixedRowsBottom: 2, mergeCells });
+          await grid.selectCells(5, 0, 9, 3);
+
+          await expect.poll(async () => (await grid.overlayCellState('bottom', 8, 1))?.className)
+            .toMatch(/fullySelectedMergedCell/);
+          expect((await grid.overlayCellState('master', 6, 1))?.className).toMatch(/fullySelectedMergedCell/);
+        });
+
+        for (const hiddenRow of [3, 7]) {
+          test(`keeps the frozen bottom rows under their own headers with row ${hiddenRow} hidden`, async () => {
+            // Row 3 sits above the block and row 7 inside it, so the visual and renderable indexes differ.
+            await grid.initGrid({ fixedRowsBottom: 2, mergeCells, hiddenRows: { rows: [hiddenRow], indicators: false } });
+
+            for (const row of FROZEN_ROWS) {
+              for (const col of [0, 2, 3]) {
+                await expect.poll(() => grid.cellOffsetFromColumnHeader('bottom', row, col)).toBe(0);
+              }
+            }
+          });
+        }
       }
 
       test('does not let a long text in the block grow the rows of the clone', async () => {
@@ -129,38 +133,44 @@ test.describe('merged cell across the fixedRowsBottom line', { tag: THEMES_TAG }
         }
       });
 
-      test('finds the span cell of the clone when the master renders none of the block', async () => {
-        // 100 rows: the master renders the first screenful, far above the block and the frozen rows.
-        const data = Array.from({ length: 100 }, (_, r) => Array.from({ length: 10 }, (__, c) => `R${r + 1}C${c + 1}`));
-        const longBlock = { row: 90, col: 1, rowspan: 10, colspan: 1 };
+      // The one state where the clamp has work to do: 100 rows, the block far below the rendered band.
+      if (mode === 'virtualized') {
+        test('finds the span cell of the clone when the master renders none of the block', async () => {
+          // 100 rows: the master renders the first screenful, far above the block and the frozen rows.
+          const data = Array.from({ length: 100 }, (_, r) => Array.from({ length: 10 }, (__, c) => `R${r + 1}C${c + 1}`));
+          const longBlock = { row: 90, col: 1, rowspan: 10, colspan: 1 };
 
-        await grid.initGrid({ data, fixedRowsBottom: 2, mergeCells: mergeCellsFor(mode, longBlock) });
+          await grid.initGrid({ data, fixedRowsBottom: 2, mergeCells: mergeCellsFor(mode, longBlock) });
 
-        for (const col of [0, 2, 3]) {
-          await expect.poll(() => grid.cellOffsetFromColumnHeader('bottom', 98, col)).toBe(0);
-        }
-
-        await expect.poll(() => grid.overlayCellState('bottom', 98, 1))
-          .toEqual({ displayed: true, rowspan: '2', text: '', className: expect.any(String) });
-        expect(await grid.topmostCellResolves(98, 1)).toBe(true);
-      });
-
-      test('carries the span in the corner overlay when the block starts in the frozen column', async () => {
-        await grid.initGrid({
-          fixedRowsBottom: 2,
-          fixedColumnsStart: 1,
-          mergeCells: mergeCellsFor(mode, BLOCK_IN_FIRST_COLUMN),
-        });
-
-        await expect.poll(() => grid.overlayCellState('bottom_inline_start_corner', 8, 0))
-          .toEqual({ displayed: true, rowspan: '2', text: '', className: expect.any(String) });
-
-        for (const row of FROZEN_ROWS) {
-          for (const col of [1, 2]) {
-            await expect.poll(() => grid.cellOffsetFromColumnHeader('bottom', row, col)).toBe(0);
+          for (const col of [0, 2, 3]) {
+            await expect.poll(() => grid.cellOffsetFromColumnHeader('bottom', 98, col)).toBe(0);
           }
-        }
-      });
+
+          await expect.poll(() => grid.overlayCellState('bottom', 98, 1))
+            .toEqual({ displayed: true, rowspan: '2', text: '', className: expect.any(String) });
+          expect(await grid.topmostCellResolves(98, 1)).toBe(true);
+        });
+      }
+
+      // Same identity argument as above.
+      if (mode === 'default') {
+        test('carries the span in the corner overlay when the block starts in the frozen column', async () => {
+          await grid.initGrid({
+            fixedRowsBottom: 2,
+            fixedColumnsStart: 1,
+            mergeCells: mergeCellsFor(mode, BLOCK_IN_FIRST_COLUMN),
+          });
+
+          await expect.poll(() => grid.overlayCellState('bottom_inline_start_corner', 8, 0))
+            .toEqual({ displayed: true, rowspan: '2', text: '', className: expect.any(String) });
+
+          for (const row of FROZEN_ROWS) {
+            for (const col of [1, 2]) {
+              await expect.poll(() => grid.cellOffsetFromColumnHeader('bottom', row, col)).toBe(0);
+            }
+          }
+        });
+      }
     });
   }
 });

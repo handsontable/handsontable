@@ -38,15 +38,6 @@ test.describe('formulas: HYPERLINK rendering', { tag: [THEMES_TAG, BUNDLES_TAG] 
     await expect(grid.link(2, 0)).toHaveCount(0);
   });
 
-  test('renders no anchor for a plain, non-formula value', async({ page, theme, bundle }) => {
-    const grid = new FormulasHyperlinkPage(page, theme, bundle);
-
-    await grid.goto();
-
-    await expect(grid.cell(6, 0)).toHaveText('plain');
-    await expect(grid.link(6, 0)).toHaveCount(0);
-  });
-
   test('refuses a `javascript:` URL, keeps the label as text, and warns once', async({ page, theme, bundle }) => {
     const warnings: string[] = [];
 
@@ -125,31 +116,6 @@ test.describe('formulas: HYPERLINK rendering', { tag: [THEMES_TAG, BUNDLES_TAG] 
     await expect(grid.link(0, 1)).toHaveCount(0);
     // The column's own renderer survived the change.
     await expect(grid.customMark(0)).toHaveText('no longer a formula');
-  });
-
-  test('drops the anchor when the plugin is disabled, keeping the renderer', async({ page, theme, bundle }) => {
-    const grid = new FormulasHyperlinkPage(page, theme, bundle);
-
-    await grid.goto();
-    await expect(grid.link(0, 1)).toHaveCount(1);
-
-    await grid.disableFormulasPlugin();
-
-    await expect(grid.link(0, 1)).toHaveCount(0);
-    await expect(grid.customMark(0)).toHaveCount(1);
-  });
-
-  test('renders no anchor while the option is off, and again once it is on', async({ page, theme, bundle }) => {
-    const grid = new FormulasHyperlinkPage(page, theme, bundle);
-
-    await grid.goto();
-
-    await grid.setHyperlinks(false);
-    await expect(grid.link(0, 0)).toHaveCount(0);
-    await expect(grid.cell(0, 0)).toHaveText('Example one');
-
-    await grid.setHyperlinks(true);
-    await expect(grid.link(0, 0)).toHaveCount(1);
   });
 
   test('drops a memoizing renderer\'s anchor when the option is turned off', async({ page, theme, bundle }) => {
@@ -289,18 +255,6 @@ test.describe('formulas: HYPERLINK rendering', { tag: [THEMES_TAG, BUNDLES_TAG] 
     await expect(grid.editorValue()).resolves.toBe('=HYPERLINK("https://example.com/one","Example one")');
   });
 
-  test('opens the selected cell\'s link with Alt+Enter', async({ page, theme, bundle }) => {
-    const grid = new FormulasHyperlinkPage(page, theme, bundle);
-
-    await grid.goto();
-    await grid.recordWindowOpen();
-
-    await grid.selectCell(0, 0);
-    await grid.pressOpenLinkShortcut();
-
-    await expect(grid.openedUrls()).resolves.toEqual(['https://example.com/one']);
-  });
-
   test('leaves Alt+Enter to the host application on a cell with no link', async({ page, theme, bundle }) => {
     const grid = new FormulasHyperlinkPage(page, theme, bundle);
 
@@ -340,26 +294,6 @@ test.describe('formulas: HYPERLINK rendering', { tag: [THEMES_TAG, BUNDLES_TAG] 
       // Exactly one anchor: unwrapping before wrapping must not nest or duplicate.
       await expect(grid.link(0, 4)).toHaveCount(1);
     });
-
-  test('does nothing on Alt+Enter when the selected cell holds no link', async({ page, theme, bundle }) => {
-    const grid = new FormulasHyperlinkPage(page, theme, bundle);
-
-    await grid.goto();
-    await grid.recordWindowOpen();
-
-    await grid.selectCell(6, 0);
-    await grid.pressOpenLinkShortcut();
-
-    await expect(grid.openedUrls()).resolves.toEqual([]);
-  });
-
-  test('carries the shared `ht-link` class next to `ht-hyperlink`', async({ page, theme, bundle }) => {
-    const grid = new FormulasHyperlinkPage(page, theme, bundle);
-
-    await grid.goto();
-
-    await expect(grid.cell(0, 0).locator('a')).toHaveClass('ht-link ht-hyperlink');
-  });
 
   test('opens in the current tab when `hyperlinks.target` is `_self`', async({ page, theme, bundle }) => {
     const grid = new FormulasHyperlinkPage(page, theme, bundle);

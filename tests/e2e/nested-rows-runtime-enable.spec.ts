@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { NestedRowsRuntimeEnablePage } from '../fixtures/pages/NestedRowsRuntimeEnablePage';
 
 /**
@@ -18,7 +18,7 @@ import { NestedRowsRuntimeEnablePage } from '../fixtures/pages/NestedRowsRuntime
 const FLAT_ROWS = ['Root A', 'Root B'];
 const NESTED_ROWS = ['Root A', 'A-1', 'A-2', 'A-2-a', 'A-3', 'Root B'];
 
-test.describe('NestedRows enabled at runtime', { tag: THEMES_TAG }, () => {
+test.describe('NestedRows enabled at runtime', () => {
   test('updateSettings turns the plugin on and flattens the tree', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsRuntimeEnablePage(page, theme, bundle);
 

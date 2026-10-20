@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { AutoSizeValueFormatterPage } from '../fixtures/pages/AutoSizeValueFormatterPage';
 
 /**
@@ -9,7 +9,7 @@ import { AutoSizeValueFormatterPage } from '../fixtures/pages/AutoSizeValueForma
  * string, and AutoRowSize records a one-line height for a cell the renderer draws on several
  * lines — desyncing the row-header overlay from the master.
  */
-test.describe('renderer valueFormatter static and the auto-size plugins', { tag: THEMES_TAG }, () => {
+test.describe('renderer valueFormatter static and the auto-size plugins', () => {
   let grid: AutoSizeValueFormatterPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

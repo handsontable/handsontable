@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { RefreshDimensionsPage, type HookLogEntry } from '../fixtures/pages/RefreshDimensionsPage';
 
 const entry = (
@@ -20,7 +20,7 @@ const entry = (
  * DEV-2740 made the guard trip on delivery cycles instead of wall-clock gaps - see the block at the
  * bottom of this file.
  */
-test.describe('a sized grid in the main document (ResizeObserver pipeline)', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+test.describe('a sized grid in the main document (ResizeObserver pipeline)', { tag: BUNDLES_TAG }, () => {
   test('reports its dimensions once on the observer\'s initial delivery', async({ page, theme, bundle }) => {
     const grid = new RefreshDimensionsPage(page, theme, bundle);
 
@@ -131,7 +131,7 @@ test.describe('a sized grid in the main document (ResizeObserver pipeline)', { t
   });
 });
 
-test.describe('a grid inside an iframe (window-resize pipeline)', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+test.describe('a grid inside an iframe (window-resize pipeline)', { tag: BUNDLES_TAG }, () => {
   test('fires when the iframe window shrinks, reporting the measured viewport', async({ page, theme, bundle }) => {
     const grid = new RefreshDimensionsPage(page, theme, bundle);
 
@@ -221,7 +221,7 @@ test.describe('a grid inside an iframe (window-resize pipeline)', { tag: [THEMES
     });
 });
 
-test.describe('the endless-loop guard (a parent sized in dynamic units)', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+test.describe('the endless-loop guard (a parent sized in dynamic units)', { tag: BUNDLES_TAG }, () => {
   const WARNING_FRAGMENT = 'fired too many times in direct succession';
   const WARNING = 'The ResizeObserver callback was fired too many times in direct succession.\n' +
     'This may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +

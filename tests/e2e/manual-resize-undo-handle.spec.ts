@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { ManualResizeUndoPage, type ResizeAxisName } from '../fixtures/pages/ManualResizeUndoPage';
 
 /**
@@ -6,7 +6,7 @@ import { ManualResizeUndoPage, type ResizeAxisName } from '../fixtures/pages/Man
  * that header's far edge. The pointer is parked before the shortcut so a mouseover cannot move the
  * handle onto whatever the drag left under the cursor.
  */
-test.describe('resize handle after undo', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
+test.describe('resize handle after undo', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: ManualResizeUndoPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

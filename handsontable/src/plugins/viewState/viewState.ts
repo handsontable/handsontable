@@ -163,6 +163,11 @@ export class ViewState extends BasePlugin {
    * column in `sort`, `filters`, or `hiddenColumns`, by index or by property, that the grid does not show. With another `version`, every part is skipped as
    * `unsupportedVersion`, next to the `error`.
    *
+   * A filter condition the column does not offer ({@link Filters#getAvailableConditions}) is reported as
+   * `invalid` too, but it does not skip the `filters` part: that column's filter is left out and the
+   * other columns' filters are restored, so `filters` can be in `applied` and in `skipped` at once. The
+   * part is skipped only when no column is left.
+   *
    * A value that is not an object, such as the `null` that `JSON.parse(localStorage.getItem('my-view'))`
    * gives on a first visit, an object with another `version`, and (with `atomic`) a state with a
    * rejected part are not applied at all. The result carries an `error` then, and an empty `applied`.

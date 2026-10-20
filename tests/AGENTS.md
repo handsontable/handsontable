@@ -16,6 +16,18 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   '../fixtures/test'`), destructure `{ page, theme, bundle }`, and pass both
   to the page object: a spec is parametrized by the project that runs it,
   and the tags say which projects do.
+- **A test of a motion the classic theme never runs carries `MOTION_TAG`**
+  (`fixtures/test.ts`) beside `THEMES_TAG`, and the `e2e-classic` projects leave
+  it out, on the full matrix too (`legGrep()` in `lib/leg-declarations.mjs`). `.skip` is banned, and
+  remapping the classic legs to another theme only repeats that theme's runs.
+  Prove the classic theme's instant behavior in a `THEMES_TAG` test without
+  `MOTION_TAG`.
+- **`page.clock` does not drive CSS transitions or animations: they run on real
+  time.** A transition read a few round trips after it started can be over on a
+  slow run, and a finished transition is gone from `getAnimations()`. Pause it
+  the moment it starts (a `MutationObserver` whose callback calls
+  `getAnimations()` and pauses, as `SheetsBarPage.holdTransitions()` does), then
+  seek it. A CSS animation with `fill-mode: both` stays listed after it ends.
 - **Local gates run `e2e-main` (plain UMD) only** — pre-push, the Claude Stop
   hook, and `npm run test:e2e` are pinned there; the `-min` legs are CI-only.
   (`e2e-main` used to load `full.min` — never assume the hooks cover min.)
@@ -396,8 +408,9 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   puts the arrow back under the centre, so cell content is not a guarantee
   either. Click off-centre, or select with `hot.selectCell()`, when the spec
   means to open the editor with Enter. Root-caused in DEV-2677; the indicator's
-  own coverage is `e2e/cell-dropdown-arrow-button.spec.ts`, over all four cell
-  types.
+  own coverage is `e2e/cell-dropdown-arrow-button.spec.ts`, over the two
+  renderers that draw it (`autocomplete`, which `dropdown` and `handsontable`
+  delegate to, and `multiselect`).
 - **Seed an `autocomplete` / `dropdown` fixture with a prefix the whole column's
   choice set shares** (`'Al'` for `Alpha/Alfa/Alto`), so `autocomplete`, which
   filters by the typed value, renders the same list as `dropdown`, which forces

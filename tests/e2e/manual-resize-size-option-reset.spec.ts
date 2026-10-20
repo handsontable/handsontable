@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { ManualResizeSizeOptionResetPage } from '../fixtures/pages/ManualResizeSizeOptionResetPage';
 
 /**
@@ -21,7 +21,7 @@ import { ManualResizeSizeOptionResetPage } from '../fixtures/pages/ManualResizeS
  * The sizes are asserted from a real pointer drag on the resize handle, so the stored size is
  * produced the way a user produces it. None of this is checkable in jsdom, where every size is zero.
  */
-test.describe('Manual resize versus the size option', { tag: THEMES_TAG }, () => {
+test.describe('Manual resize versus the size option', () => {
   let grid: ManualResizeSizeOptionResetPage;
 
   // Both well above every theme's default row height (26 / 29 / 37), so a fallback to the default

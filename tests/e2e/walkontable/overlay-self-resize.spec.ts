@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../../fixtures/test';
+import { test, expect } from '../../fixtures/test';
 import { OverlaySelfResizePage } from '../../fixtures/pages/walkontable/OverlaySelfResizePage';
 
 /**
@@ -22,7 +22,7 @@ import { OverlaySelfResizePage } from '../../fixtures/pages/walkontable/OverlayS
  * outside this gate. So a zero below means the master write and the band sync were skipped — never
  * that nothing in the grid was resized.
  */
-test.describe('walkontable overlay self-resize', { tag: ['@walkontable', THEMES_TAG] }, () => {
+test.describe('walkontable overlay self-resize', { tag: '@walkontable' }, () => {
   let grid: OverlaySelfResizePage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

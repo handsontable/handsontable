@@ -56,85 +56,90 @@ for (const direction of ['ltr', 'rtl'] as const) {
         }
       });
 
-    test('gives every header of a column the aria-colindex its body cells carry, in every table', async () => {
-      for (const fixedColumnsEnd of [0, 2]) {
-        await wt.goto({ rtl, fixedColumnsStart: 1, fixedColumnsEnd, fixedRowsTop: 1, fixedRowsBottom: 1 });
-        // Scrolled to the end: the master and the top clone render the last columns, far from their own first one.
-        await wt.scrollTo({ left: await wt.maxScrollLeft(), top: 0 });
-        await expect(wt.cellIn(wt.master, 0, 29)).toBeAttached();
-        await wt.settleFrames();
+    // LTR only: the index is computed from logical column indexes.
+    if (direction === 'ltr') {
+      test('gives every header of a column the aria-colindex its body cells carry, in every table', async () => {
+        for (const fixedColumnsEnd of [0, 2]) {
+          await wt.goto({ rtl, fixedColumnsStart: 1, fixedColumnsEnd, fixedRowsTop: 1, fixedRowsBottom: 1 });
+          // Scrolled to the end: the master and the top clone render the last columns, far from their own first one.
+          await wt.scrollTo({ left: await wt.maxScrollLeft(), top: 0 });
+          await expect(wt.cellIn(wt.master, 0, 29)).toBeAttached();
+          await wt.settleFrames();
 
-        const { headers, cells } = await wt.ariaColumnIndexes();
-        // One row header column comes first, and the attribute is 1-based.
-        const expectedIndex = (col: number) => col + 2;
+          const { headers, cells } = await wt.ariaColumnIndexes();
+          // One row header column comes first, and the attribute is 1-based.
+          const expectedIndex = (col: number) => col + 2;
 
-        expect(headers.some(header => header.table === 'ht_clone_top' && header.col === 29), 'top clone header')
-          .toBe(true);
+          expect(headers.some(header => header.table === 'ht_clone_top' && header.col === 29), 'top clone header')
+            .toBe(true);
 
-        if (fixedColumnsEnd) {
-          expect(headers.some(header => header.table === 'ht_clone_top_inline_end_corner' && header.col === 29),
-            'end corner header').toBe(true);
-        }
-
-        for (const header of headers) {
-          expect(header.ariaColIndex, `${header.table} header of column ${header.col} (end columns ${fixedColumnsEnd})`)
-            .toBe(expectedIndex(header.col));
-        }
-
-        for (const cell of cells) {
-          expect(cell.ariaColIndex, `${cell.table} cell of column ${cell.col} (end columns ${fixedColumnsEnd})`)
-            .toBe(expectedIndex(cell.col));
-        }
-      }
-    });
-
-    for (const windowScroll of [false, true]) {
-      for (const fixedColumnsEnd of [1, 3]) {
-        test(`keeps the fill handle on the last column inside the end clone (${windowScroll ? 'window' : 'holder'} scroll, ` +
-          `${fixedColumnsEnd} end columns)`, async () => {
-          await wt.goto({ rtl, windowScroll, fixedColumnsEnd });
-          await wt.selectRange(3, 29, 3, 29);
-
-          if (windowScroll) {
-            await wt.scrollWindowTo(await wt.maxWindowScroll());
-          } else {
-            await wt.scrollTo({ left: await wt.maxScrollLeft(), top: 0 });
+          if (fixedColumnsEnd) {
+            expect(headers.some(header => header.table === 'ht_clone_top_inline_end_corner' && header.col === 29),
+              'end corner header').toBe(true);
           }
 
-          await expect.poll(() => wt.endCloneFillHandle()).not.toBeNull();
+          for (const header of headers) {
+            expect(header.ariaColIndex, `${header.table} header of column ${header.col} (end columns ${fixedColumnsEnd})`)
+              .toBe(expectedIndex(header.col));
+          }
 
-          const found = (await wt.endCloneFillHandle())!;
-
-          // The end holder clips at its own edge: a handle that straddles the last column loses half of itself.
-          expect(found.handle.left).toBeGreaterThanOrEqual(found.holder.left - 0.5);
-          expect(found.handle.right).toBeLessThanOrEqual(found.holder.right + 0.5);
-        });
-      }
+          for (const cell of cells) {
+            expect(cell.ariaColIndex, `${cell.table} cell of column ${cell.col} (end columns ${fixedColumnsEnd})`)
+              .toBe(expectedIndex(cell.col));
+          }
+        }
+      });
     }
 
-    test('keeps one header row height across all tables with frozen columns on both sides, without inflating it',
-      async () => {
-        await wt.goto({ rtl, fixedColumnsStart: 1, fixedColumnsEnd: 1 });
-        // The start column's header wraps further than the end column's, so the two corners disagree.
-        await wt.setWrappingColumnHeaders({ 0: 30, 29: 15 });
+    for (const windowScroll of [false, true]) {
+      // One band width: the handle rule reads the last column of the band, whatever its size.
+      test(`keeps the fill handle on the last column inside the end clone (${windowScroll ? 'window' : 'holder'} scroll, ` +
+        '1 end columns)', async () => {
+        await wt.goto({ rtl, windowScroll, fixedColumnsEnd: 1 });
+        await wt.selectRange(3, 29, 3, 29);
 
-        const heights = await wt.headerRowHeights();
-        const tableCount = Object.keys(heights).length;
-        const [tallest] = Object.values(heights);
-
-        expect(tableCount).toBeGreaterThanOrEqual(6);
-        expect(tallest).toBeGreaterThan(60);
-        expect(new Set(Object.values(heights)), JSON.stringify(heights)).toEqual(new Set([tallest]));
-
-        for (let render = 0; render < 3; render++) {
-          await wt.renderAgain();
-          expect(await wt.headerRowHeights(), `render ${render + 1}`).toEqual(heights);
+        if (windowScroll) {
+          await wt.scrollWindowTo(await wt.maxWindowScroll());
+        } else {
+          await wt.scrollTo({ left: await wt.maxScrollLeft(), top: 0 });
         }
 
-        // The same headers beside a single frozen side give the height both corners must not exceed.
-        await wt.goto({ rtl, fixedColumnsStart: 1, fixedColumnsEnd: 0 });
-        await wt.setWrappingColumnHeaders({ 0: 30, 29: 15 });
-        expect(Object.values(await wt.headerRowHeights())[0]).toBe(tallest);
+        await expect.poll(() => wt.endCloneFillHandle()).not.toBeNull();
+
+        const found = (await wt.endCloneFillHandle())!;
+
+        // The end holder clips at its own edge: a handle that straddles the last column loses half of itself.
+        expect(found.handle.left).toBeGreaterThanOrEqual(found.holder.left - 0.5);
+        expect(found.handle.right).toBeLessThanOrEqual(found.holder.right + 0.5);
       });
+    }
+
+    // LTR only: a header height is a vertical measurement.
+    if (direction === 'ltr') {
+      test('keeps one header row height across all tables with frozen columns on both sides, without inflating it',
+        async () => {
+          await wt.goto({ rtl, fixedColumnsStart: 1, fixedColumnsEnd: 1 });
+          // The start column's header wraps further than the end column's, so the two corners disagree.
+          await wt.setWrappingColumnHeaders({ 0: 30, 29: 15 });
+
+          const heights = await wt.headerRowHeights();
+          const tableCount = Object.keys(heights).length;
+          const [tallest] = Object.values(heights);
+
+          expect(tableCount).toBeGreaterThanOrEqual(6);
+          expect(tallest).toBeGreaterThan(60);
+          expect(new Set(Object.values(heights)), JSON.stringify(heights)).toEqual(new Set([tallest]));
+
+          for (let render = 0; render < 3; render++) {
+            await wt.renderAgain();
+            expect(await wt.headerRowHeights(), `render ${render + 1}`).toEqual(heights);
+          }
+
+          // The same headers beside a single frozen side give the height both corners must not exceed.
+          await wt.goto({ rtl, fixedColumnsStart: 1, fixedColumnsEnd: 0 });
+          await wt.setWrappingColumnHeaders({ 0: 30, 29: 15 });
+          expect(Object.values(await wt.headerRowHeights())[0]).toBe(tallest);
+        });
+    }
   });
 }

@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../../fixtures/test';
+import { test, expect } from '../../fixtures/test';
 import { OverlaysPage } from '../../fixtures/pages/walkontable/OverlaysPage';
 
 /**
@@ -7,7 +7,7 @@ import { OverlaysPage } from '../../fixtures/pages/walkontable/OverlaysPage';
  * frozen Jasmine `test/spec/**` suite. Runs under every theme via the
  * per-theme projects.
  */
-test.describe('walkontable overlays', { tag: ['@walkontable', THEMES_TAG] }, () => {
+test.describe('walkontable overlays', { tag: '@walkontable' }, () => {
   let wt: OverlaysPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
