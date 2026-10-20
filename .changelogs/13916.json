@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Added the AsyncValues plugin, which fills cells from promises, one cell at a time or in batches, with a pending and an error state per cell, cancellation of stale requests, a concurrency limit, retries, and an optional undo step per run. Also, setSourceDataAtCell() no longer resets an open editor when it writes another cell.",
+  "title": "Added the AsyncValues plugin, which fills cells from promises, one cell at a time or in batches, with a pending and an error state per cell, cancellation of stale requests, a concurrency limit, retries, and an optional undo step per run. Also, an open editor now keeps what the user typed when setSourceDataAtCell() writes another cell, or when a beforeChange listener vetoes a change to another cell.",
   "type": "added",
   "issueOrPR": 13916,
   "breaking": false,

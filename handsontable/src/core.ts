@@ -3529,12 +3529,20 @@ export default function Core(
    * @returns {Array} List of changes finally applied to the dataset.
    */
   function processChanges(changes: Array<CellChange | null>, source: string | undefined): CellChange[] {
+    // Read before the hook, which can replace a change with `null`.
+    const requestedChanges = changes.filter((change): change is CellChange => change !== null);
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     // The `beforeChange` hook could add a `null` for purpose of canceling some dataset's change.
     const filteredChanges = changes.filter((change): change is CellChange => change !== null);
 
     if (beforeChangeResult === false || filteredChanges.length === 0) {
-      instance.getActiveEditor()?.cancelChanges();
+      const activeEditor = instance.getActiveEditor();
+
+      // An open editor is canceled only when the vetoed call wrote its own cell: a vetoed write to another
+      // cell (an application's background update) must not throw away what the user is typing.
+      if (!activeEditor?.isOpened() || hasChangeForCell(requestedChanges, activeEditor.row!, activeEditor.prop!)) {
+        activeEditor?.cancelChanges();
+      }
 
       return [];
     }
