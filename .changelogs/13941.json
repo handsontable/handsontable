@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the CopyPaste source-data clipboard flavor ignoring changes that the `beforeCopy` and `beforeCut` hooks make to the copied data.",
+  "type": "fixed",
+  "issueOrPR": 13941,
+  "breaking": false,
+  "framework": "none"
+}
