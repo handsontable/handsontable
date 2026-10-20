@@ -1334,6 +1334,11 @@ export class SelectionFeaturesPage {
     await this.fillHandle().dblclick();
   }
 
+  /** Every value of a column, by visual row, read through the instance API. */
+  async columnValues(col: number): Promise<CellValue[]> {
+    return this.page.evaluate(column => window.hot.getDataAtCol(column), col);
+  }
+
   /** Drag the fill handle with the real pointer onto the given cell and release. */
   async dragFillHandleTo(row: number, col: number): Promise<void> {
     await dragFillHandle(this.page, this.fillHandle(), this.cell(row, col));
