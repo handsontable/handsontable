@@ -1230,3 +1230,26 @@ describe('currency round trip (review round 12)', () => {
     expect(excelNumFmtToIntlOptions('[$USD] #,##0.00')).toEqual(expect.objectContaining({ currency: 'USD' }));
   });
 });
+
+describe('currency codes written in lower case (review round 12, follow-up)', () => {
+  const options = { style: 'currency', minimumFractionDigits: 2 };
+
+  it('should write the same format for a lower-case code as for the upper-case one', () => {
+    // `Intl.NumberFormat` accepts `currency: 'usd'`, and the grid renders it like `'USD'`.
+    expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'usd' }, 'en-US')).toBe('$#,##0.00');
+    expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'eur' }, 'de-DE')).toBe('#,##0.00"€"');
+    expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'aud' }, 'en-AU'))
+      .toBe(intlNumFormatToExcelNumFmt({ ...options, currency: 'AUD' }, 'en-AU'));
+    expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'nok' }, 'nb-NO')).toBe('#,##0.00[$kr-414]');
+  });
+
+  it('should read every lower-case code back as its currency', () => {
+    ['usd', 'eur', 'aud', 'nok', 'jpy', 'ils'].forEach((code) => {
+      ['en-US', 'de-DE', 'en-AU', 'nb-NO', 'ja-JP', 'he-IL'].forEach((locale) => {
+        const numFmt = intlNumFormatToExcelNumFmt({ ...options, currency: code }, locale);
+
+        expect([locale, code, excelNumFmtToIntlOptions(numFmt)?.currency]).toEqual([locale, code, code.toUpperCase()]);
+      });
+    });
+  });
+});

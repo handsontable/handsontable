@@ -118,7 +118,10 @@ export function intlNumFormatToExcelNumFmt(
     // symbol, and the import reads the LCID back to the right currency (`captureCurrency`). A bare
     // `$` reads back as the US dollar, so writing it for AUD changed the column's currency. Any symbol
     // that still reads back as another currency, or as none, is replaced by the quoted ISO code below.
-    const lcid = sharedSymbolLcid(rawSymbol, currency);
+    // `Intl` accepts the code in any case (`'usd'`), while the LCID table and the import's reading of
+    // it are upper-case ISO codes, so the code is normalized before both (review round 12).
+    const code = currency.toUpperCase();
+    const lcid = sharedSymbolLcid(rawSymbol, code);
     let symbol = rawSymbol === '$' ? rawSymbol : `"${rawSymbol.replaceAll('"', '')}"`;
 
     if (lcid !== null) {
@@ -136,7 +139,7 @@ export function intlNumFormatToExcelNumFmt(
     // A symbol the import cannot map back (`\u20AA` for ILS, `R` for ZAR, `AU$` outside `en-AU`, a bare
     // `$` for a dollar currency with no LCID) re-imported as a plain number or as the US dollar. The
     // quoted ISO code reads back as the currency itself; Excel then shows the code, not the symbol.
-    return captureCurrency(numFmt).currency === currency ? numFmt : withSymbol(`"${currency}"`);
+    return captureCurrency(numFmt).currency === code ? numFmt : withSymbol(`"${code}"`);
   }
 
   return `${intPart}${decimalPart}`;
