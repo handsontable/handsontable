@@ -102,3 +102,27 @@ describe('functionPrefixes', () => {
     expect(stripFunctionPrefixes(addFunctionPrefixes(formula))).toBe(formula);
   });
 });
+
+describe('functionPrefixes name boundaries (review round 12)', () => {
+  it('should end a name at every ASCII character that is not a letter, digit, underscore, dot or backslash', () => {
+    const separators = Array.from({ length: 128 }, (_, code) => String.fromCharCode(code))
+      .filter(char => !/[A-Za-z0-9_.\\]/.test(char) && char !== '"' && char !== '\'' && char !== '(');
+
+    separators.forEach((separator) => {
+      expect(addFunctionPrefixes(`A1${separator}IFS(1,2)`)).toBe(`A1${separator}_xlfn.IFS(1,2)`);
+    });
+  });
+
+  it('should keep a letter, digit, underscore, dot or backslash inside a name', () => {
+    expect(addFunctionPrefixes('MY_IFS(1)')).toBe('MY_IFS(1)');
+    expect(addFunctionPrefixes('X.IFS(1)')).toBe('X.IFS(1)');
+    expect(addFunctionPrefixes('\\IFS(1)')).toBe('\\IFS(1)');
+    expect(addFunctionPrefixes('9IFS(1)')).toBe('9IFS(1)');
+  });
+
+  it('should still read a non-ASCII letter or digit as part of a name', () => {
+    expect(addFunctionPrefixes('éIFS(1)+IFS(2)')).toBe('éIFS(1)+_xlfn.IFS(2)');
+    expect(addFunctionPrefixes('١IFS(1)')).toBe('١IFS(1)');
+    expect(addFunctionPrefixes('×IFS(1)')).toBe('×_xlfn.IFS(1)');
+  });
+});
