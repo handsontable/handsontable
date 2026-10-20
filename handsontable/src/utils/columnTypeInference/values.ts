@@ -475,14 +475,24 @@ export function readBoolean(value: unknown): boolean | null {
 }
 
 /**
- * Builds a boolean reader that also reads the given words, compared trimmed and in any case. A word
- * listed on both sides, `true` and `false` included, reads as neither.
+ * Folds a word for comparison: trimmed, lower case, and with the Turkish and Azeri dotted and dotless
+ * `i` made one letter. `'HAYIR'.toLowerCase()` is `hayir` and never matches a listed Turkish
+ * `hay\u0131r`, and a lowered dotted capital I carries a combining dot (U+0307). The fold takes no
+ * locale on purpose: the converter has none, and the locale of a CSV is rarely the grid's.
+ */
+function foldWord(text: string): string {
+  return text.trim().toLowerCase().normalize('NFD').replace(/\u0307/g, '').replace(/\u0131/g, 'i');
+}
+
+/**
+ * Builds a boolean reader that also reads the given words, compared trimmed and in any case (see
+ * `foldWord`). A word listed on both sides, `true` and `false` included, reads as neither.
  */
 export function createBooleanReader(words: BooleanValues): (value: unknown) => boolean | null {
   const lookup = new Map<string, boolean>([['true', true], ['false', false]]);
   const conflicts = new Set<string>();
   const add = (word: string, meaning: boolean) => {
-    const key = word.trim().toLowerCase();
+    const key = foldWord(word);
 
     if (lookup.has(key) && lookup.get(key) !== meaning) {
       conflicts.add(key);
@@ -503,7 +513,7 @@ export function createBooleanReader(words: BooleanValues): (value: unknown) => b
     // A listed `1` or `0` reads a number cell too: API data often carries them as numbers.
     const text = typeof value === 'number' && Number.isFinite(value) ? String(value) : value;
 
-    return typeof text === 'string' ? lookup.get(text.trim().toLowerCase()) ?? null : null;
+    return typeof text === 'string' ? lookup.get(foldWord(text)) ?? null : null;
   };
 }
 
@@ -647,6 +657,12 @@ function toDigits(value: number, format: CompiledDateFormat): string {
 }
 
 /**
+ * The lowest year a whole number is read as. A number such as `101` or `1010001` is a quantity or an
+ * ID far more often than the year 1 that padding would make of it.
+ */
+const MIN_NUMBER_YEAR = 1000;
+
+/**
  * Reads a value as a date. With `format`, a value the format matches is read with it, and any other
  * value only as a year-first date. Without one, a year-first date is read as year, month, day, and a
  * year-last one follows `order`. A whole number is read only with a format (`20260312` with
@@ -664,6 +680,11 @@ export function readDate(
   }
 
   const parts = splitDate(text.trim(), order, format);
+
+  if (parts && typeof value === 'number' && Number(parts.year) < MIN_NUMBER_YEAR) {
+    return null;
+  }
+
   const iso = parts ? toIsoDate(parts.year, parts.month, parts.day) : null;
 
   return parts && iso

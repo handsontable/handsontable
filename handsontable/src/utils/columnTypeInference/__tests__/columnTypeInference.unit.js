@@ -1233,6 +1233,33 @@ describe('inferColumnTypes', () => {
       expect(inferOne([1032026, 15032026]).type).toBe('numeric');
     });
 
+    it('does not read a whole number as a year below 1000', () => {
+      expect(inferOne([101, 215, 312, 1105], { dateFormats: ['YYYYMMDD'] }).type).toBe('numeric');
+      expect(inferOne([1010001, 2010001], { dateFormats: ['DDMMYYYY'] }).type).toBe('numeric');
+      expect(inferOne([19990101, 20260312], { dateFormats: ['YYYYMMDD'] }).type).toBe('date');
+      expect(convertOne([1012026, 20012026], { dateFormats: ['DDMMYYYY'] })).toEqual(['2026-01-01', '2026-01-20']);
+    });
+
+    it('warns once about a dateFormats value that is not an array', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      jest.isolateModules(() => {
+        // eslint-disable-next-line global-require
+        const fresh = require('../index');
+
+        try {
+          fresh.inferColumnTypes([['12/03/2026']], { dateFormats: 'DD/MM/YYYY' });
+          fresh.inferColumnTypes([['12/03/2026']], { dateFormats: 'DD/MM/YYYY' });
+          fresh.inferColumnTypes([['12/03/2026']], { dateFormats: null });
+
+          expect(warn).toHaveBeenCalledTimes(1);
+          expect(warn.mock.calls[0][0]).toContain('dateFormats option is ignored');
+        } finally {
+          warn.mockRestore();
+        }
+      });
+    });
+
     it('warns once about a format it ignores', () => {
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -1385,10 +1412,36 @@ describe('inferColumnTypes', () => {
       expect(columns[0].inputFormat.booleanValues).not.toBe(columns[1].inputFormat.booleanValues);
     });
 
-    it('reads only arrays of strings', () => {
-      expect(inferOne(['yes', 'no'], { booleanValues: { true: 'yes', false: ['no'] } }).type).toBe('text');
+    it('reads only arrays of strings, and warns once about a side that is not an array', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      jest.isolateModules(() => {
+        // eslint-disable-next-line global-require
+        const fresh = require('../index');
+
+        try {
+          const one = col => fresh.inferColumnTypes(columnsToRows(col), {
+            booleanValues: { true: 'yes', false: ['no'] },
+          });
+
+          expect(one(['yes', 'no']).columns[0].settings.type).toBe('text');
+          expect(one(['yes', 'no']).columns[0].settings.type).toBe('text');
+          expect(warn).toHaveBeenCalledTimes(1);
+          expect(warn.mock.calls[0][0]).toContain('booleanValues.true option is ignored');
+        } finally {
+          warn.mockRestore();
+        }
+      });
       expect(inferOne(['true', 'no'], { booleanValues: { false: ['no', 7] } }).type).toBe('checkbox');
       expect(inferOne(['true', 'false'], { booleanValues: null }).inputFormat).toBeUndefined();
+    });
+
+    it('matches upper-case Turkish words, whatever the listed spelling', () => {
+      const options = { booleanValues: { true: ['evet', 'İyi'], false: ['hayır', 'kötü'] } };
+      const values = ['HAYIR', 'Evet', 'EVET', 'iyi', 'İYİ', 'KÖTÜ', 'hayir'];
+
+      expect(inferOne(values, options).type).toBe('checkbox');
+      expect(convertOne(values, options)).toEqual([false, true, true, true, true, false, false]);
     });
 
     it('lets a header row be found over listed words', () => {

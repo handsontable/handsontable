@@ -192,7 +192,16 @@ data) and converts the values to what each type stores. Read this before touchin
   the option a no-op that falls back to the locale order. The warning is a side effect only; the result
   does not depend on it.
 - **A boolean word listed on both sides reads as neither**, `true` and `false` included
-  (`createBooleanReader`). Words compare as `.trim().toLowerCase()`, never `toLocaleLowerCase`.
+  (`createBooleanReader`). Words compare through `foldWord`: trimmed, `toLowerCase()`, then NFD with U+0307
+  removed and U+0131 mapped to `i`, so `HAYIR` matches a listed `hayır` and `İYİ` matches `iyi`. Never
+  `toLocaleLowerCase`, and not `localeLowerCase(word, locale)` either: the converter has no locale to
+  repeat the detector's fold with, and the locale of a CSV is rarely the grid's. The cost is that a word
+  differing only by the dotted or dotless `i` (`sıra` and `sira`) is one word.
+- **A number is not read as a year below 1000** (`MIN_NUMBER_YEAR`): padding made `101` the date
+  `0000-01-01` under `YYYYMMDD`, and a column of quantities became dates because date goes first for that
+  format. Only whole-number cells are floored; a string `'0001-01-01'` still reads.
+- **An option of the wrong shape warns instead of vanishing**: `dateFormats` that is not an array, and a
+  `booleanValues` side that is not an array, each `warnOnce`. `null` and `undefined` stay silent.
 - **Accepted, not fixed:** `Open` and `open` are two dropdown options; `1:30` reads as a time; Indian lakh grouping (`1,23,456`) and times with milliseconds stay
   text; a JS `Date` stays text. The guide names the ones a user will meet.
 

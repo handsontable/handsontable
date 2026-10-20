@@ -115,6 +115,14 @@ const ISO_DATE_FORMAT = compileDateFormat('YYYY-MM-DD');
  */
 function toDateFormats(dateFormats: unknown): CompiledDateFormat[] {
   if (!Array.isArray(dateFormats)) {
+    if (dateFormats !== undefined && dateFormats !== null) {
+      warnOnce(
+        WARNING_SCOPE,
+        'dateFormats:not-an-array',
+        'The dateFormats option is ignored: it takes an array of formats.'
+      );
+    }
+
     return [];
   }
 
@@ -138,17 +146,27 @@ function toDateFormats(dateFormats: unknown): CompiledDateFormat[] {
 /**
  * Reads one side of the `booleanValues` option into its non-blank words.
  */
-function toWords(words: unknown): string[] {
-  return Array.isArray(words)
-    ? words.filter((word): word is string => typeof word === 'string' && word.trim() !== '')
-    : [];
+function toWords(words: unknown, side: string): string[] {
+  if (!Array.isArray(words)) {
+    if (words !== undefined && words !== null) {
+      warnOnce(
+        WARNING_SCOPE,
+        `booleanValues:${side}`,
+        `The booleanValues.${side} option is ignored: it takes an array of words.`
+      );
+    }
+
+    return [];
+  }
+
+  return words.filter((word): word is string => typeof word === 'string' && word.trim() !== '');
 }
 
 /**
  * Reads the `booleanValues` option, or returns `null` when it lists no word.
  */
 function toBooleanValues(booleanValues: InferColumnTypesOptions['booleanValues'] | null): BooleanValues | null {
-  const words = { true: toWords(booleanValues?.true), false: toWords(booleanValues?.false) };
+  const words = { true: toWords(booleanValues?.true, 'true'), false: toWords(booleanValues?.false, 'false') };
 
   return words.true.length > 0 || words.false.length > 0 ? words : null;
 }

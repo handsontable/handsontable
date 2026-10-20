@@ -49,7 +49,8 @@ export interface InferColumnTypesOptions {
    * and the earlier one in the list on a tie. A value the format does not match is still read as an
    * ISO date, and only in the form `2026-03-12`. Whole numbers are read too (`20260312` with
    * `YYYYMMDD`), padded back to the width of a fixed-width format (`1032026` is `01032026` for
-   * `DDMMYYYY`). A column that reads both as a date and as a number becomes a date.
+   * `DDMMYYYY`), and not read at all when the year is below 1000, since `101` is a quantity far more
+   * often than the year 1. A column that reads both as a date and as a number becomes a date.
    * Defaults to none, which reads the built-in year-last dates in the order the data or the
    * `locale` settles.
    */
@@ -57,7 +58,8 @@ export interface InferColumnTypesOptions {
   /**
    * Words a `checkbox` column reads as `true` and as `false`, besides `true` and `false`
    * themselves, for example `{ true: ['yes', 'tak'], false: ['no', 'nie'] }`. Words are compared
-   * trimmed and in any case, and a number cell is compared as its text, so listed `1` and `0` read
+   * trimmed and in any case (the Turkish dotted and dotless `i` count as one letter, so `HAYIR`
+   * matches a listed `hayır`), and a number cell is compared as its text, so listed `1` and `0` read
    * the numbers `1` and `0`. A word listed on both sides reads as neither. Defaults to none.
    */
   booleanValues?: { true?: ReadonlyArray<string>; false?: ReadonlyArray<string> };
