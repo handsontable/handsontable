@@ -7,13 +7,17 @@ import {
   isGroupedBody,
   isNumberBody,
   readDate,
+  readSplitDateTime,
   readSplitNumber,
   readTime,
+  splitDateTime,
   splitNumberParts,
   splitYearLastDate,
   type BooleanValues,
   type CompiledDateFormat,
   type DateReading,
+  type DateTimeParts,
+  type DateTimeReading,
   type NumberMode,
   type NumberParts,
 } from './values';
@@ -295,14 +299,13 @@ function toDateSettings(readings: DateReading[]): DetectedColumn['settings'] {
 }
 
 /**
- * Detects date columns with the `dateFormats` formats: the column takes the format that reads the
- * most values, the earlier one on a tie, and ISO dates are read alongside. The format is recorded
- * even when no sampled value needs it, so rows past the sample convert with it.
+ * Picks the listed format that reads the most values, the earlier one on a tie. `readAll` returns what a
+ * format reads of the column.
  */
-function detectListedDate(values: unknown[], formats: CompiledDateFormat[]): Detection {
-  const readAll = (candidate: CompiledDateFormat) => values
-    .map(value => readDate(value, 'MDY', candidate))
-    .filter(reading => reading !== null);
+function pickDateFormat<T>(
+  formats: CompiledDateFormat[],
+  readAll: (format: CompiledDateFormat) => T[]
+): { format: CompiledDateFormat; readings: T[] } {
   let [format] = formats;
   let readings = readAll(format);
 
@@ -314,6 +317,20 @@ function detectListedDate(values: unknown[], formats: CompiledDateFormat[]): Det
       readings = candidateReadings;
     }
   });
+
+  return { format, readings };
+}
+
+/**
+ * Detects date columns with the `dateFormats` formats: the column takes the format that reads the
+ * most values, the earlier one on a tie, and ISO dates are read alongside. The format is recorded
+ * even when no sampled value needs it, so rows past the sample convert with it.
+ */
+function detectListedDate(values: unknown[], formats: CompiledDateFormat[]): Detection {
+  const { format, readings } = pickDateFormat(
+    formats,
+    candidate => values.map(value => readDate(value, 'MDY', candidate)).filter(reading => reading !== null)
+  );
 
   return {
     column: { settings: toDateSettings(readings), inputFormat: { dateFormat: format.pattern } },
@@ -346,6 +363,98 @@ function detectDate(values: unknown[], context: DetectionContext): Detection | n
     },
     matched: readings.length,
     certainty: hasYearLast && voted === null ? LOCALE_ORDER_CERTAINTY : 1,
+  };
+}
+
+/**
+ * Builds the `Intl.DateTimeFormatOptions` of a date-time column. The written values decide it: a `Date`
+ * says nothing about how the column is written. A column of `Date` objects only takes the defaults,
+ * with seconds when one of them has any.
+ */
+function toDateTimeFormat(readings: DateTimeReading[]): Intl.DateTimeFormatOptions {
+  const written = readings.flatMap(reading => (reading.written ? [reading.written] : []));
+  const hour12 = written.some(reading => reading.hour12);
+  const hasSeconds = written.length > 0
+    ? written.some(reading => reading.hasSeconds)
+    : readings.some(reading => reading.hasDateSeconds);
+
+  return {
+    year: 'numeric',
+    month: written.every(reading => reading.paddedMonth) ? '2-digit' : 'numeric',
+    day: written.every(reading => reading.paddedDay) ? '2-digit' : 'numeric',
+    hour: hour12 ? 'numeric' : '2-digit',
+    minute: '2-digit',
+    ...(hasSeconds ? { second: '2-digit' } : {}),
+    hour12,
+  };
+}
+
+/**
+ * Detects date-time columns with the `dateFormats` formats: the date part is read with the listed format
+ * that reads the most values, as `detectListedDate` picks it, and the locale votes on nothing. The format
+ * is recorded for the converter.
+ */
+function detectListedDateTime(
+  split: Array<{ value: unknown; parts: DateTimeParts | null }>,
+  formats: CompiledDateFormat[]
+): Detection | null {
+  const { format, readings } = pickDateFormat(
+    formats,
+    candidate => split
+      .map(({ value, parts }) => readSplitDateTime(value, parts, 'MDY', candidate))
+      .filter(reading => reading !== null)
+  );
+
+  if (!readings.some(reading => reading.hasTime)) {
+    return null;
+  }
+
+  return {
+    column: {
+      settings: { type: 'intl-datetime', dateTimeFormat: toDateTimeFormat(readings) },
+      inputFormat: { dateFormat: format.pattern },
+    },
+    matched: readings.length,
+    certainty: 1,
+  };
+}
+
+/**
+ * Detects date-time columns: a date as `detectDate` reads it followed by a time as `detectTime` reads
+ * it, and `Date` objects. A date without a time is read too, as midnight, because the `intl-datetime`
+ * type stores both, so a column of dates and date-times settles by share. A column with no time at all
+ * is left to `detectDate`. Each value is split once. The day and month order is voted on the date parts
+ * of the values whose time part reads, so a value the column cannot read casts no vote.
+ */
+function detectDateTime(values: unknown[], context: DetectionContext): Detection | null {
+  const split = values.map(value => ({ value, parts: splitDateTime(value) }));
+
+  if (!split.some(({ value, parts }) => value instanceof Date || (parts !== null && parts.time !== null))) {
+    return null;
+  }
+
+  if (context.dateFormats.length > 0) {
+    return detectListedDateTime(split, context.dateFormats);
+  }
+
+  const yearLastParts = split
+    .map(({ parts }) => (parts && (parts.time === null || readTime(parts.time)) ? splitYearLastDate(parts.date) : null))
+    .filter(parts => parts !== null);
+  const voted = voteDateOrder(yearLastParts);
+  const dateOrder = voted ?? context.localeDateOrder;
+  const readings = split.map(({ value, parts }) => readSplitDateTime(value, parts, dateOrder))
+    .filter(reading => reading !== null);
+
+  if (!readings.some(reading => reading.hasTime)) {
+    return null;
+  }
+
+  const dateTimeFormat = toDateTimeFormat(readings);
+
+  return {
+    column: { settings: { type: 'intl-datetime', dateTimeFormat }, inputFormat: { dateOrder } },
+    matched: readings.length,
+    certainty: yearLastParts.length > 0 && voted === null ? LOCALE_ORDER_CERTAINTY : 1,
   };
 }
 
@@ -410,6 +519,7 @@ export const DETECTORS: Detector[] = [
   detectCheckbox,
   detectNumeric,
   detectDate,
+  detectDateTime,
   detectTime,
   detectDropdown,
 ];

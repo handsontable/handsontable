@@ -132,7 +132,9 @@ jobs:
   # for one sprint (the DEV-2860 report's decision): their pass rate against a
   # live preview has never been measured, so `continue-on-error` keeps them
   # from blocking merges while it is. Flip it off after a sprint of green runs;
-  # the outcome line in the job summary is what to read until then.
+  # the outcome line in the job summary is what to read until then. The one
+  # thing that does block is a run that collected no test at all - see the
+  # job's last step.
   functional:
     name: functional
     runs-on: ubuntu-26.04
@@ -158,9 +160,15 @@ jobs:
         if: ${{ !cancelled() }}
         env:
           OUTCOME: ${{ steps.functional.outcome }}
+          REPORT: ./docs/tests/test-artifacts/report.json
         run: |
           if [ "$OUTCOME" = "success" ]; then result=passed; else result=failed; fi
-          echo "Docs functional specs: $result — report-only for one sprint; see docs/AGENTS.md" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$REPORT" ]; then
+            counts=$(jq -r '.stats | "\(.expected) passed, \(.unexpected) failed, \(.flaky) flaky, \(.skipped) skipped"' "$REPORT")
+          else
+            counts="no report"
+          fi
+          echo "Docs functional specs: $result ($counts) — report-only for one sprint; see docs/AGENTS.md" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload the functional report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
@@ -169,6 +177,24 @@ jobs:
           path: ./docs/tests/test-artifacts/results
           retention-days: 7
           overwrite: true
+      # Report-only covers a spec that fails, not a run that never started. A spec
+      # file that throws on import aborts the whole collection, Playwright then
+      # reports 0 tests, and the step above reads "failed" like any red spec - which
+      # is how every run of this job collected nothing for weeks (the `node:test`
+      # files under docs/tests/lib/__tests__ were imported as specs). So the job
+      # itself fails, and blocks the merge, when the run has no test that ran.
+      # Only the count is read: a load error always shows as a 0 count, while an
+      # error outside a test in a run that did run its specs (a worker teardown
+      # timeout, say) stays report-only like a failing spec. Unlike the seed's fast
+      # check in docs-visual-run, a skipped test is fine here. Last, so the report
+      # is uploaded either way.
+      - name: Check that the functional specs ran
+        if: ${{ !cancelled() }}
+        working-directory: ./docs
+        run: |
+          jq -e '(.stats.expected + .stats.unexpected + .stats.flaky) > 0' \
+            ./tests/test-artifacts/report.json > /dev/null \
+            || { echo "::error::The functional docs specs did not run: the report holds no test that ran (a spec that fails to load aborts the whole run). Read the docs-functional-report artifact."; exit 1; }
 
   # Opt-in through the `run-docs-visual` label in this PR: 441 full-page
   # captures per run. Drop the label gate once the R2 baseline has proven
