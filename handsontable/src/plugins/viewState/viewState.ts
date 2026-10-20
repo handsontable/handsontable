@@ -136,8 +136,11 @@ export class ViewState extends BasePlugin {
    *
    * The sort, the filters, the hidden columns, and the column widths can also name a column by the
    * property its data is bound to, for example `{ column: 'amount', sortOrder: 'desc' }` or
-   * `hiddenColumns: ['address.city']`. A property no column has is reported as `invalid`. A property
-   * that two columns share names the last of them. `getViewState()` always reports physical indexes.
+   * `hiddenColumns: ['address.city']`. A property no column has is reported as `invalid`, and a property
+   * of a column the grid does not show (a trimming map removed it, or it lies past `maxCols`) as
+   * `outOfRange`, the same answer as for the column's index. A property that two columns share names the
+   * last of them. A string is always read as a property, so `'2'` from a URL is not the index `2`.
+   * `getViewState()` always reports physical indexes.
    * The sort columns are physical too, unlike the visual ones that `getSortConfig()` of the sorting
    * plugins reports: convert those with {@link Core#toPhysicalColumn} before you pass them here.
    *
@@ -150,10 +153,11 @@ export class ViewState extends BasePlugin {
    * (`externalDataSource`), a stored row or column order no longer matches the number of rows or
    * columns (`sizeMismatch`), the selection does not fit the grid (`outOfRange`), or the value is
    * wrong (`invalid`): for example a row order that does not name every row exactly once, a column
-   * property no column has, more than one sort column without `MultiColumnSorting`, a filter condition
-   * that is not registered on the page or cannot take its arguments, or a key that is not a part of the
-   * view state at all. A hidden or trimmed index, a sort column, a size, or a scroll position past the
-   * end of the grid is `outOfRange`. With another `version`, every part is skipped as
+   * property no column has, one column named twice in `sort` or `columnWidths`, more than one sort column
+   * without `MultiColumnSorting`, a filter condition that is not registered on the page or cannot take
+   * its arguments, or a key that is not a part of the view state at all. A hidden or trimmed index, a
+   * sort column, a size, or a scroll position past the end of the grid is `outOfRange`, and so is a
+   * column, by index or by property, that the grid does not show. With another `version`, every part is skipped as
    * `unsupportedVersion`, next to the `error`.
    *
    * A value that is not an object, such as the `null` that `JSON.parse(localStorage.getItem('my-view'))`
@@ -206,7 +210,8 @@ export class ViewState extends BasePlugin {
    * Checks a view state against the grid, without applying anything. The answer is the one
    * {@link ViewState#setViewState} acts on: which parts it would apply, and for each part it would skip,
    * the `{ part, reason, path, message }` entry that says why. Use it to give a stored or generated
-   * state a second chance before it reaches the grid.
+   * state a second chance before it reaches the grid. It takes the same input, column properties
+   * included, and resolves them the same way.
    *
    * ```js
    * const { valid, skipped } = hot.getPlugin('viewState').validateViewState(generatedState);

@@ -143,13 +143,13 @@ The view state does not depend on your data, but it does depend on its shape. Re
 |---|---|---|---|
 | `columnOrder` | Physical column indexes in their visual order | Physical | None |
 | `rowOrder` | Physical row indexes in their visual order | Physical | None |
-| `sort` | `columns`: a list of `{ column, sortOrder }`, where `sortOrder` is `'asc'` or `'desc'`. More than one column needs `MultiColumnSorting` | Physical, or a column property | [`ColumnSorting`](@/api/columnSorting.md) or [`MultiColumnSorting`](@/api/multiColumnSorting.md) |
-| `filters` | The filter conditions, in the shape that [`exportConditions()`](@/api/filters.md#exportconditions) returns | Physical columns, or column properties | [`Filters`](@/api/filters.md) |
+| `sort` | `columns`: a list of `{ column, sortOrder }`, where `sortOrder` is `'asc'` or `'desc'`. More than one column needs `MultiColumnSorting` | Physical (a column property on input) | [`ColumnSorting`](@/api/columnSorting.md) or [`MultiColumnSorting`](@/api/multiColumnSorting.md) |
+| `filters` | The filter conditions, in the shape that [`exportConditions()`](@/api/filters.md#exportconditions) returns | Physical (column properties on input) | [`Filters`](@/api/filters.md) |
 | `hiddenRows` | Hidden row indexes | Physical | [`HiddenRows`](@/api/hiddenRows.md) |
-| `hiddenColumns` | Hidden column indexes | Physical, or column properties | [`HiddenColumns`](@/api/hiddenColumns.md) |
+| `hiddenColumns` | Hidden column indexes | Physical (column properties on input) | [`HiddenColumns`](@/api/hiddenColumns.md) |
 | `trimmedRows` | Trimmed row indexes | Physical | [`TrimRows`](@/api/trimRows.md) |
 | `collapsedRows` | The collapsed parent rows, each as its path in the row tree | Tree paths | [`NestedRows`](@/api/nestedRows.md) |
-| `columnWidths` | Manual column widths, as `[physicalColumn, width]` pairs | Physical, or column properties | [`ManualColumnResize`](@/api/manualColumnResize.md) |
+| `columnWidths` | Manual column widths, as `[physicalColumn, width]` pairs | Physical (column properties on input) | [`ManualColumnResize`](@/api/manualColumnResize.md) |
 | `rowHeights` | Manual row heights, as `[physicalRow, height]` pairs | Physical | [`ManualRowResize`](@/api/manualRowResize.md) |
 | `frozen` | `rowsTop`, `rowsBottom`, `columnsStart`, and `columnsEnd` | Counts | None |
 | `pagination` | `page` and `pageSize` | Page number | [`Pagination`](@/api/pagination.md) |
@@ -188,7 +188,7 @@ hot.getPlugin('viewState').setViewState({
 });
 ```
 
-A property that no column has is reported as `invalid`, with the path to it, and a property of a column the grid does not show as `outOfRange`. If two columns share a property, it names the last of them. `getViewState()` always reports physical indexes.
+A property that no column has is reported as `invalid`, with the path to it. A column the grid does not show, because a trimming map removed it or it lies past [`maxCols`](@/api/options.md#maxcols), is reported as `outOfRange`, whether you name it by property or by index. If two columns share a property, it names the last of them, and naming one column twice in `sort` or `columnWidths` (`'amount'` and `2`, say) is `invalid`. A string is always read as a property: `'2'`, as a URL query string gives it, is not the index `2`. `getViewState()` always reports physical indexes.
 
 You can also build a view by hand, or merge parts from different sources:
 
@@ -249,8 +249,8 @@ console.log(skipped);
 | `pluginConflict` | The part would break a plugin that is on. Frozen rows would run next to [`Pagination`](@/api/pagination.md), which cannot work with them. |
 | `externalDataSource` | The grid uses a `dataProvider`, which owns the page and what depends on it: the sort, the filters, the pagination, the row order, the hidden, trimmed, and collapsed rows, the row heights, and the selection. |
 | `sizeMismatch` | The stored row or column order has a different length than the grid has rows or columns now. |
-| `outOfRange` | The stored selection does not fit the grid, or a hidden or trimmed index, a sort column, a size, or the scroll position lies past the end of its axis. |
-| `invalid` | The part does not have the expected shape, or names something this grid does not have: a row order that does not list every row exactly once, a column property that no column has, a filter condition that is not registered on the page or cannot take its arguments, or a key that is not a part of the view state at all (a misspelled `hiddenColumn`, say). |
+| `outOfRange` | The stored selection does not fit the grid, a hidden or trimmed index, a sort column, a size, or the scroll position lies past the end of its axis, or a column, named by index or by property, is one the grid does not show (a trimming map removed it, or it lies past `maxCols`). |
+| `invalid` | The part does not have the expected shape, or names something this grid does not have: a row order that does not list every row exactly once, a column property that no column has, one column named twice in `sort` or `columnWidths`, a filter condition that is not registered on the page or cannot take its arguments, or a key that is not a part of the view state at all (a misspelled `hiddenColumn`, say). |
 | `unsupportedVersion` | The object has a `version` this build does not read. Every part is skipped with this reason, next to the `error`. |
 
 The filter conditions are checked before the Filters plugin sees them. The plugin clears its current conditions before it imports new ones and throws on one it cannot take, so a bad condition would otherwise leave the grid with no filters. A bad condition is skipped instead, and the current filters stay.

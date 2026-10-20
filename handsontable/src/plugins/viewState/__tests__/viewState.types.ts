@@ -74,6 +74,14 @@ reportedHidden?.length === 0;
 reportedSort === 0;
 roundTrip.version === 1;
 
+// @ts-expect-error a hidden column is an index or a property
+viewStatePlugin.setViewState({ version: 1, hiddenColumns: [true] });
+// @ts-expect-error a sort column is an index or a property
+viewStatePlugin.setViewState({ version: 1, sort: { columns: [{ column: null, sortOrder: 'asc' }] } });
+// @ts-expect-error a column width is keyed by an index or a property
+viewStatePlugin.setViewState({ version: 1, columnWidths: [[{}, 80]] });
+// @ts-expect-error a filter entry names its column by an index or a property
+viewStatePlugin.setViewState({ version: 1, filters: [{ column: false, operation: 'conjunction', conditions: [] }] });
 // @ts-expect-error a row is named by its physical index only
 viewStatePlugin.setViewState({ version: 1, hiddenRows: ['name'] });
 // @ts-expect-error a row height is keyed by its physical row only

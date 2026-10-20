@@ -61,7 +61,9 @@ export interface GridViewStateSortColumn {
 
 /**
  * A column a {@link GridViewStateInput} names: its physical index, or the property its data is bound to
- * (a `columns[].data` string, or a key of the row objects, such as `'address.city'`).
+ * (a `columns[].data` string, or a key of the row objects, such as `'address.city'`). A string is always
+ * read as a property, so a numeric string such as `'2'` (as a URL or a JSON source may give it) is not
+ * the index `2`, and on a grid over arrays it is reported as `invalid`.
  */
 export type GridViewStateColumnKey = number | string;
 
@@ -595,8 +597,61 @@ function describeRange(
   const count = axis === 'row' ? hot.rowIndexMapper.getNumberOfIndexes() : hot.columnIndexMapper.getNumberOfIndexes();
   const bad = indexes.findIndex(index => index >= count);
 
-  return bad === -1 ? null : fail('outOfRange', `${path}[${bad}]`,
-    `${path}[${bad}] is ${indexes[bad]}, and the grid has ${count} ${axis}s`);
+  if (bad !== -1) {
+    return fail('outOfRange', `${path}[${bad}]`,
+      `${path}[${bad}] is ${indexes[bad]}, and the grid has ${count} ${axis}s`);
+  }
+
+  return axis === 'column' ? describeShownColumns(hot, path, indexes) : null;
+}
+
+/**
+ * Describes a physical column the grid does not show, or returns `null`: a trimming map removed it, or it
+ * lies past `maxCols`. The restore reaches the hiding and sorting plugins through visual indexes, where
+ * such a column would be dropped without a word, and its property does not resolve either, so a column
+ * gets the same answer by index and by property.
+ */
+function describeShownColumn(hot: HotInstance, path: string, column: number): Failure | null {
+  const visualColumn = hot.toVisualColumn(column);
+
+  return visualColumn === null || visualColumn >= hot.countCols() ?
+    fail('outOfRange', path, `${path} is ${column}, a column the grid does not show`) : null;
+}
+
+/**
+ * Describes the first column of a list that the grid does not show, see {@link describeShownColumn}.
+ */
+function describeShownColumns(hot: HotInstance, path: string, columns: number[]): Failure | null {
+  for (let index = 0; index < columns.length; index++) {
+    const failure = describeShownColumn(hot, `${path}[${index}]`, columns[index]);
+
+    if (failure) {
+      return failure;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Describes the first entry of a list that names a column an earlier entry names. With column properties
+ * a duplicate is easy to write by mistake (`'amount'` and `2` for one column), and the restore would keep
+ * the last one without a word.
+ */
+function describeDuplicateColumn(columns: unknown[], pathOf: (index: number) => string): Failure | null {
+  const firstIndexes = new Map<unknown, number>();
+
+  for (let index = 0; index < columns.length; index++) {
+    const earlier = firstIndexes.get(columns[index]);
+
+    if (earlier !== undefined) {
+      return fail('invalid', pathOf(index), `${pathOf(index)} names the same column as ${pathOf(earlier)}`);
+    }
+
+    firstIndexes.set(columns[index], index);
+  }
+
+  return null;
 }
 
 /**
@@ -614,7 +669,14 @@ function describeIndexRange(hot: HotInstance, part: GridViewStatePart, indexes: 
  * Describes a size entry whose index is past the end of its axis.
  */
 function describeSizeRange(hot: HotInstance, part: GridViewStatePart, pairs: Array<[number, number]>): Failure | null {
-  return describeRange(hot, part, pairs.map(([index]) => index), part === 'rowHeights' ? 'row' : 'column');
+  const indexes = pairs.map(([index]) => index);
+
+  if (part === 'rowHeights') {
+    return describeRange(hot, part, indexes, 'row');
+  }
+
+  return describeRange(hot, part, indexes, 'column') ??
+    describeDuplicateColumn(indexes, index => `${part}[${index}]`);
 }
 
 /**
@@ -632,6 +694,30 @@ function describeSizePairs(path: string, value: unknown): Failure | null {
     `${path}[${bad}]`,
     `${path}[${bad}] must be [index, size] with a non-negative index and a positive size`,
   );
+}
+
+/**
+ * Describes the first filter entry on a column the grid does not show, see {@link describeShownColumn}. An
+ * entry whose column is not an index of this grid is left to the Filters plugin to describe.
+ */
+function describeFilterColumns(hot: HotInstance, value: unknown): Failure | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const columnCount = hot.columnIndexMapper.getNumberOfIndexes();
+
+  for (let index = 0; index < value.length; index++) {
+    const column = isPlainObject(value[index]) ? (value[index] as Record<string, unknown>).column : undefined;
+    const failure = isInteger(column) && column >= 0 && column < columnCount ?
+      describeShownColumn(hot, `filters[${index}].column`, column) : null;
+
+    if (failure) {
+      return failure;
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -725,10 +811,23 @@ function resolveColumnKey(hot: HotInstance, key: string, path: string): number |
   }
 
   if (!isInteger(column)) {
-    return fail('invalid', path, `${path} is '${key}', and no column of this grid has that property`);
+    return isDeclaredColumn(hot, key) ?
+      fail('outOfRange', path, `${path} is '${key}', a column the grid does not show`) :
+      fail('invalid', path, `${path} is '${key}', and no column of this grid has that property`);
   }
 
   return hot.toPhysicalColumn(column);
+}
+
+/**
+ * Whether a `columns` array declares a column bound to a property. The grid builds no column past `maxCols`,
+ * so `propToCol()` does not know that property, though the index of the same column is out of range, not
+ * unknown.
+ */
+function isDeclaredColumn(hot: HotInstance, key: string): boolean {
+  const { columns } = hot.getSettings();
+
+  return Array.isArray(columns) && columns.some(column => isPlainObject(column) && column.data === key);
 }
 
 /**
@@ -781,10 +880,10 @@ function describeSortColumn(hot: HotInstance, entry: Record<string, unknown> | n
     return fail('outOfRange', `${at}.column`, `${at}.column is ${column}, and the grid has ${columnCount} columns`);
   }
 
-  const visualColumn = hot.toVisualColumn(column);
+  const hidden = describeShownColumn(hot, `${at}.column`, column);
 
-  if (visualColumn === null || visualColumn >= hot.countCols()) {
-    return fail('outOfRange', `${at}.column`, `${at}.column is ${column}, a column the grid does not show`);
+  if (hidden) {
+    return hidden;
   }
 
   if (entry.sortOrder !== 'asc' && entry.sortOrder !== 'desc') {
@@ -812,27 +911,18 @@ function describeSort(hot: HotInstance, value: unknown): Failure | null {
     return fail('invalid', 'sort.columns', 'more than one sort column needs the MultiColumnSorting plugin');
   }
 
-  const seen = new Set<unknown>();
-
   for (let index = 0; index < columns.length; index++) {
-    const entry = columns[index] as Record<string, unknown> | null;
-    const at = `sort.columns[${index}]`;
-    const failure = describeSortColumn(hot, entry, at);
+    const failure = describeSortColumn(hot, columns[index] as Record<string, unknown> | null, `sort.columns[${index}]`);
 
     if (failure) {
       return failure;
     }
-
-    const { column } = entry as Record<string, unknown>;
-
-    if (seen.has(column)) {
-      return fail('invalid', `${at}.column`, `column ${column} is sorted more than once`);
-    }
-
-    seen.add(column);
   }
 
-  return null;
+  return describeDuplicateColumn(
+    columns.map(entry => (entry as Record<string, unknown>).column),
+    index => `sort.columns[${index}].column`,
+  );
 }
 
 /**
@@ -891,7 +981,7 @@ function writePart(
   }
 
   if (part === 'filters') {
-    const failure = describeFilters(hot, value);
+    const failure = describeFilterColumns(hot, value) ?? describeFilters(hot, value);
 
     if (!failure) {
       state.filterConditions = toPlainData(value as ColumnConditions[]);

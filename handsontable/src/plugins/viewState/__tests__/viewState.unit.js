@@ -1874,7 +1874,7 @@ describe('ViewState plugin', () => {
         part: 'sort',
         reason: 'invalid',
         path: 'sort.columns[1].column',
-        message: 'column 1 is sorted more than once',
+        message: 'sort.columns[1].column names the same column as sort.columns[0].column',
       }]);
     });
 
@@ -1906,6 +1906,74 @@ describe('ViewState plugin', () => {
         reason: 'outOfRange',
         path: 'hiddenColumns[0]',
         message: 'hiddenColumns[0] is \'name\', a column the grid does not show',
+      }]);
+    });
+
+    it('gives a column the grid does not show the same answer by index and by property', () => {
+      const hot = createBoundGrid();
+
+      hot.columnIndexMapper.createAndRegisterIndexMap('test', 'trimming', false).setValueAtIndex(1, true);
+
+      const reasons = state => brief(vs(hot).validateViewState({ version: 1, ...state }).skipped);
+      const condition = [{ name: 'eq', args: ['b'] }];
+
+      [['name'], [1]].forEach(([column]) => {
+        expect(reasons({ hiddenColumns: [column] })).toEqual([{ part: 'hiddenColumns', reason: 'outOfRange' }]);
+        expect(reasons({ columnWidths: [[column, 90]] })).toEqual([{ part: 'columnWidths', reason: 'outOfRange' }]);
+        expect(reasons({ filters: [{ column, operation: 'conjunction', conditions: condition }] }))
+          .toEqual([{ part: 'filters', reason: 'outOfRange' }]);
+        expect(reasons({ sort: { columns: [{ column, sortOrder: 'asc' }] } }))
+          .toEqual([{ part: 'sort', reason: 'outOfRange' }]);
+      });
+    });
+
+    it('reports a column past maxCols as out of range, by index and by property', () => {
+      const hot = createBoundGrid({ maxCols: 2 });
+      const { skipped } = vs(hot).validateViewState({
+        version: 1,
+        hiddenColumns: [2],
+        columnWidths: [['address.city', 90]],
+      });
+
+      expect(skipped).toEqual([
+        {
+          part: 'hiddenColumns',
+          reason: 'outOfRange',
+          path: 'hiddenColumns[0]',
+          message: 'hiddenColumns[0] is 2, a column the grid does not show',
+        },
+        {
+          part: 'columnWidths',
+          reason: 'outOfRange',
+          path: 'columnWidths[0]',
+          message: 'columnWidths[0] is \'address.city\', a column the grid does not show',
+        },
+      ]);
+    });
+
+    it.each([
+      ['columnWidths', [['address.city', 120], [2, 90]], 'columnWidths[1]', 'columnWidths[0]'],
+      ['sort', { columns: [{ column: 'name', sortOrder: 'asc' }, { column: 'name', sortOrder: 'desc' }] },
+        'sort.columns[1].column', 'sort.columns[0].column'],
+    ])('reports one column named twice in %s as invalid, by the paths the caller wrote', (part, value, path, first) => {
+      const hot = createBoundGrid({ columnSorting: false, multiColumnSorting: true });
+
+      expect(vs(hot).validateViewState({ version: 1, [part]: value }).skipped).toEqual([{
+        part,
+        reason: 'invalid',
+        path,
+        message: `${path} names the same column as ${first}`,
+      }]);
+    });
+
+    it('reads a numeric string as a property, not as an index', () => {
+      const hot = createGrid(ALL_PLUGINS);
+
+      expect(vs(hot).validateViewState({ version: 1, hiddenColumns: ['2'] }).skipped).toEqual([{
+        part: 'hiddenColumns',
+        reason: 'invalid',
+        path: 'hiddenColumns[0]',
+        message: 'hiddenColumns[0] is \'2\', and no column of this grid has that property',
       }]);
     });
 
