@@ -275,3 +275,34 @@ describe('captureCurrency without Intl.supportedValuesOf', () => {
     }
   });
 });
+
+describe('captureCurrency (review round 12)', () => {
+  it('should map the full-width yen sign in a locale token by its LCID, like the half-width one', () => {
+    expect(captureCurrency('[$￥-804]#,##0.00')).toEqual({ currency: 'CNY', rest: '#,##0.00' });
+    expect(captureCurrency('[$￥-411]#,##0').currency).toBe('JPY');
+    expect(captureCurrency('[$¥-804]#,##0').currency).toBe('CNY');
+  });
+
+  it('should read the symbol behind a leading color, condition-free locale or color index section', () => {
+    expect(captureCurrency('[Red]"$"#,##0.00').currency).toBe('USD');
+    expect(captureCurrency('[Color10]"€"#,##0.00').currency).toBe('EUR');
+    expect(captureCurrency('[$-409]"$"#,##0.00').currency).toBe('USD');
+    expect(captureCurrency('[Blue][$-409]#,##0.00"zł"').currency).toBe('PLN');
+  });
+
+  it('should keep the leading sections in the rest, so the pattern reads as before', () => {
+    expect(captureCurrency('[Red]"$"#,##0.00')).toEqual({ currency: 'USD', rest: '[Red]#,##0.00' });
+  });
+
+  it('should read an ISO code written as the symbol of a locale token', () => {
+    expect(captureCurrency('[$USD] #,##0.00')).toEqual({ currency: 'USD', rest: ' #,##0.00' });
+    expect(captureCurrency('#,##0.00 [$EUR]').currency).toBe('EUR');
+    expect(captureCurrency('[$ABC] #,##0.00').currency).toBeNull();
+  });
+
+  it('should leave a color or locale section without a currency as no currency', () => {
+    expect(captureCurrency('[Red]#,##0.00').currency).toBeNull();
+    expect(captureCurrency('[$-409]#,##0.00').currency).toBeNull();
+    expect(captureCurrency('[$-F800]dddd, mmmm dd, yyyy').currency).toBeNull();
+  });
+});

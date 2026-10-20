@@ -317,16 +317,24 @@ Other rules:
   in unquoted (`#,##0.00USD`, `CHF#,##0.00`), which Excel for the web REPAIRS and LibreOffice and
   Numbers drop. Only a lone `$` stays bare (Excel's own form). The import's
   `captureQuotedCurrency` (`importFile/numFmtCode.ts`) reads the quoted ISO code back, so the round
-  trip keeps the currency. A symbol SEVERAL currencies share (`kr`, `kr.`, halfwidth `¥`) is written
+  trip keeps the currency. A symbol SEVERAL currencies share (`kr`, `kr.`, halfwidth `¥`, fullwidth `￥`) is written
   as a locale token `[$<symbol>-<LCID>]` with the CURRENCY's home LCID, never the column locale's
   (en-US JPY must not get 409, or yen and yuan read the same): `[$kr-414]` NOK, `[$kr-41D]` SEK,
-  `[$kr.-406]` DKK, `[$kr.-40F]` ISK, `[$¥-411]` JPY, `[$¥-804]` CNY. The reader maps the LCID per
+  `[$kr.-406]` DKK, `[$kr.-40F]` ISK, `[$¥-411]` JPY, `[$¥-804]` CNY, `[$￥-411]` JPY (ja-JP renders the
+  fullwidth sign). The reader maps the LCID per
   symbol (`SHARED_SYMBOL_LCID_TO_CODE`), so an LCID never reassigns another symbol (`[$$-414]` stays USD).
   **The bare `$` is a shared symbol too** (review round 7): a dollar currency other than USD that
   `Intl` renders as `$` (en-AU AUD, en-CA/fr-CA CAD, en-NZ NZD, es-MX MXN, and the other entries of
   `SHARED_SYMBOL_CURRENCY_LCID`) is written `[$$-C09]`, `[$$-1009]`, … — Excel's own tokens — because a
-  bare `$` reads back as USD. USD stays bare; a dollar currency the table has no LCID for still writes
-  the bare `$` and re-imports as USD. This changed the string 18.1 wrote for those currencies.
+  bare `$` reads back as USD. USD stays bare. This changed the string 18.1 wrote for those currencies.
+  **Every other symbol is checked against the reader before it is written** (review round 12):
+  `intlNumFormatToExcelNumFmt` runs `captureCurrency` on the code it built, and when that does not
+  read back the same currency (`₪` ILS, `R` ZAR, `AU$` outside en-AU, `฿` THB, a bare `$` for a
+  dollar currency with no LCID) it writes the quoted ISO code instead (`#,##0.00"ILS"`). Excel then
+  shows the code, not the symbol, for those pairs only. Growing `CURRENCY_SYMBOL_TO_CODE` instead was
+  rejected: the table is shared with the raw-value inference (`utils/columnTypeInference/`), where `R`
+  would turn `R 100` into ZAR. `inference.unit.js` ("currency round trip") checks every
+  `Intl.supportedValuesOf('currency')` code under 24 locales.
   **DKK keeps Excel's `[$kr.-406]`, period included**, although macOS Quick Look renders that token as
   `PLN` (`[$kr-406]` renders correctly there): Quick Look is the outlier, not Excel. Do not "fix" it
   without checking Numbers and Excel; the reader maps both spellings.

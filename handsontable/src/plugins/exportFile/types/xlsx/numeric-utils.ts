@@ -1,4 +1,4 @@
-import { sharedSymbolLcid } from '../../../../utils/xlsxEngine/numFmtCode';
+import { captureCurrency, sharedSymbolLcid } from '../../../../utils/xlsxEngine/numFmtCode';
 
 /**
  * The most integer digits `Intl.NumberFormat` accepts in `minimumIntegerDigits`.
@@ -116,8 +116,8 @@ export function intlNumFormatToExcelNumFmt(
     // yuan, and a bare `$` for a dollar currency other than the US dollar) is written as Excel's
     // locale token with the currency's home LCID (`[$kr-414]`, `[$$-C09]` for AUD): Excel shows the
     // symbol, and the import reads the LCID back to the right currency (`captureCurrency`). A bare
-    // `$` reads back as the US dollar, so writing it for AUD changed the column's currency. A dollar
-    // currency `sharedSymbolLcid` has no LCID for still writes the bare `$`.
+    // `$` reads back as the US dollar, so writing it for AUD changed the column's currency. Any symbol
+    // that still reads back as another currency, or as none, is replaced by the quoted ISO code below.
     const lcid = sharedSymbolLcid(rawSymbol, currency);
     let symbol = rawSymbol === '$' ? rawSymbol : `"${rawSymbol.replaceAll('"', '')}"`;
 
@@ -128,7 +128,15 @@ export function intlNumFormatToExcelNumFmt(
     // @TODO: handle locale-specific spacing between symbol and number
     // (e.g. non-breaking space in fr-FR). Excel numFmt requires "\ " for a
     // literal space, which varies per locale and is left for a follow-up.
-    return isPrefix ? `${symbol}${intPart}${decimalPart}` : `${intPart}${decimalPart}${symbol}`;
+    const withSymbol = (text: string) => (
+      isPrefix ? `${text}${intPart}${decimalPart}` : `${intPart}${decimalPart}${text}`
+    );
+    const numFmt = withSymbol(symbol);
+
+    // A symbol the import cannot map back (`\u20AA` for ILS, `R` for ZAR, `AU$` outside `en-AU`, a bare
+    // `$` for a dollar currency with no LCID) re-imported as a plain number or as the US dollar. The
+    // quoted ISO code reads back as the currency itself; Excel then shows the code, not the symbol.
+    return captureCurrency(numFmt).currency === currency ? numFmt : withSymbol(`"${currency}"`);
   }
 
   return `${intPart}${decimalPart}`;

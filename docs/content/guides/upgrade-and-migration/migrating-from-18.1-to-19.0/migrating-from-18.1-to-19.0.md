@@ -2049,7 +2049,9 @@ krona or `[$¥-411]#,##0.00` for the yen. A file 18.1 wrote for a Norwegian kron
 Swedish krona. A currency other than the US dollar that shows as `$`, such as the Australian,
 Canadian, or New Zealand dollar or the Mexican peso, is now written with the token of its home locale,
 such as `[$$-C09]#,##0.00` for the Australian dollar. In 18.1, it was written as a bare `$`, which imports
-as the US dollar. A `minimumIntegerDigits` value is now written as that many zeros, such as `00000`.
+as the US dollar. A symbol that would import as another currency, or as none, such as `₪` for the Israeli
+new shekel or `R` for the South African rand, is now written as the quoted ISO 4217 code, such as
+`#,##0.00"ILS"`, so the column keeps its currency on import. A `minimumIntegerDigits` value is now written as that many zeros, such as `00000`.
 In 18.1, it was dropped and the zeros were lost. This applies to both engines.
 
 What to do: nothing, unless a tool reads the raw number format. Such a tool sees the quotes now.

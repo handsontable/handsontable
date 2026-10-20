@@ -204,7 +204,7 @@ The export covers the selected range, or the whole grid when a single cell is se
 
 | Cell type | In the file |
 |---|---|
-| `numeric` | A number, with a number format built from `numericFormat`: currency symbols in quotes (a lone `$` as it is, and a symbol several currencies share as an Excel locale token such as `[$kr-414]`), `minimumIntegerDigits` as leading zeros. |
+| `numeric` | A number, with a number format built from `numericFormat`: currency symbols in quotes (a lone `$` as it is, and a symbol several currencies share as an Excel locale token such as `[$kr-414]`), or the quoted ISO 4217 code, such as `"ILS"`, where the symbol would not import as the same currency, `minimumIntegerDigits` as leading zeros. |
 | `date`, `intl-date` | A date serial, with a format built from `dateFormat` and the cell's [`locale`](@/api/options.md#locale). A date before 1900, a date that does not exist, and a value that is not an ISO 8601 `YYYY-MM-DD` string are written as text. |
 | `time`, `intl-time` | A time serial. The clock follows `hour12`, or the locale when `hour12` is not set. |
 | `intl-datetime` | A date-time serial, with a format built from `dateTimeFormat`. |

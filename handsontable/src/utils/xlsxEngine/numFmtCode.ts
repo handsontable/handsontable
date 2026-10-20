@@ -38,6 +38,9 @@ const SHARED_SYMBOL_LCID_TO_CODE: Record<string, Record<number, string>> = {
   // eslint-disable-next-line quote-props
   'kr.': { 0x414: 'NOK', 0x814: 'NOK', 0x41D: 'SEK', 0x81D: 'SEK', 0x406: 'DKK', 0x40F: 'ISK' },
   '\u00A5': { 0x411: 'JPY', 0x804: 'CNY' },
+  // The full-width yen sign, which `Intl` renders for the yen under `ja-JP`. Without its own row a
+  // `[$\uFFE5-804]` token fell through to the symbol table, which reads it as JPY.
+  '\uFFE5': { 0x411: 'JPY', 0x804: 'CNY' },
   $: {
     0xC09: 'AUD',
     0x1009: 'CAD',
@@ -530,12 +533,73 @@ export function isGeneralFormatCode(numFmt: string | null): boolean {
  * @returns {CurrencyCapture}
  */
 export function captureCurrency(numFmt: string): CurrencyCapture {
+  const prefixEnd = leadingDecorationsEnd(numFmt);
+
+  if (prefixEnd === 0) {
+    return captureCurrencyIn(numFmt);
+  }
+
+  const prefix = numFmt.slice(0, prefixEnd);
+  const { currency, rest } = captureCurrencyIn(numFmt.slice(prefixEnd));
+
+  return { currency, rest: `${prefix}${rest}` };
+}
+
+/**
+ * Returns the index just past the bracket sections a number format opens with that carry no currency
+ * symbol: a color (`[Red]`, `[Color10]`) or a locale token without a symbol (`[$-409]`). They hid the
+ * symbol behind them, so `[Red]"$"#,##0.00` read as a plain number. A section with a symbol
+ * (`[$USD]`) ends the run, and so does an unterminated one. Walked by index, so the scan is linear.
+ *
+ * @param {string} numFmt The number format code.
+ * @returns {number}
+ */
+function leadingDecorationsEnd(numFmt: string): number {
+  let end = 0;
+
+  while (numFmt[end] === '[') {
+    const close = numFmt.indexOf(']', end);
+
+    if (close === -1) {
+      return end;
+    }
+
+    const inner = numFmt.slice(end + 1, close);
+
+    if (inner.startsWith('$') && inner.slice(1).split('-')[0].trim() !== '') {
+      return end;
+    }
+
+    end = close + 1;
+  }
+
+  return end;
+}
+
+/**
+ * Captures the currency of a number format whose leading color and locale sections are already set
+ * aside. See {@link captureCurrency}.
+ *
+ * @param {string} numFmt The number format code.
+ * @returns {CurrencyCapture}
+ */
+function captureCurrencyIn(numFmt: string): CurrencyCapture {
   const token = numFmt.match(CURRENCY_TOKEN_REGEX);
 
   if (token) {
+    const symbol = token[1].trim();
+    const rest = numFmt.replace(CURRENCY_TOKEN_REGEX, '');
+
+    // A token with no symbol (`[$-409]`) only names a locale, so the currency, if any, is elsewhere.
+    if (symbol === '') {
+      return captureCurrencyIn(rest);
+    }
+
+    // A token may carry an ISO code as its symbol (`[$USD]`), which the symbol table does not own.
     return {
-      currency: currencyForToken(token[1].trim(), token[2]),
-      rest: numFmt.replace(CURRENCY_TOKEN_REGEX, ''),
+      currency: currencyForToken(symbol, token[2])
+        ?? (BARE_MARKER_REGEX.test(symbol) ? bareMarkerToCode(symbol) : null),
+      rest,
     };
   }
 

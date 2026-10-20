@@ -111,8 +111,9 @@ describe('intlNumFormatToExcelNumFmt', () => {
       expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'ISK' }, 'is-IS')).toBe('#,##0.00[$kr.-40F]');
       expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'JPY' }, 'en-US')).toBe('[$\u00A5-411]#,##0.00');
       expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'CNY' }, 'zh-CN')).toBe('[$\u00A5-804]#,##0.00');
-      // The fullwidth yen sign belongs to the yen alone, so it needs no locale token, only quotes.
-      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'JPY' }, 'ja-JP')).toBe('"\uFFE5"#,##0.00');
+      // The fullwidth yen sign is shared too: the raw-value inference reads it as the yuan under a
+      // Chinese locale, so it gets the yen's locale token like the halfwidth sign (review round 12).
+      expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'JPY' }, 'ja-JP')).toBe('[$\uFFE5-411]#,##0.00');
     });
 
     it('should write a dollar currency other than the US dollar as a locale token with its home LCID', () => {

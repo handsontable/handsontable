@@ -1184,3 +1184,49 @@ describe('inferCellType (review round 7)', () => {
     expect(isValueOutsideFormat('yyyy-mm-dd', 'text')).toBe(false);
   });
 });
+
+describe('currency round trip (review round 12)', () => {
+  const LOCALES = [
+    'en-US', 'de-DE', 'ja-JP', 'he-IL', 'en-ZA', 'th-TH', 'id-ID', 'fil-PH', 'ar-SA', 'ar-AE', 'zh-CN', 'nb-NO',
+    'sv-SE', 'da-DK', 'is-IS', 'en-AU', 'es-MX', 'pl-PL', 'fr-CH', 'en-IN', 'ko-KR', 'ru-RU', 'tr-TR', 'pt-BR',
+  ];
+
+  it('should read back the currency of every export, whatever symbol the locale renders', () => {
+    const lost = [];
+
+    Intl.supportedValuesOf('currency').forEach((currency) => {
+      LOCALES.forEach((locale) => {
+        const numFmt = intlNumFormatToExcelNumFmt({ style: 'currency', currency, minimumFractionDigits: 2 }, locale);
+
+        if (excelNumFmtToIntlOptions(numFmt)?.currency !== currency) {
+          lost.push(`${locale} ${currency} ${numFmt}`);
+        }
+      });
+    });
+
+    expect(lost).toEqual([]);
+  });
+
+  it('should keep the symbol where it reads back, and write the code only where it does not', () => {
+    const options = { style: 'currency', minimumFractionDigits: 2 };
+
+    expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'USD' }, 'en-US')).toBe('$#,##0.00');
+    expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'EUR' }, 'de-DE')).toBe('#,##0.00"€"');
+    expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'ILS' }, 'he-IL')).toBe('#,##0.00"ILS"');
+    expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'ZAR' }, 'en-ZA')).toBe('"ZAR"#,##0.00');
+  });
+
+  it('should write the full-width yen of a ja-JP yen column as a locale token and read it back', () => {
+    const numFmt = intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'JPY' }, 'ja-JP');
+
+    expect(numFmt).toBe('[$￥-411]#,##0');
+    expect(excelNumFmtToIntlOptions(numFmt).currency).toBe('JPY');
+  });
+
+  it('should read a currency format that opens with a color or a locale section', () => {
+    expect(excelNumFmtToIntlOptions('[Red]"$"#,##0.00'))
+      .toEqual(expect.objectContaining({ style: 'currency', currency: 'USD' }));
+    expect(excelNumFmtToIntlOptions('[$-409]"$"#,##0.00')).toEqual(expect.objectContaining({ currency: 'USD' }));
+    expect(excelNumFmtToIntlOptions('[$USD] #,##0.00')).toEqual(expect.objectContaining({ currency: 'USD' }));
+  });
+});
