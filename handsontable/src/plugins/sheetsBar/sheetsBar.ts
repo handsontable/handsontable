@@ -1,4 +1,5 @@
 import { BasePlugin } from '../base';
+import { Hooks } from '../../core/hooks';
 import { SheetModel, clampSheetName, type Sheet, type SheetDescriptor } from './sheetModel';
 import { SheetsBarUI } from './ui/bar';
 import { TabStrip } from './ui/tabStrip';
@@ -129,10 +130,21 @@ const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
  * load itself. A switch applies the arriving sheet's settings while the grid still holds the
  * departing sheet's data, so a truthy value of one of these keys is applied after the arriving
  * sheet's `loadData()` instead. ColumnSummary checks its endpoints against the table size and
- * writes its results into the data. NestedRows is not on the list: the load has to run with it
- * on, so it is applied before the load with its data check held back (`#withoutNestedRowsDataCheck`).
+ * writes its results into the data, CustomBorders drops a border outside the table, and the two
+ * sorting plugins sort by their `initialConfig` when the key is applied. NestedRows is not on the
+ * list: the load has to run with it on, so it is applied before the load with its data check held
+ * back (`#withoutNestedRowsDataCheck`).
+ *
+ * `offDuringLoad` marks a plugin whose own `afterLoadData` writes into the loaded data. Left on by
+ * the departing sheet, it would write its departing configuration into the arriving sheet, so it is
+ * turned off before the load.
  */
-const DATA_BOUND_SETTING_KEYS = ['columnSummary'] as const;
+const DATA_BOUND_SETTINGS: Record<string, { offDuringLoad: boolean }> = {
+  columnSummary: { offDuringLoad: true },
+  customBorders: { offDuringLoad: false },
+  columnSorting: { offDuringLoad: false },
+  multiColumnSorting: { offDuringLoad: false },
+};
 
 /**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
@@ -358,6 +370,20 @@ export class SheetsBar extends BasePlugin {
    */
   #isInitializing = false;
   /**
+   * The opening sheet's settings that core's init settings pass undoes, kept from the init build until
+   * the `init` hook applies them again (`#takeInitPassSettings`).
+   *
+   * @type {object|null}
+   */
+  #settingsAfterInitPass: Record<string, unknown> | null = null;
+  /**
+   * The ColumnSummary endpoints of each sheet the user left, at the positions they held then
+   * (`#captureColumnSummary`).
+   *
+   * @type {WeakMap<object, object[]>}
+   */
+  #columnSummaryStates = new WeakMap<Sheet, unknown[]>();
+  /**
    * The server view of each sheet that loads its rows through its own `dataProvider`.
    *
    * @type {WeakMap<object, object>}
@@ -582,6 +608,8 @@ export class SheetsBar extends BasePlugin {
 
     this.addHook('beforeCreateRow', this.#onBeforeAutoCreate);
     this.addHook('beforeCreateCol', this.#onBeforeAutoCreate);
+    this.addHook('beforeRemoveRow', this.#onBeforeAutoRemove);
+    this.addHook('beforeRemoveCol', this.#onBeforeAutoRemove);
 
     // A preserved re-enable is the framework-wrapper re-emit path, where the active sheet's own
     // freeze is currently applied to the grid — re-reading it here would adopt that freeze as
@@ -738,6 +766,7 @@ export class SheetsBar extends BasePlugin {
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, -1);
+    this.addHook('init', this.#onInit);
     this.addHook('afterDocumentKeyDown', this.#onKeyDownWithinBar, -1);
     this.addHook('beforeCompositionStart', this.#onKeyDownWithinBar, -1);
 
@@ -908,6 +937,28 @@ export class SheetsBar extends BasePlugin {
     } finally {
       this.#isRestoringBaseline = false;
     }
+  }
+
+  /**
+   * The frozen counts a never-visited sheet opens with. A count some sheet declares is in the settings
+   * baseline, so the switch's settings update applies it, the sheet's own or the grid-level one; the
+   * neutral reset leaves such a count at its current value, or the shadow it wrote would outlive that
+   * update whenever the arriving value equals the departing one. Every other count gets the value the
+   * grid started with.
+   *
+   * @returns {object}
+   */
+  #getSwitchNeutralFrozenCounts() {
+    const neutral: Record<string, number | undefined> = this.#getNeutralFrozenCounts();
+    const settings = this.hot.getSettings() as Record<string, unknown>;
+
+    FROZEN_COUNT_KEYS.forEach((key) => {
+      if (this.#settingsBaseline.has(key)) {
+        neutral[key] = (settings[key] as number | undefined) ?? 0;
+      }
+    });
+
+    return neutral;
   }
 
   /**
@@ -1085,6 +1136,7 @@ export class SheetsBar extends BasePlugin {
           this.#syncActiveSheetData();
           oldSheet.viewState = captureViewState(this.hot, this.#flattenTrackedCellMeta()) as
             unknown as Record<string, unknown>;
+          this.#captureColumnSummary(oldSheet);
           this.hot.runHooks('afterSheetTabStateCapture', oldId, oldSheet.viewState, source);
         }
 
@@ -1478,6 +1530,12 @@ export class SheetsBar extends BasePlugin {
    * back to the state it was captured in. A sheet that was never visited gets a neutral
    * baseline instead, so it does not inherit the outgoing sheet's filters, hidden
    * indexes, merges, borders, or manual sizes.
+   *
+   * The departing sheet's runtime freeze is in its captured state by then, and it comes off the
+   * table meta before the arriving settings are applied: left there, it would be in force during
+   * that update (Pagination refuses to enable next to a frozen row), and `updateSettings()` keeps
+   * such a shadow over a count equal to the previous grid-level one, so a sheet declaring the same
+   * count opened unfrozen.
    */
   #switchTo(model: SheetModel, newId: number, source: string) {
     model.setActiveSheet(newId);
@@ -1505,13 +1563,15 @@ export class SheetsBar extends BasePlugin {
       // indexes, a freeze, a sort) land after it and stay in force. Reset after the apply,
       // those declarations were wiped on the sheet's first activation and then captured as
       // its own empty state.
+      FROZEN_COUNT_KEYS.forEach(key => clearFrozenCountShadow(this.hot, key));
+
       if (!viewState) {
-        resetViewState(this.hot, this.#getNeutralFrozenCounts());
+        resetViewState(this.hot, this.#getSwitchNeutralFrozenCounts());
       } else {
         clearMergedCells(this.hot);
       }
 
-      this.#applySheet(newSheet, source, { restoresMerges: viewState !== undefined });
+      this.#applySheet(newSheet, source, { restoresState: viewState !== undefined });
 
       if (viewState) {
         restoreViewState(this.hot, viewState);
@@ -1591,6 +1651,10 @@ export class SheetsBar extends BasePlugin {
       }
 
       this.#applySheet(targetSheet, SOURCE_API);
+
+      if (!this.hot.view) {
+        this.#settingsAfterInitPass = this.#takeInitPassSettings(targetSheet.settings);
+      }
     } else {
       const settings = this.#withBaselineFor(undefined);
 
@@ -1606,20 +1670,22 @@ export class SheetsBar extends BasePlugin {
    * Applies a sheet's settings and data to the grid. Undeclared settings keys keep the
    * grid-level values. Batches the operation into a single render when the grid's view
    * is already constructed; during initial plugin setup the view does not exist yet and
-   * the grid's own startup render covers it. The settings update runs with core's `min*` padding
-   * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
-   * the arriving sheet's data before its `afterLoadData`. NestedRows takes its data from that
-   * load, not from the departing sheet (`#withoutNestedRowsDataCheck`), and on a live grid
-   * ColumnSummary is configured after the load, through a second `updateSettings()`
-   * (`#splitDataBoundSettings`).
+   * the grid's own startup render covers it. The settings update runs with core's automatic `min*`
+   * padding and removal vetoed, because the grid still holds the departing sheet's data then; the
+   * `loadData()` pads the arriving sheet's data before its `afterLoadData`. NestedRows takes its data
+   * from that load, not from the departing sheet (`#withoutNestedRowsDataCheck`). On a live grid the
+   * settings that describe the loaded cells (`DATA_BOUND_SETTINGS` and `cell`) are applied after the
+   * load, through a second `updateSettings()` (`#splitDataBoundSettings`).
    *
    * The merges the settings declare are built after the load, against the arriving sheet's data.
-   * With `restoresMerges` set they are not built at all: a sheet that returns with a stored view
+   * With `restoresState` set they are not built at all: a sheet that returns with a stored view
    * state restores its own merges, and the declared ones would win over the ones the user changed.
+   * The same return applies the ColumnSummary endpoints stored when the user left the sheet
+   * (`#captureColumnSummary`) in place of the declared ones.
    * Without a view the grid is still being built, and MergeCells builds them from its own
    * `afterInit`, against the data loaded here.
    */
-  #applySheet(sheet: Sheet, source: string, { restoresMerges = false }: { restoresMerges?: boolean } = {}) {
+  #applySheet(sheet: Sheet, source: string, { restoresState = false }: { restoresState?: boolean } = {}) {
     const apply = () => {
       const { beforeLoad, afterLoad } = this.#splitDataBoundSettings(this.#withBaselineFor(sheet.settings));
 
@@ -1634,12 +1700,16 @@ export class SheetsBar extends BasePlugin {
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
 
+      if (afterLoad?.columnSummary && restoresState && this.#columnSummaryStates.has(sheet)) {
+        afterLoad.columnSummary = this.#columnSummaryStates.get(sheet);
+      }
+
       if (afterLoad) {
         this.hot.updateSettings(afterLoad);
       }
 
       if (this.hot.view) {
-        this.#runMergeCellsSettingsPass(!restoresMerges);
+        this.#runMergeCellsSettingsPass(!restoresState);
       }
     };
 
@@ -1669,31 +1739,104 @@ export class SheetsBar extends BasePlugin {
     beforeLoad: Record<string, unknown> | null,
     afterLoad: Record<string, unknown> | null,
   } {
-    if (!settings || !this.hot.view) {
+    if (!this.hot.view) {
       return { beforeLoad: settings, afterLoad: null };
     }
 
-    const beforeLoad = { ...settings };
+    const beforeLoad = { ...(settings ?? {}) };
     const afterLoad: Record<string, unknown> = {};
 
-    DATA_BOUND_SETTING_KEYS.forEach((key) => {
+    Object.entries(DATA_BOUND_SETTINGS).forEach(([key, { offDuringLoad }]) => {
       if (!beforeLoad[key]) {
         return;
       }
 
       afterLoad[key] = beforeLoad[key];
 
-      if (this.hot.getPlugin(key)?.enabled) {
+      if (offDuringLoad && this.hot.getPlugin(key)?.enabled) {
         beforeLoad[key] = false;
       } else {
         delete beforeLoad[key];
       }
     });
 
+    const cell = this.#effectiveCellOption(beforeLoad);
+
+    delete beforeLoad.cell;
+
+    if (cell) {
+      afterLoad.cell = cell;
+    }
+
     return {
       beforeLoad: Object.keys(beforeLoad).length > 0 ? beforeLoad : null,
       afterLoad: Object.keys(afterLoad).length > 0 ? afterLoad : null,
     };
+  }
+
+  /**
+   * Stores the departing sheet's ColumnSummary endpoints at the positions they hold now. A row or column
+   * alteration moves an endpoint, while the sheet's settings keep naming the declared position, and a
+   * return to the sheet applies those settings again: the summary was then written over the data cell
+   * the alteration had moved into its old place. A return applies the stored endpoints instead
+   * (`#applySheet`). Nothing is stored while the plugin is off or configured with a function, which
+   * reads its settings again on every pass.
+   *
+   * @param {object} sheet The departing sheet.
+   */
+  #captureColumnSummary(sheet: Sheet) {
+    const endpoints = this.hot.getPlugin('columnSummary')?.exportEndpointSettings() ?? null;
+
+    if (endpoints) {
+      this.#columnSummaryStates.set(sheet, endpoints);
+    } else {
+      this.#columnSummaryStates.delete(sheet);
+    }
+  }
+
+  /**
+   * Returns the `cell` value to apply after the arriving sheet's `loadData()`, or `null` when there is
+   * none. `loadData()` clears every cell meta object, the ones the `cell` option wrote included, so the
+   * option is applied after it on every switch: the sheet's own entries, the grid-level ones when the
+   * sheet declares none, and `[]` when the baseline holds no grid-level value, which removes the
+   * entries the departing sheet declared from core's record of them. A workbook where neither the
+   * grid nor any sheet declares an entry applies nothing, so its switch keeps one settings update.
+   *
+   * @param {object} settings The settings `#withBaselineFor` built for the arriving sheet.
+   * @returns {Array|null}
+   */
+  #effectiveCellOption(settings: Record<string, unknown>): unknown[] | null {
+    if (!('cell' in settings)) {
+      const gridCell = this.hot.getSettings().cell;
+
+      return Array.isArray(gridCell) && gridCell.length > 0 ? gridCell : null;
+    }
+
+    return Array.isArray(settings.cell) ? settings.cell as unknown[] : [];
+  }
+
+  /**
+   * Returns the part of the opening sheet's settings that core's own init settings pass would undo,
+   * or `null` when there is none. The bar applies the opening sheet from `beforeInit`, and core then
+   * applies the grid's settings once more: it registers the grid-level callback of every hook again,
+   * replacing the one the sheet declared, and its init `loadData()` clears the cell meta the sheet's
+   * `cell` option wrote. Both are applied again from the `init` hook (`#onInit`), after that pass and
+   * before the first render.
+   *
+   * @param {object|undefined} sheetSettings The opening sheet's own settings.
+   * @returns {object|null}
+   */
+  #takeInitPassSettings(sheetSettings: Record<string, unknown> | undefined): Record<string, unknown> | null {
+    const hooks = Hooks.getSingleton();
+    const settings = Object.fromEntries(Object.entries(sheetSettings ?? {}).filter(([key, value]) => {
+      if (key === 'cell') {
+        return Array.isArray(value);
+      }
+
+      return key !== PLUGIN_KEY && (hooks.isRegistered(key) || hooks.isDeprecated(key));
+    }));
+
+    return Object.keys(settings).length > 0 ? settings : null;
   }
 
   /**
@@ -2555,6 +2698,18 @@ export class SheetsBar extends BasePlugin {
   };
 
   /**
+   * Vetoes a row or column core removes with source `auto` while `#blockAutoPadding` is set. A lowered
+   * `min*` value makes `updateSettings()` give back the trailing rows and columns the previous minimum
+   * appended (`removeSurplusRowsAndCols()`), and the settings update of a switch runs while the grid still
+   * holds the departing sheet's data: the rows a user typed into that sheet's spare rows were removed
+   * from the host's array, judged empty through the arriving sheet's `columns`. The `loadData()` that
+   * follows sizes the arriving sheet from its own minimums, so nothing is left to give back.
+   */
+  #onBeforeAutoRemove = (index: number, amount: number, physicalIndexes: number[], source?: string) => {
+    return this.#blockAutoPadding && source === 'auto' ? false : undefined;
+  };
+
+  /**
    * Updates the bar's theme when the grid's theme changes.
    */
   #onAfterSetTheme = (themeName: unknown) => {
@@ -2903,6 +3058,36 @@ export class SheetsBar extends BasePlugin {
    * that are left alone.
    *
    * @param {object} newSettings The settings passed to `updateSettings()`.
+   */
+  /**
+   * Applies the opening sheet's settings that core's init settings pass undid. Fires once, after that
+   * pass and before the first render. The grid-level callback of each such hook is recorded in the
+   * settings baseline first: the baseline is captured in `beforeInit`, before core puts the settings'
+   * callbacks on the table meta, so it held nothing there, and a switch to another sheet then kept the
+   * opening sheet's callback in place of the grid-level one.
+   */
+  #onInit = () => {
+    const settings = this.#settingsAfterInitPass;
+
+    this.#settingsAfterInitPass = null;
+
+    if (!settings) {
+      return;
+    }
+
+    const gridSettings = this.hot.getSettings() as Record<string, unknown>;
+
+    Object.keys(settings).forEach((key) => {
+      if (key !== 'cell' && this.#settingsBaseline.get(key) === undefined) {
+        this.#settingsBaseline.set(key, gridSettings[key]);
+      }
+    });
+
+    this.hot.updateSettings(settings);
+  };
+
+  /**
+   *
    */
   #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
     if (!newSettings.dataProvider) {

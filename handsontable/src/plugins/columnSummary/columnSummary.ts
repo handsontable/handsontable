@@ -278,6 +278,18 @@ export class ColumnSummary extends BasePlugin {
   }
 
   /**
+   * Returns the endpoints in the form of the plugin's settings, at the positions they hold now, or `null`
+   * while the plugin is off or configured with a function. The sheets bar stores them when the user
+   * leaves a sheet and applies them on the return, so a summary a row insert moved stays where it went.
+   *
+   * @private
+   * @returns {object[]|null}
+   */
+  exportEndpointSettings(): EndpointConfig[] | null {
+    return this.enabled && this.endpoints ? this.endpoints.exportSettings() : null;
+  }
+
+  /**
    * Calculates math for a single endpoint.
    *
    * @private

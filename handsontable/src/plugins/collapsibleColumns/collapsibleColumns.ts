@@ -412,7 +412,9 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Clears the expand/collapse buttons.
+   * Clears the expand/collapse buttons. The buttons live in the header rows the table drew last, so
+   * those rows are walked, not the levels the settings declare: an update that turns the plugin off
+   * together with a deeper `nestedHeaders` disables it while the table still shows the previous levels.
    *
    * @private
    */
@@ -421,7 +423,6 @@ export class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    const headerLevels = (this.hot.view._wt.getSetting('columnHeaders') as unknown[]).length;
     const mainHeaders = this.hot.view._wt.wtTable.THEAD;
     const topHeaders = this.hot.view._wt.wtOverlays.topOverlay?.clone?.wtTable.THEAD ?? null;
     const topLeftCornerHeaders = this.hot.view._wt.wtOverlays.topInlineStartCornerOverlay
@@ -437,6 +438,8 @@ export class CollapsibleColumns extends BasePlugin {
     if (!mainHeaders || !topHeaders) {
       return;
     }
+
+    const headerLevels = mainHeaders.childNodes.length;
 
     rangeEach(0, headerLevels - 1, (i: number) => {
       const masterLevel = mainHeaders.childNodes[i];
