@@ -107,73 +107,64 @@ test.describe('root size options', { tag: THEMES_TAG }, () => {
       expect(await grid.renderedRows()).toBeLessThan(200);
     });
 
-    // The two heightless parents take one branch (the zero-height probe); each keyword keeps one case.
-    for (const containerClass of ['heightless-hidden'] as const) {
-      test(`renders at its rows' height inside a \`${containerClass}\` parent with no height (DEV-3062)`, async () => {
-        await grid.rebuild({
-          data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
-          colWidths: undefined,
-          height: 'auto',
-          width: 'auto',
-        }, containerClass);
+    // The two heightless parents (`overflow: hidden` and `overflow: auto`) take one branch, the zero-height
+    // probe, so the three cases below share the two keywords between them.
+    test('renders at its rows\' height inside a `heightless-hidden` parent with no height (DEV-3062)', async () => {
+      await grid.rebuild({
+        data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']],
+        colWidths: undefined,
+        height: 'auto',
+        width: 'auto',
+      }, 'heightless-hidden');
 
-        // The parent clips or scrolls, so it owns both axes, but its height is its content: a
-        // holder sized to it would take its 0px and hide the grid.
-        expect((await grid.axisOwners()).verticalByWindow).toBe(false);
+      // The parent clips or scrolls, so it owns both axes, but its height is its content: a
+      // holder sized to it would take its 0px and hide the grid.
+      expect((await grid.axisOwners()).verticalByWindow).toBe(false);
 
-        await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
+      await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
 
-        const sizes = await grid.verticalSizes();
+      const sizes = await grid.verticalSizes();
 
-        expect(sizes.tableHeight).toBeGreaterThan(0);
-        expect(Math.abs(sizes.holderHeight - sizes.tableHeight)).toBeLessThanOrEqual(1);
-        expect(sizes.parentHeight).toBeGreaterThanOrEqual(sizes.holderHeight);
-        expect(await grid.renderedRows()).toBe(3);
-      });
-    }
+      expect(sizes.tableHeight).toBeGreaterThan(0);
+      expect(Math.abs(sizes.holderHeight - sizes.tableHeight)).toBeLessThanOrEqual(1);
+      expect(sizes.parentHeight).toBeGreaterThanOrEqual(sizes.holderHeight);
+      expect(await grid.renderedRows()).toBe(3);
+    });
 
-    for (const containerClass of ['heightless-hidden', 'heightless-auto']) {
-      // One keyword per case, see above.
-      if (containerClass === 'heightless-auto') {
-        test(`leaves a heightless \`${containerClass}\` parent at the rows' height after \`updateSettings()\` (DEV-3062)`, async () => {
-          await grid.rebuild({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], height: 300 }, containerClass);
+    test('leaves a heightless `heightless-auto` parent at the rows\' height after `updateSettings()` (DEV-3062)', async () => {
+      await grid.rebuild({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], height: 300 }, 'heightless-auto');
 
-          expect((await grid.verticalSizes()).parentHeight).toBe(300);
+      expect((await grid.verticalSizes()).parentHeight).toBe(300);
 
-          await grid.updateSettings({ height: 'auto' });
+      await grid.updateSettings({ height: 'auto' });
 
-          await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
+      await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
 
-          const sizes = await grid.verticalSizes();
+      const sizes = await grid.verticalSizes();
 
-          expect(sizes.holderHeight).toBeGreaterThan(0);
-          expect(Math.abs(sizes.holderHeight - sizes.tableHeight)).toBeLessThanOrEqual(1);
-          expect(sizes.parentHeight).toBeGreaterThanOrEqual(sizes.holderHeight);
-        });
-      }
+      expect(sizes.holderHeight).toBeGreaterThan(0);
+      expect(Math.abs(sizes.holderHeight - sizes.tableHeight)).toBeLessThanOrEqual(1);
+      expect(sizes.parentHeight).toBeGreaterThanOrEqual(sizes.holderHeight);
+    });
 
-      // One keyword per case, see above.
-      if (containerClass === 'heightless-hidden') {
-        test(`returns the holder to 0px in a heightless \`${containerClass}\` parent after \`updateSettings({ height: null })\` (DEV-3062)`, async () => {
-          await grid.rebuild({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], height: 'auto' }, containerClass);
+    test('returns the holder to 0px in a heightless `heightless-hidden` parent after `updateSettings({ height: null })` (DEV-3062)', async () => {
+      await grid.rebuild({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], height: 'auto' }, 'heightless-hidden');
 
-          await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
+      await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('auto');
 
-          expect((await grid.verticalSizes()).holderHeight).toBeGreaterThan(0);
+      expect((await grid.verticalSizes()).holderHeight).toBeGreaterThan(0);
 
-          await grid.updateSettings({ height: null });
+      await grid.updateSettings({ height: null });
 
-          expect((await grid.rootState()).height).toBe('');
+      expect((await grid.rootState()).height).toBe('');
 
-          await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('0px');
+      await expect.poll(async () => (await grid.verticalSizes()).holderInlineHeight).toBe('0px');
 
-          const sizes = await grid.verticalSizes();
+      const sizes = await grid.verticalSizes();
 
-          expect(sizes.holderHeight).toBe(0);
-          expect(sizes.parentHeight).toBe(0);
-        });
-      }
-    }
+      expect(sizes.holderHeight).toBe(0);
+      expect(sizes.parentHeight).toBe(0);
+    });
 
     test.describe('inside a parent that clips the grid and insets it (DEV-3107)', () => {
       // The parent owns both axes, but the grid's own box is narrower than the parent's: padding, or

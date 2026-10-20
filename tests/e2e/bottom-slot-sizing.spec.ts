@@ -6,8 +6,9 @@ import { BottomSlotSizingPage, type BottomSlotPlugin } from '../fixtures/pages/B
  * the grid has NO `height` option and the container is sized in CSS, the wrapper and the engine
  * used to disagree about the table's footprint: the bar floated over a data row (window scroll
  * inside a fixed CSS box), was clipped out of reach (scrollable ancestor), or ran wider than its
- * container (DEV-2848). The same layouts are measured for both bars, because the fix lives in the
- * shared wrapper/slot sizing, not in either plugin.
+ * container (DEV-2848). The fix lives in the shared wrapper and slot sizing, not in either plugin, so
+ * the pagination bar runs every layout and the sheets bar runs one case per kind of container: a
+ * scrollable ancestor, a container narrower than the bar, and an explicit `height`.
  */
 const PLUGINS: BottomSlotPlugin[] = ['pagination', 'sheetsBar'];
 
@@ -19,8 +20,8 @@ for (const plugin of PLUGINS) {
       grid = new BottomSlotSizingPage(page, theme, bundle);
     });
 
-    // Both bars mount in the same bottom slot through one sizing path; the pagination bar runs the layout cases,
-    // the sheets bar keeps the scrollable-ancestor case and the explicit-height control.
+    // Both bars mount in the same bottom slot through one sizing path, so these layouts run for the pagination
+    // bar only (see the header).
     if (plugin === 'pagination') {
       test('follows the last row inside a fixed CSS box instead of covering a data row', async () => {
         await grid.goto('css-fixed', plugin);
@@ -98,33 +99,31 @@ for (const plugin of PLUGINS) {
       expect((await grid.geometry()).shellScrollTop).toBe(0);
     });
 
-    // One variant and one bar: the clamp reads the container width, which `stretch` only makes larger.
+    // One container width: the clamp reads the container's width, which the `stretch` layout only makes larger.
+    test('is never wider than its container (tiny)', async () => {
+      await grid.goto('tiny', plugin);
+
+      const geometry = await grid.geometry();
+
+      expect(geometry.bar).not.toBeNull();
+      expect(geometry.bottomSlot.width).toBeLessThanOrEqual(geometry.container.width + 1);
+      expect(geometry.bar!.right).toBeLessThanOrEqual(geometry.container.right + 1);
+    });
+
+    // The clamp reads `clientWidth`, whose scrollbar semantics differ under RTL; the slot must
+    // still stay inside the container's inline edges there. The clamp is shared, so one bar runs it.
     if (plugin === 'pagination') {
-      for (const variant of ['tiny'] as const) {
-        test(`is never wider than its container (${variant})`, async () => {
-          await grid.goto(variant, plugin);
+      test('is never wider than its container in RTL (tiny)', async () => {
+        await grid.goto('tiny', plugin);
+        await grid.rebuild({ layoutDirection: 'rtl' });
 
-          const geometry = await grid.geometry();
+        const geometry = await grid.geometry();
 
-          expect(geometry.bar).not.toBeNull();
-          expect(geometry.bottomSlot.width).toBeLessThanOrEqual(geometry.container.width + 1);
-          expect(geometry.bar!.right).toBeLessThanOrEqual(geometry.container.right + 1);
-        });
-
-        // The clamp reads `clientWidth`, whose scrollbar semantics differ under RTL; the slot must
-        // still stay inside the container's inline edges there.
-        test(`is never wider than its container in RTL (${variant})`, async () => {
-          await grid.goto(variant, plugin);
-          await grid.rebuild({ layoutDirection: 'rtl' });
-
-          const geometry = await grid.geometry();
-
-          expect(geometry.bar).not.toBeNull();
-          expect(geometry.bottomSlot.width).toBeLessThanOrEqual(geometry.container.width + 1);
-          expect(geometry.bar!.left).toBeGreaterThanOrEqual(geometry.container.left - 1);
-          expect(geometry.bar!.right).toBeLessThanOrEqual(geometry.container.right + 1);
-        });
-      }
+        expect(geometry.bar).not.toBeNull();
+        expect(geometry.bottomSlot.width).toBeLessThanOrEqual(geometry.container.width + 1);
+        expect(geometry.bar!.left).toBeGreaterThanOrEqual(geometry.container.left - 1);
+        expect(geometry.bar!.right).toBeLessThanOrEqual(geometry.container.right + 1);
+      });
     }
 
     // With an explicit pixel `height` the root owns the axis and contains no slot, so the engine

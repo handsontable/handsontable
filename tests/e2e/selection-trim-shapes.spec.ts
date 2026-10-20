@@ -6,9 +6,11 @@ import { EditorTrimmedRowPage } from '../fixtures/pages/EditorTrimmedRowPage';
  *
  * `selection-trimmed-row.spec.ts` pins the MECHANISM one case at a time - the record test, the
  * corner test, the permutation recapture. This file pins the DECISION TABLE instead: every shape a
- * user can select, with headers and without, restored from an export or not, against a trim that
- * shortens the grid. A run of defects in this area were all narrowing errors in that table which no
- * single-shape case could see, because each of them exercised the one shape it was written for.
+ * user can select, against a trim that shortens the grid. A run of defects in this area were all
+ * narrowing errors in that table which no single-shape case could see, because each of them
+ * exercised the one shape it was written for.
+ * Every shape runs once on the user's own selection; the restores and the missing header row add
+ * the shapes whose outcome they can change (`PERMUTATIONS` below).
  *
  * Two outcomes are asserted, and which one a shape gets is the whole rule:
  *
@@ -119,6 +121,17 @@ const PERMUTATIONS: { headers: boolean, roundTrip: (typeof ROUND_TRIPS)[number][
   { headers: true, roundTrip: 'dialog', shapes: ['a cell range whose far corner a trim stranded', 'a full column'] },
   { headers: false, roundTrip: 'none', shapes: ['a select-all'] },
 ];
+
+// A misspelled shape name would register no test and pass silently, so it fails the load instead.
+const SHAPE_NAMES = new Set(SHAPES.map(({ name }) => name));
+
+PERMUTATIONS.forEach(({ shapes }) => {
+  if (shapes !== 'all') {
+    shapes.filter(name => !SHAPE_NAMES.has(name)).forEach((name) => {
+      throw new Error(`selection-trim-shapes: PERMUTATIONS names an unknown shape: "${name}".`);
+    });
+  }
+});
 
 for (const { headers, roundTrip, shapes } of PERMUTATIONS) {
   const { suffix } = ROUND_TRIPS.find(({ mode }) => mode === roundTrip)!;

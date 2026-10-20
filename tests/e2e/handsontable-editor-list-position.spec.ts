@@ -45,6 +45,12 @@ import {
  * has room. A sized grid also runs with the page in the other direction (an RTL grid on an LTR page, and
  * the mirror), since the flip reads the grid's direction and not the document's.
  *
+ * Not every editor runs every layout. `handsontable` and `multiselect` each own a horizontal flip, so
+ * they run every layout but two: the plain window case is the 600 px case with no offset, and the
+ * transformed LTR container reaches the same writer as the translated one. `dropdown` and
+ * `autocomplete` add no horizontal positioning of their own, so they run the 600 px pair only. The
+ * vertical sweeps and the partway case run in LTR, because the vertical rule has no direction input.
+ *
  * The Jasmine positioning specs pin the horizontal flip of a sized grid in one layout direction each,
  * and the vertical side only as "touching the cell", because there the side depends on the theme.
  * The visual captures under `js-only/editors/` were the only guard of the rest.
@@ -158,7 +164,7 @@ const LAYOUT_NAMES: Record<Layout, string> = {
 };
 
 /**
- * The layouts both editors run in. The window layout keeps the page in the grid's direction: an RTL
+ * Every layout the describes below draw from. The window layout keeps the page in the grid's direction: an RTL
  * grid on an LTR page the window scrolls opens on the grid's last columns, so cell (0, 0) never renders
  * (tests/AGENTS.md).
  */
@@ -258,54 +264,52 @@ test.describe('multiselect editor list position', { tag: THEMES_TAG }, () => {
 // every position in a range that spans both thresholds, with the page scrolled to put it there.
 test.describe('multiselect editor list stays in the viewport at every cell position', { tag: THEMES_TAG }, () => {
   // LTR only: the vertical rule has no direction input.
-  for (const dir of ['ltr'] as const) {
-    test(`keeps the whole list on screen as the cell moves down the viewport (${dir.toUpperCase()})`, async({
-      page, theme, bundle,
-    }) => {
-      const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
-        dir, layout: 'window', type: 'multiselect',
-      });
-
-      await page.setViewportSize({ width: 1000, height: 600 });
-      await grid.goto();
-
-      // Opens on a cell about 480 px down a 600 px viewport. The page scrolls up to 380 px from there, which
-      // takes the cell's top through the room the list needs below it, and then above it, on every theme.
-      const coords = await grid.openEditorAt('center', 480);
-      const { cell } = await grid.geometry(coords);
-      const startTop = cell.top;
-      const outside: string[] = [];
-      const seen = { flipped: false, capped: false };
-      let tallest = 0;
-
-      for (let top = startTop; top >= startTop - 380; top -= 8) {
-        await page.evaluate(y => window.scrollTo(window.scrollX, y), startTop - top);
-        await expect.poll(async() => (await grid.geometry(coords)).cell.top, { message: `the cell reaches ${top}` })
-          .toBeCloseTo(top, 0);
-
-        // The list follows the cell from the page's `scroll` listener, a frame after the cell has moved.
-        await page.evaluate(() => new Promise(resolve => {
-          requestAnimationFrame(() => requestAnimationFrame(resolve));
-        }));
-
-        const geometry = await grid.geometry(coords);
-        const { inViewport, side } = placementOf(geometry, dir);
-        const height = geometry.list.bottom - geometry.list.top;
-
-        tallest = Math.max(tallest, height);
-        seen.flipped ||= side === 'above';
-        seen.capped ||= height < tallest - 1;
-
-        if (inViewport !== 'yes') {
-          outside.push(`cell top ${top}: ${inViewport}`);
-        }
-      }
-
-      expect(outside).toEqual([]);
-      // Without both cases in the sweep, a list that stays on screen proves nothing about either threshold.
-      expect(seen).toEqual({ flipped: true, capped: true });
+  test('keeps the whole list on screen as the cell moves down the viewport (LTR)', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
+      dir: 'ltr', layout: 'window', type: 'multiselect',
     });
-  }
+
+    await page.setViewportSize({ width: 1000, height: 600 });
+    await grid.goto();
+
+    // Opens on a cell about 480 px down a 600 px viewport. The page scrolls up to 380 px from there, which
+    // takes the cell's top through the room the list needs below it, and then above it, on every theme.
+    const coords = await grid.openEditorAt('center', 480);
+    const { cell } = await grid.geometry(coords);
+    const startTop = cell.top;
+    const outside: string[] = [];
+    const seen = { flipped: false, capped: false };
+    let tallest = 0;
+
+    for (let top = startTop; top >= startTop - 380; top -= 8) {
+      await page.evaluate(y => window.scrollTo(window.scrollX, y), startTop - top);
+      await expect.poll(async() => (await grid.geometry(coords)).cell.top, { message: `the cell reaches ${top}` })
+        .toBeCloseTo(top, 0);
+
+      // The list follows the cell from the page's `scroll` listener, a frame after the cell has moved.
+      await page.evaluate(() => new Promise(resolve => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      }));
+
+      const geometry = await grid.geometry(coords);
+      const { inViewport, side } = placementOf(geometry, 'ltr');
+      const height = geometry.list.bottom - geometry.list.top;
+
+      tallest = Math.max(tallest, height);
+      seen.flipped ||= side === 'above';
+      seen.capped ||= height < tallest - 1;
+
+      if (inViewport !== 'yes') {
+        outside.push(`cell top ${top}: ${inViewport}`);
+      }
+    }
+
+    expect(outside).toEqual([]);
+    // Without both cases in the sweep, a list that stays on screen proves nothing about either threshold.
+    expect(seen).toEqual({ flipped: true, capped: true });
+  });
 });
 
 // The side the multiselect's list opens on must not depend on how many entries its source has: the list
@@ -316,73 +320,69 @@ test.describe('multiselect editor list stays in the viewport at every cell posit
 test.describe('multiselect editor list side does not depend on the source length', { tag: THEMES_TAG }, () => {
   // LTR only, one list height: the side rule reads the room below the cell, which neither the direction
   // nor the source length changes.
-  for (const dir of ['ltr'] as const) {
-    for (const pairRows of [5] as const) {
-      test(`opens a long source where a short one opens, visibleRows ${pairRows} (${dir.toUpperCase()})`, async({
-        page, theme, bundle,
-      }) => {
-        const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
-          dir, layout: 'window', type: 'multiselect', pairRows,
-        });
-        const row = 40;
+  test('opens a long source where a short one opens, visibleRows 5 (LTR)', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
+      dir: 'ltr', layout: 'window', type: 'multiselect', pairRows: 5,
+    });
+    const row = 40;
 
-        await page.setViewportSize({ width: 1000, height: 1000 });
-        await grid.goto();
+    await page.setViewportSize({ width: 1000, height: 1000 });
+    await grid.goto();
 
-        const cellTop = (r: number) => page.evaluate(y => {
-          const td = (window as unknown as { hot: { getCell(row: number, col: number): HTMLElement | null } })
-            .hot.getCell(y, 0);
+    const cellTop = (r: number) => page.evaluate(y => {
+      const td = (window as unknown as { hot: { getCell(row: number, col: number): HTMLElement | null } })
+        .hot.getCell(y, 0);
 
-          return td ? td.getBoundingClientRect().top : null;
-        }, r);
+      return td ? td.getBoundingClientRect().top : null;
+    }, r);
 
-        // The row is not rendered at scroll 0, so its page position is read once the page has scrolled to it.
-        await page.evaluate(() => window.scrollTo(0, 600));
-        await expect.poll(() => cellTop(row), { message: 'the row renders' }).not.toBeNull();
+    // The row is not rendered at scroll 0, so its page position is read once the page has scrolled to it.
+    await page.evaluate(() => window.scrollTo(0, 600));
+    await expect.poll(() => cellTop(row), { message: 'the row renders' }).not.toBeNull();
 
-        const rowTop = (await cellTop(row))! + await page.evaluate(() => window.scrollY);
-        const mismatches: string[] = [];
-        const shortSides = new Set<string>();
+    const rowTop = (await cellTop(row))! + await page.evaluate(() => window.scrollY);
+    const mismatches: string[] = [];
+    const shortSides = new Set<string>();
 
-        // The cell's top runs from the upper half to near the bottom edge of the viewport, taking the list's
-        // side through both of its thresholds.
-        for (let top = 400; top <= 880; top += 16) {
-          const scrollY = Math.round(rowTop - top);
+    // The cell's top runs from the upper half to near the bottom edge of the viewport, taking the list's
+    // side through both of its thresholds.
+    for (let top = 400; top <= 880; top += 16) {
+      const scrollY = Math.round(rowTop - top);
 
-          await page.evaluate(y => window.scrollTo(window.scrollX, y), scrollY);
-          await expect.poll(() => cellTop(row), { message: `the cell reaches ${top}` })
-            .toBeCloseTo(rowTop - scrollY, 1);
+      await page.evaluate(y => window.scrollTo(window.scrollX, y), scrollY);
+      await expect.poll(() => cellTop(row), { message: `the cell reaches ${top}` })
+        .toBeCloseTo(rowTop - scrollY, 1);
 
-          const sides: string[] = [];
+      const sides: string[] = [];
 
-          for (const col of [0, 1]) {
-            await grid.openEditorOnCell(row, col);
+      for (const col of [0, 1]) {
+        await grid.openEditorOnCell(row, col);
 
-            // The list follows the cell from the page's `scroll` listener, so the side is read once it has settled.
-            let side = '';
+        // The list follows the cell from the page's `scroll` listener, so the side is read once it has settled.
+        let side = '';
 
-            await expect.poll(async() => {
-              side = (await grid.listPlacement({ row, col })).side;
+        await expect.poll(async() => {
+          side = (await grid.listPlacement({ row, col })).side;
 
-              return side;
-            }, { message: `the list settles above or below column ${col}'s cell at ${top}` }).toMatch(/^(above|below)$/);
-            sides.push(side);
-            await grid.closeEditor();
-          }
+          return side;
+        }, { message: `the list settles above or below column ${col}'s cell at ${top}` }).toMatch(/^(above|below)$/);
+        sides.push(side);
+        await grid.closeEditor();
+      }
 
-          shortSides.add(sides[1]);
+      shortSides.add(sides[1]);
 
-          if (sides[0] !== sides[1]) {
-            mismatches.push(`cell top ${top}: 30 entries ${sides[0]}, ${pairRows} entries ${sides[1]}`);
-          }
-        }
-
-        expect(mismatches).toEqual([]);
-        // Without both sides in the sweep, equal sides prove nothing about the threshold.
-        expect([...shortSides].sort()).toEqual(['above', 'below']);
-      });
+      if (sides[0] !== sides[1]) {
+        mismatches.push(`cell top ${top}: 30 entries ${sides[0]}, 5 entries ${sides[1]}`);
+      }
     }
-  }
+
+    expect(mismatches).toEqual([]);
+    // Without both sides in the sweep, equal sides prove nothing about the threshold.
+    expect([...shortSides].sort()).toEqual(['above', 'below']);
+  });
 });
 
 // The side an open list takes is decided again on every page scroll (`HandsontableEditor`'s document
@@ -430,29 +430,26 @@ test.describe('editor list position while the page scrolls', { tag: THEMES_TAG }
 // bottom is below the viewport, so room measured from the container opens a list below its cell into space
 // the user cannot see: the vertical side is decided against the viewport.
 const BOTTOM_POINTS = (points: Point[]) => points.filter(({ name }) => name.startsWith('bottom'));
-const PARTWAY_POINTS: Record<EditorType, Record<'ltr' | 'rtl', Point[]>> = {
-  handsontable: { ltr: BOTTOM_POINTS(POINTS), rtl: BOTTOM_POINTS(POINTS) },
-  dropdown: { ltr: BOTTOM_POINTS(DROPDOWN_POINTS), rtl: BOTTOM_POINTS(DROPDOWN_POINTS) },
-  autocomplete: { ltr: BOTTOM_POINTS(NARROW_LIST_POINTS.ltr), rtl: BOTTOM_POINTS(NARROW_LIST_POINTS.rtl) },
-  multiselect: { ltr: BOTTOM_POINTS(MULTISELECT_POINTS.ltr), rtl: BOTTOM_POINTS(MULTISELECT_POINTS.rtl) },
+const PARTWAY_POINTS: Record<Exclude<EditorType, 'dropdown'>, Point[]> = {
+  handsontable: BOTTOM_POINTS(POINTS),
+  autocomplete: BOTTOM_POINTS(NARROW_LIST_POINTS.ltr),
+  multiselect: BOTTOM_POINTS(MULTISELECT_POINTS.ltr),
 };
 
 test.describe('editor list position in a transformed container, with the page scrolled partway', { tag: THEMES_TAG }, () => {
   // One LTR case per implementation of the vertical flip: `dropdown` inherits `autocomplete`'s, and the
   // flip has no direction input.
   for (const type of ['handsontable', 'autocomplete', 'multiselect'] as const) {
-    for (const dir of ['ltr'] as const) {
-      test(`the ${type} editor's list opens above a cell near the viewport's bottom (${dir.toUpperCase()})`, async({
-        page, theme, bundle,
-      }) => {
-        const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
-          dir, layout: 'window', type, wrap: 'transform',
-        });
-
-        await grid.goto();
-        await expectEveryPoint(grid, PARTWAY_POINTS[type][dir], 'partway');
+    test(`the ${type} editor's list opens above a cell near the viewport's bottom (LTR)`, async({
+      page, theme, bundle,
+    }) => {
+      const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
+        dir: 'ltr', layout: 'window', type, wrap: 'transform',
       });
-    }
+
+      await grid.goto();
+      await expectEveryPoint(grid, PARTWAY_POINTS[type], 'partway');
+    });
   }
 });
 

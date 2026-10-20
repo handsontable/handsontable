@@ -227,8 +227,9 @@ the `fixedColumnsStart` band and reaches past it, and it follows the same rule: 
   the group's `rowspan`, not the placeholder's. Reading the placeholder's own settings drops the class and the
   indicators of a group with `rowspan > 1`.
 - With `fixedColumnsEnd: 0` none of this runs (`firstEndColumn` is `Infinity`).
-- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (LTR and RTL). Toggle `#renderEndGroupContinuation` off to
-  see the end band header lose the label of a crossing group.
+- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (the continuation in LTR and RTL, the label and the zero-band
+  control in LTR). Toggle `#renderEndGroupContinuation` off to see the end band header lose the label of a crossing
+  group.
 
 ## TypeScript notes
 

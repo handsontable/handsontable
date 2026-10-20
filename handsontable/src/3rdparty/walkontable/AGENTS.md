@@ -1876,7 +1876,9 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   no line in the usual mid-scroll case. The class is off when nothing precedes the band (no column before it and
   no row headers), so the clone's border stays the grid's outer frame line. Alignment is judged at the two
   junction states only; a mid-scroll offset that happens to put the clone's edge on a master column boundary still
-  draws 2px. `tests/e2e/fixed-columns-end-line.spec.ts` measures all four states in LTR and RTL.
+  draws 2px. `tests/e2e/fixed-columns-end-line.spec.ts` measures all four states in LTR, and in RTL the two
+  junction states and the switch between the classes (the direction moves where the clone sits, not when the
+  line is shared).
 - **RTL window scroll: read the inline-end edge from the table, not from the scroll position.**
   `InlineEndOverlay#getOverlayOffset` compares the scroll position with the table's offset from the page start,
   which is the inline-start margin. That margin is the one on the right in RTL, which

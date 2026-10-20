@@ -1,7 +1,7 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { IconElementsPage } from '../fixtures/pages/IconElementsPage';
 
-test.describe('Icon elements', { tag: THEMES_TAG }, () => {
+test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('the theme stylesheet defines a --ht-icon-* variable per icon', async({ page, theme, bundle }) => {
     const grid = new IconElementsPage(page, theme, bundle);
 
@@ -777,6 +777,20 @@ test.describe('Icon elements', { tag: THEMES_TAG }, () => {
       expect(transforms.ltr).toBe(transforms.rtl);
     });
 
+    test('the retired pseudo-element no longer paints on the navigation buttons', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto();
+
+      const beforeContent = await page.locator('.ht-page-next').evaluate(
+        el => getComputedStyle(el, '::before').content);
+
+      // `mixins.pseudo` (`content: ""`) was removed from the component SCSS; the generated
+      // `iconsMap` rule (width/height/mask-image/background-color) has no `content` of its own,
+      // so with nothing supplying it the pseudo-element paints nothing.
+      expect(beforeContent).toBe('none');
+    });
+
     test('switching themes at runtime rebuilds the icons and keeps exactly one per button', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 
@@ -868,6 +882,24 @@ test.describe('Icon elements', { tag: THEMES_TAG }, () => {
         .toBe('matrix(-1, 0, 0, 1, 0, 0)');
       expect(await grid.transform(grid.icon('arrow-left', pagePrev)))
         .toBe('matrix(-1, 0, 0, 1, 0, 0)');
+    });
+
+    test('the retired glyph pseudo-elements no longer paint on the buttons or the chevron', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ sheetsBar: true });
+
+      // `mixins.pseudo` (`content: ""`) was removed from the `.ht-sheets-bar__button` rule and
+      // from the chevron's `::after` rule; the generated `iconsMap` rules (width/height/
+      // mask-image/background-color) carry no `content` of their own, so with nothing supplying
+      // it neither pseudo-element paints.
+      const addBeforeContent = await page.locator('.ht-sheets-bar__add').evaluate(
+        el => getComputedStyle(el, '::before').content);
+      const chevronAfterContent = await page.locator('.ht-sheets-bar__tab--active .ht-sheets-bar__tab-chevron')
+        .evaluate(el => getComputedStyle(el, '::after').content);
+
+      expect(addBeforeContent).toBe('none');
+      expect(chevronAfterContent).toBe('none');
     });
 
     test('switching themes at runtime rebuilds the bar icons and keeps exactly one per slot', async({
@@ -1050,6 +1082,19 @@ test.describe('Icon elements', { tag: THEMES_TAG }, () => {
       expect(kept).toEqual({ sameIcon: true, sameText: true, text: '-' });
       await expect(grid.icon('collapse-off', masterIndicator(page))).toHaveCount(1);
     });
+
+    test('the retired glyph pseudo-element no longer paints on the indicator', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ nestedHeaders: true });
+
+      // `mixins.pseudo` (`content: ""`) was removed from the `.collapsibleIndicator::before` rule;
+      // the generated `iconsMap` rule (width/height/mask-image/background-color) carries no
+      // `content` of its own, so with nothing supplying it the pseudo-element paints nothing.
+      const beforeContent = await cloneIndicator(page).evaluate(el => getComputedStyle(el, '::before').content);
+
+      expect(beforeContent).toBe('none');
+    });
   });
 
   test.describe('nested rows collapse button', () => {
@@ -1087,6 +1132,20 @@ test.describe('Icon elements', { tag: THEMES_TAG }, () => {
       await expect(grid.icon('collapse-off', cloneButton(page))).toHaveCount(1);
       await expect(grid.icon('collapse-on', cloneButton(page))).toHaveCount(0);
       await expect(cloneButton(page).locator('.ht-icon')).toHaveCount(1);
+    });
+
+    test('the retired glyph pseudo-element no longer paints on the button', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ nestedRows: true });
+
+      // Converting the collapse indicator dropped `@include mixins.pseudo` (`content: ""`) from the `.ht_nestingButton::before`
+      // rule shared with `.collapsibleIndicator`; the generated `iconsMap` rule (width/height/
+      // mask-image/background-color) carries no `content` of its own, so with nothing supplying it
+      // the pseudo-element paints nothing here either - the Nested Rows button never needed its own change here.
+      const beforeContent = await cloneButton(page).evaluate(el => getComputedStyle(el, '::before').content);
+
+      expect(beforeContent).toBe('none');
     });
   });
 
@@ -1302,6 +1361,18 @@ test.describe('Icon elements', { tag: THEMES_TAG }, () => {
       await expect(masterAfter(page).locator('.ht-hidden-indicator-start')).toHaveCount(1);
     });
 
+    test('the retired pseudo-elements no longer paint on the marked headers', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ hiddenColumns: true });
+
+      const beforeContent = await cloneAfter(page).evaluate(el => getComputedStyle(el, '::before').content);
+      const afterContent = await cloneBefore(page).evaluate(el => getComputedStyle(el, '::after').content);
+
+      expect(beforeContent).toBe('none');
+      expect(afterContent).toBe('none');
+    });
+
     test('in RTL, the carets stay physical: no flip class, and the LTR mask-position is preserved', async({
       page, theme, bundle,
     }) => {
@@ -1429,6 +1500,18 @@ test.describe('Icon elements', { tag: THEMES_TAG }, () => {
       await expect(page.locator('.ht_master .ht-hidden-indicator-end')).toHaveCount(0);
     });
 
+    test('the retired pseudo-elements no longer paint on the marked headers', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ hiddenRows: true });
+
+      const beforeContent = await cloneAfter(page).evaluate(el => getComputedStyle(el, '::before').content);
+      const afterContent = await cloneBefore(page).evaluate(el => getComputedStyle(el, '::after').content);
+
+      expect(beforeContent).toBe('none');
+      expect(afterContent).toBe('none');
+    });
+
     test('disabling the plugin removes every caret', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 
@@ -1527,6 +1610,20 @@ test.describe('Icon elements', { tag: THEMES_TAG }, () => {
       expect(editorCoords).toEqual([0, 2]);
     });
 
+    test('the retired pseudo-element no longer paints the cell arrow glyph', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // `mixins.pseudo` (`content: ""`) was removed from the `.htAutocompleteArrow::after` rule;
+      // the generated `iconsMap` rule (mask-image etc.) carries no `content` of its own, so with
+      // nothing supplying it the pseudo-element paints nothing.
+      const afterContent = await grid.grid().locator('.ht_master .htAutocompleteArrow').first()
+        .evaluate(el => getComputedStyle(el, '::after').content);
+
+      expect(afterContent).toBe('none');
+    });
+
     test('an autosized autocomplete column reserves the same width as before the icon migration', async({
       page, theme, bundle,
     }) => {
@@ -1623,6 +1720,19 @@ test.describe('Icon elements', { tag: THEMES_TAG }, () => {
       // The select editor's arrow is decorative, not interactive - unlike the cell renderer's
       // arrow, both the arrow div and the icon carry `pointer-events: none`
       // (`_select-editor.scss`), so a click anywhere on it reaches the native `<select>` beneath.
+      test('the retired pseudo-element no longer paints the select editor arrow glyph', async({
+        page, theme, bundle,
+      }) => {
+        const grid = new IconElementsPage(page, theme, bundle);
+
+        await grid.goto({ selectEditor: true });
+
+        const arrow = await openSelectEditor(page);
+        const afterContent = await arrow.evaluate(el => getComputedStyle(el, '::after').content);
+
+        expect(afterContent).toBe('none');
+      });
+
       test('a click on the arrow reaches the native select underneath, not the icon', async({
         page, theme, bundle,
       }) => {
@@ -1652,10 +1762,6 @@ test.describe('Icon elements', { tag: THEMES_TAG }, () => {
     // every other block above keeps its original 4-column fixture untouched. Row 0's source data
     // is `['Alpha', 'Beta']` out of the column's `source: ['Alpha', 'Beta', 'Gamma', 'Delta']` -
     // two chips, and two of the four dropdown entries pre-checked.
-    const disablePagination = (page: import('@playwright/test').Page) => page.evaluate(() => {
-      (window as unknown as { hot: any }).hot.updateSettings({ pagination: false });
-    });
-
     const firstCell = (page: import('@playwright/test').Page) =>
       page.locator('.ht_master td.ht-multi-select-renderer').first();
 
@@ -1678,6 +1784,23 @@ test.describe('Icon elements', { tag: THEMES_TAG }, () => {
     // Trap: the chip remove button is INTERACTIVE (`registerChipRemovingEvents`,
     // `utils/utils.ts`) - `.ht-icon`'s base `pointer-events: none` must let a click through to the
     // span beneath it rather than intercepting it, or the affordance silently breaks.
+    test('the retired pseudo-elements no longer paint the arrow or the chip-remove glyph', async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ multiSelect: true });
+
+      const cell = firstCell(page);
+      const arrowAfterContent = await cell.locator('.ht-multi-select-arrow').first()
+        .evaluate(el => getComputedStyle(el, '::after').content);
+      const chipRemoveBeforeContent = await cell.locator('.ht-multi-select-chip-remove').first()
+        .evaluate(el => getComputedStyle(el, '::before').content);
+
+      expect(arrowAfterContent).toBe('none');
+      expect(chipRemoveBeforeContent).toBe('none');
+    });
+
     test('a click precisely on a chip remove icon removes that chip - the icon does not intercept ' +
       'the click', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
@@ -1920,6 +2043,21 @@ test.describe('Icon elements', { tag: THEMES_TAG }, () => {
       // `aria-hidden` (`createIcon()`), so it must not change what a screen reader announces.
       await expect(close).toHaveAccessibleName('Close');
       await expect(close.locator('.ht-icon')).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    test('the retired pseudo-element no longer paints the glyph', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ notification: true });
+      await showClosableToast(page);
+
+      const beforeContent = await closeButton(page)
+        .evaluate(el => getComputedStyle(el, '::before').content);
+
+      // `mixins.pseudo` (`content: ""`) was removed from `.ht-notification__close::before` in the
+      // component SCSS; the generated `iconsMap` rule (width/height/mask-image/background-color) has
+      // no `content` of its own, so with nothing supplying it the pseudo-element paints nothing.
+      expect(beforeContent).toBe('none');
     });
 
     test('switching themes while a toast is open rebuilds its icon and keeps the toast ' +

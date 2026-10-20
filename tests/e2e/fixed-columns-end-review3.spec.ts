@@ -5,11 +5,11 @@ import { FixedColumnsEndReview3Page } from '../fixtures/pages/FixedColumnsEndRev
  * Review 3 follow-ups for `fixedColumnsEnd`:
  *
  * - the editor of a scrolling cell must not grow under the end band,
- * - the freeze line at the inline end is one border wide, as it is at the inline start,
  * - the resize handle of an end header sits on the header's own edge when the columns do not fill the grid,
  * - a merge that reaches into the band is drawn from the right extent on the end clone.
  *
- * Every case runs in LTR and RTL, and in every theme and bundle leg (the projects).
+ * Every case runs in LTR and RTL, except the extent of a merge on the end clone: the clamp reads logical column
+ * indexes, so it runs in LTR only. The one-border freeze line is covered by `fixed-columns-end-line.spec.ts`.
  */
 for (const rtl of [false, true]) {
   const direction = rtl ? 'RTL' : 'LTR';
@@ -56,14 +56,6 @@ for (const rtl of [false, true]) {
     });
   });
 
-  test.describe(`fixedColumnsEnd freeze line (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
-    let grid: FixedColumnsEndReview3Page;
-
-    test.beforeEach(async ({ page, theme, bundle }) => {
-      grid = new FixedColumnsEndReview3Page(page, theme, bundle);
-    });
-  });
-
   test.describe(`fixedColumnsEnd resize handle without a horizontal scroll (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndReview3Page;
 
@@ -107,7 +99,7 @@ for (const rtl of [false, true]) {
       grid = new FixedColumnsEndReview3Page(page, theme, bundle);
     });
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the clamp reads logical column indexes.
     if (!rtl) {
       test('extends the merge to its last column on the end clone when the master is scrolled to the start', async () => {
         // The merge covers columns 8 to 10, the band is 9 to 11 and the master renders no further than column 4.

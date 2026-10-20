@@ -177,7 +177,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       expect(await grid.selectedRange()).toEqual([5, COLS - 4, 5, COLS - 4]);
     });
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the RTL arrow mapping is the master-and-end case above; this walk adds the start band, a logical index.
     if (direction === 'ltr') {
       test('moves the selection across the start, master and end bands in order', async () => {
         await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 2, cols: 6 });
@@ -194,7 +194,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: a vertical walk has no inline-direction term.
     if (direction === 'ltr') {
       test('moves the selection down through the end corners', async () => {
         await grid.goto({ rtl, fixedColumnsEnd: 2, fixedRowsTop: 2, fixedRowsBottom: 2 });
@@ -251,7 +251,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       expect(await grid.endColumnsOverlap(5, COLS - 4, rtl)).toBeLessThanOrEqual(TOLERANCE);
     });
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the command moves by logical column index, which a right-to-left grid shares.
     if (direction === 'ltr') {
       test('Ctrl+End goes to the last scrolling cell, and Ctrl+Home goes back to the first one', async () => {
         await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 3, fixedRowsTop: 1, fixedRowsBottom: 1 });
@@ -265,7 +265,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the command extends by logical column index.
     if (direction === 'ltr') {
       test('Shift+End extends the selection up to the last column that scrolls', async () => {
         await grid.goto({ rtl, fixedColumnsEnd: 3 });
@@ -276,7 +276,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the guard compares column counts.
     if (direction === 'ltr') {
       test('leaves End and Home alone when the start and end columns cover every column', async () => {
         await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 3, cols: 5 });
@@ -290,7 +290,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: `getLastScrollableColumn()` reads column counts.
     if (direction === 'ltr') {
       test('keeps Shift+End extending to the last column when only start columns cover the grid', async () => {
         await grid.goto({ rtl, fixedColumnsStart: 3, cols: 3 });
@@ -301,7 +301,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the guard compares column counts.
     if (direction === 'ltr') {
       test('leaves Shift+End alone when the start and end columns cover every column', async () => {
         await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 3, cols: 5 });
@@ -312,7 +312,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the spare-column guard reads column counts.
     if (direction === 'ltr') {
       test('adds no column when Enter leaves the last column and the end columns are frozen', async () => {
         const enterRight = { enterMoves: { row: 0, col: 1 } };
@@ -347,6 +347,22 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
+    // LTR only: Home lands on the first column after the start band (`countFixedColumnsStart()`), a logical index.
+    if (direction === 'ltr') {
+      test('End goes to the last column that scrolls, and Home goes back to the first one', async () => {
+        await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 3 });
+        await grid.selectCell(5, 4);
+
+        await grid.press('End');
+        expect(await grid.selectedRange()).toEqual([5, COLS - 4, 5, COLS - 4]);
+        await expect.poll(() => grid.scrollLeft()).toBeGreaterThan(0);
+
+        await grid.press('Home');
+        expect(await grid.selectedRange()).toEqual([5, 2, 5, 2]);
+        await expect.poll(() => grid.scrollLeft()).toBe(0);
+      });
+    }
+
     test('moves to the very last column with Ctrl and the arrow key, end columns included', async () => {
       await grid.goto({ rtl, fixedColumnsEnd: 3 });
       await grid.selectCell(5, 4);
@@ -374,7 +390,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       expect(await grid.scrollLeftOverFrames(10)).toEqual(Array(10).fill(200));
     });
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the range is read as logical indexes; the RTL pointer path is the click and edge-drag cases.
     if (direction === 'ltr') {
       test('selects a range by dragging from the master into the end columns', async () => {
         await grid.goto({ rtl, fixedColumnsEnd: 3 });
@@ -384,7 +400,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the range is read as logical indexes; the RTL pointer path is the click and edge-drag cases.
     if (direction === 'ltr') {
       test('selects a range by dragging from the end columns into the master', async () => {
         await grid.goto({ rtl, fixedColumnsEnd: 3 });
@@ -394,7 +410,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the range is read as logical indexes; the RTL pointer path is the click and edge-drag cases.
     if (direction === 'ltr') {
       test('selects a range by dragging across all bands when the start and end columns are frozen together', async () => {
         await grid.goto({ rtl, fixedColumnsStart: 2, fixedColumnsEnd: 2, fixedRowsTop: 2, fixedRowsBottom: 2 });

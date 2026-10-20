@@ -1335,6 +1335,12 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
   });
 
   test.describe('layout direction', () => {
+    test('the column bar follows the right to left layout', async() => {
+      await grid.goto({ rtl: 1 });
+      await grid.drag('start', 4);
+
+      expect(await grid.count('start')).toBe(4);
+    });
   });
 
   test.describe('configuration', () => {

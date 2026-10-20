@@ -261,8 +261,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
     // sentences moved out of the bottom bar and into the modal, so the bar must be gone.
     const FAULTS = [
       { key: 'tampered', title: 'The license key for Handsontable is invalid.' },
-      // A current key protects its text, so a key whose text was edited is an unreadable key as well
-      // (the bare block alone fails the same digest comparison).
+      // A current key protects its text, so a key whose text was edited is an unreadable key as well.
       { key: 'edited-prose', title: 'The license key for Handsontable is invalid.' },
       { key: 'missing', title: 'The license key for Handsontable is missing.' },
     ] as const;

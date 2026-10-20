@@ -23,16 +23,6 @@ export interface FixedColumnsEndReview3Options {
   virtualized?: boolean;
 }
 
-/**
- * The width of the borders that draw one freeze line, as the two cells either side of it contribute them.
- */
-export interface FreezeLineWidths {
-  /** The inline-end border of the cell before the line. */
-  before: number;
-  /** The inline-start border of the cell after the line. */
-  after: number;
-}
-
 type HotWindow = {
   hot: {
     scrollViewportTo(options: { row?: number; col?: number }): boolean;
@@ -81,86 +71,6 @@ export class FixedColumnsEndReview3Page extends FixedColumnsEndPage {
   async scrollToColumn(col: number): Promise<void> {
     await this.page.evaluate(c => (window as unknown as HotWindow).hot.scrollViewportTo({ col: c }), col);
     await expect(this.master.locator(`td[data-testid="cell-1-${col}"]`)).toBeAttached();
-  }
-
-  /**
-   * The border widths of the two body cells either side of the freeze line at the inline end: the last
-   * scrolling column in the master and the first column of the end clone.
-   *
-   * @param {number} lastScrollingColumn Visual index of the last column that is not frozen at the end.
-   */
-  async endFreezeLine(lastScrollingColumn: number): Promise<FreezeLineWidths> {
-    await this.scrollToColumn(lastScrollingColumn);
-
-    return this.page.evaluate((col) => {
-      const width = (selector: string, prop: 'borderInlineEndWidth' | 'borderInlineStartWidth') => {
-        const cell = document.querySelector(selector);
-
-        if (!cell) {
-          throw new Error(`No cell for ${selector}`);
-        }
-
-        return Number.parseFloat(getComputedStyle(cell)[prop]);
-      };
-
-      return {
-        before: width(`.ht_master td[data-testid="cell-1-${col}"]`, 'borderInlineEndWidth'),
-        after: width(`.ht_clone_inline_end td[data-testid="cell-1-${col + 1}"]`, 'borderInlineStartWidth'),
-      };
-    }, lastScrollingColumn);
-  }
-
-  /**
-   * The same two widths for the freeze line at the inline start: the last frozen start column in its clone and the
-   * first scrolling column in the master.
-   *
-   * @param {number} lastStartColumn Visual index of the last column frozen at the start.
-   */
-  async startFreezeLine(lastStartColumn: number): Promise<FreezeLineWidths> {
-    await this.scrollToColumn(lastStartColumn + 1);
-
-    return this.page.evaluate((col) => {
-      const width = (selector: string, prop: 'borderInlineEndWidth' | 'borderInlineStartWidth') => {
-        const cell = document.querySelector(selector);
-
-        if (!cell) {
-          throw new Error(`No cell for ${selector}`);
-        }
-
-        return Number.parseFloat(getComputedStyle(cell)[prop]);
-      };
-
-      return {
-        before: width(`.ht_clone_inline_start td[data-testid="cell-1-${col}"]`, 'borderInlineEndWidth'),
-        after: width(`.ht_master td[data-testid="cell-1-${col + 1}"]`, 'borderInlineStartWidth'),
-      };
-    }, lastStartColumn);
-  }
-
-  /**
-   * The border widths of the two header cells either side of the freeze line at the inline end: the header of the
-   * last scrolling column in the master and the first header of the end corner clone.
-   *
-   * @param {number} lastScrollingColumn Visual index of the last column that is not frozen at the end.
-   */
-  async endHeaderFreezeLine(lastScrollingColumn: number): Promise<FreezeLineWidths> {
-    await this.scrollToColumn(lastScrollingColumn);
-
-    return this.page.evaluate((col) => {
-      const endHeader = document.querySelector('.ht_clone_top_inline_end_corner thead tr:last-child th:first-child');
-      // `aria-colindex` is 1-based and counts the row header, so the column is the (col + 2)th. The top clone draws
-      // the headers of the scrolling columns, the master draws none.
-      const masterHeader = document.querySelector(`.ht_clone_top thead tr:last-child th[aria-colindex="${col + 2}"]`);
-
-      if (!endHeader || !masterHeader) {
-        throw new Error('No header cells');
-      }
-
-      return {
-        before: Number.parseFloat(getComputedStyle(masterHeader).borderInlineEndWidth),
-        after: Number.parseFloat(getComputedStyle(endHeader).borderInlineStartWidth),
-      };
-    }, lastScrollingColumn);
   }
 
   /**

@@ -12,48 +12,42 @@ test.describe('Checkbox renderer tick layout', { tag: THEMES_TAG }, () => {
   for (const dir of ['ltr', 'rtl'] as const) {
     const goto = (grid: IconElementsCheckboxPage) => grid.goto(dir === 'rtl' ? { dir: 'rtl' } : {});
 
-    // ltr only: the code under test has no direction branch.
-    if (dir === 'ltr') {
-      test(`in a narrow column the tick stays on its box and the row keeps its height (${dir})`, async({
-        page, theme, bundle,
-      }) => {
-        const grid = new IconElementsCheckboxPage(page, theme, bundle);
+    test(`in a narrow column the tick stays on its box and the row keeps its height (${dir})`, async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsCheckboxPage(page, theme, bundle);
 
-        await goto(grid);
-        await grid.configureCheckboxColumn({ width: await grid.narrowColumnWidth() });
+      await goto(grid);
+      await grid.configureCheckboxColumn({ width: await grid.narrowColumnWidth() });
 
-        const geometry = await grid.checkboxGeometry(0);
+      const geometry = await grid.checkboxGeometry(0);
 
-        expect(geometry.box.width).toBeGreaterThan(0);
-        expect(geometry.checkboxRowHeight).toBe(geometry.textRowHeight);
-        expect(Math.abs(geometry.tick.left - geometry.box.left), 'tick x').toBeLessThan(0.5);
-        expect(Math.abs(geometry.tick.top - geometry.box.top), 'tick y').toBeLessThan(0.5);
-        expect(Math.abs(geometry.tick.width - geometry.box.width), 'tick width').toBeLessThan(0.5);
-        expect(Math.abs(geometry.tick.height - geometry.box.height), 'tick height').toBeLessThan(0.5);
+      expect(geometry.box.width).toBeGreaterThan(0);
+      expect(geometry.checkboxRowHeight).toBe(geometry.textRowHeight);
+      expect(Math.abs(geometry.tick.left - geometry.box.left), 'tick x').toBeLessThan(0.5);
+      expect(Math.abs(geometry.tick.top - geometry.box.top), 'tick y').toBeLessThan(0.5);
+      expect(Math.abs(geometry.tick.width - geometry.box.width), 'tick width').toBeLessThan(0.5);
+      expect(Math.abs(geometry.tick.height - geometry.box.height), 'tick height').toBeLessThan(0.5);
+    });
+
+    test(`a wrapped label after the checkbox keeps the tick on its box in a narrow column (${dir})`, async({
+      page, theme, bundle,
+    }) => {
+      const grid = new IconElementsCheckboxPage(page, theme, bundle);
+
+      await goto(grid);
+      await grid.configureCheckboxColumn({
+        width: await grid.narrowColumnWidth(),
+        label: { value: 'Pick', position: 'after' },
+        wordWrap: true,
       });
-    }
 
-    // ltr only: the code under test has no direction branch.
-    if (dir === 'ltr') {
-      test(`a wrapped label after the checkbox keeps the tick on its box in a narrow column (${dir})`, async({
-        page, theme, bundle,
-      }) => {
-        const grid = new IconElementsCheckboxPage(page, theme, bundle);
+      const geometry = await grid.checkboxGeometry(0);
 
-        await goto(grid);
-        await grid.configureCheckboxColumn({
-          width: await grid.narrowColumnWidth(),
-          label: { value: 'Pick', position: 'after' },
-          wordWrap: true,
-        });
-
-        const geometry = await grid.checkboxGeometry(0);
-
-        expect(geometry.box.width).toBeGreaterThan(0);
-        expect(Math.abs(geometry.tick.left - geometry.box.left), 'tick x').toBeLessThan(0.5);
-        expect(Math.abs(geometry.tick.top - geometry.box.top), 'tick y').toBeLessThan(0.5);
-      });
-    }
+      expect(geometry.box.width).toBeGreaterThan(0);
+      expect(Math.abs(geometry.tick.left - geometry.box.left), 'tick x').toBeLessThan(0.5);
+      expect(Math.abs(geometry.tick.top - geometry.box.top), 'tick y').toBeLessThan(0.5);
+    });
   }
 
   // `noValue` dims the input to 0.5. The tick is the input's sibling, not its descendant, so the

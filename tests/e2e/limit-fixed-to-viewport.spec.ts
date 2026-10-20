@@ -576,9 +576,6 @@ test.describe('limitFixedToViewport', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => 
     });
   });
 
-  test.describe('the option turned off', () => {
-  });
-
   test.describe('with the freezeBar plugin', () => {
     test('puts the bar on the drawn count, while the plugin reports the configured one', async() => {
       await grid.goto({ start: 20, bar: 1 });

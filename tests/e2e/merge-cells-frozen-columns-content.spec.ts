@@ -25,18 +25,16 @@ test.describe('content of a merged cell across a frozen-column line', { tag: THE
   });
 
   // One alignment: the layout wrapper is the same element for every alignment class.
-  for (const className of ['htRight'] as const) {
-    test(`shows a ${className} value once`, async () => {
-      await grid.initGrid({
-        fixedColumnsStart: 2,
-        mergeCells: [BLOCK],
-        values: ONE_MARKER,
-        cell: [{ row: 1, col: 0, className }],
-      });
-
-      await expect.poll(() => grid.visibleMarkers()).toEqual({ count: 1, panes: [expect.any(String)] });
+  test('shows a htRight value once', async () => {
+    await grid.initGrid({
+      fixedColumnsStart: 2,
+      mergeCells: [BLOCK],
+      values: ONE_MARKER,
+      cell: [{ row: 1, col: 0, className: 'htRight' }],
     });
-  }
+
+    await expect.poll(() => grid.visibleMarkers()).toEqual({ count: 1, panes: [expect.any(String)] });
+  });
 
   test('shows a right-aligned value in the master after a horizontal scroll', async () => {
     // The block ends at column 11, still on screen after the scroll: the value belongs at that end,

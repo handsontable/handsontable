@@ -1,12 +1,9 @@
 import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { CellDropdownArrowPage, type CellType } from '../fixtures/pages/CellDropdownArrowPage';
 
-// Every cell type that renders a dropdown indicator. The first three reach the same listener:
-// `dropdownRenderer` and `handsontableRenderer` both delegate to `autocompleteRenderer`.
-// `multiselect` reaches its own element and its own listener (#13316) and is included so the
-// affordance every list cell type shares is asserted in one place.
-// `dropdown` and `handsontable` render their arrow through `autocompleteRenderer`, so the autocomplete cases
-// cover them; `multiselect` builds its own indicator.
+// One cell type per renderer that draws a dropdown indicator: `dropdownRenderer` and
+// `handsontableRenderer` delegate to `autocompleteRenderer`, so the `autocomplete` cases cover them,
+// and `multiselect` reaches its own element and its own listener (#13316).
 const CELL_TYPES: CellType[] = ['autocomplete', 'multiselect'];
 
 /**

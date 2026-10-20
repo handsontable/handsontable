@@ -144,16 +144,16 @@ for (const direction of ['ltr', 'rtl'] as const) {
     });
   });
 
-  test.describe(`fixedColumnsEnd and CustomBorders (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
-    let grid: FixedColumnsEndPage;
+  // LTR only: the working window of the borders is built from logical column indexes.
+  if (direction === 'ltr') {
+    test.describe(`fixedColumnsEnd and CustomBorders (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
+      let grid: FixedColumnsEndPage;
 
-    test.beforeEach(async ({ page, theme, bundle }) => {
-      grid = new FixedColumnsEndPage(page, theme, bundle);
-      await grid.goto({ rtl, fixedColumnsEnd: 2, customBorders: true });
-    });
+      test.beforeEach(async ({ page, theme, bundle }) => {
+        grid = new FixedColumnsEndPage(page, theme, bundle);
+        await grid.goto({ rtl, fixedColumnsEnd: 2, customBorders: true });
+      });
 
-    // ltr only: the code under test has no direction branch.
-    if (direction === 'ltr') {
       test('draws the border of an end column although the main table renders no column near it', async () => {
         const border = { width: 2, color: 'red' };
 
@@ -169,10 +169,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
         expect(await grid.hasRenderedCustomBorder(3, 15)).toBe(false);
         await expect.poll(() => grid.visibleBordersInEndOverlay()).toBeGreaterThan(0);
       });
-    }
 
-    // ltr only: the code under test has no direction branch.
-    if (direction === 'ltr') {
       test('keeps the border of an end column while the grid scrolls', async () => {
         const border = { width: 2, color: 'red' };
 
@@ -184,19 +181,19 @@ for (const direction of ['ltr', 'rtl'] as const) {
         await expect.poll(() => grid.hasRenderedCustomBorder(3, COLS - 1)).toBe(true);
         await expect.poll(() => grid.visibleBordersInEndOverlay()).toBeGreaterThan(0);
       });
-    }
-  });
-
-  test.describe(`fixedColumnsEnd and UndoRedo (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
-    let grid: FixedColumnsEndPage;
-
-    test.beforeEach(async ({ page, theme, bundle }) => {
-      grid = new FixedColumnsEndPage(page, theme, bundle);
-      await grid.goto({ rtl, fixedColumnsEnd: 3 });
     });
+  }
 
-    // ltr only: the code under test has no direction branch.
-    if (direction === 'ltr') {
+  // LTR only: the undo snapshot restores a column count.
+  if (direction === 'ltr') {
+    test.describe(`fixedColumnsEnd and UndoRedo (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
+      let grid: FixedColumnsEndPage;
+
+      test.beforeEach(async ({ page, theme, bundle }) => {
+        grid = new FixedColumnsEndPage(page, theme, bundle);
+        await grid.goto({ rtl, fixedColumnsEnd: 3 });
+      });
+
       test('gives the end columns back when it undoes the removal of some of them', async () => {
         await grid.removeColumns(COLS - 2, 2);
 
@@ -211,6 +208,6 @@ for (const direction of ['ltr', 'rtl'] as const) {
         expect(await grid.overlayOf(5, COLS - 3)).toBe('inline_end');
         expect(await grid.overlayOf(5, COLS - 4)).not.toBe('inline_end');
       });
-    }
-  });
+    });
+  }
 }

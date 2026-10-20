@@ -171,7 +171,6 @@ test.describe('merged cell across the fixedRowsBottom line', { tag: THEMES_TAG }
           }
         });
       }
-
     });
   }
 });

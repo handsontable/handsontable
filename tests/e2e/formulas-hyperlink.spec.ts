@@ -1,4 +1,4 @@
-import { test, expect, BUNDLES_TAG } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasHyperlinkPage } from '../fixtures/pages/FormulasHyperlinkPage';
 
 /**
@@ -8,7 +8,7 @@ import { FormulasHyperlinkPage } from '../fixtures/pages/FormulasHyperlinkPage';
  * pin the two regressions that sank the original proposal (#10314): a swapped
  * renderer and an unsanitized `href`.
  */
-test.describe('formulas: HYPERLINK rendering', { tag: BUNDLES_TAG }, () => {
+test.describe('formulas: HYPERLINK rendering', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('renders an anchor with the label as text and the URL as href', async({ page, theme, bundle }) => {
     const grid = new FormulasHyperlinkPage(page, theme, bundle);
 
@@ -89,6 +89,20 @@ test.describe('formulas: HYPERLINK rendering', { tag: BUNDLES_TAG }, () => {
 
     await expect(grid.cell(0, 2).locator('input[type="checkbox"]')).toHaveCount(1);
     await expect(grid.link(0, 2)).toHaveCount(0);
+  });
+
+  test('keeps a cell type\'s renderer on a hyperlink cell', async({ page, theme, bundle }) => {
+    const grid = new FormulasHyperlinkPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // The `password` renderer masks the label, and the mask is what the anchor
+    // wraps. A swapped renderer would leak the plain label instead.
+    await expect(grid.link(0, 3)).toHaveText('******');
+    await expect(grid.link(0, 3)).toHaveAttribute('href', 'https://example.com/pw');
+    // A non-hyperlink cell in the same column is still masked and gains no anchor.
+    await expect(grid.cell(1, 3)).toHaveText('***********');
+    await expect(grid.link(1, 3)).toHaveCount(0);
   });
 
   test('drops the anchor when the formula is replaced by a plain value', async({ page, theme, bundle }) => {

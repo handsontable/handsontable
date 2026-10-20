@@ -1132,8 +1132,9 @@ test.describe('a removal that strands the editor', { tag: BUNDLES_TAG }, () => {
    * block, one line of application code apart. The window that protects the editor INSIDE
    * `alter()` must be closed by the time `alter()` returns - a window closed on a zero-delay
    * timeout instead is still open when the filter runs, skips the discard, and the filter's
-   * re-selection commits through visual row 4 and appends four records. Unlike the case above,
-   * which needs the filter to outrun the timer, this fails deterministically on the unfixed code.
+   * re-selection commits through visual row 4 and appends four records. A filter that waits for a
+   * later task would fail only when it outran the timer; this one fails deterministically on the
+   * unfixed code.
    */
   test('discards when the filter lands in the same task as the removal',
     async({ page, theme, bundle }) => {

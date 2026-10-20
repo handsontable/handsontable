@@ -46,7 +46,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       expect(near(endEdge(span), endEdge(labels[1].box)), 'span end edge').toBe(true);
     });
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the continuation colspan comes from logical indexes; the first case pins the RTL geometry.
     if (direction === 'ltr') {
       test('continues a group that crosses the line with a single column when one column is in the band', async () => {
         await grid.goto({ scenario: 'nested', rtl, fixedColumnsEnd: 3 });
@@ -60,7 +60,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: which clone shows the label is decided by logical indexes.
     if (direction === 'ltr') {
       test('shows the label of a group that crosses the line on the end clone only', async () => {
         await grid.goto({ scenario: 'nested', rtl, fixedColumnsEnd: 4 });
@@ -76,7 +76,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the band test compares logical indexes.
     if (direction === 'ltr') {
       test('leaves a group that stays out of the band untouched on the top clone', async () => {
         await grid.goto({ scenario: 'nested', rtl, fixedColumnsEnd: 3 });
@@ -89,7 +89,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the zero-band early return has no direction term.
     if (direction === 'ltr') {
       test('hides no label on the top clone without frozen end columns', async () => {
         await grid.goto({ scenario: 'nested', rtl, fixedColumnsEnd: 0 });
@@ -102,15 +102,15 @@ for (const direction of ['ltr', 'rtl'] as const) {
     }
   });
 
-  test.describe(`fixedColumnsEnd and CollapsibleColumns (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
-    let grid: FixedColumnsEndPluginsPage;
+  // LTR only: `#reachesFixedColumnsEnd()` compares logical column indexes.
+  if (direction === 'ltr') {
+    test.describe(`fixedColumnsEnd and CollapsibleColumns (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
+      let grid: FixedColumnsEndPluginsPage;
 
-    test.beforeEach(async ({ page, theme, bundle }) => {
-      grid = new FixedColumnsEndPluginsPage(page, theme, bundle);
-    });
+      test.beforeEach(async ({ page, theme, bundle }) => {
+        grid = new FixedColumnsEndPluginsPage(page, theme, bundle);
+      });
 
-    // ltr only: the code under test has no direction branch.
-    if (direction === 'ltr') {
       test('gives every collapsible group a toggle when no column is frozen at the end', async () => {
         // The control of the cases below: the toggles exist on this path.
         await grid.goto({ scenario: 'collapsible', rtl, fixedColumnsEnd: 0 });
@@ -121,10 +121,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
         expect(owners).toContain('D');
         expect(owners).toContain('E');
       });
-    }
 
-    // ltr only: the code under test has no direction branch.
-    if (direction === 'ltr') {
       test('draws no toggle on the end clone, not even on the continuation cell of a crossing group', async () => {
         await grid.goto({ scenario: 'collapsible', rtl, fixedColumnsEnd: 3 });
 
@@ -135,41 +132,41 @@ for (const direction of ['ltr', 'rtl'] as const) {
         expect(await grid.indicatorCount(END_CORNER)).toBe(0);
         expect(await grid.indicatorCount('ht_clone_inline_end')).toBe(0);
       });
-    }
-  });
+    });
+  }
 
   for (const virtualized of [false, true]) {
-    test.describe(`fixedColumnsEnd and MergeCells, virtualized ${virtualized ? 'on' : 'off'} (${direction})`,
-      { tag: ['@core', THEMES_TAG] }, () => {
-        let grid: FixedColumnsEndPluginsPage;
+    // RTL runs the crossing case with virtualized off only: the anchor clamp is mirrored there, and the virtualized clamp has no direction term.
+    if (direction === 'ltr' || !virtualized) {
+      test.describe(`fixedColumnsEnd and MergeCells, virtualized ${virtualized ? 'on' : 'off'} (${direction})`,
+        { tag: ['@core', THEMES_TAG] }, () => {
+          let grid: FixedColumnsEndPluginsPage;
 
-        test.beforeEach(async ({ page, theme, bundle }) => {
-          grid = new FixedColumnsEndPluginsPage(page, theme, bundle);
-          await grid.goto({ scenario: 'merge', rtl, virtualized });
-        });
-
-        const inside = (box: Box, band: Box) => box.left >= band.left - TOLERANCE && box.right <= band.right + TOLERANCE;
-
-        // ltr only: the code under test has no direction branch.
-        if (direction === 'ltr') {
-          test('renders a merge that lies inside the band as one cell with its own spans', async () => {
-            // Merge A: rows 2 and 3, columns 10 and 11 (the last two columns of the band).
-            const anchor = await grid.endBandCell(2, 10);
-            const band = await grid.endBandBox();
-
-            expect(anchor.hidden).toBe(false);
-            expect({ colspan: anchor.colspan, rowspan: anchor.rowspan, text: anchor.text })
-              .toEqual({ colspan: 2, rowspan: 2, text: 'R3C11' });
-            expect(near(anchor.box.right - anchor.box.left, 2 * COLUMN_WIDTH), 'width').toBe(true);
-            expect(inside(anchor.box, band), 'inside the band').toBe(true);
-            // The covered cells are hidden, not drawn a second time.
-            expect((await grid.endBandCell(2, 11)).hidden).toBe(true);
-            expect((await grid.endBandCell(3, 10)).hidden).toBe(true);
+          test.beforeEach(async ({ page, theme, bundle }) => {
+            grid = new FixedColumnsEndPluginsPage(page, theme, bundle);
+            await grid.goto({ scenario: 'merge', rtl, virtualized });
           });
-        }
 
-        // rtl only with virtualized off: the on/rtl twin ran the same branch.
-        if (direction === 'ltr' || !virtualized) {
+          const inside = (box: Box, band: Box) => box.left >= band.left - TOLERANCE && box.right <= band.right + TOLERANCE;
+
+          // LTR only: the spans of a merge inside the band are logical.
+          if (direction === 'ltr') {
+            test('renders a merge that lies inside the band as one cell with its own spans', async () => {
+              // Merge A: rows 2 and 3, columns 10 and 11 (the last two columns of the band).
+              const anchor = await grid.endBandCell(2, 10);
+              const band = await grid.endBandBox();
+
+              expect(anchor.hidden).toBe(false);
+              expect({ colspan: anchor.colspan, rowspan: anchor.rowspan, text: anchor.text })
+                .toEqual({ colspan: 2, rowspan: 2, text: 'R3C11' });
+              expect(near(anchor.box.right - anchor.box.left, 2 * COLUMN_WIDTH), 'width').toBe(true);
+              expect(inside(anchor.box, band), 'inside the band').toBe(true);
+              // The covered cells are hidden, not drawn a second time.
+              expect((await grid.endBandCell(2, 11)).hidden).toBe(true);
+              expect((await grid.endBandCell(3, 10)).hidden).toBe(true);
+            });
+          }
+
           test('renders the part of a merge that crosses the line from the first end column', async () => {
             // Merge B: rows 5 and 6, columns 8 to 10. Its anchor (column 8) is in the master, columns 9 and 10 are
             // in the band, so the end clone draws a continuation over those two.
@@ -190,20 +187,20 @@ for (const direction of ['ltr', 'rtl'] as const) {
             expect((await grid.endBandCell(6, 9)).hidden).toBe(true);
             expect((await grid.endBandCell(6, 10)).hidden).toBe(true);
           });
-        }
 
-        // ltr only: the code under test has no direction branch.
-        if (direction === 'ltr') {
-          test('keeps the master drawing the merge from its anchor when the master shows it', async () => {
-            await grid.scrollTo({ left: 10_000 });
+          // LTR only: the master draws from the logical anchor.
+          if (direction === 'ltr') {
+            test('keeps the master drawing the merge from its anchor when the master shows it', async () => {
+              await grid.scrollTo({ left: 10_000 });
 
-            const anchor = await grid.cell(5, 8);
+              const anchor = await grid.cell(5, 8);
 
-            expect(anchor.clone).toBe('master');
-            expect(anchor.text).toBe('R6C9');
-            expect({ colspan: anchor.colspan, rowspan: anchor.rowspan }).toEqual({ colspan: 3, rowspan: 2 });
-          });
-        }
-      });
+              expect(anchor.clone).toBe('master');
+              expect(anchor.text).toBe('R6C9');
+              expect({ colspan: anchor.colspan, rowspan: anchor.rowspan }).toEqual({ colspan: 3, rowspan: 2 });
+            });
+          }
+        });
+    }
   }
 }

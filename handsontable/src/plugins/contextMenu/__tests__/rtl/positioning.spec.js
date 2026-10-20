@@ -22,9 +22,9 @@ describe('ContextMenu (RTL mode)', () => {
     });
 
     // Where a submenu opens is asserted from DOM rects in tests/e2e/submenu-position.spec.ts: from every
-    // corner, in both grid directions and both document directions (the rows of this using() table),
-    // with the grid scrolled and with the window scrolled. ./visual-tests/tests/js-only/context-menu/
-    // keeps a look check of the menu.
+    // corner on the two layouts whose grid and page directions differ (the mixed rows of this using()
+    // table), and with the window scrolled on all four. A scroll of the grid's own holder never reaches
+    // the positioner. ./visual-tests/tests/js-only/context-menu/ keeps a look check of the menu.
 
     it('should show tick from "Read only" element at proper place', async() => {
       handsontable({

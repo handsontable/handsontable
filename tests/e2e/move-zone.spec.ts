@@ -351,6 +351,26 @@ test.describe('moveCells edge move bands', { tag: THEMES_TAG }, () => {
     expect(await grid.cellValue(2, 2)).toBe('R3C3');
   });
 
+  test('records no undo entry for a macOS-style Ctrl+click on a move zone', async ({ page }) => {
+    // On macOS a Ctrl+click reaches the plugin as button 0 with ctrlKey set, so it passes the
+    // right-click guard — and because Ctrl on drop means "copy", it used to commit a no-op copy.
+    await grid.selectCells(2, 2, 3, 3);
+
+    const box = await grid.visibleMoveZones().first().boundingBox();
+
+    expect(box).not.toBeNull();
+
+    await page.keyboard.down('Control');
+    await page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+    await page.mouse.down();
+    await page.mouse.up();
+    await page.keyboard.up('Control');
+
+    expect(await grid.cellValue(2, 2)).toBe('R3C3');
+    expect(await grid.doneActionsCount()).toBe(0);
+    expect(await grid.isUndoAvailable()).toBe(false);
+  });
+
   test('keeps the autofill fill handle clickable above the move bands', async ({ page }) => {
     // The bottom/end bands span the SE corner where the fill handle sits. The handle must win
     // that overlap (z-index 110 vs the bands' 100) — otherwise pressing it starts a move drag

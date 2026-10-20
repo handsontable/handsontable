@@ -56,7 +56,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
         }
       });
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the index is computed from logical column indexes.
     if (direction === 'ltr') {
       test('gives every header of a column the aria-colindex its body cells carry, in every table', async () => {
         for (const fixedColumnsEnd of [0, 2]) {
@@ -93,30 +93,28 @@ for (const direction of ['ltr', 'rtl'] as const) {
 
     for (const windowScroll of [false, true]) {
       // One band width: the handle rule reads the last column of the band, whatever its size.
-      for (const fixedColumnsEnd of [1] as const) {
-        test(`keeps the fill handle on the last column inside the end clone (${windowScroll ? 'window' : 'holder'} scroll, ` +
-          `${fixedColumnsEnd} end columns)`, async () => {
-          await wt.goto({ rtl, windowScroll, fixedColumnsEnd });
-          await wt.selectRange(3, 29, 3, 29);
+      test(`keeps the fill handle on the last column inside the end clone (${windowScroll ? 'window' : 'holder'} scroll, ` +
+        '1 end columns)', async () => {
+        await wt.goto({ rtl, windowScroll, fixedColumnsEnd: 1 });
+        await wt.selectRange(3, 29, 3, 29);
 
-          if (windowScroll) {
-            await wt.scrollWindowTo(await wt.maxWindowScroll());
-          } else {
-            await wt.scrollTo({ left: await wt.maxScrollLeft(), top: 0 });
-          }
+        if (windowScroll) {
+          await wt.scrollWindowTo(await wt.maxWindowScroll());
+        } else {
+          await wt.scrollTo({ left: await wt.maxScrollLeft(), top: 0 });
+        }
 
-          await expect.poll(() => wt.endCloneFillHandle()).not.toBeNull();
+        await expect.poll(() => wt.endCloneFillHandle()).not.toBeNull();
 
-          const found = (await wt.endCloneFillHandle())!;
+        const found = (await wt.endCloneFillHandle())!;
 
-          // The end holder clips at its own edge: a handle that straddles the last column loses half of itself.
-          expect(found.handle.left).toBeGreaterThanOrEqual(found.holder.left - 0.5);
-          expect(found.handle.right).toBeLessThanOrEqual(found.holder.right + 0.5);
-        });
-      }
+        // The end holder clips at its own edge: a handle that straddles the last column loses half of itself.
+        expect(found.handle.left).toBeGreaterThanOrEqual(found.holder.left - 0.5);
+        expect(found.handle.right).toBeLessThanOrEqual(found.holder.right + 0.5);
+      });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: a header height is a vertical measurement.
     if (direction === 'ltr') {
       test('keeps one header row height across all tables with frozen columns on both sides, without inflating it',
         async () => {

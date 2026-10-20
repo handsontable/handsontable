@@ -216,9 +216,10 @@ test.describe('selection of a merged cell that reaches into the end frozen colum
           ...extra,
         });
 
-        // Every shape runs once (ltr, virtualized off). The direction only moves the border positioning,
-        // which the corner overlays and the boundary shape still exercise in rtl; the virtualized clamp is
-        // the identity for every shape but the one-row block that starts before the band.
+        // Every shape runs once (ltr, virtualized off). In rtl the direction only moves the border positioning,
+        // which the corner overlays and the boundary shape still exercise. With virtualized merged cells every
+        // inline-end clone clamps the anchor to its first column, and `Border#resolveMergedBlockEdges` looks the
+        // block up again for each of them, so the one-row block stands for the other shapes there.
         const shapes = BLOCKS.filter(({ name }) => (direction === 'ltr' && !virtualized)
           || name === 'a block of one row'
           || (direction === 'rtl' && !virtualized && name !== 'a taller block'));

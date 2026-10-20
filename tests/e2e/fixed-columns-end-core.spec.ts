@@ -100,30 +100,30 @@ for (const direction of ['ltr', 'rtl'] as const) {
     });
   });
 
-  test.describe(`fixedColumnsEnd with minSpareCols (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
-    let grid: FixedColumnsEndPage;
+  // LTR only: the spare-column guard and the floor of fixedColumnsEnd read column counts, not positions.
+  if (direction === 'ltr') {
+    test.describe(`fixedColumnsEnd with minSpareCols (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
+      let grid: FixedColumnsEndPage;
 
-    test.beforeEach(async ({ page, theme, bundle }) => {
-      grid = new FixedColumnsEndPage(page, theme, bundle);
-    });
+      test.beforeEach(async ({ page, theme, bundle }) => {
+        grid = new FixedColumnsEndPage(page, theme, bundle);
+      });
 
-    /**
-     * Types a value into a cell and commits it.
-     *
-     * @param {number} row Visual row.
-     * @param {number} col Visual column.
-     */
-    const typeInto = async (row: number, col: number) => {
-      await grid.selectCell(row, col);
-      await grid.press('Enter');
-      await expect.poll(() => grid.isEditorOpened()).toBe(true);
-      await grid.page.keyboard.type('x');
-      await grid.press('Enter');
-      await expect.poll(() => grid.isEditorOpened()).toBe(false);
-    };
+      /**
+       * Types a value into a cell and commits it.
+       *
+       * @param {number} row Visual row.
+       * @param {number} col Visual column.
+       */
+      const typeInto = async (row: number, col: number) => {
+        await grid.selectCell(row, col);
+        await grid.press('Enter');
+        await expect.poll(() => grid.isEditorOpened()).toBe(true);
+        await grid.page.keyboard.type('x');
+        await grid.press('Enter');
+        await expect.poll(() => grid.isEditorOpened()).toBe(false);
+      };
 
-    // ltr only: the code under test has no direction branch.
-    if (direction === 'ltr') {
       test('keeps the typed-in end column frozen and appends no column', async () => {
         // Control: without end columns the spare column exists from the start and typing into it appends the next.
         await grid.goto({ rtl, minSpareCols: 1, cols: 4 });
@@ -143,10 +143,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
         expect(await grid.fixedColumnsEnd()).toBe(2);
         expect(await grid.overlayOf(2, 3)).toBe('inline_end');
       });
-    }
 
-    // ltr only: the code under test has no direction branch.
-    if (direction === 'ltr') {
       test('treats a fixedColumnsEnd below 1 as no end columns, like the control', async () => {
         // The renderer floors the option: 0.4 draws no end column, so the spare column exists from the start and
         // typing into it appends the next one, exactly as in the control above.
@@ -170,8 +167,8 @@ for (const direction of ['ltr', 'rtl'] as const) {
         await grid.press('Enter');
         await expect.poll(() => grid.countCols()).toBe(columnsNow + 1);
       });
-    }
-  });
+    });
+  }
 }
 
 test.describe('fixedColumnsEnd End and Home on a partly drawn main table', { tag: ['@core', THEMES_TAG] }, () => {

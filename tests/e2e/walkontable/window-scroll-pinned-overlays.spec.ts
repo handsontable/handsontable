@@ -1,5 +1,5 @@
 import { type Locator } from '@playwright/test';
-import { test, expect } from '../../fixtures/test';
+import { test, expect, THEMES_TAG } from '../../fixtures/test';
 import { WindowScrollPinnedOverlaysPage } from '../../fixtures/pages/walkontable/WindowScrollPinnedOverlaysPage';
 
 /**
@@ -21,7 +21,7 @@ import { WindowScrollPinnedOverlaysPage } from '../../fixtures/pages/walkontable
  * the layout too, so everything that places itself from a cell's document position and then adds
  * the scroll distance on top (the editor, the fill handle, the resize handles) must not add it twice.
  */
-test.describe('walkontable window-scroll pinned overlays', { tag: '@walkontable' }, () => {
+test.describe('walkontable window-scroll pinned overlays', { tag: ['@walkontable', THEMES_TAG] }, () => {
   let wt: WindowScrollPinnedOverlaysPage;
 
   /** A pixel of border compensation either way is by design; anything larger is misplaced. */

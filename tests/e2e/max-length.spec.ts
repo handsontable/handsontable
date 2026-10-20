@@ -109,7 +109,6 @@ test.describe('maxLength', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
 
   test.describe('what counts as one character', () => {
     const flag = '\u{1F1F5}\u{1F1F1}';
-    const thumb = '\u{1F44D}\u{1F3FD}';
 
     test('fits a flag whole when one slot is left', async () => {
       await grid.initGrid({ maxLength: 3, data: [['ab', '', '', '']] });
@@ -211,9 +210,6 @@ test.describe('maxLength', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
 
       expect(await grid.dataAt(0, 0)).toBe('abcde');
     });
-  });
-
-  test.describe('a custom editor that extends the text editor', () => {
   });
 
   test.describe('list editors that share the text editor input', () => {

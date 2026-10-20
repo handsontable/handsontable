@@ -534,39 +534,38 @@ test.describe('selectionHandles adjust handles', { tag: THEMES_TAG }, () => {
       }
     });
 
-    // `renderAllColumns` only changes the rendered range; the handle layout reads the visible-range snapshot.
-    for (const renderAllColumns of [false] as const) {
-      test(`moves the top and bottom handles to the frozen part when the scrollable part is rendered but hidden (renderAllColumns: ${renderAllColumns})`, async () => {
-        await grid.initGrid({
-          ...ROOMY_VIEWPORT,
-          data: Array.from({ length: 10 }, (_, r) => Array.from({ length: 40 }, (__, c) => `R${r + 1}C${c + 1}`)),
-          fixedColumnsStart: 1,
-          renderAllColumns,
-        });
-        await grid.selectCells(4, 0, 8, 1);
-        // Column 2 lands right after the frozen column, so column 1 stays rendered (the rendering
-        // offset, or every column with renderAllColumns) while the frozen pane covers it.
-        await grid.scrollToColumn(2);
-        await grid.overlayCell('inline_start', 6, 0).hover();
-
-        await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(2);
-        await expect.poll(() => grid.reachableHandleEdges()).toEqual(['bottom', 'top']);
-
-        const { cell, handles } = await grid.handleBoxesAgainstCell('inline_start', 6, 0);
-
-        expect(handles.end).toHaveLength(0);
-
-        for (const edge of ['top', 'bottom'] as const) {
-          expect(handles[edge]).toHaveLength(1);
-
-          const handleCenterX = handles[edge][0].x + (handles[edge][0].width / 2);
-
-          // Over the frozen column, where the user can see the selection's edge.
-          expect(handleCenterX).toBeGreaterThan(cell.x);
-          expect(handleCenterX).toBeLessThan(cell.x + cell.width);
-        }
+    // `renderAllColumns` only changes the rendered range; the handle layout reads the visible-range snapshot,
+    // so the option's other value repeats this case.
+    test('moves the top and bottom handles to the frozen part when the scrollable part is rendered but hidden (renderAllColumns: false)', async () => {
+      await grid.initGrid({
+        ...ROOMY_VIEWPORT,
+        data: Array.from({ length: 10 }, (_, r) => Array.from({ length: 40 }, (__, c) => `R${r + 1}C${c + 1}`)),
+        fixedColumnsStart: 1,
+        renderAllColumns: false,
       });
-    }
+      await grid.selectCells(4, 0, 8, 1);
+      // Column 2 lands right after the frozen column, so column 1 stays rendered (the rendering
+      // offset, or every column with renderAllColumns) while the frozen pane covers it.
+      await grid.scrollToColumn(2);
+      await grid.overlayCell('inline_start', 6, 0).hover();
+
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(2);
+      await expect.poll(() => grid.reachableHandleEdges()).toEqual(['bottom', 'top']);
+
+      const { cell, handles } = await grid.handleBoxesAgainstCell('inline_start', 6, 0);
+
+      expect(handles.end).toHaveLength(0);
+
+      for (const edge of ['top', 'bottom'] as const) {
+        expect(handles[edge]).toHaveLength(1);
+
+        const handleCenterX = handles[edge][0].x + (handles[edge][0].width / 2);
+
+        // Over the frozen column, where the user can see the selection's edge.
+        expect(handleCenterX).toBeGreaterThan(cell.x);
+        expect(handleCenterX).toBeLessThan(cell.x + cell.width);
+      }
+    });
 
     test('moves the start and end handles to the frozen rows when the scrollable rows are rendered but hidden', async () => {
       await grid.initGrid({

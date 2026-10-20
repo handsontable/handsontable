@@ -281,6 +281,19 @@ test.describe('autoLink', { tag: BUNDLES_TAG }, () => {
     await expect(grid.anyLinks(14, 0)).toHaveCount(0);
   });
 
+  test('applies the grid-level object form of `inline`', async({ page, theme, bundle }) => {
+    const grid = new AutoLinkPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.setAutoLink({ inline: false });
+
+    // A whole-cell URL still links...
+    await expect(grid.links(0, 0)).toHaveCount(1);
+    // ...but a URL embedded in prose does not, now that `inline: false` applies grid-wide.
+    await expect(grid.anyLinks(1, 0)).toHaveCount(0);
+    await expect(grid.cell(1, 0)).toHaveText('Visit https://example.com/two for details.');
+  });
+
   test('survives repeated renders and rebuilds from the current value', async({ page, theme, bundle }) => {
     const grid = new AutoLinkPage(page, theme, bundle);
 

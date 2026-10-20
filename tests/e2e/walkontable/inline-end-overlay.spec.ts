@@ -27,7 +27,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
      */
     const inlineEndEdge = (box: { left: number, right: number }) => (rtl ? box.left : box.right);
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the end range and the empty row-header column are logical; the review spec pins the RTL insets.
     if (direction === 'ltr') {
       test('renders only the last columns, and no row headers', async () => {
         await wt.goto({ rtl, fixedColumnsEnd: 3 });
@@ -74,7 +74,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       expect(Math.abs(gap)).toBeLessThanOrEqual(TOLERANCE);
     });
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the vertical mirroring reads no inline direction.
     if (direction === 'ltr') {
       test('follows the vertical scroll of the grid row by row', async () => {
         await wt.goto({ rtl, fixedColumnsEnd: 3 });
@@ -149,7 +149,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       }).toBeLessThanOrEqual(TOLERANCE);
     });
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: one code path creates and removes the clone; the review spec pins the RTL insets.
     if (direction === 'ltr') {
       test('is created, removed and created again by updateSettings', async () => {
         await wt.goto({ rtl });
@@ -167,7 +167,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the teardown has no direction term.
     if (direction === 'ltr') {
       test('is destroyed with the grid', async () => {
         await wt.goto({ rtl, fixedColumnsEnd: 2, fixedRowsTop: 1, fixedRowsBottom: 1 });
@@ -180,7 +180,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: `clampFixedColumnsEnd()` takes counts.
     if (direction === 'ltr') {
       test('cuts the end columns down to what the start columns leave', async () => {
         await wt.goto({ rtl, fixedColumnsStart: 2 });
@@ -196,7 +196,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the topmost lookup walks the overlays by name.
     if (direction === 'ltr') {
       test('resolves the topmost cell of every region to its own overlay', async () => {
         await wt.goto({ rtl, fixedColumnsEnd: 2, fixedRowsTop: 2, fixedRowsBottom: 2 });
@@ -209,7 +209,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the click resolves its cell through `getCoords(td)`, which has no direction input.
     if (direction === 'ltr') {
       test('selects the cell that is clicked in the end columns', async () => {
         await wt.goto({ rtl, fixedColumnsEnd: 2, fixedRowsTop: 1, fixedRowsBottom: 1 });
@@ -222,7 +222,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: `getCoords(td)` has no direction input.
     if (direction === 'ltr') {
       test('names the cells of the end columns by their place in the grid, in every region', async () => {
         await wt.goto({ rtl, fixedColumnsEnd: 2, fixedRowsTop: 1, fixedRowsBottom: 1 });
@@ -241,7 +241,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the handle owner comes from index-based ownership rules.
     if (direction === 'ltr') {
       test('draws one handle per edge of a selection that crosses into the end columns', async () => {
         await wt.goto({ rtl, fixedColumnsEnd: 2 });
@@ -260,7 +260,7 @@ for (const direction of ['ltr', 'rtl'] as const) {
       });
     }
 
-    // ltr only: the code under test has no direction branch.
+    // LTR only: the freeze-line decision reads indexes.
     if (direction === 'ltr') {
       test('hides the handle of an edge that lies on the freeze line', async () => {
         await wt.goto({ rtl, fixedColumnsEnd: 2 });

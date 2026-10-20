@@ -64,7 +64,7 @@ test.describe('the native picker of the picker editors', () => {
   });
 
   for (const { name, col } of EDITORS) {
-    // The date cases of these two are in date-editor-native-input.spec.ts.
+    // The date editor's Enter case is in date-editor-native-input.spec.ts.
     if (name !== 'date') {
       test(`${name}: Enter does not show the picker`, async() => {
         await grid.openEditorWithEnter(0, col);
@@ -74,7 +74,8 @@ test.describe('the native picker of the picker editors', () => {
       });
     }
 
-    // The three editors share the picker-opening rule; the date editor runs it, the others keep the two cases above.
+    // The three editors share the picker-opening rule, so the date editor runs these keys; the other two keep the
+    // Enter case above and the double-click case below.
     if (name === 'date') {
       test(`${name}: F2 does not show the picker`, async({ page }) => {
         await grid.selectCell(0, col);
@@ -104,7 +105,7 @@ test.describe('the native picker of the picker editors', () => {
       });
     }
 
-    // The date case is in date-editor-native-input.spec.ts.
+    // The date editor's double-click case is in date-editor-native-input.spec.ts.
     if (name !== 'date') {
       test(`${name}: a double-click shows the picker`, async() => {
         await grid.cell(0, col).dblclick();
