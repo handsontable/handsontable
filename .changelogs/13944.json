@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `saveToDataProvider` option to the AsyncValues plugin, which saves resolved values through the DataProvider `onRowsUpdate` callback.",
+  "type": "added",
+  "issueOrPR": 13944,
+  "breaking": false,
+  "framework": "none"
+}
