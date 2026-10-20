@@ -305,6 +305,19 @@ with both at 1 the bound is the same as either option alone. `sortableRowRange.u
 both directions of the overlap (more spares than pinned rows, and more pinned rows than
 spares) plus `maxRows` capping the displayed count.
 
+## The band is gathered from an uncached read, because the sort runs inside batches
+
+`sortByPresetSortStates()` resets the sequence to the pre-sort order and then gathers the band. `#gatherBand()`
+therefore reads `rowIndexMapper.getNotTrimmedIndexes(false)` once, never `toPhysicalRow()`: the mapper does not
+rebuild `notTrimmedIndexesCache` while `isBatched`, so inside `batch()`, between `suspendExecution()` and
+`resumeExecution()`, and in ViewState's restore the cached read still holds the PREVIOUS sort's order. The remap
+then lands on the reset sequence and the rows come out wrong, with `getSortConfig()` still reporting the new
+sort. It only shows on a grid that is already sorted. Do not refresh the cache mid-batch with `updateCache(true)`:
+it fires `cacheUpdated`, which runs the selection repair and the size-cache invalidation. The read is fresh for the
+sequence only: `getNotTrimmedIndexes(false)` still filters it through the trimming maps' cached merged values, and
+`countRows()` (the band's upper bound) is cache-based too, so a trim made earlier in the same batch is not seen by
+either, as before. Row axis only: the column axis is not touched. Pinned by `__tests__/sortInsideBatch.unit.js`.
+
 ## The remap table must cover the highest physical index the band holds
 
 `sortByPresetSortStates()` rewrites the indexes sequence through an `Int32Array` keyed BY physical row

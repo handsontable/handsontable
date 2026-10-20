@@ -920,9 +920,15 @@ export class ColumnSorting extends BasePlugin {
     // The highest physical index is tracked in the gather pass: it sizes the remap table in the
     // caller and costs nothing extra here.
     let highestPhysicalIndex = -1;
+    // Rebuilt from the sequence, once. `sortByPresetSortStates()` has just reset the sequence, and the
+    // mapper does not rebuild `notTrimmedIndexesCache` while it is batched, so `toPhysicalRow()` would
+    // answer with the previous sort's order and the remap would land on the reset one. Not a per-row
+    // `toPhysicalRow()` again: that read is the defect.
+    const notTrimmedIndexes = this.hot.rowIndexMapper.getNotTrimmedIndexes(false);
 
     for (let visualRowIndex = from; visualRowIndex < to; visualRowIndex += 1) {
-      const physicalIndex = this.hot.toPhysicalRow(visualRowIndex);
+      // `undefined` past the mapper's reach becomes `null`, the way `toPhysicalRow()` answers it.
+      const physicalIndex = notTrimmedIndexes[visualRowIndex] ?? null;
 
       physicalRows.push(physicalIndex);
 
