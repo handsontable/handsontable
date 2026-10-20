@@ -1635,13 +1635,7 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Merges the specified range.
-   *
-   * When the current selection meets the range, every selection layer is replayed. Each layer fires
-   * `beforeSetRangeStartOnly`, `beforeSetRangeEnd`, `beforeSelectionHighlightSet`, `afterSelection`
-   * and `afterSelectionByProp`. `afterIsMultipleSelection` fires five times for one range and twice
-   * per layer when there is more than one. `afterSelectionEnd` and `afterSelectionEndByProp` fire
-   * once. A selection that misses the range fires none of these.
+   * Merges the specified range. Replays every selection layer when one of them meets the changed range.
    *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
@@ -1669,13 +1663,7 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Unmerges the merged cell in the provided range.
-   *
-   * When the current selection meets the range, every selection layer is replayed. Each layer fires
-   * `beforeSetRangeStartOnly`, `beforeSetRangeEnd`, `beforeSelectionHighlightSet`, `afterSelection`
-   * and `afterSelectionByProp`. `afterIsMultipleSelection` fires five times for one range and twice
-   * per layer when there is more than one. `afterSelectionEnd` and `afterSelectionEndByProp` fire
-   * once. A selection that misses the range fires none of these.
+   * Unmerges the merged cell in the provided range. Replays every selection layer when one of them meets the changed range.
    *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
@@ -1703,16 +1691,7 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Replays the selection after `merge()` or `unmerge()` when a range meets the changed rectangle.
-   * The highlight committed before the merge existed otherwise stays on screen. `shift` keeps the
-   * viewport still. A selection that does not meet the rectangle is left alone. A second `merge()`
-   * of an area that is already merged returns `false`, and a second `unmerge()` finds nothing, so
-   * neither calls this again.
-   *
-   * The replay walks every selection layer. Each layer fires `beforeSetRangeStartOnly`,
-   * `beforeSetRangeEnd`, `beforeSelectionHighlightSet`, `afterSelection` and `afterSelectionByProp`.
-   * `afterIsMultipleSelection` fires five times for one range and twice per layer when there is more
-   * than one. `afterSelectionEnd` and `afterSelectionEndByProp` fire once.
+   * Replays every selection layer when one of them meets the changed range.
    *
    * @param {number} startRow Visual start row of the changed rectangle.
    * @param {number} startColumn Visual start column of the changed rectangle.

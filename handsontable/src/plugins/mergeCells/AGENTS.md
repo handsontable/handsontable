@@ -615,12 +615,11 @@ when a current range overlaps the rectangle and the call actually changed a merg
 scroll. The replay walks every selection layer, not only the one that overlaps. Each layer fires
 `beforeSetRangeStartOnly`, `beforeSetRangeEnd`, `beforeSelectionHighlightSet`, `afterSelection` and
 `afterSelectionByProp`. `afterIsMultipleSelection` fires five times for one range and twice per layer
-when there is more than one. `afterSelectionEnd` and `afterSelectionEndByProp` fire once. It does
-not run for `mergeRange()` /
-`unmergeRange()`, so init, undo, and `mergeSelection()` (which already selects) are left alone. A
-selection that does not meet the rectangle is not replayed. A second `merge()` of the same area
-returns `false`, and a second `unmerge()` finds nothing, so a selection hook that calls the same
-method again does not replay.
+when there is more than one. `afterSelectionEnd` and `afterSelectionEndByProp` fire once. The replay
+does not run for `mergeRange()` or `unmergeRange()`, so init, undo, and `mergeSelection()` (which
+already selects) are left alone. A selection that does not meet the rectangle is not replayed. A
+second `merge()` of the same area returns `false`, and a second `unmerge()` finds nothing, so a
+selection hook that calls the same method again does not replay.
 
 ### An arrow-key horizontal exit is addressed by the merge's top row (DEV-102)
 
