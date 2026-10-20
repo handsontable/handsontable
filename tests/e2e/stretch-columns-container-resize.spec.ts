@@ -21,6 +21,7 @@ import { StretchColumnsContainerResizePage } from '../fixtures/pages/StretchColu
  * clone root, columns that fill the container, and no phantom scroll classes. The clone-root width
  * check lives on in the pixel-height case, the one mode where the root still sizes the clone.
  */
+// leg-declarations: ignore geometry-helper -- every width compared is the container's (900, 1200, 1500 and 455 px), which stretchH fills on every theme; the overflow and scrollbar checks are zero or less
 test.describe('stretched columns after a container resize', () => {
   let grid: StretchColumnsContainerResizePage;
 

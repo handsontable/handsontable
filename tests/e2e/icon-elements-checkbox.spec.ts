@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { IconElementsCheckboxPage } from '../fixtures/pages/IconElementsCheckboxPage';
 
 /**
@@ -8,7 +8,7 @@ import { IconElementsCheckboxPage } from '../fixtures/pages/IconElementsCheckbox
  * opportunity - and in a column narrower than the gaps plus the box the tick dropped onto a second
  * line: off the box, and growing the row.
  */
-test.describe('Checkbox renderer tick layout', { tag: THEMES_TAG }, () => {
+test.describe('Checkbox renderer tick layout', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   for (const dir of ['ltr', 'rtl'] as const) {
     const goto = (grid: IconElementsCheckboxPage) => grid.goto(dir === 'rtl' ? { dir: 'rtl' } : {});
 
@@ -71,7 +71,7 @@ test.describe('Checkbox renderer tick layout', { tag: THEMES_TAG }, () => {
  * carry a physical `padding-left` of two gaps, so the text sat two gaps from the box in LTR and
  * touched it in RTL. One logical gap matches the Filters "Filter by value" list.
  */
-test.describe('Multi-select editor list label gap', { tag: THEMES_TAG }, () => {
+test.describe('Multi-select editor list label gap', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   for (const dir of ['ltr', 'rtl'] as const) {
     test(`the label text starts one gap after the checkbox box (${dir})`, async({ page, theme, bundle }) => {
       const grid = new IconElementsCheckboxPage(page, theme, bundle);
