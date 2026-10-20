@@ -227,7 +227,8 @@ export class SelectEditor extends BaseEditor {
    * @private
    */
   refreshValue(): void {
-    const sourceData = this.hot.getSourceDataAtCell(this.row!, this.prop as number);
+    const physicalRow = this.hot.toPhysicalRow(this.row!);
+    const sourceData = this.hot.getSourceDataAtCell(physicalRow, this.prop as number);
 
     this.originalValue = sourceData;
 
