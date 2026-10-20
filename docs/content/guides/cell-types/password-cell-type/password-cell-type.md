@@ -211,6 +211,45 @@ When `hashRevealDelay` is set, the editor switches from a native `<input type="p
 
 :::
 
+## Copy, cut, paste, and autofill
+
+The password cell type sets the [`copyable`](@/api/options.md#copyable) option to `false`, so a user action never moves a password value to the clipboard or to another cell. Each clipboard and fill action writes an empty value in its place:
+
+| Action | What happens to a password cell |
+| --- | --- |
+| Copy | The clipboard gets an empty string for the cell. The previous clipboard content is replaced. In a range that also holds other cells, the password column copies as an empty column. |
+| Cut | The cell is cleared, and the clipboard gets an empty string. You can't paste the cut value anywhere. |
+| Paste | The cell accepts pasted text like a text cell. Pasting a copied password cell writes an empty string, which clears the target cell. |
+| Autofill | Dragging the fill handle from a password cell fills the target cells with empty strings, which clears them. In a range that also holds other cells, the other columns fill as usual and the password column is cleared. A double-click on the fill handle fills only empty cells, so it clears nothing. |
+
+To restore a cleared value, use undo (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Z**</kbd>).
+
+The `copyable` option affects user actions only. The API still returns the real value: [`getDataAtCell()`](@/api/core.md#getdataatcell) and [`getSourceData()`](@/api/core.md#getsourcedata) read the plain text stored in the data source, while [`getCopyableData()`](@/api/core.md#getcopyabledata) returns an empty string for a password cell.
+
+### Keep passwords from being cleared
+
+To stop autofill, paste, and cut from clearing password cells, skip those changes in the [`beforeChange`](@/api/hooks.md#beforechange) hook. A skipped change leaves the cell's value as it was:
+
+```js
+beforeChange(changes, source) {
+  if (!['Autofill.fill', 'CopyPaste.paste', 'CopyPaste.cut'].includes(source)) {
+    return;
+  }
+
+  changes.forEach((change, index) => {
+    const [row, prop, , newValue] = change ?? [];
+    const isPasswordCell = change && this.getCellMeta(row, this.propToCol(prop)).type === 'password';
+
+    // autofill and paste write an empty string, cut writes `null`
+    if (isPasswordCell && (newValue === '' || newValue === null)) {
+      changes[index] = null;
+    }
+  });
+},
+```
+
+With this hook, a user can still clear a password cell by editing it, or with <kbd>**Delete**</kbd>.
+
 ## Result
 
 After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field (or `<input type="text">` when `hashRevealDelay` is set). The actual data is stored in plain text in the data source and is not encrypted by Handsontable DataGrid.
@@ -228,6 +267,7 @@ The password cell editor is a text editor, so it uses the standard [edition keyb
 <div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
+- [Clipboard](@/guides/cell-features/clipboard/clipboard.md)
 
 </div>
 
@@ -236,6 +276,7 @@ The password cell editor is a text editor, so it uses the standard [edition keyb
 <div class="boxes-list">
 
 - [type](@/api/options.md#type)
+- [copyable](@/api/options.md#copyable)
 - [hashLength](@/api/options.md#hashlength)
 - [hashRevealDelay](@/api/options.md#hashrevealdelay)
 - [hashSymbol](@/api/options.md#hashsymbol)
