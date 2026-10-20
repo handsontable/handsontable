@@ -708,6 +708,12 @@ class Event {
     // a new page) only when the same cell was previously selected (see related PR #7980).
     if (isEventCancelable) {
       const interactiveElements = ['A', 'BUTTON', 'INPUT'];
+      // The mousedown above commits the focus highlight, or clears it when the current highlight
+      // is disabled. With the range clear there is no select-first tap to cancel. A checkbox
+      // stays exempt while the highlight is shown, because that tap is the toggle.
+      const focusCellRange = this.#deps.selectionManager.getFocusSelection()?.cellRange ?? null;
+      const focusHighlightShown = focusCellRange !== null;
+      const isCheckbox = target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox';
 
       // For browsers that use the WebKit as an engine (excluding Safari), there is a bug. The prevent
       // default has to be called all the time. Otherwise, the second tap won't be triggered (probably
@@ -720,12 +726,7 @@ class Event {
           !interactiveElements.includes(target!.tagName)) {
         event.preventDefault();
 
-      } else if (!this.selectedCellWasTouched(target) &&
-                 !(target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox')) {
-        // For other browsers, prevent default is fired only for the first tap and only when the previous
-        // highlighted cell was different. Checkbox inputs are excluded so that checkboxes with
-        // disableVisualSelection can still be toggled via touch (the focus cellRange is never populated
-        // when visual selection is disabled, so selectedCellWasTouched always returns false for them).
+      } else if (!this.selectedCellWasTouched(target) && focusHighlightShown && !isCheckbox) {
         event.preventDefault();
       }
     }

@@ -21,7 +21,7 @@ describe('Events', () => {
       afterOnCellMouseDown
     });
 
-    const cell = hot.getCell(1, 1);
+    const cell = getCell(1, 1);
 
     expect(getSelected()).toBeUndefined();
 
@@ -41,9 +41,9 @@ describe('Events', () => {
       height: 400,
     });
 
-    hot.view._wt.update('onCellDblClick', onCellDblClick);
+    hot().view._wt.update('onCellDblClick', onCellDblClick);
 
-    const cell = hot.getCell(1, 1);
+    const cell = getCell(1, 1);
 
     expect(getSelected()).toBeUndefined();
 
@@ -64,7 +64,7 @@ describe('Events', () => {
       height: 400,
     });
 
-    const cell = hot.getCell(1, 1);
+    const cell = getCell(1, 1);
 
     {
       await triggerTouchEvent('touchstart', cell);
@@ -98,7 +98,7 @@ describe('Events', () => {
       renderer: 'html',
     });
 
-    const linkElement = hot.getCell(0, 0).firstChild;
+    const linkElement = getCell(0, 0).firstChild;
 
     {
       await triggerTouchEvent('touchstart', linkElement);
@@ -126,7 +126,7 @@ describe('Events', () => {
       renderer: 'html',
     });
 
-    const linkElement = hot.getCell(0, 0).firstChild;
+    const linkElement = getCell(0, 0).firstChild;
 
     location.hash = ''; // Resetting before test.
 
@@ -173,7 +173,7 @@ describe('Events', () => {
       dropdownMenu: true
     });
 
-    const dropDownIndicator = $(hot.getCell(-1, 2)).find('button')[0];
+    const dropDownIndicator = $(getCell(-1, 2)).find('button')[0];
 
     await simulateTouch(dropDownIndicator);
 
@@ -317,7 +317,7 @@ describe('Events', () => {
         columns: [{ type: 'checkbox', disableVisualSelection: 'current' }],
       });
 
-      const checkboxInput = hot.getCell(0, 0).querySelector('input[type="checkbox"]');
+      const checkboxInput = getCell(0, 0).querySelector('input[type="checkbox"]');
 
       await triggerTouchEvent('touchstart', checkboxInput);
 
@@ -334,7 +334,7 @@ describe('Events', () => {
         columns: [{ type: 'checkbox', disableVisualSelection: true }],
       });
 
-      const checkboxInput = hot.getCell(0, 0).querySelector('input[type="checkbox"]');
+      const checkboxInput = getCell(0, 0).querySelector('input[type="checkbox"]');
 
       await triggerTouchEvent('touchstart', checkboxInput);
 
@@ -343,7 +343,7 @@ describe('Events', () => {
       expect(event.defaultPrevented).toBeFalse();
     });
 
-    it('should still "preventDefault" touchend on link element in unselected cell when disableVisualSelection is set', async() => {
+    it('should not "preventDefault" touchend on a link when disableVisualSelection is set', async() => {
       handsontable({
         data: [['<a href="#test">link</a>']],
         width: 400,
@@ -352,13 +352,13 @@ describe('Events', () => {
         columns: [{ disableVisualSelection: 'current' }],
       });
 
-      const linkElement = hot.getCell(0, 0).querySelector('a');
+      const linkElement = getCell(0, 0).querySelector('a');
 
       await triggerTouchEvent('touchstart', linkElement);
 
       const event = await triggerTouchEvent('touchend', linkElement);
 
-      expect(event.defaultPrevented).toBeTrue();
+      expect(event.defaultPrevented).toBeFalse();
     });
   });
 });
