@@ -285,16 +285,39 @@ export class TabDrag {
       // boundary stands still while the tabs animate around it.
       return (rect.left - translationOf(element)) + (rect.width / 2);
     });
-    const target = computeDropIndex(centers, this.#lastClientX, tabs.indexOf(tab));
+    const from = tabs.indexOf(tab);
+    const target = computeDropIndex(centers, this.#lastClientX, from);
 
-    if (target !== tabs.indexOf(tab)) {
-      const reference = target > tabs.indexOf(tab) ? tabs[target].nextSibling : tabs[target];
-
-      this.#host.insertBefore(tab, reference);
+    if (target !== from) {
+      this.#moveAround(tab, tabs, from, target);
       this.#slideIntoPlace(lefts);
     }
 
     this.#follow(tab, this.#lastClientX);
+  }
+
+  /**
+   * Brings the dragged tab to `target` by moving the tabs it passes, never the tab itself.
+   *
+   * A re-inserted element loses its pointer capture, and taking the capture back from the
+   * `lostpointercapture` handler crashes the desktop WebKit content process. Moving the
+   * neighbors keeps the dragged tab in place in the DOM, so its capture is never lost.
+   *
+   * @param {HTMLElement} tab The dragged tab.
+   * @param {HTMLElement[]} tabs The tabs in DOM order.
+   * @param {number} from The dragged tab's current index.
+   * @param {number} target The index the dragged tab moves to.
+   */
+  #moveAround(tab: HTMLElement, tabs: HTMLElement[], from: number, target: number): void {
+    if (target > from) {
+      tabs.slice(from + 1, target + 1).forEach(element => this.#host.insertBefore(element, tab));
+
+      return;
+    }
+
+    const reference = tab.nextSibling;
+
+    tabs.slice(target, from).forEach(element => this.#host.insertBefore(element, reference));
   }
 
   /**
@@ -460,30 +483,21 @@ export class TabDrag {
   };
 
   /**
-   * Keeps hold of the pointer, or gives the gesture up when it is gone for good.
+   * Gives the gesture up when the browser takes the pointer capture away mid-drag.
    *
-   * Moving the tab to another slot re-inserts it into the strip, and a re-inserted element
-   * loses its pointer capture — so the capture is taken again, and the gesture goes on. When
-   * the pointer itself is no longer active — released over another document, say — taking it
-   * again fails, and no release will ever reach the strip: the gesture is canceled instead.
+   * A reorder never moves the dragged tab itself (`#moveAround`), so the capture is lost only
+   * when the pointer is gone for good — released over another document, say — and no release
+   * will ever reach the strip.
+   *
+   * The event bubbles, and a touch press captures the pointer on the element under the finger,
+   * often the tab's label. Taking the capture onto the tab when the drag starts makes the label
+   * lose it, so only a loss on the tab itself ends the gesture.
    *
    * @param {PointerEvent} event The lostpointercapture event.
    */
   #onLostCapture = (event: PointerEvent): void => {
-    const tab = this.#tab;
-
-    if (!tab || event.pointerId !== this.#pointerId || !this.#isDragging) {
+    if (!this.#tab || event.target !== this.#tab || event.pointerId !== this.#pointerId || !this.#isDragging) {
       return;
-    }
-
-    if (tab.parentNode === this.#host) {
-      try {
-        tab.setPointerCapture(event.pointerId);
-
-        return;
-      } catch {
-        // The pointer is gone; fall through to the cancel.
-      }
     }
 
     this.#cancel();

@@ -405,6 +405,34 @@ describe('SheetsBar plugin', () => {
     expect(hot.getDataAtCol(0)).toEqual(['b', 'a', 'c']);
   });
 
+  it('keeps the sort on its column after a round trip on a sheet whose columns were moved', () => {
+    hot = new Handsontable(container, {
+      columnSorting: true,
+      sheetsBar: {
+        sheets: [
+          { name: 'Moved', data: [['b', 3], ['a', 1], ['c', 2]] },
+          { name: 'Other', data: [['x', 'y']] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const sorting = hot.getPlugin('columnSorting');
+
+    hot.columnIndexMapper.setIndexesSequence([1, 0]);
+    sorting.sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet('Other');
+    sheetsBar.setActiveSheet('Moved');
+
+    expect(sorting.getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+    expect(hot.getData()).toEqual([[1, 'a'], [2, 'c'], [3, 'b']]);
+
+    // Sorting again by the restored config leaves the rows where they are.
+    sorting.sort(sorting.getSortConfig());
+
+    expect(hot.getData()).toEqual([[1, 'a'], [2, 'c'], [3, 'b']]);
+  });
+
   it('hides the same rows after a round trip when trimming shifts the visual indexes', () => {
     hot = new Handsontable(container, {
       hiddenRows: true,

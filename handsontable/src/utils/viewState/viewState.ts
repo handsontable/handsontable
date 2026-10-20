@@ -17,6 +17,14 @@ export interface TrackedCellMeta {
 }
 
 /**
+ * One sorted column of a {@link ViewState}, by its physical index.
+ */
+export interface SortedColumn {
+  column: number;
+  sortOrder: 'asc' | 'desc';
+}
+
+/**
  * Snapshot of the runtime-mutable view state of one sheet. The manual size overrides are
  * sparse `[physicalIndex, size]` pairs — a dense array the length of the row count would
  * retain one slot per row per sheet for the session, and a visual index would lose every
@@ -32,7 +40,11 @@ export interface ViewState {
   collapsedParents: number[][];
   colWidths: Array<[number, number]>;
   rowHeights: Array<[number, number]>;
-  sortConfig: unknown;
+
+  /**
+   * The sort, each column by its physical index.
+   */
+  sortConfig: SortedColumn[];
   filterConditions: unknown[] | null;
   mergedCells: MergeAreaGeometry[];
   fixedColumnsStart: number | undefined;
@@ -287,10 +299,37 @@ function captureSizes(hot: HotInstance, covers: PartFilter = () => true) {
 }
 
 /**
- * Captures the sort configuration.
+ * Captures the sort configuration, each column by its physical index. The sorting plugin reports
+ * visual columns, and a visual index only names a column under the order it was read with, which the
+ * restore does not have in force when it sorts (see {@link toPluginSortConfig}).
  */
-function captureSortConfig(hot: HotInstance): unknown {
-  return getSortingPlugin(hot)?.getSortConfig();
+function captureSortConfig(hot: HotInstance): SortedColumn[] {
+  const config = getSortingPlugin(hot)?.getSortConfig();
+
+  if (!Array.isArray(config)) {
+    return [];
+  }
+
+  return (config as SortedColumn[]).flatMap((entry) => {
+    const column = hot.toPhysicalColumn(entry.column);
+
+    return column === null ? [] : [{ ...entry, column }];
+  });
+}
+
+/**
+ * Turns a stored sort into the visual columns the sorting plugin takes. The plugin turns them back
+ * into physical ones through the index cache, and inside the restore batch that cache still holds the
+ * column order from before the restore, whatever order has been written since. So the translation runs
+ * right before each call into the plugin, against the cache the plugin then reads, never ahead of it. A
+ * column without a visual index is left out.
+ */
+function toPluginSortConfig(hot: HotInstance, sortConfig: SortedColumn[]): SortedColumn[] {
+  return sortConfig.flatMap((entry) => {
+    const column = hot.toVisualColumn(entry.column);
+
+    return column === null ? [] : [{ ...entry, column }];
+  });
 }
 
 /**
@@ -682,11 +721,11 @@ function restoreSequence(
 function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter): ViewStatePart[] {
   const notApplied: ViewStatePart[] = [];
   const sorting = covers('sort') ? getSortingPlugin(hot) : undefined;
-  const hasSortConfig = Array.isArray(state.sortConfig) ? state.sortConfig.length > 0 : Boolean(state.sortConfig);
+  const hasSortConfig = state.sortConfig.length > 0;
 
-  // The column order goes first: the sort config addresses its column visually, so re-applying
-  // the sort against the order `loadData` reset would sort the wrong physical column on a
-  // sheet whose columns were manually moved.
+  // The sort config is stored by physical column and translated right before each call into the
+  // sorting plugin (`toPluginSortConfig()`): this runs inside a batch, so the index cache the plugin
+  // translates with still holds the column order from before the restore, not the one written here.
   if (covers('columnOrder') && !restoreSequence(hot.columnIndexMapper, state.columnSequence)) {
     notApplied.push('columnOrder');
   }
@@ -696,7 +735,7 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
 
     if (hasSortConfig) {
       restoreSequence(hot.rowIndexMapper, state.unsortedRowSequence ?? state.rowSequence);
-      sorting.sort(state.sortConfig);
+      sorting.sort(toPluginSortConfig(hot, state.sortConfig));
     }
   }
 
@@ -720,7 +759,7 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
   }
 
   if (sorting && hasSortConfig && isRowOrderRestored) {
-    restoreCanceledSortStates(sorting, state.sortConfig);
+    restoreCanceledSortStates(sorting, toPluginSortConfig(hot, state.sortConfig));
   }
 
   return notApplied;
@@ -742,7 +781,7 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
  * the plugin was disabled and enabled again, which a sheet declaring `columnSorting: false` does
  * on every switch.
  */
-function restoreCanceledSortStates(sorting: SortingPlugin, sortConfig: unknown) {
+function restoreCanceledSortStates(sorting: SortingPlugin, sortConfig: SortedColumn[]) {
   const currentStates = sorting.getSortConfig() as unknown[];
 
   if (sorting.indexesSequenceCache === null || currentStates.length > 0) {
@@ -1216,6 +1255,12 @@ function setFrozenCount(hot: HotInstance, key: FrozenCountKey, value: number): v
  * sort, merges, borders, manual sizes, or a freeze set at runtime (`fixedColumnsStart`
  * carries the value the grid started with): `loadData` resets the index mappers and
  * ColumnSorting clears itself on `afterLoadData`, but every other collection survives it.
+ *
+ * The merges are cleared first. MergeCells takes the span attributes off the rendered cells it
+ * finds through `getCell()` at their visual coordinates, and those coordinates hold only while
+ * the index maps still match the drawn rows: cleared after the trimmed and hidden rows came back,
+ * the attributes were taken off another cell and the merged one kept its `rowspan`. With
+ * MergeCells disabled for the arriving sheet, no render repaired it.
  */
 export function resetViewState(hot: HotInstance, neutral: NeutralFrozenCounts = {}): void {
   const state = createNeutralViewState();
@@ -1225,12 +1270,12 @@ export function resetViewState(hot: HotInstance, neutral: NeutralFrozenCounts = 
     // runtime on another sheet is cleared back to none rather than left in force.
     FROZEN_COUNT_KEYS.forEach(key => setFrozenCount(hot, key, neutral[key] ?? 0));
 
+    clearMergedCells(hot);
     getSortingPlugin(hot)?.sort([]);
     restoreFilterConditions(hot, state);
     restoreTrimmedState(hot, state);
     restoreHiddenState(hot, state);
     clearManualSizes(hot);
-    clearMergedCells(hot);
     restoreCustomBorders(hot, state);
   });
 

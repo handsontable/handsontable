@@ -615,13 +615,17 @@ export class ImportFile extends BasePlugin {
    *
    * Returns `{ columns, headerRow }`. Each column is `{ settings, confidence, inputFormat, title,
    * stats }`. `settings` holds the column options (`type`, `numericFormat`, `dateFormat`,
-   * `timeFormat`, `source`, and `data` for object rows) and can be passed to `columns` as it is.
+   * `dateTimeFormat`, `timeFormat`, `source`, and `data` for object rows) and can be passed to
+   * `columns` as it is.
    * `confidence` is the share of values the type reads, `inputFormat` is how the raw values were
    * written, `title` is the header (see the `headerRow` option), and `stats` is set with the `stats`
    * option. A column that no type reads with at least `minConfidence` falls back to `'text'`.
    *
-   * The result is deterministic: it reads the first `sampleSize` rows and settles an ambiguous
-   * column (`1.234`, `12/03/2026`) with `options.locale`, which defaults to the grid's `locale`.
+   * The result is deterministic: it reads `sampleSize` rows (the first ones, or with
+   * `sampling: 'spread'` rows spaced evenly across the data) and settles an ambiguous column
+   * (`1.234`, `12/03/2026`) with `options.locale`, which defaults to the grid's `locale`. The
+   * `dateFormats` option lists date formats to read, and `booleanValues` lists words a checkbox
+   * column reads as `true` and `false`.
    *
    * @example
    * ```js
@@ -641,8 +645,9 @@ export class ImportFile extends BasePlugin {
 
   /**
    * Returns a copy of `data` with every value converted to what its column's inferred cell type
-   * stores: a number for `numeric`, `YYYY-MM-DD` for `date`, `HH:mm:ss` for `time`, and a boolean
-   * for `checkbox`. A value the column cannot read, such as a `Total` row, is kept as it is, so the
+   * stores: a number for `numeric`, `YYYY-MM-DD` for `date`, `YYYY-MM-DDTHH:mm:ss` for
+   * `intl-datetime`, `HH:mm:ss` for `time`, and a boolean for `checkbox`. A `Date` converts to its
+   * local date and time. A value the column cannot read, such as a `Total` row, is kept as it is, so the
    * cell type's validator marks it. When the result found a header row, that row is left out.
    * `data` itself is not changed.
    */

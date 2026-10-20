@@ -3,10 +3,16 @@
  */
 export interface InferColumnTypesOptions {
   /**
-   * How many data rows, from the top, to read. The header row, when there is one, is not counted.
-   * `Infinity` reads every row; a value below `1` reads the default. Defaults to `1000`.
+   * How many data rows to read. The header row, when there is one, is not counted. `Infinity`
+   * reads every row; a value below `1` reads the default. Defaults to `1000`.
    */
   sampleSize?: number;
+  /**
+   * Which data rows `sampleSize` picks. `'head'` reads the first rows. `'spread'` reads rows spaced
+   * evenly across the data, the first and the last row included, so sorted data and a value that
+   * appears only late are still sampled. Both are deterministic. Defaults to `'head'`.
+   */
+  sampling?: 'head' | 'spread';
   /**
    * The locale that settles an ambiguous column: the decimal separator of `1.234`, the day and
    * month order of `12/03/2026`, and the currency a shared symbol such as `$` stands for. Defaults to
@@ -34,6 +40,31 @@ export interface InferColumnTypesOptions {
    */
   headerRow?: boolean | 'auto';
   /**
+   * Date formats to read instead of the built-in year-last dates (`12/03/2026`, `12.03.2026`). The
+   * tokens are `YYYY` (a four-digit year), `MM` and `DD` (two digits), and `M` and `D` (one or two
+   * digits); every other character is matched as it is, for example `DD/MM/YYYY`, `YYYYMMDD`, or
+   * `D. M. YYYY`. A format needs exactly one year, one month, and one day token, and a format with
+   * any other letter, or with an `M` or `D` token right next to another token (`YYYYMD`), is
+   * ignored, with a console warning. The date part of a date-time (`12/03/2026 14:30`) is read with
+   * the listed format too. A column takes the format that reads the most of its values,
+   * and the earlier one in the list on a tie. A value the format does not match is still read as an
+   * ISO date, and only in the form `2026-03-12`. Whole numbers are read too (`20260312` with
+   * `YYYYMMDD`), padded back to the width of a fixed-width format (`1032026` is `01032026` for
+   * `DDMMYYYY`), and not read at all when the year is below 1000, since `101` is a quantity far more
+   * often than the year 1. A column that reads both as a date and as a number becomes a date.
+   * Defaults to none, which reads the built-in year-last dates in the order the data or the
+   * `locale` settles.
+   */
+  dateFormats?: ReadonlyArray<string>;
+  /**
+   * Words a `checkbox` column reads as `true` and as `false`, besides `true` and `false`
+   * themselves, for example `{ true: ['yes', 'tak'], false: ['no', 'nie'] }`. Words are compared
+   * trimmed and in any case (the Turkish dotted and dotless `i` count as one letter, so `HAYIR`
+   * matches a listed `hayır`), and a number cell is compared as its text, so listed `1` and `0` read
+   * the numbers `1` and `0`. A word listed on both sides reads as neither. Defaults to none.
+   */
+  booleanValues?: { true?: ReadonlyArray<string>; false?: ReadonlyArray<string> };
+  /**
    * Whether to return `stats` for every column. `true` keeps the first 5 distinct values as
    * examples; `{ examples }` sets how many. Defaults to `false`.
    */
@@ -43,7 +74,7 @@ export interface InferColumnTypesOptions {
 /**
  * The cell types `inferColumnTypes()` can return.
  */
-export type InferredCellType = 'numeric' | 'date' | 'time' | 'checkbox' | 'dropdown' | 'text';
+export type InferredCellType = 'numeric' | 'date' | 'intl-datetime' | 'time' | 'checkbox' | 'dropdown' | 'text';
 
 /**
  * How the raw values of a column were written, which `convertToInferredTypes()` needs to read them.
@@ -63,10 +94,20 @@ export interface InferredInputFormat {
    */
   currencySymbol?: string;
   /**
-   * The day and month order of a `date` column's year-last values: the one the sampled values
-   * show, or the locale's when they show none.
+   * The day and month order of a `date` or `intl-datetime` column's year-last values: the one the
+   * sampled values show, or the locale's when they show none. Not set on a `date` column when a
+   * format of the `dateFormats` option compiles.
    */
   dateOrder?: 'DMY' | 'MDY';
+  /**
+   * The format from the `dateFormats` option that a `date` column's values are read with.
+   */
+  dateFormat?: string;
+  /**
+   * The words from the `booleanValues` option that a `checkbox` column reads, besides `true` and
+   * `false`.
+   */
+  booleanValues?: { true: string[]; false: string[] };
 }
 
 /**
@@ -96,8 +137,13 @@ export interface InferredColumnSettings {
    */
   timeFormat?: Intl.DateTimeFormatOptions;
   /**
+   * The `Intl.DateTimeFormatOptions` of an `intl-datetime` column: the date part as for `dateFormat`,
+   * the time part as for `timeFormat`.
+   */
+  dateTimeFormat?: Intl.DateTimeFormatOptions;
+  /**
    * The options of a `dropdown` column, in the order they first appear in the sampled rows. A value
-   * that appears only past `sampleSize` is not listed, so the dropdown validator rejects it.
+   * that appears only outside the sampled rows is not listed, so the dropdown validator rejects it.
    */
   source?: string[];
 }
@@ -138,8 +184,10 @@ export interface InferredColumnStats {
    */
   examples: string[];
   /**
-   * The smallest value of a `numeric` column (a number), a `date` column (`YYYY-MM-DD`), or a
-   * `time` column (`HH:mm:ss`), after conversion. Not set for the other types.
+   * The smallest value of a `numeric` column (a number), a `date` column (`YYYY-MM-DD`), an
+   * `intl-datetime` column (`YYYY-MM-DDTHH:mm:ss`), or a `time` column (`HH:mm:ss`), after conversion.
+   * `Date` objects are left out, because their converted text follows the host's time zone. Not set
+   * for the other types.
    */
   min?: number | string;
   /**
@@ -170,8 +218,8 @@ export interface InferredColumn {
    */
   confidence: number;
   /**
-   * How the raw values were written. Set on `numeric` and `date` columns, and read by
-   * `convertToInferredTypes()`.
+   * How the raw values were written. Set on `numeric`, `date`, and `intl-datetime` columns, and on
+   * `checkbox` columns when the `booleanValues` option is set. Read by `convertToInferredTypes()`.
    */
   inputFormat?: InferredInputFormat;
   /**

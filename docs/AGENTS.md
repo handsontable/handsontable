@@ -968,6 +968,22 @@ concluding anything from a golden you read back.
   2026-09-25 the width facts fail on develop - #13381 also made the holder 33 to 35px wider than its root
   on 819 of the 976 example grids, and #13626 fixed only the height - so no develop seed lands until that
   is fixed. The fast check runs in the `functional` project on every docs pull request too.
+- **A full-page capture collapses the viewport on Linux, and a golden that flips between two heights points
+  here.** On Linux CI `page.screenshot({ fullPage: true })` shrinks the viewport to 1x1px for a moment (macOS
+  does not), and the docs layout follows: every `.hot-example-preview` collapses to 33px and every grid root
+  to 0px. A grid must come back from that unchanged. Until DEV-3460 it did not: AutoColumnSize measured in
+  the 0px root, kept the wrapped widths, and `export-to-csv` grew by 240px in most renders, so its golden
+  flipped between seeds (DEV-3458). `tests/captureLayoutStability.spec.ts` pins it on `export-to-csv` in all
+  four frameworks with two tests each: one forces the collapse with `setViewportSize({ width: 1, height: 1 })`
+  and fails on any OS, the other takes the visual suite's full-page captures, which collapse only on Linux
+  and only in some renders. The file sets `retries: 0`, because a retry reports a render that went wrong once
+  as flaky and passes it. Two rules follow. **Fix the grid, do not hold the layout in the spec**: a style
+  that keeps the layout wide through the capture (a `min-width` on `html` does) also hides a grid that breaks
+  in the collapse, which is the bug this spec exists to catch; the baseline test refuses a style injected
+  into `visualDocs.spec.ts`. **A golden captured after a collapse moves when the artifact goes**: a baseline is
+  only as true as its capture, and the next seed settles it. One collapse effect is not about column widths
+  and is not fixed: `react-use-icons-in-cells` changes height after a forced collapse, with or without a
+  layout hold.
 - **A failed seed posts to Slack once per streak.** `docs-visual-seed.yml`'s `notify` job posts a failed
   automatic seed through the core seed's `SLACK_VISUAL_WEBHOOK_URL` (an absent secret skips it; a hand
   dispatch posts nothing). While a render stays broken every docs deploy fails its seed, so it posts only
@@ -982,11 +998,29 @@ concluding anything from a golden you read back.
   is the reason. Add the label and press "Re-run all jobs". Drop the label gate once the baseline has proven
   stable; the comment in `docs.yml`'s `visual` job marks the spot.
 - **The functional specs run on every docs pull request, report-only for one sprint.**
-  `playwright.config.ts` has two projects, `visual` (`visualDocs.spec.ts`) and `functional` (everything
-  else); a bare `npx playwright test` still runs both. `docs.yml`'s `functional` job runs
-  `--project=functional` against the preview with `continue-on-error: true`, writes one line to the job
-  summary, and uploads `docs-functional-report` (7 days). After a sprint of green, flip `continue-on-error`
-  off.
+  `playwright.config.ts` has two projects, `visual` (`visualDocs.spec.ts`) and `functional` (every other
+  `*.spec.ts`); a bare `npx playwright test` still runs both. `docs.yml`'s `functional` job runs
+  `--project=functional` against the preview with `continue-on-error: true`, writes one line with the
+  counts to the job summary, and uploads `docs-functional-report` (7 days). After a sprint of green, flip
+  `continue-on-error` off - and "green" means a run with a non-zero count, never the summary word alone.
+  Two rules keep the count honest. **Every project collects `*.spec.ts` only** (the top-level `testMatch`
+  in `playwright.config.ts`, so a project added later inherits it; `visual` narrows it further):
+  Playwright's default also takes `*.test.*`, which imported the `node:test` files under
+  `tests/lib/__tests__` (they belong to the root `npm run test:tooling`), one of them failed to load, and
+  the whole collection aborted, so every functional run listed 0 tests while the summary read "failed" like
+  any red spec. A `node:test` file stays `*.test.mjs`, and the pattern keeps it out. **Report-only covers a
+  failing spec, not a run that never started**: the job's last step, `Check that the functional specs ran`,
+  fails the job, and so blocks the merge, when `report.json` holds no test that ran. It reads only that count:
+  a load error always shows as 0, and an error outside a test in a run that did run its specs stays
+  report-only. It is not the seed's fast check (`Check that the example grids are laid out` in
+  `docs-visual-run`), which also refuses any skipped test; keep the two apart, because matching either to
+  the other loosens the seed gate or blocks a docs pull request over a `fixme`. A targeted run
+  (`npx playwright test --project=functional <file>`) never showed the bug, because a file filter skips the
+  files that break the load. To run the whole project by hand, point `BASE_URL` at a preview subdomain
+  (`https://pr-<number>.handsontable-docs-staging.pages.dev/docs`), not the bare
+  `https://handsontable-docs-staging.pages.dev/docs` alias: `demos.handsontable.com` allows framing only
+  from `https://*.handsontable-docs-staging.pages.dev`, so on the alias every recipe that embeds a demo
+  logs a `frame-ancestors` error and `recipeConsoleErrors.spec.ts` fails it (6 recipes).
 - **`PASS_COOKIE` is for `https://dev.handsontable.com/docs` only.** The spec sets it as a cookie on that
   domain; Cloudflare previews and the staging deploys need none. Callers pass `secrets.PASS_COOKIE` through
   the action's `pass-cookie` input.

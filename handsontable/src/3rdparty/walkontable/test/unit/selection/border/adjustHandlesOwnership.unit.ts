@@ -6,6 +6,7 @@ import {
   getMoveZoneOwnership,
   getOverlaySegment,
   isTrackEdgeVisible,
+  ownsCornerCell,
   ownsEdgeOnOwnAxis,
 } from 'walkontable/selection/border/adjustHandlesOwnership';
 import type {
@@ -453,3 +454,60 @@ describe('a selection crossing the inline-end freeze line (fixedColumnsEnd: 2)',
     expect(getHandleOwnership(layout('bottom_inline_end_corner'), crossing, [18, 8, 19, 9]).top).toBe(false);
   });
 });
+
+describe('ownsCornerCell', () => {
+  // One frozen row at the top and two frozen columns at the start, as in DEV-749.
+  const layoutFor = (rowSegment: AxisSegment, columnSegment: AxisSegment) => ({
+    row: axisLayout({ fixedStart: 1, overlaySegment: rowSegment }),
+    column: axisLayout({ fixedStart: 2, overlaySegment: columnSegment }),
+  });
+
+  it.each([
+    ['master', 'main', 'main', 3, 4, true],
+    ['master', 'main', 'main', 3, 1, false],
+    ['master', 'main', 'main', 0, 4, false],
+    ['master', 'main', 'main', 0, 0, false],
+    ['inline_start', 'main', 'start', 3, 1, true],
+    ['inline_start', 'main', 'start', 3, 2, false],
+    ['inline_start', 'main', 'start', 0, 1, false],
+    ['top', 'start', 'main', 0, 4, true],
+    ['top', 'start', 'main', 0, 1, false],
+    ['top_inline_start_corner', 'start', 'start', 0, 0, true],
+    ['top_inline_start_corner', 'start', 'start', 1, 0, false],
+  ])('should tell whether the %s overlay (row segment %s, column segment %s) owns the cell (row %s, column %s) -> %s', (
+    _name, rowSegment, columnSegment, row, column, expected,
+  ) => {
+    expect(ownsCornerCell(layoutFor(rowSegment as AxisSegment, columnSegment as AxisSegment), row, column))
+      .toBe(expected);
+  });
+
+  it('should count a header index as the first track', () => {
+    expect(ownsCornerCell(layoutFor('start', 'start'), -1, -1)).toBe(true);
+    expect(ownsCornerCell(layoutFor('main', 'main'), -1, 4)).toBe(false);
+    expect(ownsCornerCell({
+      row: axisLayout({ overlaySegment: 'main' }),
+      column: axisLayout({ overlaySegment: 'main' }),
+    }, -1, -1)).toBe(true);
+  });
+
+  it('should give the cells of the frozen end panes to the end overlays', () => {
+    const row = axisLayout({ fixedEnd: 2, overlaySegment: 'end' });
+    const column = axisLayout({ overlaySegment: 'main' });
+
+    expect(ownsCornerCell({ row, column }, 18, 5)).toBe(true);
+    expect(ownsCornerCell({ row, column }, 17, 5)).toBe(false);
+  });
+});
+
+describe('ownsCornerCell with only the segments it needs', () => {
+  it('should not need the visible range', () => {
+    const layout = {
+      row: { main: [1, 18] as [number, number], overlaySegment: 'end' as AxisSegment },
+      column: { main: [0, 19] as [number, number], overlaySegment: 'main' as AxisSegment },
+    };
+
+    expect(ownsCornerCell(layout, 19, 4)).toBe(true);
+    expect(ownsCornerCell(layout, 18, 4)).toBe(false);
+  });
+});
+

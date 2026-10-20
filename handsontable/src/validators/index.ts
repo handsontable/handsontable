@@ -1,4 +1,5 @@
 import { autocompleteValidator, VALIDATOR_TYPE as AUTOCOMPLETE_VALIDATOR } from './autocompleteValidator';
+import { checkboxValidator, VALIDATOR_TYPE as CHECKBOX_VALIDATOR } from './checkboxValidator';
 import { dateValidator, VALIDATOR_TYPE as DATE_VALIDATOR } from './dateValidator';
 import { dropdownValidator, VALIDATOR_TYPE as DROPDOWN_VALIDATOR } from './dropdownValidator';
 import { intlDateValidator, VALIDATOR_TYPE as INTL_DATE_VALIDATOR } from './intlDateValidator';
@@ -16,6 +17,7 @@ import {
  */
 export function registerAllValidators() {
   registerValidator(autocompleteValidator);
+  registerValidator(checkboxValidator);
   registerValidator(dropdownValidator);
   registerValidator(dateValidator);
   registerValidator(intlDateValidator);
@@ -28,6 +30,7 @@ export function registerAllValidators() {
 
 export {
   autocompleteValidator, AUTOCOMPLETE_VALIDATOR,
+  checkboxValidator, CHECKBOX_VALIDATOR,
   dropdownValidator, DROPDOWN_VALIDATOR,
   dateValidator, DATE_VALIDATOR,
   intlDateValidator, INTL_DATE_VALIDATOR,
@@ -49,7 +52,7 @@ export {
 /**
  * All built-in validator type names.
  */
-export type ValidatorType = typeof AUTOCOMPLETE_VALIDATOR | typeof DATE_VALIDATOR |
+export type ValidatorType = typeof AUTOCOMPLETE_VALIDATOR | typeof CHECKBOX_VALIDATOR | typeof DATE_VALIDATOR |
   typeof DROPDOWN_VALIDATOR | typeof INTL_DATE_VALIDATOR | typeof INTL_DATETIME_VALIDATOR |
   typeof INTL_TIME_VALIDATOR | typeof MULTISELECT_VALIDATOR |
   typeof NUMERIC_VALIDATOR | typeof TIME_VALIDATOR | string;

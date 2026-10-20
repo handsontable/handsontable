@@ -24,6 +24,8 @@ import type {
   RendererType,
   SelectOptionsObject,
   SourceRowData,
+  RowIdKey,
+  RowIdSetting,
   ThemeBuilder,
   ThemeColorScheme,
   ThemeColorsConfig,
@@ -111,6 +113,7 @@ import {
 } from 'handsontable/renderers';
 import {
   autocompleteValidator,
+  checkboxValidator,
   dateValidator,
   dropdownValidator,
   intlDateValidator,
@@ -228,6 +231,7 @@ const _timeRenderer: Handsontable.renderers.TimeRenderer = timeRenderer;
 // validators namespace: verify function type aliases
 // ---------------------------------------------------------------------------
 const _autocompleteValidator: Handsontable.validators.AutocompleteValidator = autocompleteValidator;
+const _checkboxValidator: Handsontable.validators.CheckboxValidator = checkboxValidator;
 const _dateValidator: Handsontable.validators.DateValidator = dateValidator;
 const _dropdownValidator: Handsontable.validators.DropdownValidator = dropdownValidator;
 const _intlDateValidator: Handsontable.validators.IntlDateValidator = intlDateValidator;
@@ -296,6 +300,8 @@ const _sameCellCoords: Same<Handsontable.CellCoords, CellCoords> = true;
 const _sameCellRange: Same<Handsontable.CellRange, CellRange> = true;
 const _sameIndexMapper: Same<Handsontable.IndexMapper, IndexMapper> = true;
 const _sameSourceRowData: Same<Handsontable.SourceRowData, SourceRowData> = true;
+const _sameRowIdSetting: Same<Handsontable.RowIdSetting, RowIdSetting> = true;
+const _sameRowIdKey: Same<Handsontable.RowIdKey, RowIdKey> = true;
 const _sameColumnDataGetterSetterFunction: Same<
   Handsontable.ColumnDataGetterSetterFunction, ColumnDataGetterSetterFunction
 > = true;

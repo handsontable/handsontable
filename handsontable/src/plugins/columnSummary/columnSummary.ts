@@ -261,12 +261,18 @@ export class ColumnSummary extends BasePlugin {
    *
    * This method is executed when [`updateSettings()`](@/api/core.md#updatesettings) is invoked with any of the following configuration options:
    *  - [`columnSummary`](@/api/options.md#columnsummary)
+   *
+   * Before the grid has a view (a settings update made while the grid is still being built, such as
+   * the sheets bar applying its opening sheet), the endpoints are left to the `afterInit` listener,
+   * which computes them against the data the grid starts with.
    */
   updatePlugin(): void {
     this.disablePlugin();
     this.enablePlugin();
 
-    this.endpoints!.initEndpoints();
+    if (this.hot.view) {
+      this.endpoints!.initEndpoints();
+    }
 
     super.updatePlugin();
   }

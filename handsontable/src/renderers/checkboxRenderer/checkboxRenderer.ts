@@ -10,7 +10,7 @@ import {
   getCellContentRoot,
 } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
-import { localeLowerCase } from '../../helpers/string';
+import { matchCheckboxTemplate } from '../../utils/checkboxColumn';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import { Hooks } from '../../core/hooks';
 import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
@@ -18,6 +18,24 @@ import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
 import { canAccessCellContent } from '../../shortcuts/guards';
 import { createIcon } from '../../themes/engine/icons';
+
+/**
+ * Tells which state the Space/Enter toggle reads a cell in: the template the value matches (the same
+ * case-insensitive match the renderer draws from, so a loaded `'TRUE'` toggles like `true`), or
+ * unchecked for an empty cell (`null` or `undefined`). A value that matches neither template is not
+ * toggled.
+ *
+ * @param {*} value The cell value.
+ * @param {object} meta The cell meta.
+ * @returns {string|null}
+ */
+function getToggleState(value: unknown, meta: CellProperties): 'checked' | 'unchecked' | null {
+  if (value === null || value === undefined) {
+    return 'unchecked';
+  }
+
+  return matchCheckboxTemplate(value, meta);
+}
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap<HotInstance, EventManager>();
@@ -93,8 +111,6 @@ export function checkboxRenderer(
 
   empty(contentRoot); // TODO identify under what circumstances this line can be removed
 
-  const locale = cellProperties.locale as string | undefined;
-
   applyCheckedState();
 
   // The tick is a real element, not the input's own `::after` - an `<input>` can hold no
@@ -125,9 +141,10 @@ export function checkboxRenderer(
    * Determine and apply the checked state of the input element based on the cell value.
    */
   function applyCheckedState() {
-    if (value === cellProperties.checkedTemplate ||
-      localeLowerCase(stringify(value), locale) ===
-      localeLowerCase(stringify(cellProperties.checkedTemplate), locale)) {
+    // One matcher for the renderer, the value setter and the `checkbox` validator (DEV-355).
+    const state = matchCheckboxTemplate(value, cellProperties);
+
+    if (state === 'checked') {
       input.checked = true;
       // Reflect the checked state as the `checked` HTML attribute (via `defaultChecked`), not only as
       // the IDL property. A custom renderer that chains this renderer and then rebuilds the cell with
@@ -137,9 +154,7 @@ export function checkboxRenderer(
       // render, so the attribute defaults to absent on the unchecked path with nothing to clear.
       input.defaultChecked = true;
 
-    } else if (value === cellProperties.uncheckedTemplate ||
-      localeLowerCase(stringify(value), locale) ===
-      localeLowerCase(stringify(cellProperties.uncheckedTemplate), locale)) {
+    } else if (state === 'unchecked') {
       input.checked = false;
 
     } else if (isEmpty(value)) { // default value
@@ -373,10 +388,12 @@ export function checkboxRenderer(
           const dataAtCell = hotInstance.getDataAtCell(visualRow, visualColumn);
 
           if (uncheckCheckbox === false) {
-            if ([cachedCellProperties.checkedTemplate, String(cachedCellProperties.checkedTemplate)].includes(dataAtCell)) { // eslint-disable-line max-len
+            const toggleState = getToggleState(dataAtCell, cachedCellProperties);
+
+            if (toggleState === 'checked') {
               changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate, templates]);
 
-            } else if ([cachedCellProperties.uncheckedTemplate, String(cachedCellProperties.uncheckedTemplate), null, undefined].includes(dataAtCell)) { // eslint-disable-line max-len
+            } else if (toggleState === 'unchecked') {
               changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate, templates]);
             }
 

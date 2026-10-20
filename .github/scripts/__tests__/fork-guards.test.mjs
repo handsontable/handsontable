@@ -85,6 +85,9 @@ const GUARDED_SITES = [
   ['.github/actions/docs-visual-run/action.yml', 'name: Seed the golden records'],
   // The advisory breaking-change comment (DEV-3030).
   ['.github/workflows/breaking-check.yml', 'name: Comment'],
+  // The accessibility report's check run (DEV-3474): a check write a fork's token cannot make.
+  ['.github/workflows/a11y.yml', 'name: Post the report check run'],
+  ['.github/workflows/a11y.yml', 'name: Post the report comment'],
 ];
 
 test('every fork-hostile site carries both halves of the canonical guard', () => {

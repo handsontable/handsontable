@@ -9,7 +9,9 @@ The single Playwright package for Handsontable: functional end-to-end tests in `
 ```
 tests/
 ├── playwright.config.ts   # one config; projects split e2e (flake-strict) from visual
+├── playwright.a11y.config.ts # the axe scan's config: one project over a11y/, the e2e server inherited
 ├── e2e/                    # functional specs (*.spec.ts)
+├── a11y/                   # the axe scan: axe.spec.ts, pages.mjs (the curated pages), axe-baseline.json
 ├── visual/                 # visual regression — destination for the current visual-tests/ suite
 ├── fixtures/
 │   ├── demo/               # static pages that mount a real grid for tests to drive
@@ -35,6 +37,7 @@ npx playwright install  # browsers, once per version (CI runs inside the pinned 
 cd tests
 npm test                # all projects (package scripts work as usual once installed)
 npm run test:e2e        # the e2e-main leg (plain UMD, main theme) — the same leg the local hooks run
+npm run test:a11y       # the axe scan over the curated fixture pages, three themes (AGENTS.md, "A11y")
 npm run lint            # determinism + parse checks on the specs
 ```
 
@@ -106,6 +109,16 @@ npm --prefix handsontable run test:walkontable # the rendering engine's own pipe
 In CI a pull request runs `test:e2e` on the main theme only (`E2E / UMD (theme: main)`); the
 six legs — three themes, `test:e2e` and `test:production` — run on the E2E nightly, the
 rc/stable publish path and a master push (`.ai/CI.md`, the Jasmine single-leg entry).
+
+## The accessibility scan, locally
+
+`npm run test:a11y` runs axe-core over the pages of `a11y/pages.mjs` on the three themes and
+compares the findings with `a11y/axe-baseline.json`; the HTML report (`a11y-report.html`), the
+agent findings (`a11y-findings.json`), the summary and the comparison land in `test-results/a11y/`. It needs the same build as the e2e tier, and the minified theme
+stylesheets in particular: an unstyled grid gives wrong contrast results without an error. A
+finding outside the baseline is reported, never a red run (warn mode); what fails is a page that
+does not load or a baseline that does not validate. How to add a page or baseline a finding:
+`AGENTS.md`, "A11y: the axe scan and its baseline".
 
 ## One Playwright version across the monorepo
 

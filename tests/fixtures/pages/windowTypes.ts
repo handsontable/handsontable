@@ -139,6 +139,7 @@ export interface FixtureHotInstance {
     clearSort(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
+  getPlugin(name: 'copyPaste'): { paste(pastableText?: string): void };
   getPlugin(name: 'autofill'): {
     mouseDownOnCellCorner: boolean,
     addingStarted: boolean,

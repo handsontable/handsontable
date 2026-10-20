@@ -388,7 +388,8 @@ import ExcelJS from 'exceljs';
 
       it('should use a custom checkedTemplate to determine the boolean value', async() => {
         handsontable({
-          data: [['yes'], ['no']],
+          // `YES` matches the template only by letter case and renders checked, so it exports as `true` (DEV-355).
+          data: [['yes'], ['no'], ['YES']],
           columns: [{ type: 'checkbox', checkedTemplate: 'yes', uncheckedTemplate: 'no' }],
           exportFile,
         });
@@ -397,6 +398,7 @@ import ExcelJS from 'exceljs';
 
         expect(ws.getRow(1).getCell(1).value).toBe(true);
         expect(ws.getRow(2).getCell(1).value).toBe(false);
+        expect(ws.getRow(3).getCell(1).value).toBe(true);
       });
     });
 

@@ -243,6 +243,10 @@ export class TabStrip {
       this.#pointerHeldOnTab = true;
 
       if (event.button === 0 && !this.#isWithinRenameInput(event)) {
+        if (this.#cancelRename) {
+          tab.focus({ preventScroll: true });
+        }
+
         this.#drag.start(event, tab, sheet.id);
       }
     });

@@ -113,6 +113,7 @@ import {
   type ReversedCellRun,
 } from './dataMap/dataJournal';
 import DataMap from './dataMap/dataMap';
+import { RowIdentity } from './core/rowIdentity/rowIdentity';
 import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
 
@@ -2827,6 +2828,26 @@ export default function Core(
   }
 
   /**
+   * Tells whether a `setSourceDataAtCell()` call writes the cell an opened editor edits. The changes name
+   * physical rows, and a column as its property or its physical index.
+   *
+   * @private
+   * @param {Array} changes The changes, in the form `[physicalRow, prop, value]`.
+   * @param {BaseEditor} activeEditor The opened editor.
+   * @returns {boolean}
+   */
+  function doesSourceChangeAffectOpenedEditor(
+    changes: Array<[number, string | number | ColumnDataGetterSetterFunction, unknown]>,
+    activeEditor: BaseEditor,
+  ) {
+    const physicalRow = instance.toPhysicalRow(activeEditor.row!);
+    const editedProp = activeEditor.prop;
+
+    // `setAtCell()` writes a numeric column as the raw index (`dataRow[n]`), so it is compared as a prop.
+    return changes.some(([changeRow, changeProp]) => changeRow === physicalRow && changeProp === editedProp);
+  }
+
+  /**
    * Reads the cell meta of a cell that a WRITE addresses, which may sit in a row that does not exist yet.
    *
    * A write can address a row past the last one, and `applyChanges()` creates it only after the
@@ -3506,12 +3527,23 @@ export default function Core(
    * @returns {Array} List of changes finally applied to the dataset.
    */
   function processChanges(changes: Array<CellChange | null>, source: string | undefined): CellChange[] {
+    const openedEditor = instance.getActiveEditor();
+    // Read before the hook, which can replace a change with `null`, and only while an editor is open: a
+    // paste or a fill writes with none, and must not pay for a copy of its changes.
+    const writesEditedCell = openedEditor?.isOpened()
+      ? hasChangeForCell(changes.filter((change): change is CellChange => change !== null), openedEditor.row!,
+        openedEditor.prop!)
+      : true;
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     // The `beforeChange` hook could add a `null` for purpose of canceling some dataset's change.
     const filteredChanges = changes.filter((change): change is CellChange => change !== null);
 
     if (beforeChangeResult === false || filteredChanges.length === 0) {
-      instance.getActiveEditor()?.cancelChanges();
+      // An open editor is canceled only when the vetoed call wrote its own cell: a vetoed write to another
+      // cell (an application's background update) must not throw away what the user is typing.
+      if (writesEditedCell) {
+        instance.getActiveEditor()?.cancelChanges();
+      }
 
       return [];
     }
@@ -5944,6 +5976,170 @@ export default function Core(
     instance.columnIndexMapper.getPhysicalFromVisualIndex(column) as number;
 
   /**
+   * Returns the id of a row, as the [`rowId`](@/api/options.md#rowid) option (or `dataProvider.rowId`) defines it.
+   *
+   * A row's id stays with the row's record when you sort, filter, move, trim, insert, or remove rows, and when
+   * you undo or redo any of those actions.
+   *
+   * @memberof Core#
+   * @function getRowId
+   * @since 19.0.0
+   * @param {number} row Visual row index.
+   * @returns {*} The row's id, or `null` when the row does not exist, has no id, or no row ids are configured.
+   */
+  this.getRowId = function(row: number): unknown {
+    const physicalRow = Number.isInteger(row) && row >= 0 && row < instance.countRows() ?
+      instance.toPhysicalRow(row) : null;
+
+    return physicalRow === null ? null : rowIdentity.getRowIdAtPhysicalRow(physicalRow);
+  };
+
+  /**
+   * Returns the visual index of the row that has the given id.
+   *
+   * The id is defined by the [`rowId`](@/api/options.md#rowid) option (or `dataProvider.rowId`).
+   *
+   * @memberof Core#
+   * @function getVisualRowById
+   * @since 19.0.0
+   * @param {*} id The row's id.
+   * @returns {number|null} The visual row index, or `null` when no row has the id (for example, the row was
+   * removed), or the row is trimmed, filtered out, or past [`maxRows`](@/api/options.md#maxrows). A hidden row
+   * keeps its visual index.
+   */
+  this.getVisualRowById = function(id: unknown): number | null {
+    const physicalRow = rowIdentity.getPhysicalRowById(id);
+    const visualRow = physicalRow === null ? null : instance.toVisualRow(physicalRow);
+
+    // A row past `maxRows` keeps a visual index, but the grid does not show it.
+    return visualRow !== null && visualRow < instance.countRows() ? visualRow : null;
+  };
+
+  /**
+   * Returns the physical index of the row that has the given id.
+   *
+   * The id is defined by the [`rowId`](@/api/options.md#rowid) option (or `dataProvider.rowId`). Unlike
+   * [`getVisualRowById()`](@/api/core.md#getvisualrowbyid), it also finds a row that is trimmed or filtered out.
+   *
+   * @memberof Core#
+   * @function getPhysicalRowById
+   * @since 19.0.0
+   * @param {*} id The row's id.
+   * @returns {number|null} The physical row index, or `null` when no row has the id (for example, the row was
+   * removed).
+   */
+  this.getPhysicalRowById = function(id: unknown): number | null {
+    return rowIdentity.getPhysicalRowById(id);
+  };
+
+  /**
+   * Returns the id of a row, addressed by its physical index.
+   *
+   * Unlike [`getRowId()`](@/api/core.md#getrowid), it also reads the id of a row that is trimmed or filtered
+   * out, which has no visual index. Use it with the physical row indexes that hooks such as
+   * [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) pass.
+   *
+   * @memberof Core#
+   * @function getRowIdAtPhysicalRow
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index.
+   * @returns {*} The row's id, or `null` when the row does not exist, has no id, or no row ids are configured.
+   */
+  this.getRowIdAtPhysicalRow = function(physicalRow: number): unknown {
+    if (!Number.isInteger(physicalRow) || physicalRow < 0 ||
+        physicalRow >= instance.rowIndexMapper.getNumberOfIndexes()) {
+      return null;
+    }
+
+    return rowIdentity.getRowIdAtPhysicalRow(physicalRow);
+  };
+
+  /**
+   * Returns the ids of several rows at once.
+   *
+   * @memberof Core#
+   * @function getRowIds
+   * @since 19.0.0
+   * @param {number[]} [rows] Visual row indexes. Without it, the method returns the ids of every row, in visual
+   * order.
+   * @returns {Array} The ids, in the order of `rows`, with `null` for a row that does not exist or has no id.
+   */
+  this.getRowIds = function(rows?: number[]): unknown[] {
+    const rowsCount = instance.countRows();
+    const visualRows = Array.isArray(rows) ? rows : Array.from({ length: rowsCount }, (_, row) => row);
+    const physicalRows = visualRows.map(row => (Number.isInteger(row) && row >= 0 && row < rowsCount ?
+      instance.toPhysicalRow(row) : null));
+
+    return rowIdentity.getRowIdsAtPhysicalRows(physicalRows);
+  };
+
+  /**
+   * Returns the visual indexes of the rows that have the given ids.
+   *
+   * @memberof Core#
+   * @function getVisualRowsByIds
+   * @since 19.0.0
+   * @param {Array} ids The row ids.
+   * @returns {Array<number|null>} The visual row indexes, in the order of `ids`, with `null` wherever
+   * [`getVisualRowById()`](@/api/core.md#getvisualrowbyid) returns `null`.
+   */
+  this.getVisualRowsByIds = function(ids: unknown[]): Array<number | null> {
+    return Array.isArray(ids) ? ids.map(id => instance.getVisualRowById(id)) : [];
+  };
+
+  /**
+   * Returns the physical indexes of the rows that have the given ids.
+   *
+   * @memberof Core#
+   * @function getPhysicalRowsByIds
+   * @since 19.0.0
+   * @param {Array} ids The row ids.
+   * @returns {Array<number|null>} The physical row indexes, in the order of `ids`, with `null` for an id that no
+   * row has.
+   */
+  this.getPhysicalRowsByIds = function(ids: unknown[]): Array<number | null> {
+    return Array.isArray(ids) ? ids.map(id => rowIdentity.getPhysicalRowById(id)) : [];
+  };
+
+  /**
+   * Sets a value in the row that has the given id, wherever the row is now. If no row has the id (for example,
+   * the row was removed), it does nothing.
+   *
+   * For a visible row (one with a visual index, hidden rows included), it works like
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop). For a row that is trimmed or filtered out, it writes
+   * to the source data with [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell), so the value is not
+   * validated and [`afterChange`](@/api/hooks.md#afterchange) does not fire for it.
+   *
+   * @memberof Core#
+   * @function setDataAtRowIdProp
+   * @since 19.0.0
+   * @param {*} id The row's id.
+   * @param {string|number} prop The property name, or the physical column index of a row array.
+   * @param {*} value The new value.
+   * @param {string} [source] The source of the change, passed on to the hooks.
+   * @returns {boolean} `true` when a row has the id and the value was set, `false` otherwise.
+   */
+  this.setDataAtRowIdProp = function(id: unknown, prop: string | number, value: unknown, source?: string): boolean {
+    const visualRow = instance.getVisualRowById(id);
+
+    if (visualRow !== null) {
+      instance.setDataAtRowProp(visualRow, prop, value, source);
+
+      return true;
+    }
+
+    const physicalRow = rowIdentity.getPhysicalRowById(id);
+
+    if (physicalRow === null) {
+      return false;
+    }
+
+    instance.setSourceDataAtCell(physicalRow, prop, value, source);
+
+    return true;
+  };
+
+  /**
    * @description
    * Returns the cell value at `row`, `column`.
    *
@@ -5999,8 +6195,30 @@ export default function Core(
   };
 
   /**
+   * Returns the last visual row a whole-column read covers.
+   *
+   * The read runs in visual rows, so it has to reach `countRows()`: under NestedRows the source
+   * array holds only the top-level records, and a `modifySourceLength` listener can report more rows
+   * than the array has, so its length stops the read short of every row past it. The source length
+   * stays in the `max` so a grid with no visual rows reads what it always did: with an empty data set
+   * the end is `-1`, so `getRange()` starts at the header row and returns `[null]`, while a fully
+   * trimmed one returns `[]`. When the source length wins, `getRange()` still stops at
+   * `countRows()` for two different reasons: a visual index past the not-trimmed rows maps to no
+   * physical row, so it skips it, and a row cut off by `maxRows` does map to one, but `getRange()`
+   * clamps the range to `maxRows - 1`.
+   *
+   * @returns {number} Visual row index.
+   */
+  function getLastColumnReadRow(): number {
+    return Math.max(instance.countRows(), tableMeta.data.length) - 1;
+  }
+
+  /**
    * @description
-   * Returns array of column values from the data source.
+   * Returns array of column values from the data source, one value per visual row.
+   * With the [`nestedRows`](@/api/options.md#nestedrows) option, the result includes the visible child rows
+   * and skips the children of collapsed parents. A grid with no rows returns `[null]`, so the length
+   * is one more than `countRows()` there.
    *
    * __Note__: If columns were reordered or sorted, the currently visible order will be used.
    *
@@ -6013,7 +6231,7 @@ export default function Core(
     const columnData = [];
     const dataByRows = datamap.getRange(
       instance._createCellCoords(0, column) as { row: number; col: number },
-      instance._createCellCoords(tableMeta.data.length - 1, column) as { row: number; col: number },
+      instance._createCellCoords(getLastColumnReadRow(), column) as { row: number; col: number },
       DataMap.DESTINATION_RENDERER
     );
 
@@ -6028,7 +6246,10 @@ export default function Core(
 
   /**
    * Given the object property name (e.g. `'first.name'` or `'0'`), returns an array of column's values from the table data.
-   * You can also provide a column index as the first argument.
+   * You can also provide a column index as the first argument. The result holds one value per visual row.
+   * With the [`nestedRows`](@/api/options.md#nestedrows) option, it includes the visible child rows
+   * and skips the children of collapsed parents. For an existing column of a grid with no rows, it
+   * returns `[null]`, so the length is one more than `countRows()` there.
    *
    * @memberof Core#
    * @function getDataAtProp
@@ -6050,7 +6271,7 @@ export default function Core(
     const dataByRows = datamap.getRange(
       instance._createCellCoords(0, visualColumn as number) as { row: number; col: number },
       instance._createCellCoords(
-        tableMeta.data.length - 1, visualColumn as number
+        getLastColumnReadRow(), visualColumn as number
       ) as { row: number; col: number },
       DataMap.DESTINATION_RENDERER
     );
@@ -6151,6 +6372,9 @@ export default function Core(
 
   /**
    * Set the provided value in the source data set at the provided coordinates.
+   *
+   * An open editor keeps what the user typed, unless the call writes the edited cell itself: then the
+   * editor shows the new value.
    *
    * @memberof Core#
    * @function setSourceDataAtCell
@@ -6258,8 +6482,19 @@ export default function Core(
 
     const activeEditor = instance.getActiveEditor();
 
-    if (activeEditor && isDefined(activeEditor.refreshValue)) {
+    // An open editor is refreshed only when the call wrote its own cell: a write to any other cell, a
+    // filtered-out row's included, must not throw away what the user is typing (the `setData*` methods
+    // follow the same rule through `doesChangeAffectOpenedEditor()`). A closed editor is refreshed as before.
+    if (
+      activeEditor &&
+      isDefined(activeEditor.refreshValue) &&
+      (!activeEditor.isOpened() || doesSourceChangeAffectOpenedEditor(input, activeEditor))
+    ) {
       (activeEditor.refreshValue as () => void)();
+
+    } else if (activeEditor?.isOpened()) {
+      // `refreshValue()` also repositions the editor; the write can still have resized a row above it.
+      (activeEditor as BaseEditor & { refreshDimensions?: () => void }).refreshDimensions?.();
     }
   }
 
@@ -8714,15 +8949,29 @@ export default function Core(
    * @private
    */
   this._registerTimeout = function(this: HotInstance & CoreInternals, handle: Function | number, delay = 0) {
-    let handleFunc = handle;
+    if (typeof handle !== 'function') {
+      this.timeouts.push(handle);
 
-    if (typeof handleFunc === 'function') {
-      handleFunc = setTimeout(handleFunc, delay);
+      return handle;
     }
 
-    this.timeouts.push(handleFunc);
+    // Captured now: `destroy()` nulls the instance's fields after `_clearTimeouts()`, so a timer registered
+    // in between would otherwise read a nulled `this.timeouts` when it fires.
+    const timeouts = this.timeouts;
+    const timeoutId = setTimeout(() => {
+      const index = timeouts.indexOf(timeoutId);
 
-    return handleFunc;
+      // Drop the handle once it fired, or every call keeps one until `destroy()`.
+      if (index !== -1) {
+        timeouts.splice(index, 1);
+      }
+
+      handle();
+    }, delay);
+
+    this.timeouts.push(timeoutId);
+
+    return timeoutId;
   };
 
   /**
@@ -8749,9 +8998,19 @@ export default function Core(
 
     this.microtasks.push(entry);
     this.rootWindow.queueMicrotask(() => {
-      if (!entry.cancelled) {
-        callback();
+      // A cancelled entry was dropped by `_clearMicrotasks()`, which `destroy()` calls before it clears the instance.
+      if (entry.cancelled) {
+        return;
       }
+
+      const index = this.microtasks.indexOf(entry);
+
+      // Drop the entry once it ran, or every validated edit and every data load keeps one until `destroy()`.
+      if (index !== -1) {
+        this.microtasks.splice(index, 1);
+      }
+
+      callback();
     });
   };
 
@@ -8818,6 +9077,8 @@ export default function Core(
 
     ownerWindow: this.rootWindow,
   });
+
+  const rowIdentity = new RowIdentity(instance, physicalRow => dataSource.modifyRowData(physicalRow));
 
   this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => {
     // Releasing keys as some browser/system shortcuts break events sequence (thus the `keyup` event isn't triggered).

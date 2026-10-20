@@ -23,6 +23,7 @@ import type { FreezeBarSettings, FreezeEdge, FreezeSource } from '../plugins/fre
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
 import type { ExportFileSettings } from '../plugins/exportFile';
 import type { UndoRedoSettings } from '../plugins/undoRedo';
+import type { AsyncValueCancelReason, AsyncValuesSettings } from '../plugins/asyncValues';
 import type { PasteClipboardData } from '../plugins/copyPaste';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
@@ -38,6 +39,7 @@ import type { RangeType, HotInstance } from './types';
 import type { ThemeColorScheme, DensityType } from '../themes/types';
 import type { IndexesChangeSource } from '../translations/indexMapper';
 import type { SourceLabel } from '../utils/cellSource';
+import type { RowIdSetting } from './rowIdentity/rowIdentity';
 
 export type { PasteClipboardData };
 
@@ -181,6 +183,11 @@ export interface GridSettings {
   data?: unknown[][] | object[];
   dataSchema?: object | ((rowIndex: number) => Record<string, unknown>);
   dataDotNotation?: boolean;
+  /**
+   * How each row gets an id that stays with it across sorting, filtering, moving, inserting, and removing rows:
+   * a property path, a function that returns the id of a source row, or `true` for ids Handsontable generates.
+   */
+  rowId?: RowIdSetting;
   columns?: ColumnSettings[] | ((column: number) => ColumnSettings);
   cell?: object[];
   cells?: (row: number, column: number, prop: string | number) => object;
@@ -281,6 +288,7 @@ export interface GridSettings {
   sortByRelevance?: boolean;
 
   // Plugins
+  asyncValues?: boolean | AsyncValuesSettings;
   autoLink?: boolean | {
     target?: '_blank' | '_self';
     schemes?: Array<'http' | 'https' | 'mailto' | 'tel'>;
@@ -404,6 +412,13 @@ export interface GridSettings {
 
   // Hook callbacks
   afterAddChild?: (parent: RowObject, element: RowObject | undefined, index: number | undefined) => void;
+  afterAsyncValueCancel?: (physicalRow: number, prop: string | number, reason: AsyncValueCancelReason,
+    rowId: unknown) => void;
+  afterAsyncValueReject?: (physicalRow: number, prop: string | number, error: unknown, message: string,
+    rowId: unknown) => void;
+  afterAsyncValueResolve?: (physicalRow: number, prop: string | number, value: unknown, rowId: unknown) => void;
+  afterAsyncValuesIdle?: () => void;
+  afterAsyncValueStart?: (physicalRow: number, prop: string | number, rowId: unknown) => void;
   afterAutofill?: (fillData: CellValue[][], sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange,
     direction: 'up' | 'down' | 'left' | 'right') => void;
   afterBeginEditing?: (row: number, column: number) => void;
@@ -537,6 +552,8 @@ export interface GridSettings {
     expandPossible: boolean, successfullyExpanded: boolean) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
+  afterRowIdsRemoved?: (rowIds: unknown[], source?: ChangeSource) => void;
+  afterRowIdsReset?: () => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
   afterRowSelectionChange?: (selectedRows: number[], deselectedRows: number[], source: RowSelectionSource) => void;
   afterRowSequenceChange?: (source: ChangeSource) => void;
@@ -609,6 +626,8 @@ export interface GridSettings {
   beforeAddChild?: (parent: RowObject, element?: RowObject, index?: number) => void;
   beforeAlter?: (action: string, index: number | Array<[number, number]>, amount: number,
     source?: ChangeSource, keepEmptyRows?: boolean) => boolean | void;
+  beforeAsyncValueResolve?: (value: unknown, physicalRow: number, prop: string | number, rowId: unknown) => unknown;
+  beforeAsyncValueStart?: (physicalRow: number, prop: string | number, rowId: unknown) => void | boolean;
   beforeAutofill?: (selectionData: CellValue[][], sourceRange: WalkontableCellRange,
     targetRange: WalkontableCellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | void;
   beforeBeginEditing?: (row: number, column: number, initialValue: CellValue,

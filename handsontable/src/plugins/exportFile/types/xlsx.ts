@@ -4,6 +4,7 @@ import type { SourceLabel } from '../../../utils/cellSource';
 import ExportDataProvider from '../dataProvider';
 import BaseType from './_base';
 import { normalizeExportOptions } from '../utils';
+import { matchCheckboxTemplate } from '../../../utils/checkboxColumn';
 import {
   buildSummaryFormula,
   normalizeFormula,
@@ -912,7 +913,8 @@ class Xlsx extends BaseType {
    * Returns the boolean export value for a checkbox cell.
    *
    * A value matching `checkedTemplate` exports as `true` and one matching `uncheckedTemplate` as
-   * `false`. An empty value (`null`, `undefined` or `''`) that matches neither template exports as
+   * `false`, matched the way the checkbox renderer matches them (`matchCheckboxTemplate`, so a case
+   * variant such as `'TRUE'` counts). An empty value (`null`, `undefined` or `''`) that matches neither template exports as
    * an empty cell, the same as the checkbox renderer's "no value" state, so a round trip does not
    * turn it into an unchecked box. Any other value keeps exporting as `false`.
    *
@@ -921,14 +923,14 @@ class Xlsx extends BaseType {
    * @returns {boolean|null}
    */
   #getCheckboxValue(value: unknown, meta: CellMeta): boolean | null {
-    const checkedTemplate = meta.checkedTemplate ?? true;
-    const uncheckedTemplate = meta.uncheckedTemplate ?? false;
+    // The renderer's match (DEV-355): a loaded `'TRUE'` exports as checked, like it renders.
+    const state = matchCheckboxTemplate(value, meta);
 
-    if (value === checkedTemplate) {
+    if (state === 'checked') {
       return true;
     }
 
-    if (value !== uncheckedTemplate && isEmpty(value)) {
+    if (state !== 'unchecked' && isEmpty(value)) {
       return null;
     }
 

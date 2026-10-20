@@ -1,7 +1,19 @@
+import { warnOnce } from '../../helpers/console';
 import { isObject } from '../../helpers/object';
-import { DETECTORS, type DetectionContext } from './detectors';
+import { getDetectors, type DetectionContext } from './detectors';
 import { getLocaleDateOrder, getLocaleDecimalSeparator, getLocaleRegion, resolveLocale } from './locale';
-import { isBlank, readBoolean, readDate, readNumber, readTime } from './values';
+import {
+  compileDateFormat,
+  createBooleanReader,
+  isBlank,
+  readBoolean,
+  readDate,
+  readDateTime,
+  readNumber,
+  readTime,
+  type BooleanValues,
+  type CompiledDateFormat,
+} from './values';
 import type {
   DetectedColumn,
   InferColumnTypesOptions,
@@ -34,7 +46,7 @@ const DEFAULT_MIN_CONFIDENCE = 0.9;
 /**
  * The types whose values have an order worth reporting as `min` and `max`.
  */
-const RANGE_TYPES = new Set<InferredCellType>(['numeric', 'date', 'time']);
+const RANGE_TYPES = new Set<InferredCellType>(['numeric', 'date', 'intl-datetime', 'time']);
 
 /**
  * How many example values `stats` keeps when `stats: true` does not say.
@@ -87,6 +99,106 @@ function toMaxDropdownOptions(dropdown: InferColumnTypesOptions['dropdown']): nu
   }
 
   return toPositiveInteger(maxOptions, DEFAULT_MAX_DROPDOWN_OPTIONS);
+}
+
+/**
+ * The scope the "warn once" state of an ignored date format is bound to: this module has no grid.
+ */
+const WARNING_SCOPE = {};
+
+/**
+ * The format a converter falls back to when a result records a date format that does not compile.
+ */
+const ISO_DATE_FORMAT = compileDateFormat('YYYY-MM-DD');
+
+/**
+ * Compiles the date format a result recorded, or returns `null` when it recorded none. A recorded format
+ * that does not compile (a hand-edited result) reads strict ISO dates only, never the built-in year-last
+ * order, which would guess month first for day-first data.
+ */
+function toRecordedDateFormat(pattern: string | undefined): CompiledDateFormat | null {
+  return pattern === undefined ? null : compileDateFormat(pattern) ?? ISO_DATE_FORMAT;
+}
+
+/**
+ * Reads the `dateFormats` option into the formats that compile, in the order given.
+ */
+function toDateFormats(dateFormats: unknown): CompiledDateFormat[] {
+  if (!Array.isArray(dateFormats)) {
+    if (dateFormats !== undefined && dateFormats !== null) {
+      warnOnce(
+        WARNING_SCOPE,
+        'dateFormats:not-an-array',
+        'The dateFormats option is ignored: it takes an array of formats.'
+      );
+    }
+
+    return [];
+  }
+
+  return dateFormats.flatMap((pattern) => {
+    const format = compileDateFormat(pattern);
+
+    if (format === null) {
+      // A spelling such as `dd/MM/yyyy` would otherwise turn the option into a silent no-op.
+      warnOnce(
+        WARNING_SCOPE,
+        `dateFormats:${String(pattern)}`,
+        `The date format ${JSON.stringify(pattern)} is ignored. Use the tokens YYYY, MM, M, DD, and D ` +
+        '(upper case), once each, and no other letters.'
+      );
+    }
+
+    return format === null ? [] : [format];
+  });
+}
+
+/**
+ * Reads one side of the `booleanValues` option into its non-blank words.
+ */
+function toWords(words: unknown, side: string): string[] {
+  if (!Array.isArray(words)) {
+    if (words !== undefined && words !== null) {
+      warnOnce(
+        WARNING_SCOPE,
+        `booleanValues:${side}`,
+        `The booleanValues.${side} option is ignored: it takes an array of words.`
+      );
+    }
+
+    return [];
+  }
+
+  return words.filter((word): word is string => typeof word === 'string' && word.trim() !== '');
+}
+
+/**
+ * Reads the `booleanValues` option, or returns `null` when it lists no word.
+ */
+function toBooleanValues(booleanValues: InferColumnTypesOptions['booleanValues'] | null): BooleanValues | null {
+  const words = { true: toWords(booleanValues?.true, 'true'), false: toWords(booleanValues?.false, 'false') };
+
+  return words.true.length > 0 || words.false.length > 0 ? words : null;
+}
+
+/**
+ * Picks the data rows to read from `rows`, starting at `start`: the first `limit` rows, or with
+ * `sampling: 'spread'` rows spaced evenly from the first to the last. Integer arithmetic only, and
+ * the rows keep their order, so the sample and everything ordered by first appearance (dropdown
+ * options, examples) are deterministic.
+ */
+function pickSampleRows(rows: unknown[], start: number, limit: number, sampling: unknown): unknown[] {
+  const count = rows.length - start;
+
+  if (sampling !== 'spread' || limit >= count) {
+    return rows.slice(start, start + limit);
+  }
+
+  if (limit === 1) {
+    return rows.slice(start, start + 1);
+  }
+
+  return Array.from({ length: limit }, (_, index) => rows[start + Math.floor((index * (count - 1)) / (limit - 1))]);
 }
 
 /**
@@ -177,7 +289,7 @@ function runDetectors(
   let winner: Winner | null = null;
   const rivals: Array<{ type: InferredCellType; share: number }> = [];
 
-  for (const detect of DETECTORS) {
+  for (const detect of getDetectors(context)) {
     const detection = detect(nonBlank, context);
     const share = detection ? detection.matched / nonBlank.length : 0;
 
@@ -225,7 +337,7 @@ function inferColumn(
   }
 
   const { winner, rivals } = runDetectors(nonBlank, context, minConfidence, wantRunnerUp);
-  // `toSorted` is stable, so equal shares keep the order of `DETECTORS`.
+  // `toSorted` is stable, so equal shares keep the order of `getDetectors()`.
   const [rival] = rivals.toSorted((a, b) => b.share - a.share);
   const runnerUpType = rival?.type ?? (winner ? 'text' : undefined);
 
@@ -258,13 +370,23 @@ function createReader(column: InferredColumn): ValueReader | null {
     }
     case 'date': {
       const order = inputFormat.dateOrder ?? 'MDY';
+      const format = toRecordedDateFormat(inputFormat.dateFormat);
 
-      return value => readDate(value, order)?.iso ?? null;
+      return value => readDate(value, order, format)?.iso ?? null;
+    }
+    case 'intl-datetime': {
+      const order = inputFormat.dateOrder ?? 'MDY';
+      const format = toRecordedDateFormat(inputFormat.dateFormat);
+
+      return value => readDateTime(value, order, format)?.iso ?? null;
     }
     case 'time':
       return value => readTime(value)?.value ?? null;
-    case 'checkbox':
-      return readBoolean;
+    case 'checkbox': {
+      const words = toBooleanValues(inputFormat.booleanValues);
+
+      return words ? createBooleanReader(words) : readBoolean;
+    }
     case 'dropdown':
       // The detector compares trimmed values, so the converter writes the trimmed one: `source` lists
       // `Open` once, and the strict dropdown validator would reject `Open `.
@@ -288,7 +410,8 @@ function toText(value: unknown): string {
 
 /**
  * Describes the sampled values of one column. `min` and `max` are taken over the values the
- * inferred type reads, after conversion, so they compare as numbers or as ISO text.
+ * inferred type reads, after conversion, so they compare as numbers or as ISO text. `Date` objects are
+ * left out of them.
  */
 function describeColumn(
   values: unknown[],
@@ -299,8 +422,10 @@ function describeColumn(
   const nonBlank = values.filter(value => !isBlank(value));
   const distinct = Array.from(new Set(nonBlank.map(toText)));
   const reader = RANGE_TYPES.has(column.settings.type) ? createReader(column) : null;
+  // A `Date` converts to its local wall clock, which follows the host's time zone, and the stats must not.
   const converted = reader
-    ? nonBlank.map(reader).filter((value): value is number | string => value !== null)
+    ? nonBlank.filter(value => !(value instanceof Date)).map(reader)
+      .filter((value): value is number | string => value !== null)
     : [];
   const stats: InferredColumnStats = {
     count: nonBlank.length,
@@ -402,7 +527,7 @@ const MISSING_VALUE_WORDS = new Set(['-', '--', '?', 'n/a', 'na', '#n/a', 'null'
 /**
  * The types that can tell a header cell from a data cell: they read some strings and not others.
  */
-const HEADER_EVIDENCE_TYPES = new Set<InferredCellType>(['numeric', 'date', 'time', 'checkbox']);
+const HEADER_EVIDENCE_TYPES = new Set<InferredCellType>(['numeric', 'date', 'intl-datetime', 'time', 'checkbox']);
 
 /**
  * Whether the first row reads as a header: array data, every cell a non-blank string across the
@@ -436,14 +561,33 @@ function looksLikeHeader(first: unknown, columns: InferredColumn[]): boolean {
 }
 
 /**
+ * Builds what every detector shares from the options.
+ */
+function createDetectionContext(options: InferColumnTypesOptions): DetectionContext {
+  const locale = resolveLocale(options.locale);
+  const booleanValues = toBooleanValues(options.booleanValues);
+
+  return {
+    localeDecimalSeparator: getLocaleDecimalSeparator(locale),
+    localeDateOrder: getLocaleDateOrder(locale),
+    region: getLocaleRegion(locale),
+    maxDropdownOptions: toMaxDropdownOptions(options.dropdown),
+    dateFormats: toDateFormats(options.dateFormats),
+    booleanValues,
+    readBoolean: booleanValues ? createBooleanReader(booleanValues) : readBoolean,
+  };
+}
+
+/**
  * Infers a cell type and format for every column of raw, untyped data: rows parsed from a CSV
  * file, pasted text split into cells, or values from an API. The function is pure and
- * deterministic. It reads the first `sampleSize` rows, never the host's locale, and returns the same
- * result for the same input.
+ * deterministic. It reads `sampleSize` rows (the first ones, or with `sampling: 'spread'` rows
+ * spaced evenly across the data), never the host's locale, and returns the same result for the
+ * same input.
  *
  * Each column comes back as `{ settings, confidence, inputFormat, title, stats }`. `settings` uses
- * the names of the grid's column options (`type`, `numericFormat`, `dateFormat`, `timeFormat`,
- * `source`, and `data` for object rows), so it can be passed to `columns` as it is; the rest
+ * the names of the grid's column options (`type`, `numericFormat`, `dateFormat`, `dateTimeFormat`,
+ * `timeFormat`, `source`, and `data` for object rows), so it can be passed to `columns` as it is; the rest
  * describes the inference. Pass the data through `convertToInferredTypes()` before loading it, so
  * the values match what each cell type stores.
  */
@@ -455,31 +599,27 @@ export function inferColumnTypes(
     return { columns: [], headerRow: false };
   }
 
-  const { locale: localeOption, sampleSize, minConfidence: minConfidenceOption, dropdown, headerRow, stats } =
-    options ?? {};
-  const locale = resolveLocale(localeOption);
+  const { sampleSize, sampling, minConfidence: minConfidenceOption, headerRow, stats } = options ?? {};
   const limit = toPositiveInteger(sampleSize, DEFAULT_SAMPLE_SIZE);
   const minConfidence = toConfidence(minConfidenceOption);
   const exampleLimit = toExampleLimit(stats);
-  const context: DetectionContext = {
-    localeDecimalSeparator: getLocaleDecimalSeparator(locale),
-    localeDateOrder: getLocaleDateOrder(locale),
-    region: getLocaleRegion(locale),
-    maxDropdownOptions: toMaxDropdownOptions(dropdown),
-  };
+  const context = createDetectionContext(options ?? {});
   const rows = data as unknown[];
   const first = rows[0];
 
   if (Array.isArray(first) && (headerRow === true || headerRow === 'auto')) {
     const header = first as unknown[];
-    const columns = inferColumns(rows.slice(1, 1 + limit), header, context, minConfidence, exampleLimit);
+    const sample = pickSampleRows(rows, 1, limit, sampling);
+    const columns = inferColumns(sample, header, context, minConfidence, exampleLimit);
 
     if (headerRow === true || looksLikeHeader(header, columns)) {
       return { columns, headerRow: true };
     }
   }
 
-  return { columns: inferColumns(rows.slice(0, limit), null, context, minConfidence, exampleLimit), headerRow: false };
+  const sample = pickSampleRows(rows, 0, limit, sampling);
+
+  return { columns: inferColumns(sample, null, context, minConfidence, exampleLimit), headerRow: false };
 }
 
 /**
@@ -524,10 +664,12 @@ function convertRow(row: unknown, columns: InferredColumn[], readers: Array<Valu
 
 /**
  * Returns a copy of the data with every value converted to what the column's inferred cell type
- * stores: a number for `numeric`, `YYYY-MM-DD` for `date`, `HH:mm:ss` for `time`, and a boolean for
- * `checkbox`. Every row is converted, not only the sampled ones. A value the column cannot read is
- * kept as it is, so the cell type's validator marks it. The input is never changed. The cells of the
- * result are no longer the input's type, which is why it is typed `unknown`.
+ * stores: a number for `numeric`, `YYYY-MM-DD` for `date`, `YYYY-MM-DDTHH:mm:ss` for
+ * `intl-datetime`, `HH:mm:ss` for `time`, and a boolean for `checkbox`. A `Date` converts to its
+ * local date and time, which is how the grid reads an `intl-datetime` value. Every row is converted,
+ * not only the sampled ones. A value the column cannot read is kept as it is, so the cell type's
+ * validator marks it. The input is never changed. The cells of the result are no longer the input's
+ * type, which is why it is typed `unknown`.
  *
  * When the result says the first row is a header (`headerRow`), that row is left out: its cells are
  * the columns' `title`s.

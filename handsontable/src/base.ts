@@ -151,6 +151,7 @@ interface HandsontableFactory {
   /** Validator functions accessible via the UMD namespace pattern. */
   validators: {
     AutocompleteValidator: typeof import('./validators/autocompleteValidator').autocompleteValidator;
+    CheckboxValidator: typeof import('./validators/checkboxValidator').checkboxValidator;
     DateValidator: typeof import('./validators/dateValidator').dateValidator;
     DropdownValidator: typeof import('./validators/dropdownValidator').dropdownValidator;
     IntlDateValidator: typeof import('./validators/intlDateValidator').intlDateValidator;
@@ -340,6 +341,8 @@ declare namespace Handsontable {
   export type CellRange = import('./3rdparty/walkontable/src').CellRange;
   export type IndexMapper = import('./translations').IndexMapper;
   export type SourceRowData = import('./settings').SourceRowData;
+  export type RowIdSetting = import('./core/rowIdentity/rowIdentity').RowIdSetting;
+  export type RowIdKey = import('./utils/rowId').RowIdKey;
   export type ColumnDataGetterSetterFunction = import('./settings').ColumnDataGetterSetterFunction;
   export type SelectOptionsObject = import('./settings').SelectOptionsObject;
   export type RemoveIndexSignature<T> = import('./settings').RemoveIndexSignature<T>;
@@ -415,6 +418,7 @@ declare namespace Handsontable {
 
   export namespace validators {
     export type AutocompleteValidator = typeof import('./validators/autocompleteValidator').autocompleteValidator;
+    export type CheckboxValidator = typeof import('./validators/checkboxValidator').checkboxValidator;
     export type DateValidator = typeof import('./validators/dateValidator').dateValidator;
     export type DropdownValidator = typeof import('./validators/dropdownValidator').dropdownValidator;
     export type IntlDateValidator = typeof import('./validators/intlDateValidator').intlDateValidator;
@@ -504,6 +508,10 @@ declare namespace Handsontable {
     export type ViewState = import('./plugins/viewState').ViewState;
     export namespace ViewState {
       export type State = import('./plugins/viewState').GridViewState;
+      export type Input = import('./plugins/viewState').GridViewStateInput;
+      export type ColumnKey = import('./plugins/viewState').GridViewStateColumnKey;
+      export type SortColumnInput = import('./plugins/viewState').GridViewStateSortColumnInput;
+      export type FilterInput = import('./plugins/viewState').GridViewStateFilterInput;
       export type Part = import('./plugins/viewState').GridViewStatePart;
       export type SkipReason = import('./plugins/viewState').GridViewStateSkipReason;
       export type Issue = import('./plugins/viewState').GridViewStateIssue;
@@ -530,6 +538,8 @@ export type {
   CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature, OmitHooks
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
+export type { RowIdSetting } from './core/rowIdentity/rowIdentity';
+export type { RowIdKey } from './utils/rowId';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
 export { IndexMapper } from './translations';

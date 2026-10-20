@@ -189,8 +189,8 @@ is part of the undo, and a recorded step there would empty the redo stack the un
   like it changed the plugin, and the restore then re-applies it on every undo.
 - **`restoreState()` must be hook-silent for what it re-applies** - the hooks fired when the user acted.
 - **Derived index maps are never captured** (`autoRowSize`, `autoColumnSize`, `stretchColumns`, the
-  NestedHeaders widths, `Pagination`, `*.columnMeta` - `DERIVED_INDEX_MAP_NAMES`). They are rebuilt
-  from the rest. Pagination is there because it recomputes its page map on every index cache update:
+  NestedHeaders widths, `Pagination`, `AsyncValues`, `*.columnMeta` - `DERIVED_INDEX_MAP_NAMES`). They are rebuilt
+  from the rest. `AsyncValues` is there because it holds in-flight requests, which an undo must not bring back. Pagination is there because it recomputes its page map on every index cache update:
   it records the page instead, and rebuilds the map in `restoreState()`. The Filters menu components'
   `Filters.component.<id>` maps are derived too: they hold the menu's UI state (a column's whole value
   list, rewritten on every edit in a column filtered by value), and `importConditions()` rebuilds them.

@@ -10,6 +10,7 @@ import { isEmpty } from '../../helpers/mixed';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import {
   countCellsPastEdge,
+  getCopyDownEndRow,
   getDragDirectionAndRange,
   getDistanceOutsideRange,
   resolveDragDirection,
@@ -52,28 +53,35 @@ type HotInstanceInternal = HotInstance & {
  * "Drag-down" expands the value of the selected cells to the neighbouring cells when you drag the small
  * square in the corner.
  *
- * "Copy-down" copies the value of the selection to all empty cells below when you double click the small square.
+ * "Copy-down" copies the value of the selection into the empty cells below when you double-click the small square.
+ * It fills down as long as the column next to the selection has values. It stops at the first gap in that column,
+ * and above the first cell that already has a value, so it never overwrites data.
  *
  * @class Autofill
  * @plugin Autofill
  */
 export class Autofill extends BasePlugin {
   /**
-   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   * The key the plugin is registered under: `'autofill'`. Pass it to
+   * {@link Core#getPlugin} to get the plugin instance: `hot.getPlugin('autofill')`.
+   *
+   * The key is not the option name. To turn the plugin on and configure it, use the
+   * [`fillHandle`](@/api/options.md#fillhandle) option.
    */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
   /**
-   * Returns the priority order used to determine the order in which plugins are initialized.
+   * The plugin's priority: `20`. Plugins with a lower priority are enabled first.
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
   /**
-   * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
+   * The options that update the plugin when you pass them to {@link Core#updateSettings}:
+   * `['fillHandle']`.
    */
   static get SETTING_KEYS() {
     return [
@@ -82,7 +90,23 @@ export class Autofill extends BasePlugin {
   }
 
   /**
-   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   * The default values of the [`fillHandle`](@/api/options.md#fillhandle) object form:
+   * `{ direction: undefined, autoInsertRow: true }`.
+   *
+   * They fill in each property the option value leaves out (`true`, `'vertical'`, `'horizontal'`, or an
+   * object):
+   * - `direction: undefined`: autofill works in both directions.
+   * - `autoInsertRow: true`: dragging the fill handle below the last row adds new rows.
+   *   `direction: 'horizontal'` turns it off.
+   *
+   * If you don't set `fillHandle` at all, the grid's default (`{ autoInsertRow: false }`) goes through
+   * the same merge, so autofill still works in both directions, but no rows are added.
+   *
+   * @example
+   * ```js
+   * // vertical autofill only; `autoInsertRow` keeps its default, `true`
+   * fillHandle: { direction: 'vertical' },
+   * ```
    */
   static get DEFAULT_SETTINGS(): { direction: string | undefined; autoInsertRow: boolean } {
     return {
@@ -646,7 +670,14 @@ export class Autofill extends BasePlugin {
   }
 
   /**
-   * Get index of last adjacent filled in row.
+   * Get index of last adjacent filled in row – the last row a double-click on the fill handle fills.
+   * The walk itself is `getCopyDownEndRow()` in `utils.ts`: it follows one guide column (the left
+   * neighbor, else the right one), stops above the first row that already holds a value in a selected
+   * column, and at the first visible row where the guide column is empty.
+   *
+   * Cells are read one at a time, as stored values, so a formula counts as a value even when it
+   * evaluates to an empty string. A guide cell covered by a merged area reads its area's value, and
+   * the guide columns skip columns hidden with `HiddenColumns`, as the walk skips hidden rows.
    *
    * @private
    * @param {Array} cornersOfSelectedCells Indexes of selection corners.
@@ -654,28 +685,42 @@ export class Autofill extends BasePlugin {
    *                   Or -1 when selection adjacent can't be applied.
    */
   getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells: number[]) {
-    const data = this.hot.getData();
-    const nrOfTableRows = this.hot.countRows();
-    let lastFilledInRowIndex;
+    const [, startColumn, endRow, endColumn] = cornersOfSelectedCells;
+    const columnCount = this.hot.countCols();
+    const isStoredValueEmpty = (row: number, column: number) => column < 0 || column >= columnCount ||
+      isEmpty(this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(row), column));
+    const mergeCells = this.hot.getPlugin('mergeCells');
+    const isColumnHidden = (column: number) => column >= 0 && column < columnCount &&
+      this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(column));
+    let startGuideColumn = startColumn - 1;
+    let endGuideColumn = endColumn + 1;
 
-    for (let rowIndex = cornersOfSelectedCells[2] + 1; rowIndex < nrOfTableRows; rowIndex++) {
-      for (let columnIndex = cornersOfSelectedCells[1]; columnIndex <= cornersOfSelectedCells[3]; columnIndex++) {
-        const dataInCell = data[rowIndex][columnIndex];
-
-        if (!isEmpty(dataInCell)) {
-          return -1;
-        }
-      }
-
-      const dataInNextLeftCell = data[rowIndex][cornersOfSelectedCells[1] - 1];
-      const dataInNextRightCell = data[rowIndex][cornersOfSelectedCells[3] + 1];
-
-      if (!isEmpty(dataInNextLeftCell) || !isEmpty(dataInNextRightCell)) {
-        lastFilledInRowIndex = rowIndex;
-      }
+    // A hidden column keeps its visual index, so step over hidden columns to the nearest visible one.
+    while (isColumnHidden(startGuideColumn)) {
+      startGuideColumn -= 1;
     }
 
-    return lastFilledInRowIndex;
+    while (isColumnHidden(endGuideColumn)) {
+      endGuideColumn += 1;
+    }
+
+    const lastRow = getCopyDownEndRow(
+      {
+        isFilledColumnEmpty: isStoredValueEmpty,
+        isGuideColumnEmpty: (row, column) => {
+          const mergedArea = mergeCells?.enabled ? mergeCells.mergedCellsCollection.get(row, column) : false;
+
+          return mergedArea
+            ? isStoredValueEmpty(mergedArea.row, mergedArea.col)
+            : isStoredValueEmpty(row, column);
+        },
+        isRowHidden: row => this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)),
+      },
+      { endRow, startColumn, endColumn, startGuideColumn, endGuideColumn },
+      this.hot.countRows(),
+    );
+
+    return lastRow ?? -1;
   }
 
   /**
