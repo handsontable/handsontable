@@ -408,8 +408,9 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   puts the arrow back under the centre, so cell content is not a guarantee
   either. Click off-centre, or select with `hot.selectCell()`, when the spec
   means to open the editor with Enter. Root-caused in DEV-2677; the indicator's
-  own coverage is `e2e/cell-dropdown-arrow-button.spec.ts`, over all four cell
-  types.
+  own coverage is `e2e/cell-dropdown-arrow-button.spec.ts`, over the two
+  renderers that draw it (`autocomplete`, which `dropdown` and `handsontable`
+  delegate to, and `multiselect`).
 - **Seed an `autocomplete` / `dropdown` fixture with a prefix the whole column's
   choice set shares** (`'Al'` for `Alpha/Alfa/Alto`), so `autocomplete`, which
   filters by the typed value, renders the same list as `dropdown`, which forces

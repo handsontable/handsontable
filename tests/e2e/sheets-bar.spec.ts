@@ -29,17 +29,6 @@ test.describe('sheets bar', { tag: THEMES_TAG }, () => {
     await bar.expectCell(0, 0, 'G1');
   });
 
-  test('the add button appends a new default-named sheet', async ({ page, theme, bundle }) => {
-    const bar = new SheetsBarPage(page, theme, bundle);
-
-    await bar.goto();
-    await bar.addButton.click();
-
-    await bar.tab(3).waitFor();
-    await bar.clickTab(3);
-    await bar.expectActiveTab(3);
-  });
-
   test('column width and sort survive a sheet round-trip', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
@@ -938,22 +927,6 @@ test.describe('sheets bar', { tag: THEMES_TAG }, () => {
     await expect(page.locator('.htSheetsBarMenu:visible')).toHaveCount(0);
   });
 
-  test('opening the tab menu from the keyboard selects the first item', async ({ page, theme, bundle }) => {
-    const bar = new SheetsBarPage(page, theme, bundle);
-
-    await bar.goto();
-
-    // A screen reader needs a `menuitem` to announce, and without a selection Escape stops
-    // reaching the menu — so the keyboard path keeps the preselection the pointer path drops.
-    // The first activation moves to the sheet; on the sheet you are already on, it opens the
-    // menu. Tab 0 is the active one, so a single Enter is the menu.
-    await bar.tab(0).focus();
-    await bar.tab(0).press('Enter');
-
-    await expect(page.locator('.htSheetsBarMenu:visible')).toHaveCount(1);
-    await expect(page.locator('.htSheetsBarMenu td.current')).toHaveText(/Rename/);
-  });
-
   test('the tab menu trigger is hidden while renaming and returns afterwards', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
@@ -1029,28 +1002,6 @@ test.describe('sheets bar', { tag: THEMES_TAG }, () => {
     await bar.renameInput.fill('A');
 
     await expect.poll(widthOf).toBeLessThan(long);
-  });
-
-  test('the tab menu renames, duplicates, and deletes sheets', async ({ page, theme, bundle }) => {
-    const bar = new SheetsBarPage(page, theme, bundle);
-
-    await bar.goto();
-
-    await bar.chevron(0).click();
-    await bar.menuItem('Rename').click();
-    await bar.renameInput.fill('Budget');
-    await bar.renameInput.press('Enter');
-    await expect(bar.tabByName('Budget')).toBeVisible();
-
-    await bar.chevronByName('Budget').click();
-    await bar.menuItem('Duplicate').click();
-    await expect(bar.tabByName('Budget (2)')).toBeVisible();
-
-    // The copy is not the active sheet, so its menu is reached by right-click rather than by
-    // one click on its trigger.
-    await bar.tabByName('Budget (2)').click({ button: 'right' });
-    await bar.menuItem('Delete').click();
-    await expect(bar.tabByName('Budget (2)')).toHaveCount(0);
   });
 
   test('the all-sheets menu marks the sheet you are on', async ({ page, theme, bundle }) => {

@@ -417,8 +417,10 @@ span. Three sites agree on that rule, and a fourth lives in Walkontable:
   `setDataAtCell(8, ...)`, not the origin) and a long wrapped text would size the clone's rows, which are only
   as tall as a plain row. The master draws the block's content.
 - `#onModifyRowHeightByOverlayName` still skips the bottom overlays on purpose (no height inflation there).
-- Covered by `tests/e2e/merge-cells-frozen-bottom.spec.ts` (both modes; corner overlay; hidden rows; area
-  selection; long text; press on the clone's outline). Its page object reads the outline through
+- Covered by `tests/e2e/merge-cells-frozen-bottom.spec.ts`: the carrier, the corner overlay, hidden rows, area
+  selection and a press on the clone's outline in the default mode (the fixture's master renders every row, so
+  the `virtualized` clamp is the identity there), a long text in both modes, and a block the master renders none
+  of with `virtualized` on. Its page object reads the outline through
   `mergedBlockSelection()`, so keep that block in column 1: a block in column 0 has its left edge under the
   row-header clone's holder and that helper then reports an edge missing for a reason unrelated to this rule.
 - Not changed: a merge that crosses the line is still accepted, and `fixedRowsBottom` moving later (a settings
@@ -678,22 +680,26 @@ starting on its first column, is anchored in the clone and needs nothing.
   the continuation of the inline-end clone, the bottom clone and the master are unchanged. Supported, in LTR and RTL
   and with `virtualized` on and off: a block anchored in the band that crosses the bottom line (outline and fill
   handle included), and a block anchored in the master that reaches into the band and into the bottom rows (its cells
-  render correctly in every clone). Pinned by `tests/e2e/merge-cells-frozen-bottom-end.spec.ts`.
+  render correctly in every clone). Pinned by `tests/e2e/merge-cells-frozen-bottom-end.spec.ts`: the carrier and the
+  clone continuations in LTR with `virtualized` off (the carrier rule has no direction term, and the fixture's master
+  renders every row and column, so the clamp is the identity), and the outline and fill handle in both directions,
+  with `virtualized` on for the block that reaches in from the master.
 - **A block anchored in the master that reaches into the band is selected like any other block.** `Table#getCell`
   resolves it to an END overlay's first rendered column, the column-side twin of the first-rendered-row rule. The gate
   is the three end overlays: the start overlays hold the first columns and never miss a block's origin. The end clone
   fills its part and draws the outline and the fill handle. With `virtualized` the hook clamps the block's first
   column to the band, so `Border#resolveMergedBlockEdges` asks for the block's own first column (`'meta'` source) to
-  keep the start edge off the freeze line. Pinned by `tests/e2e/merge-cells-frozen-selection.spec.ts` (LTR, RTL,
-  `virtualized` on and off).
+  keep the start edge off the freeze line. Pinned by `tests/e2e/merge-cells-frozen-selection.spec.ts`: every block
+  shape in LTR, the corner and boundary shapes in RTL, and the one-row block with `virtualized` on, which stands for
+  the others because `Border#resolveMergedBlockEdges` looks the block up again for every inline-end clone.
 - **Still NOT supported (measured without `fixedRowsBottom` too, in the default mode, so the bottom rows do not cause them):**
   - A block that covers EVERY column of an end clone (for example `fixedColumnsEnd: 2` and a block over both columns).
     The rows below its first have no displayed cell in that clone, a table row with none has no height, and the
     block's cell is one row tall (`rowspan="4"`, 29 px) in the inline-end clone and in the bottom end corner. The row
     headers keep the rows tall in the master and in the start clones; the end clones have none. Keep one band column
     that no block covers.
-- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (LTR and RTL, `virtualized` on and off) and
-  `__tests__/overlayBounds.unit.ts`.
+- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (every case in LTR with `virtualized` on and off, and the
+  crossing case in RTL with `virtualized` off) and `__tests__/overlayBounds.unit.ts`.
 
 ## `getSourceDataAtCell` takes a visual column
 

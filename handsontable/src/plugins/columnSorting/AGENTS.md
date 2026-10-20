@@ -475,7 +475,8 @@ that pseudo-element and gave it `width: var(--ht-icon-size, 16px)`, so the measu
 without the width restated on the ghost rule every sortable header with a menu button measured ~10px
 narrower than 18.1: the visual suite flagged all 30 nested-headers goldens (complex-demo, nested-headers
 collapse, filters active-class). The ghost rule now carries `width: var(--ht-icon-size, 16px)` itself.
-Pinned by "the ghost-table sort reserve keeps its 18.1 geometry" in `tests/e2e/icon-elements.spec.ts`.
+Pinned by "the ghost-table `*` stand-in keeps the glyph width on a label without `sortAction`" in
+`tests/e2e/icon-elements-sorting.spec.ts`.
 A local repro page for the complex demo (gitignored, not in the repository) is the quickest way to
 compare its column widths against 18.1.
 

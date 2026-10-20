@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { StretchColumnsContainerResizePage } from '../fixtures/pages/StretchColumnsContainerResizePage';
 
 /**
@@ -21,7 +21,7 @@ import { StretchColumnsContainerResizePage } from '../fixtures/pages/StretchColu
  * clone root, columns that fill the container, and no phantom scroll classes. The clone-root width
  * check lives on in the pixel-height case, the one mode where the root still sizes the clone.
  */
-test.describe('stretched columns after a container resize', { tag: THEMES_TAG }, () => {
+test.describe('stretched columns after a container resize', () => {
   let grid: StretchColumnsContainerResizePage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

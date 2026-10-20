@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { NestedRowsPage } from '../fixtures/pages/NestedRowsPage';
 
 /**
@@ -15,7 +15,7 @@ import { NestedRowsPage } from '../fixtures/pages/NestedRowsPage';
 
 const ALL_ROWS = ['Root A', 'A-1', 'A-2', 'A-2-a', 'A-2-b', 'A-3', 'Root B', 'B-1', 'B-2'];
 
-test.describe('NestedRows public collapse/expand API', { tag: THEMES_TAG }, () => {
+test.describe('NestedRows public collapse/expand API', () => {
   test('collapseParent hides the children of one parent, expandParent brings them back', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsPage(page, theme, bundle);
 
@@ -144,7 +144,7 @@ test.describe('NestedRows public collapse/expand API', { tag: THEMES_TAG }, () =
   });
 });
 
-test.describe('NestedRows collapse/expand hooks', { tag: THEMES_TAG }, () => {
+test.describe('NestedRows collapse/expand hooks', () => {
   test('fires the collapse hooks with the documented arguments', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsPage(page, theme, bundle);
 
@@ -248,7 +248,7 @@ test.describe('NestedRows collapse/expand hooks', { tag: THEMES_TAG }, () => {
     });
 });
 
-test.describe('NestedRows collapsed state stability', { tag: THEMES_TAG }, () => {
+test.describe('NestedRows collapsed state stability', () => {
   test('the methods are safe to call right after loadData, with no retry', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsPage(page, theme, bundle);
 

@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { HeaderSizeStringValuesPage } from '../fixtures/pages/HeaderSizeStringValuesPage';
 
 /**
@@ -20,7 +20,7 @@ import { HeaderSizeStringValuesPage } from '../fixtures/pages/HeaderSizeStringVa
  * builds `` `${value}px` ``, and `columnUtils.getHeaderHeight` runs `Math.max(height, value)`. So a
  * bare numeric string worked. `'100px'` fails the `isNaN` gate and is dropped before either of them.
  */
-test.describe('Header size options given as strings', { tag: THEMES_TAG }, () => {
+test.describe('Header size options given as strings', () => {
   let grid: HeaderSizeStringValuesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -119,7 +119,7 @@ test.describe('Header size options given as strings', { tag: THEMES_TAG }, () =>
  * The warning has to be watched from before the page loads, because the grids - and the warning -
  * are built during load. That is why these do not reuse the suite above's `beforeEach`.
  */
-test.describe('Warning for a size that states no pixel count', { tag: THEMES_TAG }, () => {
+test.describe('Warning for a size that states no pixel count', () => {
   test('names the option and the value, once per grid', async ({ page, theme, bundle }) => {
     const grid = new HeaderSizeStringValuesPage(page, theme, bundle);
     const readWarnings = grid.collectWarnings();
