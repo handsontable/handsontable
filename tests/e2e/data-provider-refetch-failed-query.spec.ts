@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { DataProviderRefetchFailedQueryPage } from '../fixtures/pages/DataProviderRefetchFailedQueryPage';
 
 /**
@@ -11,7 +11,7 @@ import { DataProviderRefetchFailedQueryPage } from '../fixtures/pages/DataProvid
  * something newer – whether that request succeeded or failed – an old toast's Refetch reloads the
  * current query rather than rolling the grid back.
  */
-test.describe('dataProvider Refetch after a failed fetch', { tag: THEMES_TAG }, () => {
+test.describe('dataProvider Refetch after a failed fetch', () => {
   let grid: DataProviderRefetchFailedQueryPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

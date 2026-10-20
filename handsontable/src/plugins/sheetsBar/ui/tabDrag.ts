@@ -54,7 +54,7 @@ const AUTO_SCROLL_SPEED = 14;
  * @param {HTMLElement} element The element to read.
  * @returns {number} The current x translation, `0` for an untransformed element.
  */
-function translationOf(element: HTMLElement): number {
+export function translationOf(element: HTMLElement): number {
   const view = element.ownerDocument.defaultView;
   const transform = view?.getComputedStyle(element).transform;
 
@@ -100,6 +100,10 @@ export class TabDrag {
    */
   readonly #onCommit: (id: number, toIndex: number) => void;
   /**
+   * Called once when a press passes the threshold and becomes a drag.
+   */
+  readonly #onDragStart: () => void;
+  /**
    * The tab being dragged, or `null` when no gesture is in progress.
    */
   #tab: HTMLElement | null = null;
@@ -118,7 +122,9 @@ export class TabDrag {
   #originX = 0;
   /**
    * Distance between the pointer and the tab's leading edge when the gesture started. Keeping it
-   * constant is what makes the tab stay under the point it was grabbed by.
+   * constant is what makes the tab stay under the point it was grabbed by. The edge is the tab's
+   * resting one: a tab still sliding (a FLIP, or a new tab's entrance) is measured without its
+   * in-flight translation, because the drag stops the slide and the tab then jumps to rest.
    */
   #grabOffset = 0;
   /**
@@ -147,17 +153,23 @@ export class TabDrag {
   /**
    * Binds the controller to a strip.
    *
-   * @param {object} options The strip, the element that wears the dragging class, and the
-   *   event manager the document listeners register with.
+   * @param {object} options The strip, the element that wears the dragging class, the event
+   *   manager the document listeners register with, and an optional drag-start callback.
    * @param {Function} onCommit Called with the sheet id and the index it landed on.
    */
   constructor(
-    options: { host: HTMLElement, dragRoot: HTMLElement, eventManager: EventManager },
+    options: {
+      host: HTMLElement,
+      dragRoot: HTMLElement,
+      eventManager: EventManager,
+      onDragStart?: () => void,
+    },
     onCommit: (id: number, toIndex: number) => void,
   ) {
     this.#host = options.host;
     this.#dragRoot = options.dragRoot;
     this.#eventManager = options.eventManager;
+    this.#onDragStart = options.onDragStart ?? (() => {});
     this.#onCommit = onCommit;
   }
 
@@ -178,7 +190,7 @@ export class TabDrag {
     this.#id = id;
     this.#pointerId = event.pointerId;
     this.#originX = event.clientX;
-    this.#grabOffset = event.clientX - tab.getBoundingClientRect().left;
+    this.#grabOffset = event.clientX - (tab.getBoundingClientRect().left - translationOf(tab));
     this.#originIndex = this.#indexOf(tab);
     this.#isDragging = false;
 
@@ -249,6 +261,7 @@ export class TabDrag {
       }
 
       this.#isDragging = true;
+      this.#onDragStart();
       addClass(tab, 'ht-sheets-bar__tab--dragging');
       addClass(this.#dragRoot, DRAGGING_CLASS);
       tab.setPointerCapture?.(event.pointerId);
@@ -570,7 +583,9 @@ export class TabDrag {
    * @returns {HTMLElement[]} The tab elements.
    */
   #tabs(): HTMLElement[] {
-    return Array.from(this.#host.children).filter(isHTMLElement);
+    return Array.from(this.#host.children)
+      .filter(isHTMLElement)
+      .filter(element => element.classList.contains('ht-sheets-bar__tab'));
   }
 
   /**

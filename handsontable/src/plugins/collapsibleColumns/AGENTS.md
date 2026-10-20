@@ -128,8 +128,8 @@ group inside the band and one that crosses the master/end line.
   hidden until the option is lowered again (or the group is expanded through the API). This is the same as for the
   start band with `fixedColumnsStart`. Not worth a guard: raising the freeze over a collapsed group is a
   configuration change the application owns.
-- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` and `tests/e2e/fixed-columns-end-review4.spec.ts` (LTR and
-  RTL), and by `__tests__/fixedColumnsEnd.unit.ts`.
+- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` and `tests/e2e/fixed-columns-end-review4.spec.ts` (LTR; the
+  check compares logical column indexes, so RTL takes the same branch), and by `__tests__/fixedColumnsEnd.unit.ts`.
 
 ## Testing
 

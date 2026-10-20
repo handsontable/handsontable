@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { NestedRowsSheetSwitchPage } from '../fixtures/pages/NestedRowsSheetSwitchPage';
 
 /**
@@ -6,7 +6,7 @@ import { NestedRowsSheetSwitchPage } from '../fixtures/pages/NestedRowsSheetSwit
  * load. The sheets bar did not carry the collapsed parents in a sheet's view state, so a branch
  * collapsed on one sheet came back expanded after a round-trip through another sheet.
  */
-test.describe('NestedRows collapse state across a sheet switch', () => {
+test.describe('NestedRows collapse state across a sheet switch', { tag: THEMES_TAG }, () => {
   let grid: NestedRowsSheetSwitchPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

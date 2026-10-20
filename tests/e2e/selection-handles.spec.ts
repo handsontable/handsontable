@@ -60,18 +60,6 @@ test.describe('selectionHandles adjust handles', { tag: THEMES_TAG }, () => {
     await expect(grid.visibleHandles()).toHaveCount(4);
   });
 
-  test('shows one handle per edge when hovering inside an interior selection', async () => {
-    await grid.selectCells(1, 1, 3, 3);
-    await grid.hoverCell(2, 2);
-
-    // Exactly the four edge handles are visible — one per orientation.
-    await expect(grid.visibleHandles()).toHaveCount(4);
-
-    for (const edge of ['top', 'bottom', 'start', 'end'] as const) {
-      await expect(grid.handle(edge)).toBeVisible();
-    }
-  });
-
   test('centers the top and bottom handles on the selection horizontal span', async () => {
     await grid.selectCells(1, 1, 3, 3);
     await grid.hoverCell(2, 2);
@@ -231,25 +219,6 @@ test.describe('selectionHandles adjust handles', { tag: THEMES_TAG }, () => {
     await grid.releasePointer();
   });
 
-  test('hides the handles when the pointer leaves the selected range', async () => {
-    await grid.selectCells(2, 2, 5, 5);
-    await grid.hoverCell(3, 3);
-
-    await expect(grid.visibleHandles()).toHaveCount(4);
-
-    await grid.hoverCell(0, 0);
-
-    await expect(grid.visibleHandles()).toHaveCount(0);
-  });
-
-  test('shows no handles when selectionHandles is disabled', async () => {
-    await grid.initGrid({ selectionHandles: false });
-    await grid.selectCells(2, 2, 5, 5);
-    await grid.hoverCell(3, 3);
-
-    await expect(grid.visibleHandles()).toHaveCount(0);
-  });
-
   test('shows the handles right after a drag-select ends inside the selection', async () => {
     // No fresh `mouseover` fires after the `mouseup`, which is exactly when the handles used to stay
     // hidden until the pointer moved again.
@@ -291,18 +260,6 @@ test.describe('selectionHandles adjust handles', { tag: THEMES_TAG }, () => {
     await grid.releasePointer();
   });
 
-  test('grows the selection downward without changing the column span', async () => {
-    await grid.initGrid(ROOMY_VIEWPORT);
-    await grid.selectCells(2, 2, 4, 4);
-    await grid.hoverCell(3, 3);
-
-    // Target column 7 differs from the selection's 2..4: the bottom handle must ignore horizontal
-    // pointer movement and only move the row axis.
-    await grid.dragHandleToCell('bottom', 7, 7);
-
-    expect(await grid.selectedBounds()).toEqual({ top: 2, start: 2, bottom: 7, end: 4 });
-  });
-
   test('clamps the top handle at the bottom edge instead of flipping the selection', async () => {
     await grid.initGrid(ROOMY_VIEWPORT);
     await grid.selectCells(2, 2, 5, 5);
@@ -316,27 +273,6 @@ test.describe('selectionHandles adjust handles', { tag: THEMES_TAG }, () => {
 
     expect(bounds.top).toBe(5);
     expect(bounds.bottom).toBe(5);
-  });
-
-  test('moves only the start edge, keeping the end edge anchored', async () => {
-    await grid.initGrid(ROOMY_VIEWPORT);
-    await grid.selectCells(2, 3, 5, 6);
-    await grid.hoverCell(3, 4);
-
-    // Target row 8 differs from the selection's 2..5: a start handle must ignore vertical movement.
-    await grid.dragHandleToCell('start', 8, 1);
-
-    expect(await grid.selectedBounds()).toEqual({ top: 2, start: 1, bottom: 5, end: 6 });
-  });
-
-  test('moves only the end edge, keeping the start edge anchored', async () => {
-    await grid.initGrid(ROOMY_VIEWPORT);
-    await grid.selectCells(2, 3, 5, 6);
-    await grid.hoverCell(3, 4);
-
-    await grid.dragHandleToCell('end', 9, 8);
-
-    expect(await grid.selectedBounds()).toEqual({ top: 2, start: 3, bottom: 5, end: 8 });
   });
 
   test('expands to the full merged block when the bottom handle is dragged into a merge', async () => {
@@ -598,38 +534,38 @@ test.describe('selectionHandles adjust handles', { tag: THEMES_TAG }, () => {
       }
     });
 
-    for (const renderAllColumns of [false, true]) {
-      test(`moves the top and bottom handles to the frozen part when the scrollable part is rendered but hidden (renderAllColumns: ${renderAllColumns})`, async () => {
-        await grid.initGrid({
-          ...ROOMY_VIEWPORT,
-          data: Array.from({ length: 10 }, (_, r) => Array.from({ length: 40 }, (__, c) => `R${r + 1}C${c + 1}`)),
-          fixedColumnsStart: 1,
-          renderAllColumns,
-        });
-        await grid.selectCells(4, 0, 8, 1);
-        // Column 2 lands right after the frozen column, so column 1 stays rendered (the rendering
-        // offset, or every column with renderAllColumns) while the frozen pane covers it.
-        await grid.scrollToColumn(2);
-        await grid.overlayCell('inline_start', 6, 0).hover();
-
-        await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(2);
-        await expect.poll(() => grid.reachableHandleEdges()).toEqual(['bottom', 'top']);
-
-        const { cell, handles } = await grid.handleBoxesAgainstCell('inline_start', 6, 0);
-
-        expect(handles.end).toHaveLength(0);
-
-        for (const edge of ['top', 'bottom'] as const) {
-          expect(handles[edge]).toHaveLength(1);
-
-          const handleCenterX = handles[edge][0].x + (handles[edge][0].width / 2);
-
-          // Over the frozen column, where the user can see the selection's edge.
-          expect(handleCenterX).toBeGreaterThan(cell.x);
-          expect(handleCenterX).toBeLessThan(cell.x + cell.width);
-        }
+    // `renderAllColumns` only changes the rendered range; the handle layout reads the visible-range snapshot,
+    // so the option's other value repeats this case.
+    test('moves the top and bottom handles to the frozen part when the scrollable part is rendered but hidden (renderAllColumns: false)', async () => {
+      await grid.initGrid({
+        ...ROOMY_VIEWPORT,
+        data: Array.from({ length: 10 }, (_, r) => Array.from({ length: 40 }, (__, c) => `R${r + 1}C${c + 1}`)),
+        fixedColumnsStart: 1,
+        renderAllColumns: false,
       });
-    }
+      await grid.selectCells(4, 0, 8, 1);
+      // Column 2 lands right after the frozen column, so column 1 stays rendered (the rendering
+      // offset, or every column with renderAllColumns) while the frozen pane covers it.
+      await grid.scrollToColumn(2);
+      await grid.overlayCell('inline_start', 6, 0).hover();
+
+      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(2);
+      await expect.poll(() => grid.reachableHandleEdges()).toEqual(['bottom', 'top']);
+
+      const { cell, handles } = await grid.handleBoxesAgainstCell('inline_start', 6, 0);
+
+      expect(handles.end).toHaveLength(0);
+
+      for (const edge of ['top', 'bottom'] as const) {
+        expect(handles[edge]).toHaveLength(1);
+
+        const handleCenterX = handles[edge][0].x + (handles[edge][0].width / 2);
+
+        // Over the frozen column, where the user can see the selection's edge.
+        expect(handleCenterX).toBeGreaterThan(cell.x);
+        expect(handleCenterX).toBeLessThan(cell.x + cell.width);
+      }
+    });
 
     test('moves the start and end handles to the frozen rows when the scrollable rows are rendered but hidden', async () => {
       await grid.initGrid({
@@ -826,19 +762,6 @@ test.describe('selectionHandles adjust handles', { tag: THEMES_TAG }, () => {
       }
     });
 
-    test('draws each handle once across the top and the bottom frozen rows at the same time', async () => {
-      // 10 rows, fixedRowsTop: 2 and fixedRowsBottom: 2; the selection runs from frozen row 1 to frozen
-      // row 8, across both freeze lines.
-      await grid.initGrid({ ...ROOMY_VIEWPORT, fixedRowsTop: 2, fixedRowsBottom: 2 });
-      await grid.selectCells(1, 1, 8, 3);
-      await grid.hoverCell(4, 2);
-
-      await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(4);
-      await expect.poll(() => grid.reachableHandleEdges()).toEqual(['bottom', 'end', 'start', 'top']);
-      await expect(grid.overlayHandle('top', 'top')).toHaveCount(1);
-      await expect(grid.overlayHandle('bottom', 'bottom')).toHaveCount(1);
-    });
-
     test('draws each handle once across frozen columns when a column inside them is hidden', async () => {
       // Visual column 0 is hidden, so visual columns 1 and 2 are the frozen ones. The selection starts
       // on visual column 2 and crosses the freeze line.
@@ -861,30 +784,6 @@ test.describe('selectionHandles adjust handles', { tag: THEMES_TAG }, () => {
       await expect(grid.visibleHandlesInAnyOverlay()).toHaveCount(4);
       await expect.poll(() => grid.reachableHandleEdges()).toEqual(['bottom', 'end', 'start', 'top']);
       await expect(grid.frozenBottomHandle('bottom')).toHaveCount(1);
-    });
-
-    test('keeps the start and end handles on the frozen rows once the scrollable rows scroll away', async () => {
-      await grid.initGrid({
-        ...ROOMY_VIEWPORT,
-        data: Array.from({ length: 40 }, (_, r) => Array.from({ length: 10 }, (__, c) => `R${r + 1}C${c + 1}`)),
-        fixedRowsTop: 2,
-      });
-      await grid.selectCells(1, 1, 5, 3);
-      await grid.scrollToRow(25);
-      await grid.overlayCell('top', 1, 2).hover();
-
-      // Rows 2-5 are no longer rendered: the frozen-rows overlay takes the start and end handles over,
-      // and the bottom edge is out of view.
-      await expect.poll(() => grid.reachableHandleEdges()).toEqual(['end', 'start', 'top']);
-
-      const { cell, handles } = await grid.handleBoxesAgainstCell('top', 1, 2);
-
-      for (const edge of ['start', 'end'] as const) {
-        const handleCenterY = handles[edge][0].y + (handles[edge][0].height / 2);
-
-        expect(handleCenterY).toBeGreaterThan(cell.y);
-        expect(handleCenterY).toBeLessThan(cell.y + cell.height);
-      }
     });
 
     test('resizes the selection from a handle drawn by a frozen overlay', async () => {

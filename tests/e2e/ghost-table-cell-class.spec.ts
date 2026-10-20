@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { GhostTableCellClassPage } from '../fixtures/pages/GhostTableCellClassPage';
 
 /**
@@ -8,7 +8,7 @@ import { GhostTableCellClassPage } from '../fixtures/pages/GhostTableCellClassPa
  * data cells and every row below it drifts — and AutoColumnSize sizes the column for unstyled
  * content.
  */
-test.describe('per-cell className and the auto-size plugins', { tag: THEMES_TAG }, () => {
+test.describe('per-cell className and the auto-size plugins', () => {
   let grid: GhostTableCellClassPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

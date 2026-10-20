@@ -1288,7 +1288,7 @@ export class NestedHeaders extends BasePlugin {
    * Sorting's `selectColumns` writes one full-height column range during the press. On a rowspan
    * group that range is the leaf, so the columns sit inside the header rather than matching it.
    *
-   * @param {[number, number, number]} columnsToSelect Columns and header row this click selects.
+   * @param {Array<number>} columnsToSelect The `[startColumn, endColumn, headerRow]` triple this click selects.
    * @param {CellRange | null} layerAtPress The selection layer at pointer down.
    * @returns {boolean}
    */

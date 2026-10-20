@@ -68,8 +68,9 @@ shares with `Formulas`.
 - **The Playwright fixture's row height must stay generous on every theme.** `horizon`'s rows render taller than
   `main`'s and `classic`'s, so a `height` sized only for `main` can virtualize the fixture's last data row out of
   the DOM on `horizon` while the other two legs still render it — a silent gap in coverage, not a failure. When
-  adding rows to `tests/fixtures/demo/auto-link.html`, keep `height` generous enough (`800` as of this writing) and
-  run **every** leg, not only `e2e-main`.
+  adding rows to `tests/fixtures/demo/auto-link.html`, keep `height` generous enough (`800` as of this writing). The
+  spec declares the bundle axis only, so `horizon` runs it on the E2E nightly alone; check a new row there locally
+  with `HOT_E2E_FULL_MATRIX=1 npx playwright test e2e/auto-link.spec.ts --project=e2e-horizon`.
 - **The bundled TLD list is generated — never hand-edit `../../utils/cellLinks/tlds.ts`.** It is produced by
   `handsontable/scripts/generate-tlds.mjs` from IANA's `tlds-alpha-by-domain.txt`, fetched once at generation time
   (never at runtime — the grid stays usable air-gapped). Regenerate it with
@@ -118,6 +119,9 @@ shares with `Formulas`.
 
 - `npm run test:unit --prefix handsontable -- --testPathPattern='autoLink|cellLinks'` — tokenizer, anchor factory,
   unwrap, and the jsdom linkifier.
-- `cd tests && npx playwright test e2e/auto-link.spec.ts e2e/formulas-hyperlink.spec.ts` — run **all six legs**;
-  the `umd` legs load HyperFormula as an external script for the both-features cases.
+- `cd tests && npx playwright test e2e/auto-link.spec.ts e2e/formulas-hyperlink.spec.ts` — each spec runs on the legs
+  it declares: `auto-link` the two bundle legs (it reads no style or geometry, and its fixture pins the column widths
+  and the height), `formulas-hyperlink` all six (its `selectCell()` clicks past a label whose width the theme
+  decides). `HOT_E2E_FULL_MATRIX=1` runs both on all six. The `umd` legs load HyperFormula as an external script for
+  the both-features cases.
 - Rebuild `dist/` (`npm --prefix handsontable run build`) before Playwright; the legs load the bundle, not the source.

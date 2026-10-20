@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where date and datetime cells with years 0001–0099 rendered, sorted, and filtered as years 1901–1999.",
+  "type": "fixed",
+  "issueOrPR": 13933,
+  "breaking": false,
+  "framework": "none"
+}
