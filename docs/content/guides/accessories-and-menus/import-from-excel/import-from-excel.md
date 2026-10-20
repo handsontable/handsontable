@@ -192,7 +192,7 @@ Imported headers are HTML-escaped, so `R&D` is stored as `R&amp;D`. Set the grid
 
 ### Keep the imported sheet through a re-render
 
-`HotTable` calls `updateSettings` with its props on every render. A re-render of the component that renders `HotTable` sends every prop again. Your original `data` and `colHeaders` replace the imported sheet, and props such as `mergeCells={true}` and `hiddenColumns={true}` clear its merges and hidden columns. React Compiler can hide this in one component and not in the next, so do not rely on it.
+`HotTable` calls `updateSettings` with its props on every render. A re-render of the component that renders `HotTable` sends its props again (`columns`, `colWidths`, and a few others are skipped when unchanged). Your original `data` and `colHeaders` replace the imported sheet, and props such as `mergeCells={true}` and `hiddenColumns={true}` clear its merges and hidden columns. React Compiler can hide this in one component and not in the next, so do not rely on it.
 
 - Keep import state, such as a status text, in a sibling component, as the demo's `ImportControls` does.
 - Render `HotTable` in a `React.memo` component with stable props, so a parent's re-render does not reach it:
@@ -243,7 +243,7 @@ importFile(file: File): void {
 
 ### Keep the imported sheet through a settings change
 
-The `HotTable` component watches the settings you pass to it. A later change sends the keys that differ to `updateSettings` again. The imported rows stay, because array-of-arrays `data` is not resent. Your original `colHeaders`, `columns`, and layout options such as `mergeCells: true` and `hiddenColumns: true` do come back, over the imported headers, types, merges, and hidden columns. Keep the settings in one stable `ref`, as the demo does, and do not change them after an import.
+The `HotTable` component watches the settings you pass to it. A later change sends the keys that differ to `updateSettings` again. The imported rows stay, because array-of-arrays `data` is not resent, unless the settings hold `columns` and the import changed the column count. Your original `colHeaders`, `columns`, and layout options such as `mergeCells: true` and `hiddenColumns: true` do come back, over the imported headers, types, merges, and hidden columns. Keep the settings in one stable `ref`, as the demo does, and do not change them after an import.
 
 :::
 
@@ -297,7 +297,7 @@ Each import method takes the format first (`'xlsx'`), the file second, and an op
 
 ## Infer column types from raw values
 
-Data that doesn't come from a workbook carries no number formats: rows you parsed from a CSV file, text pasted into cells, or values from an API. To type that data, use the plugin's `inferColumnTypes()` method. It reads the values and returns the column settings, with a header for each column and a measure of how sure it is. The method needs no engine.
+Data that doesn't come from a workbook carries no number formats: rows you parsed from a CSV file, text pasted into cells, or values from an API. To type that data, use the plugin's `inferColumnTypes()` method. It reads the values and returns the column settings, with a measure of how sure it is and, when the data has a header row or is rows of objects, a header for each column. The method needs no engine.
 
 ```javascript
 const rows = [
@@ -339,8 +339,8 @@ Before you load the data, convert it with `convertToInferredTypes(rows, result)`
 
 Inference works this way:
 
-- **Types.** The method infers `numeric`, `date`, `time`, `checkbox` (`true` and `false`, in any case), `dropdown`, and `text`. When two types read values, the one that reads more of them wins, and the earlier one in that list wins a tie. A `dropdown` is the exception: it reads every string, so it is tried only when no other type reaches `minConfidence`. A numeric column with one `n/a` stays numeric. Date-time values such as `2026-03-12 14:30` and JavaScript `Date` objects stay `text`.
-- **Dropdowns.** A column becomes a `dropdown` when it has at least six values, between two and ten distinct ones (see `dropdown`), and each value repeats at least twice on average. Values are compared trimmed, so `Open` and `Open ` are one option, and the conversion writes the trimmed value. A short list of names that repeat can pass that test. Set `dropdown: false` when it is wrong for your data.
+- **Types.** The method infers `checkbox` (`true` and `false`, in any case), `numeric`, `date`, `time`, `dropdown`, and `text`. When two types read values, the one that reads more of them wins, and the earlier one in that list wins a tie. A `dropdown` is the exception: it reads every string, so it is tried only when no other type reaches `minConfidence`. A numeric column with one `n/a` stays numeric as long as numeric still reads `minConfidence` of the values (one in ten). Date-time values such as `2026-03-12 14:30` and JavaScript `Date` objects stay `text`.
+- **Dropdowns.** A column becomes a `dropdown` when it has at least six values, between two and ten distinct ones (see `dropdown`), and each distinct value appears at least twice on average. Values are compared trimmed, so `Open` and `Open ` are one option, and the conversion writes the trimmed value. A short list of names that repeat can pass that test. Set `dropdown: false` when it is wrong for your data.
 - **Numbers.** A numeric value may carry a sign, accounting parentheses (`(1,234.00)`), a currency symbol on either side (`$1,234.50`, `12,5 zł`), a common ISO code set apart by a space (`12.00 USD`, `SEK 7.50`), an exponent (`1.23E+15`), or a trailing percent sign (`12.5%`, converted to `0.125`). A column with a currency reads its bare numbers as that currency. Text values set the fraction digits of the format, so `1.50` and `2.00` print with two. Real numbers don't pad the column: one computed float only raises the maximum. Digits may be grouped with a comma, a dot, or a space of any width. With a dot decimal, an apostrophe works too (`1'234.50`). A symbol that several currencies share takes the currency of the locale's region for the common cases: `$` is `CAD` under `en-CA` and `ARS` under `es-AR`, and `kr` is `NOK` under `nb-NO`. Any other region gets the symbol's default currency: `USD` for `$`, `SEK` for `kr`.
 - **Confidence.** A column whose share of readable values is below `minConfidence` falls back to `text`. Blank values don't count. A value the type can't read, such as a `Total` row, keeps its raw form after the conversion, so the cell's validator marks it.
 - **Ambiguous values.** The column decides first: `0,5` in a column makes `1.234` mean 1234, and `25/03/2026` makes `12/03/2026` mean 12 March. A date written with dots (`12.03.2026`) reads as day first. When nothing in the column decides, the `locale` option does. It defaults to the grid's [`locale`](@/api/options.md#locale). A date column whose order came from the locale reports `0.95` times its share as its confidence.
@@ -386,7 +386,7 @@ console.log(columns[1].stats);
 | `distinctCount` | How many different non-blank values there are, compared as trimmed text. |
 | `examples` | The first distinct values, as trimmed text. `stats: { examples: 3 }` sets how many. The default is 5. |
 | `min`, `max` | The smallest and largest value of a `numeric` (a number), `date` (`YYYY-MM-DD`), or `time` (`HH:mm:ss`) column, after conversion. |
-| `runnerUpType` | The other type that reads the largest share of the values. For a `text` column, the type that came closest to `minConfidence`. A type with no rival gets `'text'`. |
+| `runnerUpType` | The other type that reads the largest share of the values. For a `text` column, the type that came closest to `minConfidence`. A typed column with no rival gets `'text'`; a `text` column with no rival has no `runnerUpType`. |
 
 The statistics come from the sampled rows only, in a fixed order, so they are deterministic too.
 

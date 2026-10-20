@@ -48,10 +48,10 @@ What each engine reports when it drops something: [Dropped features reference](@
 
 Use the built-in engine unless you need one of these:
 
-- A numeric `compression` level. The built-in engine always uses the platform's DEFLATE level.
+- A numeric `compression` level. The built-in engine replaces the number with the platform's DEFLATE level; `compression: false` still stores the file uncompressed on both engines.
 - An export with `colorScale`, `dataBar`, or `iconSet` conditional formatting rules. The built-in engine leaves them out and reports them.
-- An import that returns `colorScale`, `dataBar`, and `iconSet` rules on `result.conditionalFormatting`.
-- Output identical to what your 18.1 configuration wrote, while you compare files. See [Moving from 18.1](#moving-from-181).
+- An import that returns `colorScale`, `dataBar`, or `iconSet` rules on `result.conditionalFormatting`.
+- Output closest to what your 18.1 configuration wrote, while you compare files. ExcelJS keeps its own file layout, but the 19.0 export fixes apply to both engines. See [Moving from 18.1](#moving-from-181).
 
 ExcelJS adds about 258 kB (gzipped) to your bundle, reads some files differently (see [Known differences](#known-differences)), and is not safe for files from untrusted sources (see [Security](#security)).
 
@@ -81,9 +81,9 @@ ExcelJS 4.4 or later is recommended, but the version is not checked: the plugins
 
 ## Bundle size
 
-The built-in engine ships inside the `ExportFile` and `ImportFile` plugins. Measured gzipped, the `ExportFile` module is about 51 kB and the `ImportFile` module about 48 kB, each with the engine included. The engine code the two share is bundled once. To leave the engine out, do not register either plugin. See [Modules](@/guides/tools-and-building/modules/modules.md).
+The built-in engine ships inside the `ExportFile` and `ImportFile` plugins. Measured gzipped, the `ExportFile` module is about 51 kB and the `ImportFile` module about 53 kB, each with the engine included. The engine code the two share is bundled once. To leave the engine out, do not register either plugin. See [Modules](@/guides/tools-and-building/modules/modules.md).
 
-ExcelJS is a separate dependency. Its 4.4.0 browser build (`exceljs.min.js`) is about 925 kB minified and about 258 kB gzipped, on top of the plugins.
+ExcelJS is a separate dependency. Its 4.4.0 browser build (`exceljs.min.js`) is about 948 kB minified and about 258 kB gzipped, on top of the plugins.
 
 ## Moving from 18.1
 
@@ -105,9 +105,6 @@ The ExcelJS engine reads these files differently, whatever wrote them:
 - A number format with an escaped percent sign, such as `0.0\%`, reads as a percentage, so `12.5` shows as `1250.0%`.
 - A cell that uses one of Excel's built-in currency or accounting formats (ids 5-8 and 41-44) imports with no number format.
 - A workbook that openpyxl saved with a cell comment is refused, because ExcelJS looks for comments under `xl/comments<N>.xml` only.
-
-Both engines write a sheet synchronously. A very large grid blocks the tab for as long as the sheet takes to serialize, so export it from an interaction the user started, not from a timer.
-
 
 ### ExcelJS on export
 
@@ -132,14 +129,14 @@ Both engines write a sheet synchronously. A very large grid blocks the tab for a
 | Cells per sheet (import) | 5,000,000 | Refused before the grid copy of the sheet is built: while reading on the built-in engine, right after its own parse on ExcelJS. A declared size is not taken at face value: a few rows under a declared `A1:XFD1048576` import as those few rows. |
 | Cells per workbook (import) | 10,000,000 | Same. |
 | Sheets per workbook (import) | 2,048 | Refused, on both engines. |
-| Inflated archive size (built-in import) | 256 MiB in total | Reading stops. A file the built-in export wrote inflates to about 40-65 bytes per cell, so this cap leaves room for 4-6.5 million such cells; long text cells use more of it. |
+| Inflated archive size (built-in import) | 256 MiB in total | Reading stops. A file the built-in export wrote inflates to about 40-65 bytes per cell, and the budget charges text at two bytes per character, so this cap leaves room for about 2-3 million such cells; long text cells use more of it. |
 | Per-cell settings (import) | 1,000,000 cells, or the number of data cells when that is higher | Refused while reading. Only a file with little data under its settings reaches it, such as two list validations with different lists split over a million empty rows. |
 | Formula length (built-in import) | 32,768 characters | `formula:tooLong`; the cell keeps its cached value. |
 | Defined names (built-in import) | 65,536 | `definedNames:truncated`; a formula over a later name can show `#NAME?`. |
 | Text per cell (export) | 32,767 characters | `cellText:truncated`; the text is cut. |
 | Column width | 260 width units (about 1,820 pixels) | Clamped on export, reported as `columnWidth:clamped`; skipped on import. |
 | Row height | 409.5 points (546 pixels) | Clamped on export, reported as `rowHeight:clamped`; skipped on import. |
-| Number format length | 255 characters | `numFmt:<pattern>`; the cells import with no number format. |
+| Number format length | 255 characters | `numFmt:<pattern>`, cut to the first 63 characters; the cells import with no number format. |
 
 Both engines read every sheet even when you import one, so the workbook-wide caps apply to the whole file. The caps are security bounds, not a comfort promise: a sheet near the 5,000,000-cell cap takes tens of seconds and several gigabytes of memory. Keep imports well below it, or split the workbook.
 
@@ -153,7 +150,7 @@ The workbook is untrusted input, and the plugins treat it that way.
 - **A text value that starts with `'=` keeps its apostrophe.** With the Formulas plugin on, it is escaped once more, so the data holds `''=x`, and the cell shows the doubled apostrophe.
 - **Colors are validated before they reach a stylesheet.** A font or fill color that is not plain hex is skipped. A border color that is not plain hex falls back to black, and a border style other than thin, medium, or thick becomes 1 px.
 - **Layout values are bounded.** A column width or row height that is not a positive number, or is above the limits in the table above, is skipped. A frozen pane count is rounded down, and a hidden index that is not a whole number is skipped on its own.
-- **Only spreadsheet workbooks are read.** The built-in engine reads `.xlsx`, `.xlsm`, `.xltx`, `.xltm`, and `.xlam` files; a macro-enabled file imports like an `.xlsx` file and its macros are never run. An `.xlsb`, an `.xls`, an `.ods` saved under an Excel name, a password-protected workbook, and an archive with truncated or mis-nested XML are refused with a message that says what to do. Hyperlink targets, external links, and embedded objects are not read.
+- **Only spreadsheet workbooks are read.** The built-in engine reads `.xlsx`, `.xlsm`, `.xltx`, `.xltm`, and `.xlam` files; a macro-enabled file imports like an `.xlsx` file and its macros are never run. An `.xlsb`, an `.xls`, an `.ods` saved under an Excel name, a password-protected workbook, and an archive with truncated or mis-nested XML are refused with a message that names the fault. Hyperlink targets, external links, and embedded objects are not read.
 - **Oversized input is refused** at the limits in the table above. ExcelJS runs its own parse, after which the plugin enforces the sheet, row, column, and cell caps; the inflate caps apply to the built-in engine only. ExcelJS 4.4.0 can also be made to change `Object.prototype` by a crafted workbook, such as one with a defined name whose reference names a sheet `__proto__`. Read files from untrusted sources with the built-in engine.
 - **A formula range is not bounded.** A 2 KB file can hold `SUM(A1:XFD1048576)`, which HyperFormula evaluates and which can crash the tab. Import files you do not trust with the Formulas plugin off, with `importFormulas: false`, or with `apply: false` first, and check `result.formulas` before you apply.
 - **Per-cell settings are bounded** at the limit in the table above. The plugin applies a setting a whole column shares once, to the column, and gives a cell its own setting only where it differs.
@@ -176,7 +173,7 @@ The workbook is untrusted input, and the plugins treat it that way.
 - A `numericFormat` is translated to an Excel format with `Intl.NumberFormat`. A currency symbol is written in quotes, such as `"USD"#,##0.00` or `#,##0.00"zł"`; only a lone `$` is written as it is. A symbol several currencies share is written as an Excel locale token that names the currency's home locale, such as `[$kr-414]` for the Norwegian krone or `[$$-C09]` for the Australian dollar, so it imports back as the same currency. `minimumIntegerDigits` becomes leading zeros.
 - A `dateFormat` is translated in the order and with the separators the cell's [`locale`](@/api/options.md#locale) renders: `{ year: 'numeric', month: '2-digit', day: '2-digit' }` is `mm/dd/yyyy` under `en-US` and `dd.mm.yyyy` under `de-DE`. A `timeFormat` is always written in `h:mm:ss` order. A format that sets no `hour12` takes its clock from the locale, and the file always states a clock, so set `hour12` yourself to pin it across a round trip.
 - A date before 1900, and a date that does not exist such as `2023-02-29`, are written as text.
-- - With `exportFormulas`, a formula whose result is an error such as `#DIV/0!` is stored with an Excel error result under its English code, even when a HyperFormula `language` translates what the grid shows. An error Excel has no code for, such as `#CYCLE!`, is cached as text. Without `exportFormulas`, an error is stored as the text the grid shows. An array formula is written as one plain formula in its first cell, with the spilled cells as values. A formula that uses HyperFormula's `ARRAYFORMULA` keeps that name, which Excel does not know, so it shows `#NAME?` in Excel. Named expressions are not exported, so `=SUM(Sales)` shows `#NAME?` in the file.
+- With `exportFormulas`, a formula whose result is an error such as `#DIV/0!` is stored with an Excel error result under its English code, even when a HyperFormula `language` translates what the grid shows. An error Excel has no code for, such as `#CYCLE!`, is cached as text. Without `exportFormulas`, an error is stored as the text the grid shows. An array formula is written as one plain formula in its first cell, with the spilled cells as values. A formula that uses HyperFormula's `ARRAYFORMULA` keeps that name, which Excel does not know, so it shows `#NAME?` in Excel. Named expressions are not exported, so `=SUM(Sales)` shows `#NAME?` in the file.
 - With `exportFormulas`, a same-sheet reference is shifted by the header rows and the row-header column, but not by the start of `range`: with a `range` that does not start at row 0 and column 0, references point at the wrong cells. A formula that names another sheet in the same export, such as `=Rates!A1`, is written as typed, so it points as many rows up as that sheet has header rows, and one column left when that sheet has row headers.
 
 ## Concurrent imports

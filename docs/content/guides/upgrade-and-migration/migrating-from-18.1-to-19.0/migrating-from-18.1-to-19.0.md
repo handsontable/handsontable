@@ -2012,9 +2012,10 @@ What to do: nothing. To keep a long text whole, split it across cells before you
 
 #### A control character is removed from a sheet name
 
-What changed: the export already removed the characters Excel forbids in a sheet name, such as `:`
-and `/`. It now removes control characters, such as a tab, too, on both engines, because Excel
-refuses a name that holds one. A sheet that becomes a duplicate of another is numbered, as before.
+What changed: the export now removes the characters Excel forbids in a sheet name, such as `:`
+and `/`, and control characters, such as a tab, on both engines, because Excel refuses a name
+that holds one. In 18.1, a name with a forbidden character made the export reject with ExcelJS's
+own error. A sheet that becomes a duplicate of another is numbered, as before.
 For example, `sheets: [{ instance: a, name: 'Q1\tSales' }, { instance: b, name: 'Q1Sales' }]`
 writes `Q1Sales` and `Q1Sales1`. In 18.1, ExcelJS wrote `Q1<tab>Sales` as it was, and the second
 sheet kept its name.
@@ -2044,11 +2045,11 @@ applications dropped the number format. A one-character symbol other than `$`, s
 is now quoted too, as `#,##0.00"€"`, because Apple Numbers and Quick Look misread it bare. A lone `$`
 is written as before. A symbol that several currencies share, such as `kr` or `¥`, is now written as an
 Excel locale token that names the currency's home locale, such as `#,##0.00[$kr-41D]` for the Swedish
-krona or `[$¥-411]#,##0.00` for the yen. In 18.1, a Norwegian krone column came back from its own export
-as the Swedish krona. A currency other than the US dollar that shows as `$`, such as the Australian,
+krona or `[$¥-411]#,##0.00` for the yen. A file 18.1 wrote for a Norwegian krone column imports as the
+Swedish krona. A currency other than the US dollar that shows as `$`, such as the Australian,
 Canadian, or New Zealand dollar or the Mexican peso, is now written with the token of its home locale,
-such as `[$$-C09]#,##0.00` for the Australian dollar. In 18.1, it was written as a bare `$` and came back
-from its own export as the US dollar. A `minimumIntegerDigits` value is now written as that many zeros, such as `00000`.
+such as `[$$-C09]#,##0.00` for the Australian dollar. In 18.1, it was written as a bare `$`, which imports
+as the US dollar. A `minimumIntegerDigits` value is now written as that many zeros, such as `00000`.
 In 18.1, it was dropped and the zeros were lost. This applies to both engines.
 
 What to do: nothing, unless a tool reads the raw number format. Such a tool sees the quotes now.
