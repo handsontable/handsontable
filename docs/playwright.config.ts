@@ -10,6 +10,15 @@ export default defineConfig({
   expect: { timeout: 60000 },
   timeout: 60000,
   testDir: './tests',
+  /*
+   * Specs only, for every project. Playwright's default `testMatch` also takes `*.test.*`, so it
+   * imported the `node:test` files in ./tests/lib/__tests__ (they belong to the root
+   * `npm run test:tooling`). One of them failed to load, the load aborted before any spec was listed,
+   * and every run of the `functional` project collected 0 tests. Set here rather than per project, so
+   * a project added later (the browser projects below) inherits it. A project may narrow it, as
+   * `visual` does.
+   */
+  testMatch: /\.spec\.ts$/,
   outputDir: './tests/test-artifacts/output',
   /*
    * Do NOT add {projectName} here: the golden records are keyed by this path in R2
@@ -68,12 +77,8 @@ export default defineConfig({
    * suite, which needs the R2 baseline and the approval gate and stays behind the `run-docs-visual`
    * label; `functional` is every other `*.spec.ts` in ./tests — assertions about the built pages that
    * need no golden and, until this split, only ever ran when someone applied that label. A bare
-   * `npx playwright test` still runs both, which is what a local run wants.
-   *
-   * `functional` names `*.spec.ts` on purpose. Playwright's default `testMatch` also takes `*.test.*`,
-   * so it imported the `node:test` files in ./tests/lib/__tests__ (they belong to the root
-   * `npm run test:tooling`). One of them failed to load, the load aborted before any spec was listed,
-   * and every run of this project collected 0 tests.
+   * `npx playwright test` still runs both, which is what a local run wants. Both take their files
+   * from the top-level `testMatch` above.
    */
   projects: [
     {
@@ -83,7 +88,6 @@ export default defineConfig({
     },
     {
       name: 'functional',
-      testMatch: /\.spec\.ts$/,
       testIgnore: /visualDocs\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },

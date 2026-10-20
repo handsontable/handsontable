@@ -368,10 +368,13 @@ test('the docs Playwright config fails a missing golden on CI, keeps the snapsho
   assert.match(config, /testIgnore: \/visualDocs\\\.spec\\\.ts\//);
   // The default testMatch also takes `*.test.*`, which imported the node:test files under
   // docs/tests/lib/__tests__ as specs: one failed to load, and every functional run collected 0 tests.
-  const functionalProject = config.slice(config.indexOf("name: 'functional'"));
+  // Top level, so every project inherits it, a browser project added later included.
+  const topLevelMatch = config.indexOf('testMatch: /\\.spec\\.ts$/,');
 
-  assert.match(functionalProject.slice(0, functionalProject.indexOf('}')), /testMatch: \/\\\.spec\\\.ts\$\//,
-    'the functional project must collect *.spec.ts only; the node:test files in tests/lib/__tests__ are not specs');
+  assert.notEqual(topLevelMatch, -1, 'the config must collect *.spec.ts only; the node:test files in tests/lib/__tests__ are not specs');
+  assert.ok(topLevelMatch < config.indexOf('projects: ['), 'the *.spec.ts rule must sit at the top level, so every project inherits it');
+  assert.equal(config.match(/testMatch:/g).length, 2,
+    'only the top level and `visual` may set testMatch; a project that sets its own drops the *.spec.ts rule');
   assert.match(config, /\['json',\s*\{\s*outputFile:\s*'\.\/tests\/test-artifacts\/report\.json'/,
     'the manifest adapter reads the JSON report');
 });
@@ -528,8 +531,11 @@ test('the functional docs specs run on every docs pull request, report-only for 
   assert.ok(ran, 'the functional job no longer fails a run that collected no test');
   assert.doesNotMatch(ran, /continue-on-error/, 'a run that collected no test must red the job, not hide behind report-only');
   assert.match(ran, /if: \$\{\{ !cancelled\(\) \}\}/, 'the check must run after a failed run step');
-  assert.ok(ran.includes("jq -e '(.stats.expected + .stats.unexpected + .stats.flaky) > 0 and (.errors | length) == 0'"),
-    'the check must require a test that ran and no error outside a test');
+  // The count only: a load error is a 0 count, and an error outside a test in a run that ran its specs
+  // must stay report-only. Not the seed's fast check either, which also refuses skips.
+  assert.ok(ran.includes("jq -e '(.stats.expected + .stats.unexpected + .stats.flaky) > 0'"),
+    'the check must require a test that ran, and nothing else');
+  assert.doesNotMatch(ran, /\.errors/, 'an error outside a test must not block the merge; the count catches a load error');
   assert.ok(functional.indexOf('name: Upload the functional report') < functional.indexOf('name: Check that the functional specs ran'),
     'the check comes last, so the report is uploaded when it fails');
   assert.match(functional, /Docs functional specs: \$result \(\$counts\)/, 'the summary line must carry the counts, so 0 tests shows');
