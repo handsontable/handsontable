@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed object data with a `dataSchema` of non-null values and no `columns` option rendering every column blank. Every schema leaf now maps to a column.",
+  "title": "Fixed object data with a `dataSchema` of non-`null` values and no `columns` option rendering those columns blank. Each such value now creates a column property, so the columns of a schema that mixes `null` and non-`null` values change their order.",
   "type": "fixed",
   "issueOrPR": 13943,
-  "breaking": false,
+  "breaking": true,
   "framework": "none"
 }

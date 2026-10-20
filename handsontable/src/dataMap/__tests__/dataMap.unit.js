@@ -499,7 +499,6 @@ describe('DataMap with a `dataSchema` and no `columns` option', () => {
     ['string', 'x', 'a'],
     ['boolean', false, true],
     ['undefined', undefined, 'a'],
-    ['function', () => {}, 'a'],
   ])('should register a column for a `%s` schema leaf', (_, leaf, value) => {
     build({ id: leaf, name: null }, [{ id: value, name: 'n' }]);
 
@@ -536,19 +535,17 @@ describe('DataMap with a `dataSchema` and no `columns` option', () => {
     build({ id: 0, tags: [] }, [{ id: 1, tags: [] }]);
 
     expect(hot.colToProp(0)).toBe('id');
-    // `deepObjectSize()` still counts the array as a column, which maps to no property.
-    expect(hot.countCols()).toBe(2);
-    expect(hot.colToProp(1)).toBe(1);
   });
 
-  it('should register a leaf holding a non-plain object, as `deepObjectSize` counts it', () => {
-    const date = new Date(2020, 0, 1);
+  it.each([
+    ['function', () => 1, () => 2],
+    ['Date', new Date(2020, 0, 1), new Date(2021, 0, 1)],
+    ['Map', new Map(), new Map()],
+  ])('should keep a `%s` leaf unregistered, so typing there never replaces the value', (_, leaf, value) => {
+    build({ id: 0, extra: leaf }, [{ id: 1, extra: value }]);
 
-    build({ id: 0, created: new Date() }, [{ id: 1, created: date }]);
-
-    expect(hot.countCols()).toBe(2);
-    expect(hot.colToProp(1)).toBe('created');
-    expect(hot.getDataAtRow(0)).toEqual([1, date]);
+    expect(hot.colToProp(0)).toBe('id');
+    expect(hot.getDataAtRow(0)[0]).toBe(1);
   });
 
   it('should not register a column for the `__children` key', () => {
@@ -588,5 +585,16 @@ describe('DataMap with a `dataSchema` and no `columns` option', () => {
     hot.setDataAtCell(0, 1, 'edited');
 
     expect(hot.countRows()).toBe(3);
+  });
+
+  it('should keep a spare row of a function `dataSchema` empty when a default depends on the row index', () => {
+    build(index => ({ index, name: null }), [{ index: 0, name: 'a' }], { minSpareRows: 1 });
+
+    expect(hot.countRows()).toBe(2);
+    expect(hot.countEmptyRows(true)).toBe(1);
+
+    hot.setDataAtCell(0, 1, 'edited');
+
+    expect(hot.countRows()).toBe(2);
   });
 });

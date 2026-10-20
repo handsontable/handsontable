@@ -249,9 +249,11 @@ class DataMap {
   }
 
   /**
-   * Generates columns' translation cache. Every schema leaf gets a column, whatever its default
-   * value, the same set of leaves `deepObjectSize()` counts. A plain object is walked, and an
-   * array or the `__children` key gets none.
+   * Generates columns' translation cache. A plain object is walked, and every primitive leaf
+   * (`null`, `undefined`, a number, a string, a boolean) gets a column, whatever its default
+   * value. An array, a function, any other object (a `Date`, a `Map`) and the `__children` key get
+   * none. `deepObjectSize()` still counts an array, a function and such an object as a column, so
+   * the count can exceed the number of properties registered here.
    *
    * @param {object} schema An object to generate schema from.
    * @param {number} lastCol The column index.
@@ -265,7 +267,14 @@ class DataMap {
 
     if (typeof schema === 'object' && schema !== null && !Array.isArray(schema)) {
       objectEach(schema, (value: unknown, key: string) => {
-        if (key === '__children' || Array.isArray(value)) {
+        const isObjectValue = typeof value === 'object' && value !== null;
+
+        if (
+          key === '__children' ||
+          typeof value === 'function' ||
+          Array.isArray(value) ||
+          (isObjectValue && !isPlainObject(value))
+        ) {
           return;
         }
 
