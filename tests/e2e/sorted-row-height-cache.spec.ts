@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { SortedRowHeightCachePage } from '../fixtures/pages/SortedRowHeightCachePage';
 
 /**
@@ -12,7 +12,7 @@ import { SortedRowHeightCachePage } from '../fixtures/pages/SortedRowHeightCache
  *
  * Regressed in 18.1.0 (17.1.0 and 18.0.0 are clean).
  */
-test.describe('Axis size caches after an index rearrangement (DEV-2823)', { tag: THEMES_TAG }, () => {
+test.describe('Axis size caches after an index rearrangement (DEV-2823)', () => {
   test('leaves no blank space while scrolling a sorted grid', async({ page, theme, bundle }) => {
     const grid = new SortedRowHeightCachePage(page, theme, bundle);
 

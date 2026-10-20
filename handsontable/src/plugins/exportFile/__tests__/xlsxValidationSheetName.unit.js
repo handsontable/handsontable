@@ -1,5 +1,5 @@
 import Xlsx from '../types/xlsx';
-import DataProvider from '../dataProvider';
+import ExportDataProvider from '../dataProvider';
 
 // Read lazily by the mock below (jest hoists the factory above these, so they must be `mock`-prefixed).
 let mockData = [[null]];
@@ -104,6 +104,7 @@ jest.mock('../dataProvider', () => ({
  */
 function createRecordingEngine() {
   const sheetNames = [];
+  const worksheets = [];
   const cells = [];
   const recorded = { writeOptions: undefined };
 
@@ -151,12 +152,13 @@ function createRecordingEngine() {
       };
 
       this.worksheets.push(worksheet);
+      worksheets.push(worksheet);
 
       return worksheet;
     }
   }
 
-  return { engine: { Workbook: FakeWorkbook }, sheetNames, cells, recorded };
+  return { engine: { Workbook: FakeWorkbook }, sheetNames, worksheets, cells, recorded };
 }
 
 /**
@@ -176,7 +178,9 @@ async function exportOneCell(typeOptions, meta = { type: 'text' }, value = 'x') 
   mockCellsMeta = [[meta]];
 
   try {
-    const xlsx = new Xlsx(new DataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }], ...typeOptions });
+    const xlsx = new Xlsx(new ExportDataProvider(instance), {
+      engine, sheets: [{ instance, name: 'Data' }], ...typeOptions,
+    });
 
     await xlsx.export();
   } finally {
@@ -197,7 +201,7 @@ async function exportOneCell(typeOptions, meta = { type: 'text' }, value = 'x') 
 async function exportSheetsNamed(...names) {
   const instance = { rootDocument: document, rootWindow: window };
   const { engine, sheetNames } = createRecordingEngine();
-  const xlsx = new Xlsx(new DataProvider(instance), {
+  const xlsx = new Xlsx(new ExportDataProvider(instance), {
     engine,
     sheets: names.map(name => ({ instance, name })),
   });
@@ -220,6 +224,23 @@ describe('Xlsx validation helper sheet name', () => {
     expect(await exportSheetsNamed('Data', 'More')).toEqual(
       ['Data', '_HotValidation', 'More', '_HotValidation1'],
     );
+  });
+});
+
+describe('Xlsx validation helper sheet state', () => {
+  it('should write the helper sheet hidden, not very hidden, so Numbers keeps the dropdowns', async() => {
+    // Numbers discards a `veryHidden` sheet when it opens the file and keeps no validation that
+    // points at it, so every dropdown exported from an array `source` lost its list there.
+    const instance = { rootDocument: document, rootWindow: window };
+    const { engine, worksheets } = createRecordingEngine();
+    const xlsx = new Xlsx(new ExportDataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }] });
+
+    await xlsx.export();
+
+    expect(worksheets.map(sheet => [sheet.name, sheet.state])).toEqual([
+      ['Data', 'visible'],
+      ['_HotValidation', 'hidden'],
+    ]);
   });
 });
 
@@ -264,6 +285,15 @@ describe('Xlsx sheet-name sanitization', () => {
     expect(await exportSheetsNamed('Data', 'data')).toEqual(
       ['Data', '_HotValidation', 'data1', '_HotValidation1'],
     );
+  });
+
+  it('should strip control characters BEFORE de-duplicating, so two names cannot collapse into one', async() => {
+    // `workbook.xml` drops a control character from the attribute, so `Sheet\u0001` and
+    // `Sheet\u0002` passed the duplicate check and then both landed as `name="Sheet"`.
+    expect(await exportSheetsNamed('Sheet\u0001', 'Sheet\u0002')).toEqual(
+      ['Sheet', '_HotValidation', 'Sheet1', '_HotValidation1'],
+    );
+    expect(await exportSheetsNamed('a\tb\nc\u007F')).toEqual(['abc', '_HotValidation']);
   });
 });
 
@@ -365,7 +395,7 @@ describe('Xlsx validation list labels for a column', () => {
     mockCellsMeta = Array.from({ length: rows }, () => [{ type: 'dropdown', source: countries, sourceLabel }]);
 
     try {
-      await new Xlsx(new DataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }] }).export();
+      await new Xlsx(new ExportDataProvider(instance), { engine, sheets: [{ instance, name: 'Data' }] }).export();
     } finally {
       mockData = [[null]];
       mockCellsMeta = [[{ type: 'dropdown', source: ['a', 'b'] }]];

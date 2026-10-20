@@ -146,6 +146,8 @@ export interface CellMeta extends Omit<RemoveIndexSignature<ColumnSettings>, 'fi
   readOnly?: boolean;
   valid?: boolean;
   comment?: CommentObject;
+  asyncState?: 'pending' | 'error' | null;
+  asyncError?: string | null;
   isSearchResult?: boolean;
   hidden?: boolean;
   skipRowOnPaste?: boolean;

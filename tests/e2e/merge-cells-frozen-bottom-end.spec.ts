@@ -53,6 +53,12 @@ for (const direction of ['ltr', 'rtl'] as const) {
 
     for (const mode of ['default', 'virtualized']) {
       for (const shape of SHAPES) {
+        // The virtualized clamp is the identity for a block anchored in the band, so that combination
+        // repeats the default one.
+        if (mode === 'virtualized' && shape.name === 'inside the end columns') {
+          continue;
+        }
+
         test.describe(`${mode}, block ${shape.name}`, () => {
           const { block } = shape;
           const blockColumns = Array.from({ length: block.colspan }, (_, index) => block.col + index);
@@ -68,65 +74,69 @@ for (const direction of ['ltr', 'rtl'] as const) {
             mergeCells: mode === 'virtualized' ? { virtualized: true, cells: [block] } : [block],
           });
 
-          test('carries the span on the first frozen row of the bottom end corner', async () => {
-            await init();
+          // The carrier rule has no direction term, and the virtualized clamp is the identity in this fixture (the
+          // master renders every row and column), so the three DOM checks run once; the outline runs per layout.
+          if (direction === 'ltr' && mode === 'default') {
+            test('carries the span on the first frozen row of the bottom end corner', async () => {
+              await init();
 
-            await expect.poll(() => grid.cloneCell(END_CORNER, 8, shape.carrier.col))
-              .toEqual({ displayed: true, rowspan: '2', colspan: shape.carrier.colspan, text: '' });
-            // The carrier covers the next frozen row, which is hidden in the corner.
-            expect((await grid.cloneCell(END_CORNER, 9, shape.carrier.col))?.displayed).toBe(false);
-            await expect.poll(() => grid.offsetFromHeader(END_CORNER, 8, shape.carrier.col)).toBe(0);
-          });
+              await expect.poll(() => grid.cloneCell(END_CORNER, 8, shape.carrier.col))
+                .toEqual({ displayed: true, rowspan: '2', colspan: shape.carrier.colspan, text: '' });
+              // The carrier covers the next frozen row, which is hidden in the corner.
+              expect((await grid.cloneCell(END_CORNER, 9, shape.carrier.col))?.displayed).toBe(false);
+              await expect.poll(() => grid.offsetFromHeader(END_CORNER, 8, shape.carrier.col)).toBe(0);
+            });
 
-          test('keeps every other frozen cell under its own header', async () => {
-            await init();
-            await expect.poll(() => grid.cloneCell(END_CORNER, 8, shape.carrier.col)).not.toBeNull();
+            test('keeps every other frozen cell under its own header', async () => {
+              await init();
+              await expect.poll(() => grid.cloneCell(END_CORNER, 8, shape.carrier.col)).not.toBeNull();
 
-            for (const row of FROZEN_ROWS) {
-              for (const cloneClass of ['ht_clone_bottom', END_CORNER]) {
-                for (const col of await grid.displayedColumns(cloneClass, row)) {
-                  const isBlockCarrier = row === 8 && col === shape.carrier.col;
+              for (const row of FROZEN_ROWS) {
+                for (const cloneClass of ['ht_clone_bottom', END_CORNER]) {
+                  for (const col of await grid.displayedColumns(cloneClass, row)) {
+                    const isBlockCarrier = row === 8 && col === shape.carrier.col;
 
-                  if (!blockColumns.includes(col) || isBlockCarrier) {
-                    expect(await grid.offsetFromHeader(cloneClass, row, col), `${cloneClass} ${row}/${col}`)
-                      .toBe(0);
+                    if (!blockColumns.includes(col) || isBlockCarrier) {
+                      expect(await grid.offsetFromHeader(cloneClass, row, col), `${cloneClass} ${row}/${col}`)
+                        .toBe(0);
+                    }
                   }
                 }
               }
-            }
 
-            // The corner keeps the columns of the band that the block does not cover.
-            for (const col of [7, 8, 9].filter(bandColumn => !blockColumns.includes(bandColumn))) {
-              for (const row of FROZEN_ROWS) {
-                await expect.poll(() => grid.offsetFromHeader(END_CORNER, row, col)).toBe(0);
+              // The corner keeps the columns of the band that the block does not cover.
+              for (const col of [7, 8, 9].filter(bandColumn => !blockColumns.includes(bandColumn))) {
+                for (const row of FROZEN_ROWS) {
+                  await expect.poll(() => grid.offsetFromHeader(END_CORNER, row, col)).toBe(0);
+                }
               }
-            }
-          });
+            });
 
-          test('keeps drawing the block in the inline-end clone and in the master', async () => {
-            await init();
+            test('keeps drawing the block in the inline-end clone and in the master', async () => {
+              await init();
 
-            await expect.poll(() => grid.cloneCell('ht_clone_inline_end', block.row, shape.endClone.col))
-              .toEqual({
-                displayed: true,
-                rowspan: String(block.rowspan),
-                colspan: shape.endClone.colspan,
-                text: shape.endClone.text,
-              });
-            await expect.poll(() => grid.offsetFromHeader('ht_clone_inline_end', block.row, shape.endClone.col))
-              .toBe(0);
-
-            if (block.col < 7) {
-              // The origin is in the master's own columns: the master draws the whole block.
-              await expect.poll(() => grid.cloneCell('ht_master', block.row, block.col))
+              await expect.poll(() => grid.cloneCell('ht_clone_inline_end', block.row, shape.endClone.col))
                 .toEqual({
                   displayed: true,
                   rowspan: String(block.rowspan),
-                  colspan: String(block.colspan),
-                  text: `R7C${block.col + 1}`,
+                  colspan: shape.endClone.colspan,
+                  text: shape.endClone.text,
                 });
-            }
-          });
+              await expect.poll(() => grid.offsetFromHeader('ht_clone_inline_end', block.row, shape.endClone.col))
+                .toBe(0);
+
+              if (block.col < 7) {
+                // The origin is in the master's own columns: the master draws the whole block.
+                await expect.poll(() => grid.cloneCell('ht_master', block.row, block.col))
+                  .toEqual({
+                    displayed: true,
+                    rowspan: String(block.rowspan),
+                    colspan: String(block.colspan),
+                    text: `R7C${block.col + 1}`,
+                  });
+              }
+            });
+          }
 
           {
             test('draws one outline, with no edge on the freeze lines, for the selected block', async () => {

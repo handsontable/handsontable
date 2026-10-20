@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed } from 'vue';
 import { HotTable } from '@handsontable/vue3';
+import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
 import Papa from 'papaparse';
-import readXlsxFile from 'read-excel-file/browser';
-import type { Sheet } from 'read-excel-file/browser';
 
 registerAllModules();
 
@@ -105,57 +104,60 @@ function parseCsvFile(file: File): Promise<ParsedPayload> {
 }
 
 async function parseXlsxFile(file: File): Promise<ParsedPayload> {
-  let sheets: Sheet[];
+  // A throwaway grid in a hidden element runs the ImportFile plugin. `apply: false` returns the
+  // mapped sheet without touching the grid, and a refused file rejects with a message that says why.
+  const host = document.createElement('div');
+
+  host.hidden = true;
+  document.body.appendChild(host);
+
+  const parser = new Handsontable(host, {
+    data: [[]],
+    importFile: true,
+    licenseKey: 'non-commercial-and-evaluation',
+  });
 
   try {
-    sheets = await readXlsxFile(file);
-  } catch {
-    throw new Error('Could not read the Excel workbook. The file may be corrupted.');
-  }
+    const result = await parser.getPlugin('importFile').importFromBlob('xlsx', file, {
+      colHeaders: 'firstRow',
+      apply: false,
+    });
+    const rawHeaders = (Array.isArray(result.colHeaders) ? result.colHeaders : []) as unknown[];
+    const headers = rawHeaders.map((cell, i) => {
+      const text = String(cell ?? '').trim();
 
-  const firstSheet = sheets[0];
+      return text === '' ? `Column ${i + 1}` : text;
+    });
 
-  if (!firstSheet) {
-    throw new Error('The workbook has no sheets.');
-  }
-
-  const matrix: unknown[][] = firstSheet.data;
-
-  if (!matrix.length) {
-    throw new Error('The sheet is empty.');
-  }
-
-  const rawHeader = matrix[0].map((cell) => String(cell ?? '').trim());
-
-  if (rawHeader.length === 0 || rawHeader.every((h) => h === '')) {
-    throw new Error('No header row found in the Excel sheet.');
-  }
-
-  const keys = rawHeader.map((h, i) => (h === '' ? `Column ${i + 1}` : h));
-  const rows: Record<string, CellValue>[] = [];
-
-  for (let r = 1; r < matrix.length; r++) {
-    const line = matrix[r];
-    const allEmpty = !line || line.every((c) => normalizeCellValue(c) === null);
-
-    if (allEmpty) {
-      continue;
+    if (headers.length === 0) {
+      throw new Error('No header row found in the Excel sheet.');
     }
 
-    const obj: Record<string, CellValue> = {};
+    const rows: Record<string, CellValue>[] = [];
 
-    for (let c = 0; c < keys.length; c++) {
-      obj[keys[c]] = normalizeCellValue(line[c]);
+    for (const line of result.data as unknown[][]) {
+      const obj: Record<string, CellValue> = {};
+      let allEmpty = true;
+
+      headers.forEach((key, c) => {
+        obj[key] = normalizeCellValue(line[c]);
+        allEmpty = allEmpty && obj[key] === null;
+      });
+
+      if (!allEmpty) {
+        rows.push(obj);
+      }
     }
 
-    rows.push(obj);
-  }
+    if (rows.length === 0) {
+      throw new Error('No data rows after the header.');
+    }
 
-  if (rows.length === 0) {
-    throw new Error('No data rows after the header.');
+    return { headers, rows };
+  } finally {
+    parser.destroy();
+    host.remove();
   }
-
-  return { headers: keys, rows };
 }
 
 function parseFile(file: File): Promise<ParsedPayload> {

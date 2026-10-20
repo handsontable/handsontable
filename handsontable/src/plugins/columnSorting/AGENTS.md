@@ -75,7 +75,7 @@ same place.
 `sortByPresetSortStates()` has two sort paths, and they must stay behaviorally identical. Both start from
 one gather, `#gatherBand()`: one physical-row array, one value array per sorted column, and the highest
 physical index. The physical-row array is a plain array, never an `Int32Array`: `getNumberOfRowsToSort()`
-is an overridable seam, a widening override makes `toPhysicalRow()` return `null`, and a typed array would
+is an overridable seam, a widening override makes the gather's `?? null` read answer `null`, and a typed array would
 store that as physical row 0. It is never permuted, so it is both paths' `indexesBefore`.
 
 - **Parallel value arrays (the default).** `#sortRowPositions()` builds no per-row object. It sorts a plain
@@ -305,6 +305,19 @@ with both at 1 the bound is the same as either option alone. `sortableRowRange.u
 both directions of the overlap (more spares than pinned rows, and more pinned rows than
 spares) plus `maxRows` capping the displayed count.
 
+## The band is gathered from an uncached read, because the sort runs inside batches
+
+`sortByPresetSortStates()` resets the sequence to the pre-sort order and then gathers the band. `#gatherBand()`
+therefore reads `rowIndexMapper.getNotTrimmedIndexes(false)` once, never `toPhysicalRow()`: the mapper does not
+rebuild `notTrimmedIndexesCache` while `isBatched`, so inside `batch()`, between `suspendExecution()` and
+`resumeExecution()`, and in ViewState's restore the cached read still holds the PREVIOUS sort's order. The remap
+then lands on the reset sequence and the rows come out wrong, with `getSortConfig()` still reporting the new
+sort. It only shows on a grid that is already sorted. Do not refresh the cache mid-batch with `updateCache(true)`:
+it fires `cacheUpdated`, which runs the selection repair and the size-cache invalidation. The read is fresh for the
+sequence only: `getNotTrimmedIndexes(false)` still filters it through the trimming maps' cached merged values, and
+`countRows()` (the band's upper bound) is cache-based too, so a trim made earlier in the same batch is not seen by
+either, as before. Row axis only: the column axis is not touched. Pinned by `__tests__/sortInsideBatch.unit.js`.
+
 ## The remap table must cover the highest physical index the band holds
 
 `sortByPresetSortStates()` rewrites the indexes sequence through an `Int32Array` keyed BY physical row
@@ -320,7 +333,7 @@ the sequence length. Either one undersizes the table; a typed-array write past t
 error and the read gives `undefined`, so those rows silently keep their pre-sort place and the sequence ends
 up with duplicated physical indexes.
 
-**Guard `toPhysicalRow()`'s `null` at both ends.** A subclass may widen `getNumberOfRowsToSort()`, and the
+**Guard the gather's `null` at both ends** (the `?? null` read in `#gatherBand()`, which answers what `toPhysicalRow()` does). A subclass may widen `getNumberOfRowsToSort()`, and the
 visual rows past the mapper's reach answer `null`. `null > -1` is `true`, so an unguarded comparison makes
 `highestPhysicalIndex` itself `null`; and a typed array coerces a `null` **value** to `0`, so writing one
 would remap a real row onto physical row 0 — a duplicated row with no error, where the `Map` this replaced
@@ -462,7 +475,8 @@ that pseudo-element and gave it `width: var(--ht-icon-size, 16px)`, so the measu
 without the width restated on the ghost rule every sortable header with a menu button measured ~10px
 narrower than 18.1: the visual suite flagged all 30 nested-headers goldens (complex-demo, nested-headers
 collapse, filters active-class). The ghost rule now carries `width: var(--ht-icon-size, 16px)` itself.
-Pinned by "the ghost-table sort reserve keeps its 18.1 geometry" in `tests/e2e/icon-elements.spec.ts`.
+Pinned by "the ghost-table `*` stand-in keeps the glyph width on a label without `sortAction`" in
+`tests/e2e/icon-elements-sorting.spec.ts`.
 A local repro page for the complex demo (gitignored, not in the repository) is the quickest way to
 compare its column widths against 18.1.
 

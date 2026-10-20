@@ -194,6 +194,7 @@ someone reading that plugin will find it:
 |---|---|---|
 | `pagination` | `nestedRows`, `mergeCells`, `fixedRowsTop`, `fixedRowsBottom` | `../pagination/pagination.ts` |
 | `dataProvider` | `manualRowMove`, `manualColumnMove`, `trimRows`, `multiColumnSorting` | `../dataProvider/dataProvider.ts` |
+| `asyncValues` | `nestedRows` | `../asyncValues/asyncValues.ts` |
 
 A hard conflict is a blunt instrument: it disables the plugin outright. Use it only for combinations that
 cannot be made to work. Anything softer belongs in the plugin's own logic.
@@ -222,10 +223,11 @@ without a priority in registration order. Registering two plugins on the same pr
 | 110 | manualColumnFreeze | 310 | hiddenColumns |
 | 120 | manualColumnMove | 320 | hiddenRows |
 | 130 | manualColumnResize | 330 | trimRows |
-| 140 | manualRowMove | 350 | loading |
-| 150 | mergeCells | 360 | dialog |
-| 155 | stretchColumns | 370 | emptyDataState |
-| 160 | multipleSelectionHandles | 375 | notification |
+| 140 | manualRowMove | 340 | asyncValues |
+| 150 | mergeCells | 350 | loading |
+| 155 | stretchColumns | 360 | dialog |
+| 160 | multipleSelectionHandles | 370 | emptyDataState |
+| | | 375 | notification |
 | | | 380 | freezeBar |
 | | | 385 | rowSelection |
 | | | 390 | checkboxHeader |
@@ -235,9 +237,10 @@ without a priority in registration order. Registering two plugins on the same pr
 | | | 950 | dataProvider |
 | | | 1000 | undoRedo |
 
-Free slots to pick a new number from: 180, 340, and the 400–890 range. **340 is the only gap between
-the trimming plugins (330) and the overlay plugins (350+)**, so it is the slot for a plugin that must enable
-after trimming and before the overlays. `900`+ is reserved for plugins that
+Free slots to pick a new number from: 180 and the 400–890 range (plus the odd numbers between the rows
+above). `asyncValues` took 340, the gap between the trimming plugins (330) and the overlay plugins (350+);
+it relies on neither side, so a plugin that must enable after trimming and before the overlays can take
+335 or 345. `900`+ is reserved for plugins that
 must see every other plugin's state already settled (Pagination, DataProvider, UndoRedo).
 
 **Priority orders `enablePlugin()`, and nothing else.** It does *not* order hook callbacks by itself — it

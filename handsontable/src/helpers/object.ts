@@ -387,10 +387,11 @@ export function getProperty<T = unknown>(object: Record<string | symbol, unknown
   const names = name.split('.');
   let result: unknown = object;
 
-  for (const nameItem of names) {
-    result = (result as Record<string, unknown>)[nameItem];
+  for (let index = 0; index < names.length; index += 1) {
+    result = (result as Record<string, unknown>)[names[index]];
 
-    if (result === undefined) {
+    // A `null` parent has nothing to read under it, while a `null` leaf is returned as it is.
+    if (result === undefined || (result === null && index < names.length - 1)) {
       return undefined;
     }
   }

@@ -26,7 +26,12 @@ const REGIONAL_CURRENCY_CODES: Record<string, Record<string, string>> = {
     UY: 'UYU',
   },
   kr: { DK: 'DKK', IS: 'ISK', NO: 'NOK' },
+  // `Intl` writes `kr.` for the Icelandic krona too, and the Danish krone is the flat entry.
+  // eslint-disable-next-line quote-props
+  'kr.': { IS: 'ISK', NO: 'NOK' },
   '\u00a5': { CN: 'CNY' },
+  // Chinese input methods type the full-width sign for the yuan; the yen is the flat entry.
+  '\uffe5': { CN: 'CNY' },
 };
 
 /**

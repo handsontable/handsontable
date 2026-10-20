@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>asyncValues e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects,
+    // mapped through fixed allowlists to literals so a crafted param is never reflected into the
+    // document. An absent param keeps the default; an unknown one throws, so a typo in the project
+    // config is a red leg rather than a mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Grid for the `asyncValues` option: the `name` column is filled from promises the spec
+    controls. `startRequest(row, column)` starts a request whose promise waits until the spec calls
+    `resolveRequest(id, value)` or `rejectRequest(id, message)`; every request's AbortSignal and
+    result are recorded on `window.requests`.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.requests = [];
+
+    window.startRequest = (row, column) => {
+      const request = { signal: null, result: null };
+      const id = window.requests.push(request) - 1;
+      const promise = new Promise((resolve, reject) => {
+        request.resolve = resolve;
+        request.reject = reject;
+      });
+
+      window.hot.getPlugin('asyncValues').setAsyncValue(row, column, ({ signal }) => {
+        request.signal = signal;
+
+        return promise;
+      }, { dependsOn: ['sku'] }).then((result) => {
+        request.result = { status: result.status, reason: result.reason, value: result.value };
+      });
+
+      return id;
+    };
+    window.resolveRequest = (id, value) => window.requests[id].resolve(value);
+    window.rejectRequest = (id, message) => window.requests[id].reject(new Error(message));
+
+    window.hot = new Handsontable(container, {
+      data: [
+        { sku: 'A-100', name: 'Old A', price: 30 },
+        { sku: 'B-200', name: 'Old B', price: 10 },
+        { sku: 'C-300', name: 'Old C', price: 20 },
+      ],
+      columns: [{ data: 'sku' }, { data: 'name' }, { data: 'price', type: 'numeric' }],
+      colHeaders: ['SKU', 'Name', 'Price'],
+      rowHeaders: true,
+      colWidths: [120, 200, 100],
+      width: 600,
+      height: 300,
+      columnSorting: true,
+      asyncValues: true,
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

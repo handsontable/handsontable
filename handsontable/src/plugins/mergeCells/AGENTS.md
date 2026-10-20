@@ -340,6 +340,66 @@ strictly worse than the singleton drop it replaced, so such a fragment is left t
 `should not retain a single-cell fragment of a merge whose rows a sort scattered`; the two guards have to
 move together, and removing either one turns a spec red.
 
+## A shrinking `loadData` leaves the collection addressing cells that are gone
+
+The plugin registers **no `afterLoadData` hook**, so `loadData` (and `updateSettings({ data })`,
+which routes to `updateData`) replaces the dataset while `mergedCellsCollection` keeps the previous
+grid's merges. Nothing draws them past the grid, but `#resetMergedCellMeta` walks every cell a
+dropped merge covers into `removeCellMeta` — `hidden` and `copyable` per cell, then `spanned`,
+`rowspan`, `colspan` on the master. On released 18.1.1 MergeCells did NOT throw there (0 of 18
+shape x `loadData`/`updateData`/`updateSettings({ data })` x emptying/replacing runs threw, measured
+on the merge base); it ORPHANED the merge meta. On 8x8 data merged at
+`{ row: 6, col: 6, rowspan: 2, colspan: 2 }`, an `updateData` to 3x3, `updateSettings({ mergeCells: [] })`
+and a regrow to 8x8 left `hidden`/`copyable` on the old block, so `getCopyableText(6, 6, 7, 7)`
+returned `"6-6\t\n\t"` instead of the four cell values. Only CustomBorders threw
+`Assertion failed: Expecting an unsigned number` on that path (its `#resetBorderModel`). The
+real-world path is `importFile`, which applies a result as `loadData` plus
+`updateSettings({ mergeCells, … })`: importing a smaller sheet over a previous import whose merge
+sat near the bottom or right edge.
+
+**The cause was a core asymmetry, and it is fixed in `Core#removeCellMeta`, not here.**
+`Core#setCellMeta` passes an index outside the current range through as the physical one;
+`removeCellMeta` used to translate unconditionally, so such an index became `null` and the meta
+manager's `assertUnsignedKey` threw. `removeCellMeta` now reads an out-of-range index the same way
+its sibling writes one, so `#resetMergedCellMeta` carries **no bounds guard**: it removes the meta
+by the raw coordinates the merge was recorded with, and a plugin-local guard here would be a second
+copy of a core-owned rule (it was one, for two commits).
+
+The removal is not cosmetic on the `updateData` path. Core drops the cell meta only in `loadData`
+(`metaManager.clearCellsCache()`); `updateData` — and therefore `updateSettings({ data })` — keeps
+it by physical row. So after a shrink through `updateData`, a reset, and a regrow, the old merge's
+`hidden` / `copyable` / `spanned` / `rowspan` / `colspan` are still on live cells unless the reset
+actually clears them; skipping the write left `getCopyableText()` blanking the old merge area.
+
+**`#resetMergedCellMeta` is the single funnel.** It is the plugin's only walk into `removeCellMeta`
+(the writing side, `mergeRange`, only ever addresses the live range the user selected, and
+`MergedCellsCollection#clear()` reaches the DOM through `getCell()`, which answers `null` out of
+range). Since DEV-3135 it resolves the merge's columns to PHYSICAL indexes before removing anything,
+and **a column past `countCols()` must resolve to itself**, not be skipped: `toPhysicalColumn()`
+answers `null` for it, and skipping it cleared nothing after a shrink (the `updateData` case below
+went red when DEV-3135 met this branch). The rows need no such rule — they come from the merge's
+recorded anchor, already physical, and a physical row with no visual index is removed through the
+meta manager directly. Every reset path funnels through it: `clearCollections()` (called by `disablePlugin()`, so by
+`updatePlugin()` and therefore by the whole `mergeCells` settings path, and by SheetsBar's
+`resetViewState`) and `unmergeRange()` (the context menu, `Ctrl`+`M`, `unmerge()`, the paste handler
+and every UndoRedo merge action).
+
+**The `afterLoadData` hook was deliberately NOT added**, for two reasons beyond the CustomBorders one
+(the core clears cell meta on `loadData` and keeps it on `updateData`, so a hook that cleared the
+collection would drop merges the user still sees after a same-size `loadData`). First, a hook that
+pruned only *out-of-range* merges would have to read the bound off `mergedCells` — the list this
+file's second section says is **not** the authority on visibility, whose entries are deliberately
+kept with stale visual coordinates while their rows are trimmed, and which is restored whole once
+those rows come back. A bounds test there cannot tell "the dataset shrank" from "these coordinates
+are frozen from the moment the merge was purged". Second, `sheetsBar`'s `resetViewState` documents
+that it *relies* on the collection surviving `loadData` and clears it itself through
+`clearCollections()`. Pinned by `__tests__/shrinkingLoadData.unit.js`, which covers the bottom-only,
+right-only, corner and exact-boundary (`row === countRows()`) shapes, a same-size control proving an
+in-range merge still has its `spanned`/`rowspan`/`colspan`/`hidden` meta removed, and the
+`updateData` shrink → reset → regrow regression (the meta is gone and `getCopyableText()` returns
+the cell values). The core rule itself is pinned by
+`src/__tests__/core/removeCellMeta.unit.js`.
+
 ## SheetsBar goes through members MergeCells owns, never the collection
 
 A sheet switch captures and restores merges around its `loadData()`. It calls
@@ -418,8 +478,10 @@ span. Three sites agree on that rule, and a fourth lives in Walkontable:
   `setDataAtCell(8, ...)`, not the origin) and a long wrapped text would size the clone's rows, which are only
   as tall as a plain row. The master draws the block's content.
 - `#onModifyRowHeightByOverlayName` still skips the bottom overlays on purpose (no height inflation there).
-- Covered by `tests/e2e/merge-cells-frozen-bottom.spec.ts` (both modes; corner overlay; hidden rows; area
-  selection; long text; press on the clone's outline). Its page object reads the outline through
+- Covered by `tests/e2e/merge-cells-frozen-bottom.spec.ts`: the carrier, the corner overlay, hidden rows, area
+  selection and a press on the clone's outline in the default mode (the fixture's master renders every row, so
+  the `virtualized` clamp is the identity there), a long text in both modes, and a block the master renders none
+  of with `virtualized` on. Its page object reads the outline through
   `mergedBlockSelection()`, so keep that block in column 1: a block in column 0 has its left edge under the
   row-header clone's holder and that helper then reports an edge missing for a reason unrelated to this rule.
 - Not changed: a merge that crosses the line is still accepted, and `fixedRowsBottom` moving later (a settings
@@ -679,22 +741,26 @@ starting on its first column, is anchored in the clone and needs nothing.
   the continuation of the inline-end clone, the bottom clone and the master are unchanged. Supported, in LTR and RTL
   and with `virtualized` on and off: a block anchored in the band that crosses the bottom line (outline and fill
   handle included), and a block anchored in the master that reaches into the band and into the bottom rows (its cells
-  render correctly in every clone). Pinned by `tests/e2e/merge-cells-frozen-bottom-end.spec.ts`.
+  render correctly in every clone). Pinned by `tests/e2e/merge-cells-frozen-bottom-end.spec.ts`: the carrier and the
+  clone continuations in LTR with `virtualized` off (the carrier rule has no direction term, and the fixture's master
+  renders every row and column, so the clamp is the identity), and the outline and fill handle in both directions,
+  with `virtualized` on for the block that reaches in from the master.
 - **A block anchored in the master that reaches into the band is selected like any other block.** `Table#getCell`
   resolves it to an END overlay's first rendered column, the column-side twin of the first-rendered-row rule. The gate
   is the three end overlays: the start overlays hold the first columns and never miss a block's origin. The end clone
   fills its part and draws the outline and the fill handle. With `virtualized` the hook clamps the block's first
   column to the band, so `Border#resolveMergedBlockEdges` asks for the block's own first column (`'meta'` source) to
-  keep the start edge off the freeze line. Pinned by `tests/e2e/merge-cells-frozen-selection.spec.ts` (LTR, RTL,
-  `virtualized` on and off).
+  keep the start edge off the freeze line. Pinned by `tests/e2e/merge-cells-frozen-selection.spec.ts`: every block
+  shape in LTR, the corner and boundary shapes in RTL, and the one-row block with `virtualized` on, which stands for
+  the others because `Border#resolveMergedBlockEdges` looks the block up again for every inline-end clone.
 - **Still NOT supported (measured without `fixedRowsBottom` too, in the default mode, so the bottom rows do not cause them):**
   - A block that covers EVERY column of an end clone (for example `fixedColumnsEnd: 2` and a block over both columns).
     The rows below its first have no displayed cell in that clone, a table row with none has no height, and the
     block's cell is one row tall (`rowspan="4"`, 29 px) in the inline-end clone and in the bottom end corner. The row
     headers keep the rows tall in the master and in the start clones; the end clones have none. Keep one band column
     that no block covers.
-- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (LTR and RTL, `virtualized` on and off) and
-  `__tests__/overlayBounds.unit.ts`.
+- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (every case in LTR with `virtualized` on and off, and the
+  crossing case in RTL with `virtualized` off) and `__tests__/overlayBounds.unit.ts`.
 
 ## `getSourceDataAtCell` takes a visual column
 

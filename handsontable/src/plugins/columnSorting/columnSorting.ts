@@ -881,7 +881,7 @@ export class ColumnSorting extends BasePlugin {
       const indexAfter = indexesAfter[i];
 
       // A widening `getNumberOfRowsToSort()` override puts a visual index past the mapper's reach in
-      // the band and `toPhysicalRow()` answers `null` for it. A typed array coerces that `null` to
+      // the band and the gather's `?? null` read answers `null` for it. A typed array coerces that `null` to
       // `0`, which would remap the row onto physical row 0 and duplicate it; the `Map` this replaced
       // fell through to the row's own index instead. Skipping the pair reproduces that.
       if (isUnsignedNumber(indexBefore) && isUnsignedNumber(indexAfter)) {
@@ -921,19 +921,25 @@ export class ColumnSorting extends BasePlugin {
    */
   #gatherBand(sortConfigs: SortConfig[], from: number, to: number) {
     // A plain array, never an `Int32Array`: `getNumberOfRowsToSort()` is an overridable seam, and a
-    // widening override makes `toPhysicalRow()` return `null`, which a typed array would store as
+    // widening override makes the gather's `?? null` read answer `null`, which a typed array would store as
     // the real physical row 0.
     const physicalRows: number[] = [];
     // The highest physical index is tracked in the gather pass: it sizes the remap table in the
     // caller and costs nothing extra here.
     let highestPhysicalIndex = -1;
+    // Rebuilt from the sequence, once. `sortByPresetSortStates()` has just reset the sequence, and the
+    // mapper does not rebuild `notTrimmedIndexesCache` while it is batched, so `toPhysicalRow()` would
+    // answer with the previous sort's order and the remap would land on the reset one. Not a per-row
+    // `toPhysicalRow()` again: that read is the defect.
+    const notTrimmedIndexes = this.hot.rowIndexMapper.getNotTrimmedIndexes(false);
 
     for (let visualRowIndex = from; visualRowIndex < to; visualRowIndex += 1) {
-      const physicalIndex = this.hot.toPhysicalRow(visualRowIndex);
+      // `undefined` past the mapper's reach becomes `null`, as `toPhysicalRow()` answers it.
+      const physicalIndex = notTrimmedIndexes[visualRowIndex] ?? null;
 
       physicalRows.push(physicalIndex);
 
-      // Guarded where the value is first read: `toPhysicalRow()` answers `null` for a visual index
+      // Guarded where the value is first read: the `?? null` read above answers `null` for a visual index
       // the mapper does not reach, and `null > -1` is `true`, so an unguarded comparison would make
       // `highestPhysicalIndex` itself `null` and size the remap table at 1.
       if (isUnsignedNumber(physicalIndex) && physicalIndex > highestPhysicalIndex) {

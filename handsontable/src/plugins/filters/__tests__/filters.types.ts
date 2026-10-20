@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import type { AvailableConditions, AvailableConditionsRule } from 'handsontable/plugins/filters';
+import type { AvailableCondition, AvailableConditions, AvailableConditionsRule } from 'handsontable/plugins/filters';
 
 // `availableConditions` is checked at both levels: in `FiltersSettings` and in the per-column
 // `FiltersColumnSettings`. The exported types are what a user annotates a value with.
@@ -195,6 +195,10 @@ filters.getDataMapAtColumn(1);
 filters.destroy();
 
 const conditions: ColumnConditions[] = filters.exportConditions();
+const availableConditions: AvailableCondition[] = filters.getAvailableConditions(1);
+const availableByNamespace: Handsontable.plugins.Filters.AvailableCondition[] = availableConditions;
+
+availableByNamespace.forEach(({ name, inputsCount }) => filters.addCondition(1, name, new Array(inputsCount).fill('')));
 const selectedColumn = filters.getSelectedColumn();
 
 if (selectedColumn !== null) {

@@ -1,11 +1,11 @@
-import { test, THEMES_TAG } from '../fixtures/test';
+import { test } from '../fixtures/test';
 import { ColWidthsPhysicalPage } from '../fixtures/pages/ColWidthsPhysicalPage';
 
 /**
  * `colWidths` addresses a column by its physical index, so a width stays with its column when
  * the column is moved (DEV-918).
  */
-test.describe('colWidths by physical column index', { tag: THEMES_TAG }, () => {
+test.describe('colWidths by physical column index', () => {
   let grid: ColWidthsPhysicalPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { GridLayoutsPage } from '../fixtures/pages/GridLayoutsPage';
 
 /**
@@ -21,7 +21,7 @@ const MERGES = [
   { row: 2, col: 40, rowspan: 8, colspan: 1 },
 ];
 
-test.describe('Shift+Arrow on a header selection ignores the merged cells it crosses', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
+test.describe('Shift+Arrow on a header selection ignores the merged cells it crosses', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: GridLayoutsPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
