@@ -92,6 +92,36 @@ export class SheetsBarInFlightDragPage extends SheetsBarInFlightWorkPage {
   }
 
   /**
+   * Whether the gesture of a kind is in progress, read from the state its plugin keeps while it runs.
+   */
+  isDragInProgress(kind: 'cellMove' | 'rowMove' | 'columnResize' | 'fill' | 'freeze'): Promise<boolean> {
+    return this.page.evaluate((gesture) => {
+      const { hot } = window;
+
+      switch (gesture) {
+        case 'cellMove':
+          return hot.getPlugin('moveCells').isDragActive();
+        case 'rowMove':
+          return hot.rootElement.classList.contains('on-moving--rows');
+        case 'columnResize':
+          return !!document.querySelector('.manualColumnResizerGuide.active');
+        case 'fill':
+          return !!(hot.getPlugin('autofill') as unknown as { mouseDownOnCellCorner: boolean }).mouseDownOnCellCorner;
+        default:
+          return hot.rootElement.classList.contains('ht-freeze-bar-dragging');
+      }
+    }, kind);
+  }
+
+  /**
+   * Sends the grid its own data again through `updateData()`, the way a framework wrapper does on a
+   * re-render, while the pointer is held.
+   */
+  updateDataInPlace(): Promise<void> {
+    return this.page.evaluate(() => window.hot.updateData(window.hot.getSourceData()));
+  }
+
+  /**
    * Releases the held pointer button.
    */
   async release(): Promise<void> {

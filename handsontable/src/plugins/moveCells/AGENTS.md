@@ -76,9 +76,9 @@ off the edge.
 
 ## A drag ends when the data is replaced
 
-`beforeLoadData` and `beforeUpdateData` end a held drag through `#endDrag(false, null)`, the path Escape and
+`beforeLoadData` ends a held drag through `#endDrag(false, null)`, the path Escape and
 `disablePlugin()` use. The drag names cells of the data it started on, and the release moved the cells of the data
-that replaced it (a sheets bar switch). Pinned by `tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
+that replaced it (a sheets bar switch). Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. Pinned by `tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
 
 ## Where to look next
 

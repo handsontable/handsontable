@@ -113,7 +113,6 @@ export class MoveCells extends BasePlugin {
     this.addHook('afterOnSelectionEdgeMouseDown', this.#onSelectionEdgeMouseDown);
     this.addHook('afterScroll', this.#onAfterScroll);
     this.addHook('beforeLoadData', this.#onBeforeDataReplace);
-    this.addHook('beforeUpdateData', this.#onBeforeDataReplace);
     this.#registerShortcuts();
     super.enablePlugin();
   }
@@ -400,7 +399,7 @@ export class MoveCells extends BasePlugin {
   };
 
   /**
-   * Cancels a drag held while the grid's data is replaced (`loadData()`, `updateData()`, a sheet
+   * Cancels a drag held while the grid's data is replaced (`loadData()`, a sheet
    * switch). The drag names the cells of the data it started on, and its release would move the cells
    * of the data that replaced it.
    */

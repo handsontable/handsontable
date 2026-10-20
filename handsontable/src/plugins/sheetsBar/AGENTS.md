@@ -585,7 +585,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     mirrors EmptyDataState's `isViewChange`.
   - **Gestures and async work are each plugin's own.** MoveCells, ManualRowMove,
     ManualColumnResize (`ResizeGesture#abort()`), Autofill and FreezeBar cancel a held drag on
-    `beforeLoadData`/`beforeUpdateData`; AutoColumnSize cancels its idle-task sweep; ImportFile
+    `beforeLoadData` (never on `updateData()`, which the React wrapper sends on every re-render); AutoColumnSize cancels its idle-task sweep; ImportFile
     rejects an import whose read spans a `loadData()`; ExportFile rejects a `downloadFileAsync()`
     whose overlay wait spans one; DataProvider refetches a server sheet whose create finished while
     it was hidden, even with `refetchAfterCreate: false`. The bar does not know about any of them,

@@ -418,7 +418,6 @@ export class AutoColumnSize extends BasePlugin {
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeLoadData', this.#onBeforeDataReplace);
-    this.addHook('beforeUpdateData', this.#onBeforeDataReplace);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
@@ -1183,7 +1182,7 @@ export class AutoColumnSize extends BasePlugin {
   };
 
   /**
-   * Stops a sweep still measuring the data that is being replaced (`loadData()`, `updateData()`, a sheet
+   * Stops a sweep still measuring the data that is being replaced (`loadData()`, a sheet
    * switch). Its row range and its last column describe that data, so its next chunk sampled cells the new
    * data does not have, and left the ghost table broken for every later render.
    */

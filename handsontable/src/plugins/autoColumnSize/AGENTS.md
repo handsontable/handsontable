@@ -180,11 +180,11 @@ caveat is in the class JSDoc — keep it there.
 
 The columns past `syncLimit` are measured in idle tasks (`requestIdleTask`), and each sweep keeps its row range and
 last column in its own closure. The plugin keeps the pending task in `#sweepTask`, and `#cancelSweep()` cancels it
-when a new sweep starts, on `beforeLoadData`/`beforeUpdateData`, and on a real disable or destroy (`updatePlugin()`
+when a new sweep starts, on `beforeLoadData`, and on a real disable or destroy (`updatePlugin()`
 does not disable, so a wrapper re-render keeps the sweep). Before that, a sweep left running when the data was
 replaced (a sheets bar switch away from a wide sheet) sampled cells the new data does not have, the ghost table kept a
 column it never built, and every later render threw `Cannot read properties of undefined (reading
-'getBoundingClientRect')`. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts` ("leaves a wide sheet...").
+'getBoundingClientRect')`. Not on `updateData()`: the React wrapper sends `data` on every re-render, and nothing restarts the sweep after an `updateData()`. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts` ("leaves a wide sheet...").
 
 ## Where to look next
 

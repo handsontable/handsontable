@@ -247,7 +247,6 @@ export class Autofill extends BasePlugin {
       (_: MouseEvent, coords: CellCoords) => this.#onBeforeCellMouseOver(coords));
     this.addHook('afterScroll', this.#onAfterScroll);
     this.addHook('beforeLoadData', this.#onBeforeDataReplace);
-    this.addHook('beforeUpdateData', this.#onBeforeDataReplace);
 
     super.enablePlugin();
     this.#renderAfterRuntimeToggle();
@@ -1177,7 +1176,7 @@ export class Autofill extends BasePlugin {
   }
 
   /**
-   * Ends a corner gesture held while the grid's data is replaced (`loadData()`, `updateData()`, a sheet
+   * Ends a corner gesture held while the grid's data is replaced (`loadData()`, a sheet
    * switch). The fill extends the selection the drag started from, and on release it filled the cells of
    * the data that replaced it.
    */

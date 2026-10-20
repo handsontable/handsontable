@@ -189,7 +189,6 @@ export class FreezeBar extends BasePlugin {
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
     this.addHook('afterScrollHorizontally', this.#onScroll);
     this.addHook('beforeLoadData', this.#onBeforeDataReplace);
-    this.addHook('beforeUpdateData', this.#onBeforeDataReplace);
     this.#registerShortcuts();
 
     super.enablePlugin();
@@ -470,7 +469,7 @@ export class FreezeBar extends BasePlugin {
   };
 
   /**
-   * Cancels a drag held while the grid's data is replaced (`loadData()`, `updateData()`, a sheet switch). The drag
+   * Cancels a drag held while the grid's data is replaced (`loadData()`, a sheet switch). The drag
    * measured the tracks of the data it started on, and with the sheets bar the count it would write belongs to the
    * sheet that was left.
    */

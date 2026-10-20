@@ -205,6 +205,25 @@ export class SheetsBarInFlightWorkPage {
   }
 
   /**
+   * Starts measuring every column again and sends the grid its own data through `updateData()` in the
+   * same task, the way a framework wrapper re-renders. Answers whether the measuring was running before
+   * and after the update.
+   */
+  updateDataDuringColumnSweep(): Promise<{ before: boolean, after: boolean }> {
+    return this.page.evaluate(() => {
+      const autoColumnSize = window.hot.getPlugin('autoColumnSize');
+
+      autoColumnSize.recalculateAllColumnsWidth();
+
+      const before = autoColumnSize.inProgress;
+
+      window.hot.updateData(window.hot.getSourceData());
+
+      return { before, after: autoColumnSize.inProgress };
+    });
+  }
+
+  /**
    * Whether AutoColumnSize is still measuring columns.
    */
   isColumnSweepRunning(): Promise<boolean> {

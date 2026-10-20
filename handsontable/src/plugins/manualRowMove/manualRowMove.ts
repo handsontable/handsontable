@@ -122,7 +122,6 @@ export class ManualRowMove extends BasePlugin {
     this.addHook('afterScrollHorizontally', this.#onAfterScrollHorizontally);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeLoadData', this.#onBeforeDataReplace);
-    this.addHook('beforeUpdateData', this.#onBeforeDataReplace);
 
     this.buildPluginUI();
     this.registerEvents();
@@ -704,7 +703,7 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Cancels a row drag held while the grid's data is replaced (`loadData()`, `updateData()`, a sheet
+   * Cancels a row drag held while the grid's data is replaced (`loadData()`, a sheet
    * switch). The rows it holds are indexes of the data it started on, and the release would move the
    * rows of the data that replaced it.
    */

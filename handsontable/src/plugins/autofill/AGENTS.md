@@ -346,9 +346,9 @@ The fill handle arms DragToScroll through `afterOnCellCornerMouseDown`, and Drag
 
 ## A corner gesture ends when the data is replaced
 
-`beforeLoadData` and `beforeUpdateData` run `#resetDragState()` while `mouseDownOnCellCorner` is set. A switch clears
+`beforeLoadData` runs `#resetDragState()` while `mouseDownOnCellCorner` is set. A switch clears
 the fill preview, but the next `mouseover` redrew it on the arriving sheet's restored selection, and the release
-filled that sheet. Gated on the flag, per the rule above. Pinned by `tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
+filled that sheet. Gated on the flag, per the rule above. Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. Pinned by `tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
 
 ## Where to look next
 
