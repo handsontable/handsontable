@@ -6,7 +6,7 @@ import { isKey } from '../../../helpers/unicode';
 import { clone } from '../../../helpers/object';
 import * as C from '../../../i18n/constants';
 import { BaseComponent } from './_base';
-import getOptionsList, { CONDITION_NONE } from '../constants';
+import { CONDITION_NONE } from '../constants';
 import { InputUI } from '../ui/input';
 import { SelectUI } from '../ui/select';
 import { getConditionDescriptor } from '../conditionRegisterer';
@@ -253,12 +253,10 @@ export class ConditionComponent extends BaseComponent {
 
     if (selectedColumn !== null && this.hot) {
       const { visualIndex } = selectedColumn;
+      const filters = this.hot.getPlugin('filters');
 
-      this.#columnType = this.#getColumnDataType(visualIndex);
-      items = getOptionsList(
-        this.#columnType ?? 'text',
-        this.hot.getPlugin('filters')._getAvailableConditions(visualIndex),
-      );
+      this.#columnType = filters._getColumnDataType(visualIndex);
+      items = filters._getConditionOptions(visualIndex, this.#columnType);
     }
 
     arrayEach(this.getInputElements(), element => element.hide());
@@ -286,16 +284,6 @@ export class ConditionComponent extends BaseComponent {
     }
 
     return command.inputType ?? 'text';
-  }
-
-  /**
-   * Gets the data type of the whole column.
-   *
-   * @param {number} visualIndex The visual column index.
-   * @returns {string | undefined}
-   */
-  #getColumnDataType(visualIndex: number): string | undefined {
-    return this.hot?.getDataType(0, visualIndex, Math.max(this.hot.countRows() - 1, 0), visualIndex);
   }
 
   /**
