@@ -351,6 +351,7 @@ export class AsyncValues extends BasePlugin {
       flush: 'microtask' as AsyncValuesSettings['flush'],
       concurrency: DEFAULT_CONCURRENCY,
       copyPendingAs: 'previous' as AsyncValuesSettings['copyPendingAs'],
+      saveToDataProvider: false,
     };
   }
 
@@ -363,6 +364,7 @@ export class AsyncValues extends BasePlugin {
         (typeof value === 'number' && value >= 0 && Number.isFinite(value)),
       concurrency: (value: unknown) => value === Infinity || (Number.isInteger(value) && (value as number) >= 1),
       copyPendingAs: (value: unknown) => value === 'previous' || value === 'empty',
+      saveToDataProvider: (value: unknown) => typeof value === 'boolean',
     };
   }
 
@@ -447,6 +449,12 @@ export class AsyncValues extends BasePlugin {
    * flush has written.
    */
   #applyDepth = 0;
+
+  /**
+   * The cells whose resolved value the grid stored and that wait for the next save through DataProvider
+   * (`saveToDataProvider`), by row state.
+   */
+  #saveQueue = new Map<RowState, Set<AsyncValueProp>>();
 
   /**
    * The calls ready to be finalized once the running flush has written.
@@ -570,6 +578,7 @@ export class AsyncValues extends BasePlugin {
     this.#cancelFlush?.();
     this.#cancelFlush = null;
     this.#settled = [];
+    this.#saveQueue.clear();
     this.#queue.clear();
     this.#states.clear();
     this.#replacingData = false;
@@ -1830,6 +1839,7 @@ export class AsyncValues extends BasePlugin {
       // Finalized here rather than a task later, so a caller that awaits the call, and an
       // `afterAsyncValuesIdle` listener, already find the call's undo step.
       this.#readyRuns.splice(0).forEach(run => this.#finalizeRun(run));
+      this.#saveLanded();
     }
   }
 
@@ -2741,8 +2751,83 @@ export class AsyncValues extends BasePlugin {
       return;
     }
 
+    this.#queueSave(state, prop, write?.run.options.undo === 'record');
+
     if (write && !write.landed && state.writes.get(prop) === write) {
       this.#landWrite(state, prop, write);
+    }
+  }
+
+  /**
+   * Queues a landed value for the save through DataProvider, when the option is on. A value of a call that
+   * records an undo step is never saved, because DataProvider keeps the local undo stack out of its own
+   * saves.
+   *
+   * @param {object} state The row state.
+   * @param {string|number} prop The property of the cell.
+   * @param {boolean} recorded Whether the value's call records an undo step.
+   */
+  #queueSave(state: RowState, prop: AsyncValueProp, recorded: boolean): void {
+    if (!this.getSetting('saveToDataProvider')) {
+      return;
+    }
+
+    if (recorded) {
+      warnOnce(this, 'asyncValues.saveUndo',
+        'asyncValues: `saveToDataProvider` does not save the values of a call with `undo: \'record\'`.');
+
+      return;
+    }
+
+    const props = this.#saveQueue.get(state);
+
+    if (props) {
+      props.add(prop);
+
+    } else {
+      this.#saveQueue.set(state, new Set([prop]));
+    }
+
+    // A value that lands inside a flush is saved when the flush ends; a validated one lands a task later.
+    if (this.#applyDepth === 0) {
+      this.hot._registerMicrotask(() => this.#saveLanded());
+    }
+  }
+
+  /**
+   * Saves the queued values with one `updateRows()` call. The row ids come from core, so a row trimmed by a
+   * filter is saved too. A failed save leaves the cell resolved: DataProvider reports it through
+   * `afterRowsMutationError`.
+   */
+  #saveLanded(): void {
+    if (this.#saveQueue.size === 0 || this.#isGone()) {
+      return;
+    }
+
+    const queued = [...this.#saveQueue];
+    const rows: Array<{ id: unknown; changes: Record<string, unknown> }> = [];
+
+    this.#saveQueue.clear();
+
+    queued.forEach(([state, props]) => {
+      const id = state.dropped ? null : this.#rowIdOf(state.physicalRow);
+
+      if (id === null || id === undefined) {
+        return;
+      }
+
+      const changes: Record<string, unknown> = {};
+
+      props.forEach((prop) => {
+        changes[String(prop)] = this.#readSource(state.physicalRow, prop);
+      });
+      rows.push({ id, changes });
+    });
+
+    const dataProvider = this.hot.getPlugin('dataProvider');
+
+    if (rows.length > 0 && dataProvider?.enabled) {
+      dataProvider.updateRows(rows).catch(() => {});
     }
   }
 

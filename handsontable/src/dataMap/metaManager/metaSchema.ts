@@ -608,6 +608,7 @@ export default (): Record<string, unknown> => {
      * | `flush`         | `'microtask'` (default), `'frame'`, or a number  | When settled requests are written: right after the task they settled in, once per animation frame, or after a number of milliseconds that collects results |
      * | `concurrency`   | A number (default: `6`), or `Infinity`           | The maximum number of sources running at once (a batch counts as one); further requests stay pending until a slot frees |
      * | `copyPendingAs` | `'previous'` (default) or `'empty'`              | What copying a pending cell puts on the clipboard                                                 |
+     * | `saveToDataProvider` | `false` (default) or `true`                 | Saves each resolved value through the [`dataProvider`](#dataprovider) `onRowsUpdate` callback, in one call per flush |
      *
      * The plugin can't be enabled together with the [`nestedRows`](#nestedrows) option, because NestedRows
      * moves rows without keeping their physical indexes.

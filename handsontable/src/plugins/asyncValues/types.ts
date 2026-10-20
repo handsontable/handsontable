@@ -193,4 +193,10 @@ export interface AsyncValuesSettings {
    * or `'empty'`.
    */
   copyPendingAs?: 'previous' | 'empty';
+  /**
+   * Saves each resolved value through the DataProvider's `onRowsUpdate`, with one `updateRows()` call per
+   * flush. Needs `dataProvider` and its `rowId`. The values of a call with `undo: 'record'` are not saved.
+   * Default: `false`.
+   */
+  saveToDataProvider?: boolean;
 }

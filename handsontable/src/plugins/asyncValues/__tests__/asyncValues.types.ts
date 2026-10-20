@@ -8,7 +8,7 @@ import {
 } from 'handsontable/plugins/asyncValues';
 
 const hot = new Handsontable(document.createElement('div'), {
-  asyncValues: { flush: 'frame', concurrency: 4, copyPendingAs: 'empty' },
+  asyncValues: { flush: 'frame', concurrency: 4, copyPendingAs: 'empty', saveToDataProvider: true },
   rowId: 'id',
 });
 const asyncValues = hot.getPlugin('asyncValues');
