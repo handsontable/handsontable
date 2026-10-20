@@ -101,6 +101,27 @@ export function getRowIdByVisualRow(
 }
 
 /**
+ * Reads the id of a row for a CRUD payload. A function key that throws is logged and read as a missing id, so an
+ * update takes the missing-id path (revert, `afterRowsMutationError`) instead of rejecting inside the mutation
+ * queue, where nothing would report it, and a removal raises the missing-id error instead of the key's own.
+ *
+ * @param {Core} hot Handsontable instance.
+ * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
+ * @param {number} visualRow Visual row index.
+ * @returns {*|undefined}
+ */
+function readRowIdOrUndefined(hot: HotInstance, rowIdOption: RowIdOption, visualRow: number): unknown {
+  try {
+    return getRowIdByVisualRow(hot, rowIdOption, visualRow);
+
+  } catch (err) {
+    logError('Reading the row id failed:', err);
+
+    return undefined;
+  }
+}
+
+/**
  * True when a value cannot be used as a server row id (`null` and `undefined` only).
  *
  * @param {*} id Resolved row id.
@@ -151,7 +172,7 @@ export function rowIdsFromAlterRemove(
       const v = start + r;
 
       if (v >= 0 && v < n()) {
-        const id = getRowIdByVisualRow(hot, rowIdOption, v);
+        const id = readRowIdOrUndefined(hot, rowIdOption, v);
 
         if (isMissingRowId(id)) {
           throwWithCause(dataProviderErrorRemoveMissingRowId(v));
@@ -538,27 +559,6 @@ function validatePreparedRows(
 }
 
 /**
- * Reads the id of an edited row for an update payload. A function key that throws is logged and read as a missing
- * id, so the update takes the missing-id path (revert, `afterRowsMutationError`) instead of rejecting inside the
- * mutation queue, where nothing would report it.
- *
- * @param {Core} hot Handsontable instance.
- * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
- * @param {number} visualRow Visual row index.
- * @returns {*|undefined}
- */
-function readUpdateRowId(hot: HotInstance, rowIdOption: RowIdOption, visualRow: number): unknown {
-  try {
-    return getRowIdByVisualRow(hot, rowIdOption, visualRow);
-
-  } catch (err) {
-    logError('Reading the row id failed:', err);
-
-    return undefined;
-  }
-}
-
-/**
  * Groups cell changes by row and builds one `{ id, changes, rowData }` payload per row from the rows the grid
  * shows now. With `validateNow`, the cells are validated now too, against the same rows.
  *
@@ -588,7 +588,7 @@ export function prepareUpdateFromChanges(
     const { changesObj, rowData } = buildChangesAndRowData(hot, byRow.get(vr)!);
 
     return {
-      id: readUpdateRowId(hot, rowIdOption, vr),
+      id: readRowIdOrUndefined(hot, rowIdOption, vr),
       changes: changesObj,
       rowData,
     };

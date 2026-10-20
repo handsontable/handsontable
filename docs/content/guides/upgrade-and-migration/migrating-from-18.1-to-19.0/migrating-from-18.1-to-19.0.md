@@ -1890,7 +1890,7 @@ Handsontable also reads the id from the source row itself, not from a copy of it
 You are affected only if one of these is true:
 
 - Your rows have a key with a dot in its name that matches `dataProvider.rowId`, next to a nested object at the same path. The id is now the value under the dotted key, the one the cell shows.
-- `dataProvider.rowId` is a function that reads a nested object, and your rows keep that value under a key with a dot in its name. In 18.1, the function received a copy in which [`dataDotNotation`](@/api/options.md#datadotnotation) had turned the dotted key into a nested object. It now receives the row itself, where the nested object does not exist. A function that throws there makes the update fail with the missing row id error.
+- `dataProvider.rowId` is a function that reads a nested object, and your rows keep that value under a key with a dot in its name. In 18.1, the function received a copy in which [`dataDotNotation`](@/api/options.md#datadotnotation) had turned the dotted key into a nested object. It now receives the row itself, where the nested object does not exist. A function that throws there is read as a missing id: an edit is reverted and reported through `afterRowsMutationError`, and removing the row raises the missing row id error.
 - A `modifySourceData` hook of yours changes the value `dataProvider.rowId` reads. The id is now the stored value.
 
 ### How to migrate

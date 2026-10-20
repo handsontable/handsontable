@@ -325,6 +325,23 @@ describe('dataProvider crud', () => {
 
       expect(() => rowIdsFromAlterRemove(hot, 'id', 0, 1)).toThrow(/visual index 0/);
     });
+
+    it('should raise the missing row id error when a function row key throws', () => {
+      const keyError = new TypeError('Cannot read properties of undefined');
+      const hot = {
+        countRows: () => 1,
+        toPhysicalRow: vr => vr,
+        getRowIdAtPhysicalRow: () => {
+          throw keyError;
+        },
+      };
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      expect(() => rowIdsFromAlterRemove(hot, row => row.sku.code, 0, 1)).toThrow(/visual index 0/);
+      expect(consoleError).toHaveBeenCalledWith('Reading the row id failed:', keyError);
+
+      consoleError.mockRestore();
+    });
   });
 
   describe('runUpdateFromChanges', () => {

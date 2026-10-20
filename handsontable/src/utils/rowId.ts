@@ -46,15 +46,15 @@ function readPath(rowData: SourceRowData, path: string): unknown {
 /**
  * Reads a string row key. The row's own property named exactly the key wins, a literal dotted key included, the
  * same as for a cell (`DataMap#get`). Otherwise a dotted key walks nested objects, whatever `dataDotNotation` says,
- * so a nested id keeps working when the option is off. A key without a dot is read through the prototype chain, so
- * a getter on a class instance row still gives the id.
+ * so a nested id keeps working when the option is off. The walk reads through the prototype chain, so a getter on
+ * a class instance row still gives the id.
  *
  * @param {object|Array} rowData The source row.
  * @param {string} key The row key.
  * @returns {*}
  */
 function readKey(rowData: SourceRowData, key: string): unknown {
-  if (hasOwnProperty(rowData, key) || !key.includes('.')) {
+  if (hasOwnProperty(rowData, key)) {
     return Reflect.get(rowData, key);
   }
 
