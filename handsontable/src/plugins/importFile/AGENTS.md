@@ -214,6 +214,12 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   first), not that `importFile` is `false`. `#assertAlive(phase)` names the step: `while the workbook was
   being read` right after the read, `before the import was applied` for the checks after it (a
   `beforeImport` handler that destroys the grid runs once the read has finished).
+- **`disablePlugin()` takes an apply ticket too** (review round 12), recorded as `#disabledAtTicket`, so an
+  import still reading when the plugin is turned off is rejected even after the plugin is turned back on:
+  `#assertEnabled()` sees only the state at apply time. `#assertLatest` calls `#assertEnabled()` first, so a
+  plugin still off keeps its `the plugin is disabled` message, and a re-enabled one gets `the plugin was
+  disabled while the file was being read`. Only a real `importFile: false` reaches `disablePlugin()`: the
+  plugin has no `updatePlugin()`, so a wrapper re-sending its settings mid-read cancels nothing.
 - **Overlapping applying imports are ordered by when they STARTED, not when they finish (T90).** Each
   `apply: true` call takes a ticket from `#latestApplyTicket` before its first `await` (in
   `importFromBlob` that is before `blob.arrayBuffer()`, so the two entry points share one sequence), and

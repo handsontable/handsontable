@@ -1065,6 +1065,38 @@ describe('ImportFile lifecycle guards around beforeImport', () => {
     expect(fake.calls.map(call => call[0])).toEqual([]);
   });
 
+  it('should reject a read that a disable and re-enable crossed, though the plugin is on again', async() => {
+    // `importFile: false` then `true` during the read (review round 12): the enabled check at apply
+    // time saw the plugin on again, and the stale import ran `loadData` and `afterImport`.
+    let plugin;
+    const engine = {
+      Workbook: class extends ExcelJS.Workbook {
+        constructor() {
+          super();
+
+          const load = this.xlsx.load.bind(this.xlsx);
+
+          this.xlsx.load = async(buffer) => {
+            const loaded = await load(buffer);
+
+            plugin.disablePlugin();
+            plugin.enablePlugin();
+
+            return loaded;
+          };
+        }
+      },
+    };
+
+    const fake = pluginWithFakeHot({ engines: { xlsx: engine } });
+
+    ({ plugin } = fake);
+
+    await expect(plugin.importFromArrayBuffer('xlsx', fixture('values')))
+      .rejects.toThrow(/the plugin was disabled while the file was being read/);
+    expect(fake.calls.map(call => call[0])).toEqual([]);
+  });
+
   it('should reject with a Handsontable error, not a TypeError, when beforeImport destroys the grid', async() => {
     const { plugin, hooks, calls } = pluginWithFakeHot(true);
 

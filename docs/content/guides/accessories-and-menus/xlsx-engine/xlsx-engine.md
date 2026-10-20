@@ -179,7 +179,7 @@ The workbook is untrusted input, and the plugins treat it that way.
 
 ## Concurrent imports
 
-When you start a new import before the previous one finishes, the last one wins. The earlier call is not applied: its promise rejects with `a newer import started before this one finished`, and `afterImport` does not fire for it, even when its file finishes reading first. An import with `apply: false` neither cancels another import nor is cancelled by one, and a call refused before it reads the file, such as one with an invalid option, cancels nothing either.
+When you start a new import before the previous one finishes, the last one wins. The earlier call is not applied: its promise rejects with `a newer import started before this one finished`, and `afterImport` does not fire for it, even when its file finishes reading first. An import with `apply: false` neither cancels another import nor is cancelled by one, and a call refused before it reads the file, such as one with an invalid option, cancels nothing either. Turning the plugin off with `importFile: false` while a file is being read cancels that import too, even if you turn the plugin back on before the read finishes: its promise rejects with `the plugin was disabled while the file was being read`.
 
 ## Test environments
 

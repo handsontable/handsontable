@@ -536,6 +536,12 @@ export class ImportFile extends BasePlugin {
   #latestApplyTicket = 0;
 
   /**
+   * The apply ticket `disablePlugin()` took last. An import whose ticket is lower was still reading
+   * when the plugin was disabled, so it is not applied even after the plugin is enabled again.
+   */
+  #disabledAtTicket = 0;
+
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -577,11 +583,15 @@ export class ImportFile extends BasePlugin {
   /**
    * Disables the plugin functionality for this Handsontable instance and removes the stylesheet a
    * previous import installed, so `htImported-*` rules stop painting cells whose meta still carries
-   * the class.
+   * the class. Every import still reading is made stale too: the enabled check at apply time sees
+   * only the state at the end of the read, so `importFile: false` and then `true` during a read let
+   * that read apply.
    */
   disablePlugin() {
     super.disablePlugin();
     removeImportedStyles(this.hot);
+    this.#latestApplyTicket += 1;
+    this.#disabledAtTicket = this.#latestApplyTicket;
   }
 
   /**
@@ -802,9 +812,19 @@ export class ImportFile extends BasePlugin {
    * an older file that finishes last cannot overwrite the newer one. No hook fires for it.
    */
   #assertLatest(ticket: number | null): void {
-    if (ticket !== null && ticket !== this.#latestApplyTicket) {
-      throwWithCause('ImportFile: a newer import started before this one finished, so its result was not applied.');
+    if (ticket === null || ticket === this.#latestApplyTicket) {
+      return;
     }
+
+    // A plugin still disabled names that cause, as it did before the disable took a ticket.
+    this.#assertEnabled();
+
+    if (ticket < this.#disabledAtTicket) {
+      throwWithCause('ImportFile: the plugin was disabled while the file was being read, so its result was not '
+        + 'applied.');
+    }
+
+    throwWithCause('ImportFile: a newer import started before this one finished, so its result was not applied.');
   }
 
   /**
