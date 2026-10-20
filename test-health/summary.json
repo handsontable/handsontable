@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-20T09:35:40.636Z",
+  "generatedAt": "2026-10-20T10:27:07.149Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -134,7 +134,7 @@
       "file": "e2e/selection-viewport-scroll.spec.ts",
       "line": 72,
       "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "count7": 7,
+      "count7": 6,
       "count30": 14,
       "countAll": 14,
       "runs30": 10,
@@ -536,7 +536,7 @@
       "file": "e2e/fixed-columns-end-core.spec.ts",
       "line": 60,
       "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
-      "count7": 1,
+      "count7": 0,
       "count30": 5,
       "countAll": 5,
       "runs30": 3,
