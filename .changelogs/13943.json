@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed object data with a `dataSchema` of non-null values and no `columns` option rendering every column blank. Every schema leaf now maps to a column.",
+  "type": "fixed",
+  "issueOrPR": 13943,
+  "breaking": false,
+  "framework": "none"
+}
