@@ -73,7 +73,7 @@ describe('expandNestedHeaderLayers', () => {
 
   it('should keep an empty placeholder label as one empty cell', () => {
     // A range that starts inside a span yields `{ label: '', colspan: 1 }` for that column
-    // (see DataProvider#_appendNestedHeaderWithoutHidden). The column must stay in the row so
+    // (see ExportDataProvider#_appendNestedHeaderWithoutHidden). The column must stay in the row so
     // the header lines keep the same column count as the data lines.
     const layers = [
       [{ label: '', colspan: 1 }, { label: '2025', colspan: 1 }],

@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
 
 registerAllModules();
 
@@ -16,10 +15,11 @@ const hotData = [
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
+
   const handleAfterInit = () => {
     const hot = hotRef.current?.hotInstance;
 
-    hot?.setCellMeta(0, 4, 'comment', { value: 'Top sales rep — review for promotion.' });
+    hot?.setCellMeta(0, 4, 'comment', { value: 'Top sales rep - review for promotion.' });
     hot?.render();
   };
 
@@ -81,11 +81,12 @@ const ExampleComponent = () => {
         ]}
         fixedColumnsStart={1}
         rowHeaders={true}
-        colHeaders={false}
+        comments={true}
+        colHeaders={true}
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
-        exportFile={{ engines: { xlsx: ExcelJS } }}
+        exportFile={true}
         afterInit={handleAfterInit}
         licenseKey="non-commercial-and-evaluation"
       />

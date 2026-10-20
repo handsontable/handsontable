@@ -45,7 +45,7 @@ the main thread. A single rAF shows nothing.
 
 ## CSV specifics
 
-- **Column header lines come from `DataProvider#getColumnHeaderRows()`, never `getColumnHeaders()`
+- **Column header lines come from `ExportDataProvider#getColumnHeaderRows()`, never `getColumnHeaders()`
   alone.** With the NestedHeaders plugin on, that method expands `getNestedColumnHeaders()` through
   `expandNestedHeaderLayers()` (`utils.ts`), one line per layer, a group label repeated across its
   colspan. The bottom-layer-only CSV was a bug (DEV-3033): XLSX and `copyPaste`'s
@@ -107,8 +107,53 @@ Unit conversions, all constants at the top of `types/xlsx.ts`:
 
 Other rules:
 
+- **`_createTypeFormatter` resolves the engine as `options.engine ?? engines[format]`, never by spreading
+  the options over a default.** It used to build `{ engine: <configured>, ...options }`, so a caller's
+  `engine: null` or `engine: undefined` WON, and `types/xlsx.ts` then mapped that `null` to the built-in
+  engine — a grid configured `exportFile: { engines: { xlsx: ExcelJS } }` silently wrote through the
+  native engine on `downloadFileAsync('xlsx', { engine: null })`, against the `ExportOptions.engine`
+  JSDoc. `null` and `undefined` mean "no override" on both sides now, through
+  `resolveEngineOverride(override, configured)` in `../../utils/xlsxEngine/detect.ts`, which `importFile`
+  uses too — change one plugin's resolution and you have re-opened the drift. A RESOLVED `null`/`undefined`
+  is then read as the built-in engine by `detectXlsxEngine` itself, so `types/xlsx.ts` maps nothing.
+- **The "To Excel" sub-item (`export_file:xlsx`) is hidden by `supportsExportFormat('xlsx')`, and that guard
+  must stay.** Once the built-in engine landed, the predicate answers `true` for the default setup and for
+  `engines: { xlsx: null }`, so the guard looks dead — it was removed once for that reason. It is not: an
+  `engines.xlsx` that does not duck-type answers `false`, and without the guard the item still shows and
+  every click fails with `Invalid xlsx engine module.` in the console only. Pinned by
+  `__tests__/contextMenuItem.unit.js`, which also pins the 18.1 to 19.0 migration guide's
+  `beforeContextMenuSetItems` recipe for removing only that sub-item.
+- **`exportFile: false` does NOT turn the plugin off, and that is documented, not fixed.** The parent
+  Export item's `hidden()` (`contextMenuItem/exportItem.ts`) tests `exportFile === undefined` only, and
+  `isEnabled()` always returns `true`, so `false` shows the menu entry and every export method still
+  works, exactly as in 18.1. Hiding on any falsy value would change released behavior, so the
+  `false` row in the `exportFile` table of `metaSchema.ts` and the export guide say it instead: only
+  an unset `exportFile` keeps the item out of the menu.
+- **A configured `engines: { xlsx: null }` means the built-in engine, everywhere, and `detect.ts` is the one
+  place that says so.** It is what `xlsx: useExcelJs ? ExcelJS : null` writes, and it used to get three
+  answers: `supportsExportFormat('xlsx')` answered `false` (the predicate reached `detectXlsxEngine(null)`,
+  which threw), the export SUCCEEDED (`types/xlsx.ts` mapped the resolved `null` to native, since `null` is
+  the option's own default), and `importFile` threw `Invalid xlsx engine module.` `detectXlsxEngine` now
+  reads a nullish value — `undefined` or `null` — as "no engine, so the built-in one", the same as an absent
+  key, and nothing else maps `null` on the way there. The refusal that stays is an entry that is present,
+  NON-nullish and does not duck-type (`{}`, `42`, `false`). Do not restore a `?? undefined` in
+  `types/xlsx.ts` or a `null` branch in either plugin: the predicate, the export and the import all have to
+  reach the same answer through the same code, and `exportFile.unit.js` ("export with a null engine entry")
+  and `importFile.unit.js` pin it on both sides.
+  The type is `engines?: Record<string, object | null>` in both plugins so the documented pattern compiles
+  under `strictNullChecks`; `exportFile.types.ts` and `importFile.types.ts` pin `{ xlsx: null }`.
 - **`exportFormulas` is off by default.** On, HyperFormula formula cells and ColumnSummary destinations
   export as **live Excel formulas**; off, the pre-calculated static values go out.
+- **`ExportDataProvider#getSourceData()` reads the formula by PHYSICAL row** (review round 12).
+  `_extractDataMatrix` walks visual indexes, and `getSourceDataAtCell` takes a physical row and a
+  visual column, so the row is translated with `toPhysicalRow` and the column is passed as it is.
+  Passing the visual row wrote another record's formula after a sort, a move, a trim or a filter,
+  next to this record's cached value and `t="e"` flag (`getFormulaErrorCodes()` maps through the
+  Formulas axis syncers, so it was right). The source formulas hold ENGINE row references (the
+  Formulas plugin rewrites them on every reorder, and the engine keeps trimmed rows), so
+  `getExcludedHiddenRows()` returns engine row indexes when the plugin is on: every row with no visual
+  index (the syncer answers `-1`) plus the excluded hidden rows. Without the plugin it keeps the
+  physical hidden rows. Pinned by `__tests__/xlsxFormulaRowOrder.unit.js`.
 - **`normalizeFormula` no longer owns the formula walk.** Splitting a formula into string literals, sheet
   names and A1 references lives in `../../utils/xlsxEngine/formulaRefs.ts` (`mapFormulaReferences`), shared
   with the import direction, which shifts the same references the other way. `normalizeFormula` keeps the
@@ -142,7 +187,9 @@ Other rules:
   larger. `#getCompressionLevel` therefore returns `6` for anything but `false` and a valid level;
   `xlsxValidationSheetName.unit.js` pins the `writeBuffer` options for unset, `false` and `3`, and
   `exceljsWrite.unit.js` pins STORE-vs-DEFLATE by SIZE (stored output larger than deflated on a repetitive
-  sheet), which is the only assertion that can tell the two apart at the adapter.
+  sheet), which is the only assertion that can tell the two apart at the adapter. The native engine has no
+  level: `false` stores, every other value deflates at the platform default; `nativeWrite.unit.js` pins
+  STORE-vs-DEFLATE by size.
 - **Sheet names are sanitized by the export, not by the engine.** ExcelJS throws for an illegal character
   (`* ? : / \ [ ]`), a leading or trailing `'`, the reserved name `History`, an empty name and a duplicate
   (compared case-INsensitively), so a grid named `Q1: Sales` used to abandon the whole export. ExcelJS
@@ -151,7 +198,8 @@ Other rules:
   about the fix and wrong about the reason.
   `#uniqueSheetName` sanitizes, then truncates to 31, then de-duplicates — **in that order**. Truncating
   last lets two 35-character names that differ only past character 31 pass the duplicate check and then
-  collide, which is why the counter's room is reserved inside the 31 characters. The `_HotValidation` helper
+  collide, which is why the counter's room is reserved inside the 31 characters. Control characters are
+  stripped as well, before the de-duplication, for the same ordering reason. The `_HotValidation` helper
   sheets are named from the SAME `usedSheetNames` set, which is what keeps a data sheet called
   `_HotValidation` away from its own helper. `xlsxValidationSheetName.unit.js` pins every case.
 - **Every exported workbook names `Handsontable` as its creator, and asks for a full recalculation when it
@@ -163,6 +211,20 @@ Other rules:
   renderer leaving an object or an array in the cell is all it takes.
 - **An overlapping merge is dropped, not thrown.** The adapter catches ExcelJS's
   `Cannot merge already merged cells`, records `merge:overlap` and skips that range.
+- **Every dropped-feature name the export can report is a row in the "Dropped features on export" table
+  of the XLSX engine page**
+  (`docs/content/guides/accessories-and-menus/xlsx-engine/`), the same rule
+  `importFile/AGENTS.md` states for the import direction's table on the same page: add to both or neither.
+  The names themselves are declared once, in `DROPPED_FEATURES` (`utils/xlsxEngine/capabilities.ts`), and
+  `DroppedFeatureName` narrows `DroppedFeatures#record()` to exactly those members — they are public
+  output, so a typo at one site would otherwise produce a different key for the same condition with
+  nothing to catch it. A name whose tail is the file's own value (an unsupported validation type, rule
+  kind or number format) is built by `DroppedFeatures#recordUnsupported(group, value)` instead, which
+  checks the group and leaves only the data-driven tail free; `record()` takes no template literal, so a
+  hand-written `conditionalFormatting:unparsedRefs` no longer type-checks.
+  The write direction owns `compressionLevel`, `merge:overlap`, the `conditionalFormatting:*`
+  names, and `cellText:truncated`, `columnWidth:clamped` and `rowHeight:clamped` (the last three raised by
+  BOTH engines); the read direction's are in the XLSX engine page's import table, never in this one.
 - **On a rendered cell the exported font color is the cell's OWN computed color, diffed against an
   alignment-only baseline probe mounted in the cell's `.ht-root-wrapper`.** The probe inherits everything the
   cell inherits (a container-scoped CSS variable included), so it differs from the cell only by what a rule
@@ -226,7 +288,87 @@ Other rules:
   inferred `text`, and a column rendering `840.10` came back as `840.1`. The formula also carries
   `result: toPrimitiveResult(cellValue)`, the way the ColumnSummary branch already did, so Excel,
   LibreOffice and non-formula readers see the computed value.
+- **A formula whose result is an error caches the OOXML CODE, flagged, never the displayed text.**
+  `getData()` gives the Formulas plugin's display string, which cannot tell the error `#N/A` from
+  the text `="#N/A"` answers, and which the engine's `language` translates (`#DZIEL/0!` under
+  `plPL`). `ExportDataProvider#getFormulaErrorCodes()` therefore reads the engine's own value per cell and
+  `toOoxmlErrorCode()` (`types/xlsx/formula-utils.ts`) maps the `DetailedCellError#type`, recognized
+  by shape, to a code; the formula branch of `#resolveCellValue` then writes
+  `{ result: code, resultIsError: true }`. `CYCLE`, `ERROR`, `LIC` and `SPILL` have no code (POI
+  refuses `#SPILL!` in a `t="e"` cell) and keep the display text, typed `str`. The three
+  ExportDataProvider mocks of the `xlsx*.unit.js` suites carry the method; a new mock used with
+  `exportFormulas` needs it too. Pinned by `xlsxFormulaErrorResult.unit.js`.
 - `headerStyle: null` exports headers with no styling; `headerStyle.border: null` suppresses only the border.
+- **The frozen pane counts EXPORTED indexes, not the raw `fixedColumnsStart`/`fixedRowsTop`.**
+  `ExportDataProvider#getFrozenColumns()`/`getFrozenRows()` count the visual indexes of the frozen band
+  (`0 … fixed - 1`) that fall inside the `range` option and are written to the file: a hidden index is
+  skipped when `exportHiddenColumns`/`exportHiddenRows` is `false`, and kept for `true` and `'hide'`
+  (it is still a column of the sheet). Returning the raw setting froze one column too many for every
+  hidden column in the band, and froze columns that a `range` starting inside or after the band never
+  exported. The header row and the row-header column are added later, in `#applyWorksheetViews`
+  (`types/xlsx.ts`) — never add them in the data provider. Pinned by `dataProviderFrozenPanes.unit.js`
+  and the "frozen panes with hidden indexes" block in `layout.spec.js`.
+- **An empty checkbox exports as an empty cell.** `#getCheckboxValue` returns `true` for
+  `checkedTemplate`, `false` for `uncheckedTemplate`, `null` for an empty value (`isEmpty`: `null`,
+  `undefined`, `''`) that matches neither — the renderer's `noValue` state — and `false` for anything
+  else. The templates are matched through `matchCheckboxTemplate` (`utils/checkboxColumn.ts`), the
+  renderer's own matcher since DEV-355, so a case variant such as `'TRUE'` counts, and with
+  `uncheckedTemplate: ''` a `null` reads the same as the template and exports `false`, as the renderer
+  draws it unchecked. Never compare the templates with `===` here again: the export would stop
+  following what the grid shows.
+  Before this, an empty checkbox wrote `<c t="b"><v>0</v></c>` and re-imported as unchecked.
+  Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 38 of the 18.1 → 19.0
+  migration guide, together with the frozen-pane change above.
+- **The `_HotValidation` helper sheet is `hidden`, NOT `veryHidden`.** Apple Numbers discards a very
+  hidden sheet on open together with every validation that points at it, so every dropdown of a
+  native or ExcelJS export was lost there (18.1 wrote it `veryHidden` too). `hidden` keeps them in
+  Numbers; the cost is that Excel lists the sheet under Unhide. Inlining short lists (255 characters)
+  was the alternative and stays open. Named in the export guide's cell-type table and in section 38
+  of the migration guide.
+- **Every currency symbol except a lone `$` is QUOTED in the `numFmt`** (a lone `€`/`£` too: Numbers
+  and Quick Look misread it bare, `#,##0.00€` showed 1235 for 1234.5 in Numbers) (`numeric-utils.ts`,
+  shared by both engines): `"USD"#,##0.00`, `#,##0.00"zł"`. The raw `formatToParts` symbol used to go
+  in unquoted (`#,##0.00USD`, `CHF#,##0.00`), which Excel for the web REPAIRS and LibreOffice and
+  Numbers drop. Only a lone `$` stays bare (Excel's own form). The import's
+  `captureQuotedCurrency` (`importFile/numFmtCode.ts`) reads the quoted ISO code back, so the round
+  trip keeps the currency. A symbol SEVERAL currencies share (`kr`, `kr.`, halfwidth `¥`, fullwidth `￥`) is written
+  as a locale token `[$<symbol>-<LCID>]` with the CURRENCY's home LCID, never the column locale's
+  (en-US JPY must not get 409, or yen and yuan read the same): `[$kr-414]` NOK, `[$kr-41D]` SEK,
+  `[$kr.-406]` DKK, `[$kr.-40F]` ISK, `[$¥-411]` JPY, `[$¥-804]` CNY, `[$￥-411]` JPY (ja-JP renders the
+  fullwidth sign). The reader maps the LCID per
+  symbol (`SHARED_SYMBOL_LCID_TO_CODE`), so an LCID never reassigns another symbol (`[$$-414]` stays USD).
+  **The bare `$` is a shared symbol too** (review round 7): a dollar currency other than USD that
+  `Intl` renders as `$` (en-AU AUD, en-CA/fr-CA CAD, en-NZ NZD, es-MX MXN, and the other entries of
+  `SHARED_SYMBOL_CURRENCY_LCID`) is written `[$$-C09]`, `[$$-1009]`, … — Excel's own tokens — because a
+  bare `$` reads back as USD. USD stays bare. This changed the string 18.1 wrote for those currencies.
+  **Every other symbol is checked against the reader before it is written** (review round 12):
+  `intlNumFormatToExcelNumFmt` runs `captureCurrency` on the code it built, and when that does not
+  read back the same currency (`₪` ILS, `R` ZAR, `AU$` outside en-AU, `฿` THB, a bare `$` for a
+  dollar currency with no LCID) it writes the quoted ISO code instead (`#,##0.00"ILS"`). Excel then
+  shows the code, not the symbol, for those pairs only. Growing `CURRENCY_SYMBOL_TO_CODE` instead was
+  rejected: the table is shared with the raw-value inference (`utils/columnTypeInference/`), where `R`
+  would turn `R 100` into ZAR. `inference.unit.js` ("currency round trip") checks every
+  `Intl.supportedValuesOf('currency')` code under 24 locales.
+  **DKK keeps Excel's `[$kr.-406]`, period included**, although macOS Quick Look renders that token as
+  `PLN` (`[$kr-406]` renders correctly there): Quick Look is the outlier, not Excel. Do not "fix" it
+  without checking Numbers and Excel; the reader maps both spellings.
+- **`minimumIntegerDigits: n` is written as n zeros** in the integer part (`00000`, `000.00`, `#,#00`),
+  and the import sets it from a zero-padded code, so a ZIP-code column keeps its zeros both ways.
+- **The exported sheet direction follows the RENDERED direction** (`hot.isRtl()`), not the raw
+  `layoutDirection` setting, so a grid on a `dir="rtl"` page with the default `'inherit'` writes a
+  right-to-left sheet. The import side already used `isRtl()`; the two disagreed before.
+- **A `timePeriod` rule needs no `formulae`.** ExcelJS documents `{ type, priority, timePeriod, style }`
+  and builds the formula itself; the native writer builds the same formula from the period and the
+  block's top-left cell, and the shared screen (`conditionalRules.ts#isWritableConditionalRule`)
+  rejects a rule without a `timePeriod` string, or without `formulae` whose period is not one of the
+  ten ExcelJS builds a formula for (`today`, `yesterday`, `tomorrow`, `last7Days`, `thisWeek`,
+  `lastWeek`, `nextWeek`, `thisMonth`, `lastMonth`, `nextMonth`). A `colorScale`/`dataBar`/`iconSet`
+  rule without `cfvo` (a `colorScale` also without `color`) is screened out for BOTH engines
+  (`conditionalFormatting:<kind>`), because ExcelJS throws `cfvo.forEach` on it.
+- **Destroying the grid mid-export rejects with a message, not a raw `TypeError`**:
+  `ExportFile: the Handsontable instance was destroyed while the file was being exported.` The
+  download path checks the instance again after the engine resolves, the way the import guards its
+  own apply.
 - **`types/xlsx.ts` builds a `WorkbookSnapshot` (`src/utils/xlsxEngine/model.ts`) through a 1-based
   `SheetBuilder` and hands it to the detected engine's `write`.** No ExcelJS call is allowed in this
   plugin any more; the ExcelJS-shaped interfaces live in `src/utils/xlsxEngine/adapters/exceljs.ts`. The
@@ -234,7 +376,7 @@ Other rules:
   row before it applies any merges — `worksheet.mergeCells()` forwards a merged slave's later value
   assignment to the master, so writing merges first would silently drop a slave cell's own write. Both
   orderings are load-bearing, and both are pinned by `exceljsWrite.unit.js`: it asserts
-  `workbook.worksheets[1].state === 'veryHidden'` for the validation sheet, and "should write the rows
+  `workbook.worksheets[1].state === 'hidden'` for the validation sheet, and "should write the rows
   before merging, so a merged range keeps its master value" is the row-before-merge regression test —
   run it before reordering `writeColumnLayout`/`writeRows`/`writeSheetFeatures` in `exceljs.ts`.
 
@@ -252,6 +394,7 @@ Other rules:
 - `../../utils/xlsxEngine/` for the neutral workbook model, engine detection, capabilities and the
   ExcelJS adapter this plugin and `importFile` both call — neither plugin touches an engine object
   directly.
+- `../../utils/xlsxEngine/AGENTS.md` for the engine contract and the native adapter's traps.
 - Sources of exported values: `../formulas/AGENTS.md`, `../columnSummary/AGENTS.md`,
   `../nestedHeaders/AGENTS.md`.
 - Menu entry: `contextMenuItem/`, wired via `../contextMenu/AGENTS.md`.

@@ -249,17 +249,17 @@
           // enabled (`exportFile.ts`), which is the path that reaches `buildExportDialogContent`.
           // `downloadFileAsync` is required for a binary format; `downloadFile` rejects one.
           //
-          // The export itself cannot complete here: `xlsx` needs an ExcelJS engine passed through
-          // the plugin's `engines` option, and bundling it would add a large dependency for no
-          // gain. That does not matter, because the DIALOG is the surface under test and the plugin
-          // shows it BEFORE it does any export work - `exportFile.ts` waits a double
-          // `requestAnimationFrame` so the dialog paints first. So the export is started, not
-          // awaited, and its rejection is swallowed.
+          // The plugin shows the dialog BEFORE it does any export work - `exportFile.ts` waits a
+          // double `requestAnimationFrame` so the dialog paints first - so the dialog is read while
+          // the export runs. The export itself completes on the built-in engine, which needs no
+          // ExcelJS, and its outcome lands on `data-export` for the spec to assert: this page is
+          // the only Trusted Types run of the built-in writer.
           window.hot.updateSettings({ dialog: true });
 
           const exporting = window.hot.getPlugin('exportFile')
             .downloadFileAsync('xlsx', { filename: 'tt' })
-            .catch(() => {});
+            .then(() => { status.dataset.export = 'DONE'; })
+            .catch((error) => { status.dataset.export = `REJECTED: ${error.message}`; });
 
           // two frames, matching the plugin's own wait, then read what it built
           await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
