@@ -445,7 +445,6 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('afterOnCellMouseDown', this.#onAfterOnCellMouseDown);
     this.addHook('beforeOnCellMouseOver', this.#onBeforeOnCellMouseOver);
     this.addHook('afterOnCellMouseOver', this.#onAfterOnCellMouseOver);
-    this.addHook('beforeOnCellMouseUp', this.#onBeforeOnCellMouseUp);
     this.addHook('beforeSelectionHighlightSet', this.#onBeforeSelectionHighlightSet);
     this.addHook('modifyTransformStart', this.#onModifyTransformStart);
     this.addHook('afterSelection', this.#updateFocusHighlightPosition);
@@ -533,6 +532,7 @@ export class NestedHeaders extends BasePlugin {
     this.#stateManager.clear();
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
+    this.#selectionLayerAtPress = null;
     removeClass(this.hot.rootElement, 'htHasRowspanHeaders');
     this.ghostTable.clear();
 
@@ -1210,6 +1210,9 @@ export class NestedHeaders extends BasePlugin {
     event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
     controller: { column: boolean }
   ) => {
+    // A release outside the grid never reaches a cell mouseup, so the previous drag flag
+    // would still be set. Every press starts clean. The header's after hook sets it again.
+    this.#isColumnsSelectionInProgress = false;
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
 
@@ -1228,6 +1231,10 @@ export class NestedHeaders extends BasePlugin {
    * Initiates a column selection when a nested header cell is clicked, selecting all columns covered by the header span.
    */
   #onAfterOnCellMouseDown = (event: MouseEvent, coords: CellCoords) => {
+    const layerAtPress = this.#selectionLayerAtPress;
+
+    this.#selectionLayerAtPress = null;
+
     if (coords.row === null || coords.col === null) {
       return;
     }
@@ -1263,57 +1270,22 @@ export class NestedHeaders extends BasePlugin {
       columnsToSelect = [columnIndex, columnIndex + origColspan - 1, coords.row];
     }
 
-    if (columnsToSelect !== null) {
-      // Column sorting already selected this header on the same Ctrl click. Selecting it again
-      // would stack a second layer, because `setRangeStart` reads Ctrl as "add a layer".
-      if (!event.shiftKey && this.#ctrlClickRewroteColumnInsideHeader(columnsToSelect)) {
-        this.hot.deselectCell();
-      }
+    if (columnsToSelect === null) {
+      return;
+    }
 
+    const layers = selection.getSelectedRange();
+    // Sorting already selected this header on the same Ctrl click, and `beforeSelectColumns`
+    // widened that range to the span. Selecting again would stack a layer.
+    const sortingRewroteTheLayer = !event.shiftKey &&
+      this.hot.getShortcutManager().isCtrlPressed() &&
+      layers.size() === 1 &&
+      layers.current() !== layerAtPress;
+
+    if (!sortingRewroteTheLayer) {
       selection.selectColumns(...columnsToSelect);
     }
   };
-
-  /**
-   * Reports whether this Ctrl click should replace the current layer instead of adding one.
-   * True only when an earlier hook rewrote the selection during this press, and that rewrite is a
-   * full-height column range sitting inside the header about to be selected. A Ctrl click that left
-   * the pressed layer in place still adds a layer.
-   *
-   * @param columnsToSelect Columns the header click is about to select, as `[start, end, headerRow]`.
-   * @returns {boolean}
-   */
-  #ctrlClickRewroteColumnInsideHeader(columnsToSelect: [number, number, number]): boolean {
-    if (this.hot.getShortcutManager().isCtrlPressed() === false) {
-      return false;
-    }
-
-    const layers = this.hot.selection.getSelectedRange();
-
-    if (layers.size() !== 1) {
-      return false;
-    }
-
-    const layer = layers.current();
-
-    if (!layer || layer === this.#selectionLayerAtPress) {
-      return false;
-    }
-
-    // `getTopStartCorner()` normalizes a header row to 0, so it cannot tell a column selection
-    // from a cell selection. `getSelected()` reads `from` and `to` as stored.
-    const topRow = Math.min(layer.from.row ?? 0, layer.to.row ?? 0);
-    const bottomRow = Math.max(layer.from.row ?? 0, layer.to.row ?? 0);
-    const startCol = Math.min(layer.from.col ?? 0, layer.to.col ?? 0);
-    const endCol = Math.max(layer.from.col ?? 0, layer.to.col ?? 0);
-    const headerStart = Math.min(columnsToSelect[0], columnsToSelect[1]);
-    const headerEnd = Math.max(columnsToSelect[0], columnsToSelect[1]);
-
-    return topRow < 0 &&
-      bottomRow === this.hot.countRows() - 1 &&
-      startCol >= headerStart &&
-      endCol <= headerEnd;
-  }
 
   /**
    * Finds the header cell a Shift+click extends the column range from: the focus of the current range when
@@ -1490,13 +1462,6 @@ export class NestedHeaders extends BasePlugin {
 
     this.#columnsToSelectOnMouseOver = null;
     this.hot.selection.selectColumns(...columnsToSelect);
-  };
-
-  /**
-   * Clears the in-progress column selection flag when the pointer button is released.
-   */
-  #onBeforeOnCellMouseUp = () => {
-    this.#isColumnsSelectionInProgress = false;
   };
 
   /**

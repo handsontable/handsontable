@@ -1650,6 +1650,17 @@ describe('NestedHeaders', () => {
         .simulate('mouseup');
 
       expect(getSelected()).toEqual([[0, 0, 0, 1]]);
+
+      // The release is outside the grid, so no cell mouseup runs.
+      getTopClone().find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
+      $(document.documentElement).simulate('mouseup');
+
+      $(getCell(0, 0)).simulate('mousedown');
+      getTopClone().find('thead tr:eq(0) th:eq(0)')
+        .simulate('mouseover')
+        .simulate('mouseup');
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     });
   });
 

@@ -208,21 +208,25 @@ headers then calls `selectColumns` for the same header. `Selection#setRangeStart
 `#onBeforeSelectColumns` has already widened that first range to the header's colspan, so the duplicate is
 the span, not the leaf.
 
-`#selectionLayerAtPress` snapshots `getSelectedRange().current()` in `beforeOnCellMouseDown`. In the after
-hook, `#ctrlClickRewroteColumnInsideHeader` replaces the layer only when Ctrl is held, Shift is not, there
-is exactly one layer, that layer is a different object from the snapshot, and it is a full-height column
-range inside the header about to be selected. The object check is the whole test: coordinates can match a
-column the user already had, and that Ctrl click must still add a layer. Do not fix this in the sorting
-plugins.
+`#selectionLayerAtPress` snapshots `getSelectedRange().current()` in `beforeOnCellMouseDown`. The after hook
+clears it, and so does `disablePlugin`. When Ctrl is held, Shift is not, there is exactly one layer, and
+that layer is a different object from the snapshot, nested headers skips its own `selectColumns`. Sorting
+already wrote the range and widened it to the span. A Ctrl click that left the pressed layer in place still
+adds a layer. The double selection starts in columnSorting's Ctrl+click handling. The fix lives in
+nestedHeaders while #13904 (sorting) is open.
 
 ## A drag selects whole columns only when it started on a header
 
-`#isColumnsSelectionInProgress` is set in `afterOnCellMouseDown` when the press hit a header node, and
-cleared on mouseup. `#onBeforeOnCellMouseOver` may take over the drag (set `controller.column` and
-`controller.cell`, then `selectColumns`) only while that flag is set. A press that started on a cell leaves
-the flag clear, so the core `mouseOver` keeps the range on the cells (`to.normalize()` drops the header
-row). Gating on `isSelectedByColumnHeader()` is weaker: a column selection from before this press can still
-be marked. Header-started drags keep working because the flag is already true (DEV-799).
+`#isColumnsSelectionInProgress` is set in `afterOnCellMouseDown` when the press hit a header node. It is
+cleared at the start of the next `beforeOnCellMouseDown`, so every press starts clean. A release outside
+the grid does not go through a cell mouseup. It goes through the document `mouseup` in `tableView.ts`, and
+a flag cleared only on cell mouseup stays true for the next cell-to-header drag.
+
+`#onBeforeOnCellMouseOver` may take over the drag (set `controller.column` and `controller.cell`, then
+`selectColumns`) only while the flag is set. A press that started on a cell leaves the flag clear, so the
+core `mouseOver` keeps the range on the cells (`to.normalize()` drops the header row). Gating on
+`isSelectedByColumnHeader()` is weaker: a column selection from before this press can still be marked.
+Header-started drags keep working because the after hook sets the flag again (DEV-799).
 
 ## `fixedColumnsEnd`: a group that crosses the end line is drawn by the end clone
 
