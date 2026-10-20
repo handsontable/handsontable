@@ -180,10 +180,22 @@ describe('CopyPaste source-data flavor and the beforeCopy / beforeCut hooks', ()
     expect(target.getDataAtCell(0, 0)).toEqual({ z: 9 });
   });
 
-  it('should drop the source-data flavor when a hook swaps a row for a new array', () => {
+  it('should match a row the hook swapped for a new array by position', () => {
     const source = createSource({
       beforeCopy(data: unknown[][]) {
-        data.splice(0, 1, ['replaced']);
+        data[0] = data[0].map(() => '');
+      },
+    });
+    const flavors = dispatch(source, 'onCopy');
+
+    expect(flavors[SOURCE_FLAVOR]).not.toContain('{"a":1}');
+    expect(flavors[SOURCE_FLAVOR]).toContain('{"b":2}');
+  });
+
+  it('should drop the source-data flavor when a hook swaps a row and removes another', () => {
+    const source = createSource({
+      beforeCopy(data: unknown[][]) {
+        data.splice(0, 2, ['replaced']);
       },
     });
     const flavors = dispatch(source, 'onCopy');

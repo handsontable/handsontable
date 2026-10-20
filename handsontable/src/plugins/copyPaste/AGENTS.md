@@ -149,9 +149,10 @@ Do not "tidy" either catch away.
 `onCopy`/`onCut` build `rangedSourceData` before the hook runs, and the hooks only ever see `rangedData`.
 `#reconcileSourceData()` therefore rebuilds the source rows after the hook: rows are matched by **identity**
 against a snapshot taken before it (so a `splice` or a reorder keeps the flavors aligned), and a cell the
-hook changed takes the hook's value (JSON for an object or array). A row the hook replaced, or one whose
-length it changed, cannot be matched, so the flavor is **dropped** (`null`) and a paste falls back to the
-plain data. Do not pass `rangedSourceData` to the hooks instead: every existing listener would keep leaking,
+hook changed takes the hook's value (JSON for an object or array, in place edits included: the snapshot
+holds each object cell's JSON). A row the hook swapped for a new array (`data[i] = row.map(...)`) is matched
+by position while the row count is unchanged. A row that cannot be matched, or one whose length the hook
+changed, drops the flavor (`null`) and a paste falls back to the plain data. Do not pass `rangedSourceData` to the hooks instead: every existing listener would keep leaking,
 and `beforeCut` has no `copiedHeadersCount`, so the argument position would differ.
 
 ## The private flavor is often absent, and that is not an error

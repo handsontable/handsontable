@@ -1369,8 +1369,8 @@ export class CopyPaste extends BasePlugin {
    * data: a masked value would leak through it and a removed row would misalign the two flavors.
    * Rows are matched by identity, so removing or reordering them keeps the flavors aligned. A cell the hook
    * changed, including an object or array it edited in place, takes the hook's value. A row the hook
-   * replaced, or one whose length it changed, cannot be matched to its source row, so the whole flavor is
-   * dropped and the paste falls back to the plain data.
+   * replaced is matched by its position while the number of rows is unchanged. When it cannot be matched,
+   * or the hook changed a row's length, the whole flavor is dropped and the paste falls back to the plain data.
    *
    * @param {Array[]} rangedData The copied data, as the hook left it.
    * @param {object|null} snapshot The rows and cells recorded before the hook ran, or `null` when no hook listens.
@@ -1387,22 +1387,27 @@ export class CopyPaste extends BasePlugin {
     }
 
     const originalIndexes = new Map(snapshot.rows.map((row, index) => [row, index]));
+    const sameRowCount = rangedData.length === snapshot.rows.length;
     const reconciled: unknown[][] = [];
 
     for (let rowIndex = 0; rowIndex < rangedData.length; rowIndex++) {
       const row = rangedData[rowIndex];
-      const originalIndex = originalIndexes.get(row);
+      // A row the hook swapped for a new array (`data[i] = row.map(...)`) is matched by position, which
+      // is safe only while the number of rows is unchanged. A changed cell still takes the hook's value.
+      const originalIndex = originalIndexes.get(row) ?? (sameRowCount ? rowIndex : undefined);
 
-      if (originalIndex === undefined || snapshot.cells[originalIndex].length !== row.length) {
+      if (originalIndex === undefined || !Array.isArray(row) || snapshot.cells[originalIndex].length !== row.length) {
         return null;
       }
 
       reconciled.push(row.map((value, column) => {
-        if (Object.is(fingerprintCell(value), snapshot.cells[originalIndex][column])) {
+        const fingerprint = fingerprintCell(value);
+
+        if (Object.is(fingerprint, snapshot.cells[originalIndex][column])) {
           return rangedSourceData[originalIndex][column];
         }
 
-        return isObject(value) || Array.isArray(value) ? JSON.stringify(value) : value;
+        return fingerprint;
       }));
     }
 
