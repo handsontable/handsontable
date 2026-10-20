@@ -338,3 +338,104 @@ describe('DataMap.getAtColumnForRows', () => {
     expect(context.perCellReads).toEqual([0]);
   });
 });
+
+describe('DataMap duck columns for nested object data without `columns`', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    if (hot) {
+      hot.destroy();
+      hot = null;
+    }
+
+    container.remove();
+  });
+
+  /**
+   * @param {object[]} data The source data.
+   * @returns {Handsontable} A grid with no `columns` option.
+   */
+  function createGrid(data) {
+    return new Handsontable(container, { licenseKey: 'non-commercial-and-evaluation', data });
+  }
+
+  it('should name a column nested two levels deep by its full path', () => {
+    hot = createGrid([{ id: 1, a: { b: { c: 'deep0' }, x: 'ax0' } }, { id: 2, a: { b: { c: 'deep1' }, x: 'ax1' } }]);
+
+    expect(hot.countCols()).toBe(3);
+    expect(hot.colToProp(0)).toBe('id');
+    expect(hot.colToProp(1)).toBe('a.b.c');
+    expect(hot.colToProp(2)).toBe('a.x');
+    expect(hot.propToCol('a.b.c')).toBe(1);
+  });
+
+  it('should read the nested value through the column', () => {
+    hot = createGrid([{ id: 1, a: { b: { c: 'deep0' }, x: 'ax0' } }, { id: 2, a: { b: { c: 'deep1' }, x: 'ax1' } }]);
+
+    expect(hot.getDataAtRow(0)).toEqual([1, 'deep0', 'ax0']);
+    expect(hot.getDataAtCol(1)).toEqual(['deep0', 'deep1']);
+  });
+
+  it('should write an edit back to the nested path and add no top-level key', () => {
+    const data = [{ id: 1, a: { b: { c: 'deep0' }, x: 'ax0' } }];
+
+    hot = createGrid(data);
+    hot.setDataAtCell(0, 1, 'EDITED');
+
+    expect(data[0].a.b.c).toBe('EDITED');
+    expect(Object.keys(data[0]).sort()).toEqual(['a', 'id']);
+    expect(hot.getDataAtCell(0, 1)).toBe('EDITED');
+  });
+
+  it('should keep every parent in the path for a property nested four levels deep', () => {
+    hot = createGrid([{ p: { q: { r: { s: 'leaf' } } } }]);
+
+    expect(hot.colToProp(0)).toBe('p.q.r.s');
+    expect(hot.getDataAtCell(0, 0)).toBe('leaf');
+  });
+
+  it('should keep naming a column nested one level deep by its path', () => {
+    hot = createGrid([{ a: { x: 'ax0' } }]);
+
+    expect(hot.colToProp(0)).toBe('a.x');
+    expect(hot.getDataAtCell(0, 0)).toBe('ax0');
+  });
+
+  it('should keep resolving a nested path declared in `columns`', () => {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [{ a: { b: { c: 'deep0' } } }],
+      columns: [{ data: 'a.b.c' }],
+    });
+
+    expect(hot.colToProp(0)).toBe('a.b.c');
+    expect(hot.getDataAtCell(0, 0)).toBe('deep0');
+  });
+
+  it('should keep the sibling order and indexes when nested groups sit between other keys', () => {
+    hot = createGrid([{ a: { b: { c: 1 } }, d: { e: { f: 2 } }, z: 3 }]);
+
+    expect([0, 1, 2, 3].map(col => hot.colToProp(col))).toEqual(['a.b.c', 'd.e.f', 'z', null]);
+    expect(hot.propToCol('d.e.f')).toBe(1);
+    expect(hot.propToCol('z')).toBe(2);
+    expect(hot.getDataAtRow(0)).toEqual([1, 2, 3]);
+  });
+
+  it('should name columns nested two levels deep by full path when they come from `dataSchema`', () => {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [],
+      dataSchema: { a: { b: { c: null } }, id: null },
+      minSpareRows: 1,
+    });
+
+    expect(hot.colToProp(0)).toBe('a.b.c');
+    expect(hot.colToProp(1)).toBe('id');
+  });
+});

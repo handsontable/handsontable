@@ -269,7 +269,7 @@ class DataMap {
 
           lastColumn += 1;
         } else if (typeof value === 'object' && value !== null) {
-          lastColumn = this.recursiveDuckColumns(value, lastColumn, `${key}.`);
+          lastColumn = this.recursiveDuckColumns(value, lastColumn, `${propertyParent}${key}.`);
         }
       });
     }
