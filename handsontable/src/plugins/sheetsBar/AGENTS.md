@@ -273,8 +273,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   shorter sheet was loaded, it addressed rows that no longer existed and the switch threw
   `Expecting an unsigned number`. `#switchTo` therefore calls `clearMergedCells()` before
   `#applySheet`, while the departing merges still match the grid (the neutral reset does it
-  otherwise). **The merges a sheet declares in its `settings` are built after the load, never
-  during the settings update.** `mergeCells` rides on every switch's `updateSettings()` payload
+  otherwise, and does it FIRST, before it untrims and unhides rows: `clearCollections()` takes the
+  span attributes off the cells `getCell()` finds at the merges' visual coordinates, which name
+  other rows once the trimmed and hidden rows are back while the DOM still shows the old layout.
+  Cleared last, the merged `td` kept its `rowspan` and shifted the rows below it on the arriving
+  sheet, which no render repaired once MergeCells was disabled there; pinned by
+  `tests/e2e/sheets-bar-data-bound-settings.spec.ts`). **The merges a sheet declares in its
+  `settings` are built after the load, never during the settings update.** `mergeCells` rides on every switch's `updateSettings()` payload
   once any sheet declares it (the baseline carries it too), and that update runs while the grid
   still holds the departing sheet's data. Built there, `MergeCells#generateFromSettings()`
   validated the arriving sheet's areas against the departing sheet's size (dropping one that did
@@ -311,6 +316,44 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the type check. Under a cast, a rename in MergeCells still compiles here and the first switch
   throws `… is not a function`. Do not reach into `mergedCellsCollection` or call `mergeRange()`
   from here again.
+- **A plugin that reads the data when its settings are applied must not read the departing
+  sheet.** The settings update runs while the grid still holds the departing sheet's data, and two
+  plugins read it there. Each takes a different fix, because they need different things from the
+  load. Pinned by `tests/e2e/sheets-bar-data-bound-settings.spec.ts`.
+  - **NestedRows has to be ON during the load**, so it stays in the pre-load update, which runs
+    under `#withoutNestedRowsDataCheck` (NestedRows' `@private` `deferDataCheck` flag, read through
+    the typed `getPlugin('nestedRows')`). An enable with an empty data manager then takes its tree
+    from the `loadData()` that follows (its own `beforeLoadData`, the path the init build has always
+    used) instead of validating the departing flat array, which logged "requires an Array of
+    Objects" and turned the plugin off for good, on a switch and on an opening nested sheet alike.
+    Do not move `nestedRows` to after the load: a nested sheet loaded with the plugin off is sized
+    to its top-level entries, so a grid-level `minRows` padded empty parents into the host's array
+    (9 rows instead of 5), and declared `hiddenRows`/`trimRows` indexes of child rows were rejected
+    or ignored, because their maps are initialized during the load.
+  - **ColumnSummary needs nothing from the load and writes into the data**, so on a live grid a
+    truthy value is taken out of the pre-load payload (`DATA_BOUND_SETTING_KEYS`,
+    `#splitDataBoundSettings`) and applied by a second `updateSettings()` after `loadData()`, before
+    the MergeCells pass. Applied before, it checked its endpoints against the departing size (a
+    false out-of-bounds warning) and, when the destination fitted, wrote its result into the
+    departing sheet's array, which the host holds by reference. A ColumnSummary the departing sheet
+    left enabled gets `false` in the pre-load payload, or its `afterLoadData` refresh writes the
+    departing summary into the arriving sheet's data; a falsy value reads no data and stays before
+    the load. Applied after the load it also sees a nested sheet's flattened rows. The cost is a
+    second settings update on a switch onto a sheet that declares it, and only there: a second
+    `afterUpdateSettings` and, with Formulas on, a full rescan of the arriving sheet and a second
+    `setSheetContent()`, because the update fires `afterCellMetaReset` (core clears no meta for a
+    `{ columnSummary }` payload, only the hook fires), which marks a Formulas resync. That resync
+    runs from ColumnSummary's first cell read, inside its own endpoint calculation, and its values
+    update refreshes the endpoints again: `Endpoints#refreshEndpoint()` therefore restores the
+    endpoint it replaced rather than clearing it, or the outer calculation read `null` and the
+    switch threw (pinned by `columnSummary/__tests__/formulasSettingsUpdate.unit.js` and the Formulas
+    case of the spec). The init build is not split: applied after the load
+    there, its `setDataAtCell()` runs before the editor manager exists and throws; ColumnSummary's
+    `updatePlugin()` instead leaves the endpoints to its `afterInit` while the grid has no view.
+  - Do not reorder the whole switch to load first instead: the departing sheet's settings would then
+    be in force during the load (NestedRows rejecting a flat sheet, a departing `columns` building
+    the DataMap, Formulas bound to the wrong sheet). A new plugin with the same shape takes whichever
+    of the two fixes fits what it needs from the load.
 - **Custom borders are restored with the logical sides only.** `getBorders()` records carry both
   `start`/`end` and their legacy `left`/`right` copies (`denormalizeBorder()`), and `setBorders()`
   throws when it gets both pairs, and on `left`/`right` alone in RTL. `restoreCustomBorders()`

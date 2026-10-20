@@ -1255,6 +1255,12 @@ function setFrozenCount(hot: HotInstance, key: FrozenCountKey, value: number): v
  * sort, merges, borders, manual sizes, or a freeze set at runtime (`fixedColumnsStart`
  * carries the value the grid started with): `loadData` resets the index mappers and
  * ColumnSorting clears itself on `afterLoadData`, but every other collection survives it.
+ *
+ * The merges are cleared first. MergeCells takes the span attributes off the rendered cells it
+ * finds through `getCell()` at their visual coordinates, and those coordinates hold only while
+ * the index maps still match the drawn rows: cleared after the trimmed and hidden rows came back,
+ * the attributes were taken off another cell and the merged one kept its `rowspan`. With
+ * MergeCells disabled for the arriving sheet, no render repaired it.
  */
 export function resetViewState(hot: HotInstance, neutral: NeutralFrozenCounts = {}): void {
   const state = createNeutralViewState();
@@ -1264,12 +1270,12 @@ export function resetViewState(hot: HotInstance, neutral: NeutralFrozenCounts = 
     // runtime on another sheet is cleared back to none rather than left in force.
     FROZEN_COUNT_KEYS.forEach(key => setFrozenCount(hot, key, neutral[key] ?? 0));
 
+    clearMergedCells(hot);
     getSortingPlugin(hot)?.sort([]);
     restoreFilterConditions(hot, state);
     restoreTrimmedState(hot, state);
     restoreHiddenState(hot, state);
     clearManualSizes(hot);
-    clearMergedCells(hot);
     restoreCustomBorders(hot, state);
   });
 

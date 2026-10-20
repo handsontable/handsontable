@@ -375,6 +375,17 @@ They are written in different places and can drift. Keep this in mind:
   `enablePlugin()`. The existing `collapsedRowsStash` cannot carry it — that object dies with the old
   instance. Replay with `shouldRunHooks = false`: it repeats a choice the user already made, and
   firing hooks there reports a collapse on every settings update.
+- **`deferDataCheck` (`@private`) holds an empty-manager enable back until the next `loadData()`.**
+  The sheets bar applies a sheet's settings while the grid still holds the previous sheet's data, then
+  loads the sheet. Without the flag, the settings-driven enable below validated that previous, flat
+  array and turned the plugin off for good. With it set, `updatePlugin()` only enables the plugin,
+  `onUpdateSettings()` skips its toggle repair (`fitToLength`, selection clamp, undo clear, render:
+  the load re-inits the maps and clears the history, and before the first load there is no editor
+  manager to clear an editor through), and `#onBeforeLoadData` takes the tree from the load the
+  caller runs next and seeds the header width on a drawn grid. Until that load the data manager
+  holds no data, so `modifySourceLength` reports 0 rows. The caller must load right after the update;
+  the sheets bar sets the flag only around the update it follows with `loadData()`. A data manager
+  that already holds a tree (a nested sheet after a nested sheet) takes the normal path.
 - **A settings-driven enable arrives with an EMPTY data manager and a stale row count, and the plugin
   has to repair both itself.** `DataManager#setData()` is called from the `beforeLoadData` and
   `beforeUpdateData` hooks only, so a grid built with `nestedRows: false` and switched on later reaches
