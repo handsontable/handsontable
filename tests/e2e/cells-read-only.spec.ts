@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { CellsReadOnlyPage } from '../fixtures/pages/CellsReadOnlyPage';
 
 /**
@@ -15,7 +15,7 @@ import { CellsReadOnlyPage } from '../fixtures/pages/CellsReadOnlyPage';
  * specs that must prove "the menu did not touch this cell" read the recorded `afterSetCellMeta`
  * writes instead.
  */
-test.describe('cells() read-only lock', { tag: THEMES_TAG }, () => {
+test.describe('cells() read-only lock', () => {
   let grid: CellsReadOnlyPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

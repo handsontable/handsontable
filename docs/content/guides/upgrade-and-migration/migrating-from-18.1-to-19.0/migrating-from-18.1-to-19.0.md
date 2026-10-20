@@ -21,7 +21,9 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns what [`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) return for a column that does not exist, and applies if you call either of them, call [`getDataAtProp()`](@/api/core.md#getdataatprop) with an index, or add a [`modifyData`](@/api/hooks.md#modifydata) hook. Section 23 concerns the TypeScript types of the [`filters`](@/api/options.md#filters) option, and applies only if you use TypeScript and set `filters` to an object. Section 24 concerns how undo and redo work, and applies if you keep the default [`undo`](@/api/options.md#undo) setting. Section 25 concerns the new [`maxLength`](@/api/options.md#maxlength) option, and applies only if you already keep a `maxLength` key in your cell settings. Section 26 concerns the narrowest width a column can be resized to, and applies if you enable [`dropdownMenu`](@/api/options.md#dropdownmenu) and let users resize columns with [`manualColumnResize`](@/api/options.md#manualcolumnresize), or call [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) or [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes). Section 27 concerns icons rendering as `<i>` elements instead of CSS pseudo-elements, and applies if you style a built-in icon, query for one in a test, or use the [`icons`](@/guides/styling/themes/themes.md#icons) theme parameter. Section 28 concerns moving columns across the freeze line, and applies if you use [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) together with [`manualColumnMove`](@/api/options.md#manualcolumnmove), or if you listen to the column freeze and unfreeze hooks. Section 29 concerns entitlement license keys, and applies only if you pass one in another form than the one you received. Section 30 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + <kbd>**←**</kbd> and <kbd>**→**</kbd> do on a row header, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin with [`navigableHeaders`](@/api/options.md#navigableheaders) enabled. Section 31 concerns the TypeScript props of the React `HotColumn` component, and applies only if you use TypeScript and pass a hook, such as `afterChange`, to `HotColumn`. Section 32 concerns [`editor: false`](@/api/options.md#editor), and applies only if you set it together with a column [`type`](@/api/options.md#type), or on a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) column. Section 33 concerns changing [`dataSchema`](@/api/options.md#dataschema) with [`updateSettings()`](@/api/core.md#updatesettings), and applies only if you change it after the grid is created without setting [`columns`](@/api/options.md#columns). Section 34 concerns the [`colWidths`](@/api/options.md#colwidths) option, and applies only if you set it to an array or a function and your columns can be moved. Section 35 concerns how wide an auto-sized column can get, and applies only if you leave [`autoColumnSize`](@/api/autoColumnSize.md) on and a column holds text wider than the grid. Section 36 concerns what `setValue()` receives in a custom editor that extends [`BaseEditor`](@/guides/cell-functions/cell-editor/cell-editor.md) directly, and applies only if you write one, or build one with the editor factory. Section 37 concerns how a string `rowId` in the [`dataProvider`](@/api/options.md#dataprovider) option reads a property with a dot in its name, and applies only if your rows have such a property or you rewrite the id with a `modifySourceData` hook. Section 38 concerns which columns a [`dataSchema`](@/api/options.md#dataschema) with non-`null` values creates, and applies only if you set `dataSchema` with such values and don't set [`columns`](@/api/options.md#columns).
+19.0 also adds the [`ImportFile`](@/api/importFile.md) plugin, which reads `.xlsx` files with the built-in XLSX engine that section 38 describes; see [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md). It is new, so nothing to migrate.
+
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns what [`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) return for a column that does not exist, and applies if you call either of them, call [`getDataAtProp()`](@/api/core.md#getdataatprop) with an index, or add a [`modifyData`](@/api/hooks.md#modifydata) hook. Section 23 concerns the TypeScript types of the [`filters`](@/api/options.md#filters) option, and applies only if you use TypeScript and set `filters` to an object. Section 24 concerns how undo and redo work, and applies if you keep the default [`undo`](@/api/options.md#undo) setting. Section 25 concerns the new [`maxLength`](@/api/options.md#maxlength) option, and applies only if you already keep a `maxLength` key in your cell settings. Section 26 concerns the narrowest width a column can be resized to, and applies if you enable [`dropdownMenu`](@/api/options.md#dropdownmenu) and let users resize columns with [`manualColumnResize`](@/api/options.md#manualcolumnresize), or call [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) or [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes). Section 27 concerns icons rendering as `<i>` elements instead of CSS pseudo-elements, and applies if you style a built-in icon, query for one in a test, or use the [`icons`](@/guides/styling/themes/themes.md#icons) theme parameter. Section 28 concerns moving columns across the freeze line, and applies if you use [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) together with [`manualColumnMove`](@/api/options.md#manualcolumnmove), or if you listen to the column freeze and unfreeze hooks. Section 29 concerns entitlement license keys, and applies only if you pass one in another form than the one you received. Section 30 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + <kbd>**←**</kbd> and <kbd>**→**</kbd> do on a row header, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin with [`navigableHeaders`](@/api/options.md#navigableheaders) enabled. Section 31 concerns the TypeScript props of the React `HotColumn` component, and applies only if you use TypeScript and pass a hook, such as `afterChange`, to `HotColumn`. Section 32 concerns [`editor: false`](@/api/options.md#editor), and applies only if you set it together with a column [`type`](@/api/options.md#type), or on a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) column. Section 33 concerns changing [`dataSchema`](@/api/options.md#dataschema) with [`updateSettings()`](@/api/core.md#updatesettings), and applies only if you change it after the grid is created without setting [`columns`](@/api/options.md#columns). Section 34 concerns the [`colWidths`](@/api/options.md#colwidths) option, and applies only if you set it to an array or a function and your columns can be moved. Section 35 concerns how wide an auto-sized column can get, and applies only if you leave [`autoColumnSize`](@/api/autoColumnSize.md) on and a column holds text wider than the grid. Section 36 concerns what `setValue()` receives in a custom editor that extends [`BaseEditor`](@/guides/cell-functions/cell-editor/cell-editor.md) directly, and applies only if you write one, or build one with the editor factory. Section 37 concerns how a string `rowId` in the [`dataProvider`](@/api/options.md#dataprovider) option reads a property with a dot in its name, and applies only if your rows have such a property or you rewrite the id with a `modifySourceData` hook. Section 38 concerns the XLSX format of the [`ExportFile`](@/api/exportFile.md) plugin, which no longer needs ExcelJS, and applies if you set the [`exportFile`](@/api/options.md#exportfile) option, call `supportsExportFormat('xlsx')`, or export to XLSX. Section 39 concerns [`removeCellMeta()`](@/api/core.md#removecellmeta) with an index outside the grid's range, and applies only if you make such a call. Section 40 concerns which columns a [`dataSchema`](@/api/options.md#dataschema) with non-`null` values creates, and applies only if you set `dataSchema` with such values and don't set [`columns`](@/api/options.md#columns).
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -1923,7 +1925,351 @@ dataProvider: {
 },
 ```
 
-## 38. A `dataSchema` with non-`null` values creates a column for each value
+## 38. XLSX export no longer needs ExcelJS
+
+This is not a breaking change. Every configuration that exported an XLSX file in 18.1 still exports
+one in 19.0, and `exportFile: { engines: { xlsx: ExcelJS } }` keeps ExcelJS as the engine. The file
+differs from the 18.1 one only by the bug fixes described below.
+
+Handsontable 18.1 required ExcelJS for an XLSX export. You passed it as
+`exportFile: { engines: { xlsx: ExcelJS } }`, and without that entry the plugin refused the format.
+Handsontable 19.0 ships its own XLSX engine, so the format works with no engine configured. Three
+behaviors of the [`ExportFile`](@/api/exportFile.md) plugin you could rely on in 18.1 changed with it,
+and several bug fixes change what the exported file holds. Paths that refused the format now serve
+it. The exception is an `engines.xlsx` value that is not an engine module:
+`supportsExportFormat('xlsx')` now answers `false` for it and the "To Excel" item is hidden, as
+covered below.
+
+This section applies if you set the [`exportFile`](@/api/options.md#exportfile) option, because the
+context menu change reaches grids that never export to XLSX, and if you call
+`supportsExportFormat('xlsx')` or export to XLSX, with or without that option.
+
+### `supportsExportFormat('xlsx')` now answers `true` with no engine configured
+
+[`supportsExportFormat()`](@/api/exportFile.md#supportsexportformat) returned `false` for `'xlsx'`
+unless `engines.xlsx` named a module. It now returns `true`, because the built-in engine can write
+the format. It returns `false` for any format other than `'csv'` and `'xlsx'`, and when
+`engines.xlsx` holds a value that is not a supported engine module, such as `{}`, `'exceljs'`, or
+`true`. For those values the answer flipped: 18.1 checked only that the value was truthy and
+answered `true`, although every XLSX export then rejected with `Missing or invalid ExcelJS engine`.
+
+### The "To Excel" context menu item shows with no engine configured
+
+The `export_file:xlsx` sub-item of the export context menu item is hidden whenever
+`supportsExportFormat('xlsx')` answers `false`. In 18.1 that was every grid with no engine, so such
+a grid showed "To CSV" alone. In 19.0 `supportsExportFormat('xlsx')` answers `true` for that grid,
+so "To Excel" appears next to "To CSV" whenever the `exportFile` option is set. The sub-item is
+hidden only when `engines.xlsx` holds a value that is not a supported engine module. 18.1 showed it
+for such a value, because the check only asked whether the value was truthy.
+
+### An XLSX export with no engine configured now succeeds
+
+[`downloadFileAsync('xlsx')`](@/api/exportFile.md#downloadfileasync) and its siblings rejected with
+`Missing or invalid ExcelJS engine` when no engine was configured. They now write the file through
+the built-in engine. A value that is not a supported engine module still rejects, with
+`Invalid xlsx engine module.`
+
+### Bug fixes that change the exported file
+
+These are bug fixes, not breaking changes. They apply to both engines, but they change what an
+18.1 export wrote, so check them if another tool reads the file or if you compare files byte by
+byte.
+
+#### An empty checkbox exports as an empty cell
+
+What changed: in 18.1, a `checkbox` cell with no value (`null`, `undefined`, or `''`) exported as
+`FALSE`. It now exports as an empty cell, the same "no value" state the grid shows, so a round trip
+does not turn it into an unchecked box. A value that matches `checkedTemplate` still exports as
+`TRUE`, and one that matches `uncheckedTemplate` still exports as `FALSE`. A value matches a template
+the way the grid matches it, ignoring letter case, so with `uncheckedTemplate: ''` an empty value is
+drawn unchecked and exports as `FALSE`.
+
+What to do: if a consumer of the file expects `TRUE` or `FALSE` in every checkbox cell, fill the
+empty cells with your `uncheckedTemplate` value (`false` by default) before you export. If your
+data stores an unchecked box as `''`, set `uncheckedTemplate: ''` on the column, and `''` exports
+as `FALSE` again.
+
+#### The frozen pane counts only exported rows and columns
+
+What changed: in 18.1, the sheet's frozen pane used the
+[`fixedRowsTop`](@/api/options.md#fixedrowstop) and
+[`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) counts as they were. When the export
+skipped a hidden row or column inside the frozen band, or the `range` option started inside it, the
+file froze more rows or columns than the grid does. The pane now counts only the frozen rows and
+columns that the file contains.
+
+What to do: to freeze the same number of rows and columns as in 18.1, export the hidden ones with
+`exportHiddenRows: true` and `exportHiddenColumns: true`, and start the `range` at the first row
+and column.
+
+#### `NaN` and infinite numbers export as text
+
+What changed: in 18.1, a `numeric` cell holding `NaN`, `Infinity`, or `-Infinity` exported as a
+number cell with that value, such as `<v>NaN</v>`. That is not a legal number in the file, so Excel
+showed a repair dialog when it opened the file. The cell now exports as a text cell with the same
+text the grid shows (`NaN`, `Infinity`, or `-Infinity`), and Excel opens the file without a repair.
+The same applies to the cached result of a
+[`ColumnSummary`](@/api/columnSummary.md) cell, such as a `sum` over a column that holds `Infinity`.
+
+What to do: if a consumer of the file expects a number in every `numeric` cell, replace the
+non-finite values in your data, for example with `null`, before you export.
+
+#### A cleared `numeric` cell exports as an empty cell
+
+What changed: in 18.1, a `numeric` cell holding `''` or a whitespace-only string exported as `0`.
+The editor stores `''` when a user clears a numeric cell and confirms it, so the grid showed an
+empty cell while the spreadsheet showed `0`, and `AVERAGE` and `COUNT` counted it. Such a cell now
+exports as an empty cell, the same as one holding `null`.
+
+What to do: if a consumer of the file expects `0` in those cells, write `0` into them before you
+export.
+
+#### Functions added after Excel 2007 carry Excel's stored prefix
+
+What changed: with `exportFormulas: true`, a formula such as `=IFS(…)`, `=STDEV.S(…)`, `=CONCAT(…)`,
+`=TEXTJOIN(…)`, or `=XLOOKUP(…)` is now written as Excel stores it, with the `_xlfn.` prefix
+(`<f>_xlfn.IFS(…)</f>`). In 18.1, Excel showed `#NAME?` for such a cell until you entered it again.
+`NETWORKDAYS.INTL`, `WORKDAY.INTL`, `ISO.CEILING`, and `ECMA.CEILING` keep no prefix, as in 18.1,
+because Excel stores them without one. The parameter names of a `LET` or `LAMBDA` call are written
+with Excel's `_xlpm.` prefix, such as `<f>_xlfn.LET(_xlpm.x,1,_xlpm.x+1)</f>`.
+
+What to do: nothing, unless a tool reads the raw `<f>` text. Such a tool sees the prefix now.
+
+#### A formula is exported with the row it belongs to
+
+What changed: with `exportFormulas: true`, each cell is now written with the formula of the row it
+shows. In 18.1, a grid whose rows were sorted, moved, trimmed, or filtered wrote another row's formula
+into the cell, next to this row's cached value. Excel and LibreOffice recalculate on open, so the file
+showed wrong numbers with no warning. With the Formulas plugin on, when rows are trimmed or filtered out,
+the references below them now point at the rows they name in the file, as they already did for hidden
+rows left out of the export.
+This applies to both engines.
+
+What to do: nothing.
+
+#### A formula error is stored as an error cell
+
+What changed: with `exportFormulas: true`, a formula whose result is an error (`#DIV/0!`, `#N/A`, `#NAME?`,
+`#NUM!`, `#REF!`, or `#VALUE!`) now stores that result as an Excel error cell. In 18.1, it was stored as
+text, so an application that does not recalculate, such as Apache POI, openpyxl, or SheetJS, read a string.
+The error is stored under Excel's English code even when a HyperFormula `language` translates what the
+grid shows: with `plPL` the grid shows `#DZIEL/0!` and the file stores `#DIV/0!`, where 18.1 stored the
+translated text. A formula that returns the text `"#N/A"` stays a text cell. A HyperFormula error that
+Excel has no code for (`#CYCLE!`, `#ERROR!`, `#LIC!`, or `#SPILL!`) is still stored as the text the grid
+shows. This applies to both engines. Without `exportFormulas`, nothing changed.
+
+What to do: nothing, unless a tool reads the cached results as text. Such a tool now gets an error value.
+
+#### Values past Excel's limits are written at Excel's maximum
+
+What changed: a column wider than Excel stores is written 260 units wide, a row taller than Excel
+stores is written 409.5 points tall, and a text longer than 32,767 characters is cut to 32,767. In
+18.1, ExcelJS wrote the values as they were, and Excel repaired or truncated them when it opened the
+file. Each clamp is listed in the console warning about dropped features
+(`columnWidth:clamped`, `rowHeight:clamped`, `cellText:truncated`), which the ExcelJS engine logs
+now too.
+
+What to do: nothing. To keep a long text whole, split it across cells before you export.
+
+#### A control character is removed from a sheet name
+
+What changed: the export now removes the characters Excel forbids in a sheet name, such as `:`
+and `/`, and control characters, such as a tab, on both engines, because Excel refuses a name
+that holds one. In 18.1, a name with a forbidden character made the export reject with ExcelJS's
+own error. A sheet that becomes a duplicate of another is numbered, as before.
+For example, `sheets: [{ instance: a, name: 'Q1\tSales' }, { instance: b, name: 'Q1Sales' }]`
+writes `Q1Sales` and `Q1Sales1`. In 18.1, ExcelJS wrote `Q1<tab>Sales` as it was, and the second
+sheet kept its name.
+
+What to do: pass sheet names without control characters if a consumer of the file looks a sheet up
+by name.
+
+#### A cell a merge covers keeps its own formatting
+
+What changed: the cells a merge covers are written with formatting, so a merged block's border and
+fill reach every edge in every spreadsheet application. A covered cell with no formatting of its
+own takes the master cell's formatting. A covered cell with formatting of its own keeps its number
+format, its lock, and its own border sides, and takes the master's fill and the master's border
+sides on top. In 18.1, the ExcelJS engine replaced a covered cell's own style with the master's. The
+covered cell lost its number format, its lock, and its own border sides, so with a box border
+around a merge, LibreOffice drew the block without its right edge.
+
+The ExcelJS engine writes two more differences. A merge of a single cell is no longer written as a
+`<mergeCell>`, because it merges nothing. A merge whose first cell holds no value and no formatting now
+gives that cell a style index of its own (an `s` attribute and one more `cellXfs` entry), so Apple Numbers and Quick
+Look place the cells after it in the right columns.
+
+What to do: nothing, unless a tool compares the raw XML of the files.
+
+#### A currency symbol is written in quotes
+
+What changed: a `numeric` column whose `numericFormat` shows a currency symbol longer than one
+character, such as `USD`, `CHF`, or `zł`, is now written with the symbol in quotes, as
+`"USD"#,##0.00` or `#,##0.00"zł"`. In 18.1, the symbol was written without quotes, such as
+`#,##0.00USD`. Excel for the web repaired such a file when it opened it, and other spreadsheet
+applications dropped the number format. A one-character symbol other than `$`, such as `€` or `£`,
+is now quoted too, as `#,##0.00"€"`, because Apple Numbers and Quick Look misread it bare. A lone `$`
+is written as before. A symbol that several currencies share, such as `kr`, `¥`, or `￥`, is now written as an
+Excel locale token that names the currency's home locale, such as `#,##0.00[$kr-41D]` for the Swedish
+krona or `[$¥-411]#,##0.00` for the yen. A file 18.1 wrote for a Norwegian krone column imports as the
+Swedish krona. A currency other than the US dollar that shows as `$`, such as the Australian,
+Canadian, or New Zealand dollar or the Mexican peso, is now written with the token of its home locale,
+such as `[$$-C09]#,##0.00` for the Australian dollar. In 18.1, it was written as a bare `$`, which imports
+as the US dollar. A symbol that would import as another currency, or as none, such as `₪` for the Israeli
+new shekel or `R` for the South African rand, is now written as the quoted ISO 4217 code, such as
+`#,##0.00"ILS"`, so the column keeps its currency on import. A `minimumIntegerDigits` value is now written as that many zeros, such as `00000`.
+In 18.1, it was dropped and the zeros were lost. This applies to both engines.
+
+What to do: nothing, unless a tool reads the raw number format. Such a tool sees the quotes now.
+
+#### A date Excel cannot store exports as text
+
+What changed: a `date` cell before 1900, which an Excel date serial cannot hold, or a date that does not
+exist, such as `2023-02-29` or `2024-04-31`, is now written as a text cell with the value the cell holds.
+In 18.1, such a cell was written as a wrong date serial, so the file showed another date. This applies to
+both engines.
+
+What to do: nothing, unless a consumer of the file expects a date serial in every `date` cell. Correct
+the values in your data before you export.
+
+#### The dropdown list sheet is hidden instead of very hidden
+
+What changed: the export writes the lists of `dropdown` and `autocomplete` columns to a helper sheet
+named `_HotValidation`. In 18.1, that sheet was very hidden, and Apple Numbers dropped every
+dropdown that pointed at it. The sheet is now hidden, so Numbers keeps the dropdowns. Excel lists
+the sheet under **Unhide**.
+
+What to do: nothing. Do not delete the `_HotValidation` sheet in the file, or the dropdowns lose
+their lists.
+
+#### A grid on a right-to-left page exports a right-to-left sheet
+
+What changed: a grid that renders right to left because its page is right-to-left (the default
+`layoutDirection: 'inherit'` on a page with `dir="rtl"`) now exports a right-to-left sheet. In 18.1,
+only `layoutDirection: 'rtl'` exported one, and such a grid exported a left-to-right sheet.
+
+What to do: nothing.
+
+#### A malformed conditional formatting rule is skipped
+
+What changed: with the ExcelJS engine, a `conditionalFormatting` rule that is not a rule object, an
+`expression` rule with no `formulae`, or a `colorScale`, `dataBar`, or `iconSet` rule with no `cfvo`
+thresholds (or a `colorScale` with no `color`) made the export reject with a `TypeError` in 18.1. Both engines now skip such a rule,
+report it in the console warning about dropped features, and write the rest of the file.
+
+What to do: nothing. To keep the rule, fix its shape.
+
+#### A carriage return is stored as `_x000D_`
+
+What changed: the built-in engine stores a carriage return (`\r`) in a text cell as `_x000D_`, the
+escape Excel itself writes, so the character survives the file. In 18.1, ExcelJS wrote the raw
+character, and an XML parser turns a raw carriage return into a line feed (`\n`), so a `\r\n` pair
+came back as `\n`. Excel and Handsontable's import, on either engine, read `_x000D_` back as a
+carriage return. openpyxl, and pandas with its
+default `openpyxl` engine, show it as the literal text `_x000D_`.
+
+What to do: if a Python tool reads the file, read it with `pandas.read_excel(..., engine='calamine')`,
+or replace the escape after you read it, with `.str.replace('_x000D_', '\r')`. To keep the 18.1 output,
+replace `\r\n` and `\r` with `\n` in your data before you export, or keep ExcelJS as the engine.
+
+### Who is affected
+
+- You call `supportsExportFormat('xlsx')` and use the answer to decide whether to render your own
+  export button, menu entry, or toolbar item. That affordance is now rendered unless `engines.xlsx`
+  holds a value that is not an engine module.
+- You set `exportFile` without an `engines` entry and counted on the "To Excel" item staying out of
+  the context menu. It now shows.
+- You catch the rejection of an XLSX export as a way to detect that no engine is configured.
+- You compare the rejection message against `Missing or invalid ExcelJS engine`.
+- You pass an `engines.xlsx` value that is not an engine module (for example `{}`, `'exceljs'`, or
+  `true`), and gate an export button on `supportsExportFormat('xlsx')`. The method now answers
+  `false` for that grid, and "To Excel" no longer shows.
+
+### How to migrate
+
+To keep ExcelJS as the engine, keep the `engines` entry you already pass. Nothing about that
+configuration changed, and a grid that passes it exports through ExcelJS, with the bug fixes listed
+above:
+
+```js
+exportFile: {
+  engines: { xlsx: ExcelJS },
+},
+```
+
+To keep the "To Excel" item out of the context menu, remove the `export_file:xlsx` sub-item in the
+[`beforeContextMenuSetItems`](@/api/hooks.md#beforecontextmenusetitems) hook. The rest of the
+menu, including the **Export** item and its "To CSV" sub-item, stays as it is:
+
+```js
+beforeContextMenuSetItems(menuItems) {
+  const exportItem = menuItems.find(({ key }) => key === 'export_file');
+
+  if (exportItem) {
+    exportItem.submenu.items = exportItem.submenu.items
+      .filter(({ key }) => key !== 'export_file:xlsx');
+  }
+},
+```
+
+To gate your own export affordance, check `supportsExportFormat('xlsx')` still asks the question you
+mean. It now answers "can this grid write the format", which is `true` for every grid whose
+`engines.xlsx` is absent, `null`, or a supported engine module. If you meant "is ExcelJS
+configured", read the setting instead:
+
+```js
+const usesExcelJs = Boolean(hot.getSettings().exportFile?.engines?.xlsx);
+```
+
+To detect a failed export, match on the current message or read `error.cause`. Do not match on
+`Missing or invalid ExcelJS engine`, which is no longer produced.
+
+The built-in engine needs the [Compression Streams API](https://developer.mozilla.org/en-US/docs/Web/API/Compression_Streams_API),
+which every browser Handsontable supports provides. See
+[XLSX engines: Compare the engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#compare-the-engines)
+for what each engine writes.
+
+## 39. `removeCellMeta()` accepts an index past the grid's range
+
+This is a bug fix, not a breaking change. It applies only if you call
+[`removeCellMeta()`](@/api/core.md#removecellmeta) with a row or column index that lies outside the
+grid's current range.
+
+In 18.1, such a call threw `Assertion failed: Expecting an unsigned number`, while
+[`setCellMeta()`](@/api/core.md#setcellmeta) accepted the same index. Now `removeCellMeta()` matches
+`setCellMeta()`: it uses the index as the physical index as it is, and removes the key from the cell
+meta stored there. A coordinate you captured before the data shrank, for example through
+[`updateData()`](@/api/core.md#updatedata), which keeps the cell meta, still addresses the record
+you wrote it to.
+
+### Who is affected
+
+- You call `removeCellMeta()` with an index past the last row or column and catch the error.
+- You trim rows or columns, through [`trimRows`](@/api/options.md#trimrows) or a filter, and call
+  `removeCellMeta()` with an index past the visible range. That index now names a physical record:
+  a trimmed record that is still live, or a row the grid shows at a different visual index (when
+  the trimmed rows sit above it). In 18.1 the call threw; now it removes the key from that record
+  without an error.
+
+### How to migrate
+
+Pass the visual index of a cell the grid shows. To skip an index that lies outside the grid, check it
+against [`countRows()`](@/api/core.md#countrows) and [`countCols()`](@/api/core.md#countcols) before
+the call:
+
+```js
+if (row < hot.countRows() && column < hot.countCols()) {
+  hot.removeCellMeta(row, column, 'className');
+}
+```
+
+---
+
+::: tip Trademark notice
+Microsoft® and Excel® are registered trademarks of Microsoft Corporation.
+:::
+
+## 40. A `dataSchema` with non-`null` values creates a column for each value
 
 If you don't set [`columns`](@/api/options.md#columns), the [`dataSchema`](@/api/options.md#dataschema) option decides which property each column reads. In 18.1, only a schema value of `null` created a property for a column. A column for any other value, such as `0`, `'x'`, or `false`, had no property. It read `null` and rendered blank, although the data held a value.
 

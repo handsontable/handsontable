@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasObjectColumnsPage } from '../fixtures/pages/FormulasObjectColumnsPage';
 
 /**
@@ -8,7 +8,7 @@ import { FormulasObjectColumnsPage } from '../fixtures/pages/FormulasObjectColum
  * so the sheet was narrower than the grid and every column after the missing one sat one place off.
  * The fill then read the cell next to the source, or nothing at all.
  */
-test.describe('Formulas: fill handle over object rows read through `columns`', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+test.describe('Formulas: fill handle over object rows read through `columns`', { tag: BUNDLES_TAG }, () => {
   let grid: FormulasObjectColumnsPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

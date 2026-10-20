@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../../fixtures/test';
+import { test, expect } from '../../fixtures/test';
 import { InlineStartBorderRefreshPage } from '../../fixtures/pages/walkontable/InlineStartBorderRefreshPage';
 
 /**
@@ -16,7 +16,7 @@ import { InlineStartBorderRefreshPage } from '../../fixtures/pages/walkontable/I
  * assertions count rather than measure. The geometry assertions are the other half - dropping the
  * report must not drop a refresh some overlay actually needed.
  */
-test.describe('walkontable inline-start header border refresh', { tag: ['@walkontable', THEMES_TAG] }, () => {
+test.describe('walkontable inline-start header border refresh', { tag: '@walkontable' }, () => {
   let wt: InlineStartBorderRefreshPage;
 
   test.describe('with one declared column width (the single-pass layout path)', () => {

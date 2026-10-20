@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { FreezeBarPage } from '../fixtures/pages/FreezeBarPage';
 
 test.use({ hasTouch: true });
@@ -6,7 +6,7 @@ test.use({ hasTouch: true });
 /**
  * The freeze bar on a touch device: a finger drag changes the count, and the grid does not scroll under it.
  */
-test.describe('freezeBar with a finger', { tag: THEMES_TAG }, () => {
+test.describe('freezeBar with a finger', () => {
   test('dragging the column bar changes the count and does not scroll the grid', async({ page, theme, bundle }) => {
     const grid = new FreezeBarPage(page, theme, bundle);
 

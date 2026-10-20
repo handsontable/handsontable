@@ -116,7 +116,14 @@ any of them.
 - **The filter validation lives in the Filters plugin.** `Filters#_findInvalidConditions()` checks the
   columns, the operation, the condition names and the arguments, and answers with the path and the reason of
   the first problem, which the public layer turns into the skipped entry's `path` and `message` (binding a condition runs its input
-  decorator, which throws on arguments of the wrong shape). Core must not import the condition
+  decorator, which throws on arguments of the wrong shape). Whether the column offers each condition is
+  `Filters#_findUnavailableConditions()`, asked after it, and it is the one problem that does NOT skip the
+  part: `splitUnavailableFilters()` leaves those columns out and restores the rest, reporting each entry,
+  and skips the part only when no column is left (an empty list would clear the grid's filters). So
+  `filters` can be in `applied` and in `skipped` at once, which is why `applied` drops only the parts
+  skipped WHILE applying. The check reads every row's type through the Filters scan, not
+  `getAvailableConditions()` (that reads the untrimmed rows and refused states the menu produced; the
+  filters `AGENTS.md` has the rule). Core must not import the condition
   registries: that would pull Filters internals into every build, `handsontable/base` included.
 - **Frozen rows skip a paginated grid.** The restore writes the frozen counts onto the table meta, which
   skips the Pagination conflict `updateSettings()` raises for `fixedRowsTop`/`fixedRowsBottom`, so the

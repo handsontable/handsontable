@@ -44,7 +44,11 @@ Queues are per position (`POSITION_SET` from `NOTIFICATION_POSITIONS`), not glob
 ## `showMessage()` validates by throwing, and normalizes before the hook
 
 `#normalizeOptions` throws (`throwWithCause`) unless it gets an object whose `message` is a string or an
-`HTMLElement`. It then assigns an id (`htn-<random>`) and resolves variant and position.
+`HTMLElement`. It then assigns an id (`htn-<random>`) and resolves variant and position. The element test
+is `isHTMLElement()` from `helpers/dom/element.ts`, which checks against the node's OWN realm: a grid inside
+an iframe builds its nodes from `hot.rootDocument`, and a bare `instanceof HTMLElement` against the top
+window rejected a valid element from there (`__tests__/crossRealmMessage.unit.js`, same trap as Dialog's
+content check in `../dialog/AGENTS.md`).
 
 **Normalization happens before `beforeNotificationShow`**, so a listener sees the resolved options and a
 veto (`return false`) costs nothing. The method returns `''` on a veto and the id otherwise — do not change
@@ -85,9 +89,10 @@ teardown, or a hidden toast keeps its listeners.
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='notification'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='notification'`
 - `npm --prefix tests run test:e2e -- e2e/notification-placement.spec.ts`: each corner's toast from DOM
-  rects, in both directions, on every theme and bundle: its variant, its accent bar at the inline start
-  (none on `info`), the primary action before the secondary one in reading order, the close button at
-  the inline end, no focus taken, and its placement. A toast sits 20 px in from its corner's edges: the
+  rects on every theme, in LTR and on one RTL corner (the toast's layout has no corner term): its variant,
+  its accent bar at the inline start (none on `info`), the primary action before the secondary one in
+  reading order, the close button at the inline end, and no focus taken. Its placement against the grid
+  root runs for every corner in both directions. A toast sits 20 px in from its corner's edges: the
   stack's 10 px offset plus its 10 px padding.
 
 **The layer is fitted to the grid root, not to the root wrapper.** `.ht-overlay` has no styles of its own, so

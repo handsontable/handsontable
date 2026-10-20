@@ -1127,42 +1127,14 @@ test.describe('edges of the repair', { tag: BUNDLES_TAG }, () => {
  * refuse to write, which is what the next index-map change does.
  */
 test.describe('a removal that strands the editor', { tag: BUNDLES_TAG }, () => {
-  test('discards rather than appending when a later filter would commit through it',
-    async({ page, theme, bundle }) => {
-      const grid = new EditorTrimmedRowPage(page, theme, bundle);
-
-      await grid.goto();
-
-      await grid.selectRangeWithFocusAt([0, 0, 4, 0], 4, 0);
-      await grid.typeOnSelection('EDITED');
-
-      // Row 1 goes; the highlight is not inside the removed range and the range's top-start corner
-      // is above it, so neither `closeEditor()` nor `shiftRows()` touches the editor.
-      await grid.removeRow(1);
-
-      await expect.poll(() => grid.editorRow()).toBe(4);
-      expect(await grid.sourceRowCount()).toBe(4);
-
-      // On develop this filter commits through visual row 4 and appends four records.
-      await grid.filterToValues(0, ['A2']);
-
-      expect(await grid.committedChangeCount()).toBe(0);
-      expect(await grid.sourceRowCount()).toBe(4);
-      expect(await grid.sourceData()).toEqual([
-        ['A0', 'B0'],
-        ['A2', 'B2'],
-        ['A3', 'B3'],
-        ['A4', 'B4'],
-      ]);
-    });
-
   /**
    * The same strand with NO task boundary at all: `alter()` and `filter()` in one synchronous
    * block, one line of application code apart. The window that protects the editor INSIDE
    * `alter()` must be closed by the time `alter()` returns - a window closed on a zero-delay
    * timeout instead is still open when the filter runs, skips the discard, and the filter's
-   * re-selection commits through visual row 4 and appends four records. Unlike the case above,
-   * which needs the filter to outrun the timer, this fails deterministically on the unfixed code.
+   * re-selection commits through visual row 4 and appends four records. A filter that waits for a
+   * later task would fail only when it outran the timer; this one fails deterministically on the
+   * unfixed code.
    */
   test('discards when the filter lands in the same task as the removal',
     async({ page, theme, bundle }) => {

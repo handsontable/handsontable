@@ -21,6 +21,7 @@ import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar
 import type { ManualColumnFreezeSettings } from '../plugins/manualColumnFreeze';
 import type { FreezeBarSettings, FreezeEdge, FreezeSource } from '../plugins/freezeBar';
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
+import type { ExportFileSettings } from '../plugins/exportFile';
 import type { UndoRedoSettings } from '../plugins/undoRedo';
 import type { AsyncValueCancelReason, AsyncValuesSettings } from '../plugins/asyncValues';
 import type { PasteClipboardData } from '../plugins/copyPaste';
@@ -334,6 +335,7 @@ export interface GridSettings {
   rowSelection?: boolean | RowSelectionSettings;
   search?: boolean | object;
   importFile?: boolean | ImportFileSettings;
+  exportFile?: boolean | ExportFileSettings;
   sheetsBar?: boolean | SheetsBarSettings;
   trimRows?: boolean | number[];
 

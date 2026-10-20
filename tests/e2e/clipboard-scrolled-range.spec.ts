@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { test, expect, CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG, THEMES_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG } from '../fixtures/test';
 import { GridLayoutsPage } from '../fixtures/pages/GridLayoutsPage';
 
 /**
@@ -17,7 +17,7 @@ import { GridLayoutsPage } from '../fixtures/pages/GridLayoutsPage';
  *
  * The grid is the demo's: 150 x 150 in a 500 x 500 viewport (`grid-layouts.html?layout=large`).
  */
-test.describe('copy and cut of a range selected across a scroll', { tag: [CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG, THEMES_TAG] }, () => {
+test.describe('copy and cut of a range selected across a scroll', { tag: [CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG] }, () => {
   let grid: GridLayoutsPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

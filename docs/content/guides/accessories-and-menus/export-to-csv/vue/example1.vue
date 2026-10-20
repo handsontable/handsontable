@@ -34,16 +34,11 @@ function downloadCsv(): void {
   const exportPlugin = hotRef.value?.hotInstance?.getPlugin('exportFile');
 
   exportPlugin?.downloadFile('csv', {
-    bom: false,
-    columnDelimiter: ',',
-    colHeaders: false,
+    colHeaders: true,
+    rowHeaders: true,
     exportHiddenColumns: true,
     exportHiddenRows: true,
-    fileExtension: 'csv',
-    filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
-    mimeType: 'text/csv',
-    rowDelimiter: '\r\n',
-    rowHeaders: true,
+    filename: 'Campaigns_[YYYY]-[MM]-[DD]',
   });
 }
 </script>
