@@ -56,6 +56,12 @@ export const MAX_FRACTION_DIGITS = 20;
 const LEADING_ZERO_REGEX = /^0\d/;
 
 /**
+ * A date in the ISO form: `2026-03-12`. It is what a value is read as when no listed format matches.
+ * The groups follow `YEAR_FIRST_DATE_REGEX` (year, separator, month, day), so one reader takes both.
+ */
+const ISO_DATE_REGEX = /^(\d{4})(-)(\d{2})\2(\d{2})$/;
+
+/**
  * A date with a four-digit year first (`2026-03-12`, `2026/3/12`, `2026.03.12`).
  */
 const YEAR_FIRST_DATE_REGEX = /^(\d{4})([-/.])(\d{1,2})\2(\d{1,2})$/;
@@ -152,6 +158,17 @@ export interface CompiledDateFormat {
    * The capture group of the year, the month, and the day.
    */
   groups: { year: number; month: number; day: number };
+  /**
+   * The digits a value has when the format is only fixed-width tokens (`DDMMYYYY` is `8`), or `null`
+   * when it has a literal or a one-or-two-digit token. A whole number lost its leading zeros, so it
+   * is padded back to this width before it is read.
+   */
+  width: number | null;
+  /**
+   * Whether a value in this format can also be read as a number: no literal, or a single `.` or `,`.
+   * Only then does a column of such values tie with `numeric`.
+   */
+  numberLike: boolean;
 }
 
 /**
@@ -540,6 +557,8 @@ export function compileDateFormat(pattern: unknown): CompiledDateFormat | null {
   let source = '';
   let group = 0;
   let previous = '';
+  let literals = '';
+  let width: number | null = 0;
 
   // Values are read trimmed, so a format is too: `'DD/MM/YYYY '` would otherwise never match.
   for (const [part] of pattern.trim().matchAll(DATE_FORMAT_PART_REGEX)) {
@@ -560,23 +579,34 @@ export function compileDateFormat(pattern: unknown): CompiledDateFormat | null {
       group += 1;
       groups[token.field] = group;
       source += token.source;
+      width = width !== null && part.length > 1 ? width + part.length : null;
 
     } else {
+      literals += part;
       source += part.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
     }
   }
 
   const { year, month, day } = groups;
 
-  return year !== undefined && month !== undefined && day !== undefined
-    ? { pattern, regex: new RegExp(`^${source}$`), groups: { year, month, day } }
-    : null;
+  if (year === undefined || month === undefined || day === undefined) {
+    return null;
+  }
+
+  return {
+    pattern,
+    regex: new RegExp(`^${source}$`),
+    groups: { year, month, day },
+    width: literals === '' ? width : null,
+    numberLike: literals === '' || literals === '.' || literals === ',',
+  };
 }
 
 /**
- * Splits a trimmed value into its date parts: with the listed format when there is one and it
- * matches, as a year-first date, or as a year-last one in `order` when no format is listed. The
- * format comes first, so `YYYY/DD/MM` is not read as the year-first `YYYY/MM/DD`.
+ * Splits a trimmed value into its date parts. With a listed format, the value is read with it, and
+ * otherwise only as an ISO date (`2026-03-12`): the looser year-first form takes `/` and `.` too, and
+ * would read `2026/12/3` as December in a column of `YYYY/DD/MM`. Without a format, a year-first date
+ * is read as year, month, day, and a year-last one in `order`.
  */
 function splitDate(
   text: string,
@@ -589,7 +619,7 @@ function splitDate(
     return { year: match[format.groups.year], month: match[format.groups.month], day: match[format.groups.day] };
   }
 
-  const yearFirst = YEAR_FIRST_DATE_REGEX.exec(text);
+  const yearFirst = (format ? ISO_DATE_REGEX : YEAR_FIRST_DATE_REGEX).exec(text);
 
   if (yearFirst) {
     return { year: yearFirst[1], month: yearFirst[3], day: yearFirst[4] };
@@ -609,6 +639,14 @@ function splitDate(
 }
 
 /**
+ * Writes a whole number as the digits a format reads. The leading zeros a number lost come back for a
+ * fixed-width format, so `1032026` is `01032026` for `DDMMYYYY`.
+ */
+function toDigits(value: number, format: CompiledDateFormat): string {
+  return value < 0 ? String(value) : String(value).padStart(format.width ?? 0, '0');
+}
+
+/**
  * Reads a value as a date. With `format`, a value the format matches is read with it, and any other
  * value only as a year-first date. Without one, a year-first date is read as year, month, day, and a
  * year-last one follows `order`. A whole number is read only with a format (`20260312` with
@@ -619,7 +657,7 @@ export function readDate(
   order: 'DMY' | 'MDY',
   format: CompiledDateFormat | null = null
 ): DateReading | null {
-  const text = format && Number.isInteger(value) ? String(value) : value;
+  const text = format && Number.isInteger(value) ? toDigits(value as number, format) : value;
 
   if (typeof text !== 'string') {
     return null;

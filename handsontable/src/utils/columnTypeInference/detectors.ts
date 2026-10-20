@@ -415,20 +415,19 @@ export const DETECTORS: Detector[] = [
 ];
 
 /**
- * The detectors when the `dateFormats` option lists a format: dates before numbers, so a column of
- * digits that a listed format reads (`YYYYMMDD`) becomes a date on a tie.
+ * The detectors with `detectDate` moved in front of `detectNumeric`, so a column of digits that a
+ * listed format reads (`YYYYMMDD`) becomes a date on a tie. Built from `DETECTORS`, so a detector added
+ * there is added here too.
  */
-const DATE_FIRST_DETECTORS: Detector[] = [
-  detectCheckbox,
-  detectDate,
-  detectNumeric,
-  detectTime,
-  detectDropdown,
-];
+const DATE_FIRST_DETECTORS: Detector[] = DETECTORS
+  .filter(detector => detector !== detectDate)
+  .flatMap(detector => (detector === detectNumeric ? [detectDate, detector] : [detector]));
 
 /**
- * Returns the detectors in the order they are tried for the given options.
+ * Returns the detectors in the order they are tried for the given options. Dates go first only when
+ * a listed format can tie with `numeric` (`CompiledDateFormat#numberLike`): in front, every numeric
+ * column would first run a date pass per format that cannot change its result.
  */
 export function getDetectors(context: DetectionContext): Detector[] {
-  return context.dateFormats.length > 0 ? DATE_FIRST_DETECTORS : DETECTORS;
+  return context.dateFormats.some(format => format.numberLike) ? DATE_FIRST_DETECTORS : DETECTORS;
 }

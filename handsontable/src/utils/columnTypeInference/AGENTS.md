@@ -140,7 +140,12 @@ data) and converts the values to what each type stores. Read this before touchin
   zone and the stats must not.
 - **Tree-shaking was measured, not assumed.** Bundling `inferColumnTypes` through the plugin barrel
   (`plugins/importFile`) and straight from `utils/columnTypeInference` with rspack production gave the
-  same 7,672 bytes and no plugin, engine or `BasePlugin` code. It holds because `package.json`
+  same 7,672 bytes and no plugin, engine or `BasePlugin` code. Re-measured after the `sampling`,
+  `dateFormats` and `booleanValues` options, with a minimal rspack production config on the util alone
+  (`swc` target `es2022`, `concatenateModules`): 12,336 bytes on the commit before, 15,300 after (gzip
+  5,023 and 6,194), still no plugin, engine, `BasePlugin` or `Hooks.register` code. The only new
+  import is `helpers/console` (`warnOnce`), which adds a `WeakMap` and `console.warn`. The two figures
+  come from different configs, so compare only within one. It holds because `package.json`
   `sideEffects` lists only CSS, languages and two Filters folders, and `importFile` registers nothing
   at module level. A module-level `Hooks.register()` or a new `sideEffects` entry for `importFile`
   would change that: re-measure first. The CommonJS build is not shakeable, as for every plugin.
@@ -154,25 +159,38 @@ data) and converts the values to what each type stores. Read this before touchin
   built-in reading would keep winning ties under the locale, and `dateFormats: ['DD/MM/YYYY']` under
   `en-US` would still read `12/03/2026` as 3 December. **The format is tried BEFORE the year-first
   regex**, which also takes `/` and `.` (`YEAR_FIRST_DATE_REGEX`): the other way round, `YYYY/DD/MM`
-  read `2026/12/03` as 3 December while `inputFormat` said the listed format was used. A value the
-  format does not match is still read as year-first. A result whose `dateFormat` no longer compiles
-  converts ISO dates only (`ISO_DATE_FORMAT`), never the built-in MDY guess. The
+  read `2026/12/03` as 3 December while `inputFormat` said the listed format was used. **The fallback
+  for a value the format does not match is STRICT ISO (`ISO_DATE_REGEX`, dashes and two digits), not the
+  loose year-first form**: loose, `2026/12/3` fell through to year, month, day while `2026/12/03` matched
+  the format, so a `YYYY/DD/MM` column mixed both and still reported full confidence. Without a listed
+  format the loose form is unchanged. A result whose `dateFormat` no longer compiles converts strict ISO
+  dates only (`ISO_DATE_FORMAT`), never the built-in MDY guess. The
   column takes the format that reads the most values (the earlier one on a tie, like
   `resolveNumberMode`), and that format is recorded even when no sampled value needed it. With a format
   listed the confidence is never discounted: the user settled the order, not the locale.
-- **A listed format moves the date detector ahead of numeric** (`getDetectors`). `YYYYMMDD` values read
-  as numbers too, and the default order gives numeric the tie and stops there, since it reads every
-  value. Only a format whose values also parse as numbers (digits only, or digits with one `.` or `,`,
-  such as `YYYY.MMDD`) can tie. Checkbox is already first, which is why listed `1`/`0` words win over
-  numeric without a rule of their own. Both readers take NUMBER cells too, through their text (a whole
-  number for a format, any finite number for a word), because API data carries `20260312` and `1` as
-  numbers; the default readers still read strings only, so defaults are unchanged.
+- **A listed format moves the date detector ahead of numeric only when a number can read it too**
+  (`getDetectors`, `CompiledDateFormat#numberLike`: no literal, or a single `.` or `,`, such as
+  `YYYYMMDD` or `YYYY.MMDD`). `YYYYMMDD` values read as numbers too, and the default order gives numeric
+  the tie and stops there, since it reads every value. Any other format cannot tie: a grouped number
+  needs groups of exactly three digits and no date token is three wide. Moving date first for those too
+  made every numeric column run a date pass per format before its early exit. `DATE_FIRST_DETECTORS` is
+  built from `DETECTORS`, so a new detector is in both. Checkbox is already first, which is why listed
+  `1`/`0` words win over numeric without a rule of their own. Both readers take NUMBER cells too,
+  through their text (a whole number for a format, any finite number for a word), because API data
+  carries `20260312` and `1` as numbers; the default readers still read strings only, so defaults are
+  unchanged. **A number lost its leading zeros, so a fixed-width format pads it back**
+  (`CompiledDateFormat#width`, `toDigits`: `1032026` is `01032026` for `DDMMYYYY`); a format with a
+  literal or an `M`/`D` token has no width and reads strings only, as `1.3.2026` is no number.
 - **The format grammar is numeric on purpose**: `YYYY`, `MM`/`DD` (two digits), `M`/`D` (one or two),
   every non-letter matched literally. A run of any other letter (`MMM`, `YY`, `dd`) drops the whole
   format, because month names depend on the locale and a two-digit year needs a century pivot. So does
   an `M` or `D` right next to another token (`YYYYMD`): `2026111` is 1 November or 11 January. The
   format is trimmed, like the values. Never
   read a format with `new Date()` or a date library: the module must stay deterministic and small.
+- **A format that does not compile is warned about, once per format** (`warnOnce` with a module-level
+  scope, since this util has no grid): `dd/MM/yyyy` is a common spelling, and dropping it silently makes
+  the option a no-op that falls back to the locale order. The warning is a side effect only; the result
+  does not depend on it.
 - **A boolean word listed on both sides reads as neither**, `true` and `false` included
   (`createBooleanReader`). Words compare as `.trim().toLowerCase()`, never `toLocaleLowerCase`.
 - **Accepted, not fixed:** `Open` and `open` are two dropdown options; `1:30` reads as a time; Indian lakh grouping (`1,23,456`) and times with milliseconds stay

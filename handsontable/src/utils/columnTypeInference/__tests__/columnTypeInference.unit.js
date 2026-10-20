@@ -5,6 +5,8 @@ import { sourceDataValidator as timeSourceDataValidator } from '../../../validat
 import { numericValidator } from '../../../validators/numericValidator/numericValidator';
 import { dropdownValidator } from '../../../validators/dropdownValidator/dropdownValidator';
 import { resolveLocale } from '../locale';
+import { DETECTORS, getDetectors } from '../detectors';
+import { compileDateFormat } from '../values';
 
 /**
  * Builds array-of-arrays data from one value list per column.
@@ -1204,12 +1206,59 @@ describe('inferColumnTypes', () => {
     });
 
     it('converts ISO dates only when a recorded format no longer compiles', () => {
-      const rows = [['13|03|2026'], ['2026-03-14'], ['03/04/2026']];
+      const rows = [['13|03|2026'], ['2026-03-14'], ['03/04/2026'], ['2026/3/12'], ['2026.03.12']];
       const result = inferColumnTypes(rows, { sampleSize: 2, dateFormats: ['DD|MM|YYYY'] });
 
       result.columns[0].inputFormat.dateFormat = 'DD|MMM|YYYY';
 
-      expect(convertToInferredTypes(rows, result)).toEqual([['13|03|2026'], ['2026-03-14'], ['03/04/2026']]);
+      expect(convertToInferredTypes(rows, result))
+        .toEqual([['13|03|2026'], ['2026-03-14'], ['03/04/2026'], ['2026/3/12'], ['2026.03.12']]);
+    });
+
+    it('falls back only to a strict ISO date, never to the looser year-first form', () => {
+      const dateFormats = ['YYYY/DD/MM'];
+
+      expect(inferOne(['2026/12/03', '2026/12/3'], { dateFormats }).type).toBe('text');
+      expect(inferOne(['2026/12/03', '2026.12.03'], { dateFormats }).type).toBe('text');
+      expect(inferOne(['2026-1-5', '2026-1-6'], { dateFormats }).type).toBe('text');
+      expect(convertOne(['2026/12/03', '2026-01-05'], { dateFormats })).toEqual(['2026-03-12', '2026-01-05']);
+    });
+
+    it('pads a whole number to the width of a fixed-width format', () => {
+      const dateFormats = ['DDMMYYYY'];
+
+      expect(inferOne([1032026, 15032026], { dateFormats }).type).toBe('date');
+      expect(convertOne([1032026, 15032026], { dateFormats })).toEqual(['2026-03-01', '2026-03-15']);
+      expect(inferOne([-1032026, 15032026], { dateFormats, minConfidence: 1 }).type).toBe('numeric');
+      expect(inferOne([1032026, 15032026]).type).toBe('numeric');
+    });
+
+    it('warns once about a format it ignores', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      try {
+        inferColumnTypes([['12/03/2026']], { dateFormats: ['dd/MM/yyyy-warn-test'] });
+        inferColumnTypes([['12/03/2026']], { dateFormats: ['dd/MM/yyyy-warn-test', 'DD/MM/YYYY'] });
+
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn.mock.calls[0][0]).toContain('"dd/MM/yyyy-warn-test" is ignored');
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it('moves date in front of numeric only for a format a number can also read', () => {
+      const names = detectors => detectors.map(detector => detector.name);
+      const order = pattern => names(getDetectors({ dateFormats: [compileDateFormat(pattern)] }));
+
+      expect(getDetectors({ dateFormats: [] })).toBe(DETECTORS);
+      expect(getDetectors({ dateFormats: [compileDateFormat('DD/MM/YYYY')] })).toBe(DETECTORS);
+      expect(getDetectors({ dateFormats: [compileDateFormat('DD.MM.YYYY')] })).toBe(DETECTORS);
+      expect(order('YYYYMMDD'))
+        .toEqual(['detectCheckbox', 'detectDate', 'detectNumeric', 'detectTime', 'detectDropdown']);
+      expect(order('YYYY.MMDD')).toEqual(order('YYYYMMDD'));
+      expect(names(DETECTORS).slice().sort()).toEqual(order('YYYYMMDD').slice().sort());
+      expect(inferOne(['2026.0312', '2026.1201'], { dateFormats: ['YYYY.MMDD'] }).type).toBe('date');
     });
 
     it('reads whole numbers with a format, and only with one', () => {

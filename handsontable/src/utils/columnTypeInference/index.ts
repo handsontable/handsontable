@@ -1,3 +1,4 @@
+import { warnOnce } from '../../helpers/console';
 import { isObject } from '../../helpers/object';
 import { getDetectors, type DetectionContext } from './detectors';
 import { getLocaleDateOrder, getLocaleDecimalSeparator, getLocaleRegion, resolveLocale } from './locale';
@@ -100,6 +101,11 @@ function toMaxDropdownOptions(dropdown: InferColumnTypesOptions['dropdown']): nu
 }
 
 /**
+ * The scope the "warn once" state of an ignored date format is bound to: this module has no grid.
+ */
+const WARNING_SCOPE = {};
+
+/**
  * The format a converter falls back to when a result records a date format that does not compile.
  */
 const ISO_DATE_FORMAT = compileDateFormat('YYYY-MM-DD');
@@ -108,9 +114,25 @@ const ISO_DATE_FORMAT = compileDateFormat('YYYY-MM-DD');
  * Reads the `dateFormats` option into the formats that compile, in the order given.
  */
 function toDateFormats(dateFormats: unknown): CompiledDateFormat[] {
-  return Array.isArray(dateFormats)
-    ? dateFormats.map(compileDateFormat).filter(format => format !== null)
-    : [];
+  if (!Array.isArray(dateFormats)) {
+    return [];
+  }
+
+  return dateFormats.flatMap((pattern) => {
+    const format = compileDateFormat(pattern);
+
+    if (format === null) {
+      // A spelling such as `dd/MM/yyyy` would otherwise turn the option into a silent no-op.
+      warnOnce(
+        WARNING_SCOPE,
+        `dateFormats:${String(pattern)}`,
+        `The date format ${JSON.stringify(pattern)} is ignored. Use the tokens YYYY, MM, M, DD, and D ` +
+        '(upper case), once each, and no other letters.'
+      );
+    }
+
+    return format === null ? [] : [format];
+  });
 }
 
 /**

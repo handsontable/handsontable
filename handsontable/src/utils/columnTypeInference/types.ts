@@ -45,10 +45,11 @@ export interface InferColumnTypesOptions {
    * digits); every other character is matched as it is, for example `DD/MM/YYYY`, `YYYYMMDD`, or
    * `D. M. YYYY`. A format needs exactly one year, one month, and one day token, and a format with
    * any other letter, or with an `M` or `D` token right next to another token (`YYYYMD`), is
-   * ignored. A column takes the format that reads the most of its values, and the earlier one in
-   * the list on a tie. A value the format does not match is still read as an ISO date
-   * (`2026-03-12`). Whole numbers are read too (`20260312` with `YYYYMMDD`), and a column that reads
-   * both as a date and as a number becomes a date.
+   * ignored, with a console warning. A column takes the format that reads the most of its values,
+   * and the earlier one in the list on a tie. A value the format does not match is still read as an
+   * ISO date, and only in the form `2026-03-12`. Whole numbers are read too (`20260312` with
+   * `YYYYMMDD`), padded back to the width of a fixed-width format (`1032026` is `01032026` for
+   * `DDMMYYYY`). A column that reads both as a date and as a number becomes a date.
    * Defaults to none, which reads the built-in year-last dates in the order the data or the
    * `locale` settles.
    */
