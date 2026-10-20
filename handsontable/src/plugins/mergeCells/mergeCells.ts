@@ -464,10 +464,14 @@ export class MergeCells extends BasePlugin {
     this.addHook('modifyGetCellCoords', this.#onModifyGetCellCoords);
     this.addHook('modifyGetCoordsElement', this.#onModifyGetCellCoords);
     this.addHook('afterIsMultipleSelection', this.#onAfterIsMultipleSelection);
+    // Registered after Core's bridge, so a silent highlight recompute skips the public hook and still
+    // gets this answer. A normal selection notifies listeners first; this callback then does nothing.
+    this.hot.selection.addLocalHook('afterIsMultipleSelection', this.#adjustMultipleSelectionSilently);
     this.addHook('beforeRenderer', this.#onBeforeRenderer);
     this.addHook('afterRenderer',
       (TD: HTMLTableCellElement, row: number, col: number) => this.#cellRenderer.after(TD, row, col));
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
+    this.addHook('afterRender', this.#onAfterRenderReleaseSilentQuery);
     this.addHook('afterContextMenuDefaultOptions',
       (defaultOptions: { items: unknown[] }) => this.#addMergeActionsToContextMenu(defaultOptions));
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
@@ -518,6 +522,7 @@ export class MergeCells extends BasePlugin {
   disablePlugin() {
     this.hot.rowIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onBeforeRowIndexCacheUpdate);
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
+    this.hot.selection.removeLocalHook('afterIsMultipleSelection', this.#adjustMultipleSelectionSilently);
     this.#foreignRowsBeforeCacheUpdate = null;
     this.clearCollections();
     this.#appliedMergeKeys.clear();
@@ -537,6 +542,7 @@ export class MergeCells extends BasePlugin {
   destroy() {
     this.hot?.rowIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onBeforeRowIndexCacheUpdate);
     this.hot?.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
+    this.hot?.selection.removeLocalHook('afterIsMultipleSelection', this.#adjustMultipleSelectionSilently);
     this.#foreignRowsBeforeCacheUpdate = null;
     this.#resetPasteState();
     super.destroy();
@@ -1360,12 +1366,11 @@ export class MergeCells extends BasePlugin {
    * @private
    * @param {CellRange} cellRange Selection cell range.
    * @param {boolean} [auto=false] `true` if called automatically by the plugin.
-   * @returns {boolean} `true` when a merge inside the range was removed.
    * @fires Hooks#beforeUnmergeCells
    * @fires Hooks#afterUnmergeCells
    */
-  unmergeRange(cellRange: CellRange, auto = false): boolean {
-    return this.runOperation('unmerge_cells', () => this.#unmergeRange(cellRange, auto), {
+  unmergeRange(cellRange: CellRange, auto = false): void {
+    this.runOperation('unmerge_cells', () => this.#unmergeRange(cellRange, auto), {
       cellRange: deepClone(cellRange),
     });
   }
@@ -1584,13 +1589,12 @@ export class MergeCells extends BasePlugin {
    *
    * @param {CellRange} cellRange Selection cell range.
    * @param {boolean} auto `true` if called automatically by the plugin.
-   * @returns {boolean} `true` when a merge inside the range was removed.
    */
-  #unmergeRange(cellRange: CellRange, auto: boolean): boolean {
+  #unmergeRange(cellRange: CellRange, auto: boolean): void {
     const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange);
 
     if (mergedCells.length === 0) {
-      return false;
+      return;
     }
 
     this.hot.runHooks('beforeUnmergeCells', cellRange, auto);
@@ -1602,8 +1606,6 @@ export class MergeCells extends BasePlugin {
 
     this.hot.runHooks('afterUnmergeCells', cellRange, auto);
     this.hot.render();
-
-    return true;
   }
 
   /**
@@ -1635,7 +1637,7 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Merges the specified range. Replays every selection layer when one of them meets the changed range.
+   * Merges the specified range.
    *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
@@ -1643,27 +1645,16 @@ export class MergeCells extends BasePlugin {
    * @param {number} endColumn Visual end column of the merged cell.
    * @fires Hooks#beforeMergeCells
    * @fires Hooks#afterMergeCells
-   * @fires Hooks#beforeSetRangeStartOnly
-   * @fires Hooks#beforeSetRangeEnd
-   * @fires Hooks#beforeSelectionHighlightSet
-   * @fires Hooks#afterIsMultipleSelection
-   * @fires Hooks#afterSelection
-   * @fires Hooks#afterSelectionByProp
-   * @fires Hooks#afterSelectionEnd
-   * @fires Hooks#afterSelectionEndByProp
    */
   merge(startRow: number, startColumn: number, endRow: number, endColumn: number): void {
     const start = this.hot._createCellCoords(startRow, startColumn);
     const end = this.hot._createCellCoords(endRow, endColumn);
-    const merged = this.mergeRange(this.hot._createCellRange(start, start, end));
 
-    if (merged !== false) {
-      this.#reselectIntersectingSelection(startRow, startColumn, endRow, endColumn);
-    }
+    this.mergeRange(this.hot._createCellRange(start, start, end));
   }
 
   /**
-   * Unmerges the merged cell in the provided range. Replays every selection layer when one of them meets the changed range.
+   * Unmerges the merged cell in the provided range.
    *
    * @param {number} startRow Visual start row of the merged cell.
    * @param {number} startColumn Visual start column of the merged cell.
@@ -1671,69 +1662,12 @@ export class MergeCells extends BasePlugin {
    * @param {number} endColumn Visual end column of the merged cell.
    * @fires Hooks#beforeUnmergeCells
    * @fires Hooks#afterUnmergeCells
-   * @fires Hooks#beforeSetRangeStartOnly
-   * @fires Hooks#beforeSetRangeEnd
-   * @fires Hooks#beforeSelectionHighlightSet
-   * @fires Hooks#afterIsMultipleSelection
-   * @fires Hooks#afterSelection
-   * @fires Hooks#afterSelectionByProp
-   * @fires Hooks#afterSelectionEnd
-   * @fires Hooks#afterSelectionEndByProp
    */
   unmerge(startRow: number, startColumn: number, endRow: number, endColumn: number): void {
     const start = this.hot._createCellCoords(startRow, startColumn);
     const end = this.hot._createCellCoords(endRow, endColumn);
-    const cellRange = this.hot._createCellRange(start, start, end);
 
-    if (this.unmergeRange(cellRange)) {
-      this.#reselectIntersectingSelection(startRow, startColumn, endRow, endColumn);
-    }
-  }
-
-  /**
-   * Replays every selection layer when one of them meets the changed range.
-   *
-   * @param {number} startRow Visual start row of the changed rectangle.
-   * @param {number} startColumn Visual start column of the changed rectangle.
-   * @param {number} endRow Visual end row of the changed rectangle.
-   * @param {number} endColumn Visual end column of the changed rectangle.
-   */
-  #reselectIntersectingSelection(
-    startRow: number, startColumn: number, endRow: number, endColumn: number
-  ): void {
-    if (!this.hot.selection.isSelected()) {
-      return;
-    }
-
-    const topRow = Math.min(startRow, endRow);
-    const bottomRow = Math.max(startRow, endRow);
-    const leftColumn = Math.min(startColumn, endColumn);
-    const rightColumn = Math.max(startColumn, endColumn);
-    const area = this.hot._createCellRange(
-      this.hot._createCellCoords(topRow, leftColumn),
-      this.hot._createCellCoords(topRow, leftColumn),
-      this.hot._createCellCoords(bottomRow, rightColumn),
-    );
-    const ranges = this.hot.getSelectedRange();
-
-    if (!ranges?.some(range => range.overlaps(area))) {
-      return;
-    }
-
-    const { selection } = this.hot;
-    const isSourceUnset = selection.getSelectionSource() === 'unknown';
-
-    if (isSourceUnset) {
-      selection.markSource('shift');
-    }
-
-    try {
-      selection.refresh();
-    } finally {
-      if (isSourceUnset) {
-        selection.markEndSource();
-      }
-    }
+    this.unmergeRange(this.hot._createCellRange(start, start, end));
   }
 
   /**
@@ -2639,8 +2573,68 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Modifies the information on whether the current selection contains multiple cells. The `afterIsMultipleSelection`
-   * hook callback.
+   * Answers a silent highlight recompute. A normal `isMultiple()` call already ran the public hook,
+   * this plugin's listener included, so this stays out of the way then.
+   *
+   * @param {{ value: boolean, silent?: boolean }} isMultiple The listener `isMultiple()` passes around.
+   */
+  #adjustMultipleSelectionSilently = (isMultiple: { value: boolean, silent?: boolean }) => {
+    if (isMultiple.silent !== true) {
+      return;
+    }
+
+    // A header range normalizes onto the merge it just became. `mergeSelection()` then calls
+    // `selectCell`, which refuses a header range, so this draw is the last one and the area stays.
+    if (this.#isSelectedByHeader()) {
+      return;
+    }
+
+    isMultiple.value = this.#onAfterIsMultipleSelection(isMultiple.value);
+  };
+
+  /**
+   * Set while a highlight recompute's draw is in progress. `afterRender` clears it. The fill handle
+   * asks `isMultiple()` while borders are painted, after `beforeViewRender`, and that question must
+   * not notify listeners either.
+   */
+  #silentMultipleUntilRenderEnds = false;
+
+  /**
+   * The area highlight was committed for the old merges. The next view render recomputes it once,
+   * before this draw paints, and does not run the selection hooks.
+   */
+  #recommitSelectionHighlight(): void {
+    const collection = this.mergedCellsCollection;
+
+    if (!collection.selectionHighlightStale) {
+      return;
+    }
+
+    collection.selectionHighlightStale = false;
+
+    if (!this.hot.selection.isSelected()) {
+      return;
+    }
+
+    this.#silentMultipleUntilRenderEnds = true;
+    this.hot.selection.commitHighlightsDirectly(true);
+  }
+
+  /**
+   * `afterRender` hook callback. Ends the silent `isMultiple()` window once the draw, borders
+   * included, has finished.
+   */
+  #onAfterRenderReleaseSilentQuery = () => {
+    if (!this.#silentMultipleUntilRenderEnds) {
+      return;
+    }
+
+    this.#silentMultipleUntilRenderEnds = false;
+    this.hot.selection.releaseSilentMultipleQuery();
+  };
+
+  /**
+   * `afterIsMultipleSelection` hook callback.
    *
    * @param {boolean} isMultiple Determines whether the current selection contains multiple cells.
    * @returns {boolean}
@@ -3958,6 +3952,8 @@ export class MergeCells extends BasePlugin {
    * marked as changed, so this draw repaints them.
    */
   #onBeforeViewRender = () => {
+    this.#recommitSelectionHighlight();
+
     const epoch = this.hot.view.getColumnWidthEpoch();
 
     if (epoch === this.#columnWidthEpoch) {

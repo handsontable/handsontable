@@ -29,6 +29,8 @@ interface EditorState {
 interface HandsontableFixture {
   selectCells(coords: number[][], scrollToCell?: boolean): void;
   selectCell(row: number, column: number, endRow: number, endColumn: number, scrollToCell?: boolean): void;
+  selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean): void;
+  batch(callback: () => void): void;
   getSelected(): number[][] | undefined;
   getSelectedRangeLast(): { highlight: { row: number, col: number } } | undefined;
   getDataAtCell(row: number, column: number): unknown;
@@ -150,6 +152,32 @@ export class MergeCellsSelectionHighlightPage {
 
       hot.selectCell(startRow, startColumn, rangeEndRow, endColumn, false);
     }, { row, column, endRow, endColumn });
+  }
+
+  /**
+   * Selects every cell. `selectAll()` skips the scroll that would follow.
+   */
+  async selectAll(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+
+      hot.selectAll();
+    });
+  }
+
+  /**
+   * Merges each rectangle inside one `batch()`, so the grid renders once.
+   */
+  async batchMerges(ranges: number[][]): Promise<void> {
+    await this.page.evaluate((rects) => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+
+      hot.batch(() => {
+        rects.forEach(([startRow, startColumn, endRow, endColumn]) => {
+          hot.getPlugin('mergeCells').merge(startRow, startColumn, endRow, endColumn);
+        });
+      });
+    }, ranges);
   }
 
   /**

@@ -605,21 +605,23 @@ the cell too, so the level-7 rule still wins, the same way `area-7` wins for a p
 `-multiple` stays the union that no single range covers. A partial layer still adds `-multiple`
 when some other range fully covers. The numbered rule is later in the stylesheet and wins.
 
-### `merge()` and `unmerge()` replay a selection that meets the area (DEV-741)
+### `merge()` and `unmerge()` repaint the highlight without replaying the selection (DEV-741)
 
 The area fill is committed while the range is still several cells. `mergeRange()` only renders, so
-`merge()` used to leave that fill up. The context menu calls `selectCell` afterwards, and
-`#onAfterIsMultipleSelection` then treats a range that equals one merge as a single cell.
-`merge()` and `unmerge()` replay through `selection.refresh()` under the `shift` source, and only
-when a current range overlaps the rectangle and the call actually changed a merge. `shift` does not
-scroll. The replay walks every selection layer, not only the one that overlaps. Each layer fires
-`beforeSetRangeStartOnly`, `beforeSetRangeEnd`, `beforeSelectionHighlightSet`, `afterSelection` and
-`afterSelectionByProp`. `afterIsMultipleSelection` fires five times for one range and twice per layer
-when there is more than one. `afterSelectionEnd` and `afterSelectionEndByProp` fire once. The replay
-does not run for `mergeRange()` or `unmergeRange()`, so init, undo, and `mergeSelection()` (which
-already selects) are left alone. A selection that does not meet the rectangle is not replayed. A
-second `merge()` of the same area returns `false`, and a second `unmerge()` finds nothing, so a
-selection hook that calls the same method again does not replay.
+that fill stayed after the cells became one merge. `merge()` and `unmerge()` do not call
+`selection.refresh()`. A change to the merged-cell collection marks the highlight stale, and the
+next view render recomputes every layer's highlight from the current ranges. The recompute does
+not fire the selection hooks. `afterIsMultipleSelection` is how the plugin says a range that equals
+one merge is a single cell. The recompute asks that question on a local hook and does not notify
+listeners. A header selection keeps the engine's answer: its corners normalize the header index to
+0, so the body looks like that merge, and `mergeSelection()`'s following `selectCell` cannot
+reselect a header range, so this draw is the last one. That silence lasts until `afterRender`,
+because the fill handle asks the same question while the borders of that draw are painted.
+`hot.batch()` suspends render, so a loop of merges pays for one recompute on the render that
+follows. `mergeSelection()` still calls `selectCell` afterwards, and that call does fire the
+selection hooks when the range is a body range. `mergeRange()` and `unmergeRange()` themselves do
+not. A selection that does not meet the changed cells is left as it was, because the recompute
+reads the same ranges.
 
 ### An arrow-key horizontal exit is addressed by the merge's top row (DEV-102)
 

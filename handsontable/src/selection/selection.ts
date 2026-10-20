@@ -114,6 +114,10 @@ class Selection {
    * Registers a local hook callback for the given hook name on this instance.
    */
   declare addLocalHook: (...args: unknown[]) => this;
+  /**
+   * Removes a local hook callback registered for the given hook name.
+   */
+  declare removeLocalHook: (key: string, callback: Function) => this;
 
   /**
    * Handsontable settings instance.
@@ -278,6 +282,11 @@ class Selection {
    * @type {'row'|'column'|null}
    */
   #deferredDeselect: IndexAxis | null = null;
+  /**
+   * While a highlight recompute is asking whether a range is multiple cells, the public
+   * `afterIsMultipleSelection` hook must not run. The merge plugin still answers on its local hook.
+   */
+  #queryMultipleSilently = false;
   /**
    * Visual layer index of the range currently hovered while `selectionHandles` is on, or `null`.
    *
@@ -1605,6 +1614,10 @@ class Selection {
 
     const isMultipleListener = createObjectPropListener(!cellRange.isSingle());
 
+    if (this.#queryMultipleSilently) {
+      isMultipleListener.silent = true;
+    }
+
     this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
 
     return isMultipleListener.value;
@@ -2692,7 +2705,7 @@ class Selection {
     this.#extenderTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
     this.#focusTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
 
-    this.#commitHighlightsDirectly();
+    this.commitHighlightsDirectly();
   }
 
   /**
@@ -2716,24 +2729,52 @@ class Selection {
   }
 
   /**
-   * Re-commits every layer's highlight from the current ranges WITHOUT the selection hooks.
+   * Re-commits every layer's highlight from the current ranges without the selection-change hooks.
    *
-   * Both callers run inside an index-mapper update, where the hooks are unsafe: `afterSelection`
-   * makes `EditorManager` prepare an editor, which reads the source data through a `DataMap` that a
-   * data load may have torn down at that moment, and the scroll answer would jump the viewport.
+   * The index-mapper callers run where those hooks are unsafe: `afterSelection` makes `EditorManager`
+   * prepare an editor, which reads the source data through a `DataMap` that a data load may have torn
+   * down, and the scroll answer would jump the viewport. MergeCells calls it from the next view render
+   * after the merged cells change, because the area fill was committed while the range was still
+   * several cells, and passes `true` so that recompute also skips `afterIsMultipleSelection`.
+   * The `true` caller keeps that silence through the rest of the draw and releases it with
+   * {@link Selection#releaseSilentMultipleQuery}.
+   *
+   * @private
+   * @param {boolean} [queryMultipleSilently=false] When `true`, `isMultiple()` does not run the public
+   * `afterIsMultipleSelection` hook until {@link Selection#releaseSilentMultipleQuery}. The merge
+   * plugin still answers on its local hook.
    */
-  #commitHighlightsDirectly(): void {
-    this.highlight.clear();
-    this.selectedRange.ranges.forEach((range, layerIndex) => this.applyAndCommit(range, layerIndex));
+  commitHighlightsDirectly(queryMultipleSilently = false): void {
+    this.#queryMultipleSilently = queryMultipleSilently;
 
-    const activeRange = this.getActiveSelectedRange();
+    try {
+      this.highlight.clear();
+      this.selectedRange.ranges.forEach((range, layerIndex) => this.applyAndCommit(range, layerIndex));
 
-    this.highlight.useLayerLevel(this.#activeSelectionLayer);
-    this.highlight.getFocus().clear();
+      const activeRange = this.getActiveSelectedRange();
 
-    if (activeRange && this.highlight.isEnabledFor(FOCUS_TYPE, activeRange.highlight)) {
-      this.highlight.getFocus().add(activeRange.highlight).commit().syncWith(activeRange);
+      this.highlight.useLayerLevel(this.#activeSelectionLayer);
+      this.highlight.getFocus().clear();
+
+      if (activeRange && this.highlight.isEnabledFor(FOCUS_TYPE, activeRange.highlight)) {
+        this.highlight.getFocus().add(activeRange.highlight).commit().syncWith(activeRange);
+      }
+    } finally {
+      // A `true` caller keeps the window open through the rest of this draw. The fill handle asks
+      // `isMultiple()` while the borders are painted, which is after this method returns.
+      if (!queryMultipleSilently) {
+        this.#queryMultipleSilently = false;
+      }
     }
+  }
+
+  /**
+   * Closes the silent `isMultiple()` window {@link Selection#commitHighlightsDirectly} left open.
+   *
+   * @private
+   */
+  releaseSilentMultipleQuery(): void {
+    this.#queryMultipleSilently = false;
   }
 
   /**
@@ -2984,7 +3025,7 @@ class Selection {
    */
   #commitGridTrackingFit(): void {
     if (this.tableProps.isEditorOpened()) {
-      this.#commitHighlightsDirectly();
+      this.commitHighlightsDirectly();
 
       return;
     }

@@ -38,6 +38,10 @@ class MergedCellsCollection {
    */
   mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
   /**
+   * A merge was added or removed since the area highlight was last recomputed from this collection.
+   */
+  selectionHighlightStale = false;
+  /**
    * The Handsontable instance.
    *
    * @type {Handsontable}
@@ -278,6 +282,7 @@ class MergedCellsCollection {
     this.mergedCells.push(newMergedCell);
     this.#addMergedCellToMatrix(newMergedCell);
     this.hot?.markAllCellsChanged();
+    this.selectionHighlightStale = true;
 
     return newMergedCell;
   }
@@ -353,6 +358,7 @@ class MergedCellsCollection {
     newMergedCell.normalize(this.hot);
     this.mergedCells.push(newMergedCell);
     this.hot.markAllCellsChanged();
+    this.selectionHighlightStale = true;
 
     return newMergedCell;
   }
@@ -373,6 +379,7 @@ class MergedCellsCollection {
       this.mergedCells.splice(mergedCellIndex, 1);
       this.#removeMergedCellFromMatrix(mergedCell);
       this.hot?.markAllCellsChanged();
+      this.selectionHighlightStale = true;
 
       return mergedCell;
     }
@@ -401,6 +408,7 @@ class MergedCellsCollection {
     this.mergedCells.length = 0;
     this.mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
     this.hot?.markAllCellsChanged();
+    this.selectionHighlightStale = true;
   }
 
   /**
