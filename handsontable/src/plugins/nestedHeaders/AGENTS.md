@@ -199,34 +199,44 @@ of the focus, so it does not depend on what the selection layer does with the hi
 Pinned by `tests/e2e/header-range-selection.spec.ts`, where the cases cover a leaf and a group anchor, both
 directions, a second Shift+click and a cell start.
 
-## A Ctrl click on a sortable header must not select that header twice
+## A Ctrl click on a sortable header matches a plain click
 
 Hook order is column sorting (50), multi-column sorting (170), then nested headers (280). On a Ctrl click
-the sorting plugin selects the column in `afterOnCellMouseDown` (`deselectCell` + `selectColumns`). Nested
-headers then calls `selectColumns` for the same header. `Selection#setRangeStart` treats a held Ctrl as
-"add a layer", so the second call stacks a duplicate of the range sorting just wrote (DEV-605).
-`#onBeforeSelectColumns` has already widened that first range to the header's colspan, so the duplicate is
-the span, not the leaf.
+the sorting plugin selects the column in `afterOnCellMouseDown` (`deselectCell` + `selectColumns(col)`,
+focus position 0). `Selection#setRangeStart` treats a held Ctrl as "add a layer", so a second
+`selectColumns` stacks a duplicate (DEV-605). Skipping the second call leaves sorting's layer: the focus
+sits on the first cell, and on a rowspan group the range is the leaf under the clicked header, because
+`#onBeforeSelectColumns` widens at `from.row`, which that call sets to the bottom header.
 
-`#selectionLayerAtPress` snapshots `getSelectedRange().current()` in `beforeOnCellMouseDown`. The after hook
-clears it, and so does `disablePlugin`. When Ctrl is held, Shift is not, there is exactly one layer, and
-that layer is a different object from the snapshot, nested headers skips its own `selectColumns`. Sorting
-already wrote the range and widened it to the span. A Ctrl click that left the pressed layer in place still
-adds a layer. The double selection starts in columnSorting's Ctrl+click handling. The fix lives in
-nestedHeaders while #13904 (sorting) is open.
+`#selectionLayerAtPress` snapshots `getSelectedRange().current()` in `beforeOnCellMouseDown`. The after
+hook clears it, and so does `disablePlugin`. When `#ctrlClickRewroteColumnInsideHeader` matches, nested
+headers calls `deselectCell()` and then `selectColumns` for the clicked header, so the focus and the
+header level match a plain click (`navigableHeaders` on or off). Skipping that call leaves sorting's
+focus on the first cell. A rewrite that is not that column range (a `selectCell`) does not deselect,
+and `selectColumns` still adds the header. A Ctrl click that left the pressed layer in place still adds
+a layer. The snapshot stays because those columns can already match. The duplicate starts in
+columnSorting's Ctrl+click handling. The fix lives in nestedHeaders while #13904 (sorting) is open.
+Pinned by `tests/e2e/nested-headers-mouse-selection.spec.ts`.
 
 ## A drag selects whole columns only when it started on a header
 
-`#isColumnsSelectionInProgress` is set in `afterOnCellMouseDown` when the press hit a header node. It is
-cleared at the start of the next `beforeOnCellMouseDown`, so every press starts clean. A release outside
-the grid does not go through a cell mouseup. It goes through the document `mouseup` in `tableView.ts`, and
-a flag cleared only on cell mouseup stays true for the next cell-to-header drag.
+`#isColumnsSelectionInProgress` is set in `afterOnCellMouseDown` when the press hit a header node.
+With `navigableHeaders`, `#onBeforeSelectionHighlightSet` moves the focus onto that header while the
+flag is set and `isMouseDown()` is true. The flag is cleared in `beforeOnCellMouseUp`, because
+`afterOnCellMouseUp` and `afterSelectionEnd` still see `isMouseDown()` as true. The document `mouseup`
+in `tableView.ts` clears it only after `selection.finish()`. A hook that selects a cell from
+`afterOnCellMouseUp` would otherwise have its focus pulled back onto the header.
+
+The flag is also cleared at the start of the next `beforeOnCellMouseDown`. A release outside the grid
+never fires a cell mouseup. It goes through that document `mouseup`, and a flag cleared only on cell
+mouseup stays true for the next cell-to-header drag.
 
 `#onBeforeOnCellMouseOver` may take over the drag (set `controller.column` and `controller.cell`, then
 `selectColumns`) only while the flag is set. A press that started on a cell leaves the flag clear, so the
 core `mouseOver` keeps the range on the cells (`to.normalize()` drops the header row). Gating on
 `isSelectedByColumnHeader()` is weaker: a column selection from before this press can still be marked.
 Header-started drags keep working because the after hook sets the flag again (DEV-799).
+Pinned by `tests/e2e/nested-headers-mouse-selection.spec.ts`.
 
 ## `fixedColumnsEnd`: a group that crosses the end line is drawn by the end clone
 

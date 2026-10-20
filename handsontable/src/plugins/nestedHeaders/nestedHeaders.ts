@@ -363,8 +363,9 @@ export class NestedHeaders extends BasePlugin {
   #isColumnsSelectionInProgress = false;
   /**
    * The selection layer present when the pointer went down. An earlier hook can replace that layer
-   * before `afterOnCellMouseDown` (a Ctrl click on a sortable header does). Comparing the object,
-   * not the coordinates, tells a rewrite apart from a layer the user already had.
+   * before `afterOnCellMouseDown` (a Ctrl click on a sortable header does). The same object means
+   * the layer was already there, so the click adds a layer. Coordinates alone cannot tell that
+   * apart from a rewrite of the same columns.
    */
   #selectionLayerAtPress: CellRange | null = null;
   /**
@@ -443,6 +444,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('afterColumnMove', this.#onAfterColumnMove);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     this.addHook('afterOnCellMouseDown', this.#onAfterOnCellMouseDown);
+    this.addHook('beforeOnCellMouseUp', this.#onBeforeOnCellMouseUp);
     this.addHook('beforeOnCellMouseOver', this.#onBeforeOnCellMouseOver);
     this.addHook('afterOnCellMouseOver', this.#onAfterOnCellMouseOver);
     this.addHook('beforeSelectionHighlightSet', this.#onBeforeSelectionHighlightSet);
@@ -1274,17 +1276,59 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    const layers = selection.getSelectedRange();
-    // Sorting already selected this header on the same Ctrl click, and `beforeSelectColumns`
-    // widened that range to the span. Selecting again would stack a layer.
-    const sortingRewroteTheLayer = !event.shiftKey &&
-      this.hot.getShortcutManager().isCtrlPressed() &&
-      layers.size() === 1 &&
-      layers.current() !== layerAtPress;
-
-    if (!sortingRewroteTheLayer) {
-      selection.selectColumns(...columnsToSelect);
+    // Sorting already selected one column of this header. Selecting again while Ctrl is held
+    // would add a layer, and skipping would leave sorting's focus on the first cell.
+    if (!event.shiftKey && this.#ctrlClickRewroteColumnInsideHeader(columnsToSelect, layerAtPress)) {
+      this.hot.deselectCell();
     }
+
+    selection.selectColumns(...columnsToSelect);
+  };
+
+  /**
+   * Sorting's `selectColumns` writes one full-height column range during the press. On a rowspan
+   * group that range is the leaf, so the columns sit inside the header rather than matching it.
+   */
+  #ctrlClickRewroteColumnInsideHeader(
+    columnsToSelect: [number, number, number],
+    layerAtPress: CellRange | null,
+  ): boolean {
+    if (this.hot.getShortcutManager().isCtrlPressed() === false) {
+      return false;
+    }
+
+    const layers = this.hot.selection.getSelectedRange();
+
+    if (layers.size() !== 1) {
+      return false;
+    }
+
+    const layer = layers.current();
+
+    if (!layer || layer === layerAtPress) {
+      return false;
+    }
+
+    const topRow = Math.min(layer.from.row ?? 0, layer.to.row ?? 0);
+    const bottomRow = Math.max(layer.from.row ?? 0, layer.to.row ?? 0);
+    const startCol = Math.min(layer.from.col ?? 0, layer.to.col ?? 0);
+    const endCol = Math.max(layer.from.col ?? 0, layer.to.col ?? 0);
+    const headerStart = Math.min(columnsToSelect[0], columnsToSelect[1]);
+    const headerEnd = Math.max(columnsToSelect[0], columnsToSelect[1]);
+
+    return topRow < 0 &&
+      bottomRow === this.hot.countRows() - 1 &&
+      startCol >= headerStart &&
+      endCol <= headerEnd;
+  }
+
+  /**
+   * `isMouseDown()` stays true through `afterOnCellMouseUp`. The document mouseup clears it after
+   * `selection.finish()`. With `navigableHeaders`, `#onBeforeSelectionHighlightSet` would pull the
+   * focus back onto the header.
+   */
+  #onBeforeOnCellMouseUp = () => {
+    this.#isColumnsSelectionInProgress = false;
   };
 
   /**
