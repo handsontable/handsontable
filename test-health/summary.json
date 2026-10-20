@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-20T06:56:17.713Z",
+  "generatedAt": "2026-10-20T07:55:02.056Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -909,7 +909,7 @@
       "file": "handsontable/src/__tests__/core/valueSetter.spec.js",
       "line": null,
       "title": "valueSetter should call valueSetter only when necessary when using the data-setting/getting API methods",
-      "count7": 6,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 1,
