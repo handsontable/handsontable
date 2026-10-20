@@ -64,12 +64,12 @@ function relsById(rels: Relationship[]): Map<string, Relationship> {
  * @returns {Array} The relationship of each entry, `undefined` where none carries its id.
  */
 export function sheetRelationships(
-  entries: ReadonlyArray<{ relId: string }>,
+  entries: ReadonlyArray<{ relId: string | undefined }>,
   rels: Relationship[],
 ): Array<Relationship | undefined> {
   const byId = relsById(rels);
 
-  return entries.map(entry => byId.get(entry.relId));
+  return entries.map(entry => (entry.relId === undefined ? undefined : byId.get(entry.relId)));
 }
 
 /**
@@ -460,7 +460,8 @@ async function readSheet(
  * or macro sheet is known by its relationship's type. A legacy module sheet has none at all: Excel
  * writes it as `<sheet name="Module1" r:id=""/>`, with no relationship and no part, and refusing it
  * refused the whole workbook (`the sheet "Module1" has no part`). It is a macro sheet, so it is
- * recorded under `macroSheets`. A NON-empty `r:id` that resolves to nothing is still refused.
+ * recorded under `macroSheets`. A NON-empty `r:id` that resolves to nothing is still refused, and so is
+ * a `<sheet>` with no id attribute at all: only the present and empty form is a module sheet.
  */
 function skippedSheetAs(entry: WorkbookSheetEntry, sheetRel: Relationship | undefined): DroppedFeatureName | undefined {
   if (sheetRel === undefined) {

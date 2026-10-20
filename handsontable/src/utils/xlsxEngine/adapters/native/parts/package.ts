@@ -30,7 +30,11 @@ export interface Relationship {
  */
 export interface WorkbookSheetEntry {
   name: string;
-  relId: string;
+  /**
+   * The relationship id, `''` for a present but empty attribute (a legacy module sheet), or
+   * `undefined` when the element carries none.
+   */
+  relId: string | undefined;
   state: SheetSnapshot['state'];
 }
 
@@ -413,7 +417,7 @@ function declaredRelationshipPrefixes(attrs: XmlAttributes): string[] {
 interface RelationshipIdReader {
   open(attrs: XmlAttributes, selfClosing: boolean): void;
   close(): void;
-  idOf(attrs: XmlAttributes): string;
+  idOf(attrs: XmlAttributes): string | undefined;
 }
 
 /**
@@ -489,7 +493,9 @@ function createRelationshipIdReader(): RelationshipIdReader {
         }
       });
 
-      return id ?? attrs['r:id'] ?? '';
+      // No fallback to `''`: an absent id must stay distinguishable from the empty one Excel writes
+      // for a legacy module sheet, or a broken worksheet entry is skipped as one.
+      return id ?? attrs['r:id'];
     },
   };
 }

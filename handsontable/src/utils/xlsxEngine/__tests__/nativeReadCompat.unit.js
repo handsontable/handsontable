@@ -158,9 +158,13 @@ async function packWorkbook(sheets, {
   entries.push({
     name: 'xl/workbook.xml',
     data: encoder.encode(`<workbook ${NS} xmlns:${relPrefix}="${relNs}"><sheets>${
-      sheets.map((sheet, i) => `<sheet name="${sheet.name}" sheetId="${i + 1}" ${relPrefix}:id="${
-        sheet.kind === null ? '' : `rId${sheets.slice(0, i + 1).filter(other => other.kind !== null).length}`
-      }"/>`).join('')
+      sheets.map((sheet, i) => {
+        const relIndex = sheets.slice(0, i + 1).filter(other => other.kind !== null).length;
+        const relId = sheet.kind === null ? '' : `rId${relIndex}`;
+        const idAttribute = sheet.omitRelId ? '' : ` ${relPrefix}:id="${relId}"`;
+
+        return `<sheet name="${sheet.name}" sheetId="${i + 1}"${idAttribute}/>`;
+      }).join('')
     }</sheets></workbook>`),
   });
   entries.push({
@@ -1696,6 +1700,19 @@ describe('native reader compatibility: a legacy module sheet with an empty r:id'
     expect(snapshot.sheets.map(sheet => sheet.name)).toEqual(['Sheet1', 'Third']);
     expect(snapshot.sheets[1].rows[0][0].value).toBe(3);
     expect(dropped.list()).toEqual([DROPPED_FEATURES.macroSheets]);
+  });
+});
+
+describe('native reader compatibility: a <sheet> with no relationship id at all (review round 12)', () => {
+  it('should refuse the workbook, not skip the sheet as a module sheet', async() => {
+    // Only a PRESENT and empty `r:id` is a legacy module sheet. A missing one is a broken worksheet
+    // entry, and skipping it dropped the sheet's data with only a `macroSheets` note.
+    const buffer = await packWorkbook([
+      { name: 'Sheet1', kind: 'worksheet', part: 'xl/worksheets/sheet1.xml', xml: oneCellSheet(1) },
+      { name: 'Data', kind: null, part: null, xml: null, omitRelId: true },
+    ]);
+
+    await expect(readWorkbook(buffer)).rejects.toThrow(/"Data" has no part/);
   });
 });
 
