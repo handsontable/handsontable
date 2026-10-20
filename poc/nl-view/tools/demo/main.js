@@ -22,8 +22,16 @@ let hot = null;
 let datasetName = 'orders';
 
 todayEl.value = '2026-10-20';
-datasetName = new URLSearchParams(location.search).get('dataset') === 'tickets' ? 'tickets' : 'orders';
+
+const search = new URLSearchParams(location.search);
+
+datasetName = search.get('dataset') === 'tickets' ? 'tickets' : 'orders';
 datasetEl.value = datasetName;
+
+const variant = search.get('variant') === 'fast' ? 'fast' : 'default';
+const variantEl = document.querySelector('#variant');
+
+variantEl.textContent = variant === 'fast' ? 'variant: fast' : 'variant: default';
 
 const initial = placeholderDataset(datasetName);
 
@@ -105,7 +113,7 @@ window.nlView = {
 
   async translate(prompt, options = {}) {
     const today = options && options.today ? options.today : (todayEl.value || undefined);
-    const packed = await translatePrompt(hot, prompt, { today, token: readToken() });
+    const packed = await translatePrompt(hot, prompt, { today, token: readToken(), variant });
 
     window.__nlViewDebug = packed.debug;
     showResult(packed.result);
@@ -213,7 +221,7 @@ function showResult(result) {
   const upstream = debug.upstreamMs != null ? debug.upstreamMs : 0;
 
   debugEl.textContent = [
-    `status ${result.status}  wall ${result.ms} ms  upstream ${upstream} ms  turns ${result.turns}  cost $${Number(result.costUsd).toFixed(6)}  tokens ${result.tokens}`,
+    `variant ${variant}  status ${result.status}  wall ${result.ms} ms  upstream ${upstream} ms  turns ${result.turns}  cost $${Number(result.costUsd).toFixed(6)}  tokens ${result.tokens}`,
     `reasoning items passed back: ${countReasoning(debug)}  stripped: ${debug.strippedReasoning ? 'yes' : 'no'}`,
     JSON.stringify({ state: result.state, trace: debug.trace }, null, 2),
   ].join('\n');

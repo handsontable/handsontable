@@ -14,6 +14,8 @@ const MODEL = 'gpt-5.6-luna';
 const MAX_TURNS = 4;
 const REQUEST_TIMEOUT_MS = 60000;
 
+const READ_TOOLS = new Set(['get_columns', 'get_distinct_values']);
+
 const TOOLS = [
   {
     type: 'function',
@@ -155,16 +157,20 @@ const TOOLS = [
   },
 ];
 
+const TOOLS_FAST = TOOLS.filter(tool => tool.function.name !== 'get_columns');
+
 /**
  * @param {Handsontable} hot
  * @param {string} prompt
- * @param {{ today?: string, token?: string }} options
+ * @param {{ today?: string, token?: string, variant?: string }} options
  * @returns {Promise<object>}
  */
 export async function translatePrompt(hot, prompt, options = {}) {
   const started = performance.now();
   const today = options.today || localToday();
   const token = options.token || '';
+  const fast = options.variant === 'fast';
+  const tools = fast ? TOOLS_FAST : TOOLS;
   const session = createSession(hot, today);
   const trace = [];
   let costUsd = 0;
@@ -173,7 +179,7 @@ export async function translatePrompt(hot, prompt, options = {}) {
   let upstreamMs = 0;
   let strippedReasoning = false;
   const messages = [
-    { role: 'system', content: systemPrompt(today) },
+    { role: 'system', content: fast ? systemPromptFast(session) : systemPrompt(today) },
     { role: 'user', content: String(prompt) },
   ];
 
@@ -187,7 +193,7 @@ export async function translatePrompt(hot, prompt, options = {}) {
       tokens,
       turns,
     },
-    debug: { trace, upstreamMs, strippedReasoning, today },
+    debug: { trace, upstreamMs, strippedReasoning, today, variant: fast ? 'fast' : 'default' },
   });
 
   if (!token) {
@@ -196,7 +202,7 @@ export async function translatePrompt(hot, prompt, options = {}) {
 
   try {
     for (let turn = 0; turn < MAX_TURNS; turn += 1) {
-      const response = await complete(messages, token);
+      const response = await complete(messages, token, tools);
 
       turns += response.llmCalls;
       costUsd += response.costUsd;
@@ -225,7 +231,9 @@ export async function translatePrompt(hot, prompt, options = {}) {
       if (!calls.length) {
         messages.push({
           role: 'user',
-          content: 'Call a tool. Use finish when the pending view is right, or not_expressible when it cannot be done.',
+          content: fast
+            ? 'Call the mutation tools in this turn, or not_expressible when it cannot be done. finish is optional when the mutations are already in this turn.'
+            : 'Call a tool. Use finish when the pending view is right, or not_expressible when it cannot be done.',
         });
         continue;
       }
@@ -254,6 +262,32 @@ export async function translatePrompt(hot, prompt, options = {}) {
       });
 
       if (!terminal.length) {
+        const reads = mutations.filter(call => READ_TOOLS.has(call.function?.name));
+        const writes = mutations.filter(call => !READ_TOOLS.has(call.function?.name));
+        const failed = step.calls.some(call => call.output && call.output.ok === false);
+
+        if (fast && writes.length && !reads.length && !failed) {
+          const explanation = textExplanation(assistant);
+          const applied = applyPending(session, step, { explanation, implicit: true });
+
+          if (applied.ok) {
+            return pack('applied', explanation, applied.state);
+          }
+
+          if (applied.state) {
+            return pack('error', applied.detail, applied.state);
+          }
+
+          messages.push({
+            role: 'user',
+            content: `Pending view was rejected. Fix it with tool calls. ${applied.detail}`,
+          });
+
+          if (turn === MAX_TURNS - 1) {
+            return pack('error', applied.detail, null);
+          }
+        }
+
         continue;
       }
 
@@ -269,48 +303,24 @@ export async function translatePrompt(hot, prompt, options = {}) {
         return pack('not_expressible', args.reason || 'Not expressible on a flat grid.', null);
       }
 
-      const check = validatePending(session);
+      const applied = applyPending(session, step, {
+        explanation: args.explanation || 'Applied.',
+        implicit: false,
+      });
 
-      if (!check.valid) {
-        const output = {
-          ok: false,
-          error: check.error?.message || 'Pending view was rejected.',
-          issues: (check.skipped || []).map(issue => ({
-            part: issue.part,
-            path: issue.path,
-            reason: issue.reason,
-            message: issue.message,
-          })),
-        };
+      terminal.forEach((call) => {
+        messages.push(toolMessage(call.id, applied.toolOutput));
+      });
 
-        terminal.forEach((call) => {
-          messages.push(toolMessage(call.id, output));
-        });
-        step.calls.push({ name: 'finish', args, output });
-
-        if (turn === MAX_TURNS - 1) {
-          return pack('error', output.issues.map(issue => `${issue.path}: ${issue.message}`).join(' ') || output.error, null);
+      if (!applied.ok) {
+        if (applied.state || turn === MAX_TURNS - 1) {
+          return pack('error', applied.detail, applied.state || null);
         }
 
         continue;
       }
 
-      const state = check.state;
-
-      if (Object.keys(state).length > 1) {
-        const applied = session.hot.getPlugin('viewState').setViewState(state, { atomic: true, undo: 'record' });
-
-        if (applied.error) {
-          return pack('error', applied.error.message, state);
-        }
-      }
-
-      terminal.forEach((call) => {
-        messages.push(toolMessage(call.id, { ok: true }));
-      });
-      step.calls.push({ name: 'finish', args, output: { ok: true, state } });
-
-      return pack('applied', args.explanation || 'Applied.', pendingState(session));
+      return pack('applied', args.explanation || 'Applied.', applied.state);
     }
   } catch (error) {
     if (error && typeof error.costUsd === 'number') {
@@ -322,6 +332,72 @@ export async function translatePrompt(hot, prompt, options = {}) {
   }
 
   return pack('error', `Stopped after ${MAX_TURNS} model calls without finish.`, null);
+}
+
+/**
+ * Apply the pending view once. Implicit finish uses the assistant text.
+ *
+ * @param {object} session
+ * @param {object} step
+ * @param {{ explanation: string, implicit: boolean }} meta
+ * @returns {{ ok: boolean, state: object|null, detail: string, toolOutput: object }}
+ */
+function applyPending(session, step, meta) {
+  const check = validatePending(session);
+  const name = meta.implicit ? 'implicit_finish' : 'finish';
+
+  if (!check.valid) {
+    const toolOutput = {
+      ok: false,
+      error: check.error?.message || 'Pending view was rejected.',
+      issues: (check.skipped || []).map(issue => ({
+        part: issue.part,
+        path: issue.path,
+        reason: issue.reason,
+        message: issue.message,
+      })),
+    };
+    const detail = toolOutput.issues.map(issue => `${issue.path}: ${issue.message}`).join(' ') || toolOutput.error;
+
+    step.calls.push({ name, args: { explanation: meta.explanation }, output: toolOutput });
+
+    return { ok: false, state: null, detail, toolOutput };
+  }
+
+  const state = check.state;
+
+  if (Object.keys(state).length > 1) {
+    const applied = session.hot.getPlugin('viewState').setViewState(state, { atomic: true, undo: 'record' });
+
+    if (applied.error) {
+      const toolOutput = { ok: false, error: applied.error.message };
+
+      step.calls.push({ name, args: { explanation: meta.explanation }, output: toolOutput });
+
+      return { ok: false, state, detail: applied.error.message, toolOutput };
+    }
+  }
+
+  const recorded = pendingState(session);
+  const toolOutput = { ok: true, state: recorded };
+
+  step.calls.push({ name, args: { explanation: meta.explanation }, output: toolOutput });
+
+  return { ok: true, state: recorded, detail: '', toolOutput };
+}
+
+/**
+ * @param {object} message
+ * @returns {string}
+ */
+function textExplanation(message) {
+  const content = message && message.content;
+
+  if (typeof content === 'string' && content.trim()) {
+    return content.trim();
+  }
+
+  return 'Applied.';
 }
 
 /**
@@ -344,20 +420,55 @@ function systemPrompt(today) {
 }
 
 /**
+ * Fast variant: schema is already in the prompt, so get_columns is not offered.
+ * A turn that only mutates is an implicit finish.
+ *
+ * @param {object} session
+ * @returns {string}
+ */
+function systemPromptFast(session) {
+  const listed = runTool(session, 'get_columns', {});
+  const schema = {
+    today: session.today,
+    view: session.pending,
+    columns: (listed.columns || []).map(column => ({
+      column: column.column,
+      type: column.inferredType,
+      conditions: column.conditions,
+    })),
+  };
+
+  return [
+    'You change a Handsontable view by calling tools. The grid updates at the end of a turn that contains the mutations, as one undo step.',
+    'Emit ALL mutation tool calls in this single response, in parallel. Do not split them across turns. finish is optional: if you call it in the same turn, its explanation is used; otherwise your message text is the explanation.',
+    'get_columns is not available. Props, inferred types, allowed conditions, the current view, and today are below. Condition names come only from that column\'s conditions array. Never invent one.',
+    JSON.stringify(schema),
+    'Call get_distinct_values only when you use by_value, and call it alone, with no mutations in that turn. Then send every mutation on the next turn. by_value is not in the conditions array. Copy value fields exactly, including case, as a flat args array. Blank cells are null.',
+    'For eq, neq, contains, gt, between, and the other listed conditions, do not call get_distinct_values. Use the condition directly.',
+    'set_filter replaces one column. operator is conjunction (AND) or disjunction (OR). Filters on different columns all apply together.',
+    'set_sort replaces the whole sort. sortOrder is asc or desc. hide_columns and show_columns take property names. reset_view clears filters, sort, and hidden columns.',
+    'Relative dates: pass between with one arg, the phrase, and the tool rewrites it to two inclusive YYYY-MM-DD values. Phrases: today, yesterday, tomorrow, last N days, next N days, this week, last week, this month, last month, this quarter, last quarter, this year, last year, year to date. Weeks start Monday. last N days includes today. You may pass the two absolute dates yourself instead.',
+    'Call not_expressible, and do not mutate, when the request needs grouping, a pivot, a chart, or an aggregate (sum, average, count, min, max across rows). Flat filters, sorts, and hidden columns are supported.',
+    'If a tool returns issues, fix the call using path and message in the next turn.',
+  ].join('\n');
+}
+
+/**
  * @param {object[]} messages
  * @param {string} token
+ * @param {object[]} tools
  * @returns {Promise<object>}
  */
-async function complete(messages, token) {
+async function complete(messages, token, tools) {
   try {
-    const first = await post(messages, token);
+    const first = await post(messages, token, tools);
 
     return { ...first, llmCalls: 1, strippedReasoning: false };
   } catch (error) {
     const body = error && error.rawText ? error.rawText : '';
 
     if (error && error.status === 400 && /reasoning/i.test(body)) {
-      const second = await post(messages.map(stripReasoning), token);
+      const second = await post(messages.map(stripReasoning), token, tools);
 
       return {
         ...second,
@@ -376,9 +487,10 @@ async function complete(messages, token) {
 /**
  * @param {object[]} messages
  * @param {string} token
+ * @param {object[]} tools
  * @returns {Promise<object>}
  */
-async function post(messages, token) {
+async function post(messages, token, tools) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   let response;
@@ -393,7 +505,7 @@ async function post(messages, token) {
       body: JSON.stringify({
         model: MODEL,
         messages,
-        tools: TOOLS,
+        tools,
         tool_choice: 'auto',
         max_tokens: 2000,
       }),

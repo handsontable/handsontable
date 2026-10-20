@@ -16,7 +16,7 @@ node poc/nl-view/tools/build.mjs
 # serve poc/nl-view/tools/dist
 ```
 
-`?dataset=orders` or `?dataset=tickets`. Eval entry: `window.nlView.loadData(name, rows)`, `reset()`, `translate(prompt, { today })`.
+`?dataset=orders` or `?dataset=tickets`. `?variant=fast` is B2: the column schema, current view, and today are in the system prompt, `get_columns` is not offered, and a turn that only mutates counts as finish. The default (no `variant`) keeps the original loop. Eval entry is the same either way: `window.nlView.loadData(name, rows)`, `reset()`, `translate(prompt, { today })`.
 
 ```bash
 NL_VIEW_TOKEN=... NODE_PATH=tests/node_modules node poc/nl-view/tools/smoke.mjs

@@ -49,7 +49,7 @@ const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
 page.on('pageerror', (error) => {
   console.log('PAGEERROR', error.message);
 });
-const results = [];
+const byVariant = {};
 
 try {
   await page.goto(`${origin}/?dataset=orders#t=${encodeURIComponent(token)}`, { waitUntil: 'networkidle' });
@@ -57,7 +57,6 @@ try {
 
   const boot = await page.evaluate(() => {
     const hot = window.__nlHot;
-    const before = hot.countRows();
 
     hot.getPlugin('viewState').setViewState({
       version: 1,
@@ -77,89 +76,108 @@ try {
       rows: hot.countRows(),
       filteredPaid: filtered,
       tokenInHash: location.hash.includes('t='),
+      variant: document.querySelector('#variant')?.textContent || '',
       conditions: hot.getPlugin('filters').getAvailableConditions(9).map(item => item.name),
     };
   });
 
   console.log('boot', JSON.stringify(boot));
 
-  for (const item of PROMPTS) {
-    await page.evaluate(async (dataset) => {
-      window.nlView.loadData(dataset, dataset === 'tickets' ? window.__tickets : window.__orders);
-      window.nlView.reset();
-    }, item.dataset);
+  for (const variant of ['default', 'fast']) {
+    const query = variant === 'fast' ? '?dataset=orders&variant=fast' : '?dataset=orders';
 
-    if (item.shot) {
-      await shoot(page, `${item.id}-before`);
-    }
+    await page.goto(`${origin}/${query}`, { waitUntil: 'networkidle' });
+    await page.waitForSelector('#grid td');
 
-    const started = Date.now();
-    const result = await page.evaluate(async (prompt) => {
-      const value = await window.nlView.translate(prompt, { today: '2026-10-20' });
-      const debug = window.__nlViewDebug || {};
+    const label = await page.locator('#variant').innerText();
 
-      return {
-        ...value,
-        rows: window.__nlHot.countRows(),
-        upstreamMs: debug.upstreamMs || 0,
-        strippedReasoning: !!debug.strippedReasoning,
-        reasoningItems: (debug.trace || []).reduce((sum, step) => sum + (step.reasoningItems || 0), 0),
-        trace: (debug.trace || []).map(step => ({
-          turn: step.turn,
-          upstreamMs: step.upstreamMs,
-          costUsd: step.costUsd,
-          tokens: step.tokens,
-          finishReason: step.finishReason,
-          reasoningItems: step.reasoningItems,
-          calls: (step.calls || []).map(call => ({
-            name: call.name,
-            args: call.args,
-            ok: !call.output || call.output.ok !== false,
-            error: call.output && call.output.error ? call.output.error : null,
+    console.log('variant-page', label);
+    byVariant[variant] = [];
+
+    for (const item of PROMPTS) {
+      await page.evaluate(async (dataset) => {
+        window.nlView.loadData(dataset, dataset === 'tickets' ? window.__tickets : window.__orders);
+        window.nlView.reset();
+      }, item.dataset);
+
+      if (item.shot && variant === 'default') {
+        await shoot(page, `${item.id}-before`);
+      }
+
+      const started = Date.now();
+      const result = await page.evaluate(async (prompt) => {
+        const value = await window.nlView.translate(prompt, { today: '2026-10-20' });
+        const debug = window.__nlViewDebug || {};
+
+        return {
+          ...value,
+          rows: window.__nlHot.countRows(),
+          variant: debug.variant || '',
+          upstreamMs: debug.upstreamMs || 0,
+          strippedReasoning: !!debug.strippedReasoning,
+          reasoningItems: (debug.trace || []).reduce((sum, step) => sum + (step.reasoningItems || 0), 0),
+          trace: (debug.trace || []).map(step => ({
+            turn: step.turn,
+            upstreamMs: step.upstreamMs,
+            costUsd: step.costUsd,
+            tokens: step.tokens,
+            finishReason: step.finishReason,
+            reasoningItems: step.reasoningItems,
+            calls: (step.calls || []).map(call => ({
+              name: call.name,
+              args: call.args,
+              ok: !call.output || call.output.ok !== false,
+              error: call.output && call.output.error ? call.output.error : null,
+            })),
           })),
-        })),
+        };
+      }, item.prompt);
+
+      if (item.shot && variant === 'default') {
+        await shoot(page, `${item.id}-after`);
+      }
+
+      const row = {
+        id: item.id,
+        variant,
+        dataset: item.dataset,
+        prompt: item.prompt,
+        status: result.status,
+        ms: result.ms,
+        turns: result.turns,
+        costUsd: result.costUsd,
+        tokens: result.tokens,
+        upstreamMs: result.upstreamMs,
+        rows: result.rows,
+        pageVariant: result.variant,
+        explanation: result.explanation,
+        state: result.state,
+        reasoningItems: result.reasoningItems,
+        strippedReasoning: result.strippedReasoning,
+        trace: result.trace,
+        wallClockMs: Date.now() - started,
       };
-    }, item.prompt);
 
-    if (item.shot) {
-      await shoot(page, `${item.id}-after`);
+      byVariant[variant].push(row);
+      console.log([
+        variant,
+        item.id,
+        result.status,
+        `wall ${result.ms}ms`,
+        `upstream ${result.upstreamMs}ms`,
+        `turns ${result.turns}`,
+        `$${result.costUsd}`,
+        `rows ${result.rows}`,
+        (result.explanation || '').slice(0, 120),
+      ].join(' | '));
     }
-
-    const row = {
-      id: item.id,
-      dataset: item.dataset,
-      prompt: item.prompt,
-      status: result.status,
-      ms: result.ms,
-      turns: result.turns,
-      costUsd: result.costUsd,
-      tokens: result.tokens,
-      upstreamMs: result.upstreamMs,
-      rows: result.rows,
-      explanation: result.explanation,
-      state: result.state,
-      reasoningItems: result.reasoningItems,
-      strippedReasoning: result.strippedReasoning,
-      trace: result.trace,
-      wallClockMs: Date.now() - started,
-    };
-
-    results.push(row);
-    console.log([
-      item.id,
-      result.status,
-      `wall ${result.ms}ms`,
-      `upstream ${result.upstreamMs}ms`,
-      `turns ${result.turns}`,
-      `$${result.costUsd}`,
-      `rows ${result.rows}`,
-      (result.explanation || '').slice(0, 140),
-    ].join(' | '));
   }
 } finally {
   await browser.close();
   server.close();
 }
+
+const results = [...(byVariant.default || []), ...(byVariant.fast || [])];
 
 const summary = {
   ranAt: new Date().toISOString(),
