@@ -128,6 +128,36 @@ describe('Row identity with a server-backed grid', () => {
     expect(server.onRowsRemove).toHaveBeenCalledWith(['SKU-4821']);
   });
 
+  it('should revert an edit and report the error when a function `dataProvider.rowId` throws', async() => {
+    const server = {
+      ...createServer(),
+      rowId: row => row.sku.code,
+      fetchRows: jest.fn(async() => ({
+        rows: [{ 'sku.code': 'SKU-4821', name: 'Wireless Mouse' }],
+        totalRows: 1,
+      })),
+    };
+    const mutationError = jest.fn();
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      dataProvider: server,
+      columns: [{ data: 'sku.code' }, { data: 'name' }],
+      afterRowsMutationError: mutationError,
+    });
+    await settle();
+
+    hot.setDataAtCell(0, 1, 'Ergonomic Mouse');
+    await settle();
+
+    expect(server.onRowsUpdate).not.toHaveBeenCalled();
+    expect(mutationError).toHaveBeenCalledWith('update', expect.any(Error), expect.any(Object));
+    expect(hot.getDataAtCell(0, 1)).toBe('Wireless Mouse');
+
+    consoleError.mockRestore();
+  });
+
   it('should keep reading a nested `dataProvider.rowId` path while `dataDotNotation` is off', async() => {
     const server = {
       ...createServer(),

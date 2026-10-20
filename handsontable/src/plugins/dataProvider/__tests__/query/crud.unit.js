@@ -49,6 +49,17 @@ describe('dataProvider crud', () => {
       expect(hot.getRowIdAtPhysicalRow).not.toHaveBeenCalled();
     });
 
+    it('should return undefined without reading a row when the rowId option is neither a string nor a function', () => {
+      const hot = {
+        toPhysicalRow: jest.fn(visualRow => visualRow),
+        getRowIdAtPhysicalRow: jest.fn(() => 'ORD-1'),
+      };
+
+      expect(getRowIdByVisualRow(hot, 5, 0)).toBeUndefined();
+      expect(getRowIdByVisualRow(hot, true, 0)).toBeUndefined();
+      expect(hot.getRowIdAtPhysicalRow).not.toHaveBeenCalled();
+    });
+
     it('should return undefined without reading a row for a visual row with no physical row', () => {
       const hot = {
         toPhysicalRow: () => null,
@@ -365,6 +376,27 @@ describe('dataProvider crud', () => {
         { id: 'ORD-1', changes: { name: 'B' }, rowData: { id: 'ORD-1', name: 'B' } },
       ]);
       expect(prepared.validation).toBeUndefined();
+    });
+
+    it('should log a row key that throws and leave the payload without an id', () => {
+      const keyError = new TypeError('Cannot read properties of undefined');
+      const hot = {
+        toPhysicalRow: vr => vr,
+        getSourceDataAtRow: () => ({ name: 'A' }),
+        getRowIdAtPhysicalRow: () => {
+          throw keyError;
+        },
+        propToCol: () => 0,
+        colToProp: () => 'name',
+      };
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const prepared = prepareUpdateFromChanges(hot, row => row.meta.id, [[0, 'name', 'A', 'B']]);
+
+      expect(prepared.rowPayloads).toEqual([{ id: undefined, changes: { name: 'B' }, rowData: { name: 'B' } }]);
+      expect(consoleError).toHaveBeenCalledWith('Reading the row id failed:', keyError);
+
+      consoleError.mockRestore();
     });
 
     it('should start the validation when asked to validate now', async() => {

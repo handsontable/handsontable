@@ -1881,7 +1881,7 @@ A factory editor does the same inside the `setValue` function you pass to `edito
 
 In 18.1, a string `rowId` in the [`dataProvider`](@/api/options.md#dataprovider) option always split on dots and read a nested property. `'meta.id'` read `row.meta.id`, even when the row had its own `'meta.id'` key, which a column with `data: 'meta.id'` shows. The row id could then differ from the value in the cell.
 
-In 19.0, a property named exactly as the string wins, dots included. `{ 'meta.id': 'SKU-4821' }` has the id `'SKU-4821'`. A row without such a property still reads the nested one, whatever [`dataDotNotation`](@/api/options.md#datadotnotation) is set to. The new [`rowId`](@/api/options.md#rowid) option reads ids the same way.
+In 19.0, a property named exactly as the string wins, dots included. `{ 'meta.id': 'SKU-4821' }` has the id `'SKU-4821'`. A row without such a property still reads the nested one, whatever [`dataDotNotation`](@/api/options.md#datadotnotation) is set to. The new [`rowId`](@/api/options.md#rowid) option reads ids the same way. See [Row identity](@/guides/rows/row-identity/row-identity.md).
 
 Handsontable also reads the id from the source row itself, not from a copy of it. A function `rowId` receives that row, and a [`modifySourceData`](@/api/hooks.md#modifysourcedata) hook no longer changes the id.
 
@@ -1890,15 +1890,35 @@ Handsontable also reads the id from the source row itself, not from a copy of it
 You are affected only if one of these is true:
 
 - Your rows have a key with a dot in its name that matches `dataProvider.rowId`, next to a nested object at the same path. The id is now the value under the dotted key, the one the cell shows.
+- `dataProvider.rowId` is a function that reads a nested object, and your rows keep that value under a key with a dot in its name. In 18.1, the function received a copy in which [`dataDotNotation`](@/api/options.md#datadotnotation) had turned the dotted key into a nested object. It now receives the row itself, where the nested object does not exist. A function that throws there makes the update fail with the missing row id error.
 - A `modifySourceData` hook of yours changes the value `dataProvider.rowId` reads. The id is now the stored value.
 
 ### How to migrate
 
-To keep reading the nested value in a row that also has the dotted key, pass a function instead of a string:
+Before, in 18.1, a string key read the nested value even when the row also had the dotted key:
+
+```js
+// row: { 'meta.id': 'SKU-4821', meta: { id: 'legacy-17' } }
+dataProvider: {
+  rowId: 'meta.id', // 18.1: 'legacy-17'; 19.0: 'SKU-4821'
+  // ...
+},
+```
+
+In 19.0, to keep reading the nested value, pass a function. Guard the nested object, so a row without it, such as a new row, has no id instead of throwing:
 
 ```js
 dataProvider: {
-  rowId: (row) => row.meta.id,
+  rowId: (row) => row.meta?.id ?? null,
+  // ...
+},
+```
+
+A function that reads a dotted key reads it by name:
+
+```js
+dataProvider: {
+  rowId: (row) => row['meta.id'] ?? null,
   // ...
 },
 ```

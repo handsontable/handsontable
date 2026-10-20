@@ -83,15 +83,15 @@ export function enqueueMutation(state: { tail: Promise<void> }, fn: () => Promis
  * different value from the one the cell shows.
  *
  * @param {Core} hot Handsontable instance.
- * @param {string|Function|undefined|null} rowIdOption `rowId` from config. Only its presence is checked: without a
- * key there is no id.
+ * @param {string|Function|undefined|null} rowIdOption `rowId` from config. Only its kind is checked: without a string
+ * or function key there is no id, the same rule Core uses before it falls back to the grid-level `rowId`.
  * @param {number} visualRow Visual row index.
  * @returns {*|undefined}
  */
 export function getRowIdByVisualRow(
   hot: HotInstance, rowIdOption: RowIdOption, visualRow: number
 ): unknown {
-  if (rowIdOption === undefined || rowIdOption === null) {
+  if (typeof rowIdOption !== 'string' && !isFunction(rowIdOption)) {
     return undefined;
   }
 
@@ -538,6 +538,27 @@ function validatePreparedRows(
 }
 
 /**
+ * Reads the id of an edited row for an update payload. A function key that throws is logged and read as a missing
+ * id, so the update takes the missing-id path (revert, `afterRowsMutationError`) instead of rejecting inside the
+ * mutation queue, where nothing would report it.
+ *
+ * @param {Core} hot Handsontable instance.
+ * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
+ * @param {number} visualRow Visual row index.
+ * @returns {*|undefined}
+ */
+function readUpdateRowId(hot: HotInstance, rowIdOption: RowIdOption, visualRow: number): unknown {
+  try {
+    return getRowIdByVisualRow(hot, rowIdOption, visualRow);
+
+  } catch (err) {
+    logError('Reading the row id failed:', err);
+
+    return undefined;
+  }
+}
+
+/**
  * Groups cell changes by row and builds one `{ id, changes, rowData }` payload per row from the rows the grid
  * shows now. With `validateNow`, the cells are validated now too, against the same rows.
  *
@@ -567,7 +588,7 @@ export function prepareUpdateFromChanges(
     const { changesObj, rowData } = buildChangesAndRowData(hot, byRow.get(vr)!);
 
     return {
-      id: getRowIdByVisualRow(hot, rowIdOption, vr),
+      id: readUpdateRowId(hot, rowIdOption, vr),
       changes: changesObj,
       rowData,
     };
