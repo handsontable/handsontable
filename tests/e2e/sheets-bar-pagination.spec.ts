@@ -1,6 +1,8 @@
 import { test, expect } from '../fixtures/test';
 import { SheetsBarPaginationPage } from '../fixtures/pages/SheetsBarPaginationPage';
 
+// leg-declarations: ignore computed-style -- the sheets bar page object reads tab styles for the tab animation specs; this spec checks each sheet's pagination state, which no theme changes
+
 /**
  * Pagination keeps one current page for the whole grid and clamps it to the page count on every
  * load. A sheet switch runs a load, so without the page in a sheet's view state a round-trip
