@@ -1,0 +1,76 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: 14px/1.4 system-ui, sans-serif;
+  color: #1c1c1c;
+  background: #f6f7f9;
+}
+
+header, .bar, #prompt-form, .chips, #explanation, #notice, #debug {
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 0 16px;
+}
+
+header { padding-top: 16px; }
+
+h1 { font-size: 18px; margin: 0 0 4px; }
+
+header p, #explanation { color: #444; margin: 0; }
+
+.bar, #prompt-form, .chips {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+label { display: flex; gap: 6px; align-items: center; }
+
+select, input, textarea, button {
+  font: inherit;
+}
+
+textarea {
+  flex: 1;
+  padding: 8px;
+  resize: vertical;
+}
+
+button, select, input[type="date"] {
+  padding: 6px 10px;
+}
+
+button { cursor: pointer; }
+
+.chips { flex-wrap: wrap; }
+
+.chips button { background: #fff; }
+
+#explanation { margin-top: 10px; min-height: 1.4em; }
+
+#notice {
+  margin-top: 8px;
+  padding: 8px 10px;
+}
+
+#notice.not-expressible { background: #fff4d6; }
+
+#notice.error { background: #fde2e1; }
+
+#grid {
+  margin: 12px auto 0;
+  max-width: 1200px;
+}
+
+#debug { margin-top: 12px; padding-bottom: 24px; }
+
+#debug pre {
+  overflow: auto;
+  max-height: 280px;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 8px;
+  font-size: 12px;
+}

@@ -1,0 +1,1208 @@
+{
+  "ranAt": "2026-10-20T12:27:43.338Z",
+  "prompts": 12,
+  "applied": 10,
+  "notExpressible": 2,
+  "error": 0,
+  "reasoningItemsSeen": 24,
+  "strippedReasoning": false,
+  "results": [
+    {
+      "id": "orders-paid",
+      "dataset": "orders",
+      "prompt": "Show only paid orders",
+      "status": "applied",
+      "ms": 8937,
+      "turns": 3,
+      "costUsd": 0.00101365,
+      "tokens": 6081,
+      "upstreamMs": 7592,
+      "rows": 10,
+      "explanation": "Filtered the status column to show only orders with status Paid.",
+      "state": {
+        "version": 1,
+        "filters": [
+          {
+            "column": "status",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "Paid"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "reasoningItems": 2,
+      "strippedReasoning": false,
+      "trace": [
+        {
+          "turn": 1,
+          "upstreamMs": 2048,
+          "costUsd": 0.000184,
+          "tokens": 790,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "get_columns",
+              "args": {},
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "upstreamMs": 2499,
+          "costUsd": 0.00071355,
+          "tokens": 2604,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "set_filter",
+              "args": {
+                "column": "status",
+                "conditions": [
+                  {
+                    "name": "eq",
+                    "args": [
+                      "Paid"
+                    ]
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 3,
+          "upstreamMs": 3045,
+          "costUsd": 0.0001161,
+          "tokens": 2687,
+          "finishReason": "tool_calls",
+          "reasoningItems": 0,
+          "calls": [
+            {
+              "name": "finish",
+              "args": {
+                "explanation": "Filtered the status column to show only orders with status Paid."
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "wallClockMs": 9291
+    },
+    {
+      "id": "orders-emea-total",
+      "dataset": "orders",
+      "prompt": "EMEA orders sorted by total descending",
+      "status": "applied",
+      "ms": 6844,
+      "turns": 3,
+      "costUsd": 0.0011095599999999999,
+      "tokens": 6259,
+      "upstreamMs": 6025,
+      "rows": 12,
+      "explanation": "Filtered the region column to EMEA and sorted the total column from highest to lowest.",
+      "state": {
+        "version": 1,
+        "filters": [
+          {
+            "column": "region",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "EMEA"
+                ]
+              }
+            ]
+          }
+        ],
+        "sort": {
+          "columns": [
+            {
+              "column": "total",
+              "sortOrder": "desc"
+            }
+          ]
+        }
+      },
+      "reasoningItems": 2,
+      "strippedReasoning": false,
+      "trace": [
+        {
+          "turn": 1,
+          "upstreamMs": 1531,
+          "costUsd": 0.0001846,
+          "tokens": 793,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "get_columns",
+              "args": {},
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "upstreamMs": 2606,
+          "costUsd": 0.0007743,
+          "tokens": 2657,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "set_filter",
+              "args": {
+                "column": "region",
+                "conditions": [
+                  {
+                    "name": "eq",
+                    "args": [
+                      "EMEA"
+                    ]
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            },
+            {
+              "name": "set_sort",
+              "args": {
+                "columns": [
+                  {
+                    "column": "total",
+                    "sortOrder": "desc"
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 3,
+          "upstreamMs": 1888,
+          "costUsd": 0.00015066,
+          "tokens": 2809,
+          "finishReason": "tool_calls",
+          "reasoningItems": 0,
+          "calls": [
+            {
+              "name": "finish",
+              "args": {
+                "explanation": "Filtered the region column to EMEA and sorted the total column from highest to lowest."
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "wallClockMs": 6848
+    },
+    {
+      "id": "orders-last-7",
+      "dataset": "orders",
+      "prompt": "Orders from the last 7 days",
+      "status": "applied",
+      "ms": 6401,
+      "turns": 3,
+      "costUsd": 0.00106141,
+      "tokens": 6150,
+      "upstreamMs": 5535,
+      "rows": 9,
+      "explanation": "Filtered orders to order dates from the last 7 days, inclusive of today (2026-10-14 through 2026-10-20).",
+      "state": {
+        "version": 1,
+        "filters": [
+          {
+            "column": "order_date",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "between",
+                "args": [
+                  "2026-10-14",
+                  "2026-10-20"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "reasoningItems": 2,
+      "strippedReasoning": false,
+      "trace": [
+        {
+          "turn": 1,
+          "upstreamMs": 1551,
+          "costUsd": 0.0001846,
+          "tokens": 793,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "get_columns",
+              "args": {},
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "upstreamMs": 2211,
+          "costUsd": 0.0007310999999999999,
+          "tokens": 2621,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "set_filter",
+              "args": {
+                "column": "order_date",
+                "conditions": [
+                  {
+                    "name": "between",
+                    "args": [
+                      "last 7 days"
+                    ]
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 3,
+          "upstreamMs": 1773,
+          "costUsd": 0.00014570999999999999,
+          "tokens": 2736,
+          "finishReason": "tool_calls",
+          "reasoningItems": 0,
+          "calls": [
+            {
+              "name": "finish",
+              "args": {
+                "explanation": "Filtered orders to order dates from the last 7 days, inclusive of today (2026-10-14 through 2026-10-20)."
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "wallClockMs": 6767
+    },
+    {
+      "id": "orders-hide",
+      "dataset": "orders",
+      "prompt": "Hide the rep and order_id columns",
+      "status": "applied",
+      "ms": 5454,
+      "turns": 3,
+      "costUsd": 0.0009593799999999999,
+      "tokens": 6005,
+      "upstreamMs": 4739,
+      "rows": 24,
+      "explanation": "Hide the rep and order_id columns.",
+      "state": {
+        "version": 1,
+        "hiddenColumns": [
+          "rep",
+          "order_id"
+        ]
+      },
+      "reasoningItems": 2,
+      "strippedReasoning": false,
+      "trace": [
+        {
+          "turn": 1,
+          "upstreamMs": 1239,
+          "costUsd": 0.0001858,
+          "tokens": 794,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "get_columns",
+              "args": {},
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "upstreamMs": 1624,
+          "costUsd": 0.00067495,
+          "tokens": 2575,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "hide_columns",
+              "args": {
+                "columns": [
+                  "rep",
+                  "order_id"
+                ]
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 3,
+          "upstreamMs": 1876,
+          "costUsd": 0.00009863,
+          "tokens": 2636,
+          "finishReason": "tool_calls",
+          "reasoningItems": 0,
+          "calls": [
+            {
+              "name": "finish",
+              "args": {
+                "explanation": "Hide the rep and order_id columns."
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "wallClockMs": 5459
+    },
+    {
+      "id": "orders-high-not-cancelled",
+      "dataset": "orders",
+      "prompt": "High priority orders that are not cancelled",
+      "status": "applied",
+      "ms": 8401,
+      "turns": 4,
+      "costUsd": 0.00132958,
+      "tokens": 9373,
+      "upstreamMs": 7299,
+      "rows": 7,
+      "explanation": "Filtered the grid to orders with priority exactly \"high\" and status not equal to \"cancelled\".",
+      "state": {
+        "version": 1,
+        "filters": [
+          {
+            "column": "priority",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "high"
+                ]
+              }
+            ]
+          },
+          {
+            "column": "status",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "neq",
+                "args": [
+                  "cancelled"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "reasoningItems": 3,
+      "strippedReasoning": false,
+      "trace": [
+        {
+          "turn": 1,
+          "upstreamMs": 1231,
+          "costUsd": 0.0001846,
+          "tokens": 793,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "get_columns",
+              "args": {},
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "upstreamMs": 2328,
+          "costUsd": 0.0007743,
+          "tokens": 2657,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "get_distinct_values",
+              "args": {
+                "column": "priority"
+              },
+              "ok": true,
+              "error": null
+            },
+            {
+              "name": "get_distinct_values",
+              "args": {
+                "column": "status"
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 3,
+          "upstreamMs": 2083,
+          "costUsd": 0.00021540999999999997,
+          "tokens": 2878,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "set_filter",
+              "args": {
+                "column": "priority",
+                "conditions": [
+                  {
+                    "name": "eq",
+                    "args": [
+                      "high"
+                    ]
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            },
+            {
+              "name": "set_filter",
+              "args": {
+                "column": "status",
+                "conditions": [
+                  {
+                    "name": "neq",
+                    "args": [
+                      "cancelled"
+                    ]
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 4,
+          "upstreamMs": 1657,
+          "costUsd": 0.00015527,
+          "tokens": 3045,
+          "finishReason": "tool_calls",
+          "reasoningItems": 0,
+          "calls": [
+            {
+              "name": "finish",
+              "args": {
+                "explanation": "Filtered the grid to orders with priority exactly \"high\" and status not equal to \"cancelled\"."
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "wallClockMs": 8407
+    },
+    {
+      "id": "orders-qty",
+      "dataset": "orders",
+      "prompt": "Orders with quantity greater than 10",
+      "status": "applied",
+      "ms": 5994,
+      "turns": 3,
+      "costUsd": 0.00099695,
+      "tokens": 6065,
+      "upstreamMs": 5264,
+      "rows": 10,
+      "explanation": "Filtered the Orders grid to rows where quantity is greater than 10.",
+      "state": {
+        "version": 1,
+        "filters": [
+          {
+            "column": "quantity",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "gt",
+                "args": [
+                  10
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "reasoningItems": 2,
+      "strippedReasoning": false,
+      "trace": [
+        {
+          "turn": 1,
+          "upstreamMs": 1410,
+          "costUsd": 0.000187,
+          "tokens": 795,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "get_columns",
+              "args": {},
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "upstreamMs": 1853,
+          "costUsd": 0.0006956,
+          "tokens": 2593,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "set_filter",
+              "args": {
+                "column": "quantity",
+                "operator": "conjunction",
+                "conditions": [
+                  {
+                    "name": "gt",
+                    "args": [
+                      10
+                    ]
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 3,
+          "upstreamMs": 2001,
+          "costUsd": 0.00011435,
+          "tokens": 2677,
+          "finishReason": "tool_calls",
+          "reasoningItems": 0,
+          "calls": [
+            {
+              "name": "finish",
+              "args": {
+                "explanation": "Filtered the Orders grid to rows where quantity is greater than 10."
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "wallClockMs": 6000
+    },
+    {
+      "id": "orders-de-fr",
+      "dataset": "orders",
+      "prompt": "Customers in Germany or France",
+      "status": "applied",
+      "ms": 6054,
+      "turns": 3,
+      "costUsd": 0.00104106,
+      "tokens": 6129,
+      "upstreamMs": 5357,
+      "rows": 5,
+      "explanation": "Filtered the country column to show customers in Germany or France.",
+      "state": {
+        "version": 1,
+        "filters": [
+          {
+            "column": "country",
+            "operation": "disjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "Germany"
+                ]
+              },
+              {
+                "name": "eq",
+                "args": [
+                  "France"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "reasoningItems": 2,
+      "strippedReasoning": false,
+      "trace": [
+        {
+          "turn": 1,
+          "upstreamMs": 1650,
+          "costUsd": 0.0001866,
+          "tokens": 793,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "get_columns",
+              "args": {},
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "upstreamMs": 2052,
+          "costUsd": 0.0007323,
+          "tokens": 2622,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "set_filter",
+              "args": {
+                "column": "country",
+                "operator": "disjunction",
+                "conditions": [
+                  {
+                    "name": "eq",
+                    "args": [
+                      "Germany"
+                    ]
+                  },
+                  {
+                    "name": "eq",
+                    "args": [
+                      "France"
+                    ]
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 3,
+          "upstreamMs": 1655,
+          "costUsd": 0.00012216,
+          "tokens": 2714,
+          "finishReason": "tool_calls",
+          "reasoningItems": 0,
+          "calls": [
+            {
+              "name": "finish",
+              "args": {
+                "explanation": "Filtered the country column to show customers in Germany or France."
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "wallClockMs": 6059
+    },
+    {
+      "id": "orders-group",
+      "dataset": "orders",
+      "prompt": "Group orders by region and sum the totals",
+      "status": "not_expressible",
+      "ms": 2004,
+      "turns": 1,
+      "costUsd": 0.0002388,
+      "tokens": 839,
+      "upstreamMs": 1767,
+      "rows": 24,
+      "explanation": "Grouping orders by region and summing totals requires grouping and aggregation, which this view tool cannot express.",
+      "state": null,
+      "reasoningItems": 1,
+      "strippedReasoning": false,
+      "trace": [
+        {
+          "turn": 1,
+          "upstreamMs": 1767,
+          "costUsd": 0.0002388,
+          "tokens": 839,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "not_expressible",
+              "args": {
+                "reason": "Grouping orders by region and summing totals requires grouping and aggregation, which this view tool cannot express."
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "wallClockMs": 2009
+    },
+    {
+      "id": "tickets-p0",
+      "dataset": "tickets",
+      "prompt": "Open P0 bugs",
+      "status": "applied",
+      "ms": 9413,
+      "turns": 4,
+      "costUsd": 0.0013977,
+      "tokens": 9011,
+      "upstreamMs": 7903,
+      "rows": 3,
+      "explanation": "Filtered the grid to rows where status is open, priority is P0, and type is bug.",
+      "state": {
+        "version": 1,
+        "filters": [
+          {
+            "column": "status",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "open"
+                ]
+              }
+            ]
+          },
+          {
+            "column": "priority",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "P0"
+                ]
+              }
+            ]
+          },
+          {
+            "column": "type",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "eq",
+                "args": [
+                  "bug"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "reasoningItems": 3,
+      "strippedReasoning": false,
+      "trace": [
+        {
+          "turn": 1,
+          "upstreamMs": 1703,
+          "costUsd": 0.00020800000000000001,
+          "tokens": 810,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "get_columns",
+              "args": {},
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "upstreamMs": 2200,
+          "costUsd": 0.0007245999999999999,
+          "tokens": 2424,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "get_distinct_values",
+              "args": {
+                "column": "status"
+              },
+              "ok": true,
+              "error": null
+            },
+            {
+              "name": "get_distinct_values",
+              "args": {
+                "column": "priority"
+              },
+              "ok": true,
+              "error": null
+            },
+            {
+              "name": "get_distinct_values",
+              "args": {
+                "column": "type"
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 3,
+          "upstreamMs": 2176,
+          "costUsd": 0.00027977,
+          "tokens": 2757,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "set_filter",
+              "args": {
+                "column": "status",
+                "conditions": [
+                  {
+                    "name": "eq",
+                    "args": [
+                      "open"
+                    ]
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            },
+            {
+              "name": "set_filter",
+              "args": {
+                "column": "priority",
+                "conditions": [
+                  {
+                    "name": "eq",
+                    "args": [
+                      "P0"
+                    ]
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            },
+            {
+              "name": "set_filter",
+              "args": {
+                "column": "type",
+                "conditions": [
+                  {
+                    "name": "eq",
+                    "args": [
+                      "bug"
+                    ]
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 4,
+          "upstreamMs": 1824,
+          "costUsd": 0.00018533,
+          "tokens": 3020,
+          "finishReason": "tool_calls",
+          "reasoningItems": 0,
+          "calls": [
+            {
+              "name": "finish",
+              "args": {
+                "explanation": "Filtered the grid to rows where status is open, priority is P0, and type is bug."
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "wallClockMs": 9818
+    },
+    {
+      "id": "tickets-due",
+      "dataset": "tickets",
+      "prompt": "Tickets due this month, highest story points first",
+      "status": "applied",
+      "ms": 6325,
+      "turns": 3,
+      "costUsd": 0.00105832,
+      "tokens": 5780,
+      "upstreamMs": 5497,
+      "rows": 8,
+      "explanation": "Filtered tickets with due dates from 2026-10-01 through 2026-10-31 and sorted them by story points descending.",
+      "state": {
+        "version": 1,
+        "filters": [
+          {
+            "column": "due_date",
+            "operation": "conjunction",
+            "conditions": [
+              {
+                "name": "between",
+                "args": [
+                  "2026-10-01",
+                  "2026-10-31"
+                ]
+              }
+            ]
+          }
+        ],
+        "sort": {
+          "columns": [
+            {
+              "column": "story_points",
+              "sortOrder": "desc"
+            }
+          ]
+        }
+      },
+      "reasoningItems": 2,
+      "strippedReasoning": false,
+      "trace": [
+        {
+          "turn": 1,
+          "upstreamMs": 1346,
+          "costUsd": 0.000185,
+          "tokens": 795,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "get_columns",
+              "args": {},
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "upstreamMs": 2227,
+          "costUsd": 0.00070765,
+          "tokens": 2398,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "set_filter",
+              "args": {
+                "column": "due_date",
+                "conditions": [
+                  {
+                    "name": "between",
+                    "args": [
+                      "2026-10-01",
+                      "2026-10-31"
+                    ]
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            },
+            {
+              "name": "set_sort",
+              "args": {
+                "columns": [
+                  {
+                    "column": "story_points",
+                    "sortOrder": "desc"
+                  }
+                ]
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 3,
+          "upstreamMs": 1924,
+          "costUsd": 0.00016567,
+          "tokens": 2587,
+          "finishReason": "tool_calls",
+          "reasoningItems": 0,
+          "calls": [
+            {
+              "name": "finish",
+              "args": {
+                "explanation": "Filtered tickets with due dates from 2026-10-01 through 2026-10-31 and sorted them by story points descending."
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "wallClockMs": 6330
+    },
+    {
+      "id": "tickets-hide",
+      "dataset": "tickets",
+      "prompt": "Hide the tags and reporter columns",
+      "status": "applied",
+      "ms": 5245,
+      "turns": 3,
+      "costUsd": 0.00088776,
+      "tokens": 5482,
+      "upstreamMs": 4570,
+      "rows": 16,
+      "explanation": "Hide the tags and reporter columns.",
+      "state": {
+        "version": 1,
+        "hiddenColumns": [
+          "tags",
+          "reporter"
+        ]
+      },
+      "reasoningItems": 2,
+      "strippedReasoning": false,
+      "trace": [
+        {
+          "turn": 1,
+          "upstreamMs": 1482,
+          "costUsd": 0.00018439999999999998,
+          "tokens": 792,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "get_columns",
+              "args": {},
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 2,
+          "upstreamMs": 1611,
+          "costUsd": 0.0006109,
+          "tokens": 2315,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "hide_columns",
+              "args": {
+                "columns": [
+                  "tags",
+                  "reporter"
+                ]
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "turn": 3,
+          "upstreamMs": 1477,
+          "costUsd": 0.00009245999999999999,
+          "tokens": 2375,
+          "finishReason": "tool_calls",
+          "reasoningItems": 0,
+          "calls": [
+            {
+              "name": "finish",
+              "args": {
+                "explanation": "Hide the tags and reporter columns."
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "wallClockMs": 5249
+    },
+    {
+      "id": "tickets-avg",
+      "dataset": "tickets",
+      "prompt": "Average story points by assignee",
+      "status": "not_expressible",
+      "ms": 2561,
+      "turns": 1,
+      "costUsd": 0.000254,
+      "tokens": 850,
+      "upstreamMs": 2312,
+      "rows": 16,
+      "explanation": "Computing average story points by assignee requires aggregation across rows, which this view tool cannot perform.",
+      "state": null,
+      "reasoningItems": 1,
+      "strippedReasoning": false,
+      "trace": [
+        {
+          "turn": 1,
+          "upstreamMs": 2312,
+          "costUsd": 0.000254,
+          "tokens": 850,
+          "finishReason": "tool_calls",
+          "reasoningItems": 1,
+          "calls": [
+            {
+              "name": "not_expressible",
+              "args": {
+                "reason": "Computing average story points by assignee requires aggregation across rows, which this view tool cannot perform."
+              },
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ],
+      "wallClockMs": 2564
+    }
+  ]
+}

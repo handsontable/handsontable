@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>nl-view tools</title>
+  <link rel="stylesheet" href="./vendor/handsontable.css">
+  <link rel="stylesheet" href="./vendor/ht-theme-main.css">
+  <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+  <header>
+    <h1>nl-view tools</h1>
+    <p>Plain language in, one filter / sort / hidden-column change out. Throwaway proof of concept.</p>
+  </header>
+
+  <section class="bar">
+    <label>Dataset
+      <select id="dataset">
+        <option value="orders">orders</option>
+        <option value="tickets">tickets</option>
+      </select>
+    </label>
+    <label>Today
+      <input id="today" type="date">
+    </label>
+    <button id="undo" type="button">Undo</button>
+    <button id="reset" type="button">Reset view</button>
+  </section>
+
+  <form id="prompt-form">
+    <textarea id="prompt" rows="2" placeholder="Paid EMEA orders from the last 7 days, highest total first"></textarea>
+    <button type="submit">Apply</button>
+  </form>
+
+  <div class="chips">
+    <button type="button" data-dataset="orders" data-prompt="Show only paid orders">Paid orders</button>
+    <button type="button" data-dataset="orders" data-prompt="EMEA orders sorted by total descending">EMEA by total</button>
+    <button type="button" data-dataset="orders" data-prompt="Orders from the last 7 days">Last 7 days</button>
+    <button type="button" data-dataset="tickets" data-prompt="Open P0 bugs">Open P0 bugs</button>
+    <button type="button" data-dataset="orders" data-prompt="Group orders by region and sum the totals">Group by region</button>
+  </div>
+
+  <p id="explanation"></p>
+  <p id="notice" hidden></p>
+  <div id="grid"></div>
+
+  <details id="debug" open>
+    <summary>Debug</summary>
+    <pre id="debug-body">Token: put it in the URL hash as #t=&lt;token&gt;. It is stored in localStorage and removed from the hash.</pre>
+  </details>
+
+  <script src="./vendor/handsontable.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
