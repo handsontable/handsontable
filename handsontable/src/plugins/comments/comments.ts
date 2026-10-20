@@ -1271,7 +1271,12 @@ export class Comments extends BasePlugin {
       return;
     }
 
-    this.#saveEditorComment();
+    // An editor nobody focused or typed into (a hover preview, or one the API opened) has nothing
+    // to save, and saving it would write an empty comment, with an undo step, onto the cell.
+    if (this.#editor.isFocused() || this.#editor.getValue() !== (this.getComment() ?? '')) {
+      this.#saveEditorComment();
+    }
+
     this.#closeEditorWithoutSave();
   }
 

@@ -565,24 +565,41 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     `allowInvalid: false`). Core applies a validated change to the data loaded when the last
     validator answers, so a switch in that window wrote the edit into the arriving sheet. A
     refused click shows nothing: the editor stays open over its own cell. Do not "defer" the switch
-    until the validator answers instead – that was rejected for this bar.
+    until the validator answers instead – that was rejected for this bar. Core counts each
+    validator call (`validateCell`) until it answers or throws, so a validator that throws does not
+    block switching for the grid's life; one that never answers does. Every validator answers in a
+    microtask, so an API `setActiveSheet()` made while the editor is open is refused even for a
+    valid value; a click is not, because the press already saved the edit and its microtask ran.
+    Every UI entry point that switches checks the same rule first: the add button adds nothing,
+    and the tab menu of a sheet the switch did not reach does not open (`#openMenuFor` in
+    `ui/tabStrip.ts` checks the tab became active), or its Rename and Delete would act on a sheet
+    the user cannot see.
   - **`#loadedSheetId` is the sheet whose rows the grid holds**, set from `afterLoadData` (orderIndex
     -1, so a later throwing listener cannot hide the load) while `#applySheet` loads. The model
     points at the arriving sheet before its data loads, so when a switch throws before the load,
-    `#switchTo` points the model (and the tracked cell meta) back at that sheet and rethrows.
-    Without it the next switch stored the departing rows as the arriving sheet's data, and two tabs
-    shared one array. `#syncActiveSheetData` writes into the loaded sheet for the same reason.
-  - **A before-hook listener cannot change the workbook** (`#isRunningBeforeHook` in `#commit`). A
-    nested switch or remove from `beforeSheetTabChange` used to overwrite the departing sheet's
-    view state or throw. The flag covers the before-hook only, not `mutate()`: `#removeSheet`
-    switches to the neighbor from inside its own commit, and an `afterSheetTabChange` listener may
-    still switch again.
+    `#switchTo` points the model back at that sheet and shows it again from the view state captured
+    a moment before, then rethrows. By then the neutral reset had cleared its filters, hidden rows,
+    merges and sizes, and the arriving settings were applied over its rows; only pointing the model
+    back left it in that state, and the next switch away stored it as its own. Without the rollback
+    the next switch stored the departing rows as the arriving sheet's data, and two tabs shared one
+    array. `#syncActiveSheetData` writes into the loaded sheet for the same reason. A throw after
+    the load keeps the arriving sheet.
+  - **A listener told about a change before it takes effect cannot change the workbook**
+    (`#runBeforeChangeHook`, read by `#commit`): a change's before-hook and
+    `afterSheetTabStateCapture`. A nested switch or remove from them used to overwrite the departing
+    sheet's view state or throw. The flag does not cover `mutate()`: `#removeSheet` switches to the
+    neighbor from inside its own commit, and an `afterSheetTabChange` listener may still switch
+    again; `#removeSheet` then checks that the sheet it removes is no longer the active one.
   - **A listener that destroys the grid, turns the bar off, or rebuilds the workbook stops the
     change** (`#isLive`, checked after the before-hook and after `afterSheetTabStateCapture`).
-  - **An open dialog takes the arriving sheet's selection** (Dialog's `@private`
-    `_adoptViewSelection()`, called after the switch). The dialog stashes the selection it hides
-    when it opens, and on hide it put the departing sheet's coordinates on the arriving sheet. This
-    mirrors EmptyDataState's `isViewChange`.
+  - **The `activeSheet` setting is recorded only once its sheet is shown**
+    (`#applyActiveSheetSetting`), so a refused switch is retried when a wrapper sends the same
+    value again.
+  - **A dialog that was open before the switch takes the arriving sheet's selection** (Dialog's
+    `@private` `_adoptViewSelection()`). The dialog stashes the selection it hides when it opens,
+    and on hide it put the departing sheet's coordinates on the arriving sheet. A dialog opened
+    during the switch already stashed the arriving selection, so it is left alone. This mirrors
+    EmptyDataState's `isViewChange`.
   - **Gestures and async work are each plugin's own.** MoveCells, ManualRowMove,
     ManualColumnResize (`ResizeGesture#abort()`), Autofill and FreezeBar cancel a held drag on
     `beforeLoadData` (never on `updateData()`, which the React wrapper sends on every re-render); AutoColumnSize cancels its idle-task sweep; ImportFile

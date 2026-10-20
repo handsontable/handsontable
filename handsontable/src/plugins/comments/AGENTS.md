@@ -248,7 +248,10 @@ of its own to capture. What the plugin owns is how many steps a user action make
 `_saveAndCloseEditor()` (`@private`) saves the open editor's text the way a blur does (`#saveEditorComment`) and
 closes it without a second save (`#closeEditorWithoutSave`). The sheets bar calls it before it captures the sheet it
 leaves: an editor opened through the API is not blurred by a switch made through the API, so it stayed over the
-arriving sheet and its text was saved into that sheet's cell. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts`.
+arriving sheet and its text was saved into that sheet's cell. It saves only an editor that is focused or whose text
+differs from the cell's comment: a hover preview or an untouched API-opened editor would otherwise write an empty
+comment, with an undo step, onto the cell. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts` and
+`../sheetsBar/__tests__/inFlightSwitch.unit.js`.
 
 ## Where to look next
 

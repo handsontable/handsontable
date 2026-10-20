@@ -1,6 +1,10 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { SheetsBar } from '../sheetsBar';
+import { SheetsBarMenus } from '../ui/menus';
+import { HiddenRows } from '../../hiddenRows/hiddenRows';
+import { Comments } from '../../comments/comments';
+import { Dialog } from '../../dialog/dialog';
 
 /**
  * Lets queued microtasks run, so core's validator queue reaches a validator that answers later.
@@ -19,6 +23,9 @@ describe('SheetsBar switch with work still in flight', () => {
 
   beforeAll(() => {
     registerPlugin(SheetsBar);
+    registerPlugin(HiddenRows);
+    registerPlugin(Comments);
+    registerPlugin(Dialog);
     Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: () => {} });
   });
 
@@ -203,6 +210,281 @@ describe('SheetsBar switch with work still in flight', () => {
       expect(plugin.setActiveSheet('Beta')).toBe(true);
       expect(sheets[0].data).toEqual([['typed']]);
       expect(sheets[1].data).toEqual([['b']]);
+    });
+
+    it.each([
+      ['throws', () => {
+        throw new Error('validator failed');
+      }],
+      ['answers with a non-boolean', (value, callback) => callback('yes')],
+    ])('lets the sheet switch again after a validator that %s', async(label, validator) => {
+      const thrown = [];
+
+      jest.spyOn(window, 'queueMicrotask').mockImplementation(callback => Promise.resolve().then(() => {
+        try {
+          callback();
+        } catch (error) {
+          thrown.push(error.message);
+        }
+      }));
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
+        validator,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.setDataAtCell(0, 0, 'typed');
+      await flushMicrotasks();
+
+      expect(thrown.length).toBe(1);
+      expect(hot.getPlugin('sheetsBar').setActiveSheet('Beta')).toBe(true);
+    });
+
+    it('refuses a switch while the editor\'s own save waits for its validator', async() => {
+      const answers = [];
+      const sheets = [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }];
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets },
+        validator: (value, callback) => answers.push(callback),
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      hot.selectCell(0, 0);
+      hot.getActiveEditor().beginEditing();
+      hot.getActiveEditor().setValue('typed');
+      hot.getActiveEditor().finishEditing();
+      await flushMicrotasks();
+
+      expect(hot.getActiveEditor().isWaiting()).toBe(true);
+      expect(plugin.setActiveSheet('Beta')).toBe(false);
+
+      answers.splice(0).forEach(answer => answer(true));
+
+      expect(plugin.setActiveSheet('Beta')).toBe(true);
+      expect(sheets[0].data).toEqual([['typed']]);
+    });
+  });
+
+  describe('a switch refused while a value waits for its validator', () => {
+    const buildWaiting = () => {
+      const answers = [];
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
+        validator: (value, callback) => answers.push(callback),
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.setDataAtCell(0, 0, 'typed');
+
+      return answers;
+    };
+
+    it('does not add a sheet from the add button', () => {
+      buildWaiting();
+
+      hot.rootWrapperElement.querySelector('.ht-sheets-bar__add')
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      expect(hot.getPlugin('sheetsBar').getSheets().map(sheet => sheet.name)).toEqual(['Alpha', 'Beta']);
+    });
+
+    it('does not open the tab menu of a sheet it did not switch to', () => {
+      buildWaiting();
+
+      const opened = jest.spyOn(SheetsBarMenus.prototype, 'openTabMenu').mockImplementation(() => {});
+      const betaId = hot.getPlugin('sheetsBar').getSheets()[1].id;
+
+      hot.rootWrapperElement
+        .querySelector(`[data-sheet-id="${betaId}"]`)
+        .dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 2 }));
+
+      expect(hot.getPlugin('sheetsBar').getSheets()[0].isActive).toBe(true);
+      expect(opened).not.toHaveBeenCalled();
+    });
+
+    it('switches when the same `activeSheet` value is sent again after the validator answered', async() => {
+      const sheets = [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }];
+      const answers = [];
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets, activeSheet: 0 },
+        validator: (value, callback) => answers.push(callback),
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.setDataAtCell(0, 0, 'typed');
+      hot.updateSettings({ sheetsBar: { sheets, activeSheet: 1 } });
+
+      expect(hot.getPlugin('sheetsBar').getSheets()[0].isActive).toBe(true);
+
+      await flushMicrotasks();
+      answers.splice(0).forEach(answer => answer(true));
+      hot.updateSettings({ sheetsBar: { sheets, activeSheet: 1 } });
+
+      expect(hot.getPlugin('sheetsBar').getSheets()[1].isActive).toBe(true);
+    });
+  });
+
+  describe('a switch that threw', () => {
+    it('shows the departing sheet again, with its view state, when it threw before the arriving data loaded', () => {
+      const sheets = [
+        { name: 'Alpha', data: [['a1'], ['a2'], ['a3']] },
+        { name: 'Beta', data: [['b1'], ['b2'], ['b3']] },
+        { name: 'Gamma', data: [['g1']] },
+      ];
+      let fail = false;
+
+      hot = new Handsontable(container, {
+        hiddenRows: true,
+        sheetsBar: { sheets },
+        afterUpdateSettings: () => {
+          if (fail) {
+            fail = false;
+            throw new Error('listener failed');
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      hot.getPlugin('hiddenRows').hideRow(1);
+      fail = true;
+
+      expect(() => plugin.setActiveSheet('Beta')).toThrow('listener failed');
+      expect(hot.getPlugin('hiddenRows').isHidden(1)).toBe(true);
+
+      expect(plugin.setActiveSheet('Gamma')).toBe(true);
+      expect(plugin.setActiveSheet('Alpha')).toBe(true);
+      expect(hot.getPlugin('hiddenRows').isHidden(1)).toBe(true);
+    });
+
+    it('keeps the arriving sheet when it threw after the arriving data loaded', () => {
+      const sheets = [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }];
+      let fail = false;
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.addHook('afterLoadData', () => {
+        if (fail) {
+          fail = false;
+          throw new Error('listener failed');
+        }
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      fail = true;
+
+      expect(() => plugin.setActiveSheet('Beta')).toThrow('listener failed');
+      expect(plugin.getSheets()[1].isActive).toBe(true);
+
+      hot.setDataAtCell(0, 0, 'beta edit');
+
+      expect(plugin.setActiveSheet('Alpha')).toBe(true);
+      expect(sheets[0].data).toEqual([['a']]);
+      expect(sheets[1].data).toEqual([['beta edit']]);
+    });
+  });
+
+  describe('a workbook change made from afterSheetTabStateCapture', () => {
+    it('refuses a nested switch and a remove of the arriving sheet', () => {
+      const results = [];
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }, { name: 'C', data: [['c']] }],
+        },
+        afterSheetTabStateCapture: () => {
+          if (results.length === 0) {
+            const plugin = hot.getPlugin('sheetsBar');
+
+            results.push(plugin.setActiveSheet('C'), plugin.removeSheet(plugin.getSheets()[1].id));
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+      let switched;
+
+      expect(() => {
+        switched = plugin.setActiveSheet('B');
+      }).not.toThrow();
+      expect(results).toEqual([false, false]);
+      expect(switched).toBe(true);
+      expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B', 'C']);
+      expect(hot.getDataAtCell(0, 0)).toBe('b');
+    });
+  });
+
+  describe('removing the active sheet when a listener switches back to it', () => {
+    it('keeps the sheet', () => {
+      let switchBack = true;
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
+        afterSheetTabChange: (from) => {
+          if (switchBack) {
+            switchBack = false;
+            hot.getPlugin('sheetsBar').setActiveSheet(from);
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(plugin.removeSheet(plugin.getSheets()[0].id)).toBe(false);
+      expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B']);
+      expect(hot.getDataAtCell(0, 0)).toBe('a');
+    });
+  });
+
+  describe('an open dialog', () => {
+    it('keeps the selection a dialog opened during the switch stashed', () => {
+      hot = new Handsontable(container, {
+        dialog: true,
+        sheetsBar: { sheets: [{ name: 'A', data: [['a1', 'a2']] }, { name: 'B', data: [['b1', 'b2']] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      plugin.setActiveSheet('B');
+      hot.selectCell(0, 1);
+      plugin.setActiveSheet('A');
+      hot.addHook('afterSheetTabStateRestore', () => hot.getPlugin('dialog').show({ content: 'Loading' }));
+      plugin.setActiveSheet('B');
+      hot.getPlugin('dialog').hide();
+
+      expect(hot.getSelectedLast()).toEqual([0, 1, 0, 1]);
+    });
+  });
+
+  describe('a comment editor the API opened', () => {
+    it('writes no comment when it was neither focused nor changed', () => {
+      hot = new Handsontable(container, {
+        comments: true,
+        sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      hot.getPlugin('comments').showAtCell(0, 0);
+      plugin.setActiveSheet('B');
+      plugin.setActiveSheet('A');
+
+      expect(hot.getCellMeta(0, 0).comment).toBeUndefined();
     });
   });
 });

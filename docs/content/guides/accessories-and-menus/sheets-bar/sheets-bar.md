@@ -184,13 +184,14 @@ To run your code when a sheet's state is saved or restored, use the [`afterSheet
 
 ## Unfinished work when you switch sheets
 
-Work started on one sheet ends on that sheet, or is canceled. It never lands on the sheet you switch to.
+Work started on one sheet ends on that sheet, or is canceled.
 
-- A switch saves the cell you're editing, and a comment you're typing, on the sheet you leave.
-- A switch doesn't happen while a cell value waits for an asynchronous validator, or while the editor holds a value its validator rejected with [`allowInvalid: false`](@/api/options.md#allowinvalid). [`setActiveSheet()`](@/api/sheetsBar.md#setactivesheet) returns `false`, and a click on a tab does nothing. Correct the value, or wait for the validator, and switch again.
-- A drag you're still holding is canceled: moving cells or rows, resizing a column, the fill handle, and a freeze bar.
+- A switch saves the cell you're editing, and a comment you're typing, on the sheet you leave. The edit stays saved even when a [`beforeSheetTabChange`](@/api/hooks.md#beforesheettabchange) listener cancels the switch.
+- A switch doesn't happen while a cell value waits for an asynchronous validator, or while the editor holds a value its validator rejected with [`allowInvalid: false`](@/api/options.md#allowinvalid). Clicking a tab, its menu, or the add button does nothing then, and [`setActiveSheet()`](@/api/sheetsBar.md#setactivesheet) returns `false`. Correct the value and press Enter, press Escape to discard it, or wait for the validator, and switch again.
+- Validators always answer after the edit, so `setActiveSheet()` called while the cell editor is open returns `false` even for a valid value. Close the editor first, and switch once [`afterValidate`](@/api/hooks.md#aftervalidate) has fired.
+- A drag you're still holding is canceled: moving cells or rows, resizing a column, the fill handle, and a freeze bar. A column move and a row resize are not canceled yet.
 - An import that is still reading its file is rejected and changes nothing. [`downloadFileAsync()`](@/api/exportFile.md#downloadfileasync) with the [`Dialog`](@/api/dialog.md) plugin is rejected when the switch happens before the export reads the data.
-- A [`beforeSheetTabChange`](@/api/hooks.md#beforesheettabchange) listener can't change the workbook. A switch, add, remove, rename, duplicate, or move it asks for returns `false` (`null` for an add or a duplicate).
+- A listener of a `beforeSheetTab*` hook, or of [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture), can't change the workbook. A switch, add, remove, rename, duplicate, or move it asks for returns `false` (`null` for an add or a duplicate).
 
 ## Tab animations
 
@@ -253,19 +254,21 @@ How server sheets behave when you switch:
 - If a request fails while its sheet is hidden, [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) or [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires right away. The error notification appears when you return to the sheet. `afterDataProviderFetchError` gets a third argument, `isVisible`, set to `false`.
 - A duplicated sheet starts with a copy of the original's rows. If the original has already loaded rows, the copy doesn't fetch on its first visit.
 
-With `refetchAfterCreate: false`, your [`onRowsCreate`](@/guides/getting-started/server-side-data/server-side-data-crud.md#onrowscreate) adds the new rows to the grid itself. The grid shows the active sheet, which can change while the request runs, so add the rows only when the sheet that made the request is still active:
+With `refetchAfterCreate: false`, your [`onRowsCreate`](@/guides/getting-started/server-side-data/server-side-data-crud.md#onrowscreate) adds the new rows to the grid itself. The grid shows the active sheet, which can change while the request runs, so add the rows only when the sheet that owns this provider is still active. Compare against the sheet the provider belongs to, not the sheet that was active when `onRowsCreate` started: a create queued behind another save starts after the user may have switched.
 
 ```js
-const isActive = sheetId => hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive)?.id === sheetId;
+const isSheetActive = name => hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive)?.name === name;
 
 const ordersProvider = {
   refetchAfterCreate: false,
-  onRowsCreate: async(payload) => {
-    const sheetId = hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive)?.id;
-    const response = await fetch('/api/orders', { method: 'POST', body: JSON.stringify(payload) });
+  onRowsCreate: async({ position, referenceRowId, rowsAmount }) => {
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      body: JSON.stringify({ position, referenceRowId, rowsAmount }),
+    });
     const created = await response.json();
 
-    if (isActive(sheetId)) {
+    if (isSheetActive('Orders')) {
       hot.updateData([...hot.getSourceData(), ...created]);
     }
 

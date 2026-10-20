@@ -3569,6 +3569,12 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before changing the active sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
+   * By the time it fires, the cell editor and the comment editor have saved and closed, so the
+   * edit stays saved even when a listener cancels the switch. It does not fire when the switch is
+   * refused because a cell value is still waiting for its validator, or because the editor holds a
+   * value its validator rejected. A listener cannot switch, add, remove, rename, duplicate, or move
+   * a sheet: those calls return `false` (`null` for an add or a duplicate).
+   *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabChange
    * @param {number} oldSheetId The id of the sheet being left.

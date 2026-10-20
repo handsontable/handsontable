@@ -452,10 +452,10 @@ export default function Core(
   // closure, not on the instance, because `destroy` nulls every instance property before it runs.
   const operationScope = new OperationScope();
   /**
-   * The number of changes waiting for their validators to answer before they are applied
-   * (`validateAndApplyChanges`).
+   * The number of validator calls `validateCell` started that have not answered yet. A call that throws,
+   * or answers more than once, is counted out once; a validator that never answers stays counted.
    */
-  let pendingValidatedChanges = 0;
+  let pendingValidatorAnswers = 0;
   /**
    * Watches the root wrapper's edge slots for a height change (a bar that mounts after init, wraps
    * after a locale switch, or grows a horizontal scrollbar once its width is clamped). A slot's
@@ -3447,12 +3447,22 @@ export default function Core(
       // `afterValidate` listeners write belongs to that call's undo step – or to none, when the call
       // was not recorded – so the answer runs inside the call's operation.
       const hold = operationScope.hold();
+      let answered = false;
+      const countAnswer = () => {
+        if (!answered) {
+          answered = true;
+          pendingValidatorAnswers -= 1;
+        }
+      };
+
+      pendingValidatorAnswers += 1;
 
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
         try {
           hold.resume(() => validator.call(cellProperties, value, (valid: boolean) => {
             if (!instance) {
+              countAnswer();
               hold.release();
 
               return;
@@ -3473,10 +3483,12 @@ export default function Core(
                 );
               });
             } finally {
+              countAnswer();
               hold.release();
             }
           }));
         } catch (error) {
+          countAnswer();
           hold.release();
           throw error;
         }
@@ -3722,27 +3734,17 @@ export default function Core(
    */
   function validateAndApplyChanges(changes: CellChange[], source: string | undefined) {
     const hold = operationScope.hold();
-    let settled = false;
-    const settle = () => {
-      if (!settled) {
-        settled = true;
-        pendingValidatedChanges -= 1;
-        hold.release();
-      }
-    };
-
-    pendingValidatedChanges += 1;
 
     try {
       validateChanges(changes, source, () => {
         try {
           hold.resume(() => applyChanges(changes, source));
         } finally {
-          settle();
+          hold.release();
         }
       });
     } catch (error) {
-      settle();
+      hold.release();
       throw error;
     }
   }
@@ -4637,9 +4639,10 @@ export default function Core(
   };
 
   /**
-   * Tells whether a change made through {@link Core#setDataAtCell} or an editor is still waiting for its
-   * validators to answer. Such a change is applied to the data the grid holds when the last validator
-   * answers, so anything that replaces the grid's data must not run in the meantime.
+   * Tells whether a validator call is still waiting for its answer. A change made through
+   * {@link Core#setDataAtCell} or an editor is applied to the data the grid holds when its last validator
+   * answers, so anything that replaces the grid's data must not run in the meantime. A validator that
+   * throws counts as answered.
    *
    * @private
    * @memberof Core#
@@ -4647,7 +4650,7 @@ export default function Core(
    * @returns {boolean}
    */
   this._hasPendingValidation = function() {
-    return pendingValidatedChanges > 0;
+    return pendingValidatorAnswers > 0;
   };
 
   /**
