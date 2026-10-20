@@ -33,6 +33,8 @@ export class TouchInteractiveCellPage {
     await expect(this.control('file-input')).toBeVisible();
     await expect(this.control('file-label-text')).toBeVisible();
     await expect(this.control('button-on')).toBeVisible();
+    await expect(this.control('cell-link')).toBeVisible();
+    await expect(this.control('button-blocked')).toBeVisible();
   }
 
   /**

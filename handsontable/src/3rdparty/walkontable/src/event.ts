@@ -702,17 +702,15 @@ class Event {
     const isEventCancelable = event.cancelable && isCellsRange &&
       this.#deps.wtSettings.getSetting('isDataViewInstance');
 
-    // To prevent accidental redirects or other actions that the interactive elements (e.q "A" link) do
-    // while the cell is highlighted, all touch events that are triggered on different cells are
-    // "preventDefault"'ed. The user can interact with the element (e.q. click on the link that opens
-    // a new page) only when the same cell was previously selected (see related PR #7980).
     if (isEventCancelable) {
       const interactiveElements = ['A', 'BUTTON', 'INPUT'];
-      // The mousedown above commits the focus highlight, or clears it when the current highlight
-      // is disabled. With the range clear there is no select-first tap to cancel. A checkbox
-      // stays exempt while the highlight is shown, because that tap is the toggle.
+      // Cancel the tap only when it moved the focus highlight onto this cell. A range that
+      // does not include the touch was not moved here. A checkbox stays exempt: that tap is the toggle.
       const focusCellRange = this.#deps.selectionManager.getFocusSelection()?.cellRange ?? null;
-      const focusHighlightShown = focusCellRange !== null;
+      const touchedCoords = parentCellCoords ?? null;
+      const focusMovedHere = focusCellRange !== null &&
+        touchedCoords !== null &&
+        focusCellRange.includes(touchedCoords);
       const isCheckbox = target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox';
 
       // For browsers that use the WebKit as an engine (excluding Safari), there is a bug. The prevent
@@ -726,7 +724,7 @@ class Event {
           !interactiveElements.includes(target!.tagName)) {
         event.preventDefault();
 
-      } else if (!this.selectedCellWasTouched(target) && focusHighlightShown && !isCheckbox) {
+      } else if (!this.selectedCellWasTouched(target) && focusMovedHere && !isCheckbox) {
         event.preventDefault();
       }
     }

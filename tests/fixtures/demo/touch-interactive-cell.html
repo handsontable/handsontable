@@ -23,12 +23,14 @@
     }
   </script>
   <style>
-    body { font-family: sans-serif; margin: 1rem; }
-    /* Horizon rows are about 37px. The grid is tall and each control has a hit box so the
-       target row stays rendered and tappable on every theme. */
+    body { font-family: sans-serif; margin: 8px; }
+    /* Horizon rows are about 37px. The grid is tall, and every column fits the phone
+       width, so the target row stays rendered on every theme. */
     [data-control-key] {
+      box-sizing: border-box;
+      display: block;
+      width: 100%;
       min-height: 32px;
-      min-width: 72px;
     }
   </style>
 </head>
@@ -61,9 +63,9 @@
       node.addEventListener('click', (event) => {
         node.dataset.clicks = String(Number(node.dataset.clicks) + 1);
 
-        // A file input's click opens a picker. Counting the click is the assertion;
-        // cancelling it keeps the headless run from waiting on a dialog.
-        if (node.type === 'file') {
+        // A file input opens a picker, and a link navigates. Counting the click is the
+        // assertion. Cancelling it keeps the headless run on this page.
+        if (node.type === 'file' || node.tagName === 'A') {
           event.preventDefault();
         }
       });
@@ -126,6 +128,27 @@
       };
     }
 
+    function linkRenderer(testId) {
+      return function(instance, td, row, col) {
+        if (row !== 0) {
+          Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+          return;
+        }
+
+        mount(td, `${row}-${col}`, () => {
+          const link = document.createElement('a');
+
+          link.href = '#cell-link';
+          link.textContent = 'Go';
+          link.setAttribute('data-testid', testId);
+          rememberClicks(link);
+
+          return link;
+        });
+      };
+    }
+
     function labelRenderer() {
       return function(instance, td, row, col) {
         if (row !== 0) {
@@ -153,19 +176,26 @@
 
     window.hot = new Handsontable(container, {
       data: [
-        ['Run', 'File', 'Choose', 'Run'],
-        ['', '', '', ''],
-        ['', '', '', ''],
-        ['', '', '', ''],
+        ['Run', 'File', 'Choose', 'Run', 'Go', 'Hold'],
+        ['', '', '', '', '', ''],
+        ['', '', '', '', '', ''],
+        ['', '', '', '', '', ''],
       ],
       colHeaders: false,
       rowHeaders: false,
       rowHeights: 56,
-      colWidths: 96,
-      width: 400,
+      colWidths: 60,
+      width: 380,
       height: 480,
       outsideClickDeselects: false,
       licenseKey: 'non-commercial-and-evaluation',
+      beforeOnCellMouseDown(event, coords) {
+        // Column 5 keeps visual selection on, but this hook stops the selection.
+        // The tap must reach the button whether or not another cell was focused.
+        if (coords.col === 5) {
+          event.stopImmediatePropagation();
+        }
+      },
       columns: [
         {
           renderer: buttonRenderer('button-off'),
@@ -184,6 +214,15 @@
         },
         {
           renderer: buttonRenderer('button-on'),
+          editor: false,
+        },
+        {
+          renderer: linkRenderer('cell-link'),
+          disableVisualSelection: true,
+          editor: false,
+        },
+        {
+          renderer: buttonRenderer('button-blocked'),
           editor: false,
         },
       ],

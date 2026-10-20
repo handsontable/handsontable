@@ -49,4 +49,29 @@ test.describe('touch taps on interactive renderer elements', () => {
     await grid.clickBarrier();
     await grid.expectClicksExact('button-on', 1);
   });
+
+  test('a tap follows a link when visual selection is off', async () => {
+    await grid.tap('cell-link');
+    await grid.expectClicks('cell-link', 1);
+    await grid.clickBarrier();
+    await grid.expectClicksExact('cell-link', 1);
+  });
+
+  test('a selection-blocked button receives the tap when nothing was selected', async () => {
+    await grid.tap('button-blocked');
+    await grid.expectClicks('button-blocked', 1);
+    await grid.clickBarrier();
+    await grid.expectClicksExact('button-blocked', 1);
+  });
+
+  test('a selection-blocked button receives the tap when another cell was selected', async () => {
+    await grid.tap('button-on');
+    await grid.clickBarrier();
+    await grid.expectClicksExact('button-on', 0);
+
+    await grid.tap('button-blocked');
+    await grid.expectClicks('button-blocked', 1);
+    await grid.clickBarrier();
+    await grid.expectClicksExact('button-blocked', 1);
+  });
 });
