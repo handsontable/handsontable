@@ -50,6 +50,19 @@ test.describe('intl-datetime cell type', () => {
     await expect(datetimeGrid.cell(0, 1)).toHaveText('05/05/2025, 08:00:15');
   });
 
+  test('renders and sorts a year below 100 as that year, not as 19xx', async () => {
+    await datetimeGrid.setSourceValue(2, 1, '0050-03-12T10:00:00');
+    await datetimeGrid.setSourceValue(3, 1, '1920-01-01T00:00:00');
+
+    await expect(datetimeGrid.cell(2, 1)).toHaveText('03/12/50, 10:00:00');
+
+    await datetimeGrid.sortByColumn('Start');
+
+    await expect(datetimeGrid.cell(0, 0)).toHaveText('Review');
+    await expect(datetimeGrid.cell(0, 1)).toHaveText('03/12/50, 10:00:00');
+    await expect(datetimeGrid.cell(1, 0)).toHaveText('Retro');
+  });
+
   test('filters with the datetime "Today" condition regardless of the time part', async () => {
     await datetimeGrid.openDropdownMenu('Start');
     await datetimeGrid.applyFilterCondition('Today');
