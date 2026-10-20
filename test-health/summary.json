@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-20T10:27:07.149Z",
+  "generatedAt": "2026-10-20T10:49:17.909Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -2420,7 +2420,7 @@
       "file": "e2e/page-offset-reverse-split-clones.spec.ts",
       "line": 62,
       "title": "clones, page scroll range and pointer bounds in the reverse split › tracks a drag that moves inside the page offset gap like the hidden twin (ltr)",
-      "count7": 4,
+      "count7": 0,
       "count30": 4,
       "countAll": 4,
       "runs30": 1,
@@ -2456,7 +2456,7 @@
       "file": "e2e/page-offset-reverse-split-clones.spec.ts",
       "line": 62,
       "title": "clones, page scroll range and pointer bounds in the reverse split › tracks a drag that moves inside the page offset gap like the hidden twin (rtl)",
-      "count7": 4,
+      "count7": 0,
       "count30": 4,
       "countAll": 4,
       "runs30": 1,
