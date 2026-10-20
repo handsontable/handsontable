@@ -1061,8 +1061,13 @@ describe('ImportFile lifecycle guards around beforeImport', () => {
 
     ({ plugin } = fake);
 
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
     await expect(plugin.importFromArrayBuffer('xlsx', fixture('values'))).rejects.toThrow(/plugin is disabled/);
     expect(fake.calls.map(call => call[0])).toEqual([]);
+    // Nothing reached the grid, so no dropped feature is reported for it (review round 12).
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
   });
 
   it('should reject a read that a disable and re-enable crossed, though the plugin is on again', async() => {

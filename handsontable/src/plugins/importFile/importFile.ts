@@ -752,9 +752,9 @@ export class ImportFile extends BasePlugin {
       engine: { kind: detected.kind, version: detected.version },
     };
 
-    dropped.warn(detected.kind);
-
     if (!resolved.apply) {
+      dropped.warn(detected.kind);
+
       return result;
     }
 
@@ -762,6 +762,9 @@ export class ImportFile extends BasePlugin {
     // `hot`, and a late apply would put the imported stylesheet back on a disabled plugin.
     this.#assertEnabled();
     this.#assertAlive('before the import was applied');
+    // Warned only once the guards passed, so an import they reject logs nothing about data that never
+    // reached the grid (review round 12).
+    dropped.warn(detected.kind);
 
     if (this.hot.runHooks<boolean | void>('beforeImport', result, format) === false) {
       return result;
