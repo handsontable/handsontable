@@ -297,23 +297,20 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   Cleared last, the merged `td` kept its `rowspan` and shifted the rows below it on the arriving
   sheet, which no render repaired once MergeCells was disabled there; pinned by
   `tests/e2e/sheets-bar-data-bound-settings.spec.ts`). **The merges a sheet declares in its
-  `settings` are built after the load, never during the settings update.** `mergeCells` rides on every switch's `updateSettings()` payload
-  once any sheet declares it (the baseline carries it too), and that update runs while the grid
-  still holds the departing sheet's data. Built there, `MergeCells#generateFromSettings()`
-  validated the arriving sheet's areas against the departing sheet's size (dropping one that did
-  not fit it with an out-of-bounds warning) and wrote its clearing `null`s into the departing
-  sheet's array, which the host holds by reference. On the init build, where no view exists yet,
-  it threw `Cannot read properties of undefined (reading '_wt')`. So `#applySheet` runs the update
-  under `#withoutMergeCellsSettingsPass`, which sets MergeCells' `@private` `deferSettingsPass`
-  flag: `updatePlugin()` then rebuilds the plugin and keeps its record of applied areas, but
-  builds nothing. After `loadData()`,
+  `settings` are built after the load, never during the settings update.** `mergeCells` rides on every
+  switch's settings payload once any sheet declares it, and phase A of `_applySettingsAndData()` runs
+  while the grid still holds the departing sheet's data. Built there, `generateFromSettings()`
+  validated the arriving areas against the departing size and wrote its clearing `null`s into the
+  departing sheet's array. MergeCells' `updatePlugin()` therefore reads `isDataWorkDeferred()` and only
+  rebuilds the plugin, keeping its record of applied areas. After the call,
   `#runMergeCellsSettingsPass` calls `runDeferredSettingsPass(apply)`: a first visit builds the
-  declared merges against the arriving data; a sheet with a stored state passes `false` and
-  builds none, because it restores its own merges and the declared ones would win over the ones
-  the user unmerged or moved. Skipping the build also writes no cell, so a value the user typed
-  into a formerly merged cell survives a round trip. Without a view (the init build) the bar runs
-  nothing, and MergeCells' own `afterInit` builds the merges against the loaded sheet and clears
-  the pending pass. The pass must run before the view-state restore: it sets MergeCells'
+  declared merges against the arriving data; a sheet with a stored state passes `false` and builds
+  none, because it restores its own merges and the declared ones would win over the ones the user
+  unmerged or moved. This one pass stays the bar's call (not MergeCells' `onDataReady()`) because only
+  the bar knows whether the sheet returns with a stored state. Skipping the build also writes no cell,
+  so a value the user typed into a formerly merged cell survives a round trip. Without a view (the
+  init build) the bar runs nothing, and MergeCells' own `afterInit` builds the merges against the
+  loaded sheet and clears the pending pass. The pass must run before the view-state restore: it sets MergeCells'
   `#initialized`, and the restored merges' anchors are captured only once that is set. Capture
   keeps only merges the lookup matrix holds (`get(row, col) === merge`): a merge whose rows
   are all trimmed stays in the collection's list at its last visual position, and restored
@@ -328,66 +325,48 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `beforeMergeCells`/`afterMergeCells` report `auto: true` (UndoRedo records nothing for that),
   and no cell is written, where the public `merge()` rewrote every covered cell with `null`.
   **Every MergeCells member the switch uses is one MergeCells owns** — `getVisibleMergedAreas()`
-  (capture), `clearCollections()` (clear), `restoreMergedAreas()` (restore), the
-  `deferSettingsPass` flag and `runDeferredSettingsPass()` — read through the typed
+  (capture), `clearCollections()` (clear), `restoreMergedAreas()` (restore) and
+  `runDeferredSettingsPass()` — read through the typed
   `hot.getPlugin('mergeCells')`, never a structural cast, so a rename or re-signature there fails
   the type check. Under a cast, a rename in MergeCells still compiles here and the first switch
   throws `… is not a function`. Do not reach into `mergedCellsCollection` or call `mergeRange()`
   from here again.
-- **A plugin that reads the data when its settings are applied must not read the departing
-  sheet.** The settings update runs while the grid still holds the departing sheet's data, and
-  several plugins read it there. Each takes one of two fixes, because they need different things
-  from the load. Pinned by `tests/e2e/sheets-bar-data-bound-settings.spec.ts`,
-  `tests/e2e/sheets-bar-switch-settings-order.spec.ts` and `__tests__/sheetSwitchSettingsOrder.unit.js`.
-  - **NestedRows has to be ON during the load**, so it stays in the pre-load update, which runs
-    under `#withoutNestedRowsDataCheck` (NestedRows' `@private` `deferDataCheck` flag, read through
-    the typed `getPlugin('nestedRows')`). An enable with an empty data manager then takes its tree
-    from the `loadData()` that follows (its own `beforeLoadData`, the path the init build has always
-    used) instead of validating the departing flat array, which logged "requires an Array of
-    Objects" and turned the plugin off for good, on a switch and on an opening nested sheet alike.
-    Do not move `nestedRows` to after the load: a nested sheet loaded with the plugin off is sized
-    to its top-level entries, so a grid-level `minRows` padded empty parents into the host's array
-    (9 rows instead of 5), and declared `hiddenRows`/`trimRows` indexes of child rows were rejected
-    or ignored, because their maps are initialized during the load.
-  - **The settings that describe the loaded cells go after the load.** `DATA_BOUND_SETTINGS` lists
-    `columnSummary`, `customBorders`, `columnSorting` and `multiColumnSorting`, and `cell` rides with
-    them (`#effectiveCellOption`). CustomBorders drops a border outside the table it is applied to,
-    so a border on a sheet larger than the departing one was lost; the sorting plugins sort by
-    `initialConfig` when their key is applied, which the departing rows ignored on a first visit; and
-    `loadData()` clears every cell meta object, so a `cell` entry applied before it never took effect.
-    The `cell` value is the sheet's own, the grid-level one when the sheet declares none (and the grid
-    has entries), or `[]` when the baseline holds no grid-level value, which drops the departing
-    sheet's entries from core's record of them. A workbook where nobody declares any of these keys
-    still runs one settings update per switch. Only ColumnSummary is switched off before the load
-    (`offDuringLoad`), because its own `afterLoadData` writes; the others stay on during it.
-  - **ColumnSummary needs nothing from the load and writes into the data**, so on a live grid a
-    truthy value is taken out of the pre-load payload (`DATA_BOUND_SETTINGS`,
-    `#splitDataBoundSettings`) and applied by a second `updateSettings()` after `loadData()`, before
-    the MergeCells pass. Applied before, it checked its endpoints against the departing size (a
-    false out-of-bounds warning) and, when the destination fitted, wrote its result into the
-    departing sheet's array, which the host holds by reference. A ColumnSummary the departing sheet
-    left enabled gets `false` in the pre-load payload, or its `afterLoadData` refresh writes the
-    departing summary into the arriving sheet's data; a falsy value reads no data and stays before
-    the load. Applied after the load it also sees a nested sheet's flattened rows. The cost is a
-    second settings update on a switch onto a sheet that declares it, and only there: a second
-    `afterUpdateSettings` and, with Formulas on, a full rescan of the arriving sheet and a second
-    `setSheetContent()`, because the update fires `afterCellMetaReset` (core clears no meta for a
-    `{ columnSummary }` payload, only the hook fires), which marks a Formulas resync. That resync
-    runs from ColumnSummary's first cell read, inside its own endpoint calculation, and its values
-    update refreshes the endpoints again: `Endpoints#refreshEndpoint()` therefore restores the
-    endpoint it replaced rather than clearing it, or the outer calculation read `null` and the
-    switch threw (pinned by `columnSummary/__tests__/formulasSettingsUpdate.unit.js` and the Formulas
-    case of the spec). The init build is not split: applied after the load
-    there, its `setDataAtCell()` runs before the editor manager exists and throws; ColumnSummary's
-    `updatePlugin()` instead leaves the endpoints to its `afterInit` while the grid has no view.
+- **A switch applies the arriving sheet's settings and data through core's `_applySettingsAndData()`
+  (`#applySheet`), the order the grid's own initialization uses.** A plain `updateSettings()` followed by
+  `loadData()` let every plugin reconfigure against the departing sheet's data, and that was the cause of
+  a whole family of bugs: ColumnSummary wrote its totals into the departing array, a lowered `minSpareRows`
+  removed the rows typed into the departing sheet, CustomBorders dropped borders outside the departing
+  size, the sorting plugins sorted the departing rows, NestedRows rejected the departing flat array, and
+  the `cell` option was wiped by the load. Core now runs three phases: (A) the settings are merged and
+  every plugin enables, disables or updates while `isDataWorkDeferred()` answers `true`, and core skips
+  the data phase, the `cell` option, `afterCellMetaReset`, the `min*` padding and surplus removal, and
+  the render; (B) the arriving data loads with the new configuration in force, sized to its own `min*`
+  values; (C) the `cell` option and `afterCellMetaReset` run, then every enabled plugin's `onDataReady()`
+  in priority order, then one render. The rules of that contract are in `../base/AGENTS.md`; the plugins
+  that defer work today are ColumnSummary, ColumnSorting (and MultiColumnSorting), CustomBorders,
+  MergeCells, NestedRows, Formulas, Pagination, EmptyDataState and DataProvider. Pinned by
+  `src/__tests__/core/applySettingsAndData.unit.js`, `__tests__/sheetSwitchSettingsOrder.unit.js`,
+  `tests/e2e/sheets-bar-switch-settings-order.spec.ts` and `tests/e2e/sheets-bar-data-bound-settings.spec.ts`.
+  Three things ride along.
+  - **The `cell` option is restated on every switch** (`#effectiveCellOption`), because the load clears
+    every cell meta object: the sheet's own entries, the grid-level ones when the sheet declares none
+    (and the grid has entries), or `[]` when the baseline holds no grid-level value, which drops the
+    departing sheet's entries from core's record of them.
+  - **NestedRows has to be ON during the load**, so it enables in phase A: an enable with an empty data
+    manager then takes its tree from the load (its own `beforeLoadData`) instead of validating the
+    departing flat array, which logged "requires an Array of Objects" and turned the plugin off for good.
+  - **A new plugin whose `enablePlugin()` or `updatePlugin()` reads or writes the loaded rows must defer
+    that work** through `isDataWorkDeferred()` and `onDataReady()`. Do not add a per-plugin flag set by
+    the bar again, and do not split the payload into a before-load and an after-load part: both were
+    the workarounds this contract replaced.
   - **A return applies the ColumnSummary endpoints the sheet left with, not the declared ones.** A
     row or column alteration moves an endpoint, while the declared settings keep naming its old
     position, so re-applying them on a return wrote the summary over the data cell the alteration
     had moved into that place. `#captureColumnSummary` stores `ColumnSummary#exportEndpointSettings()`
     (`@private`, read through the typed `getPlugin`) per sheet when the user leaves it, and
     `#applySheet` applies it after the load when the sheet returns with a stored state
-    (`restoresState`, the flag that also skips the declared merges). A function-form setting stores
-    nothing: it reads its settings again on every pass.
+    (`restoresState`, the flag that also skips the declared merges): it replaces the declared value in
+    the payload. A function-form setting stores nothing: it reads its settings again on every pass.
   - **The init build applies the opening sheet from `beforeInit`, and core's own init settings pass
     then undoes two parts of it.** It registers the grid-level callback of every hook again (a
     settings hook is one replaceable `initialHook` entry per name, `core/hooks/bucket.ts`), so the
@@ -400,10 +379,6 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     every other key. Known gap: a hook only sheets declare, with no grid-level callback, is restored
     as `null`, which removes nothing, so it keeps running on the sheets that do not declare it. The
     opening sheet's hooks also miss the init load's own events (`afterLoadData` of the first load).
-  - Do not reorder the whole switch to load first instead: the departing sheet's settings would then
-    be in force during the load (NestedRows rejecting a flat sheet, a departing `columns` building
-    the DataMap, Formulas bound to the wrong sheet). A new plugin with the same shape takes whichever
-    of the two fixes fits what it needs from the load.
 - **Custom borders are restored with the logical sides only.** `getBorders()` records carry both
   `start`/`end` and their legacy `left`/`right` copies (`denormalizeBorder()`), and `setBorders()`
   throws when it gets both pairs, and on `left`/`right` alone in RTL. `restoreCustomBorders()`
@@ -414,42 +389,17 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).
 - **A switch runs `loadData()` exactly once, and AutoColumnSize sweeps every column on it
-  (DEV-2905, DEV-3040).** `#applySheet` first applies the sheet's settings (declared, or inherited
-  formula settings for a runtime-added sheet) through `updateSettings()`; when that changes the
-  Formulas plugin's `sheetName`, `Formulas#updatePlugin` would run `switchSheet()`, a `loadData()` of
-  the engine's serialized content (`source: 'Formulas.switchSheet'`), right before the bar's own
-  `loadData()` overwrote it. `#withoutFormulasSwitchLoad` sets the Formulas plugin's `@private`
-  `skipSheetSwitchLoad` flag around that `updateSettings()` (duck-typed through `getPlugin`, like
-  `#withoutUndoEntry` does for UndoRedo), so Formulas only binds the sheet and the bar's load — whose
-  Formulas `afterLoadData` writes the array into that sheet — is the one load. Between the two calls
-  the grid still holds the departing sheet's data while bound to the arriving sheet. The switch is
-  render-suspended and the binding clears the owed resync, so Formulas writes nothing into the engine;
-  a read in that window (another plugin's `updatePlugin`, a host `afterUpdateSettings` listener)
-  answers from the arriving engine sheet at the departing grid's coordinates, until the load replaces
-  the data. **Core does write in that window**: `updateSettings()` ends in `adjustRowsAndCols()`,
-  which pads the array the grid holds — the departing sheet's own `data`, by reference — up to the
-  arriving sheet's `minRows`/`minSpareRows`/`minCols`/`minSpareCols` — and a grid-level one does the
-  same whenever the update changes what the padding reads (a baseline restoring `columns: null`
-  opens the `minCols` branch; an arriving `trimRows` lowers `countRows()`). So `#applySheet` runs
-  that update under `#withoutAutoPadding`, and `#onBeforeAutoCreate` (registered on
-  `beforeCreateRow`/`beforeCreateCol` at the top of `enablePlugin`, so the init build is covered
-  too) vetoes every create with source `auto` while it is set. `#onBeforeAutoRemove`
-  (`beforeRemoveRow`/`beforeRemoveCol`) vetoes every `auto` removal in the same window: a lowered
-  `min*` value makes `updateSettings()` give back the trailing filler rows the previous minimum appended
-  (`removeSurplusRowsAndCols()`), and it judged the departing rows empty through the arriving sheet's
-  `columns`, so the rows a user typed into a `minSpareRows` sheet were deleted from the host's array. The `loadData()` that follows pads
-  the arriving sheet's data inside its own `adjustRowsAndCols()`, before `afterLoadData`, exactly as
-  a plain load does, so host listeners, the AutoColumnSize sweep and the Formulas engine write all
-  see the padded size. Do not replace the veto with a zero-then-reapply of the `min*` keys: that
-  missed grid-level keys, ran a second `updateSettings()` (a second Formulas `setSheetContent` and
-  engine undo entry per switch, and a second host `afterUpdateSettings`), and moved the padding
-  after `afterLoadData`. The listener returns `undefined` rather than `true` when it does not veto,
-  so it never overrides another listener's `false`. Before this, only a formula switch onto a
-  non-empty engine sheet was safe (`switchSheet()` loaded a throwaway copy first); a workbook without
-  Formulas and a switch onto an empty engine sheet padded the departing sheet. Pinned in
+  (DEV-2905, DEV-3040).** When the arriving settings change the Formulas plugin's `sheetName`,
+  `Formulas#updatePlugin` would run `switchSheet()`, a `loadData()` of the engine's serialized content,
+  right before the switch's own load overwrote it. In phase A it reads `isDataWorkDeferred()` and only
+  binds the sheet, and the load's Formulas `afterLoadData` writes the array into that sheet, so the
+  switch's load is the one load. A name the engine does not know still goes through `switchSheet()`,
+  which reports it. Phase A also writes nothing into the departing sheet's array: core skips the `min*`
+  padding and surplus removal there, and the load pads the arriving sheet's data inside its own
+  `adjustRowsAndCols()`, before `afterLoadData`, exactly as a plain load does. Pinned in
   `sheetsBar.unit.js`: "loads the grid once per switch", the four "does not pad a … sheet's data …"
-  tests, "pads the arriving sheet before its afterLoadData, with one settings update per switch",
-  and "leaves the Formulas switch load and min padding working after a switch threw mid-update". The
+  tests, "pads the arriving sheet before its afterLoadData, with one settings update per switch", and
+  "leaves the Formulas switch load and min padding working after a switch threw mid-update". The
   `loadData()` nulls the width map, so the AutoColumnSize `afterLoadData` sweep re-measures every column over the whole row range, and the
   resume render walks the visible columns once more (the sweep drops its samples cache on purpose —
   its own `AGENTS.md`). A further full pass used to come from listener order: the sweep ran before
@@ -458,8 +408,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `orderIndex` -1, and `tests/e2e/sheet-switch-autosize.spec.ts` pins the count. What remains is
   O(rows × cols) per `loadData()` by design — the `syncLimit` contract is "first paint exact" — so a
   switch cannot be made proportional to the viewport without an opt-in that drops that guarantee. The
-  Formulas `afterCellMetaReset` bookkeeping for the *outgoing* sheet that the `updateSettings()`
-  triggers is the remaining per-switch cost outside this plugin.
+  Formulas `afterCellMetaReset` bookkeeping now runs once, in phase C, against the arriving sheet.
 - **The bar's icons (paging arrows, add/all-sheets buttons, tab chevrons) are kept through an
   injected `syncIcon()`** — `bar.ts` and `tabStrip.ts` receive `syncIcon` (bound to the
   grid in `sheetsBar.ts`), not `createIcon`, and each owns one slot class

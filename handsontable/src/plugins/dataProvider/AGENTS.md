@@ -88,3 +88,9 @@ From `handsontable/`:
 - Whole plugin: `npm run test:e2e --testPathPattern=plugins/dataProvider`
 
 The `__tests__/` tree is split by kind: `methods/`, `hooks/`, `plugins/` (interactions with Pagination, Filters, ColumnSorting), `query/*.unit.js`, plus `alter.spec.js` for the context-menu insert/remove path. Specs that must assert "no refetch happened" wait on the `afterRowsMutation` spy: the refetch, when enabled, starts synchronously right after that hook, so `fetchRows` already reflects it.
+
+## A fetch an update starts ahead of its data waits for `onDataReady()`
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), `updatePlugin()` leaves its silent fetch to `onDataReady()`, so its rows cannot land
+before the load. The SheetsBar switch is passive anyway (`_runContextChange()`), so nothing is fetched there.

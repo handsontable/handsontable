@@ -185,6 +185,12 @@ const pluginConflictsState = new WeakMap<object, string>();
  */
 export class ColumnSorting extends BasePlugin {
   /**
+   * Whether a settings sort waits for `onDataReady()`.
+   *
+   * @type {boolean}
+   */
+  #settingsSortPending = false;
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -309,7 +315,7 @@ export class ColumnSorting extends BasePlugin {
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {
-      this.#loadOrSortBySettings();
+      this.#sortBySettingsOnceDataIsReady();
     }
 
     this.registerShortcuts();
@@ -320,6 +326,7 @@ export class ColumnSorting extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
+    this.#settingsSortPending = false;
     const clearColHeader = (column: number, TH: HTMLTableCellElement) => {
       const headerSpanElement = getHeaderSpanElement(TH);
 
@@ -1201,7 +1208,40 @@ export class ColumnSorting extends BasePlugin {
     const pluginSettings = newSettings[this.pluginKey];
 
     if (wasEnabled && this.enabled && isDefined(pluginSettings)) {
-      this.sortBySettings(pluginSettings);
+      if (this.isDataWorkDeferred()) {
+        this.#settingsSortPending = true;
+      } else {
+        this.sortBySettings(pluginSettings);
+      }
+    }
+  }
+
+  /**
+   * Sorts by the settings once the data they describe is loaded. Core's `_applySettingsAndData()`
+   * applies settings ahead of their data, and the sort is held back then: run against the rows the
+   * grid still held, it sorted them, and the load that followed reset the order, so the arriving
+   * data was never sorted by its `initialConfig`.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (!this.#settingsSortPending) {
+      return;
+    }
+
+    this.#settingsSortPending = false;
+    this.#loadOrSortBySettings();
+  }
+
+  /**
+   * Runs the settings sort of an enable on a live grid, or holds it for `onDataReady()` while the
+   * settings are applied ahead of their data.
+   */
+  #sortBySettingsOnceDataIsReady() {
+    if (this.isDataWorkDeferred()) {
+      this.#settingsSortPending = true;
+    } else {
+      this.#loadOrSortBySettings();
     }
   }
 

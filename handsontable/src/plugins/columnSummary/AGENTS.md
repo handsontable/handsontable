@@ -373,3 +373,11 @@ not widen the skip back to every `auto` action. `reversedRowCoordsAlter.unit.js`
 
 Note: the legacy Jasmine E2E runner swallows `console.log`, so debugging a calculation there needs an
 assertion, not a print.
+
+## Endpoints applied ahead of their data wait for `onDataReady()`
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), `updatePlugin()` leaves `initEndpoints()` to `onDataReady()`, and the `afterLoadData`
+refresh is skipped: run against the rows the grid still held, the endpoints were checked against the wrong
+size and their results were written into those rows. `onDataReady()` parses and computes the pending
+endpoints, or recalculates the ones already parsed, because the load replaced the rows they read.

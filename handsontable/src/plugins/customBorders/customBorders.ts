@@ -231,6 +231,12 @@ export class CustomBorders extends BasePlugin {
    * `changeBorderSettings()` once the model reset is done. `null` when the update is not one.
    */
   #carriedBorders: BorderObject[] | null = null;
+  /**
+   * Whether `updatePlugin()` held the settings pass back for `onDataReady()`.
+   *
+   * @type {boolean}
+   */
+  #settingsPassPending = false;
 
   /**
    * During a `createCustomBorders` pass, holds the `row,col` keys already written in this pass, so a
@@ -356,6 +362,7 @@ export class CustomBorders extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#settingsPassPending = false;
     this.#cancelProgressiveApply();
     this.hideBorders();
 
@@ -379,12 +386,33 @@ export class CustomBorders extends BasePlugin {
         this.enablePlugin();
       }
 
-      this.changeBorderSettings();
+      if (this.isDataWorkDeferred()) {
+        this.#settingsPassPending = true;
+      } else {
+        this.changeBorderSettings();
+      }
     } finally {
       this.#carriedBorders = null;
     }
 
     super.updatePlugin();
+  }
+
+  /**
+   * Applies the borders the settings declare once the data they describe is loaded. Core's
+   * `_applySettingsAndData()` applies settings ahead of their data, and `updatePlugin()` holds the
+   * pass back then: run against the rows the grid still held, it dropped every border outside them and
+   * wrote the rest into cell meta the load then cleared.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (!this.#settingsPassPending) {
+      return;
+    }
+
+    this.#settingsPassPending = false;
+    this.changeBorderSettings(false);
   }
 
   /**

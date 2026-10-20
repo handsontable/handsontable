@@ -341,18 +341,6 @@ export class MergeCells extends BasePlugin {
    */
   #appliedMergeKeys: Set<string> = new Set();
   /**
-   * When set, `updatePlugin()` rebuilds the plugin but holds back the pass that builds the merges
-   * declared in the settings, until {@link MergeCells#runDeferredSettingsPass} runs it. The
-   * SheetsBar plugin sets it around a sheet switch's settings update, which runs while the grid
-   * still holds the departing sheet's data: built there, the arriving sheet's merges were
-   * validated against the departing sheet's size, and their clearing write landed in the
-   * departing sheet's data.
-   *
-   * @private
-   * @type {boolean}
-   */
-  deferSettingsPass = false;
-  /**
    * Whether `updatePlugin()` held back a settings pass that has not run yet.
    *
    * @type {boolean}
@@ -556,7 +544,7 @@ export class MergeCells extends BasePlugin {
 
     this.#settingsPassPending = false;
 
-    if (this.deferSettingsPass) {
+    if (this.isDataWorkDeferred()) {
       this.disablePlugin();
       this.enablePlugin();
 
@@ -583,8 +571,8 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Runs the settings pass that `updatePlugin()` held back while {@link MergeCells#deferSettingsPass}
-   * was set. With `apply` set, the declared merges are built against the data the grid holds now,
+   * Runs the settings pass that `updatePlugin()` held back while core's `_applySettingsAndData()`
+   * applied the settings ahead of their data (`isDataWorkDeferred()`). With `apply` set, the declared merges are built against the data the grid holds now,
    * so they are validated against its size and their covered cells are cleared in it. Without it,
    * no merge is built and no cell is written, and the areas applied before stay recorded as
    * applied. Does nothing when no pass is pending.

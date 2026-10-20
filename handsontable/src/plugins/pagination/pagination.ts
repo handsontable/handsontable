@@ -141,6 +141,12 @@ function readDeclaredInitialPage(settings: unknown): number | undefined {
  */
 export class Pagination extends BasePlugin {
   /**
+   * Whether `updatePlugin()` left the page state for `onDataReady()`.
+   *
+   * @type {boolean}
+   */
+  #refreshPending = false;
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -485,6 +491,23 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Computes the page state once the data the settings describe is loaded. Core's
+   * `_applySettingsAndData()` applies settings ahead of their data, and `updatePlugin()` leaves the
+   * computation for this step then: run against the rows the grid still held, it clamped the declared
+   * `initialPage` to their page count and rendered them under the new configuration.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (!this.#refreshPending) {
+      return;
+    }
+
+    this.#refreshPending = false;
+    this.#refreshUI();
+  }
+
+  /**
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
@@ -497,7 +520,11 @@ export class Pagination extends BasePlugin {
       this.#isUpdatingPlugin = false;
     }
 
-    this.#refreshUI();
+    if (this.isDataWorkDeferred()) {
+      this.#refreshPending = true;
+    } else {
+      this.#refreshUI();
+    }
 
     super.updatePlugin();
   }

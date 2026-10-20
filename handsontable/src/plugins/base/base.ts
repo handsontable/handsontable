@@ -558,6 +558,23 @@ export class BasePlugin {
   }
 
   /**
+   * Whether the settings this plugin is applying describe data the grid has not loaded yet. Core's
+   * `_applySettingsAndData()` applies settings first and loads their data after, the order the grid's
+   * own initialization uses, and answers `true` until that load is done. A plugin whose
+   * `enablePlugin()` or `updatePlugin()` reads or writes the loaded rows skips that work while this is
+   * `true` and does it in an `onDataReady()` method, which core calls once the data is loaded, in
+   * plugin priority order, for every enabled plugin that has one.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isDataWorkDeferred(): boolean {
+    const hot = this.hot as HotInstance & { _isDataWorkDeferred?: () => boolean };
+
+    return hot._isDataWorkDeferred?.() === true;
+  }
+
+  /**
    * On after plugins initialized listener.
    *
    * @private

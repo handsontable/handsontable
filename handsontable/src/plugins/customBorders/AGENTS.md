@@ -176,3 +176,10 @@ breaks** — that is expected; update the assertion and reference the issue.
 read through `hot.view.countFixedColumnsEnd()`, so the start columns keep the priority). The end clone renders the last
 columns even when the master range is far from them, exactly like the start clone, so a border on an end column
 has to be in the working set or it is never drawn. Pinned by `tests/e2e/fixed-columns-end-plugins.spec.ts`.
+
+## Declared borders applied ahead of their data wait for `onDataReady()`
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), `updatePlugin()` holds `changeBorderSettings()` back for `onDataReady()`, which runs it
+without its own render (core renders once). Run before, it dropped every border outside the rows the grid
+still held and wrote the rest into cell meta the load then cleared.

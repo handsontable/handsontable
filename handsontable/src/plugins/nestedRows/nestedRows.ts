@@ -167,19 +167,11 @@ export class NestedRows extends BasePlugin {
   #insertAnchor: RowObject | null = null;
 
   /**
-   * Set by a caller that loads a new dataset right after a settings update, while the grid still
-   * holds the previous one (the sheets bar on a sheet switch). An enable during that update then
-   * takes its data from the `loadData()` that follows, through `#onBeforeLoadData`, instead of
-   * validating the previous dataset, which is not nested and would turn the plugin off.
-   *
-   * @private
-   * @type {boolean}
-   */
-  deferDataCheck = false;
-
-  /**
-   * `true` from an enable that `deferDataCheck` held back until the `loadData()` that brings the
-   * plugin its data.
+   * `true` from an enable held back until the `loadData()` that brings the plugin its data. Core's
+   * `_applySettingsAndData()` (the sheets bar on a sheet switch) applies the settings while the grid
+   * still holds the previous dataset, and an enable then takes its data from the load that follows,
+   * through `#onBeforeLoadData`, instead of validating the previous dataset, which is not nested and
+   * would turn the plugin off.
    *
    * @type {boolean}
    */
@@ -298,7 +290,7 @@ export class NestedRows extends BasePlugin {
     let currentSourceData = this.dataManager!.getData();
     const isDataManagerEmpty = currentSourceData === null;
 
-    if (isDataManagerEmpty && this.deferDataCheck) {
+    if (isDataManagerEmpty && this.isDataWorkDeferred()) {
       this.enablePlugin();
       this.#awaitsDataLoad = true;
       super.updatePlugin();

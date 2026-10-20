@@ -781,18 +781,6 @@ export class Formulas extends BasePlugin {
    */
   sheetName: string | null = null;
   /**
-   * The flag that makes a `sheetName` change applied through `updateSettings` bind the sheet
-   * without loading its content into the grid. Set by a caller that loads the sheet's data
-   * itself right after the update (the SheetsBar plugin), so the grid is loaded once, not twice.
-   * That load's `afterLoadData` writes the data into the sheet bound here. A name the engine does
-   * not know still goes through `switchSheet`, which reports it.
-   *
-   * @private
-   * @type {boolean}
-   */
-  skipSheetSwitchLoad = false;
-
-  /**
    * Whether the engine currently holds the sheet this instance is bound to, or `null` when the
    * engine has to be asked again. The `modifyData` and `modifySourceData` hooks read it once per
    * cell read, so the engine lookup is cached and dropped only when a sheet is added, renamed, or
@@ -1112,7 +1100,7 @@ export class Formulas extends BasePlugin {
       // still differs from the current one and lets `switchSheet` report it.
       this.engine?.getSheetId(pluginSettings.sheetName) !== this.sheetId
     ) {
-      if (this.skipSheetSwitchLoad && this.engine?.doesSheetExist(pluginSettings.sheetName)) {
+      if (this.isDataWorkDeferred() && this.engine?.doesSheetExist(pluginSettings.sheetName)) {
         this.#updateSheetNameAndSheetId(pluginSettings.sheetName);
 
       } else {
@@ -1122,7 +1110,7 @@ export class Formulas extends BasePlugin {
 
     // If no data was passed to the `updateSettings` method and no sheet is connected to the instance -> create a
     // new sheet using the currently used data. Otherwise, it will be handled by the `afterLoadData` call.
-    if (!newSettings.data && this.sheetName === null) {
+    if (!newSettings.data && !this.isDataWorkDeferred() && this.sheetName === null) {
       const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
       const sheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
 
@@ -3004,7 +2992,10 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * `beforeLoadData` hook callback.
+   * `beforeLoadData` hook callback. A grid counts as built without data only when no `data` setting
+   * exists AND the load brings no array: core's first `loadData()` can carry a real array before the
+   * setting is stored (the sheets bar loads its opening sheet that way), and treating that grid as
+   * empty made every later settings update reload it from the engine sheet.
    *
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
@@ -3017,7 +3008,7 @@ export class Formulas extends BasePlugin {
 
     // This flag needs to be defined, because not passing data to HOT results in HOT auto-generating a `null`-filled
     // initial dataset.
-    this.#hotWasInitializedWithEmptyData = isUndefined(this.hot.getSettings().data);
+    this.#hotWasInitializedWithEmptyData = isUndefined(this.hot.getSettings().data) && !Array.isArray(sourceData);
   };
 
   /**
@@ -3029,9 +3020,19 @@ export class Formulas extends BasePlugin {
    * and `#resyncSheet` runs it later, once per cycle - see `#sheetResyncPending`. Construction
    * has no `afterUpdateSettings` pass (the Core skips the hook on its first run), so the scan
    * stays eager there; `hot.view` is what the Core creates right after that first run.
+   *
+   * The reset core's `_applySettingsAndData()` fires after its own load needs no resync: that load
+   * already wrote the sheet through `#onAfterLoadData`, with the column configuration of the call in
+   * force, and a second scan cost a full engine write and an AutoColumnSize sweep per sheet switch.
+   * Known limit: a per-cell `type` that only the `cell` option of that call sets is not re-read into the
+   * engine until the next resync.
    */
   #onAfterCellMetaReset = () => {
     this.#closeLeakedGuards();
+
+    if (this.isDataWorkDeferred()) {
+      return;
+    }
 
     // The reload below and the scan in `#resyncSheet` both run a full-dataset read whose per-cell
     // meta read fires `cells()` and the `beforeGetCellMeta`/`afterGetCellMeta` listeners – see

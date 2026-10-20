@@ -477,3 +477,12 @@ rule in `_column-sorting.scss` sets `pointer-events: auto` (plus `cursor: pointe
 sibling selector), and `wasClickableHeaderClicked()` accepts `SORT_INDICATOR_SLOT_CLASS` as a target
 alongside `HEADER_SPAN_CLASS`. Pinned by "a click precisely on the indicator icon toggles the sort
 order" in `tests/e2e/icon-elements.spec.ts`.
+
+## The `initialConfig` sort applied ahead of its data waits for `onDataReady()`
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), both settings sorts (the live-grid branch of `enablePlugin()` and the one in
+`onUpdateSettings()`) are held, and `onDataReady()` runs `#loadOrSortBySettings()` against the loaded rows.
+Run before, they sorted the departing rows and the load reset the order, so a sheet's own `initialConfig`
+was ignored on its first visit. Known, separate defect: `#onAfterLoadData` reads the hook's first argument
+(the data array) as `initialLoad`, so its `initialLoad === true` branch never runs.

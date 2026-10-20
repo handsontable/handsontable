@@ -209,6 +209,12 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  */
 export class EmptyDataState extends BasePlugin {
   /**
+   * Whether an enable left the empty-state toggle for `onDataReady()`.
+   *
+   * @type {boolean}
+   */
+  #togglePending = false;
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -327,12 +333,8 @@ export class EmptyDataState extends BasePlugin {
 
     this.addHook('afterInit', this.#onAfterInit);
     this.addHook('afterRender', this.#onAfterRender);
-    this.addHook('afterRowSequenceCacheUpdate', () => {
-      this.#toggleEmptyDataState();
-    });
-    this.addHook('afterColumnSequenceCacheUpdate', () => {
-      this.#toggleEmptyDataState();
-    });
+    this.addHook('afterRowSequenceCacheUpdate', this.#onSequenceCacheUpdate);
+    this.addHook('afterColumnSequenceCacheUpdate', this.#onSequenceCacheUpdate);
     this.addHook('beforeFilter', this.#onBeforeFilter);
     this.addHook('beforeDataProviderFetch', (queryParameters: Record<string, unknown>) => {
       if (!queryParameters.skipLoading) {
@@ -344,6 +346,37 @@ export class EmptyDataState extends BasePlugin {
 
     super.enablePlugin();
 
+    this.#onSequenceCacheUpdate();
+  }
+
+  /**
+   * Toggles the empty state after the row or column sequence changed, or leaves the toggle for
+   * `onDataReady()` while core applies settings ahead of their data: the view's renderable counts the
+   * toggle reads describe the rows drawn last until the grid renders again, so a toggle during that load
+   * showed the overlay (and took the keyboard) for the rows the grid was leaving.
+   */
+  #onSequenceCacheUpdate = () => {
+    if (this.isDataWorkDeferred()) {
+      this.#togglePending = true;
+    } else {
+      this.#toggleEmptyDataState();
+    }
+  };
+
+  /**
+   * Shows or hides the empty state once the data the settings describe is loaded. Core's
+   * `_applySettingsAndData()` applies settings ahead of their data, and an enable leaves the toggle for
+   * this step then: run against the rows the grid still held (or none, before the first load), it
+   * showed the overlay and took the keyboard for a grid about to receive rows.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (!this.#togglePending) {
+      return;
+    }
+
+    this.#togglePending = false;
     this.#toggleEmptyDataState();
   }
 

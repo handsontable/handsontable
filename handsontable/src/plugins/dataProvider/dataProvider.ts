@@ -293,6 +293,12 @@ export {
  */
 export class DataProvider extends BasePlugin {
   /**
+   * Whether `updatePlugin()` left its fetch for `onDataReady()`.
+   *
+   * @type {boolean}
+   */
+  #fetchPending = false;
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -448,10 +454,33 @@ export class DataProvider extends BasePlugin {
     this.enablePlugin();
 
     if (!this.#isPassive && this.hot.view) {
-      void this.#fetchDataSilently();
+      if (this.isDataWorkDeferred()) {
+        this.#fetchPending = true;
+      } else {
+        void this.#fetchDataSilently();
+      }
     }
 
     super.updatePlugin();
+  }
+
+  /**
+   * Starts the fetch an update left for this step. Core's `_applySettingsAndData()` applies settings
+   * ahead of their data, and a fetch started before that data is loaded would land its rows over
+   * whatever the load brings.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (!this.#fetchPending) {
+      return;
+    }
+
+    this.#fetchPending = false;
+
+    if (!this.#isPassive) {
+      void this.#fetchDataSilently();
+    }
   }
 
   /**

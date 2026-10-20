@@ -135,6 +135,37 @@ Branch 3 exists so a plugin already running gets switched off when a conflicting
 when its own `SETTING_KEYS` do not overlap the payload. `relevantToSettings` is computed **before** those
 branches, on purpose: branches 1 and 2 must not depend on it.
 
+## Deferred data work: `isDataWorkDeferred()` and `onDataReady()`
+
+Core's private `_applySettingsAndData(settings, data, source)` applies settings and the data they describe
+in the order the grid's own initialization uses, for a caller that replaces both at once (SheetsBar, on a
+sheet switch). A plain `updateSettings()` followed by `loadData()` lets every plugin reconfigure against the
+data the grid still holds. The call has three phases:
+
+1. **Configure.** The settings merge and `onUpdateSettings` runs for every plugin as usual (enable, disable,
+   update), while `isDataWorkDeferred()` answers `true`. Core skips the data phase, the late `columns` pass,
+   the `cell` option, `afterCellMetaReset`, the `min*` padding and surplus removal, and the render. On a grid
+   still being built there is no data map yet, so nothing may count rows here.
+2. **Load.** A normal `loadData()` with the new configuration in force. The load hooks reach the plugins
+   enabled in phase 1, every index map re-initializes, and the load sizes the new data to the new `min*`
+   values. `isDataWorkDeferred()` still answers `true`.
+3. **Data ready.** The `cell` option and `afterCellMetaReset` run against the new data, then every
+   **enabled** plugin's optional `onDataReady()` in `PLUGIN_PRIORITY` order, then one render (rendering is
+   suspended for the whole call and resumed in a `finally`). A grid without a view skips the
+   `onDataReady()` loop: its plugins do that work from their own `afterInit`.
+
+The rule for a plugin: **work in `enablePlugin()`, `updatePlugin()` or a load hook that reads or writes the
+loaded rows checks `isDataWorkDeferred()` and, while it is `true`, records that the work is owed and does it
+in `onDataReady()`.** Configuration (hooks, maps, the plugin's own state) stays where it is. Clear the
+pending flag in `disablePlugin()`, so a plugin turned off in the same pass does not run it later. Do not
+read the flag to skip work that the load itself redoes (a map's `init` hook, an `afterLoadData` refresh
+that already reads the new rows): that work is correct as it is. The plugins that defer today:
+ColumnSummary (endpoints), ColumnSorting and MultiColumnSorting (the `initialConfig` sort), CustomBorders
+(the declared borders), MergeCells (the settings pass, run by SheetsBar), NestedRows (the data check),
+Formulas (bind only, no sheet fill), Pagination (the page state), EmptyDataState (the overlay toggle) and
+DataProvider (the fetch). The public `updateSettings()` and `loadData()` never set the flag. Pinned by
+`src/__tests__/core/applySettingsAndData.unit.js`.
+
 ## Hard conflicts
 
 `registerConflict(blockedKey, incompatibleSettingKeys)` declares "this plugin must never enable while that

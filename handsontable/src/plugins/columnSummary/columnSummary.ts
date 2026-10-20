@@ -168,6 +168,12 @@ export class ColumnSummary extends BasePlugin {
    */
   endpoints: Endpoints | null = null;
   /**
+   * Whether `updatePlugin()` left the endpoints for `onDataReady()`.
+   *
+   * @type {boolean}
+   */
+  #endpointsPending = false;
+  /**
    * Plugin settings provided by the user, or `null` if none were supplied.
    */
   declare settings: Record<string, unknown> | null;
@@ -249,6 +255,7 @@ export class ColumnSummary extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
+    this.#endpointsPending = false;
     this.endpoints = null;
     this.settings = null;
     this.currentEndpoint = null;
@@ -264,17 +271,38 @@ export class ColumnSummary extends BasePlugin {
    *
    * Before the grid has a view (a settings update made while the grid is still being built, such as
    * the sheets bar applying its opening sheet), the endpoints are left to the `afterInit` listener,
-   * which computes them against the data the grid starts with.
+   * which computes them against the data the grid starts with. While core applies the settings ahead
+   * of their data (`isDataWorkDeferred()`), they are left to `onDataReady()`.
    */
   updatePlugin(): void {
     this.disablePlugin();
     this.enablePlugin();
 
-    if (this.hot.view) {
+    if (this.isDataWorkDeferred()) {
+      this.#endpointsPending = true;
+    } else if (this.hot.view) {
       this.endpoints!.initEndpoints();
     }
 
     super.updatePlugin();
+  }
+
+  /**
+   * Computes the summaries once the data they describe is loaded. Core's `_applySettingsAndData()`
+   * applies settings ahead of their data, and the endpoints wait for this step then: parsed and
+   * calculated against the rows the grid still held, they were checked against the wrong size (a
+   * false out-of-bounds warning) and their results were written into those rows. Endpoints that were
+   * already parsed are recalculated, because the load replaced the rows they read.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (this.#endpointsPending) {
+      this.#endpointsPending = false;
+      this.endpoints!.initEndpoints();
+    } else {
+      this.endpoints?.refreshAllEndpoints();
+    }
   }
 
   /**
@@ -702,7 +730,7 @@ export class ColumnSummary extends BasePlugin {
    * @param {boolean} firstRun `true` if called on initial load, `false` otherwise.
    */
   #onAfterLoadData = (data: unknown[], firstRun: boolean) => {
-    if (!firstRun) {
+    if (!firstRun && !this.isDataWorkDeferred()) {
       this.endpoints!.refreshAllEndpoints();
     }
   };

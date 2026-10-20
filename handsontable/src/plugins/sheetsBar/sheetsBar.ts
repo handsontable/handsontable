@@ -26,6 +26,7 @@ import { isPlainObject } from '../../helpers/object';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { syncIcon } from '../../themes/engine/icons';
+import type { HotInstance } from '../../core/types';
 import type {
   DataProvider,
   DataProviderConfig,
@@ -126,27 +127,6 @@ function applyEngineRewritesToSheetData(data: unknown[], serialized: unknown[][]
 const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
 
 /**
- * Settings whose plugins read the grid's data when they are applied and need nothing from the
- * load itself. A switch applies the arriving sheet's settings while the grid still holds the
- * departing sheet's data, so a truthy value of one of these keys is applied after the arriving
- * sheet's `loadData()` instead. ColumnSummary checks its endpoints against the table size and
- * writes its results into the data, CustomBorders drops a border outside the table, and the two
- * sorting plugins sort by their `initialConfig` when the key is applied. NestedRows is not on the
- * list: the load has to run with it on, so it is applied before the load with its data check held
- * back (`#withoutNestedRowsDataCheck`).
- *
- * `offDuringLoad` marks a plugin whose own `afterLoadData` writes into the loaded data. Left on by
- * the departing sheet, it would write its departing configuration into the arriving sheet, so it is
- * turned off before the load.
- */
-const DATA_BOUND_SETTINGS: Record<string, { offDuringLoad: boolean }> = {
-  columnSummary: { offDuringLoad: true },
-  customBorders: { offDuringLoad: false },
-  columnSorting: { offDuringLoad: false },
-  multiColumnSorting: { offDuringLoad: false },
-};
-
-/**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
  * compared element by element, plain objects key by key, and everything else — a class
  * instance such as a HyperFormula engine, a function, a DOM element — by reference, since a
@@ -214,6 +194,13 @@ function isSameSheetsList(a: unknown, b: unknown): boolean {
  * a HyperFormula instance it talks to. An engine passed as the `HyperFormula` class rather
  * than a built instance has none of these methods.
  */
+/**
+ * The Handsontable instance with core's private settings-and-data switch (`Core#_applySettingsAndData`).
+ */
+type HotInstanceWithDataSwitch = HotInstance & {
+  _applySettingsAndData(settings: Record<string, unknown>, data: unknown[], source: string): void,
+};
+
 interface SheetFormulas {
   engine?: {
     doesSheetExist?: (name: string) => boolean;
@@ -502,14 +489,6 @@ export class SheetsBar extends BasePlugin {
    */
   #retainActiveName: string | null = null;
   /**
-   * Set while `#applySheet` applies a sheet's settings. The grid still holds the departing sheet's
-   * data then, so the rows and columns core adds to meet the `min*` settings are vetoed
-   * (`#onBeforeAutoCreate`); the `loadData()` that follows pads the arriving sheet's data instead.
-   *
-   * @type {boolean}
-   */
-  #blockAutoPadding = false;
-  /**
    * Owns the per-tab and all-sheets dropdown menus.
    *
    * @type {SheetsBarMenus | null}
@@ -605,11 +584,6 @@ export class SheetsBar extends BasePlugin {
     if (this.enabled || this.#isInitializing) {
       return;
     }
-
-    this.addHook('beforeCreateRow', this.#onBeforeAutoCreate);
-    this.addHook('beforeCreateCol', this.#onBeforeAutoCreate);
-    this.addHook('beforeRemoveRow', this.#onBeforeAutoRemove);
-    this.addHook('beforeRemoveCol', this.#onBeforeAutoRemove);
 
     // A preserved re-enable is the framework-wrapper re-emit path, where the active sheet's own
     // freeze is currently applied to the grid — re-reading it here would adopt that freeze as
@@ -1667,46 +1641,38 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Applies a sheet's settings and data to the grid. Undeclared settings keys keep the
-   * grid-level values. Batches the operation into a single render when the grid's view
-   * is already constructed; during initial plugin setup the view does not exist yet and
-   * the grid's own startup render covers it. The settings update runs with core's automatic `min*`
-   * padding and removal vetoed, because the grid still holds the departing sheet's data then; the
-   * `loadData()` pads the arriving sheet's data before its `afterLoadData`. NestedRows takes its data
-   * from that load, not from the departing sheet (`#withoutNestedRowsDataCheck`). On a live grid the
-   * settings that describe the loaded cells (`DATA_BOUND_SETTINGS` and `cell`) are applied after the
-   * load, through a second `updateSettings()` (`#splitDataBoundSettings`).
+   * Applies a sheet's settings and data to the grid. Undeclared settings keys keep the grid-level
+   * values (`#withBaselineFor`).
    *
-   * The merges the settings declare are built after the load, against the arriving sheet's data.
-   * With `restoresState` set they are not built at all: a sheet that returns with a stored view
-   * state restores its own merges, and the declared ones would win over the ones the user changed.
-   * The same return applies the ColumnSummary endpoints stored when the user left the sheet
-   * (`#captureColumnSummary`) in place of the declared ones.
-   * Without a view the grid is still being built, and MergeCells builds them from its own
-   * `afterInit`, against the data loaded here.
+   * Both go through core's `_applySettingsAndData()`, the order the grid's own initialization uses:
+   * every plugin configures with no data-dependent work while the grid still holds the departing
+   * sheet's rows, the arriving sheet's data loads with that configuration in force (sized to its own
+   * `min*` values), and the work that reads the data (the `cell` option, ColumnSummary's endpoints,
+   * CustomBorders, the sorting plugins' `initialConfig`) runs after the load, through each plugin's
+   * `onDataReady()`. The `cell` option is restated on every switch (`#effectiveCellOption`), because
+   * the load clears the cell meta it wrote. Without a view the grid is still being built, and the
+   * plugins do that work from their own `afterInit` instead.
+   *
+   * With `restoresState` set the sheet returns with a stored view state. It then gets the ColumnSummary
+   * endpoints it left with (`#captureColumnSummary`), and the merges its settings declare are not built:
+   * the stored ones are restored instead, and the declared ones would win over the ones the user changed.
    */
   #applySheet(sheet: Sheet, source: string, { restoresState = false }: { restoresState?: boolean } = {}) {
+    const payload: Record<string, unknown> = { ...(this.#withBaselineFor(sheet.settings) ?? {}) };
+    const cell = this.#effectiveCellOption(payload);
+
+    if (cell) {
+      payload.cell = cell;
+    }
+
+    if (payload.columnSummary && restoresState && this.#columnSummaryStates.has(sheet)) {
+      payload.columnSummary = this.#columnSummaryStates.get(sheet);
+    }
+
     const apply = () => {
-      const { beforeLoad, afterLoad } = this.#splitDataBoundSettings(this.#withBaselineFor(sheet.settings));
-
-      if (beforeLoad) {
-        this.#withoutAutoPadding(() => {
-          this.#withoutMergeCellsSettingsPass(() => {
-            this.#withoutNestedRowsDataCheck(() => {
-              this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(beforeLoad));
-            });
-          });
-        });
-      }
-      this.hot.loadData(sheet.data as never, `${source}.switch`);
-
-      if (afterLoad?.columnSummary && restoresState && this.#columnSummaryStates.has(sheet)) {
-        afterLoad.columnSummary = this.#columnSummaryStates.get(sheet);
-      }
-
-      if (afterLoad) {
-        this.hot.updateSettings(afterLoad);
-      }
+      (this.hot as HotInstanceWithDataSwitch)._applySettingsAndData(
+        payload, sheet.data as unknown[], `${source}.switch`
+      );
 
       if (this.hot.view) {
         this.#runMergeCellsSettingsPass(!restoresState);
@@ -1718,60 +1684,6 @@ export class SheetsBar extends BasePlugin {
     } else {
       apply();
     }
-  }
-
-  /**
-   * Splits a switch's settings into the part applied before the arriving sheet's `loadData()` and
-   * the part applied after it. A truthy value of a `DATA_BOUND_SETTING_KEYS` key goes after the
-   * load, so its plugin is configured against the arriving sheet's data. A plugin the departing
-   * sheet left enabled is turned off before the load, or it would run its departing configuration
-   * against the arriving data during the load (ColumnSummary writing its results into it). A falsy
-   * value turns the plugin off, which reads no data, so it stays before the load.
-   *
-   * Without a view the grid is still being built and nothing is split: ColumnSummary computes its
-   * endpoints from its own `afterInit`, against the loaded sheet, and applied after the load it
-   * would write through `setDataAtCell()` before the editor manager exists.
-   *
-   * @param {object|null} settings The settings `#withBaselineFor` built for the arriving sheet.
-   * @returns {object} The settings to apply before and after the load, each `null` when empty.
-   */
-  #splitDataBoundSettings(settings: Record<string, unknown> | null): {
-    beforeLoad: Record<string, unknown> | null,
-    afterLoad: Record<string, unknown> | null,
-  } {
-    if (!this.hot.view) {
-      return { beforeLoad: settings, afterLoad: null };
-    }
-
-    const beforeLoad = { ...(settings ?? {}) };
-    const afterLoad: Record<string, unknown> = {};
-
-    Object.entries(DATA_BOUND_SETTINGS).forEach(([key, { offDuringLoad }]) => {
-      if (!beforeLoad[key]) {
-        return;
-      }
-
-      afterLoad[key] = beforeLoad[key];
-
-      if (offDuringLoad && this.hot.getPlugin(key)?.enabled) {
-        beforeLoad[key] = false;
-      } else {
-        delete beforeLoad[key];
-      }
-    });
-
-    const cell = this.#effectiveCellOption(beforeLoad);
-
-    delete beforeLoad.cell;
-
-    if (cell) {
-      afterLoad.cell = cell;
-    }
-
-    return {
-      beforeLoad: Object.keys(beforeLoad).length > 0 ? beforeLoad : null,
-      afterLoad: Object.keys(afterLoad).length > 0 ? afterLoad : null,
-    };
   }
 
   /**
@@ -2577,89 +2489,7 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Runs a settings update with the Formulas plugin's sheet switch reduced to binding the sheet.
-   * A `formulas.sheetName` change otherwise makes `Formulas#switchSheet` load the engine's content
-   * into the grid, and the bar's own `loadData` replaces it right after — two full loads per switch.
-   * The grid still holds the departing sheet's data during that update, which is why `#applySheet`
-   * also runs it under `#withoutAutoPadding`.
-   *
-   * @param {Function} update The operation to run.
-   */
-  #withoutFormulasSwitchLoad(update: () => void) {
-    const formulas = this.hot.getPlugin('formulas') as { skipSheetSwitchLoad: boolean } | undefined;
-
-    if (!formulas || formulas.skipSheetSwitchLoad) {
-      update();
-
-      return;
-    }
-
-    formulas.skipSheetSwitchLoad = true;
-
-    try {
-      update();
-    } finally {
-      formulas.skipSheetSwitchLoad = false;
-    }
-  }
-
-  /**
-   * Runs a settings update with MergeCells' settings pass held back. The pass builds the merges
-   * the settings declare, and the grid still holds the departing sheet's data during that update:
-   * the merges would be validated against the departing sheet's size, and their clearing write
-   * would land in the departing sheet's data, which the host holds by reference.
-   * `#runMergeCellsSettingsPass` runs it once the arriving sheet is loaded.
-   *
-   * @param {Function} update The operation to run.
-   */
-  #withoutMergeCellsSettingsPass(update: () => void) {
-    const mergeCells = this.hot.getPlugin('mergeCells');
-
-    if (!mergeCells || mergeCells.deferSettingsPass) {
-      update();
-
-      return;
-    }
-
-    mergeCells.deferSettingsPass = true;
-
-    try {
-      update();
-    } finally {
-      mergeCells.deferSettingsPass = false;
-    }
-  }
-
-  /**
-   * Runs a settings update with NestedRows' data check held back. An update that turns the plugin
-   * on runs while the grid still holds the departing sheet's data, and the plugin would validate
-   * that flat array, log an error, and turn itself off for good. With `deferDataCheck` set it takes
-   * the arriving sheet's tree from the `loadData()` that follows, so the load runs with the plugin
-   * on and sizes the rows, the declared hidden and trimmed rows, and the `min*` padding against the
-   * flattened tree.
-   *
-   * @param {Function} update The operation to run.
-   */
-  #withoutNestedRowsDataCheck(update: () => void) {
-    const nestedRows = this.hot.getPlugin('nestedRows');
-
-    if (!nestedRows || nestedRows.deferDataCheck) {
-      update();
-
-      return;
-    }
-
-    nestedRows.deferDataCheck = true;
-
-    try {
-      update();
-    } finally {
-      nestedRows.deferDataCheck = false;
-    }
-  }
-
-  /**
-   * Runs the MergeCells settings pass `#withoutMergeCellsSettingsPass` held back, against the
+   * Runs the MergeCells settings pass `_applySettingsAndData()` held back, against the
    * arriving sheet's data. With `apply` unset, the declared merges are not built: a sheet that
    * returns with a stored view state restores its own merges, and the declared ones would win over
    * the ones the user unmerged or moved.
@@ -2669,45 +2499,6 @@ export class SheetsBar extends BasePlugin {
   #runMergeCellsSettingsPass(apply: boolean) {
     this.hot.getPlugin('mergeCells')?.runDeferredSettingsPass(apply);
   }
-
-  /**
-   * Runs an operation with core's `min*` padding vetoed (`#blockAutoPadding`), restoring the
-   * previous state in a `finally` so a throwing listener cannot leave padding blocked.
-   *
-   * @param {Function} update The operation to run.
-   */
-  #withoutAutoPadding(update: () => void) {
-    const previous = this.#blockAutoPadding;
-
-    this.#blockAutoPadding = true;
-
-    try {
-      update();
-    } finally {
-      this.#blockAutoPadding = previous;
-    }
-  }
-
-  /**
-   * Vetoes a row or column core creates with source `auto` (the `min*` padding in
-   * `adjustRowsAndCols()`) while `#blockAutoPadding` is set. Any other creation, and any creation
-   * outside that window, is left to the other listeners: `undefined` keeps their verdict.
-   */
-  #onBeforeAutoCreate = (index: number, amount: number, source?: string) => {
-    return this.#blockAutoPadding && source === 'auto' ? false : undefined;
-  };
-
-  /**
-   * Vetoes a row or column core removes with source `auto` while `#blockAutoPadding` is set. A lowered
-   * `min*` value makes `updateSettings()` give back the trailing rows and columns the previous minimum
-   * appended (`removeSurplusRowsAndCols()`), and the settings update of a switch runs while the grid still
-   * holds the departing sheet's data: the rows a user typed into that sheet's spare rows were removed
-   * from the host's array, judged empty through the arriving sheet's `columns`. The `loadData()` that
-   * follows sizes the arriving sheet from its own minimums, so nothing is left to give back.
-   */
-  #onBeforeAutoRemove = (index: number, amount: number, physicalIndexes: number[], source?: string) => {
-    return this.#blockAutoPadding && source === 'auto' ? false : undefined;
-  };
 
   /**
    * Updates the bar's theme when the grid's theme changes.
