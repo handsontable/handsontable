@@ -292,12 +292,6 @@ export class MergeCells extends BasePlugin {
    */
   #lastFocusDelta = { row: 0, col: 0 };
   /**
-   * The header selection covered several cells when it ended, rather than one merge.
-   * `merge()` must not collapse that highlight. A column or row selected when it is already one
-   * merge leaves this false, so the selection stays a single cell.
-   */
-  #headerSelectionStaysMultiple = false;
-  /**
    * The module responsible for providing the correct focus order (vertical and horizontal) within a selection that
    * contains merged cells.
    *
@@ -2603,12 +2597,6 @@ export class MergeCells extends BasePlugin {
         return isMultiple;
       }
 
-      // Recorded when the selection ended. A fresh `selectColumns` / `selectRows` still has it false,
-      // so a column or row that is already one merge stays a single cell.
-      if (this.#isSelectedByHeader() && this.#headerSelectionStaysMultiple) {
-        return isMultiple;
-      }
-
       if (this.#rangeCoversOneMerge(selectionRange)) {
         return false;
       }
@@ -3000,7 +2988,6 @@ export class MergeCells extends BasePlugin {
    */
   #onBeforeSetRangeStart = () => {
     this.#lastSelectedFocus = null;
-    this.#headerSelectionStaysMultiple = false;
   };
 
   /**
@@ -3122,12 +3109,6 @@ export class MergeCells extends BasePlugin {
     if (selectedRanges) {
       this.#focusOrder.buildFocusOrder(selectedRanges);
     }
-
-    const selectionRange = this.hot.getSelectedRangeActive();
-
-    this.#headerSelectionStaysMultiple = this.#isSelectedByHeader()
-      && !!selectionRange
-      && !this.#rangeCoversOneMerge(selectionRange);
   };
 
   /**

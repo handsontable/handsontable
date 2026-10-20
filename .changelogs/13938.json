@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a merged cell in a later selection layer being highlighted darker than the cells around it, and merge()/unmerge() leaving the old highlight. The fullySelectedMergedCell-N suffix now counts the ranges that cover the merge instead of using the range index.",
+  "title": "Fixed a merged cell in a later selection layer being highlighted darker than the cells around it, and merge()/unmerge() leaving the old highlight. The fullySelectedMergedCell-N suffix now counts the ranges that cover the merge instead of using the range index. A header selection merged via the context menu or Ctrl+M now shows the merged cell as a single focused cell.",
   "type": "fixed",
   "issueOrPR": 13938,
   "breaking": false,

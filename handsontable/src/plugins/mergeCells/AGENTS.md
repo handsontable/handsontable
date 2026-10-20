@@ -617,10 +617,8 @@ that fill stayed after the cells became one merge. `merge()` and `unmerge()` do 
 next view render recomputes every layer's highlight from the current ranges. The recompute does
 not run the selection-change hooks. `afterIsMultipleSelection` still runs: that is how the plugin
 says a range that equals one merge is a single cell, and a plain render asks the same question.
-A header selection that covered several cells when it ended stays multiple after `merge()`.
-The corners normalize a header index to 0, so the body looks like that merge. A fresh
-`selectColumns` or `selectRows` on a column or row that is already one merge still counts as a
-single cell, and the recompute keeps that answer. `hot.batch()` suspends render, so a loop of merges pays for one recompute
+A header selection whose body equals one merge is a single cell, however it was reached.
+`hot.batch()` suspends render, so a loop of merges pays for one recompute
 on the render that follows. The same stale mark is set for merges added at init, by
 `updateSettings`, by undo and redo, and by `mergeSelection()`, so those repaint on the next render
 too. `mergeSelection()` still calls `selectCell` afterwards, and that call does fire the

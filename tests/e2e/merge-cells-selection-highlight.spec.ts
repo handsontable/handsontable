@@ -347,7 +347,7 @@ test.describe('merged cell selection highlight', { tag: THEMES_TAG }, () => {
     expect(handles.some(name => name.includes('highlight'))).toBe(false);
   });
 
-  test('a column selection keeps its highlight through merge() and unmerge()', async() => {
+  test('a column selection shows a single cell after merge() and the area highlight after unmerge()', async() => {
     await grid.selectColumns(0);
 
     const selected = await grid.selected();
@@ -360,7 +360,7 @@ test.describe('merged cell selection highlight', { tag: THEMES_TAG }, () => {
 
     expect(await grid.selected()).toEqual(selected);
     expect(merged).toContain('current');
-    expect(merged).toContain('area');
+    expect(merged).not.toContain('area');
     await expect(grid.cell(0, column)).toHaveAttribute('rowspan', String(endRow + 1));
     expectNoSelectionChange(hooksBefore, await grid.selectionHookCounts());
 
