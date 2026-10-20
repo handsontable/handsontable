@@ -34,6 +34,8 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
     await simulateClick(getCell(1, 1));
 
     // Ctrl+clicking an already-selected cell adds it as a new active layer.
+    // Each other merge is covered by one range, so its fill is level 0. The level is the
+    // overlap count, not the range index.
     expect(getSelectedRange()).toEqualCellRange([
       'highlight: 1,1 from: 1,1 to: 2,2',
       'highlight: 3,1 from: 3,1 to: 4,2',
@@ -47,11 +49,11 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
       |   ║   :   :   :   |
       | - ║   : B     :   |
       | - ║   :       :   |
-      | - ║   : 1     :   |
+      | - ║   : 0     :   |
       | - ║   :       :   |
-      | - ║   : 2     :   |
+      | - ║   : 0     :   |
       | - ║   :       :   |
-      | - ║   : 3     :   |
+      | - ║   : 0     :   |
       | - ║   :       :   |
       `).toBeMatchToSelectionPattern();
   });
@@ -92,9 +94,9 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
       |   ║   :   :   :   |
       | - ║   : 0     :   |
       | - ║   :       :   |
-      | - ║   : 1     :   |
+      | - ║   : 0     :   |
       | - ║   :       :   |
-      | - ║   : 2     :   |
+      | - ║   : 0     :   |
       | - ║   :       :   |
       | - ║   : B     :   |
       | - ║   :       :   |
@@ -142,7 +144,7 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
       |   ║   :   :   |
       | - ║ 0     :   |
       | - ║       :   |
-      | - ║ 1     :   |
+      | - ║ 0     :   |
       | - ║       :   |
       | - ║ B     :   |
       | - ║       :   |
@@ -185,7 +187,7 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
     expect(`
       |   ║   : - : - : - : - : - : - |
       |===:===:===:===:===:===:===:===|
-      | - ║   : 0     : 1     : B     |
+      | - ║   : 0     : 0     : B     |
       | - ║   :                       |
       |   ║   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();

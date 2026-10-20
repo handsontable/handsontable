@@ -89,11 +89,30 @@ class SelectionCalculations {
     const fullMergeAreaWithinSelection =
       startRow <= mergedCell.row && startColumn <= mergedCell.col &&
       endRow >= mergeRowEnd && endColumn >= mergeColumnEnd;
+    const selectedRanges = (this.hot.getSelectedRange() ?? []) as CellRange[];
+    const mergeRange = mergedCell.getRange();
+    // Suffix is the 0-based rank among ranges that fully cover the merge, matching `area-N`
+    // (an overlap count, not the range index). Capped at 7: the stylesheet has no rule past
+    // that, and a missing rule paints the fill at full opacity.
+    let fullCoverCount = 0;
+    let coverRank = 0;
+
+    for (let i = 0; i < selectedRanges.length; i++) {
+      if (!mergeRange || !selectedRanges[i].includesRange(mergeRange)) {
+        continue;
+      }
+
+      if (i === layerLevel) {
+        coverRank = fullCoverCount;
+      }
+
+      fullCoverCount += 1;
+    }
 
     if (fullMergeAreaWithinSelection) {
-      return `${this.fullySelectedMergedCellClassName}-${layerLevel}`;
+      return `${this.fullySelectedMergedCellClassName}-${Math.min(coverRank, 7)}`;
 
-    } else if (this.isMergeCellFullySelected(mergedCell, this.hot.getSelectedRange() as CellRange[])) {
+    } else if (this.isMergeCellFullySelected(mergedCell, selectedRanges)) {
       return `${this.fullySelectedMergedCellClassName}-multiple`;
     }
   }
