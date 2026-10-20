@@ -1070,7 +1070,56 @@ describe('ViewState plugin', () => {
         reason: 'invalid',
         path: 'filters[2].conditions[0].name',
         message: 'filters[2].conditions[0].name gt is not available on column 2, ' +
-          'which can offer: empty, not_empty, eq, neq, begins_with, ends_with, contains, not_contains',
+          'which can offer: empty, not_empty, eq, neq, begins_with, ends_with, contains, not_contains, ' +
+          'so the filter of that column is not restored',
+      });
+    });
+
+    describe('a filter condition the column does not offer', () => {
+      const contains = { column: 0, operation: 'conjunction', conditions: [{ name: 'contains', args: ['1'] }] };
+      const unavailable = { column: 1, operation: 'conjunction', conditions: [{ name: 'gt', args: [1] }] };
+
+      /**
+       * Creates a grid filtered on its last column.
+       */
+      function createFilteredGrid() {
+        const hot = createGrid(ALL_PLUGINS);
+
+        hot.getPlugin('filters').addCondition(3, 'eq', ['0-3']);
+        hot.getPlugin('filters').filter();
+
+        return hot;
+      }
+
+      it('restores the filters of the other columns and reports the column it leaves out', () => {
+        const hot = createFilteredGrid();
+        const result = vs(hot).setViewState({ version: 1, filters: [contains, unavailable] });
+
+        expect(result.applied).toEqual(['filters']);
+        expect(result.skipped.map(({ part, reason, path }) => ({ part, reason, path }))).toEqual([
+          { part: 'filters', reason: 'invalid', path: 'filters[1].conditions[0].name' },
+        ]);
+        expect(hot.getPlugin('filters').exportConditions()).toEqual([contains]);
+        expect(hot.getDataAtCol(0)).toEqual(['1-0']);
+        expect(vs(hot).validateViewState({ version: 1, filters: [contains, unavailable] }).valid).toBe(false);
+      });
+
+      it('skips the whole part and keeps the current filters when no column is left', () => {
+        const hot = createFilteredGrid();
+        const result = vs(hot).setViewState({ version: 1, filters: [unavailable] });
+
+        expect(result.applied).toEqual([]);
+        expect(brief(result.skipped)).toEqual([{ part: 'filters', reason: 'invalid' }]);
+        expect(hot.getPlugin('filters').exportConditions().map(({ column }) => column)).toEqual([3]);
+      });
+
+      it('applies nothing under atomic', () => {
+        const hot = createFilteredGrid();
+        const result = vs(hot).setViewState({ version: 1, filters: [contains, unavailable] }, { atomic: true });
+
+        expect(result.applied).toEqual([]);
+        expect(result.error.reason).toBe('atomicRejected');
+        expect(hot.getPlugin('filters').exportConditions().map(({ column }) => column)).toEqual([3]);
       });
     });
 

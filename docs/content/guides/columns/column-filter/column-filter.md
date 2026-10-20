@@ -678,8 +678,8 @@ A few rules apply to every shape:
   [`addCondition()`](@/api/filters.md#addcondition) still filters, even if the list does not offer
   it, and the column's menu still shows it as the selected condition.
   A [view state](@/guides/getting-started/view-state/view-state.md) that carries such a condition
-  does not restore its filters, because the restore checks each built-in condition against the lists
-  that the column's cell types offer.
+  restores the other columns' filters but leaves out that column's filter, because the restore checks
+  each built-in condition against the lists that the column's cell types offer.
 - A column whose own `availableConditions` is `undefined` uses the grid-level value.
 
 Handsontable logs a console warning when the grid is created, and when you change the setting, for

@@ -44,6 +44,7 @@ describe('Filters#_findInvalidConditions', () => {
     container.remove();
   });
 
+  const unavailablePaths = list => filters._findUnavailableConditions(list).map(({ path }) => path);
   const entry = (overrides = {}) => ({
     column: 0,
     operation: 'conjunction',
@@ -79,15 +80,55 @@ describe('Filters#_findInvalidConditions', () => {
     expect(problem.message.length).toBeGreaterThan(0);
   });
 
-  it('points at a condition the column does not offer', () => {
-    const problem = filters._findInvalidConditions([
+  it('accepts a condition the column does not offer, which only _findUnavailableConditions() reports', () => {
+    const list = [
       entry(),
       entry({ column: 1, conditions: [{ name: 'contains', args: ['b'] }, { name: 'gt', args: [1] }] }),
-    ]);
+    ];
 
-    expect(problem.path).toBe('[1].conditions[1].name');
-    expect(problem.message).toBe('gt is not available on column 1, which can offer: empty, not_empty, eq, neq, ' +
-      'begins_with, ends_with, contains, not_contains');
+    expect(filters._findInvalidConditions(list)).toBeNull();
+    expect(filters._findUnavailableConditions(list)).toEqual([{
+      index: 1,
+      path: '[1].conditions[1].name',
+      message: 'gt is not available on column 1, which can offer: empty, not_empty, eq, neq, begins_with, ' +
+        'ends_with, contains, not_contains, so the filter of that column is not restored',
+    }]);
+  });
+
+  it('reports every entry that names an unavailable condition', () => {
+    expect(unavailablePaths([
+      entry({ conditions: [{ name: 'gt', args: [1] }] }),
+      entry({ column: 1 }),
+      entry({ column: 1, conditions: [{ name: 'eq', args: ['b'] }, { name: 'lt', args: [1] }] }),
+    ])).toEqual(['[0].conditions[0].name', '[2].conditions[1].name']);
+  });
+
+  it('reads only as many rows as it needs to accept a condition', () => {
+    const read = jest.spyOn(hot._getMetaManager(), 'getCellMetaTransient');
+    const rowsRead = () => read.mock.calls.filter(([, column]) => column === 0).map(([row]) => row);
+
+    unavailablePaths([entry({ conditions: [{ name: 'contains', args: ['a'] }] })]);
+
+    expect(rowsRead()).toEqual([0]);
+
+    read.mockClear();
+    unavailablePaths([entry({ conditions: [{ name: 'gt', args: [1] }] })]);
+
+    expect(rowsRead()).toEqual([0, 1]);
+  });
+
+  it('leaves the stored meta of a trimmed row alone when the last visible row is hidden', () => {
+    hot.updateSettings({ data: [['a', 'b'], ['c', 'd'], ['e', 'f']], hiddenRows: true });
+    filters = hot.getPlugin('filters');
+    hot.getCellMeta(0, 0);
+    filters.addCondition(1, 'neq', ['b']);
+    filters.filter();
+    hot.getPlugin('hiddenRows').hideRow(1);
+
+    expect(hot.toVisualRow(0)).toBeNull();
+    expect(unavailablePaths([entry({ conditions: [{ name: 'gt', args: [1] }] })]))
+      .toEqual(['[0].conditions[0].name']);
+    expect(String(hot._getMetaManager().getCellMetaIfExists(0, 0).className ?? '')).not.toContain('afterHiddenRow');
   });
 
   it('checks the column by its physical index', () => {
@@ -95,10 +136,9 @@ describe('Filters#_findInvalidConditions', () => {
     filters = hot.getPlugin('filters');
 
     expect(hot.toVisualColumn(1)).toBe(0);
-    expect(filters._findInvalidConditions([entry({ column: 1, conditions: [{ name: 'gt', args: [1] }] })]))
-      .toBeNull();
-    expect(filters._findInvalidConditions([entry({ column: 1, conditions: [{ name: 'contains', args: ['b'] }] })])
-      .path).toBe('[0].conditions[0].name');
+    expect(unavailablePaths([entry({ column: 1, conditions: [{ name: 'gt', args: [1] }] })])).toEqual([]);
+    expect(unavailablePaths([entry({ column: 1, conditions: [{ name: 'contains', args: ['b'] }] })]))
+      .toEqual(['[0].conditions[0].name']);
   });
 
   it('accepts a condition the menu offered while a filter hid the rows of another type', () => {
@@ -117,9 +157,9 @@ describe('Filters#_findInvalidConditions', () => {
     filters.filter();
 
     expect(filters.getAvailableConditions(0).map(({ name }) => name)).not.toContain('gt');
-    expect(filters._findInvalidConditions(state)).toBeNull();
-    expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'date_today', args: [] }] })]).path)
-      .toBe('[0].conditions[0].name');
+    expect(unavailablePaths(state)).toEqual([]);
+    expect(unavailablePaths([entry({ conditions: [{ name: 'date_today', args: [] }] })]))
+      .toEqual(['[0].conditions[0].name']);
   });
 
   it('reads the type of a row a filter trims, without naming another row to the meta hooks', () => {
@@ -137,11 +177,11 @@ describe('Filters#_findInvalidConditions', () => {
 
     hot.addHook('afterGetCellMeta', onAfterGetCellMeta);
 
-    const problem = filters._findInvalidConditions([entry({ conditions: [{ name: 'gt', args: [0] }] })]);
+    const problem = filters._findUnavailableConditions([entry({ conditions: [{ name: 'gt', args: [0] }] })]);
 
     hot.removeHook('afterGetCellMeta', onAfterGetCellMeta);
 
-    expect(problem).toBeNull();
+    expect(problem).toEqual([]);
     expect(reads.some(([, physicalRow]) => physicalRow === 0)).toBe(true);
     reads.forEach(([visualRow, physicalRow]) => {
       expect([physicalRow, null]).toContain(hot.toPhysicalRow(visualRow));
@@ -155,27 +195,27 @@ describe('Filters#_findInvalidConditions', () => {
     });
     filters = hot.getPlugin('filters');
 
-    expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'contains', args: ['a'] }] })])).toBeNull();
-    expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'gt', args: [1] }] })])).toBeNull();
-    expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'date_today', args: [] }] })])).toBeNull();
-    expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'intl_date_today', args: [] }] })]).path)
-      .toBe('[0].conditions[0].name');
+    expect(unavailablePaths([entry({ conditions: [{ name: 'contains', args: ['a'] }] })])).toEqual([]);
+    expect(unavailablePaths([entry({ conditions: [{ name: 'gt', args: [1] }] })])).toEqual([]);
+    expect(unavailablePaths([entry({ conditions: [{ name: 'date_today', args: [] }] })])).toEqual([]);
+    expect(unavailablePaths([entry({ conditions: [{ name: 'intl_date_today', args: [] }] })]))
+      .toEqual(['[0].conditions[0].name']);
   });
 
   it('follows the availableConditions setting', () => {
     hot.updateSettings({ filters: { availableConditions: { exclude: ['contains'] } } });
     filters = hot.getPlugin('filters');
 
-    expect(filters._findInvalidConditions([entry()])).toBeNull();
-    expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'contains', args: ['a'] }] })]).path)
-      .toBe('[0].conditions[0].name');
+    expect(unavailablePaths([entry()])).toEqual([]);
+    expect(unavailablePaths([entry({ conditions: [{ name: 'contains', args: ['a'] }] })]))
+      .toEqual(['[0].conditions[0].name']);
   });
 
   it('accepts the conditions that are in no menu list', () => {
-    expect(filters._findInvalidConditions([
+    expect(unavailablePaths([
       entry({ conditions: [{ name: 'by_value', args: [['a']] }] }),
       entry({ column: 1, conditions: [{ name: 'none', args: [] }] }),
-    ])).toBeNull();
+    ])).toEqual([]);
   });
 
   it('accepts one operation named twice for a column', () => {

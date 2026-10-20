@@ -297,21 +297,29 @@ decorator rejects such as `by_value` with a non-array), which leaves the grid wi
 that holds input it did not build (the `ViewState` plugin's restore) asks the `@private`
 `_findInvalidConditions()` first. It answers with the path (`[2].conditions[0].args`) and the reason of the first
 entry it cannot take, or `null`. It binds every condition with `getCondition()` inside a `try`, because
-the decorator is where wrong arguments throw. It also refuses a condition the column does not offer
-(`#findUnavailableCondition()`). It must NOT ask `getAvailableConditions()`: that reads the type from the
+the decorator is where wrong arguments throw.
+
+A condition the column does not offer is a SEPARATE question, `_findUnavailableConditions()`, asked only
+after `_findInvalidConditions()` passed. It answers one problem per entry, and the restore leaves those
+columns out and restores the rest, instead of skipping the whole part: an app that narrows
+`availableConditions` in a later release, or changes a column's type, must not lose every saved filter.
+Do not fold it back into `_findInvalidConditions()`, whose first problem skips the part. It must NOT ask
+`getAvailableConditions()`: that reads the type from the
 untrimmed rows, so a state captured while a filter hid every text row of a mixed column names `gt`, and
-the same grid refused it once the filter was cleared. `#getOfferableConditionNames()` reads the type of
+the same grid refused it once the filter was cleared. `#createOfferableConditionsScanner()` reads the type of
 every PHYSICAL row (trimmed ones included) and accepts the union of the lists of every type present, plus
 the `text` list when there are several, which covers any row subset the menu could have seen (a type
-that a get-meta hook derives from the visual row is the one thing it cannot see). It is memoized per
-column for one call, because it walks the whole column. A trimmed row is read with a visual index past
-the last visual row, never with its physical index: that index usually names another visible row, and
+that a get-meta hook derives from the visual row is the one thing it cannot see). The scan is lazy and
+kept per column for one call: it stops as soon as the asked name is covered (a uniform column after its
+first row), and only proving a name unavailable walks the whole column. A trimmed row is read with a
+visual index at least TWO past the last visual row (`countRows + 1 + physicalRow`), never with its
+physical index, because HiddenRows reads `row - 1` and one past the end named the real last row: that index usually names another visible row, and
 MergeCells or SheetsBar then wrote that row's `hidden`/`copyable` or tracked keys onto the trimmed
 record's stored meta, from a check documented to apply nothing. Only the names of the stock lists are checked (`KNOWN_CONDITION_NAMES` minus `none`):
 `by_value` is in no list, and refusing it would make every captured value filter invalid on its own
-grid. The cost is deliberate: a condition added through `addCondition()` outside its column's list
-(`gt` on a text column) still filters, but a view state that carries it no longer restores. The check
-lives here, not in `importConditions()`, which keeps taking such conditions. The restore must ask the plugin rather than import
+grid. A condition added through `addCondition()` outside its column's list (`gt` on a text column) still
+filters; a view state that carries it restores without that column's filter. The check lives here, not
+in `importConditions()`, which keeps taking such conditions. The restore must ask the plugin rather than import
 `conditionRegisterer`/`logicalOperationRegisterer`: the engine is shared with SheetsBar, and a caller outside
 the Filters folder reading the registries is how a rename there breaks it silently.
 

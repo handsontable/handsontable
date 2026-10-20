@@ -139,6 +139,14 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
 const FILTER_FIXED_ROWS_DEFAULT = true;
 
 /**
+ * A lazy scan of the condition names a column's menu can offer, see `#createOfferableConditionsScanner()`.
+ */
+interface OfferableConditionsScanner {
+  offers: (name: string) => boolean;
+  offered: () => Set<string>;
+}
+
+/**
  * The state `Filters#captureState()` returns: the applied conditions array itself (to tell whether it
  * changed) and a detached copy of it (to restore).
  */
@@ -1609,7 +1617,6 @@ export class Filters extends BasePlugin {
 
     const columnCount = this.hot.columnIndexMapper.getNumberOfIndexes();
     const operations = new Map<unknown, unknown>();
-    const offeredByColumn = new Map<number, Set<string>>();
 
     for (let index = 0; index < conditions.length; index++) {
       const entry = conditions[index] as Partial<ColumnConditions> | null;
@@ -1644,8 +1651,7 @@ export class Filters extends BasePlugin {
         return { path: `${at}.conditions`, message: 'must be an array of conditions' };
       }
 
-      const problem = this.#findInvalidCondition(entry.conditions as unknown[]) ??
-        this.#findUnavailableCondition(entry.conditions as ConditionId[], entry.column as number, offeredByColumn);
+      const problem = this.#findInvalidCondition(entry.conditions as unknown[]);
 
       if (problem) {
         return { path: `${at}.conditions${problem.path}`, message: problem.message };
@@ -1692,19 +1698,45 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Finds the first condition of one column entry that the column cannot offer. Only the names of the
-   * stock menu lists are checked: `by_value` and the other conditions no list carries are left alone, so
-   * a captured value filter stays valid.
+   * Finds the entries of a list that {@link Filters#_findInvalidConditions} accepts but whose column cannot
+   * offer one of their conditions, so that a caller restoring a stored state (the `ViewState` plugin) can
+   * leave those columns out and restore the rest. Only the names of the stock menu lists are checked:
+   * `by_value` and the other conditions no list carries are left alone, so a captured value filter stays
+   * valid. {@link Filters#importConditions} itself still takes such conditions.
    *
-   * @param {Array} conditions The conditions of one column, already checked by `#findInvalidCondition()`.
+   * @private
+   * @param {Array} conditions The entries to check, already accepted by `_findInvalidConditions()`.
+   * @returns {Array<{ index: number, path: string, message: string }>} One problem per entry that names an
+   * unavailable condition: the entry's index, the path of its first such condition
+   * (`[2].conditions[0].name`), and what is wrong. Empty when every column offers its conditions.
+   */
+  _findUnavailableConditions(conditions: ColumnConditions[]): Array<{ index: number, path: string, message: string }> {
+    const scanners = new Map<number, OfferableConditionsScanner>();
+    const problems: Array<{ index: number, path: string, message: string }> = [];
+
+    conditions.forEach((entry, index) => {
+      const problem = this.#findUnavailableCondition(entry.conditions, entry.column, scanners);
+
+      if (problem) {
+        problems.push({ index, path: `[${index}].conditions${problem.path}`, message: problem.message });
+      }
+    });
+
+    return problems;
+  }
+
+  /**
+   * Finds the first condition of one column entry that the column cannot offer.
+   *
+   * @param {Array} conditions The conditions of one column entry.
    * @param {number} physicalColumn The physical column index of the entry.
-   * @param {Map} offeredByColumn The names already resolved in this check, by physical column.
+   * @param {Map} scanners The column scans of this check, by physical column.
    * @returns {{ path: string, message: string } | null}
    */
   #findUnavailableCondition(
     conditions: ConditionId[],
     physicalColumn: number,
-    offeredByColumn: Map<number, Set<string>>,
+    scanners: Map<number, OfferableConditionsScanner>,
   ): { path: string, message: string } | null {
     const isListed = ({ name }: ConditionId) => name !== CONDITION_NONE && KNOWN_CONDITION_NAMES.has(name);
     const visualColumn = conditions.some(isListed) ? this.hot.toVisualColumn(physicalColumn) : null;
@@ -1713,75 +1745,104 @@ export class Filters extends BasePlugin {
       return null;
     }
 
-    if (!offeredByColumn.has(physicalColumn)) {
-      offeredByColumn.set(physicalColumn, this.#getOfferableConditionNames(physicalColumn, visualColumn));
+    if (!scanners.has(physicalColumn)) {
+      scanners.set(physicalColumn, this.#createOfferableConditionsScanner(physicalColumn, visualColumn));
     }
 
-    const offered = offeredByColumn.get(physicalColumn) as Set<string>;
-    const index = conditions.findIndex(condition => isListed(condition) && !offered.has(condition.name));
+    const scanner = scanners.get(physicalColumn) as OfferableConditionsScanner;
+    const index = conditions.findIndex(condition => isListed(condition) && !scanner.offers(condition.name));
 
     if (index === -1) {
       return null;
     }
 
-    const offers = offered.size > 0 ? `which can offer: ${[...offered].join(', ')}` : 'which offers no conditions';
+    const offered = [...scanner.offered()];
+    const offers = offered.length > 0 ? `which can offer: ${offered.join(', ')}` : 'which offers no conditions';
 
     return {
       path: `[${index}].name`,
-      message: `${conditions[index].name} is not available on column ${physicalColumn}, ${offers}`,
+      message: `${conditions[index].name} is not available on column ${physicalColumn}, ${offers}, ` +
+        'so the filter of that column is not restored',
     };
   }
 
   /**
-   * Gets every condition name the column's menu can offer, whatever rows a filter trims at the time.
+   * Creates a lazy scan of every condition name the column's menu can offer, whatever rows a filter trims
+   * at the time.
    *
-   * The menu reads the column's type from the rows no filter trims (`_getColumnDataType()`),
-   * so a state captured while a filter hid every row of another type names a condition of the
-   * remaining type. The check therefore reads the type of every physical row: one type gives that
-   * type's list, several types give the lists of each of them plus the `text` list a mixed column
-   * uses. Checking against the untrimmed rows instead refused states the grid's own menu produced.
+   * The menu reads the column's type from the rows no filter trims (`_getColumnDataType()`), so a state
+   * captured while a filter hid every row of another type names a condition of the remaining type. The
+   * scan therefore reads the type of every physical row: one type gives that type's list, several types
+   * give the lists of each of them plus the `text` list a mixed column uses. It reads rows only until the
+   * asked name is covered, so a uniform column stops after its first row; proving a name unavailable
+   * reads the whole column.
    *
    * @param {number} physicalColumn The physical column index.
    * @param {number} visualColumn The visual column index.
-   * @returns {Set<string>}
+   * @returns {object}
    */
-  #getOfferableConditionNames(physicalColumn: number, visualColumn: number): Set<string> {
+  #createOfferableConditionsScanner(physicalColumn: number, visualColumn: number): OfferableConditionsScanner {
     const metaManager = this.hot._getMetaManager();
     const rowsCount = this.hot.rowIndexMapper.getNumberOfIndexes();
     const countRows = this.hot.countRows();
-    const types = new Set<string>();
-
-    for (let physicalRow = 0; physicalRow < rowsCount; physicalRow++) {
-      // A trimmed row has no visual index. Its own physical index usually names ANOTHER visible row,
-      // and the get-meta hooks would then write that row's state (a merge's `hidden`, a sheet's
-      // tracked keys) onto this record's stored meta. An index past the last visual row names none.
-      const { type } = metaManager.getCellMetaTransient(physicalRow, physicalColumn, {
-        visualRow: this.hot.toVisualRow(physicalRow) ?? countRows + physicalRow,
-        visualColumn,
-      });
-
-      types.add(typeof type === 'string' ? type : 'mixed');
-    }
-
-    if (types.size === 0) {
-      types.add(this._getColumnDataType(visualColumn));
-
-    } else if (types.size > 1) {
-      types.add('mixed');
-    }
-
     const setting = this._getAvailableConditionsSetting(visualColumn);
+    const types = new Set<string>();
     const names = new Set<string>();
+    let nextRow = 0;
 
-    types.forEach((type) => {
+    const addType = (type: string) => {
+      if (types.has(type)) {
+        return;
+      }
+
+      types.add(type);
       getOptionsList(type, setting).forEach(({ key }) => {
         if (typeof key === 'string' && key !== CONDITION_NONE) {
           names.add(key);
         }
       });
-    });
+    };
+    const readNextRow = () => {
+      const physicalRow = nextRow;
 
-    return names;
+      nextRow += 1;
+
+      // A trimmed row has no visual index. Its own physical index usually names ANOTHER visible row,
+      // and the get-meta hooks would then write that row's state (a merge's `hidden`, a sheet's
+      // tracked keys) onto this record's stored meta. The index is kept one past the last visual
+      // row too, because HiddenRows reads the row before it (`row - 1`).
+      const { type } = metaManager.getCellMetaTransient(physicalRow, physicalColumn, {
+        visualRow: this.hot.toVisualRow(physicalRow) ?? countRows + 1 + physicalRow,
+        visualColumn,
+      });
+
+      addType(typeof type === 'string' ? type : 'mixed');
+
+      if (types.size > 1) {
+        addType('mixed');
+      }
+    };
+
+    if (rowsCount === 0) {
+      addType(this._getColumnDataType(visualColumn));
+    }
+
+    return {
+      offers: (name: string) => {
+        while (!names.has(name) && nextRow < rowsCount) {
+          readNextRow();
+        }
+
+        return names.has(name);
+      },
+      offered: () => {
+        while (nextRow < rowsCount) {
+          readNextRow();
+        }
+
+        return names;
+      },
+    };
   }
 
   /**
