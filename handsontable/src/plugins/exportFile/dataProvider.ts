@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { extractText } from '../../utils/textExtractor';
 import { normalizeExportOptions, expandNestedHeaderLayers } from './utils';
+import { toOoxmlErrorCode } from './types/xlsx/formula-utils';
 import type { SummaryEndpoint } from '../columnSummary/columnSummary';
 
 interface MergeCellDescriptor {
@@ -35,7 +36,7 @@ type NestedHeadersPluginWithSettings = {
 /**
  * @private
  */
-class DataProvider {
+class ExportDataProvider {
   /**
    * Handsontable instance.
    *
@@ -160,9 +161,9 @@ class DataProvider {
    *
    * With the NestedHeaders plugin enabled, every header layer becomes one row and a group label is
    * repeated once per column it spans, so the rows have the same column count as the data. Without
-   * the plugin the single row is the bottom-most header list from {@link DataProvider#getColumnHeaders}.
+   * the plugin the single row is the bottom-most header list from {@link ExportDataProvider#getColumnHeaders}.
    *
-   * Hidden-column and range handling follow {@link DataProvider#getNestedColumnHeaders}: a group
+   * Hidden-column and range handling follow {@link ExportDataProvider#getNestedColumnHeaders}: a group
    * shrinks to its exported columns, and a column whose group root lies before the range start gets
    * an empty label on that layer.
    *
@@ -205,37 +206,86 @@ class DataProvider {
   /**
    * Get raw source data (formulas) based on provided settings to the class constructor.
    *
-   * Mirrors {@link DataProvider#getData} but uses `getSourceDataAtCell` so that cells
+   * Mirrors {@link ExportDataProvider#getData} but uses `getSourceDataAtCell` so that cells
    * containing HyperFormula formulas return the raw formula string (e.g. `'=SUM(A1:A3)'`)
    * rather than the calculated value.
+   *
+   * The matrix is walked by visual index, while `getSourceDataAtCell` takes a physical row (and a
+   * visual column), so the row is translated first. Without it, a sorted, moved, trimmed or
+   * filtered grid paired a cell with another record's formula.
    *
    * @returns {Array}
    */
   getSourceData() {
-    return this._extractDataMatrix((row, col) => this.hot.getSourceDataAtCell(row, col));
+    return this._extractDataMatrix((row, col) => this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(row), col));
   }
 
   /**
-   * Returns the set of physical HOT row indices that are hidden and excluded from the
-   * exported data matrix (i.e. `exportHiddenRows` is `false` and the row is hidden).
+   * Gets, for every cell of the export range, the OOXML error code of the value the Formulas
+   * plugin's engine holds for it (`#DIV/0!` for `=1/0`), or `null` when the value is not an error
+   * with such a code. Every entry is `null` when the Formulas plugin is absent or disabled.
    *
-   * Returns an empty set when `exportHiddenRows` is `true` or `'hide'`, because in
-   * those cases all rows are included in the data matrix and no formula-offset
-   * adjustment is needed.
+   * The answer comes from the engine's own cell value, not from the displayed text, which cannot
+   * tell the error `#N/A` from the text a formula such as `="#N/A"` answers, and which the
+   * engine's language translates.
    *
-   * Used by the formula normalizer to adjust per-reference row offsets when building
-   * live Excel formulas from HyperFormula formula strings.
+   * @returns {Array[]}
+   */
+  getFormulaErrorCodes(): (string | null)[][] {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const engine = formulasPlugin?.isEnabled() ? formulasPlugin.engine : null;
+    const { sheetId, rowAxisSyncer, columnAxisSyncer } = formulasPlugin ?? {};
+
+    if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
+      return this._extractDataMatrix(() => null);
+    }
+
+    return this._extractDataMatrix((row, col) => toOoxmlErrorCode(engine.getCellValue({
+      sheet: sheetId,
+      row: rowAxisSyncer.getHfIndexFromVisualIndex(row),
+      col: columnAxisSyncer.getHfIndexFromVisualIndex(col),
+    })));
+  }
+
+  /**
+   * Returns the rows the exported data matrix leaves out, as the row indexes the formulas'
+   * references use, so the formula normalizer can shift every reference below them up.
+   *
+   * With the Formulas plugin on, a reference names an engine row, and the engine keeps every row,
+   * in the grid's order, trimmed and filtered-out ones included. The set then holds the engine
+   * index of every row with no visual index (trimmed or filtered out, which the syncer answers with
+   * `-1`), plus the hidden rows when
+   * `exportHiddenRows` is `false`. Without the plugin, a formula is the text the user typed, so
+   * only the hidden rows are left out, by physical index.
    *
    * @returns {Set<number>}
    */
   getExcludedHiddenRows(): Set<number> {
     const result = new Set<number>();
+    const excludeHidden = this.options.exportHiddenRows === false;
+    const rowAxisSyncer = this.#getEngineRowAxisSyncer();
 
-    if (this.options.exportHiddenRows !== false) {
+    const { startRow, endRow } = this._getDataRange();
+    const isExcludedHidden = (visualRow: number) => excludeHidden && visualRow >= startRow && visualRow <= endRow
+      && this._isHiddenRow(visualRow);
+
+    if (rowAxisSyncer) {
+      const engineRows = this.hot.rowIndexMapper.getNumberOfIndexes();
+
+      for (let hfRow = 0; hfRow < engineRows; hfRow++) {
+        const visualRow = rowAxisSyncer.getVisualIndexFromHfIndex(hfRow);
+
+        if (visualRow < 0 || isExcludedHidden(visualRow)) {
+          result.add(hfRow);
+        }
+      }
+
       return result;
     }
 
-    const { startRow, endRow } = this._getDataRange();
+    if (!excludeHidden) {
+      return result;
+    }
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
       if (this._isHiddenRow(rowIndex)) {
@@ -244,6 +294,21 @@ class DataProvider {
     }
 
     return result;
+  }
+
+  /**
+   * Returns the Formulas plugin's row axis syncer when the plugin is on, or `null`.
+   *
+   * @returns {object|null}
+   */
+  #getEngineRowAxisSyncer(): { getVisualIndexFromHfIndex(hfIndex: number): number } | null {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+
+    if (!formulasPlugin?.isEnabled() || !formulasPlugin.engine) {
+      return null;
+    }
+
+    return formulasPlugin.rowAxisSyncer ?? null;
   }
 
   /**
@@ -356,7 +421,7 @@ class DataProvider {
   /**
    * Gets cell meta for all cells in the export range.
    *
-   * Returns a 2D array of cell meta objects with the same structure as {@link DataProvider#getData}.
+   * Returns a 2D array of cell meta objects with the same structure as {@link ExportDataProvider#getData}.
    * Each entry corresponds to the cell at the same position in the data array.
    *
    * @returns {Array}
@@ -375,7 +440,7 @@ class DataProvider {
    * Gets rendered DOM elements for all cells in the export range.
    *
    * Returns a 2D array of `HTMLElement | null` values with the same structure as
-   * {@link DataProvider#getCellsMeta}. An entry is `null` when the cell is outside
+   * {@link ExportDataProvider#getCellsMeta}. An entry is `null` when the cell is outside
    * the rendered viewport (virtualised grid).
    *
    * @returns {Array}
@@ -388,7 +453,7 @@ class DataProvider {
    * Gets the merged cells configuration filtered to the current export range.
    *
    * Returned coordinates are 0-based data-array indices (matching the same coordinate
-   * space as {@link DataProvider#getData}). Hidden rows/columns excluded from the export
+   * space as {@link ExportDataProvider#getData}). Hidden rows/columns excluded from the export
    * are accounted for: the row/col offsets are compressed and the rowspan/colspan values
    * are reduced to cover only the exported cells within the merge span.
    *
@@ -454,7 +519,7 @@ class DataProvider {
   /**
    * Gets widths (in pixels) for all visible columns in the export range.
    *
-   * Returns values in the same column order as {@link DataProvider#getData}.
+   * Returns values in the same column order as {@link ExportDataProvider#getData}.
    *
    * @returns {Array}
    */
@@ -485,7 +550,7 @@ class DataProvider {
   /**
    * Gets heights (in pixels) for all visible rows in the export range.
    *
-   * Returns values in the same row order as {@link DataProvider#getData}.
+   * Returns values in the same row order as {@link ExportDataProvider#getData}.
    *
    * @returns {Array}
    */
@@ -514,21 +579,65 @@ class DataProvider {
   }
 
   /**
-   * Gets the number of frozen rows (`fixedRowsTop` setting).
+   * Gets the number of exported rows that sit in the frozen band (`fixedRowsTop` setting).
+   *
+   * Counts only the rows among the first `fixedRowsTop` visual rows that the export writes:
+   * rows outside the `range` option are skipped, and so are hidden rows when
+   * `exportHiddenRows` is `false`. This keeps the sheet's frozen pane on the same rows
+   * that are frozen on screen.
    *
    * @returns {number}
    */
   getFrozenRows() {
-    return this.hot.getSettings().fixedRowsTop || 0;
+    const { startRow, endRow } = this._getDataRange();
+
+    return this.#countExportedInFrozenBand(
+      this.hot.getSettings().fixedRowsTop || 0, startRow, endRow,
+      (row: number) => this.options.exportHiddenRows !== false || !this._isHiddenRow(row)
+    );
   }
 
   /**
-   * Gets the number of frozen columns (`fixedColumnsStart` setting).
+   * Gets the number of exported columns that sit in the frozen band (`fixedColumnsStart` setting).
+   *
+   * Counts only the columns among the first `fixedColumnsStart` visual columns that the export
+   * writes: columns outside the `range` option are skipped, and so are hidden columns when
+   * `exportHiddenColumns` is `false`. This keeps the sheet's frozen pane on the same columns
+   * that are frozen on screen.
    *
    * @returns {number}
    */
   getFrozenColumns() {
-    return this.hot.getSettings().fixedColumnsStart || 0;
+    const { startCol, endCol } = this._getDataRange();
+
+    return this.#countExportedInFrozenBand(
+      this.hot.getSettings().fixedColumnsStart || 0, startCol, endCol,
+      (column: number) => this.options.exportHiddenColumns !== false || !this._isHiddenColumn(column)
+    );
+  }
+
+  /**
+   * Counts the exported indexes inside a frozen band that starts at visual index 0.
+   *
+   * @param {number} frozenCount Size of the frozen band, in visual indexes.
+   * @param {number} start First visual index of the export range.
+   * @param {number} end Last visual index of the export range.
+   * @param {Function} isExported Returns `true` when the visual index is written to the file.
+   * @returns {number}
+   */
+  #countExportedInFrozenBand(
+    frozenCount: number, start: number, end: number, isExported: (index: number) => boolean
+  ): number {
+    const bandEnd = Math.min(frozenCount - 1, end);
+    let count = 0;
+
+    for (let index = start; index <= bandEnd; index++) {
+      if (isExported(index)) {
+        count += 1;
+      }
+    }
+
+    return count;
   }
 
   /**
@@ -713,7 +822,7 @@ class DataProvider {
   /**
    * Gets `headerClassName` values for all visible column headers in the export range.
    *
-   * Returns values in the same column order as {@link DataProvider#getColumnHeaders}.
+   * Returns values in the same column order as {@link ExportDataProvider#getColumnHeaders}.
    * An empty string is returned for columns that have no `headerClassName` configured.
    *
    * @returns {string[]}
@@ -749,12 +858,14 @@ class DataProvider {
   }
 
   /**
-   * Gets the layout direction of the Handsontable instance.
+   * Gets the layout direction the Handsontable instance renders in. `isRtl()` resolves
+   * `layoutDirection: 'inherit'` against the page, so a grid on a right-to-left page exports a
+   * right-to-left sheet, and the import compares against the same answer.
    *
    * @returns {'ltr'|'rtl'}
    */
   getLayoutDirection() {
-    return this.hot.getSettings().layoutDirection === 'rtl' ? 'rtl' : 'ltr';
+    return this.hot.isRtl() ? 'rtl' : 'ltr';
   }
 
   /**
@@ -902,8 +1013,8 @@ class DataProvider {
   /**
    * Counts the number of indices in `[start, end)` for which `isIncluded` returns `true`.
    *
-   * Used by {@link DataProvider#_physicalRowToDataIndex} and
-   * {@link DataProvider#_physicalColToDataIndex} to compute the 0-based data-array
+   * Used by {@link ExportDataProvider#_physicalRowToDataIndex} and
+   * {@link ExportDataProvider#_physicalColToDataIndex} to compute the 0-based data-array
    * position of a visual index by counting the visible indices that precede it.
    *
    * @private
@@ -1049,4 +1160,4 @@ class DataProvider {
   }
 }
 
-export default DataProvider;
+export default ExportDataProvider;

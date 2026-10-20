@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable xlsx export menu e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+
+    // Which xlsx engine the two grids use. `native` is the built-in engine (`importFile: true`,
+    // `exportFile: true`); `exceljs` injects the ExcelJS module as the alternative engine
+    // (`engines: { xlsx: ExcelJS }`). The ExcelJS script is loaded on both legs because the styles
+    // round trip reads the re-exported blob back with it as an oracle.
+    window.htEngine = ({ exceljs: 'exceljs', native: 'native' })[htParams.get('engine') ?? 'exceljs'];
+    if (!window.htEngine) {
+      throw new Error('Unknown ?engine= value: ' + JSON.stringify(htParams.get('engine')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; }
+  </style>
+</head>
+<body>
+  <!--
+    Export > To Excel through the real context menu: a grid with headers, row headers and frozen
+    rows, on the engine `?engine=` names (ExcelJS injected through `engines` by default, or the built-in
+    one). The spec selects rows, right-clicks, takes the `download` event and reads
+    the file back with ExcelJS in Node.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script src="/tests/node_modules/exceljs/dist/exceljs.min.js"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(8, 5),
+      colHeaders: true,
+      rowHeaders: true,
+      contextMenu: true,
+      fixedRowsTop: 4,
+      exportFile: window.htEngine === 'native' ? true : { engines: { xlsx: ExcelJS } },
+      width: 500,
+      height: 300,
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>
