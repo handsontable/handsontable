@@ -43,6 +43,7 @@ import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
 import { UndoRedo } from './undoRedo';
+import { ViewState } from './viewState';
 import { Dialog } from './dialog';
 import { Loading } from './loading';
 import { Notification } from './notification';
@@ -102,6 +103,7 @@ declare module './registry' {
     touchScroll: typeof TouchScroll;
     trimRows: typeof TrimRows;
     undoRedo: typeof UndoRedo;
+    viewState: typeof ViewState;
     dialog: typeof Dialog;
     loading: typeof Loading;
     notification: typeof Notification;
@@ -157,6 +159,7 @@ export function registerAllPlugins() {
   registerPlugin(TouchScroll);
   registerPlugin(TrimRows);
   registerPlugin(UndoRedo);
+  registerPlugin(ViewState);
   registerPlugin(Dialog);
   registerPlugin(Loading);
   registerPlugin(Notification);
@@ -208,6 +211,7 @@ export {
   TouchScroll,
   TrimRows,
   UndoRedo,
+  ViewState,
   Dialog,
   Loading,
   Notification,

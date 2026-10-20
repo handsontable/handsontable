@@ -12,62 +12,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   Handsontable access. Names are compared NFC-normalized; length is counted in grapheme
   clusters (`Intl.Segmenter`), not UTF-16 units — the rename input enforces the same limit in
   its `input` handler, never through `maxlength`.
-- `viewState.ts` — capture/restore of one sheet's runtime view state. **Order is load-bearing**:
-  the column order goes before the sort re-apply (the sort config addresses its column
-  visually), sort is cleared and re-applied around the row order (the sorting plugin resets
-  rows to its own pre-sort cache on every `sort()`), filters and trimming re-apply before the
-  hidden sets (hidden indexes are stored as physical, and so are the tracked cell-meta
-  entries), and the selection and scroll run through `restoreViewport()` **after** the render
-  batch, once the arriving sheet is painted at its own sizes. `restoreViewport()` puts the
-  Pagination page and page size back first (`setPageSize()` then `setPage()`, each skipped when
-  unchanged, the page clamped to the arriving count first): Pagination holds one page for the
-  whole grid and clamps it on every load, so a switch through a shorter sheet moves it, and a
-  selection or scroll aimed at a row on another page lands on a hidden row and does nothing. A
-  never-visited sheet gets `resetViewport()` instead — the configured `initialPage` and
-  `pageSize`. Both go through the public API, so the page hooks fire on a switch that changes
-  the page. With an external data source (`hasExternalDataSource`) the page is neither captured
-  nor restored: DataProvider answers a page change with a fetch, and the result would load into
-  whichever sheet is active when it resolves. After that batch `keepSelectionOnPage()` checks the
-  focus against the shown page — a `'auto'` page size decides its boundaries from the row heights
-  of that paint, a `beforePageSizeChange` veto leaves the page counted in the old size, and a
-  `beforePageChange` veto keeps the clamped page. A restored selection is followed to its page —
-  one `setPage()` to the estimated page (the number page size as the page length, the shown
-  span for `'auto'`), so a gap of many pages fires the page hooks once, then a one-page walk.
-  Never re-estimate from each page reached: a short last page or `'auto'` pages of other
-  lengths make repeated estimates bounce past the row; a selection that was not restored (one
-  a plugin or a listener made during the switch), or one the follow could not reach, is
-  deselected rather than left on a hidden row.
-  The selection itself is kept twice: `selection` (`getSelected()`) and `selectionState`, a copy
-  of `Selection#exportSelection()` (the active range is cloned — the export hands it out live —
-  and so are the ranges handed to the import, or the stored state would become the live
-  selection). A selection made from a header or spanning a whole axis (any header or
-  extent-spans flag in `selectionState`) cannot be judged from its coordinates: `selectCells()`
-  rejects a range that contains headers (beyond a single header, even with `navigableHeaders`),
-  while a whole column on page 2 or later has none — Pagination moves its start to the page's
-  first row — so `selectCells()` would accept it and drop the header and span flags. Such a
-  selection is replayed instead: one layer through `selectRows()`/`selectColumns()`/`selectAll()`,
-  which run the selection hooks and set the `ht__selection--rows`/`--columns` classes; several
-  layers through `importSelection()`, followed by one `setRangeEnd()` + `finish()` on the last
-  layer, the step core answers with those classes and hooks — and since that step makes the last
-  layer active, a `setRangeFocus()` after it puts the captured focus and active layer back. A
-  plain cell selection goes through
-  `selectCells()` and gets its focus and active layer back with `setRangeFocus()`. A stored
-  order whose length no longer matches the data is skipped. Stored trimmed rows at or past `countSourceRows()` —
-  read after the arriving sheet's `loadData()`, so rows padded by `minRows`/`minSpareRows`
-  count — are dropped one by one before `trimRows()`, which rejects the whole list when any
-  index is out of range. Like the hidden sets and manual sizes, the kept ones follow physical
-  position, not the record, after the host changed the sheet's data while it was away.
-  Manual sizes are stored as sparse `[physicalIndex, size]` pairs read and written through the
-  resize plugins' `getManualSizes()`/`setManualSizes()` (physical, so a trimmed row keeps its
-  height) and cleared through their bulk `clearManualSizes()`. NestedRows drops its collapsed parents on
-  every `loadData()`, so the view state carries them as tree paths (`collapsedParents`, via the
-  data manager's `getRowTreePath()`/`getRowIndexByTreePath()` — a physical index shifts when the
-  sheet's data gains a row while it is away) and replays them after the hidden sets, with hooks
-  off (DEV-3042). Before the hidden sets, the collapse would trim a hidden child out of the
-  visual space its stored index is mapped through. For the same reason the hidden rows are
-  captured physically off the plugin's hiding map (`hidingMapsCollection.get(pluginName)` –
-  the map is registered under the upper-cased `HiddenRows`, not `hiddenRows`), not through
-  `getHiddenRows()`: a hidden child of a collapsed parent has no visual index at capture time.
+- The view-state capture and restore live in `src/utils/viewState/viewState.ts`, shared with the
+  public `ViewState` plugin. The bar calls `captureViewState()`, `restoreViewState()`,
+  `restoreViewport()`, `resetViewState()`, `resetViewport()` and `keepSelectionOnPage()` with no part
+  filter, so every step runs. The load-bearing order and the per-part traps are in
+  `src/utils/viewState/AGENTS.md`. Only the tracked cell meta (`cellMeta`, served lazily, see below), the
+  merges and the custom borders are SheetsBar's alone: the public API never restores them.
 - `ui/` — `bar.ts` (DOM via `buildTemplate`, labels re-applied by `refreshLabels()` on language
   change), `tabStrip.ts` (tabs, inline rename, focus capture/restore across repaints),
   `tabDrag.ts` (pointer drag + FLIP), `menus.ts` (two `Menu` instances built once and refilled
@@ -187,7 +137,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - `#onAfterUpdateSettings` blocks a value set later through `updateSettings({ dataProvider })` unless the active sheet declares a truthy own `dataProvider` (the user re-configuring the visible server sheet). It is registered with **`orderIndex` -1**, ahead of every plugin's `onUpdateSettings`: at the default order DataProvider enabled first, started a `fetchRows` call for the blocked value, and raised the loading overlay that the abort never cleared.
   - `#onBeforeUpdateData` keeps the visible sheet's rows. Core writes the new setting and, while `hasExternalDataSource` answers `true`, replaces the grid's data with a fresh `[]` placeholder (`updateData([], 'updateSettings')`) before any `afterUpdateSettings` listener runs; the sheet record still pointed at the local rows, but the grid held `[]`, and the next switch away stored `[]` as the sheet's data. The redirect answers the placeholder with the array the grid already shows (`updateData` on the same array keeps the index maps, so the sort and filters survive). It only matters while DataProvider's `hasExternalDataSource` listener is registered — the constructor one survives until DataProvider's first disable (`clearHooks()`), so the trap is a workbook that opened on a local sheet.
   - `#isRestoringBaseline` makes the gate stand aside while the teardown restores the grid-level value, and `disablePlugin()` drops the model before that restore, so the restored `dataProvider` fetches as a plain grid. On a `sheets` **rebuild** the grid-level value is not written back at all: `updatePlugin()` carries it in `#rebuildGridDataProvider`, `#restoreBaselineToGrid()` skips it, and the new workbook's capture reads it from there (written back, it enabled DataProvider and fetched for the moment between the two workbooks).
-  - `#keepActiveSheetDataProvider()` keeps a `dataProvider` the user sets through `updateSettings()` on the visible server sheet as that sheet's own, so a switch away and back applies it again instead of the declared one. It replaces the record's `settings` object (it may be the host's declared one) instead of writing into it. The block itself (`#recordBlockedGridDataProvider()` plus `updateSettings({ dataProvider: null })`) runs on EVERY call that carries a truthy grid-level `dataProvider`, including a wrapper re-sending the same settings on each render: core applies the payload before any listener runs and has no hook to strip a key first, and the value has to be written back through `updateSettings()` because core stores it on the global meta layer a direct write would only shadow. That misconfiguration is warned about once; the fix is on the host's side. On a **server** sheet the same re-send would otherwise read as the user re-configuring that sheet: `#isResentGridDataProvider()` recognizes the recorded grid-level object by identity, and `#restoreActiveSheetDataProvider()` writes the sheet's own `dataProvider` back through a nested `updateSettings()` inside `_runWithoutFetching()` (no abort, no refetch). DataProvider's `updatePlugin()` then skips the outer call, whose payload no longer matches the grid's value, and `#onBeforeUpdateData` keeps the visible rows for both calls (core empties them on any payload that names `dataProvider`). Only a stable object is caught: an inline literal the host rebuilds on every render is a new value each time, and reads as a re-configure. That limit is part of the public docs (the `dataProvider` option's JSDoc in `metaSchema.ts` and the sheets bar and server-side data guides tell a host to keep a grid-level object stable); keep them in step if the gate changes.
+  - `#keepActiveSheetDataProvider()` keeps a `dataProvider` the user sets through `updateSettings()` on the visible server sheet as that sheet's own, so a switch away and back applies it again instead of the declared one. It replaces the record's `settings` object (it may be the host's declared one) instead of writing into it. The block itself (`#recordBlockedGridDataProvider()` plus `updateSettings({ dataProvider: null })`) runs on EVERY call that carries a truthy grid-level `dataProvider`, including a wrapper re-sending the same settings on each render: core applies the payload before any listener runs and has no hook to strip a key first, and the value has to be written back through `updateSettings()` because core stores it on the global meta layer a direct write would only shadow. That misconfiguration is warned about once; the fix is on the host's side. On a **server** sheet the same re-send would otherwise read as the user re-configuring that sheet: `#isResentGridDataProvider()` recognizes the recorded grid-level object by identity, and `#restoreActiveSheetDataProvider()` writes the sheet's own `dataProvider` back through a nested `updateSettings()` inside `_runWithoutFetching()` (no abort, no refetch). DataProvider's `updatePlugin()` then skips the outer call, whose payload no longer matches the grid's value, and `#onBeforeUpdateData` keeps the visible rows for both calls (core empties them on any payload that names `dataProvider`). Only a stable object is caught: an inline literal the host rebuilds on every render is a new value each time, and reads as a re-configure. That limit is part of the public docs (the `dataProvider` option's JSDoc in `metaSchema.ts` and the sheets bar guide tell a host to keep a grid-level object stable); keep them in step if the gate changes.
   A sheet's own declared `dataProvider` runs the switch's `updateSettings({ dataProvider })` call like any other overridden key; DataProvider applies it without a refetch because the whole `#switchTo` runs inside `dataProvider._runContextChange()` (`#withoutFetching`), which is passive.
 - **The bar is the DataProvider context owner; everything sheet-shaped about server data lives here.** The contract is internal (`../dataProvider/AGENTS.md`, "Owner contract: contexts (internal)"): `#contextOwner` is registered with `_setContextOwner()` at the top of `enablePlugin()` and removed at the end of `disablePlugin()`, and all calls go through the `_`-prefixed DataProvider methods. Never replace it with hooks — a user listener could rewrite what the bar receives. The pieces:
   - **Context.** `getContext()` answers a **frozen empty token** per sheet (`#contextOf()`, `#contextTokens` + the reverse `#sheetsByContext`, both `WeakMap`s), never the `Sheet` record, so no outside code can reach a sheet's data or settings through DataProvider. Identity is per record, so a removed sheet or a sheet of a replaced workbook (whose ids restart at 1) can never be mistaken for a current one. It is registered before the workbook is built: a rebuild on a live grid applies the opening server sheet, and starts its first fetch, inside `enablePlugin()`. Without a model it answers `null`, so the settings a teardown restores fetch as a plain grid.
@@ -216,7 +166,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   entry shorter.
 - **Never wrap host-reachable code in `Core#batch`/`batchRender`** — neither resumes in a
   `finally`, and a listener throwing mid-switch would leave the grid render-suspended for
-  life. The plugin's `#batchRender` and `viewState.ts`'s `safeBatch` are the guarded forms
+  life. The plugin's `#batchRender` and core `viewState.ts`'s `safeBatch` are the guarded forms
   (same reasoning as MergeCells).
 - **`ariaTags: false` keeps every ARIA state attribute off the bar.** The paging arrows' real
   disabled state is the `ht-sheets-bar__button--disabled` class (`DISABLED_CLASS` in
@@ -323,8 +273,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   shorter sheet was loaded, it addressed rows that no longer existed and the switch threw
   `Expecting an unsigned number`. `#switchTo` therefore calls `clearMergedCells()` before
   `#applySheet`, while the departing merges still match the grid (the neutral reset does it
-  otherwise). **The merges a sheet declares in its `settings` are built after the load, never
-  during the settings update.** `mergeCells` rides on every switch's `updateSettings()` payload
+  otherwise, and does it FIRST, before it untrims and unhides rows: `clearCollections()` takes the
+  span attributes off the cells `getCell()` finds at the merges' visual coordinates, which name
+  other rows once the trimmed and hidden rows are back while the DOM still shows the old layout.
+  Cleared last, the merged `td` kept its `rowspan` and shifted the rows below it on the arriving
+  sheet, which no render repaired once MergeCells was disabled there; pinned by
+  `tests/e2e/sheets-bar-data-bound-settings.spec.ts`). **The merges a sheet declares in its
+  `settings` are built after the load, never during the settings update.** `mergeCells` rides on every switch's `updateSettings()` payload
   once any sheet declares it (the baseline carries it too), and that update runs while the grid
   still holds the departing sheet's data. Built there, `MergeCells#generateFromSettings()`
   validated the arriving sheet's areas against the departing sheet's size (dropping one that did
@@ -361,6 +316,50 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the type check. Under a cast, a rename in MergeCells still compiles here and the first switch
   throws `… is not a function`. Do not reach into `mergedCellsCollection` or call `mergeRange()`
   from here again.
+- **A plugin that reads the data when its settings are applied must not read the departing
+  sheet.** The settings update runs while the grid still holds the departing sheet's data, and two
+  plugins read it there. Each takes a different fix, because they need different things from the
+  load. Pinned by `tests/e2e/sheets-bar-data-bound-settings.spec.ts`.
+  - **NestedRows has to be ON during the load**, so it stays in the pre-load update, which runs
+    under `#withoutNestedRowsDataCheck` (NestedRows' `@private` `deferDataCheck` flag, read through
+    the typed `getPlugin('nestedRows')`). An enable with an empty data manager then takes its tree
+    from the `loadData()` that follows (its own `beforeLoadData`, the path the init build has always
+    used) instead of validating the departing flat array, which logged "requires an Array of
+    Objects" and turned the plugin off for good, on a switch and on an opening nested sheet alike.
+    Do not move `nestedRows` to after the load: a nested sheet loaded with the plugin off is sized
+    to its top-level entries, so a grid-level `minRows` padded empty parents into the host's array
+    (9 rows instead of 5), and declared `hiddenRows`/`trimRows` indexes of child rows were rejected
+    or ignored, because their maps are initialized during the load.
+  - **ColumnSummary needs nothing from the load and writes into the data**, so on a live grid a
+    truthy value is taken out of the pre-load payload (`DATA_BOUND_SETTING_KEYS`,
+    `#splitDataBoundSettings`) and applied by a second `updateSettings()` after `loadData()`, before
+    the MergeCells pass. Applied before, it checked its endpoints against the departing size (a
+    false out-of-bounds warning) and, when the destination fitted, wrote its result into the
+    departing sheet's array, which the host holds by reference. A ColumnSummary the departing sheet
+    left enabled gets `false` in the pre-load payload, or its `afterLoadData` refresh writes the
+    departing summary into the arriving sheet's data; a falsy value reads no data and stays before
+    the load. Applied after the load it also sees a nested sheet's flattened rows. The cost is a
+    second settings update on a switch onto a sheet that declares it, and only there: a second
+    `afterUpdateSettings` and, with Formulas on, a full rescan of the arriving sheet and a second
+    `setSheetContent()`, because the update fires `afterCellMetaReset` (core clears no meta for a
+    `{ columnSummary }` payload, only the hook fires), which marks a Formulas resync. That resync
+    runs from ColumnSummary's first cell read, inside its own endpoint calculation, and its values
+    update refreshes the endpoints again: `Endpoints#refreshEndpoint()` therefore restores the
+    endpoint it replaced rather than clearing it, or the outer calculation read `null` and the
+    switch threw (pinned by `columnSummary/__tests__/formulasSettingsUpdate.unit.js` and the Formulas
+    case of the spec). The init build is not split: applied after the load
+    there, its `setDataAtCell()` runs before the editor manager exists and throws; ColumnSummary's
+    `updatePlugin()` instead leaves the endpoints to its `afterInit` while the grid has no view.
+  - Do not reorder the whole switch to load first instead: the departing sheet's settings would then
+    be in force during the load (NestedRows rejecting a flat sheet, a departing `columns` building
+    the DataMap, Formulas bound to the wrong sheet). A new plugin with the same shape takes whichever
+    of the two fixes fits what it needs from the load.
+- **Custom borders are restored with the logical sides only.** `getBorders()` records carry both
+  `start`/`end` and their legacy `left`/`right` copies (`denormalizeBorder()`), and `setBorders()`
+  throws when it gets both pairs, and on `left`/`right` alone in RTL. `restoreCustomBorders()`
+  therefore passes `top`, `bottom`, `start` and `end` only. Passing every side made the switch back
+  to any bordered sheet throw, which dropped its borders and its stored selection. Pinned by the
+  `custom borders` block in `__tests__/viewState.unit.js`.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).
@@ -559,7 +558,7 @@ never visited. The rows were not tracked at first, so a frozen row carried over 
 **A count can be a shadow on the table meta, and `updateSettings()` leaves a shadow alone.** The freeze bar,
 `ManualColumnFreeze`, `alter()` and undo write a frozen count as an own property of `getSettings()`, and
 `updateSettings()` drops it only when the new value differs from the previous GRID-level one. A sheet's count must win,
-so every write of a count goes through `setFrozenCount()` / `clearFrozenCountShadow()` in `viewState.ts`, which
+so every write of a count goes through `setFrozenCount()` / `clearFrozenCountShadow()` in `src/utils/viewState/viewState.ts`, which
 removes the shadow (and `_fixedColumnsStart`, the backing field of the start freeze) first, and then writes the count
 as a shadow of its own when it differs from the grid-level value. It does not call `updateSettings()`: that would make
 the sheet's count the grid-level one, and a wrapper re-sends the app's own value on each render, which differs from it

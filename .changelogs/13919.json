@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `getDataAtCol()`, `getDataAtProp()`, and `spliceCol()` reading only as many rows as the source array has when the `nestedRows` option or a `modifySourceLength` hook adds rows past it.",
+  "type": "fixed",
+  "issueOrPR": 13919,
+  "breaking": false,
+  "framework": "none"
+}

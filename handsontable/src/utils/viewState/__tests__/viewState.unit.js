@@ -1,15 +1,17 @@
 import Handsontable from '../../../base';
-import { registerPlugin } from '../../registry';
-import { ManualColumnResize } from '../../manualColumnResize';
-import { ColumnSorting } from '../../columnSorting';
-import { Filters } from '../../filters';
-import { DropdownMenu } from '../../dropdownMenu';
-import { AutoColumnSize } from '../../autoColumnSize';
-import { HiddenRows } from '../../hiddenRows';
-import { HiddenColumns } from '../../hiddenColumns';
-import { Pagination } from '../../pagination';
+import { registerPlugin } from '../../../plugins/registry';
+import { ManualColumnResize } from '../../../plugins/manualColumnResize';
+import { ColumnSorting } from '../../../plugins/columnSorting';
+import { Filters } from '../../../plugins/filters';
+import { DropdownMenu } from '../../../plugins/dropdownMenu';
+import { AutoColumnSize } from '../../../plugins/autoColumnSize';
+import { HiddenRows } from '../../../plugins/hiddenRows';
+import { HiddenColumns } from '../../../plugins/hiddenColumns';
+import { Pagination } from '../../../plugins/pagination';
+import { CustomBorders } from '../../../plugins/customBorders';
+import { createSpreadsheetData } from '../../../helpers/data';
 import { registerCellType, CheckboxCellType } from '../../../cellTypes';
-import { SheetsBar } from '../sheetsBar';
+import { SheetsBar } from '../../../plugins/sheetsBar/sheetsBar';
 import { captureViewState, keepSelectionOnPage, restoreViewState, restoreViewport } from '../viewState';
 
 describe('SheetsBar view state', () => {
@@ -26,6 +28,7 @@ describe('SheetsBar view state', () => {
     registerPlugin(Filters);
     registerPlugin(HiddenColumns);
     registerPlugin(Pagination);
+    registerPlugin(CustomBorders);
     registerPlugin(SheetsBar);
   });
 
@@ -75,6 +78,28 @@ describe('SheetsBar view state', () => {
     restoreViewState(hot, state);
 
     expect(hot.getDataAtCell(0, 0)).toBe(1);
+  });
+
+  it('captures the sort by physical column, and restores it under another column order', () => {
+    hot = new Handsontable(container, {
+      data: [['b', 3], ['a', 1], ['c', 2]],
+      columnSorting: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    hot.columnIndexMapper.setIndexesSequence([1, 0]);
+    hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' }); // physical 0
+
+    const state = captureViewState(hot, []);
+
+    expect(state.sortConfig).toEqual([{ column: 0, sortOrder: 'asc' }]);
+
+    hot.getPlugin('columnSorting').clearSort();
+    hot.columnIndexMapper.setIndexesSequence([0, 1]);
+    restoreViewState(hot, { ...state, columnSequence: [0, 1] });
+
+    expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+    expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'c']);
   });
 
   it('captures row/column sequences defensively, unaffected by later mapper mutation', () => {
@@ -811,5 +836,77 @@ describe('SheetsBar view state', () => {
     expect(hot.getSelected()).toEqual([[2, 0, 5, 2]]);
     expect(hot.getSelectedRangeActive().highlight.row).toBe(4);
     expect(hot.getSelectedRangeActive().highlight.col).toBe(1);
+  });
+
+  describe('custom borders', () => {
+    const borderRange = { from: { row: 1, col: 0 }, to: { row: 2, col: 2 } };
+    const sideStyles = {
+      top: { width: 2, color: 'blue' },
+      bottom: { width: 2, color: 'red' },
+    };
+    const startEndBorders = [{
+      range: borderRange,
+      ...sideStyles,
+      start: { width: 2, color: 'orange' },
+      end: { width: 2, color: 'magenta' },
+    }];
+    const leftRightBorders = [{
+      range: borderRange,
+      ...sideStyles,
+      left: { width: 2, color: 'orange' },
+      right: { width: 2, color: 'magenta' },
+    }];
+
+    const createBorderedWorkbook = (customBorders, extraSettings = {}) => new Handsontable(container, {
+      customBorders: true,
+      sheetsBar: {
+        sheets: [
+          { name: 'Bordered', data: createSpreadsheetData(5, 4), settings: { customBorders } },
+          { name: 'Plain', data: createSpreadsheetData(5, 4) },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+      ...extraSettings,
+    });
+
+    const sideColorsOf = borders => borders
+      .map(({ row, col, top, bottom, start, end }) => ({
+        row,
+        col,
+        top: top.hide ? null : top.color,
+        bottom: bottom.hide ? null : bottom.color,
+        start: start.hide ? null : start.color,
+        end: end.hide ? null : end.color,
+      }))
+      .sort((a, b) => (a.row - b.row) || (a.col - b.col));
+
+    it.each([
+      ['start/end', startEndBorders, {}],
+      ['left/right', leftRightBorders, {}],
+      ['start/end in RTL', startEndBorders, { layoutDirection: 'rtl' }],
+    ])('restores borders declared with %s when switching back to the sheet', (_, customBorders, extraSettings) => {
+      hot = createBorderedWorkbook(customBorders, extraSettings);
+
+      const customBordersPlugin = hot.getPlugin('customBorders');
+      const bordersBefore = sideColorsOf(customBordersPlugin.getBorders());
+
+      expect(bordersBefore.length).toBe(6);
+
+      hot.getPlugin('sheetsBar').setActiveSheet('Plain');
+
+      expect(customBordersPlugin.getBorders()).toEqual([]);
+      expect(() => hot.getPlugin('sheetsBar').setActiveSheet('Bordered')).not.toThrow();
+      expect(sideColorsOf(customBordersPlugin.getBorders())).toEqual(bordersBefore);
+    });
+
+    it('restores the stored selection of a bordered sheet', () => {
+      hot = createBorderedWorkbook(startEndBorders);
+
+      hot.selectCell(4, 3);
+      hot.getPlugin('sheetsBar').setActiveSheet('Plain');
+      hot.getPlugin('sheetsBar').setActiveSheet('Bordered');
+
+      expect(hot.getSelected()).toEqual([[4, 3, 4, 3]]);
+    });
   });
 });

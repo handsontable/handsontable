@@ -50,6 +50,7 @@ describe('built-in plugins', () => {
       'CheckboxHeader',
       'Pagination',
       'SheetsBar',
+      'ViewState',
       'DataProvider',
       'UndoRedo',
     ]);

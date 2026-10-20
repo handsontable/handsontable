@@ -219,6 +219,99 @@ test.describe('regression guards around the wrapper and slot sizing', { tag: THE
     expect(Math.abs(after.bottomSlot.width - after.table.width)).toBeLessThanOrEqual(1);
   });
 
+  test('keeps the slot at the wrapper width on a sheet with no columns', async () => {
+    await grid.goto('css-fixed', 'sheetsBar');
+    await grid.rebuild({
+      pagination: { pageSize: 25 },
+      sheetsBar: {
+        sheets: [
+          { name: 'Narrow', data: Array.from({ length: 30 }, (_, r) => [`A${r}`, `B${r}`, `C${r}`]) },
+          { name: 'Empty', data: [] },
+        ],
+        activeSheet: 0,
+      },
+    });
+
+    const narrow = await grid.geometry();
+
+    expect(narrow.horizontalByWindow).toBe(true);
+    expect(narrow.table.width).toBeLessThan(narrow.wrapper.width / 2);
+    expect(Math.abs(narrow.bottomSlot.width - narrow.table.width)).toBeLessThanOrEqual(1);
+
+    await grid.sheetTab('Empty').click();
+    await expect(grid.activeSheetTab()).toHaveText(/Empty/);
+
+    await expect.poll(async() => {
+      const { bottomSlot, wrapper } = await grid.geometry();
+
+      return Math.abs(bottomSlot.width - wrapper.width);
+    }).toBeLessThanOrEqual(1);
+
+    await grid.sheetTab('Narrow').click();
+    await expect(grid.activeSheetTab()).toHaveText(/Narrow/);
+
+    await expect.poll(async() => {
+      const { bottomSlot, table } = await grid.geometry();
+
+      return Math.abs(bottomSlot.width - narrow.table.width) + Math.abs(table.width - narrow.table.width);
+    }).toBeLessThanOrEqual(2);
+  });
+
+  test('keeps the pagination bar at the wrapper width with no data', async () => {
+    await grid.goto('css-fixed', 'pagination');
+    await grid.rebuildWithoutColumns({ data: [] });
+
+    const geometry = await grid.geometry();
+
+    expect(geometry.horizontalByWindow).toBe(true);
+    expect(geometry.table.width).toBeLessThan(geometry.wrapper.width / 2);
+
+    await expect.poll(async() => {
+      const { bottomSlot, wrapper } = await grid.geometry();
+
+      return Math.abs(bottomSlot.width - wrapper.width);
+    }).toBeLessThanOrEqual(1);
+  });
+
+  test('keeps the pagination bar at the wrapper width with every column hidden', async () => {
+    await grid.goto('css-fixed', 'pagination');
+    await grid.rebuildWithoutColumns({
+      hiddenColumns: { columns: Array.from({ length: 12 }, (_, c) => c) },
+    });
+
+    const geometry = await grid.geometry();
+
+    expect(geometry.horizontalByWindow).toBe(true);
+    expect(geometry.table.width).toBeLessThan(geometry.wrapper.width / 2);
+
+    await expect.poll(async() => {
+      const { bottomSlot, wrapper } = await grid.geometry();
+
+      return Math.abs(bottomSlot.width - wrapper.width);
+    }).toBeLessThanOrEqual(1);
+  });
+
+  for (const layoutDirection of ['ltr', 'rtl'] as const) {
+    for (const width of [300, 1200]) {
+      test(`keeps the bar at an explicit \`width\` of ${width} with no data (${layoutDirection})`, async () => {
+        await grid.goto('css-fixed', 'pagination');
+        await grid.rebuildWithoutColumns({ data: [], width, layoutDirection });
+
+        const geometry = await grid.geometry();
+
+        expect(geometry.horizontalByWindow).toBe(false);
+        expect(Math.abs(geometry.root.width - width)).toBeLessThanOrEqual(1);
+        expect(Math.abs(geometry.wrapper.width - width)).toBeGreaterThan(100);
+
+        await expect.poll(async() => {
+          const { bottomSlot, root } = await grid.geometry();
+
+          return Math.abs(bottomSlot.left - root.left) + Math.abs(bottomSlot.right - root.right);
+        }).toBeLessThanOrEqual(2);
+      });
+    }
+  }
+
   // The grid box follows the table's content in window mode, so a data change grows it. The
   // wrapper must not move (nothing observes it), and no observer loop or error may follow.
   test('grows the grid box with inserted rows without a resize loop or console error', async ({ page }) => {

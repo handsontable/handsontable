@@ -246,6 +246,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="rowHeaders" data-levels="grid"></span>[`rowHeaders`](@/api/options.md#rowheaders) | Yes | No | No | No | Core |  |
 | <span data-option="rowHeaderWidth" data-levels="grid"></span>[`rowHeaderWidth`](@/api/options.md#rowheaderwidth) | Yes | No | No | No | Core |  |
 | <span data-option="rowHeights" data-levels="grid"></span>[`rowHeights`](@/api/options.md#rowheights) | Yes | No | No | No | Core |  |
+| <span data-option="rowId" data-levels="grid"></span>[`rowId`](@/api/options.md#rowid) | Yes | No | No | No | Core |  |
 | <span data-option="rowSelection" data-levels="grid"></span>[`rowSelection`](@/api/options.md#rowselection) | Yes | No | No | No | RowSelection |  |
 | <span data-option="sanitizer" data-levels="grid"></span>[`sanitizer`](@/api/options.md#sanitizer) | Yes | No | No | No | Core |  |
 | <span data-option="search" data-levels="grid columns cells cell"></span>[`search`](@/api/options.md#search) | Yes | Yes | Yes | Yes | Search | The plugin toggle is grid level. `queryMethod` and `callback` resolve per cell. |

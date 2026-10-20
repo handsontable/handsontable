@@ -25,7 +25,8 @@ import {
   restoreViewport,
   type TrackedCellMeta,
   type ViewState,
-} from './viewState';
+} from '../../utils/viewState/viewState';
+import { withoutUndoEntry } from '../../utils/viewState/withoutUndoEntry';
 import * as C from '../../i18n/constants';
 import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
@@ -144,6 +145,16 @@ function applyEngineRewritesToSheetData(data: unknown[], serialized: unknown[][]
  * because that removal fires no `afterRemoveCellMeta` (DEV-3135).
  */
 const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
+
+/**
+ * Settings whose plugins read the grid's data when they are applied and need nothing from the
+ * load itself. A switch applies the arriving sheet's settings while the grid still holds the
+ * departing sheet's data, so a truthy value of one of these keys is applied after the arriving
+ * sheet's `loadData()` instead. ColumnSummary checks its endpoints against the table size and
+ * writes its results into the data. NestedRows is not on the list: the load has to run with it
+ * on, so it is applied before the load with its data check held back (`#withoutNestedRowsDataCheck`).
+ */
+const DATA_BOUND_SETTING_KEYS = ['columnSummary'] as const;
 
 /**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
@@ -289,10 +300,9 @@ interface PreservedState {
  * @class SheetsBar
  *
  * @description
- * The plugin renders a tab bar below the grid — or above it, with the `position`
- * setting — and lets the user switch between the
- * sheets of a multi-sheet workbook. Each sheet owns its data, its optional settings,
- * and its runtime view state.
+ * The plugin renders a tab bar below the grid, or above it with the `position` setting,
+ * and lets the user switch between the sheets of a workbook. Each sheet has its own data,
+ * settings overrides, and view state.
  */
 export class SheetsBar extends BasePlugin {
   /**
@@ -1073,9 +1083,9 @@ export class SheetsBar extends BasePlugin {
   /**
    * Renames a sheet.
    *
-   * Rejected — and reported as `false` — when the name is blank, unchanged, already taken by
-   * another sheet, already identifying a different sheet in the sheet's formula engine, or a
-   * `beforeSheetTabRename` listener cancels it.
+   * Returns `false` when the id is unknown, the name is blank or unchanged, another sheet
+   * already uses the name (in the bar or in the sheet's formula engine), or a
+   * `beforeSheetTabRename` listener cancels the rename.
    *
    * @param {number} id The sheet's id.
    * @param {string} name The new name. Trimmed, and cut to the name length limit.
@@ -1089,9 +1099,10 @@ export class SheetsBar extends BasePlugin {
   /**
    * Duplicates a sheet, placing the copy directly after the original.
    *
-   * The copy carries a deep clone of the sheet's data and settings, and a name derived from the
-   * original. Rejected — and reported as `null` — when the id is unknown or a
-   * `beforeSheetTabAdd` listener cancels it.
+   * The copy gets a deep clone of the sheet's data and settings, and a name based on the
+   * original's. The `formulas` setting is not cloned: the copy shares the original's engine,
+   * under a sheet name of its own. Returns `null` when the id is unknown or a `beforeSheetTabAdd` listener
+   * cancels the copy.
    *
    * @param {number} id The sheet to copy.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1104,10 +1115,9 @@ export class SheetsBar extends BasePlugin {
   /**
    * Removes a sheet.
    *
-   * Removing the active sheet activates its nearest remaining neighbor first, so the grid runs
-   * its normal view-state switch. The last remaining sheet cannot be removed. Rejected — and
-   * reported as `false` — when the id is unknown, it is the last sheet, or a
-   * `beforeSheetTabRemove` listener cancels it.
+   * Removing the active sheet first switches to its nearest neighbor. Returns `false` when the
+   * id is unknown, the sheet is the last one, a `beforeSheetTabRemove` listener cancels the
+   * removal, or the switch to the neighbor is rejected.
    *
    * @param {number} id The sheet to remove.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1118,8 +1128,9 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Activates a sheet by id or unique name. Returns `false` when the sheet does not
-   * exist, is already active, or a `beforeSheetTabChange` listener canceled the switch.
+   * Activates a sheet by id or name. Returns `false` when the sheet doesn't exist, is
+   * already active, another switch is in progress, or a `beforeSheetTabChange` listener
+   * cancels the switch.
    *
    * @param {number|string} idOrName The sheet's id, or its name.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1285,10 +1296,11 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Moves a sheet to an absolute tab index.
+   * Moves a sheet to a position in the tab order.
    *
-   * The index is a model index, not a visual one — a caller reading positions off the DOM under
-   * RTL has already accounted for the mirroring, so nothing is mirrored here.
+   * The index counts sheets in tab order, not on screen, so it is the same under RTL.
+   * Returns `false` when the id is unknown, the index is out of range or is the sheet's
+   * current one, or a `beforeSheetTabMove` listener cancels the move.
    *
    * @param {number} id The sheet id.
    * @param {number} to The target index.
@@ -1301,11 +1313,10 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Appends a sheet and returns its descriptor, or `null` when a `beforeSheetTabAdd`
-   * listener canceled the operation.
+   * listener cancels it.
    *
-   * When no `settings` are given and the workbook's sheets share a formula engine, the new
-   * sheet joins it under its own name — the way a spreadsheet's new sheet does — so formulas
-   * work on it and cross-sheet references can reach it right away.
+   * Without `settings`, the new sheet joins the workbook's shared formula engine, if there is
+   * one, under its own name. Formulas and cross-sheet references then work on it right away.
    *
    * @param {string} [name] The sheet's name. Omitted, the next free `Sheet{n}` is used.
    * @param {Array[]} [data] The sheet's data. Omitted, the sheet starts blank.
@@ -1774,7 +1785,10 @@ export class SheetsBar extends BasePlugin {
    * is already constructed; during initial plugin setup the view does not exist yet and
    * the grid's own startup render covers it. The settings update runs with core's `min*` padding
    * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
-   * the arriving sheet's data before its `afterLoadData`.
+   * the arriving sheet's data before its `afterLoadData`. NestedRows takes its data from that
+   * load, not from the departing sheet (`#withoutNestedRowsDataCheck`), and on a live grid
+   * ColumnSummary is configured after the load, through a second `updateSettings()`
+   * (`#splitDataBoundSettings`).
    *
    * The merges the settings declare are built after the load, against the arriving sheet's data.
    * With `restoresMerges` set they are not built at all: a sheet that returns with a stored view
@@ -1784,16 +1798,22 @@ export class SheetsBar extends BasePlugin {
    */
   #applySheet(sheet: Sheet, source: string, { restoresMerges = false }: { restoresMerges?: boolean } = {}) {
     const apply = () => {
-      const settings = this.#withBaselineFor(sheet.settings);
+      const { beforeLoad, afterLoad } = this.#splitDataBoundSettings(this.#withBaselineFor(sheet.settings));
 
-      if (settings) {
+      if (beforeLoad) {
         this.#withoutAutoPadding(() => {
           this.#withoutMergeCellsSettingsPass(() => {
-            this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
+            this.#withoutNestedRowsDataCheck(() => {
+              this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(beforeLoad));
+            });
           });
         });
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
+
+      if (afterLoad) {
+        this.hot.updateSettings(afterLoad);
+      }
 
       if (this.hot.view) {
         this.#runMergeCellsSettingsPass(!restoresMerges);
@@ -1805,6 +1825,52 @@ export class SheetsBar extends BasePlugin {
     } else {
       apply();
     }
+  }
+
+  /**
+   * Splits a switch's settings into the part applied before the arriving sheet's `loadData()` and
+   * the part applied after it. A truthy value of a `DATA_BOUND_SETTING_KEYS` key goes after the
+   * load, so its plugin is configured against the arriving sheet's data. A plugin the departing
+   * sheet left enabled is turned off before the load, or it would run its departing configuration
+   * against the arriving data during the load (ColumnSummary writing its results into it). A falsy
+   * value turns the plugin off, which reads no data, so it stays before the load.
+   *
+   * Without a view the grid is still being built and nothing is split: ColumnSummary computes its
+   * endpoints from its own `afterInit`, against the loaded sheet, and applied after the load it
+   * would write through `setDataAtCell()` before the editor manager exists.
+   *
+   * @param {object|null} settings The settings `#withBaselineFor` built for the arriving sheet.
+   * @returns {object} The settings to apply before and after the load, each `null` when empty.
+   */
+  #splitDataBoundSettings(settings: Record<string, unknown> | null): {
+    beforeLoad: Record<string, unknown> | null,
+    afterLoad: Record<string, unknown> | null,
+  } {
+    if (!settings || !this.hot.view) {
+      return { beforeLoad: settings, afterLoad: null };
+    }
+
+    const beforeLoad = { ...settings };
+    const afterLoad: Record<string, unknown> = {};
+
+    DATA_BOUND_SETTING_KEYS.forEach((key) => {
+      if (!beforeLoad[key]) {
+        return;
+      }
+
+      afterLoad[key] = beforeLoad[key];
+
+      if (this.hot.getPlugin(key)?.enabled) {
+        beforeLoad[key] = false;
+      } else {
+        delete beforeLoad[key];
+      }
+    });
+
+    return {
+      beforeLoad: Object.keys(beforeLoad).length > 0 ? beforeLoad : null,
+      afterLoad: Object.keys(afterLoad).length > 0 ? afterLoad : null,
+    };
   }
 
   /**
@@ -2562,22 +2628,7 @@ export class SheetsBar extends BasePlugin {
    * @param {Function} write The operation to run.
    */
   #withoutUndoEntry(write: () => void) {
-    const undoRedo = this.hot.getPlugin('undoRedo') as
-      { enabled?: boolean, ignoreNewActions: boolean } | undefined;
-
-    if (!undoRedo?.enabled || undoRedo.ignoreNewActions) {
-      write();
-
-      return;
-    }
-
-    undoRedo.ignoreNewActions = true;
-
-    try {
-      write();
-    } finally {
-      undoRedo.ignoreNewActions = false;
-    }
+    withoutUndoEntry(this.hot, write);
   }
 
   /**
@@ -2631,6 +2682,34 @@ export class SheetsBar extends BasePlugin {
       update();
     } finally {
       mergeCells.deferSettingsPass = false;
+    }
+  }
+
+  /**
+   * Runs a settings update with NestedRows' data check held back. An update that turns the plugin
+   * on runs while the grid still holds the departing sheet's data, and the plugin would validate
+   * that flat array, log an error, and turn itself off for good. With `deferDataCheck` set it takes
+   * the arriving sheet's tree from the `loadData()` that follows, so the load runs with the plugin
+   * on and sizes the rows, the declared hidden and trimmed rows, and the `min*` padding against the
+   * flattened tree.
+   *
+   * @param {Function} update The operation to run.
+   */
+  #withoutNestedRowsDataCheck(update: () => void) {
+    const nestedRows = this.hot.getPlugin('nestedRows');
+
+    if (!nestedRows || nestedRows.deferDataCheck) {
+      update();
+
+      return;
+    }
+
+    nestedRows.deferDataCheck = true;
+
+    try {
+      update();
+    } finally {
+      nestedRows.deferDataCheck = false;
     }
   }
 

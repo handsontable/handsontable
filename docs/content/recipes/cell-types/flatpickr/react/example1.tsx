@@ -142,7 +142,7 @@ const flatpickrEditor = editorFactory<FlatpickrEditorInstance>({
     return editor.input.value;
   },
   setValue(editor, value) {
-    editor.input.value = value;
+    editor.input.value = value == null ? '' : String(value);
     editor.flatpickr.setDate(value ? new Date(value) : new Date());
   },
 });

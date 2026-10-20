@@ -228,6 +228,7 @@ interface HandsontableFactory {
     TouchScroll: typeof import('./plugins/touchScroll').TouchScroll;
     TrimRows: typeof import('./plugins/trimRows').TrimRows;
     UndoRedo: typeof import('./plugins/undoRedo').UndoRedo;
+    ViewState: typeof import('./plugins/viewState').ViewState;
     registerPlugin: typeof import('./plugins/registry').registerPlugin;
     getPlugin: typeof import('./plugins/registry').getPlugin;
     [key: string]: unknown;
@@ -339,6 +340,8 @@ declare namespace Handsontable {
   export type CellRange = import('./3rdparty/walkontable/src').CellRange;
   export type IndexMapper = import('./translations').IndexMapper;
   export type SourceRowData = import('./settings').SourceRowData;
+  export type RowIdSetting = import('./core/rowIdentity/rowIdentity').RowIdSetting;
+  export type RowIdKey = import('./utils/rowId').RowIdKey;
   export type ColumnDataGetterSetterFunction = import('./settings').ColumnDataGetterSetterFunction;
   export type SelectOptionsObject = import('./settings').SelectOptionsObject;
   export type RemoveIndexSignature<T> = import('./settings').RemoveIndexSignature<T>;
@@ -500,6 +503,23 @@ declare namespace Handsontable {
     export type TouchScroll = import('./plugins/touchScroll').TouchScroll;
     export type TrimRows = import('./plugins/trimRows').TrimRows;
     export type UndoRedo = import('./plugins/undoRedo').UndoRedo;
+    export type ViewState = import('./plugins/viewState').ViewState;
+    export namespace ViewState {
+      export type State = import('./plugins/viewState').GridViewState;
+      export type Input = import('./plugins/viewState').GridViewStateInput;
+      export type ColumnKey = import('./plugins/viewState').GridViewStateColumnKey;
+      export type SortColumnInput = import('./plugins/viewState').GridViewStateSortColumnInput;
+      export type FilterInput = import('./plugins/viewState').GridViewStateFilterInput;
+      export type Part = import('./plugins/viewState').GridViewStatePart;
+      export type SkipReason = import('./plugins/viewState').GridViewStateSkipReason;
+      export type Issue = import('./plugins/viewState').GridViewStateIssue;
+      export type StateError = import('./plugins/viewState').GridViewStateError;
+      export type SetOptions = import('./plugins/viewState').GridViewStateSetOptions;
+      export type RestoreResult = import('./plugins/viewState').GridViewStateRestoreResult;
+      export type ValidationResult = import('./plugins/viewState').GridViewStateValidationResult;
+      export type Selection = import('./plugins/viewState').GridViewStateSelection;
+      export type SortColumn = import('./plugins/viewState').GridViewStateSortColumn;
+    }
   }
 }
 
@@ -516,6 +536,8 @@ export type {
   CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature, OmitHooks
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
+export type { RowIdSetting } from './core/rowIdentity/rowIdentity';
+export type { RowIdKey } from './utils/rowId';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
 export { IndexMapper } from './translations';

@@ -17,7 +17,10 @@ import { OperatorsComponent } from './component/operators';
 import type { StateInfo } from './component/value';
 import { ValueComponent } from './component/value';
 import { ActionBarComponent } from './component/actionBar';
+import { isPlainObject } from '../../helpers/object';
 import ConditionCollection from './conditionCollection';
+import { conditions as registeredConditions, getCondition } from './conditionRegisterer';
+import { operations as registeredOperations } from './logicalOperationRegisterer';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import {
@@ -1569,6 +1572,110 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * Finds the first entry {@link Filters#importConditions} cannot import on this grid, so that a caller
+   * holding input it did not build (a stored view state) can refuse it before the import runs. The
+   * import empties the current conditions first and throws on an entry it cannot take, which would
+   * leave the grid with none.
+   *
+   * An entry is refused when its `column` is not a physical column of this grid, its operation or a
+   * condition name is not registered, or the arguments of a condition cannot be bound (a condition's
+   * own input decorator throws on arguments of the wrong shape). Two entries for one column are
+   * refused when they name different operations, which the collection throws on; the same operation
+   * twice is imported as one list.
+   *
+   * @private
+   * @param {unknown} conditions The conditions to check.
+   * @returns {{ path: string, message: string } | null} Where the first problem is, as a path into the array
+   * (`[2].conditions[0].args`), and what is wrong. `null` when every entry can be imported.
+   */
+  _findInvalidConditions(conditions: unknown): { path: string, message: string } | null {
+    if (!Array.isArray(conditions)) {
+      return { path: '', message: 'must be an array of filter entries, as `exportConditions()` returns them' };
+    }
+
+    const columnCount = this.hot.columnIndexMapper.getNumberOfIndexes();
+    const operations = new Map<unknown, unknown>();
+
+    for (let index = 0; index < conditions.length; index++) {
+      const entry = conditions[index] as Partial<ColumnConditions> | null;
+      const at = `[${index}]`;
+
+      if (!isPlainObject(entry)) {
+        return { path: at, message: 'must be an object with `column`, `operation` and `conditions`' };
+      }
+
+      if (!Number.isInteger(entry.column) || (entry.column as number) < 0 || (entry.column as number) >= columnCount) {
+        return { path: `${at}.column`, message: `must be a physical column index from 0 to ${columnCount - 1}` };
+      }
+
+      if (typeof entry.operation !== 'string' || !Object.hasOwn(registeredOperations, entry.operation)) {
+        return {
+          path: `${at}.operation`,
+          message: `must be one of: ${Object.keys(registeredOperations).join(', ')}`,
+        };
+      }
+
+      if (operations.has(entry.column) && operations.get(entry.column) !== entry.operation) {
+        return {
+          path: `${at}.operation`,
+          message: `column ${entry.column} already has a ${operations.get(entry.column)} entry, ` +
+            'and one column cannot mix operations',
+        };
+      }
+
+      operations.set(entry.column, entry.operation);
+
+      if (!Array.isArray(entry.conditions)) {
+        return { path: `${at}.conditions`, message: 'must be an array of conditions' };
+      }
+
+      const problem = this.#findInvalidCondition(entry.conditions as unknown[]);
+
+      if (problem) {
+        return { path: `${at}.conditions${problem.path}`, message: problem.message };
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Finds the first condition of one column entry that cannot be imported.
+   *
+   * @param {Array} conditions The conditions of one column.
+   * @returns {{ path: string, message: string } | null}
+   */
+  #findInvalidCondition(conditions: unknown[]): { path: string, message: string } | null {
+    for (let index = 0; index < conditions.length; index++) {
+      const condition = conditions[index] as { name?: unknown, args?: unknown } | null;
+      const at = `[${index}]`;
+
+      if (!isPlainObject(condition) || typeof condition.name !== 'string' ||
+          !Object.hasOwn(registeredConditions, condition.name)) {
+        return {
+          path: `${at}.name`,
+          message: `must be a registered condition name: ${Object.keys(registeredConditions).join(', ')}`,
+        };
+      }
+
+      if (!Array.isArray(condition.args)) {
+        return { path: `${at}.args`, message: `${condition.name} expects an array of arguments` };
+      }
+
+      try {
+        getCondition(condition.name, condition.args);
+      } catch {
+        return {
+          path: `${at}.args`,
+          message: `${condition.name} cannot take these arguments, check their number and type`,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Imports filter conditions and records them as the fallback that a {@link Filters#filter} call
    * canceled by a `beforeFilter` listener restores. Nothing is filtered. {@link Filters#importConditions}
    * leaves that fallback at the conditions of the previous filter pass, which is right for a change
@@ -2642,6 +2749,11 @@ export class Filters extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    // Registered in the constructor straight on the grid, so neither `disablePlugin()` nor the base
+    // class removes it. A plugin destroyed ahead of the grid would keep answering every header
+    // render with its `hot` gone (DEV-775).
+    this.hot?.removeHook('afterGetColHeader', this.#onAfterGetColHeader);
+
     if (this.enabled) {
       this.components.forEach((component, key) => {
         if (component !== null) {

@@ -33,6 +33,8 @@ Autofill lets users drag the fill handle to copy values across adjacent cells. U
 
 Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it to copy and repeat the selected values across adjacent cells.
 
+The fill handle appears only when the selection is a single range. When you select several separate ranges, for example with <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+click, the fill handle is hidden.
+
 You can also **double-click the fill handle** to autofill downward without dragging. Select the four cells from Symbol to Known Isotopes in the `Lithium` row (row header 3) and double-click the fill handle to see this in action.
 
 ### How double-click autofill determines the range
