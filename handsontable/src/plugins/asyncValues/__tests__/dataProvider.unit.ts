@@ -154,6 +154,70 @@ describe('AsyncValues: saveToDataProvider', () => {
     destroy();
   });
 
+  it('should send a second flush in a second onRowsUpdate call', async() => {
+    const { plugin, onRowsUpdate, destroy } = await createServerGrid();
+
+    await plugin.setAsyncValueAt({ rowId: 'a', prop: 'name' }, Promise.resolve('new A'));
+    await settle();
+    await plugin.setAsyncValueAt({ rowId: 'b', prop: 'name' }, Promise.resolve('new B'));
+    await settle();
+
+    expect(onRowsUpdate).toHaveBeenCalledTimes(2);
+    expect(onRowsUpdate.mock.calls[1][0].map(({ id }) => id)).toEqual(['b']);
+    destroy();
+  });
+
+  it('should save a value whose validator answers after the flush, once', async() => {
+    const { plugin, onRowsUpdate, destroy } = await createServerGrid(
+      { saveToDataProvider: true },
+      {
+        columns: [
+          { data: 'sku' },
+          {
+            data: 'name',
+            validator: (value: unknown, done: (valid: boolean) => void) => setTimeout(() => done(true), 0),
+          },
+          { data: 'price' },
+        ],
+      },
+    );
+
+    await Promise.all([
+      plugin.setAsyncValueAt({ rowId: 'a', prop: 'name' }, Promise.resolve('new A')),
+      plugin.setAsyncValueAt({ rowId: 'b', prop: 'name' }, Promise.resolve('new B')),
+    ]);
+    await settle();
+    await settle();
+
+    expect(onRowsUpdate).toHaveBeenCalledTimes(1);
+    expect(onRowsUpdate.mock.calls[0][0].map(({ id }) => id)).toEqual(['a', 'b']);
+    destroy();
+  });
+
+  it('should warn once and save nothing without the dataProvider option', async() => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    const hot = new Handsontable(container, {
+      data: products(),
+      columns: [{ data: 'sku' }, { data: 'name' }],
+      rowId: 'id',
+      asyncValues: { saveToDataProvider: true },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    await hot.getPlugin('asyncValues').setAsyncValueAt({ rowId: 'a', prop: 'name' }, Promise.resolve('new A'));
+    await settle();
+
+    expect(hot.getDataAtRowProp(0, 'name')).toBe('new A');
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+    hot.destroy();
+    container.remove();
+  });
+
   it('should reject a non-boolean value of the option', async() => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
     const { plugin, destroy } = await createServerGrid({ saveToDataProvider: 'yes' });

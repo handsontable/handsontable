@@ -457,6 +457,12 @@ export class AsyncValues extends BasePlugin {
   #saveQueue = new Map<RowState, Set<AsyncValueProp>>();
 
   /**
+   * Whether a save is already scheduled for the end of the current task, so values that land one by one
+   * (validated ones) share one `updateRows()` call.
+   */
+  #saveScheduled = false;
+
+  /**
    * The calls ready to be finalized once the running flush has written.
    */
   #readyRuns: Run[] = [];
@@ -1839,7 +1845,11 @@ export class AsyncValues extends BasePlugin {
       // Finalized here rather than a task later, so a caller that awaits the call, and an
       // `afterAsyncValuesIdle` listener, already find the call's undo step.
       this.#readyRuns.splice(0).forEach(run => this.#finalizeRun(run));
-      this.#saveLanded();
+
+      // A nested flush leaves the save to the outermost one, which has written everything by then.
+      if (this.#applyDepth === 0) {
+        this.#saveLanded();
+      }
     }
   }
 
@@ -2717,6 +2727,7 @@ export class AsyncValues extends BasePlugin {
     } else {
       // Any other change: a kept write is not the cell's value any more, and the request is stale.
       this.#dropWrite(state, prop);
+      this.#unqueueSave(state, prop);
 
       if (own) {
         this.#detach(own);
@@ -2789,8 +2800,27 @@ export class AsyncValues extends BasePlugin {
     }
 
     // A value that lands inside a flush is saved when the flush ends; a validated one lands a task later.
-    if (this.#applyDepth === 0) {
-      this.hot._registerMicrotask(() => this.#saveLanded());
+    if (this.#applyDepth === 0 && !this.#saveScheduled) {
+      this.#saveScheduled = true;
+      this.hot._registerMicrotask(() => {
+        this.#saveScheduled = false;
+        this.#saveLanded();
+      });
+    }
+  }
+
+  /**
+   * Takes a cell off the save queue, because something else wrote it after the plugin did: the write is the
+   * user's now, and DataProvider saves it on its own.
+   *
+   * @param {object} state The row state.
+   * @param {string|number} prop The property of the cell.
+   */
+  #unqueueSave(state: RowState, prop: AsyncValueProp): void {
+    const props = this.#saveQueue.get(state);
+
+    if (props?.delete(prop) && props.size === 0) {
+      this.#saveQueue.delete(state);
     }
   }
 
@@ -2813,6 +2843,9 @@ export class AsyncValues extends BasePlugin {
       const id = state.dropped ? null : this.#rowIdOf(state.physicalRow);
 
       if (id === null || id === undefined) {
+        warnOnce(this, 'asyncValues.saveNoRowId',
+          'asyncValues: `saveToDataProvider` skipped a row without an id. Set `dataProvider.rowId`.');
+
         return;
       }
 
@@ -2826,9 +2859,20 @@ export class AsyncValues extends BasePlugin {
 
     const dataProvider = this.hot.getPlugin('dataProvider');
 
-    if (rows.length > 0 && dataProvider?.enabled) {
-      dataProvider.updateRows(rows).catch(() => {});
+    if (rows.length === 0) {
+      return;
     }
+
+    if (!dataProvider?.enabled) {
+      warnOnce(this, 'asyncValues.saveNoDataProvider',
+        'asyncValues: `saveToDataProvider` needs the `dataProvider` option, and nothing was saved.');
+
+      return;
+    }
+
+    // A failed save is reported by DataProvider (`afterRowsMutationError`), and the cell stays resolved.
+    // The rejection of the refetch after a successful save is reported there too.
+    dataProvider.updateRows(rows).catch(() => {});
   }
 
   /**

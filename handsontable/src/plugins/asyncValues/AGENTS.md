@@ -286,7 +286,14 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   `undo: 'record'` is skipped with a one-time warning, because the save would refetch under the undo step. A
   failed save does NOT put the cell into the error state: the value did land, and DataProvider reports the
   failure through `afterRowsMutationError`. `dataProvider.rowId` is required, so the requests of the rows still
-  on the page survive the refetch each save causes (the data-replacement remap above). Pinned by
+  on the page survive the refetch each save causes (the data-replacement remap above). Known limits, all
+  documented in the guide: DataProvider validates the whole batch, so one invalid value drops every save of
+  the flush (`runManualUpdateRowsMutation`); a validator correction that lands after the save is not saved
+  again; a custom `source` that is in `DATA_PROVIDER_BATCH_UPDATE_SOURCES` is saved by DataProvider's own
+  `afterChange` handler too (the set is not importable here, since plugins do not import each other); values
+  that land in separate tasks (validated ones) share one save per task through `#saveScheduled`. A foreign
+  write to a queued cell takes it off the queue (`#unqueueSave`), and a nested flush leaves the save to the
+  outermost one. Pinned by
   `__tests__/dataProvider.unit.ts`.
 - **The `'microtask'` flush is a bare `rootWindow.queueMicrotask()`**, not `_registerMicrotask()`: `#cancelFlush`
   cancels it, and `#flush` returns before touching `hot` when nothing is queued, which is the state after

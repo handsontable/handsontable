@@ -38,7 +38,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   allowRemoveColumn: true,
   allowRemoveRow: true,
   ariaTags: true,
-  asyncValues: oneOf(true, { flush: 'frame' as const, concurrency: 4, copyPendingAs: 'empty' as const }, { flush: 50 }),
+  asyncValues: oneOf(
+    true,
+    { flush: 'frame' as const, concurrency: 4, copyPendingAs: 'empty' as const, saveToDataProvider: true },
+    { flush: 50 },
+  ),
   autoColumnSize: true,
   autoLink: oneOf(true, {
     target: '_self' as const,
