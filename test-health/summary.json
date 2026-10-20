@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-20T12:00:50.571Z",
+  "generatedAt": "2026-10-20T13:28:17.175Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -569,7 +569,7 @@
       "file": "visual-tests/tests/js-only/notification/notification-bottom-end.spec.ts",
       "line": null,
       "title": "js-only/notification/notification-bottom-end-1",
-      "count7": 4,
+      "count7": 2,
       "count30": 4,
       "countAll": 4,
       "runs30": 2,
@@ -603,7 +603,7 @@
       "file": "visual-tests/tests/js-only/notification/notification-top-end.spec.ts",
       "line": null,
       "title": "js-only/notification/notification-top-end-1",
-      "count7": 4,
+      "count7": 2,
       "count30": 4,
       "countAll": 4,
       "runs30": 2,
@@ -843,7 +843,7 @@
       "file": "visual-tests/tests/js-only/notification/rtl/notification-top-end.spec.ts",
       "line": null,
       "title": "js-only/notification/rtl/notification-top-end-1",
-      "count7": 2,
+      "count7": 1,
       "count30": 2,
       "countAll": 2,
       "runs30": 2,
