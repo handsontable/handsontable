@@ -130,7 +130,7 @@ Hooks.getSingleton().register('afterColumnSort');
  * Only one plugin can be enabled for Handsontable instance. Once one of them is enabled,
  * the other should remain disabled even if it's set to `true`.
  */
-const pluginConflictsState = new WeakMap();
+const pluginConflictsState = new WeakMap<object, string>();
 
 // DIFF - MultiColumnSorting & ColumnSorting: changed configuration documentation.
 /**
@@ -253,16 +253,19 @@ export class ColumnSorting extends BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin(): void {
-    if (
-      pluginConflictsState.has(this.hot) &&
-      pluginConflictsState.get(this.hot) !== this.pluginKey
-    ) {
-      this.hot.updateSettings({
-        [this.pluginKey]: false
-      });
-      warnAboutPluginsConflict(pluginConflictsState.get(this.hot), this.pluginKey);
+    const conflictingPluginKey = pluginConflictsState.get(this.hot);
 
-      return;
+    if (conflictingPluginKey !== undefined && conflictingPluginKey !== this.pluginKey) {
+      if (this.hot.getSettings()[conflictingPluginKey]) {
+        this.hot.updateSettings({
+          [this.pluginKey]: false
+        });
+        warnAboutPluginsConflict(conflictingPluginKey, this.pluginKey);
+
+        return;
+      }
+
+      this.hot.getPlugin(conflictingPluginKey)?.disablePlugin();
     }
 
     if (this.enabled) {
@@ -334,7 +337,9 @@ export class ColumnSorting extends BasePlugin {
       }
     };
 
-    pluginConflictsState.delete(this.hot);
+    if (pluginConflictsState.get(this.hot) === this.pluginKey) {
+      pluginConflictsState.delete(this.hot);
+    }
 
     // Changing header width and removing indicator.
     this.hot.addHook('afterGetColHeader', clearColHeader);

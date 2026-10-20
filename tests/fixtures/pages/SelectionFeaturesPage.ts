@@ -3,6 +3,11 @@ import type { CellValue, MoveCellsHookRecord } from './windowTypes';
 import { dragFillHandle } from '../gestures';
 import { awaitBundle } from '../bundle';
 
+/**
+ * The plugins the DEV-775 spec destroys on their own, ahead of the grid.
+ */
+type DestroyablePluginName = 'autofill' | 'comments' | 'filters' | 'autoColumnSize' | 'nestedHeaders';
+
 type Box = { x: number, y: number, width: number, height: number };
 
 /**
@@ -1401,6 +1406,107 @@ export class SelectionFeaturesPage {
     await this.page.evaluate(() => {
       window.hot.updateSettings({ fillHandle: window.hot.getSettings().fillHandle });
     });
+  }
+
+  /**
+   * Destroy one plugin instance on its own, ahead of the grid, with `getPlugin(name).destroy()`. A
+   * reference to a destroyed Autofill plugin is kept, so `tryCallDestroyedAutofill()` can call it.
+   */
+  async destroyPlugin(pluginName: DestroyablePluginName): Promise<void> {
+    await this.page.evaluate((name) => {
+      if (name === 'autofill') {
+        const plugin = window.hot.getPlugin('autofill');
+
+        window.destroyedAutofill = plugin;
+        plugin.destroy();
+      } else if (name === 'comments') {
+        window.hot.getPlugin('comments').destroy();
+      } else if (name === 'filters') {
+        window.hot.getPlugin('filters').destroy();
+      } else {
+        window.hot.getPlugin(name).destroy();
+      }
+    }, pluginName);
+  }
+
+  /**
+   * Call `updateSettings()` and report the message it threw, or `null` when it did not throw.
+   */
+  async tryUpdateSettings(settings: Record<string, unknown>): Promise<string | null> {
+    return this.page.evaluate((nextSettings) => {
+      try {
+        window.hot.updateSettings(nextSettings);
+
+        return null;
+      } catch (error) {
+        return (error as Error).message;
+      }
+    }, settings);
+  }
+
+  /**
+   * Call one lifecycle method on the Autofill plugin reference `destroyPlugin('autofill')` kept, and
+   * report the message it threw, or `null` when it did not throw. A missing reference is reported as
+   * a failure, so the call cannot pass without reaching the plugin.
+   */
+  async tryCallDestroyedAutofill(
+    method: 'enablePlugin' | 'disablePlugin' | 'updatePlugin'
+  ): Promise<string | null> {
+    return this.page.evaluate((methodName) => {
+      if (!window.destroyedAutofill) {
+        return 'no Autofill reference was kept';
+      }
+
+      try {
+        window.destroyedAutofill[methodName]();
+
+        return null;
+      } catch (error) {
+        return (error as Error).message;
+      }
+    }, method);
+  }
+
+  /**
+   * Destroy the whole grid and report what happened: the message the call threw (or `null`) and
+   * whether `afterDestroy` - the last step of the teardown - ran. The fixture's `hot` reference is
+   * dropped afterwards, so the next `initGrid()` does not destroy the same instance twice.
+   */
+  async tryDestroyGrid(): Promise<{ error: string | null, afterDestroyFired: boolean }> {
+    return this.page.evaluate(() => {
+      let afterDestroyFired = false;
+      let error: string | null = null;
+
+      window.hot.addHook('afterDestroy', () => {
+        afterDestroyFired = true;
+      });
+
+      try {
+        window.hot.destroy();
+      } catch (thrown) {
+        error = (thrown as Error).message;
+      }
+
+      Reflect.deleteProperty(window, 'hot');
+
+      return { error, afterDestroyFired };
+    });
+  }
+
+  /**
+   * Disable or re-enable the Autofill plugin directly, leaving the `fillHandle` setting as it is.
+   * No render is forced here: the plugin has to show or hide the fill handle on its own.
+   */
+  async setAutofillPluginEnabled(enabled: boolean): Promise<void> {
+    await this.page.evaluate((isEnabled) => {
+      const plugin = window.hot.getPlugin('autofill');
+
+      if (isEnabled) {
+        plugin.enablePlugin();
+      } else {
+        plugin.disablePlugin();
+      }
+    }, enabled);
   }
 
   /**

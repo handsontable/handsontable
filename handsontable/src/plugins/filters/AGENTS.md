@@ -283,6 +283,26 @@ captured when the plugin is enabled.
 
 `#onAfterDataProviderFetchError` skips the rollback when the hook's third argument, `isVisible`, is `false`: that failure belongs to a view the grid does not show, and importing `#dataProviderFilterRollbackStack` would replace the visible view's conditions while its rows stay filtered. When DataProvider's owner changes the view, DataProvider calls the internal `_resetDataProviderRollback()` (`@private`, not API; a no-op while this plugin is disabled) — after the change and again after replaying the arriving view's response — so the stack holds the arriving view's own conditions. Otherwise it is left by the last server filter action in ANY view, and a page-change failure on the arriving view imported the previous view's conditions. The reset sets `#previousConditionStack` to the conditions on screen too, because `#filterInternal` rebuilds the rollback stack from it at the start of every filter pass, and a switch between two unfiltered views runs no pass at all — without it, the first failed server filter on the arriving view rolled back to the previous view's conditions. This plugin never listens to an owner plugin's hooks; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if its source names the owner plugin or its hooks.
 
+## `_findInvalidConditions()` guards a restore, not the user's own calls
+
+`importConditions()` empties the collection first and throws on an entry it cannot take (an unregistered
+operation or condition name, two entries for one column with different operations, arguments an input
+decorator rejects such as `by_value` with a non-array), which leaves the grid with no conditions. A caller
+that holds input it did not build (the `ViewState` plugin's restore) asks the `@private`
+`_findInvalidConditions()` first. It answers with the path (`[2].conditions[0].args`) and the reason of the first
+entry it cannot take, or `null`. It binds every condition with `getCondition()` inside a `try`, because
+the decorator is where wrong arguments throw. The restore must ask the plugin rather than import
+`conditionRegisterer`/`logicalOperationRegisterer`: the engine is shared with SheetsBar, and a caller outside
+the Filters folder reading the registries is how a rename there breaks it silently.
+
+## The header listener outlives `disablePlugin()`, not `destroy()` (DEV-775)
+
+The constructor binds `afterGetColHeader` straight on the grid (`this.hot.addHook`), so the
+`htFiltersActive` marker keeps updating while the plugin is disabled. `destroy()` must remove it itself,
+first, while `hot` still exists: the callback starts with `this.hot.toPhysicalColumn()`, so a Filters
+instance destroyed ahead of the grid threw on the next header render. Pinned by
+`tests/e2e/plugin-destroy-update-settings.spec.ts`.
+
 ## Where to look next
 
 - Coordinate translation rules and `IndexMapper` usage: `coordinate-systems` skill and `handsontable/.ai/ARCHITECTURE.md`.

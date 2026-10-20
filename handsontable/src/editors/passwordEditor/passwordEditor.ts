@@ -1,4 +1,5 @@
 import { TextEditor } from '../textEditor';
+import { stringify } from '../../helpers/mixed';
 import { createInputElementResizer } from '../../utils/autoResize';
 import { empty } from '../../helpers/dom/element';
 import { A11Y_TABINDEX } from '../../helpers/a11y';
@@ -174,19 +175,21 @@ export class PasswordEditor extends TextEditor {
    * `open()` has set `#inRevealMode`, pre-populates `#realValue` so `open()` can mask it
    * immediately on display.
    *
-   * @param {string} [value] The value to set.
+   * @param {*} [value] The value to set.
    */
-  setValue(value?: string) {
+  setValue(value?: unknown): void {
+    const stringValue = stringify(value);
+
     if (this.#inRevealMode) {
-      this.#realValue = value ?? '';
+      this.#realValue = stringValue;
       const maskChar = String(this.cellProperties.hashSymbol || '*')[0];
 
       this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
     } else if ((this.cellProperties?.hashRevealDelay as number) > 0) {
       // setValue() called from beginEditing() before open() sets #inRevealMode.
-      this.#realValue = value ?? '';
+      this.#realValue = stringValue;
     } else {
-      super.setValue(value);
+      super.setValue(stringValue);
     }
   }
 

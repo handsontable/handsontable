@@ -119,6 +119,16 @@ re-hidden by hand. Full mechanics: `../undoRedo/AGENTS.md`.
   map).
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 
+## `_replaceHiddenRows()` addresses rows physically
+
+`showRows()` and `hideRows()` take visual indexes, and `isValidConfig()` rejects the whole list when one of
+them is `null`, which is what `toVisualRow()` returns for a row a filter, TrimRows or a collapsed NestedRows
+parent trims. So neither can show or hide such a row, and `showRows(getHiddenRows())` quietly does nothing
+while any hidden row is trimmed. The `@private` `_replaceHiddenRows(physicalRows)` takes the full set of
+hidden physical rows (anything outside the data is ignored), runs `beforeUnhideRows`/`beforeHideRows`
+and the two after hooks with the visual rows among the ones it touches, and changes nothing when a before
+hook returns `false`. The view-state restore uses it, so no other plugin writes into this one's hiding map.
+
 ## Testing
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='hiddenRows'`

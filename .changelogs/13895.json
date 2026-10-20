@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `onOpen` callback of `useHotEditor` and `EditorComponent` not receiving the event that opened the editor. `EditorComponent` now calls `onOpen` after the editor is positioned.",
+  "type": "fixed",
+  "issueOrPR": 13895,
+  "breaking": false,
+  "framework": "react"
+}
