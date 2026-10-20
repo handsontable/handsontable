@@ -383,7 +383,8 @@ import ExcelJS from 'exceljs';
 
         expect(ws.getRow(1).getCell(1).value).toBe(false);
         expect(ws.getRow(2).getCell(1).value).toBe(true);
-        expect(ws.getRow(3).getCell(1).value).toBeNull();
+        // `null` reads the same as the `''` template, so the grid draws it unchecked (DEV-355).
+        expect(ws.getRow(3).getCell(1).value).toBe(false);
       });
 
       it('should use a custom checkedTemplate to determine the boolean value', async() => {

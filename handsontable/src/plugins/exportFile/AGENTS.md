@@ -311,7 +311,11 @@ Other rules:
 - **An empty checkbox exports as an empty cell.** `#getCheckboxValue` returns `true` for
   `checkedTemplate`, `false` for `uncheckedTemplate`, `null` for an empty value (`isEmpty`: `null`,
   `undefined`, `''`) that matches neither — the renderer's `noValue` state — and `false` for anything
-  else. Checking `uncheckedTemplate` first is what keeps `uncheckedTemplate: ''` exporting `false`.
+  else. The templates are matched through `matchCheckboxTemplate` (`utils/checkboxColumn.ts`), the
+  renderer's own matcher since DEV-355, so a case variant such as `'TRUE'` counts, and with
+  `uncheckedTemplate: ''` a `null` reads the same as the template and exports `false`, as the renderer
+  draws it unchecked. Never compare the templates with `===` here again: the export would stop
+  following what the grid shows.
   Before this, an empty checkbox wrote `<c t="b"><v>0</v></c>` and re-imported as unchecked.
   Pinned by `xlsxCheckboxValue.unit.js`; the user-facing note is in section 38 of the 18.1 → 19.0
   migration guide, together with the frozen-pane change above.

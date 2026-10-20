@@ -229,10 +229,12 @@ describe('Xlsx checkbox values', () => {
     expect(cell.value).toBe(false);
   });
 
-  it('should export `null` as an empty cell when `uncheckedTemplate` is an empty string', async() => {
+  it('should export `null` as `false` when `uncheckedTemplate` is an empty string, as the renderer draws it', async() => {
+    // Since DEV-355 the renderer matches templates by their text, and `null` reads the same as `''`, so it
+    // draws an unchecked box, not the "no value" state; the export follows what the grid shows.
     const cell = await exportCheckbox(null, { checkedTemplate: 'yes', uncheckedTemplate: '' });
 
-    expect(cell.value).toBeNull();
+    expect(cell.value).toBe(false);
   });
 
   it('should export a non-empty value matching neither template as `false`', async() => {

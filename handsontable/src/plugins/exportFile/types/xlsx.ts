@@ -914,9 +914,11 @@ class Xlsx extends BaseType {
    *
    * A value matching `checkedTemplate` exports as `true` and one matching `uncheckedTemplate` as
    * `false`, matched the way the checkbox renderer matches them (`matchCheckboxTemplate`, so a case
-   * variant such as `'TRUE'` counts). An empty value (`null`, `undefined` or `''`) that matches neither template exports as
-   * an empty cell, the same as the checkbox renderer's "no value" state, so a round trip does not
-   * turn it into an unchecked box. Any other value keeps exporting as `false`.
+   * variant such as `'TRUE'` counts). An empty value (`null`, `undefined` or `''`) that matches
+   * neither template exports as an empty cell, the same as the checkbox renderer's "no value" state,
+   * so a round trip does not turn it into an unchecked box. Any other value keeps exporting as
+   * `false`. With `uncheckedTemplate: ''`, `null` reads the same as the template, so the renderer draws
+   * it unchecked and the export writes `false`.
    *
    * @param {*} value Raw cell value.
    * @param {object} meta Cell meta object.

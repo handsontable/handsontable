@@ -1980,7 +1980,9 @@ byte.
 What changed: in 18.1, a `checkbox` cell with no value (`null`, `undefined`, or `''`) exported as
 `FALSE`. It now exports as an empty cell, the same "no value" state the grid shows, so a round trip
 does not turn it into an unchecked box. A value that matches `checkedTemplate` still exports as
-`TRUE`, and one that matches `uncheckedTemplate` still exports as `FALSE`.
+`TRUE`, and one that matches `uncheckedTemplate` still exports as `FALSE`. A value matches a template
+the way the grid matches it, ignoring letter case, so with `uncheckedTemplate: ''` an empty value is
+drawn unchecked and exports as `FALSE`.
 
 What to do: if a consumer of the file expects `TRUE` or `FALSE` in every checkbox cell, fill the
 empty cells with your `uncheckedTemplate` value (`false` by default) before you export. If your
