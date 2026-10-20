@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-20T09:05:24.594Z",
+  "generatedAt": "2026-10-20T09:16:21.478Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -536,7 +536,7 @@
       "file": "e2e/fixed-columns-end-core.spec.ts",
       "line": 60,
       "title": "fixedColumnsEnd editor rectangle (rtl) › puts the editor on the cell in the end column, the top corner and the bottom corner",
-      "count7": 2,
+      "count7": 1,
       "count30": 5,
       "countAll": 5,
       "runs30": 3,
