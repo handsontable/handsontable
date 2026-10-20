@@ -452,6 +452,11 @@ export default function Core(
   // closure, not on the instance, because `destroy` nulls every instance property before it runs.
   const operationScope = new OperationScope();
   /**
+   * The number of changes waiting for their validators to answer before they are applied
+   * (`validateAndApplyChanges`).
+   */
+  let pendingValidatedChanges = 0;
+  /**
    * Watches the root wrapper's edge slots for a height change (a bar that mounts after init, wraps
    * after a locale switch, or grows a horizontal scrollbar once its width is clamped). A slot's
    * height feeds two things nothing else observes: the pixel `height` core writes on the root, and
@@ -3717,17 +3722,27 @@ export default function Core(
    */
   function validateAndApplyChanges(changes: CellChange[], source: string | undefined) {
     const hold = operationScope.hold();
+    let settled = false;
+    const settle = () => {
+      if (!settled) {
+        settled = true;
+        pendingValidatedChanges -= 1;
+        hold.release();
+      }
+    };
+
+    pendingValidatedChanges += 1;
 
     try {
       validateChanges(changes, source, () => {
         try {
           hold.resume(() => applyChanges(changes, source));
         } finally {
-          hold.release();
+          settle();
         }
       });
     } catch (error) {
-      hold.release();
+      settle();
       throw error;
     }
   }
@@ -4619,6 +4634,20 @@ export default function Core(
    */
   this._getOperationScope = function() {
     return operationScope;
+  };
+
+  /**
+   * Tells whether a change made through {@link Core#setDataAtCell} or an editor is still waiting for its
+   * validators to answer. Such a change is applied to the data the grid holds when the last validator
+   * answers, so anything that replaces the grid's data must not run in the meantime.
+   *
+   * @private
+   * @memberof Core#
+   * @function _hasPendingValidation
+   * @returns {boolean}
+   */
+  this._hasPendingValidation = function() {
+    return pendingValidatedChanges > 0;
   };
 
   /**

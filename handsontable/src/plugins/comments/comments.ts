@@ -1259,6 +1259,23 @@ export class Comments extends BasePlugin {
   }
 
   /**
+   * Saves the open editor's text as the comment of its cell, the way leaving the editor does, and
+   * closes the editor. The sheets bar calls it before a switch captures the departing sheet: an
+   * editor opened through the API is not blurred by a switch made through the API, so it stayed
+   * over the arriving sheet and saved its text into that sheet's cell.
+   *
+   * @private
+   */
+  _saveAndCloseEditor(): void {
+    if (!this.#editor?.isVisible() || !this.range.from) {
+      return;
+    }
+
+    this.#saveEditorComment();
+    this.#closeEditorWithoutSave();
+  }
+
+  /**
    * Add Comments plugin options to the Context Menu.
    *
    * @private

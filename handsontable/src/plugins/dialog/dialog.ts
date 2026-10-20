@@ -385,6 +385,23 @@ export class Dialog extends BasePlugin {
   }
 
   /**
+   * Takes the selection the grid shows now as the one to restore when the dialog hides, and clears it
+   * from the grid while the dialog stays open. The sheets bar calls it after a switch made under an
+   * open dialog: the selection stashed when the dialog opened belongs to the sheet that was left, and
+   * restoring it put that sheet's cells onto the arriving one.
+   *
+   * @private
+   */
+  _adoptViewSelection(): void {
+    if (!this.isVisible()) {
+      return;
+    }
+
+    this.#selectionState = this.hot.selection.exportSelection();
+    this.hot.deselectCell();
+  }
+
+  /**
    * Hide the currently open dialog.
    * Closes the dialog and restores the focus to the table.
    */
