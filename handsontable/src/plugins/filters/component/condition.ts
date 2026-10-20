@@ -256,7 +256,7 @@ export class ConditionComponent extends BaseComponent {
       const filters = this.hot.getPlugin('filters');
 
       this.#columnType = filters._getColumnDataType(visualIndex);
-      items = filters._getConditionOptions(visualIndex);
+      items = filters._getConditionOptions(visualIndex, this.#columnType);
     }
 
     arrayEach(this.getInputElements(), element => element.hide());

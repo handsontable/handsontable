@@ -5,7 +5,13 @@ import { DropdownMenu } from '../../dropdownMenu';
 import { ManualColumnMove } from '../../manualColumnMove';
 import { AutoColumnSize } from '../../autoColumnSize';
 import { HiddenRows } from '../../hiddenRows';
-import { registerCellType, CheckboxCellType, DateCellType, NumericCellType } from '../../../cellTypes';
+import {
+  registerCellType,
+  CheckboxCellType,
+  DateCellType,
+  IntlDateCellType,
+  NumericCellType,
+} from '../../../cellTypes';
 import { SEPARATOR } from '../../contextMenu/predefinedItems';
 
 describe('Filters#getAvailableConditions', () => {
@@ -21,6 +27,7 @@ describe('Filters#getAvailableConditions', () => {
     registerCellType(CheckboxCellType);
     registerCellType(NumericCellType);
     registerCellType(DateCellType);
+    registerCellType(IntlDateCellType);
   });
 
   beforeEach(() => {
@@ -79,6 +86,19 @@ describe('Filters#getAvailableConditions', () => {
     expect(names(filters.getAvailableConditions(2))).toEqual([
       'empty', 'not_empty', 'eq', 'neq', 'date_before', 'date_before_or_equal', 'date_after',
       'date_after_or_equal', 'between', 'date_tomorrow', 'date_today', 'date_yesterday',
+    ]);
+  });
+
+  it('lists the conditions of an intl-date column', () => {
+    const filters = createGrid({
+      data: [['2026-01-02', 1, '2026-01-02'], ['2026-03-04', 2, '2026-03-04']],
+      columns: [{ type: 'intl-date' }, { type: 'numeric' }, { type: 'date' }],
+    });
+
+    expect(names(filters.getAvailableConditions(0))).toEqual([
+      'empty', 'not_empty', 'eq', 'neq', 'intl_date_before', 'intl_date_before_or_equal', 'intl_date_after',
+      'intl_date_after_or_equal', 'intl_date_between', 'intl_date_tomorrow', 'intl_date_today',
+      'intl_date_yesterday',
     ]);
   });
 
@@ -145,7 +165,8 @@ describe('Filters#getAvailableConditions', () => {
     expect(names(filters.getAvailableConditions(0))).toEqual(['neq']);
   });
 
-  it('returns the menu list without separators and the "none" placeholder', () => {
+  // The rendered menu is compared with the setting in tests/e2e/filters-available-conditions.spec.ts.
+  it('drops the separators and the "none" placeholder from the shared condition list', () => {
     const filters = createGrid({ filters: { availableConditions: { exclude: ['eq'] } } });
 
     [0, 1, 2].forEach((column) => {

@@ -1609,6 +1609,7 @@ export class Filters extends BasePlugin {
 
     const columnCount = this.hot.columnIndexMapper.getNumberOfIndexes();
     const operations = new Map<unknown, unknown>();
+    const offeredByColumn = new Map<number, Set<string>>();
 
     for (let index = 0; index < conditions.length; index++) {
       const entry = conditions[index] as Partial<ColumnConditions> | null;
@@ -1644,7 +1645,7 @@ export class Filters extends BasePlugin {
       }
 
       const problem = this.#findInvalidCondition(entry.conditions as unknown[]) ??
-        this.#findUnavailableCondition(entry.conditions as ConditionId[], entry.column as number);
+        this.#findUnavailableCondition(entry.conditions as ConditionId[], entry.column as number, offeredByColumn);
 
       if (problem) {
         return { path: `${at}.conditions${problem.path}`, message: problem.message };
@@ -1691,17 +1692,19 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Finds the first condition of one column entry that the column does not offer, see
-   * {@link Filters#getAvailableConditions}. Only the names of the stock menu lists are checked: `by_value`
-   * and the other conditions no list carries are left alone, so a captured value filter stays valid.
+   * Finds the first condition of one column entry that the column cannot offer. Only the names of the
+   * stock menu lists are checked: `by_value` and the other conditions no list carries are left alone, so
+   * a captured value filter stays valid.
    *
    * @param {Array} conditions The conditions of one column, already checked by `#findInvalidCondition()`.
    * @param {number} physicalColumn The physical column index of the entry.
+   * @param {Map} offeredByColumn The names already resolved in this check, by physical column.
    * @returns {{ path: string, message: string } | null}
    */
   #findUnavailableCondition(
     conditions: ConditionId[],
     physicalColumn: number,
+    offeredByColumn: Map<number, Set<string>>,
   ): { path: string, message: string } | null {
     const isListed = ({ name }: ConditionId) => name !== CONDITION_NONE && KNOWN_CONDITION_NAMES.has(name);
     const visualColumn = conditions.some(isListed) ? this.hot.toVisualColumn(physicalColumn) : null;
@@ -1710,19 +1713,71 @@ export class Filters extends BasePlugin {
       return null;
     }
 
-    const offered = this.getAvailableConditions(visualColumn).map(({ name }) => name);
-    const index = conditions.findIndex(condition => isListed(condition) && !offered.includes(condition.name));
+    if (!offeredByColumn.has(physicalColumn)) {
+      offeredByColumn.set(physicalColumn, this.#getOfferableConditionNames(physicalColumn, visualColumn));
+    }
+
+    const offered = offeredByColumn.get(physicalColumn) as Set<string>;
+    const index = conditions.findIndex(condition => isListed(condition) && !offered.has(condition.name));
 
     if (index === -1) {
       return null;
     }
 
-    const offers = offered.length > 0 ? `which offers: ${offered.join(', ')}` : 'which offers no conditions';
+    const offers = offered.size > 0 ? `which offers: ${[...offered].join(', ')}` : 'which offers no conditions';
 
     return {
       path: `[${index}].name`,
       message: `${conditions[index].name} is not available on column ${physicalColumn}, ${offers}`,
     };
+  }
+
+  /**
+   * Gets every condition name the column's menu can offer, whatever rows a filter trims at the time.
+   *
+   * The menu reads the column's type from the rows on screen (`_getColumnDataType()`),
+   * so a state captured while a filter hid every row of another type names a condition of the
+   * remaining type. The check therefore reads the type of every physical row: one type gives that
+   * type's list, several types give the lists of each of them plus the `text` list a mixed column
+   * uses. Checking against the rows on screen instead refused states the grid's own menu produced.
+   *
+   * @param {number} physicalColumn The physical column index.
+   * @param {number} visualColumn The visual column index.
+   * @returns {Set<string>}
+   */
+  #getOfferableConditionNames(physicalColumn: number, visualColumn: number): Set<string> {
+    const metaManager = this.hot._getMetaManager();
+    const rowsCount = this.hot.rowIndexMapper.getNumberOfIndexes();
+    const types = new Set<string>();
+
+    for (let physicalRow = 0; physicalRow < rowsCount; physicalRow++) {
+      const { type } = metaManager.getCellMetaTransient(physicalRow, physicalColumn, {
+        visualRow: this.hot.toVisualRow(physicalRow) ?? physicalRow,
+        visualColumn,
+      });
+
+      types.add(typeof type === 'string' ? type : 'mixed');
+    }
+
+    if (types.size === 0) {
+      types.add(this._getColumnDataType(visualColumn));
+
+    } else if (types.size > 1) {
+      types.add('mixed');
+    }
+
+    const setting = this._getAvailableConditionsSetting(visualColumn);
+    const names = new Set<string>();
+
+    types.forEach((type) => {
+      getOptionsList(type, setting).forEach(({ key }) => {
+        if (typeof key === 'string' && key !== CONDITION_NONE) {
+          names.add(key);
+        }
+      });
+    });
+
+    return names;
   }
 
   /**
@@ -1779,10 +1834,14 @@ export class Filters extends BasePlugin {
    * `intl-datetime`, where any other type and a column whose cells have different types use the `text` list)
    * and the [`availableConditions`](@/api/options.md#filters) setting that applies to the column. It is the
    * list the column's menu shows, without the separators and without the "None" entry, which clears a filter
-   * rather than adding one. Use it to build valid conditions for {@link Filters#addCondition} or
-   * {@link Filters#importConditions}, for example in a custom filter form.
+   * rather than adding one. Like the menu, it reads the data type from the rows on screen, so in a column
+   * whose cells have different types the answer can change when a filter hides rows. A column with
+   * `filters: false` still gets its list, because that setting hides the menu but not the filter.
    *
-   * The "Filter by value" condition (`by_value`) is not in the list, because it is not a menu entry.
+   * Use it to build valid conditions for {@link Filters#addCondition}, for example in a custom filter form.
+   * The entries that {@link Filters#importConditions} takes name physical columns, so convert the index
+   * with {@link Core#toPhysicalColumn} there. The "Filter by value" condition (`by_value`) is not in the
+   * list, because it is not a menu entry.
    *
    * @example
    * ```js
@@ -2634,8 +2693,8 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Gets the data type of the whole column, read from every row's cell meta. A column whose cells have
-   * different types is `'mixed'`.
+   * Gets the data type of the column, read from the cell meta of the rows on screen, so a row a filter
+   * trims does not count. A column whose cells have different types is `'mixed'`.
    *
    * @private
    * @param {number} column Visual column index.
@@ -2652,10 +2711,11 @@ export class Filters extends BasePlugin {
    *
    * @private
    * @param {number} column Visual column index.
+   * @param {string} [dataType] The column's data type, when the caller has already read it.
    * @returns {object[]}
    */
-  _getConditionOptions(column: number): Record<string, unknown>[] {
-    return getOptionsList(this._getColumnDataType(column), this._getAvailableConditionsSetting(column));
+  _getConditionOptions(column: number, dataType = this._getColumnDataType(column)): Record<string, unknown>[] {
+    return getOptionsList(dataType, this._getAvailableConditionsSetting(column));
   }
 
   /**

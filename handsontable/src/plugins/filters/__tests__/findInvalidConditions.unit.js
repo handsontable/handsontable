@@ -99,6 +99,27 @@ describe('Filters#_findInvalidConditions', () => {
       .path).toBe('[0].conditions[0].name');
   });
 
+  it('accepts a condition the menu offered while a filter hid the rows of another type', () => {
+    hot.updateSettings({ cells: (row, column) => (row === 0 && column === 0 ? { type: 'numeric' } : {}) });
+    filters = hot.getPlugin('filters');
+    filters.addCondition(1, 'eq', ['b']);
+    filters.filter();
+
+    expect(filters.getAvailableConditions(0).map(({ name }) => name)).toContain('gt');
+
+    filters.addCondition(0, 'gt', [0]);
+
+    const state = filters.exportConditions();
+
+    filters.clearConditions();
+    filters.filter();
+
+    expect(filters.getAvailableConditions(0).map(({ name }) => name)).not.toContain('gt');
+    expect(filters._findInvalidConditions(state)).toBeNull();
+    expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'date_today', args: [] }] })]).path)
+      .toBe('[0].conditions[0].name');
+  });
+
   it('follows the availableConditions setting', () => {
     hot.updateSettings({ filters: { availableConditions: { exclude: ['contains'] } } });
     filters = hot.getPlugin('filters');

@@ -677,6 +677,8 @@ A few rules apply to every shape:
 - The setting changes the lists only. A condition you add with
   [`addCondition()`](@/api/filters.md#addcondition) still filters, even if the list does not offer
   it, and the column's menu still shows it as the selected condition.
+  A [view state](@/guides/getting-started/view-state/view-state.md) that carries such a condition
+  does not restore its filters, because the restore checks every condition against the column.
 - A column whose own `availableConditions` is `undefined` uses the grid-level value.
 
 Handsontable logs a console warning when the grid is created, and when you change the setting, for
@@ -786,6 +788,9 @@ The method takes a visual column index, like [`addCondition()`](@/api/filters.md
 follows the column's data type and the `availableConditions` setting that applies to the column. The
 list leaves out **None** and the separators, and it does not include the **Filter by value**
 condition (`by_value`).
+
+Like the menu, the method reads the data type from the rows on screen. In a column whose cells have
+different types, the list can change when a filter hides rows.
 
 ## Change the order of values in the filter list
 
