@@ -1989,6 +1989,27 @@ describe('ViewState plugin', () => {
       expect(target.getPlugin('manualColumnResize').getManualSizes()).toEqual(state.columnWidths);
     });
 
+    it('names a trimmed column by property in the widths when a columns array declares it', () => {
+      const hot = createBoundGrid();
+
+      hot.columnIndexMapper.createAndRegisterIndexMap('test', 'trimming', false).setValueAtIndex(1, true);
+
+      const result = vs(hot).setViewState({ version: 1, columnWidths: [['name', 90]] }, { atomic: true });
+
+      expect(result.skipped).toEqual([]);
+      expect(hot.getPlugin('manualColumnResize').getManualSizes()).toEqual([[1, 90]]);
+    });
+
+    it('reports a trimmed column named by property in the widths when the grid has no columns array', () => {
+      const hot = createBoundGrid({ columns: undefined });
+
+      hot.columnIndexMapper.createAndRegisterIndexMap('test', 'trimming', false).setValueAtIndex(1, true);
+
+      expect(brief(vs(hot).validateViewState({ version: 1, columnWidths: [['name', 90]] }).skipped))
+        .toEqual([{ part: 'columnWidths', reason: 'outOfRange' }]);
+      expect(brief(vs(hot).validateViewState({ version: 1, columnWidths: [[1, 90]] }).skipped)).toEqual([]);
+    });
+
     it('names a column by property in the widths even past maxCols, as the index form does', () => {
       const hot = createBoundGrid({ maxCols: 2 });
 

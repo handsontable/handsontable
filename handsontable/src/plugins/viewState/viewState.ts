@@ -138,9 +138,10 @@ export class ViewState extends BasePlugin {
    * property its data is bound to, for example `{ column: 'amount', sortOrder: 'desc' }` or
    * `hiddenColumns: ['address.city']`. A property no column has is reported as `invalid`, and a property
    * of a column the grid does not show (a trimming map removed it, or it lies past `maxCols`) as
-   * `outOfRange`, the same answer as for the column's index (not in `columnWidths`, which keeps a width
-   * for every column). The check reads the column order the grid has now, so a sort column that the
-   * same state's `columnOrder` brings in under `maxCols` is `outOfRange` too. A property that two columns share names the
+   * `outOfRange`, the same answer as for the column's index. `columnWidths` keeps a width for every
+   * column, so there only a trimmed column named by property on a grid without a `columns` option is
+   * `outOfRange`. The check reads the column order the grid has now, so a sort column that the same
+   * state's `columnOrder` brings in under `maxCols` is `outOfRange` too. A property that two columns share names the
    * last of them. A string is always read as a property, so `'2'` from a URL is not the index `2`.
    * `getViewState()` always reports physical indexes.
    * The sort columns are physical too, unlike the visual ones that `getSortConfig()` of the sorting

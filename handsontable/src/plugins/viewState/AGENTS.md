@@ -80,9 +80,11 @@ any of them.
   (`propToCol()`, then `toPhysicalColumn()`) before any other check, so the checks, the duplicate test
   and the Filters validation see indexes only. An unknown property is `invalid` at its own path
   (`propToCol()` hands it back unchanged); a property of a trimmed column is `outOfRange`, as the same
-  column named by its index is (`propToCol()` answers `null`), and so is a property a `columns` array
-  declares past `maxCols` (`isDeclaredColumn()`: the grid builds no such column, so `propToCol()` does not
-  know it; `columnWidths` resolves such a property to its declared index instead). A string is always a
+  column named by its index is (`propToCol()` answers `null`; not in `columnWidths`, see below), and so is a
+  property a `columns` array declares past `maxCols` (`declaredColumnIndex()`, which returns the index or `-1`: the grid builds no such column, so `propToCol()` does not
+  know it; `columnWidths` resolves such a property to its declared index instead, a trimmed column's included; a
+  trimmed column on a grid without a `columns` array has no physical index to find by property, so it stays
+  `outOfRange` there, as no public lookup answers for it). A string is always a
   property, `'2'` included.
 - **The column widths skip the shown-column check on purpose.** `setManualSizes()` stores a width by physical
   index for every column the mapper has, so a width past `maxCols` or on a trimmed column restores, and

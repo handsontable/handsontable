@@ -817,7 +817,11 @@ function resolveColumnKey(hot: HotInstance, key: string, path: string, shown: bo
   const column = hot.propToCol(key);
 
   if (column === null) {
-    return fail('outOfRange', path, `${path} is '${key}', a column the grid does not show`);
+    // A trimmed column has no visual index. Where a `columns` array declares it, the widths still find it.
+    const declared = shown ? -1 : declaredColumnIndex(hot, key);
+
+    return declared === -1 ?
+      fail('outOfRange', path, `${path} is '${key}', a column the grid does not show`) : declared;
   }
 
   if (!isInteger(column)) {
