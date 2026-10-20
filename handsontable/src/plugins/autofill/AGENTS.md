@@ -59,18 +59,36 @@ every range: there is no defined way to extend several disjoint ranges at once. 
 ## Copy-down extent (DEV-859)
 
 How far a double-click fills is `getCopyDownEndRow()` in `utils.ts`, a pure helper that
-`getIndexOfLastAdjacentFilledInRow()` feeds with `hot.getData()` (visual, trimmed rows excluded). Walking
-down from the row below the selection, it stops ABOVE the first row where any selected column already
-holds a value, and AT the first row where both neighbor columns (left of the first, right of the last
-selected column) are empty. Spreadsheet applications behave the same way.
+`getIndexOfLastAdjacentFilledInRow()` feeds with three readers (`CopyDownCellReaders`). The fill follows
+ONE guide column: the left neighbor of the first selected column, or the right neighbor of the last one
+when the left is empty in the first visible row below the selection. Walking down, it stops ABOVE the
+first row where any selected column already holds a value, and AT the first visible row where the guide
+column is empty. Spreadsheet applications behave the same way.
 
 Before DEV-859 the walk gave up entirely (`-1`) when a value appeared anywhere below in the filled column,
-and it remembered the LAST row with a neighbor value, so it filled straight across gaps. The guide
-documented that old rule, and the guide was changed with the code. "Either neighbor" is deliberate: a row
-continues while the left OR the right neighbor has a value, which keeps a selection in the middle of a
-table working from whichever side has data. The method keeps its `-1` contract for "nothing to fill",
-because `selectAdjacent()` tests for it. Pinned by `__tests__/utils.unit.ts` and
-`tests/e2e/fill-handle-double-click.spec.ts`.
+and it remembered the LAST row with a value in EITHER neighbor, so it filled straight across gaps. The
+guide documented that old rule and was changed with the code. A first version of the fix kept "either
+neighbor" per row; review (PR #13906) showed a spreadsheet follows one column, so a right column that runs
+longer than the left one no longer extends the fill. The method keeps its `-1` contract for "nothing to
+fill", because `selectAdjacent()` tests for it.
+
+Four traps, each a regression the first version of the fix shipped:
+
+- **Read stored values, never `getData()`.** With Formulas, `getData()` returns computed values, so a
+  formula that evaluates to `""` reads as empty: it ended the fill as a neighbor and was overwritten in the
+  filled column. The readers use `getSourceDataAtCell(toPhysicalRow(row), column)` (physical row, visual
+  column, the same as `canFillCell()`), one cell at a time, which also avoids copying the whole grid.
+- **A merged area empties the cells it covers** (MergeCells writes `null` there). The guide reader
+  resolves a covered cell to its area's first cell through `mergedCellsCollection.get()`. The filled-column
+  reader does NOT, so MergeCells can still refuse a fill that would cut an area
+  (`tests/e2e/fill-handle-merged-cells.spec.ts`).
+- **`getData()` and the walk include hidden rows** (HiddenRows hides, it does not trim). A hidden row is
+  skipped for the guide test, so a row the user cannot see never ends the fill, and it is never counted as
+  the last filled row. A value in a hidden row of the filled column still stops the fill.
+- **The guide column is chosen in the first VISIBLE row below the selection**, so a hidden row there
+  cannot pick the wrong side.
+
+Pinned by `__tests__/utils.unit.ts` and `tests/e2e/fill-handle-double-click.spec.ts`.
 
 ## Three hooks it registers on the singleton
 

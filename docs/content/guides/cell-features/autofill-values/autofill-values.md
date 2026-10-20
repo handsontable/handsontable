@@ -39,14 +39,20 @@ You can also **double-click the fill handle** to autofill downward without dragg
 
 ### How double-click autofill determines the range
 
-Handsontable scans the rows below your selection, one row at a time, and fills down as long as the column immediately to the left or right of your selection contains a value. In the example below, the Name column acts as the guide -- the rows with row headers 4 and 5 have values there, so the fill copies the selected values through both rows.
+Handsontable follows one guide column: the column immediately to the left of your selection, or the column to its right if the left one is empty in the first row below your selection. It scans the rows below your selection, one row at a time, and fills down as long as the guide column contains a value. In the example below, the Name column acts as the guide -- the rows with row headers 4 and 5 have values there, so the fill copies the selected values through both rows.
 
 The fill stops at the first row where either of these is true:
 
 - **A cell in the filled column(s) already contains data.** The fill stops above that row, so double-clicking never overwrites existing values.
-- **Both adjacent columns are empty.** A gap in the adjacent data ends the fill, even if more values follow further down.
+- **The guide column is empty.** A gap in the guide column ends the fill, even if more values follow further down.
 
 If the first row below your selection meets one of these conditions, double-clicking does nothing.
+
+A few cells count differently from what they display:
+
+- A formula counts as data, even if it evaluates to an empty string.
+- A merged cell in the guide column counts as one value across all the rows it spans.
+- A hidden row never ends the fill. A value in a hidden row of the filled column still stops the fill above it.
 
 **Visual difference from drag-fill:** When you drag the fill handle, a preview border shows the target range as you drag. When you double-click, no drag-preview appears -- the cells populate immediately based on the adjacent column data.
 

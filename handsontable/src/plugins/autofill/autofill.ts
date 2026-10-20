@@ -650,8 +650,12 @@ export class Autofill extends BasePlugin {
 
   /**
    * Get index of last adjacent filled in row – the last row a double-click on the fill handle fills.
-   * The walk itself is `getCopyDownEndRow()` in `utils.ts`: it stops above the first row that already
-   * holds a value in a selected column, and at the first row where both neighboring columns are empty.
+   * The walk itself is `getCopyDownEndRow()` in `utils.ts`: it follows one guide column (the left
+   * neighbor, else the right one), stops above the first row that already holds a value in a selected
+   * column, and at the first visible row where the guide column is empty.
+   *
+   * Cells are read one at a time, as stored values, so a formula counts as a value even when it
+   * evaluates to an empty string. A guide cell covered by a merged area reads its area's value.
    *
    * @private
    * @param {Array} cornersOfSelectedCells Indexes of selection corners.
@@ -659,10 +663,23 @@ export class Autofill extends BasePlugin {
    *                   Or -1 when selection adjacent can't be applied.
    */
   getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells: number[]) {
-    const data = this.hot.getData();
     const [, startColumn, endRow, endColumn] = cornersOfSelectedCells;
+    const columnCount = this.hot.countCols();
+    const isStoredValueEmpty = (row: number, column: number) => column < 0 || column >= columnCount ||
+      isEmpty(this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(row), column));
+    const mergeCells = this.hot.getPlugin('mergeCells');
     const lastRow = getCopyDownEndRow(
-      (row, column) => isEmpty(data[row]?.[column]),
+      {
+        isFilledColumnEmpty: isStoredValueEmpty,
+        isGuideColumnEmpty: (row, column) => {
+          const mergedArea = mergeCells?.enabled ? mergeCells.mergedCellsCollection.get(row, column) : false;
+
+          return mergedArea
+            ? isStoredValueEmpty(mergedArea.row, mergedArea.col)
+            : isStoredValueEmpty(row, column);
+        },
+        isRowHidden: row => this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)),
+      },
       { endRow, startColumn, endColumn },
       this.hot.countRows(),
     );

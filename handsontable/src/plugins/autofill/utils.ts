@@ -161,34 +161,65 @@ export function countCellsPastEdge(pixelsPastEdge: number, cellSize: number): nu
 }
 
 /**
+ * The cell reads a copy-down needs, by visual row and column.
+ */
+export interface CopyDownCellReaders {
+  /**
+   * Tells whether a cell of a selected column is empty, so the fill may write into it.
+   */
+  isFilledColumnEmpty(row: number, column: number): boolean;
+  /**
+   * Tells whether a cell of a neighboring column is empty. It must answer `true` for a column outside
+   * the grid (the neighbor of the first or last column).
+   */
+  isGuideColumnEmpty(row: number, column: number): boolean;
+  /**
+   * Tells whether a row is hidden. A hidden row never ends the fill.
+   */
+  isRowHidden(row: number): boolean;
+}
+
+/**
  * Finds the last row a copy-down (a double-click on the fill handle) fills below a selection, the
- * way spreadsheet applications do (DEV-859). Walking down from the row below the selection, the fill
- * stops above the first row where any selected column already holds a value, so nothing is
- * overwritten, and at the first row where both neighboring columns are empty, so a gap in the
- * neighboring data ends the fill.
+ * way spreadsheet applications do (DEV-859).
  *
- * @param {Function} isCellEmpty Tells whether a cell, by visual row and column, is empty. It must
- * answer `true` for a column outside the grid (the neighbor of the first or last column).
+ * The fill follows one guide column: the column to the left of the selection, or the column to its
+ * right when the left one is empty in the first visible row below the selection. Walking down from
+ * the row below the selection, the fill stops above the first row where any selected column already
+ * holds a value, so nothing is overwritten, and at the first visible row where the guide column is
+ * empty. A hidden row never ends the fill, but a value in it still stops the fill above it.
+ *
+ * @param {CopyDownCellReaders} readers The cell reads.
  * @param {object} selection The selection's last row and its first and last column, as visual indexes.
  * @param {number} rowCount The number of rows in the grid.
  * @returns {number|null} The visual index of the last row to fill, or `null` when there is nothing to fill.
  */
 export function getCopyDownEndRow(
-  isCellEmpty: (row: number, column: number) => boolean,
+  readers: CopyDownCellReaders,
   selection: { endRow: number; startColumn: number; endColumn: number },
   rowCount: number,
 ): number | null {
   const { endRow, startColumn, endColumn } = selection;
+  const { isFilledColumnEmpty, isGuideColumnEmpty, isRowHidden } = readers;
+  let guideColumn: number | null = null;
   let lastRow: number | null = null;
 
   for (let row = endRow + 1; row < rowCount; row++) {
     for (let column = startColumn; column <= endColumn; column++) {
-      if (!isCellEmpty(row, column)) {
+      if (!isFilledColumnEmpty(row, column)) {
         return lastRow;
       }
     }
 
-    if (isCellEmpty(row, startColumn - 1) && isCellEmpty(row, endColumn + 1)) {
+    if (isRowHidden(row)) {
+      continue;
+    }
+
+    if (guideColumn === null) {
+      guideColumn = isGuideColumnEmpty(row, startColumn - 1) ? endColumn + 1 : startColumn - 1;
+    }
+
+    if (isGuideColumnEmpty(row, guideColumn)) {
       return lastRow;
     }
 
