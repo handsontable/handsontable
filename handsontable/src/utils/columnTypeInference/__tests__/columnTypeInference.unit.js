@@ -8,6 +8,8 @@ import {
 import { numericValidator } from '../../../validators/numericValidator/numericValidator';
 import { dropdownValidator } from '../../../validators/dropdownValidator/dropdownValidator';
 import { resolveLocale } from '../locale';
+import { DETECTORS, getDetectors } from '../detectors';
+import { compileDateFormat } from '../values';
 
 /**
  * Builds array-of-arrays data from one value list per column.
@@ -1226,6 +1228,455 @@ describe('inferColumnTypes', () => {
     });
   });
 
+  describe('sampling', () => {
+    /**
+     * Builds rows whose only cell is the row index as text, so the sampled rows can be read back
+     * from `stats.examples`.
+     * @param {number} count
+     */
+    function indexRows(count) {
+      return Array.from({ length: count }, (_, index) => [String(index)]);
+    }
+
+    /**
+     * Returns the row indexes a sampling reads, in the order it reads them.
+     * @param {Array} rows
+     * @param {object} options
+     */
+    function sampledIndexes(rows, options) {
+      const [column] = inferColumnTypes(rows, { ...options, stats: { examples: Infinity } }).columns;
+
+      return column.stats.examples.map(Number);
+    }
+
+    it('reads the first rows by default and with sampling: head', () => {
+      const rows = indexRows(10);
+
+      expect(sampledIndexes(rows, { sampleSize: 4 })).toEqual([0, 1, 2, 3]);
+      expect(sampledIndexes(rows, { sampleSize: 4, sampling: 'head' })).toEqual([0, 1, 2, 3]);
+      expect(inferColumnTypes(rows, { sampleSize: 4, sampling: 'head' }))
+        .toEqual(inferColumnTypes(rows, { sampleSize: 4 }));
+    });
+
+    it('reads evenly spaced rows with sampling: spread, the first and the last included', () => {
+      expect(sampledIndexes(indexRows(10), { sampleSize: 4, sampling: 'spread' })).toEqual([0, 3, 6, 9]);
+      expect(sampledIndexes(indexRows(100), { sampleSize: 3, sampling: 'spread' })).toEqual([0, 49, 99]);
+      expect(sampledIndexes(indexRows(7), { sampleSize: 2, sampling: 'spread' })).toEqual([0, 6]);
+    });
+
+    it('reads every row when sampleSize covers the data, and the first row for a sampleSize of 1', () => {
+      expect(sampledIndexes(indexRows(5), { sampleSize: 5, sampling: 'spread' })).toEqual([0, 1, 2, 3, 4]);
+      expect(sampledIndexes(indexRows(5), { sampleSize: 50, sampling: 'spread' })).toEqual([0, 1, 2, 3, 4]);
+      expect(sampledIndexes(indexRows(5), { sampleSize: Infinity, sampling: 'spread' })).toEqual([0, 1, 2, 3, 4]);
+      expect(sampledIndexes(indexRows(5), { sampleSize: 1, sampling: 'spread' })).toEqual([0]);
+    });
+
+    it('reads an unknown sampling value as head', () => {
+      expect(sampledIndexes(indexRows(10), { sampleSize: 3, sampling: 'random' })).toEqual([0, 1, 2]);
+    });
+
+    it('finds a dropdown option that appears only late in sorted data', () => {
+      const values = [
+        ...Array(500).fill('Closed'),
+        ...Array(500).fill('Open'),
+        ...Array(500).fill('Pending'),
+      ];
+      const head = inferOne(values, { sampleSize: 100 });
+      const spread = inferOne(values, { sampleSize: 100, sampling: 'spread' });
+
+      expect(head.type).toBe('text');
+      expect(spread.type).toBe('dropdown');
+      expect(spread.source).toEqual(['Closed', 'Open', 'Pending']);
+      expect(convertOne(values, { sampleSize: 100, sampling: 'spread' })
+        .filter(value => !isAcceptedByCellType(spread, value))).toEqual([]);
+    });
+
+    it('does not count a header row, also when headerRow: auto decides it', () => {
+      const rows = [['Amount'], ...indexRows(9).map(([value]) => [`${value}.5`])];
+
+      ['auto', true].forEach((headerRow) => {
+        const result = inferColumnTypes(rows, { headerRow, sampleSize: 3, sampling: 'spread', stats: true });
+
+        expect(result.headerRow).toBe(true);
+        expect(result.columns[0].stats.examples).toEqual(['0.5', '4.5', '8.5']);
+      });
+    });
+
+    it('spreads over every row when headerRow: auto finds no header', () => {
+      const rows = indexRows(9);
+      const result = inferColumnTypes(rows, { headerRow: 'auto', sampleSize: 3, sampling: 'spread', stats: true });
+
+      expect(result.headerRow).toBe(false);
+      expect(result.columns[0].stats.examples).toEqual(['0', '4', '8']);
+    });
+
+    it('takes the keys of object rows from the spread sample', () => {
+      const rows = [
+        ...Array.from({ length: 8 }, (_, index) => ({ id: String(index) })),
+        { id: '8', note: 'late' },
+      ];
+
+      expect(inferColumnTypes(rows, { sampleSize: 3 }).columns.map(({ settings }) => settings.data))
+        .toEqual(['id']);
+      expect(inferColumnTypes(rows, { sampleSize: 3, sampling: 'spread' }).columns.map(({ settings }) => settings.data))
+        .toEqual(['id', 'note']);
+    });
+  });
+
+  describe('dateFormats', () => {
+    it('reads a listed format instead of the locale order', () => {
+      const options = { locale: 'en-US', dateFormats: ['DD/MM/YYYY'] };
+      const column = inferOne(['12/03/2026', '01/02/2026'], options);
+
+      expect(column.type).toBe('date');
+      expect(column.confidence).toBe(1);
+      expect(column.inputFormat).toEqual({ dateFormat: 'DD/MM/YYYY' });
+      expect(convertOne(['12/03/2026', '01/02/2026'], options)).toEqual(['2026-03-12', '2026-02-01']);
+    });
+
+    it('takes the listed format that reads the most values, and the first one on a tie', () => {
+      const dateFormats = ['DD/MM/YYYY', 'MM/DD/YYYY'];
+
+      expect(inferOne(['03/25/2026', '01/02/2026'], { dateFormats }).inputFormat)
+        .toEqual({ dateFormat: 'MM/DD/YYYY' });
+      expect(convertOne(['03/25/2026', '01/02/2026'], { dateFormats })).toEqual(['2026-03-25', '2026-01-02']);
+      expect(inferOne(['12/03/2026', '01/02/2026'], { dateFormats }).inputFormat)
+        .toEqual({ dateFormat: 'DD/MM/YYYY' });
+    });
+
+    it('still reads ISO dates next to a listed format', () => {
+      expect(convertOne(['2026-03-12', '13.03.2026'], { dateFormats: ['DD.MM.YYYY'] }))
+        .toEqual(['2026-03-12', '2026-03-13']);
+    });
+
+    it('replaces the built-in year-last reading', () => {
+      expect(inferOne(['12/03/2026', '13/03/2026'], { dateFormats: ['YYYY.MM.DD'] }).type).toBe('text');
+    });
+
+    it('reads one- and two-digit parts by the token, with any literal between them', () => {
+      expect(convertOne(['1-4-2026', '12-3-2026'], { dateFormats: ['D-M-YYYY'] }))
+        .toEqual(['2026-04-01', '2026-03-12']);
+      expect(inferOne(['1-4-2026', '12-3-2026'], { dateFormats: ['DD-MM-YYYY'] }).type).toBe('text');
+      expect(convertOne(['2026年3月12日', '2026年12月1日'], { dateFormats: ['YYYY年M月D日'] }))
+        .toEqual(['2026-03-12', '2026-12-01']);
+      expect(convertOne([' 12. 03. 2026 ', '1. 04. 2026'], { dateFormats: ['D. MM. YYYY'] }))
+        .toEqual(['2026-03-12', '2026-04-01']);
+    });
+
+    it('mirrors the zero padding of the values in the date format', () => {
+      expect(inferOne(['12|03|2026', '01|04|2026'], { dateFormats: ['DD|MM|YYYY'] }).dateFormat)
+        .toEqual({ year: 'numeric', month: '2-digit', day: '2-digit' });
+      expect(inferOne(['1|4|2026', '12|3|2026'], { dateFormats: ['D|M|YYYY'] }).dateFormat)
+        .toEqual({ year: 'numeric', month: 'numeric', day: 'numeric' });
+    });
+
+    it('reads a format without separators as a date, not a number', () => {
+      const column = inferOne(['20260312', '20261201'], { dateFormats: ['YYYYMMDD'] });
+
+      expect(column.type).toBe('date');
+      expect(convertOne(['20260312', '20261201'], { dateFormats: ['YYYYMMDD'] })).toEqual(['2026-03-12', '2026-12-01']);
+      expect(inferOne(['20260312', '20261201']).type).toBe('numeric');
+    });
+
+    it('rejects a date the calendar does not have', () => {
+      expect(inferOne(['30/02/2026', '31/04/2026'], { dateFormats: ['DD/MM/YYYY'] }).type).toBe('text');
+    });
+
+    it('reads a year-first format with the day first by the format, not as an ISO-like date', () => {
+      ['/', '.', '-'].forEach((separator) => {
+        const format = ['YYYY', 'DD', 'MM'].join(separator);
+        const values = ['2026', '12', '03'].join(separator);
+        const late = ['2026', '25', '03'].join(separator);
+
+        expect(convertOne([values, late], { dateFormats: [format] })).toEqual(['2026-03-12', '2026-03-25']);
+      });
+      expect(convertOne(['2026/12/03', '2026-01-05'], { dateFormats: ['YYYY/DD/MM'] }))
+        .toEqual(['2026-03-12', '2026-01-05']);
+    });
+
+    it('matches the literals of a format exactly, and trims the format', () => {
+      expect(convertOne(['13x03x2026', '14x03x2026'], { dateFormats: ['DD.MM.YYYY'] }))
+        .toEqual(['13x03x2026', '14x03x2026']);
+      expect(convertOne(['13.03.2026', '14.03.2026'], { dateFormats: [' DD.MM.YYYY '] }))
+        .toEqual(['2026-03-13', '2026-03-14']);
+    });
+
+    it('converts ISO dates only when a recorded format no longer compiles', () => {
+      const rows = [['13|03|2026'], ['2026-03-14'], ['03/04/2026'], ['2026/3/12'], ['2026.03.12']];
+      const result = inferColumnTypes(rows, { sampleSize: 2, dateFormats: ['DD|MM|YYYY'] });
+
+      result.columns[0].inputFormat.dateFormat = 'DD|MMM|YYYY';
+
+      expect(convertToInferredTypes(rows, result))
+        .toEqual([['13|03|2026'], ['2026-03-14'], ['03/04/2026'], ['2026/3/12'], ['2026.03.12']]);
+    });
+
+    it('falls back only to a strict ISO date, never to the looser year-first form', () => {
+      const dateFormats = ['YYYY/DD/MM'];
+
+      expect(inferOne(['2026/12/03', '2026/12/3'], { dateFormats }).type).toBe('text');
+      expect(inferOne(['2026/12/03', '2026.12.03'], { dateFormats }).type).toBe('text');
+      expect(inferOne(['2026-1-5', '2026-1-6'], { dateFormats }).type).toBe('text');
+      expect(convertOne(['2026/12/03', '2026-01-05'], { dateFormats })).toEqual(['2026-03-12', '2026-01-05']);
+    });
+
+    it('pads a whole number to the width of a fixed-width format', () => {
+      const dateFormats = ['DDMMYYYY'];
+
+      expect(inferOne([1032026, 15032026], { dateFormats }).type).toBe('date');
+      expect(convertOne([1032026, 15032026], { dateFormats })).toEqual(['2026-03-01', '2026-03-15']);
+      expect(inferOne([-1032026, 15032026], { dateFormats, minConfidence: 1 }).type).toBe('numeric');
+      expect(inferOne([1032026, 15032026]).type).toBe('numeric');
+    });
+
+    it('reads the date part of a date-time with the listed format, not the locale order', () => {
+      const dateFormats = ['DD/MM/YYYY'];
+      const values = ['12/03/2026 14:30', '01/02/2026 9:05 PM', '2026-03-13T08:00:00', '14/03/2026'];
+      const column = inferOne(values, { locale: 'en-US', dateFormats });
+
+      expect(column.type).toBe('intl-datetime');
+      expect(column.confidence).toBe(1);
+      expect(column.inputFormat).toEqual({ dateFormat: 'DD/MM/YYYY' });
+      expect(convertOne(values, { locale: 'en-US', dateFormats })).toEqual([
+        '2026-03-12T14:30:00',
+        '2026-02-01T21:05:00',
+        '2026-03-13T08:00:00',
+        '2026-03-14T00:00:00',
+      ]);
+      expect(inferOne(['12/03/2026 14:30', '01/02/2026 9:05 PM'], { locale: 'en-US' }).inputFormat)
+        .toEqual({ dateOrder: 'MDY' });
+    });
+
+    it('converts a date-time past the sample with the listed format', () => {
+      const rows = [['2026-01-02 10:00'], ['2026-01-03 11:00'], ['13/04/2026 12:30']];
+      const result = inferColumnTypes(rows, { sampleSize: 2, dateFormats: ['DD/MM/YYYY'] });
+
+      expect(result.columns[0].settings.type).toBe('intl-datetime');
+      expect(convertToInferredTypes(rows, result)[2][0]).toBe('2026-04-13T12:30:00');
+    });
+
+    it('does not read a whole number as a year below 1000', () => {
+      expect(inferOne([101, 215, 312, 1105], { dateFormats: ['YYYYMMDD'] }).type).toBe('numeric');
+      expect(inferOne([1010001, 2010001], { dateFormats: ['DDMMYYYY'] }).type).toBe('numeric');
+      expect(inferOne([19990101, 20260312], { dateFormats: ['YYYYMMDD'] }).type).toBe('date');
+      expect(convertOne([1012026, 20012026], { dateFormats: ['DDMMYYYY'] })).toEqual(['2026-01-01', '2026-01-20']);
+    });
+
+    it('warns once about a dateFormats value that is not an array', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      jest.isolateModules(() => {
+        // eslint-disable-next-line global-require
+        const fresh = require('../index');
+
+        try {
+          fresh.inferColumnTypes([['12/03/2026']], { dateFormats: 'DD/MM/YYYY' });
+          fresh.inferColumnTypes([['12/03/2026']], { dateFormats: 'DD/MM/YYYY' });
+          fresh.inferColumnTypes([['12/03/2026']], { dateFormats: null });
+
+          expect(warn).toHaveBeenCalledTimes(1);
+          expect(warn.mock.calls[0][0]).toContain('dateFormats option is ignored');
+        } finally {
+          warn.mockRestore();
+        }
+      });
+    });
+
+    it('warns once about a format it ignores', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      try {
+        inferColumnTypes([['12/03/2026']], { dateFormats: ['dd/MM/yyyy-warn-test'] });
+        inferColumnTypes([['12/03/2026']], { dateFormats: ['dd/MM/yyyy-warn-test', 'DD/MM/YYYY'] });
+
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn.mock.calls[0][0]).toContain('"dd/MM/yyyy-warn-test" is ignored');
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it('moves date in front of numeric only for a format a number can also read', () => {
+      const names = detectors => detectors.map(detector => detector.name);
+      const order = pattern => names(getDetectors({ dateFormats: [compileDateFormat(pattern)] }));
+
+      expect(getDetectors({ dateFormats: [] })).toBe(DETECTORS);
+      expect(getDetectors({ dateFormats: [compileDateFormat('DD/MM/YYYY')] })).toBe(DETECTORS);
+      expect(getDetectors({ dateFormats: [compileDateFormat('DD.MM.YYYY')] })).toBe(DETECTORS);
+      const dateFirst = names(DETECTORS).filter(name => name !== 'detectDate');
+
+      dateFirst.splice(dateFirst.indexOf('detectNumeric'), 0, 'detectDate');
+      expect(order('YYYYMMDD')).toEqual(dateFirst);
+      expect(order('YYYY.MMDD')).toEqual(order('YYYYMMDD'));
+      expect(names(DETECTORS).slice().sort()).toEqual(order('YYYYMMDD').slice().sort());
+      expect(inferOne(['2026.0312', '2026.1201'], { dateFormats: ['YYYY.MMDD'] }).type).toBe('date');
+    });
+
+    it('reads whole numbers with a format, and only with one', () => {
+      expect(inferOne([20260312, 20261201], { dateFormats: ['YYYYMMDD'] }).type).toBe('date');
+      expect(convertOne([20260312, 20261201], { dateFormats: ['YYYYMMDD'] })).toEqual(['2026-03-12', '2026-12-01']);
+      expect(inferOne([20260312, 20261201]).type).toBe('numeric');
+    });
+
+    it('ignores a format where a one-or-two-digit token touches another token', () => {
+      const builtIn = inferColumnTypes([['2026111']]);
+
+      ['YYYYMD', 'YYYYMMD', 'DMYYYY', 'DDMYYYY'].forEach((format) => {
+        expect(inferColumnTypes([['2026111']], { dateFormats: [format] })).toEqual(builtIn);
+      });
+      expect(convertOne(['2026-1-1', '2026-11-11'], { dateFormats: ['YYYY-M-D'] }))
+        .toEqual(['2026-01-01', '2026-11-11']);
+    });
+
+    it('ignores a format without exactly one year, month and day, or with an unknown token', () => {
+      const values = ['12/03/2026', '01/02/2026'];
+      const builtIn = inferColumnTypes(columnsToRows(values), { locale: 'en-US' });
+
+      ['DD/MM', 'DD/MM/YYYY/YYYY', 'DD/MMM/YYYY', 'DD/MM/YY', 'dd/mm/yyyy', ''].forEach((format) => {
+        expect(inferColumnTypes(columnsToRows(values), { locale: 'en-US', dateFormats: [format] }))
+          .toEqual(builtIn);
+      });
+      expect(inferColumnTypes(columnsToRows(values), { locale: 'en-US', dateFormats: [] })).toEqual(builtIn);
+      expect(inferColumnTypes(columnsToRows(values), { locale: 'en-US', dateFormats: null })).toEqual(builtIn);
+      expect(inferOne(values, { locale: 'en-US', dateFormats: ['DD/MMM/YYYY', 'DD/MM/YYYY'] }).inputFormat)
+        .toEqual({ dateFormat: 'DD/MM/YYYY' });
+    });
+
+    it('converts a row past the sample with the listed format', () => {
+      const rows = [['2026-01-02'], ['2026-01-03'], ['13|04|2026']];
+      const result = inferColumnTypes(rows, { sampleSize: 2, dateFormats: ['DD|MM|YYYY'] });
+
+      expect(result.columns[0].inputFormat).toEqual({ dateFormat: 'DD|MM|YYYY' });
+      expect(convertToInferredTypes(rows, result)[2][0]).toBe('2026-04-13');
+      expect(convertToInferredTypes(rows, JSON.parse(JSON.stringify(result)))[2][0]).toBe('2026-04-13');
+    });
+
+    it('lets a header row be found over a listed format', () => {
+      const rows = [['Joined'], ['12|03|2026'], ['13|03|2026']];
+      const result = inferColumnTypes(rows, { headerRow: 'auto', dateFormats: ['DD|MM|YYYY'] });
+
+      expect(result.headerRow).toBe(true);
+      expect(convertToInferredTypes(rows, result)).toEqual([['2026-03-12'], ['2026-03-13']]);
+    });
+  });
+
+  it('reads the guide example for date formats and boolean words', () => {
+    const rows = [
+      ['Employee', 'Hired', 'Remote'],
+      ['Ana García', '14/03/2022', 'yes'],
+      ['James Okafor', '02/11/2023', 'no'],
+      ['Li Wei', '20/06/2021', 'Yes'],
+    ];
+    const result = inferColumnTypes(rows, {
+      locale: 'en-US',
+      headerRow: true,
+      dateFormats: ['DD/MM/YYYY'],
+      booleanValues: { true: ['yes'], false: ['no'] },
+    });
+
+    expect(result.columns.map(({ settings }) => settings.type)).toEqual(['text', 'date', 'checkbox']);
+    expect(convertToInferredTypes(rows, result)).toEqual([
+      ['Ana García', '2022-03-14', true],
+      ['James Okafor', '2023-11-02', false],
+      ['Li Wei', '2021-06-20', true],
+    ]);
+  });
+
+  describe('booleanValues', () => {
+    const booleanValues = { true: ['yes', 'Tak'], false: ['no', 'nie'] };
+
+    it('reads the listed words in any case and padding, and true and false still', () => {
+      const values = ['YES', ' no ', 'tak', 'Nie', 'TRUE', 'false', true];
+
+      expect(inferOne(values, { booleanValues }).type).toBe('checkbox');
+      expect(convertOne(values, { booleanValues })).toEqual([true, false, true, false, true, false, true]);
+    });
+
+    it('carries the words in inputFormat, and nothing without the option', () => {
+      expect(inferOne(['yes', 'no'], { booleanValues }).inputFormat).toEqual({ booleanValues });
+      expect(inferOne(['true', 'false']).inputFormat).toBeUndefined();
+      expect(inferOne(['yes', 'no']).type).toBe('text');
+    });
+
+    it('converts a row past the sample with any listed word', () => {
+      const rows = [['yes'], ['no'], ['nie']];
+      const result = inferColumnTypes(rows, { sampleSize: 2, booleanValues });
+
+      expect(convertToInferredTypes(rows, result)).toEqual([[true], [false], [false]]);
+      expect(convertToInferredTypes(rows, JSON.parse(JSON.stringify(result)))).toEqual([[true], [false], [false]]);
+    });
+
+    it('reads a word listed on both sides as neither, and skips blank words', () => {
+      const options = { booleanValues: { true: ['yes', 'maybe', ''], false: ['no', 'MAYBE', '  '] } };
+
+      expect(convertOne(['yes', 'no', 'maybe', 'yes', 'no', 'yes', 'no', 'yes', 'no', 'yes'], options))
+        .toEqual([true, false, 'maybe', true, false, true, false, true, false, true]);
+    });
+
+    it('lets listed words win over numbers on a tie', () => {
+      const options = { booleanValues: { true: ['1'], false: ['0'] } };
+
+      expect(inferOne(['1', '0', '1'], options).type).toBe('checkbox');
+      expect(convertOne(['1', '0', '1'], options)).toEqual([true, false, true]);
+      expect(inferOne(['1', '0', '1']).type).toBe('numeric');
+    });
+
+    it('reads number cells by the listed words', () => {
+      const options = { booleanValues: { true: ['1'], false: ['0'] } };
+
+      expect(inferOne([1, 0, 1, '0'], options).type).toBe('checkbox');
+      expect(convertOne([1, 0, 1, '0'], options)).toEqual([true, false, true, false]);
+      expect(inferOne([1, 0, 1, 0]).type).toBe('numeric');
+    });
+
+    it('gives each checkbox column its own copy of the words', () => {
+      const { columns } = inferColumnTypes([['yes', 'no'], ['no', 'yes']], { booleanValues });
+
+      expect(columns[0].inputFormat.booleanValues).toEqual(columns[1].inputFormat.booleanValues);
+      expect(columns[0].inputFormat.booleanValues).not.toBe(columns[1].inputFormat.booleanValues);
+    });
+
+    it('reads only arrays of strings, and warns once about a side that is not an array', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      jest.isolateModules(() => {
+        // eslint-disable-next-line global-require
+        const fresh = require('../index');
+
+        try {
+          const one = col => fresh.inferColumnTypes(columnsToRows(col), {
+            booleanValues: { true: 'yes', false: ['no'] },
+          });
+
+          expect(one(['yes', 'no']).columns[0].settings.type).toBe('text');
+          expect(one(['yes', 'no']).columns[0].settings.type).toBe('text');
+          expect(warn).toHaveBeenCalledTimes(1);
+          expect(warn.mock.calls[0][0]).toContain('booleanValues.true option is ignored');
+        } finally {
+          warn.mockRestore();
+        }
+      });
+      expect(inferOne(['true', 'no'], { booleanValues: { false: ['no', 7] } }).type).toBe('checkbox');
+      expect(inferOne(['true', 'false'], { booleanValues: null }).inputFormat).toBeUndefined();
+    });
+
+    it('matches upper-case Turkish words, whatever the listed spelling', () => {
+      const options = { booleanValues: { true: ['evet', 'İyi'], false: ['hayır', 'kötü'] } };
+      const values = ['HAYIR', 'Evet', 'EVET', 'iyi', 'İYİ', 'KÖTÜ', 'hayir'];
+
+      expect(inferOne(values, options).type).toBe('checkbox');
+      expect(convertOne(values, options)).toEqual([false, true, true, true, true, false, false]);
+    });
+
+    it('lets a header row be found over listed words', () => {
+      const rows = [['Active'], ['yes'], ['no']];
+      const result = inferColumnTypes(rows, { headerRow: 'auto', booleanValues });
+
+      expect(result.headerRow).toBe(true);
+      expect(convertToInferredTypes(rows, result)).toEqual([[true], [false]]);
+    });
+  });
+
   describe('the guide example', () => {
     const header = ['Name', 'Balance', 'Joined', 'Active', 'Status'];
     const body = [
@@ -1312,15 +1763,27 @@ describe('inferColumnTypes', () => {
       { values: [1, '2', 3.5] },
       { values: ['Open', 'Closed', 'Open', 'Open', 'Closed', 'Open', null] },
       { values: ['1 234,56 zł', '12,5 zł', '7 zł'], locale: 'pl-PL' },
+      {
+        values: ['yes', 'no', 'Tak', 'nie', null],
+        options: { booleanValues: { true: ['yes', 'tak'], false: ['no', 'nie'] } },
+      },
+      { values: ['12/03/2026', '01/02/2026', ''], locale: 'en-US', options: { dateFormats: ['DD/MM/YYYY'] } },
+      { values: ['20260312', '20261201'], options: { dateFormats: ['YYYYMMDD'] } },
+      {
+        values: [...Array(10).fill('Closed'), ...Array(10).fill('Open')],
+        options: { sampleSize: 6, sampling: 'spread' },
+      },
       { values: ['2026-03-12 14:30', '12/03/2026, 2:30 PM', '2026-03-13', ''], locale: 'en-GB' },
       // A Date's JSON text follows the host time zone, so the row is named by hand.
       { values: [new Date(2026, 2, 12, 14, 30), new Date(2026, 0, 2), null], label: 'Date objects' },
     ];
 
-    corpus.forEach(({ values, locale, label }) => {
-      it(`are accepted by the inferred cell type: ${label ?? JSON.stringify(values)} (${locale ?? 'default'})`, () => {
-        const column = inferOne(values, { locale });
-        const converted = convertOne(values, { locale });
+    corpus.forEach(({ values, locale, options, label }) => {
+      const name = label ?? JSON.stringify(values);
+
+      it(`are accepted by the inferred cell type: ${name} (${locale ?? 'default'}, ${JSON.stringify(options ?? {})})`, () => {
+        const column = inferOne(values, { locale, ...options });
+        const converted = convertOne(values, { locale, ...options });
         const rejected = converted.filter(value => !isAcceptedByCellType(column, value));
 
         expect(column.type).not.toBe('text');
