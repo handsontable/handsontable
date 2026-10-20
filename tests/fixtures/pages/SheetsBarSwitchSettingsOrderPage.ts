@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 
 export type SwitchOrderWorkbook =
   'spareRows' | 'cellOption' | 'sameFreeze' | 'largerBorders' | 'movedSummary' | 'deeperHeaders';
@@ -29,11 +29,19 @@ export class SheetsBarSwitchSettingsOrderPage {
       `/tests/fixtures/demo/sheets-bar-switch-settings-order.html?theme=${this.theme}&bundle=${this.bundle}&workbook=${workbook}`
     );
     await awaitBundle(this.page);
+    await this.page.waitForFunction(
+      () => 'hot' in window || 'htBuildError' in window,
+      undefined,
+      { polling: BUNDLE_POLLING_MS },
+    );
 
-    await expect(
-      this.cell(0, 0),
-      this.pageErrors.length > 0 ? `the fixture page threw: ${this.pageErrors.join(' | ')}` : undefined,
-    ).toBeVisible();
+    const buildError = await this.page.evaluate(() => (window as { htBuildError?: string }).htBuildError ?? null);
+
+    if (buildError !== null) {
+      throw new Error(`Handsontable constructor threw in the fixture:\n${buildError}`);
+    }
+
+    await expect(this.cell(0, 0)).toBeVisible();
   }
 
   /**
@@ -67,12 +75,11 @@ export class SheetsBarSwitchSettingsOrderPage {
     await this.page.keyboard.press('Enter');
   }
 
+  /**
+   * Whether the cell editor is open.
+   */
   isEditorOpened(): Promise<boolean> {
     return this.page.evaluate(() => !!window.hot.getActiveEditor()?.isOpened());
-  }
-
-  dataAtCol(col: number): Promise<unknown[]> {
-    return this.page.evaluate(c => window.hot.getDataAtCol(c), col);
   }
 
   /**
@@ -93,15 +100,24 @@ export class SheetsBarSwitchSettingsOrderPage {
     return this.page.evaluate(() => document.querySelectorAll('.ht_clone_top .htCore tbody tr').length);
   }
 
+  /**
+   * The number of custom borders the CustomBorders plugin reports on one cell.
+   */
   bordersAt(row: number, col: number): Promise<number> {
     return this.page.evaluate(([r, c]) => window.hot.getPlugin('customBorders').getBorders([[r, c, r, c]]).length,
       [row, col]);
   }
 
+  /**
+   * The number of column header rows the master table draws.
+   */
   columnHeaderLevels(): Promise<number> {
     return this.page.evaluate(() => document.querySelectorAll('.ht_master .htCore thead tr').length);
   }
 
+  /**
+   * Inserts one row above the given visual row through the API.
+   */
   insertRowAbove(row: number): Promise<void> {
     return this.page.evaluate(r => window.hot.alter('insert_row_above', r, 1), row);
   }

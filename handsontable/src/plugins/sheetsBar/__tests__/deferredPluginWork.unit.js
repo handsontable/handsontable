@@ -81,4 +81,66 @@ describe('plugins applied ahead of their data', () => {
 
     expect(hot.getDataAtCell(0, 1)).toBe('Apple');
   });
+
+  it('feeds Formulas the value a cell type from a `columns` function resolves on the new data', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      data: [['x']],
+      formulas: { engine, sheetName: 'First' },
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot._applySettingsAndData({
+      formulas: { engine, sheetName: 'Second' },
+      columns: column => (column === 0 ? { type: 'dropdown', source: [{ key: 1, value: 'Apple' }] } : {}),
+    }, [[{ key: 1, value: 'Apple' }, '=A1']], 'test');
+
+    expect(hot.getDataAtCell(0, 1)).toBe('Apple');
+  });
+
+  describe('ColumnSummary#exportEndpointSettings', () => {
+    /**
+     * Builds a grid with the given summary and returns what the plugin exports.
+     *
+     * @param {Array|Function} columnSummary The `columnSummary` setting.
+     * @returns {Array|null}
+     */
+    function exportFor(columnSummary) {
+      hot = new Handsontable(container, {
+        data: [[1], [2], [3], [null]],
+        columnSummary,
+        licenseKey: LICENSE_KEY,
+      });
+
+      return hot.getPlugin('columnSummary').exportEndpointSettings();
+    }
+
+    it('gives a destination counted from the bottom back as its offset', () => {
+      const [endpoint] = exportFor([{
+        sourceColumn: 0,
+        destinationRow: 0,
+        destinationColumn: 0,
+        reversedRowCoords: true,
+        ranges: [[0, 2]],
+      }]);
+
+      expect(endpoint.destinationRow).toBe(0);
+      expect(endpoint.reversedRowCoords).toBe(true);
+    });
+
+    it('leaves a whole-table default range out, and keeps an explicit one', () => {
+      const [defaultRange, explicitRange] = exportFor([
+        { sourceColumn: 0, destinationRow: 3, destinationColumn: 0 },
+        { sourceColumn: 0, destinationRow: 3, destinationColumn: 0, ranges: [[0, 1]] },
+      ]);
+
+      expect('ranges' in defaultRange).toBe(false);
+      expect(explicitRange.ranges).toEqual([[0, 1]]);
+    });
+
+    it('exports nothing for the function form', () => {
+      expect(exportFor(() => [{ sourceColumn: 0, destinationRow: 3, destinationColumn: 0 }])).toBe(null);
+    });
+  });
 });

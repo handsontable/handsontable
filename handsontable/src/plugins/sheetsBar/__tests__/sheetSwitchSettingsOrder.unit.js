@@ -280,4 +280,48 @@ describe('SheetsBar applies a sheet against its own data', () => {
 
     expect(hot.getDataAtCol(0)).toEqual([2]);
   });
+
+  it('does not track the opening sheet\'s declared `cell` entries as cell meta the user set', () => {
+    const captured = [];
+
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [
+        { name: 'A', data: [['a', 'b']], settings: { cell: [{ row: 0, col: 0, readOnly: true }] } },
+        { name: 'B', data: [['c', 'd']] },
+      ] },
+      afterSheetTabStateCapture(sheetId, viewState) {
+        captured.push(viewState);
+      },
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot.setCellMeta(0, 1, 'className', 'user-marked');
+    hot.getPlugin('sheetsBar').setActiveSheet('B');
+
+    const keys = captured[0].cellMeta.map(entry => entry.key ?? entry[2]);
+
+    expect(JSON.stringify(captured[0].cellMeta)).toContain('user-marked');
+    expect(keys).not.toContain('readOnly');
+  });
+
+  it('gives a duplicated sheet the summary positions its original holds now', () => {
+    const bar = buildWorkbook([
+      {
+        name: 'Totals',
+        data: [[1], [2], [null]],
+        settings: {
+          columnSummary: [{ sourceColumn: 0, destinationRow: 2, destinationColumn: 0, type: 'sum', ranges: [[0, 1]] }],
+        },
+      },
+    ]);
+
+    hot.alter('insert_row_above', 2, 1);
+    hot.setDataAtCell(2, 0, 7);
+
+    const copy = bar.duplicateSheet(bar.getSheets()[0].id);
+
+    bar.setActiveSheet(copy.id);
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 7, 3]);
+  });
 });

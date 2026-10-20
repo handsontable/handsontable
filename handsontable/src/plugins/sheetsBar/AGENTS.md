@@ -367,6 +367,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     `#applySheet` applies it after the load when the sheet returns with a stored state
     (`restoresState`, the flag that also skips the declared merges): it replaces the declared value in
     the payload. A function-form setting stores nothing: it reads its settings again on every pass.
+    A duplicate gets the original's current endpoints written into its own settings
+    (`#copyColumnSummaryEndpoints`), because its copied data already has the summaries at their moved
+    positions; and a server response that replaces a sheet's rows drops the stored endpoints
+    (`#keepDetachedOutcome`), so the declared positions apply to the fresh rows.
   - **The init build applies the opening sheet from `beforeInit`, and core's own init settings pass
     then undoes two parts of it.** It registers the grid-level callback of every hook again (a
     settings hook is one replaceable `initialHook` entry per name, `core/hooks/bucket.ts`), so the
@@ -376,7 +380,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     callback into the settings baseline: the baseline was captured in `beforeInit`, before core puts
     the settings' callbacks on the table meta, so it held `undefined` and a switch to another sheet
     kept the opening sheet's callback. A sheet's hook REPLACES the grid-level one on that sheet, like
-    every other key. Known gap: a hook only sheets declare, with no grid-level callback, is restored
+    every other key, for a function: core keeps one settings callback per hook name. A grid-level ARRAY
+    of callbacks is added through `Hooks#add` instead and keeps running beside a sheet's callback on every
+    sheet. The re-apply runs with `#isSwitching` set, so the opening sheet's declared `cell` entries are not
+    tracked as cell meta the user set, the same as on a switch. Known gap: a hook only sheets declare, with no grid-level callback, is restored
     as `null`, which removes nothing, so it keeps running on the sheets that do not declare it. The
     opening sheet's hooks also miss the init load's own events (`afterLoadData` of the first load).
 - **Custom borders are restored with the logical sides only.** `getBorders()` records carry both

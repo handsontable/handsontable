@@ -430,11 +430,6 @@ export default function Core(
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
   /**
-   * The settings part that `_applySettingsAndData()` holds back until the new data is loaded: the late
-   * `columns` pass, the `cell` option and `afterCellMetaReset`. `null` outside that call.
-   */
-  let deferredMetaPhase: (() => void) | null = null;
-  /**
    * `true` while `_applySettingsAndData()` applies settings ahead of the data they describe.
    */
   let isDataWorkDeferred = false;
@@ -5130,6 +5125,13 @@ export default function Core(
    * Recording is suppressed for the whole call, as for `updateSettings()` and `loadData()`. Used by
    * the SheetsBar plugin, which switches the grid between sheets.
    *
+   * Only this call's own settings pass is deferred. A public `updateSettings()` made while it runs (a
+   * plugin turning a conflicting plugin off from its `enablePlugin()`, a listener) applies in full,
+   * data phase and meta phase included, and plugins reacting to it still see `_isDataWorkDeferred()`
+   * answer `true`, so their data work still waits for the `onDataReady()` pass of this call. A nested
+   * `_applySettingsAndData()` leaves that pass to the outer call. The data is loaded as given: the
+   * caller decides what a sheet backed by an external data source shows until its fetch lands.
+   *
    * @private
    * @param {object} settings The settings to apply.
    * @param {Array} data The data the settings describe.
@@ -5144,25 +5146,22 @@ export default function Core(
 
     try {
       operationScope.suppress(() => {
+        const isNested = isDataWorkDeferred;
+
         isDataWorkDeferred = true;
-        deferredMetaPhase = null;
 
         try {
-          applySettings(settings, false);
+          const metaPhase = applySettings(settings, false, true);
+
           applyLoadData(data as unknown[][][], source);
-
-          const metaPhase = deferredMetaPhase as (() => void) | null;
-
-          deferredMetaPhase = null;
           metaPhase?.();
         } finally {
-          isDataWorkDeferred = false;
-          deferredMetaPhase = null;
+          isDataWorkDeferred = isNested;
         }
 
-        if (instance.view) {
+        if (instance.view && !isNested) {
           pluginsRegistry.getItems().forEach(([, plugin]) => {
-            const readyPlugin = plugin as BasePlugin & { onDataReady?: () => void };
+            const readyPlugin = plugin as BasePlugin;
 
             if (readyPlugin.enabled && typeof readyPlugin.onDataReady === 'function') {
               readyPlugin.onDataReady();
@@ -5220,11 +5219,19 @@ export default function Core(
    * The body of `updateSettings()`, run with recording suppressed. It is called directly, not through
    * the instance, so a spy on `updateSettings()` sees each call once.
    *
+   * With `defersDataWork` set (only `_applySettingsAndData()` passes it), the data phase, the `min*`
+   * sizing and the render are skipped, and the meta phase is returned instead of run, for the caller
+   * to run once its data is loaded.
+   *
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
+   * @param {boolean} [defersDataWork=false] Whether the data the settings describe is loaded after this call.
+   * @returns {Function|null} The held-back meta phase, or `null` when it ran.
    */
-  function applySettings(settings: Partial<GridSettings>, init: boolean) {
+  function applySettings(
+    settings: Partial<GridSettings>, init: boolean, defersDataWork = false
+  ): (() => void) | null {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(instance);
     let i;
 
@@ -5585,7 +5592,7 @@ export default function Core(
       }
     };
 
-    if (!isDataWorkDeferred) {
+    if (!defersDataWork) {
       applyDataPhase();
     }
 
@@ -5638,15 +5645,13 @@ export default function Core(
       instance.runHooks('afterCellMetaReset');
     };
 
-    if (isDataWorkDeferred) {
-      deferredMetaPhase = applyMetaPhase;
-    } else {
+    if (!defersDataWork) {
       applyMetaPhase();
     }
 
     // for the first run, we need to run the source data warnings after cell meta initialization
     // otherwise there is no access to `sourceDataValidator` function
-    if (firstRun && !isDataWorkDeferred) {
+    if (firstRun && !defersDataWork) {
       runSourceDataValidators(instance, 'init');
     }
 
@@ -5669,7 +5674,7 @@ export default function Core(
       instance.runHooks('afterUpdateSettings', settings);
     }
 
-    if (!isDataWorkDeferred) {
+    if (!defersDataWork) {
       // Before `adjustRowsAndCols()`, which only ever adds. When this call replaced the data, nothing is removed:
       // the data phase already sized the new axis to the merged values, so there is no surplus left to give back.
       if (!init) {
@@ -5697,6 +5702,8 @@ export default function Core(
     if (isRootInstance(instance)) {
       layoutManager?.applyConfig(tableMeta.layout as LayoutConfig | undefined);
     }
+
+    return defersDataWork ? applyMetaPhase : null;
   }
 
   /**

@@ -278,10 +278,12 @@ export class ColumnSummary extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    if (this.isDataWorkDeferred()) {
-      this.#endpointsPending = true;
-    } else if (this.hot.view) {
-      this.endpoints!.initEndpoints();
+    if (this.hot.view) {
+      if (this.isDataWorkDeferred()) {
+        this.#endpointsPending = true;
+      } else {
+        this.endpoints!.initEndpoints();
+      }
     }
 
     super.updatePlugin();

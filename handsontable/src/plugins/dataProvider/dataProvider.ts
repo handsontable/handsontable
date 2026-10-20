@@ -491,6 +491,8 @@ export class DataProvider extends BasePlugin {
    * `enablePlugin()` registers it again so it survives each `updatePlugin()` cycle.
    */
   disablePlugin(): void {
+    this.#fetchPending = false;
+
     if (!this.#isPassive) {
       this.#abortFetchesFor(this.#currentContext());
     }

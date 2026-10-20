@@ -504,6 +504,7 @@ export class Pagination extends BasePlugin {
     }
 
     this.#refreshPending = false;
+
     this.#refreshUI();
   }
 
@@ -520,10 +521,10 @@ export class Pagination extends BasePlugin {
       this.#isUpdatingPlugin = false;
     }
 
-    if (this.isDataWorkDeferred()) {
-      this.#refreshPending = true;
-    } else {
+    if (!this.isDataWorkDeferred()) {
       this.#refreshUI();
+    } else if (this.hot.view) {
+      this.#refreshPending = true;
     }
 
     super.updatePlugin();
@@ -533,6 +534,7 @@ export class Pagination extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#refreshPending = false;
     this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
       .unregisterMap(this.pluginName!);

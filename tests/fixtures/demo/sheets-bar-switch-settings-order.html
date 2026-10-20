@@ -61,9 +61,6 @@
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
   <script>
-    window.pageErrors = [];
-    window.addEventListener('error', event => window.pageErrors.push(event.message));
-
     const container = document.querySelector('[data-testid="grid"]');
 
     container.className = `ht-theme-${window.htTheme}`;
@@ -151,18 +148,20 @@
 
     window.workbook = sheetsBar;
 
-    const hot = new Handsontable(container, {
-      rowHeaders: true,
-      colHeaders: true,
-      renderer: testIdRenderer,
-      width: 600,
-      height: 300,
-      ...grid,
-      sheetsBar,
-      licenseKey: 'non-commercial-and-evaluation',
-    });
-
-    window.hot = hot;
+    try {
+      window.hot = new Handsontable(container, {
+        rowHeaders: true,
+        colHeaders: true,
+        renderer: testIdRenderer,
+        width: 600,
+        height: 300,
+        ...grid,
+        sheetsBar,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+    }
   </script>
 </body>
 </html>

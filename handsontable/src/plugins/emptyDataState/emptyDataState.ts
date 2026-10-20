@@ -351,12 +351,14 @@ export class EmptyDataState extends BasePlugin {
 
   /**
    * Toggles the empty state after the row or column sequence changed, or leaves the toggle for
-   * `onDataReady()` while core applies settings ahead of their data: the view's renderable counts the
-   * toggle reads describe the rows drawn last until the grid renders again, so a toggle during that load
-   * showed the overlay (and took the keyboard) for the rows the grid was leaving.
+   * `onDataReady()` while core applies settings ahead of their data. The sequence changes several times
+   * on the way (the settings pass, the load re-initializing the index maps), and a toggle on one of the
+   * intermediate states showed the overlay, and took the keyboard, for a grid about to receive rows.
+   * Without a view (the grid is still being built) the toggle runs as before: it does nothing then, and
+   * the plugin's own `afterInit` shows or hides the overlay.
    */
   #onSequenceCacheUpdate = () => {
-    if (this.isDataWorkDeferred()) {
+    if (this.isDataWorkDeferred() && this.hot.view) {
       this.#togglePending = true;
     } else {
       this.#toggleEmptyDataState();
@@ -377,6 +379,7 @@ export class EmptyDataState extends BasePlugin {
     }
 
     this.#togglePending = false;
+
     this.#toggleEmptyDataState();
   }
 
@@ -411,6 +414,7 @@ export class EmptyDataState extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
+    this.#togglePending = false;
     this.#loadingActive = false;
 
     this.#unregisterShortcuts();

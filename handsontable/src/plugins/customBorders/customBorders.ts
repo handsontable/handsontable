@@ -429,10 +429,10 @@ export class CustomBorders extends BasePlugin {
         this.enablePlugin();
       }
 
-      if (this.isDataWorkDeferred()) {
-        this.#settingsPassPending = true;
-      } else {
+      if (!this.isDataWorkDeferred()) {
         this.changeBorderSettings();
+      } else if (this.hot.view) {
+        this.#settingsPassPending = true;
       }
     } finally {
       this.#carriedBorders = null;

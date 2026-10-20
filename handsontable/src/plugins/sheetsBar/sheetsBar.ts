@@ -212,17 +212,17 @@ function isSameSheetsList(a: unknown, b: unknown): boolean {
 }
 
 /**
- * The part of a sheet's `formulas` setting the sheets bar cooperates with, and the part of
- * a HyperFormula instance it talks to. An engine passed as the `HyperFormula` class rather
- * than a built instance has none of these methods.
- */
-/**
  * The Handsontable instance with core's private settings-and-data switch (`Core#_applySettingsAndData`).
  */
 type HotInstanceWithDataSwitch = HotInstance & {
   _applySettingsAndData(settings: Record<string, unknown>, data: unknown[], source: string): void,
 };
 
+/**
+ * The part of a sheet's `formulas` setting the sheets bar cooperates with, and the part of
+ * a HyperFormula instance it talks to. An engine passed as the `HyperFormula` class rather
+ * than a built instance has none of these methods.
+ */
 interface SheetFormulas {
   engine?: {
     doesSheetExist?: (name: string) => boolean;
@@ -1543,6 +1543,8 @@ export class SheetsBar extends BasePlugin {
       sheet.data = outcome.result.rows;
       this.#storeServerResult(sheet, outcome.result);
 
+      this.#columnSummaryStates.delete(sheet);
+
       if (sheet.viewState) {
         sheet.viewState = { ...sheet.viewState, cellMeta: [] };
       }
@@ -1880,6 +1882,26 @@ export class SheetsBar extends BasePlugin {
       this.#columnSummaryStates.set(sheet, endpoints);
     } else {
       this.#columnSummaryStates.delete(sheet);
+    }
+  }
+
+  /**
+   * Gives a duplicated sheet the ColumnSummary endpoints its original holds now, written into the copy's
+   * own settings. The copy's data is a copy of the original's, with every summary at the position a row
+   * or column alteration moved it to, and the copy opens as a first visit, so the declared positions
+   * would write the summary over the data cell that moved into their place.
+   *
+   * @param {object} original The sheet that was duplicated.
+   * @param {object} copy The duplicate.
+   */
+  #copyColumnSummaryEndpoints(original: Sheet, copy: Sheet) {
+    const isOriginalShown = this.#model?.getActiveSheet()?.id === original.id;
+    const endpoints = isOriginalShown
+      ? (this.hot.getPlugin('columnSummary')?.exportEndpointSettings() ?? null)
+      : (this.#columnSummaryStates.get(original) ?? null);
+
+    if (endpoints) {
+      copy.settings = { ...copy.settings, columnSummary: endpoints };
     }
   }
 
@@ -2345,6 +2367,7 @@ export class SheetsBar extends BasePlugin {
         }
 
         this.#copyServerView(original, sheet);
+        this.#copyColumnSummaryEndpoints(original, sheet);
 
         // The copy cannot share the original's engine sheet — two tabs writing into one set of
         // cells — so it gets an engine sheet of its own, named like the copy, seeded with the
@@ -3048,21 +3071,12 @@ export class SheetsBar extends BasePlugin {
   };
 
   /**
-   * Blocks a grid-level `dataProvider` set through a later `updateSettings()` call, the same way
-   * `#withBaselineFor` blocks it on a switch. It runs ahead of every other `afterUpdateSettings`
-   * listener (a negative `orderIndex`), so the DataProvider plugin never enables with the blocked
-   * value: no `fetchRows` call, no loading overlay. The initial workbook build needs no guard here
-   * — it completes before this hook is registered. See `#blocksGridDataProvider` for the cases
-   * that are left alone.
-   *
-   * @param {object} newSettings The settings passed to `updateSettings()`.
-   */
-  /**
    * Applies the opening sheet's settings that core's init settings pass undid. Fires once, after that
    * pass and before the first render. The grid-level callback of each such hook is recorded in the
    * settings baseline first: the baseline is captured in `beforeInit`, before core puts the settings'
    * callbacks on the table meta, so it held nothing there, and a switch to another sheet then kept the
-   * opening sheet's callback in place of the grid-level one.
+   * opening sheet's callback in place of the grid-level one. The update runs with `#isSwitching` set,
+   * like a switch, so the sheet's declared `cell` entries are not tracked as cell meta the user set.
    */
   #onInit = () => {
     const settings = this.#settingsAfterInitPass;
@@ -3081,11 +3095,27 @@ export class SheetsBar extends BasePlugin {
       }
     });
 
-    this.hot.updateSettings(settings);
+    const wasSwitching = this.#isSwitching;
+
+    this.#isSwitching = true;
+
+    try {
+      this.hot.updateSettings(settings);
+    } finally {
+      this.#isSwitching = wasSwitching;
+    }
   };
 
   /**
+   * Blocks a grid-level `dataProvider` set through a later `updateSettings()` call, the same way
+   * `#withBaselineFor` blocks it on a switch. It runs ahead of every other `afterUpdateSettings`
+   * listener (a negative `orderIndex`), so the DataProvider plugin never enables with the blocked
+   * value: no `fetchRows` call, no loading overlay. The initial workbook build applies its
+   * opening sheet before this hook is registered, and `#onInit` re-applies that sheet's own hooks and
+   * `cell` entries with `#isSwitching` set, which the gate stands aside for. See `#blocksGridDataProvider` for the cases
+   * that are left alone.
    *
+   * @param {object} newSettings The settings passed to `updateSettings()`.
    */
   #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
     if (!newSettings.dataProvider) {

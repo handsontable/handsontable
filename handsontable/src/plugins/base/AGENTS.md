@@ -163,8 +163,14 @@ that already reads the new rows): that work is correct as it is. The plugins tha
 ColumnSummary (endpoints), ColumnSorting and MultiColumnSorting (the `initialConfig` sort), CustomBorders
 (the declared borders), MergeCells (the settings pass, run by SheetsBar), NestedRows (the data check),
 Formulas (bind only, no sheet fill), Pagination (the page state), EmptyDataState (the overlay toggle) and
-DataProvider (the fetch). The public `updateSettings()` and `loadData()` never set the flag. Pinned by
-`src/__tests__/core/applySettingsAndData.unit.js`.
+DataProvider (the fetch). The public `updateSettings()` and `loadData()` never set the flag. Two more rules:
+record owed work only while `this.hot.view` exists, because core skips the `onDataReady()` pass on a grid
+still being built and the plugin's own `afterInit` does the work there (a flag set then would fire on a
+later, unrelated switch); and declare `onDataReady()` as an ordinary method, BasePlugin declares the
+optional signature. A public `updateSettings()` made while the call runs (ColumnSorting turning a
+conflicting plugin off from `enablePlugin()`, a listener) is applied in full: only the call's own settings
+pass is deferred, and the flag plugins read stays `true`, so their work still waits for the call's
+`onDataReady()` pass. Pinned by `src/__tests__/core/applySettingsAndData.unit.js`.
 
 ## Hard conflicts
 

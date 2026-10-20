@@ -558,12 +558,23 @@ export class BasePlugin {
   }
 
   /**
+   * Optional step core's `_applySettingsAndData()` calls once the data the settings describe is loaded,
+   * for every enabled plugin that defines it, in plugin priority order (see `isDataWorkDeferred()`).
+   *
+   * @private
+   */
+  onDataReady?(): void;
+
+  /**
    * Whether the settings this plugin is applying describe data the grid has not loaded yet. Core's
    * `_applySettingsAndData()` applies settings first and loads their data after, the order the grid's
-   * own initialization uses, and answers `true` until that load is done. A plugin whose
-   * `enablePlugin()` or `updatePlugin()` reads or writes the loaded rows skips that work while this is
-   * `true` and does it in an `onDataReady()` method, which core calls once the data is loaded, in
-   * plugin priority order, for every enabled plugin that has one.
+   * own initialization uses, and answers `true` from its settings pass through the load and the
+   * held-back meta phase (`afterCellMetaReset` included), dropping only before the `onDataReady()`
+   * pass. A plugin whose `enablePlugin()` or `updatePlugin()` reads or writes the loaded rows skips that
+   * work while this is `true` and does it in `onDataReady()`, which core calls once the data is loaded,
+   * in plugin priority order, for every enabled plugin that has one. Core skips that pass while the grid
+   * has no view (it is still being built): record the work as owed only when `this.hot.view` exists,
+   * because the plugin's own `afterInit` does it then.
    *
    * @private
    * @returns {boolean}

@@ -3053,10 +3053,12 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * `beforeLoadData` hook callback. A grid counts as built without data only when no `data` setting
-   * exists AND the load brings no array: core's first `loadData()` can carry a real array before the
-   * setting is stored (the sheets bar loads its opening sheet that way), and treating that grid as
-   * empty made every later settings update reload it from the engine sheet.
+   * `beforeLoadData` hook callback. A grid counts as built without data when no `data` setting exists,
+   * except for the load core's `_applySettingsAndData()` makes: that load carries the data of the call,
+   * before the setting is stored (the sheets bar loads its opening sheet that way), and treating that grid
+   * as empty made every later settings update reload it from the engine sheet. The exception is scoped to
+   * that call on purpose: a grid built with a `dataProvider` and no `data` loads a `[]` placeholder first,
+   * and must keep reading the engine sheet as its data.
    *
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
@@ -3069,18 +3071,22 @@ export class Formulas extends BasePlugin {
 
     // This flag needs to be defined, because not passing data to HOT results in HOT auto-generating a `null`-filled
     // initial dataset.
-    this.#hotWasInitializedWithEmptyData = isUndefined(this.hot.getSettings().data) && !Array.isArray(sourceData);
+    this.#hotWasInitializedWithEmptyData = isUndefined(this.hot.getSettings().data) &&
+      !(this.isDataWorkDeferred() && Array.isArray(sourceData));
   };
 
   /**
-   * Whether the `cell` option declares any entry.
+   * Whether the meta phase core runs after the load of `_applySettingsAndData()` can change a value the
+   * engine reads: it applies the `cell` option and the `columns` function form, and a cell type either
+   * sets (a key/value dropdown resolves an object to its label) decides that value. The load wrote the
+   * sheet before either was applied.
    *
    * @returns {boolean}
    */
-  #hasCellOptionEntries(): boolean {
-    const { cell } = this.hot.getSettings();
+  #metaPhaseMayChangeEngineValues(): boolean {
+    const { cell, columns } = this.hot.getSettings();
 
-    return Array.isArray(cell) && cell.length > 0;
+    return (Array.isArray(cell) && cell.length > 0) || typeof columns === 'function';
   }
 
   /**
@@ -3094,16 +3100,16 @@ export class Formulas extends BasePlugin {
    * stays eager there; `hot.view` is what the Core creates right after that first run.
    *
    * The reset core's `_applySettingsAndData()` fires after its own load needs no resync when the call
-   * declares no `cell` entries: that load already wrote the sheet through `#onAfterLoadData`, with the
+   * declares no `cell` entries and no `columns` function: that load already wrote the sheet through `#onAfterLoadData`, with the
    * column configuration of the call in force, and a second scan cost a full engine write and an
-   * AutoColumnSize sweep per sheet switch. `cell` entries are applied after that load, and a cell type they
-   * set can change the value the engine reads (a key/value dropdown resolves an object to its label), so
-   * such a call resyncs as any settings update does.
+   * AutoColumnSize sweep per sheet switch. `cell` entries and a `columns` function are applied after that
+   * load, and a cell type they set can change the value the engine reads (a key/value dropdown resolves an
+   * object to its label), so such a call resyncs as any settings update does.
    */
   #onAfterCellMetaReset = () => {
     this.#closeLeakedGuards();
 
-    if (this.isDataWorkDeferred() && !this.#hasCellOptionEntries()) {
+    if (this.isDataWorkDeferred() && !this.#metaPhaseMayChangeEngineValues()) {
       return;
     }
 
