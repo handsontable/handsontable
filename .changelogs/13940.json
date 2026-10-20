@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the select editor showing another record's value when its value was refreshed on a sorted, filtered, or row-moved grid.",
+  "title": "Fixed the select editor showing another record's value when its value was refreshed on a sorted, filtered, or moved grid.",
   "type": "fixed",
   "issueOrPR": 13940,
   "breaking": false,

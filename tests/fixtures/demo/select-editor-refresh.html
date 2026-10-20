@@ -32,8 +32,8 @@
 <body>
   <!--
     E2E fixture for refreshing an open select editor. Cells are stamped with data-testid via the
-    afterRenderer hook, as data-testid="cell-<row>-<col>". Sorting and filters are on, so a visual row
-    index can differ from its physical one.
+    afterRenderer hook, as data-testid="cell-<row>-<col>". Sorting, filters, and manual row and column
+    move are on, so a visual index can differ from its physical one.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -60,6 +60,8 @@
         { type: 'select', selectOptions: ['red', 'green', 'blue', 'yellow'] },
       ],
       columnSorting: true,
+      manualRowMove: true,
+      manualColumnMove: true,
       filters: true,
       afterRenderer(td, row, col) {
         td.setAttribute('data-testid', `cell-${row}-${col}`);

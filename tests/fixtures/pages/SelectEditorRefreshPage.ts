@@ -7,6 +7,8 @@ interface HandsontableFixture {
     addCondition(column: number, name: string, args: unknown[]): void;
     filter(): void;
   };
+  getPlugin(name: 'manualRowMove'): { moveRow(row: number, finalIndex: number): void };
+  getPlugin(name: 'manualColumnMove'): { moveColumn(column: number, finalIndex: number): void };
   setSourceDataAtCell(row: number, column: number, value: unknown): void;
   getSourceData(): string[][];
   getActiveEditor(): { isOpened(): boolean; getValue(): unknown } | undefined;
@@ -51,6 +53,35 @@ export class SelectEditorRefreshPage {
       (window as unknown as { hot: HandsontableFixture }).hot
         .getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
     });
+  }
+
+  /**
+   * Moves a row, so the visual order differs from the physical one.
+   */
+  async moveRow(row: number, finalIndex: number): Promise<void> {
+    await this.page.evaluate(([from, to]) => {
+      (window as unknown as { hot: HandsontableFixture }).hot.getPlugin('manualRowMove').moveRow(from, to);
+      (window as unknown as { hot: { render(): void } }).hot.render();
+    }, [row, finalIndex] as const);
+  }
+
+  /**
+   * Moves a column, so the visual order differs from the physical one.
+   */
+  async moveColumn(column: number, finalIndex: number): Promise<void> {
+    await this.page.evaluate(([from, to]) => {
+      (window as unknown as { hot: HandsontableFixture }).hot.getPlugin('manualColumnMove').moveColumn(from, to);
+      (window as unknown as { hot: { render(): void } }).hot.render();
+    }, [column, finalIndex] as const);
+  }
+
+  /**
+   * Picks an option in the open editor and confirms it with Enter.
+   */
+  async chooseAndConfirm(option: string): Promise<void> {
+    await this.page.locator('.htSelectEditor select').selectOption(option);
+    await this.page.keyboard.press('Enter');
+    await expect.poll(() => this.editorState()).toMatchObject({ opened: false });
   }
 
   /**
