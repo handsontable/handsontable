@@ -2,6 +2,10 @@ import Handsontable from 'handsontable';
 import type { ViewState } from 'handsontable/plugins';
 import type {
   GridViewState,
+  GridViewStateColumnKey,
+  GridViewStateFilterInput,
+  GridViewStateInput,
+  GridViewStateSortColumnInput,
   GridViewStateIssue,
   GridViewStateRestoreResult,
   GridViewStateSetOptions,
@@ -33,6 +37,57 @@ viewStatePlugin.setViewState({
   frozen: { rowsTop: 1, rowsBottom: 0, columnsStart: 0, columnsEnd: 0 },
 });
 viewStatePlugin.setViewState({ version: 1, selection: null }).skipped[0].reason === 'outOfRange';
+
+// A column can be named by its property in the sort, the filters, the hidden columns and the widths.
+const byProperty: GridViewStateInput = {
+  version: 1,
+  sort: { columns: [{ column: 'amount', sortOrder: 'desc' }, { column: 2, sortOrder: 'asc' }] },
+  filters: [{ column: 'address.city', operation: 'conjunction', conditions: [{ name: 'eq', args: ['x'] }] }],
+  hiddenColumns: ['id', 3],
+  columnWidths: [['name', 120], [1, 80]],
+};
+
+viewStatePlugin.setViewState(byProperty);
+viewStatePlugin.validateViewState(byProperty).valid === true;
+
+const key: GridViewStateColumnKey = 'amount';
+const sortColumn: GridViewStateSortColumnInput = { column: key, sortOrder: 'asc' };
+const filterInput: GridViewStateFilterInput = { column: 0, operation: 'disjunction', conditions: [] };
+const inputAlias: Handsontable.plugins.ViewState.Input = { version: 1, hiddenColumns: [sortColumn.column] };
+const keyAlias: Handsontable.plugins.ViewState.ColumnKey = filterInput.column;
+
+const sortAlias: Handsontable.plugins.ViewState.SortColumnInput = sortColumn;
+const filterAlias: Handsontable.plugins.ViewState.FilterInput = filterInput;
+
+inputAlias.version === 1;
+keyAlias === 0;
+sortAlias.sortOrder === 'asc';
+filterAlias.operation === 'disjunction';
+
+// What getViewState() reports names every column by its physical index.
+const reportedHidden: number[] | undefined = viewState.hiddenColumns;
+const reportedSort: number | undefined = viewState.sort?.columns[0].column;
+// And a reported state can be passed back as it is.
+const roundTrip: GridViewStateInput = viewState;
+
+reportedHidden?.length === 0;
+reportedSort === 0;
+roundTrip.version === 1;
+
+// @ts-expect-error a hidden column is an index or a property
+viewStatePlugin.setViewState({ version: 1, hiddenColumns: [true] });
+// @ts-expect-error a sort column is an index or a property
+viewStatePlugin.setViewState({ version: 1, sort: { columns: [{ column: null, sortOrder: 'asc' }] } });
+// @ts-expect-error a column width is keyed by an index or a property
+viewStatePlugin.setViewState({ version: 1, columnWidths: [[{}, 80]] });
+// @ts-expect-error a filter entry names its column by an index or a property
+viewStatePlugin.setViewState({ version: 1, filters: [{ column: false, operation: 'conjunction', conditions: [] }] });
+// @ts-expect-error a row is named by its physical index only
+viewStatePlugin.setViewState({ version: 1, hiddenRows: ['name'] });
+// @ts-expect-error a row height is keyed by its physical row only
+viewStatePlugin.setViewState({ version: 1, rowHeights: [['name', 40]] });
+// @ts-expect-error the column order is a list of physical indexes only
+viewStatePlugin.setViewState({ version: 1, columnOrder: ['id'] });
 
 const options: GridViewStateSetOptions = { undo: 'record', atomic: true };
 

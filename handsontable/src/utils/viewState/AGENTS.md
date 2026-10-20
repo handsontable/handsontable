@@ -22,9 +22,8 @@ pay for. A new consumer lives in a plugin.
 ## What it does
 
 - **Order is load-bearing** in `restoreViewState()`:
-  the column order goes before the sort re-apply (the sort config addresses its column
-  visually), sort is cleared and re-applied around the row order (the sorting plugin resets
-  rows to its own pre-sort cache on every `sort()`), filters and trimming re-apply before the
+  the column order goes before the sort re-apply, sort is cleared and re-applied around the
+  row order (the sorting plugin resets rows to its own pre-sort cache on every `sort()`), filters and trimming re-apply before the
   hidden sets (hidden indexes are stored as physical, and so are the tracked cell-meta
   entries), and the selection and scroll run through `restoreViewport()` **after** the render
   batch, once the arriving sheet is painted at its own sizes. `restoreViewport()` puts the
@@ -77,6 +76,16 @@ pay for. A new consumer lives in a plugin.
   captured physically off the plugin's hiding map (`hidingMapsCollection.get(pluginName)` –
   the map is registered under the upper-cased `HiddenRows`, not `hiddenRows`), not through
   `getHiddenRows()`: a hidden child of a collapsed parent has no visual index at capture time.
+
+- **The sort is stored by physical column, and translated to a visual one right before each call into
+  the sorting plugin** (`captureSortConfig()`, `toPluginSortConfig()`). `restoreViewState()` runs inside
+  `safeBatch()`, which suspends the index cache, so a column order written by the restore is not in the
+  cache yet when `sort()` runs: the plugin turns the visual column it gets back into a physical one
+  against the order from BEFORE the restore. A visual sort captured under one column order and replayed
+  under another sorted the wrong column (a SheetsBar sheet with moved columns came back with its sort
+  indicator on another column), and translating ahead of the call, against the order being restored,
+  is wrong for the same reason. Translate against whatever cache the plugin reads at that moment, which
+  `hot.toVisualColumn()` does. The public layer relies on this: its `sort` part is physical too.
 
 Tests: `__tests__/viewState.unit.js` (the engine), plus SheetsBar's own suites and
 `plugins/viewState/__tests__/viewState.unit.js` (the public layer through the engine).

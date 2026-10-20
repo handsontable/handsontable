@@ -653,7 +653,6 @@ describe('ViewState plugin', () => {
       ['selection', selectionOf({ ranges: [{ from: [0, 0], to: [0, 0] }] })],
       ['selection', selectionOf({ selectedByRowHeader: [-1] })],
       ['selection', selectionOf({ disableHeadersHighlight: 'no' })],
-      ['sort', { columns: [{ column: 9, sortOrder: 'asc' }] }],
       ['sort', { columns: [{ column: -1, sortOrder: 'asc' }] }],
       ['sort', { columns: [{ column: 0, sortOrder: 'none' }] }],
       ['sort', { columns: [{ column: 0, sortOrder: 'asc' }, { column: 1, sortOrder: 'desc' }] }],
@@ -1089,11 +1088,11 @@ describe('ViewState plugin', () => {
         path: 'columnOrder',
         message: 'columnOrder lists 2 columns, and the grid has 4',
       });
-      expect(onlyIssue(hot, { sort: { columns: [{ column: 9, sortOrder: 'asc' }] } })).toEqual({
+      expect(onlyIssue(hot, { sort: { columns: [{ column: 1.5, sortOrder: 'asc' }] } })).toEqual({
         part: 'sort',
         reason: 'invalid',
         path: 'sort.columns[0].column',
-        message: 'sort.columns[0].column must be a visual column index from 0 to 3',
+        message: 'sort.columns[0].column must be a physical column index or a column property',
       });
       expect(onlyIssue(hot, { sort: { columns: [{ column: 0, sortOrder: 'up' }] } }).path)
         .toBe('sort.columns[0].sortOrder');
@@ -1556,6 +1555,520 @@ describe('ViewState plugin', () => {
 
       // Hiding a column reads the column order to translate its index, and never the row order.
       expect(rows).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('one index space for the columns', () => {
+    /**
+     * Creates a grid whose columns each sort the rows into a different order, so a sort on the wrong
+     * column shows in the data.
+     * @param settings
+     */
+    function createShuffledGrid(settings = {}) {
+      return createGrid({
+        ...ALL_PLUGINS,
+        data: [
+          [3, 'b', 'z', 40],
+          [1, 'd', 'x', 10],
+          [4, 'a', 'w', 30],
+          [2, 'c', 'y', 20],
+        ],
+        ...settings,
+      });
+    }
+
+    /**
+     * Returns the values of a physical column, in the order the grid shows the rows.
+     * @param hot
+     * @param physicalColumn
+     */
+    function columnValues(hot, physicalColumn) {
+      return hot.getDataAtCol(hot.toVisualColumn(physicalColumn));
+    }
+
+    /**
+     * Clears the sort and sorts again by the reported config, and returns whether the rows stayed put:
+     * the config then names the column the rows are sorted by.
+     * @param hot
+     */
+    function sortConfigDrivesRows(hot) {
+      const sorting = hot.getPlugin('columnSorting');
+      const config = sorting.getSortConfig();
+      const before = hot.getData();
+
+      sorting.clearSort();
+      sorting.sort(config);
+
+      return JSON.stringify(hot.getData()) === JSON.stringify(before);
+    }
+
+    it('sorts and hides the same physical column after the columns were moved', () => {
+      const hot = createShuffledGrid();
+
+      hot.columnIndexMapper.setIndexesSequence([3, 2, 1, 0]);
+
+      const { skipped } = vs(hot).setViewState({
+        version: 1,
+        sort: { columns: [{ column: 1, sortOrder: 'desc' }] },
+        hiddenColumns: [1],
+      });
+
+      expect(skipped).toEqual([]);
+      // Physical column 1 is shown at visual index 2.
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([2]);
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 2, sortOrder: 'desc' }]);
+      expect(columnValues(hot, 1)).toEqual(['d', 'c', 'b', 'a']);
+    });
+
+    it('sorts against the column order the same state restores', () => {
+      const hot = createShuffledGrid();
+
+      hot.columnIndexMapper.setIndexesSequence([1, 0, 3, 2]);
+      vs(hot).setViewState({
+        version: 1,
+        columnOrder: [3, 2, 1, 0],
+        sort: { columns: [{ column: 1, sortOrder: 'asc' }] },
+      });
+
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 2, sortOrder: 'asc' }]);
+      expect(columnValues(hot, 1)).toEqual(['a', 'b', 'c', 'd']);
+      expect(sortConfigDrivesRows(hot)).toBe(true);
+    });
+
+    it('reports the sort by its physical column', () => {
+      const hot = createShuffledGrid();
+
+      hot.columnIndexMapper.setIndexesSequence([3, 2, 1, 0]);
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(vs(hot).getViewState().sort).toEqual({ columns: [{ column: 3, sortOrder: 'asc' }] });
+    });
+
+    it('reports the sort it replaced by its physical column, and reverts to it', () => {
+      const hot = createShuffledGrid();
+
+      hot.columnIndexMapper.setIndexesSequence([3, 2, 1, 0]);
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      const sorted = hot.getData();
+      const { previous } = vs(hot).setViewState({ version: 1, sort: { columns: [] } });
+
+      expect(previous.sort).toEqual({ columns: [{ column: 3, sortOrder: 'asc' }] });
+
+      vs(hot).setViewState(previous);
+
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+      expect(hot.getData()).toEqual(sorted);
+    });
+
+    it('restores the same view through JSON after the columns were moved', () => {
+      const source = createShuffledGrid();
+
+      source.columnIndexMapper.setIndexesSequence([2, 0, 3, 1]);
+      source.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' }); // physical 2
+      source.getPlugin('hiddenColumns').hideColumn(1); // physical 0
+      source.getPlugin('manualColumnResize').setManualSize(2, 120); // physical 3
+
+      const filters = source.getPlugin('filters');
+
+      filters.addCondition(3, 'neq', ['d']); // physical 1
+      filters.filter();
+
+      const state = throughJson(vs(source).getViewState());
+
+      expect(state.sort).toEqual({ columns: [{ column: 2, sortOrder: 'desc' }] });
+      expect(state.hiddenColumns).toEqual([0]);
+      expect(state.columnWidths).toEqual([[3, 120]]);
+      expect(state.filters[0].column).toBe(1);
+
+      const whole = createShuffledGrid();
+
+      expect(vs(whole).setViewState(state).skipped).toEqual([]);
+      expect(vs(whole).getViewState()).toEqual(vs(source).getViewState());
+      expect(whole.getData()).toEqual(source.getData());
+      expect(sortConfigDrivesRows(whole)).toBe(true);
+
+      // Without the orders, a grid that shows its columns elsewhere sorts, filters, hides and sizes
+      // the same physical columns, so each one shows the same values in the same row order.
+      const { columnOrder, rowOrder, ...parts } = state;
+      const reordered = createShuffledGrid();
+
+      reordered.columnIndexMapper.setIndexesSequence([1, 3, 0, 2]);
+
+      expect(vs(reordered).setViewState(parts).skipped).toEqual([]);
+      [0, 1, 2, 3].forEach((column) => {
+        expect(columnValues(reordered, column)).toEqual(columnValues(source, column));
+      });
+      expect(vs(reordered).getViewState()).toEqual({ ...vs(source).getViewState(), columnOrder: [1, 3, 0, 2] });
+    });
+
+    it('reports a sort column the same state\'s columnOrder brings in under maxCols as out of range', () => {
+      const hot = createShuffledGrid({ maxCols: 3, columnOrder: undefined });
+      const state = {
+        version: 1,
+        columnOrder: [3, 0, 1, 2],
+        sort: { columns: [{ column: 3, sortOrder: 'desc' }] },
+      };
+
+      // The sorting plugin reads the column order from before the restore while it sorts inside the batch, so
+      // it would drop the sort of physical column 3, which the new order puts first. The check answers for
+      // the order in force now, and the part is reported instead of dropped.
+      expect(brief(vs(hot).validateViewState(state).skipped)).toEqual([{ part: 'sort', reason: 'outOfRange' }]);
+      expect(vs(hot).setViewState(state, { atomic: true }).error.reason).toBe('atomicRejected');
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([]);
+    });
+
+    it('reports a sort column past the last physical column as out of range', () => {
+      const hot = createGrid(ALL_PLUGINS);
+
+      expect(vs(hot).validateViewState({ version: 1, sort: { columns: [{ column: 4, sortOrder: 'asc' }] } })
+        .skipped).toEqual([{
+        part: 'sort',
+        reason: 'outOfRange',
+        path: 'sort.columns[0].column',
+        message: 'sort.columns[0].column is 4, and the grid has 4 columns',
+      }]);
+    });
+
+    it.each([
+      ['maxCols hides', { maxCols: 2 }, null],
+      ['a trimming map removes', {}, (hot) => {
+        hot.columnIndexMapper.createAndRegisterIndexMap('test', 'trimming', false).setValueAtIndex(3, true);
+      }],
+    ])('reports a sort column %s as out of range, before the sort is cleared', (_, settings, setup) => {
+      const hot = createShuffledGrid(settings);
+
+      setup?.(hot);
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      const sorted = hot.getData();
+      const issue = {
+        part: 'sort',
+        reason: 'outOfRange',
+        path: 'sort.columns[0].column',
+        message: 'sort.columns[0].column is 3, a column the grid does not show',
+      };
+
+      const state = { version: 1, sort: { columns: [{ column: 3, sortOrder: 'asc' }] } };
+
+      expect(vs(hot).validateViewState(state).skipped).toEqual([issue]);
+      expect(vs(hot).setViewState(state, { atomic: true }).error.reason).toBe('atomicRejected');
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+      expect(hot.getData()).toEqual(sorted);
+    });
+
+    it('keeps a vetoed sort on its column when the same state restores another column order', () => {
+      const source = createShuffledGrid();
+
+      source.columnIndexMapper.setIndexesSequence([3, 2, 1, 0]);
+      source.getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' }); // physical 1
+
+      const state = throughJson(vs(source).getViewState());
+      const hot = createShuffledGrid();
+      const sorting = hot.getPlugin('columnSorting');
+      const veto = () => false;
+
+      // The plugin writes the states back only once it holds its pre-sort cache, built on a first sort.
+      sorting.sort({ column: 0, sortOrder: 'asc' });
+      sorting.clearSort();
+      hot.columnIndexMapper.setIndexesSequence([1, 0, 3, 2]);
+      hot.addHook('beforeColumnSort', veto);
+      vs(hot).setViewState(state);
+      hot.removeHook('beforeColumnSort', veto);
+
+      expect(sorting.getSortConfig()).toEqual([{ column: 2, sortOrder: 'asc' }]);
+      expect(columnValues(hot, 1)).toEqual(['a', 'b', 'c', 'd']);
+      expect(sortConfigDrivesRows(hot)).toBe(true);
+    });
+  });
+
+  describe('columns named by their property', () => {
+    /**
+     * Creates a grid over objects, with the columns bound to their properties.
+     * @param settings
+     */
+    function createBoundGrid(settings = {}) {
+      return createGrid({
+        ...ALL_PLUGINS,
+        data: [
+          { id: 3, name: 'c', address: { city: 'Z' } },
+          { id: 1, name: 'a', address: { city: 'Y' } },
+          { id: 2, name: 'b', address: { city: 'X' } },
+        ],
+        columns: [{ data: 'id' }, { data: 'name' }, { data: 'address.city' }],
+        ...settings,
+      });
+    }
+
+    it('sorts by a property', () => {
+      const hot = createBoundGrid();
+
+      expect(vs(hot).setViewState({ version: 1, sort: { columns: [{ column: 'name', sortOrder: 'desc' }] } })
+        .skipped).toEqual([]);
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 1, sortOrder: 'desc' }]);
+      expect(hot.getDataAtCol(1)).toEqual(['c', 'b', 'a']);
+    });
+
+    it('sorts by a nested property', () => {
+      const hot = createBoundGrid();
+
+      vs(hot).setViewState({ version: 1, sort: { columns: [{ column: 'address.city', sortOrder: 'asc' }] } });
+
+      expect(hot.getDataAtCol(2)).toEqual(['X', 'Y', 'Z']);
+      expect(vs(hot).getViewState().sort).toEqual({ columns: [{ column: 2, sortOrder: 'asc' }] });
+    });
+
+    it('resolves a property to its physical column after the columns were moved', () => {
+      const hot = createBoundGrid();
+
+      hot.columnIndexMapper.setIndexesSequence([2, 0, 1]);
+      vs(hot).setViewState({
+        version: 1,
+        sort: { columns: [{ column: 'name', sortOrder: 'asc' }] },
+        hiddenColumns: ['id'],
+      });
+
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 2, sortOrder: 'asc' }]);
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([1]);
+      expect(vs(hot).getViewState().hiddenColumns).toEqual([0]);
+    });
+
+    it('hides, resizes, and filters a column named by its property', () => {
+      const hot = createBoundGrid();
+      const { skipped } = vs(hot).setViewState({
+        version: 1,
+        hiddenColumns: ['id'],
+        columnWidths: [['address.city', 140]],
+        filters: [{ column: 'name', operation: 'conjunction', conditions: [{ name: 'eq', args: ['b'] }] }],
+      });
+
+      expect(skipped).toEqual([]);
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([0]);
+      expect(hot.getColWidth(2)).toBe(140);
+      expect(hot.getData()).toEqual([[2, 'b', 'X']]);
+      expect(vs(hot).getViewState().filters[0].column).toBe(1);
+    });
+
+    it.each([
+      ['sort', { columns: [{ column: 'amount', sortOrder: 'asc' }] }, 'sort.columns[0].column'],
+      ['hiddenColumns', ['id', 'amount'], 'hiddenColumns[1]'],
+      ['columnWidths', [['amount', 50]], 'columnWidths[0]'],
+      ['filters', [{ column: 'amount', operation: 'conjunction', conditions: [] }], 'filters[0].column'],
+    ])('reports an unknown property in %s as invalid, with its path', (part, value, path) => {
+      const hot = createBoundGrid();
+      const before = vs(hot).getViewState();
+      const { skipped } = vs(hot).setViewState({ version: 1, [part]: value });
+
+      expect(skipped).toEqual([{
+        part,
+        reason: 'invalid',
+        path,
+        message: `${path} is 'amount', and no column of this grid has that property`,
+      }]);
+      expect(vs(hot).getViewState()).toEqual(before);
+    });
+
+    it('applies nothing for an unknown property when atomic is on', () => {
+      const hot = createBoundGrid();
+      const result = vs(hot).setViewState({
+        version: 1,
+        hiddenColumns: ['id'],
+        sort: { columns: [{ column: 'amount', sortOrder: 'asc' }] },
+      }, { atomic: true });
+
+      expect(result.error.reason).toBe('atomicRejected');
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([]);
+    });
+
+    it('treats a property and an index that name one column as one sort column named twice', () => {
+      const hot = createBoundGrid({ columnSorting: false, multiColumnSorting: true });
+
+      expect(vs(hot).validateViewState({
+        version: 1,
+        sort: { columns: [{ column: 'name', sortOrder: 'asc' }, { column: 1, sortOrder: 'desc' }] },
+      }).skipped).toEqual([{
+        part: 'sort',
+        reason: 'invalid',
+        path: 'sort.columns[1].column',
+        message: 'sort.columns[1].column names the same column as sort.columns[0].column',
+      }]);
+    });
+
+    it('names the last of two columns that share a property', () => {
+      const hot = createBoundGrid({ columns: [{ data: 'id' }, { data: 'name' }, { data: 'name' }] });
+
+      vs(hot).setViewState({ version: 1, hiddenColumns: ['name'] });
+
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([2]);
+    });
+
+    it('reads the properties of a columns function', () => {
+      const props = ['id', 'name', 'address.city'];
+      const hot = createBoundGrid({ columns: column => (column < props.length ? { data: props[column] } : null) });
+
+      vs(hot).setViewState({ version: 1, sort: { columns: [{ column: 'address.city', sortOrder: 'asc' }] } });
+
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 2, sortOrder: 'asc' }]);
+      expect(hot.getDataAtCol(2)).toEqual(['X', 'Y', 'Z']);
+    });
+
+    it('reports a property of a column the grid does not show as out of range', () => {
+      const hot = createBoundGrid();
+
+      hot.columnIndexMapper.createAndRegisterIndexMap('test', 'trimming', false).setValueAtIndex(1, true);
+
+      expect(vs(hot).validateViewState({ version: 1, hiddenColumns: ['name'] }).skipped).toEqual([{
+        part: 'hiddenColumns',
+        reason: 'outOfRange',
+        path: 'hiddenColumns[0]',
+        message: 'hiddenColumns[0] is \'name\', a column the grid does not show',
+      }]);
+    });
+
+    it('gives a column the grid does not show the same answer by index and by property', () => {
+      const hot = createBoundGrid();
+
+      hot.columnIndexMapper.createAndRegisterIndexMap('test', 'trimming', false).setValueAtIndex(1, true);
+
+      const reasons = state => brief(vs(hot).validateViewState({ version: 1, ...state }).skipped);
+      const condition = [{ name: 'eq', args: ['b'] }];
+
+      [['name'], [1]].forEach(([column]) => {
+        expect(reasons({ hiddenColumns: [column] })).toEqual([{ part: 'hiddenColumns', reason: 'outOfRange' }]);
+        expect(reasons({ filters: [{ column, operation: 'conjunction', conditions: condition }] }))
+          .toEqual([{ part: 'filters', reason: 'outOfRange' }]);
+        expect(reasons({ sort: { columns: [{ column, sortOrder: 'asc' }] } }))
+          .toEqual([{ part: 'sort', reason: 'outOfRange' }]);
+      });
+    });
+
+    it('reports a column past maxCols as out of range, by index and by property', () => {
+      const hot = createBoundGrid({ maxCols: 2 });
+
+      expect(vs(hot).validateViewState({ version: 1, hiddenColumns: [2] }).skipped).toEqual([{
+        part: 'hiddenColumns',
+        reason: 'outOfRange',
+        path: 'hiddenColumns[0]',
+        message: 'hiddenColumns[0] is 2, a column the grid does not show',
+      }]);
+      expect(vs(hot).validateViewState({ version: 1, hiddenColumns: ['address.city'] }).skipped).toEqual([{
+        part: 'hiddenColumns',
+        reason: 'outOfRange',
+        path: 'hiddenColumns[0]',
+        message: 'hiddenColumns[0] is \'address.city\', a column the grid does not show',
+      }]);
+    });
+
+    it('keeps the raw property in the message, with and without a columns option', () => {
+      const withColumns = createBoundGrid({ maxCols: 2 });
+      const withoutColumns = createBoundGrid({ maxCols: 2, columns: undefined });
+      const state = { version: 1, sort: { columns: [{ column: 'address.city', sortOrder: 'asc' }] } };
+      const issue = {
+        part: 'sort',
+        reason: 'outOfRange',
+        path: 'sort.columns[0].column',
+        message: 'sort.columns[0].column is \'address.city\', a column the grid does not show',
+      };
+
+      expect(vs(withColumns).validateViewState(state).skipped).toEqual([issue]);
+      expect(vs(withoutColumns).validateViewState(state).skipped).toEqual([issue]);
+    });
+
+    it('restores a width past maxCols or on a trimmed column, so a captured state round-trips', () => {
+      const source = createBoundGrid({ maxCols: 2, manualColumnResize: [100, 110, 120] });
+
+      source.columnIndexMapper.createAndRegisterIndexMap('test', 'trimming', false).setValueAtIndex(1, true);
+
+      const state = throughJson(vs(source).getViewState());
+      const target = createBoundGrid({ maxCols: 2, manualColumnResize: [50, 50, 50] });
+      const result = vs(target).setViewState(state, { atomic: true });
+
+      expect(state.columnWidths).toEqual([[0, 100], [1, 110], [2, 120]]);
+      expect(result.error).toBeUndefined();
+      expect(result.skipped).toEqual([]);
+      expect(target.getPlugin('manualColumnResize').getManualSizes()).toEqual(state.columnWidths);
+    });
+
+    it('names a trimmed column by property in the widths when a columns array declares it', () => {
+      const hot = createBoundGrid();
+
+      hot.columnIndexMapper.createAndRegisterIndexMap('test', 'trimming', false).setValueAtIndex(1, true);
+
+      const result = vs(hot).setViewState({ version: 1, columnWidths: [['name', 90]] }, { atomic: true });
+
+      expect(result.skipped).toEqual([]);
+      expect(hot.getPlugin('manualColumnResize').getManualSizes()).toEqual([[1, 90]]);
+    });
+
+    it('reports a trimmed column named by property in the widths when the grid has no columns array', () => {
+      const hot = createBoundGrid({ columns: undefined });
+
+      hot.columnIndexMapper.createAndRegisterIndexMap('test', 'trimming', false).setValueAtIndex(1, true);
+
+      expect(brief(vs(hot).validateViewState({ version: 1, columnWidths: [['name', 90]] }).skipped))
+        .toEqual([{ part: 'columnWidths', reason: 'outOfRange' }]);
+      expect(brief(vs(hot).validateViewState({ version: 1, columnWidths: [[1, 90]] }).skipped)).toEqual([]);
+    });
+
+    it('names a column by property in the widths even past maxCols, as the index form does', () => {
+      const hot = createBoundGrid({ maxCols: 2 });
+
+      expect(vs(hot).validateViewState({ version: 1, columnWidths: [['address.city', 90], [2, 90]] }).skipped)
+        .toEqual([{
+          part: 'columnWidths',
+          reason: 'invalid',
+          path: 'columnWidths[1]',
+          message: 'columnWidths[1] names the same column as columnWidths[0]',
+        }]);
+    });
+
+    it.each([
+      ['columnWidths', [['address.city', 120], [2, 90]], 'columnWidths[1]', 'columnWidths[0]'],
+      ['sort', { columns: [{ column: 'name', sortOrder: 'asc' }, { column: 'name', sortOrder: 'desc' }] },
+        'sort.columns[1].column', 'sort.columns[0].column'],
+    ])('reports one column named twice in %s as invalid, by the paths the caller wrote', (part, value, path, first) => {
+      const hot = createBoundGrid({ columnSorting: false, multiColumnSorting: true });
+
+      expect(vs(hot).validateViewState({ version: 1, [part]: value }).skipped).toEqual([{
+        part,
+        reason: 'invalid',
+        path,
+        message: `${path} names the same column as ${first}`,
+      }]);
+    });
+
+    it('reads a numeric string as a property, not as an index', () => {
+      const hot = createGrid(ALL_PLUGINS);
+
+      expect(vs(hot).validateViewState({ version: 1, hiddenColumns: ['2'] }).skipped).toEqual([{
+        part: 'hiddenColumns',
+        reason: 'invalid',
+        path: 'hiddenColumns[0]',
+        message: 'hiddenColumns[0] is \'2\', and no column of this grid has that property',
+      }]);
+    });
+
+    it('reads the properties of objects without a columns option', () => {
+      const hot = createBoundGrid({ columns: undefined });
+
+      vs(hot).setViewState({ version: 1, hiddenColumns: ['name'] });
+
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([1]);
+    });
+
+    it('takes no property on a grid over arrays, and none for a row', () => {
+      const hot = createGrid(ALL_PLUGINS);
+
+      expect(brief(vs(hot).validateViewState({
+        version: 1,
+        hiddenColumns: ['0'],
+        hiddenRows: ['name'],
+        rowHeights: [['name', 40]],
+      }).skipped)).toEqual([
+        { part: 'hiddenRows', reason: 'invalid' },
+        { part: 'hiddenColumns', reason: 'invalid' },
+        { part: 'rowHeights', reason: 'invalid' },
+      ]);
     });
   });
 });

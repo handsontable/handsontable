@@ -5,8 +5,11 @@ export {
 } from './viewState';
 export type {
   GridViewState,
+  GridViewStateColumnKey,
   GridViewStateCoords,
   GridViewStateError,
+  GridViewStateFilterInput,
+  GridViewStateInput,
   GridViewStateIssue,
   GridViewStatePart,
   GridViewStateRange,
@@ -15,5 +18,6 @@ export type {
   GridViewStateSetOptions,
   GridViewStateSkipReason,
   GridViewStateSortColumn,
+  GridViewStateSortColumnInput,
   GridViewStateValidationResult,
 } from './gridViewState';

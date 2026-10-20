@@ -13,6 +13,7 @@ import {
   keepSelectionOnPage,
   restoreViewState,
   restoreViewport,
+  type SortedColumn,
   type ViewState,
   type ViewStatePart,
 } from '../../utils/viewState/viewState';
@@ -51,7 +52,7 @@ export interface GridViewStateSelection {
 }
 
 /**
- * One sorted column of a {@link GridViewState}: its visual index and its order.
+ * One sorted column of a {@link GridViewState}: its physical index and its order.
  */
 export interface GridViewStateSortColumn {
   column: number;
@@ -59,9 +60,35 @@ export interface GridViewStateSortColumn {
 }
 
 /**
+ * A column a {@link GridViewStateInput} names: its physical index, or the property its data is bound to
+ * (a `columns[].data` string, or a key of the row objects, such as `'address.city'`). A string is always
+ * read as a property, so a numeric string such as `'2'` (as a URL or a JSON source may give it) is not
+ * the index `2`, and on a grid over arrays it is reported as `invalid`.
+ */
+export type GridViewStateColumnKey = number | string;
+
+/**
+ * One sorted column of a {@link GridViewStateInput}: its physical index or its property, and its order.
+ */
+export interface GridViewStateSortColumnInput {
+  column: GridViewStateColumnKey;
+  sortOrder: 'asc' | 'desc';
+}
+
+/**
+ * One filter entry of a {@link GridViewStateInput}, with its column as a physical index or a property.
+ */
+export type GridViewStateFilterInput = Omit<ColumnConditions, 'column'> & {
+  column: GridViewStateColumnKey,
+};
+
+/**
  * A JSON-serializable snapshot of the grid's view. Every part is optional: a part left out is
- * left as it is on restore. Unless noted, indexes are physical, so a part keeps addressing the
- * same records whatever the row and column order.
+ * left as it is on restore.
+ *
+ * An index that names a record or a column is physical, so a part keeps addressing the same data
+ * whatever the row and column order. The positions on screen are visual: the selection, the scroll
+ * position, and the frozen counts.
  */
 export interface GridViewState {
   version: number;
@@ -77,7 +104,7 @@ export interface GridViewState {
   rowOrder?: number[];
 
   /**
-   * The sort configuration. Each entry names a visual column and its order.
+   * The sort configuration. Each entry names a physical column and its order.
    */
   sort?: {
     columns: GridViewStateSortColumn[],
@@ -140,6 +167,20 @@ export interface GridViewState {
     row: number,
     col: number,
   };
+}
+
+/**
+ * A view state as `setViewState()` and `validateViewState()` take it: a {@link GridViewState} whose sort,
+ * filters, hidden columns, and column widths can also name a column by its property.
+ */
+export interface GridViewStateInput extends
+  Omit<GridViewState, 'sort' | 'filters' | 'hiddenColumns' | 'columnWidths'> {
+  sort?: {
+    columns: GridViewStateSortColumnInput[],
+  };
+  filters?: GridViewStateFilterInput[];
+  hiddenColumns?: GridViewStateColumnKey[];
+  columnWidths?: Array<[GridViewStateColumnKey, number]>;
 }
 
 /**
@@ -454,9 +495,7 @@ function readPart(hot: HotInstance, state: ViewState, part: GridViewStatePart): 
   switch (part) {
     case 'columnOrder': return state.columnSequence;
     case 'rowOrder': return state.rowSequence;
-    case 'sort': return {
-      columns: (state.sortConfig as GridViewStateSortColumn[] | undefined) ?? [],
-    };
+    case 'sort': return { columns: state.sortConfig };
     case 'filters': return state.filterConditions ?? [];
     case 'hiddenRows': return state.hiddenRows;
     case 'hiddenColumns': return state.hiddenColumns;
@@ -558,8 +597,63 @@ function describeRange(
   const count = axis === 'row' ? hot.rowIndexMapper.getNumberOfIndexes() : hot.columnIndexMapper.getNumberOfIndexes();
   const bad = indexes.findIndex(index => index >= count);
 
-  return bad === -1 ? null : fail('outOfRange', `${path}[${bad}]`,
-    `${path}[${bad}] is ${indexes[bad]}, and the grid has ${count} ${axis}s`);
+  if (bad !== -1) {
+    return fail('outOfRange', `${path}[${bad}]`,
+      `${path}[${bad}] is ${indexes[bad]}, and the grid has ${count} ${axis}s`);
+  }
+
+  return null;
+}
+
+/**
+ * Describes a physical column the grid does not show, or returns `null`: a trimming map removed it, or it
+ * lies past `maxCols`. The restore reaches the hiding and sorting plugins through visual indexes, where
+ * such a column would be dropped without a word, and its property does not resolve either, so a column
+ * gets the same answer by index and by property. The manual widths are not checked: they are stored by
+ * physical index for every column the mapper has, so a width on such a column restores, and
+ * `getViewState()` reports it.
+ */
+function describeShownColumn(hot: HotInstance, path: string, column: number, name = `${column}`): Failure | null {
+  const visualColumn = hot.toVisualColumn(column);
+
+  return visualColumn === null || visualColumn >= hot.countCols() ?
+    fail('outOfRange', path, `${path} is ${name}, a column the grid does not show`) : null;
+}
+
+/**
+ * Describes the first column of a list that the grid does not show, see {@link describeShownColumn}.
+ */
+function describeShownColumns(hot: HotInstance, path: string, columns: number[]): Failure | null {
+  for (let index = 0; index < columns.length; index++) {
+    const failure = describeShownColumn(hot, `${path}[${index}]`, columns[index]);
+
+    if (failure) {
+      return failure;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Describes the first entry of a list that names a column an earlier entry names. With column properties
+ * a duplicate is easy to write by mistake (`'amount'` and `2` for one column), and the restore would keep
+ * the last one without a word.
+ */
+function describeDuplicateColumn(columns: unknown[], pathOf: (index: number) => string): Failure | null {
+  const firstIndexes = new Map<unknown, number>();
+
+  for (let index = 0; index < columns.length; index++) {
+    const earlier = firstIndexes.get(columns[index]);
+
+    if (earlier !== undefined) {
+      return fail('invalid', pathOf(index), `${pathOf(index)} names the same column as ${pathOf(earlier)}`);
+    }
+
+    firstIndexes.set(columns[index], index);
+  }
+
+  return null;
 }
 
 /**
@@ -570,14 +664,22 @@ function describeIndexRange(hot: HotInstance, part: GridViewStatePart, indexes: 
     return describeRange(hot, part, indexes, 'row');
   }
 
-  return part === 'hiddenColumns' ? describeRange(hot, part, indexes, 'column') : null;
+  return part === 'hiddenColumns' ?
+    describeRange(hot, part, indexes, 'column') ?? describeShownColumns(hot, part, indexes) : null;
 }
 
 /**
  * Describes a size entry whose index is past the end of its axis.
  */
 function describeSizeRange(hot: HotInstance, part: GridViewStatePart, pairs: Array<[number, number]>): Failure | null {
-  return describeRange(hot, part, pairs.map(([index]) => index), part === 'rowHeights' ? 'row' : 'column');
+  const indexes = pairs.map(([index]) => index);
+
+  if (part === 'rowHeights') {
+    return describeRange(hot, part, indexes, 'row');
+  }
+
+  return describeRange(hot, part, indexes, 'column') ??
+    describeDuplicateColumn(indexes, index => `${part}[${index}]`);
 }
 
 /**
@@ -598,6 +700,30 @@ function describeSizePairs(path: string, value: unknown): Failure | null {
 }
 
 /**
+ * Describes the first filter entry on a column the grid does not show, see {@link describeShownColumn}. An
+ * entry whose column is not an index of this grid is left to the Filters plugin to describe.
+ */
+function describeFilterColumns(hot: HotInstance, value: unknown): Failure | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const columnCount = hot.columnIndexMapper.getNumberOfIndexes();
+
+  for (let index = 0; index < value.length; index++) {
+    const column = isPlainObject(value[index]) ? (value[index] as Record<string, unknown>).column : undefined;
+    const failure = isInteger(column) && column >= 0 && column < columnCount ?
+      describeShownColumn(hot, `filters[${index}].column`, column) : null;
+
+    if (failure) {
+      return failure;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Describes the first filter entry the Filters plugin cannot import on this grid. The plugin answers
  * because the import empties the current conditions first and throws on an entry it cannot take, so a
  * bad entry has to be refused before the restore starts.
@@ -611,15 +737,191 @@ function describeFilters(hot: HotInstance, value: unknown): Failure | null {
 }
 
 /**
- * Describes why a value is not a sort configuration the enabled sorting plugin accepts: visual columns
- * of this grid, each once, and at most one of them unless `MultiColumnSorting` is on. The restore
+ * Where a list entry names its column: the value, its path, and how to rebuild the entry around a
+ * physical index.
+ */
+interface ColumnKeyLocation {
+  key: unknown;
+  path: string;
+  replace: (column: number) => unknown;
+}
+
+/**
+ * How a part that can name a column by its property holds its columns: where the list of entries is in
+ * the part's value, how to put a resolved list back, and where each entry names its column.
+ */
+interface ColumnKeyLocator {
+  /**
+   * Whether a column the grid does not show is refused, see {@link describeShownColumn}.
+   */
+  shown: boolean;
+  unwrap: (value: unknown) => unknown;
+  wrap: (value: unknown, list: unknown[]) => unknown;
+  locate: (entry: unknown, index: number) => ColumnKeyLocation;
+}
+
+/**
+ * Locates the column of an entry that is an object with a `column` key (a sort column, a filter entry).
+ */
+function locateObjectColumn(prefix: string) {
+  return (entry: unknown, index: number): ColumnKeyLocation => ({
+    key: isPlainObject(entry) ? (entry as Record<string, unknown>).column : undefined,
+    path: `${prefix}[${index}].column`,
+    replace: column => ({ ...(entry as Record<string, unknown>), column }),
+  });
+}
+
+/**
+ * Returns a part's value as it is, for a part whose value is the list itself.
+ */
+function asList(value: unknown): unknown {
+  return value;
+}
+
+/**
+ * How each part that can name a column by its property holds its columns.
+ */
+const COLUMN_KEY_LOCATORS: Partial<Record<GridViewStatePart, ColumnKeyLocator>> = {
+  sort: {
+    shown: true,
+    unwrap: value => (isPlainObject(value) ? (value as Record<string, unknown>).columns : undefined),
+    wrap: (value, columns) => ({ ...(value as Record<string, unknown>), columns }),
+    locate: locateObjectColumn('sort.columns'),
+  },
+  filters: { shown: true, unwrap: asList, wrap: (value, list) => list, locate: locateObjectColumn('filters') },
+  hiddenColumns: {
+    shown: true,
+    unwrap: asList,
+    wrap: (value, list) => list,
+    locate: (entry, index) => ({ key: entry, path: `hiddenColumns[${index}]`, replace: column => column }),
+  },
+  columnWidths: {
+    shown: false,
+    unwrap: asList,
+    wrap: (value, list) => list,
+    locate: (entry, index) => ({
+      key: Array.isArray(entry) ? entry[0] : undefined,
+      path: `columnWidths[${index}]`,
+      replace: column => [column, ...(entry as unknown[]).slice(1)],
+    }),
+  },
+};
+
+/**
+ * Returns the physical index of the column whose data is bound to a property, or the failure when there
+ * is none. `propToCol()` hands an unknown property back unchanged, and answers `null` for a property
+ * whose column has no visual index (a trimming map removed it), which the same column named by its
+ * index is reported as too.
+ */
+function resolveColumnKey(hot: HotInstance, key: string, path: string, shown: boolean): number | Failure {
+  const column = hot.propToCol(key);
+
+  if (column === null) {
+    // A trimmed column has no visual index. Where a `columns` array declares it, the widths still find it.
+    const declared = shown ? -1 : declaredColumnIndex(hot, key);
+
+    return declared === -1 ?
+      fail('outOfRange', path, `${path} is '${key}', a column the grid does not show`) : declared;
+  }
+
+  if (!isInteger(column)) {
+    const declared = declaredColumnIndex(hot, key);
+
+    if (declared === -1) {
+      return fail('invalid', path, `${path} is '${key}', and no column of this grid has that property`);
+    }
+
+    return shown ? fail('outOfRange', path, `${path} is '${key}', a column the grid does not show`) : declared;
+  }
+
+  const physical = hot.toPhysicalColumn(column);
+
+  return (shown && describeShownColumn(hot, path, physical, `'${key}'`)) || physical;
+}
+
+/**
+ * Returns the physical index of the last column a `columns` array binds to a property, or `-1`. The grid
+ * builds no column past `maxCols`, so `propToCol()` does not know that property, though the index of the same
+ * column is out of range, not unknown.
+ */
+function declaredColumnIndex(hot: HotInstance, key: string): number {
+  const { columns } = hot.getSettings();
+
+  return Array.isArray(columns) ? columns.findLastIndex(column => isPlainObject(column) && column.data === key) : -1;
+}
+
+/**
+ * Replaces each column property a part names with the physical index of its column, so the part's own
+ * checks see indexes only. Returns the failure for the first property that names no column the grid
+ * shows. A value of another shape is handed back as it is, for those checks to report.
+ */
+function resolveColumnKeys(
+  hot: HotInstance,
+  part: GridViewStatePart,
+  value: unknown,
+): { value: unknown, failure?: Failure } {
+  const locator = COLUMN_KEY_LOCATORS[part];
+  const list = locator?.unwrap(value);
+
+  if (!locator || !Array.isArray(list)) {
+    return { value };
+  }
+
+  const resolved: unknown[] = [];
+
+  for (let index = 0; index < list.length; index++) {
+    const { key, path, replace } = locator.locate(list[index], index);
+    const column = typeof key === 'string' ? resolveColumnKey(hot, key, path, locator.shown) : undefined;
+
+    if (column !== undefined && !isInteger(column)) {
+      return { value, failure: column };
+    }
+
+    resolved.push(column === undefined ? list[index] : replace(column));
+  }
+
+  return { value: locator.wrap(value, resolved) };
+}
+
+/**
+ * Describes why one sort entry is not a column the sorting plugin sorts by, or returns `null`. The plugin
+ * takes visual columns below `countCols()`, which `maxCols` and a trimming map lower, so a physical
+ * column past either is reported, not left for the plugin to drop after the restore cleared the sort.
+ */
+function describeSortColumn(hot: HotInstance, entry: Record<string, unknown> | null, at: string): Failure | null {
+  if (!isPlainObject(entry) || !isInteger(entry.column) || entry.column < 0) {
+    return fail('invalid', `${at}.column`, `${at}.column must be a physical column index or a column property`);
+  }
+
+  const column = entry.column as number;
+  const columnCount = hot.columnIndexMapper.getNumberOfIndexes();
+
+  if (column >= columnCount) {
+    return fail('outOfRange', `${at}.column`, `${at}.column is ${column}, and the grid has ${columnCount} columns`);
+  }
+
+  const hidden = describeShownColumn(hot, `${at}.column`, column);
+
+  if (hidden) {
+    return hidden;
+  }
+
+  if (entry.sortOrder !== 'asc' && entry.sortOrder !== 'desc') {
+    return fail('invalid', `${at}.sortOrder`, `${at}.sortOrder must be 'asc' or 'desc'`);
+  }
+
+  return null;
+}
+
+/**
+ * Describes why a value is not a sort configuration the enabled sorting plugin accepts: physical columns
+ * the grid shows, each once, and at most one of them unless `MultiColumnSorting` is on. The restore
  * clears the current sort before the plugin checks the configuration, so a rejected one would leave
  * the grid unsorted.
  */
 function describeSort(hot: HotInstance, value: unknown): Failure | null {
   const columns = isPlainObject(value) ? (value as Record<string, unknown>).columns : undefined;
-  const columnCount = hot.countCols();
-  const maxColumns = getEnabledPlugin(hot, 'multiColumnSorting') ? columnCount : 1;
+  const maxColumns = getEnabledPlugin(hot, 'multiColumnSorting') ? hot.columnIndexMapper.getNumberOfIndexes() : 1;
 
   if (!Array.isArray(columns)) {
     return fail('invalid', 'sort.columns', 'sort.columns must be an array of { column, sortOrder }');
@@ -629,28 +931,18 @@ function describeSort(hot: HotInstance, value: unknown): Failure | null {
     return fail('invalid', 'sort.columns', 'more than one sort column needs the MultiColumnSorting plugin');
   }
 
-  const seen = new Set<unknown>();
-
   for (let index = 0; index < columns.length; index++) {
-    const entry = columns[index] as Record<string, unknown> | null;
-    const at = `sort.columns[${index}]`;
+    const failure = describeSortColumn(hot, columns[index] as Record<string, unknown> | null, `sort.columns[${index}]`);
 
-    if (!isPlainObject(entry) || !isInteger(entry.column) || entry.column < 0 || entry.column >= columnCount) {
-      return fail('invalid', `${at}.column`, `${at}.column must be a visual column index from 0 to ${columnCount - 1}`);
+    if (failure) {
+      return failure;
     }
-
-    if (entry.sortOrder !== 'asc' && entry.sortOrder !== 'desc') {
-      return fail('invalid', `${at}.sortOrder`, `${at}.sortOrder must be 'asc' or 'desc'`);
-    }
-
-    if (seen.has(entry.column)) {
-      return fail('invalid', `${at}.column`, `column ${entry.column} is sorted more than once`);
-    }
-
-    seen.add(entry.column);
   }
 
-  return null;
+  return describeDuplicateColumn(
+    columns.map(entry => (entry as Record<string, unknown>).column),
+    index => `sort.columns[${index}].column`,
+  );
 }
 
 /**
@@ -661,9 +953,15 @@ function writePart(
   hot: HotInstance,
   state: ViewState,
   part: GridViewStatePart,
-  value: unknown,
+  rawValue: unknown,
   deferRows = false,
 ): Failure | null {
+  const { value, failure: unknownColumn } = resolveColumnKeys(hot, part, rawValue);
+
+  if (unknownColumn) {
+    return unknownColumn;
+  }
+
   if (part === 'columnOrder' || part === 'rowOrder') {
     return writeOrder(hot, state, part, value);
   }
@@ -703,7 +1001,7 @@ function writePart(
   }
 
   if (part === 'filters') {
-    const failure = describeFilters(hot, value);
+    const failure = describeFilterColumns(hot, value) ?? describeFilters(hot, value);
 
     if (!failure) {
       state.filterConditions = toPlainData(value as ColumnConditions[]);
@@ -794,7 +1092,7 @@ function writeObjectPart(
     const failure = describeSort(hot, value);
 
     if (!failure) {
-      state.sortConfig = toPlainData((value as { columns: unknown }).columns);
+      state.sortConfig = toPlainData((value as { columns: SortedColumn[] }).columns);
       // The sorting plugin sorts from the pre-sort order it caches on its first sort, built from the
       // rows' order at that moment, so a grid that has not sorted yet starts from the order shown now.
       state.unsortedRowSequence = hot.rowIndexMapper.getIndexesSequence().slice();
@@ -1048,11 +1346,11 @@ function toPartList(parts: Iterable<ViewStatePart>): GridViewStatePart[] {
  * Checks a {@link GridViewState} against the grid, without applying anything.
  *
  * @param {HotInstance} hot The Handsontable instance.
- * @param {GridViewState} state The state to check.
+ * @param {GridViewStateInput} state The state to check.
  * @returns {GridViewStateValidationResult} Whether the whole state can be applied, which parts can, and
  * what is wrong with the others.
  */
-export function validateGridViewState(hot: HotInstance, state: GridViewState): GridViewStateValidationResult {
+export function validateGridViewState(hot: HotInstance, state: GridViewStateInput): GridViewStateValidationResult {
   const plan = planRestore(hot, state);
 
   return {
@@ -1064,20 +1362,20 @@ export function validateGridViewState(hot: HotInstance, state: GridViewState): G
 }
 
 /**
- * Applies a {@link GridViewState} to the grid. Only the parts the state carries are applied, in
+ * Applies a {@link GridViewStateInput} to the grid. Only the parts the state carries are applied, in
  * the order a sheet switch applies them. The parts are checked first, and a part that cannot be
  * applied is reported, never thrown on. By default the rest is applied and no undo step is recorded;
  * `options.undo: 'record'` records the restore as one step, and `options.atomic` applies nothing
  * when any part is rejected.
  *
  * @param {HotInstance} hot The Handsontable instance.
- * @param {GridViewState} state The state to apply.
+ * @param {GridViewStateInput} state The state to apply.
  * @param {GridViewStateSetOptions} [options] The undo and atomic options.
  * @returns {GridViewStateRestoreResult} The parts that were applied and skipped, and the view they replaced.
  */
 export function setGridViewState(
   hot: HotInstance,
-  state: GridViewState,
+  state: GridViewStateInput,
   options: GridViewStateSetOptions = {},
 ): GridViewStateRestoreResult {
   const plan = planRestore(hot, state);
@@ -1128,7 +1426,7 @@ function isSortOn(hot: HotInstance): boolean {
   const config = describeUnavailability(hot, 'sort') === null ?
     captureViewState(hot, [], new Set<ViewStatePart>(['sort'])).sortConfig : null;
 
-  return Array.isArray(config) && config.length > 0;
+  return config !== null && config.length > 0;
 }
 
 /**
