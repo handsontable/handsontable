@@ -988,7 +988,8 @@ export default (): Record<string, unknown> => {
      *
      * ::: warning
      * When you set `checkedTemplate` to a custom string value (e.g. `'Yes'`), using `true` in your data source to
-     * represent a checked state is no longer valid. Only the exact custom string value matches a checked checkbox.
+     * represent a checked state is no longer valid. A value matches a checked checkbox when it equals the template
+     * or reads the same ignoring letter case (`'yes'` and `'YES'` both match `'Yes'`).
      * Pair `checkedTemplate` with [`uncheckedTemplate`](#uncheckedTemplate) to define both states explicitly.
      * :::
      *
@@ -8604,7 +8605,8 @@ export default (): Record<string, unknown> => {
      *
      * ::: warning
      * When you set `uncheckedTemplate` to a custom string value (e.g. `'No'`), using `false` in your data source to
-     * represent an unchecked state is no longer valid. Only the exact custom string value matches an unchecked checkbox.
+     * represent an unchecked state is no longer valid. A value matches an unchecked checkbox when it equals the
+     * template or reads the same ignoring letter case (`'no'` and `'NO'` both match `'No'`).
      * Pair `uncheckedTemplate` with [`checkedTemplate`](#checkedTemplate) to define both states explicitly.
      * :::
      *
@@ -8712,6 +8714,7 @@ export default (): Record<string, unknown> => {
      * | ------------------- | ----------------------------------------------------------------------- |
      * | A custom alias      | Your [custom cell validator](@/guides/cell-functions/cell-validator/cell-validator.md) |
      * | `'autocomplete'`    | `AutocompleteValidator`                                                 |
+     * | `'checkbox'`        | `CheckboxValidator` (opt-in; the `checkbox` cell type doesn't apply it) |
      * | `'date'`            | `DateValidator`                                                         |
      * | `'intl-date'`       | `IntlDateValidator`                                                     |
      * | `'dropdown'`        | `DropdownValidator`                                                     |

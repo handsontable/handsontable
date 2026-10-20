@@ -37,19 +37,57 @@ export function getCheckboxTemplates(meta: CheckboxMeta): { checked: unknown; un
 }
 
 /**
- * Tells whether a value renders as a checked checkbox. Mirrors `checkboxRenderer`: the value is the
- * checked template, or reads the same as it, ignoring case.
+ * Which of a checkbox cell's two templates a value stands for.
+ */
+export type CheckboxState = 'checked' | 'unchecked';
+
+/**
+ * Tells which template a value matches: the value is the template itself, or reads the same as it,
+ * ignoring case – so `'TRUE'` and `'False'` stand for `true` and `false`, and `'YES'` for a `'yes'`
+ * template. An exact match on either template wins over a case-insensitive one, so two templates that
+ * differ only in letter case keep both states. The checkbox renderer and its Space/Enter toggle, the
+ * checkbox value setter, the `checkbox` validator, the XLSX export, and the checkbox column helpers
+ * below all match through this function, so they read a value the same way (DEV-355). The checkbox
+ * column sort uses it too, but maps a case variant only onto a template the column defines; with the
+ * default templates it keeps sorting by the default comparator. A new surface that reads checkbox
+ * state calls it too.
+ *
+ * @param {*} value The cell value.
+ * @param {object} meta The cell meta.
+ * @returns {string|null} `'checked'`, `'unchecked'`, or `null` when the value matches neither template.
+ */
+export function matchCheckboxTemplate(value: unknown, meta: CheckboxMeta): CheckboxState | null {
+  const templates = getCheckboxTemplates(meta);
+  const locale = typeof meta.locale === 'string' ? meta.locale : undefined;
+  const text = localeLowerCase(stringify(value), locale);
+  const matches = (template: unknown) => text === localeLowerCase(stringify(template), locale);
+
+  // An exact match on either template wins over a case-insensitive one, so two templates that
+  // differ only in letter case (`'Y'` and `'y'`) keep both states.
+  if (value === templates.checked) {
+    return 'checked';
+  }
+
+  if (value === templates.unchecked) {
+    return 'unchecked';
+  }
+
+  if (matches(templates.checked)) {
+    return 'checked';
+  }
+
+  return matches(templates.unchecked) ? 'unchecked' : null;
+}
+
+/**
+ * Tells whether a value renders as a checked checkbox (see `matchCheckboxTemplate()`).
  *
  * @param {*} value The cell value.
  * @param {object} meta The cell meta.
  * @returns {boolean}
  */
 export function isCheckedValue(value: unknown, meta: CheckboxMeta): boolean {
-  const { checked } = getCheckboxTemplates(meta);
-  const locale = meta.locale as string | undefined;
-
-  return value === checked ||
-    localeLowerCase(stringify(value), locale) === localeLowerCase(stringify(checked), locale);
+  return matchCheckboxTemplate(value, meta) === 'checked';
 }
 
 /**

@@ -151,6 +151,7 @@ interface HandsontableFactory {
   /** Validator functions accessible via the UMD namespace pattern. */
   validators: {
     AutocompleteValidator: typeof import('./validators/autocompleteValidator').autocompleteValidator;
+    CheckboxValidator: typeof import('./validators/checkboxValidator').checkboxValidator;
     DateValidator: typeof import('./validators/dateValidator').dateValidator;
     DropdownValidator: typeof import('./validators/dropdownValidator').dropdownValidator;
     IntlDateValidator: typeof import('./validators/intlDateValidator').intlDateValidator;
@@ -417,6 +418,7 @@ declare namespace Handsontable {
 
   export namespace validators {
     export type AutocompleteValidator = typeof import('./validators/autocompleteValidator').autocompleteValidator;
+    export type CheckboxValidator = typeof import('./validators/checkboxValidator').checkboxValidator;
     export type DateValidator = typeof import('./validators/dateValidator').dateValidator;
     export type DropdownValidator = typeof import('./validators/dropdownValidator').dropdownValidator;
     export type IntlDateValidator = typeof import('./validators/intlDateValidator').intlDateValidator;

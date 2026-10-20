@@ -342,7 +342,8 @@ describe('exportFile XLSX type — cell types', () => {
 
     it('should use a custom checkedTemplate to determine the boolean value', async() => {
       handsontable({
-        data: [['yes'], ['no']],
+        // `YES` matches the template only by letter case and renders checked, so it exports as `true` (DEV-355).
+        data: [['yes'], ['no'], ['YES']],
         columns: [{ type: 'checkbox', checkedTemplate: 'yes', uncheckedTemplate: 'no' }],
         exportFile: { engines: { xlsx: ExcelJS } },
       });
@@ -351,6 +352,7 @@ describe('exportFile XLSX type — cell types', () => {
 
       expect(ws.getRow(1).getCell(1).value).toBe(true);
       expect(ws.getRow(2).getCell(1).value).toBe(false);
+      expect(ws.getRow(3).getCell(1).value).toBe(true);
     });
   });
 

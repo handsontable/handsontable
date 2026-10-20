@@ -82,6 +82,19 @@ pressed. Read this before touching `checkboxHeader.ts`, `../../utils/checkboxCol
 
 ## Where to look next
 
+- **One template matcher for every checkbox surface** (DEV-355). `matchCheckboxTemplate()` in
+  `../../utils/checkboxColumn.ts` decides whether a value is the checked template, the unchecked one,
+  or neither: the value itself, or the same text ignoring case (`'False'` is `false`). An exact match
+  on either template is tried first, so `'Y'`/`'y'` templates keep both states. The checkbox renderer
+  and its Space/Enter toggle, the checkbox cell type's `valueSetter`, the opt-in `checkbox` validator,
+  the checkbox sort function, the XLSX export, and this plugin's `isCheckedValue()` all call it. The
+  sort maps a case variant only onto a template the column defines, so the default-template sort keeps
+  its order. Before DEV-355 the `valueSetter` compared case-sensitively against raw meta templates, so
+  a pasted `'False'` rendered unchecked while the data held a truthy string, and a never-rendered cell
+  (templates still `undefined` in its meta) kept `'true'` as text. Two rules ride along: the
+  `valueSetter` leaves an `UndoRedo.*` write verbatim (`utils/valueAccessors.ts`), and the validator
+  checks the templates before the empty rule, because a template may itself be `''`. Do not add
+  another comparison; extend the matcher.
 - Shared rules: `../../utils/rowScope.ts` (scope, header state), `../../utils/checkboxColumn.ts`
   (checked test, writes).
 - The row selection that can bind to a checkbox column: `../rowSelection/AGENTS.md`.
