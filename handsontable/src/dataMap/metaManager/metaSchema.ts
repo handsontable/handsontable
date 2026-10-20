@@ -8926,6 +8926,12 @@ export default (): Record<string, unknown> => {
      * The `valueSetter` option configures a function that defines what value will be used when setting the cell content.
      * It can be used to modify the value of a cell before it is saved (for example, for object-based data).
      *
+     * [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) runs the `valueSetter` too. When you address the
+     * cell by a property name, the grid reads the option from the global settings, the [`columns`](#columns)
+     * option, or the [`cell`](#cell) option. It does not run the [`cells`](#cells) function or the
+     * [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) and
+     * [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks.
+     *
      * @example
      * ```js
      * // Modify the value of a cell before it is saved

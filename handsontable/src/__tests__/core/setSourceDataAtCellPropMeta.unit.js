@@ -120,4 +120,50 @@ describe('setSourceDataAtCell with a prop name', () => {
 
     expect(grid.hot.getSourceDataAtCell(0, 1)).toBe('set:x');
   });
+
+  it('should resolve the column meta of a prop written to a trimmed row', () => {
+    const data = [{ id: 1, name: 'ok' }, { id: 2, name: 'ok' }];
+    // Throws for a row that has no visual index, as a `cells` callback reading `data[row]` would.
+    const cells = row => ({ className: `id-${data[row].id}` });
+    const grid = create({
+      data,
+      columns: [{ data: 'id' }, { data: 'name', valueSetter: v => `set:${v}` }],
+      trimRows: [0],
+      cells,
+    });
+
+    expect(() => grid.hot.setSourceDataAtCell(0, 'name', 'x')).not.toThrow();
+    expect(data[0].name).toBe('set:x');
+  });
+
+  it('should not re-enter a get-meta hook that writes the same prop', () => {
+    let writes = 0;
+    const grid = create({
+      columns: [{ data: 'id' }, { data: 'name' }],
+      afterGetCellMeta(row, col) {
+        // Writes only while the value differs, so it needs to see its own write to stop.
+        if (col === 1 && writes < 200 && this.getSourceDataAtCell(row, 'name') !== 'final') {
+          writes += 1;
+          this.setSourceDataAtCell(row, 'name', 'final');
+        }
+      },
+    });
+
+    writes = 0;
+    grid.hot.setSourceDataAtCell(0, 'name', 'x');
+
+    expect(grid.hot.getSourceDataAtCell(0, 'name')).toBe('final');
+    expect(writes).toBeLessThan(5);
+  });
+
+  it('should apply the column-level `valueSetter` to a nested prop', () => {
+    const grid = create({
+      data: [{ a: { b: 'old' } }],
+      columns: [{ data: 'a.b', valueSetter: v => `set:${v}` }],
+    });
+
+    grid.hot.setSourceDataAtCell(0, 'a.b', 'x');
+
+    expect(grid.hot.getSourceDataAtCell(0, 'a.b')).toBe('set:x');
+  });
 });
