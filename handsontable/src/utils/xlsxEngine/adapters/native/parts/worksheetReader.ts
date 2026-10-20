@@ -27,6 +27,16 @@ import type { DxfStyle, ParsedStyles } from './styles';
  * What the workbook read has spent so far across its sheets, so many small sheets cannot slip
  * under a per-sheet cap together.
  */
+/**
+ * A range an array formula covers, rows 0-based and columns 1-based.
+ */
+interface ArrayRange {
+  startRow: number;
+  endRow: number;
+  startCol: number;
+  endCol: number;
+}
+
 export interface WorkbookBudget {
   /**
    * Cells declared so far, charged by the worksheet parser (`#settleWorkbookCharge`; `assertSheetFits`
@@ -38,6 +48,11 @@ export interface WorkbookBudget {
    * charged once per slave. Absent reads as zero.
    */
   translatedFormulaChars?: number;
+  /**
+   * Array-formula ranges stored and looked up so far, over every sheet (`#chargeArrayScan`). Absent
+   * reads as zero.
+   */
+  arrayScanUnits?: number;
 }
 
 /**
@@ -401,12 +416,37 @@ class WorksheetParser {
   #declaredRows = 0;
 
   /**
-   * The column spans the `<f t="array" ref>` formulas read so far cover, by 0-based row. A bare `<c>`
-   * inside one is a covered cell of the array and still widens its row, unlike any other bare cell.
-   * Indexed by row because bare cells reserve no slot: one list of every range, scanned per bare
-   * cell, cost ranges x bare cells from a small file.
+   * Every range an `<f t="array" ref>` formula read so far covers, rows 0-based and columns 1-based.
+   * A bare `<c>` inside one is a covered cell of the array and still widens its row, unlike any
+   * other bare cell. Kept as ranges, not indexed by row: a row index added one entry per COVERED
+   * row, so four `A1:A1048576` arrays cost four million entries per sheet, and a workbook naming the
+   * same part under many `<sheet>` entries paid that per entry (review round 12).
    */
-  #arrayColsByRow = new Map<number, Array<{ startCol: number; endCol: number }>>();
+  #arrayRanges: ArrayRange[] = [];
+
+  /**
+   * The ranges noted since the last row a bare cell was looked up on, not yet in `#arrayActive`.
+   */
+  #arrayNoted: ArrayRange[] = [];
+
+  /**
+   * The ranges that still reach the row last looked up or a later one: a forward sweep, so each
+   * range joins and leaves it once while the rows ascend, as every writer orders them. A row that
+   * goes back rebuilds it from `#arrayRanges`. Scanning every range per bare cell cost ranges x bare
+   * cells (20,000 formulas x 400,000 bare cells took 9.8 s); scanning every range per ROW still
+   * cost ranges x rows on a sheet of one-cell legacy array formulas on formatted rows.
+   */
+  #arrayActive: ArrayRange[] = [];
+
+  /**
+   * The row last looked up, or `-1` when a range was noted since.
+   */
+  #arrayRow = -1;
+
+  /**
+   * The ranges of `#arrayActive` that cover `#arrayRow`.
+   */
+  #arrayRowSpans: ArrayRange[] = [];
 
   /**
    * How many `<sheetView>` elements have opened. A `<pane>` is read only inside the first one.
@@ -1043,7 +1083,7 @@ class WorksheetParser {
 
   /**
    * Remembers the range an `<f t="array" ref>` covers, so the bare covered cells of the array keep
-   * widening their rows (`#finishCell`).
+   * widening their rows (`#finishCell`). Storing it costs one unit, whatever its size.
    */
   #noteArrayRange(attrs: XmlAttributes): void {
     const range = attrs.t === 'array' && attrs.ref !== undefined ? parseRangeRef(attrs.ref) : null;
@@ -1052,37 +1092,73 @@ class WorksheetParser {
       return;
     }
 
-    // Charged before it is walked, one unit per row the index entry is added to, like the other spans.
-    this.#chargeSpan(range.endRow - range.startRow + 1);
+    const noted = {
+      startRow: range.startRow - 1,
+      endRow: range.endRow - 1,
+      startCol: range.startCol,
+      endCol: range.endCol,
+    };
 
-    const cols = { startCol: range.startCol, endCol: range.endCol };
-
-    for (let row = range.startRow - 1; row < range.endRow; row++) {
-      const spans = this.#arrayColsByRow.get(row);
-
-      if (spans) {
-        spans.push(cols);
-      } else {
-        this.#arrayColsByRow.set(row, [cols]);
-      }
-    }
+    this.#chargeArrayScan(1);
+    this.#arrayRanges.push(noted);
+    this.#arrayNoted.push(noted);
+    // A range noted on the row being looked up must be seen by its later bare cells.
+    this.#arrayRow = -1;
   }
 
   /**
-   * Whether 0-based coordinates fall inside a range an array formula covers. Only the row's own
-   * spans are scanned, and that scan is charged: many array formulas on one row, each checked by
-   * many bare cells beside them, would otherwise still multiply.
+   * Whether 0-based coordinates fall inside a range an array formula covers. The active ranges are
+   * swept once per row and the row's own spans are scanned per cell; both are charged.
    */
   #isInArrayRange(row: number, col: number): boolean {
-    const spans = this.#arrayColsByRow.get(row);
-
-    if (!spans) {
+    if (this.#arrayRanges.length === 0) {
       return false;
     }
 
-    this.#chargeSpan(spans.length);
+    if (row !== this.#arrayRow) {
+      this.#sweepArrayRanges(row);
+    }
 
-    return spans.some(span => col + 1 >= span.startCol && col + 1 <= span.endCol);
+    if (this.#arrayRowSpans.length === 0) {
+      return false;
+    }
+
+    this.#chargeArrayScan(this.#arrayRowSpans.length);
+
+    return this.#arrayRowSpans.some(span => col + 1 >= span.startCol && col + 1 <= span.endCol);
+  }
+
+  /**
+   * Moves the sweep to `row`: drops the active ranges that end above it, adds the ones noted since,
+   * and collects the ones that cover it. A row above the last one restarts from every range.
+   */
+  #sweepArrayRanges(row: number): void {
+    const restart = row < this.#arrayRow;
+    const candidates = restart ? this.#arrayRanges : this.#arrayActive.concat(this.#arrayNoted);
+
+    this.#chargeArrayScan(candidates.length);
+    this.#arrayNoted = [];
+    this.#arrayActive = candidates.filter(range => range.endRow >= row);
+    this.#arrayRowSpans = this.#arrayActive.filter(range => range.startRow <= row);
+    this.#arrayRow = row;
+  }
+
+  /**
+   * Charges array-range bookkeeping to the sheet's span budget and to the workbook's. The workbook
+   * charge is what bounds a part that many `<sheet>` entries name: each entry reads the part again
+   * with a fresh span budget, so a per-sheet bound alone multiplies by the entry count.
+   */
+  #chargeArrayScan(units: number): void {
+    this.#chargeSpan(units);
+
+    const { budget } = this.#ctx;
+
+    budget.arrayScanUnits = (budget.arrayScanUnits ?? 0) + units;
+
+    if (budget.arrayScanUnits > MAX_WORKBOOK_CELLS) {
+      throwLimitExceeded(`The workbook's array formulas cost more than ${MAX_WORKBOOK_CELLS} lookups, `
+        + 'above the limit this reader accepts.');
+    }
   }
 
   /**

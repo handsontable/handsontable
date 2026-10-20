@@ -2084,3 +2084,62 @@ describe('native reader compatibility: the direction of a sheet with several vie
     expect(sheet.rtl).toBe(false);
   });
 });
+
+describe('native reader compatibility: whole-column array formulas on aliased sheets (review round 12)', () => {
+  const arraySheet = `<worksheet ${NS}><sheetData><row r="1">${
+    ['A', 'B', 'C', 'D'].map(col => `<c r="${col}1"><f t="array" ref="${col}1:${col}1048576">1</f><v>1</v></c>`)
+      .join('')
+  }</row><row r="2"><c r="A2"/><c r="B2"/></row></sheetData></worksheet>`;
+
+  it('should not index every row an array formula covers, so aliased sheets stay cheap', async() => {
+    // Each `<sheet>` reads the part again with a fresh span budget, and the reader used to add one row
+    // index entry per covered row: 4 x 1,048,576 entries per sheet, 25.8 s at 10 sheets.
+    const sheets = Array.from({ length: 10 }, (_, i) => ({
+      name: `Sheet${i + 1}`,
+      kind: 'worksheet',
+      part: 'xl/worksheets/sheet1.xml',
+      xml: i === 0 ? arraySheet : null,
+    }));
+    const buffer = await packWorkbook(sheets);
+    const started = Date.now();
+    const { snapshot } = await readWorkbook(buffer);
+
+    expect(Date.now() - started).toBeLessThan(2000);
+    expect(snapshot.sheets).toHaveLength(10);
+    expect(snapshot.sheets[9].rows[0].map(cell => cell.formula))
+      .toEqual(Array(4).fill(expect.objectContaining({ text: '1' })));
+  });
+
+  it('should read one-cell array formulas on many formatted rows without refusing the sheet', () => {
+    // Legacy (CSE) array formulas are one-cell ranges, and Excel writes bare `<c>` cells on every
+    // formatted row, so scanning every range once per row cost ranges x rows and was refused.
+    let rows = '';
+
+    for (let r = 1; r <= 20000; r++) {
+      rows += `<row r="${r}"><c r="A${r}"><f t="array" ref="A${r}">1</f><v>1</v></c><c r="IV${r}"/></row>`;
+    }
+
+    const { sheet } = readSheet(worksheetXml(rows));
+
+    expect(sheet.rows).toHaveLength(20000);
+    expect(sheet.rows[19999]).toHaveLength(1);
+  });
+
+  it('should find a covered cell again when the rows go back', () => {
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetData>`
+      + '<row r="1"><c r="A1"><f t="array" ref="A1:C3">1</f><v>1</v></c></row>'
+      + '<row r="3"><c r="C3"/></row><row r="2"><c r="C2"/></row></sheetData></worksheet>');
+
+    expect(sheet.rows[1]).toHaveLength(3);
+    expect(sheet.rows[2]).toHaveLength(3);
+  });
+
+  it('should still widen a row by the bare covered cells of an array formula', () => {
+    const { sheet } = readSheet(`<worksheet ${NS}><sheetData>`
+      + '<row r="1"><c r="A1"><f t="array" ref="A1:C2">1</f><v>1</v></c></row>'
+      + '<row r="2"><c r="C2"/></row><row r="3"><c r="C3"/></row></sheetData></worksheet>');
+
+    expect(sheet.rows[1]).toHaveLength(3);
+    expect(sheet.rows[2] ?? []).toHaveLength(0);
+  });
+});
