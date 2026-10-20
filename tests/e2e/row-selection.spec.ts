@@ -217,6 +217,24 @@ test.describe('Row selection checkboxes', { tag: THEMES_TAG }, () => {
       await expect(grid.rowCheckbox(6, 'firstColumn')).toBeChecked();
     });
 
+    test('does not throw when a row checkbox is double-clicked while a column header is selected',
+      async({ page, theme, bundle }) => {
+        const grid = new RowSelectionPage(page, theme, bundle);
+        const errors: string[] = [];
+
+        page.on('pageerror', error => errors.push(error.message));
+
+        await grid.goto({ location: 'firstColumn' });
+        await grid.columnHeader('Name').click();
+
+        await expect.poll(() => grid.selectionHighlight()).toEqual({ row: -1, col: 0, header: true });
+
+        await grid.rowCheckbox(0, 'firstColumn').dblclick();
+
+        expect(errors).toEqual([]);
+        expect(await grid.isEditorOpened()).toBe(false);
+      });
+
     test('keeps the first column label after switching from the row header location', async({ page, theme, bundle }) => {
       const grid = new RowSelectionPage(page, theme, bundle);
 

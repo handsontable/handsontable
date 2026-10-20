@@ -46,6 +46,7 @@ const serverSideItems = [
 const dataManagementItems = [
   { path: 'guides/getting-started/binding-to-data/binding-to-data' },
   { path: 'guides/getting-started/saving-data/saving-data' },
+  { path: 'guides/getting-started/view-state/view-state' },
   { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
   { path: 'guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes' },
   { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
@@ -82,6 +83,7 @@ const rowsItems = [
   { path: 'guides/rows/rows-sorting/rows-sorting' },
   { path: 'guides/rows/rows-pagination/rows-pagination' },
   { path: 'guides/rows/row-trimming/row-trimming' },
+  { path: 'guides/rows/row-identity/row-identity' },
   { path: 'guides/rows/row-prepopulating/row-prepopulating' },
 ];
 

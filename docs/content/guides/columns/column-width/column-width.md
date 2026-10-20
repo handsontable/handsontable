@@ -34,6 +34,8 @@ By default, the column width adjusts to the width of the content. However, if th
 
 The content inside a cell will be wrapped if it doesn't fit the cell's width.
 
+An auto-sized column grows to fit its widest value, even when that value is wider than the grid. The text stays on one line, and the grid scrolls horizontally. The size of the container doesn't change the measured width. To limit how wide a column can grow, see [Set a dynamic maximum column width](#set-a-dynamic-maximum-column-width).
+
 ## Set the column width as a constant
 
 In this example we set the same width of `100px` for all columns across the entire grid.

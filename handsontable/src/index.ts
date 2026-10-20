@@ -218,6 +218,8 @@ export type {
   CellMeta, CellProperties, ColumnSettings, SourceRowData, RemoveIndexSignature, OmitHooks
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
+export type { RowIdSetting } from './core/rowIdentity/rowIdentity';
+export type { RowIdKey } from './utils/rowId';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
 export type { SelectOptionsObject } from './settings';

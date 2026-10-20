@@ -568,6 +568,30 @@ describe('PasswordEditor', () => {
   });
 
   describe('hashRevealDelay', () => {
+    it('should mask a number and leave it unchanged on confirm', async() => {
+      const edits = [];
+
+      handsontable({
+        data: [[12345]],
+        columns: [{ type: 'password', hashRevealDelay: 50 }],
+        afterChange(changes, source) {
+          if (source === 'edit') {
+            edits.push(changes);
+          }
+        },
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      expect(getActiveEditor().TEXTAREA.value).toBe('*****');
+
+      await keyDownUp('enter');
+
+      expect(edits).toEqual([]);
+      expect(getDataAtCell(0, 0)).toBe(12345);
+    });
+
     it('should use a text input (not password) when hashRevealDelay is set', async() => {
       handsontable({
         data: [['secret']],

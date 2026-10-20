@@ -162,6 +162,13 @@ export class Autofill extends BasePlugin {
    */
   #isReconfiguring = false;
   /**
+   * Whether `updateSettings()` is applying new settings to the plugin. The grid renders right after
+   * that, so a toggle made from there must not render on its own.
+   *
+   * @type {boolean}
+   */
+  #isApplyingSettings = false;
+  /**
    * Last mouse client position. Stays `null` until the first `mousemove` of a drag, so a scroll
    * that happens after pressing the fill handle but before any drag move is not replayed with a
    * stale or default position.
@@ -183,7 +190,8 @@ export class Autofill extends BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin(): void {
-    if (this.enabled) {
+    // `destroy()` deletes `hot`, so a reference kept to a destroyed plugin must not run (DEV-775).
+    if (!this.hot || this.enabled) {
       return;
     }
 
@@ -219,6 +227,7 @@ export class Autofill extends BasePlugin {
     this.addHook('afterScroll', this.#onAfterScroll);
 
     super.enablePlugin();
+    this.#renderAfterRuntimeToggle();
   }
 
   /**
@@ -229,6 +238,10 @@ export class Autofill extends BasePlugin {
    *  - [`fillHandle`](@/api/options.md#fillhandle)
    */
   updatePlugin(): void {
+    if (!this.hot) {
+      return;
+    }
+
     const previousDirections = this.directions;
     const previousAutoInsertRow = this.autoInsertRow;
 
@@ -260,6 +273,10 @@ export class Autofill extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
+    if (!this.hot) {
+      return;
+    }
+
     // The base class drops the `documentElement` `mouseup` listener that owns the drag teardown,
     // so a gesture that is in progress when the plugin is disabled would otherwise stay armed
     // until the next `enablePlugin()` picks it up (DEV-2782, the lifecycle twin of GitHub #13370).
@@ -270,6 +287,36 @@ export class Autofill extends BasePlugin {
     }
 
     super.disablePlugin();
+    this.#renderAfterRuntimeToggle();
+  }
+
+  /**
+   * Applies new settings, marking the call so the plugin toggles it causes leave the render to
+   * `updateSettings()`.
+   *
+   * @param {object} newSettings New set of settings passed to the `updateSettings()` method.
+   */
+  onUpdateSettings(newSettings: Record<string, unknown>): void {
+    this.#isApplyingSettings = true;
+
+    try {
+      super.onUpdateSettings(newSettings);
+    } finally {
+      this.#isApplyingSettings = false;
+    }
+  }
+
+  /**
+   * Re-renders the grid after the plugin was enabled, disabled, or destroyed at runtime, with
+   * `getPlugin('autofill').disablePlugin()` and the like, so the fill handle shows or hides at once
+   * instead of on the next unrelated render (DEV-775). Skipped while the grid initializes, while
+   * `updateSettings()` applies settings, and while `updatePlugin()` rebuilds the plugin: each of
+   * those renders on its own.
+   */
+  #renderAfterRuntimeToggle(): void {
+    if (this.isPluginsReady && !this.#isApplyingSettings && !this.#isReconfiguring) {
+      this.hot.render();
+    }
   }
 
   /**
@@ -1087,6 +1134,15 @@ export class Autofill extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy(): void {
+    // A plugin destroyed on its own, ahead of the grid, takes its fill handle with it. The grid's
+    // own `destroy()` suspends rendering first, so this render is a no-op there.
+    const hot = this.hot;
+    const shouldRender = !!hot && this.isPluginsReady;
+
     super.destroy();
+
+    if (shouldRender) {
+      hot.render();
+    }
   }
 }
