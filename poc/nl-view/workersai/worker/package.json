@@ -1,0 +1,13 @@
+{
+  "name": "poc-nl-view-workersai",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:local": "node --test test/handler.test.mjs",
+    "dev:stub": "wrangler dev --local --port 8787 --var LOCAL_AI_STUB:1",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.42.2"
+  }
+}

@@ -1,0 +1,23 @@
+name = "poc-nl-view-workersai"
+main = "src/index.js"
+compatibility_date = "2025-10-08"
+account_id = "e17e41cc82bda15dfa63960aa172fb87"
+
+# Workers AI. The worker calls env.AI.run. There is no OpenAI key.
+[ai]
+binding = "AI"
+
+# Daily request cap. Create the namespace with:
+#   npx wrangler kv namespace create poc-nl-view-workersai-kv
+# Paste the printed id over REPLACE_ME. Do not commit a real id if you
+# would rather keep it local; the placeholder is what this repo ships.
+[[kv_namespaces]]
+binding = "poc-nl-view-workersai-kv"
+id = "REPLACE_ME"
+
+[vars]
+DAILY_CAP = "300"
+
+# Secret, set on your machine, never in this file:
+#   npx wrangler secret put POC_TOKEN
+# Callers send it as the x-poc-token header.

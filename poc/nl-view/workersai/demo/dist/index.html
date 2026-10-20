@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>nl-view C — Workers AI</title>
+  <link rel="stylesheet" href="vendor/handsontable.min.css">
+  <link rel="stylesheet" href="vendor/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      color: #1c2430;
+      background: #f4f6f8;
+    }
+    header, main { padding: 16px 20px; }
+    header { background: #fff; border-bottom: 1px solid #d5dbe3; }
+    h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+    .note { margin: 0; color: #526070; font-size: 13px; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-top: 12px; }
+    label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #526070; }
+    input, select, textarea, button { font: inherit; color: inherit; }
+    input, select, textarea {
+      border: 1px solid #c5ced8;
+      border-radius: 6px;
+      padding: 6px 8px;
+      background: #fff;
+    }
+    textarea { width: min(720px, 100%); min-height: 64px; }
+    button {
+      border: 1px solid #1f4b8f;
+      background: #1f4b8f;
+      color: #fff;
+      border-radius: 6px;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+    button.secondary { background: #fff; color: #1f4b8f; }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    .check { flex-direction: row; align-items: center; gap: 6px; padding-bottom: 6px; }
+    #explanation { min-height: 1.4em; margin: 12px 0 0; }
+    #blocked {
+      margin: 8px 0 0;
+      padding: 8px 10px;
+      background: #fff4e5;
+      border: 1px solid #e2b56a;
+      border-radius: 6px;
+    }
+    #grid { margin-top: 12px; background: #fff; }
+    details { margin-top: 16px; background: #fff; border: 1px solid #d5dbe3; border-radius: 8px; padding: 8px 12px; }
+    pre { white-space: pre-wrap; word-break: break-word; font-size: 12px; margin: 8px 0 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>nl-view C — Workers AI</h1>
+    <p class="note">Throwaway proof of concept. Type a view change. The grid's filters, sort, and hidden columns update. API: <span id="api"></span></p>
+    <div class="row">
+      <label>Dataset
+        <select id="dataset"></select>
+      </label>
+      <label>Model
+        <select id="model"></select>
+      </label>
+      <label>Today
+        <input id="today" type="date">
+      </label>
+      <label class="check">
+        <input id="samples" type="checkbox" checked>
+        Send distinct values for short text columns
+      </label>
+      <label>Token
+        <input id="token-input" type="password" autocomplete="off" placeholder="paste once">
+      </label>
+      <button id="save-token" class="secondary" type="button">Save token</button>
+      <button id="forget-token" class="secondary" type="button">Forget token</button>
+      <span id="token-state" class="note"></span>
+    </div>
+  </header>
+  <main>
+    <label>Request
+      <textarea id="prompt" placeholder="Paid EMEA orders from the last 7 days, highest total first"></textarea>
+    </label>
+    <div class="row">
+      <button id="apply" type="button">Apply</button>
+      <button id="undo" class="secondary" type="button">Undo</button>
+      <button id="reset" class="secondary" type="button">Reset view</button>
+    </div>
+    <p id="explanation"></p>
+    <p id="blocked" hidden></p>
+    <div id="grid"></div>
+    <details open>
+      <summary>Columns sent with the next request</summary>
+      <pre id="columns"></pre>
+    </details>
+    <details open>
+      <summary>Last result (state, model, ms, cost)</summary>
+      <pre id="debug"></pre>
+    </details>
+  </main>
+  <script src="vendor/handsontable.full.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
