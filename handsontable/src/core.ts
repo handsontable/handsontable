@@ -1352,11 +1352,6 @@ export default function Core(
     });
 
   this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple: Record<string, boolean>) => {
-    // A highlight recompute asks the same question without telling listeners the selection changed.
-    if (isMultiple.silent) {
-      return;
-    }
-
     const changedIsMultiple = this.runHooks('afterIsMultipleSelection', isMultiple.value);
 
     if (isMultiple.value) {

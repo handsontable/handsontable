@@ -464,14 +464,10 @@ export class MergeCells extends BasePlugin {
     this.addHook('modifyGetCellCoords', this.#onModifyGetCellCoords);
     this.addHook('modifyGetCoordsElement', this.#onModifyGetCellCoords);
     this.addHook('afterIsMultipleSelection', this.#onAfterIsMultipleSelection);
-    // Registered after Core's bridge, so a silent highlight recompute skips the public hook and still
-    // gets this answer. A normal selection notifies listeners first; this callback then does nothing.
-    this.hot.selection.addLocalHook('afterIsMultipleSelection', this.#adjustMultipleSelectionSilently);
     this.addHook('beforeRenderer', this.#onBeforeRenderer);
     this.addHook('afterRenderer',
       (TD: HTMLTableCellElement, row: number, col: number) => this.#cellRenderer.after(TD, row, col));
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
-    this.addHook('afterRender', this.#onAfterRenderReleaseSilentQuery);
     this.addHook('afterContextMenuDefaultOptions',
       (defaultOptions: { items: unknown[] }) => this.#addMergeActionsToContextMenu(defaultOptions));
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
@@ -522,7 +518,6 @@ export class MergeCells extends BasePlugin {
   disablePlugin() {
     this.hot.rowIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onBeforeRowIndexCacheUpdate);
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
-    this.hot.selection.removeLocalHook('afterIsMultipleSelection', this.#adjustMultipleSelectionSilently);
     this.#foreignRowsBeforeCacheUpdate = null;
     this.clearCollections();
     this.#appliedMergeKeys.clear();
@@ -542,7 +537,6 @@ export class MergeCells extends BasePlugin {
   destroy() {
     this.hot?.rowIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onBeforeRowIndexCacheUpdate);
     this.hot?.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
-    this.hot?.selection.removeLocalHook('afterIsMultipleSelection', this.#adjustMultipleSelectionSilently);
     this.#foreignRowsBeforeCacheUpdate = null;
     this.#resetPasteState();
     super.destroy();
@@ -2573,65 +2567,21 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Answers a silent highlight recompute. A normal `isMultiple()` call already ran the public hook,
-   * this plugin's listener included, so this stays out of the way then.
-   *
-   * @param {{ value: boolean, silent?: boolean }} isMultiple The listener `isMultiple()` passes around.
-   */
-  #adjustMultipleSelectionSilently = (isMultiple: { value: boolean, silent?: boolean }) => {
-    if (isMultiple.silent !== true) {
-      return;
-    }
-
-    // A header range normalizes onto the merge it just became. `mergeSelection()` then calls
-    // `selectCell`, which refuses a header range, so this draw is the last one and the area stays.
-    if (this.#isSelectedByHeader()) {
-      return;
-    }
-
-    isMultiple.value = this.#onAfterIsMultipleSelection(isMultiple.value);
-  };
-
-  /**
-   * Set while a highlight recompute's draw is in progress. `afterRender` clears it. The fill handle
-   * asks `isMultiple()` while borders are painted, after `beforeViewRender`, and that question must
-   * not notify listeners either.
-   */
-  #silentMultipleUntilRenderEnds = false;
-
-  /**
    * The area highlight was committed for the old merges. The next view render recomputes it once,
-   * before this draw paints, and does not run the selection hooks.
+   * before this draw paints. Selection-change hooks do not run. `afterIsMultipleSelection` does,
+   * the same way a plain render asks whether the range is one cell.
    */
   #recommitSelectionHighlight(): void {
-    const collection = this.mergedCellsCollection;
-
-    if (!collection.selectionHighlightStale) {
+    if (!this.mergedCellsCollection.takeSelectionHighlightStale()) {
       return;
     }
-
-    collection.selectionHighlightStale = false;
 
     if (!this.hot.selection.isSelected()) {
       return;
     }
 
-    this.#silentMultipleUntilRenderEnds = true;
-    this.hot.selection.commitHighlightsDirectly(true);
+    this.hot.selection.commitHighlightsDirectly();
   }
-
-  /**
-   * `afterRender` hook callback. Ends the silent `isMultiple()` window once the draw, borders
-   * included, has finished.
-   */
-  #onAfterRenderReleaseSilentQuery = () => {
-    if (!this.#silentMultipleUntilRenderEnds) {
-      return;
-    }
-
-    this.#silentMultipleUntilRenderEnds = false;
-    this.hot.selection.releaseSilentMultipleQuery();
-  };
 
   /**
    * `afterIsMultipleSelection` hook callback.
@@ -2645,6 +2595,11 @@ export class MergeCells extends BasePlugin {
       const selectionRange = this.hot.getSelectedRangeActive();
 
       if (!selectionRange) {
+        return isMultiple;
+      }
+
+      // The corners turn a header index into 0, so a column or row selection looks like the merge it covers.
+      if (this.#isSelectedByHeader()) {
         return isMultiple;
       }
 

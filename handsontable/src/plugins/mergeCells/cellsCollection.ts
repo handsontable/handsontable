@@ -38,9 +38,9 @@ class MergedCellsCollection {
    */
   mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
   /**
-   * A merge was added or removed since the area highlight was last recomputed from this collection.
+   * Merges were added or removed since the area highlight was last recomputed from this collection.
    */
-  selectionHighlightStale = false;
+  #selectionHighlightStale = false;
   /**
    * The Handsontable instance.
    *
@@ -282,7 +282,7 @@ class MergedCellsCollection {
     this.mergedCells.push(newMergedCell);
     this.#addMergedCellToMatrix(newMergedCell);
     this.hot?.markAllCellsChanged();
-    this.selectionHighlightStale = true;
+    this.#selectionHighlightStale = true;
 
     return newMergedCell;
   }
@@ -358,7 +358,7 @@ class MergedCellsCollection {
     newMergedCell.normalize(this.hot);
     this.mergedCells.push(newMergedCell);
     this.hot.markAllCellsChanged();
-    this.selectionHighlightStale = true;
+    this.#selectionHighlightStale = true;
 
     return newMergedCell;
   }
@@ -379,12 +379,26 @@ class MergedCellsCollection {
       this.mergedCells.splice(mergedCellIndex, 1);
       this.#removeMergedCellFromMatrix(mergedCell);
       this.hot?.markAllCellsChanged();
-      this.selectionHighlightStale = true;
+      this.#selectionHighlightStale = true;
 
       return mergedCell;
     }
 
     return false;
+  }
+
+  /**
+   * Reports whether the merges changed since the highlight was last recomputed, and clears that mark.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  takeSelectionHighlightStale(): boolean {
+    const stale = this.#selectionHighlightStale;
+
+    this.#selectionHighlightStale = false;
+
+    return stale;
   }
 
   /**
@@ -408,7 +422,7 @@ class MergedCellsCollection {
     this.mergedCells.length = 0;
     this.mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
     this.hot?.markAllCellsChanged();
-    this.selectionHighlightStale = true;
+    this.#selectionHighlightStale = true;
   }
 
   /**

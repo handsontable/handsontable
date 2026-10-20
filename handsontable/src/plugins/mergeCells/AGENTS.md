@@ -597,13 +597,17 @@ can fail.
 
 ### `fullySelectedMergedCell-N` is an overlap count (DEV-542)
 
-`area-N` is how many selection ranges cover a plain cell, minus 1. `getSelectedMergedCellClassName`
-used to append the range's own index, so a merge that only a later layer covered painted one step
-darker than the plain cells of that layer. The suffix is the 0-based rank of this range among the
-ranges that `includesRange` the merge. A rank past 7 has no rule of its own. The lower ranks are on
-the cell too, so the level-7 rule still wins, the same way `area-7` wins for a plain cell.
-`-multiple` stays the union that no single range covers. A partial layer still adds `-multiple`
-when some other range fully covers. The numbered rule is later in the stylesheet and wins.
+`area-N` is how many selection ranges cover a plain cell, minus 1. That count includes a range that
+only partly overlaps the cell. `fullySelectedMergedCell-N` does not. The suffix is the 0-based rank
+of this range among the ranges that `includesRange` the merge, so a partial layer does not count.
+With layer 0 fully covering, layer 1 only partial, and layer 2 fully covering, the merge paints
+`fullySelectedMergedCell-1` while a plain cell under all three can paint `area-2`.
+`getSelectedMergedCellClassName` used to append the range's own index, so a merge that only a later
+layer covered painted one step darker than the plain cells of that layer. A rank past 7 has no rule
+of its own. The lower ranks are on the cell too, so the level-7 rule still wins, the same way
+`area-7` wins for a plain cell. `-multiple` stays the union that no single range covers. A partial
+layer still adds `-multiple` when some other range fully covers. The numbered rule is later in the
+stylesheet and wins.
 
 ### `merge()` and `unmerge()` repaint the highlight without replaying the selection (DEV-741)
 
@@ -611,17 +615,17 @@ The area fill is committed while the range is still several cells. `mergeRange()
 that fill stayed after the cells became one merge. `merge()` and `unmerge()` do not call
 `selection.refresh()`. A change to the merged-cell collection marks the highlight stale, and the
 next view render recomputes every layer's highlight from the current ranges. The recompute does
-not fire the selection hooks. `afterIsMultipleSelection` is how the plugin says a range that equals
-one merge is a single cell. The recompute asks that question on a local hook and does not notify
-listeners. A header selection keeps the engine's answer: its corners normalize the header index to
-0, so the body looks like that merge, and `mergeSelection()`'s following `selectCell` cannot
-reselect a header range, so this draw is the last one. That silence lasts until `afterRender`,
-because the fill handle asks the same question while the borders of that draw are painted.
-`hot.batch()` suspends render, so a loop of merges pays for one recompute on the render that
-follows. `mergeSelection()` still calls `selectCell` afterwards, and that call does fire the
-selection hooks when the range is a body range. `mergeRange()` and `unmergeRange()` themselves do
-not. A selection that does not meet the changed cells is left as it was, because the recompute
-reads the same ranges.
+not run the selection-change hooks. `afterIsMultipleSelection` still runs: that is how the plugin
+says a range that equals one merge is a single cell, and a plain render asks the same question.
+A header selection stays multiple. Its corners normalize the header index to 0, so the body looks
+like that merge, and the hook gives that answer both when the selection is made and when the
+highlight is recomputed. `hot.batch()` suspends render, so a loop of merges pays for one recompute
+on the render that follows. The same stale mark is set for merges added at init, by
+`updateSettings`, by undo and redo, and by `mergeSelection()`, so those repaint on the next render
+too. `mergeSelection()` still calls `selectCell` afterwards, and that call does fire the
+selection-change hooks when the range is a body range. `mergeRange()` and `unmergeRange()`
+themselves do not. A selection that does not meet the changed cells is left as it was, because the
+recompute reads the same ranges.
 
 ### An arrow-key horizontal exit is addressed by the merge's top row (DEV-102)
 

@@ -30,13 +30,19 @@ interface HandsontableFixture {
   selectCells(coords: number[][], scrollToCell?: boolean): void;
   selectCell(row: number, column: number, endRow: number, endColumn: number, scrollToCell?: boolean): void;
   selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean): void;
+  selectColumns(start: number, end?: number): void;
+  getActiveSelectionLayerIndex(): number;
+  updateSettings(settings: Record<string, unknown>): void;
+  listen(): void;
   batch(callback: () => void): void;
+  getPlugin(name: 'undoRedo'): { undo(): void };
   getSelected(): number[][] | undefined;
   getSelectedRangeLast(): { highlight: { row: number, col: number } } | undefined;
+  getSelectedRangeActive(): { highlight: { row: number, col: number } } | undefined;
   getDataAtCell(row: number, column: number): unknown;
   getActiveEditor(): { isOpened(): boolean, getValue(): string };
   addHook(name: string, callback: () => void): void;
-  getPlugin(name: string): {
+  getPlugin(name: 'mergeCells'): {
     merge(startRow: number, startColumn: number, endRow: number, endColumn: number): void;
     unmerge(startRow: number, startColumn: number, endRow: number, endColumn: number): void;
     mergeSelection(): void;
@@ -112,6 +118,40 @@ export class MergeCellsSelectionHighlightPage {
   }
 
   /**
+   * The index of the layer that currently holds focus.
+   */
+  async activeLayer(): Promise<number> {
+    return this.page.evaluate(() => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+
+      return hot.getActiveSelectionLayerIndex();
+    });
+  }
+
+  /**
+   * Replaces the grid data and merges. The next test reloads the fixture.
+   */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate((next) => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+
+      hot.updateSettings(next);
+    }, settings);
+  }
+
+  /**
+   * The focused cell of the active selection layer.
+   */
+  async focusedCell(): Promise<Highlight | null> {
+    return this.page.evaluate(() => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+      const range = hot.getSelectedRangeActive();
+
+      return range ? { row: range.highlight.row, col: range.highlight.col } : null;
+    });
+  }
+
+  /**
    * The focused cell of the last selection range.
    */
   async highlight(): Promise<Highlight | null> {
@@ -155,6 +195,17 @@ export class MergeCellsSelectionHighlightPage {
   }
 
   /**
+   * Selects whole columns, headers included.
+   */
+  async selectColumns(start: number, end = start): Promise<void> {
+    await this.page.evaluate(({ start: startColumn, end: endColumn }) => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+
+      hot.selectColumns(startColumn, endColumn);
+    }, { start, end });
+  }
+
+  /**
    * Selects every cell. `selectAll()` skips the scroll that would follow.
    */
   async selectAll(): Promise<void> {
@@ -178,6 +229,17 @@ export class MergeCellsSelectionHighlightPage {
         });
       });
     }, ranges);
+  }
+
+  /**
+   * Undoes the last recorded operation.
+   */
+  async undo(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+
+      hot.getPlugin('undoRedo').undo();
+    });
   }
 
   /**
@@ -261,6 +323,50 @@ export class MergeCellsSelectionHighlightPage {
         hot.getPlugin('mergeCells')[name](row, column, lastRow, lastColumn);
       });
     }, { method, startRow, startColumn, endRow, endColumn });
+  }
+
+  /**
+   * On the next `afterSelectionEnd`, merges the rectangle, and on the one after that unmerges it.
+   * Stops after a few calls so a replay fails the count instead of overflowing the page.
+   */
+  async alternateMergeOnSelectionEnd(
+    startRow: number,
+    startColumn: number,
+    endRow: number,
+    endColumn: number,
+  ): Promise<void> {
+    await this.page.evaluate((coords) => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+      let calls = 0;
+      let merged = false;
+
+      (window as Window & { htAlternateCalls: number }).htAlternateCalls = 0;
+      hot.addHook('afterSelectionEnd', () => {
+        calls += 1;
+        (window as Window & { htAlternateCalls: number }).htAlternateCalls = calls;
+
+        if (calls > 4) {
+          return;
+        }
+
+        const plugin = hot.getPlugin('mergeCells');
+
+        if (!merged) {
+          merged = true;
+          plugin.merge(coords.startRow, coords.startColumn, coords.endRow, coords.endColumn);
+        } else {
+          merged = false;
+          plugin.unmerge(coords.startRow, coords.startColumn, coords.endRow, coords.endColumn);
+        }
+      });
+    }, { startRow, startColumn, endRow, endColumn });
+  }
+
+  /**
+   * How many times the hook installed by {@link alternateMergeOnSelectionEnd} ran.
+   */
+  async alternateMergeCalls(): Promise<number> {
+    return this.page.evaluate(() => (window as Window & { htAlternateCalls: number }).htAlternateCalls);
   }
 
   /**
