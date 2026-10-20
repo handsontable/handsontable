@@ -45,7 +45,7 @@ Set the [`rowId`](@/api/options.md#rowid) option at the grid level. It accepts o
 
 | Setting    | Description                                                                                      |
 | ---------- | ------------------------------------------------------------------------------------------------ |
-| A string   | The property that holds the id in each row object. Dot notation reads a nested property (`'meta.id'`). For arrays of arrays, the index of the value as a string (`'0'`). |
+| A string   | The property that holds the id in each row object. A property named exactly as the string wins, even when the name contains a dot. Otherwise, dot notation reads a nested property (`'meta.id'`). For arrays of arrays, the index of the value as a string (`'0'`). |
 | A function | A function that receives the source row and returns its id.                                       |
 | `true`     | Handsontable generates the ids: a number for each row, never reused within the instance.          |
 | `false`    | No row ids. This is the default behavior.                                                         |
@@ -257,7 +257,7 @@ When the [`dataProvider`](@/api/options.md#dataprovider) option sets its own `ro
 
 - With [nested rows](@/guides/rows/row-parent-child/row-parent-child.md), use a row key. Generated ids stay with row positions when a row is moved or detached between parents, so they no longer match the moved records. Handsontable logs a console warning for this combination.
 
-- A string key walks dot notation (`'meta.id'`) even when [`dataDotNotation`](@/api/options.md#datadotnotation) is `false`, the same way `dataProvider.rowId` does.
+- With [`dataDotNotation`](@/api/options.md#datadotnotation) set to `false`, a string key with a dot still reads a nested property when the row has no property named exactly as the key. A column with the same `data` path shows nothing for that row, while the row still has an id.
 
 ## Related API reference
 

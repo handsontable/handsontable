@@ -277,8 +277,22 @@ Two related mechanisms that look like counter-examples and are not: the mobile s
 an inline `zIndex = '9999'` inside their table's stacking context (`border.ts`, legacy #9850), and the
 fill handle is *repositioned* rather than re-layered at the `fixedRowsBottom` line
 (`isCornerLiftedAtBlockEnd`). Since the master became a stacking context, that 9999 can no longer
-clear a clone, so the master's mobile handles are repositioned instead: the top handle is inset by
-`isTopHandleOccludedByClone` and the bottom handle is lifted by `isBottomHandleOccludedByClone`.
+clear a clone, so a mobile handle that would hang into a pane it cannot paint over is repositioned
+instead: the top handle is inset by `isTopHandleOccludedByClone` and the bottom handle is lifted by
+`isBottomHandleOccludedByClone`.
+
+**Each mobile handle is drawn by ONE overlay, the one that owns its corner cell (DEV-749).** The top
+handle belongs to the overlay whose segments hold the selection's top-start cell, the bottom handle
+to the one holding its bottom-end cell (a merged block's real corner), through `ownsCornerCell()`
+(`adjustHandlesOwnership.ts`), resolved once per draw in `Border#measure` and handed to
+`updateMultipleSelectionHandlesPosition` as one `{ top, bottom }` object. The master renders the
+frozen panes' cells too, under the clones, and used to draw their handles as well: its copy of a
+frozen cell's bottom handle hung past the freeze line into the master's own visible area, next to
+the clone's copy, so the user saw two. Do not give frozen cells back to the master to get its
+unclipped copy: it sits in the scrolling table and slides off the cell after any scroll. Two
+consequences. A clone's bottom handle is clamped inside its own table, so for a cell in the last
+frozen row or column it sits a few pixels inside the corner (accepted, pinned by
+`mobile-selection-handles.spec.ts`). And the occlusion checks are per overlay, not per master.
 
 On iPad the same handles also force the top overlay to reserve the fill-corner's protruding
 half-height whenever the selection's bottom-end sits inside `fixedRowsTop`
@@ -293,10 +307,18 @@ row-0 selection sits flush against the `top` clone exactly as row `fixedRowsTop`
 pane, and an outward-hanging handle dies under it either way. `isFrozenBoundaryEdge` answers the
 narrower "is this a freeze line" question and is the right helper for the fill handle and the
 boundary edges; routing the handle *position* through it silently drops the header case (and, on the
-other axis, `rowHeaders` plus `shouldRenderInlineStartOverlay`). Both helpers also return `false` off
-the master on purpose. Handles drawn by a frozen overlay itself need no treatment: they
-already land flush against the `.wtHolder` edge that clips them, which `border.spec.js` pins to the
-pixel on both axes. Note `.wtHolder` is the clipping box on the three scroll-mirrored clones
+other axis, `rowHeaders` plus `shouldRenderInlineStartOverlay`). **Both helpers apply to every overlay
+on the scrollable side of the axis, not only to the master** (DEV-749): the `inline_start` clone owns
+its frozen cells' handles, and the `top_inline_start_corner` clone covers its row `fixedRowsTop`
+exactly as the `top` clone covers the master's. An overlay on the END side of an axis (the `bottom`
+clone, the `inline_end` clone, their corners) pulls the top handle of its FIRST track inside too
+(`Border#isFirstTrackOfEndPane`), because its `.wtHolder` clips the part hanging out before the pane.
+The bottom handle has the same rule on both axes: `isBottomHandleOccludedByClone` lifts it on the last
+scrollable row before `fixedRowsBottom`, and `isBottomHandleOccludedByInlineEndClone` pulls it inside
+on the last scrollable column before `fixedColumnsEnd`, where the `inline_end` clone paints over it.
+Restricting the helpers to the master again loses the frozen-column top handle after a horizontal
+scroll and the first frozen-bottom row's or end column's top handle after scrolling to the end.
+Note `.wtHolder` is the clipping box on the three scroll-mirrored clones
 (`overflow: auto` with the scrollbar suppressed, which clips like `hidden` did — see "The clone
 holders are composited scroll containers" below), while the clone element is `overflow: visible`
 and ends a few pixels earlier — measure the holder, not the clone.
@@ -1876,7 +1898,9 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   no line in the usual mid-scroll case. The class is off when nothing precedes the band (no column before it and
   no row headers), so the clone's border stays the grid's outer frame line. Alignment is judged at the two
   junction states only; a mid-scroll offset that happens to put the clone's edge on a master column boundary still
-  draws 2px. `tests/e2e/fixed-columns-end-line.spec.ts` measures all four states in LTR and RTL.
+  draws 2px. `tests/e2e/fixed-columns-end-line.spec.ts` measures all four states in LTR, and in RTL the two
+  junction states and the switch between the classes (the direction moves where the clone sits, not when the
+  line is shared).
 - **RTL window scroll: read the inline-end edge from the table, not from the scroll position.**
   `InlineEndOverlay#getOverlayOffset` compares the scroll position with the table's offset from the page start,
   which is the inline-start margin. That margin is the one on the right in RTL, which

@@ -283,9 +283,11 @@ test('changes outside the content directory are ignored', async () => {
  * Builds a temp content tree with a React example that embeds both a .jsx and a
  * .tsx source file, so the fenced-code language mapping can be asserted.
  *
+ * @param {object} [options]
+ * @param {string[]} [options.order] The order the example lists its sources in, by extension.
  * @returns {{ contentDir: string, root: string }}
  */
-function createReactFixture() {
+function createReactFixture({ order = ['jsx', 'tsx'] } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'hot-loader-'));
   const contentDir = join(root, 'content');
   const reactDir = join(contentDir, 'guides', 'intro', 'react');
@@ -305,8 +307,7 @@ function createReactFixture() {
       'Intro body.',
       '',
       '::: example #ex1',
-      '@[code](@/content/guides/intro/react/example1.jsx)',
-      '@[code](@/content/guides/intro/react/example1.tsx)',
+      ...order.map(ext => `@[code](@/content/guides/intro/react/example1.${ext})`),
       ':::',
       '',
     ].join('\n')
@@ -341,6 +342,29 @@ test('.jsx/.tsx examples render with jsx/tsx code fences, not js/ts', async () =
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+// The runner (src/scripts/example-runner.ts) has modules for `example*.jsx` only, so a React example
+// handed its .tsx path renders nothing. The View state page lists the .tsx first, TypeScript being the
+// primary language for new examples, and its React example showed no grid.
+for (const order of [['jsx', 'tsx'], ['tsx', 'jsx']]) {
+  test(`a React example runs its .jsx when the sources are listed ${order.join(' then ')}`, async () => {
+    const { contentDir, root } = createReactFixture({ order });
+
+    try {
+      const { ctx, store } = createContext();
+
+      await frameworkLoader({ contentDir }).load(ctx);
+
+      const html = renderedHtmlOf(store, 'react-data-grid/intro');
+
+      assert.ok(html.includes('data-example-jsx="/content/guides/intro/react/example1.jsx"'),
+        'the runner must get the .jsx, the only React source it can load');
+      assert.ok(!html.includes('data-example-jsx="/content/guides/intro/react/example1.tsx"'));
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+}
 
 /**
  * Builds a temp content tree with a server-side-only example (a .cs file with

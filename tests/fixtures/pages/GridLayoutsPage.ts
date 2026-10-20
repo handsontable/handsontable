@@ -378,6 +378,36 @@ export class GridLayoutsPage {
   }
 
   /**
+   * Writes `value` into every empty cell of a column that is not covered by a merged area, so a
+   * double-click fill guided by that column is not stopped by an empty cell the fixture left there.
+   *
+   * @param {number} column The visual column.
+   * @param {string} value The value to write.
+   */
+  async fillVisibleGapsInColumn(column: number, value: string): Promise<void> {
+    await this.page.evaluate(([c, v]) => {
+      const { hot } = window as unknown as { hot: {
+        countRows(): number,
+        getDataAtCell(row: number, column: number): unknown,
+        setDataAtCell(changes: Array<[number, number, unknown]>): void,
+        getPlugin(name: string): { enabled: boolean, mergedCellsCollection: { get(row: number, column: number): unknown } },
+      } };
+      const mergeCells = hot.getPlugin('mergeCells');
+      const changes: Array<[number, number, unknown]> = [];
+
+      for (let r = 0; r < hot.countRows(); r++) {
+        const covered = mergeCells.enabled && mergeCells.mergedCellsCollection.get(r, c);
+
+        if (hot.getDataAtCell(r, c) === null && !covered) {
+          changes.push([r, c, v]);
+        }
+      }
+
+      hot.setDataAtCell(changes);
+    }, [column, value] as [number, string]);
+  }
+
+  /**
    * Prepares a fill: empties one column through the API (setup, not the behavior under test), then
    * selects one cell of it through the API too, so no real click lands twice on the cell and opens
    * its editor as a double click.

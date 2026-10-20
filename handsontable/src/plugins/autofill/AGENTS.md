@@ -6,7 +6,8 @@ Read this before touching `autofill.ts` or `utils.ts`.
 Two behaviors, one handle:
 
 - **drag-down** — drag the square to expand the selected values into neighboring cells.
-- **copy-down** — double-click the square to copy the selection into all empty cells below.
+- **copy-down** — double-click the square to copy the selection into the empty cells below, as far as the
+  neighboring column has values (see "Copy-down extent").
 
 ## The setting is `fillHandle`, not `autofill`
 
@@ -54,6 +55,44 @@ from the last range and ignored the others. Both predicates now return `false` w
 `selectedRange.size() > 1`, as in spreadsheet applications. Do not "fix" this by teaching the fill to read
 every range: there is no defined way to extend several disjoint ranges at once. Pinned by
 `tests/e2e/fill-handle-non-contiguous.spec.ts` and `selection/__tests__/selection.unit.ts`.
+
+## Copy-down extent (DEV-859)
+
+How far a double-click fills is `getCopyDownEndRow()` in `utils.ts`, a pure helper that
+`getIndexOfLastAdjacentFilledInRow()` feeds with three readers (`CopyDownCellReaders`). The fill follows
+ONE guide column: the left neighbor of the first selected column, or the right neighbor of the last one
+when the left is empty in the first visible row below the selection. Walking down, it stops ABOVE the
+first row where any selected column already holds a value, and AT the first visible row where the guide
+column is empty. Spreadsheet applications behave the same way.
+
+Before DEV-859 the walk gave up entirely (`-1`) when a value appeared anywhere below in the filled column,
+and it remembered the LAST row with a value in EITHER neighbor, so it filled straight across gaps. The
+guide documented that old rule and was changed with the code. A first version of the fix kept "either
+neighbor" per row; review (PR #13906) showed a spreadsheet follows one column, so a right column that runs
+longer than the left one no longer extends the fill. The method keeps its `-1` contract for "nothing to
+fill", because `selectAdjacent()` tests for it.
+
+Four traps, each a regression the first version of the fix shipped:
+
+- **Read stored values, never `getData()`.** With Formulas, `getData()` returns computed values, so a
+  formula that evaluates to `""` reads as empty: it ended the fill as a neighbor and was overwritten in the
+  filled column. The readers use `getSourceDataAtCell(toPhysicalRow(row), column)` (physical row, visual
+  column, the same as `canFillCell()`), one cell at a time, which also avoids copying the whole grid.
+- **A merged area empties the cells it covers** (MergeCells writes `null` there). The guide reader
+  resolves a covered cell to its area's first cell through `mergedCellsCollection.get()`. The filled-column
+  reader does NOT, so MergeCells can still refuse a fill that would cut an area
+  (`tests/e2e/fill-handle-merged-cells.spec.ts`).
+- **`getData()` and the walk include hidden rows** (HiddenRows hides, it does not trim). A hidden row is
+  skipped for the guide test, so a row the user cannot see never ends the fill, and it is never counted as
+  the last filled row. A value in a hidden row of the filled column still stops the fill.
+- **The guide column is chosen in the first VISIBLE row below the selection**, so a hidden row there
+  cannot pick the wrong side.
+- **The guide candidates are the nearest VISIBLE columns on each side**, resolved by the caller and
+  passed in as `startGuideColumn`/`endGuideColumn`. A column hidden with `HiddenColumns` keeps its
+  visual index, so the plain neighbors (`startColumn - 1`, `endColumn + 1`) can be columns the user
+  cannot see, and the fill would follow their data (review on #13906).
+
+Pinned by `__tests__/utils.unit.ts` and `tests/e2e/fill-handle-double-click.spec.ts`.
 
 ## Three hooks it registers on the singleton
 

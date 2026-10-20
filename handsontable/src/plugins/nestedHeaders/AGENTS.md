@@ -199,6 +199,38 @@ of the focus, so it does not depend on what the selection layer does with the hi
 Pinned by `tests/e2e/header-range-selection.spec.ts`, where the cases cover a leaf and a group anchor, both
 directions, a second Shift+click and a cell start.
 
+## A Ctrl click on a sortable header matches a plain click
+
+Hook order is column sorting (50), multi-column sorting (170), then nested headers (280). On a Ctrl click
+the sorting plugin selects the column in `afterOnCellMouseDown` (`deselectCell` + `selectColumns(col)`).
+`Selection#setRangeStart` treats a held Ctrl as "add a layer", so a second `selectColumns` stacks a
+duplicate (DEV-605).
+
+`#ctrlClickRewroteColumnInsideHeader` is true when that press left one full-height column range whose
+columns sit inside the clicked header. Nested headers then calls `deselectCell()` and `selectColumns`
+for that header. The duplicate starts in columnSorting's Ctrl+click handling. The fix lives in
+nestedHeaders while #13904 (sorting) is open. Pinned by `tests/e2e/nested-headers-mouse-selection.spec.ts`.
+
+## A drag selects whole columns only when it started on a header
+
+`#isColumnsSelectionInProgress` is set in `afterOnCellMouseDown` when the press hit a header node.
+With `navigableHeaders`, `#onBeforeSelectionHighlightSet` moves the focus onto that header while the
+flag is set and `isMouseDown()` is true. The flag is cleared in `beforeOnCellMouseUp`, because
+`afterOnCellMouseUp` and `afterSelectionEnd` still see `isMouseDown()` as true. The document `mouseup`
+in `tableView.ts` clears it only after `selection.finish()`. A hook that selects a cell from
+`afterOnCellMouseUp` would otherwise have its focus pulled back onto the header.
+
+The flag is also cleared at the start of the next `beforeOnCellMouseDown`. A release outside the grid
+never fires a cell mouseup. It goes through that document `mouseup`, and a flag cleared only on cell
+mouseup stays true for the next cell-to-header drag.
+
+`#onBeforeOnCellMouseOver` may take over the drag (set `controller.column` and `controller.cell`, then
+`selectColumns`) only while the flag is set. A press that started on a cell leaves the flag clear, so the
+core `mouseOver` keeps the range on the cells (`to.normalize()` drops the header row). Gating on
+`isSelectedByColumnHeader()` is weaker: a column selection from before this press can still be marked.
+Header-started drags keep working because the after hook sets the flag again (DEV-799).
+Pinned by `tests/e2e/nested-headers-mouse-selection.spec.ts`.
+
 ## `fixedColumnsEnd`: a group that crosses the end line is drawn by the end clone
 
 The inline-end clone and the top inline-end corner render only the LAST `fixedColumnsEnd` columns, so their
@@ -227,8 +259,9 @@ the `fixedColumnsStart` band and reaches past it, and it follows the same rule: 
   the group's `rowspan`, not the placeholder's. Reading the placeholder's own settings drops the class and the
   indicators of a group with `rowspan > 1`.
 - With `fixedColumnsEnd: 0` none of this runs (`firstEndColumn` is `Infinity`).
-- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (LTR and RTL). Toggle `#renderEndGroupContinuation` off to
-  see the end band header lose the label of a crossing group.
+- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` (the continuation in LTR and RTL, the label and the zero-band
+  control in LTR). Toggle `#renderEndGroupContinuation` off to see the end band header lose the label of a crossing
+  group.
 
 ## TypeScript notes
 

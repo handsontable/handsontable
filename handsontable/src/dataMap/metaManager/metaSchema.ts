@@ -589,6 +589,56 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
+     * The `asyncValues` option configures the [`AsyncValues`](@/api/asyncValues.md) plugin, which
+     * computes cell values asynchronously, from promises, and shows a pending and an error state per
+     * cell.
+     *
+     * You can set the `asyncValues` option to one of the following:
+     *
+     * | Setting           | Description                                                                  |
+     * | ----------------- | ---------------------------------------------------------------------------- |
+     * | `false` (default) | Disable the [`AsyncValues`](@/api/asyncValues.md) plugin                     |
+     * | `true`            | Enable the [`AsyncValues`](@/api/asyncValues.md) plugin with the defaults    |
+     * | An object         | Enable the [`AsyncValues`](@/api/asyncValues.md) plugin and configure it     |
+     *
+     * If you set the `asyncValues` option to an object, you can configure the following settings:
+     *
+     * | Setting         | Possible values                                  | Description                                                                                       |
+     * | --------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+     * | `flush`         | `'microtask'` (default), `'frame'`, or a number  | When settled requests are written: right after the task they settled in, once per animation frame, or after a number of milliseconds that collects results |
+     * | `concurrency`   | A number (default: `6`), or `Infinity`           | The maximum number of sources running at once (a batch counts as one); further requests stay pending until a slot frees |
+     * | `copyPendingAs` | `'previous'` (default) or `'empty'`              | What copying a pending cell puts on the clipboard                                                 |
+     *
+     * The plugin can't be enabled together with the [`nestedRows`](#nestedrows) option, because NestedRows
+     * moves rows without keeping their physical indexes.
+     *
+     * Read more:
+     * - [Async values](@/guides/cell-features/async-values/async-values.md)
+     * - [Plugins: `AsyncValues`](@/api/asyncValues.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @since 19.0.0
+     * @category AsyncValues
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // enable the `AsyncValues` plugin
+     * asyncValues: true,
+     *
+     * // write results once per animation frame, and run at most four requests at once
+     * asyncValues: {
+     *   flush: 'frame',
+     *   concurrency: 4,
+     * },
+     * ```
+     */
+    asyncValues: false,
+
+    /**
+     * @description
      * The `autoLink` option configures the [`AutoLink`](@/api/autoLink.md) plugin, which renders the
      * URLs found in cell values as clickable links.
      *
@@ -988,7 +1038,8 @@ export default (): Record<string, unknown> => {
      *
      * ::: warning
      * When you set `checkedTemplate` to a custom string value (e.g. `'Yes'`), using `true` in your data source to
-     * represent a checked state is no longer valid. Only the exact custom string value matches a checked checkbox.
+     * represent a checked state is no longer valid. A value matches a checked checkbox when it equals the template
+     * or reads the same ignoring letter case (`'yes'` and `'YES'` both match `'Yes'`).
      * Pair `checkedTemplate` with [`uncheckedTemplate`](#uncheckedTemplate) to define both states explicitly.
      * :::
      *
@@ -2167,6 +2218,9 @@ export default (): Record<string, unknown> => {
      * a skipped refetch leaves the row total and the page count stale until the next `fetchRows` call, so reconcile them yourself.
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
+     * A string **`rowId`** is read the same way as the [`rowId`](#rowid) option: a property named exactly as the string
+     * wins, dots included, and otherwise the dots read a nested property.
+     *
      * Set it to `null` to turn server-backed loading off again, for example through
      * [`updateSettings()`](@/api/core.md#updatesettings).
      *
@@ -2324,6 +2378,10 @@ export default (): Record<string, unknown> => {
      * | A function | A function that receives the source row and returns its id                               |
      * | `true`     | Handsontable generates the ids: a number for each row, never reused within the instance   |
      * | `false`    | No row ids                                                                               |
+     *
+     * For a string with a dot, a property named exactly as the string wins (`{ 'meta.id': 'SKU-4821' }`), as it does
+     * for a column's `data` property. Otherwise, the dots read a nested property (`{ meta: { id: 'SKU-4821' } }`), even
+     * when [`dataDotNotation`](#datadotnotation) is `false` and a column with the same `data` shows nothing.
      *
      * Keep the ids unique. If two rows share an id, the lookups return the row with the lower physical index.
      *
@@ -7463,6 +7521,7 @@ export default (): Record<string, unknown> => {
      * | `paging`      | Boolean (default: `true`)                            | Controls visibility of the tab-scrolling controls, shown when tabs overflow the bar's width    |
      * | `position`    | `'top'` \| `'bottom'` (default: `'bottom'`)          | The edge of the grid the bar renders on                                                        |
      * | `uiContainer` | An HTML element (default: `null`)                    | The container element where the sheets bar UI will be installed. If not provided, the bar is injected below the root table element |
+     * | `animation`   | Boolean, or an object of booleans (default: `true`) | Turns the tab animations on or off. `false` makes every tab change instant. An object turns single animations off: `switch` (the active tab marker's slide), `add` (a new or duplicated tab's entrance), `remove` (a removed tab's exit and the tabs closing the gap), and `move` (the tabs sliding to new places after a move, and the tabs a drag pushes aside). A key you leave out stays on. Reduced motion and a theme with `--ht-table-transition: 0s` make every tab change instant whatever this option says. The hover color fade is CSS only and is not affected. An invalid value is ignored with a console warning, and the previous value stays in force |
      *
      * Read more:
      * - [Plugins: `SheetsBar`](@/api/sheetsBar.md)
@@ -7489,6 +7548,21 @@ export default (): Record<string, unknown> => {
      *     { name: 'Notes', data: [['Draft']] },
      *   ],
      *   activeSheet: 0,
+     * },
+     *
+     * // animate every tab change (the default)
+     * sheetsBar: {
+     *   animation: true,
+     * },
+     *
+     * // make every tab change instant
+     * sheetsBar: {
+     *   animation: false,
+     * },
+     *
+     * // keep the tab animations, except the slide after a move
+     * sheetsBar: {
+     *   animation: { switch: true, add: true, remove: true, move: false },
      * },
      * ```
      */
@@ -8604,7 +8678,8 @@ export default (): Record<string, unknown> => {
      *
      * ::: warning
      * When you set `uncheckedTemplate` to a custom string value (e.g. `'No'`), using `false` in your data source to
-     * represent an unchecked state is no longer valid. Only the exact custom string value matches an unchecked checkbox.
+     * represent an unchecked state is no longer valid. A value matches an unchecked checkbox when it equals the
+     * template or reads the same ignoring letter case (`'no'` and `'NO'` both match `'No'`).
      * Pair `uncheckedTemplate` with [`checkedTemplate`](#checkedTemplate) to define both states explicitly.
      * :::
      *
@@ -8712,6 +8787,7 @@ export default (): Record<string, unknown> => {
      * | ------------------- | ----------------------------------------------------------------------- |
      * | A custom alias      | Your [custom cell validator](@/guides/cell-functions/cell-validator/cell-validator.md) |
      * | `'autocomplete'`    | `AutocompleteValidator`                                                 |
+     * | `'checkbox'`        | `CheckboxValidator` (opt-in; the `checkbox` cell type doesn't apply it) |
      * | `'date'`            | `DateValidator`                                                         |
      * | `'intl-date'`       | `IntlDateValidator`                                                     |
      * | `'dropdown'`        | `DropdownValidator`                                                     |

@@ -1,6 +1,23 @@
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortService';
 import { compareFunctionFactory as defaultCompareFunctionFactory } from '../sortFunction/default';
 import { isEmpty } from '../../../helpers/mixed';
+import { matchCheckboxTemplate } from '../../../utils/checkboxColumn';
+
+/**
+ * Maps a value that matches a template only by letter case (`'TRUE'` for `true`, `'YES'` for a
+ * `'Yes'` template) onto that template, so it sorts with the cells it renders like (DEV-355). A
+ * template the column does not define is left alone, so the default-template sort keeps its order.
+ *
+ * @param {unknown} value The cell value.
+ * @param {object} columnMeta Column meta object.
+ * @returns {unknown}
+ */
+function toTemplateValue(value: unknown, columnMeta: Record<string, unknown>): unknown {
+  const state = matchCheckboxTemplate(value, columnMeta);
+  const template = state === 'checked' ? columnMeta.checkedTemplate : columnMeta.uncheckedTemplate;
+
+  return state === null || template === undefined ? value : template;
+}
 
 /**
  * Resolves the sort order result for two checkbox values that are both from the template.
@@ -84,8 +101,8 @@ export function compareFunctionFactory(
   return function(value: unknown, nextValue: unknown) {
     const isEmptyValue = isEmpty(value);
     const isEmptyNextValue = isEmpty(nextValue);
-    const unifiedValue = isEmptyValue ? uncheckedTemplate : value;
-    const unifiedNextValue = isEmptyNextValue ? uncheckedTemplate : nextValue;
+    const unifiedValue = isEmptyValue ? uncheckedTemplate : toTemplateValue(value, columnMeta);
+    const unifiedNextValue = isEmptyNextValue ? uncheckedTemplate : toTemplateValue(nextValue, columnMeta);
     const isValueFromTemplate = unifiedValue === uncheckedTemplate || unifiedValue === checkedTemplate;
     const isNextValueFromTemplate = unifiedNextValue === uncheckedTemplate || unifiedNextValue === checkedTemplate;
 

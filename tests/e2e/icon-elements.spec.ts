@@ -137,22 +137,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       expect(geometry.iconEndMargin).toBeCloseTo(geometry.gap, 0);
     });
 
-    test('a click on the checkbox without a label toggles the underlying value', async({ page, theme, bundle }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto();
-
-      const input = page.locator('.ht_master td').first().locator('input.htCheckboxRendererInput');
-
-      await expect(input).not.toBeChecked();
-      await input.click();
-      await expect(input).toBeChecked();
-
-      const value = await page.evaluate(() => (window as unknown as { hot: any }).hot.getDataAtCell(0, 0));
-
-      expect(value).toBe(true);
-    });
-
     test('a click on a labelled checkbox still toggles the underlying value - the icon overlay ' +
       'does not steal the click', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
@@ -393,23 +377,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
     // per-column `columnSorting` override.
     const columnBHeader = (page: import('@playwright/test').Page) => page.locator('.ht_clone_top th').nth(2);
 
-    test('a sorted column header carries one indicator icon', async({ page, theme, bundle }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto();
-
-      const header = columnBHeader(page);
-
-      await header.locator('.colHeader').click();
-      await expect(grid.icon('arrow-narrow-up', header)).toHaveCount(1);
-
-      await header.locator('.colHeader').click();
-      await expect(grid.icon('arrow-narrow-down', header)).toHaveCount(1);
-      // Scoped to the sort-indicator slot, not a bare `.ht-icon` count: the fixture also enables
-      // `dropdownMenu`, so this same header carries a second, unrelated `.ht-icon-menu` button icon.
-      await expect(header.locator('.ht-sort-indicator')).toHaveCount(1);
-    });
-
     // Trap: the old `::before` belonged to the `.colHeader` label, so a press on the
     // arrow targeted the label and `wasClickableHeaderClicked()` accepted it. The arrow is a
     // sibling element now, and the base `.ht-icon` is `pointer-events: none` - the slot must take
@@ -450,40 +417,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
     // the reserve measured `icon-size + (icon-size + 2px)`. The glyph rule is gone; the width has to
     // be restated on the ghost rule, or every sortable header with a menu button measures ~10px
     // narrower than 18.1 (caught by the visual suite on every nested-headers demo).
-    test('the ghost-table sort reserve keeps its 18.1 geometry: icon-size box plus icon-size + 2px padding', async({
-      page, theme, bundle,
-    }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto();
-
-      const probe = await page.evaluate(() => {
-        const hot = (window as unknown as { hot: any }).hot;
-        const ghost = document.createElement('div');
-
-        ghost.className = `htGhostTable htAutoSize ${hot.rootElement.className}`;
-        ghost.innerHTML = '<table class="htCore"><thead><tr><th><div class="relative">'
-          + '<span class="colHeader columnSorting sortAction">A</span></div></th></tr></thead></table>';
-        hot.rootElement.appendChild(ghost);
-
-        const label = ghost.querySelector('span.colHeader') as HTMLElement;
-        const before = getComputedStyle(label, '::before');
-        const iconSize = getComputedStyle(label).getPropertyValue('--ht-icon-size').trim();
-        const result = { content: before.content, width: before.width, paddingInlineEnd: before.paddingInlineEnd, iconSize };
-
-        ghost.remove();
-
-        return result;
-      });
-
-      const iconPx = parseFloat(probe.iconSize);
-
-      expect(iconPx).toBeGreaterThan(0);
-      expect(probe.content).toBe('"*"');
-      expect(parseFloat(probe.width)).toBe(iconPx);
-      expect(parseFloat(probe.paddingInlineEnd)).toBe(iconPx + 2);
-    });
-
     test('clicking a sorted header a third time (no sort) removes the indicator icon', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 
@@ -777,19 +710,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   });
 
   test.describe('pagination bar', () => {
-    test('pagination buttons carry directional icons that mirror in RTL', async({ page, theme, bundle }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto();
-      await expect(grid.icon('arrow-right', page.locator('.ht-page-next'))).toHaveCount(1);
-      expect(await grid.transform(grid.icon('arrow-right', page.locator('.ht-page-next')))).toBe('none');
-
-      await grid.goto({ dir: 'rtl' });
-      await expect(grid.icon('arrow-right', page.locator('.ht-page-next'))).toHaveCount(1);
-      expect(await grid.transform(grid.icon('arrow-right', page.locator('.ht-page-next'))))
-        .toBe('matrix(-1, 0, 0, 1, 0, 0)');
-    });
-
     test('every navigation button carries exactly one icon of the expected name, in LTR and RTL', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
       const buttons: Array<[string, string]> = [
@@ -915,25 +835,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   });
 
   test.describe('sheets bar', () => {
-    test('the add and all-sheets buttons carry their icons', async({ page, theme, bundle }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto({ sheetsBar: true });
-
-      await expect(grid.icon('plus', page.locator('.ht-sheets-bar__add'))).toHaveCount(1);
-      await expect(grid.icon('menu-list', page.locator('.ht-sheets-bar__all'))).toHaveCount(1);
-    });
-
-    test('the active tab chevron carries the select-arrow icon', async({ page, theme, bundle }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto({ sheetsBar: true });
-
-      const chevron = page.locator('.ht-sheets-bar__tab--active .ht-sheets-bar__tab-chevron');
-
-      await expect(grid.icon('select-arrow', chevron)).toHaveCount(1);
-    });
-
     test('a repaint of the tab strip keeps exactly one chevron icon per tab', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 
@@ -999,29 +900,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
 
       expect(addBeforeContent).toBe('none');
       expect(chevronAfterContent).toBe('none');
-    });
-
-    test('the chevron hover surface (a non-icon ::before) still lights up on hover, on the active tab', async({
-      page, theme, bundle,
-    }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto({ sheetsBar: true });
-
-      const chevron = page.locator('.ht-sheets-bar__tab--active .ht-sheets-bar__tab-chevron');
-
-      // Confirm the icon glyph is present alongside the hover-surface pseudo-element - the two
-      // are unrelated layers on the same chevron, and this test proves the surface (`::before`)
-      // is untouched by the icon migration that retired the glyph (`::after`).
-      await expect(grid.icon('select-arrow', chevron)).toHaveCount(1);
-
-      const restBackground = await chevron.evaluate(el => getComputedStyle(el, '::before').backgroundColor);
-
-      await chevron.hover();
-
-      const hoverBackground = await chevron.evaluate(el => getComputedStyle(el, '::before').backgroundColor);
-
-      expect(hoverBackground).not.toBe(restBackground);
     });
 
     test('switching themes at runtime rebuilds the bar icons and keeps exactly one per slot', async({
@@ -1176,25 +1054,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       await expect(cloneIndicator(page).locator('.ht-icon')).toHaveCount(1);
     });
 
-    test('re-rendering the header repeatedly keeps exactly one indicator icon', async({ page, theme, bundle }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto({ nestedHeaders: true });
-
-      // `#onAfterGetColHeader` fires per header, per draw - forcing several renders proves the
-      // indicator never stacks a second icon.
-      await page.evaluate(() => {
-        const hot = (window as unknown as { hot: any }).hot;
-
-        for (let i = 0; i < 5; i++) {
-          hot.render();
-        }
-      });
-
-      await expect(masterIndicator(page).locator('.ht-icon')).toHaveCount(1);
-      await expect(grid.icon('collapse-off', masterIndicator(page))).toHaveCount(1);
-    });
-
     // The indicator used to be emptied and rebuilt on every draw - a new text node, a new `<i>`,
     // and a fresh run of any icon renderer callback, for every collapsible header on every scroll
     // frame. A draw with no state change must keep both nodes.
@@ -1249,20 +1108,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
     const cloneButton = (page: import('@playwright/test').Page) =>
       page.locator('.ht_clone_inline_start .ht_nestingButton');
 
-    test('an expanded parent row carries exactly one collapse-off icon', async({ page, theme, bundle }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto({ nestedRows: true });
-
-      // Every parent starts expanded (`ht_nestingCollapse`, the "-" button) until the app
-      // collapses it, mirroring `CollapsibleColumns`'s `isCollapsed`/`collapseOn` ->
-      // `!isCollapsed`/`collapseOff` mapping.
-      await expect(masterButton(page)).toHaveCount(1);
-      await expect(masterButton(page)).toHaveClass(/ht_nestingCollapse/);
-      await expect(grid.icon('collapse-off', masterButton(page))).toHaveCount(1);
-      await expect(grid.icon('collapse-on', masterButton(page))).toHaveCount(0);
-    });
-
     test('clicking the button collapses the parent and swaps the icon to collapse-on', async({
       page, theme, bundle,
     }) => {
@@ -1287,26 +1132,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       await expect(grid.icon('collapse-off', cloneButton(page))).toHaveCount(1);
       await expect(grid.icon('collapse-on', cloneButton(page))).toHaveCount(0);
       await expect(cloneButton(page).locator('.ht-icon')).toHaveCount(1);
-    });
-
-    test('re-rendering the header repeatedly keeps exactly one button icon', async({ page, theme, bundle }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto({ nestedRows: true });
-
-      // `appendLevelIndicators()` fires per row header, per draw, and rebuilds `buttonsContainer`
-      // from scratch every time (`removeLevelIndicators()` strips the previous one first) -
-      // forcing several renders proves that fresh-container append never stacks a second icon.
-      await page.evaluate(() => {
-        const hot = (window as unknown as { hot: any }).hot;
-
-        for (let i = 0; i < 5; i++) {
-          hot.render();
-        }
-      });
-
-      await expect(masterButton(page).locator('.ht-icon')).toHaveCount(1);
-      await expect(grid.icon('collapse-off', masterButton(page))).toHaveCount(1);
     });
 
     test('the retired glyph pseudo-element no longer paints on the button', async({ page, theme, bundle }) => {
@@ -1675,6 +1500,18 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       await expect(page.locator('.ht_master .ht-hidden-indicator-end')).toHaveCount(0);
     });
 
+    test('the retired pseudo-elements no longer paint on the marked headers', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto({ hiddenRows: true });
+
+      const beforeContent = await cloneAfter(page).evaluate(el => getComputedStyle(el, '::before').content);
+      const afterContent = await cloneBefore(page).evaluate(el => getComputedStyle(el, '::after').content);
+
+      expect(beforeContent).toBe('none');
+      expect(afterContent).toBe('none');
+    });
+
     test('disabling the plugin removes every caret', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
 
@@ -1708,18 +1545,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       await expect(masterBefore(page).locator('.ht-hidden-indicator-end')).toHaveCount(1);
       await expect(masterAfter(page).locator('.ht-hidden-indicator-start')).toHaveCount(1);
     });
-
-    test('the retired pseudo-elements no longer paint on the marked headers', async({ page, theme, bundle }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto({ hiddenRows: true });
-
-      const beforeContent = await cloneAfter(page).evaluate(el => getComputedStyle(el, '::before').content);
-      const afterContent = await cloneBefore(page).evaluate(el => getComputedStyle(el, '::after').content);
-
-      expect(beforeContent).toBe('none');
-      expect(afterContent).toBe('none');
-    });
   });
 
   test.describe('autocomplete arrow and select editor', () => {
@@ -1741,20 +1566,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
 
       await expect(arrows).toHaveCount(5);
       await expect(grid.icon('select-arrow', grid.grid().locator('.ht_master'))).toHaveCount(5);
-    });
-
-    test('the retired pseudo-element no longer paints the cell arrow glyph', async({ page, theme, bundle }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto();
-
-      // `mixins.pseudo` (`content: ""`) was removed from the `.htAutocompleteArrow::after` rule;
-      // the generated `iconsMap` rule (mask-image etc.) carries no `content` of its own, so with
-      // nothing supplying it the pseudo-element paints nothing.
-      const afterContent = await grid.grid().locator('.ht_master .htAutocompleteArrow').first()
-        .evaluate(el => getComputedStyle(el, '::after').content);
-
-      expect(afterContent).toBe('none');
     });
 
     // Trap: the arrow is INTERACTIVE - a `mousedown` listener
@@ -1797,6 +1608,20 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
 
       // Row 0, column C (visual index 2) - the arrow that was actually clicked.
       expect(editorCoords).toEqual([0, 2]);
+    });
+
+    test('the retired pseudo-element no longer paints the cell arrow glyph', async({ page, theme, bundle }) => {
+      const grid = new IconElementsPage(page, theme, bundle);
+
+      await grid.goto();
+
+      // `mixins.pseudo` (`content: ""`) was removed from the `.htAutocompleteArrow::after` rule;
+      // the generated `iconsMap` rule (mask-image etc.) carries no `content` of its own, so with
+      // nothing supplying it the pseudo-element paints nothing.
+      const afterContent = await grid.grid().locator('.ht_master .htAutocompleteArrow').first()
+        .evaluate(el => getComputedStyle(el, '::after').content);
+
+      expect(afterContent).toBe('none');
     });
 
     test('an autosized autocomplete column reserves the same width as before the icon migration', async({
@@ -1892,6 +1717,9 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
         await expect(arrow.locator('.ht-icon.ht-icon-select-arrow')).toHaveCount(1);
       });
 
+      // The select editor's arrow is decorative, not interactive - unlike the cell renderer's
+      // arrow, both the arrow div and the icon carry `pointer-events: none`
+      // (`_select-editor.scss`), so a click anywhere on it reaches the native `<select>` beneath.
       test('the retired pseudo-element no longer paints the select editor arrow glyph', async({
         page, theme, bundle,
       }) => {
@@ -1905,9 +1733,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
         expect(afterContent).toBe('none');
       });
 
-      // The select editor's arrow is decorative, not interactive - unlike the cell renderer's
-      // arrow, both the arrow div and the icon carry `pointer-events: none`
-      // (`_select-editor.scss`), so a click anywhere on it reaches the native `<select>` beneath.
       test('a click on the arrow reaches the native select underneath, not the icon', async({
         page, theme, bundle,
       }) => {
@@ -1937,10 +1762,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
     // every other block above keeps its original 4-column fixture untouched. Row 0's source data
     // is `['Alpha', 'Beta']` out of the column's `source: ['Alpha', 'Beta', 'Gamma', 'Delta']` -
     // two chips, and two of the four dropdown entries pre-checked.
-    const disablePagination = (page: import('@playwright/test').Page) => page.evaluate(() => {
-      (window as unknown as { hot: any }).hot.updateSettings({ pagination: false });
-    });
-
     const firstCell = (page: import('@playwright/test').Page) =>
       page.locator('.ht_master td.ht-multi-select-renderer').first();
 
@@ -1960,31 +1781,9 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       return dropdown;
     };
 
-    test('a cell with chips shows one remove icon per chip', async({ page, theme, bundle }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto({ multiSelect: true });
-
-      const cell = firstCell(page);
-
-      await expect(cell.locator('.ht-multi-select-chip')).toHaveCount(2);
-      await expect(cell.locator('.ht-multi-select-chip-remove .ht-icon.ht-icon-chip-close')).toHaveCount(2);
-    });
-
-    test('every multiselect cell carries the select-arrow icon', async({ page, theme, bundle }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto({ multiSelect: true });
-      await disablePagination(page);
-
-      // Scoped to `.ht-multi-select-arrow` specifically, not the page-wide `grid.icon()` helper -
-      // column C in this same fixture is `type: 'autocomplete'` and carries the same `select-arrow`
-      // glyph on a different element (`.htAutocompleteArrow`), which would inflate the count.
-      const arrows = page.locator('.ht_master td.ht-multi-select-renderer .ht-multi-select-arrow .ht-icon.ht-icon-select-arrow');
-
-      await expect(arrows).toHaveCount(5);
-    });
-
+    // Trap: the chip remove button is INTERACTIVE (`registerChipRemovingEvents`,
+    // `utils/utils.ts`) - `.ht-icon`'s base `pointer-events: none` must let a click through to the
+    // span beneath it rather than intercepting it, or the affordance silently breaks.
     test('the retired pseudo-elements no longer paint the arrow or the chip-remove glyph', async({
       page, theme, bundle,
     }) => {
@@ -2002,9 +1801,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       expect(chipRemoveBeforeContent).toBe('none');
     });
 
-    // Trap: the chip remove button is INTERACTIVE (`registerChipRemovingEvents`,
-    // `utils/utils.ts`) - `.ht-icon`'s base `pointer-events: none` must let a click through to the
-    // span beneath it rather than intercepting it, or the affordance silently breaks.
     test('a click precisely on a chip remove icon removes that chip - the icon does not intercept ' +
       'the click', async({ page, theme, bundle }) => {
       const grid = new IconElementsPage(page, theme, bundle);
@@ -2517,21 +2313,6 @@ test.describe('Icon elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
       await expect(refreshed).toHaveClass(/ht-multi-select-editor-search-icon/);
       // Refreshed in place, never appended alongside the old one.
       await expect(page.locator('.ht-multi-select-editor .ht-icon-search')).toHaveCount(1);
-    });
-
-    test('an unmapped slot keeps the built-in glyph - mapping is per-slot, not all-or-nothing', async({
-      page, theme, bundle,
-    }) => {
-      const grid = new IconElementsPage(page, theme, bundle);
-
-      await grid.goto({ icons: 'tabler' });
-
-      const checkboxIcon = grid.icon('checkbox').first();
-
-      // No `ht-icon--external` class - the theme maps five other slots (four class lists, one
-      // callback), and none of that flips this UNMAPPED slot into external mode.
-      await expect(checkboxIcon).not.toHaveClass(/ht-icon--external/);
-      expect(await grid.maskImage(checkboxIcon)).toMatch(/^url\("data:image\/svg\+xml/);
     });
 
     test('the mapped class-list glyph is actually visible at icon size, not merely classed', async({

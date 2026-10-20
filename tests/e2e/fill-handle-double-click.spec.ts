@@ -58,4 +58,111 @@ test.describe('fill handle double-click', { tag: THEMES_TAG }, () => {
     await expect(grid.visibleFillBorders()).toHaveCount(0);
     expect(await grid.isFillHandlePressed()).toBe(false);
   });
+
+  // DEV-859: how far the copy-down fills. It follows one guide column (the left neighbor, else the
+  // right one), stops above the first value already in the filled column (never overwriting it), and
+  // at the first gap in the guide column, as spreadsheet applications do. Before the fix a value
+  // anywhere below blocked the whole fill, and a gap in the neighboring column was filled across.
+  test('fills down to the row above the first value already in the column (DEV-859, case 1)', async () => {
+    const N = null;
+
+    await grid.initGrid({
+      data: [[0, 0], [N, 0], [N, 1], [N, 2], [N, 3], [9, 0], [9, 0], [9, 0]],
+    });
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.doubleClickFillHandle();
+
+    // The 9s in A6:A8 make a fill that runs past them visible.
+    expect(await grid.columnValues(0)).toEqual([0, 0, 0, 0, 0, 9, 9, 9]);
+    expect(await grid.columnValues(1)).toEqual([0, 0, 1, 2, 3, 0, 0, 0]);
+  });
+
+  test('stops at the first gap in the neighboring column (DEV-859, case 2)', async () => {
+    const N = null;
+
+    await grid.initGrid({
+      data: [[1, 1], [N, 0], [N, 0], [N, 0], [N, 1], [N, 0], [N, 0], [N, N], [N, N], [N, N], [N, 1]],
+    });
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.doubleClickFillHandle();
+
+    expect(await grid.columnValues(0)).toEqual([1, 1, 1, 1, 1, 1, 1, N, N, N, N]);
+  });
+
+  test('fills nothing when the neighboring cell right below the selection is empty', async () => {
+    const N = null;
+
+    await grid.initGrid({ data: [[5, 1], [N, N], [N, 3], [N, 4], [N, N]] });
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.doubleClickFillHandle();
+
+    expect(await grid.columnValues(0)).toEqual([5, N, N, N, N]);
+  });
+
+  // Not a regression test: the old rule gave up here too. It pins the "never overwrite" half for
+  // a value in the very next row.
+  test('fills nothing when the cell right below the selection already has a value', async () => {
+    const N = null;
+
+    await grid.initGrid({ data: [[5, 1], [9, 2], [N, 3], [N, N]] });
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.doubleClickFillHandle();
+
+    expect(await grid.columnValues(0)).toEqual([5, 9, N, N]);
+  });
+
+  test('follows the left neighbor, not the right one, when both have values below the selection', async () => {
+    const N = null;
+
+    // Left column: rows 1-3. Right column: rows 3-6. The left one guides, so the fill stops at row 3.
+    await grid.initGrid({ data: [[1, 5, N], [2, N, N], [3, N, 7], [N, N, 7], [N, N, 7], [N, N, 7]] });
+    await grid.selectCells(0, 1, 0, 1);
+    await grid.doubleClickFillHandle();
+
+    expect(await grid.columnValues(1)).toEqual([5, 5, 5, N, N, N]);
+  });
+
+  test('reads a merged cell in the neighboring column as one value', async () => {
+    const N = null;
+
+    await grid.initGrid({
+      data: [[5, 'x'], [N, N], [N, 'y'], [N, 'z'], [N, N]],
+      mergeCells: [{ row: 0, col: 1, rowspan: 2, colspan: 1 }],
+    });
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.doubleClickFillHandle();
+
+    expect(await grid.columnValues(0)).toEqual([5, 5, 5, 5, N]);
+  });
+
+  test('does not stop at a hidden row', async () => {
+    const N = null;
+
+    // Row 3 is hidden and its neighbor is empty; the user cannot see it, so it does not end the fill.
+    await grid.initGrid({
+      data: [[5, 1], [N, 2], [N, N], [N, 4], [N, 5], [N, N]],
+      hiddenRows: { rows: [2] },
+    });
+    await grid.selectCells(0, 0, 0, 0);
+    await grid.doubleClickFillHandle();
+
+    const values = await grid.columnValues(0);
+
+    expect([values[1], values[3], values[4], values[5]]).toEqual([5, 5, 5, N]);
+  });
+
+  test('steps over a hidden column to the nearest visible guide column', async () => {
+    const N = null;
+
+    // Column B is hidden and full; the visible column A has values in rows 1-3 only.
+    await grid.initGrid({
+      data: [[1, 'x', 5], [2, 'x', N], [3, 'x', N], [N, 'x', N], [N, 'x', N]],
+      hiddenColumns: { columns: [1] },
+    });
+    await grid.selectCells(0, 2, 0, 2);
+    await grid.doubleClickFillHandle();
+
+    expect(await grid.columnValues(2)).toEqual([5, 5, 5, N, N]);
+  });
 });
+

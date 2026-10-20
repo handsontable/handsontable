@@ -4,6 +4,7 @@ import type { SourceLabel } from '../../../utils/cellSource';
 import DataProvider from '../dataProvider';
 import BaseType from './_base';
 import { normalizeExportOptions } from '../utils';
+import { isCheckedValue } from '../../../utils/checkboxColumn';
 import {
   buildSummaryFormula,
   normalizeFormula,
@@ -893,9 +894,8 @@ class Xlsx extends BaseType {
    * @returns {boolean}
    */
   #getCheckboxValue(value: unknown, meta: CellMeta): boolean {
-    const checkedTemplate = meta.checkedTemplate ?? true;
-
-    return value === checkedTemplate;
+    // The renderer's match (DEV-355): a loaded `'TRUE'` exports as checked, like it renders.
+    return isCheckedValue(value, meta);
   }
 
   /**

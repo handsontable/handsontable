@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { ColumnSummaryReadOnlyPage } from '../fixtures/pages/ColumnSummaryReadOnlyPage';
 
 /**
@@ -11,7 +11,7 @@ import { ColumnSummaryReadOnlyPage } from '../fixtures/pages/ColumnSummaryReadOn
  * Product decision: on a summary cell the item does not appear. On a wider selection it acts on the
  * other cells only, and its check mark reflects only those.
  */
-test.describe('column summary read-only lock', { tag: THEMES_TAG }, () => {
+test.describe('column summary read-only lock', () => {
   let grid: ColumnSummaryReadOnlyPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

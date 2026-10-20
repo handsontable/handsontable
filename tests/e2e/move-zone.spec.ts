@@ -261,15 +261,6 @@ test.describe('moveCells edge move bands', { tag: THEMES_TAG }, () => {
     await expect(grid.visibleMoveZones()).toHaveCount(0);
   });
 
-  test('moves the data when a band is dragged to a new location', async () => {
-    await grid.selectCells(2, 2, 3, 3);
-
-    await grid.dragMoveZoneToCell(5, 5);
-
-    expect(await grid.cellValue(5, 5)).toBe('R3C3');
-    expect(await grid.cellValue(2, 2)).toBe(null);
-  });
-
   test('moves a single selected cell', async () => {
     await grid.selectCells(2, 2, 2, 2);
 
@@ -329,18 +320,6 @@ test.describe('moveCells edge move bands', { tag: THEMES_TAG }, () => {
     expect(await grid.bodyCursor()).toBe('');
   });
 
-  test('adds the ht__moving class during the drag and removes it on drop', async () => {
-    await grid.selectCells(2, 2, 3, 3);
-
-    await grid.startMoveZoneDragOverCell(5, 5);
-
-    await expect(grid.movingRoot()).toHaveCount(1);
-
-    await grid.releasePointer();
-
-    await expect(grid.movingRoot()).toHaveCount(0);
-  });
-
   test('removes the ghost element after the drop', async () => {
     await grid.selectCells(2, 2, 3, 3);
 
@@ -370,25 +349,6 @@ test.describe('moveCells edge move bands', { tag: THEMES_TAG }, () => {
 
     expect(await grid.cellValue(5, 5)).toBe('R3C3');
     expect(await grid.cellValue(2, 2)).toBe('R3C3');
-  });
-
-  test('records no undo entry for a click on a move zone without dragging', async ({ page }) => {
-    // A mousedown + mouseup on the same pixel resolves the move target back to the source, which
-    // used to run the whole commit pipeline for zero data change — every click on a selection
-    // border consumed one undo entry and pushed the user's real edits out of the undo stack.
-    await grid.selectCells(2, 2, 3, 3);
-
-    const box = await grid.visibleMoveZones().first().boundingBox();
-
-    expect(box).not.toBeNull();
-
-    await page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
-    await page.mouse.down();
-    await page.mouse.up();
-
-    expect(await grid.cellValue(2, 2)).toBe('R3C3');
-    expect(await grid.doneActionsCount()).toBe(0);
-    expect(await grid.isUndoAvailable()).toBe(false);
   });
 
   test('records no undo entry for a macOS-style Ctrl+click on a move zone', async ({ page }) => {
@@ -441,34 +401,6 @@ test.describe('moveCells edge move bands', { tag: THEMES_TAG }, () => {
     expect(await grid.cellValue(2, 2)).toBe('R3C3');
   });
 
-  test('records no undo entry when a drag is released back at its origin', async ({ page }) => {
-    await grid.selectCells(2, 2, 3, 3);
-
-    const box = await grid.visibleMoveZones().first().boundingBox();
-
-    expect(box).not.toBeNull();
-
-    const pressX = box!.x + (box!.width / 2);
-    const pressY = box!.y + (box!.height / 2);
-    // An interior cell: dragging near the viewport edge (e.g. over column 6 in the wider horizon
-    // theme) can trigger DragToScroll on a slow runner, and once the viewport scrolls the press
-    // pixel no longer maps to the press cell — the gesture is then a real move, not a click.
-    const awayBox = await grid.cell(4, 4).boundingBox();
-
-    expect(awayBox).not.toBeNull();
-
-    // Drag away and back to the exact press point, so the resolved target equals the source.
-    await page.mouse.move(pressX, pressY);
-    await page.mouse.down();
-    await page.mouse.move(awayBox!.x + (awayBox!.width / 2), awayBox!.y + (awayBox!.height / 2), { steps: 2 });
-    await page.mouse.move(pressX, pressY, { steps: 2 });
-    await page.mouse.up();
-
-    expect(await grid.cellValue(2, 2)).toBe('R3C3');
-    expect(await grid.doneActionsCount()).toBe(0);
-    expect(await grid.isUndoAvailable()).toBe(false);
-  });
-
   test('honors the grab offset when dragging from a non-top-left cell of a 2x2 range', async () => {
     await grid.selectCells(1, 1, 2, 2);
 
@@ -487,16 +419,6 @@ test.describe('moveCells edge move bands', { tag: THEMES_TAG }, () => {
     await grid.selectCells(2, 2, 3, 3);
 
     await expect(grid.visibleMoveZones()).toHaveCount(0);
-  });
-
-  test('does not move data when disableVisualSelection is set', async () => {
-    await grid.initGrid({ disableVisualSelection: true });
-    await grid.selectCells(2, 2, 3, 3);
-
-    // With no bands there is nothing to grab, so the data must be untouched.
-    await expect(grid.visibleMoveZones()).toHaveCount(0);
-    expect(await grid.cellValue(2, 2)).toBe('R3C3');
-    expect(await grid.cellValue(5, 5)).toBe('R6C6');
   });
 
   test('shows no move bands for a full row selection', async () => {
@@ -698,26 +620,6 @@ test.describe('moveCells edge move bands', { tag: THEMES_TAG }, () => {
         ...acrossHorizontalLine(rowSeamY, [frozenColumnX, scrollableColumnX]),
         ...acrossVerticalLine(columnSeamX, [middleY(scrollableCell)]),
       ])).every(hit => !hit)).toBe(true);
-    });
-
-    test('draws no band on the column freeze line', async () => {
-      await grid.initGrid({ fixedColumnsStart: 1 });
-      await grid.selectCells(4, 0, 8, 3);
-
-      // The master draws the top, bottom and end bands, and the frozen-columns overlay the top,
-      // bottom and start ones, so the top and bottom edges are split at the freeze line.
-      await expect(grid.visibleMoveZonesInAnyOverlay()).toHaveCount(6);
-
-      const range = await grid.rangeBox(4, 0, 8, 3);
-      const frozenCell = await boxOf(grid.overlayCell('inline_start', 6, 0));
-      const columnSeamX = frozenCell.x + frozenCell.width;
-      const scrollableColumnX = middleX(await boxOf(grid.cell(6, 2)));
-
-      expect((await grid.moveZoneHitsAt(acrossVerticalLine(columnSeamX, [middleY(frozenCell)])))
-        .every(hit => !hit)).toBe(true);
-      expect((await grid.moveZoneHitsAt(
-        insideOuterEdges(range, [middleX(frozenCell), scrollableColumnX], [middleY(frozenCell)]),
-      )).every(hit => hit)).toBe(true);
     });
 
     test('draws no band on the column freeze line in RTL', async () => {

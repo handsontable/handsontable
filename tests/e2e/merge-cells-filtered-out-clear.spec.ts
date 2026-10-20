@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { MergeCellsFilteredOutClearPage } from '../fixtures/pages/MergeCellsFilteredOutClearPage';
 
 /**
@@ -14,7 +14,7 @@ import { MergeCellsFilteredOutClearPage } from '../fixtures/pages/MergeCellsFilt
  * and sorted grids, unmerging) is pinned by the plugin's `trimmedMergeMetaReset.unit.js`. This spec
  * covers the flows a user drives through the dropdown menu.
  */
-test.describe('`mergeCells` is updated while the filters hide every merged row', { tag: THEMES_TAG }, () => {
+test.describe('`mergeCells` is updated while the filters hide every merged row', () => {
   test('dropping the merges does not throw, and the filter menu still works afterwards',
     async({ page, theme, bundle }) => {
       const grid = new MergeCellsFilteredOutClearPage(page, theme, bundle);

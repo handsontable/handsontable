@@ -68,10 +68,20 @@ const inferOptions: InferColumnTypesOptions = {
   dropdown: { maxOptions: 5 },
   headerRow: 'auto',
   stats: { examples: 3 },
+  sampling: 'spread',
+  dateFormats: ['DD/MM/YYYY', 'YYYYMMDD'],
+  booleanValues: { true: ['yes', 'tak'], false: ['no', 'nie'] },
 };
+const readonlyFormats: ReadonlyArray<string> = ['D.M.YYYY'];
+const readonlyWords: readonly string[] = ['ja'];
 const rawRows: string[][] = [['Price', 'Joined'], ['1,5', '12.03.2026']];
 const objectRows: Array<Record<string, unknown>> = [{ amount: '1,5' }];
 const inferred: InferColumnTypesResult = plugin.inferColumnTypes(rawRows, inferOptions);
+const readonlyOptions: InferColumnTypesResult = inferColumnTypes(rawRows, {
+  sampling: 'head',
+  dateFormats: readonlyFormats,
+  booleanValues: { true: readonlyWords },
+});
 const inferredObjects: InferColumnTypesResult = inferColumnTypes(objectRows, { dropdown: false, headerRow: true });
 const convertedRows: unknown[][] = plugin.convertToInferredTypes(rawRows, inferred);
 // @ts-expect-error - a converted cell is no longer the input's type.
@@ -84,6 +94,8 @@ const inferredType: InferredCellType = columnSettings.type;
 const dateTimeType: InferredCellType = 'intl-datetime';
 const dateTimeFormat: Intl.DateTimeFormatOptions | undefined = columnSettings.dateTimeFormat;
 const inputFormat: InferredInputFormat | undefined = column.inputFormat;
+const listedDateFormat: string | undefined = inputFormat?.dateFormat;
+const trueWords: string[] | undefined = inputFormat?.booleanValues?.true;
 const confidence: number = column.confidence;
 const title: string | undefined = column.title;
 const stats: InferredColumnStats | undefined = column.stats;
@@ -102,6 +114,12 @@ hot.updateSettings({
 inferColumnTypes(rawRows, { dropdown: 5 });
 // @ts-expect-error - headerRow takes a boolean or 'auto' only.
 inferColumnTypes(rawRows, { headerRow: 'yes' });
+// @ts-expect-error - sampling takes 'head' or 'spread' only.
+inferColumnTypes(rawRows, { sampling: 'random' });
+// @ts-expect-error - each side of booleanValues is a list of words.
+inferColumnTypes(rawRows, { booleanValues: { true: 'yes' } });
+// @ts-expect-error - dateFormats is a list of formats.
+inferColumnTypes(rawRows, { dateFormats: 'DD/MM/YYYY' });
 // @ts-expect-error - the converter takes the result, not its columns.
 convertToInferredTypes(rawRows, inferred.columns);
 // @ts-expect-error - confidence is not a column option.

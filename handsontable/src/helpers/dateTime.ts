@@ -29,7 +29,15 @@ export function parseToLocalDate(value: unknown): Date | null {
   if (typeof value === 'string' && ISO_DATE_REGEX.test(value)) {
     const [y, m, d] = value.split('-').map(Number);
 
-    return new Date(y, m - 1, d);
+    const date = new Date(y, m - 1, d);
+
+    // The `Date` constructor maps years 0 to 99 to 1900 to 1999, so set those years afterwards.
+    if (y < 100) {
+      date.setFullYear(y, m - 1, d);
+      date.setHours(0, 0, 0, 0);
+    }
+
+    return date;
   }
 
   return null;
@@ -140,7 +148,15 @@ export function parseToLocalDateTime(value: unknown): Date | null {
     ? Number(match[6].padEnd(3, '0').slice(0, 3))
     : 0;
 
-  return new Date(year, month - 1, day, hours, minutes, seconds, milliseconds);
+  const date = new Date(year, month - 1, day, hours, minutes, seconds, milliseconds);
+
+  // The `Date` constructor maps years 0 to 99 to 1900 to 1999, so set those years afterwards.
+  if (year < 100) {
+    date.setFullYear(year, month - 1, day);
+    date.setHours(hours, minutes, seconds, milliseconds);
+  }
+
+  return date;
 }
 
 /**

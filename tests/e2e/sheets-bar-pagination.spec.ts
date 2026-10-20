@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { SheetsBarPaginationPage } from '../fixtures/pages/SheetsBarPaginationPage';
 
 /**
@@ -7,7 +7,7 @@ import { SheetsBarPaginationPage } from '../fixtures/pages/SheetsBarPaginationPa
  * through a shorter sheet brought the long sheet back on the clamped page, and its restored
  * selection sat on a row hidden by pagination.
  */
-test.describe('SheetsBar keeps the pagination state of each sheet', { tag: THEMES_TAG }, () => {
+test.describe('SheetsBar keeps the pagination state of each sheet', () => {
   let grid: SheetsBarPaginationPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

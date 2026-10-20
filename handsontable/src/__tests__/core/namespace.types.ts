@@ -113,6 +113,7 @@ import {
 } from 'handsontable/renderers';
 import {
   autocompleteValidator,
+  checkboxValidator,
   dateValidator,
   dropdownValidator,
   intlDateValidator,
@@ -206,6 +207,7 @@ const _filtersAvailableConditionsExclusion: Handsontable.plugins.Filters.Availab
   exclude: ['gt'],
 };
 const _filtersAvailableConditionsDataType: Handsontable.plugins.Filters.AvailableConditionsDataType = 'intl-date';
+const _filtersAvailableCondition: Handsontable.plugins.Filters.AvailableCondition = { name: 'gt', inputsCount: 1 };
 
 // ---------------------------------------------------------------------------
 // renderers namespace: verify function type aliases
@@ -230,6 +232,7 @@ const _timeRenderer: Handsontable.renderers.TimeRenderer = timeRenderer;
 // validators namespace: verify function type aliases
 // ---------------------------------------------------------------------------
 const _autocompleteValidator: Handsontable.validators.AutocompleteValidator = autocompleteValidator;
+const _checkboxValidator: Handsontable.validators.CheckboxValidator = checkboxValidator;
 const _dateValidator: Handsontable.validators.DateValidator = dateValidator;
 const _dropdownValidator: Handsontable.validators.DropdownValidator = dropdownValidator;
 const _intlDateValidator: Handsontable.validators.IntlDateValidator = intlDateValidator;

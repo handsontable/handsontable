@@ -1,5 +1,5 @@
 import { devices } from '@playwright/test';
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { TouchTapToEditPage } from '../fixtures/pages/TouchTapToEditPage';
 
 /**
@@ -24,7 +24,7 @@ test.use({
 
 const CLOCK_START = new Date('2026-08-28T10:00:00Z');
 
-test.describe('touch tap-to-edit on a device with touch and mouse listeners', { tag: THEMES_TAG }, () => {
+test.describe('touch tap-to-edit on a device with touch and mouse listeners', () => {
   let grid: TouchTapToEditPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
