@@ -16,12 +16,20 @@ const { chromium } = await import(pathToFileURL(
 
 const shots = path.join(here, 'screenshots');
 const base = process.env.NL_VIEW_URL || 'http://127.0.0.1:5199/';
-const token = process.env.NL_VIEW_TOKEN || '';
+const api = process.env.NL_VIEW_API || '';
 
-if (!token) {
-  console.error('NL_VIEW_TOKEN is empty');
+if (!api) {
+  console.error('NL_VIEW_API is required. This script does not call the retired poc proxy.');
   process.exit(1);
 }
+
+const runOptions = {
+  today: '2026-10-20',
+  api,
+  schema: process.env.NL_VIEW_SCHEMA || undefined,
+  model: process.env.NL_VIEW_MODEL || undefined,
+  effort: process.env.NL_VIEW_EFFORT || undefined,
+};
 
 const prompts = [
   { dataset: 'orders', id: 'orders-paid', prompt: 'show only paid orders', shot: true },
@@ -72,9 +80,11 @@ page.on('response', (response) => {
   }
 });
 
-await page.addInitScript((value) => {
-  localStorage.setItem('nl-view-token', value);
-}, token);
+if (process.env.NL_VIEW_TOKEN) {
+  await page.addInitScript((value) => {
+    localStorage.setItem('nl-view-token', value);
+  }, process.env.NL_VIEW_TOKEN);
+}
 
 await mkdir(shots, { recursive: true });
 await page.goto(`${base}?dataset=orders`, { waitUntil: 'networkidle' });
@@ -114,18 +124,18 @@ for (const item of prompts) {
   await page.evaluate(() => window.nlView.reset());
   const beforeRows = await page.evaluate(() => window.hot.countRows());
 
-  if (item.shot) {
+  if (item.shot && process.env.NL_VIEW_SHOTS === '1') {
     await page.screenshot({ path: path.join(shots, `${item.id}-before.png`), fullPage: true });
   }
 
   const started = Date.now();
-  const translated = await page.evaluate(async (prompt) => {
-    return window.nlView.translate(prompt, { today: '2026-10-20' });
-  }, item.prompt);
+  const translated = await page.evaluate(async (options) => {
+    return window.nlView.translate(options.prompt, options.knobs);
+  }, { prompt: item.prompt, knobs: runOptions });
   const afterRows = await page.evaluate(() => window.hot.countRows());
   const headers = await page.evaluate(() => window.hot.getColHeader());
 
-  if (item.shot) {
+  if (item.shot && process.env.NL_VIEW_SHOTS === '1') {
     await page.screenshot({ path: path.join(shots, `${item.id}-after.png`), fullPage: true });
   }
 
@@ -151,9 +161,12 @@ for (const item of prompts) {
     status: translated.status,
     explanation: translated.explanation,
     ms: translated.ms,
+    upstreamMs: translated.upstreamMs,
     wallMs: Date.now() - started,
     costUsd: translated.costUsd,
     tokens: translated.tokens,
+    promptTokens: translated.promptTokens,
+    completionTokens: translated.completionTokens,
     turns: translated.turns,
     beforeRows,
     afterRows,
@@ -163,10 +176,9 @@ for (const item of prompts) {
   };
 
   results.push(row);
-  await writeFile(path.join(here, 'smoke-results.json'), `${JSON.stringify({
+  await writeFile(path.join(here, 'smoke-latency.json'), `${JSON.stringify({
     ranAt: new Date().toISOString(),
-    today: '2026-10-20',
-    model: 'gpt-5.6-luna',
+    options: runOptions,
     boot,
     consoleErrors: logs,
     results,
@@ -184,10 +196,9 @@ for (const item of prompts) {
   }));
 }
 
-await writeFile(path.join(here, 'smoke-results.json'), `${JSON.stringify({
+await writeFile(path.join(here, 'smoke-latency.json'), `${JSON.stringify({
   ranAt: new Date().toISOString(),
-  today: '2026-10-20',
-  model: 'gpt-5.6-luna',
+  options: runOptions,
   boot,
   consoleErrors: logs,
   results,

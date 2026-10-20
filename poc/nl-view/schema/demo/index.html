@@ -25,6 +25,30 @@
     <button id="undo" type="button">Undo</button>
     <button id="reset" type="button">Reset view</button>
     <label class="check"><input id="sample" type="checkbox" checked /> sample values</label>
+    <label>Schema
+      <select id="schema">
+        <option value="full">full</option>
+        <option value="lean">lean</option>
+      </select>
+    </label>
+    <label>Model
+      <select id="model">
+        <option value="gpt-5.6-luna">gpt-5.6-luna</option>
+        <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+        <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option>
+      </select>
+    </label>
+    <label>Effort
+      <select id="effort">
+        <option value="">default</option>
+        <option value="minimal">minimal</option>
+        <option value="low">low</option>
+        <option value="medium">medium</option>
+      </select>
+    </label>
+    <label>API
+      <input id="api" type="text" placeholder="/api/chat" spellcheck="false" />
+    </label>
   </section>
   <p id="explanation" class="explanation"></p>
   <p id="not-expressible" class="not-expressible" hidden></p>

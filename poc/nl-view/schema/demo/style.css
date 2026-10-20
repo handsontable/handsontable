@@ -63,6 +63,10 @@ input[type="text"] {
   width: 100%;
 }
 
+#api {
+  width: 180px;
+}
+
 button {
   height: 32px;
   border: 1px solid #1a56db;

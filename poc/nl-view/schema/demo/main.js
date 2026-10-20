@@ -6,8 +6,8 @@ import './style.css';
 
 import { normalizeRows, placeholderRows } from '../src/datasets.js';
 import { inferGridColumns } from '../src/schema.js';
-import { readToken } from '../src/llm.js';
-import { translateView } from '../src/translate.js';
+import { MODELS, readToken } from '../src/llm.js';
+import { previewRequest, translateView } from '../src/translate.js';
 
 const container = document.querySelector('#grid');
 const datasetSelect = document.querySelector('#dataset');
@@ -16,6 +16,10 @@ const applyButton = document.querySelector('#apply');
 const undoButton = document.querySelector('#undo');
 const resetButton = document.querySelector('#reset');
 const sampleInput = document.querySelector('#sample');
+const schemaSelect = document.querySelector('#schema');
+const modelSelect = document.querySelector('#model');
+const effortSelect = document.querySelector('#effort');
+const apiInput = document.querySelector('#api');
 const explanationEl = document.querySelector('#explanation');
 const notExpressibleEl = document.querySelector('#not-expressible');
 const errorEl = document.querySelector('#error');
@@ -32,6 +36,38 @@ function queryDataset() {
   return name === 'tickets' ? 'tickets' : 'orders';
 }
 
+function pageKnobs() {
+  const params = new URLSearchParams(location.search);
+
+  return {
+    schema: params.get('schema') || undefined,
+    model: params.get('model') || undefined,
+    effort: params.get('effort') || undefined,
+    api: params.get('api') || undefined,
+  };
+}
+
+function writeKnob(key, value) {
+  const url = new URL(location.href);
+
+  if (value) {
+    url.searchParams.set(key, value);
+  } else {
+    url.searchParams.delete(key);
+  }
+
+  history.replaceState(null, '', url);
+}
+
+function syncKnobsFromUrl() {
+  const knobs = pageKnobs();
+
+  schemaSelect.value = knobs.schema === 'lean' ? 'lean' : 'full';
+  modelSelect.value = MODELS.includes(knobs.model) ? knobs.model : MODELS[0];
+  effortSelect.value = ['minimal', 'low', 'medium'].includes(knobs.effort) ? knobs.effort : '';
+  apiInput.value = knobs.api || '';
+}
+
 function showMessage(result) {
   explanationEl.textContent = result?.status === 'applied' ? (result.explanation || '') : '';
   notExpressibleEl.hidden = result?.status !== 'not_expressible';
@@ -43,13 +79,20 @@ function showMessage(result) {
 
   const token = readToken();
   const rows = hot ? hot.countRows() : 0;
+  const knobs = pageKnobs();
   const bits = [
-    token ? 'token ready' : 'token missing',
+    knobs.api ? `api ${knobs.api}` : (token ? 'token ready' : 'token missing'),
     `${rows} visible rows`,
   ];
 
   if (result) {
-    bits.push(`${result.ms} ms`, `$${Number(result.costUsd).toFixed(6)}`, `${result.tokens} tokens`, `${result.turns} turn${result.turns === 1 ? '' : 's'}`);
+    bits.push(
+      `${result.ms} ms`,
+      result.upstreamMs == null ? 'upstream n/a' : `upstream ${result.upstreamMs} ms`,
+      `$${Number(result.costUsd).toFixed(6)}`,
+      `${result.tokens} tokens`,
+      `${result.turns} turn${result.turns === 1 ? '' : 's'}`,
+    );
   }
 
   metaEl.textContent = bits.join(' · ');
@@ -131,9 +174,21 @@ function reset() {
   return result;
 }
 
+function mergedOptions(options = {}) {
+  const knobs = pageKnobs();
+
+  return {
+    ...options,
+    sampleValues: options.sampleValues ?? sampleInput.checked,
+    schema: options.schema ?? knobs.schema,
+    model: options.model ?? knobs.model,
+    effort: options.effort ?? knobs.effort,
+    api: options.api ?? knobs.api,
+  };
+}
+
 async function translate(prompt, options = {}) {
-  const sampleValues = options.sampleValues ?? sampleInput.checked;
-  const result = await translateView(hot, columns, prompt, { ...options, sampleValues }, readToken());
+  const result = await translateView(hot, columns, prompt, mergedOptions(options), readToken());
 
   showMessage(result);
   window.nlView.last = result;
@@ -143,17 +198,41 @@ async function translate(prompt, options = {}) {
     state: result.state,
     explanation: result.explanation,
     ms: result.ms,
+    upstreamMs: result.upstreamMs,
     costUsd: result.costUsd,
     tokens: result.tokens,
+    promptTokens: result.promptTokens,
+    completionTokens: result.completionTokens,
     turns: result.turns,
   };
 }
 
-window.nlView = { loadData, reset, translate };
+function preview(prompt, options = {}) {
+  return previewRequest(hot, columns, prompt, mergedOptions(options));
+}
+
+window.nlView = { loadData, reset, translate, preview };
 
 datasetName = queryDataset();
 datasetSelect.value = datasetName;
+syncKnobsFromUrl();
 loadData(datasetName);
+
+schemaSelect.addEventListener('change', () => {
+  writeKnob('schema', schemaSelect.value === 'lean' ? 'lean' : '');
+});
+
+modelSelect.addEventListener('change', () => {
+  writeKnob('model', modelSelect.value === MODELS[0] ? '' : modelSelect.value);
+});
+
+effortSelect.addEventListener('change', () => {
+  writeKnob('effort', effortSelect.value);
+});
+
+apiInput.addEventListener('change', () => {
+  writeKnob('api', apiInput.value.trim());
+});
 
 applyButton.addEventListener('click', async () => {
   const prompt = promptInput.value.trim();
