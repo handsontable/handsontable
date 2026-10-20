@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `setSourceDataAtCell()` ignoring a column-level `sourceDataValidator` and `valueSetter` when the cell is addressed by a prop name.",
+  "type": "fixed",
+  "issueOrPR": 13942,
+  "breaking": false,
+  "framework": "none"
+}
