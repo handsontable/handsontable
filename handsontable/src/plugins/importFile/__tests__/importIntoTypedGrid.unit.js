@@ -2,11 +2,13 @@ import Handsontable from '../../../base';
 import { registerAllCellTypes } from '../../../registry';
 import { registerPlugin } from '../../registry';
 import { MergeCells } from '../../mergeCells/mergeCells';
+import { HiddenColumns } from '../../hiddenColumns/hiddenColumns';
 import * as consoleHelpers from '../../../helpers/console';
 import { applyImportResult } from '../applier';
 
 registerAllCellTypes();
 registerPlugin(MergeCells);
+registerPlugin(HiddenColumns);
 
 /**
  * An import into a grid that already declares typed `columns` used to validate the NEW data against
@@ -79,5 +81,41 @@ describe('applyImportResult into a grid with typed columns', () => {
     });
 
     expect(hot.getCellMeta(2, 0).rowspan).toBe(2);
+  });
+
+  describe('with the column types applied once (review round 12)', () => {
+    it('should keep the imported types and options on every row after the data loads', () => {
+      const updateSpy = jest.spyOn(hot, 'updateSettings');
+
+      applyImportResult(hot, {
+        data: [['x', 1.5], ['y', 2], ['z', 3]],
+        columns: [{ type: 'text' }, { type: 'numeric', numericFormat: { minimumFractionDigits: 2 } }],
+        hiddenColumns: [0],
+        sheetNames: ['Sheet1'],
+        dropped: [],
+      }, { importLayout: true });
+
+      expect(updateSpy.mock.calls.filter(([settings]) => settings.columns !== undefined)).toHaveLength(1);
+      expect(hot.getCellMeta(2, 1).type).toBe('numeric');
+      expect(hot.getCellMeta(2, 1).numericFormat).toEqual({ minimumFractionDigits: 2 });
+      expect(hot.getCellMeta(0, 0).type).toBe('text');
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([0]);
+      expect(hot.countCols()).toBe(2);
+    });
+
+    it('should drop the previous columns\' options when the result resets them', () => {
+      hot.updateSettings({ columns: [{ readOnly: true }, { type: 'numeric', readOnly: true }] });
+
+      applyImportResult(hot, {
+        data: [['x', 'y', 'z']],
+        sheetNames: ['Sheet1'],
+        dropped: [],
+      });
+
+      expect(hot.countCols()).toBe(3);
+      expect(hot.getCellMeta(0, 1).type).toBe('text');
+      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
+      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
+    });
   });
 });

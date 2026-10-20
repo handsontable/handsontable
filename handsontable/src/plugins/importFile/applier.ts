@@ -324,6 +324,9 @@ export function applyImportResult(
       const columnTypes: Record<string, unknown> = { columns: settings.columns };
 
       hot.updateSettings(columnTypes);
+      // Applied once: `loadData` keeps the `columns` option, so passing it again below rebuilt every
+      // column's meta a second time on each import (review round 12).
+      delete settings.columns;
     }
 
     hot.loadData(result.data);

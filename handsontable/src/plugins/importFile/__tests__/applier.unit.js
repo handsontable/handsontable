@@ -49,7 +49,7 @@ describe('applyImportResult', () => {
     document.querySelectorAll(STYLE_SELECTOR).forEach(element => element.remove());
   });
 
-  it('should apply the column types, then the data, then the other settings the result carries, columns included, in one batch', () => {
+  it('should apply the column types once, then the data, then the other settings the result carries, in one batch', () => {
     const hot = fakeHot();
 
     applyImportResult(hot, {
@@ -75,12 +75,9 @@ describe('applyImportResult', () => {
         ],
       }],
       ['loadData', [['a', 1]]],
+      // `loadData` keeps the `columns` option, so it is not sent a second time (review round 12).
       ['updateSettings', {
         colHeaders: ['Name', 'Amount'],
-        columns: [
-          { type: 'text' },
-          { type: 'numeric', numericFormat: { minimumFractionDigits: 0, useGrouping: false } },
-        ],
         mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }],
         hiddenColumns: { columns: [1] },
         fixedRowsTop: 1,
@@ -382,8 +379,8 @@ describe('applyImportResult – layout across imports', () => {
 
     const [, settings] = hot.calls[3];
 
-    expect(Object.keys(settings).sort()).toEqual(['colWidths', 'columns', 'rowHeights']);
-    expect(settings).toEqual({ colWidths: undefined, rowHeights: undefined, columns: [{}, {}] });
+    expect(Object.keys(settings).sort()).toEqual(['colWidths', 'rowHeights']);
+    expect(settings).toEqual({ colWidths: undefined, rowHeights: undefined });
   });
 
   it('should reset columns even without importLayout, since types are not layout', () => {
@@ -392,7 +389,7 @@ describe('applyImportResult – layout across imports', () => {
     applyImportResult(hot, { data: [['a']], sheetNames: ['Plain'], dropped: [] }, { importLayout: false });
 
     expect(hot.calls[1]).toEqual(['updateSettings', { columns: [{}] }]);
-    expect(hot.calls[3]).toEqual(['updateSettings', { columns: [{}] }]);
+    expect(hot.calls.filter(call => call[0] === 'updateSettings')).toHaveLength(1);
   });
 
   it('should size the reset from the headers when the sheet has no data cells', () => {
@@ -402,7 +399,8 @@ describe('applyImportResult – layout across imports', () => {
 
     applyImportResult(hot, { data: [], colHeaders: ['A', 'B'], sheetNames: ['Head'], dropped: [] });
 
-    expect(hot.calls[3]).toEqual(['updateSettings', { colHeaders: ['A', 'B'], columns: [{}, {}] }]);
+    expect(hot.calls[1]).toEqual(['updateSettings', { columns: [{}, {}] }]);
+    expect(hot.calls[3]).toEqual(['updateSettings', { colHeaders: ['A', 'B'] }]);
 
     const nested = fakeHot({ gridSettings: { columns: [{ type: 'numeric' }] } });
 
@@ -410,7 +408,7 @@ describe('applyImportResult – layout across imports', () => {
       data: [], nestedHeaders: [[{ label: 'G', colspan: 2 }, 'C'], ['a', 'b', 'c']], sheetNames: ['Head'], dropped: [],
     });
 
-    expect(nested.calls[3][1].columns).toEqual([{}, {}, {}]);
+    expect(nested.calls[1][1].columns).toEqual([{}, {}, {}]);
   });
 
   it('should leave columns alone when the result describes no width at all', () => {
