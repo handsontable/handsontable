@@ -7,9 +7,7 @@ import { DataProviderSheetsBarPage } from '../fixtures/pages/DataProviderSheetsB
  * server sheet, whose first fetch parks until the test releases it.
  */
 async function openPaused(server: DataProviderSheetsBarPage): Promise<void> {
-  await server.page.clock.install();
-  await server.goto();
-  await server.page.clock.pauseAt(Date.now() + 60_000);
+  await server.gotoWithPausedClock();
 }
 
 test.describe('sheets bar switch animation – server sheets', { tag: [THEMES_TAG, MOTION_TAG] }, () => {

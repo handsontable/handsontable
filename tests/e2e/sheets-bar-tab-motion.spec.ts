@@ -16,9 +16,7 @@ const SPEC_TIMING: Record<string, { transition: number, slide: number }> = {
  * start for the test to seek.
  */
 async function openPaused(bar: SheetsBarPage, options: Parameters<SheetsBarPage['goto']>[0] = {}): Promise<void> {
-  await bar.page.clock.install();
-  await bar.goto(options);
-  await bar.page.clock.pauseAt(Date.now() + 60_000);
+  await bar.gotoWithPausedClock(options);
   await bar.holdStripMotion();
 }
 
@@ -598,9 +596,7 @@ test.describe('sheets bar tab motion – hover', { tag: [THEMES_TAG, MOTION_TAG]
   }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
-    await page.clock.install();
-    await bar.goto();
-    await page.clock.pauseAt(Date.now() + 60_000);
+    await bar.gotoWithPausedClock();
     await bar.bar.evaluate((element) => {
       element.style.setProperty('--ht-sheets-bar-tab-background-color', 'rgb(255, 0, 0)');
     });

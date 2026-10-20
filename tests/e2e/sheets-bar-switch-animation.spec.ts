@@ -15,9 +15,7 @@ const SPEC_TIMING: Record<string, { transition: number, marker: number }> = {
  * the test to seek.
  */
 async function openPaused(bar: SheetsBarPage, options: Parameters<SheetsBarPage['goto']>[0] = {}): Promise<void> {
-  await bar.page.clock.install();
-  await bar.goto(options);
-  await bar.page.clock.pauseAt(Date.now() + 60_000);
+  await bar.gotoWithPausedClock(options);
   await bar.holdTransitions();
 }
 

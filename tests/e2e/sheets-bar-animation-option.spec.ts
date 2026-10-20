@@ -7,9 +7,7 @@ import { SheetsBarPage } from '../fixtures/pages/SheetsBarPage';
  * start.
  */
 async function openPaused(bar: SheetsBarPage): Promise<void> {
-  await bar.page.clock.install();
-  await bar.goto();
-  await bar.page.clock.pauseAt(Date.now() + 60_000);
+  await bar.gotoWithPausedClock();
   await bar.holdStripMotion();
 }
 

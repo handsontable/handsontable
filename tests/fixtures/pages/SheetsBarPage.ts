@@ -198,6 +198,20 @@ export class SheetsBarPage {
   }
 
   /**
+   * Opens the fixture with the page clock installed, waits until the bar's motion gate is open, and
+   * then freezes the clock, so the timers that end a slide only run when the test advances time.
+   * The gate opens in the second animation frame after the first render, and a frame requested
+   * while the clock is paused never fires, so pausing before the gate opened leaves every motion
+   * instant for the rest of the test.
+   */
+  async gotoWithPausedClock(options: Parameters<SheetsBarPage['goto']>[0] = {}): Promise<void> {
+    await this.page.clock.install();
+    await this.goto(options);
+    await this.waitForFrames();
+    await this.page.clock.pauseAt(Date.now() + 60_000);
+  }
+
+  /**
    * Waits for two animation frames of the page, so the grid has been painted at least once
    * since the last task the test ran.
    */
