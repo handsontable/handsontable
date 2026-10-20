@@ -140,16 +140,96 @@ describe('Core#_applySettingsAndData', () => {
   });
 
   it('neither pads nor trims the data the grid held, and sizes the new data to the new minimums', () => {
-    const departing = [['a'], ['b'], [null]];
+    const departing = [['a'], ['b']];
     const arriving = [['x']];
 
-    createGrid({ data: departing, minSpareRows: 1 });
+    createGrid({ data: departing, minSpareRows: 2 });
 
-    hot._applySettingsAndData({ minSpareRows: 0, minRows: 3 }, arriving, 'test');
+    expect(departing.length).toBe(4);
 
-    expect(departing).toEqual([['a'], ['b'], [null]]);
-    expect(hot.countRows()).toBe(3);
+    hot._applySettingsAndData({ minSpareRows: 0, minRows: 6 }, arriving, 'test');
+
+    expect(departing.length).toBe(4);
+    expect(hot.countRows()).toBe(6);
+    expect(arriving.length).toBe(6);
+  });
+
+  it('defers a settings update a sorting plugin makes on a conflict, so the data the grid held is not padded', () => {
+    const departing = [['a']];
+    const arriving = [['x']];
+
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    createGrid({ data: departing, multiColumnSorting: true });
+
+    hot._applySettingsAndData({
+      columnSorting: true,
+      minSpareRows: 1,
+      cell: [{ row: 0, col: 0, readOnly: true }],
+    }, arriving, 'test');
+
+    expect(hot.getSettings().columnSorting).toBe(false);
+    expect(departing).toEqual([['a']]);
+    expect(arriving.length).toBe(2);
+    expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+    expect(hot._isDataWorkDeferred()).toBe(false);
+  });
+
+  it('applies a settings update an afterLoadData listener makes in full', () => {
+    const arriving = [['x']];
+    const listener = () => hot.updateSettings({ minSpareRows: 2 });
+
+    createGrid({ data: [['old']] });
+    hot.addHook('afterLoadData', listener);
+
+    hot._applySettingsAndData({ colHeaders: true }, arriving, 'test');
+
     expect(arriving.length).toBe(3);
+    expect(hot.countRows()).toBe(3);
+  });
+
+  it('validates the new data against the column meta a `columns` function gives it', () => {
+    const arriving = [['Alice']];
+
+    createGrid({ data: [['2024-01-01']], columns: [{ type: 'date', allowInvalid: false }] });
+
+    hot._applySettingsAndData({ columns: () => ({ type: 'text' }) }, arriving, 'test');
+
+    expect(arriving[0][0]).toBe('Alice');
+    expect(hot.getDataAtCell(0, 0)).toBe('Alice');
+  });
+
+  it('applies a `columns` function to the new data', () => {
+    createGrid({ data: [['old']] });
+
+    hot._applySettingsAndData({ columns: () => ({ readOnly: true }) }, [['new']], 'test');
+
+    expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+  });
+
+  it('keeps the flag up in afterCellMetaReset and lowers it before onDataReady()', () => {
+    const seen = [];
+
+    createGrid({ data: [['old']], dataProbe: true });
+    hot.addHook('afterCellMetaReset', () => seen.push(['afterCellMetaReset', hot._isDataWorkDeferred()]));
+    probeLog.length = 0;
+
+    hot._applySettingsAndData({ cell: [] }, [['new']], 'test');
+
+    expect(seen).toEqual([['afterCellMetaReset', true]]);
+    expect(probeLog.find(entry => entry[0] === 'ready')).toEqual(['ready', false, ['new']]);
+  });
+
+  it('runs no onDataReady() step while the grid has no view yet', () => {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      dataProbe: true,
+      beforeInit() {
+        this._applySettingsAndData({ colHeaders: true }, [['new']], 'test');
+      },
+    });
+
+    expect(probeLog.filter(entry => entry[0] === 'ready')).toEqual([]);
+    expect(hot._isDataWorkDeferred()).toBe(false);
   });
 
   it('renders once', () => {
@@ -181,7 +261,7 @@ describe('Core#_applySettingsAndData', () => {
     expect(hot.countRows()).toBe(4);
   });
 
-  it('applies a public settings update made during the call in full, and keeps the call\'s own meta phase', () => {
+  it('applies a settings update a plugin makes while the call configures, and keeps the call\'s own meta phase', () => {
     const arriving = [['x']];
 
     createGrid({ data: [['old']] });

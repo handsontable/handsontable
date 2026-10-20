@@ -580,9 +580,7 @@ export class BasePlugin {
    * @returns {boolean}
    */
   isDataWorkDeferred(): boolean {
-    const hot = this.hot as HotInstance & { _isDataWorkDeferred?: () => boolean };
-
-    return hot._isDataWorkDeferred?.() === true;
+    return this.hot._isDataWorkDeferred();
   }
 
   /**

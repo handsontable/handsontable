@@ -430,9 +430,15 @@ export default function Core(
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
   /**
-   * `true` while `_applySettingsAndData()` applies settings ahead of the data they describe.
+   * The step `_applySettingsAndData()` is in: `'configure'` while it applies its settings, `'data'`
+   * while it loads the data and runs the work held back for it, and `null` outside the call.
    */
-  let isDataWorkDeferred = false;
+  let dataWorkPhase: 'configure' | 'data' | null = null;
+  /**
+   * The meta phases of the settings updates made while `_applySettingsAndData()` configures, run
+   * after its load in the order the updates were made.
+   */
+  let heldMetaPhases: (() => void)[] = [];
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -5098,7 +5104,19 @@ export default function Core(
   this.updateSettings = function(settings: Partial<GridSettings>, init = false) {
     // Applying settings is not a user action: a plugin that updates its state from the new
     // settings, or the `cell` option writing meta, must not open an operation or be journaled.
-    operationScope.suppress(() => applySettings(settings, init));
+    operationScope.suppress(() => {
+      if (dataWorkPhase !== 'configure' || init) {
+        applySettings(settings, init);
+
+        return;
+      }
+
+      const metaPhase = applySettings(settings, init, true);
+
+      if (metaPhase) {
+        heldMetaPhases.push(metaPhase);
+      }
+    });
   };
 
   /**
@@ -5116,7 +5134,9 @@ export default function Core(
    * 2. `loadData(data, source)` runs with the new configuration in force, so the load hooks reach
    *    the plugins enabled in step 1 and the load sizes the new data to the new `min*` values.
    * 3. The held-back meta phase runs against the new data, its `afterCellMetaReset` still inside the
-   *    deferred window (a listener can tell it follows this call's own load), then every plugin's optional
+   *    deferred window (a listener can tell it follows this call's own load), then the source-data
+   *    validators run once, against the column meta of the new settings (the load skips them, because
+   *    a `columns` function reaches the column meta only in the meta phase), then every plugin's optional
    *    `onDataReady()` in plugin priority order. A grid that is still being built (no view yet) skips
    *    that step: its plugins do the same work from their own `afterInit`. Rendering is suspended for the whole call and resumed
    *    in a `finally`, so the grid renders once, after step 3, and a throwing listener cannot leave it
@@ -5125,12 +5145,14 @@ export default function Core(
    * Recording is suppressed for the whole call, as for `updateSettings()` and `loadData()`. Used by
    * the SheetsBar plugin, which switches the grid between sheets.
    *
-   * Only this call's own settings pass is deferred. A public `updateSettings()` made while it runs (a
-   * plugin turning a conflicting plugin off from its `enablePlugin()`, a listener) applies in full,
-   * data phase and meta phase included, and plugins reacting to it still see `_isDataWorkDeferred()`
-   * answer `true`, so their data work still waits for the `onDataReady()` pass of this call. A nested
-   * `_applySettingsAndData()` leaves that pass to the outer call. The data is loaded as given: the
-   * caller decides what a sheet backed by an external data source shows until its fetch lands.
+   * A public `updateSettings()` made during step 1 (a plugin turning a conflicting plugin off from its
+   * `enablePlugin()`) is deferred the same way: its data phase and padding are left to the load, and its
+   * meta phase runs after this call's own, in the order the updates were made. One made later (an
+   * `afterLoadData` listener) applies in full. In both, plugins still see `_isDataWorkDeferred()` answer
+   * `true`, so their data work waits for the `onDataReady()` pass of this call. A nested
+   * `_applySettingsAndData()` restores the outer call's step when it ends and leaves that pass to the
+   * outer call. The data is loaded as given: the caller decides what a sheet backed by an external data
+   * source shows until its fetch lands.
    *
    * @private
    * @param {object} settings The settings to apply.
@@ -5146,17 +5168,25 @@ export default function Core(
 
     try {
       operationScope.suppress(() => {
-        const isNested = isDataWorkDeferred;
+        const outerPhase = dataWorkPhase;
+        const outerHeldMetaPhases = heldMetaPhases;
+        const isNested = outerPhase !== null;
 
-        isDataWorkDeferred = true;
+        dataWorkPhase = 'configure';
+        heldMetaPhases = [];
 
         try {
           const metaPhase = applySettings(settings, false, true);
+          const nestedMetaPhases = heldMetaPhases;
 
+          dataWorkPhase = 'data';
           applyLoadData(data as unknown[][][], source);
           metaPhase?.();
+          nestedMetaPhases.forEach(nestedMetaPhase => nestedMetaPhase());
+          runSourceDataValidators(instance, 'loadData');
         } finally {
-          isDataWorkDeferred = isNested;
+          dataWorkPhase = outerPhase;
+          heldMetaPhases = outerHeldMetaPhases;
         }
 
         if (instance.view && !isNested) {
@@ -5185,7 +5215,7 @@ export default function Core(
    * @returns {boolean}
    */
   this._isDataWorkDeferred = function() {
-    return isDataWorkDeferred;
+    return dataWorkPhase !== null;
   };
 
   /**

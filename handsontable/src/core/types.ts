@@ -292,6 +292,8 @@ export interface HotInstance {
   _getDataSource(): DataSourceInstance;
   _getMetaManager(): MetaManagerInstance;
   _getOperationScope(): OperationScope;
+  _applySettingsAndData(settings: Partial<GridSettings>, data: unknown[], source: string): void;
+  _isDataWorkDeferred(): boolean;
 
   // DOM references
   rootElement: HTMLElement;

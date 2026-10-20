@@ -36,6 +36,7 @@ import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { syncIcon } from '../../themes/engine/icons';
 import type { HotInstance } from '../../core/types';
+import type { GridSettings } from '../../core/settings';
 import type {
   DataProvider,
   DataProviderConfig,
@@ -210,13 +211,6 @@ function isSameSheetsList(a: unknown, b: unknown): boolean {
 
   return a.every((entry, index) => isSameSheetConfig(entry, b[index]));
 }
-
-/**
- * The Handsontable instance with core's private settings-and-data switch (`Core#_applySettingsAndData`).
- */
-type HotInstanceWithDataSwitch = HotInstance & {
-  _applySettingsAndData(settings: Record<string, unknown>, data: unknown[], source: string): void,
-};
 
 /**
  * The part of a sheet's `formulas` setting the sheets bar cooperates with, and the part of
@@ -1849,9 +1843,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     const apply = () => {
-      (this.hot as HotInstanceWithDataSwitch)._applySettingsAndData(
-        payload, sheet.data as unknown[], `${source}.switch`
-      );
+      this.hot._applySettingsAndData(payload as Partial<GridSettings>, sheet.data as unknown[], `${source}.switch`);
 
       if (this.hot.view) {
         this.#runMergeCellsSettingsPass(!restoresState);

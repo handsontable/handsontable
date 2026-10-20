@@ -99,6 +99,32 @@ describe('plugins applied ahead of their data', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('Apple');
   });
 
+  it('feeds Formulas the value the new data has once `columns: null` drops the previous column types', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const reference = new Handsontable(document.createElement('div'), {
+      data: [[{ key: 1, value: 'Apple' }, '=A1']],
+      formulas: { engine: HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' }) },
+      licenseKey: LICENSE_KEY,
+    });
+    const expected = reference.getDataAtCell(0, 1);
+
+    reference.destroy();
+    hot = new Handsontable(container, {
+      data: [['x', null]],
+      columns: [{ type: 'dropdown', source: [{ key: 1, value: 'Apple' }] }, {}],
+      formulas: { engine, sheetName: 'First' },
+      licenseKey: LICENSE_KEY,
+    });
+
+    hot._applySettingsAndData({
+      formulas: { engine, sheetName: 'Second' },
+      columns: null,
+    }, [[{ key: 1, value: 'Apple' }, '=A1']], 'test');
+
+    expect(expected).not.toBe('Apple');
+    expect(hot.getDataAtCell(0, 1)).toBe(expected);
+  });
+
   describe('ColumnSummary#exportEndpointSettings', () => {
     /**
      * Builds a grid with the given summary and returns what the plugin exports.

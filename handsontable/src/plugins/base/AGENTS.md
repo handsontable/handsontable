@@ -149,9 +149,11 @@ data the grid still holds. The call has three phases:
 2. **Load.** A normal `loadData()` with the new configuration in force. The load hooks reach the plugins
    enabled in phase 1, every index map re-initializes, and the load sizes the new data to the new `min*`
    values. `isDataWorkDeferred()` still answers `true`.
-3. **Data ready.** The `cell` option and `afterCellMetaReset` run against the new data, then every
-   **enabled** plugin's optional `onDataReady()` in `PLUGIN_PRIORITY` order, then one render (rendering is
-   suspended for the whole call and resumed in a `finally`). A grid without a view skips the
+3. **Data ready.** The `cell` option and `afterCellMetaReset` run against the new data, then the
+   source-data validators once (the load skips them on this path, because a `columns` function reaches the
+   column meta only now, and validating during the load blanked a value under the previous sheet's rules),
+   then every **enabled** plugin's optional `onDataReady()` in `PLUGIN_PRIORITY` order, then one render
+   (rendering is suspended for the whole call and resumed in a `finally`). A grid without a view skips the
    `onDataReady()` loop: its plugins do that work from their own `afterInit`.
 
 The rule for a plugin: **work in `enablePlugin()`, `updatePlugin()` or a load hook that reads or writes the
@@ -167,9 +169,13 @@ DataProvider (the fetch). The public `updateSettings()` and `loadData()` never s
 record owed work only while `this.hot.view` exists, because core skips the `onDataReady()` pass on a grid
 still being built and the plugin's own `afterInit` does the work there (a flag set then would fire on a
 later, unrelated switch); and declare `onDataReady()` as an ordinary method, BasePlugin declares the
-optional signature. A public `updateSettings()` made while the call runs (ColumnSorting turning a
-conflicting plugin off from `enablePlugin()`, a listener) is applied in full: only the call's own settings
-pass is deferred, and the flag plugins read stays `true`, so their work still waits for the call's
+optional signature. A public `updateSettings()` made during phase 1 (ColumnSorting turning a conflicting
+plugin off from `enablePlugin()`) is deferred like the call's own: core skips its data phase, padding and
+render, and runs its meta phase after the call's own, in the order the updates were made. Applied in full
+there, it padded the departing rows to the arriving `min*` values, and a single shared slot for the held
+meta phase let it overwrite the call's own. One made in phase 2 or 3 (an `afterLoadData` listener) is
+applied in full. The step is saved and restored around a nested `_applySettingsAndData()`, never reset to
+"off". In every case the flag plugins read stays `true`, so their work still waits for the call's
 `onDataReady()` pass. Pinned by `src/__tests__/core/applySettingsAndData.unit.js`.
 
 ## Hard conflicts

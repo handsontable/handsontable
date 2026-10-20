@@ -92,5 +92,8 @@ The `__tests__/` tree is split by kind: `methods/`, `hooks/`, `plugins/` (intera
 ## A fetch an update starts ahead of its data waits for `onDataReady()`
 
 While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
-`../base/AGENTS.md`), `updatePlugin()` leaves its silent fetch to `onDataReady()`, so its rows cannot land
-before the load. The SheetsBar switch is passive anyway (`_runContextChange()`), so nothing is fetched there.
+`../base/AGENTS.md`), `updatePlugin()` leaves its silent fetch to `onDataReady()`. `fetchRows` is called
+synchronously when a fetch starts, so without the hold it ran before the call had loaded its data, against the
+grid the call replaces. A tab switch is passive (`_runContextChange()`), so nothing is fetched there; building a
+workbook on a live grid is not, and an opening sheet with its own `dataProvider` fetches from `onDataReady()`.
+Pinned by `__tests__/deferredFetch.unit.js`.

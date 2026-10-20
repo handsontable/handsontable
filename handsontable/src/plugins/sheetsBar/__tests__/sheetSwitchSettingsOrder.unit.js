@@ -211,6 +211,37 @@ describe('SheetsBar applies a sheet against its own data', () => {
     expect(totals.map(row => row[0])).toEqual([1, 2, 7, 3]);
   });
 
+  it('keeps a ColumnSummary counted from the bottom where a removal parked it after a round trip', () => {
+    const totals = [[1], [2], [3], [4], [5], [6], [7], [null], [null], [null]];
+    const bar = buildWorkbook([
+      { name: 'Notes', data: [['a']] },
+      {
+        name: 'Totals',
+        data: totals,
+        settings: {
+          columnSummary: [{
+            sourceColumn: 0,
+            destinationRow: 2,
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            type: 'sum',
+            ranges: [[0, 6]],
+          }],
+        },
+      },
+    ]);
+
+    bar.setActiveSheet('Totals');
+    hot.alter('remove_row', 9, 1);
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4, 5, 6, 7, 28, null]);
+
+    bar.setActiveSheet('Notes');
+    bar.setActiveSheet('Totals');
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4, 5, 6, 7, 28, null]);
+  });
+
   it('does not carry a resized sheet\'s sizes to a never-visited sheet past one with resizing off', () => {
     const bar = buildWorkbook([
       { name: 'A', data: [[1, 2]] },

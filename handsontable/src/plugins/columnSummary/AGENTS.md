@@ -173,8 +173,11 @@ A row or column alteration moves an endpoint, while `this.settings` keeps the de
 `ColumnSummary#exportEndpointSettings()` (`@private`, through `Endpoints#exportSettings()`) answers the
 current endpoints in settings form, so a caller that applies the settings again later (the sheets bar,
 on a return to a sheet) does not write a summary over the data cell an insert moved into the declared
-position. A `reversedRowCoords` destination is given back as its offset from the bottom
-(`reversedRowOffset`), and a whole-table default range is left out so it keeps following the table.
+position. A `reversedRowCoords` destination is given back as the offset from the bottom it has now
+(`countAddressableRows() - destinationRow - 1`), not the declared `reversedRowOffset`: a removal that
+leaves the summary parked above a data row, or a `minSpareRows` row that an `auto` insert adds below it,
+changes that offset, and re-applying the declared one wrote the total over the data row. A whole-table
+default range is left out so it keeps following the table.
 The function form answers `null`, because it reads its settings again on every pass.
 
 ## Styling uses `_setCellMetaDeclarative`, not `setCellMeta`

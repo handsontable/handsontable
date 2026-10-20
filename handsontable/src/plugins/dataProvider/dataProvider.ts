@@ -466,8 +466,8 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Starts the fetch an update left for this step. Core's `_applySettingsAndData()` applies settings
-   * ahead of their data, and a fetch started before that data is loaded would land its rows over
-   * whatever the load brings.
+   * ahead of their data, and `fetchRows` is called as soon as a fetch starts, so a fetch started then
+   * would run before the call has loaded its data.
    *
    * @private
    */
