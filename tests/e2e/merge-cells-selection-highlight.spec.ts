@@ -319,6 +319,34 @@ test.describe('merged cell selection highlight', { tag: THEMES_TAG }, () => {
     await expect(grid.cell(4, 0)).toHaveAttribute('colspan', '2');
   });
 
+  test('a column that is already one merge selects without the area highlight', async() => {
+    await grid.merge(0, 0, 29, 0);
+    await grid.selectColumns(0);
+
+    const classes = await grid.classNames(0, 0);
+    const handles = await grid.visibleFillHandles();
+
+    expect(await grid.selected()).toEqual([[-1, 0, 29, 0]]);
+    expect(classes).toContain('current');
+    expect(classes).not.toContain('area');
+    expect(handles.some(name => name.includes('current'))).toBe(true);
+    expect(handles.some(name => name.includes('highlight'))).toBe(false);
+  });
+
+  test('a row that is already one merge selects without the area highlight', async() => {
+    await grid.merge(0, 0, 0, 7);
+    await grid.selectRows(0);
+
+    const classes = await grid.classNames(0, 0);
+    const handles = await grid.visibleFillHandles();
+
+    expect(await grid.selected()).toEqual([[0, -1, 0, 7]]);
+    expect(classes).toContain('current');
+    expect(classes).not.toContain('area');
+    expect(handles.some(name => name.includes('current'))).toBe(true);
+    expect(handles.some(name => name.includes('highlight'))).toBe(false);
+  });
+
   test('a column selection keeps its highlight through merge() and unmerge()', async() => {
     await grid.selectColumns(0);
 

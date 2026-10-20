@@ -292,6 +292,12 @@ export class MergeCells extends BasePlugin {
    */
   #lastFocusDelta = { row: 0, col: 0 };
   /**
+   * The header selection covered several cells when it ended, rather than one merge.
+   * `merge()` must not collapse that highlight. A column or row selected when it is already one
+   * merge leaves this false, so the selection stays a single cell.
+   */
+  #headerSelectionStaysMultiple = false;
+  /**
    * The module responsible for providing the correct focus order (vertical and horizontal) within a selection that
    * contains merged cells.
    *
@@ -2591,35 +2597,51 @@ export class MergeCells extends BasePlugin {
    */
   #onAfterIsMultipleSelection = (isMultiple: boolean) => {
     if (isMultiple) {
-      const mergedCells = this.mergedCellsCollection.mergedCells;
       const selectionRange = this.hot.getSelectedRangeActive();
 
       if (!selectionRange) {
         return isMultiple;
       }
 
-      // The corners turn a header index into 0, so a column or row selection looks like the merge it covers.
-      if (this.#isSelectedByHeader()) {
+      // Recorded when the selection ended. A fresh `selectColumns` / `selectRows` still has it false,
+      // so a column or row that is already one merge stays a single cell.
+      if (this.#isSelectedByHeader() && this.#headerSelectionStaysMultiple) {
         return isMultiple;
       }
 
-      const topStartCoords = selectionRange.getTopStartCorner();
-      const bottomEndCoords = selectionRange.getBottomEndCorner();
-
-      for (let group = 0; group < mergedCells.length; group += 1) {
-        if (
-          topStartCoords.row === mergedCells[group].row &&
-          topStartCoords.col === mergedCells[group].col &&
-          bottomEndCoords.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
-          bottomEndCoords.col === mergedCells[group].col + mergedCells[group].colspan - 1
-        ) {
-          return false;
-        }
+      if (this.#rangeCoversOneMerge(selectionRange)) {
+        return false;
       }
     }
 
     return isMultiple;
   };
+
+  /**
+   * The active range's corners are exactly one merged cell.
+   * Header corners normalize to 0, so a full-column selection looks like the merge that fills that column.
+   *
+   * @param {CellRange} selectionRange The range to test.
+   * @returns {boolean}
+   */
+  #rangeCoversOneMerge(selectionRange: CellRange): boolean {
+    const mergedCells = this.mergedCellsCollection.mergedCells;
+    const topStartCoords = selectionRange.getTopStartCorner();
+    const bottomEndCoords = selectionRange.getBottomEndCorner();
+
+    for (let group = 0; group < mergedCells.length; group += 1) {
+      if (
+        topStartCoords.row === mergedCells[group].row &&
+        topStartCoords.col === mergedCells[group].col &&
+        bottomEndCoords.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
+        bottomEndCoords.col === mergedCells[group].col + mergedCells[group].colspan - 1
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   /**
    * `modifyTransformFocus` hook callback.
@@ -2978,6 +3000,7 @@ export class MergeCells extends BasePlugin {
    */
   #onBeforeSetRangeStart = () => {
     this.#lastSelectedFocus = null;
+    this.#headerSelectionStaysMultiple = false;
   };
 
   /**
@@ -3099,6 +3122,12 @@ export class MergeCells extends BasePlugin {
     if (selectedRanges) {
       this.#focusOrder.buildFocusOrder(selectedRanges);
     }
+
+    const selectionRange = this.hot.getSelectedRangeActive();
+
+    this.#headerSelectionStaysMultiple = this.#isSelectedByHeader()
+      && !!selectionRange
+      && !this.#rangeCoversOneMerge(selectionRange);
   };
 
   /**

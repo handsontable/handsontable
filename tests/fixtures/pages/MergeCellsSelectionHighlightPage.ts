@@ -31,6 +31,7 @@ interface HandsontableFixture {
   selectCell(row: number, column: number, endRow: number, endColumn: number, scrollToCell?: boolean): void;
   selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean): void;
   selectColumns(start: number, end?: number): void;
+  selectRows(start: number, end?: number): void;
   getActiveSelectionLayerIndex(): number;
   updateSettings(settings: Record<string, unknown>): void;
   listen(): void;
@@ -203,6 +204,34 @@ export class MergeCellsSelectionHighlightPage {
 
       hot.selectColumns(startColumn, endColumn);
     }, { start, end });
+  }
+
+  /**
+   * Selects whole rows, headers included.
+   */
+  async selectRows(start: number, end = start): Promise<void> {
+    await this.page.evaluate(({ start: startRow, end: endRow }) => {
+      const { hot } = window as Window & { hot: HandsontableFixture };
+
+      hot.selectRows(startRow, endRow);
+    }, { start, end });
+  }
+
+  /**
+   * Class names of fill-handle corners that are actually drawn.
+   */
+  async visibleFillHandles(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      return [...document.querySelectorAll('.wtBorder.corner')].flatMap((element) => {
+        const style = getComputedStyle(element);
+
+        if (element.classList.contains('hidden') || style.display === 'none' || style.visibility === 'hidden') {
+          return [];
+        }
+
+        return [element.className];
+      });
+    });
   }
 
   /**

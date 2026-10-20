@@ -114,10 +114,6 @@ class Selection {
    * Registers a local hook callback for the given hook name on this instance.
    */
   declare addLocalHook: (...args: unknown[]) => this;
-  /**
-   * Removes a local hook callback registered for the given hook name.
-   */
-  declare removeLocalHook: (key: string, callback: Function) => this;
 
   /**
    * Handsontable settings instance.
