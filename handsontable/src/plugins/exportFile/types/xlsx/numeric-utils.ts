@@ -1,3 +1,34 @@
+import { captureCurrency, sharedSymbolLcid } from '../../../../utils/xlsxEngine/numFmtCode';
+
+/**
+ * The most integer digits `Intl.NumberFormat` accepts in `minimumIntegerDigits`.
+ */
+const MAX_INTL_INTEGER_DIGITS = 21;
+
+/**
+ * Builds the integer part of a number format: `minimumIntegerDigits` zeros (at least one), with the
+ * grouping comma every three digits when grouping is on, padded with `#` to one full group
+ * (`#,##0`, `#,#00`, `00,000`).
+ *
+ * @param {number} minimumIntegerDigits How many integer digits the format pins.
+ * @param {boolean} useGrouping Whether the format groups thousands.
+ * @returns {string}
+ */
+function integerPart(minimumIntegerDigits: number, useGrouping: boolean): string {
+  if (!useGrouping) {
+    return '0'.repeat(minimumIntegerDigits);
+  }
+
+  const placeholders = '#'.repeat(Math.max(0, 4 - minimumIntegerDigits)) + '0'.repeat(minimumIntegerDigits);
+  let grouped = '';
+
+  for (let i = placeholders.length; i > 0; i -= 3) {
+    grouped = placeholders.slice(Math.max(0, i - 3), i) + (grouped === '' ? '' : `,${grouped}`);
+  }
+
+  return grouped;
+}
+
 /**
  * Resolves the currency symbol and its position (prefix or suffix) for a given
  * ISO 4217 currency code and locale using the `Intl.NumberFormat` API.
@@ -42,7 +73,7 @@ function getCurrencyInfo(currency: string, locale: string | undefined): { symbol
  */
 export function intlNumFormatToExcelNumFmt(
   numericFormat: {
-    style?: string; currency?: string;
+    style?: string; currency?: string; minimumIntegerDigits?: number;
     minimumFractionDigits?: number; maximumFractionDigits?: number; useGrouping?: boolean;
   } | null | undefined,
   locale?: string | undefined
@@ -54,6 +85,7 @@ export function intlNumFormatToExcelNumFmt(
   const {
     style,
     currency,
+    minimumIntegerDigits,
     minimumFractionDigits = 0,
     maximumFractionDigits,
     useGrouping = true,
@@ -61,19 +93,53 @@ export function intlNumFormatToExcelNumFmt(
 
   const fractionDigits = maximumFractionDigits ?? minimumFractionDigits;
   const decimalPart = fractionDigits > 0 ? `.${('0').repeat(fractionDigits)}` : '';
-  const intPart = useGrouping !== false ? '#,##0' : '0';
+  // `Intl` throws for a `minimumIntegerDigits` outside 1-21 or not a whole number, so such a value
+  // never reached the grid and is not written either.
+  const integerDigits = Number.isInteger(minimumIntegerDigits)
+    && (minimumIntegerDigits as number) >= 1 && (minimumIntegerDigits as number) <= MAX_INTL_INTEGER_DIGITS
+    ? minimumIntegerDigits as number : 1;
+  const intPart = integerPart(integerDigits, useGrouping !== false);
 
   if (style === 'percent') {
     return `${intPart}${decimalPart}%`;
   }
 
   if (style === 'currency' && currency) {
-    const { symbol, isPrefix } = getCurrencyInfo(currency, locale);
+    const { symbol: rawSymbol, isPrefix } = getCurrencyInfo(currency, locale);
+    // A lone dollar sign is written bare, Excel's own form. Every other symbol is quoted: Excel for
+    // the web repairs a workbook holding an unquoted letter code (`#,##0.00USD`, `CHF#,##0.00`) and
+    // drops the format, Numbers and LibreOffice misread unquoted multi-letter symbols such as the
+    // zloty's or `kr`, and Numbers and Quick Look misread even a lone euro or pound sign
+    // (`#,##0.00\u20AC` showed 1235 in Numbers for 1234.5).
+    // The import reads the quoted form back (`captureCurrency` in `utils/xlsxEngine/numFmtCode.ts`).
+    // A symbol several currencies share (`kr` for four kronor, the yen sign for the yen and the
+    // yuan, and a bare `$` for a dollar currency other than the US dollar) is written as Excel's
+    // locale token with the currency's home LCID (`[$kr-414]`, `[$$-C09]` for AUD): Excel shows the
+    // symbol, and the import reads the LCID back to the right currency (`captureCurrency`). A bare
+    // `$` reads back as the US dollar, so writing it for AUD changed the column's currency. Any symbol
+    // that still reads back as another currency, or as none, is replaced by the quoted ISO code below.
+    // `Intl` accepts the code in any case (`'usd'`), while the LCID table and the import's reading of
+    // it are upper-case ISO codes, so the code is normalized before both (review round 12).
+    const code = currency.toUpperCase();
+    const lcid = sharedSymbolLcid(rawSymbol, code);
+    let symbol = rawSymbol === '$' ? rawSymbol : `"${rawSymbol.replaceAll('"', '')}"`;
+
+    if (lcid !== null) {
+      symbol = `[$${rawSymbol}-${lcid.toString(16).toUpperCase()}]`;
+    }
 
     // @TODO: handle locale-specific spacing between symbol and number
     // (e.g. non-breaking space in fr-FR). Excel numFmt requires "\ " for a
     // literal space, which varies per locale and is left for a follow-up.
-    return isPrefix ? `${symbol}${intPart}${decimalPart}` : `${intPart}${decimalPart}${symbol}`;
+    const withSymbol = (text: string) => (
+      isPrefix ? `${text}${intPart}${decimalPart}` : `${intPart}${decimalPart}${text}`
+    );
+    const numFmt = withSymbol(symbol);
+
+    // A symbol the import cannot map back (`\u20AA` for ILS, `R` for ZAR, `AU$` outside `en-AU`, a bare
+    // `$` for a dollar currency with no LCID) re-imported as a plain number or as the US dollar. The
+    // quoted ISO code reads back as the currency itself; Excel then shows the code, not the symbol.
+    return captureCurrency(numFmt).currency === code ? numFmt : withSymbol(`"${code}"`);
   }
 
   return `${intPart}${decimalPart}`;

@@ -278,7 +278,7 @@ In the following example, the first row (Target) and the last row (Total) stay a
 ### Known limitations
 
 - [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) freezes and unfreezes columns on the start side only. It doesn't change `fixedColumnsEnd`.
-- XLSX export and import don't carry frozen end columns.
+- XLSX export and import don't carry frozen end columns. See [What is written](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#what-is-written).
 - You can't move a column across the boundary between the scrollable columns and the frozen end columns with [`manualColumnMove`](@/api/options.md#manualcolumnmove).
 
 ## User-triggered freeze

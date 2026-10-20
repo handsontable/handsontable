@@ -2,7 +2,6 @@
 import { Component, ViewChild } from '@angular/core';
 import Handsontable from 'handsontable';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
-import ExcelJS from 'exceljs';
 
 @Component({
   standalone: true,
@@ -68,13 +67,14 @@ export class AppComponent {
     ],
     fixedColumnsStart: 1,
     rowHeaders: true,
-    colHeaders: false,
+    comments: true,
+    colHeaders: true,
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true,
-    exportFile: { engines: { xlsx: ExcelJS } },
+    exportFile: true,
     afterInit(this: Handsontable) {
-      this.setCellMeta(0, 4, 'comment', { value: 'Top sales rep — review for promotion.' });
+      this.setCellMeta(0, 4, 'comment', { value: 'Top sales rep - review for promotion.' });
       this.render();
     },
   };

@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
-import ExcelJS from 'exceljs';
 
 @Component({
   selector: 'app-example3',
@@ -41,7 +40,7 @@ export class AppComponent {
     autoWrapRow: true,
     autoWrapCol: true,
     contextMenu: true,
-    exportFile: { engines: { xlsx: ExcelJS } },
+    exportFile: true,
   };
 }
 /* end-file */

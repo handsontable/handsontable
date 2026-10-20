@@ -8,41 +8,59 @@ registerAllModules();
 
 const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
-const gridData = [
-  ['Spring Launch', 'Email', 'North America', '1240', '4.2%', '$12000', 'Q1 2025'],
-  ['Partner Webinar', 'Paid Search', 'EMEA', '860', '6.1%', '$9400', 'Q1 2025'],
-  ['Summer Upsell', 'Social', 'APAC', '1520', '3.7%', '$13800', 'Q2 2025'],
-  ['Product Video', 'Email', 'North America', '980', '5.4%', '$8600', 'Q2 2025'],
-  ['Back-to-School', 'Display', 'LATAM', '1110', '4.8%', '$10100', 'Q3 2025'],
-  ['Holiday Teaser', 'Affiliate', 'EMEA', '1340', '5.9%', '$12700', 'Q4 2025'],
-  ['Loyalty Drive', 'SMS', 'APAC', '790', '7.3%', '$6200', 'Q4 2025'],
-];
-
 const hotSettings = ref<GridSettings>({
-  data: gridData,
+  data: [
+    ['https://api.acme-inventory.com/live-stock', '=WEBSERVICE("https://api.acme-inventory.com/live-stock")'],
+    ['https://status.vertex-logistics.com/feed', '=WEBSERVICE("https://status.vertex-logistics.com/feed")'],
+    ['http://malicious.example/payload.exe', '=CMD("| calc.exe")'],
+    ['https://news.example.com/q2-briefing', '=HYPERLINK("http://malicious.example","Open report")'],
+    ['https://cdn.example.com/daily.csv', '+SUM(1,1)'],
+  ],
   colHeaders: true,
   rowHeaders: true,
-  hiddenRows: { rows: [1, 3, 5], indicators: true },
-  hiddenColumns: { columns: [1, 3, 5], indicators: true },
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-function exportString(): void {
-  const exportPlugin = hotRef.value?.hotInstance?.getPlugin('exportFile');
-  const exportedString = exportPlugin?.exportAsString('csv', {
-    bom: false,
-    columnDelimiter: ',',
-    colHeaders: false,
-    exportHiddenColumns: false,
-    exportHiddenRows: false,
-    rowDelimiter: '\r\n',
-    rowHeaders: true,
-  });
+const csvExportOptions = {
+  bom: false,
+  columnDelimiter: ',',
+  colHeaders: false,
+  exportHiddenColumns: true,
+  exportHiddenRows: true,
+  fileExtension: 'csv',
+  filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+  mimeType: 'text/csv',
+  rowDelimiter: '\r\n',
+} as const;
 
-  console.log(exportedString);
+function downloadWithNoSanitization(): void {
+  hotRef.value?.hotInstance?.getPlugin('exportFile')?.downloadFile('csv', { ...csvExportOptions });
+}
+
+function downloadWithRecommendedSanitization(): void {
+  hotRef.value?.hotInstance?.getPlugin('exportFile')?.downloadFile('csv', {
+    ...csvExportOptions,
+    sanitizeValues: true,
+  });
+}
+
+function downloadWithRegexpSanitization(): void {
+  hotRef.value?.hotInstance?.getPlugin('exportFile')?.downloadFile('csv', {
+    ...csvExportOptions,
+    sanitizeValues: /WEBSERVICE|CMD|HYPERLINK|^\+/,
+  });
+}
+
+function downloadWithFunctionSanitization(): void {
+  hotRef.value?.hotInstance?.getPlugin('exportFile')?.downloadFile('csv', {
+    ...csvExportOptions,
+    sanitizeValues: (value: string) => {
+      return /WEBSERVICE|CMD|HYPERLINK|^\+/.test(value) ? 'REMOVED SUSPICIOUS CELL CONTENT' : value;
+    },
+  });
 }
 </script>
 
@@ -50,8 +68,17 @@ function exportString(): void {
   <div id="example3">
     <div class="example-controls-container">
       <div class="controls">
-        <button id="export-string" type="button" @click="exportString">
-          Export as a string
+        <button type="button" @click="downloadWithNoSanitization">
+          Download CSV with no sanitization
+        </button>
+        <button type="button" @click="downloadWithRecommendedSanitization">
+          Download CSV with recommended sanitization
+        </button>
+        <button type="button" @click="downloadWithRegexpSanitization">
+          Download CSV with sanitization using a regexp
+        </button>
+        <button type="button" @click="downloadWithFunctionSanitization">
+          Download CSV with sanitization using a function
         </button>
       </div>
     </div>
