@@ -966,7 +966,9 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
   under `e2e/`, so a scan that is not a functional test stays out of both: no leg tags, no shards.
   The quarantine reporter is not in its list either (nothing is quarantined in a scan). The a11y
   reporter resolves the baseline from its own location, not from `config.rootDir`, which is the
-  config's `testDir` (`a11y/`), one level below the package.
+  config's `testDir` (`a11y/`), one level below the package. It reads screenshots from the spec's
+  `scans/` folder, never from beside an attachment: Playwright copies an attached file into its
+  own attachments folder.
 - **Every opener drives the keyboard where the surface has a shortcut.** Shift+F10 for the
   context menu, Shift+Alt+ArrowDown for the dropdown menu, Enter for an editor, ArrowDown and
   ArrowRight to reach a submenu, after `selectCell()` through the API so the keys reach the grid;
@@ -983,8 +985,11 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
   apart but let a backslash in the value pair with the added one and let `<`, backticks and
   emphasis through as markup (CodeQL's `js/incomplete-sanitization`). A target sits in a `<code>`
   element, not a backtick span, because a code span cannot escape a backslash, and a URL is linked
-  only when it is plain https (`isSafeLink()`). The stock HTML report escapes what it renders
-  itself, except its summary slot, which `summaryHtml()` fills with escaped text.
+  only when it is plain https (`isSafeLink()`). The HTML report escapes every value through
+  `escapeHtml()` and embeds only `data:image/jpeg|png` screenshots. The pull request comment also
+  breaks anything shaped like a task id (`neutralizeTaskIds()`), and `validateBaseline()` refuses
+  an issue title that names one: the ClickUp integration attaches every task id it finds in a pull
+  request comment, permanently.
 
 ### The baseline: known issues and their findings
 
@@ -1078,39 +1083,59 @@ deletes its entries and the issue; one that fixes some of an issue's nodes lower
 
 ### The reports, and the visible gate
 
-The reporter writes three reports into `test-results/a11y/`, and CI publishes each:
+The reporter writes four outputs into `test-results/a11y/`, and CI publishes each:
 
 - **The job summary** (`summary.md`): the headline, a table per set that needs action with its
   remedies, and the known issues with their counts.
-- **The HTML report** (`a11y-report.html`): the stock report of `axe-html-reporter`, not one
-  built here. axe-html-reporter renders one set of axe results, so `combineScans()`
-  (`lib/a11y-axe-report.mjs`) folds the run's scans into one, rule by rule, with every node's
-  location prefixed by its page and theme, and `summaryHtml()` puts the comparison with the
-  baseline (what needs action, with remedies, and the known issues) into the report's summary
-  slot. That slot is the one place the reporter writes HTML unescaped, so `summaryHtml()` escapes
-  every value. The violations it lists are every finding of the run, known ones included, and
-  the incomplete checks ("needs review") follow. CI uploads the one file unzipped
-  (`archive: false`), so it opens in the browser from the run page, and the job summary and the
-  check run link to it. The report loads Bootstrap and highlight.js from public CDNs, so it is
-  styled only with network access; that is the stock template, and it is a developer artifact,
-  never shipped. Keep the custom code to those two functions: a feature the stock report lacks
-  goes in the summary text or waits for an upstream release, not into a report of our own.
+- **The HTML report** (`a11y-report.html`, `lib/a11y-report.mjs`), built to **locate every
+  element**. A card per new or grown finding gives the fixture to open (a link to the local
+  fixture server, `http://localhost:8123` by default) and the steps to the scanned state
+  (`stateSteps()` in `pages.mjs`), then every element with its selector (copyable), its full DOM
+  path (axe's `ancestry`, which the spec asks for), its box on the page, its markup and axe's
+  reason, and a screenshot with the elements outlined and numbered. Then the findings by rule, a
+  page × theme heatmap linking each cell to its fixture, every known issue pictured on one scan
+  with every location, and every scan. A scan is photographed only when it holds a finding that
+  needs action or is the page an issue is pictured on (`marksForScan()`, `representativeScans()`),
+  so a clean run carries about six screenshots. One self-contained file (inline styles,
+  screenshots as data URIs, no request to anything), dark by default with a light toggle, readable
+  without JavaScript (the script adds the toggle, copy buttons and a filter). It is an
+  accessibility report, so it is accessible itself: headings in order, header cells, a status is
+  always an icon and a word as well as a color, white numbers and outlines on colors that clear
+  4.5:1. CI uploads it unzipped (`archive: false`), so it opens in the browser from the run page.
+  It is ours rather than a stock axe report: the stock one had no release since 2024, loaded
+  jQuery and Bootstrap from public CDNs, could not show screenshots, and listed known and new
+  findings alike.
+- **The sticky pull request comment** (`lib/a11y-pr-comment.mjs`, posted by
+  `scripts/a11y-pr-comment.mjs`): the headline, what needs action (up to fifteen rows), and the
+  links to the report, the run and the check run, never a screenshot (an artifact needs a login,
+  and GitHub fetches comment images without one). It is posted only when something needs action
+  or the tooling failed, and edited in place on every later run, so a fixed pull request shows a
+  clean comment and a clean one gets none. It finds its old comment by `COMMENT_MARKER` and the
+  Actions bot as the author.
+- **The agent findings** (`a11y-findings.json`, `lib/a11y-findings.mjs`): the same run, concise and
+  machine-readable, for an implementer agent. `needsAction` lists each finding that needs action
+  with its page, theme, fixture URL, steps, rule, WCAG criteria, element, counts, remedy and up to
+  ten elements (selector, DOM path, box, markup, reason); `issues` lists every known issue with
+  every location and one locator each; `pages` says once how to reach each page's state;
+  `reproduce` has the commands. `schema` (`FINDINGS_SCHEMA`) changes when a field is removed or
+  renamed. `comparison.json` beside it holds everything and is several times larger.
 - **The check run** `A11y / axe report` (`lib/a11y-check-run.mjs`, posted by
   `scripts/a11y-check-run.mjs` on the pull request's head commit, never the merge commit). It is
   the visible gate while the job stays green: `neutral` when something needs action in warn
   mode, `success` when nothing does, `failure` in block mode or on a tooling failure, with the
   counts in its title, the summary and the report link on its page, and an annotation per
   finding on the line to change (`pages.mjs` for new and grown, the baseline for improved and
-  fixed). Only `CI Gate` is required, so it never blocks a merge by itself. A fork's or
-  Dependabot's token cannot write checks, so the step carries the canonical fork guard and
-  `continue-on-error`; the summary and the report still carry everything there.
-  `node scripts/a11y-check-run.mjs --dry-run` prints the payload locally.
+  fixed). Only `CI Gate` is required, so it never blocks a merge by itself.
 
-The raw axe result per page and theme is in the `a11y-axe-results` artifact
-(`scans/<page>--<theme>.json`, three days), beside `comparison.json` and `summary.md`. GitHub
-shows at most ten warning annotations per step, so a run with many findings shows the first ten
-there and the check run, the summary and the report hold them all. The chain from the
-orchestrator to the config is pinned by `.github/scripts/__tests__/a11y-workflow.test.mjs`.
+A fork's or Dependabot's token can write neither checks nor comments, so both steps carry the
+canonical fork guard and `continue-on-error`; the summary, the report and the agent findings
+still carry everything there. Locally, `node scripts/a11y-check-run.mjs --dry-run` and
+`node scripts/a11y-pr-comment.mjs --dry-run` print what CI would post. The raw axe result per page
+and theme, with its screenshot, is in the `a11y-axe-results` artifact (`scans/<page>--<theme>.json`,
+three days), beside `comparison.json`, `a11y-findings.json` and `summary.md`. GitHub shows at most
+ten warning annotations per step, so a run with many findings shows the first ten there and the
+check run, the comment, the summary and the report hold them all. The chain from the orchestrator
+to the config is pinned by `.github/scripts/__tests__/a11y-workflow.test.mjs`.
 
 ### Warn mode, and when it flips
 

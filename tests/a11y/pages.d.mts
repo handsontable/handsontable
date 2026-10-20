@@ -25,3 +25,5 @@ export interface A11yPage {
 }
 
 export const A11Y_PAGES: readonly A11yPage[];
+export function fixtureUrl(page: Pick<A11yPage, 'fixture' | 'query'>, theme: string): string;
+export function stateSteps(page: Pick<A11yPage, 'state' | 'cell'>): string | undefined;

@@ -2,7 +2,6 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { FullConfig, FullResult, Reporter, Suite, TestError } from '@playwright/test/reporter';
-import { createHtmlReport } from 'axe-html-reporter';
 import {
   A11Y_MODE,
   BASELINE_FILE,
@@ -15,7 +14,8 @@ import {
   type BaselineDocument,
   type ScanLike,
 } from '../lib/a11y-baseline.mjs';
-import { combineScans, summaryHtml } from '../lib/a11y-axe-report.mjs';
+import { renderHtmlReport } from '../lib/a11y-report.mjs';
+import { agentFindings } from '../lib/a11y-findings.mjs';
 import { A11Y_PAGES } from '../a11y/pages.mjs';
 
 /**
@@ -23,7 +23,7 @@ import { A11Y_PAGES } from '../a11y/pages.mjs';
  * run's exit status.
  *
  * Each test of `a11y/axe.spec.ts` attaches its scan (`axe-scan`, a JSON file under
- * `test-results/a11y/scans/`). This
+ * `test-results/a11y/scans/`, with a screenshot beside it when the scan marked findings). This
  * reporter reads the last attempt of every test, flattens the scans into findings
  * (`findingsFromScan()`), and asks `compareViolations()` what is new, grown, matched, improved,
  * stale and unverified. Into `test-results/a11y/` it writes:
@@ -31,8 +31,10 @@ import { A11Y_PAGES } from '../a11y/pages.mjs';
  * - `comparison.json`: the verdict, the tooling problems and notes (the check run is built from it,
  *   `scripts/a11y-check-run.mjs`);
  * - `summary.md`: the job summary, also appended to the GitHub job summary;
- * - `a11y-report.html`: the stock axe HTML report (`axe-html-reporter`) over every scan of the run,
- *   with the comparison in its summary slot (`lib/a11y-axe-report.mjs`).
+ * - `a11y-report.html`: the HTML report (`lib/a11y-report.mjs`), one self-contained file built to
+ *   locate every element, with the scans' screenshots inlined;
+ * - `a11y-findings.json`: the same findings, concise and machine-readable, for an implementer
+ *   agent (`lib/a11y-findings.mjs`).
  *
  * On GitHub Actions it prints one annotation per finding that needs action. It returns the status
  * the mode decides: in `warn` mode Playwright's own status (a failed scan is a tooling failure and
@@ -112,14 +114,14 @@ export default class A11yReporter implements Reporter {
     writeFileSync(path.join(this.#outputDir, 'comparison.json'),
       `${JSON.stringify({ ...verdict, problems, notes, engines, scans: scans.length }, null, 2)}\n`);
     writeFileSync(path.join(this.#outputDir, 'summary.md'), summary);
-    writeFileSync(path.join(this.#outputDir, 'a11y-report.html'), createHtmlReport({
-      results: combineScans(scans, runUrl()),
-      options: {
-        projectKey: 'Handsontable',
-        customSummary: summaryHtml(verdict, { scans: scans.length, problems, notes }),
-        doNotCreateReportFile: true,
-      },
+    writeFileSync(path.join(this.#outputDir, 'a11y-report.html'), renderHtmlReport({
+      verdict,
+      scans: scans.map(scan => ({ ...scan, screenshot: inlineScreenshot(scan, path.join(this.#outputDir, 'scans')) })),
+      pages: A11Y_PAGES,
+      run: { ...runDetails(), engines, notes, problems, generatedAt: new Date().toISOString() },
     }));
+    writeFileSync(path.join(this.#outputDir, 'a11y-findings.json'),
+      `${JSON.stringify(agentFindings({ verdict, pages: A11Y_PAGES, problems }), null, 2)}\n`);
     process.stdout.write(`\n${summary}\nHTML report: ${path.join(this.#outputDir, 'a11y-report.html')}\n`);
 
     if (process.env.GITHUB_ACTIONS === 'true') {
@@ -155,18 +157,48 @@ export default class A11yReporter implements Reporter {
 interface Scan extends ScanLike {
   fixture: string;
   axeCoreVersion: string;
-  incomplete?: ScanLike['violations'];
+  screenshot: string | null;
 }
 
 /**
- * The workflow run's URL, which the report's title links to; `undefined` outside GitHub Actions.
+ * A scan's screenshot as a data URI, or `null`. It is read from the spec's `scans/` folder, not
+ * from beside the attachment: Playwright copies an attached file into its own attachments folder.
  *
- * @returns The URL.
+ * @param scan The scan.
+ * @param scansDir The folder the spec writes scans and screenshots to.
+ * @returns The data URI.
  */
-function runUrl(): string | undefined {
-  const { GITHUB_SERVER_URL: server, GITHUB_REPOSITORY: repository, GITHUB_RUN_ID: runId } = process.env;
+function inlineScreenshot(scan: Scan, scansDir: string): string | null {
+  if (!scan.screenshot || !/^[a-z0-9-]+--[a-z]+\.jpg$/.test(scan.screenshot)) {
+    return null;
+  }
 
-  return server && repository && runId ? `${server}/${repository}/actions/runs/${runId}` : undefined;
+  const file = path.join(scansDir, scan.screenshot);
+
+  return existsSync(file) ? `data:image/jpeg;base64,${readFileSync(file).toString('base64')}` : null;
+}
+
+/**
+ * The links the HTML report carries, from the GitHub Actions environment; only the commit locally.
+ *
+ * @returns The commit and the pull request, run and policy URLs that apply.
+ */
+function runDetails(): { commit?: string; prUrl?: string; runUrl?: string; docsUrl?: string } {
+  const { GITHUB_SERVER_URL: server, GITHUB_REPOSITORY: repository, GITHUB_RUN_ID: runId, GITHUB_REF: ref } = process.env;
+  const commit = process.env.A11Y_HEAD_SHA || process.env.GITHUB_SHA;
+
+  if (!server || !repository) {
+    return { commit };
+  }
+
+  const pull = /^refs\/pull\/(\d+)\//.exec(ref ?? '')?.[1];
+
+  return {
+    commit,
+    prUrl: pull ? `${server}/${repository}/pull/${pull}` : undefined,
+    runUrl: runId ? `${server}/${repository}/actions/runs/${runId}` : undefined,
+    docsUrl: `${server}/${repository}/blob/${commit ?? 'develop'}/tests/AGENTS.md#a11y-the-axe-scan-and-its-baseline`,
+  };
 }
 
 /**

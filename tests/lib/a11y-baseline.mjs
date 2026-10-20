@@ -6,7 +6,8 @@
  * flattens the scans into findings (`findingsFromScan()`), compares them with the
  * committed baseline (`tests/a11y/axe-baseline.json`) through
  * `compareViolations()`, and renders the job summary, the annotations, the check
- * run and the stock axe HTML report's summary from what comes back. No I/O in here. The policy is
+ * run, the HTML report, the agent findings and the pull request comment from what
+ * comes back. No I/O in here. The policy is
  * written up in `tests/AGENTS.md` ("A11y: the axe scan and its baseline").
  *
  * The baseline has two lists. `issues` is the catalog of known accessibility
@@ -173,6 +174,18 @@ function readAttribute(attributes, name) {
 }
 
 /**
+ * The text of an axe `target` or `ancestry` selector list.
+ *
+ * @param {unknown} selector The selector list.
+ * @returns {string} The selector; a path into a shadow root is joined with `>>>`.
+ */
+export function selectorText(selector) {
+  return Array.isArray(selector)
+    ? selector.map(part => (Array.isArray(part) ? part.join(' >>> ') : part)).join(' ')
+    : String(selector ?? '');
+}
+
+/**
  * The WCAG success criteria an axe rule's tags name, as `4.1.2`.
  *
  * @param {string[]} tags The rule's tags.
@@ -184,7 +197,10 @@ export function wcagCriteria(tags = []) {
 
 /**
  * The findings of one scan: one per violation node, keyed by the node's
- * fingerprint. `compareViolations()` folds the nodes that share a key.
+ * fingerprint, with what locates the node: axe's selector, its full DOM path
+ * (`ancestry`, when the scan asked axe for it) and its box on the page (`box`, which
+ * the spec measures; `null` for a node with no box). `compareViolations()` folds
+ * the nodes that share a key.
  *
  * @param {{page: string, theme: string, violations: object[]}} scan A scan as the spec writes it.
  * @returns {object[]} The findings.
@@ -201,9 +217,85 @@ export function findingsFromScan(scan) {
     wcag: wcagCriteria(violation.tags),
     html: node.html,
     selector: node.target,
+    ancestry: node.ancestry ?? null,
+    box: node.box ?? null,
     failureSummary: node.failureSummary ?? '',
     nodes: 1,
   })));
+}
+
+/**
+ * The scan each known issue is pictured on in the HTML report: its first entry on the main
+ * theme, or its first entry when it has none there, in baseline order.
+ *
+ * @param {object[]} entries The baseline entries.
+ * @returns {Map<string, Set<string>>} The issue ids pictured on each `page|theme`.
+ */
+export function representativeScans(entries) {
+  const chosen = new Map();
+
+  for (const item of entries) {
+    const current = chosen.get(item.issue);
+
+    if (!current || (current.theme !== 'main' && item.theme === 'main')) {
+      chosen.set(item.issue, item);
+    }
+  }
+
+  const byScan = new Map();
+
+  for (const [issue, item] of chosen) {
+    const key = `${item.page}|${item.theme}`;
+
+    byScan.set(key, new Set([...(byScan.get(key) ?? []), issue]));
+  }
+
+  return byScan;
+}
+
+/**
+ * The findings of one scan to mark on its screenshot, numbered in key order: every finding that
+ * is new or grown, and every finding of the issues this scan pictures. Each mark carries the
+ * selectors of all its nodes, so the spec can outline them. An empty list means no screenshot.
+ *
+ * @param {object} input The scan.
+ * @param {object[]} input.findings The scan's findings (`findingsFromScan()`).
+ * @param {object[]} input.entries The baseline entries of this page and theme.
+ * @param {Set<string>} [input.pictured] The issue ids this scan pictures (`representativeScans()`).
+ * @returns {Array<{n: number, status: 'new'|'grown'|'known', rule: string, target: string, issue: string|null, nodes: number, selectors: Array<Array<string|string[]>>}>} The marks.
+ */
+export function marksForScan({ findings, entries, pictured = new Set() }) {
+  const byKey = new Map(entries.map(item => [entryKey(item), item]));
+  const groups = new Map();
+
+  for (const finding of findings) {
+    const key = entryKey(finding);
+    const group = groups.get(key) ?? { finding, selectors: [] };
+
+    group.selectors.push(finding.selector);
+    groups.set(key, group);
+  }
+
+  const marks = [];
+
+  for (const [key, { finding, selectors }] of [...groups].sort(([a], [b]) => a.localeCompare(b))) {
+    const entry = byKey.get(key);
+    let status = null;
+
+    if (!entry) {
+      status = 'new';
+    } else if (selectors.length > entry.nodes) {
+      status = 'grown';
+    } else if (pictured.has(entry.issue)) {
+      status = 'known';
+    }
+    if (status) {
+      marks.push({ n: marks.length + 1, status, rule: finding.rule, target: finding.target, issue: entry?.issue ?? null,
+        nodes: selectors.length, selectors });
+    }
+  }
+
+  return marks;
 }
 
 /**
@@ -279,6 +371,9 @@ function validateIssues(issues, problems) {
     }
     if (typeof issue.title !== 'string' || issue.title.trim() === '') {
       problems.push(`${where} ("${issue.id}"): "title" must say what the problem is`);
+    } else if (/\b[A-Z][A-Z0-9]*-\d+\b/.test(issue.title)) {
+      problems.push(`${where} ("${issue.id}"): the title names a task id; it goes in "tracker". The pull request comment `
+        + 'prints titles, and the ClickUp integration attaches every task id it finds in a pull request comment');
     }
     if (issue.tracker !== undefined && (typeof issue.tracker !== 'string' || !TRACKER_ID.test(issue.tracker))) {
       problems.push(`${where} ("${issue.id}"): "tracker" is optional, and when present it is a task id (DEV-1234), `
@@ -425,14 +520,15 @@ function foldFindings(violations) {
 
   for (const item of violations) {
     const key = entryKey(item);
-    const node = { html: item.html, selector: item.selector, failureSummary: item.failureSummary };
+    const node = { html: item.html, selector: item.selector, ancestry: item.ancestry ?? null, box: item.box ?? null,
+      failureSummary: item.failureSummary };
     const merged = found.get(key);
 
     if (merged) {
       merged.nodes += item.nodes ?? 1;
       merged.details.push(node);
     } else {
-      const { html, selector, failureSummary, ...rest } = item;
+      const { html, selector, ancestry, box, failureSummary, ...rest } = item;
 
       found.set(key, { ...rest, nodes: item.nodes ?? 1, details: [node] });
     }

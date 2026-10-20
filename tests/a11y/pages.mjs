@@ -90,3 +90,37 @@ export const A11Y_PAGES = [
   { id: 'comments', fixture: 'comments-editor-resize.html', state: 'comment',
     surface: 'the comment editor shown at a commented cell' },
 ];
+
+/**
+ * The fixture URL a page is scanned at, relative to the fixture server (`support/static-server.mjs`,
+ * `http://localhost:8123` by default).
+ *
+ * @param {{fixture: string, query?: string}} page The page.
+ * @param {string} theme The theme.
+ * @returns {string} The path and query.
+ */
+export function fixtureUrl(page, theme) {
+  return `/tests/fixtures/demo/${page.fixture}?theme=${theme}${page.query ? `&${page.query}` : ''}`;
+}
+
+/**
+ * How to reach the state a page is scanned in, in words: the steps `STATES` in `axe.spec.ts`
+ * performs, for a person or an agent who opens the fixture by hand.
+ *
+ * @param {{state: string, cell?: [number, number]}} page The page.
+ * @returns {string} The steps.
+ */
+export function stateSteps(page) {
+  const [row, col] = page.cell ?? [1, 1];
+  const select = `select cell (${row}, ${col}) (hot.selectCell(${row}, ${col}))`;
+
+  return {
+    none: 'nothing: the page is scanned as it loads',
+    'context-menu': `${select}, then press Shift+F10`,
+    'context-menu-submenu': `${select}, press Shift+F10, ArrowDown to "Alignment", then ArrowRight`,
+    'dropdown-menu': `${select}, then press Shift+Alt+ArrowDown`,
+    editor: `${select}, then press Enter`,
+    comment: `show the comment at cell (${row}, ${col}) (hot.getPlugin('comments').showAtCell(${row}, ${col}))`,
+    'data-provider': 'release the parked first fetch (window.htServer.release(\'ORD\'))',
+  }[page.state];
+}

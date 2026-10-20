@@ -32,9 +32,18 @@ export interface BaselineDocument {
   entries: BaselineEntry[];
 }
 
+export interface NodeBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface NodeDetail {
   html: string;
   selector: Array<string | string[]>;
+  ancestry: Array<string | string[]> | null;
+  box: NodeBox | null;
   failureSummary: string;
 }
 
@@ -45,6 +54,8 @@ export interface Finding extends FindingKey {
   wcag?: string[];
   html?: string;
   selector?: Array<string | string[]>;
+  ancestry?: Array<string | string[]> | null;
+  box?: NodeBox | null;
   failureSummary?: string;
   nodes?: number;
 }
@@ -68,7 +79,7 @@ export interface ScanLike {
     help: string;
     helpUrl: string;
     tags?: string[];
-    nodes: Array<{ target: Array<string | string[]>; html: string; failureSummary?: string }>;
+    nodes: Array<{ target: Array<string | string[]>; html: string; failureSummary?: string; ancestry?: Array<string | string[]>; box?: NodeBox | null }>;
   }>;
 }
 
@@ -100,8 +111,21 @@ export interface VerdictCounts {
 
 export function entryKey(item: FindingKey): string;
 export function targetFingerprint(target: Array<string | string[]>, html?: string): string;
+export function selectorText(selector: unknown): string;
 export function wcagCriteria(tags?: string[]): string[];
 export function findingsFromScan(scan: ScanLike): Finding[];
+export interface ScanMark {
+  n: number;
+  status: 'new' | 'grown' | 'known';
+  rule: string;
+  target: string;
+  issue: string | null;
+  nodes: number;
+  selectors: Array<Array<string | string[]>>;
+}
+
+export function representativeScans(entries: BaselineEntry[]): Map<string, Set<string>>;
+export function marksForScan(input: { findings: Finding[]; entries: BaselineEntry[]; pictured?: Set<string> }): ScanMark[];
 export function validateBaseline(document: unknown, known: { pages: string[] }): string[];
 export function compareViolations(input: {
   baseline: BaselineEntry[];

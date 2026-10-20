@@ -74,13 +74,22 @@ test('a11y.yml is one job, axe, in the Playwright container, running the a11y co
   assert.match(post, /^ {8}run: node tests\/scripts\/a11y-check-run\.mjs$/m, `${A11Y}: the check run is posted by its script. ${DOC}`);
   assert.match(post, /^ {8}continue-on-error: true$/m, `${A11Y}: the check run reports and never decides the job. ${DOC}`);
   assert.match(post, /A11Y_REPORT_URL: \$\{\{ steps\.report\.outputs\.artifact-url \}\}/);
+  assert.match(post, /^ {8}id: check$/m, `${A11Y}: the comment links the check run through this step's output. ${DOC}`);
+
+  const comment = step('Post the report comment');
+
+  assert.match(comment, /^ {8}run: node tests\/scripts\/a11y-pr-comment\.mjs$/m, `${A11Y}: the sticky comment is posted by its script. ${DOC}`);
+  assert.match(comment, /^ {8}continue-on-error: true$/m, `${A11Y}: the comment reports and never decides the job. ${DOC}`);
+  assert.match(comment, /github\.event_name == 'pull_request'/, `${A11Y}: a comment needs a pull request. ${DOC}`);
+  assert.match(comment, /A11Y_PR_NUMBER: \$\{\{ github\.event\.pull_request\.number \}\}/);
+  assert.match(comment, /A11Y_CHECK_URL: \$\{\{ steps\.check\.outputs\.check-url \}\}/);
 });
 
 test('the axe job can write its check run on the pull request\'s head commit, and nothing else', () => {
   const axe = job(stripYamlComments(read(A11Y)), 'axe');
 
-  assert.match(axe, /^ {4}permissions:\n {6}contents: read\n {6}checks: write$/m,
-    `${A11Y}: job-level permissions, read for the checkout and write for the check run only. ${DOC}`);
+  assert.match(axe, /^ {4}permissions:\n {6}contents: read\n {6}checks: write\n {6}pull-requests: write$/m,
+    `${A11Y}: job-level permissions: read for the checkout, write for the check run and the sticky comment only. ${DOC}`);
   assert.match(axe, /^ {6}A11Y_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}$/m,
     `${A11Y}: a check run on the merge commit never shows on the pull request; it goes on the head. ${DOC}`);
 });

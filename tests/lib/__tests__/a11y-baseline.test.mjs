@@ -14,14 +14,16 @@ import {
   escapeMarkdownText,
   findingsFromScan,
   headline,
+  marksForScan,
   renderAnnotations,
+  representativeScans,
   renderSummary,
   targetFingerprint,
   validateBaseline,
   verdictCounts,
   wcagCriteria,
 } from '../a11y-baseline.mjs';
-import { A11Y_PAGES } from '../../a11y/pages.mjs';
+import { A11Y_PAGES, stateSteps } from '../../a11y/pages.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const PAGE_IDS = ['grid', 'context-menu'];
@@ -178,6 +180,54 @@ test('findingsFromScan gives one finding per node, keyed by its fingerprint, wit
   assert.equal(findings[1].failureSummary, '');
 });
 
+test('representativeScans pictures each issue on its first main-theme entry, or its first entry', () => {
+  const byScan = representativeScans([
+    entry({ page: 'checkbox', theme: 'horizon' }),
+    entry({ page: 'grid', theme: 'main' }),
+    entry({ page: 'context-menu', theme: 'classic', issue: 'classic-only' }),
+    entry({ page: 'context-menu', theme: 'main', issue: 'menu-roles' }),
+    entry({ page: 'grid', theme: 'main', rule: 'label', issue: 'menu-roles' }),
+  ]);
+
+  assert.deepEqual([...byScan].map(([scan, issues]) => [scan, [...issues]]), [
+    ['grid|main', ['grid-roles']],
+    ['context-menu|classic', ['classic-only']],
+    ['context-menu|main', ['menu-roles']],
+  ]);
+});
+
+test('marksForScan marks new and grown findings, and the pictured issues, numbered in key order', () => {
+  const findings = [
+    violation({ selector: ['#a'] }),
+    violation({ selector: ['#b'] }),
+    violation({ rule: 'label', target: 'textarea', selector: ['textarea'] }),
+    violation({ rule: 'aria-required-parent', target: 'td[role="menuitem"]', selector: ['td'] }),
+  ];
+  const entries = [
+    entry({ nodes: 1 }),
+    entry({ rule: 'aria-required-parent', target: 'td[role="menuitem"]', issue: 'menu-roles' }),
+  ];
+
+  assert.deepEqual(marksForScan({ findings, entries }).map(({ n, status, rule, nodes: count, selectors }) => [n, status, rule, count, selectors]), [
+    [1, 'grown', 'aria-required-children', 2, [['#a'], ['#b']]],
+    [2, 'new', 'label', 1, [['textarea']]],
+  ]);
+  assert.deepEqual(marksForScan({ findings, entries, pictured: new Set(['menu-roles']) }).map(({ status, issue }) => [status, issue]), [
+    ['grown', 'grid-roles'], ['known', 'menu-roles'], ['new', null],
+  ]);
+  assert.deepEqual(marksForScan({ findings: findings.slice(3), entries }), [], 'a matched finding of an unpictured issue needs no screenshot');
+});
+
+test('findingsFromScan and the comparator keep what locates each node: selector, DOM path and box', () => {
+  const [item] = compare([], findingsFromScan({ page: 'grid', theme: 'main', violations: [{
+    id: 'label', impact: 'critical', help: 'h', helpUrl: 'https://x.test', tags: [],
+    nodes: [{ target: ['textarea'], html: '<textarea class="handsontableInput">', ancestry: ['html > body > div > textarea'], box: { x: 1, y: 2, width: 3, height: 4 } }],
+  }] })).newViolations;
+
+  assert.deepEqual(item.details, [{ html: '<textarea class="handsontableInput">', selector: ['textarea'],
+    ancestry: ['html > body > div > textarea'], box: { x: 1, y: 2, width: 3, height: 4 }, failureSummary: '' }]);
+});
+
 test('validateBaseline accepts a well-formed document', () => {
   assert.deepEqual(validateBaseline(doc([entry(), entry({ theme: 'horizon', issue: 'menu-roles' })]), { pages: PAGE_IDS }), []);
 });
@@ -201,6 +251,8 @@ test('validateBaseline refuses a malformed issue: id, title, tracker, unknown fi
   assert.match(problems([{ id: 'menu-roles', title: ' ' }]), /"title" must say what the problem is/);
   assert.match(problems([{ id: 'menu-roles', title: 't', tracker: 'dev-1' }]), /"tracker" is optional, and when present it is a task id/);
   assert.match(problems([{ id: 'menu-roles', title: 't', owner: 'me' }]), /unknown field "owner"/);
+  assert.match(problems([{ id: 'menu-roles', title: 'Fixed in DEV-1234', tracker: 'DEV-1234' }]),
+    /the title names a task id; it goes in "tracker"/, 'the pull request comment prints titles');
   assert.match(problems([{ id: 'menu-roles', title: 't' }, { id: 'menu-roles', title: 'u' }]), /duplicate issue id "menu-roles"/);
   assert.equal(problems([{ id: 'menu-roles', title: 't' }]), '', 'a tracker is optional');
 });
@@ -477,5 +529,6 @@ test('the committed baseline is valid against the page list, and every page name
     assert.ok(existsSync(path.join(TESTS_ROOT, 'fixtures/demo', page.fixture)),
       `${page.id}: fixture ${page.fixture} must exist under tests/fixtures/demo/`);
     assert.ok(page.surface && typeof page.surface === 'string', `${page.id}: says which accessible surface it covers`);
+    assert.ok(stateSteps(page), `${page.id}: its state "${page.state}" has steps in stateSteps() (a11y/pages.mjs)`);
   }
 });

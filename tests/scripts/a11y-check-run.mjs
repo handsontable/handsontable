@@ -13,9 +13,10 @@
  * does not show on the pull request), and optionally `A11Y_REPORT_URL`,
  * `GITHUB_API_URL`, `GITHUB_SERVER_URL` and `GITHUB_RUN_ID`.
  *
- * `--dry-run` prints the payload instead of posting it, and needs none of them.
+ * `--dry-run` prints the payload instead of posting it, and needs none of them. A posted check
+ * run's URL goes to the step output `check-url`, which the pull request comment links.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { annotationBatches, baselineLines, buildCheckRun, pageLines } from '../lib/a11y-check-run.mjs';
@@ -92,3 +93,7 @@ for (const batch of rest) {
 }
 
 process.stdout.write(`a11y-check-run: posted "${payload.name}" (${payload.conclusion}): ${payload.title}\n${created.html_url}\n`);
+// The pull request comment links the check run.
+if (env.GITHUB_OUTPUT) {
+  appendFileSync(env.GITHUB_OUTPUT, `check-url=${created.html_url}\n`);
+}

@@ -12,14 +12,16 @@ name: A11y
 # tests/lib/a11y-baseline.mjs, after a replay over recent pull requests shows the
 # comparator is precise.
 #
-# Three reports leave the job. The job summary. The stock axe HTML report
-# (axe-html-reporter) over every scan, one file uploaded unzipped (`archive: false`), so
-# it opens in the browser from the run page. And the
-# `A11y / axe report` check run on the pull request's head commit: its icon is the
-# visible gate (neutral = something needs action in warn mode), its page carries the
-# summary and the report link, and its annotations sit on the line to change. The raw
-# axe results go up zipped beside them, with a short retention: they are the evidence
-# behind a warning, not a record.
+# The reports. The job summary. The HTML report (tests/lib/a11y-report.mjs), one
+# self-contained file uploaded unzipped (`archive: false`) so it opens in the browser
+# from the run page, built to locate every element (fixture, steps, selector, DOM path,
+# screenshot). The `A11y / axe report` check run on the pull request's head commit: its
+# icon is the visible gate (neutral = something needs action in warn mode), and its
+# annotations sit on the line to change. A sticky pull request comment with the
+# headline, what needs action and the report link, posted only when something needs
+# action and edited when a later run is clean. And `a11y-findings.json` for an
+# implementer agent, in the zipped raw results with a short retention: they are the
+# evidence behind a warning, not a record.
 #
 # Build-dependent like the Playwright legs (e2e.yml): it downloads the UMD build
 # artifact, so the orchestrator gates it on the build-umd scope, which includes
@@ -34,11 +36,13 @@ jobs:
     runs-on: ubuntu-26.04
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
-    # Job-level, like docs.yml's angular-types: `checks: write` posts the report check run.
-    # Kept off the workflow level so nothing else in the run inherits it.
+    # Job-level, like docs.yml's angular-types and visual.yml's compare: `checks: write` posts the
+    # report check run, `pull-requests: write` the sticky comment. Kept off the workflow level so
+    # nothing else in the run inherits them.
     permissions:
       contents: read
       checks: write
+      pull-requests: write
     env:
       # The commit the check run goes on and the report names. On a pull request it is the
       # head, not the merge commit `github.sha` names, or the check never shows on the PR.
@@ -91,9 +95,22 @@ jobs:
       # Dependabot's token cannot write checks, so the canonical guard skips it there; the job
       # summary and the report still carry everything. It reports and never decides the job.
       - name: Post the report check run
+        id: check
         if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) }}
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           A11Y_REPORT_URL: ${{ steps.report.outputs.artifact-url }}
         run: node tests/scripts/a11y-check-run.mjs
+      # The sticky comment (tests/lib/a11y-pr-comment.mjs): posted when something needs action,
+      # edited when a later run is clean, never a screenshot; it links the HTML report. Pull
+      # requests only, behind the same guard (a fork's token cannot comment).
+      - name: Post the report comment
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          A11Y_PR_NUMBER: ${{ github.event.pull_request.number }}
+          A11Y_REPORT_URL: ${{ steps.report.outputs.artifact-url }}
+          A11Y_CHECK_URL: ${{ steps.check.outputs.check-url }}
+        run: node tests/scripts/a11y-pr-comment.mjs
