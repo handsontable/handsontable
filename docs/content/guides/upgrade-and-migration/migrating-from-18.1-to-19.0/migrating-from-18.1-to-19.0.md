@@ -1982,9 +1982,21 @@ What changed: with `exportFormulas: true`, a formula such as `=IFS(…)`, `=STDE
 `=TEXTJOIN(…)`, or `=XLOOKUP(…)` is now written as Excel stores it, with the `_xlfn.` prefix
 (`<f>_xlfn.IFS(…)</f>`). In 18.1, Excel showed `#NAME?` for such a cell until you entered it again.
 `NETWORKDAYS.INTL`, `WORKDAY.INTL`, `ISO.CEILING`, and `ECMA.CEILING` keep no prefix, as in 18.1,
-because Excel stores them without one.
+because Excel stores them without one. The parameter names of a `LET` or `LAMBDA` call are written
+with Excel's `_xlpm.` prefix, such as `<f>_xlfn.LET(_xlpm.x,1,_xlpm.x+1)</f>`.
 
 What to do: nothing, unless a tool reads the raw `<f>` text. Such a tool sees the prefix now.
+
+#### A formula is exported with the row it belongs to
+
+What changed: with `exportFormulas: true`, each cell is now written with the formula of the row it
+shows. In 18.1, a grid whose rows were sorted, moved, trimmed, or filtered wrote another row's formula
+into the cell, next to this row's cached value. Excel and LibreOffice recalculate on open, so the file
+showed wrong numbers with no warning. When rows are trimmed or filtered out, the references below them
+now point at the rows they name in the file, as they already did for hidden rows left out of the export.
+This applies to both engines.
+
+What to do: nothing.
 
 #### A formula error is stored as an error cell
 
@@ -2033,7 +2045,12 @@ sides on top. In 18.1, the ExcelJS engine replaced a covered cell's own style wi
 covered cell lost its number format, its lock, and its own border sides, so with a box border
 around a merge, LibreOffice drew the block without its right edge.
 
-What to do: nothing.
+The ExcelJS engine writes two more differences. A merge of a single cell is no longer written as a
+`<mergeCell>`, because it merges nothing. A merge whose first cell holds no value and no formatting now
+gives that cell a style of its own (`s="1"`, with one more `cellXfs` entry), so Apple Numbers and Quick
+Look place the cells after it in the right columns.
+
+What to do: nothing, unless a tool compares the raw XML of the files.
 
 #### A currency symbol is written in quotes
 
