@@ -6164,8 +6164,30 @@ export default function Core(
   };
 
   /**
+   * Returns the last visual row a whole-column read covers.
+   *
+   * The read runs in visual rows, so it has to reach `countRows()`: under NestedRows the source
+   * array holds only the top-level records, and a `modifySourceLength` listener can report more rows
+   * than the array has, so its length stops the read short of every row past it. The source length
+   * stays in the `max` so a grid with no visual rows reads what it always did: with an empty data set
+   * the end is `-1`, so `getRange()` starts at the header row and returns `[null]`, while a fully
+   * trimmed one returns `[]`. When the source length wins, `getRange()` still stops at
+   * `countRows()` for two different reasons: a visual index past the not-trimmed rows maps to no
+   * physical row, so it skips it, and a row cut off by `maxRows` does map to one, but `getRange()`
+   * clamps the range to `maxRows - 1`.
+   *
+   * @returns {number} Visual row index.
+   */
+  function getLastColumnReadRow(): number {
+    return Math.max(instance.countRows(), tableMeta.data.length) - 1;
+  }
+
+  /**
    * @description
-   * Returns array of column values from the data source.
+   * Returns array of column values from the data source, one value per visual row.
+   * With the [`nestedRows`](@/api/options.md#nestedrows) option, the result includes the visible child rows
+   * and skips the children of collapsed parents. A grid with no rows returns `[null]`, so the length
+   * is one more than `countRows()` there.
    *
    * __Note__: If columns were reordered or sorted, the currently visible order will be used.
    *
@@ -6178,7 +6200,7 @@ export default function Core(
     const columnData = [];
     const dataByRows = datamap.getRange(
       instance._createCellCoords(0, column) as { row: number; col: number },
-      instance._createCellCoords(tableMeta.data.length - 1, column) as { row: number; col: number },
+      instance._createCellCoords(getLastColumnReadRow(), column) as { row: number; col: number },
       DataMap.DESTINATION_RENDERER
     );
 
@@ -6193,7 +6215,10 @@ export default function Core(
 
   /**
    * Given the object property name (e.g. `'first.name'` or `'0'`), returns an array of column's values from the table data.
-   * You can also provide a column index as the first argument.
+   * You can also provide a column index as the first argument. The result holds one value per visual row.
+   * With the [`nestedRows`](@/api/options.md#nestedrows) option, it includes the visible child rows
+   * and skips the children of collapsed parents. For an existing column of a grid with no rows, it
+   * returns `[null]`, so the length is one more than `countRows()` there.
    *
    * @memberof Core#
    * @function getDataAtProp
@@ -6215,7 +6240,7 @@ export default function Core(
     const dataByRows = datamap.getRange(
       instance._createCellCoords(0, visualColumn as number) as { row: number; col: number },
       instance._createCellCoords(
-        tableMeta.data.length - 1, visualColumn as number
+        getLastColumnReadRow(), visualColumn as number
       ) as { row: number; col: number },
       DataMap.DESTINATION_RENDERER
     );
