@@ -6,7 +6,8 @@
  * bot as its author). It posts a new comment only when something needs action or a
  * tooling problem showed; when a later run is clean it edits the old comment to say
  * so, and it never posts a clean one. The comment carries no screenshot: it links the
- * HTML report, where every element is located.
+ * HTML report, where every element is located. It ends with the findings by rule as a chart of
+ * text bars (`textBar()`), the HTML report's overview in a form a comment can hold.
  *
  * The ClickUp GitHub integration attaches every task id it finds in a pull request
  * comment, permanently (root `AGENTS.md`, one-id rule). The comment prints issue
@@ -14,12 +15,79 @@
  * prints also goes through `neutralizeTaskIds()`, so a task id from anywhere still
  * cannot attach a task. Every value is escaped for markdown (`escapeMarkdownText()`).
  */
-import { escapeMarkdownText, headline, isSafeLink, verdictCounts } from './a11y-baseline.mjs';
+import { escapeMarkdownText, findingsByRule, headline, isSafeLink, verdictCounts } from './a11y-baseline.mjs';
 
 export const COMMENT_MARKER = '<!-- a11y-axe-report -->';
 // How many findings the comment lists before it points to the report.
 const ROWS_SHOWN = 15;
+// How many rules the chart shows before it points to the report, and how many characters its
+// longest bar takes.
+const RULES_SHOWN = 12;
+const BAR_WIDTH = 20;
 const LABELS = { new: '✖ New', grown: '▲ Grown', improved: '▼ Improved', fixed: '✔ Fixed' };
+// The partial blocks of a text bar, one eighth of a character each.
+const EIGHTHS = ['', '▏', '▎', '▍', '▌', '▋', '▊', '▉'];
+
+/**
+ * A bar drawn with block characters, `value / max` of `width` characters long, to an eighth of a
+ * character. A comment cannot hold a picture GitHub fetches without a login or a script, and a
+ * Mermaid chart renders in a frame a screen reader cannot read; text bars render everywhere,
+ * notification emails included. The number in the column before the bar carries the value, and
+ * the bar sits in a column of its own (`Chart`) that a screen reader can skip: GitHub strips
+ * `aria-hidden` from comment HTML, so the bar cannot be hidden from one.
+ *
+ * @param {number} value The value.
+ * @param {number} max The value the longest bar stands for.
+ * @param {number} [width] The longest bar, in characters.
+ * @returns {string} The bar; at least one eighth for any value above zero.
+ */
+export function textBar(value, max, width = BAR_WIDTH) {
+  if (!(value > 0) || !(max > 0)) {
+    return '';
+  }
+
+  const eighths = Math.max(1, Math.round((Math.min(value, max) / max) * width * 8));
+
+  return `${'█'.repeat(Math.floor(eighths / 8))}${EIGHTHS[eighths % 8]}`;
+}
+
+/**
+ * The findings-by-rule chart: one row per rule with its findings as a bar, its elements and what
+ * of it needs action, the way the HTML report's overview draws it.
+ *
+ * @param {object} comparison The reporter's comparison.
+ * @param {(value: string) => string} text The escaping every value goes through.
+ * @returns {string[]} Markdown lines, none when the run found nothing.
+ */
+function renderRuleChart(comparison, text) {
+  const rules = findingsByRule(comparison);
+
+  if (rules.length === 0) {
+    return [];
+  }
+
+  const lines = [
+    '', '#### Findings by rule', '',
+    'A finding is one rule on one kind of element, on one page and theme.', '',
+    '| Rule | Findings | Chart | Elements | Needs action |', '|---|--:|---|--:|---|',
+  ];
+
+  for (const row of rules.slice(0, RULES_SHOWN)) {
+    const action = [
+      row.new ? `✖ ${row.new} new` : '',
+      row.grown ? `▲ ${row.grown} grown` : '',
+      row.improved ? `▼ ${row.improved} improved` : '',
+    ].filter(Boolean).join(', ');
+
+    lines.push(`| <code>${text(row.rule)}</code> | ${row.findings} | ${textBar(row.findings, rules[0].findings)} `
+      + `| ${row.nodes} | ${action || '–'} |`);
+  }
+  if (rules.length > RULES_SHOWN) {
+    lines.push('', `…and ${rules.length - RULES_SHOWN} more rules in the report.`);
+  }
+
+  return lines;
+}
 
 /**
  * Breaks anything shaped like a task id (`DEV-1234`) with a non-breaking hyphen, which reads the
@@ -93,6 +161,7 @@ export function renderComment(comparison, { reportUrl, runUrl, checkUrl } = {}) 
       lines.push('', `…and ${rows.length - ROWS_SHOWN} more in the report.`);
     }
   }
+  lines.push(...renderRuleChart(comparison, text));
 
   const footer = [
     isSafeLink(runUrl) ? `[Workflow run](${runUrl})` : '',

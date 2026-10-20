@@ -12,6 +12,7 @@ import {
   engineVersionNote,
   entryKey,
   escapeMarkdownText,
+  findingsByRule,
   findingsFromScan,
   headline,
   marksForScan,
@@ -22,6 +23,7 @@ import {
   validateBaseline,
   verdictCounts,
   wcagCriteria,
+  workflowCommand,
 } from '../a11y-baseline.mjs';
 import { A11Y_PAGES, stateSteps } from '../../a11y/pages.mjs';
 
@@ -435,6 +437,11 @@ test('renderAnnotations writes a ::warning per finding that needs action in warn
   assert.ok(warn.every(line => !line.includes('\n')), 'an annotation is one line');
 });
 
+test('workflowCommand escapes the title and the message, so a problem quoting the baseline stays one line', () => {
+  assert.equal(workflowCommand('error', 'A11y axe: tooling', 'entry 3: "note"\n100% wrong, a:b'),
+    '::error title=A11y axe%3A tooling::entry 3: "note"%0A100%25 wrong, a:b');
+});
+
 test('renderAnnotations escapes the characters the workflow-command syntax reads', () => {
   const [line] = renderAnnotations(compare([], [violation({ help: 'Elements must meet\nminimum contrast; see %' })]));
 
@@ -531,4 +538,19 @@ test('the committed baseline is valid against the page list, and every page name
     assert.ok(page.surface && typeof page.surface === 'string', `${page.id}: says which accessible surface it covers`);
     assert.ok(stateSteps(page), `${page.id}: its state "${page.state}" has steps in stateSteps() (a11y/pages.mjs)`);
   }
+});
+
+test('findingsByRule counts every reproduced finding per rule, most first, with what needs action', () => {
+  const verdict = compare([entry(), entry({ theme: 'horizon', nodes: 3 }), entry({ theme: 'classic' })], [
+    violation(), // matched
+    violation({ theme: 'horizon' }), // improved: 1 of 3
+    violation({ theme: 'classic' }), violation({ theme: 'classic' }), // grown: 2 of 1
+    violation({ rule: 'label', target: 'textarea', impact: 'serious' }), // new
+  ]);
+
+  assert.deepEqual(findingsByRule(verdict), [
+    { rule: 'aria-required-children', findings: 3, nodes: 4, impact: 'critical', new: 0, grown: 1, improved: 1 },
+    { rule: 'label', findings: 1, nodes: 1, impact: 'serious', new: 1, grown: 0, improved: 0 },
+  ]);
+  assert.deepEqual(findingsByRule(compare([entry()], [])), [], 'a stale entry is not a reproduced finding');
 });

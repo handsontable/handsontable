@@ -120,7 +120,7 @@ export function stateSteps(page) {
     'context-menu-submenu': `${select}, press Shift+F10, ArrowDown to "Alignment", then ArrowRight`,
     'dropdown-menu': `${select}, then press Shift+Alt+ArrowDown`,
     editor: `${select}, then press Enter`,
-    comment: `show the comment at cell (${row}, ${col}) (hot.getPlugin('comments').showAtCell(${row}, ${col}))`,
+    comment: `${select}, then press Ctrl+Alt+M`,
     'data-provider': 'release the parked first fetch (window.htServer.release(\'ORD\'))',
   }[page.state];
 }

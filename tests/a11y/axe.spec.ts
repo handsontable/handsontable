@@ -17,9 +17,10 @@ import { A11Y_PAGES, type A11yPage, type A11yState } from './pages.mjs';
 /**
  * The axe scan: every page of `pages.mjs` on every theme, through `@axe-core/playwright`,
  * against the WCAG 2.2 A and AA rule set (the level the published Accessibility Conformance
- * Report claims). The scan includes the grid's root container and its portal (`.ht-portal`,
- * where menus and the comment editor render) and nothing else on the fixture page: the
- * fixture's own buttons and text are not the product.
+ * Report claims). The scan includes the grid's root container and that grid's own portal (its
+ * `rootPortalElement`, where menus and the comment editor render) and nothing else on the fixture
+ * page: the fixture's own buttons and text, and any other grid on it, are not under test. A page
+ * that throws, or whose theme stylesheet did not load, is a red test before anything is scanned.
  *
  * A test here never fails on a violation. It writes the raw axe result to
  * `test-results/a11y/scans/<page>--<theme>.json` (the CI artifact) and attaches it. Every
@@ -39,7 +40,15 @@ import { A11Y_PAGES, type A11yPage, type A11yState } from './pages.mjs';
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const DEFAULT_ROOT = '[data-testid="grid"]';
 const DEFAULT_CELL: [number, number] = [1, 1];
-const PORTAL = '.ht-portal';
+// The scanned grid's own portal, marked before the scan (`markPortal()`). Every instance appends a
+// `.ht-portal` to `body`, so on a page with several grids the class alone would scan the portals of
+// the grids that are not under test too, and their findings would be keyed to this page.
+const PORTAL_MARK = 'data-a11y-scan-portal';
+const PORTAL = `[${PORTAL_MARK}]`;
+// A token every theme stylesheet defines (`--ht-line-height`, which the core also probes): an empty
+// value on the grid means the theme's `.min.css` did not load, and contrast and target size would
+// then be measured on an unstyled grid.
+const THEME_TOKEN = '--ht-line-height';
 // How many ArrowDown presses may be needed to reach a menu item; the default context menu has
 // fewer than twenty rows, separators included.
 const MENU_WALK_LIMIT = 30;
@@ -74,7 +83,7 @@ type GridWindow = Window & {
 type HotInstance = {
   selectCell(row: number, col: number): boolean;
   getActiveEditor(): { isOpened(): boolean; htEditor?: { countRenderedRows(): number } } | undefined;
-  getPlugin(name: string): { showAtCell(row: number, col: number): void };
+  rootPortalElement: HTMLElement;
 };
 type RootWrapper = HTMLElement & { __hotInstance?: HotInstance };
 
@@ -167,12 +176,11 @@ const STATES: Record<A11yState, (page: Page, entry: A11yPage, root: string, cell
     await expectEditorOpen(page, root);
   },
   comment: async(page, _entry, root, cell) => {
-    await page.evaluate(([selector, [row, col]]) => {
-      const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
-
-      hot?.getPlugin('comments').showAtCell(row, col);
-    }, [root, cell] as const);
-    await expect(page.locator('.htComments .htCommentTextArea')).toBeVisible();
+    // Ctrl+Alt+M on the grid context shows the comment editor and focuses it, which is the state a
+    // keyboard user reaches; `showAtCell()` would only show it.
+    await selectCell(page, root, cell);
+    await page.keyboard.press('Control+Alt+M');
+    await expect(page.locator('.htComments .htCommentTextArea')).toBeFocused();
   },
   'data-provider': async(page, _entry, root) => {
     // The fixture parks every fetch until the test releases it; the grid is empty with the
@@ -190,9 +198,21 @@ for (const theme of A11Y_THEMES) {
       const url = `/tests/fixtures/demo/${entry.fixture}?theme=${theme}${entry.query ? `&${entry.query}` : ''}`;
       const started = Date.now();
 
+      // Any uncaught error on the page is a red test, not a scan of a half-built grid: about half the
+      // fixtures report no constructor error of their own (`htBuildError`, `data-init-error`), and a
+      // plugin that throws after the root wrapper is in the DOM leaves a page that still looks ready.
+      const pageErrors: string[] = [];
+
+      page.on('pageerror', error => pageErrors.push(String(error.stack ?? error)));
       await page.goto(url);
       await awaitBundle(page);
       await expect(page.locator(root).locator('.ht-root-wrapper')).toBeVisible();
+      expect(await page.evaluate(([selector, token]) => {
+        const wrapper = document.querySelector(selector)?.querySelector('.ht-root-wrapper');
+
+        return wrapper ? getComputedStyle(wrapper).getPropertyValue(token).trim() : '';
+      }, [root, THEME_TOKEN] as const), `the ${theme} theme stylesheet styles the grid (${THEME_TOKEN} is set); `
+        + 'build it with `npm --prefix handsontable run build:themes-css.min`').not.toBe('');
 
       // A constructor throw is a red test with its cause, never a scan of a blank container:
       // the fixtures report it either way, as the contract in tests/AGENTS.md says.
@@ -202,6 +222,8 @@ for (const theme of A11Y_THEMES) {
       expect(buildError, 'the fixture built its grid').toBeNull();
 
       await STATES[entry.state](page, entry, root, cell);
+      expect(pageErrors, 'the page threw no error while it loaded and while the state was reached').toEqual([]);
+      await markPortal(page, root);
 
       // `options()` replaces the option object and `withTags()` adds to it, so the options go first.
       // `ancestry` adds each node's full DOM path, which locates it where axe's short selector is ambiguous.
@@ -299,7 +321,7 @@ async function measureNodes(page: Page, violations: Array<{ nodes: Array<{ targe
  * @returns The clip, in page coordinates.
  */
 async function outlineMarks(page: Page, marks: ScanMark[], root: string): Promise<NodeBox> {
-  return page.evaluate(([list, colors, rootSelector]) => {
+  return page.evaluate(([list, colors, rootSelector, portalSelector]) => {
     const layer = document.createElement('div');
 
     layer.setAttribute('aria-hidden', 'true');
@@ -334,7 +356,7 @@ async function outlineMarks(page: Page, marks: ScanMark[], root: string): Promis
     // what they draw, so the crop follows them.
     const rootNode = document.querySelector(rootSelector);
     const drawn = rootNode ? [...rootNode.querySelectorAll('.htCore, .ht-slot-top > *, .ht-slot-bottom > *, .ht-overlay > *')] : [];
-    const areas = [...(drawn.length > 0 ? drawn : [rootNode]), ...document.querySelectorAll('.ht-portal > *'), ...layer.children]
+    const areas = [...(drawn.length > 0 ? drawn : [rootNode]), ...document.querySelectorAll(`${portalSelector} > *`), ...layer.children]
       .filter((node): node is Element => !!node)
       .map(node => node.getBoundingClientRect())
       .filter(rect => rect.width > 0 && rect.height > 0)
@@ -347,5 +369,24 @@ async function outlineMarks(page: Page, marks: ScanMark[], root: string): Promis
     const bottom = Math.min(document.documentElement.scrollHeight, Math.max(...areas.map(area => area.bottom)) + margin);
 
     return { x: Math.round(left), y: Math.round(top), width: Math.max(1, Math.round(right - left)), height: Math.max(1, Math.round(bottom - top)) };
-  }, [marks, MARK_COLORS, root] as const);
+  }, [marks, MARK_COLORS, root, PORTAL] as const);
+}
+
+/**
+ * Marks the scanned grid's own portal (`rootPortalElement`), so the scan includes it and no other
+ * grid's portal.
+ *
+ * @param page The page.
+ * @param root The root container selector.
+ */
+async function markPortal(page: Page, root: string): Promise<void> {
+  const marked = await page.evaluate(([selector, attribute]) => {
+    const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
+
+    hot?.rootPortalElement?.setAttribute(attribute, '');
+
+    return !!hot?.rootPortalElement;
+  }, [root, PORTAL_MARK] as const);
+
+  expect(marked, `the grid under ${root} has a portal to scan`).toBe(true);
 }

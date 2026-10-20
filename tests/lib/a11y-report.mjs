@@ -18,7 +18,7 @@
  * It is an accessibility report, so it is accessible itself: headings in order,
  * header cells, every status an icon and a word as well as a color.
  */
-import { entryKey, headline, isSafeLink, selectorText, verdictCounts } from './a11y-baseline.mjs';
+import { entryKey, findingsByRule, headline, isSafeLink, selectorText, verdictCounts } from './a11y-baseline.mjs';
 import { fixtureUrl, stateSteps } from '../a11y/pages.mjs';
 
 const THEMES = ['main', 'horizon', 'classic'];
@@ -396,17 +396,7 @@ function renderEntryTable({ issueTitle, pages, pageOf }, items, status, title) {
  */
 function renderOverview({ verdict, scans, pages, pageOf }) {
   const found = [...verdict.newViolations, ...verdict.grown, ...verdict.matched, ...verdict.improved];
-  const byRule = new Map();
-
-  for (const item of found) {
-    const row = byRule.get(item.rule) ?? { findings: 0, nodes: 0, impact: item.impact };
-
-    row.findings += 1;
-    row.nodes += item.nodes;
-    byRule.set(item.rule, row);
-  }
-
-  const rules = [...byRule].sort((a, b) => b[1].findings - a[1].findings || a[0].localeCompare(b[0]));
+  const rules = findingsByRule(verdict).map(row => [row.rule, row]);
   const maxRule = Math.max(1, ...rules.map(([, row]) => row.findings));
   const bars = rules.map(([rule, row]) => `<li title="${escapeHtml(`${rule}: ${row.findings} findings on ${row.nodes} elements (${row.impact ?? 'unknown'} impact)`)}">
     <span class="bar-label"><code>${escapeHtml(rule)}</code></span>

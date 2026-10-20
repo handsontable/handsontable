@@ -139,5 +139,8 @@ export function engineVersionNote(input: { engines: string[]; baselineVersion: s
 export function headline(verdict: Verdict): string;
 export function renderSummary(verdict: Verdict, context?: { reportUrl?: string }): string;
 export function renderAnnotations(verdict: Verdict): string[];
+export interface RuleCount { rule: string; findings: number; nodes: number; impact: string | null; new: number; grown: number; improved: number }
+export function findingsByRule(verdict: Verdict): RuleCount[];
+export function workflowCommand(level: 'error' | 'warning' | 'notice', title: string, message: string): string;
 export function escapeMarkdownText(value: unknown): string;
 export function isSafeLink(url: unknown): boolean;

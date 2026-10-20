@@ -945,12 +945,23 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
 `build:styles.min` and `build:themes-css.min` (an unstyled grid gives wrong contrast results;
 `README.md`).
 
-- **The scan includes the grid's root container and its portal, nothing else.** `.include(root)`
-  plus `.include('.ht-portal')`, where the portal is the `body`-level element the core appends
-  for menus and the comment editor (`rootPortalElement`). The fixture page's own buttons, inputs
+- **The scan includes the grid's root container and that grid's own portal, nothing else.**
+  `.include(root)` plus the instance's `rootPortalElement`, the `body`-level element the core
+  appends for menus and the comment editor. The spec marks that element with a data attribute
+  before the scan (`markPortal()`) and includes the attribute, never the `.ht-portal` class:
+  every instance appends a portal, so on a page with several grids the class would scan the other
+  grids' menus too and key their findings to this page. The fixture page's own buttons, inputs
   and headings are not the product, and a finding on them would be baselined forever. A page
   whose fixture holds several grids names its `root` (`nested-headers`, `read-only`); the default
   is `[data-testid="grid"]`.
+- **A page that is not fully built is a red test, never a scan.** Three checks run before the
+  state is reached and the scan starts: an uncaught page error (`pageerror`, collected from before
+  `goto()` until the state is reached), because about half the fixtures report no constructor
+  error of their own and a plugin that throws after the root wrapper exists leaves a page that
+  looks ready; the fixture's own constructor error (`htBuildError`, `data-init-error`); and the
+  theme stylesheet, read as the `--ht-line-height` token on the root wrapper, because a missing
+  theme `.min.css` gives an unstyled grid whose contrast and target-size results are wrong
+  without anything failing.
 - **WCAG 2.2 A and AA, violations only.** The rule set is the tags `wcag2a`, `wcag2aa`, `wcag21a`,
   `wcag21aa` and `wcag22aa`, the level the published conformance report claims
   (`docs/content/guides/accessibility/accessibility-conformance-report/`); best-practice rules are
@@ -969,11 +980,11 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
   config's `testDir` (`a11y/`), one level below the package. It reads screenshots from the spec's
   `scans/` folder, never from beside an attachment: Playwright copies an attached file into its
   own attachments folder.
-- **Every opener drives the keyboard where the surface has a shortcut.** Shift+F10 for the
-  context menu, Shift+Alt+ArrowDown for the dropdown menu, Enter for an editor, ArrowDown and
-  ArrowRight to reach a submenu, after `selectCell()` through the API so the keys reach the grid;
-  the comment editor opens through `showAtCell()`, and the data-provider page releases its parked
-  fetch, because neither has a shortcut. The scanned DOM is the one a keyboard user reaches,
+- **Every opener drives the keyboard.** Shift+F10 for the context menu, Shift+Alt+ArrowDown for
+  the dropdown menu, Enter for an editor, Ctrl+Alt+M for the comment editor (which also focuses
+  it; `showAtCell()` would only show it), ArrowDown and ArrowRight to reach a submenu, after
+  `selectCell()` through the API so the keys reach the grid; only the data-provider page, which
+  has no surface to open, releases its parked fetch instead. The scanned DOM is the one a keyboard user reaches,
   which is what the menu findings are about. The instance is read inside the page through the
   `__hotInstance` the core stamps on `.ht-root-wrapper`, so no page says which global holds its
   grid, and the lookup is spelled out inside each `evaluate` (Playwright serializes the callback's
@@ -1106,9 +1117,13 @@ The reporter writes four outputs into `test-results/a11y/`, and CI publishes eac
   jQuery and Bootstrap from public CDNs, could not show screenshots, and listed known and new
   findings alike.
 - **The sticky pull request comment** (`lib/a11y-pr-comment.mjs`, posted by
-  `scripts/a11y-pr-comment.mjs`): the headline, what needs action (up to fifteen rows), and the
-  links to the report, the run and the check run, never a screenshot (an artifact needs a login,
-  and GitHub fetches comment images without one). It is posted only when something needs action
+  `scripts/a11y-pr-comment.mjs`): the headline, what needs action (up to fifteen rows), the
+  findings by rule as a chart, and the links to the report, the run and the check run, never a
+  screenshot (an artifact needs a login, and GitHub fetches comment images without one). The
+  chart is a table of text bars (`textBar()`, block characters to an eighth), counted by
+  `findingsByRule()` like the HTML report's overview: a comment holds no script and no image it
+  can fetch, a Mermaid chart renders in a frame a screen reader cannot read, and GitHub strips
+  `aria-hidden`, so the bars sit in their own `Chart` column beside the numbers. It is posted only when something needs action
   or the tooling failed, and edited in place on every later run, so a fixed pull request shows a
   clean comment and a clean one gets none. It finds its old comment by `COMMENT_MARKER` and the
   Actions bot as the author.
@@ -1147,3 +1162,13 @@ entry never changes the status. The flip comes after a replay of the comparator 
 requests shows it reports what changed and nothing else (precise before blocking); it changes the
 constant, the pinned test and this section together. Both modes are covered by the tooling tests,
 so the flip needs no new test.
+
+The exit status itself is proven end to end by `e2e/a11y-reporter.spec.ts` (no browser, about
+four seconds), the way `e2e/quarantine-policy.spec.ts` proves the quarantine reporter's: each case
+runs a synthetic Playwright project whose tests attach hand-written scans, with the reporter's two
+test-only options, `baseline` (a path) and `mode`, which `playwright.a11y.config.ts` never passes.
+A new finding in warn mode exits 0; a failed test, a run with no scan and a baseline that does not
+validate exit 1; block mode exits 1 on a new finding and 0 when every finding is known; and a
+tooling problem prints as one escaped annotation. Every workflow command the a11y job prints goes
+through `workflowCommand()` in `lib/a11y-baseline.mjs`: a problem quotes the baseline, and an
+unescaped newline or `%` would cut the one line that explains a red job.

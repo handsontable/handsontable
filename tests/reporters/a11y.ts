@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import type { FullConfig, FullResult, Reporter, Suite, TestError } from '@playwright/test/reporter';
 import {
   A11Y_MODE,
+  A11Y_MODES,
   BASELINE_FILE,
   compareViolations,
   engineVersionNote,
@@ -11,6 +12,8 @@ import {
   renderAnnotations,
   renderSummary,
   validateBaseline,
+  workflowCommand,
+  type A11yMode,
   type BaselineDocument,
   type ScanLike,
 } from '../lib/a11y-baseline.mjs';
@@ -45,6 +48,15 @@ import { A11Y_PAGES } from '../a11y/pages.mjs';
 export default class A11yReporter implements Reporter {
   #suite: Suite | undefined;
 
+  // `baseline` and `mode` exist for `e2e/a11y-reporter.spec.ts`, which proves the exit status on
+  // synthetic projects; `playwright.a11y.config.ts` passes neither, so CI reads the committed
+  // baseline and `A11Y_MODE`.
+  #baselinePath: string;
+
+  #mode: A11yMode;
+
+  #optionProblem: string | null = null;
+
   // The package root (`tests/`), where the baseline lives: `config.rootDir` is the a11y
   // config's `testDir`, one level down.
   #packageDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -52,6 +64,18 @@ export default class A11yReporter implements Reporter {
   #outputDir = '';
 
   #hadErrors = false;
+
+  constructor(options: { baseline?: string; mode?: string } = {}) {
+    this.#baselinePath = options.baseline ?? path.join(this.#packageDir, BASELINE_FILE);
+    this.#mode = A11Y_MODE;
+    if (options.mode !== undefined) {
+      if ((A11Y_MODES as readonly string[]).includes(options.mode)) {
+        this.#mode = options.mode as A11yMode;
+      } else {
+        this.#optionProblem = `the reporter's mode option ${JSON.stringify(options.mode)} is not one of ${A11Y_MODES.join(', ')}`;
+      }
+    }
+  }
 
   onBegin(config: FullConfig, suite: Suite): void {
     this.#suite = suite;
@@ -63,12 +87,14 @@ export default class A11yReporter implements Reporter {
   }
 
   async onEnd(result: FullResult): Promise<{ status?: FullResult['status'] }> {
-    const problems: string[] = [];
-    const baseline = readJson<BaselineDocument>(path.join(this.#packageDir, BASELINE_FILE), problems);
+    const problems: string[] = this.#optionProblem ? [this.#optionProblem] : [];
+    const baseline = readJson<BaselineDocument>(this.#baselinePath, problems);
     const pages = A11Y_PAGES.map(page => page.id);
 
     if (baseline) {
-      problems.push(...validateBaseline(baseline, { pages }).map(problem => `tests/${BASELINE_FILE}: ${problem}`));
+      const label = path.relative(path.dirname(this.#packageDir), this.#baselinePath);
+
+      problems.push(...validateBaseline(baseline, { pages }).map(problem => `${label}: ${problem}`));
     }
 
     const scans: Scan[] = [];
@@ -99,7 +125,7 @@ export default class A11yReporter implements Reporter {
       issues: baseline?.issues ?? [],
       violations: scans.flatMap(scan => findingsFromScan(scan)),
       scanned: scans.map(({ page, theme }) => ({ page, theme })),
-      mode: A11Y_MODE,
+      mode: this.#mode,
     });
     const summary = [
       renderSummary(verdict),
@@ -129,10 +155,10 @@ export default class A11yReporter implements Reporter {
         process.stdout.write(`${line}\n`);
       }
       for (const note of notes) {
-        process.stdout.write(`::warning title=A11y axe%3A engine version::${note}\n`);
+        process.stdout.write(`${workflowCommand('warning', 'A11y axe: engine version', note)}\n`);
       }
       for (const problem of problems) {
-        process.stdout.write(`::error title=A11y axe%3A tooling::${problem}\n`);
+        process.stdout.write(`${workflowCommand('error', 'A11y axe: tooling', problem)}\n`);
       }
       if (process.env.GITHUB_STEP_SUMMARY) {
         appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${summary}\n`);

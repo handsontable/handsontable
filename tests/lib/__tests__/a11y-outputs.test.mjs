@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { compareViolations } from '../a11y-baseline.mjs';
 import { FINDINGS_SCHEMA, agentFindings } from '../a11y-findings.mjs';
-import { COMMENT_MARKER, neutralizeTaskIds, renderComment, shouldComment } from '../a11y-pr-comment.mjs';
+import { COMMENT_MARKER, neutralizeTaskIds, renderComment, shouldComment, textBar } from '../a11y-pr-comment.mjs';
 
 const PAGES = [
   { id: 'grid', fixture: 'grid.html', state: 'none' },
@@ -99,4 +99,41 @@ test('no task id can reach the comment, wherever it comes from', () => {
   const body = renderComment({ ...verdictOf([], [finding({ help: 'Fixed in DEV-1234', target: 'td.SU-99' })]), problems: ['IT-555 broke'] });
 
   assert.doesNotMatch(body, /\b[A-Z][A-Z0-9]*-\d+\b/, 'the ClickUp integration attaches every task id in a pull request comment');
+});
+
+test('a text bar is its share of the longest one, to an eighth of a character, and never empty above zero', () => {
+  assert.equal(textBar(10, 10), '█'.repeat(20));
+  assert.equal(textBar(5, 10), '█'.repeat(10));
+  assert.equal(textBar(3, 8, 4), '█▌');
+  assert.equal(textBar(1, 1000), '▏', 'a value above zero always shows');
+  assert.equal(textBar(0, 10), '');
+  assert.equal(textBar(20, 10), '█'.repeat(20), 'a bar never outgrows the chart');
+});
+
+test('the comment charts the findings by rule, with what needs action, in a clean run too', () => {
+  const comparison = { ...verdictOf([entry(), entry({ theme: 'horizon' })], [
+    finding(), finding({ theme: 'horizon' }), finding({ theme: 'horizon', selector: ['#ht_2'] }),
+    finding({ page: 'context-menu', rule: 'label', target: 'textarea.handsontableInput' }),
+  ]), problems: [] };
+  const body = renderComment(comparison);
+  const chart = body.slice(body.indexOf('#### Findings by rule'));
+
+  assert.ok(body.indexOf('| ✖ New |') < body.indexOf('#### Findings by rule'), 'what needs action comes first');
+  assert.match(chart, /\| Rule \| Findings \| Chart \| Elements \| Needs action \|\n\|---\|--:\|---\|--:\|---\|/);
+  assert.match(chart, new RegExp(`\\| <code>aria-required-children</code> \\| 2 \\| ${'█'.repeat(20)} \\| 3 \\| ▲ 1 grown \\|`));
+  assert.match(chart, new RegExp(`\\| <code>label</code> \\| 1 \\| ${'█'.repeat(10)} \\| 1 \\| ✖ 1 new \\|`));
+
+  const clean = renderComment({ ...verdictOf([entry()], [finding()]), problems: [] });
+
+  assert.match(clean, /<code>aria-required-children<\/code> \| 1 \| █+ \| 1 \| – \|/);
+  assert.doesNotMatch(renderComment({ ...verdictOf([], []), problems: ['broken'] }), /Findings by rule/, 'no chart without a finding');
+});
+
+test('the chart shows twelve rules and points to the report for the rest', () => {
+  const many = Array.from({ length: 14 }, (_, index) => finding({ rule: `rule-${String(index).padStart(2, '0')}`, target: 'td' }));
+  const body = renderComment({ ...verdictOf([], many), problems: [] });
+  const chart = body.slice(body.indexOf('#### Findings by rule'));
+
+  assert.equal((chart.match(/^\| <code>rule-/gm) ?? []).length, 12);
+  assert.match(chart, /…and 2 more rules in the report\./);
 });

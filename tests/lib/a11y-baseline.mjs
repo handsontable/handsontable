@@ -225,6 +225,35 @@ export function findingsFromScan(scan) {
 }
 
 /**
+ * The run's findings counted by rule, for the charts of the HTML report and the pull request
+ * comment: every finding the run reproduced (new, grown, matched, improved), its elements, and how
+ * many of them need action. Most findings first, then by rule id.
+ *
+ * @param {object} verdict What `compareViolations()` returned.
+ * @returns {Array<{rule: string, findings: number, nodes: number, impact: string|null, new: number, grown: number, improved: number}>} One row per rule.
+ */
+export function findingsByRule(verdict) {
+  const rows = new Map();
+  const add = (status, item) => {
+    const row = rows.get(item.rule) ?? { rule: item.rule, findings: 0, nodes: 0, impact: item.impact ?? null, new: 0, grown: 0, improved: 0 };
+
+    row.findings += 1;
+    row.nodes += item.nodes;
+    if (status) {
+      row[status] += 1;
+    }
+    rows.set(item.rule, row);
+  };
+
+  verdict.newViolations.forEach(item => add('new', item));
+  verdict.grown.forEach(item => add('grown', item));
+  verdict.matched.forEach(item => add(null, item));
+  verdict.improved.forEach(item => add('improved', item));
+
+  return [...rows.values()].sort((a, b) => b.findings - a.findings || a.rule.localeCompare(b.rule));
+}
+
+/**
  * The scan each known issue is pictured on in the HTML report: its first entry on the main
  * theme, or its first entry when it has none there, in baseline order.
  *
@@ -747,7 +776,7 @@ export function renderSummary(verdict, { reportUrl } = {}) {
  */
 export function renderAnnotations(verdict) {
   const level = verdict.mode === 'block' ? 'error' : 'warning';
-  const command = (title, message) => `::${level} title=${escapeProperty(title)}::${escapeData(message)}`;
+  const command = (title, message) => workflowCommand(level, title, message);
   const where = item => `${item.page} / ${item.theme}: ${item.rule} at ${item.target}`;
 
   return [
@@ -842,6 +871,21 @@ function helpCell(item) {
  */
 function row(values) {
   return values.map(escapeMarkdownText).join(' | ');
+}
+
+/**
+ * One GitHub Actions workflow command (an annotation), with its title and message escaped the way
+ * the syntax reads them. Every annotation the a11y job prints goes through here, the reporter's
+ * notes and tooling problems included: a problem can quote a baseline entry, and an unescaped
+ * newline or `%` in it would cut the one line that explains a red job.
+ *
+ * @param {'error'|'warning'|'notice'} level The annotation level.
+ * @param {string} title The title.
+ * @param {string} message The message.
+ * @returns {string} The command, one line.
+ */
+export function workflowCommand(level, title, message) {
+  return `::${level} title=${escapeProperty(title)}::${escapeData(message)}`;
 }
 
 /**
