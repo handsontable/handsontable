@@ -2804,8 +2804,8 @@ export class Filters extends BasePlugin {
     // A data provider filters server-side and the list is hidden anyway, so re-running the
     // conditions locally would filter data that is already filtered.
     if (stackPosition === -1 || this.#isDataProviderActive()) {
-      // `getDataAtCol()` reads one `null` from a grid with no source rows, which is not a value to list.
-      const visibleValues = this.hot.countSourceRows() === 0 ? [] : this.hot.getDataAtCol(column);
+      // `getDataAtCol()` reads one `null` from a grid with no rows, which is not a value to list.
+      const visibleValues = this.hot.countRows() === 0 ? [] : this.hot.getDataAtCol(column);
       // The SAME physical set the has-conditions branch below uses, translated per row rather than
       // dropped by position. Two different ways of deciding "pinned" made the two branches disagree
       // whenever another plugin trimmed a row, so a column's value list changed the moment it got a

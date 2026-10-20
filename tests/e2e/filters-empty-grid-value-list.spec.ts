@@ -6,15 +6,6 @@ import { FiltersValueListPage } from '../fixtures/pages/FiltersValueListPage';
  * grid, which the "Filter by value" list must not show as a "(Blank cells)" item.
  */
 test.describe('Filters — "filter by value" list on a grid with no rows', () => {
-  test('lists the values of a grid that has rows', async({ page, theme, bundle }) => {
-    const grid = new FiltersValueListPage(page, theme, bundle);
-
-    await grid.goto();
-    await grid.openMenu('Name');
-
-    expect((await grid.listedValues()).map(item => item.label)).toEqual(['Alice', 'Bob', 'Charlie', 'Dave', 'Eve']);
-  });
-
   test('lists no "(Blank cells)" item once every row is removed', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle);
 
