@@ -84,6 +84,19 @@ export class DatetimePage {
     }, [row, col, value]);
   }
 
+  /**
+   * Open a cell's editor, set the native input's raw value, and commit. Use it for values
+   * `fill()` rejects as malformed, such as a year below 1000.
+   */
+  async editCellRaw(row: number, col: number, isoValue: string): Promise<void> {
+    await this.openEditor(row, col);
+    await this.editorInput.evaluate((input: HTMLInputElement, value: string) => {
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }, isoValue);
+    await this.editorInput.press('Enter');
+  }
+
   /** A column header cell (scoped to the top overlay clone, where headers live). */
   columnHeader(caption: string): Locator {
     return this.page.locator('.ht_clone_top thead th', { hasText: caption });

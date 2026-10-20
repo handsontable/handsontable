@@ -51,10 +51,15 @@ test.describe('intl-datetime cell type', () => {
   });
 
   test('renders and sorts a year below 100 as that year, not as 19xx', async () => {
-    await datetimeGrid.setSourceValue(2, 1, '0050-03-12T10:00:00');
+    await datetimeGrid.stubNativePicker();
+    await datetimeGrid.editCellRaw(2, 1, '0050-03-12T10:00:00');
     await datetimeGrid.setSourceValue(3, 1, '1920-01-01T00:00:00');
 
     await expect(datetimeGrid.cell(2, 1)).toHaveText('03/12/50, 10:00:00');
+
+    await datetimeGrid.openEditor(2, 1);
+    await expect(datetimeGrid.editorInput).toHaveValue('0050-03-12T10:00');
+    await datetimeGrid.editorInput.press('Escape');
 
     await datetimeGrid.sortByColumn('Start');
 
