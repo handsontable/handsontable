@@ -210,10 +210,14 @@ class ExportDataProvider {
    * containing HyperFormula formulas return the raw formula string (e.g. `'=SUM(A1:A3)'`)
    * rather than the calculated value.
    *
+   * The matrix is walked by visual index, while `getSourceDataAtCell` takes a physical row (and a
+   * visual column), so the row is translated first. Without it, a sorted, moved, trimmed or
+   * filtered grid paired a cell with another record's formula.
+   *
    * @returns {Array}
    */
   getSourceData() {
-    return this._extractDataMatrix((row, col) => this.hot.getSourceDataAtCell(row, col));
+    return this._extractDataMatrix((row, col) => this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(row), col));
   }
 
   /**
@@ -244,26 +248,44 @@ class ExportDataProvider {
   }
 
   /**
-   * Returns the set of physical HOT row indices that are hidden and excluded from the
-   * exported data matrix (i.e. `exportHiddenRows` is `false` and the row is hidden).
+   * Returns the rows the exported data matrix leaves out, as the row indexes the formulas'
+   * references use, so the formula normalizer can shift every reference below them up.
    *
-   * Returns an empty set when `exportHiddenRows` is `true` or `'hide'`, because in
-   * those cases all rows are included in the data matrix and no formula-offset
-   * adjustment is needed.
-   *
-   * Used by the formula normalizer to adjust per-reference row offsets when building
-   * live Excel formulas from HyperFormula formula strings.
+   * With the Formulas plugin on, a reference names an engine row, and the engine keeps every row,
+   * in the grid's order, trimmed and filtered-out ones included. The set then holds the engine
+   * index of every row with no visual index (trimmed or filtered out, which the syncer answers with
+   * `-1`), plus the hidden rows when
+   * `exportHiddenRows` is `false`. Without the plugin, a formula is the text the user typed, so
+   * only the hidden rows are left out, by physical index.
    *
    * @returns {Set<number>}
    */
   getExcludedHiddenRows(): Set<number> {
     const result = new Set<number>();
+    const excludeHidden = this.options.exportHiddenRows === false;
+    const rowAxisSyncer = this.#getEngineRowAxisSyncer();
 
-    if (this.options.exportHiddenRows !== false) {
+    const { startRow, endRow } = this._getDataRange();
+    const isExcludedHidden = (visualRow: number) => excludeHidden && visualRow >= startRow && visualRow <= endRow
+      && this._isHiddenRow(visualRow);
+
+    if (rowAxisSyncer) {
+      const engineRows = this.hot.rowIndexMapper.getNumberOfIndexes();
+
+      for (let hfRow = 0; hfRow < engineRows; hfRow++) {
+        const visualRow = rowAxisSyncer.getVisualIndexFromHfIndex(hfRow);
+
+        if (visualRow < 0 || isExcludedHidden(visualRow)) {
+          result.add(hfRow);
+        }
+      }
+
       return result;
     }
 
-    const { startRow, endRow } = this._getDataRange();
+    if (!excludeHidden) {
+      return result;
+    }
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
       if (this._isHiddenRow(rowIndex)) {
@@ -272,6 +294,21 @@ class ExportDataProvider {
     }
 
     return result;
+  }
+
+  /**
+   * Returns the Formulas plugin's row axis syncer when the plugin is on, or `null`.
+   *
+   * @returns {object|null}
+   */
+  #getEngineRowAxisSyncer(): { getVisualIndexFromHfIndex(hfIndex: number): number } | null {
+    const formulasPlugin = this.hot.getPlugin('formulas');
+
+    if (!formulasPlugin?.isEnabled() || !formulasPlugin.engine) {
+      return null;
+    }
+
+    return formulasPlugin.rowAxisSyncer ?? null;
   }
 
   /**
