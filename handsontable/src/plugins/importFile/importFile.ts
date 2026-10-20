@@ -544,6 +544,18 @@ export class ImportFile extends BasePlugin {
   #disabledAtTicket = 0;
 
   /**
+   * The apply ticket the last `loadData()` took, when the grid loaded data other than an import's own
+   * result (a sheet switch, a host reload). An import whose ticket is lower was still reading then, and
+   * applying it would replace the data that was loaded in its place, on another sheet with a sheets bar.
+   */
+  #dataReplacedAtTicket = 0;
+
+  /**
+   * Whether this plugin is loading an import's result, so its own `loadData()` takes no ticket.
+   */
+  #isApplying = false;
+
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -578,6 +590,8 @@ export class ImportFile extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
 
     super.enablePlugin();
   }
@@ -664,7 +678,9 @@ export class ImportFile extends BasePlugin {
    * finishes, this one is not applied and the returned promise rejects: the import started last
    * wins. An `apply: false` import neither cancels another import nor is cancelled by one. Turning
    * the plugin off (`importFile: false`) while the file is being read rejects the import too, even
-   * when the plugin is turned back on before the read ends.
+   * when the plugin is turned back on before the read ends. So does a {@link Core#loadData} call made
+   * while the file is being read, for example a sheets bar switch: the result is not applied over
+   * the data loaded in the meantime.
    *
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @param {ArrayBuffer|ArrayBufferView} buffer The file's bytes.
@@ -693,7 +709,9 @@ export class ImportFile extends BasePlugin {
    * finishes, this one is not applied and the returned promise rejects: the import started last
    * wins. An `apply: false` import neither cancels another import nor is cancelled by one. Turning
    * the plugin off (`importFile: false`) while the file is being read rejects the import too, even
-   * when the plugin is turned back on before the read ends.
+   * when the plugin is turned back on before the read ends. So does a {@link Core#loadData} call made
+   * while the file is being read, for example a sheets bar switch: the result is not applied over
+   * the data loaded in the meantime.
    *
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @param {Blob} blob The file.
@@ -785,7 +803,14 @@ export class ImportFile extends BasePlugin {
     this.#assertAlive('before the import was applied');
     this.#assertLatest(ticket);
 
-    applyImportResult(this.hot, result, { importLayout: resolved.importLayout });
+    this.#isApplying = true;
+
+    try {
+      applyImportResult(this.hot, result, { importLayout: resolved.importLayout });
+    } finally {
+      this.#isApplying = false;
+    }
+
     this.hot.runHooks('afterImport', result, format);
 
     return result;
@@ -838,8 +863,27 @@ export class ImportFile extends BasePlugin {
         + 'applied.');
     }
 
+    if (ticket < this.#dataReplacedAtTicket) {
+      throwWithCause('ImportFile: the grid\'s data was replaced while the file was being read, so its result was '
+        + 'not applied.');
+    }
+
     throwWithCause('ImportFile: a newer import started before this one finished, so its result was not applied.');
   }
+
+  /**
+   * Takes an apply ticket when the grid loads data that is not an import's own result, so an import still
+   * reading is not applied over it: a sheets bar switch loads another sheet's data, and the result would
+   * land in that sheet.
+   */
+  #onBeforeLoadData = () => {
+    if (this.#isApplying) {
+      return;
+    }
+
+    this.#latestApplyTicket += 1;
+    this.#dataReplacedAtTicket = this.#latestApplyTicket;
+  };
 
   /**
    * Rejects a call whose grid was destroyed across an `await` or by a hook: `BasePlugin#destroy`
