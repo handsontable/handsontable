@@ -150,4 +150,19 @@ test.describe('fill handle double-click', { tag: THEMES_TAG }, () => {
 
     expect([values[1], values[3], values[4], values[5]]).toEqual([5, 5, 5, N]);
   });
+
+  test('steps over a hidden column to the nearest visible guide column', async () => {
+    const N = null;
+
+    // Column B is hidden and full; the visible column A has values in rows 1-3 only.
+    await grid.initGrid({
+      data: [[1, 'x', 5], [2, 'x', N], [3, 'x', N], [N, 'x', N], [N, 'x', N]],
+      hiddenColumns: { columns: [1] },
+    });
+    await grid.selectCells(0, 2, 0, 2);
+    await grid.doubleClickFillHandle();
+
+    expect(await grid.columnValues(2)).toEqual([5, 5, 5, N, N]);
+  });
 });
+

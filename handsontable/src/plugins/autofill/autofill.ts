@@ -655,7 +655,8 @@ export class Autofill extends BasePlugin {
    * column, and at the first visible row where the guide column is empty.
    *
    * Cells are read one at a time, as stored values, so a formula counts as a value even when it
-   * evaluates to an empty string. A guide cell covered by a merged area reads its area's value.
+   * evaluates to an empty string. A guide cell covered by a merged area reads its area's value, and
+   * the guide columns skip columns hidden with `HiddenColumns`, as the walk skips hidden rows.
    *
    * @private
    * @param {Array} cornersOfSelectedCells Indexes of selection corners.
@@ -668,6 +669,20 @@ export class Autofill extends BasePlugin {
     const isStoredValueEmpty = (row: number, column: number) => column < 0 || column >= columnCount ||
       isEmpty(this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(row), column));
     const mergeCells = this.hot.getPlugin('mergeCells');
+    const isColumnHidden = (column: number) => column >= 0 && column < columnCount &&
+      this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(column));
+    let startGuideColumn = startColumn - 1;
+    let endGuideColumn = endColumn + 1;
+
+    // A hidden column keeps its visual index, so step over hidden columns to the nearest visible one.
+    while (isColumnHidden(startGuideColumn)) {
+      startGuideColumn -= 1;
+    }
+
+    while (isColumnHidden(endGuideColumn)) {
+      endGuideColumn += 1;
+    }
+
     const lastRow = getCopyDownEndRow(
       {
         isFilledColumnEmpty: isStoredValueEmpty,
@@ -680,7 +695,7 @@ export class Autofill extends BasePlugin {
         },
         isRowHidden: row => this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)),
       },
-      { endRow, startColumn, endColumn },
+      { endRow, startColumn, endColumn, startGuideColumn, endGuideColumn },
       this.hot.countRows(),
     );
 

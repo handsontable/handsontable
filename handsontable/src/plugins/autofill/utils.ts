@@ -183,23 +183,39 @@ export interface CopyDownCellReaders {
  * Finds the last row a copy-down (a double-click on the fill handle) fills below a selection, the
  * way spreadsheet applications do (DEV-859).
  *
- * The fill follows one guide column: the column to the left of the selection, or the column to its
- * right when the left one is empty in the first visible row below the selection. Walking down from
+ * The fill follows one guide column: the nearest visible column to the left of the selection, or the
+ * nearest visible one to its right when the left one is empty in the first visible row below the
+ * selection. The caller resolves those two columns (a column hidden with `HiddenColumns` keeps its
+ * visual index, so the plain neighbors can be columns the user cannot see). Walking down from
  * the row below the selection, the fill stops above the first row where any selected column already
  * holds a value, so nothing is overwritten, and at the first visible row where the guide column is
  * empty. A hidden row never ends the fill, but a value in it still stops the fill above it.
  *
  * @param {CopyDownCellReaders} readers The cell reads.
- * @param {object} selection The selection's last row and its first and last column, as visual indexes.
+ * @param {object} selection The selection's last row and its first and last column, as visual indexes,
+ * and optionally the guide column candidates on each side (`startGuideColumn`, `endGuideColumn`), which
+ * default to the plain neighbors.
  * @param {number} rowCount The number of rows in the grid.
  * @returns {number|null} The visual index of the last row to fill, or `null` when there is nothing to fill.
  */
 export function getCopyDownEndRow(
   readers: CopyDownCellReaders,
-  selection: { endRow: number; startColumn: number; endColumn: number },
+  selection: {
+    endRow: number;
+    startColumn: number;
+    endColumn: number;
+    startGuideColumn?: number;
+    endGuideColumn?: number;
+  },
   rowCount: number,
 ): number | null {
-  const { endRow, startColumn, endColumn } = selection;
+  const {
+    endRow,
+    startColumn,
+    endColumn,
+    startGuideColumn = startColumn - 1,
+    endGuideColumn = endColumn + 1,
+  } = selection;
   const { isFilledColumnEmpty, isGuideColumnEmpty, isRowHidden } = readers;
   let guideColumn: number | null = null;
   let lastRow: number | null = null;
@@ -216,7 +232,7 @@ export function getCopyDownEndRow(
     }
 
     if (guideColumn === null) {
-      guideColumn = isGuideColumnEmpty(row, startColumn - 1) ? endColumn + 1 : startColumn - 1;
+      guideColumn = isGuideColumnEmpty(row, startGuideColumn) ? endGuideColumn : startGuideColumn;
     }
 
     if (isGuideColumnEmpty(row, guideColumn)) {

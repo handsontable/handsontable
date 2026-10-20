@@ -87,6 +87,10 @@ Four traps, each a regression the first version of the fix shipped:
   the last filled row. A value in a hidden row of the filled column still stops the fill.
 - **The guide column is chosen in the first VISIBLE row below the selection**, so a hidden row there
   cannot pick the wrong side.
+- **The guide candidates are the nearest VISIBLE columns on each side**, resolved by the caller and
+  passed in as `startGuideColumn`/`endGuideColumn`. A column hidden with `HiddenColumns` keeps its
+  visual index, so the plain neighbors (`startColumn - 1`, `endColumn + 1`) can be columns the user
+  cannot see, and the fill would follow their data (review on #13906).
 
 Pinned by `__tests__/utils.unit.ts` and `tests/e2e/fill-handle-double-click.spec.ts`.
 

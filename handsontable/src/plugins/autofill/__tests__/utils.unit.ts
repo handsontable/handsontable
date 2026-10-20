@@ -159,6 +159,16 @@ describe('Autofill utils', () => {
       expect(endRow([[N, 5, 1], [4, N, N], [N, N, 3], [N, N, 4], [N, N, N]], 1, 1, 0, { hiddenRows: [1] })).toBe(3);
     });
 
+    it('should follow the guide columns the caller resolved, so a hidden neighbor can be stepped over', () => {
+      // Column 1 is hidden and full; the caller passes column 0 as the start guide.
+      const grid = [[1, 'h', 5], [2, 'h', N], [3, 'h', N], [N, 'h', N], [N, 'h', N]];
+      const readers = readersFor(grid);
+
+      expect(getCopyDownEndRow(readers, { endRow: 0, startColumn: 2, endColumn: 2, startGuideColumn: 0 }, grid.length))
+        .toBe(2);
+      expect(endRow(grid, 2)).toBe(4);
+    });
+
     it('should read the guide column through its own reader, so a merged area can count as one value', () => {
       // Rows 1-2 of column 1 are covered by a merged area anchored at row 1; the reader resolves them.
       const grid = [[1, 'x'], [N, 'y'], [N, N], [N, 'z'], [N, N]];

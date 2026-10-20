@@ -53,6 +53,7 @@ A few cells count differently from what they display:
 - A formula counts as data, even if it evaluates to an empty string.
 - A merged cell in the guide column counts as one value across all the rows it spans.
 - A hidden row never ends the fill. A value in a hidden row of the filled column still stops the fill above it.
+- A hidden column next to your selection is skipped: the guide column is the nearest visible one.
 
 **Visual difference from drag-fill:** When you drag the fill handle, a preview border shows the target range as you drag. When you double-click, no drag-preview appears -- the cells populate immediately based on the adjacent column data.
 
