@@ -90,14 +90,14 @@ export class Autofill extends BasePlugin {
    * The default values of the [`fillHandle`](@/api/options.md#fillhandle) object form:
    * `{ direction: undefined, autoInsertRow: true }`.
    *
-   * They apply to every option value you set yourself (`true`, `'vertical'`, `'horizontal'`, or an
-   * object) for each property you leave out:
+   * They fill in each property the option value leaves out (`true`, `'vertical'`, `'horizontal'`, or an
+   * object):
    * - `direction: undefined`: autofill works in both directions.
    * - `autoInsertRow: true`: dragging the fill handle below the last row adds new rows.
    *   `direction: 'horizontal'` turns it off.
    *
-   * If you don't set `fillHandle` at all, the grid's default (`{ autoInsertRow: false }`) applies
-   * instead, so no rows are added.
+   * If you don't set `fillHandle` at all, the grid's default (`{ autoInsertRow: false }`) goes through
+   * the same merge, so autofill still works in both directions, but no rows are added.
    *
    * @example
    * ```js
