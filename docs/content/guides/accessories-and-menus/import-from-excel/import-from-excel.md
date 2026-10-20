@@ -283,17 +283,18 @@ The method returns `{ columns, headerRow }`. Each entry of `columns` keeps the g
 
 | Key | Holds |
 |---|---|
-| `settings` | The column options: `type`, the format of that type (`numericFormat`, `dateFormat`, `timeFormat`, or `source`), and `data` for rows of objects. Pass it to [`columns`](@/api/options.md#columns) as it is. |
+| `settings` | The column options: `type`, the format of that type (`numericFormat`, `dateFormat`, `dateTimeFormat`, `timeFormat`, or `source`), and `data` for rows of objects. Pass it to [`columns`](@/api/options.md#columns) as it is. |
 | `confidence` | The share of non-blank values the type reads, from `0` to `1`. |
 | `inputFormat` | How the raw values were written (the decimal separator, a percent sign, the currency symbol, the day and month order). `convertToInferredTypes()` reads it. |
 | `title` | The column's header. Set with a header row, and for rows of objects, where it is the property name. |
 | `stats` | A description of the sampled values. Set with the [`stats`](#column-statistics) option. |
 
-Before you load the data, convert it with `convertToInferredTypes(rows, result)`. Each cell type stores its values in a fixed form: a number for `numeric`, `YYYY-MM-DD` for `date`, `HH:mm:ss` for `time`, and a boolean for `checkbox`. If you skip the conversion, the cells keep the raw strings, and `date` and `time` cells reject them. The conversion returns a copy, leaves your rows unchanged, and leaves out the header row, which is in `title`.
+Before you load the data, convert it with `convertToInferredTypes(rows, result)`. Each cell type stores its values in a fixed form: a number for `numeric`, `YYYY-MM-DD` for `date`, `YYYY-MM-DDTHH:mm:ss` for `intl-datetime`, `HH:mm:ss` for `time`, and a boolean for `checkbox`. If you skip the conversion, the cells keep the raw strings, and `date`, `intl-datetime`, and `time` cells reject them. The conversion returns a copy, leaves your rows unchanged, and leaves out the header row, which is in `title`.
 
 Inference works this way:
 
-- **Types.** The method infers `numeric`, `date`, `time`, `checkbox` (`true` and `false`, in any case), `dropdown`, and `text`. When two types read values, the one that reads more of them wins, and the earlier one in that list wins a tie. A `dropdown` is the exception: it reads every string, so it is tried only when no other type reaches `minConfidence`. A numeric column with one `n/a` stays numeric. Date-time values such as `2026-03-12 14:30` and JavaScript `Date` objects stay `text`.
+- **Types.** The method infers `checkbox` (`true` and `false`, in any case), `numeric`, `date`, `intl-datetime`, `time`, `dropdown`, and `text`. When two types read values, the one that reads more of them wins, and the earlier one in that list wins a tie. A `dropdown` is the exception: it reads every string, so it is tried only when no other type reaches `minConfidence`. A numeric column with one `n/a` stays numeric. If you register modules one by one, register each type you expect, `intl-datetime` included.
+- **Dates and times.** A date followed by a time (`2026-03-12 14:30`, `2026-03-12T14:30:00`, `12/03/2026 9:05 PM`, `3/12/2026, 2:30 PM`) makes an `intl-datetime` column, and so do JavaScript `Date` objects. A column of dates with even one date-time or `Date` becomes `intl-datetime` too, and its dates convert to midnight. A value with a time zone or an offset (`Z`, `+02:00`) stays text, because the grid reads local time. A value with a nonzero fraction of a second stays text too, because the conversion writes whole seconds. An all-zero fraction (`14:30:00.000`) is read. A `Date` converts to its date and time in the browser's time zone, which is how the grid reads the value, and drops its milliseconds.
 - **Dropdowns.** A column becomes a `dropdown` when it has at least six values, between two and ten distinct ones (see `dropdown`), and each value repeats at least twice on average. Values are compared trimmed, so `Open` and `Open ` are one option, and the conversion writes the trimmed value. A short list of names that repeat can pass that test. Set `dropdown: false` when it is wrong for your data.
 - **Numbers.** A numeric value may carry a sign, accounting parentheses (`(1,234.00)`), a currency symbol on either side (`$1,234.50`, `12,5 zł`), a common ISO code set apart by a space (`12.00 USD`, `SEK 7.50`), an exponent (`1.23E+15`), or a trailing percent sign (`12.5%`, converted to `0.125`). A column with a currency reads its bare numbers as that currency. Text values set the fraction digits of the format, so `1.50` and `2.00` print with two. Real numbers don't pad the column: one computed float only raises the maximum. Digits may be grouped with a comma, a dot, or a space of any width. With a dot decimal, an apostrophe works too (`1'234.50`). A symbol that several currencies share takes the currency of the locale's region for the common cases: `$` is `CAD` under `en-CA` and `ARS` under `es-AR`, and `kr` is `NOK` under `nb-NO`. Any other region gets the symbol's default currency: `USD` for `$`, `SEK` for `kr`.
 - **Confidence.** A column whose share of readable values is below `minConfidence` falls back to `text`. Blank values don't count. A value the type can't read, such as a `Total` row, keeps its raw form after the conversion, so the cell's validator marks it.
@@ -310,7 +311,7 @@ Set `headerRow` when the first row of array data holds column names. The header 
 |---|---|
 | `false` (default) | The first row is data. |
 | `true` | The first row is a header. |
-| `'auto'` | The first row is a header when every cell of it is a non-blank string that isn't a missing-value word, there is at least one column below it that reads as a number, a date, a time, or a checkbox, and none of those columns reads its cell of the first row. |
+| `'auto'` | The first row is a header when every cell of it is a non-blank string that isn't a missing-value word, there is at least one column below it that reads as a number, a date, a date-time, a time, or a checkbox, and none of those columns reads its cell of the first row. |
 
 `result.headerRow` tells you what `'auto'` decided. A table of text only has nothing that tells a header from a row, so `'auto'` reads it as data: set `headerRow: true` for such a table. A first row with a missing value written as text (`n/a`, `-`, `null`, `none`, `unknown`) is read as a record. A missing value written another way can still make a record look like a header, and `convertToInferredTypes()` drops that row. Set `headerRow` to `true` or `false` when your first row is known. Rows of objects have no header row, and `title` is the property name.
 
@@ -339,7 +340,7 @@ console.log(columns[1].stats);
 | `emptyCount` | How many sampled values are blank. |
 | `distinctCount` | How many different non-blank values there are, compared as trimmed text. |
 | `examples` | The first distinct values, as trimmed text. `stats: { examples: 3 }` sets how many. The default is 5. |
-| `min`, `max` | The smallest and largest value of a `numeric` (a number), `date` (`YYYY-MM-DD`), or `time` (`HH:mm:ss`) column, after conversion. |
+| `min`, `max` | The smallest and largest value of a `numeric` (a number), `date` (`YYYY-MM-DD`), `intl-datetime` (`YYYY-MM-DDTHH:mm:ss`), or `time` (`HH:mm:ss`) column, after conversion. `Date` objects are left out, because their converted value depends on the browser's time zone. |
 | `runnerUpType` | The other type that reads the largest share of the values. For a `text` column, the type that came closest to `minConfidence`. A type with no rival gets `'text'`. |
 
 The statistics come from the sampled rows only, in a fixed order, so they are deterministic too.

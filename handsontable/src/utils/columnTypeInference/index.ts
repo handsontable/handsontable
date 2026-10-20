@@ -1,7 +1,7 @@
 import { isObject } from '../../helpers/object';
 import { DETECTORS, type DetectionContext } from './detectors';
 import { getLocaleDateOrder, getLocaleDecimalSeparator, getLocaleRegion, resolveLocale } from './locale';
-import { isBlank, readBoolean, readDate, readNumber, readTime } from './values';
+import { isBlank, readBoolean, readDate, readDateTime, readNumber, readTime } from './values';
 import type {
   DetectedColumn,
   InferColumnTypesOptions,
@@ -34,7 +34,7 @@ const DEFAULT_MIN_CONFIDENCE = 0.9;
 /**
  * The types whose values have an order worth reporting as `min` and `max`.
  */
-const RANGE_TYPES = new Set<InferredCellType>(['numeric', 'date', 'time']);
+const RANGE_TYPES = new Set<InferredCellType>(['numeric', 'date', 'intl-datetime', 'time']);
 
 /**
  * How many example values `stats` keeps when `stats: true` does not say.
@@ -261,6 +261,11 @@ function createReader(column: InferredColumn): ValueReader | null {
 
       return value => readDate(value, order)?.iso ?? null;
     }
+    case 'intl-datetime': {
+      const order = inputFormat.dateOrder ?? 'MDY';
+
+      return value => readDateTime(value, order)?.iso ?? null;
+    }
     case 'time':
       return value => readTime(value)?.value ?? null;
     case 'checkbox':
@@ -288,7 +293,8 @@ function toText(value: unknown): string {
 
 /**
  * Describes the sampled values of one column. `min` and `max` are taken over the values the
- * inferred type reads, after conversion, so they compare as numbers or as ISO text.
+ * inferred type reads, after conversion, so they compare as numbers or as ISO text. `Date` objects are
+ * left out of them.
  */
 function describeColumn(
   values: unknown[],
@@ -299,8 +305,10 @@ function describeColumn(
   const nonBlank = values.filter(value => !isBlank(value));
   const distinct = Array.from(new Set(nonBlank.map(toText)));
   const reader = RANGE_TYPES.has(column.settings.type) ? createReader(column) : null;
+  // A `Date` converts to its local wall clock, which follows the host's time zone, and the stats must not.
   const converted = reader
-    ? nonBlank.map(reader).filter((value): value is number | string => value !== null)
+    ? nonBlank.filter(value => !(value instanceof Date)).map(reader)
+      .filter((value): value is number | string => value !== null)
     : [];
   const stats: InferredColumnStats = {
     count: nonBlank.length,
@@ -402,7 +410,7 @@ const MISSING_VALUE_WORDS = new Set(['-', '--', '?', 'n/a', 'na', '#n/a', 'null'
 /**
  * The types that can tell a header cell from a data cell: they read some strings and not others.
  */
-const HEADER_EVIDENCE_TYPES = new Set<InferredCellType>(['numeric', 'date', 'time', 'checkbox']);
+const HEADER_EVIDENCE_TYPES = new Set<InferredCellType>(['numeric', 'date', 'intl-datetime', 'time', 'checkbox']);
 
 /**
  * Whether the first row reads as a header: array data, every cell a non-blank string across the
@@ -442,8 +450,8 @@ function looksLikeHeader(first: unknown, columns: InferredColumn[]): boolean {
  * result for the same input.
  *
  * Each column comes back as `{ settings, confidence, inputFormat, title, stats }`. `settings` uses
- * the names of the grid's column options (`type`, `numericFormat`, `dateFormat`, `timeFormat`,
- * `source`, and `data` for object rows), so it can be passed to `columns` as it is; the rest
+ * the names of the grid's column options (`type`, `numericFormat`, `dateFormat`, `dateTimeFormat`,
+ * `timeFormat`, `source`, and `data` for object rows), so it can be passed to `columns` as it is; the rest
  * describes the inference. Pass the data through `convertToInferredTypes()` before loading it, so
  * the values match what each cell type stores.
  */
@@ -524,10 +532,12 @@ function convertRow(row: unknown, columns: InferredColumn[], readers: Array<Valu
 
 /**
  * Returns a copy of the data with every value converted to what the column's inferred cell type
- * stores: a number for `numeric`, `YYYY-MM-DD` for `date`, `HH:mm:ss` for `time`, and a boolean for
- * `checkbox`. Every row is converted, not only the sampled ones. A value the column cannot read is
- * kept as it is, so the cell type's validator marks it. The input is never changed. The cells of the
- * result are no longer the input's type, which is why it is typed `unknown`.
+ * stores: a number for `numeric`, `YYYY-MM-DD` for `date`, `YYYY-MM-DDTHH:mm:ss` for
+ * `intl-datetime`, `HH:mm:ss` for `time`, and a boolean for `checkbox`. A `Date` converts to its
+ * local date and time, which is how the grid reads an `intl-datetime` value. Every row is converted,
+ * not only the sampled ones. A value the column cannot read is kept as it is, so the cell type's
+ * validator marks it. The input is never changed. The cells of the result are no longer the input's
+ * type, which is why it is typed `unknown`.
  *
  * When the result says the first row is a header (`headerRow`), that row is left out: its cells are
  * the columns' `title`s.

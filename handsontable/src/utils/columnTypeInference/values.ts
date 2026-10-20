@@ -73,6 +73,19 @@ const YEAR_LAST_DATE_REGEX = /^(\d{1,2})([-/.])(\d{1,2})\2(\d{4})$/;
 const TIME_VALUE_REGEX = /^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*([ap])m)?$/i;
 
 /**
+ * A fraction of a second that is all zeros after the seconds (`.000`, `.000000`), which MySQL, SQL
+ * Server, and Postgres write. It carries no information, so it is dropped; a nonzero one is not.
+ */
+const ZERO_FRACTION_REGEX = /(:\d{2})\.0+$/;
+
+/**
+ * A date followed by a time (`2026-03-12T14:30`, `12/03/2026 9:05 PM`, `3/12/2026, 2:30 PM`): the date
+ * part, then a `T`, whitespace, or a comma and whitespace (what `Intl` writes under `en-US`), then the
+ * rest, which has to read as a time.
+ */
+const DATE_TIME_VALUE_REGEX = /^([\d/.-]+)(?:T|,?\s+)(\S.*)$/;
+
+/**
  * A number value split into the parts the column-level reading needs.
  */
 export interface NumberParts {
@@ -151,6 +164,48 @@ export interface TimeReading {
    * Whether the value carried an `AM`/`PM` marker.
    */
   hour12: boolean;
+}
+
+/**
+ * A date-time value read into the `YYYY-MM-DDTHH:mm:ss` form, plus the parts the column's format
+ * follows. A date without a time reads as midnight.
+ */
+export interface DateTimeReading {
+  /**
+   * The date and time as `YYYY-MM-DDTHH:mm:ss`.
+   */
+  iso: string;
+  /**
+   * Whether the value carried a time. A `Date` always does.
+   */
+  hasTime: boolean;
+  /**
+   * Whether a `Date` has a nonzero second, read in UTC so it does not depend on the host's time zone.
+   * Always `false` for a string, whose seconds are in `written`.
+   */
+  hasDateSeconds: boolean;
+  /**
+   * The written form of a string value, which the column's format follows, or `null` for a `Date`,
+   * whose text says nothing about how the column is written.
+   */
+  written: {
+    /**
+     * Whether the month was written with two digits.
+     */
+    paddedMonth: boolean;
+    /**
+     * Whether the day was written with two digits.
+     */
+    paddedDay: boolean;
+    /**
+     * Whether the time carried seconds.
+     */
+    hasSeconds: boolean;
+    /**
+     * Whether the time carried an `AM`/`PM` marker.
+     */
+    hour12: boolean;
+  } | null;
 }
 
 /**
@@ -476,6 +531,121 @@ export function readDate(value: unknown, order: 'DMY' | 'MDY'): DateReading | nu
 }
 
 /**
+ * A string value split into its date part and its time part.
+ */
+export interface DateTimeParts {
+  /**
+   * The date part, or the whole trimmed value when it has no time part.
+   */
+  date: string;
+  /**
+   * The time part, or `null` when there is none.
+   */
+  time: string | null;
+}
+
+/**
+ * The first instant a `Date` may hold to be read: one day past the start of year 1000 in UTC, so its
+ * local year is at least 1000 in every time zone, as `isValidISODateTime` requires four digits.
+ */
+const MIN_DATE_TIME = Date.UTC(1000, 0, 2);
+
+/**
+ * The last instant a `Date` may hold to be read: the start of the last day of year 9999 in UTC, so its
+ * local year is at most 9999 in every time zone.
+ */
+const MAX_DATE_TIME = Date.UTC(9999, 11, 31);
+
+/**
+ * Splits a date-time string into its date part and its time part. A value with no time part comes
+ * back whole as the date part, with a `null` time.
+ */
+export function splitDateTime(value: unknown): DateTimeParts | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const text = value.trim();
+  const match = DATE_TIME_VALUE_REGEX.exec(text);
+
+  return match ? { date: match[1], time: match[2].replace(ZERO_FRACTION_REGEX, '$1') } : { date: text, time: null };
+}
+
+/**
+ * Pads a part of a date or a time to two digits.
+ */
+function padTwo(part: number): string {
+  return String(part).padStart(2, '0');
+}
+
+/**
+ * Reads a `Date` by its local wall clock, which is how the grid reads an `intl-datetime` value. The
+ * milliseconds are dropped, since the stored shape has none. Returns `null` for an invalid `Date`, and
+ * for one whose year cannot be written with four digits. That bound is checked on the instant, not on
+ * the local year, so whether a `Date` is read never depends on the host's time zone.
+ */
+function readDateObject(value: Date): DateTimeReading | null {
+  const time = value.getTime();
+
+  if (Number.isNaN(time) || time < MIN_DATE_TIME || time > MAX_DATE_TIME) {
+    return null;
+  }
+
+  const date = `${value.getFullYear()}-${padTwo(value.getMonth() + 1)}-${padTwo(value.getDate())}`;
+  const clock = `${padTwo(value.getHours())}:${padTwo(value.getMinutes())}:${padTwo(value.getSeconds())}`;
+
+  return { iso: `${date}T${clock}`, hasTime: true, hasDateSeconds: value.getUTCSeconds() !== 0, written: null };
+}
+
+/**
+ * Reads a value as a date-time: a date as `readDate()` reads it, optionally followed by a time as
+ * `readTime()` reads it, or a valid `Date`. Returns `null` for anything else. A time zone or an offset
+ * (`Z`, `+02:00`) is unread, because the grid reads local time. A nonzero fraction of a second is unread
+ * too: the value is converted to `YYYY-MM-DDTHH:mm:ss`, and a written value keeps its text rather than
+ * lose a part. An all-zero fraction (`14:30:00.000`) loses nothing and is read.
+ */
+export function readDateTime(value: unknown, order: 'DMY' | 'MDY'): DateTimeReading | null {
+  return readSplitDateTime(value, splitDateTime(value), order);
+}
+
+/**
+ * `readDateTime()` for a value whose string form was already split, so a detector that reads every
+ * value splits each one once.
+ */
+export function readSplitDateTime(
+  value: unknown,
+  parts: DateTimeParts | null,
+  order: 'DMY' | 'MDY'
+): DateTimeReading | null {
+  if (value instanceof Date) {
+    return readDateObject(value);
+  }
+
+  if (parts === null) {
+    return null;
+  }
+
+  const date = readDate(parts.date, order);
+  const time = parts.time === null ? null : readTime(parts.time);
+
+  if (date === null || (parts.time !== null && time === null)) {
+    return null;
+  }
+
+  return {
+    iso: `${date.iso}T${time?.value ?? '00:00:00'}`,
+    hasTime: time !== null,
+    hasDateSeconds: false,
+    written: {
+      paddedMonth: date.paddedMonth,
+      paddedDay: date.paddedDay,
+      hasSeconds: time?.hasSeconds ?? false,
+      hour12: time?.hour12 ?? false,
+    },
+  };
+}
+
+/**
  * Converts a 12-hour clock hour to a 24-hour one, or returns `null` when it is out of range.
  */
 function toTwentyFourHour(hour: number, meridiem: string | undefined): number | null {
@@ -509,10 +679,8 @@ export function readTime(value: unknown): TimeReading | null {
     return null;
   }
 
-  const pad = (part: number) => String(part).padStart(2, '0');
-
   return {
-    value: `${pad(hour)}:${pad(minute)}:${pad(second)}`,
+    value: `${padTwo(hour)}:${padTwo(minute)}:${padTwo(second)}`,
     hasSeconds: match[3] !== undefined,
     hour12: match[4] !== undefined,
   };
