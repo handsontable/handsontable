@@ -362,6 +362,12 @@ export class NestedHeaders extends BasePlugin {
    */
   #isColumnsSelectionInProgress = false;
   /**
+   * The selection layer present when the pointer went down. An earlier hook can replace that layer
+   * before `afterOnCellMouseDown` (a Ctrl click on a sortable header does). Comparing the object,
+   * not the coordinates, tells a rewrite apart from a layer the user already had.
+   */
+  #selectionLayerAtPress: CellRange | null = null;
+  /**
    * Holds the columns to be selected when the pointer moves over a nested header during a drag. The selection
    * is applied in the `afterOnCellMouseOver` hook so that it stays gated by `stopImmediatePropagation` called
    * in a `beforeOnCellMouseOver` listener - mirroring how the mouse-down path applies its selection in
@@ -1207,6 +1213,10 @@ export class NestedHeaders extends BasePlugin {
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
 
+    const { selection } = this.hot;
+
+    this.#selectionLayerAtPress = selection.isSelected() ? selection.getSelectedRange().current() ?? null : null;
+
     const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
 
     if (headerNodeData) {
@@ -1254,9 +1264,56 @@ export class NestedHeaders extends BasePlugin {
     }
 
     if (columnsToSelect !== null) {
+      // Column sorting already selected this header on the same Ctrl click. Selecting it again
+      // would stack a second layer, because `setRangeStart` reads Ctrl as "add a layer".
+      if (!event.shiftKey && this.#ctrlClickRewroteColumnInsideHeader(columnsToSelect)) {
+        this.hot.deselectCell();
+      }
+
       selection.selectColumns(...columnsToSelect);
     }
   };
+
+  /**
+   * Reports whether this Ctrl click should replace the current layer instead of adding one.
+   * True only when an earlier hook rewrote the selection during this press, and that rewrite is a
+   * full-height column range sitting inside the header about to be selected. A Ctrl click that left
+   * the pressed layer in place still adds a layer.
+   *
+   * @param columnsToSelect Columns the header click is about to select, as `[start, end, headerRow]`.
+   * @returns {boolean}
+   */
+  #ctrlClickRewroteColumnInsideHeader(columnsToSelect: [number, number, number]): boolean {
+    if (this.hot.getShortcutManager().isCtrlPressed() === false) {
+      return false;
+    }
+
+    const layers = this.hot.selection.getSelectedRange();
+
+    if (layers.size() !== 1) {
+      return false;
+    }
+
+    const layer = layers.current();
+
+    if (!layer || layer === this.#selectionLayerAtPress) {
+      return false;
+    }
+
+    // `getTopStartCorner()` normalizes a header row to 0, so it cannot tell a column selection
+    // from a cell selection. `getSelected()` reads `from` and `to` as stored.
+    const topRow = Math.min(layer.from.row ?? 0, layer.to.row ?? 0);
+    const bottomRow = Math.max(layer.from.row ?? 0, layer.to.row ?? 0);
+    const startCol = Math.min(layer.from.col ?? 0, layer.to.col ?? 0);
+    const endCol = Math.max(layer.from.col ?? 0, layer.to.col ?? 0);
+    const headerStart = Math.min(columnsToSelect[0], columnsToSelect[1]);
+    const headerEnd = Math.max(columnsToSelect[0], columnsToSelect[1]);
+
+    return topRow < 0 &&
+      bottomRow === this.hot.countRows() - 1 &&
+      startCol >= headerStart &&
+      endCol <= headerEnd;
+  }
 
   /**
    * Finds the header cell a Shift+click extends the column range from: the focus of the current range when
@@ -1369,6 +1426,12 @@ export class NestedHeaders extends BasePlugin {
     this.#columnsToSelectOnMouseOver = null;
 
     if (!this.hot.view.isMouseDown() || controller.column) {
+      return;
+    }
+
+    // Whole-column extension belongs to a drag that started on a header. A drag that started
+    // on a cell stays a cell range, the same as a grid without nested headers.
+    if (!this.#isColumnsSelectionInProgress) {
       return;
     }
 

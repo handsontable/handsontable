@@ -199,6 +199,31 @@ of the focus, so it does not depend on what the selection layer does with the hi
 Pinned by `tests/e2e/header-range-selection.spec.ts`, where the cases cover a leaf and a group anchor, both
 directions, a second Shift+click and a cell start.
 
+## A Ctrl click on a sortable header must not select that header twice
+
+Hook order is column sorting (50), multi-column sorting (170), then nested headers (280). On a Ctrl click
+the sorting plugin selects the column in `afterOnCellMouseDown` (`deselectCell` + `selectColumns`). Nested
+headers then calls `selectColumns` for the same header. `Selection#setRangeStart` treats a held Ctrl as
+"add a layer", so the second call stacks a duplicate of the range sorting just wrote (DEV-605).
+`#onBeforeSelectColumns` has already widened that first range to the header's colspan, so the duplicate is
+the span, not the leaf.
+
+`#selectionLayerAtPress` snapshots `getSelectedRange().current()` in `beforeOnCellMouseDown`. In the after
+hook, `#ctrlClickRewroteColumnInsideHeader` replaces the layer only when Ctrl is held, Shift is not, there
+is exactly one layer, that layer is a different object from the snapshot, and it is a full-height column
+range inside the header about to be selected. The object check is the whole test: coordinates can match a
+column the user already had, and that Ctrl click must still add a layer. Do not fix this in the sorting
+plugins.
+
+## A drag selects whole columns only when it started on a header
+
+`#isColumnsSelectionInProgress` is set in `afterOnCellMouseDown` when the press hit a header node, and
+cleared on mouseup. `#onBeforeOnCellMouseOver` may take over the drag (set `controller.column` and
+`controller.cell`, then `selectColumns`) only while that flag is set. A press that started on a cell leaves
+the flag clear, so the core `mouseOver` keeps the range on the cells (`to.normalize()` drops the header
+row). Gating on `isSelectedByColumnHeader()` is weaker: a column selection from before this press can still
+be marked. Header-started drags keep working because the flag is already true (DEV-799).
+
 ## `fixedColumnsEnd`: a group that crosses the end line is drawn by the end clone
 
 The inline-end clone and the top inline-end corner render only the LAST `fixedColumnsEnd` columns, so their
