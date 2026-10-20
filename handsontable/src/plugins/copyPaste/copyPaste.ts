@@ -32,6 +32,26 @@ import {
 import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
 
 /**
+ * The rows of the copied data, and a fingerprint of each of their cells, recorded before a hook may edit them.
+ * An object or array cell is fingerprinted by its JSON, so an edit made in place is still seen.
+ */
+interface RangedDataSnapshot {
+  rows: unknown[][];
+  cells: unknown[][];
+}
+
+/**
+ * Reduces a copied cell to a value that changes when the cell's content changes, even for an object or array
+ * edited in place.
+ *
+ * @param {*} value The copied cell value.
+ * @returns {*} The JSON of an object or array, the value itself otherwise.
+ */
+function fingerprintCell(value: unknown): unknown {
+  return isObject(value) || Array.isArray(value) ? JSON.stringify(value) : value;
+}
+
+/**
  * Internet Explorer-specific window extension with legacy clipboard API.
  */
 interface IEWindow extends Window {
@@ -954,10 +974,16 @@ export class CopyPaste extends BasePlugin {
     const copiedHeadersCount = this.#countCopiedHeaders(this.copyableRanges);
     // Captured before `beforeCopy`, which may reshape the array. Identity is what survives that.
     const headerRows = new Set(rangedData.slice(0, copiedHeadersCount.columnHeadersCount));
+    const dataSnapshot = this.hot.hasHook('beforeCopy') ? this.#snapshotRangedData(rangedData) : null;
     const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges, copiedHeadersCount);
 
     if (allowCopying) {
-      this.#setClipboardData(event, rangedData, rangedSourceData, headerRows);
+      this.#setClipboardData(
+        event,
+        rangedData,
+        this.#reconcileSourceData(rangedData, dataSnapshot, rangedSourceData),
+        headerRows
+      );
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges, copiedHeadersCount);
     }
@@ -996,10 +1022,15 @@ export class CopyPaste extends BasePlugin {
 
     const rangedData = this.getRangedData(this.copyableRanges);
     const rangedSourceData = this.getRangedData(this.copyableRanges, true);
+    const dataSnapshot = this.hot.hasHook('beforeCut') ? this.#snapshotRangedData(rangedData) : null;
     const allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
 
     if (allowCuttingOut) {
-      this.#setClipboardData(event, rangedData, rangedSourceData);
+      this.#setClipboardData(
+        event,
+        rangedData,
+        this.#reconcileSourceData(rangedData, dataSnapshot, rangedSourceData)
+      );
 
       this.hot.emptySelectedCells('CopyPaste.cut');
       this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
@@ -1318,17 +1349,78 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
+   * Records the rows of the copied data and a fingerprint of their cells, before `beforeCopy` or `beforeCut`
+   * may edit them.
+   *
+   * @param {Array[]} rangedData The copied data.
+   * @returns {{rows: Array[], cells: Array[]}} The row arrays, and the fingerprint of each row's cells.
+   */
+  #snapshotRangedData(rangedData: unknown[][]): RangedDataSnapshot {
+    return {
+      rows: rangedData.slice(),
+      cells: rangedData.map(row => row.map(fingerprintCell)),
+    };
+  }
+
+  /**
+   * Makes the source-data flavor follow what `beforeCopy` or `beforeCut` left in the copied data.
+   *
+   * The hooks receive only the plain data, so an edit they make would otherwise never reach the source
+   * data: a masked value would leak through it and a removed row would misalign the two flavors.
+   * Rows are matched by identity, so removing or reordering them keeps the flavors aligned. A cell the hook
+   * changed, including an object or array it edited in place, takes the hook's value. A row the hook
+   * replaced, or one whose length it changed, cannot be matched to its source row, so the whole flavor is
+   * dropped and the paste falls back to the plain data.
+   *
+   * @param {Array[]} rangedData The copied data, as the hook left it.
+   * @param {object|null} snapshot The rows and cells recorded before the hook ran, or `null` when no hook listens.
+   * @param {Array[]} rangedSourceData The source data built before the hook ran.
+   * @returns {Array[]|null} The source data matching `rangedData`, or `null` when it cannot be matched.
+   */
+  #reconcileSourceData(
+    rangedData: unknown[][],
+    snapshot: RangedDataSnapshot | null,
+    rangedSourceData: unknown[][]
+  ): unknown[][] | null {
+    if (snapshot === null) {
+      return rangedSourceData;
+    }
+
+    const originalIndexes = new Map(snapshot.rows.map((row, index) => [row, index]));
+    const reconciled: unknown[][] = [];
+
+    for (let rowIndex = 0; rowIndex < rangedData.length; rowIndex++) {
+      const row = rangedData[rowIndex];
+      const originalIndex = originalIndexes.get(row);
+
+      if (originalIndex === undefined || snapshot.cells[originalIndex].length !== row.length) {
+        return null;
+      }
+
+      reconciled.push(row.map((value, column) => {
+        if (Object.is(fingerprintCell(value), snapshot.cells[originalIndex][column])) {
+          return rangedSourceData[originalIndex][column];
+        }
+
+        return isObject(value) || Array.isArray(value) ? JSON.stringify(value) : value;
+      }));
+    }
+
+    return reconciled;
+  }
+
+  /**
    * Sets the clipboard data for the given event.
    *
    * @param {ClipboardEvent} event The Clipboard event.
    * @param {Array} rangedData Ranged data to set to the clipboard.
-   * @param {Array} rangedSourceData Ranged source data to set to the clipboard.
+   * @param {Array|null} rangedSourceData Ranged source data to set to the clipboard. `null` leaves the flavor out.
    * @param {Set} [headerRows] The row arrays of `rangedData` that are column headers.
    */
   #setClipboardData(
     event: ClipboardEvent,
     rangedData: unknown[][],
-    rangedSourceData: unknown[][],
+    rangedSourceData: unknown[][] | null,
     headerRows: Set<unknown[]> = new Set()
   ) {
     const projectedData = this.#extractHeaderText(rangedData, headerRows);
@@ -1336,11 +1428,15 @@ export class CopyPaste extends BasePlugin {
 
     if (event && event.clipboardData) {
       const textHTML = _dataToHTML(projectedData);
-      const textSourceDataHTML = _dataToHTML(rangedSourceData);
 
       event.clipboardData.setData('text/plain', textPlain);
       event.clipboardData.setData('text/html', [META_HEAD, textHTML].join(''));
-      event.clipboardData.setData(SOURCE_DATA_HTML_MIME_TYPE, [META_HEAD, textSourceDataHTML].join(''));
+
+      if (rangedSourceData !== null) {
+        const textSourceDataHTML = _dataToHTML(rangedSourceData);
+
+        event.clipboardData.setData(SOURCE_DATA_HTML_MIME_TYPE, [META_HEAD, textSourceDataHTML].join(''));
+      }
 
     } else if (typeof ClipboardEvent === 'undefined') {
       (this.hot.rootWindow as unknown as IEWindow).clipboardData.setData('Text', textPlain);

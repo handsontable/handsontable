@@ -144,6 +144,16 @@ returns a plain string. Each catch warns through `#warnClipboardParseRefused`, t
 
 Do not "tidy" either catch away.
 
+## The source-data flavor follows what `beforeCopy` and `beforeCut` leave
+
+`onCopy`/`onCut` build `rangedSourceData` before the hook runs, and the hooks only ever see `rangedData`.
+`#reconcileSourceData()` therefore rebuilds the source rows after the hook: rows are matched by **identity**
+against a snapshot taken before it (so a `splice` or a reorder keeps the flavors aligned), and a cell the
+hook changed takes the hook's value (JSON for an object or array). A row the hook replaced, or one whose
+length it changed, cannot be matched, so the flavor is **dropped** (`null`) and a paste falls back to the
+plain data. Do not pass `rangedSourceData` to the hooks instead: every existing listener would keep leaking,
+and `beforeCut` has no `copiedHeadersCount`, so the argument position would differ.
+
 ## The private flavor is often absent, and that is not an error
 
 `pastedSourceData` is `undefined` for every paste the grid did not write itself, so `populateValues()`
