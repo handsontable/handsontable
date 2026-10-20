@@ -25,7 +25,9 @@ describe('Events', () => {
 
     expect(getSelected()).toBeUndefined();
 
+    // mousedown is deferred to touchend, so a drag can scroll without selecting.
     await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
 
     await waitForNextAnimationFrames(2);
 
