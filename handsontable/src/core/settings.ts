@@ -37,6 +37,7 @@ import type { RangeType, HotInstance } from './types';
 import type { ThemeColorScheme, DensityType } from '../themes/types';
 import type { IndexesChangeSource } from '../translations/indexMapper';
 import type { SourceLabel } from '../utils/cellSource';
+import type { RowIdSetting } from './rowIdentity/rowIdentity';
 
 export type { PasteClipboardData };
 
@@ -180,6 +181,11 @@ export interface GridSettings {
   data?: unknown[][] | object[];
   dataSchema?: object | ((rowIndex: number) => Record<string, unknown>);
   dataDotNotation?: boolean;
+  /**
+   * How each row gets an id that stays with it across sorting, filtering, moving, inserting, and removing rows:
+   * a property path, a function that returns the id of a source row, or `true` for ids Handsontable generates.
+   */
+  rowId?: RowIdSetting;
   columns?: ColumnSettings[] | ((column: number) => ColumnSettings);
   cell?: object[];
   cells?: (row: number, column: number, prop: string | number) => object;
@@ -535,6 +541,8 @@ export interface GridSettings {
     expandPossible: boolean, successfullyExpanded: boolean) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
+  afterRowIdsRemoved?: (rowIds: unknown[], source?: ChangeSource) => void;
+  afterRowIdsReset?: () => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
   afterRowSelectionChange?: (selectedRows: number[], deselectedRows: number[], source: RowSelectionSource) => void;
   afterRowSequenceChange?: (source: ChangeSource) => void;
