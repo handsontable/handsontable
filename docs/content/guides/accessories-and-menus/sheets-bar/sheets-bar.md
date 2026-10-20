@@ -28,13 +28,7 @@ Render a tab bar above or below the grid and let users switch between the sheets
 
 ## Overview
 
-The [`SheetsBar`](@/api/sheetsBar.md) plugin renders a tab bar below the grid, or above it with the `position` option. Each tab represents one sheet, and clicking a tab switches the grid to that sheet's data. Every sheet owns its own data, its own configuration overrides, and its own runtime view state, such as scroll position and selection.
-
-The plugin is disabled by default. Enable it with the [`sheetsBar`](@/api/options.md#sheetsbar) option.
-
-## Enable the sheets bar
-
-Set `sheetsBar` to `true` to wrap the grid's existing data into a single sheet named `Sheet1`, or pass an object with a `sheets` array to define the workbook up front.
+Each tab of the [`SheetsBar`](@/api/sheetsBar.md) plugin is one sheet, with its own data, settings overrides, and view state, such as the scroll position and the selection.
 
 ::: only-for javascript
 
@@ -79,15 +73,12 @@ Set `sheetsBar` to `true` to wrap the grid's existing data into a single sheet n
 
 :::
 
-Click the **Budget** and **Notes** tabs to switch between the two sheets. Click the `+` control to add a new sheet.
-
 ## Configuration options
 
-You can customize the sheets bar using available settings, such as defining the initial workbook, choosing the sheet that opens first, or showing and hiding the bar's controls.
+Set [`sheetsBar`](@/api/options.md#sheetsbar) to `true` for one sheet with the grid's data, or pass an object to define the workbook, pick the sheet that opens first, and show or hide the bar's controls.
 
-Each entry in `sheets` describes one sheet: its tab label, its source data, and optional grid settings applied while that sheet is active. Settings a sheet does not declare keep their grid-level values.
+Each entry in `sheets` is one sheet: a tab label, the source data, and optional grid settings that apply while the sheet is active. A setting the sheet doesn't declare keeps its grid-level value.
 
-You can configure the following options:
 ```javascript
 const configurationOptions = {
   sheetsBar: {
@@ -126,13 +117,11 @@ const configurationOptions = {
 };
 ```
 
-Read more about where the bar renders in the [layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md) guide.
-
 ::: only-for react
 
 ### Keep sheet data stable
 
-Pass each sheet's `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. The React wrapper sends the `sheetsBar` prop to the grid on every render. When a sheet's `data` is a new array, the plugin reads it as a new workbook and rebuilds it. The rebuild discards the user's edits, sort and filter state, and any sheets added at runtime.
+Pass each sheet's `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. The React wrapper sends the `sheetsBar` prop to the grid on every render. If a sheet's `data` is a new array, the plugin rebuilds the workbook and drops the user's edits, sort, filters, and any sheets added at runtime.
 
 ```jsx
 // Rebuilds the workbook on every render
@@ -144,13 +133,13 @@ const budgetData = [['Rent', 1200]];
 <HotTable sheetsBar={{ sheets: [{ name: 'Budget', data: budgetData }] }} />
 ```
 
-A fresh `settings` object on each render is fine. The plugin compares `settings` by content and `data` by reference.
+A new `settings` object on each render keeps the workbook only when its values are equal. Functions and class instances, such as a renderer or a HyperFormula engine, are compared by reference, so define them outside the component or memoize them. For the exact rule, see [Known limitations](#known-limitations).
 
 :::
 
 ## Managing sheets programmatically
 
-Get the plugin instance with [`getPlugin()`](@/api/core.md#getplugin) and call its API methods.
+Get the plugin instance with [`getPlugin()`](@/api/core.md#getplugin) and call its API methods. For more information, see the [`SheetsBar`](@/api/sheetsBar.md) API reference.
 
 ```js
 const sheetsBar = hot.getPlugin('sheetsBar');
@@ -169,113 +158,31 @@ sheetsBar.addSheet('Q3 Forecast', [['Category', 'Q3 2026']]);
 sheetsBar.renameSheet(2, 'Comments');
 sheetsBar.duplicateSheet(1);
 sheetsBar.removeSheet(2);
-```
 
-`getSheets()` returns a [`SheetDescriptor`](@/api/sheetsBar.md) for each sheet: its `id`, its `name`, and whether it is the active sheet. `setActiveSheet()` and `addSheet()` return `false` (or `null` for `addSheet()`) when the operation is rejected -- for example, when a [`beforeSheetTabChange`](@/api/hooks.md#beforesheettabchange) listener cancels a switch. `moveSheetToIndex(id, index)` moves a sheet to a new tab-order index and returns `false` when the move is rejected. `renameSheet(id, name)` and `removeSheet(id)` return `false` when the rename or removal is rejected, and `duplicateSheet(id)` returns a `SheetDescriptor` for the copy, or `null` when the copy is rejected.
+// move a sheet to another position in the tab order
+sheetsBar.moveSheetToIndex(3, 0);
+```
 
 ## Tab menus
 
-Each tab has a menu with **Rename**, **Duplicate**, **Delete**, **Move left**, and **Move right** actions. Open it with the chevron on the active tab, or right-click any tab. On an inactive tab, the chevron first switches to that sheet -- click it again to open the menu. Double-click a tab to rename it inline.
+Right-click a tab, or click the chevron on the active tab, to open its menu. On an inactive tab, the first click on the chevron switches sheets.
 
-The all-sheets menu -- opened from the `≡` control next to the add-sheet button -- lists every sheet and lets you jump to any of them, including sheets that are scrolled out of view.
-
-You can also reorder sheets by dragging a tab along the bar. Deleting the active sheet activates its nearest remaining neighbor, and the last remaining sheet can't be deleted.
-
-## Overflow paging
-
-When the tabs no longer fit the bar's width, paging arrows appear at the end of the strip. Click an arrow to scroll the tabs by one page. Set `paging: false` to hide the arrows and let the tab strip overflow instead.
-
-## Right-to-left layout
-
-Under a [right-to-left](@/guides/internationalization/layout-direction/layout-direction.md) layout, the tab strip mirrors: the first sheet's tab renders on the right, and the paging arrows swap direction. The tab menu's **Move left** and **Move right** actions keep referring to the visual direction, not the underlying array order.
-
-## Use sheets bar hooks
-
-You can run your code before or after different sheet operations, using the following [Handsontable DataGrid hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md). Every `before` hook can cancel its operation by returning `false`.
-
-- [`beforeSheetTabChange()`](@/api/hooks.md#beforesheettabchange)
-- [`afterSheetTabChange()`](@/api/hooks.md#aftersheettabchange)
-- [`beforeSheetTabAdd()`](@/api/hooks.md#beforesheettabadd)
-- [`afterSheetTabAdd()`](@/api/hooks.md#aftersheettabadd)
-- [`beforeSheetTabRemove()`](@/api/hooks.md#beforesheettabremove)
-- [`afterSheetTabRemove()`](@/api/hooks.md#aftersheettabremove)
-- [`beforeSheetTabRename()`](@/api/hooks.md#beforesheettabrename)
-- [`afterSheetTabRename()`](@/api/hooks.md#aftersheettabrename)
-- [`beforeSheetTabMove()`](@/api/hooks.md#beforesheettabmove)
-- [`afterSheetTabMove()`](@/api/hooks.md#aftersheettabmove)
-- [`afterSheetTabStateCapture()`](@/api/hooks.md#aftersheettabstatecapture)
-- [`afterSheetTabStateRestore()`](@/api/hooks.md#aftersheettabstaterestore)
-
-::: only-for javascript
-```js
-const configurationOptions = {
-  beforeSheetTabChange(oldSheetId, newSheetId) {
-    // add your code here
-    return false; // to block the sheet switch
-  },
-  afterSheetTabChange(oldSheetId, newSheetId) {
-    // add your code here
-  },
-  beforeSheetTabRemove(sheetId) {
-    // add your code here
-    return false; // to block the removal
-  },
-  // ...
-};
-```
-:::
-
-::: only-for react
-```jsx
-<HotTable
-  beforeSheetTabChange={(oldSheetId, newSheetId) => {
-    // add your code here
-    return false; // to block the sheet switch
-  }}
-  afterSheetTabChange={(oldSheetId, newSheetId) => {
-    // add your code here
-  }}
-  beforeSheetTabRemove={(sheetId) => {
-    // add your code here
-    return false; // to block the removal
-  }}
-  // ...
-/>
-```
-:::
-
-::: only-for vue
-```ts
-const hotSettings = {
-  beforeSheetTabChange(oldSheetId, newSheetId) {
-    // add your code here
-    return false; // to block the sheet switch
-  },
-  afterSheetTabChange(oldSheetId, newSheetId) {
-    // add your code here
-  },
-  // ...
-};
-```
-:::
+- Double-click a tab to rename it.
+- Drag a tab to reorder sheets.
 
 ## Per-sheet view state
 
-Switching sheets captures the outgoing sheet's view state and restores it the next time you switch back to it. The view state covers the scroll position, the selection, and the [`Pagination`](@/api/pagination.md) page and page size. It also covers sort, filters, hidden and trimmed indexes, merged cells, and custom borders. Manual column widths and row heights are included too, along with any cell-meta changes you made while the sheet was active.
+Each sheet keeps its own view state: scroll position, selection, sort, filters, row and column order, hidden rows and columns, trimmed rows, frozen rows and columns, merged cells, custom borders, manual column widths and row heights, cell meta (except the `valid` flag, which the next validation sets again), and the [`Pagination`](@/api/pagination.md) page and page size. A sheet you haven't opened yet doesn't inherit the previous sheet's sort, filters, sizes, or selection. It opens with only what its own `settings` declare, on the configured [`initialPage`](@/api/options.md#pagination) and page size.
 
 To capture and restore a view without the sheets bar, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
 
-A sheet you have not visited yet opens with a neutral view state and no selected cells, so it never inherits the previous sheet's filters, sizes, or selection. It opens on the configured [`initialPage`](@/api/options.md#pagination) and page size.
+A switch away from a sheet with a selection clears it before the next sheet loads, so [`afterDeselect`](@/api/hooks.md#afterdeselect) fires. Selection hooks such as [`afterSelection`](@/api/hooks.md#afterselection) fire when a saved selection comes back, and the page hooks fire when the switch changes the page.
 
-Every switch clears the selection before the arriving sheet loads, so [`afterDeselect`](@/api/hooks.md#afterdeselect) fires on each switch. When the arriving sheet has a stored selection, the selection hooks such as [`afterSelection`](@/api/hooks.md#afterselection) fire after it, as the selection comes back. A listener that reacts to `afterDeselect` therefore also runs on a sheet switch.
-
-Clicking anywhere on the sheets bar keeps the grid's selection, whatever [`outsideClickDeselects`](@/api/options.md#outsideclickdeselects) is set to, and saves a cell you are editing.
-
-The [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks fire after each capture and restore. The page goes back through the Pagination API, so a switch that changes the page also fires [`beforePageChange`](@/api/hooks.md#beforepagechange) and [`afterPageChange`](@/api/hooks.md#afterpagechange), and the page size hooks when the size differs. If a [`beforePageSizeChange`](@/api/hooks.md#beforepagesizechange) listener cancels the page size, the sheet keeps the current size and opens on the page that holds its selection. If a `beforePageChange` listener cancels the page change, the sheet stays on the page it opened on, and a selection that page does not show is cleared. With a server-side [`dataProvider`](@/api/options.md#dataprovider), the page is not captured or restored, because a page change there fetches rows from the server.
+To run your code when a sheet's state is saved or restored, use the [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks.
 
 ## Server-backed sheets
 
-Give one or more sheets their own `dataProvider` to load rows from a server, while other sheets keep local data:
+While the sheets bar is on, a grid-level `dataProvider` is turned off and a console warning is logged. To load a sheet's rows from a server, set `dataProvider` in that sheet's `settings`. Other sheets keep local data:
 
 ```js
 sheetsBar: {
@@ -286,38 +193,21 @@ sheetsBar: {
 },
 ```
 
-Switching to **Orders** fetches its rows from the server. Switching to **Notes** shows its local data with client-side sorting and filtering. See [Use DataProvider with the sheets bar](@/guides/getting-started/server-side-data/server-side-data.md#use-dataprovider-with-the-sheets-bar) for the fetch, switch, and error-handling behavior.
+If you still pass a grid-level `dataProvider`, pass the same object every time. While a server sheet is shown, a new grid-level object replaces that sheet's own `dataProvider`. A framework wrapper that creates a new object on each render does this on every render.
+
+How server sheets behave when you switch:
+
+- A sheet fetches its rows the first time you open it.
+- When you come back, the sheet shows the rows, sort, filters, and page it had when you left, without a new fetch. To refresh it, call [`fetchData()`](@/api/dataProvider.md#fetchdata).
+- A fetch or a save that's still running when you switch away finishes for the sheet that started it.
+- If a request fails while its sheet is hidden, [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) or [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires right away. The error notification appears when you return to the sheet. `afterDataProviderFetchError` gets a third argument, `isVisible`, set to `false`.
+- A duplicated sheet starts with a copy of the original's rows. If the original has already loaded rows, the copy doesn't fetch on its first visit.
+
+For the `dataProvider` setup itself, see [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).
 
 ## Use formulas across sheets
 
-A sheet can enable the [`Formulas`](@/guides/formulas/formula-calculation/formula-calculation.md) plugin through its own `settings`, and its formulas recalculate within that sheet.
-
-Formulas can also reference other sheets of the workbook. Share one [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md#initialize-hyperformula) instance across the sheets, and give each sheet its own `sheetName` within that instance:
-
-```javascript
-const engine = HyperFormula.buildEmpty({
-  licenseKey: 'your-hyperformula-license-key',
-});
-
-const configurationOptions = {
-  sheetsBar: {
-    sheets: [
-      {
-        name: 'Rates',
-        data: [[0.23]],
-        settings: { formulas: { engine, sheetName: 'Rates' } },
-      },
-      {
-        name: 'Budget',
-        data: [[100, '=A1*Rates!A1']],
-        settings: { formulas: { engine, sheetName: 'Budget' } },
-      },
-    ],
-  },
-};
-```
-
-Editing a value on one sheet recalculates the formulas that reference it on the other sheets. In the demo below, switch to the **Rates** sheet, change the VAT rate, and return to **Budget**: the VAT and gross amounts recalculate.
+To reference other sheets in a formula, give each sheet the same [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods) engine instance and its own `sheetName`, in its `formulas` setting.
 
 ::: only-for javascript
 
@@ -362,31 +252,29 @@ Editing a value on one sheet recalculates the formulas that reference it on the 
 
 :::
 
-One thing to keep in mind: pass a built engine instance (`HyperFormula.buildEmpty()`), not the `HyperFormula` class. The class builds a separate engine for each sheet, and separate engines can't see each other's data. The plugin warns in the console when a `sheetName` rides on the class.
+Pass a built engine (`HyperFormula.buildEmpty()`), not the `HyperFormula` class. With the class, each sheet gets its own engine and can't read the other sheets' data. The plugin logs a console warning when a sheet passes the class with a `sheetName`.
 
-A sheet added at runtime -- through the bar's add button, or through `addSheet()` without a `settings` argument -- joins the workbook's shared engine under its own name, so formulas work on it and cross-sheet references can reach it right away. Pass a `settings` argument to `addSheet()` to configure the new sheet yourself.
+A sheet added at runtime, with the add button or with `addSheet()` without `settings`, joins the shared engine under its own name, so other sheets can reference it right away.
 
 ## Known limitations
 
-- Only one sheet's data and settings are loaded into the grid at a time.
-- Passing a changed `sheets` value through [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the whole workbook, discarding any sheets you added at runtime with `addSheet()`. A re-passed value counts as unchanged when each sheet's `settings` are structurally equal and each sheet's `data` is the same array reference. A framework wrapper that re-emits a fresh settings literal on every render therefore keeps the workbook, as long as the `data` arrays are stable references - inline data literals recreated on each render reset it. A rebuild keeps the active sheet selected by name when the new workbook still contains it and the `activeSheet` option did not change. Changing only the bar's UI options (`controls`, `paging`, `position`) never rebuilds the workbook.
-- Switching sheets calls [`loadData()`](@/api/core.md#loaddata) internally, which clears the [`UndoRedo`](@/api/undoRedo.md) plugin's undo and redo stacks.
-- Cell meta set with [`setCellMeta()`](@/api/core.md#setcellmeta) survives a switch round trip, except the `valid` flag - validation results are recomputed by the next validation rather than restored.
-- The bar shares its container with the grid. When the window scrolls the grid (no [`height`](@/api/options.md#height) option and no scrollable ancestor), the bar follows the last row, so on a long sheet you scroll past the data to reach it. To keep the bar in view, give the grid an explicit `height`, or put it in a container with a fixed height and `overflow: auto`. The [`Pagination`](@/api/pagination.md) bar behaves the same way.
-- A grid-level `dataProvider` is disabled while the sheets bar is enabled. Declare it in the `settings` of each sheet that needs one - see [Server-backed sheets](#server-backed-sheets). If you keep a grid-level `dataProvider` anyway, pass the same object every time: a new object passed while a server sheet is shown replaces that sheet's own `dataProvider`, and a framework wrapper that builds one on every render does that on every render.
+- The grid holds one sheet at a time, so methods such as [`getData()`](@/api/core.md#getdata) and [`getDataAtCell()`](@/api/core.md#getdataatcell) read only the active sheet.
+- Passing a changed `sheets` value to [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the workbook and drops sheets added with `addSheet()`. A `sheets` value counts as unchanged when it has the same number of sheets, and each has the same `name`, `settings` with the same content (functions and class instances are compared by reference), and the same `data` array. In framework wrappers, keep your `data` arrays stable. Changing only `controls`, `paging`, or `position` never rebuilds the workbook.
+- Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
+- If the window scrolls the grid (no [`height`](@/api/options.md#height) and no scrollable parent), the bar sits below the last row. To keep it in view, set `height`, or put the grid in a container with a fixed height and `overflow: auto`.
 
 ## Related keyboard shortcuts
 
-Each tab is a single stop in the tab order.
+Each tab is one stop in the tab order.
 
 | Windows | macOS | Action |
 | --- | --- | --- |
 | <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | Switch to the focused tab's sheet. On the active tab, open the tab's menu |
-| Arrow keys | Arrow keys | Move the focus along the tab strip |
+| <kbd>**←**</kbd> / <kbd>**→**</kbd> | <kbd>**←**</kbd> / <kbd>**→**</kbd> | Move the focus along the tab strip |
 | <kbd>**Home**</kbd> / <kbd>**End**</kbd> | <kbd>**Home**</kbd> / <kbd>**End**</kbd> | Move the focus to the first or last tab |
 | <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | Close the open menu, cancel an inline rename, or cancel a drag in progress |
 
-Use the menu's **Move left** and **Move right** actions to reorder sheets from the keyboard, and its **Rename** action to rename a sheet.
+To reorder or rename sheets from the keyboard, use **Move left**, **Move right**, and **Rename** in the tab menu.
 
 ## Related API reference
 

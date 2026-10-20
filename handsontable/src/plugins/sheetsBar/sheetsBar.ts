@@ -268,10 +268,9 @@ interface PreservedState {
  * @class SheetsBar
  *
  * @description
- * The plugin renders a tab bar below the grid — or above it, with the `position`
- * setting — and lets the user switch between the
- * sheets of a multi-sheet workbook. Each sheet owns its data, its optional settings,
- * and its runtime view state.
+ * The plugin renders a tab bar below the grid, or above it with the `position` setting,
+ * and lets the user switch between the sheets of a workbook. Each sheet has its own data,
+ * settings overrides, and view state.
  */
 export class SheetsBar extends BasePlugin {
   /**
@@ -1000,9 +999,9 @@ export class SheetsBar extends BasePlugin {
   /**
    * Renames a sheet.
    *
-   * Rejected — and reported as `false` — when the name is blank, unchanged, already taken by
-   * another sheet, already identifying a different sheet in the sheet's formula engine, or a
-   * `beforeSheetTabRename` listener cancels it.
+   * Returns `false` when the id is unknown, the name is blank or unchanged, another sheet
+   * already uses the name (in the bar or in the sheet's formula engine), or a
+   * `beforeSheetTabRename` listener cancels the rename.
    *
    * @param {number} id The sheet's id.
    * @param {string} name The new name. Trimmed, and cut to the name length limit.
@@ -1016,9 +1015,10 @@ export class SheetsBar extends BasePlugin {
   /**
    * Duplicates a sheet, placing the copy directly after the original.
    *
-   * The copy carries a deep clone of the sheet's data and settings, and a name derived from the
-   * original. Rejected — and reported as `null` — when the id is unknown or a
-   * `beforeSheetTabAdd` listener cancels it.
+   * The copy gets a deep clone of the sheet's data and settings, and a name based on the
+   * original's. The `formulas` setting is not cloned: the copy shares the original's engine,
+   * under a sheet name of its own. Returns `null` when the id is unknown or a `beforeSheetTabAdd` listener
+   * cancels the copy.
    *
    * @param {number} id The sheet to copy.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1031,10 +1031,9 @@ export class SheetsBar extends BasePlugin {
   /**
    * Removes a sheet.
    *
-   * Removing the active sheet activates its nearest remaining neighbor first, so the grid runs
-   * its normal view-state switch. The last remaining sheet cannot be removed. Rejected — and
-   * reported as `false` — when the id is unknown, it is the last sheet, or a
-   * `beforeSheetTabRemove` listener cancels it.
+   * Removing the active sheet first switches to its nearest neighbor. Returns `false` when the
+   * id is unknown, the sheet is the last one, a `beforeSheetTabRemove` listener cancels the
+   * removal, or the switch to the neighbor is rejected.
    *
    * @param {number} id The sheet to remove.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1045,8 +1044,9 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Activates a sheet by id or unique name. Returns `false` when the sheet does not
-   * exist, is already active, or a `beforeSheetTabChange` listener canceled the switch.
+   * Activates a sheet by id or name. Returns `false` when the sheet doesn't exist, is
+   * already active, another switch is in progress, or a `beforeSheetTabChange` listener
+   * cancels the switch.
    *
    * @param {number|string} idOrName The sheet's id, or its name.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1110,10 +1110,11 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Moves a sheet to an absolute tab index.
+   * Moves a sheet to a position in the tab order.
    *
-   * The index is a model index, not a visual one — a caller reading positions off the DOM under
-   * RTL has already accounted for the mirroring, so nothing is mirrored here.
+   * The index counts sheets in tab order, not on screen, so it is the same under RTL.
+   * Returns `false` when the id is unknown, the index is out of range or is the sheet's
+   * current one, or a `beforeSheetTabMove` listener cancels the move.
    *
    * @param {number} id The sheet id.
    * @param {number} to The target index.
@@ -1126,11 +1127,10 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Appends a sheet and returns its descriptor, or `null` when a `beforeSheetTabAdd`
-   * listener canceled the operation.
+   * listener cancels it.
    *
-   * When no `settings` are given and the workbook's sheets share a formula engine, the new
-   * sheet joins it under its own name — the way a spreadsheet's new sheet does — so formulas
-   * work on it and cross-sheet references can reach it right away.
+   * Without `settings`, the new sheet joins the workbook's shared formula engine, if there is
+   * one, under its own name. Formulas and cross-sheet references then work on it right away.
    *
    * @param {string} [name] The sheet's name. Omitted, the next free `Sheet{n}` is used.
    * @param {Array[]} [data] The sheet's data. Omitted, the sheet starts blank.
