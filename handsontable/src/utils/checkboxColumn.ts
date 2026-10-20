@@ -46,9 +46,11 @@ export type CheckboxState = 'checked' | 'unchecked';
  * ignoring case – so `'TRUE'` and `'False'` stand for `true` and `false`, and `'YES'` for a `'yes'`
  * template. An exact match on either template wins over a case-insensitive one, so two templates that
  * differ only in letter case keep both states. The checkbox renderer and its Space/Enter toggle, the
- * checkbox value setter, the `checkbox` validator, the checkbox column sort, the XLSX export, and the
- * checkbox column helpers below all match through this function, so they read a value the same way
- * (DEV-355). A new surface that reads checkbox state calls it too.
+ * checkbox value setter, the `checkbox` validator, the XLSX export, and the checkbox column helpers
+ * below all match through this function, so they read a value the same way (DEV-355). The checkbox
+ * column sort uses it too, but maps a case variant only onto a template the column defines; with the
+ * default templates it keeps sorting by the default comparator. A new surface that reads checkbox
+ * state calls it too.
  *
  * @param {*} value The cell value.
  * @param {object} meta The cell meta.

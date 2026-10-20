@@ -147,8 +147,10 @@ test.describe('checkbox cells and written values', { tag: THEMES_TAG }, () => {
     await expect.poll(() => grid.sourceCellValue(251, 1)).toBe(false);
   });
 
-  // The renderer draws a loaded `'TRUE'` as checked, so the toggle, the sort, and the export read it
-  // the same way (the export is pinned in `exportFile/__tests__/types/xlsx/cell-types.spec.js`).
+  // The renderer draws a loaded `'TRUE'` as checked, so the toggle and the export read it the same
+  // way (the export is pinned in `exportFile/__tests__/types/xlsx/cell-types.spec.js`). The sort maps a
+  // case variant only onto a template the column defines (the next test); with the default templates
+  // it keeps sorting by the default comparator.
   test('toggles a loaded case variant with Space like the template it renders as', async () => {
     await grid.initGrid({ data: [['a', 'TRUE'], ['b', 'False']], columns: [{}, { type: 'checkbox' }] });
 
