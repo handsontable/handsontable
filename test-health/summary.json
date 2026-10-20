@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-20T11:21:06.318Z",
+  "generatedAt": "2026-10-20T12:00:50.571Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -134,7 +134,7 @@
       "file": "e2e/selection-viewport-scroll.spec.ts",
       "line": 72,
       "title": "viewport scroll of a selection › scrolls the browser window to the range end Shift+PageDown extends to",
-      "count7": 6,
+      "count7": 5,
       "count30": 14,
       "countAll": 14,
       "runs30": 10,
