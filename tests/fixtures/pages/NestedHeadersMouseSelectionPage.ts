@@ -16,13 +16,12 @@ type GridSettings = {
   multiColumnSorting?: boolean,
 };
 
-type ClickModifier = 'ControlOrMeta' | 'Shift';
+type ClickModifier = 'ControlOrMeta';
 
 type HotSelection = {
   getSelected(): number[][] | undefined,
   getSelectedRangeLast(): { highlight: { row: number | null, col: number | null } } | undefined,
   getPlugin(name: string): { getSortConfig(): SortConfig[] },
-  destroy(): void,
   addHook(name: string, callback: (...args: unknown[]) => void, orderIndex?: number): void,
 };
 

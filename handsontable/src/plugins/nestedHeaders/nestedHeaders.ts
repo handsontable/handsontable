@@ -444,9 +444,9 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('afterColumnMove', this.#onAfterColumnMove);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     this.addHook('afterOnCellMouseDown', this.#onAfterOnCellMouseDown);
-    this.addHook('beforeOnCellMouseUp', this.#onBeforeOnCellMouseUp);
     this.addHook('beforeOnCellMouseOver', this.#onBeforeOnCellMouseOver);
     this.addHook('afterOnCellMouseOver', this.#onAfterOnCellMouseOver);
+    this.addHook('beforeOnCellMouseUp', this.#onBeforeOnCellMouseUp);
     this.addHook('beforeSelectionHighlightSet', this.#onBeforeSelectionHighlightSet);
     this.addHook('modifyTransformStart', this.#onModifyTransformStart);
     this.addHook('afterSelection', this.#updateFocusHighlightPosition);
@@ -1276,8 +1276,7 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    // Sorting already selected one column of this header. Selecting again while Ctrl is held
-    // would add a layer, and skipping would leave sorting's focus on the first cell.
+    // Sorting already selected one column of this header.
     if (!event.shiftKey && this.#ctrlClickRewroteColumnInsideHeader(columnsToSelect, layerAtPress)) {
       this.hot.deselectCell();
     }
@@ -1288,6 +1287,10 @@ export class NestedHeaders extends BasePlugin {
   /**
    * Sorting's `selectColumns` writes one full-height column range during the press. On a rowspan
    * group that range is the leaf, so the columns sit inside the header rather than matching it.
+   *
+   * @param {[number, number, number]} columnsToSelect Columns and header row this click selects.
+   * @param {CellRange | null} layerAtPress The selection layer at pointer down.
+   * @returns {boolean}
    */
   #ctrlClickRewroteColumnInsideHeader(
     columnsToSelect: [number, number, number],
@@ -1321,15 +1324,6 @@ export class NestedHeaders extends BasePlugin {
       startCol >= headerStart &&
       endCol <= headerEnd;
   }
-
-  /**
-   * `isMouseDown()` stays true through `afterOnCellMouseUp`. The document mouseup clears it after
-   * `selection.finish()`. With `navigableHeaders`, `#onBeforeSelectionHighlightSet` would pull the
-   * focus back onto the header.
-   */
-  #onBeforeOnCellMouseUp = () => {
-    this.#isColumnsSelectionInProgress = false;
-  };
 
   /**
    * Finds the header cell a Shift+click extends the column range from: the focus of the current range when
@@ -1506,6 +1500,13 @@ export class NestedHeaders extends BasePlugin {
 
     this.#columnsToSelectOnMouseOver = null;
     this.hot.selection.selectColumns(...columnsToSelect);
+  };
+
+  /**
+   * Clears the in-progress column selection flag when the pointer button is released.
+   */
+  #onBeforeOnCellMouseUp = () => {
+    this.#isColumnsSelectionInProgress = false;
   };
 
   /**

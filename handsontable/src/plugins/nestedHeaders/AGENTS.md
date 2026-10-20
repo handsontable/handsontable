@@ -202,21 +202,14 @@ directions, a second Shift+click and a cell start.
 ## A Ctrl click on a sortable header matches a plain click
 
 Hook order is column sorting (50), multi-column sorting (170), then nested headers (280). On a Ctrl click
-the sorting plugin selects the column in `afterOnCellMouseDown` (`deselectCell` + `selectColumns(col)`,
-focus position 0). `Selection#setRangeStart` treats a held Ctrl as "add a layer", so a second
-`selectColumns` stacks a duplicate (DEV-605). Skipping the second call leaves sorting's layer: the focus
-sits on the first cell, and on a rowspan group the range is the leaf under the clicked header, because
-`#onBeforeSelectColumns` widens at `from.row`, which that call sets to the bottom header.
+the sorting plugin selects the column in `afterOnCellMouseDown` (`deselectCell` + `selectColumns(col)`).
+`Selection#setRangeStart` treats a held Ctrl as "add a layer", so a second `selectColumns` stacks a
+duplicate (DEV-605).
 
-`#selectionLayerAtPress` snapshots `getSelectedRange().current()` in `beforeOnCellMouseDown`. The after
-hook clears it, and so does `disablePlugin`. When `#ctrlClickRewroteColumnInsideHeader` matches, nested
-headers calls `deselectCell()` and then `selectColumns` for the clicked header, so the focus and the
-header level match a plain click (`navigableHeaders` on or off). Skipping that call leaves sorting's
-focus on the first cell. A rewrite that is not that column range (a `selectCell`) does not deselect,
-and `selectColumns` still adds the header. A Ctrl click that left the pressed layer in place still adds
-a layer. The snapshot stays because those columns can already match. The duplicate starts in
-columnSorting's Ctrl+click handling. The fix lives in nestedHeaders while #13904 (sorting) is open.
-Pinned by `tests/e2e/nested-headers-mouse-selection.spec.ts`.
+`#ctrlClickRewroteColumnInsideHeader` is true when that press left one full-height column range whose
+columns sit inside the clicked header. Nested headers then calls `deselectCell()` and `selectColumns`
+for that header. The duplicate starts in columnSorting's Ctrl+click handling. The fix lives in
+nestedHeaders while #13904 (sorting) is open. Pinned by `tests/e2e/nested-headers-mouse-selection.spec.ts`.
 
 ## A drag selects whole columns only when it started on a header
 

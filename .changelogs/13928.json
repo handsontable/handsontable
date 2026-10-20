@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed a Ctrl click on a sortable nested header selecting that header twice and leaving the focus on the first cell, and selecting whole columns when a drag moves from a cell into a nested header.",
+  "title": "Fixed a Ctrl click on a sortable nested header selecting that header twice, and selecting whole columns when a drag moves from a cell into a nested header.",
   "type": "fixed",
   "issueOrPR": 13928,
   "breaking": false,
