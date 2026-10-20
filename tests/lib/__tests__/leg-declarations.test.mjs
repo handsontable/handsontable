@@ -149,6 +149,8 @@ test('the greps match the tags as tokens of the string Playwright greps, and not
   // `lastIndex` never matters (Playwright resets it, and these regexes are not global).
   assert.equal(themes.global, false);
   assert.equal(tagLookahead('@a.b'), '(?=[\\s\\S]*(?<!\\S)@a\\.b(?!\\S))', 'metacharacters are escaped');
+  assert.ok(new RegExp(tagLookahead('@a\\b')).test('x @a\\b y'), 'a backslash is escaped too');
+  assert.ok(!new RegExp(tagLookahead('@a\\b')).test('x @ab y'));
 });
 
 test('legsOf and projectsOf are the truth table the greps implement', () => {
@@ -672,6 +674,10 @@ test('a page object\'s geometry read compared to a literal counts, in the spec a
     '    return visibleLabels(this.page);',
     '  }',
     '',
+    '  async $edge(): Promise<number> {',
+    '    return this.page.evaluate(() => document.body.getBoundingClientRect().left);',
+    '  }',
+    '',
     '  async drawCount(): Promise<number> {',
     '    return this.page.evaluate(() => window.drawCount);',
     '  }',
@@ -687,9 +693,11 @@ test('a page object\'s geometry read compared to a literal counts, in the spec a
     'const { offset } = { offset: await grid.headerVerticalOffset() };\n  const half = offset / 2;\n\n  expect(half).toBeGreaterThanOrEqual(-1);',
     'expect([await grid.headerVerticalOffset()]).toEqual([0]);',
     'expect(await grid.isInView()).toBe(false);',
+    'expect(await grid.$edge()).toBe(0);',
+    'const $left = await grid.$edge();\n\n  expect($left).toBe(0);',
   ].forEach((body) => {
     assert.deepEqual(rulesOf(probe(body), { modules }), ['undeclared-themes'], body);
-    assert.match(messagesOf(probe(body), { modules }), /geometry-helper in e2e\/probe\.spec\.ts:\d+, through (?:headerVerticalOffset|verticalOffsetInHeader|isInView)\(\) at fixtures\//, body);
+    assert.match(messagesOf(probe(body), { modules }), /geometry-helper in e2e\/probe\.spec\.ts:\d+, through (?:headerVerticalOffset|verticalOffsetInHeader|isInView|\$edge)\(\) at fixtures\//, body);
   });
   assert.match(messagesOf(probe('expect(await grid.headerVerticalOffset()).toBe(0);'), { modules }),
     /through headerVerticalOffset\(\) at fixtures\/pages\/ProbePage\.ts:4/);

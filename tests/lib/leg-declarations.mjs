@@ -251,6 +251,17 @@ export function parseFullMatrix(raw) {
 }
 
 /**
+ * `text` with every character a regular expression reads as syntax escaped, the backslash included,
+ * so the text matches only itself inside `new RegExp()`.
+ *
+ * @param {string} text The text.
+ * @returns {string} The escaped text.
+ */
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * A lookahead that requires `tag` as a whitespace-delimited token somewhere in the string Playwright
  * greps: `<project> <file> <describe titles and tags> <test title> <test tags>`, space-joined. The
  * lookbehind and lookahead keep `foo@themes` and `@themes-extra` from matching, and a describe titled
@@ -260,7 +271,7 @@ export function parseFullMatrix(raw) {
  * @returns {string} The lookahead source.
  */
 export function tagLookahead(tag) {
-  return `(?=[\\s\\S]*(?<!\\S)${tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\S))`;
+  return `(?=[\\s\\S]*(?<!\\S)${escapeRegExp(tag)}(?!\\S))`;
 }
 
 /**
@@ -1046,7 +1057,7 @@ function mayReturnGeometry(returns) {
  * @returns {RegExp|null} The pattern.
  */
 function callOf(names) {
-  const list = [...names].map(name => name.replace(/\$/g, '\\$'));
+  const list = [...names].map(escapeRegExp);
 
   return list.length === 0 ? null : new RegExp(`(?<![\\w$#])(?:${list.join('|')})\\s*\\(`);
 }
@@ -1176,7 +1187,7 @@ function findGeometryComparisons({ code, masked }, { scope, file, geometryHelper
       declaration.names.forEach(name => latest.set(name, declaration));
     });
     for (const [name, declaration] of latest) {
-      if (declaration.source && new RegExp(`(?<![\\w$.])${name.replace(/\$/g, '\\$')}(?![\\w$])`).test(text)) {
+      if (declaration.source && new RegExp(`(?<![\\w$.])${escapeRegExp(name)}(?![\\w$])`).test(text)) {
         return declaration.source;
       }
     }
