@@ -1581,7 +1581,7 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by the {@link AsyncValues} plugin before it starts an asynchronous computation of a cell's
    * value. Return `false` to skip the request: the cell does not become pending, its source is not
-   * called, and the request's promise resolves as cancelled with the `'vetoed'` reason. No
+   * called, and the request's promise resolves as canceled with the `'vetoed'` reason. No
    * `afterAsyncValueCancel` hook fires for a skipped request, because nothing was pending.
    *
    * The callbacks run one after another, and each one receives the previous callback's result as its first
@@ -1602,7 +1602,7 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by the {@link AsyncValues} plugin before it passes a resolved value to the grid. Return a value
    * to write it instead, or `false` to discard the value: the cell keeps its previous value, and the
-   * request ends as cancelled with the `'vetoed'` reason. Because `false` discards, a listener cannot
+   * request ends as canceled with the `'vetoed'` reason. Because `false` discards, a listener cannot
    * replace a value with a literal `false`; a resolved `false` that no listener changes is written.
    *
    * The callbacks run one after another, and each one receives the previous callback's result as its first
@@ -1657,7 +1657,7 @@ export const REGISTERED_HOOKS = [
    * @since 19.0.0
    * @param {number} physicalRow Physical row index of the cell, at the time of the cancellation.
    * @param {string|number} prop The property of the cell's column.
-   * @param {string} reason Why the request was cancelled: `'edit'`, `'dependency'`, `'restart'`,
+   * @param {string} reason Why the request was canceled: `'edit'`, `'dependency'`, `'restart'`,
    * `'rowRemoved'`, `'columnsChanged'`, `'dataReplaced'`, `'manual'`, `'disabled'`, or `'vetoed'`.
    * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
    */
@@ -1665,7 +1665,7 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by the {@link AsyncValues} plugin when the last pending request settles (resolves, rejects, or is
-   * cancelled), so no cell is pending any more.
+   * canceled), so no cell is pending any more.
    *
    * @event Hooks#afterAsyncValuesIdle
    * @since 19.0.0

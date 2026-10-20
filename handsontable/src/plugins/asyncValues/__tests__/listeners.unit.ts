@@ -171,7 +171,7 @@ describe('AsyncValues: listeners that throw, and the order of the hooks', () => 
     const thrown = new Error('Listener failed');
     const windowErrors = catchWindowErrors(hot.rootWindow);
     const resolved: number[] = [];
-    const cancelled: number[] = [];
+    const canceled: number[] = [];
 
     hot.addHook('afterAsyncValueResolve', (physicalRow) => {
       resolved.push(physicalRow);
@@ -181,7 +181,7 @@ describe('AsyncValues: listeners that throw, and the order of the hooks', () => 
       }
     });
     hot.addHook('afterAsyncValueCancel', (physicalRow) => {
-      cancelled.push(physicalRow);
+      canceled.push(physicalRow);
 
       if (physicalRow === 0) {
         throw thrown;
@@ -197,7 +197,7 @@ describe('AsyncValues: listeners that throw, and the order of the hooks', () => 
     plugin.setAsyncValues(0, 1, 2, 1, () => deferred().promise);
 
     expect(() => plugin.cancelAll()).toThrow(thrown);
-    expect(cancelled).toEqual([0, 1, 2]);
+    expect(canceled).toEqual([0, 1, 2]);
 
     windowErrors.stop();
     destroy();

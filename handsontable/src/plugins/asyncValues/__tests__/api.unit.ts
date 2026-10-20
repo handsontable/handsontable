@@ -43,7 +43,7 @@ describe('AsyncValues: progress, retry, and request options', () => {
       destroy();
     });
 
-    it('should fire the idle hook when the last request is cancelled', () => {
+    it('should fire the idle hook when the last request is canceled', () => {
       const { hot, plugin, destroy } = createGrid();
       const idle = jest.fn();
 
@@ -195,8 +195,8 @@ describe('AsyncValues: progress, retry, and request options', () => {
 
       const results = await plugin.setAsyncValues(0, 1, 2, 1, source);
 
-      expect(results.map(result => result.status)).toEqual(['resolved', 'cancelled', 'resolved']);
-      expect(results[1]).toEqual({ status: 'cancelled', reason: 'vetoed' });
+      expect(results.map(result => result.status)).toEqual(['resolved', 'canceled', 'resolved']);
+      expect(results[1]).toEqual({ status: 'canceled', reason: 'vetoed' });
       expect(source).toHaveBeenCalledTimes(2);
       expect(start).toHaveBeenCalledTimes(2);
 
@@ -221,7 +221,7 @@ describe('AsyncValues: progress, retry, and request options', () => {
       ));
 
       expect(kept).toEqual({ status: 'resolved', value: false });
-      expect(discarded).toEqual({ status: 'cancelled', reason: 'vetoed' });
+      expect(discarded).toEqual({ status: 'canceled', reason: 'vetoed' });
       expect(written).toEqual({ status: 'resolved', value: 'LAMP' });
       expect(hot.getDataAtCol(1)).toEqual([false, 'old B', 'LAMP', 'old D']);
       expect(cancel).toHaveBeenCalledWith(1, 'name', 'vetoed', null);
@@ -337,7 +337,7 @@ describe('AsyncValues: progress, retry, and request options', () => {
       expect(idleUndo).toEqual([true]);
       expect(changes).toHaveBeenCalledTimes(1);
 
-      // A request that depends on the name and starts after the step is not cancelled by it.
+      // A request that depends on the name and starts after the step is not canceled by it.
       const priceResult = plugin.setAsyncValue(1, 2, () => price.promise, { dependsOn: ['name'] });
 
       await settle();

@@ -25,7 +25,34 @@
       }
     }
 
-    .htAsyncErrorMessage {
+    // Next to a dropdown arrow, which takes the same spot.
+    .htAutocompleteArrow ~ .htAsyncIndicator,
+    .ht-multi-select-arrow ~ .htAsyncIndicator {
+      inset-inline-end: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size) * 1.25);
+    }
+
+    // On the side the text does not take, so it does not cover the end of a right-aligned number.
+    td.htRight > .htAsyncIndicator {
+      inset-inline: auto;
+      left: var(--ht-cell-horizontal-padding);
+    }
+
+    td.htLeft > .htAsyncIndicator {
+      inset-inline: auto;
+      right: var(--ht-cell-horizontal-padding);
+    }
+
+    .htAsyncErrorMarker {
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: 0;
+      width: 0;
+      border-inline-start: 3px solid var(--ht-async-error-marker-color, var(--ht-notification-error-accent));
+      pointer-events: none;
+    }
+
+    .htAsyncErrorMessage,
+    .htAsyncPendingMessage {
       position: absolute;
       width: 1px;
       height: 1px;

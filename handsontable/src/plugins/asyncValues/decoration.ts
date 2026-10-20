@@ -23,6 +23,25 @@ export const INDICATOR_CLASS_NAME = 'htAsyncIndicator';
 export const ERROR_MESSAGE_CLASS_NAME = 'htAsyncErrorMessage';
 
 /**
+ * The class of the visually hidden element that tells assistive technology a value is loading. `aria-busy`
+ * on a grid cell is not announced by the common screen readers.
+ */
+export const PENDING_MESSAGE_CLASS_NAME = 'htAsyncPendingMessage';
+
+/**
+ * The class of the bar that marks a failed cell with something other than a color, drawn as a border so it
+ * stays visible in forced-colors mode.
+ */
+export const ERROR_MARKER_CLASS_NAME = 'htAsyncErrorMarker';
+
+/**
+ * The classes of the elements the plugin adds to a cell.
+ */
+const ELEMENT_CLASS_NAMES = [
+  INDICATOR_CLASS_NAME, ERROR_MESSAGE_CLASS_NAME, PENDING_MESSAGE_CLASS_NAME, ERROR_MARKER_CLASS_NAME,
+];
+
+/**
  * Marks a cell element the plugin decorated, and holds the `title` the plugin wrote on it, so the
  * decoration can be taken off a recycled element without touching a `title` a renderer wrote.
  */
@@ -56,7 +75,7 @@ function createElement(rootDocument: Document, className: string, text: string):
  *
  * @param {HTMLTableCellElement} TD The cell element.
  * @param {string} status The cell's state.
- * @param {string} message The error message.
+ * @param {string} message The error message, or for a pending cell the translated loading text.
  * @param {boolean} ariaTags Whether the grid writes ARIA attributes.
  */
 export function decorateCell(
@@ -66,6 +85,11 @@ export function decorateCell(
 
   if (status === 'pending') {
     TD.appendChild(createElement(rootDocument, INDICATOR_CLASS_NAME, ''));
+
+    if (message !== '') {
+      TD.appendChild(createElement(rootDocument, PENDING_MESSAGE_CLASS_NAME, message));
+    }
+
     addClass(TD, PENDING_CLASS_NAME);
     TD.setAttribute(DECORATION_ATTRIBUTE, '');
 
@@ -78,6 +102,7 @@ export function decorateCell(
 
   addClass(TD, ERROR_CLASS_NAME);
   TD.setAttribute(DECORATION_ATTRIBUTE, message);
+  TD.appendChild(createElement(rootDocument, ERROR_MARKER_CLASS_NAME, ''));
 
   if (message !== '') {
     TD.setAttribute('title', message);
@@ -110,7 +135,6 @@ export function undecorateCell(TD: HTMLTableCellElement): void {
 
   removeAttribute(TD, [DECORATION_ATTRIBUTE]);
   Array.from(TD.children)
-    .filter(child => child.classList.contains(INDICATOR_CLASS_NAME) ||
-      child.classList.contains(ERROR_MESSAGE_CLASS_NAME))
+    .filter(child => ELEMENT_CLASS_NAMES.some(className => child.classList.contains(className)))
     .forEach(child => child.remove());
 }

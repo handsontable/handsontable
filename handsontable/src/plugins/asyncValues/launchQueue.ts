@@ -69,7 +69,7 @@ export class Launch {
 
   /**
    * Frees the slot. Safe to call more than once, and before the source settles: a launch whose cells were
-   * all cancelled gives its slot back at once, even when its source ignores the abort signal.
+   * all canceled gives its slot back at once, even when its source ignores the abort signal.
    */
   readonly release = (): void => {
     if (this.#released) {

@@ -101,7 +101,7 @@ describe('AsyncValues: rows by physical index and by id', () => {
       // Reordered, and without row "d".
       hot.updateData([rowB, products()[0], products()[2]]);
 
-      expect(await dResult).toEqual({ status: 'cancelled', reason: 'rowRemoved' });
+      expect(await dResult).toEqual({ status: 'canceled', reason: 'rowRemoved' });
       expect(plugin.getAsyncStateAt({ rowId: 'b', prop: 'name' })).toEqual({ status: 'pending' });
       expect(plugin.isPending(0, 1)).toBe(true);
 
@@ -121,7 +121,7 @@ describe('AsyncValues: rows by physical index and by id', () => {
 
       hot.loadData([products()[2], products()[3]]);
 
-      expect(await aResult).toEqual({ status: 'cancelled', reason: 'rowRemoved' });
+      expect(await aResult).toEqual({ status: 'canceled', reason: 'rowRemoved' });
 
       c.resolve('new C');
 
@@ -137,7 +137,7 @@ describe('AsyncValues: rows by physical index and by id', () => {
 
       hot.loadData(products());
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'dataReplaced' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'dataReplaced' });
 
       destroy();
     });

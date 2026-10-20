@@ -1,5 +1,5 @@
 /**
- * Every reason a pending request can be cancelled for, for exhaustive handling.
+ * Every reason a pending request can be canceled for, for exhaustive handling.
  *
  * - `'edit'`: the cell's value was changed (an edit, a paste, an autofill, an undo, or an API write).
  * - `'dependency'`: the value of a cell listed in `dependsOn` was changed.
@@ -8,7 +8,7 @@
  * - `'columnsChanged'`: a column was inserted or removed at or before the cell's column, which shifts the columns
  *   of array data.
  * - `'dataReplaced'`: `loadData()` replaced the data and the rows have no ids to follow.
- * - `'manual'`: the request was cancelled with `cancel()`, `cancelAt()`, or `cancelAll()`.
+ * - `'manual'`: the request was canceled with `cancel()`, `cancelAt()`, or `cancelAll()`.
  * - `'disabled'`: the plugin was disabled, or the grid destroyed.
  * - `'vetoed'`: a `beforeAsyncValueStart` or `beforeAsyncValueResolve` listener returned `false`.
  */
@@ -25,7 +25,7 @@ export const ASYNC_VALUE_CANCEL_REASONS = [
 ] as const;
 
 /**
- * Why a pending request was cancelled (see `ASYNC_VALUE_CANCEL_REASONS`).
+ * Why a pending request was canceled (see `ASYNC_VALUE_CANCEL_REASONS`).
  */
 export type AsyncValueCancelReason = typeof ASYNC_VALUE_CANCEL_REASONS[number];
 
@@ -44,7 +44,7 @@ export type AsyncValueProp = string | number;
  */
 export interface AsyncValueContext {
   /**
-   * The signal aborted when the cell's request is cancelled. Pass it to `fetch()` or to any other API
+   * The signal aborted when the cell's request is canceled. Pass it to `fetch()` or to any other API
    * that accepts an `AbortSignal`.
    */
   signal: AbortSignal;
@@ -74,7 +74,7 @@ export interface AsyncValueContext {
 
 /**
  * A promise of a cell's value, or a function that returns one. Only a function receives the
- * `AbortSignal`, so only a function can stop its work when the request is cancelled, and only a
+ * `AbortSignal`, so only a function can stop its work when the request is canceled, and only a
  * function can be retried.
  */
 export type AsyncValueSource =
@@ -165,7 +165,7 @@ export interface AsyncCellInfo {
 export type AsyncValueResult =
   { status: 'resolved'; value: unknown } |
   { status: 'rejected'; error: unknown; message: string } |
-  { status: 'cancelled'; reason: AsyncValueCancelReason };
+  { status: 'canceled'; reason: AsyncValueCancelReason };
 
 /**
  * The state of a cell, as `getAsyncState()` returns it.

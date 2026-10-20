@@ -89,6 +89,55 @@ export class AsyncValuesPage {
   }
 
   /**
+   * Turns the name column into a dropdown column, so its cells draw an arrow.
+   */
+  async useDropdownNames(): Promise<void> {
+    await this.page.evaluate(() => (window as any).hot.updateSettings({
+      columns: [
+        { data: 'sku' },
+        { data: 'name', type: 'dropdown', source: ['Old A', 'Old B', 'Old C'] },
+        { data: 'price', type: 'numeric' },
+      ],
+    }));
+  }
+
+  /**
+   * The boxes of a cell, its spinner, and its dropdown arrow (or `null`), read in one task.
+   */
+  async boxes(row: number, column: number): Promise<{
+    cell: DOMRect; indicator: DOMRect; arrow: DOMRect | null;
+  }> {
+    return this.cell(row, column).evaluate((td) => {
+      const box = (element: Element | null) => {
+        if (!element) {
+          return null;
+        }
+
+        const { x, y, width, height, left, right, top, bottom } = element.getBoundingClientRect();
+
+        return { x, y, width, height, left, right, top, bottom } as DOMRect;
+      };
+
+      return {
+        cell: box(td)!,
+        indicator: box(td.querySelector('.htAsyncIndicator'))!,
+        arrow: box(td.querySelector('.htAutocompleteArrow')),
+      };
+    });
+  }
+
+  /**
+   * The error marker bar of a failed cell: its border width and color.
+   */
+  async errorMarker(row: number, column: number): Promise<{ width: string; color: string }> {
+    return this.cell(row, column).locator('.htAsyncErrorMarker').evaluate((element) => {
+      const style = getComputedStyle(element);
+
+      return { width: style.borderLeftWidth, color: style.borderLeftColor };
+    });
+  }
+
+  /**
    * Sets theme variables on every element of the grid that carries the theme class: the container and the
    * grid's root, which declares the theme's variables again.
    */

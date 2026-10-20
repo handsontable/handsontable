@@ -20,7 +20,8 @@ test.describe('async cell values', { tag: THEMES_TAG }, () => {
 
     await expect(indicator).toBeVisible();
     await expect(asyncPage.cell(0, 1)).toHaveAttribute('aria-busy', 'true');
-    await expect(asyncPage.cell(0, 1)).toHaveText('Old A');
+    // The old value stays, next to the visually hidden loading text.
+    await expect(asyncPage.cell(0, 1)).toHaveText('Old ALoading...');
     await expect(indicator).toHaveCSS('animation-name', 'ht-async-values-spin');
 
     const cellBox = (await asyncPage.cell(0, 1).boundingBox())!;
@@ -73,6 +74,45 @@ test.describe('async cell values', { tag: THEMES_TAG }, () => {
 
     await expect(asyncPage.cell(2, 1)).toHaveClass(/htAsyncError/);
     expect((await asyncPage.errorColors(2, 1)).cell).toBe('rgb(10, 11, 12)');
+  });
+
+  test('the spinner keeps clear of a dropdown arrow and of a right-aligned number', async({ page, theme, bundle }) => {
+    const asyncPage = new AsyncValuesPage(page, theme, bundle);
+
+    await asyncPage.goto();
+    await asyncPage.useDropdownNames();
+    await asyncPage.start(0, 1);
+    await asyncPage.start(0, 2);
+    await expect(asyncPage.indicator(0, 1)).toBeVisible();
+    await expect(asyncPage.indicator(0, 2)).toBeVisible();
+
+    const dropdown = await asyncPage.boxes(0, 1);
+
+    expect(dropdown.arrow).not.toBeNull();
+    expect(dropdown.indicator.right).toBeLessThanOrEqual(dropdown.arrow!.left + 0.5);
+
+    // The price column is numeric, so its text is right-aligned and the spinner moves to the left.
+    const number = await asyncPage.boxes(0, 2);
+
+    expect(number.indicator.right).toBeLessThan(number.cell.left + (number.cell.width / 2));
+  });
+
+  test('a pending cell carries hidden loading text, and a failed one an error bar', async({ page, theme, bundle }) => {
+    const asyncPage = new AsyncValuesPage(page, theme, bundle);
+
+    await asyncPage.goto();
+    await asyncPage.setThemeVariables({ '--ht-async-error-marker-color': 'rgb(13, 14, 15)' });
+    await asyncPage.start(0, 1);
+
+    const loading = asyncPage.cell(0, 1).locator('.htAsyncPendingMessage');
+
+    await expect(loading).toHaveText('Loading...');
+    expect((await loading.boundingBox())!.width).toBeLessThanOrEqual(1);
+
+    await asyncPage.reject(await asyncPage.start(2, 1), 'Product not found');
+
+    await expect(asyncPage.cell(2, 1)).toHaveClass(/htAsyncError/);
+    expect(await asyncPage.errorMarker(2, 1)).toEqual({ width: '3px', color: 'rgb(13, 14, 15)' });
   });
 
   test('a resolved request writes the value and removes the spinner', async({ page, theme, bundle }) => {
@@ -133,7 +173,7 @@ test.describe('async cell values', { tag: THEMES_TAG }, () => {
 
     await expect(asyncPage.cell(0, 1)).toHaveText('Typed');
     await expect.poll(() => asyncPage.result(id)).toEqual(expect.objectContaining({
-      status: 'cancelled', reason: 'edit',
+      status: 'canceled', reason: 'edit',
     }));
     expect(await asyncPage.isAborted(id)).toBe(true);
     await expect(asyncPage.indicator(0, 1)).toHaveCount(0);
@@ -161,7 +201,7 @@ test.describe('async cell values', { tag: THEMES_TAG }, () => {
     await page.keyboard.press('Enter');
 
     await expect.poll(() => asyncPage.result(id)).toEqual(expect.objectContaining({
-      status: 'cancelled', reason: 'dependency',
+      status: 'canceled', reason: 'dependency',
     }));
     await expect(asyncPage.indicator(1, 1)).toHaveCount(0);
     await expect(asyncPage.cell(1, 1)).toHaveText('Old B');

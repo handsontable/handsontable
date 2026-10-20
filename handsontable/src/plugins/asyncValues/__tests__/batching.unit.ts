@@ -44,7 +44,7 @@ describe('AsyncValues: batches, concurrency, and flushing', () => {
       destroy();
     });
 
-    it('should keep the batch signal alive until every cell of the batch is cancelled', async() => {
+    it('should keep the batch signal alive until every cell of the batch is canceled', async() => {
       const { plugin, destroy } = createGrid();
       const request = deferred<unknown[]>();
       let batchSignal: AbortSignal | undefined;
@@ -66,7 +66,7 @@ describe('AsyncValues: batches, concurrency, and flushing', () => {
 
       const [first, second] = await results;
 
-      expect(first).toEqual({ status: 'cancelled', reason: 'manual' });
+      expect(first).toEqual({ status: 'canceled', reason: 'manual' });
       expect(second).toEqual({ status: 'resolved', value: 'new 1' });
 
       const other = deferred<unknown[]>();
@@ -180,7 +180,7 @@ describe('AsyncValues: batches, concurrency, and flushing', () => {
       destroy();
 
       expect(signal?.aborted).toBe(true);
-      expect((await results)[0]).toEqual({ status: 'cancelled', reason: 'disabled' });
+      expect((await results)[0]).toEqual({ status: 'canceled', reason: 'disabled' });
     });
   });
 
@@ -204,7 +204,7 @@ describe('AsyncValues: batches, concurrency, and flushing', () => {
       requests[1].resolve('new 1');
       requests[2].resolve('new 2');
 
-      expect((await results).map(result => result.status)).toEqual(['resolved', 'resolved', 'resolved', 'cancelled']);
+      expect((await results).map(result => result.status)).toEqual(['resolved', 'resolved', 'resolved', 'canceled']);
       expect(source).toHaveBeenCalledTimes(3);
 
       destroy();
@@ -223,7 +223,7 @@ describe('AsyncValues: batches, concurrency, and flushing', () => {
       destroy();
     });
 
-    it('should give a slot back at once when its cell is cancelled, even if the source never settles', async() => {
+    it('should give a slot back at once when its cell is canceled, even if the source never settles', async() => {
       const { plugin, destroy } = createGrid({ asyncValues: { concurrency: 1 } });
       const source = jest.fn(() => deferred().promise);
 

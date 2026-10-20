@@ -226,6 +226,7 @@ const horizonTokens: ThemeTokensConfig = {
   freezeBarHighlightColor: 'tokens.accentColor',
   asyncIndicatorColor: 'tokens.accentColor',
   asyncErrorBackgroundColor: 'tokens.cellErrorBackgroundColor',
+  asyncErrorMarkerColor: 'tokens.notificationErrorAccent',
   hiddenIndicatorColor: ['colors.palette.400', 'colors.palette.500'],
   menuBorderWidth: '0px',
   menuBorderRadius: 'sizing.size_3',

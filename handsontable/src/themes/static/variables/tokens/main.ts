@@ -226,6 +226,7 @@ const mainTokens: ThemeTokensConfig = {
   freezeBarHighlightColor: 'tokens.accentColor',
   asyncIndicatorColor: 'tokens.accentColor',
   asyncErrorBackgroundColor: 'tokens.cellErrorBackgroundColor',
+  asyncErrorMarkerColor: 'tokens.notificationErrorAccent',
   hiddenIndicatorColor: ['colors.palette.300', 'colors.palette.400'],
   menuBorderWidth: '1px',
   menuBorderRadius: 'sizing.size_1',

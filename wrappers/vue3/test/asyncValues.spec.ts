@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { mount, config } from '@vue/test-utils';
 import { registerAllModules } from 'handsontable/registry';
 import HotTable from '../src/HotTable.vue';
@@ -76,6 +77,47 @@ describe('`asyncValues` option', () => {
 
     expect(plugin.isPending(0, 1)).toBe(false);
     expect(hotInstance.getDataAtCell(0, 1)).toBe('Reading lamp');
+
+    testWrapper.unmount();
+  });
+
+  it('should land a value on its record when reactive data gains or loses rows while it is pending', async() => {
+    const App = {
+      components: { HotTable },
+      template: `
+        <HotTable
+          licenseKey="non-commercial-and-evaluation"
+          :data="products"
+          :columns="[{ data: 'sku' }, { data: 'name' }]"
+          rowId="id"
+          :asyncValues="true"
+        ></HotTable>`,
+      data() {
+        return { products: createProducts() };
+      },
+    };
+    const testWrapper = mount(App, { attachTo: document.getElementById('app') });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+    const plugin = hotInstance.getPlugin('asyncValues');
+    const lamp = deferred();
+    const cable = deferred();
+    const lampResult = plugin.setAsyncValueAt({ rowId: 'a', prop: 'name' }, () => lamp.promise);
+    const cableResult = plugin.setAsyncValueAt({ rowId: 'c', prop: 'name' }, () => cable.promise);
+
+    // The wrapper keeps the array by reference and only resizes the index mapper.
+    testWrapper.vm.products.unshift({ id: 'z', sku: 'Z-900', name: 'Mouse pad' });
+    await nextTick();
+    await Promise.resolve();
+    lamp.resolve('Reading lamp');
+
+    await expect(lampResult).resolves.toEqual({ status: 'resolved', value: 'Reading lamp' });
+    expect(hotInstance.getSourceDataAtRow(1)).toEqual({ id: 'a', sku: 'A-100', name: 'Reading lamp' });
+
+    testWrapper.vm.products.splice(3, 1);
+    await nextTick();
+
+    await expect(cableResult).resolves.toEqual({ status: 'canceled', reason: 'rowRemoved' });
+    expect(plugin.countPending()).toBe(0);
 
     testWrapper.unmount();
   });

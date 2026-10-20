@@ -337,6 +337,7 @@ const tokensKeys = [
   // drops them from the generated files, so add them to the Figma file first.
   'async-indicator-color',
   'async-error-background-color',
+  'async-error-marker-color',
 
   // Hidden Indicator Variables
   'hidden-indicator-color',

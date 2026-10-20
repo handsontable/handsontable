@@ -271,6 +271,7 @@
   --ht-freeze-bar-highlight-color: var(--ht-accent-color);
   --ht-async-indicator-color: var(--ht-accent-color);
   --ht-async-error-background-color: var(--ht-cell-error-background-color);
+  --ht-async-error-marker-color: var(--ht-notification-error-accent);
   --ht-hidden-indicator-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
   --ht-menu-border-width: 0px;
   --ht-menu-border-radius: var(--ht-sizing-size-3);

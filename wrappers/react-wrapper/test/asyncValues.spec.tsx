@@ -157,7 +157,7 @@ describe('HotTable `asyncValues` option', () => {
       api.replaceData(createProducts().slice(0, 2));
     });
 
-    await expect(result).resolves.toEqual({ status: 'cancelled', reason: 'rowRemoved' });
+    await expect(result).resolves.toEqual({ status: 'canceled', reason: 'rowRemoved' });
 
     expect(hot.countRows()).toBe(2);
     expect(plugin.getPendingCells()).toEqual([]);

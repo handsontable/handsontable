@@ -84,7 +84,7 @@ describe('AsyncValues', () => {
 
       hot.updateSettings({ asyncValues: false });
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'disabled' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'disabled' });
       expect(hot.getCell(0, 1)!.classList.contains('htAsyncPending')).toBe(false);
       expect(hot.getCell(0, 1)!.querySelector('.htAsyncIndicator')).toBeNull();
 
@@ -399,11 +399,11 @@ describe('AsyncValues', () => {
   describe('cancelling', () => {
     it('should cancel the request and ignore its late result when the cell is edited', async() => {
       const { hot, plugin, destroy } = createGrid();
-      const cancelled = jest.fn();
+      const canceled = jest.fn();
       const request = deferred();
       let signal: AbortSignal | undefined;
 
-      hot.addHook('afterAsyncValueCancel', cancelled);
+      hot.addHook('afterAsyncValueCancel', canceled);
 
       const result = plugin.setAsyncValue(0, 1, (context) => {
         signal = context.signal;
@@ -414,8 +414,8 @@ describe('AsyncValues', () => {
       hot.setDataAtCell(0, 1, 'typed');
 
       expect(signal!.aborted).toBe(true);
-      expect(await result).toEqual({ status: 'cancelled', reason: 'edit' });
-      expect(cancelled).toHaveBeenCalledWith(0, 'name', 'edit', null);
+      expect(await result).toEqual({ status: 'canceled', reason: 'edit' });
+      expect(canceled).toHaveBeenCalledWith(0, 'name', 'edit', null);
 
       request.resolve('late');
       await settle();
@@ -436,7 +436,7 @@ describe('AsyncValues', () => {
 
       hot.setDataAtCell(0, 0, 'Z');
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'dependency' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'dependency' });
 
       request.resolve('late');
       await settle();
@@ -452,7 +452,7 @@ describe('AsyncValues', () => {
 
       hot.populateFromArray(0, 1, [['pasted']], undefined, undefined, 'CopyPaste.paste');
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'edit' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'edit' });
       expect(hot.getDataAtCell(0, 1)).toBe('pasted');
 
       destroy();
@@ -467,7 +467,7 @@ describe('AsyncValues', () => {
 
       hot.getPlugin('undoRedo').undo();
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'edit' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'edit' });
       expect(hot.getDataAtCell(0, 1)).toBe('old A');
 
       hot.getPlugin('undoRedo').redo();
@@ -484,7 +484,7 @@ describe('AsyncValues', () => {
 
       hot.setSourceDataAtCell(0, 'name', 'from source');
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'edit' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'edit' });
       expect(hot.getDataAtCell(0, 1)).toBe('from source');
 
       destroy();
@@ -496,7 +496,7 @@ describe('AsyncValues', () => {
       const firstResult = plugin.setAsyncValue(0, 1, () => first.promise);
       const secondResult = plugin.setAsyncValue(0, 1, Promise.resolve('second'));
 
-      expect(await firstResult).toEqual({ status: 'cancelled', reason: 'restart' });
+      expect(await firstResult).toEqual({ status: 'canceled', reason: 'restart' });
       expect(await secondResult).toEqual({ status: 'resolved', value: 'second' });
 
       first.resolve('first');
@@ -516,7 +516,7 @@ describe('AsyncValues', () => {
       request.resolve('late');
       await settle();
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'manual' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'manual' });
       expect(hot.getDataAtCell(0, 1)).toBe('old A');
 
       destroy();
@@ -528,7 +528,7 @@ describe('AsyncValues', () => {
 
       plugin.cancelAll();
 
-      expect((await results).every(result => result.status === 'cancelled')).toBe(true);
+      expect((await results).every(result => result.status === 'canceled')).toBe(true);
 
       destroy();
     });
@@ -548,7 +548,7 @@ describe('AsyncValues', () => {
       hot.alter('remove_row', 1);
 
       expect(removedSignal!.aborted).toBe(true);
-      expect(await removedResult).toEqual({ status: 'cancelled', reason: 'rowRemoved' });
+      expect(await removedResult).toEqual({ status: 'canceled', reason: 'rowRemoved' });
       expect(plugin.isPending(1, 1)).toBe(true);
 
       third.resolve('new C');
@@ -559,7 +559,7 @@ describe('AsyncValues', () => {
       destroy();
     });
 
-    it('should not bring a cancelled request back when the row removal is undone', async() => {
+    it('should not bring a canceled request back when the row removal is undone', async() => {
       const { hot, plugin, destroy } = createGrid({ undo: true });
       const result = plugin.setAsyncValue(1, 1, () => deferred().promise);
 
@@ -571,7 +571,7 @@ describe('AsyncValues', () => {
       hot.alter('remove_row', 1);
       hot.getPlugin('undoRedo').undo();
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'rowRemoved' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'rowRemoved' });
       expect(hot.getDataAtRowProp(1, 'sku')).toBe('B');
       expect(plugin.isPending(1, 1)).toBe(false);
       expect(hot.getCell(1, 1)!.classList.contains('htAsyncPending')).toBe(false);
@@ -611,7 +611,7 @@ describe('AsyncValues', () => {
       hot.updateData([{ sku: 'X', name: 'x', price: 9 }, { sku: 'Y', name: 'y', price: 8 }]);
 
       expect(plugin.isPending(0, 1)).toBe(true);
-      expect(await removed).toEqual({ status: 'cancelled', reason: 'rowRemoved' });
+      expect(await removed).toEqual({ status: 'canceled', reason: 'rowRemoved' });
 
       request.resolve('new X');
 
@@ -623,15 +623,15 @@ describe('AsyncValues', () => {
 
     it('should clear the error state of a cell when a cell it depends on is edited', async() => {
       const { hot, plugin, destroy } = createGrid();
-      const cancelled = jest.fn();
+      const canceled = jest.fn();
 
-      hot.addHook('afterAsyncValueCancel', cancelled);
+      hot.addHook('afterAsyncValueCancel', canceled);
       await plugin.setAsyncValue(0, 1, Promise.reject(new Error('Unknown SKU')), { dependsOn: ['sku'] });
       hot.setDataAtCell(0, 0, 'Z');
 
       expect(plugin.getAsyncState(0, 1)).toBeNull();
       expect(hot.getCell(0, 1)!.classList.contains('htAsyncError')).toBe(false);
-      expect(cancelled).not.toHaveBeenCalled();
+      expect(canceled).not.toHaveBeenCalled();
 
       destroy();
     });
@@ -642,7 +642,7 @@ describe('AsyncValues', () => {
 
       hot.loadData([{ sku: 'X', name: 'x', price: 9 }]);
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'dataReplaced' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'dataReplaced' });
 
       destroy();
     });
@@ -656,7 +656,7 @@ describe('AsyncValues', () => {
 
       hot.alter('insert_col_start', 0);
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'columnsChanged' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'columnsChanged' });
 
       destroy();
     });
@@ -676,7 +676,7 @@ describe('AsyncValues', () => {
 
       hot.alter('remove_col', 0);
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'columnsChanged' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'columnsChanged' });
 
       destroy();
     });
@@ -717,11 +717,11 @@ describe('AsyncValues', () => {
 
     it('should cancel nothing when another listener vetoes the row removal', async() => {
       const { hot, plugin, destroy } = createGrid();
-      const cancelled = jest.fn();
+      const canceled = jest.fn();
       const request = deferred();
       const result = plugin.setAsyncValue(1, 1, () => request.promise);
 
-      hot.addHook('afterAsyncValueCancel', cancelled);
+      hot.addHook('afterAsyncValueCancel', canceled);
 
       const veto = () => false;
 
@@ -736,7 +736,7 @@ describe('AsyncValues', () => {
       request.resolve('new B');
 
       expect(await result).toEqual({ status: 'resolved', value: 'new B' });
-      expect(cancelled).not.toHaveBeenCalled();
+      expect(canceled).not.toHaveBeenCalled();
 
       destroy();
     });
@@ -757,8 +757,8 @@ describe('AsyncValues', () => {
       });
       hot.alter('remove_row', 1);
 
-      expect(await outerResult).toEqual({ status: 'cancelled', reason: 'rowRemoved' });
-      expect(await innerResult).toEqual({ status: 'cancelled', reason: 'rowRemoved' });
+      expect(await outerResult).toEqual({ status: 'canceled', reason: 'rowRemoved' });
+      expect(await innerResult).toEqual({ status: 'canceled', reason: 'rowRemoved' });
 
       kept.resolve('new C');
       await keptResult;
@@ -781,7 +781,7 @@ describe('AsyncValues', () => {
         hot.alter('remove_row', 1);
       });
 
-      expect(await removedResult).toEqual({ status: 'cancelled', reason: 'rowRemoved' });
+      expect(await removedResult).toEqual({ status: 'canceled', reason: 'rowRemoved' });
 
       kept.resolve('new C');
       await keptResult;
@@ -797,7 +797,7 @@ describe('AsyncValues', () => {
 
       hot.loadData([{ sku: 'X', name: 'x', price: 9 }]);
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'dataReplaced' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'dataReplaced' });
 
       destroy();
     });
@@ -813,7 +813,7 @@ describe('AsyncValues', () => {
       hot.setDataAtCell(0, 1, 'typed');
       await settle();
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'edit' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'edit' });
       expect(hot.getDataAtCell(0, 1)).toBe('typed');
 
       destroy();
@@ -835,7 +835,7 @@ describe('AsyncValues', () => {
 
       const outerResult = plugin.setAsyncValue(0, 1, () => deferred().promise);
 
-      expect(await outerResult).toEqual({ status: 'cancelled', reason: 'restart' });
+      expect(await outerResult).toEqual({ status: 'canceled', reason: 'restart' });
 
       fromListener.resolve('from listener');
 
@@ -902,7 +902,7 @@ describe('AsyncValues', () => {
       });
       hot.updateSettings({ asyncValues: false });
 
-      expect(await restarted[0]).toEqual({ status: 'cancelled', reason: 'disabled' });
+      expect(await restarted[0]).toEqual({ status: 'canceled', reason: 'disabled' });
 
       await settle();
 
@@ -912,7 +912,7 @@ describe('AsyncValues', () => {
     });
 
     it('should cancel a request cleanly from a row listener that runs before the plugin', async() => {
-      const cancelled = jest.fn();
+      const canceled = jest.fn();
       const { hot, plugin, destroy } = createGrid({
         asyncValues: false,
         afterRemoveRow() {
@@ -922,14 +922,14 @@ describe('AsyncValues', () => {
 
       // Enabled at runtime, so the settings listener above was registered first.
       hot.updateSettings({ asyncValues: true });
-      hot.addHook('afterAsyncValueCancel', cancelled);
+      hot.addHook('afterAsyncValueCancel', canceled);
 
       const result = plugin.setAsyncValue(2, 1, () => deferred().promise);
 
       hot.alter('remove_row', 0);
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'manual' });
-      expect(cancelled).toHaveBeenCalledWith(1, 'name', 'manual', null);
+      expect(await result).toEqual({ status: 'canceled', reason: 'manual' });
+      expect(canceled).toHaveBeenCalledWith(1, 'name', 'manual', null);
       expect(plugin.isPending(1, 1)).toBe(false);
       expect(hot.getCell(1, 1)!.classList.contains('htAsyncPending')).toBe(false);
 
@@ -954,7 +954,7 @@ describe('AsyncValues', () => {
 
       hot.removeHook('afterLoadData', thrower);
 
-      expect(await result).toEqual({ status: 'cancelled', reason: 'dataReplaced' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'dataReplaced' });
 
       const kept = deferred();
       const keptResult = plugin.setAsyncValue(0, 1, () => kept.promise);
@@ -993,7 +993,7 @@ describe('AsyncValues', () => {
 
       hot.addHook('afterAsyncValueStart', () => plugin.cancel(0, 1));
 
-      expect(await plugin.setAsyncValue(0, 1, source)).toEqual({ status: 'cancelled', reason: 'manual' });
+      expect(await plugin.setAsyncValue(0, 1, source)).toEqual({ status: 'canceled', reason: 'manual' });
       expect(source).not.toHaveBeenCalled();
 
       destroy();
@@ -1011,7 +1011,7 @@ describe('AsyncValues', () => {
       });
 
       expect(() => plugin.cancelAll()).toThrow('listener failure');
-      expect((await Promise.all(results)).map(result => result.status)).toEqual(['cancelled', 'cancelled']);
+      expect((await Promise.all(results)).map(result => result.status)).toEqual(['canceled', 'canceled']);
 
       destroy();
     });
@@ -1038,7 +1038,7 @@ describe('AsyncValues', () => {
       destroy();
     });
 
-    it('should resolve the promises of pending requests as cancelled when the grid is destroyed', async() => {
+    it('should resolve the promises of pending requests as canceled when the grid is destroyed', async() => {
       const { plugin, destroy } = createGrid();
       let signal: AbortSignal | undefined;
       const result = plugin.setAsyncValue(0, 1, (context) => {
@@ -1050,7 +1050,7 @@ describe('AsyncValues', () => {
       destroy();
 
       expect(signal!.aborted).toBe(true);
-      expect(await result).toEqual({ status: 'cancelled', reason: 'disabled' });
+      expect(await result).toEqual({ status: 'canceled', reason: 'disabled' });
     });
   });
 

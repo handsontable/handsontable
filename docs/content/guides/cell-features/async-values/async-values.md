@@ -150,7 +150,7 @@ asyncValues.setAsyncValuesInBatches('all', 'category', async (cells, signal) => 
 }, { batchSize: 20, dependsOn: ['product'] });
 ```
 
-Each cell settles on its own: an `Error` element rejects only its cell, and a missing element rejects it with an empty message. A rejected batch rejects every cell of the batch, and so does an answer that isn't an array (the plugin also logs a warning). The batch's `signal` aborts only when every cell of the batch is cancelled, so cancelling a few cells doesn't stop the request for the others. A row listed twice is computed once, and both of its results settle with the same value.
+Each cell settles on its own: an `Error` element rejects only its cell, and a missing element (past the end of the array, a hole, or `undefined`) rejects it with an empty message. To clear a cell, answer `null`. A rejected batch rejects every cell of the batch, and so does an answer that isn't an array (the plugin also logs a warning). The batch's `signal` aborts only when every cell of the batch is canceled, so cancelling a few cells doesn't stop the request for the others. A row listed twice is computed once, and both of its results settle with the same value.
 
 ## Limit concurrent requests and coalesce writes
 
@@ -163,7 +163,7 @@ asyncValues: {
 },
 ```
 
-With `concurrency`, the cells beyond the limit stay pending and wait for a free slot. The default of `6` matches the number of connections a browser opens to one server; set `Infinity` to start every source at once. A cancelled cell gives its slot back at once, even when its request ignores the signal. A batch gives its slot back once every cell of the batch is cancelled.
+With `concurrency`, the cells beyond the limit stay pending and wait for a free slot. The default of `6` matches the number of connections a browser opens to one server; set `Infinity` to start every source at once. A canceled cell gives its slot back at once, even when its request ignores the signal. A batch gives its slot back once every cell of the batch is canceled.
 
 `flush` decides when settled requests are written:
 
@@ -173,7 +173,7 @@ With `concurrency`, the cells beyond the limit stay pending and wait for a free 
 | `'frame'` | Once per animation frame. |
 | A number | After that many milliseconds, collecting every result that settled meanwhile. |
 
-The grid renders once per flush. Each flush writes one change per write [`source`](#request-options): `afterChange` fires once for the rows the grid shows, and the rows hidden by a filter are written separately, without `afterChange` (see [Validation](#how-async-values-work-with-other-features)).
+The grid renders at most once per animation frame: a flush renders at once, and a later flush in the same frame renders when the frame comes. So separate network responses don't each render the grid. Each flush writes one change per write [`source`](#request-options): `afterChange` fires once for the rows the grid shows, and the rows hidden by a filter are written separately, without `afterChange` (see [Validation](#how-async-values-work-with-other-features)).
 
 ## Show progress, retry, and stop
 
@@ -239,7 +239,9 @@ List the columns a value is computed from in the `dependsOn` option. A change to
 asyncValues.setAsyncValue(row, 2, source, { dependsOn: ['sku', 'quantity'] });
 ```
 
-`dependsOn` takes column properties: the `data` keys of object data, or the physical column indexes of array data. A resolved value is a change too, so it cancels the pending requests that depend on its cell.
+`dependsOn` takes column properties: the `data` keys of object data, or the physical column indexes of array data. A resolved value is a change too, so it cancels the pending requests that depend on its cell, and a value computed from an input that lands in the same write is canceled as well.
+
+A value that arrives while the user edits its cell is dropped: the request ends canceled with the `'edit'` reason, and the user's text stays in the editor.
 
 The plugin does not start a new request on its own. Start one from your [`afterChange`](@/api/hooks.md#afterchange) hook when an input column changes, as the first example does. The plugin handles `afterChange` before the listeners you add to the grid, so the change cancels the old request first, and your new request stays. A global listener (`Handsontable.hooks.add()` without an instance) runs before every instance listener, so it can't start the new request this way.
 
@@ -252,7 +254,7 @@ Every method that starts requests takes these options:
 | Option | Default | Description |
 | ------ | ------- | ----------- |
 | `dependsOn` | `[]` | The columns, in the same row, whose change cancels the request. |
-| `source` | `'AsyncValues.resolve'` | The source the value is written with, as `beforeChange` and `afterChange` receive it. Use your own (for example, `'AI.classify'`) to tell AI writes apart in your hooks, in a backend sync, or in an audit log. |
+| `source` | `'AsyncValues.resolve'` | The source the value is written with, as `beforeChange` and `afterChange` receive it. Use your own (for example, `'AI.classify'`) to tell AI writes apart in your hooks, in a backend sync, or in an audit log. `'auto'`, `'UndoRedo.undo'`, `'UndoRedo.redo'`, and a source ending with `Validator` are reserved: the plugin logs a warning and uses the default. |
 | `meta` | none | Cell meta merged into the cell once the grid stores its value, for example `{ aiGenerated: true }`. A value that `beforeChange` or a validator rejects gets no meta. Applied to rows with a visual index only. Never part of an undo step, so an undo doesn't remove it. |
 | `undo` | `'skip'` | `'skip'` writes the values without an undo step. `'record'` records every value the call wrote as one undo step (see [Undo](#undo)). |
 | `keepSource` | `true` | Whether a failed cell keeps its source for `retry()`. |
@@ -260,7 +262,7 @@ Every method that starts requests takes these options:
 
 ## Review values before they're written
 
-The [`beforeAsyncValueStart`](@/api/hooks.md#beforeasyncvaluestart) hook can skip a request: return `false`, and the cell doesn't become pending and its source isn't called. Use it to throttle or to skip rows that already have a value. A skipped request's promise resolves as cancelled with the `'vetoed'` reason, but no `afterAsyncValueCancel` hook fires, because nothing was pending.
+The [`beforeAsyncValueStart`](@/api/hooks.md#beforeasyncvaluestart) hook can skip a request: return `false`, and the cell doesn't become pending and its source isn't called. Use it to throttle or to skip rows that already have a value. A skipped request's promise resolves as canceled with the `'vetoed'` reason, but no `afterAsyncValueCancel` hook fires, because nothing was pending.
 
 The [`beforeAsyncValueResolve`](@/api/hooks.md#beforeasyncvalueresolve) hook receives each resolved value before it's written. Return another value to write that one instead, or `false` to discard it (the cell keeps its previous value):
 
@@ -278,7 +280,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-A discarded value ends its request as cancelled, with the `'vetoed'` reason, and fires `afterAsyncValueCancel`. Because `false` discards, a listener can't replace a value with a literal `false`.
+A discarded value ends its request as canceled, with the `'vetoed'` reason, and fires `afterAsyncValueCancel`. Because `false` discards, a listener can't replace a value with a literal `false`.
 
 When several listeners are added to one of these hooks, each one receives the previous listener's result as its first argument, unless that result is `undefined`. So:
 
@@ -293,7 +295,7 @@ A listener of any other async values hook that throws doesn't keep the other cel
 
 ## Read the state of a cell
 
-[`getAsyncState()`](@/api/asyncValues.md#getasyncstate) returns `{ status: 'pending' }`, `{ status: 'error', error, message }`, or `null`. [`isPending()`](@/api/asyncValues.md#ispending) returns a boolean.
+[`getAsyncState()`](@/api/asyncValues.md#getasyncstate) returns `{ status: 'pending' }`, `{ status: 'error', error, message }`, or `null`. [`isPending()`](@/api/asyncValues.md#ispending) returns a boolean. [`getAsyncStateAt()`](@/api/asyncValues.md#getasyncstateat) and [`isPendingAt()`](@/api/asyncValues.md#ispendingat) take a cell by physical row or row id.
 
 The state is also available in the cell meta, so a custom renderer can read it:
 
@@ -304,7 +306,7 @@ The state is also available in the cell meta, so a custom renderer can read it:
 
 The error message is the rejection reason's `message`, or the reason converted to a string.
 
-Every method that starts requests returns a promise that never rejects. It resolves with an object (or an array of them) that tells how each request ended: `{ status: 'resolved', value }`, `{ status: 'rejected', error, message }`, or `{ status: 'cancelled', reason }`.
+Every method that starts requests returns a promise that never rejects. It resolves with an object (or an array of them) that tells how each request ended: `{ status: 'resolved', value }`, `{ status: 'rejected', error, message }`, or `{ status: 'canceled', reason }`.
 
 `resolved` means the plugin passed the value to the grid. A `beforeChange` listener, or a validator with [`allowInvalid: false`](@/api/options.md#allowinvalid), can still change or reject the value. A cell with a validator gets the value after the validation finishes, so read it in `afterChange` rather than right after the promise resolves.
 
@@ -317,7 +319,7 @@ Every method that starts requests returns a promise that never rejects. It resol
 | [`beforeAsyncValueResolve`](@/api/hooks.md#beforeasyncvalueresolve) | Before a resolved value is written. Return a value to replace it, or `false` to discard it. |
 | [`afterAsyncValueResolve`](@/api/hooks.md#afterasyncvalueresolve) | After a resolved value is passed to the grid. |
 | [`afterAsyncValueReject`](@/api/hooks.md#afterasyncvaluereject) | After a request rejects. |
-| [`afterAsyncValueCancel`](@/api/hooks.md#afterasyncvaluecancel) | After a pending request is cancelled. |
+| [`afterAsyncValueCancel`](@/api/hooks.md#afterasyncvaluecancel) | After a pending request is canceled. |
 | [`afterAsyncValuesIdle`](@/api/hooks.md#afterasyncvaluesidle) | After the last pending request settles. |
 
 Each hook (except `afterAsyncValuesIdle`) receives the cell's physical row index, its column property, and its row id (`null` without [row ids](@/guides/rows/row-identity/row-identity.md)). A row hidden by a filter has no visual index, which is why the hooks use physical coordinates. To get the visual row, call [`toVisualRow()`](@/api/core.md#tovisualrow).
@@ -328,7 +330,11 @@ A value written to a row hidden by a filter fires no `afterChange` (see [Validat
 
 :::
 
-`afterAsyncValueCancel` also receives the reason. Every reason is listed in the exported `ASYNC_VALUE_CANCEL_REASONS` array, for exhaustive handling: `'edit'`, `'dependency'`, `'restart'`, `'rowRemoved'`, `'columnsChanged'`, `'dataReplaced'`, `'manual'`, `'disabled'`, and `'vetoed'`.
+`afterAsyncValueCancel` also receives the reason: `'edit'`, `'dependency'`, `'restart'`, `'rowRemoved'`, `'columnsChanged'`, `'dataReplaced'`, `'manual'`, `'disabled'`, or `'vetoed'`. For exhaustive handling, the `ASYNC_VALUE_CANCEL_REASONS` array lists them all. Import it from the plugin's module (an ES module):
+
+```js
+import { ASYNC_VALUE_CANCEL_REASONS } from 'handsontable/plugins/asyncValues';
+```
 
 ## Undo
 
@@ -342,7 +348,7 @@ asyncValues.setAsyncValuesInBatches('all', 'category', classify, { undo: 'record
 
 One undo then reverts the whole run, and one redo applies it again. The values appear while the run is in progress, so the user can keep editing and undoing meanwhile. The step lands on the undo stack once the run's last request settles and its last value passes the cell's validator. By the time the call's promise resolves, the step is there.
 
-The step is a `'change'` action with the call's `source`, as [`beforeUndo`](@/api/hooks.md#beforeundo) receives it. It records what the grid stored, after a `valueSetter` or a validator changed the value. Like any new step, it clears the redo history: an undo the user makes while a run is in progress can't be redone once the run's step lands.
+The step is a `'change'` action with the call's `source`, as [`beforeUndo`](@/api/hooks.md#beforeundo) receives it. It records what the grid stored, after a `valueSetter` or a validator changed the value, a validator that corrects the value through a source ending with `Validator` included. When two calls write one cell while its validator runs, the cell keeps the value the grid stored last, and that value is what the later call's step records. Like any new step, it clears the redo history: an undo the user makes while a run is in progress can't be redone once the run's step lands.
 
 A few values stay out of the run's step:
 
@@ -353,25 +359,30 @@ A few values stay out of the run's step:
 
 If you disable the plugin while a call is in progress, the values that already landed get no undo step.
 
+A cell's validator decides when a value lands, and the grid applies validated values in the order their validators answer. So if the user edits a cell while the async value written to it still waits for its validator, and the user's value is validated first, the async value then lands over the user's edit.
+
 An undo or redo that changes a pending cell cancels its request, and redo does not start it again.
 
 ## Framework apps and data updates
 
 The React wrapper calls [`updateData()`](@/api/core.md#updatedata) whenever it receives a `data` prop, which is on every render, and the Angular wrapper calls it whenever `data` changes. Pending requests survive those updates:
 
-- With [row ids](@/guides/rows/row-identity/row-identity.md) (the `rowId` option, or `dataProvider.rowId`), each request moves to the row that holds the same id in the new data. A request whose row id is gone is cancelled with the `'rowRemoved'` reason.
+- With [row ids](@/guides/rows/row-identity/row-identity.md) (the `rowId` option, or `dataProvider.rowId`), each request moves to the row that holds the same id in the new data. A request whose row id is gone is canceled with the `'rowRemoved'` reason.
 - Without row ids, `updateData()` keeps each request on the same physical row, the way it keeps cell meta. If your app reorders the rows it passes in, set `rowId`, or the results land on whatever record moved into that position.
 
-[`loadData()`](@/api/core.md#loaddata) starts a new dataset: with row ids, requests follow their ids as above; without them, every request is cancelled with the `'dataReplaced'` reason.
+[`loadData()`](@/api/core.md#loaddata) starts a new dataset: with row ids, requests follow their ids as above; without them, every request is canceled with the `'dataReplaced'` reason.
+
+The Vue wrapper keeps your data array by reference. When the array gains or loses rows, the wrapper only resizes the grid's row index, at its end. With row ids, each pending request then moves to the row that holds its id; a request whose row is gone is canceled with the `'rowRemoved'` reason. Without row ids, requests keep their physical rows, so insert rows at the end of the array, or set `rowId`.
 
 If your app stores resolved values in its own state, read them in `afterAsyncValueResolve` (or `afterChange`), and pass the updated data back as usual. The other pending requests keep running.
 
 ## How async values work with other features
 
-- **Validation:** a resolved value goes through `beforeChange`, the cell's validator, and `afterChange`, with the request's `source`. A row hidden by a filter has no visual index, so its value is written with [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell): the cell's validator does not run, a [`sourceDataValidator`](@/api/options.md#sourcedatavalidator) does, and `afterChange` does not fire.
+- **Validation:** a resolved value goes through `beforeChange`, the cell's validator, and `afterChange`, with the request's `source`. A row hidden by a filter, or past [`maxRows`](@/api/options.md#maxrows), has no visual index, so its value is written with [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell): the cell's validator does not run, a [`sourceDataValidator`](@/api/options.md#sourcedatavalidator) does, and `afterChange` does not fire.
+- **Many calls:** each call that starts or cancels requests renders the grid once. To start many cells, call [`setAsyncValuesForRows()`](@/api/asyncValues.md#setasyncvaluesforrows) or [`setAsyncValues()`](@/api/asyncValues.md#setasyncvalues) once, or wrap your loop in [`batch()`](@/api/core.md#batch).
 - **Copy, paste, and export:** copy and export read the cell's current value -- its previous value while a request is pending or failed. With `copyPendingAs: 'empty'` in the plugin's options, copying puts an empty value for a pending cell. A paste into a pending cell is an edit, so it cancels the request.
 - **Rows and columns:** inserting rows keeps every request on its record. Removing a row cancels its requests. In array data, whose column properties are indexes, inserting or removing a column cancels the requests of that column and the columns after it.
-- **Server-side data:** with the [`DataProvider`](@/api/dataProvider.md) plugin, a refetch (a sort, a filter, a page change, or the refetch after a saved edit) loads new data. With `dataProvider.rowId`, the requests of the rows still on the page keep running; the others are cancelled. A resolved value is not sent to `onRowsUpdate`, so save it yourself, or the next refetch replaces it.
+- **Server-side data:** with the [`DataProvider`](@/api/dataProvider.md) plugin, a refetch (a sort, a filter, a page change, or the refetch after a saved edit) loads new data. With `dataProvider.rowId`, the requests of the rows still on the page keep running; the others are canceled. A resolved value is not sent to `onRowsUpdate`, so save it yourself, or the next refetch replaces it.
 - **Settings:** [`updateSettings()`](@/api/core.md#updatesettings) keeps pending requests, even when it sends `asyncValues` again, as the framework wrappers do, and when it changes `columns`. A raised `concurrency` starts the waiting requests that now fit. Setting `asyncValues` to `false` or enabling [`nestedRows`](@/api/options.md#nestedrows) cancels every request.
 - **Nested rows:** the plugin can't be enabled together with the [`NestedRows`](@/api/nestedRows.md) plugin, which moves rows without keeping their physical indexes.
 
@@ -382,20 +393,21 @@ The plugin adds these classes to a cell:
 | Class | Cell state |
 | ----- | ---------- |
 | `htAsyncPending` | A request is pending. The spinner is a `span.htAsyncIndicator` element inside the cell. |
-| `htAsyncError` | The last request failed. |
+| `htAsyncError` | The last request failed. The cell gets a background color and a bar at its inline start (`span.htAsyncErrorMarker`), so the state doesn't rely on color alone. |
 
-Two theme variables control the colors, so an async error can look different from a validation error:
+Three theme variables control the colors, so an async error can look different from a validation error:
 
 | CSS variable | Default |
 | ------------ | ------- |
 | `--ht-async-indicator-color` | `--ht-accent-color` |
 | `--ht-async-error-background-color` | `--ht-cell-error-background-color` |
+| `--ht-async-error-marker-color` | `--ht-notification-error-accent` |
 
-With `prefers-reduced-motion: reduce`, the spinner does not spin. The spinner sits at the inline end of the cell, over the end of a long or right-aligned value.
+With `prefers-reduced-motion: reduce`, the spinner does not spin. The spinner sits at the inline end of the cell, next to a dropdown arrow, and on the left in a right-aligned cell (a numeric one, for example), so it doesn't cover the value's end. It can still cover the end of a long value.
 
 ## Accessibility
 
-A pending cell has `aria-busy="true"`. A failed cell has `aria-invalid="true"`, and carries the error message twice: in its `title` attribute, which a pointer shows on hover, and in visually hidden text (`span.htAsyncErrorMessage`), which a screen reader reads with the cell. When the request of the selected cell fails, the error message is also announced. Both ARIA attributes, and the announcement, follow the [`ariaTags`](@/api/options.md#ariatags) option.
+A pending cell has `aria-busy="true"` and visually hidden "Loading..." text (`span.htAsyncPendingMessage`, translated with the grid's [language](@/guides/internationalization/language/language.md)), because screen readers don't announce `aria-busy` on a cell. A failed cell has `aria-invalid="true"`, and carries the error message twice: in its `title` attribute, which a pointer shows on hover, and in visually hidden text (`span.htAsyncErrorMessage`), which a screen reader reads with the cell. When the request of the selected cell fails, the error message is also announced. Both ARIA attributes, and the announcement, follow the [`ariaTags`](@/api/options.md#ariatags) option.
 
 ## Related API reference
 
