@@ -187,6 +187,17 @@ describe('inferColumnTypes', () => {
       expect(inferOne(['$1.234,50', '$5'], { locale: 'es-AR' }).numericFormat.currency).toBe('ARS');
     });
 
+    it('takes the code of `kr.` and the full-width yen sign from the locale region', () => {
+      // `13 kr.` is what `Intl` writes for ISK under `is-IS` and for DKK under `da-DK` and `kl-GL`.
+      expect(inferOne(['13 kr.', '7 kr.'], { locale: 'is-IS' }).numericFormat.currency).toBe('ISK');
+      expect(inferOne(['13 kr.', '7 kr.'], { locale: 'nb-NO' }).numericFormat.currency).toBe('NOK');
+      expect(inferOne(['13,00 kr.', '7,00 kr.'], { locale: 'da-DK' }).numericFormat.currency).toBe('DKK');
+      expect(inferOne(['kr. 13,00', 'kr. 7,00'], { locale: 'kl-GL' }).numericFormat.currency).toBe('DKK');
+      // Chinese input methods type the full-width sign for the yuan; `ja-JP` writes it for the yen.
+      expect(inferOne(['￥13', '￥7'], { locale: 'zh-CN' }).numericFormat.currency).toBe('CNY');
+      expect(inferOne(['￥13', '￥7'], { locale: 'ja-JP' }).numericFormat.currency).toBe('JPY');
+    });
+
     it('reads the symbols the XLSX number-format table shares with it', () => {
       const cases = [
         [['12 kr.', '7,5 kr.'], 'da-DK', 'DKK'],

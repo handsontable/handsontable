@@ -74,6 +74,10 @@ data) and converts the values to what each type stores. Read this before touchin
 - **Shared symbols resolve by region** (`resolveCurrencyCode` in `locale.ts`): `$` is CAD under
   `en-CA`, `kr` is NOK under `nb-NO`, but only for the regions `REGIONAL_CURRENCY_CODES` lists; any
   other region takes the symbol's default code (`$` is USD). Add a region there, never a second table.
+  A symbol added to the shared table that several currencies write needs its region rows here in the
+  same change: `kr.` and the full-width `￥` arrived with the XLSX engine (#13634) and resolved
+  to DKK and JPY under every locale, so `13 kr.` under `is-IS` and `￥13` under `zh-CN` became
+  numbers in the wrong currency where they had stayed text.
   `inputFormat.currencySymbol` carries the SYMBOL to the converter, because the converter has no locale
   to turn a code back into a symbol.
 - **Inference without conversion is a trap.** The `date` and `time` cell types validate source data as
