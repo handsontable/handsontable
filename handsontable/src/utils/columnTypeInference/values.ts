@@ -73,6 +73,12 @@ const YEAR_LAST_DATE_REGEX = /^(\d{1,2})([-/.])(\d{1,2})\2(\d{4})$/;
 const TIME_VALUE_REGEX = /^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*([ap])m)?$/i;
 
 /**
+ * A fraction of a second that is all zeros after the seconds (`.000`, `.000000`), which MySQL, SQL
+ * Server, and Postgres write. It carries no information, so it is dropped; a nonzero one is not.
+ */
+const ZERO_FRACTION_REGEX = /(:\d{2})\.0+$/;
+
+/**
  * A date followed by a time (`2026-03-12T14:30`, `12/03/2026 9:05 PM`, `3/12/2026, 2:30 PM`): the date
  * part, then a `T`, whitespace, or a comma and whitespace (what `Intl` writes under `en-US`), then the
  * rest, which has to read as a time.
@@ -545,9 +551,10 @@ export interface DateTimeParts {
 const MIN_DATE_TIME = Date.UTC(1000, 0, 2);
 
 /**
- * The last instant a `Date` may hold to be read, one day before the end of year 9999 in UTC.
+ * The last instant a `Date` may hold to be read: the start of the last day of year 9999 in UTC, so its
+ * local year is at most 9999 in every time zone.
  */
-const MAX_DATE_TIME = Date.UTC(9999, 11, 30);
+const MAX_DATE_TIME = Date.UTC(9999, 11, 31);
 
 /**
  * Splits a date-time string into its date part and its time part. A value with no time part comes
@@ -561,7 +568,7 @@ export function splitDateTime(value: unknown): DateTimeParts | null {
   const text = value.trim();
   const match = DATE_TIME_VALUE_REGEX.exec(text);
 
-  return match ? { date: match[1], time: match[2] } : { date: text, time: null };
+  return match ? { date: match[1], time: match[2].replace(ZERO_FRACTION_REGEX, '$1') } : { date: text, time: null };
 }
 
 /**
@@ -593,8 +600,9 @@ function readDateObject(value: Date): DateTimeReading | null {
 /**
  * Reads a value as a date-time: a date as `readDate()` reads it, optionally followed by a time as
  * `readTime()` reads it, or a valid `Date`. Returns `null` for anything else. A time zone or an offset
- * (`Z`, `+02:00`) is unread, because the grid reads local time. Milliseconds are unread too: the value
- * is converted to `YYYY-MM-DDTHH:mm:ss`, and a written value keeps its text rather than lose a part.
+ * (`Z`, `+02:00`) is unread, because the grid reads local time. A nonzero fraction of a second is unread
+ * too: the value is converted to `YYYY-MM-DDTHH:mm:ss`, and a written value keeps its text rather than
+ * lose a part. An all-zero fraction (`14:30:00.000`) loses nothing and is read.
  */
 export function readDateTime(value: unknown, order: 'DMY' | 'MDY'): DateTimeReading | null {
   return readSplitDateTime(value, splitDateTime(value), order);

@@ -570,6 +570,21 @@ describe('inferColumnTypes', () => {
         .toEqual(expect.objectContaining({ second: '2-digit' }));
     });
 
+    it('reads a zero fraction of a second, which database exports write, and keeps a nonzero one as text', () => {
+      expect(inferOne(['2026-03-12 14:30:00.000', '2026-03-13 09:00:00.000']).type).toBe('intl-datetime');
+      expect(convertOne(['2026-03-12 14:30:00.000', '2026-03-13T09:00:00.000000']))
+        .toEqual(['2026-03-12T14:30:00', '2026-03-13T09:00:00']);
+      expect(convertOne(['2026-03-12 14:30:00', '2026-03-12 14:30:00.500'], { minConfidence: 0.5 }))
+        .toEqual(['2026-03-12T14:30:00', '2026-03-12 14:30:00.500']);
+    });
+
+    it('reads a Date up to the edges of the years it can write, in every time zone', () => {
+      // Noon UTC on the last two days keeps year 9999, and noon UTC on the second day of year 1000 keeps 1000.
+      expect(inferOne([new Date(Date.UTC(9999, 11, 30, 12)), new Date(Date.UTC(1000, 0, 2, 12))]).type)
+        .toBe('intl-datetime');
+      expect(convertOne([new Date(Date.UTC(9999, 11, 30, 12))])[0]).toMatch(/^9999-12-\d\dT/);
+    });
+
     it('does not read an invalid Date, or one whose year has no four digits', () => {
       const invalid = new Date(Number.NaN);
       const early = new Date(Date.UTC(999, 11, 31, 12));

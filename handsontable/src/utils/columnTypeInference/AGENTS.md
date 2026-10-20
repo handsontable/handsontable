@@ -97,9 +97,11 @@ data) and converts the values to what each type stores. Read this before touchin
   whitespace, or `, ` + whitespace (what `Intl` writes under `en-US`), then a time as `readTime` does,
   so the grammar is the date and time grammars, not a third copy. It converts to `YYYY-MM-DDTHH:mm:ss`,
   the shape the editor writes back. A `Z` and an offset are unread, because the validator rejects them
-  and the grid reads local time. Milliseconds are unread too, although the validator accepts them: the
-  converted shape has none, and a written value keeps its text rather than lose a part. A `Date` is the
-  exception and drops its milliseconds, or a column of `Date.now()` values would never read. Three rules.
+  and the grid reads local time. A NONZERO fraction of a second is unread too, although the validator
+  accepts it: the converted shape has none, and a written value keeps its text rather than lose a part.
+  An all-zero fraction (`14:30:00.000`, what MySQL, SQL Server and Postgres write) loses nothing, so
+  `splitDateTime` drops it and the value reads. A `Date` is the exception and drops its milliseconds,
+  or a column of `Date.now()` values would never read. Three rules.
   (1) **The reader also reads a date without a time, as midnight**, because `isValidISODateTime` accepts
   one, so a column of dates with a few date-times settles by share (19 dates and 1 date-time is
   `intl-datetime` at 1.0, ahead of `date` at 0.95). (2) **`detectDateTime` returns `null` when no value
@@ -116,7 +118,7 @@ data) and converts the values to what each type stores. Read this before touchin
   that reads the host: the grid parses an `intl-datetime` value as local time, so the local getters are
   the only reading that shows the same instant. The TYPE never depends on the time zone: a `Date` at
   local midnight is not a `date`, or the inferred type would change with the host. For the same reason
-  the four-digit-year bound is checked on the instant (one day inside years 1000 to 9999 in UTC), never
+  the four-digit-year bound is checked on the instant (from the second day of year 1000 to the last day of 9999 in UTC), never
   on `getFullYear()`. A `Date` casts no vote on the format (its text says nothing about how the column
   is written); a column of `Date`s only gets seconds when one has any, read with `getUTCSeconds()`. It
   drops its milliseconds and is left out of `stats.min`/`max`. CI runs in UTC, where local and UTC
