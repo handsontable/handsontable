@@ -704,13 +704,8 @@ class Event {
 
     if (isEventCancelable) {
       const interactiveElements = ['A', 'BUTTON', 'INPUT'];
-      // Cancel the tap only when it moved the focus highlight onto this cell. A range that
-      // does not include the touch was not moved here. A checkbox stays exempt: that tap is the toggle.
       const focusCellRange = this.#deps.selectionManager.getFocusSelection()?.cellRange ?? null;
-      const touchedCoords = parentCellCoords ?? null;
-      const focusMovedHere = focusCellRange !== null &&
-        touchedCoords !== null &&
-        focusCellRange.includes(touchedCoords);
+      const focusOnTouchedCell = focusCellRange !== null && focusCellRange.includes(parentCellCoords);
       const isCheckbox = target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox';
 
       // For browsers that use the WebKit as an engine (excluding Safari), there is a bug. The prevent
@@ -724,7 +719,8 @@ class Event {
           !interactiveElements.includes(target!.tagName)) {
         event.preventDefault();
 
-      } else if (!this.selectedCellWasTouched(target) && focusMovedHere && !isCheckbox) {
+      } else if (!this.selectedCellWasTouched(target) && focusOnTouchedCell && !isCheckbox) {
+        // The first tap selects; it must not also activate a control or follow a link (#7980).
         event.preventDefault();
       }
     }
