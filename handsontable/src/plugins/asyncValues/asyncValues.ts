@@ -2694,14 +2694,18 @@ export class AsyncValues extends BasePlugin {
     cleared: Array<[AsyncValueEntry, AsyncValueCancelReason]>, landedGroups: Set<Flight[]>,
   ): void {
     const state = this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
+    // Core reads a source ending with `Validator` as a validator correcting the value it validates.
+    const correction = typeof source === 'string' && source.endsWith('Validator');
+
+    if (correction) {
+      this.#refreshQueuedSave(physicalRow, prop);
+    }
 
     if (!state) {
       return;
     }
 
     const flights = state.flights.get(prop);
-    // Core reads a source ending with `Validator` as a validator correcting the value it validates.
-    const correction = typeof source === 'string' && source.endsWith('Validator');
 
     // A correction of a value still in flight: the corrected value lands with the flight's source next.
     if (correction && flights?.some(flight => flight.validating)) {
@@ -2809,6 +2813,16 @@ export class AsyncValues extends BasePlugin {
       return;
     }
 
+    // A value the cell's validator rejected stays in the grid with `allowInvalid`, and DataProvider's own save
+    // leaves such a cell out too.
+    const visualRow = this.#visualRowOf(state.physicalRow);
+    const column = this.hot.propToCol(prop);
+
+    if (visualRow !== null && typeof column === 'number' &&
+        this.hot.getCellMetaTransient(visualRow, column).valid === false) {
+      return;
+    }
+
     // The value is kept to tell, at the save, whether something else wrote the cell since.
     const landed = detachValue(this.#readSource(state.physicalRow, prop));
     const props = this.#saveQueue.get(id);
@@ -2856,6 +2870,21 @@ export class AsyncValues extends BasePlugin {
 
     } catch {
       return null;
+    }
+  }
+
+  /**
+   * Makes a validator's correction the value to save: DataProvider's own save ignores a `*Validator` source,
+   * and the save compares the cell with the value that landed.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {string|number} prop The property of the cell.
+   */
+  #refreshQueuedSave(physicalRow: number, prop: AsyncValueProp): void {
+    const props = this.#saveQueue.size > 0 ? this.#saveQueue.get(this.#readSaveId(physicalRow)) : undefined;
+
+    if (props?.has(prop)) {
+      props.set(prop, detachValue(this.#readSource(physicalRow, prop)));
     }
   }
 
@@ -3120,7 +3149,8 @@ export class AsyncValues extends BasePlugin {
    * @param {string} source The source of the changes.
    */
   readonly #onAfterChange = (changes: CellChange[] | null, source: string): void => {
-    if (!changes || this.#states.size === 0) {
+    // A value waiting for its save has no state to find, but a validator's correction still reaches it.
+    if (!changes || (this.#states.size === 0 && this.#saveQueue.size === 0)) {
       return;
     }
 

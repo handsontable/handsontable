@@ -283,6 +283,59 @@ describe('AsyncValues: saveToDataProvider', () => {
     container.remove();
   });
 
+  it('should leave out a value the cell\'s validator marked invalid, like DataProvider does for an edit', async() => {
+    const { plugin, onRowsUpdate, destroy } = await createServerGrid(
+      { saveToDataProvider: true },
+      { columns: [{ data: 'sku' }, { data: 'name' }, { data: 'price', type: 'numeric' }] },
+    );
+
+    await Promise.all([
+      plugin.setAsyncValueAt({ rowId: 'a', prop: 'price' }, Promise.resolve(11)),
+      plugin.setAsyncValueAt({ rowId: 'b', prop: 'price' }, Promise.resolve('n/a')),
+      plugin.setAsyncValueAt({ rowId: 'c', prop: 'price' }, Promise.resolve(33)),
+    ]);
+    await settle();
+    await settle();
+
+    expect(onRowsUpdate).toHaveBeenCalledTimes(1);
+    expect(onRowsUpdate.mock.calls[0][0].map(({ id, changes }) => [id, changes]))
+      .toEqual([['a', { price: 11 }], ['c', { price: 33 }]]);
+    destroy();
+  });
+
+  it('should save the value a validator corrected through a `*Validator` source', async() => {
+    let hotRef: Handsontable;
+    const { hot, plugin, onRowsUpdate, destroy } = await createServerGrid(
+      { saveToDataProvider: true },
+      {
+        columns: [
+          { data: 'sku' },
+          {
+            data: 'name',
+            validator(this: { visualRow: number; prop: string }, value: unknown, done: (valid: boolean) => void) {
+              if (typeof value === 'string' && value !== value.trim()) {
+                hotRef.setDataAtRowProp(this.visualRow, this.prop, value.trim(), 'trimValidator');
+              }
+
+              done(true);
+            },
+          },
+          { data: 'price' },
+        ],
+      },
+    );
+
+    hotRef = hot;
+    await plugin.setAsyncValueAt({ rowId: 'b', prop: 'name' }, Promise.resolve('  new B  '));
+    await settle();
+    await settle();
+
+    expect(hot.getDataAtRowProp(1, 'name')).toBe('new B');
+    expect(onRowsUpdate).toHaveBeenCalledTimes(1);
+    expect(onRowsUpdate.mock.calls[0][0].map(({ id, changes }) => [id, changes])).toEqual([['b', { name: 'new B' }]]);
+    destroy();
+  });
+
   it('should reject a non-boolean value of the option', async() => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
     const { plugin, destroy } = await createServerGrid({ saveToDataProvider: 'yes' });

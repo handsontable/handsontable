@@ -293,8 +293,11 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   the cell still holds the landed value, so a user edit made after the landing is left to DataProvider's own
   save. The option is re-read at the save, and `#canSave()` needs an enabled DataProvider with `rowId` and
   `onRowsUpdate` (core prefers `dataProvider.rowId`, so the ids are the server's). DataProvider conflicts
-  with `trimRows`, so a trimmed row never reaches a save. Known limits, all in the guide: DataProvider
-  validates the whole batch, so one invalid value drops the flush's save (`runManualUpdateRowsMutation`);
+  with `trimRows`, so a trimmed row never reaches a save. A value whose cell meta says `valid === false` is not queued, because DataProvider's own save leaves
+  such a cell out too (an invalid value was sent to the server before). `#onAfterChange` keeps listening while
+  the queue is non-empty, because a plain call has no row state, and a validator's correction (a `*Validator`
+  source, which DataProvider never saves) refreshes the queued value through `#refreshQueuedSave()`; without
+  it the corrected cell never matched the landed value and was dropped. Known limits, all in the guide:
   every save refetches (`loadData` clears undo) and a save during a page change refetches the old page; a
   validator correction that lands after the save is not saved again; a custom `source` that is in
   `DATA_PROVIDER_BATCH_UPDATE_SOURCES` is saved by DataProvider's own `afterChange` handler too (plugins do

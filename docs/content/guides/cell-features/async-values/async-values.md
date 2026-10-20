@@ -395,13 +395,12 @@ const hot = new Handsontable(container, {
 
 The plugin sends the values of one flush in one [`updateRows()`](@/api/dataProvider.md#updaterows) call. It needs `dataProvider.rowId` and `onRowsUpdate`, and it warns once when either is missing. The save follows these rules:
 
-- A value is saved only when the grid stored it. A value that `beforeChange` or a validator rejected, a rejected request, and a cell the user edited after the value landed are not saved.
+- A value is saved only when the grid stored it. A value that `beforeChange` or a validator rejected, a value a validator marked invalid (with `allowInvalid`), a rejected request, and a cell the user edited after the value landed are not saved. A value a validator corrects before the save is saved corrected.
 - A failed save leaves the cell resolved. Handle it in [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror).
 - The values of a call with `undo: 'record'` are not saved.
 - Each save is a serialized `onRowsUpdate` call followed by a refetch. The refetch loads the data again, so it clears the undo and redo stack. Values that resolve in separate tasks make separate calls, and a value that resolves while a save runs waits for it. Use a numeric [`flush`](#limit-concurrent-requests-and-coalesce-writes) to merge responses into fewer calls.
-- DataProvider validates the cells it saves, so one invalid value stops the whole batch.
 - A save that runs while a page change is loading refetches the old page, because the new page is not stored until its fetch ends.
-- A value that a validator corrects after the save is not saved again.
+- A correction a validator makes after the save went out is not saved again.
 - A call with a [`source`](#request-options) that DataProvider already saves, such as `'edit'`, is saved twice.
 
 ## How async values work with other features
