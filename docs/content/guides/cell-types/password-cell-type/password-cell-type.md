@@ -224,7 +224,7 @@ The password cell type sets the [`copyable`](@/api/options.md#copyable) option t
 
 To restore a cleared value, use undo (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Z**</kbd>).
 
-The data access methods still return the real value: [`getDataAtCell()`](@/api/core.md#getdataatcell) and [`getSourceData()`](@/api/core.md#getsourcedata) read the plain text stored in the data source. The copy-related methods follow `copyable` and return an empty string for a password cell: [`getCopyableData()`](@/api/core.md#getcopyabledata), [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata), and the [`CopyPaste`](@/api/copyPaste.md) plugin's [`copy()`](@/api/copyPaste.md#copy) and [`cut()`](@/api/copyPaste.md#cut) methods.
+The data access methods still return the real value: [`getDataAtCell()`](@/api/core.md#getdataatcell) and [`getSourceData()`](@/api/core.md#getsourcedata) read the plain text stored in the data source. The copy-related methods follow `copyable`: [`getCopyableData()`](@/api/core.md#getcopyabledata) and [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) return an empty string for a password cell, and the [`CopyPaste`](@/api/copyPaste.md) plugin's [`copy()`](@/api/copyPaste.md#copy) and [`cut()`](@/api/copyPaste.md#cut) methods put an empty string on the clipboard.
 
 The `copyable` option is not a security measure. It doesn't hide the value from other features: with the [`formulas`](@/api/options.md#formulas) option enabled, a formula such as `=B2` displays the plain password, and the [`ExportFile`](@/api/exportFile.md) plugin exports the real value.
 
