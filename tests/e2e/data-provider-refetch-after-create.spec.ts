@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { DataProviderRefetchAfterCreatePage } from '../fixtures/pages/DataProviderRefetchAfterCreatePage';
 
 /**
@@ -14,7 +14,7 @@ import { DataProviderRefetchAfterCreatePage } from '../fixtures/pages/DataProvid
  * keeps cell meta by physical row, so a middle splice would move a `readOnly` mark onto the row that
  * took its place.
  */
-test.describe('dataProvider.refetchAfterCreate: false on a sorted grid', { tag: THEMES_TAG }, () => {
+test.describe('dataProvider.refetchAfterCreate: false on a sorted grid', () => {
   let grid: DataProviderRefetchAfterCreatePage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

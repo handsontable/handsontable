@@ -29,19 +29,18 @@ const hot = new Handsontable(container, {
 
 const exportPlugin: ExportFile = hot.getPlugin('exportFile');
 
-const button = document.querySelector('#export-blob')!;
+// Hidden rows and columns stay out of both exports.
+const options = {
+  colHeaders: true,
+  rowHeaders: true,
+  exportHiddenColumns: false,
+  exportHiddenRows: false,
+};
 
-button.addEventListener('click', () => {
-  const exportedBlob = exportPlugin.exportAsBlob('csv', {
-    bom: false,
-    columnDelimiter: ',',
-    colHeaders: false,
-    exportHiddenColumns: false,
-    exportHiddenRows: false,
-    mimeType: 'text/csv',
-    rowDelimiter: '\r\n',
-    rowHeaders: true,
-  });
+document.querySelector('#export-blob')!.addEventListener('click', () => {
+  console.log(exportPlugin.exportAsBlob('csv', options));
+});
 
-  console.log(exportedBlob);
+document.querySelector('#export-string')!.addEventListener('click', () => {
+  console.log(exportPlugin.exportAsString('csv', options));
 });

@@ -12,9 +12,10 @@ import {
 import { A11Y_LABEL } from '../../../helpers/a11y';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import type EventManager from '../../../eventManager';
-import { TabDrag } from './tabDrag';
+import { TabDrag, translationOf } from './tabDrag';
 import { truncateSheetName } from '../sheetModel';
 import type { SheetDescriptor } from '../sheetModel';
+import { entranceElapsedMs } from './switchTiming';
 import type { IconSlotSync } from '../../../themes/engine/icons';
 
 /**
@@ -23,6 +24,171 @@ import type { IconSlotSync } from '../../../themes/engine/icons';
  * @type {string}
  */
 const CHEVRON_ICON_SLOT_CLASS = 'ht-sheets-bar__tab-chevron-icon';
+
+/**
+ * The class of the temporary element that slides the active tab marker to a new tab.
+ *
+ * @type {string}
+ */
+const INDICATOR_CLASS = 'ht-sheets-bar__tab-indicator';
+
+/**
+ * The class the strip wears while the marker slides. It hands the active styling to the
+ * sliding element for that time.
+ *
+ * @type {string}
+ */
+const INDICATOR_MOVING_CLASS = 'ht-sheets-bar__tabs--indicator-moving';
+
+/**
+ * The class of a tab the sliding marker passes over. Only those tabs let the marker show
+ * through their own background.
+ *
+ * @type {string}
+ */
+const INDICATOR_PATH_CLASS = 'ht-sheets-bar__tab--indicator-path';
+
+/**
+ * The class a newly created tab wears while it slides into the strip.
+ *
+ * @type {string}
+ */
+const ENTERING_CLASS = 'ht-sheets-bar__tab--entering';
+
+/**
+ * The class the strip wears while its tabs slide from their old places to new ones after a
+ * sheet moved. It switches the tabs' `transform` transition to the slide's easing.
+ *
+ * @type {string}
+ */
+const SLIDING_CLASS = 'ht-sheets-bar__tabs--sliding';
+
+/**
+ * The class the moved tab wears while the tabs slide, so it passes over the tabs it trades
+ * places with rather than under them.
+ *
+ * @type {string}
+ */
+const SLIDE_LEAD_CLASS = 'ht-sheets-bar__tab--slide-lead';
+
+/**
+ * The custom property, written on the strip, that carries the slide's duration to the tabs'
+ * `transform` transition.
+ *
+ * @type {string}
+ */
+const SLIDE_DURATION_PROPERTY = '--ht-private-tab-slide-duration';
+
+/**
+ * The class of the copy of a removed tab that fades out of the strip after the tab is gone.
+ *
+ * @type {string}
+ */
+const GHOST_CLASS = 'ht-sheets-bar__tab-ghost';
+
+/**
+ * A copy of a removed tab leaving the strip: the element, when its exit started on the strip
+ * window's `performance` clock, how long it runs, both in milliseconds, and the timeout that
+ * removes it.
+ */
+interface LeavingTab {
+  /**
+   * The copy of the removed tab.
+   */
+  element: HTMLElement;
+  /**
+   * The exit's start, on the strip window's `performance` clock, in milliseconds.
+   */
+  start: number;
+  /**
+   * The exit's length, in milliseconds.
+   */
+  duration: number;
+  /**
+   * The handle of the timeout that removes the copy.
+   */
+  timeout: number;
+}
+
+/**
+ * A slide of the tabs to new places: where each tab started, by sheet id, in the strip's
+ * unscrolled layout coordinates, the end of the slide on the strip window's `performance` clock,
+ * and the sheet whose tab leads it.
+ */
+export interface TabSlide {
+  /**
+   * Each tab's left edge before the slide, by sheet id, in pixels.
+   */
+  from: Map<number, number>;
+  /**
+   * The end of the slide on the strip window's `performance` clock, in milliseconds.
+   */
+  endsAt: number;
+  /**
+   * The sheet whose tab leads the slide, or `-1` for none.
+   */
+  leadId: number;
+}
+
+/**
+ * A tab that is sliding into the strip: when its entrance started, how long it runs, and the
+ * timeout that ends it.
+ */
+interface EnteringTab {
+  /**
+   * The entrance's start, on the strip window's `performance` clock, in milliseconds.
+   */
+  start: number;
+  /**
+   * The entrance's length, in milliseconds.
+   */
+  duration: number;
+  /**
+   * The handle of the timeout that ends the entrance.
+   */
+  timeout: number;
+}
+
+/**
+ * A tab's horizontal box inside the strip, in the strip's unscrolled layout coordinates.
+ */
+export interface TabBox {
+  /**
+   * The distance from the strip's left padding edge, in pixels.
+   */
+  left: number;
+  /**
+   * The width, in pixels.
+   */
+  width: number;
+}
+
+/**
+ * The motion a strip hands over to the strip that replaces it: the running marker slide, and the
+ * tabs still sliding in.
+ */
+export interface TabStripMotion {
+  /**
+   * The marker's on-screen box and the end of its slide on the strip window's `performance`
+   * clock, or `null` when no slide runs.
+   */
+  indicator: { box: TabBox, endsAt: number } | null;
+  /**
+   * The tabs sliding in: the sheet id, the entrance's start on the `performance` clock, and its
+   * length, both in milliseconds.
+   */
+  entering: Array<{ id: number, start: number, duration: number }>;
+  /**
+   * The tabs sliding to new places after a sheet moved, from where they are on screen, or `null`
+   * when no slide runs.
+   */
+  slide: TabSlide | null;
+  /**
+   * The copies of removed tabs still leaving the strip: the element, the exit's start on the
+   * `performance` clock, and its length, both in milliseconds.
+   */
+  leaving: Array<{ element: HTMLElement, start: number, duration: number }>;
+}
 
 /**
  * What the strip needs from the plugin to render.
@@ -57,6 +223,12 @@ export interface TabStripOptions {
    * Injected so the strip stays decoupled from the theme engine.
    */
   syncIcon: IconSlotSync;
+  /**
+   * The grid's window, whose `setTimeout()` ends the strip's motion. The strip clears every
+   * pending timeout itself (`destroy()` and the `finish*()` methods), so none is registered on
+   * the grid, where a cleared handle would stay listed for the grid's whole life.
+   */
+  rootWindow: Window;
 }
 
 /**
@@ -135,6 +307,51 @@ export class TabStrip {
    * is not read as a keyboard opening.
    */
   #pointerHeldOnTab = false;
+  /**
+   * The grid's window, which runs the timeouts that end the strip's motion.
+   */
+  readonly #rootWindow: Window;
+  /**
+   * The element that slides the active tab marker, or `null` when no slide is running.
+   */
+  #indicator: HTMLElement | null = null;
+  /**
+   * The handle of the timeout that ends the running slide, or `null` when none is pending.
+   */
+  #indicatorTimeout: number | null = null;
+  /**
+   * The span of the strip the running slide covers, from its start box to its end box, or
+   * `null` when no slide is running.
+   */
+  #indicatorPath: { start: number, end: number } | null = null;
+  /**
+   * The end of the running slide on the strip window's `performance` clock, in milliseconds.
+   */
+  #indicatorEndsAt = 0;
+  /**
+   * The tabs sliding into the strip, by sheet id. A repaint rebuilds every tab, so the entry is
+   * what lets the rebuilt tab continue the slide instead of restarting it.
+   */
+  readonly #entering = new Map<number, EnteringTab>();
+  /**
+   * The running slide of the tabs to new places, or `null` when none runs.
+   */
+  #slide: TabSlide | null = null;
+  /**
+   * The handle of the timeout that ends the running slide of the tabs, or `null` when none is
+   * pending.
+   */
+  #slideTimeout: number | null = null;
+  /**
+   * The slide duration the strip carries while no slide runs, or `null` for none. The tabs a drag
+   * pushes aside read it, so `0ms` makes that displacement instant.
+   */
+  #restingSlideDuration: string | null = null;
+  /**
+   * The copies of removed tabs still leaving the strip. A repaint clears the strip, so the entry
+   * is what puts each copy back at the point its exit reached.
+   */
+  #leaving: LeavingTab[] = [];
 
   /**
    * Binds the strip to its host element.
@@ -145,8 +362,19 @@ export class TabStrip {
     this.#ariaTags = options.ariaTags;
     this.#isRtl = options.isRtl;
     this.#syncIcon = options.syncIcon;
+    this.#rootWindow = options.rootWindow;
     this.#drag = new TabDrag(
-      { host: options.host, dragRoot: options.dragRoot, eventManager: options.eventManager },
+      {
+        host: options.host,
+        dragRoot: options.dragRoot,
+        eventManager: options.eventManager,
+        onDragStart: () => {
+          this.finishIndicator();
+          this.finishEntrances();
+          this.finishSlide();
+          this.finishLeaving();
+        },
+      },
       (id, toIndex) => this.runLocalHooks('tabDragCommit', id, toIndex),
     );
   }
@@ -164,6 +392,8 @@ export class TabStrip {
     this.#pointerHeldOnTab = false;
 
     const focused = this.#capturedFocus();
+    const indicatorBox = this.#indicator === null ? null : this.captureActiveTabBox();
+    const slide = this.#takeSlide();
 
     this.#host.textContent = '';
 
@@ -171,8 +401,538 @@ export class TabStrip {
       this.#host.appendChild(this.#buildTab(sheet));
     });
 
+    if (slide !== null) {
+      this.#startSlide(slide.from, slide.endsAt - this.#now(), slide.leadId);
+    }
+
+    if (indicatorBox !== null) {
+      this.#runIndicator(indicatorBox, this.#indicatorEndsAt - this.#now());
+    }
+
+    this.#leaving.forEach(entry => this.#placeLeaving(entry));
+
     this.#restoreFocus(focused);
     this.#revealActiveTab(sheets.find(sheet => sheet.isActive)?.id ?? -1);
+  }
+
+  /**
+   * Returns the box the active tab marker occupies now: the sliding marker's on-screen position
+   * while a slide runs, otherwise the active tab's layout box. `offsetLeft` and `offsetWidth`
+   * ignore transforms, so a drag FLIP in flight cannot skew the reading.
+   */
+  captureActiveTabBox(): TabBox | null {
+    if (this.#indicator !== null) {
+      const hostRect = this.#host.getBoundingClientRect();
+      const rect = this.#indicator.getBoundingClientRect();
+
+      return {
+        left: rect.left - hostRect.left - this.#host.clientLeft + this.#host.scrollLeft,
+        width: rect.width,
+      };
+    }
+
+    return this.#activeTabBox();
+  }
+
+  /**
+   * Slides the active tab marker from a box to the active tab. The element starts at `from`,
+   * then transitions to the active tab over `durationMs`, and is removed after that time, when
+   * the active tab's own styling takes over.
+   */
+  slideIndicator(from: TabBox, durationMs: number): void {
+    this.finishIndicator();
+
+    if (durationMs <= 0 || this.#activeTabBox() === null) {
+      return;
+    }
+
+    this.#scheduleIndicatorEnd(durationMs);
+    this.#runIndicator(from, durationMs);
+  }
+
+  /**
+   * Hands the running marker slide and tab entrances over to a strip that replaces this one, and
+   * forgets them here without ending them. The marker element goes with this strip's tabs.
+   */
+  releaseMotion(): TabStripMotion {
+    const box = this.#indicator === null ? null : this.captureActiveTabBox();
+    const entering = Array.from(this.#entering, ([id, { start, duration }]) => ({ id, start, duration }));
+    const slide = this.#takeSlide();
+    const leaving = this.#leaving.map(({ element, start, duration }) => ({ element, start, duration }));
+
+    this.#entering.forEach(entry => this.#rootWindow.clearTimeout(entry.timeout));
+    this.#entering.clear();
+    this.#leaving.forEach(entry => this.#rootWindow.clearTimeout(entry.timeout));
+    this.#leaving = [];
+    this.finishIndicator();
+
+    return {
+      indicator: box === null ? null : { box, endsAt: this.#indicatorEndsAt },
+      entering,
+      slide,
+      leaving,
+    };
+  }
+
+  /**
+   * Continues the motion another strip handed over through `releaseMotion()`: the marker slides
+   * on from where it was on screen to the active tab in the time its slide had left, and every
+   * tab still sliding in resumes at the point its entrance reached. Called once the tabs are
+   * rendered.
+   */
+  resumeMotion(motion: TabStripMotion): void {
+    const now = this.#now();
+
+    motion.entering.forEach(({ id, start, duration }) => {
+      if (entranceElapsedMs(start, now, duration) === null) {
+        return;
+      }
+
+      this.#trackEntrance(id, start, duration, start + duration - now);
+
+      const tab = this.getTab(id);
+
+      if (tab !== null) {
+        this.#applyEntrance(tab, id);
+      }
+    });
+
+    if (motion.indicator !== null) {
+      this.slideIndicator(motion.indicator.box, motion.indicator.endsAt - now);
+    }
+
+    if (motion.slide !== null) {
+      this.#startSlide(motion.slide.from, motion.slide.endsAt - now, motion.slide.leadId);
+    }
+
+    motion.leaving.forEach(({ element, start, duration }) => {
+      if (entranceElapsedMs(start, now, duration) !== null) {
+        this.#trackLeaving(element, start, duration, start + duration - now);
+      }
+    });
+  }
+
+  /**
+   * Builds a copy of a sheet's tab as it stands now, at its layout box, for `slideTabOut()` to
+   * fade out once the tab is gone. The copy is decoration: hidden from assistive technology,
+   * inert, and out of every tab query. Answers `null` when the sheet has no tab.
+   */
+  captureLeavingTab(id: number): HTMLElement | null {
+    const tab = this.getTab(id);
+
+    if (tab === null) {
+      return null;
+    }
+
+    const ghost = this.#host.ownerDocument.createElement('div');
+
+    ghost.className = GHOST_CLASS;
+    ghost.inert = true;
+    this.#setAria(ghost, [['aria-hidden', 'true']]);
+    ghost.style.setProperty('--ht-private-tab-ghost-x', `${tab.offsetLeft}px`);
+    ghost.style.setProperty('--ht-private-tab-ghost-width', `${tab.offsetWidth}px`);
+    Array.from(tab.querySelectorAll('.ht-sheets-bar__tab-label, .ht-sheets-bar__tab-chevron'))
+      .forEach(part => ghost.appendChild(part.cloneNode(true)));
+
+    return ghost;
+  }
+
+  /**
+   * Fades a copy `captureLeavingTab()` built out of the strip, toward the inline start, over
+   * `durationMs`, and removes it after that time. A zero duration places nothing.
+   */
+  slideTabOut(ghost: HTMLElement, durationMs: number): void {
+    if (durationMs <= 0) {
+      return;
+    }
+
+    this.#trackLeaving(ghost, this.#now(), durationMs, durationMs);
+  }
+
+  /**
+   * Removes every copy of a removed tab still leaving the strip at once. A no-op when none is.
+   */
+  finishLeaving(): void {
+    this.#leaving.forEach((entry) => {
+      this.#rootWindow.clearTimeout(entry.timeout);
+      entry.element.remove();
+    });
+    this.#leaving = [];
+  }
+
+  /**
+   * Records a leaving copy, puts it into the strip, and schedules its removal `remainingMs` from
+   * now.
+   */
+  #trackLeaving(element: HTMLElement, start: number, duration: number, remainingMs: number): void {
+    const entry: LeavingTab = {
+      element,
+      start,
+      duration,
+      timeout: this.#rootWindow.setTimeout(() => {
+        this.#leaving = this.#leaving.filter(leaving => leaving !== entry);
+        element.remove();
+      }, remainingMs),
+    };
+
+    this.#leaving.push(entry);
+    this.#placeLeaving(entry);
+  }
+
+  /**
+   * Puts a leaving copy into the strip under the tabs and the marker, at the point its exit has
+   * reached, through a negative `animation-delay`.
+   */
+  #placeLeaving(entry: LeavingTab): void {
+    entry.element.style.animationDelay = `${-Math.max(this.#now() - entry.start, 0)}ms`;
+    this.#host.insertBefore(entry.element, this.#host.firstChild);
+  }
+
+  /**
+   * Returns where every tab stands now, by sheet id: its layout left edge, plus the part of a
+   * running slide it has not travelled yet. `offsetLeft` ignores transforms, so an entrance or a
+   * drag in flight cannot skew the reading.
+   */
+  captureTabPositions(): Map<number, number> {
+    const positions = new Map<number, number>();
+    const isSliding = this.#slide !== null;
+
+    this.#tabs().forEach((tab) => {
+      positions.set(Number(tab.dataset.sheetId), tab.offsetLeft + (isSliding ? translationOf(tab) : 0));
+    });
+
+    return positions;
+  }
+
+  /**
+   * Slides every tab from the position `captureTabPositions()` recorded before a repaint to its
+   * place now, over `durationMs`. The tab of `leadId` passes over the tabs it trades places with,
+   * and an active tab carries its own marker along. A zero duration slides nothing.
+   */
+  slideTabs(from: Map<number, number>, durationMs: number, leadId: number = -1): void {
+    this.finishSlide();
+
+    if (durationMs <= 0) {
+      return;
+    }
+
+    this.finishEntrances();
+    this.#startSlide(from, durationMs, leadId);
+  }
+
+  /**
+   * Sets whether the tabs a drag pushes aside slide to their new places, the way a move slides
+   * them. When off, the drag displacement is instant. A running move slide keeps its own
+   * duration until it ends.
+   */
+  setDragSlide(enabled: boolean): void {
+    this.#restingSlideDuration = enabled ? null : '0ms';
+
+    if (this.#slide === null) {
+      this.#applyRestingSlideDuration();
+    }
+  }
+
+  /**
+   * Writes the resting slide duration onto the strip, or takes the property off when there is
+   * none.
+   */
+  #applyRestingSlideDuration(): void {
+    if (this.#restingSlideDuration === null) {
+      this.#host.style.removeProperty(SLIDE_DURATION_PROPERTY);
+    } else {
+      this.#host.style.setProperty(SLIDE_DURATION_PROPERTY, this.#restingSlideDuration);
+    }
+  }
+
+  /**
+   * Ends the running slide of the tabs at once, leaving each tab in its place. A no-op when no
+   * slide runs.
+   */
+  finishSlide(): void {
+    if (this.#takeSlide() === null) {
+      return;
+    }
+
+    const tabs = this.#tabs();
+
+    tabs.forEach((tab) => {
+      tab.style.transition = 'none';
+    });
+    this.#host.getBoundingClientRect();
+    tabs.forEach((tab) => {
+      tab.style.removeProperty('transition');
+      removeClass(tab, SLIDE_LEAD_CLASS);
+    });
+  }
+
+  /**
+   * Forgets the running slide of the tabs, cancels its timeout, and takes its styles off the
+   * strip, leaving the tabs untouched. Returns the slide it forgot, with every tab's position
+   * read from the screen first, or `null` when none runs.
+   */
+  #takeSlide(): TabSlide | null {
+    if (this.#slide === null) {
+      return null;
+    }
+
+    const slide = { ...this.#slide, from: this.captureTabPositions() };
+
+    if (this.#slideTimeout !== null) {
+      this.#rootWindow.clearTimeout(this.#slideTimeout);
+      this.#slideTimeout = null;
+    }
+
+    this.#slide = null;
+    removeClass(this.#host, SLIDING_CLASS);
+    this.#applyRestingSlideDuration();
+
+    return slide;
+  }
+
+  /**
+   * Puts every tab whose recorded position differs from its place back at that position, then
+   * releases it into a `transform` transition of `durationMs` to its place, and schedules the end
+   * of the slide. Starts nothing when no time is left or no tab moved.
+   */
+  #startSlide(from: Map<number, number>, durationMs: number, leadId: number): void {
+    if (durationMs <= 0) {
+      return;
+    }
+
+    const shifted = this.#tabs()
+      .map((tab) => {
+        const left = from.get(Number(tab.dataset.sheetId));
+
+        return { tab, delta: left === undefined ? 0 : left - tab.offsetLeft };
+      })
+      .filter(({ delta }) => Math.abs(delta) >= 0.5);
+
+    if (shifted.length === 0) {
+      return;
+    }
+
+    addClass(this.#host, SLIDING_CLASS);
+    this.#host.style.setProperty(SLIDE_DURATION_PROPERTY, `${durationMs}ms`);
+    shifted.forEach(({ tab, delta }) => {
+      tab.style.transition = 'none';
+      tab.style.transform = `translateX(${delta}px)`;
+      tab.classList.toggle(SLIDE_LEAD_CLASS, Number(tab.dataset.sheetId) === leadId);
+    });
+    this.#host.getBoundingClientRect();
+    shifted.forEach(({ tab }) => {
+      tab.style.removeProperty('transition');
+      tab.style.removeProperty('transform');
+    });
+
+    this.#slide = { from, endsAt: this.#now() + durationMs, leadId };
+    this.#slideTimeout = this.#rootWindow.setTimeout(() => {
+      this.#slideTimeout = null;
+      this.finishSlide();
+    }, durationMs);
+  }
+
+  /**
+   * Records when the running slide ends and schedules its removal for that point.
+   */
+  #scheduleIndicatorEnd(durationMs: number): void {
+    this.#indicatorEndsAt = this.#now() + durationMs;
+    this.#indicatorTimeout = this.#rootWindow.setTimeout(() => {
+      this.#indicatorTimeout = null;
+      this.finishIndicator();
+    }, durationMs);
+  }
+
+  /**
+   * Puts the marker element at `from` and starts its transition to the active tab's current box
+   * over `durationMs`. Creates the element when no slide runs, and puts it back after a repaint
+   * that cleared the strip. Ends the slide when no tab is active or no time is left.
+   */
+  #runIndicator(from: TabBox, durationMs: number): void {
+    const target = this.#activeTabBox();
+
+    if (target === null || durationMs <= 0) {
+      this.finishIndicator();
+
+      return;
+    }
+
+    const indicator = this.#indicator ?? this.#host.ownerDocument.createElement('div');
+
+    indicator.className = INDICATOR_CLASS;
+    this.#setAria(indicator, [['aria-hidden', 'true']]);
+    indicator.style.transitionProperty = 'none';
+    this.#writeIndicatorBox(indicator, from);
+    addClass(this.#host, INDICATOR_MOVING_CLASS);
+    this.#host.insertBefore(indicator, this.#host.firstChild);
+    this.#indicator = indicator;
+    this.#indicatorPath = {
+      start: Math.min(from.left, target.left),
+      end: Math.max(from.left + from.width, target.left + target.width),
+    };
+    this.#markIndicatorPath();
+
+    indicator.getBoundingClientRect();
+    indicator.style.removeProperty('transition-property');
+    indicator.style.transitionDuration = `${durationMs}ms`;
+    this.#writeIndicatorBox(indicator, target);
+  }
+
+  /**
+   * Ends the running slide at once: the marker element goes, and the active tab shows its own
+   * styling again. A no-op when no slide runs.
+   */
+  finishIndicator(): void {
+    if (this.#indicatorTimeout !== null) {
+      this.#rootWindow.clearTimeout(this.#indicatorTimeout);
+      this.#indicatorTimeout = null;
+    }
+
+    if (this.#indicator !== null) {
+      this.#indicator.remove();
+      this.#indicator = null;
+      this.#indicatorPath = null;
+      this.#markIndicatorPath();
+      removeClass(this.#host, INDICATOR_MOVING_CLASS);
+    }
+  }
+
+  /**
+   * Slides the tab of a newly created sheet into the strip over `durationMs`. Every repaint
+   * within that time rebuilds the tab mid-slide, at the point the slide has reached. A zero
+   * duration marks nothing.
+   */
+  markEntering(id: number, durationMs: number): void {
+    if (durationMs <= 0) {
+      return;
+    }
+
+    this.#trackEntrance(id, this.#now(), durationMs, durationMs);
+  }
+
+  /**
+   * Records a tab entrance, replacing any the tab had, and schedules its end `remainingMs` from
+   * now.
+   */
+  #trackEntrance(id: number, start: number, duration: number, remainingMs: number): void {
+    this.#endEntrance(id);
+
+    const timeout = this.#rootWindow.setTimeout(() => this.#endEntrance(id), remainingMs);
+
+    this.#entering.set(id, { start, duration, timeout });
+  }
+
+  /**
+   * Ends every running tab entrance at once, leaving each tab in its resting place. A no-op when
+   * no tab is sliding in.
+   */
+  finishEntrances(): void {
+    Array.from(this.#entering.keys()).forEach(id => this.#endEntrance(id));
+  }
+
+  /**
+   * Ends one tab's entrance: forgets it, cancels its timeout, and takes the sliding styles off
+   * the tab.
+   */
+  #endEntrance(id: number): void {
+    const entry = this.#entering.get(id);
+
+    if (entry === undefined) {
+      return;
+    }
+
+    this.#rootWindow.clearTimeout(entry.timeout);
+    this.#entering.delete(id);
+
+    const tab = this.getTab(id);
+
+    if (tab !== null) {
+      removeClass(tab, ENTERING_CLASS);
+      tab.style.removeProperty('animation-delay');
+    }
+  }
+
+  /**
+   * Puts a freshly built tab at the point its entrance has reached, through a negative
+   * `animation-delay`, or ends the entrance when its time is up.
+   */
+  #applyEntrance(tab: HTMLElement, id: number): void {
+    const entry = this.#entering.get(id);
+
+    if (entry === undefined) {
+      return;
+    }
+
+    const elapsed = entranceElapsedMs(entry.start, this.#now(), entry.duration);
+
+    if (elapsed === null) {
+      this.#endEntrance(id);
+
+      return;
+    }
+
+    addClass(tab, ENTERING_CLASS);
+    tab.style.animationDelay = `${-elapsed}ms`;
+  }
+
+  /**
+   * Reads the strip window's `performance` clock, in milliseconds.
+   */
+  #now(): number {
+    return this.#host.ownerDocument.defaultView?.performance.now() ?? 0;
+  }
+
+  /**
+   * Returns the active tab's layout box inside the strip, or `null` when no tab is active.
+   */
+  #activeTabBox(): TabBox | null {
+    const tab = this.#host.querySelector('.ht-sheets-bar__tab--active');
+
+    if (!isHTMLElement(tab)) {
+      return null;
+    }
+
+    return { left: tab.offsetLeft, width: tab.offsetWidth };
+  }
+
+  /**
+   * Marks the tabs the running slide passes over, and unmarks the rest. The span the marked tabs
+   * cover goes onto the strip, which paints the inactive tab surface there, under the marker.
+   * With no slide running, every tab is unmarked.
+   */
+  #markIndicatorPath(): void {
+    const path = this.#indicatorPath;
+    let start = Infinity;
+    let end = -Infinity;
+
+    this.#tabs().forEach((tab) => {
+      const left = tab.offsetLeft;
+      const right = left + tab.offsetWidth;
+
+      if (path !== null && left < path.end && right > path.start) {
+        addClass(tab, INDICATOR_PATH_CLASS);
+        start = Math.min(start, left);
+        end = Math.max(end, right);
+      } else {
+        removeClass(tab, INDICATOR_PATH_CLASS);
+      }
+    });
+
+    if (end > start) {
+      this.#host.style.setProperty('--ht-private-tab-indicator-path-x', `${start}px`);
+      this.#host.style.setProperty('--ht-private-tab-indicator-path-width', `${end - start}px`);
+    } else {
+      this.#host.style.removeProperty('--ht-private-tab-indicator-path-x');
+      this.#host.style.removeProperty('--ht-private-tab-indicator-path-width');
+    }
+  }
+
+  /**
+   * Writes a box onto the marker element through the custom properties its styles read.
+   */
+  #writeIndicatorBox(indicator: HTMLElement, box: TabBox): void {
+    indicator.style.setProperty('--ht-private-tab-indicator-x', `${box.left}px`);
+    indicator.style.setProperty('--ht-private-tab-indicator-width', `${box.width}px`);
   }
 
   /**
@@ -281,6 +1041,7 @@ export class TabStrip {
 
     tab.appendChild(label);
     tab.appendChild(chevron);
+    this.#applyEntrance(tab, sheet.id);
 
     return tab;
   }
@@ -488,7 +1249,9 @@ export class TabStrip {
    * repaint, so doing it here covers them all. Only a repaint that changed which sheet is
    * active scrolls, or paging the strip by hand would be undone by the next render. The scroll
    * is applied to the strip itself rather than through `scrollIntoView()`, which would also
-   * scroll the page the grid sits on.
+   * scroll the page the grid sits on. The tab is measured by its layout box, which leaves out
+   * the transform of an entrance or a drag in flight, in the coordinates `scrollLeft` uses under
+   * both directions.
    *
    * @param {number} activeId The active sheet's id, or `-1` when there is none.
    */
@@ -501,17 +1264,38 @@ export class TabStrip {
 
     const tab = this.#host.querySelector('.ht-sheets-bar__tab--active');
 
-    if (!isHTMLElement(tab)) {
-      return;
+    if (isHTMLElement(tab)) {
+      this.#scrollIntoStrip(tab);
     }
+  }
 
-    const hostRect = this.#host.getBoundingClientRect();
-    const tabRect = tab.getBoundingClientRect();
+  /**
+   * Scrolls the strip just far enough to bring a sheet's tab fully into view, measured by its
+   * layout box, so a tab still sliding to its place is revealed at that place.
+   */
+  revealTab(id: number): void {
+    const tab = this.getTab(id);
 
-    if (tabRect.left < hostRect.left) {
-      this.#host.scrollLeft -= hostRect.left - tabRect.left;
-    } else if (tabRect.right > hostRect.right) {
-      this.#host.scrollLeft += tabRect.right - hostRect.right;
+    if (tab !== null) {
+      this.#scrollIntoStrip(tab);
+    }
+  }
+
+  /**
+   * Scrolls the strip just far enough to bring a tab fully into view, by its layout box, which
+   * leaves out the transform of an entrance, a slide, or a drag in flight, in the coordinates
+   * `scrollLeft` uses under both directions.
+   */
+  #scrollIntoStrip(tab: HTMLElement): void {
+    const start = tab.offsetLeft;
+    const end = start + tab.offsetWidth;
+    const viewStart = this.#host.scrollLeft;
+    const viewEnd = viewStart + this.#host.clientWidth;
+
+    if (start < viewStart) {
+      this.#host.scrollLeft = start;
+    } else if (end > viewEnd) {
+      this.#host.scrollLeft = end - this.#host.clientWidth;
     }
   }
 
@@ -528,6 +1312,10 @@ export class TabStrip {
     if (!tab || !label) {
       return;
     }
+
+    this.finishIndicator();
+    this.finishSlide();
+    this.finishLeaving();
 
     const input = this.#host.ownerDocument.createElement('input');
     const mirror = this.#host.ownerDocument.createElement('span');
@@ -735,6 +1523,10 @@ export class TabStrip {
    * Clears the strip contents and local hooks.
    */
   destroy(): void {
+    this.finishIndicator();
+    this.finishEntrances();
+    this.finishSlide();
+    this.finishLeaving();
     this.#drag.destroy();
     this.clearLocalHooks();
     this.#host.textContent = '';

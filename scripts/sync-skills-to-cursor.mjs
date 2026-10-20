@@ -45,6 +45,12 @@ const GLOB_MAP = {
   'coordinate-systems': ['handsontable/src/translations/**', 'handsontable/src/plugins/**'],
   'i18n-translations': ['handsontable/src/i18n/**'],
   'handsontable-css-dev': ['handsontable/src/styles/**', 'handsontable/src/themes/**'],
+  'handsontable-a11y': [
+    'handsontable/src/helpers/a11y.ts', 'handsontable/src/utils/a11yAnnouncer.ts',
+    'handsontable/src/focusManager/**', 'handsontable/src/plugins/contextMenu/**',
+    'handsontable/src/plugins/dropdownMenu/**', 'handsontable/src/plugins/*/ui/**',
+    'handsontable/src/editors/**', 'tests/a11y/**',
+  ],
   linting: ['handsontable/.eslintrc.js', 'handsontable/.config/plugin/eslint/**', '.eslintrc.js'],
   refactoring: null, // no globs -- too broad
   'pr-creation': null,

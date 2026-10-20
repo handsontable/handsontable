@@ -240,7 +240,8 @@ export interface GridViewStateRestoreResult {
   applied: GridViewStatePart[];
 
   /**
-   * The parts that were not restored, and why.
+   * The parts that were not restored, and why. A filter entry whose column cannot offer its condition
+   * is listed here while the rest of `filters` is restored, so `filters` can also be in `applied`.
    */
   skipped: GridViewStateIssue[];
 
@@ -729,11 +730,43 @@ function describeFilterColumns(hot: HotInstance, value: unknown): Failure | null
  * bad entry has to be refused before the restore starts.
  */
 function describeFilters(hot: HotInstance, value: unknown): Failure | null {
-  const filters = getEnabledPlugin(hot, 'filters') as
-    { _findInvalidConditions: (value: unknown) => { path: string, message: string } | null } | undefined;
-  const problem = filters?._findInvalidConditions(value);
+  const problem = getFiltersPlugin(hot)?._findInvalidConditions(value);
 
   return problem ? fail('invalid', `filters${problem.path}`, `filters${problem.path} ${problem.message}`) : null;
+}
+
+/**
+ * The private Filters methods the restore asks, so that core never reads the condition registries.
+ */
+interface FiltersRestoreChecks {
+  _findInvalidConditions: (value: unknown) => { path: string, message: string } | null;
+  _findUnavailableConditions: (value: ColumnConditions[]) => Array<{ index: number, path: string, message: string }>;
+}
+
+/**
+ * Returns the Filters plugin when it is enabled.
+ */
+function getFiltersPlugin(hot: HotInstance): FiltersRestoreChecks | undefined {
+  return getEnabledPlugin(hot, 'filters') as FiltersRestoreChecks | undefined;
+}
+
+/**
+ * Leaves out the columns whose filter names a condition the column cannot offer, and describes each
+ * entry that caused it. Unlike every other filter problem this does not skip the part: the other
+ * columns' filters still restore, because a narrower `availableConditions` in a later release, or a
+ * column whose type changed, must not throw away every saved filter.
+ */
+function splitUnavailableFilters(
+  hot: HotInstance,
+  value: ColumnConditions[],
+): { kept: ColumnConditions[], failures: Failure[] } {
+  const problems = getFiltersPlugin(hot)?._findUnavailableConditions(value) ?? [];
+  const droppedColumns = new Set(problems.map(({ index }) => value[index].column));
+
+  return {
+    kept: value.filter(entry => !droppedColumns.has(entry.column)),
+    failures: problems.map(({ path, message }) => fail('invalid', `filters${path}`, `filters${path} ${message}`)),
+  };
 }
 
 /**
@@ -955,6 +988,7 @@ function writePart(
   part: GridViewStatePart,
   rawValue: unknown,
   deferRows = false,
+  entryFailures: Failure[] = [],
 ): Failure | null {
   const { value, failure: unknownColumn } = resolveColumnKeys(hot, part, rawValue);
 
@@ -1003,11 +1037,23 @@ function writePart(
   if (part === 'filters') {
     const failure = describeFilterColumns(hot, value) ?? describeFilters(hot, value);
 
-    if (!failure) {
-      state.filterConditions = toPlainData(value as ColumnConditions[]);
+    if (failure) {
+      return failure;
     }
 
-    return failure;
+    const { kept, failures } = splitUnavailableFilters(hot, value as ColumnConditions[]);
+
+    // With every column left out the part would clear the grid's filters, so it is skipped instead.
+    if (failures.length > 0 && kept.length === 0) {
+      entryFailures.push(...failures.slice(1));
+
+      return failures[0];
+    }
+
+    entryFailures.push(...failures);
+    state.filterConditions = toPlainData(kept);
+
+    return null;
   }
 
   return writeObjectPart(hot, state, part, value, deferRows);
@@ -1320,14 +1366,18 @@ function planRestore(hot: HotInstance, state: unknown): RestorePlan {
   const deferRows = ROW_COUNT_PARTS.some(part => record[part] !== undefined);
 
   plan.presentParts.forEach((part) => {
+    // Problems with single entries of a part that is still applied without them (the filters).
+    const entryFailures: Failure[] = [];
     const failure = describeUnavailability(hot, part) ??
-      writePart(hot, plan.internal, part, record[part], deferRows);
+      writePart(hot, plan.internal, part, record[part], deferRows, entryFailures);
 
     if (failure) {
       plan.skipped.push({ part, ...failure });
     } else {
       plan.parts.add(part);
     }
+
+    entryFailures.forEach(entryFailure => plan.skipped.push({ part, ...entryFailure }));
   });
 
   return plan;
@@ -1392,7 +1442,7 @@ export function setGridViewState(
       skipped: plan.skipped,
       error: {
         reason: 'atomicRejected',
-        message: `${plan.skipped.length} of ${plan.total} parts cannot be applied, ` +
+        message: `${new Set(plan.skipped.map(({ part }) => part)).size} of ${plan.total} parts cannot be applied, ` +
           'so nothing was applied',
       },
     };
@@ -1412,8 +1462,12 @@ export function setGridViewState(
     withoutUndoEntry(hot, apply);
   }
 
+  // A planned part carries skipped entries of its own only when it is applied without them (the
+  // filters of a column that cannot take them), so only a skip found while applying removes it.
+  const skippedWhileApplying = skipped.slice(plan.skipped.length);
+
   return {
-    applied: toPartList(plan.parts).filter(part => !skipped.some(entry => entry.part === part)),
+    applied: toPartList(plan.parts).filter(part => !skippedWhileApplying.some(entry => entry.part === part)),
     skipped,
     previous,
   };

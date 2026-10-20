@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the getAvailableConditions() method to the Filters plugin, which lists the filter conditions a column offers. A view state now restores the other columns' filters and skips the filter of a column that cannot offer its condition.",
+  "type": "added",
+  "issueOrPR": 13934,
+  "breaking": false,
+  "framework": "none"
+}

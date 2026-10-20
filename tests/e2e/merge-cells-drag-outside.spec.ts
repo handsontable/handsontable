@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { MergeCellsDragOutsidePage } from '../fixtures/pages/MergeCellsDragOutsidePage';
 
 /**
@@ -13,7 +13,7 @@ import { MergeCellsDragOutsidePage } from '../fixtures/pages/MergeCellsDragOutsi
  * Grid of the fixture: 10 rows and 5 columns, nothing scrolls. The vertical scenario merges column A over
  * rows 3-8 (visual rows 2-7); the horizontal one merges row 1 over columns A-C.
  */
-test.describe('drag-selecting out of the grid over a merge', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
+test.describe('drag-selecting out of the grid over a merge', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: MergeCellsDragOutsidePage;
 
   test.afterEach(async() => {

@@ -29,7 +29,7 @@ vue:
 |[CustomBorders](@/api/customBorders.md) |Apply a custom border style around a single cell or a range of cells.|
 |[DragToScroll](@/api/dragToScroll.md) |Drag the selection outside of the viewport to enable scrolling.|
 |[DropdownMenu](@/api/dropdownMenu.md) |Add a menu to the column header to enable additional operations for the column.|
-|[ExportFile](@/api/exportFile.md) |Export the data to a CSV file (note: this plugin provides a capability to export the data to only a CSV file type, its name might cause confusion).|
+|[ExportFile](@/api/exportFile.md) |Export the data to a CSV or an Excel (`.xlsx`) file, as a download or a Blob (CSV also as a string), with no extra library.|
 |[Filters](@/api/filters.md) |Display rows that meet your criteria and hide the rest.|
 |[Formulas](@/api/formulas.md) | Use Excel-like functions inside of cells to perform calculations.|
 |[FreezeBar](@/api/freezeBar.md) | Change the number of frozen rows and columns by dragging a bar on the freeze line, or with the keyboard.|

@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { HiddenInitRerenderPage, type HiddenScenario } from '../fixtures/pages/HiddenInitRerenderPage';
 
 /**
@@ -15,7 +15,7 @@ const SCENARIOS: { hidden: HiddenScenario; label: string }[] = [
   { hidden: 'stylesheet-parent', label: 'the parent was hidden by a stylesheet rule' },
 ];
 
-test.describe('a grid initialized inside a hidden container rerenders on reveal', { tag: THEMES_TAG }, () => {
+test.describe('a grid initialized inside a hidden container rerenders on reveal', () => {
   for (const scenario of SCENARIOS) {
     test(`when ${scenario.label}`, async({ page, theme, bundle }) => {
       const grid = new HiddenInitRerenderPage(page, theme, bundle, scenario.hidden);
@@ -50,7 +50,7 @@ test.describe('a grid initialized inside a hidden container rerenders on reveal'
   }
 });
 
-test.describe('the observeVisibilityChangeOnce helper behind the mechanism', { tag: THEMES_TAG }, () => {
+test.describe('the observeVisibilityChangeOnce helper behind the mechanism', () => {
   test('fires exactly once when the element becomes visible, despite same-frame flickers',
     async({ page, theme, bundle }) => {
       const grid = new HiddenInitRerenderPage(page, theme, bundle);

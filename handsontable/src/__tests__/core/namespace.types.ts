@@ -207,6 +207,7 @@ const _filtersAvailableConditionsExclusion: Handsontable.plugins.Filters.Availab
   exclude: ['gt'],
 };
 const _filtersAvailableConditionsDataType: Handsontable.plugins.Filters.AvailableConditionsDataType = 'intl-date';
+const _filtersAvailableCondition: Handsontable.plugins.Filters.AvailableCondition = { name: 'gt', inputsCount: 1 };
 
 // ---------------------------------------------------------------------------
 // renderers namespace: verify function type aliases

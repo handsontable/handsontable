@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { MergeCellsInitRendersPage } from '../fixtures/pages/MergeCellsInitRendersPage';
 
 /**
@@ -12,7 +12,7 @@ import { MergeCellsInitRendersPage } from '../fixtures/pages/MergeCellsInitRende
  */
 const CELLS_PER_DRAW = 100;
 
-test.describe('`mergeCells` does not cost extra draws while the grid initializes', { tag: THEMES_TAG }, () => {
+test.describe('`mergeCells` does not cost extra draws while the grid initializes', () => {
   test('a grid without `mergeCells` draws once', async({ page, theme, bundle }) => {
     const grid = new MergeCellsInitRendersPage(page, theme, bundle, 'none');
 

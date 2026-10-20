@@ -1,5 +1,7 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { SheetsBarPaginationPage } from '../fixtures/pages/SheetsBarPaginationPage';
+
+// leg-declarations: ignore computed-style -- the sheets bar page object reads tab styles for the tab animation specs; this spec checks each sheet's pagination state, which no theme changes
 
 /**
  * Pagination keeps one current page for the whole grid and clamps it to the page count on every
@@ -7,7 +9,7 @@ import { SheetsBarPaginationPage } from '../fixtures/pages/SheetsBarPaginationPa
  * through a shorter sheet brought the long sheet back on the clamped page, and its restored
  * selection sat on a row hidden by pagination.
  */
-test.describe('SheetsBar keeps the pagination state of each sheet', { tag: THEMES_TAG }, () => {
+test.describe('SheetsBar keeps the pagination state of each sheet', () => {
   let grid: SheetsBarPaginationPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

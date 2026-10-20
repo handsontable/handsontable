@@ -1255,25 +1255,6 @@ export class EditorTrimmedRowPage {
   }
 
   /**
-   * Writes through the selection's highlight with `populateFromArray`, the path a Ctrl+Enter commit
-   * and an autofill take. Reads the corners directly, exactly as the paste does.
-   */
-  async populateFromSelection(value: string): Promise<void> {
-    await this.page.evaluate((written) => {
-      const hot = (window as Window & { hot: HandsontableFixture }).hot;
-      const selected = hot.getSelected();
-
-      if (!selected) {
-        return;
-      }
-
-      const [row, column] = selected[0];
-
-      hot.populateFromArray(row, column, [[written]], null, null, 'edit');
-    }, value);
-  }
-
-  /**
    * Starts counting how often a grid hook fires, so a spec can assert that it ran - or stayed
    * silent - across an index-map update.
    */

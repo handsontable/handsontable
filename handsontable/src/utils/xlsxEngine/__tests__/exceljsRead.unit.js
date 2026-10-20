@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import ExcelJS from 'exceljs';
 import { excelJsAdapter } from '../adapters/exceljs';
 import { DroppedFeatures } from '../capabilities';
-import { MAX_INPUT_BYTES, MAX_WORKBOOK_CELLS } from '../limits';
+import { isLimitError, MAX_INPUT_BYTES, MAX_WORKBOOK_CELLS, MAX_WORKBOOK_SHEETS } from '../limits';
 
 function load(name) {
   const bytes = readFileSync(join(__dirname, 'fixtures', `${name}.xlsx`));
@@ -337,5 +337,61 @@ describe('excelJsAdapter.read', () => {
 
     await expect(excelJsAdapter.read(new Uint8Array([1, 2, 3]).buffer, ExcelJS, dropped))
       .rejects.toThrow(/could not be parsed/);
+  });
+
+  it('should refuse a workbook declaring more sheets than the native reader accepts, before reading any', async() => {
+    // The native reader refuses the sheet count while it tokenizes `workbook.xml`; the ExcelJS
+    // engine has already parsed every sheet by the time the adapter sees them, so the adapter
+    // refuses right after the load instead, and before a single sheet reaches the snapshot.
+    const readSheet = jest.fn();
+    const engine = {
+      Workbook: class {
+        constructor() {
+          this.worksheets = Array.from({ length: MAX_WORKBOOK_SHEETS + 1 }, (_, index) => ({
+            get name() {
+              readSheet(index);
+
+              return `S${index}`;
+            },
+          }));
+          this.xlsx = { load: async() => {} };
+        }
+      },
+    };
+    let caught;
+
+    try {
+      await excelJsAdapter.read(new ArrayBuffer(0), engine, new DroppedFeatures());
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught.message)
+      .toBe(`The workbook declares more than ${MAX_WORKBOOK_SHEETS} sheets, above the limit this reader accepts.`);
+    expect(isLimitError(caught)).toBe(true);
+    expect(readSheet).not.toHaveBeenCalled();
+  });
+
+  it('should read exactly MAX_WORKBOOK_SHEETS sheets without refusing', async() => {
+    const engine = {
+      Workbook: class {
+        constructor() {
+          this.worksheets = Array.from({ length: MAX_WORKBOOK_SHEETS }, (_, index) => ({
+            name: `S${index}`,
+            state: 'visible',
+            rowCount: 0,
+            columnCount: 0,
+            findRow: () => undefined,
+            getColumn: () => ({}),
+            views: [],
+            conditionalFormattings: [],
+          }));
+          this.xlsx = { load: async() => {} };
+        }
+      },
+    };
+    const snapshot = await excelJsAdapter.read(new ArrayBuffer(0), engine, new DroppedFeatures());
+
+    expect(snapshot.sheets).toHaveLength(MAX_WORKBOOK_SHEETS);
   });
 });

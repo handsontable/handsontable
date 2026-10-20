@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, devices, type Page, type TestInfo } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { awaitBundle } from '../fixtures/bundle';
 import {
@@ -73,6 +73,7 @@ const PICTURED = representativeScans(BASELINE_ENTRIES);
 type GridWindow = Window & {
   htBuildError?: string;
   htServer?: { release(prefix: string): void };
+  startRequest?: (row: number, col: number) => number;
 };
 
 // The Handsontable instance that owns a root container is read inside the page through the
@@ -82,6 +83,7 @@ type GridWindow = Window & {
 // defined here is not visible in the page.
 type HotInstance = {
   selectCell(row: number, col: number): boolean;
+  selectCells(ranges: number[][]): boolean;
   getActiveEditor(): { isOpened(): boolean; htEditor?: { countRenderedRows(): number } } | undefined;
   rootPortalElement: HTMLElement;
 };
@@ -188,11 +190,50 @@ const STATES: Record<A11yState, (page: Page, entry: A11yPage, root: string, cell
     await page.evaluate(() => (window as GridWindow).htServer?.release('ORD'));
     await expect(page.locator(`${root} .ht_master .htCore tbody td`).first()).toBeVisible();
   },
+  // A selection draws what only exists while one is laid: the selection handles, on a desktop grid
+  // that enables them and on a phone, where the core draws them itself.
+  selection: async(page, _entry, root, cell) => {
+    await selectCell(page, root, cell);
+    await expect(page.locator(`${root} .ht_master td.current`)).toBeVisible();
+  },
+  // The desktop selection handles draw only while the pointer is over a selected range, so this
+  // state selects three by three cells from `cell` and hovers the middle one: a pointer-only surface,
+  // which the scan can still check for names and contrast.
+  'selection-hover': async(page, _entry, root, [row, col]) => {
+    const selected = await page.evaluate(([selector, [r, c]]) => {
+      const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as RootWrapper | null)?.__hotInstance;
+
+      return hot ? hot.selectCells([[r, c, r + 2, c + 2]]) : null;
+    }, [root, [row, col]] as const);
+
+    expect(selected, `selectCells from (${row}, ${col}) on ${root}`).toBe(true);
+    await page.locator(`${root} .ht_master`).getByTestId(`cell-${row + 1}-${col + 1}`).hover();
+    await expect(page.locator(`${root} .ht_master .wtSelectionHandle:visible`)).toHaveCount(4);
+  },
+  // The fixture fills the cell from a promise it never settles, so the cell stays pending: the
+  // indicator, the pending message and `aria-busy` are what the scan sees.
+  'async-pending': async(page, _entry, root, [row, col]) => {
+    await page.evaluate(([r, c]) => (window as GridWindow).startRequest?.(r, c), [row, col] as const);
+    await expect(page.locator(`${root} .ht_master td.htAsyncPending .htAsyncIndicator`)).toBeVisible();
+  },
 };
+
+/**
+ * The context options that emulate a device, without its browser: every page runs on the project's
+ * Chromium, and a describe block may not switch the browser.
+ *
+ * @param name The device, as Playwright's `devices` names it.
+ * @returns The options for `test.use()`.
+ */
+function emulate(name: string) {
+  const { defaultBrowserType: _browser, ...options } = devices[name];
+
+  return options;
+}
 
 for (const theme of A11Y_THEMES) {
   for (const entry of A11Y_PAGES) {
-    test(`${entry.id} on ${theme}`, async({ page }, testInfo) => {
+    const scan = async({ page }: { page: Page }, testInfo: TestInfo) => {
       const root = entry.root ?? DEFAULT_ROOT;
       const cell = entry.cell ?? DEFAULT_CELL;
       const url = `/tests/fixtures/demo/${entry.fixture}?theme=${theme}${entry.query ? `&${entry.query}` : ''}`;
@@ -277,7 +318,21 @@ for (const theme of A11Y_THEMES) {
 
       writeFileSync(file, `${JSON.stringify(scan, null, 2)}\n`);
       await testInfo.attach('axe-scan', { path: file, contentType: 'application/json' });
-    });
+    };
+    const title = `${entry.id} on ${theme}`;
+
+    if (entry.device) {
+      // The device is set before the page loads: the core decides at construction whether it runs on a
+      // phone (`isMobileOrIpadOS()`), so emulating it after the load would scan the desktop grid.
+      const device = entry.device;
+
+      test.describe(() => {
+        test.use(emulate(device));
+        test(title, scan);
+      });
+    } else {
+      test(title, scan);
+    }
   }
 }
 

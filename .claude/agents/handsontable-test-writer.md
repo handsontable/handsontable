@@ -72,6 +72,7 @@ Every new or modified line must run under a test, but running is the floor, not 
 - Code that walks data arrays: a 50k+ row case
 - Selection code: non-consecutive and header selections
 - Keyboard handling: both navigation modes (spreadsheet + data grid)
+- UI a user operates: a keyboard-only flow that asserts focus and accessible names (`handsontable-a11y` skill, `references/proving.md`)
 
 ## Reference
 

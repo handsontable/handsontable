@@ -48,6 +48,8 @@ Read a mixed result per leg: a split along the bundle axis is about the bundles,
 4. **Isolation.** One instance per test; `page.route()` / `page.clock()` for network/time. `failOnFlakyTests` is on in CI: pass-on-retry is a hard failure.
 5. **Thread the bundle axis, and declare the legs.** Import `test` from `tests/fixtures/test.ts`, destructure `{ page, theme, bundle }`, and pass both to the page object. A new fixture copies the fail-loud `?theme=`/`?bundle=` allowlist block from `demo/grid.html` (no hardcoded bundle `<script src=…>`). Formulas specs load HyperFormula as an external script in the fixture, and declare `BUNDLES_TAG`; a spec that reads a computed style, a token or a pixel declares `THEMES_TAG`, on every top-level block (`tests/AGENTS.md` → "Declaring the legs"). Never-get-wrong list: `tests/AGENTS.md`.
 
+For a UI change, the accessibility assertions (a keys-only flow, `toBeFocused()` at each step, role-and-name locators, the announcer's live region) are in the `handsontable-a11y` skill, `references/proving.md`.
+
 ## Which test
 
 - **User-visible** (rendering, interaction, keyboard, menus, overlays) → E2E here.

@@ -1,5 +1,4 @@
-const EXCEL_EPOCH_UTC = Date.UTC(1899, 11, 30);
-const MS_PER_DAY = 86400000;
+import { EXCEL_EPOCH_UTC, MS_PER_DAY } from '../../../../utils/xlsxEngine/dates';
 
 /**
  * Converts a JavaScript `Date` to an Excel date serial number.
@@ -15,7 +14,38 @@ export function toExcelDateSerial(date: Date): number {
 }
 
 /**
- * Parses an ISO 8601 date string (`'YYYY-MM-DD'`) to an Excel date serial number.
+ * The first year Excel's 1900 date system holds. A year before it has no serial: written as a
+ * negative number, readers disagree about it (SheetJS shows nothing, ClosedXML a day off).
+ */
+const EXCEL_FIRST_YEAR = 1900;
+
+/**
+ * Builds the local date for parsed ISO parts, or `null` when Excel cannot hold it. `new Date(y, m, d)`
+ * reads a year from 0 to 99 as 1900 plus that year, so `setFullYear` builds it instead; and a date
+ * that does not exist (`2023-02-29`, `2023-13-01`) rolls over into another one, so the built date
+ * must still carry the parsed year, month and day. Either case returns `null`, and the export then
+ * writes the cell's text instead of a wrong serial.
+ */
+function toCalendarDate(year: number, month: number, day: number): Date | null {
+  if (year < EXCEL_FIRST_YEAR) {
+    return null;
+  }
+
+  const date = new Date(0);
+
+  date.setFullYear(year, month - 1, day);
+  date.setHours(0, 0, 0, 0);
+
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return null;
+  }
+
+  return date;
+}
+
+/**
+ * Parses an ISO 8601 date string (`'YYYY-MM-DD'`) to an Excel date serial number. A date Excel
+ * cannot hold - a year before 1900, or a day that does not exist - returns `null`.
  *
  * @private
  * @param {*} value Cell value — expected to be an ISO 8601 string.
@@ -35,9 +65,9 @@ export function parseIsoStringToSerial(value: unknown): number | null {
   const year = parseInt(match[1], 10);
   const month = parseInt(match[2], 10);
   const day = parseInt(match[3], 10);
-  const date = new Date(year, month - 1, day);
+  const date = toCalendarDate(year, month, day);
 
-  if (Number.isNaN(date.getTime())) {
+  if (date === null) {
     return null;
   }
 
@@ -120,6 +150,7 @@ export function getTimeNumFmt(): string {
 
 /**
  * Parses an ISO 8601 date-time string to an Excel date serial number with a fractional-day time part.
+ * A date Excel cannot hold - a year before 1900, or a day that does not exist - returns `null`.
  *
  * @private
  * @param {*} value Cell value — expected to be an ISO 8601 date-time string.
@@ -145,9 +176,9 @@ export function parseIsoDateTimeStringToSerial(value: unknown): number | null {
   const hours = match[4] ? parseInt(match[4], 10) : 0;
   const minutes = match[5] ? parseInt(match[5], 10) : 0;
   const seconds = match[6] ? parseInt(match[6], 10) : 0;
-  const date = new Date(year, month - 1, day);
+  const date = toCalendarDate(year, month, day);
 
-  if (Number.isNaN(date.getTime())) {
+  if (date === null) {
     return null;
   }
 

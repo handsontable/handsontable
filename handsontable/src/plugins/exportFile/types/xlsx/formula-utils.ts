@@ -35,7 +35,8 @@ export function isFormulaValue(value: unknown): value is string {
 }
 
 /**
- * Builds an ExcelJS formula value object for a ColumnSummary destination cell.
+ * Builds a formula value object, in an ExcelJS-compatible shape, for a ColumnSummary destination
+ * cell.
  *
  * Maps Handsontable summary types to their Excel equivalents:
  * `sum` → `SUM`, `min` → `MIN`, `max` → `MAX`, `count` → `COUNT`,
@@ -43,7 +44,7 @@ export function isFormulaValue(value: unknown): value is string {
  * type so the caller can fall back to the pre-calculated static value.
  *
  * @private
- * @param {object} summary Summary descriptor from {@link DataProvider#getColumnSummaries}.
+ * @param {object} summary Summary descriptor from {@link ExportDataProvider#getColumnSummaries}.
  * @param {number} dataRowOffset 1-based Excel row where data row 0 starts.
  * @param {number} dataColOffset 1-based Excel column where data column 0 starts.
  * @returns {{ formula: string }|null}
@@ -156,9 +157,11 @@ function countBelow(set: Set<number>, threshold: number): number {
  * @param {string} separator HyperFormula's `functionArgSeparator` (e.g. `','` or `';'`).
  * @param {number} rowOffset Base number to add to every row number in a cell reference.
  * @param {number} colOffset Base number to add to every column number in a cell reference.
- * @param {Set<number>} [excludedHiddenRows] Physical HOT row indices that are hidden and
- *   excluded from the exported data matrix. When provided, each row reference is further
- *   reduced by the number of excluded rows that precede it.
+ * @param {Set<number>} [excludedHiddenRows] The rows left out of the exported data matrix, as the
+ *   row indexes the formula's references use (`ExportDataProvider#getExcludedHiddenRows`): with the
+ *   Formulas plugin on, the engine rows that are trimmed, filtered out, or hidden and excluded;
+ *   without it, the physical rows that are hidden and excluded. When provided, each row reference
+ *   is further reduced by the number of excluded rows that precede it.
  * @param {Set<number>} [excludedHiddenCols] Physical HOT column indices that are hidden
  *   and excluded from the exported data matrix. When provided, each column reference is
  *   further reduced by the number of excluded columns that precede it.
@@ -203,4 +206,38 @@ export function normalizeFormula(
   }
 
   return formula;
+}
+
+/**
+ * HyperFormula's error types (`DetailedCellError#type`) that have an OOXML error code. The rest have
+ * none: `CYCLE` (Excel reports a circular reference as a warning and shows `0`), `ERROR` (a formula
+ * HyperFormula could not parse) and `LIC`. `SPILL` is left out too: `#SPILL!` is not one of the
+ * seven codes ECMA-376 lists, and Apache POI's `FormulaError` refuses it in a `t="e"` cell. Those
+ * results keep being cached as the text the grid shows.
+ */
+const HF_ERROR_TYPE_TO_OOXML_CODE = new Map<string, string>([
+  ['DIV_BY_ZERO', '#DIV/0!'],
+  ['NA', '#N/A'],
+  ['NAME', '#NAME?'],
+  ['NUM', '#NUM!'],
+  ['REF', '#REF!'],
+  ['VALUE', '#VALUE!'],
+]);
+
+/**
+ * Returns the OOXML error code of a HyperFormula cell value that is an error (a
+ * `DetailedCellError`, recognized by shape because HyperFormula is an optional dependency), or
+ * `null` for any other value and for an error type with no OOXML code.
+ *
+ * The code comes from the error's `type`, never from its `value`: `value` is translated by the
+ * engine's language (`#DZIEL/0!` under `plPL`), and a formula may answer the text `#N/A`.
+ */
+export function toOoxmlErrorCode(cellValue: unknown): string | null {
+  if (typeof cellValue !== 'object' || cellValue === null) {
+    return null;
+  }
+
+  const { type } = cellValue as { type?: unknown };
+
+  return typeof type === 'string' ? HF_ERROR_TYPE_TO_OOXML_CODE.get(type) ?? null : null;
 }

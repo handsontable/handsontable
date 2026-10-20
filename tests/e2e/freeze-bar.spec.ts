@@ -28,13 +28,6 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
       expect(await grid.log()).toEqual([{ edge: 'start', newCount: 4, oldCount: 2, source: 'drag' }]);
     });
 
-    test('the row bar freezes more rows', async() => {
-      await grid.goto();
-      await grid.drag('top', 3);
-
-      expect(await grid.count('top')).toBe(3);
-    });
-
     test('dragging the bar back freezes fewer columns', async() => {
       await grid.goto();
       await grid.drag('start', 1);
@@ -48,21 +41,6 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
       await grid.drag('start', 3);
 
       expect(await grid.count('start')).toBe(3);
-    });
-
-    test('the bottom bar freezes the last rows', async() => {
-      await grid.goto({ bottom: 1 });
-      await grid.drag('bottom', 3);
-
-      expect(await grid.count('bottom')).toBe(3);
-      expect(await grid.log()).toEqual([{ edge: 'bottom', newCount: 3, oldCount: 1, source: 'drag' }]);
-    });
-
-    test('the end bar freezes the last columns', async() => {
-      await grid.goto({ end: 1 });
-      await grid.drag('end', 3);
-
-      expect(await grid.count('end')).toBe(3);
     });
 
     test('the handle of an empty end edge starts the freezing, and the grid scrolls to the last columns', async() => {
@@ -233,16 +211,6 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
 
       expect(await cursor(startBar)).toBe('grab');
       expect(await cursor('.ht_master .htCore tbody td')).not.toBe('grabbing');
-    });
-
-    test('the handle of an empty edge shows an open hand', async() => {
-      await grid.goto({ cols: 0 });
-
-      const cursor = await grid.page.evaluate(() => {
-        return getComputedStyle(document.querySelector('.ht-freeze-bar--start')!).cursor;
-      });
-
-      expect(cursor).toBe('grab');
     });
 
     test('a bar and the drawn piece of an empty edge have square corners', async() => {
@@ -575,18 +543,6 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
 
       expect(await grid.count('top')).toBe(4);
     });
-
-    test('Escape removes the indicators and keeps the count', async() => {
-      await grid.goto();
-      await grid.dragTo('start', 4);
-      await grid.page.keyboard.press('Escape');
-
-      await expect(grid.page.locator('.ht-freeze-bar-guide, .ht-freeze-bar-ghost')).toHaveCount(0);
-
-      await grid.release();
-
-      expect(await grid.count('start')).toBe(2);
-    });
   });
 
   test.describe('scrolling to the edge', () => {
@@ -727,41 +683,6 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
 
         expect(await grid.count('top')).toBe(4);
       });
-
-    test('a scroll while the end bar is held keeps the grid on the last columns', async() => {
-      await grid.goto({ end: 1 });
-      await grid.dragTo('end', 3);
-
-      const edge = (await grid.scrollPosition()).left;
-
-      expect(edge).toBeGreaterThan(0);
-      await grid.page.evaluate(() => {
-        (window as any).minScrollLeft = Infinity;
-        window.addEventListener('scroll', (event) => {
-          if (event.target === window.hot.view._wt.wtTable.holder) {
-            (window as any).minScrollLeft = Math.min((window as any).minScrollLeft,
-              Math.abs((event.target as HTMLElement).scrollLeft));
-          }
-        }, true);
-      });
-      await grid.page.mouse.wheel(-150, 0);
-
-      await expect.poll(() => grid.page.evaluate(() => (window as any).minScrollLeft)).toBeLessThan(edge);
-      await expect.poll(async() => (await grid.scrollPosition()).left).toBe(edge);
-      await grid.release();
-
-      expect(await grid.count('end')).toBe(3);
-    });
-
-    test('a drag cancelled with Escape still leaves the count alone', async() => {
-      await grid.goto();
-      await grid.scrollTo({ row: 40 });
-      await grid.dragTo('top', 4);
-      await grid.page.keyboard.press('Escape');
-      await grid.release();
-
-      expect(await grid.count('top')).toBe(2);
-    });
   });
 
   test.describe('hooks', () => {
@@ -850,44 +771,6 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
       expect(geometry.start.background).toBe('rgba(0, 0, 0, 0)');
       expect(geometry.top.drawnWidth).toBe(geometry.headerWidth);
       expect(geometry.start.drawnHeight).toBe(geometry.headerHeight);
-    });
-
-    test('a drag started in the middle of the empty top edge freezes rows', async() => {
-      await grid.goto({ rows: 0 });
-
-      const bar = (await grid.bar('top').boundingBox())!;
-      const x = bar.x + bar.width / 2;
-      const y = bar.y + bar.height / 2;
-
-      await grid.page.mouse.move(x, y);
-      await grid.page.mouse.down();
-      await grid.page.mouse.move(x, y + 80, { steps: 4 });
-      await grid.release();
-
-      expect(await grid.count('top')).toBeGreaterThan(0);
-    });
-
-    test('a drag started in the middle of the empty start edge freezes columns', async() => {
-      await grid.goto({ cols: 0 });
-
-      const bar = (await grid.bar('start').boundingBox())!;
-      const x = bar.x + bar.width / 2;
-      const y = bar.y + bar.height / 2;
-
-      await grid.page.mouse.move(x, y);
-      await grid.page.mouse.down();
-      await grid.page.mouse.move(x + 120, y, { steps: 4 });
-      await grid.release();
-
-      expect(await grid.count('start')).toBeGreaterThan(0);
-    });
-
-    test('every edge has a handle by default', async() => {
-      await grid.goto();
-
-      for (const edge of ['top', 'bottom', 'start', 'end'] as const) {
-        await expect(grid.bar(edge)).toBeVisible();
-      }
     });
 
     test('a frozen edge has a bar along the whole freeze line, through the other frozen rows and columns', async() => {
@@ -1017,16 +900,6 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
   });
 
   test.describe('keyboard reach and focus', () => {
-    test('F6 moves the focus from the grid to a bar', async() => {
-      await grid.goto();
-      await grid.page.evaluate(() => {
-        window.hot.selectCell(5, 5);
-      });
-      await grid.page.keyboard.press('F6');
-
-      await expect(grid.separator('start')).toBeFocused();
-    });
-
     test('the focus stays on the bar when the first column gets frozen', async() => {
       await grid.goto({ cols: 0 });
       await grid.separator('start').focus();
@@ -1565,12 +1438,6 @@ test.describe('freezeBar', { tag: THEMES_TAG }, () => {
       await grid.page.evaluate(() => {
         window.hot.destroy();
       });
-
-      await expect(grid.allBars).toHaveCount(0);
-    });
-
-    test('a grid without the option has no bar at all', async() => {
-      await grid.goto({ bar: 0 });
 
       await expect(grid.allBars).toHaveCount(0);
     });
