@@ -81,14 +81,20 @@ const GEOMETRY_READ = /\bgetBoundingClientRect\(|\.boundingBox\(|\b(?:offset|cli
 // event, a `position` option, a point a drag helper takes).
 const POINTER_CALL = /(?<![\w$])(?:mouse|touchscreen)\s*\.\s*(?:click|dblclick|move|tap)\s*\(/g;
 const POINT_KEY = /[{,]\s*[xy]\s*:/g;
+// A locator action's `position` is an offset from the element's top-left corner already, so a constant
+// there aims a fixed number of pixels from a box edge with no box term written (`{ x: 5, y: 5 }`).
+const POSITION_OPTION = /\b(?:position|sourcePosition|targetPosition)\s*:\s*\{/g;
+const PIXEL_COUNT = /^-?\s*\d+(?:\.\d+)?$/;
 // An edge or a size of a box (`box.x`, `rect.right`, `box?.height`), never a method of that name.
 const BOX_TERM = /\??\.\s*(?:x|y|width|height|left|right|top|bottom)\b(?!\s*\()/;
 // A whole number of pixels added or subtracted (`+ 4`, `- 20`, `3 +`), never a factor (`/ 2`, `10 *`).
 const PIXEL_OFFSET = /(?<=[\w$)\]]\s*)[-+]\s*\d+(?:\.\d+)?(?![\w.]|\s*[*/%])|(?<![\w$.*/%]\s*)\b\d+(?:\.\d+)?\s*[-+]\s*(?=[\w$(])/;
 // The definitions a page object names a function with: a method or a function declaration, and an arrow
 // function or a function expression bound to a `const`/`let`.
-const METHOD_DEFINITION = /^[ \t]*(?:(?:export|default|public|private|protected|static|async|override)\s+)*(?:function\s*\*?\s*)?(#?[A-Za-z_$][\w$]*)\s*(?:<[^>\n]*>)?\s*\(/gm;
+const METHOD_DEFINITION = /^[ \t]*((?:(?:export|default|public|private|protected|static|async|override|get)\s+)*)(?:function\s*\*?\s*)?(#?[A-Za-z_$][\w$]*)\s*(?:<[^>\n]*>)?\s*\(/gm;
 const BOUND_FUNCTION = /^[ \t]*(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*(?::[^=\n]+)?=\s*(?:async\s*)?(?:function\b[^(]*)?\(/gm;
+// An arrow function a class keeps in a field (`rowHeight = async () => …`): a method in all but syntax.
+const CLASS_FIELD_FUNCTION = /^[ \t]*(?:(?:public|private|protected|static|readonly|override)\s+)*(#?[A-Za-z_$][\w$]*)\s*(?::[^=\n]+)?=\s*(?:async\s*)?\(/gm;
 const NOT_A_FUNCTION_NAME = new Set([
   'if', 'for', 'while', 'switch', 'catch', 'function', 'return', 'with', 'await', 'typeof', 'new', 'super',
   'void', 'delete', 'yield', 'throw', 'do', 'else', 'constructor',
@@ -99,13 +105,17 @@ const NON_GEOMETRY_TYPES = new Set([
   'ReadonlyArray',
 ]);
 const EXPECT_CALL = /(?<![\w$.])expect(?:\.(?:soft|poll))?\s*\(/g;
-const LITERAL_MATCHER = /^\s*(?:\.\s*(?:not|resolves|rejects)\s*)*\.\s*(toBe|toEqual|toStrictEqual|toBeCloseTo|toBeLessThan|toBeLessThanOrEqual|toBeGreaterThan|toBeGreaterThanOrEqual)\s*\(/;
+const LITERAL_MATCHER = /^\s*(?:\.\s*(?:not|resolves|rejects)\s*)*\.\s*(toBe|toEqual|toStrictEqual|toMatchObject|toBeCloseTo|toBeLessThan|toBeLessThanOrEqual|toBeGreaterThan|toBeGreaterThanOrEqual)\s*\(/;
+// A verdict with the literal in the matcher's name, counted only on a helper declared to return a boolean:
+// on a box it says no more than that the element exists.
+const TRUTHY_MATCHER = /^\s*(?:\.\s*(?:not|resolves|rejects)\s*)*\.\s*(toBeTruthy|toBeFalsy)\s*\(\s*\)/;
 // A number, a numeric constant (`TALL_ROW_PX`), arithmetic of those, or a boolean.
 const LITERAL_VALUE = /^(?:true|false|(?=[^a-z$]*[\dA-Z])[-+*/%().\s\d_A-Z]+)$/;
 const NUMBER_TOKEN = /(?<![\w$.])\d|(?<![\w$.])[A-Z][A-Z\d]*_[A-Z\d_]*\b/;
 const DECLARATION = /(?<![\w$.])(?:const|let|var)\s+(?=[A-Za-z_$[{])/g;
 // A call, a class header, and a variable the spec says holds a page object (`x = new GridPage(`, `x: GridPage`).
 const CALL = /(?<![\w$#])(#?[A-Za-z_$][\w$]*)\s*\(/g;
+const PROPERTY_READ = /\.\s*(#?[A-Za-z_$][\w$]*)\b(?!\s*\()/g;
 const CLASS_HEADER = /\bclass\s+([A-Za-z_$][\w$]*)([^{;]*)\{/g;
 // The calls that hand a number through unchanged in kind. A variable inside the arguments of any other call
 // is given to a function the sweep cannot follow (`leave(anchor)` returns milliseconds), and carries nothing.
@@ -1077,6 +1087,31 @@ function valueText(masked, start, end) {
 }
 
 /**
+ * An expression's own level: the masked text with the contents of every bracket group blanked.
+ *
+ * @param {string} masked The masked view of the source.
+ * @param {number} start The expression's first index.
+ * @param {number} end The index just past it.
+ * @returns {string} The text.
+ */
+function topLevelText(masked, start, end) {
+  let out = '';
+
+  for (let at = start; at < end; at += 1) {
+    if ('([{'.includes(masked[at])) {
+      const close = matchingBracket(masked, at, 'expression');
+
+      out += `${masked[at]}${' '.repeat(close - at - 1)}${masked[close]}`;
+      at = close;
+    } else {
+      out += masked[at];
+    }
+  }
+
+  return out;
+}
+
+/**
  * Whether an expression adds or subtracts a whole number of pixels to a box term of the same
  * expression. It is read level by level: a group in parentheses (a call or a grouping) carries a box
  * term up to the level around it, and an index in brackets carries nothing, so `(box?.x ?? 0) + 5` and
@@ -1121,7 +1156,9 @@ function offsetBesideBox(masked, start, end) {
  * number of pixels to a box edge or size, written in place or kept in a variable first
  * (`const x = box.x + box.width - 4`). The coordinates are the arguments of `mouse.click()`,
  * `mouse.dblclick()`, `mouse.move()` and `touchscreen.tap()`, and the `x`/`y` values of an object literal
- * (a CDP event, a `position` option, the point a drag helper takes).
+ * (a CDP event, the point a drag helper takes). A locator action's `position`, `sourcePosition` or
+ * `targetPosition` is measured from the element's corner already, so a non-zero number or an added
+ * constant in it is an offset by itself (`click({ position: { x: 5, y: 5 } })`).
  *
  * @param {{code: string, masked: string}} views The scanned text.
  * @param {{file: string}} context The file, for the messages.
@@ -1151,6 +1188,22 @@ function findPointerOffsets({ code, masked }, { file }) {
 
     spans.push({ start, end: expressionEnd(masked, start) });
   }
+  for (const match of masked.matchAll(POSITION_OPTION)) {
+    const open = match.index + match[0].length - 1;
+    const close = matchingBracket(masked, open, 'position');
+    const offset = splitTopLevel(masked, open + 1, close).some((property) => {
+      const key = masked.slice(property.start, property.end).match(/^([xy])\s*:\s*/);
+      const valueStart = property.start + (key?.[0].length ?? 0);
+      const value = code.slice(valueStart, property.end).trim();
+
+      return key !== null && ((PIXEL_COUNT.test(value) && Number(value.replace(/\s+/g, '')) !== 0)
+        || PIXEL_OFFSET.test(topLevelText(masked, valueStart, property.end)));
+    });
+
+    if (offset) {
+      spans.push({ start: open, end: close + 1, position: true });
+    }
+  }
 
   const found = [];
 
@@ -1159,8 +1212,12 @@ function findPointerOffsets({ code, masked }, { file }) {
     if (found.some(hit => hit.index <= span.start && span.end <= hit.end)) {
       return;
     }
-    if (offsetBesideBox(masked, span.start, span.end)) {
-      found.push({ index: span.start, end: span.end, detail: `aimed at \`${shown(span.start, span.end)}\`` });
+    if (span.position || offsetBesideBox(masked, span.start, span.end)) {
+      found.push({
+        index: span.start,
+        end: span.end,
+        detail: `aimed at \`${shown(span.start, span.end)}\`${span.position ? ' from the element\'s corner' : ''}`,
+      });
 
       return;
     }
@@ -1221,6 +1278,37 @@ function bodyAfterReturnType(masked, at) {
 }
 
 /**
+ * The index just past the `=>` that ends an arrow function's return type, or `-1` when there is none
+ * outside the type's own brackets.
+ *
+ * @param {string} masked The masked view of the source.
+ * @param {number} at The index just past the `:`.
+ * @returns {number} The index just past the `=>`, or `-1`.
+ */
+function arrowAfterReturnType(masked, at) {
+  let depth = 0;
+
+  for (let index = at; index < masked.length; index += 1) {
+    const char = masked[index];
+
+    if (char === '=' && masked[index + 1] === '>') {
+      if (depth === 0) {
+        return index + 2;
+      }
+      index += 1;
+    } else if ('([{<'.includes(char)) {
+      depth += 1;
+    } else if (')]}>'.includes(char)) {
+      depth -= 1;
+    } else if (depth === 0 && char === ';') {
+      return -1;
+    }
+  }
+
+  return -1;
+}
+
+/**
  * The classes a source declares: each name, the class it extends, and the span of its body.
  *
  * @param {string} masked The masked view of the source.
@@ -1248,29 +1336,34 @@ function readClasses(masked) {
 }
 
 /**
- * The named functions a source defines at the top: the methods of its classes, and the functions it
- * declares or binds to a `const`/`let` outside any block. A function defined inside another (a helper
- * inside an `evaluate()` callback) is part of that function's body, never one of its own, so a generic
- * name such as `width()` there names nothing a spec could call.
+ * The named functions a source defines at the top: the methods of its classes (getters and arrow
+ * functions kept in a field included), and the functions it declares or binds to a `const`/`let`
+ * outside any block. A function defined inside another (a helper inside an `evaluate()` callback) is part
+ * of that function's body, never one of its own, so a generic name such as `width()` there names nothing
+ * a spec could call.
  *
  * @param {{code: string, masked: string}} views The scanned source.
  * @param {string} where The file, for the messages.
  * @param {Array<{name: string, start: number}>} classes The source's classes (`readClasses()`).
- * @returns {Array<{name: string, owner: string|null, line: number, returns: string, start: number, end: number}>}
- * The functions; `owner` is the class of a method, `returns` is `''` when no type is declared, and
- * `start`/`end` bound the body.
+ * @returns {Array<{name: string, owner: string|null, getter: boolean, line: number, returns: string, start: number, end: number}>}
+ * The functions; `owner` is the class of a method, `getter` marks one read without a call, `returns` is
+ * `''` when no type is declared, and `start`/`end` bound the body.
  */
 function readFunctions({ code, masked }, where, classes) {
   const functions = [];
   const classAt = new Map(classes.map(cls => [cls.start, cls.name]));
 
-  for (const definition of [METHOD_DEFINITION, BOUND_FUNCTION]) {
+  for (const definition of [METHOD_DEFINITION, BOUND_FUNCTION, CLASS_FIELD_FUNCTION]) {
+    const arrow = definition !== METHOD_DEFINITION;
+
     for (const match of masked.matchAll(definition)) {
-      const name = match[1];
+      const name = arrow ? match[1] : match[2];
+      const getter = !arrow && /\bget\s+$/.test(match[1]);
       const block = enclosingBlock(masked, match.index);
       const owner = classAt.get(block.start) ?? null;
 
-      if (NOT_A_FUNCTION_NAME.has(name) || (block.start !== -1 && owner === null)) {
+      if (NOT_A_FUNCTION_NAME.has(name) || (block.start !== -1 && owner === null)
+        || (definition === CLASS_FIELD_FUNCTION && owner === null)) {
         continue;
       }
 
@@ -1284,15 +1377,24 @@ function readFunctions({ code, masked }, where, classes) {
       };
 
       skipSpace();
-      if (masked[at] === ':') {
+      if (masked[at] === ':' && arrow) {
+        const after = arrowAfterReturnType(masked, at + 1);
+
+        if (after === -1) {
+          continue;
+        }
+        returns = code.slice(at + 1, after - 2).trim();
+        at = after;
+        skipSpace();
+      } else if (masked[at] === ':') {
         const body = bodyAfterReturnType(masked, at + 1);
 
         if (body === -1) {
           continue;
         }
-        returns = code.slice(at + 1, body).replace(/=>\s*$/, '').trim();
+        returns = code.slice(at + 1, body).trim();
         at = body;
-      } else if (definition === BOUND_FUNCTION && masked.startsWith('=>', at)) {
+      } else if (arrow && masked.startsWith('=>', at)) {
         at += 2;
         skipSpace();
       }
@@ -1300,9 +1402,9 @@ function readFunctions({ code, masked }, where, classes) {
       const line = lineOf(code, match.index);
 
       if (masked[at] === '{') {
-        functions.push({ name, owner, line, returns, start: at, end: matchingBracket(masked, at, where) + 1 });
-      } else if (definition === BOUND_FUNCTION && masked.slice(match.index, at).includes('=>')) {
-        functions.push({ name, owner, line, returns, start: at, end: expressionEnd(masked, at) });
+        functions.push({ name, owner, getter, line, returns, start: at, end: matchingBracket(masked, at, where) + 1 });
+      } else if (arrow && masked.slice(match.index, at).includes('=>')) {
+        functions.push({ name, owner, getter, line, returns, start: at, end: expressionEnd(masked, at) });
       }
     }
   }
@@ -1375,9 +1477,9 @@ function candidatesOf(index, { name, kind, receiver }, { owner, file, namespaces
 }
 
 /**
- * The first call in an expression that resolves to geometry: a call whose candidates
- * (`candidatesOf()`) are all geometry helpers. Requiring all of them keeps a generic name that one page
- * object measures with and another does not (`cell()`, `box()`) from counting on a guess.
+ * The first call in an expression that resolves to geometry: a call, or the read of a getter, whose
+ * candidates (`candidatesOf()`) are all geometry helpers. Requiring all of them keeps a generic name that
+ * one page object measures with and another does not (`cell()`, `box()`) from counting on a guess.
  *
  * @param {object} index The geometry index (`geometryIndexOf()`).
  * @param {string} text The expression, masked.
@@ -1385,21 +1487,31 @@ function candidatesOf(index, { name, kind, receiver }, { owner, file, namespaces
  * @returns {object|null} The helper, or `null`.
  */
 function geometryCallIn(index, text, from) {
-  for (const match of text.matchAll(CALL)) {
-    const before = text.slice(0, match.index);
+  const access = (name, before) => {
     const member = before.match(/(?:\b(this)|([A-Za-z_$][\w$]*)|[\])]|)\s*\??\.\s*$/);
-    let call;
 
-    if (!member) {
-      call = { name: match[1], kind: 'bare', receiver: null };
-    } else {
-      call = { name: match[1], kind: member[1] ? 'this' : 'member', receiver: member[2] ?? null };
-    }
+    return member
+      ? { name, kind: member[1] ? 'this' : 'member', receiver: member[2] ?? null }
+      : { name, kind: 'bare', receiver: null };
+  };
+  const resolves = candidates => candidates.length > 0 && candidates.every(fn => fn.geometry);
 
-    const candidates = candidatesOf(index, call, from);
+  for (const match of text.matchAll(CALL)) {
+    const candidates = candidatesOf(index, access(match[1], text.slice(0, match.index)), from)
+      .filter(fn => !fn.getter);
 
-    if (candidates.length > 0 && candidates.every(fn => fn.geometry)) {
+    if (resolves(candidates)) {
       return candidates[0];
+    }
+  }
+  if (index.hasGetters) {
+    for (const match of text.matchAll(PROPERTY_READ)) {
+      const dot = match.index + match[0].indexOf('.') + 1;
+      const candidates = candidatesOf(index, access(match[1], text.slice(0, dot)), from).filter(fn => fn.getter);
+
+      if (resolves(candidates)) {
+        return candidates[0];
+      }
     }
   }
 
@@ -1444,7 +1556,9 @@ function geometryIndexOf(scanned) {
     });
   });
 
-  const index = { functions, classes, byName: new Map(), members: new Map() };
+  const index = {
+    functions, classes, byName: new Map(), members: new Map(), hasGetters: functions.some(fn => fn.getter),
+  };
 
   functions.forEach((fn) => {
     index.byName.set(fn.name, [...(index.byName.get(fn.name) ?? []), fn]);
@@ -1507,7 +1621,8 @@ function readReceivers(masked) {
 /**
  * The `geometry-helper` finder: every `expect()` whose subject is a geometry helper's result, directly or
  * through a variable declared from one in scope, compared to a literal (a number, a numeric constant, a
- * boolean, or an object or array literal holding a number). In a page object a subject that reads
+ * boolean, or an object or array literal holding a number, `toMatchObject()` included), and a helper
+ * declared to return a boolean checked with `toBeTruthy()` or `toBeFalsy()`. In a page object a subject that reads
  * geometry itself counts too; in the spec that read is the `geometry` marker's. Three comparisons say
  * nothing about the theme and are skipped: `toBeGreaterThan(0)` (the box is laid out at all), a subject
  * that ends in `.length` (a count of what a geometry filter picked), and a comparison with another read.
@@ -1524,19 +1639,20 @@ function findGeometryComparisons({ code, masked }, { scope, file, geometry }) {
   const namespaces = new Set([...masked.matchAll(NAMESPACE_IMPORT)].map(match => match[1]));
   const declarations = readDeclarations({ code, masked }, file);
   const ownerAt = at => classes.filter(cls => cls.start < at && at < cls.end).pop()?.name ?? null;
-  // What an expression reads geometry through, or `null`: a helper, a read, or a variable in scope.
+  // What an expression reads geometry through, or `null`: a helper, a read, or a variable in scope, and
+  // whether that is a helper declared to return a boolean.
   const sourceOf = (start, end, at) => {
     const text = masked.slice(start, end);
     const helper = geometryCallIn(geometry, text, { owner: ownerAt(at), file, namespaces, receivers });
 
     if (helper) {
-      return `through ${helper.name}() at ${helper.file}:${helper.line}`;
+      return { detail: `through ${helper.name}() at ${helper.file}:${helper.line}`, boolean: /\bboolean\b/.test(helper.returns) };
     }
 
     const read = inline && text.match(inline);
 
     if (read) {
-      return `through \`${read[0].replace(/\($/, '()')}\``;
+      return { detail: `through \`${read[0].replace(/\($/, '()')}\``, boolean: false };
     }
 
     return valueThroughVariable(declarations, valueText(masked, start, end), at, 'source')?.value ?? null;
@@ -1552,26 +1668,27 @@ function findGeometryComparisons({ code, masked }, { scope, file, geometry }) {
     const open = match.index + match[0].length - 1;
     const close = matchingBracket(masked, open, file);
     const subjectSpan = splitTopLevel(masked, open + 1, close)[0];
+    const truthy = TRUTHY_MATCHER.test(masked.slice(close + 1));
     const matcher = masked.slice(close + 1).match(LITERAL_MATCHER);
 
-    if (!subjectSpan || !matcher) {
+    if (!subjectSpan || (!matcher && !truthy) || /\.length\s*$/.test(code.slice(subjectSpan.start, subjectSpan.end))) {
       continue;
     }
+    if (matcher) {
+      const matcherOpen = close + matcher[0].length;
+      const valueSpan = splitTopLevel(masked, matcherOpen + 1, matchingBracket(masked, matcherOpen, file))[0];
+      const value = valueSpan ? code.slice(valueSpan.start, valueSpan.end).trim() : '';
+      const literal = LITERAL_VALUE.test(value) || (/^[{[]/.test(value) && NUMBER_TOKEN.test(value));
 
-    const subject = code.slice(subjectSpan.start, subjectSpan.end);
-    const matcherOpen = close + matcher[0].length;
-    const valueSpan = splitTopLevel(masked, matcherOpen + 1, matchingBracket(masked, matcherOpen, file))[0];
-    const value = valueSpan ? code.slice(valueSpan.start, valueSpan.end).trim() : '';
-    const literal = LITERAL_VALUE.test(value) || (/^[{[]/.test(value) && NUMBER_TOKEN.test(value));
-
-    if (!literal || (matcher[1] === 'toBeGreaterThan' && value === '0') || /\.length\s*$/.test(subject)) {
-      continue;
+      if (!literal || (matcher[1] === 'toBeGreaterThan' && value === '0')) {
+        continue;
+      }
     }
 
     const source = sourceOf(subjectSpan.start, subjectSpan.end, match.index);
 
-    if (source) {
-      found.push({ index: match.index, detail: source });
+    if (source && (!truthy || source.boolean)) {
+      found.push({ index: match.index, detail: source.detail });
     }
   }
 

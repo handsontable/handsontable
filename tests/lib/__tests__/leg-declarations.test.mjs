@@ -659,6 +659,26 @@ test('a pointer aimed a fixed number of pixels from a box edge counts, in a page
   assert.match(messagesOf(plain, { modules: [aim('await this.page.mouse.click(Math.round(box.x) + 2, box.y);')] }),
     /aimed at `Math\.round\(box\.x\) \+ 2`/);
 
+  // A locator action's position is measured from the element's corner, so a constant there is an offset with
+  // no box term written (review of the second version); a zero corner and a computed point are not.
+  [
+    'await this.cell.click({ position: { x: 5, y: 5 } });',
+    'await this.cell.dblclick({ position: { x: 4, y: this.height / 2 } });',
+    'await this.source.dragTo(this.target, { sourcePosition: { x: 2, y: 2 }, targetPosition: { x: 10, y: 10 } });',
+    'await this.cell.hover({ position: { x: this.width - 6, y: this.height / 2 } });',
+  ].forEach((line) => {
+    assert.deepEqual(rulesOf(plain, { modules: [aim(line)] }), ['undeclared-themes'], line);
+  });
+  assert.match(messagesOf(plain, { modules: [aim('await this.cell.click({ position: { x: 5, y: 5 } });')] }),
+    /aimed at `\{ x: 5, y: 5 \}` from the element's corner/);
+  [
+    'await this.cell.click({ position: { x: 0, y: 0 } });',
+    'await this.cell.click({ position: { x: this.width / 2, y: this.height / 2 } });',
+    'await this.cell.click({ position: point });',
+  ].forEach((line) => {
+    assert.deepEqual(rulesOf(plain, { modules: [aim(line)] }), [], line);
+  });
+
   // An offset kept in a variable first is the same shape a line earlier, followed within its scope.
   const kept = probePage([
     '  async aim(): Promise<void> {',
@@ -745,6 +765,8 @@ test('a page object\'s geometry read compared to a literal counts, in the spec a
     'const { offset } = { offset: await grid.headerVerticalOffset() };\n  const half = offset / 2;\n\n  expect(half).toBeGreaterThanOrEqual(-1);',
     'expect([await grid.headerVerticalOffset()]).toEqual([0]);',
     'expect(await grid.isInView()).toBe(false);',
+    'expect(await grid.isInView()).toBeTruthy();',
+    'expect({ offset: await grid.headerVerticalOffset() }).toMatchObject({ offset: 0 });',
     'expect(await grid.$edge()).toBe(0);',
     'const $left = await grid.$edge();\n\n  expect($left).toBe(0);',
     'const before = { dx: await grid.headerVerticalOffset() };\n\n  expect(Math.abs(before.dx - 3)).toBeLessThanOrEqual(1);',
@@ -763,7 +785,7 @@ test('a page object\'s geometry read compared to a literal counts, in the spec a
     'expect(countOf(await grid.menuLabels(), \'Freeze\')).toBe(1);',
     'const offsets = [await grid.headerVerticalOffset()];\n\n  expect(offsets.length).toBe(1);',
     'expect(await grid.headerVerticalOffset()).toBeGreaterThan(0);',
-    'expect(await grid.isInView()).toBeTruthy();',
+    'expect(await grid.headerVerticalOffset()).toBeTruthy();',
     'expect(await grid.drawCount()).toBe(1);',
     'await grid.headerVerticalOffset();\n  expect(1).toBe(1);',
     // A geometry value handed to another function as an argument: its result is that function's (here a time).
@@ -896,6 +918,30 @@ test('a call reaches the function its receiver names, and a name two page object
   assert.deepEqual(rulesOf(probe('let a: MeasuringPage;\n  expect(await a.cell(1)).toBe(3);'), { modules }), ['undeclared-themes']);
   assert.deepEqual(rulesOf(probe('expect(await grid.cell(1)).toBe(3);'), { modules: [measuring] }), ['undeclared-themes'],
     'a name only one page object defines resolves on any receiver');
+
+  // A getter and an arrow function kept in a class field are methods too: read and called like one.
+  const shapes = {
+    file: 'fixtures/pages/ShapesPage.ts',
+    source: [
+      'export class ShapesPage {',
+      '  get rowHeight(): Promise<number> {',
+      '    return this.row.evaluate(el => el.offsetHeight);',
+      '  }',
+      '',
+      '  colWidth = async(col: number): Promise<number> => this.col(col).evaluate(el => el.offsetWidth);',
+      '',
+      '  label = async(): Promise<string> => this.page.title();',
+      '}',
+    ].join('\n'),
+  };
+
+  assert.deepEqual(readGeometryHelpers([shapes]).map(helper => helper.name), ['rowHeight', 'colWidth']);
+  assert.deepEqual(rulesOf(probe('const s = new ShapesPage(page);\n  expect(await s.rowHeight).toBe(23);'), { modules: [shapes] }),
+    ['undeclared-themes'], 'a getter read without a call');
+  assert.deepEqual(rulesOf(probe('const s = new ShapesPage(page);\n  expect(await s.colWidth(1)).toBe(50);'), { modules: [shapes] }),
+    ['undeclared-themes'], 'an arrow function in a class field');
+  assert.deepEqual(rulesOf(probe('const s = new ShapesPage(page);\n  expect((await s.label()).length).toBe(5);\n  expect(s.rowHeight2).toBe(1);'), { modules: [shapes] }),
+    [], 'neither a non-geometry field nor a name that only starts like a getter');
 
   // A namespace import names module functions, and a method that delegates to one under its own name is a
   // helper too (`FrozenTallCellPage.rowHeights()` calls `geometry.rowHeights()`).

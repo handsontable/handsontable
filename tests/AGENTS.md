@@ -243,16 +243,23 @@ test('fills its container', { tag: THEMES_TAG }, async({ page, theme, bundle }) 
   `hit-test`, `geometry` (spec text only, or one base page object's `boundingBox()` helper would
   force the axis on everything that imports it), `pointer-offset`, `geometry-helper`, `formulas`,
   `hyperformula`, `bundle-compare`. The two geometry markers that read page objects are narrow on
-  purpose, so a helper that only measures forces nothing. `pointer-offset` is a coordinate of a
-  `mouse.click()`, `dblclick()`, `move()`, `touchscreen.tap()` or an `{ x, y }` point that adds or
-  subtracts a whole number of pixels to a box edge or size, written in place or kept in a variable
-  first. The offset has to sit beside the box term: a fraction of the box (`box.width / 2`) scales
-  with the box, and arithmetic inside an index or a call's arguments (`cells[i + 1].x`) moves no
-  edge. `geometry-helper` is a page-object function that reads a box or a size, directly or through
-  another such function, and is not declared to return only strings, locators or nothing. It hits
-  where an `expect()` compares its result to a literal: a number, a `SCREAMING_CASE` constant, a
-  boolean, or an array or object holding a number. A variable carries the result through arithmetic
-  and `Math.*()`, never through another call's arguments. A call resolves the way the code does:
+  purpose: a page object that measures forces nothing until a spec, or the page object itself, decides
+  an outcome with what it measured. `pointer-offset` is a coordinate of a `mouse.click()`,
+  `dblclick()`, `move()`, `touchscreen.tap()` or an `{ x, y }` point that adds or subtracts a whole
+  number of pixels to a box edge or size, written in place or kept in a variable first. The offset has
+  to sit beside the box term: a fraction of the box (`box.width / 2`) scales with the box, and
+  arithmetic inside an index or a call's arguments (`cells[i + 1].x`) moves no edge. A locator
+  action's `position`, `sourcePosition` or `targetPosition` is measured from the element's corner
+  already, so a non-zero number there is an offset by itself (`click({ position: { x: 5, y: 5 } })`).
+  `geometry-helper` is a page-object function that reads a box or a size, directly or through another
+  such function, and is not declared to return only strings, locators or nothing; a getter and an
+  arrow function kept in a class field count as methods. It hits where an `expect()` compares its
+  result to a literal: a number, a `SCREAMING_CASE` constant, a boolean, or an array or object holding
+  a number (`toMatchObject()` included). `toBeTruthy()` and `toBeFalsy()` count on a helper declared to
+  return a boolean only; on a box they say no more than that the element exists. The result counts as
+  a whole: every property of it, a count returned beside a size included, so a spec that compares
+  only such a count says so with an ignore. A variable carries the result through arithmetic and
+  `Math.*()`, never through another call's arguments. A call resolves the way the code does:
   `this.x()` in its own class or one it extends, a receiver the spec types (`new GridPage(…)`,
   `grid: GridPage`) in that class, a bare call or a namespace import to a module function. Any other
   receiver counts only when every function of that name reads geometry, so a generic name such as
