@@ -123,6 +123,14 @@ export const MAX_NUM_FMT_CODE_LENGTH = 255;
 export const MIN_CELL_META_BUDGET = 1000000;
 
 /**
+ * How deep the XML tokenizer lets elements nest. Real OOXML stays under about 20 levels; the stack of
+ * open names was never charged, so a 239 kB sheet of 8 million nested unknown elements was refused
+ * only after about 3 s and a 580-690 MB heap peak, enough to kill a mobile tab first. Refused with
+ * `throwLimitExceeded` as soon as the stack passes it.
+ */
+export const MAX_XML_NESTING_DEPTH = 256;
+
+/**
  * Throws the refusal every cap in this module reports, tagging the error so a caller can tell a
  * declared limit apart from a parse failure without matching on the message text.
  *

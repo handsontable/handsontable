@@ -4,6 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tokenizeXml, decodeXmlEntities } from '../adapters/native/xml/tokenizer';
+import { MAX_XML_NESTING_DEPTH, isLimitError } from '../limits';
 import {
   escapeXmlText, escapeXmlAttr, escapeXmlMarkup, decodeOoxmlEscapes, needsSpacePreserve,
 } from '../adapters/native/xml/escapes';
@@ -353,13 +354,48 @@ describe('tokenizeXml: element balance', () => {
       + '<b><![CDATA[</a>]]></b></a><!-- trailing -->')).not.toThrow();
   });
 
-  it('should stay linear on a deep nesting', () => {
-    const depth = 200000;
-    const xml = `${'<a>'.repeat(depth)}${'</a>'.repeat(depth)}`;
+  it('should stay linear on many deep nestings', () => {
+    // A nesting deeper than `MAX_XML_NESTING_DEPTH` is refused (review round 12), so the balance
+    // check is timed on 1,000 nestings just under the cap, the same 200,000 open elements as before.
+    const depth = 200;
+    const xml = `<r>${`${'<a>'.repeat(depth)}${'</a>'.repeat(depth)}`.repeat(1000)}</r>`;
     const started = Date.now();
 
     events(xml);
 
     expect(Date.now() - started).toBeLessThan(2000);
+  });
+});
+
+describe('tokenizeXml nesting depth (review round 12)', () => {
+  const nested = depth => `<root>${'<x>'.repeat(depth)}${'</x>'.repeat(depth)}</root>`;
+
+  it('should refuse a document nested deeper than real OOXML ever is, as a limit error', () => {
+    let error;
+
+    try {
+      tokenizeXml(nested(MAX_XML_NESTING_DEPTH), {});
+    } catch (caught) {
+      error = caught;
+    }
+
+    expect(isLimitError(error)).toBe(true);
+    expect(error.message).toMatch(/nested more than 256 elements deep/);
+  });
+
+  it('should read a document nested up to the limit', () => {
+    let opened = 0;
+
+    tokenizeXml(nested(MAX_XML_NESTING_DEPTH - 1), { open: () => { opened += 1; } });
+
+    expect(opened).toBe(MAX_XML_NESTING_DEPTH);
+  });
+
+  it('should refuse a deeply nested part before its stack grows, in well under a second', () => {
+    const start = Date.now();
+
+    expect(() => tokenizeXml(nested(2000000), {})).toThrow(/nested more than/);
+    // Measured: about 3 s and a 580-690 MB heap peak before the cap; the cap stops at depth 257.
+    expect(Date.now() - start).toBeLessThan(1000);
   });
 });

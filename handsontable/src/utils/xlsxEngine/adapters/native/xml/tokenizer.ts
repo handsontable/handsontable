@@ -1,4 +1,5 @@
 import { throwWithCause } from '../../../../../helpers/errors';
+import { MAX_XML_NESTING_DEPTH, throwLimitExceeded } from '../../../limits';
 
 /**
  * Attributes of one element, values already entity-decoded.
@@ -512,6 +513,11 @@ function readMarkup(xml: string, lt: number, handlers: XmlHandlers, open: string
 
   if (!selfClosing) {
     open.push(name);
+
+    if (open.length > MAX_XML_NESTING_DEPTH) {
+      throwLimitExceeded(`The XML part is nested more than ${MAX_XML_NESTING_DEPTH} elements deep, `
+        + 'above the limit this reader accepts.');
+    }
   }
 
   if (handlers.open) {

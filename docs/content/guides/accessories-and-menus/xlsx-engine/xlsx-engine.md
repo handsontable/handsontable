@@ -131,6 +131,7 @@ Both engines write a sheet synchronously. A very large grid blocks the tab for a
 | Sheets per workbook (import) | 2,048 | Refused, on both engines. |
 | Inflated archive size (built-in import) | 256 MiB in total | Reading stops. A file the built-in export wrote inflates to about 40-65 bytes per cell, and the budget charges text at two bytes per character, so this cap leaves room for about 2-3 million such cells; long text cells use more of it. |
 | Per-cell settings (import) | 1,000,000 cells, or the number of data cells when that is higher | Refused while reading. Only a file with little data under its settings reaches it, such as two list validations with different lists split over a million empty rows. |
+| XML nesting depth (built-in import) | 256 elements | Refused. A file written by a spreadsheet application nests about 20 levels deep. |
 | Formula length (built-in import) | 32,768 characters | `formula:tooLong`; the cell keeps its cached value. |
 | Defined names (built-in import) | 65,536 | `definedNames:truncated`; a formula over a later name can show `#NAME?`. |
 | Text per cell (export) | 32,767 characters | `cellText:truncated`; the text is cut. |

@@ -877,6 +877,12 @@ directions.
   `partToTokenize` charges all planned repeats when the part is first read. Charged one at a time,
   64 sheets over one 6 MB part were refused only after about 20 full parses. The memo already
   prevented re-inflating; parsing was the cost.
+- **The tokenizer caps the nesting depth at `MAX_XML_NESTING_DEPTH` (256, `limits.ts`)** (review round
+  12). The stack of open names was never charged to any budget, so a 239 kB sheet of 8 million nested
+  unknown elements was refused only by the balance check at the end, after about 3 s and a 580-690 MB
+  heap peak. Real OOXML nests about 20 deep. The refusal goes through `throwLimitExceeded`, so callers
+  rethrow it as a limit, not as a parse failure. `nativeXml.unit.js` times its linearity guard on many
+  nestings below the cap, since one 200,000-deep nesting is now refused.
 - **The tokenizer refuses markup that does not balance** (QA round 7). `tokenizeXml` keeps one stack
   of open element names: an end tag must close the innermost one (names compared WITH their prefix),
   and input that ends with an element open is refused, a part missing only its root close included
