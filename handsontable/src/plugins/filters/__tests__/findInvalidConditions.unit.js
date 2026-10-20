@@ -2,11 +2,12 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Filters } from '..';
 import { DropdownMenu } from '../../dropdownMenu';
+import { ManualColumnMove } from '../../manualColumnMove';
 import { AutoColumnSize } from '../../autoColumnSize';
 import { HiddenRows } from '../../hiddenRows';
 import { HiddenColumns } from '../../hiddenColumns';
 import { TrimRows } from '../../trimRows';
-import { registerCellType, CheckboxCellType } from '../../../cellTypes';
+import { registerCellType, CheckboxCellType, NumericCellType } from '../../../cellTypes';
 
 describe('Filters#_findInvalidConditions', () => {
   let container;
@@ -19,8 +20,10 @@ describe('Filters#_findInvalidConditions', () => {
     registerPlugin(HiddenColumns);
     registerPlugin(TrimRows);
     registerPlugin(DropdownMenu);
+    registerPlugin(ManualColumnMove);
     registerPlugin(Filters);
     registerCellType(CheckboxCellType);
+    registerCellType(NumericCellType);
   });
 
   beforeEach(() => {
@@ -72,6 +75,44 @@ describe('Filters#_findInvalidConditions', () => {
     expect(problem.path).toBe(path);
     expect(typeof problem.message).toBe('string');
     expect(problem.message.length).toBeGreaterThan(0);
+  });
+
+  it('points at a condition the column does not offer', () => {
+    const problem = filters._findInvalidConditions([
+      entry(),
+      entry({ column: 1, conditions: [{ name: 'contains', args: ['b'] }, { name: 'gt', args: [1] }] }),
+    ]);
+
+    expect(problem.path).toBe('[1].conditions[1].name');
+    expect(problem.message).toBe('gt is not available on column 1, which offers: empty, not_empty, eq, neq, ' +
+      'begins_with, ends_with, contains, not_contains');
+  });
+
+  it('checks the column by its physical index', () => {
+    hot.updateSettings({ columns: [{}, { type: 'numeric' }], manualColumnMove: [1, 0] });
+    filters = hot.getPlugin('filters');
+
+    expect(hot.toVisualColumn(1)).toBe(0);
+    expect(filters._findInvalidConditions([entry({ column: 1, conditions: [{ name: 'gt', args: [1] }] })]))
+      .toBeNull();
+    expect(filters._findInvalidConditions([entry({ column: 1, conditions: [{ name: 'contains', args: ['b'] }] })])
+      .path).toBe('[0].conditions[0].name');
+  });
+
+  it('follows the availableConditions setting', () => {
+    hot.updateSettings({ filters: { availableConditions: { exclude: ['contains'] } } });
+    filters = hot.getPlugin('filters');
+
+    expect(filters._findInvalidConditions([entry()])).toBeNull();
+    expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'contains', args: ['a'] }] })]).path)
+      .toBe('[0].conditions[0].name');
+  });
+
+  it('accepts the conditions that are in no menu list', () => {
+    expect(filters._findInvalidConditions([
+      entry({ conditions: [{ name: 'by_value', args: [['a']] }] }),
+      entry({ column: 1, conditions: [{ name: 'none', args: [] }] }),
+    ])).toBeNull();
   });
 
   it('accepts one operation named twice for a column', () => {

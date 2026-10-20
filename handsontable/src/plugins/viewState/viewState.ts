@@ -157,8 +157,8 @@ export class ViewState extends BasePlugin {
    * columns (`sizeMismatch`), the selection does not fit the grid (`outOfRange`), or the value is
    * wrong (`invalid`): for example a row order that does not name every row exactly once, a column
    * property no column has, one column named twice in `sort` or `columnWidths`, more than one sort column
-   * without `MultiColumnSorting`, a filter condition that is not registered on the page or cannot take
-   * its arguments, or a key that is not a part of the view state at all. A hidden or trimmed index, a
+   * without `MultiColumnSorting`, a filter condition that is not registered on the page, cannot take
+   * its arguments, or is not one the column offers ({@link Filters#getAvailableConditions}), or a key that is not a part of the view state at all. A hidden or trimmed index, a
    * sort column, a size, or a scroll position past the end of the grid is `outOfRange`, and so is a
    * column in `sort`, `filters`, or `hiddenColumns`, by index or by property, that the grid does not show. With another `version`, every part is skipped as
    * `unsupportedVersion`, next to the `error`.

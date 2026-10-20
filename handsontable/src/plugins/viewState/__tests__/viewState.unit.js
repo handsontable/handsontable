@@ -1059,6 +1059,35 @@ describe('ViewState plugin', () => {
       });
     });
 
+    it('points at a condition the column does not offer', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const entry = column => ({ column, operation: 'conjunction', conditions: [{ name: 'eq', args: ['a'] }] });
+
+      expect(onlyIssue(hot, {
+        filters: [entry(0), entry(1), { ...entry(2), conditions: [{ name: 'gt', args: [1] }] }],
+      })).toEqual({
+        part: 'filters',
+        reason: 'invalid',
+        path: 'filters[2].conditions[0].name',
+        message: 'filters[2].conditions[0].name gt is not available on column 2, ' +
+          'which offers: empty, not_empty, eq, neq, begins_with, ends_with, contains, not_contains',
+      });
+    });
+
+    it('keeps a captured state with a value filter valid', () => {
+      const hot = createGrid(ALL_PLUGINS);
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(0, 'by_value', [['0-0', '1-0']]);
+      filters.addCondition(1, 'contains', ['1']);
+      filters.filter();
+
+      const { valid, skipped } = vs(hot).validateViewState(throughJson(vs(hot).getViewState()));
+
+      expect(skipped).toEqual([]);
+      expect(valid).toBe(true);
+    });
+
     it('names the operation, the condition, and the column of a filter entry', () => {
       const hot = createGrid(ALL_PLUGINS);
       const entry = { column: 0, operation: 'conjunction', conditions: [{ name: 'eq', args: ['a'] }] };

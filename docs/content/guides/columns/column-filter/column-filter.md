@@ -756,6 +756,37 @@ between** from numeric columns. The **Brand** column offers a short list of its 
 
 :::
 
+### List the conditions a column offers
+
+To build valid conditions in your own code, for example in a custom filter form or a prompt for an AI
+assistant, call [`getAvailableConditions()`](@/api/filters.md#getavailableconditions). It returns the
+conditions that the column's **Filter by condition** list offers, in the same order, with the number
+of arguments each one takes:
+
+```js
+const filters = hot.getPlugin('filters');
+
+// column 1 is a numeric column
+filters.getAvailableConditions(1);
+// [
+//   { name: 'empty', inputsCount: 0 },
+//   { name: 'not_empty', inputsCount: 0 },
+//   { name: 'eq', inputsCount: 1 },
+//   { name: 'neq', inputsCount: 1 },
+//   { name: 'gt', inputsCount: 1 },
+//   { name: 'gte', inputsCount: 1 },
+//   { name: 'lt', inputsCount: 1 },
+//   { name: 'lte', inputsCount: 1 },
+//   { name: 'between', inputsCount: 2 },
+//   { name: 'not_between', inputsCount: 2 },
+// ]
+```
+
+The method takes a visual column index, like [`addCondition()`](@/api/filters.md#addcondition). It
+follows the column's data type and the `availableConditions` setting that applies to the column. The
+list leaves out **None** and the separators, and it does not include the **Filter by value**
+condition (`by_value`).
+
 ## Change the order of values in the filter list
 
 By default, the **Filter by value** list places blank cells first and then sorts the values: numbers

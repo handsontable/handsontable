@@ -114,7 +114,8 @@ any of them.
   not show a trimmed hidden row, and a row the state hid while it was trimmed came back visible once the
   trim lifted (the same held for a sheet switch whose arriving sheet filters a hidden row out).
 - **The filter validation lives in the Filters plugin.** `Filters#_findInvalidConditions()` checks the
-  columns, the operation, the condition names and the arguments, and answers with the path and the reason of
+  columns, the operation, the condition names, whether the column offers each condition (the list
+  `Filters#getAvailableConditions()` returns, so the menu and the check agree) and the arguments, and answers with the path and the reason of
   the first problem, which the public layer turns into the skipped entry's `path` and `message` (binding a condition runs its input
   decorator, which throws on arguments of the wrong shape). Core must not import the condition
   registries: that would pull Filters internals into every build, `handsontable/base` included.

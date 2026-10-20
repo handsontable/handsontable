@@ -188,11 +188,16 @@ captured when the plugin is enabled.
   property is a per-column answer.
 - **A column `filters` OBJECT is read for `availableConditions` only (DEV-3056).** Every other key
   in it (`searchMode`, `filterFixedRows`, anything unknown), and an EMPTY object, still warns, the
-  way `columnSorting` warns for `sortFixedRows` only. `_getAvailableConditions(visualColumn)`
+  way `columnSorting` warns for `sortFixedRows` only. `_getAvailableConditionsSetting(visualColumn)`
   resolves the value: a VALID own column value wins and REPLACES the grid-level one (no merging); an
   own `undefined` (a wrapper prop left unset) and an invalid value both fall back to
-  `getSetting('availableConditions')`. The list itself is built in one place, `getOptionsList()`
-  called from `ConditionComponent#reset()`, which both condition selects share, and it is silent.
+  `getSetting('availableConditions')`. The list itself is built in one place, `_getConditionOptions(visualColumn)`
+  (`getOptionsList()` over `_getColumnDataType()`, which reads `getDataType()` across every row as the
+  menu always did), and it is silent. `ConditionComponent#reset()` (both condition selects), the public
+  `getAvailableConditions()` and the restore check below all read it, so the menu and the API cannot
+  disagree; do not give any of them a type lookup of its own. `getAvailableConditions()` drops the
+  separators and `none`, and hands out new `{ name, inputsCount }` objects, never the registry's
+  descriptors. Its name is the public one, which is why the setting reader carries the `Setting` suffix.
   Five rules ride along. (1) `none` is always kept FIRST, because `reset()` selects `items[0]`, and
   the no-selection branch passes a COPY of its descriptor, because `SelectUI#setItems()` translates
   names in place and the registry's descriptor is shared. (2) An allow-list may only pick names from
@@ -291,7 +296,13 @@ decorator rejects such as `by_value` with a non-array), which leaves the grid wi
 that holds input it did not build (the `ViewState` plugin's restore) asks the `@private`
 `_findInvalidConditions()` first. It answers with the path (`[2].conditions[0].args`) and the reason of the first
 entry it cannot take, or `null`. It binds every condition with `getCondition()` inside a `try`, because
-the decorator is where wrong arguments throw. The restore must ask the plugin rather than import
+the decorator is where wrong arguments throw. It also refuses a condition the column does not offer
+(`#findUnavailableCondition()`, against `getAvailableConditions()` of the entry's column translated to a
+visual index). Only the names of the stock lists are checked (`KNOWN_CONDITION_NAMES` minus `none`):
+`by_value` is in no list, and refusing it would make every captured value filter invalid on its own
+grid. The cost is deliberate: a condition added through `addCondition()` outside its column's list
+(`gt` on a text column) still filters, but a view state that carries it no longer restores. The check
+lives here, not in `importConditions()`, which keeps taking such conditions. The restore must ask the plugin rather than import
 `conditionRegisterer`/`logicalOperationRegisterer`: the engine is shared with SheetsBar, and a caller outside
 the Filters folder reading the registries is how a rename there breaks it silently.
 
