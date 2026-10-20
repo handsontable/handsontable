@@ -94,6 +94,19 @@ test.describe('SheetsBar switch with work still in flight', () => {
     expect(await grid.commentAt(0, 0)).toBe('note');
   });
 
+  test('leaves a wide sheet while its columns are still measured without breaking later renders', async() => {
+    await grid.goto('wideSheet');
+
+    expect(await grid.switchDuringColumnSweep('Beta')).toEqual({ sweepRunning: true, switched: true });
+
+    await expect.poll(() => grid.isColumnSweepRunning()).toBe(false);
+
+    expect(await grid.renderError()).toBeNull();
+    expect(await grid.activeSheetName()).toBe('Beta');
+    await expect(grid.tab('Beta')).toHaveAttribute('aria-current', 'true');
+    await expect(grid.cell(0, 0)).toHaveText('b3');
+  });
+
   test('gives the arriving sheet its own selection when the Loading overlay hides', async() => {
     await grid.goto('loading');
 

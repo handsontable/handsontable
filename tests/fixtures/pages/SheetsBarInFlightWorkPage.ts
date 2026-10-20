@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 
-export type InFlightWorkbook = 'asyncValidator' | 'rejectedValue' | 'comments' | 'loading' | 'drags';
+export type InFlightWorkbook = 'asyncValidator' | 'rejectedValue' | 'comments' | 'loading' | 'drags' | 'wideSheet';
 
 /**
  * Page object for the sheets-bar-in-flight-work fixture (fixtures/demo/sheets-bar-in-flight-work.html):
@@ -184,6 +184,46 @@ export class SheetsBarInFlightWorkPage {
    */
   selected(): Promise<number[][] | null> {
     return this.page.evaluate(() => window.hot.getSelected() ?? null);
+  }
+
+  /**
+   * Starts measuring every column again and switches sheets in the same task, so the switch happens while
+   * the measuring still has idle tasks to run. Answers whether the measuring was still running when the
+   * switch began, and what `setActiveSheet()` returned.
+   */
+  switchDuringColumnSweep(name: string): Promise<{ sweepRunning: boolean, switched: boolean }> {
+    return this.page.evaluate((sheetName) => {
+      const autoColumnSize = window.hot.getPlugin('autoColumnSize');
+
+      autoColumnSize.recalculateAllColumnsWidth();
+
+      const sweepRunning = autoColumnSize.inProgress;
+      const switched = window.hot.getPlugin('sheetsBar').setActiveSheet(sheetName);
+
+      return { sweepRunning, switched };
+    }, name);
+  }
+
+  /**
+   * Whether AutoColumnSize is still measuring columns.
+   */
+  isColumnSweepRunning(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('autoColumnSize').inProgress);
+  }
+
+  /**
+   * Renders the grid, and answers the error a render threw, or `null`.
+   */
+  renderError(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      try {
+        window.hot.render();
+
+        return null;
+      } catch (error) {
+        return String(error);
+      }
+    });
   }
 
   /**

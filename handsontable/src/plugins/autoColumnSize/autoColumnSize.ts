@@ -310,6 +310,13 @@ export class AutoColumnSize extends BasePlugin {
    */
   inProgress: boolean = false;
   /**
+   * The idle task that runs the next chunk of the sweep `calculateAllColumnsWidth()` started, or
+   * `null` when no sweep is waiting for one.
+   *
+   * @type {number|null}
+   */
+  #sweepTask: number | null = null;
+  /**
    * Number of already measured columns (we already know their sizes).
    *
    * @type {number}
@@ -410,6 +417,8 @@ export class AutoColumnSize extends BasePlugin {
     this.#applySamplingSettings();
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('beforeLoadData', this.#onBeforeDataReplace);
+    this.addHook('beforeUpdateData', this.#onBeforeDataReplace);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
@@ -510,6 +519,7 @@ export class AutoColumnSize extends BasePlugin {
 
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexMapperCacheUpdate);
     this.hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdate);
+    this.#cancelSweep();
 
     super.disablePlugin();
 
@@ -599,8 +609,8 @@ export class AutoColumnSize extends BasePlugin {
     let currentColumn = 0;
     let currentRowCursor = rowsRange.from;
     let columnSamples: ReturnType<SamplesGenerator['generateSample']> | null = null;
-    let timer = 0;
 
+    this.#cancelSweep();
     this.inProgress = true;
 
     const shouldMeasureColumn = (visualColumn: number) => {
@@ -676,9 +686,10 @@ export class AutoColumnSize extends BasePlugin {
     };
 
     const loop = () => {
+      this.#sweepTask = null;
+
       // When hot was destroyed after calculating finished cancel frame
       if (!this.hot) {
-        cancelIdleTask(timer);
         this.inProgress = false;
 
         return;
@@ -692,10 +703,9 @@ export class AutoColumnSize extends BasePlugin {
       flushGhostTable();
 
       if (!isDone) {
-        timer = requestIdleTask(loop);
+        this.#sweepTask = requestIdleTask(loop);
 
       } else {
-        cancelIdleTask(timer);
         this.inProgress = false;
       }
     };
@@ -1173,6 +1183,28 @@ export class AutoColumnSize extends BasePlugin {
   };
 
   /**
+   * Stops a sweep still measuring the data that is being replaced (`loadData()`, `updateData()`, a sheet
+   * switch). Its row range and its last column describe that data, so its next chunk sampled cells the new
+   * data does not have, and left the ghost table broken for every later render.
+   */
+  #onBeforeDataReplace = () => {
+    this.#cancelSweep();
+  };
+
+  /**
+   * Cancels the idle task of a sweep in progress. Called when a new sweep starts, when the data is replaced,
+   * and when the plugin is turned off or destroyed.
+   */
+  #cancelSweep() {
+    if (this.#sweepTask !== null) {
+      cancelIdleTask(this.#sweepTask);
+      this.#sweepTask = null;
+    }
+
+    this.inProgress = false;
+  }
+
+  /**
    * Triggers a full column width recalculation after new data is loaded, skipping the initial
    * load since `#onInit` already handles it. The Formulas plugin registers its own
    * `afterLoadData` listener ahead of this one, so the sweep reads the values the engine derives
@@ -1369,6 +1401,7 @@ export class AutoColumnSize extends BasePlugin {
   destroy(): void {
     this.hot?.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexMapperCacheUpdate);
     this.hot?.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdate);
+    this.#cancelSweep();
     this.ghostTable.clean();
     super.destroy();
   }
