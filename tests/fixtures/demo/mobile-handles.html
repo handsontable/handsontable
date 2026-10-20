@@ -38,6 +38,12 @@
       throw new Error('Unknown ?frozenBottom= value: ' + JSON.stringify(params.get('frozenBottom')));
     }
 
+    // The inline-end frozen pane, for the handles of the first `fixedColumnsEnd` column (DEV-749).
+    window.htFrozenEnd = ({ '0': 0, '2': 2 })[params.get('frozenEnd') ?? '0'];
+    if (window.htFrozenEnd === undefined) {
+      throw new Error('Unknown ?frozenEnd= value: ' + JSON.stringify(params.get('frozenEnd')));
+    }
+
     // Headers are on by default. Turning them off removes the `top` and `inline_start` clones, which
     // is what leaves row 0 and column 0 as ordinary edges with nothing to hide the handle.
     window.htHeaders = ({ on: true, off: false })[params.get('headers') ?? 'on'];
@@ -95,6 +101,7 @@
       fixedRowsTop: window.htFrozen,
       fixedColumnsStart: window.htFrozen,
       fixedRowsBottom: window.htFrozenBottom,
+      fixedColumnsEnd: window.htFrozenEnd,
       layoutDirection: window.htDirection,
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',

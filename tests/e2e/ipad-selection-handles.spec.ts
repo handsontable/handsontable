@@ -172,11 +172,12 @@ test.describe('iPadOS frozen-top corner reserve', { tag: THEMES_TAG }, () => {
   test('keeps a frozen-row bottom handle while its column is on screen, and only then', async () => {
     // The top overlay draws a frozen-row selection's handles only for a column the viewport shows.
     // Its bottom handle must survive that gate while the column is on screen, and stop being
-    // reachable once the column scrolls behind the frozen pane.
+    // reachable once the column scrolls behind the frozen pane. The master renders the cell too,
+    // under the clone, but does not draw a second handle for it (DEV-749).
     await grid.goto({ frozen: true, cols: 'wide' });
     await grid.selectRange(0, 1, 0, 1);
 
-    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_clone_top', 'ht_master']);
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_clone_top']);
 
     await grid.scrollColumnEndUnderFrozenPane(1);
 
@@ -185,7 +186,7 @@ test.describe('iPadOS frozen-top corner reserve', { tag: THEMES_TAG }, () => {
     // Back on screen, so a stale visible-range snapshot would keep the handle hidden.
     await grid.scrollColumnIntoView(1);
 
-    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_clone_top', 'ht_master']);
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_clone_top']);
   });
 });
 
