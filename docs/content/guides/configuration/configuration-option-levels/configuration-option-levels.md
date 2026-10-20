@@ -119,6 +119,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="allowRemoveColumn" data-levels="grid"></span>[`allowRemoveColumn`](@/api/options.md#allowremovecolumn) | Yes | No | No | No | Core |  |
 | <span data-option="allowRemoveRow" data-levels="grid"></span>[`allowRemoveRow`](@/api/options.md#allowremoverow) | Yes | No | No | No | Core |  |
 | <span data-option="ariaTags" data-levels="grid"></span>[`ariaTags`](@/api/options.md#ariatags) | Yes | No | No | No | Core | The switch is grid level. A per-cell value only changes that cell's ARIA attributes. |
+| <span data-option="asyncValues" data-levels="grid"></span>[`asyncValues`](@/api/options.md#asyncvalues) | Yes | No | No | No | AsyncValues |  |
 | <span data-option="autoColumnSize" data-levels="grid"></span>[`autoColumnSize`](@/api/options.md#autocolumnsize) | Yes | No | No | No | AutoColumnSize |  |
 | <span data-option="autoLink" data-levels="grid columns cells cell"></span>[`autoLink`](@/api/options.md#autolink) | Yes | Yes | Yes | Yes | AutoLink | The plugin toggle is grid level. A column or cell `false` opts out, and a column or cell object overrides `target`, `schemes`, `strict`, `inline`, and `className` for those cells. |
 | <span data-option="autoRowHeaderSize" data-levels="grid"></span>[`autoRowHeaderSize`](@/api/options.md#autorowheadersize) | Yes | No | No | No | AutoRowHeaderSize |  |

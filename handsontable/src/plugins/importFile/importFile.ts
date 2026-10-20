@@ -445,8 +445,11 @@ export class ImportFile extends BasePlugin {
    * written, `title` is the header (see the `headerRow` option), and `stats` is set with the `stats`
    * option. A column that no type reads with at least `minConfidence` falls back to `'text'`.
    *
-   * The result is deterministic: it reads the first `sampleSize` rows and settles an ambiguous
-   * column (`1.234`, `12/03/2026`) with `options.locale`, which defaults to the grid's `locale`.
+   * The result is deterministic: it reads `sampleSize` rows (the first ones, or with
+   * `sampling: 'spread'` rows spaced evenly across the data) and settles an ambiguous column
+   * (`1.234`, `12/03/2026`) with `options.locale`, which defaults to the grid's `locale`. The
+   * `dateFormats` option lists date formats to read, and `booleanValues` lists words a checkbox
+   * column reads as `true` and `false`.
    *
    * @example
    * ```js

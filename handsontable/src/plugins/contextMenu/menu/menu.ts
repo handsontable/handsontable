@@ -882,10 +882,10 @@ export class Menu {
     this.#clearHoverSubMenuTimers();
 
     // `_registerTimeout` so the handle is cleared if the grid is destroyed with the menu open.
-    // It is the convention here, and the cost is known: `hot.timeouts` only grows, so canceling
-    // leaves a dead handle behind and hovering across menu rows adds one each time. They are
-    // integers on an array freed with the instance. The alternative — a generation token and a
-    // timer that fires and no-ops — trades that for more state and a callback that still runs.
+    // It is the convention here, and the cost is known: a fired handle leaves `hot.timeouts`, but a
+    // canceled one stays, so hovering across menu rows adds one each time. They are integers on an
+    // array freed with the instance. The alternative (a generation token and a timer that fires and
+    // no-ops) trades that for more state and a callback that still runs.
     this.#subMenuSwitchTimer = this.hot._registerTimeout(() => {
       this.#subMenuSwitchTimer = null;
       this.openSubMenu(row);

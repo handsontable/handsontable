@@ -328,6 +328,24 @@ test('the render that writes golden records checks every page it photographs, on
   'the per-page check must require an empty list of problems');
 });
 
+test('the capture spec pins grids through the 1x1 collapse, and the visual suite does not hide it', () => {
+  // On Linux CI `page.screenshot({ fullPage: true })` collapses the viewport to 1x1px. A grid that kept the
+  // column widths it measured in the collapsed root grew taller, and the export-to-csv golden flipped between
+  // two heights (DEV-3458). The grid is fixed (DEV-3460); this spec keeps it fixed, and a layout hold in the
+  // visual spec would hide a regression from it, as the min-width hold this replaced did.
+  const visual = read('docs/tests/visualDocs.spec.ts');
+  const regression = read('docs/tests/captureLayoutStability.spec.ts');
+
+  assert.doesNotMatch(visual, /addStyleTag|holdLayoutWidth/, 'do not hold the layout through the capture; fix the grid instead');
+  assert.match(regression, /^test\.describe\.configure\(\{ retries: 0 \}\);$/m,
+    'a render that keeps wrapped widths once is the failure; a retry would report it flaky and pass');
+  assert.match(regression, /setViewportSize\(\{ width: 1, height: 1 \}\)/, 'the forced collapse makes the spec fail on any OS');
+  assert.match(regression, /\)\.toBe\(0\);/, 'the spec must prove the grid root collapsed before it restores the viewport');
+  assert.match(regression, /fullPage: true/, 'the full-page capture is the real trigger and must stay covered');
+  assert.ok(regression.indexOf('await settledExamples(page);') < regression.indexOf('const shapes = await gridShapes(page);'),
+    'the baseline must come from settled grids');
+});
+
 test('a bootstrap that seeded nothing says so, instead of the core gate\'s "baseline created"', () => {
   // The core gate reads a trusted bootstrap as "this build became the baseline", assuming that the
   // render and the seed ran. After a refused layout check or a failed render, they did not.

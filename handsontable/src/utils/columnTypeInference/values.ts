@@ -56,6 +56,12 @@ export const MAX_FRACTION_DIGITS = 20;
 const LEADING_ZERO_REGEX = /^0\d/;
 
 /**
+ * A date in the ISO form: `2026-03-12`. It is what a value is read as when no listed format matches.
+ * The groups follow `YEAR_FIRST_DATE_REGEX` (year, separator, month, day), so one reader takes both.
+ */
+const ISO_DATE_REGEX = /^(\d{4})(-)(\d{2})\2(\d{2})$/;
+
+/**
  * A date with a four-digit year first (`2026-03-12`, `2026/3/12`, `2026.03.12`).
  */
 const YEAR_FIRST_DATE_REGEX = /^(\d{4})([-/.])(\d{1,2})\2(\d{1,2})$/;
@@ -146,6 +152,50 @@ export interface DateReading {
    * Whether the day was written with two digits.
    */
   paddedDay: boolean;
+}
+
+/**
+ * A date format from the `dateFormats` option, compiled once into the regular expression that reads
+ * it.
+ */
+export interface CompiledDateFormat {
+  /**
+   * The format as it was given (`DD/MM/YYYY`).
+   */
+  pattern: string;
+  /**
+   * Matches a whole trimmed value written in the format.
+   */
+  regex: RegExp;
+  /**
+   * The capture group of the year, the month, and the day.
+   */
+  groups: { year: number; month: number; day: number };
+  /**
+   * The digits a value has when the format is only fixed-width tokens (`DDMMYYYY` is `8`), or `null`
+   * when it has a literal or a one-or-two-digit token. A whole number lost its leading zeros, so it
+   * is padded back to this width before it is read.
+   */
+  width: number | null;
+  /**
+   * Whether a value in this format can also be read as a number: no literal, or a single `.` or `,`.
+   * Only then does a column of such values tie with `numeric`.
+   */
+  numberLike: boolean;
+}
+
+/**
+ * The words a checkbox column reads as `true` and as `false`, besides `true` and `false` themselves.
+ */
+export interface BooleanValues {
+  /**
+   * The words read as `true`.
+   */
+  true: string[];
+  /**
+   * The words read as `false`.
+   */
+  false: string[];
 }
 
 /**
@@ -480,6 +530,49 @@ export function readBoolean(value: unknown): boolean | null {
 }
 
 /**
+ * Folds a word for comparison: trimmed, lower case, and with the Turkish and Azeri dotted and dotless
+ * `i` made one letter. `'HAYIR'.toLowerCase()` is `hayir` and never matches a listed Turkish
+ * `hay\u0131r`, and a lowered dotted capital I carries a combining dot (U+0307). The fold takes no
+ * locale on purpose: the converter has none, and the locale of a CSV is rarely the grid's.
+ */
+function foldWord(text: string): string {
+  return text.trim().toLowerCase().normalize('NFD').replace(/\u0307/g, '').replace(/\u0131/g, 'i');
+}
+
+/**
+ * Builds a boolean reader that also reads the given words, compared trimmed and in any case (see
+ * `foldWord`). A word listed on both sides, `true` and `false` included, reads as neither.
+ */
+export function createBooleanReader(words: BooleanValues): (value: unknown) => boolean | null {
+  const lookup = new Map<string, boolean>([['true', true], ['false', false]]);
+  const conflicts = new Set<string>();
+  const add = (word: string, meaning: boolean) => {
+    const key = foldWord(word);
+
+    if (lookup.has(key) && lookup.get(key) !== meaning) {
+      conflicts.add(key);
+    }
+
+    lookup.set(key, meaning);
+  };
+
+  words.true.forEach(word => add(word, true));
+  words.false.forEach(word => add(word, false));
+  conflicts.forEach(key => lookup.delete(key));
+
+  return (value) => {
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    // A listed `1` or `0` reads a number cell too: API data often carries them as numbers.
+    const text = typeof value === 'number' && Number.isFinite(value) ? String(value) : value;
+
+    return typeof text === 'string' ? lookup.get(foldWord(text)) ?? null : null;
+  };
+}
+
+/**
  * Builds an ISO date from its parts, or returns `null` for a date the calendar does not have.
  */
 function toIsoDate(year: string, month: string, day: string): string | null {
@@ -499,28 +592,152 @@ export function splitYearLastDate(value: unknown): [number, number, string] | nu
 }
 
 /**
- * Reads a value as a date. A year-first date is read as year, month, day; a year-last one follows
- * `order`. Returns `null` for anything else, including a day the month does not have.
+ * The tokens a date format may hold, the part of the date each one names, and what it matches.
  */
-export function readDate(value: unknown, order: 'DMY' | 'MDY'): DateReading | null {
-  if (typeof value !== 'string') {
+const DATE_FORMAT_TOKENS: Record<string, { field: 'year' | 'month' | 'day'; source: string }> = {
+  YYYY: { field: 'year', source: '(\\d{4})' },
+  MM: { field: 'month', source: '(\\d{2})' },
+  M: { field: 'month', source: '(\\d{1,2})' },
+  DD: { field: 'day', source: '(\\d{2})' },
+  D: { field: 'day', source: '(\\d{1,2})' },
+};
+
+/**
+ * Splits a date format into runs of one repeated letter (`YYYY`, `MM`) and runs of anything else.
+ */
+const DATE_FORMAT_PART_REGEX = /([A-Za-z])\1*|[^A-Za-z]+/g;
+
+/**
+ * Compiles a date format such as `DD/MM/YYYY` or `YYYYMMDD`. The tokens are `YYYY`, `MM` and `DD`
+ * (two digits), and `M` and `D` (one or two); every other character is matched as it is. Returns
+ * `null` for a format that does not hold exactly one year, one month and one day token, or that
+ * holds another letter.
+ */
+export function compileDateFormat(pattern: unknown): CompiledDateFormat | null {
+  if (typeof pattern !== 'string') {
     return null;
   }
 
-  const text = value.trim();
-  const yearFirst = YEAR_FIRST_DATE_REGEX.exec(text);
-  const yearLast = yearFirst ? null : YEAR_LAST_DATE_REGEX.exec(text);
-  let parts: { year: string; month: string; day: string } | null = null;
+  const groups: Partial<CompiledDateFormat['groups']> = {};
+  let source = '';
+  let group = 0;
+  let previous = '';
+  let literals = '';
+  let width: number | null = 0;
+
+  // Values are read trimmed, so a format is too: `'DD/MM/YYYY '` would otherwise never match.
+  for (const [part] of pattern.trim().matchAll(DATE_FORMAT_PART_REGEX)) {
+    const isLetters = /^[A-Za-z]/.test(part);
+    const token = isLetters ? DATE_FORMAT_TOKENS[part] : undefined;
+    // `YYYYMD` cannot tell `2026111` as 1 November from 11 January, so a one-or-two-digit token
+    // needs a literal on the side where it meets another token.
+    const ambiguous = token !== undefined && previous in DATE_FORMAT_TOKENS
+      && (part.length === 1 || previous.length === 1);
+
+    if (isLetters && (token === undefined || groups[token.field] !== undefined || ambiguous)) {
+      return null;
+    }
+
+    previous = part;
+
+    if (token) {
+      group += 1;
+      groups[token.field] = group;
+      source += token.source;
+      width = width !== null && part.length > 1 ? width + part.length : null;
+
+    } else {
+      literals += part;
+      source += part.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
+    }
+  }
+
+  const { year, month, day } = groups;
+
+  if (year === undefined || month === undefined || day === undefined) {
+    return null;
+  }
+
+  return {
+    pattern,
+    regex: new RegExp(`^${source}$`),
+    groups: { year, month, day },
+    width: literals === '' ? width : null,
+    numberLike: literals === '' || literals === '.' || literals === ',',
+  };
+}
+
+/**
+ * Splits a trimmed value into its date parts. With a listed format, the value is read with it, and
+ * otherwise only as an ISO date (`2026-03-12`): the looser year-first form takes `/` and `.` too, and
+ * would read `2026/12/3` as December in a column of `YYYY/DD/MM`. Without a format, a year-first date
+ * is read as year, month, day, and a year-last one in `order`.
+ */
+function splitDate(
+  text: string,
+  order: 'DMY' | 'MDY',
+  format: CompiledDateFormat | null
+): { year: string; month: string; day: string } | null {
+  const match = format ? format.regex.exec(text) : null;
+
+  if (format && match) {
+    return { year: match[format.groups.year], month: match[format.groups.month], day: match[format.groups.day] };
+  }
+
+  const yearFirst = (format ? ISO_DATE_REGEX : YEAR_FIRST_DATE_REGEX).exec(text);
 
   if (yearFirst) {
-    parts = { year: yearFirst[1], month: yearFirst[3], day: yearFirst[4] };
+    return { year: yearFirst[1], month: yearFirst[3], day: yearFirst[4] };
+  }
 
-  } else if (yearLast) {
-    const [first, second] = [yearLast[1], yearLast[3]];
+  const yearLast = format ? null : YEAR_LAST_DATE_REGEX.exec(text);
 
-    parts = order === 'MDY'
-      ? { year: yearLast[4], month: first, day: second }
-      : { year: yearLast[4], month: second, day: first };
+  if (!yearLast) {
+    return null;
+  }
+
+  const [first, second] = [yearLast[1], yearLast[3]];
+
+  return order === 'MDY'
+    ? { year: yearLast[4], month: first, day: second }
+    : { year: yearLast[4], month: second, day: first };
+}
+
+/**
+ * Writes a whole number as the digits a format reads. The leading zeros a number lost come back for a
+ * fixed-width format, so `1032026` is `01032026` for `DDMMYYYY`.
+ */
+function toDigits(value: number, format: CompiledDateFormat): string {
+  return value < 0 ? String(value) : String(value).padStart(format.width ?? 0, '0');
+}
+
+/**
+ * The lowest year a whole number is read as. A number such as `101` or `1010001` is a quantity or an
+ * ID far more often than the year 1 that padding would make of it.
+ */
+const MIN_NUMBER_YEAR = 1000;
+
+/**
+ * Reads a value as a date. With `format`, a value the format matches is read with it, and any other
+ * value only as a year-first date. Without one, a year-first date is read as year, month, day, and a
+ * year-last one follows `order`. A whole number is read only with a format (`20260312` with
+ * `YYYYMMDD`). Returns `null` for anything else, including a day the month does not have.
+ */
+export function readDate(
+  value: unknown,
+  order: 'DMY' | 'MDY',
+  format: CompiledDateFormat | null = null
+): DateReading | null {
+  const text = format && Number.isInteger(value) ? toDigits(value as number, format) : value;
+
+  if (typeof text !== 'string') {
+    return null;
+  }
+
+  const parts = splitDate(text.trim(), order, format);
+
+  if (parts && typeof value === 'number' && Number(parts.year) < MIN_NUMBER_YEAR) {
+    return null;
   }
 
   const iso = parts ? toIsoDate(parts.year, parts.month, parts.day) : null;
@@ -598,14 +815,18 @@ function readDateObject(value: Date): DateTimeReading | null {
 }
 
 /**
- * Reads a value as a date-time: a date as `readDate()` reads it, optionally followed by a time as
+ * Reads a value as a date-time: a date as `readDate()` reads it (with `format` when one is listed), optionally followed by a time as
  * `readTime()` reads it, or a valid `Date`. Returns `null` for anything else. A time zone or an offset
  * (`Z`, `+02:00`) is unread, because the grid reads local time. A nonzero fraction of a second is unread
  * too: the value is converted to `YYYY-MM-DDTHH:mm:ss`, and a written value keeps its text rather than
  * lose a part. An all-zero fraction (`14:30:00.000`) loses nothing and is read.
  */
-export function readDateTime(value: unknown, order: 'DMY' | 'MDY'): DateTimeReading | null {
-  return readSplitDateTime(value, splitDateTime(value), order);
+export function readDateTime(
+  value: unknown,
+  order: 'DMY' | 'MDY',
+  format: CompiledDateFormat | null = null
+): DateTimeReading | null {
+  return readSplitDateTime(value, splitDateTime(value), order, format);
 }
 
 /**
@@ -615,7 +836,8 @@ export function readDateTime(value: unknown, order: 'DMY' | 'MDY'): DateTimeRead
 export function readSplitDateTime(
   value: unknown,
   parts: DateTimeParts | null,
-  order: 'DMY' | 'MDY'
+  order: 'DMY' | 'MDY',
+  format: CompiledDateFormat | null = null
 ): DateTimeReading | null {
   if (value instanceof Date) {
     return readDateObject(value);
@@ -625,7 +847,7 @@ export function readSplitDateTime(
     return null;
   }
 
-  const date = readDate(parts.date, order);
+  const date = readDate(parts.date, order, format);
   const time = parts.time === null ? null : readTime(parts.time);
 
   if (date === null || (parts.time !== null && time === null)) {

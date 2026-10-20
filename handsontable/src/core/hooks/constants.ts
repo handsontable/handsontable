@@ -1567,6 +1567,112 @@ export const REGISTERED_HOOKS = [
   'afterAutofill',
 
   /**
+   * Fired by the {@link AsyncValues} plugin after it starts an asynchronous computation of a cell's
+   * value. The cell is in the pending state.
+   *
+   * @event Hooks#afterAsyncValueStart
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   */
+  'afterAsyncValueStart',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin before it starts an asynchronous computation of a cell's
+   * value. Return `false` to skip the request: the cell does not become pending, its source is not
+   * called, and the request's promise resolves as canceled with the `'vetoed'` reason. No
+   * `afterAsyncValueCancel` hook fires for a skipped request, because nothing was pending.
+   *
+   * The callbacks run one after another, and each one receives the previous callback's result as its first
+   * argument instead of the row index when that result is not `undefined`. So a callback that only allows a
+   * request returns `undefined`, never `true`, and a callback that checks the decision of an earlier one
+   * compares its first argument with `false`. A callback that throws skips its cell's request, and the error
+   * is thrown again once the call has started its other cells.
+   *
+   * @event Hooks#beforeAsyncValueStart
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   * @returns {boolean|undefined} Return `false` to skip the request.
+   */
+  'beforeAsyncValueStart',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin before it passes a resolved value to the grid. Return a value
+   * to write it instead, or `false` to discard the value: the cell keeps its previous value, and the
+   * request ends as canceled with the `'vetoed'` reason. Because `false` discards, a listener cannot
+   * replace a value with a literal `false`; a resolved `false` that no listener changes is written.
+   *
+   * The callbacks run one after another, and each one receives the previous callback's result as its first
+   * argument when that result is not `undefined`. So a callback that keeps the value returns `undefined`, and
+   * a callback that checks for an earlier discard compares its first argument with `false`. Every callback of
+   * a flush runs before any value is written. A callback that throws fails its own cell with the error it
+   * threw. The other cells are written, and then the error is reported as an uncaught error.
+   *
+   * @event Hooks#beforeAsyncValueResolve
+   * @since 19.0.0
+   * @param {*} value The resolved value.
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   * @returns {*} The value to write, `false` to discard it, or `undefined` to keep it.
+   */
+  'beforeAsyncValueResolve',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after it passes a resolved value to the grid. A `beforeChange`
+   * listener or the cell's validator can still change or reject the value, and an asynchronous validator
+   * delays the write.
+   *
+   * @event Hooks#afterAsyncValueResolve
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} value The resolved value.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   */
+  'afterAsyncValueResolve',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after a cell's request rejects. The cell keeps its
+   * previous value and is in the error state.
+   *
+   * @event Hooks#afterAsyncValueReject
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} error The rejection reason.
+   * @param {string} message The error message shown on the cell.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   */
+  'afterAsyncValueReject',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after it cancels a cell's pending request. A late result
+   * of the request is ignored.
+   *
+   * @event Hooks#afterAsyncValueCancel
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell, at the time of the cancellation.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {string} reason Why the request was canceled: `'edit'`, `'dependency'`, `'restart'`,
+   * `'rowRemoved'`, `'columnsChanged'`, `'dataReplaced'`, `'manual'`, `'disabled'`, or `'vetoed'`.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   */
+  'afterAsyncValueCancel',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin when the last pending request settles (resolves, rejects, or is
+   * canceled), so no cell is pending any more.
+   *
+   * @event Hooks#afterAsyncValuesIdle
+   * @since 19.0.0
+   */
+  'afterAsyncValuesIdle',
+
+  /**
    * Fired before aligning the cell contents.
    *
    * @event Hooks#beforeCellAlignment

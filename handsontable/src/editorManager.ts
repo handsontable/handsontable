@@ -242,8 +242,8 @@ class EditorManager {
    *
    * There is deliberately NO self-healing timer behind that contract. A zero-delay timeout was
    * tried and does not work: it runs in the NEXT task, while the `Filters#filter()` that reads
-   * the scope and appends runs in THIS one, so it healed nothing that mattered while retaining a
-   * timeout handle per call for the instance's life (`_registerTimeout` never prunes).
+   * the scope and appends runs in THIS one, so it healed nothing that mattered while scheduling a
+   * timeout per call.
    */
   suspendStrandDiscards(): void {
     this.#strandDiscardsSuspended += 1;

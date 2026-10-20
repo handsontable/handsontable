@@ -589,6 +589,56 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
+     * The `asyncValues` option configures the [`AsyncValues`](@/api/asyncValues.md) plugin, which
+     * computes cell values asynchronously, from promises, and shows a pending and an error state per
+     * cell.
+     *
+     * You can set the `asyncValues` option to one of the following:
+     *
+     * | Setting           | Description                                                                  |
+     * | ----------------- | ---------------------------------------------------------------------------- |
+     * | `false` (default) | Disable the [`AsyncValues`](@/api/asyncValues.md) plugin                     |
+     * | `true`            | Enable the [`AsyncValues`](@/api/asyncValues.md) plugin with the defaults    |
+     * | An object         | Enable the [`AsyncValues`](@/api/asyncValues.md) plugin and configure it     |
+     *
+     * If you set the `asyncValues` option to an object, you can configure the following settings:
+     *
+     * | Setting         | Possible values                                  | Description                                                                                       |
+     * | --------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+     * | `flush`         | `'microtask'` (default), `'frame'`, or a number  | When settled requests are written: right after the task they settled in, once per animation frame, or after a number of milliseconds that collects results |
+     * | `concurrency`   | A number (default: `6`), or `Infinity`           | The maximum number of sources running at once (a batch counts as one); further requests stay pending until a slot frees |
+     * | `copyPendingAs` | `'previous'` (default) or `'empty'`              | What copying a pending cell puts on the clipboard                                                 |
+     *
+     * The plugin can't be enabled together with the [`nestedRows`](#nestedrows) option, because NestedRows
+     * moves rows without keeping their physical indexes.
+     *
+     * Read more:
+     * - [Async values](@/guides/cell-features/async-values/async-values.md)
+     * - [Plugins: `AsyncValues`](@/api/asyncValues.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @since 19.0.0
+     * @category AsyncValues
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // enable the `AsyncValues` plugin
+     * asyncValues: true,
+     *
+     * // write results once per animation frame, and run at most four requests at once
+     * asyncValues: {
+     *   flush: 'frame',
+     *   concurrency: 4,
+     * },
+     * ```
+     */
+    asyncValues: false,
+
+    /**
+     * @description
      * The `autoLink` option configures the [`AutoLink`](@/api/autoLink.md) plugin, which renders the
      * URLs found in cell values as clickable links.
      *

@@ -6,7 +6,6 @@ import {
   hasLeadingZero,
   isGroupedBody,
   isNumberBody,
-  readBoolean,
   readDate,
   readSplitDateTime,
   readSplitNumber,
@@ -14,6 +13,10 @@ import {
   splitDateTime,
   splitNumberParts,
   splitYearLastDate,
+  type BooleanValues,
+  type CompiledDateFormat,
+  type DateReading,
+  type DateTimeParts,
   type DateTimeReading,
   type NumberMode,
   type NumberParts,
@@ -40,6 +43,19 @@ export interface DetectionContext {
    * The most distinct values a dropdown column may have, or `0` when dropdowns are off.
    */
   maxDropdownOptions: number;
+  /**
+   * The formats from the `dateFormats` option. When there are any, they replace the built-in
+   * year-last reading.
+   */
+  dateFormats: CompiledDateFormat[];
+  /**
+   * The words from the `booleanValues` option, or `null` when it is not set.
+   */
+  booleanValues: BooleanValues | null;
+  /**
+   * Reads a value as a boolean, the `booleanValues` words included.
+   */
+  readBoolean: (value: unknown) => boolean | null;
 }
 
 /**
@@ -85,11 +101,22 @@ function countMatches(values: unknown[], read: (value: unknown) => unknown): num
 }
 
 /**
- * Detects `true`/`false` columns. Runs before the numeric detector, but `1` and `0` are not read
- * here, so a column of them stays numeric.
+ * Detects `true`/`false` columns, and columns of the `booleanValues` words. Runs before the numeric
+ * detector, but `1` and `0` are not read here unless they are listed words, so a column of them
+ * stays numeric. The words travel in `inputFormat`, because the converter has no options to read
+ * them from.
  */
-function detectCheckbox(values: unknown[]): Detection | null {
-  return { column: { settings: { type: 'checkbox' } }, matched: countMatches(values, readBoolean), certainty: 1 };
+function detectCheckbox(values: unknown[], context: DetectionContext): Detection | null {
+  const column: DetectedColumn = { settings: { type: 'checkbox' } };
+
+  if (context.booleanValues) {
+    // A copy per column, so changing one column's words leaves the others alone.
+    const { true: trueWords, false: falseWords } = context.booleanValues;
+
+    column.inputFormat = { booleanValues: { true: [...trueWords], false: [...falseWords] } };
+  }
+
+  return { column, matched: countMatches(values, context.readBoolean), certainty: 1 };
 }
 
 /**
@@ -258,10 +285,69 @@ function voteDateOrder(yearLastParts: Array<[number, number, string]>): 'DMY' | 
 }
 
 /**
+ * Builds a date column's settings from the values it reads: the zero padding follows them.
+ */
+function toDateSettings(readings: DateReading[]): DetectedColumn['settings'] {
+  return {
+    type: 'date',
+    dateFormat: {
+      year: 'numeric',
+      month: readings.every(reading => reading.paddedMonth) ? '2-digit' : 'numeric',
+      day: readings.every(reading => reading.paddedDay) ? '2-digit' : 'numeric',
+    },
+  };
+}
+
+/**
+ * Picks the listed format that reads the most values, the earlier one on a tie. `readAll` returns what a
+ * format reads of the column.
+ */
+function pickDateFormat<T>(
+  formats: CompiledDateFormat[],
+  readAll: (format: CompiledDateFormat) => T[]
+): { format: CompiledDateFormat; readings: T[] } {
+  let [format] = formats;
+  let readings = readAll(format);
+
+  formats.slice(1).forEach((candidate) => {
+    const candidateReadings = readAll(candidate);
+
+    if (candidateReadings.length > readings.length) {
+      format = candidate;
+      readings = candidateReadings;
+    }
+  });
+
+  return { format, readings };
+}
+
+/**
+ * Detects date columns with the `dateFormats` formats: the column takes the format that reads the
+ * most values, the earlier one on a tie, and ISO dates are read alongside. The format is recorded
+ * even when no sampled value needs it, so rows past the sample convert with it.
+ */
+function detectListedDate(values: unknown[], formats: CompiledDateFormat[]): Detection {
+  const { format, readings } = pickDateFormat(
+    formats,
+    candidate => values.map(value => readDate(value, 'MDY', candidate)).filter(reading => reading !== null)
+  );
+
+  return {
+    column: { settings: toDateSettings(readings), inputFormat: { dateFormat: format.pattern } },
+    matched: readings.length,
+    certainty: 1,
+  };
+}
+
+/**
  * Detects date columns: ISO dates and their `/` and `.` variants, and year-last dates in either
- * day and month order.
+ * day and month order, or the `dateFormats` formats instead of the year-last dates.
  */
 function detectDate(values: unknown[], context: DetectionContext): Detection | null {
+  if (context.dateFormats.length > 0) {
+    return detectListedDate(values, context.dateFormats);
+  }
+
   const yearLastParts = values.map(splitYearLastDate).filter(parts => parts !== null);
   const voted = voteDateOrder(yearLastParts);
   const dateOrder = voted ?? context.localeDateOrder;
@@ -270,14 +356,7 @@ function detectDate(values: unknown[], context: DetectionContext): Detection | n
 
   return {
     column: {
-      settings: {
-        type: 'date',
-        dateFormat: {
-          year: 'numeric',
-          month: readings.every(reading => reading.paddedMonth) ? '2-digit' : 'numeric',
-          day: readings.every(reading => reading.paddedDay) ? '2-digit' : 'numeric',
-        },
-      },
+      settings: toDateSettings(readings),
       // Recorded even when no sampled value is year-last, so rows past the sample convert in the
       // same order the locale settles.
       inputFormat: { dateOrder },
@@ -311,6 +390,36 @@ function toDateTimeFormat(readings: DateTimeReading[]): Intl.DateTimeFormatOptio
 }
 
 /**
+ * Detects date-time columns with the `dateFormats` formats: the date part is read with the listed format
+ * that reads the most values, as `detectListedDate` picks it, and the locale votes on nothing. The format
+ * is recorded for the converter.
+ */
+function detectListedDateTime(
+  split: Array<{ value: unknown; parts: DateTimeParts | null }>,
+  formats: CompiledDateFormat[]
+): Detection | null {
+  const { format, readings } = pickDateFormat(
+    formats,
+    candidate => split
+      .map(({ value, parts }) => readSplitDateTime(value, parts, 'MDY', candidate))
+      .filter(reading => reading !== null)
+  );
+
+  if (!readings.some(reading => reading.hasTime)) {
+    return null;
+  }
+
+  return {
+    column: {
+      settings: { type: 'intl-datetime', dateTimeFormat: toDateTimeFormat(readings) },
+      inputFormat: { dateFormat: format.pattern },
+    },
+    matched: readings.length,
+    certainty: 1,
+  };
+}
+
+/**
  * Detects date-time columns: a date as `detectDate` reads it followed by a time as `detectTime` reads
  * it, and `Date` objects. A date without a time is read too, as midnight, because the `intl-datetime`
  * type stores both, so a column of dates and date-times settles by share. A column with no time at all
@@ -322,6 +431,10 @@ function detectDateTime(values: unknown[], context: DetectionContext): Detection
 
   if (!split.some(({ value, parts }) => value instanceof Date || (parts !== null && parts.time !== null))) {
     return null;
+  }
+
+  if (context.dateFormats.length > 0) {
+    return detectListedDateTime(split, context.dateFormats);
   }
 
   const yearLastParts = split
@@ -410,3 +523,21 @@ export const DETECTORS: Detector[] = [
   detectTime,
   detectDropdown,
 ];
+
+/**
+ * The detectors with `detectDate` moved in front of `detectNumeric`, so a column of digits that a
+ * listed format reads (`YYYYMMDD`) becomes a date on a tie. Built from `DETECTORS`, so a detector added
+ * there is added here too.
+ */
+const DATE_FIRST_DETECTORS: Detector[] = DETECTORS
+  .filter(detector => detector !== detectDate)
+  .flatMap(detector => (detector === detectNumeric ? [detectDate, detector] : [detector]));
+
+/**
+ * Returns the detectors in the order they are tried for the given options. Dates go first only when
+ * a listed format can tie with `numeric` (`CompiledDateFormat#numberLike`): in front, every numeric
+ * column would first run a date pass per format that cannot change its result.
+ */
+export function getDetectors(context: DetectionContext): Detector[] {
+  return context.dateFormats.some(format => format.numberLike) ? DATE_FIRST_DETECTORS : DETECTORS;
+}
