@@ -376,13 +376,41 @@ The Vue wrapper keeps your data array by reference. When the array gains or lose
 
 If your app stores resolved values in its own state, read them in `afterAsyncValueResolve` (or `afterChange`), and pass the updated data back as usual. The other pending requests keep running.
 
+## Save resolved values to a server
+
+With the [`DataProvider`](@/api/dataProvider.md) plugin, a resolved value is not sent to `onRowsUpdate` by default, so the next refetch replaces it. To save resolved values, set `saveToDataProvider` to `true` in the plugin's options:
+
+```js
+const hot = new Handsontable(container, {
+  asyncValues: { saveToDataProvider: true },
+  dataProvider: {
+    rowId: 'id',
+    fetchRows: (query) => fetchProducts(query),
+    onRowsCreate: (rows) => createProducts(rows),
+    onRowsUpdate: (rows) => updateProducts(rows),
+    onRowsRemove: (ids) => removeProducts(ids),
+  },
+});
+```
+
+The plugin sends the values of one flush in one [`updateRows()`](@/api/dataProvider.md#updaterows) call. It needs `dataProvider.rowId` and `onRowsUpdate`, and it warns once when either is missing. The save follows these rules:
+
+- A value is saved only when the grid stored it. A value that `beforeChange` or a validator rejected, a rejected request, and a cell the user edited after the value landed are not saved.
+- A failed save leaves the cell resolved. Handle it in [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror).
+- The values of a call with `undo: 'record'` are not saved.
+- Each save is a serialized `onRowsUpdate` call followed by a refetch. The refetch loads the data again, so it clears the undo and redo stack. Values that resolve in separate tasks make separate calls, and a value that resolves while a save runs waits for it. Use a numeric [`flush`](#limit-concurrent-requests-and-coalesce-writes) to merge responses into fewer calls.
+- DataProvider validates the cells it saves, so one invalid value stops the whole batch.
+- A save that runs while a page change is loading refetches the old page, because the new page is not stored until its fetch ends.
+- A value that a validator corrects after the save is not saved again.
+- A call with a [`source`](#request-options) that DataProvider already saves, such as `'edit'`, is saved twice.
+
 ## How async values work with other features
 
 - **Validation:** a resolved value goes through `beforeChange`, the cell's validator, and `afterChange`, with the request's `source`. A row hidden by a filter, or past [`maxRows`](@/api/options.md#maxrows), has no visual index, so its value is written with [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell): the cell's validator does not run, a [`sourceDataValidator`](@/api/options.md#sourcedatavalidator) does, and `afterChange` does not fire.
 - **Many calls:** each call that starts or cancels requests renders the grid once. To start many cells, call [`setAsyncValuesForRows()`](@/api/asyncValues.md#setasyncvaluesforrows) or [`setAsyncValues()`](@/api/asyncValues.md#setasyncvalues) once, or wrap your loop in [`batch()`](@/api/core.md#batch).
 - **Copy, paste, and export:** copy and export read the cell's current value -- its previous value while a request is pending or failed. With `copyPendingAs: 'empty'` in the plugin's options, copying or cutting puts an empty value for a pending cell. When a pending cell holds an object or an array, a paste into another grid still gets its previous value: the clipboard also carries the source data, which the copy hooks can't change. A paste into a pending cell is an edit, so it cancels the request.
 - **Rows and columns:** inserting rows keeps every request on its record. Removing a row cancels its requests. In array data, whose column properties are indexes, inserting or removing a column cancels the requests of that column and the columns after it.
-- **Server-side data:** with the [`DataProvider`](@/api/dataProvider.md) plugin, a refetch (a sort, a filter, a page change, or the refetch after a saved edit) loads new data. With `dataProvider.rowId`, the requests of the rows still on the page keep running; the others are canceled. By default, a resolved value is not sent to `onRowsUpdate`, so the next refetch replaces it. To save resolved values, set `saveToDataProvider: true` in the plugin's options. The plugin then sends each flush's values in one [`updateRows()`](@/api/dataProvider.md) call, including the values of rows hidden by a filter. A failed save leaves the cell resolved and fires `afterRowsMutationError`. The values of a call with `undo: 'record'` are not saved. Each save is a serialized `onRowsUpdate` call followed by a refetch, so a value that resolves while the previous save is still running waits for it. DataProvider validates the saved cells, so one invalid value stops the whole batch. A value a validator corrects after the save is not saved again. A call whose `source` is one DataProvider already saves (for example `'edit'`) is saved twice.
+- **Server-side data:** with the [`DataProvider`](@/api/dataProvider.md) plugin, a refetch (a sort, a filter, a page change, or the refetch after a saved edit) loads new data. With `dataProvider.rowId`, the requests of the rows still on the page keep running; the others are canceled. To save resolved values, see [Save resolved values to a server](#save-resolved-values-to-a-server).
 - **Settings:** [`updateSettings()`](@/api/core.md#updatesettings) keeps pending requests, even when it sends `asyncValues` again, as the framework wrappers do, and when it changes `columns`. A raised `concurrency` starts the waiting requests that now fit. Setting `asyncValues` to `false` or enabling [`nestedRows`](@/api/options.md#nestedrows) cancels every request.
 - **Nested rows:** the plugin can't be enabled together with the [`NestedRows`](@/api/nestedRows.md) plugin, which moves rows without keeping their physical indexes.
 

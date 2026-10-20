@@ -281,20 +281,26 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   plugin instead: `#onFlightLanded` calls `#queueSave()` for a value the grid stored (not a vetoed or rejected
   one, which end their flight as failed), and `#saveLanded()` sends the queue in ONE `updateRows()` call, at the
   end of `#apply` (so one call per flush) or a microtask later for a validated value that lands after the flush.
-  The id comes from `#rowIdOf()` and the value from `#readSource()`, so a filtered-out row is saved and a
-  `valueSetter` result is what the server gets. A row without an id is skipped. A value of a call with
+  The id comes from `#rowIdOf()` and the value from `#readSource()`, so a `valueSetter` result is what the
+  server gets. A row without an id is skipped with a one-time warning. A value of a call with
   `undo: 'record'` is skipped with a one-time warning, because the save would refetch under the undo step. A
   failed save does NOT put the cell into the error state: the value did land, and DataProvider reports the
   failure through `afterRowsMutationError`. `dataProvider.rowId` is required, so the requests of the rows still
-  on the page survive the refetch each save causes (the data-replacement remap above). Known limits, all
-  documented in the guide: DataProvider validates the whole batch, so one invalid value drops every save of
-  the flush (`runManualUpdateRowsMutation`); a validator correction that lands after the save is not saved
-  again; a custom `source` that is in `DATA_PROVIDER_BATCH_UPDATE_SOURCES` is saved by DataProvider's own
-  `afterChange` handler too (the set is not importable here, since plugins do not import each other); values
-  that land in separate tasks (validated ones) share one save per task through `#saveScheduled`. A foreign
-  write to a queued cell takes it off the queue (`#unqueueSave`), and a nested flush leaves the save to the
-  outermost one. Pinned by
-  `__tests__/dataProvider.unit.ts`.
+  on the page survive the refetch each save causes (the data-replacement remap above).
+  The queue is keyed by ROW ID, with the value the grid stored: `#endFlight` releases the state of a call with
+  no write to keep at once, so a state-keyed queue held a state nothing remaps, and a prepended row sent
+  another record's value. `#saveLanded` finds the row by `getPhysicalRowById()` and sends a prop only while
+  the cell still holds the landed value, so a user edit made after the landing is left to DataProvider's own
+  save. The option is re-read at the save, and `#canSave()` needs an enabled DataProvider with `rowId` and
+  `onRowsUpdate` (core prefers `dataProvider.rowId`, so the ids are the server's). DataProvider conflicts
+  with `trimRows`, so a trimmed row never reaches a save. Known limits, all in the guide: DataProvider
+  validates the whole batch, so one invalid value drops the flush's save (`runManualUpdateRowsMutation`);
+  every save refetches (`loadData` clears undo) and a save during a page change refetches the old page; a
+  validator correction that lands after the save is not saved again; a custom `source` that is in
+  `DATA_PROVIDER_BATCH_UPDATE_SOURCES` is saved by DataProvider's own `afterChange` handler too (plugins do
+  not import each other, so the set is not reachable here). Values that land in separate tasks share one save
+  per task through `#saveScheduled`, and a nested flush leaves the save to the outermost one (not pinned by a
+  test). Pinned by `__tests__/dataProvider.unit.ts`.
 - **The `'microtask'` flush is a bare `rootWindow.queueMicrotask()`**, not `_registerMicrotask()`: `#cancelFlush`
   cancels it, and `#flush` returns before touching `hot` when nothing is queued, which is the state after
   `destroy()`, so it needs no core bookkeeping. A numeric `flush` uses `_registerTimeout()`, which drops each

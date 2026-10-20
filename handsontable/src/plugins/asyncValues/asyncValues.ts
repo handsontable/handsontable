@@ -1,8 +1,8 @@
 import { BasePlugin } from '../base';
 import { registerConflict } from '../base/conflictRegistry';
-import { hasOwnProperty } from '../../helpers/object';
+import { hasOwnProperty, isObjectEqual } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
-import { warnOnce } from '../../helpers/console';
+import { error as logError, warnOnce } from '../../helpers/console';
 import { announce } from '../../utils/a11yAnnouncer';
 import { detachValue, recordCellChange } from '../../dataMap/dataJournal';
 import { Launch, LaunchQueue } from './launchQueue';
@@ -452,9 +452,11 @@ export class AsyncValues extends BasePlugin {
 
   /**
    * The cells whose resolved value the grid stored and that wait for the next save through DataProvider
-   * (`saveToDataProvider`), by row state.
+   * (`saveToDataProvider`): the value the grid stored, by prop and row id. The id is read when the value lands, because a row state
+   * is released at once for a call with no write to keep, and an id still names its record after a data
+   * replacement moved the row.
    */
-  #saveQueue = new Map<RowState, Set<AsyncValueProp>>();
+  #saveQueue = new Map<unknown, Map<AsyncValueProp, unknown>>();
 
   /**
    * Whether a save is already scheduled for the end of the current task, so values that land one by one
@@ -2727,7 +2729,6 @@ export class AsyncValues extends BasePlugin {
     } else {
       // Any other change: a kept write is not the cell's value any more, and the request is stale.
       this.#dropWrite(state, prop);
-      this.#unqueueSave(state, prop);
 
       if (own) {
         this.#detach(own);
@@ -2785,18 +2786,38 @@ export class AsyncValues extends BasePlugin {
 
     if (recorded) {
       warnOnce(this, 'asyncValues.saveUndo',
-        'asyncValues: `saveToDataProvider` does not save the values of a call with `undo: \'record\'`.');
+        'The AsyncValues plugin: `saveToDataProvider` does not save the values of a call with ' +
+        '`undo: \'record\'`.');
 
       return;
     }
 
-    const props = this.#saveQueue.get(state);
+    if (!this.#canSave()) {
+      warnOnce(this, 'asyncValues.saveNoDataProvider',
+        'The AsyncValues plugin: `saveToDataProvider` needs the `dataProvider` option with `rowId` and ' +
+        '`onRowsUpdate`, so nothing was saved.');
+
+      return;
+    }
+
+    const id = this.#readSaveId(state.physicalRow);
+
+    if (id === null) {
+      warnOnce(this, 'asyncValues.saveNoRowId',
+        'The AsyncValues plugin: `saveToDataProvider` skipped a row whose `dataProvider.rowId` has no value.');
+
+      return;
+    }
+
+    // The value is kept to tell, at the save, whether something else wrote the cell since.
+    const landed = detachValue(this.#readSource(state.physicalRow, prop));
+    const props = this.#saveQueue.get(id);
 
     if (props) {
-      props.add(prop);
+      props.set(prop, landed);
 
     } else {
-      this.#saveQueue.set(state, new Set([prop]));
+      this.#saveQueue.set(id, new Map([[prop, landed]]));
     }
 
     // A value that lands inside a flush is saved when the flush ends; a validated one lands a task later.
@@ -2810,24 +2831,38 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
-   * Takes a cell off the save queue, because something else wrote it after the plugin did: the write is the
-   * user's now, and DataProvider saves it on its own.
+   * Tells whether DataProvider is set up to take a save: enabled, with `rowId` and `onRowsUpdate`. Its row
+   * ids are the ones `#rowIdOf()` returns then, because core prefers `dataProvider.rowId` to `rowId`.
    *
-   * @param {object} state The row state.
-   * @param {string|number} prop The property of the cell.
+   * @returns {boolean}
    */
-  #unqueueSave(state: RowState, prop: AsyncValueProp): void {
-    const props = this.#saveQueue.get(state);
+  #canSave(): boolean {
+    const config = this.hot.getSettings().dataProvider as { rowId?: unknown; onRowsUpdate?: unknown } | undefined;
 
-    if (props?.delete(prop) && props.size === 0) {
-      this.#saveQueue.delete(state);
+    return !!this.hot.getPlugin('dataProvider')?.enabled &&
+      typeof config?.onRowsUpdate === 'function' && !!config.rowId;
+  }
+
+  /**
+   * Reads the id of a row for the save queue. A `rowId` function that throws counts as no id, so it cannot
+   * escape the flush.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @returns {*} The id, or `null`.
+   */
+  #readSaveId(physicalRow: number): unknown {
+    try {
+      return this.#rowIdOf(physicalRow);
+
+    } catch {
+      return null;
     }
   }
 
   /**
-   * Saves the queued values with one `updateRows()` call. The row ids come from core, so a row trimmed by a
-   * filter is saved too. A failed save leaves the cell resolved: DataProvider reports it through
-   * `afterRowsMutationError`.
+   * Saves the queued values with one `updateRows()` call. The rows are found by id, so a data replacement
+   * or a row removal between the landing and the save moves no value onto another record. A failed save
+   * leaves the cell resolved: DataProvider reports it through `afterRowsMutationError`.
    */
   #saveLanded(): void {
     if (this.#saveQueue.size === 0 || this.#isGone()) {
@@ -2835,44 +2870,49 @@ export class AsyncValues extends BasePlugin {
     }
 
     const queued = [...this.#saveQueue];
-    const rows: Array<{ id: unknown; changes: Record<string, unknown> }> = [];
+    const rows: Array<{ id: unknown; changes: Record<string, unknown>; rowData: Record<string, unknown> }> = [];
 
     this.#saveQueue.clear();
 
-    queued.forEach(([state, props]) => {
-      const id = state.dropped ? null : this.#rowIdOf(state.physicalRow);
+    // The option can be switched off, or DataProvider disabled, between the landing and the save.
+    if (!this.getSetting('saveToDataProvider') || !this.#canSave()) {
+      return;
+    }
 
-      if (id === null || id === undefined) {
-        warnOnce(this, 'asyncValues.saveNoRowId',
-          'asyncValues: `saveToDataProvider` skipped a row without an id. Set `dataProvider.rowId`.');
+    queued.forEach(([id, props]) => {
+      const physicalRow = this.hot.getPhysicalRowById(id);
 
+      if (physicalRow === null) {
         return;
       }
 
       const changes: Record<string, unknown> = {};
 
-      props.forEach((prop) => {
-        changes[String(prop)] = this.#readSource(state.physicalRow, prop);
+      // A cell that no longer holds the landed value was written by someone else (a user edit still
+      // waiting for its validator, say), and DataProvider saves that write on its own.
+      props.forEach((landed, prop) => {
+        const current = this.#readSource(physicalRow, prop);
+
+        if (isObjectEqual(current, landed)) {
+          changes[String(prop)] = current;
+        }
       });
-      rows.push({ id, changes });
+
+      if (Object.keys(changes).length === 0) {
+        return;
+      }
+
+      // `updateRows()` builds `rowData` from the visible rows only, so a row without a visual index needs it here.
+      rows.push({ id, changes, rowData: this.hot.getSourceDataAtRow(physicalRow) as Record<string, unknown> });
     });
 
-    const dataProvider = this.hot.getPlugin('dataProvider');
-
-    if (rows.length === 0) {
-      return;
+    if (rows.length > 0) {
+      // DataProvider reports a failed save or refetch itself. What can still reject is a throwing
+      // `beforeRowsMutation` listener, or a payload that cannot be built.
+      this.hot.getPlugin('dataProvider').updateRows(rows).catch((reason: unknown) => {
+        logError('The AsyncValues plugin: saving the resolved values failed.', reason);
+      });
     }
-
-    if (!dataProvider?.enabled) {
-      warnOnce(this, 'asyncValues.saveNoDataProvider',
-        'asyncValues: `saveToDataProvider` needs the `dataProvider` option, and nothing was saved.');
-
-      return;
-    }
-
-    // A failed save is reported by DataProvider (`afterRowsMutationError`), and the cell stays resolved.
-    // The rejection of the refetch after a successful save is reported there too.
-    dataProvider.updateRows(rows).catch(() => {});
   }
 
   /**

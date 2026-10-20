@@ -7,7 +7,11 @@ registerAllModules();
 /**
  * Builds a server-backed grid whose `onRowsUpdate` is a spy. The server holds its own copy of the rows.
  */
-async function createServerGrid(asyncValues: unknown = { saveToDataProvider: true }, extra = {}) {
+async function createServerGrid(
+  asyncValues: unknown = { saveToDataProvider: true },
+  extra = {},
+  rowId: unknown = 'id',
+) {
   const container = document.createElement('div');
   const server = products();
   const onRowsUpdate = jest.fn(async(payload: Array<{ id: string; changes: Record<string, unknown> }>) => {
@@ -20,7 +24,7 @@ async function createServerGrid(asyncValues: unknown = { saveToDataProvider: tru
     columns: [{ data: 'sku' }, { data: 'name' }, { data: 'price' }],
     asyncValues,
     dataProvider: {
-      rowId: 'id',
+      rowId,
       fetchRows: async() => ({ rows: server.map(row => ({ ...row })), totalRows: server.length }),
       onRowsCreate: async() => {},
       onRowsUpdate,
@@ -84,22 +88,80 @@ describe('AsyncValues: saveToDataProvider', () => {
     destroy();
   });
 
-  it('should save the value of a filtered-out row', async() => {
-    const { hot, plugin, onRowsUpdate, destroy } = await createServerGrid(
-      { saveToDataProvider: true },
-      { filters: true },
-    );
-    const filters = hot.getPlugin('filters');
-
-    filters.addCondition(0, 'neq', ['B']);
-    filters.filter();
-    await settle();
+  it('should send the row\'s data along with the changes', async() => {
+    const { plugin, onRowsUpdate, destroy } = await createServerGrid();
 
     await plugin.setAsyncValueAt({ rowId: 'b', prop: 'name' }, Promise.resolve('new B'));
     await settle();
 
+    expect(onRowsUpdate.mock.calls[0][0]).toEqual([
+      { id: 'b', changes: { name: 'new B' }, rowData: { id: 'b', sku: 'B', name: 'new B', price: 2 } },
+    ]);
+    destroy();
+  });
+
+  it('should save a value on the record it resolved for after a data replacement moved the row', async() => {
+    const { hot, plugin, onRowsUpdate, destroy } = await createServerGrid();
+
+    hot.addHook('afterChange', (changes, source) => {
+      if (source === 'AsyncValues.resolve') {
+        hot.updateData([{ id: 'z', sku: 'Z', name: 'new Z', price: 0 }, ...hot.getSourceData() as object[]]);
+      }
+    });
+    await plugin.setAsyncValueAt({ rowId: 'b', prop: 'name' }, Promise.resolve('new B'));
+    await settle();
+
     expect(onRowsUpdate).toHaveBeenCalledTimes(1);
-    expect(onRowsUpdate.mock.calls[0][0]).toEqual([expect.objectContaining({ id: 'b', changes: { name: 'new B' } })]);
+    expect(onRowsUpdate.mock.calls[0][0].map(({ id, changes }) => [id, changes])).toEqual([['b', { name: 'new B' }]]);
+    destroy();
+  });
+
+  it('should not save a value the user overwrote before the save ran', async() => {
+    const { hot, plugin, onRowsUpdate, destroy } = await createServerGrid();
+
+    hot.addHook('afterChange', (changes, source) => {
+      if (source === 'AsyncValues.resolve') {
+        hot.setDataAtRowProp(1, 'name', 'user B', 'edit');
+      }
+    });
+    await plugin.setAsyncValueAt({ rowId: 'b', prop: 'name' }, Promise.resolve('new B'));
+    await settle();
+
+    expect(onRowsUpdate).toHaveBeenCalledTimes(1);
+    expect(onRowsUpdate.mock.calls[0][0].map(({ id, changes }) => [id, changes])).toEqual([['b', { name: 'user B' }]]);
+    destroy();
+  });
+
+  it('should save nothing when the option is switched off before the save ran', async() => {
+    const { hot, plugin, onRowsUpdate, destroy } = await createServerGrid();
+
+    hot.addHook('afterChange', (changes, source) => {
+      if (source === 'AsyncValues.resolve') {
+        hot.updateSettings({ asyncValues: { saveToDataProvider: false } });
+      }
+    });
+    await plugin.setAsyncValueAt({ rowId: 'b', prop: 'name' }, Promise.resolve('new B'));
+    await settle();
+
+    expect(hot.getDataAtRowProp(1, 'name')).toBe('new B');
+    expect(onRowsUpdate).not.toHaveBeenCalled();
+    destroy();
+  });
+
+  it('should warn and skip a row whose dataProvider.rowId has no value', async() => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { plugin, onRowsUpdate, destroy } = await createServerGrid(
+      { saveToDataProvider: true },
+      {},
+      (row: { id: string; sku: string }) => (row.sku === 'D' ? null : row.id),
+    );
+
+    await plugin.setAsyncValueAt({ physicalRow: 3, prop: 'name' }, Promise.resolve('new D'));
+    await settle();
+
+    expect(onRowsUpdate).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('`dataProvider.rowId` has no value'));
+    warn.mockRestore();
     destroy();
   });
 
@@ -136,6 +198,7 @@ describe('AsyncValues: saveToDataProvider', () => {
     await settle();
 
     expect(afterRowsMutationError).toHaveBeenCalled();
+    expect(hot.getDataAtRowProp(1, 'name')).toBe('new B');
     expect(plugin.getAsyncState({ rowId: 'b', prop: 'name' })).toBeNull();
     destroy();
   });
@@ -150,6 +213,7 @@ describe('AsyncValues: saveToDataProvider', () => {
 
     expect(onRowsUpdate).not.toHaveBeenCalled();
     expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('`undo: \'record\'`'));
     warn.mockRestore();
     destroy();
   });
@@ -213,6 +277,7 @@ describe('AsyncValues: saveToDataProvider', () => {
 
     expect(hot.getDataAtRowProp(0, 'name')).toBe('new A');
     expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('needs the `dataProvider` option'));
     warn.mockRestore();
     hot.destroy();
     container.remove();
@@ -223,6 +288,7 @@ describe('AsyncValues: saveToDataProvider', () => {
     const { plugin, destroy } = await createServerGrid({ saveToDataProvider: 'yes' });
 
     expect(plugin.getSetting('saveToDataProvider')).toBe(false);
+    expect(warn).toHaveBeenCalled();
     warn.mockRestore();
     destroy();
   });
