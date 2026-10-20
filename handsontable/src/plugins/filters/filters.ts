@@ -1724,7 +1724,7 @@ export class Filters extends BasePlugin {
       return null;
     }
 
-    const offers = offered.size > 0 ? `which offers: ${[...offered].join(', ')}` : 'which offers no conditions';
+    const offers = offered.size > 0 ? `which can offer: ${[...offered].join(', ')}` : 'which offers no conditions';
 
     return {
       path: `[${index}].name`,
@@ -1735,11 +1735,11 @@ export class Filters extends BasePlugin {
   /**
    * Gets every condition name the column's menu can offer, whatever rows a filter trims at the time.
    *
-   * The menu reads the column's type from the rows on screen (`_getColumnDataType()`),
+   * The menu reads the column's type from the rows no filter trims (`_getColumnDataType()`),
    * so a state captured while a filter hid every row of another type names a condition of the
    * remaining type. The check therefore reads the type of every physical row: one type gives that
    * type's list, several types give the lists of each of them plus the `text` list a mixed column
-   * uses. Checking against the rows on screen instead refused states the grid's own menu produced.
+   * uses. Checking against the untrimmed rows instead refused states the grid's own menu produced.
    *
    * @param {number} physicalColumn The physical column index.
    * @param {number} visualColumn The visual column index.
@@ -1748,11 +1748,15 @@ export class Filters extends BasePlugin {
   #getOfferableConditionNames(physicalColumn: number, visualColumn: number): Set<string> {
     const metaManager = this.hot._getMetaManager();
     const rowsCount = this.hot.rowIndexMapper.getNumberOfIndexes();
+    const countRows = this.hot.countRows();
     const types = new Set<string>();
 
     for (let physicalRow = 0; physicalRow < rowsCount; physicalRow++) {
+      // A trimmed row has no visual index. Its own physical index usually names ANOTHER visible row,
+      // and the get-meta hooks would then write that row's state (a merge's `hidden`, a sheet's
+      // tracked keys) onto this record's stored meta. An index past the last visual row names none.
       const { type } = metaManager.getCellMetaTransient(physicalRow, physicalColumn, {
-        visualRow: this.hot.toVisualRow(physicalRow) ?? physicalRow,
+        visualRow: this.hot.toVisualRow(physicalRow) ?? countRows + physicalRow,
         visualColumn,
       });
 
@@ -1834,7 +1838,7 @@ export class Filters extends BasePlugin {
    * `intl-datetime`, where any other type and a column whose cells have different types use the `text` list)
    * and the [`availableConditions`](@/api/options.md#filters) setting that applies to the column. It is the
    * list the column's menu shows, without the separators and without the "None" entry, which clears a filter
-   * rather than adding one. Like the menu, it reads the data type from the rows on screen, so in a column
+   * rather than adding one. Like the menu, it reads the data type from the rows no filter trims, so in a column
    * whose cells have different types the answer can change when a filter hides rows. A column with
    * `filters: false` still gets its list, because that setting hides the menu but not the filter.
    *
@@ -2693,8 +2697,8 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Gets the data type of the column, read from the cell meta of the rows on screen, so a row a filter
-   * trims does not count. A column whose cells have different types is `'mixed'`.
+   * Gets the data type of the column, read from the cell meta of every row that is not trimmed, so a row
+   * a filter hides does not count (a hidden row and a row on another page do). A column whose cells have different types is `'mixed'`.
    *
    * @private
    * @param {number} column Visual column index.
@@ -2706,8 +2710,8 @@ export class Filters extends BasePlugin {
 
   /**
    * Gets the items of a column's "Filter by condition" list: copies of the condition descriptors, with the
-   * separators, "None" first. The menu, {@link Filters#getAvailableConditions} and the restore check
-   * all read this one list, so they cannot disagree.
+   * separators, "None" first. The menu and {@link Filters#getAvailableConditions} both read this one list,
+   * so they cannot disagree.
    *
    * @private
    * @param {number} column Visual column index.

@@ -7,7 +7,7 @@ import { AutoColumnSize } from '../../autoColumnSize';
 import { HiddenRows } from '../../hiddenRows';
 import { HiddenColumns } from '../../hiddenColumns';
 import { TrimRows } from '../../trimRows';
-import { registerCellType, CheckboxCellType, NumericCellType } from '../../../cellTypes';
+import { registerCellType, CheckboxCellType, DateCellType, NumericCellType } from '../../../cellTypes';
 
 describe('Filters#_findInvalidConditions', () => {
   let container;
@@ -24,6 +24,7 @@ describe('Filters#_findInvalidConditions', () => {
     registerPlugin(Filters);
     registerCellType(CheckboxCellType);
     registerCellType(NumericCellType);
+    registerCellType(DateCellType);
   });
 
   beforeEach(() => {
@@ -38,6 +39,7 @@ describe('Filters#_findInvalidConditions', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     hot.destroy();
     container.remove();
   });
@@ -84,7 +86,7 @@ describe('Filters#_findInvalidConditions', () => {
     ]);
 
     expect(problem.path).toBe('[1].conditions[1].name');
-    expect(problem.message).toBe('gt is not available on column 1, which offers: empty, not_empty, eq, neq, ' +
+    expect(problem.message).toBe('gt is not available on column 1, which can offer: empty, not_empty, eq, neq, ' +
       'begins_with, ends_with, contains, not_contains');
   });
 
@@ -117,6 +119,46 @@ describe('Filters#_findInvalidConditions', () => {
     expect(filters.getAvailableConditions(0).map(({ name }) => name)).not.toContain('gt');
     expect(filters._findInvalidConditions(state)).toBeNull();
     expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'date_today', args: [] }] })]).path)
+      .toBe('[0].conditions[0].name');
+  });
+
+  it('reads the type of a row a filter trims, without naming another row to the meta hooks', () => {
+    hot.updateSettings({ cells: (row, column) => (row === 0 && column === 0 ? { type: 'numeric' } : {}) });
+    filters = hot.getPlugin('filters');
+    hot.getCellMeta(0, 0);
+    filters.addCondition(1, 'eq', ['d']);
+    filters.filter();
+
+    expect(hot.toVisualRow(0)).toBeNull();
+    expect(filters.getAvailableConditions(0).map(({ name }) => name)).not.toContain('gt');
+
+    const reads = [];
+    const onAfterGetCellMeta = (row, column, cellMeta) => reads.push([row, cellMeta.row]);
+
+    hot.addHook('afterGetCellMeta', onAfterGetCellMeta);
+
+    const problem = filters._findInvalidConditions([entry({ conditions: [{ name: 'gt', args: [0] }] })]);
+
+    hot.removeHook('afterGetCellMeta', onAfterGetCellMeta);
+
+    expect(problem).toBeNull();
+    expect(reads.some(([, physicalRow]) => physicalRow === 0)).toBe(true);
+    reads.forEach(([visualRow, physicalRow]) => {
+      expect([physicalRow, null]).toContain(hot.toPhysicalRow(visualRow));
+    });
+  });
+
+  it('accepts the text list on a column whose rows have different types and none of them is text', () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    hot.updateSettings({
+      cells: (row, column) => (column === 0 ? { type: row === 0 ? 'numeric' : 'date' } : {}),
+    });
+    filters = hot.getPlugin('filters');
+
+    expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'contains', args: ['a'] }] })])).toBeNull();
+    expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'gt', args: [1] }] })])).toBeNull();
+    expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'date_today', args: [] }] })])).toBeNull();
+    expect(filters._findInvalidConditions([entry({ conditions: [{ name: 'intl_date_today', args: [] }] })]).path)
       .toBe('[0].conditions[0].name');
   });
 

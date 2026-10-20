@@ -192,8 +192,8 @@ captured when the plugin is enabled.
   resolves the value: a VALID own column value wins and REPLACES the grid-level one (no merging); an
   own `undefined` (a wrapper prop left unset) and an invalid value both fall back to
   `getSetting('availableConditions')`. The list itself is built in one place, `_getConditionOptions(visualColumn)`
-  (`getOptionsList()` over `_getColumnDataType()`, which reads `getDataType()` across the rows ON SCREEN as
-  the menu always did, so a row a filter trims does not count), and it is silent. `ConditionComponent#reset()`
+  (`getOptionsList()` over `_getColumnDataType()`, which reads `getDataType()` across every row that is NOT
+  TRIMMED as the menu always did, so a row a filter hides does not count), and it is silent. `ConditionComponent#reset()`
   (both condition selects, passing the type it already read so the column is scanned once) and the public
   `getAvailableConditions()` read it, so the menu and the API cannot disagree; do not give either a type
   lookup of its own. The restore check below is the one deliberate exception. `getAvailableConditions()` drops the
@@ -299,11 +299,15 @@ that holds input it did not build (the `ViewState` plugin's restore) asks the `@
 entry it cannot take, or `null`. It binds every condition with `getCondition()` inside a `try`, because
 the decorator is where wrong arguments throw. It also refuses a condition the column does not offer
 (`#findUnavailableCondition()`). It must NOT ask `getAvailableConditions()`: that reads the type from the
-rows on screen, so a state captured while a filter hid every text row of a mixed column names `gt`, and
+untrimmed rows, so a state captured while a filter hid every text row of a mixed column names `gt`, and
 the same grid refused it once the filter was cleared. `#getOfferableConditionNames()` reads the type of
 every PHYSICAL row (trimmed ones included) and accepts the union of the lists of every type present, plus
-the `text` list when there are several, which covers any row subset the menu could have seen. It is
-memoized per column for one call, because it walks the whole column. Only the names of the stock lists are checked (`KNOWN_CONDITION_NAMES` minus `none`):
+the `text` list when there are several, which covers any row subset the menu could have seen (a type
+that a get-meta hook derives from the visual row is the one thing it cannot see). It is memoized per
+column for one call, because it walks the whole column. A trimmed row is read with a visual index past
+the last visual row, never with its physical index: that index usually names another visible row, and
+MergeCells or SheetsBar then wrote that row's `hidden`/`copyable` or tracked keys onto the trimmed
+record's stored meta, from a check documented to apply nothing. Only the names of the stock lists are checked (`KNOWN_CONDITION_NAMES` minus `none`):
 `by_value` is in no list, and refusing it would make every captured value filter invalid on its own
 grid. The cost is deliberate: a condition added through `addCondition()` outside its column's list
 (`gt` on a text column) still filters, but a view state that carries it no longer restores. The check

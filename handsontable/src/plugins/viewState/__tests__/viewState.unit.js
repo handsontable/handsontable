@@ -1070,7 +1070,7 @@ describe('ViewState plugin', () => {
         reason: 'invalid',
         path: 'filters[2].conditions[0].name',
         message: 'filters[2].conditions[0].name gt is not available on column 2, ' +
-          'which offers: empty, not_empty, eq, neq, begins_with, ends_with, contains, not_contains',
+          'which can offer: empty, not_empty, eq, neq, begins_with, ends_with, contains, not_contains',
       });
     });
 
