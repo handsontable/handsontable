@@ -335,9 +335,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   throws `… is not a function`. Do not reach into `mergedCellsCollection` or call `mergeRange()`
   from here again.
 - **A plugin that reads the data when its settings are applied must not read the departing
-  sheet.** The settings update runs while the grid still holds the departing sheet's data, and two
-  plugins read it there. Each takes a different fix, because they need different things from the
-  load. Pinned by `tests/e2e/sheets-bar-data-bound-settings.spec.ts`.
+  sheet.** The settings update runs while the grid still holds the departing sheet's data, and
+  several plugins read it there. Each takes one of two fixes, because they need different things
+  from the load. Pinned by `tests/e2e/sheets-bar-data-bound-settings.spec.ts`,
+  `tests/e2e/sheets-bar-switch-settings-order.spec.ts` and `__tests__/sheetSwitchSettingsOrder.unit.js`.
   - **NestedRows has to be ON during the load**, so it stays in the pre-load update, which runs
     under `#withoutNestedRowsDataCheck` (NestedRows' `@private` `deferDataCheck` flag, read through
     the typed `getPlugin('nestedRows')`). An enable with an empty data manager then takes its tree
@@ -348,8 +349,19 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     to its top-level entries, so a grid-level `minRows` padded empty parents into the host's array
     (9 rows instead of 5), and declared `hiddenRows`/`trimRows` indexes of child rows were rejected
     or ignored, because their maps are initialized during the load.
+  - **The settings that describe the loaded cells go after the load.** `DATA_BOUND_SETTINGS` lists
+    `columnSummary`, `customBorders`, `columnSorting` and `multiColumnSorting`, and `cell` rides with
+    them (`#effectiveCellOption`). CustomBorders drops a border outside the table it is applied to,
+    so a border on a sheet larger than the departing one was lost; the sorting plugins sort by
+    `initialConfig` when their key is applied, which the departing rows ignored on a first visit; and
+    `loadData()` clears every cell meta object, so a `cell` entry applied before it never took effect.
+    The `cell` value is the sheet's own, the grid-level one when the sheet declares none (and the grid
+    has entries), or `[]` when the baseline holds no grid-level value, which drops the departing
+    sheet's entries from core's record of them. A workbook where nobody declares any of these keys
+    still runs one settings update per switch. Only ColumnSummary is switched off before the load
+    (`offDuringLoad`), because its own `afterLoadData` writes; the others stay on during it.
   - **ColumnSummary needs nothing from the load and writes into the data**, so on a live grid a
-    truthy value is taken out of the pre-load payload (`DATA_BOUND_SETTING_KEYS`,
+    truthy value is taken out of the pre-load payload (`DATA_BOUND_SETTINGS`,
     `#splitDataBoundSettings`) and applied by a second `updateSettings()` after `loadData()`, before
     the MergeCells pass. Applied before, it checked its endpoints against the departing size (a
     false out-of-bounds warning) and, when the destination fitted, wrote its result into the
@@ -368,6 +380,26 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     case of the spec). The init build is not split: applied after the load
     there, its `setDataAtCell()` runs before the editor manager exists and throws; ColumnSummary's
     `updatePlugin()` instead leaves the endpoints to its `afterInit` while the grid has no view.
+  - **A return applies the ColumnSummary endpoints the sheet left with, not the declared ones.** A
+    row or column alteration moves an endpoint, while the declared settings keep naming its old
+    position, so re-applying them on a return wrote the summary over the data cell the alteration
+    had moved into that place. `#captureColumnSummary` stores `ColumnSummary#exportEndpointSettings()`
+    (`@private`, read through the typed `getPlugin`) per sheet when the user leaves it, and
+    `#applySheet` applies it after the load when the sheet returns with a stored state
+    (`restoresState`, the flag that also skips the declared merges). A function-form setting stores
+    nothing: it reads its settings again on every pass.
+  - **The init build applies the opening sheet from `beforeInit`, and core's own init settings pass
+    then undoes two parts of it.** It registers the grid-level callback of every hook again (a
+    settings hook is one replaceable `initialHook` entry per name, `core/hooks/bucket.ts`), so the
+    opening sheet's own hook never ran; and its init `loadData()` cleared the cell meta the sheet's
+    `cell` option wrote. `#takeInitPassSettings` keeps those keys, and `#onInit` (the `init` hook,
+    after that pass and before the first render) applies them again. It first writes the grid-level
+    callback into the settings baseline: the baseline was captured in `beforeInit`, before core puts
+    the settings' callbacks on the table meta, so it held `undefined` and a switch to another sheet
+    kept the opening sheet's callback. A sheet's hook REPLACES the grid-level one on that sheet, like
+    every other key. Known gap: a hook only sheets declare, with no grid-level callback, is restored
+    as `null`, which removes nothing, so it keeps running on the sheets that do not declare it. The
+    opening sheet's hooks also miss the init load's own events (`afterLoadData` of the first load).
   - Do not reorder the whole switch to load first instead: the departing sheet's settings would then
     be in force during the load (NestedRows rejecting a flat sheet, a departing `columns` building
     the DataMap, Formulas bound to the wrong sheet). A new plugin with the same shape takes whichever
@@ -401,7 +433,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   opens the `minCols` branch; an arriving `trimRows` lowers `countRows()`). So `#applySheet` runs
   that update under `#withoutAutoPadding`, and `#onBeforeAutoCreate` (registered on
   `beforeCreateRow`/`beforeCreateCol` at the top of `enablePlugin`, so the init build is covered
-  too) vetoes every create with source `auto` while it is set. The `loadData()` that follows pads
+  too) vetoes every create with source `auto` while it is set. `#onBeforeAutoRemove`
+  (`beforeRemoveRow`/`beforeRemoveCol`) vetoes every `auto` removal in the same window: a lowered
+  `min*` value makes `updateSettings()` give back the trailing filler rows the previous minimum appended
+  (`removeSurplusRowsAndCols()`), and it judged the departing rows empty through the arriving sheet's
+  `columns`, so the rows a user typed into a `minSpareRows` sheet were deleted from the host's array. The `loadData()` that follows pads
   the arriving sheet's data inside its own `adjustRowsAndCols()`, before `afterLoadData`, exactly as
   a plain load does, so host listeners, the AutoColumnSize sweep and the Formulas engine write all
   see the padded size. Do not replace the veto with a zero-then-reapply of the `min*` keys: that
@@ -455,6 +491,15 @@ The per-sheet view state captures and restores `fixedColumnsStart`, `fixedColumn
 the workbook starts), `resetViewState(hot, neutral)` takes all four, and `#restoreBaselineToGrid()` puts a runtime
 freeze back on teardown. A freeze set at runtime on one sheet therefore does not follow the user onto a sheet they
 never visited. The rows were not tracked at first, so a frozen row carried over to every sheet.
+
+**Every switch takes the departing sheet's freeze shadows off the grid before the arriving settings land**
+(`#switchTo`, on both the first-visit and the return path). The departing count is already in its captured
+state. Left in force, it blocked a Pagination enable on the arriving sheet (Pagination conflicts with
+`fixedRowsTop`), and the neutral reset's own shadow outlived the arriving update whenever the arriving count
+equalled the departing one, so a sheet declaring the same freeze as the previous sheet opened unfrozen and
+stored that as its state. `#getSwitchNeutralFrozenCounts()` therefore leaves a count some sheet declares
+(it is in the settings baseline, so the update applies it) at its current value, and the neutral reset
+writes no shadow for it.
 
 **A count can be a shadow on the table meta, and `updateSettings()` leaves a shadow alone.** The freeze bar,
 `ManualColumnFreeze`, `alter()` and undo write a frozen count as an own property of `getSettings()`, and
