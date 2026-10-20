@@ -71,3 +71,25 @@ describe('Core#_registerTimeout', () => {
     hot.destroy();
   });
 });
+
+describe('Core#_registerTimeout during destroy()', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('should run a callback whose handle list the instance has dropped since', () => {
+    const hot = buildGrid();
+    const callback = jest.fn();
+
+    hot._registerTimeout(callback, 10);
+    // `destroy()` nulls every field of the instance after it clears the timeouts.
+    hot.timeouts = null;
+
+    expect(() => jest.advanceTimersByTime(10)).not.toThrow();
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+});

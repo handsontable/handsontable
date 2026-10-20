@@ -2828,6 +2828,28 @@ export default function Core(
   }
 
   /**
+   * Tells whether a `setSourceDataAtCell()` call writes the cell an opened editor edits. The changes name
+   * physical rows, and a column as its property or its physical index.
+   *
+   * @private
+   * @param {Array} changes The changes, in the form `[physicalRow, prop, value]`.
+   * @param {BaseEditor} activeEditor The opened editor.
+   * @returns {boolean}
+   */
+  function doesSourceChangeAffectOpenedEditor(
+    changes: Array<[number, string | number | ColumnDataGetterSetterFunction, unknown]>,
+    activeEditor: BaseEditor,
+  ) {
+    const physicalRow = instance.toPhysicalRow(activeEditor.row!);
+    const editedProp = activeEditor.prop;
+
+    return changes.some(([changeRow, changeProp]) => changeRow === physicalRow && (
+      changeProp === editedProp ||
+      (typeof changeProp === 'number' && instance.colToProp(instance.toVisualColumn(changeProp)!) === editedProp)
+    ));
+  }
+
+  /**
    * Reads the cell meta of a cell that a WRITE addresses, which may sit in a row that does not exist yet.
    *
    * A write can address a row past the last one, and `applyChanges()` creates it only after the
@@ -6317,6 +6339,9 @@ export default function Core(
   /**
    * Set the provided value in the source data set at the provided coordinates.
    *
+   * An open editor keeps what the user typed, unless the call writes the edited cell itself: then the
+   * editor shows the new value.
+   *
    * @memberof Core#
    * @function setSourceDataAtCell
    * @param {number|Array} row Physical row index or array of changes in format `[[row, prop, value], ...]`.
@@ -6423,7 +6448,14 @@ export default function Core(
 
     const activeEditor = instance.getActiveEditor();
 
-    if (activeEditor && isDefined(activeEditor.refreshValue)) {
+    // An open editor is refreshed only when the call wrote its own cell: a write to any other cell, a
+    // filtered-out row's included, must not throw away what the user is typing (the `setData*` methods
+    // follow the same rule through `doesChangeAffectOpenedEditor()`). A closed editor is refreshed as before.
+    if (
+      activeEditor &&
+      isDefined(activeEditor.refreshValue) &&
+      (!activeEditor.isOpened() || doesSourceChangeAffectOpenedEditor(input, activeEditor))
+    ) {
       (activeEditor.refreshValue as () => void)();
     }
   }
@@ -8841,12 +8873,15 @@ export default function Core(
       return handle;
     }
 
+    // Captured now: `destroy()` nulls the instance's fields after `_clearTimeouts()`, so a timer registered
+    // in between would otherwise read a nulled `this.timeouts` when it fires.
+    const timeouts = this.timeouts;
     const timeoutId = setTimeout(() => {
-      const index = this.timeouts.indexOf(timeoutId);
+      const index = timeouts.indexOf(timeoutId);
 
       // Drop the handle once it fired, or every call keeps one until `destroy()`.
       if (index !== -1) {
-        this.timeouts.splice(index, 1);
+        timeouts.splice(index, 1);
       }
 
       handle();
