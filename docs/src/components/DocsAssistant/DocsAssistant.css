@@ -639,3 +639,83 @@
   padding: 0.5rem 0;
   color: var(--sl-color-accent);
 }
+
+/* ── Proactive bubble (SU-598) ──────────────────────────────────────── */
+/* Square corners, hairline border, and --sl-* tokens match the header "Ask AI" button. */
+
+.da-bubble {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  box-sizing: border-box;
+  max-width: min(24rem, calc(100vw - 2rem));
+  background: var(--sl-color-bg);
+  color: var(--sl-color-text);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  animation: da-bubble-in 0.2s ease;
+}
+.da-bubble-ask {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0.75rem 0 0.75rem 1rem;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--sl-text-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.da-bubble-ask:hover {
+  color: var(--sl-color-white);
+}
+.da-bubble-ask:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: -2px;
+}
+.da-bubble-ask > svg {
+  flex-shrink: 0;
+}
+.da-bubble-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+.da-bubble-cta {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.da-bubble-close {
+  margin: 0.4rem 0.4rem 0 0.25rem;
+}
+
+@keyframes da-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .da-bubble {
+    animation: none;
+  }
+}
+@media print {
+  .da-bubble {
+    display: none;
+  }
+}

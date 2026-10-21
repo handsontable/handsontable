@@ -14,8 +14,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { STORAGE_KEYS, WIDTH } from './constants';
 import { IconChatbot, IconClose, IconTrash } from './icons';
+import { ProactiveBubble } from './ProactiveBubble';
 import { Thread } from './Thread';
 import { useAssistant } from './useAssistant';
+import { useProactiveBubble } from './useProactiveBubble';
 import './DocsAssistant.css';
 
 function readInitialOpen(): boolean {
@@ -45,6 +47,7 @@ export function DocsAssistantWidget() {
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const resizingRef = useRef(false);
   const { state, send, stop, retry, clear, clearAndSend, setFeedback } = useAssistant();
+  const { visible: bubbleVisible, dismiss: dismissBubble } = useProactiveBubble(open);
 
   useEffect(() => {
     try {
@@ -128,63 +131,76 @@ export function DocsAssistantWidget() {
     window.addEventListener('pointerup', onUp);
   }, []);
 
+  // The bubble's "Ask AI" opens the chat with the same prefilled draft as the ToC button.
+  const askAboutPage = useCallback(
+    (pageTitle: string) => {
+      clear();
+      setPendingDraft(`I have a question about the "${pageTitle}" page.\n`);
+      setOpen(true);
+    },
+    [clear],
+  );
+
   return (
-    <aside
-      className="da-panel"
-      role="dialog"
-      aria-modal="false"
-      aria-label="Docs assistant"
-      data-open={open ? 'true' : 'false'}
-      style={{ width: `${width}px` }}
-    >
-      <div
-        className="da-resize"
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Resize assistant panel"
-        onPointerDown={startResize}
-      />
-      <header className="da-header">
-        <div className="da-title">
-          <IconChatbot />
-          <span>Docs assistant</span>
-        </div>
-        <div className="da-header-actions">
-          {state.messages.length > 0 && (
+    <>
+      <aside
+        className="da-panel"
+        role="dialog"
+        aria-modal="false"
+        aria-label="Docs assistant"
+        data-open={open ? 'true' : 'false'}
+        style={{ width: `${width}px` }}
+      >
+        <div
+          className="da-resize"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize assistant panel"
+          onPointerDown={startResize}
+        />
+        <header className="da-header">
+          <div className="da-title">
+            <IconChatbot />
+            <span>Docs assistant</span>
+          </div>
+          <div className="da-header-actions">
+            {state.messages.length > 0 && (
+              <button
+                type="button"
+                className="da-header-btn"
+                onClick={clear}
+                aria-label="Clear chat"
+                title="Clear chat"
+              >
+                <IconTrash />
+              </button>
+            )}
             <button
               type="button"
               className="da-header-btn"
-              onClick={clear}
-              aria-label="Clear chat"
-              title="Clear chat"
+              onClick={() => setOpen(false)}
+              aria-label="Close assistant"
+              title="Close"
             >
-              <IconTrash />
+              <IconClose />
             </button>
-          )}
-          <button
-            type="button"
-            className="da-header-btn"
-            onClick={() => setOpen(false)}
-            aria-label="Close assistant"
-            title="Close"
-          >
-            <IconClose />
-          </button>
-        </div>
-      </header>
+          </div>
+        </header>
 
-      <Thread
-        messages={state.messages}
-        streaming={state.streaming}
-        error={state.error}
-        composerRef={composerRef}
-        pendingDraft={pendingDraft}
-        onPendingDraftConsumed={() => setPendingDraft(null)}
-        onSend={send}
-        onStop={stop}
-        onRetry={retry}
-        onFeedback={setFeedback}
-      />
-    </aside>
+        <Thread
+          messages={state.messages}
+          streaming={state.streaming}
+          error={state.error}
+          composerRef={composerRef}
+          pendingDraft={pendingDraft}
+          onPendingDraftConsumed={() => setPendingDraft(null)}
+          onSend={send}
+          onStop={stop}
+          onRetry={retry}
+          onFeedback={setFeedback}
+        />
+      </aside>
+      {bubbleVisible && <ProactiveBubble onAsk={askAboutPage} onDismiss={dismissBubble} />}
+    </>
   );
 }
