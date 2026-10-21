@@ -295,6 +295,7 @@ export interface HotInstance {
   _applySettingsAndData(settings: Partial<GridSettings>, data: unknown[], source: string): void;
   _isDataWorkDeferred(): boolean;
   _isDataLoadPending(): boolean;
+  _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
 
   // DOM references
   rootElement: HTMLElement;

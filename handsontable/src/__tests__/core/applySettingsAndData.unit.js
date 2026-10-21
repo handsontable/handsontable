@@ -367,6 +367,21 @@ describe('Core#_applySettingsAndData', () => {
     expect(probeLog.filter(entry => entry[0] === 'owed')).toEqual([]);
   });
 
+  it('drops the owed work of the plugins after one whose onDataReady() step throws', () => {
+    createGrid({ data: [['old']], dataProbe: true, owedWorkProbe: true });
+
+    jest.spyOn(DataProbe.prototype, 'onDataReady').mockImplementationOnce(() => {
+      throw new Error('ready failed');
+    });
+
+    expect(() => hot._applySettingsAndData({ owedWorkProbe: { pass: 1 } }, [['first']], 'test'))
+      .toThrow('ready failed');
+
+    hot._applySettingsAndData({ colHeaders: true }, [['second']], 'test');
+
+    expect(probeLog.filter(entry => entry[0] === 'owed')).toEqual([]);
+  });
+
   it('records no owed work while the grid has no view, so the first later call does not run it', () => {
     hot = new Handsontable(container, {
       licenseKey: 'non-commercial-and-evaluation',

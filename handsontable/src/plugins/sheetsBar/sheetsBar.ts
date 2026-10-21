@@ -389,19 +389,19 @@ export class SheetsBar extends BasePlugin {
    */
   #isInitializing = false;
   /**
-   * The opening sheet's settings that core's init settings pass undoes, kept from the init build until
-   * the `init` hook applies them again (`#takeInitPassSettings`).
-   *
-   * @type {object|null}
-   */
-  #settingsAfterInitPass: Record<string, unknown> | null = null;
-  /**
    * The ColumnSummary endpoints of each sheet the user left, at the positions they held then
    * (`#captureColumnSummary`).
    *
    * @type {WeakMap<object, object[]>}
    */
   #columnSummaryStates = new WeakMap<Sheet, unknown[]>();
+  /**
+   * The `cell` entries of each sheet the user left, at the records they were on then
+   * (`#captureCellOption`).
+   *
+   * @type {WeakMap<object, object[]>}
+   */
+  #cellOptionStates = new WeakMap<Sheet, Record<string, unknown>[]>();
   /**
    * The server view of each sheet that loads its rows through its own `dataProvider`.
    *
@@ -789,7 +789,6 @@ export class SheetsBar extends BasePlugin {
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, -1);
-    this.addHook('init', this.#onInit);
     this.addHook('afterDocumentKeyDown', this.#onKeyDownWithinBar, -1);
     this.addHook('beforeCompositionStart', this.#onKeyDownWithinBar, -1);
     this.addHook('afterRender', this.#onAfterRenderArmMotionGate);
@@ -1206,6 +1205,7 @@ export class SheetsBar extends BasePlugin {
           oldSheet.viewState = captureViewState(this.hot, this.#flattenTrackedCellMeta()) as
             unknown as Record<string, unknown>;
           this.#captureColumnSummary(oldSheet);
+          this.#captureCellOption(oldSheet);
           this.hot.runHooks('afterSheetTabStateCapture', oldId, oldSheet.viewState, source);
         }
 
@@ -1556,6 +1556,7 @@ export class SheetsBar extends BasePlugin {
       this.#storeServerResult(sheet, outcome.result);
 
       this.#columnSummaryStates.delete(sheet);
+      this.#cellOptionStates.delete(sheet);
 
       if (sheet.viewState) {
         sheet.viewState = { ...sheet.viewState, cellMeta: [] };
@@ -1818,7 +1819,7 @@ export class SheetsBar extends BasePlugin {
       this.#applySheet(targetSheet, SOURCE_API);
 
       if (!this.hot.view) {
-        this.#settingsAfterInitPass = this.#takeInitPassSettings(targetSheet.settings);
+        this.#handOpeningSheetToInitPass(targetSheet.settings);
       }
     } else {
       const settings = this.#withBaselineFor(undefined);
@@ -1850,7 +1851,7 @@ export class SheetsBar extends BasePlugin {
    */
   #applySheet(sheet: Sheet, source: string, { restoresState = false }: { restoresState?: boolean } = {}) {
     const payload: Record<string, unknown> = { ...(this.#withBaselineFor(sheet.settings) ?? {}) };
-    const cell = this.#effectiveCellOption(payload);
+    const cell = (restoresState ? this.#cellOptionStates.get(sheet) : undefined) ?? this.#effectiveCellOption(payload);
 
     if (cell) {
       payload.cell = cell;
@@ -1896,6 +1897,73 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Stores the `cell` entries in force on the departing sheet at the records they are on now. Core keeps the
+   * meta the `cell` option wrote by physical index and moves it with its record on a row or column
+   * alteration, while the entries name visual positions, so a return that applied them again put a
+   * declared `readOnly` on whatever record had moved into that position, and left the original record
+   * editable. A return applies the stored entries instead (`#applySheet`). The arriving data loads with
+   * fresh index maps, so a physical index is the visual one when the entries are applied. Nothing is
+   * stored while no `cell` entry is in force.
+   *
+   * @param {object} sheet The departing sheet.
+   */
+  #captureCellOption(sheet: Sheet) {
+    const entries = this.#exportCellOption();
+
+    if (entries) {
+      this.#cellOptionStates.set(sheet, entries);
+    } else {
+      this.#cellOptionStates.delete(sheet);
+    }
+  }
+
+  /**
+   * Returns the `cell` entries in force on the grid at the physical cells their meta is on now, or `null`
+   * while no `cell` entry is in force.
+   *
+   * @returns {object[]|null}
+   */
+  #exportCellOption(): Record<string, unknown>[] | null {
+    const declared = this.hot.getSettings().cell;
+
+    if (!Array.isArray(declared) || declared.length === 0) {
+      return null;
+    }
+
+    const entries = new Map<string, Record<string, unknown>>();
+
+    this.hot._getMetaManager().getCellOptionCellMetas().forEach(({ physicalRow, physicalColumn, key, value }) => {
+      const cellKey = trackedCellKey(physicalRow, physicalColumn);
+      let entry = entries.get(cellKey);
+
+      if (!entry) {
+        entry = { row: physicalRow, col: physicalColumn };
+        entries.set(cellKey, entry);
+      }
+
+      entry[key] = value;
+    });
+
+    return [...entries.values()];
+  }
+
+  /**
+   * Gives a duplicated sheet the `cell` entries of its original at the records they are on now, written
+   * into the copy's own settings, for the reason `#copyColumnSummaryEndpoints` gives the summaries.
+   *
+   * @param {object} original The sheet that was duplicated.
+   * @param {object} copy The duplicate.
+   */
+  #copyCellOption(original: Sheet, copy: Sheet) {
+    const isOriginalShown = this.#model?.getActiveSheet()?.id === original.id;
+    const entries = isOriginalShown ? this.#exportCellOption() : (this.#cellOptionStates.get(original) ?? null);
+
+    if (entries) {
+      copy.settings = { ...copy.settings, cell: entries };
+    }
+  }
+
+  /**
    * Gives a duplicated sheet the ColumnSummary endpoints its original holds now, written into the copy's
    * own settings. The copy's data is a copy of the original's, with every summary at the position a row
    * or column alteration moved it to, and the copy opens as a first visit, so the declared positions
@@ -1937,12 +2005,36 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Returns the part of the opening sheet's settings that core's own init settings pass would undo,
-   * or `null` when there is none. The bar applies the opening sheet from `beforeInit`, and core then
-   * applies the grid's settings once more: it registers the grid-level callback of every hook again,
-   * replacing the one the sheet declared, and its init `loadData()` clears the cell meta the sheet's
-   * `cell` option wrote. Both are applied again from the `init` hook (`#onInit`), after that pass and
-   * before the first render.
+   * Hands the opening sheet's hooks and `cell` entries to core's init settings pass. The bar applies the
+   * opening sheet from `beforeInit`, and core then runs that pass with the grid's settings: it registers
+   * the grid-level callback of every hook again, replacing the one the sheet declared, and applies the
+   * grid-level `cell` after its first load, which clears the cell meta the sheet's own entries wrote.
+   * `Core#_replaceInitPassSettings()` makes the pass apply the sheet's values instead, once, with no
+   * settings update of their own: applying them again afterwards through `updateSettings()` fired
+   * `afterUpdateSettings` before `afterInit`, updated every plugin and ran the validators once more. The
+   * grid-level callback each hook replaced goes into the settings baseline, so a switch to another sheet
+   * restores it.
+   *
+   * @param {object|undefined} sheetSettings The opening sheet's own settings.
+   */
+  #handOpeningSheetToInitPass(sheetSettings: Record<string, unknown> | undefined) {
+    const settings = this.#takeInitPassSettings(sheetSettings);
+    const replaced = settings ? this.hot._replaceInitPassSettings(settings) : null;
+
+    if (!settings || !replaced) {
+      return;
+    }
+
+    Object.keys(settings).forEach((key) => {
+      if (key !== 'cell' && this.#settingsBaseline.get(key) === undefined) {
+        this.#settingsBaseline.set(key, replaced[key]);
+      }
+    });
+  }
+
+  /**
+   * Returns the part of the opening sheet's settings that core's own init settings pass would undo
+   * (its hook callbacks and its `cell` entries), or `null` when there is none.
    *
    * @param {object|undefined} sheetSettings The opening sheet's own settings.
    * @returns {object|null}
@@ -2378,6 +2470,7 @@ export class SheetsBar extends BasePlugin {
 
         this.#copyServerView(original, sheet);
         this.#copyColumnSummaryEndpoints(original, sheet);
+        this.#copyCellOption(original, sheet);
 
         // The copy cannot share the original's engine sheet — two tabs writing into one set of
         // cells — so it gets an engine sheet of its own, named like the copy, seeded with the
@@ -2765,7 +2858,8 @@ export class SheetsBar extends BasePlugin {
   /**
    * Tracks explicit cell-meta writes for the active sheet so they survive a switch
    * round-trip. Writes performed while a switch is applying state are skipped via the
-   * switching guard, and derived keys (`valid`) are not tracked at all — the next validation
+   * switching guard, writes the declarative `cell` option makes (core's init pass included) are never
+   * user meta, and derived keys (`valid`) are not tracked at all — the next validation
    * recomputes them, and a validated sheet writes one per cell.
    *
    * The hook hands over visual indexes, which only mean something against the row and column
@@ -2774,7 +2868,8 @@ export class SheetsBar extends BasePlugin {
    * translated back when they are served.
    */
   #onAfterSetCellMeta = (row: number, col: number, key: string, value: unknown) => {
-    if (this.#isSwitching || UNTRACKED_META_KEYS.has(key)) {
+    if (this.#isSwitching || UNTRACKED_META_KEYS.has(key)
+      || this.hot._getMetaManager().isRecordingCellOptionMeta()) {
       return;
     }
 
@@ -3081,48 +3176,11 @@ export class SheetsBar extends BasePlugin {
   };
 
   /**
-   * Applies the opening sheet's settings that core's init settings pass undid. Fires once, after that
-   * pass and before the first render. The grid-level callback of each such hook is recorded in the
-   * settings baseline first: the baseline is captured in `beforeInit`, before core puts the settings'
-   * callbacks on the table meta, so it held nothing there, and a switch to another sheet then kept the
-   * opening sheet's callback in place of the grid-level one. The update runs with `#isSwitching` set,
-   * like a switch, so the sheet's declared `cell` entries are not tracked as cell meta the user set.
-   */
-  #onInit = () => {
-    const settings = this.#settingsAfterInitPass;
-
-    this.#settingsAfterInitPass = null;
-
-    if (!settings) {
-      return;
-    }
-
-    const gridSettings = this.hot.getSettings() as Record<string, unknown>;
-
-    Object.keys(settings).forEach((key) => {
-      if (key !== 'cell' && this.#settingsBaseline.get(key) === undefined) {
-        this.#settingsBaseline.set(key, gridSettings[key]);
-      }
-    });
-
-    const wasSwitching = this.#isSwitching;
-
-    this.#isSwitching = true;
-
-    try {
-      this.hot.updateSettings(settings);
-    } finally {
-      this.#isSwitching = wasSwitching;
-    }
-  };
-
-  /**
    * Blocks a grid-level `dataProvider` set through a later `updateSettings()` call, the same way
    * `#withBaselineFor` blocks it on a switch. It runs ahead of every other `afterUpdateSettings`
    * listener (a negative `orderIndex`), so the DataProvider plugin never enables with the blocked
    * value: no `fetchRows` call, no loading overlay. The initial workbook build applies its
-   * opening sheet before this hook is registered, and `#onInit` re-applies that sheet's own hooks and
-   * `cell` entries with `#isSwitching` set, which the gate stands aside for. See `#blocksGridDataProvider` for the cases
+   * opening sheet before this hook is registered. See `#blocksGridDataProvider` for the cases
    * that are left alone.
    *
    * @param {object} newSettings The settings passed to `updateSettings()`.

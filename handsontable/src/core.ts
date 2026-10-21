@@ -439,6 +439,11 @@ export default function Core(
    * after its load in the order the updates were made.
    */
   let heldMetaPhases: (() => void)[] = [];
+  /**
+   * The settings core's own init settings pass applies, while `beforeInit` runs, or `null` outside that
+   * window (see `_replaceInitPassSettings()`).
+   */
+  let initPassSettings: Record<string, unknown> | null = null;
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -2537,7 +2542,13 @@ export default function Core(
     // array-form `beforeInit` would then warn twice per instance.
     registerSettingsHook('beforeInit', mergedUserSettings.beforeInit as HookCallback | HookCallback[] | undefined);
 
-    instance.runHooks('beforeInit');
+    initPassSettings = mergedUserSettings as Record<string, unknown>;
+
+    try {
+      instance.runHooks('beforeInit');
+    } finally {
+      initPassSettings = null;
+    }
 
     if (isMobileOrIpadOS()) {
       addClass(instance.rootElement, 'mobile');
@@ -5151,7 +5162,9 @@ export default function Core(
    * `afterLoadData` listener) applies in full. In both, plugins still see `_isDataWorkDeferred()` answer
    * `true`, so their data work waits for the `onDataReady()` pass of this call. A nested
    * `_applySettingsAndData()` restores the outer call's step when it ends and leaves that pass to the
-   * outer call. When the call throws before the `onDataReady()` pass ends, every plugin drops the work
+   * outer call. A nested call made after this call's load (a listener switching sheets from
+   * `afterLoadData`) is not supported: this call's meta phase then applies its `cell` entries and
+   * `columns` function to the nested call's data. When the call throws before the `onDataReady()` pass ends, every plugin drops the work
    * it recorded for that pass (`BasePlugin#dropDeferredDataWork()`), so a later call cannot run it
    * against other data; a grid still being built skips the validators here, because its own init pass
    * runs them. The data is loaded as given: the caller decides what a sheet backed by an external data
@@ -5232,6 +5245,34 @@ export default function Core(
    */
   this._isDataWorkDeferred = function() {
     return dataWorkPhase !== null;
+  };
+
+  /**
+   * Replaces values the init settings pass is about to apply, and returns the values it replaced. Callable
+   * from `beforeInit` only; anywhere else it changes nothing and returns `null`. The pass registers every
+   * hook callback of the settings and applies their `cell` option after the first load, so a plugin that
+   * applied settings of its own in `beforeInit` (the SheetsBar plugin, its opening sheet) would see the pass
+   * replace its hook callbacks and its `cell` entries with the grid-level ones. Replaced here, they are
+   * applied once, by the pass itself, with no settings update of their own.
+   *
+   * @private
+   * @param {object} settings The values to apply in the init settings pass instead.
+   * @returns {object|null} The values the pass held for those keys before, or `null` outside `beforeInit`.
+   */
+  this._replaceInitPassSettings = function(settings: Record<string, unknown>) {
+    if (initPassSettings === null) {
+      return null;
+    }
+
+    const passSettings = initPassSettings;
+    const replaced: Record<string, unknown> = {};
+
+    Object.keys(settings).forEach((key) => {
+      replaced[key] = passSettings[key];
+      passSettings[key] = settings[key];
+    });
+
+    return replaced;
   };
 
   /**

@@ -413,4 +413,78 @@ describe('SheetsBar applies a sheet against its own data', () => {
 
     expect(hot.getDataAtCol(0)).toEqual([1, 2, 7, 3]);
   });
+
+  it('builds the grid with the opening sheet\'s `cell` and hooks without a settings update of their own', () => {
+    const events = [];
+    const sources = [];
+
+    buildWorkbook([{
+      name: 'Only',
+      data: [['a', 'b']],
+      settings: {
+        cell: [{ row: 0, col: 1, readOnly: true }],
+        afterChange() {},
+        columns: [{
+          sourceDataValidator: (value, cellMeta, source) => {
+            sources.push(source);
+
+            return true;
+          },
+        }, {}],
+      },
+    }], {
+      afterUpdateSettings() {
+        events.push('afterUpdateSettings');
+      },
+      afterInit() {
+        events.push('afterInit');
+      },
+    });
+
+    expect(events).toEqual(['afterInit']);
+    expect(sources).toEqual(['init']);
+    expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
+  });
+
+  it('keeps a declared `cell` entry on its record across a row insert and a round trip', () => {
+    const bar = buildWorkbook([
+      { name: 'Alpha', data: [['locked', 'free']], settings: { cell: [{ row: 0, col: 0, readOnly: true }] } },
+      { name: 'Beta', data: [['b']] },
+    ]);
+
+    hot.alter('insert_row_above', 0, 1);
+    bar.setActiveSheet('Beta');
+    bar.setActiveSheet('Alpha');
+
+    expect([hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly]).toEqual([false, true]);
+    expect(hot.getDataAtCell(1, 0)).toBe('locked');
+  });
+
+  it('keeps a declared `cell` entry on its record on a sheet that is not the opening one', () => {
+    const bar = buildWorkbook([
+      { name: 'Beta', data: [['b']] },
+      { name: 'Alpha', data: [['locked', 'free']], settings: { cell: [{ row: 0, col: 0, readOnly: true }] } },
+    ]);
+
+    bar.setActiveSheet('Alpha');
+    hot.alter('insert_row_above', 0, 1);
+    bar.setActiveSheet('Beta');
+    bar.setActiveSheet('Alpha');
+
+    expect([hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly]).toEqual([false, true]);
+  });
+
+  it('gives a duplicated sheet the `cell` entries at the records its original holds them on now', () => {
+    const bar = buildWorkbook([
+      { name: 'Alpha', data: [['locked', 'free']], settings: { cell: [{ row: 0, col: 0, readOnly: true }] } },
+    ]);
+
+    hot.alter('insert_row_above', 0, 1);
+
+    const copy = bar.duplicateSheet(bar.getSheets()[0].id);
+
+    bar.setActiveSheet(copy.id);
+
+    expect([hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly]).toEqual([false, true]);
+  });
 });

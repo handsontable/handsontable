@@ -351,7 +351,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - **The `cell` option is restated on every switch** (`#effectiveCellOption`), because the load clears
     every cell meta object: the sheet's own entries, the grid-level ones when the sheet declares none
     (and the grid has entries), or `[]` when the baseline holds no grid-level value, which drops the
-    departing sheet's entries from core's record of them.
+    departing sheet's entries from core's record of them. **A return applies the entries at the records
+    they were on when the user left** (`#captureCellOption`, `#cellOptionStates`), not the declared
+    coordinates: core keeps the `cell` option's meta by physical index and moves it with its record on an
+    alteration, so after a row insert the declared coordinates name another record, and restating them made
+    the inserted empty row read-only while the declared record became editable. The entries are stored by
+    physical index, which equals the visual one when they are applied (the load re-initializes the index
+    maps). A duplicate gets its original's current entries, and a server response that replaces the rows
+    drops them, like the ColumnSummary endpoints below.
   - **NestedRows has to be ON during the load**, so it enables in phase A: an enable with an empty data
     manager then takes its tree from the load (its own `beforeLoadData`) instead of validating the
     departing flat array, which logged "requires an Array of Objects" and turned the plugin off for good.
@@ -379,16 +386,22 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - **The init build applies the opening sheet from `beforeInit`, and core's own init settings pass
     then undoes two parts of it.** It registers the grid-level callback of every hook again (a
     settings hook is one replaceable `initialHook` entry per name, `core/hooks/bucket.ts`), so the
-    opening sheet's own hook never ran; and its init `loadData()` cleared the cell meta the sheet's
-    `cell` option wrote. `#takeInitPassSettings` keeps those keys, and `#onInit` (the `init` hook,
-    after that pass and before the first render) applies them again. It first writes the grid-level
-    callback into the settings baseline: the baseline was captured in `beforeInit`, before core puts
-    the settings' callbacks on the table meta, so it held `undefined` and a switch to another sheet
-    kept the opening sheet's callback. A sheet's hook REPLACES the grid-level one on that sheet, like
+    opening sheet's own hook never ran; and it applied the grid-level `cell` after its first load, which
+    clears the cell meta the sheet's own entries wrote. `#handOpeningSheetToInitPass` therefore hands the
+    sheet's hook callbacks and `cell` entries (`#takeInitPassSettings`) to that pass through
+    `Core#_replaceInitPassSettings()`, callable from `beforeInit` only, so the pass applies them once.
+    Do not apply them again afterwards through `updateSettings()`: that was the first cut, from the
+    `init` hook, and it fired `afterUpdateSettings` before `afterInit`, ran `updatePlugin()` for every
+    plugin whose `SETTING_KEYS` is `true`, and ran the source-data validators three times at init where a
+    plain grid runs them once (pinned by "builds the grid with the opening sheet's `cell` and hooks without
+    a settings update of their own"). The grid-level callback each hook replaced, which the call returns,
+    goes into the settings baseline: the baseline was captured before core put the settings' callbacks on
+    the table meta, so it held `undefined` and a switch to another sheet kept the opening sheet's callback.
+    A sheet's hook REPLACES the grid-level one on that sheet, like
     every other key, for a function: core keeps one settings callback per hook name. A grid-level ARRAY
     of callbacks is added through `Hooks#add` instead and keeps running beside a sheet's callback on every
-    sheet. The re-apply runs with `#isSwitching` set, so the opening sheet's declared `cell` entries are not
-    tracked as cell meta the user set, the same as on a switch. Known gap: a hook only sheets declare, with no grid-level callback, is restored
+    sheet. No write the `cell` option makes is tracked as cell meta the user set (`#onAfterSetCellMeta` asks
+    `MetaManager#isRecordingCellOptionMeta()`), at init or on a switch. Known gap: a hook only sheets declare, with no grid-level callback, is restored
     as `null`, which removes nothing, so it keeps running on the sheets that do not declare it. The
     opening sheet's hooks also miss the init load's own events (`afterLoadData` of the first load).
 - **Custom borders are restored with the logical sides only.** `getBorders()` records carry both

@@ -171,7 +171,9 @@ MergeCells' held settings pass) asks `isDataLoadPending()` instead, which answer
 load. `isDataWorkDeferred()` stays `true` through the load and the meta phase, so a plugin enabled from an
 `afterLoadData` listener that waited on it waited for a load that had already run. Do not
 read the flag to skip work that the load itself redoes (a map's `init` hook, an `afterLoadData` refresh
-that already reads the new rows): that work is correct as it is. The plugins that defer today:
+that already reads the new rows): that work is correct as it is. ColumnSummary is the one exception: its `afterLoadData` refresh is skipped while the flag is up, because its endpoints are still the
+departing sheet's until `onDataReady()` parses the arriving ones, so that refresh would read the new rows
+with the old configuration. The plugins that defer today:
 ColumnSummary (endpoints), ColumnSorting and MultiColumnSorting (the `initialConfig` sort), CustomBorders
 (the declared borders), MergeCells (the settings pass, run by SheetsBar), NestedRows (the data check),
 Formulas (bind only, no sheet fill), Pagination (the page state), EmptyDataState (the overlay toggle) and
