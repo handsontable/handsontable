@@ -32,6 +32,8 @@ function CustomRenderer(props: RendererProps) {
   return <div>{props.value}</div>;
 }
 
+const data = [['A1'], ['A2'], ['A3'], ['A4'], ['A5'], ['A6'], ['A7'], ['A8'], ['A9'], ['A10']];
+
 const ExampleComponent = () => {
   const [darkMode, setDarkMode] = useState(false);
 
@@ -49,7 +51,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
-        data={[['A1'], ['A2'], ['A3'], ['A4'], ['A5'], ['A6'], ['A7'], ['A8'], ['A9'], ['A10']]}
+        data={data}
         rowHeaders={true}
         autoRowSize={false}
         autoColumnSize={false}

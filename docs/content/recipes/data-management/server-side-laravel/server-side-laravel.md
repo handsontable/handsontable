@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Server-side data with Laravel
-metaTitle: Server-side data with Laravel - JavaScript Data Grid | Handsontable
-description: Connect Handsontable's dataProvider plugin to a Laravel backend -- paginated fetchRows, server-side sorting and filtering, and full CRUD with onRowsCreate, onRowsUpdate, and onRowsRemove.
+metaTitle: Server-side data with Laravel | Handsontable DataGrid for JavaScript
+description: Connect Handsontable DataGrid's dataProvider plugin to a Laravel backend -- paginated fetchRows, server-side sorting and filtering, and full CRUD with onRowsCreate, onRowsUpdate, and onRowsRemove.
 permalink: /recipes/data-management/server-side-laravel
 canonicalUrl: /recipes/data-management/server-side-laravel
 tags:
@@ -12,16 +12,16 @@ tags:
   - recipes
   - dataprovider
 react:
-  metaTitle: Server-side data with Laravel - React Data Grid | Handsontable
+  metaTitle: Server-side data with Laravel | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side data with Laravel - Angular Data Grid | Handsontable
+  metaTitle: Server-side data with Laravel | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side data with Laravel - Vue Data Grid | Handsontable
+  metaTitle: Server-side data with Laravel | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 ---
 
-This tutorial shows how to connect Handsontable's `dataProvider` plugin to a Laravel backend. You will build a product inventory grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to a Laravel database.
+This tutorial shows how to connect Handsontable DataGrid's `dataProvider` plugin to a Laravel backend. You will build a product inventory grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to a Laravel database.
 
 <a class="github-example-cta" href="https://github.com/handsontable/examples/tree/master/server-examples/laravel" target="_blank" rel="noopener noreferrer">
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -232,7 +232,7 @@ export default defineConfig({
 - The Vite dev server forwards every `/api/*` request to the Laravel server running on port 8000. Because both the HTML page and the API requests share the same origin (`localhost:5173`), the browser never sees a cross-origin request — no CORS headers are needed on the backend.
 - In production, deploy the frontend and backend behind the same reverse proxy (nginx or Apache), or configure CORS headers in `config/cors.php` for your production origin.
 
-## Step 8: Wire up Handsontable
+## Step 8: Wire up Handsontable DataGrid
 
 Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The Laravel API runs on `http://localhost:8000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 

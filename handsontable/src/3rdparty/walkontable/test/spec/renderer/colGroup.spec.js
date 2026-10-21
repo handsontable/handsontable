@@ -1,5 +1,9 @@
 describe('Walkontable.Renderer.ColGroupRenderer', () => {
   class TableRendererMock {
+    shouldPaintCell() {
+      return true;
+    }
+
     constructor() {
       this.rootDocument = document;
     }
@@ -10,6 +14,18 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
 
     isAriaEnabled() {
       return true;
+    }
+
+    hasColumnHeaders() {
+      return false;
+    }
+
+    ownsAriaColumnHeaderId() {
+      return false;
+    }
+
+    getAriaColumnHeaderIdPrefix() {
+      return '';
     }
   }
 

@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Saving data
-metaTitle: Saving data - JavaScript Data Grid | Handsontable
-description: Saving data after each change to the data set, using Handsontable's API hooks. Preserve the table's state by saving data to the local storage.
+metaTitle: Saving data | Handsontable DataGrid for JavaScript
+description: Saving data after each change to the data set, using Handsontable DataGrid's API hooks. Preserve the table's state by saving data to the local storage.
 permalink: /saving-data
 canonicalUrl: /saving-data
 tags:
@@ -10,16 +10,16 @@ tags:
   - server
   - ajax
 react:
-  metaTitle: Saving data - React Data Grid | Handsontable
+  metaTitle: Saving data | Handsontable DataGrid for React
 angular:
-  metaTitle: Saving data - Angular Data Grid | Handsontable
+  metaTitle: Saving data | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Saving data - Vue Data Grid | Handsontable
+  metaTitle: Saving data | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
 menuTag: updated
 ---
-Save data after each change to the data set, using Handsontable's API hooks. Preserve the table's state by saving data to the local storage.
+Save data after each change to the data set, using Handsontable DataGrid's API hooks. Preserve the table's state by saving data to the local storage.
 
 [[toc]]
 
@@ -72,6 +72,16 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 @[code](@/content/guides/getting-started/saving-data/vue/example1.vue)
 
 :::
+
+:::
+
+::: warning
+
+Do not call data-writing methods, such as [`setDataAtCell()`](@/api/core.md#setdataatcell), from inside a `renderer` function. A renderer controls how a cell looks. It must not change the cell's data.
+
+A data write re-renders the grid. A write from a renderer can therefore run the same renderer again. Without a guard, the recursion never ends and fails with a stack overflow error.
+
+To react to changes and save them, use the [`afterChange`](@/api/hooks.md#afterchange) hook. To learn how renderers work, see the [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) guide.
 
 :::
 

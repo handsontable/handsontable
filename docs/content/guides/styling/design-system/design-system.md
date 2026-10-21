@@ -1,7 +1,7 @@
 ---
 type: explanation
 title: Design system
-metaTitle: Design System / UI Kit - JavaScript Data Grid | Handsontable
+metaTitle: Design system | Handsontable DataGrid for JavaScript
 description: Design, prototype, and customize spreadsheet-like components with the Design System for Figma.
 permalink: /handsontable-design-system
 canonicalUrl: /handsontable-design-system
@@ -17,15 +17,15 @@ tags:
   - local variables
   - tokens
 react:
-  metaTitle: Design System / UI Kit - React Data Grid | Handsontable
+  metaTitle: Design system | Handsontable DataGrid for React
 angular:
-  metaTitle: Design System / UI Kit - Angular Data Grid | Handsontable
+  metaTitle: Design system | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Design System / UI Kit - Vue Data Grid | Handsontable
+  metaTitle: Design system | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Styling
 ---
-The Handsontable design system defines the tokens, themes, and components that control the grid visual appearance. Read this to understand how themes and CSS variables relate.
+The Handsontable DataGrid design system defines the tokens, themes, and components that control the grid visual appearance. Read this to understand how themes and CSS variables relate.
 
 [[toc]]
 
@@ -63,6 +63,12 @@ After exporting, use our [Theme Generator](https://github.com/handsontable/hands
 ## Updates frequency
 
 The design system is our primary reference when planning new features or redesigns, and it’s always kept up to date. In some cases, we update the design system independently of product releases to enhance consistency and streamline the design workflow.
+
+<!-- Filled in by public/scripts/design-system-updated.js from the docs worker
+(rule 18c in docs/cloudflare/_worker.js). Starts hidden and is revealed only
+once a real date arrives, so the page is unchanged when the Figma credentials
+are unset or Figma is unreachable. -->
+<p data-design-system-updated style="display:none">Design system - <span data-design-system-updated-date></span></p>
 
 ## Known limitations
 

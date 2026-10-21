@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — hidden-row indicator overhang on an auto-height grid</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back — a typo
+    // in the project config must be one red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document - the silently mislabeled leg this is meant to
+    // prevent. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+
+    window.htIndicators = htPick(
+      { on: true, off: false }, htParams.get('indicators'), 'on', 'indicators');
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    The vertical half of #13500 / DEV-2921, in `hiddenRows` rather than `hiddenColumns`.
+
+    The mirrored rule laid the row indicator's box out at `bottom: -2px`, 1px below the row
+    header. A grid with
+    `height: 'auto'` sizes its box to its rows, so the box is flush with the content BY
+    CONSTRUCTION — not by the coincidence the column case needs `stretchH` to arrange. The last
+    visible row header's arrow therefore lands ~1px below the table's bottom edge, `scrollHeight`
+    comes out one larger than `clientHeight`, and a grid that must never scroll itself grows a
+    vertical scrollbar. That bar then takes ~15px of width out of the master pane, while the column
+    header clone keeps the full width, and the two disagree.
+
+    Measured on `develop` before the fix: `scrollHeight - clientHeight` = 1, vertical scrollbar
+    width = 15, header clone 15px wider than the master's usable width. With `indicators: false`
+    all three are 0.
+
+    Two hidden bands, as in the column fixture: a trailing one to mark the LAST visible row header
+    with `beforeHiddenRow` (the defect), and an interior one so `afterHiddenRow` is exercised too.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The closing tag is split
+    // so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const ROWS = 20;
+    const COLS = 5;
+    // 5-7 is the interior band and 12-19 the trailing one, leaving 0-4 and 8-11 visible:
+    //   row 4  — beforeHiddenRow, the interior band follows it
+    //   row 8  — afterHiddenRow, it follows the interior band
+    //   row 11 — beforeHiddenRow, the LAST visible row: the defect's own case
+    const HIDDEN = [5, 6, 7];
+
+    for (let row = 12; row < ROWS; row++) {
+      HIDDEN.push(row);
+    }
+
+    const data = [];
+
+    for (let row = 0; row < ROWS; row++) {
+      const cells = [];
+
+      for (let col = 0; col < COLS; col++) {
+        cells.push(`R${row}C${col}`);
+      }
+
+      data.push(cells);
+    }
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const container = document.getElementById('grid');
+
+    // Linking a theme's stylesheet is not enough — every theme rule is scoped to this class.
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Fail loud: a constructor throw must reach the spec as itself, not as a locator timeout on a
+    // grid that was never built.
+    try {
+      window.hot = new Handsontable(container, {
+        data,
+        width: 600,
+        // The precondition. A grid told to size itself to its rows must never scroll itself.
+        height: 'auto',
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenRows: {
+          rows: HIDDEN,
+          indicators: window.htIndicators,
+        },
+        renderer: testIdRenderer,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

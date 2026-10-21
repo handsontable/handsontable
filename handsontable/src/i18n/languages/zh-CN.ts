@@ -121,6 +121,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: '转到下一页',
   [C.PAGINATION_LAST_PAGE]: '转到最后一页',
 
+  [C.SHEETS_BAR_SECTION]: '工作表',
+  [C.SHEETS_BAR_ADD_SHEET]: '添加工作表',
+  [C.SHEETS_BAR_ALL_SHEETS]: '所有工作表',
+  [C.SHEETS_BAR_SHEET_MENU]: '工作表操作：[name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: '工作表名称',
+  [C.SHEETS_BAR_ITEMS_DELETE]: '删除',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: '复制',
+  [C.SHEETS_BAR_ITEMS_RENAME]: '重命名',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: '右移',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: '左移',
+  [C.SHEETS_BAR_PAGE_PREV]: '向后滚动工作表',
+  [C.SHEETS_BAR_PAGE_NEXT]: '向前滚动工作表',
+  [C.SHEETS_BAR_SHEET_CHANGED]: '工作表 [name] 已激活',
+  [C.SHEETS_BAR_RENAME_REJECTED]: '工作表名称未更改：[name] 已被使用',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '工作表',
+
   [C.LOADING_TITLE]: '加载中...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '关闭',
 
@@ -138,6 +154,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '无法删除行',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '请求失败',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '重新加载',
+  [C.ROW_SELECTION_SELECT_ROW]: '选择第 [row] 行',
+  [C.ROW_SELECTION_SELECT_ALL]: '选择所有行（已选择 [selected]/[total]）',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: '全选（已勾选 [checked]/[total]）',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: '已选择第 [row] 行',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: '已取消选择第 [row] 行',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '已选择 [selected]/[total] 行',
+  [C.ROW_SELECTION_MENU_REMOVE]: '删除所选行 ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: '清除行选择',
+  [C.FREEZE_BAR_ROWS_TOP]: '顶部冻结的行',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: '底部冻结的行',
+  [C.FREEZE_BAR_COLUMNS_START]: '起始冻结的列',
+  [C.FREEZE_BAR_COLUMNS_END]: '末尾冻结的列',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展开行 [label]，显示的展开行数：[count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已折叠行 [label]',
 };
 
 export default dictionary;

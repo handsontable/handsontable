@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `minRows`, `minSpareRows`, `minCols`, and `minSpareCols` not removing the empty rows and columns they added when lowered with `updateSettings()`.",
+  "type": "fixed",
+  "issueOrPR": 13572,
+  "breaking": false,
+  "framework": "none"
+}

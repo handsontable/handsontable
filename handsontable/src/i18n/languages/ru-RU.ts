@@ -118,6 +118,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Перейти на следующую страницу',
   [C.PAGINATION_LAST_PAGE]: 'Перейти на последнюю страницу',
 
+  [C.SHEETS_BAR_SECTION]: 'Листы',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Добавить лист',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Все листы',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Действия с листом: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Имя листа',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Удалить',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Дублировать',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Переименовать',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Переместить вправо',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Переместить влево',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Прокрутить листы назад',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Прокрутить листы вперёд',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Лист [name] активирован',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Имя листа не изменено: [name] уже используется',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Лист',
+
   [C.LOADING_TITLE]: 'Загрузка...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Закрыть',
 
@@ -135,6 +151,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Не удалось удалить строки',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Запрос не выполнен',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Повторить загрузку',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Выбрать строку [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Выбрать все строки (выбрано [selected] из [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Отметить все (отмечено [checked] из [total])',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Строка [row] выбрана',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Выбор строки [row] снят',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Выбрано [selected] из [total] строк',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Удалить выбранные строки ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Снять выбор строк',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Закреплённые строки сверху',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Закреплённые строки снизу',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Закреплённые столбцы в начале',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Закреплённые столбцы в конце',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Развёрнута строка [label], показано развёрнутых строк: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Свёрнута строка [label]',
 };
 
 export default dictionary;

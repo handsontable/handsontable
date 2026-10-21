@@ -1,6 +1,6 @@
 ---
 title: Export to PDF
-metaTitle: Export Handsontable to PDF - JavaScript Data Grid | Handsontable
+metaTitle: Export Handsontable to PDF | Handsontable DataGrid for JavaScript
 description: Export grid data to a downloadable PDF with jsPDF and jspdf-autotable, including headers and multi-page tables.
 permalink: /recipes/import-export/export-to-pdf
 canonicalUrl: /recipes/import-export/export-to-pdf
@@ -9,11 +9,11 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Export Handsontable to PDF - React Data Grid | Handsontable
+  metaTitle: Export Handsontable to PDF | Handsontable DataGrid for React
 angular:
-  metaTitle: Export Handsontable to PDF - Angular Data Grid | Handsontable
+  metaTitle: Export Handsontable to PDF | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Export Handsontable to PDF - Vue Data Grid | Handsontable
+  metaTitle: Export Handsontable to PDF | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Import and Export
 type: how-to
@@ -58,7 +58,7 @@ In this tutorial, you will export grid data to a downloadable PDF using jsPDF an
 
 ## Overview
 
-This recipe shows how to export the current Handsontable data to a PDF file when the user clicks **Export to PDF**. The recommended approach is [jsPDF](https://github.com/parallax/jsPDF) with [jspdf-autotable](https://github.com/simonbengtsson/jsPDF-AutoTable), which builds a real PDF table from your data so text stays selectable and accessible.
+This recipe shows how to export the current data of Handsontable DataGrid to a PDF file when the user clicks **Export to PDF**. The recommended approach is [jsPDF](https://github.com/parallax/jsPDF) with [jspdf-autotable](https://github.com/simonbengtsson/jsPDF-AutoTable), which builds a real PDF table from your data so text stays selectable and accessible.
 
 **Difficulty:** Beginner
 **Time:** ~20 minutes
@@ -106,7 +106,7 @@ registerAllModules();
 - `jsPDF` is the PDF document constructor
 - `autoTable` is the plugin function that draws a formatted table into the document
 
-## Step 2: Set up Handsontable
+## Step 2: Set up Handsontable DataGrid
 
 ```javascript
 const container = document.querySelector('#example1');
@@ -332,3 +332,9 @@ You can capture the grid DOM with [html2canvas](https://github.com/niklasvh/html
 
 - Explore [Import from CSV or Excel](@/recipes/import-export/import-csv-excel/import-csv-excel.md) to add the complementary import flow alongside your export feature.
 - Explore the [ExportFile plugin](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md) for built-in Excel export support without a third-party library.
+
+---
+
+::: tip Trademark notice
+Microsoft® and Excel® are registered trademarks of Microsoft Corporation.
+:::

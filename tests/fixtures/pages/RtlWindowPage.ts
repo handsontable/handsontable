@@ -65,6 +65,34 @@ export class RtlWindowPage {
     }));
   }
 
+  /**
+   * The visual row indices the MASTER currently renders, read out of the DOM.
+   *
+   * The rendered band moves with the theme's row height and with any change to
+   * the grid's own vertical accounting, so a hardcoded row index near its edge
+   * resolves to nothing on some legs and fails for a reason that has nothing to
+   * do with the behavior under test (`tests/AGENTS.md`, "never hardcode a row or
+   * column index that sits near the edge of the rendered band").
+   *
+   * @returns {Promise<number[]>} The rendered visual row indices, ascending.
+   */
+  async masterRenderedRows(): Promise<number[]> {
+    return this.page.evaluate(() => {
+      const master = document.querySelector('[data-testid="grid"] .ht_master');
+      const rows = new Set<number>();
+
+      master?.querySelectorAll('td[data-testid^="cell-"]').forEach((cell) => {
+        const row = Number(cell.getAttribute('data-testid')!.split('-')[1]);
+
+        if (Number.isInteger(row)) {
+          rows.add(row);
+        }
+      });
+
+      return [...rows].sort((a, b) => a - b);
+    });
+  }
+
   /** Bounding box of a locator, throwing when it is not rendered. */
   async box(locator: Locator): Promise<{ x: number, y: number, width: number, height: number }> {
     const b = await locator.boundingBox();

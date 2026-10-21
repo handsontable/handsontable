@@ -94,7 +94,25 @@ hot.getColWidth(123) === 123;
 hot.getColWidth(123, 'my_source') === 123;
 hot.getCoords(elem.querySelector('td')!)!.row === 0;
 hot.getCopyableData(123, 123).toUpperCase();
-hot.getCopyableSourceData(123, 123).toUpperCase();
+
+// `getCopyableSourceData` hands back the source value as it is stored, so it needs narrowing.
+const copyableSourceData = hot.getCopyableSourceData(123, 123);
+
+if (typeof copyableSourceData === 'string') {
+  copyableSourceData.toUpperCase();
+}
+
+// Pins the widening. `0 extends 1 & T` holds only for `any`, so that case is rejected first, and
+// `unknown extends T` then holds only for `unknown` itself. Narrowing the return type back to `string`,
+// or loosening it to `any`, fails the assignment. The narrowing block above compiles against both.
+const copyableSourceDataIsUnknown: 0 extends 1 & ReturnType<HotInstance['getCopyableSourceData']>
+  ? false : unknown extends ReturnType<HotInstance['getCopyableSourceData']> ? true : false = true;
+
+copyableSourceDataIsUnknown === true;
+
+// `_getCopyableData` is internal, so it must stay off the public `HotInstance` type.
+// @ts-expect-error `_getCopyableData` is not a declared `HotInstance` method, so it is not callable.
+hot._getCopyableData(123, 123);
 (hot as any).getCopyableText(123, 123, 123, 123).toUpperCase();
 hot.getData(123, 123, 123, 123).forEach((v) => {});
 hot.getDataAtCell(123, 123) === '';
@@ -229,6 +247,16 @@ hot.toPhysicalColumn(123) === 123;
 hot.toPhysicalRow(123) === 123;
 hot.toVisualColumn(123) === 123;
 hot.toVisualRow(123) === 123;
+const rowId: unknown = hot.getRowId(123);
+const visualRowById: number | null = hot.getVisualRowById(rowId);
+const physicalRowById: number | null = hot.getPhysicalRowById('id');
+const physicalRowId: unknown = hot.getRowIdAtPhysicalRow(3);
+const rowIds: unknown[] = hot.getRowIds([0, 1]);
+const allRowIds: unknown[] = hot.getRowIds();
+const visualRowsByIds: Array<number | null> = hot.getVisualRowsByIds(['a', 1]);
+const physicalRowsByIds: Array<number | null> = hot.getPhysicalRowsByIds(['a', 1]);
+const rowIdWritten: boolean = hot.setDataAtRowIdProp('a', 'name', 'value', 'asyncResult');
+
 hot.unlisten();
 (hot as any).updateData([[1, 2, 3], [1, 2, 3]]);
 (hot as any).updateData([{ a: 'a', b: 2, c: '' }, { a: 'a', b: 2, c: '' }]);

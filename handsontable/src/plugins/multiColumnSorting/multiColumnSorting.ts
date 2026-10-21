@@ -4,9 +4,9 @@ import {
 } from '../columnSorting';
 import type { HeaderSortPress, SortConfig } from '../columnSorting/columnSorting';
 import type { ColumnStatesManager } from '../columnSorting/columnStatesManager';
-import { registerRootComparator } from '../columnSorting/sortService/registry';
+import { markBuiltInRootComparator, registerRootComparator } from '../columnSorting/sortService/registry';
 import { addClass, removeClass } from '../../helpers/dom/element';
-import { rootComparator } from './rootComparator';
+import { positionComparator, rootComparator } from './rootComparator';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 
@@ -15,6 +15,7 @@ export const PLUGIN_PRIORITY = 170;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
+markBuiltInRootComparator(rootComparator, positionComparator);
 
 /**
  * @plugin MultiColumnSorting
@@ -45,6 +46,7 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
  *   sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table (by default)
  *   indicator: true, // true = shows indicator for all columns (by default), false = don't show indicator for columns
  *   headerAction: true, // true = allow to click on the headers to sort (by default), false = turn off possibility to click on the headers to sort
+ *   sortFixedRows: false, // false = rows pinned by `fixedRowsTop` and `fixedRowsBottom` keep their place (by default), true = the whole dataset is sorted, pinned rows included
  *   compareFunctionFactory: function(sortOrder, columnMeta) {
  *     return function(value, nextValue) {
  *       // Some value comparisons which will return -1, 0 or 1...
@@ -101,7 +103,7 @@ export class MultiColumnSorting extends ColumnSorting {
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link MultiColumnSorting#enablePlugin} method is called.
-   * When [[Options#dataProvider]] is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
+   * When {@link Options#dataProvider} is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
    *
    * @returns {boolean}
    */

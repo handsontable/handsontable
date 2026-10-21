@@ -10,11 +10,14 @@
           gap: 5px;
         }
 
-        span {
-          &:last-child {
-            padding-left: calc(var(--ht-icon-size) + 5px);
-          }
+        // Lines a leaf row's label up with the labels of rows that have a button. Direct children
+        // only: an `icons` renderer callback can put a `span` inside the button's icon, and this
+        // padding pushed it out of the button.
+        > .relative > span:last-child {
+          padding-left: calc(var(--ht-icon-size) + 5px);
+        }
 
+        span {
           &.ht_nestingLevel {
             display: inline-block;
 

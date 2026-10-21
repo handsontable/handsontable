@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Column header border ownership e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-2786, the row-axis twin of #6673. With column headers on, the first rendered body row draws
+    a 1px border-top on top of the border-bottom every cell carries, and `box-sizing: border-box`
+    takes both out of the same row height - so the first rendered row's content box is 1px shorter
+    than everybody else's. The column header drops its own border-bottom at scroll offset 0 to keep
+    the seam from doubling, and the engine gives it back (`innerBorderTop`) the moment the grid
+    scrolls - so the header, and the whole table, change height by scrolling.
+
+    Every grid is taller than its container, so the same readings can be taken before and after a
+    vertical scroll.
+  -->
+  <h2>Column headers (the reported case)</h2>
+  <div id="column-headers" data-testid="column-headers"></div>
+
+  <h2>Column headers with a frozen first row</h2>
+  <div id="frozen" data-testid="frozen"></div>
+
+  <h2>Column headers with a frozen bottom row</h2>
+  <div id="frozen-bottom" data-testid="frozen-bottom"></div>
+
+  <h2>Column headers with nested headers</h2>
+  <div id="nested" data-testid="nested"></div>
+
+  <h2>Column headers with autoRowSize</h2>
+  <div id="auto-row-size" data-testid="auto-row-size"></div>
+
+  <h2>No column headers (control)</h2>
+  <div id="control" data-testid="control"></div>
+
+  <h2>Column headers, no data rows</h2>
+  <div id="empty" data-testid="empty"></div>
+
+  <h2>Two row headers</h2>
+  <div id="multi-row-headers" data-testid="multi-row-headers"></div>
+
+  <h2>Column headers with preventOverflow: 'horizontal'</h2>
+  <div id="prevent-overflow" data-testid="prevent-overflow"></div>
+
+  <h2>colHeaders: false with nested headers (a plugin-supplied head row)</h2>
+  <div id="plugin-headers" data-testid="plugin-headers"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    // Far more rows than fit, so there is always somewhere to scroll to.
+    const TOTAL_ROWS = 60;
+
+    /**
+     * Builds one grid.
+     *
+     * @param {string} testId The container's test id.
+     * @param {object} settings The settings under test.
+     * @returns {Handsontable} The grid instance.
+     */
+    function buildGrid(testId, settings) {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      return new Handsontable(container, Object.assign({
+        data: Handsontable.helper.createSpreadsheetData(TOTAL_ROWS, 6),
+        colHeaders: true,
+        rowHeaders: true,
+        width: 500,
+        height: 300,
+        licenseKey: 'non-commercial-and-evaluation',
+      }, settings));
+    }
+
+    /**
+     * Appends a second row header column through the documented hook.
+     */
+    const SECOND_ROW_HEADER = {
+      afterGetRowHeaderRenderers(renderers) {
+        renderers.push((row, TH) => {
+          TH.textContent = `#${row}`;
+        });
+      },
+    };
+
+    window.grids = {
+      columnHeaders: buildGrid('column-headers', {}),
+      frozen: buildGrid('frozen', { fixedRowsTop: 1 }),
+      frozenBottom: buildGrid('frozen-bottom', { fixedRowsBottom: 1 }),
+      nested: buildGrid('nested', {
+        nestedHeaders: [
+          [{ label: 'Group', colspan: 2 }, { label: 'Pair', colspan: 2 }, 'E', 'F'],
+          ['A', 'B', 'C', 'D', 'E2', 'F2'],
+        ],
+      }),
+      autoRowSize: buildGrid('auto-row-size', { autoRowSize: true }),
+      control: buildGrid('control', { colHeaders: false }),
+      empty: buildGrid('empty', { data: [], columns: [{}, {}, {}] }),
+      multiRowHeaders: buildGrid('multi-row-headers', { ...SECOND_ROW_HEADER }),
+      // The one configuration where the engine never stamped `innerBorderTop`, whatever the scroll
+      // offset: `TopOverlay#adjustHeaderBordersPosition` returns early on it. So it was the shape
+      // where the header had NO bottom border at any offset, and the first body row was the only
+      // thing drawing the seam. The header owns it here too now, which is what makes this a control.
+      preventOverflow: buildGrid('prevent-overflow', { preventOverflow: 'horizontal' }),
+      // `colHeaders: false` and yet a rendered head row: NestedHeaders replaces the column-header
+      // renderers through `afterGetColumnHeaderRenderers` whenever it holds a layer, and never
+      // consults `colHeaders`. So `hasColHeaders()` is false while the `thead` is not empty, and any
+      // row-height compensation keyed on the SETTING rather than on the rendered header count adds a
+      // pixel that is not there.
+      pluginHeaders: buildGrid('plugin-headers', {
+        colHeaders: false,
+        nestedHeaders: [
+          [{ label: 'Group', colspan: 2 }, { label: 'Pair', colspan: 2 }, 'E', 'F'],
+          ['A', 'B', 'C', 'D', 'E2', 'F2'],
+        ],
+      }),
+    };
+
+    /**
+     * Scrolls one grid vertically so a row well past the first is at the viewport's top.
+     *
+     * @param {string} name The grid's key in `window.grids`.
+     * @param {number} row The visual row index to snap to the top.
+     */
+    window.scrollVerticallyTo = function(name, row) {
+      window.grids[name].scrollViewportTo({ row, verticalSnap: 'top' });
+    };
+  </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Feedback
-metaTitle:  Feedback Cell Type - React Data Grid | Handsontable
-description: Learn how to create a custom feedback cell type in React using EditorComponent—emoji buttons (e.g. thumbs up/down/neutral) for quick selection, keyboard navigation, and per-column config.
+metaTitle: Feedback | Handsontable DataGrid for JavaScript
+description: Learn how to create a custom feedback cell type in React using EditorComponent -- emoji buttons (e.g. thumbs up/down/neutral) for quick selection, keyboard navigation, and per-column config.
 permalink: /recipes/cell-types/feedback-react
 canonicalUrl: /recipes/cell-types/feedback-react
 framework: react
@@ -11,15 +11,15 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Feedback Cell Type - React Data Grid | Handsontable
+  metaTitle: Feedback | Handsontable DataGrid for React
 angular:
-  metaTitle: Feedback Cell Type - Angular Data Grid | Handsontable
+  metaTitle: Feedback | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Cell Types
 ---
 
-This tutorial shows you how to build an emoji feedback cell in React using Handsontable's `EditorComponent`, with per-column configuration and keyboard navigation.
+This tutorial shows you how to build an emoji feedback cell in React using Handsontable DataGrid's `EditorComponent`, with per-column configuration and keyboard navigation.
 
 ::: only-for react
 
@@ -429,7 +429,7 @@ const FeedbackEditor = () => {
 - **Render prop**: Renders buttons based on config
 - **Styling**: CSS-in-JS for editor appearance
 
-## Step 7: Use in Handsontable
+## Step 7: Use in Handsontable DataGrid
 
 Use the editor component in your `HotTable`:
 

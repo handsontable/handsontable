@@ -120,6 +120,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'الانتقال إلى الصفحة التالية',
   [C.PAGINATION_LAST_PAGE]: 'الانتقال إلى الصفحة الأخيرة',
 
+  [C.SHEETS_BAR_SECTION]: 'الأوراق',
+  [C.SHEETS_BAR_ADD_SHEET]: 'إضافة ورقة',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'كل الأوراق',
+  [C.SHEETS_BAR_SHEET_MENU]: 'إجراءات الورقة: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'اسم الورقة',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'حذف',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'تكرار',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'إعادة تسمية',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'نقل لليمين',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'نقل لليسار',
+  [C.SHEETS_BAR_PAGE_PREV]: 'تمرير الأوراق للخلف',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'تمرير الأوراق للأمام',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'تم تنشيط الورقة [name]',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'لم يتم تغيير اسم الورقة: [name] مستخدم بالفعل',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'ورقة',
+
   [C.LOADING_TITLE]: 'جاري التحميل...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'إغلاق',
 
@@ -137,6 +153,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'تعذر إزالة الصفوف',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'فشل الطلب',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'إعادة التحميل',
+  [C.ROW_SELECTION_SELECT_ROW]: 'تحديد الصف [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'تحديد كل الصفوف (تم تحديد [selected] من [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'تحديد الكل ([checked] من [total] محدد)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'تم تحديد الصف [row]',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'تم إلغاء تحديد الصف [row]',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'تم تحديد [selected] من [total] صفوف',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'إزالة الصفوف المحددة ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'مسح تحديد الصفوف',
+  [C.FREEZE_BAR_ROWS_TOP]: 'الصفوف المجمّدة في الأعلى',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'الصفوف المجمّدة في الأسفل',
+  [C.FREEZE_BAR_COLUMNS_START]: 'الأعمدة المجمّدة في البداية',
+  [C.FREEZE_BAR_COLUMNS_END]: 'الأعمدة المجمّدة في النهاية',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'تم توسيع الصف [label]، الصفوف الموسّعة المعروضة: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'تم طي الصف [label]',
 };
 
 export default dictionary;

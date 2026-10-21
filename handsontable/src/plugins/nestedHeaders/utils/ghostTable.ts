@@ -1,10 +1,10 @@
 import type { HotInstance } from '../../../core/types';
-import type { GridSettings } from '../../../core/settings';
 import type StateManager from '../stateManager';
 import type TreeNode from '../../../utils/dataStructures/tree';
 import type { HeaderSettings } from '../stateManager/headersTree';
-
-type SanitizerFn = (value: unknown, context: string) => string;
+import { fastInnerHTML } from '../../../helpers/dom/element';
+import { getSanitizer } from '../../../utils/sanitizer';
+import { createIcon } from '../../../themes/engine/icons';
 
 /**
  * The class generates the nested headers structure in the DOM and reads the column width for
@@ -174,6 +174,10 @@ class GhostTable {
 
     this.container.remove();
     this.container = null;
+
+    // The widths map feeds `modifyColWidth`. The engine's column width cache compares only the
+    // column count, so a width-only change stays invisible to it unless it is dropped here.
+    this.hot.view?.invalidateColumnWidthCache();
   }
 
   /**
@@ -218,35 +222,25 @@ class GhostTable {
    * @param {HTMLElement} container The element where the DOM nodes are injected.
    */
   #buildGhostTable(container: HTMLElement) {
-    type GridSettingsWithSanitizer = GridSettings & { sanitizer?: (value: unknown, context: string) => string };
-    const settings = this.hot.getSettings() as GridSettingsWithSanitizer;
+    const settings = this.hot.getSettings();
     const isDropdownEnabled = !!settings.dropdownMenu;
     const isCollapsibleEnabled = !!settings.collapsibleColumns;
     const maxColumnsCount = this.hot.countCols();
-    const sanitizer = settings.sanitizer;
+    const { rootDocument } = this.hot;
 
-    container.innerHTML = this.#buildRenderedTableHTML(
-      maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled, sanitizer
-    );
-  }
+    // Built as DOM rather than assembled as an HTML string and assigned to `innerHTML`.
+    // `innerHTML` is a Trusted Types sink, so the string form made a grid with
+    // `nestedHeaders` fail to construct at all under `require-trusted-types-for 'script'`
+    // - this table is built during initialization, so it was the first thing to throw.
+    // `createElement` and `setAttribute` are not sinks, and behave identically on browsers
+    // that do not implement Trusted Types.
+    const table = rootDocument.createElement('table');
+    const thead = rootDocument.createElement('thead');
 
-  /**
-   * Build HTML string for a table that mirrors the main table (colspans, only visible roots).
-   *
-   * @param {number} maxColumnsCount Total column count.
-   * @param {boolean} isDropdownEnabled Whether dropdown menu is enabled.
-   * @param {boolean} isCollapsibleEnabled Whether collapsible columns are enabled.
-   * @param {Function|undefined} sanitizer The sanitizer function.
-   * @returns {string} HTML string for the rendered table.
-   */
-  #buildRenderedTableHTML(
-    maxColumnsCount: number, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean,
-    sanitizer: SanitizerFn | undefined
-  ) {
-    let rowsHTML = '';
+    table.setAttribute('data-ghost-table', 'rendered');
 
     for (let row = 0; row < this.layersCount; row++) {
-      let cellsHTML = '';
+      const tr = rootDocument.createElement('tr');
 
       for (let col = 0; col < maxColumnsCount; col++) {
         const headerSettings = this.headersStateManager.getHeaderSettings(row, col);
@@ -256,46 +250,92 @@ class GhostTable {
           !headerSettings.isPlaceholder && !headerSettings.isHidden &&
           !headerSettings.isRowspanPlaceholder
         ) {
-          const rowspanAttr = (headerSettings.rowspan ?? 0) > 1
-            ? ` rowspan="${headerSettings.rowspan}"`
-            : '';
+          const th = rootDocument.createElement('th');
 
-          cellsHTML += `<th data-column="${col}" colspan="${headerSettings.colspan}"${rowspanAttr}>${
-            this.#buildHeaderLabelHTML(headerSettings, isDropdownEnabled, isCollapsibleEnabled, sanitizer)
-          }</th>`;
+          th.setAttribute('data-column', String(col));
+          th.setAttribute('colspan', String(headerSettings.colspan));
+
+          if ((headerSettings.rowspan ?? 0) > 1) {
+            th.setAttribute('rowspan', String(headerSettings.rowspan));
+          }
+
+          th.appendChild(this.#buildHeaderLabel(headerSettings, isDropdownEnabled, isCollapsibleEnabled));
+          tr.appendChild(th);
         }
       }
 
-      rowsHTML += `<tr>${cellsHTML}</tr>`;
+      thead.appendChild(tr);
     }
 
-    return `<table data-ghost-table="rendered"><thead>${rowsHTML}</thead></table>`;
+    table.appendChild(thead);
+    container.appendChild(table);
   }
 
   /**
-   * Build header cell content HTML string.
+   * Build the header cell content, mirroring what the main table renders into a header.
    *
    * @param {object} headerSettings Header settings (label, colspan, etc).
    * @param {boolean} isDropdownEnabled Whether dropdown menu is enabled.
    * @param {boolean} isCollapsibleEnabled Whether collapsible columns are enabled.
-   * @param {Function|undefined} sanitizer The sanitizer function.
-   * @returns {string} HTML string for the header label.
+   * @returns {HTMLElement} The header label element.
    */
-  #buildHeaderLabelHTML(
-    headerSettings: HeaderSettings, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean,
-    sanitizer: SanitizerFn | undefined
+  #buildHeaderLabel(
+    headerSettings: HeaderSettings, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean
   ) {
-    const label = typeof sanitizer === 'function'
-      ? sanitizer(headerSettings.label, 'innerHTML')
-      : headerSettings.label;
-    const dropdownHtml = isDropdownEnabled ? '<button class="changeType"></button>' : '';
+    const { rootDocument } = this.hot;
+    const relative = rootDocument.createElement('div');
+    const colHeader = rootDocument.createElement('span');
+
+    relative.className = 'relative';
+    colHeader.className = 'colHeader';
+
+    // The label is written through the very function the main table uses in
+    // `updateCellHeader()`, with the same `'header'` context, sanitizer, and warning scope.
+    // That parity used to be reproduced by hand here - the `HTML_CHARACTERS` gate and the
+    // context both had to be mirrored, or the measured label and the rendered one could
+    // differ and the column would be sized against a string the user never sees. Calling
+    // `fastInnerHTML` makes the parity structural instead, so the two cannot drift.
+    //
+    // It also keeps a `TrustedHTML` intact. A sanitizer that returns one hands it straight
+    // to the sink; the previous version concatenated the sanitized label into the
+    // surrounding markup, which collapses a `TrustedHTML` back to a plain string and throws.
+    //
+    // `String()` mirrors `updateCellHeader()` too: `label` is typed `string`, but it comes
+    // from user configuration, so `nestedHeaders: [[2024]]` puts a number there.
+    fastInnerHTML(
+      colHeader, String(headerSettings.label), getSanitizer(this.hot), 'header', this.hot.rootElement
+    );
+
+    relative.appendChild(colHeader);
+
+    if (isDropdownEnabled) {
+      const button = rootDocument.createElement('button');
+
+      button.className = 'changeType';
+      relative.appendChild(button);
+    }
+
     const hasCollapsibleControl = isCollapsibleEnabled &&
       (headerSettings.origColspan > 1 || headerSettings.colspan > 1);
-    const indicatorHtml = hasCollapsibleControl
-      ? '<div class="collapsibleIndicator expanded">-</div>'
-      : '';
 
-    return `<div class="relative"><span class="colHeader">${label}</span>${dropdownHtml}${indicatorHtml}</div>`;
+    if (hasCollapsibleControl) {
+      const indicator = rootDocument.createElement('div');
+
+      indicator.className = 'collapsibleIndicator expanded';
+      indicator.textContent = '-';
+
+      // Mirrors `CollapsibleColumns#onAfterGetColHeader`: the real indicator always
+      // carries a `.ht-icon` child, appended after the text is set (`textContent =` wipes children
+      // the same way `fastInnerText` does). `.collapsibleIndicator`'s own box is sized by the
+      // `--ht-icon-button-hit-area-size` custom property, not by its content, so this element does
+      // not change the measured column width - it is added for DOM parity with the real header,
+      // the same reason every other node here (`.relative`, `.colHeader`, `.changeType`) mirrors
+      // the real table instead of only approximating it.
+      indicator.appendChild(createIcon(this.hot, 'collapseOff'));
+      relative.appendChild(indicator);
+    }
+
+    return relative;
   }
 
   /**
@@ -304,6 +344,7 @@ class GhostTable {
   clear() {
     this.widthsMap.clear();
     this.container = null;
+    this.hot.view?.invalidateColumnWidthCache();
   }
 }
 

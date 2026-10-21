@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Server-side Data with NestJS
-metaTitle: Server-side Data with NestJS - JavaScript Data Grid | Handsontable
-description: Wire Handsontable's dataProvider plugin to a NestJS 10 backend with paginated, sorted, and filtered server-side data and full CRUD operations backed by PostgreSQL via TypeORM.
+metaTitle: Server-side Data with NestJS | Handsontable DataGrid for JavaScript
+description: Wire Handsontable DataGrid's dataProvider plugin to a NestJS 10 backend with paginated, sorted, and filtered server-side data and full CRUD operations backed by PostgreSQL via TypeORM.
 permalink: /recipes/data-management/server-side-nestjs
 canonicalUrl: /recipes/data-management/server-side-nestjs
 tags:
@@ -12,16 +12,16 @@ tags:
   - typescript
   - recipes
 react:
-  metaTitle: Server-side data with NestJS - React Data Grid | Handsontable
+  metaTitle: Server-side Data with NestJS | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side Data with NestJS - Angular Data Grid | Handsontable
+  metaTitle: Server-side Data with NestJS | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side Data with NestJS - Vue Data Grid | Handsontable
+  metaTitle: Server-side Data with NestJS | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 ---
 
-This tutorial shows how to wire Handsontable's `dataProvider` plugin to a NestJS 10 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations using an in-memory store.
+This tutorial shows how to wire Handsontable DataGrid's `dataProvider` plugin to a NestJS 10 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations using an in-memory store.
 
 ::: tip Handsontable sponsors NestJS
 Handsontable is a proud sponsor of NestJS. You can support the project on [Open Collective](https://opencollective.com/handsontable-javascript-data-grid).
@@ -234,7 +234,7 @@ Copy `tickets.controller.ts` into `src/tickets/`:
 | `PATCH` | `/tickets` | `onRowsUpdate` |
 | `DELETE` | `/tickets` | `onRowsRemove` |
 
-## Step 7: Wire up Handsontable
+## Step 7: Wire up Handsontable DataGrid
 
 Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The NestJS API runs on `http://localhost:3000`; Vite proxies all `/tickets` requests to it. The complete frontend code is below.
 

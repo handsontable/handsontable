@@ -6,7 +6,7 @@ import { isKey } from '../../../helpers/unicode';
 import { clone } from '../../../helpers/object';
 import * as C from '../../../i18n/constants';
 import { BaseComponent } from './_base';
-import getOptionsList, { CONDITION_NONE } from '../constants';
+import { CONDITION_NONE } from '../constants';
 import { InputUI } from '../ui/input';
 import { SelectUI } from '../ui/select';
 import { getConditionDescriptor } from '../conditionRegisterer';
@@ -17,6 +17,7 @@ interface ConditionDescriptor {
   name?: string;
   inputsCount?: number;
   inputType?: string;
+  inputTypeByColumnType?: Record<string, string>;
   [key: string]: unknown;
 }
 
@@ -37,6 +38,10 @@ export class ConditionComponent extends BaseComponent {
    */
   name: string | (() => string) = '';
   /**
+   * The data type of the column the menu is open for, computed once by `reset()`.
+   */
+  #columnType: string | undefined;
+  /**
    * @type {boolean}
    */
   addSeparator = false;
@@ -45,11 +50,13 @@ export class ConditionComponent extends BaseComponent {
    * Initializes the condition component with the given ID, display name, separator flag, and optional menu container.
    */
   constructor(hotInstance: HotInstance, options: {
-    id: string; name: string | (() => string); addSeparator: boolean; menuContainer?: HTMLElement
+    id: string; name: string | (() => string); addSeparator: boolean; menuContainer?: HTMLElement;
+    hiddenWhen?: (() => boolean);
   }) {
     super(hotInstance, {
       id: options.id,
       stateless: false,
+      hiddenWhen: options.hiddenWhen,
     });
 
     this.name = options.name;
@@ -96,6 +103,8 @@ export class ConditionComponent extends BaseComponent {
     }
 
     this.getSelectElement().setValue(copyOfCommand);
+    const inputType = this.#getInputType(copyOfCommand);
+
     arrayEach(value.args, (arg, index) => {
       if (index > (copyOfCommand.inputsCount ?? 0) - 1) {
         return false;
@@ -103,7 +112,7 @@ export class ConditionComponent extends BaseComponent {
 
       const element = this.getInputElement(index);
 
-      element.setType(copyOfCommand.inputType ?? 'text');
+      element.setType(inputType);
       element.setValue(arg);
       element[(copyOfCommand.inputsCount ?? 0) > index ? 'show' : 'hide']();
 
@@ -195,7 +204,7 @@ export class ConditionComponent extends BaseComponent {
       name: this.name,
       isCommand: false,
       disableSelection: true,
-      hidden: () => this.isHidden(),
+      hidden: () => this.isHiddenInMenu(),
       renderer: (
         hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string
       ) => {
@@ -237,12 +246,17 @@ export class ConditionComponent extends BaseComponent {
    */
   reset() {
     const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
-    let items = [getConditionDescriptor(CONDITION_NONE)];
+    // A copy, because `setItems()` translates the names in place and the descriptor is shared.
+    let items = [{ ...getConditionDescriptor(CONDITION_NONE) }];
 
-    if (selectedColumn !== null) {
+    this.#columnType = undefined;
+
+    if (selectedColumn !== null && this.hot) {
       const { visualIndex } = selectedColumn;
+      const filters = this.hot.getPlugin('filters');
 
-      items = getOptionsList(this.hot?.getDataType(0, visualIndex, this.hot.countRows(), visualIndex) ?? 'text');
+      this.#columnType = filters._getColumnDataType(visualIndex);
+      items = filters._getConditionOptions(visualIndex, this.#columnType);
     }
 
     arrayEach(this.getInputElements(), element => element.hide());
@@ -253,13 +267,35 @@ export class ConditionComponent extends BaseComponent {
   }
 
   /**
+   * Gets the native type of the argument inputs for the given condition. A condition shared by
+   * several column types can declare a different type per column type, which takes precedence over
+   * its own `inputType`.
+   *
+   * @param {object} command The condition descriptor.
+   * @returns {string}
+   */
+  #getInputType(command: ConditionDescriptor): string {
+    if (command.inputTypeByColumnType) {
+      const inputType = this.#columnType ? command.inputTypeByColumnType[this.#columnType] : undefined;
+
+      if (inputType) {
+        return inputType;
+      }
+    }
+
+    return command.inputType ?? 'text';
+  }
+
+  /**
    * On condition select listener.
    *
    * @param {object} command Menu item object (command).
    */
   #onConditionSelect(command: ConditionDescriptor) {
+    const inputType = this.#getInputType(command);
+
     arrayEach(this.getInputElements(), (element, index) => {
-      element.setType(command.inputType ?? 'text');
+      element.setType(inputType);
       element[(command.inputsCount ?? 0) > index ? 'show' : 'hide']();
 
       if (index === 0) {

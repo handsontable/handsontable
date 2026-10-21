@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a console warning when the data source has rows but Handsontable cannot find any columns in it, because the first row of `data` has no fields and neither `columns` nor `dataSchema` is set.",
+  "type": "added",
+  "issueOrPR": 13637,
+  "breaking": false,
+  "framework": "none"
+}

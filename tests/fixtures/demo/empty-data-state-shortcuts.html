@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } #grid { width: 700px; height: 320px; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for DEV-2917 (found in DEV-53): the emptyDataState overlay owns its own shortcut
+    context, so every grid shortcut used to die while the overlay was on screen. Removing all rows
+    and hiding all columns are the two ways to reach that state through the UI.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    // The build runs inside try/catch and parks the message on `window.htFixtureError`, which the
+    // page object rethrows. Without it a constructor throw surfaces only as "element(s) not found"
+    // on whichever assertion came first, which says nothing about the cause.
+    try {
+      var COLUMN_NAMES = ['A', 'B', 'C', 'D', 'E'];
+      // Built here rather than through `Handsontable.helper`, so the fixture depends on the
+      // constructor alone - the one thing `awaitBundle()` proves is present. The sixth column is a
+      // checkbox: `checkboxRenderer` registers space/enter/delete into the GRID context, so the
+      // overlay inherits those too and they need the same guard as the grid's own.
+      var data = Array.from({ length: 8 }, function(_, row) {
+        return COLUMN_NAMES.map(function(name) { return name + (row + 1); }).concat([row % 2 === 0]);
+      });
+
+      var container = document.querySelector('[data-testid="grid"]');
+
+      container.className = 'ht-theme-' + window.htTheme;
+
+      window.hot = new Handsontable(container, {
+        data: data,
+        columns: [{}, {}, {}, {}, {}, { type: 'checkbox' }],
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        hiddenColumns: { indicators: true },
+        // `Ctrl`+`M` un-merges by clearing every cell but the top-left one, and it is registered into
+        // the GRID context - so an overlay that inherits the grid's shortcuts reaches it.
+        mergeCells: true,
+        undo: true,
+        emptyDataState: true,
+        // A modal surface to test that re-registering the overlay's scope does not take the keyboard
+        // away from whatever actually owns it.
+        dialog: true,
+        // Stamped from a hook rather than a grid-wide `renderer`, which would replace the checkbox
+        // column's own renderer and take the case under test with it.
+        afterRenderer: function(td, row, col) {
+          td.setAttribute('data-testid', 'cell-' + row + '-' + col);
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htFixtureError = String(error && error.message ? error.message : error);
+    }
+  </script>
+</body>
+</html>

@@ -124,6 +124,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Ga naar volgende pagina',
   [C.PAGINATION_LAST_PAGE]: 'Ga naar laatste pagina',
 
+  [C.SHEETS_BAR_SECTION]: 'Bladen',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Blad toevoegen',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Alle bladen',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Bladacties: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Bladnaam',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Verwijderen',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Dupliceren',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Naam wijzigen',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Naar rechts verplaatsen',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Naar links verplaatsen',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Bladen terug scrollen',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Bladen vooruit scrollen',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Blad [name] geactiveerd',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Bladnaam niet gewijzigd: [name] is al in gebruik',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Blad',
+
   [C.LOADING_TITLE]: 'Laden...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Sluiten',
 
@@ -141,6 +157,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Rijen konden niet worden verwijderd',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Verzoek mislukt',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Opnieuw laden',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Rij [row] selecteren',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Alle rijen selecteren ([selected] van [total] geselecteerd)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Alles aanvinken ([checked] van [total] aangevinkt)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Rij [row] geselecteerd',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Selectie van rij [row] opgeheven',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] van [total] rijen geselecteerd',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Geselecteerde rijen verwijderen ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Rijselectie wissen',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Vastgezette rijen bovenaan',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Vastgezette rijen onderaan',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Vastgezette kolommen aan het begin',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Vastgezette kolommen aan het einde',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rij [label] uitgevouwen, getoonde uitgevouwen rijen: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Rij [label] samengevouwen',
 };
 
 export default dictionary;

@@ -118,6 +118,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Ir para a próxima página',
   [C.PAGINATION_LAST_PAGE]: 'Ir para a última página',
 
+  [C.SHEETS_BAR_SECTION]: 'Planilhas',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Adicionar planilha',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Todas as planilhas',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Ações da planilha: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Nome da planilha',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Excluir',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Duplicar',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Renomear',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Mover para a direita',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Mover para a esquerda',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Rolar planilhas para trás',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Rolar planilhas para frente',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Planilha [name] ativada',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Nome da planilha não alterado: [name] já está em uso',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Planilha',
+
   [C.LOADING_TITLE]: 'Carregando...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Fechar',
 
@@ -135,6 +151,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Não foi possível remover as linhas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Falha na solicitação',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Recarregar',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Selecionar linha [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Selecionar todas as linhas ([selected] de [total] selecionadas)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Marcar tudo ([checked] de [total] marcadas)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Linha [row] selecionada',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Linha [row] desmarcada',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] de [total] linhas selecionadas',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Remover linhas selecionadas ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Limpar seleção de linhas',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Linhas congeladas na parte superior',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Linhas congeladas na parte inferior',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Colunas congeladas no início',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Colunas congeladas no fim',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Linha [label] expandida, linhas expandidas exibidas: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Linha [label] recolhida',
 };
 
 export default dictionary;

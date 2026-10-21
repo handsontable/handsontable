@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Row hiding
-metaTitle: Row hiding - JavaScript Data Grid | Handsontable
+metaTitle: Row hiding | Handsontable DataGrid for JavaScript
 description: Hide individual rows to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
 permalink: /row-hiding
 canonicalUrl: /row-hiding
@@ -10,11 +10,11 @@ tags:
   - hidden rows
   - HiddenRows
 react:
-  metaTitle: Row hiding - React Data Grid | Handsontable
+  metaTitle: Row hiding | Handsontable DataGrid for React
 angular:
-  metaTitle: Row hiding - Angular Data Grid | Handsontable
+  metaTitle: Row hiding | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row hiding - Vue Data Grid | Handsontable
+  metaTitle: Row hiding | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated
@@ -186,7 +186,7 @@ To enable the UI indicators, in the `hiddenRows` object, set the `indicators` pr
 
 ### Step 3: Set up context menu items
 
-To easily hide and unhide rows, add row hiding items to Handsontable's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
+To easily hide and unhide rows, add row hiding items to Handsontable DataGrid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
 
 Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the [`HiddenRows`](@/api/hiddenRows.md) plugin. Now, the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) automatically displays additional items for hiding and unhiding rows.
 

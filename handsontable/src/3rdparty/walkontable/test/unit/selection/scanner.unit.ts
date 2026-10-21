@@ -2,7 +2,7 @@ import { SelectionScanner } from '../../../src/selection/scanner';
 import type Selection from '../../../src/selection/selection';
 
 describe('SelectionScanner', () => {
-  describe('scan()', () => {
+  describe('scanHeaders() and scanCells()', () => {
     /**
      * Builds a scanner with a stubbed active selection of the given type and spies
      * on every per-kind scan method.
@@ -29,7 +29,8 @@ describe('SelectionScanner', () => {
     it('scans only the cells range for the `custom-selection` type', () => {
       const { scanner, spies } = makeScanner('custom-selection');
 
-      scanner.scan();
+      scanner.scanHeaders();
+      scanner.scanCells();
 
       expect(spies.cells).toHaveBeenCalledTimes(1);
       expect(spies.columnHeaders).not.toHaveBeenCalled();
@@ -41,7 +42,8 @@ describe('SelectionScanner', () => {
     it('scans nothing for an unknown selection type', () => {
       const { scanner, spies } = makeScanner('unknown-type');
 
-      scanner.scan();
+      scanner.scanHeaders();
+      scanner.scanCells();
 
       expect(spies.cells).not.toHaveBeenCalled();
       expect(spies.columnHeaders).not.toHaveBeenCalled();

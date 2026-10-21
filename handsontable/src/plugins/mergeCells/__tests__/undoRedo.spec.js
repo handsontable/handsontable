@@ -666,4 +666,239 @@ describe('MergeCells -> Undo/Redo', () => {
       expect(countCols()).toBe(4);
     });
   });
+
+  describe('paste over a merged cell', () => {
+    // A validator moves `applyChanges` into a microtask, so a paste is not finished when the call
+    // returns. Wait for its `afterChange`. An undo or a redo fires its own `afterChange` once the
+    // data and the merge geometry are both restored, so the same wait covers them.
+    function settled() {
+      return new Promise((resolve) => {
+        hot().addHookOnce('afterChange', resolve, 2000);
+      });
+    }
+
+    // The 2018 reporter's own `afterCopy`/`afterPaste` workaround failed on exactly this
+    // ("It works well, except `undo` event"): the merge geometry has to ride inside the paste's own
+    // undo action, or one Ctrl+V needs two Ctrl+Z and the intermediate state is the original bug.
+    //
+    // The MergeCells plugin drops the merge inside the paste's own operation, so the paste's step
+    // holds the merge in its snapshot from before and not in the one from after. If the drop ever
+    // ran as a separate operation, the undo below would restore the data but no merge.
+    it('should restore both the pasted data and the merged cell in a single undo step', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 5, col: 6, rowspan: 3, colspan: 3 }, // G6:I8
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+      const undoRedo = getPlugin('undoRedo');
+
+      await selectCell(5, 6);
+
+      triggerPaste('a\tb\tc\nd\te\tf\ng\th\ti');
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(undoRedo.doneActions.length).toBe(1);
+
+      undoRedo.undo();
+
+      // One action, so one undo puts back the geometry AND the data.
+      expect(undoRedo.doneActions.length).toBe(0);
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+
+      const restored = plugin.mergedCellsCollection.mergedCells[0];
+
+      expect(restored.row).toBe(5);
+      expect(restored.col).toBe(6);
+      expect(restored.rowspan).toBe(3);
+      expect(restored.colspan).toBe(3);
+
+      expect(getData(5, 6, 7, 8)).toEqual([
+        ['G6', null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+      expect(getCellMeta(5, 7).hidden).toBe(true);
+      expect(getCellMeta(7, 8).hidden).toBe(true);
+    });
+
+    it('should re-apply the data and drop the merged cell again on redo', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 5, col: 6, rowspan: 3, colspan: 3 }, // G6:I8
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+      const undoRedo = getPlugin('undoRedo');
+
+      await selectCell(5, 6);
+
+      triggerPaste('a\tb\tc\nd\te\tf\ng\th\ti');
+
+      undoRedo.undo();
+      undoRedo.redo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(getData(5, 6, 7, 8)).toEqual([
+        ['a', 'b', 'c'],
+        ['d', 'e', 'f'],
+        ['g', 'h', 'i'],
+      ]);
+      expect(getCellMeta(5, 7).hidden).toBeFalsy();
+    });
+
+    // The validated-column ordering again: the paste's `afterChange` lands in a microtask, so the
+    // recorded geometry has to survive `afterPaste`. Without that, the paste never unmerges while
+    // the action still records the geometry, and redo then drops a merge the paste never dropped -
+    // redo produces a different grid than the paste it repeats.
+    it('should round-trip paste, undo and redo on a validated column', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        validator: (value, callback) => callback(true),
+        mergeCells: [
+          { row: 5, col: 6, rowspan: 3, colspan: 3 }, // G6:I8
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+      const undoRedo = getPlugin('undoRedo');
+
+      await selectCell(5, 6);
+
+      let done = settled();
+
+      triggerPaste('a\tb\tc\nd\te\tf\ng\th\ti');
+      await done;
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(getDataAtCell(7, 8)).toBe('i');
+
+      done = settled();
+      undoRedo.undo();
+      await done;
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+      expect(getDataAtCell(5, 6)).toBe('G6');
+
+      done = settled();
+      undoRedo.redo();
+      await done;
+
+      // Redo has to reproduce the paste exactly, geometry included.
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(getData(5, 6, 7, 8)).toEqual([
+        ['a', 'b', 'c'],
+        ['d', 'e', 'f'],
+        ['g', 'h', 'i'],
+      ]);
+    });
+
+    // A validator that corrects a value writes through `setDataAtCell` with a `*Validator` source
+    // (the documented convention - see validators/__tests__/validatorCorrection.spec.js), once per
+    // corrected cell, INSIDE the paste's validation. The validation keeps the recording context of
+    // the paste, so the corrections are part of the paste's step: one undo reverts the pasted values,
+    // the corrections, and the merge the paste removed together. No single correction can be undone
+    // on its own, so none can re-form the merge over the values the paste wrote.
+    it('should undo a paste together with its validator\'s corrections, and the merge with them', async() => {
+      const uppercaseValidator = function(value, callback) {
+        if (typeof value === 'string' && value !== value.toUpperCase()) {
+          this.instance.setDataAtCell(this.visualRow, this.visualCol, value.toUpperCase(), 'uppercaseValidator');
+        }
+
+        callback(true);
+      };
+
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        validator: uppercaseValidator,
+        mergeCells: [
+          { row: 5, col: 6, rowspan: 3, colspan: 3 }, // G6:I8
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+      const undoRedo = getPlugin('undoRedo');
+
+      // Each of the nine pasted values is lowercase, so each one draws a correction. Wait for all
+      // nine to land rather than for a fixed delay.
+      const CORRECTIONS_EXPECTED = 9;
+      let corrections = 0;
+      const allCorrected = new Promise((resolve) => {
+        hot().addHook('afterChange', (changes, source) => {
+          if (source === 'uppercaseValidator') {
+            corrections += 1;
+
+            if (corrections === CORRECTIONS_EXPECTED) {
+              resolve();
+            }
+          }
+        });
+      });
+
+      await selectCell(5, 6);
+
+      triggerPaste('a\tb\tc\nd\te\tf\ng\th\ti');
+
+      await allCorrected;
+
+      const corrected = [
+        ['A', 'B', 'C'],
+        ['D', 'E', 'F'],
+        ['G', 'H', 'I'],
+      ];
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(getData(5, 6, 7, 8)).toEqual(corrected);
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.doneActions[0].source).toBe('CopyPaste.paste');
+
+      const undone = settled();
+
+      undoRedo.undo();
+      await undone;
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+      expect(getDataAtCell(5, 6)).toBe('G6');
+      expect(getCellMeta(5, 7).hidden).toBe(true);
+
+      const redone = settled();
+
+      undoRedo.redo();
+      await redone;
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(getData(5, 6, 7, 8)).toEqual(corrected);
+      expect(getCellMeta(5, 7).hidden).toBeFalsy();
+    });
+
+    it('should restore only the value when a single pasted value left the merged cell intact', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 5, col: 6, rowspan: 3, colspan: 3 }, // G6:I8
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+      const undoRedo = getPlugin('undoRedo');
+
+      await selectCell(5, 6);
+
+      triggerPaste('ZZ');
+
+      expect(getDataAtCell(5, 6)).toBe('ZZ');
+      // Only the merge's top-left cell was written, so the action carries a single change.
+      expect(undoRedo.doneActions.length).toBe(1);
+      expect(undoRedo.doneActions[0].changes.length).toBe(1);
+
+      undoRedo.undo();
+
+      expect(getDataAtCell(5, 6)).toBe('G6');
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+    });
+  });
 });

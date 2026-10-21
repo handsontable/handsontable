@@ -5,7 +5,7 @@ import type { ColumnSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-const STORAGE_KEY = 'ht-column-layout-v1';
+const STORAGE_KEY = 'ht-column-layout-v2';
 
 /* start:skip-in-preview */
 type ProductRow = {
@@ -102,7 +102,7 @@ const ExampleComponent = () => {
     const widths: number[] = [];
 
     for (let i = 0; i < count; i++) {
-      widths.push(hot.getColWidth(i) as number);
+      widths.push(hot.getColWidth(hot.toVisualColumn(i)!) as number);
     }
 
     return widths;
@@ -112,8 +112,8 @@ const ExampleComponent = () => {
     const hot = hotRef.current?.hotInstance;
 
     if (!hot) return;
-    const widths = (hot.getColHeader() as string[]).map((_, visualIndex) =>
-      hot.getColWidth(visualIndex) as number
+    const widths = (hot.getColHeader() as string[]).map((_, physicalIndex) =>
+      hot.getColWidth(hot.toVisualColumn(physicalIndex)!) as number
     );
 
     saveLayout(widths, getCurrentOrder());

@@ -9,11 +9,11 @@ import {
   renderHotTableWithProps,
   sleep,
 } from './_helpers';
-import { HOT_DESTROYED_WARNING } from "../src/helpers";
-import { HotTableProps, HotRendererProps, HotTableRef } from '../src/types'
+import { HOT_DESTROYED_WARNING } from '../src/helpers';
+import { HotTableProps, HotRendererProps, HotTableRef } from '../src/types';
 
 describe('Component lifecyle', () => {
-  it('renderer components should trigger their lifecycle methods', async () => {
+  it('renderer components should trigger their lifecycle methods', async() => {
     function RendererComponent2(props: HotRendererProps) {
       React.useEffect(() => {
         rendererCounters.set(`${props.row}-${props.col}`, {
@@ -23,7 +23,8 @@ describe('Component lifecyle', () => {
 
         return () => {
           const counters = rendererCounters.get(`${props.row}-${props.col}`);
-          counters.willUnmount++;
+
+          counters.willUnmount += 1;
         };
       }, []);
 
@@ -38,20 +39,20 @@ describe('Component lifecyle', () => {
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(3, 2)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}
-                renderer={(props) => <RendererComponent2 {...props} />}>
+        id="test-hot"
+        data={createSpreadsheetData(3, 2)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        renderer={props => <RendererComponent2 {...props} />}>
         <HotColumn/>
-        <HotColumn renderer={(props) => <RendererComponent2 {...props} />}/>
+        <HotColumn renderer={props => <RendererComponent2 {...props} />}/>
       </HotTable>
     ), false).hotInstance!;
 
@@ -62,7 +63,7 @@ describe('Component lifecyle', () => {
       expect(counters.willUnmount).toEqual(0);
     });
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.render();
     });
 
@@ -74,7 +75,7 @@ describe('Component lifecyle', () => {
     });
   });
 
-  it('editor components should trigger their lifecycle methods', async () => {
+  it('editor components should trigger their lifecycle methods', async() => {
     const editorCounters = {
       didMount: 0,
       willUnmount: 0
@@ -82,10 +83,10 @@ describe('Component lifecyle', () => {
 
     const EditorComponent2 = () => {
       React.useEffect(() => {
-        editorCounters.didMount++;
+        editorCounters.didMount += 1;
 
         return () => {
-          editorCounters.willUnmount++;
+          editorCounters.willUnmount += 1;
         };
       }, []);
 
@@ -95,17 +96,17 @@ describe('Component lifecyle', () => {
     };
 
     const props: HotTableProps = {
-      licenseKey: "non-commercial-and-evaluation",
-      id: "test-hot",
+      licenseKey: 'non-commercial-and-evaluation',
+      id: 'test-hot',
       data: createSpreadsheetData(3, 2),
       width: 300,
       height: 300,
       rowHeights: 23,
       colWidths: 50,
-      init: function () {
+      init() {
         mockElementDimensions(this.rootElement, 300, 300);
       },
-      editor: (props) => <EditorComponent2 {...props} key={Math.random()} />
+      editor: editorProps => <EditorComponent2 {...editorProps} key={Math.random()} />
     };
 
     renderHotTableWithProps(props, false);
@@ -121,7 +122,7 @@ describe('Component lifecyle', () => {
   });
 
   it('should display a warning and not throw any errors, when the underlying Handsontable instance ' +
-    'has been destroyed', async () => {
+    'has been destroyed', async() => {
     const warnFunc = console.warn;
     const warnCalls: string[] = [];
 
@@ -154,7 +155,7 @@ describe('Component lifecyle', () => {
   // Regression tests for issue #10800 — custom React renderer components were
   // unmounted and their portal container DIVs detached from the TD on every
   // grid render, causing a visible flicker and loss of component-local state.
-  it('should not detach the portal container DIV from any TD when a single cell is edited (#10800)', async () => {
+  it('should not detach the portal container DIV from any TD when a single cell is edited (#10800)', async() => {
     function StableCell(props: HotRendererProps) {
       return (
         <span data-cell={`${props.row}-${props.col}`}>{String(props.value)}</span>
@@ -163,18 +164,18 @@ describe('Component lifecyle', () => {
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(4, 3)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}
-                renderer={(props) => <StableCell {...props} />}
+        id="test-hot"
+        data={createSpreadsheetData(4, 3)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        renderer={props => <StableCell {...props} />}
       />
     ), false).hotInstance!;
 
@@ -182,7 +183,7 @@ describe('Component lifecyle', () => {
 
     let detachedTdCount = 0;
     const observer = new MutationObserver((records) => {
-      for (const rec of records) {
+      records.forEach((rec) => {
         if (
           rec.type === 'childList' &&
           rec.target instanceof HTMLTableCellElement &&
@@ -190,12 +191,12 @@ describe('Component lifecyle', () => {
         ) {
           detachedTdCount += rec.removedNodes.length;
         }
-      }
+      });
     });
 
     observer.observe(hotInstance.rootElement, { childList: true, subtree: true });
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.setDataAtCell(0, 0, 'edited');
     });
 
@@ -216,7 +217,7 @@ describe('Component lifecyle', () => {
     expect(detachedTdCount).toEqual(0);
   });
 
-  it('should preserve renderer component state across grid renders (#10800)', async () => {
+  it('should preserve renderer component state across grid renders (#10800)', async() => {
     let nextSeed = 0;
 
     function SeededCell(props: HotRendererProps) {
@@ -224,6 +225,7 @@ describe('Component lifecyle', () => {
       // component on every render, the seed will change.
       const [seed] = React.useState(() => {
         nextSeed += 1;
+
         return nextSeed;
       });
 
@@ -236,18 +238,18 @@ describe('Component lifecyle', () => {
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(4, 3)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}
-                renderer={(props) => <SeededCell {...props} />}
+        id="test-hot"
+        data={createSpreadsheetData(4, 3)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        renderer={props => <SeededCell {...props} />}
       />
     ), false).hotInstance!;
 
@@ -255,11 +257,11 @@ describe('Component lifecyle', () => {
 
     const seedsBefore = Array.from(
       hotInstance.rootElement.querySelectorAll<HTMLElement>('span[data-seed]')
-    ).map((el) => `${el.dataset.cell}:${el.dataset.seed}`);
+    ).map(el => `${el.dataset.cell}:${el.dataset.seed}`);
 
     expect(seedsBefore.length).toEqual(4 * 3);
 
-    await act(async () => {
+    await act(async() => {
       hotInstance.setDataAtCell(0, 0, 'edited');
     });
 
@@ -267,7 +269,7 @@ describe('Component lifecyle', () => {
 
     const seedsAfter = Array.from(
       hotInstance.rootElement.querySelectorAll<HTMLElement>('span[data-seed]')
-    ).map((el) => `${el.dataset.cell}:${el.dataset.seed}`);
+    ).map(el => `${el.dataset.cell}:${el.dataset.seed}`);
 
     expect(seedsAfter).toEqual(seedsBefore);
   });

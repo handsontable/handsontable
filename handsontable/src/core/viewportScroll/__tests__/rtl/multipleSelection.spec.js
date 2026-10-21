@@ -35,7 +35,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       await keyDown('shift');
       await simulateClick(getCell(0, 5));
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 4, true));
       expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -58,7 +58,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       await selectCell(0, 4);
       await keyDownUp(['shift', 'arrowleft']);
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 4, true));
       expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -103,7 +103,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       await scrollViewportHorizontally(25);
       await selectCells([[0, 4, 0, 5]]);
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',
@@ -124,7 +124,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       await scrollViewportHorizontally(25);
       await selectCells([[0, 5, 0, 4]]);
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',

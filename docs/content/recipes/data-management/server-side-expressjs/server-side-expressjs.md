@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Server-side Data with Express.js
-metaTitle: Server-side Data with Express.js - JavaScript Data Grid | Handsontable
-description: Wire Handsontable's dataProvider plugin to an Express.js 4 backend with paginated, sorted, and filtered server-side data and full CRUD operations backed by PostgreSQL via TypeORM and Zod.
+metaTitle: Server-side Data with Express.js | Handsontable DataGrid for JavaScript
+description: Wire Handsontable DataGrid's dataProvider plugin to an Express.js 4 backend with paginated, sorted, and filtered server-side data and full CRUD operations backed by PostgreSQL via TypeORM and Zod.
 permalink: /recipes/data-management/server-side-expressjs
 canonicalUrl: /recipes/data-management/server-side-expressjs
 tags:
@@ -12,17 +12,16 @@ tags:
   - typescript
   - recipes
 react:
-  metaTitle: Server-side data with Express.js - React Data Grid | Handsontable
+  metaTitle: Server-side Data with Express.js | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side Data with Express.js - Angular Data Grid | Handsontable
+  metaTitle: Server-side Data with Express.js | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side Data with Express.js - Vue Data Grid | Handsontable
+  metaTitle: Server-side Data with Express.js | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
-menuTag: new
 ---
 
-This tutorial shows how to wire Handsontable's `dataProvider` plugin to an Express.js 4 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations using PostgreSQL via TypeORM and Zod for request validation.
+This tutorial shows how to wire Handsontable DataGrid's `dataProvider` plugin to an Express.js 4 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations using PostgreSQL via TypeORM and Zod for request validation.
 
 ## Overview
 
@@ -113,7 +112,7 @@ Express parses this as `filters = { '0': { prop: 'status', ... } }` when only on
 
 ### `ALLOWED_COLUMNS` and `ALLOWED_CONDITIONS` enums
 
-Using `z.enum(ALLOWED_COLUMNS)` on the `prop` field ensures users cannot inject arbitrary column names into the SQL query builder. Any request with an unrecognised column name is rejected with a `400` before reaching the service.
+Using `z.enum(ALLOWED_COLUMNS)` on the `prop` field ensures users cannot inject arbitrary column names into the SQL query builder. Any request with an unrecognized column name is rejected with a `400` before reaching the service.
 
 ## Step 4: Bootstrap the server
 
@@ -216,7 +215,7 @@ Copy `tickets.router.ts` into `src/`:
 | `PATCH` | `/tickets` | `onRowsUpdate` |
 | `DELETE` | `/tickets` | `onRowsRemove` |
 
-## Step 7: Wire up Handsontable
+## Step 7: Wire up Handsontable DataGrid
 
 Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The Express API runs on `http://localhost:3000`; Vite proxies all `/tickets` requests to it. The complete frontend code is below.
 

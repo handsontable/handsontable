@@ -6,60 +6,42 @@ description: Use when adding user-facing text to Handsontable, creating new lang
 
 # Internationalization and Translations
 
-**Golden rule:** Never hardcode user-visible text in source code. All user-facing strings must go through the i18n system in `src/i18n/`.
+Route all user-visible strings through the i18n system in `src/i18n/`.
 
-## Adding a new language constant
+## Adding a language constant
 
-1. **Define the constant** in `src/i18n/constants.ts` using `UPPER_SNAKE_CASE`. Constants are built from a namespace prefix and a descriptive key:
+1. Define it in `src/i18n/constants.ts` in `UPPER_SNAKE_CASE`, built from a namespace prefix and key:
 
 ```js
 export const CONTEXTMENU_ITEMS_ROW_ABOVE = `${CM_ALIAS}.insertRowAbove`;
 ```
 
-2. **Add the English text to every language file** in `src/i18n/languages/`. There are 20+ locale files (e.g., `en-US.ts`, `de-DE.ts`, `ja-JP.ts`, `zh-CN.ts`). Each file imports constants as `* as C` and maps them in a dictionary object:
+2. Add the English text to every language file in `src/i18n/languages/` (20+ locales, e.g. `en-US.ts`, `de-DE.ts`). Each file imports constants as `* as C`:
 
 ```js
 [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insert row above',
 ```
 
-For pluralizable strings, use an array: `['Remove row', 'Remove rows']`.
+Pluralizable strings use an array: `['Remove row', 'Remove rows']`.
 
-3. **Do not forget the barrel export** in `src/i18n/languages/index.ts` if adding a new language file.
+3. A new language file also needs the barrel export in `src/i18n/languages/index.ts`.
 
-## Consuming translations in plugins
-
-Import constants and call `getTranslatedPhrase()`:
+## Consuming translations
 
 ```js
 import * as C from '../../i18n/constants';
 
-// Inside a plugin method:
 const label = this.hot.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_ABOVE);
 ```
 
-## RTL layout considerations
+## RTL
 
-Handsontable supports RTL via `layoutDirection: 'rtl'`. When adding UI elements, ensure they render correctly in both LTR and RTL. Use logical CSS properties (`inset-inline-start` instead of `left`) where possible. Test with an RTL locale such as `ar-AR` or `fa-IR`.
+`layoutDirection: 'rtl'`. Use logical CSS properties (`inset-inline-start` in place of `left`). Test with `ar-AR` or `fa-IR`.
 
-## IME and Unicode input
+## IME
 
-The editor system handles IME composition events (`compositionstart`, `compositionupdate`, `compositionend`) for CJK input methods. Do not interfere with composition state when modifying editor behavior.
+Editors handle `compositionstart`, `compositionupdate`, `compositionend` for CJK input; leave composition state untouched when changing editor behavior.
 
-## Workflow checklist
+## Locale-aware casing
 
-- [ ] Define constant in `src/i18n/constants.ts`
-- [ ] Add English text to **all** language files in `src/i18n/languages/`
-- [ ] Use `this.hot.getTranslatedPhrase(C.CONSTANT_NAME)` in source code
-- [ ] Test with RTL if adding directional UI elements
-
-## Key files
-
-| File | Purpose |
-|---|---|
-| `src/i18n/constants.ts` | All language constant definitions |
-| `src/i18n/languages/` | Per-locale dictionary files (20+ locales) |
-| `src/i18n/languages/index.ts` | Barrel export for language modules |
-
-## Locale-aware string casing
-
-For case-insensitive comparison or lowercasing of cell data, use `localeLowerCase(value, locale)` from `src/helpers/string.ts` — never `String.prototype.toLocaleLowerCase` directly. The helper is locale-correct (Turkish/Azeri/Lithuanian keep their special casing) but takes the fast `toLowerCase()` path for all other locales, and it never throws on an invalid `locale` tag. This rule is enforced by ESLint (`no-restricted-syntax`).
+Lowercase cell data with `localeLowerCase(value, locale)` from `src/helpers/string.ts`, in place of `String.prototype.toLocaleLowerCase` (ESLint `no-restricted-syntax` enforces it). It keeps Turkish/Azeri/Lithuanian special casing, takes the fast `toLowerCase()` path elsewhere, and does not throw on an invalid `locale` tag.

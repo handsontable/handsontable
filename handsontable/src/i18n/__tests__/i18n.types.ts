@@ -18,6 +18,7 @@ import {
   plPL,
   ptBR,
   ruRU,
+  srLatnRS,
   srSP,
   zhCN,
   zhTW,
@@ -41,6 +42,7 @@ const nlNLCode: string = nlNL.languageCode;
 const plPLCode: string = plPL.languageCode;
 const ptBRCode: string = ptBR.languageCode;
 const ruRUCode: string = ruRU.languageCode;
+const srLatnRSCode: string = srLatnRS.languageCode;
 const srSPCode: string = srSP.languageCode;
 const zhCNCode: string = zhCN.languageCode;
 const zhTWCode: string = zhTW.languageCode;
@@ -63,6 +65,7 @@ registerLanguageDictionary(nlNL);
 registerLanguageDictionary(plPL);
 registerLanguageDictionary(ptBR);
 registerLanguageDictionary(ruRU);
+registerLanguageDictionary(srLatnRS);
 registerLanguageDictionary(srSP);
 registerLanguageDictionary(zhCN);
 registerLanguageDictionary(zhTW);

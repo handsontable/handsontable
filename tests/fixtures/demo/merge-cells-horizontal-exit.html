@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MergeCells horizontal-exit navigation fixture (DEV-102)</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // The merge layout the test drives. `default` is the ticket's B2:B4; the others cover a landing
+    // whose cell identity changes (a second merge below), a hidden top row, and an RTL layout.
+    window.htScenario = ({
+      default: 'default',
+      multi: 'multi',
+      'hidden-top': 'hidden-top',
+      rtl: 'rtl',
+    })[htParams.get('scenario') ?? 'default'];
+    if (!window.htScenario) {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const settings = {
+      data: Array.from({ length: 6 }, (unused, row) =>
+        Array.from({ length: 5 }, (unusedCol, column) => `${String.fromCharCode(65 + column)}${row + 1}`)),
+      rowHeaders: true,
+      colHeaders: true,
+      width: 500,
+      height: 300,
+      // A one-column-wide merge, B2:B4, entered from the top (B1 down) or the bottom (B5 up).
+      mergeCells: [{ row: 1, col: 1, rowspan: 3, colspan: 1 }],
+      contextMenu: true,
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    if (window.htScenario === 'multi') {
+      // A second merge, A3:A5, sits to the left of B2:B4 and overlaps its rows. Leaving B2:B4 left on
+      // the entered row (old behavior) would land inside A3:A5; the top-row snap lands on plain A2.
+      settings.mergeCells.push({ row: 2, col: 0, rowspan: 3, colspan: 1 });
+    } else if (window.htScenario === 'hidden-top') {
+      // Hide the merge's top row (B2). The snap must land on the topmost VISIBLE row (B3), never on
+      // the hidden row - a non-renderable target throws inside the transform.
+      settings.hiddenRows = { rows: [1], indicators: false };
+    } else if (window.htScenario === 'rtl') {
+      settings.layoutDirection = 'rtl';
+    }
+
+    window.hot = new Handsontable(container, settings);
+
+    window.htHighlight = () => {
+      const range = window.hot.getSelectedRangeLast();
+
+      return range ? { row: range.highlight.row, col: range.highlight.col } : null;
+    };
+  </script>
+</body>
+</html>

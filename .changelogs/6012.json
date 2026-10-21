@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where a modifier key stayed stuck in the pressed state after an operating system shortcut consumed its `keyup` event, so arrow keys added selection layers instead of moving the selection.",
+  "type": "fixed",
+  "issueOrPR": 6012,
+  "breaking": false,
+  "framework": "none"
+}

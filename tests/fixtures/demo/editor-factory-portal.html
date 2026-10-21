@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>editorFactory portal fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    window.htDir = ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('dir') ?? 'ltr'];
+    if (!window.htDir) {
+      throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
+    }
+    // The direction of the document, apart from the grid's: an RTL grid can sit on an LTR page.
+    window.htPageDir = ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('pageDir') ?? window.htDir];
+    if (!window.htPageDir) {
+      throw new Error('Unknown ?pageDir= value: ' + JSON.stringify(htParams.get('pageDir')));
+    }
+    window.htPage = ({ plain: 'plain', inset: 'inset' })[htParams.get('page') ?? 'plain'];
+    if (!window.htPage) {
+      throw new Error('Unknown ?page= value: ' + JSON.stringify(htParams.get('page')));
+    }
+  </script>
+  <style>
+    /* `inset` makes the page scrollable on the horizontal axis and turns `body` into the containing
+       block of the portal root's absolutely positioned children, offset from the viewport origin. */
+    body.inset {
+      position: relative;
+      width: 3000px;
+      height: 2000px;
+      margin: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.documentElement.dir = window.htPageDir;
+    document.body.className = window.htPage;
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // `position: 'portal'` appends the editor's container to the grid's portal root on `body`.
+    const portalEditor = Handsontable.editors.editorFactory({
+      position: 'portal',
+      init(editor) {
+        editor.input = editor.hot.rootDocument.createElement('INPUT');
+        editor.input.style.width = '80px';
+        editor.container.setAttribute('data-testid', 'editor-container');
+      },
+      getValue(editor) {
+        return editor.input.value;
+      },
+      setValue(editor, value) {
+        editor.input.value = value === null || value === undefined ? '' : value;
+      },
+    });
+
+    window.hot = new Handsontable(container, {
+      data: Array.from({ length: 6 }, (_, row) => Array.from({ length: 6 }, (__, col) => `${row}-${col}`)),
+      layoutDirection: window.htDir,
+      colWidths: 100,
+      width: 400,
+      height: 250,
+      editor: portalEditor,
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 ---
 type: reference
 title: Keyboard shortcuts
-metaTitle: Keyboard shortcuts - JavaScript Data Grid | Handsontable
-description: Access all Handsontable features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
+metaTitle: Keyboard shortcuts | Handsontable DataGrid for JavaScript
+description: Access all Handsontable DataGrid features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
 permalink: /keyboard-shortcuts
 canonicalUrl: /keyboard-shortcuts
 tags:
@@ -16,16 +16,16 @@ tags:
   - commands
   - shortcut keys
 react:
-  metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
+  metaTitle: Keyboard shortcuts | Handsontable DataGrid for React
 angular:
-  metaTitle: Keyboard shortcuts - Angular Data Grid | Handsontable
+  metaTitle: Keyboard shortcuts | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Keyboard shortcuts - Vue Data Grid | Handsontable
+  metaTitle: Keyboard shortcuts | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Navigation
 menuTag: updated
 ---
-Access all Handsontable features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
+Access all Handsontable DataGrid features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
 
 ## Overview
 
@@ -39,7 +39,7 @@ To register these keys with [`addShortcut()`](@/api/shortcutContext.md#addshortc
 
 These keyboard shortcuts work when you navigate the grid. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional plugins.
 
-By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kbd>Shift</kbd>+<kbd>Tab</kbd> moves it one column to the left — matching standard spreadsheet navigation in Excel and Google Sheets. This behavior is controlled by the [`tabMoves`](@/api/options.md#tabmoves) option (default: `{ row: 0, col: 1 }`) and can be customized.
+By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kbd>Shift</kbd>+<kbd>Tab</kbd> moves it one column to the left - matching standard spreadsheet navigation in Excel and Google Sheets. This behavior is controlled by the [`tabMoves`](@/api/options.md#tabmoves) option (default: `{ row: 0, col: 1 }`) and can be customized. In a right-to-left layout, <kbd>Tab</kbd> moves the active cell to the next column, which is one cell to the left. For more details, see [Keyboard navigation in RTL mode](@/guides/internationalization/layout-direction/layout-direction.md#keyboard-navigation-in-rtl-mode).
 
 | Windows                                      | macOS                                       | Action                                                                                          |  Excel  | Sheets  |
 | -------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------- | :-----: | :-----: |
@@ -47,23 +47,25 @@ By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kb
 | <kbd>**Ctrl**</kbd>+<kbd>**Backspace**</kbd> | <kbd>⌘</kbd>+<kbd>**Backspace**</kbd> | Scroll the viewport to show the focused cell or header                                          | &cross; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**↑**</kbd>         | <kbd>⌘</kbd>+<kbd>**↑**</kbd>         | Move to the first cell of the current column                                                    | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**↓**</kbd>         | <kbd>⌘</kbd>+<kbd>**↓**</kbd>         | Move to the last cell of the current column                                                     | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd>         | <kbd>⌘</kbd>+<kbd>**←**</kbd>         | Move to the leftmost cell of the current row                                                    | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd>         | <kbd>⌘</kbd>+<kbd>**→**</kbd>         | Move to the rightmost cell of the current row                                                   | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd>         | <kbd>⌘</kbd>+<kbd>**←**</kbd>         | Move to the leftmost cell of the current row<sup>\*\*</sup>                                    | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd>         | <kbd>⌘</kbd>+<kbd>**→**</kbd>         | Move to the rightmost cell of the current row<sup>\*\*</sup>                                   | &check; | &check; |
 | <kbd>**F2**</kbd>                            | <kbd>**F2**</kbd>                           | Enter the editing mode of the active cell                                                       | &check; | &check; |
 | <kbd>**Enter**</kbd>                         | <kbd>**Enter**</kbd>                        | Enter the editing mode of the active cell                                                       | &cross; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>    | <kbd>⇧</kbd>+<kbd>**Enter**</kbd>   | Enter the editing mode of the active cell                                                       | &cross; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Save and close editor                                         | &check; | &check; |
 | Alphanumeric keys                            | Alphanumeric keys                           | Enter the editing mode of the active cell and enter the pressed key's value into the cell      | &check; | &check; |
-| <kbd>**Tab**</kbd>                           | <kbd>**Tab**</kbd>                          | Move to the next cell to the right by default<sup>\*</sup> (if there's only one column available, move one cell down) — direction set by [`tabMoves`](@/api/options.md#tabmoves)   | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>      | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>     | Move to the previous cell to the left by default<sup>\*</sup> (if there's only one column available, move one cell up) — direction set by [`tabMoves`](@/api/options.md#tabmoves) | &check; | &check; |
+| <kbd>**Tab**</kbd>                           | <kbd>**Tab**</kbd>                          | Move to the next cell to the right by default<sup>\*</sup> (in RTL layout, the next cell is to the left; if there's only one column available, move one cell down) — direction set by [`tabMoves`](@/api/options.md#tabmoves)   | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>      | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>     | Move to the previous cell to the left by default<sup>\*</sup> (in RTL layout, the previous cell is to the right; if there's only one column available, move one cell up) — direction set by [`tabMoves`](@/api/options.md#tabmoves) | &check; | &check; |
 | <kbd>**Home**</kbd>                          | <kbd>**Home**</kbd>                         | Move to the first non-frozen cell of the current row<sup>\*</sup>                               | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Home**</kbd>      | <kbd>⌘</kbd>+<kbd>**Home**</kbd>      | Move to the first non-frozen cell of the grid<sup>\*</sup>                                      | &cross; | &check; |
 | <kbd>**End**</kbd>                           | <kbd>**End**</kbd>                          | Move to the last non-frozen cell of the current row<sup>\*</sup>                                | &cross; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**End**</kbd>       | <kbd>⌘</kbd>+<kbd>**End**</kbd>       | Move to the last non-frozen cell of the grid<sup>\*</sup>                                       | &cross; | &check; |
 | <kbd>**Page Up**</kbd>                       | <kbd>**Page Up**</kbd>                      | Move one screen up                                                                              | &check; | &check; |
 | <kbd>**Page Down**</kbd>                     | <kbd>**Page Down**</kbd>                    | Move one screen down                                                                            | &check; | &check; |
+| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>      | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>     | Open the link of the selected cell (when the cell renders a link, for example through `autoLink` or `formulas.hyperlinks`) | &cross; | &cross; |
 
-<sup>\*</sup> This action depends on your layout direction.
+<sup>\*</sup> This action depends on your layout direction.<br>
+<sup>\*\*</sup> On a row header of a grid with [row groups](#row-parent-child-keyboard-shortcuts), this shortcut works as a row group key instead.
 
 ## Selection keyboard shortcuts
 
@@ -84,14 +86,14 @@ These keyboard shortcuts help you select cells. They come from Handsontable's [`
 | <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                                                               | <kbd>⇧</kbd>+<kbd>**End**</kbd>                                                             | Extend the selection to the last non-frozen cell of the current row<sup>\*\*\*</sup>  | &cross; | &cross; |
 | <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                                                           | <kbd>⇧</kbd>+<kbd>**Page Up**</kbd>                                                         | Extend the selection by one screen up                                             | &check; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>                                                         | <kbd>⇧</kbd>+<kbd>**Page Down**</kbd>                                                       | Extend the selection by one screen down                                           | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                                              | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                                                             | Fill the selected range of cells with the value of the active cell<sup>\*\*\*\*</sup> | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                                              | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                                                             | Fill all the selected cells with the value of the active cell<sup>\*\*\*\*</sup> | &cross; | &check; |
 | <kbd>**Delete**</kbd>                                                                                 | <kbd>**Delete**</kbd>                                                                               | Clear the contents of the selected cells                                          | &check; | &check; |
 | <kbd>**Backspace**</kbd>                                                                              | <kbd>**Backspace**</kbd>                                                                            | Clear the contents of the selected cells                                          | &check; | &check; |
 
 <sup>*</sup> Does not work on macOS with multiple keyboard layouts. To work around this issue, add <kbd>Fn</kbd> to the key combination.<br>
 <sup>\*\*</sup> In case of multiple selection layers, only the last selection layer gets extended.<br>
 <sup>\*\*\*</sup> This action depends on your layout direction.<br> 
-<sup>\*\*\*\*</sup> This action works only for selections of two or more cells. The active highlight must be on a cell, not on a row header, column header, or corner.<br>
+<sup>\*\*\*\*</sup> This action works only when your selection holds at least one other cell you can edit, across any selection layer. The active highlight must be on a cell, not on a row header, column header, or corner.<br>
 
 ## Edition keyboard shortcuts
 
@@ -103,8 +105,8 @@ These keyboard shortcuts work when you're editing a cell's contents. They come f
 | Alphanumeric keys                                     | Alphanumeric keys                                           | Enter the pressed key's value into the cell                        | &check; | &check; |
 | <kbd>**Enter**</kbd>                                  | <kbd>**Enter**</kbd>                                        | Complete the cell entry and move to the cell below                 | &check; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>             | <kbd>⇧</kbd>+<kbd>**Enter**</kbd>                   | Complete the cell entry and move to the cell above                 | &check; | &check; |
-| <kbd>**Tab**</kbd>                                    | <kbd>**Tab**</kbd>                                          | Complete the cell entry and move to the next cell (right by default)<sup>\*</sup> — direction set by [`tabMoves`](@/api/options.md#tabmoves)     | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>               | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>                     | Complete the cell entry and move to the previous cell (left by default)<sup>\*</sup> — direction set by [`tabMoves`](@/api/options.md#tabmoves) | &check; | &check; |
+| <kbd>**Tab**</kbd>                                    | <kbd>**Tab**</kbd>                                          | Complete the cell entry and move to the next cell (right by default, left in RTL layout)<sup>\*</sup> — direction set by [`tabMoves`](@/api/options.md#tabmoves)     | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>               | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>                     | Complete the cell entry and move to the previous cell (left by default, right in RTL layout)<sup>\*</sup> — direction set by [`tabMoves`](@/api/options.md#tabmoves) | &check; | &check; |
 | <kbd>**Delete**</kbd>                                 | <kbd>**Delete**</kbd>                                       | Delete one character after the cursor<sup>\*</sup>                 | &check; | &check; |
 | <kbd>**Backspace**</kbd>                              | <kbd>**Backspace**</kbd>                                    | Delete one character before the cursor<sup>\*</sup>                | &check; | &check; |
 | <kbd>**Home**</kbd>                                   | <kbd>**Home**</kbd>                                         | Move the cursor to the beginning of the text<sup>\*</sup>          | &check; | &check; |
@@ -114,10 +116,11 @@ These keyboard shortcuts work when you're editing a cell's contents. They come f
 | <kbd>**Page Up**</kbd>                                | <kbd>**Page Up**</kbd>                                      | Complete the cell entry and move one screen up                     | &check; | &check; |
 | <kbd>**Page Down**</kbd>                              | <kbd>**Page Down**</kbd>                                    | Complete the cell entry and move one screen down                   | &check; | &check; |
 | <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>               | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>                  | Insert a line break                                                | &cross; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>              | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break                                                | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>              | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break<sup>\*\*</sup>                                 | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                 | <kbd>**Escape**</kbd>                                       | Cancel the cell entry and exit the editing mode                    | &check; | &check; |
 
-<sup>\*</sup> This action depends on your layout direction.
+<sup>\*</sup> This action depends on your layout direction.<br>
+<sup>\*\*</sup> This action inserts a line break only when the shortcut has no other cell to write to. If your selection holds any other cell you can edit, across any selection layer, this shortcut saves the edited value into all of those cells instead.
 
 ### Checkbox editor keyboard shortcuts
 
@@ -243,11 +246,15 @@ The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group hea
 
 These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child/row-parent-child.md), also known as "nested rows". To activate them, enable the [`NestedRows`](@/api/nestedRows.md) plugin.
 
-The <kbd>**Enter**</kbd> shortcut works only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+These shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
-| Windows              | macOS                | Action                           |  Excel  | Sheets  |
-| -------------------- | -------------------- | -------------------------------- | :-----: | :-----: |
-| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group | &cross; | &cross; |
+| Windows              | macOS                | Action                                                                                                 |
+| -------------------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group                                                                       |
+| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd> | <kbd>⌘</kbd>+<kbd>**→**</kbd> | Expand a collapsed parent row                                                                 |
+| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd> | <kbd>⌘</kbd>+<kbd>**←**</kbd> | Collapse an expanded parent row. Otherwise, move the focus to the header of the parent row, if any |
+
+In a right-to-left layout ([`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)), the <kbd>**←**</kbd> and <kbd>**→**</kbd> keys swap their actions. The arrow keys without a modifier move the selection, as they do in every grid. On a row header, <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**←**</kbd> and <kbd>**→**</kbd> don't jump to the first or last cell of the row. To move along the row from a row header, use <kbd>**→**</kbd> or <kbd>**End**</kbd>.
 
 ### Rows sorting keyboard shortcuts
 
@@ -302,10 +309,59 @@ These keyboard shortcuts work with [comments](@/guides/cell-features/comments/co
 | <kbd>**Tab**</kbd>                                      | <kbd>**Tab**</kbd>                                         | Save and exit the current comment, move the selection to the next cell     | &cross; | &cross; |
 | <kbd>**Shift + Tab**</kbd>                              | <kbd>**Shift + Tab**</kbd>                                 | Save and exit the current comment, move the selection to the previous cell | &cross; | &cross; |
 
+### Row selection keyboard shortcuts
+
+These keyboard shortcuts work with [row selection](@/guides/rows/row-selection/row-selection.md). To activate them, enable the [`RowSelection`](@/api/rowSelection.md) plugin.
+
+The shortcuts on a row checkbox and on the "select all" checkbox work only when that header or cell is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
+| Windows              | macOS                | Action                                                                                                                                       |  Excel  | Sheets  |
+| -------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | On a data cell, toggle the cell's row instead of opening the editor. With a range of cells selected, select every row of the range, or deselect them when all are already selected. | &cross; | &cross; |
+| <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | On a row checkbox, toggle the row                                                                                                            | &cross; | &cross; |
+| <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | On the "select all" checkbox, select every row in scope, or deselect them when all are already selected                                     | &cross; | &cross; |
+
+On a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell, <kbd>**Space**</kbd> keeps checking the cell. To edit a cell while row selection is enabled, use <kbd>**Enter**</kbd> or <kbd>**F2**</kbd>.
+
+### Column header checkbox keyboard shortcuts
+
+These keyboard shortcuts work with the "check all" checkbox in the header of a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#check-all-in-the-column-header) column. To activate them, enable the [`CheckboxHeader`](@/api/checkboxHeader.md) plugin with the [`headerCheckbox`](@/api/options.md#headercheckbox) option.
+
+These shortcuts work only when a column header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
+| Windows              | macOS                | Action                                                                                         |  Excel  | Sheets  |
+| -------------------- | -------------------- | ---------------------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | Check every checkbox in the column, or uncheck them when all of them are already checked      | &cross; | &cross; |
+
+### Formulas keyboard shortcuts
+
+These keyboard shortcuts work when the [`Formulas`](@/api/formulas.md) plugin is enabled.
+
+| Windows                              | macOS                          | Action                                              |  Excel  | Sheets  |
+| ------------------------------------- | ------------------------------ | ---------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd> | <kbd>⌃</kbd>+<kbd>**`**</kbd> | Toggle between showing formulas and showing values | &check; | &check; |
+
+
+### Freeze bar keyboard shortcuts
+
+These keyboard shortcuts work when the [`FreezeBar`](@/api/freezeBar.md) plugin is enabled. The first two work in the grid. The rest work on a freeze bar that has the focus.
+
+| Windows                                                  | macOS                                                  | Action                                                                                                           |  Excel  | Sheets  |
+| -------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**F6**</kbd>                                        | <kbd>**F6**</kbd>                                      | Move the focus to the first freeze bar. When a bar has the focus, move to the next bar.                          | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**F6**</kbd>                   | <kbd>⇧</kbd>+<kbd>**F6**</kbd>                         | Move the focus to the last freeze bar. When a bar has the focus, move to the previous bar.                       | &cross; | &cross; |
+| <kbd>**→**</kbd> / <kbd>**↓**</kbd>                      | <kbd>**→**</kbd> / <kbd>**↓**</kbd>                    | Freeze one more column or row on the start and top edges, and one fewer on the end and bottom edges.             | &cross; | &cross; |
+| <kbd>**←**</kbd> / <kbd>**↑**</kbd>                      | <kbd>**←**</kbd> / <kbd>**↑**</kbd>                    | Freeze one fewer column or row on the start and top edges, and one more on the end and bottom edges.             | &cross; | &cross; |
+| <kbd>**Home**</kbd>                                      | <kbd>**Home**</kbd>                                    | Unfreeze all the columns or rows on the edge.                                                                    | &cross; | &cross; |
+| <kbd>**End**</kbd>                                       | <kbd>**End**</kbd>                                     | Freeze as many columns or rows as fit in the grid, and leave room to scroll.                                     | &cross; | &cross; |
+| <kbd>**Escape**</kbd>                                    | <kbd>**Escape**</kbd>                                  | Move the focus back to the selected cell.                                                                        | &cross; | &cross; |
+
+In a right-to-left layout, the horizontal arrows swap. <kbd>**Escape**</kbd> also cancels a drag of a freeze bar.
+
 
 ## API reference
 
-For the list of [options](@/guides/getting-started/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:
+For the list of [options](@/guides/configuration/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:
 
 **APIs**
 

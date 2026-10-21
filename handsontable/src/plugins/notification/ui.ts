@@ -1,7 +1,17 @@
 import { fastInnerHTML } from '../../helpers/dom/element';
 import { stripTags } from '../../helpers/string';
+import { resolveButtonType } from '../../helpers/uiButton';
+import type { SanitizerFn } from '../../utils/sanitizer';
+import type { IconSlotSync } from '../../themes/engine/icons';
 import { NOTIFICATION_CLASS_NAME, NOTIFICATION_POSITIONS } from './constants';
 import type { NotificationNormalizedOptions, NotificationAction } from './notification';
+
+/**
+ * The `syncIcon()` slot class of the icon inside a toast's close button.
+ *
+ * @type {string}
+ */
+const CLOSE_ICON_SLOT_CLASS = `${NOTIFICATION_CLASS_NAME}__close-icon`;
 
 /**
  * Renders toast containers and individual notification elements. Used only by the Notification plugin.
@@ -13,9 +23,17 @@ export class NotificationUI {
   #overlayElement: HTMLElement;
 
   /**
-   * @type {function(string, string): string | undefined}
+   * @type {boolean|function(string, string): string}
    */
-  #sanitizer: ((html: string, context: string) => string | undefined) | null | undefined;
+  #sanitizer: boolean | SanitizerFn;
+
+  /**
+   * Object the missing-sanitizer "warn once" state is bound to. The grid root element, so this
+   * plugin shares one warning per instance with every other HTML write surface.
+   *
+   * @type {HTMLElement}
+   */
+  #warnScope: HTMLElement;
 
   /**
    * @type {boolean}
@@ -33,19 +51,41 @@ export class NotificationUI {
   #stacks: Map<string, HTMLElement> = new Map();
 
   /**
+   * Layout signature of the grid root the host was last fitted to. A render that moves or resizes
+   * nothing leaves it unchanged, so only the offset reads run, not the rect measurements.
+   *
+   * @type {string}
+   */
+  #fitSignature: string = '';
+
+  /**
+   * Keeps one icon slot of a container in step with the theme (`syncIcon()` bound to the grid).
+   * Injected so the UI stays decoupled from the theme engine.
+   *
+   * @type {Function}
+   */
+  readonly #syncIcon: IconSlotSync;
+
+  /**
    * @param {object} params Constructor parameters.
    * @param {HTMLElement} params.overlayElement Handsontable root overlays layer element.
-   * @param {function(string, string): string | undefined} params.sanitizer Sanitizer for HTML strings.
+   * @param {boolean|function(string, string): string} params.sanitizer Sanitizer for HTML strings.
+   * @param {HTMLElement} params.warnScope Element the missing-sanitizer warning is deduplicated against.
    * @param {boolean} params.isRtl Whether the grid uses RTL layout.
+   * @param {Function} params.syncIcon Keeps one icon slot of a container in step with the theme.
    */
-  constructor({ overlayElement, sanitizer, isRtl }: {
+  constructor({ overlayElement, sanitizer, warnScope, isRtl, syncIcon }: {
     overlayElement: HTMLElement;
-    sanitizer: ((html: string, context: string) => string | undefined) | null | undefined;
+    sanitizer: boolean | SanitizerFn;
+    warnScope: HTMLElement;
     isRtl: boolean;
+    syncIcon: IconSlotSync;
   }) {
     this.#overlayElement = overlayElement;
     this.#sanitizer = sanitizer;
+    this.#warnScope = warnScope;
     this.#isRtl = isRtl;
+    this.#syncIcon = syncIcon;
   }
 
   /**
@@ -75,6 +115,61 @@ export class NotificationUI {
 
     this.#overlayElement.appendChild(host);
     this.#host = host;
+    this.#fitSignature = '';
+  }
+
+  /**
+   * Fits the host to the grid root, so the corner stacks anchor to the grid and not to the wider
+   * root wrapper (which also holds the top and bottom slots). Physical offsets are written with
+   * `right` and `bottom` reset, because the stylesheet's `inset: 0` would overconstrain the box.
+   *
+   * @param {HTMLElement} gridRoot The grid root element the toasts are anchored to.
+   */
+  fitToGrid(gridRoot: HTMLElement): void {
+    const host = this.#host;
+    const container = host?.offsetParent;
+
+    if (!host || !container || !gridRoot.offsetWidth || !gridRoot.offsetHeight) {
+      return;
+    }
+
+    const signature = [
+      gridRoot.offsetLeft, gridRoot.offsetTop, gridRoot.offsetWidth, gridRoot.offsetHeight,
+      (container as HTMLElement).offsetWidth, (container as HTMLElement).offsetHeight,
+    ].join(',');
+
+    if (signature === this.#fitSignature) {
+      return;
+    }
+
+    this.#fitSignature = signature;
+
+    const rootRect = gridRoot.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    // Rects are scaled by a transformed ancestor, inline pixels are not.
+    const scaleX = (containerRect.width / (container as HTMLElement).offsetWidth) || 1;
+    const scaleY = (containerRect.height / (container as HTMLElement).offsetHeight) || 1;
+    const left = Math.round(((rootRect.left - containerRect.left) / scaleX) - container.clientLeft);
+    const top = Math.round(((rootRect.top - containerRect.top) / scaleY) - container.clientTop);
+    const { style } = host;
+    const next = {
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${gridRoot.offsetWidth}px`,
+      // A grid that follows its content is taller than the wrapper, which stays at the container's height.
+      height: `${Math.max(0, Math.min(gridRoot.offsetHeight, (container as HTMLElement).offsetHeight - top))}px`,
+    };
+
+    if (
+      style.left === next.left &&
+      style.top === next.top &&
+      style.width === next.width &&
+      style.height === next.height
+    ) {
+      return;
+    }
+
+    Object.assign(style, next, { right: 'auto', bottom: 'auto' });
   }
 
   /**
@@ -108,10 +203,27 @@ export class NotificationUI {
   /**
    * Updates the HTML sanitizer used for string notification messages.
    *
-   * @param {function(string, string): string | undefined} sanitizer Sanitizer from Handsontable settings, if any.
+   * @param {boolean|function(string, string): string} sanitizer Sanitizer resolved from the grid settings.
    */
-  setSanitizer(sanitizer: ((html: string, context: string) => string | undefined) | null | undefined): void {
+  setSanitizer(sanitizer: boolean | SanitizerFn): void {
     this.#sanitizer = sanitizer;
+  }
+
+  /**
+   * Rebuilds the close icon of every currently-open toast after a theme change. A toast is built
+   * once, on `showMessage`, and not re-rendered afterward - so unlike a persistent UI (pagination,
+   * sheets bar), nothing else would ever pick up a class-list or renderer icon change for a toast
+   * already on screen. Safe to call repeatedly: `syncIcon()` keeps exactly one icon per button and
+   * leaves one whose mapping did not move untouched.
+   */
+  refreshIcons(): void {
+    if (!this.#host) {
+      return;
+    }
+
+    this.#host.querySelectorAll<HTMLElement>(`.${NOTIFICATION_CLASS_NAME}__close`).forEach((closeBtn) => {
+      this.#syncIcon(closeBtn, CLOSE_ICON_SLOT_CLASS, 'chipClose');
+    });
   }
 
   /**
@@ -171,8 +283,7 @@ export class NotificationUI {
     messageEl.className = `${NOTIFICATION_CLASS_NAME}__message`;
 
     if (typeof options.message === 'string') {
-      fastInnerHTML(messageEl, options.message, this.#sanitizer as boolean | ((html: string) => string),
-        'notification', this.#overlayElement);
+      fastInnerHTML(messageEl, options.message, this.#sanitizer, 'notification', this.#warnScope);
     } else {
       messageEl.appendChild(options.message);
     }
@@ -188,7 +299,7 @@ export class NotificationUI {
         const btn = doc.createElement('button');
 
         btn.type = 'button';
-        btn.className = `ht-button ht-button--${action.type === 'primary' ? 'primary' : 'secondary'}`;
+        btn.className = `ht-button ht-button--${resolveButtonType(action.type)}`;
         btn.textContent = stripTags(action.label);
         btn.dataset.htNotificationAction = String(index);
         actionsRow.appendChild(btn);
@@ -205,6 +316,7 @@ export class NotificationUI {
       closeBtn.type = 'button';
       closeBtn.className = `${NOTIFICATION_CLASS_NAME}__close`;
       closeBtn.setAttribute('aria-label', closeLabel);
+      this.#syncIcon(closeBtn, CLOSE_ICON_SLOT_CLASS, 'chipClose');
       inner.appendChild(closeBtn);
     }
 

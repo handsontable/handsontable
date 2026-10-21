@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Dropdown cell type
-metaTitle: Dropdown cell type - JavaScript Data Grid | Handsontable
+metaTitle: Dropdown cell type | Handsontable DataGrid for JavaScript
 description: Collect user input with a searchable list of choices, by using the dropdown cell type.
 permalink: /dropdown-cell-type
 canonicalUrl: /dropdown-cell-type
@@ -11,11 +11,11 @@ tags:
   - autocomplete
   - key value
 react:
-  metaTitle: Dropdown cell type - React Data Grid | Handsontable
+  metaTitle: Dropdown cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Dropdown cell type - Angular Data Grid | Handsontable
+  metaTitle: Dropdown cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Dropdown cell type - Vue Data Grid | Handsontable
+  metaTitle: Dropdown cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
@@ -36,25 +36,25 @@ This example shows the usage of the dropdown feature. Dropdown is based on [Auto
 
 ::: only-for javascript
 
-Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplete', strict: true, filter: false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplete', strict: true, filter: false}`. Therefore you can think of `dropdown` as a searchable `<select>`. Strict mode cannot be turned off here: a dropdown cell ignores `strict: false`. See [Validate dropdown values](#validate-dropdown-values).
 
 :::
 
 ::: only-for react
 
-Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" strict={true} filter={false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" strict={true} filter={false}`. Therefore you can think of `dropdown` as a searchable `<select>`. Strict mode cannot be turned off here: a dropdown cell ignores `strict={false}`. See [Validate dropdown values](#validate-dropdown-values).
 
 :::
 
 ::: only-for angular
 
-Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`. Strict mode cannot be turned off here: a dropdown cell ignores `strict: false`. See [Validate dropdown values](#validate-dropdown-values).
 
 :::
 
 ::: only-for vue
 
-Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`.
+Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`. Strict mode cannot be turned off here: a dropdown cell ignores `strict: false`. See [Validate dropdown values](#validate-dropdown-values).
 
 :::
 
@@ -104,6 +104,8 @@ Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocompl
 ## The `source` option
 
 The `source` option can be provided in two formats:
+
+You can also assign a function to load the options from a remote source, as described in [Autocomplete strict mode with asynchronous data](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode-with-asynchronous-data). Handsontable DataGrid ignores a response that arrives after the editor closed - including a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer query has superseded, which happens as you type. Call the callback whenever the request completes, even late.
 
 ### Array of values
 
@@ -233,6 +235,87 @@ When working with object-based dropdown data, you can use methods like [`getSour
 
 :::
 
+#### Writing a plain value
+
+You don't have to build the object yourself. When you write a plain value into the cell, Handsontable looks it up among the `value` properties of the `source` array. On a match, the cell stores the whole matching object, with its `key`.
+
+This applies to every way a value reaches the cell:
+
+- picking an option in the editor
+- typing an option's text and pressing <kbd>**Enter**</kbd>
+- pasting text, including a paste from another application and a paste as plain text (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**V**</kbd>)
+- calling [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`populateFromArray()`](@/api/core.md#populatefromarray)
+
+A value that matches no option is stored as you wrote it. The `dropdown` cell type is strict, so such a value fails validation and the cell is marked as invalid.
+
+The lookup compares the text the cell displays, so a numeric `value` matches its string form. It's skipped when `source` is a function, because the options aren't known until the function answers.
+
+#### Object values
+
+The `value` property can be an object, for example a record from your API. Use the [`sourceLabel`](@/api/options.md#sourcelabel) option to tell the cell which text to display for it:
+
+- A string reads a property of the object. Use dot notation for a nested property or an array item, for example `'address.city'` or `'aliases.0'`.
+- A function receives the object and returns the text.
+
+In the example below, the `name` property of each airport is displayed.
+
+```js
+columns: [{
+  type: 'dropdown',
+  source: [
+    { key: 'LHR', value: { name: 'London Heathrow Airport', city: 'London' } },
+    { key: 'CDG', value: { name: 'Charles de Gaulle Airport', city: 'Paris' } },
+  ],
+  sourceLabel: 'name',
+}],
+```
+
+The cell, the list of options, the filter of typed text, and pasted text all use that label. The cell itself stores the whole `source` entry, so [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell) returns the object with every property.
+
+To change an entry, replace it in `source` and in the cells that hold it. Don't change the entry object in place. Depending on how the value was written, a cell holds either the `source` entry itself or a copy of it: picking an option for an empty cell and pasting store the entry, while picking an option for a cell that already holds a value, undo, and redo store a copy. A copy is a plain object, even when the entry is an instance of a class.
+
+Each entry needs a unique label. If two entries display the same label, picking or pasting that label stores the first of them. An entry whose label resolves to nothing, for example a missing property, isn't listed as an option.
+
+The `sourceLabel` option changes only how an object `value` is displayed. A string or number `value` is displayed as it is, and a `source` without the option works exactly as before.
+
+::: only-for javascript
+::: example #example6 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example6.js)
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example6.ts)
+
+:::
+:::
+::: only-for react
+::: example #example6 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example6.jsx)
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example6.tsx)
+
+:::
+:::
+::: only-for angular
+::: example #example6 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example6.ts)
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example6.html)
+
+:::
+:::
+::: only-for vue
+::: example #example6 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/vue/example6.vue)
+
+:::
+:::
+
+::: tip
+
+You can also keep a string `value` and add your own properties next to `key` and `value`, for example `{ key: 'LHR', value: 'London Heathrow Airport', city: 'London' }`. The cell stores the whole entry, including those properties.
+
+:::
+
 ## Set the dropdown width
 
 By default, the dropdown list matches the width of the edited cell, so long options can be truncated. To let the list expand to fit its longest option, set [`trimDropdown`](@/api/options.md#trimdropdown) to `false`.
@@ -341,6 +424,14 @@ In the example below, the **Job title (default)** column uses the default height
 :::
 
 :::
+
+## Validate dropdown values
+
+The dropdown validator always runs in strict mode. A value that is not in the `source` list is marked invalid, whether it is typed, pasted, or set with [`setDataAtCell()`](@/api/core.md#setdataatcell). The [`strict`](@/api/options.md#strict) option has no effect on dropdown cells.
+
+The [`allowInvalid`](@/api/options.md#allowinvalid) option decides what happens to an invalid value, the same as in [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode).
+
+Validation runs when a value is written to a cell. Values that are already in the data source when the grid loads are not validated. To check and mark them, call [`validateCells()`](@/api/core.md#validatecells) after the grid is created.
 
 ## Result
 

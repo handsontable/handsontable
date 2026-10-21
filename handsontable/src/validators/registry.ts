@@ -1,6 +1,7 @@
 import { staticRegister } from '../utils/staticRegister';
 import { throwWithCause } from '../helpers/errors';
 import type { VALIDATOR_TYPE as AUTOCOMPLETE_VALIDATOR } from './autocompleteValidator';
+import type { VALIDATOR_TYPE as CHECKBOX_VALIDATOR } from './checkboxValidator';
 import type { VALIDATOR_TYPE as DATE_VALIDATOR } from './dateValidator';
 import type { VALIDATOR_TYPE as DROPDOWN_VALIDATOR } from './dropdownValidator';
 import type { VALIDATOR_TYPE as INTL_DATE_VALIDATOR } from './intlDateValidator';
@@ -62,6 +63,7 @@ export {
 /**
  * All built-in validator type names.
  */
-export type ValidatorType = typeof AUTOCOMPLETE_VALIDATOR | typeof DATE_VALIDATOR | typeof DROPDOWN_VALIDATOR |
+export type ValidatorType = typeof AUTOCOMPLETE_VALIDATOR | typeof CHECKBOX_VALIDATOR | typeof DATE_VALIDATOR |
+  typeof DROPDOWN_VALIDATOR |
   typeof INTL_DATE_VALIDATOR | typeof INTL_TIME_VALIDATOR | typeof MULTI_SELECT_VALIDATOR |
   typeof NUMERIC_VALIDATOR | typeof TIME_VALIDATOR | string;

@@ -1,20 +1,22 @@
 ---
 title: Plugins
-metaTitle: 'API reference: Plugins - JavaScript Data Grid | Handsontable'
+metaTitle: Plugins API reference | Handsontable DataGrid for JavaScript
 description: A complete list of Handsontable's plugins that can extend your data grid's capabilities.
 permalink: /api/plugins
 canonicalUrl: /api/plugins
 searchCategory: API Reference
 react:
-  metaTitle: 'API reference: Plugins - React Data Grid | Handsontable'
+  metaTitle: Plugins API reference | Handsontable DataGrid for React
 angular:
-  metaTitle: 'API reference: Plugins - Angular Data Grid | Handsontable'
+  metaTitle: Plugins API reference | Handsontable DataGrid for Angular
 vue:
-  metaTitle: 'API reference: Plugins - Vue Data Grid | Handsontable'
+  metaTitle: Plugins API reference | Handsontable DataGrid for Vue
 ---
 |Plugin Name  | Description |
 |--|--|
 |[AutoColumnSize](@/api/autoColumnSize.md) |Automatically adjusts the column's width to the size of the content.|
+|[AutoLink](@/api/autoLink.md)| Renders the URLs found in cell values as clickable links.|
+|[AutoRowHeaderSize](@/api/autoRowHeaderSize.md)| Automatically adjusts the row header's width to the size of its longest label.|
 |[AutoRowSize](@/api/autoRowSize.md)| Automatically adjusts the row's height to the size of the content.|
 |[Autofill](@/api/autofill.md)| Drag the fill handle - a square in the bottom right corner of the cell to fill cells with the data series.|
 |[BindRowsWithHeaders](@/api/bindRowsWithHeaders.md)| Bind rows with headers to lock the row number, always displaying them side by side. Especially useful when each row has its unique ID.|
@@ -27,11 +29,13 @@ vue:
 |[CustomBorders](@/api/customBorders.md) |Apply a custom border style around a single cell or a range of cells.|
 |[DragToScroll](@/api/dragToScroll.md) |Drag the selection outside of the viewport to enable scrolling.|
 |[DropdownMenu](@/api/dropdownMenu.md) |Add a menu to the column header to enable additional operations for the column.|
-|[ExportFile](@/api/exportFile.md) |Export the data to a CSV file (note: this plugin provides a capability to export the data to only a CSV file type, its name might cause confusion).|
+|[ExportFile](@/api/exportFile.md) |Export the data to a CSV or an Excel (`.xlsx`) file, as a download or a Blob (CSV also as a string), with no extra library.|
 |[Filters](@/api/filters.md) |Display rows that meet your criteria and hide the rest.|
 |[Formulas](@/api/formulas.md) | Use Excel-like functions inside of cells to perform calculations.|
+|[FreezeBar](@/api/freezeBar.md) | Change the number of frozen rows and columns by dragging a bar on the freeze line, or with the keyboard.|
 |[HiddenColumns](@/api/hiddenColumns.md) | Hide specific columns. |
 |[HiddenRows](@/api/hiddenRows.md) | Hide specific rows.|
+|[ImportFile](@/api/importFile.md) | Load an Excel (`.xlsx`) workbook into the data grid, with cell types, dropdown sources, formulas, and layout derived from the file.|
 |[ManualColumnFreeze](@/api/manualColumnFreeze.md) | Pin the columns to the left to keep them visible while scrolling.|
 |[ManualColumnMove](@/api/manualColumnMove.md) | Drag a column to change its order in the data grid.|
 |[ManualColumnResize](@/api/manualColumnResize.md) | Drag the sizing handle to change the width of a column.|

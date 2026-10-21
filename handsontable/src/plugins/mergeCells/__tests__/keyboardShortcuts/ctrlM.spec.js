@@ -181,6 +181,22 @@ describe('MergeCells keyboard shortcut', () => {
       expect(cell.colSpan).toBe(3);
     });
 
+    it('should keep the visual-anchor value when merging after a column move', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        mergeCells: true,
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualColumnMove').moveColumn(0, 2);
+      await render();
+      await selectCells([[0, 0, 0, 1]]);
+      await keyDownUp(['control', 'm']);
+
+      expect(getDataAtCell(0, 0)).toBe('B1');
+      expect(getDataAtCell(0, 1)).toBe(null);
+    });
+
     it('should merge selected cells only for the active selection layer', async() => {
       handsontable({
         data: createSpreadsheetData(6, 6),

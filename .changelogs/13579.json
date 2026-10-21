@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved filtering performance on large datasets: the `Filters` plugin now reads each filtered column as plain lists of rows and values, and creates a row's cell meta inside the filter scan instead of building the whole column's data up front.",
+  "type": "changed",
+  "issueOrPR": 13579,
+  "breaking": false,
+  "framework": "none"
+}

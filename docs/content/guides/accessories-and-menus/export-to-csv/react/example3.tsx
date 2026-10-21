@@ -5,49 +5,111 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['https://api.acme-inventory.com/live-stock', '=WEBSERVICE("https://api.acme-inventory.com/live-stock")'],
+  ['https://status.vertex-logistics.com/feed', '=WEBSERVICE("https://status.vertex-logistics.com/feed")'],
+  ['http://malicious.example/payload.exe', '=CMD("| calc.exe")'],
+  ['https://news.example.com/q2-briefing', '=HYPERLINK("http://malicious.example","Open report")'],
+  ['https://cdn.example.com/daily.csv', '+SUM(1,1)'],
+];
+
 const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
 
-  const buttonClickCallback = () => {
+  const downloadWithNoSanitizationCallback = () => {
     const hot = hotRef.current?.hotInstance;
     const exportPlugin = hot?.getPlugin('exportFile');
-    const exportedString = exportPlugin?.exportAsString('csv', {
+
+    exportPlugin?.downloadFile('csv', {
       bom: false,
       columnDelimiter: ',',
       colHeaders: false,
-      exportHiddenColumns: false,
-      exportHiddenRows: false,
+      exportHiddenColumns: true,
+      exportHiddenRows: true,
+      fileExtension: 'csv',
+      filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+      mimeType: 'text/csv',
       rowDelimiter: '\r\n',
-      rowHeaders: true,
     });
+  };
 
-    console.log(exportedString);
+  const downloadWithRecommendedSanitizationCallback = () => {
+    const hot = hotRef.current?.hotInstance;
+    const exportPlugin = hot?.getPlugin('exportFile');
+
+    exportPlugin?.downloadFile('csv', {
+      bom: false,
+      columnDelimiter: ',',
+      colHeaders: false,
+      exportHiddenColumns: true,
+      exportHiddenRows: true,
+      fileExtension: 'csv',
+      filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+      mimeType: 'text/csv',
+      rowDelimiter: '\r\n',
+      sanitizeValues: true,
+    });
+  };
+
+  const downloadWithRegexpSanitizationCallback = () => {
+    const hot = hotRef.current?.hotInstance;
+    const exportPlugin = hot?.getPlugin('exportFile');
+
+    exportPlugin?.downloadFile('csv', {
+      bom: false,
+      columnDelimiter: ',',
+      colHeaders: false,
+      exportHiddenColumns: true,
+      exportHiddenRows: true,
+      fileExtension: 'csv',
+      filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+      mimeType: 'text/csv',
+      rowDelimiter: '\r\n',
+      sanitizeValues: /WEBSERVICE|CMD|HYPERLINK|^\+/,
+    });
+  };
+
+  const downloadWithFunctionSanitizationCallback = () => {
+    const hot = hotRef.current?.hotInstance;
+    const exportPlugin = hot?.getPlugin('exportFile');
+
+    exportPlugin?.downloadFile('csv', {
+      bom: false,
+      columnDelimiter: ',',
+      colHeaders: false,
+      exportHiddenColumns: true,
+      exportHiddenRows: true,
+      fileExtension: 'csv',
+      filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
+      mimeType: 'text/csv',
+      rowDelimiter: '\r\n',
+      sanitizeValues: (value) => {
+        return /WEBSERVICE|CMD|HYPERLINK|^\+/.test(value) ? 'REMOVED SUSPICIOUS CELL CONTENT' : value;
+      },
+    });
   };
 
   return (
     <>
       <div className="example-controls-container">
         <div className="controls">
-          <button id="export-string" onClick={() => buttonClickCallback()}>
-            Export as a string
+          <button onClick={() => downloadWithNoSanitizationCallback()}>Download CSV with no sanitization</button>
+          <button onClick={() => downloadWithRecommendedSanitizationCallback()}>
+            Download CSV with recommended sanitization
+          </button>
+          <button onClick={() => downloadWithRegexpSanitizationCallback()}>
+            Download CSV with sanitization using a regexp
+          </button>
+          <button onClick={() => downloadWithFunctionSanitizationCallback()}>
+            Download CSV with sanitization using a function
           </button>
         </div>
       </div>
       <HotTable
         ref={hotRef}
-        data={[
-          ['Spring Launch', 'Email', 'North America', '1240', '4.2%', '$12000', 'Q1 2025'],
-          ['Partner Webinar', 'Paid Search', 'EMEA', '860', '6.1%', '$9400', 'Q1 2025'],
-          ['Summer Upsell', 'Social', 'APAC', '1520', '3.7%', '$13800', 'Q2 2025'],
-          ['Product Video', 'Email', 'North America', '980', '5.4%', '$8600', 'Q2 2025'],
-          ['Back-to-School', 'Display', 'LATAM', '1110', '4.8%', '$10100', 'Q3 2025'],
-          ['Holiday Teaser', 'Affiliate', 'EMEA', '1340', '5.9%', '$12700', 'Q4 2025'],
-          ['Loyalty Drive', 'SMS', 'APAC', '790', '7.3%', '$6200', 'Q4 2025'],
-        ]}
+        data={data}
         colHeaders={true}
         rowHeaders={true}
-        hiddenRows={{ rows: [1, 3, 5], indicators: true }}
-        hiddenColumns={{ columns: [1, 3, 5], indicators: true }}
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}

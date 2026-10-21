@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed slow rendering, loading, and undo in grids with `date`, `time`, or `intl-datetime` columns, caused by building a new date formatter for every cell value.",
+  "type": "fixed",
+  "issueOrPR": 13780,
+  "breaking": false,
+  "framework": "none"
+}

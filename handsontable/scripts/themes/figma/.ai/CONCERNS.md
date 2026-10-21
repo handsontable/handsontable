@@ -12,19 +12,9 @@ Known sharp edges, technical debt, and behaviors that are easy to get wrong.
 - `processTokenValue` returns `null` when a token isn't found at all, and the null is filtered by `processThemeTokens`. Again, no warning — a key listed in `tokensKeys.mjs` that stops resolving in the export is stripped from the committed themes on the next run, so review the `src/themes/static` diff for unexpected deletions.
 - `mode` references that don't resolve both a light and a dark variant return `null` (see `processReference` case `MODE_KEY`: it requires `result.length === 2`).
 
-## Hardcoded icon-set branching
+## A theme with no `ICONS_SET` entry silently falls back to `main`
 
-`utils/cssGeneration.mjs::generateThemeCss` has:
-
-```js
-if (themeName === "horizon") {
-  css += iconsMap(ICONS_SET.horizon, ...);
-} else {
-  css += iconsMap(ICONS_SET.main, ...);
-}
-```
-
-Adding a third icon family requires editing this branch. `ICONS_SET` is the only other place that needs updating for the standalone `ht-icons-<name>.css` file to appear.
+`utils/cssGeneration.mjs::generateThemeCss` picks the icon set with `ICONS_SET[themeName] ?? ICONS_SET.main` — no branch to edit when adding a theme, but also no warning when a theme's `ICONS_SET` entry is missing or misspelled: it just renders with the `main` icons instead of its own. If a new theme's icons look wrong, check that its key in `ICONS_SET` (`utils/constants.mjs`) actually matches its `themeName`.
 
 ## No input validation
 
@@ -43,7 +33,7 @@ Both behaviors must stay in sync. Currently the list contains only `"font-family
 
 ## Limited test coverage
 
-`__tests__/` covers the typed-module emitter (`buildTsModule`, `tsConstName`) and the iconsMap drift guard, run with `node --test scripts/themes/figma/__tests__/*.test.mjs` (the bare directory path fails to resolve on Node 22). **Reference resolution (`utils/themeProcessing.mjs`) is not unit-tested** — there is no automated check that it produces the same output for a given `tokens.json`. The safeguards there are:
+`__tests__/` covers the typed-module emitter (`buildTsModule`, `tsConstName`) and the iconStyles drift guard, run with `node --test scripts/themes/figma/__tests__/*.test.mjs` (the bare directory path fails to resolve on Node 22). **Reference resolution (`utils/themeProcessing.mjs`) is not unit-tested** — there is no automated check that it produces the same output for a given `tokens.json`. The safeguards there are:
 1. Running `npm run generate:themes` and reviewing the `src/themes/static` diff (the CSS output is the semantic anchor — see the migration plan's idempotency check).
 2. The repo's theme registry unit tests (`src/themes/__tests__/`) running against the regenerated modules.
 

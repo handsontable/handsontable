@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Rows pagination
-metaTitle: Rows pagination - JavaScript Data Grid | Handsontable
+metaTitle: Rows pagination | Handsontable DataGrid for JavaScript
 description: The pagination component splits the data into a range of pages, allowing users to easily navigate through large data sets.
 permalink: /rows-pagination
 canonicalUrl: /rows-pagination
@@ -19,13 +19,15 @@ tags:
   - range of pages
   - chunks
 react:
-  metaTitle: Row pagination - React Data Grid | Handsontable
+  metaTitle: Rows pagination | Handsontable DataGrid for React
 angular:
-  metaTitle: Row pagination - Angular Data Grid | Handsontable
+  metaTitle: Rows pagination | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row pagination - Vue Data Grid | Handsontable
+  metaTitle: Rows pagination | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
+menuTag: updated
+addedIn: "16.1.0"
 ---
 Split large data sets into pages to improve usability and rendering performance. Pagination operates fully on the client side and automatically recomputes the total page count whenever rows are added, removed, filtered, or otherwise modified.
 
@@ -114,7 +116,8 @@ const configurationOptions = {
     pageSize: 20,
     // Provide a list of selectable page sizes
     pageSizeList: ['auto', 10, 20, 50],
-    // Set the initial page when the grid loads
+    // Set the initial page when the grid loads.
+    // Passing the same number again does not reset the current page.
     initialPage: 2,
     // Show or hide the page size section
     showPageSize: false,
@@ -301,7 +304,7 @@ Sometimes you need to modify data only on the currently visible page. Core metho
 
 ## Use pagination hooks
 
-You can run your code before or after different stages of pagination, using the following [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md):
+You can run your code before or after different stages of pagination, using the following [Handsontable DataGrid hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md):
 
 - [`beforePageChange()`](@/api/hooks.md#beforepagechange)
 - [`afterPageChange()`](@/api/hooks.md#afterpagechange)
@@ -462,7 +465,10 @@ When pagination is enabled:
 - [`fixedRowsTop`](@/api/options.md#fixedrowstop) and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) options should be disabled.
 - [`NestedRows`](@/api/nestedRows.md) and [`MergeCells`](@/api/mergeCells.md) plugins should be disabled.
 - The [`height`](@/api/options.md#height) option set as `auto` is not supported when the `pageSize: 'auto'` is set.
+- When the window scrolls the grid (no [`height`](@/api/options.md#height) option and no scrollable ancestor), the pagination bar follows the last row of the page. To keep it in view, give the grid an explicit `height`, or put it in a container with a fixed height and `overflow: auto`.
 - Pagination always displays a fixed number of rows per page (default is `10`), regardless of data changes such as hiding, trimming, filtering, removing, adding, or pasting rows - unless `pageSize: 'auto'` is set.
+
+Pagination also works on the main grid only. A grid nested in a cell, that is a cell of the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, has no layout slot to render the pagination bar into, so the [`pagination`](@/api/options.md#pagination) option has no effect there. A custom `uiContainer` does not change that.
 
 ## Result
 

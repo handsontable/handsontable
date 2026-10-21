@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the selection of a merged cell that crosses a frozen row or column line drawing extra selection borders and fill handles inside the cell.",
+  "type": "fixed",
+  "issueOrPR": 13667,
+  "breaking": false,
+  "framework": "none"
+}

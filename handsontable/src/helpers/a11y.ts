@@ -43,6 +43,7 @@ export const A11Y_CONTROLS = (val: string): [string, string] => ['aria-controls'
 export const A11Y_ACTIVEDESCENDANT = (val: string): [string, string] => ['aria-activedescendant', val];
 export const A11Y_LIVE = (val: string): [string, string] => ['aria-live', val];
 export const A11Y_RELEVANT = (val: string): [string, string] => ['aria-relevant', val];
+export const A11Y_LEVEL = (val: number): [string, number] => ['aria-level', val];
 export const A11Y_SETSIZE = (val: number): [string, number] => ['aria-setsize', val];
 export const A11Y_POSINSET = (val: number): [string, number] => ['aria-posinset', val];
 export const A11Y_MODAL = (): [string, string] => ['aria-modal', 'true'];

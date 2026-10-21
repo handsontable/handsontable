@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { ContextMenu, DetailedSettings } from 'handsontable/plugins/contextMenu';
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -37,14 +37,14 @@ const sanitizeMenuLabel = (html: string): string => {
   return template.innerHTML;
 };
 
-const contextMenuSettings: DetailedSettings = {
-  callback(key, selection, clickEvent) {
+const contextMenuSettings = {
+  callback(key: string, selection: unknown[], clickEvent?: Event) {
     // Common callback for all options
     console.log(key, selection, clickEvent);
   },
   items: {
     row_above: {
-      disabled() {
+      disabled(this: Handsontable.Core) {
         // `disabled` can be a boolean or a function
         // Disable option when first row was clicked
         return this.getSelectedLast()?.[0] === 0; // `this` === hot
@@ -62,7 +62,7 @@ const contextMenuSettings: DetailedSettings = {
         // `name` can be a string or a function
         return '<b>Custom option</b>'; // Name can contain HTML
       },
-      hidden() {
+      hidden(this: Handsontable.Core) {
         // `hidden` can be a boolean or a function
         // Hide the option when the first column was clicked
         return this.getSelectedLast()?.[1] == 0; // `this` === hot
@@ -90,8 +90,24 @@ const contextMenuSettings: DetailedSettings = {
               }, 0);
             },
           },
-          { key: 'colors:green', name: 'Green' },
-          { key: 'colors:blue', name: 'Blue' },
+          {
+            key: 'colors:green',
+            name: 'Green',
+            callback() {
+              setTimeout(() => {
+                alert('You clicked green!');
+              }, 0);
+            },
+          },
+          {
+            key: 'colors:blue',
+            name: 'Blue',
+            callback() {
+              setTimeout(() => {
+                alert('You clicked blue!');
+              }, 0);
+            },
+          },
         ],
       },
     },
@@ -116,15 +132,14 @@ const container = document.querySelector('#example3')!;
 
 new Handsontable(container, {
   data: [
-    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-    ['2017', 10, 11, 12, 13, 15, 16],
-    ['2018', 10, 11, 12, 13, 15, 16],
-    ['2019', 10, 11, 12, 13, 15, 16],
-    ['2020', 10, 11, 12, 13, 15, 16],
-    ['2021', 10, 11, 12, 13, 15, 16],
+    ['Hydrogen', 'H', 1, 1.008, 7],
+    ['Helium', 'He', 2, 4.003, 9],
+    ['Lithium', 'Li', 3, 6.94, 9],
+    ['Beryllium', 'Be', 4, 9.012, 11],
+    ['Boron', 'B', 5, 10.81, 15],
   ],
   rowHeaders: true,
-  colHeaders: true,
+  colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',
   contextMenu: contextMenuSettings,

@@ -1,18 +1,18 @@
 ---
 type: how-to
 title: Comments
-metaTitle: Comments - JavaScript Data Grid | Handsontable
+metaTitle: Comments | Handsontable DataGrid for JavaScript
 description: Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
 permalink: /comments
 canonicalUrl: /comments
 tags:
   - notes
 react:
-  metaTitle: Comments - React Data Grid | Handsontable
+  metaTitle: Comments | Handsontable DataGrid for React
 angular:
-  metaTitle: Comments - Angular Data Grid | Handsontable
+  metaTitle: Comments | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Comments - Vue Data Grid | Handsontable
+  metaTitle: Comments | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
 menuTag: updated
@@ -195,7 +195,7 @@ In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 
 ## Make a comment read-only
 
-By default, all comments are editable. To change this, set the [`readOnly`](@/api/options.md#readonly) configuration option to `true` when adding a comment. This example makes the "Tesla" comment attached to a cell read-only, whereas the "Honda" comment attached to another cell is editable.
+By default, all comments are editable. To change this, set the [`readOnly`](@/api/options.md#readonly) configuration option to `true` when adding a comment. This example makes the "Hydrogen" comment attached to a cell read-only, whereas the "Helium" comment attached to another cell is editable.
 
 ::: only-for javascript
 

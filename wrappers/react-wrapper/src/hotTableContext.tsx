@@ -10,9 +10,9 @@ import React, {
   useMemo,
   useContext,
 } from 'react';
-import { ScopeIdentifier, HotRendererProps } from './types'
-import { createPortal } from './helpers'
-import { RenderersPortalManagerRef } from './renderersPortalManager'
+import { ScopeIdentifier, HotRendererProps } from './types';
+import { createPortal } from './helpers';
+import { RenderersPortalManagerRef } from './renderersPortalManager';
 
 export interface HotTableContextImpl {
   /**
@@ -30,7 +30,7 @@ export interface HotTableContextImpl {
    * Sets the column settings based on information received from HotColumn.
    *
    * @param {HotTableProps} columnSettings Column settings object.
-   * @param {Number} columnIndex Column index.
+   * @param {number} columnIndex Column index.
    */
   readonly emitColumnSettings: (columnSettings: Handsontable.ColumnSettings, columnIndex: number) => void;
 
@@ -38,7 +38,7 @@ export interface HotTableContextImpl {
    * Trim the column settings array to the given length. Used to drop slots
    * left over from HotColumn children that have unmounted.
    *
-   * @param {Number} length Target length for the column settings array.
+   * @param {number} length Target length for the column settings array.
    */
   readonly trimColumnSettings: (length: number) => void;
 
@@ -48,7 +48,8 @@ export interface HotTableContextImpl {
    * @param {ComponentType<HotRendererProps>} Renderer React renderer component.
    * @returns {Handsontable.renderers.BaseRenderer} The Handsontable rendering function.
    */
-  readonly getRendererWrapper: (Renderer: ComponentType<HotRendererProps>) => typeof Handsontable.renderers.BaseRenderer;
+  readonly getRendererWrapper:
+    (Renderer: ComponentType<HotRendererProps>) => typeof Handsontable.renderers.BaseRenderer;
 
   /**
    * Clears portals cache.
@@ -89,11 +90,11 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const setHotColumnSettings = useCallback((columnSettings: Handsontable.ColumnSettings, columnIndex: number) => {
     columnsSettings.current[columnIndex] = columnSettings;
-  }, [])
+  }, []);
 
   const trimColumnSettings = useCallback((length: number) => {
     columnsSettings.current.length = length;
-  }, [])
+  }, []);
 
   const componentRendererColumns = useRef<Map<number | 'global', boolean>>(new Map());
   const renderedCellCache = useRef<Map<string, HTMLTableCellElement>>(new Map());
@@ -110,17 +111,59 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
   }, []);
   const getPortalContainerCacheSize = useCallback(() => portalContainerCache.current.size, []);
 
-  const getRendererWrapper = useCallback((Renderer: ComponentType<HotRendererProps>): typeof Handsontable.renderers.BaseRenderer => {
+  // Stable id per table element the grid draws into. Handsontable renders the
+  // same cell once per table it appears in — the master table plus an overlay
+  // table for every fixed row/column edge — and each draw gets its own TD.
+  const tableIds = useRef<WeakMap<Element, number>>(new WeakMap());
+  const nextTableId = useRef(0);
+
+  /**
+   * Identify the table a rendered cell belongs to, so the master table and the
+   * overlay tables get separate portal containers for the same cell.
+   *
+   * @param {HTMLTableCellElement} TD The cell being rendered.
+   * @returns {number} The id of the table the cell belongs to.
+   */
+  const getTableId = useCallback((TD: HTMLTableCellElement): number => {
+    // TD -> TR -> TBODY. The section belongs to exactly one table, and the
+    // overlay tables are built once and never hand their cells to another
+    // table, so it is a stable identity for the draw. Two property hops rather
+    // than a selector walk, because this runs for every component-rendered
+    // cell on every render.
+    const tableSection: Element = TD.parentElement?.parentElement ?? TD;
+    const cachedId = tableIds.current.get(tableSection);
+
+    if (cachedId !== undefined) {
+      return cachedId;
+    }
+
+    const id = nextTableId.current;
+
+    nextTableId.current += 1;
+    tableIds.current.set(tableSection, id);
+
+    return id;
+  }, []);
+
+  const getRendererWrapper = useCallback((
+    Renderer: ComponentType<HotRendererProps>
+  ): typeof Handsontable.renderers.BaseRenderer => {
     return function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const key = `${row}-${col}`;
 
       // Handsontable.Core type is missing guid
       const instanceGuid = (instance as unknown as { guid: string }).guid;
 
-      const portalContainerKey = `${instanceGuid}-${key}`;
-      const portalKey = `${key}-${instanceGuid}`;
-
       if (TD && !TD.getAttribute('ghost-table')) {
+        // The table has to be part of the key. A cell that sits in a fixed
+        // column is drawn both in the master table and in the inline-start
+        // overlay; keyed by coordinates alone, both draws share one container,
+        // which then moves into whichever table rendered last and leaves the
+        // other cell empty. The two tables then size their rows from different
+        // content and stop lining up (see issue #9063).
+        const tableId = getTableId(TD);
+        const portalContainerKey = `${instanceGuid}-${tableId}-${key}`;
+        const portalKey = `${key}-${tableId}-${instanceGuid}`;
         const cachedPortalContainer = portalContainerCache.current.get(portalContainerKey);
         // When the cached portal container is still attached to the same
         // TD as the previous render, the DOM is already correct and must
@@ -131,12 +174,12 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
 
         const rendererElement = (
           <Renderer instance={instance}
-                    TD={TD}
-                    row={row}
-                    col={col}
-                    prop={prop}
-                    value={value}
-                    cellProperties={cellProperties}/>
+            TD={TD}
+            row={row}
+            col={col}
+            prop={prop}
+            value={value}
+            cellProperties={cellProperties}/>
         );
 
         const { portal, portalContainer } = createPortal(
@@ -156,9 +199,10 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
       }
 
       renderedCellCache.current.set(key, TD);
+
       return TD;
     };
-  }, []);
+  }, [getTableId]);
 
   const renderersPortalManager = useRef<RenderersPortalManagerRef>(() => undefined);
 
@@ -195,7 +239,15 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
     getPortalContainerCacheSize,
     setRenderersPortalManagerRef,
     pushCellPortalsIntoPortalManager
-  }), [setHotColumnSettings, trimColumnSettings, getRendererWrapper, clearRenderedCellCache, getPortalContainerCacheSize, setRenderersPortalManagerRef, pushCellPortalsIntoPortalManager]);
+  }), [
+    setHotColumnSettings,
+    trimColumnSettings,
+    getRendererWrapper,
+    clearRenderedCellCache,
+    getPortalContainerCacheSize,
+    setRenderersPortalManagerRef,
+    pushCellPortalsIntoPortalManager,
+  ]);
 
   return (
     <HotTableContext.Provider value={contextImpl}>{children}</HotTableContext.Provider>
@@ -205,7 +257,7 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
 /**
  * Exposes the table context object to components
  *
- * @returns HotTableContext
+ * @returns {HotTableContextImpl} HotTableContext
  */
 function useHotTableContext(): HotTableContextImpl {
   return useContext(HotTableContext)!;

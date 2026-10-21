@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Moved the drag behavior shared by the `manualRowResize` and `manualColumnResize` plugins into one internal module. Both plugins keep every documented method, option and hook. Their internal members are no longer part of the emitted TypeScript types, including `ManualColumnResize#startX`, which the API reference never listed but the type definitions did.",
+  "type": "changed",
+  "issueOrPR": 13525,
+  "breaking": false,
+  "framework": "none"
+}

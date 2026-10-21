@@ -187,6 +187,27 @@ describe('ContextMenu', () => {
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'readOnly', true);
     });
 
+    it('should trigger `beforeReadOnlyToggle` exactly once per click, regardless of selection size', async() => {
+      const beforeReadOnlyToggle = jasmine.createSpy('beforeReadOnlyToggle');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        beforeReadOnlyToggle
+      });
+
+      await selectCell(0, 0, 4, 4);
+      await contextMenu();
+      await selectContextMenuOption('Read only');
+
+      expect(beforeReadOnlyToggle).toHaveBeenCalledTimes(1);
+      expect(beforeReadOnlyToggle).toHaveBeenCalledWith(
+        jasmine.any(Object), getSelectedRange(), true
+      );
+    });
+
     it('should not change readOnly property to true after changing cell to read only by context menu, if `beforeSetCellMeta` returned false', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),

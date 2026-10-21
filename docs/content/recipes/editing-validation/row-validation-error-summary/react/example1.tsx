@@ -80,6 +80,12 @@ const ExampleComponent = () => {
     for (const change of changes) {
       const [row, prop] = change;
       const col = typeof prop === 'string' ? hot.propToCol(prop) : (prop as number);
+
+      // Skip a property that names no column.
+      if (col === null) {
+        continue;
+      }
+
       const key = cellKey(row, col);
 
       if (!invalidCellsRef.current.has(key)) {

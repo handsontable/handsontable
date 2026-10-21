@@ -1,6 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
 
 registerAllModules();
 
@@ -56,16 +55,17 @@ const hot = new Handsontable(container, {
   ],
   fixedColumnsStart: 1,
   rowHeaders: true,
-  colHeaders: false,
+  comments: true,
+  colHeaders: true,
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  exportFile: { engines: { xlsx: ExcelJS } },
+  exportFile: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
 // Add a comment to Alice's notes cell.
-hot.setCellMeta(0, 4, 'comment', { value: 'Top sales rep — review for promotion.' });
+hot.setCellMeta(0, 4, 'comment', { value: 'Top sales rep - review for promotion.' });
 hot.render();
 
 const exportPlugin = hot.getPlugin('exportFile');

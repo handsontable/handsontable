@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the column-move-with-sorting fixture.
@@ -10,26 +11,30 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class ColumnMoveSortingPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly headerOverlay: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.headerOverlay = page.locator('.ht_clone_top');
   }
 
   /**
-   * Navigate to the fixture and wait for the grid to render. The active theme is passed
-   * as a query param so the fixture loads the matching stylesheet; `colWidths` drives the
-   * narrow-column case. `withMove: false` drops ManualColumnMove.
+   * Navigate to the fixture and wait for the grid to render. The active theme and bundle are
+   * passed as query params so the fixture loads the matching stylesheet and build; `colWidths`
+   * drives the narrow-column case. `withMove: false` drops ManualColumnMove.
    */
   async goto(colWidths?: number, options: { withMove?: boolean } = {}): Promise<void> {
     const width = colWidths === undefined ? '' : `&colWidths=${colWidths}`;
     const move = options.withMove === false ? '&move=off' : '';
 
-    await this.page.goto(`/tests/fixtures/demo/column-move-sorting.html?theme=${this.theme}${width}${move}`);
+    await this.page.goto(
+      `/tests/fixtures/demo/column-move-sorting.html?theme=${this.theme}&bundle=${this.bundle}${width}${move}`);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 

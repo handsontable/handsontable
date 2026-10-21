@@ -124,6 +124,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: '次のページへ移動',
   [C.PAGINATION_LAST_PAGE]: '最後のページへ移動',
 
+  [C.SHEETS_BAR_SECTION]: 'シート',
+  [C.SHEETS_BAR_ADD_SHEET]: 'シートを追加',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'すべてのシート',
+  [C.SHEETS_BAR_SHEET_MENU]: 'シート操作：[name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'シート名',
+  [C.SHEETS_BAR_ITEMS_DELETE]: '削除',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: '複製',
+  [C.SHEETS_BAR_ITEMS_RENAME]: '名前の変更',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: '右へ移動',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: '左へ移動',
+  [C.SHEETS_BAR_PAGE_PREV]: 'シートを後方にスクロール',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'シートを前方にスクロール',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'シート [name] が有効になりました',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'シート名は変更されませんでした: [name] は既に使用されています',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'シート',
+
   [C.LOADING_TITLE]: '読み込み中...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '閉じる',
 
@@ -141,6 +157,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '行を削除できませんでした',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'リクエストに失敗しました',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '再読み込み',
+  [C.ROW_SELECTION_SELECT_ROW]: '行 [row] を選択',
+  [C.ROW_SELECTION_SELECT_ALL]: 'すべての行を選択 ([total] 件中 [selected] 件を選択済み)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'すべてチェック ([total] 件中 [checked] 件チェック済み)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: '行 [row] を選択しました',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: '行 [row] の選択を解除しました',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[total] 行中 [selected] 行を選択中',
+  [C.ROW_SELECTION_MENU_REMOVE]: '選択した行を削除 ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: '行の選択を解除',
+  [C.FREEZE_BAR_ROWS_TOP]: '上部の 固定された行',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: '下部の 固定された行',
+  [C.FREEZE_BAR_COLUMNS_START]: '先頭の 固定された列',
+  [C.FREEZE_BAR_COLUMNS_END]: '末尾の 固定された列',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '行 [label] を展開しました。展開された行数: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '行 [label] を折りたたみました',
 };
 
 export default dictionary;

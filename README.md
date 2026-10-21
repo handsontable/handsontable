@@ -3,10 +3,10 @@
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-black.svg"/>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-white.svg"/>
-    <img width="360" alt="Logo of Handsontable data grid" src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-black.svg"/>
+    <img width="360" alt="Logo of Handsontable DataGrid" src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-black.svg"/>
   </picture>
   <br><br>
-  <h3>Handsontable is a <a href="https://handsontable.com/docs" target="_blank">JavaScript Data Grid</a> with a spreadsheet-like look and feel.</h3>
+  <h3>Handsontable DataGrid is a <a href="https://handsontable.com/docs" target="_blank">JavaScript component</a> with a spreadsheet-like look and feel.</h3>
   <p>
     Use it with JavaScript, TypeScript, or frameworks such as 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper" target="_blank">React</a>, 
@@ -60,6 +60,8 @@
 &nbsp;&nbsp;✅&nbsp; [Server-side data](https://handsontable.com/docs/javascript-data-grid/server-side-data/) <br>
 &nbsp;&nbsp;✅&nbsp; [Notifications](https://handsontable.com/docs/javascript-data-grid/notification/) <br>
 &nbsp;&nbsp;✅&nbsp; [Export to Excel](https://handsontable.com/docs/javascript-data-grid/export-to-excel/) <br>
+&nbsp;&nbsp;✅&nbsp; [Date and time editing](https://handsontable.com/docs/javascript-data-grid/cell-type/) <br>
+&nbsp;&nbsp;✅&nbsp; [Shadow DOM / Web Components support](https://handsontable.com/docs/javascript-data-grid/shadow-dom/) <br>
 
 <br>
 
@@ -133,7 +135,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Handsontable - JavaScript Data Grid Example</title>
+      <title>Handsontable DataGrid - JavaScript Example</title>
     </head>
     <body>
       <div id="handsontable-grid"></div>
@@ -172,7 +174,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
 
 ## 🎨 Themes
 
-Handsontable themes control how your data table looks: colors, spacing, typography, borders, and overall visual style.
+Handsontable themes control how your data grid looks: colors, spacing, typography, borders, and overall visual style.
 
 You get three built-in themes out of the box:
 - main – modern, clean, default choice
@@ -210,9 +212,9 @@ You can style Handsontable to match your product’s visual identity by creating
 
 <br>
 
-## 🤔 Is Handsontable a Data Grid or a Spreadsheet?
+## 🤔 Is Handsontable DataGrid a data grid or a spreadsheet?
 
-Handsontable is a data grid component written in JavaScript, not a spreadsheet. However, it brings in many features typically found in spreadsheet software. We designed it this way because spreadsheet-like patterns are often the most user-friendly when it comes to data entry and management.
+Handsontable DataGrid is a data grid component written in JavaScript, not a spreadsheet. However, it brings in many features typically found in spreadsheet software. We designed it this way because spreadsheet-like patterns are often the most user-friendly when it comes to data entry and management.
 
 ### Spreadsheet-like features in Handsontable:
 
@@ -227,6 +229,20 @@ Handsontable is a data grid component written in JavaScript, not a spreadsheet. 
 - Built-in cell editors like a date picker or dropdown list
 
 At first glance, it might seem that a data table, spreadsheet, and data grid are just different names for the same thing - an interactive table displaying data. In reality, these tools serve different purposes and offer distinct functionalities, designed to meet specific needs. Handsontable sits comfortably in the data grid category while incorporating many of the best aspects of spreadsheet software.
+
+<br>
+
+## 🤖 AI & agent resources
+
+Handsontable DataGrid and HyperFormula ship first-party resources for AI assistants and coding agents:
+
+- **Agent Skills** - official skills for Claude Code, Codex, and other coding agents, covering both products. Install in Claude Code with `/plugin marketplace add handsontable/handsontable-skills`.
+  → [github.com/handsontable/handsontable-skills](https://github.com/handsontable/handsontable-skills)
+- **AI Docs Assistant** - ask questions in English (or any other language) and get cited answers from the live docs, right in the [documentation header](https://handsontable.com/docs/javascript-data-grid/ai-docs-assistant/).
+- **[Docs MCP server](https://handsontable.com/docs/javascript-data-grid/docs-mcp-server/)** - semantic search over the full Handsontable + HyperFormula knowledge base: docs guides, API reference, code recipes, release notes, blog posts, and GitHub issues, always current with the latest release.
+  `claude mcp add --transport http handsontable-docs https://docs-assistant.handsontable.com/mcp`
+- **Docs written for agents** - every docs page has a Markdown twin; start at [handsontable.com/docs/llms.txt](https://handsontable.com/docs/llms.txt).
+- **Already using Context7?** Handsontable and HyperFormula are indexed there too.
 
 <br>
 
@@ -245,7 +261,7 @@ If you have a commercial license, feel free to contact us directly at [**support
 
 ## 📖 Licenses
 
-Handsontable is available under two licensing options, allowing you to choose the one that best fits your needs. Each license comes with its own terms and conditions, as outlined below:
+Handsontable DataGrid is available under two licensing options, allowing you to choose the one that best fits your needs. Each license comes with its own terms and conditions, as outlined below:
 
 ### ① Free license for non-commercial use, and evaluation purposes
 This license is available for non-commercial purposes such as teaching, academic research, or evaluation. It allows you to use Handsontable free of charge under the terms specified in the non-commercial license agreement.  

@@ -4,9 +4,11 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [];
+
 const ExampleComponent = () => (
   <HotTable
-    data={[]}
+    data={data}
     dataSchema={{
       id: null,
       name: {

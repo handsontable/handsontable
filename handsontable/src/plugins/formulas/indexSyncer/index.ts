@@ -34,20 +34,6 @@ class IndexSyncer {
    */
   readonly #postponeAction: Function;
   /**
-   * Flag informing whether undo is already performed (we don't perform synchronization in such case).
-   *
-   * @private
-   * @type {boolean}
-   */
-  #isPerformingUndo = false;
-  /**
-   * Flag informing whether redo is already performed (we don't perform synchronization in such case).
-   *
-   * @private
-   * @type {boolean}
-   */
-  #isPerformingRedo = false;
-  /**
    * The HF's engine instance which will be synced.
    *
    * @private
@@ -83,34 +69,6 @@ class IndexSyncer {
     }
 
     return this.#columnIndexSyncer;
-  }
-
-  /**
-   * Sets flag informing whether an undo action is already performed (we don't execute synchronization in such case).
-   *
-   * @param {boolean} flagValue Boolean value for the flag.
-   */
-  setPerformUndo(flagValue: boolean) {
-    this.#isPerformingUndo = flagValue;
-  }
-
-  /**
-   * Sets flag informing whether a redo action is already performed (we don't execute synchronization in such case).
-   *
-   * @param {boolean} flagValue Boolean value for the flag.
-   */
-  setPerformRedo(flagValue: boolean) {
-    this.#isPerformingRedo = flagValue;
-  }
-
-  /**
-   * Gets information whether redo or undo action is already performed (we don't execute synchronization in such case).
-   *
-   * @private
-   * @returns {boolean}
-   */
-  isPerformingUndoRedo() {
-    return this.#isPerformingUndo || this.#isPerformingRedo;
   }
 
   /**

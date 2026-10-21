@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for `imeFastEdit` on the `intl-date` editor: a 2 x 2 grid whose first column is an `intl-date`
+    column and whose second column is a plain text one. With `imeFastEdit` on, the focus manager moves the
+    browser focus to the active editor's input shortly after a cell is selected, so an IME can start composing
+    without the editor being opened first. The seed values are not dates on purpose: the native date input
+    shows an empty field for them, and the focus behavior does not depend on the cell's value.
+    Cells are stamped with data-testid="cell-<row>-<col>".
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    var container = document.querySelector('[data-testid="grid"]');
+
+    container.className = 'ht-theme-' + window.htTheme;
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: [
+          ['one', 'two'],
+          ['three', 'four'],
+        ],
+        columns: [
+          { type: 'intl-date' },
+          {},
+          // Scanned by the a11y scan's intl-time-editor page; no spec of this fixture reads it.
+          { type: 'intl-time' },
+        ],
+        imeFastEdit: true,
+        afterRenderer: function(td, row, col) {
+          td.setAttribute('data-testid', 'cell-' + row + '-' + col);
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      // The shared fixture contract: `awaitFixtureBuilt()` rethrows this with the constructor's stack.
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed a bug where the `afterSelectionEnd` and `afterSelectionEndByProp` hooks fired twice when selecting rows or columns by dragging over their headers.",
-  "type": "fixed",
-  "issueOrPR": 7133,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,25 +1,25 @@
 ---
 title: Theme Recipes
-metaTitle: Theme Recipes - JavaScript Data Grid | Handsontable
+metaTitle: Theme Recipes | Handsontable DataGrid for JavaScript
 permalink: /recipes/themes
 canonicalUrl: /recipes/themes
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-description: Practical recipes for integrating Handsontable with design systems and UI libraries.
+description: Practical recipes for integrating Handsontable DataGrid with design systems and UI libraries.
 react:
-  metaTitle: Theme Recipes - React Data Grid | Handsontable
+  metaTitle: Theme Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Theme Recipes - Angular Data Grid | Handsontable
+  metaTitle: Theme Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Theme Recipes - Vue Data Grid | Handsontable
+  metaTitle: Theme Recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 
 ## Overview
 
-This section provides practical, ready-to-use recipes for matching Handsontable to your app's design system. Each recipe includes complete working examples with step-by-step instructions.
+This section provides practical, ready-to-use recipes for matching Handsontable DataGrid to your app's design system. Each recipe includes complete working examples with step-by-step instructions.
 
 ## Getting Started
 
@@ -31,17 +31,33 @@ Recipes in this section cover common use cases and demonstrate best practices fo
 
 - **Design system integration** – Match the grid to shadcn/ui, Fluent UI, Tailwind, or other design systems
 - **Theme API** – Register and configure themes with colors, density, and dark mode
+- **Icon sets** – Replace the built-in icons with an icon font
 
 Current recipes:
 
+::: only-for javascript react angular
+
 <div class="boxes-list">
 
-- [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md)
-- [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md)
-- [Handsontable with Base Web](@/recipes/themes/base-theme/base-theme.md)
-- [Handsontable with Ant Design](@/recipes/themes/ant-design/ant-design.md)
-- [Handsontable with Fluent UI](@/recipes/themes/fluent-ui/fluent-ui.md)
+- [Handsontable DataGrid with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md)
+- [Handsontable DataGrid with MUI](@/recipes/themes/mui-theme/mui-theme.md)
+- [Handsontable DataGrid with Base Web](@/recipes/themes/base-theme/base-theme.md)
+- [Handsontable DataGrid with Ant Design](@/recipes/themes/ant-design/ant-design.md)
+- [Handsontable DataGrid with Fluent UI](@/recipes/themes/fluent-ui/fluent-ui.md)
+- [Handsontable DataGrid with Tabler Icons](@/recipes/themes/tabler-icons/tabler-icons.md)
 
 </div>
+
+:::
+
+::: only-for vue
+
+<div class="boxes-list">
+
+- [Handsontable DataGrid with Tabler Icons](@/recipes/themes/tabler-icons/tabler-icons.md)
+
+</div>
+
+:::
 
 Each recipe includes complete code examples, configuration options, and troubleshooting tips to help you integrate Handsontable with your app's look and feel.

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the read-only toggle from the context menu / column menu not being available to undo and redo.",
+  "type": "fixed",
+  "issueOrPR": 13612,
+  "breaking": false,
+  "framework": "none"
+}

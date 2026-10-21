@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Language
-metaTitle: Language - JavaScript Data Grid | Handsontable
-description: Set Handsontable's UI language to one of the built-in translations, or create your own language set using our templates.
+metaTitle: Language | Handsontable DataGrid for JavaScript
+description: Set Handsontable DataGrid's UI language to one of the built-in translations, or create your own language set using our templates.
 permalink: /language
 canonicalUrl: /language
 tags:
@@ -12,15 +12,16 @@ tags:
   - L10n
   - i18n
 react:
-  metaTitle: Language - React Data Grid | Handsontable
+  metaTitle: Language | Handsontable DataGrid for React
 angular:
-  metaTitle: Language - Angular Data Grid | Handsontable
+  metaTitle: Language | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Language - Vue Data Grid | Handsontable
+  metaTitle: Language | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Internationalization
+menuTag: updated
 ---
-Set Handsontable's UI language to one of the built-in translations, or create your own language set using our templates.
+Set Handsontable DataGrid's UI language to one of the built-in translations, or create your own language set using our templates.
 
 [[toc]]
 
@@ -275,6 +276,7 @@ Below is a list of features which can be translated:
 - Nesting rows
 - Pagination
 - Read-only
+- Sheets bar
 - Undo and Redo
 - Dialogs (including Loading indicator)
 
@@ -315,7 +317,8 @@ By default, Handsontable uses the **English - United States** language-country s
 | `pl-PL.js` | Polish - Poland | `pl-PL` | |
 | `pt-BR.js` | Portuguese - Brazil | `pt-BR` | |
 | `ru-RU.js` | Russian - Russia | `ru-RU` | |
-| `sr-SP.js` | Serbian (Latin) - Serbia | `sr-SP` | |
+| `sr-Latn-RS.js` | Serbian (Latin) - Serbia | `sr-Latn-RS` | |
+| `sr-SP.js` | Serbian (Latin) - Serbia | `sr-SP` | Deprecated alias of `sr-Latn-RS`. It will be removed in 20.0. |
 | `zh-CN.js` | Chinese - China | `zh-CN` | Enable [`imeFastEdit`](@/api/options.md#imefastedit) for better editing experience |
 | `zh-TW.js` | Chinese - Taiwan | `zh-TW` | Enable [`imeFastEdit`](@/api/options.md#imefastedit) for better editing experience |
 
@@ -324,6 +327,162 @@ By default, Handsontable uses the **English - United States** language-country s
 ### Create custom languages
 
 You can create custom language sets for your implementations, or share them, as they're easily applicable to any Handsontable implementation.
+
+## React to a language change at runtime
+
+To switch the language after the grid initializes, update the [`language`](@/api/options.md#language) option. Handsontable fires two hooks around the switch:
+
+- [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange) - fires before the change is applied.
+- [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange) - fires after the change is applied.
+
+Both hooks receive the same payload: `languageCode` (`string`), the new, normalized language code (lowercased language, uppercased region, e.g. `it-it` becomes `it-IT`).
+
+Register the target language's dictionary with `registerLanguageDictionary` before switching to it. If the dictionary isn't registered, the switch is ignored: neither hook fires, and Handsontable logs a console error instead.
+
+::: only-for javascript
+
+```javascript
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import { registerLanguageDictionary, itIT } from 'handsontable/i18n';
+
+registerAllModules();
+registerLanguageDictionary(itIT);
+
+const hot = new Handsontable(container, {
+  language: 'en-US',
+  beforeLanguageChange(languageCode) {
+    console.log('About to switch to:', languageCode);
+  },
+  afterLanguageChange(languageCode) {
+    console.log('Switched to:', languageCode);
+  },
+});
+
+// switch the language at runtime
+hot.updateSettings({
+  language: 'it-IT',
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import { useRef } from 'react';
+import { HotTable } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import { registerLanguageDictionary, itIT } from 'handsontable/i18n';
+
+registerAllModules();
+registerLanguageDictionary(itIT);
+
+const App = () => {
+  const hotRef = useRef(null);
+
+  const switchLanguage = () => {
+    hotRef.current?.hotInstance?.updateSettings({
+      language: 'it-IT',
+    });
+  };
+
+  return (
+    <>
+      <button onClick={switchLanguage}>Switch to Italian</button>
+      <HotTable
+        ref={hotRef}
+        language="en-US"
+        beforeLanguageChange={(languageCode) => {
+          console.log('About to switch to:', languageCode);
+        }}
+        afterLanguageChange={(languageCode) => {
+          console.log('Switched to:', languageCode);
+        }}
+      />
+    </>
+  );
+};
+```
+
+:::
+
+::: only-for angular
+
+```typescript
+import { Component, ViewChild } from '@angular/core';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import { registerLanguageDictionary, itIT } from 'handsontable/i18n';
+
+registerAllModules();
+registerLanguageDictionary(itIT);
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: `
+    <button (click)="switchLanguage()">Switch to Italian</button>
+    <hot-table [settings]="gridSettings" />
+  `,
+})
+export class AppComponent {
+  @ViewChild(HotTableComponent, { static: false }) hotTable!: HotTableComponent;
+
+  gridSettings: GridSettings = {
+    language: 'en-US',
+    beforeLanguageChange: (languageCode: string) => {
+      console.log('About to switch to:', languageCode);
+    },
+    afterLanguageChange: (languageCode: string) => {
+      console.log('Switched to:', languageCode);
+    },
+  };
+
+  switchLanguage() {
+    this.hotTable.hotInstance?.updateSettings({
+      language: 'it-IT',
+    });
+  }
+}
+```
+
+:::
+
+::: only-for vue
+
+```vue
+<script setup>
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import { registerLanguageDictionary, itIT } from 'handsontable/i18n';
+
+registerAllModules();
+registerLanguageDictionary(itIT);
+
+const hotSettings = ref({
+  language: 'en-US',
+  beforeLanguageChange(languageCode) {
+    console.log('About to switch to:', languageCode);
+  },
+  afterLanguageChange(languageCode) {
+    console.log('Switched to:', languageCode);
+  },
+});
+
+function switchLanguage() {
+  hotSettings.value.language = 'it-IT';
+}
+</script>
+
+<template>
+  <button @click="switchLanguage">Switch to Italian</button>
+  <HotTable :settings="hotSettings" />
+</template>
+```
+
+:::
 
 ## Language file
 

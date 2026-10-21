@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the last column header being clipped by a scrollbar's width, and the root element carrying `htHasScrollX`/`htHasScrollY` for scrollbars that were never shown, after the container of a `stretchH: 'all'` or `stretchH: 'last'` grid was resized.",
+  "type": "fixed",
+  "issueOrPR": 13493,
+  "breaking": false,
+  "framework": "none"
+}

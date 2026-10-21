@@ -119,6 +119,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Přejít na další stránku',
   [C.PAGINATION_LAST_PAGE]: 'Přejít na poslední stránku',
 
+  [C.SHEETS_BAR_SECTION]: 'Listy',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Přidat list',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Všechny listy',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Akce listu: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Název listu',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Odstranit',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Duplikovat',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Přejmenovat',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Přesunout doprava',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Přesunout doleva',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Posunout listy zpět',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Posunout listy vpřed',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'List [name] aktivován',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Název listu nebyl změněn: [name] se již používá',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
+
   [C.LOADING_TITLE]: 'Načítání...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zavřít',
 
@@ -136,6 +152,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Řádky se nepodařilo odstranit',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Požadavek selhal',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Znovu načíst',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Vybrat řádek [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Vybrat všechny řádky (vybráno [selected] z [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Zaškrtnout vše (zaškrtnuto [checked] z [total])',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Řádek [row] vybrán',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Výběr řádku [row] zrušen',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Vybráno [selected] z [total] řádků',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Odstranit vybrané řádky ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Zrušit výběr řádků',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Ukotvené řádky nahoře',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Ukotvené řádky dole',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Ukotvené sloupce na začátku',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Ukotvené sloupce na konci',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozbalen řádek [label], zobrazené rozbalené řádky: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sbalen řádek [label]',
 };
 
 export default dictionary;

@@ -12,16 +12,18 @@ const departments = [
   'Customer Success and Enterprise Accounts',
 ];
 
+const data = [
+  ['Ana García', departments[0], departments[0]],
+  ['James Okafor', departments[1], departments[1]],
+  ['Li Wei', departments[2], departments[2]],
+  ['Sofia Rossi', departments[3], departments[3]],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
       height="auto"
-      data={[
-        ['Ana García', departments[0], departments[0]],
-        ['James Okafor', departments[1], departments[1]],
-        ['Li Wei', departments[2], departments[2]],
-        ['Sofia Rossi', departments[3], departments[3]],
-      ]}
+      data={data}
       colHeaders={['Employee', 'Department (default)', 'Department (full width)']}
       columns={[
         {},

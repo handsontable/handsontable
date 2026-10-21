@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `clearManualSizes()` method to the `ManualRowResize` and `ManualColumnResize` plugins, and the `clearManualSize()` method to `ManualRowResize`, which `ManualColumnResize` already had. They discard the sizes stored by manual resizing, for one row or column or for all of them.",
+  "type": "added",
+  "issueOrPR": 13307,
+  "breaking": false,
+  "framework": "none"
+}

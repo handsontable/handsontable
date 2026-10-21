@@ -1,0 +1,45 @@
+name: Docs examples type check
+description: >-
+  Type-check the javascript, react and vue docs examples a pull request changed,
+  against the core types built from the current checkout, and fail only on the
+  errors the pull request introduced (base vs head, per file). Builds the core
+  types only, not the full package. Requires checkout first, with
+  fetch-depth: 2 (the base is the merge ref's first parent).
+
+runs:
+  using: composite
+  steps:
+    # `pnpm install` at the root also installs `tsc` (docs/) and `vue-tsc`
+    # (wrappers/vue3), the two tools check.mjs resolves; nothing is added.
+    - uses: ./.github/actions/setup-workspace
+
+    # The base is the first parent of the merge ref the pull request is checked
+    # out as, never the event payload's frozen base SHA (.ai/CI.md): on a re-run
+    # after the base moved, that SHA would list every example other pull
+    # requests changed since. A non-merge checkout has no second parent; then
+    # only the last commit is compared, with a warning.
+    - name: Resolve the base commit
+      id: base
+      shell: bash
+      run: |
+        if ! git rev-parse --verify --quiet HEAD^1 >/dev/null; then
+          echo "::warning::No parent commit to compare against; the examples type check is skipped."
+          echo "ref=" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        if ! git rev-parse --verify --quiet HEAD^2 >/dev/null; then
+          echo "::warning::HEAD is not a merge commit; only the last commit's examples are checked."
+        fi
+        echo "ref=$(git rev-parse HEAD^1)" >> "$GITHUB_OUTPUT"
+
+    - name: Build the core types
+      if: steps.base.outputs.ref != ''
+      shell: bash
+      run: npm run build:types --prefix handsontable
+
+    - name: Run type check
+      if: steps.base.outputs.ref != ''
+      shell: bash
+      run: npm run docs:type-check-content --prefix docs
+      env:
+        BASE_REF: ${{ steps.base.outputs.ref }}

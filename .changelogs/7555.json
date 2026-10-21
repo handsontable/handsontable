@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where re-applying an unchanged `mergeCells` configuration through `updateSettings()` cleared the merged-away cells again, firing `beforeChange` and `afterChange` for values that did not change. A re-applied merge area now clears only the cells that still hold a value.",
+  "type": "fixed",
+  "issueOrPR": 7555,
+  "breaking": false,
+  "framework": "none"
+}

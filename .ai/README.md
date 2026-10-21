@@ -30,6 +30,7 @@ Monorepo-wide orientation, not core internals.
 | [`BREAKING-CHANGES.md`](BREAKING-CHANGES.md) | Full breaking-changes policy: the per-change table (CSS classes, APIs, hooks, options, defaults), legacy vs deprecated, and what is NOT considered breaking. |
 | [`TESTING.md`](TESTING.md) | Overview of every test pipeline with its run command and a pointer to the deep reference. |
 | [`MCP.md`](MCP.md) | code-review-graph and context tooling (monorepo-wide). |
+| [`CI.md`](CI.md) | CI, release, and dependency traps: workflow orchestration, fork and Dependabot token guards, `postbuild` packaging, lockfile float gates, the minified-CSS BOM strip, Dependabot remediation, bot pull requests. |
 | [`WORKTREES.md`](WORKTREES.md) | Working in a linked git worktree: what a fresh worktree is missing, the bootstrap command, and the port and `node_modules` traps. |
 
 ### Core scope — `handsontable/.ai/`
@@ -55,7 +56,7 @@ Internals of the Walkontable rendering engine.
 | File | Contents |
 |---|---|
 | `handsontable/src/3rdparty/walkontable/.ai/ARCHITECTURE.md` | Overlays, viewport calculation, scroll handling, DOM reuse, the TableView bridge, rendering-pipeline diagram. |
-| `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md` | Walkontable-specific debt (DAO layer, overlay fragility, filter recreation). |
+| `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md` | Walkontable-specific debt (overlay fragility, filter recreation). |
 
 ## Conventions
 

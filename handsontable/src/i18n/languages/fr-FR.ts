@@ -118,6 +118,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Aller à la page suivante',
   [C.PAGINATION_LAST_PAGE]: 'Aller à la dernière page',
 
+  [C.SHEETS_BAR_SECTION]: 'Feuilles',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Ajouter une feuille',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Toutes les feuilles',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Actions de la feuille : [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Nom de la feuille',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Supprimer',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Dupliquer',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Renommer',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Déplacer à droite',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Déplacer à gauche',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Faire défiler les feuilles vers l’arrière',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Faire défiler les feuilles vers l’avant',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Feuille [name] activée',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Nom de feuille inchangé : [name] est déjà utilisé',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Feuille',
+
   [C.LOADING_TITLE]: 'Chargement...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Fermer',
 
@@ -135,6 +151,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Impossible de supprimer les lignes',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'La requête a échoué',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Recharger',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Sélectionner la ligne [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Sélectionner toutes les lignes ([selected] sur [total] sélectionnées)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Tout cocher ([checked] sur [total] cochées)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Ligne [row] sélectionnée',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Ligne [row] désélectionnée',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] lignes sélectionnées sur [total]',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Supprimer les lignes sélectionnées ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Effacer la sélection de lignes',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Lignes figées en haut',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Lignes figées en bas',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Colonnes figées au début',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Colonnes figées à la fin',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Ligne [label] développée, lignes développées affichées : [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Ligne [label] réduite',
 };
 
 export default dictionary;

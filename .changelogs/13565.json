@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed undo after a partial column removal recording out-of-range column indexes, and clarified that afterRemoveRow and afterRemoveCol fire on no-op removals.",
+  "type": "fixed",
+  "issueOrPR": 13565,
+  "breaking": false,
+  "framework": "none"
+}

@@ -29,7 +29,15 @@ export function parseToLocalDate(value: unknown): Date | null {
   if (typeof value === 'string' && ISO_DATE_REGEX.test(value)) {
     const [y, m, d] = value.split('-').map(Number);
 
-    return new Date(y, m - 1, d);
+    const date = new Date(y, m - 1, d);
+
+    // The `Date` constructor maps years 0 to 99 to 1900 to 1999, so set those years afterwards.
+    if (y < 100) {
+      date.setFullYear(y, m - 1, d);
+      date.setHours(0, 0, 0, 0);
+    }
+
+    return date;
   }
 
   return null;
@@ -140,7 +148,15 @@ export function parseToLocalDateTime(value: unknown): Date | null {
     ? Number(match[6].padEnd(3, '0').slice(0, 3))
     : 0;
 
-  return new Date(year, month - 1, day, hours, minutes, seconds, milliseconds);
+  const date = new Date(year, month - 1, day, hours, minutes, seconds, milliseconds);
+
+  // The `Date` constructor maps years 0 to 99 to 1900 to 1999, so set those years afterwards.
+  if (year < 100) {
+    date.setFullYear(year, month - 1, day);
+    date.setHours(hours, minutes, seconds, milliseconds);
+  }
+
+  return date;
 }
 
 /**
@@ -201,4 +217,57 @@ export function isSameLocalDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() &&
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate();
+}
+
+const dateTimeFormatCache = new Map<unknown, Map<string, Intl.DateTimeFormat>>();
+
+/**
+ * Two dates whose UTC offsets, read on every call, identify the local time zone well enough for
+ * the cache: a single offset cannot tell Europe/London in summer from Africa/Lagos.
+ */
+const ZONE_PROBE_DATES = [new Date(2024, 0, 1), new Date(2024, 6, 1)];
+
+/**
+ * Returns an `Intl.DateTimeFormat` for the locale and options, built once and reused. Building one
+ * is far slower than formatting with it, and a renderer's formatter runs for every cell value,
+ * including every row AutoColumnSize samples.
+ *
+ * A string locale is a key of its own, so a value `Intl` rejects (`''`) keeps throwing whatever was
+ * formatted before it. Any other locale (an array, an `Intl.Locale`) is keyed by its string form,
+ * so a `cells` callback that returns a new array on every call reuses one formatter. The options
+ * are keyed by value, so an options object changed in place gets a formatter of its own (only their
+ * own enumerable properties are read, so pass a plain object).
+ *
+ * The local time zone is part of the key too, read as the UTC offsets of two dates: a formatter
+ * without a `timeZone` option keeps the zone it was built in, while the renderers parse values to
+ * the current local time, so after a time zone change made while the page is open it can render a
+ * date one day off and a time some hours off. Two zones with the same offsets on both dates but
+ * other daylight saving dates still share a formatter until the page reloads.
+ *
+ * @param {string|string[]|undefined} locale The locale or locales, `undefined` for the default locale.
+ * @param {Intl.DateTimeFormatOptions} options The format options.
+ * @returns {Intl.DateTimeFormat}
+ */
+export function getDateTimeFormat(
+  locale: string | readonly string[] | undefined,
+  options: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormat {
+  const localeKey = locale === undefined || typeof locale === 'string' ? locale : `\u0000${String(locale)}`;
+  let localeFormatters = dateTimeFormatCache.get(localeKey);
+
+  if (localeFormatters === undefined) {
+    localeFormatters = new Map();
+    dateTimeFormatCache.set(localeKey, localeFormatters);
+  }
+
+  const zoneKey = `${ZONE_PROBE_DATES[0].getTimezoneOffset()},${ZONE_PROBE_DATES[1].getTimezoneOffset()}`;
+  const cacheKey = `${zoneKey}:${JSON.stringify(options)}`;
+  let formatter = localeFormatters.get(cacheKey);
+
+  if (formatter === undefined) {
+    formatter = new Intl.DateTimeFormat(locale, options);
+    localeFormatters.set(cacheKey, formatter);
+  }
+
+  return formatter;
 }

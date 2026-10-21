@@ -21,6 +21,7 @@ import type { default as Viewport } from './viewport/viewport';
 import type { default as Overlays } from './overlay/overlays';
 import type { SelectionManager } from './selection/manager';
 import type { Overlay } from './overlay/regions/_base';
+import type { InlineEndOverlay } from './overlay/regions/inlineEndOverlay';
 import type { GeometryReader } from './domMeasure/geometryReader';
 import type { RowSizeSource, ColumnSizeSource } from './axisSizing/axisSizeSource';
 import { DefaultRowSizeSource, DefaultColumnSizeSource } from './axisSizing/defaultSizeSource';
@@ -37,7 +38,7 @@ export interface EngineContext {
   // The DOM roots, flattened (there is no `domBindings` bag). `rootElement` is intentionally omitted:
   // it is assigned later by TableView and is never read inside the engine.
   rootDocument: Document;
-  rootWindow: Window;
+  rootWindow: Window & typeof globalThis;
   rootTable: HTMLTableElement;
   geometryReader: GeometryReader;
   // The sizing ports — the seam between the engine and whoever supplies row heights / column widths.
@@ -69,6 +70,7 @@ export interface EngineContext {
   getRowHeaders: () => Function[];
   getTopOverlay: () => Overlay;
   getInlineStartOverlay: () => Overlay;
+  getInlineEndOverlay: () => InlineEndOverlay;
   getBottomOverlay: () => Overlay;
 }
 
@@ -110,6 +112,7 @@ export function buildContext(wot: WalkontableInstance): EngineContext {
     getRowHeaders: () => wot.wtSettings.getSetting<Function[]>('rowHeaders'),
     getTopOverlay: () => wot.wtOverlays.topOverlay,
     getInlineStartOverlay: () => wot.wtOverlays.inlineStartOverlay,
+    getInlineEndOverlay: () => wot.wtOverlays.inlineEndOverlay,
     getBottomOverlay: () => wot.wtOverlays.bottomOverlay,
   };
 }

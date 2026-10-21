@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the wrong gridline color between the corner cells and the first column header in grids with more than one row header.",
+  "type": "fixed",
+  "issueOrPR": 13399,
+  "breaking": false,
+  "framework": "none"
+}

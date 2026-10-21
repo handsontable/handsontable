@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Autocomplete cell type
-metaTitle: Autocomplete cell type - JavaScript Data Grid | Handsontable
+metaTitle: Autocomplete cell type | Handsontable DataGrid for JavaScript
 description: Collect user input with a list of choices, by using the autocomplete cell type.
 permalink: /autocomplete-cell-type
 canonicalUrl: /autocomplete-cell-type
@@ -11,11 +11,11 @@ tags:
   - autocomplete
   - key value
 react:
-  metaTitle: Autocomplete cell type - React Data Grid | Handsontable
+  metaTitle: Autocomplete cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Autocomplete cell type - Angular Data Grid | Handsontable
+  metaTitle: Autocomplete cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Autocomplete cell type - Vue Data Grid | Handsontable
+  metaTitle: Autocomplete cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
@@ -38,13 +38,15 @@ In all three modes, the `source` option can be provided in two formats:
 - An array of values
 - An array of objects with `key` and `value` properties
 
+In all three modes, validation runs when a value is written to a cell. Values that are already in the data source when the grid loads are not validated. To check and mark them, call [`validateCells()`](@/api/core.md#validatecells) after the grid is created.
+
 ## Autocomplete flexible mode
 
 This example uses the `autocomplete` feature in the default flexible mode. In this mode, the user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
 
-The [`visibleRows`](@/api/options.md#visiblerows) option sets how many suggestions the dropdown shows without scrolling. The default is 10 rows. The **Chassis color** column sets `visibleRows: 4`, so the dropdown shows only four suggestions at a time and scrolls to reveal the rest.
+The [`visibleRows`](@/api/options.md#visiblerows) option sets how many suggestions the dropdown shows without scrolling. The default is 10 rows. The **Warehouse** column sets `visibleRows: 4`, so the dropdown shows up to four suggestions at a time and scrolls to reveal the rest. If there is not enough free space on the screen for four rows, the dropdown shows fewer.
 
-The [`trimDropdown`](@/api/options.md#trimdropdown) option controls the dropdown's width. By default (`trimDropdown: true`), the dropdown matches the width of the edited cell, which can truncate long suggestions. The **Bumper color** column sets `trimDropdown: false`, so the dropdown expands to fit its widest suggestion. It can grow wider than the cell, but never narrower.
+The [`trimDropdown`](@/api/options.md#trimdropdown) option controls the dropdown's width. By default (`trimDropdown: true`), the dropdown matches the width of the edited cell, which can truncate long suggestions. The **Product** column sets `trimDropdown: false`, so the dropdown expands to fit its widest suggestion. It can grow wider than the cell, but never narrower.
 
 ::: only-for javascript
 
@@ -96,7 +98,7 @@ This is the same example as above, the difference being that `autocomplete` now 
 - If there is at least one option visible, there always is a selection in HOT-in-HOT
 - When the first row is selected, pressing <kbd>**Arrow Up**</kbd> does not deselect HOT-in-HOT. Instead, it behaves as the <kbd>**Enter**</kbd> key but moves the selection in the main HOT upwards
 
-In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option determines the behaviour in the case of manual user input:
+In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option determines the behavior in the case of manual user input:
 
 - [`allowInvalid: true`](@/api/options.md#allowinvalid) optional - allows manual input of a value that does not exist in the `source`, the field background is highlighted in red, and the selection advances to the next cell
 - [`allowInvalid: false`](@/api/options.md#allowinvalid) - does not allow manual input of a value that does not exist in the `source`, the <kbd>**Enter**</kbd> key is ignored, and the editor field remains open
@@ -148,7 +150,9 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 ## Autocomplete strict mode with asynchronous data
 
-Autocomplete can also use asynchronous data sources. In the example below, suggestions for the "Car" column are loaded from the server with the Fetch API. To load data from a remote source, assign a function to the `source` option. The function receives the query string and the `process` callback. Call `process()` with the result array when the request completes.
+Autocomplete can also use asynchronous data sources. In the example below, suggestions for the "Supplier" column are loaded from the server with the Fetch API. To load data from a remote source, assign a function to the `source` option. The function receives the query string and the `process` callback. Call `process()` with the result array when the request completes.
+
+Handsontable DataGrid ignores a response that arrives after the editor closed - including a close you may not notice, such as scrolling the edited cell out of view - and it ignores a response that a newer query has superseded, which happens as you type. Call `process()` whenever the request completes, even late.
 
 ::: only-for javascript
 
@@ -290,6 +294,87 @@ When working with object-based autocomplete data, you can use methods like [`get
 
 :::
 
+#### Writing a plain value
+
+You don't have to build the object yourself. When you write a plain value into the cell, Handsontable looks it up among the `value` properties of the `source` array. On a match, the cell stores the whole matching object, with its `key`.
+
+This applies to every way a value reaches the cell:
+
+- picking an option in the editor
+- typing an option's text and pressing <kbd>**Enter**</kbd>
+- pasting text, including a paste from another application and a paste as plain text (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd> + <kbd>**Shift**</kbd> + <kbd>**V**</kbd>)
+- calling [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`populateFromArray()`](@/api/core.md#populatefromarray)
+
+A value that matches no option is stored as you wrote it. In [strict mode](#autocomplete-strict-mode) such a value fails validation.
+
+The lookup compares the text the cell displays, so a numeric `value` matches its string form. It's skipped when `source` is a function, because the options aren't known until the function answers.
+
+
+#### Object values
+
+The `value` property can be an object, for example a record from your API. Use the [`sourceLabel`](@/api/options.md#sourcelabel) option to tell the cell which text to display for it:
+
+- A string reads a property of the object. Use dot notation for a nested property or an array item, for example `'address.city'` or `'aliases.0'`.
+- A function receives the object and returns the text.
+
+In the example below, the function shows the city next to the name of each airport.
+
+```js
+columns: [{
+  type: 'autocomplete',
+  source: [
+    { key: 'LHR', value: { name: 'London Heathrow Airport', city: 'London' } },
+    { key: 'CDG', value: { name: 'Charles de Gaulle Airport', city: 'Paris' } },
+  ],
+  sourceLabel: (airport) => `${airport.city} - ${airport.name}`,
+}],
+```
+
+The cell, the list of options, the filter of typed text, and pasted text all use that label. The cell itself stores the whole `source` entry, so [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell) returns the object with every property.
+
+To change an entry, replace it in `source` and in the cells that hold it. Don't change the entry object in place. Depending on how the value was written, a cell holds either the `source` entry itself or a copy of it: picking an option for an empty cell and pasting store the entry, while picking an option for a cell that already holds a value, undo, and redo store a copy. A copy is a plain object, even when the entry is an instance of a class.
+
+Each entry needs a unique label. If two entries display the same label, picking or pasting that label stores the first of them. An entry whose label resolves to nothing, for example a missing property, isn't listed as an option.
+
+The `sourceLabel` option changes only how an object `value` is displayed. A string or number `value` is displayed as it is, and a `source` without the option works exactly as before.
+
+::: only-for javascript
+::: example #example10 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example10.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example10.ts)
+
+:::
+:::
+::: only-for react
+::: example #example10 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example10.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example10.tsx)
+
+:::
+:::
+::: only-for angular
+::: example #example10 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example10.ts)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example10.html)
+
+:::
+:::
+::: only-for vue
+::: example #example10 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example10.vue)
+
+:::
+:::
+
+::: tip
+
+You can also keep a string `value` and add your own properties next to `key` and `value`, for example `{ key: 'LHR', value: 'London Heathrow Airport', city: 'London' }`. The cell stores the whole entry, including those properties.
+
+:::
 
 ## The `filter` option
 
@@ -444,7 +529,7 @@ By default, the autocomplete dropdown and cell renderer display `source` values 
 
 ::: warning Security
 
-Handsontable doesn't sanitize HTML rendered through `allowHtml`. Only enable it for static, trusted `source` data. Rendering `source` values that come from user input creates XSS vulnerabilities. See [Security](@/guides/security/security/security.md) for details.
+Handsontable doesn't sanitize HTML rendered through `allowHtml`, and the [`sanitizer`](@/api/options.md#sanitizer) option does not reach it either. Only enable it for static, trusted `source` data. Rendering `source` values that come from user input creates XSS vulnerabilities. See [What the sanitizer does not cover](@/guides/security/security/security.md#what-the-sanitizer-does-not-cover) for details.
 
 :::
 

@@ -112,9 +112,12 @@ describe('UndoRedo', () => {
 
       await setDataAtCell(1, 1, 'X2');
 
+      // A disabled plugin records nothing, so there is nothing to undo.
+      expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+
       getPlugin('undoRedo').undo();
 
-      expect(getDataAtCell(1, 1)).toBe('B2');
+      expect(getDataAtCell(1, 1)).toBe('X2');
     });
   });
 
@@ -806,26 +809,6 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 2)).toBe('C2');
         expect(getDataAtCell(1, 3)).toBe('D2');
         expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
-      });
-
-      xit('should undo removal of multiple columns (with a used manualColumnMove)', async() => {
-        handsontable({
-          data: createSpreadsheetData(2, 7),
-          manualColumnMove: [3, 2, 0, 6, 1, 5, 4]
-        });
-
-        expect(countCols()).toEqual(7);
-        expect(getDataAtRow(0)).toEqual(['D1', 'C1', 'A1', 'G1', 'B1', 'F1', 'E1']);
-
-        await alter('remove_col', 1, 3);
-
-        expect(countCols()).toEqual(4);
-        expect(getDataAtRow(0)).toEqual(['D1', 'B1', 'F1', 'E1']);
-
-        getPlugin('undoRedo').undo();
-
-        expect(countCols()).toEqual(7);
-        expect(getDataAtRow(0)).toEqual(['D1', 'C1', 'A1', 'G1', 'B1', 'F1', 'E1']);
       });
 
       it('should undo multiple changes', async() => {
@@ -1660,17 +1643,20 @@ describe('UndoRedo', () => {
     }
 
     describe('undo', () => {
+      // Addressed by the object's own key. Passing `0` here used to write a literal `"0"` key while
+      // the old value was read from `name`, so the assertions passed without `name` ever changing.
       it('should undo single change', async() => {
         handsontable({
           data: createObjectData()
         });
 
-        await setDataAtRowProp(0, 0, 'Pearce');
+        await setDataAtRowProp(0, 'name', 'Pearce');
 
-        expect(getDataAtRowProp(0, 0)).toBe('Pearce');
+        expect(getDataAtRowProp(0, 'name')).toBe('Pearce');
 
         getPlugin('undoRedo').undo();
         expect(getDataAtCell(0, 0)).toBe('Timothy');
+        expect(getSourceDataAtRow(0)).toEqual({ name: 'Timothy', surname: 'Dalton' });
       });
 
       it('should undo creation of a single row', async() => {
@@ -2108,14 +2094,15 @@ describe('UndoRedo', () => {
     });
 
     describe('redo', () => {
+      // Addressed by the object's own key, for the same reason as the matching `undo` test above.
       it('should redo single change', async() => {
         handsontable({
           data: createObjectData()
         });
 
-        await setDataAtRowProp(0, 0, 'Pearce');
+        await setDataAtRowProp(0, 'name', 'Pearce');
 
-        expect(getDataAtRowProp(0, 0)).toBe('Pearce');
+        expect(getDataAtRowProp(0, 'name')).toBe('Pearce');
 
         getPlugin('undoRedo').undo();
 
@@ -2123,7 +2110,8 @@ describe('UndoRedo', () => {
 
         getPlugin('undoRedo').redo();
 
-        expect(getDataAtRowProp(0, 0)).toBe('Pearce');
+        expect(getDataAtRowProp(0, 'name')).toBe('Pearce');
+        expect(getSourceDataAtRow(0)).toEqual({ name: 'Pearce', surname: 'Dalton' });
       });
 
       it('should redo creation of a single row', async() => {

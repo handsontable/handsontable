@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a doubled separator line under the \"Filter by value\" list in the dropdown menu.",
-  "type": "fixed",
-  "issueOrPR": 13047,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,7 +1,8 @@
 import { extend, clone } from '../../../helpers/object';
 import { substitute } from '../../../helpers/string';
 import { throwWithCause } from '../../../helpers/errors';
-import type DataProvider from '../dataProvider';
+import { normalizeExportOptions } from '../utils';
+import type ExportDataProvider from '../dataProvider';
 
 /**
  * @private
@@ -64,7 +65,7 @@ class BaseType {
   /**
    * Data provider.
    *
-   * @type {DataProvider}
+   * @type {ExportDataProvider}
    */
   dataProvider;
   /**
@@ -77,7 +78,7 @@ class BaseType {
   /**
    * Initializes the export type with the data provider and merges the given options with the class defaults.
    */
-  constructor(dataProvider: DataProvider, options: Record<string, unknown>) {
+  constructor(dataProvider: ExportDataProvider, options: Record<string, unknown>) {
     this.dataProvider = dataProvider;
     this.options = this._mergeOptions(options);
     this.dataProvider.setOptions(this.options);
@@ -96,14 +97,9 @@ class BaseType {
 
     _options = extend(clone(BaseType.DEFAULT_OPTIONS) as Record<string, unknown>, _options) as Record<string, unknown>;
 
-    // Legacy alias: `columnHeaders` was renamed to `colHeaders`. When a caller
-    // passes the old name and does not also pass the new name, promote it so
-    // that the rest of the code only needs to read `colHeaders`.
-    if (options && 'columnHeaders' in options && !('colHeaders' in options)) {
-      options = { ...options, colHeaders: options.columnHeaders };
-    }
-
-    _options = extend(_options, options) as Record<string, unknown>;
+    // Deprecated alias: `columnHeaders` was renamed to `colHeaders`. Promote it here, before the
+    // merge with the defaults, so the rest of the code only ever reads `colHeaders`.
+    _options = extend(_options, normalizeExportOptions(options)) as Record<string, unknown>;
 
     _options.filename = substitute(_options.filename as string, {
       YYYY: date.getFullYear(),

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the [`beforePasteParse`](https://handsontable.com/docs/basic-clipboard/#clean-up-pasted-content-before-it-is-parsed) hook to the `CopyPaste` plugin. It fires before the clipboard content is sanitized and parsed, and passes a writable copy of the clipboard and the native `ClipboardEvent` to the callback, so you can clean pasted data without disabling the plugin.",
+  "type": "added",
+  "issueOrPR": 13726,
+  "breaking": false,
+  "framework": "none"
+}

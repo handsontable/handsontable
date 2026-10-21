@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a `sortFixedRows` option to the `ColumnSorting` and `MultiColumnSorting` plugins. It defaults to `false`, which keeps the rows frozen by `fixedRowsTop` and `fixedRowsBottom` out of sorting, as in 18.0.0. Set it to `true` to sort the whole dataset, including both frozen areas. The option is grid-level only.",
+  "type": "added",
+  "issueOrPR": 13456,
+  "breaking": false,
+  "framework": "none"
+}

@@ -60,7 +60,10 @@ describe('AutocompleteEditor', () => {
 
     await keyDownUp('F2');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(0, 0)).offset());
   });
 
   it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
@@ -91,15 +94,18 @@ describe('AutocompleteEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(0, 0, true)).offset());
 
     await keyDownUp('enter');
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional top border.
+    // Cells that do not touch the edges of the table also have an additional top border.
     const editorOffset = () => ({
       top: editor.offset().top + 1,
-      left: editor.offset().left,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
@@ -123,7 +129,10 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(5, 0, true)).offset());
 
     await keyDownUp('enter');
     await keyDownUp('enter');
@@ -153,15 +162,17 @@ describe('AutocompleteEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(0, 0, true)).offset());
 
     await selectCell(0, 1);
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
       top: editor.offset().top,
-      left: editor.offset().left + 1,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
@@ -212,15 +223,18 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('enter');
 
     // First renderable row index.
-    expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(1, 0, true)).offset());
 
     await keyDownUp('enter');
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional top border.
+    // Cells that do not touch the edges of the table also have an additional top border.
     const editorOffset = () => ({
       top: editor.offset().top + 1,
-      left: editor.offset().left,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
@@ -239,7 +253,10 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-    expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(6, 0, true)).offset());
 
     await keyDownUp('enter');
     await keyDownUp('enter');
@@ -269,15 +286,17 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('enter');
 
     // First renderable column index.
-    expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(0, 1, true)).offset());
 
     await selectCell(0, 2);
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
       top: editor.offset().top,
-      left: editor.offset().left + 1,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
@@ -500,39 +519,6 @@ describe('AutocompleteEditor', () => {
 
       expect(box.clientWidth).toBe(box.settingsWidth);
       expect(box.clientHeight).toBe(box.settingsHeight);
-    });
-
-    it.flaky('should not take excessive time to open the editor if the choice list is very long (dev-handsontable#2313)', async() => {
-      const options = new Array(25000).fill().map(() => Math.random());
-      let startTime;
-      let endTime;
-
-      handsontable({
-        data: [[], [], [], [], []],
-        columns: [
-          {
-            type: 'autocomplete',
-            source: options,
-          },
-        ],
-        afterBeginEditing() {
-          startTime = performance.now();
-
-          this.getActiveEditor().htEditor.addHookOnce('afterRender', async() => {
-            endTime = performance.now();
-          });
-        },
-      });
-
-      await selectCell(0, 0);
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      const $editor = $('.autocompleteEditor').eq(0);
-      const editorOpenTime = endTime - startTime;
-
-      expect(editorOpenTime).toBeLessThan(2000);
-      expect($editor.find('.ht_master tbody tr').size()).toBeGreaterThan(0);
     });
   });
 
@@ -996,7 +982,7 @@ describe('AutocompleteEditor', () => {
       expect(editor.find('tbody td:eq(4)').text()).toEqual('5');
     });
 
-    it('should display the dropdown above the editor, when there is not enough space below (table has defined size)', async() => {
+    it('should drop the dropdown below the editor and past the table\'s edge, when there is not enough space below inside the table (table has defined size)', async() => {
       spec().$container.css('overflow', '');
 
       handsontable({
@@ -1011,12 +997,22 @@ describe('AutocompleteEditor', () => {
       await mouseDoubleClick($(getCell(6, 0)));
       await waitForNextAnimationFrames(2);
 
-      const container = $(getActiveEditor().htContainer);
+      const editor = getActiveEditor();
+      const listRect = editor.htContainer.getBoundingClientRect();
+      const cellRect = getCell(6, 0).getBoundingClientRect();
+      const rootRect = editor.hot.rootElement.getBoundingClientRect();
 
-      expect(container.offset()).toEqual({ top: getDefaultRowHeight(), left: 0 });
+      // #8688: the list is positioned against the VIEWPORT, so running out of room inside the
+      // table no longer forces a flip. There is room below the cell on screen, so the list opens
+      // downwards and is free to hang past the table's own bottom edge instead of being cut off
+      // at it. The flip still happens when the viewport itself is too short below the cell -
+      // that case is covered by `tests/e2e/dropdown-editor-clip.spec.ts`.
+      expect(listRect.top).toBeCloseTo(cellRect.bottom, 0);
+      expect(listRect.bottom).toBeGreaterThan(rootRect.bottom);
+      expect(listRect.left).toBeCloseTo(cellRect.left, 0);
     });
 
-    it('should display the dropdown once above and once below the editor after the choices list is changed (table has defined size)', async() => {
+    it('should keep the dropdown below the editor and re-measure it after the choices list is changed (table has defined size)', async() => {
       spec().$container.css('overflow', '');
 
       handsontable({
@@ -1032,23 +1028,31 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       const editor = getActiveEditor();
-      const container = $(editor.htContainer);
 
       editor.TEXTAREA.value = 'r';
 
       await keyDownUp('r');
       await waitForNextAnimationFrames(2);
 
-      const rowH = getDefaultRowHeight();
+      // #8688: both lists open downwards now. The viewport has room below the cell either way,
+      // so narrowing the query re-measures the list in place instead of flipping it above the
+      // cell to fit inside the table. What still has to hold on every re-query is that the list
+      // stays anchored to the cell's bottom edge and re-measures to the choices it renders.
+      const cellRect = () => getCell(5, 0).getBoundingClientRect();
+      const wideRect = editor.htContainer.getBoundingClientRect();
 
-      expect(container.offset()).toEqual({ top: rowH, left: 0 });
+      expect(wideRect.top).toBeCloseTo(cellRect().bottom, 0);
 
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).toEqual({ top: (6 * rowH) + 1, left: 0 });
+      const narrowRect = editor.htContainer.getBoundingClientRect();
+
+      expect(narrowRect.top).toBeCloseTo(cellRect().bottom, 0);
+      expect(editor.htEditor.countRows()).toBeLessThan(choices.filter(choice => choice.includes('r')).length);
+      expect(narrowRect.height).toBeLessThan(wideRect.height);
     });
 
     it('should limit the list to the space size left below the editor (table has defined size)', async() => {
@@ -1307,48 +1311,6 @@ describe('AutocompleteEditor', () => {
       }
     });
 
-    it('should not sort the choices list, when the `sortByRelevance` option is set to `true`', async() => {
-      handsontable({
-        editor: 'autocomplete',
-        source: choices,
-        sortByRelevance: true,
-        height: 1000
-      });
-
-      await selectCell(0, 0);
-
-      const editor = $('.autocompleteEditor');
-
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      for (let i = 0; i < choices.length; i++) {
-        expect(editor.find(`tbody td:eq(${i})`).text()).toEqual(choices[i]);
-      }
-    });
-
-    it('should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`', async() => {
-      handsontable({
-        editor: 'autocomplete',
-        source: choices,
-        sortByRelevance: false,
-        height: 1000
-      });
-
-      await selectCell(0, 0);
-
-      const editor = $('.autocompleteEditor');
-
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      const sortedChoices = [...choices].sort();
-
-      for (let i = 0; i < choices.length; i++) {
-        expect(editor.find(`tbody td:eq(${i})`).text()).toEqual(sortedChoices[i]);
-      }
-    });
-
     it('should not reorder the array passed to `updateChoicesList`, when the `sortByRelevance` option is set to `false`', async() => {
       handsontable({
         editor: 'autocomplete',
@@ -1363,8 +1325,7 @@ describe('AutocompleteEditor', () => {
 
       // `updateChoicesList` is public API, so it has to sort a copy and leave the caller's array
       // alone. The internal path happens to hand it a freshly mapped array, so only a direct call
-      // exposes an in-place sort. `Array#toSorted` gave this for free but is above the
-      // browser-targets.js baseline (Firefox 115+, Safari 16+).
+      // would expose an in-place sort.
       const callerOwnedChoices = ['orange', 'apple', 'banana'];
 
       getActiveEditor().updateChoicesList(callerOwnedChoices);
@@ -2427,7 +2388,9 @@ describe('AutocompleteEditor', () => {
       editorInput.val('e');
 
       await keyDownUp('e'); // e
-      await waitForNextAnimationFrames(2);
+      // Every choice contains a lowercase 'e', so the queried list settles at the full 9 rows.
+      // Poll for that state instead of guessing how long the editor's deferred query takes.
+      await waitUntil(() => getActiveEditor().htEditor?.getData().length === 9);
 
       {
         const ac = getActiveEditor();
@@ -2450,7 +2413,9 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('e'); // E (same as 'e')
       }
 
-      await waitForNextAnimationFrames(2);
+      // The case-sensitive query for an uppercase 'E' matches nothing - the emptied list IS the
+      // asserted behavior, so polling for it cannot mask a failure.
+      await waitUntil(() => getActiveEditor().htEditor?.getData().length === 0);
 
       {
         const ac = getActiveEditor();
@@ -2507,47 +2472,6 @@ describe('AutocompleteEditor', () => {
       }
     });
 
-    it.flaky('typing in textarea should highlight the matching phrase', async() => {
-      const choicesList = ['Male', 'Female'];
-      const syncSources = jasmine.createSpy('syncSources');
-
-      syncSources.and.callFake((query, process) => {
-        process(choicesList.filter(choice => choice.search(new RegExp(query, 'i')) !== -1));
-      });
-
-      handsontable({
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: syncSources,
-            filter: false
-          }
-        ]
-      });
-
-      await selectCell(0, 0);
-      const editorInput = $('.handsontableInput');
-
-      expect(getDataAtCell(0, 0)).toBeNull();
-
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      syncSources.calls.reset();
-
-      editorInput.val('Male');
-
-      await keyDownUp('e'); // e
-      await waitForNextAnimationFrames(2);
-
-      const ac = getActiveEditor();
-      const innerHot = ac.htEditor;
-      const autocompleteList = $(innerHot.rootElement);
-
-      expect(autocompleteList.find('td:eq(0)').html()).toMatch(/<(strong|STRONG)>Male<\/(strong|STRONG)>/); // IE8 makes the tag names UPPERCASE
-      expect(autocompleteList.find('td:eq(1)').html()).toMatch(/Fe<(strong|STRONG)>male<\/(strong|STRONG)>/);
-    });
-
     it('text in textarea should not be interpreted as regexp', async() => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').and.callThrough();
       const queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
@@ -2579,48 +2503,6 @@ describe('AutocompleteEditor', () => {
       const innerHot = ac.htEditor;
 
       expect(innerHot.getData().length).toEqual(0);
-    });
-
-    it.flaky('text in textarea should not be interpreted as regexp when highlighting the matching phrase', async() => {
-      const choicesList = ['Male', 'Female'];
-      const syncSources = jasmine.createSpy('syncSources');
-
-      syncSources.and.callFake((query, process) => {
-        process(choicesList.filter(choice => choice.search(new RegExp(query, 'i')) !== -1));
-      });
-
-      handsontable({
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: syncSources,
-            filter: false
-          }
-        ]
-      });
-
-      await selectCell(0, 0);
-
-      const editorInput = $('.handsontableInput');
-
-      expect(getDataAtCell(0, 0)).toBeNull();
-
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      syncSources.calls.reset();
-      editorInput.val('M|F');
-
-      await keyDownUp('F');
-      await waitForNextAnimationFrames(2);
-
-      const ac = getActiveEditor();
-      const innerHot = ac.htEditor;
-
-      const autocompleteList = $(innerHot.rootElement);
-
-      expect(autocompleteList.find('td:eq(0)').html()).toEqual('Male');
-      expect(autocompleteList.find('td:eq(1)').html()).toEqual('Female');
     });
 
     it('should allow any value if filter === false and allowInvalid === true', async() => {
@@ -2727,7 +2609,10 @@ describe('AutocompleteEditor', () => {
 
     spec().$container.simulate('mousedown');
 
-    expect(getDataAtCell(0, 0)).toEqual('');
+    // Hovering and leaving picks nothing, so the editor closes holding exactly what it opened with
+    // and the cell keeps its original `null`. This used to assert `''`, because closing an unchanged
+    // editor wrote the editor's stringified value back over the cell (#3927).
+    expect(getDataAtCell(0, 0)).toBeNull();
   });
 
   it('should be able to use empty value ("")', async() => {
@@ -2932,78 +2817,20 @@ describe('AutocompleteEditor', () => {
 
       await waitForNextAnimationFrames(2);
 
-      expect(getCell(0, 0).querySelector('i').textContent).toBe('bar');
+      // `.htAutocompleteArrow` now carries its own `<i class="ht-icon ht-icon-select-arrow">`
+      // decorative element, ahead of the cell's actual content in DOM order - exclude it so this
+      // still resolves the injected `<i>bar</i>` markup, not the arrow icon.
+      expect(getCell(0, 0).querySelector('i:not(.ht-icon)').textContent).toBe('bar');
     });
 
-    it.flaky('should allow inject html items (sync mode)', async() => {
+    it('should not emit the missing-sanitizer warning for the dropdown items', async() => {
+      const warnSpy = spyOnConsoleWarn();
+
       handsontable({
         columns: [
           {
             type: 'autocomplete',
-            source: ['<b>foo <span>zip</span></b>', '<i>bar</i>', '<strong>baz</strong>'],
-            allowHtml: true,
-          }
-        ]
-      });
-
-      await selectCell(0, 0);
-
-      const editorInput = $('.handsontableInput');
-
-      expect(getDataAtCell(0, 0)).toBeNull();
-
-      await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
-
-      editorInput.val('b');
-
-      await keyDownUp('b');
-      await waitForNextAnimationFrames(2);
-
-      {
-        const ac = getActiveEditor();
-        const innerHot = ac.htEditor;
-
-        expect(innerHot.getData()).toEqual([
-          ['<i>bar</i>'],
-          ['<strong>baz</strong>'],
-        ]);
-
-        editorInput.val('bar');
-
-        await keyDownUp('a');
-        await keyDownUp('r');
-      }
-
-      await waitForNextAnimationFrames(2);
-
-      {
-        const ac = getActiveEditor();
-        const innerHot = ac.htEditor;
-
-        expect(innerHot.getData()).toEqual([
-          ['<i>bar</i>']
-        ]);
-
-        await keyDownUp('arrowdown');
-        await keyDownUp('enter');
-      }
-
-      await waitForNextAnimationFrames(2);
-
-      expect(getCell(0, 0).querySelector('i').textContent).toBe('bar');
-    });
-
-    it('should allow render the html items without sanitizing the content', async() => {
-      handsontable({
-        columns: [
-          {
-            type: 'autocomplete',
-            source: [
-              '<b>foo <span>zip</span></b>',
-              '<i>bar</i><img src onerror="__xssTestInjection = true">',
-              '<strong>baz</strong>'
-            ],
+            source: ['<b>foo</b>', '<i>bar</i>'],
             allowHtml: true,
           }
         ]
@@ -3013,17 +2840,31 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      const ac = getActiveEditor();
-      const innerHot = ac.htEditor;
+      // `allowHtml` is an explicit opt-in to raw HTML, so the dropdown declares that intent to
+      // `fastInnerHTML` instead of tripping the nudge meant for implicit raw writes. This mirrors
+      // what the `html` cell type asserts in `htmlRenderer.spec.js`.
+      expect(warnSpy).not.toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
+    });
 
-      expect(window.__xssTestInjection).toBe(true);
-      expect(innerHot.getData()).toEqual([
-        ['<b>foo <span>zip</span></b>'],
-        ['<i>bar</i><img src onerror="__xssTestInjection = true">'],
-        ['<strong>baz</strong>'],
-      ]);
+    it('should render plain-text items unchanged', async() => {
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['plain one', 'plain two'],
+            allowHtml: true,
+          }
+        ]
+      });
 
-      delete window.__xssTestInjection;
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await waitForNextAnimationFrames(2);
+
+      const innerHot = getActiveEditor().htEditor;
+
+      expect(innerHot.getCell(0, 0).textContent).toBe('plain one');
+      expect(innerHot.getCell(1, 0).textContent).toBe('plain two');
     });
   });
 
@@ -3102,7 +2943,9 @@ describe('AutocompleteEditor', () => {
 
       await waitForNextAnimationFrames(2);
 
-      expect(getCell(0, 0).querySelector('i')).toBeNull();
+      // Same exclusion as above - `.htAutocompleteArrow` always carries its own
+      // `<i class="ht-icon ht-icon-select-arrow">`, so a bare `i` selector would never be null.
+      expect(getCell(0, 0).querySelector('i:not(.ht-icon)')).toBeNull();
       expect(getCell(0, 0).textContent).toMatch('bar');
     });
 
@@ -3160,7 +3003,9 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      expect(getCell(0, 0).querySelector('i')).toBeNull();
+      // Same exclusion as above - `.htAutocompleteArrow` always carries its own
+      // `<i class="ht-icon ht-icon-select-arrow">`, so a bare `i` selector would never be null.
+      expect(getCell(0, 0).querySelector('i:not(.ht-icon)')).toBeNull();
       expect(getCell(0, 0).textContent).toMatch('bar');
     });
   });

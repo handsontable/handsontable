@@ -15,21 +15,23 @@ import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 export class AppComponent {
 
   readonly hotData = [
-    [1, 'Ana García', 'Product Manager', 'Spain', '2022-03-14'],
-    [2, 'James Okafor', 'Senior Engineer', 'Nigeria', '2021-07-02'],
-    [3, 'Li Wei', 'Data Analyst', 'China', '2023-01-19'],
-    [4, 'Sofia Rossi', 'UX Designer', 'Italy', '2020-11-30'],
-    [5, 'Mateo Fernández', 'Engineering Lead', 'Argentina', '2019-05-08'],
+    ['Hydrogen', 'H', 1, 1.008, 7, -434.4, -423.2],
+    ['Helium', 'He', 2, 4.003, 9, -458.0, -452.1],
+    ['Lithium', 'Li', 3, 6.94, 9, 356.9, 2447.6],
+    ['Beryllium', 'Be', 4, 9.012, 11, 2348.6, 4478.8],
+    ['Boron', 'B', 5, 10.81, 15, 3768.8, 7100.6],
   ];
 
   readonly hotSettings: GridSettings = {
     // Set each column header label with the `title` option inside `columns`.
     columns: [
-      { title: 'ID' },
-      { title: 'Full name' },
-      { title: 'Position' },
-      { title: 'Country' },
-      { title: 'Start date' },
+      { title: 'Name' },
+      { title: 'Symbol' },
+      { title: 'Atomic Number', type: 'numeric' },
+      { title: 'Atomic Mass (u)', type: 'numeric', numericFormat: { minimumFractionDigits: 3, maximumFractionDigits: 3, useGrouping: false } },
+      { title: 'Known Isotopes', type: 'numeric' },
+      { title: 'Melting Point (°F)', type: 'numeric', numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false } },
+      { title: 'Boiling Point (°F)', type: 'numeric', numericFormat: { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false } },
     ],
     rowHeaders: true,
     height: 'auto',

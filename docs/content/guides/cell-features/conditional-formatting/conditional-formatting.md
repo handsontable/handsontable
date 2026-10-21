@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Conditional formatting
-metaTitle: Conditional formatting - JavaScript Data Grid | Handsontable
+metaTitle: Conditional formatting | Handsontable DataGrid for JavaScript
 description: Style cells dynamically based on their values, using CSS classes, custom renderers, or a color scale.
 permalink: /conditional-formatting
 canonicalUrl: /conditional-formatting
 react:
-  metaTitle: Conditional formatting - React Data Grid | Handsontable
+  metaTitle: Conditional formatting | Handsontable DataGrid for React
 angular:
-  metaTitle: Conditional formatting - Angular Data Grid | Handsontable
+  metaTitle: Conditional formatting | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Conditional formatting - Vue Data Grid | Handsontable
+  metaTitle: Conditional formatting | Handsontable DataGrid for Vue
 tags:
   - conditional-formatting
   - cell-styling
@@ -40,7 +40,7 @@ For static styling that does not depend on cell values, see [Formatting cells](@
 
 - A Handsontable instance with data loaded.
 - A stylesheet, if you format cells through custom CSS classes.
-- Familiarity with the cascading configuration model, where cell settings override column settings, which override global settings. See [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md).
+- Familiarity with the cascading configuration model, where cell settings override column settings, which override global settings. See [Setting options](@/guides/configuration/configuration-options/configuration-options.md).
 
 ## Highlight cells by value with a CSS class
 
@@ -211,7 +211,7 @@ Cells that match your conditions display the configured styles - classes, inline
 
 - [Formatting cells](@/guides/cell-features/formatting-cells/formatting-cells.md)
 - [Text alignment](@/guides/cell-features/text-alignment/text-alignment.md)
-- [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md)
+- [Setting options](@/guides/configuration/configuration-options/configuration-options.md)
 
 </div>
 

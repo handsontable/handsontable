@@ -8,7 +8,7 @@ description: Use when creating or modifying a Handsontable cell type that compos
 
 ## Structure
 
-Cell types are **composition objects**, not classes. They bundle an editor, renderer, and validator under a single name:
+A cell type is a composition object bundling editor, renderer, and validator under one name:
 
 ```js
 export const MyCellType = {
@@ -24,47 +24,32 @@ export const MyCellType = {
 };
 ```
 
-When a column or cell sets `type: 'myType'`, Handsontable applies all composed components automatically.
-
-## File structure
-
-```
-src/cellTypes/{typeName}/
-  {typeName}.ts    # Cell type object
-  index.ts         # Re-exports
-```
-
-Registry: `src/cellTypes/registry.ts`.
+Files: `src/cellTypes/{typeName}/{typeName}.ts` (the object) and `index.ts` (re-exports). Registry: `src/cellTypes/registry.ts`.
 
 ## Registration
 
-```js
-import { registerCellType } from '../../cellTypes/registry';
-registerCellType(MyCellType);
-```
-
-Also export from `src/cellTypes/index.ts` so the type is available in the full bundle.
-
-## Integration with metaSchema
-
-New cell types must be added to `src/dataMap/metaManager/metaSchema.ts` so Handsontable recognizes the type name in configuration. Add the type string to the `type` option's accepted values.
+1. `registerCellType(MyCellType)` (import from `../../cellTypes/registry`).
+2. Export from `src/cellTypes/index.ts` so the full bundle has it.
+3. Add the type string to the `type` option's accepted values in `src/dataMap/metaManager/metaSchema.ts`.
 
 ## Key rules
 
-- **Think of cell types as pre-configured bundles.** They exist for convenience - users set one `type` instead of specifying `editor`, `renderer`, and `validator` separately.
-- **All components are optional.** A cell type can omit `validator` if no validation is needed, or omit `editor` for read-only display types.
-- **Individual overrides win.** If a user sets both `type: 'myType'` and `renderer: customRenderer`, the explicit `renderer` takes precedence over the one from the cell type.
+- All components are optional (omit `validator` for no validation, `editor` for read-only types).
+- An explicit `renderer`/`editor`/`validator` set beside `type: 'myType'` overrides the one from the type.
+- Import existing editor/renderer/validator logic instead of duplicating it.
+- **`valueSetter` is the only place a type may normalize an incoming value (not the editor alone, not a plugin).** Paste, `setDataAtCell()`, `populateFromArray()`, autofill and undo bypass the editor, and `valueSetter` runs on all of them. A type whose stored shape differs from what the user writes (key/value `source`, complex format) resolves it there. Learned from DEV-57: the autocomplete editor resolved a typed label against `source`, nothing else did, a pasted label was stored as a bare string among key/value objects, and a `strict` `dropdown` marked the cell invalid. Rules:
+  - **Share the rule with the editor.** `findChoiceByDisplayedValue()` (`utils/cellSource.ts`) is called by both `autocompleteEditor#getValue()` and the autocomplete `valueSetter`.
+  - **Anything exported from `src/helpers/**` is public API forever, types included.** `index.ts` spreads those modules onto `Handsontable.helper` and `base.ts` types the namespace as `typeof import('./helpers/object')`, so a new export is a permanent commitment and a narrowed signature is a break. Put cell-type helpers in `src/utils/`. `utils/cellSource.ts` holds the key/value rule, including `isKeyValueEntry()`, which delegates to the public `isKeyValueObject()` so the two cannot disagree; `helpers/object.ts` keeps a zero diff.
+  - **`valueSetter` takes five arguments: `(value, visualRow, visualCol, cellMeta, source)`.** `utils/valueAccessors.ts` passes all five. Type the meta parameter as a `Pick<CellProperties, …>` of the fields you read; read anything else through `this.getCellMetaTransient` (see the core `AGENTS.md`). `source` is declared optional on the public type: a required fifth parameter raises the option's minimum call arity and breaks a consumer that calls it with four (`.ai/BREAKING-CHANGES.md`).
+  - **Re-export a delegating setter.** `dropdownType/accessors/valueSetter.ts` is `export { valueSetter } from '../../autocompleteType/accessors';`. A hand-written delegate dropped `cellMeta` and left the strict column unfixed. A unit test pins the identity (`DropdownCellType.valueSetter` is `AutocompleteCellType.valueSetter`).
+  - **Return `newValue` untouched when `source` starts with `'UndoRedo.'`.** Undo and redo restore the prior value verbatim (`utils/valueAccessors.ts` states the invariant). The autocomplete setter once wrapped a restored plain label as `{ key: <label>, value: <label> }`, which a `strict` column then rejected.
+  - **Guard an empty write.** `isEmpty(newValue)` skips any resolution, or a `source` entry with an empty label stands in for "no value" and `allowEmpty` changes meaning.
+  - **Gate the expensive part on a cheap shape check.** The setter runs once per changed cell. `hasKeyValueChoices()` reads only the entries' shape, so a plain-string `source` never pays for a label scan. Skip memoizing the scan itself: the host can mutate a `source` array in place and a stale displayed-text map would resolve a label to an option no longer offered.
+  - **The gate bounds who pays, not how much.** A key/value column runs `findChoiceByDisplayedValue()` per changed cell, a linear scan calling `stringify()` and `stripTags()` per choice: cost is `changed cells × source size`. At 10–100 options a 10k-row paste takes single-digit milliseconds; a source of hundreds to thousands takes about a second. If that ever needs to be fast, use a map invalidated by identity, not a plain cache.
 
 ## Reference implementations
 
-- `src/cellTypes/numericType/numericType.ts` - Composes numeric editor, renderer, and validator.
-- `src/cellTypes/textType/textType.ts` - Simplest type, good starting template.
-- `src/cellTypes/dateType/dateType.ts` - Date handling with format options.
-- `src/cellTypes/checkboxType/checkboxType.ts` - Boolean toggle pattern.
-
-## Common mistakes
-
-- Forgetting to register the cell type in `src/cellTypes/registry.ts`.
-- Not adding the type to `metaSchema.ts`, causing Handsontable to ignore the type name.
-- Duplicating editor/renderer/validator logic instead of importing existing components.
-- Not exporting from `src/cellTypes/index.ts` for the full bundle.
+- `src/cellTypes/numericType/numericType.ts`
+- `src/cellTypes/textType/textType.ts` (simplest, good template)
+- `src/cellTypes/dateType/dateType.ts`
+- `src/cellTypes/checkboxType/checkboxType.ts`

@@ -5,10 +5,11 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const data = [
-  ['Tesla', 2017, 'black', 'black'],
-  ['Nissan', 2018, 'blue', 'blue'],
-  ['Chrysler', 2019, 'yellow', 'black'],
-  ['Volvo', 2020, 'white', 'gray'],
+  ['Hydrogen', 'H', 1, 1.008],
+  ['Helium', 'He', 2, 4.003],
+  ['Lithium', 'Li', 3, 6.94],
+  ['Beryllium', 'Be', 4, 9.012],
+  ['Boron', 'B', 5, 10.81],
 ];
 
 // define your custom query method
@@ -17,9 +18,10 @@ function onlyExactMatch(queryStr, value) {
 }
 
 const container = document.querySelector('#example3');
+
 const hot = new Handsontable(container, {
   data,
-  colHeaders: true,
+  colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass'],
   // enable the `Search` plugin
   search: {
     // add your custom query method
@@ -39,5 +41,6 @@ searchField.addEventListener('keyup', (event) => {
   const queryResult = search.query(event.target.value);
 
   console.log(queryResult);
+
   hot.render();
 });

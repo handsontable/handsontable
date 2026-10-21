@@ -19,7 +19,6 @@ type EditorBaseFactoryParams<E> = Record<string, (editor: E, ...args: any[]) => 
 type EditorWithExtendedProps = InstanceType<typeof BaseEditor> & {
   container?: HTMLElement;
   input?: HTMLElement;
-  preventCloseElement?: HTMLElement | null;
   eventManager?: InstanceType<typeof EventManager>;
   refreshDimensions?: () => void;
   _opened: boolean;
@@ -221,11 +220,27 @@ export const editorFactory = <TProperties, TMethods = Record<string, unknown>>(
       containerStyle.position = 'absolute';
 
       if (position === 'portal') {
-        const _offset = editor.TD.getBoundingClientRect();
+        const cellRect = editor.TD.getBoundingClientRect();
+        const isRtl = editor.hot.isRtl();
 
-        containerStyle.top = `${editor.hot.rootWindow.pageYOffset + _offset.top}px`;
-        containerStyle[editor.hot.isRtl() ? 'right' : 'left'] =
-          `${editor.hot.rootWindow.pageXOffset + _offset[editor.hot.isRtl() ? 'right' : 'left']}px`;
+        // `top`, `left` and `right` are measured from the container's containing block, which is
+        // not the viewport: a scrolled page, a scrollbar gutter, or a positioned `body` all move
+        // it. Park the container on the block's origin edges, read where they sit in the
+        // viewport, then offset from there. The container's own margin is cancelled the same way
+        // under both directions. The probe costs one extra layout per call.
+        containerStyle.top = '0px';
+        containerStyle.left = isRtl ? '' : '0px';
+        containerStyle.right = isRtl ? '0px' : '';
+
+        const originRect = editor.container!.getBoundingClientRect();
+
+        containerStyle.top = `${cellRect.top - originRect.top}px`;
+
+        if (isRtl) {
+          containerStyle.right = `${originRect.right - cellRect.right}px`;
+        } else {
+          containerStyle.left = `${cellRect.left - originRect.left}px`;
+        }
       } else {
         const rect = editor.getEditedCellRect();
 

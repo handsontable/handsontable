@@ -36,11 +36,13 @@ describe('Core.resumeExecution', () => {
       indexesSequenceChanged: true,
       trimmedIndexesChanged: false,
       hiddenIndexesChanged: false,
+      indexesChangeSource: 'update',
     });
     expect(rowIndexCacheUpdated).toHaveBeenCalledOnceWith({
       indexesSequenceChanged: true,
       trimmedIndexesChanged: false,
       hiddenIndexesChanged: false,
+      indexesChangeSource: 'update',
     });
   });
 
@@ -83,11 +85,13 @@ describe('Core.resumeExecution', () => {
       indexesSequenceChanged: true,
       trimmedIndexesChanged: false,
       hiddenIndexesChanged: false,
+      indexesChangeSource: 'update',
     });
     expect(rowIndexCacheUpdated).toHaveBeenCalledOnceWith({
       indexesSequenceChanged: true,
       trimmedIndexesChanged: false,
       hiddenIndexesChanged: false,
+      indexesChangeSource: 'update',
     });
   });
 });

@@ -36,6 +36,179 @@ describe('CopyPaste', () => {
       expect(sanitizer).toHaveBeenCalledWith('<div>test</div>', 'CopyPaste.paste');
     });
 
+    it('should be called for the private source-data clipboard type', async() => {
+      // Escapes the markup delimiters rather than stripping an attribute pattern. Removing a
+      // multi-character sequence can reintroduce it (CodeQL `js/incomplete-multi-character-sanitization`),
+      // and a test sanitizer that is itself unsound proves nothing about the code under test.
+      const sanitizer = jasmine.createSpy('sanitizer')
+        .and
+        .callFake(content => content
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;'));
+
+      handsontable({
+        copyPaste: true,
+        sanitizer,
+      });
+
+      window.__testFunction = () => {};
+      spyOn(window, '__testFunction');
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+      // Handsontable writes this type from its own copy handler, but the clipboard is not a
+      // trusted channel - any page can set the same type from its own. This branch reached
+      // `htmlToGridSettings()` unsanitized while `text/html` did not.
+      const payload = '<table><tbody><tr><td>A1</td></tr></tbody></table>' +
+        '<img src onerror="__testFunction()">';
+
+      clipboardEvent.clipboardData.setData('application/ht-source-data-json-html', payload);
+
+      await selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(sanitizer).toHaveBeenCalledWith(payload, 'CopyPaste.paste.sourceData');
+      expect(window.__testFunction).not.toHaveBeenCalled();
+    });
+
+    it('should warn once when only the private source-data type carries HTML and no sanitizer is set',
+      async() => {
+        const warnSpy = spyOnConsoleWarn();
+
+        handsontable({
+          copyPaste: true,
+        });
+
+        const clipboardEvent = getClipboardEvent();
+        const plugin = getPlugin('CopyPaste');
+
+        clipboardEvent.clipboardData.setData(
+          'application/ht-source-data-json-html',
+          '<table><tbody><tr><td>A1</td></tr></tbody></table>'
+        );
+
+        await selectCell(0, 0);
+
+        plugin.onPaste(clipboardEvent);
+
+        await waitForNextAnimationFrames(2);
+
+        expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
+        expect(warnSpy.calls.count()).toBe(1);
+      });
+
+    it('should still restore object-based source data pasted between Handsontable instances', async() => {
+      handsontable({
+        data: [{ id: 1, value: 'A1' }, { id: 2, value: 'A2' }],
+        // `parsePastedValue` is what makes the source-data payload do anything at all. It defaults
+        // to `false`, and only the `autocomplete`, `dropdown` and `multiSelect` cell types turn it
+        // on, so without it the restore branch in `populateValues()` never runs and this test would
+        // pass no matter what the sanitizer did to the payload.
+        columns: [{ data: 'value', parsePastedValue: true }],
+        copyPaste: true,
+        sanitizer: content => content,
+      });
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<meta name="generator" content="Handsontable"/>',
+        '<table><tbody><tr><td>B1</td></tr></tbody></table>',
+      ].join(''));
+      clipboardEvent.clipboardData.setData('application/ht-source-data-json-html', [
+        '<meta name="generator" content="Handsontable"/>',
+        '<table><tbody><tr><td>{"id":9,"value":"B1"}</td></tr></tbody></table>',
+      ].join(''));
+
+      await selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getSourceDataAtCell(0, 'value')).toEqual({ id: 9, value: 'B1' });
+    });
+
+    it('should degrade to the displayed value when the sanitizer escapes the source-data markup', async() => {
+      handsontable({
+        data: [{ id: 1, value: 'A1' }, { id: 2, value: 'A2' }],
+        columns: [{ data: 'value', parsePastedValue: true }],
+        copyPaste: true,
+        // An escaping sanitizer turns the payload's `<table>` into text, so `htmlToGridSettings()`
+        // finds no table and the object-keyed source data cannot be restored. That is the price of
+        // sanitizing this branch, which previously reached the parser raw. Pinned here so the
+        // degradation is a known, documented outcome rather than a silent surprise. A stripping
+        // sanitizer such as DOMPurify keeps the table and is unaffected.
+        sanitizer: content => content
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;'),
+      });
+
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/plain', 'B1');
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<meta name="generator" content="Handsontable"/>',
+        '<table><tbody><tr><td>B1</td></tr></tbody></table>',
+      ].join(''));
+      clipboardEvent.clipboardData.setData('application/ht-source-data-json-html', [
+        '<meta name="generator" content="Handsontable"/>',
+        '<table><tbody><tr><td>{"id":9,"value":"B1"}</td></tr></tbody></table>',
+      ].join(''));
+
+      await selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      await waitForNextAnimationFrames(2);
+
+      // The object is gone; only the displayed value survives.
+      expect(getSourceDataAtCell(0, 'value')).toBe('B1');
+    });
+
+    it('should keep the object-based source data when the sanitizer passes its own context through',
+      async() => {
+        handsontable({
+          data: [{ id: 1, value: 'A1' }, { id: 2, value: 'A2' }],
+          columns: [{ data: 'value', parsePastedValue: true }],
+          copyPaste: true,
+          // The source-data payload feeds an inert parse, so letting it through does not reopen an
+          // injection hole. This is the escape hatch from the degradation asserted above.
+          sanitizer: (content, source) => (source === 'CopyPaste.paste.sourceData' ? content : content
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')),
+        });
+
+        const clipboardEvent = getClipboardEvent();
+        const plugin = getPlugin('CopyPaste');
+
+        clipboardEvent.clipboardData.setData('text/plain', 'B1');
+        clipboardEvent.clipboardData.setData('text/html', [
+          '<meta name="generator" content="Handsontable"/>',
+          '<table><tbody><tr><td>B1</td></tr></tbody></table>',
+        ].join(''));
+        clipboardEvent.clipboardData.setData('application/ht-source-data-json-html', [
+          '<meta name="generator" content="Handsontable"/>',
+          '<table><tbody><tr><td>{"id":9,"value":"B1"}</td></tr></tbody></table>',
+        ].join(''));
+
+        await selectCell(0, 0);
+
+        plugin.onPaste(clipboardEvent);
+
+        await waitForNextAnimationFrames(2);
+
+        expect(getSourceDataAtCell(0, 'value')).toEqual({ id: 9, value: 'B1' });
+      });
+
     it('should not blank the cell below the target when a single Excel cell is pasted and the' +
       ' sanitizer strips the HTML to plain text', async() => {
       const sanitizer = (content) => {

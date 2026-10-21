@@ -72,6 +72,22 @@ const GUARDED_SITES = [
   ['.github/workflows/code-quality.yml', '  sonarcloud:'],
   ['.github/workflows/code-quality.yml', '  fossa:'],
   ['.github/workflows/docs.yml', '  preview:'],
+  ['.github/workflows/visual.yml', 'name: Compare against the golden records'],
+  ['.github/workflows/visual.yml', 'name: Seed the golden records'],
+  ['.github/workflows/visual.yml', 'name: Comment the visual verdict on the pull request'],
+  ['.github/workflows/visual.yml', 'name: Record the approval on the pull request'],
+  ['.github/workflows/docs.yml', 'name: Record the docs approval on the pull request'],
+  ['.github/workflows/pr-cleanup.yml', '  purge-visual-screenshots:'],
+  // The docs visual suite (DEV-2860): the sticky comment in docs.yml, and the
+  // two R2 writes inside the composite action both entry points call.
+  ['.github/workflows/docs.yml', 'name: Comment the docs visual verdict on the pull request'],
+  ['.github/actions/docs-visual-run/action.yml', 'name: Publish the report'],
+  ['.github/actions/docs-visual-run/action.yml', 'name: Seed the golden records'],
+  // The advisory breaking-change comment (DEV-3030).
+  ['.github/workflows/breaking-check.yml', 'name: Comment'],
+  // The accessibility report's check run (DEV-3474): a check write a fork's token cannot make.
+  ['.github/workflows/a11y.yml', 'name: Post the report check run'],
+  ['.github/workflows/a11y.yml', 'name: Post the report comment'],
 ];
 
 test('every fork-hostile site carries both halves of the canonical guard', () => {
@@ -105,36 +121,53 @@ test('every fork-hostile site carries both halves of the canonical guard', () =>
   }
 });
 
-test('the guarded-site list in AGENTS.md names every file that carries a guard', () => {
-  const agents = read('AGENTS.md');
+test('the guarded-site list in .ai/CI.md names every file that carries a guard', () => {
+  const agents = read('.ai/CI.md');
   const start = agents.indexOf('Do not guard a step just because it names a secret');
 
-  assert.notEqual(start, -1, 'AGENTS.md has no fork-guard bullet');
+  assert.notEqual(start, -1, '.ai/CI.md has no fork-guard bullet');
 
   const bullet = agents.slice(start, agents.indexOf('\n- ', start + 1));
 
   for (const file of new Set(GUARDED_SITES.map(([f]) => path.basename(f)))) {
     assert.ok(
       bullet.includes(file),
-      `AGENTS.md's guarded-site list does not mention ${file}; the docs and the workflows have drifted`
+      `.ai/CI.md's guarded-site list does not mention ${file}; the docs and the workflows have drifted`
     );
   }
 });
 
-// Regression lock. @argos-ci/core falls back to tokenless upload on public GitHub
-// Actions repos, so this step genuinely works with an empty ARGOS_TOKEN: verified
-// on fork PR #13207 (run 32481421878), where it passed and the Argos App reported
-// build 5874. It was guarded once, on the false premise that naming a secret
-// implies needing one, which silently removed visual review for every external
-// contributor. An absent secret is an empty string, not a 403.
-test('the Argos upload is NOT fork-guarded (tokenless upload works on forks)', () => {
-  const expression = guardAfter(read('.github/workflows/visual.yml'), 'name: Upload the screenshots to Argos CI');
+// Regression lock. Writing to R2 needs real credentials, which a fork never
+// gets, so the credentialed comparison carries the canonical guard. Guarding it
+// without a replacement would delete visual review for every external
+// contributor -- the mistake made once on this same workflow and reverted in
+// #13222 (DEV-2592). The fork path reads the golden records from the public bucket
+// over anonymous HTTPS and publishes nothing, so both paths end at the same
+// `visual-gate.mjs` verdict and an external contribution is held to it too.
+test('a fork still gets a visual comparison', () => {
+  const visual = read('.github/workflows/visual.yml');
+  const anchor = 'name: Compare against the golden records (no credentials)';
 
-  assert.equal(
+  assert.ok(
+    visual.includes(anchor),
+    'visual.yml has no credential-free comparison step, so fork and Dependabot PRs '
+      + 'get no visual review at all. Restore it rather than guarding the gate away.'
+  );
+
+  const expression = guardAfter(visual, anchor);
+
+  assert.ok(expression, `${anchor}: no if: condition found, so it would also run on same-repo PRs`);
+
+  assert.match(
     expression,
-    null,
-    'the Argos upload step has an if: condition. If it is a fork guard, remove it: '
-      + 'tokenless upload works on forks and guarding it deletes visual review for external contributors.'
+    /head\.repo\.full_name != github\.repository/,
+    `${anchor}: must be the fork half of the split`
+  );
+
+  assert.match(
+    expression,
+    /github\.actor == 'dependabot\[bot\]'/,
+    `${anchor}: must also cover Dependabot, whose token is downgraded like a fork's`
   );
 });
 

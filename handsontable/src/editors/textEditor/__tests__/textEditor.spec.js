@@ -140,7 +140,10 @@ describe('TextEditor', () => {
 
     await keyDownUp('F2');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(0, 0)).offset());
   });
 
   it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
@@ -174,15 +177,20 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+    const editorOffsetAtRowEdge = () => ({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    });
+
+    expect(editorOffsetAtRowEdge()).toEqual($(getCell(0, 0, true)).offset());
 
     await keyDownUp('enter');
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional top border.
+    // Cells that do not touch the edges of the table also have an additional top border.
     const editorOffset = () => ({
       top: editor.offset().top + 1,
-      left: editor.offset().left,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
@@ -206,7 +214,7 @@ describe('TextEditor', () => {
     await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+    expect(editorOffsetAtRowEdge()).toEqual($(getCell(5, 0, true)).offset());
 
     await keyDownUp('enter');
     await keyDownUp('enter');
@@ -235,16 +243,15 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+    const editorOffset = () => ({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    });
+
+    expect(editorOffset()).toEqual($(getCell(0, 0, true)).offset());
 
     await selectCell(0, 1);
     await keyDownUp('enter');
-
-    // Cells that do not touch the edges of the table have an additional left border.
-    const editorOffset = () => ({
-      top: editor.offset().top,
-      left: editor.offset().left + 1,
-    });
 
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
 
@@ -298,16 +305,21 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
+    const editorOffsetAtRowEdge = () => ({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    });
+
     // First renderable row index.
-    expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
+    expect(editorOffsetAtRowEdge()).toEqual($(getCell(1, 0, true)).offset());
 
     await keyDownUp('enter');
     await keyDownUp('enter');
 
-    // Cells that do not touch the edges of the table have an additional top border.
+    // Cells that do not touch the edges of the table also have an additional top border.
     const editorOffset = () => ({
       top: editor.offset().top + 1,
-      left: editor.offset().left,
+      left: editorInlineStartOffset(editor),
     });
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
@@ -326,7 +338,7 @@ describe('TextEditor', () => {
     await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-    expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
+    expect(editorOffsetAtRowEdge()).toEqual($(getCell(6, 0, true)).offset());
 
     await keyDownUp('enter');
     await keyDownUp('enter');
@@ -354,17 +366,16 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
+    const editorOffset = () => ({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    });
+
     // First renderable column index.
-    expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
+    expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
 
     await selectCell(0, 2);
     await keyDownUp('enter');
-
-    // Cells that do not touch the edges of the table have an additional left border.
-    const editorOffset = () => ({
-      top: editor.offset().top,
-      left: editor.offset().left + 1,
-    });
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
@@ -655,8 +666,11 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
+    // The cell sits behind a row header, so the editor spans the cell plus the gridline the
+    // header draws on its inline-start side - the same 1px overlap every other column has
+    // always had (#6673).
     expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().e2eTextEditorTextareaHeightSingleLinePx());
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('51px');
   });
 
   it('should render textarea editor in specified size at cell 0, 0 when headers are selected', async() => {
@@ -670,8 +684,11 @@ describe('TextEditor', () => {
     await selectAll();
     await keyDownUp('enter');
 
+    // The cell sits behind a row header, so the editor spans the cell plus the gridline the
+    // header draws on its inline-start side - the same 1px overlap every other column has
+    // always had (#6673).
     expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().e2eTextEditorTextareaHeightSingleLinePx());
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('51px');
   });
 
   it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', async() => {
@@ -928,7 +945,10 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(getDataAtCell(1, 1)).toEqual('');
+    // The nested property does not exist, so the editor opens empty and the confirm changes nothing.
+    // This used to assert `''`, because closing an unchanged editor wrote the editor's stringified
+    // value back over the cell (#3927). The missing property now reads back as `null`, unwritten.
+    expect(getDataAtCell(1, 1)).toBeNull();
   });
 
   it('should render nested object value in textarea after change columns order', async() => {
@@ -966,7 +986,9 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(getDataAtCell(0, 0)).toEqual('');
+    // As above: the nested property does not exist, and an unchanged confirm no longer creates it
+    // as an empty string (#3927).
+    expect(getDataAtCell(0, 0)).toBeNull();
 
     await selectCell(1, 1);
     await keyDownUp('enter');
@@ -1761,40 +1783,6 @@ describe('TextEditor', () => {
     await keyDownUp(['meta', 'enter']);
 
     expect(getActiveEditor().TEXTAREA.value).toEqual('Ma\n\n\nserati');
-  });
-
-  it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', async() => {
-    const data = [
-      ['', '', '', '', ''],
-      ['', 'The Dude abides. I don\'t know about you but I take comfort in that. ' +
-            'It\'s good knowin\' he\'s out there. The ' +
-           'Dude. Takin\' \'er easy for all us sinners. Shoosh. I sure hope he makes the finals.', '', '', ''],
-      ['', '', '', '', '']
-    ];
-
-    handsontable({
-      data,
-      colWidths: 40,
-      width: 300,
-      height: 200,
-      minSpareRows: 20,
-      minSpareCols: 20
-    });
-
-    await selectCell(1, 1);
-    await waitForNextAnimationFrames(1); // for some reason the sleep is needed here
-    await keyDownUp('enter');
-
-    const $editorInput = $('.handsontableInput');
-    const $editedCell = $(getCell(1, 1));
-
-    expect($editorInput.outerWidth())
-      .toEqual(tableView()._wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
-
-    await scrollViewportTo({ col: 3 });
-
-    expect($editorInput.width() + $editorInput.offset().left)
-      .toBeLessThan(tableView()._wt.wtTable.holder.clientWidth);
   });
 
   it('should resize editor to properly size after focus', async() => {

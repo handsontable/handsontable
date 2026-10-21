@@ -145,7 +145,7 @@ export default class CoreAbstract {
    *
    * @returns {Window} The root window.
    */
-  get rootWindow(): Window {
+  get rootWindow(): Window & typeof globalThis {
     return this.domBindings.rootWindow;
   }
 
@@ -183,7 +183,7 @@ export default class CoreAbstract {
     this.domBindings = {
       rootTable: table,
       rootDocument: table.ownerDocument,
-      rootWindow: table.ownerDocument.defaultView as Window,
+      rootWindow: table.ownerDocument.defaultView as Window & typeof globalThis,
       geometryReader: geometryReader ?? new LiveGeometryReader(table.ownerDocument.defaultView as Window),
       // `rootElement` is intentionally assigned later (see TableView); the cast defers it as the
       // original literal did. `unknown` is required because `LiveGeometryReader`'s `#`-private field
@@ -292,9 +292,15 @@ export default class CoreAbstract {
     const fixedRowsTop = this.wtSettings.getSetting<number>('fixedRowsTop');
     const fixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
     const fixedColumnsStart = this.wtSettings.getSetting<number>('fixedColumnsStart');
+    const fixedColumnsEnd = this.wtSettings.getSetting<number>('fixedColumnsEnd');
+    const isInEndColumns = fixedColumnsEnd > 0 &&
+      coords.col >= this.wtSettings.getSetting<number>('totalColumns') - fixedColumnsEnd;
 
     if (coords.row < fixedRowsTop && coords.col < fixedColumnsStart) {
       return this.wtOverlays.topInlineStartCornerOverlay.clone?.wtTable.getCell(coords);
+
+    } else if (coords.row < fixedRowsTop && isInEndColumns) {
+      return this.wtOverlays.topInlineEndCornerOverlay.clone?.wtTable.getCell(coords);
 
     } else if (coords.row < fixedRowsTop) {
       return this.wtOverlays.topOverlay.clone?.wtTable.getCell(coords);
@@ -302,8 +308,14 @@ export default class CoreAbstract {
     } else if (coords.col < fixedColumnsStart && coords.row >= totalRows - fixedRowsBottom) {
       return this.wtOverlays.bottomInlineStartCornerOverlay?.clone?.wtTable.getCell(coords);
 
+    } else if (isInEndColumns && coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
+      return this.wtOverlays.bottomInlineEndCornerOverlay.clone?.wtTable.getCell(coords);
+
     } else if (coords.col < fixedColumnsStart) {
       return this.wtOverlays.inlineStartOverlay.clone?.wtTable.getCell(coords);
+
+    } else if (isInEndColumns) {
+      return this.wtOverlays.inlineEndOverlay.clone?.wtTable.getCell(coords);
 
     } else if (coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
       return this.wtOverlays.bottomOverlay?.clone?.wtTable.getCell(coords);

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed MergeCells throwing an error, or dropping merged cells, when `mergeCells` was updated while a filter hid the merged rows.",
+  "type": "fixed",
+  "issueOrPR": 13660,
+  "breaking": false,
+  "framework": "none"
+}

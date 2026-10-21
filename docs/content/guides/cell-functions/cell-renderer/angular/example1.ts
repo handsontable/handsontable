@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { AfterViewInit, ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
 import {GridSettings, HotCellRendererComponent, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
@@ -23,7 +23,7 @@ export class CoverRendererComponent extends HotCellRendererComponent<string> {
     }
   `,
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
   readonly hotData = [
@@ -54,9 +54,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   hotSettings!: GridSettings;
 
   ngOnInit() {
-  }
-
-  ngAfterViewInit() {
     this.hotSettings = {
       colWidths: [200, 400, 80],
       colHeaders: ['Title', 'Description', 'Cover'],

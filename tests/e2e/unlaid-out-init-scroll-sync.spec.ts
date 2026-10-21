@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { UnlaidOutInitPage, type UnlaidOutMode } from '../fixtures/pages/UnlaidOutInitPage';
 
 /**
@@ -31,7 +31,7 @@ import { UnlaidOutInitPage, type UnlaidOutMode } from '../fixtures/pages/UnlaidO
  */
 const MODES: UnlaidOutMode[] = ['detached', 'unslotted', 'hidden'];
 
-test.describe('grid built into a container that has no layout yet', () => {
+test.describe('grid built into a container that has no layout yet', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   for (const mode of MODES) {
     test(`keeps the column headers and frozen columns aligned once the ${mode} container is laid out`, async ({
       page, theme, bundle,
@@ -83,19 +83,11 @@ test.describe('grid built into a container that has no layout yet', () => {
       // it extends past it, which is what a full viewport band looks like).
       await grid.expectContainerFilled();
 
-      const alignment = await grid.readOverlayAlignment();
-
       // Every row is at the default height, so the scroll range is the row count
-      // times that height. The border allowance is added once, not once per row:
-      // `rowCount * (rowHeight + 2)` left 400px of slack on 200 rows, and grew in
-      // the same direction as the defect it guards, so a regression leaving every
-      // row 1-2px too tall passed. Bounded below as well, because a range short of
-      // the content clips the bottom rows.
-      const rowHeight = alignment.defaultRowHeight;
-
-      expect(rowHeight).not.toBeNull();
-      expect(alignment.holderScrollRange).toBeLessThanOrEqual((alignment.rowCount + 1) * rowHeight! + 2);
-      expect(alignment.holderScrollRange).toBeGreaterThanOrEqual(alignment.rowCount * rowHeight!);
+      // times that height. The draw that fills the container still counts the
+      // heights measured without a layout, and the next draw drops them, so the
+      // range is polled rather than read once after the fill.
+      await grid.expectScrollRangeOfRows();
     });
 
     test(`settles the correction pass for good once the ${mode} container is laid out`, async ({
@@ -162,7 +154,19 @@ test.describe('grid built into a container that has no layout yet', () => {
     // Frozen rows keep their height records apart from the ordinary ones, and the
     // correction pass clears both. A master draw cannot recreate a frozen-derived
     // height, so clearing them without a re-measure would leave the grid short.
-    await expect.poll(async () => grid.readProvisionalLayout()).toBe(false);
+    //
+    // Records that were wiped and never taken again, or kept from the unlaid-out
+    // measurement, both show up in the scroll range. The allowance covers the four
+    // frozen rows, whose bands add to the holder's range on top of the 200 data
+    // rows - measured at 5871px against 5830px of rows. Still far under the pre-fix
+    // inflation, which was more than double the content. The range is what is
+    // waited for: the provisional flag clears one draw before the stale heights are
+    // dropped, so a read gated on the flag alone lands on the inflated range.
+    const frozenRows = 4;
+
+    await grid.expectScrollRangeOfRows(frozenRows);
+
+    expect(await grid.readProvisionalLayout()).toBe(false);
 
     const alignment = await grid.readOverlayAlignment();
     const rowHeight = alignment.defaultRowHeight;
@@ -174,17 +178,6 @@ test.describe('grid built into a container that has no layout yet', () => {
     // container's edge. It still may not stop short of it by more than that.
     expect(alignment.deadSpaceBelowLastRow).toBeLessThanOrEqual(2 * rowHeight! + 2);
     expect(alignment.deadSpaceBelowLastRow).toBeGreaterThanOrEqual(0);
-
-    // Records that were wiped and never taken again, or kept from the unlaid-out
-    // measurement, both show up here. The allowance covers the four frozen rows,
-    // whose bands add to the holder's range on top of the 200 data rows - measured
-    // at 5871px against 5830px of rows. Still far under the pre-fix inflation, which
-    // was more than double the content.
-    const frozenRows = 4;
-
-    expect(alignment.holderScrollRange)
-      .toBeLessThanOrEqual((alignment.rowCount + frozenRows) * rowHeight! + 2);
-    expect(alignment.holderScrollRange).toBeGreaterThanOrEqual(alignment.rowCount * rowHeight!);
     expect(alignment.renderedRows).toBeLessThan(25);
 
     await grid.scrollGrid(300, 300);

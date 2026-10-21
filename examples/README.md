@@ -41,7 +41,20 @@ Example path: `examples/<version_number>/docs/js/basic-example`
 
 The `examples` directory is defined as an npm workspace, as is each `<framework>` directory within it. This allows sharing dependencies across all framework-specific examples.
 
-Dependency sharing is defined by a shared lockfile (`/examples/<version_number>/<category>/<framework>/package-lock.json`) for all examples within each framework. The `examples:install` script manages dependency versions in these shared lockfiles. An individual example can still have its own lockfile (created when running `npm install` inside the example folder), but it is ignored via `/examples/.gitignore`.
+Dependency sharing is defined by a shared lockfile (`/examples/<version_number>/<category>/<framework>/package-lock.json`) for all examples within each framework. An individual example can still have its own lockfile (created when running `npm install` inside the example folder), but it is ignored via `/examples/.gitignore`.
+
+The shared lockfiles are tracked, and `examples:install` reuses them: it installs the dependency set they record instead of re-resolving the manifests. Most leaf dependencies are pinned to `latest`, so a fresh resolution moves whenever the registry does, which is why the resolution is committed rather than recomputed at install time.
+
+To refresh them on purpose, remove them first and reinstall:
+
+```bash
+cd examples
+node ./scripts/clean-subpackages.mjs next --reset-lockfiles
+cd ..
+npm run examples:install next
+```
+
+Review the resulting diff and land it on `develop` as its own change, so CI and `npm audit` see the new set before a release does.
 
 ## Live on production
 
@@ -149,6 +162,9 @@ Run the following commands from the **root** of the repository (not the `example
    - For a semver version: only `handsontable` and `@handsontable/angular-wrapper` are symlinked in the Angular examples' `node_modules`.
 
 2. **`npm run examples:build <version_number>`** - Builds each example in `/examples/<version_number>` and copies the production output to `/examples/tmp/<version_number>`. The path within `/examples/tmp` follows the [Folder structure](#folder-structure) convention.
+
+   - For the `next` examples, it checks every example before it builds the first one. Each `handsontable` and `@handsontable/*` package an example declares must resolve to the local build, and, outside CI, the `handsontable` build must be no older than its sources. Otherwise it refuses to build anything, and each problem ends with the command that fixes it, for example `npm run examples:install next/docs/js`. Without the check, an example whose symlink is missing builds against the copy installed from npm, and nothing fails.
+   - For the `docs` examples, the check runs in `examples:build` and not in the example's own `build` script, so an example you [copy to a separate repo](#copying-an-example-to-a-separate-repo) still builds. Running `npm run build` inside one of them, or `npm run build --workspaces` in its framework directory, skips the check. The `visual-tests` examples are checked a second time by their own `build` scripts, which run `visual-tests/scripts/check-linked-packages.mjs` first. See [`visual-tests/AGENTS.md`](../visual-tests/AGENTS.md#local-builds-the-demos-render) for the details.
 
 3. **`npm run examples:start`** - Starts `http-server` at `/examples/tmp` on port `8080`. Example URL: `http://localhost:8080/<version_number>/docs/js/basic-example/`
 

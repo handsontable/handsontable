@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AutoRowSize clearCache e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-2812. `AutoRowSize#clearCache()` empties every measured row height. Only a render measures
+    rows again, and it measures just the visible band, so without a replacement pass every row below
+    the fold keeps the default height for good.
+
+    That stays invisible until a wide wrapping column scrolls into view: the data cell then renders
+    at its content height, because a cell never renders shorter than its own text, while the row
+    header - which has nothing to push it taller - keeps the default. The two tables drift apart and
+    the gap accumulates down the grid.
+
+    The grid is deliberately narrow, so the wrapping columns start off-screen and only appear once
+    the grid is scrolled sideways. Every height here is content-driven, which jsdom cannot measure,
+    so this can only be checked in a real browser.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const SENTENCE = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.';
+    const ROWS = 40;
+    // Fixed, repeating lengths rather than random text: the rows must differ in height for a desync
+    // to show up at all, and the suite must measure the same grid on every run.
+    const LENGTHS = [18, 62, 34, 78, 26, 96, 44, 70];
+
+    /**
+     * A fragment of the sentence, repeated until it is long enough to reach the requested length.
+     *
+     * @param {number} length How many characters to return.
+     * @returns {string}
+     */
+    function text(length) {
+      let value = SENTENCE;
+
+      while (value.length < length) {
+        value += ` ${SENTENCE}`;
+      }
+
+      return value.slice(0, length).trim();
+    }
+
+    const data = Array.from({ length: ROWS }, (_, row) => [
+      `r${row}`,
+      text(LENGTHS[row % LENGTHS.length]),
+      text(LENGTHS[(row + 3) % LENGTHS.length]),
+      text(LENGTHS[(row + 5) % LENGTHS.length]),
+    ]);
+
+    const hot = new Handsontable(container, {
+      data,
+      // Narrower than the columns below add up to, so columns 1-3 start off-screen.
+      width: 360,
+      height: 300,
+      rowHeaders: true,
+      colHeaders: true,
+      wordWrap: true,
+      autoRowSize: true,
+      colWidths: [90, 200, 200, 200],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hot = hot;
+
+    // Counts draws so a test can wait for the grid to have actually repainted after a scroll.
+    // The rendered band cannot serve as that signal here: all four columns are always rendered, so
+    // a horizontal scroll leaves the band untouched while still repainting.
+    window.renderCount = 0;
+    hot.addHook('afterViewRender', function() {
+      window.renderCount += 1;
+    });
+
+    /**
+     * Reproduces the reported call: drop every measured height, then ask for a redraw. An
+     * application does this to force the grid to re-measure after it has changed how cells render.
+     */
+    window.wipeRowHeightCache = function() {
+      hot.getPlugin('autoRowSize').clearCache();
+      hot.render();
+    };
+
+    /**
+     * The selective form of the same call: drops the heights of named rows only.
+     *
+     * @param {number[]} rows Physical row indexes to drop.
+     */
+    window.wipeRowHeightCacheForRows = function(rows) {
+      hot.getPlugin('autoRowSize').clearCache(rows);
+      hot.render();
+    };
+
+    /**
+     * The range form.
+     *
+     * @param {number} from First physical row index.
+     * @param {number} to Last physical row index.
+     */
+    window.wipeRowHeightCacheByRange = function(from, to) {
+      hot.getPlugin('autoRowSize').clearCacheByRange({ from: from, to: to });
+      hot.render();
+    };
+  </script>
+</body>
+</html>

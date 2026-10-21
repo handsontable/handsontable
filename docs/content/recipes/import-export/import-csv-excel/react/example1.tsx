@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
+import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import './example1.css';
 
@@ -9,13 +10,10 @@ declare global {
   interface Window {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Papa?: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    XLSX?: any;
   }
 }
 
 const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js';
-const CDN_XLSX = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
 
 const scriptPromises = new Map<string, Promise<void>>();
 
@@ -72,21 +70,6 @@ async function ensurePapa(): Promise<any> {
   return window.Papa;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function ensureXlsx(): Promise<any> {
-  if (typeof window.XLSX !== 'undefined') {
-    return window.XLSX;
-  }
-
-  await loadScript(CDN_XLSX);
-
-  if (typeof window.XLSX === 'undefined') {
-    throw new Error('SheetJS did not register on window.');
-  }
-
-  return window.XLSX;
-}
-
 function extensionOf(name: string): string {
   const i = name.lastIndexOf('.');
 
@@ -112,6 +95,10 @@ function normalizeCellValue(value: unknown): CellValue {
 
   if (typeof value === 'number' || typeof value === 'boolean') {
     return value;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
   }
 
   const text = String(value).trim();
@@ -193,67 +180,61 @@ async function parseCsvFile(file: File, PapaRef: any): Promise<ParsedPayload> {
   });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseXlsxArrayBuffer(buf: ArrayBuffer, XLSXRef: any): ParsedPayload {
-  let workbook: { SheetNames: string[]; Sheets: Record<string, unknown> };
+async function parseXlsxFile(file: File): Promise<ParsedPayload> {
+  // A throwaway grid in a hidden element runs the ImportFile plugin. `apply: false` returns the
+  // mapped sheet without touching the grid, and a refused file rejects with a message that says why.
+  const host = document.createElement('div');
+
+  host.hidden = true;
+  document.body.appendChild(host);
+
+  const parser = new Handsontable(host, {
+    data: [[]],
+    importFile: true,
+    licenseKey: 'non-commercial-and-evaluation',
+  });
 
   try {
-    workbook = XLSXRef.read(buf, { type: 'array' });
-  } catch {
-    throw new Error('Could not read the Excel workbook. The file may be corrupted.');
-  }
+    const result = await parser.getPlugin('importFile').importFromBlob('xlsx', file, {
+      colHeaders: 'firstRow',
+      apply: false,
+    });
+    const rawHeaders = (Array.isArray(result.colHeaders) ? result.colHeaders : []) as unknown[];
+    const headers = rawHeaders.map((cell, i) => {
+      const text = String(cell ?? '').trim();
 
-  const sheetName = workbook.SheetNames[0];
+      return text === '' ? `Column ${i + 1}` : text;
+    });
 
-  if (!sheetName) {
-    throw new Error('The workbook has no sheets.');
-  }
-
-  const sheet = workbook.Sheets[sheetName];
-  const matrix = XLSXRef.utils.sheet_to_json(sheet, {
-    header: 1,
-    defval: null,
-    raw: true,
-  }) as unknown[][];
-
-  if (!matrix.length) {
-    throw new Error('The sheet is empty.');
-  }
-
-  const rawHeader = (matrix[0] as unknown[]).map((cell) => String(cell ?? '').trim());
-
-  if (rawHeader.length === 0 || rawHeader.every((h) => h === '')) {
-    throw new Error('No header row found in the Excel sheet.');
-  }
-
-  const keys = rawHeader.map((h, i) => (h === '' ? `Column ${i + 1}` : h));
-  const rows: Record<string, CellValue>[] = [];
-
-  for (let r = 1; r < matrix.length; r++) {
-    const line = matrix[r] as unknown[];
-    const allEmpty = !line || line.every((c) => normalizeCellValue(c) === null);
-
-    if (allEmpty) {
-      continue;
+    if (headers.length === 0) {
+      throw new Error('No header row found in the Excel sheet.');
     }
 
-    const obj: Record<string, CellValue> = {};
+    const rows: Record<string, CellValue>[] = [];
 
-    for (let c = 0; c < keys.length; c++) {
-      const key = keys[c];
-      const raw = line[c];
+    for (const line of result.data as unknown[][]) {
+      const obj: Record<string, CellValue> = {};
+      let allEmpty = true;
 
-      obj[key] = normalizeCellValue(raw);
+      headers.forEach((key, c) => {
+        obj[key] = normalizeCellValue(line[c]);
+        allEmpty = allEmpty && obj[key] === null;
+      });
+
+      if (!allEmpty) {
+        rows.push(obj);
+      }
     }
 
-    rows.push(obj);
-  }
+    if (rows.length === 0) {
+      throw new Error('No data rows after the header.');
+    }
 
-  if (rows.length === 0) {
-    throw new Error('No data rows after the header.');
+    return { headers, rows };
+  } finally {
+    parser.destroy();
+    host.remove();
   }
-
-  return { headers: keys, rows };
 }
 
 async function parseFile(file: File): Promise<ParsedPayload> {
@@ -266,10 +247,7 @@ async function parseFile(file: File): Promise<ParsedPayload> {
   }
 
   if (ext === 'xlsx') {
-    const XLSXRef = await ensureXlsx();
-    const buf = await file.arrayBuffer();
-
-    return parseXlsxArrayBuffer(buf, XLSXRef);
+    return parseXlsxFile(file);
   }
 
   throw new Error('Unsupported file type. Use a .csv or .xlsx file.');

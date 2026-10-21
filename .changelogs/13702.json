@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the list of the `autocomplete`, `dropdown`, `handsontable`, and `multiselect` editors opening from the wrong edge of its cell on a right-to-left page scrolled sideways by the browser window. A list wider than the cell, such as the `handsontable` or `multiselect` list, could open off screen from a cell near the window's right edge.",
+  "type": "fixed",
+  "issueOrPR": 13702,
+  "breaking": false,
+  "framework": "none"
+}

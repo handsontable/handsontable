@@ -1,5 +1,8 @@
 import { isDefined } from '../../../../helpers/mixed';
+import type { CellStyleSnapshot, CellValidationSnapshot } from '../../../../utils/xlsxEngine/model';
 import { normalizeClassNames } from '../../../../helpers/dom/element';
+import { READ_ONLY_FILL_ARGB, READ_ONLY_TEXT_ARGB } from '../../../../utils/xlsxEngine/readOnlyStyle';
+import type { SourceLabel } from '../../../../utils/cellSource';
 
 export interface CssStyle {
   fontBold: boolean;
@@ -7,6 +10,12 @@ export interface CssStyle {
   fontUnderline: boolean;
   fontColor: string | null;
   backgroundColor: string | null;
+  /**
+   * The computed `color` of the alignment-only baseline probe, as the browser reports it. A rendered
+   * cell's own computed color is compared against it, so a color the cell inherits from its context
+   * is not exported while one a rule or a renderer set on the cell is.
+   */
+  baselineFontColor?: string;
 }
 
 export interface CellMeta {
@@ -15,6 +24,7 @@ export interface CellMeta {
   borders?: Record<string, { width: number; color: string }>;
   type?: string;
   source?: unknown[];
+  sourceLabel?: SourceLabel;
   comment?: { value?: unknown };
   numericFormat?: {
     pattern?: string;
@@ -25,14 +35,12 @@ export interface CellMeta {
     useGrouping?: boolean;
   } | null;
   locale?: string;
+  dateFormat?: Intl.DateTimeFormatOptions;
+  timeFormat?: Intl.DateTimeFormatOptions;
+  dateTimeFormat?: Intl.DateTimeFormatOptions;
   checkedTemplate?: unknown;
   [key: string]: unknown;
 }
-
-// Default ARGB colors applied to read-only cells when no explicit styling is set.
-// Values match the Handsontable design-system tokens for dimmed/disabled cell state.
-const READ_ONLY_BG_ARGB = 'FFF0F0F0';
-const READ_ONLY_TEXT_ARGB = 'FF808080';
 
 // Per-export cache for detectExplicitBackgroundColor results.
 // Keyed by document (WeakMap — avoids leaking document references) then by the
@@ -40,9 +48,12 @@ const READ_ONLY_TEXT_ARGB = 'FF808080';
 // changes between exports are always picked up.
 const backgroundColorByDoc = new WeakMap<Document, Map<string, string | null>>();
 
-// Per-export cache for getCssStyleFromProbe results (used when the real cell element
-// is not available — i.e. the cell is outside the render viewport).
-const cssStyleProbeByDoc = new WeakMap<Document, Map<string, CssStyle>>();
+// Per-export cache for getCssStyleFromProbe results. Used both when the real cell element is not
+// available (the cell is outside the render viewport) and, for the font-color baseline, from the
+// rendered element path in getCssStyleFromElement. Keyed by document first so `clearStyleCaches`
+// can drop everything for a document, then by the element the probe was mounted in (a grid's
+// `.ht-root-wrapper`, or `document.body`), because a probe inherits from its mount.
+const cssStyleProbeByDoc = new WeakMap<Document, WeakMap<object, Map<string, CssStyle>>>();
 
 /**
  * Clears the per-export CSS style caches for the given document.
@@ -185,13 +196,22 @@ function detectExplicitBackgroundColor(doc: Document, metaClasses: string[], vie
  * @returns {{ fontBold: boolean, fontItalic: boolean, fontUnderline: boolean,
  *             fontColor: string|null, backgroundColor: string|null }}
  */
-function getCssStyleFromProbe(doc: Document, view: Window, metaClasses: string[]): CssStyle {
+function getCssStyleFromProbe(
+  doc: Document, view: Window, metaClasses: string[], mount: HTMLElement = doc.body
+): CssStyle {
   const cacheKey = metaClasses.join(' ');
-  let docCache = cssStyleProbeByDoc.get(doc);
+  let byMount = cssStyleProbeByDoc.get(doc);
+
+  if (!byMount) {
+    byMount = new WeakMap();
+    cssStyleProbeByDoc.set(doc, byMount);
+  }
+
+  let docCache = byMount.get(mount);
 
   if (!docCache) {
     docCache = new Map();
-    cssStyleProbeByDoc.set(doc, docCache);
+    byMount.set(mount, docCache);
   }
 
   if (docCache.has(cacheKey)) {
@@ -223,7 +243,7 @@ function getCssStyleFromProbe(doc: Document, view: Window, metaClasses: string[]
   tbody.appendChild(tr);
   table.appendChild(tbody);
   probe.appendChild(table);
-  doc.body.appendChild(probe);
+  mount.appendChild(probe);
 
   const styleFull = view.getComputedStyle(tdFull);
   const styleBase = view.getComputedStyle(tdBase);
@@ -233,14 +253,15 @@ function getCssStyleFromProbe(doc: Document, view: Window, metaClasses: string[]
   const colorFull = styleFull.color;
   const colorBase = styleBase.color;
 
-  doc.body.removeChild(probe);
+  mount.removeChild(probe);
 
-  const result = {
+  const result: CssStyle = {
     fontBold: Number.parseInt(styleFull.fontWeight, 10) >= 700 || styleFull.fontWeight === 'bold',
     fontItalic: styleFull.fontStyle === 'italic',
     fontUnderline: (styleFull.textDecorationLine || styleFull.textDecoration || '').includes('underline'),
     fontColor: colorFull !== colorBase ? rgbComputedToHex(colorFull) : null,
     backgroundColor: bgFull !== bgBase ? rgbComputedToHex(bgFull) : null,
+    baselineFontColor: colorBase,
   };
 
   docCache.set(cacheKey, result);
@@ -252,13 +273,16 @@ function getCssStyleFromProbe(doc: Document, view: Window, metaClasses: string[]
  * Reads visual style properties from a rendered Handsontable cell element via
  * `getComputedStyle`.
  *
- * Font color is only read when the cell has at least one CSS class that is not a
- * Handsontable alignment class (`htLeft`, `htRight`, etc.), because alignment-only
- * cells carry only the inherited default text color.
- *
- * Background color is only emitted when a custom meta class actually changes the
- * computed background. Detection is done via a temporary off-screen probe element
- * (see `detectExplicitBackgroundColor`) — the actual table cell is never modified.
+ * Bold, italic and underline are read straight off the rendered element's computed style. Font
+ * color is the element's own computed `color`, exported only when it differs from an
+ * alignment-only baseline probe mounted in the same root wrapper — the ambient text color the cell
+ * would show with no custom class — so a class that never touched color exports none while a
+ * scoped rule or a renderer-written color does. Background color is baseline-compared through the
+ * same class-only probe used for `null`-element cells (`getCssStyleFromProbe`), which diffs a
+ * "full classes" probe against an "alignment classes only" one and reports `null` unless the
+ * value, so both code paths (rendered element and off-viewport probe) now agree on the same
+ * baseline for font color. Background color uses the same idea through
+ * `detectExplicitBackgroundColor`, which has always been probe-based.
  *
  * When `element` is `null` (cell outside the render viewport) but `rootDocument`
  * and `rootWindow` are provided, style information is derived via a temporary probe
@@ -302,12 +326,22 @@ export function getCssStyleFromElement(
 
   const metaClasses = normalizeClassNames(className);
   const hasCustomClass = metaClasses.some(c => !ALIGNMENT_CLASS_NAMES.has(c));
+  // The baseline probe is mounted inside the cell's own root wrapper, so it inherits everything
+  // the cell inherits (a container-scoped CSS variable included) and differs from the cell only by
+  // what a rule or a renderer set on the cell itself. That is what gets exported: the cell's OWN
+  // computed color, not the probe's, so a rule scoped beyond `.handsontable td.x`, a color a custom
+  // renderer wrote, or a per-row variation under one class name all survive the way they did in
+  // 18.x, while a bold-only class still exports no color.
+  const mount = element.closest<HTMLElement>('.ht-root-wrapper') ?? element.ownerDocument.body;
+  const baseline = hasCustomClass
+    ? getCssStyleFromProbe(element.ownerDocument, view, metaClasses, mount).baselineFontColor
+    : undefined;
 
   return {
     fontBold: Number.parseInt(style.fontWeight, 10) >= 700 || style.fontWeight === 'bold',
     fontItalic: style.fontStyle === 'italic',
     fontUnderline: (style.textDecorationLine || style.textDecoration || '').includes('underline'),
-    fontColor: hasCustomClass ? rgbComputedToHex(style.color) : null,
+    fontColor: hasCustomClass && style.color !== baseline ? rgbComputedToHex(style.color) : null,
     backgroundColor: hasCustomClass
       ? detectExplicitBackgroundColor(element.ownerDocument, metaClasses, view)
       : null,
@@ -315,7 +349,7 @@ export function getCssStyleFromElement(
 }
 
 /**
- * Converts a CSS hex color string to an ARGB hex string expected by ExcelJS.
+ * Converts a CSS hex color string to an ARGB hex string, in an ExcelJS-compatible shape.
  *
  * @private
  * @param {string} color CSS color string.
@@ -348,13 +382,13 @@ export function cssColorToArgb(color: string): string {
 }
 
 /**
- * Derives an ExcelJS `alignment` object from a CSS className string.
+ * Derives an `alignment` object, in an ExcelJS-compatible shape, from a CSS className string.
  *
  * @private
  * @param {string|undefined} className CSS class string.
  * @returns {object|null}
  */
-export function getAlignmentFromClassName(className: string | undefined): object | null {
+export function getAlignmentFromClassName(className: string | undefined): CellStyleSnapshot['alignment'] {
   if (!className) {
     return null;
   }
@@ -363,9 +397,9 @@ export function getAlignmentFromClassName(className: string | undefined): object
 }
 
 /**
- * Derives an ExcelJS `alignment` object from the cell meta `className`.
+ * Derives an `alignment` object, in an ExcelJS-compatible shape, from the cell meta `className`.
  *
- * Recognised Handsontable alignment classes:
+ * Recognized Handsontable alignment classes:
  * - Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`
  * - Vertical: `htTop`, `htMiddle`, `htBottom`
  *
@@ -373,13 +407,13 @@ export function getAlignmentFromClassName(className: string | undefined): object
  * @param {object|undefined} meta Cell meta object.
  * @returns {object|null}
  */
-export function getAlignmentFromMeta(meta: CellMeta | undefined): object | null {
+export function getAlignmentFromMeta(meta: CellMeta | undefined): CellStyleSnapshot['alignment'] {
   if (!meta?.className) {
     return null;
   }
 
   const classes = normalizeClassNames(meta.className);
-  const alignment: Record<string, string> = {};
+  const alignment: NonNullable<CellStyleSnapshot['alignment']> = {};
 
   if (classes.includes('htLeft')) {
     alignment.horizontal = 'left';
@@ -403,7 +437,7 @@ export function getAlignmentFromMeta(meta: CellMeta | undefined): object | null 
 }
 
 /**
- * Maps a Handsontable border pixel width to the closest ExcelJS border style string.
+ * Maps a Handsontable border pixel width to the closest xlsx border style string.
  *
  * Excel does not support arbitrary pixel widths; it uses a fixed set of named styles.
  * The mapping used here:
@@ -413,7 +447,7 @@ export function getAlignmentFromMeta(meta: CellMeta | undefined): object | null 
  *
  * @private
  * @param {number} width Border width in pixels.
- * @returns {string} ExcelJS border style name.
+ * @returns {string} xlsx border style name.
  */
 function borderWidthToExcelStyle(width: number): string {
   if (width >= 3) {
@@ -428,7 +462,8 @@ function borderWidthToExcelStyle(width: number): string {
 }
 
 /**
- * Derives an ExcelJS `border` object from custom border data stored in cell meta.
+ * Derives a `border` object, in an ExcelJS-compatible shape, from custom border data stored in cell
+ * meta.
  *
  * Border widths are mapped to the nearest Excel border style:
  * `1` → `'thin'`, `2` → `'medium'`, `3+` → `'thick'`.
@@ -437,15 +472,16 @@ function borderWidthToExcelStyle(width: number): string {
  * @param {object|undefined} meta Cell meta object.
  * @returns {object|null}
  */
-export function getBorderFromMeta(meta: CellMeta | undefined): object | null {
+export function getBorderFromMeta(meta: CellMeta | undefined): CellStyleSnapshot['border'] {
   if (!meta?.borders) {
     return null;
   }
 
   const { borders } = meta;
-  const excelBorder: Record<string, { style: string; color: { argb: string } }> = {};
+  const excelBorder: NonNullable<CellStyleSnapshot['border']> = {};
+  const sides: Array<'top' | 'bottom' | 'left' | 'right'> = ['top', 'bottom', 'left', 'right'];
 
-  ['top', 'bottom', 'left', 'right'].forEach((side) => {
+  sides.forEach((side) => {
     if (borders[side] && borders[side].width > 0) {
       excelBorder[side] = {
         style: borderWidthToExcelStyle(borders[side].width),
@@ -458,7 +494,7 @@ export function getBorderFromMeta(meta: CellMeta | undefined): object | null {
 }
 
 /**
- * Derives an ExcelJS `font` object from computed CSS style.
+ * Derives a `font` object, in an ExcelJS-compatible shape, from computed CSS style.
  *
  * All boolean properties (bold, italic, underline) and color are read exclusively
  * from the `cssStyle` object produced by `getCssStyleFromElement`. When `cssStyle`
@@ -474,7 +510,9 @@ export function getBorderFromMeta(meta: CellMeta | undefined): object | null {
  *   `getCssStyleFromElement`, or `null` for non-rendered cells.
  * @returns {object|null}
  */
-export function getFontFromMeta(meta: CellMeta | undefined, cssStyle: CssStyle | null = null): object | null {
+export function getFontFromMeta(
+  meta: CellMeta | undefined, cssStyle: CssStyle | null = null
+): CellStyleSnapshot['font'] {
   const isReadOnly = meta?.readOnly === true;
 
   const bold = cssStyle?.fontBold || false;
@@ -486,7 +524,7 @@ export function getFontFromMeta(meta: CellMeta | undefined, cssStyle: CssStyle |
     return null;
   }
 
-  const font: Record<string, boolean | { argb: string }> = {};
+  const font: NonNullable<CellStyleSnapshot['font']> = {};
 
   if (bold) {
     font.bold = true;
@@ -510,11 +548,12 @@ export function getFontFromMeta(meta: CellMeta | undefined, cssStyle: CssStyle |
 }
 
 /**
- * Derives an ExcelJS solid `fill` object from the computed CSS background color.
+ * Derives a solid `fill` object, in an ExcelJS-compatible shape, from the computed CSS background
+ * color.
  *
  * Background color is read exclusively from `cssStyle.backgroundColor`.
  * When `meta.readOnly` is `true` and no explicit color is found, a default light gray fill
- * (`READ_ONLY_BG_ARGB`) is applied.
+ * (`READ_ONLY_FILL_ARGB`) is applied.
  *
  * @private
  * @param {object|undefined} meta Cell meta object.
@@ -524,13 +563,13 @@ export function getFontFromMeta(meta: CellMeta | undefined, cssStyle: CssStyle |
  */
 export function getFillFromMeta(
   meta: CellMeta | undefined, cssStyle: { backgroundColor: string | null } | null = null
-): object | null {
+): CellStyleSnapshot['fill'] {
   let bgColor = null;
 
   if (cssStyle?.backgroundColor) {
     bgColor = cssColorToArgb(cssStyle.backgroundColor);
   } else if (meta?.readOnly === true) {
-    bgColor = READ_ONLY_BG_ARGB;
+    bgColor = READ_ONLY_FILL_ARGB;
   }
 
   if (!bgColor) {
@@ -545,7 +584,8 @@ export function getFillFromMeta(
 }
 
 /**
- * Returns an ExcelJS data validation object for dropdown and autocomplete cell types.
+ * Returns a data validation object, in an ExcelJS-compatible shape, for dropdown and autocomplete
+ * cell types.
  *
  * @private
  * @param {object|undefined} meta Cell meta object.
@@ -553,7 +593,9 @@ export function getFillFromMeta(
  *   (e.g. `'_HotValidation'!$A$1:$A$3`). When `null` or `undefined`, returns `null`.
  * @returns {object|null}
  */
-export function getDropdownValidation(meta: CellMeta | undefined, rangeRef: string | null): object | null {
+export function getDropdownValidation(
+  meta: CellMeta | undefined, rangeRef: string | null
+): CellValidationSnapshot | null {
   if (!meta || !rangeRef) {
     return null;
   }

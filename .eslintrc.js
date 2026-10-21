@@ -96,7 +96,7 @@ module.exports = {
         classes: false
       }
     ],
-    'no-void': 'off',
+    'no-void': ['error', { allowAsStatement: true }],
     'padded-blocks': 'off',
     quotes: ['error', 'single'],
     'space-before-function-paren': ['error', 'never'],
@@ -127,8 +127,15 @@ module.exports = {
           'core',
           'TODO',
           'category',
+          // Lists the configuration levels an option takes effect at. Read by
+          // handsontable/scripts/generate-option-levels.mjs and by the docs API reference.
+          'configScope',
           'package',
           'template',
+          // Jest's own per-file docblock pragma (https://jestjs.io/docs/configuration#testenvironment-string),
+          // used to switch a single spec file to the `node` environment (e.g. one round-tripping
+          // xlsx zip buffers through Node streams) without changing the project-wide jsdom default.
+          'jest-environment',
         ]
       }
     ],
@@ -191,13 +198,21 @@ module.exports = {
         'evals/**/*.mjs',
       ],
       rules: {
+        // ESM under Node: a relative import must carry its extension. Per-extension values are
+        // plain 'always' | 'never' strings — eslint-plugin-import compares them with `===`, so
+        // the `['error', 'always']` arrays this block carried for years matched nothing and the
+        // rule enforced neither direction here. A package subpath (`yargs/helpers`) resolves to
+        // a `.js` file too, but its spelling belongs to the package's exports map, not to us.
         'import/extensions': [
           'error',
           'never',
           {
-            js: ['error', 'always'],
-            mjs: ['error', 'always'],
-            json: ['error', 'always'],
+            pattern: {
+              js: 'always',
+              mjs: 'always',
+              json: 'always',
+            },
+            ignorePackages: true,
           }
         ],
         'no-restricted-globals': 'off',

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed column headers drifting out of view, and the scroll position snapping back on release, while dragging the horizontal scrollbar of a grid with no rows, or with every row filtered out or hidden.",
+  "type": "fixed",
+  "issueOrPR": 13636,
+  "breaking": false,
+  "framework": "none"
+}

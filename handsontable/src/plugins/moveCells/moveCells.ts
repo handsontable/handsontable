@@ -1,5 +1,5 @@
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
-import type CellRange from '../../3rdparty/walkontable/src/cell/range';
+import { isCellRangeLike, type default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import { BasePlugin } from '../base';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
@@ -165,6 +165,20 @@ export class MoveCells extends BasePlugin {
    * more than {@link CELLS_LIMIT} cells, or when any other guard vetoes the operation.
    */
   moveCellRange(sourceRange: CellRange, targetTopLeft: CellCoords, isCopy = false): boolean {
+    return this.runOperation('move_cells', () => this.#moveCellRange(sourceRange, targetTopLeft, isCopy), {
+      isCopy,
+    });
+  }
+
+  /**
+   * The body of `moveCellRange()`, run inside its operation.
+   *
+   * @param {CellRange} sourceRange The source range.
+   * @param {CellCoords} targetTopLeft The destination top-left cell.
+   * @param {boolean} isCopy Whether to keep the source values.
+   * @returns {boolean}
+   */
+  #moveCellRange(sourceRange: CellRange, targetTopLeft: CellCoords, isCopy: boolean): boolean {
     const sourceStart = sourceRange.getTopStartCorner();
     const sourceEnd = sourceRange.getBottomEndCorner();
     const fromRow = sourceStart.row!;
@@ -229,7 +243,10 @@ export class MoveCells extends BasePlugin {
       }
     }
 
-    if (this.hot.runHooks('beforeMoveCells', sourceRange, targetTopLeft, isCopy) === false) {
+    // `Hooks.run` threads a listener's return value into the next listener's first argument, and
+    // returns it. Anything but a range there – the documented `false`, or garbage a global listener
+    // returned – vetoes the move.
+    if (!isCellRangeLike(this.hot.runHooks('beforeMoveCells', sourceRange, targetTopLeft, isCopy))) {
       return false;
     }
 
@@ -265,10 +282,15 @@ export class MoveCells extends BasePlugin {
     // `afterMoveCells` must run BEFORE the target is selected. With the Formulas plugin active this
     // hook is where the HOT data source is brought back in line with HyperFormula, which has already
     // relocated the cells — so selecting first made `afterSelection` listeners read the stale
-    // pre-move value at the target. UndoRedo's listener works off the `beforeMoveCells` snapshots
-    // rather than the selection, so nothing needs the target selected while the hook runs.
+    // pre-move value at the target.
     this.hot.runHooks('afterMoveCells', sourceRange, targetRange, isCopy);
     this.hot.selectCells([[targetRow, targetCol, targetBottom, targetRight]]);
+
+    // The two ranges the undo stack selects: the source after an undo, the target after a redo.
+    this.hot._getOperationScope().describe({
+      sourceRange: [fromRow, fromCol, toRow, toCol],
+      targetRange: [targetRow, targetCol, targetBottom, targetRight],
+    });
 
     return true;
   }

@@ -8,7 +8,9 @@ registerAllModules();
 // Named expressions that reference cell ranges must be registered after the sheet
 // exists. Pre-build the engine at module level so it is created only once.
 const hfInstance = HyperFormula.buildEmpty({
-  licenseKey: 'internal-use-in-handsontable',
+  // this demo uses the GPLv3 key,
+  // use your own HyperFormula license key in your app
+  licenseKey: 'gpl-v3',
 });
 
 hfInstance.addSheet('Sheet1');

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the pagination page-size select not filling its rounded corners.",
+  "type": "fixed",
+  "issueOrPR": 13512,
+  "breaking": false,
+  "framework": "none"
+}

@@ -23,8 +23,8 @@ const MAX_REPORTS_PER_PAGE = 3;
  * blocked request. Browsers word it differently. None of it says anything about our code, so these
  * failures stay out of Sentry.
  *
- * `docs-assistant-bootstrap.ts` carries the same check for its own mount path. It is duplicated
- * here on purpose: importing that module registers listeners and mounts the chat widget.
+ * The `beforeSend` hook in `astro.config.mjs` carries the same phrase list for failures that
+ * reach Sentry outside this runner. Keep the two in step.
  */
 export function isChunkLoadError(err) {
   if (!(err instanceof TypeError)) {

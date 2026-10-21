@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Stale header wrapper e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    A header cell whose wrapper lost its label element. Nothing in the grid produces that state, but
+    the page does not own the DOM the grid draws into: a browser extension or a translation tool can
+    rewrite a header between two draws. The header renderers used to assume the wrapper they found
+    was their own and died on the next render with a null dereference; they now rebuild it.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Column indexes `afterGetColHeader` fired for, so a spec can count the calls one render made.
+    window.columnHeaderHookCalls = [];
+
+    window.hot = new Handsontable(container, {
+      afterGetColHeader(column) {
+        window.columnHeaderHookCalls.push(column);
+      },
+      data: [['a', 'b', 'c'], ['d', 'e', 'f']],
+      colHeaders: ['Alpha', 'Beta', 'Gamma'],
+      rowHeaders: ['First', 'Second'],
+      height: 'auto',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

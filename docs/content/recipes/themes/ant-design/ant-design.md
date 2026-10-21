@@ -1,7 +1,7 @@
 ---
-title: Handsontable with Ant Design
-metaTitle: Handsontable with Ant Design - React Data Grid | Handsontable
-description: Integrate Handsontable into a React app that uses Ant Design, and align the grid with your design system tokens through the Theme API.
+title: Handsontable DataGrid with Ant Design
+metaTitle: Ant Design theme | Handsontable DataGrid for JavaScript
+description: Integrate Handsontable DataGrid into a React app that uses Ant Design, and align the grid with your design system tokens through the Theme API.
 permalink: /recipes/themes/ant-design
 canonicalUrl: /recipes/themes/ant-design
 tags:
@@ -14,16 +14,16 @@ tags:
   - themes
   - Theme API
 react:
-  metaTitle: Handsontable with Ant Design - React Data Grid | Handsontable
+  metaTitle: Ant Design theme | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with Ant Design - Angular Data Grid | Handsontable
+  metaTitle: Ant Design theme | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Themes
 type: how-to
 ---
 
-In this tutorial, you will integrate Handsontable into a React app that uses Ant Design and align the grid with your design system tokens through the Theme API. You will learn how to map Ant Design tokens to Handsontable theme parameters so the grid matches your existing styles.
+In this tutorial, you will integrate Handsontable DataGrid into a React app that uses Ant Design and align the grid with your design system tokens through the Theme API. You will learn how to map Ant Design tokens to Handsontable theme parameters so the grid matches your existing styles.
 
 <iframe src="https://demos.handsontable.com/embed/62392g4k2u"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -192,7 +192,7 @@ function ActionCell({ instance, row }) {
 }
 ```
 
-## Step 4: Create the Handsontable grid component
+## Step 4: Create the grid component
 
 Build the Ant-like table layout with `HotTable`, fixed column widths, and read-only cells.
 
@@ -258,8 +258,8 @@ export default function App() {
 
 ## Next steps
 
-- Explore [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) for the same token-mapping approach with Material UI.
-- Explore [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) for Tailwind-based design system integration.
+- Explore [Handsontable DataGrid with MUI](@/recipes/themes/mui-theme/mui-theme.md) for the same token-mapping approach with Material UI.
+- Explore [Handsontable DataGrid with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) for Tailwind-based design system integration.
 
 ## Related
 

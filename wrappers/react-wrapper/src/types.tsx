@@ -1,4 +1,4 @@
-import Handsontable, { RemoveIndexSignature } from 'handsontable/base';
+import Handsontable, { RemoveIndexSignature, OmitHooks } from 'handsontable/base';
 import React, {
   ComponentType,
   CSSProperties,
@@ -29,9 +29,21 @@ export interface HotRendererProps {
  * Interface for component-based editor overridden hooks object.
  */
 export interface HotEditorHooks {
-  onOpen?: () => void
+  /**
+   * Called when the editor opens.
+   *
+   * @param {Event} [event] The DOM event that opened the editor. It is `undefined` when you call `beginEditing()`.
+   */
+  onOpen?(event?: Event): void
   onClose?: () => void
-  onPrepare?: (row: number, column: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: Handsontable.CellProperties) => void
+  onPrepare?: (
+    row: number,
+    column: number,
+    prop: string | number,
+    TD: HTMLTableCellElement,
+    originalValue: any,
+    cellProperties: Handsontable.CellProperties
+  ) => void
   onFocus?: () => void
 }
 
@@ -68,7 +80,27 @@ export interface UseHotEditorImpl<T> {
 type ReplaceRenderersEditors<T> = Omit<RemoveIndexSignature<T>, 'renderer' | 'editor'> & {
   hotRenderer?: T extends { renderer?: infer R } ? R : never,
   renderer?: ComponentType<HotRendererProps>,
+  /**
+   * The Handsontable-native editor: a registered editor name, an editor class, or a boolean.
+   *
+   * Set it to `false` to disable editing. Setting it to `true` — or to any other falsy value, such as
+   * `null` — is treated as if the prop were not provided, so the cell keeps the editor its column
+   * type or the grid supplies.
+   *
+   * A component passed to `editor` outranks this prop. A native editor named here outranks
+   * `editor={false}`.
+   */
   hotEditor?: T extends { editor?: infer E } ? E : never,
+  /**
+   * The component-based editor, rendered through a React portal.
+   *
+   * Set it to `false` to disable editing. Setting it to `true` — or to any other falsy value, such as
+   * `null` — is treated as if the prop were not provided, so the cell keeps the editor its column
+   * type or the grid supplies.
+   *
+   * A component passed here wins over `hotEditor`. A bare `editor={false}` does not: an editor named
+   * in `hotEditor` still applies.
+   */
   editor?: ComponentType | boolean,
 } & { [key: string]: any }
 
@@ -77,8 +109,13 @@ type ReplaceRenderersEditors<T> = Omit<RemoveIndexSignature<T>, 'renderer' | 'ed
  * `Omit`) plus the column-specific `data` type. `data` is taken from `ColumnSettings` — an explicit
  * member that resolves even though `ColumnSettings` itself carries the broad index signature — so the
  * column form (`string | number | getter/setter`) overrides the grid's whole-table `data` type.
+ *
+ * Hook callbacks (`afterChange`, `beforeKeyDown`, ...) are left out because hooks run from the
+ * grid-level settings only, so `<HotColumn>` must not suggest them. `OmitHooks` comes from core for
+ * the same reason as `RemoveIndexSignature`. A hook passed to a column still type-checks through the
+ * `[key: string]: any` hatch on `ReplaceRenderersEditors`; it just is not suggested.
  */
-type ColumnGridSettings = Omit<RemoveIndexSignature<Handsontable.GridSettings>, 'data'> & {
+type ColumnGridSettings = Omit<OmitHooks<RemoveIndexSignature<Handsontable.GridSettings>>, 'data'> & {
   data?: Handsontable.ColumnSettings['data'],
 }
 
@@ -99,7 +136,6 @@ export interface HotTableProps extends ReplaceRenderersEditors<Handsontable.Grid
 export interface HotColumnProps extends ReplaceRenderersEditors<ColumnGridSettings> {
   children?: ReactNode;
 }
-
 
 /**
  * Type of interface exposed to parent components by HotTable instance via React ref

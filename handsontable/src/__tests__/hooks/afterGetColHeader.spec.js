@@ -36,12 +36,14 @@ describe('Hook', () => {
       expect(calls.argsFor(3)).toEqual([3, getCell(-1, 3), 0]);
       expect(calls.argsFor(4)).toEqual([4, getCell(-1, 4), 0]);
 
-      // the second render triggered by some other module
-      expect(calls.argsFor(5)).toEqual([0, getCell(-1, 0), 0]);
-      expect(calls.argsFor(6)).toEqual([1, getCell(-1, 1), 0]);
-      expect(calls.argsFor(7)).toEqual([2, getCell(-1, 2), 0]);
-      expect(calls.argsFor(8)).toEqual([3, getCell(-1, 3), 0]);
-      expect(calls.argsFor(9)).toEqual([4, getCell(-1, 4), 0]);
+      // the top overlay clone (headers render once per overlay); its header carries no
+      // `aria-describedby` id (only the owning master header does, DEV-29), so it is matched against
+      // the topmost-overlay cell rather than the master one
+      expect(calls.argsFor(5)).toEqual([0, getCell(-1, 0, true), 0]);
+      expect(calls.argsFor(6)).toEqual([1, getCell(-1, 1, true), 0]);
+      expect(calls.argsFor(7)).toEqual([2, getCell(-1, 2, true), 0]);
+      expect(calls.argsFor(8)).toEqual([3, getCell(-1, 3, true), 0]);
+      expect(calls.argsFor(9)).toEqual([4, getCell(-1, 4, true), 0]);
     });
   });
 });

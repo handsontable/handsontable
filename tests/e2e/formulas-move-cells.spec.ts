@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasMoveCellsPage } from '../fixtures/pages/FormulasMoveCellsPage';
 
 /**
@@ -9,11 +9,11 @@ import { FormulasMoveCellsPage } from '../fixtures/pages/FormulasMoveCellsPage';
  * the post-move data sync must leave HOT's raw data consistent with the
  * engine's state — including when the target range overlaps the source.
  */
-test.describe('Formulas: moveCells integration', () => {
+test.describe('Formulas: moveCells integration', { tag: BUNDLES_TAG }, () => {
   let grid: FormulasMoveCellsPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new FormulasMoveCellsPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new FormulasMoveCellsPage(page, theme, bundle);
     await grid.goto();
   });
 

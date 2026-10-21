@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 
@@ -49,7 +49,7 @@ function coverRenderer(
   standalone: true,
   imports: [HotTableModule],
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements OnInit {
 
   readonly hotData = [
     {
@@ -82,7 +82,7 @@ export class AppComponent implements AfterViewInit {
 
   hotSettings!: GridSettings;
 
-  ngAfterViewInit() {
+  ngOnInit() {
     this.hotSettings = {
       colWidths: [200, 200, 200, 80],
       colHeaders: ['Title', 'Description', 'Comments', 'Cover'],

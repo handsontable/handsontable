@@ -16,7 +16,6 @@
     "module": "ES2022",
     "moduleResolution": "bundler",
     "lib": ["ES2022", "dom"],
-    "baseUrl": ".",
     "paths": {
       "handsontable": ["../../handsontable/tmp"],
       "handsontable/*": ["../../handsontable/tmp/*"]

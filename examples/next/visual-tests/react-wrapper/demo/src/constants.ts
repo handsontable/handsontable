@@ -1207,8 +1207,6 @@ export const data = [
   ]
 ];
 
-export const SELECTED_CLASS = "selected";
-
 type Scenario = {
   product_id: number;
   mobile_apps: string;

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — paste selection with a validated column</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects,
+    // mapped through fixed allowlists to LITERALS so a crafted param can never be reflected into the
+    // document — no XSS. An ABSENT param keeps the default (main / plain UMD); an unknown value
+    // THROWS instead of falling back — a typo in the project config must be one red leg, never a
+    // silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+
+    // `on` makes column 0 a `dropdown` — which always carries a validator, and a validator defers
+    // every changed cell to a microtask (even a valid one). `off` makes both columns plain text
+    // with no validator at all, so the paste's row creation is fully synchronous. That contrast is
+    // the whole point of the fix, so it is the fixture's own axis.
+    window.htValidated = ({ on: true, off: false })[htParams.get('validated') ?? 'on'];
+    if (window.htValidated === undefined) {
+      throw new Error('Unknown ?validated= value: ' + JSON.stringify(htParams.get('validated')));
+    }
+
+    // `off` sets `allowInsertRow: false`, so a paste that runs past the last row cannot grow the
+    // grid. It is the clamp-invariant case: the selection must stay on the last existing row.
+    window.htAllowInsertRow = ({ on: true, off: false })[htParams.get('allowInsertRow') ?? 'on'];
+    if (window.htAllowInsertRow === undefined) {
+      throw new Error('Unknown ?allowInsertRow= value: ' + JSON.stringify(htParams.get('allowInsertRow')));
+    }
+
+    // `async` gives column 0 a custom validator that does NOT resolve on its own - it parks its
+    // callback so the test controls exactly when the write settles. That is what makes the deferral
+    // long enough to model a real async validator and lets a case move focus OUT of the grid while
+    // the paste is still pending. `none` keeps the synchronous behavior the `validated` axis drives.
+    window.htValidatorMode = ({ none: 'none', async: 'async' })[htParams.get('validator') ?? 'none'];
+    if (!window.htValidatorMode) {
+      throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
+    }
+
+    // `on` installs an `afterPaste` handler that reselects the paste origin as a single cell - the
+    // "park focus on the anchor after paste" pattern, and the exact shape that shares the paste's
+    // start corner but not its extent. Paired with `?validator=async`, it lets a case prove the
+    // deferred correction compares the WHOLE range, not just the start, before leaving it alone.
+    window.htAfterPasteMove = ({ on: true, off: false })[htParams.get('afterPasteMove') ?? 'off'];
+    if (window.htAfterPasteMove === undefined) {
+      throw new Error('Unknown ?afterPasteMove= value: ' + JSON.stringify(htParams.get('afterPasteMove')));
+    }
+
+    // `on` merges a 2x2 area over rows 3-4 (`{ row: 3, col: 0, rowspan: 2, colspan: 2 }`), so the
+    // merge STRADDLES the paste boundary: it overlaps the paste origin (row 4) and extends one row
+    // above it. `mergeCells` is active and its `beforeSetRangeStart` snapping and post-paste unmerge
+    // run alongside the re-select. It is the interaction case for a paste over a merged area with a
+    // validated column, and pins the ROW axis, where both paths agree (the column axis does not; see
+    // the plugin AGENTS.md "Scope" note (c)).
+    window.htMerge = ({ on: true, off: false })[htParams.get('merge') ?? 'off'];
+    if (window.htMerge === undefined) {
+      throw new Error('Unknown ?merge= value: ' + JSON.stringify(htParams.get('merge')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Five rows, so the last existing row is index 4 - the ticket's repro. Every value is distinct
+    // and column 0's values are all members of the dropdown source, so a validated column starts
+    // every cell VALID and validity is never the variable a case turns on.
+    const DATA = [
+      ['A0', 'B0'],
+      ['A1', 'B1'],
+      ['A2', 'B2'],
+      ['A3', 'B3'],
+      ['A4', 'B4'],
+    ];
+
+    // The four labels a spec pastes into column 0, all inside the dropdown source below. Under a
+    // dropdown's default `allowInvalid: false`, an invalid value would be stripped in
+    // `validateChanges` and could empty the batch, so `afterChange` would never fire and the fix's
+    // hook would never run - a case would then fail for a reason unrelated to the bug. Keeping the
+    // pasted labels valid removes that variable.
+    const PASTED_LABELS = ['P0', 'P1', 'P2', 'P3'];
+
+    // Records every committed change, so a spec can wait for the write to SETTLE before reading the
+    // selection. `expect.poll` on the selection alone passes on its first sample and proves nothing
+    // about a clamp that a deferred validator would only have undone a microtask later.
+    window.htChanges = [];
+
+    // Callbacks parked by the async validator, and the release valve for them. `applyChanges` (and
+    // with it the deferred re-select) cannot run until every validator in the batch has called back,
+    // so parking these lets a case hold the write open, move focus out of the grid, and only THEN
+    // release - reproducing a slow async validator whose correction lands after the user clicked away.
+    window.htPendingValidations = [];
+    window.htResolveValidations = function() {
+      const parked = window.htPendingValidations.splice(0);
+
+      parked.forEach(function(callback) { callback(true); });
+
+      return parked.length;
+    };
+
+    // A genuinely asynchronous validator: it never resolves synchronously. Every changed cell in
+    // column 0 parks its callback here until `htResolveValidations()` releases it.
+    function asyncColumnValidator(value, callback) {
+      window.htPendingValidations.push(callback);
+    }
+
+    // Column 0's config, by axis. `?validator=async` wins - a plain column carrying the parked
+    // validator above (the focus-steal cases need control over WHEN the write settles). Otherwise
+    // `?validated=on` gives a `dropdown` (validated, defers to a microtask) and `off` a plain column
+    // with no validator. Column 1 is always plain, so a validated range spans one of each.
+    let firstColumn;
+
+    if (window.htValidatorMode === 'async') {
+      firstColumn = { validator: asyncColumnValidator };
+    } else if (window.htValidated) {
+      firstColumn = { type: 'dropdown', source: ['A0', 'A1', 'A2', 'A3', 'A4'].concat(PASTED_LABELS) };
+    } else {
+      firstColumn = {};
+    }
+
+    let hot;
+
+    try {
+      const settings = {
+        data: DATA,
+        columns: [firstColumn, {}],
+        colHeaders: ['A', 'B'],
+        rowHeaders: true,
+        // The clamp-invariant axis. Default is `true`; `?allowInsertRow=off` stops a paste from
+        // growing the grid past the last row.
+        allowInsertRow: window.htAllowInsertRow,
+        // Stamp test ids from `afterRenderer` rather than a grid-level `renderer`, so column 0's
+        // `type: 'dropdown'` cannot override it and leave that column with no test id.
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-testid', `cell-${row}-${col}`);
+        },
+        afterChange(changes, source) {
+          if (changes) {
+            window.htChanges.push(...changes.map(change => change.concat(source)));
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      };
+
+      if (window.htMerge) {
+        settings.mergeCells = [{ row: 3, col: 0, rowspan: 2, colspan: 2 }];
+      }
+
+      if (window.htAfterPasteMove) {
+        // Reselect the paste origin as a single cell - shares the paste's start corner but not its
+        // extent, so only a whole-range comparison in the correction can tell it apart. The deferred
+        // correction must not overwrite this.
+        settings.afterPaste = function() {
+          window.hot.selectCell(4, 0);
+        };
+      }
+
+      hot = new Handsontable(container, settings);
+    } catch (error) {
+      // Fail loud. Without this a settings error surfaces as "element(s) not found" from the page
+      // object's first locator, on all six theme x bundle legs, with the real exception only in the
+      // browser console. See the determinism rules in `tests/AGENTS.md`.
+      container.setAttribute('data-init-error', String(error && error.message));
+
+      throw error;
+    }
+
+    window.hot = hot;
+  </script>
+</body>
+</html>

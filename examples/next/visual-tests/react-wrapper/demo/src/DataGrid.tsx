@@ -5,12 +5,6 @@ import { getThemeName } from "./utils";
 import { ProgressBarRenderer } from "./renderers/ProgressBar";
 import { StarsRenderer } from "./renderers/Stars";
 
-import {
-  drawCheckboxInRowHeaders,
-  addClassesToRows,
-  changeCheckboxCell
-} from "./hooksCallbacks";
-
 const DataGrid = () => {
   const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
 
@@ -40,9 +34,6 @@ const DataGrid = () => {
       filters={true}
       rowHeaders={true}
       headerClassName={isRtl ? "htRight" : "htLeft"}
-      beforeRenderer={addClassesToRows}
-      afterGetRowHeader={drawCheckboxInRowHeaders}
-      afterOnCellMouseDown={changeCheckboxCell}
       mergeCells={true}
       manualRowMove={true}
       navigableHeaders={true}

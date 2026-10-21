@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Custom plugins
-metaTitle: Custom plugins - JavaScript Data Grid | Handsontable
-description: Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
+metaTitle: Custom plugins | Handsontable DataGrid for JavaScript
+description: Extend Handsontable DataGrid's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
 permalink: /custom-plugins
 canonicalUrl: /custom-plugins
 tags:
@@ -10,16 +10,16 @@ tags:
   - skeleton
   - extend
 react:
-  metaTitle: Custom plugins - React Data Grid | Handsontable
+  metaTitle: Custom plugins | Handsontable DataGrid for React
 angular:
-  metaTitle: Custom plugins - Angular Data Grid | Handsontable
+  metaTitle: Custom plugins | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Custom plugins - Vue Data Grid | Handsontable
+  metaTitle: Custom plugins | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
 menuTag: updated
 ---
-Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
+Extend Handsontable DataGrid's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
 
 [[toc]]
 

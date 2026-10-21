@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
+import type Handsontable from 'handsontable/base';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
-import type { DetailedSettings } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
 
@@ -40,13 +40,13 @@ const sanitizeMenuLabel = (html: string): string => {
   return template.innerHTML;
 };
 
-const contextMenuSettings: DetailedSettings = {
-  callback(key, selection, clickEvent) {
+const contextMenuSettings = {
+  callback(key: string, selection: unknown[], clickEvent?: Event) {
     console.log(key, selection, clickEvent);
   },
   items: {
     row_above: {
-      disabled() {
+      disabled(this: Handsontable.Core) {
         return this.getSelectedLast()?.[0] === 0;
       },
     },
@@ -58,7 +58,7 @@ const contextMenuSettings: DetailedSettings = {
       name() {
         return '<b>Custom option</b>';
       },
-      hidden() {
+      hidden(this: Handsontable.Core) {
         return this.getSelectedLast()?.[1] == 0;
       },
       callback() {
@@ -80,8 +80,24 @@ const contextMenuSettings: DetailedSettings = {
               }, 0);
             },
           },
-          { key: 'colors:green', name: 'Green' },
-          { key: 'colors:blue', name: 'Blue' },
+          {
+            key: 'colors:green',
+            name: 'Green',
+            callback() {
+              setTimeout(() => {
+                alert('You clicked green!');
+              }, 0);
+            },
+          },
+          {
+            key: 'colors:blue',
+            name: 'Blue',
+            callback() {
+              setTimeout(() => {
+                alert('You clicked blue!');
+              }, 0);
+            },
+          },
         ],
       },
     },
@@ -102,15 +118,14 @@ const contextMenuSettings: DetailedSettings = {
 
 const hotSettings = ref<GridSettings>({
   data: [
-    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-    ['2017', 10, 11, 12, 13, 15, 16],
-    ['2018', 10, 11, 12, 13, 15, 16],
-    ['2019', 10, 11, 12, 13, 15, 16],
-    ['2020', 10, 11, 12, 13, 15, 16],
-    ['2021', 10, 11, 12, 13, 15, 16],
+    ['Hydrogen', 'H', 1, 1.008, 7],
+    ['Helium', 'He', 2, 4.003, 9],
+    ['Lithium', 'Li', 3, 6.94, 9],
+    ['Beryllium', 'Be', 4, 9.012, 11],
+    ['Boron', 'B', 5, 10.81, 15],
   ],
   rowHeaders: true,
-  colHeaders: true,
+  colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
   autoWrapRow: true,
   autoWrapCol: true,
   height: 'auto',

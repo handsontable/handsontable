@@ -184,7 +184,7 @@ export class TrimRows extends BasePlugin {
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link TrimRows#enablePlugin} method is called.
-   * When [[Options#dataProvider]] is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
+   * When {@link Options#dataProvider} is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
    *
    * @returns {boolean}
    */
@@ -260,6 +260,15 @@ export class TrimRows extends BasePlugin {
    * @fires Hooks#afterTrimRow
    */
   trimRows(rows: number[]): void {
+    this.runOperation('trim_rows', () => this.#trimRows(rows));
+  }
+
+  /**
+   * The body of `trimRows()`, run inside its operation.
+   *
+   * @param {number[]} rows Array of physical row indexes.
+   */
+  #trimRows(rows: number[]): void {
     const currentTrimConfig = this.getTrimmedRows();
 
     const isValidConfig = this.isValidConfig(rows);
@@ -304,6 +313,15 @@ export class TrimRows extends BasePlugin {
    * @fires Hooks#afterUntrimRow
    */
   untrimRows(rows: number[]): void {
+    this.runOperation('untrim_rows', () => this.#untrimRows(rows));
+  }
+
+  /**
+   * The body of `untrimRows()`, run inside its operation.
+   *
+   * @param {number[]} rows Array of physical row indexes.
+   */
+  #untrimRows(rows: number[]): void {
     const currentTrimConfig = this.getTrimmedRows();
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;

@@ -24,10 +24,11 @@ describe('manualColumnMove', () => {
       height: 300,
     });
 
-    const firstCell = getCell(0, 0, true);
-    const firstCellBorderLeftWidth = getComputedStyle(firstCell).borderLeftWidth;
-
-    expect(firstCellBorderLeftWidth).toBe('1px');
+    // The gridline between the row header and the first rendered column must be drawn exactly
+    // once. Since #6673 the row header owns it (its inline-end border) and the cell behind it
+    // draws none, so assert both sides - a missing seam and a doubled one are both failures.
+    expect(getComputedStyle(getCell(0, -1, true)).borderRightWidth).toBe('1px');
+    expect(getComputedStyle(getCell(0, 0, true)).borderLeftWidth).toBe('0px');
   });
 
   describe('init', () => {

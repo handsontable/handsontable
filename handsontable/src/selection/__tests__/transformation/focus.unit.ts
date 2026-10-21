@@ -60,6 +60,7 @@ function createTransformationModule(options) {
     countRenderableRows() { return options.countRenderableRows ?? 10; },
     countRenderableColumns() { return options.countRenderableColumns ?? 10; },
     fixedRowsBottom() { return options.fixedRowsBottom ?? 0; },
+    fixedColumnsEnd() { return options.fixedColumnsEnd ?? 0; },
     minSpareRows() { return options.minSpareRows ?? 0; },
     minSpareCols() { return options.minSpareCols ?? 0; },
     autoWrapRow() { return options.autoWrapRow ?? false; },

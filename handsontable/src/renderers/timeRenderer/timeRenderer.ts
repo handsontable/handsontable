@@ -2,7 +2,7 @@ import { textRenderer } from '../textRenderer';
 import { isEmpty } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
-import { parseToLocalTime } from '../../helpers/dateTime';
+import { getDateTimeFormat, parseToLocalTime } from '../../helpers/dateTime';
 import { warn } from '../../helpers/console';
 
 export const RENDERER_TYPE: 'time' = 'time';
@@ -48,7 +48,7 @@ export function valueFormatter(value: unknown, cellProperties: CellProperties): 
 
   const intlFormat = isObject(timeFormat) ? timeFormat as Intl.DateTimeFormatOptions : DEFAULT_INTL_FORMAT;
 
-  return new Intl.DateTimeFormat(locale, intlFormat).format(time);
+  return getDateTimeFormat(locale, intlFormat).format(time);
 }
 
 type HotInstance = Record<string, unknown>;

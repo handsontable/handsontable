@@ -40,9 +40,35 @@ export interface AxisSizeSource {
 }
 
 /**
+ * How a provided row height is honored. `'min'` is a floor: the row is at least that tall and still
+ * grows when its rendered content is taller (the measured height wins). `'exact'` is a fixed height:
+ * the row renders at exactly the provided value and taller content is clipped, so no measurement
+ * ever raises it.
+ */
+export type RowHeightMode = 'exact' | 'min';
+
+/**
  * The row-height source. Adds the per-overlay height override used by frozen rows.
  */
 export interface RowSizeSource extends AxisSizeSource {
+  /**
+   * How the provided height of one row is honored. Consulted only for rows that have a provided
+   * height (`getSize()` returns a positive number); a row without one is always on the floor path.
+   *
+   * @param {number} sourceIndex The source index of the row.
+   * @returns {RowHeightMode}
+   */
+  getMode(sourceIndex: number): RowHeightMode;
+
+  /**
+   * Whether every row is guaranteed to share one mode. Together with `isUniform()` it lets the
+   * oversized-rows measurement treat the rendered band as one exact block. Must be conservative —
+   * `false` whenever the mode may vary per row.
+   *
+   * @returns {boolean}
+   */
+  isModeUniform(): boolean;
+
   /**
    * The provided height in px for one row within a specific overlay, or `undefined` when none is
    * provided. Lets a plugin vary a row's height per overlay (top/bottom/master).

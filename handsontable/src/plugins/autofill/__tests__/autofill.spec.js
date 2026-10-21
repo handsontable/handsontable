@@ -323,6 +323,26 @@ describe('AutoFill', () => {
     expect(getDataAtCell(0, 1)).toEqual(2);
   });
 
+  it('should fill non-string values without converting them to strings', async() => {
+    handsontable({
+      data: [
+        [1, true, null],
+        ['x', 'x', 'x'],
+        ['y', 'y', 'y'],
+        ['z', 'z', 'z']
+      ],
+      fillHandle: true
+    });
+
+    await selectCell(0, 0, 0, 2);
+    simulateFillHandleDrag(spec().$container.find('tbody tr:eq(1) td:eq(2)'));
+
+    // Autofill writes these back into the grid, so the raw types have to survive the copy.
+    expect(getDataAtCell(1, 0)).toBe(1);
+    expect(getDataAtCell(1, 1)).toBe(true);
+    expect(getDataAtCell(1, 2)).toBe(null);
+  });
+
   it('should work properly when using updateSettings', async() => {
     handsontable({
       data: [

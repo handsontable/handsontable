@@ -22,6 +22,12 @@
     if (!window.htTheme) {
       throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
     }
+    // `?scheme=dark` adds the theme's dark class (`ht-theme-<theme>-dark`), which the theme stylesheet
+    // already carries; the default is the light scheme. An unknown value throws, like the theme's.
+    window.htScheme = ({ light: '', dark: '-dark' })[htParams.get('scheme') ?? 'light'];
+    if (window.htScheme === undefined) {
+      throw new Error('Unknown ?scheme= value: ' + JSON.stringify(htParams.get('scheme')));
+    }
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
     // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
@@ -49,14 +55,15 @@
   <script>
     const container = document.querySelector('[data-testid="grid"]');
 
-    container.className = `ht-theme-${window.htTheme}`;
+    container.className = `ht-theme-${window.htTheme}${window.htScheme}`;
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    new Handsontable(container, {
+    // Exposed so a spec can drive the documented `filter()` recipe directly.
+    window.hot = new Handsontable(container, {
       data: [
         ['Alice', 'Red'],
         ['Bob', 'Green'],

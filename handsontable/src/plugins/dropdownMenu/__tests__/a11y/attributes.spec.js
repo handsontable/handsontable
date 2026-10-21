@@ -159,13 +159,19 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     $expandableItem.simulate('mouseover');
 
-    await sleep(300);
+    // Waits for the expansion rather than for exactly the 300ms open delay, which left no margin
+    // at all.
+    await waitUntil(() => $expandableItem.get(0).getAttribute('aria-expanded') === 'true');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toEqual('true');
 
     $unExpandableItem.simulate('mouseover');
 
-    await sleep(50);
+    // Closing a sub-menu now waits the same 300ms opening does (DEV-2861), so this waits for the
+    // collapse itself rather than for a fixed delay. The requirement is unchanged: resting on an
+    // item with no sub-menu must still collapse the expanded one, and this times out if it never
+    // does.
+    await waitUntil(() => $expandableItem.get(0).getAttribute('aria-expanded') === 'false');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toEqual('false');
   });

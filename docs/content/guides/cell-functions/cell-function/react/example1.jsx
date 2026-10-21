@@ -48,17 +48,19 @@ function stockValidator(value, callback) {
   callback(Number.isInteger(num) && num >= 0 && num <= 1000);
 }
 
+const data = [
+  ['Apple', 1.2, 820],
+  ['Banana', 0.5, 280],
+  ['Cherry', 3.0, 45],
+  ['Mango', 2.5, 960],
+  ['Pear', 0.8, 170],
+  ['Blueberry', 4.5, 15],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['Apple', 1.2, 820],
-        ['Banana', 0.5, 280],
-        ['Cherry', 3.0, 45],
-        ['Mango', 2.5, 960],
-        ['Pear', 0.8, 170],
-        ['Blueberry', 4.5, 15],
-      ]}
+      data={data}
       colHeaders={['Product', 'Price', 'Stock']}
       columns={[
         // Built-in type bundles renderer + editor + no validator

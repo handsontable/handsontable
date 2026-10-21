@@ -18,6 +18,12 @@
     if (!window.htTheme) {
       throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
     }
+    // `?scheme=dark` adds the theme's dark class (`ht-theme-<theme>-dark`), which the theme stylesheet
+    // already carries; the default is the light scheme. An unknown value throws, like the theme's.
+    window.htScheme = ({ light: '', dark: '-dark' })[htParams.get('scheme') ?? 'light'];
+    if (window.htScheme === undefined) {
+      throw new Error('Unknown ?scheme= value: ' + JSON.stringify(htParams.get('scheme')));
+    }
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
     // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
@@ -48,7 +54,7 @@
   <script>
     const container = document.querySelector('[data-testid="grid"]');
 
-    container.className = `ht-theme-${window.htTheme}`;
+    container.className = `ht-theme-${window.htTheme}${window.htScheme}`;
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
@@ -70,8 +76,20 @@
       licenseKey: 'non-commercial-and-evaluation',
     });
 
+    window.hot = hot;
+
     document.querySelector('[data-testid="add-row"]').addEventListener('click', () => {
       hot.alter('insert_row_below', hot.countRows() - 1);
+    });
+
+    // How many times the plugin ran a paste to completion. CopyPaste binds its clipboard
+    // listeners on the document AND on the grid's own element (DEV-2795), so one Ctrl+V reaches
+    // the plugin twice even on a plain page, and only the event registry keeps the handler
+    // running once. Under the default `overwrite` paste mode a double paste writes the same
+    // values twice and looks identical, so counting the hook is the only way to see it.
+    window.__pasteHookCalls = 0;
+    hot.addHook('afterPaste', () => {
+      window.__pasteHookCalls += 1;
     });
   </script>
 </body>

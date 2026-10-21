@@ -180,7 +180,7 @@ function formulaEditorRefreshDimensions(): (this: unknown, force?: boolean) => v
 describe('FormulaBuilder plugin registration', () => {
   it('exposes the plugin key, priority, and setting keys', () => {
     expect(FormulaBuilder.PLUGIN_KEY).toBe('formulaBuilder');
-    expect(FormulaBuilder.PLUGIN_PRIORITY).toBe(270);
+    expect(FormulaBuilder.PLUGIN_PRIORITY).toBe(265);
     expect(FormulaBuilder.SETTING_KEYS).toEqual(['formulaBuilder', 'formulas']);
   });
 });

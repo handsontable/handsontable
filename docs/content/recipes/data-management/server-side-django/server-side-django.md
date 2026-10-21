@@ -1,7 +1,7 @@
 ---
 title: Server-side data with Django
-metaTitle: Server-side Data with Django - JavaScript Data Grid | Handsontable
-description: Connect Handsontable to a Django REST Framework backend with paginated fetching, server-side sorting and filtering, and full CRUD support.
+metaTitle: Server-side data with Django | Handsontable DataGrid for JavaScript
+description: Connect Handsontable DataGrid to a Django REST Framework backend with paginated fetching, server-side sorting and filtering, and full CRUD support.
 permalink: /recipes/data-management/server-side-django
 canonicalUrl: /recipes/data-management/server-side-django
 tags:
@@ -11,17 +11,17 @@ tags:
   - data-provider
   - recipe
 react:
-  metaTitle: Server-side data with Django - React Data Grid | Handsontable
+  metaTitle: Server-side data with Django | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side Data with Django - Angular Data Grid | Handsontable
+  metaTitle: Server-side data with Django | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side Data with Django - Vue Data Grid | Handsontable
+  metaTitle: Server-side data with Django | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 type: how-to
 ---
 
-This tutorial shows how to wire Handsontable's `dataProvider` plugin to a [Django REST Framework](https://www.django-rest-framework.org/) (DRF) backend. The backend handles pagination, sorting, and filtering on the server. The frontend displays results and sends all edits back to the API.
+This tutorial shows how to wire Handsontable DataGrid's `dataProvider` plugin to a [Django REST Framework](https://www.django-rest-framework.org/) (DRF) backend. The backend handles pagination, sorting, and filtering on the server. The frontend displays results and sends all edits back to the API.
 
 <a class="github-example-cta" href="https://github.com/handsontable/examples/tree/master/server-examples/django" target="_blank" rel="noopener noreferrer">
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -258,7 +258,7 @@ Handsontable's `dataProvider` calls `fetchRows` with a `{ page, pageSize, sort, 
 - `filters` is serialised with `JSON.stringify`. `dataProvider` passes the full `DataProviderFilterColumn` array — including `operation` and nested `conditions` — which Django decodes with `json.loads()`.
 - `API_BASE` uses a relative path (`/api/employees/`). In development, Vite proxies `/api/*` to `http://localhost:8000`, so the browser and Django share one origin, which keeps CSRF cookies accessible without extra CORS configuration.
 
-## Step 11 -- Initialize Handsontable
+## Step 11 -- Initialize Handsontable DataGrid
 
 With the backend and Vite dev server running (`bash setup.sh`), open `http://localhost:5173` to see the grid. The Django API runs on `http://localhost:8000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 
@@ -308,7 +308,7 @@ With the backend and Vite dev server running (`bash setup.sh`), open `http://loc
 | Option | What it does |
 |---|---|
 | `rowId: 'id'` | Tells `dataProvider` which field identifies a row. Must match the serializer field name. |
-| `{ signal }` in `fetchRows` | Pass the `AbortSignal` to `fetch()` so in-flight requests are cancelled when the user sorts or filters before the previous response arrives. |
+| `{ signal }` in `fetchRows` | Pass the `AbortSignal` to `fetch()` so in-flight requests are canceled when the user sorts or filters before the previous response arrives. |
 | `return res.json()` in `onRowsCreate` | Return the server response so `dataProvider` can update its internal row map with the server-assigned `id` values. |
 | `pagination: { pageSize: 10 }` | Enables the pagination toolbar. `dataProvider` sends the current page and size to `fetchRows` automatically. |
 | `columnSorting: true` | Enables column header click-to-sort. The sort state is passed to `fetchRows` on each change. |

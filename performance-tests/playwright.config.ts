@@ -4,6 +4,9 @@ export default defineConfig({
   outputDir: 'test-results',
   testDir: './scenarios',
   testMatch: '**/*.spec.ts',
+  // Records the Chromium build and machine the run executes on (output/environment.json), which
+  // the teardown stamps on the snapshot and the baseline selection keys on.
+  globalSetup: './lib/setup.mjs',
   globalTeardown: './lib/teardown.mjs',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

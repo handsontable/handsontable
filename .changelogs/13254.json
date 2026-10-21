@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `populateFromArray()` with the `shift_down` method, and the `Handsontable.helper.pivot()` helper, silently dropping cells when the input rows had unequal lengths.",
+  "type": "fixed",
+  "issueOrPR": 13254,
+  "breaking": false,
+  "framework": "none"
+}

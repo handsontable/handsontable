@@ -139,8 +139,7 @@ describe('settings', () => {
         expect(countEmptyCols()).toBe(5);
       });
 
-      // Currently this is a bug (#6571)
-      xit('should show data properly after `minSpareCols` is updated from 5 to 2', async() => {
+      it('should show data properly after `minSpareCols` is updated from 5 to 2', async() => {
         handsontable({
           data: createSpreadsheetData(1, 1),
           minSpareCols: 5
@@ -150,11 +149,11 @@ describe('settings', () => {
           minSpareCols: 2
         });
 
-        expect(getSourceDataAtRow(0).length).toBe(2);
-        expect(countSourceCols()).toBe(2);
-        expect(getData()[0].length).toBe(2);
-        expect(countCols()).toBe(2);
-        expect(countEmptyCols()).toBe(1);
+        expect(getSourceDataAtRow(0).length).toBe(3);
+        expect(countSourceCols()).toBe(3);
+        expect(getData()[0].length).toBe(3);
+        expect(countCols()).toBe(3);
+        expect(countEmptyCols()).toBe(2);
       });
 
       it('should show data properly after `minSpareCols` is updated from 2 to 5', async() => {

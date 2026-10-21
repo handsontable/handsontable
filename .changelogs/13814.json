@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed an issue where the date values in the \"Filter by value\" list turned into `#bad-value#` after `updateSettings()` carried the `filters` option, for example on a React re-render.",
+  "type": "fixed",
+  "issueOrPR": 13814,
+  "breaking": false,
+  "framework": "none"
+}

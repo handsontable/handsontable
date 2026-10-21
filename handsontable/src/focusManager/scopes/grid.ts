@@ -5,6 +5,7 @@ import {
   getMostBottomEndPosition,
 } from '../utils/utils';
 import { GRID_SCOPE, GRID_GROUP, GRID_TAB_NAVIGATION_GROUP } from '../../shortcuts/contexts';
+import { hasRenderedCells } from '../../shortcuts/guards';
 
 /**
  * @param {Handsontable} hot The Handsontable instance.
@@ -25,6 +26,9 @@ export function focusGridScope(hot: HotInstance) {
       recentlyAddedFocusCoords =
         hot.getSelectedRangeActive()?.highlight as unknown as Record<string, number> | undefined;
     }
+  });
+  hot.addHook('afterLoadData', () => {
+    recentlyAddedFocusCoords = undefined;
   });
   hot.addHook('beforeRowWrap', (
     interruptedByAutoInsertMode: boolean, newCoords: Record<string, number>, isFlipped: boolean) => {
@@ -107,6 +111,8 @@ export function focusGridScope(hot: HotInstance) {
 
       if (
         (isEmptyDataStateActive || !navigableHeaders) &&
+        // Deliberately NOT `!hasRenderedCells()`: this asks whether BOTH counts are exactly zero, which
+        // is narrower - the negation would also be true with one axis drawn and the other empty.
         hot.countRenderedRows() === 0 && hot.countRenderedCols() === 0 &&
         hot.countRowHeaders() > 0 && hot.countColHeaders() > 0
       ) {
@@ -115,7 +121,7 @@ export function focusGridScope(hot: HotInstance) {
       }
 
       return !!(
-        (!navigableHeaders && (hot.countRenderedRows() > 0 && hot.countRenderedCols() > 0)) ||
+        (!navigableHeaders && hasRenderedCells(hot)) ||
         (navigableHeaders && (hot.countRowHeaders() > 0 || hot.countColHeaders() > 0))
       );
     },

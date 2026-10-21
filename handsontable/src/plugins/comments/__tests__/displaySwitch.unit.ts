@@ -161,6 +161,10 @@ describe('Comments', () => {
       const range = { from: new CellCoords(0, 1) };
       const cachedShowDebounced = jasmine.createSpy('cachedShowDebounced');
 
+      // The real value is always a `debounce()` result, which carries `cancel` - and `updateDelay`
+      // calls it before replacing the function, so the stub has to carry it too.
+      cachedShowDebounced.cancel = jasmine.createSpy('cancel');
+
       displaySwitch.showDebounced = cachedShowDebounced;
 
       jest.useFakeTimers();
@@ -178,6 +182,92 @@ describe('Comments', () => {
       expect(cachedShowDebounced).not.toHaveBeenCalled();
       expect(setTimeoutSpy.mock.calls.length).toBe(1);
       expect(setTimeoutSpy.mock.calls[0][1]).toBe(800);
+    });
+
+    it('should keep a pending show when the delay did not change', () => {
+      const displaySwitch = new DisplaySwitch(700);
+      const onShow = jasmine.createSpy('onShow');
+      const range = { from: new CellCoords(0, 1) };
+
+      jest.useFakeTimers();
+
+      displaySwitch.addLocalHook('show', onShow);
+      displaySwitch.show(range);
+
+      // The common call by a distance: `updatePlugin()` reaches `updateDelay()` on every
+      // `updateSettings()`, and the wrappers re-send unchanged keys on ordinary commits. A hover
+      // the user already started must survive one, or the comment never appears until the pointer
+      // moves again.
+      displaySwitch.updateDelay(700);
+
+      jest.runAllTimers();
+
+      expect(onShow).toHaveBeenCalledTimes(1);
+      expect(onShow).toHaveBeenCalledWith(0, 1);
+    });
+
+    it('should carry a pending show over to the rebuilt debounced function', () => {
+      const displaySwitch = new DisplaySwitch(700);
+      const onShow = jasmine.createSpy('onShow');
+      const range = { from: new CellCoords(0, 1) };
+
+      jest.useFakeTimers();
+
+      displaySwitch.addLocalHook('show', onShow);
+      displaySwitch.show(range);
+
+      // A real delay change does rebuild, and the pending hover has to come with it - exactly once,
+      // so neither the old timer nor the new one is left to fire on its own.
+      displaySwitch.updateDelay(300);
+
+      jest.runAllTimers();
+
+      expect(onShow).toHaveBeenCalledTimes(1);
+      expect(onShow).toHaveBeenCalledWith(0, 1);
+    });
+
+    it('should not carry over a show that a hide already overruled', () => {
+      const displaySwitch = new DisplaySwitch(700);
+      const onShow = jasmine.createSpy('onShow');
+      const range = { from: new CellCoords(0, 1) };
+
+      jest.useFakeTimers();
+
+      displaySwitch.addLocalHook('show', onShow);
+      displaySwitch.show(range);
+      displaySwitch.hide();
+
+      // The hover is already overruled here, so the rebuild must not bring it back to life. It
+      // would sit there waiting on the flag, and the next `cancelHiding()` - which is what
+      // `showAtCell()` does when the user opens ANOTHER cell's comment - would set that flag and
+      // let the stale timer replace the comment that was just opened.
+      displaySwitch.updateDelay(300);
+      displaySwitch.cancelHiding();
+
+      jest.runAllTimers();
+
+      expect(onShow).not.toHaveBeenCalled();
+    });
+
+    it('should let `keepVisible` cancel a show carried over by a rebuild', () => {
+      const displaySwitch = new DisplaySwitch(700);
+      const onShow = jasmine.createSpy('onShow');
+      const range = { from: new CellCoords(0, 1) };
+
+      jest.useFakeTimers();
+
+      displaySwitch.addLocalHook('show', onShow);
+      displaySwitch.show(range);
+      displaySwitch.updateDelay(300);
+
+      // The replaced function keeps its timer in its own closure. Left running, it still closes
+      // over this instance and shows a comment that `keepVisible()` cannot reach, which is how the
+      // editor swapped to another cell while the pointer rested on it.
+      displaySwitch.keepVisible();
+
+      jest.runAllTimers();
+
+      expect(onShow).not.toHaveBeenCalled();
     });
   });
 

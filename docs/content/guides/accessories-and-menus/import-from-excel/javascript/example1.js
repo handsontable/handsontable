@@ -1,0 +1,75 @@
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import { HyperFormula } from 'hyperformula';
+
+registerAllModules();
+
+const SAMPLE_URL = '/docs/scripts/xlsx/employees.xlsx';
+
+const container = document.querySelector('#example1');
+const hot = new Handsontable(container, {
+  data: [
+    ['Ana García', 'Engineering', 'Senior Engineer', 98000, true, '2022-03-14'],
+    ['James Okafor', 'Marketing', 'Marketing Manager', 87500, true, '2021-07-01'],
+    ['Li Wei', 'Engineering', 'Product Manager', 104000, false, '2020-11-23'],
+    ['Priya Nair', 'Sales', 'Account Executive', 76200, true, '2023-01-09'],
+    ['Tom Bakker', 'Support', 'Support Specialist', 58900, true, '2019-05-30'],
+  ],
+  colHeaders: ['Name', 'Department', 'Job title', 'Salary ($)', 'Active', 'Hire date'],
+  columns: [
+    { type: 'text' },
+    { type: 'dropdown', source: ['Engineering', 'Marketing', 'Sales', 'Support'] },
+    { type: 'text' },
+    { type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2 } },
+    { type: 'checkbox' },
+    { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
+  ],
+  rowHeaders: true,
+  formulas: { engine: HyperFormula },
+  comments: true,
+  mergeCells: true,
+  hiddenColumns: true,
+  customBorders: true,
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  importFile: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const importPlugin = hot.getPlugin('importFile');
+const status = document.querySelector('#import-status');
+const fileInput = document.querySelector('#import-file');
+
+async function importWorkbook(blob, name) {
+  try {
+    const result = await importPlugin.importFromBlob('xlsx', blob, {
+      colHeaders: 'firstRow',
+      importStyles: true,
+    });
+
+    status.textContent = `Imported ${name}`;
+    console.log('Dropped features:', result.dropped);
+  } catch (error) {
+    // A refused file (an .xls, a password-protected or damaged workbook) rejects with a message
+    // that says what to do; the grid keeps its data.
+    status.textContent = error.message;
+  }
+}
+
+document.querySelector('#load-sample').addEventListener('click', async () => {
+  const response = await fetch(SAMPLE_URL);
+
+  await importWorkbook(await response.blob(), 'employees.xlsx');
+});
+
+fileInput.addEventListener('change', async () => {
+  const file = fileInput.files?.[0];
+
+  if (file) {
+    await importWorkbook(file, file.name);
+  }
+
+  // Cleared either way, so picking the same file again fires `change` again.
+  fileInput.value = '';
+});

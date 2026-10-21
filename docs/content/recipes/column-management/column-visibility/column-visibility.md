@@ -1,6 +1,6 @@
 ---
 title: Build a dynamic column visibility toggle
-metaTitle: Dynamic Column Visibility Toggle - JavaScript Data Grid | Handsontable
+metaTitle: Dynamic column visibility toggle | Handsontable DataGrid for JavaScript
 description: Build a checkbox list outside the grid that shows or hides columns on demand, while preserving each column's type, renderer, and validator.
 permalink: /recipes/column-management/column-visibility
 canonicalUrl: /recipes/column-management/column-visibility
@@ -10,11 +10,11 @@ tags:
   - toggle columns
   - column management
 react:
-  metaTitle: Dynamic column visibility - React Data Grid | Handsontable
+  metaTitle: Dynamic column visibility toggle | Handsontable DataGrid for React
 angular:
-  metaTitle: Dynamic Column Visibility Toggle - Angular Data Grid | Handsontable
+  metaTitle: Dynamic column visibility toggle | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Dynamic Column Visibility Toggle - Vue Data Grid | Handsontable
+  metaTitle: Dynamic column visibility toggle | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Column Management
 type: how-to
@@ -70,7 +70,7 @@ This recipe shows how to build a checkbox list outside the grid that toggles col
 
 ## Before you begin
 
-This recipe uses only the built-in Handsontable API. No extra dependencies are required.
+This recipe uses only the built-in Handsontable DataGrid API. No extra dependencies are required.
 
 The example uses HR/workforce data with seven columns: Name, Department, Role, Salary, Start Date, Location, and Status. The Salary column uses the `numeric` type with formatting. The Status column uses the `dropdown` type. This variety demonstrates that `hot.updateSettings()` restores each column's full configuration -- not just its header text.
 
@@ -127,7 +127,7 @@ function getVisibleHeaders() {
 
 These two helpers produce the arguments that `hot.updateSettings()` needs on every toggle. They are pure functions with no side effects.
 
-## Step 3: Initialize Handsontable
+## Step 3: Initialize Handsontable DataGrid
 
 ```javascript
 const hot = new Handsontable(container, {

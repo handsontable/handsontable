@@ -122,6 +122,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Go to next page',
   [C.PAGINATION_LAST_PAGE]: 'Go to last page',
 
+  [C.SHEETS_BAR_SECTION]: 'Sheets',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Add sheet',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'All sheets',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Sheet actions: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Sheet name',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Delete',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Duplicate',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Rename',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Move right',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Move left',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Scroll sheets backward',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Scroll sheets forward',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Sheet [name] activated',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Sheet name not changed: [name] is already in use',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Sheet',
+
   [C.CHECKBOX_CHECKED]: 'Checked',
   [C.CHECKBOX_UNCHECKED]: 'Unchecked',
 
@@ -142,6 +158,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Could not remove rows',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Request failed',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Refetch',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Select row [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Select all rows ([selected] of [total] selected)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Check all ([checked] of [total] checked)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Row [row] selected',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Row [row] deselected',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] of [total] rows selected',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Remove selected rows ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Clear row selection',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Frozen rows at the top',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Frozen rows at the bottom',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Frozen columns at the start',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Frozen columns at the end',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Expanded row [label], expanded rows shown: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Collapsed row [label]',
 };
 
 export default dictionary;

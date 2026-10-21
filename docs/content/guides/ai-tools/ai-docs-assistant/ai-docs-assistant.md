@@ -1,20 +1,19 @@
 ---
 type: explanation
 title: AI Docs Assistant
-metaTitle: AI Docs Assistant - JavaScript Data Grid | Handsontable
-description: The Ask AI assistant in the docs header that answers questions about Handsontable APIs, configuration options, hooks, and integration patterns.
+metaTitle: AI Docs Assistant | Handsontable DataGrid for JavaScript
+description: The Ask AI assistant in the Handsontable DataGrid docs header. It answers questions about Handsontable DataGrid APIs, configuration options, hooks, and integration patterns. It is not yet available in the HyperFormula docs.
 permalink: /ai-docs-assistant
 react:
-  metaTitle: AI Docs Assistant - React Data Grid | Handsontable
+  metaTitle: AI Docs Assistant | Handsontable DataGrid for React
 angular:
-  metaTitle: AI Docs Assistant - Angular Data Grid | Handsontable
+  metaTitle: AI Docs Assistant | Handsontable DataGrid for Angular
 vue:
-  metaTitle: AI Docs Assistant - Vue Data Grid | Handsontable
+  metaTitle: AI Docs Assistant | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: AI Tools
-menuTag: new
 ---
-The AI Docs Assistant is the **Ask AI** button in the docs header. It answers questions about Handsontable and HyperFormula, writes code examples, and links you to the relevant guide or API reference page.
+The AI Docs Assistant is the **Ask AI** button in the docs header. It answers questions about Handsontable DataGrid and HyperFormula, writes code examples, and links you to the relevant guide or API reference page.
 
 ::: tip
 

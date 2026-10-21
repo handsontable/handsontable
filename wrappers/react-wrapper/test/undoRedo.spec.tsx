@@ -14,7 +14,7 @@ jest.setTimeout(10000);
 
 describe('UndoRedo plugin in React wrapper', () => {
   describe('beforeChange hook execution order', () => {
-    it('should record the modified value in UndoRedo when beforeChange modifies the change', async () => {
+    it('should record the modified value in UndoRedo when beforeChange modifies the change', async() => {
       const hotTableRef = mountComponentWithRef<HotTableRef>((
         <HotTable
           id="test-hot"
@@ -35,13 +35,13 @@ describe('UndoRedo plugin in React wrapper', () => {
       expect(hotInstance).not.toBe(null);
       expect(hotInstance.getDataAtCell(0, 0)).toBe(0);
 
-      await act(async () => {
+      await act(async() => {
         hotInstance.setDataAtCell(0, 0, 2);
       });
 
       expect(hotInstance.getDataAtCell(0, 0)).toBe(2);
 
-      await act(async () => {
+      await act(async() => {
         hotInstance.setDataAtCell(0, 0, 10); // Will be capped
       });
 
@@ -60,14 +60,14 @@ describe('UndoRedo plugin in React wrapper', () => {
       expect(secondAction.changes[0][2]).toBe(2);
       expect(secondAction.changes[0][3]).toBe(5); // Capped
 
-      await act(async () => {
+      await act(async() => {
         undoRedoPlugin.undo();
       });
       await sleep(50);
 
       expect(hotInstance.getDataAtCell(0, 0)).toBe(2);
 
-      await act(async () => {
+      await act(async() => {
         undoRedoPlugin.undo();
       });
       await sleep(50);

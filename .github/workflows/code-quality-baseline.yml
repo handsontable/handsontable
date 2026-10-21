@@ -28,7 +28,7 @@ concurrency:
 jobs:
   sonarcloud:
     name: "[SCAN] SonarCloud (baseline)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
@@ -45,7 +45,7 @@ jobs:
 
   codeql:
     name: "[SCAN] CodeQL (baseline)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 60
     permissions:
       security-events: write
@@ -67,7 +67,7 @@ jobs:
 
   fossa-scan:
     name: "[SCAN] FOSSA (baseline)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
@@ -78,7 +78,7 @@ jobs:
 
   audit:
     name: "[SCAN] audit (baseline)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Trunk audit signal. The old audit.yml ran `pnpm audit` on every push; the PR
     # audit is now PR-only, which left the default branch with no audit at all. This
     # restores a nightly signal. Non-blocking while the ~380-vuln backlog burns down

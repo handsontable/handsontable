@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the TypeScript types of the `filters` option. The object form now accepts only `searchMode` and `filterFixedRows`, and a column's `filters` accepts only a boolean, so a misspelled key, a wrong value, or a per-column object no longer compiles.",
+  "type": "changed",
+  "issueOrPR": 13662,
+  "breaking": true,
+  "framework": "none"
+}

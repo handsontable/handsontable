@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import { eventTargetEl } from '../../../helpers/dom/element';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
@@ -9,6 +10,7 @@ import {
   deselectItem,
   createSearchInputWrapper,
   createSearchIcon,
+  refreshSearchIcon,
   createSearchInputElement,
   createSeparatorElement,
   createListElement,
@@ -46,6 +48,10 @@ export class DropdownController {
    * The Handsontable instance GUID used to scope checkbox IDs within the dropdown.
    */
   #instanceId: string | null = null;
+  /**
+   * The Handsontable instance, used to render icon elements (search, checkbox tick).
+   */
+  #hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'>;
   /**
    * The host div element that contains the search wrapper, separator, and list.
    */
@@ -117,11 +123,17 @@ export class DropdownController {
    *
    * @param {HTMLDivElement} containerElement Host element created by the editor.
    * @param {string} instanceId Handsontable instance id.
+   * @param {HotInstance} hotInstance The Handsontable instance, used to render icon elements.
    */
-  constructor(containerElement: HTMLDivElement, instanceId: string) {
+  constructor(
+    containerElement: HTMLDivElement,
+    instanceId: string,
+    hotInstance: Pick<HotInstance, 'rootDocument' | 'themeManager'>
+  ) {
     this.#containerElement = containerElement;
     this.#rootDocument = this.#containerElement.ownerDocument;
     this.#instanceId = instanceId;
+    this.#hotInstance = hotInstance;
 
     this.init();
   }
@@ -136,12 +148,10 @@ export class DropdownController {
     this.#dropdownListElement = createListElement({ root: this.#rootDocument });
     this.#searchInputElement = createSearchInputElement({ root: this.#rootDocument });
 
-    const searchIcon = createSearchIcon({ root: this.#rootDocument });
-
     this.#searchInputWrapper = createSearchInputWrapper({ root: this.#rootDocument });
     this.#separatorElement = createSeparatorElement({ root: this.#rootDocument });
 
-    this.#searchInputWrapper!.appendChild(searchIcon);
+    this.#searchInputWrapper!.appendChild(createSearchIcon({ hotInstance: this.#hotInstance }));
     this.#searchInputWrapper!.appendChild(this.#searchInputElement);
     this.#containerElement.appendChild(this.#searchInputWrapper);
     this.#containerElement.appendChild(this.#separatorElement);
@@ -151,6 +161,18 @@ export class DropdownController {
       input: this.#searchInputElement,
       eventManager: this.#eventManager,
     });
+  }
+
+  /**
+   * Re-applies the theme's current icon mapping to the search icon. The dropdown is built once in
+   * `init()` and reused for the life of the editor, so this is what lets a runtime `icons` remap or
+   * theme switch reach it; the editor calls it from `prepare()`. A no-op unless the theme's icons
+   * revision moved.
+   */
+  refreshIcons(): void {
+    if (this.#searchInputWrapper) {
+      refreshSearchIcon({ hotInstance: this.#hotInstance, wrapper: this.#searchInputWrapper });
+    }
   }
 
   /**
@@ -227,21 +249,31 @@ export class DropdownController {
    * Controls dropdown height based on entry count and configured visible rows.
    *
    * @param {object} availableSpace Available space object.
-   * @param {boolean} noFlip If true, the dropdown will not be flipped vertically.
+   * @param {boolean} noFlip If true, the current vertical flip is kept as it is.
    */
   updateDimensions(
     availableSpace: { spaceAbove: number; spaceBelow: number; cellHeight: number }, noFlip = false): void {
     const entryHeight = this.#getEntryHeight();
-    const requiresFlippingVertically = this.#requiresFlippingVertically(availableSpace);
-    const availableHeight = requiresFlippingVertically ? availableSpace.spaceAbove : availableSpace.spaceBelow;
+    const chromeHeight = this.#getContainerChromeHeight();
+    const requiresFlippingVertically = this.#requiresFlippingVertically(availableSpace, chromeHeight);
+    // The side the list is drawn on: the stored one when the flip is kept, so the room it is capped to is
+    // the room on that side.
+    const flipped = noFlip ? this.#cache.flippedVertically : requiresFlippingVertically;
+    const availableHeight = flipped ? availableSpace.spaceAbove : availableSpace.spaceBelow;
 
-    if (!noFlip && requiresFlippingVertically) {
-      this.#cache.flippedVertically = true;
+    // Decided both ways: a scroll that follows the cell calls this again, and a flip that could
+    // only be set would keep the list above a cell that has room below it again. `prepare()`
+    // resets the flag before every open, so the first call of an edit is unaffected.
+    if (!noFlip) {
+      this.#cache.flippedVertically = requiresFlippingVertically;
     }
 
-    if (this.#cache.entriesCount > 0 && availableHeight < this.getHeight(true)) {
+    if (this.#cache.entriesCount > 0 && availableHeight < this.getHeight(true) + chromeHeight) {
+      // The `- 1` leaves a row of slack that absorbs the chrome up to one row, which covers the built-in
+      // themes. A theme with more chrome than that takes the excess off the room.
+      const chromeBeyondSlack = Math.max(chromeHeight - entryHeight, 0);
       const maxRenderableItems = Math.max(
-        Math.floor((availableHeight - this.#getSearchInputWrapperHeight()) / entryHeight) - 1,
+        Math.floor((availableHeight - chromeBeyondSlack - this.#getSearchInputWrapperHeight()) / entryHeight) - 1,
         1
       );
 
@@ -363,6 +395,7 @@ export class DropdownController {
     if (this.#containerElement) {
       this.#containerElement.style.position = '';
       this.#containerElement.style.top = '';
+      this.#containerElement.style.bottom = '';
       this.#containerElement.style.height = '';
       this.#containerElement.scrollTop = 0;
     }
@@ -373,6 +406,15 @@ export class DropdownController {
    */
   isFlippedVertically(): boolean {
     return this.#cache.flippedVertically;
+  }
+
+  /**
+   * Returns the pixel width of the dropdown box, including padding and border.
+   *
+   * @returns {number}
+   */
+  getOuterWidth(): number {
+    return this.#containerElement ? this.#containerElement.offsetWidth : 0;
   }
 
   /**
@@ -409,7 +451,10 @@ export class DropdownController {
       this.#unregisterEvents(itemElement as HTMLLIElement)
     );
     this.#cache.checkboxChangeListeners.clear();
-    this.#dropdownListElement.innerHTML = '';
+    // `replaceChildren()`, not `empty()`: this list holds one `li` per distinct value, so a
+    // multi-select over a few hundred of them sits well past the ~30-child crossover where
+    // removing children one at a time starts losing. It is not a Trusted Types sink either.
+    this.#dropdownListElement.replaceChildren();
   }
 
   /**
@@ -448,14 +493,23 @@ export class DropdownController {
   /**
    * Returns true when the dropdown is taller than the space below the cell and there is more space above.
    */
-  #requiresFlippingVertically(availableSpace: { spaceAbove: number; spaceBelow: number; cellHeight: number }): boolean {
+  #requiresFlippingVertically(
+    availableSpace: { spaceAbove: number; spaceBelow: number; cellHeight: number },
+    chromeHeight: number
+  ): boolean {
     const { spaceAbove, spaceBelow, cellHeight } = availableSpace;
 
-    return this.getHeight(true) > spaceBelow && spaceAbove > spaceBelow + cellHeight;
+    return this.getHeight(true) + chromeHeight > spaceBelow &&
+      spaceAbove > spaceBelow + cellHeight;
   }
 
   /**
    * Applies or removes the absolute positioning that renders the dropdown above the edited cell.
+   *
+   * Anchored by its bottom edge, so the list ends flush with the top of the editor container, which is 1 px
+   * above the cell, whatever height the list renders at. That container sits at the cell's bottom and has no
+   * height of its own. For the first row under the column headers and the first `fixedRowsBottom` row,
+   * `getEditedCellRect()` adds 1 px to the container's top, so the list ends flush with the cell's top there.
    */
   #toggleVerticalFlip(availableSpace: { cellHeight: number }): void {
     if (!this.#containerElement) {
@@ -466,10 +520,12 @@ export class DropdownController {
 
     if (flipNeeded) {
       this.#containerElement.style.position = 'absolute';
-      this.#containerElement.style.top = `${-this.getHeight(false, true) - cellHeight - 2}px`;
+      this.#containerElement.style.top = 'auto';
+      this.#containerElement.style.bottom = `${cellHeight + 1}px`;
     } else {
       this.#containerElement.style.position = '';
       this.#containerElement.style.top = '';
+      this.#containerElement.style.bottom = '';
     }
   }
 
@@ -489,13 +545,49 @@ export class DropdownController {
   }
 
   /**
-   * Returns the pixel height occupied by the list items, using either the actual rendered count or the full entry count when calculating the maximum.
+   * Returns the vertical space the container's padding and border, and the list's padding and margin, take
+   * around the rows.
+   *
+   * The container is `content-box`, so `getHeight()` and the inline `height` it receives describe the
+   * content only, and the rows are counted without the list's own padding. The room the list needs on
+   * screen is that height plus this value, which depends on the theme (or on a custom stylesheet), so it
+   * is read from the computed style.
+   */
+  #getContainerChromeHeight(): number {
+    if (!this.#rootDocument || !this.#containerElement) {
+      return 0;
+    }
+    const { defaultView } = this.#rootDocument;
+    const sum = (element: Element, properties: string[]) => {
+      const style = defaultView!.getComputedStyle(element);
+
+      return properties.reduce((total, property) => total + (parseFloat(style.getPropertyValue(property)) || 0), 0);
+    };
+    let height = sum(this.#containerElement, [
+      'padding-top', 'padding-bottom', 'border-top-width', 'border-bottom-width',
+    ]);
+
+    if (this.#dropdownListElement) {
+      height += sum(this.#dropdownListElement, ['padding-top', 'padding-bottom', 'margin-top', 'margin-bottom']);
+    }
+
+    return height;
+  }
+
+  /**
+   * Returns the pixel height occupied by the list items. With `maxRowsCalculation`, it is the height of the
+   * most rows the list can show, which is the entry count capped to `visibleRows`, as the list is a scrollable
+   * container that never grows past that. Without it, it is the height of the rows rendered now.
    */
   #getListHeight(maxRowsCalculation: boolean): number {
-    const maxRenderedItems = this.#cache.entriesCount;
+    const { entriesCount, visibleRowsNumberSetting } = this.#cache;
+    // A `visibleRows` of 0 or less leaves the list unsized (see `updateDimensions()`), so it shows every entry.
+    const maxRenderedItems = visibleRowsNumberSetting && visibleRowsNumberSetting > 0
+      ? Math.min(entriesCount, visibleRowsNumberSetting)
+      : entriesCount;
     const actualRenderedItems = maxRowsCalculation
       ? maxRenderedItems
-      : this.#cache.actualRenderedItemsCount ?? maxRenderedItems;
+      : this.#cache.actualRenderedItemsCount ?? entriesCount;
     const entryHeight = this.#getEntryHeight();
 
     return actualRenderedItems * entryHeight;
@@ -547,6 +639,7 @@ export class DropdownController {
       indexWithinList,
       checked,
       disabled,
+      hotInstance: this.#hotInstance,
     });
 
     if (checked) {

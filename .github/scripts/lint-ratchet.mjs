@@ -1,0 +1,219 @@
+#!/usr/bin/env node
+/**
+ * Determinism ratchet (CLI).
+ *
+ * Runs the pure intersection (lib/lint-ratchet.mjs) over THIS branch's diff: a
+ * warn-level `sleep()` / `it.flaky()` / `.skip` (`RATCHETED_RULES`) on a line
+ * the branch ADDED is a failure; a pre-existing one stays a warning. Blocking
+ * in both places it runs — pre-push (`scripts/pre-push.mjs`) and CI
+ * (`lint.yml`) — with the same script and the same rule set, so the local
+ * scope is exactly the CI scope.
+ *
+ * Fast by construction: no build, ESLint runs on the changed spec/unit files
+ * only, and the script exits 0 before spawning anything when none changed or
+ * when the diff added no line to them.
+ *
+ * Never a false block. Every tooling gap — no base to diff against (an unknown
+ * ref, or one with no merge-base with HEAD), a failed diff, ESLint missing or
+ * exiting 2 (config/parse gap), unparsable output, an unexpected throw — prints
+ * a notice and exits 0; CI's full lint stays authoritative. Exit 1 means
+ * exactly one thing: the finding list is non-empty.
+ *
+ * Usage:  node .github/scripts/lint-ratchet.mjs [--base <ref>]
+ * Env:    GATE_BASE   Base ref/SHA. CI passes `origin/<PR base branch>` — the
+ *         base's LIVE tip, fetched in lint.yml — never the event payload's
+ *         frozen `base.sha`: once GitHub rebuilt the merge ref, or the branch
+ *         merged the base, that SHA is an ancestor of HEAD and every base
+ *         commit after it would read as this branch's. `--base` wins over
+ *         GATE_BASE; with neither, the merge-base with origin/develop (then
+ *         develop) is used. The diff always runs from the MERGE-BASE of that
+ *         ref with HEAD, never from the ref itself.
+ */
+import { execFileSync, spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { parseArgs } from 'node:util';
+import { repoRoot } from './lib/repo-root.mjs';
+import {
+  formatReport,
+  parseAddedLines,
+  selectRatchetedFiles,
+  selectRatchetedFindings,
+} from './lib/lint-ratchet.mjs';
+
+/**
+ * Cap for ESLint's JSON output. Dozens of specs with hundreds of legacy
+ * warnings exceed Node's 1 MB default, and an overflow kills the child with
+ * no verdict.
+ *
+ * @type {number}
+ */
+const ESLINT_MAX_BUFFER = 64 * 1024 * 1024;
+
+// Anchor every path and spawn to the repo root, resolved from this script's
+// location — a git-derived root is wrong under the `GIT_DIR` every hook exports.
+const root = repoRoot();
+const packageDir = path.join(root, 'handsontable');
+
+// Children run with an explicit cwd; an inherited `GIT_DIR`/`GIT_WORK_TREE`
+// would make git read that cwd as the work tree.
+const env = { ...process.env };
+
+delete env.GIT_DIR;
+delete env.GIT_WORK_TREE;
+
+/**
+ * Run git in the repo root, returning stdout (empty string on any failure).
+ * `core.quotePath=false` makes git print a non-ASCII path raw instead of as
+ * C-quoted octal bytes, so a `+++` header in the diff and the `-z` name list
+ * key the same file (`café.spec.js`); the parser never decodes escapes.
+ *
+ * @param {string[]} args Git arguments.
+ * @returns {string} Trimmed stdout, or ''.
+ */
+function git(args) {
+  try {
+    return execFileSync('git', ['-c', 'core.quotePath=false', ...args], {
+      cwd: root, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: ESLINT_MAX_BUFFER,
+    }).trim();
+  } catch {
+    // The caller treats '' as "no answer" and decides whether that is a skip.
+    return '';
+  }
+}
+
+/**
+ * End the run without a verdict. The gate may not block on its own tooling.
+ *
+ * @param {string} reason What could not be done.
+ * @returns {never} Exits 0.
+ */
+function skip(reason) {
+  console.log(`Determinism ratchet: ${reason} — skipped; CI's lint is authoritative.`);
+  process.exit(0);
+}
+
+/**
+ * Resolve the commit to diff against: the merge-base of the requested ref (or
+ * the trunk) with HEAD, so only this branch's own changes are read. Null when
+ * no merge-base exists — an unknown ref, or a clone too shallow to reach the
+ * fork point. Never the requested commit itself: a diff against a
+ * non-ancestor reads every line the base gained since the fork as a line this
+ * branch added, and the gate would block on someone else's work. CI checks
+ * out with `fetch-depth: 0`, so the merge-base is always reachable there and
+ * a fallback would buy nothing.
+ *
+ * The requested ref should be the base branch's live tip. A SHA frozen
+ * earlier — the PR payload's `base.sha` — is an ancestor of HEAD as soon as
+ * the merge ref was rebuilt or the branch merged the base, so the merge-base
+ * is that SHA itself and the base's later commits read as this branch's; the
+ * CLI cannot tell that shape from a genuine fork point, so the caller owns it.
+ *
+ * @param {string} requested A ref/SHA from `--base` or `GATE_BASE`, or ''.
+ * @returns {string|null} A commit SHA, or null.
+ */
+function resolveBase(requested) {
+  const refs = requested ? [requested] : ['origin/develop', 'develop'];
+
+  for (const ref of refs) {
+    const mergeBase = git(['merge-base', ref, 'HEAD']);
+
+    if (mergeBase) {
+      return mergeBase;
+    }
+  }
+
+  return null;
+}
+
+try {
+  const { values } = parseArgs({ options: { base: { type: 'string' } }, strict: false });
+  const requested = values.base || process.env.GATE_BASE || '';
+  const base = resolveBase(requested);
+
+  if (!base) {
+    skip(requested
+      ? `no merge-base between "${requested}" and HEAD (unknown ref, or a clone too shallow to reach the fork point)`
+      : 'no base ref to diff against (pass --base <ref> or set GATE_BASE)');
+  }
+
+  // Deleted files carry no added line and would make ESLint fail on a missing
+  // path; a rename is reported under its new name.
+  const changed = git(['diff', '--name-only', '-z', '--diff-filter=d', '-M', base, 'HEAD'])
+    .split('\0').filter(Boolean);
+  const candidates = selectRatchetedFiles(changed).filter(file => existsSync(path.join(root, file)));
+
+  if (candidates.length === 0) {
+    console.log('Determinism ratchet: no changed spec/unit file under handsontable/ — nothing to ratchet.');
+    process.exit(0);
+  }
+
+  // `-U0`: added lines only, no context to walk. The prefixes are pinned so a
+  // user's `diff.noprefix` / `diff.mnemonicPrefix` cannot change the header
+  // shape the parser expects. Deliberately NOT limited to the candidates: a
+  // pathspec naming only a renamed spec's NEW path hides its old path from
+  // `-M`, so a pure `git mv` would read as a new file with every legacy line
+  // added. The whole branch diff keeps both sides visible, and the candidate
+  // filter is applied to the parsed result instead.
+  const diff = git([
+    'diff', '-U0', '--no-color', '--no-ext-diff', '-M', '--src-prefix=a/', '--dst-prefix=b/', base, 'HEAD',
+  ]);
+
+  // A changed candidate always prints at least its `diff --git` header, so no
+  // output is a failed git call (or a diff over the buffer cap), not a clean one.
+  if (!diff) {
+    skip('git diff produced no output (a git error, or a diff over the 64 MB cap)');
+  }
+
+  const candidateSet = new Set(candidates);
+  const addedLines = new Map([...parseAddedLines(diff)].filter(([file]) => candidateSet.has(file)));
+  const addedTotal = [...addedLines.values()].reduce((sum, lines) => sum + lines.size, 0);
+
+  if (addedTotal === 0) {
+    console.log('Determinism ratchet: the changed spec/unit files gained no line — nothing to ratchet.');
+    process.exit(0);
+  }
+
+  // The package's own ESLint, by path, so the `handsontable` plugin and the
+  // package `.eslintignore` resolve exactly as in the CI lint task. Not `npx`:
+  // in an unbootstrapped worktree npx would fetch an unrelated eslint from the
+  // registry instead of failing fast.
+  const eslintBin = path.join(packageDir, 'node_modules', 'eslint', 'bin', 'eslint.js');
+
+  if (!existsSync(eslintBin)) {
+    skip('handsontable/node_modules is not installed (run pnpm install)');
+  }
+
+  const lint = spawnSync(process.execPath, [
+    eslintBin, '--format', 'json', ...candidates.map(file => path.relative(packageDir, path.join(root, file))),
+  ], { cwd: packageDir, env, encoding: 'utf8', maxBuffer: ESLINT_MAX_BUFFER });
+
+  if (lint.error || lint.signal || lint.status === null) {
+    skip(`ESLint did not complete (${lint.error?.code || lint.signal})`);
+  }
+
+  // 0 = clean, 1 = lint findings (the JSON is complete either way), 2 = a
+  // config or crash — no verdict to read.
+  if (lint.status === 2) {
+    skip(`ESLint exited 2 (config or parse gap): ${(lint.stderr || '').trim().split('\n')[0]}`);
+  }
+
+  let results;
+
+  try {
+    results = JSON.parse(lint.stdout);
+  } catch {
+    skip('ESLint printed no parsable JSON');
+  }
+
+  const findings = selectRatchetedFindings(results, addedLines, { root });
+
+  console.log(formatReport(findings));
+
+  if (findings.length > 0) {
+    process.exitCode = 1;
+  }
+} catch (error) {
+  // An unexpected throw is a bug in this script, not in the author's change.
+  skip(`unexpected error (${error?.message || error})`);
+}

@@ -24,6 +24,50 @@ import { skip } from 'rxjs/operators';
 
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' + ' used properly.';
 
+/**
+ * The size options that discard the sizes stored by the manual resize plugins when they are passed
+ * to `updateSettings()`.
+ */
+const SIZE_SETTING_KEYS = new Set<string>(['rowHeights', 'minRowHeights', 'colWidths']);
+
+/**
+ * Compares two size option values. Both hold a number, a string, a function or an array of numbers
+ * or strings, so an element-wise walk is enough - and it is what makes a value written inline in a
+ * template, which is a new array on every change detection run, compare as unchanged.
+ *
+ * A function is compared by reference only. It states no fixed size, and the core plugins ignore it
+ * when deciding whether the sizes were re-declared, so forwarding it changes nothing either way.
+ *
+ * @param currentValue The value the grid currently holds.
+ * @param newValue The value coming from the `settings` input.
+ * @returns `true` when the two state the same sizes.
+ */
+function isSameSizeSetting(currentValue: unknown, newValue: unknown): boolean {
+  if (currentValue === newValue) {
+    return true;
+  }
+
+  if (Array.isArray(currentValue) && Array.isArray(newValue)) {
+    return currentValue.length === newValue.length &&
+      currentValue.every((value, index) => value === newValue[index]);
+  }
+
+  return false;
+}
+
+/**
+ * The class that makes the container and the host fill their parent. The component styles below
+ * spell the same name, because decorator metadata must stay statically analyzable.
+ */
+const FILL_HEIGHT_CLASS_NAME = 'ht-fill-height';
+
+/**
+ * A `height` that resolves against the container: a percentage, or a `var()` that may hold one.
+ * The core treats the same two as container-driven in `utils/rootSize.ts`, together with units that
+ * resolve against the viewport or a query container, which do not depend on the container here.
+ */
+const RELATIVE_HEIGHT_PATTERN = /%|\bvar\(/i;
+
 @Component({
   selector: 'hot-table',
   template: '<div #container></div>',
@@ -33,6 +77,10 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
     `
       :host {
         display: block;
+      }
+
+      :where(hot-table.ht-fill-height, hot-table > div.ht-fill-height) {
+        height: 100%;
       }
     `,
   ],
@@ -51,6 +99,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   /** The Handsontable instance. */
   private __hotInstance: Handsontable | null = null;
   private readonly _destroyRef = inject(DestroyRef);
+  private readonly _host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   constructor(
     private _hotSettingsResolver: HotSettingsResolver,
@@ -96,6 +145,13 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
 
       (this.hotInstance as HotInstanceWithAngularInjector)._angularEnvironmentInjector = this.environmentInjector;
+
+      // Registered before `init()`, so the hook also sees the initial `height`, before the first render.
+      this.hotInstance.addHook('beforeHeightChange', (height) => {
+        this.toggleFillHeight(height);
+
+        return height;
+      });
 
       this.hotInstance.init();
     });
@@ -181,6 +237,26 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   /**
+   * Makes the container and the `<hot-table>` host fill their parent when the grid `height` is
+   * relative.
+   *
+   * The core puts its root wrapper inside the container, and the `height: 100%` of the grid content
+   * resolves against the container. An auto-height container makes that `100%` collapse to `0px`, so
+   * the container has to pass the height of its parent through. React and Vue always do. Here it
+   * happens only for a relative `height` (`%` or `var()`), so grids with other heights keep their
+   * layout. The rule is a zero-specificity `:where()`, so any CSS of the app overrides it.
+   *
+   * @param height The value the `beforeHeightChange` hook received. It is the result of a `height`
+   * function, and it is `null` when the `height` is reset.
+   */
+  private toggleFillHeight(height: unknown): void {
+    const fillHeight = typeof height === 'string' && RELATIVE_HEIGHT_PATTERN.test(height);
+
+    this.container.nativeElement.classList.toggle(FILL_HEIGHT_CLASS_NAME, fillHeight);
+    this._host.nativeElement.classList.toggle(FILL_HEIGHT_CLASS_NAME, fillHeight);
+  }
+
+  /**
    * Updates the Handsontable instance with new settings.
    * @param newSettings The new settings to apply to the Handsontable instance.
    */
@@ -189,15 +265,28 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       return;
     }
 
+    const currentSettings = this.hotInstance.getSettings();
     const initOnlySettingKeys = new Set<string>(
-      (this.hotInstance.getSettings() as any)?._initOnlySettings ?? []
+      (currentSettings as any)?._initOnlySettings ?? []
     );
     const filteredSettings: Handsontable.GridSettings = {};
 
     for (const key of Object.keys(newSettings)) {
-      if (!initOnlySettingKeys.has(key)) {
-        (filteredSettings as any)[key] = (newSettings as any)[key];
+      if (initOnlySettingKeys.has(key)) {
+        continue;
       }
+
+      // `ngOnChanges` fires for the whole settings object, so every key is re-passed whenever any
+      // one of them changes. Passing `rowHeights` or `colWidths` re-declares the sizes and discards
+      // the ones the user produced by dragging, so an unchanged value must not be forwarded.
+      if (
+        SIZE_SETTING_KEYS.has(key) &&
+        isSameSizeSetting((currentSettings as any)?.[key], (newSettings as any)[key])
+      ) {
+        continue;
+      }
+
+      (filteredSettings as any)[key] = (newSettings as any)[key];
     }
 
     this.ngZone.runOutsideAngular(() => {

@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Date cell type
-metaTitle: Date cell type - JavaScript Data Grid | Handsontable
+metaTitle: Date cell type | Handsontable DataGrid for JavaScript
 description: Display, format, sort, and filter dates correctly by using the date cell type.
 permalink: /date-cell-type
 canonicalUrl: /date-cell-type
 react:
-  metaTitle: Date cell type - React Data Grid | Handsontable
+  metaTitle: Date cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Date cell type - Angular Data Grid | Handsontable
+  metaTitle: Date cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Date cell type - Vue Data Grid | Handsontable
+  metaTitle: Date cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
@@ -386,7 +386,7 @@ After configuring the date cell type, cells display dates formatted according to
 
 ## Keyboard shortcuts
 
-The `intl-date` and `date` cell editors open the browser's native date picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
+The `intl-date` and `date` cell editors open the browser's native date picker. Double-clicking a cell shows the picker. In Chromium-based browsers, an open picker takes the keys: <kbd>**Tab**</kbd> does nothing, and <kbd>**Enter**</kbd> and <kbd>**Escape**</kbd> close only the picker. Opening the editor with the keyboard (<kbd>**Enter**</kbd>, <kbd>**F2**</kbd>, or typing) leaves the picker closed, so <kbd>**Tab**</kbd>, <kbd>**Escape**</kbd>, and the other grid shortcuts keep working. In Chrome and Edge, press <kbd>**Alt**</kbd>+<kbd>**↓**</kbd> (<kbd>⌥</kbd>+<kbd>**↓**</kbd> on macOS) in the editor to show the picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
 
 ## Related articles
 

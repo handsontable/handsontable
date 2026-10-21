@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed undo not restoring merged cells after removing a column that overlapped a merge.",
-  "type": "fixed",
-  "issueOrPR": 12801,
-  "breaking": false,
-  "framework": "none"
-}

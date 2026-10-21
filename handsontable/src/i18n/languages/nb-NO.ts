@@ -118,6 +118,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Gå til neste side',
   [C.PAGINATION_LAST_PAGE]: 'Gå til siste side',
 
+  [C.SHEETS_BAR_SECTION]: 'Ark',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Legg til ark',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Alle ark',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Arkhandlinger: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Arknavn',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Slett',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Dupliser',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Gi nytt navn',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Flytt til høyre',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Flytt til venstre',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Rull ark bakover',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Rull ark fremover',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Ark [name] aktivert',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Arknavnet ble ikke endret: [name] er allerede i bruk',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Ark',
+
   [C.LOADING_TITLE]: 'Laster...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Lukk',
 
@@ -135,6 +151,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Kunne ikke fjerne rader',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Forespørselen mislyktes',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Hent på nytt',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Velg rad [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Velg alle rader ([selected] av [total] valgt)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Merk alle ([checked] av [total] merket)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Rad [row] valgt',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Rad [row] fravalgt',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] av [total] rader valgt',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Fjern valgte rader ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Fjern radvalg',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Frosne rader øverst',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Frosne rader nederst',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Frosne kolonner i starten',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Frosne kolonner på slutten',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Utvidet rad [label], viste utvidede rader: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Slått sammen rad [label]',
 };
 
 export default dictionary;

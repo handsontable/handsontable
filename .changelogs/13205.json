@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added the `colorScheme` and `density` options, which set the color scheme and the spacing of the grid without declaring a theme.",
-  "type": "added",
-  "issueOrPR": 13205,
-  "breaking": false,
-  "framework": "none"
-}

@@ -4,17 +4,20 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['Hydrogen', 'H', 1, 1.008, 7],
+  ['Helium', 'He', 2, 4.003, 9],
+  ['Lithium', 'Li', 3, 6.94, 9],
+  ['Beryllium', 'Be', 4, 9.012, 11],
+  ['Boron', 'B', 5, 10.81, 15],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
-        ['2017', 10, 11, 12, 13, 15, 16],
-        ['2018', 10, 11, 12, 13, 15, 16],
-        ['2019', 10, 11, 12, 13, 15, 16],
-      ]}
+      data={data}
       rowHeaders={true}
-      colHeaders={true}
+      colHeaders={['Name', 'Symbol', 'Atomic number', 'Atomic mass', 'Known isotopes']}
       contextMenu={true}
       comments={true}
       cell={[

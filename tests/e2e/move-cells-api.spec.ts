@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 /**
@@ -7,11 +7,11 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
  *
  * The fixture's data is `R<row+1>C<col+1>`, so cell (2, 2) reads `R3C3`.
  */
-test.describe('moveCells moveCellRange API', () => {
+test.describe('moveCells moveCellRange API', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
     await grid.initGrid();
   });

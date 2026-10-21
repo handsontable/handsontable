@@ -199,13 +199,19 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     $expandableItem.simulate('mouseover');
 
-    await waitForNextAnimationFrames(19);
+    // Waits for the expansion rather than for a fixed 19 frames, which was about one frame of
+    // margin over the 300ms open delay and went negative on a display faster than 60Hz.
+    await waitUntil(() => $expandableItem.get(0).getAttribute('aria-expanded') === 'true');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toEqual('true');
 
     $unExpandableItem.simulate('mouseover');
 
-    await waitForNextAnimationFrames(4);
+    // Closing a sub-menu now waits the same 300ms opening does (DEV-2861), so this waits for the
+    // collapse itself rather than for a fixed number of frames. The requirement is unchanged:
+    // resting on an item with no sub-menu must still collapse the expanded one, and this times out
+    // if it never does.
+    await waitUntil(() => $expandableItem.get(0).getAttribute('aria-expanded') === 'false');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toEqual('false');
   });

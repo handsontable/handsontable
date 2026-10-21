@@ -39,6 +39,8 @@ describe('Selection', () => {
         selectedByRowHeader: [0],
         selectedByColumnHeader: [1],
         disableHeadersHighlight: false,
+        rowExtentSpansGrid: [1],
+        columnExtentSpansGrid: [0],
       });
     });
 
@@ -62,6 +64,8 @@ describe('Selection', () => {
         selectedByRowHeader: [0],
         selectedByColumnHeader: [0],
         disableHeadersHighlight: true,
+        rowExtentSpansGrid: [0],
+        columnExtentSpansGrid: [0],
       });
     });
 
@@ -81,6 +85,8 @@ describe('Selection', () => {
         selectedByRowHeader: [],
         selectedByColumnHeader: [],
         disableHeadersHighlight: false,
+        rowExtentSpansGrid: [],
+        columnExtentSpansGrid: [],
       });
     });
   });

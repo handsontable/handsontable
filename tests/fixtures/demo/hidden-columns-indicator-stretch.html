@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — hidden-column indicator overhang on a stretched grid</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back — a typo
+    // in the project config must be one red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document - the silently mislabeled leg this is meant to
+    // prevent. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+
+    // The indicators are the whole subject: with them off the grid must behave identically, which
+    // is what makes the `off` leg a control rather than a second copy of the same case.
+    window.htIndicators = htPick(
+      { on: true, off: false }, htParams.get('indicators'), 'on', 'indicators');
+
+    // Text direction is a parameter because the RTL rules mirror the indicator to the other edge,
+    // and in RTL that edge is the scrollable one. Same defect, opposite side.
+    window.htDir = htPick({ ltr: 'ltr', rtl: 'rtl' }, htParams.get('dir'), 'ltr', 'dir');
+    document.documentElement.setAttribute('dir', window.htDir);
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    #13500 / DEV-2921. `hiddenColumns` reserves 15px of extra column width for the indicator
+    arrow, but the theme laid the arrow's box out at `right: -2px`, 1px OUTSIDE the cell. On a
+    `stretchH` grid the table's right edge is flush with the scroll box, so the box ended ~1px
+    past it. The browser answered with a horizontal scrollbar that has nothing to scroll,
+    that bar took ~15px of height out of the master pane only, and the frozen-column clone — which
+    has no such bar — was left able to scroll 15px less. Scrolled to the bottom the two panes then
+    sit 15px apart and every row across the frozen boundary is visibly misaligned.
+
+    The hidden set is TWO bands, not one, and that is deliberate: a trailing band puts
+    `beforeHiddenColumn` on the last stretched column (the defect), and an interior band puts
+    `afterHiddenColumn` on the column that follows it, so both marker kinds are on screen.
+
+    The visible columns fit exactly: 8 of them stretched across a 900px box. That flush fit is the
+    real precondition — `stretchH` is just the easiest way to reach it.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The closing tag is split
+    // so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const ROWS = 40;
+    const COLS = 22;
+    // Columns 0-1 are frozen. 5-8 is the interior band and 12-21 the trailing one, which leaves
+    // 0,1,2,3,4,9,10,11 visible and marks three headers:
+    //   col 4  (`E`) — beforeHiddenColumn, the interior band follows it
+    //   col 9  (`J`) — afterHiddenColumn, it follows the interior band
+    //   col 11 (`L`) — beforeHiddenColumn, the LAST stretched column: the defect's own case
+    const HIDDEN = [5, 6, 7, 8];
+
+    for (let col = 12; col < COLS; col++) {
+      HIDDEN.push(col);
+    }
+
+    const data = [];
+
+    for (let row = 0; row < ROWS; row++) {
+      const cells = [];
+
+      for (let col = 0; col < COLS; col++) {
+        cells.push(`R${row}C${col}`);
+      }
+
+      data.push(cells);
+    }
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const container = document.getElementById('grid');
+
+    // Linking a theme's stylesheet is not enough — every theme rule is scoped to this class.
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Fail loud: a constructor throw must reach the spec as itself, not as a locator timeout on a
+    // grid that was never built.
+    try {
+      window.hot = new Handsontable(container, {
+        data,
+        width: 900,
+        height: 400,
+        colHeaders: true,
+        fixedColumnsStart: 2,
+        stretchH: 'all',
+        hiddenColumns: {
+          columns: HIDDEN,
+          indicators: window.htIndicators,
+        },
+        renderer: testIdRenderer,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - sanitizer</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Fixture for the `sanitizer` option. Every payload here calls `window.__xssProbe`
+    if it ever executes, so a test asserts on one flag rather than on markup shape.
+    The grid deliberately mixes a covered surface (nested header labels) with an
+    excluded one (the `html` cell type), because the contract is which of the two
+    the sanitizer touches.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Set by any payload that manages to run. Tests assert it stays false.
+    window.__xssFired = false;
+    window.__xssProbe = () => {
+      window.__xssFired = true;
+    };
+    // Every (content, source) pair the grid passed to the sanitizer, so a test can
+    // assert which write surface a value was sanitized under.
+    window.__sanitizerCalls = [];
+
+    const PAYLOAD = 'label<img src="x" onerror="window.__xssProbe()">';
+
+    window.hot = new Handsontable(container, {
+      data: [
+        ['A1', '<b data-testid="html-cell-marker">bold</b>', 'C1'],
+        ['A2', '<i>italic</i>', 'C2'],
+      ],
+      rowHeaders: true,
+      colHeaders: true,
+      nestedHeaders: [
+        [{ label: PAYLOAD, colspan: 2 }, 'C'],
+        ['A', 'B', 'C'],
+      ],
+      columns: [
+        {},
+        // Deliberately excluded from sanitization: the `html` cell type renders the
+        // markup it is given. A test pins that, so making the sanitizer cover it
+        // later is a conscious behavior change rather than an accident.
+        { renderer: 'html' },
+        {},
+      ],
+      sanitizer: (content, source) => {
+        window.__sanitizerCalls.push([content, source]);
+
+        // Escapes the markup delimiters rather than stripping an attribute pattern. Removing a
+        // multi-character sequence can reintroduce it, so a hand-rolled attribute stripper is an
+        // unsound sanitizer to prove anything with.
+        return content
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

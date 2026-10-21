@@ -3,10 +3,12 @@ import { clamp } from '../../helpers/number';
 import { getScrollbarWidth } from '../../helpers/dom/element';
 import { PaginationUI } from './ui';
 import { announce } from '../../utils/a11yAnnouncer';
+import { syncIcon } from '../../themes/engine/icons';
 import { createPaginatorStrategy } from './strategies';
 import { isRootInstance } from '../../utils/rootInstance';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
+import { isPlainObject } from '../../helpers/object';
 import { registerConflict } from '../base/conflictRegistry';
 
 // Hard conflicts: Pagination stays off while any of these top-level settings is truthy.
@@ -24,6 +26,45 @@ const LAYOUT_WEIGHT = 100;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
+
+/**
+ * The page state `Pagination#captureState()` records.
+ */
+interface PageState {
+  readonly currentPage: number;
+  readonly pageSize: number | 'auto';
+}
+
+/**
+ * Tells whether a value is a state `Pagination#captureState()` recorded.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isPageState(value: unknown): value is PageState {
+  return isPlainObject(value) && typeof value.currentPage === 'number' &&
+    (typeof value.pageSize === 'number' || value.pageSize === 'auto');
+}
+
+/**
+ * Reads a declared `initialPage` from the raw `pagination` setting.
+ *
+ * `pagination: true`, objects that omit the key, and non-number values return
+ * `undefined`.
+ *
+ * @param {*} settings The raw `pagination` setting (`true` or a settings object).
+ * @returns {number|undefined} The declared `initialPage`, or `undefined` when the
+ * key is absent or not a number.
+ */
+function readDeclaredInitialPage(settings: unknown): number | undefined {
+  if (!isPlainObject(settings) || !('initialPage' in settings)) {
+    return undefined;
+  }
+
+  const value = settings.initialPage;
+
+  return typeof value === 'number' ? value : undefined;
+}
 
 /**
  * @plugin Pagination
@@ -145,6 +186,26 @@ export class Pagination extends BasePlugin {
    */
   #currentPage = 1;
   /**
+   * The last `initialPage` value copied onto `#currentPage`.
+   *
+   * Re-enabling with the same declared value (the React wrapper re-sends the full
+   * `pagination` object on every render) must not reset the page after the user
+   * has navigated. Cleared on a real disable, and when an `updateSettings` payload
+   * omits `initialPage` (or declares a non-number), so a later re-declaration of
+   * the same number is applied again. Kept across `updatePlugin()` (DEV-1140).
+   *
+   * @type {number | undefined}
+   */
+  #appliedInitialPage: number | undefined;
+  /**
+   * True while `updatePlugin()` is running its disable/enable cycle. Lets
+   * `disablePlugin()` keep `#appliedInitialPage` so a React re-render does not
+   * look like a fresh enable.
+   *
+   * @type {boolean}
+   */
+  #isUpdatingPlugin = false;
+  /**
    * Page size setup by the user. It can be a number or 'auto' (in which case the plugin will
    * calculate the page size based on the viewport size and row heights).
    *
@@ -180,13 +241,8 @@ export class Pagination extends BasePlugin {
    */
   #internalRenderCall = false;
   /**
-   * Whether settings include a complete `dataProvider` configuration (server-backed rows).
-   *
-   * @type {boolean}
-   */
-  #isDataProviderActive = false;
-  /**
-   * Total row count from the last successful `afterDataProviderFetch` when `#isDataProviderActive` is true.
+   * Total row count from the last successful `afterDataProviderFetch` when `#isDataProviderActive()` is true.
+   * Dropped whenever the state is computed with no DataProvider backing the grid.
    *
    * @type {number|null}
    */
@@ -195,10 +251,18 @@ export class Pagination extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link Pagination#enablePlugin} method is called.
    *
+   * The pagination bar renders into the bottom slot and registers a focus scope, and the
+   * `LayoutManager`, the `FocusScopeManager` and the root grid element all belong to the main
+   * Handsontable instance. In a nested grid (the one the `handsontable`, `autocomplete`, and
+   * `dropdown` cell types create) none of them exists, so the plugin stays disabled there. A custom
+   * `uiContainer` does not change that:
+   * it replaces the bottom-slot placement only, while the focus scope and the root grid element are
+   * still required.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -210,16 +274,23 @@ export class Pagination extends BasePlugin {
     }
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
+    const declaredInitialPage = readDeclaredInitialPage(settings);
 
-    if ((settings as Record<string, unknown>)?.initialPage !== undefined) {
-      this.#currentPage = this.getSetting<number>('initialPage')!;
+    // Use the raw grid value, not `getSetting()`. `onUpdateSettings` branch 2
+    // (disabled → enabled) calls `enablePlugin()` before `updatePluginSettings()`,
+    // so `#pluginSettings` is still stale. Core has already merged the new
+    // `pagination` object onto `hot.getSettings()`.
+    if (typeof declaredInitialPage !== 'number') {
+      this.#appliedInitialPage = undefined;
+    } else if (declaredInitialPage !== this.#appliedInitialPage) {
+      this.#setCurrentPage(declaredInitialPage);
+      this.#appliedInitialPage = declaredInitialPage;
     }
 
     if ((settings as Record<string, unknown>)?.pageSize !== undefined) {
       this.#pageSize = this.getSetting<number | 'auto'>('pageSize')!;
     }
 
-    this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
     this.#serverSideTotalCount = null;
 
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName!, 'hiding', false);
@@ -238,6 +309,12 @@ export class Pagination extends BasePlugin {
         themeName: this.hot.getCurrentThemeName(),
         phraseTranslator: (key: string, extraArguments?: unknown) => this.hot.getTranslatedPhrase(key, extraArguments),
         a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
+        syncIcon: (
+          container: HTMLElement,
+          slotClass: string,
+          name: Parameters<typeof syncIcon>[3],
+          options?: Parameters<typeof syncIcon>[4],
+        ) => syncIcon(this.hot, container, slotClass, name, options),
       });
 
       this.#updateSectionsVisibilityState();
@@ -247,12 +324,14 @@ export class Pagination extends BasePlugin {
         .addLocalHook('nextPageClick', () => this.nextPage())
         .addLocalHook('lastPageClick', () => this.lastPage())
         .addLocalHook('pageSizeChange', (pageSize: number | 'auto') => this.setPageSize(pageSize));
-
     }
 
     // The layout manager owns the bottom-slot placement and ordering. With a custom `uiContainer`
     // the UI installs itself there instead, so the slot registration is skipped. The manager only
-    // exists on the root instance, hence the guard.
+    // exists on the root instance. With `isEnabled()` gated on `isRootInstance` that half is always
+    // false in practice, and it stays only as a statement of the requirement, not as support for a
+    // nested grid: a direct `enablePlugin()` call on a non-root instance dies earlier, in the UI,
+    // which reads `rootGridElement`.
     if (isRootInstance(this.hot) && !this.getSetting('uiContainer')) {
       this.hot.getLayoutManager()
         .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'bottom', weight: LAYOUT_WEIGHT });
@@ -268,7 +347,6 @@ export class Pagination extends BasePlugin {
     this.addHook('beforePaste', this.#onBeforePaste);
     this.addHook('afterViewRender', this.#onAfterViewRender);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
-    this.addHook('beforeHeightChange', this.#onBeforeHeightChange);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
 
@@ -280,7 +358,7 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * @param {object} result [[Hooks#afterDataProviderFetch]] payload.
+   * @param {object} result {@link Hooks#afterDataProviderFetch} payload.
    * @param {{ page: number, pageSize: number, sort: *, filters: * }} result.queryParameters Query parameters for the completed fetch.
    * @param {number} result.totalRows Total row count from the provider response.
    * @returns {void}
@@ -289,7 +367,7 @@ export class Pagination extends BasePlugin {
     queryParameters: { page?: number; pageSize?: number | 'auto'; [key: string]: unknown };
     totalRows?: number;
   }) => {
-    if (!this.#isDataProviderActive) {
+    if (!this.#isDataProviderActive()) {
       return;
     }
 
@@ -306,7 +384,7 @@ export class Pagination extends BasePlugin {
       this.#setPageSizeValue(pageSize);
     }
 
-    if (this.#isDataProviderActive && typeof totalRows === 'number' && totalRows >= 0) {
+    if (this.#isDataProviderActive() && typeof totalRows === 'number' && totalRows >= 0) {
       this.#serverSideTotalCount = totalRows;
     }
 
@@ -340,13 +418,40 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Forgets the row total the last DataProvider response reported. The DataProvider plugin calls it when the view
+   * the grid shows is about to change, because that total described the view being left: a view that is shown
+   * again brings its own total back through {@link Hooks#afterDataProviderFetch}, and one fetching for the first
+   * time counts its own rows until its response lands. Does nothing while this plugin is disabled. Internal; not
+   * public API.
+   *
+   * @private
+   */
+  _resetDataProviderTotal(): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.#serverSideTotalCount = null;
+  }
+
+  /**
+   * Tells whether a DataProvider currently backs the grid. Read on demand, because the answer
+   * changes whenever `updateSettings()` adds or removes a `dataProvider`, and this plugin is not
+   * updated then.
+   *
+   * @returns {boolean}
+   */
+  #isDataProviderActive(): boolean {
+    return this.hot.runHooks('hasExternalDataSource') === true;
+  }
+
+  /**
    * Recomputes pagination state, adjusts viewport elements, and re-renders the table.
    * Use this single entry point for all UI refresh after changing currentPage or pageSize.
    *
    */
   #refreshUI() {
     this.#computeAndApplyState();
-    this.hot.view.adjustElementsSize();
     this.hot.render();
   }
 
@@ -383,8 +488,14 @@ export class Pagination extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
+    this.#isUpdatingPlugin = true;
+
+    try {
+      this.disablePlugin();
+      this.enablePlugin();
+    } finally {
+      this.#isUpdatingPlugin = false;
+    }
 
     this.#refreshUI();
 
@@ -401,12 +512,17 @@ export class Pagination extends BasePlugin {
 
     this.#unregisterFocusScope();
 
+    // Mirrors the guard in `enablePlugin()`: always false in practice, see the comment there.
     if (isRootInstance(this.hot)) {
       this.hot.getLayoutManager().unregister(PLUGIN_KEY, 'bottom');
     }
 
     this.#ui?.destroy();
     this.#ui = null;
+
+    if (!this.#isUpdatingPlugin) {
+      this.#appliedInitialPage = undefined;
+    }
 
     super.disablePlugin();
   }
@@ -438,7 +554,7 @@ export class Pagination extends BasePlugin {
     let firstVisibleRowIndex = -1;
     let lastVisibleRowIndex = -1;
 
-    if (this.#isDataProviderActive) {
+    if (this.#isDataProviderActive()) {
       const countRows = this.hot.countRows();
 
       if (countRows > 0) {
@@ -533,6 +649,19 @@ export class Pagination extends BasePlugin {
    * @fires Hooks#afterPageChange
    */
   setPage(pageNumber: number): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.runOperation('set_page', () => this.#setPage(pageNumber));
+  }
+
+  /**
+   * The body of `setPage()`, run inside its operation.
+   *
+   * @param {number} pageNumber The page number to set.
+   */
+  #setPage(pageNumber: number): void {
     const oldPage = this.#currentPage;
     const shouldProceed = this.hot.runHooks('beforePageChange', oldPage, pageNumber);
 
@@ -564,6 +693,19 @@ export class Pagination extends BasePlugin {
    * @fires Hooks#afterPageSizeChange
    */
   setPageSize(pageSize: number | 'auto'): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.runOperation('set_page_size', () => this.#setPageSize(pageSize));
+  }
+
+  /**
+   * The body of `setPageSize()`, run inside its operation.
+   *
+   * @param {number | 'auto'} pageSize The page size to set.
+   */
+  #setPageSize(pageSize: number | 'auto'): void {
     const oldPageSize = this.#pageSize;
     const shouldProceed = this.hot.runHooks('beforePageSizeChange', oldPageSize, pageSize);
 
@@ -591,9 +733,64 @@ export class Pagination extends BasePlugin {
    * Resets the pagination state to the initial values defined in the settings.
    */
   resetPagination(): void {
-    this.resetPage();
-    this.resetPageSize();
+    this.runOperation('reset_pagination', () => {
+      this.resetPage();
+      this.resetPageSize();
+    });
     this.#updateSectionsVisibilityState();
+  }
+
+  /**
+   * Returns the current page and page size, for UndoRedo. The rows a page hides are not recorded:
+   * the plugin rebuilds them from the restored page. A grid paged by a data provider records
+   * nothing – its pages come from the server.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object|undefined}
+   */
+  captureState(previous: unknown): unknown {
+    if (this.#isDataProviderActive()) {
+      return undefined;
+    }
+
+    if (isPageState(previous) && previous.currentPage === this.#currentPage &&
+        previous.pageSize === this.#pageSize) {
+      return previous;
+    }
+
+    return { currentPage: this.#currentPage, pageSize: this.#pageSize };
+  }
+
+  /**
+   * Puts back the page and the page size a `captureState()` call recorded, and rebuilds the rows
+   * the page hides. Hook-silent: the page hooks fired when the user acted.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   */
+  restoreState(state: unknown): void {
+    if (this.#isDataProviderActive() || !isPageState(state)) {
+      return;
+    }
+
+    if (state.pageSize !== this.#pageSize) {
+      this.#setPageSizeValue(state.pageSize);
+    }
+
+    this.#setCurrentPage(state.currentPage);
+    this.#computeAndApplyState();
+  }
+
+  /**
+   * The page and the page size name no column, so a `columns` settings update never makes a page
+   * change unsafe to undo.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getStateColumns(): readonly number[] {
+    return [];
   }
 
   /**
@@ -755,7 +952,12 @@ export class Pagination extends BasePlugin {
     const renderableRowsLength = renderableIndexes.length;
     const { stylesHandler } = this.hot;
 
-    const externalPagedMode = this.#isDataProviderActive;
+    const externalPagedMode = this.#isDataProviderActive();
+
+    if (!externalPagedMode) {
+      this.#serverSideTotalCount = null;
+    }
+
     const totalItems = externalPagedMode
       ? (this.#serverSideTotalCount ?? renderableRowsLength)
       : renderableRowsLength;
@@ -868,8 +1070,15 @@ export class Pagination extends BasePlugin {
 
   /**
    * Unregisters the focus scope for the pagination plugin.
+   *
+   * Nothing was registered on a non-root instance, where the plugin never enables and the
+   * `FocusScopeManager` does not exist, so a direct `disablePlugin()` call there must not reach it.
    */
   #unregisterFocusScope() {
+    if (!isRootInstance(this.hot)) {
+      return;
+    }
+
     this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
   }
 
@@ -932,14 +1141,18 @@ export class Pagination extends BasePlugin {
   };
 
   /**
-   * Called before the paste operation is performed. It removes the rows that are not visible
-   * from the pasted data.
+   * Called before the paste operation is performed. It truncates the clipboard so the paste
+   * cannot overflow past the last visible row of the current page. The leading rows of the
+   * clipboard are kept; the overflow tail is dropped.
+   *
+   * The paste start row is the top row of the active selection, the same cell the CopyPaste plugin
+   * writes at. The copy-source ranges (`copyableRanges`) are not used: with `fragmentSelection: true`
+   * the plugin does not refresh them when the selection moves, so they can point at the copy source.
    *
    * @param {Array} pastedData The data that was pasted.
-   * @param {Array<{startRow: number, endRow: number}>} ranges The ranges of the pasted data.
    * @returns {boolean} Returns `false` to prevent the paste operation.
    */
-  #onBeforePaste = (pastedData: unknown[][][], ranges: { startRow: number; endRow: number }[]) => {
+  #onBeforePaste = (pastedData: unknown[][]) => {
     const {
       firstVisibleRowIndex,
       lastVisibleRowIndex,
@@ -949,18 +1162,17 @@ export class Pagination extends BasePlugin {
       return false;
     }
 
-    ranges.forEach(({ startRow }: { startRow: number }) => {
-      if (pastedData.length === 0) {
-        return;
-      }
+    const startRow = this.hot.getSelectedRangeActive()?.getTopStartCorner().row;
 
-      const rowsToRemove = Math.min(
-        pastedData.length - (lastVisibleRowIndex - startRow + 1),
-        pastedData.length,
-      );
+    if (pastedData.length === 0 || startRow === null || startRow === undefined) {
+      return;
+    }
 
-      pastedData.splice(0, rowsToRemove);
-    });
+    const remainingRowCount = Math.max(0, lastVisibleRowIndex - startRow + 1);
+
+    if (pastedData.length > remainingRowCount) {
+      pastedData.length = remainingRowCount;
+    }
   };
 
   /**
@@ -979,34 +1191,6 @@ export class Pagination extends BasePlugin {
 
     this.#internalRenderCall = true;
     this.#refreshUI();
-  };
-
-  /**
-   * Called before the height of the table is changed. It adjusts the table height to fit the pagination container
-   * in declared height.
-   *
-   * @param {number|string} height Table height.
-   * @returns {string} Returns the new table height.
-   */
-  #onBeforeHeightChange = (height: number | string) => {
-    if (this.getSetting('uiContainer')) {
-      return height;
-    }
-
-    const isPixelValue = (
-      typeof height === 'number' ||
-      (typeof height === 'string' && /^\d+$/.test(height)) ||
-      (typeof height === 'string' && height.endsWith('px'))
-    );
-
-    if (!isPixelValue) {
-      return height;
-    }
-
-    const heightValue = typeof height === 'string' && height.endsWith('px')
-      ? height : `${height}px`;
-
-    return `calc(${heightValue} - ${this.#ui?.getHeight()}px)`;
   };
 
   /**
@@ -1034,6 +1218,7 @@ export class Pagination extends BasePlugin {
    */
   #onAfterSetTheme = (themeName: unknown) => {
     this.#ui?.updateTheme(themeName as string | undefined);
+    this.#ui?.refreshIcons();
   };
 
   /**

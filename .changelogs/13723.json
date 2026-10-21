@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed \"Clear column\" leaving the values of the rows hidden under collapsed nested-row parents.",
+  "type": "fixed",
+  "issueOrPR": 13723,
+  "breaking": false,
+  "framework": "none"
+}

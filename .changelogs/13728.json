@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where a custom `noWordWrapClassName` replaced the built-in `htNoWrap` class, so cells still wrapped their content with `wordWrap: false`. Handsontable now always adds `htNoWrap` next to your class. To set another `white-space` value, use a selector stronger than `.handsontable .htNoWrap`, for example `.handsontable td.yourClass`.",
+  "type": "fixed",
+  "issueOrPR": 13728,
+  "breaking": false,
+  "framework": "none"
+}

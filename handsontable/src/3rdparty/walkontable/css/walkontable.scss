@@ -89,6 +89,52 @@
   white-space: pre-wrap;
 }
 
+/* Exact row heights: the engine pins the row at its provided height and clips the content (a table
+   cell cannot be shorter than its in-flow content, so the wrapper is taken out of flow). */
+.handsontable tr.htExactRow > td,
+.handsontable tr.htExactRow > th {
+  position: relative;
+  height: auto;
+  padding: 0;
+}
+
+/* The insets mirror the cells' own padding above (`0 4px`, no vertical padding). */
+.handsontable tr.htExactRow > td > .htCellClip {
+  position: absolute;
+  inset: 0 4px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+/* `align-content` on the block box, not flex: `.ht-multi-select-arrow` and the select-editor
+   overlay's `.htAutocompleteArrow` still float. In-cell `.htAutocompleteArrow` is absolutely
+   positioned (DEV-348) and would survive flex, but the remaining floats would not. */
+.handsontable tr.htExactRow > td.htMiddle > .htCellClip {
+  align-content: center;
+}
+
+.handsontable tr.htExactRow > td.htBottom > .htCellClip {
+  align-content: end;
+}
+
+.handsontable tbody tr.htExactRow > th > .relative {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+}
+
+/* Clip the header's own content, not `.relative` (mirrors `_base.scss`, where a clip there would
+   cut the active-row accent bar drawn as `.relative::after`). */
+.handsontable tbody tr.htExactRow > th > .relative > .rowHeader {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+}
+
 .handsontable th:last-child {
   /* Foundation framework fix */
   border-inline-start: none;
@@ -96,18 +142,11 @@
   border-bottom: 1px solid #ccc;
 }
 
+/* Inline-start axis border ownership (#6673): only the first cell of a row draws the frame, so a
+   row header `th` keeps its inline-end border (the separator to column 0) at every scroll position
+   and no cell behind it adds one. `innerBorderInlineStart` / `emptyColumns` drive no geometry. */
 .handsontable th:first-child,
-.handsontable td:first-of-type {
-  border-inline-start: 1px solid #ccc;
-}
-
-/* It removes double right border from first column header when row headers are disabled */
-.handsontable .ht_clone_top th:nth-child(2) {
-  border-inline-start-width: 0;
-  border-inline-end: 1px solid #ccc;
-}
-
-.handsontable.htRowHeaders thead tr th:nth-child(2) {
+.handsontable td:first-child {
   border-inline-start: 1px solid #ccc;
 }
 
@@ -116,23 +155,14 @@
   border-top: 1px solid #ccc;
 }
 
-.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) tbody tr th,
-.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) thead tr th:first-child,
-.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.htGhostTable) tbody tr th,
-.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top):not(.htGhostTable) thead tr th:first-child {
-  border-inline-end-width: 0;
-  border-inline-start: 1px solid #ccc;
-}
-
-/*
-innerBorderTop - Property controlled by top overlay
-innerBorderBottom - Property controlled by bottom overlay
- */
-.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr:last-child th,
-.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th,
-.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
-  border-bottom-width: 0;
+/* Row axis border ownership (DEV-2786), the twin of #6673 above: a head row's `th` keeps its
+   `border-bottom` at every scroll position, so a body row directly under one draws no `border-top`.
+   Per-table, because every overlay clone carries its own `thead` and only the ones rendering the head
+   row have a non-empty one — the bottom clones' first row keeps its border, which is the
+   bottom-freeze seam. `innerBorderTop` / `innerBorderBottom` / `emptyRows` drive no geometry. */
+.handsontable thead:not(:empty) + tbody > tr:first-child > th,
+.handsontable thead:not(:empty) + tbody > tr:first-child > td {
+  border-top-width: 0;
 }
 
 .handsontable th {
@@ -193,14 +223,20 @@ innerBorderBottom - Property controlled by bottom overlay
 /*
  * Overlay clone layers. Declared twice — here and in `src/styles/base/_z-index-map.scss`, which also
  * documents the 101–119 window reserved for selection affordances drawn inside an overlay. Keep the
- * two lists in sync, and keep every affordance below 120: `.ht_master` opens no stacking context, so
- * anything at or above that value paints over a frozen pane its cell has scrolled under.
+ * two lists in sync.
  */
+.ht_master {
+  // Keep the scrollable table and its browser-promoted scrolling layer below the frozen overlays.
+  // This is required when an ancestor's CSS transform creates a separate compositing context.
+  z-index: 0;
+}
+
 .ht_clone_master {
   z-index: 100;
 }
 
-.ht_clone_inline_start {
+.ht_clone_inline_start,
+.ht_clone_inline_end {
   z-index: 120;
 }
 
@@ -208,7 +244,8 @@ innerBorderBottom - Property controlled by bottom overlay
   z-index: 130;
 }
 
-.ht_clone_bottom_inline_start_corner {
+.ht_clone_bottom_inline_start_corner,
+.ht_clone_bottom_inline_end_corner {
   z-index: 150;
 }
 
@@ -216,7 +253,8 @@ innerBorderBottom - Property controlled by bottom overlay
   z-index: 160;
 }
 
-.ht_clone_top_inline_start_corner {
+.ht_clone_top_inline_start_corner,
+.ht_clone_top_inline_end_corner {
   z-index: 180;
 }
 
@@ -232,6 +270,7 @@ innerBorderBottom - Property controlled by bottom overlay
 
 .ht_master,
 .ht_clone_inline_start,
+.ht_clone_inline_end,
 .ht_clone_top,
 .ht_clone_bottom {
   overflow: hidden;
@@ -243,12 +282,35 @@ innerBorderBottom - Property controlled by bottom overlay
 
 .handsontable .ht_master table.htCore > thead,
 .handsontable .ht_master table.htCore > tbody > tr > th,
-.handsontable .ht_clone_inline_start table.htCore > thead {
+.handsontable .ht_clone_inline_start table.htCore > thead,
+.handsontable .ht_clone_inline_end table.htCore > thead {
   visibility: hidden;
 }
 
-.ht_clone_top .wtHolder,
+// Mirrors the clone-holder rule in `src/styles/base/_base.scss` (DEV-2937): each of the three
+// scroll-mirrored clone holders is a composited scroll container on the one axis the engine writes,
+// with no scrollbar of its own. Keep the two in sync.
+.handsontable .ht_clone_top .wtHolder,
+.handsontable .ht_clone_inline_start .wtHolder,
+.handsontable .ht_clone_inline_end .wtHolder,
+.handsontable .ht_clone_bottom .wtHolder {
+  overflow-anchor: none;
+  // `!important` so a page-wide `scrollbar-width` rule cannot paint a scrollbar here (DEV-3160).
+  scrollbar-width: none !important;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 .ht_clone_inline_start .wtHolder,
+.ht_clone_inline_end .wtHolder {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.ht_clone_top .wtHolder,
 .ht_clone_bottom .wtHolder {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }

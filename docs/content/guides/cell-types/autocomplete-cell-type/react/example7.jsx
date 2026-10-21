@@ -25,6 +25,14 @@ const colors = [
   'Yellow',
 ];
 
+const data = [
+  ['Black', 'Black'],
+  ['Blue', 'Blue'],
+  ['Gray', 'Gray'],
+  ['Red', 'Red'],
+  ['White', 'White'],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
@@ -32,13 +40,7 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={[
-        ['Black', 'Black'],
-        ['Blue', 'Blue'],
-        ['Gray', 'Gray'],
-        ['Red', 'Red'],
-        ['White', 'White'],
-      ]}
+      data={data}
       colHeaders={['Case-insensitive (default)', 'Case-sensitive']}
       columns={[
         {

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the date, time, and datetime editors to leave the native picker closed when the keyboard opens them, so Tab works after Enter in Chromium, and fixed the time and datetime editors not focusing their input in Firefox.",
+  "type": "changed",
+  "issueOrPR": 13821,
+  "breaking": false,
+  "framework": "none"
+}

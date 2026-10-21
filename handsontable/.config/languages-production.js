@@ -2,8 +2,9 @@
  * Config responsible for building minified Handsontable `dist/languages/` files.
  */
 const path = require('path');
-const rspack = require('@rspack/core');
 const configFactory = require('./languages-development');
+const { createSwcJsMinimizer } = require('./helper/swc-minimizer');
+const assertAsciiOutput = require('./plugin/rspack/assert-ascii-output');
 const OUTPUT_LANGUAGES_DIRECTORY = 'dist/languages';
 
 module.exports.create = function create() {
@@ -18,16 +19,10 @@ module.exports.create = function create() {
       minimize: true,
       sideEffects: false,
       minimizer: [
-        new rspack.SwcJsMinimizerRspackPlugin({
-          extractComments: false,
-          minimizerOptions: {
-            format: {
-              comments: false,
-            },
-          },
-        }),
+        createSwcJsMinimizer(),
       ],
     };
+    config.plugins.push(assertAsciiOutput());
   });
 
   return [].concat(configs);

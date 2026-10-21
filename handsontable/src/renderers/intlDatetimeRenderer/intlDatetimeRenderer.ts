@@ -2,7 +2,7 @@ import { textRenderer } from '../textRenderer';
 import { isEmpty } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
-import { parseToLocalDateTime } from '../../helpers/dateTime';
+import { getDateTimeFormat, parseToLocalDateTime } from '../../helpers/dateTime';
 import { warn } from '../../helpers/console';
 
 export const RENDERER_TYPE: 'intl-datetime' = 'intl-datetime';
@@ -59,7 +59,7 @@ export function valueFormatter(value: unknown, cellProperties: CellProperties): 
     ? dateTimeFormat as Intl.DateTimeFormatOptions
     : DEFAULT_INTL_FORMAT;
 
-  return new Intl.DateTimeFormat(locale, intlFormat).format(date);
+  return getDateTimeFormat(locale, intlFormat).format(date);
 }
 
 type HotInstance = Record<string, unknown>;

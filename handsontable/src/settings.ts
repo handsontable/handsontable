@@ -4,6 +4,7 @@
  */
 import type Handsontable from './base';
 import type { CommentObject } from './plugins/comments';
+import type { FiltersColumnSettings } from './plugins/filters';
 import type { GridSettings } from './core/settings';
 /**
  * A row object, one of the two ways to supply data to the table, the alternative being an array of values.
@@ -30,6 +31,10 @@ export interface SelectOptionsObject {
  */
 export type SourceRowData = RowObject | CellValue[];
 
+/**
+ * The function shape of the `columns[].data` option. Called with the source row alone to read the
+ * cell value, and with the source row and a value to write it.
+ */
 export interface ColumnDataGetterSetterFunction {
   (row: RowObject | CellValue[]): CellValue;
   (row: RowObject | CellValue[], value: CellValue): void;
@@ -53,7 +58,13 @@ export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'popula
   'CopyPaste.paste' | 'CopyPaste.cut' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' |
   'ColumnSummary.reset' | 'DataProvider.revert';
 
-export type { GridSettings, SourceDataValidatorFn } from './core/settings';
+export type {
+  GridSettings,
+  SourceDataValidatorFn,
+  SanitizerContext,
+  TextExtractorContext,
+  PasteClipboardData,
+} from './core/settings';
 
 /**
  * Removes the `[key: string]: any` / `[key: number]: any` index signature from a type while keeping
@@ -66,6 +77,32 @@ export type { GridSettings, SourceDataValidatorFn } from './core/settings';
  */
 export type RemoveIndexSignature<T> = {
   [K in keyof T as string extends K ? never : number extends K ? never : K]: T[K]
+};
+
+/**
+ * The names of the hook callbacks that `GridSettings` declares: every `before*`, `after*` and
+ * `modify*` option, plus the few hooks that do not follow that naming (`construct`, `init`,
+ * `hasExternalDataSource`, `dialogFocusNextElement`, `dialogFocusPreviousElement`).
+ *
+ * Derived from the keys rather than from the callback shape, because options such as `renderer`,
+ * `validator`, and `cells` are functions too but are not hooks. The `hookSettingKeys` unit test keeps
+ * this in step with `REGISTERED_HOOKS`, but it holds a hand copy of this rule: change both together.
+ */
+export type HookSettingKey = Extract<
+  keyof RemoveIndexSignature<GridSettings>,
+  `before${string}` | `after${string}` | `modify${string}` | 'construct' | 'init' | 'hasExternalDataSource' |
+  'dialogFocusNextElement' | 'dialogFocusPreviousElement'
+>;
+
+/**
+ * Removes the hook callbacks from a settings type. Hooks run from the grid-level settings only, so a
+ * column-level type must not offer them.
+ *
+ * Pass a type whose index signature is already stripped (see `RemoveIndexSignature`). Like that helper,
+ * it lives in core because the wrappers' declaration compiler predates the `as` key remapping.
+ */
+export type OmitHooks<T> = {
+  [K in keyof T as K extends HookSettingKey ? never : K]: T[K]
 };
 
 /**
@@ -87,16 +124,30 @@ export interface ColumnSettings extends Omit<RemoveIndexSignature<GridSettings>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
   data?: string | number | ColumnDataGetterSetterFunction;
+  // `false` hides that column's filter UI, and an object carries the column's own
+  // `availableConditions`. The other grid-level settings are ignored there, so they are not accepted.
+  filters?: boolean | FiltersColumnSettings;
 }
 
 /**
  * Additional cell-specific meta data.
+ *
+ * `filters` is re-declared with the GRID type: `ColumnSettings` narrows it to `boolean` for what a
+ * user may WRITE per column, but cell meta inherits the grid-level value through the prototype
+ * chain, so a read can return the `FiltersSettings` object. An extending interface cannot widen a
+ * property, hence the `Omit` - over `RemoveIndexSignature`, for the reason `ColumnSettings` gives.
  */
-export interface CellMeta extends ColumnSettings {
+export interface CellMeta extends Omit<RemoveIndexSignature<ColumnSettings>, 'filters'> {
+  // Same signature as on `ColumnSettings`, which `RemoveIndexSignature` strips; see the NOTE there.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+  filters?: GridSettings['filters'];
   className?: string | string[];
   readOnly?: boolean;
   valid?: boolean;
   comment?: CommentObject;
+  asyncState?: 'pending' | 'error' | null;
+  asyncError?: string | null;
   isSearchResult?: boolean;
   hidden?: boolean;
   skipRowOnPaste?: boolean;

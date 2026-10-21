@@ -124,6 +124,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Ir a la siguiente página',
   [C.PAGINATION_LAST_PAGE]: 'Ir a la última página',
 
+  [C.SHEETS_BAR_SECTION]: 'Hojas',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Agregar hoja',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Todas las hojas',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Acciones de la hoja: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Nombre de la hoja',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Eliminar',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Duplicar',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Cambiar nombre',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Mover a la derecha',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Mover a la izquierda',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Desplazar hojas hacia atrás',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Desplazar hojas hacia adelante',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Hoja [name] activada',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Nombre de hoja sin cambios: [name] ya está en uso',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Hoja',
+
   [C.LOADING_TITLE]: 'Cargando...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Cerrar',
 
@@ -141,6 +157,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'No se pudieron eliminar las filas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'La solicitud falló',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Volver a cargar',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Seleccionar fila [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Seleccionar todas las filas ([selected] de [total] seleccionadas)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Marcar todo ([checked] de [total] marcadas)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Fila [row] seleccionada',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Fila [row] deseleccionada',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] de [total] filas seleccionadas',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Eliminar filas seleccionadas ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Borrar selección de filas',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Filas inmovilizadas en la parte superior',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Filas inmovilizadas en la parte inferior',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Columnas inmovilizadas al inicio',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Columnas inmovilizadas al final',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Se expandió la fila [label], filas expandidas mostradas: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Se contrajo la fila [label]',
 };
 
 export default dictionary;

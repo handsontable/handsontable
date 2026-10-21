@@ -13,6 +13,7 @@ import { spawnSync } from 'node:child_process';
 import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot, sessionEditsFile, toRepoRelative } from './session.mjs';
+import { TEST_RUN_MAX_BUFFER, condenseTestOutput } from '../pre-push.mjs';
 
 // npx is a .cmd shim on Windows; spawnSync needs a shell there or it ENOENTs.
 const WIN = process.platform === 'win32';
@@ -64,8 +65,13 @@ try {
 // Lint edited specs only — running the full typed ESLint on every core .ts edit
 // is too slow for the edit loop.
 if (/\.(spec|unit)\.[jt]sx?$/.test(rel)) {
+  // Same buffer-and-flood hazard as the test runs in stop.mjs: on Node's 1 MB
+  // default a lint report large enough to overflow kills the child mid-run, and
+  // pasting the report back whole floods the agent's context on every edit. A
+  // buffer overflow cannot false-block here (`status` would be null, not 1), but
+  // the flood can happen at any size.
   const res = spawnSync('npx', ['eslint', '--fix', file], {
-    stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', shell: WIN,
+    stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', shell: WIN, maxBuffer: TEST_RUN_MAX_BUFFER,
   });
   const output = `${res.stdout || ''}${res.stderr || ''}`;
   // Only block on genuine rule violations. A parsing error or eslint's own error
@@ -77,7 +83,7 @@ if (/\.(spec|unit)\.[jt]sx?$/.test(rel)) {
   const configGap = res.status === 2 || /Parsing error/i.test(output);
 
   if (res.status === 1 && !configGap) {
-    process.stderr.write(`Lint errors in ${file}:\n${output}`);
+    process.stderr.write(`Lint errors in ${file}:\n${condenseTestOutput(output)}\n`);
     process.exit(2);
   }
 }

@@ -284,7 +284,10 @@ describe('manualRowMove', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
-        height: 150,
+        // Tall enough that the master's band holds three body rows below the frozen pane on every
+        // theme. At 150px it holds two on horizon (37px rows against a 38px scrollable strip), and
+        // the row indexes below then address rows outside the band.
+        height: 260,
         fixedRowsTop: 2,
         rowHeaders: true,
         colHeaders: true,
@@ -298,10 +301,17 @@ describe('manualRowMove', () => {
         horizontalSnap: 'start',
       });
 
-      const rowHeader = $(getCell(8, -1));
-      const nextRowHeader = $(getCell(7, -1));
+      // The row this test is about is the first main-table row the user can actually see, so read it
+      // from the viewport rather than hardcoding an index. It is NOT the master's first RENDERED row:
+      // the master also renders the rows hidden behind the frozen pane, and hovering one of those
+      // does scroll the viewport. Scrolled to the bottom, `scrollTop` sits at its clamp, so a
+      // one-pixel change in the total content height moves which row this is.
+      const firstMainTableRow = getFirstFullyVisibleRow();
+      const rowHeader = $(getCell(firstMainTableRow + 1, -1));
+      const nextRowHeader = $(getCell(firstMainTableRow, -1));
+      const scrollTopBefore = getMaster().find('.wtHolder').scrollTop();
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(100);
+      expect(scrollTopBefore).toBeGreaterThan(0);
 
       rowHeader
         .simulate('mousedown')
@@ -316,7 +326,7 @@ describe('manualRowMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(100);
+      expect(getMaster().find('.wtHolder').scrollTop()).toBe(scrollTopBefore);
     });
   });
 });

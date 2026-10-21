@@ -133,6 +133,14 @@ export class CustomBordersLabPage {
     return this.page.evaluate(c => (window as any).borderUtils.zIndexOfColor(c), color);
   }
 
+  /**
+   * Painted box size of the first custom-border edge of `color`, including a 0-size edge.
+   * Hidden sides (`display: none`) have no client rects and are skipped.
+   */
+  async edgeBoxSize(color: string): Promise<{ width: number, height: number } | null> {
+    return this.page.evaluate(c => (window as any).borderUtils.edgeBoxSize(c), color);
+  }
+
   /** Right-most outer edge of `color` border edges touching the cell's box. */
   async outerRightNear(row: number, col: number, color: string, wantHorizontal: boolean): Promise<number> {
     return this.page.evaluate(
@@ -165,6 +173,92 @@ export class CustomBordersLabPage {
   async countCustomBordersIn(overlaySelector: string): Promise<number> {
     return this.page.evaluate(
       s => (window as any).borderUtils.countCustomBordersIn(s), overlaySelector);
+  }
+
+  /**
+   * Scroll the master holder to the right in `steps` equal steps, one animation frame apart, and
+   * report how many forced layouts the browser ran (Chromium `Performance.getMetrics`
+   * `LayoutCount`) and how many view renders the steps caused. A warm-up pass runs first so the
+   * measured pass starts from a settled grid.
+   */
+  async measureHorizontalScrollLayouts(steps: number): Promise<{ layouts: number, renders: number }> {
+    const cdp = await this.page.context().newCDPSession(this.page);
+
+    await cdp.send('Performance.enable');
+
+    const readLayoutCount = async() => {
+      const { metrics } = await cdp.send('Performance.getMetrics');
+
+      return metrics.find(metric => metric.name === 'LayoutCount')!.value;
+    };
+    const scrollPass = () => this.page.evaluate(async(stepCount) => {
+      const hot = (window as any).hot;
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
+      const stepSize = (holder.scrollWidth - holder.clientWidth) / stepCount;
+      let renders = 0;
+      const onRender = () => {
+        renders += 1;
+      };
+
+      hot.addHook('afterViewRender', onRender);
+      holder.scrollLeft = 0;
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      renders = 0;
+
+      for (let i = 1; i <= stepCount; i++) {
+        holder.scrollLeft = stepSize * i;
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
+
+      hot.removeHook('afterViewRender', onRender);
+
+      return renders;
+    }, steps);
+
+    try {
+      await scrollPass();
+
+      const before = await readLayoutCount();
+      const renders = await scrollPass();
+      const after = await readLayoutCount();
+
+      return { layouts: after - before, renders };
+    } finally {
+      await cdp.detach();
+    }
+  }
+
+  /**
+   * Run `Border#measure()` on every selection layer the grid draws (focus, area, custom borders)
+   * and report, per layer, whether it measured something and how many DOM mutations it caused.
+   * Walkontable's measure pass must write nothing: one write between two geometry reads brings
+   * back a forced layout per border.
+   */
+  async measureBordersAndCountWrites(): Promise<Array<{ measured: boolean, mutations: number }>> {
+    return this.page.evaluate(() => {
+      const hot = (window as any).hot;
+      const manager = hot.view._wt.selectionManager;
+      const { highlight } = hot.selection;
+      const selections = [highlight.getFocus(), ...highlight.areas.values(), ...highlight.customSelections];
+      const observer = new MutationObserver(() => {});
+
+      observer.observe(document.body, { attributes: true, childList: true, subtree: true, characterData: true });
+      observer.takeRecords();
+
+      const results = [];
+
+      for (const selection of selections) {
+        for (const border of manager.getBorderInstances(selection)) {
+          const measurement = border.measure(selection.getCorners());
+
+          results.push({ measured: measurement !== null, mutations: observer.takeRecords().length });
+        }
+      }
+
+      observer.disconnect();
+
+      return results;
+    });
   }
 
   /** The bounding box of a master-overlay cell. */

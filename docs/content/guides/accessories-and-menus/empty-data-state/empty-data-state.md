@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Empty data state
-metaTitle: Empty Data State - JavaScript Data Grid | Handsontable
+metaTitle: Empty data state | Handsontable DataGrid for JavaScript
 description: Display empty data state overlays and provide user feedback when your data grid has no data to display using the Empty Data State plugin.
 permalink: /empty-data-state
 canonicalUrl: /empty-data-state
@@ -13,13 +13,14 @@ tags:
   - user feedback
   - overlay
 react:
-  metaTitle: Empty Data State - React Data Grid | Handsontable
+  metaTitle: Empty data state | Handsontable DataGrid for React
 angular:
-  metaTitle: Empty Data State - Angular Data Grid | Handsontable
+  metaTitle: Empty data state | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Empty Data State - Vue Data Grid | Handsontable
+  metaTitle: Empty data state | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and Menus
+addedIn: "16.2.0"
 ---
 Use the `EmptyDataState` plugin to display a contextual overlay when the grid has no data or all rows are hidden by active filters.
 
@@ -28,7 +29,7 @@ Use the `EmptyDataState` plugin to display a contextual overlay when the grid ha
 
 ## Overview
 
-The Empty Data State plugin provides a user-friendly overlay system for Handsontable when there's no data to display. It automatically detects when your table is empty or when all data is hidden by filters, and displays an appropriate message with optional action buttons. It automatically integrates with the [Filters](@/api/filters.md) plugin to provide context-aware messages and actions.
+The Empty Data State plugin provides a user-friendly overlay system for Handsontable DataGrid when there's no data to display. It automatically detects when your table is empty or when all data is hidden by filters, and displays an appropriate message with optional action buttons. It automatically integrates with the [Filters](@/api/filters.md) plugin to provide context-aware messages and actions.
 
 ## Basic configuration
 

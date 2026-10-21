@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Theme customization
-metaTitle: Theme Customization - JavaScript Data Grid | Handsontable
-description: Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
+metaTitle: Theme customization | Handsontable DataGrid for JavaScript
+description: Customize Handsontable DataGrid's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
 permalink: /theme-customization
 canonicalUrl: /theme-customization
 tags:
@@ -17,16 +17,16 @@ tags:
   - local variables
   - tokens
 react:
-  metaTitle: Theme Customization - React Data Grid | Handsontable
+  metaTitle: Theme customization | Handsontable DataGrid for React
 angular:
-  metaTitle: Theme Customization - Angular Data Grid | Handsontable
+  metaTitle: Theme customization | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Theme Customization - Vue Data Grid | Handsontable
+  metaTitle: Theme customization | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Styling
 menuTag: updated
 ---
-Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
+Customize Handsontable DataGrid's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
 
 [[toc]]
 
@@ -296,6 +296,47 @@ Scope your rule to the theme class instead. Writing it as a descendant of your c
 
 A bare `.ht-theme-main { ... }` rule works as well, but it matches the wrapper with the same specificity as the theme's own rule. It wins only when your stylesheet comes after the theme stylesheet, which depends on how your bundler orders CSS.
 
+### Icons
+
+Every built-in icon renders as an `<i class="ht-icon ht-icon-<name>">` element, and its glyph comes from a `--ht-icon-<name>` CSS variable. Override that variable, scoped to the theme class, to replace a single icon with your own SVG:
+
+```css
+.ht-theme-main {
+  --ht-icon-search: url("/icons/search.svg");
+}
+```
+
+Unlike the size variables above, do not write an icon override as a descendant of your container (`#my-grid .ht-theme-main`). Dropdown menus, the Filters menu, and other popups mount in a separate `.ht-portal` element at the end of `<body>`, outside your container, so such a rule misses every icon they show.
+
+The same `.ht-theme-main` rule works whether you load a theme stylesheet or pass a theme object. A theme stylesheet declares the icon variables with a selector of the same specificity, so load your stylesheet after it. A theme object emits them, like every other variable, under `:where(.ht-theme-main)`, which has zero specificity, so your rule wins wherever it loads.
+
+To replace icons with an icon font instead of a static glyph, use the Theme API's `icons` parameter. A class list works for an icon font that ships CSS classes, such as [Tabler Icons](https://tabler.io/icons):
+
+```js
+myTheme.params({
+  icons: {
+    selectArrow: 'ti ti-chevron-down',
+  },
+});
+```
+
+An icon font that needs text content instead of a class, such as Material Symbols ligatures, takes a renderer callback:
+
+```js
+myTheme.params({
+  icons: {
+    check: (element) => {
+      element.classList.add('material-symbols-outlined');
+      element.textContent = 'check';
+    },
+  },
+});
+```
+
+This mapping only takes effect when the grid receives its theme as a configuration object through the `theme` option. If you apply a theme by putting a class such as `ht-theme-main` directly on the container instead, class-list and callback icon mappings do nothing -- CSS variable overrides still work in that setup.
+
+See [Icons](@/guides/styling/themes/themes.md#icons) in the Themes guide for the full set of accepted value kinds, and the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#icons-are-rendered-as-i-elements) if you style icons with `::before`/`::after` selectors today.
+
 ## Option 4: Use the Theme Builder UI
 
 If you prefer a visual approach to creating themes, use the [Handsontable Theme Builder](https://handsontable.com/theme-builder). This online tool provides an intuitive interface for customizing colors, spacing, and other theme properties without writing code. Once you're satisfied with your design, you can export the generated your theme and integrate it into your project.
@@ -493,6 +534,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | -------- | ----------------------------------- |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionBorderColor` </div>     | Border color for selected cells     |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionBackgroundColor` </div> | Background color for selected cells |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-row-selection-background-color` </div><div class="variables-table__item"><span>JS:</span> `rowSelectionBackgroundColor` </div> | Background color of rows selected with the [`RowSelection`](@/api/rowSelection.md) plugin. Semi-transparent, so it tints the row's own background |
 
 #### Cell autofill variables
 
@@ -535,6 +577,12 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | Variable | Description                          |
 | -------- | ------------------------------------ |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-resize-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `resizeIndicatorColor` </div> | Color of resize indicators           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-freeze-bar-color` </div><div class="variables-table__item"><span>JS:</span> `freezeBarColor` </div> | Color of the freeze bars |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-freeze-bar-hover-color` </div><div class="variables-table__item"><span>JS:</span> `freezeBarHoverColor` </div> | Color of a freeze bar over the headers when you hover it |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-freeze-bar-highlight-color` </div><div class="variables-table__item"><span>JS:</span> `freezeBarHighlightColor` </div> | Color of a freeze bar over the headers when you press or drag it |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-async-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `asyncIndicatorColor` </div> | Color of the pending indicator of the AsyncValues plugin |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-async-error-background-color` </div><div class="variables-table__item"><span>JS:</span> `asyncErrorBackgroundColor` </div> | Background color of a cell whose async value request failed |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-async-error-marker-color` </div><div class="variables-table__item"><span>JS:</span> `asyncErrorMarkerColor` </div> | Color of the bar at the inline start of a cell whose async value request failed |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-move-backlight-color` </div><div class="variables-table__item"><span>JS:</span> `moveBacklightColor` </div>   | Background color for move operations |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-move-backlight-opacity` </div><div class="variables-table__item"><span>JS:</span> `moveBacklightOpacity` </div> | Opacity of move backlight            |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-move-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `moveIndicatorColor` </div>   | Color of move indicators             |
@@ -849,6 +897,22 @@ These variables style the [Notification](@/guides/dialog/notification/notificati
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusBorderColor` </div>   | Border color of pagination navigation button on focus |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusForegroundColor` </div>   | Icon color of pagination navigation button on focus |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusBackgroundColor` </div>   | Background color of pagination navigation button on focus |
+
+#### Sheets bar variables
+
+| Variable | Description                          |
+| -------- | ------------------------------------ |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarHorizontalPadding` </div>   | Horizontal padding of the sheets bar |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-background-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarBackgroundColor` </div>   | Background color of the sheets bar |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabHorizontalPadding` </div>   | Horizontal padding of a sheets bar tab |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabVerticalPadding` </div>   | Vertical padding of a sheets bar tab |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabForegroundColor` </div>   | Text color of a sheets bar tab |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-background-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabBackgroundColor` </div>   | Background color of a sheets bar tab |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-hover-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabHoverForegroundColor` </div>   | Text color of a sheets bar tab on hover |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-active-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabActiveForegroundColor` </div>   | Text color of the active sheets bar tab |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-active-background-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabActiveBackgroundColor` </div>   | Background tint color of the active sheets bar tab |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-active-border-width` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabActiveBorderWidth` </div>   | Width of the active sheets bar tab bottom border |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-active-border-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabActiveBorderColor` </div>   | Color of the active sheets bar tab bottom border |
 
 </div>
 

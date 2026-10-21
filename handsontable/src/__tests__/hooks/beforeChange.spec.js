@@ -146,7 +146,15 @@ describe('Hook', () => {
       expect(isEditorVisible()).toBe(true);
     });
 
-    it('should not drop change when allowInvalid is `false` but close an editor (which has validator)', async() => {
+    it('should keep the editor open when the validator fails, even though `beforeChange` blocks every change', async() => { // eslint-disable-line max-len
+      // Confirming without typing writes nothing at all, so `beforeChange` never runs and has
+      // nothing to cancel. What decides the editor's fate is the validator, exactly as in the spec
+      // above: it fails, `allowInvalid` is `false`, so the editor stays open.
+      //
+      // This used to close the editor instead. Not because the hook said so, but because the
+      // pointless write still reached `processChanges()`, which closes the active editor whenever
+      // the hook returns `false` - and it got there before the validator ever ran. Now that an
+      // unchanged confirm writes nothing, both `beforeChange` results behave the same way.
       handsontable({
         data: [['a', 'b'], ['c', 'd']],
         columns: () => ({
@@ -164,7 +172,14 @@ describe('Hook', () => {
       await keyDownUp('enter');
       await keyDownUp('enter');
 
+      expect(isEditorVisible()).toBe(true);
+      expect(getDataAtCell(0, 0)).toBe('a');
+
+      // The user is not trapped by that: Escape still closes the editor, and the value is untouched.
+      await keyDownUp('escape');
+
       expect(isEditorVisible()).toBe(false);
+      expect(getDataAtCell(0, 0)).toBe('a');
     });
 
     using('keyboard key', ['delete', 'backspace'], (keyCode) => {

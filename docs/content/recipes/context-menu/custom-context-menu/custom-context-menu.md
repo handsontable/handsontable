@@ -1,7 +1,7 @@
 ---
 title: Custom context menu actions
-metaTitle: Custom context menu actions - JavaScript Data Grid | Handsontable
-description: Learn how to add custom items to Handsontable's right-click context menu, including duplicate row, flag row, and copy row as JSON actions.
+metaTitle: Custom context menu actions | Handsontable DataGrid for JavaScript
+description: Learn how to add custom items to Handsontable DataGrid's right-click context menu, including duplicate row, flag row, and copy row as JSON actions.
 permalink: /recipes/context-menu/custom-context-menu
 canonicalUrl: /recipes/context-menu/custom-context-menu
 tags:
@@ -10,17 +10,17 @@ tags:
   - context menu
   - custom actions
 react:
-  metaTitle: Custom context menu actions - React Data Grid | Handsontable
+  metaTitle: Custom context menu actions | Handsontable DataGrid for React
 angular:
-  metaTitle: Custom context menu actions - Angular Data Grid | Handsontable
+  metaTitle: Custom context menu actions | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Custom context menu actions - Vue Data Grid | Handsontable
+  metaTitle: Custom context menu actions | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Context Menu
 type: how-to
 ---
 
-In this tutorial, you will add custom items to the Handsontable right-click context menu. You will learn how to define custom actions alongside built-in menu items and how to control which built-in items appear.
+In this tutorial, you will add custom items to the Handsontable DataGrid right-click context menu. You will learn how to define custom actions alongside built-in menu items and how to control which built-in items appear.
 
 ::: only-for javascript vue
 
@@ -244,6 +244,6 @@ copy_row_as_json: {
 
 ## Next steps
 
-- Add a `disabled()` function to any item to make it conditionally unavailable. Return `true` to grey out the item and prevent its callback from firing.
+- Add a `disabled()` function to any item to make it conditionally unavailable. Return `true` to gray out the item and prevent its callback from firing.
 - Explore the [Context menu guide](@/guides/accessories-and-menus/context-menu/context-menu.md) for the full list of built-in item keys and advanced configuration.
 - To add the same custom actions to the column dropdown menu, configure `dropdownMenu.items` using the same structure.

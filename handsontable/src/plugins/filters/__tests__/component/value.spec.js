@@ -507,7 +507,10 @@ describe('Filters UI Value component', () => {
       const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
       const checkedArray = checkboxes.map(element => element.checked);
 
-      expect(checkedArray).toEqual([false, true, true]);
+      // The list gains the typed value, but nothing gets checked on the user's behalf (issue #6471).
+      // 'AAA City' stays unchecked because the user unchecked it; 'BBB City - modified' is unchecked
+      // because it was never selected; 'BBB City' is gone from the data, so only 'CCC City' stays checked.
+      expect(checkedArray).toEqual([false, false, true]);
     });
 
     it('should not modify checkboxes if the user changed values in another column', async() => {
@@ -688,7 +691,9 @@ describe('Filters UI Value component', () => {
       const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
       const checkedArray = checkboxes.map(element => element.checked);
 
-      expect(checkedArray).toEqual([false, true, true, true]);
+      // 'CCC City' joins the list but stays unchecked - the user never selected it (issue #6471).
+      // 'BBB City' remains checked because the second 'BBB City' row still holds that value.
+      expect(checkedArray).toEqual([false, true, false, true]);
     });
 
     it('should sort updated values', async() => {

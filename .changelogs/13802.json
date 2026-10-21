@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the lists of the `handsontable`, `autocomplete`, `dropdown`, and `multiselect` editors opening past the viewport's edge in a grid the window scrolls inside a transformed or translated ancestor, and the `multiselect` list overlapping its cell when it opens above it.",
+  "type": "fixed",
+  "issueOrPR": 13802,
+  "breaking": false,
+  "framework": "none"
+}

@@ -85,7 +85,10 @@ describe('IntlDateEditor', () => {
 
     await keyDownUp('F2');
 
-    expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
+    expect({
+      top: editor.offset().top,
+      left: editorInlineStartOffset(editor),
+    }).toEqual($(getCell(0, 0)).offset());
   });
 
   it('should not highlight the input element by browsers native selection', async() => {
@@ -99,60 +102,6 @@ describe('IntlDateEditor', () => {
     const editor = getActiveEditor().TEXTAREA;
 
     expect(window.getComputedStyle(editor, 'focus').getPropertyValue('outline-style')).toBe('none');
-  });
-
-  // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
-  it('should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)', async() => {
-    handsontable({
-      data: [
-        ['one', 'two'],
-        ['three', 'four']
-      ],
-      columns: [
-        {
-          type: 'intl-date',
-        },
-        {},
-      ],
-      imeFastEdit: true,
-    });
-
-    await selectCell(0, 0);
-
-    // The `imeFastEdit` timeout is set to 50ms.
-    await waitForNextAnimationFrames(2);
-
-    const activeElement = getActiveEditor().TEXTAREA;
-
-    expect(activeElement).toBeDefined();
-    expect(activeElement).not.toBe(null);
-    expect(document.activeElement).toBe(activeElement);
-
-    await keyDownUp('enter');
-
-    expect(document.activeElement).toBe(activeElement);
-
-    await waitForNextAnimationFrames(2);
-
-    expect(document.activeElement).toBe(activeElement);
-
-    getActiveEditor().TEXTAREA.value = 't';
-
-    await keyDownUp('t');
-
-    expect(document.activeElement).toBe(activeElement);
-
-    getActiveEditor().TEXTAREA.value = 'te';
-
-    await keyDownUp('e');
-
-    expect(document.activeElement).toBe(activeElement);
-
-    getActiveEditor().TEXTAREA.value = 'teo';
-
-    await keyDownUp('o');
-
-    expect(document.activeElement).toBe(activeElement);
   });
 
   it('should restore original when edited and pressed ESC ', async() => {

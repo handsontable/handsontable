@@ -13,6 +13,7 @@ import type {
   EditorType,
   GridSettings,
   RendererType,
+  SanitizerContext,
   RowObject,
   SelectOptionsObject,
   SourceRowData,
@@ -43,6 +44,7 @@ import type {
   EditorType as BaseEditorType,
   GridSettings as BaseGridSettings,
   RendererType as BaseRendererType,
+  SanitizerContext as BaseSanitizerContext,
   RowObject as BaseRowObject,
   SelectOptionsObject as BaseSelectOptionsObject,
   SourceRowData as BaseSourceRowData,
@@ -66,6 +68,7 @@ const cellMeta: CellMeta = {};
 const cellProps: Partial<CellProperties> = {};
 const columnSettings: ColumnSettings = {};
 const gridSettings: GridSettings = {};
+const sanitizerContext: SanitizerContext = 'header';
 const rowObject: RowObject = { foo: 'bar' };
 const cellValue: CellValue = 'x';
 const sourceRow: SourceRowData = [1, 2, 3];
@@ -96,6 +99,7 @@ const baseCellMeta: BaseCellMeta = {};
 const baseCellProps: Partial<BaseCellProperties> = {};
 const baseColumnSettings: BaseColumnSettings = {};
 const baseGridSettings: BaseGridSettings = {};
+const baseSanitizerContext: BaseSanitizerContext = 'header';
 const baseRowObject: BaseRowObject = { foo: 'bar' };
 const baseCellValue: BaseCellValue = 'x';
 const baseSourceRow: BaseSourceRowData = [1, 2, 3];

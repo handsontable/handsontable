@@ -14,14 +14,80 @@ on:
 jobs:
   run:
     name: run
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
+    runs-on: self-hosted
+    # The download attempts have their own step timeouts, so this is only the
+    # backstop for a hang elsewhere. It must outlast the slowest run the suite
+    # itself allows, or a run whose scenarios time out is cancelled before its
+    # teardown and reports nothing: setup (the slowest successful run took 19.3
+    # minutes, a 10.7-minute pnpm cache restore), both download attempts, and 18
+    # scenarios run one at a time, each up to its 5-minute Playwright timeout.
+    # perf-artifact-download.test.mjs derives that sum from the config and fails
+    # when a scenario or a longer timeout outgrows this.
+    timeout-minutes: 126
     permissions:
       contents: write
       pull-requests: write
       actions: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          # `clean: true` is already the checkout default; it is pinned here to
+          # document intent, not to fix a broken default, because the persistent
+          # runner keeps ignored output and dependency directories between jobs and a
+          # future default change must not stop removing them. Requires Git on the
+          # runner; the composite's Verify Git checkout step fails loudly when it is
+          # missing.
+          clean: true
+
+      # PR pipeline: reuse the shared UMD build artifact instead of rebuilding.
+      # The download lives here, not in the performance-run composite, because
+      # only a job step can take `timeout-minutes`. In run 37947963835 the action
+      # logged "Download artifact has finished successfully" and then never
+      # exited, so the job sat until its timeout. A healthy download takes 4 to
+      # 15 seconds, but that run's first `ListArtifacts` call stalled for 6
+      # minutes before the toolkit's own retry fetched the file, so each attempt
+      # gets 8. A first attempt that failed or timed out (a step outcome does not
+      # tell the two apart) may still have written a complete archive: the check
+      # keeps one that lists cleanly, deletes anything else, and the retry runs
+      # only when no archive is left. Hand-synced with performance-tests.yml;
+      # perf-artifact-download.test.mjs pins both.
+      - name: Download the Handsontable UMD build artifact
+        id: download-umd
+        if: inputs.hot-prebuilt
+        timeout-minutes: 8
+        continue-on-error: true
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-umd
+
+      - name: Keep a complete archive the first attempt left
+        id: check-umd
+        if: inputs.hot-prebuilt && steps.download-umd.outcome == 'failure'
+        run: |
+          if [ -f dist.tar.gz ] && tar -tzf dist.tar.gz > /dev/null 2>&1; then
+            echo "The first attempt failed after writing a complete dist.tar.gz; keeping it."
+            echo "usable=true" >> "$GITHUB_OUTPUT"
+          else
+            rm -f dist.tar.gz
+            echo "usable=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Retry the Handsontable UMD build artifact download
+        if: inputs.hot-prebuilt && steps.download-umd.outcome == 'failure' && steps.check-umd.outputs.usable != 'true'
+        timeout-minutes: 8
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-umd
+
+      - name: Extract the prebuilt dist
+        if: inputs.hot-prebuilt
+        run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
+
+      # !cancelled(), not the default success(): when the download or the extract
+      # failed, the composite still runs, stops at its prebuilt check with the
+      # reason, and its always() steps write the job summary and the sticky
+      # comment, which would otherwise keep the previous push's numbers.
       - uses: ./.github/actions/performance-run
+        if: ${{ !cancelled() }}
         with:
           hot-prebuilt: ${{ inputs.hot-prebuilt }}

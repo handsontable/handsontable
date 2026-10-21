@@ -1,20 +1,20 @@
 ---
 type: explanation
 title: Deprecation policy
-metaTitle: Deprecation policy - JavaScript Data Grid | Handsontable
-description: Handsontable ensures that if API is marked deprecated, we commit to a grace period (at least 3 months) during which the deprecated feature still works.
+metaTitle: Deprecation policy | Handsontable DataGrid for JavaScript
+description: Handsontable DataGrid ensures that if API is marked deprecated, we commit to a grace period (at least 3 months) during which the deprecated feature still works.
 permalink: /deprecation-policy
 canonicalUrl: /deprecation-policy
 react:
-  metaTitle: Deprecation policy - React Data Grid | Handsontable
+  metaTitle: Deprecation policy | Handsontable DataGrid for React
 angular:
-  metaTitle: Deprecation policy - Angular Data Grid | Handsontable
+  metaTitle: Deprecation policy | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Deprecation policy - Vue Data Grid | Handsontable
+  metaTitle: Deprecation policy | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Upgrade and migration
 ---
-This page explains how Handsontable handles deprecated APIs -- including the grace period before removal and how you will be notified.
+This page explains how Handsontable DataGrid handles deprecated APIs -- including the grace period before removal and how you will be notified.
 
 Deprecation occurs when better alternatives emerge that offer improved performance, security, or usability compared to existing implementations. It also helps maintain API consistency by removing redundant or inconsistent functions, creating a cleaner overall design. As web standards and the JavaScript ecosystem evolve, certain approaches become obsolete or suboptimal, requiring updates to stay current. Additionally, deprecation reduces maintenance complexity by phasing out rarely-used or problematic features, while addressing potential security vulnerabilities in older implementations. Rather than introducing breaking changes, deprecation provides a gradual migration path that gives developers time to adapt while clearly signaling the library's future direction.
 
@@ -44,29 +44,83 @@ For significant deprecations (especially those affecting many users), we will pr
 
 For more details about our versioning policy please visit [Versioning policy](@/guides/upgrade-and-migration/versioning-policy/versioning-policy.md)
 
+## Removed in version 20.0
+
+### Behaviors
+
+| Removed | Deprecated in | Replacement | Migration guide |
+| ------- | ------------- | ----------- | --------------- |
+| Writing past the last column of an object data source, which added a property named after the column index | 19.0 | `setDataAtRowProp()` | [Migrate from 19.0 to 20.0 -> Writing past the last column](@/guides/upgrade-and-migration/migrating-from-19.0-to-20.0/migrating-from-19.0-to-20.0.md#writing-past-the-last-column-of-an-object-data-source-is-ignored) |
+
 ## Removed in version 18.0
+
+### Dependencies
 
 The following dependencies were deprecated in version 17.0 and removed in version 18.0.
 
 | Removed | Description | Migration guide |
 | ------- | ----------- | --------------- |
-| **numbro.js** | Handled numeric data formatting. Replace with [Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat). | [Migrate from 17.1 to 18.0 → Numeric formatting](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#2-migrate-numeric-format-from-numbro-js-pattern-and-culture-to-intlnumberformat) |
-| **Pikaday** | Displayed a date picker. The `intl-date` cell type now uses the native browser date picker. | [Migrate from 17.1 to 18.0 → Date/Time](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#3-migrate-date-and-time-cells-to-iso-8601-format) |
-| **moment.js** | Parsed, validated, and displayed dates. The `intl-date` and `intl-time` cell types use the native `Intl.DateTimeFormat` API. | [Migrate from 17.1 to 18.0 → Date/Time](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#3-migrate-date-and-time-cells-to-iso-8601-format) |
-| **DOMPurify** | An XSS sanitizer for HTML. Use the `sanitizer` option to provide your own sanitizer function. | [Migrate from 17.1 to 18.0 → HTML sanitization](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#4-replace-built-in-dompurify-with-a-custom-sanitizer) |
+| **numbro.js** | Handled numeric data formatting. Replace with [Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat). | [Migrate from 17.1 to 18.0 -> Numeric formatting](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat) |
+| **Pikaday** | Displayed a date picker. The `intl-date` cell type now uses the native browser date picker. | [Migrate from 17.1 to 18.0 -> Date/Time](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#migrate-date-and-time-cells-to-iso-8601-format) |
+| **moment.js** | Parsed, validated, and displayed dates. The `intl-date` and `intl-time` cell types use the native `Intl.DateTimeFormat` API. | [Migrate from 17.1 to 18.0 -> Date/Time](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#migrate-date-and-time-cells-to-iso-8601-format) |
+| **DOMPurify** | An XSS sanitizer for HTML. Use the `sanitizer` option to provide your own sanitizer function. | [Migrate from 17.1 to 18.0 -> HTML sanitization](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#replace-built-in-dompurify-with-a-custom-sanitizer) |
+
+### APIs
+
+| Removed | Deprecated in | Replacement | Migration guide |
+| ------- | ------------- | ----------- | --------------- |
+| `correctFormat` and `datePickerConfig` options | 17.0 | `valueParser` and `valueSetter` | [Migrate from 17.1 to 18.0 -> `correctFormat` option](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#correctformat-option) |
+| `numericFormat.pattern` and `numericFormat.culture` | 17.0 | `Intl.NumberFormat` options and the `locale` option | [Migrate from 17.1 to 18.0 -> Numeric formatting](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat) |
+| `handsontable/common` import subpath | -- (never documented) | `handsontable` or `handsontable/base` | [Migrate from 17.1 to 18.0 -> Imports](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#replace-handsontablecommon-imports) |
+
+## Removed in version 17.0
+
+### APIs
+
+| Removed | Deprecated in | Replacement | Migration guide |
+| ------- | ------------- | ----------- | --------------- |
+| `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks | 16.1 | Persist state in your application code. The `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` methods that relied on the plugin are deprecated (see below). | [Changelog 17.x](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
+| `hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, and `hot.undoRedo` | Before 16.0 | `hot.getPlugin('undoRedo')` | [Changelog 17.x](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
 
 ## List of current deprecations
 
-The following methods were deprecated in version 18.0 and are scheduled for removal in a future major release. They are no-ops kept for backward compatibility, as the `PersistentState` plugin has been removed.
+The following APIs are deprecated. They keep working and print a one-time console warning. The Removal column names the version that drops each one.
 
-| Deprecated | Plugin | Migration guide |
-| ---------- | ------ | --------------- |
-| `saveManualColumnWidths()` | `ManualColumnResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
-| `loadManualColumnWidths()` | `ManualColumnResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
-| `saveManualRowHeights()` | `ManualRowResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
-| `loadManualRowHeights()` | `ManualRowResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
+### Methods
 
+| Deprecated | Deprecated in | Removal | Replacement | Migration guide |
+| ---------- | ------------- | ------- | ----------- | --------------- |
+| `saveManualColumnWidths()` (`ManualColumnResize`) | 18.0 | 19.0 | No-op. Persist widths in your application code. | [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
+| `loadManualColumnWidths()` (`ManualColumnResize`) | 18.0 | 19.0 | No-op. Pass an array to `manualColumnResize`. | [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
+| `saveManualRowHeights()` (`ManualRowResize`) | 18.0 | 19.0 | No-op. Persist heights in your application code. | [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
+| `loadManualRowHeights()` (`ManualRowResize`) | 18.0 | 19.0 | No-op. Pass an array to `manualRowResize`. | [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
+| `Handsontable.helper.sanitize()` | 18.0 | 19.0 | Pass-through. Use the `sanitizer` option. | [`sanitizer` option](@/api/options.md#sanitizer) |
+| `registerShortcuts()` (`Formulas`) | 19.0 | 20.0 | No-op. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut. Remove the call. | [Migrate from 18.1 to 19.0 -> Formulas shortcut methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#formulas-shortcut-methods) |
+| `unregisterShortcuts()` (`Formulas`) | 19.0 | 20.0 | No-op. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut. Remove the call. | [Migrate from 18.1 to 19.0 -> Formulas shortcut methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#formulas-shortcut-methods) |
+| `spliceCol()` (`Core`) | 19.0 | 20.0 | Read the column, splice it, and write it back with `populateFromArray()`; or use `alter()` for whole columns. | [Migrate from 18.1 to 19.0 -> spliceCol and spliceRow](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#splicecol-and-splicerow-are-deprecated) |
+| `spliceRow()` (`Core`) | 19.0 | 20.0 | Read the row, splice it, and write it back with `populateFromArray()`; or use `alter()` for whole rows. | [Migrate from 18.1 to 19.0 -> spliceCol and spliceRow](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#splicecol-and-splicerow-are-deprecated) |
+| `iconsMap()` (`handsontable/themes/static/variables/helpers/iconsMap`) | 19.0 | 20.0 | `iconStyles(icons, scopeSelector)` from `handsontable/themes/static/variables/helpers/iconStyles`. `iconsMap()` already returns its output. | [Migrate from 18.1 to 19.0 -> Icons are rendered as `<i>` elements](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#icons-are-rendered-as-i-elements) |
 
+### Options
+
+| Deprecated | Deprecated in | Removal | Replacement | Migration guide |
+| ---------- | ------------- | ------- | ----------- | --------------- |
+| `columnHeaders` (export options of the `exportFile` plugin) | 17.1 | 19.0 | `colHeaders` -- rename the key; the value keeps its meaning. | [Export to CSV -> Options](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md#options) |
+
+### Language codes
+
+| Deprecated | Deprecated in | Removal | Replacement | Migration guide |
+| ---------- | ------------- | ------- | ----------- | --------------- |
+| Language code `sr-SP` (`sr-SP.js`, `srSP`) | 19.0 | 20.0 | The `sr-Latn-RS` language code (`sr-Latn-RS.js`, `srLatnRS`). The phrases are the same. | [Language](@/guides/internationalization/language/language.md) |
+
+### TypeScript types
+
+Type aliases do not print console warnings. Your editor shows them as deprecated.
+
+| Deprecated | Deprecated in | Removal | Replacement |
+| ---------- | ------------- | ------- | ----------- |
+| `Settings` (exported from `handsontable/plugins/exportFile`) | 18.0 | 19.0 | `ExportFileSettings` |
+| `DataProviderOptions` (exported from `handsontable/plugins/dataProvider`) | 18.0 | 19.0 | `DataProviderFetchOptions` |
 
 ## Related
 

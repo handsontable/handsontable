@@ -31,6 +31,14 @@ do
     # ./docs/docs/<version>/, so try the nested path first and fall back to copying the flat root.
     if docker cp "$img_id:/usr/share/nginx/html/docs/$version" "./docs/docs/$version" 2>/dev/null; then
         echo "  copied nested layout (/docs/$version)"
+
+        # Legacy VuePress builds from mid-14.x through 17.0 render the
+        # "newer version available" banner at the bottom of the page, where
+        # readers miss it (PRO-1303). These builds are never rebuilt, so
+        # inject a CSS override that moves the banner to the top. The script
+        # self-gates on the broken layout, leaving older top-banner themes
+        # and bannerless pages byte-identical.
+        node injectBannerTopCss.mjs "./docs/docs/$version"
     else
         docker cp "$img_id:/usr/share/nginx/html/docs" "./docs/docs/$version"
         echo "  copied flat layout (/docs) into /docs/$version"

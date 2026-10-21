@@ -200,6 +200,39 @@ describe('dataProvider sorting', () => {
 
       expect(queryParameters.sort).toEqual({ prop: 'c1', order: 'asc' });
     });
+
+    it('should keep the `null` property of an unbound column instead of sending its index', () => {
+      const queryParameters = { sort: null };
+      const hot = {
+        getPlugin: key => (key === COLUMN_SORTING_PLUGIN_KEY ? {
+          enabled: true,
+          getSortConfig: () => [{ column: 1, sortOrder: 'asc' }],
+        } : null),
+        // Column 1 exists but is declared `{ data: null }`.
+        colToProp: () => null,
+        toPhysicalColumn: col => col,
+      };
+
+      applyColumnSortToQueryFromPlugin(hot, queryParameters);
+
+      expect(queryParameters.sort).toEqual({ prop: 'null', order: 'asc' });
+    });
+
+    it('should send the index of a column that does not exist', () => {
+      const queryParameters = { sort: null };
+      const hot = {
+        getPlugin: key => (key === COLUMN_SORTING_PLUGIN_KEY ? {
+          enabled: true,
+          getSortConfig: () => [{ column: 5, sortOrder: 'desc' }],
+        } : null),
+        colToProp: () => null,
+        toPhysicalColumn: () => null,
+      };
+
+      applyColumnSortToQueryFromPlugin(hot, queryParameters);
+
+      expect(queryParameters.sort).toEqual({ prop: '5', order: 'desc' });
+    });
   });
 
   describe('normalizeSortInFetchParams', () => {
@@ -210,6 +243,25 @@ describe('dataProvider sorting', () => {
       normalizeSortInFetchParams(params, hot);
 
       expect(params.sort).toEqual({ prop: 'id', order: 'desc' });
+    });
+
+    it('should keep the `null` property of an unbound column instead of sending its index', () => {
+      const params = { sort: { column: 0, sortOrder: 'asc' } };
+      // Column 0 exists but is declared `{ data: null }`.
+      const hot = { colToProp: () => null, toPhysicalColumn: col => col };
+
+      normalizeSortInFetchParams(params, hot);
+
+      expect(params.sort).toEqual({ prop: 'null', order: 'asc' });
+    });
+
+    it('should send the index of a column that does not exist', () => {
+      const params = { sort: { column: 7, sortOrder: 'asc' } };
+      const hot = { colToProp: () => null, toPhysicalColumn: () => null };
+
+      normalizeSortInFetchParams(params, hot);
+
+      expect(params.sort).toEqual({ prop: '7', order: 'asc' });
     });
   });
 

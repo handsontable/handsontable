@@ -123,6 +123,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'به صفحه بعدی بروید',
   [C.PAGINATION_LAST_PAGE]: 'به آخرین صفحه بروید',
 
+  [C.SHEETS_BAR_SECTION]: 'برگه‌ها',
+  [C.SHEETS_BAR_ADD_SHEET]: 'افزودن برگه',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'همه برگه‌ها',
+  [C.SHEETS_BAR_SHEET_MENU]: 'عملیات برگه: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'نام برگه',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'حذف',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'تکثیر',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'تغییر نام',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'انتقال به راست',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'انتقال به چپ',
+  [C.SHEETS_BAR_PAGE_PREV]: 'پیمایش برگه‌ها به عقب',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'پیمایش برگه‌ها به جلو',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'برگه [name] فعال شد',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'نام برگه تغییر نکرد: [name] قبلاً استفاده شده است',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'برگه',
+
   [C.CHECKBOX_CHECKED]: 'چک شده',
   [C.CHECKBOX_UNCHECKED]: 'چک نشده',
 
@@ -143,6 +159,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'حذف ردیف‌ها ناموفق بود',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'درخواست ناموفق بود',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'بارگذاری مجدد',
+  [C.ROW_SELECTION_SELECT_ROW]: 'انتخاب ردیف [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'انتخاب همه ردیف ها ([selected] از [total] انتخاب شده)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'انتخاب همه ([checked] از [total] انتخاب شده)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'ردیف [row] انتخاب شد',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'انتخاب ردیف [row] لغو شد',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] از [total] ردیف انتخاب شده',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'حذف ردیف های انتخاب شده ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'پاک کردن انتخاب ردیف ها',
+  [C.FREEZE_BAR_ROWS_TOP]: 'ردیف‌های ثابت در بالا',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'ردیف‌های ثابت در پایین',
+  [C.FREEZE_BAR_COLUMNS_START]: 'ستون‌های ثابت در ابتدا',
+  [C.FREEZE_BAR_COLUMNS_END]: 'ستون‌های ثابت در انتها',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'ردیف [label] باز شد، ردیف‌های بازشدهٔ نمایش داده‌شده: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'ردیف [label] بسته شد',
 };
 
 export default dictionary;

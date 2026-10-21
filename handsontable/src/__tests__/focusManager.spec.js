@@ -164,6 +164,51 @@ describe('Focus Manager', () => {
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
     });
+
+    it('should call `focus()` before `select()` on the refocus element, as Firefox does not move the focus' +
+       ' on `select()` of a date input', async() => {
+      await handsontable({
+        columns: [
+          { type: 'text' },
+        ],
+        imeFastEdit: true,
+      });
+
+      getFocusManager().setRefocusDelay(10);
+      await selectCell(0, 0);
+      await waitUntil(() => document.activeElement === getActiveEditor().TEXTAREA);
+
+      const calls = [];
+      const textarea = getActiveEditor().TEXTAREA;
+
+      spyOn(textarea, 'focus').and.callFake(options => calls.push(['focus', options]));
+      spyOn(textarea, 'select').and.callFake(() => calls.push(['select']));
+
+      getFocusManager().refocusToEditorTextarea();
+      await waitUntil(() => calls.length >= 1);
+
+      expect(calls).toEqual([['focus', { preventScroll: true }], ['select']]);
+    });
+
+    it('should not throw when the refocus element has no `select()` method', async() => {
+      const element = document.createElement('div');
+
+      element.tabIndex = -1;
+      document.body.appendChild(element);
+
+      await handsontable({ imeFastEdit: true });
+
+      try {
+        getFocusManager().setRefocusElementGetter(() => element);
+        getFocusManager().setRefocusDelay(10);
+        getFocusManager().refocusToEditorTextarea();
+        await waitUntil(() => document.activeElement === element);
+
+        expect(document.activeElement).toBe(element);
+      } finally {
+        element.remove();
+      }
+    });
   });
 
   describe('`selectCells`/`selectCell` with `changeListener = false` (#10038)', () => {

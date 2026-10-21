@@ -204,6 +204,38 @@ export class UnlaidOutInitPage {
   }
 
   /**
+   * Waits until the holder's scroll range is the row count times the default row height,
+   * with `extraRows` rows of slack above it (frozen rows add their bands to the range) and
+   * a 2px border allowance, added once and not once per row: `rowCount * (rowHeight + 2)`
+   * left 400px of slack on 200 rows and grew with the defect it guards. The lower bound is
+   * part of the polled value, because a range short of the content clips the bottom rows.
+   *
+   * It has to be polled, and `readProvisionalLayout()` cannot stand in for it. The correction
+   * pass settles the scrolling element at the END of the first draw after the container
+   * joined the layout, and drops the row heights measured without a layout on the way INTO
+   * the next draw, which takes them again. Between the two draws the band already fills the
+   * container, the flag is already `false`, and the range still counts the stale heights:
+   * measured at 6050px against 5830px of rows, 20-40ms before the next draw.
+   *
+   * @param {number} extraRows Rows of slack above the row count, for the frozen bands.
+   */
+  async expectScrollRangeOfRows(extraRows = 0): Promise<void> {
+    await expect.poll(async () => {
+      const { holderScrollRange, rowCount, defaultRowHeight } = await this.readOverlayAlignment();
+
+      if (defaultRowHeight === null) {
+        return { rowHeightKnown: false, rangeOfRows: false };
+      }
+
+      return {
+        rowHeightKnown: true,
+        rangeOfRows: holderScrollRange >= rowCount * defaultRowHeight &&
+          holderScrollRange <= (rowCount + extraRows + 1) * defaultRowHeight + 2,
+      };
+    }).toEqual({ rowHeightKnown: true, rangeOfRows: true });
+  }
+
+  /**
    * How far the frozen-column and column-header overlays sit from the cells they
    * must stay aligned with, plus the size of the rendered row band.
    */

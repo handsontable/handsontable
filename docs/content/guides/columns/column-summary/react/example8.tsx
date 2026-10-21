@@ -4,21 +4,23 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  {
+    value: null,
+    __children: [{ value: 5 }, { value: 6 }, { value: 7 }],
+  },
+  {
+    __children: [{ value: 15 }, { value: 16 }, { value: 17 }],
+  },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={[
-        {
-          value: null,
-          __children: [{ value: 5 }, { value: 6 }, { value: 7 }],
-        },
-        {
-          __children: [{ value: 15 }, { value: 16 }, { value: 17 }],
-        },
-      ]}
+      data={data}
       columns={[{ data: 'value' }]}
       nestedRows={true}
       rowHeaders={true}

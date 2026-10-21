@@ -146,7 +146,19 @@ Note on DeepWiki: the DeepWiki page groups "Filtering" under the renderable tier
 - `fromPhysicalToVisualIndexesCache` — `Map` from physical to visual.
 - `fromVisualToRenderableIndexesCache` — `Map` from visual to renderable.
 
-`updateCache()` rebuilds only when a relevant change flag is set (`indexesSequenceChanged`, `trimmedIndexesChanged`, or `hiddenIndexesChanged`) and batching is off, or when called with `force = true`. After a rebuild it clears the flags and fires the `cacheUpdated` local hook.
+`updateCache()` rebuilds only when a relevant change flag is set (`indexesSequenceChanged`, `trimmedIndexesChanged`, or `hiddenIndexesChanged`) and batching is off, or when called with `force = true`.
+
+A rebuild fires three local hooks, and the ORDER is the contract:
+
+| Hook | When | What it guarantees |
+|---|---|---|
+| `beforeCacheUpdate` | before any cache is touched | every mapping still answers for the PRE-update space, so `getPhysicalFromVisualIndex()` resolves what the visual space held when the caller last saw it |
+| `cacheUpdated` | after every cache is rebuilt, before the flags are cleared | the new space, plus `indexesChangeSource` |
+| `afterCacheUpdate` | in a `finally` | fires even when a rebuild throws, and even when `cacheUpdated` therefore never ran |
+
+All three carry the same change-flag payload (`cacheUpdated` adds `indexesChangeSource`), and `beforeCacheUpdate` receives the very object the `cacheUpdated` payload is spread from — treat it as read-only.
+
+Two consequences for a consumer that keeps state across the pair. `updateCache()` **nests**: `hidingChangesObservable.emit()` runs between `cacheUpdated` and `afterCacheUpdate`, so an observer that writes a map runs a whole inner update inside the outer one's window — pair your state by push/pop rather than one slot per axis (`Selection#capturePhysicalSelection()` is the worked example). And a `beforeCacheUpdate` consumer that throws takes the whole update down; only `afterCacheUpdate` still runs.
 
 ### Batching to avoid cache thrash
 

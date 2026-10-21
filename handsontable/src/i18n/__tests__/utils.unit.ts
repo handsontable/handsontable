@@ -85,6 +85,11 @@ describe('i18n helpers', () => {
     it('should normlize properly langage code #3', () => {
       expect(normalizeLanguageCode('PL-PL')).toEqual('pl-PL');
     });
+
+    it('should normalize a language code with a script subtag', () => {
+      expect(normalizeLanguageCode('sr-Latn-RS')).toEqual('sr-Latn-RS');
+      expect(normalizeLanguageCode('SR-lATN-rs')).toEqual('sr-Latn-RS');
+    });
   });
 
   describe('warnUserAboutLanguageRegistration', () => {

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed pasting a clipboard taller than the remaining rows on the current page so the leading rows are kept instead of the trailing ones.",
+  "type": "fixed",
+  "issueOrPR": 13531,
+  "breaking": false,
+  "framework": "none"
+}

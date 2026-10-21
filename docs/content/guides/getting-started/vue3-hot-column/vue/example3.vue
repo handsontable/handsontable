@@ -22,11 +22,11 @@ class CustomEditor extends TextEditor {
 
 const customEditor = CustomEditor;
 const hotData = ref<string[][]>([
-  ['A1', 'B1'],
-  ['A2', 'B2'],
-  ['A3', 'B3'],
-  ['A4', 'B4'],
-  ['A5', 'B5'],
+  ['SKU-4821', 'Stainless Steel Water Bottle'],
+  ['SKU-0093', 'Wireless Mouse'],
+  ['SKU-1170', 'Ergonomic Office Chair'],
+  ['SKU-2208', 'USB-C Charging Cable'],
+  ['SKU-3341', 'Aluminum Water Filter'],
 ]);
 const settings = ref<GridSettings>({
   height: 'auto',

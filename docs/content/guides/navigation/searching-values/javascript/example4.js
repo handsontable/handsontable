@@ -5,11 +5,13 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 let searchResultCount = 0;
+
 const data = [
-  ['Tesla', 2017, 'black', 'black'],
-  ['Nissan', 2018, 'blue', 'blue'],
-  ['Chrysler', 2019, 'yellow', 'black'],
-  ['Volvo', 2020, 'white', 'gray'],
+  ['Hydrogen', 'H', 1, 1.008],
+  ['Helium', 'He', 2, 4.003],
+  ['Lithium', 'Li', 3, 6.94],
+  ['Beryllium', 'Be', 4, 9.012],
+  ['Boron', 'B', 5, 10.81],
 ];
 
 // define your custom callback function
@@ -26,9 +28,10 @@ function searchResultCounter(instance, row, column, value, result) {
 }
 
 const container = document.querySelector('#example4');
+
 const hot = new Handsontable(container, {
   data,
-  colHeaders: true,
+  colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass'],
   // enable the `Search` plugin
   search: {
     // add your custom callback function

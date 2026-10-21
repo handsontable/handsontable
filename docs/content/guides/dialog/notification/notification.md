@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Notification
-metaTitle: Notification - JavaScript Data Grid | Handsontable
+metaTitle: Notification | Handsontable DataGrid for JavaScript
 description: Show non-blocking toast notifications anchored to the grid with the Notification plugin.
 permalink: /notification
 canonicalUrl: /notification
@@ -11,23 +11,25 @@ tags:
   - dialog
   - accessibility
 react:
-  metaTitle: Notification - React Data Grid | Handsontable
+  metaTitle: Notification | Handsontable DataGrid for React
 angular:
-  metaTitle: Notification - Angular Data Grid | Handsontable
+  metaTitle: Notification | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Notification - Vue Data Grid | Handsontable
+  metaTitle: Notification | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Dialog
-menuTag: updated
+addedIn: "17.1.0"
 ---
 
-Show non-blocking toast notifications for save confirmations, errors, and other transient feedback. Toasts are anchored to the Handsontable root, support stacking per corner, and work with the design system themes.
+Show non-blocking toast notifications for save confirmations, errors, and other transient feedback. Toasts are anchored to the grid's root element, support stacking per corner, and work with the design system themes.
 
 [[toc]]
 
 ## Overview
 
 The Notification plugin adds a small API on top of the grid: `showMessage`, `hide`, `hideAll`, `isVisible`, and `getQueueSize`. You can choose severity variants, corner positions, optional titles, action buttons, and auto-dismiss timing. The plugin is disabled by default; set [`notification`](@/api/options.md#notification) to `true` or to a configuration object.
+
+The plugin works on the main grid only. A grid nested in a cell, that is a cell of the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, has no overlay layer to render toasts into, so the [`notification`](@/api/options.md#notification) option has no effect there.
 
 Toasts use `aria-live="polite"` for informational variants and `aria-live="assertive"` for the `error` variant so assistive technologies announce them without moving keyboard focus. Press **F6** to move focus into the notification region when at least one toast is visible; **Tab** and **Shift+Tab** then move between controls across visible toasts. **Tab** from the last control in the region moves focus to the highlighted grid cell (the notification host renders in the grid's overlay layer, so default tab order would otherwise leave the table). **Shift+Tab** from the first control behaves like **Escape** and returns focus to the element that was active before you entered. Press **Escape** to leave the region the same way. Hiding the last toast while focus is in the notification region or on that toast restores focus the same way as **Escape**. Opening a toast does not move focus on its own.
 

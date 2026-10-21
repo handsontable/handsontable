@@ -63,7 +63,7 @@ test('is idempotent: does not double-prefix already-versioned paths', async () =
   });
 });
 
-test('only touches .html files', async () => {
+test('leaves non-html files outside _astro untouched', async () => {
   const original = '{"href": "/docs/react-data-grid/installation/"}';
 
   await withFixtureDir({ 'data/common.json': original }, async (dir) => {
@@ -88,4 +88,59 @@ test('rewrites references nested in subdirectories', async () => {
       assert.match(content, /href="\/docs\/9\.0\/angular-data-grid\/installation\/"/);
     }
   );
+});
+
+// Verbatim excerpt of the frozen 17.1 image's `_astro/preload-helper.zilMZTQO.js`
+// (DEV-3058, Sentry HANDSONTABLE-DOCS-22T).
+const PRELOAD_HELPER_17_1 =
+  'const h=(function(){return"modulepreload"})(),v=function(l){return"/docs/"+l},d={},' +
+  'y=function(s,i,E){if(e=v(e),e in d)return;n.addEventListener("error",' +
+  '()=>p(new Error(`Unable to preload CSS for ${e}`)))};export{y as _};';
+
+test('rewrites the preload-helper base in _astro/*.js with the version prefix', async () => {
+  await withFixtureDir({ '_astro/preload-helper.zilMZTQO.js': PRELOAD_HELPER_17_1 }, async (dir) => {
+    const changedCount = await rewriteVersionedPaths(dir, '17.1');
+    const content = await readFile(join(dir, '_astro/preload-helper.zilMZTQO.js'), 'utf-8');
+
+    assert.equal(changedCount, 1);
+    assert.equal(
+      content,
+      PRELOAD_HELPER_17_1.replace('v=function(l){return"/docs/"+l}', 'v=function(l){return"/docs/17.1/"+l}')
+    );
+  });
+});
+
+test('is idempotent on the preload-helper base', async () => {
+  await withFixtureDir({ '_astro/preload-helper.js': PRELOAD_HELPER_17_1 }, async (dir) => {
+    await rewriteVersionedPaths(dir, '17.1');
+    const changedCount = await rewriteVersionedPaths(dir, '17.1');
+    const content = await readFile(join(dir, '_astro/preload-helper.js'), 'utf-8');
+
+    assert.equal(changedCount, 0);
+    assert.match(content, /function\(l\)\{return"\/docs\/17\.1\/"\+l\}/);
+  });
+});
+
+test('leaves other "/docs/" strings in _astro/*.js untouched', async () => {
+  const original =
+    'fetch("/docs/data/common.json");const u="/docs/"+path;' +
+    'const f=function(a){return"/docs/"+b};const g=function(a){return"/docs/api/"+a};';
+
+  await withFixtureDir({ '_astro/page.B_tncCx8.js': original }, async (dir) => {
+    const changedCount = await rewriteVersionedPaths(dir, '17.1');
+    const content = await readFile(join(dir, '_astro/page.B_tncCx8.js'), 'utf-8');
+
+    assert.equal(changedCount, 0);
+    assert.equal(content, original);
+  });
+});
+
+test('only rewrites the preload-helper base in .js files under _astro/', async () => {
+  await withFixtureDir({ 'scripts/preload-helper.js': PRELOAD_HELPER_17_1 }, async (dir) => {
+    const changedCount = await rewriteVersionedPaths(dir, '17.1');
+    const content = await readFile(join(dir, 'scripts/preload-helper.js'), 'utf-8');
+
+    assert.equal(changedCount, 0);
+    assert.equal(content, PRELOAD_HELPER_17_1);
+  });
 });

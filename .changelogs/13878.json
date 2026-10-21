@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a native date input to the \"Is equal to\" and \"Is not equal to\" filter conditions on `date` and `intl-date` columns.",
+  "type": "added",
+  "issueOrPR": 13878,
+  "breaking": false,
+  "framework": "none"
+}

@@ -65,6 +65,7 @@ describe('DropdownCellType', () => {
         filter: false,
         strict: true,
         parsePastedValue: true,
+        textEllipsis: true,
       });
     });
   });

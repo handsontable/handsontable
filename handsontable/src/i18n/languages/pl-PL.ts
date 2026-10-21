@@ -125,6 +125,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Przejdź do następnej strony',
   [C.PAGINATION_LAST_PAGE]: 'Przejdź do ostatniej strony',
 
+  [C.SHEETS_BAR_SECTION]: 'Arkusze',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Dodaj arkusz',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Wszystkie arkusze',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Działania arkusza: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Nazwa arkusza',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Usuń',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Duplikuj',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Zmień nazwę',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Przesuń w prawo',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Przesuń w lewo',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Przewiń arkusze wstecz',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Przewiń arkusze do przodu',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Arkusz [name] aktywowany',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Nazwa arkusza nie została zmieniona: [name] jest już zajęta',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Arkusz',
+
   [C.CHECKBOX_CHECKED]: 'Zaznaczony',
   [C.CHECKBOX_UNCHECKED]: 'Odznaczony',
 
@@ -145,6 +161,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nie udało się usunąć wierszy',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Żądanie nie powiodło się',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponów pobieranie',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Zaznacz wiersz [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Zaznacz wszystkie wiersze (zaznaczono [selected] z [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Zaznacz wszystkie (zaznaczono [checked] z [total])',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Zaznaczono wiersz [row]',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Odznaczono wiersz [row]',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Zaznaczono [selected] z [total] wierszy',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Usuń zaznaczone wiersze ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Wyczyść zaznaczenie wierszy',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Zablokowane wiersze u góry',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zablokowane wiersze na dole',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Zablokowane kolumny na początku',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Zablokowane kolumny na końcu',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozwinięto wiersz [label], widoczne rozwinięte wiersze: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Zwinięto wiersz [label]',
 };
 
 export default dictionary;

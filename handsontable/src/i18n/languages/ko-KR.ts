@@ -118,6 +118,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: '다음 페이지로 이동',
   [C.PAGINATION_LAST_PAGE]: '마지막 페이지로 이동',
 
+  [C.SHEETS_BAR_SECTION]: '시트',
+  [C.SHEETS_BAR_ADD_SHEET]: '시트 추가',
+  [C.SHEETS_BAR_ALL_SHEETS]: '모든 시트',
+  [C.SHEETS_BAR_SHEET_MENU]: '시트 작업: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: '시트 이름',
+  [C.SHEETS_BAR_ITEMS_DELETE]: '삭제',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: '복제',
+  [C.SHEETS_BAR_ITEMS_RENAME]: '이름 바꾸기',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: '오른쪽으로 이동',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: '왼쪽으로 이동',
+  [C.SHEETS_BAR_PAGE_PREV]: '시트 뒤로 스크롤',
+  [C.SHEETS_BAR_PAGE_NEXT]: '시트 앞으로 스크롤',
+  [C.SHEETS_BAR_SHEET_CHANGED]: '시트 [name] 활성화됨',
+  [C.SHEETS_BAR_RENAME_REJECTED]: '시트 이름이 변경되지 않았습니다: [name]은(는) 이미 사용 중입니다',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: '시트',
+
   [C.LOADING_TITLE]: '로딩 중...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: '닫기',
 
@@ -135,6 +151,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '행을 제거할 수 없습니다',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '요청이 실패했습니다',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: '다시 불러오기',
+  [C.ROW_SELECTION_SELECT_ROW]: '[row]행 선택',
+  [C.ROW_SELECTION_SELECT_ALL]: '모든 행 선택 ([total]개 중 [selected]개 선택됨)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: '모두 선택 ([total]개 중 [checked]개 선택됨)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: '[row]행 선택됨',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: '[row]행 선택 해제됨',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[total]개 행 중 [selected]개 선택됨',
+  [C.ROW_SELECTION_MENU_REMOVE]: '선택한 행 삭제 ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: '행 선택 해제',
+  [C.FREEZE_BAR_ROWS_TOP]: '상단의 고정된 행',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: '하단의 고정된 행',
+  [C.FREEZE_BAR_COLUMNS_START]: '시작 쪽 고정된 열',
+  [C.FREEZE_BAR_COLUMNS_END]: '끝 쪽 고정된 열',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '[label]행 펼침, 펼쳐진 행: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '[label]행 접음',
 };
 
 export default dictionary;

@@ -263,8 +263,7 @@ describe('licenseNotification', () => {
 
       onActivate('tab_from_below');
 
-      // The last index has to be derived from `length`, so a hardcoded `[1]` (or a stale
-      // `Array#at(-1)`, which is above the browser-targets.js Safari baseline) fails here.
+      // The last index has to be derived from `length`, so a hardcoded `[1]` fails here.
       expect(focusSpies.map(spy => spy.mock.calls.length)).toEqual([1, 0, 1]);
 
       focusSpies.forEach(spy => spy.mockRestore());

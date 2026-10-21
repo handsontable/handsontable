@@ -1,19 +1,18 @@
 ---
 type: how-to
 title: Time cell type
-metaTitle: Time cell type - JavaScript Data Grid | Handsontable
+metaTitle: Time cell type | Handsontable DataGrid for JavaScript
 description: Display, format, sort, and filter time values correctly by using the time cell type.
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
-  metaTitle: Time cell type - React Data Grid | Handsontable
+  metaTitle: Time cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Time cell type - Angular Data Grid | Handsontable
+  metaTitle: Time cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Time cell type - Vue Data Grid | Handsontable
+  metaTitle: Time cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
-menuTag: updated
 ---
 Display, format, sort, and filter time values correctly by using the time cell type. Edit times via the cell editor.
 
@@ -24,6 +23,8 @@ The time cell type formats time values using a configurable format string. Use i
 ## Overview
 
 The time cell type lets you treat cell values as times: format how they are displayed and validate input. Use the `intl-time` or `time` cell type with the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API and 24-hour time strings.
+
+Since Handsontable 18.0, `time` is the main name of this cell type. The `intl-time` name still works, without a warning, for backward compatibility. Before 18.0, `time` used Moment.js format strings, and its default `timeFormat` was a string too. Handsontable 17.0 deprecated those strings, and 18.0 dropped support for them: a string `timeFormat` now logs a console warning and falls back to `{ hour: 'numeric', minute: '2-digit' }`. To migrate, see [Migrate from 17.1 to 18.0](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#migrate-date-and-time-cells-to-iso-8601-format).
 
 ## Time cell type demo
 
@@ -405,7 +406,7 @@ After configuring the time cell type, cells display time values formatted accord
 
 ## Keyboard shortcuts
 
-The `intl-time` and `time` cell editors open the browser's native time picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
+The `intl-time` and `time` cell editors open the browser's native time picker. Double-clicking a cell shows the picker. In Chromium-based browsers, an open picker takes the keys: <kbd>**Tab**</kbd> does nothing, and <kbd>**Enter**</kbd> and <kbd>**Escape**</kbd> close only the picker. Opening the editor with the keyboard (<kbd>**Enter**</kbd>, <kbd>**F2**</kbd>, or typing) leaves the picker closed, so <kbd>**Tab**</kbd>, <kbd>**Escape**</kbd>, and the other grid shortcuts keep working. In Chrome and Edge, press <kbd>**Alt**</kbd>+<kbd>**↓**</kbd> (<kbd>⌥</kbd>+<kbd>**↓**</kbd> on macOS) in the editor to show the picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
 
 ## Related articles
 

@@ -5,12 +5,6 @@ import { getData } from "./utils/constants";
 import { starsRenderer } from "./renderers/stars";
 import { progressBarRenderer } from "./renderers/progressBar";
 
-import {
-  drawCheckboxInRowHeaders,
-  addClassesToRows,
-  changeCheckboxCell
-} from "./utils/hooks-callbacks";
-
 @Component({
   standalone: true,
   encapsulation: ViewEncapsulation.None,
@@ -22,9 +16,6 @@ import {
 })
 export class DataGridComponent {
   dataset = getData();
-  drawCheckboxInRowHeaders = drawCheckboxInRowHeaders;
-  addClassesToRows = addClassesToRows;
-  changeCheckboxCell = changeCheckboxCell;
   progressBarRenderer = progressBarRenderer;
   starsRenderer = starsRenderer;
   colHeaders = [
@@ -77,10 +68,7 @@ export class DataGridComponent {
     mergeCells: true,
     multiColumnSorting: true,
     filters: true,
-    afterOnCellMouseDown: this.changeCheckboxCell,
     headerClassName: this.headerClassNameValue,
-    afterGetRowHeader: this.drawCheckboxInRowHeaders,
-    beforeRenderer: this.addClassesToRows,
     manualRowMove: true,
     navigableHeaders: true,
     comments: true,

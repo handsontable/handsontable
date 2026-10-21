@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
+import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import './example1.css';
 
 registerAllModules();
 
 const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js';
-const CDN_XLSX = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
 
 const scriptPromises = new Map();
 
@@ -48,6 +48,7 @@ function loadScript(src) {
   return p;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function ensurePapa() {
   if (typeof window.Papa !== 'undefined') {
     return window.Papa;
@@ -60,20 +61,6 @@ async function ensurePapa() {
   }
 
   return window.Papa;
-}
-
-async function ensureXlsx() {
-  if (typeof window.XLSX !== 'undefined') {
-    return window.XLSX;
-  }
-
-  await loadScript(CDN_XLSX);
-
-  if (typeof window.XLSX === 'undefined') {
-    throw new Error('SheetJS did not register on window.');
-  }
-
-  return window.XLSX;
 }
 
 function extensionOf(name) {
@@ -89,6 +76,10 @@ function normalizeCellValue(value) {
 
   if (typeof value === 'number' || typeof value === 'boolean') {
     return value;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
   }
 
   const text = String(value).trim();
@@ -126,6 +117,7 @@ function processPapaResults(results) {
   return { headers: fields, rows };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseCsvText(text, PapaRef) {
   const trimmed = text.trim();
 
@@ -143,6 +135,7 @@ function parseCsvText(text, PapaRef) {
   return processPapaResults(parsed);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function parseCsvFile(file, PapaRef) {
   return new Promise((resolve, reject) => {
     PapaRef.parse(file, {
@@ -162,66 +155,61 @@ async function parseCsvFile(file, PapaRef) {
   });
 }
 
-function parseXlsxArrayBuffer(buf, XLSXRef) {
-  let workbook;
+async function parseXlsxFile(file) {
+  // A throwaway grid in a hidden element runs the ImportFile plugin. `apply: false` returns the
+  // mapped sheet without touching the grid, and a refused file rejects with a message that says why.
+  const host = document.createElement('div');
 
-  try {
-    workbook = XLSXRef.read(buf, { type: 'array' });
-  } catch {
-    throw new Error('Could not read the Excel workbook. The file may be corrupted.');
-  }
+  host.hidden = true;
+  document.body.appendChild(host);
 
-  const sheetName = workbook.SheetNames[0];
-
-  if (!sheetName) {
-    throw new Error('The workbook has no sheets.');
-  }
-
-  const sheet = workbook.Sheets[sheetName];
-  const matrix = XLSXRef.utils.sheet_to_json(sheet, {
-    header: 1,
-    defval: null,
-    raw: true,
+  const parser = new Handsontable(host, {
+    data: [[]],
+    importFile: true,
+    licenseKey: 'non-commercial-and-evaluation',
   });
 
-  if (!matrix.length) {
-    throw new Error('The sheet is empty.');
-  }
+  try {
+    const result = await parser.getPlugin('importFile').importFromBlob('xlsx', file, {
+      colHeaders: 'firstRow',
+      apply: false,
+    });
+    const rawHeaders = Array.isArray(result.colHeaders) ? result.colHeaders : [];
+    const headers = rawHeaders.map((cell, i) => {
+      const text = String(cell ?? '').trim();
 
-  const rawHeader = matrix[0].map((cell) => String(cell ?? '').trim());
+      return text === '' ? `Column ${i + 1}` : text;
+    });
 
-  if (rawHeader.length === 0 || rawHeader.every((h) => h === '')) {
-    throw new Error('No header row found in the Excel sheet.');
-  }
-
-  const keys = rawHeader.map((h, i) => (h === '' ? `Column ${i + 1}` : h));
-  const rows = [];
-
-  for (let r = 1; r < matrix.length; r++) {
-    const line = matrix[r];
-    const allEmpty = !line || line.every((c) => normalizeCellValue(c) === null);
-
-    if (allEmpty) {
-      continue;
+    if (headers.length === 0) {
+      throw new Error('No header row found in the Excel sheet.');
     }
 
-    const obj = {};
+    const rows = [];
 
-    for (let c = 0; c < keys.length; c++) {
-      const key = keys[c];
-      const raw = line[c];
+    for (const line of result.data) {
+      const obj = {};
+      let allEmpty = true;
 
-      obj[key] = normalizeCellValue(raw);
+      headers.forEach((key, c) => {
+        obj[key] = normalizeCellValue(line[c]);
+        allEmpty = allEmpty && obj[key] === null;
+      });
+
+      if (!allEmpty) {
+        rows.push(obj);
+      }
     }
 
-    rows.push(obj);
-  }
+    if (rows.length === 0) {
+      throw new Error('No data rows after the header.');
+    }
 
-  if (rows.length === 0) {
-    throw new Error('No data rows after the header.');
+    return { headers, rows };
+  } finally {
+    parser.destroy();
+    host.remove();
   }
-
-  return { headers: keys, rows };
 }
 
 async function parseFile(file) {
@@ -234,10 +222,7 @@ async function parseFile(file) {
   }
 
   if (ext === 'xlsx') {
-    const XLSXRef = await ensureXlsx();
-    const buf = await file.arrayBuffer();
-
-    return parseXlsxArrayBuffer(buf, XLSXRef);
+    return parseXlsxFile(file);
   }
 
   throw new Error('Unsupported file type. Use a .csv or .xlsx file.');
@@ -245,9 +230,7 @@ async function parseFile(file) {
 
 function columnsFromHeaders(headers, rows) {
   return headers.map((data) => {
-    const values = rows
-      .map((row) => row[data])
-      .filter((v) => v !== null);
+    const values = rows.map((row) => row[data]).filter((v) => v !== null);
 
     if (values.length > 0 && values.every((v) => typeof v === 'number')) {
       return { data, type: 'numeric' };
@@ -374,14 +357,21 @@ const ExampleComponent = () => {
         </div>
       </div>
 
-      {errorMessage && (
-        <div className="import-msg import-msg--error">{errorMessage}</div>
-      )}
+      {errorMessage && <div className="import-msg import-msg--error">{errorMessage}</div>}
 
       {gridData.length === 0 ? (
         <div className="import-empty">
           <span className="import-empty-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <rect x="3" y="3" width="18" height="18" />
               <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
             </svg>

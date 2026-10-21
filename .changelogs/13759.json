@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added treegrid accessibility to the NestedRows plugin: tree attributes on rows, Ctrl/Cmd+arrow keys on a row header to expand, collapse, or move to the parent row, and screen reader announcements. On a row header, Ctrl/Cmd+arrow keys no longer jump to the edge of the row, and Enter no longer toggles while an overlay covers the grid.",
+  "type": "added",
+  "issueOrPR": 13759,
+  "breaking": true,
+  "framework": "none"
+}

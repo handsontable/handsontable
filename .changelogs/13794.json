@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the date editor erasing a cell's date when the native date input held an incomplete date.",
+  "type": "fixed",
+  "issueOrPR": 13794,
+  "breaking": false,
+  "framework": "none"
+}

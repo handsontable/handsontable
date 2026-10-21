@@ -62,7 +62,7 @@ packages:
 | `wrappers/react-wrapper/` | `@handsontable/react-wrapper` | React component wrapper |
 | `wrappers/angular-wrapper/` | `@handsontable/angular-wrapper` | Angular component wrapper |
 | `wrappers/vue3/` | `@handsontable/vue3` | Vue 3 component wrapper |
-| `visual-tests/` | `handsontable-visual-tests` | Playwright/Argos visual regression suite |
+| `visual-tests/` | `handsontable-visual-tests` | Playwright/reg-suit visual regression suite |
 | `examples/` | `handsontable-examples-internal` | Code examples for documentation |
 | `docs/` | `handsontable-documentation` | Astro/Starlight documentation site (Node 20) |
 | `docs/angular-type-check/` | `docs-angular-type-check` | Internal Angular type-check workspace for the docs site |
@@ -73,13 +73,13 @@ Note: `scripts/` and `performance-tests/` are directories in the repo but are **
 
 ## Framework wrapper comparison
 
-All framework wrappers follow a **peer dependency pattern**, requiring `handsontable` to be installed alongside the wrapper (currently `handsontable@^17.0.0` across all three). Each wrapper bridges the framework lifecycle to the Handsontable instance lifecycle.
+All framework wrappers follow a **peer dependency pattern**, requiring `handsontable` of the same major version to be installed alongside the wrapper (the exact ranges are in each wrapper's `package.json` `peerDependencies`). Each wrapper bridges the framework lifecycle to the Handsontable instance lifecycle.
 
 | Package | Framework peer dependency | Main components |
 |---|---|---|
-| `@handsontable/react-wrapper` | `handsontable@^17.0.0` (React 18+) | `HotTable`, `HotColumn` |
-| `@handsontable/angular-wrapper` | `@angular/core >=16.0.0 <22.0.0`, `rxjs@^7.0.0`, `handsontable@^17.0.0` | `HotTableComponent` (`hot-table`) |
-| `@handsontable/vue3` | `vue@^3.2.22`, `handsontable@^17.0.0` | `HotTable`, `HotColumn` |
+| `@handsontable/react-wrapper` | `handsontable` (React 18+) | `HotTable`, `HotColumn` |
+| `@handsontable/angular-wrapper` | `@angular/core` (16 and newer), `rxjs@^7.0.0`, `handsontable` | `HotTableComponent` (`hot-table`) |
+| `@handsontable/vue3` | `vue@^3.2.22`, `handsontable` | `HotTable`, `HotColumn` |
 
 **Bridge points** (shared across wrappers):
 - Framework component mount → `new Handsontable(element, options)` (or `hot.init()`).

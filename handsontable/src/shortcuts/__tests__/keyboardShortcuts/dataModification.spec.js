@@ -31,7 +31,11 @@ describe('Core data modification keyboard shortcuts', () => {
       expect(afterChange).not.toHaveBeenCalled();
     });
 
-    it('should not populate the cell value when the last non-contiguous selection layer includes less than 2 cells', async() => {
+    // This used to assert the opposite: the shortcut counted the cells of the ACTIVE layer only, so
+    // a focused layer holding one cell refused the gesture however many cells the other layers held.
+    // An open editor answered the same keystroke by filling them all, so the grid contradicted
+    // itself (DEV-103). The value still comes from the focused cell - here C3.
+    it('should populate the cell value to the other layers when the last non-contiguous selection layer includes less than 2 cells', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -43,11 +47,57 @@ describe('Core data modification keyboard shortcuts', () => {
       await selectCells([[1, 0, 3, 0], [2, 2, 2, 2]]);
       await keyDownUp(['control/meta', 'enter']);
 
-      expect(getData()).toEqual(createSpreadsheetData(5, 5));
+      expect(getDataAtCell(1, 0)).toBe('C3');
+      expect(getDataAtCell(2, 0)).toBe('C3');
+      expect(getDataAtCell(3, 0)).toBe('C3');
+      // The cell the value came from is left alone, and so is everything outside the selection.
+      expect(getDataAtCell(2, 2)).toBe('C3');
+      expect(getDataAtCell(0, 0)).toBe('A1');
+      expect(getDataAtCell(4, 0)).toBe('A5');
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 1,0 from: 1,0 to: 3,0',
         'highlight: 2,2 from: 2,2 to: 2,2',
       ]);
+      // One gesture stays one change event, so it also stays one undo step.
+      expect(afterChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not populate the cell value when a single selected cell is all there is', async() => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        afterChange,
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      await selectCells([[2, 2, 2, 2]]);
+      await keyDownUp(['control/meta', 'enter']);
+
+      expect(getData()).toEqual(createSpreadsheetData(5, 5));
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('should not populate the cell value when the other layers hold nothing writable', async() => {
+      const afterChange = jasmine.createSpy('afterChange');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        afterChange,
+        cell: [
+          { row: 1, col: 0, readOnly: true },
+          { row: 2, col: 0, readOnly: true },
+          { row: 3, col: 0, readOnly: true },
+        ],
+      });
+
+      afterChange.calls.reset(); // reset initial "afterChange" call after load data
+      await selectCells([[1, 0, 3, 0], [2, 2, 2, 2]]);
+      await keyDownUp(['control/meta', 'enter']);
+
+      // Every cell the other layer offers is read-only, so the fill would write nothing - and a
+      // shortcut that writes nothing must not claim the keystroke.
+      expect(getData()).toEqual(createSpreadsheetData(5, 5));
       expect(afterChange).not.toHaveBeenCalled();
     });
 

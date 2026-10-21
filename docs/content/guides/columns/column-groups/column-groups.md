@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Column groups
-metaTitle: Column groups - JavaScript Data Grid | Handsontable
+metaTitle: Column groups | Handsontable DataGrid for JavaScript
 description: Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
 permalink: /column-groups
 canonicalUrl: /column-groups
@@ -12,11 +12,11 @@ tags:
   - colspan
   - rowspan
 react:
-  metaTitle: Column groups - React Data Grid | Handsontable
+  metaTitle: Column groups | Handsontable DataGrid for React
 angular:
-  metaTitle: Column groups - Angular Data Grid | Handsontable
+  metaTitle: Column groups | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column groups - Vue Data Grid | Handsontable
+  metaTitle: Column groups | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: updated
@@ -49,6 +49,10 @@ Each `nestedHeaders` entry is either a string label or an object with these prop
 | `collapsible`     | `boolean` | Whether the group can be collapsed and expanded. You enable it through the [`collapsibleColumns`](@/api/options.md#collapsiblecolumns) option, not in the `nestedHeaders` object. See [Collapsible headers](#collapsible-headers). |
 
 For defaults and full details, see the [`nestedHeaders` API reference](@/api/options.md#nestedheaders).
+
+::: warning
+A `label` is written to the DOM as HTML, so a label built from user input or an external system can inject markup. Handsontable DataGrid does not sanitize it by default. Set the [`sanitizer`](@/api/options.md#sanitizer) option, which receives nested header labels under the `'header'` source. See [Content sanitizing](@/guides/security/security/security.md#content-sanitizing).
+:::
 
 ### Configuration
 
@@ -247,6 +251,14 @@ collapsibleColumns: [
 ```
 
 :::
+
+The `row` coordinate is negative - counting from the first table row upwards - so `-1` points to the header row directly above the first table row, and `-4` points to the top header row of four nested levels. The `col` coordinate is the zero-based index of the column where the header starts.
+
+<span class="img-invert">
+
+![Diagram of the collapsibleColumns coordinate system: header-row indexes -4 to -1 counted from the first table row upwards, column indexes 0 to 6, and expand/collapse buttons at row -4, col 1 and at row -3, col 5](/img/collapsible_columns.svg)
+
+</span>
 
 ### Example
 

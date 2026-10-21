@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Custom shortcuts
-metaTitle: Custom shortcuts - JavaScript Data Grid | Handsontable
-description: Customize Handsontable's keyboard shortcuts.
+metaTitle: Custom shortcuts | Handsontable DataGrid for JavaScript
+description: Customize Handsontable DataGrid's keyboard shortcuts.
 permalink: /custom-shortcuts
 canonicalUrl: /custom-shortcuts
 tags:
@@ -17,16 +17,16 @@ tags:
   - custom shortcuts
   - shortcut keys
 react:
-  metaTitle: Custom shortcuts - React Data Grid | Handsontable
+  metaTitle: Custom shortcuts | Handsontable DataGrid for React
 angular:
-  metaTitle: Custom shortcuts - Angular Data Grid | Handsontable
+  metaTitle: Custom shortcuts | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Custom shortcuts - Vue Data Grid | Handsontable
+  metaTitle: Custom shortcuts | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Navigation
 menuTag: updated
 ---
-Use the [`ShortcutManager`](@/api/shortcutManager.md) API to add, remove, replace, or block keyboard shortcuts in Handsontable.
+Use the [`ShortcutManager`](@/api/shortcutManager.md) API to add, remove, replace, or block keyboard shortcuts in Handsontable DataGrid.
 
 [[toc]]
 
@@ -184,7 +184,7 @@ const gridContext = hot.getShortcutManager().getContext('grid');
 gridContext.addShortcut({
   group: 'group_ID', // a string value; the user can decide on its name. 
      // Each shortcut should be assigned to the group.
-  runOnlyIf: () => hot.getSelected() !== void 0,
+  runOnlyIf: () => hot.getSelected() !== undefined,
   keys: [['enter']],
   callback: () => {},
 });
@@ -203,9 +203,7 @@ gridContext.addShortcut({
   group: 'customNumericEditor',
   position: 'before',
   relativeToGroup: 'editorManager.handlingEditor',
-  runOnlyIf: () => {
-    hot.getSelected() !== void 0;
-  },
+  runOnlyIf: () => hot.getSelected() !== undefined,
   keys: [['F2']],
   callback: () => {
     if (hot.getActiveEditor().cellProperties.type === 'numeric') {
@@ -416,7 +414,7 @@ The `control/meta` key name is specific to Handsontable. It matches `Control` on
 
 ## API reference
 
-For the list of [options](@/guides/getting-started/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:
+For the list of [options](@/guides/configuration/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:
 
 **APIs**
 

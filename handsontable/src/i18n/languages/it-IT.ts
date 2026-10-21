@@ -121,6 +121,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Vai alla pagina successiva',
   [C.PAGINATION_LAST_PAGE]: 'Vai all\'ultima pagina',
 
+  [C.SHEETS_BAR_SECTION]: 'Fogli',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Aggiungi foglio',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Tutti i fogli',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Azioni foglio: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Nome del foglio',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Elimina',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Duplica',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Rinomina',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Sposta a destra',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Sposta a sinistra',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Scorri i fogli indietro',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Scorri i fogli avanti',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Foglio [name] attivato',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Nome del foglio non modificato: [name] è già in uso',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Foglio',
+
   [C.LOADING_TITLE]: 'Caricamento...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Chiudi',
 
@@ -138,6 +154,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Impossibile rimuovere le righe',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Richiesta non riuscita',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ricarica',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Seleziona riga [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Seleziona tutte le righe ([selected] di [total] selezionate)',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Seleziona tutto ([checked] di [total] selezionate)',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Riga [row] selezionata',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Riga [row] deselezionata',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: '[selected] di [total] righe selezionate',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Rimuovi righe selezionate ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Cancella selezione righe',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Righe bloccate in alto',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Righe bloccate in basso',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Colonne bloccate all\'inizio',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Colonne bloccate alla fine',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Riga [label] espansa, righe espanse visualizzate: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Riga [label] compressa',
 };
 
 export default dictionary;

@@ -4,7 +4,9 @@ import type { CellProperties } from '../../../settings';
 import { Hooks } from '../../../core/hooks';
 import { hasOwnProperty, extend } from '../../../helpers/object';
 import { isFunction } from '../../../helpers/function';
-import { extendByMetaType } from '../utils';
+import { applyRequestedTypeEditor, extendByMetaType, normalizeEditorSetting } from '../utils';
+import { markCellMetaChanged } from '../../../core/incrementalRender/renderChangeTracker';
+import { colToPropOrIndex } from '../../../helpers/columnProp';
 
 /**
  * @class DynamicCellMetaMod
@@ -23,7 +25,7 @@ import { extendByMetaType } from '../utils';
  */
 type MetaManagerWithHot = MetaManagerInstance & {
   hot: HotInstance;
-  updateCellMeta: (...args: unknown[]) => void;
+  extendCellMeta: (...args: unknown[]) => void;
   [key: string]: unknown;
 };
 
@@ -123,7 +125,7 @@ export class DynamicCellMetaMod {
     }
 
     this.#runMetaExtension(cellMeta, (cellSettings) => {
-      this.metaManager.updateCellMeta(physicalRow, physicalColumn, cellSettings);
+      this.metaManager.extendCellMeta(physicalRow, physicalColumn, cellSettings);
     });
 
     let memoRow = this.metaSyncMemo.get(physicalRow);
@@ -139,7 +141,7 @@ export class DynamicCellMetaMod {
   /**
    * Extends a transient (not stored) cell meta object by the same user-specific properties as
    * `extendCellMeta`, with two deliberate differences. The `cells`/`type` settings are applied
-   * directly on the transient object - never through `updateCellMeta`, which would permanently
+   * directly on the transient object - never through `extendCellMeta`, which would permanently
    * materialize the cell. And `metaSyncMemo` is neither read nor written: the memo must reflect only
    * STORED meta objects, or a stored cell created later would skip its extension (a rendering bug),
    * and memo growth would defeat the point of a retention-free scan.
@@ -148,8 +150,10 @@ export class DynamicCellMetaMod {
    */
   extendTransientCellMeta(cellMeta: Record<string, unknown>) {
     this.#runMetaExtension(cellMeta, (cellSettings) => {
-      extend(cellMeta, cellSettings);
-      extendByMetaType(cellMeta, cellSettings);
+      const normalizedSettings = normalizeEditorSetting(cellSettings);
+
+      extend(cellMeta, normalizedSettings);
+      extendByMetaType(cellMeta, normalizedSettings, cellMeta, cellSettings.editor === true);
     });
   }
 
@@ -158,7 +162,7 @@ export class DynamicCellMetaMod {
    * `beforeGetCellMeta`, evaluates the `cells` function and the `type` value it (or the hook)
    * produced, hands the resulting settings to the caller-provided applier, and fires
    * `afterGetCellMeta`. The applier is the only step that differs between the stored path
-   * (persist through `updateCellMeta`) and the transient path (extend the throwaway object).
+   * (persist through `extendCellMeta`) and the transient path (extend the throwaway object).
    *
    * @param {object} cellMeta The cell meta object to extend.
    * @param {Function} applyCellSettings Receives the resolved `cells`/`type` settings object.
@@ -169,7 +173,11 @@ export class DynamicCellMetaMod {
     const visualRow = cellMeta.visualRow as number;
     const visualCol = cellMeta.visualCol as number;
     const hot = this.metaManager.hot;
-    const prop = hot.colToProp(visualCol);
+    // `cellMeta.prop` is public — `beforeValidate` / `afterValidate` and every cell function read
+    // it as the cell's column reference. A meta can be resolved for a column that does not exist
+    // yet (auto column growth resolves the meta before creating the column), and `colToProp()`
+    // answers `null` for that, so the index it always carried is kept as the fallback.
+    const prop = colToPropOrIndex(hot, visualCol);
 
     cellMeta.prop = prop;
 
@@ -192,7 +200,15 @@ export class DynamicCellMetaMod {
     }
 
     if (cellSettings) {
+      // Passed on unnormalized: each applier normalizes `editor` itself, because an `editor: true` it
+      // would otherwise lose still has to reach `extendByMetaType()` as an explicit opt-in.
       applyCellSettings(cellSettings);
+    }
+
+    // A cell that asked for its type's editor through `setCellMeta()` or the `cell` option, while the
+    // type itself comes from the column, has nothing expanded above, so it gets that editor here.
+    if (!cellSettings?.type && applyRequestedTypeEditor(cellMeta)) {
+      markCellMetaChanged(cellMeta);
     }
 
     hot.runHooks('afterGetCellMeta', visualRow, visualCol, cellMeta);

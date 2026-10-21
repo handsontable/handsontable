@@ -89,11 +89,27 @@ class SelectionCalculations {
     const fullMergeAreaWithinSelection =
       startRow <= mergedCell.row && startColumn <= mergedCell.col &&
       endRow >= mergeRowEnd && endColumn >= mergeColumnEnd;
+    const selectedRanges = (this.hot.getSelectedRange() ?? []) as CellRange[];
+    const mergeRange = mergedCell.getRange();
+    let fullCoverCount = 0;
+    let coverRank = 0;
+
+    for (let i = 0; i < selectedRanges.length; i++) {
+      if (!selectedRanges[i].includesRange(mergeRange)) {
+        continue;
+      }
+
+      if (i === layerLevel) {
+        coverRank = fullCoverCount;
+      }
+
+      fullCoverCount += 1;
+    }
 
     if (fullMergeAreaWithinSelection) {
-      return `${this.fullySelectedMergedCellClassName}-${layerLevel}`;
+      return `${this.fullySelectedMergedCellClassName}-${coverRank}`;
 
-    } else if (this.isMergeCellFullySelected(mergedCell, this.hot.getSelectedRange() as CellRange[])) {
+    } else if (this.isMergeCellFullySelected(mergedCell, selectedRanges)) {
       return `${this.fullySelectedMergedCellClassName}-multiple`;
     }
   }
@@ -133,23 +149,6 @@ class SelectionCalculations {
     }
 
     return true;
-  }
-
-  /**
-   * Generate an array of the entirely-selected merged cells' class names.
-   *
-   * @returns {string[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
-   */
-  getSelectedMergedCellClassNameToRemove() {
-    const classNames = [];
-
-    for (let i = 0; i <= 7; i += 1) {
-      classNames.push(`${this.fullySelectedMergedCellClassName}-${i}`);
-    }
-
-    classNames.push(`${this.fullySelectedMergedCellClassName}-multiple`);
-
-    return classNames;
   }
 }
 

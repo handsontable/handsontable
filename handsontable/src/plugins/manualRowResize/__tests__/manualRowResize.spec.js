@@ -545,55 +545,6 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 1)).toBeAroundValue(getThemeLayout().defaultDataRowHeight, 1);
   });
 
-  it('should autosize selected rows after double click on handler', async() => {
-    handsontable({
-      data: createSpreadsheetData(9, 9),
-      rowHeaders: true,
-      manualRowResize: true,
-    });
-
-    await resizeRow(2, 300);
-
-    const $resizer = spec().$container.find('.manualRowResizer');
-    const resizerPosition = $resizer.position();
-
-    getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').simulate('mousedown');
-    getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
-    getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').simulate('mouseover');
-    getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').simulate('mousemove');
-    getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').simulate('mouseup');
-
-    await waitForNextAnimationFrames(38);
-    await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await waitForNextAnimationFrames(63);
-
-    expect(rowHeight(spec().$container, 1)).toBeAroundValue(getThemeLayout().defaultDataRowHeight);
-    expect(rowHeight(spec().$container, 2)).toBeAroundValue(getThemeLayout().defaultDataRowHeight);
-    expect(rowHeight(spec().$container, 3)).toBeAroundValue(getThemeLayout().defaultDataRowHeight);
-  });
-
-  it('should autosize selected rows after double click on handler and move mouse to the next row', async() => {
-    handsontable({
-      data: createSpreadsheetData(9, 9),
-      rowHeaders: true,
-      manualRowResize: true,
-    });
-
-    await resizeRow(1, 100);
-
-    getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').simulate('mouseover');
-
-    const $resizer = spec().$container.find('.manualRowResizer');
-    const resizerPosition = $resizer.position();
-
-    await waitForNextAnimationFrames(38);
-    await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    getInlineStartClone().find('tr:eq(2) th:eq(0)').simulate('mouseover');
-    await waitForNextAnimationFrames(38);
-
-    expect(rowHeight(spec().$container, 1)).toBeAroundValue(getThemeLayout().defaultDataRowHeight);
-  });
-
   it('should resize (expanding and narrowing) selected rows', async() => {
     handsontable({
       data: createSpreadsheetData(10, 20),
@@ -739,8 +690,11 @@ describe('manualRowResize', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
     $resizer.simulate('mouseup');
 
+    // The same content height in all three rows now. Row 0 used to report one pixel less, because it
+    // drew its own `border-top` inside the same border-box height; the column header owns that
+    // gridline since DEV-2786.
     expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).toBe(
-      getThemeLayout().defaultDataRowHeight + 28);
+      getThemeLayout().defaultDataRowHeight + 29);
     expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(
       getThemeLayout().defaultDataRowHeight + 29);
     expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the grid reporting a layout shift on every scroll frame (`div.wtSpreader`), which made a host page's Cumulative Layout Shift grow without bound while scrolling.",
+  "type": "fixed",
+  "issueOrPR": 13486,
+  "breaking": false,
+  "framework": "none"
+}

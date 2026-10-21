@@ -122,6 +122,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Pāriet uz nākamo lapu',
   [C.PAGINATION_LAST_PAGE]: 'Pāriet uz pēdējo lapu',
 
+  [C.SHEETS_BAR_SECTION]: 'Lapas',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Pievienot lapu',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Visas lapas',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Lapas darbības: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Lapas nosaukums',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Dzēst',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Dublēt',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Pārdēvēt',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Pārvietot pa labi',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Pārvietot pa kreisi',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Ritināt lapas atpakaļ',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Ritināt lapas uz priekšu',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'Lapa [name] aktivizēta',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Lapas nosaukums nav mainīts: [name] jau tiek izmantots',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'Lapa',
+
   [C.LOADING_TITLE]: 'Ielādē...',
   [C.NOTIFICATION_BUTTONS_CLOSE]: 'Aizvērt',
 
@@ -139,6 +155,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nevarēja noņemt rindas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Pieprasījums neizdevās',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Pārlādēt',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Atlasīt rindu [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Atlasīt visas rindas (atlasītas [selected] no [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Atzīmēt visu (atzīmētas [checked] no [total])',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Rinda [row] atlasīta',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Rindas [row] atlase atcelta',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Atlasītas [selected] no [total] rindām',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Noņemt atlasītās rindas ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Notīrīt rindu atlasi',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Nofiksētās rindas augšpusē',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Nofiksētās rindas apakšā',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Nofiksētās kolonnas sākumā',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Nofiksētās kolonnas beigās',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Izvērsta rinda [label], parādītās izvērstās rindas: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sakļauta rinda [label]',
 };
 
 export default dictionary;

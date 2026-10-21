@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Improved scroll-to-row performance on large grids: keyboard navigation and `scrollViewportTo` near the bottom of the dataset now compute the scroll offset in constant time instead of summing every row height from the top.",
-  "type": "changed",
-  "issueOrPR": 13075,
-  "breaking": false,
-  "framework": "none"
-}

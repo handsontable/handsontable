@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — grid sized by its container</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from query params, each mapped through a fixed allowlist to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An ABSENT param keeps the
+    // default so the fixture stays browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+    const htPick = (name, allowed, fallback) => {
+      const value = allowed[htParams.get(name) ?? fallback];
+
+      if (value === undefined) {
+        throw new Error(`Unknown ?${name}= value: ${JSON.stringify(htParams.get(name))}`);
+      }
+
+      return value;
+    };
+
+    window.htTheme = htPick('theme', { main: 'main', horizon: 'horizon', classic: 'classic' }, 'main');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min = handsontable.full.min.js).
+    window.htBundle = htPick('bundle', { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, 'umd');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for the visual suite's `/wrapper-demo` route, retired with its captures and configured as
+    it was: a 500 x 400 px container and a 20 x 20 grid inside it with `width: '100%'` and
+    `height: '100%'`, 100 px columns, row and column headers, and navigable headers. The grid is larger than the container, so it has to
+    scroll inside it.
+  -->
+  <div data-testid="container" style="width: 500px; height: 400px;"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="container"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
+    // has not rendered yet. `awaitFixtureBuilt()` rethrows the captured message.
+    try {
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        width: '100%',
+        height: '100%',
+        colWidths: 100,
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

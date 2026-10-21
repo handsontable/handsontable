@@ -1,3 +1,13 @@
+import { colIndexToLetter, colLetterToIndex } from '../../../../utils/xlsxEngine/cellRef';
+import { mapFormulaReferences } from '../../../../utils/xlsxEngine/formulaRefs';
+
+/**
+ * The column-letter converters, re-exported from the shared xlsx engine layer so the export's own
+ * formula helpers stay one import for callers: `colIndexToLetter` turns a 1-based column index into
+ * an Excel column letter string (1 → `'A'`, 27 → `'AA'`), `colLetterToIndex` inverts it.
+ */
+export { colIndexToLetter, colLetterToIndex };
+
 /**
  * Maps ColumnSummary type names to their Excel function equivalents.
  *
@@ -14,48 +24,6 @@ const SUMMARY_TYPE_TO_EXCEL_FN: Record<string, string> = {
 };
 
 /**
- * Converts a 1-based column index to an Excel column letter string.
- *
- * Examples: 1 → `'A'`, 26 → `'Z'`, 27 → `'AA'`, 28 → `'AB'`.
- *
- * @private
- * @param {number} colIndex 1-based column index.
- * @returns {string}
- */
-export function colIndexToLetter(colIndex: number): string {
-  let letter = '';
-  let n = colIndex;
-
-  while (n > 0) {
-    const remainder = (n - 1) % 26;
-
-    letter = String.fromCharCode(65 + remainder) + letter;
-    n = Math.floor((n - 1) / 26);
-  }
-
-  return letter;
-}
-
-/**
- * Converts an Excel column letter string to a 1-based column index.
- *
- * Examples: `'A'` → 1, `'Z'` → 26, `'AA'` → 27.
- *
- * @private
- * @param {string} letters Column letter string (uppercase).
- * @returns {number}
- */
-export function colLetterToIndex(letters: string): number {
-  let index = 0;
-
-  for (let i = 0; i < letters.length; i++) {
-    index = (index * 26) + (letters.charCodeAt(i) - 64);
-  }
-
-  return index;
-}
-
-/**
  * Returns `true` when `value` is a string that starts with `=` (a formula).
  *
  * @private
@@ -67,7 +35,8 @@ export function isFormulaValue(value: unknown): value is string {
 }
 
 /**
- * Builds an ExcelJS formula value object for a ColumnSummary destination cell.
+ * Builds a formula value object, in an ExcelJS-compatible shape, for a ColumnSummary destination
+ * cell.
  *
  * Maps Handsontable summary types to their Excel equivalents:
  * `sum` → `SUM`, `min` → `MIN`, `max` → `MAX`, `count` → `COUNT`,
@@ -75,7 +44,7 @@ export function isFormulaValue(value: unknown): value is string {
  * type so the caller can fall back to the pre-calculated static value.
  *
  * @private
- * @param {object} summary Summary descriptor from {@link DataProvider#getColumnSummaries}.
+ * @param {object} summary Summary descriptor from {@link ExportDataProvider#getColumnSummaries}.
  * @param {number} dataRowOffset 1-based Excel row where data row 0 starts.
  * @param {number} dataColOffset 1-based Excel column where data column 0 starts.
  * @returns {{ formula: string }|null}
@@ -188,9 +157,11 @@ function countBelow(set: Set<number>, threshold: number): number {
  * @param {string} separator HyperFormula's `functionArgSeparator` (e.g. `','` or `';'`).
  * @param {number} rowOffset Base number to add to every row number in a cell reference.
  * @param {number} colOffset Base number to add to every column number in a cell reference.
- * @param {Set<number>} [excludedHiddenRows] Physical HOT row indices that are hidden and
- *   excluded from the exported data matrix. When provided, each row reference is further
- *   reduced by the number of excluded rows that precede it.
+ * @param {Set<number>} [excludedHiddenRows] The rows left out of the exported data matrix, as the
+ *   row indexes the formula's references use (`ExportDataProvider#getExcludedHiddenRows`): with the
+ *   Formulas plugin on, the engine rows that are trimmed, filtered out, or hidden and excluded;
+ *   without it, the physical rows that are hidden and excluded. When provided, each row reference
+ *   is further reduced by the number of excluded rows that precede it.
  * @param {Set<number>} [excludedHiddenCols] Physical HOT column indices that are hidden
  *   and excluded from the exported data matrix. When provided, each column reference is
  *   further reduced by the number of excluded columns that precede it.
@@ -209,30 +180,25 @@ export function normalizeFormula(
   const hasColExclusions = (excludedHiddenCols?.size ?? 0) > 0;
 
   if (rowOffset !== 0 || colOffset !== 0 || hasRowExclusions || hasColExclusions) {
-    // The leading alternative matches string literals (double-quoted Excel strings use "" to escape a quote;
-    // single-quoted tokens are sheet name references like 'Sheet 1'!A1). When matched, they are returned
-    // as-is so that cell-reference-like patterns inside string values are not offset.
-    formula = formula.replace(
-      /("(?:[^"]|"")*"|'[^']*')|(?<!\d)(\$?)([A-Z]{1,3})(\$?)(\d{1,7})(?!\()/g,
-      (match, strLiteral, colAbs, colLetters, rowAbs, rowStr) => {
-        if (strLiteral !== undefined) {
-          return strLiteral as string;
-        }
+    // `mapFormulaReferences` owns the walk (string literals and qualified references are copied
+    // through untouched - the header band is prepended to this sheet only); this mapper owns the
+    // arithmetic. Unlike the import
+    // direction, the offset applies to ABSOLUTE components too: the whole data block moves to a new
+    // origin in the sheet, which is a translation of the coordinate space rather than a copy, so a
+    // `$A$1` pinned to a grid cell has to follow it. The mapper never rejects a reference, so the
+    // result is never `null`.
+    formula = mapFormulaReferences(formula, ({ row, col }) => {
+      // An open axis (`null`, from a whole-column or whole-row span) stays open.
+      const hiddenColsBefore = (col !== null && hasColExclusions && excludedHiddenCols)
+        ? countBelow(excludedHiddenCols, col - 1) : 0;
+      const hiddenRowsBefore = (row !== null && hasRowExclusions && excludedHiddenRows)
+        ? countBelow(excludedHiddenRows, row - 1) : 0;
 
-        const hotPhysCol = colLetterToIndex(colLetters) - 1; // 0-based physical HOT column
-        const hotPhysRow = Number.parseInt(rowStr, 10) - 1; // 0-based physical HOT row
-
-        const hiddenColsBefore = (hasColExclusions && excludedHiddenCols)
-          ? countBelow(excludedHiddenCols, hotPhysCol) : 0;
-        const hiddenRowsBefore = (hasRowExclusions && excludedHiddenRows)
-          ? countBelow(excludedHiddenRows, hotPhysRow) : 0;
-
-        const newCol = colLetterToIndex(colLetters) + colOffset - hiddenColsBefore;
-        const newRow = Number.parseInt(rowStr, 10) + rowOffset - hiddenRowsBefore;
-
-        return `${colAbs}${colIndexToLetter(newCol)}${rowAbs}${newRow}`;
-      }
-    );
+      return {
+        row: row === null ? null : row + rowOffset - hiddenRowsBefore,
+        col: col === null ? null : col + colOffset - hiddenColsBefore,
+      };
+    }) ?? formula;
   }
 
   if (separator && separator !== ',') {
@@ -240,4 +206,38 @@ export function normalizeFormula(
   }
 
   return formula;
+}
+
+/**
+ * HyperFormula's error types (`DetailedCellError#type`) that have an OOXML error code. The rest have
+ * none: `CYCLE` (Excel reports a circular reference as a warning and shows `0`), `ERROR` (a formula
+ * HyperFormula could not parse) and `LIC`. `SPILL` is left out too: `#SPILL!` is not one of the
+ * seven codes ECMA-376 lists, and Apache POI's `FormulaError` refuses it in a `t="e"` cell. Those
+ * results keep being cached as the text the grid shows.
+ */
+const HF_ERROR_TYPE_TO_OOXML_CODE = new Map<string, string>([
+  ['DIV_BY_ZERO', '#DIV/0!'],
+  ['NA', '#N/A'],
+  ['NAME', '#NAME?'],
+  ['NUM', '#NUM!'],
+  ['REF', '#REF!'],
+  ['VALUE', '#VALUE!'],
+]);
+
+/**
+ * Returns the OOXML error code of a HyperFormula cell value that is an error (a
+ * `DetailedCellError`, recognized by shape because HyperFormula is an optional dependency), or
+ * `null` for any other value and for an error type with no OOXML code.
+ *
+ * The code comes from the error's `type`, never from its `value`: `value` is translated by the
+ * engine's language (`#DZIEL/0!` under `plPL`), and a formula may answer the text `#N/A`.
+ */
+export function toOoxmlErrorCode(cellValue: unknown): string | null {
+  if (typeof cellValue !== 'object' || cellValue === null) {
+    return null;
+  }
+
+  const { type } = cellValue as { type?: unknown };
+
+  return typeof type === 'string' ? HF_ERROR_TYPE_TO_OOXML_CODE.get(type) ?? null : null;
 }

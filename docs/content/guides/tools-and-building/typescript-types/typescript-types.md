@@ -1,8 +1,8 @@
 ---
 type: reference
 title: TypeScript types
-metaTitle: TypeScript types - JavaScript Data Grid | Handsontable
-description: A complete reference of the TypeScript types and interfaces that Handsontable exports, with usage examples for settings, hook callbacks, custom renderers, and editors.
+metaTitle: TypeScript types | Handsontable DataGrid for JavaScript
+description: A complete reference of the TypeScript types and interfaces that Handsontable DataGrid exports, with usage examples for settings, hook callbacks, custom renderers, and editors.
 permalink: /typescript-types
 canonicalUrl: /typescript-types
 tags:
@@ -11,17 +11,16 @@ tags:
   - interfaces
   - type safety
 react:
-  metaTitle: TypeScript types - React Data Grid | Handsontable
+  metaTitle: TypeScript types | Handsontable DataGrid for React
 angular:
-  metaTitle: TypeScript types - Angular Data Grid | Handsontable
+  metaTitle: TypeScript types | Handsontable DataGrid for Angular
 vue:
-  metaTitle: TypeScript types - Vue Data Grid | Handsontable
+  metaTitle: TypeScript types | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
-menuTag: new
 ---
 
-Handsontable ships TypeScript declarations for its entire public API. This page lists every type you can import and shows how to use them in common scenarios.
+Handsontable DataGrid ships TypeScript declarations for its entire public API. This page lists every type you can import and shows how to use them in common scenarios.
 
 [[toc]]
 
@@ -70,6 +69,8 @@ These types describe the settings object you pass to `new Handsontable()` or `up
 | `CellProperties` | Merged cell-level settings after cascading from global → column → cell. Read-only at render time. |
 | `CellMeta` | Mutable per-cell metadata stored in `hot.getCellMeta()`. Extends `CellProperties`. |
 | `Events` | All hook callback signatures, keyed by hook name. Use to type individual hook functions. |
+| `SanitizerContext` | The write surfaces the grid passes to the [`sanitizer`](@/api/options.md#sanitizer) option. Annotate the option's second parameter with it to get completion on those values. |
+| `TextExtractorContext` | The consumer surfaces the grid passes to the [`textExtractor`](@/api/options.md#textextractor) option. Annotate the option's second parameter with it to get completion on those values. |
 
 ```typescript
 import type { GridSettings, ColumnSettings } from 'handsontable';
@@ -97,6 +98,7 @@ These types describe the values that move in and out of the grid.
 | `RowObject` | A data row as a plain object, used when `data` is an array of objects. |
 | `ChangeSource` | A string union of all built-in change source identifiers (e.g. `'edit'`, `'loadData'`, `'UndoRedo.undo'`). |
 | `SourceRowData` | A row from the original source data before any index translation. |
+| `ColumnDataGetterSetterFunction` | A column's [`data`](@/api/options.md#data) option as a getter/setter function. Change hooks pass it as `prop` when you use a [function data source](@/guides/getting-started/binding-to-data/binding-to-data.md#function-data-source-and-schema). |
 | `SelectOptionsObject` | An option entry for the `select` and `autocomplete` cell types: `{ value, label }`. |
 | `RangeType` | A cell range descriptor: `{ from: CellCoords, to: CellCoords }`. |
 

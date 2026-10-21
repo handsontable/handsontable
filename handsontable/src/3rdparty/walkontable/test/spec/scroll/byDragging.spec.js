@@ -140,10 +140,15 @@ describe('Scrollbar drag optimization', () => {
       expect(spreader.style.position).toBe('sticky');
       expect(spreader.style.top).not.toBe('');
       expect(spreader.style.left).not.toBe('');
+      // The insets position the spreader for the drag; the transform that places it otherwise
+      // (`overlay/spreaderOffset.ts`) is lifted, or the two would add up.
+      expect(spreader.style.transform).toBe('');
 
       simulateScrollbarRelease();
 
       expect(spreader.style.position).toBe('relative');
+      // Released at a scrolled position: the transform is back and carries the rendered offset.
+      expect(spreader.style.transform).toMatch(/^translate\(/);
     });
   });
 
@@ -160,14 +165,17 @@ describe('Scrollbar drag optimization', () => {
       const spreader = wt.wtTable.spreader;
 
       expect(spreader.style.position).toBe('relative');
+      expect(spreader.style.transform).toBe('');
 
       simulateScrollbarDrag(wt, { scrollTop: 500 });
 
       expect(spreader.style.position).toBe('sticky');
+      expect(spreader.style.transform).toBe('');
 
       simulateScrollbarRelease();
 
       expect(spreader.style.position).toBe('relative');
+      expect(spreader.style.transform).toMatch(/^translate\(/);
     });
 
     it('should switch the inlineStart overlay clone spreader to sticky during vertical drag', async() => {

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>List cell arrow layout fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // The three cell types that render `htAutocompleteArrow`: `dropdown` and `handsontable` both
+    // delegate to `autocompleteRenderer` like `autocomplete` (DEV-348).
+    window.htCellType = ({ autocomplete: 'autocomplete', dropdown: 'dropdown', handsontable: 'handsontable' })[htParams.get('cellType') ?? 'autocomplete'];
+    if (!window.htCellType) {
+      throw new Error('Unknown ?cellType= value: ' + JSON.stringify(htParams.get('cellType')));
+    }
+    // `colWidths` is the GitHub #3116 / DEV-348 reproduction: a fixed column narrower than the
+    // value, which disables AutoColumnSize. `autosize` lets the column grow to fit the value plus
+    // the arrow. `wrap` keeps the same fixed width but uses a breakable phrase so `wordWrap` can
+    // still wrap (the #13508 reason not to restore nowrap/ellipsis). `tall` pins a large
+    // `rowHeights` so the arrow's vertical anchor is observable.
+    window.htMode = ({ colWidths: 'colWidths', autosize: 'autosize', wrap: 'wrap', tall: 'tall' })[htParams.get('mode') ?? 'colWidths'];
+    if (!window.htMode) {
+      throw new Error('Unknown ?mode= value: ' + JSON.stringify(htParams.get('mode')));
+    }
+    window.htDir = ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('dir') ?? 'ltr'];
+    if (!window.htDir) {
+      throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
+    }
+    // Context-menu Alignment writes these classes onto the cell (`_text-renderer.scss`).
+    window.htAlign = ({ top: 'top', middle: 'middle', bottom: 'bottom' })[htParams.get('align') ?? 'top'];
+    if (!window.htAlign) {
+      throw new Error('Unknown ?align= value: ' + JSON.stringify(htParams.get('align')));
+    }
+    // Handsontable does not expose `rowHeightMode` yet; the engine is flipped after init, matching
+    // `exact-row-heights.html`. `exact` zeros TD padding and clips through `.htCellClip`.
+    window.htRowHeightMode = ({ min: 'min', exact: 'exact' })[htParams.get('rowHeightMode') ?? 'min'];
+    if (!window.htRowHeightMode) {
+      throw new Error('Unknown ?rowHeightMode= value: ' + JSON.stringify(htParams.get('rowHeightMode')));
+    }
+    // `off` sets `textEllipsis: false` on the list column, the documented per-column opt-out that
+    // restores wrapping (DEV-28).
+    window.htListEllipsis = ({ on: 'on', off: 'off' })[htParams.get('listEllipsis') ?? 'on'];
+    if (!window.htListEllipsis) {
+      throw new Error('Unknown ?listEllipsis= value: ' + JSON.stringify(htParams.get('listEllipsis')));
+    }
+    // A second, non-list column: `wrap` is a plain `text` column (must still wrap — the single-line
+    // default is scoped to the list types); `ellipsis` is a `text` column with `textEllipsis: true`
+    // (must show the ellipsis, including inside `.htCellClip` on an exact row — the general rule).
+    window.htSideColumn = ({ none: 'none', wrap: 'wrap', ellipsis: 'ellipsis' })[htParams.get('sideColumn') ?? 'none'];
+    if (!window.htSideColumn) {
+      throw new Error('Unknown ?sideColumn= value: ' + JSON.stringify(htParams.get('sideColumn')));
+    }
+  </script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const UNBREAKABLE = 'Connecticutreadjustmentauthority';
+    const BREAKABLE = 'Connecticut readjustment authority';
+    const SHORT = 'Al';
+    const CHOICES = [UNBREAKABLE, BREAKABLE, SHORT];
+    const ALIGN_CLASS = { top: undefined, middle: 'htMiddle', bottom: 'htBottom' }[window.htAlign];
+    // Alignment cases need a compact line box that `vertical-align` / `align-content` can move;
+    // the unbreakable token is for the wrap/clip reproductions.
+    const value = window.htMode === 'wrap'
+      ? BREAKABLE
+      : (window.htAlign === 'middle' || window.htAlign === 'bottom')
+        ? SHORT
+        : UNBREAKABLE;
+
+    // `autocomplete` / `dropdown` take a flat `source`; `handsontable` takes a nested grid config.
+    // All three resolve to `autocompleteRenderer` and the `htAutocomplete` class.
+    const listBase = window.htCellType === 'handsontable'
+      ? { type: 'handsontable', handsontable: { data: CHOICES.map(choice => [choice]) } }
+      : { type: window.htCellType, source: CHOICES };
+    const column = window.htListEllipsis === 'off'
+      ? { ...listBase, textEllipsis: false }
+      : listBase;
+
+    // Optional non-list column (see the param block): a plain `text` column, with `textEllipsis`
+    // only for the `ellipsis` case.
+    const sideColumn = window.htSideColumn === 'wrap'
+      ? { type: 'text' }
+      : window.htSideColumn === 'ellipsis'
+        ? { type: 'text', textEllipsis: true }
+        : null;
+    const columns = sideColumn ? [column, sideColumn] : [column];
+
+    // The side column gets the breakable phrase in row 0 (so it can wrap or ellipsize), and mirrors
+    // the list column's short/empty rows otherwise.
+    const withSide = row => (sideColumn ? [...row, row[0] === null ? null : (row[0] === SHORT ? SHORT : BREAKABLE)] : row);
+
+    // 100px is wide enough for the arrow itself on every theme and still far narrower than the
+    // unbreakable token, so the float-wrap (arrow on a second line) is what the spec measures.
+    // 90px rows match the DEV-348 review measurement for `htMiddle` / `htBottom`.
+    const settings = window.htMode === 'autosize'
+      ? {
+        data: [withSide([UNBREAKABLE]), withSide([SHORT])],
+        columns,
+        autoColumnSize: true,
+      }
+      : {
+        data: [withSide([value]), withSide([SHORT]), withSide([null])],
+        columns,
+        colWidths: 100,
+        ...(window.htMode === 'tall' ? { rowHeights: 90 } : {}),
+      };
+
+    window.hot = new Handsontable(container, {
+      ...settings,
+      layoutDirection: window.htDir,
+      colHeaders: true,
+      rowHeaders: true,
+      ...(ALIGN_CLASS ? { className: ALIGN_CLASS } : {}),
+      // Stamp test ids from `afterRenderer`: a column `type` installs its own renderer, which would
+      // override a grid-level `renderer` and leave the typed columns with no test id.
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Overlay clones share the master's settings object, so one update reaches every table.
+    if (window.htRowHeightMode === 'exact') {
+      window.hot.view._wt.wtSettings.update('rowHeightMode', 'exact');
+      window.hot.render();
+    }
+  </script>
+</body>
+</html>

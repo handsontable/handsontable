@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { CHAT_ENDPOINT, FEEDBACK_ENDPOINT, STORAGE_KEYS } from './constants';
-import { buildContextualMessage } from './pageContext';
 
 export interface ChatMessage {
   id: string;
@@ -122,7 +121,7 @@ function uid() {
 async function* readSSE(
   body: ReadableStream<Uint8Array>,
   signal: AbortSignal
-): AsyncGenerator<{ type: string; delta?: { content?: string } }> {
+): AsyncGenerator<{ type: string; delta?: { content?: string }; thread_id?: string }> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buf = '';
@@ -197,22 +196,17 @@ export function useAssistant() {
 
   const sendInternal = useCallback(
     async (userMessageText: string, historyForApi: ChatMessage[]) => {
-      // Register the controller before any await so clearAndSend can abort
-      // even while buildContextualMessage is still fetching page context.
       const controller = new AbortController();
       abortRef.current = controller;
 
-      const contextualised = await buildContextualMessage(userMessageText);
-
-      // Bail out if aborted during page-context fetch (no UI state committed yet).
-      if (controller.signal.aborted) {
-        if (abortRef.current === controller) abortRef.current = null;
-        return;
-      }
-
+      // The question goes as typed. The backend reads the page the reader is
+      // on from pageTitle/pageUrl below and fetches its Markdown itself, so
+      // the request stays small: inlining the page's Markdown made turns on
+      // the largest API pages (Options, Core) exceed the same-origin proxy's
+      // body-size cap and fail with a 413.
       const apiMessages = [
         ...historyForApi.map(({ role, content }) => ({ role, content })),
-        { role: 'user' as const, content: contextualised },
+        { role: 'user' as const, content: userMessageText },
       ];
 
       const assistantId = uid();
@@ -242,18 +236,29 @@ export function useAssistant() {
         }
         if (!res.body) throw new Error('No response body');
 
-        // Capture the thread id returned by the first successful turn so the
-        // backend can correlate subsequent turns to the same conversation. The
-        // server returns the same value on every turn of a conversation; the
-        // `!current` guard avoids redundant writes.
-        const returnedId = res.headers.get('X-Thread-Id');
-        if (returnedId && !threadIdRef.current) {
-          threadIdRef.current = returnedId;
-          writeThreadId(returnedId);
-        }
+        // Adopt the conversation id returned by the backend so it can
+        // correlate subsequent turns. The id arrives twice: as `thread_id` on
+        // the SSE `message_start` frame (primary — some client environments,
+        // e.g. corporate TLS-inspection proxies, strip custom response
+        // headers, but anything that delivers the stream delivers the frame)
+        // and as the `X-Thread-Id` response header (fallback). The server
+        // returns the RESOLVED id every turn — a fresh one when it discarded
+        // a stale echoed id — so always adopt it rather than keeping what we
+        // hold. Skip adoption once this request has been aborted or replaced
+        // (stop / clear / clearAndSend), so a late frame can't resurrect an
+        // id the user just cleared.
+        const adoptThreadId = (id: string | null | undefined) => {
+          if (!id || controller.signal.aborted) return;
+          if (threadIdRef.current === id) return;
+          threadIdRef.current = id;
+          writeThreadId(id);
+        };
+        adoptThreadId(res.headers.get('X-Thread-Id'));
 
         for await (const event of readSSE(res.body, controller.signal)) {
-          if (event.type === 'content_chunk') {
+          if (event.type === 'message_start') {
+            adoptThreadId(event.thread_id);
+          } else if (event.type === 'content_chunk') {
             const delta = event.delta?.content ?? '';
             if (delta) dispatch({ type: 'APPEND', id: assistantId, delta });
           } else if (event.type === 'message_end') {

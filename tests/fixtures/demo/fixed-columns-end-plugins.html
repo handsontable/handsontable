@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>fixedColumnsEnd with column plugins e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects, mapped
+    // through fixed allowlists to LITERALS so a crafted param is never reflected into the document. An
+    // unknown value THROWS instead of falling back, so a typo is one red leg, not a mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    `fixedColumnsEnd` together with the column plugins that draw spans. Query params:
+    scenario=merge|nested|collapsible (picks the plugin and its declared spans, see below),
+    rtl=1, virtualized=1 (mergeCells only), fixedColumnsStart, fixedColumnsEnd (default 3), rows (default 12).
+    The grid has 12 columns, 72 px wide, in a 500 x 300 px viewport, so the end band holds columns 9 to 11
+    and the master shows about three columns between the row headers and the band.
+
+    merge: A = rows 2-3 x columns 10-11 (inside the end band), B = rows 5-6 x columns 8-10 (starts in the
+      master, crosses the master/end line).
+    nested: two header levels. Level 0: A (0), B (1-6), C (7-9, crosses the line), D (10-11, inside the band).
+    collapsible: nested headers with collapsible groups. B (1-3), C (4-6), D (7-9, crosses the line), E (10-11).
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    try {
+    const container = document.querySelector('[data-testid="grid"]');
+    const number = (name, fallback) => {
+      const value = Number(htParams.get(name) ?? fallback);
+
+      if (!Number.isInteger(value) || value < 0) {
+        throw new Error('Invalid ?' + name + '= value: ' + JSON.stringify(htParams.get(name)));
+      }
+
+      return value;
+    };
+    const rows = number('rows', 12);
+    const cols = 12;
+    const data = Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, c) => `R${r + 1}C${c + 1}`));
+    const scenario = htParams.get('scenario') ?? 'merge';
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    if (htParams.get('rtl') === '1') {
+      document.documentElement.setAttribute('dir', 'rtl');
+    }
+
+    const columnLabels = Array.from({ length: cols }, (_, c) => `c${c}`);
+    const settings = {
+      data,
+      colWidths: 72,
+      width: 500,
+      height: 300,
+      fixedColumnsStart: number('fixedColumnsStart', 0),
+      fixedColumnsEnd: number('fixedColumnsEnd', 3),
+      rowHeaders: true,
+      colHeaders: true,
+      renderer: testIdRenderer,
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    if (scenario === 'merge') {
+      settings.mergeCells = {
+        virtualized: htParams.get('virtualized') === '1',
+        cells: [
+          { row: 2, col: 10, rowspan: 2, colspan: 2 },
+          { row: 5, col: 8, rowspan: 2, colspan: 3 },
+        ],
+      };
+    } else if (scenario === 'nested') {
+      settings.nestedHeaders = [
+        ['A', { label: 'B', colspan: 6 }, { label: 'C', colspan: 3 }, { label: 'D', colspan: 2 }],
+        columnLabels,
+      ];
+    } else if (scenario === 'collapsible') {
+      settings.collapsibleColumns = true;
+      settings.nestedHeaders = [
+        [
+          'A',
+          { label: 'B', colspan: 3 },
+          { label: 'C', colspan: 3 },
+          { label: 'D', colspan: 3 },
+          { label: 'E', colspan: 2 },
+        ],
+        columnLabels,
+      ];
+    } else {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(scenario));
+    }
+
+    window.hot = new Handsontable(container, settings);
+    } catch (error) {
+      // A build failure is reported by the page object's goto(), not as a mute timeout.
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

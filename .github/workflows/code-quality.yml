@@ -10,12 +10,12 @@ on:
 jobs:
   sonarcloud:
     name: SonarCloud
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Secret-dependent: fork PRs and Dependabot PRs get no Actions secrets (a
     # Dependabot run reads a separate store), so this cannot run
     # at all there. Skip rather than fail: CI Gate accepts `skipped`, and a red
     # check the contributor cannot influence blocks every external PR.
-    # See AGENTS.md, "fork pull requests".
+    # See .ai/CI.md, "fork pull requests".
     if: github.event_name != 'pull_request'
       || (github.event.pull_request.head.repo.full_name == github.repository
           && github.actor != 'dependabot[bot]')
@@ -35,7 +35,7 @@ jobs:
 
   codeql:
     name: CodeQL
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 60
     permissions:
       security-events: write
@@ -57,12 +57,12 @@ jobs:
 
   fossa:
     name: FOSSA
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Secret-dependent: fork PRs and Dependabot PRs get no Actions secrets (a
     # Dependabot run reads a separate store), so this cannot run
     # at all there. Skip rather than fail: CI Gate accepts `skipped`, and a red
     # check the contributor cannot influence blocks every external PR.
-    # See AGENTS.md, "fork pull requests".
+    # See .ai/CI.md, "fork pull requests".
     if: github.event_name != 'pull_request'
       || (github.event.pull_request.head.repo.full_name == github.repository
           && github.actor != 'dependabot[bot]')
@@ -76,7 +76,7 @@ jobs:
 
   audit:
     name: audit (warn)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Non-blocking by design (~380 known vulns to burn down before this can gate).
     continue-on-error: true
     steps:

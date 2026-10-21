@@ -1,4 +1,5 @@
-import { html, toSingleLine } from '../../helpers/templateLiteralTag';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { buildTemplate, type TemplateSpec } from '../../helpers/dom/template';
 import { throwWithCause } from '../../helpers/errors';
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
@@ -8,8 +9,10 @@ import {
   hasClass,
   fastInnerHTML,
   isHTMLElement,
+  isDocumentFragment,
   setAttribute,
   removeAttribute,
+  empty,
 } from '../../helpers/dom/element';
 import {
   A11Y_DIALOG,
@@ -22,6 +25,7 @@ import {
 } from '../../helpers/a11y';
 import { TEMPLATES } from './templates';
 import { DIALOG_CLASS_NAME } from './constants';
+import type { SanitizerFn } from '../../utils/sanitizer';
 
 /**
  * Represents the compiled template object returned by template factory functions.
@@ -29,7 +33,7 @@ import { DIALOG_CLASS_NAME } from './constants';
 export interface DialogTemplateResult {
   TEMPLATE_NAME: string;
   dialogA11YOptions(): Record<string, string | undefined>;
-  compile(): { fragment: DocumentFragment; refs: Record<string, HTMLElement> };
+  compile(rootDocument: Document): { fragment: DocumentFragment; refs: Record<string, HTMLElement> };
   focusableElements(): HTMLElement[];
 }
 
@@ -43,11 +47,19 @@ interface DialogA11ySettings {
   ariaDescribedby?: string;
 }
 
-const CONTAINER_TEMPLATE = `
-<div data-ref="dialogElement" class="${DIALOG_CLASS_NAME}">
-  <div data-ref="dialogWrapperElement" class="${DIALOG_CLASS_NAME}__content-wrapper">
-</div>
-`;
+// The string this replaced opened two `div`s and closed one, leaving the parser's error
+// recovery to decide the nesting. The wrapper is a child of the dialog element, stated here
+// rather than inferred.
+const CONTAINER_TEMPLATE: TemplateSpec = {
+  tag: 'div',
+  ref: 'dialogElement',
+  className: DIALOG_CLASS_NAME,
+  children: [{
+    tag: 'div',
+    ref: 'dialogWrapperElement',
+    className: `${DIALOG_CLASS_NAME}__content-wrapper`,
+  }],
+};
 
 /**
  * DialogUI is a UI component that renders and manages dialog elements.
@@ -60,9 +72,13 @@ export class DialogUI {
   /**
    * The overlay container where the dialog UI will be installed.
    *
-   * @type {HTMLElement}
+   * Nullable, and the type says so: `core.ts` creates `rootOverlaysElement` only for a root
+   * instance, so a nested grid (the `handsontable` cell type) passes `null` here. Nothing is
+   * appended in that case and the dialog never shows, which is the long-standing behavior.
+   *
+   * @type {HTMLElement|null}
    */
-  #overlayContainer: HTMLElement;
+  #overlayContainer: HTMLElement | null;
   /**
    * The references to the UI elements.
    *
@@ -94,19 +110,27 @@ export class DialogUI {
    */
   #templateButtonCallbacks: EventListener[] = [];
   /**
-   * Optional sanitizer for dialog content (from settings).
+   * Sanitizer for dialog content, resolved from the grid settings.
    */
-  #sanitizer?: (html: string) => string | undefined;
+  #sanitizer: boolean | SanitizerFn;
 
   /**
-   * Initializes the dialog UI with an overlay container, RTL layout flag, and an optional HTML sanitizer, then installs the DOM structure.
+   * Object the missing-sanitizer "warn once" state is bound to. The grid root element, so this
+   * plugin shares one warning per instance with every other HTML write surface.
    */
-  constructor({ overlayContainer, isRtl, sanitizer }: {
-    overlayContainer: HTMLElement; isRtl: boolean; sanitizer?: (html: string) => string | undefined;
+  #warnScope: HTMLElement;
+
+  /**
+   * Initializes the dialog UI with an overlay container, RTL layout flag, and an HTML sanitizer, then installs the DOM structure.
+   */
+  constructor({ overlayContainer, isRtl, sanitizer, warnScope }: {
+    overlayContainer: HTMLElement | null; isRtl: boolean; sanitizer: boolean | SanitizerFn;
+    warnScope: HTMLElement;
   }) {
     this.#overlayContainer = overlayContainer;
     this.#isRtl = isRtl;
     this.#sanitizer = sanitizer;
+    this.#warnScope = warnScope;
 
     this.install();
   }
@@ -141,6 +165,22 @@ export class DialogUI {
   }
 
   /**
+   * The document the dialog nodes are built in.
+   *
+   * `rootOverlaysElement` only exists on a root instance - `core.ts` leaves it `null` for a nested
+   * grid, which is what the `handsontable` cell type creates. `install()` then appends nothing (see
+   * the guard below) and the dialog never shows there, which is the behavior before the templates
+   * became DOM: the string form read the global `document` and the same guard skipped the append.
+   * Falling back to the warn scope's document keeps that, because `#warnScope` is the grid's root
+   * element and is always present.
+   *
+   * @returns {Document} The owning document.
+   */
+  get #ownerDocument(): Document {
+    return this.#overlayContainer?.ownerDocument ?? this.#warnScope.ownerDocument;
+  }
+
+  /**
    * Creates the dialog UI elements and sets up the structure.
    */
   install() {
@@ -148,7 +188,7 @@ export class DialogUI {
       return;
     }
 
-    const elements = html`${CONTAINER_TEMPLATE}`;
+    const elements = buildTemplate(CONTAINER_TEMPLATE, this.#ownerDocument);
 
     this.#refs = elements.refs;
 
@@ -203,11 +243,11 @@ export class DialogUI {
   updateDialog({
     isVisible, content, customClassName, background, contentBackground, animation, a11y
   }: Record<string, unknown>) {
-    const elements = this.#template.compile();
+    const elements = this.#template.compile(this.#ownerDocument);
     const { dialogElement, dialogWrapperElement } = this.#refs!;
     const typedA11y = a11y as DialogA11ySettings;
 
-    dialogWrapperElement.innerHTML = '';
+    empty(dialogWrapperElement);
     dialogWrapperElement.appendChild(elements.fragment);
 
     Object.assign(this.#refs!, elements.refs);
@@ -238,9 +278,10 @@ export class DialogUI {
       showClass
     ].join(' ');
 
-    if (this.#template.TEMPLATE_NAME === 'base') {
-      setAttribute(dialogElement, [A11Y_TABINDEX(-1)]);
-    }
+    // Every template, not only `base`: `focusDialog()` (the public `Dialog#focus()`, which
+    // `../loading/` calls) is a silent no-op on a container that cannot hold the focus. A value of
+    // -1 adds no tab stop, so the tab order is the same as before.
+    setAttribute(dialogElement, [A11Y_TABINDEX(-1)]);
 
     // Dialog aria attributes
     setAttribute(dialogElement, [
@@ -280,15 +321,13 @@ export class DialogUI {
 
     if (this.#template.TEMPLATE_NAME === 'base') {
       // Clear existing dialog content
-      contentElement.innerHTML = '';
+      empty(contentElement);
 
       // Render new dialog content
       if (typeof content === 'string') {
-        fastInnerHTML(contentElement, content,
-          this.#sanitizer ? (html: string, ctx: string) => this.#sanitizer!(html) ?? html : undefined,
-          'dialog', this.#overlayContainer);
+        fastInnerHTML(contentElement, content, this.#sanitizer, 'dialog', this.#warnScope);
 
-      } else if (isHTMLElement(content) || content instanceof DocumentFragment) {
+      } else if (isHTMLElement(content) || isDocumentFragment(content)) {
         contentElement.appendChild(content);
       }
 
@@ -380,7 +419,11 @@ export class DialogUI {
    * Handles the transition end event.
    */
   #onTransitionEnd() {
-    const { dialogElement } = this.#refs!;
+    if (!this.#refs) {
+      return;
+    }
+
+    const { dialogElement } = this.#refs;
 
     if (!hasClass(dialogElement, `${DIALOG_CLASS_NAME}--show`)) {
       dialogElement.style.display = 'none';

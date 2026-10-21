@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `numeric` cell type writing its `htRight` and `htNumeric` classes into a shared cell `className` array, which put those classes on cells of other columns.",
+  "type": "fixed",
+  "issueOrPR": 13395,
+  "breaking": false,
+  "framework": "none"
+}

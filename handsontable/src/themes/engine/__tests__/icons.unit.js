@@ -1,0 +1,335 @@
+import { createIcon, createTrackedIconSync, linkIconSource, syncIcon } from '../icons';
+import { createThemeManager } from '../manager';
+import { createTheme } from '../builder';
+import mainIcons from '../../static/variables/icons/main';
+import mainColors from '../../static/variables/colors/main';
+import mainTokens from '../../static/variables/tokens/main';
+
+describe('createIcon / syncIcon', () => {
+  it('falls back to a plain glyph element when the instance has no theme manager', () => {
+    const el = createIcon({ rootDocument: document, themeManager: null }, 'menu', { flipInRtl: true });
+
+    expect(el.className).toBe('ht-icon ht-icon-menu ht-icon--flip-rtl');
+    expect(el.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('delegates to the theme manager when present', () => {
+    const themeManager = { createIcon: jest.fn(() => document.createElement('i')) };
+
+    createIcon({ rootDocument: document, themeManager }, 'menu');
+
+    expect(themeManager.createIcon).toHaveBeenCalledWith('menu', {});
+  });
+
+  it('syncIcon creates, keeps, swaps, and removes a slot icon', () => {
+    const hot = { rootDocument: document, themeManager: null };
+    const container = document.createElement('div');
+
+    const first = syncIcon(hot, container, 'slot', 'arrowNarrowUp');
+
+    expect(container.querySelector('.slot.ht-icon-arrow-narrow-up')).toBe(first);
+
+    const same = syncIcon(hot, container, 'slot', 'arrowNarrowUp');
+
+    expect(same).toBe(first);
+
+    const swapped = syncIcon(hot, container, 'slot', 'arrowNarrowDown');
+
+    expect(swapped).not.toBe(first);
+    expect(container.querySelectorAll('.slot').length).toBe(1);
+    expect(container.querySelector('.slot').className).toContain('ht-icon-arrow-narrow-down');
+
+    expect(syncIcon(hot, container, 'slot', null)).toBeNull();
+    expect(container.querySelector('.slot')).toBeNull();
+  });
+
+  it('createTrackedIconSync skips the query when clearing a slot it never filled, and still ' +
+    'clears one it did', () => {
+    const hot = { rootDocument: document, themeManager: null };
+    const sync = createTrackedIconSync();
+    const untouched = document.createElement('div');
+    const querySpy = jest.spyOn(untouched, 'querySelector');
+
+    expect(sync(hot, untouched, 'slot', null)).toBeNull();
+    expect(querySpy).not.toHaveBeenCalled();
+
+    const filled = document.createElement('div');
+
+    sync(hot, filled, 'slot', 'caretHiddenLeft');
+
+    expect(filled.querySelectorAll('.slot').length).toBe(1);
+    expect(sync(hot, filled, 'slot', null)).toBeNull();
+    expect(filled.querySelector('.slot')).toBeNull();
+  });
+
+  describe('keep-path revision guard', () => {
+    let guidCounter = 0;
+
+    /**
+     * A minimal theme config satisfying `ThemeBuilder`'s required keys, so `syncIcon()` can be
+     * driven against a REAL `ThemeManager` - the exact collaborator it stamps and reads the
+     * icons revision from - instead of a hand-rolled stand-in for the mechanism under test.
+     * @param overrides
+     */
+    const createValidThemeConfig = (overrides = {}) => ({
+      name: 'test-theme',
+      icons: mainIcons,
+      colors: mainColors,
+      tokens: mainTokens,
+      ...overrides,
+    });
+
+    const createMockHot = () => {
+      guidCounter += 1;
+
+      return {
+        guid: `ht_mock_icons_${guidCounter}`,
+        rootDocument: document,
+        rootWrapperElement: document.createElement('div'),
+        rootPortalElement: document.createElement('div'),
+        stylesHandler: { clearCache: jest.fn() },
+        render: jest.fn(),
+        runHooks: jest.fn(),
+      };
+    };
+
+    it('re-applies a class-list mapping to the SAME element after a runtime theme change ' +
+      '(glyph -> class list)', () => {
+      const theme = createTheme(createValidThemeConfig());
+      const hot = createMockHot();
+
+      hot.themeManager = createThemeManager({ hot, themeObject: theme });
+
+      const container = document.createElement('div');
+      const icon = syncIcon(hot, container, 'slot', 'arrowRight');
+
+      // Baseline: `arrowRight` is unmapped in `mainIcons`, so the slot starts on the GLYPH path -
+      // no `ht-icon--external` class.
+      expect(icon.className).toBe('ht-icon ht-icon-arrow-right slot');
+
+      // A runtime `icons` config change (a theme switch takes the same `#resolveIcons()` path).
+      theme.params({ icons: { arrowRight: 'ti ti-chevron-right' } });
+
+      const remapped = syncIcon(hot, container, 'slot', 'arrowRight');
+
+      expect(remapped).toBe(icon);
+      expect(remapped.className).toBe('ht-icon ht-icon-arrow-right slot ht-icon--external ti ti-chevron-right');
+      expect(remapped.dataset.htIconsRevision).toBe(String(hot.themeManager.getIconsRevision()));
+    });
+
+    it('re-applies a renderer-callback mapping to the SAME element after a runtime theme ' +
+      'change (glyph -> callback) - the other branch `applyIcon()` takes', () => {
+      const theme = createTheme(createValidThemeConfig());
+      const hot = createMockHot();
+
+      hot.themeManager = createThemeManager({ hot, themeObject: theme });
+
+      const container = document.createElement('div');
+      const icon = syncIcon(hot, container, 'slot', 'check');
+
+      expect(icon.className).toBe('ht-icon ht-icon-check slot');
+
+      const renderer = jest.fn((element, name) => {
+        element.textContent = name;
+      });
+
+      theme.params({ icons: { check: renderer } });
+
+      const remapped = syncIcon(hot, container, 'slot', 'check');
+
+      expect(remapped).toBe(icon);
+      expect(renderer).toHaveBeenCalledWith(icon, 'check');
+      expect(remapped.className).toBe('ht-icon ht-icon-check slot ht-icon--external');
+      expect(remapped.textContent).toBe('check');
+    });
+
+    it('does NOT re-apply the mapping across repeated draws when the theme has not changed - ' +
+      'the property the guard exists for', () => {
+      const theme = createTheme(createValidThemeConfig({
+        icons: { ...mainIcons, arrowRight: 'ti ti-chevron-right' },
+      }));
+      const hot = createMockHot();
+
+      hot.themeManager = createThemeManager({ hot, themeObject: theme });
+
+      const container = document.createElement('div');
+      const icon = syncIcon(hot, container, 'slot', 'arrowRight');
+      const stampedRevision = icon.dataset.htIconsRevision;
+      const applySpy = jest.spyOn(hot.themeManager, 'applyIcon');
+
+      // Simulate several header re-draws with no theme change in between - this runs on every
+      // header draw in production, which is exactly why the guard exists.
+      syncIcon(hot, container, 'slot', 'arrowRight');
+      syncIcon(hot, container, 'slot', 'arrowRight');
+      syncIcon(hot, container, 'slot', 'arrowRight');
+
+      expect(applySpy).not.toHaveBeenCalled();
+      expect(icon.dataset.htIconsRevision).toBe(stampedRevision);
+      expect(icon.className).toBe('ht-icon ht-icon-arrow-right slot ht-icon--external ti ti-chevron-right');
+    });
+
+    it('does not get stuck on a stale mapping across two successive theme changes', () => {
+      const theme = createTheme(createValidThemeConfig());
+      const hot = createMockHot();
+
+      hot.themeManager = createThemeManager({ hot, themeObject: theme });
+
+      const container = document.createElement('div');
+      const icon = syncIcon(hot, container, 'slot', 'arrowRight');
+
+      expect(icon.className).toBe('ht-icon ht-icon-arrow-right slot');
+
+      theme.params({ icons: { arrowRight: 'ti ti-chevron-right' } });
+
+      const afterFirstChange = syncIcon(hot, container, 'slot', 'arrowRight');
+
+      expect(afterFirstChange).toBe(icon);
+      expect(afterFirstChange.className).toContain('ti ti-chevron-right');
+
+      // A guard stuck comparing against the FIRST post-creation revision (rather than the
+      // CURRENT one) would silently keep this mapping instead of picking up the second change.
+      theme.params({ icons: { arrowRight: 'ti ti-x' } });
+
+      const afterSecondChange = syncIcon(hot, container, 'slot', 'arrowRight');
+
+      expect(afterSecondChange).toBe(icon);
+      expect(afterSecondChange.className).toBe('ht-icon ht-icon-arrow-right slot ht-icon--external ti ti-x');
+      expect(afterSecondChange.className).not.toContain('ti-chevron-right');
+    });
+
+    it('re-applies the new theme\'s mapping when the grid swaps to a brand-new theme manager', () => {
+      // Theme object A -> theme object B tears A's manager down and builds a new one. A
+      // per-manager counter restarted at the same value A had stamped, so the kept icon kept A's
+      // class list.
+      const hot = createMockHot();
+
+      hot.themeManager = createThemeManager({
+        hot,
+        themeObject: createTheme(createValidThemeConfig({ name: 'theme-a', icons: { ...mainIcons, menu: 'a-menu' } })),
+      });
+
+      const container = document.createElement('div');
+      const icon = syncIcon(hot, container, 'slot', 'menu');
+
+      expect(icon.className).toContain('a-menu');
+
+      hot.themeManager.destroy();
+      hot.themeManager = createThemeManager({
+        hot,
+        themeObject: createTheme(createValidThemeConfig({ name: 'theme-b', icons: { ...mainIcons, menu: 'b-menu' } })),
+      });
+
+      const kept = syncIcon(hot, container, 'slot', 'menu');
+
+      expect(kept).toBe(icon);
+      expect(kept.className).toBe('ht-icon ht-icon-menu slot ht-icon--external b-menu');
+    });
+
+    it('draws a linked nested instance\'s icons with its source\'s mapping, and follows a ' +
+      'later change on the source', () => {
+      // A nested grid (the Filters by-value list) never gets a ThemeManager of its own.
+      const root = createMockHot();
+
+      root.themeManager = createThemeManager({
+        hot: root,
+        themeObject: createTheme(createValidThemeConfig({ icons: { ...mainIcons, checkbox: 'ti ti-check' } })),
+      });
+
+      const nested = { rootDocument: document, themeManager: null };
+
+      expect(createIcon(nested, 'checkbox').className).toBe('ht-icon ht-icon-checkbox');
+
+      linkIconSource(nested, root);
+
+      expect(createIcon(nested, 'checkbox').className)
+        .toBe('ht-icon ht-icon-checkbox ht-icon--external ti ti-check');
+
+      const container = document.createElement('div');
+      const icon = syncIcon(nested, container, 'slot', 'checkbox');
+
+      root.themeManager.destroy();
+      root.themeManager = createThemeManager({
+        hot: root,
+        themeObject: createTheme(createValidThemeConfig({
+          name: 'other',
+          icons: { ...mainIcons, checkbox: 'ti ti-x' },
+        })),
+      });
+
+      expect(syncIcon(nested, container, 'slot', 'checkbox')).toBe(icon);
+      expect(icon.className).toBe('ht-icon ht-icon-checkbox slot ht-icon--external ti ti-x');
+    });
+
+    it('rebuilds a kept icon through the plain-glyph fallback once the grid has no theme manager ' +
+      '(a theme object replaced by a class-name theme)', () => {
+      const hot = createMockHot();
+
+      hot.themeManager = createThemeManager({
+        hot,
+        themeObject: createTheme(createValidThemeConfig({
+          icons: {
+            ...mainIcons,
+            menu: 'ti ti-menu',
+            check: (element) => { element.textContent = 'done'; },
+          },
+        })),
+      });
+
+      const container = document.createElement('div');
+      const menu = syncIcon(hot, container, 'menu-slot', 'menu', { className: 'site' });
+      const check = syncIcon(hot, container, 'check-slot', 'check');
+
+      expect(menu.className).toContain('ti-menu');
+      expect(check.textContent).toBe('done');
+
+      // `updateSettings({ theme: 'ht-theme-main' })` destroys the manager, which nulls it.
+      hot.themeManager.destroy();
+      hot.themeManager = null;
+
+      const menuAfter = syncIcon(hot, container, 'menu-slot', 'menu', { className: 'site' });
+      const checkAfter = syncIcon(hot, container, 'check-slot', 'check');
+
+      expect(menuAfter.className).toBe('ht-icon ht-icon-menu site menu-slot');
+      expect(menuAfter.dataset.htIconsRevision).toBeUndefined();
+      expect(checkAfter.className).toBe('ht-icon ht-icon-check check-slot');
+      expect(checkAfter.textContent).toBe('');
+      expect(container.querySelectorAll('i').length).toBe(2);
+
+      // A fallback element is kept from then on - no rebuild on every draw.
+      expect(syncIcon(hot, container, 'menu-slot', 'menu', { className: 'site' })).toBe(menuAfter);
+    });
+
+    it('keeps exactly one slot icon when a renderer callback assigns `className`', () => {
+      const hot = createMockHot();
+
+      hot.themeManager = createThemeManager({
+        hot,
+        themeObject: createTheme(createValidThemeConfig({
+          icons: {
+            ...mainIcons,
+            menu: (element) => {
+              element.className = 'material-symbols-outlined';
+              element.textContent = 'menu';
+            },
+          },
+        })),
+      });
+
+      const container = document.createElement('div');
+      const icon = syncIcon(hot, container, 'slot', 'menu', { className: 'site-class' });
+
+      // Simulate the next header draws: the slot must still be found, not appended again.
+      syncIcon(hot, container, 'slot', 'menu', { className: 'site-class' });
+      syncIcon(hot, container, 'slot', 'menu', { className: 'site-class' });
+
+      expect(container.querySelectorAll('i').length).toBe(1);
+      expect(icon.classList.contains('site-class')).toBe(true);
+      expect(icon.classList.contains('ht-icon')).toBe(true);
+      expect(icon.classList.contains('ht-icon-menu')).toBe(true);
+      expect(icon.classList.contains('ht-icon--external')).toBe(true);
+      expect(icon.classList.contains('slot')).toBe(true);
+      expect(icon.classList.contains('material-symbols-outlined')).toBe(true);
+      expect(icon.textContent).toBe('menu');
+    });
+  });
+});

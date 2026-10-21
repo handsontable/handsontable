@@ -6,7 +6,10 @@ export const buildHeaderWriter = ({ seo, urlPrefix }) => {
   ).replace(/(^[a-z])/, m => m.toUpperCase()); // To upper first letter
 
   const genSeoMetaTitle = (file, isPlugin) => {
-    return `${genSeoTitle(file)} ${isPlugin ? 'plugin' : 'API reference'} – JavaScript Data Grid | Handsontable`;
+    // Plugin pages use the bare plugin name, like the `metaTitle` values in configuration.mjs.
+    const subject = isPlugin ? genSeoTitle(file) : `${genSeoTitle(file)} API reference`;
+
+    return `${subject} | Handsontable DataGrid for JavaScript`;
   };
 
   const genSeoPermalink = file => urlPrefix + escape(file

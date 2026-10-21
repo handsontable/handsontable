@@ -4,26 +4,31 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['Hydrogen', 'H', 1, 1.008],
+  ['Helium', 'He', 2, 4.003],
+  ['Lithium', 'Li', 3, 6.94],
+  ['Beryllium', 'Be', 4, 9.012],
+  ['Boron', 'B', 5, 10.81],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['A1', 'B1', 'C1', 'D1'],
-        ['A2', 'B2', 'C2', 'D2'],
-        ['A3', 'B3', 'C3', 'D3'],
-      ]}
-      colHeaders={true}
+      data={data}
+      colHeaders={['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)']}
       rowHeaders={true}
       autoWrapRow={true}
       autoWrapCol={true}
       height="auto"
+      stretchH="all"
       headerClassName="htLeft"
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn headerClassName="italic-text" />
       <HotColumn headerClassName="bold-text italic-text" />
-      <HotColumn headerClassName="htRight bold-text italic-text" />
-      <HotColumn />
+      <HotColumn headerClassName="htRight bold-text italic-text" type="numeric" />
+      <HotColumn type="numeric" numericFormat={{ minimumFractionDigits: 3, maximumFractionDigits: 3, useGrouping: false }} />
     </HotTable>
   );
 };

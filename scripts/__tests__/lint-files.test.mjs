@@ -9,8 +9,12 @@ test('lintable keeps files inside a CI lint scope', () => {
       'handsontable/test/e2e/x.spec.js',
       'handsontable/scripts/run.mjs',
       'wrappers/vue3/src/HotTable.vue',
+      'wrappers/react-wrapper/src/hotTable.tsx',
+      'wrappers/react-wrapper/test/hotTable.spec.tsx',
       'tests/e2e/x.spec.ts',
       'tests/fixtures/pages/GridPage.ts',
+      'visual-tests/tests/multi-frameworks/filters/accepting-by-enter.spec.ts',
+      'visual-tests/src/test-runner.ts',
       'scripts/pre-push.mjs',
     ]),
     [
@@ -18,20 +22,26 @@ test('lintable keeps files inside a CI lint scope', () => {
       'handsontable/test/e2e/x.spec.js',
       'handsontable/scripts/run.mjs',
       'wrappers/vue3/src/HotTable.vue',
+      'wrappers/react-wrapper/src/hotTable.tsx',
+      'wrappers/react-wrapper/test/hotTable.spec.tsx',
       'tests/e2e/x.spec.ts',
       'tests/fixtures/pages/GridPage.ts',
+      'visual-tests/tests/multi-frameworks/filters/accepting-by-enter.spec.ts',
+      'visual-tests/src/test-runner.ts',
       'scripts/pre-push.mjs',
     ],
   );
 });
 
-test('lintable drops files outside every CI lint scope (react/angular/docs, package roots)', () => {
+test('lintable drops files outside every CI lint scope (package roots, angular/docs)', () => {
   assert.deepEqual(
     lintable([
-      'wrappers/react-wrapper/src/hotTable.tsx', // no plain-eslint script
+      'wrappers/react-wrapper/scripts/clean.mjs', // react-wrapper's lint script only covers src/test
       'wrappers/angular-wrapper/projects/hot-table/src/lib/x.ts', // ng lint, not eslint CLI
       'docs/src/x.js', // no lint script
       'handsontable/hot.config.js', // package root — not in src/test/scripts
+      'visual-tests/regconfig.json', // package root — only src/ and tests/ are linted
+      'visual-tests/scripts/run-tests.mjs', // CI lints scripts/ through the package script, not the hook
       'README.md',
     ]),
     [],
@@ -47,6 +57,28 @@ test('lintable drops dotfiles and dot-directory paths CI lints only as directori
       '.claude/settings.json',
     ]),
     [],
+  );
+});
+
+test('lintable drops paths the owning package .eslintignore excludes', () => {
+  // Inside the `handsontable/scripts/` scope, but `handsontable/.eslintignore` excludes it.
+  // The hook runs ESLint from the repo root where that ignore does not apply, and the file is
+  // outside every tsconfig project, so ESLint answers with a parsing error — exit 1, which
+  // would block the commit on a file CI never lints.
+  assert.deepEqual(
+    lintable([
+      'handsontable/scripts/themes/figma/templates/iconsMap.ts',
+      'handsontable/test/lib/jquery.min.js', // vendored
+      'handsontable/test/dist/helpers.js', // built test bundle
+      'handsontable/src/3rdparty/autoResize/autoResize.js',
+      'handsontable/src/3rdparty/walkontable/test/lib/jquery.js',
+      'handsontable/scripts/themes/figma/utils/helpers/iconsMap.mjs', // NOT ignored — must survive
+      'handsontable/test/e2e/x.spec.js', // NOT ignored — must survive
+    ]),
+    [
+      'handsontable/scripts/themes/figma/utils/helpers/iconsMap.mjs',
+      'handsontable/test/e2e/x.spec.js',
+    ],
   );
 });
 

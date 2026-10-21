@@ -3,6 +3,8 @@ const realTimeItems = [
   { path: 'real-time/chartjs-sync/chartjs-sync', title: 'Sync rows to Chart.js', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'real-time/liveblocks-multiplayer/liveblocks-multiplayer', title: 'Multiplayer editing with Liveblocks', onlyFor: ['javascript', 'react'] },
   { path: 'real-time/liveblocks-comments/liveblocks-comments', title: 'Cell comments with Liveblocks', onlyFor: ['javascript', 'react'] },
+  { path: 'real-time/a2ui-agent-grid/a2ui-agent-grid', title: 'Agent-driven grid with A2UI', onlyFor: ['javascript', 'react'] },
+  { path: 'real-time/ai-columns-jev/ai-columns-jev', title: 'AI-classified columns with Jev', onlyFor: ['javascript'] },
 ];
 
 const columnManagementItems = [
@@ -56,6 +58,7 @@ const cellTypesItems = [
 const performanceItems = [
   { path: 'performance/lazy-loading/lazy-loading', title: 'Lazy loading with pagination', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'performance/persist-column-layout/persist-column-layout', title: 'Persist column layout', onlyFor: ['javascript', 'angular', 'react'] },
+  { path: 'performance/expensive-cell-renderer/expensive-cell-renderer', title: 'Cache an expensive cell renderer', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
 ];
 
 const renderingStylingItems = [
@@ -82,7 +85,7 @@ const importExportItems = [
     title: 'Export to PDF',
     onlyFor: ['javascript', 'angular', 'react', 'vue'],
   },
-  { path: 'import-export/import-csv-excel/import-csv-excel', title: 'Import from CSV or Excel', onlyFor: ['javascript', 'angular', 'react'] },
+  { path: 'import-export/import-csv-excel/import-csv-excel', title: 'Import from CSV or Excel', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
 ];
 
 const filteringAndSearchItems = [
@@ -95,11 +98,12 @@ const filteringAndSearchItems = [
 ];
 
 const themesItems = [
-  { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/ant-design/ant-design', title: 'Handsontable with Ant Design', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
-  { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/base-theme/base-theme', title: 'Handsontable DataGrid with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/custom-theme/custom-theme', title: 'Handsontable DataGrid with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/ant-design/ant-design', title: 'Handsontable DataGrid with Ant Design', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable DataGrid with Fluent UI', onlyFor: ['react'] },
+  { path: 'themes/mui-theme/mui-theme', title: 'Handsontable DataGrid with MUI', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/tabler-icons/tabler-icons', title: 'Handsontable DataGrid with Tabler Icons', onlyFor: ['react', 'javascript', 'angular', 'vue'] },
 ];
 
 const editingValidationItems = [
@@ -112,6 +116,19 @@ const editingValidationItems = [
     path: 'editing-validation/row-validation-error-summary/row-validation-error-summary',
     title: 'Row validation with error summary',
     onlyFor: ['javascript', 'angular', 'react', 'vue'],
+  },
+];
+
+const platformsItems = [
+  {
+    path: 'platforms/salesforce-lwc/salesforce-lwc',
+    title: 'Salesforce Lightning Web Components',
+    onlyFor: ['javascript'],
+  },
+  {
+    path: 'platforms/web-components/web-components',
+    title: 'Web components',
+    onlyFor: ['javascript'],
   },
 ];
 
@@ -161,6 +178,7 @@ module.exports = {
       onlyFor: ['javascript', 'angular', 'react', 'vue'],
     },
     { title: 'Performance', path: 'performance', children: performanceItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular', 'vue'] },
-    { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    { title: 'Platforms and embedding', path: 'platforms', children: platformsItems, collapsable: false, onlyFor: ['javascript'] },
+    { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular', 'vue'] },
   ],
 };

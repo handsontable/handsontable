@@ -5,6 +5,14 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['SKU-4821', 'Harbor Goods', 'Electronics', 142],
+  ['SKU-0093', 'Alpine Supply Co.', 'Apparel', 67],
+  ['SKU-2210', 'Harbor Goods', 'Electronics', 0],
+  ['SKU-7734', 'Nordic Traders', 'Home Goods', 58],
+  ['SKU-1145', 'Alpine Supply Co.', 'Apparel', 213],
+];
+
 const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [autoWrapRow, setAutoWrapRow] = useState(true);
@@ -30,13 +38,7 @@ const ExampleComponent = () => {
       </div>
       <HotTable
         ref={hotRef}
-        data={[
-          ['SKU-4821', 'Harbor Goods', 'Electronics', 142],
-          ['SKU-0093', 'Alpine Supply Co.', 'Apparel', 67],
-          ['SKU-2210', 'Harbor Goods', 'Electronics', 0],
-          ['SKU-7734', 'Nordic Traders', 'Home Goods', 58],
-          ['SKU-1145', 'Alpine Supply Co.', 'Apparel', 213],
-        ]}
+        data={data}
         colHeaders={['SKU', 'Supplier', 'Category', 'Quantity']}
         width="auto"
         height="auto"

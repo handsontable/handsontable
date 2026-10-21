@@ -2,7 +2,7 @@ name: Tests
 
 # ── PR pipeline ORCHESTRATOR ────────────────────────────────────────────────
 # This file is the DAG only: it wires the module reusable workflows (one per
-# domain — Checks, Lint, Code Quality, Unit, Types, Build, E2E, Walkontable,
+# domain — Checks, Lint, Code Quality, Unit, Types, Build, E2E, A11y, Walkontable,
 # Integration, Emitted Types, Visual, Docs, Performance) via `needs` (tiers +
 # artifact ordering) and `if` (scope gating from the Checks router's outputs).
 # The jobs/steps live in the module files, so each is small and reviewable.
@@ -41,7 +41,7 @@ concurrency:
 
 jobs:
   # ── Tier 0: the gatekeepers. Scope routing + the gates that STOP the pipeline
-  # when red (presence warn, changelog block). Everything downstream needs this.
+  # when red (presence and changelog both block). Everything downstream needs this.
   checks:
     name: Checks
     uses: ./.github/workflows/checks.yml
@@ -49,11 +49,17 @@ jobs:
       test-all: ${{ inputs.test-all || false }}
     secrets: inherit
 
-  # Independent merge gate — depends on nothing, so its red blocks the merge
-  # (branch protection, later), never the build/test DAG.
+  # The tracked human exception — a manual gate armed by ticking "This change
+  # needs a manual QA pass" in the PR description (read live by the Checks
+  # scope router). Runs ONLY when ticked: the sign-off job then waits on the
+  # `manual-qa` environment approval, holding this module in progress so CI
+  # Gate (which needs it) cannot report — the merge stays blocked without any
+  # job going red. Unticked PRs skip the module entirely (skipped, never a
+  # misleading green, no runner spent). See manual-qa.yml.
   manual-qa:
     name: Manual QA
-    if: github.event_name == 'pull_request'
+    needs: [ checks ]
+    if: ${{ !failure() && !cancelled() && github.event_name == 'pull_request' && needs.checks.outputs.manual-qa == 'true' }}
     uses: ./.github/workflows/manual-qa.yml
     secrets: inherit
 
@@ -69,6 +75,7 @@ jobs:
     uses: ./.github/workflows/lint.yml
     with:
       run-visual: ${{ needs.checks.outputs.run-all == 'true' || needs.checks.outputs.test-visual == 'true' }}
+      run-ratchet: ${{ needs.checks.outputs.run-all == 'true' || needs.checks.outputs.lint-ratchet == 'true' }}
     secrets: inherit
 
   code-quality:
@@ -131,6 +138,25 @@ jobs:
       run-e2e: ${{ needs.checks.outputs.test-handsontable-e2e == 'true' }}
       run-e2e-min: ${{ needs.checks.outputs.test-handsontable-e2e-min == 'true' }}
       run-playwright: ${{ needs.checks.outputs.build-handsontable-umd == 'true' }}
+      # The full theme × bundle matrix (every Playwright spec on every leg) on the rc/stable path,
+      # which publish.yml reaches with test-all: true, and on a master push, which has no nightly of
+      # its own. A pull request runs the shape each spec declares (tests/AGENTS.md, "Declaring the
+      # legs"); develop's push keeps that shape too, and the E2E nightly runs the matrix there.
+      full-matrix: ${{ inputs.test-all || github.ref_name == 'master' }}
+      # The six frozen Jasmine legs (three themes × UMD / UMD.min) on the same two paths. A pull
+      # request and develop's push run the one leg, UMD × main; the E2E nightly runs the six on develop.
+      jasmine-full-matrix: ${{ inputs.test-all || github.ref_name == 'master' }}
+    secrets: inherit
+
+  # The accessibility scan (axe-core over the Playwright fixture pages), one job in warn
+  # mode: a finding outside the baseline is an annotation and a summary row, never a red
+  # job. Gated like the Playwright legs, on the UMD build it consumes (the build-umd scope
+  # includes tests/**). See a11y.yml and tests/AGENTS.md, "A11y: the axe scan and its baseline".
+  a11y:
+    name: A11y
+    needs: [ checks, build ]
+    if: ${{ !failure() && !cancelled() && (needs.checks.outputs.run-all == 'true' || needs.checks.outputs.build-handsontable-umd == 'true') }}
+    uses: ./.github/workflows/a11y.yml
     secrets: inherit
 
   integration:
@@ -160,6 +186,7 @@ jobs:
     with:
       # publint checks the composed package (tmp/ + dist/ + styles/) → needs both.
       hot-prebuilt: ${{ needs.build.outputs.umd-built == 'true' && needs.build.outputs.es-cjs-built == 'true' }}
+      attw-full: ${{ needs.checks.outputs.run-all == 'true' }}
     secrets: inherit
 
   performance:
@@ -181,9 +208,22 @@ jobs:
     # Gated on the ES+CJS build (the visual examples consume it) OR the visual
     # scope — NOT on the build module merely succeeding. A tests/**-only PR
     # builds UMD (for Playwright) but not ES+CJS, and must not pay for the full
-    # visual suite (matches the pre-split behaviour).
+    # visual suite (matches the pre-split behavior).
     if: ${{ !failure() && !cancelled() && (needs.build.outputs.es-cjs-built == 'true' || needs.checks.outputs.test-visual == 'true') }}
     uses: ./.github/workflows/visual.yml
+    with:
+      # Pull requests render the pr tier (js × main, main-dark on chromium; a
+      # wrapper for real only when that wrapper's own tree changed —
+      # `visual-wrappers`, never the Integration matrix, which lights all three
+      # on any core change). A pull request that touches the visual tier itself
+      # (`visual-full`: visual-tests/**, its demos) renders everything (full),
+      # so a change to a spec or a demo is proven on every variant; a lockfile
+      # bump does not, or every Dependabot pull request would pay for a full
+      # render. The master push and the RC path (publish.yml → test.yml,
+      # test-all) seed their branch's goldens (seed). `&&`/`||` return
+      # operands, so this is a ternary.
+      tier: ${{ github.event_name != 'pull_request' && 'seed' || (needs.checks.outputs.visual-full == 'true' && 'full' || 'pr') }}
+      wrappers: ${{ needs.checks.outputs.visual-wrappers }}
     secrets: inherit
 
   # ── Docs: its own internal DAG (lint/plugins/angular → preview → visual).
@@ -200,6 +240,7 @@ jobs:
     with:
       run-all: ${{ needs.checks.outputs.run-all == 'true' }}
       run-angular: ${{ needs.checks.outputs.docs-angular == 'true' }}
+      run-content-types: ${{ needs.checks.outputs.docs-content-types == 'true' }}
       is-pr: ${{ github.event_name == 'pull_request' }}
     secrets: inherit
 
@@ -210,9 +251,11 @@ jobs:
   # then sit as "Expected — waiting for status to be reported" and block the PR
   # forever. This job instead ALWAYS runs (so it always reports one stable name)
   # and derives a single verdict from every other job's result: it fails if any
-  # job that actually ran failed or was cancelled, and passes when everything
+  # job that actually ran failed or was canceled, and passes when everything
   # else succeeded or was legitimately scope-skipped. Branch protection should
-  # require ONLY "CI Gate" and unpin every individual/matrix check name.
+  # require ONLY "CI Gate" and unpin every individual/matrix check name. The
+  # manual-QA gate blocks through its needs edge here: a ticked PR's pending
+  # sign-off keeps this job from ever reporting.
   ci-gate:
     name: CI Gate
     if: ${{ always() }}
@@ -226,12 +269,13 @@ jobs:
       - build
       - walkontable
       - e2e
+      - a11y
       - integration
       - emitted-types
       - performance
       - visual
       - docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Verify every pipeline job passed or was scope-skipped
         run: |

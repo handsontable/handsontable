@@ -45,6 +45,22 @@
           }
         }
 
+        .ht_clone_top_inline_end_corner {
+          .htCore {
+            > tbody {
+              > tr {
+                &:first-child {
+                  > td {
+                    &:last-child {
+                      border-start-end-radius: var(--ht-border-radius);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
         .ht_clone_top {
           .htCore {
             > tbody {
@@ -74,6 +90,22 @@
                   > td {
                     &:first-child {
                       border-start-start-radius: var(--ht-border-radius);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .ht_clone_inline_end {
+          .htCore {
+            > tbody {
+              > tr {
+                &:first-child {
+                  > td {
+                    &:last-child {
+                      border-start-end-radius: var(--ht-border-radius);
                     }
                   }
                 }
@@ -155,6 +187,24 @@
         }
       }
 
+      .ht_clone_top_inline_end_corner {
+        .htCore {
+          border-start-end-radius: var(--ht-border-radius);
+
+          > thead {
+            > tr {
+              &:first-child {
+                > th {
+                  &:last-child {
+                    border-start-end-radius: var(--ht-border-radius);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
       .ht_clone_top {
         .htCore {
           border-start-start-radius: var(--ht-border-radius);
@@ -210,6 +260,37 @@
         }
       }
 
+      .ht_clone_inline_end {
+        .htCore {
+          border-start-end-radius: var(--ht-border-radius);
+          border-end-end-radius: var(--ht-border-radius);
+
+          > thead {
+            > tr {
+              &:first-child {
+                > th {
+                  &:last-child {
+                    border-start-end-radius: var(--ht-border-radius);
+                  }
+                }
+              }
+            }
+          }
+
+          > tbody {
+            > tr {
+              &:last-child {
+                > td {
+                  &:last-child {
+                    border-end-end-radius: var(--ht-border-radius);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
       .ht_clone_bottom_inline_start_corner {
         .htCore {
           border-end-start-radius: var(--ht-border-radius);
@@ -221,6 +302,25 @@
                 > td {
                   &:first-child {
                     border-end-start-radius: var(--ht-border-radius);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .ht_clone_bottom_inline_end_corner {
+        .htCore {
+          border-end-end-radius: var(--ht-border-radius);
+
+          > :where(thead, tbody) {
+            > tr {
+              &:last-child {
+                > th,
+                > td {
+                  &:last-child {
+                    border-end-end-radius: var(--ht-border-radius);
                   }
                 }
               }

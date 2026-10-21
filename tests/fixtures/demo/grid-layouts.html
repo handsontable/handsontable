@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture – one grid in the layouts the cross-browser visual demos use</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back – a typo
+    // in the project config must be one red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+
+    // The grid's shape. Each value is one of the visual suite's demo routes reduced to the settings
+    // that decide where a selection, an edit or a paste lands; the data is synthetic.
+    window.htLayout = htPick({
+      'frozen-hidden': 'frozen-hidden',
+      'rtl-nested-headers': 'rtl-nested-headers',
+      'merged-sorted': 'merged-sorted',
+      'custom-borders': 'custom-borders',
+      'nested-headers': 'nested-headers',
+      'nested-rows': 'nested-rows',
+      large: 'large',
+    }, htParams.get('layout'), 'frozen-hidden', 'layout');
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    One grid, in one of the layouts the cross-browser visual suite photographs. Those specs
+    (`visual-tests/tests/cross-browser/`) select header ranges, edit and undo cells, and paste over a
+    scrolled range on the js demo's routes, and until DEV-3257 the screenshots were the only record
+    of where each gesture landed. Each `?layout=` keeps the settings of one route that change the
+    answer: hidden and frozen columns, a right-to-left grid under a two-row nested header, merged
+    cells under an initial sort, a nested header over rows frozen to the bottom, nested rows with
+    hidden rows and a hidden column, and a grid large enough to scroll both ways.
+
+      frozen-hidden        /cell-types-demo      columns 0 and 2 hidden, three frozen at the start, column 4 numeric
+      rtl-nested-headers   /arabic-rtl-demo      layoutDirection rtl, a two-row nested header
+      merged-sorted        /merged-cells-demo    four merged areas, an initial two-column sort
+      custom-borders       /custom-style-demo    the same merged areas, two bordered cells
+      nested-headers       /nested-headers-demo  a two-row nested header, two rows frozen at the bottom
+      nested-rows          /nested-rows-demo     nested rows, rows and a column hidden, navigable headers
+      large                /large-dataset-demo   150 x 150 in a 500 x 500 viewport
+
+    Every rendered cell carries `data-testid="cell-<visualRow>-<visualColumn>"`, every column header
+    `data-testid="col-header-<level>-<visualColumn>"` (level 0 is the top row of a nested header),
+    and every row header `data-testid="row-header-<visualRow>"`. A header is drawn once per overlay,
+    so the page object scopes each locator to the overlay that takes the pointer.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The closing tag is split
+    // so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const MERGED_AREAS = [
+      { row: 1, col: 0, rowspan: 1, colspan: 2 },
+      { row: 2, col: 0, rowspan: 1, colspan: 2 },
+      { row: 5, col: 1, rowspan: 2, colspan: 2 },
+      { row: 10, col: 0, rowspan: 3, colspan: 3 },
+    ];
+
+    /**
+     * Rows of `<column letter><row number>` strings, the shape `createSpreadsheetData` builds.
+     *
+     * @param {number} rows The row count.
+     * @param {number} columns The column count.
+     * @returns {string[][]}
+     */
+    const spreadsheet = (rows, columns) => Handsontable.helper.createSpreadsheetData(rows, columns);
+
+    /**
+     * Nested-rows data: `parents` parent rows, each with `children` child rows, eleven columns. A
+     * parent row holds only its label in column 0, as the demo's category rows do.
+     *
+     * @param {number} parents The parent row count.
+     * @param {number} children The child row count of each parent.
+     * @returns {object[]}
+     */
+    const nestedRowsData = (parents, children) => Array.from({ length: parents }, (_, parent) => ({
+      c0: `P${parent + 1}`,
+      __children: Array.from({ length: children }, (__, child) => Object.fromEntries(
+        Array.from({ length: 11 }, (___, column) => [`c${column}`, `P${parent + 1}.${child + 1}c${column}`]),
+      )),
+    }));
+
+    const LAYOUTS = {
+      'frozen-hidden': () => ({
+        // Column 4 is numeric, as the demo's "Cost" is: text typed into it is kept and marked invalid.
+        data: spreadsheet(30, 16).map((row, index) => row.map((value, column) => (
+          column === 4 ? (index + 1) * 100 : value
+        ))),
+        cells(row, column) {
+          return column === 4 ? { type: 'numeric' } : {};
+        },
+        colWidths: 90,
+        width: 1000,
+        height: 400,
+        hiddenColumns: { columns: [0, 2], indicators: true },
+        fixedColumnsStart: 3,
+        manualColumnResize: true,
+        manualRowResize: true,
+      }),
+      'rtl-nested-headers': () => ({
+        data: spreadsheet(30, 10),
+        layoutDirection: 'rtl',
+        width: 700,
+        height: 400,
+        // The demo's group row covers six of the ten columns: one, a span of four, and one.
+        nestedHeaders: [
+          ['Info', { label: 'Details', colspan: 4 }, 'Extra'],
+          ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9'],
+        ],
+      }),
+      'merged-sorted': () => ({
+        // Column 3 counts DOWN, so the initial ascending sort reverses the rows: visual row 2 is
+        // physical row 27, and the merged areas (set on physical rows 1-12) sort to the bottom, out
+        // of the rows the specs click, as the demo's do.
+        data: spreadsheet(30, 7).map((row, index) => row.map((value, column) => (
+          column === 3 ? String(30 - index).padStart(2, '0') : value
+        ))),
+        height: 400,
+        mergeCells: MERGED_AREAS,
+        multiColumnSorting: {
+          initialConfig: [
+            { column: 3, sortOrder: 'asc' },
+            { column: 4, sortOrder: 'desc' },
+          ],
+        },
+      }),
+      'custom-borders': () => ({
+        data: spreadsheet(30, 7),
+        height: 400,
+        mergeCells: MERGED_AREAS,
+        renderAllRows: true,
+        customBorders: [
+          {
+            range: { from: { row: 1, col: 1 }, to: { row: 1, col: 1 } },
+            top: { width: 2, color: 'red' },
+            start: { width: 2, color: 'red' },
+            bottom: { width: 2, color: 'red' },
+            end: { width: 2, color: 'red' },
+          },
+          {
+            range: { from: { row: 3, col: 3 }, to: { row: 3, col: 3 } },
+            top: { width: 2, color: 'blue' },
+            start: { width: 2, color: 'blue' },
+            bottom: { width: 2, color: 'blue' },
+            end: { width: 2, color: 'blue' },
+          },
+        ],
+      }),
+      'nested-headers': () => ({
+        data: spreadsheet(30, 11),
+        height: 400,
+        nestedHeaders: [
+          [
+            { label: 'Product', colspan: 4 },
+            { label: 'Category', colspan: 3 },
+            { label: 'User', colspan: 2 },
+            { label: 'System', colspan: 2 },
+          ],
+          ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10'],
+        ],
+        collapsibleColumns: true,
+        navigableHeaders: true,
+        fixedRowsBottom: 2,
+        mergeCells: true,
+      }),
+      'nested-rows': () => {
+        const parents = 4;
+        const children = 9;
+
+        return {
+          data: nestedRowsData(parents, children),
+          columns: Array.from({ length: 11 }, (_, column) => ({ data: `c${column}` })),
+          height: 400,
+          rowHeaderWidth: 150,
+          // As on the demo: a header click puts the focus on the header, not on the first cell.
+          navigableHeaders: true,
+          nestedRows: true,
+          bindRowsWithHeaders: true,
+          hiddenColumns: { columns: [1], indicators: true },
+          hiddenRows: { rows: [3, 4, 5, 14, 15, 16, 19], indicators: true },
+          // Each parent row is one merged, read-only cell across all eleven columns, as in the demo.
+          mergeCells: Array.from({ length: parents }, (_, parent) => ({
+            row: parent * (children + 1), col: 0, rowspan: 1, colspan: 11,
+          })),
+          cells(row) {
+            return row % (children + 1) === 0 ? { readOnly: true } : {};
+          },
+        };
+      },
+      large: () => ({
+        data: spreadsheet(150, 150),
+        width: 500,
+        height: 500,
+      }),
+    };
+
+    // A constructor that throws stamps its message on the container instead of taking the whole
+    // page down, so a failure reads as the real error rather than a bare "element not visible".
+    try {
+      window.hot = new Handsontable(container, {
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        autoWrapRow: true,
+        autoWrapCol: true,
+        ...LAYOUTS[window.htLayout](),
+        afterRenderer(td, row, column) {
+          td.setAttribute('data-testid', `cell-${row}-${column}`);
+        },
+        afterGetColHeader(column, th, level) {
+          if (column >= 0) {
+            th.setAttribute('data-testid', `col-header-${level}-${column}`);
+          }
+        },
+        afterGetRowHeader(row, th) {
+          if (row >= 0) {
+            th.setAttribute('data-testid', `row-header-${row}`);
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
+  </script>
+</body>
+</html>

@@ -3,11 +3,6 @@ import Handsontable from "handsontable/base";
 import { generateExampleData, getDirectionFromURL, getThemeNameFromURL } from "../../utils";
 import { progressBarRenderer, starRenderer } from "./customRenderers";
 import { registerLanguageDictionary, arAR } from "handsontable/i18n";
-import {
-  addClassesToRows,
-  changeCheckboxCell,
-  drawCheckboxInRowHeaders
-} from "./hooksCallbacks";
 
 // choose cell types you want to use and import them
 import {
@@ -131,9 +126,6 @@ export function init() {
     manualColumnMove: true,
     customBorders: true,
     headerClassName: getDirectionFromURL() === "rtl" ? 'htRight' : 'htLeft',
-    afterGetRowHeader: drawCheckboxInRowHeaders,
-    afterOnCellMouseDown: changeCheckboxCell,
-    beforeRenderer: addClassesToRows,
     licenseKey: "non-commercial-and-evaluation"
   });
 

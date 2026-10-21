@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Feedback
-metaTitle:  Feedback Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a custom Handsontable cell type using emoji buttons for quick feedback selection directly in your data grid.
+metaTitle: Feedback | Handsontable DataGrid for JavaScript
+description: Learn how to create a custom Handsontable DataGrid cell type using emoji buttons for quick feedback selection directly in your data grid.
 permalink: /recipes/cell-types/feedback
 canonicalUrl: /recipes/cell-types/feedback
 tags:
@@ -10,16 +10,16 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Feedback Cell Type - React Data Grid | Handsontable
+  metaTitle: Feedback | Handsontable DataGrid for React
 angular:
-  metaTitle: Feedback Cell Type - Angular Data Grid | Handsontable
+  metaTitle: Feedback | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Feedback Cell Type - Vue Data Grid | Handsontable
+  metaTitle: Feedback | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
 ---
 
-This tutorial shows you how to build an emoji feedback cell using Handsontable's `editorFactory` helper, with Handsontable CSS tokens for theme-aware styling and keyboard navigation.
+This tutorial shows you how to build an emoji feedback cell using Handsontable DataGrid's `editorFactory` helper, with Handsontable CSS tokens for theme-aware styling and keyboard navigation.
 
 ::: only-for javascript vue
 
@@ -360,7 +360,7 @@ const cellDefinition = {
 
 **Note:** No custom renderer needed! Handsontable's default renderer will display the emoji value in the cell. All visual styling is handled by the CSS file using Handsontable tokens.
 
-## Step 9: Register and Use in Handsontable
+## Step 9: Register and Use in Handsontable DataGrid
 
 Register the cell definition as a reusable cell type, then use it in the column configuration.
 

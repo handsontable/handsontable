@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Row heights
-metaTitle: Row heights - JavaScript Data Grid | Handsontable
-description: Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
+metaTitle: Row heights | Handsontable DataGrid for JavaScript
+description: Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable DataGrid's interface.
 permalink: /row-height
 canonicalUrl: /row-height
 tags:
@@ -16,17 +16,20 @@ tags:
   - min-height
   - row dimensions
   - manual resize
+  - text truncation
+  - line clamp
+  - ellipsis
 react:
-  metaTitle: Row heights - React Data Grid | Handsontable
+  metaTitle: Row heights | Handsontable DataGrid for React
 angular:
-  metaTitle: Row heights - Angular Data Grid | Handsontable
+  metaTitle: Row heights | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row heights - Vue Data Grid | Handsontable
+  metaTitle: Row heights | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated
 ---
-Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
+Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable DataGrid's interface.
 
 [[toc]]
 
@@ -192,10 +195,39 @@ When you set a row height programmatically with [`ManualRowResize#setManualSize(
 
 :::
 
+A row resized this way keeps its height, and that height wins over the [`rowHeights`](@/api/options.md#rowheights) option. To hand control back to the option, pass `rowHeights` to [`updateSettings()`](@/api/core.md#updatesettings). That re-declares the heights and discards the stored ones:
+
+```js
+// every row is 50px again, including the rows the user dragged
+hot.updateSettings({ rowHeights: 50 });
+```
+
+To resize rows without discarding what the user dragged, leave `rowHeights` out of the call. To replace the stored heights with your own, pass [`manualRowResize`](@/api/options.md#manualrowresize) as an array. You can also clear them yourself with [`ManualRowResize#clearManualSize()`](@/api/manualRowResize.md#clearmanualsize) for one row, or [`clearManualSizes()`](@/api/manualRowResize.md#clearmanualsizes) for all of them, followed by `hot.render()`.
+
+::: tip
+
+These cases never discard the stored heights, so passing `rowHeights` does not reset anything:
+
+- `rowHeights` set to a function. A function states no fixed height, so the stored heights are left alone.
+- A grid whose [`manualRowResize`](@/api/options.md#manualrowresize) option is already a non-empty array. The plugin replays that array, so the stored heights stay.
+- The React, Angular and Vue wrappers, where a `rowHeights` prop whose value did not change is not forwarded to `updateSettings()`. Re-applying the same value is not an update.
+
+In each case, clear the heights explicitly.
+
+:::
+
+```js
+hot.getPlugin('manualRowResize').clearManualSizes();
+hot.render();
+```
+
 ::: only-for javascript
 
-::: example #example4 --js 1 --ts 2
+Try it in the demo below: drag the bottom edge of a row header to resize a row, then select **Clear manual sizes**, which runs the snippet above.
 
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/rows/row-height/javascript/example4.html)
 @[code](@/content/guides/rows/row-height/javascript/example4.js)
 @[code](@/content/guides/rows/row-height/javascript/example4.ts)
 
@@ -235,6 +267,78 @@ When you set a row height programmatically with [`ManualRowResize#setManualSize(
 
 :::
 
+## Limit the number of lines in a cell
+
+Long text makes a row taller. To keep rows compact, set the [`textEllipsis`](@/api/options.md#textellipsis) option to a number. Handsontable shows that many lines of text and ends the last visible line with an ellipsis (`…`). The row grows only up to that number of lines.
+
+| `textEllipsis` value                | Result                                                |
+| ----------------------------------- | ----------------------------------------------------- |
+| `false` (default)                   | The text wraps and the row grows to fit all of it.    |
+| `true` or `1`                       | The text stays on one line and ends with an ellipsis. |
+| An integer of `2` or more           | The text wraps, but only that many lines are visible. |
+| Any other number (`0`, `-1`, `2.5`) | Works like `false`.                                   |
+
+The truncation only changes how the cell looks. The full text stays in the cell data and in copied data, and the cell editor opens with the full text.
+
+You can set `textEllipsis` at the grid, column, and cell level, like other [cascading options](@/guides/configuration/configuration-option-levels/configuration-option-levels.md). To override a column for a single cell, return a different value from the [`cells`](@/api/options.md#cells) function.
+
+The `autocomplete`, `dropdown`, and `handsontable` cell types set `textEllipsis: true` themselves, so a grid-level number does not reach their columns. To show a number of lines in them, set the number on the column (or in `cells`).
+
+A number works in cells that render plain text, such as the `text`, `numeric`, `date`, `time`, `select`, `autocomplete`, and `dropdown` cell types. Cells with their own markup, such as cells that use the `html` renderer, can't clamp. For them a number works like `true`: the text stays on one line and ends with an ellipsis.
+
+If you set [`wordWrap`](@/api/options.md#wordwrap) to `false`, the text can't wrap. The cell then keeps the text on one line and ends it with an ellipsis, whatever number you set.
+
+In this example, the **Note** column shows two lines of each note. The rows stay compact, however long the text is. Without `textEllipsis`, the longest notes would make their rows five lines tall.
+
+::: only-for javascript
+
+::: example #example5 --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-height/javascript/example5.js)
+@[code](@/content/guides/rows/row-height/javascript/example5.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-height/react/example5.jsx)
+@[code](@/content/guides/rows/row-height/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-height/angular/example5.ts)
+@[code](@/content/guides/rows/row-height/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/rows/row-height/vue/example5.vue)
+
+:::
+
+:::
+
+::: tip
+
+When the [`AutoRowSize`](@/api/autoRowSize.md) plugin is enabled and you change `textEllipsis` with [`updateSettings()`](@/api/core.md#updatesettings), call [`recalculateAllRowsHeight()`](@/api/autoRowSize.md#recalculateallrowsheight) afterwards, so the rows get the new height.
+
+:::
+
 ## Related API reference
 
 **Configuration options**
@@ -244,6 +348,8 @@ When you set a row height programmatically with [`ManualRowResize#setManualSize(
 - [autoRowSize](@/api/options.md#autorowsize)
 - [manualRowResize](@/api/options.md#manualrowresize)
 - [minRowHeights](@/api/options.md#minRowHeights)
+- [textEllipsis](@/api/options.md#textellipsis)
+- [wordWrap](@/api/options.md#wordwrap)
 
 </div>
 

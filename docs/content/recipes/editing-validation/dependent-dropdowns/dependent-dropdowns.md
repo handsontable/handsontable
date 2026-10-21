@@ -1,6 +1,6 @@
 ---
 title: Dependent dropdowns
-metaTitle: Dependent Dropdowns Recipe - JavaScript Data Grid | Handsontable
+metaTitle: Dependent dropdowns recipe | Handsontable DataGrid for JavaScript
 description: Drive a child column dropdown from a parent column using a dependency map, afterChange, setCellMeta, and render.
 permalink: /recipes/editing-validation/dependent-dropdowns
 canonicalUrl: /recipes/editing-validation/dependent-dropdowns
@@ -11,11 +11,11 @@ tags:
   - dropdown
   - validation
 react:
-  metaTitle: Dependent Dropdowns Recipe - React Data Grid | Handsontable
+  metaTitle: Dependent dropdowns recipe | Handsontable DataGrid for React
 angular:
-  metaTitle: Dependent Dropdowns Recipe - Angular Data Grid | Handsontable
+  metaTitle: Dependent dropdowns recipe | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Dependent Dropdowns Recipe - Vue Data Grid | Handsontable
+  metaTitle: Dependent dropdowns recipe | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Editing and Validation
 type: how-to

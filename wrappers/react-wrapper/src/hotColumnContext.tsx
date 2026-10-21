@@ -18,16 +18,29 @@ export interface HotColumnContextImpl {
    * @returns The `Document` object used by the component.
    */
   readonly getOwnerDocument: () => Document | null;
+
+  /**
+   * Get the stable host element for React editor portals.
+   *
+   * @returns The host element, or `null` before a document is available.
+   */
+  readonly getEditorPortalHost: () => HTMLElement | null;
 }
 
 const HotColumnContext = createContext<HotColumnContextImpl | undefined>(undefined);
 
-const HotColumnContextProvider: FC<PropsWithChildren<HotColumnContextImpl>> = ({ columnIndex, getOwnerDocument, children }) => {
+const HotColumnContextProvider: FC<PropsWithChildren<HotColumnContextImpl>> = ({
+  columnIndex,
+  getOwnerDocument,
+  getEditorPortalHost,
+  children
+}) => {
 
   const contextImpl: HotColumnContextImpl = useMemo(() => ({
     columnIndex,
-    getOwnerDocument
-  }), [columnIndex, getOwnerDocument]);
+    getOwnerDocument,
+    getEditorPortalHost
+  }), [columnIndex, getOwnerDocument, getEditorPortalHost]);
 
   return (
     <HotColumnContext.Provider value={contextImpl}>{children}</HotColumnContext.Provider>

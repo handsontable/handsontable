@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `currentRowClassName` and `currentColClassName` indicators painting only the leaf header level for nested or grouped headers.",
+  "type": "fixed",
+  "issueOrPR": 13610,
+  "breaking": false,
+  "framework": "none"
+}

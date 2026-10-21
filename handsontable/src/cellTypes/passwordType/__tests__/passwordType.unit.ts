@@ -14,7 +14,9 @@ import {
 } from '../../../renderers';
 import {
   getRegisteredValidatorNames,
+  getValidator,
 } from '../../../validators';
+import { valueFormatter } from '../../../renderers/passwordRenderer/passwordRenderer';
 
 describe('PasswordCellType', () => {
   describe('registering', () => {
@@ -58,7 +60,15 @@ describe('PasswordCellType', () => {
         editor: getEditor('password'),
         renderer: getRenderer('password'),
         copyable: false,
+        valueFormatter,
       });
+    });
+  });
+
+  describe('valueFormatter', () => {
+    it('should be the password renderer formatter (identity pin)', () => {
+      expect(typeof PasswordCellType.valueFormatter).toBe('function');
+      expect(PasswordCellType.valueFormatter).toBe(valueFormatter);
     });
   });
 });

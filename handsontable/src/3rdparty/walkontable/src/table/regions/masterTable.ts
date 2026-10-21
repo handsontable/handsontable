@@ -1,8 +1,12 @@
 import type { TableDeps } from '../baseTable';
+import type { GeometryReader } from '../../domMeasure/geometryReader';
 import {
-  getTrimmingContainer,
+  isHTMLElement,
   isVisible,
 } from '../../../../../helpers/dom/element';
+import { resolveAxisOwner, resolveWidthBoundingRoot } from '../../overlay/axisOwner';
+import { subtractReservedHeight } from '../../viewport/layoutReservation';
+import { applyHolderWidthCap, resolveHolderWidth } from '../../viewport/rootWidthBound';
 import Table from '../baseTable';
 import { rowRangeQuery, columnRangeQuery } from '../rangeQuery/virtualRange';
 import { mixin } from '../../../../../helpers/object';
@@ -25,10 +29,203 @@ interface TrimmingContainerCache {
   trimmingHeight: string;
   hiderOffsetHeight: number;
   hiderOffsetWidth: number;
+  /**
+   * The host's layout-slot height inside the owner (`layoutReservedHeight`) the holder height
+   * was computed with.
+   */
+  reservedHeight: number;
+  /**
+   * The `heightFollowsContent` setting the holder height was computed with.
+   */
+  heightFollowsContent: boolean;
+  /**
+   * The widths the holder width was resolved against while the grid's root bounds it
+   * (`readWidthBoundFingerprint`), `null` while the owner alone sizes the holder.
+   */
+  widthBound: WidthBoundFingerprint | null;
   holderWidth: string;
   holderHeight: string;
   hasTableHeight: boolean;
   hasTableWidth: boolean;
+}
+
+/**
+ * Measures the height a container has on its own, without its content: an empty clone of it is
+ * laid out next to it and read. `0` means the container's height is driven entirely by its content
+ * (the grids inside it), and sizing the holder to that height in pixels feeds the container's height
+ * back into itself – with two grids sharing the container, each holder takes the sum of both and
+ * the container grows to the browser's CSS height limit (issue #3119). `null` when the container
+ * has no parent to lay the clone out in.
+ *
+ * @param {GeometryReader} geometryReader The geometry reader.
+ * @param {HTMLElement} element The container to probe.
+ * @returns {number | null}
+ */
+function measureIntrinsicHeight(geometryReader: GeometryReader, element: HTMLElement): number | null {
+  const { parentElement } = element;
+
+  if (!parentElement) {
+    return null;
+  }
+
+  const cloneNode = element.cloneNode(false) as HTMLElement;
+
+  // Before calculating the height of the trimming element, set overflow: auto to hide scrollbars.
+  // An issue occurred on Firefox, where an empty element with overflow: scroll returns an element height higher than 0px
+  // despite an empty content within.
+  cloneNode.style.overflow = 'auto';
+  // Issue #9545 shows problem with calculating height for HOT on Firefox while placing instance in some
+  // flex containers and setting overflow for some `div` section.
+  cloneNode.style.position = 'absolute';
+  // Reset border and padding so border-box sizing does not contribute to the measured height.
+  // Without this, a container with a visible border (e.g. border: 1px solid) produces
+  // cloneHeight = 2 even though it has no intrinsic height, preventing the zero-height
+  // detection that guards against the feedback-loop bug. See issue #3119.
+  cloneNode.style.border = '0';
+  cloneNode.style.padding = '0';
+
+  if (element.nextElementSibling) {
+    parentElement.insertBefore(cloneNode, element.nextElementSibling);
+  } else {
+    parentElement.appendChild(cloneNode);
+  }
+
+  const cloneHeight = parseInt(geometryReader.getComputedStyle(cloneNode).height, 10);
+
+  parentElement.removeChild(cloneNode);
+
+  return cloneHeight;
+}
+
+/**
+ * The inputs of `resolveHolderWidth()` that neither the owner's box nor the hider carries: the root's
+ * width (a relative `width` moves it alone), the width of the element it sits in (a wrapper's
+ * padding, a flex share whose neighbor changed), and the window's (a content-sized owner, such as a
+ * modal `<dialog>` with no width, keeps its box while the room around it grows).
+ */
+interface WidthBoundFingerprint {
+  rootWidth: number;
+  containerWidth: number;
+  viewportWidth: number;
+}
+
+/**
+ * Reads the part of the element mode's trimming-cache fingerprint that the root's width bound adds.
+ *
+ * @param {Table} table The master table.
+ * @param {HTMLElement | null} boundingRoot The grid's root element when it bounds the width, else `null`.
+ * @returns {WidthBoundFingerprint | null} `null` while the owner alone sizes the holder.
+ */
+function readWidthBoundFingerprint(table: Table, boundingRoot: HTMLElement | null): WidthBoundFingerprint | null {
+  if (boundingRoot === null) {
+    return null;
+  }
+
+  const { geometryReader, rootDocument } = table.deps;
+  const container = boundingRoot.parentElement;
+
+  return {
+    rootWidth: geometryReader.clientWidth(boundingRoot),
+    containerWidth: container ? geometryReader.clientWidth(container) : -1,
+    viewportWidth: rootDocument.defaultView?.innerWidth ?? -1,
+  };
+}
+
+/**
+ * Tells whether two width-bound fingerprints describe the same layout.
+ *
+ * @param {WidthBoundFingerprint | null} cached The fingerprint the cached holder width was taken at.
+ * @param {WidthBoundFingerprint | null} current The fingerprint of this draw.
+ * @returns {boolean}
+ */
+function isSameWidthBound(cached: WidthBoundFingerprint | null, current: WidthBoundFingerprint | null): boolean {
+  if (cached === null || current === null) {
+    return cached === current;
+  }
+
+  return cached.rootWidth === current.rootWidth
+    && cached.containerWidth === current.containerWidth
+    && cached.viewportWidth === current.viewportWidth;
+}
+
+/**
+ * Measures the holder width an element that owns the horizontal axis allows: its box, clamped to its
+ * scroll width, or, while the grid's root bounds the width, the room the grid has inside it
+ * (`resolveHolderWidth()`).
+ *
+ * @param {Table} table The master table.
+ * @param {HTMLElement} ownerX The owner of the horizontal axis.
+ * @param {HTMLElement | null} boundingRoot The grid's root element when it bounds the width, else `null`.
+ * @returns {number}
+ */
+function measureHolderWidth(table: Table, ownerX: HTMLElement, boundingRoot: HTMLElement | null): number {
+  const { geometryReader } = table.deps;
+  const width = Math.min(geometryReader.offsetWidth(ownerX), geometryReader.scrollWidth(ownerX));
+
+  if (boundingRoot === null) {
+    return width;
+  }
+
+  return resolveHolderWidth(geometryReader, table.wtRootElement, table.holder, ownerX, boundingRoot) ?? width;
+}
+
+/**
+ * Lays the holder out for split axis owners. An element-owned axis gets the owner's box on that
+ * axis and the holder scrolls inside it; a window-owned axis is left to the DOM (block-fill width,
+ * content height), and the window scrolls it. The holder's overflow is cleared so the stylesheet's
+ * `.ht_master .wtHolder { overflow: auto }` applies; with a content-driven height the vertical
+ * axis has nothing to scroll, so `auto` on both axes is the mixed mode. `.ht_master` is cleared
+ * too, releasing the `overflow: visible` the window mode writes, so its stylesheet
+ * `overflow: hidden` clips the clones to the box.
+ *
+ * A vertical owner with no intrinsic height (a parent with `overflow-y: hidden` and no `height`)
+ * is content-driven as well: it gets `auto` like the window, not its own pixel height, which would
+ * be the #3119 feedback loop the element mode guards against. Probed on every full draw – this mode
+ * caches nothing, and the probe runs only when the vertical owner is an element.
+ *
+ * @param {Table} table The master table.
+ * @param {HTMLElement | Window} ownerX The owner of the horizontal axis.
+ * @param {HTMLElement | Window} ownerY The owner of the vertical axis.
+ */
+function alignHolderWithSplitOwners(table: Table, ownerX: HTMLElement | Window, ownerY: HTMLElement | Window) {
+  const { geometryReader } = table.deps;
+  const holderStyle = table.holder.style;
+
+  if (isHTMLElement(ownerX)) {
+    const boundingRoot = resolveWidthBoundingRoot(
+      table.wtRootElement,
+      ownerX,
+      table.wtSettings.getSetting('widthFollowsRoot'),
+    );
+    const width = measureHolderWidth(table, ownerX, boundingRoot);
+
+    applyHolderWidthCap(table.holder, boundingRoot !== null);
+    holderStyle.width = `${width}px`;
+    table.hasTableWidth = width > 0;
+  } else {
+    applyHolderWidthCap(table.holder, false);
+    holderStyle.width = '';
+    table.hasTableWidth = true;
+  }
+
+  if (isHTMLElement(ownerY) && measureIntrinsicHeight(geometryReader, ownerY) !== 0) {
+    // The owner's box is shared with the host's layout slots (`layoutReservedHeight`); the holder
+    // gets what is left, so a bar inside a scrollable ancestor is not pushed past its edge.
+    const reservedHeight = table.wtSettings.getSetting('layoutReservedHeight', ownerY);
+    const height = subtractReservedHeight(
+      Math.min(geometryReader.offsetHeight(ownerY), geometryReader.scrollHeight(ownerY)),
+      reservedHeight,
+    );
+
+    holderStyle.height = `${height}px`;
+    table.hasTableHeight = height > 0;
+  } else {
+    holderStyle.height = 'auto';
+    table.hasTableHeight = true;
+  }
+
+  holderStyle.overflow = '';
+  table.wtRootElement.style.overflow = '';
 }
 
 /**
@@ -90,19 +287,56 @@ class MasterTable extends Table {
     // throws; the brand check detects the pre-init call so the caching block
     // can be skipped. The non-caching branches (window-trimming overflow
     // reset and the trailing isVisible check) still run, matching the
-    // pre-DEV-1777 behaviour and the side effects callers depend on.
+    // pre-DEV-1777 behavior and the side effects callers depend on.
     const fieldsInitialized = #trimmingCache in this;
-    const trimmingElement = getTrimmingContainer(this.wtRootElement);
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    // Each axis has its own owner (see `overlay/axisOwner.ts`). The overlays read the same two
+    // answers off their own `trimmingContainer` fields, so the holder laid out here and the
+    // predicates the rest of the engine reads cannot disagree.
+    const ownerX = resolveAxisOwner(this.wtRootElement, 'x', preventOverflow);
+    const ownerY = resolveAxisOwner(this.wtRootElement, 'y', preventOverflow);
+    const xIsElement = isHTMLElement(ownerX);
+    const yIsElement = isHTMLElement(ownerY);
+    const trimmingElement = ownerX;
     const { geometryReader } = this.deps;
 
-    if (!(trimmingElement instanceof HTMLElement)) {
-      const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    if (!xIsElement && !yIsElement) {
+      // Nothing sizes the holder here - the page scrolls both axes, so it is left to the DOM. A grid
+      // that ARRIVED from the split mode still carries the pixel `width` and the `height` that mode
+      // wrote (a clip removed from an ancestor, a `width` that stopped being definite), and those
+      // would pin the holder to the old box while the page is supposed to size it. Clearing them is
+      // the whole of this mode's sizing. `measureWorkspaceWidth`'s window branch reads the holder
+      // width, so a stale one also kept the columns stretching to the old box.
+      const holderStyle = this.holder.style;
+
+      applyHolderWidthCap(this.holder, false);
+      holderStyle.width = '';
+      holderStyle.height = '';
+      this.hasTableWidth = true;
+      this.hasTableHeight = true;
+
+      if (fieldsInitialized) {
+        // The measurement it holds was taken in another mode and must not be replayed on the way back.
+        this.#trimmingCache = null;
+      }
 
       if (!preventOverflow) {
-        this.holder.style.overflow = 'visible';
+        holderStyle.overflow = 'visible';
         this.wtRootElement.style.overflow = 'visible';
       }
-    } else if (fieldsInitialized) {
+    } else if (!(xIsElement && yIsElement && ownerX === ownerY)) {
+      // Split owners: one axis scrolls inside an element and the other with the window (or with a
+      // different element). The holder is sized on each axis by that axis's owner alone. A free
+      // function, not a private method: this branch also runs from the base-class constructor,
+      // where a `#method` call fails the brand check the way a `#field` read does.
+      alignHolderWithSplitOwners(this, ownerX, ownerY);
+
+      if (fieldsInitialized) {
+        // Nothing is cached in this mode (there is no clone probe to save), and a cache left over
+        // from the single-owner mode must not be replayed when the grid returns to it.
+        this.#trimmingCache = null;
+      }
+    } else if (fieldsInitialized && isHTMLElement(trimmingElement)) {
       // Bind ResizeObservers on the first call, and re-bind on the rare draw
       // where the trimming container has changed (HOT reparented in the DOM).
       // Each rebind also nulls the cache, since the previous measurement was
@@ -141,6 +375,21 @@ class MasterTable extends Table {
       const trimmingHeight = geometryReader.getStyle(trimmingElement, 'height') ?? '';
       const hiderOffsetHeight = geometryReader.offsetHeight(this.hider);
       const hiderOffsetWidth = geometryReader.offsetWidth(this.hider);
+      // Part of the fingerprint: a bar that mounts into a slot after the first draw (or changes
+      // height) must re-measure, or the cached holder height keeps the whole owner box.
+      const reservedHeight = this.wtSettings.getSetting('layoutReservedHeight', trimmingElement);
+      // Part of the fingerprint: switching `height` between `'auto'` and unset moves no box, yet it
+      // decides whether a heightless owner gets `auto` or 0px.
+      const heightFollowsContent = this.wtSettings.getSetting('heightFollowsContent');
+      // Part of the fingerprint: the grid's root element bounds the holder width when the host sized
+      // the grid as a plain block, and the widths that bound depends on can move while the owner's box
+      // stays put. Switching the setting moves no box at all, so its answer is compared too.
+      const widthBoundingRoot = resolveWidthBoundingRoot(
+        this.wtRootElement,
+        trimmingElement,
+        this.wtSettings.getSetting('widthFollowsRoot'),
+      );
+      const widthBound = readWidthBoundFingerprint(this, widthBoundingRoot);
       const cache = this.#trimmingCache;
       const cacheValid = cache !== null
         && cache.trimmingOffsetWidth === trimmingOffsetWidth
@@ -150,7 +399,12 @@ class MasterTable extends Table {
         && cache.trimmingOverflow === trimmingOverflow
         && cache.trimmingHeight === trimmingHeight
         && cache.hiderOffsetHeight === hiderOffsetHeight
-        && cache.hiderOffsetWidth === hiderOffsetWidth;
+        && cache.hiderOffsetWidth === hiderOffsetWidth
+        && cache.reservedHeight === reservedHeight
+        && cache.heightFollowsContent === heightFollowsContent
+        && isSameWidthBound(cache.widthBound, widthBound);
+
+      applyHolderWidthCap(this.holder, widthBoundingRoot !== null);
 
       if (cacheValid) {
         // Fast path: apply cached measurements without the expensive
@@ -168,7 +422,6 @@ class MasterTable extends Table {
         // Slow path: full measurement of the trimming container. Runs on
         // the first draw, whenever the fingerprint no longer matches, and
         // whenever a ResizeObserver callback has nulled the cache.
-        const trimmingElementParent = trimmingElement.parentElement;
         const holderStyle = this.holder.style;
         let width = trimmingOffsetWidth;
         let height = trimmingOffsetHeight;
@@ -185,32 +438,8 @@ class MasterTable extends Table {
           ].some(v => v && overflowValues.includes(v));
         let useAutoHeight = (trimmingHeight === 'auto');
 
-        if (trimmingElementParent && hasScrollOverflow) {
-          const cloneNode = trimmingElement.cloneNode(false) as HTMLElement;
-
-          // Before calculating the height of the trimming element, set overflow: auto to hide scrollbars.
-          // An issue occurred on Firefox, where an empty element with overflow: scroll returns an element height higher than 0px
-          // despite an empty content within.
-          cloneNode.style.overflow = 'auto';
-          // Issue #9545 shows problem with calculating height for HOT on Firefox while placing instance in some
-          // flex containers and setting overflow for some `div` section.
-          cloneNode.style.position = 'absolute';
-          // Reset border and padding so border-box sizing does not contribute to the measured height.
-          // Without this, a container with a visible border (e.g. border: 1px solid) produces
-          // cloneHeight = 2 even though it has no intrinsic height, preventing the zero-height
-          // detection that guards against the feedback-loop bug. See issue #3119.
-          cloneNode.style.border = '0';
-          cloneNode.style.padding = '0';
-
-          if (trimmingElement.nextElementSibling) {
-            trimmingElementParent.insertBefore(cloneNode, trimmingElement.nextElementSibling);
-          } else {
-            trimmingElementParent.appendChild(cloneNode);
-          }
-
-          const cloneHeight = parseInt(geometryReader.getComputedStyle(cloneNode).height, 10);
-
-          trimmingElementParent.removeChild(cloneNode);
+        if (hasScrollOverflow) {
+          const cloneHeight = measureIntrinsicHeight(geometryReader, trimmingElement);
 
           if (cloneHeight === 0) {
             height = 0;
@@ -238,11 +467,36 @@ class MasterTable extends Table {
                 (overflowY !== 'auto' && overflowY !== 'scroll')) {
               useAutoHeight = true;
             }
+
+            // The second case that switches to auto-height: the host sized the grid by its content
+            // (Handsontable's `height: 'auto'`, which leaves the root unclipped so the grid can
+            // scroll a sized ancestor). A heightless owner then has no box to scroll the rows in,
+            // and 0px would hide the whole grid inside it (DEV-3062). `auto` sizes the holder to its
+            // rows, as the root owning the axis did.
+            if (heightFollowsContent) {
+              useAutoHeight = true;
+            }
           }
         }
 
-        height = Math.min(height, trimmingScrollHeight);
+        // The owner's box is shared with the host's layout slots (`layoutReservedHeight`): the
+        // holder gets what is left, so a pagination or sheets bar inside a scrollable ancestor is
+        // not pushed past the owner's edge (DEV-2848). Subtracted after the scroll-height clamp,
+        // because the owner's scroll height includes the slots themselves.
+        height = subtractReservedHeight(Math.min(height, trimmingScrollHeight), reservedHeight);
         width = Math.min(width, trimmingScrollWidth);
+
+        if (widthBoundingRoot) {
+          // The owner can be wider than the grid (its padding, a padded wrapper, a relative `width`):
+          // the holder takes the room the grid has, and the cap above keeps it inside the grid.
+          width = resolveHolderWidth(
+            geometryReader,
+            this.wtRootElement,
+            this.holder,
+            trimmingElement,
+            widthBoundingRoot,
+          ) ?? width;
+        }
 
         const holderHeight = useAutoHeight ? 'auto' : `${height}px`;
         const holderWidth = `${width}px`;
@@ -271,6 +525,9 @@ class MasterTable extends Table {
             trimmingHeight,
             hiderOffsetHeight,
             hiderOffsetWidth,
+            reservedHeight,
+            heightFollowsContent,
+            widthBound,
             holderWidth,
             holderHeight,
             hasTableHeight,

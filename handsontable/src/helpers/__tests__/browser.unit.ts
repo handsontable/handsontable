@@ -13,6 +13,7 @@ import {
   isLinuxOS,
   isIOS,
   isIpadOS,
+  isMobileOrIpadOS,
   setBrowserMeta,
   setPlatformMeta,
 } from 'handsontable/helpers/browser';
@@ -169,6 +170,40 @@ describe('Browser helper', () => {
       });
 
       expect(isMobileBrowser()).toBeFalsy();
+    });
+
+    describe('custom navigatorLike', () => {
+      const ANDROID_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 ' +
+        '(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
+      const DESKTOP_CHROME_UA = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 ' +
+        '(KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36';
+
+      afterEach(() => {
+        setBrowserMeta();
+        setPlatformMeta();
+      });
+
+      it('should evaluate a passed userAgent instead of the cached UA', () => {
+        setBrowserMeta({ userAgent: DESKTOP_CHROME_UA });
+
+        expect(isMobileBrowser()).toBeFalsy();
+        expect(isMobileBrowser({ userAgent: ANDROID_UA })).toBeTruthy();
+
+        setBrowserMeta({ userAgent: ANDROID_UA });
+
+        expect(isMobileBrowser()).toBeTruthy();
+        expect(isMobileBrowser({ userAgent: DESKTOP_CHROME_UA })).toBeFalsy();
+      });
+
+      it('should keep using the cached UA when the argument has no userAgent', () => {
+        setBrowserMeta({ userAgent: DESKTOP_CHROME_UA });
+
+        expect(isMobileBrowser({ maxTouchPoints: 5 })).toBeFalsy();
+
+        setBrowserMeta({ userAgent: ANDROID_UA });
+
+        expect(isMobileBrowser({ maxTouchPoints: 5 })).toBeTruthy();
+      });
     });
   });
 
@@ -917,6 +952,71 @@ describe('Browser helper', () => {
       });
 
       expect(isIpadOS(navigator)).toBeTruthy();
+    });
+
+    it('should honor a passed platform instead of the cached one', () => {
+      setPlatformMeta({ platform: 'Win32' });
+
+      expect(isIpadOS({ maxTouchPoints: 5, platform: 'MacIntel' })).toBeTruthy();
+
+      setPlatformMeta({ platform: 'MacIntel' });
+
+      expect(isIpadOS({ maxTouchPoints: 5, platform: 'Win32' })).toBeFalsy();
+      expect(isIpadOS({ maxTouchPoints: 5 })).toBeTruthy();
+    });
+  });
+
+  describe('isMobileOrIpadOS', () => {
+    const IPAD_DESKTOP_SAFARI_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) ' +
+      'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15';
+    const ANDROID_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 ' +
+      '(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
+
+    afterEach(() => {
+      setBrowserMeta();
+      setPlatformMeta();
+    });
+
+    it('should be true for iPadOS that reports a desktop Macintosh UA', () => {
+      setBrowserMeta({ userAgent: IPAD_DESKTOP_SAFARI_UA });
+      setPlatformMeta({ platform: 'MacIntel' });
+
+      expect(isMobileBrowser()).toBeFalsy();
+      expect(isIpadOS({ maxTouchPoints: 5 })).toBeTruthy();
+      expect(isMobileOrIpadOS({ maxTouchPoints: 5 })).toBeTruthy();
+    });
+
+    it('should be false for desktop Mac Safari (no multitouch)', () => {
+      setBrowserMeta({ userAgent: IPAD_DESKTOP_SAFARI_UA });
+      setPlatformMeta({ platform: 'MacIntel' });
+
+      expect(isMobileBrowser()).toBeFalsy();
+      expect(isIpadOS({ maxTouchPoints: 0 })).toBeFalsy();
+      expect(isMobileOrIpadOS({ maxTouchPoints: 0 })).toBeFalsy();
+    });
+
+    it('should follow the isIpadOS maxTouchPoints threshold (greater than 2)', () => {
+      setBrowserMeta({ userAgent: IPAD_DESKTOP_SAFARI_UA });
+      setPlatformMeta({ platform: 'MacIntel' });
+
+      expect(isMobileOrIpadOS({ maxTouchPoints: 2 })).toBeFalsy();
+      expect(isMobileOrIpadOS({ maxTouchPoints: 3 })).toBeTruthy();
+    });
+
+    it('should be true for an Android mobile user-agent', () => {
+      setBrowserMeta({ userAgent: ANDROID_UA });
+      setPlatformMeta({ platform: 'Linux armv8l' });
+
+      expect(isMobileBrowser()).toBeTruthy();
+      expect(isMobileOrIpadOS()).toBeTruthy();
+    });
+
+    it('should honor a passed userAgent on isMobileOrIpadOS instead of the cached UA', () => {
+      setBrowserMeta({ userAgent: IPAD_DESKTOP_SAFARI_UA });
+      setPlatformMeta({ platform: 'MacIntel' });
+
+      expect(isMobileOrIpadOS({ userAgent: ANDROID_UA })).toBeTruthy();
+      expect(isMobileOrIpadOS({ userAgent: IPAD_DESKTOP_SAFARI_UA, maxTouchPoints: 0 })).toBeFalsy();
     });
   });
 });

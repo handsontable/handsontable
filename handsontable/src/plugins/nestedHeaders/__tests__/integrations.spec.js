@@ -73,6 +73,53 @@ describe('Integration with other plugins', () => {
 
       expect(afterDropdownMenuShow).toHaveBeenCalledTimes(1);
     });
+
+    it('should close drop-down menu after click on header which sorts a column', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 11),
+        colHeaders: true,
+        rowHeaders: true,
+        columnSorting: true,
+        dropdownMenu: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+        ],
+      });
+
+      const $firstHeader = spec().$container.find('.ht_master table.htCore thead th span.columnSorting');
+
+      await dropdownMenu(0);
+
+      $firstHeader.simulate('mousedown');
+      $firstHeader.simulate('mouseup');
+      $firstHeader.simulate('click');
+
+      expect(getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
+    });
+
+    it('should not throw after sorting when current highlight is disabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 11),
+        colHeaders: true,
+        rowHeaders: true,
+        columnSorting: true,
+        navigableHeaders: true,
+        disableVisualSelection: 'current',
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+        ],
+      });
+
+      const $headerWithSortAction = spec().$container.find(
+        '.ht_master table.htCore thead tr:last-of-type th:nth-of-type(2) span.columnSorting'
+      );
+
+      $headerWithSortAction.simulate('mousedown');
+      $headerWithSortAction.simulate('mouseup');
+      $headerWithSortAction.simulate('click');
+
+      expect(getPlugin('columnSorting').isSorted()).toBe(true);
+    });
   });
 
   describe('CopyPaste', () => {

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Root size options e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 0; }
+    /* The stylesheet height the inline `height: auto` must beat (`.ht-wrapper { height: 100% }`
+       would otherwise fill this). `#grid` passes the definite height down, or a percentage on the
+       root would resolve against `auto` and the base stylesheet's `100%` would never bite. */
+    #container.css-host { height: 400px; }
+    #container.css-host > #grid { height: 100%; }
+    #container.bounded { height: 300px; overflow: auto; }
+    #container.half-var { --grid-width: 50%; }
+    /* Scroll containers with no height of their own: their height is their content, the grid
+       (DEV-3062). */
+    #container.heightless-hidden { overflow: hidden; }
+    #container.heightless-auto { overflow: auto; }
+    /* Parents that clip the grid and inset it, so the parent's box is wider than the grid's own:
+       padding on the clipping parent, the docs layout (the clip on an outer element, the padding on
+       an inner wrapper), the same padded parent with a height of its own, a padded parent that clips
+       the horizontal axis only (the window scrolls the rows), and a grid half as wide as its clipping
+       parent (DEV-3107). Each leaves the grid root 688px wide, or 344px for the half. */
+    #container.padded-hidden { overflow: hidden; padding: 16px; width: 688px; }
+    #container.padded-bounded { overflow: hidden; padding: 16px; width: 688px; height: 300px; }
+    #container.clip-outer { overflow: hidden; width: 720px; }
+    #container.clip-outer > .inset { padding: 16px; }
+    #container.padded-clip-x { overflow-x: clip; padding: 16px; width: 688px; }
+    #container.narrow-hidden { overflow: hidden; width: 688px; }
+    /* Parents that clip and size the grid by its content: a flex item without `flex-grow` and an
+       inline block are as wide as what is inside them, so the grid root is exactly as wide as the
+       holder inside it. */
+    #container.flex-row-hidden { overflow: hidden; display: flex; width: 688px; }
+    #container.inline-block-hidden { overflow: hidden; width: 688px; }
+    #container.inline-block-hidden > #grid { display: inline-block; }
+    /* Parents that clip and give the grid a share of their width next to a 100px column: a `flex: 1`
+       item and a `1fr` grid track. Both are 588px wide, and neither shrinks below its content. */
+    #container.flex-share-hidden { overflow: hidden; display: flex; width: 688px; }
+    #container.flex-share-hidden::before { content: ''; flex: none; width: 100px; }
+    #container.flex-share-hidden.wide-side::before { width: 200px; }
+    #container.flex-share-hidden > #grid { flex: 1; }
+    #container.grid-track-hidden { overflow: hidden; display: grid; grid-template-columns: 100px 1fr; width: 688px; }
+    #container.grid-track-hidden::before { content: ''; }
+    #container.flex-share-clip-x { overflow-x: clip; display: flex; width: 688px; }
+    #container.flex-share-clip-x::before { content: ''; flex: none; width: 100px; }
+    #container.flex-share-clip-x > #grid { flex: 1; }
+    /* More chains sized by their content (DEV-3107 review): a flex item inside a padded parent, an
+       inline block whose root sits in a padded element, and an inline block in a parent as wide as
+       60% of the window, so a window resize moves the parent and nothing else. */
+    #container.padded-flex-row-hidden { overflow: hidden; display: flex; padding: 16px; width: 688px; }
+    #container.padded-root-parent-hidden { overflow: hidden; width: 688px; }
+    #container.padded-root-parent-hidden > #grid { display: inline-block; }
+    #container.padded-root-parent-hidden .ht-grid-content { padding: 0 8px; }
+    #container.fluid-inline-block-hidden { overflow: hidden; width: 60vw; }
+    #container.fluid-inline-block-hidden > #grid { display: inline-block; }
+  </style>
+</head>
+<body>
+  <!--
+    ONE grid, rebuilt per case by `initRootSizeGrid()`. One container at the top
+    of the page rather than one grid per case: the band a window-scrolled grid
+    renders depends on where it sits relative to the viewport, so two grids at
+    different scroll offsets cannot be compared, while one rebuilt in place can.
+  -->
+  <div id="container">
+    <div id="grid" data-testid="grid"></div>
+  </div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const data = Array.from({ length: 200 }, (_, r) =>
+      Array.from({ length: 12 }, (_, c) => `R${r + 1}C${c + 1}`));
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    /**
+     * Builds (or rebuilds) the grid. `containerClass` picks one of the parent
+     * layouts declared in the stylesheet above (`css-host`, `bounded`,
+     * `half-var`, `heightless-hidden`, `heightless-auto`, `padded-hidden`,
+     * `padded-bounded`, `clip-outer`, `padded-clip-x`, `narrow-hidden`,
+     * `flex-row-hidden`, `inline-block-hidden`, `flex-share-hidden`,
+     * `grid-track-hidden`, `flex-share-clip-x`, `padded-flex-row-hidden`,
+     * `padded-root-parent-hidden`, `fluid-inline-block-hidden`); an empty
+     * string leaves the parent unstyled. A non-empty `wrapperClass` puts a
+     * `<div>` with that class between the parent and the grid (`inset` for
+     * `clip-outer`), except `modal-dialog`, which puts the grid in a modal
+     * `<dialog>` with no width of its own.
+     */
+    window.initRootSizeGrid = function(overrides = {}, containerClass = '', wrapperClass = '') {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      const container = document.getElementById('container');
+      const grid = document.createElement('div');
+
+      grid.id = 'grid';
+      grid.setAttribute('data-testid', 'grid');
+      grid.className = `ht-theme-${window.htTheme}`;
+      container.className = containerClass;
+
+      if (wrapperClass === 'modal-dialog') {
+        const dialog = document.createElement('dialog');
+
+        dialog.appendChild(grid);
+        container.replaceChildren(dialog);
+        dialog.showModal();
+      } else if (wrapperClass) {
+        const wrapper = document.createElement('div');
+
+        wrapper.className = wrapperClass;
+        wrapper.appendChild(grid);
+        container.replaceChildren(wrapper);
+      } else {
+        // Replaces a wrapper left by the previous build too, not only the grid.
+        container.replaceChildren(grid);
+      }
+
+      window.scrollTo(0, 0);
+
+      window.hot = new Handsontable(grid, {
+        data,
+        colWidths: 120,
+        rowHeaders: true,
+        colHeaders: true,
+        renderer: testIdRenderer,
+        licenseKey: 'non-commercial-and-evaluation',
+        ...overrides,
+      });
+
+      return true;
+    };
+
+    window.initRootSizeGrid({ height: 'auto' });
+  </script>
+</body>
+</html>

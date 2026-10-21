@@ -1,139 +1,128 @@
-// you need `useRef` to call Handsontable's instance methods
-import { useRef } from 'react';
-import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  {
+    brand: 'Gigabox',
+    model: 'HL Mountain Frame',
+    price: 1890.9,
+    sellDate: '2023-05-03',
+    sellTime: '11:27',
+    inStock: 11,
+  },
+  {
+    brand: 'Camido',
+    model: 'Cycling Cap',
+    price: 130.1,
+    sellDate: '2023-03-27',
+    sellTime: '03:17',
+    inStock: 0,
+  },
+  {
+    brand: 'Chatterpoint',
+    model: 'Road Tire Tube',
+    price: 59,
+    sellDate: '2023-08-28',
+    sellTime: '08:01',
+    inStock: 1,
+  },
+  {
+    brand: 'Eidel',
+    model: 'HL Road Tire',
+    price: 279.99,
+    sellDate: '2023-10-02',
+    sellTime: '13:23',
+    inStock: 3,
+  },
+  {
+    brand: 'Jetpulse',
+    model: 'Racing Socks',
+    price: 30,
+    sellDate: '2023-10-11',
+    sellTime: '01:23',
+    inStock: 5,
+  },
+  {
+    brand: 'Gigabox',
+    model: 'HL Mountain Frame',
+    price: 1890.9,
+    sellDate: '2023-05-03',
+    sellTime: '11:27',
+    inStock: 22,
+  },
+  {
+    brand: 'Camido',
+    model: 'Cycling Cap',
+    price: 130.1,
+    sellDate: '2023-03-27',
+    sellTime: '03:17',
+    inStock: 13,
+  },
+  {
+    brand: 'Chatterpoint',
+    model: 'Road Tire Tube',
+    price: 59,
+    sellDate: '2023-08-28',
+    sellTime: '08:01',
+    inStock: 0,
+  },
+  {
+    brand: 'Eidel',
+    model: 'HL Road Tire',
+    price: 279.99,
+    sellDate: '2023-10-02',
+    sellTime: '13:23',
+    inStock: 14,
+  },
+  {
+    brand: 'Jetpulse',
+    model: 'Racing Socks',
+    price: 30,
+    sellDate: '2023-10-11',
+    sellTime: '01:23',
+    inStock: 16,
+  },
+  {
+    brand: 'Gigabox',
+    model: 'HL Mountain Frame',
+    price: 1890.9,
+    sellDate: '2023-05-03',
+    sellTime: '11:27',
+    inStock: 18,
+  },
+  {
+    brand: 'Camido',
+    model: 'Cycling Cap',
+    price: 130.1,
+    sellDate: '2023-03-27',
+    sellTime: '03:17',
+    inStock: 3,
+  },
+  {
+    brand: 'Chatterpoint',
+    model: 'Road Tire Tube',
+    price: 59,
+    sellDate: '2023-08-28',
+    sellTime: '08:01',
+    inStock: 0,
+  },
+  {
+    brand: 'Vinte',
+    model: 'ML Road Frame-W',
+    price: 30,
+    sellDate: '2023-10-11',
+    sellTime: '01:23',
+    inStock: 2,
+  },
+];
+
 const ExampleComponent = () => {
-  const hotTableComponentRef = useRef<HotTableRef>(null);
-  const exclude = () => {
-    const hotInstance = hotTableComponentRef.current?.hotInstance;
-    // @ts-ignore
-    const filtersRowsMap = hotInstance?.getPlugin('filters').filtersRowsMap;
-
-    filtersRowsMap.setValueAtIndex(0, false);
-    filtersRowsMap.setValueAtIndex(filtersRowsMap.getLength() - 1, false);
-  };
-
   return (
     <HotTable
-      ref={hotTableComponentRef}
-      data={[
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: '2023-05-03',
-          sellTime: '11:27',
-          inStock: 11,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: '2023-03-27',
-          sellTime: '03:17',
-          inStock: 0,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: '2023-08-28',
-          sellTime: '08:01',
-          inStock: 1,
-        },
-        {
-          brand: 'Eidel',
-          model: 'HL Road Tire',
-          price: 279.99,
-          sellDate: '2023-10-02',
-          sellTime: '13:23',
-          inStock: 3,
-        },
-        {
-          brand: 'Jetpulse',
-          model: 'Racing Socks',
-          price: 30,
-          sellDate: '2023-10-11',
-          sellTime: '01:23',
-          inStock: 5,
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: '2023-05-03',
-          sellTime: '11:27',
-          inStock: 22,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: '2023-03-27',
-          sellTime: '03:17',
-          inStock: 13,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: '2023-08-28',
-          sellTime: '08:01',
-          inStock: 0,
-        },
-        {
-          brand: 'Eidel',
-          model: 'HL Road Tire',
-          price: 279.99,
-          sellDate: '2023-10-02',
-          sellTime: '13:23',
-          inStock: 14,
-        },
-        {
-          brand: 'Jetpulse',
-          model: 'Racing Socks',
-          price: 30,
-          sellDate: '2023-10-11',
-          sellTime: '01:23',
-          inStock: 16,
-        },
-        {
-          brand: 'Gigabox',
-          model: 'HL Mountain Frame',
-          price: 1890.9,
-          sellDate: '2023-05-03',
-          sellTime: '11:27',
-          inStock: 18,
-        },
-        {
-          brand: 'Camido',
-          model: 'Cycling Cap',
-          price: 130.1,
-          sellDate: '2023-03-27',
-          sellTime: '03:17',
-          inStock: 3,
-        },
-        {
-          brand: 'Chatterpoint',
-          model: 'Road Tire Tube',
-          price: 59,
-          sellDate: '2023-08-28',
-          sellTime: '08:01',
-          inStock: 0,
-        },
-        {
-          brand: 'Vinte',
-          model: 'ML Road Frame-W',
-          price: 30,
-          sellDate: '2023-10-11',
-          sellTime: '01:23',
-          inStock: 2,
-        },
-      ]}
+      data={data}
       columns={[
         {
           title: 'Brand',
@@ -185,9 +174,8 @@ const ExampleComponent = () => {
       fixedRowsTop={1}
       fixedRowsBottom={1}
       colHeaders={true}
-      filters={true}
+      filters={{ filterFixedRows: false }}
       dropdownMenu={true}
-      afterFilter={exclude}
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"

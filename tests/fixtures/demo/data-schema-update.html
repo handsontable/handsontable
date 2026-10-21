@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Data schema update e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document, which rules out XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    A grid over object data whose column count is decided by `dataSchema` (no `columns` option).
+    The index mappers are sized from the schema, so a schema that arrives later through
+    `updateSettings()` has to re-size them, and re-create the column-to-property map, or the grid
+    keeps the old column count.
+
+    The state the tests watch is the column index sequence. `ManualColumnMove` writes it into the
+    column index mapper, so it is exactly what a re-initialization of the mappers resets.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const data = [
+      { a: 'a0', b: 'b0', c: 'c0', d: 'd0', e: 'e0' },
+      { a: 'a1', b: 'b1', c: 'c1', d: 'd1', e: 'e1' },
+      { a: 'a2', b: 'b2', c: 'c2', d: 'd2', e: 'e2' },
+    ];
+
+    window.hot = null;
+
+    /**
+     * Builds the grid, replacing the previous one. Built loudly: a constructor throw is captured
+     * where the page object can read and rethrow it, instead of surfacing as a timeout on an
+     * overlay locator that says nothing about the real cause.
+     *
+     * @param {object} [extraSettings] Settings merged over the defaults below (JSON-serializable).
+     */
+    window.buildGrid = function(extraSettings) {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      try {
+        window.hot = new Handsontable(container, Object.assign({
+          data: data.map(row => Object.assign({}, row)),
+          dataSchema: { a: null, b: null, c: null },
+          width: 600,
+          height: 300,
+          rowHeaders: true,
+          colHeaders: true,
+          manualColumnMove: true,
+          licenseKey: 'non-commercial-and-evaluation',
+        }, extraSettings));
+      } catch (error) {
+        window.htBuildError = String((error && error.stack) || error);
+        throw error;
+      }
+    };
+
+    /**
+     * Sends a NEW function as the schema on every call, the way a component that writes
+     * `dataSchema={() => ...}` inline does on every render.
+     *
+     * @param {string[]} keys The property names the function returns, each with a `null` value.
+     */
+    window.updateWithFunctionSchema = function(keys) {
+      window.hot.updateSettings({
+        dataSchema: () => Object.fromEntries(keys.map(key => [key, null])),
+      });
+    };
+
+    /**
+     * Sends `dataSchema: undefined`, which falls back to the schema read off the data. The call is made
+     * here because the value would not survive being passed in from the test.
+     */
+    window.clearSchema = function() {
+      window.hot.updateSettings({ dataSchema: undefined });
+    };
+
+    window.buildGrid();
+  </script>
+</body>
+</html>

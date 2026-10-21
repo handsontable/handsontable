@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { MenuScrollPage } from '../fixtures/pages/MenuScrollPage';
 
 /**
@@ -17,7 +17,7 @@ import { MenuScrollPage } from '../fixtures/pages/MenuScrollPage';
  * The check is the invariant, not the numbers: every item is one row tall, so the range is
  * the item count times the rendered row height. It holds in every theme.
  */
-test.describe('filters by-value list', () => {
+test.describe('filters by-value list', { tag: THEMES_TAG }, () => {
   test('scroll range matches the number of items it holds', async({ page, theme, bundle }) => {
     const grid = new MenuScrollPage(page, theme, bundle);
 

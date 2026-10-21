@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a TypeError thrown on render when a column or row header cell had lost its label element, and the `afterGetColHeader` hook firing twice for a column header whose content the grid had to rebuild.",
+  "type": "fixed",
+  "issueOrPR": 13689,
+  "breaking": false,
+  "framework": "none"
+}

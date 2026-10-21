@@ -1,25 +1,26 @@
 ---
 type: explanation
 title: Custom cells
-metaTitle: Simplified Custom Cell Definitions - JavaScript Data Grid | Handsontable
+metaTitle: Custom cell definitions | Handsontable DataGrid for JavaScript
 description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /custom-cells
 canonicalUrl: /custom-cells
 react:
-  metaTitle: Custom Cell Definitions - React Data Grid | Handsontable
+  metaTitle: Custom cell definitions | Handsontable DataGrid for React
 angular:
-  metaTitle: Custom Cell Definitions - Angular Data Grid | Handsontable
+  metaTitle: Custom cell definitions | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Custom Cell Definitions - Vue Data Grid | Handsontable
+  metaTitle: Custom cell definitions | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell functions
+addedIn: "17.0.0"
 ---
 
 [[toc]]
 
 ## Overview
 
-This document introduces a  [convention-over-configuration](https://en.wikipedia.org/wiki/Convention_over_configuration), declarative approach to creating custom cell types in Handsontable. Rather than relying on imperative code and complex class hierarchies, you start with a working cell definition—just a few lines of code—which you then adjust to your own needs. While the previous, class-based approach isn't inherently bad and remains valuable for advanced customizations, it can be unnecessarily complex for simple editors or quick prototypes. With this factory-based method, you get a much simpler and faster way to build custom cells, while still retaining full access to Handsontable features.
+This document introduces a  [convention-over-configuration](https://en.wikipedia.org/wiki/Convention_over_configuration), declarative approach to creating custom cell types in Handsontable DataGrid. Rather than relying on imperative code and complex class hierarchies, you start with a working cell definition—just a few lines of code—which you then adjust to your own needs. While the previous, class-based approach isn't inherently bad and remains valuable for advanced customizations, it can be unnecessarily complex for simple editors or quick prototypes. With this factory-based method, you get a much simpler and faster way to build custom cells, while still retaining full access to Handsontable features.
 
 ## Why this approach?
 
@@ -94,10 +95,10 @@ const App = () => {
 ```typescript
 <EditorComponent
   onPrepare={(row, column, prop, TD, originalValue, cellProperties) => {
-    // Called before editor opens - use for positioning or setup
+    // Called before the editor opens. Use it for per-cell setup.
   }}
-  onOpen={() => {
-    // Called when editor becomes visible
+  onOpen={(event) => {
+    // Called after the editor is positioned and visible. `event` is the DOM event that opened it. It is `undefined` when you call `beginEditing()`.
   }}
   onClose={() => {
     // Called when editor closes
@@ -127,7 +128,7 @@ const App = () => {
 
 The render prop function receives the following props:
 
-- **`value: T`** - Current editor value
+- **`value: T`** - Current editor value. Updates in the same render as `setValue`.
 - **`setValue: (newValue: T) => void`** - Update the editor value
 - **`finishEditing: () => void`** - Save changes and close the editor
 - **`isOpen: boolean`** - Whether the editor is currently open
@@ -138,10 +139,9 @@ The render prop function receives the following props:
 ### Lifecycle hooks
 
 1. **`onPrepare(row, column, prop, TD, originalValue, cellProperties)`** - Called before the editor opens
-   - Use for per-cell setup, reading custom properties, or positioning
-   - The container is automatically positioned, but you can override if needed
+   - Use for per-cell setup or reading custom properties
 
-2. **`onOpen()`** - Called after the editor is positioned and visible
+2. **`onOpen(event?)`** - Called after the editor is positioned and visible. `event` is the DOM event that opened the editor. It is `undefined` when you call `beginEditing()`.
    - Use to open dropdowns, trigger animations, or focus elements
 
 3. **`onClose()`** - Called when the editor closes
@@ -1022,7 +1022,7 @@ const cellDefinition = {
       return editor.input.value;
     },
     setValue(editor, value) {
-      editor.input.value = value;
+      editor.input.value = value == null ? '' : String(value);
     }
   })
 };
@@ -1161,7 +1161,7 @@ editor: editorFactory<{input: HTMLInputElement}>({
     return editor.input.value;
   },
   setValue(editor, value) {
-    editor.input.value = value;
+    editor.input.value = value == null ? '' : String(value);
   }
 })
 ```
@@ -1198,7 +1198,7 @@ Use this pattern for editors that display dropdowns, popovers, or similar UI ele
 
 **Using `preventCloseElement`**
 
-Inside your `init` or `afterInit` callback, assign an **`HTMLElement`** to **`editor.preventCloseElement`** (for example, your dropdown or picker DOM node). The factory will attach a `mousedown` listener to that element that stops propagation, so clicks on it are not treated as "click-outside" and the editor stays open.
+Inside your `init` or `afterInit` callback, assign an **`HTMLElement`** to **`editor.preventCloseElement`** (for example, your dropdown or picker DOM node). The grid then treats that element and everything inside it as a part of the editor: neither a click landing in it nor the browser focus moving into it counts as a "click-outside", so the editor stays open.
 
 Create the element in `init` or `afterInit`, assign it to `editor.preventCloseElement`, and append it to the editor container (or to the document if the dropdown is rendered outside the container).
 
@@ -1529,7 +1529,7 @@ const editor = editorFactory<{input: HTMLInputElement}>({
     return editor.input.value;
   }
   setValue(editor, value) {
-    editor.input.value = value;
+    editor.input.value = value == null ? '' : String(value);
   }
 });
 ```

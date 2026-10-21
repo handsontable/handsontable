@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — nested headers with a long collapsible label</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from query params, each mapped through a fixed allowlist to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An ABSENT param keeps the
+    // default so the fixture stays browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+    const htPick = (name, allowed, fallback) => {
+      const value = allowed[htParams.get(name) ?? fallback];
+
+      if (value === undefined) {
+        throw new Error(`Unknown ?${name}= value: ${JSON.stringify(htParams.get(name))}`);
+      }
+
+      return value;
+    };
+
+    window.htTheme = htPick('theme', { main: 'main', horizon: 'horizon', classic: 'classic' }, 'main');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min = handsontable.full.min.js).
+    window.htBundle = htPick('bundle', { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, 'umd');
+  </script>
+</head>
+<body>
+  <!--
+    E2E fixture for the visual suite's `/nested-headers-demo?longNestedHeaders=true` route, configured as
+    it is: two levels of nested headers whose first group is labeled "Product with long text test" over
+    four columns, collapsible columns, navigable headers, manual column resize and the demo's other
+    plugins, on its 100 generated rows, with columns 2 and 3 selected on load. The page is 1920 x 1080, as
+    the demo's spec sets it.
+  -->
+  <div data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const data = Array.from({ length: 100 }, (_, index) => ({
+      product_id: 100000 + index,
+      mobile_apps: index % 2 === 0 ? 'Y' : 'N',
+      pricing: ['Freemium', 'Premium', 'Subscription'][index % 3],
+      rating: (index % 5) + 1,
+      dataType: ['Data Management', 'Data Analysis', 'Data Visualization', 'Data Storage'][index % 4],
+      industry: ['Utilities', 'Healthcare', 'Finance', 'Retail'][index % 4],
+      business_scale: ['Small', 'Medium', 'Large'][index % 3],
+      user_type: ['Business', 'Individual'][index % 2],
+      no_of_users: ['Single', 'Multiple'][index % 2],
+      deployment: ['Cloud', 'On-premises'][index % 2],
+      OS: ['Linux', 'Windows', 'MacOS'][index % 3],
+    }));
+
+    // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
+    // has not rendered yet. `awaitFixtureBuilt()` rethrows the captured message.
+    try {
+      window.hot = new Handsontable(container, {
+        data,
+        height: 450,
+        colHeaders: true,
+        nestedHeaders: [
+          [
+            { label: 'Product with long text test', colspan: 4 },
+            { label: 'Category', colspan: 3 },
+            { label: 'User', colspan: 2 },
+            { label: 'System', colspan: 2 },
+          ],
+          [
+            'Product ID',
+            'Mobile Apps',
+            'Pricing',
+            'Rating',
+            'Data Type',
+            'Industry',
+            'Business Scale',
+            'User Type',
+            'No of Users',
+            'Deployment',
+            'OS',
+          ],
+        ],
+        manualColumnResize: true,
+        collapsibleColumns: true,
+        columns: [
+          { data: 'product_id', type: 'numeric' },
+          { data: 'mobile_apps', type: 'text' },
+          { data: 'pricing', type: 'text' },
+          { data: 'rating', type: 'numeric' },
+          { data: 'dataType', type: 'text' },
+          { data: 'industry', type: 'text' },
+          { data: 'business_scale', type: 'text' },
+          { data: 'user_type', type: 'text' },
+          { data: 'no_of_users', type: 'text' },
+          { data: 'deployment', type: 'text' },
+          { data: 'OS', type: 'text' },
+        ],
+        mergeCells: true,
+        dropdownMenu: true,
+        hiddenColumns: {
+          indicators: true,
+        },
+        navigableHeaders: true,
+        contextMenu: true,
+        multiColumnSorting: true,
+        filters: true,
+        rowHeaders: true,
+        manualRowMove: true,
+        comments: true,
+        manualColumnMove: true,
+        customBorders: true,
+        autoWrapCol: true,
+        autoWrapRow: true,
+        fixedRowsBottom: 2,
+        cell: [{ row: 1, col: 1, comment: { value: 'Comments' } }],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      window.hot.selectColumns(2, 3);
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

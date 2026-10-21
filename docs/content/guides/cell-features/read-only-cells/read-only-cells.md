@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Read-only cells
-metaTitle: Read-only cells - JavaScript Data Grid | Handsontable
+metaTitle: Read-only cells | Handsontable DataGrid for JavaScript
 description: Make specified cells read-only to protect them from unwanted changes but still allow navigation and copying of data.
 permalink: /read-only-cells
 canonicalUrl: /read-only-cells
@@ -12,11 +12,11 @@ tags:
   - noneditable
   - locked
 react:
-  metaTitle: Read-only cells - React Data Grid | Handsontable
+  metaTitle: Read-only cells | Handsontable DataGrid for React
 angular:
-  metaTitle: Read-only cells - Angular Data Grid | Handsontable
+  metaTitle: Read-only cells | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Read-only cells - Vue Data Grid | Handsontable
+  metaTitle: Read-only cells | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
 menuTag: updated
@@ -33,14 +33,17 @@ Disabling a cell makes the cell read-only or non-editable. Both have similar out
 
 | Read-only cell<br>`readOnly: true`                                           | Non-editable cell<br>`editor: false`                                       |
 |------------------------------------------------------------------------------| -------------------------------------------------------------------------- |
-| Has an additional CSS class (`htDimmed`)                                     | Has no additional CSS class                                                |
+| Has an additional CSS class (`htDimmed`), unless you turn it off with [`readOnlyStyling`](@/api/options.md#readonlystyling) | Has no additional CSS class |
 | Copy works, paste doesn't work                                               | Copy-paste works                                                           |
 | Drag-to-fill doesn't work                                                    | Drag-to-fill works                                                         |
 | Can't be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) | Can be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) |
+| A [checkbox](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) ignores clicks, but still looks active | A [checkbox](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) is rendered as disabled |
+
+Pick `readOnly` when the user must not change the value at all. Pick `editor: false` when you only want to take away the editor, and still accept values from pasting, drag-to-fill, or the API.
 
 ## Make the grid read-only
 
-To make the entire grid read-only, set [`readOnly`](@/api/options.md#readonly) to `true` as a [top-level grid option](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+To make the entire grid read-only, set [`readOnly`](@/api/options.md#readonly) to `true` as a [top-level grid option](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
 
 ::: only-for javascript
 
@@ -183,7 +186,7 @@ To make an entire row read-only, use the [`cells`](@/api/options.md#cells) funct
 
 ## Make specific cells read-only
 
-To make specific cells read-only, use the [`cells`](@/api/options.md#cells) function to set the [`readOnly`](@/api/options.md#readonly) property conditionally. The example below makes cells that contain the word "Nissan" read-only.
+To make specific cells read-only, use the [`cells`](@/api/options.md#cells) function to set the [`readOnly`](@/api/options.md#readonly) property conditionally. The example below makes cells that contain the word "Helium" read-only.
 
 ::: only-for javascript
 
@@ -279,7 +282,7 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 
 ## Make specific cells non-editable
 
-To make specific cells non-editable, set `editor: false` in the cell configuration. The following example shows a table with non-editable cells containing the word "Nissan".
+To make specific cells non-editable, set `editor: false` in the cell configuration. The following example shows a table with non-editable cells containing the word "Helium".
 
 ::: only-for javascript
 
@@ -324,15 +327,83 @@ To make specific cells non-editable, set `editor: false` in the cell configurati
 
 :::
 
+## Read-only cells that look editable
+
+By default, read-only cells carry the `htDimmed` CSS class, which greys them out. To keep a grid read-only while it still looks like a normal table, set [`readOnlyStyling`](@/api/options.md#readonlystyling) to `false`:
+
+```js
+readOnly: true,
+readOnlyStyling: false,
+```
+
+Only the appearance changes. The cells still reject edits, pasting, and drag-to-fill, and screen readers still announce them as read-only.
+
+Like [`readOnly`](@/api/options.md#readonly) itself, you can set [`readOnlyStyling`](@/api/options.md#readonlystyling) for the whole grid, a column, or a single cell.
+
+To change how read-only cells look, rather than to stop styling them, set [`readOnlyCellClassName`](@/api/options.md#readonlycellclassname) to a class name of your own and style that class.
+
+## Non-editable cells and cell types
+
+A [cell type](@/guides/cell-types/cell-type/cell-type.md) sets the [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`validator`](@/api/options.md#validator) options at once. A `type` set on a column does not re-enable editing that you disabled higher up, so this grid is non-editable throughout, and the second column still renders and validates as numeric:
+
+```js
+editor: false,
+columns: [
+  { type: 'text' },
+  { type: 'numeric' }
+]
+```
+
+To let one column opt back in, give it an [`editor`](@/api/options.md#editor) of its own, at the same configuration level as its `type`:
+
+```js
+editor: false,
+columns: [
+  { type: 'text' },
+  // editable, despite the grid-level `editor: false`
+  { type: 'numeric', editor: 'numeric' }
+]
+```
+
+To keep the editor that the column's `type` provides, without naming it, set `editor: true`, for example `{ type: 'numeric', editor: true }`.
+
+A custom cell type that declares `editor: false` supplies a default, not a setting of yours. If you set such a type on the whole grid, a column with a `type` of its own still gets that type's editor.
+
+If you switch editing off at runtime, pass [`columns`](@/api/options.md#columns) in the same [`updateSettings()`](@/api/core.md#updatesettings) call. A column's `type` writes its editor onto that column when the column is built, so `editor: false` passed without `columns` doesn't reach a typed column:
+
+```js
+// the numeric column stays editable
+hot.updateSettings({ editor: false });
+
+// the numeric column becomes non-editable too
+hot.updateSettings({ editor: false, columns: [{ type: 'text' }, { type: 'numeric' }] });
+```
+
+A [checkbox](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) has no separate editing gesture -- clicking the box is the edit -- so a checkbox cell with no editor is rendered as a disabled checkbox. Neither a click nor the <kbd>**Space**</kbd> key toggles it. You can still select the cell.
+
+## Toggle read-only from the menus
+
+The **Read only** item of the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) and the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md) toggles the `readOnly` state of the selected cells.
+
+The [`cells`](@/api/options.md#cells) function runs again on top of every stored cell value, so a `readOnly` value that it sets, by returning it or by assigning it to `this`, always takes precedence over the menu. When the selection also holds other cells, the **Read only** item skips the ones that `cells` controls. It changes the rest, and its check mark reflects only them.
+
+If `cells` sets `readOnly` on every selected cell, the item behaves as it always did: it stays in the menu, shows the cell state, and can't change anything. This is the case when `cells` returns a `readOnly` value for every cell, for example `{ readOnly: false }` as a default.
+
+Undo and redo of a menu toggle change only the cells that the toggle changed. A cell that the **Read only** item skips keeps its stored value.
+
+## Block the entire grid
+
+The [`readOnly`](@/api/options.md#readonly) and [`editor`](@/api/options.md#editor) options control editing, but users can still navigate and select cells. To block all interaction with the grid temporarily -- for example, during a loading state or a blocking workflow step -- use the [Dialog](@/guides/dialog/dialog/dialog.md) plugin. An open dialog overlays the grid and moves keyboard input into its own [focus scope](@/guides/navigation/focus-scopes/focus-scopes.md), so users can't reach the cells until the dialog closes. The grid regains focus automatically.
+
 ## Accessibility
 
-When [`ariaTags`](@/api/options.md#ariatags) is enabled (the default), Handsontable adds `aria-readonly="true"` to the DOM element of every read-only cell, so screen readers announce that the cell can't be edited. Non-editable cells (`editor: false`) don't get this attribute, because Handsontable doesn't treat them as read-only in the data model -- only their editor is disabled.
+When [`ariaTags`](@/api/options.md#ariatags) is enabled (the default), Handsontable DataGrid adds `aria-readonly="true"` to the DOM element of every read-only cell, so screen readers announce that the cell can't be edited. Non-editable cells (`editor: false`) don't get this attribute, because Handsontable doesn't treat them as read-only in the data model -- only their editor is disabled.
 
 For more accessibility features and testing guidance, see [Accessibility](@/guides/accessibility/accessibility/accessibility.md).
 
 ## Result
 
-Read-only cells display with the `htDimmed` CSS class and block paste and drag-to-fill operations. Non-editable cells block manual editing but allow copy-paste and drag-to-fill.
+Read-only cells display with the `htDimmed` CSS class -- unless you set [`readOnlyStyling`](@/api/options.md#readonlystyling) to `false` -- and block paste and drag-to-fill operations. Non-editable cells block manual editing but allow copy-paste and drag-to-fill.
 
 ## Related API reference
 
@@ -343,5 +414,6 @@ Read-only cells display with the `htDimmed` CSS class and block paste and drag-t
 - [ariaTags](@/api/options.md#ariatags)
 - [readOnly](@/api/options.md#readonly)
 - [readOnlyCellClassName](@/api/options.md#readonlycellclassname)
+- [readOnlyStyling](@/api/options.md#readonlystyling)
 
 </div>

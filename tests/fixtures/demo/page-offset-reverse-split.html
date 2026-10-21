@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Page offset with a vertically clipping ancestor e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects,
+    // mapped through fixed allowlists to LITERALS so a crafted param can never be reflected into
+    // the document. An unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+
+    // The layout knobs, each mapped to a literal or a clamped integer. A value outside its allowlist
+    // is recorded as a build error, which `awaitFixtureBuilt` rethrows, so a typo fails the test instead
+    // of running a different layout.
+    const pick = (name, allowed, fallback) => {
+      const value = htParams.get(name) ?? fallback;
+
+      if (!Object.hasOwn(allowed, value)) {
+        window.htBuildError = 'Unknown ?' + name + '= value: ' + JSON.stringify(value);
+      }
+
+      return allowed[value];
+    };
+    const clamp = (name, max, fallback) =>
+      Math.min(Math.max(parseInt(htParams.get(name) ?? fallback, 10) || 0, 0), max);
+
+    window.htLayout = {
+      dir: pick('dir', { ltr: 'ltr', rtl: 'rtl' }, 'ltr'),
+      overflowY: pick('overflowY', { clip: 'clip', hidden: 'hidden', auto: 'auto', visible: 'visible' }, 'clip'),
+      preventOverflow: pick('preventOverflow', { none: undefined, vertical: 'vertical' }, 'none'),
+      stretchH: pick('stretchH', { none: 'none', all: 'all' }, 'none'),
+      columns: Math.max(clamp('columns', 100, '100'), 1),
+      margin: clamp('margin', 1000, '0'),
+      fixedColumnsStart: clamp('fixedColumnsStart', 5, '0'),
+      fixedRowsBottom: clamp('fixedRowsBottom', 5, '0'),
+    };
+    document.documentElement.dir = window.htLayout.dir ?? 'ltr';
+  </script>
+  <style> body { font-family: sans-serif; margin: 0; } </style>
+</head>
+<body>
+  <!--
+    A grid with no width or height inside a 300px tall wrapper that clips the vertical axis only
+    (`overflow-y: clip`) and is offset from the page's inline-start edge (`?margin=`). The wrapper
+    owns the vertical axis, so the window owns neither axis' scrollbar the way it does on a plain
+    page: the holder scrolls the columns, the reverse split. `?overflowY=` swaps the clip for the
+    other values the wrapper can take, and `?dir=rtl` mirrors the page.
+  -->
+  <div id="wrap" data-testid="wrap">
+    <div id="grid" data-testid="grid"></div>
+  </div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const { dir, overflowY, preventOverflow, margin, fixedColumnsStart, fixedRowsBottom, stretchH, columns } = window.htLayout;
+    const wrap = document.getElementById('wrap');
+    const container = document.getElementById('grid');
+
+    wrap.style.height = '300px';
+    wrap.style.overflowY = overflowY;
+    wrap.style[dir === 'rtl' ? 'marginRight' : 'marginLeft'] = margin + 'px';
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    try {
+      if (window.htBuildError) {
+        throw new Error(window.htBuildError);
+      }
+
+      window.hot = new Handsontable(container, {
+        data: Array.from({ length: 60 }, (_, r) => Array.from({ length: columns }, (_, c) => `${r}-${c}`)),
+        colWidths: 100,
+        rowHeaders: true,
+        colHeaders: true,
+        fixedColumnsStart,
+        fixedRowsBottom,
+        stretchH,
+        preventOverflow,
+        layoutDirection: dir,
+        renderer: testIdRenderer,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.message);
+    }
+  </script>
+</body>
+</html>

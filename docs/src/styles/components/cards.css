@@ -248,3 +248,20 @@
   content: ' (copied)';
   color: var(--sl-color-accent);
 }
+
+/*
+ * DEV-35: pin three-or-more-card grids to three equal columns from the tablet
+ * band through the first desktop band (sidebar appears at 72rem) and stop
+ * before 80rem. A build-time class avoids :has(), so the layout and title
+ * size apply in the same paint as the rest of the stylesheet.
+ */
+@media (min-width: 50rem) and (max-width: 71.99rem),
+       (min-width: 72rem) and (max-width: 79.99rem) {
+  .ht-card-grid--cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ht-card-grid--cols-3 .title {
+    font-size: 0.875rem;
+  }
+}

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — beforePasteParse hook</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects,
+    // mapped through fixed allowlists to LITERALS so a crafted param can never be reflected into the
+    // document — no XSS. An ABSENT param keeps the default (main / plain UMD); an unknown value
+    // THROWS instead of falling back — a typo in the project config must be one red leg, never a
+    // silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+
+    // What the `beforePasteParse` callback of grid A does with the snapshot. Every behavior records
+    // the call first, so a spec can always read what the callback received.
+    //   observe       - records only, edits nothing.
+    //   clean-number  - turns a regional number (`1 234,50`) into `1234.50` in text/plain and clears
+    //                   text/html so the plain text wins over the table (the documented recipe).
+    //   replace-text  - sets text/plain to a fixed marker and clears text/html.
+    //   edit-html     - replaces text/html with a fixed one-cell table, leaves text/plain alone.
+    //   edit-html-xss - replaces text/html with a table whose cell carries an `<img>` the strict
+    //                   sanitizer below strips.
+    //   cancel        - returns false.
+    //   two-callbacks - the settings callback sets text/plain, and a second callback registered
+    //                   through `hot.addHook()` appends to what the first one left.
+    window.htBehavior = ({
+      observe: 'observe',
+      'clean-number': 'clean-number',
+      'replace-text': 'replace-text',
+      'edit-html': 'edit-html',
+      'edit-html-xss': 'edit-html-xss',
+      cancel: 'cancel',
+      'two-callbacks': 'two-callbacks',
+    })[htParams.get('behavior') ?? 'observe'];
+    if (!window.htBehavior) {
+      throw new Error('Unknown ?behavior= value: ' + JSON.stringify(htParams.get('behavior')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } .grid-slot { margin-bottom: 1rem; } </style>
+</head>
+<body>
+  <div id="grid" class="grid-slot" data-testid="grid"></div>
+  <!-- A second, independent grid. Only the one that listens may run its hook. -->
+  <div id="grid-b" class="grid-slot" data-testid="grid-b"></div>
+  <textarea data-testid="outside-textarea" rows="2" cols="40"></textarea>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const containerA = document.querySelector('[data-testid="grid"]');
+    const containerB = document.querySelector('[data-testid="grid-b"]');
+
+    containerA.className = `ht-theme-${window.htTheme}`;
+    containerB.className = `ht-theme-${window.htTheme}`;
+
+    // One entry per `beforePasteParse` call, per grid: what the callback received. Values are copied
+    // out at call time, because the snapshot is edited by the callbacks that run after the recorder.
+    window.htHookCalls = { a: [], b: [] };
+    // Counters of the sibling paste hooks, to prove a canceled paste never reaches them.
+    window.htPasteHooks = { beforePaste: 0, afterPaste: 0 };
+    // What the second callback of `two-callbacks` read from the shared snapshot.
+    window.htSecondSaw = [];
+    // Every call the sanitizer received, as `[context, content]`.
+    window.htSanitizerCalls = [];
+
+    function record(gridName, clipboardData, event) {
+      window.htHookCalls[gridName].push({
+        eventIsNull: event === null,
+        eventIsClipboardEvent: event instanceof ClipboardEvent,
+        eventType: event === null ? null : event.type,
+        types: clipboardData.types.slice(),
+        plain: clipboardData.getData('text/plain'),
+        html: clipboardData.getData('text/html'),
+      });
+    }
+
+    const PLAIN_MARKER = 'PLAIN-EDITED-7791';
+    const HTML_MARKER = 'HTML-EDITED-5530';
+    const FIRST_MARKER = 'FIRST-8842';
+    const SECOND_MARKER = '+SECOND-8842';
+
+    function beforePasteParseA(clipboardData, event) {
+      record('a', clipboardData, event);
+
+      switch (window.htBehavior) {
+        case 'clean-number':
+          clipboardData.setData(
+            'text/plain',
+            clipboardData.getData('text/plain').replace(/[\s ]/g, '').replace(',', '.')
+          );
+          clipboardData.clearData('text/html');
+          break;
+        case 'replace-text':
+          clipboardData.setData('text/plain', PLAIN_MARKER);
+          clipboardData.clearData('text/html');
+          break;
+        case 'edit-html':
+          clipboardData.setData('text/html', `<table><tr><td>${HTML_MARKER}</td></tr></table>`);
+          break;
+        case 'edit-html-xss':
+          clipboardData.setData(
+            'text/html',
+            '<table><tr><td>SAFE-<img src="x" onerror="window.__pwned=1">Z</td></tr></table>'
+          );
+          break;
+        case 'cancel':
+          return false;
+        case 'two-callbacks':
+          clipboardData.setData('text/plain', FIRST_MARKER);
+          clipboardData.clearData('text/html');
+          break;
+        default:
+          break;
+      }
+
+      return undefined;
+    }
+
+    // Strips every `<img>`; records what it was given so a spec can tell the edited markup reached it.
+    function strictSanitizer(content, context) {
+      window.htSanitizerCalls.push([context, String(content)]);
+
+      return String(content).replace(/<img[^>]*>/g, '');
+    }
+
+    const makeRenderer = prefix => function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `${prefix}cell-${row}-${col}`);
+    };
+
+    const hotA = new Handsontable(containerA, {
+      data: [
+        ['A1', 'B1', 'C1', { id: 1, value: 'OBJ-1' }],
+        ['A2', 'B2', 'C2', { id: 2, value: 'OBJ-2' }],
+        ['A3', 'B3', 'C3', null],
+        ['A4', 'B4', 'C4', null],
+        ['A5', 'B5', 'C5', null],
+      ],
+      columns: [{}, {}, {}, { parsePastedValue: true }],
+      colHeaders: true,
+      rowHeaders: true,
+      renderer: makeRenderer(''),
+      // Keep the selection when the outside textarea is clicked, so "not listening" is the only
+      // thing that differs from the listening grid.
+      outsideClickDeselects: false,
+      sanitizer: strictSanitizer,
+      beforePasteParse: beforePasteParseA,
+      beforePaste: () => { window.htPasteHooks.beforePaste += 1; },
+      afterPaste: () => { window.htPasteHooks.afterPaste += 1; },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const hotB = new Handsontable(containerB, {
+      data: [
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      renderer: makeRenderer('b-'),
+      outsideClickDeselects: false,
+      beforePasteParse: (clipboardData, event) => { record('b', clipboardData, event); },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    if (window.htBehavior === 'two-callbacks') {
+      // Registered after the settings callback, so it runs second. It reads the snapshot the first
+      // one edited and appends to it, which only works when both share one object.
+      hotA.addHook('beforePasteParse', (clipboardData) => {
+        window.htSecondSaw.push(clipboardData.getData('text/plain'));
+        clipboardData.setData('text/plain', clipboardData.getData('text/plain') + SECOND_MARKER);
+      });
+    }
+
+    window.hot = hotA;
+    window.hotB = hotB;
+  </script>
+</body>
+</html>

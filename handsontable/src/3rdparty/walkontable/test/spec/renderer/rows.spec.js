@@ -1,5 +1,17 @@
 describe('Walkontable.Renderer.RowsRenderer', () => {
   class TableRendererMock {
+    shouldPaintCell() {
+      return true;
+    }
+
+    isRowRecyclingAllowed() {
+      return false;
+    }
+
+    hasStableCellIdentity() {
+      return false;
+    }
+
     constructor() {
       this.rootDocument = document;
     }
@@ -9,6 +21,18 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
 
     isAriaEnabled() {
       return true;
+    }
+
+    hasColumnHeaders() {
+      return false;
+    }
+
+    ownsAriaColumnHeaderId() {
+      return false;
+    }
+
+    getAriaColumnHeaderIdPrefix() {
+      return '';
     }
   }
 

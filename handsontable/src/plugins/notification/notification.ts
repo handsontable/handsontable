@@ -1,9 +1,14 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
+import { isHTMLElement } from '../../helpers/dom/element';
 import { randomString } from '../../helpers/string';
+import { resolveButtonType, type ButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
+import { syncIcon } from '../../themes/engine/icons';
 import { NotificationUI } from './ui';
+import { getSanitizer } from '../../utils/sanitizer';
+import { isRootInstance } from '../../utils/rootInstance';
 import { FOCUS_SOURCES } from '../../focusManager/constants';
 import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
 import {
@@ -18,7 +23,7 @@ export type { NotificationPosition, NotificationVariant } from './constants';
 
 export interface NotificationAction {
   label: string;
-  type?: 'primary' | 'secondary';
+  type?: ButtonType;
   callback: () => void;
 }
 
@@ -82,7 +87,7 @@ const TICK_MS = 200;
  * @class Notification
  *
  * @description
- * The Notification plugin shows non-blocking toast messages anchored to the Handsontable root.
+ * The Notification plugin shows non-blocking toast messages anchored to the grid root.
  * Enable it with the {@link Options#notification} option. Toasts are exposed to assistive technologies with
  * `aria-live` and do not take keyboard focus when they appear; use **F6** to move focus into the notification region
  * for the grid that currently contains keyboard focus (with several instances on one page, each grid only handles **F6**
@@ -199,10 +204,15 @@ export class Notification extends BasePlugin {
   /**
    * Returns whether the `notification` setting is enabled for this instance.
    *
+   * The notification host renders into the `ht-overlay` element and registers a focus scope, and both
+   * belong to the main Handsontable instance. In a nested grid (the one the `handsontable`,
+   * `autocomplete`, and `dropdown` cell types create) neither exists, so the plugin stays disabled
+   * there.
+   *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return isRootInstance(this.hot) && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -217,8 +227,15 @@ export class Notification extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new NotificationUI({
         overlayElement: this.hot.rootOverlaysElement,
-        sanitizer: this.hot.getSettings().sanitizer,
+        sanitizer: getSanitizer(this.hot),
+        warnScope: this.hot.rootElement,
         isRtl: this.hot.isRtl(),
+        syncIcon: (
+          container: HTMLElement,
+          slotClass: string,
+          name: Parameters<typeof syncIcon>[3],
+          options?: Parameters<typeof syncIcon>[4],
+        ) => syncIcon(this.hot, container, slotClass, name, options),
       });
     }
 
@@ -234,6 +251,9 @@ export class Notification extends BasePlugin {
     );
 
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    this.addHook('afterSetTheme', this.#onAfterSetTheme);
+    this.addHook('afterViewRender', this.#onAfterViewRender);
+    this.addHook('afterRefreshDimensions', this.#onAfterViewRender);
     this.eventManager.addEventListener(this.hot.rootDocument, 'visibilitychange', () => {
       if (this.#hasActiveCountdowns()) {
         this.#queueTick();
@@ -465,7 +485,27 @@ export class Notification extends BasePlugin {
       this.#ui.setRtl(this.hot.isRtl());
     }
 
-    this.#ui.setSanitizer(this.hot.getSettings().sanitizer);
+    this.#ui.setSanitizer(getSanitizer(this.hot));
+  };
+
+  /**
+   * Keeps the toast layer fitted to the grid root after a render or a dimensions refresh, the latter
+   * covering a grid that moves inside the wrapper without changing size.
+   */
+  readonly #onAfterViewRender = () => {
+    // Read only while a toast is on screen; `#mountToast` fits the layer for the next one.
+    if (this.#toasts.size > 0) {
+      this.#ui?.fitToGrid(this.hot.rootElement);
+    }
+  };
+
+  /**
+   * Rebuilds the close icon of every currently-open toast after a theme change. A toast built
+   * before the change keeps showing its close control - only the icon inside it needs to catch
+   * up, the same way pagination and the sheets bar refresh their persistent icons.
+   */
+  readonly #onAfterSetTheme = () => {
+    this.#ui?.refreshIcons();
   };
 
   /**
@@ -477,7 +517,7 @@ export class Notification extends BasePlugin {
    */
   #normalizeOptions(raw: NotificationMessageOptions): NotificationNormalizedOptions {
     if (!isObject(raw) || (typeof raw.message !== 'string' &&
-      !(typeof HTMLElement !== 'undefined' && raw.message instanceof HTMLElement))) {
+      !isHTMLElement(raw.message))) {
       throwWithCause('Notification.showMessage expects an object with a `message` string or HTMLElement.');
     }
 
@@ -493,7 +533,7 @@ export class Notification extends BasePlugin {
         throwWithCause('Each notification action needs `label` (string) and `callback` (function).');
       }
 
-      const type: 'primary' | 'secondary' = a.type === 'primary' ? 'primary' : 'secondary';
+      const type = resolveButtonType(a.type);
 
       return { label: a.label as string, type, callback: a.callback as () => void };
     }) : [];
@@ -532,6 +572,8 @@ export class Notification extends BasePlugin {
    * @param {object} normalized Validated toast options including `id` and `position`.
    */
   #mountToast(normalized: NotificationNormalizedOptions): void {
+    this.#ui!.fitToGrid(this.hot.rootElement);
+
     const closeLabel = this.hot.getTranslatedPhrase(C.NOTIFICATION_BUTTONS_CLOSE);
     const animation = this.getSetting<boolean>('animation');
     const { element } = this.#ui!.createToastElement(normalized, closeLabel, animation);

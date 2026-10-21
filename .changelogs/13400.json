@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a custom editor losing its own keyboard shortcuts after a click in its input field.",
+  "type": "fixed",
+  "issueOrPR": 13400,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,6 +1,5 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
-import Handsontable from 'handsontable';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
@@ -182,17 +181,12 @@ export class AppComponent {
     fixedRowsTop: 1,
     fixedRowsBottom: 1,
     colHeaders: true,
-    // enable filtering
-    filters: true,
+    // enable filtering, and leave the frozen rows out of it
+    filters: {
+      filterFixedRows: false,
+    },
     // enable the column menu
     dropdownMenu: true,
-    afterFilter(this: Handsontable) {
-      const filtersPlugin = this.getPlugin('filters');
-      const filtersRowsMap = (filtersPlugin as any).filtersRowsMap;
-
-      filtersRowsMap.setValueAtIndex(0, false);
-      filtersRowsMap.setValueAtIndex(filtersRowsMap.getLength() - 1, false);
-    },
     autoWrapRow: true,
     autoWrapCol: true,
   };

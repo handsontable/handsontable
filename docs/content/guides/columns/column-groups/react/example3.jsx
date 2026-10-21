@@ -4,16 +4,18 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  ['North America', 4200, 3800, 4500, 12500],
+  ['Europe', 3100, 2900, 3300, 9300],
+  ['Asia Pacific', 2600, 2400, 2800, 7800],
+  ['Latin America', 1500, 1700, 1600, 4800],
+  ['Middle East', 1200, 1300, 1450, 3950],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        ['North America', 4200, 3800, 4500, 12500],
-        ['Europe', 3100, 2900, 3300, 9300],
-        ['Asia Pacific', 2600, 2400, 2800, 7800],
-        ['Latin America', 1500, 1700, 1600, 4800],
-        ['Middle East', 1200, 1300, 1450, 3950],
-      ]}
+      data={data}
       colHeaders={true}
       rowHeaders={true}
       colWidths={90}

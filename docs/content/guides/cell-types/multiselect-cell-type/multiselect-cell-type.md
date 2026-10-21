@@ -1,18 +1,20 @@
 ---
 type: how-to
 title: MultiSelect cell type
-metaTitle: MultiSelect cell type - JavaScript Data Grid | Handsontable
+metaTitle: MultiSelect cell type | Handsontable DataGrid for JavaScript
 description: Collect user input with a list of multiple-selection entries, by using the MultiSelect cell type.
 permalink: /multiselect-cell-type
 canonicalUrl: /multiselect-cell-type
 react:
-  metaTitle: MultiSelect cell type - React Data Grid | Handsontable
+  metaTitle: MultiSelect cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: MultiSelect cell type - Angular Data Grid | Handsontable
+  metaTitle: MultiSelect cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: MultiSelect cell type - Vue Data Grid | Handsontable
+  metaTitle: MultiSelect cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
+menuTag: updated
+addedIn: "17.0.0"
 ---
 Collect user input with a list of multiple-selection choices, by using the MultiSelect cell type.
 
@@ -34,7 +36,7 @@ The list of selectable options (`source` property) can be provided in two format
 
 ## Integration with formulas
 
-When you use the MultiSelect cell type together with the [Formulas](@/api/options.md#formulas) plugin, Handsontable keeps MultiSelect values in source data as arrays.
+When you use the MultiSelect cell type together with the [Formulas](@/api/options.md#formulas) plugin, Handsontable DataGrid keeps MultiSelect values in source data as arrays.
 
 HyperFormula doesn't accept arrays as direct cell values. Because of that, Handsontable converts MultiSelect arrays to comma-separated strings before passing values to HyperFormula. This behavior keeps the original array format in source data, and allows formula cells to reference MultiSelect values as text (for example, `"Frontend, Backend"`).
 
@@ -130,6 +132,20 @@ You can provide the `source` option as an array of objects with `key` and `value
 :::
 
 :::
+
+## Opening the dropdown
+
+Every MultiSelect cell shows a dropdown indicator at its trailing edge, matching the one you see on [autocomplete](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) and [dropdown](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cells, so a MultiSelect cell reads as a list cell at a glance. The indicator stays visible when the cell holds no values.
+
+The two look alike but are separate elements. If you target the indicator from CSS or a test, MultiSelect uses the class `ht-multi-select-arrow`, while autocomplete and dropdown cells use `htAutocompleteArrow`.
+
+You can open the dropdown in three ways:
+
+- Click the indicator once.
+- Double-click anywhere in the cell.
+- Select the cell and press <kbd>**Enter**</kbd>.
+
+A single click anywhere else in the cell selects the cell without opening the dropdown. That keeps range selection and drag-to-select available.
 
 ## Keyboard navigation
 

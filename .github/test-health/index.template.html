@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Handsontable test health</title>
+<style>
+  :root { color-scheme: light dark; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { margin: 0 auto; padding: 24px 20px 48px; max-width: 1280px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .meta { color: #6b7280; margin-bottom: 20px; }
+  .totals { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 20px; }
+  .totals div { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 16px; min-width: 120px; }
+  .totals b { display: block; font-size: 22px; }
+  .controls { display: flex; gap: 16px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .controls input[type="search"] { padding: 6px 10px; min-width: 260px; }
+  .wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+  th { position: sticky; top: 0; background: Canvas; cursor: pointer; white-space: nowrap; user-select: none; }
+  th.sorted::after { content: " ▾"; color: #6b7280; }
+  th.sorted.asc::after { content: " ▴"; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .title { max-width: 520px; }
+  .file { color: #6b7280; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  .badge { display: inline-block; border-radius: 999px; padding: 1px 8px; font-size: 12px; font-weight: 600; }
+  .badge.ticket { background: #fee2e2; color: #991b1b; }
+  .badge.tier { background: #e5e7eb; color: #374151; font-weight: 500; }
+  .badge.flaky { background: #fef3c7; color: #92400e; }
+  .badge.failed { background: #fee2e2; color: #991b1b; }
+  .badge.seed { background: #dbeafe; color: #1e40af; }
+  .badge.quarantine { background: #ede9fe; color: #5b21b6; }
+  .legs { font-size: 12px; color: #374151; }
+  .error { color: #6b7280; font-size: 12px; max-width: 360px; overflow-wrap: anywhere; }
+  tr.ticket td:first-child { border-left: 3px solid #dc2626; }
+  .empty { padding: 32px; text-align: center; color: #6b7280; }
+  footer { margin-top: 24px; color: #6b7280; font-size: 12px; }
+  a { color: inherit; }
+  nav.sections { display: flex; gap: 16px; flex-wrap: wrap; margin: -12px 0 20px; }
+  h2 { font-size: 18px; margin: 40px 0 4px; }
+  h3 { font-size: 15px; margin: 28px 0 8px; }
+  /* The trend charts plot develop pushes only: one series, the reference palette's first categorical slot,
+     in its light and dark steps. A run left out of the budget is a hollow marker, never a second color. */
+  .viz { --series-develop: #2a78d6; --grid: #e5e7eb; --axis: #6b7280; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; font-size: 12px; margin: 8px 0 12px; }
+  .legend span { display: inline-flex; gap: 6px; align-items: center; }
+  .multiples { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .multiple { border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 10px 4px; }
+  .multiple h4 { margin: 0; font-size: 13px; }
+  .multiple .stat { font-size: 12px; color: #6b7280; }
+  .multiple svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .multiple svg text { fill: var(--axis); font-size: 10px; }
+  .multiple .hit { fill: transparent; cursor: pointer; }
+  .viz th { cursor: auto; user-select: auto; }
+  #time-sources, .multiple h4, .tip { overflow-wrap: anywhere; }
+  .tip { position: fixed; pointer-events: none; background: Canvas; color: CanvasText; border: 1px solid #d1d5db; border-radius: 6px;
+    padding: 6px 8px; font-size: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); z-index: 10; max-width: 340px; }
+  @media (prefers-color-scheme: dark) {
+    .totals div { border-color: #374151; }
+    th, td { border-color: #374151; }
+    .badge.tier { background: #374151; color: #e5e7eb; }
+    .legs, .error { color: #9ca3af; }
+    .viz { --series-develop: #3987e5; --grid: #374151; --axis: #9ca3af; }
+    .multiple, .tip { border-color: #374151; }
+    .multiple .stat { color: #9ca3af; }
+  }
+</style>
+</head>
+<body>
+<h1>Test health</h1>
+<div class="meta">
+  Flaky and failed tests collected from every <code>Tests</code>, <code>Develop</code>, <code>Publish</code>, and <code>Visual nightly</code> run, per test, across runs.
+  Generated __GENERATED_AT__. Data: <a href="summary.json">summary.json</a>, <a href="ledger.json">ledger.json</a>, <a href="durations.json">durations.json</a>.
+</div>
+<nav class="sections" aria-label="Sections"><a href="#flakes">Flaky and failed tests</a><a href="#time">Where the time goes</a></nav>
+<h2 id="flakes" style="margin-top: 0">Flaky and failed tests</h2>
+<div class="totals" id="totals"></div>
+<div class="controls">
+  <input type="search" id="filter" placeholder="Filter by title, file, leg, branch…" aria-label="Filter rows">
+  <label><input type="checkbox" id="onlyTicket"> only tests that need a ticket</label>
+  <span id="count" class="meta"></span>
+</div>
+<div class="wrap">
+  <table id="table">
+    <thead>
+      <tr>
+        <th data-key="needsTicket">Ticket</th>
+        <th data-key="title">Test</th>
+        <th data-key="count7" class="num">7 d</th>
+        <th data-key="count30" class="num sorted">30 d</th>
+        <th data-key="runs30" class="num">Runs (30 d)</th>
+        <th data-key="legs">Legs</th>
+        <th data-key="lastSeen">Last seen</th>
+        <th>Last error</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div class="empty" id="empty" hidden>No flaky or failed test recorded in the retention window.</div>
+</div>
+<section class="viz" aria-labelledby="time">
+  <h2 id="time">Where the time goes</h2>
+  <div class="meta" id="time-meta">
+    Every Playwright E2E leg of every develop push, green or red, from the <code>playwright-durations-*</code> artifact each leg uploads (a pull request's stay in its own run for 3 days). A leg that runs in shards uploads one part per shard and is folded back into one leg here: its wall-clock is its longest shard, since the shards run side by side.
+  </div>
+  <div class="empty" id="time-empty" hidden>No Playwright durations collected yet.</div>
+  <div id="time-body">
+    <h3>Wall-clock and tests per leg</h3>
+    <div class="controls" role="radiogroup" aria-label="Measure">
+      <label><input type="radio" name="measure" value="wall" checked> Wall-clock (minutes)</label>
+      <label><input type="radio" name="measure" value="tests"> Tests that ran</label>
+    </div>
+    <div class="legend" id="time-legend"></div>
+    <div class="multiples" id="time-multiples"></div>
+    <h3>Budget input: per leg over the window</h3>
+    <div class="meta">
+      Nearest-rank P50 and P90 per leg over the develop pushes in the window, one vote per push (a re-run attempt replaces the leg's earlier one), left out when a test failed every attempt, no test ran, a shard of the leg has no part, or the leg ran in another shape than its latest push (a failing test's time is its retries and timeouts; a flaky-only leg counts). Shape is how the leg's latest push ran: whole or in how many shards, and on how many workers; a change to either starts the budget input over. The input a later e2e budget is derived from; every plotted run is in <a href="durations.json">durations.json</a>.
+    </div>
+    <div class="wrap">
+      <table id="time-budget">
+        <thead><tr><th>Leg</th><th>Shape</th><th class="num">Runs</th><th class="num">Wall P50</th><th class="num">Wall P90</th><th class="num">Tests P50</th><th class="num">Tests P90</th><th class="num">Left out</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3 id="time-files-title">The heaviest spec files</h3>
+    <div class="meta" id="time-sources"></div>
+    <div class="wrap">
+      <table id="time-files">
+        <thead><tr><th class="num">#</th><th>Spec file</th><th class="num">Minutes, all legs</th><th class="num">Tests</th><th class="num">s per test per leg</th><th>Minutes per leg, heaviest first</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3 id="time-slow-title">Every test over 3 s</h3>
+    <div class="wrap">
+      <table id="time-slow">
+        <thead><tr><th>Test</th><th class="num">Slowest</th><th>Legs over the line</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="tip" id="time-tip" hidden></div>
+</section>
+<footer>
+  A test <b>needs a ticket</b> once it flaked in <span id="threshold"></span>+ distinct runs within 30 days (the flakiness playbook's rule).
+  <em>flaky</em> = failed, then passed on retry (Playwright; still fails the leg under <code>failOnFlakyTests</code>);
+  <em>failed</em> = did not pass. Jasmine entries carry the runner's isolation verdict when their file was re-run alone.
+  A <em>quarantined</em> Playwright test still runs and reports; its flaky verdict does not fail the leg until the entry's expiry (<code>tests/AGENTS.md</code>, Quarantine).
+  A <em>visual</em> row is a screenshot capture: the file is its spec, the legs are the variants it differed on, and <em>failed</em> means it differed from its golden record beyond <code>regconfig.json</code>'s tolerances. It needs a ticket once it differed on <span id="visual-threshold"></span>+ <code>Visual nightly</code> runs, or on that many distinct branches (the nightly counts as develop): nothing in that tier is ever flaky, and a pull request's own intended change, recorded before approval, stays on one branch however often it is pushed. A quarantined capture is listed in <code>visual-tests/visual-quarantine.json</code> (<code>visual-tests/AGENTS.md</code>, Guardrails); an entry names the legs it covers, so a row shows its most recent entry and only the legs outside it count toward the ticket.
+  Entries older than <span id="retention"></span> days drop off. Source: <code>.github/workflows/test-health.yml</code>.
+  <br>Where the time goes: a leg's wall-clock is what the leg paid, retries included; a leg that runs in shards is one record whose wall-clock is its longest shard (what the leg costs when the shards start together), whose tests add up, and whose parts are listed under each run with the span from the first shard's start to the last shard's end when they queued (a push with a shard missing is left out of the budget and keeps the rows it had). Runs stay 30 days. The per-test rows come from each leg's latest develop push and give each test its time from a run where it passed on its first attempt: a test that failed or was flaky in the latest run keeps its time from the run before, because its own time is retries and timeouts, which the table above tracks. Only develop pushes are recorded: a pull request's leg files stay in its own run's artifacts for 3 days.
+</footer>
+<script id="summary" type="application/json">__SUMMARY_JSON__</script>
+<script id="durations" type="application/json">__DURATIONS_JSON__</script>
+<script>
+(function() {
+  var summary = JSON.parse(document.getElementById('summary').textContent);
+  var rows = summary.rows || [];
+  var sortKey = 'count30';
+  var sortAsc = false;
+
+  document.getElementById('threshold').textContent = summary.ticketThresholdRuns;
+  document.getElementById('visual-threshold').textContent = summary.ticketThresholdRuns;
+  document.getElementById('retention').textContent = summary.retentionDays;
+
+  var totals = document.getElementById('totals');
+  [
+    ['Tests seen', summary.totals.tests],
+    ['Need a ticket', summary.totals.needsTicket],
+    ['Quarantined', summary.totals.quarantined || 0],
+    ['Observations', summary.totals.entries]
+  ].forEach(function(pair) {
+    var box = document.createElement('div');
+    var b = document.createElement('b');
+    b.textContent = pair[1];
+    box.appendChild(b);
+    box.appendChild(document.createTextNode(pair[0]));
+    totals.appendChild(box);
+  });
+
+  function text(tag, content, className) {
+    var el = document.createElement(tag);
+    if (className) { el.className = className; }
+    el.textContent = content == null ? '' : String(content);
+    return el;
+  }
+
+  function badge(content, className) {
+    return text('span', content, 'badge ' + className);
+  }
+
+  function sortValue(row, key) {
+    if (key === 'lastSeen') { return row.lastSeen.seenAt; }
+    if (key === 'legs') { return row.legs.join(','); }
+    if (key === 'needsTicket') { return row.needsTicket ? 1 : 0; }
+    return row[key];
+  }
+
+  function render() {
+    var filter = document.getElementById('filter').value.trim().toLowerCase();
+    var onlyTicket = document.getElementById('onlyTicket').checked;
+    var visible = rows.filter(function(row) {
+      if (onlyTicket && !row.needsTicket) { return false; }
+      if (!filter) { return true; }
+      var hay = [row.title, row.file, row.legs.join(' '), row.lastSeen.branch, row.tier].join(' ').toLowerCase();
+      return hay.indexOf(filter) !== -1;
+    });
+
+    visible.sort(function(a, b) {
+      var av = sortValue(a, sortKey);
+      var bv = sortValue(b, sortKey);
+      var cmp = av < bv ? -1 : av > bv ? 1 : 0;
+      if (cmp !== 0) { return sortAsc ? cmp : -cmp; }
+      return b.count30 - a.count30 || a.title.localeCompare(b.title);
+    });
+
+    var tbody = document.querySelector('#table tbody');
+    tbody.textContent = '';
+    visible.forEach(function(row) {
+      var tr = document.createElement('tr');
+      if (row.needsTicket) { tr.className = 'ticket'; }
+
+      var ticket = document.createElement('td');
+      if (row.needsTicket) { ticket.appendChild(badge('needs ticket', 'ticket')); }
+      tr.appendChild(ticket);
+
+      var title = document.createElement('td');
+      title.className = 'title';
+      title.appendChild(badge(row.tier, 'tier'));
+      title.appendChild(document.createTextNode(' '));
+      row.statuses.forEach(function(status) { title.appendChild(badge(status, status)); title.appendChild(document.createTextNode(' ')); });
+      if (row.lastSeen.source === 'seed') { title.appendChild(badge('hand-recorded', 'seed')); }
+      if (row.quarantine) { title.appendChild(badge('quarantined', 'quarantine')); }
+      title.appendChild(text('div', row.title));
+      title.appendChild(text('div', (row.file || '?') + (row.line ? ':' + row.line : ''), 'file'));
+      if (row.isolation.length) { title.appendChild(text('div', 'in isolation: ' + row.isolation.join('; '), 'legs')); }
+      if (row.quarantine) { title.appendChild(text('div', 'quarantine: ' + row.quarantine, 'legs')); }
+      tr.appendChild(title);
+
+      tr.appendChild(text('td', row.count7, 'num'));
+      tr.appendChild(text('td', row.count30, 'num'));
+      tr.appendChild(text('td', row.runs30, 'num'));
+      tr.appendChild(text('td', row.legs.join(', '), 'legs'));
+
+      var last = document.createElement('td');
+      var when = text('span', row.lastSeen.seenAt.replace('T', ' ').replace(/:\d\d(\.\d+)?Z$/, 'Z'));
+      if (row.lastSeen.runUrl) {
+        var link = document.createElement('a');
+        link.href = row.lastSeen.runUrl;
+        link.appendChild(when);
+        last.appendChild(link);
+      } else {
+        last.appendChild(when);
+      }
+      last.appendChild(text('div', row.lastSeen.branch + ' · ' + row.lastSeen.leg, 'legs'));
+      tr.appendChild(last);
+
+      tr.appendChild(text('td', row.lastSeen.error || '', 'error'));
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('empty').hidden = visible.length > 0 || rows.length > 0;
+    document.getElementById('count').textContent = visible.length + ' of ' + rows.length + ' test(s)';
+  }
+
+  function applySort(th) {
+    var key = th.getAttribute('data-key');
+    if (sortKey === key) { sortAsc = !sortAsc; } else { sortKey = key; sortAsc = key === 'title' || key === 'legs'; }
+    document.querySelectorAll('th[data-key]').forEach(function(other) {
+      other.classList.remove('sorted', 'asc');
+      other.setAttribute('aria-sort', 'none');
+    });
+    th.classList.add('sorted');
+    if (sortAsc) { th.classList.add('asc'); }
+    th.setAttribute('aria-sort', sortAsc ? 'ascending' : 'descending');
+    render();
+  }
+  document.querySelectorAll('th[data-key]').forEach(function(th) {
+    // Keep the implicit `columnheader` role (a role="button" would drop it and make aria-sort
+    // invalid); tabindex + the keydown handler below make the header operable without a mouse.
+    th.setAttribute('tabindex', '0');
+    th.setAttribute('aria-sort', th.classList.contains('sorted') ? (sortAsc ? 'ascending' : 'descending') : 'none');
+    th.addEventListener('click', function() { applySort(th); });
+    th.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); applySort(th); }
+    });
+  });
+  document.getElementById('filter').addEventListener('input', render);
+  document.getElementById('onlyTicket').addEventListener('change', render);
+  render();
+}());
+(function() {
+  var view = JSON.parse(document.getElementById('durations').textContent);
+  var body = document.getElementById('time-body');
+
+  if (!view || view.error) {
+    var empty = document.getElementById('time-empty');
+    if (view && view.error) {
+      empty.textContent = 'durations.json could not be read, so it was left as it is: ' + view.error;
+    }
+    empty.hidden = false;
+    body.hidden = true;
+    return;
+  }
+
+  var DAY = 86400000;
+  var NS = 'http://www.w3.org/2000/svg';
+  var LEFT_OUT = {
+    1: function(point) { return point[4] ? 'a test failed every attempt: left out of the budget' : 'no test ran: left out of the budget'; },
+    2: function() { return 'a later attempt re-ran this leg: left out of the budget'; },
+    3: function() { return 'a shard of this leg has no part: left out of the budget'; },
+    4: function() { return 'another shape (shards or workers) than the leg\'s latest run: left out of the budget'; }
+  };
+  var tip = document.getElementById('time-tip');
+
+  function text(tag, content, className) {
+    var el = document.createElement(tag);
+    if (className) { el.className = className; }
+    el.textContent = content == null ? '' : String(content);
+    return el;
+  }
+
+  function svg(tag, attrs, parent) {
+    var el = document.createElementNS(NS, tag);
+    Object.keys(attrs).forEach(function(key) { el.setAttribute(key, attrs[key]); });
+    if (parent) { parent.appendChild(el); }
+    return el;
+  }
+
+  function minutes(ms) { return ms == null ? '–' : (ms / 60000).toFixed(1); }
+  function seconds(ms) { return (ms / 1000).toFixed(1); }
+  function date(ms, withHour) {
+    var label = new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+    return withHour ? label + ' ' + new Date(ms).toISOString().slice(11, 13) + 'h' : label;
+  }
+  function when(iso) { return iso ? iso.replace('T', ' ').replace(/:\d\d(\.\d+)?Z$/, 'Z') : '?'; }
+  // A run's page, built from its numbers alone: no URL from the page's data ever becomes a link, so nothing a
+  // pull request's artifact carries can turn into a `javascript:` URL. The page belongs to this repository.
+  function runPage(runId, attempt) {
+    var id = Number(runId);
+    var n = Number(attempt);
+    if (!(id > 0 && id === Math.floor(id))) { return null; }
+    return 'https://github.com/handsontable/handsontable/actions/runs/' + id
+      + (n > 1 && n === Math.floor(n) ? '/attempts/' + n : '');
+  }
+
+  // A develop push's marker: filled when the budget counts it, hollow when it is left out.
+  function marker(group, x, y, hollow) {
+    var color = 'var(--series-develop)';
+    return svg('circle', hollow
+      ? { cx: x, cy: y, r: 4, fill: 'Canvas', stroke: color, 'stroke-width': 2 }
+      : { cx: x, cy: y, r: 4, fill: color, stroke: 'Canvas', 'stroke-width': 1 }, group);
+  }
+
+  var meta = document.getElementById('time-meta');
+  var budget = view.budget || { legs: {} };
+  meta.appendChild(document.createTextNode(' Updated ' + when(view.updatedAt) + '. '
+    + (budget.from ? 'Window ' + when(budget.from) + ' to ' + when(budget.to) + ' ' : '')
+    + '(runs stay ' + view.retentionDays + ' days, fewer when the file reaches its size cap). '
+    + view.runs.length + ' run(s), ' + view.points.length + ' leg run(s).'));
+
+  var legend = document.getElementById('time-legend');
+  [[false, 'develop push (joined by a line)'],
+    [true, 'hollow: left out of the budget (a test failed every attempt, no test ran, a later attempt re-ran the leg, a shard has no part, or the leg ran in another shape than its latest run)']]
+    .forEach(function(entry) {
+      var item = document.createElement('span');
+      var icon = svg('svg', { width: 12, height: 12, viewBox: '0 0 12 12', 'aria-hidden': 'true' });
+      marker(icon, 6, 6, entry[0]);
+      item.appendChild(icon);
+      item.appendChild(document.createTextNode(entry[1]));
+      legend.appendChild(item);
+    });
+
+  // The axis spans the runs the file holds: the full window once it has filled, at least a day before.
+  var to = view.points.reduce(function(max, point) { return Math.max(max, point[2]); }, 0);
+  var oldest = view.points.reduce(function(min, point) { return Math.min(min, point[2]); }, to);
+  var from = Math.min(oldest, to - DAY);
+  var hourly = to - from < 3 * DAY;
+  var W = 300;
+  var H = 150;
+  var PAD = { left: 34, right: 8, top: 8, bottom: 20 };
+
+  // A tick step of 1, 2 or 5 times a power of ten, so the axis reads 5, 10, 15 and never 12.5.
+  function niceStep(raw) {
+    var power = Math.pow(10, Math.floor(Math.log10(raw)));
+    var mantissa = raw / power;
+    return (mantissa <= 1 ? 1 : mantissa <= 2 ? 2 : mantissa <= 5 ? 5 : 10) * power;
+  }
+
+  function describe(point) {
+    var run = view.runs[point[0]];
+    var lines = [
+      'develop push ' + run[1],
+      view.legs[point[1]] + ': ' + minutes(point[3]) + ' min wall-clock, ' + point[4] + ' tests',
+      'run ' + run[0] + (point[5] > 1 ? ' attempt ' + point[5] : '') + ' · ' + when(new Date(point[2]).toISOString())
+    ];
+    if (LEFT_OUT[point[6]]) { lines.push(LEFT_OUT[point[6]](point)); }
+    // A sharded leg: one line per part, [shard, attempt, wall-clock ms, tests], and the span from the first
+    // shard's start to the last shard's end when the shards queued.
+    (point[7] || []).forEach(function(part) {
+      lines.push('shard ' + part[0] + ': ' + minutes(part[2]) + ' min, ' + part[3] + ' tests'
+        + (part[1] > 1 ? ' (attempt ' + part[1] + ')' : ''));
+    });
+    if (point[8] != null && point[8] > point[3]) {
+      lines.push('first shard start to last shard end: ' + minutes(point[8]) + ' min (the shards queued)');
+    }
+    return lines;
+  }
+
+  function showTip(event, point) {
+    var lines = describe(point);
+    tip.textContent = '';
+    lines.forEach(function(line) { tip.appendChild(text('div', line)); });
+    tip.hidden = false;
+    var x = Math.min(event.clientX + 12, window.innerWidth - tip.offsetWidth - 8);
+    var y = event.clientY + 12 + tip.offsetHeight > window.innerHeight - 8 ? event.clientY - tip.offsetHeight - 12 : event.clientY + 12;
+    tip.style.left = Math.max(8, x) + 'px';
+    tip.style.top = Math.max(8, y) + 'px';
+  }
+
+  function drawMultiples(measure) {
+    var container = document.getElementById('time-multiples');
+    var value = function(point) { return measure === 'wall' ? point[3] / 60000 : point[4]; };
+    // The scale follows the runs the budget counts: a red or empty leg would stretch every chart, so it is
+    // drawn at the top edge instead, and its tooltip still gives the real number.
+    var counted = view.points.filter(function(point) { return point[6] === 0; });
+    var highest = (counted.length ? counted : view.points).reduce(function(max, point) { return Math.max(max, value(point)); }, 0);
+    var step = highest > 0 ? niceStep(highest / 4) : 1;
+    var top = Math.max(step, Math.ceil(highest / step) * step);
+    var x = function(ms) { return PAD.left + ((ms - from) / (to - from || 1)) * (W - PAD.left - PAD.right); };
+    var y = function(v) { return H - PAD.bottom - (Math.min(v, top) / top) * (H - PAD.top - PAD.bottom); };
+
+    container.textContent = '';
+    view.legs.forEach(function(leg, legIndex) {
+      var points = view.points.filter(function(point) { return point[1] === legIndex; })
+        .sort(function(a, b) { return a[2] - b[2]; });
+      var stats = budget.legs[leg] && budget.legs[leg].runs ? budget.legs[leg] : null;
+      var box = document.createElement('div');
+      box.className = 'multiple';
+      box.appendChild(text('h4', leg + (stats && stats.shards > 1 ? ' · ' + stats.shards + ' shards' : '')));
+      box.appendChild(text('div', stats
+        ? (measure === 'wall'
+          ? 'P50 ' + minutes(stats.wallMs.p50) + ' min · P90 ' + minutes(stats.wallMs.p90) + ' min'
+          : 'P50 ' + stats.tests.p50 + ' · P90 ' + stats.tests.p90 + ' tests') + ' · ' + stats.runs + ' push(es) counted'
+        : 'no push counted in the window', 'stat'));
+
+      var chart = svg('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+        'aria-label': leg + ': ' + points.length + ' leg run(s); P50 and P90 in the budget table below' });
+      for (var v = 0; v <= top + (step / 1000); v += step) {
+        svg('line', { x1: PAD.left, x2: W - PAD.right, y1: y(v), y2: y(v), stroke: 'var(--grid)', 'stroke-width': 1 }, chart);
+        svg('text', { x: PAD.left - 4, y: y(v) + 3, 'text-anchor': 'end' }, chart).textContent = String(Math.round(v * 100) / 100);
+      }
+      // `slot`, not `step`: a `var` here would be hoisted over the tick step above and leave the y axis empty.
+      for (var slot = 0; slot <= 3; slot += 1) {
+        var at = from + ((to - from) * slot) / 3;
+        svg('text', { x: x(at), y: H - 6, 'text-anchor': ['start', 'middle', 'middle', 'end'][slot] }, chart)
+          .textContent = date(at, hourly);
+      }
+
+      // The line joins the pushes the budget counts; one it leaves out stays a hollow marker off the line.
+      var develop = points.filter(function(point) { return point[6] === 0; });
+      if (develop.length > 1) {
+        svg('path', {
+          d: develop.map(function(point, i) { return (i ? 'L' : 'M') + x(point[2]).toFixed(1) + ' ' + y(value(point)).toFixed(1); }).join(''),
+          fill: 'none', stroke: 'var(--series-develop)', 'stroke-width': 2, 'stroke-linejoin': 'round'
+        }, chart);
+      }
+      points.forEach(function(point) {
+        var px = x(point[2]);
+        var py = y(value(point));
+        marker(chart, px, py, point[6] !== 0);
+        var hit = svg('circle', { cx: px, cy: py, r: 9, class: 'hit' }, chart);
+        svg('title', {}, hit).textContent = describe(point).join('\n');
+        hit.addEventListener('mouseenter', function(event) { showTip(event, point); });
+        hit.addEventListener('mousemove', function(event) { showTip(event, point); });
+        hit.addEventListener('mouseleave', function() { tip.hidden = true; });
+        hit.addEventListener('click', function() {
+          var url = runPage(view.runs[point[0]][0], point[5]);
+          if (url) { window.open(url, '_blank', 'noopener'); }
+        });
+      });
+      box.appendChild(chart);
+      container.appendChild(box);
+    });
+  }
+
+  document.querySelectorAll('input[name="measure"]').forEach(function(input) {
+    input.addEventListener('change', function() { drawMultiples(input.value); });
+  });
+  if (view.points.length) {
+    // A reload or back navigation keeps the radio the viewer picked; draw that one.
+    drawMultiples((document.querySelector('input[name="measure"]:checked') || { value: 'wall' }).value);
+  } else {
+    document.getElementById('time-multiples').appendChild(text('div', 'No leg run in the window.', 'empty'));
+  }
+
+  var budgetBody = document.querySelector('#time-budget tbody');
+  Object.keys(budget.legs).forEach(function(leg) {
+    var row = budget.legs[leg];
+    var counted = row.runs > 0;
+    var tr = document.createElement('tr');
+    tr.appendChild(text('td', leg));
+    tr.appendChild(text('td', (row.shards > 1 ? row.shards + ' shards' : 'whole') + (row.workers != null ? ' · ' + row.workers + ' workers' : '')));
+    tr.appendChild(text('td', row.runs, 'num'));
+    tr.appendChild(text('td', counted ? minutes(row.wallMs.p50) + ' min' : '–', 'num'));
+    tr.appendChild(text('td', counted ? minutes(row.wallMs.p90) + ' min' : '–', 'num'));
+    tr.appendChild(text('td', counted ? row.tests.p50 : '–', 'num'));
+    tr.appendChild(text('td', counted ? row.tests.p90 : '–', 'num'));
+    tr.appendChild(text('td', row.excluded, 'num'));
+    budgetBody.appendChild(tr);
+  });
+
+  var sources = document.getElementById('time-sources');
+  if (view.sources.length) {
+    sources.appendChild(document.createTextNode('From the per-test rows of each leg\'s latest develop push: '));
+  } else {
+    sources.textContent = 'No per-test rows in the window yet.';
+  }
+  view.sources.forEach(function(source, index) {
+    if (index) { sources.appendChild(document.createTextNode('; ')); }
+    var link = document.createElement('a');
+    var href = runPage(source.runId, source.runAttempt);
+    if (href) { link.href = href; }
+    link.textContent = source.leg + ' — ' + source.branch + ' ' + source.headSha.slice(0, 10);
+    sources.appendChild(link);
+    sources.appendChild(document.createTextNode(' (' + minutes(source.wallMs) + ' min, ' + source.tests + ' tests'
+      + (source.parts ? '; ' + source.shards + ' shards: ' + source.parts.map(function(part) { return minutes(part[2]); }).join(' / ') + ' min' : '')
+      + ')'));
+  });
+  if (view.sources.length) { sources.appendChild(document.createTextNode('. Minutes add up every leg a file runs on.')); }
+
+  var filesBody = document.querySelector('#time-files tbody');
+  document.getElementById('time-files-title').textContent = view.heaviestFiles.length
+    ? 'The ' + view.heaviestFiles.length + ' heaviest spec files' : 'The heaviest spec files';
+  view.heaviestFiles.forEach(function(file, index) {
+    var tr = document.createElement('tr');
+    tr.appendChild(text('td', index + 1, 'num'));
+    tr.appendChild(text('td', file.file, 'file'));
+    tr.appendChild(text('td', minutes(file.ms), 'num'));
+    tr.appendChild(text('td', file.tests, 'num'));
+    tr.appendChild(text('td', seconds(file.ms / Math.max(1, file.executions)), 'num'));
+    tr.appendChild(text('td', file.legs.map(function(leg) { return leg[0] + ' ' + minutes(leg[1]); }).join(' · '), 'legs'));
+    filesBody.appendChild(tr);
+  });
+
+  var slowBody = document.querySelector('#time-slow tbody');
+  var slowCount = view.slowTestCount == null ? view.slowTests.length : view.slowTestCount;
+  document.getElementById('time-slow-title').textContent = slowCount > view.slowTests.length
+    ? 'The ' + view.slowTests.length + ' slowest of ' + slowCount + ' tests over ' + seconds(view.slowTestMs) + ' s'
+    : 'Every test over ' + seconds(view.slowTestMs) + ' s (' + slowCount + ')';
+  view.slowTests.forEach(function(entry) {
+    var tr = document.createElement('tr');
+    var title = document.createElement('td');
+    title.className = 'title';
+    title.appendChild(text('div', entry.title));
+    title.appendChild(text('div', entry.file, 'file'));
+    tr.appendChild(title);
+    tr.appendChild(text('td', seconds(entry.ms) + ' s', 'num'));
+    tr.appendChild(text('td', entry.legs.map(function(leg) { return leg[0] + ' ' + seconds(leg[1]) + ' s'; }).join(' · '), 'legs'));
+    slowBody.appendChild(tr);
+  });
+  function noneRow(body, columns, content) {
+    var none = document.createElement('tr');
+    var cell = text('td', content);
+    cell.colSpan = columns;
+    none.appendChild(cell);
+    body.appendChild(none);
+  }
+  if (!view.slowTests.length) { noneRow(slowBody, 3, 'None in the latest runs.'); }
+  if (!view.heaviestFiles.length) { noneRow(filesBody, 6, 'No per-test rows in the window yet.'); }
+}());
+</script>
+</body>
+</html>

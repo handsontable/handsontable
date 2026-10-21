@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a `dropdown` column with `strict: false` accepting a value outside its `source` list unless the user had clicked that cell first. A paste, autofill, `setDataAtCell()`, `populateFromArray()` and `validateCells()` now mark such a value invalid, the same as typing it into the cell.",
+  "type": "fixed",
+  "issueOrPR": 13487,
+  "breaking": false,
+  "framework": "none"
+}

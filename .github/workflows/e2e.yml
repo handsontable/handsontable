@@ -1,17 +1,26 @@
 name: E2E
 
-# End-to-end tests, build-dependent (consume the UMD artifact). Two matrices,
-# 1:1 with each other: the frozen Puppeteer suite and the new Playwright suite,
-# both over theme × bundle (UMD / UMD.min). Per-leg gating keeps the exact old
-# scope behaviour (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
+# End-to-end tests, build-dependent (consume the UMD artifact). Two suites over
+# one theme × bundle (UMD / UMD.min) matrix: the frozen Puppeteer suite, one
+# job per leg, and the Playwright suite, one job per leg and shard (a leg over
+# the wall-clock target runs in shards; the `playwright` job's matrix lists
+# every row). Neither runs the whole matrix on a pull request. The Playwright
+# legs run the shape each spec declares (`full-matrix` drops the declarations).
+# The Puppeteer suite runs ONE leg, UMD × main, on a pull request and a develop
+# push — the e2e and e2e-min scopes decide whether that leg runs at all — and
+# its six legs run only where `jasmine-full-matrix` is set: the E2E nightly, the
+# rc/stable publish path and a master push, the same callers that set
+# `full-matrix`. A Jasmine spec red on another theme or on the minified bundle
+# alone therefore first shows on the nightly, with `branch: develop` and the
+# runner's isolation verdict in the flake ledger: `passes alone` is a migration
+# ticket, `fails alone` is fixed or migrated before the next RC cut, because
+# the rc/stable path runs the six legs and its publish needs them green.
 # The UMD.min legs load handsontable.full.min.js — the exact file Puppeteer's
 # test:production runs. The bundles Puppeteer does not test either
 # (handsontable.full.js and handsontable.min.js) are deliberately not covered
-# here — they belong to the nightly on develop (DEV-2058).
-# Playwright runs one job per leg (not one job per theme with both projects):
-# per-leg failure isolation in the checks list and 1:1 symmetry with the
-# Puppeteer matrix outweigh the duplicated container setup while the suite is
-# small — revisit as migration grows it.
+# here, nor by the nightly. Playwright runs a job per leg rather than one per
+# theme with both projects: per-leg failure isolation in the checks list
+# outweighs the duplicated container setup.
 on:
   workflow_call:
     inputs:
@@ -19,11 +28,19 @@ on:
         type: boolean
         default: false
       run-e2e:
-        description: 'UMD (non-min) Puppeteer legs'
+        description: 'The e2e scope: whether the Puppeteer job runs at all (jasmine-full-matrix picks its legs)'
         type: boolean
         default: false
       run-e2e-min:
-        description: 'UMD.min Puppeteer legs'
+        description: 'The e2e-min scope, the same gate (the two router filters are identical); it picks no leg'
+        type: boolean
+        default: false
+      full-matrix:
+        description: 'Run every Playwright spec on every leg (HOT_E2E_FULL_MATRIX=1), whatever it declares'
+        type: boolean
+        default: false
+      jasmine-full-matrix:
+        description: 'Run the frozen Jasmine suite on all six legs (three themes × UMD / UMD.min) instead of UMD × main alone'
         type: boolean
         default: false
       run-playwright:
@@ -34,18 +51,27 @@ on:
 jobs:
   puppeteer:
     name: "${{ matrix.bundle.label }} (theme: ${{ matrix.theme }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # matrix context is unavailable in a job-level if (evaluated before matrix
     # expansion). The e2e and e2e-min scope filters are identical, so a single
     # job-level gate is exactly equivalent to the old per-bundle gating.
     if: ${{ inputs.run-all || inputs.run-e2e || inputs.run-e2e-min }}
     strategy:
       fail-fast: false
+      # One leg, UMD × main, unless the caller sets jasmine-full-matrix; then the
+      # three themes × both bundles. `&&`/`||` return their operands, so the input
+      # picks one of two JSON literals per axis and fromJSON turns it into the
+      # axis (the literals are JSON, not YAML, and stay on one line: a `: ` inside
+      # a plain scalar would end it). The single leg is the plain UMD bundle on
+      # the main theme, the shape the local runner defaults to; test:production
+      # (the minified bundle) runs in the full matrix only. The job name, the
+      # HOT_E2E_LEG label and the record's artifact name below read the same
+      # matrix keys on either shape, so the ledger's `jasmine` tier sees one leg
+      # or six unchanged. e2e-legs.test.mjs pins both literals by value and holds
+      # the six-leg shape equal to the Playwright matrix.
       matrix:
-        theme: [main, horizon, classic]
-        bundle:
-          - { label: 'UMD', dump: 'test:e2e.dump' }
-          - { label: 'UMD.min', dump: 'test:production.dump' }
+        theme: ${{ fromJSON(inputs.jasmine-full-matrix && '["main", "horizon", "classic"]' || '["main"]') }}
+        bundle: ${{ fromJSON(inputs.jasmine-full-matrix && '[{"label":"UMD","dump":"test:e2e.dump"},{"label":"UMD.min","dump":"test:production.dump"}]' || '[{"label":"UMD","dump":"test:e2e.dump"}]') }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
@@ -63,27 +89,82 @@ jobs:
           path: ./
       - run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
       - name: Test
+        # HOT_E2E_LEG labels the failure annotations, the step summary, and the
+        # failed-specs record the runner writes on a red run (test/e2e-results/).
+        env:
+          HOT_E2E_LEG: ${{ matrix.bundle.label }}
         run: |
           cd handsontable
           npm run ${{ matrix.bundle.dump }} --theme=${{ matrix.theme }} && npm run test:e2e.puppeteer --theme=${{ matrix.theme }}
+      # The record names every failed spec with its file and whether it fails
+      # alone; the flake ledger collects these across runs. Uploading needs no
+      # secret, so fork and Dependabot runs keep it.
+      - name: Upload the failed-specs record
+        if: failure()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: puppeteer-failed-specs-${{ matrix.bundle.label }}-${{ matrix.theme }}
+          path: handsontable/test/e2e-results/
+          if-no-files-found: ignore
+          # A re-run attempt that fails again replaces the record; without this
+          # the upload 409s on the name and the newer record is lost.
+          overwrite: true
 
   # Runs inside the pinned Playwright container so the engine + browsers match
-  # local and baseline generation. One leg per theme × bundle — the same matrix
-  # shape as the Puppeteer job above (the project name selects both: the theme
-  # stylesheet and the dist bundle the fixture loads).
+  # local and baseline generation. One leg per theme × bundle — the legs the
+  # Puppeteer job above runs on its full matrix (the project name selects both:
+  # the theme stylesheet and the dist bundle the fixture loads) — and a leg over the
+  # wall-clock target runs in shards: one job per shard, `--shard=<i>/<n>` on
+  # the same project, Playwright dealing the tests out (`fullyParallel`, so at
+  # test granularity; a serial describe stays in one shard). The shards of a
+  # leg run side by side, so the leg's wall-clock is its longest shard.
   playwright:
-    name: "Playwright ${{ matrix.bundle.label }} (theme: ${{ matrix.theme }})"
-    runs-on: ubuntu-latest
+    name: "Playwright ${{ matrix.bundle.label }} (theme: ${{ matrix.theme }}${{ matrix.shard && format(', shard {0}/{1}', matrix.shard, matrix.shards) || '' }})"
+    runs-on: ubuntu-26.04
     container:
-      image: mcr.microsoft.com/playwright:v1.61.1-noble
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
     if: inputs.run-all || inputs.run-playwright
     strategy:
       fail-fast: false
+      # One explicit row per job, and no base axes: an `include` entry keyed on a
+      # base `theme × bundle` combination merges into it (a second row for the same
+      # leg would overwrite the first row's shard instead of adding a job), so the
+      # table lists every leg and every shard. `shard`/`shards` are absent on an
+      # unsharded row, which makes `matrix.shard` null there and every shard
+      # expression below empty. How many shards: the agreed starting point, from
+      # each leg's 2-worker wall-clock before this change (main 20.7, horizon
+      # 11.9, classic 14.4 min, run 38716353843) scaled by the 4-worker gain
+      # measured on main (1.42×, run 38755690783: 16.9 → 11.9 min) and divided
+      # by the five-minute target, rounded up: main 14.6 → 3, horizon 8.4 → 2,
+      # classic 10.1 → 3 by that arithmetic, kept at 2 (its two shards ran 4.8
+      # and 4.5 min on the first run). The `-min` legs and the engines job run
+      # whole: under 4 minutes on the pull-request shape; the full matrix
+      # (`full-matrix: true`: the nightly, the rc/stable path, a master push)
+      # runs every spec on every leg through the same rows, so a horizon or
+      # classic shard holds half the suite there and the `-min` legs run whole
+      # at 11 to 14 minutes, the nightly's longest jobs, which it can afford.
+      # The e2e budget phase pins the counts from the P50s the durations page
+      # collects at this shape; until then a change here is deliberate only with
+      # a measurement, and `DURATIONS_LEGS` in
+      # .github/scripts/lib/playwright-durations.mjs follows it (its test
+      # derives the table from these rows). Eleven Playwright jobs per run,
+      # seven before: the organization is on GitHub's Team plan (60 concurrent
+      # standard-runner jobs), and three overlapping runs of this workflow (38
+      # E2E jobs at once) each started every job within a second of the first,
+      # so the cap was checked and is not near; the engines job stays one job
+      # for the same reason.
       matrix:
-        theme: [main, horizon, classic]
-        bundle:
-          - { label: 'UMD', suffix: '' }
-          - { label: 'UMD.min', suffix: '-min' }
+        include:
+          - { theme: main, bundle: { label: 'UMD', suffix: '' }, shard: 1, shards: 3 }
+          - { theme: main, bundle: { label: 'UMD', suffix: '' }, shard: 2, shards: 3 }
+          - { theme: main, bundle: { label: 'UMD', suffix: '' }, shard: 3, shards: 3 }
+          - { theme: horizon, bundle: { label: 'UMD', suffix: '' }, shard: 1, shards: 2 }
+          - { theme: horizon, bundle: { label: 'UMD', suffix: '' }, shard: 2, shards: 2 }
+          - { theme: classic, bundle: { label: 'UMD', suffix: '' }, shard: 1, shards: 2 }
+          - { theme: classic, bundle: { label: 'UMD', suffix: '' }, shard: 2, shards: 2 }
+          - { theme: main, bundle: { label: 'UMD.min', suffix: '-min' } }
+          - { theme: horizon, bundle: { label: 'UMD.min', suffix: '-min' } }
+          - { theme: classic, bundle: { label: 'UMD.min', suffix: '-min' } }
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - name: Download the Handsontable UMD build artifact
@@ -96,13 +177,129 @@ jobs:
       - name: Install the Playwright test package
         run: pnpm install --filter handsontable-tests
       - name: Run Playwright E2E
-        run: cd tests && npx playwright test --project=e2e-${{ matrix.theme }}${{ matrix.bundle.suffix }}
+        id: playwright
+        # "1" drops every leg's grep (tests/AGENTS.md, "Declaring the legs"); "" keeps the declared shape.
+        # An empty leg is Playwright's own red "No tests found"; an empty shard is not, since
+        # Playwright skips that error whenever --shard is set, so the quarantine reporter
+        # (tests/reporters/quarantine.ts) fails a shard that ran no test. The flag that would turn
+        # either green is banned by .github/scripts/__tests__/e2e-legs.test.mjs.
+        env:
+          HOT_E2E_FULL_MATRIX: ${{ inputs.full-matrix && '1' || '' }}
+        run: cd tests && npx playwright test --project=e2e-${{ matrix.theme }}${{ matrix.bundle.suffix }}${{ matrix.shard && format(' --shard={0}/{1}', matrix.shard, matrix.shards) || '' }}
+      # Also when the leg stayed green only because a flaky test was under
+      # quarantine (the quarantine reporter sets the output): the ledger still
+      # records that test. A shard's report is its own artifact (`-s<i>`); the
+      # ledger takes the leg from the project each test names, so a shard is
+      # never a leg there. The quarantine reporter decides each shard's exit
+      # status on its own tests: the cap of six is counted per shard, and the
+      # `quarantined-flaky` output is the shard's.
       - name: Upload the Playwright report on failure
-        if: failure()
+        if: failure() || steps.playwright.outputs.quarantined-flaky == 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
-          name: playwright-report-${{ matrix.theme }}${{ matrix.bundle.suffix }}
+          name: playwright-report-${{ matrix.theme }}${{ matrix.bundle.suffix }}${{ matrix.shard && format('-s{0}', matrix.shard) || '' }}
           path: |
             tests/playwright-report
             tests/test-results
           retention-days: 3
+          # A re-run attempt that fails again replaces the report; without this
+          # the upload 409s on the name and the newer report is lost.
+          overwrite: true
+      # Every leg, red or green, leaves its durations for the test-health page's
+      # "Where the time goes" section: one small JSON file with the leg's
+      # wall-clock, counts, and the milliseconds of every spec file and test
+      # (.github/scripts/lib/playwright-durations.mjs), never the HTML report.
+      # `!cancelled()` replaces the implicit `success()` that would skip every red
+      # leg. The steps are an instrument and must never turn a leg red:
+      # `continue-on-error` covers an upload-artifact hiccup, and a leg without a
+      # report (Playwright never ran, or did not finish writing it) ends with a
+      # notice from the summarizer and uploads nothing. Both steps sit after the report
+      # upload, so its `failure()` never sees them. The test-health page records
+      # develop pushes' files only (a pull request's stay here for 3 days), and
+      # only the legs on DURATIONS_LEGS in that file: a new leg goes there too.
+      # A sharded leg uploads one part per shard (`playwright-durations-<leg>-s<i>`,
+      # the summarizer told which shard it was); the collector folds the parts
+      # into the leg, with DURATIONS_LEGS saying how many make it whole.
+      - name: Summarize the Playwright durations
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: node .github/scripts/playwright-durations.mjs --leg ${{ matrix.theme }}${{ matrix.bundle.suffix }}${{ matrix.shard && format(' --shard {0}/{1}', matrix.shard, matrix.shards) || '' }}
+      - name: Upload the Playwright durations
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: playwright-durations-${{ matrix.theme }}${{ matrix.bundle.suffix }}${{ matrix.shard && format('-s{0}', matrix.shard) || '' }}
+          path: tests/test-results/playwright-durations.json
+          if-no-files-found: ignore
+          retention-days: 3
+          overwrite: true
+
+  # The engine legs: the specs tagged @cross-browser (`CROSS_BROWSER_TAG` in tests/fixtures/test.ts)
+  # on Firefox and WebKit, on the main theme and the plain UMD bundle. They are the projects
+  # e2e-firefox and e2e-webkit of tests/playwright-engines.config.ts, which inherits everything else
+  # from tests/playwright.config.ts (so a run there never needs the engines). The six legs above are
+  # Chromium. The visual suite's cross-browser leg photographs on the develop seed, master and
+  # release candidate pushes, the nightly, and pull requests that change the visual tier, so on any
+  # other pull request this job is the only Firefox and WebKit run of anything the grid does. The
+  # theme and bundle axes are Chromium's: what a tagged spec asserts is the same under every theme
+  # and either bundle, and an engine difference shows on one of each. One job for both engines
+  # rather than one each keeps the run one job further from the organization's concurrent-job cap;
+  # the report names the project (the engine) of every failure, and the upload's name keeps the
+  # ledger's prefix. On a pull request a red engine leg also holds back the whole Visual stage:
+  # test.yml's `visual` job needs `e2e` and runs only when nothing failed, so a Firefox- or
+  # WebKit-only failure withholds every visual result until a re-run passes. This workflow is
+  # shared, so the job also runs on every develop push (a red engine leg holds back that push's
+  # experimental publish) and in the release candidate test runs (a red engine leg blocks the
+  # release candidate publish).
+  playwright-engines:
+    name: "Playwright engines (Firefox, WebKit)"
+    runs-on: ubuntu-26.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+    if: inputs.run-all || inputs.run-playwright
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - name: Download the Handsontable UMD build artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-umd
+      - run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
+        name: Install pnpm
+      - name: Install the Playwright test package
+        run: pnpm install --filter handsontable-tests
+      - name: Run the cross-browser specs on Firefox and WebKit
+        id: playwright
+        # The container runs as root, and GitHub points HOME at /github/home, which belongs to the
+        # image's pwuser. Firefox refuses to start under a HOME its user does not own, so every
+        # Firefox test fails at launch; HOME=/root is the workaround Playwright's own error prints.
+        env:
+          HOME: /root
+        run: cd tests && npx playwright test --config playwright-engines.config.ts
+      - name: Upload the Playwright report on failure
+        if: failure() || steps.playwright.outputs.quarantined-flaky == 'true'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: playwright-report-engines
+          path: |
+            tests/playwright-report
+            tests/test-results
+          retention-days: 3
+          overwrite: true
+      # The same durations post-steps as the Chromium legs; both engines' projects
+      # share one file, split per project inside it.
+      - name: Summarize the Playwright durations
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: node .github/scripts/playwright-durations.mjs --leg engines
+      - name: Upload the Playwright durations
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: playwright-durations-engines
+          path: tests/test-results/playwright-durations.json
+          if-no-files-found: ignore
+          retention-days: 3
+          overwrite: true

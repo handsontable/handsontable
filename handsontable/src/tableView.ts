@@ -1,6 +1,4 @@
 import type { HotInstance } from './core/types';
-import type { BaseRenderer } from './renderers/baseRenderer';
-import type { CellProperties } from './settings';
 import type { IndexMapper } from './translations';
 import type { WalkontableInstance } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
@@ -8,13 +6,14 @@ import {
   addClass,
   removeClass,
   clearTextSelection,
+  closest,
+  isChildOf,
   empty,
   eventTargetEl,
   fastInnerHTML,
   fastInnerText,
   getScrollbarWidth,
   hasClass,
-  isChildOf,
   getDeepActiveElement,
   getShadowHostChain,
   isHTMLElement,
@@ -26,12 +25,23 @@ import {
   getParentWindow,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
-import { formatCellValue, renderCell } from './renderers/renderCell';
+import { CellPainter } from './core/incrementalRender/cellPainter';
 import { RenderSizeProbe } from './renderSizeProbe';
-import { isImmediatePropagationStopped, isRightClick, isLeftClick, isMiddleClick } from './helpers/dom/event';
+import { getRenderedRowHeight } from './core/viewportScroll/scrollStrategies/singleScroll';
+import {
+  isImmediatePropagationStopped,
+  isRightClick,
+  isLeftClick,
+  isMiddleClick,
+} from './helpers/dom/event';
+import { getMouseEventTouchOrigin, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from './helpers/dom/inputOrigin';
 import Walkontable from './3rdparty/walkontable/src';
+import { clampFixedColumnsEnd } from './3rdparty/walkontable/src/settings/fixedColumnsEnd';
+import { measureWorkspaceHeight, measureWorkspaceWidth } from './3rdparty/walkontable/src/viewport/workspaceSize';
+import { MIN_SCROLLABLE_SIZE, fitsFrozenBand, resolveFittingFrozenCounts } from './utils/frozenAreaFit';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
+import { getSanitizer } from './utils/sanitizer';
 import { resolveWithInstance } from './utils/staticRegister';
 import {
   A11Y_COLCOUNT,
@@ -40,6 +50,40 @@ import {
   A11Y_ROWCOUNT,
   A11Y_TREEGRID
 } from './helpers/a11y';
+import { parsePixelSize } from './utils/pixelSize';
+import { describeValue } from './utils/describeValue';
+import { warnOnce } from './helpers/console';
+
+/**
+ * The most redraws `TableView#onCellContentSettled` requests for one row inside one window.
+ */
+const CONTENT_SETTLED_MAX_REDRAWS = 5;
+
+/**
+ * The window, in milliseconds, that `CONTENT_SETTLED_MAX_REDRAWS` is counted over.
+ */
+const CONTENT_SETTLED_WINDOW_MS = 5000;
+
+/**
+ * The frozen counts the grid draws, as visual counts (hidden tracks included).
+ */
+interface EffectiveFixedCounts {
+  start: number;
+  end: number;
+  top: number;
+  bottom: number;
+}
+
+/**
+ * Checks whether two sets of effective frozen counts describe the same drawn area.
+ *
+ * @param {EffectiveFixedCounts | null} a The first counts.
+ * @param {EffectiveFixedCounts | null} b The second counts.
+ * @returns {boolean}
+ */
+function isSameEffectiveFixed(a: EffectiveFixedCounts | null, b: EffectiveFixedCounts | null): boolean {
+  return a?.start === b?.start && a?.end === b?.end && a?.top === b?.top && a?.bottom === b?.bottom;
+}
 
 /**
  * Checks whether a size setting (`rowHeights`, `minRowHeights`, or `colWidths`) guarantees a uniform
@@ -51,6 +95,103 @@ import {
  */
 function isUniformSizeSetting(value: unknown): boolean {
   return value === undefined || value === null || typeof value === 'number';
+}
+
+/**
+ * Resolves one entry of a header size setting into a number of pixels.
+ *
+ * Warns once per grid instance when the value cannot be read as a pixel size, then returns `null` so
+ * the caller falls back to its own default rather than rendering a broken size.
+ *
+ * @param {*} value The configured value.
+ * @param {object} scope The object the one-time warning is bound to.
+ * @param {string} optionName The option's name, used in the warning message.
+ * @returns {number|null}
+ */
+function resolveHeaderSizeEntry(value: unknown, scope: object, optionName: string): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const size = parsePixelSize(value);
+
+  if (size === null) {
+    const described = describeValue(value);
+
+    warnOnce(
+      // The value is part of the key, not just the message. Keyed on the option name alone, a later
+      // `updateSettings` with a different bad value would print nothing and the console would only
+      // ever name the first one.
+      scope,
+      `invalid-header-size-${optionName}-${described}`,
+      `Handsontable: the \`${optionName}\` option expects a number of pixels, such as \`100\`, ` +
+      `\`'100'\`, or \`'100px'\`. The value ${described} cannot be read as a pixel size, ` +
+      'so it is ignored and the default size is used instead. A negative number is kept as it is, ' +
+      'but a negative string is rejected the same way this value was.'
+    );
+
+    return null;
+  }
+
+  return size;
+}
+
+/**
+ * Checks whether a header size entry is already a number, or is empty and therefore stands for
+ * "use the default size for this level".
+ *
+ * @param {*} entry The array entry to check.
+ * @returns {boolean}
+ */
+function isResolvedHeaderSizeEntry(entry: unknown): entry is number | null | undefined {
+  return typeof entry === 'number' || entry === null || entry === undefined;
+}
+
+/**
+ * Resolves the `rowHeaderWidth` and `columnHeaderHeight` settings into the numbers the rendering
+ * engine needs.
+ *
+ * Both options are documented as pixel numbers, and the sizing code downstream requires real
+ * numbers: the row header width guard replaces a non-number with the default column width, and the
+ * column header height merge skips anything that is not a number. Resolving the value here – the one
+ * place each option crosses from the grid settings into Walkontable – satisfies that requirement
+ * without adding a branch to the per-cell sizing code that runs on every draw.
+ *
+ * The `'100'` and `'100px'` string forms are accepted alongside a plain number, so a value arriving
+ * from an attribute, a JSON config, or a framework template still resolves.
+ *
+ * A value that is already a number, or an array already made of numbers, is returned by reference,
+ * so the common path allocates nothing. An array holding a string is re-resolved on every read, and
+ * the setting is read a few times per draw. That is left as it is on purpose: a cache keyed on the
+ * array's identity would answer stale after an in-place edit of the caller's own array, which costs
+ * more than the handful of regex matches it would save on a configuration almost nobody writes.
+ *
+ * @param {*} value The configured setting value.
+ * @param {object} scope The object the one-time warning is bound to.
+ * @param {string} optionName The option's name, used in the warning message.
+ * @returns {number|Array|undefined}
+ */
+function resolveHeaderSizeSetting(
+  value: unknown,
+  scope: object,
+  optionName: string
+): number | Array<number | null | undefined> | undefined {
+  if (value === undefined || typeof value === 'number') {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    const entries: unknown[] = value;
+
+    // Returning the same array keeps the already-numeric case allocation-free on every draw.
+    if (entries.every(isResolvedHeaderSizeEntry)) {
+      return entries;
+    }
+
+    return entries.map(entry => resolveHeaderSizeEntry(entry, scope, optionName));
+  }
+
+  return resolveHeaderSizeEntry(value, scope, optionName) ?? undefined;
 }
 
 /**
@@ -121,15 +262,6 @@ class TableView {
    */
   #rowHeadersCount = 0;
   /**
-   * The flag determines if the `adjustElementsSize` method call was made during
-   * the render suspending. If true, the method has to be triggered once after render
-   * resuming.
-   *
-   * @private
-   * @type {boolean}
-   */
-  postponedAdjustElementsSize = false;
-  /**
    * The measurement-only probe of the rendered grid. Runs after each full master draw to record
    * content-driven row and column-header heights. It does not yet feed those values back into
    * rendering (see {@link RenderSizeProbe}).
@@ -146,11 +278,41 @@ class TableView {
    */
   #sizesMeasuredWithoutStylesPending = false;
   /**
+   * Whether the last `_wt.draw()` of `render()` reached the cells. The engine reports it through `onDraw`, which a draw
+   * that a `beforeViewRender` listener cancelled (`skipRender`) never fires.
+   *
+   * @type {boolean}
+   */
+  #drawRenderedCells = false;
+  /**
+   * Whether a check of the frozen counts is queued after a column width change that did not render.
+   *
+   * @type {boolean}
+   */
+  #fixedCountsRecheckQueued = false;
+
+  /**
+   * Counts how many times the column widths were invalidated. Every producer of column widths (the
+   * `manualColumnResize`, `autoColumnSize` and `stretchColumns` plugins, an index mapper change) drops the
+   * widths cache when a width changes, so a plugin that keeps something derived from the widths can compare
+   * this number between renders to know when to refresh it.
+   *
+   * @type {number}
+   */
+  #columnWidthEpoch = 0;
+  /**
    * Defines if the text should be selected during mousemove.
    *
    * @type {boolean}
    */
   #selectionMouseDown = false;
+  /**
+   * Name of the overlay the current mouse drag started in, or `null` when no drag is in progress.
+   * Used to keep a text selection from spreading past the overlay it began in.
+   *
+   * @type {string|null}
+   */
+  #textSelectionOverlay: string | null = null;
   /**
    * @type {boolean}
    */
@@ -182,6 +344,34 @@ class TableView {
    */
   #lastHeight = 0;
   /**
+   * The animation frame of the redraw requested by `#onCellContentSettled`, or `null` when none is queued.
+   */
+  #contentSettledFrame: number | null = null;
+  /**
+   * The redraws `#onCellContentSettled` requested per physical row inside the current time window.
+   */
+  #contentSettledRedraws = new Map<number, { since: number, count: number }>();
+
+  /**
+   * The layout-slot height reserved inside the vertical axis owner, memoized for one render (see
+   * `#getReservedSlotHeight`).
+   */
+  #reservedSlotHeight: { owner: HTMLElement, height: number } | null = null;
+
+  /**
+   * The frozen counts the grid draws while `limitFixedToViewport` is on, as visual counts (hidden tracks included).
+   * `null` when the option is off, so every reader falls back to the configured counts. It is refreshed on each
+   * full render, before the draw, and kept through scroll-only draws. It is not a `#` field on purpose: the unit tests
+   * of the count accessors run them on `Object.create(TableView.prototype)`, which has no private fields.
+   */
+  _effectiveFixed: EffectiveFixedCounts | null = null;
+
+  /**
+   * The rendered height of the frozen rows by physical index, as the last draw measured them. The engine does not
+   * know the height of a content-tall frozen row, so the next measurement starts from these instead of the default.
+   */
+  #drawnRowHeights = new Map<number, number>();
+  /**
    * The last mouse position of the mousedown event.
    *
    * @type {{ x: number, y: number } | null}
@@ -189,10 +379,11 @@ class TableView {
   #mouseDownLastPos: {row: number, col: number} | null = null;
   /**
    * Flag indicating that a touch interaction just ended. Set to `true` on
-   * `touchend` and reset asynchronously via `_registerTimeout`. Used together with
-   * `sourceCapabilities.firesTouchEvents` (Chrome/Blink) to detect synthetic
-   * mouse events that Android fires after touch interactions. These synthetic
-   * events can falsely trigger the outside-click handler, closing editors or
+   * `touchend` and reset asynchronously via `_registerTimeout` after
+   * `TOUCH_SYNTHESIZED_MOUSE_WINDOW`, shared with Walkontable's mouse listeners so both layers
+   * use the same fallback window. Used together with `sourceCapabilities.firesTouchEvents`
+   * (Chrome/Blink) to detect synthetic mouse events that Android fires after touch interactions.
+   * These synthetic events can falsely trigger the outside-click handler, closing editors or
    * popups that just opened via double-tap.
    *
    * @type {boolean}
@@ -208,12 +399,24 @@ class TableView {
    */
   #recentTouchEndTimeout: ReturnType<typeof setTimeout> | null = null;
   /**
+   * Paints cells for the rendering engine and decides which of them need painting.
+   *
+   * @type {CellPainter}
+   */
+  #cellPainter: CellPainter;
+
+  /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
   constructor(hotInstance: HotInstance) {
     this.hot = hotInstance;
     this.eventManager = new EventManager(this.hot);
     this.settings = this.hot.getSettings();
+    this.#cellPainter = new CellPainter(
+      this.hot,
+      this.hot.renderChangeTracker,
+      (renderedRow, renderedColumn) => this.translateFromRenderableToVisualIndex(renderedRow, renderedColumn),
+    );
 
     this.createElements();
     this.registerEvents();
@@ -230,15 +433,13 @@ class TableView {
       this.hot.runHooks('beforeRender', isFullRender);
 
       this.#discardSizesMeasuredWithoutStyles();
+      this.#reservedSlotHeight = null;
+      this.#refreshEffectiveFixed(isFullRender);
 
+      this.#drawRenderedCells = false;
       this._wt.draw(!isFullRender);
+      this.#redrawOnceWhenEffectiveFixedMoved(isFullRender);
       this.#updateScrollbarClassNames();
-
-      if (this.postponedAdjustElementsSize) {
-        this.postponedAdjustElementsSize = false;
-
-        this.adjustElementsSize(true);
-      }
 
       this.hot.runHooks('afterRender', isFullRender);
       this.hot.forceFullRender = false;
@@ -246,20 +447,27 @@ class TableView {
   }
 
   /**
-   * Adjust overlays elements size and master table size. By default the internal `adjustElementsSize`
-   * call of the Walkontable is postponed to the next render cycle. If `flush` is set to `true`, the method
-   * will be executed immediately.
+   * Adjust overlays elements size and master table size.
    *
-   * TODO: This method should not exist. It is a workaround for the issue with updating the elements
-   * size after render. It should be calculated and updated automatically in Walkontable.
+   * Legacy. Nothing in the codebase needs to call this any more: Walkontable compares the geometry
+   * it is about to write against the geometry it last wrote, and resizes itself on the draw where
+   * those differ (`Overlays#currentLayoutSignature`).
    *
-   * @param {boolean} [flush=false] If `true`, the method will be executed immediately.
+   * Kept because it is reachable as `hot.view.adjustElementsSize()`, and still useful to an
+   * integrator who moved or resized the grid outside anything the engine observes and wants the new
+   * sizes in the same tick, before the next draw. Its contract has changed: it used to schedule a
+   * resize for the next render, and it now resizes straight away — but only if the geometry really
+   * differs, so calling it on a steady grid costs nothing. `flush` skips that check and resizes
+   * unconditionally.
+   *
+   * @param {boolean} [flush=false] If `true`, resize unconditionally instead of only when the
+   *                                geometry changed.
    */
   adjustElementsSize(flush = false) {
     if (flush) {
       this._wt.wtOverlays.adjustElementsSize();
     } else {
-      this.postponedAdjustElementsSize = true;
+      this._wt.wtOverlays.adjustElementsSizeIfNeeded();
     }
   }
 
@@ -393,7 +601,14 @@ class TableView {
 
       this.#selectionMouseDown = true;
 
-      if (!this.isTextSelectionAllowed(eventTargetEl(event)!)) {
+      const mouseDownTarget = eventTargetEl(event)!;
+
+      // Only `fragmentSelection` reads this, so a grid using the default pays no overlay lookup.
+      this.#textSelectionOverlay = this.settings.fragmentSelection
+        ? this.#getRenderingOverlayName(mouseDownTarget)
+        : null;
+
+      if (!this.isTextSelectionAllowed(mouseDownTarget)) {
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -407,9 +622,22 @@ class TableView {
       }
 
       this.#selectionMouseDown = false;
+      this.#textSelectionOverlay = null;
     });
     this.eventManager.addEventListener(rootElement, 'mousemove', (event) => {
-      if (this.#selectionMouseDown && !this.isTextSelectionAllowed(eventTargetEl(event)!)) {
+      if (!this.#selectionMouseDown) {
+        return;
+      }
+
+      const target = eventTargetEl(event)!;
+      // Confinement applies to `fragmentSelection` only, and never to an input: the editor's
+      // textarea lives outside every clone, so a drag reaching it would otherwise count as leaving
+      // the starting overlay and cancel a gesture `isTextSelectionAllowed` explicitly permits.
+      const leftItsOverlay = this.#textSelectionOverlay !== null &&
+        !isInput(target) &&
+        this.#hasLeftTextSelectionOverlay(target);
+
+      if (!this.isTextSelectionAllowed(target) || leftItsOverlay) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breaks the IME editor.
         if (this.settings.fragmentSelection) {
           clearTextSelection(rootWindow);
@@ -430,7 +658,9 @@ class TableView {
         selection.finish();
       }
 
-      const wasInsideGridClick = this.#mouseDown;
+      // A resize handle press sets `#selectionMouseDown` and never `#mouseDown`.
+      // Count that press as a grid click, or a release outside the grid unlistens the drag.
+      const wasInsideGridClick = this.#mouseDown || this.#selectionMouseDown;
       const wasOutsideClickHandled = this.#outsideClickHandled;
 
       this.#mouseDown = false;
@@ -441,22 +671,37 @@ class TableView {
         return;
       }
 
+      // The listener on `rootElement` never sees a release outside the grid, so clear the drag state
+      // here too. Left set, a later hover over the grid would look like a drag still in progress and
+      // wipe whatever the user has selected on the host page.
+      this.#selectionMouseDown = false;
+      this.#textSelectionOverlay = null;
+
       const activeElement = getDeepActiveElement(rootDocument);
       const activeHTMLElement = isHTMLElement(activeElement) ? activeElement : null;
-      const isOutsideInputElement = activeHTMLElement !== null && isOutsideInput(activeHTMLElement);
+      // Both resolved once and handed to the verdicts below. Each is needed twice, and this
+      // listener runs for every `mouseup` on the document: the surface test walks the focused
+      // element's ancestors up to the open editor's `preventCloseElement`, and the roots are an
+      // array that would otherwise be rebuilt per call.
+      const isFocusInEditorSurface = this.#isFocusWithinEditorSurface(activeHTMLElement);
+      const gridUiRoots = this.#getGridUiRoots();
+      const isForeignInputElement = this.#isForeignInput(
+        activeHTMLElement, isFocusInEditorSurface, gridUiRoots
+      );
 
-      if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isOutsideInputElement) {
+      if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isForeignInputElement) {
         return;
       }
 
       const eventPath = event.composedPath();
-      const isPathThroughGridUi = eventPath.includes(rootWrapperElement ?? rootElement) ||
-        (this.hot.rootPortalElement && eventPath.includes(this.hot.rootPortalElement));
-      const isFocusLostToOutside = this.hot.getFocusManager().isForeignFocusTarget(activeHTMLElement) ||
-        (!wasInsideGridClick && !this.hot.getFocusManager().hasBrowserFocus() && !isPathThroughGridUi);
+      const isPathThroughGridUi = gridUiRoots.some(root => eventPath.includes(root));
+      const isFocusLostToOutside = !isFocusInEditorSurface &&
+        (this.hot.getFocusManager().isForeignFocusTarget(activeHTMLElement) ||
+        (!wasInsideGridClick && !this.hot.getFocusManager().hasBrowserFocus() && !isPathThroughGridUi));
 
-      if (isOutsideInputElement || isFocusLostToOutside ||
-          (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
+      if (isForeignInputElement || isFocusLostToOutside ||
+          (!wasInsideGridClick &&
+          !selection.isSelected() && !selection.isSelectedByAnyHeader() &&
           !this.#isPathWithinGrid(eventPath) && !isRightClick(event))) {
         this.hot.unlisten();
       }
@@ -501,11 +746,17 @@ class TableView {
 
       // Clear the flag after the browser's synthetic mouse event sequence completes.
       // Android dispatches mousedown/mouseup/click asynchronously after touchend,
-      // so the flag must survive across multiple event loop ticks.
+      // so the flag must survive across multiple event loop ticks. The window is shared
+      // with Walkontable's mouse listeners (`TOUCH_SYNTHESIZED_MOUSE_WINDOW`), so both
+      // layers use the same fallback window.
+      // The policies deliberately differ: Walkontable drops only the first pending pair
+      // (veto → pending → ceiling), while this layer keeps
+      // `getMouseEventTouchOrigin(event) ?? #recentTouchEnd` — a Blink-flagged pair must never
+      // run the outside-click handling that closes editors.
       this.#recentTouchEndTimeout = this.hot._registerTimeout(() => {
         this.#recentTouchEnd = false;
         this.#recentTouchEndTimeout = null;
-      }, 400);
+      }, TOUCH_SYNTHESIZED_MOUSE_WINDOW);
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
@@ -545,6 +796,12 @@ class TableView {
       // function did not return until here, we have an outside click!
       this.#outsideClickHandled = true;
 
+      if (this.hot.getFocusManager().isPathOutsideClickExempt(eventPath)) {
+        this.hot.destroyEditor(false, false);
+
+        return;
+      }
+
       const outsideClickDeselects = typeof this.settings.outsideClickDeselects === 'function' ?
         this.settings.outsideClickDeselects(originalTarget as HTMLElement) :
         this.settings.outsideClickDeselects;
@@ -574,6 +831,129 @@ class TableView {
       // Prevent text from being selected when performing drag down.
       event.preventDefault();
     });
+
+    // `load` and `error` do not bubble, so they are caught on the capture phase.
+    this.eventManager.addEventListener(rootElement, 'load', this.#onCellContentSettled, true);
+    this.eventManager.addEventListener(rootElement, 'error', this.#onCellContentSettled, true);
+  }
+
+  /**
+   * Redraws when asynchronously loading cell content (such as an `<img>` written by a renderer) changes
+   * the height of its row after the draw measured it. Without the redraw, the frozen overlays keep the row
+   * height from the draw while the master has already grown, and they stay misaligned until the next
+   * render. A row whose live height matches the height of the last draw is left alone, which stops a
+   * renderer that recreates its content on every render from redrawing in a loop. That check cannot see a
+   * height that never settles (an image that fails to load again on every render, say), so a row is also
+   * redrawn at most `CONTENT_SETTLED_MAX_REDRAWS` times per `CONTENT_SETTLED_WINDOW_MS`. Loads that settle
+   * within one frame share a single redraw.
+   *
+   * @param {Event} event The `load` or `error` event of a descendant element.
+   */
+  #onCellContentSettled = (event: Event): void => {
+    const { target } = event;
+
+    if (!isHTMLElement(target) || this.#contentSettledFrame !== null) {
+      return;
+    }
+
+    const found = this.#findGridCell(target);
+
+    if (found === null) {
+      return;
+    }
+
+    const { cell, row: visualRow } = found;
+    const rowElement = cell.parentElement;
+
+    // A row with no provided or recorded height was drawn at the default height.
+    const drawnHeight = getRenderedRowHeight(this.hot, visualRow) ??
+      this.hot.stylesHandler.getDefaultRowHeight(visualRow);
+
+    // `offsetHeight` is a layout height, so a CSS transform or zoom on an ancestor does not skew it
+    // against the layout heights Walkontable recorded.
+    if (
+      !rowElement ||
+      drawnHeight === undefined ||
+      drawnHeight === null ||
+      Math.abs(rowElement.offsetHeight - drawnHeight) < 1 ||
+      !this.#takeContentSettledRedraw(visualRow)
+    ) {
+      return;
+    }
+
+    this.#contentSettledFrame = this.hot.rootWindow.requestAnimationFrame(() => {
+      this.#contentSettledFrame = null;
+      this.hot.render();
+    });
+  };
+
+  /**
+   * Resolves the cell of this grid that holds a loaded element, in the master or in any overlay. Walks up
+   * the cells that contain the element, because a renderer may nest a table in a cell and the innermost
+   * cell then belongs to no grid.
+   *
+   * @param {HTMLElement} element The element that fired `load` or `error`.
+   * @returns {{ cell: HTMLTableCellElement, row: number } | null} The cell and its visual row, or `null`.
+   */
+  #findGridCell(element: HTMLElement): { cell: HTMLTableCellElement, row: number } | null {
+    let candidate = element.closest('td');
+
+    while (candidate) {
+      const coords = this.hot.getCoords(candidate);
+      const row = coords?.row ?? -1;
+      const column = coords?.col ?? -1;
+
+      if (row >= 0 && column >= 0 && this.hot.getCell(row, column, true) === candidate) {
+        return { cell: candidate, row };
+      }
+
+      candidate = candidate.parentElement?.closest('td') ?? null;
+    }
+
+    return null;
+  }
+
+  /**
+   * Spends one redraw of the per-row budget that bounds `#onCellContentSettled`. The budget belongs to the
+   * physical row, so a sort or a row move does not charge it to another record.
+   *
+   * @param {number} visualRow The visual row that asks for a redraw.
+   * @returns {boolean} `false` when the row used up its budget for the current window.
+   */
+  #takeContentSettledRedraw(visualRow: number): boolean {
+    const now = this.hot.rootWindow.performance.now();
+    const row = this.hot.toPhysicalRow(visualRow) ?? visualRow;
+    const entry = this.#contentSettledRedraws.get(row);
+
+    if (entry === undefined || now - entry.since > CONTENT_SETTLED_WINDOW_MS) {
+      // A new window starts: this is the moment to drop the windows that have expired, so the map only
+      // holds the rows that redrew recently.
+      this.#contentSettledRedraws.forEach((other, key) => {
+        if (now - other.since > CONTENT_SETTLED_WINDOW_MS) {
+          this.#contentSettledRedraws.delete(key);
+        }
+      });
+      this.#contentSettledRedraws.set(row, { since: now, count: 1 });
+
+      return true;
+    }
+
+    if (entry.count >= CONTENT_SETTLED_MAX_REDRAWS) {
+      return false;
+    }
+
+    entry.count += 1;
+
+    return true;
+  }
+
+  /**
+   * Returns the number of times the column widths were invalidated (see `#columnWidthEpoch`).
+   *
+   * @returns {number}
+   */
+  getColumnWidthEpoch() {
+    return this.#columnWidthEpoch;
   }
 
   /**
@@ -582,6 +962,8 @@ class TableView {
   invalidateIndexSizesCache() {
     this._wt.wtViewport.invalidateRowHeightCache();
     this._wt.wtViewport.invalidateColumnWidthCache();
+    this.#drawnRowHeights.clear();
+    this.#columnWidthEpoch += 1;
   }
 
   /**
@@ -589,6 +971,32 @@ class TableView {
    */
   invalidateColumnWidthCache() {
     this._wt.wtViewport.invalidateColumnWidthCache();
+    this.#columnWidthEpoch += 1;
+    this.#scheduleFixedCountsRecheck();
+  }
+
+  /**
+   * Checks the frozen counts once more after a column width changed without a render (`AutoColumnSize` measures the
+   * columns past `syncLimit` in idle tasks and renders nothing afterwards), and renders when they moved. One check is
+   * queued for any number of width changes. It reads engine sizes only, and `render()` resolves the counts again.
+   */
+  #scheduleFixedCountsRecheck() {
+    if (!this.settings.limitFixedToViewport || this.#fixedCountsRecheckQueued || !this.hot) {
+      return;
+    }
+
+    this.#fixedCountsRecheckQueued = true;
+    this.hot._registerTimeout(() => {
+      this.#fixedCountsRecheckQueued = false;
+
+      if (this.hot.isDestroyed || !this.hot.view || this._effectiveFixed === null) {
+        return;
+      }
+
+      if (!isSameEffectiveFixed(this._effectiveFixed, this.#resolveEffectiveFixed(false))) {
+        this.hot.render();
+      }
+    }, 0);
   }
 
   /**
@@ -596,6 +1004,8 @@ class TableView {
    */
   invalidateRowHeightCache() {
     this._wt.wtViewport.invalidateRowHeightCache();
+    // the heights are keyed by physical row, and a move, a trim or a removal hands an index to another row
+    this.#drawnRowHeights.clear();
   }
 
   /**
@@ -741,9 +1151,268 @@ class TableView {
    */
   countNotHiddenFixedColumnsStart() {
     const countCols = this.hot.countCols();
-    const visualFixedColumnsStart = Math.min(Number(this.settings.fixedColumnsStart) || 0, countCols) - 1;
+    const visualFixedColumnsStart = Math.min(this.countFixedColumnsStart(), countCols) - 1;
 
     return this.countNotHiddenColumnIndexes(visualFixedColumnsStart, -1);
+  }
+
+  /**
+   * The function returns the number of not hidden column indexes that fit between the first and
+   * last fixed column in the right (or left in RTL mode) overlay.
+   *
+   * The count is the one the grid draws: the requested one, or with `limitFixedToViewport` the count the last
+   * render resolved (`countFixedColumnsEnd()`). Walkontable cuts it down against `fixedColumnsStart`
+   * (`Settings#getSetting('fixedColumnsEnd')`), so the two bands never overlap.
+   *
+   * @returns {number}
+   */
+  countNotHiddenFixedColumnsEnd() {
+    // Walkontable reads this setting many times per draw and per mouse move. Most grids freeze no end
+    // columns, so answer before `countCols()` and the not-hidden lookup run.
+    const useDrawnCount = this._effectiveFixed && this.settings.limitFixedToViewport;
+    const requested = useDrawnCount ? this.countFixedColumnsEnd() : this.settings.fixedColumnsEnd;
+
+    if (!requested) {
+      return 0;
+    }
+
+    // Floor the requested count the way `countFixedColumnsEnd()` does (through `clampFixedColumnsEnd`).
+    // A fractional count would give a fractional visual index below and no band would be drawn, while
+    // the rest of the grid (End, Ctrl+End, editors) would still treat the floored count as frozen.
+    const requestedColumnsEnd = Math.floor(Number(requested));
+
+    if (!(requestedColumnsEnd > 0)) {
+      return 0;
+    }
+
+    const countCols = this.hot.countCols();
+    const visualFixedColumnsEnd = Math.max(countCols - requestedColumnsEnd, 0);
+
+    return this.countNotHiddenColumnIndexes(visualFixedColumnsEnd, 1);
+  }
+
+  /**
+   * Returns how many of the LAST visual columns form the inline-end band, hidden columns included.
+   *
+   * It is the single source of the band size for everything outside Walkontable (editors, scrolling,
+   * shortcuts, plugins). The total is `hot.countCols()`: the same one `countNotHiddenFixedColumnsEnd()` and so
+   * the renderer count the band from, which is the not trimmed columns capped by `maxCols`. Reading any other
+   * total (for example the uncapped source column count) puts the band on columns the grid never draws.
+   * The band is cut down by `fixedColumnsStart`, which has priority.
+   *
+   * The difference from `countNotHiddenFixedColumnsEnd()`: this count is visual and keeps hidden columns
+   * in the band, so `hot.countCols() - this` is the first band column. The not-hidden variant is the number of
+   * columns Walkontable draws in the end overlay.
+   *
+   * @returns {number} A non-negative integer; `0` when the option is not set.
+   */
+  countFixedColumnsEnd() {
+    // Walkontable reads this many times per draw and per mouse move, and most grids freeze no end columns.
+    if (!this.settings.fixedColumnsEnd) {
+      return 0;
+    }
+
+    if (this._effectiveFixed && this.settings.limitFixedToViewport) {
+      // The memo is from the last render. A count lowered or a column removed since then must not be exceeded.
+      const configuredEnd = Math.floor(Number(this.settings.fixedColumnsEnd)) || 0;
+
+      return clampFixedColumnsEnd(
+        Math.min(this._effectiveFixed.end, configuredEnd),
+        this.countFixedColumnsStart(),
+        this.hot.countCols()
+      );
+    }
+
+    return clampFixedColumnsEnd(this.settings.fixedColumnsEnd, this.settings.fixedColumnsStart, this.hot.countCols());
+  }
+
+  /**
+   * Returns how many of the FIRST visual columns form the inline-start band, hidden columns included.
+   *
+   * With `limitFixedToViewport` on, it is the count the grid draws: the configured count cut down to the columns
+   * that leave a scrollable strip. Otherwise it is the configured count. Everything outside Walkontable that
+   * compares a column against the frozen band (scrolling, editors, shortcuts, plugins) reads this, never the
+   * option. The code that describes what the data means (`alter()`, sorting, export) keeps reading the option.
+   *
+   * @returns {number} A non-negative number; `0` when the option is not set.
+   */
+  countFixedColumnsStart() {
+    const configured = Number(this.settings.fixedColumnsStart) || 0;
+
+    if (this._effectiveFixed && this.settings.limitFixedToViewport) {
+      return Math.min(this._effectiveFixed.start, configured, this.hot.countCols());
+    }
+
+    return configured;
+  }
+
+  /**
+   * Returns how many of the FIRST visual rows form the top band, hidden rows included. Follows the same rule as
+   * `countFixedColumnsStart()`.
+   *
+   * @returns {number} A non-negative number; `0` when the option is not set.
+   */
+  countFixedRowsTop() {
+    const configured = Number(this.settings.fixedRowsTop) || 0;
+
+    if (this._effectiveFixed && this.settings.limitFixedToViewport) {
+      return Math.min(this._effectiveFixed.top, configured, this.hot.countRows());
+    }
+
+    return configured;
+  }
+
+  /**
+   * Returns how many of the LAST visual rows form the bottom band, hidden rows included. Follows the same rule as
+   * `countFixedColumnsStart()`.
+   *
+   * @returns {number} A non-negative number; `0` when the option is not set.
+   */
+  countFixedRowsBottom() {
+    const configured = Number(this.settings.fixedRowsBottom) || 0;
+
+    if (this._effectiveFixed && this.settings.limitFixedToViewport) {
+      const rowsLeftBelowTop = Math.max(this.hot.countRows() - this.countFixedRowsTop(), 0);
+
+      return Math.min(this._effectiveFixed.bottom, configured, rowsLeftBelowTop);
+    }
+
+    return configured;
+  }
+
+  /**
+   * Returns the size of one track as the frozen area counts it: a hidden track takes no room, a column has its
+   * width, and a row has the height it is drawn at (the larger of the engine's value and its rendered height), or the
+   * default height when it was never drawn.
+   *
+   * @param {boolean} isColumn `true` for a column, `false` for a row.
+   * @param {number} visualIndex The visual index.
+   * @param {boolean} [measureDom=false] `true` to also read the rendered height of a row. Only valid after a draw:
+   * before one, the engine's row filter can be stale and the lookup of a cell throws.
+   * @returns {number}
+   */
+  getFrozenTrackSize(isColumn: boolean, visualIndex: number, measureDom = false) {
+    const mapper = isColumn ? this.hot.columnIndexMapper : this.hot.rowIndexMapper;
+    const physical = isColumn ? this.hot.toPhysicalColumn(visualIndex) : this.hot.toPhysicalRow(visualIndex);
+
+    if (physical === null || mapper.isHidden(physical)) {
+      return 0;
+    }
+
+    if (isColumn) {
+      return this.hot.getColWidth(visualIndex);
+    }
+
+    const rowHeight = getRenderedRowHeight(this.hot, visualIndex) ??
+      this.hot.stylesHandler.getDefaultRowHeight(visualIndex) ?? 0;
+
+    // Before a draw, and while rendering is suspended (`batch()`, `suspendRender()`), the row filter of the engine can
+    // be from an earlier state and a cell lookup throws. The engine knows nothing of a content-tall row it never
+    // rendered, so use the height the last draw measured, which also saves a second draw on every render while the
+    // content stays the same.
+    if (!measureDom || this.hot.isRenderSuspended()) {
+      return Math.max(rowHeight, this.#drawnRowHeights.get(physical) ?? 0);
+    }
+
+    // The engine records the height of a content-tall row only for the rows the master table renders, so a tall
+    // frozen row still reads as the default height there. A row that is on screen has its real height in the DOM.
+    // The first column the master renders is in every rendered row, whatever the horizontal scroll position. The
+    // row header is not a substitute: its row in the header clone is not always as tall as the content row.
+    const cell = this.hot.getCell(visualIndex, this.#getFirstRenderedVisualColumn(), true);
+    // A cell covered by a vertical merge resolves to the origin of the block, whose row is another row.
+    const isOwnRow = cell !== null && this.hot.getCoords(cell)?.row === visualIndex;
+    const drawnHeight = isOwnRow ? cell.parentElement?.offsetHeight ?? 0 : 0;
+
+    if (drawnHeight > 0) {
+      this.#drawnRowHeights.set(physical, drawnHeight);
+    }
+
+    return Math.max(rowHeight, drawnHeight, this.#drawnRowHeights.get(physical) ?? 0);
+  }
+
+  /**
+   * Returns the visual index of the first column the master table renders, `0` before a draw.
+   *
+   * @returns {number}
+   */
+  #getFirstRenderedVisualColumn() {
+    const renderable = this._wt.wtTable.getFirstRenderedColumn();
+
+    return renderable >= 0 ? this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderable) ?? 0 : 0;
+  }
+
+  /**
+   * Returns the room the frozen bands of an axis share: the workspace without the headers. It measures the DOM live
+   * through the free functions, not through `Viewport#getWorkspaceWidth()`: in the single-pass layout that goes
+   * through a snapshot whose calculators read the frozen counts, so asking it here would freeze this draw on the
+   * counts of the previous one.
+   *
+   * @param {boolean} isColumn `true` for the width, `false` for the height.
+   * @returns {number}
+   */
+  getFrozenViewportSize(isColumn: boolean) {
+    const viewport = this._wt.wtViewport;
+    const holder = this._wt.wtTable.holder;
+    // The workspace measure is the client size of the root, which still contains the scrollbars of the holder, and
+    // the strip that stays scrollable is what is left inside them. Classic scrollbars are 15 to 17 px, so without
+    // this the strip would be that much narrower than promised. Overlay scrollbars take no room and measure 0.
+    const scrollbar = isColumn ?
+      Math.max(holder.offsetWidth - holder.clientWidth, 0) :
+      Math.max(holder.offsetHeight - holder.clientHeight, 0);
+
+    if (isColumn) {
+      return measureWorkspaceWidth(viewport) - viewport.getRowHeaderWidth() - scrollbar;
+    }
+
+    return measureWorkspaceHeight(viewport) - viewport.getColumnHeaderHeight() - scrollbar;
+  }
+
+  /**
+   * Checks whether the grid can draw the column as one more frozen start column next to the CONFIGURED start band.
+   * Always `true` without `limitFixedToViewport`.
+   *
+   * It measures the tracks and never reads the memo of the last render, so a second freeze before the next render
+   * counts from the band the first one wrote. A band that was cut, or is the most that fits, answers `false`: the
+   * column would be moved to the freeze line, and the next render would cut it out of the band again.
+   *
+   * @param {number} visualColumn The visual column that would be frozen.
+   * @returns {boolean}
+   */
+  canFreezeStartColumn(visualColumn: number) {
+    if (!this.settings.limitFixedToViewport) {
+      return true;
+    }
+
+    const holder = this._wt.wtTable.holder;
+    const viewportSize = holder.clientWidth > 0 ? this.getFrozenViewportSize(true) : 0;
+
+    // A grid that is not laid out draws nothing to cut, as `#resolveAxisCounts()` treats it.
+    if (viewportSize <= 0) {
+      return true;
+    }
+
+    const configured = Math.min(
+      Math.max(Math.floor(Number(this.settings.fixedColumnsStart)) || 0, 0),
+      this.hot.countCols()
+    );
+    const trackSizes: number[] = [];
+    let sum = 0;
+
+    for (let column = 0; column < configured && sum <= viewportSize; column++) {
+      const size = this.getFrozenTrackSize(true, column);
+
+      trackSizes.push(size);
+      sum += size;
+    }
+
+    trackSizes.push(this.getFrozenTrackSize(true, visualColumn));
+
+    return fitsFrozenBand({
+      viewportSize,
+      trackSizes,
+      oppositeBandSize: 0,
+      minScrollableSize: MIN_SCROLLABLE_SIZE,
+    });
   }
 
   /**
@@ -754,7 +1423,7 @@ class TableView {
    */
   countNotHiddenFixedRowsTop() {
     const countRows = this.hot.countRows();
-    const visualFixedRowsTop = Math.min(Number(this.settings.fixedRowsTop) || 0, countRows) - 1;
+    const visualFixedRowsTop = Math.min(this.countFixedRowsTop(), countRows) - 1;
 
     return this.countNotHiddenRowIndexes(visualFixedRowsTop, -1);
   }
@@ -767,7 +1436,7 @@ class TableView {
    */
   countNotHiddenFixedRowsBottom() {
     const countRows = this.hot.countRows();
-    const visualFixedRowsBottom = Math.max(countRows - (Number(this.settings.fixedRowsBottom) || 0), 0);
+    const visualFixedRowsBottom = Math.max(countRows - this.countFixedRowsBottom(), 0);
 
     return this.countNotHiddenRowIndexes(visualFixedRowsBottom, 1);
   }
@@ -811,16 +1480,33 @@ class TableView {
   }
 
   /**
-   * Checks if at least one cell than belongs to the main table is not covered by the top, left or
-   * bottom overlay.
+   * Checks if at least one cell than belongs to the main table is not covered by the top, bottom,
+   * inline-start or inline-end overlay.
+   *
+   * The inline-end band is counted the way Walkontable renders it: cut down by the inline-start band,
+   * which has priority, so the two never count the same column twice.
+   *
+   * Unlike the start band, the end columns are not always among the columns the main table renders: it
+   * draws them (under the inline-end overlay) only once the grid is scrolled close enough to its end. So
+   * the end columns are taken off the rendered count only when they are in it. Adding the end band to the
+   * fixed columns unconditionally reports a grid as covered while a column still scrolls beside the bands.
    *
    * @returns {boolean}
    */
   isMainTableNotFullyCoveredByOverlays() {
     const fixedAllRows = this.countNotHiddenFixedRowsTop() + this.countNotHiddenFixedRowsBottom();
-    const fixedAllColumns = this.countNotHiddenFixedColumnsStart();
+    const fixedColumnsStart = this.countNotHiddenFixedColumnsStart();
+    const totalColumns = this.countRenderableColumns();
+    const fixedColumnsEnd = clampFixedColumnsEnd(
+      this.countNotHiddenFixedColumnsEnd(),
+      fixedColumnsStart,
+      totalColumns
+    );
+    const lastRenderedColumn = fixedColumnsEnd > 0 ? this._wt.wtTable.getLastRenderedColumn() : -1;
+    const renderedFixedColumnsEnd = Math.max(lastRenderedColumn - (totalColumns - fixedColumnsEnd) + 1, 0);
+    const renderedMainColumns = this.hot.countRenderedCols() - renderedFixedColumnsEnd;
 
-    return this.hot.countRenderedRows() > fixedAllRows && this.hot.countRenderedCols() > fixedAllColumns;
+    return this.hot.countRenderedRows() > fixedAllRows && renderedMainColumns > fixedColumnsStart;
   }
 
   /**
@@ -831,6 +1517,10 @@ class TableView {
   initializeWalkontable() {
     const walkontableConfig = {
       ariaTags: this.settings.ariaTags,
+      // The instance's unique id. Walkontable stamps it into the `id` on each column header so a data
+      // cell can point at its header through `aria-describedby`; the id must be unique per grid so
+      // several grids on one page never cross-reference each other's headers.
+      guid: this.hot.guid,
       rtlMode: this.hot.isRtl(),
       externalRowCalculator: this.hot.getPlugin('autoRowSize') &&
         this.hot.getPlugin('autoRowSize').isEnabled(),
@@ -842,6 +1532,12 @@ class TableView {
       table: this.#table,
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
+      layoutReservedHeight: (trimmingContainer: HTMLElement) => this.#getReservedSlotHeight(trimmingContainer),
+      heightFollowsContent: () => this.#isHeightContentDriven(),
+      // The same `height: 'auto'` makes the grid a plain block whose width is its root element's. Before
+      // #13381 it also clipped the root, so the root sized the holder on both axes; now an ancestor that
+      // owns the horizontal axis sizes it, and the engine keeps it inside the root's own box.
+      widthFollowsRoot: () => this.#isHeightContentDriven(),
       preventWheel: () => this.settings.preventWheel,
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
@@ -858,6 +1554,10 @@ class TableView {
       totalColumns: () => this.countRenderableColumns(),
       // Number of renderable columns for the left overlay.
       fixedColumnsStart: () => this.countNotHiddenFixedColumnsStart(),
+      // Number of renderable columns for the right (or left in RTL mode) overlay. The engine cuts it down
+      // against `fixedColumnsStart`, and enables the inline end overlay from that clamped number
+      // (its default `shouldRenderInlineEndOverlay`), so an end band the start band fully covers renders nothing.
+      fixedColumnsEnd: () => this.countNotHiddenFixedColumnsEnd(),
       // Number of renderable rows for the top overlay.
       fixedRowsTop: () => this.countNotHiddenFixedRowsTop(),
       // Number of renderable rows for the bottom overlay.
@@ -953,48 +1653,14 @@ class TableView {
         return isUniformSizeSetting(this.hot.getSettings().colWidths) &&
           !this.hot.hasHook('modifyColWidth');
       },
+      shouldPaintCell: (
+        renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement, band: string,
+        stableBand: string | null,
+      ) => this.#cellPainter.shouldPaint(renderedRowIndex, renderedColumnIndex, TD, band, stableBand),
       cellRenderer: (renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement) => {
-        const [visualRowIndex, visualColumnIndex] = this
-          .translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
-
-        // Coords may be modified. For example, by the `MergeCells` plugin. It should affect cell value and cell meta.
-        const modifiedCellCoords = this.hot
-          .runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, false, 'meta');
-
-        let visualRowToCheck = visualRowIndex;
-        let visualColumnToCheck = visualColumnIndex;
-
-        if (Array.isArray(modifiedCellCoords)) {
-          [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords as [number, number];
-        }
-
-        const cellProperties = this.hot.getCellMeta<CellProperties>(visualRowToCheck, visualColumnToCheck);
-        const prop = this.hot.colToProp(visualColumnToCheck) as string;
-        let value = this.hot.getDataAtRowProp(visualRowToCheck, prop);
-
-        if (this.hot.hasHook('beforeValueRender')) {
-          value = this.hot.runHooks('beforeValueRender', value, cellProperties);
-        }
-
-        const renderer = this.hot.getCellRenderer(cellProperties);
-        const formattedValue = formatCellValue(value, cellProperties, renderer);
-
-        this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
-
-        const rendererArgs: Parameters<BaseRenderer> = [
-          this.hot as HotInstance,
-          TD,
-          visualRowIndex,
-          visualColumnIndex,
-          prop,
-          formattedValue,
-          cellProperties,
-        ];
-
-        renderCell(renderer, rendererArgs);
-
-        this.hot.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
+        this.#cellPainter.paint(renderedRowIndex, renderedColumnIndex, TD);
       },
+      renderEpoch: () => this.hot.renderChangeTracker.epoch,
       selections: this.hot.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
       onWindowResize: () => {
@@ -1283,6 +1949,11 @@ class TableView {
         return newVisualColumn;
       },
       onAfterDrawSelection: (currentRow: number, currentColumn: number, layerLevel: number) => {
+        // Asked once per selected cell per draw, so the hook system is entered only when it has to be.
+        if (!this.hot.hasHook('afterDrawSelection')) {
+          return undefined;
+        }
+
         let cornersOfSelection;
         const [visualRowIndex, visualColumnIndex] =
           this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
@@ -1314,7 +1985,8 @@ class TableView {
       },
       onBeforeTouchScroll: () => this.hot.runHooks('beforeTouchScroll'),
       onAfterMomentumScroll: () => this.hot.runHooks('afterMomentumScroll'),
-      onModifyRowHeaderWidth: (rowHeaderWidth: number) => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
+      onModifyRowHeaderWidth: (rowHeaderWidth: number | number[]) =>
+        this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (
         renderableRowIndex: number, renderableColumnIndex: number, topmost: boolean, source: string
       ): (number | null)[] | undefined => {
@@ -1401,10 +2073,19 @@ class TableView {
         }
         this.hot.runHooks('afterViewportColumnCalculatorOverride', calc);
       },
-      rowHeaderWidth: () => this.settings.rowHeaderWidth,
+      // Scoped to this `TableView`, not to `hot.rootElement`: the container outlives `destroy()`, so
+      // a component that remounts on the same node would inherit the old instance's warned-keys set
+      // and stay silent for the rest of the page.
+      rowHeaderWidth: () => resolveHeaderSizeSetting(
+        this.settings.rowHeaderWidth, this, 'rowHeaderWidth'
+      ),
       columnHeaderHeight: () => {
         const hookHeight = this.hot.runHooks('modifyColumnHeaderHeight');
-        const configured = this.settings.columnHeaderHeight;
+        // Resolved before the merge below reads it, because that merge only accepts numbers – and
+        // before the `levels === 0` shortcut, which returns the value without going through it.
+        const configured = resolveHeaderSizeSetting(
+          this.settings.columnHeaderHeight, this, 'columnHeaderHeight'
+        );
         const probe = this.renderSizeProbe.columnHeaderHeights;
         // Merge the three provided-height sources per header level: the `columnHeaderHeight` option
         // (scalar or per-level array), the `modifyColumnHeaderHeight` hook (AutoRowSize), and the
@@ -1501,15 +2182,15 @@ class TableView {
       return true;
     }
 
-    const isChildOfTableBody = isChildOf(el, this._wt.wtTable.spreader);
+    const isSelectableArea = this.#isSelectableTableArea(el);
 
-    if (this.settings.fragmentSelection === true && isChildOfTableBody) {
+    if (this.settings.fragmentSelection === true && isSelectableArea) {
       return true;
     }
 
     const isSingleCell = this.hot.getSelectedRangeActive()?.isSingleCell() ?? false;
 
-    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isChildOfTableBody) {
+    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isSelectableArea) {
       return true;
     }
 
@@ -1518,6 +2199,99 @@ class TableView {
     }
 
     return false;
+  }
+
+  /**
+   * Resolves the Walkontable instance that renders the given element: the overlay clone that owns
+   * it, or the master instance when the element sits outside every clone.
+   *
+   * @param {HTMLElement} el The element to resolve.
+   * @returns {Walkontable}
+   */
+  #getOwningWt(el: HTMLElement) {
+    return this._wt.wtOverlays.getParentOverlay(el) ?? this._wt;
+  }
+
+  /**
+   * Resolves the table whose rendered area holds the given element, or `null` when the element sits
+   * outside every table — the grid's own scrollbars and padding, or the page around it.
+   *
+   * A frozen cell lives in an overlay clone, which is a sibling of the master table rather than its
+   * descendant, so the owning table has to be resolved before anything can be asked about the
+   * element — testing against the master alone rejects every cell in a frozen row, frozen column, or
+   * corner (#4980).
+   *
+   * Matching is by rendered area rather than by `TABLE`, because a table renders more than its
+   * cells: the selection borders are appended to the spreader beside it. `getParentOverlay` misses
+   * those and reports a frozen area's borders as the master's, which is wrong in both directions —
+   * the border reads as unselectable, and as a different overlay from the cells it sits between.
+   *
+   * @param {HTMLElement} el The element to resolve.
+   * @returns {Walkontable|null}
+   */
+  #getRenderingWt(el: HTMLElement) {
+    const overlay = this._wt.wtOverlays.getParentOverlayByRenderedArea(el);
+
+    if (overlay !== null) {
+      return overlay;
+    }
+
+    return isChildOf(el, this._wt.wtTable.spreader) ? this._wt : null;
+  }
+
+  /**
+   * Checks whether the element belongs to the selectable area of the table that renders it.
+   *
+   * Everything that table renders counts, not just the cells. A multi-cell drag passes over the
+   * selection borders, and rejecting one cancels a selection that is still inside the same area —
+   * which is exactly what `fragmentSelection: true` exists to allow. Headers are the one exception:
+   * column headers sit in the THEAD and row headers are `TH` elements inside the TBODY's own rows,
+   * and every grid with headers renders them into a clone, so allowing them here would make header
+   * labels selectable on any grid that has headers at all, frozen or not.
+   *
+   * @param {HTMLElement} el The element to check.
+   * @returns {boolean}
+   */
+  #isSelectableTableArea(el: HTMLElement) {
+    const wt = this.#getRenderingWt(el);
+
+    if (wt === null) {
+      return false;
+    }
+
+    // The spreader bounds the walk. `closest` runs past an `until` that is not an ancestor, and
+    // would then leave the grid entirely and match a `TH` on the host page.
+    return closest(el, ['TH'], wt.wtTable.spreader) === null;
+  }
+
+  /**
+   * Checks whether the pointer has moved out of the overlay the current text selection started in.
+   *
+   * Each frozen area is rendered as a separate table, and those tables sit next to the master table
+   * in the DOM in an order that does not follow the visual layout. A native selection range that
+   * spans two of them therefore picks up cells the pointer never crossed, so a selection is confined
+   * to the overlay it began in.
+   *
+   * @param {HTMLElement} el The element currently under the pointer.
+   * @returns {boolean}
+   */
+  #hasLeftTextSelectionOverlay(el: HTMLElement) {
+    return this.#getRenderingOverlayName(el) !== this.#textSelectionOverlay;
+  }
+
+  /**
+   * Names the overlay whose rendered area holds the given element, or `null` when it sits outside
+   * every table.
+   *
+   * This is not `getElementOverlayName`, which resolves by `TABLE` and so reports a frozen area's
+   * selection borders as the master's. Naming a border differently from the cells it sits between
+   * would read as leaving the overlay and cancel a drag that never left it.
+   *
+   * @param {HTMLElement} el The element to name.
+   * @returns {string|null}
+   */
+  #getRenderingOverlayName(el: HTMLElement) {
+    return this.#getRenderingWt(el)?.wtTable.name ?? null;
   }
 
   /**
@@ -1539,26 +2313,37 @@ class TableView {
    * Uses `sourceCapabilities.firesTouchEvents` (Chrome/Blink) when available,
    * falls back to the `#recentTouchEnd` flag for other browsers (Firefox, Safari).
    *
-   * @param {MouseEvent} event The mouse event to check.
-   * @private
+   * @param {Event} event The mouse event to check.
    * @returns {boolean}
    */
-  #isSyntheticMouseEvent(event: Event & { sourceCapabilities?: { firesTouchEvents: boolean } }) {
-    if (event.sourceCapabilities) {
-      return event.sourceCapabilities.firesTouchEvents === true;
-    }
-
-    return this.#recentTouchEnd;
+  #isSyntheticMouseEvent(event: Event): boolean {
+    return getMouseEventTouchOrigin(event) ?? this.#recentTouchEnd;
   }
 
   /**
    * Checks whether the event path points into the grid. The path counts as internal when it
-   * contains the grid's root element or its portal element. A complete path (one that crosses
-   * shadow boundaries and therefore contains ShadowRoot entries) is trusted as-is - a miss
-   * means a genuine outside click, even when the path shares the grid's shadow hosts. Only a
-   * filtered path (no ShadowRoot entries) falls back to the shadow host chain check, which
+   * contains the grid's root element, its portal element, or the open editor's
+   * `preventCloseElement` – the element an editor renders outside its own container, which the
+   * grid counts as a part of the editor (see `#getActiveEditorSurface()`). A complete path (one
+   * that crosses shadow boundaries and therefore contains ShadowRoot entries) is trusted as-is
+   * – a miss means a genuine outside click, even when the path shares the grid's shadow hosts.
+   * Only a filtered path (no ShadowRoot entries) falls back to the shadow host chain check, which
    * matters for sandboxed hosts (e.g. Salesforce Lightning Web Security) that collapse paths
    * observed at the document level to the visible host chain, hiding the grid internals.
+   *
+   * The editor-surface test is NOT redundant with `editorFactory`'s own `mousedown`
+   * `stopPropagation` listener, which never reaches this handler for the shapes it covers. That
+   * listener is wired exactly once, immediately after the editor's `init`/`afterInit` returns, so
+   * it does not exist at all for a `preventCloseElement` assigned later in `beforeOpen`/`afterOpen`
+   * (both documented hooks), nor for an editor that rebuilds its picker element on every open –
+   * the listener then stays bound to a detached node. This branch is the only mousedown-side
+   * protection in both cases, so do not remove it as duplicated work.
+   *
+   * Known limitation: the shadow-host fallback below is keyed on the ROOT element's host chain, so
+   * it covers a surface living in the grid's own shadow tree but not one in a different shadow tree
+   * under a path-filtering host. Unverified and unreachable without such a host, so no guard is
+   * written for it – the focus-side test (`#isFocusWithinEditorSurface()`) is what carries the
+   * reported case.
    *
    * @param {EventTarget[]} eventPath The event propagation path (`event.composedPath()`).
    * @private
@@ -1572,11 +2357,225 @@ class TableView {
       return true;
     }
 
+    // Resolved only after the two checks above have failed, so the common path (a press inside the
+    // grid) still costs two `includes` and nothing else. Must stay ABOVE the ShadowRoot bail-out: a
+    // complete path that crosses shadow boundaries can carry the surface, and bailing first would
+    // read that as an outside click.
+    const editorSurface = this.#getActiveEditorSurface();
+
+    if (editorSurface !== null && eventPath.includes(editorSurface)) {
+      return true;
+    }
+
     if (eventPath.some(entry => isShadowRoot(entry))) {
       return false;
     }
 
     return getShadowHostChain(rootElement).some(host => eventPath.includes(host));
+  }
+
+  /**
+   * Reads the OPEN editor's `preventCloseElement` - the element it renders outside its own
+   * container (a dropdown, popover or third-party picker appended to the document body). The grid
+   * counts that element and its subtree as a part of the editor.
+   *
+   * Gated on `isOpened()` on purpose. `getActiveEditor()` also answers for an editor that is merely
+   * PREPARED (`prepareEditor()` runs on every cell selection), and editor instances are cached per
+   * class per grid – so a picker parked in the document body by an earlier edit would otherwise
+   * suppress genuine outside clicks for the rest of the instance's life.
+   *
+   * @private
+   * @returns {HTMLElement|null}
+   */
+  #getActiveEditorSurface(): HTMLElement | null {
+    const editor = this.hot.getActiveEditor();
+
+    if (!editor?.isOpened() || !isHTMLElement(editor.preventCloseElement)) {
+      return null;
+    }
+
+    // A surface that CONTAINS the grid is refused rather than honored. A picker library that hands
+    // back its root instead of its popup makes `document.body` an easy value to assign, and taking
+    // it at face value would make every click on the page count as a click inside the grid – the
+    // outside-click deselect would stop working for as long as that editor is open, with nothing
+    // visible to blame it on. The option names an element the editor renders OUTSIDE its container,
+    // so an ancestor of the grid can never be a legitimate answer.
+    //
+    // Refusing it here does NOT unbind `editorFactory`'s own `mousedown` `stopPropagation`, which
+    // is already attached to whatever the editor named. On an ancestor of the grid that listener
+    // swallows every `mousedown` on the page before this handler sees it (measured: the document
+    // listener does not fire at all while such a surface is set), so the edit ends on the `mouseup`
+    // path instead - the press blurs the editor's input, `hasBrowserFocus()` goes false, and the
+    // second clause of `isFocusLostToOutside` carries it. Outside clicks therefore keep closing the
+    // editor, one event later than usual.
+    //
+    // Walked from the ROOT upwards with `closest()`, not `surface.contains(rootElement)`, for the
+    // same reason `#isFocusWithinEditorSurface()` does: `contains()` stops at a shadow boundary. A
+    // grid rendered inside a shadow root is not a `contains()` descendant of anything outside that
+    // root, so `document.body.contains(rootElement)` reads `false` there and the ancestor would be
+    // honored – while `composedPath()` still carries it on every click, which is precisely the
+    // failure this guard exists to prevent.
+    if (closest(this.hot.rootElement, [editor.preventCloseElement]) !== null) {
+      warnOnce(
+        this.hot.rootElement,
+        'TableView.preventCloseElementContainsGrid',
+        'The editor\'s `preventCloseElement` contains the grid, so it cannot be told apart from ' +
+        'the page. Assign the picker\'s own popup element instead of an ancestor of the grid. The ' +
+        'element is ignored, and clicks outside the grid keep closing the editor.'
+      );
+
+      return null;
+    }
+
+    return editor.preventCloseElement;
+  }
+
+  /**
+   * Decides whether the focused input belongs to the page rather than to the grid.
+   *
+   * `isOutsideInput()` answers that question from the `data-hot-input` stamp alone, which the grid
+   * puts on the inputs it builds itself (the text editor's textarea, the select editor's `select`,
+   * the filters and pagination controls). An editor supplied by a user - the React and Angular
+   * component editors, and every hand-written native one (which is how a Vue editor is written,
+   * that wrapper having no component-editor API) - renders a plain `<input>` with no stamp, and
+   * the raw helper then reads it as a page input while it holds the focus. On the
+   * document's `mouseup` that verdict is what unlistens the grid, and `unlisten()` blocks EVERY
+   * `table`-scoped shortcut context (see the `handleEvent` callback in `core.ts`), the `editor`
+   * one included - so the editor loses its own Enter, Escape and Tab (DEV-2787). A LEFT press
+   * hides how bad that is: the focus scope manager re-listens on the `click` that closes the
+   * gesture, so the grid is deaf only between the two events. A RIGHT press ends in `contextmenu`
+   * and no `click`, and the grid then stays deaf for the rest of the edit.
+   *
+   * The stamp is therefore treated as one of two ways to prove ownership, containment being the
+   * other, and `isOutsideInput()` itself is left alone: it has four other call sites, and
+   * `FocusGridManager#focusCell()` BLURS the element it answers `true` for, so widening the helper
+   * would blur a component editor's field on every selection change.
+   *
+   * Answering `false` also takes the early return above, which skips the `outsideClickDeselects`
+   * block further down - the same treatment the guard has always given the grid's own stamped
+   * textarea. The deselect is unchanged rather than newly suppressed, and the reason is the two
+   * guards that block already carries, neither of which depends on where the focus sits: a press
+   * OUTSIDE the grid has set `#outsideClickHandled` on the `mousedown` (that path does its own
+   * deselect or `destroyEditor()`), which this handler reads as `wasOutsideClickHandled`; and a
+   * press INSIDE the grid fails the block's `!#isPathWithinGrid(eventPath)` test. Unlisten, not
+   * the deselect, is what this predicate is written for.
+   *
+   * @private
+   * @param {HTMLElement|null} element The deepest reachable focused element.
+   * @param {boolean} isFocusInEditorSurface Whether that element sits inside the open editor's
+   *                                         `preventCloseElement` subtree. Passed in rather than
+   *                                         resolved here because the caller needs the same answer
+   *                                         for its own focus verdict.
+   * @param {HTMLElement[]} gridUiRoots The grid's own UI roots, from `#getGridUiRoots()`. Passed
+   *                                    in for the same reason: the caller tests the event path
+   *                                    against the same list.
+   * @returns {boolean}
+   */
+  #isForeignInput(
+    element: HTMLElement | null, isFocusInEditorSurface: boolean, gridUiRoots: HTMLElement[]
+  ): boolean {
+    if (element === null || !isOutsideInput(element)) {
+      return false;
+    }
+
+    return !this.#isWithinOpenEditorDom(element, gridUiRoots) && !isFocusInEditorSurface;
+  }
+
+  /**
+   * Checks whether the given element sits in the grid's own DOM while an editor is OPEN.
+   *
+   * Gated on the open editor on purpose, and that gate is what keeps the change narrow: an input
+   * the grid renders INSIDE a cell must keep counting as the page's. A custom renderer that puts
+   * an `<input>` in its TD relies on the grid unlistening while that field holds the focus -
+   * otherwise the arrow keys would move the selection while they move the caret - and the
+   * checkbox renderer's own `setTimeout(instance.listen)` exists to re-listen after exactly that.
+   * With no editor open, none of that changes. With one open, an input inside the grid's own DOM
+   * is the grid's, and the grid must keep listening for the editor's sake - whichever root the
+   * editor mounted into: `editorFactory` appends the container to `rootPortalElement` for
+   * `position: 'portal'` and to `rootElement` otherwise, the React wrapper's editor portal host
+   * lives in `rootPortalElement`, and the Angular adapter appends its placeholder to
+   * `rootElement`. The test is deliberately not per-cell: it does not try to prove the field
+   * belongs to the edited cell, only that it is not the page's.
+   *
+   * On paper that widens the answer to an unstamped input the grid renders in some OTHER cell - a
+   * checkbox renderer's `<input>`, say - while an editor is open elsewhere. Measured, that shape
+   * does not occur for a pointer gesture: a press which moves the focus onto another cell's input
+   * also changes the selection, and the selection change closes the editor in the same local hook
+   * that runs `afterSelection`. That hook skips the close for five selection sources - `'shift'`
+   * (the row/column SHIFT an insert or a remove performs), `'refresh'`, `'loadData'`,
+   * `'updateData'` and `'deselect'` - and every one of them is data-driven, so none coincides with
+   * the press that would have to move the focus. By the time the `mouseup` verdict runs,
+   * `isCellEdited()` is already false and this test is never consulted for that input.
+   * `tests/e2e/editor-open-checkbox-focus.spec.ts` pins that, and goes red if an editor ever
+   * survives the selection change - which is when the widening would start to matter.
+   *
+   * Walks with `closest()`, not `Node#contains()`, mirroring `#isFocusWithinEditorSurface()`:
+   * the element comes from `getDeepActiveElement()`, which reaches into shadow roots, while
+   * `contains()` stops at a shadow boundary - so an editor rendering its field inside a web
+   * component would read as outside the grid. No spec discriminates the two (the fixture's
+   * `host=shadow` variant puts the GRID in a shadow root, which a plain parent walk still
+   * covers), so treat the choice as convention rather than as pinned behavior.
+   *
+   * @private
+   * @param {HTMLElement} element The deepest reachable focused element.
+   * @param {HTMLElement[]} gridUiRoots The grid's own UI roots, from `#getGridUiRoots()`.
+   * @returns {boolean}
+   */
+  #isWithinOpenEditorDom(element: HTMLElement, gridUiRoots: HTMLElement[]): boolean {
+    if (!this.isCellEdited()) {
+      return false;
+    }
+
+    return closest(element, gridUiRoots) !== null;
+  }
+
+  /**
+   * The elements that hold the grid's own UI: the root wrapper (the grid, plus whatever a plugin
+   * renders into its layout slots and overlay layer) and the portal layer (menus, dialogs, every
+   * `position: 'portal'` editor container, the React wrapper's editor portal host).
+   *
+   * Shared by the two `mouseup` tests that ask "is this the grid's own UI" of an element or an
+   * event path. It is NOT the only copy: `FocusGridManager` builds the same pair, with the same
+   * `rootWrapperElement ?? rootElement` fallback and the same `isHTMLElement` filter, to bind its
+   * `focusin`/`focusout` listeners - and `isForeignFocusTarget()`/`hasBrowserFocus()`, which
+   * answer the other half of this same verdict, read from that copy. A new mount root has to be
+   * added in both places, and the two drifting apart would split the verdict against itself.
+   *
+   * Deliberately NOT shared with `#isPathWithinGrid()`, which tests a different list -
+   * `rootElement` rather than the wrapper, plus the open editor's surface - and folding the two
+   * together would change what that method accepts.
+   *
+   * @private
+   * @returns {HTMLElement[]}
+   */
+  #getGridUiRoots(): HTMLElement[] {
+    const { rootElement, rootWrapperElement, rootPortalElement } = this.hot;
+
+    return [rootWrapperElement ?? rootElement, rootPortalElement].filter(root => isHTMLElement(root));
+  }
+
+  /**
+   * Checks whether the browser focus sits inside the open editor's `preventCloseElement` subtree.
+   *
+   * `FocusGridManager#isForeignFocusTarget()` answers `true` for anything outside the grid's root,
+   * which such an element is by definition – so without this test, opening a picker that takes the
+   * focus (flatpickr moves it into its calendar) makes the next `mouseup` anywhere read as a focus
+   * loss to the outside and deselect the cell, committing the editor's pre-edit value.
+   *
+   * Walks with `closest()`, not `Node#contains()`. The element comes from `getDeepActiveElement()`,
+   * which reaches into shadow roots, while `contains()` stops at a shadow boundary – so a picker
+   * built as a web component would put the focus on a node inside its own shadow root and read as
+   * outside the surface, reproducing this defect with a different picker library. `closest()`
+   * follows `.host` across those boundaries.
+   *
+   * @private
+   * @param {HTMLElement|null} element The deepest reachable focused element.
+   * @returns {boolean}
+   */
+  #isFocusWithinEditorSurface(element: HTMLElement | null): boolean {
+    const surface = this.#getActiveEditorSurface();
+
+    return surface !== null && element !== null && closest(element, [surface]) !== null;
   }
 
   /**
@@ -1603,6 +2602,155 @@ class TableView {
   beforeRender(force: boolean, skipRender: boolean) {
     if (force) {
       this.hot.runHooks('beforeViewRender', this.hot.forceFullRender, skipRender);
+    }
+  }
+
+  /**
+   * Resolves the frozen counts the grid can draw while `limitFixedToViewport` is on. The columns come first: a
+   * horizontal scrollbar that appears after them takes room from the rows, and the next full render sees it.
+   * Nothing is measured for an axis with no frozen track.
+   *
+   * @param {boolean} measureDom `true` after a draw, when the rendered height of a row can be read.
+   * @returns {EffectiveFixedCounts | null} `null` when the option is off.
+   */
+  #resolveEffectiveFixed(measureDom: boolean): EffectiveFixedCounts | null {
+    if (!this.settings.limitFixedToViewport) {
+      return null;
+    }
+
+    const columns = this.#resolveAxisCounts(
+      true,
+      Number(this.settings.fixedColumnsStart) || 0,
+      Math.floor(Number(this.settings.fixedColumnsEnd)) || 0,
+      measureDom
+    );
+    const rows = this.#resolveAxisCounts(
+      false,
+      Number(this.settings.fixedRowsTop) || 0,
+      Number(this.settings.fixedRowsBottom) || 0,
+      measureDom
+    );
+
+    return { start: columns.leading, end: columns.trailing, top: rows.leading, bottom: rows.trailing };
+  }
+
+  /**
+   * Resolves the counts of one axis. Nothing is measured for an axis with no frozen track. An axis that is not laid
+   * out (a hidden grid, a closed tab, a grid that was never drawn) keeps the configured counts: clamping against a
+   * size of 0 would collapse every band, and nothing redraws when the grid is shown. The check is per axis, on the
+   * holder, because the workspace measurement falls back to the window size for a hidden grid.
+   *
+   * @param {boolean} isColumn `true` for the columns, `false` for the rows.
+   * @param {number} requestedLeading The configured start columns or top rows.
+   * @param {number} requestedTrailing The configured end columns or bottom rows.
+   * @param {boolean} measureDom `true` after a draw, when the rendered height of a row can be read.
+   * @returns {{ leading: number, trailing: number }}
+   */
+  #resolveAxisCounts(isColumn: boolean, requestedLeading: number, requestedTrailing: number, measureDom: boolean) {
+    const total = isColumn ? this.hot.countCols() : this.hot.countRows();
+
+    if (requestedLeading <= 0 && requestedTrailing <= 0) {
+      return { leading: 0, trailing: 0 };
+    }
+
+    const holder = this._wt.wtTable.holder;
+    const isLaidOut = (isColumn ? holder.clientWidth : holder.clientHeight) > 0;
+    const viewportSize = isLaidOut ? this.getFrozenViewportSize(isColumn) : 0;
+
+    if (viewportSize <= 0) {
+      const leading = Math.min(Math.max(Math.floor(requestedLeading), 0), total);
+
+      return { leading, trailing: clampFixedColumnsEnd(requestedTrailing, leading, total) };
+    }
+
+    return resolveFittingFrozenCounts({
+      viewportSize,
+      requestedLeading,
+      requestedTrailing,
+      total,
+      getTrackSize: visualIndex => this.getFrozenTrackSize(isColumn, visualIndex, measureDom),
+      minScrollableSize: MIN_SCROLLABLE_SIZE,
+    });
+  }
+
+  /**
+   * Stores new effective counts. When they differ from the stored ones, the freeze lines moved, and a cell that sits
+   * on one (a merged block that crosses it) must be painted again even where `renderMode` skips unchanged cells.
+   *
+   * @param {EffectiveFixedCounts | null} next The new counts.
+   */
+  #setEffectiveFixed(next: EffectiveFixedCounts | null) {
+    const moved = !isSameEffectiveFixed(this._effectiveFixed, next);
+
+    this._effectiveFixed = next;
+
+    if (moved) {
+      this.hot.markAllCellsChanged();
+    }
+  }
+
+  /**
+   * Brings the memo of the effective frozen counts up to date before a draw. A full render measures again, a
+   * scroll-only draw keeps the memo (the viewport did not change size).
+   *
+   * @param {boolean} isFullRender `true` for a full render.
+   */
+  #refreshEffectiveFixed(isFullRender: boolean) {
+    if (!this.settings.limitFixedToViewport) {
+      this._effectiveFixed = null;
+      this.#drawnRowHeights.clear();
+
+    } else if (isFullRender || this._effectiveFixed === null) {
+      this.#setEffectiveFixed(this.#resolveEffectiveFixed(false));
+    }
+  }
+
+  /**
+   * Renders when a resize of the window changed the counts that fit. A grid that the window scrolls keeps the size of
+   * its root when the window is resized (its height follows its content), so `refreshDimensions()` finds no change
+   * and does not render, while the room the frozen bands share is the size of the window.
+   *
+   * `Core#refreshDimensions()` calls it after the `beforeRefreshDimensions` hook let the resize through and when it
+   * did not render itself, so a resize that a listener blocked stays blocked.
+   */
+  renderWhenWindowResizeMovedFixed() {
+    if (!this.settings.limitFixedToViewport || !this.hot.view) {
+      return;
+    }
+
+    const viewport = this._wt.wtViewport;
+
+    if (!viewport.isVerticallyScrollableByWindow() && !viewport.isHorizontallyScrollableByWindow()) {
+      return;
+    }
+
+    // Outside a render the rendered height of a row must not be read from the DOM: the row filter can be stale
+    // (`hideRow()` without a render), and `render()` resolves the counts again anyway.
+    if (!isSameEffectiveFixed(this._effectiveFixed, this.#resolveEffectiveFixed(false))) {
+      this.hot.render();
+    }
+  }
+
+  /**
+   * Draws once more when the counts measured after a full draw differ from the ones it was drawn with. The first
+   * measurement runs before the draw, so it used the default height of a row that was never drawn and the
+   * scrollbars of the previous draw. One more pass is enough, and there is never a third: a layout that keeps
+   * flipping between two answers stays on the last one.
+   *
+   * @param {boolean} isFullRender `true` for a full render.
+   */
+  #redrawOnceWhenEffectiveFixedMoved(isFullRender: boolean) {
+    // A draw that a `beforeViewRender` listener cancelled (`skipRender`) rendered nothing, so there is nothing to
+    // measure, and drawing again would render what the listener cancelled.
+    if (!isFullRender || !this.settings.limitFixedToViewport || !this.#drawRenderedCells) {
+      return;
+    }
+
+    const next = this.#resolveEffectiveFixed(true);
+
+    if (!isSameEffectiveFixed(this._effectiveFixed, next)) {
+      this.#setEffectiveFixed(next);
+      this._wt.draw(false);
     }
   }
 
@@ -1658,6 +2806,7 @@ class TableView {
    */
   afterRender(force: boolean) {
     this.#sizesMeasuredWithoutStylesPending = false;
+    this.#drawRenderedCells = true;
 
     if (force) {
       // Measure the rendered grid while the DOM is final, before external `afterViewRender` listeners
@@ -1686,18 +2835,17 @@ class TableView {
    * @param {HTMLTableHeaderCellElement} TH The table header element.
    */
   appendRowHeader(visualRowIndex: number, TH: HTMLTableCellElement) {
-    if (TH.firstChild) {
-      const container = TH.firstChild as HTMLElement;
+    const container = TH.firstChild as HTMLElement | null;
+    const rowHeader = container && hasClass(container, 'relative') ?
+      container.querySelector<HTMLElement>('.rowHeader') : null;
 
-      if (!hasClass(container, 'relative')) {
-        empty(TH);
-        this.appendRowHeader(visualRowIndex, TH);
+    // A wrapper that is not ours, or lost its label element, is emptied so the branch below rebuilds it.
+    if (container && !rowHeader) {
+      empty(TH);
+    }
 
-        return;
-      }
-
-      this.updateCellHeader(
-        container.querySelector<HTMLElement>('.rowHeader')!, visualRowIndex, this.hot.getRowHeader);
+    if (rowHeader) {
+      this.updateCellHeader(rowHeader, visualRowIndex, this.hot.getRowHeader);
 
     } else {
       const { rootDocument, getRowHeader } = this.hot;
@@ -1748,20 +2896,20 @@ class TableView {
       return classes.flatMap(cls => cls.split(' ')).filter(cls => cls.length > 0);
     };
 
-    if (TH.firstChild) {
-      const container = TH.firstChild as HTMLElement;
+    const container = TH.firstChild as HTMLElement | null;
+    const colHeader = container && hasClass(container, 'relative') ?
+      container.querySelector<HTMLElement>('.colHeader') : null;
 
-      if (hasClass(container, 'relative')) {
-        this.updateCellHeader(
-          container.querySelector<HTMLElement>('.colHeader')!, visualColumnIndex, label, headerLevel);
+    // A wrapper that is not ours, or lost its label element, is emptied so the branch below rebuilds it.
+    if (container && !colHeader) {
+      empty(TH);
+    }
 
-        container.className = '';
-        addClass(container, ['relative', ...getColumnHeaderClassNames()]);
+    if (container && colHeader) {
+      this.updateCellHeader(colHeader, visualColumnIndex, label, headerLevel);
 
-      } else {
-        empty(TH);
-        this.appendColHeader(visualColumnIndex, TH, label, headerLevel);
-      }
+      container.className = '';
+      addClass(container, ['relative', ...getColumnHeaderClassNames()]);
 
     } else {
       const { rootDocument } = this.hot;
@@ -1800,7 +2948,7 @@ class TableView {
     element: HTMLElement, index: number, content: (index: number, headerLevel?: number) => unknown, headerLevel = 0
   ) {
     let renderedIndex = index;
-    const parentOverlay = this._wt.wtOverlays.getParentOverlay(element) || this._wt;
+    const parentOverlay = this.#getOwningWt(element);
 
     // prevent wrong calculations from SampleGenerator
     if (element.parentNode) {
@@ -1813,8 +2961,8 @@ class TableView {
     }
 
     if (renderedIndex > -1) {
-      fastInnerHTML(element, String(content(index, headerLevel)), this.hot.getSettings().sanitizer ?? true,
-        'header', this.hot.rootGridElement ?? undefined);
+      fastInnerHTML(element, String(content(index, headerLevel)), getSanitizer(this.hot),
+        'header', this.hot.rootElement);
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946
@@ -2094,16 +3242,16 @@ class TableView {
    * Checks to what overlay the provided element belongs.
    *
    * @param {HTMLElement} element The DOM element to check.
-   * @returns {'master'|'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'}
+   * @returns {'master'|'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'}
    */
   getElementOverlayName(element: HTMLElement) {
-    return (this._wt.wtOverlays.getParentOverlay(element) ?? this._wt).wtTable.name;
+    return this.#getOwningWt(element).wtTable.name;
   }
 
   /**
    * Gets the overlay instance by its name.
    *
-   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
+   * @param {'inline_start'|'inline_end'|'top'|'top_inline_start_corner'|'top_inline_end_corner'|'bottom'|'bottom_inline_start_corner'|'bottom_inline_end_corner'} overlayName The overlay name.
    * @returns {Overlay | null}
    */
   getOverlayByName(overlayName: string) {
@@ -2277,6 +3425,58 @@ class TableView {
   }
 
   /**
+   * Tells whether the grid's height follows its content: `height: 'auto'`, which `core/rootSize.ts`
+   * writes on the root as inline `height: auto`. The engine reads it to keep the holder at `auto`
+   * inside an ancestor that clips or scrolls but has no height of its own, where sizing the holder
+   * to that ancestor collapses the grid to 0px (DEV-3062).
+   *
+   * It is also the answer to the engine's `widthFollowsRoot`. Without a definite `width`, such a root
+   * clips neither axis, so the nearest ancestor that clips or scrolls owns the horizontal axis, with or
+   * without a height of its own. That ancestor can be wider than the grid (its padding, a padded
+   * wrapper, a relative `width`), and a holder as wide as the ancestor was cut at the grid's
+   * inline-end edge (DEV-3107).
+   *
+   * @returns {boolean}
+   */
+  #isHeightContentDriven(): boolean {
+    return this.hot.rootElement.style.height === 'auto';
+  }
+
+  /**
+   * Sums the height of the root wrapper's edge slots (top and bottom) that live INSIDE the given
+   * vertical axis owner. Those slots share the owner's box with the grid, so the engine has to leave
+   * room for them – otherwise the holder takes the whole box and pushes the slot content past the
+   * owner's edge, which is how a pagination or sheets bar ended up clipped out of reach inside a
+   * scrollable ancestor (DEV-2848). A root element that owns the axis itself (an explicit `height`
+   * option) contains no slot and reserves nothing here; core subtracts the slots from the pixel
+   * `height` it writes on the root instead. Non-root instances have no slots.
+   *
+   * Memoized per render: the engine asks several times per draw off the single-pass path (every
+   * `getWorkspaceHeight()` measures the live DOM there), and each ask is two layout-forcing
+   * `offsetHeight` reads. `render()` drops the memo before the draw; the slot `ResizeObserver` in
+   * core renders when a slot changes height, so a value cached across draws cannot go stale.
+   *
+   * @param {HTMLElement} trimmingContainer The resolved vertical axis owner.
+   * @returns {number}
+   */
+  #getReservedSlotHeight(trimmingContainer: HTMLElement): number {
+    const cached = this.#reservedSlotHeight;
+
+    if (cached && cached.owner === trimmingContainer) {
+      return cached.height;
+    }
+
+    const { rootSlotTopElement, rootSlotBottomElement } = this.hot;
+    const height = [rootSlotTopElement, rootSlotBottomElement]
+      .filter((slot): slot is HTMLElement => !!slot && trimmingContainer.contains(slot))
+      .reduce((sum, slot) => sum + slot.offsetHeight, 0);
+
+    this.#reservedSlotHeight = { owner: trimmingContainer, height };
+
+    return height;
+  }
+
+  /**
    * Updates the class names on the root element based on the presence of scrollbars.
    *
    * This method checks if the table has vertical and/or horizontal scrollbars and
@@ -2284,7 +3484,7 @@ class TableView {
    * to/from the root element.
    */
   #updateScrollbarClassNames() {
-    const rootElement = this.hot.rootElement;
+    const { rootElement, rootWrapperElement } = this.hot;
 
     if (this.hasVerticalScroll()) {
       addClass(rootElement, 'htHasScrollY');
@@ -2292,10 +3492,27 @@ class TableView {
       removeClass(rootElement, 'htHasScrollY');
     }
 
-    if (this.isVerticallyScrollableByWindow()) {
+    const isVerticallyScrollableByWindow = this.isVerticallyScrollableByWindow();
+
+    if (isVerticallyScrollableByWindow) {
       addClass(rootElement, 'htVerticallyScrollableByWindow');
     } else {
       removeClass(rootElement, 'htVerticallyScrollableByWindow');
+    }
+
+    if (rootWrapperElement) {
+      // The grid's height follows its content when the page scrolls the rows, and with
+      // `height: 'auto'` (core writes `overflow: clip` for it, so the root owns the axis, yet the
+      // root grows to its content). The stylesheet then keeps the grid box from shrinking to a
+      // CSS-sized container (`styles/base/_base.scss`), which placed the bottom slot over a data
+      // row (DEV-2848).
+      const followsContent = isVerticallyScrollableByWindow || this.#isHeightContentDriven();
+
+      if (followsContent) {
+        addClass(rootWrapperElement, 'ht-grid-follows-content');
+      } else {
+        removeClass(rootWrapperElement, 'ht-grid-follows-content');
+      }
     }
 
     if (this.hasHorizontalScroll()) {
@@ -2323,6 +3540,11 @@ class TableView {
    * @private
    */
   destroy() {
+    if (this.#contentSettledFrame !== null) {
+      this.hot.rootWindow.cancelAnimationFrame(this.#contentSettledFrame);
+      this.#contentSettledFrame = null;
+    }
+
     this._wt.destroy();
     this.eventManager.destroy();
   }

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — stretched columns after a container resize</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back — a typo
+    // in the project config must be one red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document - the silently mislabeled leg this is meant to
+    // prevent. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+
+    // The stretch strategy under test. `none` is the control: no stretching, so a container resize
+    // must not touch the column widths or the engine cache at all.
+    window.htStretch = htPick(
+      { all: 'all', last: 'last', none: 'none' }, htParams.get('stretchH'), 'all', 'stretchH');
+
+    // `auto` is the reported shape (the docs demo). A pixel height is the second shape the defect
+    // has: the phantom HORIZONTAL scrollbar is still predicted there, only the vertical one is not.
+    // `none` leaves `height` out altogether, so the WINDOW owns both scroll axes — the mode in which
+    // the engine decides the workspace width by summing the columns live through `modifyColWidth`.
+    const htHeightParam = htParams.get('height') ?? 'auto';
+
+    if (htHeightParam !== 'auto' && htHeightParam !== 'none' && !/^[1-9][0-9]{1,3}$/.test(htHeightParam)) {
+      throw new Error('Unknown ?height= value: ' + JSON.stringify(htHeightParam));
+    }
+
+    window.htHeight = htHeightParam === 'auto' ? 'auto' : (htHeightParam === 'none' ? undefined : Number(htHeightParam));
+
+    // `autoColumnSize` is the other `modifyColWidth` producer that drops the same engine cache (through
+    // `observeMapChange`). Off by default here so the invalidation counts are this plugin's alone;
+    // `on` covers the library default.
+    window.htAutoColumnSize = htPick(
+      { on: true, off: false }, htParams.get('autoColumnSize'), 'off', 'autoColumnSize');
+  </script>
+  <style>
+    /* The body padding is load-bearing for the window-mode case: it is what makes the grid root
+       narrower than the document, so a measurement that falls through to the document's client
+       width overshoots the root by a visible 32px. */
+    body { font-family: sans-serif; margin: 0; padding: 1rem; }
+    /* The grid takes the wrapper's width; the spec resizes the WRAPPER, which is how a responsive
+       page (the docs site collapsing its sidebar) resizes a grid without touching its settings.
+       In window mode (`?height=none`) the wrapper is fluid instead and the spec resizes the viewport. */
+    #wrap { width: 1200px; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-2902. StretchColumns recomputes the stretched widths on every full render (the core
+    `beforeRender` hook) but never invalidated Walkontable's column-width prefix-sum cache. After a
+    container resize the engine's layout snapshot summed the PREVIOUS widths, predicted a horizontal
+    scrollbar (content wider than the box) and then a vertical one (an auto-height box equals its
+    content exactly), and the top overlay reserved the scrollbar's width: the last header was
+    clipped by ~15px while the body below it was not, and the root carried `htHasScrollX` /
+    `htHasScrollY` for scrollbars that were never painted.
+  -->
+  <div id="wrap">
+    <!-- The theme class is set beside the grid's construction below. Linking the stylesheet is not
+         enough on its own: every theme rule is scoped to this class. -->
+    <div id="grid" data-testid="grid"></div>
+  </div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The closing tag is split
+    // so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const data = [
+      { task: 'Design review', assignee: 'Ana García', deadline: 'Mar 15, 2024, 9:30 AM', created: '03/01/2024, 08:00:00' },
+      { task: 'Sprint demo', assignee: 'James Okafor', deadline: 'Mar 16, 2024, 2:00 PM', created: '03/02/2024, 11:20:00' },
+      { task: 'Release', assignee: 'Li Wei', deadline: 'Mar 20, 2024, 11:59 PM', created: '03/05/2024, 16:45:00' },
+      { task: 'Retro', assignee: 'Sofia Rossi', deadline: 'Mar 22, 2024, 12:00 AM', created: '03/06/2024, 09:00:00' },
+      { task: 'Planning', assignee: 'Noah Cohen', deadline: 'Mar 25, 2024, 10:15 AM', created: '03/08/2024, 13:30:00' },
+    ];
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const container = document.getElementById('grid');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    if (window.htHeight === undefined) {
+      document.getElementById('wrap').style.width = 'auto';
+    }
+
+    window.hot = new Handsontable(container, {
+      data,
+      colHeaders: ['Task', 'Assignee', 'Deadline', 'Created'],
+      // Two free columns and two with a declared width — the docs demo's shape. Declared widths
+      // are stretched too (only `manualColumnResize` widths are excluded), so all four move.
+      columns: [
+        { data: 'task' },
+        { data: 'assignee' },
+        { data: 'deadline', width: 190 },
+        { data: 'created', width: 165 },
+      ],
+      stretchH: window.htStretch,
+      height: window.htHeight,
+      renderer: testIdRenderer,
+      autoColumnSize: window.htAutoColumnSize,
+      // Rows must keep their height when the columns change width, so the spec isolates the
+      // column-width cache. With wrapping on, the narrower `task`/`assignee` columns at 900px wrap
+      // two cells, rows 0-1 grow 29→49px, and the auto-height root lags one draw behind the taller
+      // content: that draw publishes `htHasScrollY` from a snapshot recomputed after the render and
+      // the root's own growth triggers the draw that clears it. A one-frame transient the spec could
+      // read in between — a separate, pre-existing auto-height concern, not this defect.
+      wordWrap: false,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Counts the engine column-width cache drops the grid performs, so the spec can pin the
+    // steady-state cost at ZERO (the same rule the row-height cache lives under, see
+    // `walkontable/AGENTS.md`, "Steady state must cost zero row-height cache invalidations").
+    // Patched at the CACHE, not at `TableView#invalidateColumnWidthCache`: `invalidateIndexSizesCache()`,
+    // `Viewport#invalidateAllCaches()` and the scroll-sync remeasure all reach `wtViewport` directly,
+    // and a regression dropping the cache through any of them must count too.
+    const columnWidthCache = window.hot.view._wt.wtViewport.columnWidthCache;
+    const originalInvalidate = columnWidthCache.invalidate.bind(columnWidthCache);
+    let invalidations = 0;
+
+    columnWidthCache.invalidate = function() {
+      invalidations += 1;
+
+      return originalInvalidate();
+    };
+
+    window.htInvalidationCount = () => invalidations;
+
+    // Counts full renders, so a spec can wait for the render a resize schedules (Walkontable's
+    // ResizeMonitor calls `refreshDimensions()` on the next animation frame) even when the render
+    // leaves the hider width unchanged.
+    let renders = 0;
+
+    window.hot.addHook('afterRender', () => {
+      renders += 1;
+    });
+
+    window.htRenderCount = () => renders;
+
+    // Resizes the WRAPPER. Walkontable's ResizeMonitor observes the grid root's parent and calls
+    // `refreshDimensions()` on the next animation frame; nothing here waits — the spec waits on
+    // the DOM outcome (hider width == new container width).
+    window.htSetContainerWidth = (px) => {
+      document.getElementById('wrap').style.width = `${px}px`;
+    };
+  </script>
+</body>
+</html>

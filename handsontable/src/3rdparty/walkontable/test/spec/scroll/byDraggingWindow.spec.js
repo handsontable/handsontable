@@ -105,14 +105,30 @@ describe('Scrollbar drag optimization (window as scrollable element)', () => {
 
       simulateScrollbarDrag(wt, { scrollTop: 500 });
 
-      // Master spreader is sticky
+      // Master spreader is sticky, positioned by its insets, so its transform is lifted.
       expect(masterSpreader.style.position).toBe('sticky');
+      expect(masterSpreader.style.transform).toBe('');
 
       // Overlay clone spreader is NOT sticky in window mode —
       // it uses the overlay system's own absolute/fixed positioning.
       expect(cloneSpreader.style.position).not.toBe('sticky');
 
+      // The strategy does not own the clone here, so the clone's transform write must keep
+      // running during the drag: its offset follows the rendered band, not the pre-drag one.
+      // Suspending it on the master's sticky flag froze the frozen columns for the whole drag.
+      const startPosition = wt.wtViewport.rowsRenderCalculator.startPosition;
+
+      expect(startPosition).toBeGreaterThan(0);
+      expect(cloneSpreader.style.transform).toBe(`translate(0px, ${startPosition}px)`);
+
       simulateScrollbarRelease();
+
+      // Released: the master gets its transform back and the clone keeps tracking.
+      expect(masterSpreader.style.position).toBe('relative');
+      expect(masterSpreader.style.transform).toMatch(/^translate\(/);
+      expect(cloneSpreader.style.transform).toBe(
+        `translate(0px, ${wt.wtViewport.rowsRenderCalculator.startPosition}px)`
+      );
     });
   });
 

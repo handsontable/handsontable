@@ -1,7 +1,7 @@
 ---
 title: Undo / redo with a custom UI
-metaTitle: Undo / redo with a custom UI - JavaScript Data Grid | Handsontable
-description: Build external Undo and Redo buttons that stay in sync with Handsontable undo/redo stack availability.
+metaTitle: Undo / redo with a custom UI | Handsontable DataGrid for JavaScript
+description: Build external Undo and Redo buttons that stay in sync with Handsontable DataGrid undo/redo stack availability.
 permalink: /recipes/data-management/undo-redo-custom-ui
 canonicalUrl: /recipes/data-management/undo-redo-custom-ui
 tags:
@@ -12,17 +12,17 @@ tags:
   - redo
   - custom ui
 react:
-  metaTitle: Undo / redo with a custom UI - React Data Grid | Handsontable
+  metaTitle: Undo / redo with a custom UI | Handsontable DataGrid for React
 angular:
-  metaTitle: Undo / redo with a custom UI - Angular Data Grid | Handsontable
+  metaTitle: Undo / redo with a custom UI | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Undo / redo with a custom UI - Vue Data Grid | Handsontable
+  metaTitle: Undo / redo with a custom UI | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 type: how-to
 ---
 
-In this tutorial, you will build external Undo and Redo buttons that stay in sync with the Handsontable undo/redo stack. You will learn how to use `afterChange`, `afterUndo`, and `afterRedo` to keep button states accurate at all times.
+In this tutorial, you will build external Undo and Redo buttons that stay in sync with the Handsontable DataGrid undo/redo stack. You will learn how to use `afterChange`, `afterUndo`, and `afterRedo` to keep button states accurate at all times.
 
 ::: only-for javascript vue
 
@@ -96,14 +96,14 @@ Use a container with two buttons above the grid:
 
 ## Step 3: Enable undo/redo in grid settings
 
-Turn on the plugin with `undoRedo: true`.
+Turn on the plugin with `undo: true`.
 
 ```typescript
 const hot = new Handsontable(container, {
   data,
   rowHeaders: true,
   colHeaders: true,
-  undoRedo: true,
+  undo: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -170,7 +170,7 @@ const hot = new Handsontable(container, {
   data,
   rowHeaders: true,
   colHeaders: true,
-  undoRedo: true,
+  undo: true,
   width: '100%',
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
@@ -202,7 +202,7 @@ syncHistoryButtons();
 
 ## How it works - complete flow
 
-1. The grid starts with `undoRedo: true`.
+1. The grid starts with `undo: true`.
 2. Both buttons are disabled on load - the stack is empty.
 3. After any edit, `afterChange` runs and enables **Undo**.
 4. Clicking **Undo** calls `hot.getPlugin('undoRedo').undo()`, then `afterUndo` updates both buttons.
@@ -224,7 +224,7 @@ syncHistoryButtons();
 
 ## What you learned
 
-- How to enable the `UndoRedo` plugin with `undoRedo: true` in Handsontable settings.
+- How to enable the `UndoRedo` plugin with `undo: true` in Handsontable settings.
 - How to call `undo()` and `redo()` on the plugin instance from external button click handlers.
 - How to use the `afterChange`, `afterUndo`, and `afterRedo` hooks to check `isUndoAvailable()` and `isRedoAvailable()` and keep button disabled states accurate.
 - How to keep the undo/redo stack in sync with the UI so buttons always reflect the actual stack state.

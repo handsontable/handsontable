@@ -339,7 +339,10 @@ export class DynamicComponentService {
       this._instanceEmbeddedViews.get(instance)?.delete(prevView);
     }
 
-    td.innerHTML = '';
+    // Not `innerHTML = ''`: that reads as "assign nothing", but `innerHTML` is a Trusted
+    // Types sink whatever the value, so under `require-trusted-types-for 'script'` an empty
+    // string throws exactly like markup would.
+    td.replaceChildren();
   }
 
   /**
@@ -486,7 +489,7 @@ export class DynamicComponentService {
    * Idempotent: a TD recycled after `sweepDetachedViews` already destroyed its ref still maps to that
    * stale ref in `_tdComponentRefs`, so the next render path may reach this with an already-destroyed
    * ref. Guarding on `destroyed` skips the redundant detach/destroy instead of relying on Angular's
-   * internal no-op behaviour.
+   * internal no-op behavior.
    *
    * @param componentRef - The reference to the component to be destroyed.
    */

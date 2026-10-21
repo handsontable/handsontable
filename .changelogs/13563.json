@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `refetchAfterCreate` option to `dataProvider`. Set it to `false` to skip the automatic `fetchRows` refetch after a successful `onRowsCreate` and apply the server response to the grid yourself, for example to keep a newly inserted row on the current page while the grid is sorted.",
+  "type": "added",
+  "issueOrPR": 13563,
+  "breaking": false,
+  "framework": "none"
+}

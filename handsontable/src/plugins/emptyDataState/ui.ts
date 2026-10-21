@@ -1,40 +1,77 @@
-import { html } from '../../helpers/templateLiteralTag';
-import { addClass, removeClass, removeAttribute, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
+import { buildTemplate, type TemplateSpec } from '../../helpers/dom/template';
+import {
+  addClass, removeClass, removeAttribute, getScrollbarWidth, setAttribute, empty
+} from '../../helpers/dom/element';
 import { A11Y_TABINDEX, A11Y_BUSY } from '../../helpers/a11y';
-import { stripTags } from '../../helpers/string';
+import { htmlToPlainText } from '../../helpers/string';
+import { resolveButtonType } from '../../helpers/uiButton';
 import type { default as ViewInstance } from '../../tableView';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
 const MIN_HEIGHT = 150;
 
-const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STATE_CLASS_NAME} handsontable">
-  <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper">
-    <div data-ref="emptyDataStateInner" class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper-inner"></div>
-  </div>
-</div>`;
+const TEMPLATE: TemplateSpec = {
+  tag: 'div',
+  ref: 'emptyDataStateElement',
+  className: `${EMPTY_DATA_STATE_CLASS_NAME} handsontable`,
+  children: [{
+    tag: 'div',
+    className: `${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper`,
+    children: [{
+      tag: 'div',
+      ref: 'emptyDataStateInner',
+      className: `${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper-inner`,
+    }],
+  }],
+};
 
-const templateContent = ({ title, description, buttons }: {
-  title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }>
-}, isLoading = false) => {
-  const spinnerBlock = isLoading ?
-    `<div class="${EMPTY_DATA_STATE_CLASS_NAME}__spinner" aria-hidden="true"></div>` :
-    '';
+/**
+ * A button of the `message` option, as it arrives from the settings.
+ *
+ * `type` is `unknown` rather than `ButtonType`, because the value comes from a plugin setting and
+ * `resolveButtonType()` is what decides whether it is one of the supported types. Declaring the
+ * narrow type here would claim a check that has not happened yet.
+ */
+type MessageButton = { type: unknown, text: string, callback?: Function };
 
-  return `
-  ${spinnerBlock}
-  <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content">
-    ${title ? `<h2 class="${EMPTY_DATA_STATE_CLASS_NAME}__title">${stripTags(title)}</h2>` : ''}
-    ${description ? `<p class="${EMPTY_DATA_STATE_CLASS_NAME}__description">${stripTags(description)}</p>` : ''}
-  </div>
-  <div
-    data-ref="emptyDataStateButtons"
-    class="${EMPTY_DATA_STATE_CLASS_NAME}__buttons${buttons?.length && buttons.length > 0 ?
-  ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
-  : ''}"
-  >${!isLoading && buttons?.length && buttons.length > 0 ?
-    buttons.map(button =>
-      `<button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>`).join('')
-    : ''}</div>`;
+/**
+ * The resolved `message` content.
+ */
+type MessageContent = { title?: string, description?: string, buttons?: MessageButton[] };
+
+const templateContent = ({ title, description, buttons }: MessageContent, isLoading = false): TemplateSpec[] => {
+  const hasButtons = !!buttons?.length;
+
+  return [
+    isLoading && {
+      tag: 'div',
+      className: `${EMPTY_DATA_STATE_CLASS_NAME}__spinner`,
+      attrs: { 'aria-hidden': 'true' },
+    },
+    {
+      tag: 'div',
+      className: `${EMPTY_DATA_STATE_CLASS_NAME}__content`,
+      children: [
+        title ? {
+          tag: 'h2', className: `${EMPTY_DATA_STATE_CLASS_NAME}__title`, text: htmlToPlainText(title),
+        } : null,
+        description ? {
+          tag: 'p', className: `${EMPTY_DATA_STATE_CLASS_NAME}__description`, text: htmlToPlainText(description),
+        } : null,
+      ],
+    },
+    {
+      tag: 'div',
+      ref: 'emptyDataStateButtons',
+      className: `${EMPTY_DATA_STATE_CLASS_NAME}__buttons${
+        hasButtons ? ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons` : ''}`,
+      children: !isLoading && hasButtons ? buttons!.map(button => ({
+        tag: 'button',
+        className: `ht-button ht-button--${resolveButtonType(button.type)}`,
+        text: htmlToPlainText(button.text),
+      })) : [],
+    },
+  ].filter(Boolean) as TemplateSpec[];
 };
 
 /**
@@ -110,10 +147,21 @@ function computeEmptyDataStateHeight(view: ViewInstance, cols: number, headerCol
     } else {
       height = view.hot.getTableHeight();
     }
-  } else if (headerCols > 0 && cols > 0) {
-    height = view.getViewportHeight() - scrollbarSize;
-  } else if (headerCols > 0 && cols === 0) {
-    height = view.getWorkspaceHeight() - scrollbarSize;
+  } else if (headerCols > 0) {
+    // The workspace and the viewport are measured on the container that clips the grid, which is
+    // taller than a `height: 'auto'` grid when it holds more than the grid. The overlay must not
+    // reach past the root's own box. A root with no box (hidden) has nothing to cap against.
+    const rootHeight = view.hot.getTableHeight();
+    const measured = cols > 0 ? view.getViewportHeight() : view.getWorkspaceHeight();
+
+    height = measured - scrollbarSize;
+
+    if (rootHeight > 0) {
+      const headerHeight = cols > 0 ? view.getColumnHeaderHeight() : 0;
+
+      // The root's box includes a horizontal scrollbar, which the overlay must leave uncovered.
+      height = Math.min(height, Math.max(0, rootHeight - headerHeight - scrollbarSize));
+    }
   }
 
   return height;
@@ -173,7 +221,7 @@ export class EmptyDataStateUI {
       return;
     }
 
-    const elements = html`${TEMPLATE}`;
+    const elements = buildTemplate(TEMPLATE, this.#rootDocument);
 
     this.#refs = elements.refs;
 
@@ -252,9 +300,7 @@ export class EmptyDataStateUI {
   updateContent(message: string | Record<string, unknown>, isLoading = false) {
     const { emptyDataStateElement, emptyDataStateInner } = this.#refs!;
 
-    let content: {
-      title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }>
-    };
+    let content: MessageContent;
 
     if (typeof message === 'string') {
       content = {
@@ -264,11 +310,13 @@ export class EmptyDataStateUI {
       content = {
         title: message?.title as string | undefined,
         description: message?.description as string | undefined,
-        buttons: message?.buttons as Array<{ type: string, text: string, callback?: Function }> | undefined,
+        buttons: message?.buttons as MessageButton[] | undefined,
       };
     }
 
-    const template = html`${templateContent(content, isLoading)}`;
+    const template = buildTemplate(
+      templateContent(content, isLoading), this.#rootDocument
+    );
 
     if (isLoading) {
       addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--loading`);
@@ -282,7 +330,7 @@ export class EmptyDataStateUI {
 
     this.#refs = { ...this.#refs, ...template.refs };
 
-    emptyDataStateInner.innerHTML = '';
+    empty(emptyDataStateInner);
     emptyDataStateInner.appendChild(template.fragment);
 
     if (!isLoading && content.buttons?.length && content.buttons.length > 0) {

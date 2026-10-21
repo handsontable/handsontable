@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the `multiselect` cell type not showing a dropdown indicator and not opening its list on a single click, unlike the `autocomplete` and `dropdown` cell types.",
+  "type": "fixed",
+  "issueOrPR": 13316,
+  "breaking": false,
+  "framework": "none"
+}

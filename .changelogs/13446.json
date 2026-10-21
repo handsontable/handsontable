@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a custom renderer that caches per cell element missing its cache on every vertical scroll step, since 18.0 repainted the stationary elements in place.",
+  "type": "fixed",
+  "issueOrPR": 13446,
+  "breaking": false,
+  "framework": "none"
+}

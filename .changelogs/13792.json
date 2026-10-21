@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed Shift+Arrow on a column-header or row-header selection jumping to the edge of a merged cell it crosses, instead of extending the selection by one column or row.",
+  "type": "fixed",
+  "issueOrPR": 13792,
+  "breaking": false,
+  "framework": "none"
+}

@@ -14,7 +14,7 @@ defaults:
 jobs:
   delete-preview-on-pull-request:
     name: Delete Cloudflare Pages previews
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
@@ -65,3 +65,51 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CF_PROJECT_NAME: handsontable-docs-staging
+
+  purge-visual-screenshots:
+    name: Purge visual screenshots
+    # Same-repo only. A fork or Dependabot run gets no secrets, so `aws s3 rm`
+    # would hard-fail -- and it would be a no-op anyway, because the credentialed
+    # publish steps in visual.yml are themselves same-repo-guarded and
+    # compare-fork.mjs never writes to R2, so no `pr-<n>/` prefix exists. One
+    # exception: a human pushing to a Dependabot branch flips the actor and
+    # re-enables the publish, yet Dependabot closes its own PR, so that tree is
+    # left to the 30-day R2 lifecycle rule.
+    if: github.event_name == 'pull_request'
+      && (github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-26.04
+    defaults:
+      run:
+        working-directory: .
+    env:
+      R2_BUCKET_NAME: handsontable-visual
+    steps:
+      # The AWS CLI ships on the runner image. `wrangler r2 object delete` has no
+      # recursive mode, so the S3 API is the practical way to drop a prefix.
+      # Two prefixes: the core suite's `pr-<n>/` and the docs suite's
+      # `docs/pr-<n>/` (the docs-visual-run action publishes the Playwright
+      # report and manifest there). Removing a prefix with nothing under it is
+      # a no-op, so an unlabeled pull request that never ran the docs suite
+      # costs nothing here.
+      - name: Delete this pull request's screenshots from R2
+        # Context values go through `env:` rather than into the script body, the way
+        # every other R2 step in this repo does it. The pull request number is a
+        # GitHub-assigned integer so nothing here is exploitable — the point is that
+        # the pattern stays greppable, which is what the fork-guard and shell-safety
+        # conventions rely on. `R2_ENDPOINT` moves with it: five sibling steps
+        # (visual.yml, docs-visual-run) already name it, and this was the only place
+        # still building the URL inline.
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          aws s3 rm "s3://$R2_BUCKET_NAME/pr-$PR_NUMBER/" \
+            --recursive \
+            --endpoint-url "$R2_ENDPOINT"
+          aws s3 rm "s3://$R2_BUCKET_NAME/docs/pr-$PR_NUMBER/" \
+            --recursive \
+            --endpoint-url "$R2_ENDPOINT"

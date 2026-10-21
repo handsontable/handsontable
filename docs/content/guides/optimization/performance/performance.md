@@ -1,20 +1,21 @@
 ---
 type: how-to
 title: Performance
-metaTitle: Performance - JavaScript Data Grid | Handsontable
+metaTitle: Performance | Handsontable DataGrid for JavaScript
 description: Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 permalink: /performance
 canonicalUrl: /performance
 tags:
   - speed
 react:
-  metaTitle: Performance - React Data Grid | Handsontable
+  metaTitle: Performance | Handsontable DataGrid for React
 angular:
-  metaTitle: Performance - Angular Data Grid | Handsontable
+  metaTitle: Performance | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Performance - Vue Data Grid | Handsontable
+  metaTitle: Performance | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Optimization
+menuTag: updated
 ---
 Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 
@@ -22,9 +23,59 @@ Boost your grid's performance by setting a constant column size, suspending rend
 
 ## Overview
 
-Handsontable performs multiple calculations to display the grid properly. The most demanding actions are performed on load, change, and scroll events. Every single operation decreases the performance, but most of them are unavoidable.
+Handsontable DataGrid performs multiple calculations to display the grid properly. The most demanding actions are performed on load, change, and scroll events. Every single operation decreases the performance, but most of them are unavoidable.
 
-To measure Handsontable's execution times in various configurations, we use our own library called [Performance Lab](https://github.com/handsontable/performance-lab). Some tests have shown that there are methods that may potentially boost the performance of your application. These only work in certain cases, but we hope they can be successfully applied to your app as well.
+The optimizations on this page come from measuring Handsontable's execution times in various configurations. Each one applies only in certain cases. Check which ones fit your application. To see how those measurements work, browse the [performance test suite](https://github.com/handsontable/handsontable/tree/develop/performance-tests) in the Handsontable repository. It runs scripted interactions in a real browser and records the timings.
+
+## Measure render performance in the console
+
+To check how many times the grid renders and how long each render takes, log it from the [`beforeRender`](@/api/hooks.md#beforerender) and [`afterRender`](@/api/hooks.md#afterrender) hooks instead of reading a generic browser profiler. This logs one line per render cycle directly in your browser console, scoped to Handsontable. Note that these hooks don't fire on scroll, since scrolling doesn't trigger a full render.
+
+::: only-for react
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+:::
+
+::: only-for angular
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+:::
+
+::: only-for vue
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. Use a template ref on the `HotTable` component and read its `hotInstance` property.
+
+For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
+:::
+
+```js
+let renderCount = 0;
+let renderStart = 0;
+
+hot.addHook('beforeRender', () => {
+  renderStart = performance.now();
+});
+
+hot.addHook('afterRender', () => {
+  renderCount += 1;
+  console.log(`Render #${renderCount} took ${(performance.now() - renderStart).toFixed(2)} ms`);
+});
+```
+
+For per-cell timing, pair the [`beforeRenderer`](@/api/hooks.md#beforerenderer) and [`afterRenderer`](@/api/hooks.md#afterrenderer) hooks instead - they run once for every rendered cell.
 
 ## Set constant row and column sizes
 
@@ -111,7 +162,7 @@ Changing your background, font colors, etc., shouldn't lower the performance. Ho
 
 ## Avoid the `cells` option when possible
 
-The [`cells`](@/api/options.md#cells) option is a function invoked before each of Handsontable's [rendering cycles](@/guides/optimization/batch-operations/batch-operations.md). Because it runs on every render for every visible cell, even a small amount of work inside it adds up quickly and can noticeably slow down the grid.
+The [`cells`](@/api/options.md#cells) option is a function invoked before each of Handsontable's [rendering cycles](@/guides/optimization/rendering/rendering.md). Because it runs on every render for every visible cell, even a small amount of work inside it adds up quickly and can noticeably slow down the grid.
 
 Prefer lighter alternatives when they meet your needs:
 
@@ -120,6 +171,88 @@ Prefer lighter alternatives when they meet your needs:
 - [`setCellMeta()`](@/api/core.md#setcellmeta) - updates a single cell's metadata imperatively, without re-evaluating every cell.
 
 Use the [`cells`](@/api/options.md#cells) option only if the above alternatives can't express the logic you need.
+
+## Apply large custom borders progressively
+
+By default, Handsontable builds the whole [`customBorders`](@/api/options.md#customborders) configuration before the first render. A very large configuration can delay the initial paint.
+
+If your initial configuration borders thousands of cells or more, set [`customBordersProgressive`](@/api/options.md#custombordersprogressive) to `true`. The grid renders first, without the borders, and the borders are applied in background batches. This applies when the `customBorders` array is set at initialization or replaced with `updateSettings()`. The option is opt-in (the default is `false`) and available since 18.1.0.
+
+When you replace the array with `updateSettings()`, the borders that are already drawn stay visible while the new ones are applied. Each cell switches to its new border as soon as that border is applied. A border that the new configuration no longer contains disappears when the load ends. A structural change, such as inserting a row, ends the load early. While the load runs, the Borders context menu and `setBorders()` work on the new configuration, which does not hold the older borders yet.
+
+Progressive application splits the work by `customBorders` entry, but the cost depends on the number of bordered cells. An entry with a `range` is applied in one batch, so a single very large range is not split and can still block rendering.
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(obj, {
+  customBorders: largeBorderConfig,
+  customBordersProgressive: true,
+});
+```
+
+:::
+
+::: only-for react
+
+```js
+<HotTable
+  customBorders={largeBorderConfig}
+  customBordersProgressive={true}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  customBorders: largeBorderConfig,
+  customBordersProgressive: true,
+};
+```
+
+```html
+<hot-table [settings]="settings"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  customBorders: largeBorderConfig,
+  customBordersProgressive: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+To change the number of `customBorders` entries applied per batch, pass an object. The unit is entries, not cells, and the default is `5000`:
+
+```js
+customBordersProgressive: { chunkSize: 5000 },
+```
+
+With progressive application, [`getBorders()`](@/api/customBorders.md#getborders) and the border cell meta may be incomplete until the [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires. The hook also fires once, synchronously, when progressive application is off.
+
+```js
+afterCustomBordersUpdate() {
+  // every custom border is now applied
+},
+```
+
+Read more:
+
+- [`customBordersProgressive`](@/api/options.md#custombordersprogressive)
+- [Apply borders progressively for large configurations](@/guides/cell-features/formatting-cells/formatting-cells.md#apply-borders-progressively-for-large-configurations)
 
 ## Suspend rendering
 
@@ -189,6 +322,7 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 
 <div class="boxes-list">
 
+- [Understanding rendering](@/guides/optimization/rendering/rendering.md)
 - [Batch operations](@/guides/optimization/batch-operations/batch-operations.md)
 - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
@@ -221,6 +355,8 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 - [`cells`](@/api/options.md#cells)
 - [`colWidths`](@/api/options.md#colwidths)
 - [`columns`](@/api/options.md#columns)
+- [`customBorders`](@/api/options.md#customborders)
+- [`customBordersProgressive`](@/api/options.md#custombordersprogressive)
 - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
 - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
 

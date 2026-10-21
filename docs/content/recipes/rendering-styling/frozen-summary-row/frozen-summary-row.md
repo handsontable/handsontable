@@ -1,6 +1,6 @@
 ---
 title: Frozen summary row
-metaTitle: Frozen summary row recipe - JavaScript Data Grid | Handsontable
+metaTitle: Frozen summary row recipe | Handsontable DataGrid for JavaScript
 description: Pin a read-only totals row at the bottom with fixedRowsBottom, recalculate on afterChange, and style it with the cells callback.
 permalink: /recipes/rendering-styling/frozen-summary-row
 canonicalUrl: /recipes/rendering-styling/frozen-summary-row
@@ -11,11 +11,11 @@ tags:
   - fixed rows
   - summary
 react:
-  metaTitle: Frozen summary row recipe - React Data Grid | Handsontable
+  metaTitle: Frozen summary row recipe | Handsontable DataGrid for React
 angular:
-  metaTitle: Frozen summary row recipe - Angular Data Grid | Handsontable
+  metaTitle: Frozen summary row recipe | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Frozen summary row recipe - Vue Data Grid | Handsontable
+  metaTitle: Frozen summary row recipe | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Rendering and styling
 type: how-to
@@ -65,7 +65,7 @@ This recipe pins a single **summary** row to the bottom of the grid so it stays 
 
 **Difficulty:** Intermediate
 **Time:** ~20 minutes
-**Libraries:** None (core Handsontable only)
+**Libraries:** None (core Handsontable DataGrid only)
 
 ## What you will build
 

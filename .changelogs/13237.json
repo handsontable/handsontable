@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed how a clipboard with rows of unequal length is pasted: it now pastes as wide as its widest row, a shorter row empties the cells it covers, content repeating into a larger selection repeats on that width, and a merged cell reaching past the last column is trimmed to fit.",
+  "type": "changed",
+  "issueOrPR": 13237,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the grid appending rows to the source data when a filter was applied right after removing rows while a cell editor was open.",
+  "type": "fixed",
+  "issueOrPR": 13332,
+  "breaking": false,
+  "framework": "none"
+}

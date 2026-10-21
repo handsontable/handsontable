@@ -8,6 +8,7 @@ import { isLeftClick, isRightClick, isTouchEvent } from '../../helpers/dom/event
 import { warn } from '../../helpers/console';
 import {
   ACTIVE_HEADER_TYPE,
+  COLUMN_TYPE,
   HEADER_TYPE,
 } from '../../selection';
 import { BasePlugin } from '../base';
@@ -17,8 +18,10 @@ import { createColumnArrangementAdapter } from './stateManager/columnArrangement
 import type { HeaderNodeData } from './stateManager/headersTree';
 import type { ColumnDropMode, HeaderVisibility } from './stateManager/utils';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
+import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
+import { getEndOverlayHeaders } from '../../utils/endOverlayHeaders';
 
 /**
  * A single configured nested header. Declares the header label and how it spans and behaves.
@@ -66,6 +69,32 @@ export type NestedHeader = string | number | NestedHeaderSettings;
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
+
+/**
+ * The header group membership a column move left behind, as `NestedHeaders#captureState()` records it.
+ */
+interface MembershipState {
+  readonly version: number;
+  /**
+   * The state manager's config version when the overrides were recorded. Overrides from another
+   * `nestedHeaders` configuration name columns and groups of that one.
+   */
+  readonly configVersion: number;
+  readonly overrides: ReadonlyArray<readonly [number, ReadonlyArray<readonly [number, number]>]>;
+}
+
+/**
+ * Tells whether a value is a membership state `NestedHeaders#captureState()` recorded.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
+function isMembershipState(value: unknown): value is MembershipState {
+  return typeof value === 'object' && value !== null &&
+    'version' in value && typeof value.version === 'number' &&
+    'configVersion' in value && typeof value.configVersion === 'number' &&
+    'overrides' in value && Array.isArray(value.overrides);
+}
 
 /**
  * @plugin NestedHeaders
@@ -333,6 +362,13 @@ export class NestedHeaders extends BasePlugin {
    */
   #isColumnsSelectionInProgress = false;
   /**
+   * The selection layer present when the pointer went down. An earlier hook can replace that layer
+   * before `afterOnCellMouseDown` (a Ctrl click on a sortable header does). The same object means
+   * the layer was already there, so the click adds a layer. Coordinates alone cannot tell that
+   * apart from a rewrite of the same columns.
+   */
+  #selectionLayerAtPress: CellRange | null = null;
+  /**
    * Holds the columns to be selected when the pointer moves over a nested header during a drag. The selection
    * is applied in the `afterOnCellMouseOver` hook so that it stays gated by `stopImmediatePropagation` called
    * in a `beforeOnCellMouseOver` listener - mirroring how the mouse-down path applies its selection in
@@ -480,7 +516,7 @@ export class NestedHeaders extends BasePlugin {
 
     if (this.enabled) {
       // Derive tree colspan / isHidden state from the current hiding map. This covers columns
-      // that were already hidden before the plugin initialised (e.g. HiddenColumns configured
+      // that were already hidden before the plugin initialized (e.g. HiddenColumns configured
       // together with nestedHeaders). Future changes are handled by #onColumnIndexMapperCacheUpdated.
       this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
     }
@@ -505,10 +541,68 @@ export class NestedHeaders extends BasePlugin {
     this.#stateManager.clear();
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
+    this.#selectionLayerAtPress = null;
     removeClass(this.hot.rootElement, 'htHasRowspanHeaders');
     this.ghostTable.clear();
 
     super.disablePlugin();
+  }
+
+  /**
+   * Returns the header group membership column moves recorded, for UndoRedo. When it did not change
+   * since the previous capture, the previous state itself is returned.
+   *
+   * @private
+   * @param {*} previous The value the previous capture returned.
+   * @returns {object}
+   */
+  captureState(previous: unknown): unknown {
+    const version = this.#stateManager.getMembershipOverridesVersion();
+
+    if (isMembershipState(previous) && previous.version === version) {
+      return previous;
+    }
+
+    return {
+      version,
+      configVersion: this.#stateManager.getConfigVersion(),
+      overrides: this.#stateManager.exportMembershipOverrides(),
+    };
+  }
+
+  /**
+   * The group membership changes only with a column move, insertion or removal, or a new
+   * `nestedHeaders` configuration. The UndoRedo check of a `columns` settings update drops a step
+   * that moved, inserted or removed columns on its own, and a configuration names headers, not
+   * fields – so the membership itself never makes a step unsafe to undo.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getStateColumns(): readonly number[] {
+    return [];
+  }
+
+  /**
+   * Puts back the header group membership a `captureState()` call recorded and derives the headers
+   * from it. The column order is already restored by then. Overrides recorded under another
+   * `nestedHeaders` configuration are not put back, but the headers are still derived again, for
+   * the restored column order.
+   *
+   * @private
+   * @param {*} state The recorded state.
+   */
+  restoreState(state: unknown): void {
+    if (!isMembershipState(state)) {
+      return;
+    }
+
+    if (state.configVersion === this.#stateManager.getConfigVersion()) {
+      this.#stateManager.importMembershipOverrides(state.overrides);
+    }
+
+    this.#stateManager.rebuildState();
+    this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
   }
 
   /**
@@ -586,6 +680,19 @@ export class NestedHeaders extends BasePlugin {
           removeClass(cornerChild, 'hiddenHeader');
         }
       }
+
+      // The inline-end clones render only the last columns, so their cells do not line up with the
+      // master's by position and are cleared on their own.
+      getEndOverlayHeaders(this.hot).forEach((endHeaders) => {
+        const endLevel = endHeaders.childNodes[i];
+
+        endLevel?.childNodes.forEach((endChild) => {
+          (endChild as HTMLElement).removeAttribute('colspan');
+          (endChild as HTMLElement).removeAttribute('rowspan');
+          (endChild as HTMLElement).style.display = '';
+          removeClass(endChild as HTMLElement, 'hiddenHeader');
+        });
+      });
     }
   }
 
@@ -594,6 +701,9 @@ export class NestedHeaders extends BasePlugin {
    */
   headerRendererFactory(headerLevel: number) {
     const fixedColumnsStart = this.hot.view._wt.getSetting('fixedColumnsStart') as number;
+    const fixedColumnsEnd = (this.hot.view._wt.getSetting('fixedColumnsEnd') as number | undefined) ?? 0;
+    const totalColumns = this.hot.view._wt.getSetting('totalColumns') as number;
+    const firstEndColumn = fixedColumnsEnd > 0 ? totalColumns - fixedColumnsEnd : Infinity;
 
     return (renderedColumnIndex: number, TH: HTMLTableCellElement) => {
       const { columnIndexMapper } = this.hot;
@@ -612,16 +722,18 @@ export class NestedHeaders extends BasePlugin {
       removeClass(TH, 'htRowspanHeader');
       removeClass(TH, 'htRowspanBottomLevel');
 
+      let groupOriginColumn = visualColumnIndex;
       const rendererHeaderSettings: Partial<HeaderNodeData> =
         this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? {};
       const {
         colspan,
-        rowspan,
         isHidden,
         isPlaceholder,
         isRowspanPlaceholder,
-        headerClassNames,
       } = rendererHeaderSettings;
+      // The settings the cell is drawn from: its own, or the origin group's for an end continuation cell.
+      let groupSettings = rendererHeaderSettings;
+      let isEndContinuation = false;
 
       if (isRowspanPlaceholder) {
         addClass(TH, 'hiddenHeader');
@@ -630,15 +742,33 @@ export class NestedHeaders extends BasePlugin {
       } else if (isPlaceholder || isHidden) {
         addClass(TH, 'hiddenHeader');
 
+        // A group that starts before the end band and reaches into it has no header cell of its own on the
+        // end clones. The first end column carries the rest of it (mirrors a group that starts in the
+        // start band and reaches past it).
+        if (isPlaceholder && !isHidden && renderedColumnIndex === firstEndColumn && this.#isEndOverlayHeader(TH)) {
+          const continuation = this.#renderEndGroupContinuation(
+            TH, headerLevel, visualColumnIndex, renderedColumnIndex
+          );
+
+          if (continuation) {
+            groupOriginColumn = continuation.originColumn;
+            groupSettings = continuation.originSettings;
+            isEndContinuation = true;
+          }
+        }
+
       } else {
-        this.#applyColspan(TH, colspan, visualColumnIndex, renderedColumnIndex, fixedColumnsStart);
-        this.#applyRowspan(TH, rowspan, headerLevel);
+        this.#applyColspan(TH, colspan, visualColumnIndex, renderedColumnIndex, fixedColumnsStart, firstEndColumn);
+        this.#applyRowspan(TH, groupSettings.rowspan, headerLevel);
       }
 
+      // A continuation cell shows the label of the group's origin column, but it is rendered for the column it
+      // sits on: `TableView#updateCellHeader` maps the column to a rendered index of the clone, and the origin
+      // column is not in the end clone (an update of an existing cell would then draw an empty label).
       this.hot.view.appendColHeader(
         visualColumnIndex,
         TH,
-        (colIndex: number, level: number) => this.getColumnHeaderValue(colIndex, level),
+        (_colIndex: number, level: number) => this.getColumnHeaderValue(groupOriginColumn, level),
         headerLevel,
       );
 
@@ -646,13 +776,14 @@ export class NestedHeaders extends BasePlugin {
       // to the cells (the one whose bottom edge reaches the last header row). Upper-level headers -
       // group parents, or single-column headers stacked above - would point at an internal or
       // duplicated boundary, so strip the indicator from every header that does not touch the cells.
-      const reachesCells = headerLevel + (rowspan ?? 1) === this.getLayersCount();
+      const reachesCells = headerLevel + (groupSettings.rowspan ?? 1) === this.getLayersCount();
 
       if (!reachesCells) {
         removeClass(TH, ['beforeHiddenColumn', 'afterHiddenColumn']);
       }
 
-      if (!isPlaceholder && !isHidden && !isRowspanPlaceholder) {
+      if ((!isPlaceholder && !isHidden && !isRowspanPlaceholder) || isEndContinuation) {
+        const { headerClassNames } = groupSettings;
         const innerHeaderDiv = TH.querySelector('div.relative') as HTMLElement;
 
         if (innerHeaderDiv && headerClassNames && headerClassNames.length > 0) {
@@ -665,6 +796,55 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * Checks whether the header cell belongs to one of the clones that render the `fixedColumnsEnd` columns.
+   */
+  #isEndOverlayHeader(TH: HTMLTableCellElement): boolean {
+    return getEndOverlayHeaders(this.hot).some(thead => thead.contains(TH));
+  }
+
+  /**
+   * Renders the part of a group header that lies in the end band when the group starts before it.
+   * Returns the group's origin column and settings, or `undefined` when the cell is not such a continuation.
+   */
+  #renderEndGroupContinuation(
+    TH: HTMLTableCellElement,
+    headerLevel: number,
+    visualColumnIndex: number,
+    renderedColumnIndex: number,
+  ): { originColumn: number, originSettings: Partial<HeaderNodeData> } | undefined {
+    const { columnIndexMapper } = this.hot;
+    const originColumn = this.#stateManager.findLeftMostColumnIndex(headerLevel, visualColumnIndex);
+
+    if (originColumn === visualColumnIndex) {
+      return undefined;
+    }
+
+    const originSettings: Partial<HeaderNodeData> =
+      this.#stateManager.getHeaderSettings(headerLevel, originColumn) ?? {};
+    const originRendered = columnIndexMapper.getRenderableFromVisualIndex(originColumn);
+
+    if (originRendered === null || !originSettings.colspan || originSettings.isHidden) {
+      return undefined;
+    }
+
+    const rest = originRendered + originSettings.colspan - renderedColumnIndex;
+
+    if (rest < 1) {
+      return undefined;
+    }
+
+    removeClass(TH, 'hiddenHeader');
+
+    if (rest > 1) {
+      TH.setAttribute('colspan', String(rest));
+    }
+
+    this.#applyRowspan(TH, originSettings.rowspan, headerLevel);
+
+    return { originColumn, originSettings };
+  }
+
+  /**
    * Applies colspan attribute and related CSS classes to a header cell.
    */
   #applyColspan(
@@ -673,6 +853,7 @@ export class NestedHeaders extends BasePlugin {
     visualColumnIndex: number,
     renderedColumnIndex: number,
     fixedColumnsStart: number,
+    firstEndColumn = Infinity,
   ) {
     if (colspan === undefined || colspan <= 1) {
       return;
@@ -684,6 +865,11 @@ export class NestedHeaders extends BasePlugin {
     const isTopOverlay = wtOverlays.topOverlay?.clone?.wtTable.THEAD?.contains(TH);
 
     if (isTopOverlay && visualColumnIndex < fixedColumnsStart) {
+      addClass(TH, 'hiddenHeaderText');
+    }
+
+    // The end clones show the label of a group that reaches into the end band, so the top overlay hides it.
+    if (isTopOverlay && renderedColumnIndex + colspan > firstEndColumn) {
       addClass(TH, 'hiddenHeaderText');
     }
 
@@ -940,7 +1126,11 @@ export class NestedHeaders extends BasePlugin {
   };
 
   /**
-   * Adjusts the column highlight start index and width to align with the nested header spanning configuration.
+   * Adjusts the column highlight start index and width to align with the nested header spanning
+   * configuration. Redirects a non-root (`hiddenHeader`) column onto the group's visible origin `<th>`
+   * for `HEADER_TYPE` (header-selection highlight) and `COLUMN_TYPE` (the `currentColClassName`
+   * row/column highlight) alike, since both can resolve to a group-level header cell once the
+   * selection's header extent spans more than the leaf level.
    */
   #onBeforeHighlightingColumnHeader = (
     visualColumn: number, headerLevel: number,
@@ -962,7 +1152,7 @@ export class NestedHeaders extends BasePlugin {
       colspan = 1,
     }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(headerLevel, visualColumn) ?? {};
 
-    if (selectionType === HEADER_TYPE) {
+    if (selectionType === HEADER_TYPE || selectionType === COLUMN_TYPE) {
       if (!isRoot) {
         return headerNodeData.columnIndex as number;
       }
@@ -1029,9 +1219,16 @@ export class NestedHeaders extends BasePlugin {
     event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
     controller: { column: boolean }
   ) => {
+    // A release outside the grid never reaches a cell mouseup, so the previous drag flag
+    // would still be set. Every press starts clean. The header's after hook sets it again.
+    this.#isColumnsSelectionInProgress = false;
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
     this.#externallySuppressedColumnSelection = controller.column === true;
+
+    const { selection } = this.hot;
+
+    this.#selectionLayerAtPress = selection.isSelected() ? selection.getSelectedRange().current() ?? null : null;
 
     const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
 
@@ -1044,6 +1241,10 @@ export class NestedHeaders extends BasePlugin {
    * Initiates a column selection when a nested header cell is clicked, selecting all columns covered by the header span.
    */
   #onAfterOnCellMouseDown = (event: MouseEvent, coords: CellCoords) => {
+    const layerAtPress = this.#selectionLayerAtPress;
+
+    this.#selectionLayerAtPress = null;
+
     if (this.#externallySuppressedColumnSelection) {
       this.#externallySuppressedColumnSelection = false;
 
@@ -1061,11 +1262,13 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    this.#focusInitialCoords = { row: coords.row, col: coords.col, clone: () => coords.clone() };
-    this.#isColumnsSelectionInProgress = true;
-
     const { selection } = this.hot;
     const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
+    const anchor = event.shiftKey ? this.#resolveShiftClickAnchor(currentSelection) : null;
+
+    // A Shift+click extends the range, so the focus stays on the header the range started from.
+    this.#focusInitialCoords = anchor ?? { row: coords.row, col: coords.col, clone: () => coords.clone() };
+    this.#isColumnsSelectionInProgress = true;
     let columnsToSelect: [number, number, number] | null = null;
     const {
       columnIndex,
@@ -1075,25 +1278,163 @@ export class NestedHeaders extends BasePlugin {
     const allowRightClickSelection = !selection.inInSelection(coords as unknown as CellCoords);
 
     if (event.shiftKey && currentSelection) {
-      if ((coords.col ?? 0) < (currentSelection.from.col ?? 0)) {
-        columnsToSelect = [currentSelection.getTopEndCorner().col ?? 0, columnIndex, coords.row ?? 0];
-
-      } else if ((coords.col ?? 0) > (currentSelection.from.col ?? 0)) {
-        columnsToSelect = [
-          currentSelection.getTopStartCorner().col ?? 0, columnIndex + origColspan - 1, coords.row ?? 0
-        ];
-
-      } else {
-        columnsToSelect = [columnIndex, columnIndex + origColspan - 1, coords.row ?? 0];
-      }
+      columnsToSelect = anchor ?
+        this.#getColumnsToSelectFromAnchor(anchor, headerNodeData, coords.row) :
+        this.#getColumnsToSelectFromRange(currentSelection, headerNodeData, coords);
 
     } else if (isLeftClick(event) || (isRightClick(event) && allowRightClickSelection) || isTouchEvent(event)) {
       columnsToSelect = [columnIndex, columnIndex + origColspan - 1, coords.row];
     }
 
-    if (columnsToSelect !== null) {
-      selection.selectColumns(...columnsToSelect);
+    if (columnsToSelect === null) {
+      return;
     }
+
+    // Sorting already selected one column of this header.
+    if (!event.shiftKey && this.#ctrlClickRewroteColumnInsideHeader(columnsToSelect, layerAtPress)) {
+      this.hot.deselectCell();
+    }
+
+    selection.selectColumns(...columnsToSelect);
+  };
+
+  /**
+   * Sorting's `selectColumns` writes one full-height column range during the press. On a rowspan
+   * group that range is the leaf, so the columns sit inside the header rather than matching it.
+   *
+   * @param {Array<number>} columnsToSelect The `[startColumn, endColumn, headerRow]` triple this click selects.
+   * @param {CellRange | null} layerAtPress The selection layer at pointer down.
+   * @returns {boolean}
+   */
+  #ctrlClickRewroteColumnInsideHeader(
+    columnsToSelect: [number, number, number],
+    layerAtPress: CellRange | null,
+  ): boolean {
+    if (this.hot.getShortcutManager().isCtrlPressed() === false) {
+      return false;
+    }
+
+    const layers = this.hot.selection.getSelectedRange();
+
+    if (layers.size() !== 1) {
+      return false;
+    }
+
+    const layer = layers.current();
+
+    if (!layer || layer === layerAtPress) {
+      return false;
+    }
+
+    const topRow = Math.min(layer.from.row ?? 0, layer.to.row ?? 0);
+    const bottomRow = Math.max(layer.from.row ?? 0, layer.to.row ?? 0);
+    const startCol = Math.min(layer.from.col ?? 0, layer.to.col ?? 0);
+    const endCol = Math.max(layer.from.col ?? 0, layer.to.col ?? 0);
+    const headerStart = Math.min(columnsToSelect[0], columnsToSelect[1]);
+    const headerEnd = Math.max(columnsToSelect[0], columnsToSelect[1]);
+
+    return topRow < 0 &&
+      bottomRow === this.hot.countRows() - 1 &&
+      startCol >= headerStart &&
+      endCol <= headerEnd;
+  }
+
+  /**
+   * Finds the header cell a Shift+click extends the column range from: the focus of the current range when
+   * it sits in a header row. Without `navigableHeaders` the focus is a cell, so the anchor is the header the
+   * range started from (the first corner of the range) or, when that is a cell too, the bottom header of its
+   * column. Returns `null` when the range does not start under a nested header (a row header or the corner).
+   */
+  #resolveShiftClickAnchor = (currentSelection: CellRange | null | undefined) => {
+    if (!currentSelection) {
+      return null;
+    }
+
+    const { highlight, from } = currentSelection;
+    const source = highlight.row !== null && highlight.row < 0 ? highlight : this.#findRangeStartHeader(from) ?? from;
+
+    if (source.row === null || source.col === null) {
+      return null;
+    }
+
+    // A snapshot, so a later change of the selection cannot move the anchor.
+    const anchor = source.clone();
+
+    anchor.row = Math.min(source.row, -1);
+
+    return this._getHeaderTreeNodeDataByCoords({ row: anchor.row, col: source.col }) ?
+      { row: anchor.row, col: source.col, clone: () => anchor.clone() } :
+      null;
+  };
+
+  /**
+   * Finds the header the current column range started from when the focus does not say (no `navigableHeaders`).
+   * That is the header `#focusInitialCoords` recorded, as long as the first corner of the range still sits
+   * under it: `selectColumns()` rebuilds that corner from the start column and the clicked level, so the corner
+   * alone cannot tell a group from one of its leaf headers.
+   */
+  #findRangeStartHeader = (from: CellCoords): CellCoords | null => {
+    const recorded = this.#focusInitialCoords;
+
+    if (!recorded || from.row === null || from.row >= 0 || from.col === null) {
+      return null;
+    }
+
+    const nodeData = this._getHeaderTreeNodeDataByCoords(recorded);
+
+    if (!nodeData || from.col < nodeData.columnIndex || from.col >= nodeData.columnIndex + nodeData.origColspan) {
+      return null;
+    }
+
+    return recorded.clone();
+  };
+
+  /**
+   * Computes the columns a Shift+click selects when the range is extended from the anchor header: from the
+   * anchor's side of its span to the far side of the clicked header's span.
+   */
+  #getColumnsToSelectFromAnchor = (
+    anchor: { row: number, col: number },
+    clickedNodeData: HeaderNodeData,
+    clickedLevel: number | null,
+  ): [number, number, number] => {
+    // `_getHeaderTreeNodeDataByCoords()` resolved this anchor already.
+    const anchorNodeData = this._getHeaderTreeNodeDataByCoords(anchor)!;
+    const anchorStart = anchorNodeData.columnIndex;
+    const anchorEnd = anchorStart + anchorNodeData.origColspan - 1;
+    const clickedStart = clickedNodeData.columnIndex;
+    const clickedEnd = clickedStart + clickedNodeData.origColspan - 1;
+    const level = clickedLevel ?? 0;
+
+    if (clickedEnd < anchorStart) {
+      return [anchorEnd, clickedStart, level];
+    }
+
+    if (clickedStart > anchorEnd) {
+      return [anchorStart, clickedEnd, level];
+    }
+
+    return [Math.min(anchorStart, clickedStart), Math.max(anchorEnd, clickedEnd), level];
+  };
+
+  /**
+   * Computes the columns a Shift+click selects when the range does not start under a nested header, from the
+   * corners of the current range.
+   */
+  #getColumnsToSelectFromRange = (
+    currentSelection: CellRange,
+    { columnIndex, origColspan }: HeaderNodeData,
+    coords: CellCoords,
+  ): [number, number, number] => {
+    if ((coords.col ?? 0) < (currentSelection.from.col ?? 0)) {
+      return [currentSelection.getTopEndCorner().col ?? 0, columnIndex, coords.row ?? 0];
+    }
+
+    if ((coords.col ?? 0) > (currentSelection.from.col ?? 0)) {
+      return [currentSelection.getTopStartCorner().col ?? 0, columnIndex + origColspan - 1, coords.row ?? 0];
+    }
+
+    return [columnIndex, columnIndex + origColspan - 1, coords.row ?? 0];
   };
 
   /**
@@ -1109,6 +1450,12 @@ export class NestedHeaders extends BasePlugin {
     this.#columnsToSelectOnMouseOver = null;
 
     if (!this.hot.view.isMouseDown() || controller.column) {
+      return;
+    }
+
+    // Whole-column extension belongs to a drag that started on a header. A drag that started
+    // on a cell stays a cell range, the same as a grid without nested headers.
+    if (!this.#isColumnsSelectionInProgress) {
       return;
     }
 

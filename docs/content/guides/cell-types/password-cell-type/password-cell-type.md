@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Password cell type
-metaTitle: Password cell type - JavaScript Data Grid | Handsontable
+metaTitle: Password cell type | Handsontable DataGrid for JavaScript
 description: Use the password cell type to mask confidential values by rendering entered characters as symbols.
 permalink: /password-cell-type
 canonicalUrl: /password-cell-type
 react:
-  metaTitle: Password cell type - React Data Grid | Handsontable
+  metaTitle: Password cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Password cell type - Angular Data Grid | Handsontable
+  metaTitle: Password cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Password cell type - Vue Data Grid | Handsontable
+  metaTitle: Password cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
@@ -213,7 +213,9 @@ When `hashRevealDelay` is set, the editor switches from a native `<input type="p
 
 ## Result
 
-After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field (or `<input type="text">` when `hashRevealDelay` is set). The actual data is stored in plain text in the data source and is not encrypted by Handsontable.
+After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field (or `<input type="text">` when `hashRevealDelay` is set). The actual data is stored in plain text in the data source and is not encrypted by Handsontable DataGrid.
+
+The Filters plugin's **Filter by value** list hashes each unique source value the same way the cell renderer does, including a custom `hashLength`. A custom `hashSymbol` is applied as a string -- the list paints labels as text nodes, so an HTML entity such as `&bull;` appears as the characters `&bull;`, not as a bullet. **Filter by condition** (for example Contains) and the search box at the top of the value list still match the source values, not the hashes.
 
 ## Keyboard shortcuts
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the confirm dialog opening with the keyboard focus left outside it, and the dialog's focus() method doing nothing on that dialog type.",
+  "type": "fixed",
+  "issueOrPR": 13497,
+  "breaking": false,
+  "framework": "none"
+}

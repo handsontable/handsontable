@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an error thrown when a context menu was opened over a row or column resize handle.",
+  "type": "fixed",
+  "issueOrPR": 13319,
+  "breaking": false,
+  "framework": "none"
+}

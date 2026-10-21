@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the NestedRows plugin leaving the collapse buttons and the indentation in the row headers after being disabled.",
+  "type": "fixed",
+  "issueOrPR": 13590,
+  "breaking": false,
+  "framework": "none"
+}

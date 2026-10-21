@@ -1,9 +1,12 @@
 import Handsontable from 'handsontable';
 import type {
   ExportFileSettings,
+  ExportOptions,
   SheetOptions,
   ConditionalFormattingDescriptor,
+  Settings as ExportFileLegacySettings,
 } from 'handsontable/plugins/exportFile';
+import { normalizeExportOptions } from 'handsontable/plugins/exportFile/utils';
 
 // Plugin configuration in GridSettings.
 new Handsontable(document.createElement('div'), {
@@ -14,6 +17,25 @@ new Handsontable(document.createElement('div'), {
 
 // Settings object is assignable to ExportFileSettings.
 const settings: ExportFileSettings = { engines: { xlsx: {} } };
+// A `null` entry selects the built-in engine (e.g. `xlsx: useExcelJs ? ExcelJS : null`).
+const nullEngineSettings: ExportFileSettings = { engines: { xlsx: null } };
+
+new Handsontable(document.createElement('div'), { exportFile: nullEngineSettings });
+new Handsontable(document.createElement('div'), { exportFile: true });
+new Handsontable(document.createElement('div'), { exportFile: false });
+
+// `undefined` is read like `null` at runtime, so an optional engine (`xlsx: props.engine`) compiles.
+const optionalEngine: object | undefined = Math.random() > 0.5 ? {} : undefined;
+const undefinedEngineSettings: ExportFileSettings = { engines: { xlsx: optionalEngine } };
+
+new Handsontable(document.createElement('div'), { exportFile: { engines: { xlsx: undefined } } });
+new Handsontable(document.createElement('div'), { exportFile: undefinedEngineSettings });
+
+// `GridSettings` declares `exportFile`, so a wrong shape no longer falls into the index signature.
+// @ts-expect-error a number is neither a boolean nor the settings object
+new Handsontable(document.createElement('div'), { exportFile: 42 });
+// @ts-expect-error an engine is a module object, not a string
+new Handsontable(document.createElement('div'), { exportFile: { engines: { xlsx: 'a string, not an engine' } } });
 
 const hot = new Handsontable(document.createElement('div'), {});
 const hot2 = new Handsontable(document.createElement('div'), {});
@@ -119,6 +141,23 @@ exportPlugin.downloadFileAsync('xlsx', { headerStyle: null });
 // ─── ExportOptions: engine (per-call override) ────────────────────────────
 exportPlugin.downloadFileAsync('xlsx', { engine: {} });
 exportPlugin.exportAsBlobAsync('xlsx', { engine: {} });
+// A `null` override means "no override", as an absent key does.
+exportPlugin.downloadFileAsync('xlsx', { engine: null });
+exportPlugin.exportAsBlobAsync('xlsx', { engine: null });
+const nullEngineExportOptions: ExportOptions = { engine: null };
+const objectEngineExportOptions: ExportOptions = { engine: {} };
+
+// A variable typed `ExportOptions` is accepted by every export method, and an inline literal with a
+// key the interface does not declare still is too.
+const typedExportOptions: ExportOptions = { filename: 'report', colHeaders: true };
+
+exportPlugin.exportAsBlobAsync('xlsx', nullEngineExportOptions);
+exportPlugin.exportAsBlobAsync('xlsx', objectEngineExportOptions);
+exportPlugin.downloadFileAsync('xlsx', typedExportOptions);
+exportPlugin.exportAsString('csv', typedExportOptions);
+exportPlugin.exportAsBlob('csv', typedExportOptions);
+exportPlugin.downloadFile('csv', typedExportOptions);
+exportPlugin.exportAsBlobAsync('xlsx', { sheetName: 1, nonsense: true });
 
 // ─── sanitizeValues variants ───────────────────────────────────────────────
 
@@ -162,3 +201,17 @@ async function testExportAsBlobAsync(): Promise<void> {
   const blob: Blob = await exportPlugin.exportAsBlobAsync('xlsx');
   const _size: number = blob.size;
 }
+
+// Deprecated alias must stay assignable until 19.0.0.
+const legacySettings: ExportFileLegacySettings = { engines: { xlsx: {} } } as ExportFileSettings;
+
+void legacySettings;
+
+// `normalizeExportOptions` has two overloads: a definite object comes back definite, and a missing
+// options argument (`undefined`) comes back `undefined`. Nothing in `src/` exercises the second one,
+// so pin it here; the first is what makes `ExportDataProvider#setOptions` compile.
+const definiteOptions: { colHeaders?: boolean } = normalizeExportOptions({ colHeaders: true });
+const noOptions: Record<string, unknown> | undefined = normalizeExportOptions(undefined);
+
+void definiteOptions;
+void noOptions;

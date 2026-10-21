@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Improved scrolling smoothness: the `auto` mode of `viewportRowRenderingOffset` and `viewportColumnRenderingOffset` now extends the rendered viewport dynamically in the scroll direction, so consecutive scroll steps reuse already-rendered cells.",
-  "type": "changed",
-  "issueOrPR": 13055,
-  "breaking": false,
-  "framework": "none"
-}

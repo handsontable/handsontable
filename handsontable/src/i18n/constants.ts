@@ -123,9 +123,27 @@ export const PAGINATION_PREV_PAGE = `${PAGINATION_NAMESPACE}prevPage`;
 export const PAGINATION_NEXT_PAGE = `${PAGINATION_NAMESPACE}nextPage`;
 export const PAGINATION_LAST_PAGE = `${PAGINATION_NAMESPACE}lastPage`;
 
+export const SHEETS_BAR_NAMESPACE = 'SheetsBar:';
+export const SHEETS_BAR_SECTION = `${SHEETS_BAR_NAMESPACE}section.sheetsBar`;
+export const SHEETS_BAR_ADD_SHEET = `${SHEETS_BAR_NAMESPACE}addSheet`;
+export const SHEETS_BAR_ALL_SHEETS = `${SHEETS_BAR_NAMESPACE}allSheets`;
+export const SHEETS_BAR_SHEET_MENU = `${SHEETS_BAR_NAMESPACE}sheetMenu`;
+export const SHEETS_BAR_RENAME_SHEET = `${SHEETS_BAR_NAMESPACE}renameSheet`;
+export const SHEETS_BAR_ITEMS_DELETE = `${SHEETS_BAR_NAMESPACE}items.delete`;
+export const SHEETS_BAR_ITEMS_DUPLICATE = `${SHEETS_BAR_NAMESPACE}items.duplicate`;
+export const SHEETS_BAR_ITEMS_RENAME = `${SHEETS_BAR_NAMESPACE}items.rename`;
+export const SHEETS_BAR_ITEMS_MOVE_RIGHT = `${SHEETS_BAR_NAMESPACE}items.moveRight`;
+export const SHEETS_BAR_ITEMS_MOVE_LEFT = `${SHEETS_BAR_NAMESPACE}items.moveLeft`;
+export const SHEETS_BAR_PAGE_PREV = `${SHEETS_BAR_NAMESPACE}pagePrev`;
+export const SHEETS_BAR_PAGE_NEXT = `${SHEETS_BAR_NAMESPACE}pageNext`;
+export const SHEETS_BAR_SHEET_CHANGED = `${SHEETS_BAR_NAMESPACE}announcement.sheetChanged`;
+export const SHEETS_BAR_RENAME_REJECTED = `${SHEETS_BAR_NAMESPACE}announcement.renameRejected`;
+export const SHEETS_BAR_DEFAULT_SHEET_NAME = `${SHEETS_BAR_NAMESPACE}defaultSheetName`;
+
 export const CHECKBOX_RENDERER_NAMESPACE = 'CheckboxRenderer:';
 export const CHECKBOX_CHECKED = `${CHECKBOX_RENDERER_NAMESPACE}checked`;
 export const CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;
+export const CHECKBOX_HEADER_CHECK_ALL = `${CHECKBOX_RENDERER_NAMESPACE}headerCheckAll`;
 
 export const LOADING_NAMESPACE = 'Loading:';
 export const LOADING_TITLE = `${LOADING_NAMESPACE}title`;
@@ -152,3 +170,22 @@ export const DATA_PROVIDER_ERRORS_UPDATE = `${DATA_PROVIDER_NAMESPACE}errors.upd
 export const DATA_PROVIDER_ERRORS_REMOVE = `${DATA_PROVIDER_NAMESPACE}errors.remove`;
 export const DATA_PROVIDER_ERRORS_REQUEST_FAILED = `${DATA_PROVIDER_NAMESPACE}errors.requestFailed`;
 export const DATA_PROVIDER_BUTTONS_REFETCH = `${DATA_PROVIDER_NAMESPACE}buttons.refetch`;
+
+export const ROW_SELECTION_NAMESPACE = 'RowSelection:';
+export const ROW_SELECTION_SELECT_ROW = `${ROW_SELECTION_NAMESPACE}selectRow`;
+export const ROW_SELECTION_SELECT_ALL = `${ROW_SELECTION_NAMESPACE}selectAll`;
+export const ROW_SELECTION_ANNOUNCE_ROW_SELECTED = `${ROW_SELECTION_NAMESPACE}announce.rowSelected`;
+export const ROW_SELECTION_ANNOUNCE_ROW_DESELECTED = `${ROW_SELECTION_NAMESPACE}announce.rowDeselected`;
+export const ROW_SELECTION_ANNOUNCE_COUNT = `${ROW_SELECTION_NAMESPACE}announce.count`;
+export const ROW_SELECTION_MENU_REMOVE = `${ROW_SELECTION_NAMESPACE}menu.removeSelectedRows`;
+export const ROW_SELECTION_MENU_CLEAR = `${ROW_SELECTION_NAMESPACE}menu.clearSelection`;
+
+export const FREEZE_BAR_NAMESPACE = 'FreezeBar:';
+export const FREEZE_BAR_ROWS_TOP = `${FREEZE_BAR_NAMESPACE}rows.top`;
+export const FREEZE_BAR_ROWS_BOTTOM = `${FREEZE_BAR_NAMESPACE}rows.bottom`;
+export const FREEZE_BAR_COLUMNS_START = `${FREEZE_BAR_NAMESPACE}columns.start`;
+export const FREEZE_BAR_COLUMNS_END = `${FREEZE_BAR_NAMESPACE}columns.end`;
+
+export const NESTED_ROWS_NAMESPACE = 'NestedRows:';
+export const NESTED_ROWS_ANNOUNCEMENT_EXPANDED = `${NESTED_ROWS_NAMESPACE}announcement.expanded`;
+export const NESTED_ROWS_ANNOUNCEMENT_COLLAPSED = `${NESTED_ROWS_NAMESPACE}announcement.collapsed`;

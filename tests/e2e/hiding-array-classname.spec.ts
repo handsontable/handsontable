@@ -126,11 +126,19 @@ test.describe('hiding plugins with an array className', () => {
       ]));
     });
 
-    test('normalizes the array to a string on the cells it touches', async () => {
-      // An array always differs from its normalized string, so every cell this hook reads does get
-      // its own `className`. That is the cost of normalizing, and it is why the array is copied
-      // rather than pushed into — see the test above.
-      expect(await grid.hasOwnClassName(HidingArrayClassNamePage.GRID_LEVEL, 2, 0)).toBe(true);
+    test('leaves the cascade and the array shape intact on rows it does not mark', async () => {
+      // Row 2 needs no marker, so the plugin writes nothing and the grid-level array keeps
+      // cascading through the prototype chain. This is the array-path twin of the string-path test
+      // at the bottom of this file, and it only became true once the removal branch stopped
+      // normalizing cells it has no marker on (DEV-2618).
+      //
+      // It matters beyond the meta object: `getUserDefinedMetas()` re-reads `className` at
+      // `updateSettings` time, so an own string written here would permanently replace the user's
+      // array. An array always differs from its normalized string, so the write-on-change guard
+      // alone could never prevent that — only not doing the work can.
+      expect(await grid.hasOwnClassName(HidingArrayClassNamePage.GRID_LEVEL, 2, 0)).toBe(false);
+      expect(await grid.cellMetaClassName(HidingArrayClassNamePage.GRID_LEVEL, 2, 0))
+        .toEqual(HidingArrayClassNamePage.USER_CLASSES);
       expect(await grid.cellClasses(HidingArrayClassNamePage.GRID_LEVEL, 2, 0))
         .toEqual(expect.arrayContaining(HidingArrayClassNamePage.USER_CLASSES));
     });

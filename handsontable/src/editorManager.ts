@@ -2,11 +2,14 @@ import type { HotInstance } from './core/types';
 import type { GridSettings } from './core/settings';
 import type { CellProperties } from './settings';
 import type { default as SelectionManager } from './selection/selection';
+import type { IndexesChangeSource } from './translations/indexMapper';
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
+import { EDITOR_STATE } from './editors/baseEditor';
 import type { BaseEditor } from './editors/baseEditor';
 import EventManager from './eventManager';
+import { colToPropOrIndex } from './helpers/columnProp';
 
 /**
  * Manages the lifecycle of cell editors — opening, closing, and delegating keyboard events to
@@ -56,11 +59,140 @@ class EditorManager {
    */
   declare activeEditor: BaseEditor | undefined;
   /**
-   * Keeps a reference to the cell's properties object.
+   * Cell meta for the current edit cycle. Undefined until the first `prepareEditor()`,
+   * and may be stale afterwards.
    *
-   * @type {object}
+   * @private
+   * @type {CellProperties | undefined}
    */
-  declare cellProperties: CellProperties;
+  declare cellProperties: CellProperties | undefined;
+  /**
+   * Whether a close of an editor stranded on a hidden cell is already pending, either scheduled on
+   * the next tick or waiting on an async validator to settle. Suppresses duplicate work when one
+   * page turn emits the cache-update hook more than once.
+   *
+   * @type {boolean}
+   */
+  #hiddenCellCloseArmed = false;
+  /**
+   * The PHYSICAL row index of the record the active editor was prepared for, or `null` when no
+   * editor is prepared. Captured because the editor itself stores only VISUAL coordinates, which a
+   * trimming index map invalidates without notice.
+   *
+   * @type {number|null}
+   */
+  #editedPhysicalRow: number | null = null;
+  /**
+   * The PHYSICAL column index of the record the active editor was prepared for, or `null` when no
+   * editor is prepared. The column counterpart of `#editedPhysicalRow`.
+   *
+   * @type {number|null}
+   */
+  #editedPhysicalColumn: number | null = null;
+  /**
+   * How many structural-change scopes are currently open. While it is above zero, the
+   * unresolvable-editor discard in `#reconcileEditorWithIndexMaps()` is suspended.
+   *
+   * A structural change emits its cache update before its selection repair – `alter()` before
+   * `selection.shiftRows()`/`shiftColumns()`, `updateData()` before `selection.refresh()` – so in
+   * between the editor legitimately sits on a coordinate that resolves to nothing while a
+   * `prepareEditor()` is still coming. Anything that reconciles inside that span – a plugin
+   * trimming from `afterRemoveRow`, say – would otherwise read the editor as unusable and discard
+   * an edit that was about to commit.
+   *
+   * A DEPTH rather than a flag, because the operations nest: an `alter()` fired from a hook inside
+   * another `alter()` must not lift the outer call's protection when its own scope ends – the
+   * outer selection repair has not run yet (DEV-2739 review).
+   *
+   * The suspension must not outlive the outermost scope: still suspended when a later trimming
+   * change arrives, the discard is skipped and that change's own selection work commits through
+   * the stranded coordinates and APPENDS records – `alter('remove_row', ...)` followed by
+   * `Filters#filter()` in the same task (DEV-2739). "Outlive" means the rest of the CURRENT task,
+   * which is why the pairing has to be a `finally` and cannot be a timer (DEV-2831).
+   *
+   * A structural cache update fired with NO scope open (a caller core does not wrap) gets no
+   * suspension: the next reconcile discards a stranded editor immediately, which loses the pending
+   * edit but can never append – the safe direction.
+   *
+   * @type {number}
+   */
+  #strandDiscardsSuspended = 0;
+  /**
+   * Reacts to a ROW index-map cache update.
+   *
+   * `afterRowSequenceCacheUpdate` is a PUBLIC hook, so `hot.runHooks()` can fire it with no payload
+   * at all. The state defaults to all-false for that case, which routes through reconciliation and
+   * keeps the hidden-cell guard behind it running.
+   *
+   * @param {object} [indexesChangesState] The state object of the index mapper's cache update.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @param {IndexesChangeSource} [indexesChangesState.indexesChangeSource] The sequence change source.
+   */
+  #onRowSequenceCacheUpdate = (indexesChangesState: {
+    indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
+    indexesChangeSource?: IndexesChangeSource;
+  } = { indexesSequenceChanged: false, trimmedIndexesChanged: false }): void => {
+    this.#repairEditor(this.#isStructuralChange(indexesChangesState), indexesChangesState);
+  };
+  /**
+   * Reacts to a COLUMN index-map cache update.
+   *
+   * Kept separate from the row handler so a structural change on one axis cannot route the other
+   * axis's rearrangement into the wrong repair.
+   *
+   * @param {object} [indexesChangesState] The state object of the index mapper's cache update.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   * @param {IndexesChangeSource} [indexesChangesState.indexesChangeSource] The sequence change source.
+   */
+  #onColumnSequenceCacheUpdate = (indexesChangesState: {
+    indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
+    indexesChangeSource?: IndexesChangeSource;
+  } = { indexesSequenceChanged: false, trimmedIndexesChanged: false }): void => {
+    this.#repairEditor(this.#isStructuralChange(indexesChangesState), indexesChangesState);
+  };
+  /**
+   * Determines whether a cache update renumbered the physical index space.
+   *
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {IndexesChangeSource} [indexesChangesState.indexesChangeSource] The sequence change source.
+   * @returns {boolean}
+   */
+  #isStructuralChange(indexesChangesState: {
+    indexesChangeSource?: IndexesChangeSource;
+  }): boolean {
+    return indexesChangesState.indexesChangeSource === 'insert' ||
+      indexesChangesState.indexesChangeSource === 'remove';
+  }
+  /**
+   * Applies the repair one axis's cache update calls for, then lets the hidden-cell guard run.
+   *
+   * The repair runs BEFORE that guard, so it tests `isHidden()` against corrected coordinates rather
+   * than the stale ones the index map just invalidated.
+   *
+   * @param {boolean} isStructuralChange Whether that axis's physical index space was structurally changed.
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   */
+  #repairEditor(isStructuralChange: boolean, indexesChangesState: {
+    indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
+  }): void {
+    // `core.destroy()` tears the manager down and only then force-flushes both mappers, so this is
+    // still reachable afterwards. Every other path in this file guards the same way.
+    if (this.destroyed) {
+      return;
+    }
+
+    if (isStructuralChange) {
+      this.#recaptureEditedRecord();
+    } else {
+      this.#reconcileEditorWithIndexMaps(indexesChangesState);
+    }
+
+    this.#closeEditorWhenCellHidden();
+  }
 
   /**
    * @param {Core} hotInstance The Handsontable instance.
@@ -75,6 +207,8 @@ class EditorManager {
 
     this.hot.addHook('afterDocumentKeyDown', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
     this.hot.addHook('beforeCompositionStart', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
+    this.hot.addHook('afterRowSequenceCacheUpdate', this.#onRowSequenceCacheUpdate);
+    this.hot.addHook('afterColumnSequenceCacheUpdate', this.#onColumnSequenceCacheUpdate);
     this.hot.view._wt.update(
       'onCellDblClick', (event: MouseEvent, coords: { isCell: () => boolean }, _elem: HTMLElement) =>
         this.#onCellDblClick(event, coords)
@@ -91,9 +225,51 @@ class EditorManager {
   }
 
   /**
+   * Opens a structural-change scope: until the matching `resumeStrandDiscards()`, a reconcile that
+   * finds the editor stranded on an unresolvable coordinate tolerates it instead of discarding,
+   * because the operation's own selection repair – `shiftRows()`/`shiftColumns()` for `alter()`,
+   * `selection.refresh()` for `updateData()` – is still coming and may re-derive the editor's
+   * coordinates.
+   *
+   * The scopes are depth-counted, so an `alter()` fired from a hook inside another `alter()`
+   * cannot lift the outer call's protection when its own scope ends.
+   *
+   * **Every caller must pair this with `resumeStrandDiscards()` in a `finally`.** A scope left
+   * open covers the rest of the task, and a trimming change that follows in it skips the discard
+   * and appends records – so the pairing has to survive every exit, not just the ordinary one.
+   * `alter()` alone has four: a `beforeAlter` veto, the `maxRows` guard, the switch's default
+   * `throwWithCause()` and its own tail (DEV-2831).
+   *
+   * There is deliberately NO self-healing timer behind that contract. A zero-delay timeout was
+   * tried and does not work: it runs in the NEXT task, while the `Filters#filter()` that reads
+   * the scope and appends runs in THIS one, so it healed nothing that mattered while scheduling a
+   * timeout per call.
+   */
+  suspendStrandDiscards(): void {
+    this.#strandDiscardsSuspended += 1;
+  }
+
+  /**
+   * Closes one structural-change scope opened by `suspendStrandDiscards()`. When the outermost
+   * scope closes, a trimming change that finds the editor unresolvable discards the pending edit
+   * instead of tolerating it – which is what keeps a `Filters#filter()` following the operation
+   * in the SAME task from committing through the stranded coordinates and appending records
+   * (DEV-2739).
+   */
+  resumeStrandDiscards(): void {
+    this.#strandDiscardsSuspended = Math.max(0, this.#strandDiscardsSuspended - 1);
+  }
+
+  /**
    * Prepare text input to be displayed at given grid cell.
    */
   prepareEditor() {
+    // A new edit cycle always re-arms the hidden-cell guard. Without this the latch is
+    // instance-scoped, so one editor left stuck in `WAITING` with no `postAfterValidate` (a
+    // `beforeChange` that cancels the change, for instance) would disable the guard for the rest
+    // of the instance's life rather than for that one edit.
+    this.#hiddenCellCloseArmed = false;
+
     if (this.activeEditor && this.activeEditor.isWaiting()) {
       this.closeEditor(false, false, (dataSaved: boolean) => {
         if (dataSaved) {
@@ -124,7 +300,9 @@ class EditorManager {
     }
 
     // Getting values using the modified coordinates.
-    this.cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
+    const cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
+
+    this.cellProperties = cellProperties;
 
     if (!this.isCellEditable()) {
       this.clearActiveEditor();
@@ -137,15 +315,23 @@ class EditorManager {
     // Skip the preparation when the cell is not rendered in the DOM. The cell is scrolled out of
     // the table's viewport.
     if (td) {
-      const editorClass = this.hot.getCellEditor(this.cellProperties);
-      const prop = this.hot.colToProp(visualColumnToCheck);
+      const editorClass = this.hot.getCellEditor(cellProperties);
+      // Keeps the editor receiving the column reference it was already given before `colToProp()`
+      // began answering `null`. An unbound column (`{ data: null }`) has always reached `prepare()`
+      // as `null`; its signature declares `string | number`, so the cast keeps that long-standing
+      // mismatch here instead of widening the editor contract in this PR.
+      const prop = colToPropOrIndex(this.hot, visualColumnToCheck) as string | number;
       const originalValue =
         this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
 
       this.activeEditor = getEditorInstance(editorClass, this.hot) as BaseEditor;
       // Using not modified coordinates, as we need to get the table element using selection coordinates.
       // There is an extra translation in the editor for saving value.
-      this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
+      this.activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
+      // Remember which RECORD this edit belongs to. The editor keeps visual coordinates only, and a
+      // trimming map rebinds those to a different record; see `#reconcileEditorWithIndexMaps()`.
+      this.#editedPhysicalRow = this.hot.rowIndexMapper.getPhysicalFromVisualIndex(row);
+      this.#editedPhysicalColumn = this.hot.columnIndexMapper.getPhysicalFromVisualIndex(col);
     }
   }
 
@@ -167,6 +353,13 @@ class EditorManager {
    *                                             when arrow keys are pressed.
    */
   openEditor(newInitialValue: string | null, event: Event, enableFullEditMode = false) {
+    // The stored prepare belongs to the highlight and the meta it was built from. `loadData`
+    // clears the meta cache and leaves both in place, so refresh before the editability check
+    // unless an edit is already on screen.
+    if (!this.activeEditor?.isOpened() && !this.activeEditor?.isWaiting()) {
+      this.prepareEditor();
+    }
+
     if (!this.isCellEditable()) {
       this.clearActiveEditor();
 
@@ -214,7 +407,7 @@ class EditorManager {
    * Close editor, finish editing cell.
    *
    * @param {boolean} restoreOriginalValue If `true`, then closes editor without saving value from the editor into a cell.
-   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
+   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in every selected range.
    * @param {Function} callback The callback function, fired after editor closing.
    */
   closeEditor(restoreOriginalValue = false, isCtrlPressed = false, callback?: Function) {
@@ -229,7 +422,7 @@ class EditorManager {
   /**
    * Close editor and save changes.
    *
-   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
+   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in every selected range.
    */
   closeEditorAndSaveChanges(isCtrlPressed?: boolean) {
     this.closeEditor(false, isCtrlPressed);
@@ -251,11 +444,14 @@ class EditorManager {
    */
   clearActiveEditor() {
     this.activeEditor = undefined;
+    this.#editedPhysicalRow = null;
+    this.#editedPhysicalColumn = null;
   }
 
   /**
    * Checks if the currently selected cell (pointed by selection highlight coords) is editable.
    * Editable cell is when:
+   *   - the highlight is a cell, not a header;
    *   - the cell has defined an editor type;
    *   - the cell is not marked as read-only;
    *   - the cell is not hidden.
@@ -264,27 +460,24 @@ class EditorManager {
    * @returns {boolean}
    */
   isCellEditable() {
-    const selection = this.hot.getSelectedRangeActive();
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-    if (!selection) {
+    // A header is not a cell. Meta from an earlier cell can still be stored here, and
+    // `getCellEditor` would read that cell's `editor`.
+    if (!highlight || highlight.isHeader()) {
       return false;
     }
 
-    const editorClass = this.hot.getCellEditor(this.cellProperties);
-    const { row, col } = selection.highlight;
+    const cellProperties = this.cellProperties;
+    const { row, col } = highlight;
 
-    if (row === null || col === null) {
+    if (row === null || col === null || !cellProperties) {
       return false;
     }
 
-    const {
-      rowIndexMapper,
-      columnIndexMapper
-    } = this.hot;
-    const isCellHidden = rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)) ||
-      columnIndexMapper.isHidden(this.hot.toPhysicalColumn(col));
+    const editorClass = this.hot.getCellEditor(cellProperties);
 
-    if (this.cellProperties.readOnly || !editorClass || isCellHidden) {
+    if (cellProperties.readOnly || !editorClass || this.#isCellHidden(row, col)) {
       return false;
     }
 
@@ -310,11 +503,340 @@ class EditorManager {
       enterMoves.col = -(enterMoves.col ?? 0);
     }
 
-    if (this.hot.selection.isMultiple()) {
+    // `transformStart()` lays a fresh selection, which drops every layer, so it is only right when
+    // there is nothing else selected to move within. `isMultiple()` reads the active layer alone, so
+    // a selection whose focused layer held a single cell took that branch and lost its other layers
+    // - visible since `Ctrl`/`Cmd`+`Enter` began filling them all (DEV-103), but wrong before that
+    // too, because a plain Enter discarded them just as silently.
+    const hasMoreThanOneCellSelected = this.hot.selection.isMultiple() ||
+      (this.hot.getSelectedRange()?.length ?? 0) > 1;
+
+    if (hasMoreThanOneCellSelected) {
       this.selection.transformFocus(enterMoves.row ?? 0, enterMoves.col ?? 0);
     } else {
       this.selection.transformStart(enterMoves.row ?? 0, enterMoves.col ?? 0, true);
     }
+  }
+
+  /**
+   * Checks whether the cell at the given VISUAL coordinates is hidden by a hiding index map
+   * (Pagination's page map, `hiddenRows`, `hiddenColumns`).
+   *
+   * `IndexMapper#isHidden()` is keyed by PHYSICAL index, so both coordinates are converted. The two
+   * index spaces coincide only while no sorting, move or trimming map is active; under
+   * `columnSorting` a raw visual index reads a different row's hidden flag, which would both tear
+   * down an edit on a fully visible cell and miss the hidden cell this check exists for.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @returns {boolean}
+   */
+  #isCellHidden(visualRow: number, visualColumn: number): boolean {
+    return this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(visualRow)) ||
+      this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(visualColumn));
+  }
+
+  /**
+   * Re-derives the edited record after a structural change has renumbered the physical space.
+   *
+   * Runs INSTEAD of the reconciliation, never after it, so the stale captured index is never acted on.
+   *
+   * Inserting or removing rows shifts the physical indexes of everything below, so the index captured
+   * in `prepareEditor()` now addresses a different record – but the editor's VISUAL coordinate came
+   * through intact, because the index mapper moved the visual space with it. So the visual side is
+   * the trustworthy one here, and it is what the record is read back from.
+   *
+   * This never discards. USUALLY core carries the edit across on its own: `alter()` runs
+   * `selection.shiftRows()` after the cache update, and the `prepareEditor()` behind it re-derives
+   * the editor's coordinates and the captured record together. Where that happens, discarding here
+   * would throw away an edit that was about to commit correctly.
+   *
+   * It does not always happen. `shiftRows()` only shifts a range whose outer top-start corner is at
+   * or below the removed row, so a focus moved below that corner – Enter or Tab inside a multi-cell
+   * selection – is left where it was, and `core.ts` only closes the editor when the removed range
+   * covers the HIGHLIGHT. The editor is then stranded past the last row and the commit appends, the
+   * same as it does without this repair. What this method still guarantees in that case is that it
+   * does not make things worse: the captured record is cleared rather than left pointing at whatever
+   * record inherited its index, so no later trim can resolve a lie and rebind onto a live record.
+   */
+  #recaptureEditedRecord(): void {
+    const editor = this.activeEditor;
+
+    if (!editor || (editor.state !== EDITOR_STATE.EDITING && editor.state !== EDITOR_STATE.VIRGIN) ||
+        editor.row === null || editor.col === null) {
+      return;
+    }
+
+    const physicalRow = this.hot.rowIndexMapper.getPhysicalFromVisualIndex(editor.row);
+    const physicalColumn = this.hot.columnIndexMapper.getPhysicalFromVisualIndex(editor.col);
+
+    // A coordinate that no longer resolves means the removal was at or above the edited cell. Leave
+    // the EDITOR alone – `shiftRows()` normally moves the highlight and the `prepareEditor()` behind
+    // it re-derives everything, and discarding here would throw away an edit about to commit
+    // correctly – but drop the captured record, which the renumbering has just invalidated. Where the
+    // re-prepare does happen it re-captures anyway; where it does not, the reconciliation early-exits
+    // on `null` instead of resolving a stale index onto whatever record inherited it.
+    if (physicalRow === null || physicalColumn === null) {
+      this.#editedPhysicalRow = null;
+      this.#editedPhysicalColumn = null;
+
+      return;
+    }
+
+    this.#editedPhysicalRow = physicalRow;
+    this.#editedPhysicalColumn = physicalColumn;
+  }
+
+  /**
+   * Keeps an open editor bound to the RECORD it was opened on when an index map rearranges the
+   * visual index space underneath it.
+   *
+   * Two kinds of change do that. A TRIMMING map (Filters, `trimRows`, `nestedRows`) COLLAPSES the
+   * visual space – the rows below a trimmed row shift up and the row count shrinks. A SEQUENCE change
+   * (`columnSorting`, `manualRowMove`, `manualColumnFreeze`) permutes it. Either way the editor is
+   * left holding the visual coordinates it captured in `prepare()`, and `BaseEditor#saveValue()`
+   * writes straight through them with no bounds check, so the pending edit lands on whichever record
+   * now occupies that visual slot – or, when a trim left the slot past the shortened row count, on
+   * rows that `applyChanges()` APPENDS to the source data to make room for it. Both are silent data
+   * corruption.
+   *
+   * Resolving the stored PHYSICAL index back to a visual one covers every shape with one test: the
+   * record is gone (no visual index – discard), the record moved (rebind – the edit still commits, to
+   * the right record), or nothing moved (no-op). The last branch is what keeps this from firing
+   * spuriously: `BooleanMap#setValues()` emits a change even for a no-op write, so testing "something
+   * changed" alone would tear down unrelated edits.
+   *
+   * A structural change – an inserted or removed row or column – is the one case this reasoning does
+   * NOT cover, because it renumbers the physical space and invalidates the captured index while
+   * leaving the visual coordinate correct. It raises the same flags, so the state object cannot tell
+   * it apart; `#onRowSequenceCacheUpdate()` and its column twin discriminate on the physical index
+   * count and route those to `#recaptureEditedRecord()` instead. Without that split, a grid with any
+   * trimming map registered would, with a sort active, rebind onto the wrong record on
+   * `alter('insert_row_above', ...)`.
+   *
+   * Runs SYNCHRONOUSLY, unlike `#closeEditorWhenCellHidden()`. `Filters#filter()` re-selects the
+   * highlighted column immediately after writing its map, which commits the open editor before any
+   * deferred handler could run. Deferring here would let the corrupting write happen first. Neither
+   * branch writes data, so nothing reaches `setDataAtCell()` inside a cache update still unwinding.
+   *
+   * The discard goes through `cancelChanges()` rather than `finishEditing(true)`, which skips the
+   * render `finishEditing()` appends – but NOT every render: `AutocompleteEditor#discardEditor()`
+   * calls `view.render()` unconditionally, so for the autocomplete family this repaints from inside
+   * `IndexMapper#updateCache()`. That is the same nested repaint the pre-existing `outsideClick`
+   * teardown already performs, and the render reads the caches this update has already rebuilt.
+   *
+   * `cancelChanges()` also bypasses editor-level discard policy – `DropdownEditor#finishEditing()`
+   * rewrites the restore flag – which is harmless here because a discard is what that override would
+   * decide anyway once the edited record is gone from the visual space.
+   *
+   * For a pure trimming update, `Selection` separately snapshots every layer in physical coordinates
+   * before the cache rebuild and restores surviving ranges afterwards. Keeping that operation out of
+   * this manager prevents selection hooks from preparing an editor while the mapper is still
+   * unwinding. It lets editor-specific commit paths, including DropdownEditor and `Ctrl+Enter`, keep
+   * targeting a surviving record that moved because earlier records were trimmed. A range that loses
+   * only part of itself shrinks onto its surviving records instead of being dropped, so the
+   * `Ctrl+Enter` fill still reaches the records the user selected rather than only the layers that
+   * happened to survive the trim intact.
+   *
+   * A sequence permutation is deliberately outside that selection repair. Reordering can make the
+   * records from one rectangular range non-contiguous, which `CellRange` cannot represent without
+   * selecting unrelated records. The editor still follows its own record, but selection-dependent
+   * commit paths retain their existing limitation for sorting and moving.
+   *
+   * An editor a structural change stranded past the last row is discarded here rather than rebound:
+   * its captured record was cleared as unresolvable, and its own coordinates address nothing, so
+   * there is no record left to follow. Discarding is what keeps a following `Filters#filter()` from
+   * committing through those coordinates and appending records.
+   *
+   * A selection with NO open editor is repaired on a different rule, and by a different piece of
+   * code: `Selection` snapshots only while an editor is open, so `core.ts` instead DROPS a selection
+   * a trimming map left pointing at another record (`Selection#deselectIfHighlightStranded()`)
+   * rather than moving it. One shape stays open there, with no editor involved: a trim ABOVE the
+   * highlight that leaves its coordinate in range while shifting the record out from under it.
+   *
+   * An editor parked in `WAITING` is not reconciled: `finishEditing()` has already run `saveValue()`,
+   * so there is nothing left to redirect.
+   *
+   * No core plugin registers a TRIMMING map on the column axis, so that half runs for user-registered
+   * maps only; core plugins do permute the column sequence (`manualColumnMove`, `manualColumnFreeze`)
+   * and the reconciliation follows those.
+   *
+   * @param {object} indexesChangesState The state object of the index mapper's cache update.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Whether the indexes sequence changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Whether the trimmed indexes changed.
+   */
+  #reconcileEditorWithIndexMaps(indexesChangesState: {
+    indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean;
+  }): void {
+    const editor = this.activeEditor;
+    const isEditing = editor?.state === EDITOR_STATE.EDITING;
+    // VIRGIN is a prepared editor that has not taken a keystroke. An index-map change in that
+    // window leaves it on the pre-change coordinates, the same as one that is already typing.
+    const isPrepared = editor?.state === EDITOR_STATE.VIRGIN;
+
+    if ((!indexesChangesState.trimmedIndexesChanged && !indexesChangesState.indexesSequenceChanged) ||
+        !editor || (!isEditing && !isPrepared)) {
+      return;
+    }
+
+    // No captured record means an earlier structural change renumbered it away. The editor's own
+    // coordinates are then the only thing left, so check whether they still address anything: if
+    // they do not, that change stranded the editor past the last row and nothing re-prepared it. A
+    // commit through those coordinates is what `applyChanges()` satisfies by APPENDING records, so
+    // the edit is dropped here rather than at the next keystroke.
+    //
+    // Not while a structural-change scope is open: inside the operation that stranded it the
+    // editor reads as unusable only because the operation's selection repair – `shiftRows()`/
+    // `shiftColumns()` for `alter()`, `selection.refresh()` for `updateData()` – has not run yet,
+    // and the re-prepare behind it may be about to make the coordinates good again.
+    //
+    // Only reached with no captured record. While one exists it is the better guide - it survives a
+    // trim that leaves the editor's own stale coordinates unresolvable, which is the ordinary rebind.
+    if (this.#editedPhysicalRow === null || this.#editedPhysicalColumn === null) {
+      if (this.#strandDiscardsSuspended === 0 &&
+          (this.hot.rowIndexMapper.getPhysicalFromVisualIndex(editor.row!) === null ||
+           this.hot.columnIndexMapper.getPhysicalFromVisualIndex(editor.col!) === null)) {
+        if (isEditing) {
+          editor.cancelChanges();
+        }
+
+        this.clearActiveEditor();
+      }
+
+      return;
+    }
+
+    const visualRow = this.hot.rowIndexMapper.getVisualFromPhysicalIndex(this.#editedPhysicalRow);
+    const visualColumn = this.hot.columnIndexMapper.getVisualFromPhysicalIndex(this.#editedPhysicalColumn);
+
+    if (isPrepared) {
+      // Nothing has been typed, so there is no value to carry and no reason to rebind. Dropping the
+      // reference is the whole repair: the next keystroke finds no active editor and goes back
+      // through `prepareEditor()`, which reads the coordinates, `TD`, `prop`, `originalValue` and
+      // cell meta from the post-change state.
+      if (visualRow !== editor.row || visualColumn !== editor.col) {
+        this.clearActiveEditor();
+      }
+
+      return;
+    }
+
+    // No visual index means the record itself is trimmed. There is nowhere to commit to, so the edit
+    // is dropped rather than written through coordinates that now address a different record.
+    if (visualRow === null || visualColumn === null) {
+      editor.cancelChanges();
+      // Drop the reference too, for the same reason as the prepared case above.
+      this.clearActiveEditor();
+
+      return;
+    }
+
+    editor.row = visualRow;
+    editor.col = visualColumn;
+  }
+
+  /**
+   * Ends an edit when a HIDING index map removes the edited cell from the DOM while the editor is
+   * still open.
+   *
+   * Pagination turning the page, `hiddenRows` and `hiddenColumns` all register a `hiding` map,
+   * which drops the cell from the render while its visual index stays valid. The editor used to
+   * stay open, pinned to its original pixel position over whatever row slid into that spot, still
+   * bound to its original coordinates, and to commit only on a later click - to a row the user
+   * could no longer see.
+   *
+   * This lives in the manager rather than in an editor so that it covers every editor.
+   * `SelectEditor` and `MultiSelectEditor` extend `BaseEditor` directly, as does anything built
+   * through `editors/factory.ts`, so an editor-level hook reaches none of them.
+   *
+   * Test on `isHidden()`, NOT on whether the `TD` still resolves. A cell merely scrolled out of the
+   * rendered window has no `TD` either, and closing there would silently commit an in-progress edit
+   * on every scroll away. That is long-standing behavior in the other direction: the editor hides
+   * itself on scroll but keeps `state` at `EDITING`, so the edit survives until the user scrolls
+   * back. These hooks never fire on scroll, so that case cannot reach here at all.
+   *
+   * A TRIMMING map (Filters, `trimRows`) needs the opposite treatment and is handled separately by
+   * the repair dispatched before this method on the same two hooks. A trimming map collapses the
+   * visual index space instead of preserving it, so `isHidden()` reads `false` for a trimmed row and
+   * this method never fires for one.
+   *
+   * The edit is finished rather than canceled, which for most editors means it is COMMITTED - the
+   * same outcome clicking the pager already produces, since that is an outside click and therefore
+   * deselects. The final say still belongs to the editor: `DropdownEditor#finishEditing()` rewrites
+   * the flag to a discard when the active range no longer contains the edited cell. On THIS path it
+   * does not fire - `core.ts` calls `selection.commit()` for a hiding change, and that re-derives
+   * the highlights without moving the range, so the range still contains the edited cell (measured
+   * over 600 runs while chasing DEV-2676). A deselect from any other source still makes it fire.
+   *
+   * DEV-2676 was mistaken for that veto and was not it: the value lost here came from
+   * `AutocompleteEditor`'s choice list, whose highlight is moved by a query deferred 10 ms behind
+   * the keystrokes, so a commit forced inside that window read the match for the PREVIOUS keystroke
+   * and `HandsontableEditor#finishEditing()` copied it over the typed text. The editors now refuse
+   * a stale match (`canCommitInnerSelection()`), so this path commits what was typed.
+   *
+   * Where the commit is REJECTED - a validator returned `false` under `allowInvalid: false`, which
+   * re-selects the hidden cell and restores `EDITING` - the edit is reverted instead, because an
+   * editor surviving on a cell the user cannot see is the bug being fixed.
+   *
+   * @param {BaseEditor} [pendingEditor] The editor this call is retrying for. Supplied only by the
+   *                                     async-validation retry below.
+   */
+  #closeEditorWhenCellHidden(pendingEditor?: BaseEditor): void {
+    // Fall back to the captured reference: a rejected validation re-selects the hidden cell, which
+    // drives `prepareEditor()` -> `clearActiveEditor()`, so `this.activeEditor` can already be gone
+    // by the time a retry lands even though the editor object is still open.
+    const editor = this.activeEditor ?? pendingEditor;
+
+    if (!editor || editor.row === null || editor.col === null ||
+        !this.#isCellHidden(editor.row, editor.col)) {
+      return;
+    }
+
+    // `finishEditing()` is a silent no-op while an async validator is in flight, which would leave
+    // the editor orphaned. Re-enter at the top once validation settles rather than assuming the
+    // wait is over: `postAfterValidate` is instance-wide and may fire for an unrelated cell.
+    if (editor.isWaiting()) {
+      if (!this.#hiddenCellCloseArmed) {
+        this.#hiddenCellCloseArmed = true;
+
+        this.hot.addHookOnce('postAfterValidate', () => {
+          this.#hiddenCellCloseArmed = false;
+          this.hot._registerTimeout(() => this.#closeEditorWhenCellHidden(editor), 0);
+        });
+      }
+
+      return;
+    }
+
+    if (editor.state !== EDITOR_STATE.EDITING || this.#hiddenCellCloseArmed) {
+      return;
+    }
+
+    this.#hiddenCellCloseArmed = true;
+
+    // Committing writes through `setDataAtCell`, which re-enters this manager (`closeEditor()`,
+    // `render()`, `prepareEditor()`). Defer so the write never lands inside the cache update that
+    // is still unwinding.
+    this.hot._registerTimeout(() => {
+      this.#hiddenCellCloseArmed = false;
+
+      if (this.destroyed || editor.state !== EDITOR_STATE.EDITING ||
+          editor.row === null || editor.col === null || !this.#isCellHidden(editor.row, editor.col)) {
+        return;
+      }
+
+      // Drive the captured editor directly rather than `closeEditor()`, for the same reason as
+      // the fallback above: `this.activeEditor` may already have been cleared.
+      editor.finishEditing(false, false, (dataSaved: boolean) => {
+        if (dataSaved) {
+          return;
+        }
+
+        // Nothing is lost by reverting - the rejected value never reached the dataset,
+        // `validateChanges()` splices it out first.
+        editor.finishEditing(true);
+      });
+    }, 0);
   }
 
   /**

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the date editor in Firefox not focusing its input when opened with the keyboard and keeping the date picker open after the editor closed.",
+  "type": "fixed",
+  "issueOrPR": 13818,
+  "breaking": false,
+  "framework": "none"
+}

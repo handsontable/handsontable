@@ -51,8 +51,8 @@ function tree(a2: string[], rootB: string[], extraRootA: string[] = []): TreeRow
 const baseTree = () => tree(['A-2-a', 'A-2-b'], ['B-1', 'B-2']);
 
 test.describe('NestedRows collapsed parents across a data replacement', () => {
-  test('keeps the same parents collapsed when updateData() shrinks their children', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('keeps the same parents collapsed when updateData() shrinks their children', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -71,8 +71,8 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     expect(await nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-2', 'A-3', 'Root B']);
   });
 
-  test('keeps the same parents collapsed when updateData() grows their children', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('keeps the same parents collapsed when updateData() grows their children', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -88,8 +88,8 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
       .toEqual(['Root A', 'A-1', 'A-2', 'A-2-a', 'A-2-b', 'A-3', 'A-4', 'Root B']);
   });
 
-  test('keeps a parent collapsed inside another collapsed parent', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('keeps a parent collapsed inside another collapsed parent', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -108,8 +108,8 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     expect(await nestedRows.visibleNames()).toEqual(['Root A', 'Root B']);
   });
 
-  test('forgets a collapsed parent that updateData() left without children', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('forgets a collapsed parent that updateData() left without children', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -122,8 +122,8 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
       .toEqual(['Root A', 'A-1', 'A-2', 'A-3', 'Root B', 'B-1', 'B-2']);
   });
 
-  test('replaying the collapsed parents does not fire the collapse hooks', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('replaying the collapsed parents does not fire the collapse hooks', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -137,8 +137,8 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     expect(await nestedRows.collapsedParents()).toEqual([5]);
   });
 
-  test('re-points a stash that another operation left open', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('re-points a stash that another operation left open', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -159,8 +159,8 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     expect(await nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-2', 'A-3', 'Root B']);
   });
 
-  test('forgets a collapsed parent that updateData() removed from the data', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('forgets a collapsed parent that updateData() removed from the data', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -174,8 +174,8 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     expect(await nestedRows.visibleNames()).toEqual(['Root A', 'A-1', 'A-2', 'A-3']);
   });
 
-  test('leaves the selection inside the grid after the replay trims rows', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('never leaves the selection past the last row after the replay trims rows', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -186,15 +186,15 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     // re-clamp it, so the highlight could end up past the last row.
     await nestedRows.updateData(tree(['A-2-a'], ['B-1']));
 
-    const highlightedRow = await nestedRows.highlightedRow();
-
-    expect(highlightedRow).not.toBeNull();
-    expect(highlightedRow).toBeLessThan(await nestedRows.countRows());
-    expect(await page.evaluate(row => window.hot.toPhysicalRow(row as number), highlightedRow)).not.toBeNull();
+    // The replay collapses the parents again, which trims the highlighted record away. The Core
+    // then DROPS the selection rather than sliding it onto whichever record inherited the
+    // coordinate - a write through a coordinate whose record is gone is what appends rows to the
+    // data set. See `tests/e2e/selection-trimmed-row.spec.ts` for the rule itself.
+    expect(await nestedRows.highlightedRow()).toBeNull();
   });
 
-  test('keeps the collapsed parents when the data is replaced from inside an add-child', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('keeps the collapsed parents when the data is replaced from inside an add-child', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -208,8 +208,8 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     expect(await nestedRows.collapsedParents()).toEqual([2, 5]);
   });
 
-  test('loadData() drops the collapsed parents, as it resets every other row state', async({ page, theme }) => {
-    const nestedRows = new NestedRowsPage(page, theme);
+  test('loadData() drops the collapsed parents, as it resets every other row state', async({ page, theme, bundle }) => {
+    const nestedRows = new NestedRowsPage(page, theme, bundle);
 
     await nestedRows.goto();
 
@@ -229,4 +229,26 @@ test.describe('NestedRows collapsed parents across a data replacement', () => {
     expect(await nestedRows.collapsedParents()).toEqual([0]);
     expect(await nestedRows.visibleNames()).toEqual(['Root A', 'Root B', 'B-1', 'B-2']);
   });
+
+  test('updateData() under a collapsed parent keeps a whole-column selection, without throwing (DEV-152)',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsPage(page, theme, bundle);
+
+      await nestedRows.goto();
+      await nestedRows.collapseButton(0).click();
+      await nestedRows.cell(0, 0).click();
+      await page.keyboard.press('Control+Space');
+
+      expect(await nestedRows.selectedRange()).toEqual([-1, 0, 3, 0]);
+
+      // `replaceData()` destroys the DataMap before `beforeUpdateData`, where the plugin untrims the
+      // collapsed rows. Growing the selection there committed its highlights through the destroyed
+      // DataMap and threw `Cannot read properties of null (reading 'rowIndexMapper')`, leaving the
+      // grid broken. The React and Angular wrappers call `updateData()` on every `data` change.
+      await nestedRows.updateData(baseTree());
+
+      expect(nestedRows.pageErrors).toEqual([]);
+      expect(await nestedRows.visibleNames()).toEqual(['Root A', 'Root B', 'B-1', 'B-2']);
+      expect(await nestedRows.selectedRange()).toEqual([-1, 0, 3, 0]);
+    });
 });

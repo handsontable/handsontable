@@ -370,6 +370,366 @@ describe('ColumnSummarySpec', () => {
 
       expect(getDataAtCell(3, 0)).toBe(3.6666666666666665);
     });
+
+    it('should display "Not enough data" instead of `NaN` when the range holds no entries', async() => {
+      handsontable({
+        data: [
+          [null],
+          [null],
+          [null],
+          [null],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            destinationRow: 3,
+            ranges: [[0, 2]],
+            type: 'average'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(3, 0)).toBe('Not enough data');
+    });
+
+    it('should display "Not enough data" after the source cells are cleared with the Delete key', async() => {
+      handsontable({
+        data: [
+          [10],
+          [10],
+          [10],
+          [null],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            destinationRow: 3,
+            ranges: [[0, 2]],
+            type: 'average'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(3, 0)).toBe(10);
+
+      await selectCells([[0, 0, 2, 0]]);
+      await keyDownUp('delete');
+
+      expect(getDataAtCell(3, 0)).toBe('Not enough data');
+    });
+
+    it('should keep averaging over the non-empty entries only when just some of the cells are empty', async() => {
+      handsontable({
+        data: [
+          [10],
+          [null],
+          [20],
+          [null],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            destinationRow: 3,
+            ranges: [[0, 2]],
+            type: 'average'
+          },
+        ]
+      });
+
+      // The empty cell is left out of both the sum and the divisor, so the result is 15, not 10.
+      expect(getDataAtCell(3, 0)).toBe(15);
+    });
+
+    it('should display "Not enough data" for an empty column when `ranges` is left at its default', async() => {
+      handsontable({
+        data: [
+          [null],
+          [null],
+          [null],
+          [null],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            type: 'average'
+          },
+        ]
+      });
+
+      // The default range spans every addressable row, so it covers the destination cell too. The
+      // destination is skipped as a summary result, which leaves the range with no entries at all.
+      expect(getDataAtCell(3, 0)).toBe('Not enough data');
+    });
+
+    it('should display "Not enough data" instead of `NaN` when a range bound is not a number', async() => {
+      handsontable({
+        data: [
+          [1],
+          [2],
+          [3],
+          [null],
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            destinationRow: 3,
+            ranges: [['a', 'b']],
+            type: 'average'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(3, 0)).toBe('Not enough data');
+    });
+  });
+
+  describe('empty and whitespace-only cells', () => {
+    // The Delete key clears a cell to `null`, but clearing it in the editor stores `''`. Loading
+    // data from a backend brings in `""` the same way. All of them must read as empty - `Number('')`
+    // is `0`, so an unguarded check turns a blank cell into a real zero.
+    // A factory, not a shared array - the plugin writes its result into the data it was given.
+    const clearedInEditor = () => [[10], [20], [''], [30], [null]];
+
+    it('should not count a cell that holds an empty string', async() => {
+      handsontable({
+        data: clearedInEditor(),
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(3);
+    });
+
+    it('should not treat an empty string as zero when calculating the minimum', async() => {
+      handsontable({
+        data: clearedInEditor(),
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'min'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(10);
+    });
+
+    // Negative values, because a zero slipping into a column of positive numbers leaves `max` right
+    // by accident.
+    it('should not treat an empty string as zero when calculating the maximum', async() => {
+      handsontable({
+        data: [[-10], [-20], [''], [-30], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'max'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(-10);
+    });
+
+    it('should not divide by a cell that holds an empty string when calculating the average', async() => {
+      handsontable({
+        data: clearedInEditor(),
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'average'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(20);
+    });
+
+    it('should keep the sum unchanged when the range holds an empty string', async() => {
+      handsontable({
+        data: clearedInEditor(),
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'sum'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(60);
+    });
+
+    it('should treat a whitespace-only cell as empty', async() => {
+      handsontable({
+        data: [[10], [20], ['   '], [30], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(3);
+    });
+
+    it('should report "Not enough data" when every cell in the range holds an empty string', async() => {
+      handsontable({
+        data: [[''], [''], [''], [''], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'min'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe('Not enough data');
+    });
+
+    it('should still count a cell that holds a zero', async() => {
+      handsontable({
+        data: [[0], [10], [20], [30], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(4);
+    });
+
+    // The seeded cases above all start with the empty string already in the data. This one covers the
+    // path the reporter actually takes: the value arrives through `afterChange`, which recalculates
+    // the endpoint. An empty cell edited in the editor commits `''`, not `null`.
+    it('should recalculate correctly when an empty string arrives through an edit', async() => {
+      handsontable({
+        data: [[10], [20], [30], [40], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'count'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(4);
+
+      await setDataAtCell(0, 0, '');
+
+      expect(getDataAtCell(4, 0)).toBe(3);
+
+      // Typing a number back in must bring the cell back into the count.
+      await setDataAtCell(0, 0, 15);
+
+      expect(getDataAtCell(4, 0)).toBe(4);
+    });
+
+    it('should recalculate the minimum when a cell is emptied through an edit', async() => {
+      handsontable({
+        data: [[10], [20], [30], [40], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'min'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(10);
+
+      await setDataAtCell(0, 0, '');
+
+      expect(getDataAtCell(4, 0)).toBe(20);
+    });
+
+    // `forceNumeric` runs `parseFloat`, which is a different rule from the default path. These two
+    // pin where the two disagree, so the split stays deliberate.
+    it('should not sum boolean values when `forceNumeric` is enabled, unlike the default path', async() => {
+      handsontable({
+        data: [[true], [true], [false], [true], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'sum',
+            forceNumeric: true,
+          },
+        ]
+      });
+
+      // `parseFloat(true)` is `NaN`, so every checkbox cell is skipped.
+      expect(getDataAtCell(4, 0)).toBe(0);
+    });
+
+    it('should throw for an empty cell when `forceNumeric` is on and errors are not suppressed', async() => {
+      expect(() => {
+        handsontable({
+          data: [[10], [20], [''], [30], [null]],
+          columnSummary: [
+            {
+              destinationColumn: 0,
+              destinationRow: 4,
+              ranges: [[0, 3]],
+              type: 'sum',
+              forceNumeric: true,
+              suppressDataTypeErrors: false,
+            },
+          ]
+        });
+      }).toThrowError(/is not in a numeric format/);
+    });
+
+    // Booleans stay countable on purpose: a `checkbox` column stores `true`/`false`, and summing it
+    // is how you count the ticked boxes.
+    it('should keep summing boolean values, so a checkbox column counts the ticked boxes', async() => {
+      handsontable({
+        data: [[true], [true], [false], [true], [null]],
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 4,
+            ranges: [[0, 3]],
+            type: 'sum'
+          },
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toBe(3);
+    });
   });
 
   describe('customFunction', () => {
@@ -657,7 +1017,7 @@ describe('ColumnSummarySpec', () => {
       });
     });
 
-    it('should modify the calculation row range when a row was moved outside the range', async() => {
+    it('should keep summing the same records when a row was moved outside the range', async() => {
       handsontable({
         data: createNumericData(40, 40),
         height: 200,
@@ -675,11 +1035,18 @@ describe('ColumnSummarySpec', () => {
       });
 
       expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,6]]');
+      expect(getDataAtCell(7, 3)).toEqual(28);
+
       getPlugin('manualRowMove').moveRow(3, 10);
-      expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,2],[4,6]]');
+
+      // The ranges are physical, so a move changes no range: the moved record still counts, wherever it is
+      // shown, and the result moved up one row together with its own record.
+      expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,6]]');
+      expect(getDataAtCell(10, 3)).toEqual(4);
+      expect(getDataAtCell(6, 3)).toEqual(28);
     });
 
-    it('should modify the calculation row range when a row was moved into the range', async() => {
+    it('should keep summing the same records when a row was moved into the range', async() => {
       handsontable({
         data: createNumericData(40, 40),
         height: 200,
@@ -701,8 +1068,11 @@ describe('ColumnSummarySpec', () => {
 
       getPlugin('manualRowMove').moveRow(10, 3);
 
+      // The moved-in record is not one of the summarized ones, so it does not count.
       expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
-        .toEqual('[[0,2],[10,10],[3,6]]');
+        .toEqual('[[0,6]]');
+      expect(getDataAtCell(3, 3)).toEqual(11);
+      expect(getDataAtCell(8, 3)).toEqual(28);
     });
 
     it('should shift the visual calculation result position when a row ' +
@@ -1529,7 +1899,7 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(2, 2)).toBe(6);
     });
 
-    it('should sum the visual `sourceColumn` after a manual column move', async() => {
+    it('should keep summing the physical `sourceColumn` after a manual column move', async() => {
       handsontable({
         data: [
           [1, 100, 1000],
@@ -1553,16 +1923,22 @@ describe('ColumnSummarySpec', () => {
       // Initial: visual column 1 = [100, 200, 300] -> sum 600.
       expect(getDataAtCell(3, 1)).toBe(600);
 
-      // Move physical column 1 to visual position 0; visual column 1 now
-      // holds the original physical column 0 -> [1, 2, 3].
+      // Move physical column 1 to visual position 0. The summary travels with it.
       await getPlugin('manualColumnMove').moveColumn(1, 0);
       await render();
 
-      // Trigger a refresh on the (visual) sourceColumn so the summary recalculates.
+      expect(getDataAtCell(3, 0)).toBe(600);
+
+      // Editing the column that took the old position must not write a summary there.
       await setDataAtCell(0, 1, 10);
 
-      // Sum of visual column 1 = [10, 2, 3] = 15.
-      expect(getDataAtCell(3, 1)).toBe(15);
+      expect(getDataAtCell(3, 1)).toBe(null);
+      expect(getDataAtCell(3, 0)).toBe(600);
+
+      // Editing the summarized column itself updates its summary: [150, 200, 300] = 650.
+      await setDataAtCell(0, 0, 150);
+
+      expect(getDataAtCell(3, 0)).toBe(650);
     });
 
     it('should not recalculate endpoints when formulas updates only touch unrelated columns', async() => {

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a crash when double-clicking a row selection checkbox while a header was selected.",
+  "type": "fixed",
+  "issueOrPR": 13897,
+  "breaking": false,
+  "framework": "none"
+}

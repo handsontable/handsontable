@@ -39,3 +39,30 @@ test('resolves the template variables this pipeline shares with the content load
 test('skips files that are not markdown', () => {
   assert.equal(plugin.transform('{{$examplesBranch}}', '/docs/src/app.ts'), null);
 });
+
+test('marks three-or-more-card boxes lists as a fixed three-column grid', () => {
+  const result = transform([
+    '<div class="boxes-list">',
+    '',
+    '- [React](/react)',
+    '- [JavaScript](/javascript)',
+    '- [Angular](/angular)',
+    '',
+    '</div>',
+  ].join('\n'));
+
+  assert.ok(result.includes('class="ht-card-grid ht-card-grid--cols-3"'));
+});
+
+test('leaves one-card boxes lists on the default card grid', () => {
+  const result = transform([
+    '<div class="boxes-list">',
+    '',
+    '- [Developers\' forum](https://forum.handsontable.com/)',
+    '',
+    '</div>',
+  ].join('\n'));
+
+  assert.ok(result.includes('class="ht-card-grid"'));
+  assert.ok(!result.includes('ht-card-grid--cols-3'));
+});

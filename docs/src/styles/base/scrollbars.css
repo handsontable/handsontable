@@ -53,3 +53,20 @@
 .handsontable *::-webkit-scrollbar-thumb:hover {
   background-color: revert;
 }
+
+/* Chrome 121+ / Safari 18.2+ give a non-`auto` `scrollbar-width` precedence over
+ * the `::-webkit-scrollbar` rules above, so the 4px intent never reached the
+ * sidebar -- it rendered a 12px bar hard against the content divider (DEV-2628).
+ * Resetting both standard properties to `auto` re-enables the pseudo-elements.
+ * Firefox has no `::-webkit-scrollbar`, so the `@supports` guard leaves it on
+ * `scrollbar-width: thin`.  Scoped to >= 50rem because the same element is the
+ * mobile nav drawer below that breakpoint.
+ */
+@supports selector(::-webkit-scrollbar) {
+  @media (min-width: 50rem) {
+    .sidebar-pane {
+      scrollbar-width: auto;
+      scrollbar-color: auto;
+    }
+  }
+}

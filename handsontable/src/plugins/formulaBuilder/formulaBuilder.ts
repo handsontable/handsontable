@@ -17,7 +17,7 @@ import { HandsontableAdapter } from './handsontableAdapter';
 import type { CoreModule, FormulaBuilderPluginSettings } from './types';
 
 export const PLUGIN_KEY = 'formulaBuilder';
-export const PLUGIN_PRIORITY = 270;
+export const PLUGIN_PRIORITY = 265;
 
 const FORMULA_BAR_SLOT_KEY = 'formulaBuilder';
 const FALLBACK_SCAN_CELL_CAP = 10000;

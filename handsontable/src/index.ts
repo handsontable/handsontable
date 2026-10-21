@@ -212,12 +212,14 @@ Handsontable.themes.reinitTheme = reinitTheme;
 export { IndexMapper } from './translations';
 
 // Named type exports for user-facing API — direct from canonical sources
-export type { GridSettings, Events } from './core/settings';
+export type { GridSettings, Events, SanitizerContext, TextExtractorContext, PasteClipboardData } from './core/settings';
 export type {
-  CellValue, CellChange, RowObject, ChangeSource,
-  CellMeta, CellProperties, ColumnSettings, SourceRowData, RemoveIndexSignature
+  CellValue, CellChange, ColumnDataGetterSetterFunction, RowObject, ChangeSource,
+  CellMeta, CellProperties, ColumnSettings, SourceRowData, RemoveIndexSignature, OmitHooks
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
+export type { RowIdSetting } from './core/rowIdentity/rowIdentity';
+export type { RowIdKey } from './utils/rowId';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
 export type { SelectOptionsObject } from './settings';

@@ -37,6 +37,12 @@ export class AppComponent {
     // Attach a comment when a cell fails validation, and remove it once the cell is valid.
     afterValidate(this: Handsontable, isValid: boolean, value: any, row: number, prop: string | number) {
       const column = this.propToCol(prop);
+
+      // Skip a property that names no column.
+      if (column === null) {
+        return;
+      }
+
       const comments = this.getPlugin('comments');
 
       if (!isValid) {

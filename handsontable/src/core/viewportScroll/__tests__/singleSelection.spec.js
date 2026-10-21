@@ -45,7 +45,7 @@ describe('Single selection scroll', () => {
       await scrollViewportHorizontally(25);
       await mouseDoubleClick(getCell(0, 5));
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy).not.toHaveBeenCalled();
     });
 
@@ -63,7 +63,7 @@ describe('Single selection scroll', () => {
       await selectCell(0, 4);
       await keyDownUp('arrowright');
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 4, true));
       expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -87,7 +87,7 @@ describe('Single selection scroll', () => {
       await selectCell(-1, 4);
       await keyDownUp('arrowright');
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 4, true));
       expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(-1, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -109,7 +109,7 @@ describe('Single selection scroll', () => {
       await scrollViewportHorizontally(25);
       await selectCell(0, 5);
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',

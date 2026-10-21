@@ -9,9 +9,12 @@ import {
 } from '../../helpers/dom/element';
 import { objectEach } from '../../helpers/object';
 import { A11Y_HIDDEN } from '../../helpers/a11y';
+import { getSanitizer } from '../../utils/sanitizer';
+import { syncIcon } from '../../themes/engine/icons';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const SHORTCUTS_GROUP = 'selectEditor';
+const ARROW_ICON_CLASS_NAME = 'ht-select-editor-arrow-icon';
 
 export const EDITOR_TYPE = 'select';
 
@@ -54,7 +57,12 @@ export class SelectEditor extends BaseEditor {
       ARROW.setAttribute(...A11Y_HIDDEN());
     }
 
+    // The text glyph is hidden by `font-size: 0` on `.htAutocompleteArrow` (`_autocomplete-
+    // renderer.scss`) wherever the theme paints the real one from an icon mask, so it stays as
+    // the fallback a bare, unthemed grid renders instead - same choice `autocompleteRenderer.ts`
+    // makes for the cell arrow this editor's own arrow mirrors.
     ARROW.appendChild(this.hot.rootDocument.createTextNode(String.fromCharCode(9660)));
+    syncIcon(this.hot, ARROW, ARROW_ICON_CLASS_NAME, 'selectArrow');
 
     addClass(this.selectWrapper, 'htSelectEditor');
     this.selectWrapper.appendChild(this.select);
@@ -90,6 +98,17 @@ export class SelectEditor extends BaseEditor {
    */
   open(): void {
     this._opened = true;
+
+    // The editor element is built once and reused, so the arrow icon picks up a runtime `icons`
+    // remap or theme switch here. A no-op unless the theme's icons revision moved. Looked up rather
+    // than kept in a `#` field: `BaseEditor`'s constructor runs `init()` before a subclass's own
+    // field initializers, so a private field assigned there throws.
+    const arrow = this.selectWrapper.querySelector<HTMLElement>('.htAutocompleteArrow');
+
+    if (arrow) {
+      syncIcon(this.hot, arrow, ARROW_ICON_CLASS_NAME, 'selectArrow');
+    }
+
     this.refreshDimensions();
     this.selectWrapper.style.display = '';
 
@@ -162,7 +181,7 @@ export class SelectEditor extends BaseEditor {
 
     empty(this.select);
 
-    const { sanitizer } = this.hot.getSettings();
+    const sanitizer = getSanitizer(this.hot);
 
     if (Array.isArray(options)) {
       for (let i = 0; i < options.length; i++) {
@@ -208,11 +227,17 @@ export class SelectEditor extends BaseEditor {
    * @private
    */
   refreshValue(): void {
-    const sourceData = this.hot.getSourceDataAtCell(this.row!, this.prop as number);
+    const physicalRow = this.hot.toPhysicalRow(this.row!);
+    const sourceData = this.hot.getSourceDataAtCell(physicalRow, this.col!);
 
     this.originalValue = sourceData;
 
     this.setValue(sourceData);
+    // Same reason as in `TextEditor#refreshValue()`: the control now shows the cell's own value
+    // again, so the unchanged-edit baseline has to follow it. Leaving the opening value in place
+    // would compare the user's next confirm against an option the editor no longer shows, and the
+    // choice they actually picked would be dropped.
+    this.resetValueBeforeEdit();
     this.refreshDimensions();
   }
 

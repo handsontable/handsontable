@@ -1,0 +1,377 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
+
+/**
+ * The xlsx fixtures the core package's unit tests read. The app-saved ones (`libreoffice-saved`,
+ * `excel-saved`) were written by LibreOffice and Excel, not by a writer in this repository; how is in
+ * the README beside them.
+ */
+const XLSX_FIXTURES = new URL('../../../handsontable/src/utils/xlsxEngine/__tests__/fixtures/', import.meta.url);
+
+/**
+ * Page object for the xlsx round-trip fixture: a configured source grid, an empty target grid, and
+ * a button that exports the first and imports the blob into the second in-page (no download).
+ */
+export class XlsxImportPage {
+  readonly page: Page;
+  readonly theme: string;
+  readonly bundle: string;
+  readonly engine: string;
+  readonly status: Locator;
+  readonly sourceMaster: Locator;
+  readonly targetMaster: Locator;
+
+  constructor(page: Page, theme = 'main', bundle = 'umd', engine: 'exceljs' | 'native' = 'exceljs') {
+    this.page = page;
+    this.theme = theme;
+    this.bundle = bundle;
+    this.engine = engine;
+    this.status = page.getByTestId('status');
+    // The source grid has `fixedRowsTop: 1`, so row 0 is rendered twice: once in the master
+    // table and once cloned into the top overlay. Both clones carry the same stamped
+    // data-testid, so every cell locator is scoped to the master — the only layer that
+    // renders each row exactly once — or an unscoped getByTestId is a strict-mode violation.
+    this.sourceMaster = page.locator('[data-testid="source"] .ht_master');
+    this.targetMaster = page.locator('[data-testid="target"] .ht_master');
+  }
+
+  /** Open the fixture and wait for the bundle and the source grid. */
+  async goto(): Promise<void> {
+    const query = `theme=${this.theme}&bundle=${this.bundle}&engine=${this.engine}`;
+
+    await this.page.goto(`/tests/fixtures/demo/xlsx-import.html?${query}`);
+    await awaitBundle(this.page);
+    await expect(this.sourceCell(0, 0)).toBeVisible();
+  }
+
+  sourceCell(row: number, col: number): Locator {
+    return this.sourceMaster.getByTestId(`source-${row}-${col}`);
+  }
+
+  targetCell(row: number, col: number): Locator {
+    return this.targetMaster.getByTestId(`target-${row}-${col}`);
+  }
+
+  /**
+   * Column headers of the target grid, read from the top overlay clone. Excludes the corner
+   * header (`span.colHeader.cornerHeader`, the rowHeaders corner) — it is a real `span.colHeader`
+   * too, just with the negative visual index Walkontable renders the corner at.
+   */
+  targetHeaders(): Locator {
+    return this.targetHeaderRows().locator('th span.colHeader:not(.cornerHeader)');
+  }
+
+  /**
+   * The target grid's column-header rows, scoped to the top overlay clone - the only layer that
+   * renders the header exactly once. Every header reader goes through this one locator.
+   */
+  private targetHeaderRows(): Locator {
+    return this.page.locator('[data-testid="target"] .ht_clone_top thead tr');
+  }
+
+  /**
+   * Waits until the fixture reports `expected` or an error, and throws with the error's message.
+   * A thrown import used to leave the status on `working`, so a red run waited out the full expect
+   * timeout and named no cause.
+   */
+  private async waitForStatus(expected: string): Promise<void> {
+    await expect(this.status).toHaveText(new RegExp(`^(${expected}|error: .*)$`));
+
+    const text = await this.status.textContent();
+
+    if (text !== expected) {
+      throw new Error(`The fixture reported ${text}`);
+    }
+  }
+
+  /** Click the round-trip button and wait for the fixture to report completion. */
+  async roundTrip(): Promise<void> {
+    await this.page.getByTestId('round-trip').click();
+    await this.waitForStatus('done');
+  }
+
+  /** Export the source grid and return the workbook bytes, without importing them. */
+  async exportSource(): Promise<Buffer> {
+    const bytes = await this.page.evaluate(async() => {
+      const source = (window as unknown as {
+        __source: { getPlugin(name: string): { exportAsBlobAsync(f: string, o: object): Promise<Blob> } };
+      }).__source;
+      const blob = await source.getPlugin('exportFile').exportAsBlobAsync('xlsx', {
+        colHeaders: true, rowHeaders: true, exportHiddenColumns: 'hide', exportFormulas: true,
+      });
+
+      return Array.from(new Uint8Array(await blob.arrayBuffer()));
+    });
+
+    return Buffer.from(bytes);
+  }
+
+  /** Pick a workbook in the fixture's file input, the way a user does, and wait for the import. */
+  async importFile(file: { name: string; buffer: Buffer }): Promise<void> {
+    await this.page.getByTestId('import-input').setInputFiles({
+      name: file.name,
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      buffer: file.buffer,
+    });
+    await this.waitForStatus('done-file');
+  }
+
+  /** The bytes of one committed xlsx fixture, as a user would pick the file from disk. */
+  xlsxFixture(name: string): Buffer {
+    return readFileSync(fileURLToPath(new URL(`${name}.xlsx`, XLSX_FIXTURES)));
+  }
+
+  /** The checkbox a `checkbox` cell of the target grid renders. */
+  targetCheckbox(row: number, col: number): Locator {
+    return this.targetCell(row, col).locator('input[type="checkbox"]');
+  }
+
+  /**
+   * Imports a workbook with the defined names `Sales` (`Data!$B$2:$B$4`: 10, 20, 30) and `Rate`
+   * (`Data!$F$1`: 0.07), and the formulas `D2 =SUM(Sales)` (cached 60) and `D3 =Rate*100` (cached 7),
+   * into the target with no header promotion, so the cells keep their sheet coordinates. With
+   * `defineNames`, the same two names are first added to the target's own HyperFormula engine,
+   * over the cells the import fills. Answers the source data of D2 and D3 and the `dropped` list.
+   */
+  async importDefinedNamesWorkbook(defineNames: boolean): Promise<{ sources: unknown[]; dropped: string[] }> {
+    return this.page.evaluate(async(withNames) => {
+      const w = window as unknown as Record<string, any>;
+      const target = w.__target;
+
+      if (withNames) {
+        const engine = target.getPlugin('formulas').engine;
+
+        engine.addNamedExpression('Sales', '=Target!$B$2:$B$4');
+        engine.addNamedExpression('Rate', '=Target!$F$1');
+      }
+
+      const workbook = new w.ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Data');
+
+      sheet.getCell('B2').value = 10;
+      sheet.getCell('B3').value = 20;
+      sheet.getCell('B4').value = 30;
+      sheet.getCell('F1').value = 0.07;
+      workbook.definedNames.add('Data!$B$2:$B$4', 'Sales');
+      workbook.definedNames.add('Data!$F$1', 'Rate');
+      sheet.getCell('D2').value = { formula: 'SUM(Sales)', result: 60 };
+      sheet.getCell('D3').value = { formula: 'Rate*100', result: 7 };
+
+      const bytes = new Uint8Array(await workbook.xlsx.writeBuffer());
+      const result = await target.getPlugin('importFile').importFromArrayBuffer('xlsx', bytes.slice().buffer);
+
+      return {
+        sources: [target.getSourceDataAtCell(1, 3), target.getSourceDataAtCell(2, 3)],
+        dropped: result.dropped,
+      };
+    }, defineNames);
+  }
+
+  /**
+   * Imports raw bytes into the target and answers how the call ended, what the grid holds after it
+   * and whether `afterImport` ran - the shape a refused upload is asserted on.
+   */
+  async importBytes(bytes: Buffer): Promise<{
+    rejection: { message: string; limit: boolean } | null;
+    data: unknown[][];
+    afterImportRan: boolean;
+  }> {
+    return this.page.evaluate(async(input) => {
+      const target = (window as unknown as {
+        __target: {
+          getData(): unknown[][];
+          addHook(name: string, fn: () => void): void;
+          getPlugin(name: string): { importFromArrayBuffer(f: string, b: ArrayBuffer): Promise<unknown> };
+        };
+      }).__target;
+      let afterImportRan = false;
+      let rejection = null;
+
+      target.addHook('afterImport', () => {
+        afterImportRan = true;
+      });
+
+      try {
+        await target.getPlugin('importFile').importFromArrayBuffer('xlsx', new Uint8Array(input).buffer);
+      } catch (error) {
+        const { message, cause } = error as Error & { cause?: { limit?: unknown } };
+
+        rejection = { message, limit: cause?.limit !== undefined };
+      }
+
+      return { rejection, data: target.getData(), afterImportRan };
+    }, Array.from(bytes));
+  }
+
+  /** The comment the target grid holds on one cell, or `null`. */
+  async targetComment(row: number, col: number): Promise<unknown> {
+    return this.page.evaluate(([r, c]) => {
+      const target = (window as unknown as {
+        __target: { getPlugin(name: string): { getCommentAtCell(r: number, c: number): unknown } };
+      }).__target;
+
+      return target.getPlugin('comments').getCommentAtCell(r, c) ?? null;
+    }, [row, col]);
+  }
+
+  /**
+   * Click the styles round-trip button (export -> import with `importStyles: true` -> re-export
+   * the target) and wait for the fixture to report completion.
+   */
+  async roundTripWithStyles(): Promise<void> {
+    await this.page.getByTestId('round-trip-styles').click();
+    await this.waitForStatus('done-styles');
+  }
+
+  /** The `afterImport` result the fixture stored. */
+  async lastImport(): Promise<Record<string, unknown>> {
+    return this.page.evaluate(() => (window as unknown as { __lastImport: Record<string, unknown> }).__lastImport);
+  }
+
+  /** The values the fixture read back from the re-exported target (`window.__reexport`). */
+  async reexport(): Promise<Record<string, unknown>> {
+    return this.page.evaluate(() => (window as unknown as { __reexport: Record<string, unknown> }).__reexport);
+  }
+
+  /**
+   * A computed CSS property of one target cell, read from the `.ht_master` layer (the same scope
+   * `targetCell()` uses). With `fixedRowsTop: 1` (which the imported layout carries onto the
+   * target), row 0 is also cloned into the `.ht_clone_top` overlay - that clone, not the master, is
+   * what the user actually sees. Measuring the master instead is still correct: both layers render
+   * from the same cell meta and stylesheet, so the cascade - and therefore the computed style - is
+   * identical between them; the master is just the one `targetCell()` already scopes to.
+   */
+  async targetComputedStyle(row: number, col: number, prop: string): Promise<string> {
+    return this.targetCell(row, col).evaluate((cell, cssProp) => getComputedStyle(cell).getPropertyValue(cssProp), prop);
+  }
+
+  /**
+   * Borders the target grid's `customBorders` plugin actually holds, read through `getBorders()`
+   * and reduced to plain `{ row, col, <side>: { width, color } }` objects — the plugin's own
+   * border entries also carry bookkeeping fields (`id`, `border` metadata) that this strips.
+   */
+  async targetBorders(): Promise<Array<Record<string, unknown>>> {
+    return this.page.evaluate(() => {
+      const target = (window as unknown as {
+        __target: {
+          getPlugin(name: string): { getBorders(): Array<Record<string, unknown>> };
+        };
+      }).__target;
+      const SIDES = ['top', 'bottom', 'start', 'end', 'left', 'right'];
+
+      return target.getPlugin('customBorders').getBorders().map((border) => {
+        const plain: Record<string, unknown> = { row: border.row, col: border.col };
+
+        SIDES.forEach((side) => {
+          const value = border[side] as { width?: number; color?: string } | undefined;
+
+          if (value && typeof value === 'object') {
+            plain[side] = { width: value.width, color: value.color };
+          }
+        });
+
+        return plain;
+      });
+    });
+  }
+
+  /**
+   * Merged cells the target grid actually holds, read from the MergeCells plugin's collection
+   * rather than from the import result. The result only says what the mapper produced; the plugin
+   * validates every merge against the table that exists when the setting is applied and silently
+   * drops the ones that reach past the last row, so this is the only assertion that proves the
+   * merge survived into the grid.
+   */
+  async targetMergedCells(): Promise<Array<Record<string, number>>> {
+    return this.page.evaluate(() => {
+      const target = (window as unknown as {
+        __target: {
+          getPlugin(name: string): {
+            mergedCellsCollection: { mergedCells: Array<Record<string, number>> };
+          };
+        };
+      }).__target;
+
+      return target.getPlugin('mergeCells').mergedCellsCollection.mergedCells.map(
+        ({ row, col, rowspan, colspan }) => ({ row, col, rowspan, colspan }),
+      );
+    });
+  }
+
+  /** One source-data cell of the target grid, so a live formula is read as its `=...` string. */
+  async targetSourceCell(row: number, col: number): Promise<unknown> {
+    return this.page.evaluate(([r, c]) => {
+      const target = (window as unknown as {
+        __target: { getSourceDataAtCell(r: number, c: number): unknown };
+      }).__target;
+
+      return target.getSourceDataAtCell(r, c);
+    }, [row, col]);
+  }
+
+  /** One setting of the target grid, read through `getSettings()`. */
+  async targetSetting(key: string): Promise<unknown> {
+    return this.page.evaluate((settingKey) => {
+      const target = (window as unknown as {
+        __target: { getSettings(): Record<string, unknown> };
+      }).__target;
+
+      return target.getSettings()[settingKey];
+    }, key);
+  }
+
+  /**
+   * Cell meta of the target grid, for type assertions the DOM cannot show. Cell meta is
+   * prototype-chained (per-cell overrides sit in front of column settings, which sit in front of
+   * global settings), so a key like `type` set at the column level is an INHERITED property, not
+   * an own one. `page.evaluate()` structured-clones only own enumerable properties, so returning
+   * `getCellMeta()` directly silently drops every inherited key. Walk the chain with `for...in`
+   * inside the page and copy serializable values into a plain object before returning.
+   */
+  async targetCellMeta(row: number, col: number): Promise<Record<string, unknown>> {
+    return this.page.evaluate(
+      ([r, c]) => {
+        const target = (window as unknown as {
+          __target: { getCellMeta(r: number, c: number): Record<string, unknown> };
+        }).__target;
+        const meta = target.getCellMeta(r, c);
+        const plain: Record<string, unknown> = {};
+
+        for (const key in meta) {
+          if (typeof meta[key] !== 'function') {
+            plain[key] = meta[key];
+          }
+        }
+
+        return plain;
+      },
+      [row, col],
+    );
+  }
+
+  /** Click the nested-header round-trip button and wait for the fixture to report completion. */
+  async roundTripNested(): Promise<void> {
+    await this.page.getByTestId('round-trip-nested').click();
+    await this.waitForStatus('done-nested');
+  }
+
+  /**
+   * The target grid's rendered column-header rows, one array of cell texts per row, read from the
+   * top overlay clone - the only layer that renders the header exactly once.
+   */
+  async targetHeaderLayers(): Promise<string[][]> {
+    return this.targetHeaderRows().evaluateAll(rows => rows.map(row => Array.from(row.querySelectorAll('th'))
+      .map(th => (th.textContent ?? '').trim())));
+  }
+
+  /**
+   * The `colspan` of every `th` in the target grid's FIRST rendered header row, which is what proves
+   * a nested header group reached the DOM rather than just the settings object.
+   */
+  async targetHeaderColspans(): Promise<number[]> {
+    return this.targetHeaderRows().first().locator('th')
+      .evaluateAll(cells => cells.map(th => (th as HTMLTableCellElement).colSpan));
+  }
+}

@@ -108,11 +108,11 @@ const ExampleComponentContent = () => {
 
 const initialReduxStoreState = {
   data: [
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
-    ['A3', 'B3', 'C3'],
-    ['A4', 'B4', 'C4'],
-    ['A5', 'B5', 'C5'],
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors'],
+    ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading'],
+    ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale'],
   ],
   colHeaders: true,
   rowHeaders: true,
@@ -126,17 +126,22 @@ const updatesReducer = (
   action: { type: any; dataChanges: [any, any, any, any][]; readOnly: any }
 ) => {
   switch (action.type) {
-    case 'updateData':
+    case 'updateData': {
+      let hasChanged = false;
       const newData = state.data.map((row) => [...row]);
 
       action.dataChanges.forEach(([row, column, oldValue, newValue]) => {
-        newData[row][column] = newValue;
+        if (newData[row][column] !== newValue) {
+          newData[row][column] = newValue;
+          hasChanged = true;
+        }
       });
 
-      return {
-        ...state,
-        data: newData,
-      };
+      // Return the previous state when no value actually changed. Plugins write to the grid on
+      // their own (`mergeCells` clears the cells that a merge area covers), and handing back a new
+      // state object every time would re-render the component and resend the settings in a loop.
+      return hasChanged ? { ...state, data: newData } : state;
+    }
 
     case 'updateReadOnly':
       return {

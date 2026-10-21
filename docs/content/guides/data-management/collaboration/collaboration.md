@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Handling collaboration and simultaneous editing
-metaTitle: Handling collaboration and simultaneous editing - JavaScript Data Grid | Handsontable
+metaTitle: Handling collaboration and simultaneous editing | Handsontable DataGrid for JavaScript
 description: Coordinate edits between multiple users by detecting active edit state, intercepting local changes, and syncing structural and non-data changes across clients.
 permalink: /collaboration
 canonicalUrl: /collaboration
@@ -10,11 +10,11 @@ tags:
   - real-time
   - hooks
 react:
-  metaTitle: Handling collaboration and simultaneous editing - React Data Grid | Handsontable
+  metaTitle: Handling collaboration and simultaneous editing | Handsontable DataGrid for React
 angular:
-  metaTitle: Handling collaboration and simultaneous editing - Angular Data Grid | Handsontable
+  metaTitle: Handling collaboration and simultaneous editing | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Handling collaboration and simultaneous editing - Vue Data Grid | Handsontable
+  metaTitle: Handling collaboration and simultaneous editing | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Data management
 menuTag: new
@@ -24,7 +24,7 @@ Coordinate edits between multiple users by detecting active edit state, intercep
 
 [[toc]]
 
-Handsontable doesn't ship a transport layer or a conflict-resolution algorithm. To build collaborative editing, you send local changes to your own backend (for example, a WebSocket server) and apply changes from other collaborators back into the grid. This guide covers the hooks and methods you use on both sides of that flow.
+Handsontable DataGrid doesn't ship a transport layer or a conflict-resolution algorithm. To build collaborative editing, you send local changes to your own backend (for example, a WebSocket server) and apply changes from other collaborators back into the grid. This guide covers the hooks and methods you use on both sides of that flow.
 
 The examples on this page simulate a remote collaborator locally, so they run without a real backend. In your app, replace the simulated call with the message you receive from your collaboration server.
 
@@ -108,6 +108,17 @@ const configurationOptions = {
 // apply a structural change received from another collaborator
 hot.alter('insert_row_below', 2, 1, 'remotePeer');
 ```
+
+::: tip
+
+Removing rows or columns fires these hooks once per run of neighboring indexes, not once per
+removal. Selecting rows 0, 1, and 3 with Ctrl/Cmd held and removing them calls
+[`beforeRemoveRow`](@/api/hooks.md#beforeremoverow) twice, and the second call describes the
+data source with the first run already gone. Send each call to your backend as it arrives, and
+read the rows from the `physicalRows` argument of that call. Collecting those arrays across one
+gesture and sending them as a single list names the wrong rows.
+
+:::
 
 ## Sync cell metadata, comments, merged cells, and borders
 

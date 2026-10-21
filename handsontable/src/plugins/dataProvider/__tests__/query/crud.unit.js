@@ -5,29 +5,82 @@ import {
   commitRowsUpdate as commitRowsUpdateImpl,
   enqueueMutation,
   filterChangesForBatchedServerUpdate,
-  getRowIdFromRowData,
+  findVisualRowById,
+  getRowIdByVisualRow,
   handleBeforeAlterForCrud,
   isMissingRowId,
   queueCrud,
   rowIdsFromAlterRemove,
   runManualUpdateRowsMutation,
   runUpdateFromChanges,
+  prepareUpdateFromChanges,
   shouldIgnoreAfterChangeForServerUpdate,
 } from '../../query/crud';
 
 describe('dataProvider crud', () => {
-  describe('getRowIdFromRowData', () => {
-    it('should read property path when rowId is a string', () => {
-      expect(getRowIdFromRowData({ a: { b: 7 } }, 'a.b')).toBe(7);
+  describe('getRowIdByVisualRow', () => {
+    it('should read the id of the physical row through Core', () => {
+      const hot = {
+        toPhysicalRow: visualRow => visualRow + 10,
+        getRowIdAtPhysicalRow: physicalRow => `ORD-${physicalRow}`,
+      };
+
+      expect(getRowIdByVisualRow(hot, 'id', 2)).toBe('ORD-12');
     });
 
-    it('should call rowId function with row data', () => {
-      expect(getRowIdFromRowData({ x: 1 }, r => r.x)).toBe(1);
+    it('should return undefined for a row without an id', () => {
+      const hot = {
+        toPhysicalRow: visualRow => visualRow,
+        getRowIdAtPhysicalRow: () => null,
+      };
+
+      expect(getRowIdByVisualRow(hot, 'id', 0)).toBeUndefined();
     });
 
-    it('should return undefined when rowId option is null or undefined', () => {
-      expect(getRowIdFromRowData({ id: 1 }, null)).toBeUndefined();
-      expect(getRowIdFromRowData({ id: 1 }, undefined)).toBeUndefined();
+    it('should return undefined without reading a row when the rowId option is null or undefined', () => {
+      const hot = {
+        toPhysicalRow: jest.fn(visualRow => visualRow),
+        getRowIdAtPhysicalRow: jest.fn(() => 'ORD-1'),
+      };
+
+      expect(getRowIdByVisualRow(hot, null, 0)).toBeUndefined();
+      expect(getRowIdByVisualRow(hot, undefined, 0)).toBeUndefined();
+      expect(hot.toPhysicalRow).not.toHaveBeenCalled();
+      expect(hot.getRowIdAtPhysicalRow).not.toHaveBeenCalled();
+    });
+
+    it('should return undefined without reading a row when the rowId option is neither a string nor a function', () => {
+      const hot = {
+        toPhysicalRow: jest.fn(visualRow => visualRow),
+        getRowIdAtPhysicalRow: jest.fn(() => 'ORD-1'),
+      };
+
+      expect(getRowIdByVisualRow(hot, 5, 0)).toBeUndefined();
+      expect(getRowIdByVisualRow(hot, true, 0)).toBeUndefined();
+      expect(hot.getRowIdAtPhysicalRow).not.toHaveBeenCalled();
+    });
+
+    it('should return undefined without reading a row for a visual row with no physical row', () => {
+      const hot = {
+        toPhysicalRow: () => null,
+        getRowIdAtPhysicalRow: jest.fn(() => 'ORD-1'),
+      };
+
+      expect(getRowIdByVisualRow(hot, 'id', 5)).toBeUndefined();
+      expect(hot.getRowIdAtPhysicalRow).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findVisualRowById', () => {
+    it('should return the visual row that holds the id, or -1', () => {
+      const hot = {
+        countRows: () => 3,
+        toPhysicalRow: visualRow => visualRow,
+        getRowIdAtPhysicalRow: physicalRow => `ORD-${physicalRow}`,
+      };
+
+      expect(findVisualRowById(hot, 'id', 'ORD-2')).toBe(2);
+      expect(findVisualRowById(hot, 'id', 'ORD-9')).toBe(-1);
     });
   });
 
@@ -65,6 +118,23 @@ describe('dataProvider crud', () => {
       ];
 
       expect(filterChangesForBatchedServerUpdate(hot, changes)).toEqual([[0, 'ok', 1, 2]]);
+    });
+
+    it('should keep a change written past the last column, as the grid still applies it', () => {
+      const pastLastColumnHot = {
+        // A numeric property past the last column names no column.
+        propToCol: prop => (prop === 'name' ? 0 : null),
+        getCellMetaTransient: () => ({}),
+      };
+      const changes = [
+        [0, 'name', 'a', 'b'],
+        [0, 5, null, 'x'],
+      ];
+
+      expect(filterChangesForBatchedServerUpdate(pastLastColumnHot, changes)).toEqual([
+        [0, 'name', 'a', 'b'],
+        [0, 5, null, 'x'],
+      ]);
     });
   });
 
@@ -250,9 +320,27 @@ describe('dataProvider crud', () => {
         countRows: () => 1,
         toPhysicalRow: vr => vr,
         getSourceDataAtRow: () => ({ name: 'only' }),
+        getRowIdAtPhysicalRow: () => null,
       };
 
-      expect(() => rowIdsFromAlterRemove(hot, 'id', 0, 1)).toThrow();
+      expect(() => rowIdsFromAlterRemove(hot, 'id', 0, 1)).toThrow(/visual index 0/);
+    });
+
+    it('should raise the missing row id error when a function row key throws', () => {
+      const keyError = new TypeError('Cannot read properties of undefined');
+      const hot = {
+        countRows: () => 1,
+        toPhysicalRow: vr => vr,
+        getRowIdAtPhysicalRow: () => {
+          throw keyError;
+        },
+      };
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      expect(() => rowIdsFromAlterRemove(hot, row => row.sku.code, 0, 1)).toThrow(/visual index 0/);
+      expect(consoleError).toHaveBeenCalledWith('Reading the row id failed:', keyError);
+
+      consoleError.mockRestore();
     });
   });
 
@@ -263,6 +351,7 @@ describe('dataProvider crud', () => {
       const hot = {
         toPhysicalRow: vr => vr,
         getSourceDataAtRow: () => ({ name: 'A' }),
+        getRowIdAtPhysicalRow: () => null,
         propToCol: () => 0,
         colToProp: () => 'name',
         countRows: () => 1,
@@ -287,7 +376,163 @@ describe('dataProvider crud', () => {
     });
   });
 
+  describe('prepareUpdateFromChanges', () => {
+    it('should build the payloads from the rows the grid shows when it is called', () => {
+      const hot = {
+        toPhysicalRow: vr => vr,
+        getSourceDataAtRow: vr => ({ id: `ORD-${vr}`, name: 'A' }),
+        getRowIdAtPhysicalRow: physicalRow => `ORD-${physicalRow}`,
+        propToCol: () => 0,
+        colToProp: () => 'name',
+      };
+
+      const prepared = prepareUpdateFromChanges(hot, 'id', [[1, 'name', 'A', 'B']]);
+
+      expect(prepared.sortedRows).toEqual([1]);
+      expect(prepared.rowPayloads).toEqual([
+        { id: 'ORD-1', changes: { name: 'B' }, rowData: { id: 'ORD-1', name: 'B' } },
+      ]);
+      expect(prepared.validation).toBeUndefined();
+    });
+
+    it('should log a row key that throws and leave the payload without an id', () => {
+      const keyError = new TypeError('Cannot read properties of undefined');
+      const hot = {
+        toPhysicalRow: vr => vr,
+        getSourceDataAtRow: () => ({ name: 'A' }),
+        getRowIdAtPhysicalRow: () => {
+          throw keyError;
+        },
+        propToCol: () => 0,
+        colToProp: () => 'name',
+      };
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const prepared = prepareUpdateFromChanges(hot, row => row.meta.id, [[0, 'name', 'A', 'B']]);
+
+      expect(prepared.rowPayloads).toEqual([{ id: undefined, changes: { name: 'B' }, rowData: { name: 'B' } }]);
+      expect(consoleError).toHaveBeenCalledWith('Reading the row id failed:', keyError);
+
+      consoleError.mockRestore();
+    });
+
+    it('should start the validation when asked to validate now', async() => {
+      const hot = {
+        toPhysicalRow: vr => vr,
+        getSourceDataAtRow: () => ({ id: 1, name: 'A' }),
+        getRowIdAtPhysicalRow: () => 1,
+        propToCol: () => 0,
+        colToProp: () => 'name',
+        getCellMeta: () => ({ allowInvalid: false }),
+        getCellValidator: () => () => {},
+        validateCell: jest.fn((value, cellMeta, cb) => cb(false)),
+      };
+
+      const prepared = prepareUpdateFromChanges(hot, 'id', [[0, 'name', 'A', 'B']], { validateNow: true });
+
+      expect(hot.validateCell).toHaveBeenCalledTimes(1);
+      expect(await prepared.validation).toEqual([false]);
+    });
+  });
+
+  describe('runUpdateFromChanges with prepared payloads', () => {
+    it('should commit the prepared payloads without reading the grid again', async() => {
+      const commitRowsUpdate = jest.fn(() => Promise.resolve());
+      const hot = {
+        getSourceDataAtRow: jest.fn(),
+        getRowIdAtPhysicalRow: jest.fn(),
+        runHooks: jest.fn(),
+      };
+      const prepared = {
+        sortedRows: [0],
+        rowPayloads: [{ id: 'ORD-1', changes: { name: 'B' }, rowData: { id: 'ORD-1', name: 'B' } }],
+        validation: Promise.resolve([true]),
+      };
+
+      await runUpdateFromChanges(hot, {
+        getRowIdOption: () => 'id',
+        commitRowsUpdate,
+      }, [[0, 'name', 'A', 'B']], prepared);
+
+      expect(hot.getSourceDataAtRow).not.toHaveBeenCalled();
+      expect(hot.getRowIdAtPhysicalRow).not.toHaveBeenCalled();
+      expect(commitRowsUpdate).toHaveBeenCalledWith(prepared.rowPayloads, expect.any(Object));
+    });
+
+    it('should revert through revertChanges when the prepared validation failed', async() => {
+      const commitRowsUpdate = jest.fn();
+      const revertChanges = jest.fn();
+      const changes = [[0, 'name', 'A', 'B']];
+      const hot = {
+        runHooks: jest.fn(),
+        render: jest.fn(),
+        setDataAtRowProp: jest.fn(),
+      };
+
+      await runUpdateFromChanges(hot, {
+        getRowIdOption: () => 'id',
+        commitRowsUpdate,
+        revertChanges,
+      }, changes, {
+        sortedRows: [0],
+        rowPayloads: [{ id: 'ORD-1', changes: { name: 'B' }, rowData: {} }],
+        validation: Promise.resolve([false]),
+      });
+
+      expect(commitRowsUpdate).not.toHaveBeenCalled();
+      expect(revertChanges).toHaveBeenCalledWith(changes);
+      expect(hot.setDataAtRowProp).not.toHaveBeenCalled();
+    });
+
+    it('should neither revert, report, nor commit once the grid is destroyed while validating', async() => {
+      const commitRowsUpdate = jest.fn();
+      const revertChanges = jest.fn();
+      const hot = {
+        isDestroyed: false,
+        runHooks: jest.fn(),
+        render: jest.fn(),
+      };
+
+      const update = runUpdateFromChanges(hot, {
+        getRowIdOption: () => 'id',
+        commitRowsUpdate,
+        revertChanges,
+      }, [[0, 'name', 'A', 'B']], {
+        sortedRows: [0],
+        rowPayloads: [{ id: 'ORD-1', changes: { name: 'B' }, rowData: {} }],
+        validation: Promise.resolve([false]),
+      });
+
+      hot.isDestroyed = true;
+      await update;
+
+      expect(hot.runHooks.mock.calls.map(([name]) => name)).toEqual(['beforeRowsMutation']);
+      expect(hot.render).not.toHaveBeenCalled();
+      expect(revertChanges).not.toHaveBeenCalled();
+      expect(commitRowsUpdate).not.toHaveBeenCalled();
+    });
+  });
+
   describe('runManualUpdateRowsMutation', () => {
+    it('should not commit once the grid is destroyed while validating', async() => {
+      const commitRowsUpdate = jest.fn();
+      const hot = {
+        isDestroyed: false,
+        runHooks: jest.fn(),
+        countRows: () => 0,
+      };
+
+      const update = runManualUpdateRowsMutation(hot, {
+        getRowIdOption: () => 'id',
+        commitRowsUpdate,
+      }, [{ id: 1, changes: { name: 'B' }, rowData: {} }]);
+
+      hot.isDestroyed = true;
+      await update;
+
+      expect(commitRowsUpdate).not.toHaveBeenCalled();
+    });
+
     it('should not commit when beforeRowsMutation returns false', async() => {
       const commitRowsUpdate = jest.fn();
       const hot = {
@@ -316,6 +561,7 @@ describe('dataProvider crud', () => {
         countRows: () => 1,
         toPhysicalRow: vr => vr,
         getSourceDataAtRow: () => ({ id: 1, name: 'a' }),
+        getRowIdAtPhysicalRow: () => 1,
         propToCol: () => 0,
         colToProp: () => 'name',
         getCellMeta: () => ({ allowInvalid: false }),

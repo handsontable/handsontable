@@ -79,3 +79,40 @@ describe('FocusGridManager.isForeignFocusTarget', () => {
     expect(manager.isForeignFocusTarget(document.body)).toBe(false);
   });
 });
+
+describe('FocusGridManager outside-click exemption registry', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+  });
+
+  it('exempts no path while nothing is registered', () => {
+    const { manager, slotEl } = makeManager();
+
+    expect(manager.isPathOutsideClickExempt([slotEl, document.body])).toBe(false);
+  });
+
+  it('exempts a path through a registered element and stops after it is unregistered', () => {
+    const { manager, slotEl, wrapper } = makeManager();
+    const bar = document.createElement('div');
+    const tab = document.createElement('button');
+
+    bar.appendChild(tab);
+    slotEl.appendChild(bar);
+    manager.registerOutsideClickExemptElement(bar);
+
+    expect(manager.isPathOutsideClickExempt([tab, bar, slotEl, wrapper])).toBe(true);
+    expect(manager.isPathOutsideClickExempt([slotEl, wrapper])).toBe(false);
+
+    manager.unregisterOutsideClickExemptElement(bar);
+
+    expect(manager.isPathOutsideClickExempt([tab, bar, slotEl, wrapper])).toBe(false);
+  });
+
+  it('ignores non-element entries of the path', () => {
+    const { manager, slotEl } = makeManager();
+
+    manager.registerOutsideClickExemptElement(slotEl);
+
+    expect(manager.isPathOutsideClickExempt([document, window])).toBe(false);
+  });
+});

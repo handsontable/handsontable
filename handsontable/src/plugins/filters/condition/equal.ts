@@ -46,5 +46,6 @@ export function condition(dataRow: DataRow, [value]: unknown[]) {
 registerCondition(CONDITION_NAME, condition, {
   name: C.FILTERS_CONDITIONS_EQUAL,
   inputsCount: 1,
-  showOperators: true
+  showOperators: true,
+  inputTypeByColumnType: { date: 'date', 'intl-date': 'date' },
 });

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `beforeColumnSort` and `afterColumnSort` TypeScript definitions, which omitted the `sortPossible` argument that both hooks pass.",
+  "type": "fixed",
+  "issueOrPR": 13555,
+  "breaking": false,
+  "framework": "none"
+}

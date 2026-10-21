@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasGridPage } from '../fixtures/pages/FormulasGridPage';
 
 /**
@@ -10,7 +10,7 @@ import { FormulasGridPage } from '../fixtures/pages/FormulasGridPage';
  * exercises both, including the grid's auto-scroll when the pointer passes
  * the grid's bottom edge (DEV-2183).
  */
-test.describe('fill handle over a formulas range', () => {
+test.describe('fill handle over a formulas range', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('populates dates and formulas from a range dragged below the viewport', async ({ page, theme, bundle }) => {
     const grid = new FormulasGridPage(page, theme, bundle);
 
@@ -49,5 +49,38 @@ test.describe('fill handle over a formulas range', () => {
       [null, null, '1900-02-28', '1900-02-28', '1900-02-28'],
       [null, null, '=C6', '=D6', '=E6'],
     ]);
+  });
+
+  // DEV-859: the double-click fill reads stored values, so a formula counts as a value even when it
+  // evaluates to an empty string, both in the guide column and in the filled column.
+  test('double-click fill counts a guide-column formula that shows an empty string as a value', async ({
+    page, theme, bundle,
+  }) => {
+    const grid = new FormulasGridPage(page, theme, bundle);
+    const N = null;
+
+    await grid.goto();
+    await grid.loadData([[5, 1], [N, 2], [N, '=IF(1>0,"","")'], [N, 4], [N, 5], [N, N]]);
+    // The precondition: the formula really evaluates to an empty string.
+    await expect.poll(async () => (await grid.columnValues(1))[2]).toBe('');
+
+    await grid.doubleClickFillHandleOf(0, 0);
+
+    await expect.poll(() => grid.columnValues(0)).toEqual([5, 5, 5, 5, 5, N]);
+  });
+
+  test('double-click fill does not overwrite a formula that shows an empty string', async ({
+    page, theme, bundle,
+  }) => {
+    const grid = new FormulasGridPage(page, theme, bundle);
+    const N = null;
+
+    await grid.goto();
+    await grid.loadData([[5, 1], [N, 2], ['=IF(1>0,"","")', 3], [N, 4]]);
+    await expect.poll(async () => (await grid.columnValues(0))[2]).toBe('');
+
+    await grid.doubleClickFillHandleOf(0, 0);
+
+    await expect.poll(() => grid.sourceColumnValues(0)).toEqual([5, 5, '=IF(1>0,"","")', N]);
   });
 });

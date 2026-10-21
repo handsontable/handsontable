@@ -1,14 +1,21 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import type { CellProperties } from '../../settings';
+import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
-import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
-import { isObject } from '../../helpers/object';
+import { isObject, isObjectEqual } from '../../helpers/object';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { isEmpty } from '../../helpers/mixed';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
-import { getDragDirectionAndRange } from './utils';
+import {
+  countCellsPastEdge,
+  getCopyDownEndRow,
+  getDragDirectionAndRange,
+  getDistanceOutsideRange,
+  resolveDragDirection,
+} from './utils';
+import type { DragDirection } from './utils';
 import { DIRECTIONS } from './constants';
 
 Hooks.getSingleton().register('modifyAutofillRange');
@@ -31,34 +38,50 @@ interface AutofillCellProperties extends CellProperties {
 }
 
 /**
+ * `HotInstance` augmented with the internal `_getCopyableData` method. It exists on the Core runtime
+ * object but is intentionally NOT part of the public `HotInstance` type, so it is not exposed to
+ * third-party code. Autofill reads cell values through it because they are written back into the grid.
+ */
+type HotInstanceInternal = HotInstance & {
+  _getCopyableData(row: number, column: number): unknown;
+};
+
+/**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
  * bottom of the cell selection.
  *
  * "Drag-down" expands the value of the selected cells to the neighbouring cells when you drag the small
  * square in the corner.
  *
- * "Copy-down" copies the value of the selection to all empty cells below when you double click the small square.
+ * "Copy-down" copies the value of the selection into the empty cells below when you double-click the small square.
+ * It fills down as long as the column next to the selection has values. It stops at the first gap in that column,
+ * and above the first cell that already has a value, so it never overwrites data.
  *
  * @class Autofill
  * @plugin Autofill
  */
 export class Autofill extends BasePlugin {
   /**
-   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   * The key the plugin is registered under: `'autofill'`. Pass it to
+   * {@link Core#getPlugin} to get the plugin instance: `hot.getPlugin('autofill')`.
+   *
+   * The key is not the option name. To turn the plugin on and configure it, use the
+   * [`fillHandle`](@/api/options.md#fillhandle) option.
    */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
   /**
-   * Returns the priority order used to determine the order in which plugins are initialized.
+   * The plugin's priority: `20`. Plugins with a lower priority are enabled first.
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
   /**
-   * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
+   * The options that update the plugin when you pass them to {@link Core#updateSettings}:
+   * `['fillHandle']`.
    */
   static get SETTING_KEYS() {
     return [
@@ -67,7 +90,23 @@ export class Autofill extends BasePlugin {
   }
 
   /**
-   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   * The default values of the [`fillHandle`](@/api/options.md#fillhandle) object form:
+   * `{ direction: undefined, autoInsertRow: true }`.
+   *
+   * They fill in each property the option value leaves out (`true`, `'vertical'`, `'horizontal'`, or an
+   * object):
+   * - `direction: undefined`: autofill works in both directions.
+   * - `autoInsertRow: true`: dragging the fill handle below the last row adds new rows.
+   *   `direction: 'horizontal'` turns it off.
+   *
+   * If you don't set `fillHandle` at all, the grid's default (`{ autoInsertRow: false }`) goes through
+   * the same merge, so autofill still works in both directions, but no rows are added.
+   *
+   * @example
+   * ```js
+   * // vertical autofill only; `autoInsertRow` keeps its default, `true`
+   * fillHandle: { direction: 'vertical' },
+   * ```
    */
   static get DEFAULT_SETTINGS(): { direction: string | undefined; autoInsertRow: boolean } {
     return {
@@ -112,7 +151,7 @@ export class Autofill extends BasePlugin {
    * Specifies how many cell levels were dragged using the handle.
    *
    * @private
-   * @type {boolean}
+   * @type {number}
    */
   handleDraggedCells = 0;
   /**
@@ -134,7 +173,22 @@ export class Autofill extends BasePlugin {
    *
    * @type {string|null}
    */
-  #currentDragDirection: string | null = null;
+  #currentDragDirection: DragDirection | null = null;
+  /**
+   * Whether the plugin is being torn down and rebuilt by `updatePlugin()` rather than genuinely
+   * disabled. `updateSettings()` reaches `updatePlugin()` whenever `fillHandle` is merely *present*
+   * in the payload, unchanged value included, so this must not end a live gesture.
+   *
+   * @type {boolean}
+   */
+  #isReconfiguring = false;
+  /**
+   * Whether `updateSettings()` is applying new settings to the plugin. The grid renders right after
+   * that, so a toggle made from there must not render on its own.
+   *
+   * @type {boolean}
+   */
+  #isApplyingSettings = false;
   /**
    * Last mouse client position. Stays `null` until the first `mousemove` of a drag, so a scroll
    * that happens after pressing the fill handle but before any drag move is not replayed with a
@@ -157,7 +211,8 @@ export class Autofill extends BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin(): void {
-    if (this.enabled) {
+    // `destroy()` deletes `hot`, so a reference kept to a destroyed plugin must not run (DEV-775).
+    if (!this.hot || this.enabled) {
       return;
     }
 
@@ -193,6 +248,7 @@ export class Autofill extends BasePlugin {
     this.addHook('afterScroll', this.#onAfterScroll);
 
     super.enablePlugin();
+    this.#renderAfterRuntimeToggle();
   }
 
   /**
@@ -203,8 +259,34 @@ export class Autofill extends BasePlugin {
    *  - [`fillHandle`](@/api/options.md#fillhandle)
    */
   updatePlugin(): void {
-    this.disablePlugin();
-    this.enablePlugin();
+    if (!this.hot) {
+      return;
+    }
+
+    const previousDirections = this.directions;
+    const previousAutoInsertRow = this.autoInsertRow;
+
+    this.#isReconfiguring = true;
+
+    try {
+      this.disablePlugin();
+      this.enablePlugin();
+    } finally {
+      this.#isReconfiguring = false;
+    }
+
+    // A reconfiguration that changes what a fill is allowed to do must still end the gesture it
+    // interrupted, or `#onMouseUp` commits it under the rules it was drawn with - a drag started
+    // while both axes were allowed would fill vertically after the update narrowed it to
+    // `horizontal`. The comparison is on the resolved configuration, so re-sending the same value
+    // in another shape (`'vertical'` against `{ direction: 'vertical' }`) still counts as no change.
+    if (
+      this.autoInsertRow !== previousAutoInsertRow ||
+      !isObjectEqual(previousDirections, this.directions)
+    ) {
+      this.#resetDragState();
+    }
+
     super.updatePlugin();
   }
 
@@ -212,7 +294,50 @@ export class Autofill extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
+    if (!this.hot) {
+      return;
+    }
+
+    // The base class drops the `documentElement` `mouseup` listener that owns the drag teardown,
+    // so a gesture that is in progress when the plugin is disabled would otherwise stay armed
+    // until the next `enablePlugin()` picks it up (DEV-2782, the lifecycle twin of GitHub #13370).
+    // A reconfiguration re-registers that listener in the same tick, so the gesture it belongs to
+    // is still live and must survive - see `updatePlugin()`.
+    if (!this.#isReconfiguring) {
+      this.#resetDragState();
+    }
+
     super.disablePlugin();
+    this.#renderAfterRuntimeToggle();
+  }
+
+  /**
+   * Applies new settings, marking the call so the plugin toggles it causes leave the render to
+   * `updateSettings()`.
+   *
+   * @param {object} newSettings New set of settings passed to the `updateSettings()` method.
+   */
+  onUpdateSettings(newSettings: Record<string, unknown>): void {
+    this.#isApplyingSettings = true;
+
+    try {
+      super.onUpdateSettings(newSettings);
+    } finally {
+      this.#isApplyingSettings = false;
+    }
+  }
+
+  /**
+   * Re-renders the grid after the plugin was enabled, disabled, or destroyed at runtime, with
+   * `getPlugin('autofill').disablePlugin()` and the like, so the fill handle shows or hides at once
+   * instead of on the next unrelated render (DEV-775). Skipped while the grid initializes, while
+   * `updateSettings()` applies settings, and while `updatePlugin()` rebuilds the plugin: each of
+   * those renders on its own.
+   */
+  #renderAfterRuntimeToggle(): void {
+    if (this.isPluginsReady && !this.#isApplyingSettings && !this.#isReconfiguring) {
+      this.hot.render();
+    }
   }
 
   /**
@@ -272,7 +397,9 @@ export class Autofill extends BasePlugin {
           rowSet.push(this.hot.getCopyableSourceData(r, c));
 
         } else {
-          rowSet.push(this.hot.getCopyableData(r, c));
+          // The raw value, not `getCopyableData()`'s string: this data is written back into the
+          // grid by `populateFromArray()`, so a number has to stay a number.
+          rowSet.push((this.hot as HotInstanceInternal)._getCopyableData(r, c));
         }
 
       });
@@ -498,9 +625,28 @@ export class Autofill extends BasePlugin {
    */
   addRow() {
     this.hot._registerTimeout(() => {
+      // A gesture released before the insertion was due no longer has a fill to extend into the
+      // new row, which would stay empty (DEV-140).
+      if (!this.mouseDownOnCellCorner) {
+        this.addingStarted = false;
+
+        return;
+      }
+
       this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, undefined, 1, `${this.pluginName}.fill`);
 
       this.addingStarted = false;
+
+      // A hook run by the insertion can end the gesture, or destroy the grid with it.
+      if (!this.hot || !this.mouseDownOnCellCorner) {
+        return;
+      }
+
+      // The row appears under a pointer that may not move again before the release, so follow it
+      // here. Counted as a drag step, unlike a scroll replay: the drag itself grew the grid.
+      if (this.#lastMouseClientPosition) {
+        this.#followPointer(this.#lastMouseClientPosition, true);
+      }
     }, INTERVAL_FOR_ADDING_ROW);
   }
 
@@ -524,7 +670,14 @@ export class Autofill extends BasePlugin {
   }
 
   /**
-   * Get index of last adjacent filled in row.
+   * Get index of last adjacent filled in row – the last row a double-click on the fill handle fills.
+   * The walk itself is `getCopyDownEndRow()` in `utils.ts`: it follows one guide column (the left
+   * neighbor, else the right one), stops above the first row that already holds a value in a selected
+   * column, and at the first visible row where the guide column is empty.
+   *
+   * Cells are read one at a time, as stored values, so a formula counts as a value even when it
+   * evaluates to an empty string. A guide cell covered by a merged area reads its area's value, and
+   * the guide columns skip columns hidden with `HiddenColumns`, as the walk skips hidden rows.
    *
    * @private
    * @param {Array} cornersOfSelectedCells Indexes of selection corners.
@@ -532,28 +685,42 @@ export class Autofill extends BasePlugin {
    *                   Or -1 when selection adjacent can't be applied.
    */
   getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells: number[]) {
-    const data = this.hot.getData();
-    const nrOfTableRows = this.hot.countRows();
-    let lastFilledInRowIndex;
+    const [, startColumn, endRow, endColumn] = cornersOfSelectedCells;
+    const columnCount = this.hot.countCols();
+    const isStoredValueEmpty = (row: number, column: number) => column < 0 || column >= columnCount ||
+      isEmpty(this.hot.getSourceDataAtCell(this.hot.toPhysicalRow(row), column));
+    const mergeCells = this.hot.getPlugin('mergeCells');
+    const isColumnHidden = (column: number) => column >= 0 && column < columnCount &&
+      this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(column));
+    let startGuideColumn = startColumn - 1;
+    let endGuideColumn = endColumn + 1;
 
-    for (let rowIndex = cornersOfSelectedCells[2] + 1; rowIndex < nrOfTableRows; rowIndex++) {
-      for (let columnIndex = cornersOfSelectedCells[1]; columnIndex <= cornersOfSelectedCells[3]; columnIndex++) {
-        const dataInCell = data[rowIndex][columnIndex];
-
-        if (!isEmpty(dataInCell)) {
-          return -1;
-        }
-      }
-
-      const dataInNextLeftCell = data[rowIndex][cornersOfSelectedCells[1] - 1];
-      const dataInNextRightCell = data[rowIndex][cornersOfSelectedCells[3] + 1];
-
-      if (!isEmpty(dataInNextLeftCell) || !isEmpty(dataInNextRightCell)) {
-        lastFilledInRowIndex = rowIndex;
-      }
+    // A hidden column keeps its visual index, so step over hidden columns to the nearest visible one.
+    while (isColumnHidden(startGuideColumn)) {
+      startGuideColumn -= 1;
     }
 
-    return lastFilledInRowIndex;
+    while (isColumnHidden(endGuideColumn)) {
+      endGuideColumn += 1;
+    }
+
+    const lastRow = getCopyDownEndRow(
+      {
+        isFilledColumnEmpty: isStoredValueEmpty,
+        isGuideColumnEmpty: (row, column) => {
+          const mergedArea = mergeCells?.enabled ? mergeCells.mergedCellsCollection.get(row, column) : false;
+
+          return mergedArea
+            ? isStoredValueEmpty(mergedArea.row, mergedArea.col)
+            : isStoredValueEmpty(row, column);
+        },
+        isRowHidden: row => this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)),
+      },
+      { endRow, startColumn, endColumn, startGuideColumn, endGuideColumn },
+      this.hot.countRows(),
+    );
+
+    return lastRow ?? -1;
   }
 
   /**
@@ -670,8 +837,13 @@ export class Autofill extends BasePlugin {
    *
    * @private
    * @param {CellCoords} cellCoords `CellCoords` coord object.
+   * @param {{rows: number, columns: number}} [cellsPastTable] How many cells the pointer reached past
+   * the table's bottom and inline-end edges, counted on top of the cell under it.
    */
-  redrawBorders(cellCoords: { row: number | null, col: number | null }) {
+  redrawBorders(
+    cellCoords: { row: number | null, col: number | null },
+    cellsPastTable: { rows: number, columns: number } = { rows: 0, columns: 0 },
+  ) {
     const allowedDirections = this.directions;
     const lastRange = this.hot.getSelectedRangeLast();
 
@@ -684,38 +856,19 @@ export class Autofill extends BasePlugin {
     const topStartCorner = lastRange.getTopStartCorner();
     const bottomEndCorner = lastRange.getBottomEndCorner();
 
-    const rowChanged = (coords.row ?? 0) < (topStartCorner.row ?? 0) ||
-      (coords.row ?? 0) > (bottomEndCorner.row ?? 0);
-    const colChanged = (coords.col ?? 0) < (topStartCorner.col ?? 0) ||
-      (coords.col ?? 0) > (bottomEndCorner.col ?? 0);
-    const isAtHighlightPosition = lastRange.includes(coords);
-
-    if (isAtHighlightPosition) {
-      this.#currentDragDirection = null;
-    }
-
-    if (this.#currentDragDirection === 'vertical' && !rowChanged && colChanged) {
-      if (allowedDirections.includes('horizontal')) {
-        this.#currentDragDirection = 'horizontal';
-      }
-
-    } else if (this.#currentDragDirection === 'horizontal' && !colChanged && rowChanged) {
-      if (allowedDirections.includes('vertical')) {
-        this.#currentDragDirection = 'vertical';
-      }
-    }
+    // The fill handle sits on the selection's corner, so a diagonal pointer leaves the selection on
+    // both axes at once. See this plugin's AGENTS.md ("Resolving the drag direction", DEV-140).
+    this.#currentDragDirection = resolveDragDirection(
+      this.#currentDragDirection,
+      getDistanceOutsideRange(coords.row ?? 0, topStartCorner.row ?? 0, bottomEndCorner.row ?? 0) +
+        cellsPastTable.rows,
+      getDistanceOutsideRange(coords.col ?? 0, topStartCorner.col ?? 0, bottomEndCorner.col ?? 0) +
+        cellsPastTable.columns,
+      allowedDirections,
+    );
 
     let toRow = highlight.row;
     let toCol = highlight.col;
-
-    if (this.#currentDragDirection === null) {
-      if (rowChanged && !colChanged && allowedDirections.includes('vertical')) {
-        this.#currentDragDirection = 'vertical';
-
-      } else if (colChanged && !rowChanged && allowedDirections.includes('horizontal')) {
-        this.#currentDragDirection = 'horizontal';
-      }
-    }
 
     if (this.#currentDragDirection === 'vertical' && allowedDirections.includes('vertical')) {
       toRow = coords.row ?? 0;
@@ -746,13 +899,16 @@ export class Autofill extends BasePlugin {
    * @returns {boolean}
    */
   getIfMouseWasDraggedOutside(event: Pick<MouseEvent, 'clientX' | 'clientY'>) {
-    const { documentElement } = this.hot.rootDocument;
-    const tableBottom = offset(this.hot.table).top - (this.hot.rootWindow.pageYOffset ||
-      documentElement.scrollTop) + outerHeight(this.hot.table);
-    const tableRight = offset(this.hot.table).left - (this.hot.rootWindow.pageXOffset ||
-      documentElement.scrollLeft) + outerWidth(this.hot.table);
+    // Viewport coordinates straight from the box: unlike the offset chain, it follows the transform
+    // that places the spreader (`walkontable/src/overlay/spreaderOffset.ts`).
+    const { bottom: tableBottom } = this.hot.table.getBoundingClientRect();
 
-    return event.clientY > tableBottom && event.clientX <= tableRight;
+    // The drag direction already weighs how far below and beside the table the pointer is (see
+    // `#followPointer()`), so a new row is due exactly when a vertical drag reaches below the table –
+    // the end of the data, which the table's edge is only while the last row is rendered.
+    return event.clientY > tableBottom &&
+      this.#currentDragDirection === DIRECTIONS.vertical &&
+      this.#isLastRowRendered();
   }
 
   /**
@@ -873,15 +1029,27 @@ export class Autofill extends BasePlugin {
    * On mouse up listener.
    */
   #onMouseUp() {
-    if (this.handleDraggedCells) {
+    // Gate on the gesture flag, not on the drag-step counter. See this plugin's AGENTS.md
+    // ("Two drag-state fields, one sentinel") for why the counter is already 0 here (GitHub #13370).
+    if (this.mouseDownOnCellCorner) {
       if (this.handleDraggedCells > 1) {
         this.fillIn();
       }
 
-      this.handleDraggedCells = 0;
-      this.mouseDownOnCellCorner = false;
-      this.#currentDragDirection = null;
+      this.#resetDragState();
     }
+  }
+
+  /**
+   * Ends the corner gesture: clears the drag flag, the step counter, the drag direction, and the
+   * fill preview border. Shared by the `mouseup` teardown and `disablePlugin()`.
+   */
+  #resetDragState() {
+    this.resetSelectionOfDraggedArea();
+    this.mouseDownOnCellCorner = false;
+    this.mouseDragOutside = false;
+    this.#currentDragDirection = null;
+    this.#lastMouseClientPosition = null;
   }
 
   /**
@@ -895,26 +1063,20 @@ export class Autofill extends BasePlugin {
    */
   #onMouseMove(event: Pick<MouseEvent, 'clientX' | 'clientY'>, countDragStep = true) {
     if (this.mouseDownOnCellCorner) {
-      const { clientX, clientY } = event;
-      const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
-      const selectedRange = this.hot.getSelectedRangeLast();
-
-      this.#lastMouseClientPosition = { clientX, clientY };
-
-      // The `beforeOnCellMouseOver`-based counting doesn't fire when the pointer leaves
-      // the table element (e.g. dragging the last column's fill handle at a slight angle,
-      // past the table's edge), so count the drag here as well. Otherwise the fill made
-      // with such a drag would never be committed on mouseup.
-      if (countDragStep && this.handleDraggedCells > 0 && selectedRange && !selectedRange.includes(cellCoords)) {
-        this.handleDraggedCells += 1;
-      }
-
-      this.redrawBorders(cellCoords);
+      this.#followPointer(event, countDragStep);
     }
 
-    const mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
+    // Short-circuited on purpose: the measurement reads `this.hot.table`, which is `undefined` on
+    // an instance whose init aborted before the view existed. See this plugin's AGENTS.md
+    // ("The `documentElement` listeners outlive a failed init").
+    // A scroll replay (`countDragStep` off) may extend a drag into a new row, but it cannot start one:
+    // until a real move has counted a drag step, the gesture has no fill to put into the row.
+    const shouldMarkDragOutside = this.addingStarted === false &&
+      this.handleDraggedCells > 0 &&
+      (countDragStep || this.handleDraggedCells > 1) &&
+      this.getIfMouseWasDraggedOutside(event);
 
-    if (this.addingStarted === false && this.handleDraggedCells > 0 && mouseWasDraggedOutside) {
+    if (shouldMarkDragOutside) {
       this.mouseDragOutside = true;
       this.addingStarted = true;
 
@@ -925,6 +1087,91 @@ export class Autofill extends BasePlugin {
     if (this.mouseDragOutside && this.autoInsertRow) {
       this.addRow();
     }
+  }
+
+  /**
+   * Redraws the fill border for the cell under the pointer of a live corner gesture, and counts the
+   * move as a drag step when it lands outside the selection.
+   *
+   * @param {{clientX: number, clientY: number}} position The pointer's viewport position.
+   * @param {boolean} countDragStep Whether a move onto a new cell counts as a drag step.
+   */
+  #followPointer(position: Pick<MouseEvent, 'clientX' | 'clientY'>, countDragStep: boolean) {
+    const { clientX, clientY } = position;
+    const cellsPastTable = this.#countCellsPastTable(clientX, clientY);
+    let cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
+    const selectedRange = this.hot.getSelectedRangeLast();
+
+    // Below the whole table, the pointer points past its last row. That includes a row just inserted
+    // below the visible part of a grid with a fixed height, which the clamp to the viewport above
+    // cannot reach, so the fill would stop short of it.
+    if (cellsPastTable.rows > 0 && cellsPastTable.lastRow !== null && cellCoords.col !== null) {
+      cellCoords = this.hot._createCellCoords(cellsPastTable.lastRow, cellCoords.col);
+    }
+
+    this.#lastMouseClientPosition = { clientX, clientY };
+
+    // The `beforeOnCellMouseOver`-based counting doesn't fire when the pointer leaves
+    // the table element (e.g. dragging the last column's fill handle at a slight angle,
+    // past the table's edge), so count the drag here as well. Otherwise the fill made
+    // with such a drag would never be committed on mouseup.
+    if (countDragStep && this.handleDraggedCells > 0 && selectedRange && !selectedRange.includes(cellCoords)) {
+      this.handleDraggedCells += 1;
+    }
+
+    this.redrawBorders(cellCoords, cellsPastTable);
+  }
+
+  /**
+   * Counts how many cells the pointer reached past the table's bottom and inline-end edges, sized by
+   * the last row and column. The cell under such a pointer is clamped to the table's edge, so without
+   * this a pointer far below the last row would weigh as much as one level with it.
+   *
+   * @param {number} clientX The pointer's horizontal viewport position.
+   * @param {number} clientY The pointer's vertical viewport position.
+   * @returns {{rows: number, columns: number, lastRow: number|null}} The counts, and the visual index
+   * of the last row that is not hidden (`null` when there is none).
+   */
+  #countCellsPastTable(clientX: number, clientY: number) {
+    const { bottom, left, right } = this.hot.table.getBoundingClientRect();
+    const lastRow = this.#getLastNotHiddenRow();
+    const lastColumn = this.hot.columnIndexMapper.getNearestNotHiddenIndex(this.hot.countCols() - 1, -1);
+    const rowHeight = lastRow === null ?
+      0 : this.hot.getRowHeight(lastRow) ?? this.hot.stylesHandler.getDefaultRowHeight(lastRow);
+    const columnWidth = lastColumn === null ? 0 : this.hot.getColWidth(lastColumn);
+    const pixelsPastInlineEnd = this.hot.isRtl() ? left - clientX : clientX - right;
+
+    // The table element holds only the rendered rows and columns. A long grid with a fixed height
+    // renders a few rows past its viewport and stops there, so the table's edge is the data's edge
+    // only while the last row (or column) is rendered. Past any other edge, nothing is counted.
+    const isLastColumnRendered = lastColumn !== null && lastColumn === this.hot.getLastRenderedVisibleColumn();
+
+    return {
+      rows: this.#isLastRowRendered() ? countCellsPastEdge(clientY - bottom, rowHeight) : 0,
+      columns: isLastColumnRendered ? countCellsPastEdge(pixelsPastInlineEnd, columnWidth) : 0,
+      lastRow,
+    };
+  }
+
+  /**
+   * The visual index of the last row that is not hidden, or `null` when there is none.
+   *
+   * @returns {number|null}
+   */
+  #getLastNotHiddenRow(): number | null {
+    return this.hot.rowIndexMapper.getNearestNotHiddenIndex(this.hot.countRows() - 1, -1);
+  }
+
+  /**
+   * Whether the last row that is not hidden is rendered, which makes the bottom edge of the table
+   * element the end of the data.
+   *
+   * @returns {boolean}
+   */
+  #isLastRowRendered(): boolean {
+    const lastRow = this.#getLastNotHiddenRow();
+
+    return lastRow !== null && lastRow === this.hot.getLastRenderedVisibleRow();
   }
 
   /**
@@ -940,6 +1187,15 @@ export class Autofill extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy(): void {
+    // A plugin destroyed on its own, ahead of the grid, takes its fill handle with it. The grid's
+    // own `destroy()` suspends rendering first, so this render is a no-op there.
+    const hot = this.hot;
+    const shouldRender = !!hot && this.isPluginsReady;
+
     super.destroy();
+
+    if (shouldRender) {
+      hot.render();
+    }
   }
 }

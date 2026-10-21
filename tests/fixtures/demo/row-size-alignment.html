@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — row size alignment</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme, bundle and the fixture's own options come from query params, each mapped through a fixed
+    // allowlist to LITERALS so a crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default so the fixture stays browsable by hand; an unknown value THROWS
+    // instead of falling back — a typo in a spec must be one red test, never a silently mislabeled green
+    // one.
+    const htParams = new URLSearchParams(location.search);
+    const htPick = (name, allowed, fallback) => {
+      const value = allowed[htParams.get(name) ?? fallback];
+
+      if (value === undefined) {
+        throw new Error(`Unknown ?${name}= value: ${JSON.stringify(htParams.get(name))}`);
+      }
+
+      return value;
+    };
+
+    window.htTheme = htPick('theme', { main: 'main', horizon: 'horizon', classic: 'classic' }, 'main');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min = handsontable.full.min.js).
+    window.htBundle = htPick('bundle', { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, 'umd');
+    // `small` is the demo's `smallcells` shape: 40 px columns, so every "row, column" label wraps.
+    window.htCells = htPick('cells', { normal: 100, small: 40 }, 'normal');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for the visual suite's `/row-size-demo` route, retired with its captures and configured as
+    it was: 100 rows by 20 columns of "row, column" labels in a 320 px grid with row and column headers
+    and `autoRowSize`, its columns 100 px wide, or 40 px with `cells=small`, where every label wraps onto
+    a second line. The fix that demo came with (#11872) kept the row headers level with their rows once
+    the grid is scrolled.
+  -->
+  <div data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
+    // has not rendered yet. `awaitFixtureBuilt()` rethrows the captured message.
+    try {
+      window.hot = new Handsontable(container, {
+        data: Array.from({ length: 100 }, (_, row) => Array.from({ length: 20 }, (__, column) => `${row}, ${column}`)),
+        height: 320,
+        colWidths: window.htCells,
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        dialog: true,
+        dropdownMenu: true,
+        autoWrapRow: true,
+        autoWrapCol: true,
+        autoRowSize: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

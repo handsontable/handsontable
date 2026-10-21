@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the comment editor covering a cell near the viewport's left edge instead of flipping to its right side on an RTL page scrolled by the window.",
+  "type": "fixed",
+  "issueOrPR": 13799,
+  "breaking": false,
+  "framework": "none"
+}

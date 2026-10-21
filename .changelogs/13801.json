@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a window scroll jump on a right-to-left page when the grid sits in a shrink-to-fit wrapper or is offset from the page's right edge, which made opening an editor or selecting a visible cell scroll the page.",
+  "type": "fixed",
+  "issueOrPR": 13801,
+  "breaking": false,
+  "framework": "none"
+}

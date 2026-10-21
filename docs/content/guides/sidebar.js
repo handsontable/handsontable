@@ -2,7 +2,6 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/introduction/introduction' },
   { path: 'guides/getting-started/demo/demo' },
   { path: 'guides/getting-started/installation/installation' },
-  { path: 'guides/getting-started/configuration-options/configuration-options' },
   { path: 'guides/getting-started/grid-size/grid-size' },
   { path: 'guides/getting-started/custom-id-class-style/custom-id-class-style' },
   { path: 'guides/getting-started/react-methods/react-methods', onlyFor: ['react'] },
@@ -16,10 +15,16 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/license-key/license-key' },
 ];
 
+const configurationItems = [
+  { path: 'guides/configuration/configuration-options/configuration-options' },
+  { path: 'guides/configuration/configuration-option-levels/configuration-option-levels' },
+];
+
 const aiToolsItems = [
   { path: 'guides/ai-tools/skills-for-claude-code/skills-for-claude-code' },
   { path: 'guides/ai-tools/ai-theme-builder/ai-theme-builder' },
   { path: 'guides/ai-tools/ai-docs-assistant/ai-docs-assistant' },
+  { path: 'guides/ai-tools/docs-mcp-server/docs-mcp-server' },
 ];
 
 const stylingItems = [
@@ -35,19 +40,27 @@ const serverSideItems = [
   { path: 'guides/getting-started/server-side-data/server-side-data-configuration' },
   { path: 'guides/getting-started/server-side-data/server-side-data-crud' },
   { path: 'guides/getting-started/server-side-data/server-side-data-fetching' },
+  { path: 'guides/getting-started/server-side-data-row-selection/server-side-data-row-selection' },
 ];
 
 const dataManagementItems = [
   { path: 'guides/getting-started/binding-to-data/binding-to-data' },
   { path: 'guides/getting-started/saving-data/saving-data' },
+  { path: 'guides/getting-started/view-state/view-state' },
   { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
   { path: 'guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes' },
-  { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
-  { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
   { path: 'guides/cell-features/clipboard/clipboard' },
   { path: 'guides/data-management/collaboration/collaboration' },
 ];
 
+const importAndExportItems = [
+  { path: 'guides/import-and-export/import-and-export/import-and-export', title: 'Overview' },
+  { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
+  { path: 'guides/accessories-and-menus/import-from-excel/import-from-excel' },
+  { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
+  { path: 'guides/accessories-and-menus/xlsx-engine/xlsx-engine' },
+  { path: 'guides/import-and-export/dropped-features/dropped-features' },
+];
 
 const columnsItems = [
   { path: 'guides/columns/react-hot-column/react-hot-column', onlyFor: ['react'] },
@@ -67,6 +80,7 @@ const rowsItems = [
   { path: 'guides/rows/row-header/row-header' },
   { path: 'guides/rows/row-parent-child/row-parent-child' },
   { path: 'guides/rows/row-hiding/row-hiding' },
+  { path: 'guides/rows/row-selection/row-selection' },
   { path: 'guides/rows/row-moving/row-moving' },
   { path: 'guides/rows/row-freezing/row-freezing' },
   { path: 'guides/rows/row-height/row-height' },
@@ -74,15 +88,19 @@ const rowsItems = [
   { path: 'guides/rows/rows-sorting/rows-sorting' },
   { path: 'guides/rows/rows-pagination/rows-pagination' },
   { path: 'guides/rows/row-trimming/row-trimming' },
+  { path: 'guides/rows/row-identity/row-identity' },
   { path: 'guides/rows/row-prepopulating/row-prepopulating' },
 ];
 
 const cellFeaturesItems = [
   { path: 'guides/cell-features/selection/selection' },
+  { path: 'guides/cell-features/move-cells/move-cells' },
   { path: 'guides/cell-features/merge-cells/merge-cells' },
   { path: 'guides/cell-features/conditional-formatting/conditional-formatting' },
   { path: 'guides/cell-features/text-alignment/text-alignment' },
   { path: 'guides/cell-features/read-only-cells/read-only-cells' },
+  { path: 'guides/cell-features/clickable-links/clickable-links' },
+  { path: 'guides/cell-features/async-values/async-values' },
   { path: 'guides/cell-features/comments/comments' },
   { path: 'guides/cell-features/autofill-values/autofill-values' },
   { path: 'guides/cell-features/formatting-cells/formatting-cells' },
@@ -139,6 +157,7 @@ const accessoriesAndMenusItems = [
   { path: 'guides/dialog/loading/loading' },
   { path: 'guides/dialog/notification/notification' },
   { path: 'guides/accessories-and-menus/layout-slots/layout-slots' },
+  { path: 'guides/accessories-and-menus/sheets-bar/sheets-bar' },
 ];
 
 const internationalizationItems = [
@@ -159,6 +178,7 @@ const buildingAndToolingItems = [
 ];
 
 const optimizationItems = [
+  { path: 'guides/optimization/rendering/rendering' },
   { path: 'guides/optimization/batch-operations/batch-operations' },
   // TODO { path: 'guides/optimization/touch-events/touch-events' },
   { path: 'guides/optimization/performance/performance' },
@@ -200,6 +220,9 @@ const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
   { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
+  { path: 'guides/upgrade-and-migration/migrating-from-19.0-to-20.0/migrating-from-19.0-to-20.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0' },
+  { path: 'guides/upgrade-and-migration/migrating-from-18.0-to-18.1/migrating-from-18.0-to-18.1' },
   { path: 'guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1' },
@@ -217,6 +240,7 @@ const upgradeAndMigrationItems = [
 module.exports = {
   sidebar: [
     { title: 'Getting started', children: gettingStartedItems },
+    { title: 'Configuration', children: configurationItems },
     { title: 'AI Tools', children: aiToolsItems },
     { title: 'Styling', children: stylingItems },
     { title: 'Columns', children: columnsItems },
@@ -227,6 +251,7 @@ module.exports = {
     { title: 'Formulas', children: formulasItems },
     { title: 'Server-side data', children: serverSideItems },
     { title: 'Data management', children: dataManagementItems },
+    { title: 'Import and export', children: importAndExportItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
     { title: 'Accessibility and navigation', children: navigationAndAccessibilityItems },

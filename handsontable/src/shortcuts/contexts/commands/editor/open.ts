@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../../../core/types';
 import { stopImmediatePropagation } from '../../../../helpers/dom/event';
+import { hasRenderedCells } from '../../../guards';
 
 export const command = {
   name: 'editorOpen',
@@ -18,8 +19,7 @@ export const command = {
         (selectedRanges?.length ?? 0) > 1
       ) &&
       !selectedRange?.isHeader() &&
-      hot.countRenderedCols() > 0 &&
-      hot.countRenderedRows() > 0
+      hasRenderedCells(hot)
     ) {
       const settings = hot.getSettings();
       const enterMoves = typeof settings.enterMoves === 'function'
@@ -41,11 +41,11 @@ export const command = {
 
     // supports editor opening with enter key
     if (hot.getSettings().enterBeginsEditing) {
-      if (editorManager.cellProperties.readOnly) {
-        editorManager.moveSelectionAfterEnter(event);
+      // `openEditor` prepares once. A read-only cell does not open, and Enter still moves.
+      editorManager.openEditor(null, event, true);
 
-      } else {
-        editorManager.openEditor(null, event, true);
+      if (!editorManager.isEditorOpened() && editorManager.cellProperties?.readOnly) {
+        editorManager.moveSelectionAfterEnter(event);
       }
 
     } else {

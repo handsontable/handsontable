@@ -4,16 +4,18 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const data = [
+  { car: 'Mercedes A 160', year: 2017, comesInBlack: 'yes' },
+  { car: 'Citroen C4 Coupe', year: 2018, comesInBlack: 'yes' },
+  { car: 'Audi A4 Avant', year: 2019, comesInBlack: 'no' },
+  { car: 'Opel Astra', year: 2020, comesInBlack: 'yes' },
+  { car: 'BMW 320i Coupe', year: 2021, comesInBlack: 'no' },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
-      data={[
-        { car: 'Mercedes A 160', year: 2017, comesInBlack: 'yes' },
-        { car: 'Citroen C4 Coupe', year: 2018, comesInBlack: 'yes' },
-        { car: 'Audi A4 Avant', year: 2019, comesInBlack: 'no' },
-        { car: 'Opel Astra', year: 2020, comesInBlack: 'yes' },
-        { car: 'BMW 320i Coupe', year: 2021, comesInBlack: 'no' },
-      ]}
+      data={data}
       colHeaders={['Car model', 'Year', 'Comes in black']}
       height="auto"
       columns={[

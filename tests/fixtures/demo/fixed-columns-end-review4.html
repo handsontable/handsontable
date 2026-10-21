@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>fixedColumnsEnd review 4 e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects, mapped
+    // through fixed allowlists to LITERALS so a crafted param is never reflected into the document. An
+    // unknown value THROWS instead of falling back, so a typo is one red leg, not a mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Fixture of the fourth review round of `fixedColumnsEnd`. Query params:
+    scenario=collapse|order|perf, rtl=1, fixedColumnsStart, fixedColumnsEnd.
+
+    collapse: 12 columns, nested headers [A (0-3), B (4-7), G (8-10), Z (11)] with collapsible groups, and
+      `fixedColumnsEnd` (default 2) so the group G reaches the end band once expanded. `collapsed=1` collapses G
+      through the API right after the build.
+    order: a plain grid with every frozen edge (start/end columns, top/bottom rows), to read the order the
+      overlay clones take in the DOM.
+    perf: 60 columns x 40 rows with two header levels and no end columns by default, for the header-cell lookups
+      (`fixedColumnsEnd` is 0 unless set).
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    try {
+    const container = document.querySelector('[data-testid="grid"]');
+    const number = (name, fallback) => {
+      const value = Number(htParams.get(name) ?? fallback);
+
+      if (!Number.isInteger(value) || value < 0) {
+        throw new Error('Invalid ?' + name + '= value: ' + JSON.stringify(htParams.get(name)));
+      }
+
+      return value;
+    };
+    const scenario = htParams.get('scenario') ?? 'collapse';
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    if (htParams.get('rtl') === '1') {
+      document.documentElement.setAttribute('dir', 'rtl');
+    }
+
+    const build = (cols, rows) => Array.from({ length: rows }, (_, r) =>
+      Array.from({ length: cols }, (_, c) => `R${r + 1}C${c + 1}`));
+    const settings = {
+      colHeaders: true,
+      rowHeaders: true,
+      fixedColumnsStart: number('fixedColumnsStart', 0),
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    if (scenario === 'collapse') {
+      Object.assign(settings, {
+        data: build(12, 6),
+        colWidths: 40,
+        width: 700,
+        height: 300,
+        fixedColumnsEnd: number('fixedColumnsEnd', 2),
+        collapsibleColumns: true,
+        nestedHeaders: [
+          [
+            { label: 'A', colspan: 4 },
+            { label: 'B', colspan: 4 },
+            { label: 'G', colspan: 3 },
+            'Z',
+          ],
+          Array.from({ length: 12 }, (_, c) => `c${c}`),
+        ],
+      });
+    } else if (scenario === 'order') {
+      Object.assign(settings, {
+        data: build(12, 12),
+        colWidths: 72,
+        width: 500,
+        height: 300,
+        fixedColumnsStart: number('fixedColumnsStart', 1),
+        fixedColumnsEnd: number('fixedColumnsEnd', 1),
+        fixedRowsTop: 1,
+        fixedRowsBottom: 1,
+      });
+    } else if (scenario === 'perf') {
+      Object.assign(settings, {
+        data: build(60, 40),
+        colWidths: 72,
+        width: 700,
+        height: 300,
+        fixedColumnsEnd: number('fixedColumnsEnd', 0),
+        nestedHeaders: [
+          Array.from({ length: 20 }, (_, g) => ({ label: `G${g}`, colspan: 3 })),
+          Array.from({ length: 60 }, (_, c) => `c${c}`),
+        ],
+      });
+    } else {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(scenario));
+    }
+
+    window.hot = new Handsontable(container, settings);
+
+    if (scenario === 'collapse' && htParams.get('collapsed') === '1') {
+      window.hot.getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 8 });
+    }
+    } catch (error) {
+      // A build failure is reported by the page object's goto(), not as a mute timeout.
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

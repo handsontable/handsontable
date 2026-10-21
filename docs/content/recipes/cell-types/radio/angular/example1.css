@@ -1,6 +1,8 @@
 /* Scoped to .htRadioCell so theme's .htUIRadio styles in context menus and
-   filter panels are not affected. The radio indicator appearance (dot, border,
-   checked state) is intentionally left to the Handsontable theme. */
+   filter panels are not affected. The ring, colors, and checked state are
+   intentionally left to the Handsontable theme; the checked dot is a
+   `.ht-icon-radio` element the renderer inserts as the input's next sibling
+   (see Step 4 in the guide), not something this stylesheet draws. */
 .htRadioCell {
   display: flex;
   flex-direction: column;

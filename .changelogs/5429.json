@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the `freeze_column` and `unfreeze_column` items not working as keys of a custom column (dropdown) menu.",
+  "type": "fixed",
+  "issueOrPR": 5429,
+  "breaking": false,
+  "framework": "none"
+}

@@ -74,7 +74,7 @@ export interface TouchPoint {
  *
  * `touches` is every finger currently on the screen, in the order they were placed. `changedTouches`
  * is only the fingers this particular event is about - the ones that landed, moved, lifted or were
- * cancelled.
+ * canceled.
  */
 export interface TouchListEvent extends Event {
   touches: ArrayLike<TouchPoint>;

@@ -218,6 +218,16 @@ export class BaseUI {
   }
 
   /**
+   * Re-applies the theme's current icon mapping to any icon element this UI keeps around. A
+   * no-op here; a UI that owns an icon overrides it with a `syncIcon()` call, and the Filters
+   * plugin runs it for every element of every component on each menu show, so a runtime `icons`
+   * remap or theme switch reaches elements that are built once and reused.
+   */
+  refreshIcons() {
+    // Intentionally empty
+  }
+
+  /**
    * Reset to initial state.
    */
   reset() {

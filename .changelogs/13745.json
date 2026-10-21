@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where a merge refused because it overlapped an existing merged cell still added an empty step to the undo history, cleared the redo history, unmerged the merged cells inside the selected range, and left merged-cell flags on cells that are not merged. A refused merge no longer fires the `beforeMergeCells` hook, so a `beforeMergeCells` listener can't make room for an overlapping merge anymore.",
+  "type": "fixed",
+  "issueOrPR": 13745,
+  "breaking": false,
+  "framework": "none"
+}

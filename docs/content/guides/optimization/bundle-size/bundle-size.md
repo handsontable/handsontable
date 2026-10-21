@@ -1,23 +1,22 @@
 ---
 type: how-to
 title: Bundle size
-metaTitle: Bundle size - JavaScript Data Grid | Handsontable
-description: Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules.
+metaTitle: Bundle size | Handsontable DataGrid for JavaScript
+description: Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable DataGrid modules.
 permalink: /bundle-size
 canonicalUrl: /bundle-size
 tags:
   - size
 react:
-  metaTitle: Bundle size - React Data Grid | Handsontable
+  metaTitle: Bundle size | Handsontable DataGrid for React
 angular:
-  metaTitle: Bundle size - Angular Data Grid | Handsontable
+  metaTitle: Bundle size | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Bundle size - Vue Data Grid | Handsontable
+  metaTitle: Bundle size | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Optimization
-menuTag: updated
 ---
-Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules.
+Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable DataGrid modules.
 
 [[toc]]
 

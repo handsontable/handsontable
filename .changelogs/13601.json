@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where overwriting a checkbox column with a custom renderer that rebuilt the cell through `innerHTML` rendered the checkbox unchecked and stopped it from appearing checked when clicked.",
+  "type": "fixed",
+  "issueOrPR": 13601,
+  "breaking": false,
+  "framework": "none"
+}

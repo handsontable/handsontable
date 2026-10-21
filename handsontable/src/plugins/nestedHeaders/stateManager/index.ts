@@ -70,6 +70,27 @@ export default class StateManager {
    * arrangement alone. Consumed by `#deriveTree`. Empty means "use the authored structure".
    */
   #membershipOverrides: MembershipOverrides = new Map();
+  /**
+   * Advances on every change to the membership overrides, so a caller can tell whether they changed
+   * since it last read them without comparing the maps.
+   */
+  #membershipOverridesVersion = 0;
+  /**
+   * Advances on every `setState()` call with a configuration that differs from the previous one. The
+   * membership overrides and the collapsed groups are keyed by that configuration, so a caller can
+   * tell they were recorded under another one. A wrapper re-sends an unchanged configuration on every
+   * render, and that does not count as another one.
+   */
+  #configVersion = 0;
+  /**
+   * The configuration the last `setState()` call received, serialized, to tell a re-sent one apart.
+   */
+  #configKey: string | null = null;
+  /**
+   * Advances whenever the collapsed state of the tree may have changed: a node modification, and
+   * every re-derive of the tree. A caller can then skip walking the tree when it did not move.
+   */
+  #collapsedGroupsVersion = 0;
 
   /**
    * Sets a new state for the nested headers plugin based on settings passed
@@ -79,6 +100,13 @@ export default class StateManager {
    * @returns {boolean} Returns `true` if the settings are processed correctly, `false` otherwise.
    */
   setState(nestedHeadersSettings: unknown[][]) {
+    const configKey = JSON.stringify(nestedHeadersSettings) ?? null;
+
+    if (configKey === null || configKey !== this.#configKey) {
+      this.#configVersion += 1;
+    }
+
+    this.#configKey = configKey;
     this.#sourceSettings.setData(nestedHeadersSettings);
     // A fresh authored configuration invalidates move-driven membership overrides (their owner
     // identities index the previous structure), so reset them.
@@ -140,6 +168,48 @@ export default class StateManager {
   }
 
   /**
+   * Returns a number that changes on every `setState()` call with another configuration.
+   *
+   * @returns {number}
+   */
+  getConfigVersion(): number {
+    return this.#configVersion;
+  }
+
+  /**
+   * Returns a number that changes whenever the collapsed header groups may have changed. When it
+   * did not change, `exportCollapsedGroups()` returns the same groups as before.
+   *
+   * @returns {number}
+   */
+  getCollapsedGroupsVersion(): number {
+    return this.#collapsedGroupsVersion;
+  }
+
+  /**
+   * Returns every collapsed header group, by header level and authored group identity – stable
+   * across column moves, unlike a visual column index. For UndoRedo.
+   *
+   * @returns {Array<{headerLevel: number, authoredColumnIndex: number}>}
+   */
+  exportCollapsedGroups(): { headerLevel: number, authoredColumnIndex: number }[] {
+    return this.#snapshotCollapsedGroups();
+  }
+
+  /**
+   * Re-derives the headers tree with exactly the given groups collapsed – the way `rebuildState()`
+   * re-applies the current ones. A group a move has split apart stays expanded.
+   *
+   * @param {Array<{headerLevel: number, authoredColumnIndex: number}>} collapsedGroups The groups.
+   */
+  importCollapsedGroups(collapsedGroups: ReadonlyArray<{ headerLevel: number, authoredColumnIndex: number }>) {
+    this.#deriveTree();
+    this.#deriveVisibility();
+    this.#reapplyCollapsedGroupsByIdentity(collapsedGroups);
+    this.#applySyncVisibility();
+  }
+
+  /**
    * Captures the header level and authored group identity of every currently collapsed group, so the
    * collapsed state can be re-attached after a move re-derives the tree.
    *
@@ -168,7 +238,9 @@ export default class StateManager {
    *
    * @param {Array<{headerLevel: number, authoredColumnIndex: number}>} collapsedGroups The captured groups.
    */
-  #reapplyCollapsedGroupsByIdentity(collapsedGroups: { headerLevel: number, authoredColumnIndex: number }[]) {
+  #reapplyCollapsedGroupsByIdentity(
+    collapsedGroups: ReadonlyArray<{ headerLevel: number, authoredColumnIndex: number }>,
+  ) {
     collapsedGroups.forEach(({ headerLevel, authoredColumnIndex }) => {
       const matches = this.#findNodesByAuthoredIdentity(headerLevel, authoredColumnIndex);
 
@@ -425,6 +497,8 @@ export default class StateManager {
       return { actionResult: undefined, modified: false };
     }
 
+    this.#collapsedGroupsVersion += 1;
+
     return {
       actionResult: triggerNodeModification(action, nodeToProcess, columnIndex) ?? undefined,
       modified: true,
@@ -486,6 +560,8 @@ export default class StateManager {
    * non-identity arrangement (a column move) makes the structure follow the data.
    */
   #deriveTree() {
+    this.#collapsedGroupsVersion += 1;
+
     const arrangement = this.#columnArrangement ?? createIdentityColumnArrangement();
 
     this.#derivedSettings.setNormalizedData(
@@ -637,6 +713,37 @@ export default class StateManager {
    */
   #resetMembershipOverrides() {
     this.#membershipOverrides = new Map();
+    this.#membershipOverridesVersion += 1;
+  }
+
+  /**
+   * Returns a number that changes whenever the membership overrides change.
+   *
+   * @returns {number}
+   */
+  getMembershipOverridesVersion(): number {
+    return this.#membershipOverridesVersion;
+  }
+
+  /**
+   * Returns a copy of the membership overrides, as `[physicalColumn, [[level, ownerIdentity], ...]]`
+   * entries.
+   *
+   * @returns {Array}
+   */
+  exportMembershipOverrides(): Array<[number, Array<[number, number]>]> {
+    return Array.from(this.#membershipOverrides, ([physical, levels]) => [physical, Array.from(levels)]);
+  }
+
+  /**
+   * Replaces the membership overrides with the exported ones. Call `rebuildState()` afterwards to
+   * derive the headers tree from them.
+   *
+   * @param {Array} entries The overrides, as `exportMembershipOverrides()` returns them.
+   */
+  importMembershipOverrides(entries: ReadonlyArray<readonly [number, ReadonlyArray<readonly [number, number]>]>) {
+    this.#membershipOverrides = new Map(entries.map(([physical, levels]) => [physical, new Map(levels)]));
+    this.#membershipOverridesVersion += 1;
   }
 
   /**
@@ -651,7 +758,9 @@ export default class StateManager {
     if (identity === null) {
       const levels = this.#membershipOverrides.get(physical);
 
-      levels?.delete(level);
+      if (levels?.delete(level)) {
+        this.#membershipOverridesVersion += 1;
+      }
 
       if (levels?.size === 0) {
         this.#membershipOverrides.delete(physical);
@@ -665,6 +774,7 @@ export default class StateManager {
     }
 
     this.#membershipOverrides.get(physical)!.set(level, identity);
+    this.#membershipOverridesVersion += 1;
   }
 
   /**
@@ -1007,11 +1117,12 @@ export default class StateManager {
    * Clears the column state manager to the initial state.
    */
   clear() {
+    this.#collapsedGroupsVersion += 1;
     this.#stateMatrix = [];
     this.#sourceSettings.clear();
     this.#derivedSettings.clear();
     this.#headersTree.clear();
     this.#lastColumnVisibility = null;
-    this.#membershipOverrides = new Map();
+    this.#resetMembershipOverrides();
   }
 }

@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Custom ID, class, and style
-metaTitle: Custom ID, class, and style - JavaScript Data Grid | Handsontable
-description: Apply a custom ID, class, and inline style to the Handsontable container, to target the grid with your own CSS or JavaScript selectors.
+metaTitle: Custom ID, class, and style | Handsontable DataGrid for JavaScript
+description: Apply a custom ID, class, and inline style to the Handsontable DataGrid container, to target the grid with your own CSS or JavaScript selectors.
 permalink: /custom-id-class-style
 canonicalUrl: /custom-id-class-style
 tags:
@@ -11,17 +11,16 @@ tags:
   - classname
   - style
 react:
-  metaTitle: Custom ID, class, and style - React Data Grid | Handsontable
+  metaTitle: Custom ID, class, and style | Handsontable DataGrid for React
 angular:
-  metaTitle: Custom ID, class, and style - Angular Data Grid | Handsontable
+  metaTitle: Custom ID, class, and style | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Custom ID, class, and style - Vue Data Grid | Handsontable
+  metaTitle: Custom ID, class, and style | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
-menuTag: new
 ---
 
-Apply a custom `id`, `class`, and inline `style` to the Handsontable container, to target the grid with your own CSS or JavaScript selectors.
+Apply a custom `id`, `class`, and inline `style` to the Handsontable DataGrid container, to target the grid with your own CSS or JavaScript selectors.
 
 [[toc]]
 

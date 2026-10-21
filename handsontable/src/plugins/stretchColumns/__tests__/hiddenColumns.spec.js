@@ -27,7 +27,6 @@ describe('StretchColumns cooperation with hidden columns', () => {
     columnMapper.setValueAtIndex(4, true);
     columnMapper.setValueAtIndex(6, true);
     columnMapper.setValueAtIndex(8, true);
-    hot().view.adjustElementsSize();
     await render();
 
     // 4 visible cols out of 9; available = 320 - 50 = 270

@@ -795,7 +795,7 @@ describe('Filters UI Conditional component', () => {
     expect(inputs[0].value).toBe('5');
     expect($(inputs[1]).is(':visible')).toBe(false);
 
-    await dropdownMenu(3);
+    await dropdownMenu(5);
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is between');
 
@@ -806,7 +806,7 @@ describe('Filters UI Conditional component', () => {
     await keyUp('5');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-    await dropdownMenu(3);
+    await dropdownMenu(5);
 
     expect(dropdownMenuRootElement().querySelector('.htUISelectCaption').textContent).toBe('Is between');
 

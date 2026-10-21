@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Row parent-child
-metaTitle: Row parent-child - JavaScript Data Grid | Handsontable
+metaTitle: Row parent-child | Handsontable DataGrid for JavaScript
 description:
   Reflect the parent-child relationship of your data, using Handsontable's interactive UI elements such as expand and collapse buttons or an extended context
   menu.
@@ -15,11 +15,11 @@ tags:
   - grouping rows
   - master detail
 react:
-  metaTitle: Row parent-child - React Data Grid | Handsontable
+  metaTitle: Row parent-child | Handsontable DataGrid for React
 angular:
-  metaTitle: Row parent-child - Angular Data Grid | Handsontable
+  metaTitle: Row parent-child | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row parent-child - Vue Data Grid | Handsontable
+  metaTitle: Row parent-child | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated
@@ -27,7 +27,7 @@ menuTag: updated
 Reflect the parent-child relationship of your data, using the [`NestedRows`](@/api/nestedRows.md) plugin's interactive UI elements such as expand and collapse
 buttons or an extended context menu.
 
-Handsontable renders this structure as a tree grid. The same pattern is also called a master-detail view or grouping rows.
+Handsontable DataGrid renders this structure as a tree grid. The same pattern is also called a master-detail view or grouping rows.
 
 [[toc]]
 
@@ -423,13 +423,67 @@ When you use the parent-child row structure, the following Handsontable features
 
 When the `NestedRows` plugin is enabled, the `ManualRowMove` plugin's [`moveRows()`](@/api/manualRowMove.md#moverows) method has no effect and logs a console warning. To move rows programmatically, use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead.
 
+### Rows added below the last row
+
+When [`fillHandle.autoInsertRow`](@/api/options.md#fillhandle) is enabled, dragging the fill handle
+past the last row adds new rows. The new rows continue the level of the last row you can see. If that
+row is a child, the new rows are added to the same parent. If it's a top-level row, or a collapsed
+parent at the top level, the new rows are top-level rows.
+
+When you call [`alter('insert_row_below', index)`](@/api/core.md#alter) with the index of the last row,
+and that row is not a collapsed parent, the new row is added to the same parent as the last row.
+Inserting a row by index below a collapsed parent isn't supported: expand the parent first. A call
+without an index, a row added by [`minSpareRows`](@/api/options.md#minsparerows), and a paste or an edit
+past the last row still add top-level rows.
+
+### Row header width with custom labels
+
+The `NestedRows` plugin sizes the row header column from the depth of your data, not from the text in
+the headers. It then spends part of that width on the indentation and on the collapse or expand
+button. If you pass your own labels through [`rowHeaders`](@/api/options.md#rowheaders), they can be
+cut off, and the indentation that separates parents from children gets squeezed.
+
+You have two ways to give the labels room:
+
+- Set [`rowHeaderWidth`](@/api/options.md#rowheaderwidth) to a fixed number of pixels. The plugin
+  treats the width it computes as a minimum, so a larger value of your own wins.
+- Enable the [`AutoRowHeaderSize`](@/api/autoRowHeaderSize.md) plugin by setting
+  [`autoRowHeaderSize`](@/api/options.md#autorowheadersize) to `true`. It measures the headers as they
+  are rendered, so the indentation and the button are counted, and it sizes the column to the longest
+  label.
+
+## Accessibility
+
+The `NestedRows` plugin follows the [WAI-ARIA treegrid pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treegrid/): rows tell assistive technologies where they sit in the tree, and keyboard users can collapse or expand parent rows from a focused row header. To let keyboard users reach the row headers, enable [`navigableHeaders`](@/api/options.md#navigableheaders). As in the pattern's cell-only focus mode, the arrow keys keep moving the selection, and <kbd>**Enter**</kbd> toggles the row.
+
+### Screen readers
+
+With [`ariaTags`](@/api/options.md#ariatags) (the default) and [`rowHeaders`](@/api/options.md#rowheaders) enabled, each row element (`role="row"`) gets:
+
+- `aria-level`: the row's depth in the tree. A top-level row has level 1.
+- `aria-posinset` and `aria-setsize`: the row's position among its siblings, and the number of siblings.
+
+The row header of a parent row gets `aria-expanded`, set to `true` or `false`. Rows without children don't get this attribute.
+
+The attributes update when you collapse or expand a row and when you load new data. They are removed when you disable the plugin or switch off `rowHeaders`. Not every screen reader reads them: VoiceOver on macOS announces the expanded state but not the level or the position.
+
+The position and the number of siblings come from your data. Rows that the [`HiddenRows`](@/api/hiddenRows.md) or [`TrimRows`](@/api/trimRows.md) plugin removes from view are still counted.
+
+When you collapse or expand a row with the keyboard or with the row header button, Handsontable announces the change through a polite live region: for example, "Expanded row 1, expanded rows shown: 5" or "Collapsed row 1". The row is named after the text its row header shows, the same label sighted users see next to the row, or after its row number when the header is empty. Changes made through the API methods are not announced, so your application can describe them in its own words. With `ariaTags` set to `false`, nothing is announced.
+
+The announcement text is translated. To change it, override the `NestedRows:announcement.expanded` and `NestedRows:announcement.collapsed` keys in your [language dictionary](@/guides/internationalization/language/language.md).
+
 ### Keyboard shortcuts
 
-This header-focused shortcut works only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+These header-focused shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
-| Windows              | macOS                | Action                           |  Excel  | Sheets  |
-| -------------------- | -------------------- | -------------------------------- | :-----: | :-----: |
-| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group | &cross; | &cross; |
+| Windows              | macOS                | Action                                                                                                 |
+| -------------------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group                                                                       |
+| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd> | <kbd>⌘</kbd>+<kbd>**→**</kbd> | Expand a collapsed parent row                                                                 |
+| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd> | <kbd>⌘</kbd>+<kbd>**←**</kbd> | Collapse an expanded parent row. Otherwise, move the focus to the header of the parent row, if any |
+
+In a right-to-left layout ([`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)), the <kbd>**←**</kbd> and <kbd>**→**</kbd> keys swap their actions. The arrow keys without a modifier move the selection, as they do in every grid. On a row header, <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**←**</kbd> and <kbd>**→**</kbd> don't jump to the first or last cell of the row. To move along the row from a row header, use <kbd>**→**</kbd> or <kbd>**End**</kbd>.
 
 ## Related articles
 

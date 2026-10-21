@@ -1,21 +1,21 @@
 ---
 type: explanation
 title: Cell type
-metaTitle: Cell type - JavaScript Data Grid | Handsontable
-description: Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
+metaTitle: Cell type | Handsontable DataGrid for JavaScript
+description: Use Handsontable DataGrid's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 permalink: /cell-type
 canonicalUrl: /cell-type
 react:
-  metaTitle: Cell type - React Data Grid | Handsontable
+  metaTitle: Cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Cell type - Angular Data Grid | Handsontable
+  metaTitle: Cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Cell type - Vue Data Grid | Handsontable
+  metaTitle: Cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
 ---
-Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
+Use Handsontable DataGrid's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 
 [[toc]]
 
@@ -246,7 +246,7 @@ const hotSettings = ref({
 
 When you create a custom cell type, best practice is to assign it as an alias that will refer to this particular type definition.
 
-This gives users a convenient way of defining which cell type should be used for describing cell properties. The user doesn't need to know which part of the code is responsible for rendering, validating, or editing the cell value. They do not even need to know that there are any functions at all. You can change the cell behaviour associated with an alias without changing the code that defines a cell's properties.
+This gives users a convenient way of defining which cell type should be used for describing cell properties. The user doesn't need to know which part of the code is responsible for rendering, validating, or editing the cell value. They do not even need to know that there are any functions at all. You can change the cell behavior associated with an alias without changing the code that defines a cell's properties.
 
 To register your own alias use `Handsontable.cellTypes.registerCellType()` function. It takes two arguments:
 
@@ -620,7 +620,7 @@ const hotSettings = ref({
 
 :::
 
-Using [cascade configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration) we define a table with two columns, with [`validator`](@/api/options.md#validator) set to `customValidator` function. The s[`type`](@/api/options.md#type) of the first column is set to `password`. The `Password` cell type does not define a validator function:
+Using [cascade configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration) we define a table with two columns, with [`validator`](@/api/options.md#validator) set to `customValidator` function. The s[`type`](@/api/options.md#type) of the first column is set to `password`. The `Password` cell type does not define a validator function:
 
 ```js
 {
@@ -739,6 +739,22 @@ const hotSettings = ref({
 ```
 
 :::
+
+### Exception: `editor: false`
+
+The [`editor`](@/api/options.md#editor) option set to `false` is the one exception to this rule. `editor: false` doesn't name an editor. It switches editing off, so a [`type`](@/api/options.md#type) set on a more specific level doesn't re-enable editing. The type still applies its other functions, such as the [`renderer`](@/api/options.md#renderer) and the [`validator`](@/api/options.md#validator):
+
+```js
+editor: false,
+columns: [
+  // non-editable, but still rendered and validated as numeric
+  { type: 'numeric' },
+  // editable: an `editor` set on the same level as the `type` opts the column back in
+  { type: 'numeric', editor: 'numeric' }
+]
+```
+
+A named editor isn't an exception. For example, a grid-level `editor: 'password'` is still replaced by the editor of a column's `type`.
 
 ## Built-in cell types example
 

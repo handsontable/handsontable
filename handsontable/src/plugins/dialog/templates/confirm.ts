@@ -1,10 +1,11 @@
 import { DIALOG_CLASS_NAME } from '../constants';
 import { throwWithCause } from '../../../helpers/errors';
-import { stripTags } from '../../../helpers/string';
-import { html } from '../../../helpers/templateLiteralTag';
+import { htmlToPlainText } from '../../../helpers/string';
+import { buildTemplate, type TemplateSpec } from '../../../helpers/dom/template';
+import { resolveButtonType } from '../../../helpers/uiButton';
 
 /**
- * The `confirmTemplate` function returns a HTML string with the confirm template.
+ * The `confirmTemplate` function returns the confirm dialog template.
  *
  * @param {object} vars The variables to use for the template.
  * @param {string} vars.id The ID of the confirm.
@@ -14,37 +15,57 @@ import { html } from '../../../helpers/templateLiteralTag';
  *   - `text`: The text of the button.
  *   - `type`: The type of the button ('primary' | 'secondary').
  *   - `callback`: The callback to trigger when the button is clicked.
- * @returns {string} HTML string with the confirm template.
+ * @returns {object} The template.
  */
 export function confirmTemplate({ id = '', title = '', description = '', buttons = [] }: {
   id?: string, title?: string, description?: string,
-  buttons?: Array<{ type: string, text: string, callback?: Function }>
+  // `type` is `unknown`, not `ButtonType`: the value arrives from a plugin setting, and the whole
+  // point of `resolveButtonType()` below is that this function does not trust it. Declaring the
+  // narrow type here would let a caller assume the check had already happened.
+  buttons?: Array<{ type: unknown, text: string, callback?: Function }>
 }) {
   /**
-   * Returns the HTML string for the template.
+   * Returns the template spec.
    *
-   * @returns {string}
+   * @returns {TemplateSpec} The template.
    */
-  function template() {
-    return `
-      <div tabindex="-1" data-ref="contentElement" class="${DIALOG_CLASS_NAME}__content-wrapper-inner">
-        <div class="${DIALOG_CLASS_NAME}__content">
-          <h2
-            id="${id}-dialog-confirm-title"
-            class="${DIALOG_CLASS_NAME}__title">${stripTags(title)}</h2>
-          <p
-            id="${id}-dialog-confirm-description"
-            class="${DIALOG_CLASS_NAME}__description">${stripTags(description)}</p>
-        </div>
-        ${buttons.length > 0 ? `
-          <div data-ref="buttonsContainer" class="${DIALOG_CLASS_NAME}__buttons">
-            ${buttons.map(button => `
-              <button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>
-            `).join('')}
-          </div>
-        ` : ''}
-      </div>
-    `;
+  function template(): TemplateSpec {
+    return {
+      tag: 'div',
+      ref: 'contentElement',
+      className: `${DIALOG_CLASS_NAME}__content-wrapper-inner`,
+      attrs: { tabindex: '-1' },
+      children: [
+        {
+          tag: 'div',
+          className: `${DIALOG_CLASS_NAME}__content`,
+          children: [
+            {
+              tag: 'h2',
+              className: `${DIALOG_CLASS_NAME}__title`,
+              attrs: { id: `${id}-dialog-confirm-title` },
+              text: htmlToPlainText(title),
+            },
+            {
+              tag: 'p',
+              className: `${DIALOG_CLASS_NAME}__description`,
+              attrs: { id: `${id}-dialog-confirm-description` },
+              text: htmlToPlainText(description),
+            },
+          ],
+        },
+        buttons.length > 0 && {
+          tag: 'div',
+          ref: 'buttonsContainer',
+          className: `${DIALOG_CLASS_NAME}__buttons`,
+          children: buttons.map(button => ({
+            tag: 'button',
+            className: `ht-button ht-button--${resolveButtonType(button.type)}`,
+            text: htmlToPlainText(button.text),
+          })),
+        },
+      ],
+    };
   }
 
   let fragment: DocumentFragment | null = null;
@@ -53,10 +74,11 @@ export function confirmTemplate({ id = '', title = '', description = '', buttons
   /**
    * Compiles the template.
    *
+   * @param {Document} rootDocument The document to build the nodes in.
    * @returns {object} The compiled template.
    */
-  function compile() {
-    const elements = html`${template()}`;
+  function compile(rootDocument: Document) {
+    const elements = buildTemplate(template(), rootDocument);
 
     Object.assign(refs, elements.refs);
     fragment = elements.fragment;

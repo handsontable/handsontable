@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed autofill dragging near horizontally merged cells — the fill handle can now target columns inside a merged band in a row below the merge instead of snapping back to the merge anchor.",
-  "type": "fixed",
-  "issueOrPR": 13201,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,6 +1,6 @@
 ---
 title: Conditional row coloring
-metaTitle: Conditional row coloring - JavaScript Data Grid | Handsontable
+metaTitle: Conditional row coloring | Handsontable DataGrid for JavaScript
 description: Color entire rows from a status column using the cells callback, className, and scoped CSS that updates after edits.
 permalink: /recipes/rendering-styling/conditional-row-coloring
 canonicalUrl: /recipes/rendering-styling/conditional-row-coloring
@@ -10,11 +10,11 @@ tags:
   - recipes
   - styling
 react:
-  metaTitle: Conditional row coloring - React Data Grid | Handsontable
+  metaTitle: Conditional row coloring | Handsontable DataGrid for React
 angular:
-  metaTitle: Conditional row coloring - Angular Data Grid | Handsontable
+  metaTitle: Conditional row coloring | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Conditional row coloring - Vue Data Grid | Handsontable
+  metaTitle: Conditional row coloring | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Rendering and styling
 type: how-to
@@ -61,7 +61,7 @@ In this tutorial, you will color entire rows based on a status column value. You
 
 ## Overview
 
-This recipe shows how to tint every cell in a row based on a **Status** value (`active`, `pending`, or `inactive`). You map each status to a CSS class, attach that class to cells through Handsontable metadata, and keep colors correct on first load and after the user edits **Status**.
+This recipe shows how to tint every cell in a row based on a **Status** value (`active`, `pending`, or `inactive`). You map each status to a CSS class, attach that class to cells through Handsontable DataGrid metadata, and keep colors correct on first load and after the user edits **Status**.
 
 **Difficulty:** Beginner  
 **Time:** ~10 minutes  
@@ -235,6 +235,12 @@ afterValidate(isValid, _value, row, prop) {
   }
 
   const col = this.propToCol(prop);
+
+  // Skip a property that names no column.
+  if (col === null) {
+    return;
+  }
+
   const td = this.getCell(row, col);
 
   if (!td) {
@@ -249,7 +255,7 @@ afterValidate(isValid, _value, row, prop) {
 **Key points:**
 
 - `this` is the Handsontable instance inside any hook defined in the settings object (use a regular function, not an arrow function).
-- `this.propToCol(prop)` converts the property name (`'status'`) to a visual column index.
+- `this.propToCol(prop)` converts the property name (`'status'`) to a visual column index. It returns `null` when no column uses that property, so guard it before you use it.
 - `this.getCell(row, col)` returns the live `<td>` element at the visual row and column. It returns `null` if the row is outside the rendered viewport, so always guard with `if (!td)`.
 - The class is added directly to the DOM - no re-render is needed.
 - The `setTimeout` removes the class after 800 ms, returning the cell to its normal status color.
@@ -301,6 +307,6 @@ You can combine both: use `cells` for row-level classes and a custom renderer on
 
 ## Related
 
-- [Configuration options: cell and row metadata](@/guides/getting-started/configuration-options/configuration-options.md#set-cell-options)
+- [Setting options: cell and row metadata](@/guides/configuration/configuration-options/configuration-options.md#set-cell-options)
 - [`className` option](@/api/options.md#classname)
 - [`cells` option](@/api/options.md#cells)

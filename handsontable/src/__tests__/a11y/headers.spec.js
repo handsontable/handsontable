@@ -223,4 +223,45 @@ describe('header-related a11y config', () => {
       });
     });
   });
+
+  describe('column header id ownership (`aria-describedby` target) (DEV-29)', () => {
+    it('should stamp each column header id on exactly one overlay - frozen columns on the inline-start' +
+      ' overlay, the rest on the master', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        colHeaders: ['ID', 'Name', 'Position', 'Country', 'Score'],
+        rowHeaders: true,
+        fixedColumnsStart: 2,
+      });
+
+      const idHeaderTexts = overlay =>
+        [...overlay.get(0).querySelectorAll('thead th[id]')].map(th => th.textContent);
+
+      // The master owns the scrolling columns; the inline-start overlay owns the frozen ones.
+      expect(idHeaderTexts(getMaster())).toEqual(['Position', 'Country', 'Score']);
+      expect(idHeaderTexts(getInlineStartClone())).toEqual(['ID', 'Name']);
+
+      // The sticky clones and corner are duplicate copies and must carry no id.
+      expect(getTopClone().get(0).querySelectorAll('thead th[id]').length).toBe(0);
+      expect(getTopInlineStartClone().get(0).querySelectorAll('thead th[id]').length).toBe(0);
+
+      // Every stamped id is unique in the document.
+      [...document.querySelectorAll('thead th[id]')].forEach((th) => {
+        expect(document.querySelectorAll(`[id="${th.getAttribute('id')}"]`).length).toBe(1);
+      });
+    });
+
+    it('should not stamp an id on the corner ("select whole grid") header', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+      });
+
+      const corner = getMaster().get(0).querySelector('thead th:first-of-type');
+
+      expect(corner.getAttribute('role')).toBe('gridcell button');
+      expect(corner.hasAttribute('id')).toBe(false);
+    });
+  });
 });

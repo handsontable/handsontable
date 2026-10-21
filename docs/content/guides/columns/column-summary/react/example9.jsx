@@ -4,26 +4,29 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+//  generate an array of arrays with dummy numeric data
+const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+  let counter = 0;
+
+  const array2d = [...new Array(rows)].map((_) => [...new Array(columns)].map((_) => counter++));
+
+  if (additionalRows) {
+    array2d.push([]);
+    array2d.push([]);
+  }
+
+  return array2d;
+};
+
+const data = generateData(5, 7);
+
 const ExampleComponent = () => {
-  //  generate an array of arrays with dummy numeric data
-  const generateData = (rows = 3, columns = 7, additionalRows = true) => {
-    let counter = 0;
-    const array2d = [...new Array(rows)].map((_) => [...new Array(columns)].map((_) => counter++));
-
-    if (additionalRows) {
-      array2d.push([]);
-      array2d.push([]);
-    }
-
-    return array2d;
-  };
-
   return (
     <HotTable
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={generateData(5, 7)}
+      data={data}
       height="auto"
       colHeaders={true}
       rowHeaders={true}
@@ -40,6 +43,7 @@ const ExampleComponent = () => {
             // implement a function that counts the number of even values in the column
             const hotInstance = this.hot;
             let evenCount = 0;
+
             // a helper function
             const checkRange = (rowRange) => {
               let i = rowRange[1] || rowRange[0];

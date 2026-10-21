@@ -7,7 +7,7 @@ const fixturePath = path.resolve(import.meta.dirname, 'fixture.html');
 
 test(config.name, async({ page }) => {
   await page.goto(`file://${fixturePath}`);
-  await page.waitForFunction(() => typeof (window as any).__build === 'function');
+  await page.waitForFunction(() => typeof (window as any).__build === 'function', undefined, { polling: 100 });
 
   await runTracedScenario({
     page,

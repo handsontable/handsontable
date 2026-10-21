@@ -1,7 +1,7 @@
 ---
 title: Sparkline cell renderer
-metaTitle: Sparkline cell renderer - JavaScript Data Grid | Handsontable
-description: Build a custom Handsontable cell renderer that draws an inline SVG bar chart from an array of numbers in each cell.
+metaTitle: Sparkline cell renderer | Handsontable DataGrid for JavaScript
+description: Build a custom Handsontable DataGrid cell renderer that draws an inline SVG bar chart from an array of numbers in each cell.
 permalink: /recipes/rendering-styling/sparkline-cell-renderer
 canonicalUrl: /recipes/rendering-styling/sparkline-cell-renderer
 tags:
@@ -10,11 +10,11 @@ tags:
   - recipes
   - renderer
 react:
-  metaTitle: Sparkline cell renderer - React Data Grid | Handsontable
+  metaTitle: Sparkline cell renderer | Handsontable DataGrid for React
 angular:
-  metaTitle: Sparkline cell renderer - Angular Data Grid | Handsontable
+  metaTitle: Sparkline cell renderer | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Sparkline cell renderer - Vue Data Grid | Handsontable
+  metaTitle: Sparkline cell renderer | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Rendering and styling
 type: how-to
@@ -72,11 +72,13 @@ This recipe shows how to edit weekly values in table cells and render a mini bar
 - Each row always shows five bar slots. A slot is left empty when its source value is missing or non-numeric.
 - Safe handling when a row has no valid values or when every value in the dataset is zero.
 - Optional coloring: green when a value is at or above the row average, red when below.
-- Interactive behavior -- when you edit W1-W5, Handsontable re-renders the sparkline SVG for that row.
+- Interactive behavior -- when you edit W1-W5, Handsontable DataGrid re-renders the sparkline SVG for that row.
 
-## Step 1: Call the base renderer first
+## Step 1: Run `baseRenderer` before the SVG
 
-Always call `baseRenderer` before you change the cell content. That keeps read-only styling, validation classes, and ARIA attributes consistent with other cells.
+The example calls `baseRenderer` before it changes the cell content. That applies read-only styling, validation classes, and ARIA attributes before the SVG replaces the cell content.
+
+You don't have to call `baseRenderer` yourself. Since version 17.0.0, Handsontable runs it after your renderer whenever your renderer didn't run it. Call it yourself when you need it to run first -- for example, when your renderer sets a class that `baseRenderer` also manages, such as `htInvalid`. A `baseRenderer` that runs last removes that class.
 
 ## Step 2: Map cell values to slots
 

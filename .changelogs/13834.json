@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the `colWidths` array and function to address columns by their physical index, so a column keeps its width when the user moves it. See the 18.1 to 19.0 migration guide to keep the old behavior.",
+  "type": "changed",
+  "issueOrPR": 13834,
+  "breaking": true,
+  "framework": "none"
+}

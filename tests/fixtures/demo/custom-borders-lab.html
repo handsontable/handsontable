@@ -119,6 +119,18 @@
 
           return element ? parseInt(element.style.zIndex, 10) : NaN;
         },
+        // Painted box of the first custom-border edge of `color`, including a 0-size edge.
+        // Hidden (`display: none`) sides have no client rects; a zero-height block still
+        // returns one, so this is the painted size rather than the inline style string.
+        edgeBoxSize(color) {
+          const [rect] = visibleEdgeRectsOfColor(color);
+
+          if (!rect) {
+            return null;
+          }
+
+          return { width: rect.width, height: rect.height };
+        },
         // Right-most outer edge of the border edges of `color` (horizontal or vertical ones)
         // that touch the cell's box, with a small tolerance for edges hugging the cell border.
         outerRightNear(row, col, color, wantHorizontal) {

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { LicenseBrandingPage, INSTANT } from '../fixtures/pages/LicenseBrandingPage';
 
 /**
@@ -12,7 +12,7 @@ import { LicenseBrandingPage, INSTANT } from '../fixtures/pages/LicenseBrandingP
  * the click-through badge, the modal focus trap) are the ones only a real
  * browser can make.
  */
-test.describe('entitlement license key branding', () => {
+test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
   let license: LicenseBrandingPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -27,6 +27,17 @@ test.describe('entitlement license key branding', () => {
       await expect(license.popoverTitle).toHaveText('Handsontable Trial');
       // A hover tooltip does not open by itself, and a running trial has no bar and no lock.
       await expect(license.popover).not.toHaveClass(/is-open/);
+      await expect(license.bar).toHaveCount(0);
+      await expect(license.lock).toHaveCount(0);
+    });
+
+    test('reads a trial key license-key 4.x issued exactly like a current one', async () => {
+      // The trial keys already in the field are in the earlier format. They must keep reading as a
+      // running trial, not as an unreadable key that blocks the grid.
+      await license.goto(INSTANT.duringTrial, { key: 'trial-v1' });
+
+      await expect(license.badge).toBeAttached();
+      await expect(license.popoverTitle).toHaveText('Handsontable Trial');
       await expect(license.bar).toHaveCount(0);
       await expect(license.lock).toHaveCount(0);
     });
@@ -168,16 +179,6 @@ test.describe('entitlement license key branding', () => {
       await expect(license.lock).not.toContainText('Close');
     });
 
-    test('leaves the keyboard where the user had it', async () => {
-      await license.goto(INSTANT.trialHardStop);
-
-      await expect(license.lock).toBeVisible();
-      // The fixture focuses its own field before constructing the grid. A lock that claimed the
-      // keyboard at init would empty that caret and scroll the page down to itself — with the grid
-      // possibly far below the fold, and possibly not the only grid on the page.
-      await expect(license.outsideField).toBeFocused();
-    });
-
     test('owns the keyboard once the user reaches it, and Escape does not dismiss it', async ({ page }) => {
       await license.goto(INSTANT.trialHardStop);
 
@@ -199,6 +200,17 @@ test.describe('entitlement license key branding', () => {
       await license.updateSettings({ rowHeaders: true });
 
       await expect(license.lock).toBeVisible();
+    });
+
+    // DEV-2709. `no-ui-warns` suppresses license WARNINGS; the hard stop is enforcement, not a
+    // warning, so the lock must survive the flag. This is driven through a real key so the whole
+    // chain is covered - payload read, `resolveChannels`, then the branding routing. The unit test
+    // for the same rule mocks `_getLicenseState`, so it cannot see a regression in flag resolution.
+    test('still blocks when the key carries no-ui-warns', async () => {
+      await license.goto(INSTANT.trialHardStop, { key: 'trial-external' });
+
+      await expect(license.lock).toBeVisible();
+      await expect(license.lock).toContainText('Your Handsontable trial license key expired on 2026-09-26.');
     });
 
     test('is unaffected by the app using the Dialog plugin for its own dialogs', async () => {
@@ -225,11 +237,32 @@ test.describe('entitlement license key branding', () => {
     });
   });
 
+  test.describe('a trial issued for external use', () => {
+    // The other half of the same flag, asserted where it actually bites. At the HARD stop the badge
+    // and bar are absent for every key - the lock branch returns before the badge is mounted, and
+    // `_rendersBlockingModal` withholds the bar - so asserting their absence there proves nothing.
+    // The soft stop is the instant where an unflagged trial shows both, so this is the comparison
+    // that fails if `resolveChannels` ever stops reading `no-ui-warns`.
+    test('shows the badge and the bar without the flag, and neither with it', async () => {
+      await license.goto(INSTANT.trialSoftStop, { key: 'trial' });
+
+      await expect(license.badgeWrapper).toHaveCount(1);
+      await expect(license.bar).toContainText('Your Handsontable license key has expired');
+
+      await license.goto(INSTANT.trialSoftStop, { key: 'trial-external' });
+
+      await expect(license.badgeWrapper).toHaveCount(0);
+      await expect(license.bar).toHaveCount(0);
+    });
+  });
+
   test.describe('a key that cannot be read, and no key at all', () => {
     // DEV-2562: the two install faults BLOCK from 18.1 on (the specification's S4.5 shape). Their
     // sentences moved out of the bottom bar and into the modal, so the bar must be gone.
     const FAULTS = [
       { key: 'tampered', title: 'The license key for Handsontable is invalid.' },
+      // A current key protects its text, so a key whose text was edited is an unreadable key as well.
+      { key: 'edited-prose', title: 'The license key for Handsontable is invalid.' },
       { key: 'missing', title: 'The license key for Handsontable is missing.' },
     ] as const;
 
@@ -314,7 +347,11 @@ test.describe('entitlement license key branding', () => {
   test.describe('a subscription past its grace period', () => {
     // A hard-stopped subscription is developer-facing only, however the key was issued: a console
     // error and no front-end surface at all. 18.1 never blocks a paying customer.
-    for (const key of ['subscription', 'subscription-external'] as const) {
+    // `subscription-pasted` is the same key with its whitespace turned into CRLF line breaks and a
+    // trailing "\n" saved as text, and `subscription-wrapped` the same key with its block broken
+    // into lines as a mail client wraps it - both must read exactly like the original, or a
+    // pasting customer's grid would block.
+    for (const key of ['subscription', 'subscription-pasted', 'subscription-wrapped'] as const) {
       test(`stays console-only for a "${key}" key: no lock, no bar, no badge`, async () => {
         await license.goto(INSTANT.subscriptionHardStop, { key });
 

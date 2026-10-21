@@ -1,4 +1,4 @@
-import { html } from '../../helpers/templateLiteralTag';
+import { buildTemplate } from '../../helpers/dom/template';
 import { CLONE_TOP_INLINE_START_CORNER } from '../../3rdparty/walkontable/src/overlay/constants';
 import { POPOVER_CONTENT } from './content';
 import type { HotInstance } from '../../core/types';
@@ -123,23 +123,56 @@ export function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLi
 
   // The badge button is screen-reader-only (the visual glyph is pure CSS inside the corner cell).
   // The copy is assigned through `textContent` below, never interpolated into the markup.
-  const { refs } = html`
-    <div data-ref="wrapper" class="${BADGE_WRAPPER_CLASS}">
-      <button data-ref="badge" type="button" class="${BADGE_CLASS}"
-        aria-label="Handsontable license information"></button>
-      <div data-ref="popover" id="${popoverId}" class="${POPOVER_CLASS}"
-        role="${content.dismissible ? 'dialog' : 'tooltip'}" aria-labelledby="${popoverId}-title">
-        <div class="${POPOVER_CLASS}__content">
-          <div data-ref="popoverTitle" id="${popoverId}-title" class="${POPOVER_CLASS}__title"></div>
-          <p data-ref="popoverBody" class="${POPOVER_CLASS}__body"></p>
-          <a data-ref="popoverLink" class="${POPOVER_CLASS}__link" target="_blank" rel="noopener noreferrer"></a>
-        </div>
-        ${content.dismissible
-    ? `<button data-ref="closeButton" type="button" class="${POPOVER_CLASS}__close" aria-label="Close"></button>`
-    : ''}
-      </div>
-    </div>
-  `;
+  const { refs } = buildTemplate({
+    tag: 'div',
+    ref: 'wrapper',
+    className: BADGE_WRAPPER_CLASS,
+    children: [
+      {
+        tag: 'button',
+        ref: 'badge',
+        className: BADGE_CLASS,
+        attrs: { type: 'button', 'aria-label': 'Handsontable license information' },
+      },
+      {
+        tag: 'div',
+        ref: 'popover',
+        className: POPOVER_CLASS,
+        attrs: {
+          id: popoverId,
+          role: content.dismissible ? 'dialog' : 'tooltip',
+          'aria-labelledby': `${popoverId}-title`,
+        },
+        children: [
+          {
+            tag: 'div',
+            className: `${POPOVER_CLASS}__content`,
+            children: [
+              {
+                tag: 'div',
+                ref: 'popoverTitle',
+                className: `${POPOVER_CLASS}__title`,
+                attrs: { id: `${popoverId}-title` },
+              },
+              { tag: 'p', ref: 'popoverBody', className: `${POPOVER_CLASS}__body` },
+              {
+                tag: 'a',
+                ref: 'popoverLink',
+                className: `${POPOVER_CLASS}__link`,
+                attrs: { target: '_blank', rel: 'noopener noreferrer' },
+              },
+            ],
+          },
+          content.dismissible && {
+            tag: 'button',
+            ref: 'closeButton',
+            className: `${POPOVER_CLASS}__close`,
+            attrs: { type: 'button', 'aria-label': 'Close' },
+          },
+        ],
+      },
+    ],
+  }, hotInstance.rootDocument);
   const wrapper = refs.wrapper;
   const badge = refs.badge as HTMLButtonElement;
 

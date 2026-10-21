@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Radio buttons
-metaTitle: Radio Button Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a custom Handsontable cell type that renders radio button options directly in cells, with keyboard navigation and roving tabindex accessibility.
+metaTitle: Radio button cell type | Handsontable DataGrid for JavaScript
+description: Learn how to create a custom Handsontable DataGrid cell type that renders radio button options directly in cells, with keyboard navigation and roving tabindex accessibility.
 permalink: /recipes/cell-types/radio
 canonicalUrl: /recipes/cell-types/radio
 tags:
@@ -10,14 +10,13 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Radio Button Cell Type - React Data Grid | Handsontable
+  metaTitle: Radio button cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Radio Button Cell Type - Angular Data Grid | Handsontable
+  metaTitle: Radio button cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Radio Button Cell Type - Vue Data Grid | Handsontable
+  metaTitle: Radio button cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
-menuTag: new
 ---
 
 This tutorial shows you how to build a custom radio button cell type using a renderer that displays radio inputs directly in cells, with ARIA semantics, roving tabindex, and keyboard navigation.
@@ -98,7 +97,7 @@ A cell type that:
 
 ## Prerequisites
 
-None. This uses only native HTML, CSS, and the Handsontable API.
+None. This uses only native HTML, CSS, and the Handsontable DataGrid API.
 
 ## Step 1: Import Dependencies
 
@@ -203,7 +202,7 @@ Create a separate CSS file. All styles are scoped to `.htRadioCell` so they do n
 
 **Why only layout CSS?**
 
-The Handsontable theme already handles radio indicator appearance (circle border, checked dot, colors) via `.htUIRadio > input[type="radio"]` using its own `--ht-radio-*` CSS variables. The CSS file only provides the container layout (vertical flex, padding, row alignment) without overriding those built-in indicator styles.
+The Handsontable theme already handles the radio indicator's ring, colors, and states through `.htUIRadio > input[type="radio"]`, using its own `--ht-radio-*` CSS variables. The checked dot itself is a separate `<i class="ht-icon ht-icon-radio">` element, styled by the theme through `input[type="radio"] + .ht-icon`. The renderer in [Step 4](#renderer--build-the-radio-ui) creates that element as the input's next sibling, so the recipe gets the dot for free without any extra CSS. The CSS file here only provides the container layout (vertical flex, padding, row alignment) without overriding those built-in indicator styles.
 
 ## Step 3: Editor Stub
 
@@ -272,6 +271,7 @@ const radioRenderer = rendererFactory(({ instance, td, row, column, value, cellP
 - `rendererFactory` passes the full renderer context: `instance`, `td`, `row`, `column`, `value`, `cellProperties`.
 - `cellProperties.options` carries the per-column option list.
 - `role="radiogroup"` + `aria-label` make the group announce correctly to screen readers.
+- Each option inserts an `<i class="ht-icon ht-icon-radio">` element as the input's next sibling -- that's what paints the checked dot; see [Step 2](#add-css-styling).
 - `td.style.verticalAlign = 'top'` aligns the stacked options to the top of the cell.
 
 :::
@@ -438,7 +438,7 @@ readonly gridSettings: GridSettings = {
 
 :::
 
-## Step 9: Register and Use in Handsontable
+## Step 9: Register and Use in Handsontable DataGrid
 
 ::: only-for javascript
 

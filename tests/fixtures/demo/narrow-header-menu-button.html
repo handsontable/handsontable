@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Narrow header with a menu button e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-158. A column dragged to its narrowest left the header's menu button hanging over the
+    neighbouring header: the label and the sort indicator kept their room and pushed the button out of
+    its own cell. The narrowest width is now the icon size plus the cell padding on both sides, and the
+    header gives up the label text, then the sort indicator, and keeps the menu button.
+
+    The overflow is a layout fact (percentages against the header's width, flex shrinking), so none of
+    it can be checked in jsdom.
+  -->
+  <h2>Menu button only</h2>
+  <div id="menu" data-testid="menu"></div>
+
+  <h2>Menu button and sorting</h2>
+  <div id="menu-sort" data-testid="menu-sort"></div>
+
+  <!-- The alignment class moves the sort indicator to the edge opposite the button. It is set with
+       `headerClassName`, which puts it on the header's inner element; `className` styles body cells only. -->
+  <h2>Menu button and sorting, aligned right</h2>
+  <div id="menu-sort-right" data-testid="menu-sort-right"></div>
+
+  <h2>Menu button and sorting, right to left</h2>
+  <div id="menu-sort-rtl" data-testid="menu-sort-rtl"></div>
+
+  <!-- Against the direction, `htLeft` moves the indicator to the edge opposite the button. -->
+  <h2>Menu button and sorting, right to left, aligned left</h2>
+  <div id="menu-sort-rtl-left" data-testid="menu-sort-rtl-left"></div>
+
+  <!-- `nestedHeaders` draws header rows with `colHeaders` off, and the menu puts its button on the bottom one. -->
+  <h2>Nested headers, no colHeaders</h2>
+  <div id="menu-nested" data-testid="menu-nested"></div>
+
+  <!-- No menu button, so no floor beyond the old 20px. -->
+  <h2>No menu</h2>
+  <div id="no-menu" data-testid="no-menu"></div>
+
+  <!--
+    A custom theme that declares the tokens in `rem`. `getCSSVariableValue()` reads those as bare numbers (2 and 1
+    here), so only a measurement in the browser gets the real width: 1.25rem + 2 * 0.75rem = 44px at the default
+    16px root font size. The theme declares its tokens on the grid's `.ht-root-wrapper`, so the override
+    targets that element, the way a custom theme's own selector would.
+  -->
+  <!--
+    `autoColumnSize` measures the headers in a ghost table that has no width yet, so the narrow-header rules
+    must not change what it measures. In an RTL grid with right-aligned headers the slot for the sort indicator
+    is counted in the ghost table too, which is the measurement these two grids pin.
+  -->
+  <h2>Auto-sized, left to right</h2>
+  <div id="autosize-ltr" data-testid="autosize-ltr"></div>
+
+  <h2>Auto-sized, right to left, aligned right</h2>
+  <div id="autosize-rtl-right" data-testid="autosize-rtl-right"></div>
+
+  <style>
+    #menu-sort-rem .ht-root-wrapper {
+      --ht-icon-size: 1.25rem;
+      --ht-cell-horizontal-padding: 0.75rem;
+    }
+  </style>
+  <h2>Menu button and sorting, tokens in rem</h2>
+  <div id="menu-sort-rem" data-testid="menu-sort-rem"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    /**
+     * Builds one grid.
+     *
+     * @param {string} testId The container's test id.
+     * @param {object} settings The settings under test.
+     * @returns {Handsontable} The grid instance.
+     */
+    function buildGrid(testId, settings) {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      if (settings.layoutDirection === 'rtl') {
+        container.dir = 'rtl';
+      }
+
+      return new Handsontable(container, Object.assign({
+        data: Handsontable.helper.createSpreadsheetData(5, 4),
+        colHeaders: ['Name', 'Longer header text', 'City', 'Country'],
+        rowHeaders: true,
+        manualColumnResize: true,
+        dropdownMenu: true,
+        width: 600,
+        height: 200,
+        licenseKey: 'non-commercial-and-evaluation',
+      }, settings));
+    }
+
+    window.grids = {
+      menu: buildGrid('menu', {}),
+      autosizeLtr: buildGrid('autosize-ltr', { columnSorting: true, autoColumnSize: true }),
+      autosizeRtlRight: buildGrid('autosize-rtl-right', {
+        columnSorting: true,
+        autoColumnSize: true,
+        layoutDirection: 'rtl',
+        headerClassName: 'htRight',
+      }),
+      noMenu: buildGrid('no-menu', { dropdownMenu: false, columnSorting: true }),
+      menuNested: buildGrid('menu-nested', {
+        colHeaders: false,
+        nestedHeaders: [['A', { label: 'B', colspan: 2 }, 'D'], ['a', 'b', 'c', 'd']],
+      }),
+      menuSortRem: buildGrid('menu-sort-rem', { columnSorting: true }),
+      menuSort: buildGrid('menu-sort', { columnSorting: true }),
+      menuSortRight: buildGrid('menu-sort-right', { columnSorting: true, headerClassName: 'htRight' }),
+      menuSortRtl: buildGrid('menu-sort-rtl', { columnSorting: true, layoutDirection: 'rtl' }),
+      menuSortRtlLeft: buildGrid('menu-sort-rtl-left', {
+        columnSorting: true,
+        layoutDirection: 'rtl',
+        headerClassName: 'htLeft',
+      }),
+    };
+
+    /**
+     * Stores a width through `ManualColumnResize#setManualSize()` and returns what was stored.
+     *
+     * @param {string} name The grid's key in `window.grids`.
+     * @param {number} column The visual column index.
+     * @param {number} width The width to store.
+     * @returns {number}
+     */
+    window.setManualSize = function(name, column, width) {
+      return window.grids[name].getPlugin('manualColumnResize').setManualSize(column, width);
+    };
+
+    /**
+     * Measures a column again from its content and header, and returns its width.
+     *
+     * @param {string} name The grid's key in `window.grids`.
+     * @param {number} column The visual column index.
+     * @returns {number}
+     */
+    window.autoWidth = function(name, column) {
+      const hot = window.grids[name];
+
+      hot.getPlugin('autoColumnSize').recalculateAllColumnsWidth();
+      hot.render();
+
+      return hot.getColWidth(column);
+    };
+
+    /**
+     * Sorts one column of one grid, ascending.
+     *
+     * @param {string} name The grid's key in `window.grids`.
+     * @param {number} column The visual column index.
+     */
+    window.sortColumn = function(name, column) {
+      window.grids[name].getPlugin('columnSorting').sort({ column, sortOrder: 'asc' });
+    };
+  </script>
+</body>
+</html>

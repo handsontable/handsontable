@@ -31,6 +31,16 @@ export interface Context {
   hasShortcut(keys: string[]): boolean;
   removeShortcutsByKeys(keys: string[]): void;
   removeShortcutsByGroup(group: string): void;
+  /**
+   * Internal. Sets the context consulted when this one holds no shortcut for the pressed keys.
+   */
+  // eslint-disable-next-line no-use-before-define
+  setFallbackContext(context: Context | null): void;
+  /**
+   * Internal. Returns the context consulted when this one holds no shortcut for the pressed keys.
+   */
+  // eslint-disable-next-line no-use-before-define
+  getFallbackContext(): Context | null;
 }
 
 /**
@@ -62,6 +72,34 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
   const SHORTCUTS = createUniqueMap({
     errorIdExists: (keys: string) => `The "${keys}" shortcut is already registered in the "${name}" context.`
   });
+
+  /**
+   * The context consulted when this one holds no shortcut for the pressed keys.
+   *
+   * `getShortcuts()` and `hasShortcut()` deliberately ignore it - both are public API documented as
+   * answering for *this* context, and `ShortcutManager#hasEventShortcut()` relies on that. The chain
+   * is walked by the manager instead, when it dispatches a key event.
+   */
+  // eslint-disable-next-line no-use-before-define
+  let fallbackContext: Context | null = null;
+
+  /**
+   * Sets the context consulted when this one holds no shortcut for the pressed keys.
+   *
+   * @param {object|null} context The fallback context, or `null` to drop it.
+   */
+  const setFallbackContext = (context: Context | null): void => {
+    fallbackContext = context;
+  };
+
+  /**
+   * Returns the context consulted when this one holds no shortcut for the pressed keys.
+   *
+   * @returns {object|null}
+   */
+  const getFallbackContext = (): Context | null => {
+    return fallbackContext;
+  };
 
   /**
    * Add a keyboard shortcut to this context.
@@ -270,5 +308,7 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
     hasShortcut,
     removeShortcutsByKeys,
     removeShortcutsByGroup,
+    setFallbackContext,
+    getFallbackContext,
   };
 };

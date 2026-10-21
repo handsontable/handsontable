@@ -14,7 +14,7 @@ This is the engine-specific subset of the core concerns doc (`handsontable/.ai/C
 
 **Overlay System (Walkontable):**
 - Files: `handsontable/src/3rdparty/walkontable/src/overlay/overlays.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/topOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/inlineStartOverlay.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/regions/bottomOverlay.ts`
-- Why fragile: The overlay system manages 6 overlay types (top, bottom, left, and 3 corners) with complex positioning logic. TODO comments indicate a workaround for `innerBorderTop` that is documented to be clearable only after SVG borders are merged. Lazy creation of corner overlays adds initialization complexity.
+- Why fragile: The overlay system manages 8 overlay types (top, bottom, inline-start, inline-end, and 4 corners) with complex positioning logic. TODO comments indicate a workaround for `innerBorderTop` that is documented to be clearable only after SVG borders are merged. The corners and the three end clones are all built eagerly and only hidden while they have nothing to draw, so an idle clone still takes part in the initialization and in the layout signature.
 - Safe modification: Test with combinations of `fixedRowsTop`, `fixedRowsBottom`, `fixedColumnsStart`. Test RTL layout. Verify no visual artifacts at overlay boundaries.
 - Test coverage: Walkontable has its own test pipeline (`npm run test:walkontable`), separate from the main E2E tests.
 
@@ -37,6 +37,14 @@ This is the engine-specific subset of the core concerns doc (`handsontable/.ai/C
 - The caps (`COLUMN_BAND_OVERSCAN_MAX = 8`, `ROW_BAND_OVERSCAN_MAX = 4`) are perceptual tuning, not correctness: they keep every band-crossing stall in the mild 40–50 ms class instead of rarer ~60 ms catches. When retuning, sync the numbers in the `viewport{Row,Column}RenderingOffset` JSDoc (`src/dataMap/metaManager/metaSchema.ts`).
 - Specs: `test/spec/scroll/stationary{Columns,Rows}BandOverscan.spec.js` and `test/unit/viewport/calculatorFactory.unit.js`. Spec-writing traps: pixel-parity comparisons must use CONTENT space (a `draw(false)` may move the holder's scroll position) and a target row fully inside the viewport; walkontable RTL specs need `rtlMode: true` in the walkontable settings (a `dir="rtl"` attribute alone is not read by the engine).
 
+**Shift + wheel on a touchpad (`resolveWheelDeltas` keeps its exact-zero test):**
+- Setup: a demo that logs every `wheel` event over a grid and the axis the grid scrolled, https://demos.handsontable.com/d/2a482xa5ec (Handsontable 18.1.2, so it predates the Shift swap). Edge/Chrome 154, Windows 11, devicePixelRatio 1.5, one precision touchpad of unknown model. `1/2` below means `deltaX`/`deltaY`.
+- Straight vertical swipes with Shift held: 4 swipes, 328 events, `deltaX` 0 on every event. One swipe had Shift pressed mid-inertia, and `deltaX` stayed 0 on the events after the press. Horizontal swipe with Shift: about 92 events, `deltaY` 0 on every event.
+- Diagonal swipe with Shift held: one capture, 184 events in three bursts. 167 events have `deltaX` ≠ 0 and it scales with `deltaY` (typical pairs 1/1, 1/2, 2/1, 4/5, the largest 27/32), so it is real diagonal movement, not jitter. 14 events have `deltaX` 0 with `deltaY` ≠ 0, and 3 more are 0/0 end events.
+- Why not `|deltaX| < |deltaY|`: on that diagonal swipe it is true for 52 of 184 events (28%) and false for 132. Strict `<` never swaps an equal pair such as 2/2 either, so neighboring events of one swipe would go to different axes within milliseconds.
+- Warts of the exact-zero test, both from per-event decisions: the 14 `deltaX` 0 events inside a diagonal swipe move to the columns, and when Shift is pressed during inertia, every event after the press has `deltaX` 0, so the rest of the fling scrolls the columns. Whether the browser does the same natively was not measured.
+- Not measured: what Edge does natively with Shift and a touchpad swipe with the grid out of the way (the recorded `deltaX` is 0 either way, so the log cannot tell, and this is the question that decides whether the swap changes native behavior on Windows the way it would on macOS), Firefox, a Linux touchpad, a second Windows touchpad, other diagonal directions. To measure, open the demo in the browser and press Clear, perform the gesture, then Copy JSON.
+
 ## Test Coverage Gaps
 
 **Single-pass layout solver (`viewport/boxLayout/`):**
@@ -44,3 +52,9 @@ This is the engine-specific subset of the core concerns doc (`handsontable/.ai/C
 - What's thin: the wiring that feeds it (`gatherLayoutInput.ts`) and its interaction with the `singlePassLayout` escape hatch (off for `mergeCells`, and window-mode fallback to DOM measurement) are exercised only through the integration suites.
 - Files: `handsontable/src/3rdparty/walkontable/src/viewport/boxLayout/`.
 - Priority: Medium.
+
+**Per-axis prediction (`viewport/boxLayout/` + `overlay/axisOwner.ts`):**
+- What's covered: the split-owner layout (an element owning one axis, the window the other – a definite `width` with no `height`) is a measured mode; `viewport.spec.js`, `master.spec.js`, `overlay.spec.js`, and `tests/e2e/width-window-scroll.spec.ts` pin its geometry.
+- What's thin: the layout snapshot still carries one `scrollMode` for both axes (`gatherLayoutInput.ts`), so the single-pass solver never runs for a split layout and every draw there measures the DOM. A per-axis `scrollMode` would let the prediction cover it; nothing asserts the cost today.
+- Files: `handsontable/src/3rdparty/walkontable/src/viewport/boxLayout/gatherLayoutInput.ts`, `resolveLayout.ts`, `handsontable/src/3rdparty/walkontable/src/overlay/axisOwner.ts`.
+- Priority: Low.

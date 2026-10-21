@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed screen readers not announcing a cell's column header.",
+  "type": "fixed",
+  "issueOrPR": 13519,
+  "breaking": false,
+  "framework": "none"
+}

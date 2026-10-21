@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - sort read guard</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects,
+    // mapped through fixed allowlists to LITERALS so a crafted param can never be reflected into the
+    // document - no XSS. An ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    window.htMode = ({
+      plain: 'plain',
+      column: 'column',
+      cells: 'cells',
+      'cell-option': 'cell-option',
+    })[htParams.get('mode') ?? 'plain'];
+    if (!window.htMode) {
+      throw new Error('Unknown ?mode= value: ' + JSON.stringify(htParams.get('mode')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } #grid { height: 300px; } </style>
+</head>
+<body>
+  <!--
+    Fixture for the guarded bulk column read behind the sort gather loop.
+
+    The point of running this in a real browser rather than in jsdom is the VIEWPORT. Stored cell
+    meta is created by rendering, so on a 300px grid over 500 rows only the handful of rendered rows
+    carry stored meta and the other ~480 have none. That is the split the guard has to survive: a
+    per-row "does this cell have stored meta" probe covers the rendered band, and only the
+    column-layer probe keeps the remaining rows reading the same value they read today.
+
+    `?mode=` picks which layer puts a `valueGetter` on the read path - the three routes that exist:
+      plain        - none (the fast loop is meant to run for every row)
+      column       - `columns[].type`, seen by the column-layer probe
+      cells        - a `cells()` function, which only ever reaches STORED meta
+      cell-option  - a declarative `cell` entry on one off-screen row
+
+    Column 0 holds `{ value }` objects, which the dropdown `valueGetter` unwraps. A read that skips
+    the getter therefore yields an object where the grid yields a string - visible in the data, not
+    only in a timing number.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The closing tag is split
+    // so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const ROW_COUNT = 500;
+    const source = [];
+    const data = [];
+
+    for (let row = 0; row < ROW_COUNT; row++) {
+      // Descending, so an ascending sort has to move every row.
+      const label = `v${String(ROW_COUNT - row).padStart(4, '0')}`;
+
+      source.push(label);
+      data.push([{ value: label }, row]);
+    }
+
+    const dropdownColumn = { type: 'dropdown', source, allowInvalid: true };
+
+    const settings = {
+      data,
+      colHeaders: true,
+      rowHeaders: true,
+      columnSorting: true,
+      autoRowSize: false,
+      autoColumnSize: false,
+      licenseKey: 'non-commercial-and-evaluation',
+      // Stamped from the hook, not from a `renderer` setting: a `type` puts its own renderer on the
+      // column layer, so a global `renderer` would be overridden in exactly the modes under test.
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+    };
+
+    if (window.htMode === 'column') {
+      settings.columns = [dropdownColumn, {}];
+    }
+
+    if (window.htMode === 'cells') {
+      settings.cells = function(row, column) {
+        return column === 0 ? dropdownColumn : {};
+      };
+    }
+
+    if (window.htMode === 'cell-option') {
+      // Row 400 is far below the rendered band, so nothing but the stored meta this option creates
+      // can tell the read path that this one cell resolves a `valueGetter`.
+      //
+      // The getter is written out rather than left to `type: 'dropdown'`: the `cell` option is
+      // applied key by key through `setCellMeta`, which stores `type` without expanding it into the
+      // cell type's accessors, so a declarative `type` alone puts no getter on the read path at all.
+      settings.cell = [{
+        row: 400,
+        col: 0,
+        valueGetter(value) {
+          return value && value.value !== undefined ? value.value : value;
+        },
+      }];
+    }
+
+    window.hot = new Handsontable(container, settings);
+
+    // The two reads the guard has to keep equal: the public per-cell path, and the bulk accessor the
+    // sort gather loop uses. Collected in the page so the comparison happens against ONE grid state.
+    window.readColumnBothWays = function() {
+      const rowCount = window.hot.countRows();
+      const perCell = [];
+      const physicalRows = [];
+
+      for (let row = 0; row < rowCount; row++) {
+        physicalRows.push(window.hot.toPhysicalRow(row));
+        perCell.push(window.hot.getDataAtCell(row, 0));
+      }
+
+      const bulk = window.hot._getDataAtColumnForRows(0, physicalRows);
+
+      return {
+        // Serialized, because an object value and the string it wraps must not compare equal over
+        // the CDP bridge by accident.
+        perCell: perCell.map(value => JSON.stringify(value) ?? 'undefined'),
+        bulk: bulk.map(value => JSON.stringify(value) ?? 'undefined'),
+        renderedRows: window.hot.countRenderedRows(),
+      };
+    };
+  </script>
+</body>
+</html>

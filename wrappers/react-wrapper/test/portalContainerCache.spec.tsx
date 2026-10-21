@@ -18,7 +18,7 @@ describe('Portal container cache eviction', () => {
   const VISIBLE_ROWS = Math.ceil(300 / 23); // height / rowHeights ≈ 14 visible rows
   const COLS = 3;
 
-  it('should keep the portal container cache bounded to the viewport while scrolling a tall grid', async () => {
+  it('should keep the portal container cache bounded to the viewport while scrolling a tall grid', async() => {
     let capturedContext: ReturnType<typeof useHotTableContext> | undefined;
 
     function Cell(props: HotRendererProps) {
@@ -33,18 +33,18 @@ describe('Portal container cache eviction', () => {
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(ROWS, COLS)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}
-                renderer={(props) => <Cell {...props} />}
+        id="test-hot"
+        data={createSpreadsheetData(ROWS, COLS)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        renderer={props => <Cell {...props} />}
       />
     ), false).hotInstance!;
 
@@ -52,7 +52,7 @@ describe('Portal container cache eviction', () => {
 
     // Scroll the full height of the dataset in viewport-sized steps.
     for (let row = 0; row < ROWS; row += VISIBLE_ROWS) {
-      await act(async () => {
+      await act(async() => {
         hotInstance.scrollViewportTo({ row: Math.min(row, ROWS - 1), col: 0 });
         hotInstance.render();
       });
@@ -73,7 +73,7 @@ describe('Portal container cache eviction', () => {
     expect(cacheSize).toBeLessThan(ROWS * COLS);
   });
 
-  it('should evict the container of a cell that scrolled out of the viewport (remounts on return)', async () => {
+  it('should evict the container of a cell that scrolled out of the viewport (remounts on return)', async() => {
     let nextSeed = 0;
     const seeds = new Map<string, number>();
 
@@ -82,6 +82,7 @@ describe('Portal container cache eviction', () => {
       // the previous container was evicted (not reused from the cache).
       const [seed] = React.useState(() => {
         nextSeed += 1;
+
         return nextSeed;
       });
 
@@ -94,18 +95,18 @@ describe('Portal container cache eviction', () => {
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
-                id="test-hot"
-                data={createSpreadsheetData(ROWS, COLS)}
-                width={300}
-                height={300}
-                rowHeights={23}
-                colWidths={50}
-                autoRowSize={false}
-                autoColumnSize={false}
-                init={function () {
-                  mockElementDimensions(this.rootElement, 300, 300);
-                }}
-                renderer={(props) => <SeededCell {...props} />}
+        id="test-hot"
+        data={createSpreadsheetData(ROWS, COLS)}
+        width={300}
+        height={300}
+        rowHeights={23}
+        colWidths={50}
+        autoRowSize={false}
+        autoColumnSize={false}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        renderer={props => <SeededCell {...props} />}
       />
     ), false).hotInstance!;
 
@@ -116,14 +117,14 @@ describe('Portal container cache eviction', () => {
     expect(seedBefore).toBeGreaterThan(0);
 
     // Scroll far past cell (0, 0) so its container leaves the viewport...
-    await act(async () => {
+    await act(async() => {
       hotInstance.scrollViewportTo({ row: ROWS - 1, col: 0 });
       hotInstance.render();
     });
     await sleep(50);
 
     // ...then back to the top.
-    await act(async () => {
+    await act(async() => {
       hotInstance.scrollViewportTo({ row: 0, col: 0 });
       hotInstance.render();
     });

@@ -8,12 +8,11 @@ registerAllModules();
 // Defined outside the component so autofill can mutate this array in place
 // without a re-render (triggered by `setOutput`) resetting it to its initial values.
 const data = [
-  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-  ['2017', 10, 11, 12, 13],
-  ['2018', 20, 11, 14, 13],
-  ['2019', 30, 15, 12, 13],
-  ['2020', '', '', '', ''],
-  ['2021', '', '', '', ''],
+  ['Hydrogen', 'H', 1, 1.008, 7],
+  ['Helium', 'He', 2, 4.003, 9],
+  ['Lithium', 'Li', 3, 6.94, 9],
+  ['Beryllium', '', '', '', ''],
+  ['Boron', '', '', '', ''],
 ];
 
 const ExampleComponent = () => {
@@ -27,15 +26,16 @@ const ExampleComponent = () => {
       <HotTable
         data={data}
         rowHeaders={true}
-        colHeaders={true}
+        colHeaders={['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes']}
+        colWidths={[80, 62, 110, 118, 110]}
+        stretchH="all"
         fillHandle={true}
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
         beforeAutofill={(selectionData) =>
-          // This dealership reports sales in batches of 5 cars, so round every
-          // filled value up to the nearest multiple of 5.
+          // Round every filled number up to the nearest multiple of 5.
           selectionData.map((row) => row.map((value) => (typeof value === 'number' ? Math.ceil(value / 5) * 5 : value)))
         }
         afterAutofill={(fillData, sourceRange, targetRange, direction) => {

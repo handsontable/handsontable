@@ -1,7 +1,7 @@
 ---
 title: Server-side data with Ruby on Rails
-metaTitle: Server-side Data with Ruby on Rails - JavaScript Data Grid | Handsontable
-description: Connect Handsontable's dataProvider plugin to a Ruby on Rails API-only backend with paginated fetching, server-side sorting and filtering, and full CRUD using the kaminari gem.
+metaTitle: Server-side data with Ruby on Rails | Handsontable DataGrid for JavaScript
+description: Connect Handsontable DataGrid's dataProvider plugin to a Ruby on Rails API-only backend with paginated fetching, server-side sorting and filtering, and full CRUD using the kaminari gem.
 permalink: /recipes/data-management/server-side-rails
 canonicalUrl: /recipes/data-management/server-side-rails
 tags:
@@ -11,17 +11,17 @@ tags:
   - data-provider
   - recipe
 react:
-  metaTitle: Server-side Data with Ruby on Rails - React Data Grid | Handsontable
+  metaTitle: Server-side data with Ruby on Rails | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side Data with Ruby on Rails - Angular Data Grid | Handsontable
+  metaTitle: Server-side data with Ruby on Rails | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side Data with Ruby on Rails - Vue Data Grid | Handsontable
+  metaTitle: Server-side data with Ruby on Rails | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 type: how-to
 ---
 
-This tutorial shows how to wire Handsontable's `dataProvider` plugin to a [Ruby on Rails](https://rubyonrails.org/) API-only backend. The backend handles pagination, sorting, and filtering on the server. The frontend displays results and sends every edit back to the API.
+This tutorial shows how to wire Handsontable DataGrid's `dataProvider` plugin to a [Ruby on Rails](https://rubyonrails.org/) API-only backend. The backend handles pagination, sorting, and filtering on the server. The frontend displays results and sends every edit back to the API.
 
 <a class="github-example-cta" href="https://github.com/handsontable/examples/tree/master/server-examples/rails" target="_blank" rel="noopener noreferrer">
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -111,7 +111,7 @@ Run it:
 rails db:seed
 ```
 
-The seed script inserts 50 orders across realistic statuses (`pending`, `paid`, `shipped`, `delivered`, `cancelled`). It checks whether data already exists, so running it twice does not duplicate rows.
+The seed script inserts 50 orders across realistic statuses (`pending`, `paid`, `shipped`, `delivered`, `canceled`). It checks whether data already exists, so running it twice does not duplicate rows.
 
 ## Step 4 -- Configure the routes
 
@@ -272,7 +272,7 @@ Handsontable's `dataProvider` calls `fetchRows` with `{ page, pageSize, sort, fi
 - `sort` is split into two flat params, `sort_prop` and `sort_order`. The controller's `apply_sort` reads them directly.
 - Filters are flattened from `DataProviderFilterColumn[]` (each with `prop` and `conditions: [{name, args}]`) into one bracket-notation entry per condition. Rails converts the bracket notation to a nested hash automatically.
 
-## Step 10 -- Initialize Handsontable
+## Step 10 -- Initialize Handsontable DataGrid
 
 Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The Rails API runs on `http://localhost:3000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 
@@ -322,7 +322,7 @@ Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`)
 | Option | What it does |
 |---|---|
 | `rowId: 'id'` | Tells `dataProvider` which field uniquely identifies a row. Must match the Rails primary key name. |
-| `{ signal }` in `fetchRows` | Pass the `AbortSignal` to `fetch()` so in-flight requests are cancelled when the user sorts or filters before the previous response arrives. |
+| `{ signal }` in `fetchRows` | Pass the `AbortSignal` to `fetch()` so in-flight requests are canceled when the user sorts or filters before the previous response arrives. |
 | `{ rowsAmount }` in `onRowsCreate` | `dataProvider` passes the number of rows to add. The frontend builds default objects and sends them as `{ rows: [...] }`. Returning `json.rows` lets `dataProvider` replace client-side placeholder ids with the ids assigned by Rails. |
 | `beforeRowsMutation` | Intercepts mutations before they run. Return `false` to cancel. Used here to show a delete-confirmation notification with **Delete**/**Cancel** actions instead of deleting immediately. |
 | `pagination: { pageSize: 10 }` | Enables the pagination toolbar. `dataProvider` passes the current page and size to `fetchRows` automatically. |

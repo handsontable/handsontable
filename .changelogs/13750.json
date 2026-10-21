@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed merged cells in the frozen columns: a right-aligned or centered value no longer shows twice, a long value no longer makes the frozen row taller, and the rows of a merged cell keep the same heights in every pane when the grid has no row headers.",
+  "type": "fixed",
+  "issueOrPR": 13750,
+  "breaking": false,
+  "framework": "none"
+}

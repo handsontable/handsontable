@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Submenu hover delay e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    DEV-2861 / DEV-66. The submenu is drawn beside the parent menu, so reaching any item except the
+    first means moving the pointer right AND down, across the parent rows below the anchor.
+
+    The grid is deliberately tall and the menu is opened on a cell in its upper half, so the whole
+    "Alignment" submenu has room to render below the anchor. That geometry is the point of the test:
+    the submenu box ends BELOW the parent menu, so its last items can only be reached by leaving the
+    menu and crossing the grid.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
+    // has not rendered yet. The message is stamped on the container and the page object rethrows it,
+    // so a broken build reads as its own error instead of a cell that never appeared.
+    try {
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(30, 6),
+        renderer: testIdRenderer,
+        rowHeaders: true,
+        colHeaders: true,
+        // Pinned so the rendered window is the same on every theme, and tall enough that the
+        // submenu opened from the upper half has room to extend past the parent menu's bottom edge.
+        width: 700,
+        height: 600,
+        // A SHORT menu on purpose. With the full default set the parent menu is ~17 rows and the
+        // Alignment submenu is 8, so whether the submenu hangs below the parent's bottom edge
+        // depends on the row height — it does on `main`, it does not on `horizon`, and the
+        // "reported path" test needs it on every theme. Three items make the submenu reliably
+        // taller than its parent everywhere, and still leave two plain rows below the anchor for
+        // the pointer to cross, which is the whole mechanism under test.
+        contextMenu: ['alignment', 'copy', 'cut'],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
+  </script>
+</body>
+</html>

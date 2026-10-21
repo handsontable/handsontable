@@ -1,20 +1,20 @@
 ---
 title: Recipes
-metaTitle: Recipes - JavaScript Data Grid | Handsontable
-description: Developer recipes and step-by-step tutorials for building with Handsontable
+metaTitle: Recipes | Handsontable DataGrid for JavaScript
+description: Developer recipes and step-by-step tutorials for building with Handsontable DataGrid
 permalink: /recipes/
 canonicalUrl: /recipes/
 searchCategory: Recipes
 type: how-to
 react:
-  metaTitle: Recipes - React Data Grid | Handsontable
+  metaTitle: Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Recipes - Angular Data Grid | Handsontable
+  metaTitle: Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Recipes - Vue Data Grid | Handsontable
+  metaTitle: Recipes | Handsontable DataGrid for Vue
 ---
 
-This is a collection of practical, production-ready recipes for common Handsontable development tasks. Each recipe provides step-by-step instructions, complete working code, and real-world use cases.
+This is a collection of practical, production-ready recipes for common Handsontable DataGrid development tasks. Each recipe provides step-by-step instructions, complete working code, and real-world use cases.
 
 ## Recipe categories
 
@@ -27,6 +27,7 @@ This is a collection of practical, production-ready recipes for common Handsonta
 - [Filtering and search](@/recipes/filtering-and-search/filtering-and-search.md) - External search boxes, highlighted matches, and multi-column filter panels.
 - [Import and export](@/recipes/import-export/import-export.md) - CSV and Excel import, PDF export.
 - [Performance](@/recipes/performance/performance.md) - Lazy loading and persisted column layout.
-- [Real-time and integrations](@/recipes/real-time/real-time.md) - WebSocket updates and Chart.js synchronization.
+- [Platforms and embedding](@/recipes/platforms/platforms.md) - Salesforce Lightning Web Components and custom elements with their own shadow root.
+- [Real-time and integrations](@/recipes/real-time/real-time.md) - WebSocket updates, Chart.js synchronization, Liveblocks collaboration, agent-driven grids with A2UI, and AI-classified columns with Jev.
 - [Rendering and styling](@/recipes/rendering-styling/rendering-styling.md) - Conditional row coloring, frozen summary rows, and sparkline renderers.
 - [Themes](@/recipes/themes/themes.md) - Integration with Ant Design, MUI, Fluent UI, Base Web, and shadcn/ui.

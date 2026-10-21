@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed `updateSettings()` so that a new `dataSchema`, with no `columns` option set, re-initializes the index mappers and the column-to-property map when the columns it defines change. The grid now resolves the column count of the new schema, and sorting, filtering, and columns that users moved, hid, or resized start over.",
+  "type": "changed",
+  "issueOrPR": 13833,
+  "breaking": true,
+  "framework": "none"
+}

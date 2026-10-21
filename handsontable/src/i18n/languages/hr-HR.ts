@@ -131,6 +131,22 @@ const dictionary = {
   [C.PAGINATION_NEXT_PAGE]: 'Idi na sljedeću stranicu',
   [C.PAGINATION_LAST_PAGE]: 'Idi na posljednju stranicu',
 
+  [C.SHEETS_BAR_SECTION]: 'Listovi',
+  [C.SHEETS_BAR_ADD_SHEET]: 'Dodaj list',
+  [C.SHEETS_BAR_ALL_SHEETS]: 'Svi listovi',
+  [C.SHEETS_BAR_SHEET_MENU]: 'Radnje lista: [name]',
+  [C.SHEETS_BAR_RENAME_SHEET]: 'Naziv lista',
+  [C.SHEETS_BAR_ITEMS_DELETE]: 'Izbriši',
+  [C.SHEETS_BAR_ITEMS_DUPLICATE]: 'Dupliciraj',
+  [C.SHEETS_BAR_ITEMS_RENAME]: 'Preimenuj',
+  [C.SHEETS_BAR_ITEMS_MOVE_RIGHT]: 'Pomakni desno',
+  [C.SHEETS_BAR_ITEMS_MOVE_LEFT]: 'Pomakni lijevo',
+  [C.SHEETS_BAR_PAGE_PREV]: 'Pomakni listove unazad',
+  [C.SHEETS_BAR_PAGE_NEXT]: 'Pomakni listove naprijed',
+  [C.SHEETS_BAR_SHEET_CHANGED]: 'List [name] aktiviran',
+  [C.SHEETS_BAR_RENAME_REJECTED]: 'Naziv lista nije promijenjen: [name] se već koristi',
+  [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
+
   [C.CHECKBOX_CHECKED]: 'Označeno',
   [C.CHECKBOX_UNCHECKED]: 'Nije označeno',
 
@@ -151,6 +167,20 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti retke',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtjev nije uspio',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovno učitaj',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Odaberi redak [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Odaberi sve retke (odabrano [selected] od [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Označi sve (označeno [checked] od [total])',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Redak [row] odabran',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Odabir retka [row] poništen',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Odabrano [selected] od [total] redaka',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Ukloni odabrane retke ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Poništi odabir redaka',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Zamrznuti retci na vrhu',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zamrznuti retci na dnu',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Zamrznuti stupci na početku',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Zamrznuti stupci na kraju',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen redak [label], prikazani prošireni retci: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sažet redak [label]',
 };
 
 export default dictionary;

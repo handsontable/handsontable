@@ -19,11 +19,12 @@ export default function removeCommentItem(plugin: Comments) {
         return;
       }
 
-      range.forAll((row: number, column: number) => {
+      // Every cell's removal is one undo step together.
+      plugin.runOperation('comment', () => range.forAll((row: number, column: number) => {
         if (row >= 0 && column >= 0) {
           plugin.removeCommentAtCell(row, column, false);
         }
-      });
+      }));
 
       this.render();
     },

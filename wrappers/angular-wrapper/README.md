@@ -3,16 +3,16 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-white.svg?raw=true"/>
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
-    <img width="360" alt="Logo of Handsontable data grid" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
+    <img width="360" alt="Logo of Handsontable DataGrid" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
   </picture>
   <br><br>
-  <h3>The official <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="16" height="16"> Angular 16+ wrapper for Handsontable.
+  <h3>The official <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="16" height="16"> Angular 16+ wrapper for Handsontable DataGrid.
     <br>
-    <a href="https://handsontable.com/docs/angular-data-grid" target="_blank">JavaScript Data Grid</a> with a spreadsheet-like look and feel.</h3>
+    <a href="https://handsontable.com/docs/angular-data-grid" target="_blank">JavaScript component</a> with a spreadsheet-like look and feel.</h3>
 
   <p>With its spreadsheet-like editing features, it's perfect for building data-rich internal apps. It allows users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.</p>
 
-<a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/angular-data-grid">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/angular-data-grid/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/angular-data-grid/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://github.com/handsontable/handsontable/discussions">Community</a>
+<a href="https://handsontable.com">Website</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/angular-data-grid">Documentation</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/angular-data-grid/themes">Themes</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://handsontable.com/docs/angular-data-grid/api">API</a> &nbsp;&nbsp;—&nbsp;&nbsp; <a href="https://forum.handsontable.com/">Community</a>
 
   <br>
 
@@ -55,6 +55,11 @@
 &nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/angular-data-grid/column-hiding/) <br>
 &nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/angular-data-grid/context-menu/) <br>
 &nbsp;&nbsp;✅&nbsp; [Row pagination](https://handsontable.com/docs/angular-data-grid/rows-pagination/) <br>
+&nbsp;&nbsp;✅&nbsp; [Server-side data](https://handsontable.com/docs/angular-data-grid/server-side-data/) <br>
+&nbsp;&nbsp;✅&nbsp; [Notifications](https://handsontable.com/docs/angular-data-grid/notification/) <br>
+&nbsp;&nbsp;✅&nbsp; [Export to Excel](https://handsontable.com/docs/angular-data-grid/export-to-excel/) <br>
+&nbsp;&nbsp;✅&nbsp; [Date and time editing](https://handsontable.com/docs/angular-data-grid/cell-type/) <br>
+&nbsp;&nbsp;✅&nbsp; [Shadow DOM / Web Components support](https://handsontable.com/docs/angular-data-grid/shadow-dom/) <br>
 
 <div id="installation">
 
@@ -136,7 +141,7 @@ export class HotTableWrapperComponent {
 
 ## 🎨 Themes
 
-Handsontable themes control how your data table looks: colors, spacing, typography, borders, and overall visual style.
+Handsontable themes control how your data grid looks: colors, spacing, typography, borders, and overall visual style.
 
 You get three built-in themes out of the box:
 - main – modern, clean, default choice
@@ -173,9 +178,9 @@ To stay aligned with design, you can rely on the:
 
 <br>
 
-## 🤔 Is Handsontable a Data Grid or a Spreadsheet?
+## 🤔 Is Handsontable DataGrid a data grid or a spreadsheet?
 
-Handsontable is a data grid component written in JavaScript, not a spreadsheet. However, it brings in many features typically found in spreadsheet software. We designed it this way because spreadsheet-like patterns are often the most user-friendly when it comes to data entry and management.
+Handsontable DataGrid is a data grid component written in JavaScript, not a spreadsheet. However, it brings in many features typically found in spreadsheet software. We designed it this way because spreadsheet-like patterns are often the most user-friendly when it comes to data entry and management.
 
 ### Spreadsheet-like features in Handsontable:
 
@@ -193,12 +198,20 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 
 <br>
 
+## 🤖 AI & agent resources
+
+Working with an AI assistant or coding agent? Handsontable DataGrid and HyperFormula ship first-party agent resources:
+
+- **Agent Skills** — install in Claude Code with `/plugin marketplace add handsontable/handsontable-skills` → [github.com/handsontable/handsontable-skills](https://github.com/handsontable/handsontable-skills)
+- **Docs MCP server** — live semantic search over the docs, API reference, release notes, and GitHub issues: `claude mcp add --transport http handsontable-docs https://docs-assistant.handsontable.com/mcp` → [guide](https://handsontable.com/docs/angular-data-grid/docs-mcp-server/)
+- **Docs written for agents** — every docs page has a Markdown twin; start at [handsontable.com/docs/llms.txt](https://handsontable.com/docs/llms.txt)
+
 ## 🛟 Support
 
 **We're here to help!**
 
 If you're using Handsontable with a free, non-commercial license, you can:
-- Join the conversation on [GitHub Discussions](https://github.com/handsontable/handsontable/discussions) to share ideas, suggest features, or discuss changes.
+- Get quick help from our [**Ask AI** assistant](https://handsontable.com/docs/angular-data-grid/ai-docs-assistant/) available in the documentation.
 - Report any bugs you find on our [GitHub Issue Board](https://github.com/handsontable/handsontable/issues).
 - Connect with other developers and find answers on our [Developer Forum](https://forum.handsontable.com).
 
@@ -208,7 +221,7 @@ If you have a commercial license, feel free to contact us directly at [support@h
 
 ## 📖 Licenses
 
-Handsontable is available under two licensing options, allowing you to choose the one that best fits your needs. Each license comes with its own terms and conditions, as outlined below:
+Handsontable DataGrid is available under two licensing options, allowing you to choose the one that best fits your needs. Each license comes with its own terms and conditions, as outlined below:
 
 ### ① Free license for non-commercial use, and evaluation purposes
 This license is available for non-commercial purposes such as teaching, academic research, or evaluation. It allows you to use Handsontable free of charge under the terms specified in the non-commercial license agreement.
@@ -223,7 +236,7 @@ For commercial use, a paid license is required. This license includes support an
 
 For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key.
 
-If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/license-key/).
+If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/angular-data-grid/license-key/).
 
 <br>
 
@@ -238,4 +251,4 @@ Created and maintained by the [Handsontable Team](https://handsontable.com/team)
 
 ---
 
-© 2012 - 2025 Handsoncode
+© 2012 - 2026 Handsoncode

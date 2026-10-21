@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an error thrown when a grid initialized in a hidden container was destroyed right as it became visible.",
-  "type": "fixed",
-  "issueOrPR": 13190,
-  "breaking": false,
-  "framework": "none"
-}

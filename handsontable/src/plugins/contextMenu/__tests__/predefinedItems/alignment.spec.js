@@ -442,6 +442,78 @@ describe('ContextMenu', () => {
       expect(alignmentClass).toBe('htRight');
     });
 
+    it('should keep the space between the class names when the alignment is picked again (#7122)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100,
+        cell: [
+          { row: 0, col: 0, className: 'class_name' },
+        ],
+      });
+
+      await selectCell(0, 0);
+      await contextMenu();
+      await selectContextSubmenuOption('Alignment', 'Right');
+
+      await selectCell(0, 0);
+      await contextMenu();
+      await selectContextSubmenuOption('Alignment', 'Middle');
+
+      expect(getCellMeta(0, 0).className).toEqual('class_name htRight htMiddle');
+
+      // Picking a second horizontal alignment used to cut `htRight` out of the middle of the string
+      // and glue its neighbors together, producing 'class_namehtMiddle htJustify'. That silently
+      // dropped both the custom class and the vertical alignment.
+      await selectCell(0, 0);
+      await contextMenu();
+      await selectContextSubmenuOption('Alignment', 'Justify');
+
+      expect(getCellMeta(0, 0).className).toEqual('class_name htMiddle htJustify');
+      expect(getCell(0, 0).classList.contains('class_name')).toBe(true);
+      expect(getCell(0, 0).classList.contains('htMiddle')).toBe(true);
+      expect(getCell(0, 0).classList.contains('htJustify')).toBe(true);
+    });
+
+    it('should keep a custom class that contains an alignment class name (#7122)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100,
+        cell: [
+          { row: 0, col: 0, className: 'htTopBar' },
+        ],
+      });
+
+      await selectCell(0, 0);
+      await contextMenu();
+      await selectContextSubmenuOption('Alignment', 'Bottom');
+
+      // `htTopBar` used to be chopped down to `Bar`, and the alignment was not applied at all.
+      expect(getCellMeta(0, 0).className).toEqual('htTopBar htBottom');
+      expect(getCell(0, 0).classList.contains('htTopBar')).toBe(true);
+      expect(getCell(0, 0).classList.contains('htBottom')).toBe(true);
+    });
+
+    it('should accept an array `className`, as the documented settings allow (#7122)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100,
+        cell: [
+          { row: 0, col: 0, className: ['class_name', 'htLeft'] },
+        ],
+      });
+
+      await selectCell(0, 0);
+      await contextMenu();
+      await selectContextSubmenuOption('Alignment', 'Right');
+
+      expect(getCellMeta(0, 0).className).toEqual('class_name htRight');
+      expect(getCell(0, 0).classList.contains('class_name')).toBe(true);
+      expect(getCell(0, 0).classList.contains('htRight')).toBe(true);
+    });
+
     describe('UI', () => {
       it('should display a disabled entry, when there\'s nothing selected', async() => {
         handsontable({

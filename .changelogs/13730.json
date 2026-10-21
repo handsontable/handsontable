@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `fixedColumnsEnd` option, which freezes the last columns at the inline end edge of the grid (the right edge in LTR, the left edge in RTL), and fixed the `DragToScroll` plugin reserving the row header width on the wrong side in RTL.",
+  "type": "added",
+  "issueOrPR": 13730,
+  "breaking": false,
+  "framework": "none"
+}

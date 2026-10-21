@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — dropdown validation with strict: false</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD); an unknown value
+    // THROWS instead of falling back — a typo in the project config must be one
+    // red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.getRenderer(cellProperties.type).apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const COLORS = ['yellow', 'red', 'orange', 'green', 'blue'];
+
+    let hot;
+
+    try {
+      hot = new Handsontable(container, {
+        data: [
+          // Row 0: a value outside the source in every column, loaded rather than written - the
+          // reported shape. Loading never validates, so only `validateCells()` can mark it.
+          ['incorrect', 'incorrect', 'incorrect', 'incorrect', 'incorrect'],
+          ['red', 'green', 'red', 'green', 'red'],
+          ['green', 'blue', 'green', 'blue', 'green'],
+          ['yellow', 'red', 'yellow', 'red', 'yellow'],
+        ],
+        columns: [
+          // Flexible autocomplete: a value outside the source is valid by definition. It is the
+          // column a paste starts from, so the dropdown cells to its right are written to without
+          // ever being selected.
+          { type: 'autocomplete', source: COLORS, strict: false, width: 140, renderer: testIdRenderer },
+          // The subject. The dropdown editor forces `strict` only onto the cell it prepares, so
+          // before the fix this column validated strictly only in cells the user had clicked.
+          { type: 'dropdown', source: COLORS, strict: false, width: 140, renderer: testIdRenderer },
+          // A default dropdown (strict through its type): the behavior column 1 must match.
+          { type: 'dropdown', source: COLORS, width: 140, renderer: testIdRenderer },
+          // The same declaration plus `allowInvalid: false`, where an invalid value is rejected
+          // rather than stored - the one path of this change that discards a write.
+          {
+            type: 'dropdown', source: COLORS, strict: false, allowInvalid: false,
+            width: 140, renderer: testIdRenderer,
+          },
+          // `strict: false` declared one cascade level down, through `cells` below, so the tests
+          // cover more than the `columns` form.
+          { type: 'dropdown', source: COLORS, width: 140, renderer: testIdRenderer },
+        ],
+        cells(row, column) {
+          if (column === 4) {
+            return { strict: false };
+          }
+        },
+        colHeaders: [
+          'Autocomplete (flexible)', 'Dropdown (strict: false)', 'Dropdown',
+          'Dropdown (allowInvalid: false)', 'Dropdown (cells: strict false)',
+        ],
+        rowHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      // Fail loud. Without this a settings error surfaces as "element(s) not found" from the page
+      // object's first locator, on all six theme x bundle legs, with the real exception only in the
+      // browser console. See the determinism rules in `tests/AGENTS.md`.
+      container.setAttribute('data-init-error', String(error && error.message));
+
+      throw error;
+    }
+
+    window.hot = hot;
+
+    /**
+     * Reports the cell's validation flag as a string, so a spec can tell "valid" from "not yet
+     * validated". `valid !== false` would read `true` for a cell nothing has validated, which
+     * passes against code that never ran the validator at all.
+     */
+    window.htValidState = function(row, col) {
+      const { valid } = hot.getCellMeta(row, col);
+
+      if (valid === undefined) return 'unvalidated';
+
+      return valid === true ? 'valid' : 'invalid';
+    };
+
+    /**
+     * Reports the `strict` value the cell's meta carries. It is `false` for a dropdown cell with
+     * `strict: false` until its editor is prepared, which is how a spec proves a cell was never
+     * selected.
+     */
+    window.htStrictAt = function(row, col) {
+      return String(hot.getCellMeta(row, col).strict);
+    };
+
+    /**
+     * Selects one cell and pastes tab-separated text from there, so every cell to its right is
+     * written to without being selected - the same as a paste of a copied row.
+     */
+    window.htPasteFrom = function(row, col, text) {
+      hot.selectCell(row, col);
+      hot.getPlugin('copyPaste').paste(text);
+    };
+
+    /** What the cell holds, as a string, so a rejected write can be told from a stored one. */
+    window.htDataAt = function(row, col) {
+      return String(hot.getDataAtCell(row, col));
+    };
+
+    /** Writes a value through the API, with no selection involved. */
+    window.htSetDataAtCell = function(row, col, value) {
+      hot.setDataAtCell(row, col, value);
+    };
+
+    /** Runs `validateCells()` and resolves once every validator has reported. */
+    window.htValidateCells = function() {
+      return new Promise(function(resolve) {
+        hot.validateCells(function() {
+          resolve();
+        });
+      });
+    };
+
+    /**
+     * Re-applies the same `columns` array. That rebuilds every cell meta object, which is what the
+     * React wrapper does on each render of a grid with `HotColumn` children.
+     */
+    window.htReapplyColumns = function() {
+      hot.updateSettings({ columns: hot.getSettings().columns });
+    };
+  </script>
+</body>
+</html>

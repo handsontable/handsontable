@@ -260,7 +260,13 @@ function writeJsThemeFiles(themeVariables) {
 
   ensureOutputDirectory(helpersPath);
 
-  // The typed iconsMap module is copied verbatim from the template (already TS, already typed).
+  // The typed iconStyles module is copied verbatim from the template (already TS, already typed).
+  const iconStylesTemplate = readFileSync(resolve(__dirname, '..', 'templates', 'iconStyles.ts'), 'utf8');
+
+  writeFileSync(`${helpersPath}/iconStyles.ts`, iconStylesTemplate);
+  console.log(`Generated: ${helpersPath}/iconStyles.ts`);
+
+  // The deprecated `iconsMap` shim keeps its published import path working until 20.0.0.
   const iconsMapTemplate = readFileSync(resolve(__dirname, '..', 'templates', 'iconsMap.ts'), 'utf8');
 
   writeFileSync(`${helpersPath}/iconsMap.ts`, iconsMapTemplate);

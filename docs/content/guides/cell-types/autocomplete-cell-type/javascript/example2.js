@@ -4,22 +4,43 @@ import { registerAllModules } from 'handsontable/registry';
 // Register all Handsontable's modules.
 registerAllModules();
 
-const colors = [
-  'yellow',
-  'red',
-  'orange',
-  'green',
-  'blue',
-  'gray',
-  'black',
-  'white',
-  'purple',
-  'lime',
-  'olive',
-  'cyan',
+const warehouses = [
+  'Seattle',
+  'Denver',
+  'Portland',
+  'Austin',
+  'Minneapolis',
+  'Boston',
+  'Chicago',
+  'Phoenix',
+  'Atlanta',
+  'Dallas',
+  'San Jose',
+  'Columbus',
+];
+const products = [
+  'Stainless Steel Water Bottle',
+  'Wireless Mouse',
+  'Ergonomic Office Chair',
+  'USB-C Charging Cable',
+  'Aluminum Water Filter',
+  'Canvas Tote Bag',
+  'USB-C Hub',
+  'Ceramic Mug Set',
+  'Desk Lamp',
+  'Laptop Stand',
+  'Bluetooth Speaker',
+  'Standing Desk',
 ];
 
-const cars = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
+const suppliers = [
+  'Harbor Goods',
+  'Alpine Supply Co.',
+  'Cascade Distributors',
+  'Summit Trading',
+  'Northgate Wholesale',
+  'Nordic Traders',
+];
 const ALLOWED_TAGS = ['BR', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH'];
 const ALLOWED_ATTRIBUTES = ['colspan', 'rowspan'];
 const DROPPED_TAGS = ['SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE'];
@@ -59,28 +80,29 @@ new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   sanitizer: sanitizeHeader,
   data: [
-    ['BMW', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'white', 'gray'],
+    ['Harbor Goods', 'SKU-4821', 'Seattle', 'Stainless Steel Water Bottle'],
+    ['Alpine Supply Co.', 'SKU-0093', 'Denver', 'Wireless Mouse'],
+    ['Cascade Distributors', 'SKU-1170', 'Portland', 'Ergonomic Office Chair'],
+    ['Summit Trading', 'SKU-2208', 'Austin', 'USB-C Charging Cable'],
+    ['Northgate Wholesale', 'SKU-3341', 'Minneapolis', 'Aluminum Water Filter'],
   ],
-  colHeaders: ['Car<br>(allowInvalid true)', 'Year', 'Chassis color', 'Bumper color<br>(allowInvalid true)'],
+  colHeaders: ['Supplier<br>(allowInvalid false)', 'SKU', 'Warehouse', 'Product<br>(allowInvalid true)'],
   columns: [
     {
       type: 'autocomplete',
-      source: cars,
+      source: suppliers,
       strict: true,
-      // allowInvalid: true // true is default
+      allowInvalid: false,
     },
     {},
     {
       type: 'autocomplete',
-      source: colors,
+      source: warehouses,
       strict: true,
     },
     {
       type: 'autocomplete',
-      source: colors,
+      source: products,
       strict: true,
       allowInvalid: true, // true is default
     },

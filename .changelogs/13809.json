@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `multiselect` editor's list opening past the top or bottom of the viewport when the room around its cell was close to the list's height.",
+  "type": "fixed",
+  "issueOrPR": 13809,
+  "breaking": false,
+  "framework": "none"
+}

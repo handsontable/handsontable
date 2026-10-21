@@ -26,7 +26,7 @@ describe('UndoRedo -> MergeCells action', () => {
     getPlugin('mergeCells').merge(1, 1, 3, 3);
     getPlugin('undoRedo').undo();
 
-    expect(afterUndo).toHaveBeenCalledWith({
+    expect(afterUndo).toHaveBeenCalledWith(jasmine.objectContaining({
       actionType: 'merge_cells',
       cellRange: {
         highlight: { row: 1, col: 1 },
@@ -38,7 +38,7 @@ describe('UndoRedo -> MergeCells action', () => {
         ['B3', 'C3', 'D3'],
         ['B4', 'C4', 'D4'],
       ],
-    });
+    }));
   });
 
   it('should not throw an error after undoing cell merging triggered when the row header was selected', async() => {

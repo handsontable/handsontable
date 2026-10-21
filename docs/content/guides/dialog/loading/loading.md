@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Loading
-metaTitle: Loading - JavaScript Data Grid | Handsontable
+metaTitle: Loading | Handsontable DataGrid for JavaScript
 description: Display loading indicators and progress feedback in your data grid application using the Loading plugin.
 permalink: /loading
 canonicalUrl: /loading
@@ -13,13 +13,15 @@ tags:
   - spinner
   - indicator
 react:
-  metaTitle: Loading - React Data Grid | Handsontable
+  metaTitle: Loading | Handsontable DataGrid for React
 angular:
-  metaTitle: Loading - Angular Data Grid | Handsontable
+  metaTitle: Loading | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Loading - Vue Data Grid | Handsontable
+  metaTitle: Loading | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Dialog
+menuTag: updated
+addedIn: "16.1.0"
 ---
 Display loading indicators and progress feedback in your data grid application using the Loading plugin.
 
@@ -27,9 +29,11 @@ Display loading indicators and progress feedback in your data grid application u
 
 ## Overview
 
-The Loading plugin provides a loading overlay for Handsontable using the [Dialog](@/api/dialog.md) plugin. It displays a loading indicator with a customizable title, icon, and description. This is useful for showing progress feedback during data operations, API calls, or any other time-consuming tasks.
+The Loading plugin provides a loading overlay for Handsontable DataGrid using the [Dialog](@/api/dialog.md) plugin. It displays a loading indicator with a customizable title, icon, and description. This is useful for showing progress feedback during data operations, API calls, or any other time-consuming tasks.
 
 With simplicity and effectiveness in mind, the loading plugin was designed to provide a consistent user experience with customizable appearance and behavior. It requires the [Dialog](@/api/dialog.md) plugin to be enabled to function properly.
+
+Because it renders through the Dialog plugin, it works on the main grid only. A grid nested in a cell, that is a cell of the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, has no overlay layer, so the [`loading`](@/api/options.md#loading) option has no effect there.
 
 ## Basic configuration
 
@@ -82,6 +86,9 @@ To enable the Loading plugin, set the [`loading`](@/api/options.md#loading) opti
 
 The loading dialog supports customization of the icon, title, and description.
 
+The `title` and `description` options render as text, so markup passed in them shows up literally.
+Use `icon` for the one option that takes markup, such as a custom SVG spinner.
+
 ::: only-for javascript
 
 ::: example #example2 --js 1 --ts 2
@@ -124,6 +131,16 @@ The loading dialog supports customization of the icon, title, and description.
 :::
 
 :::
+
+## Update the loading dialog
+
+To change the `icon`, `title`, or `description` of the loading dialog without hiding and showing it again, use the [`update()`](@/api/loading.md#update) method. For example, you can show the progress of a long operation.
+
+`update()` takes the same options as [`show()`](@/api/loading.md#show). Options that you leave out keep their current values. The new values stay in place, so the next `show()` call without options reuses them.
+
+If the dialog is hidden, `update()` changes its content but doesn't show it. If the [`loading`](@/api/options.md#loading) option is `false`, `update()` does nothing.
+
+Calling `show()` while the dialog is visible has the same effect as `update()`. It doesn't run the [`beforeLoadingShow`](@/api/hooks.md#beforeloadingshow) and [`afterLoadingShow`](@/api/hooks.md#afterloadingshow) hooks.
 
 ## Real-world usage
 

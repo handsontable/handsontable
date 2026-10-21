@@ -127,7 +127,12 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   // Find the primary executable file for live rendering.
   // codeOnly suppresses live execution — files are rendered as static code blocks.
   const jsRef  = (!codeOnly && !isAngularDir && !isReactDir && !isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
-  const jsxRef = (!codeOnly && isReactDir) ? fileRefs.find(r => r.endsWith('.jsx') || r.endsWith('.tsx')) : null;
+  // The .jsx, whatever order the example lists its sources in: the runner (src/scripts/example-runner.ts)
+  // has modules for `example*.jsx` only, so a React example handed its .tsx renders nothing. The .tsx
+  // stays a fallback for an example that ships no .jsx, where the runner logs the missing module.
+  const jsxRef = (!codeOnly && isReactDir)
+    ? (fileRefs.find(r => r.endsWith('.jsx')) ?? fileRefs.find(r => r.endsWith('.tsx')))
+    : null;
   const tsRef  = (!codeOnly && isAngularDir) ? fileRefs.find(r => r.endsWith('.ts')) : null;
   const vueRef = (!codeOnly && isVueDir) ? (fileRefs.find(r => r.endsWith('.vue')) ?? fileRefs.find(r => r.endsWith('.js')) ?? null) : null;
 
@@ -1009,7 +1014,9 @@ function convertBoxesListToCardGrid(content) {
         return `<div class="ht-link-card"><a href="${href}"${targetAttr}>${iconHtml}${titleHtml}</a><span class="arrow" aria-hidden="true">\u2192</span></div>`;
       }).join('\n');
 
-      return `<div class="ht-card-grid">\n${cardHtml}\n</div>`;
+      const gridClass = cards.length >= 3 ? 'ht-card-grid ht-card-grid--cols-3' : 'ht-card-grid';
+
+      return `<div class="${gridClass}">\n${cardHtml}\n</div>`;
     }
   );
 }

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an uncaught error thrown when a dialog was destroyed while its transition was still running.",
+  "type": "fixed",
+  "issueOrPR": 13710,
+  "breaking": false,
+  "framework": "none"
+}

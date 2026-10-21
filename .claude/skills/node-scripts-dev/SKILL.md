@@ -5,20 +5,17 @@ description: Use when creating or modifying any .mjs file in the Handsontable mo
 
 # Writing Node.js `.mjs` Modules
 
-All Node.js-side code in the monorepo -- scripts, utilities, and library modules -- uses ESM (`.mjs`). Follow these conventions for any `.mjs` file, whether it lives in `scripts/`, `lib/`, or elsewhere.
+All Node.js-side code (scripts, utilities, library modules, Playwright helpers, build tooling) is ESM `.mjs`.
 
 ## File conventions
 
-- **Extension:** Always `.mjs` (never `.js` or `.cjs` for Node.js-side code).
-- **Location:** `scripts/` for CLI-invoked scripts. `lib/` for shared utilities and library modules. Package-specific paths are fine (e.g., `performance-tests/lib/`, `wrappers/react-wrapper/scripts/`).
-- **Invocation:** `node scripts/your-script.mjs` from `package.json` scripts, or as a `cmd` value in `handsontable/scripts/tasks.json` (see below).
-- **Scope:** These conventions apply to all `.mjs` files -- standalone scripts, library modules, Playwright helpers, build tooling, etc.
+- Extension: `.mjs` for all Node.js-side code.
+- Location: `scripts/` for CLI-invoked scripts, `lib/` for shared modules; package-specific paths are fine (`performance-tests/lib/`, `wrappers/react-wrapper/scripts/`).
+- Invocation: `node scripts/your-script.mjs` from `package.json` scripts, or as a `cmd` in `handsontable/scripts/tasks.json`.
 
 ## Adding npm scripts to the handsontable core package
 
-The `handsontable/` package uses a unified dispatcher. **Do not add raw shell commands directly to `handsontable/package.json` scripts.** Instead:
-
-1. Add the task to `handsontable/scripts/tasks.json`:
+`handsontable/` uses a unified dispatcher. Put every command in `handsontable/scripts/tasks.json` and keep a thin shim in `package.json`:
 
 ```json
 "my-task": {
@@ -28,26 +25,20 @@ The `handsontable/` package uses a unified dispatcher. **Do not add raw shell co
 }
 ```
 
-2. Add a thin shim to `package.json` that delegates to the dispatcher:
-
 ```json
 "my-task": "node scripts/run.mjs my-task"
 ```
 
-### tasks.json schema
-
 | Field | Required | Values | Purpose |
 |-------|----------|--------|---------|
-| `cmd` | yes | shell string | Command run via `spawn(..., { shell: true })` |
-| `deps` | no | task name array | Tasks that must complete first (resolved by DAG scheduler in parallel mode; resolved sequentially in direct invocation mode) |
-| `mode` | no | `quiet` (default) \| `inherit` \| `interactive` | `quiet` = suppress output with spinner; `inherit` = stream output (linters); `interactive` = full TTY pass-through (Jest) |
+| `cmd` | yes | shell string | Run via `spawn(..., { shell: true })` |
+| `deps` | no | task name array | Tasks that must complete first (DAG scheduler in parallel mode, sequential in direct invocation) |
+| `mode` | no | `quiet` (default) \| `inherit` \| `interactive` | `quiet` = spinner; `inherit` = stream output (linters); `interactive` = full TTY pass-through (Jest) |
 | `cwd` | no | path relative to `handsontable/` | Working directory override |
 | `passthrough` | no | boolean | Append extra CLI flags (after `--`) to the cmd |
-| `note` | no | string | Human annotation only, ignored at runtime |
+| `note` | no | string | Annotation only |
 
-### Pipeline definitions
-
-To group tasks into an ordered pipeline (e.g., a build or test sequence), add to the `pipelines` block:
+Pipelines go in the `pipelines` block:
 
 ```json
 "pipelines": {
@@ -59,50 +50,18 @@ To group tasks into an ordered pipeline (e.g., a build or test sequence), add to
 }
 ```
 
-`before` and `after` steps run sequentially. `tasks` run sequentially with `--sequential` or via DAG with `--parallel`.
+`before` and `after` run sequentially; `tasks` run sequentially with `--sequential` or via DAG with `--parallel`.
 
-### Other packages
+Wrapper packages and `performance-tests/`, `visual-tests/` take scripts directly in their own `package.json` (no `run.mjs` dispatcher).
 
-For wrapper packages (`wrappers/react-wrapper/`, `wrappers/angular-wrapper/`, `wrappers/vue3/`) and other monorepo packages (`performance-tests/`, `visual-tests/`), add directly to that package's `package.json` scripts as usual — those packages do not use the `run.mjs` dispatcher.
+## Imports and top-level await
 
-## Native module imports
+- Prefix built-ins with `node:` (`import { readFile } from 'node:fs/promises'`, `node:path`, `node:url`, `node:child_process`, `node:util`).
+- Use top-level `await` in module scope; wrap in try/catch only for an error boundary.
 
-Always use the `node:` protocol prefix for built-in modules. This makes it explicit that the import is a Node.js built-in, not a third-party package.
+## Native modules over dependencies
 
-```js
-// GOOD
-import { readdir, readFile, writeFile, rename, rm } from 'node:fs/promises';
-import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
-
-// BAD - missing node: prefix
-import { readFile } from 'fs/promises';
-import { join } from 'path';
-```
-
-## Top-level await
-
-Use top-level `await` directly in the module scope. No need to wrap in an `async function main()` unless you need structured error handling.
-
-```js
-// GOOD - direct top-level await
-const content = await readFile(filePath, 'utf-8');
-const entries = await readdir(dir, { withFileTypes: true });
-
-// Also acceptable - when you need a try/catch boundary
-try {
-  await doWork();
-} catch (err) {
-  console.error(err);
-  process.exitCode = 1;
-}
-```
-
-## Prefer native modules
-
-Do not add third-party dependencies for tasks that Node.js handles natively:
+Do not add third-party dependencies for what Node.js does natively.
 
 | Task | Use | Not |
 |------|-----|-----|
@@ -110,61 +69,31 @@ Do not add third-party dependencies for tasks that Node.js handles natively:
 | Delete recursively | `rm({ recursive: true, force: true })` | `rimraf` |
 | Move/rename | `rename()` | `mv` |
 | Run child process | `node:child_process` + `promisify(exec)` | `execa` |
-| Parse CLI args | `node:util` `parseArgs()` or manual `process.argv` | `yargs`, `commander` |
+| Parse CLI args | `node:util` `parseArgs()` or `process.argv` | `yargs`, `commander` |
 | Path manipulation | `node:path` | `slash`, `normalize-path` |
-| Glob matching | `node:fs` `readdir` + filter | `glob`, `fast-glob` (unless complex patterns needed) |
+| Glob matching | `node:fs` `readdir` + filter (`glob`/`fast-glob` only for complex patterns) | `glob`, `fast-glob` otherwise |
 
-## Cross-platform compatibility
+## Cross-platform (Linux, macOS, Windows)
 
-Scripts must work on Linux, macOS, and Windows. This is the monorepo's most common scripting gotcha.
+- `package.json` scripts: use Node helpers in place of bash constructs (`if [ ]`, `mv`, `rm -rf`, `a && b || c` conditionals). Plain `&&` sequencing is fine.
+- Build paths with `node:path` `join()`.
+- Use async `node:fs/promises` (`readdir`, `rename`, `rm`, `access`).
+- `__dirname` equivalent: `import.meta.dirname` (Node 21+) or `dirname(fileURLToPath(import.meta.url))`.
+- Reference: `wrappers/react-wrapper/scripts/prepare-types.mjs`.
 
-- **No bash constructs** in `package.json` scripts: no `if [ ]`, `mv`, `rm -rf`, `&&` chaining with `||`.
-- **Use `node:path` `join()`** for all paths -- never hardcode `/` separators.
-- **Use `node:fs/promises`** async APIs (`readdir`, `rename`, `rm`, `access`) -- not their sync counterparts.
-- **Use `import.meta.dirname`** (Node 21+) or `dirname(fileURLToPath(import.meta.url))` for `__dirname` equivalent.
-- **Reference:** `wrappers/react-wrapper/scripts/prepare-types.mjs` as a well-structured example.
-
-## Existence check pattern
+Existence check:
 
 ```js
 const exists = async (path) => access(path).then(() => true, () => false);
 ```
 
-## Script structure template
-
-```js
-// Description of what this script does.
-//
-// Usage: node scripts/my-script.mjs [--dry-run]
-
-import { readdir, readFile, writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
-
-const ROOT = import.meta.dirname
-  ? join(import.meta.dirname, '..')
-  : join(dirname(fileURLToPath(import.meta.url)), '..');
-
-const dryRun = process.argv.includes('--dry-run');
-
-// ... script logic using top-level await ...
-
-const files = await readdir(join(ROOT, 'src'), { withFileTypes: true });
-
-for (const entry of files) {
-  if (!entry.isDirectory()) continue;
-  // process entry
-}
-
-console.log('Done.');
-```
-
 ## Error handling
 
-- Set `process.exitCode = 1` on failure instead of `process.exit(1)` -- allows cleanup to finish.
-- Silent `catch` blocks must include a comment explaining why the error is swallowed.
-- Log actionable error messages -- include the file path or operation that failed.
+- Set `process.exitCode = 1` on failure so cleanup finishes.
+- Comment every silent `catch` with why the error is swallowed.
+- Include the file path or operation in error messages.
 
-## Existing scripts for reference
+## Existing scripts
 
 | Script | Purpose |
 |--------|---------|

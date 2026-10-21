@@ -1,7 +1,7 @@
 ---
 title: Load data from a REST API
-metaTitle: Load Data from a REST API - JavaScript Data Grid | Handsontable
-description: Fetch JSON data from a REST API and load it into Handsontable with loading and error states.
+metaTitle: Load data from a REST API | Handsontable DataGrid for JavaScript
+description: Fetch JSON data from a REST API and load it into Handsontable DataGrid with loading and error states.
 permalink: /recipes/data-management/load-data-rest-api
 canonicalUrl: /recipes/data-management/load-data-rest-api
 tags:
@@ -15,17 +15,17 @@ tags:
   - pagination
   - server-side data
 react:
-  metaTitle: Load Data from a REST API - React Data Grid | Handsontable
+  metaTitle: Load data from a REST API | Handsontable DataGrid for React
 angular:
-  metaTitle: Load Data from a REST API - Angular Data Grid | Handsontable
+  metaTitle: Load data from a REST API | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Load Data from a REST API - Vue Data Grid | Handsontable
+  metaTitle: Load data from a REST API | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 type: how-to
 ---
 
-This tutorial shows how to fetch JSON from a REST API and populate Handsontable after initialization. It starts the grid with `data: []`, shows a loading message, then displays success or error feedback in the UI.
+This tutorial shows how to fetch JSON from a REST API and populate Handsontable DataGrid after initialization. It starts the grid with `data: []`, shows a loading message, then displays success or error feedback in the UI.
 
 ::: only-for react
 
@@ -330,7 +330,7 @@ The first two examples manage the fetch lifecycle yourself: you call `loadData()
 - Slicing rows in `fetchRows` using the `page` and `pageSize` query parameters.
 - Enabling `pagination`, `columnSorting`, and `emptyDataState` so the plugin drives navigation and loading overlays.
 - Using `beforeDataProviderFetch`, `afterDataProviderFetch`, and `afterDataProviderFetchError` hooks for status feedback.
-- Passing an `AbortSignal` to `fetch` so superseded requests are cancelled automatically.
+- Passing an `AbortSignal` to `fetch` so superseded requests are canceled automatically.
 
 ## When to use each approach
 
@@ -415,7 +415,7 @@ async fetchRows({ page, pageSize, sort }, { signal }) {
 - `page` -- 1-based page index driven by the Pagination plugin.
 - `pageSize` -- rows per page; matches `pagination: { pageSize: 5 }` in grid options.
 - `sort` -- `{ prop, order }` object when a column header is sorted, or `null` when unsorted.
-- `{ signal }` -- AbortSignal from the plugin. Pass it to your `fetch` call so superseded requests are cancelled.
+- `{ signal }` -- AbortSignal from the plugin. Pass it to your `fetch` call so superseded requests are canceled.
 - Return `{ rows, totalRows }`. `totalRows` is the unsliced count -- the Pagination plugin uses it to calculate the page count and navigation controls.
 
 ## Step 4: Apply sort from query parameters

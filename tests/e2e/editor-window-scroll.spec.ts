@@ -13,6 +13,7 @@ import { EditorScrollPage } from '../fixtures/pages/EditorScrollPage';
  * while the page scrolls under it), and a regular cell moves with the page.
  * In both, the editor's offset from its cell must not change.
  */
+// leg-declarations: ignore geometry-helper -- compares the editor's and the cell's positions before and after one window scroll; a fixed offset a theme adds cancels in the difference
 test.describe('editor position on window scroll', () => {
   let grid: EditorScrollPage;
 
@@ -21,20 +22,19 @@ test.describe('editor position on window scroll', () => {
     await grid.goto();
   });
 
-  // Known product bug (verified 2026-08-07, migrated from the legacy skip):
-  // when the edited cell lives in a PINNED overlay, the editor scrolls away
-  // with the page instead of holding to the pinned cell — 184px drift after a
-  // 200px window scroll (the 16px body margin pins the overlay late). The
-  // regular-cell case below passes. Unskip with the fix (DEV-2201).
-  // eslint-disable-next-line no-restricted-syntax -- DEV-2201: pinned-overlay editor drift; unskip with the fix
-  test.fixme('tracks a frozen-corner cell while the window scrolls', async () => {
+  test('tracks a frozen-corner cell while the window scrolls', async () => {
     const cell = grid.frozenCornerCell(1, 1);
 
     await grid.openEditorAt(cell);
 
     const before = await grid.editorOffsetFromCell(cell);
+    const cellTopBefore = await grid.viewportTop(cell);
 
     await grid.scrollWindowBy(0, 200);
+
+    // The page scrolled, and the overlay pinned the cell: it moved less than the page did.
+    expect(await grid.windowScrollY()).toBe(200);
+    expect(cellTopBefore - await grid.viewportTop(cell)).toBeLessThan(200);
 
     const after = await grid.editorOffsetFromCell(cell);
 

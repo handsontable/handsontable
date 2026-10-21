@@ -12,7 +12,9 @@ import { unescapeRedundant } from './postProcessors/unescapeRedundant.mjs';
 import { jsdocLinksFixer } from './postProcessors/jsdocLinksFixer.mjs';
 import { isJsdocPlugin } from './predictors.mjs';
 import { buildHeaderWriter } from './seo.mjs';
+import { buildGuideLinkLine } from '../apiGuideLinks.mjs';
 import { removeInternals } from './preProcessors/removeInternals.mjs';
+import { applyConfigScope } from './preProcessors/applyConfigScope.mjs';
 import { jsdocReturnsLinksFixer } from './postProcessors/jsdocReturnsLinksFixer.mjs';
 
 export const buildRenderer = ({ dist, generateMarkdown, configuration, logger }) =>
@@ -38,6 +40,7 @@ export const buildRenderer = ({ dist, generateMarkdown, configuration, logger })
 
     const preProcessor = buildPreProcessor([
       removeInternals,
+      applyConfigScope,
       sortJsdocMembers,
       applyLinkToSource,
       ...applyOptionsToPlugins,
@@ -54,9 +57,12 @@ export const buildRenderer = ({ dist, generateMarkdown, configuration, logger })
     ]);
 
     const jsdocData = preProcessor(members);
+    const body = postProcessor(generateMarkdown(jsdocData));
+    // The line is skipped for an empty page, so `write()` still detects and omits it.
+    const guideLink = body.trim() ? buildGuideLinkLine(fileName) : '';
 
     return write(
       dist(fileName),
-      header(fileName, isJsdocPlugin(jsdocData)) + postProcessor(generateMarkdown(jsdocData))
+      header(fileName, isJsdocPlugin(jsdocData)) + (guideLink ? `\n${guideLink}\n\n` : '') + body
     );
   };

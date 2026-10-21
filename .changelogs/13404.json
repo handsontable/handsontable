@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed row headers drifting out of alignment with their rows after calling `AutoRowSize#clearCache()`.",
+  "type": "fixed",
+  "issueOrPR": 13404,
+  "breaking": false,
+  "framework": "none"
+}

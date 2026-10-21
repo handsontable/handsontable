@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where the grid rendered at zero height when the `height` option was relative (for example `'100%'`) and the `<hot-table>` sat in a parent with a fixed height, which also showed up as the grid disappearing inside a CSS-transformed ancestor.",
+  "type": "fixed",
+  "issueOrPR": 13690,
+  "breaking": false,
+  "framework": "angular"
+}

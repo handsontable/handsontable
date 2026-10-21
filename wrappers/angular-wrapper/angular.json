@@ -10,7 +10,7 @@
       "prefix": "hot",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/hot-table/ng-package.json"
           },

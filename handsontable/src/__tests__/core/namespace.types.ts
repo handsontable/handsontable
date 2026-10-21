@@ -10,7 +10,37 @@ import Handsontable, {
   CellRange,
   IndexMapper,
 } from 'handsontable';
-import type { HotInstance } from 'handsontable';
+import type {
+  BaseEditorInstance,
+  BaseTheme,
+  CellType,
+  ColumnDataGetterSetterFunction,
+  DensityType,
+  EditorType,
+  Events,
+  HooksRegistry,
+  OverlayType,
+  RangeType,
+  RendererType,
+  SelectOptionsObject,
+  SourceRowData,
+  RowIdKey,
+  RowIdSetting,
+  ThemeBuilder,
+  ThemeColorScheme,
+  ThemeColorsConfig,
+  ThemeConfig,
+  ThemeDensityConfig,
+  ThemeDensitySizes,
+  ThemeIconsConfig,
+  ThemeLightDarkValue,
+  ThemeParams,
+  ThemeSizingConfig,
+  ThemeTokenValue,
+  ThemeTokensConfig,
+  ValidatorType,
+  HotInstance,
+} from 'handsontable';
 import {
   AutocompleteEditor,
   BaseEditor,
@@ -84,6 +114,7 @@ import {
 } from 'handsontable/renderers';
 import {
   autocompleteValidator,
+  checkboxValidator,
   dateValidator,
   dropdownValidator,
   intlDateValidator,
@@ -169,6 +200,16 @@ const _undoRedo: Handsontable.plugins.UndoRedo = new UndoRedo(hot);
 const _contextMenuKey: Handsontable.plugins.ContextMenu.PredefinedMenuItemKey = 'row_above';
 const _filtersConditionId: Handsontable.plugins.Filters.ConditionId = { name: 'begins_with', args: [] };
 const _filtersOperationType: Handsontable.plugins.Filters.OperationType = 'conjunction';
+const _filtersAvailableConditions: Handsontable.plugins.Filters.AvailableConditions = {
+  numeric: { exclude: ['not_between'] },
+};
+const _filtersAvailableConditionsRule: Handsontable.plugins.Filters.AvailableConditionsRule = ['eq', 'gt'];
+const _filtersAvailableConditionsList: Handsontable.plugins.Filters.AvailableConditionsList = ['eq'];
+const _filtersAvailableConditionsExclusion: Handsontable.plugins.Filters.AvailableConditionsExclusion = {
+  exclude: ['gt'],
+};
+const _filtersAvailableConditionsDataType: Handsontable.plugins.Filters.AvailableConditionsDataType = 'intl-date';
+const _filtersAvailableCondition: Handsontable.plugins.Filters.AvailableCondition = { name: 'gt', inputsCount: 1 };
 
 // ---------------------------------------------------------------------------
 // renderers namespace: verify function type aliases
@@ -193,6 +234,7 @@ const _timeRenderer: Handsontable.renderers.TimeRenderer = timeRenderer;
 // validators namespace: verify function type aliases
 // ---------------------------------------------------------------------------
 const _autocompleteValidator: Handsontable.validators.AutocompleteValidator = autocompleteValidator;
+const _checkboxValidator: Handsontable.validators.CheckboxValidator = checkboxValidator;
 const _dateValidator: Handsontable.validators.DateValidator = dateValidator;
 const _dropdownValidator: Handsontable.validators.DropdownValidator = dropdownValidator;
 const _intlDateValidator: Handsontable.validators.IntlDateValidator = intlDateValidator;
@@ -244,3 +286,44 @@ const _stopImmediatePropagation: void = Handsontable.dom.stopImmediatePropagatio
 const _arrayEach: ReturnType<typeof Handsontable.helper.arrayEach> = Handsontable.helper.arrayEach([], () => {});
 const _isObject: boolean = Handsontable.helper.isObject({});
 const _stringify: string = Handsontable.helper.stringify('foo');
+
+// ---------------------------------------------------------------------------
+// The type aliases on the namespace must stay the same types as the named exports. Under `node16` the default
+// import used to be the module namespace, so code reads `Handsontable.Events` as well as `Events`.
+// ---------------------------------------------------------------------------
+type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+
+const _sameEvents: Same<Handsontable.Events, Events> = true;
+const _sameHotInstance: Same<Handsontable.HotInstance, HotInstance> = true;
+const _sameRangeType: Same<Handsontable.RangeType, RangeType> = true;
+const _sameOverlayType: Same<Handsontable.OverlayType, OverlayType> = true;
+const _sameBaseEditorInstance: Same<Handsontable.BaseEditorInstance, BaseEditorInstance> = true;
+const _sameHooksRegistry: Same<Handsontable.HooksRegistry, HooksRegistry> = true;
+const _sameCellCoords: Same<Handsontable.CellCoords, CellCoords> = true;
+const _sameCellRange: Same<Handsontable.CellRange, CellRange> = true;
+const _sameIndexMapper: Same<Handsontable.IndexMapper, IndexMapper> = true;
+const _sameSourceRowData: Same<Handsontable.SourceRowData, SourceRowData> = true;
+const _sameRowIdSetting: Same<Handsontable.RowIdSetting, RowIdSetting> = true;
+const _sameRowIdKey: Same<Handsontable.RowIdKey, RowIdKey> = true;
+const _sameColumnDataGetterSetterFunction: Same<
+  Handsontable.ColumnDataGetterSetterFunction, ColumnDataGetterSetterFunction
+> = true;
+const _sameSelectOptionsObject: Same<Handsontable.SelectOptionsObject, SelectOptionsObject> = true;
+const _sameCellType: Same<Handsontable.CellType, CellType> = true;
+const _sameEditorType: Same<Handsontable.EditorType, EditorType> = true;
+const _sameRendererType: Same<Handsontable.RendererType, RendererType> = true;
+const _sameValidatorType: Same<Handsontable.ValidatorType, ValidatorType> = true;
+const _sameBaseTheme: Same<Handsontable.BaseTheme, BaseTheme> = true;
+const _sameDensityType: Same<Handsontable.DensityType, DensityType> = true;
+const _sameThemeBuilder: Same<Handsontable.ThemeBuilder, ThemeBuilder> = true;
+const _sameThemeColorScheme: Same<Handsontable.ThemeColorScheme, ThemeColorScheme> = true;
+const _sameThemeColorsConfig: Same<Handsontable.ThemeColorsConfig, ThemeColorsConfig> = true;
+const _sameThemeConfig: Same<Handsontable.ThemeConfig, ThemeConfig> = true;
+const _sameThemeDensityConfig: Same<Handsontable.ThemeDensityConfig, ThemeDensityConfig> = true;
+const _sameThemeDensitySizes: Same<Handsontable.ThemeDensitySizes, ThemeDensitySizes> = true;
+const _sameThemeIconsConfig: Same<Handsontable.ThemeIconsConfig, ThemeIconsConfig> = true;
+const _sameThemeLightDarkValue: Same<Handsontable.ThemeLightDarkValue, ThemeLightDarkValue> = true;
+const _sameThemeParams: Same<Handsontable.ThemeParams, ThemeParams> = true;
+const _sameThemeSizingConfig: Same<Handsontable.ThemeSizingConfig, ThemeSizingConfig> = true;
+const _sameThemeTokenValue: Same<Handsontable.ThemeTokenValue, ThemeTokenValue> = true;
+const _sameThemeTokensConfig: Same<Handsontable.ThemeTokensConfig, ThemeTokensConfig> = true;

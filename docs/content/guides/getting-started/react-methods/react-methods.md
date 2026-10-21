@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Instance methods
-metaTitle: Instance methods - JavaScript Data Grid | Handsontable
+metaTitle: Instance methods | Handsontable DataGrid for JavaScript
 description: Reference a Handsontable instance from within a React component, to programmatically perform actions such as selecting cells.
 permalink: /instance-methods
 canonicalUrl: /instance-methods
@@ -12,11 +12,11 @@ tags:
   - instance
   - methods
 react:
-  metaTitle: Instance methods - React Data Grid | Handsontable
+  metaTitle: Instance methods | Handsontable DataGrid for React
 angular:
-  metaTitle: Instance methods - Angular Data Grid | Handsontable
+  metaTitle: Instance methods | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Instance methods - Vue Data Grid | Handsontable
+  metaTitle: Instance methods | Handsontable DataGrid for Vue
 searchCategory: Guides
 onlyFor: react
 category: Getting started

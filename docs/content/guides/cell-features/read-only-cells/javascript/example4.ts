@@ -8,12 +8,13 @@ const container = document.querySelector('#example4')!;
 
 const hot = new Handsontable(container, {
   data: [
-    { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
-    { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
-    { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
-    { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' },
+    { name: 'Hydrogen', symbol: 'H', atomicNumber: 1, atomicMass: 1.008 },
+    { name: 'Helium', symbol: 'He', atomicNumber: 2, atomicMass: 4.003 },
+    { name: 'Lithium', symbol: 'Li', atomicNumber: 3, atomicMass: 6.94 },
+    { name: 'Beryllium', symbol: 'Be', atomicNumber: 4, atomicMass: 9.012 },
+    { name: 'Boron', symbol: 'B', atomicNumber: 5, atomicMass: 10.81 },
   ],
-  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+  colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass'],
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
@@ -22,6 +23,6 @@ const hot = new Handsontable(container, {
 
 hot.updateSettings({
   cells(row, _col, prop) {
-    return hot.getDataAtRowProp(row, prop as string) === 'Nissan' ? { editor: false } : { editor: 'text' };
+    return hot.getDataAtRowProp(row, prop as string) === 'Helium' ? { editor: false } : { editor: 'text' };
   },
 });

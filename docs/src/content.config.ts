@@ -17,6 +17,7 @@ import { z } from 'astro/zod';
 import { docsSchema } from '@astrojs/starlight/schema';
 import { fileURLToPath } from 'url';
 import { frameworkLoader } from './plugins/framework-loader.mjs';
+import { ADDED_IN_PATTERN } from './lib/added-in.mjs';
 
 export const collections = {
   docs: defineCollection({
@@ -53,6 +54,9 @@ export const collections = {
 
         /** Sidebar badge label (e.g. "Updated", "New"). */
         menuTag: z.string().optional(),
+
+        /** Handsontable version that introduced the documented feature, e.g. "17.0.0" (DEV-2877). */
+        addedIn: z.string().regex(ADDED_IN_PATTERN).optional(),
       }),
     }),
   }),

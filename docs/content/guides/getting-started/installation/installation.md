@@ -1,42 +1,42 @@
 ---
 type: how-to
 title: Installation
-metaTitle: Installation - JavaScript Data Grid | Handsontable
-description: Install Handsontable through your preferred package manager, or import Handsontable's assets directly from a CDN.
+metaTitle: Installation | Handsontable DataGrid for JavaScript
+description: Install Handsontable DataGrid through your preferred package manager, or import Handsontable's assets directly from a CDN.
 permalink: /installation
 canonicalUrl: /installation
 tags:
   - quick start
 react:
-  metaTitle: Installation - React Data Grid | Handsontable
+  metaTitle: Installation | Handsontable DataGrid for React
 angular:
-  metaTitle: Installation - Angular Data Grid | Handsontable
+  metaTitle: Installation | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Installation - Vue Data Grid | Handsontable
+  metaTitle: Installation | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
 ---
 ::: only-for angular
 
-Install Handsontable through your preferred package manager, and control your grid through the `HotTableComponent` props.
+Install Handsontable DataGrid through your preferred package manager, and control your grid through the `HotTableComponent` props.
 
 :::
 
 ::: only-for javascript
 
-Install Handsontable through your preferred package manager, or import Handsontable's assets directly from a CDN.
+Install Handsontable DataGrid through your preferred package manager, or import Handsontable's assets directly from a CDN.
 
 :::
 
 ::: only-for react
 
-Install Handsontable through your preferred package manager, and control your grid through the `HotTable` component's props.
+Install Handsontable DataGrid through your preferred package manager, and control your grid through the `HotTable` component's props.
 
 :::
 
 ::: only-for vue
 
-Install Handsontable through your preferred package manager, and control your grid through the `HotTable` component's props.
+Install Handsontable DataGrid through your preferred package manager, and control your grid through the `HotTable` component's props.
 
 :::
 
@@ -145,15 +145,15 @@ import {
 })
 export class HotTableWrapperComponent {
   readonly data = [
-    ["", "Tesla", "Volvo", "Toyota", "Ford"],
-    ["2019", 10, 11, 12, 13],
-    ["2020", 20, 11, 14, 13],
-    ["2021", 30, 15, 12, 13],
-    ["2022", 25, 20, 11, 14],
+    ["SKU-4821", "Stainless Steel Water Bottle", "Harbor Goods", "Drinkware", "Seattle"],
+    ["SKU-0093", "Wireless Mouse", "Alpine Supply Co.", "Electronics", "Denver"],
+    ["SKU-1170", "Ergonomic Office Chair", "Cascade Distributors", "Furniture", "Portland"],
+    ["SKU-2208", "USB-C Charging Cable", "Summit Trading", "Electronics", "Austin"],
+    ["SKU-3341", "Aluminum Water Filter", "Northgate Wholesale", "Drinkware", "Minneapolis"],
   ];
   readonly gridSettings: GridSettings = {
     rowHeaders: true,
-    colHeaders: true,
+    colHeaders: ["SKU", "Product", "Supplier", "Category", "Warehouse"],
     height: "auto",
     autoWrapRow: true,
     autoWrapCol: true,
@@ -206,15 +206,15 @@ export class App {
   readonly isBrowser = isPlatformBrowser(this.platformId);
 
   readonly data = [
-    ["", "Tesla", "Volvo", "Toyota", "Ford"],
-    ["2019", 10, 11, 12, 13],
-    ["2020", 20, 11, 14, 13],
-    ["2021", 30, 15, 12, 13],
-    ["2022", 25, 20, 11, 14],
+    ["SKU-4821", "Stainless Steel Water Bottle", "Harbor Goods", "Drinkware", "Seattle"],
+    ["SKU-0093", "Wireless Mouse", "Alpine Supply Co.", "Electronics", "Denver"],
+    ["SKU-1170", "Ergonomic Office Chair", "Cascade Distributors", "Furniture", "Portland"],
+    ["SKU-2208", "USB-C Charging Cable", "Summit Trading", "Electronics", "Austin"],
+    ["SKU-3341", "Aluminum Water Filter", "Northgate Wholesale", "Drinkware", "Minneapolis"],
   ];
   readonly gridSettings: GridSettings = {
     rowHeaders: true,
-    colHeaders: true,
+    colHeaders: ["SKU", "Product", "Supplier", "Category", "Warehouse"],
     height: "auto",
     autoWrapRow: true,
     autoWrapCol: true,
@@ -234,7 +234,7 @@ export class App {
 
 ## Result
 
-Handsontable is installed and running in your Angular application. You can now [configure options](@/guides/getting-started/configuration-options/configuration-options.md) or [import only the modules you need](@/guides/tools-and-building/modules/modules.md) to reduce your bundle size.
+Handsontable is installed and running in your Angular application. You can now [configure options](@/guides/configuration/configuration-options/configuration-options.md) or [import only the modules you need](@/guides/tools-and-building/modules/modules.md) to reduce your bundle size.
 
 :::
 
@@ -340,13 +340,14 @@ const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
   data: [
-    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-    ['2019', 10, 11, 12, 13],
-    ['2020', 20, 11, 14, 13],
-    ['2021', 30, 15, 12, 13]
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', 'Drinkware', 'Seattle'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', 'Electronics', 'Denver'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', 'Furniture', 'Portland'],
+    ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading', 'Electronics', 'Austin'],
+    ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale', 'Drinkware', 'Minneapolis']
   ],
   rowHeaders: true,
-  colHeaders: true,
+  colHeaders: ['SKU', 'Product', 'Supplier', 'Category', 'Warehouse'],
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
@@ -429,18 +430,19 @@ The main Handsontable component is called `HotTable`.
 import { HotTable } from '@handsontable/react-wrapper';
 ```
 
-To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
+To set Handsontable's [configuration options](@/guides/configuration/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
 
 ```jsx
 <HotTable
   data={[
-    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-    ['2019', 10, 11, 12, 13],
-    ['2020', 20, 11, 14, 13],
-    ['2021', 30, 15, 12, 13]
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', 'Drinkware', 'Seattle'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', 'Electronics', 'Denver'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors', 'Furniture', 'Portland'],
+    ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading', 'Electronics', 'Austin'],
+    ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale', 'Drinkware', 'Minneapolis']
   ]}
   rowHeaders={true}
-  colHeaders={true}
+  colHeaders={['SKU', 'Product', 'Supplier', 'Category', 'Warehouse']}
   height="auto"
   autoWrapRow={true}
   autoWrapCol={true}
@@ -528,13 +530,13 @@ The main Handsontable component is called `HotTable`.
 import { HotTable } from '@handsontable/vue3';
 ```
 
-To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
+To set Handsontable's [configuration options](@/guides/configuration/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
 
 ```html
 <HotTable
   :data="data"
   :row-headers="true"
-  :col-headers="true"
+  :col-headers="['SKU', 'Product', 'Supplier', 'Category', 'Warehouse']"
   height="auto"
   :auto-wrap-row="true"
   :auto-wrap-col="true"

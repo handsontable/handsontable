@@ -44,10 +44,8 @@ const viewportPredicates = {
       return false;
     }
 
-    const rowHeaders = this.wtSettings.getSetting<Function[]>('rowHeaders');
-    const rowHeadersCount = rowHeaders.length;
-
-    return Math.abs(column) <= rowHeadersCount;
+    // Zero for the end clones, which render no row headers.
+    return Math.abs(column) <= this.getRowHeadersCount();
   },
 
   /**

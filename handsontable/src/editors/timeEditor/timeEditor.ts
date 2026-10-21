@@ -2,6 +2,7 @@ import { TextEditor } from '../textEditor';
 import { isValidTime } from '../../helpers/dateTime';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { hideNativePicker, showNativePicker } from '../utils/showNativePicker';
 
 export const EDITOR_TYPE = 'time';
 
@@ -15,6 +16,15 @@ export class TimeEditor extends TextEditor {
    */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
+  }
+
+  /**
+   * Turns off the `maxLength` cap of the text editor. This editor has its own input rules.
+   *
+   * @returns {boolean}
+   */
+  protected override get capsLength(): boolean {
+    return false;
   }
 
   /**
@@ -57,22 +67,35 @@ export class TimeEditor extends TextEditor {
   }
 
   /**
-   * Selects all text in the time input element when the editor receives focus.
+   * Focuses the native input and selects its text. Firefox does not move the focus on `select()`
+   * for this input type.
    */
   focus(): void {
+    this.TEXTAREA.focus({ preventScroll: true });
     this.TEXTAREA.select();
   }
 
   /**
-   * Opens the editor and programmatically invokes the native time picker via showPicker().
+   * Closes the editor and the native picker it showed.
+   *
+   * The blur comes after the base `close()`, which hands the keyboard back to the grid while the input
+   * still has the focus.
    */
-  open(): void {
-    super.open();
+  close(): void {
+    super.close();
 
-    try {
-      (this.TEXTAREA as HTMLInputElement).showPicker();
-    } catch {
-      // Prevents showPicker() user-gesture errors in tests
-    }
+    hideNativePicker(this.hot, this.TEXTAREA as HTMLInputElement);
+  }
+
+  /**
+   * Opens the editor and shows the native picker, unless a key opened the editor.
+   * A keyboard open leaves the picker closed so Tab and Escape keep reaching the grid.
+   *
+   * @param {Event} [event] The event that opened the editor.
+   */
+  open(event?: Event): void {
+    super.open(event);
+
+    showNativePicker(this.TEXTAREA as HTMLInputElement, event);
   }
 }

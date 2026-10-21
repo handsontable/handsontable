@@ -1,9 +1,10 @@
 import { BasePlugin } from '../base';
-import { addClass, normalizeClassNames } from '../../helpers/dom/element';
+import { addClass, isBottomMostColumnHeader, normalizeClassNames } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import { Hooks } from '../../core/hooks';
+import { createTrackedIconSync } from '../../themes/engine/icons';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 import type { HidingMap } from '../../translations';
@@ -17,7 +18,25 @@ Hooks.getSingleton().register('afterUnhideColumns');
 export const PLUGIN_KEY = 'hiddenColumns';
 export const PLUGIN_PRIORITY = 310;
 
+/**
+ * The width, in pixels, that a column next to a hidden one gains for the hidden-column indicator.
+ */
+const INDICATOR_EXTRA_WIDTH = 15;
+
 const SKIP_COLUMN_ON_PASTE_BY_PLUGIN = Symbol('skipColumnOnPasteByHiddenColumns');
+
+/**
+ * The `syncIcon()` slot class for the caret shown on the header that FOLLOWS a hidden column
+ * (`afterHiddenColumn`, glyph pointing right - toward the hidden neighbor).
+ */
+const HIDDEN_INDICATOR_START_SLOT_CLASS = 'ht-hidden-indicator-start';
+
+/**
+ * The `syncIcon()` slot class for the caret shown on the header that PRECEDES a hidden column
+ * (`beforeHiddenColumn`, glyph pointing left - toward the hidden neighbor). A header can
+ * carry both slots at once when it has a hidden neighbor on each side.
+ */
+const HIDDEN_INDICATOR_END_SLOT_CLASS = 'ht-hidden-indicator-end';
 
 /**
  * @plugin HiddenColumns
@@ -222,6 +241,15 @@ export class HiddenColumns extends BasePlugin {
   #hiddenColumnsMap: HidingMap | null = null;
 
   /**
+   * `syncIcon()` for the carets, remembering which headers ever got one. The header hook clears
+   * both slots on every header it does not mark, which with `indicators` off (the default) is
+   * every header, so a header that never held a caret skips the subtree query.
+   *
+   * @type {Function}
+   */
+  #syncIcon = createTrackedIconSync();
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link HiddenColumns#enablePlugin} method is called.
    *
@@ -274,6 +302,20 @@ export class HiddenColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    // `super.disablePlugin()` removes the tracked `#onAfterGetColHeader` hook, so it never runs
+    // again to clear a previously-rendered caret. A one-shot hook does that on the
+    // very next render (`updateSettings`/`updatePlugin` always triggers one) and then removes
+    // itself - mirrors `columnSorting.ts`'s `disablePlugin()`.
+    const clearColHeader = (column: number, TH: HTMLTableCellElement) => {
+      this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS, null);
+      this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS, null);
+    };
+
+    this.hot.addHook('afterGetColHeader', clearColHeader);
+    this.hot.addHookOnce('afterViewRender', () => {
+      this.hot.removeHook('afterGetColHeader', clearColHeader);
+    });
+
     super.disablePlugin();
 
     this.hot.columnIndexMapper.unregisterMap(this.pluginName ?? '');
@@ -286,6 +328,15 @@ export class HiddenColumns extends BasePlugin {
    * @param {number[]} columns Array of visual column indexes.
    */
   showColumns(columns: number[]): void {
+    this.runOperation('unhide_columns', () => this.#showColumns(columns));
+  }
+
+  /**
+   * The body of `showColumns()`, run inside its operation.
+   *
+   * @param {number[]} columns Array of visual column indexes.
+   */
+  #showColumns(columns: number[]): void {
     const currentHideConfig = this.getHiddenColumns();
     const isValidConfig = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
@@ -321,9 +372,6 @@ export class HiddenColumns extends BasePlugin {
       this.#hiddenColumnsMap!.setValues(hidingMapValues);
     }
 
-    // @TODO Should call once per render cycle, currently fired separately in different plugins
-    this.hot.view.adjustElementsSize();
-
     this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig,
       isValidConfig && isAnyColumnShowed, isValidConfig && destinationHideConfig.length < currentHideConfig.length);
   }
@@ -343,6 +391,15 @@ export class HiddenColumns extends BasePlugin {
    * @param {number[]} columns Array of visual column indexes.
    */
   hideColumns(columns: number[]): void {
+    this.runOperation('hide_columns', () => this.#hideColumns(columns));
+  }
+
+  /**
+   * The body of `hideColumns()`, run inside its operation.
+   *
+   * @param {number[]} columns Array of visual column indexes.
+   */
+  #hideColumns(columns: number[]): void {
     const currentHideConfig = this.getHiddenColumns();
     const isConfigValid = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
@@ -401,6 +458,29 @@ export class HiddenColumns extends BasePlugin {
   }
 
   /**
+   * Returns the width the plugin adds on top of a column's own width, to make room for the indicator of
+   * a hidden neighbor. It is `0` for a column with no hidden neighbor, with the indicators off, or on a
+   * grid that renders no column headers (which hold the indicator). The `modifyColWidth` hook and the
+   * `ManualColumnResize` drag read it, so the two agree on what the column renders.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @returns {number}
+   */
+  getIndicatorExtraWidth(column: number): number {
+    if (!this.enabled || !this.getSetting('indicators')) {
+      return 0;
+    }
+
+    if (!this.isHidden(column + 1) && !this.isHidden(column - 1)) {
+      return 0;
+    }
+
+    // Checked last: with `colHeaders` left at its default, `hasColHeaders()` walks every column header.
+    return this.hot.hasColHeaders() ? INDICATOR_EXTRA_WIDTH : 0;
+  }
+
+  /**
    * Get if trim config is valid. Check whether all of the provided column indexes are within the bounds of the table.
    *
    * @param {Array} hiddenColumns List of hidden column indexes.
@@ -447,11 +527,12 @@ export class HiddenColumns extends BasePlugin {
       return 0;
     }
 
-    if (this.getSetting('indicators') && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
+    // Add additional space for hidden column indicator.
+    if (typeof width === 'number') {
+      const extraWidth = this.getIndicatorExtraWidth(column);
 
-      // Add additional space for hidden column indicator.
-      if (typeof width === 'number' && this.hot.hasColHeaders()) {
-        return width + 15;
+      if (extraWidth > 0) {
+        return width + extraWidth;
       }
     }
   };
@@ -503,14 +584,17 @@ export class HiddenColumns extends BasePlugin {
       const classArr = normalizeClassNames(cellProperties.className);
       const containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
 
+      // Gated on the marker: this hook runs on every cell meta read, and rewriting a cell we never
+      // marked would replace a user's array with an own string that shadows the cascade. See
+      // `AGENTS.md` in this directory.
       if (containAfterHiddenColumn > -1) {
         classArr.splice(containAfterHiddenColumn, 1);
-      }
 
-      const className = classArr.join(' ');
+        const className = classArr.join(' ');
 
-      if (cellProperties.className !== className) {
-        cellProperties.className = className;
+        if (cellProperties.className !== className) {
+          cellProperties.className = className;
+        }
       }
     }
   };
@@ -570,7 +654,13 @@ export class HiddenColumns extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   #onAfterGetColHeader = (column: number, TH: HTMLTableCellElement) => {
+
     if (!this.getSetting('indicators') || column < 0) {
+      // The indicator setting can be toggled off, or this can be the corner header - either way,
+      // any caret left over from a previous render must be cleared here, since we return early.
+      this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS, null);
+      this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS, null);
+
       return;
     }
 
@@ -585,6 +675,28 @@ export class HiddenColumns extends BasePlugin {
     }
 
     addClass(TH, classList);
+
+    // The carets are children of the `th` itself, not of its `.relative` wrapper, because the `th`
+    // is the box the old `::before`/`::after` positioned against. `.relative` is only as tall as
+    // its own content: on a `columnHeaderHeight` taller than one line a caret anchored to it sat
+    // above the header's centre. The `th` is `position: relative` (`_base.scss`) and `syncIcon()`
+    // appends after `.relative`, so `appendColHeader()`'s `TH.firstChild` check keeps passing.
+    //
+    // NestedHeaders strips `beforeHiddenColumn` / `afterHiddenColumn` again from every header
+    // level that does not reach the cells (`nestedHeaders.ts`, `reachesCells`): the indicator
+    // belongs only on the header closest to the cells. That worked by itself while the caret was
+    // a pseudo-element gated on those classes. The caret is a real element now, so the
+    // strip alone would leave an orphaned `<i>` on the upper level, rendered at the base 16px icon
+    // size. Gate creation on the same "reaches the cells" test - the classes keep their old
+    // behavior, only the element is withheld where NestedHeaders would discard its marker anyway.
+    // Without NestedHeaders nothing strips the classes, so every header row keeps its caret, as in
+    // 18.1 - a multi-row header built through `afterGetColumnHeaderRenderers` included.
+    const reachesCells = !this.hot.getPlugin('nestedHeaders')?.enabled || isBottomMostColumnHeader(TH);
+
+    this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS,
+      reachesCells && classList.includes('afterHiddenColumn') ? 'caretHiddenRight' : null);
+    this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS,
+      reachesCells && classList.includes('beforeHiddenColumn') ? 'caretHiddenLeft' : null);
   };
 
   /**

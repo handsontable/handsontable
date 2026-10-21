@@ -1,23 +1,11 @@
 <script setup lang="ts">
-// you need a template ref to call Handsontable's instance methods
-import { ref, useTemplateRef } from 'vue';
+import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
 
 // register Handsontable's modules
 registerAllModules();
-
-const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
-
-const exclude = () => {
-  const hotInstance = hotTableRef.value?.hotInstance;
-  // @ts-ignore
-  const filtersRowsMap = hotInstance?.getPlugin('filters').filtersRowsMap;
-
-  filtersRowsMap.setValueAtIndex(0, false);
-  filtersRowsMap.setValueAtIndex(filtersRowsMap.getLength() - 1, false);
-};
 
 const hotSettings = ref<GridSettings>({
   data: [
@@ -185,9 +173,10 @@ const hotSettings = ref<GridSettings>({
   fixedRowsTop: 1,
   fixedRowsBottom: 1,
   colHeaders: true,
-  filters: true,
+  filters: {
+    filterFixedRows: false,
+  },
   dropdownMenu: true,
-  afterFilter: exclude,
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
@@ -196,6 +185,6 @@ const hotSettings = ref<GridSettings>({
 
 <template>
   <div id="exampleExcludeRowsFromFiltering">
-    <HotTable ref="hotTableRef" :settings="hotSettings" />
+    <HotTable :settings="hotSettings" />
   </div>
 </template>

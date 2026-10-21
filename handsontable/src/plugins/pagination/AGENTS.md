@@ -1,0 +1,234 @@
+# Pagination plugin — showing one page of rows at a time
+
+The `pagination` plugin limits the grid to one page of rows and renders a pager below it. Read this before
+touching `pagination.ts`, `ui.ts` or anything in `strategies/`.
+
+**This plugin is the lifecycle gold standard** — the core-package `../../../AGENTS.md` names
+`pagination.ts` as the file to copy when writing a new plugin. Keep it that way: if you shortcut the
+lifecycle here, you teach every future plugin the shortcut.
+
+## Pagination HIDES rows; it does not trim them
+
+```js
+this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);
+```
+
+A `'hiding'` map affects the **renderable** tier, so paginated-away rows keep their visual indexes and
+`countRows()` does not shrink. Filters, by contrast, registers a *trimming* map and affects the visual tier.
+(The DeepWiki page groups filtering with hiding and pagination; it is wrong. See
+`../../../.ai/INDEX-MAPPING.md`.)
+
+## Hard conflicts, declared at module scope in this file
+
+```js
+registerConflict('pagination', ['nestedRows', 'mergeCells', 'fixedRowsTop', 'fixedRowsBottom']);
+```
+
+While any of those top-level settings is truthy, **this plugin stays disabled** and warns to the console.
+Note `fixedRowsTop` / `fixedRowsBottom` are plain options no plugin owns — a hard conflict is against a
+*setting*, not a plugin. The mechanism is in `../base/AGENTS.md`.
+
+## `initialPage` is applied on first enable and when its value changes (DEV-1140)
+
+`enablePlugin()` used to copy `initialPage` onto `#currentPage` whenever the raw
+settings object declared the key. `updatePlugin()` is always
+`disablePlugin(); enablePlugin()`, and the React wrapper re-sends the full
+`pagination` object on every render, so next/prev snapped back to `initialPage`.
+`#appliedInitialPage` records the last applied declared value; the same number
+on a later enable is a no-op. `updatePlugin()` sets `#isUpdatingPlugin` around
+its disable/enable cycle so the tracker survives that path. A real disable
+(`pagination: false`) clears the tracker, and the next enable applies
+`initialPage` again. An `updateSettings` payload whose `pagination` object omits
+`initialPage` (or declares a non-number) also clears the tracker, so declaring
+that same number later is applied again — from the settings side the value went
+N, then absent, then N. Changing `initialPage` to a different number via
+`updateSettings` still jumps, which `__tests__/options/initialPage.spec.js`
+pins. To force the declared page after the user has navigated, call `setPage()`
+or `resetPage()`.
+
+Copy `#currentPage` from the raw `hot.getSettings().pagination.initialPage`, not
+from `getSetting('initialPage')`. `onUpdateSettings` branch 2 (disabled →
+enabled) calls `enablePlugin()` before `updatePluginSettings()`, so
+`#pluginSettings` still holds the previous value. Stamping the tracker from the
+new declared number while applying the stale `getSetting()` result would skip
+the later `updatePlugin()` pass and leave the wrong page. The grid settings
+object is already merged when `enablePlugin()` runs.
+
+## `PLUGIN_PRIORITY = 900`, and the `init` hook is pinned early
+
+Priority 900 puts it after every ordinary plugin. Separately, **the `init` hook callback is placed before
+the others**, so the pagination state is computed and applied to the index mapper *before* AutoColumnSize
+starts calculating column sizes. Those are two different mechanisms — see the priority-versus-hook-order
+note in `../base/AGENTS.md`.
+
+## The layout manager owns the pager's placement, unless `uiContainer` is set
+
+- **Default**: the UI registers its container with `hot.getLayoutManager()` and the manager appends it into
+  the **bottom slot**. **The element stays detached until then** — do not `appendChild` it yourself.
+- **With a custom `uiContainer`**: the UI installs itself there and the slot registration is skipped.
+- **This plugin no longer reserves its own height.** Its `beforeHeightChange` `calc(height - bar)` hook
+  moved into core (`reserveEdgeSlotsHeight` in `core/rootSize.ts`), which subtracts EVERY bottom- and top-slot
+  bar from a pixel `height` — the sheets bar and the license notification too, so both bars behave
+  the same. Inside a scrollable ancestor or a CSS-sized container the engine reserves the slots'
+  height instead (`layoutReservedHeight`). Do not add a reservation back here: it would stack on
+  core's and shrink the grid twice (DEV-2848).
+
+The manager exists only on the root instance. `isEnabled()` is already gated on `isRootInstance`, so by
+the time `enablePlugin()` reaches that guard **the `isRootInstance` half is always true and its else-branch
+is unreachable**; it stays as a statement of the requirement, **not** as support for a nested grid. (The
+source comment at `pagination.ts:312` says "always false in practice", meaning the non-root *case* never
+arises — read it that way, it is easy to take backwards.) A direct `enablePlugin()` call on a non-root
+instance dies earlier, in the UI, which reads `rootGridElement`. The same guard is mirrored later in the
+file with a comment pointing back — keep both, and keep the comments.
+
+## Two page-size strategies
+
+| `pageSize` | Strategy | Behavior |
+|---|---|---|
+| a number | `strategies/fixedPageSize.ts` | fixed count per page |
+| `'auto'` | `strategies/autoPageSize.ts` | computes how many rows fit, **per page** |
+
+`'auto'` **requires AutoRowSize** and warns when it is missing (`AUTO_PAGE_SIZE_WARNING`). The check appears
+twice — at enable and on a page-size change — because either path can introduce `'auto'`.
+
+Because the auto strategy computes a size *per page*, page boundaries are not uniform: never assume
+`page * pageSize` arithmetic works. Go through the strategy.
+
+## Undo and redo
+
+`setPage()` (`'set_page'`), `setPageSize()` (`'set_page_size'`) and `resetPagination()`
+(`'reset_pagination'`) each run as one operation, so every page change is one undo step - the pager
+buttons and the page-size select included, since they call the same methods.
+
+The page's hiding map is **not** part of the undo snapshot. It is listed in
+`DERIVED_INDEX_MAP_NAMES` (`../../translations/indexMapperSnapshot.ts`) as `'Pagination'` - the map is
+registered under `this.pluginName`, the capitalized registry name, not the `pagination` settings key,
+and a lowercase entry silently matches nothing (`gridState.unit.js` pins it). Like the size plugins' maps,
+because the plugin rebuilds it from the page, the page size and the other maps - and with
+`pageSize: 'auto'` it rebuilds it on every render. `captureState()` records the page and the page
+size instead, and `restoreState()` puts them back and runs `#computeAndApplyState()`. Two traps:
+
+- **Restoring the map from a snapshot would fight the plugin.** The plugin recomputes on every index
+  cache update (`#onIndexCacheUpdate`), which a restore of the other maps triggers, so a restored
+  page map would be overwritten with one computed from the page the grid was on before the undo.
+- **A grid paged by a data provider records nothing.** Its pages come from the server, so undoing a
+  page change would need a fetch. `captureState()` returns `undefined` there.
+
+## Selection hooks it must intercept
+
+`beforeSelectAll`, `beforeSelectColumns`, `beforeSetRangeEnd`, `beforeSelectionHighlightSet`,
+`beforePaste` — all so a selection or a paste cannot reach rows that are off-page. Adding a new
+selection entry point means adding it here too.
+
+**These hooks scope the *selection*, not the data.** They only reach a data method that routes
+through the selection, and that coupling is a trap in both directions. `Core#clear()` used to call
+`selectAll()` and then empty the selection, so `#onBeforeSelectAllRows` silently narrowed it to the
+current page and `clear()` left every other page filled. It now empties the data set directly
+(DEV-121), so it crosses page boundaries **on purpose** — do not "restore" the page scoping. The
+rule to carry over: a method that changes *data* must not borrow the selection to decide its range,
+because every selection constraint — this plugin's page window, and `selectionMode: 'single'`, which
+collapses any range to the highlighted cell — then silently becomes a data constraint.
+
+It also reacts to `afterSetTheme` (a theme changes row heights, and `useTheme()` does not go through
+`updateSettings`), `afterLanguageChange` (the pager's labels) and `afterDataProviderFetch`.
+
+## `beforePaste` keeps the clipboard prefix when it overflows the page
+
+`#onBeforePaste` truncates `pastedData` to the remaining rows on the current page
+(`pastedData.length = remainingRowCount`). **Do not `splice(0, n)`.** That removes the head
+and keeps the last *n* rows, so a mid-page paste of a long clipboard writes the suffix
+(DEV-1119 / private #2861). The unique-value case in `__tests__/plugins/copyPaste.spec.js`
+is the regression pin; the older case used identical letters and could not catch it.
+
+**The paste start row is the selection, not `copyableRanges` (DEV-2935).** The hook's second argument
+is the copy SOURCE, and `CopyPaste#onAfterSelectionEnd` stops refreshing it when `fragmentSelection: true`,
+so it can point at the rows that were copied while the paste writes elsewhere. Clamping from it let a paste
+near the end of a page spill onto the next one. `#onBeforePaste` reads
+`getSelectedRangeActive().getTopStartCorner().row`, the cell `CopyPaste#populateValues` writes at, and
+ignores the argument. Every existing pagination paste spec selects the destination right before pasting,
+which refreshes the ranges, so none of them can tell the two sources apart; the pin is
+`tests/e2e/pagination-paste-fragment-selection.spec.ts`, which copies, moves the selection and then pastes.
+
+## Styling: the page-size select fill lives on the wrapper, not the select
+
+In `../../styles/components/plugins/_pagination.scss`, the page-size control's background, border-radius
+and hover/focus fills sit on `.ht-page-size-section__select-wrapper` (a `<div>`), and the inner `<select>`
+is `background-color: transparent`. **Do not move the fill back onto the `<select>`.** A native `<select>`
+clips its own `background-color` to a radius smaller than its `border-radius`, so its rounded corners stay
+unfilled and the layer behind shows through (DEV-42); a `<div>` fills them correctly. The select fills the
+wrapper exactly (asserted in `tests/e2e/pagination-select-background.spec.ts`), so the wrapper's `:hover` /
+`:focus-within` stand in for the select's `:hover` / `:focus` — needed because `:has()` is banned in core
+CSS. The select's `:disabled` background was dropped: it is safe only because `setPageSizeSectionVisibility`
+in `ui.ts` sets `pageSizeSelect.disabled` *only* while it hides the section (`display: none`), so a disabled
+select is never rendered. That coupling is pinned by `__tests__/ui.unit.js` — keep it.
+
+## Icons are built once, not per render
+
+`ui.ts`'s next/prev/first/last buttons and the page-size select arrow are real `<i class="ht-icon
+ht-icon-<name>">` elements kept through an injected `syncIcon()` (bound to the grid in `pagination.ts`)
+with the `ht-page-icon` slot class, built when the UI is constructed, not rebuilt on every draw. A theme
+change doesn't go through `updateSettings()` (`useTheme()` bypasses it), so `#onAfterSetTheme` explicitly
+calls `this.#ui?.refreshIcons()` — forgetting that hook leaves the pager showing the previous theme's icons
+after a `useTheme()` switch. The refresh updates the same elements in place and does nothing unless the
+theme's icons revision moved, so a color-scheme or density switch rebuilds nothing.
+
+**Do not center the button icon with flexbox.** `_pagination.scss` makes the `.ht-icon` inside a
+navigation button `display: block`, which sizes the button's content box to the icon exactly (what the
+18.1 `::before { display: block }` glyph did) with no line box adding strut height. A
+`display: inline-flex` button gives the same box, but under `forced-colors: active` Chromium kept
+painting the disabled `GrayText` border on first/prev after they were re-enabled - the computed
+`border-color` was already right, only the paint was stale. `tests/e2e/icon-elements-misc.spec.ts`
+compares the button's paint after a page change with a fresh paint of it.
+
+## Styling: the label spans declare their own text metrics
+
+`ht-page-size-section__label` and `ht-page-navigation-section__label` are `<span>`s. They declare
+`font-size`, `line-height`, `font-weight`, `letter-spacing`, and `font-family` as `inherit` in
+`_pagination.scss` (DEV-75). Without a declaration of their own they only inherit from `.ht-pagination`,
+and a host page rule as plain as `span { font-size: 20px }` beats inheritance – the labels grew while the
+rest of the bar kept the theme token (the buttons and the select are not spans, and they declare
+`font-size: inherit` for a different reason: resetting native control fonts). `inherit` rather than the
+token keeps a user's own override on the bar working – one that beats the bar's
+`.handsontable.ht-pagination` (0,2,0), for example `div.handsontable.ht-pagination`. The trade: the guard
+sits at (0,3,0), so a user rule on the label class itself (`.ht-page-navigation-section__label` or
+`.handsontable .ht-page-navigation-section__label`) that used to apply now loses. Any new text-bearing span
+added to the bar needs the same five lines; `tests/e2e/host-span-styles.spec.ts` pins the existing ones.
+
+## Server-backed paging is read live, not updated
+
+`#isDataProviderActive()` calls `hasExternalDataSource` on every check rather than being cached, because `updateSettings({ dataProvider })` never carries `pagination` in the payload, so it never reaches this plugin's own `updatePlugin()` — a view switch between a server-backed view and a local one is the everyday case.
+
+For the same reason, `#computeAndApplyState()` drops `#serverSideTotalCount` whenever it finds no DataProvider backing the grid. Without that, a `dataProvider` removed and added again through `updateSettings()` pages by the old server's total until the new `fetchRows` lands, and keeps it if that fetch fails.
+
+## The server total belongs to the view it came from
+
+DataProvider calls the internal `_resetDataProviderTotal()` (`@private`, not API; a no-op while this plugin is disabled) before its owner changes the view the grid shows, which drops `#serverSideTotalCount`. It has to happen before the change, not after: the change itself renders, and the pager must not show the previous view's total for that frame. A view shown again replays its own total through `afterDataProviderFetch`; one fetching for the first time, or showing a failed first fetch, has no response yet and would otherwise page by the previous view's total. This plugin never listens to an owner plugin's hooks; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if its source names the owner plugin or its hooks.
+
+## Where to look next
+
+- The plugins it hard-conflicts with: `../nestedRows/AGENTS.md`, `../mergeCells/AGENTS.md`.
+- The plugin `'auto'` depends on: `../autoRowSize/AGENTS.md`.
+- Server-backed paging: `../dataProvider/AGENTS.md`.
+- Trimming rather than hiding: `../trimRows/AGENTS.md`; tiers: `../../../.ai/INDEX-MAPPING.md`.
+- Layout slots: `../../core/layout/`.
+- Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
+
+## Testing
+
+- `npm run test:e2e --prefix handsontable -- --testPathPattern='pagination'`
+- `npm run test:unit --prefix handsontable -- --testPathPattern='pagination'`
+- `npm --prefix tests run test:e2e -- e2e/pagination-pager-states.spec.ts`: the pager on the visual
+  suite's `/pagination-demo` data, on every theme and bundle: the buttons, the counter, the disabled
+  states and the focus hand-off, the RTL mirror, a page size changed on a filtered, sorted grid, and the
+  auto page size filling each page of a 450 px grid and of a grid the window scrolls.
+
+`__tests__/conflictingOptions.spec.js` pins the hard-conflict behavior, and `__tests__/strategies/`
+covers the two page-size strategies. There are also `hooks/`, `methods/`, `options/`,
+`keyboardShortcuts/`, `plugins/`, `selection.spec.js` and `ui.spec.js`.
+
+**Measure "the next row would not fit" on the next page, not with `getRowHeight()`.** The auto strategy
+starts a new page once a row's height would bring the page's total to the viewport's height
+(`autoPageSize.ts`). Read back after paging, `hot.getRowHeight()` of a row the plugin hides reports the
+theme's default row height (29 px on `main`) rather than the height the strategy used, so a "page is
+full" check built on it passes or fails by accident. The Playwright spec pages forward and takes the
+first rendered row's height instead.

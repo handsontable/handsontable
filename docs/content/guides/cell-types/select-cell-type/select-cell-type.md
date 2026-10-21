@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Select cell type
-metaTitle: Select cell type - JavaScript Data Grid | Handsontable
+metaTitle: Select cell type | Handsontable DataGrid for JavaScript
 description: Use the select cell type to collect user input with an HTML <select> element that creates a multi-item dropdown list.
 permalink: /select-cell-type
 canonicalUrl: /select-cell-type
 react:
-  metaTitle: Select cell type - React Data Grid | Handsontable
+  metaTitle: Select cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Select cell type - Angular Data Grid | Handsontable
+  metaTitle: Select cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Select cell type - Vue Data Grid | Handsontable
+  metaTitle: Select cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
@@ -29,7 +29,7 @@ The select cell type is a simpler form of the [dropdown](@/guides/cell-types/dro
 
 > **Note:** The select editor is intended as a reference implementation for writing custom editors rather than as a fully-featured editor. It is a much simpler form of the [Dropdown editor](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md). Use the dropdown cell type in your projects for a better user experience.
 
-In the demo below, the **Make** column uses the select cell type. The cell looks like plain text -- there is no dropdown arrow to indicate it. A single click only selects the cell. To open the list of options, double-click the cell or press <kbd>**Enter**</kbd>.
+In the demo below, the **Category** column uses the select cell type. The cell looks like plain text -- there is no dropdown arrow to indicate it. A single click only selects the cell. To open the list of options, double-click the cell or press <kbd>**Enter**</kbd>.
 
 ::: only-for javascript
 
@@ -76,7 +76,7 @@ In the demo below, the **Make** column uses the select cell type. The cell looks
 
 ## Result
 
-After configuring the select cell type, cells in the **Make** column render a native HTML `<select>` element when the user activates them. The user picks a value from the list and the selected value is written to the data source.
+After configuring the select cell type, cells in the **Category** column render a native HTML `<select>` element when the user activates them. The user picks a value from the list and the selected value is written to the data source.
 
 ## Keyboard navigation
 

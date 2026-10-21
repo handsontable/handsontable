@@ -1,5 +1,5 @@
 import { PasswordEditor } from '../../editors/passwordEditor';
-import { passwordRenderer } from '../../renderers/passwordRenderer';
+import { passwordRenderer, valueFormatter } from '../../renderers/passwordRenderer';
 
 export const CELL_TYPE: 'password' = 'password';
 export const PasswordCellType = {
@@ -7,4 +7,5 @@ export const PasswordCellType = {
   editor: PasswordEditor,
   renderer: passwordRenderer,
   copyable: false,
+  valueFormatter,
 };

@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the intl-datetime cell type fixture.
@@ -12,12 +13,14 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class DatetimePage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly editorInput: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.editorInput = page.locator('input[type="datetime-local"].handsontableInput');
   }
@@ -27,7 +30,8 @@ export class DatetimePage {
    * wait on the first cell, never a fixed timeout.
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/datetime.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/datetime.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
@@ -67,6 +71,29 @@ export class DatetimePage {
   async editCell(row: number, col: number, isoValue: string): Promise<void> {
     await this.openEditor(row, col);
     await this.editorInput.fill(isoValue);
+    await this.editorInput.press('Enter');
+  }
+
+  /**
+   * Write a raw source value into a cell through the grid API.
+   */
+  async setSourceValue(row: number, col: number, value: string): Promise<void> {
+    await this.page.evaluate(([r, c, v]) => {
+      (window as unknown as { hot: { setDataAtCell(r: number, c: number, v: string): void } })
+        .hot.setDataAtCell(r as number, c as number, v as string);
+    }, [row, col, value]);
+  }
+
+  /**
+   * Open a cell's editor, set the native input's raw value, and commit. Use it for values
+   * `fill()` rejects as malformed, such as a year below 1000.
+   */
+  async editCellRaw(row: number, col: number, isoValue: string): Promise<void> {
+    await this.openEditor(row, col);
+    await this.editorInput.evaluate((input: HTMLInputElement, value: string) => {
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }, isoValue);
     await this.editorInput.press('Enter');
   }
 

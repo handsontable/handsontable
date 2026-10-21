@@ -12,6 +12,14 @@ const stockStatuses = [
   '<span style="color: #495057">Discontinued</span>',
 ];
 
+const data = [
+  [stockStatuses[0], stockStatuses[0]],
+  [stockStatuses[1], stockStatuses[1]],
+  [stockStatuses[2], stockStatuses[2]],
+  [stockStatuses[3], stockStatuses[3]],
+  [stockStatuses[4], stockStatuses[4]],
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
@@ -19,13 +27,7 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      data={[
-        [stockStatuses[0], stockStatuses[0]],
-        [stockStatuses[1], stockStatuses[1]],
-        [stockStatuses[2], stockStatuses[2]],
-        [stockStatuses[3], stockStatuses[3]],
-        [stockStatuses[4], stockStatuses[4]],
-      ]}
+      data={data}
       colHeaders={['allowHtml: false (default)', 'allowHtml: true']}
       columns={[
         {

@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, NgZone, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, inject } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import { HotTableComponent } from '@handsontable/angular-wrapper';
 import type {
@@ -290,7 +290,7 @@ function createInventoryDemoServer(): InventoryDemoServer {
 export class AppComponent {
   @ViewChild('hot') private hotTable?: HotTableComponent;
 
-  private readonly ngZone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   fetchStatus = 'Initializing…';
 
@@ -301,9 +301,8 @@ export class AppComponent {
   /** Defers binding updates so sync data-provider hooks do not trigger NG0100 in dev mode. */
   private setFetchStatus(message: string): void {
     setTimeout(() => {
-      this.ngZone.run(() => {
-        this.fetchStatus = message;
-      });
+      this.fetchStatus = message;
+      this.cdr.markForCheck();
     }, 0);
   }
 

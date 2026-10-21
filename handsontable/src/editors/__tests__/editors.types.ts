@@ -330,7 +330,13 @@ class CustomEditor extends (getEditor('text') as typeof BaseEditor) {
 registerEditor('custom', CustomEditor);
 
 editorFactory({
-  init(editor: BaseEditor) {},
+  init(editor: BaseEditor) {
+    // `preventCloseElement` is public on `BaseEditor`, so a custom editor can declare its
+    // out-of-container picker without a type intersection of its own. Both forms the field accepts
+    // are pinned here, so a later refactor cannot drop the surface unnoticed.
+    editor.preventCloseElement = document.createElement('div');
+    editor.preventCloseElement = null;
+  },
   afterInit(editor: BaseEditor) {},
   afterOpen(editor: BaseEditor) {},
   afterClose(editor: BaseEditor) {},

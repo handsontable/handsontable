@@ -38,20 +38,20 @@
 
 **Testing:**
 - Jest 27 - Unit tests (`handsontable/jest.config.js`, `*.unit.js` files, jsdom environment, `jest-jasmine2` runner)
-- Playwright 1.61 - **E2E (the paradigm for new tests, `tests/e2e/`)** and visual regression (`visual-tests/`, migrating into `tests/visual/`). One version across the monorepo via a pnpm catalog; CI runs the matching container image.
-- Jasmine 3.4 + Puppeteer 24 - **LEGACY (frozen) E2E** browser tests (`*.spec.js`, headless Chrome). Add no new specs; migrate broken ones to Playwright. Walkontable (`test/spec/**`) is frozen the same way and has a Playwright home at `tests/e2e/walkontable/`; its Jasmine job and the Playwright e2e job run in parallel in CI.
+- Playwright 1.62.1 - **E2E (the paradigm for new tests, `tests/e2e/`)** and visual regression (`visual-tests/`, migrating into `tests/visual/`). One version across the monorepo via a pnpm catalog; CI runs the matching container image (drift is caught by `playwright-version-sync.test.mjs` in the tooling gate).
+- Jasmine 3.4 + Puppeteer 25 - **LEGACY (frozen) E2E** browser tests (`*.spec.js`, headless Chrome). Add no new specs; migrate broken ones to Playwright. Walkontable (`test/spec/**`) is frozen the same way and has a Playwright home at `tests/e2e/walkontable/`; its Jasmine job and the Playwright e2e job run in parallel in CI.
 - `@testing-library/react` 14 - React wrapper tests
 - `@vue/test-utils` 2.0.0-rc.16 - Vue 3 wrapper tests
-- `jest-preset-angular` 14 - Angular wrapper tests (requires `NODE_OPTIONS=--openssl-legacy-provider`)
+- `jest-preset-angular` 17 (with Jest 30) - Angular wrapper tests (requires `NODE_OPTIONS=--openssl-legacy-provider`)
 
 **Build/Dev:**
 - Rspack 1.7 (`@rspack/core`, `@rspack/cli`) - Core library bundling (`handsontable/rspack.config.js` + `handsontable/.config/`). Migrated from Webpack 5; the `.config/` folder name is kept for historical reasons.
 - Rollup 4 - React and Vue 3 wrapper bundling
 - SWC 1.x (`@swc/core`, `@swc/helpers`) - TypeScript/JavaScript transpilation for all builds: Rspack uses `builtin:swc-loader` with separate rules for `.js` (ecmascript) and `.ts`/`.tsx` (typescript), and file-per-file transpilation runs through `handsontable/scripts/swc-transpile.mjs` which handles `.ts`/`.tsx` in addition to `.js` (used by `build:commonjs`, `build:es`, `build:languages.es`)
 - Babel 7 - Retained only for Jest unit tests via `babel-jest` (see `handsontable/babel.config.js`); no longer used for production or test bundles
-- ng-packagr 16 - Angular library packaging
+- ng-packagr 22 - Angular library packaging
 - Sass 1.58 - SCSS compilation
-- TypeScript ^6.0.0 (core source + auto-generated types via `build:types` script using `tsconfig.build-types.json`), 5.1.6 (Angular), 4.x (Vue 3)
+- TypeScript ^6.0.0 (core source + auto-generated types via `build:types` script using `tsconfig.build-types.json`), ~6.0.3 (Angular), 4.x (Vue 3)
 
 ## Key Dependencies
 
@@ -64,10 +64,10 @@
 **Angular wrapper runtime:**
 - `rxjs` ^7.8.1 - Reactive extensions for Angular
 - `tslib` ^2.3.0 - TypeScript runtime helpers
-- `zone.js` ~0.13.0 - Angular change detection
+- `zone.js` ~0.15.1 - Angular change detection
 
 **Build tooling (key devDependencies):**
-- `eslint` ^8.57.1 (core) / 8 (wrappers) - Linting with Airbnb base config
+- `eslint` ^8.57.1 (core) / 8 (wrappers except Angular, which is on 9 with a flat config) - Linting with Airbnb base config
 - `eslint-plugin-handsontable` - Custom ESLint rules (`handsontable/.config/plugin/eslint/`)
 - `eslint-plugin-compat` - Browser API compatibility enforcement
 - `stylelint` 16 - CSS/SCSS linting
@@ -175,7 +175,7 @@
 - `CI Gate` (a job in `test.yml`, not a file) - the single status check to require in branch
   protection. It always runs and passes only when every module job reported `success` or `skipped`,
   so individual/matrix check names must stay unpinned
-- `develop.yml` - post-merge develop pipeline; same modules plus trunk-only stages, no `CI Gate`
+- `develop.yml` - post-merge develop pipeline; same modules plus trunk-only stages, no `CI Gate`, and no visual golden seed (that left for `visual-seed.yml` in DEV-2797)
 - `checks.yml` - scope router (which modules run) plus the changelog and test-presence gates
 - `build.yml` / `build-all.yml` - shared UMD and ES+CJS build artifacts / multi-OS build verification
 - `lint.yml` - core linters
@@ -184,11 +184,12 @@
 - `manual-qa.yml` - the human merge gate, and a `CI Gate` dependency like every module above
 - `integration.yml` - wrapper tests, ESM/CJS format checks, pkg.pr.new PR package preview
 - `performance.yml` (PR) / `performance-tests.yml` (develop golden baseline) - the CDP perf suite
-- `visual.yml` - visual regression render matrix plus the Argos upload
+- `visual.yml` - visual regression render matrix and the reg-suit comparison, scoped by its `tier` input (`pr` | `seed` | `full`, the table in `visual-tests/src/config.mjs`), plus the `approve` job that holds a `changed` verdict on the `visual-approval` environment (the R2 screenshot purge lives in `pr-cleanup.yml`)
+- `visual-seed.yml` / `visual-nightly.yml` - writes `base/develop` on every develop push under a concurrency group that never cancels (develop.yml's cancellation kept the seed from landing; see that file's header) / the weekday full-matrix render that compares against that seed and never writes the goldens
 - `publish.yml` - package publishing pipeline to npm (the only workflow npm trusted publishing trusts)
 - `docs.yml` / `docs-staging.yml` / `docs-production.yml` - docs gates and deployment (Cloudflare Pages)
-- `docs-visual-tests.yml` - visual regression testing for docs
+- `docs-visual-tests.yml` (dispatch) / `docs-visual-seed.yml` (seeds `docs/base/<branch>` after a staging deploy) / the `docs-visual-run` action - docs visual regression against an R2 baseline, gated like `visual.yml`
 
 Fork PRs and Dependabot PRs both run on a read-only token with no Actions secrets. Read the two
-fork-guard bullets in the root `AGENTS.md` before touching any step that comments, pushes to a ref,
+fork-guard bullets in `.ai/CI.md` before touching any step that comments, pushes to a ref,
 or depends on a secret. Some paths degrade gracefully and must not be guarded.

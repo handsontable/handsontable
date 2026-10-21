@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - checkbox column overwritten by a custom renderer</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD); an
+    // unknown value THROWS rather than falling back, so a typo in the project config is one red
+    // leg instead of a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Reproduces handsontable/dev-handsontable#342 (DEV-185): a checkbox column whose renderer is
+    OVERWRITTEN by a custom renderer that chains the built-in checkbox renderer and then appends
+    its own content with `td.innerHTML += ...`. That assignment re-serializes and re-parses the
+    whole cell; a checkbox's checked state is a live IDL property with a reflected `checked`
+    attribute, so the fix (emitting the attribute) is what lets it survive the round-trip. Without
+    it the box renders unchecked whatever the data says, and clicking it never makes it appear
+    checked because every render drops the state again.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const baseCheckboxRenderer = Handsontable.renderers.getRenderer('checkbox');
+
+    // The reporter's own repro: chain the built-in checkbox renderer, then extend the cell with
+    // `innerHTML +=`. This is the anti-pattern the guide now warns against; the fixture exists to
+    // prove the fix makes even this shape work.
+    function customCheckboxRenderer(instance, td, row, col, prop, value, cellProperties) {
+      baseCheckboxRenderer.call(this, instance, td, row, col, prop, value, cellProperties);
+      td.innerHTML += ' ( TEST )';
+    }
+
+    window.hot = new Handsontable(container, {
+      data: [[true], [false], [true]],
+      colHeaders: true,
+      rowHeaders: true,
+      columns: [
+        { type: 'checkbox', renderer: customCheckboxRenderer },
+      ],
+      // Stamped from `afterRenderer` rather than a grid-level `renderer`, which the checkbox
+      // column's own renderer would otherwise override.
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

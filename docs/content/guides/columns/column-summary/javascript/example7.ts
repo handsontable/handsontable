@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { DetailedSettings } from 'handsontable/plugins/columnSummary';
+import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -30,7 +30,7 @@ new Handsontable(container, {
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   // set the `columnSummary` configuration option to a function
   columnSummary() {
-    const configArray: DetailedSettings[] = [];
+    const configArray: SummaryEndpoint[] = [];
     const summaryTypes: ('sum' | 'min' | 'max' | 'count' | 'average')[] = ['sum', 'min', 'max', 'count', 'average'];
 
     for (let i = 0; i < this.hot.countCols(); i++) {

@@ -230,7 +230,7 @@ describe('TreeNode', () => {
       ]);
       const traversalOrder = [];
 
-      tree.walkDown(node => void traversalOrder.push(node.data.id));
+      tree.walkDown((node) => { traversalOrder.push(node.data.id); });
 
       expect(traversalOrder.join(' -> '))
         .toBe('A1 -> B1 -> B2 -> C1 -> C2 -> C3 -> C4 -> D1 -> D2 -> D3 -> D4 -> D5 -> D6 -> D7 -> D8');
@@ -268,7 +268,7 @@ describe('TreeNode', () => {
       ]);
       const traversalOrder = [];
 
-      tree.walkDown(node => void traversalOrder.push(node.data.id), TRAVERSAL_DF_PRE);
+      tree.walkDown((node) => { traversalOrder.push(node.data.id); }, TRAVERSAL_DF_PRE);
 
       expect(traversalOrder.join(' -> '))
         .toBe('A1 -> B1 -> C1 -> D1 -> C2 -> D2 -> D3 -> D4 -> B2 -> C3 -> D5 -> D6 -> C4 -> D7 -> D8');
@@ -306,7 +306,7 @@ describe('TreeNode', () => {
       ]);
       const traversalOrder = [];
 
-      tree.walkDown(node => void traversalOrder.push(node.data.id), TRAVERSAL_DF_POST);
+      tree.walkDown((node) => { traversalOrder.push(node.data.id); }, TRAVERSAL_DF_POST);
 
       expect(traversalOrder.join(' -> '))
         .toBe('D1 -> C1 -> D2 -> D3 -> D4 -> C2 -> B1 -> D5 -> D6 -> C3 -> D7 -> D8 -> C4 -> B2 -> A1');
@@ -344,7 +344,7 @@ describe('TreeNode', () => {
       ]);
       const traversalOrder = [];
 
-      tree.walkDown(node => void traversalOrder.push(node.data.id), TRAVERSAL_BF);
+      tree.walkDown((node) => { traversalOrder.push(node.data.id); }, TRAVERSAL_BF);
 
       expect(traversalOrder.join(' -> '))
         .toBe('A1 -> B1 -> B2 -> C1 -> C2 -> C3 -> C4 -> D1 -> D2 -> D3 -> D4 -> D5 -> D6 -> D7 -> D8');
@@ -439,35 +439,35 @@ describe('TreeNode', () => {
       {
         const traversalOrder = [];
 
-        tree.walkUp(node => void traversalOrder.push(node.data.id));
+        tree.walkUp((node) => { traversalOrder.push(node.data.id); });
 
         expect(traversalOrder.join(' -> ')).toBe('A1');
       }
       {
         const traversalOrder = [];
 
-        nodes.c1.walkUp(node => void traversalOrder.push(node.data.id));
+        nodes.c1.walkUp((node) => { traversalOrder.push(node.data.id); });
 
         expect(traversalOrder.join(' -> ')).toBe('C1 -> B1 -> A1');
       }
       {
         const traversalOrder = [];
 
-        nodes.d1.walkUp(node => void traversalOrder.push(node.data.id));
+        nodes.d1.walkUp((node) => { traversalOrder.push(node.data.id); });
 
         expect(traversalOrder.join(' -> ')).toBe('D1 -> C1 -> B1 -> A1');
       }
       {
         const traversalOrder = [];
 
-        nodes.d6.walkUp(node => void traversalOrder.push(node.data.id));
+        nodes.d6.walkUp((node) => { traversalOrder.push(node.data.id); });
 
         expect(traversalOrder.join(' -> ')).toBe('D6 -> C3 -> B2 -> A1');
       }
       {
         const traversalOrder = [];
 
-        nodes.c4.walkUp(node => void traversalOrder.push(node.data.id));
+        nodes.c4.walkUp((node) => { traversalOrder.push(node.data.id); });
 
         expect(traversalOrder.join(' -> ')).toBe('C4 -> B2 -> A1');
       }

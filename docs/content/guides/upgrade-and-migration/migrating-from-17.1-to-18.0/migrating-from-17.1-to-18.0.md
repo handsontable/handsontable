@@ -2,7 +2,7 @@
 type: how-to
 title: Migrating from 17.1 to 18.0
 metaTitle: Migrating from 17.1 to 18.0 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 17.1 to Handsontable 18.0 -- remove Moment.js, Pikaday, Numbro.js, and DOMPurify dependencies, and update TypeScript imports.
+description: Migrate from Handsontable 17.1 to Handsontable 18.0 -- remove Moment.js, Pikaday, Numbro.js, and DOMPurify dependencies, install HyperFormula separately, and update TypeScript imports.
 permalink: /migration-from-17.1-to-18.0
 canonicalUrl: /migration-from-17.1-to-18.0
 pageClass: migration-guide
@@ -274,17 +274,18 @@ The `datePickerConfig` option (which passed options to Pikaday) no longer has an
 
 Handsontable 18.0 removes the built-in DOMPurify dependency. HTML passed to the following surfaces is no longer sanitized automatically:
 
-- `colHeaders` and `rowHeaders`
+- `colHeaders`, `rowHeaders`, and `nestedHeaders` labels
 - Context menu item labels
 - HTML pasted from the clipboard
 - Dialog and notification content
 - Select editor dropdown option values
+- `password` cells whose displayed value carries markup, through a custom `valueFormatter` or a `hashSymbol`
 
 ### Who is affected
 
 You are affected if any of the following apply:
 
-- You pass user-supplied or third-party HTML in `colHeaders`, `rowHeaders`, context-menu labels, or select editor `selectOptions`.
+- You pass user-supplied or third-party HTML in `colHeaders`, `rowHeaders`, `nestedHeaders` labels, context-menu labels, or select editor `selectOptions`.
 - You relied on Handsontable to strip `<script>` tags or event handlers from HTML passed to those surfaces.
 - You use the `sanitizer` option or test sanitization behavior.
 
@@ -353,7 +354,7 @@ Handsontable 18.0 simplifies the table border theme variables. The `--ht-wrapper
 You are affected if any of the following apply:
 
 - Your CSS overrides `--ht-wrapper-border-radius`, `--ht-wrapper-border-width`, or `--ht-wrapper-border-color`.
-- You pass `wrapperBorderRadius`, `wrapperBorderWidth`, or `wrapperBorderColor` tokens to `createTheme()` or `params()`.
+- You pass `wrapperBorderRadius`, `wrapperBorderWidth`, or `wrapperBorderColor` tokens to `registerTheme()` or `params()`.
 
 ### How to migrate
 
@@ -387,7 +388,7 @@ For the JS theme API, rename `wrapperBorderRadius` to `borderRadius` and remove 
 **Before:**
 
 ```javascript
-createTheme('my-theme', {
+registerTheme('my-theme', {
   tokens: {
     wrapperBorderRadius: '8px',
     wrapperBorderWidth: '1px',
@@ -399,7 +400,7 @@ createTheme('my-theme', {
 **After:**
 
 ```javascript
-createTheme('my-theme', {
+registerTheme('my-theme', {
   tokens: {
     borderRadius: '8px'
   }
@@ -496,6 +497,155 @@ const grid = wrapper.querySelector('.ht-wrapper.handsontable');
 
 Use class-based selectors instead of positional ones, so future layout slot additions do not break your code.
 
+## 8. Install HyperFormula separately
+
+Starting with Handsontable 18.0, the `handsontable` npm package no longer lists HyperFormula as a dependency. In 17.1 and earlier, it was an optional dependency, so your package manager usually installed it together with Handsontable, and your code could import it without a separate install. Version 17.0 deprecated this behavior, and version 18.0 completes the removal.
+
+This change keeps HyperFormula, which is licensed separately, out of projects that don't use formulas. You also choose the HyperFormula version that fits your project.
+
+### Who is affected
+
+You are affected if you install Handsontable from npm, import it as an ES or CommonJS module, and use the [`Formulas`](@/api/formulas.md) plugin. That is, your configuration contains `formulas: { engine: ... }`, or your code imports `hyperformula`, which the Handsontable installation used to provide.
+
+If your project doesn't use formulas, you don't need to change anything.
+
+If you upgrade without installing HyperFormula, your `hyperformula` import fails with a "module not found" error from your bundler or runtime.
+
+The UMD bundle `handsontable.full.js` (and its minified `handsontable.full.min.js`) still includes HyperFormula in 18.0. This step doesn't apply if you load that file.
+
+### How to migrate
+
+1. Install HyperFormula:
+
+   ```bash
+   npm install hyperformula
+   ```
+
+   Pick the HyperFormula version that matches your Handsontable version. For the compatible versions, see [HyperFormula version support](@/guides/formulas/formula-calculation/formula-calculation.md#hyperformula-version-support).
+
+2. Keep your existing import and `formulas.engine` configuration. They stay the same:
+
+   ```javascript
+   import Handsontable from 'handsontable';
+   import { HyperFormula } from 'hyperformula';
+
+   const hot = new Handsontable(container, {
+     data: [['=1+2']],
+     formulas: {
+       engine: HyperFormula,
+     },
+     licenseKey: 'non-commercial-and-evaluation',
+   });
+   ```
+
+3. Check the HyperFormula license. HyperFormula is licensed separately from Handsontable. To set your own HyperFormula license key, see [License HyperFormula](@/guides/formulas/installation/installation.md#license-hyperformula).
+
+For other ways to connect the engine, such as a pre-built instance shared between grids, see [Initialization methods](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods).
+
+## 9. Replace the removed `DetailedSettings` type exports
+
+Handsontable 18.0 no longer exports the `DetailedSettings` type from the `handsontable/plugins/contextMenu`, `handsontable/plugins/columnSummary`, and `handsontable/plugins/formulas` entry points. Version 17.x exported it from all three. The 18.0 type declarations list only the plugin class, the plugin constants, and a few named types.
+
+### Who is affected
+
+You are affected if your TypeScript source files import `DetailedSettings` from any of these entry points:
+
+```ts
+import type { DetailedSettings } from 'handsontable/plugins/contextMenu';
+import type { DetailedSettings } from 'handsontable/plugins/columnSummary';
+import type { DetailedSettings } from 'handsontable/plugins/formulas';
+```
+
+After you upgrade, the TypeScript compiler reports `TS2305: Module '"handsontable/plugins/contextMenu"' has no exported member 'DetailedSettings'` (or the same error for the other two entry points). Some of your callback parameters can also lose their types and report `TS7006`.
+
+### How to migrate
+
+Remove the `DetailedSettings` import and use the replacement for each plugin.
+
+**`columnSummary`**
+
+Use `SummaryEndpoint`. It describes one column summary endpoint.
+
+```ts
+// Before (17.x)
+import type { DetailedSettings } from 'handsontable/plugins/columnSummary';
+
+const columnSummary: DetailedSettings[] = [
+  { sourceColumn: 0, type: 'sum', reversedRowCoords: true, destinationRow: 0, destinationColumn: 0 },
+];
+
+// After (18.0)
+import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
+
+const columnSummary: SummaryEndpoint[] = [
+  { sourceColumn: 0, type: 'sum', reversedRowCoords: true, destinationRow: 0, destinationColumn: 0 },
+];
+```
+
+`SummaryEndpoint` has an index signature, so options that it doesn't list, such as `reversedRowCoords`, still compile. TypeScript doesn't check these options for typos.
+
+**`contextMenu`**
+
+The settings object of the `contextMenu` option no longer has a dedicated type. Remove the annotation and type the callback parameters yourself. To type a single menu item, use `MenuItemConfig`.
+
+```ts
+// Before (17.x)
+import type { DetailedSettings } from 'handsontable/plugins/contextMenu';
+
+const contextMenu: DetailedSettings = {
+  callback(key, selection, clickEvent) {
+    console.log(key, selection, clickEvent);
+  },
+  items: {
+    row_above: {
+      disabled() {
+        return this.getSelectedLast()?.[0] === 0;
+      },
+    },
+  },
+};
+
+// After (18.0)
+import type Handsontable from 'handsontable/base';
+
+const contextMenu = {
+  callback(key: string, selection: unknown[], clickEvent?: Event) {
+    console.log(key, selection, clickEvent);
+  },
+  items: {
+    row_above: {
+      disabled(this: Handsontable.Core) {
+        return this.getSelectedLast()?.[0] === 0;
+      },
+    },
+  },
+};
+```
+
+The `clickEvent` parameter is optional, because `executeCommand()` can run a callback without an event.
+
+**`formulas`**
+
+Remove the type and the `as DetailedSettings` cast. The `formulas` option accepts the object as it is.
+
+```ts
+// Before (17.x)
+import type { DetailedSettings } from 'handsontable/plugins/formulas';
+
+const formulas = {
+  engine: HyperFormula,
+  namedExpressions: [{ name: 'ADDITIONAL_COST', expression: 100 }],
+} as DetailedSettings;
+
+// After (18.0)
+const formulas = {
+  engine: HyperFormula,
+  namedExpressions: [{ name: 'ADDITIONAL_COST', expression: 100 }],
+};
+```
+
+To keep a type annotation, use `Handsontable.GridSettings['formulas']`.
+
 ## Summary of breaking changes
 
 | Change | Who is affected | Action required |
@@ -508,6 +658,8 @@ Use class-based selectors instead of positional ones, so future layout slot addi
 | `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, `loadManualRowHeights()` now no-op | Any project calling these methods | Remove calls; implement custom persistence if needed |
 | `--ht-wrapper-border-radius` renamed to `--ht-border-radius`; `--ht-wrapper-border-width` and `--ht-wrapper-border-color` removed | Projects overriding these theme variables or passing the matching JS tokens | Rename to `--ht-border-radius` / `borderRadius`; recreate a wrapper border with `box-shadow` if needed |
 | Wrapper DOM structure changed -- new `.ht-grid-content`, `.ht-slot-top`, `.ht-slot-bottom`, and `.ht-overlay` elements | Projects with CSS selectors or DOM queries targeting Handsontable's wrapper elements by position | Update selectors to be class-based; account for the new `.ht-grid-content` wrapper and sibling slot containers |
+| HyperFormula no longer installed with the `handsontable` npm package | Projects that use the `Formulas` plugin and install Handsontable from npm | Run `npm install hyperformula`; keep `import { HyperFormula } from 'hyperformula'` and `formulas: { engine: HyperFormula }` |
+| `DetailedSettings` type removed from `handsontable/plugins/contextMenu`, `handsontable/plugins/columnSummary`, and `handsontable/plugins/formulas` | TypeScript projects importing `DetailedSettings` from these entry points | Use `SummaryEndpoint` for `columnSummary`; type `contextMenu` callbacks directly or use `MenuItemConfig` for items; drop the type and cast for `formulas` |
 
 ## Result
 
@@ -521,3 +673,5 @@ Your application now runs on Handsontable 18.0.
 - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
 - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
 - [Security](@/guides/security/security/security.md)
+- [Install HyperFormula](@/guides/formulas/installation/installation.md)
+- [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)

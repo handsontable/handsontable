@@ -8,12 +8,13 @@ registerAllModules();
 
 const hotSettings = ref<GridSettings>({
   data: [
-    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-    ['2019', 10, 11, 12, 13],
-    ['2020', 20, 11, 14, 13],
-    ['2021', 30, 15, 12, 13],
+    ['Hydrogen', 'H', 1, 1.008, 7],
+    ['Helium', 'He', 2, 4.003, 9],
+    ['Lithium', 'Li', 3, 6.94, 9],
+    ['Beryllium', 'Be', 4, 9.012, 11],
+    ['Boron', 'B', 5, 10.81, 15],
   ],
-  colHeaders: true,
+  colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass', 'Known isotopes'],
   rowHeaders: true,
   height: 'auto',
   layoutDirection: 'inherit',
