@@ -152,10 +152,11 @@ interface PendingWrite {
 interface Flight {
   sequence: number;
   source: string;
-  value: unknown;
   write: PendingWrite | null;
   validating: boolean;
   validated: boolean;
+  change: CellChange | null;
+  changes: CellChange[] | null;
   state: RowState;
   prop: AsyncValueProp;
   group: Flight[] | null;
@@ -553,8 +554,9 @@ export class AsyncValues extends BasePlugin {
     this.addHook('afterChange', this.#onAfterChange, -1);
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell, -1);
     this.addHook('beforeChange', this.#onBeforeChange);
+    this.addHook('afterSetDataAtRowProp', this.#onAfterSetDataAtRowProp);
     this.addHook('beforeValidate', this.#onBeforeValidate);
-    this.addHook('afterValidate', this.#onAfterValidate);
+    this.addHook('postAfterValidate', this.#onPostAfterValidate);
     // Before the application's listeners, so a listener that cancels or writes a cell there already sees
     // every row state on its current physical row.
     this.addHook('afterCreateRow', this.#syncRows, -1);
@@ -2112,10 +2114,11 @@ export class AsyncValues extends BasePlugin {
     const flight: Flight = {
       sequence: this.#flightSequence,
       source: run.options.source,
-      value,
       write,
       validating: false,
       validated: false,
+      change: null,
+      changes: null,
       state,
       prop,
       group: null,
@@ -3252,33 +3255,51 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
-   * `beforeChange` hook callback. Pairs each change tuple of the plugin's own write with its flight, and
-   * stamps the tuple of every other write with the newest flight queued on its cell. The grid reports an
-   * applied tuple to `afterChange` as the same object, which is what tells the flights apart there.
+   * `beforeChange` hook callback. Stamps the tuple of a write of another source with the newest flight
+   * queued on its cell. The grid reports an applied tuple to `afterChange` as the same object, which is
+   * what tells the flights apart there.
    *
    * @param {Array} changes The changes about to be written.
    * @param {string} [source] The source of the changes.
    */
   readonly #onBeforeChange = (changes: Array<CellChange | null>, source?: string): void => {
     // A validator's correction is part of the write it corrects.
-    if (this.#states.size === 0 || (typeof source === 'string' && source.endsWith('Validator'))) {
+    if (
+      this.#states.size === 0 || this.#writing?.source === source ||
+      (typeof source === 'string' && source.endsWith('Validator'))
+    ) {
       return;
     }
 
-    const writing = this.#writing?.source === source ? this.#writing : null;
+    changes.forEach((change) => {
+      if (change && isProp(change[1])) {
+        this.#stampForeignWrite(change);
+      }
+    });
+  };
+
+  /**
+   * `afterSetDataAtRowProp` hook callback. Pairs each change tuple of the plugin's own write with its
+   * flight. The grid validates and applies exactly this list: it takes out a change a validator rejected
+   * or a newer write overtook, and reports an applied change to `afterChange` as the same tuple.
+   *
+   * @param {Array} changes The changes the grid validates and applies.
+   * @param {string} [source] The source of the changes.
+   */
+  readonly #onAfterSetDataAtRowProp = (changes: CellChange[], source?: string): void => {
+    const writing = this.#writing;
+
+    if (!writing || writing.source !== source) {
+      return;
+    }
 
     changes.forEach((change) => {
-      if (!change || !isProp(change[1])) {
-        return;
-      }
-
-      const flight = writing?.flights.get(getChangeKey(change[0], change[1]));
+      const flight = isProp(change[1]) ? writing.flights.get(getChangeKey(change[0], change[1])) : undefined;
 
       if (flight) {
+        flight.change = change;
+        flight.changes = changes;
         this.#flightByChange.set(change, flight);
-
-      } else if (!writing) {
-        this.#stampForeignWrite(change);
       }
     });
   };
@@ -3318,35 +3339,27 @@ export class AsyncValues extends BasePlugin {
     if (found) {
       found.flight.validating = true;
       found.flight.validated = true;
-      // What the validator receives, after a `valueSetter` changed the value: `afterValidate` reports it.
-      found.flight.value = value;
     }
   };
 
   /**
-   * `afterValidate` hook callback. Ends the plugin's flight that the validator rejected under
-   * `allowInvalid: false`: the grid takes such a change out, so it never lands.
+   * `postAfterValidate` hook callback, which runs once the grid has applied the answer. Ends the flights of
+   * the cell whose change the grid took out of its list: a validator rejected it under
+   * `allowInvalid: false`, or a newer write overtook it. Such a change never lands, and `afterChange` does
+   * not report it. A validator's answer names no flight, so the list is what tells which one it was.
    *
    * @param {boolean} isValid Whether the value is valid.
    * @param {*} value The validated value.
    * @param {number} row Visual row index.
    * @param {string|number} prop The property of the cell.
-   * @param {string} [source] The source of the change.
    */
-  readonly #onAfterValidate = (
-    isValid: boolean, value: unknown, row: number, prop: string | number, source?: string,
-  ): void => {
-    // The value tells two flights of one source apart when their validators answer out of order.
-    const isRejected = (flight: Flight) => flight.source === source && flight.validated;
-    const found = isValid ? null : (
-      this.#findFlight(row, prop, flight => isRejected(flight) && Object.is(flight.value, value)) ??
-      this.#findFlight(row, prop, isRejected)
-    );
-    const column = found ? this.hot.propToCol(prop) : null;
+  readonly #onPostAfterValidate = (isValid: boolean, value: unknown, row: number, prop: string | number): void => {
+    const physicalRow = this.#states.size === 0 ? null : this.hot.toPhysicalRow(row);
+    const state = physicalRow === null ? null : this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
 
-    if (found && typeof column === 'number' && this.hot.getCellMetaTransient(row, column).allowInvalid === false) {
-      this.#endFlight(found.state, prop, found.flight, true);
-    }
+    state?.flights.get(prop)
+      ?.filter(flight => flight.change && !flight.changes?.includes(flight.change))
+      .forEach(flight => this.#endFlight(state, prop, flight, true));
   };
 
   /**

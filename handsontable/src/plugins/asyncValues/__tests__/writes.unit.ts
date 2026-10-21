@@ -218,6 +218,34 @@ describe('AsyncValues: writes, flights, and rows', () => {
     destroy();
   });
 
+  it('should record the first call\'s step when both calls write the same value and the later one is rejected', async() => {
+    const { answers, validator } = manualValidator();
+    const { hot, plugin, destroy } = createGrid({
+      undo: true,
+      columns: [{ data: 'sku' }, { data: 'name', validator, allowInvalid: false }, { data: 'price' }],
+    });
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    await plugin.setAsyncValue(0, 1, Promise.resolve('same'), { undo: 'record' });
+    await settle();
+    await plugin.setAsyncValue(0, 1, Promise.resolve('same'), { undo: 'record' });
+    await settle();
+
+    answers[1].answer(false);
+    await settle();
+    answers[0].answer(true);
+    await settle();
+
+    expect(hot.getDataAtCell(0, 1)).toBe('same');
+
+    undoRedo.undo();
+
+    expect(hot.getDataAtCell(0, 1)).toBe('old A');
+    expect(undoRedo.isUndoAvailable()).toBe(false);
+
+    destroy();
+  });
+
   it('should tell two rejections apart by the value a `valueSetter` produced', async() => {
     const { answers, validator } = manualValidator();
     const { hot, plugin, destroy } = createGrid({
