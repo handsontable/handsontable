@@ -135,6 +135,44 @@ describe('DataProvider -> refetch after a save while a page change is loading', 
     expect(hot.getPlugin('pagination').getPaginationData().currentPage).toBe(2);
   });
 
+  it('should not drop to the previous page when every shown row is removed while another page loads', async() => {
+    const provider = createProvider();
+
+    await createGrid(provider);
+
+    hot.getPlugin('pagination').setPage(2);
+
+    const removal = hot.getPlugin('dataProvider').removeRows([1, 2]);
+
+    await settle();
+    await provider.release();
+    await removal;
+
+    expect(provider.config.onRowsRemove).toHaveBeenCalledTimes(1);
+    expect(provider.pagesRequested()).toEqual([1, 2, 2]);
+    expect(hot.getPlugin('pagination').getPaginationData().currentPage).toBe(2);
+  });
+
+  it('should not carry a key a beforeDataProviderFetch listener added into the refetch', async() => {
+    const provider = createProvider();
+    const seen = [];
+
+    await createGrid(provider);
+
+    hot.addHook('beforeDataProviderFetch', (params) => {
+      seen.push({ ...params });
+      params.extra = true;
+    });
+    hot.getPlugin('pagination').setPage(2);
+    hot.setDataAtCell(0, 1, 'user edit', 'edit');
+    await settle();
+    await provider.release();
+
+    expect(seen).toHaveLength(2);
+    expect(seen[1]).not.toHaveProperty('extra');
+    expect(seen[1].page).toBe(2);
+  });
+
   it('should keep the pending page when rows are created without a refetch before the page loads', async() => {
     const provider = createProvider();
 
