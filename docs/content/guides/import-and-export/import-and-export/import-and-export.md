@@ -32,6 +32,7 @@ Handsontable DataGrid exports its data to Excel (`.xlsx`) and CSV files, and imp
 |---|---|---|---|
 | Download the grid as a workbook, with cell types, styling, and formulas | XLSX | `ExportFile` | [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md) |
 | Load a workbook the user picked into the grid | XLSX | `ImportFile` | [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) |
+| Detect column types in CSV rows, pasted text, or API data | None; rows in memory | `ImportFile` | [Infer column types](@/guides/import-and-export/infer-column-types/infer-column-types.md) |
 | Download the grid's values as text | CSV | `ExportFile` | [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md) |
 | Load a CSV file | CSV | None; the recipe parses it with PapaParse | [Import from CSV or Excel](@/recipes/import-export/import-csv-excel/import-csv-excel.md) recipe |
 | Download the grid as a PDF file | PDF | None; the recipe uses jsPDF | [Export to PDF](@/recipes/import-export/export-to-pdf/export-to-pdf.md) recipe |
