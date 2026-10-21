@@ -290,7 +290,7 @@ export class NestedRows extends BasePlugin {
     let currentSourceData = this.dataManager!.getData();
     const isDataManagerEmpty = currentSourceData === null;
 
-    if (isDataManagerEmpty && this.isDataWorkDeferred()) {
+    if (isDataManagerEmpty && this.isDataLoadPending()) {
       this.enablePlugin();
       this.#awaitsDataLoad = true;
       super.updatePlugin();

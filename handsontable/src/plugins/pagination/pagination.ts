@@ -141,12 +141,6 @@ function readDeclaredInitialPage(settings: unknown): number | undefined {
  */
 export class Pagination extends BasePlugin {
   /**
-   * Whether `updatePlugin()` left the page state for `onDataReady()`.
-   *
-   * @type {boolean}
-   */
-  #refreshPending = false;
-  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -499,11 +493,9 @@ export class Pagination extends BasePlugin {
    * @private
    */
   onDataReady() {
-    if (!this.#refreshPending) {
+    if (!this.takeDeferredDataWork()) {
       return;
     }
-
-    this.#refreshPending = false;
 
     this.#refreshUI();
   }
@@ -521,10 +513,10 @@ export class Pagination extends BasePlugin {
       this.#isUpdatingPlugin = false;
     }
 
-    if (!this.isDataWorkDeferred()) {
+    if (this.isDataWorkDeferred()) {
+      this.deferDataWork();
+    } else {
       this.#refreshUI();
-    } else if (this.hot.view) {
-      this.#refreshPending = true;
     }
 
     super.updatePlugin();
@@ -534,7 +526,6 @@ export class Pagination extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.#refreshPending = false;
     this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
       .unregisterMap(this.pluginName!);

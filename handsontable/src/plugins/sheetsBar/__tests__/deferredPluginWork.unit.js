@@ -168,5 +168,76 @@ describe('plugins applied ahead of their data', () => {
     it('exports nothing for the function form', () => {
       expect(exportFor(() => [{ sourceColumn: 0, destinationRow: 3, destinationColumn: 0 }])).toBe(null);
     });
+
+    it('keeps an empty `ranges` empty, so a return does not widen it to the whole table', () => {
+      const [endpoint] = exportFor([{
+        sourceColumn: 0,
+        destinationRow: 3,
+        destinationColumn: 0,
+        type: 'custom',
+        customFunction: () => 0,
+        ranges: [],
+      }]);
+
+      expect(endpoint.ranges).toEqual([]);
+    });
+  });
+
+  /**
+   * Builds a grid whose next `afterLoadData` runs `update` once, the way a host listener does while
+   * a sheet switch loads its data.
+   *
+   * @param {object} settings The grid settings.
+   * @param {Function} update The settings update to make from the listener.
+   */
+  function createGridUpdatingAfterLoad(settings, update) {
+    hot = new Handsontable(container, { ...settings, licenseKey: LICENSE_KEY });
+
+    const listener = () => {
+      hot.removeHook('afterLoadData', listener);
+      update();
+    };
+
+    hot.addHook('afterLoadData', listener);
+  }
+
+  it('builds the NestedRows tree for an enable made from afterLoadData, once the call has loaded its data', () => {
+    createGridUpdatingAfterLoad({ data: [{ name: 'old' }] }, () => hot.updateSettings({ nestedRows: true }));
+
+    hot._applySettingsAndData({ colHeaders: true }, [{ name: 'parent', __children: [{ name: 'child' }] }], 'test');
+
+    expect(hot.getPlugin('nestedRows').enabled).toBe(true);
+    expect(hot.getDataAtCol(0)).toEqual(['parent', 'child']);
+  });
+
+  it('evaluates the loaded data for a Formulas enable made from afterLoadData', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    createGridUpdatingAfterLoad({ data: [['old']] }, () => hot.updateSettings({ formulas: { engine } }));
+
+    hot._applySettingsAndData({ colHeaders: true }, [[1, '=A1+1']], 'test');
+
+    expect(hot.getDataAtCell(0, 1)).toBe(2);
+  });
+
+  it('writes the Formulas engine once for a switch whose `cell` entries set no value-reading key', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      data: [['x']],
+      formulas: { engine, sheetName: 'First' },
+      licenseKey: LICENSE_KEY,
+    });
+    engine.addSheet('Second');
+
+    const writes = jest.spyOn(engine, 'setSheetContent');
+
+    hot._applySettingsAndData({
+      formulas: { engine, sheetName: 'Second' },
+      cell: [{ row: 0, col: 0, readOnly: true }],
+    }, [[1, '=A1+1']], 'test');
+
+    expect(writes).toHaveBeenCalledTimes(1);
+    expect(hot.getDataAtCell(0, 1)).toBe(2);
   });
 });

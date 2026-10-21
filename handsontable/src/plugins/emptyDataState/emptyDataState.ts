@@ -209,12 +209,6 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  */
 export class EmptyDataState extends BasePlugin {
   /**
-   * Whether an enable left the empty-state toggle for `onDataReady()`.
-   *
-   * @type {boolean}
-   */
-  #togglePending = false;
-  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -359,7 +353,7 @@ export class EmptyDataState extends BasePlugin {
    */
   #onSequenceCacheUpdate = () => {
     if (this.isDataWorkDeferred() && this.hot.view) {
-      this.#togglePending = true;
+      this.deferDataWork();
     } else {
       this.#toggleEmptyDataState();
     }
@@ -374,13 +368,9 @@ export class EmptyDataState extends BasePlugin {
    * @private
    */
   onDataReady() {
-    if (!this.#togglePending) {
-      return;
+    if (this.takeDeferredDataWork()) {
+      this.#toggleEmptyDataState();
     }
-
-    this.#togglePending = false;
-
-    this.#toggleEmptyDataState();
   }
 
   /**
@@ -414,7 +404,6 @@ export class EmptyDataState extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    this.#togglePending = false;
     this.#loadingActive = false;
 
     this.#unregisterShortcuts();

@@ -5151,7 +5151,10 @@ export default function Core(
    * `afterLoadData` listener) applies in full. In both, plugins still see `_isDataWorkDeferred()` answer
    * `true`, so their data work waits for the `onDataReady()` pass of this call. A nested
    * `_applySettingsAndData()` restores the outer call's step when it ends and leaves that pass to the
-   * outer call. The data is loaded as given: the caller decides what a sheet backed by an external data
+   * outer call. When the call throws before the `onDataReady()` pass ends, every plugin drops the work
+   * it recorded for that pass (`BasePlugin#dropDeferredDataWork()`), so a later call cannot run it
+   * against other data; a grid still being built skips the validators here, because its own init pass
+   * runs them. The data is loaded as given: the caller decides what a sheet backed by an external data
    * source shows until its fetch lands.
    *
    * @private
@@ -5176,27 +5179,40 @@ export default function Core(
         heldMetaPhases = [];
 
         try {
-          const metaPhase = applySettings(settings, false, true);
-          const nestedMetaPhases = heldMetaPhases;
+          try {
+            const metaPhase = applySettings(settings, false, true);
+            const nestedMetaPhases = heldMetaPhases;
 
-          dataWorkPhase = 'data';
-          applyLoadData(data as unknown[][][], source);
-          metaPhase?.();
-          nestedMetaPhases.forEach(nestedMetaPhase => nestedMetaPhase());
-          runSourceDataValidators(instance, 'loadData');
-        } finally {
-          dataWorkPhase = outerPhase;
-          heldMetaPhases = outerHeldMetaPhases;
-        }
+            dataWorkPhase = 'data';
+            applyLoadData(data as unknown[][][], source);
+            metaPhase?.();
+            nestedMetaPhases.forEach(nestedMetaPhase => nestedMetaPhase());
 
-        if (instance.view && !isNested) {
-          pluginsRegistry.getItems().forEach(([, plugin]) => {
-            const readyPlugin = plugin as BasePlugin;
-
-            if (readyPlugin.enabled && typeof readyPlugin.onDataReady === 'function') {
-              readyPlugin.onDataReady();
+            if (!firstRun) {
+              runSourceDataValidators(instance, 'loadData');
             }
-          });
+          } finally {
+            dataWorkPhase = outerPhase;
+            heldMetaPhases = outerHeldMetaPhases;
+          }
+
+          if (instance.view && !isNested) {
+            pluginsRegistry.getItems().forEach(([, plugin]) => {
+              const readyPlugin = plugin as BasePlugin;
+
+              if (readyPlugin.enabled && typeof readyPlugin.onDataReady === 'function') {
+                readyPlugin.onDataReady();
+              }
+            });
+          }
+        } catch (error) {
+          if (!isNested) {
+            pluginsRegistry.getItems().forEach(([, plugin]) => {
+              (plugin as BasePlugin).dropDeferredDataWork();
+            });
+          }
+
+          throw error;
         }
       });
     } finally {
@@ -5216,6 +5232,19 @@ export default function Core(
    */
   this._isDataWorkDeferred = function() {
     return dataWorkPhase !== null;
+  };
+
+  /**
+   * Tells a plugin whether the data the settings describe is still to be loaded, which is the case only
+   * while `_applySettingsAndData()` applies its settings, before its load. Work that needs that load (a
+   * check of the incoming data, a sheet the load fills) waits for it then; once the load has run, it does
+   * the work at once.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  this._isDataLoadPending = function() {
+    return dataWorkPhase === 'configure';
   };
 
   /**

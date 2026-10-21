@@ -355,4 +355,62 @@ describe('SheetsBar applies a sheet against its own data', () => {
 
     expect(hot.getDataAtCol(0)).toEqual([1, 2, 7, 3]);
   });
+
+  it('validates the opening sheet\'s data once while the grid is built', () => {
+    const sources = [];
+
+    buildWorkbook([{
+      name: 'Only',
+      data: [['a']],
+      settings: {
+        columns: [{
+          sourceDataValidator: (value, cellMeta, source) => {
+            sources.push(source);
+
+            return true;
+          },
+        }],
+      },
+    }]);
+
+    expect(sources).toEqual(['init']);
+  });
+
+  it('builds the merges an afterLoadData listener declares on a return to a sheet with a stored state', () => {
+    const bar = buildWorkbook([
+      { name: 'A', data: [[1, 2], [3, 4]] },
+      { name: 'B', data: [[5, 6], [7, 8]] },
+    ]);
+
+    bar.setActiveSheet('B');
+
+    const declareMerge = () => {
+      hot.removeHook('afterLoadData', declareMerge);
+      hot.updateSettings({ mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }] });
+    };
+
+    hot.addHook('afterLoadData', declareMerge);
+    bar.setActiveSheet('A');
+
+    expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
+  });
+
+  it('keeps a grid-level ColumnSummary on its declared row on a sheet that was not altered', () => {
+    const bar = buildWorkbook([
+      { name: 'Altered', data: [[1], [2], [null]] },
+      { name: 'Untouched', data: [[10], [20], [null]] },
+    ], {
+      columnSummary: [{ sourceColumn: 0, destinationRow: 2, destinationColumn: 0, type: 'sum', ranges: [[0, 1]] }],
+    });
+
+    hot.alter('insert_row_above', 2, 1);
+    hot.setDataAtCell(2, 0, 7);
+    bar.setActiveSheet('Untouched');
+
+    expect(hot.getDataAtCol(0)).toEqual([10, 20, 30]);
+
+    bar.setActiveSheet('Altered');
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 7, 3]);
+  });
 });

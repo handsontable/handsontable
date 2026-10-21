@@ -654,6 +654,7 @@ export class SheetsBar extends BasePlugin {
         this.#releaseDataProviderContexts([]);
         this.#model = new SheetModel(() => this.hot.getTranslatedPhrase(C.SHEETS_BAR_DEFAULT_SHEET_NAME) as string);
         this.#captureGridDataProvider();
+        this.#captureGridColumnSummary();
         this.#buildInitialWorkbook();
       } finally {
         this.#isInitializing = false;
@@ -1021,6 +1022,23 @@ export class SheetsBar extends BasePlugin {
 
     if (value) {
       this.#recordBlockedGridDataProvider(value);
+    }
+  }
+
+  /**
+   * Captures a grid-level `columnSummary` array as the workbook starts, so every switch restates it like
+   * a key a sheet overrides (`#withBaselineFor`). A row or column alteration moves the endpoints on the
+   * sheet it happens on, and without the restatement the plugin kept those moved endpoints on every other
+   * sheet, where they could land on a data row. A return to a sheet gets the endpoints it left with
+   * (`#applySheet`), a sheet visited for the first time gets the declared ones, and a genuine teardown
+   * gives the declared value back to the grid. The function form is not captured: it reads its settings
+   * again on every pass.
+   */
+  #captureGridColumnSummary() {
+    const value = this.hot.getSettings().columnSummary;
+
+    if (Array.isArray(value) && value.length > 0) {
+      this.#settingsBaseline.set('columnSummary', value);
     }
   }
 

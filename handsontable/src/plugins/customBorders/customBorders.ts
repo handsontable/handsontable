@@ -244,12 +244,6 @@ export class CustomBorders extends BasePlugin {
    * `changeBorderSettings()` once the model reset is done. `null` when the update is not one.
    */
   #carriedBorders: BorderObject[] | null = null;
-  /**
-   * Whether `updatePlugin()` held the settings pass back for `onDataReady()`.
-   *
-   * @type {boolean}
-   */
-  #settingsPassPending = false;
 
   /**
    * During a `createCustomBorders` pass, holds the `row,col` keys already written in this pass, so a
@@ -405,7 +399,6 @@ export class CustomBorders extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.#settingsPassPending = false;
     this.#cancelProgressiveApply();
     this.hideBorders();
 
@@ -429,10 +422,10 @@ export class CustomBorders extends BasePlugin {
         this.enablePlugin();
       }
 
-      if (!this.isDataWorkDeferred()) {
+      if (this.isDataWorkDeferred()) {
+        this.deferDataWork();
+      } else {
         this.changeBorderSettings();
-      } else if (this.hot.view) {
-        this.#settingsPassPending = true;
       }
     } finally {
       this.#carriedBorders = null;
@@ -450,12 +443,9 @@ export class CustomBorders extends BasePlugin {
    * @private
    */
   onDataReady() {
-    if (!this.#settingsPassPending) {
-      return;
+    if (this.takeDeferredDataWork()) {
+      this.changeBorderSettings(false);
     }
-
-    this.#settingsPassPending = false;
-    this.changeBorderSettings(false);
   }
 
   /**

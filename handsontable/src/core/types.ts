@@ -294,6 +294,7 @@ export interface HotInstance {
   _getOperationScope(): OperationScope;
   _applySettingsAndData(settings: Partial<GridSettings>, data: unknown[], source: string): void;
   _isDataWorkDeferred(): boolean;
+  _isDataLoadPending(): boolean;
 
   // DOM references
   rootElement: HTMLElement;

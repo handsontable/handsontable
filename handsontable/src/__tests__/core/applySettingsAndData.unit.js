@@ -60,6 +60,39 @@ class NestingProbe extends Handsontable.plugins.BasePlugin {
 Handsontable.plugins.registerPlugin('nestingProbe', NestingProbe, 985);
 
 /**
+ * A plugin that records the work an update owes to `onDataReady()` through the BasePlugin contract, the
+ * way the plugins that defer data work do.
+ */
+class OwedWorkProbe extends Handsontable.plugins.BasePlugin {
+  static get PLUGIN_KEY() {
+    return 'owedWorkProbe';
+  }
+
+  isEnabled() {
+    return !!this.hot.getSettings().owedWorkProbe;
+  }
+
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    if (this.isDataWorkDeferred()) {
+      this.deferDataWork();
+    }
+
+    super.updatePlugin();
+  }
+
+  onDataReady() {
+    if (this.takeDeferredDataWork()) {
+      probeLog.push(['owed', this.hot.getDataAtCol(0)]);
+    }
+  }
+}
+
+Handsontable.plugins.registerPlugin('owedWorkProbe', OwedWorkProbe);
+
+/**
  * `Core#_applySettingsAndData()` applies settings and the data they describe in the order the grid's own
  * initialization uses: plugins configure first, then the data loads, then the work that reads it runs.
  */
@@ -306,6 +339,66 @@ describe('Core#_applySettingsAndData', () => {
     hot._applySettingsAndData({ dataProbe: false }, [['newer']], 'test');
 
     expect(probeLog.filter(entry => entry[0] === 'ready')).toEqual([]);
+  });
+
+  it('runs the work an update owed against the data of its own call', () => {
+    createGrid({ data: [['old']], owedWorkProbe: true });
+
+    hot._applySettingsAndData({ owedWorkProbe: { pass: 1 } }, [['new']], 'test');
+
+    expect(probeLog.filter(entry => entry[0] === 'owed')).toEqual([['owed', ['new']]]);
+  });
+
+  it('drops the work an update owed when the call throws, so a later call does not run it', () => {
+    createGrid({ data: [['old']], owedWorkProbe: true });
+
+    const failing = () => {
+      throw new Error('load listener failed');
+    };
+
+    hot.addHook('afterLoadData', failing);
+
+    expect(() => hot._applySettingsAndData({ owedWorkProbe: { pass: 1 } }, [['first']], 'test'))
+      .toThrow('load listener failed');
+
+    hot.removeHook('afterLoadData', failing);
+    hot._applySettingsAndData({ colHeaders: true }, [['second']], 'test');
+
+    expect(probeLog.filter(entry => entry[0] === 'owed')).toEqual([]);
+  });
+
+  it('records no owed work while the grid has no view, so the first later call does not run it', () => {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      owedWorkProbe: true,
+      beforeInit() {
+        this._applySettingsAndData({ owedWorkProbe: { pass: 1 } }, [['init']], 'test');
+      },
+    });
+
+    hot._applySettingsAndData({ colHeaders: true }, [['later']], 'test');
+
+    expect(probeLog.filter(entry => entry[0] === 'owed')).toEqual([]);
+  });
+
+  it('answers that the load is pending only before the load of the call', () => {
+    const seen = [];
+
+    createGrid({
+      data: [['old']],
+      afterUpdateSettings() {
+        seen.push(['afterUpdateSettings', this._isDataLoadPending()]);
+      },
+      afterLoadData() {
+        seen.push(['afterLoadData', this._isDataLoadPending()]);
+      },
+    });
+    seen.length = 0;
+
+    hot._applySettingsAndData({ colHeaders: true }, [['new']], 'test');
+
+    expect(seen).toEqual([['afterUpdateSettings', true], ['afterLoadData', false]]);
+    expect(hot._isDataLoadPending()).toBe(false);
   });
 
   it('resumes rendering and leaves the flag down when an onDataReady() step throws', () => {

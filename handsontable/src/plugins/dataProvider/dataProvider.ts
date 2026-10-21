@@ -293,12 +293,6 @@ export {
  */
 export class DataProvider extends BasePlugin {
   /**
-   * Whether `updatePlugin()` left its fetch for `onDataReady()`.
-   *
-   * @type {boolean}
-   */
-  #fetchPending = false;
-  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -455,7 +449,7 @@ export class DataProvider extends BasePlugin {
 
     if (!this.#isPassive && this.hot.view) {
       if (this.isDataWorkDeferred()) {
-        this.#fetchPending = true;
+        this.deferDataWork();
       } else {
         void this.#fetchDataSilently();
       }
@@ -472,13 +466,7 @@ export class DataProvider extends BasePlugin {
    * @private
    */
   onDataReady() {
-    if (!this.#fetchPending) {
-      return;
-    }
-
-    this.#fetchPending = false;
-
-    if (!this.#isPassive) {
+    if (this.takeDeferredDataWork() && !this.#isPassive) {
       void this.#fetchDataSilently();
     }
   }
@@ -491,8 +479,6 @@ export class DataProvider extends BasePlugin {
    * `enablePlugin()` registers it again so it survives each `updatePlugin()` cycle.
    */
   disablePlugin(): void {
-    this.#fetchPending = false;
-
     if (!this.#isPassive) {
       this.#abortFetchesFor(this.#currentContext());
     }

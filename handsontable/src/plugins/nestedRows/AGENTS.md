@@ -375,7 +375,10 @@ They are written in different places and can drift. Keep this in mind:
   `enablePlugin()`. The existing `collapsedRowsStash` cannot carry it — that object dies with the old
   instance. Replay with `shouldRunHooks = false`: it repeats a choice the user already made, and
   firing hooks there reports a collapse on every settings update.
-- **An enable while `isDataWorkDeferred()` answers `true` is held back until the load that follows.**
+- **An enable while `isDataLoadPending()` answers `true` is held back until the load that follows.** It asks
+  `isDataLoadPending()`, not `isDataWorkDeferred()`: the latter stays `true` after the load, so an enable made
+  from an `afterLoadData` listener in the same call waited for a load that had already run and stayed on
+  with no tree.
   Core's `_applySettingsAndData()` (the sheets bar's switch, see `../base/AGENTS.md`) applies the
   settings while the grid still holds the previous dataset, then loads the new one. Without the hold,
   the settings-driven enable below validated that previous, flat array and turned the plugin off for

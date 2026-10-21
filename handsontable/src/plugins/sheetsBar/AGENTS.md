@@ -301,7 +301,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   switch's settings payload once any sheet declares it, and phase A of `_applySettingsAndData()` runs
   while the grid still holds the departing sheet's data. Built there, `generateFromSettings()`
   validated the arriving areas against the departing size and wrote its clearing `null`s into the
-  departing sheet's array. MergeCells' `updatePlugin()` therefore reads `isDataWorkDeferred()` and only
+  departing sheet's array. MergeCells' `updatePlugin()` therefore reads `isDataLoadPending()` and only
   rebuilds the plugin, keeping its record of applied areas. After the call,
   `#runMergeCellsSettingsPass` calls `runDeferredSettingsPass(apply)`: a first visit builds the
   declared merges against the arriving data; a sheet with a stored state passes `false` and builds
@@ -356,7 +356,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     manager then takes its tree from the load (its own `beforeLoadData`) instead of validating the
     departing flat array, which logged "requires an Array of Objects" and turned the plugin off for good.
   - **A new plugin whose `enablePlugin()` or `updatePlugin()` reads or writes the loaded rows must defer
-    that work** through `isDataWorkDeferred()` and `onDataReady()`. Do not add a per-plugin flag set by
+    that work** through `isDataWorkDeferred()`, BasePlugin's `deferDataWork()` and `onDataReady()`. Do not add a per-plugin flag set by
     the bar again, and do not split the payload into a before-load and an after-load part: both were
     the workarounds this contract replaced.
   - **A return applies the ColumnSummary endpoints the sheet left with, not the declared ones.** A
@@ -370,7 +370,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     A duplicate gets the original's current endpoints written into its own settings
     (`#copyColumnSummaryEndpoints`), because its copied data already has the summaries at their moved
     positions; and a server response that replaces a sheet's rows drops the stored endpoints
-    (`#keepDetachedOutcome`), so the declared positions apply to the fresh rows.
+    (`#keepDetachedOutcome`), so the declared positions apply to the fresh rows. A grid-level
+    `columnSummary` array that no sheet declares is captured into the settings baseline when the
+    workbook starts (`#captureGridColumnSummary`), so every switch restates it like a key a sheet
+    overrides. Without that the payload never named `columnSummary`, the stored endpoints were never
+    read back, and the plugin kept one sheet's moved endpoints on every other sheet, where they could
+    land on a data row. The function form is not captured: it reads its settings again on every pass.
   - **The init build applies the opening sheet from `beforeInit`, and core's own init settings pass
     then undoes two parts of it.** It registers the grid-level callback of every hook again (a
     settings hook is one replaceable `initialHook` entry per name, `core/hooks/bucket.ts`), so the
@@ -398,7 +403,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **A switch runs `loadData()` exactly once, and AutoColumnSize sweeps every column on it
   (DEV-2905, DEV-3040).** When the arriving settings change the Formulas plugin's `sheetName`,
   `Formulas#updatePlugin` would run `switchSheet()`, a `loadData()` of the engine's serialized content,
-  right before the switch's own load overwrote it. In phase A it reads `isDataWorkDeferred()` and only
+  right before the switch's own load overwrote it. In phase A it reads `isDataLoadPending()` and only
   binds the sheet, and the load's Formulas `afterLoadData` writes the array into that sheet, so the
   switch's load is the one load. A name the engine does not know still goes through `switchSheet()`,
   which reports it. Phase A also writes nothing into the departing sheet's array: core skips the `min*`

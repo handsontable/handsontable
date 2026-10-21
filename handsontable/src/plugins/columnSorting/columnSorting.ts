@@ -185,12 +185,6 @@ const pluginConflictsState = new WeakMap<object, string>();
  */
 export class ColumnSorting extends BasePlugin {
   /**
-   * Whether a settings sort waits for `onDataReady()`.
-   *
-   * @type {boolean}
-   */
-  #settingsSortPending = false;
-  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -326,7 +320,6 @@ export class ColumnSorting extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
-    this.#settingsSortPending = false;
     const clearColHeader = (column: number, TH: HTMLTableCellElement) => {
       const headerSpanElement = getHeaderSpanElement(TH);
 
@@ -1215,7 +1208,7 @@ export class ColumnSorting extends BasePlugin {
 
     if (wasEnabled && this.enabled && isDefined(pluginSettings)) {
       if (this.isDataWorkDeferred()) {
-        this.#settingsSortPending = true;
+        this.deferDataWork();
       } else {
         this.sortBySettings(pluginSettings);
       }
@@ -1231,12 +1224,9 @@ export class ColumnSorting extends BasePlugin {
    * @private
    */
   onDataReady() {
-    if (!this.#settingsSortPending) {
-      return;
+    if (this.takeDeferredDataWork()) {
+      this.#loadOrSortBySettings();
     }
-
-    this.#settingsSortPending = false;
-    this.#loadOrSortBySettings();
   }
 
   /**
@@ -1245,7 +1235,7 @@ export class ColumnSorting extends BasePlugin {
    */
   #sortBySettingsOnceDataIsReady() {
     if (this.isDataWorkDeferred()) {
-      this.#settingsSortPending = true;
+      this.deferDataWork();
     } else {
       this.#loadOrSortBySettings();
     }
