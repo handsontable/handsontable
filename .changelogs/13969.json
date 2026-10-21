@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `validateSettings()` reporting a `dataProvider.rowId` function and `null` for a plugin option, such as `pagination`, as invalid.",
+  "type": "fixed",
+  "issueOrPR": 13969,
+  "breaking": false,
+  "framework": "none"
+}
