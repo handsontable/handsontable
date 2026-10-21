@@ -16,6 +16,7 @@ import { TouchTapToEditPage } from '../fixtures/pages/TouchTapToEditPage';
  * counters are then read with `grid.expectHookCountExactly()`, a plain (non-polling)
  * assertion, so an over-count fails instead of passing on a first match.
  */
+// leg-declarations: ignore geometry-helper -- dispatchTouchDrag() reads the cell box only to place a script touch. The compared value is touchend.defaultPrevented, which no theme changes.
 test.use({
   ...devices['Desktop Chrome'],
   hasTouch: true,

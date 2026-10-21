@@ -8,6 +8,7 @@ import { TouchInteractiveCellPage } from '../fixtures/pages/TouchInteractiveCell
  * Pixel 7 is the profile from the report. Chromium synthesizes the click `locator.tap()` would
  * produce on that device.
  */
+// leg-declarations: ignore geometry-helper -- touchEndOnCell() reads the cell box only to place a script touch. The compared value is touchend.defaultPrevented, which no theme changes.
 test.use({
   ...devices['Pixel 7'],
   browserName: 'chromium',
