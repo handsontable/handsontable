@@ -71,11 +71,15 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   write made to a cell (`core/writeLedger.ts`) and fires no `afterChange` for a write it dropped, so a flight
   never ends by itself: a validated write that lands ends every older flight of the cell, and a write of
   another source ends the flights queued when it reached `beforeChange` (`#foreignWrites`, stamped by
-  `#stampForeignWrite`). A write made before every queued flight ends none, and a write that skips validation
-  is not ordered by the grid, so it ends none either. A dropped flight left in the queue made every later
-  write to the cell look outdated: its kept write was dropped and its undo step missing. Any other change to
-  the cell drops the kept write, so the user's edit stays a step of its own, and its own landing never cancels
-  a newer request for the cell (only the cells that depend on it). Core runs EVERY validator in a later microtask, so a validated write
+  `#stampForeignWrite`). Both look at `validated` only, the flag `#onBeforeValidate` sets on the flight of a
+  cell whose own validator started, and never at `validating`, which a write group spreads to its other
+  cells: the grid orders only the cells that have a validator. A write made before every queued flight ends
+  none, and a write that skips validation is not ordered by the grid, so it ends none either. A dropped
+  flight left in the queue made every later write to the cell look outdated: its kept write was dropped and
+  its undo step missing. `#onAfterValidate` ends a rejected flight by source AND value, because two flights
+  of one source are told apart there by nothing else. Any other change to the cell drops the kept write, so
+  the user's edit stays a step of its own, and its own landing never cancels a newer request for the cell
+  (only the cells that depend on it). Core runs EVERY validator in a later microtask, so a validated write
   cannot land inside the flush: `beforeValidate` (synchronous, inside the write) marks the flight
   `validating`, `afterValidate` with `allowInvalid: false` ends a rejected one, and any flight that neither
   landed nor validates by the end of `#write` never lands (a `beforeChange` veto) and is ended. Core holds a

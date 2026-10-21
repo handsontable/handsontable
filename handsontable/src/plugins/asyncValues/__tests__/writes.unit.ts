@@ -163,6 +163,33 @@ describe('AsyncValues: writes, flights, and rows', () => {
     });
   });
 
+  it('should end the right flight when the validator of the later write rejects it first', async() => {
+    const { answers, validator } = manualValidator();
+    const { hot, plugin, destroy } = createGrid({
+      undo: true,
+      columns: [{ data: 'sku' }, { data: 'name', validator, allowInvalid: false }, { data: 'price' }],
+    });
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    await plugin.setAsyncValue(0, 1, Promise.resolve('v1'), { undo: 'record' });
+    await settle();
+    await plugin.setAsyncValue(0, 1, Promise.resolve('v2'));
+    await settle();
+
+    answers[1].answer(false);
+    await settle();
+    answers[0].answer(true);
+    await settle();
+
+    expect(hot.getDataAtCell(0, 1)).toBe('v1');
+
+    undoRedo.undo();
+
+    expect(hot.getDataAtCell(0, 1)).toBe('old A');
+
+    destroy();
+  });
+
   it('should keep a value written after a user edit that waits for its validator, and order the next write', async() => {
     const { answers, validator } = manualValidator();
     const { hot, plugin, destroy } = createGrid({
