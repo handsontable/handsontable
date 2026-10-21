@@ -1,5 +1,5 @@
 import { devices } from '@playwright/test';
-import { test } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { TouchInteractiveCellPage } from '../fixtures/pages/TouchInteractiveCellPage';
 
 /**
@@ -73,5 +73,32 @@ test.describe('touch taps on interactive renderer elements', () => {
     await grid.expectClicks('button-blocked', 1);
     await grid.clickBarrier();
     await grid.expectClicksExact('button-blocked', 1);
+  });
+
+  test('on iOS Chrome, both taps on a text cell with visual selection off cancel touchend', async () => {
+    await grid.stubIosWebKit('chrome');
+
+    expect(await grid.touchEndOnCell(1, 0)).toBe(true);
+    expect(await grid.touchEndOnCell(1, 0)).toBe(true);
+  });
+
+  test('on iOS Firefox, both taps on a text cell with visual selection off cancel touchend', async () => {
+    await grid.stubIosWebKit('firefox');
+
+    expect(await grid.touchEndOnCell(1, 0)).toBe(true);
+    expect(await grid.touchEndOnCell(1, 0)).toBe(true);
+  });
+
+  test('on iOS Chrome, a control still receives the tap when visual selection is off', async () => {
+    await grid.stubIosWebKit('chrome');
+
+    await grid.tap('button-off');
+    await grid.expectClicks('button-off', 1);
+    await grid.tap('file-input');
+    await grid.expectClicks('file-input', 1);
+    await grid.tap('file-label-text');
+    await grid.expectClicks('file-via-label', 1);
+    await grid.tap('cell-link');
+    await grid.expectClicks('cell-link', 1);
   });
 });

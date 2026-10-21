@@ -182,6 +182,17 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.expectEditorClosed();
   });
 
+  test('a drift past the move threshold over an unselected cell cancels touchend', async () => {
+    // 12 px is past the 10 px threshold, so the touch path never calls onMouseDown and the
+    // cell stays unselected. touchend must still be cancelled (#11659). A script touch does
+    // not synthesize a click, so the cancelled event itself is the signal.
+    const prevented = await grid.dispatchTouchDrag(1, 1, 12);
+
+    expect(prevented).toBe(true);
+    await grid.expectHookCountExactly('beforeOnCellMouseDown', 0);
+    expect(await grid.page.evaluate(() => window.hot.getSelectedLast() ?? null)).toBeNull();
+  });
+
   test('a scroll gesture between two taps cancels the double-tap pairing', async ({ page }) => {
     await grid.tapCell(1, 1);
     await page.clock.runFor(200);

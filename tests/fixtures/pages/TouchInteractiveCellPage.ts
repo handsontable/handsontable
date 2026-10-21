@@ -76,6 +76,73 @@ export class TouchInteractiveCellPage {
   }
 
   /**
+   * Point the cached browser helpers at iOS Chrome or iOS Firefox. Listeners are already
+   * registered. `onTouchEnd` reads `isIOS` and the WebKit flags when the gesture ends.
+   */
+  async stubIosWebKit(engine: 'chrome' | 'firefox'): Promise<void> {
+    const userAgent = engine === 'chrome'
+      ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/126.0.6478.108 Mobile/15E148 Safari/604.1'
+      : 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/127.0 Mobile/15E148 Safari/605.1.15';
+
+    const detected = await this.page.evaluate((ua) => {
+      window.Handsontable.helper.setBrowserMeta({ userAgent: ua });
+      window.Handsontable.helper.setPlatformMeta({ platform: 'iPhone' });
+
+      return {
+        ios: window.Handsontable.helper.isIOS(),
+        chrome: window.Handsontable.helper.isChromeWebKit(),
+        firefox: window.Handsontable.helper.isFirefoxWebKit(),
+      };
+    }, userAgent);
+
+    expect(detected.ios).toBe(true);
+    expect(detected.chrome).toBe(engine === 'chrome');
+    expect(detected.firefox).toBe(engine === 'firefox');
+  }
+
+  /**
+   * Dispatch a script `touchstart` and `touchend` on a data cell and report whether
+   * `touchend` was cancelled. Row 1 of the visual-selection-off columns is plain text.
+   */
+  async touchEndOnCell(row: number, col: number): Promise<boolean> {
+    return this.page.evaluate(({ row: cellRow, col: cellCol }) => {
+      const td = window.hot.getCell(cellRow, cellCol);
+
+      if (!td) {
+        throw new Error(`no cell at ${cellRow},${cellCol}`);
+      }
+
+      const rect = td.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const touch = new Touch({
+        identifier: 1,
+        target: td,
+        clientX: x,
+        clientY: y,
+        pageX: x + window.scrollX,
+        pageY: y + window.scrollY,
+      });
+      const init = (ended: boolean): TouchEventInit => ({
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        touches: ended ? [] : [touch],
+        targetTouches: ended ? [] : [touch],
+        changedTouches: [touch],
+      });
+
+      td.dispatchEvent(new TouchEvent('touchstart', init(false)));
+
+      const end = new TouchEvent('touchend', init(true));
+
+      td.dispatchEvent(end);
+
+      return end.defaultPrevented;
+    }, { row, col });
+  }
+
+  /**
    * Click the button outside the grid. `outsideClickDeselects` is off, so this does not
    * clear the cell the tap selected. Its own click is the positive barrier: it is issued
    * after the tap, so a click the tap still owed has already been delivered.
