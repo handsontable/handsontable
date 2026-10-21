@@ -1,7 +1,7 @@
 {
   "issuesOrigin": "private",
-  "title": "Added an optional `changeListener` argument to `selectRows()`, `selectColumns()`, and `selectAll()` so a selection can keep focus on an input outside the grid.",
-  "type": "added",
+  "title": "Fixed `selectCells()` with `changeListener` set to `false` so an input outside the grid keeps focus when the call runs inside `batch()`, and when an `afterSelection` hook makes a plain selection call.",
+  "type": "fixed",
   "issueOrPR": 13961,
   "breaking": false,
   "framework": "none"

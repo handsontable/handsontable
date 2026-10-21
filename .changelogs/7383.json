@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed `selectCells()` with `changeListener` set to `false` so an input outside the grid keeps focus when the call runs inside `batch()`, and when an `afterSelection` hook calls `selectCell()`.",
+  "title": "Fixed `selectRows()`, `selectColumns()`, and `selectAll()` to accept an optional `changeListener` argument, so passing `false` keeps focus on an input outside the grid.",
   "type": "fixed",
   "issueOrPR": 7383,
   "breaking": false,
