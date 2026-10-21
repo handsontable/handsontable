@@ -347,7 +347,6 @@
     {"page":"freeze-bar","theme":"horizon","rule":"aria-required-children","target":"div.ht-wrapper[role=\"treegrid\"]","impact":"critical","nodes":1,"issue":"grid-roles"},
     {"page":"freeze-bar","theme":"classic","rule":"aria-required-children","target":"div.ht-wrapper[role=\"treegrid\"]","impact":"critical","nodes":1,"issue":"grid-roles"},
     {"page":"grid","theme":"main","rule":"aria-required-children","target":"div.ht-wrapper[role=\"treegrid\"]","impact":"critical","nodes":1,"issue":"grid-roles"},
-    {"page":"grid","theme":"main","rule":"aria-required-children","target":"div.planted-growth-proof[role=\"treegrid\"]","impact":"critical","nodes":1,"issue":"grid-roles"},
     {"page":"grid","theme":"horizon","rule":"aria-required-children","target":"div.ht-wrapper[role=\"treegrid\"]","impact":"critical","nodes":1,"issue":"grid-roles"},
     {"page":"grid","theme":"classic","rule":"aria-required-children","target":"div.ht-wrapper[role=\"treegrid\"]","impact":"critical","nodes":1,"issue":"grid-roles"},
     {"page":"handsontable-editor","theme":"main","rule":"aria-required-children","target":"div.ht-wrapper[role=\"treegrid\"]","impact":"critical","nodes":1,"issue":"grid-roles"},
