@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
 import {
   EmptyDataStateClippedContainerPage,
   type ClippedContainerOptions,
@@ -12,7 +12,7 @@ const EDGE_TOLERANCE_PX = 0.5;
  * taller than the grid because it also holds a toolbar. The overlay used to take that height, so it
  * spilled out of the grid and covered the toolbar below it.
  */
-test.describe('empty data state in a container that clips its overflow', { tag: CROSS_BROWSER_TAG }, () => {
+test.describe('empty data state in a container that clips its overflow', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   const shapes: [string, ClippedContainerOptions][] = [
     ['with no columns', { columns: false }],
     ['with columns and no rows', { columns: true }],

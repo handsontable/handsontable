@@ -78,6 +78,10 @@ data) and converts the values to what each type stores. Read this before touchin
 - **Shared symbols resolve by region** (`resolveCurrencyCode` in `locale.ts`): `$` is CAD under
   `en-CA`, `kr` is NOK under `nb-NO`, but only for the regions `REGIONAL_CURRENCY_CODES` lists; any
   other region takes the symbol's default code (`$` is USD). Add a region there, never a second table.
+  A symbol added to the shared table that several currencies write needs its region rows here in the
+  same change: `kr.` and the full-width `￥` arrived with the XLSX engine (#13634) and resolved
+  to DKK and JPY under every locale, so `13 kr.` under `is-IS` and `￥13` under `zh-CN` became
+  numbers in the wrong currency where they had stayed text.
   `inputFormat.currencySymbol` carries the SYMBOL to the converter, because the converter has no locale
   to turn a code back into a symbol.
 - **Inference without conversion is a trap.** The `date` and `time` cell types validate source data as
@@ -128,10 +132,14 @@ data) and converts the values to what each type stores. Read this before touchin
   getters agree, so a `Date` subclass with its own local getters pins them (`LocalClock` in the tests).
 - **A percent column divides by moving the exponent** (`'7.25' + 'e-2'`), not by `/ 100`, which keeps
   `7.25%` exactly `0.0725`.
-- **The currency table is shared** with `../../plugins/importFile/inference.ts` through
-  `../currencySymbols.ts`. Every symbol there is a `\u` escape (see the ASCII rule in
-  `handsontable/AGENTS.md`): a raw `z\u0142` key breaks the non-minified bundle on a non-UTF-8 page,
-  and a raw `\u20ac` string decodes wrongly there, so a euro column would infer as text.
+- **The currency table is shared** with the XLSX number-format reader
+  (`../xlsxEngine/numFmtCode.ts`, which the import's `inference.ts` calls) through
+  `../currencySymbols.ts`. A symbol added there is read in raw values too (`kr.`, `Ft`). The
+  reader's LCID table for shared symbols (`SHARED_SYMBOL_LCID_TO_CODE`) stays in `numFmtCode.ts`;
+  raw values pick a shared symbol's currency from the locale region instead (`resolveCurrencyCode`).
+  Every symbol there is a `\u` escape (see the ASCII rule in `handsontable/AGENTS.md`): a raw
+  `z\u0142` key breaks the non-minified bundle on a non-UTF-8 page, and a raw `\u20ac`
+  string decodes wrongly there, so a euro column would infer as text.
 - **A `+` in front of space-grouped integers is a phone number** (`+48 601 234 567`), so
   `splitNumberParts` rejects it, and so does it for an integer of nine digits or more grouped by PLAIN
   spaces (`601 234 567`) with no currency and no percent sign. The rule lives in `splitNumberParts`, not

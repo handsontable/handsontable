@@ -33,6 +33,7 @@ function sorted(values: string[]): string[] {
  * `hot.listen()` independently, so a case that checked only the dropdown would pass on a fix that
  * still stole focus.
  */
+// leg-declarations: ignore pointer-offset -- openEditor() presses 5 px inside the cell's top-left corner, clear of the right-floated dropdown arrow on every theme; the cases assert the choice list and the committed values
 EDITORS.forEach((editor) => {
   test.describe(`${editor} editor with an asynchronous source`, () => {
     let grid: AutocompleteAsyncSourcePage;

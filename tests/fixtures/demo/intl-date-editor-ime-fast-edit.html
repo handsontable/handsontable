@@ -59,6 +59,8 @@
         columns: [
           { type: 'intl-date' },
           {},
+          // Scanned by the a11y scan's intl-time-editor page; no spec of this fixture reads it.
+          { type: 'intl-time' },
         ],
         imeFastEdit: true,
         afterRenderer: function(td, row, col) {

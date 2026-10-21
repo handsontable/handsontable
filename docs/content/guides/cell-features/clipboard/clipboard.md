@@ -185,6 +185,8 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to mani
 
 Examples of how to use them are provided in their descriptions.
 
+Changes that [`beforeCopy`](@/api/hooks.md#beforecopy) and [`beforeCut`](@/api/hooks.md#beforecut) make to the copied data also reach a paste into another Handsontable grid, including one with [`parsePastedValue`](@/api/options.md#parsepastedvalue) turned on. A value you mask or a row you remove doesn't come back through the clipboard.
+
 ### Copy with headers
 
 You can let the end user copy the contents of column headers, by enabling additional [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) items:

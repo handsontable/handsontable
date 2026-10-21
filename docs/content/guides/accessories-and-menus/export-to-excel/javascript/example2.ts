@@ -1,6 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
 
 registerAllModules();
 
@@ -36,7 +35,7 @@ const sharedConfig: Handsontable.GridSettings = {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  exportFile: { engines: { xlsx: ExcelJS } },
+  exportFile: true,
   licenseKey: 'non-commercial-and-evaluation',
 };
 

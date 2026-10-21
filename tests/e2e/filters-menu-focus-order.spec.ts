@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FiltersMenuKeyboardPage } from '../fixtures/pages/FiltersMenuKeyboardPage';
 
 /**
@@ -17,7 +17,7 @@ import { FiltersMenuKeyboardPage } from '../fixtures/pages/FiltersMenuKeyboardPa
  * join the order only after you choose the first condition, and ArrowDown from the search input, not
  * Tab, enters the value list.
  */
-test.describe('filters menu — keyboard focus order', () => {
+test.describe('filters menu — keyboard focus order', { tag: THEMES_TAG }, () => {
   let grid: FiltersMenuKeyboardPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

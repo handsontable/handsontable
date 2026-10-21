@@ -39,7 +39,7 @@ export function normalizeExportOptions<T extends Record<string, unknown>>(option
 }
 
 /**
- * One entry of a nested-header layer as `DataProvider#getNestedColumnHeaders()` returns it.
+ * One entry of a nested-header layer as `ExportDataProvider#getNestedColumnHeaders()` returns it.
  * `colspan` is the number of exported columns the label covers after hidden-column and range
  * clamping. It is at least `1`: a span whose every column is excluded from the export produces no
  * entry at all.
@@ -63,7 +63,7 @@ export interface NestedHeaderLayerEntry {
  *
  * An empty label keeps its cell, so the column count stays aligned with the data rows.
  *
- * @param {Array} layers Layers from `DataProvider#getNestedColumnHeaders()`, top layer first.
+ * @param {Array} layers Layers from `ExportDataProvider#getNestedColumnHeaders()`, top layer first.
  * @returns {string[][]} One row of labels per layer.
  */
 export function expandNestedHeaderLayers(layers: NestedHeaderLayerEntry[][]): string[][] {

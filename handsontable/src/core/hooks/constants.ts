@@ -483,11 +483,13 @@ export const REGISTERED_HOOKS = [
   'afterGetRowHeader',
 
   /**
-   * Fired by the {@link ImportFile} plugin after the imported result was applied to the grid.
+   * Fired by the {@link ImportFile} plugin after the imported result was applied to the grid. Not
+   * fired for an import with `apply: false`, for one that a newer import replaced, or for one the
+   * plugin was disabled during (`importFile: false` while the file was being read).
    *
    * @event Hooks#afterImport
    * @since 19.0.0
-   * @param {object} result The applied {@link ImportFile} result.
+   * @param {ImportResult} result The applied {@link ImportFile} result.
    * @param {string} format The import format, e.g. `'xlsx'`.
    */
   'afterImport',
@@ -1886,11 +1888,13 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by the {@link ImportFile} plugin after a workbook was read and mapped, and before the
-   * result is applied to the grid. Mutating `result` changes what gets applied.
+   * result is applied to the grid. Mutating `result` changes what gets applied. Not fired for an
+   * import with `apply: false`, for one that a newer import replaced, or for one the plugin was
+   * disabled during. The dropped-features warning is already printed by then.
    *
    * @event Hooks#beforeImport
    * @since 19.0.0
-   * @param {object} result The {@link ImportFile} result about to be applied.
+   * @param {ImportResult} result The {@link ImportFile} result about to be applied.
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @returns {boolean|undefined} If `false`, the result is not applied. The import promise still resolves with it.
    */
@@ -2627,6 +2631,8 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link CopyPaste} plugin before copying the values to the clipboard and before clearing values of
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
+   * Changes the callback makes to `data` also apply to the data that a paste into another Handsontable grid reads.
+   *
    * @event Hooks#beforeCut
    * @param {Array[]} data An array of arrays which contains data to cut.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
@@ -2714,6 +2720,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired before values are copied to the clipboard.
+   *
+   * Changes the callback makes to `data` also apply to the data that a paste into another Handsontable grid reads.
    *
    * @event Hooks#beforeCopy
    * @param {Array[]} data An array of arrays which contains data to copied.

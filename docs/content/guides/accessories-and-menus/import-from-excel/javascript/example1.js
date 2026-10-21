@@ -1,8 +1,10 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
+import { HyperFormula } from 'hyperformula';
 
 registerAllModules();
+
+const SAMPLE_URL = '/docs/scripts/xlsx/employees.xlsx';
 
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
@@ -23,28 +25,51 @@ const hot = new Handsontable(container, {
     { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
   ],
   rowHeaders: true,
+  formulas: { engine: HyperFormula },
+  comments: true,
+  mergeCells: true,
+  hiddenColumns: true,
+  customBorders: true,
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  importFile: { engines: { xlsx: ExcelJS } },
+  importFile: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
 const importPlugin = hot.getPlugin('importFile');
+const status = document.querySelector('#import-status');
 const fileInput = document.querySelector('#import-file');
+
+async function importWorkbook(blob, name) {
+  try {
+    const result = await importPlugin.importFromBlob('xlsx', blob, {
+      colHeaders: 'firstRow',
+      importStyles: true,
+    });
+
+    status.textContent = `Imported ${name}`;
+    console.log('Dropped features:', result.dropped);
+  } catch (error) {
+    // A refused file (an .xls, a password-protected or damaged workbook) rejects with a message
+    // that says what to do; the grid keeps its data.
+    status.textContent = error.message;
+  }
+}
+
+document.querySelector('#load-sample').addEventListener('click', async () => {
+  const response = await fetch(SAMPLE_URL);
+
+  await importWorkbook(await response.blob(), 'employees.xlsx');
+});
 
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files?.[0];
 
-  if (!file) {
-    return;
+  if (file) {
+    await importWorkbook(file, file.name);
   }
 
-  const result = await importPlugin.importFromBlob('xlsx', file, {
-    colHeaders: 'firstRow',
-  });
-
-  console.log('Dropped features:', result.dropped);
-
+  // Cleared either way, so picking the same file again fires `change` again.
   fileInput.value = '';
 });

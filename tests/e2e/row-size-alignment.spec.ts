@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { RowSizeAlignmentPage } from '../fixtures/pages/RowSizeAlignmentPage';
 
 /**
@@ -12,7 +12,7 @@ import { RowSizeAlignmentPage } from '../fixtures/pages/RowSizeAlignmentPage';
 const EDGE_TOLERANCE_PX = 0.5;
 
 for (const [cells, deltaY] of [['normal', 300], ['small', 500]] as const) {
-  test(`keeps every row header level with its row after a wheel scroll (${cells} cells)`, async({
+  test(`keeps every row header level with its row after a wheel scroll (${cells} cells)`, { tag: THEMES_TAG }, async({
     page, theme, bundle,
   }) => {
     const grid = new RowSizeAlignmentPage(page, theme, bundle);

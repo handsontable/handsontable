@@ -1,5 +1,5 @@
 import Xlsx from '../types/xlsx';
-import DataProvider from '../dataProvider';
+import ExportDataProvider from '../dataProvider';
 
 const mockProviderState = {
   data: [[null]],
@@ -73,6 +73,10 @@ jest.mock('../dataProvider', () => ({
 
     getSourceData() {
       return [[null]];
+    }
+
+    getFormulaErrorCodes() {
+      return this.getData().map(row => row.map(() => null));
     }
 
     getFormulasSeparator() {
@@ -163,7 +167,7 @@ async function exportSummaryCell(cellValue) {
     destRow: 0, destCol: 0, type: 'sum', sourceCol: 0, sourceRanges: [[0, 0]],
   }];
 
-  const xlsx = new Xlsx(new DataProvider(instance), { engine, exportFormulas: true });
+  const xlsx = new Xlsx(new ExportDataProvider(instance), { engine, exportFormulas: true });
 
   await xlsx.export();
 

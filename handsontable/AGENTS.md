@@ -159,6 +159,17 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 - **`DateEditor#focus()` must call `focus()` before `select()`: Firefox does not move the focus on `select()` for `type="date"`.** Chromium and WebKit do, which hid it. Without the focus call `document.activeElement` stays on the cell and the typed digits are dropped. `preventScroll` keeps the page from jumping. `TimeEditor#focus()` and `IntlDatetimeEditor#focus()` do the same. The `imeFastEdit` refocus (`FocusGridManager#refocusToEditorTextarea()`) is a separate path with the same rule, because it moves the focus without opening the editor and so never reaches an editor's `focus()`: it calls `focusElement()` before `select()`, and calls `select()` only when the refocus element has one (a `setRefocusElementGetter()` element need not). Pinned by `tests/e2e/intl-date-editor-ime-fast-edit.spec.ts` (Firefox leg) and the `refocusToEditorTextarea` cases in `src/__tests__/focusManager.spec.js`. `close()` of all three editors calls `hideNativePicker()` (`editors/utils/showNativePicker.ts`), which blurs the input after the base `close()` while the picker is open, because Firefox keeps the picker open otherwise, then puts the focus back on the highlighted cell. The picker state comes from `:open` (Firefox 136, Chrome 133); older engines throw on it and are treated as open. A double-click is the path that leaves a picker to close. Pinned by `tests/e2e/date-editor-keyboard-focus.spec.ts` (date) and `tests/e2e/native-picker-editor-keyboard.spec.ts` (all three), whose Firefox legs run in CI.
 - **The date, time, and datetime editors show their native picker only for a pointer open or an open with no event (`showNativePicker()` in `editors/utils/`); a keyboard open (Enter, F2, typing) leaves it closed.** While Chromium shows a picker it takes the keys: a capture-phase `keydown` on the window gets no Tab, so Tab after Enter left the selection on the cell. `open(event)` reads `event.type` (`key*`), not `instanceof KeyboardEvent`, so an event from an iframe counts. The API open with no event keeps the picker. The keyboard way to show it is the browser's own (Alt+ArrowDown in Chromium, pinned in `tests/e2e/native-picker-editor-keyboard.spec.ts`; the Firefox and WebKit key was not measured). Any spec or capture that needs the picker shown must open by double-click: `visual-tests/tests/js-only/complex-demo/rtl/open-date-editor.spec.ts` does, and its goldens change only if the picker's look does.
 
+## Accessibility
+
+The bar is WCAG 2.2 Level A and AA, and the `handsontable-a11y` skill is the workflow: an accessibility plan before the code, the build rules, the proof, and the fix loop for a scan finding. The rules a core change must not get wrong:
+
+- **Roles and ARIA attributes go through `src/helpers/a11y.ts`**, written with `setAttribute(element, [A11Y_…()])` from `helpers/dom/element`. A missing attribute gets a helper there, not a string literal at the call site.
+- **A role keeps its required parents and children.** Menus and lists are Handsontable grids, so a widget role on a `td` needs `role="presentation"` on the `table`, `tbody` and `tr` around it; the baseline's `menu-roles`, `menu-separators` and `filters-listbox` issues are what skipping it looks like.
+- **Names and announcements are i18n phrases** (`src/i18n/constants.ts`), like every user-visible string. A change without a focus move is announced with `announce()` from `src/utils/a11yAnnouncer.ts`, which defaults to `'assertive'`: a status message passes `'polite'`, and `assertive` is for errors.
+- **Keys go through a shortcut context and focus through a focus scope** (the focus-scope bullets in Common Pitfalls above). A surface that takes focus returns it to the cell or its opener on close.
+- **`ariaTags: false` turns off ARIA and nothing else.** No behavior reads an `aria-*` attribute or depends on one existing.
+- **A new plugin or editor is accounted for in the scan.** It adds its entry to `tests/a11y/coverage.mjs` (the scanned pages, why it draws nothing, or a counted gap), and the root `test:tooling` fails until it does; a plugin with UI adds a page to `tests/a11y/pages.mjs`.
+
 ## Key File Locations
 
 | Area | Path (relative to `handsontable/`) |
@@ -184,6 +195,7 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 | Build/test task definitions | `scripts/tasks.json` |
 | Figma theme generator (codegen for `src/themes/static`) | `scripts/themes/figma/` — run `npm run generate:themes` |
 | Shortcut contexts | `src/shortcuts/contexts/` |
+| ARIA helpers, screen reader announcer | `src/helpers/a11y.ts`, `src/utils/a11yAnnouncer.ts` |
 
 ## Performance
 
@@ -260,6 +272,7 @@ Extra args after `--` flow through to tasks with `"passthrough": true` in `tasks
 
 - Type check: `npm run test:types`
 - **Never type-check with `npx tsc`.** npm can resolve the deprecated `tsc` placeholder package instead of the compiler, and it prints "No errors found" without type-checking anything. Use `npm run test:types`, or `./node_modules/.bin/tsc --noEmit -p tsconfig.json` from `handsontable/`
+- **`tsc -p tsconfig.json` does not compile the `*.types.ts` regression files.** Those files live next to the code they pin, in `src/**/__tests__/` (and `src/__tests__/`), and `tsconfig.json` excludes them. They compile in their own project, `test/types/tsconfig.json`, whose `include` is `../../src/**/*.types.ts` and whose `paths` resolve `handsontable` to the generated declarations in `tmp/` (which is why `test:types` depends on `build:types` and `downlevel:types`). So a source-level type change that breaks one — widening `XlsxEngineKind` broke the `importFile` type test's `'exceljs'` pin (DEV-3011) — passes the main config and fails only in `npm run test:types` and CI. After changing a public type, run `npm run test:types`, not just the main config. The direct `./node_modules/.bin/tsc -p ./test/types` form checks whatever `tmp/` already holds, so it only sees a source change after `build:types` and `downlevel:types` have run
 - `readonly #field` syntax IS valid TypeScript — do NOT convert `#field` to `private readonly field` to add `readonly`
 - When removing `as T` casts (e.g. SonarCloud S4325), always rerun `npm run test:types` — some casts are load-bearing
 - Prefer fixing function/method signatures or making them generic over adding `as T[]` casts at call sites
@@ -274,3 +287,4 @@ Use these skills for detailed workflow instructions:
 - Coordinate systems: `coordinate-systems`
 - Linting: this file's Lint section + `handsontable/.ai/CONVENTIONS.md`
 - i18n: `i18n-translations`
+- Accessibility (ARIA, keyboard, focus, announcements, contrast, the axe scan): `handsontable-a11y`
