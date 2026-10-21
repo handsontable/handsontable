@@ -60,13 +60,36 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   afford. So every write of the call is suppressed like a `'skip'` write, and `#planWrite` keeps a
   `PendingWrite` in the row's `writes` map (it follows the row through inserts, removals, index resets and
   data replacements, because it lives on the `RowState`) and counts it in `run.unlanded`.
-  **A write is matched to its landing through the cell's flight queue, not by `source` alone.** Every value the
-  plugin passes to the grid (kept or not) is a `Flight` in `state.flights`, in write order. A change event with
-  a flight's source is that flight landing (`#onFlightLanded`); while a later flight to the cell is still
-  queued, the value is outdated (two calls wrote the cell while its validator ran) and lands nothing. Matching
-  by source alone recorded `old -> v1` while the cell showed `v2`. Any other change to the cell drops the kept
-  write, so the user's edit stays a step of its own, and its own landing never cancels a newer request for the
-  cell (only the cells that depend on it). Core runs EVERY validator in a later microtask, so a validated write
+  **A write is matched to its landing by its change tuple, not by `source`.** Every value the plugin passes to
+  the grid (kept or not) is a `Flight` in `state.flights`, in write order, with a `sequence`.
+  `#onAfterSetDataAtRowProp` maps each tuple of the plugin's own write to its flight (`#flightByChange`, found
+  through `#writing` while `#write` runs), and the grid reports an applied tuple to `afterChange` as the
+  same object, so a landing names its flight exactly (`#onFlightLanded`); the source is only the fallback
+  for a tuple that is not in the map: a source write (`setSourceDataAtCell`) or a foreign write of the same
+  source. Two calls with one source can land in either order, so matching by
+  source booked `v2`'s landing on the first flight. While a later flight to the cell is still queued, a landing value is
+  outdated (two calls wrote the cell while its validator ran) and lands nothing. The grid applies the last
+  write made to a cell (`core/writeLedger.ts`) and fires no `afterChange` for a write it dropped, so a flight
+  never ends by itself: a validated write that lands ends every older flight of the cell, and a write of
+  another source ends the flights queued when it reached `beforeChange` (`#foreignWrites`, stamped by
+  `#stampForeignWrite`). Both look at `validated` only, the flag `#onBeforeValidate` sets on the flight of a
+  cell whose own validator started, and never at `validating`, which a write group spreads to its other
+  cells: the grid orders only the cells that have a validator. A write made before every queued flight ends
+  none, and a write that skips validation is not ordered by the grid, so it ends none either. A dropped
+  flight left in the queue made every later write to the cell look outdated: its kept write was dropped and
+  its undo step missing. A validator's answer names no flight, so a rejected
+  or overtaken one is found by the grid's own list instead: `#onAfterSetDataAtRowProp` keeps, on each flight,
+  the change tuple and the list core validates and applies (the list after `beforeChange` and the
+  `valueSetter`), the grid splices a rejected or overtaken tuple out of that list, and `#onPostAfterValidate`
+  (it runs after the answer is applied) ends every flight of the cell whose tuple is gone. Source and value
+  cannot do it: two calls can write the same value with the same source. A call's kept write that has not
+  landed stays under the next call's write to the cell (`PendingWrite#supersedes`): the grid applies the
+  last write made, so the older write lands only when the newer one does not, a rejection for one
+  (`#removeWrite` reveals it again), and the newer one landing drops it (`#dropSuperseded`). A change of
+  another source drops the kept write unless its flight is validated and was written after that change.
+  Any other change to the cell drops the kept write, so
+  the user's edit stays a step of its own, and its own landing never cancels a newer request for the cell
+  (only the cells that depend on it). Core runs EVERY validator in a later microtask, so a validated write
   cannot land inside the flush: `beforeValidate` (synchronous, inside the write) marks the flight
   `validating`, `afterValidate` with `allowInvalid: false` ends a rejected one, and any flight that neither
   landed nor validates by the end of `#write` never lands (a `beforeChange` veto) and is ended. Core holds a

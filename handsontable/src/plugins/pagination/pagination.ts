@@ -28,6 +28,21 @@ const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requi
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
 
 /**
+ * The keys the plugin reads from the `pagination` object. `settingsSchema` lists them as the only keys
+ * `validateSettings()` accepts there, so a key the plugin starts to read belongs here and in
+ * `DEFAULT_SETTINGS`.
+ */
+export interface PaginationSettings {
+  pageSize?: number | 'auto';
+  pageSizeList?: Array<number | 'auto'>;
+  initialPage?: number;
+  showPageSize?: boolean;
+  showCounter?: boolean;
+  showNavigation?: boolean;
+  uiContainer?: HTMLElement | null;
+}
+
+/**
  * The page state `Pagination#captureState()` records.
  */
 interface PageState {

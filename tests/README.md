@@ -43,7 +43,9 @@ npm run lint            # determinism + parse checks on the specs
 
 The fixtures load the built core: `dist/handsontable.js` (`full.min.js` for the `-min` legs) and
 the **minified** stylesheets. On a fresh checkout run `npm --prefix handsontable run build`, or
-minimally `build:umd`, `build:umd.min`, `build:styles.min`, and `build:themes-css.min`. A missing
+minimally `build:umd`, `build:umd.min`, `build:styles.min`, and `build:themes-css.min`. The settings schema spec
+(`settings-schema-umd.spec.ts`) also loads `dist/handsontable.settings-schema.js` (`.min.js` for the `-min` legs),
+which `build:settings-schema-umd` and `build:settings-schema-umd.min` write. A missing
 theme `.min.css` does **not** error — the grid renders unstyled (~20px rows) and specs fail in
 misleading, geometry-dependent ways, so check the browser's network panel for 404s before
 believing a strange local failure.

@@ -75,6 +75,10 @@ export interface JsonSchemaObject {
   not?: JsonSchemaObject;
   items?: JsonSchemaObject;
   properties?: Record<string, JsonSchemaObject>;
+  /**
+   * `false` when `properties` lists every key the object accepts, so any other key is a mistake.
+   */
+  additionalProperties?: boolean;
   required?: string[];
   minimum?: number;
   'x-handsontable'?: SettingsSchemaAnnotations;

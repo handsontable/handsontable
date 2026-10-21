@@ -1,13 +1,17 @@
 import { settingsSchema } from './schema';
 import { internals } from './schema.generated';
 import metaSchemaFactory from '../dataMap/metaManager/metaSchema';
-import { Hooks } from '../core/hooks';
 import { REMOVED_HOOKS } from '../core/hooks/constants';
-import { hasCellType } from '../cellTypes/registry';
-import { hasEditor } from '../editors/registry';
-import { hasRenderer } from '../renderers/registry';
-import { hasValidator } from '../validators/registry';
-import { getPlugin, getPluginsNames, hasPlugin } from '../plugins/registry';
+import {
+  getHooks,
+  getPlugin,
+  getPluginsNames,
+  hasCellType,
+  hasEditor,
+  hasPlugin,
+  hasRenderer,
+  hasValidator,
+} from './registries';
 import { findClosestMatch } from './closestMatch';
 import type { HotInstance } from '../core/types';
 import type {
@@ -167,6 +171,21 @@ function readProperty(object: object, key: string | number): Read {
     return { ok: true, value: Reflect.get(object, key) };
   } catch {
     return { ok: false };
+  }
+}
+
+/**
+ * Tells whether an object has a key of its own, without throwing: a Proxy may throw from the trap behind it.
+ *
+ * @param {object} object The object.
+ * @param {string} key The property.
+ * @returns {boolean}
+ */
+function hasOwnKey(object: object, key: string): boolean {
+  try {
+    return Object.hasOwn(object, key);
+  } catch {
+    return false;
   }
 }
 
@@ -448,7 +467,7 @@ function checkContents(value: unknown, branch: JsonSchemaObject, path: string, c
     const { properties } = branch;
 
     Object.keys(properties).forEach((key) => {
-      if (!Object.prototype.hasOwnProperty.call(value, key)) {
+      if (!hasOwnKey(value, key)) {
         return;
       }
 
@@ -461,6 +480,10 @@ function checkContents(value: unknown, branch: JsonSchemaObject, path: string, c
         checkValue(read.value, properties[key], propertyPath, context);
       }
     });
+
+    if (branch.additionalProperties === false) {
+      reportUnknownKeys(value, Object.keys(properties), path, context);
+    }
   }
 }
 
@@ -544,6 +567,88 @@ function describeLevels(levels: SettingsSchemaLevel[]): string {
 }
 
 /**
+ * Builds the "did you mean" sentence of an unknown key, or an empty string when nothing is close.
+ *
+ * @param {string} key The unknown key.
+ * @param {string[]} candidates The keys that are allowed there.
+ * @returns {string}
+ */
+function getSuggestionHint(key: string, candidates: string[]): string {
+  const suggestion = findClosestMatch(key, candidates);
+
+  return suggestion === null ? '' : ` Did you mean '${suggestion}'?`;
+}
+
+/**
+ * Lists the keys of the grid-level settings object of the option a path ends in, so a key that the grid
+ * level reads but a column or cell level does not (`columns[0].filters.searchMode`) is not reported as a typo.
+ *
+ * @param {string} path The path of the settings object.
+ * @returns {string[]}
+ */
+function getGridLevelKeys(path: string): string[] {
+  const optionName = path.match(/([^.[\]]+)$/)?.[1];
+  const node = optionName === undefined ? undefined : getOwnNode(settingsSchema.properties, optionName);
+  const object = node && getBranches(node).find(branch => branch.additionalProperties === false);
+
+  return Object.keys(object?.properties ?? {});
+}
+
+/**
+ * Reports the own keys of a settings object that the schema node does not list. Only a node that
+ * lists every key it accepts (`additionalProperties: false`) calls it. A key set to `undefined` is
+ * unset, as it is at the top level, so it passes. A class instance is skipped, as for any other check
+ * of its contents.
+ *
+ * @param {object} value The settings object.
+ * @param {string[]} knownKeys The keys the node lists.
+ * @param {string} path The object's path.
+ * @param {Context} context The validation state.
+ */
+function reportUnknownKeys(value: Record<string, unknown>, knownKeys: string[], path: string, context: Context): void {
+  let keys: string[];
+
+  try {
+    // A class instance (a `dataProvider` object with fields of its own) is not a settings literal.
+    if (hasRuntimeType(value, 'object')) {
+      return;
+    }
+
+    keys = Object.keys(value);
+  } catch {
+    // A Proxy may throw from `getPrototypeOf` or `ownKeys`; the keys it holds cannot be listed.
+    context.problems.push(unreadable(path));
+
+    return;
+  }
+
+  const gridKeys = getGridLevelKeys(path);
+
+  keys.forEach((key) => {
+    if (knownKeys.includes(key)) {
+      return;
+    }
+
+    const read = readProperty(value, key);
+
+    // A cleared key reads as `undefined` and is unset; one that cannot be read is still reported.
+    if (read.ok && read.value === undefined) {
+      return;
+    }
+
+    context.problems.push(gridKeys.includes(key) ? {
+      path: joinPath(path, key),
+      code: 'wrongLevel',
+      message: `'${key}' can be set at the grid level only.`,
+    } : {
+      path: joinPath(path, key),
+      code: 'unknownOption',
+      message: `Unknown option '${key}'.${getSuggestionHint(key, knownKeys)}`,
+    });
+  });
+}
+
+/**
  * Reports a key that is not a known option at its level.
  *
  * @param {string} key The key.
@@ -553,10 +658,9 @@ function describeLevels(levels: SettingsSchemaLevel[]): string {
  */
 function reportUnknownOption(key: string, level: SettingsSchemaLevel, path: string, context: Context): void {
   const candidates = level === 'grid' ?
-    [...new Set(getOptionNames(level).concat(Hooks.getSingleton().getRegistered()))] :
+    [...new Set(getOptionNames(level).concat(getHooks().getRegistered()))] :
     getOptionNames(level);
-  const suggestion = findClosestMatch(key, candidates);
-  const hint = suggestion === null ? '' : ` Did you mean '${suggestion}'?`;
+  const hint = getSuggestionHint(key, candidates);
   // A removed hook may also be a typo of an option (`hiddenColumn` for `hiddenColumns`).
   const removedIn = REMOVED_HOOKS.get(key);
 
@@ -922,7 +1026,7 @@ function checkOption(key: string, value: unknown, level: SettingsSchemaLevel, pa
     return;
   }
 
-  const isHook = option?.['x-handsontable']?.hook || (option === undefined && Hooks.getSingleton().isRegistered(key));
+  const isHook = option?.['x-handsontable']?.hook || (option === undefined && getHooks().isRegistered(key));
 
   // An unset value is never a problem, whatever the key or the level. Core skips a hook set to
   // anything but a function, so `afterChange: enabled && callback` is fine too.
@@ -1091,7 +1195,8 @@ function readPluginKeys(): Set<string> {
  * Each problem has a `path` (`columns[3].type`), a `code`, a `severity`, and a `message`. A `warning`
  * (`unknownDataProperty`, `pluginDisabled`) is a likely mistake that may be intended, and does not make
  * the settings invalid; every other code is an `error`. A minor release can add a code. The codes are:
- * `unknownOption` (with a "did you mean" hint when an option is close), `wrongLevel` (a grid-only
+ * `unknownOption` (with a "did you mean" hint when an option is close; also a misspelled key inside the
+ * settings object of a plugin option that lists every key, as in `filters.serchMode`), `wrongLevel` (a grid-only
  * option inside `columns`, for example), `invalidType` and `invalidValue` (a value of the wrong
  * type, or outside the allowed set), `unknownCellType`, `unknownEditor`, `unknownRenderer` and
  * `unknownValidator` (a name that is not registered), `pluginNotRegistered` (an option of a
