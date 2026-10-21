@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Declared the `enterCommits`, `filterSelectedItems`, `notification`, `maxSelections`, `valueParser`, `searchInput`, `sourceSortFunction`, `theme`, `injectCoreCss`, and `parsePastedValue` options in the `GridSettings` TypeScript type.",
+  "type": "changed",
+  "issueOrPR": 13964,
+  "breaking": true,
+  "framework": "none"
+}
