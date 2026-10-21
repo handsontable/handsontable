@@ -52,6 +52,7 @@
     "flatpickr": "^4.6.13",
     "gray-matter": "^4.0.3",
     "hyperformula": "^3.4.0",
+    "hyperformula-ui": "0.3.5",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",
     "lucide": "^1.43.0",

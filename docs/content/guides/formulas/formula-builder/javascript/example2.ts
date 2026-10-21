@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
-import * as formulaBuilder from '@hfe/core';
+import * as formulaBuilder from 'hyperformula-ui';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -14,7 +14,7 @@ const data: (string | number)[][] = [
   ['All campaigns', '=SUM(B1:B4)', '=SUM(C1:C4)', '=C5/B5'],
 ];
 
-const container = document.querySelector('#example2')!;
+const container = document.querySelector<HTMLElement>('#example2')!;
 
 new Handsontable(container, {
   data,

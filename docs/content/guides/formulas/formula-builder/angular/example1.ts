@@ -2,7 +2,7 @@
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import { HyperFormula } from 'hyperformula';
-import * as formulaBuilder from '@hfe/core';
+import * as formulaBuilder from 'hyperformula-ui';
 
 @Component({
   standalone: true,

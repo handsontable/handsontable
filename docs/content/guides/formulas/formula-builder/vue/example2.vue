@@ -2,7 +2,7 @@
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
-import * as formulaBuilder from '@hfe/core';
+import * as formulaBuilder from 'hyperformula-ui';
 import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();

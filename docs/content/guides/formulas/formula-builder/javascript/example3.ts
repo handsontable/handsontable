@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
-import * as formulaBuilder from '@hfe/core';
+import * as formulaBuilder from 'hyperformula-ui';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -14,7 +14,7 @@ const data: (string | number)[][] = [
   ['SKU-9004', 310, 264, '=(B5-C5)/C5'],
 ];
 
-const container = document.querySelector('#example3')!;
+const container = document.querySelector<HTMLElement>('#example3')!;
 
 new Handsontable(container, {
   data,
