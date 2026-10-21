@@ -8,7 +8,8 @@ import { TouchInteractiveCellPage } from '../fixtures/pages/TouchInteractiveCell
  * Pixel 7 is the profile from the report. Chromium synthesizes the click `locator.tap()` would
  * produce on that device.
  */
-// leg-declarations: ignore geometry-helper -- touchEndOnCell() reads the cell box only to place a script touch. The compared value is touchend.defaultPrevented, which no theme changes.
+// leg-declarations: ignore geometry-helper -- touchEndOnCell() and pointOn() read a box only to place a touch. The compared values are the touchend target tag, defaultPrevented, and the click count.
+// leg-declarations: ignore hit-test -- pointOn() uses elementFromPoint only to land on the named node. The assertions are that tag, whether touchend was cancelled, and the click count.
 test.use({
   ...devices['Pixel 7'],
   browserName: 'chromium',
@@ -37,7 +38,10 @@ test.describe('touch taps on interactive renderer elements', () => {
   });
 
   test('a tap on a file input label runs the input when visual selection is off', async () => {
-    await grid.tap('file-label-text');
+    const touchEnd = await grid.tapPointOn('file-label-text');
+
+    expect(touchEnd.tagName).toBe('SPAN');
+    expect(touchEnd.defaultPrevented).toBe(false);
     await grid.expectClicks('file-via-label', 1);
     await grid.clickBarrier();
     await grid.expectClicksExact('file-via-label', 1);
@@ -97,9 +101,25 @@ test.describe('touch taps on interactive renderer elements', () => {
     await grid.expectClicks('button-off', 1);
     await grid.tap('file-input');
     await grid.expectClicks('file-input', 1);
-    await grid.tap('file-label-text');
+
+    const labelTouchEnd = await grid.tapPointOn('file-label-text');
+
+    expect(labelTouchEnd.tagName).toBe('SPAN');
+    expect(labelTouchEnd.defaultPrevented).toBe(false);
     await grid.expectClicks('file-via-label', 1);
     await grid.tap('cell-link');
     await grid.expectClicks('cell-link', 1);
+  });
+
+  test('on iOS Chrome, a tap on markup inside a button runs it once when visual selection is off', async () => {
+    await grid.stubIosWebKit('chrome');
+
+    const touchEnd = await grid.tapPointOn('nested-in-button');
+
+    expect(touchEnd.tagName).toBe('SPAN');
+    expect(touchEnd.defaultPrevented).toBe(false);
+    await grid.expectClicks('button-off', 1);
+    await grid.clickBarrier();
+    await grid.expectClicksExact('button-off', 1);
   });
 });

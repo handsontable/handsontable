@@ -32,6 +32,13 @@
       width: 100%;
       min-height: 32px;
     }
+    [data-testid="nested-in-button"] {
+      position: absolute;
+      left: 1px;
+      top: 1px;
+      font-size: 10px;
+      line-height: 10px;
+    }
   </style>
 </head>
 <body>
@@ -99,9 +106,20 @@
           const button = document.createElement('button');
 
           button.type = 'button';
-          button.textContent = 'Run';
           button.setAttribute('data-testid', testId);
           rememberClicks(button);
+          button.append('Run');
+
+          // Parked in the corner so a tap can hit markup inside the button. The center
+          // stays the button's own text, which the other tests tap.
+          if (testId === 'button-off') {
+            const nested = document.createElement('span');
+
+            nested.textContent = 'In';
+            nested.setAttribute('data-testid', 'nested-in-button');
+            button.style.position = 'relative';
+            button.prepend(nested);
+          }
 
           return button;
         });

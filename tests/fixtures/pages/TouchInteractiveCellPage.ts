@@ -30,6 +30,7 @@ export class TouchInteractiveCellPage {
       `/tests/fixtures/demo/touch-interactive-cell.html?theme=${this.theme}&bundle=${this.bundle}`
     );
     await expect(this.control('button-off')).toBeVisible();
+    await expect(this.control('nested-in-button')).toBeVisible();
     await expect(this.control('file-input')).toBeVisible();
     await expect(this.control('file-label-text')).toBeVisible();
     await expect(this.control('button-on')).toBeVisible();
@@ -49,6 +50,74 @@ export class TouchInteractiveCellPage {
    */
   async tap(testId: string): Promise<void> {
     await this.control(testId).tap();
+  }
+
+  /**
+   * A viewport point whose topmost element is the node with `testId`.
+   * `locator.tap()` can land on another node that shares the box.
+   */
+  async pointOn(testId: string): Promise<{ x: number; y: number }> {
+    return this.page.evaluate((id) => {
+      const node = document.querySelector(`[data-testid="${id}"]`);
+
+      if (!(node instanceof Element)) {
+        throw new Error(`missing ${id}`);
+      }
+
+      const rect = node.getBoundingClientRect();
+
+      for (let y = rect.top + 1; y < rect.bottom; y += 1) {
+        for (let x = rect.left + 1; x < rect.right; x += 1) {
+          if (document.elementFromPoint(x, y) === node) {
+            return { x, y };
+          }
+        }
+      }
+
+      throw new Error(`${id} is not hittable`);
+    }, testId);
+  }
+
+  /**
+   * Tap a point on `testId` and report the `touchend` target tag and whether that event was cancelled.
+   */
+  async tapPointOn(testId: string): Promise<{ tagName: string; defaultPrevented: boolean }> {
+    const point = await this.pointOn(testId);
+
+    await this.page.evaluate(() => {
+      const bucket = window as Window & {
+        __hotTouchEnd?: { tagName: string; defaultPrevented: boolean; seen: boolean };
+      };
+
+      bucket.__hotTouchEnd = { tagName: '', defaultPrevented: false, seen: false };
+      document.addEventListener('touchend', (event) => {
+        const node = event.target;
+        const record = bucket.__hotTouchEnd;
+
+        if (!record) {
+          return;
+        }
+
+        record.tagName = node instanceof Element ? node.tagName : '';
+        record.defaultPrevented = event.defaultPrevented;
+        record.seen = true;
+      }, { once: true });
+    });
+
+    await this.page.touchscreen.tap(point.x, point.y);
+    await expect.poll(() => this.page.evaluate(() => {
+      const record = (window as Window & { __hotTouchEnd?: { seen: boolean } }).__hotTouchEnd;
+
+      return record?.seen === true;
+    })).toBe(true);
+
+    return this.page.evaluate(() => {
+      const record = (window as Window & {
+        __hotTouchEnd: { tagName: string; defaultPrevented: boolean };
+      }).__hotTouchEnd;
+
+      return { tagName: record.tagName, defaultPrevented: record.defaultPrevented };
+    });
   }
 
   /**
