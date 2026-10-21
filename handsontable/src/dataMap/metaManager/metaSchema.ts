@@ -67,6 +67,28 @@ function getSchemaDefault(
 }
 
 /**
+ * Reads the schema that a row was created from. A `dataSchema` function builds each new row from
+ * the row's index, so the defaults of one row can differ from another's and from the no-argument
+ * call `getSchema()` makes. A row that moved since it was created reads as holding no defaults.
+ *
+ * @param {Handsontable} hot The Handsontable instance.
+ * @param {Function|object} dataSchema The `dataSchema` setting.
+ * @param {number} visualRow Visual row index.
+ * @returns {object|undefined} The row's schema, or `undefined` for a `dataSchema` that is not a function.
+ */
+function getRowSchema(
+  hot: HotInstance,
+  dataSchema: unknown,
+  visualRow: number
+): Record<string | number, unknown> | undefined {
+  if (typeof dataSchema !== 'function') {
+    return undefined;
+  }
+
+  return dataSchema(hot.toPhysicalRow(visualRow)) as Record<string | number, unknown>;
+}
+
+/**
  * @alias Options
  * @class Options
  * @description
@@ -4630,15 +4652,21 @@ export default (): Record<string, unknown> => {
       const schema = this.getSchema() as Record<string | number, unknown>;
       const prop = this.colToProp(col);
       const rowLen = this.countRows();
+      const isSchemaFunction = typeof dataSchema === 'function';
       // A column index that names no column has no schema entry to compare against. Every value
       // read from it is empty anyway, so the comparisons below are never reached in that case.
-      const schemaDefault = prop === null ?
+      let schemaDefault = prop === null ?
         undefined : getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
       for (row = 0; row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
+          if (isSchemaFunction && prop !== null) {
+            schemaDefault = getSchemaDefault(
+              getRowSchema(this, dataSchema, row)!, prop, dataDotNotation, hasExplicitSchema);
+          }
+
           if (typeof value === 'object') {
             if (isObjectEqual(schemaDefault, value) === false) {
               return false;
@@ -4689,7 +4717,7 @@ export default (): Record<string, unknown> => {
       let value;
       const { dataSchema, dataDotNotation } = this.getSettings();
       const hasExplicitSchema = !!dataSchema;
-      const schema = this.getSchema() as Record<string | number, unknown>;
+      const schema = (getRowSchema(this, dataSchema, row) ?? this.getSchema()) as Record<string | number, unknown>;
       const colLen = this.countCols();
 
       for (col = 0; col < colLen; col++) {
