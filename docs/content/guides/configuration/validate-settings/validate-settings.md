@@ -235,12 +235,14 @@ page: unknown option names, option levels, registered names, plugins, and data p
   `unknownDataProperty` warning.
 - `validateSettings()` never calls a function it finds in the settings, so it does not check what a `columns` or
   `cells` function returns.
-- `validateSettings()` reports an unknown key inside the settings object of these options, such as
-  `filters: { serchMode: 'apply' }`: `asyncValues`, `autoLink`, `dataProvider`, `dragToScroll`, `dropdownMenu`,
-  `fillHandle`, `filters`, `manualColumnFreeze`, `pagination`, `rowSelection`, and `sheetsBar`. The objects of other
-  options, such as `contextMenu`, `columnSorting`, and `comments`, take keys that the schema does not list, so a
-  misspelled key inside them is not reported. A value that is an instance of a class, such as a `ThemeBuilder` for
-  `theme`, is accepted without a check of its contents.
+- `validateSettings()` reports a misspelled key, such as `filters: { serchMode: 'apply' }`, only inside the settings
+  object of some options. Those options are `asyncValues`, `autoLink`, `dataProvider`, `dragToScroll`,
+  `dropdownMenu`, `fillHandle`, `filters`, `manualColumnFreeze`, `pagination`, `rowSelection`, and `sheetsBar`.
+- The objects of other options, such as `contextMenu`, `columnSorting`, and `comments`, take keys that the schema does
+  not list. A misspelled key inside them is not reported.
+- A third-party plugin that extends one of the options above and reads more keys gets those keys reported.
+- A value that is an instance of a class, such as a `ThemeBuilder` for `theme`, is accepted without a check of its
+  contents.
 - Only the first 50 rows of `data` are checked, for their type and for the `columns[].data` properties.
 - `settingsSchema` lists the hooks registered when the module loads. A hook that a plugin registers later, such as
   `afterContextMenuExecute`, is missing from the object if you import `handsontable/settingsSchema` before the

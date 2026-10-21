@@ -53,8 +53,8 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  */
 export interface DropdownMenuSettings {
   callback?: Function;
-  uiContainer?: HTMLElement;
-  items?: Record<string, unknown>[] | string[] | Record<string, unknown>;
+  uiContainer?: HTMLElement | null;
+  items?: Array<string | Record<string, unknown>> | Record<string, unknown>;
 }
 
 /**

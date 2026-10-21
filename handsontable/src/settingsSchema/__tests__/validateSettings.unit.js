@@ -145,21 +145,68 @@ describe('validateSettings', () => {
       ]);
     });
 
-    it('should accept every documented key of a closed settings object', () => {
+    it.each([
+      ['filters', { searchMode: 'apply', filterFixedRows: false, availableConditions: ['eq'] }],
+      ['dropdownMenu', { items: ['undo'], callback() {}, uiContainer: document.createElement('div') }],
+      ['dropdownMenu', { items: ['filter_by_value', '---------', { key: 'custom', name: 'Custom' }] }],
+      ['dropdownMenu', { items: { filter_by_value: {}, filter_action_bar: {} }, uiContainer: null }],
+      ['pagination', {
+        pageSize: 'auto',
+        pageSizeList: ['auto', 5, 10],
+        initialPage: 1,
+        showPageSize: true,
+        showCounter: true,
+        showNavigation: true,
+        uiContainer: document.createElement('div'),
+      }],
+      ['autoLink', { target: '_blank', schemes: ['https'], inline: true, strict: false, className: 'link' }],
+      ['asyncValues', { flush: 'frame', concurrency: 2, copyPendingAs: 'empty', saveToDataProvider: true }],
+      ['dataProvider', { fetchRows() {},
+        onRowsCreate() {},
+        onRowsRemove() {},
+        onRowsUpdate() {},
+        rowId: 'id',
+        refetchAfterCreate: true }],
+      ['dragToScroll', { interval: { min: 10, max: 50 }, rampDistance: 30 }],
+      ['fillHandle', { direction: 'vertical', autoInsertRow: false }],
+      ['manualColumnFreeze', { restoreColumnPosition: true }],
+      ['rowSelection', { mode: 'multiRow',
+        checkboxes: true,
+        headerCheckbox: true,
+        selectAll: 'all',
+        enableClickSelection: true,
+        isRowSelectable() { return true; },
+        hideDisabledCheckboxes: false,
+        checkboxLocation: 'rowHeader',
+        groupSelects: 'self' }],
+      ['sheetsBar', { sheets: [{ name: 'One', data: [[1]] }],
+        activeSheet: 0,
+        controls: true,
+        paging: true,
+        position: 'top',
+        uiContainer: null,
+        animation: { add: true } }],
+    ])('should accept every documented form of %s: %j', (option, value) => {
+      expect(validateSettings({ [option]: value }).problems).toEqual([]);
+    });
+
+    it.each([
+      ['filters', true], ['dropdownMenu', true], ['dropdownMenu', ['undo']], ['pagination', true],
+      ['autoLink', false], ['asyncValues', true], ['dataProvider', null], ['dragToScroll', true],
+      ['fillHandle', 'vertical'], ['fillHandle', true], ['manualColumnFreeze', true], ['rowSelection', true],
+      ['sheetsBar', true],
+    ])('should accept the short form of %s: %j', (option, value) => {
+      expect(validateSettings({ [option]: value }).problems).toEqual([]);
+    });
+
+    it('should accept the closed options inside `columns` and a `cell` entry', () => {
       expect(validateSettings({
-        filters: { searchMode: 'apply', filterFixedRows: false, availableConditions: ['eq'] },
-        dropdownMenu: { items: ['undo'], callback() {}, uiContainer: document.createElement('div') },
-        pagination: {
-          pageSize: 10,
-          pageSizeList: [5, 10],
-          initialPage: 1,
-          showPageSize: true,
-          showCounter: true,
-          showNavigation: true,
-          uiContainer: document.createElement('div'),
-        },
-        autoLink: { target: '_blank', schemes: ['https'], inline: true, strict: false, className: 'link' },
+        columns: [{ autoLink: { target: '_self' }, filters: { availableConditions: ['eq'] } }],
+        cell: [{ row: 0, col: 0, autoLink: { inline: true } }],
       }).problems).toEqual([]);
+      expect(brief(validateSettings({ columns: [{ autoLink: { targett: '_self' } }] }))).toEqual([
+        { path: 'columns[0].autoLink.targett', code: 'unknownOption' },
+      ]);
     });
 
     it('should not report a key of a settings object the schema leaves open', () => {
@@ -167,18 +214,29 @@ describe('validateSettings', () => {
         .toEqual([]);
     });
 
-    it('should not throw on a settings object that is a Proxy or has a throwing getter', () => {
+    it('should report a throwing getter of an unknown key without reading it', () => {
+      expect(brief(validateSettings({ filters: { get serchMode() { throw new Error('boom'); } } }))).toEqual([
+        { path: 'filters.serchMode', code: 'unknownOption' },
+      ]);
+    });
+
+    it('should report an unreadable settings object and keep checking the other options', () => {
+      const unlistable = new Proxy({ pageSize: 5 }, { ownKeys() { throw new Error('boom'); } });
+
+      expect(brief(validateSettings({ pagination: unlistable, rowHeaders: 5 }))).toEqual([
+        { path: 'pagination', code: 'invalidValue' },
+        { path: 'rowHeaders', code: 'invalidType' },
+      ]);
+    });
+
+    it('should report one problem for a settings object that is a Proxy that throws on every trap', () => {
       const proxy = new Proxy({}, {
         ownKeys() { throw new Error('boom'); },
         getOwnPropertyDescriptor() { throw new Error('boom'); },
         get() { throw new Error('boom'); },
       });
 
-      expect(() => validateSettings({ pagination: proxy })).not.toThrow();
-      expect(() => validateSettings({ filters: { get serchMode() { throw new Error('boom'); } } })).not.toThrow();
-      expect(brief(validateSettings({ filters: { get serchMode() { throw new Error('boom'); } } }))).toEqual([
-        { path: 'filters.serchMode', code: 'unknownOption' },
-      ]);
+      expect(brief(validateSettings({ pagination: proxy }))).toEqual([{ path: '', code: 'invalidSettings' }]);
     });
 
     it('should report an own `__proto__` key and ignore the prototype', () => {
@@ -460,6 +518,33 @@ describe('validateSettings', () => {
     }
 
     expect(validateSettings(ownSettings).problems).toEqual([]);
+
+    hot.destroy();
+    container.remove();
+  });
+
+  it('should report nothing for the settings of a live grid with the closed plugins enabled', () => {
+    const container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    const hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(30, 3),
+      colHeaders: true,
+      filters: { searchMode: 'apply' },
+      dropdownMenu: { items: ['filter_by_value'] },
+      pagination: { pageSize: 10 },
+      autoLink: { target: '_blank' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const ownSettings = {};
+
+    // eslint-disable-next-line guard-for-in
+    for (const key in hot.getSettings()) {
+      ownSettings[key] = hot.getSettings()[key];
+    }
+
+    expect(validateSettings(ownSettings).problems.filter(({ code }) => code === 'unknownOption')).toEqual([]);
 
     hot.destroy();
     container.remove();

@@ -66,10 +66,11 @@ describe('settingsSchema coverage', () => {
       .flatMap(([key, node]) => findClosed(node, key)));
 
     it('should close the plugin options whose types list every key', () => {
-      expect(Object.keys(closed)).toEqual(expect.arrayContaining([
+      // The docs guide names the same options under "Known limitations"; keep the two in step.
+      expect(Object.keys(closed).filter(path => !path.includes('.') && !path.includes('[')).sort()).toEqual([
         'asyncValues', 'autoLink', 'dataProvider', 'dragToScroll', 'dropdownMenu', 'fillHandle', 'filters',
         'manualColumnFreeze', 'pagination', 'rowSelection', 'sheetsBar',
-      ]));
+      ]);
     });
 
     it('should close only options of a plugin', () => {
@@ -93,15 +94,12 @@ describe('settingsSchema coverage', () => {
       });
     });
 
-    it('should accept a configuration made of the keys each closed object lists', () => {
-      const settings = Object.fromEntries(Object.entries(closed)
-        .filter(([path]) => !path.includes('.') && !path.includes('['))
-        .map(([path, branch]) => [
-          path,
-          Object.fromEntries(Object.keys(branch.properties).map(key => [key, undefined])),
-        ]));
+    it('should close the column-level filters on the one key the plugin reads per column', () => {
+      const branches = settingsSchema.$defs.columnSettings.properties.filters.anyOf;
+      const object = branches.find(branch => branch.type === 'object');
 
-      expect(validateSettings(settings).problems.filter(({ code }) => code === 'unknownOption')).toEqual([]);
+      expect(object.additionalProperties).toBe(false);
+      expect(Object.keys(object.properties)).toEqual(['availableConditions']);
     });
   });
 

@@ -570,7 +570,18 @@ function getSuggestionHint(key: string, candidates: string[]): string {
  * @param {Context} context The validation state.
  */
 function reportUnknownKeys(value: Record<string, unknown>, knownKeys: string[], path: string, context: Context): void {
-  Object.keys(value).forEach((key) => {
+  let keys: string[];
+
+  try {
+    keys = Object.keys(value);
+  } catch {
+    // A Proxy may throw from `ownKeys`; the keys it holds cannot be listed.
+    context.problems.push(unreadable(path));
+
+    return;
+  }
+
+  keys.forEach((key) => {
     if (!knownKeys.includes(key)) {
       context.problems.push({
         path: joinPath(path, key),
@@ -1128,7 +1139,8 @@ function readPluginKeys(): Set<string> {
  * Each problem has a `path` (`columns[3].type`), a `code`, a `severity`, and a `message`. A `warning`
  * (`unknownDataProperty`, `pluginDisabled`) is a likely mistake that may be intended, and does not make
  * the settings invalid; every other code is an `error`. A minor release can add a code. The codes are:
- * `unknownOption` (with a "did you mean" hint when an option is close), `wrongLevel` (a grid-only
+ * `unknownOption` (with a "did you mean" hint when an option is close; also a misspelled key inside the
+ * settings object of a plugin option that lists every key, as in `filters.serchMode`), `wrongLevel` (a grid-only
  * option inside `columns`, for example), `invalidType` and `invalidValue` (a value of the wrong
  * type, or outside the allowed set), `unknownCellType`, `unknownEditor`, `unknownRenderer` and
  * `unknownValidator` (a name that is not registered), `pluginNotRegistered` (an option of a

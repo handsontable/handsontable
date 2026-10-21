@@ -42,3 +42,9 @@ per header. The mousedown gate in `#onBeforeOnCellMouseDown` matches the button 
 (`closest`), not by the target's own class - a renderer callback may put its own markup inside the icon.
 Pinned by "a runtime icons remap reaches the reused header button, filters select, and select editor
 icons" in `tests/e2e/icon-elements.spec.ts`.
+
+## `DropdownMenuSettings` lists the keys `validateSettings()` accepts
+
+`src/settingsSchema` reads the exported `DropdownMenuSettings` interface in `dropdownMenu.ts` as the full key list of the
+`dropdownMenu` object, and reports any other key as `unknownOption`. The plugin also types its own reads with it. A key the plugin starts to read must be added there in the same change, with a type that accepts every
+value the plugin tolerates, or a valid configuration is flagged.

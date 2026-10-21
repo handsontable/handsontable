@@ -16,6 +16,10 @@
  *     (`stretchH` is `string` there and `'none' | 'all' | 'last'` in the type). An option the
  *     types do not declare falls back to its JSDoc `@type`.
  *
+ * A plugin option listed in `CLOSED_OPTIONS` also gets `additionalProperties: false` on its object, so
+ * `validateSettings()` reports a key inside it that the schema does not list. For an option the
+ * public types declare as a bare `object`, the key list comes from an interface the plugin exports.
+ *
  * A value JSON cannot hold (a function, a class, a `RegExp`, a DOM element) is not part of
  * a schema node's `type`. It is listed in the node's `x-handsontable.runtimeTypes`, so a
  * JSON validator rejects it while `validateSettings()` still accepts it at runtime.
@@ -441,6 +445,39 @@ function assertNoIndexSignature(checker, type, name) {
 }
 
 /**
+ * Closes the object type of one branch of a closed option's node.
+ *
+ * @param {string} name The option name.
+ * @param {object} branch A branch of the option's node.
+ * @param {object|undefined} listed The converted interface that lists the keys, for an option typed as `object`.
+ * @returns {object[]|null} The branches that replace it, or `null` when it holds no object type to close.
+ */
+function closeBranch(name, branch, listed) {
+  const types = [branch.type ?? []].flat();
+  // A bare `object` (no key list yet) takes the interface's keys; a typed object keeps its own.
+  const hasKeyList = branch.properties !== undefined;
+
+  if (!types.includes('object') || hasKeyList === Boolean(listed)) {
+    return null;
+  }
+
+  const properties = listed ? listed.properties : branch.properties;
+
+  if (!properties) {
+    throw new Error(`${name} is in CLOSED_OPTIONS but no key list was found for it.`);
+  }
+
+  const others = types.filter(branchType => branchType !== 'object');
+  const closed = { ...branch, type: 'object', properties, additionalProperties: false };
+
+  if (others.length === 0) {
+    return [closed];
+  }
+
+  return [{ type: others.length === 1 ? others[0] : others }, closed];
+}
+
+/**
  * Marks the object branch of an option in `CLOSED_OPTIONS` as listing every key it accepts
  * (`additionalProperties: false`). An option typed as a bare `object` takes its key list from
  * the interface in `listedType`.
@@ -465,39 +502,13 @@ function closeOptionNode(name, node, converter, type, listedType) {
 
   const { anyOf, 'x-handsontable': annotations, ...single } = node;
   const listed = listedType && converter.convert(listedType);
-  const branches = [];
-  let isClosed = false;
+  const replaced = (anyOf ?? [single]).map(branch => closeBranch(name, branch, listed));
 
-  (anyOf ?? [single]).forEach((branch) => {
-    const types = [branch.type ?? []].flat();
-    // A bare `object` (no key list yet) takes the interface's keys; a typed object keeps its own.
-    const isTarget = types.includes('object') && (listed ? branch.properties === undefined : branch.properties);
-
-    if (!isTarget) {
-      branches.push(branch);
-
-      return;
-    }
-
-    const others = types.filter(branchType => branchType !== 'object');
-    const properties = listed ? listed.properties : branch.properties;
-
-    if (!properties) {
-      throw new Error(`${name} is in CLOSED_OPTIONS but no key list was found for it.`);
-    }
-
-    if (others.length > 0) {
-      branches.push({ type: others.length === 1 ? others[0] : others });
-    }
-
-    branches.push({ ...branch, type: 'object', properties, additionalProperties: false });
-    isClosed = true;
-  });
-
-  if (!isClosed) {
+  if (replaced.every(branches => branches === null)) {
     throw new Error(`${name} is in CLOSED_OPTIONS but has no object type to close.`);
   }
 
+  const branches = (anyOf ?? [single]).flatMap((branch, index) => replaced[index] ?? [branch]);
   const closed = branches.length === 1 ? branches[0] : { anyOf: branches };
 
   return annotations ? { ...closed, 'x-handsontable': annotations } : closed;
