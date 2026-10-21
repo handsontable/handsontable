@@ -141,7 +141,8 @@ function findOptionsLiteral(source) {
  */
 function readTagText(tag, source) {
   if (ts.isJSDocTypeTag(tag)) {
-    return tag.typeExpression.type.getText(source);
+    // The source text of a type wrapped onto two lines still holds the second line's ` * `.
+    return tag.typeExpression.type.getText(source).replace(/\s*\n\s*\*?\s*/g, ' ').trim();
   }
 
   return (ts.getTextOfJSDocComment(tag.comment) ?? '').trim();
@@ -248,10 +249,11 @@ function readDescription(block) {
  * Converts a JSDoc `@type` expression into a schema node. Used only for the options the
  * TypeScript types do not declare.
  *
+ * @param {string} name The option name, for the error a member the parser cannot read throws.
  * @param {string|undefined} expression The `@type` expression, e.g. `boolean|object`.
  * @returns {object} The schema node.
  */
-function fromJsDocType(expression) {
+function fromJsDocType(name, expression) {
   if (!expression || expression.trim() === '*') {
     return {};
   }
@@ -268,9 +270,12 @@ function fromJsDocType(expression) {
     } else if (/\[\]$|^Array/.test(part)) {
       members.push({ type: 'array' });
 
-    } else if (part !== 'undefined') {
+    } else if (/^[A-Z][\w.]*$/.test(part)) {
       // A class instance, such as a `ThemeBuilder`. JSON has no way to hold one.
       members.push({ runtimeTypes: ['object'] });
+
+    } else if (part !== 'undefined') {
+      throw new Error(`Option \`${name}\` in metaSchema.ts: cannot read \`${part}\` in its \`@type\` tag.`);
     }
   });
 
@@ -777,7 +782,7 @@ export function buildSettingsSchema() {
    */
   const buildNode = (name, type, annotations) => {
     const option = optionsByName.get(name);
-    const node = widenNode(name, type ? converter.convert(type) : fromJsDocType(option?.type));
+    const node = widenNode(name, type ? converter.convert(type) : fromJsDocType(name, option?.type));
     // An option `metaSchema.ts` does not document takes the comment of its TypeScript declaration.
     const description = option?.description || readDescription(typeDocs.get(name) ?? '') ||
       (annotations.levels.includes('grid') ? '' : `The \`${name}\` property of the cell meta.`);
