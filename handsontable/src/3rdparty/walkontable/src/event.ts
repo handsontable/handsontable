@@ -691,8 +691,10 @@ class Event {
     this.#cancelLongPressTimer();
     this.#deferredTouchStartEvent = null;
 
-    if (isTap && deferredTouchStartEvent !== null) {
-      this.onMouseDown(deferredTouchStartEvent);
+    if (isTap) {
+      // `isTap` already requires the deferred event. The local is a separate binding, so that
+      // check does not narrow it.
+      this.onMouseDown(deferredTouchStartEvent!);
     }
 
     const target = eventTargetEl(event);
@@ -702,25 +704,29 @@ class Event {
       this.#deps.wtSettings.getSetting('isDataViewInstance');
 
     if (isEventCancelable) {
-      const interactiveElements = ['A', 'BUTTON', 'INPUT'];
       const focusCellRange = this.#deps.selectionManager.getFocusSelection()?.cellRange ?? null;
       // `isCellsRange` already proved these coords are a cell. A boolean does not narrow the type.
       const focusOnTouchedCell = focusCellRange?.includes(parentCellCoords!);
       const isCheckbox = target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox';
+      // The visible part of a file input is often a span inside its label, not the input.
+      const isInteractive = target!.closest('a, button, input, label') !== null;
+      const selectedCellWasTouched = this.selectedCellWasTouched(target);
 
       // For browsers that use the WebKit as an engine (excluding Safari), there is a bug. The prevent
       // default has to be called all the time. Otherwise, the second tap won't be triggered (probably
       // caused by the native ~300ms delay - https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
-      // To make the interactive elements work, the event target element has to be check. If the element
-      // matches the allow-list, the event is not prevented.
+      // A link, button, input, or label (including a span inside the label) is not prevented,
+      // so the control can still activate.
       const blocksWebKitSecondTap = isIOS() &&
         (isChromeWebKit() || isFirefoxWebKit()) &&
-        this.selectedCellWasTouched(target) &&
-        !interactiveElements.includes(target!.tagName);
-      // The first tap selects; it must not also activate a control or follow a link (#7980).
-      const blocksFirstTapActivation = !this.selectedCellWasTouched(target) &&
-        focusOnTouchedCell &&
-        !isCheckbox;
+        selectedCellWasTouched &&
+        !isInteractive;
+      // A cell that was not the focus stays cancelled. That covers a drift, whose deferred mousedown
+      // never ran (#11659), and a plain cell whose highlight never moved (#7980). A real tap on a
+      // control is the exception, and only when that highlight did not move onto the cell.
+      const blocksFirstTapActivation = !selectedCellWasTouched &&
+        !isCheckbox &&
+        (!isTap || !isInteractive || focusOnTouchedCell);
 
       if (blocksWebKitSecondTap || blocksFirstTapActivation) {
         event.preventDefault();
