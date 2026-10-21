@@ -308,7 +308,7 @@ The error message is the rejection reason's `message`, or the reason converted t
 
 Every method that starts requests returns a promise that never rejects. It resolves with an object (or an array of them) that tells how each request ended: `{ status: 'resolved', value }`, `{ status: 'rejected', error, message }`, or `{ status: 'canceled', reason }`.
 
-`resolved` means the plugin passed the value to the grid. A `beforeChange` listener, or a validator with [`allowInvalid: false`](@/api/options.md#allowinvalid), can still change or reject the value. A cell with a validator gets the value after the validation finishes, so read it in `afterChange` rather than right after the promise resolves.
+`resolved` means the plugin passed the value to the grid. A `beforeChange` listener, or a validator with [`allowInvalid: false`](@/api/options.md#allowinvalid), can still change or reject the value, and a later write to the cell can drop it (see [Undo](#undo)). A cell with a validator gets the value after the validation finishes, so read it in `afterChange` rather than right after the promise resolves.
 
 ## Hooks
 
@@ -326,7 +326,7 @@ Each hook (except `afterAsyncValuesIdle`) receives the cell's physical row index
 
 ::: tip
 
-A value written to a row hidden by a filter fires no `afterChange` (see [Validation](#how-async-values-work-with-other-features) below). To sync every async value to your backend or your app's state, listen to `afterAsyncValueResolve`.
+A value written to a row hidden by a filter fires no `afterChange` (see [Validation](#how-async-values-work-with-other-features) below). `afterAsyncValueResolve` covers those rows, but it also fires for a value the grid then rejects or drops (see [Undo](#undo)). To sync only the values that landed, listen to `afterChange`, and use `afterAsyncValueResolve` for the hidden rows.
 
 :::
 
@@ -346,23 +346,23 @@ With `undo: 'record'`, every value one call wrote becomes one undo step, recorde
 asyncValues.setAsyncValuesInBatches('all', 'category', classify, { undo: 'record' });
 ```
 
-One undo then reverts the whole run, and one redo applies it again. The values appear while the run is in progress, so the user can keep editing and undoing meanwhile. The step lands on the undo stack once the run's last request settles and its last value passes the cell's validator. By the time the call's promise resolves, the step is there.
+One undo then reverts the whole run, and one redo applies it again. The values appear while the run is in progress, so the user can keep editing and undoing meanwhile. The step lands on the undo stack once the run's last request settles and its last value passes the cell's validator. For a cell without a validator, the step is there by the time the call's promise resolves. A validator can answer later than that, and the step then lands when the last validator answers.
 
 The step is a `'change'` action with the call's `source`, as [`beforeUndo`](@/api/hooks.md#beforeundo) receives it. It records what the grid stored, after a `valueSetter` or a validator changed the value, a validator that corrects the value through a source ending with `Validator` included. When two calls write one cell while its validator runs, the cell keeps the value of the write made last. Like any new step, it clears the redo history: an undo the user makes while a run is in progress can't be redone once the run's step lands.
 
 A few values stay out of the run's step:
 
 - A cell the user edits after its value landed: the user's edit is a step of its own.
-- A cell that a later call writes before this call finishes: the later call's step owns it.
-- A value the grid dropped because a later write to its cell was applied first.
+- A cell that a later call writes before this call finishes: the later call's step owns it. With asynchronous validators, this holds only when they answer in write order.
+- A value the grid dropped because it applied a later write to the same cell instead.
 - A cell that a data update, such as [`updateData()`](@/api/core.md#updatedata), changed after the value landed.
 - The `meta` the run merged into the cells: an undo doesn't remove it.
 
 If you disable the plugin while a call is in progress, the call's step records the values that already landed.
 
-A cell's validator decides when a value lands. When two writes reach one cell while its validator runs, the grid applies the write made last, whatever order the validators answer in. So if the user edits a cell while the async value written to it still waits for its validator, and the edit's validator answers first, the user's edit stays and the grid drops the async value. If the async value's validator answers first, the value lands and the edit then replaces it. If the edit is rejected by a validator with [`allowInvalid: false`](@/api/options.md#allowinvalid), the async value still lands.
+A cell's validator decides when a value lands. When two writes reach one cell and both wait on a validator, the grid applies the write made last, whatever order the validators answer in. A write that skips the validator is not ordered (see [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md)). So if the user edits a cell while the async value written to it still waits for its validator, and the edit's validator answers first, the user's edit stays and the grid drops the async value. If the async value's validator answers first, the value lands and the edit then replaces it. If a validator with [`allowInvalid: false`](@/api/options.md#allowinvalid) rejects the edit, the async value still lands.
 
-A dropped async value still ends as `{ status: 'resolved', value }`, because the plugin passed it to the grid. No cancel hook fires: the plugin cancels a request on an edit only while the request is still pending. The dropped value fires [`beforeChange`](@/api/hooks.md#beforechange), but not [`afterChange`](@/api/hooks.md#afterchange) (see [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md)). To tell that a value landed, listen to `afterChange` for the request's [`source`](#request-options). A row hidden by a filter fires no `afterChange` (see [Validation](#how-async-values-work-with-other-features)).
+A dropped async value still ends as `{ status: 'resolved', value }`, because the plugin passed it to the grid. This differs from an edit made while the request is pending, or while the cell's editor is open: that edit cancels the request with the `'edit'` reason. A dropped value is the case where the edit is committed after the request resolved, while the value waits for its validator. No cancel hook fires for it. The dropped value fires [`beforeChange`](@/api/hooks.md#beforechange), but not [`afterChange`](@/api/hooks.md#afterchange) (see [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md)). To tell that a value landed, listen to `afterChange` for the request's [`source`](#request-options). A row hidden by a filter fires no `afterChange` (see [Validation](#how-async-values-work-with-other-features)).
 
 An undo or redo that changes a pending cell cancels its request, and redo does not start it again.
 
@@ -377,7 +377,7 @@ The React wrapper calls [`updateData()`](@/api/core.md#updatedata) whenever it r
 
 The Vue wrapper keeps your data array by reference. When the array gains or loses rows, the wrapper only resizes the grid's row index, at its end. With row ids, each pending request then moves to the row that holds its id; a request whose row is gone is canceled with the `'rowRemoved'` reason. Without row ids, requests keep their physical rows, so insert rows at the end of the array, or set `rowId`.
 
-If your app stores resolved values in its own state, read them in `afterAsyncValueResolve` (or `afterChange`), and pass the updated data back as usual. The other pending requests keep running.
+If your app stores resolved values in its own state, read them in `afterChange`, which fires only for a value that landed. For rows hidden by a filter, use `afterAsyncValueResolve`, which fires when the plugin passes the value to the grid. Then pass the updated data back as usual. The other pending requests keep running.
 
 ## Save resolved values to a server
 
