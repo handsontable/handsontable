@@ -696,16 +696,16 @@ class Event {
     }
 
     const target = eventTargetEl(event);
-    const parentCellCoords = this.parentCell(target)?.coords;
-    const isCellsRange = parentCellCoords !== null && parentCellCoords !== undefined &&
-      ((parentCellCoords.row ?? -1) >= 0 && (parentCellCoords.col ?? -1) >= 0);
+    const parentCellCoords = this.parentCell(target).coords;
+    const isCellsRange = parentCellCoords?.isCell();
     const isEventCancelable = event.cancelable && isCellsRange &&
       this.#deps.wtSettings.getSetting('isDataViewInstance');
 
     if (isEventCancelable) {
       const interactiveElements = ['A', 'BUTTON', 'INPUT'];
       const focusCellRange = this.#deps.selectionManager.getFocusSelection()?.cellRange ?? null;
-      const focusOnTouchedCell = focusCellRange !== null && focusCellRange.includes(parentCellCoords);
+      // `isCellsRange` already proved these coords are a cell. A boolean does not narrow the type.
+      const focusOnTouchedCell = focusCellRange?.includes(parentCellCoords!);
       const isCheckbox = target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox';
 
       // For browsers that use the WebKit as an engine (excluding Safari), there is a bug. The prevent
@@ -713,14 +713,16 @@ class Event {
       // caused by the native ~300ms delay - https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
       // To make the interactive elements work, the event target element has to be check. If the element
       // matches the allow-list, the event is not prevented.
-      if (isIOS() &&
-          (isChromeWebKit() || isFirefoxWebKit()) &&
-          this.selectedCellWasTouched(target) &&
-          !interactiveElements.includes(target!.tagName)) {
-        event.preventDefault();
+      const blocksWebKitSecondTap = isIOS() &&
+        (isChromeWebKit() || isFirefoxWebKit()) &&
+        this.selectedCellWasTouched(target) &&
+        !interactiveElements.includes(target!.tagName);
+      // The first tap selects; it must not also activate a control or follow a link (#7980).
+      const blocksFirstTapActivation = !this.selectedCellWasTouched(target) &&
+        focusOnTouchedCell &&
+        !isCheckbox;
 
-      } else if (!this.selectedCellWasTouched(target) && focusOnTouchedCell && !isCheckbox) {
-        // The first tap selects; it must not also activate a control or follow a link (#7980).
+      if (blocksWebKitSecondTap || blocksFirstTapActivation) {
         event.preventDefault();
       }
     }
