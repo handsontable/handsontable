@@ -60,7 +60,7 @@ When a validator writes a corrected value with `setDataAtCell`, pass a source st
 this.instance.setDataAtCell(row, col, correctedValue, 'myCustomValidator');
 ```
 
-`validateChanges()` in `core.js` uses the suffix to track the correction. Without it, the correction is lost when the batch includes columns with async `source` callbacks (e.g. async autocomplete with `strict: true`) that resolve later.
+`validateChanges()` in `core.ts` uses the suffix to fold the correction into the change that triggered it, so that change still applies with the corrected value and fires `afterChange`. Without it, the correction is a separate write that wins over the triggering change (the last write to a cell wins), and the triggering change is dropped with no `afterChange`.
 
 ## Common mistakes
 
