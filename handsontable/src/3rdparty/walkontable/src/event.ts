@@ -8,6 +8,8 @@ import {
   hasClass,
   isChildOf,
   getParent,
+  isHTMLElement,
+  isHTMLInputElement,
 } from '../../../helpers/dom/element';
 import { partial } from '../../../helpers/function';
 import {
@@ -79,23 +81,37 @@ type ParentCell = ReturnType<Event['parentCell']>;
 /**
  * Whether the finger is on a control the tap is allowed to activate.
  *
- * A file input's event target is a span.
+ * The event target is often nested markup, or the text of a label that owns a file input.
  *
  * @param {Element} target The element under the finger.
  * @returns {boolean}
  */
 function isTouchActivationTarget(target: Element): boolean {
-  if (target.tagName === 'A' || target.tagName === 'BUTTON' || target.tagName === 'INPUT') {
+  const cell = target.closest('td, th');
+  const activation = target.closest('a, button, input, label');
+
+  if (cell === null || activation === null || !cell.contains(activation)) {
+    return false;
+  }
+
+  if (!isHtmlLabel(activation)) {
     return true;
   }
 
-  const label = target.closest('label');
-  const controlId = label?.getAttribute('for');
-  const owned = controlId
-    ? label?.ownerDocument.getElementById(controlId)
-    : label?.querySelector('input[type="file"]');
+  const labeled = activation.control;
 
-  return owned?.tagName === 'INPUT' && owned?.getAttribute('type')?.toLowerCase() === 'file';
+  return isHTMLElement(labeled) && isHTMLInputElement(labeled) && labeled.type === 'file';
+}
+
+/**
+ * Narrows a label so `HTMLLabelElement.control` is visible. That property is the
+ * labeled element for both a wrapping label and a `for` label.
+ *
+ * @param {Element} element A candidate activation control.
+ * @returns {boolean}
+ */
+function isHtmlLabel(element: Element): element is HTMLLabelElement {
+  return element.tagName === 'LABEL';
 }
 
 /**
