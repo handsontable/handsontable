@@ -355,4 +355,280 @@ describe('SheetsBar applies a sheet against its own data', () => {
 
     expect(hot.getDataAtCol(0)).toEqual([1, 2, 7, 3]);
   });
+
+  it('validates the opening sheet\'s data once while the grid is built', () => {
+    const sources = [];
+
+    buildWorkbook([{
+      name: 'Only',
+      data: [['a']],
+      settings: {
+        columns: [{
+          sourceDataValidator: (value, cellMeta, source) => {
+            sources.push(source);
+
+            return true;
+          },
+        }],
+      },
+    }]);
+
+    expect(sources).toEqual(['init']);
+  });
+
+  it('builds the merges an afterLoadData listener declares on a return to a sheet with a stored state', () => {
+    const bar = buildWorkbook([
+      { name: 'A', data: [[1, 2], [3, 4]] },
+      { name: 'B', data: [[5, 6], [7, 8]] },
+    ]);
+
+    bar.setActiveSheet('B');
+
+    const declareMerge = () => {
+      hot.removeHook('afterLoadData', declareMerge);
+      hot.updateSettings({ mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }] });
+    };
+
+    hot.addHook('afterLoadData', declareMerge);
+    bar.setActiveSheet('A');
+
+    expect(hot.getCellMeta(0, 0).rowspan).toBe(2);
+  });
+
+  it('keeps a grid-level ColumnSummary on its declared row on a sheet that was not altered', () => {
+    const bar = buildWorkbook([
+      { name: 'Altered', data: [[1], [2], [null]] },
+      { name: 'Untouched', data: [[10], [20], [null]] },
+    ], {
+      columnSummary: [{ sourceColumn: 0, destinationRow: 2, destinationColumn: 0, type: 'sum', ranges: [[0, 1]] }],
+    });
+
+    hot.alter('insert_row_above', 2, 1);
+    hot.setDataAtCell(2, 0, 7);
+    bar.setActiveSheet('Untouched');
+
+    expect(hot.getDataAtCol(0)).toEqual([10, 20, 30]);
+
+    bar.setActiveSheet('Altered');
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 7, 3]);
+  });
+
+  it('builds the grid with the opening sheet\'s `cell` and hooks without a settings update of their own', () => {
+    const events = [];
+    const sources = [];
+
+    buildWorkbook([{
+      name: 'Only',
+      data: [['a', 'b']],
+      settings: {
+        cell: [{ row: 0, col: 1, readOnly: true }],
+        afterChange() {},
+        columns: [{
+          sourceDataValidator: (value, cellMeta, source) => {
+            sources.push(source);
+
+            return true;
+          },
+        }, {}],
+      },
+    }], {
+      afterUpdateSettings() {
+        events.push('afterUpdateSettings');
+      },
+      afterInit() {
+        events.push('afterInit');
+      },
+    });
+
+    expect(events).toEqual(['afterInit']);
+    expect(sources).toEqual(['init']);
+    expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
+  });
+
+  it('keeps a declared `cell` entry on its record across a row insert and a round trip', () => {
+    const bar = buildWorkbook([
+      { name: 'Alpha', data: [['locked', 'free']], settings: { cell: [{ row: 0, col: 0, readOnly: true }] } },
+      { name: 'Beta', data: [['b']] },
+    ]);
+
+    hot.alter('insert_row_above', 0, 1);
+    bar.setActiveSheet('Beta');
+    bar.setActiveSheet('Alpha');
+
+    expect([hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly]).toEqual([false, true]);
+    expect(hot.getDataAtCell(1, 0)).toBe('locked');
+  });
+
+  it('keeps a declared `cell` entry on its record on a sheet that is not the opening one', () => {
+    const bar = buildWorkbook([
+      { name: 'Beta', data: [['b']] },
+      { name: 'Alpha', data: [['locked', 'free']], settings: { cell: [{ row: 0, col: 0, readOnly: true }] } },
+    ]);
+
+    bar.setActiveSheet('Alpha');
+    hot.alter('insert_row_above', 0, 1);
+    bar.setActiveSheet('Beta');
+    bar.setActiveSheet('Alpha');
+
+    expect([hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly]).toEqual([false, true]);
+  });
+
+  it('gives a duplicated sheet the `cell` entries at the records its original holds them on now', () => {
+    const bar = buildWorkbook([
+      { name: 'Alpha', data: [['locked', 'free']], settings: { cell: [{ row: 0, col: 0, readOnly: true }] } },
+    ]);
+
+    hot.alter('insert_row_above', 0, 1);
+
+    const copy = bar.duplicateSheet(bar.getSheets()[0].id);
+
+    bar.setActiveSheet(copy.id);
+
+    expect([hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly]).toEqual([false, true]);
+  });
+
+  it('keeps the moved grid-level ColumnSummary on the active sheet when the bar is turned off', () => {
+    const totals = [[1], [2], [null]];
+
+    buildWorkbook([
+      { name: 'A', data: totals },
+      { name: 'B', data: [[10], [20], [null]] },
+    ], {
+      columnSummary: [{ sourceColumn: 0, destinationRow: 2, destinationColumn: 0, type: 'sum', ranges: [[0, 1]] }],
+    });
+
+    hot.alter('insert_row_above', 2, 1);
+    hot.setDataAtCell(2, 0, 7);
+    hot.updateSettings({ sheetsBar: false });
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 7, 3]);
+    expect(totals.map(row => row[0])).toEqual([1, 2, 7, 3]);
+  });
+
+  it('restates a grid-level ColumnSummary changed at runtime on a sheet visited for the first time', () => {
+    const bar = buildWorkbook([
+      { name: 'A', data: [[1], [2], [null]] },
+      { name: 'B', data: [[10], [20], [null]] },
+    ], {
+      columnSummary: [{ sourceColumn: 0, destinationRow: 2, destinationColumn: 0, type: 'sum', ranges: [[0, 1]] }],
+    });
+
+    hot.updateSettings({
+      columnSummary: [{ sourceColumn: 0, destinationRow: 2, destinationColumn: 0, type: 'count', ranges: [[0, 1]] }],
+    });
+    bar.setActiveSheet('B');
+
+    expect(hot.getDataAtCol(0)).toEqual([10, 20, 2]);
+  });
+
+  it('applies the opening sheet\'s `cell` in place of the grid-level one at init', () => {
+    buildWorkbook([{
+      name: 'Only',
+      data: [['a', 'b']],
+      settings: { cell: [{ row: 0, col: 1, readOnly: true }] },
+    }], {
+      cell: [{ row: 0, col: 0, className: 'grid' }],
+    });
+
+    expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
+    expect(hot.getCellMeta(0, 0).className).toBeUndefined();
+  });
+
+  it('keeps a declared `cell` entry on its record on a sheet whose `manualRowMove` reorders the rows', () => {
+    const bar = buildWorkbook([
+      {
+        name: 'Alpha',
+        data: [['r0'], ['r1'], ['r2']],
+        settings: { manualRowMove: [2, 0, 1], cell: [{ row: 0, col: 0, readOnly: true }] },
+      },
+      { name: 'Beta', data: [['b']] },
+    ]);
+    const readOnlyRows = () => [0, 1, 2].map(row => hot.getCellMeta(row, 0).readOnly);
+
+    expect(hot.getDataAtCol(0)).toEqual(['r2', 'r0', 'r1']);
+    expect(readOnlyRows()).toEqual([true, false, false]);
+
+    bar.setActiveSheet('Beta');
+    bar.setActiveSheet('Alpha');
+    bar.setActiveSheet('Beta');
+    bar.setActiveSheet('Alpha');
+
+    expect(hot.getDataAtCol(0)).toEqual(['r2', 'r0', 'r1']);
+    expect(readOnlyRows()).toEqual([true, false, false]);
+    expect(hot.getSettings().cell).toEqual([{ row: 0, col: 0, readOnly: true }]);
+  });
+
+  it('keeps a declared `cell` entry on its record on a sheet whose `trimRows` trims a row', () => {
+    const bar = buildWorkbook([
+      {
+        name: 'Alpha',
+        data: [['r0'], ['r1'], ['r2']],
+        settings: { trimRows: [0], cell: [{ row: 0, col: 0, readOnly: true }] },
+      },
+      { name: 'Beta', data: [['b']] },
+    ]);
+
+    expect([hot.getDataAtCell(0, 0), hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly])
+      .toEqual(['r1', true, false]);
+
+    bar.setActiveSheet('Beta');
+    bar.setActiveSheet('Alpha');
+
+    expect([hot.getDataAtCell(0, 0), hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly])
+      .toEqual(['r1', true, false]);
+  });
+
+  it('opens a duplicate of a reordered sheet with its `cell` entry on the same record', () => {
+    const bar = buildWorkbook([{
+      name: 'Alpha',
+      data: [['r0'], ['r1'], ['r2']],
+      settings: { manualRowMove: [2, 0, 1], cell: [{ row: 0, col: 0, readOnly: true }] },
+    }]);
+
+    const copy = bar.duplicateSheet(bar.getSheets()[0].id);
+
+    bar.setActiveSheet(copy.id);
+
+    expect(hot.getDataAtCol(0)).toEqual(['r2', 'r0', 'r1']);
+    expect([0, 1, 2].map(row => hot.getCellMeta(row, 0).readOnly)).toEqual([true, false, false]);
+  });
+
+  it('restates the grid-level `cell` on a first visit, not the entries another sheet moved', () => {
+    const bar = buildWorkbook([
+      { name: 'A', data: [['a0'], ['a1']] },
+      { name: 'B', data: [['b0'], ['b1']] },
+      { name: 'C', data: [['c0'], ['c1']] },
+    ], {
+      cell: [{ row: 0, col: 0, readOnly: true }],
+    });
+
+    hot.alter('insert_row_above', 0, 1);
+    bar.setActiveSheet('B');
+    bar.setActiveSheet('A');
+    bar.setActiveSheet('C');
+
+    expect([hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly]).toEqual([true, false]);
+
+    bar.setActiveSheet('A');
+    hot.updateSettings({ sheetsBar: false });
+
+    expect(hot.getSettings().cell).toEqual([{ row: 0, col: 0, readOnly: true }]);
+  });
+
+  it('applies a grid-level `cell` changed at runtime on a sheet that stored its `cell` meta', () => {
+    const bar = buildWorkbook([
+      { name: 'A', data: [['a0']] },
+      { name: 'B', data: [['b0']] },
+    ], {
+      cell: [{ row: 0, col: 0, readOnly: true }],
+    });
+
+    bar.setActiveSheet('B');
+    bar.setActiveSheet('A');
+    hot.updateSettings({ cell: [] });
+    bar.setActiveSheet('B');
+
+    expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
+  });
 });

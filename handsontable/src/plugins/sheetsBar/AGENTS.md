@@ -302,7 +302,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   switch's settings payload once any sheet declares it, and phase A of `_applySettingsAndData()` runs
   while the grid still holds the departing sheet's data. Built there, `generateFromSettings()`
   validated the arriving areas against the departing size and wrote its clearing `null`s into the
-  departing sheet's array. MergeCells' `updatePlugin()` therefore reads `isDataWorkDeferred()` and only
+  departing sheet's array. MergeCells' `updatePlugin()` therefore reads `isDataLoadPending()` and only
   rebuilds the plugin, keeping its record of applied areas. After the call,
   `#runMergeCellsSettingsPass` calls `runDeferredSettingsPass(apply)`: a first visit builds the
   declared merges against the arriving data; a sheet with a stored state passes `false` and builds
@@ -352,12 +352,21 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - **The `cell` option is restated on every switch** (`#effectiveCellOption`), because the load clears
     every cell meta object: the sheet's own entries, the grid-level ones when the sheet declares none
     (and the grid has entries), or `[]` when the baseline holds no grid-level value, which drops the
-    departing sheet's entries from core's record of them.
+    departing sheet's entries from core's record of them. **A return puts the `cell` option's meta back by
+    physical index** (`#captureCellOption`, `#cellOptionStates`, the `cellOptionMetas` argument of
+    `_applySettingsAndData()`), and the `cell` setting keeps its declared value. Core moves that meta with its
+    record on an alteration, while the entries name visual positions, so restating them by coordinate made an
+    inserted empty row read-only and left the declared record editable. Do not translate the stored meta back
+    into `cell` entries: the visual order on a return is not the physical one whenever the sheet's own settings
+    reorder or trim rows during the load (`manualRowMove`, `manualColumnMove`, `trimRows` as an array), and
+    entries written with physical indexes moved the `readOnly` to another record on every round trip. A
+    duplicate gets its original's current meta, put back on its first visit the same way, and a server
+    response that replaces the rows drops it, like the ColumnSummary endpoints below.
   - **NestedRows has to be ON during the load**, so it enables in phase A: an enable with an empty data
     manager then takes its tree from the load (its own `beforeLoadData`) instead of validating the
     departing flat array, which logged "requires an Array of Objects" and turned the plugin off for good.
   - **A new plugin whose `enablePlugin()` or `updatePlugin()` reads or writes the loaded rows must defer
-    that work** through `isDataWorkDeferred()` and `onDataReady()`. Do not add a per-plugin flag set by
+    that work** through `isDataWorkDeferred()`, BasePlugin's `deferDataWork()` and `onDataReady()`. Do not add a per-plugin flag set by
     the bar again, and do not split the payload into a before-load and an after-load part: both were
     the workarounds this contract replaced.
   - **A return applies the ColumnSummary endpoints the sheet left with, not the declared ones.** A
@@ -371,20 +380,45 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     A duplicate gets the original's current endpoints written into its own settings
     (`#copyColumnSummaryEndpoints`), because its copied data already has the summaries at their moved
     positions; and a server response that replaces a sheet's rows drops the stored endpoints
-    (`#keepDetachedOutcome`), so the declared positions apply to the fresh rows.
+    (`#keepDetachedOutcome`), so the declared positions apply to the fresh rows. A grid-level
+    `columnSummary` array that no sheet declares is captured into the settings baseline when the
+    workbook starts (`#captureGridColumnSummary`), so every switch restates it like a key a sheet
+    overrides. Without that the payload never named `columnSummary`, the stored endpoints were never
+    read back, and the plugin kept one sheet's moved endpoints on every other sheet, where they could
+    land on a data row. The function form is not captured: it reads its settings again on every pass.
+    Two rules ride along. A genuine teardown gives the grid the active sheet's CURRENT endpoints, not the
+    captured value, unless that sheet declares its own (`#getActiveSheetGridColumnSummary`, read before the
+    model is dropped): the grid keeps the active sheet's rows, and the declared positions wrote the summary
+    over the cell a row insert had moved into them. A rebuild restores the captured value, because the new
+    workbook loads other rows. And a grid-level `columnSummary` set through `updateSettings()` outside a
+    switch, while the active sheet declares none, replaces the captured value and drops the stored endpoints
+    of every sheet without its own (`#refreshGridColumnSummary`), or the next first visit put the previous
+    configuration back. A structurally equal value changes nothing, so a wrapper re-sending its settings on
+    every render keeps the stored endpoints, but only while each `customFunction` is the same function:
+    `isStructurallyEqual` compares functions by reference, so an inline one rebuilt per render reads as a
+    new configuration and drops them. The same rule as the grid-level `dataProvider`: keep the value stable.
+    The grid-level `cell` follows the same rules (`#gridCellOption`, taken when the workbook starts, and
+    `#refreshGridCellOption`), and a sheet without its own `cell` restates that snapshot, never the live
+    `getSettings().cell`, which a return to another sheet has set to that sheet's value.
   - **The init build applies the opening sheet from `beforeInit`, and core's own init settings pass
     then undoes two parts of it.** It registers the grid-level callback of every hook again (a
     settings hook is one replaceable `initialHook` entry per name, `core/hooks/bucket.ts`), so the
-    opening sheet's own hook never ran; and its init `loadData()` cleared the cell meta the sheet's
-    `cell` option wrote. `#takeInitPassSettings` keeps those keys, and `#onInit` (the `init` hook,
-    after that pass and before the first render) applies them again. It first writes the grid-level
-    callback into the settings baseline: the baseline was captured in `beforeInit`, before core puts
-    the settings' callbacks on the table meta, so it held `undefined` and a switch to another sheet
-    kept the opening sheet's callback. A sheet's hook REPLACES the grid-level one on that sheet, like
+    opening sheet's own hook never ran; and it applied the grid-level `cell` after its first load, which
+    clears the cell meta the sheet's own entries wrote. `#handOpeningSheetToInitPass` therefore hands the
+    sheet's hook callbacks and `cell` entries (`#takeInitPassSettings`) to that pass through
+    `Core#_replaceInitPassSettings()`, callable from `beforeInit` only, so the pass applies them once.
+    Do not apply them again afterwards through `updateSettings()`: that was the first cut, from the
+    `init` hook, and it fired `afterUpdateSettings` before `afterInit`, ran `updatePlugin()` for every
+    plugin whose `SETTING_KEYS` is `true`, and ran the source-data validators three times at init where a
+    plain grid runs them once (pinned by "builds the grid with the opening sheet's `cell` and hooks without
+    a settings update of their own"). The grid-level callback each hook replaced, which the call returns,
+    goes into the settings baseline: the baseline was captured before core put the settings' callbacks on
+    the table meta, so it held `undefined` and a switch to another sheet kept the opening sheet's callback.
+    A sheet's hook REPLACES the grid-level one on that sheet, like
     every other key, for a function: core keeps one settings callback per hook name. A grid-level ARRAY
     of callbacks is added through `Hooks#add` instead and keeps running beside a sheet's callback on every
-    sheet. The re-apply runs with `#isSwitching` set, so the opening sheet's declared `cell` entries are not
-    tracked as cell meta the user set, the same as on a switch. Known gap: a hook only sheets declare, with no grid-level callback, is restored
+    sheet. No write the `cell` option makes is tracked as cell meta the user set (`#onAfterSetCellMeta` asks
+    `MetaManager#isRecordingCellOptionMeta()`), at init or on a switch. Known gap: a hook only sheets declare, with no grid-level callback, is restored
     as `null`, which removes nothing, so it keeps running on the sheets that do not declare it. The
     opening sheet's hooks also miss the init load's own events (`afterLoadData` of the first load).
 - **Custom borders are restored with the logical sides only.** `getBorders()` records carry both
@@ -399,7 +433,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 - **A switch runs `loadData()` exactly once, and AutoColumnSize sweeps every column on it
   (DEV-2905, DEV-3040).** When the arriving settings change the Formulas plugin's `sheetName`,
   `Formulas#updatePlugin` would run `switchSheet()`, a `loadData()` of the engine's serialized content,
-  right before the switch's own load overwrote it. In phase A it reads `isDataWorkDeferred()` and only
+  right before the switch's own load overwrote it. In phase A it reads `isDataLoadPending()` and only
   binds the sheet, and the load's Formulas `afterLoadData` writes the array into that sheet, so the
   switch's load is the one load. A name the engine does not know still goes through `switchSheet()`,
   which reports it. Phase A also writes nothing into the departing sheet's array: core skips the `min*`

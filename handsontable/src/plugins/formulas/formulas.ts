@@ -3,7 +3,7 @@ import { staticRegister } from '../../utils/staticRegister';
 import { deprecatedWarnOnce, error, warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isNumeric } from '../../helpers/number';
-import { isObject, isPlainObject } from '../../helpers/object';
+import { hasOwnProperty, isObject, isPlainObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
 import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
@@ -311,6 +311,13 @@ function isFormulasUndoState(value: unknown): value is FormulasUndoState {
 // Maximum number of `[startIndex, amount]` spans passed to a single variadic engine
 // `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
 const REMOVAL_SPANS_CHUNK_SIZE = 1000;
+
+/**
+ * The cell meta keys that decide the value the engine reads for a cell: the ones the built-in value getters
+ * read (directly, or through the cell type that sets the getter), and `preserveTextValue`, which the
+ * engine-bound escaping reads. A `cell` option entry setting one of them can change that value.
+ */
+const VALUE_GETTER_META_KEYS = ['type', 'valueGetter', 'source', 'sourceLabel', 'preserveTextValue'];
 
 // A formula whose reference the engine could not keep. Only operations that remove or relocate
 // cells may put one into the source data - see `#syncFormulasToSourceData`.
@@ -1161,7 +1168,7 @@ export class Formulas extends BasePlugin {
       // still differs from the current one and lets `switchSheet` report it.
       this.engine?.getSheetId(pluginSettings.sheetName) !== this.sheetId
     ) {
-      if (this.isDataWorkDeferred() && this.engine?.doesSheetExist(pluginSettings.sheetName)) {
+      if (this.isDataLoadPending() && this.engine?.doesSheetExist(pluginSettings.sheetName)) {
         this.#updateSheetNameAndSheetId(pluginSettings.sheetName);
 
       } else {
@@ -1171,7 +1178,7 @@ export class Formulas extends BasePlugin {
 
     // If no data was passed to the `updateSettings` method and no sheet is connected to the instance -> create a
     // new sheet using the currently used data. Otherwise, it will be handled by the `afterLoadData` call.
-    if (!newSettings.data && !this.isDataWorkDeferred() && this.sheetName === null) {
+    if (!newSettings.data && !this.isDataLoadPending() && this.sheetName === null) {
       const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
       const sheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
 
@@ -3080,14 +3087,19 @@ export class Formulas extends BasePlugin {
    * engine reads: it applies the `cell` option and the `columns` function form, and a cell type either
    * sets (a key/value dropdown resolves an object to its label) decides that value. The load wrote the
    * sheet before either was applied. Core resets the column meta before that load for `columns: null`,
-   * so the load already reads the values that call describes.
+   * so the load already reads the values that call describes. Only a `cell` entry that sets a key the
+   * built-in value getters read counts (`VALUE_GETTER_META_KEYS`): the sheets bar restates a grid-level
+   * `cell` on every switch, and an entry that only sets `readOnly` or a class made every switch pay a
+   * full engine write. A custom `valueGetter` that reads another key of a `cell` entry is not seen.
    *
    * @returns {boolean}
    */
   #metaPhaseMayChangeEngineValues(): boolean {
     const { cell, columns } = this.hot.getSettings();
 
-    return (Array.isArray(cell) && cell.length > 0) || typeof columns === 'function';
+    return typeof columns === 'function' || (Array.isArray(cell) && cell.some(
+      entry => isObject(entry) && VALUE_GETTER_META_KEYS.some(key => hasOwnProperty(entry, key))
+    ));
   }
 
   /**
@@ -3100,7 +3112,9 @@ export class Formulas extends BasePlugin {
    * has no `afterUpdateSettings` pass (the Core skips the hook on its first run), so the scan
    * stays eager there; `hot.view` is what the Core creates right after that first run.
    *
-   * The reset core's `_applySettingsAndData()` fires after its own load needs no resync when the call
+   * The reset core's `_applySettingsAndData()` fires from the meta phase it held back for its own load
+   * (`_isHeldMetaPhaseRunning()`, never the reset of a full settings update an `afterLoadData` listener makes
+   * in that call, whose `columns` the load never saw) needs no resync when the call
    * declares no `cell` entries and no `columns` function: that load already wrote the sheet through
    * `#onAfterLoadData`, with the column configuration of the call in force, and a second scan cost a full
    * engine write and an AutoColumnSize sweep per sheet switch. `cell` entries and a `columns` function reach
@@ -3110,7 +3124,7 @@ export class Formulas extends BasePlugin {
   #onAfterCellMetaReset = () => {
     this.#closeLeakedGuards();
 
-    if (this.isDataWorkDeferred() && !this.#metaPhaseMayChangeEngineValues()) {
+    if (this.hot._isHeldMetaPhaseRunning() && !this.#metaPhaseMayChangeEngineValues()) {
       return;
     }
 

@@ -159,19 +159,32 @@ data the grid still holds. The call has three phases:
    `onDataReady()` loop: its plugins do that work from their own `afterInit`.
 
 The rule for a plugin: **work in `enablePlugin()`, `updatePlugin()` or a load hook that reads or writes the
-loaded rows checks `isDataWorkDeferred()` and, while it is `true`, records that the work is owed and does it
-in `onDataReady()`.** Configuration (hooks, maps, the plugin's own state) stays where it is. Clear the
-pending flag in `disablePlugin()`, so a plugin turned off in the same pass does not run it later. Do not
+loaded rows checks `isDataWorkDeferred()` and, while it is `true`, records it with `deferDataWork()` and does
+it in `onDataReady()` when `takeDeferredDataWork()` answers `true`.** Configuration (hooks, maps, the plugin's
+own state) stays where it is. The record lives in BasePlugin, never in a flag of the plugin's own, because
+three owners have to be able to drop it: `disablePlugin()` (a plugin turned off in the same pass), core when
+the call throws before the `onDataReady()` pass (`dropDeferredDataWork()`; a listener that throws mid-switch
+left the plugins' own flags set, and the next switch ran the owed work against another sheet's data), and
+`deferDataWork()` itself, which records nothing while the grid has no view. **Work that needs the load itself
+rather than the loaded rows** (NestedRows' check of the incoming array, Formulas binding a sheet the load fills,
+MergeCells' held settings pass) asks `isDataLoadPending()` instead, which answers `true` only before the call's
+load. `isDataWorkDeferred()` stays `true` through the load and the meta phase, so a plugin enabled from an
+`afterLoadData` listener that waited on it waited for a load that had already run. Do not
 read the flag to skip work that the load itself redoes (a map's `init` hook, an `afterLoadData` refresh
-that already reads the new rows): that work is correct as it is. The plugins that defer today:
+that already reads the new rows): that work is correct as it is. ColumnSummary is the one exception: its `afterLoadData` refresh is skipped while the flag is up, because its endpoints are still the
+departing sheet's until `onDataReady()` parses the arriving ones, so that refresh would read the new rows
+with the old configuration. The plugins that defer today:
 ColumnSummary (endpoints), ColumnSorting and MultiColumnSorting (the `initialConfig` sort), CustomBorders
 (the declared borders), MergeCells (the settings pass, run by SheetsBar), NestedRows (the data check),
 Formulas (bind only, no sheet fill), Pagination (the page state), EmptyDataState (the overlay toggle) and
-DataProvider (the fetch). The public `updateSettings()` and `loadData()` never set the flag. Two more rules:
-record owed work only while `this.hot.view` exists, because core skips the `onDataReady()` pass on a grid
-still being built and the plugin's own `afterInit` does the work there (a flag set then would fire on a
-later, unrelated switch); and declare `onDataReady()` as an ordinary method, BasePlugin declares the
-optional signature. A public `updateSettings()` made during phase 1 (ColumnSorting turning a conflicting
+DataProvider (the fetch). The public `updateSettings()` and `loadData()` never set the flag. Core skips the
+`onDataReady()` pass on a grid still being built and the plugin's own `afterInit` does the work there, which
+is why `deferDataWork()` records nothing without a view (a record made then would fire on a later, unrelated
+switch: ColumnSorting ran its settings sort on the first switch, with its sort hooks). Declare `onDataReady()` as an ordinary method;
+BasePlugin declares the optional signature. MergeCells is the one plugin whose owed pass is run by its caller
+(SheetsBar's `runDeferredSettingsPass(apply)`), not by `onDataReady()`, because only the bar knows whether the
+sheet returns with a stored state that must build no declared merges; it still keeps the record in
+BasePlugin, so a failed call drops it too. A public `updateSettings()` made during phase 1 (ColumnSorting turning a conflicting
 plugin off from `enablePlugin()`) is deferred like the call's own: core skips its data phase, padding and
 render, and runs its meta phase after the call's own, in the order the updates were made. Applied in full
 there, it padded the departing rows to the arriving `min*` values, and a single shared slot for the held

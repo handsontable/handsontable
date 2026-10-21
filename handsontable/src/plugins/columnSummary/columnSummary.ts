@@ -168,12 +168,6 @@ export class ColumnSummary extends BasePlugin {
    */
   endpoints: Endpoints | null = null;
   /**
-   * Whether `updatePlugin()` left the endpoints for `onDataReady()`.
-   *
-   * @type {boolean}
-   */
-  #endpointsPending = false;
-  /**
    * Plugin settings provided by the user, or `null` if none were supplied.
    */
   declare settings: Record<string, unknown> | null;
@@ -255,7 +249,6 @@ export class ColumnSummary extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
-    this.#endpointsPending = false;
     this.endpoints = null;
     this.settings = null;
     this.currentEndpoint = null;
@@ -280,7 +273,7 @@ export class ColumnSummary extends BasePlugin {
 
     if (this.hot.view) {
       if (this.isDataWorkDeferred()) {
-        this.#endpointsPending = true;
+        this.deferDataWork();
       } else {
         this.endpoints!.initEndpoints();
       }
@@ -299,8 +292,7 @@ export class ColumnSummary extends BasePlugin {
    * @private
    */
   onDataReady() {
-    if (this.#endpointsPending) {
-      this.#endpointsPending = false;
+    if (this.takeDeferredDataWork()) {
       this.endpoints!.initEndpoints();
     } else {
       this.endpoints?.refreshAllEndpoints();

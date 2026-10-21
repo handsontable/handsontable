@@ -415,7 +415,9 @@ Pinned by `__tests__/mergedAreasApi.unit.js`.
 areas are copied *before* `disablePlugin()` clears them.
 
 **The settings pass is held back while core applies settings ahead of their data.** While
-`isDataWorkDeferred()` answers `true` (core's `_applySettingsAndData()`, see `../base/AGENTS.md`),
+`isDataLoadPending()` answers `true` (core's `_applySettingsAndData()` before its load, see `../base/AGENTS.md`;
+an update made after that load, from an `afterLoadData` listener, builds its merges at once, because the bar
+would otherwise run the held pass with `apply: false` on a return and drop them),
 `updatePlugin()` rebuilds the plugin and puts the copied areas back into `#appliedMergeKeys`, but skips
 `generateFromSettings()` and leaves `#initialized` unset; `runDeferredSettingsPass(apply)` runs the pass
 later (`apply: false` builds nothing and writes no cell, but still sets `#initialized` and captures

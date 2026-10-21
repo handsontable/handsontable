@@ -341,12 +341,6 @@ export class MergeCells extends BasePlugin {
    */
   #appliedMergeKeys: Set<string> = new Set();
   /**
-   * Whether `updatePlugin()` held back a settings pass that has not run yet.
-   *
-   * @type {boolean}
-   */
-  #settingsPassPending = false;
-  /**
    * The physical rows every merged cell covers, plus its physical left column, captured while its
    * visual coordinates are authoritative (creation, structural edits). This is the authoritative
    * description of a merge: physical indexes are stable across trimming, so one capture survives any
@@ -542,14 +536,14 @@ export class MergeCells extends BasePlugin {
     // re-applied area from a newly declared one.
     const alreadyAppliedMerges = new Set(this.#appliedMergeKeys);
 
-    this.#settingsPassPending = false;
+    this.dropDeferredDataWork();
 
-    if (this.isDataWorkDeferred()) {
+    if (this.isDataLoadPending()) {
       this.disablePlugin();
       this.enablePlugin();
 
       alreadyAppliedMerges.forEach(key => this.#appliedMergeKeys.add(key));
-      this.#settingsPassPending = true;
+      this.deferDataWork();
 
       super.updatePlugin();
 
@@ -572,7 +566,8 @@ export class MergeCells extends BasePlugin {
 
   /**
    * Runs the settings pass that `updatePlugin()` held back while core's `_applySettingsAndData()`
-   * applied the settings ahead of their data (`isDataWorkDeferred()`). With `apply` set, the declared merges are built against the data the grid holds now,
+   * applied the settings before loading their data (`isDataLoadPending()`); an update made later in that
+   * call, once the data is loaded, builds its merges at once. With `apply` set, the declared merges are built against the data the grid holds now,
    * so they are validated against its size and their covered cells are cleared in it. Without it,
    * no merge is built and no cell is written, and the areas applied before stay recorded as
    * applied. Does nothing when no pass is pending.
@@ -581,11 +576,9 @@ export class MergeCells extends BasePlugin {
    * @param {boolean} apply Whether to build the declared merges.
    */
   runDeferredSettingsPass(apply: boolean) {
-    if (!this.#settingsPassPending) {
+    if (!this.takeDeferredDataWork()) {
       return;
     }
-
-    this.#settingsPassPending = false;
 
     if (apply) {
       this.generateFromSettings(new Set(this.#appliedMergeKeys));
@@ -1668,7 +1661,7 @@ export class MergeCells extends BasePlugin {
    * any draw here would repaint an identical table (#5687).
    */
   #onAfterInit = () => {
-    this.#settingsPassPending = false;
+    this.dropDeferredDataWork();
 
     if (this.getSetting<unknown[]>('cells').length > 0) {
       this.hot.suspendRender();

@@ -95,7 +95,7 @@ import type { ThemeOverridesInput } from './themes/engine/manager';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
-import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
+import type { CellOptionMetaEntry, GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
 import { applyRootSize, reapplyPixelRootHeight } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
@@ -431,14 +431,20 @@ export default function Core(
   let firstRun: boolean | [null, string] = true;
   /**
    * The step `_applySettingsAndData()` is in: `'configure'` while it applies its settings, `'data'`
-   * while it loads the data and runs the work held back for it, and `null` outside the call.
+   * while it loads the data, `'meta'` while it runs the meta phases it held back, and `null` outside the
+   * call.
    */
-  let dataWorkPhase: 'configure' | 'data' | null = null;
+  let dataWorkPhase: 'configure' | 'data' | 'meta' | null = null;
   /**
    * The meta phases of the settings updates made while `_applySettingsAndData()` configures, run
    * after its load in the order the updates were made.
    */
   let heldMetaPhases: (() => void)[] = [];
+  /**
+   * The settings core's own init settings pass applies, while `beforeInit` runs, or `null` outside that
+   * window (see `_replaceInitPassSettings()`).
+   */
+  let initPassSettings: Record<string, unknown> | null = null;
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -2554,7 +2560,13 @@ export default function Core(
     // array-form `beforeInit` would then warn twice per instance.
     registerSettingsHook('beforeInit', mergedUserSettings.beforeInit as HookCallback | HookCallback[] | undefined);
 
-    instance.runHooks('beforeInit');
+    initPassSettings = mergedUserSettings as Record<string, unknown>;
+
+    try {
+      instance.runHooks('beforeInit');
+    } finally {
+      initPassSettings = null;
+    }
 
     if (isMobileOrIpadOS()) {
       addClass(instance.rootElement, 'mobile');
@@ -5169,9 +5181,24 @@ export default function Core(
     // settings, or the `cell` option writing meta, must not open an operation or be journaled.
     operationScope.suppress(() => {
       if (dataWorkPhase !== 'configure' || init) {
-        applySettings(settings, init);
+        const outerPhase = dataWorkPhase;
+
+        if (outerPhase === 'meta') {
+          dataWorkPhase = 'data';
+        }
+
+        try {
+          applySettings(settings, init);
+        } finally {
+          dataWorkPhase = outerPhase;
+        }
 
         return;
+      }
+
+      if (hasOwnProperty(settings, 'data')) {
+        warn('The "data" setting passed to updateSettings() while another settings and data change is being ' +
+          'applied is ignored: the data that change loads replaces it. Call loadData() once it has finished.');
       }
 
       const metaPhase = applySettings(settings, init, true);
@@ -5214,15 +5241,32 @@ export default function Core(
    * `afterLoadData` listener) applies in full. In both, plugins still see `_isDataWorkDeferred()` answer
    * `true`, so their data work waits for the `onDataReady()` pass of this call. A nested
    * `_applySettingsAndData()` restores the outer call's step when it ends and leaves that pass to the
-   * outer call. The data is loaded as given: the caller decides what a sheet backed by an external data
+   * outer call. A nested call made after this call's load (a listener switching sheets from
+   * `afterLoadData`) is not supported: this call's meta phase then applies its `cell` entries and
+   * `columns` function to the nested call's data. When the call throws before the `onDataReady()` pass ends, every plugin drops the work
+   * it recorded for that pass (`BasePlugin#dropDeferredDataWork()`), so a later call cannot run it
+   * against other data; a grid whose init settings pass has not run yet (no view) skips the validators
+   * here, because that pass runs them. An `updateSettings()` made during step 1 that carries `data` warns:
+   * the data this call loads replaces it. The data is loaded as given: the caller decides what a sheet backed by an external data
    * source shows until its fetch lands.
    *
    * @private
    * @param {object} settings The settings to apply.
    * @param {Array} data The data the settings describe.
    * @param {string} source The source of the data load.
+   * @param {Array} [cellOptionMetas] Meta the `cell` option wrote earlier, by physical indexes, to put back
+   * in place of applying `settings.cell` by its coordinates. The `cell` setting is stored as given either
+   * way. A caller that brings rows back (the sheets bar, on a return to a sheet) passes what it kept when
+   * it took them away: the meta follows its records through inserts, removals and moves, while the entries
+   * of the setting name visual positions, which a reordering or trimming plugin of the new settings (a
+   * `manualRowMove` or `trimRows` array) changes during the load.
    */
-  this._applySettingsAndData = function(settings: Partial<GridSettings>, data: unknown[], source: string) {
+  this._applySettingsAndData = function(
+    settings: Partial<GridSettings>,
+    data: unknown[],
+    source: string,
+    cellOptionMetas: CellOptionMetaEntry[] | null = null,
+  ) {
     const suspendsRender = !!instance.view;
 
     if (suspendsRender) {
@@ -5239,27 +5283,41 @@ export default function Core(
         heldMetaPhases = [];
 
         try {
-          const metaPhase = applySettings(settings, false, true);
-          const nestedMetaPhases = heldMetaPhases;
+          try {
+            const metaPhase = applySettings(settings, false, true, cellOptionMetas);
+            const nestedMetaPhases = heldMetaPhases;
 
-          dataWorkPhase = 'data';
-          applyLoadData(data as unknown[][][], source);
-          metaPhase?.();
-          nestedMetaPhases.forEach(nestedMetaPhase => nestedMetaPhase());
-          runSourceDataValidators(instance, 'loadData');
-        } finally {
-          dataWorkPhase = outerPhase;
-          heldMetaPhases = outerHeldMetaPhases;
-        }
+            dataWorkPhase = 'data';
+            applyLoadData(data as unknown[][][], source);
+            dataWorkPhase = 'meta';
+            metaPhase?.();
+            nestedMetaPhases.forEach(nestedMetaPhase => nestedMetaPhase());
 
-        if (instance.view && !isNested) {
-          pluginsRegistry.getItems().forEach(([, plugin]) => {
-            const readyPlugin = plugin as BasePlugin;
-
-            if (readyPlugin.enabled && typeof readyPlugin.onDataReady === 'function') {
-              readyPlugin.onDataReady();
+            if (instance.view) {
+              runSourceDataValidators(instance, 'loadData');
             }
-          });
+          } finally {
+            dataWorkPhase = outerPhase;
+            heldMetaPhases = outerHeldMetaPhases;
+          }
+
+          if (instance.view && !isNested) {
+            pluginsRegistry.getItems().forEach(([, plugin]) => {
+              const readyPlugin = plugin as BasePlugin;
+
+              if (readyPlugin.enabled && typeof readyPlugin.onDataReady === 'function') {
+                readyPlugin.onDataReady();
+              }
+            });
+          }
+        } catch (error) {
+          if (!isNested) {
+            pluginsRegistry.getItems().forEach(([, plugin]) => {
+              (plugin as BasePlugin).dropDeferredDataWork();
+            });
+          }
+
+          throw error;
         }
       });
     } finally {
@@ -5279,6 +5337,60 @@ export default function Core(
    */
   this._isDataWorkDeferred = function() {
     return dataWorkPhase !== null;
+  };
+
+  /**
+   * Replaces values the init settings pass is about to apply, and returns the values it replaced. Callable
+   * from `beforeInit` only; anywhere else it changes nothing and returns `null`. The pass registers every
+   * hook callback of the settings and applies their `cell` option after the first load, so a plugin that
+   * applied settings of its own in `beforeInit` (the SheetsBar plugin, its opening sheet) would see the pass
+   * replace its hook callbacks and its `cell` entries with the grid-level ones. Replaced here, they are
+   * applied once, by the pass itself, with no settings update of their own.
+   *
+   * @private
+   * @param {object} settings The values to apply in the init settings pass instead.
+   * @returns {object|null} The values the pass held for those keys before, or `null` outside `beforeInit`.
+   */
+  this._replaceInitPassSettings = function(settings: Record<string, unknown>) {
+    if (initPassSettings === null) {
+      return null;
+    }
+
+    const passSettings = initPassSettings;
+    const replaced: Record<string, unknown> = {};
+
+    Object.keys(settings).forEach((key) => {
+      replaced[key] = passSettings[key];
+      passSettings[key] = settings[key];
+    });
+
+    return replaced;
+  };
+
+  /**
+   * Tells a plugin whether the data the settings describe is still to be loaded, which is the case only
+   * while `_applySettingsAndData()` applies its settings, before its load. Work that needs that load (a
+   * check of the incoming data, a sheet the load fills) waits for it then; once the load has run, it does
+   * the work at once.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  this._isDataLoadPending = function() {
+    return dataWorkPhase === 'configure';
+  };
+
+  /**
+   * Tells a plugin whether the meta phase running now is one `_applySettingsAndData()` held back for its own
+   * load, which is the case only between that load and the `onDataReady()` pass. A full settings update made
+   * from a listener in the same call (an `afterLoadData` listener) runs its meta phase outside this window,
+   * so a plugin that skips work already done by the load skips it for the call's own meta phase only.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  this._isHeldMetaPhaseRunning = function() {
+    return dataWorkPhase === 'meta';
   };
 
   /**
@@ -5323,10 +5435,13 @@ export default function Core(
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
    * @param {boolean} [defersDataWork=false] Whether the data the settings describe is loaded after this call.
+   * @param {Array|null} [restoredCellOptionMetas=null] `cell`-option meta, by physical indexes, to put back in
+   * the meta phase instead of applying `settings.cell` (see `_applySettingsAndData()`).
    * @returns {Function|null} The held-back meta phase, or `null` when it ran.
    */
   function applySettings(
-    settings: Partial<GridSettings>, init: boolean, defersDataWork = false
+    settings: Partial<GridSettings>, init: boolean, defersDataWork = false,
+    restoredCellOptionMetas: CellOptionMetaEntry[] | null = null
   ): (() => void) | null {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(instance);
     let i;
@@ -5722,7 +5837,18 @@ export default function Core(
         applyColumnMeta(clen);
       }
 
-      if (isCellOptionRestated) {
+      if (restoredCellOptionMetas !== null) {
+        metaManager.startCellOptionMetaRecording();
+
+        try {
+          restoredCellOptionMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
+            metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+          });
+        } finally {
+          metaManager.endCellOptionMetaRecording();
+        }
+
+      } else if (isCellOptionRestated) {
         // Applied last, so a key restated here wins over both the column meta and any imperative value the
         // replay above put back (preserving legacy behavior). The writes are filed as declarative rather
         // than user-defined - which also de-marks any imperative value for the same key - so a later call

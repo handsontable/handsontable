@@ -147,8 +147,8 @@ class Endpoints {
         roundFloat: endpoint.roundFloat,
       };
 
-      if (!endpoint.rangesFromDefault && Array.isArray(endpoint.ranges)) {
-        settings.ranges = endpoint.ranges.map(range => range.slice());
+      if (!endpoint.rangesFromDefault) {
+        settings.ranges = Array.isArray(endpoint.ranges) ? endpoint.ranges.map(range => range.slice()) : [];
       }
 
       return settings;
