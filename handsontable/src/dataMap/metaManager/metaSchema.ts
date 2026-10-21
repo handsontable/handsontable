@@ -67,6 +67,28 @@ function getSchemaDefault(
 }
 
 /**
+ * Reads the schema that a row was created from. A `dataSchema` function builds each new row from
+ * the row's index, so the defaults of one row can differ from another's and from the no-argument
+ * call `getSchema()` makes. A row that moved since it was created reads as holding no defaults.
+ *
+ * @param {Handsontable} hot The Handsontable instance.
+ * @param {Function|object} dataSchema The `dataSchema` setting.
+ * @param {number} visualRow Visual row index.
+ * @returns {object|undefined} The row's schema, or `undefined` for a `dataSchema` that is not a function.
+ */
+function getRowSchema(
+  hot: HotInstance,
+  dataSchema: unknown,
+  visualRow: number
+): Record<string | number, unknown> | undefined {
+  if (typeof dataSchema !== 'function') {
+    return undefined;
+  }
+
+  return dataSchema(hot.toPhysicalRow(visualRow)) as Record<string | number, unknown>;
+}
+
+/**
  * @alias Options
  * @class Options
  * @description
@@ -582,7 +604,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
-     * @configScope grid
+     * @configScope grid columns cells cell
      * @since 14.0.0
      */
     ariaTags: true,
@@ -608,6 +630,7 @@ export default (): Record<string, unknown> => {
      * | `flush`         | `'microtask'` (default), `'frame'`, or a number  | When settled requests are written: right after the task they settled in, once per animation frame, or after a number of milliseconds that collects results |
      * | `concurrency`   | A number (default: `6`), or `Infinity`           | The maximum number of sources running at once (a batch counts as one); further requests stay pending until a slot frees |
      * | `copyPendingAs` | `'previous'` (default) or `'empty'`              | What copying a pending cell puts on the clipboard                                                 |
+     * | `saveToDataProvider` | `false` (default) or `true`                 | Saves each resolved value through the [`dataProvider`](#dataprovider) `onRowsUpdate` callback, one `updateRows()` call per flush |
      *
      * The plugin can't be enabled together with the [`nestedRows`](#nestedrows) option, because NestedRows
      * moves rows without keeping their physical indexes.
@@ -1753,6 +1776,13 @@ export default (): Record<string, unknown> => {
      * | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
      * | `true` (default)                                                                                               | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>, add the cell's value to the clipboard         |
      * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) [cell type](#type))        | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>, add an empty string (`""`) to the clipboard   |
+     *
+     * With `copyable: false`, the cell's value doesn't move through other user actions either: cutting the cell
+     * clears it and adds an empty string to the clipboard, and dragging the fill handle from it fills the target
+     * cells with empty strings. Data access methods, such as [`getDataAtCell()`](@/api/core.md#getdataatcell), still return
+     * the real value, while copy-related methods, such as [`getCopyableData()`](@/api/core.md#getcopyabledata), return an empty string.
+     * The `copyable` option is not a security measure: formulas and the [`ExportFile`](@/api/exportFile.md) plugin still read the real value.
+     * See [Password cell type: Copy, cut, paste, and autofill](@/guides/cell-types/password-cell-type/password-cell-type.md#copy-cut-paste-and-autofill).
      *
      * Read more:
      * - [Clipboard](@/guides/cell-features/clipboard/clipboard.md)
@@ -4629,15 +4659,21 @@ export default (): Record<string, unknown> => {
       const schema = this.getSchema() as Record<string | number, unknown>;
       const prop = this.colToProp(col);
       const rowLen = this.countRows();
+      const isSchemaFunction = typeof dataSchema === 'function';
       // A column index that names no column has no schema entry to compare against. Every value
       // read from it is empty anyway, so the comparisons below are never reached in that case.
-      const schemaDefault = prop === null ?
+      let schemaDefault = prop === null ?
         undefined : getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
       for (row = 0; row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
+          if (isSchemaFunction && prop !== null) {
+            schemaDefault = getSchemaDefault(
+              getRowSchema(this, dataSchema, row)!, prop, dataDotNotation, hasExplicitSchema);
+          }
+
           if (typeof value === 'object') {
             if (isObjectEqual(schemaDefault, value) === false) {
               return false;
@@ -4688,7 +4724,7 @@ export default (): Record<string, unknown> => {
       let value;
       const { dataSchema, dataDotNotation } = this.getSettings();
       const hasExplicitSchema = !!dataSchema;
-      const schema = this.getSchema() as Record<string | number, unknown>;
+      const schema = (getRowSchema(this, dataSchema, row) ?? this.getSchema()) as Record<string | number, unknown>;
       const colLen = this.countCols();
 
       for (col = 0; col < colLen; col++) {
@@ -8937,6 +8973,12 @@ export default (): Record<string, unknown> => {
      * @description
      * The `valueSetter` option configures a function that defines what value will be used when setting the cell content.
      * It can be used to modify the value of a cell before it is saved (for example, for object-based data).
+     *
+     * [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) runs the `valueSetter` too. When you address the
+     * cell by a property name, the grid reads the option from the global settings, the [`columns`](#columns)
+     * option, or the [`cell`](#cell) option. It does not run the [`cells`](#cells) function or the
+     * [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) and
+     * [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks.
      *
      * @example
      * ```js

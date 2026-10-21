@@ -54,7 +54,10 @@ export const apiGuideLinks = {
   'hiddenColumns.md': 'guides/columns/column-hiding/column-hiding.md',
   'hiddenRows.md': 'guides/rows/row-hiding/row-hiding.md',
   'hooks.md': 'guides/getting-started/events-and-hooks/events-and-hooks.md',
-  'importFile.md': 'guides/accessories-and-menus/import-from-excel/import-from-excel.md',
+  'importFile.md': [
+    'guides/accessories-and-menus/import-from-excel/import-from-excel.md',
+    'guides/import-and-export/infer-column-types/infer-column-types.md',
+  ],
   'loading.md': 'guides/dialog/loading/loading.md',
   'manualColumnFreeze.md': 'guides/columns/column-freezing/column-freezing.md',
   'manualColumnMove.md': 'guides/columns/column-moving/column-moving.md',

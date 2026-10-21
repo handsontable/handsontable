@@ -272,14 +272,38 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   and `td.area::before` by the selection fill; a cell can be commented, selected and pending at once. It covers
   the end of a long value (it moves next to a dropdown arrow, and to the left in a `htRight` cell); padding the cell instead would rewrap text and change the row
   height while the request runs.
-- **DataProvider: a resolved value is not saved.** `'AsyncValues.resolve'` is not in
-  `DATA_PROVIDER_BATCH_UPDATE_SOURCES` on purpose. Every saved update is an `onRowsUpdate` call plus a full
-  refetch, so a column of separate responses would be N saves and N refetches, and a refetch cancels the
-  requests of the rows that left the page. The values of filtered-out rows go through `setSourceDataAtCell`,
-  which fires no `afterChange`, so only the visible rows would be saved. And DataProvider blocks undo for its
-  batch sources, which `undo: 'record'` relies on. `dataProvider.rowId` is required, so the requests of the
-  rows still on the page do survive a refetch (the data-replacement remap above). Saving stays the
-  application's job (`updateRows()` from `afterAsyncValueResolve` or `afterAsyncValuesIdle`).
+- **DataProvider: a resolved value is saved only with `saveToDataProvider`.** `'AsyncValues.resolve'` is not in
+  `DATA_PROVIDER_BATCH_UPDATE_SOURCES` on purpose, and it must stay out. Every saved update is an `onRowsUpdate`
+  call plus a full refetch, so a column of separate responses would be N saves and N refetches, and a refetch
+  cancels the requests of the rows that left the page. The values of filtered-out rows go through
+  `setSourceDataAtCell`, which fires no `afterChange`, so only the visible rows would be saved. And DataProvider
+  blocks undo for its batch sources, which `undo: 'record'` relies on. The opt-in option does it from the
+  plugin instead: `#onFlightLanded` calls `#queueSave()` for a value the grid stored (not a vetoed or rejected
+  one, which end their flight as failed), and `#saveLanded()` sends the queue in ONE `updateRows()` call, at the
+  end of `#apply` (so one call per flush) or a microtask later for a validated value that lands after the flush.
+  The id comes from `#rowIdOf()` and the value from `#readSource()`, so a `valueSetter` result is what the
+  server gets. A row without an id is skipped with a one-time warning. A value of a call with
+  `undo: 'record'` is skipped with a one-time warning, because the save would refetch under the undo step. A
+  failed save does NOT put the cell into the error state: the value did land, and DataProvider reports the
+  failure through `afterRowsMutationError`. `dataProvider.rowId` is required, so the requests of the rows still
+  on the page survive the refetch each save causes (the data-replacement remap above).
+  The queue is keyed by ROW ID, with the value the grid stored: `#endFlight` releases the state of a call with
+  no write to keep at once, so a state-keyed queue held a state nothing remaps, and a prepended row sent
+  another record's value. `#saveLanded` finds the row by `getPhysicalRowById()` and sends a prop only while
+  the cell still holds the landed value, so a user edit made after the landing is left to DataProvider's own
+  save. The option is re-read at the save, and `#canSave()` needs an enabled DataProvider with `rowId` and
+  `onRowsUpdate` (core prefers `dataProvider.rowId`, so the ids are the server's). DataProvider conflicts
+  with `trimRows`, so a trimmed row never reaches a save. A value whose cell meta says `valid === false` is not queued, because DataProvider's own save leaves
+  such a cell out too (an invalid value was sent to the server before). `#onAfterChange` keeps listening while
+  the queue is non-empty, because a plain call has no row state, and a validator's correction (a `*Validator`
+  source, which DataProvider never saves) refreshes the queued value through `#refreshQueuedSave()`; without
+  it the corrected cell never matched the landed value and was dropped. Known limits, all in the guide:
+  every save refetches (`loadData` clears undo) and a save during a page change refetches the old page; a
+  validator correction that lands after the save is not saved again; a custom `source` that is in
+  `DATA_PROVIDER_BATCH_UPDATE_SOURCES` is saved by DataProvider's own `afterChange` handler too (plugins do
+  not import each other, so the set is not reachable here). Values that land in separate tasks share one save
+  per task through `#saveScheduled`, and a nested flush leaves the save to the outermost one (not pinned by a
+  test). Pinned by `__tests__/dataProvider.unit.ts`.
 - **The `'microtask'` flush is a bare `rootWindow.queueMicrotask()`**, not `_registerMicrotask()`: `#cancelFlush`
   cancels it, and `#flush` returns before touching `hot` when nothing is queued, which is the state after
   `destroy()`, so it needs no core bookkeeping. A numeric `flush` uses `_registerTimeout()`, which drops each
@@ -291,8 +315,10 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   data and runs only `beforeCut`). The data is laid out over the union
   of the copied ranges' rows and columns in first-seen order (`normalizeRanges()`, shared with CopyPaste in
   `utils/copiedRanges.ts`). CopyPaste also puts the source data on the clipboard as its own flavor, which
-  `beforeCopy` never receives, so an object or array value in a pending cell still pastes into another grid
-  (documented). Export keeps the current value.
+  `beforeCopy` never receives; CopyPaste reconciles it against the hook's edits, so a blanked cell is blank in
+  that flavor too (the flavor always carries objects and arrays as JSON, and another grid parses it only with
+  `parsePastedValue: true`, which is off by default and on for the `autocomplete`, `dropdown` and
+  `multiSelect` types). Export keeps the current value.
 - **`afterAsyncValuesIdle` fires once per busy-to-idle transition**, from `#afterSettling()`, which every settle
   path (flush, cancel, removal, replacement) ends with. `#pendingCount` is kept by `#setEntry` and `#finish`, so
   the query methods and the idle check never walk the entries.
@@ -309,13 +335,13 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
 
 ## Testing
 
-- Unit: `npm run test:unit --prefix handsontable -- --testPathPattern=asyncValues` (jsdom grids). Eight files:
+- Unit: `npm run test:unit --prefix handsontable -- --testPathPattern=asyncValues` (jsdom grids). Nine files:
   `asyncValues.unit.ts` (the lifecycle, cancellation, re-entrancy, rows, other plugins), `rows.unit.ts` (starting by
   physical row and row id, data replacement), `batching.unit.ts` (batch sources, concurrency, flush strategies),
   `api.unit.ts` (progress, retry, request options, before-hooks, copying, `undo: 'record'`), `listeners.unit.ts`
   (throwing listeners, the order of the hooks, the counts and the editor during a write), `launchQueue.unit.ts`
   (FIFO order through the compaction), `writes.unit.ts` (the flight queue, stale results, `maxRows`, the
-  mapper resize, the render hold, settings, write groups, rejected writes), `utils.unit.ts` (`isArrayLike`).
+  mapper resize, the render hold, settings, write groups, rejected writes), `utils.unit.ts` (`isArrayLike`), `dataProvider.unit.ts` (`saveToDataProvider`).
   Shared builders are in
   `__tests__/helpers/grid.ts`. Results settle through the returned promise; a late result needs a macrotask
   (`setTimeout(0)`) to prove it was dropped, because the default flush is a microtask. `flush: 'frame'` is tested

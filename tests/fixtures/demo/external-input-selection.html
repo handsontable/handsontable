@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>External input selection focus</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    DEV-487. An input outside the grid calls selectRows, selectColumns, or selectAll from its
+    keyup. The grid is content-sized (no fixed height) and eight rows tall so the highlighted
+    cell is rendered on every theme, including horizon where a row is about 37px.
+  -->
+  <label for="ext">External field</label>
+  <input id="ext" data-testid="ext" type="text" autocomplete="off">
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const data = [];
+
+    for (let row = 0; row < 8; row++) {
+      const cells = [];
+
+      for (let col = 0; col < 5; col++) {
+        cells.push(`${String.fromCharCode(65 + col)}${row + 1}`);
+      }
+
+      data.push(cells);
+    }
+
+    try {
+      window.hot = new Handsontable(container, {
+        data,
+        colHeaders: true,
+        rowHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-row', String(row));
+          td.setAttribute('data-col', String(col));
+
+          if (td.closest('.ht_master')) {
+            td.setAttribute('data-testid', `cell-${row}-${col}`);
+          }
+        },
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

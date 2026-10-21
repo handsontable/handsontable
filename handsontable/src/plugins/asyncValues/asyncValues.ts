@@ -1,8 +1,8 @@
 import { BasePlugin } from '../base';
 import { registerConflict } from '../base/conflictRegistry';
-import { hasOwnProperty } from '../../helpers/object';
+import { hasOwnProperty, isObjectEqual } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
-import { warnOnce } from '../../helpers/console';
+import { error as logError, warnOnce } from '../../helpers/console';
 import { announce } from '../../utils/a11yAnnouncer';
 import { detachValue, recordCellChange } from '../../dataMap/dataJournal';
 import { Launch, LaunchQueue } from './launchQueue';
@@ -351,6 +351,7 @@ export class AsyncValues extends BasePlugin {
       flush: 'microtask' as AsyncValuesSettings['flush'],
       concurrency: DEFAULT_CONCURRENCY,
       copyPendingAs: 'previous' as AsyncValuesSettings['copyPendingAs'],
+      saveToDataProvider: false,
     };
   }
 
@@ -363,6 +364,7 @@ export class AsyncValues extends BasePlugin {
         (typeof value === 'number' && value >= 0 && Number.isFinite(value)),
       concurrency: (value: unknown) => value === Infinity || (Number.isInteger(value) && (value as number) >= 1),
       copyPendingAs: (value: unknown) => value === 'previous' || value === 'empty',
+      saveToDataProvider: (value: unknown) => typeof value === 'boolean',
     };
   }
 
@@ -447,6 +449,20 @@ export class AsyncValues extends BasePlugin {
    * flush has written.
    */
   #applyDepth = 0;
+
+  /**
+   * The cells whose resolved value the grid stored and that wait for the next save through DataProvider
+   * (`saveToDataProvider`): the value the grid stored, by prop and row id. The id is read when the value lands, because a row state
+   * is released at once for a call with no write to keep, and an id still names its record after a data
+   * replacement moved the row.
+   */
+  #saveQueue = new Map<unknown, Map<AsyncValueProp, unknown>>();
+
+  /**
+   * Whether a save is already scheduled for the end of the current task, so values that land one by one
+   * (validated ones) share one `updateRows()` call.
+   */
+  #saveScheduled = false;
 
   /**
    * The calls ready to be finalized once the running flush has written.
@@ -570,6 +586,7 @@ export class AsyncValues extends BasePlugin {
     this.#cancelFlush?.();
     this.#cancelFlush = null;
     this.#settled = [];
+    this.#saveQueue.clear();
     this.#queue.clear();
     this.#states.clear();
     this.#replacingData = false;
@@ -1830,6 +1847,11 @@ export class AsyncValues extends BasePlugin {
       // Finalized here rather than a task later, so a caller that awaits the call, and an
       // `afterAsyncValuesIdle` listener, already find the call's undo step.
       this.#readyRuns.splice(0).forEach(run => this.#finalizeRun(run));
+
+      // A nested flush leaves the save to the outermost one, which has written everything by then.
+      if (this.#applyDepth === 0) {
+        this.#saveLanded();
+      }
     }
   }
 
@@ -2672,14 +2694,18 @@ export class AsyncValues extends BasePlugin {
     cleared: Array<[AsyncValueEntry, AsyncValueCancelReason]>, landedGroups: Set<Flight[]>,
   ): void {
     const state = this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
+    // Core reads a source ending with `Validator` as a validator correcting the value it validates.
+    const correction = typeof source === 'string' && source.endsWith('Validator');
+
+    if (correction) {
+      this.#refreshQueuedSave(physicalRow, prop);
+    }
 
     if (!state) {
       return;
     }
 
     const flights = state.flights.get(prop);
-    // Core reads a source ending with `Validator` as a validator correcting the value it validates.
-    const correction = typeof source === 'string' && source.endsWith('Validator');
 
     // A correction of a value still in flight: the corrected value lands with the flight's source next.
     if (correction && flights?.some(flight => flight.validating)) {
@@ -2741,8 +2767,180 @@ export class AsyncValues extends BasePlugin {
       return;
     }
 
+    this.#queueSave(state, prop, write?.run.options.undo === 'record');
+
     if (write && !write.landed && state.writes.get(prop) === write) {
       this.#landWrite(state, prop, write);
+    }
+  }
+
+  /**
+   * Queues a landed value for the save through DataProvider, when the option is on. A value of a call that
+   * records an undo step is never saved, because DataProvider keeps the local undo stack out of its own
+   * saves.
+   *
+   * @param {object} state The row state.
+   * @param {string|number} prop The property of the cell.
+   * @param {boolean} recorded Whether the value's call records an undo step.
+   */
+  #queueSave(state: RowState, prop: AsyncValueProp, recorded: boolean): void {
+    if (!this.getSetting('saveToDataProvider')) {
+      return;
+    }
+
+    if (recorded) {
+      warnOnce(this, 'asyncValues.saveUndo',
+        'The AsyncValues plugin: `saveToDataProvider` does not save the values of a call with ' +
+        '`undo: \'record\'`.');
+
+      return;
+    }
+
+    if (!this.#canSave()) {
+      warnOnce(this, 'asyncValues.saveNoDataProvider',
+        'The AsyncValues plugin: `saveToDataProvider` needs the `dataProvider` option with `rowId` and ' +
+        '`onRowsUpdate`, so nothing was saved.');
+
+      return;
+    }
+
+    const id = this.#readSaveId(state.physicalRow);
+
+    if (id === null) {
+      warnOnce(this, 'asyncValues.saveNoRowId',
+        'The AsyncValues plugin: `saveToDataProvider` skipped a row whose `dataProvider.rowId` has no value.');
+
+      return;
+    }
+
+    // A value the cell's validator rejected stays in the grid with `allowInvalid`, and DataProvider's own save
+    // leaves such a cell out too.
+    const visualRow = this.#visualRowOf(state.physicalRow);
+    const column = this.hot.propToCol(prop);
+
+    if (visualRow !== null && typeof column === 'number' &&
+        this.hot.getCellMetaTransient(visualRow, column).valid === false) {
+      return;
+    }
+
+    // The value is kept to tell, at the save, whether something else wrote the cell since.
+    const landed = detachValue(this.#readSource(state.physicalRow, prop));
+    const props = this.#saveQueue.get(id);
+
+    if (props) {
+      props.set(prop, landed);
+
+    } else {
+      this.#saveQueue.set(id, new Map([[prop, landed]]));
+    }
+
+    // A value that lands inside a flush is saved when the flush ends; a validated one lands a task later.
+    if (this.#applyDepth === 0 && !this.#saveScheduled) {
+      this.#saveScheduled = true;
+      this.hot._registerMicrotask(() => {
+        this.#saveScheduled = false;
+        this.#saveLanded();
+      });
+    }
+  }
+
+  /**
+   * Tells whether DataProvider is set up to take a save: enabled, with `rowId` and `onRowsUpdate`. Its row
+   * ids are the ones `#rowIdOf()` returns then, because core prefers `dataProvider.rowId` to `rowId`.
+   *
+   * @returns {boolean}
+   */
+  #canSave(): boolean {
+    const config = this.hot.getSettings().dataProvider as { rowId?: unknown; onRowsUpdate?: unknown } | undefined;
+
+    return !!this.hot.getPlugin('dataProvider')?.enabled &&
+      typeof config?.onRowsUpdate === 'function' && !!config.rowId;
+  }
+
+  /**
+   * Reads the id of a row for the save queue. A `rowId` function that throws counts as no id, so it cannot
+   * escape the flush.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @returns {*} The id, or `null`.
+   */
+  #readSaveId(physicalRow: number): unknown {
+    try {
+      return this.#rowIdOf(physicalRow);
+
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Makes a validator's correction the value to save: DataProvider's own save ignores a `*Validator` source,
+   * and the save compares the cell with the value that landed.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {string|number} prop The property of the cell.
+   */
+  #refreshQueuedSave(physicalRow: number, prop: AsyncValueProp): void {
+    const props = this.#saveQueue.size > 0 ? this.#saveQueue.get(this.#readSaveId(physicalRow)) : undefined;
+
+    if (props?.has(prop)) {
+      props.set(prop, detachValue(this.#readSource(physicalRow, prop)));
+    }
+  }
+
+  /**
+   * Saves the queued values with one `updateRows()` call. The rows are found by id, so a data replacement
+   * or a row removal between the landing and the save moves no value onto another record. A failed save
+   * leaves the cell resolved: DataProvider reports it through `afterRowsMutationError`.
+   */
+  #saveLanded(): void {
+    if (this.#saveQueue.size === 0 || this.#isGone()) {
+      return;
+    }
+
+    const queued = [...this.#saveQueue];
+    const rows: Array<{ id: unknown; changes: Record<string, unknown>; rowData: Record<string, unknown> }> = [];
+
+    this.#saveQueue.clear();
+
+    // The option can be switched off, or DataProvider disabled, between the landing and the save.
+    if (!this.getSetting('saveToDataProvider') || !this.#canSave()) {
+      return;
+    }
+
+    queued.forEach(([id, props]) => {
+      const physicalRow = this.hot.getPhysicalRowById(id);
+
+      if (physicalRow === null) {
+        return;
+      }
+
+      const changes: Record<string, unknown> = {};
+
+      // A cell that no longer holds the landed value was written by someone else (a user edit still
+      // waiting for its validator, say), and DataProvider saves that write on its own.
+      props.forEach((landed, prop) => {
+        const current = this.#readSource(physicalRow, prop);
+
+        if (isObjectEqual(current, landed)) {
+          changes[String(prop)] = current;
+        }
+      });
+
+      if (Object.keys(changes).length === 0) {
+        return;
+      }
+
+      // `updateRows()` builds `rowData` from the visible rows only, so a row without a visual index needs it here.
+      rows.push({ id, changes, rowData: this.hot.getSourceDataAtRow(physicalRow) as Record<string, unknown> });
+    });
+
+    if (rows.length > 0) {
+      // DataProvider reports a failed save or refetch itself. What can still reject is a throwing
+      // `beforeRowsMutation` listener, or a payload that cannot be built.
+      this.hot.getPlugin('dataProvider').updateRows(rows).catch((reason: unknown) => {
+        logError('The AsyncValues plugin: saving the resolved values failed.', reason);
+      });
     }
   }
 
@@ -2951,7 +3149,8 @@ export class AsyncValues extends BasePlugin {
    * @param {string} source The source of the changes.
    */
   readonly #onAfterChange = (changes: CellChange[] | null, source: string): void => {
-    if (!changes || this.#states.size === 0) {
+    // A value waiting for its save has no state to find, but a validator's correction still reaches it.
+    if (!changes || (this.#states.size === 0 && this.#saveQueue.size === 0)) {
       return;
     }
 

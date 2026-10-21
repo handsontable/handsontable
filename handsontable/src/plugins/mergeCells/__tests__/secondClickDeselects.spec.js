@@ -47,11 +47,11 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
       |   ║   :   :   :   |
       | - ║   : B     :   |
       | - ║   :       :   |
-      | - ║   : 1     :   |
+      | - ║   : 0     :   |
       | - ║   :       :   |
-      | - ║   : 2     :   |
+      | - ║   : 0     :   |
       | - ║   :       :   |
-      | - ║   : 3     :   |
+      | - ║   : 0     :   |
       | - ║   :       :   |
       `).toBeMatchToSelectionPattern();
   });
@@ -92,9 +92,9 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
       |   ║   :   :   :   |
       | - ║   : 0     :   |
       | - ║   :       :   |
-      | - ║   : 1     :   |
+      | - ║   : 0     :   |
       | - ║   :       :   |
-      | - ║   : 2     :   |
+      | - ║   : 0     :   |
       | - ║   :       :   |
       | - ║   : B     :   |
       | - ║   :       :   |
@@ -142,7 +142,7 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
       |   ║   :   :   |
       | - ║ 0     :   |
       | - ║       :   |
-      | - ║ 1     :   |
+      | - ║ 0     :   |
       | - ║       :   |
       | - ║ B     :   |
       | - ║       :   |
@@ -185,7 +185,7 @@ describe('MergeCells selection using mouse interaction (cell deselect)', () => {
     expect(`
       |   ║   : - : - : - : - : - : - |
       |===:===:===:===:===:===:===:===|
-      | - ║   : 0     : 1     : B     |
+      | - ║   : 0     : 0     : B     |
       | - ║   :                       |
       |   ║   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();

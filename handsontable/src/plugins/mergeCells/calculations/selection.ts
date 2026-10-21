@@ -89,11 +89,27 @@ class SelectionCalculations {
     const fullMergeAreaWithinSelection =
       startRow <= mergedCell.row && startColumn <= mergedCell.col &&
       endRow >= mergeRowEnd && endColumn >= mergeColumnEnd;
+    const selectedRanges = (this.hot.getSelectedRange() ?? []) as CellRange[];
+    const mergeRange = mergedCell.getRange();
+    let fullCoverCount = 0;
+    let coverRank = 0;
+
+    for (let i = 0; i < selectedRanges.length; i++) {
+      if (!selectedRanges[i].includesRange(mergeRange)) {
+        continue;
+      }
+
+      if (i === layerLevel) {
+        coverRank = fullCoverCount;
+      }
+
+      fullCoverCount += 1;
+    }
 
     if (fullMergeAreaWithinSelection) {
-      return `${this.fullySelectedMergedCellClassName}-${layerLevel}`;
+      return `${this.fullySelectedMergedCellClassName}-${coverRank}`;
 
-    } else if (this.isMergeCellFullySelected(mergedCell, this.hot.getSelectedRange() as CellRange[])) {
+    } else if (this.isMergeCellFullySelected(mergedCell, selectedRanges)) {
       return `${this.fullySelectedMergedCellClassName}-multiple`;
     }
   }

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable touch interactive cell fixture (DEV-332)</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD); an unknown value THROWS
+    // instead of falling back (a typo in the project config must be one red leg).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 8px; }
+    /* Horizon rows are about 37px. The grid is tall, and every column fits the phone
+       width, so the target row stays rendered on every theme. */
+    [data-control-key] {
+      box-sizing: border-box;
+      display: block;
+      width: 100%;
+      min-height: 32px;
+    }
+    [data-testid="nested-in-button"] {
+      position: absolute;
+      left: 1px;
+      top: 1px;
+      font-size: 10px;
+      line-height: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!--
+    DEV-332 / DEV-891. A phone profile (touch listeners only). Columns 0-2 disable the
+    current highlight; column 3 keeps it. Controls are created once and reattached:
+    the tap's selection calls render() before the browser synthesizes the click, and a
+    fresh node would miss that click.
+  -->
+  <div id="grid" data-testid="grid"></div>
+  <button type="button" data-testid="barrier" data-clicks="0">Outside</button>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const barrier = document.querySelector('[data-testid="barrier"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+    barrier.addEventListener('click', () => {
+      barrier.dataset.clicks = String(Number(barrier.dataset.clicks) + 1);
+    });
+
+    const controls = new Map();
+
+    function rememberClicks(node) {
+      node.dataset.clicks = '0';
+      node.addEventListener('click', (event) => {
+        node.dataset.clicks = String(Number(node.dataset.clicks) + 1);
+
+        // A file input opens a picker, and a link navigates. Counting the click is the
+        // assertion. Cancelling it keeps the headless run on this page.
+        if (node.type === 'file' || node.tagName === 'A') {
+          event.preventDefault();
+        }
+      });
+    }
+
+    function mount(td, key, create) {
+      td.setAttribute('data-testid', `cell-${key}`);
+
+      let node = controls.get(key);
+
+      if (!node) {
+        node = create();
+        node.setAttribute('data-control-key', key);
+        controls.set(key, node);
+      }
+
+      if (node.parentElement !== td) {
+        td.replaceChildren(node);
+      }
+    }
+
+    function buttonRenderer(testId) {
+      return function(instance, td, row, col) {
+        if (row !== 0) {
+          Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+          return;
+        }
+
+        mount(td, `${row}-${col}`, () => {
+          const button = document.createElement('button');
+
+          button.type = 'button';
+          button.setAttribute('data-testid', testId);
+          rememberClicks(button);
+          button.append('Run');
+
+          // Parked in the corner so a tap can hit markup inside the button. The center
+          // stays the button's own text, which the other tests tap.
+          if (testId === 'button-off') {
+            const nested = document.createElement('span');
+
+            nested.textContent = 'In';
+            nested.setAttribute('data-testid', 'nested-in-button');
+            button.style.position = 'relative';
+            button.prepend(nested);
+          }
+
+          return button;
+        });
+      };
+    }
+
+    function fileRenderer(testId) {
+      return function(instance, td, row, col) {
+        if (row !== 0) {
+          Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+          return;
+        }
+
+        mount(td, `${row}-${col}`, () => {
+          const input = document.createElement('input');
+
+          input.type = 'file';
+          input.setAttribute('data-testid', testId);
+          rememberClicks(input);
+
+          return input;
+        });
+      };
+    }
+
+    function linkRenderer(testId) {
+      return function(instance, td, row, col) {
+        if (row !== 0) {
+          Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+          return;
+        }
+
+        mount(td, `${row}-${col}`, () => {
+          const link = document.createElement('a');
+
+          link.href = '#cell-link';
+          link.textContent = 'Go';
+          link.setAttribute('data-testid', testId);
+          rememberClicks(link);
+
+          return link;
+        });
+      };
+    }
+
+    function labelRenderer() {
+      return function(instance, td, row, col) {
+        if (row !== 0) {
+          Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+          return;
+        }
+
+        mount(td, `${row}-${col}`, () => {
+          const label = document.createElement('label');
+          const text = document.createElement('span');
+          const input = document.createElement('input');
+
+          text.textContent = 'Choose';
+          text.setAttribute('data-testid', 'file-label-text');
+          input.type = 'file';
+          input.setAttribute('data-testid', 'file-via-label');
+          rememberClicks(input);
+          label.append(text, input);
+
+          return label;
+        });
+      };
+    }
+
+    window.hot = new Handsontable(container, {
+      data: [
+        ['Run', 'File', 'Choose', 'Run', 'Go', 'Hold'],
+        ['', '', '', '', '', ''],
+        ['', '', '', '', '', ''],
+        ['', '', '', '', '', ''],
+      ],
+      colHeaders: false,
+      rowHeaders: false,
+      rowHeights: 56,
+      colWidths: 60,
+      width: 380,
+      height: 480,
+      outsideClickDeselects: false,
+      licenseKey: 'non-commercial-and-evaluation',
+      beforeOnCellMouseDown(event, coords) {
+        // Column 5 keeps visual selection on, but this hook stops the selection.
+        // The tap must reach the button whether or not another cell was focused.
+        if (coords.col === 5) {
+          event.stopImmediatePropagation();
+        }
+      },
+      columns: [
+        {
+          renderer: buttonRenderer('button-off'),
+          disableVisualSelection: true,
+          editor: false,
+        },
+        {
+          renderer: fileRenderer('file-input'),
+          disableVisualSelection: true,
+          editor: false,
+        },
+        {
+          renderer: labelRenderer(),
+          disableVisualSelection: true,
+          editor: false,
+        },
+        {
+          renderer: buttonRenderer('button-on'),
+          editor: false,
+        },
+        {
+          renderer: linkRenderer('cell-link'),
+          disableVisualSelection: true,
+          editor: false,
+        },
+        {
+          renderer: buttonRenderer('button-blocked'),
+          editor: false,
+        },
+      ],
+    });
+  </script>
+</body>
+</html>

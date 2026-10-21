@@ -2209,7 +2209,7 @@ class Selection {
    * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
    * headers, `false` otherwise.
    * @param {object} [options] Additional object with options.
-   * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
+   * @param {{row: number, col: number} | CellCoords | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range. If `false`, the focus
    * position won't be changed. When the {@link Options#navigableHeaders} option is disabled (the default), a
@@ -2220,7 +2220,7 @@ class Selection {
    * which stays visible even when {@link Options#navigableHeaders} moves the focus onto a header.
    */
   selectAll(includeRowHeaders = false, includeColumnHeaders = false, options: {
-    focusPosition?: SelectionFocusPosition | boolean; disableHeadersHighlight?: boolean
+    focusPosition?: SelectionFocusPosition | CellCoords | boolean; disableHeadersHighlight?: boolean
   } = { focusPosition: false, disableHeadersHighlight: false }) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
@@ -2692,7 +2692,7 @@ class Selection {
     this.#extenderTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
     this.#focusTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
 
-    this.#commitHighlightsDirectly();
+    this.commitHighlightsDirectly();
   }
 
   /**
@@ -2716,13 +2716,18 @@ class Selection {
   }
 
   /**
-   * Re-commits every layer's highlight from the current ranges WITHOUT the selection hooks.
+   * Re-commits every layer's highlight from the current ranges without the selection-change hooks.
    *
-   * Both callers run inside an index-mapper update, where the hooks are unsafe: `afterSelection`
-   * makes `EditorManager` prepare an editor, which reads the source data through a `DataMap` that a
-   * data load may have torn down at that moment, and the scroll answer would jump the viewport.
+   * The index-mapper callers run where those hooks are unsafe: `afterSelection` makes `EditorManager`
+   * prepare an editor, which reads the source data through a `DataMap` that a data load may have torn
+   * down, and the scroll answer would jump the viewport. MergeCells calls it from the next view render
+   * after the merged cells change, because the area fill was committed while the range was still
+   * several cells. `isMultiple()` still asks `afterIsMultipleSelection`. That hook is not a
+   * selection-change hook.
+   *
+   * @private
    */
-  #commitHighlightsDirectly(): void {
+  commitHighlightsDirectly(): void {
     this.highlight.clear();
     this.selectedRange.ranges.forEach((range, layerIndex) => this.applyAndCommit(range, layerIndex));
 
@@ -2984,7 +2989,7 @@ class Selection {
    */
   #commitGridTrackingFit(): void {
     if (this.tableProps.isEditorOpened()) {
-      this.#commitHighlightsDirectly();
+      this.commitHighlightsDirectly();
 
       return;
     }

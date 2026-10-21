@@ -47,6 +47,8 @@ Available options in the browser's toolbar:
 
 To let the end user copy the contents of column headers, see the [Copy with headers](#copy-with-headers) section.
 
+A cell with the [`copyable`](@/api/options.md#copyable) option set to `false` copies as an empty string, and cutting it clears the cell. The [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type sets `copyable: false` by default. See [Copy, cut, paste, and autofill](@/guides/cell-types/password-cell-type/password-cell-type.md#copy-cut-paste-and-autofill) for how password cells behave.
+
 ### Context menu
 
 When the context menu is enabled, it includes default items, including copy & cut options.
@@ -182,6 +184,8 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to mani
 - [`afterCut`](@/api/hooks.md#aftercut)
 
 Examples of how to use them are provided in their descriptions.
+
+Changes that [`beforeCopy`](@/api/hooks.md#beforecopy) and [`beforeCut`](@/api/hooks.md#beforecut) make to the copied data also reach a paste into another Handsontable grid, including one with [`parsePastedValue`](@/api/options.md#parsepastedvalue) turned on. A value you mask or a row you remove doesn't come back through the clipboard.
 
 ### Copy with headers
 

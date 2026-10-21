@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where the Filters \"Filter by value\" list showed a \"(Blank cells)\" item for a grid with no rows.",
+  "type": "fixed",
+  "issueOrPR": 13945,
+  "breaking": false,
+  "framework": "none"
+}

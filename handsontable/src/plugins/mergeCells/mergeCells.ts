@@ -1346,11 +1346,10 @@ export class MergeCells extends BasePlugin {
    * @private
    * @param {CellRange} cellRange Selection cell range.
    * @param {boolean} [auto=false] `true` if called automatically by the plugin.
-   *
    * @fires Hooks#beforeUnmergeCells
    * @fires Hooks#afterUnmergeCells
    */
-  unmergeRange(cellRange: CellRange, auto = false) {
+  unmergeRange(cellRange: CellRange, auto = false): void {
     this.runOperation('unmerge_cells', () => this.#unmergeRange(cellRange, auto), {
       cellRange: deepClone(cellRange),
     });
@@ -1571,7 +1570,7 @@ export class MergeCells extends BasePlugin {
    * @param {CellRange} cellRange Selection cell range.
    * @param {boolean} auto `true` if called automatically by the plugin.
    */
-  #unmergeRange(cellRange: CellRange, auto: boolean) {
+  #unmergeRange(cellRange: CellRange, auto: boolean): void {
     const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange);
 
     if (mergedCells.length === 0) {
@@ -2554,38 +2553,69 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Modifies the information on whether the current selection contains multiple cells. The `afterIsMultipleSelection`
-   * hook callback.
+   * The area highlight was committed for the old merges. The next view render recomputes it once,
+   * before this draw paints. Selection-change hooks do not run. `afterIsMultipleSelection` does,
+   * the same way a plain render asks whether the range is one cell.
+   */
+  #recommitSelectionHighlight(): void {
+    if (!this.mergedCellsCollection.takeSelectionHighlightStale()) {
+      return;
+    }
+
+    if (!this.hot.selection.isSelected()) {
+      return;
+    }
+
+    this.hot.selection.commitHighlightsDirectly();
+  }
+
+  /**
+   * `afterIsMultipleSelection` hook callback.
    *
    * @param {boolean} isMultiple Determines whether the current selection contains multiple cells.
    * @returns {boolean}
    */
   #onAfterIsMultipleSelection = (isMultiple: boolean) => {
     if (isMultiple) {
-      const mergedCells = this.mergedCellsCollection.mergedCells;
       const selectionRange = this.hot.getSelectedRangeActive();
 
       if (!selectionRange) {
         return isMultiple;
       }
 
-      const topStartCoords = selectionRange.getTopStartCorner();
-      const bottomEndCoords = selectionRange.getBottomEndCorner();
-
-      for (let group = 0; group < mergedCells.length; group += 1) {
-        if (
-          topStartCoords.row === mergedCells[group].row &&
-          topStartCoords.col === mergedCells[group].col &&
-          bottomEndCoords.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
-          bottomEndCoords.col === mergedCells[group].col + mergedCells[group].colspan - 1
-        ) {
-          return false;
-        }
+      if (this.#rangeCoversOneMerge(selectionRange)) {
+        return false;
       }
     }
 
     return isMultiple;
   };
+
+  /**
+   * The active range's corners are exactly one merged cell.
+   * Header corners normalize to 0, so a full-column selection looks like the merge that fills that column.
+   *
+   * @param {CellRange} selectionRange The range to test.
+   * @returns {boolean}
+   */
+  #rangeCoversOneMerge(selectionRange: CellRange): boolean {
+    const mergedCells = this.mergedCellsCollection.mergedCells;
+    const topStartCoords = selectionRange.getTopStartCorner();
+    const bottomEndCoords = selectionRange.getBottomEndCorner();
+
+    for (let group = 0; group < mergedCells.length; group += 1) {
+      if (
+        topStartCoords.row === mergedCells[group].row &&
+        topStartCoords.col === mergedCells[group].col &&
+        bottomEndCoords.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
+        bottomEndCoords.col === mergedCells[group].col + mergedCells[group].colspan - 1
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   /**
    * `modifyTransformFocus` hook callback.
@@ -3873,6 +3903,8 @@ export class MergeCells extends BasePlugin {
    * marked as changed, so this draw repaints them.
    */
   #onBeforeViewRender = () => {
+    this.#recommitSelectionHighlight();
+
     const epoch = this.hot.view.getColumnWidthEpoch();
 
     if (epoch === this.#columnWidthEpoch) {

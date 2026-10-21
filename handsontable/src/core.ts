@@ -95,7 +95,9 @@ import type { ThemeOverridesInput } from './themes/engine/manager';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
-import type { CellOptionMetaEntry, GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
+import type {
+  CellOptionMetaEntry, GridHelperInstance, HotInstance, SelectAllOptions, ViewportScrollerInstance,
+} from './core/types';
 import { applyRootSize, reapplyPixelRootHeight } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
@@ -114,6 +116,8 @@ import {
 } from './dataMap/dataJournal';
 import DataMap from './dataMap/dataMap';
 import { RowIdentity } from './core/rowIdentity/rowIdentity';
+import { createWriteLedger, getCellWriteKey } from './core/writeLedger';
+import type { LedgerCellMeta, WriteLedgerCall } from './core/writeLedger';
 import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
 
@@ -310,7 +314,12 @@ interface CoreInternals {
   timeouts: ReturnType<typeof setTimeout>[];
   microtasks: Array<{ cancelled: boolean }>;
   _validateCells(callback?: (valid: boolean) => void, rows?: number[], columns?: number[]): void;
-  selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean, options?: Record<string, unknown>): void;
+  selectAll(
+    includeRowHeaders?: boolean,
+    includeColumnHeaders?: boolean,
+    options?: SelectAllOptions,
+    changeListener?: boolean
+  ): void;
 }
 
 /**
@@ -422,6 +431,7 @@ export default function Core(
   let instance: HotInstance = this;
 
   const eventManager = new EventManager(instance);
+  const openWriteLedger = createWriteLedger();
   let datamap: DataMapInstance;
   let dataSource: DataSourceInstance;
   let grid: GridHelperInstance;
@@ -2933,6 +2943,31 @@ export default function Core(
   }
 
   /**
+   * Tells whether a change source marks a correction a validator writes through a nested `setDataAtCell()`.
+   *
+   * @private
+   * @param {*} source The change source.
+   * @returns {boolean}
+   */
+  function isValidatorCorrection(source: unknown) {
+    return typeof source === 'string' && source.endsWith('Validator');
+  }
+
+  /**
+   * Gives a cell the validity of the write that lands on it, after a validator that answered later
+   * wrote its own on the shared cell meta.
+   *
+   * @private
+   * @param {object} cellMeta The cell meta the validators wrote on.
+   * @param {boolean} valid The validity of the write that lands on the cell.
+   * @param {number} structureVersion The structure version captured when validation started.
+   */
+  function restoreValidity(cellMeta: LedgerCellMeta, valid: boolean, structureVersion: number) {
+    cellMeta.valid = valid;
+    persistValidationResult(cellMeta as Parameters<typeof persistValidationResult>[0], valid, structureVersion);
+  }
+
+  /**
    * @ignore
    * @param {Array} changes The 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of validation.
@@ -2948,6 +2983,9 @@ export default function Core(
     const activeEditor = instance.getActiveEditor();
     const waitingForValidator = ValidatorsQueue();
     const pendingRowMetas: Array<{ row?: number, valid?: boolean }> = [];
+    // A correction a validator writes through a nested `setDataAtCell()` is part of the write it
+    // corrects, so it takes no place in the order of the writes to the cell.
+    const ledger = isValidatorCorrection(source) ? null : openWriteLedger();
     let shouldBeCanceled = true;
 
     // Track value corrections applied by validators via setDataAtCell during the validation window.
@@ -2969,7 +3007,7 @@ export default function Core(
       }
     };
     const onAfterChange = (afterChanges: CellChange[] | null | undefined, afterSource: unknown) => {
-      if (typeof afterSource !== 'string' || !afterSource.endsWith('Validator')) {
+      if (!isValidatorCorrection(afterSource)) {
         return;
       }
 
@@ -2981,24 +3019,28 @@ export default function Core(
     waitingForValidator.onQueueEmpty = () => {
       instance.removeHook('afterChange', onAfterChange);
 
-      if (
-        activeEditor &&
-        shouldBeCanceled &&
-        activeEditor._closeAfterDataChange &&
-        doesChangeAffectOpenedEditor(changes, activeEditor)
-      ) {
-        activeEditor.cancelChanges();
-      }
-
       try {
+        ledger?.claim(changes, restoreValidity);
+
+        if (
+          activeEditor &&
+          shouldBeCanceled &&
+          activeEditor._closeAfterDataChange &&
+          doesChangeAffectOpenedEditor(changes, activeEditor)
+        ) {
+          activeEditor.cancelChanges();
+        }
+
         callback(); // called when async validators are resolved and beforeChange was not async
+        ledger?.settle(changes);
       } finally {
+        ledger?.release();
         discardResultsOfUncreatedRows(pendingRowMetas);
       }
     };
 
     try {
-      queueValidators(changes, source, waitingForValidator, pendingRowMetas, () => {
+      queueValidators(changes, source, waitingForValidator, pendingRowMetas, ledger, () => {
         shouldBeCanceled = false;
       });
     } catch (error) {
@@ -3006,6 +3048,7 @@ export default function Core(
       // drains and the call applies nothing. Take the correction hook off now, or it outlives the call.
       waitingForValidator.onQueueEmpty = () => {};
       instance.removeHook('afterChange', onAfterChange);
+      ledger?.release();
       throw error;
     }
 
@@ -3021,6 +3064,7 @@ export default function Core(
    * @param {object} waitingForValidator The queue.
    * @param {Array<object>} pendingRowMetas Collects the cell meta of the cells validated in rows that do
    *   not exist yet.
+   * @param {object|null} ledger Orders the writes to one cell, or `null` for a validator's correction.
    * @param {Function} onRejected Called for each rejected change.
    */
   function queueValidators(
@@ -3028,6 +3072,7 @@ export default function Core(
     source: string | undefined,
     waitingForValidator: ReturnType<typeof ValidatorsQueue>,
     pendingRowMetas: Array<{ row?: number, valid?: boolean }>,
+    ledger: WriteLedgerCall | null,
     onRejected: () => void,
   ) {
     const visibleRowsCount = instance.countRows();
@@ -3067,7 +3112,14 @@ export default function Core(
 
         const structureVersion = metaManager.getStructureVersion();
 
-        instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference) {
+        ledger?.register(
+          changes[i],
+          getCellWriteKey(row, prop, visualCol),
+          cellProperties as LedgerCellMeta,
+          structureVersion,
+        );
+
+        instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference, change) {
           return function(result: boolean) {
             if (typeof result !== 'boolean') {
               throwWithCause('Validation error: result is not boolean');
@@ -3075,8 +3127,14 @@ export default function Core(
 
             if (result === false && cellPropertiesReference.allowInvalid === false) {
               onRejected();
-              // cancel the change
-              changes.splice(index, 1);
+              // cancel the change, found by identity because a rejection at a lower index shifts the list.
+              // The change only moves left, so the search runs backwards from where it was registered
+              const position = changes.lastIndexOf(change, index);
+
+              if (position !== -1) {
+                changes.splice(position, 1);
+              }
+
               // we canceled the change, so cell value is still valid
               cellPropertiesReference.valid = true;
               // ...and the stored meta has to hear about it too, or a cache clear that landed while
@@ -3084,9 +3142,10 @@ export default function Core(
               persistValidationResult(cellPropertiesReference, true, structureVersion);
             }
 
+            ledger?.answered(change, result);
             waitingForValidator.removeValidatorFormQueue();
           };
-        }(i, cellProperties)), source);
+        }(i, cellProperties, changes[i])), source);
       }
     }
   }
@@ -6695,6 +6754,23 @@ export default function Core(
       changeRow: number, changeProp: string | number | ColumnDataGetterSetterFunction
     ): CellProperties => {
       const visualRow = instance.toVisualRow(changeRow);
+
+      if (typeof changeProp === 'string') {
+        // A prop names its column, so the column meta resolves through the accessor-aware `propToCol`
+        // cache. The meta is read the way the source-data validator reads it: by physical row, with
+        // neither the `cells` function nor the get-meta hooks, so a trimmed row (no visual index) and
+        // a hook that writes back to the source cannot disturb the write. A prop that names no column
+        // comes back as itself and falls through to the table meta below.
+        const propColumn = datamap.propToCol(changeProp);
+
+        if (Number.isInteger(propColumn)) {
+          return metaManager.getCellMetaUncached(changeRow, instance.toPhysicalColumn(propColumn as number)!, {
+            visualRow: visualRow ?? changeRow,
+            visualColumn: propColumn as number,
+          });
+        }
+      }
+
       // A function prop resolves through the accessor-aware `propToCol` cache, so an accessor
       // column reads its own column meta (`valueSetter`, `sourceDataValidator`) instead of the
       // table-meta fallback; an unresolvable accessor comes back as the function itself and
@@ -8297,8 +8373,13 @@ export default function Core(
     } finally {
       // Always release the suspended state even if `selection.selectCells` throws on malformed
       // coordinates. Otherwise the flags would leak across subsequent calls.
+      // `resume()` sets the flag to false, so it runs only for the call that suspended.
+      // A default call must not clear a suspend that an outer `changeListener: false` call still holds.
       viewportScroller.resume();
-      focusGridManager.resume();
+
+      if (changeListener === false) {
+        focusGridManager.resume();
+      }
     }
 
     if (wasSelected && changeListener) {
@@ -8306,6 +8387,22 @@ export default function Core(
     }
 
     return wasSelected;
+  };
+
+  // `selectRows`, `selectColumns`, and `selectAll` do not call `listen()` on the default path.
+  // `selectCells` does. Calling `listen()` here would change `isListening()` for existing callers.
+  const selectWithChangeListener = <T>(changeListener: boolean, select: () => T): T => {
+    if (changeListener !== false) {
+      return select();
+    }
+
+    focusGridManager.suspend();
+
+    try {
+      return select();
+    } finally {
+      focusGridManager.resume();
+    }
   };
 
   /**
@@ -8327,6 +8424,8 @@ export default function Core(
    * hot.selectColumns(2, 5, { row: 2, col: 3 });
    * // Select range of columns using column properties.
    * hot.selectColumns('id', 'last_name');
+   * // Select a column without switching the keyboard focus to Handsontable.
+   * hot.selectColumns(1, 1, 0, false);
    * ```
    *
    * @memberof Core#
@@ -8339,12 +8438,22 @@ export default function Core(
    * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
    * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
    * position horizontally.
+   * @param {boolean} [changeListener=true] If `true`, the grid moves the browser focus to the selection's highlighted
+   * cell, as before. Unlike `selectCells()`, the grid does not start listening. If `false`, the browser focus stays
+   * on an outside input, textarea, select, or contenteditable. A focused button, the document body, or an iframe
+   * still loses focus to the highlighted cell.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectColumns = function(
-    startColumn: number, endColumn = startColumn, focusPosition: number | {row?: number, col?: number}
+    startColumn: number,
+    endColumn = startColumn,
+    focusPosition: number | {row?: number, col?: number},
+    changeListener = true
   ) {
-    return selection.selectColumns(startColumn, endColumn, focusPosition);
+    return selectWithChangeListener(
+      changeListener,
+      () => selection.selectColumns(startColumn, endColumn, focusPosition)
+    );
   };
 
   /**
@@ -8362,6 +8471,8 @@ export default function Core(
    * hot.selectRows(2, 1, 1);
    * // Select range of rows using visual indexes and move the focus position somewhere in the middle of the range.
    * hot.selectRows(2, 5, { row: 2, col: 3 });
+   * // Select a row without switching the keyboard focus to Handsontable.
+   * hot.selectRows(1, 1, 0, false);
    * ```
    *
    * @memberof Core#
@@ -8374,12 +8485,22 @@ export default function Core(
    * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
    * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
    * position vertically.
+   * @param {boolean} [changeListener=true] If `true`, the grid moves the browser focus to the selection's highlighted
+   * cell, as before. Unlike `selectCells()`, the grid does not start listening. If `false`, the browser focus stays
+   * on an outside input, textarea, select, or contenteditable. A focused button, the document body, or an iframe
+   * still loses focus to the highlighted cell.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectRows = function(
-    startRow: number, endRow = startRow, focusPosition: number | {row?: number, col?: number}
+    startRow: number,
+    endRow = startRow,
+    focusPosition: number | {row?: number, col?: number},
+    changeListener = true
   ) {
-    return selection.selectRows(startRow, endRow, focusPosition);
+    return selectWithChangeListener(
+      changeListener,
+      () => selection.selectRows(startRow, endRow, focusPosition)
+    );
   };
 
   /**
@@ -8413,6 +8534,8 @@ export default function Core(
    *
    * // Select all cells in the table, without headers and corner elements.
    * hot.selectAll(false);
+   * // Select all cells without switching the keyboard focus to Handsontable.
+   * hot.selectAll(true, true, { focusPosition: false }, false);
    * ```
    *
    * @since 0.38.2
@@ -8422,7 +8545,7 @@ export default function Core(
    * @param {boolean} [includeColumnHeaders=false] If `true`, includes the column headers in the selection.
    *
    * @param {object} [options] Additional object with options. Since 14.0.0.
-   * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
+   * @param {{row: number, col: number} | CellCoords | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range. If `false`, the focus
    * position won't be changed. When the {@link Options#navigableHeaders} option is disabled (the default), a
@@ -8438,12 +8561,21 @@ export default function Core(
    * the logical coordinates points on them. This only suppresses the highlight shown on headers of a fully-selected
    * row or column. It doesn't affect the focus indicator on the individual cell or header that holds the focus,
    * which stays visible even when {@link Options#navigableHeaders} moves the focus onto a header.
+   * @param {boolean} [changeListener=true] If `true`, the grid moves the browser focus to the selection's highlighted
+   * cell, as before. Unlike `selectCells()`, the grid does not start listening. If `false`, the browser focus stays
+   * on an outside input, textarea, select, or contenteditable. A focused button, the document body, or an iframe
+   * still loses focus to the highlighted cell.
    */
   this.selectAll = function(
-    includeRowHeaders = true, includeColumnHeaders = includeRowHeaders, options: Record<string, unknown>
+    includeRowHeaders = true,
+    includeColumnHeaders = includeRowHeaders,
+    options?: SelectAllOptions,
+    changeListener = true
   ) {
     viewportScroller.skipNextScrollCycle();
-    selection.selectAll(includeRowHeaders, includeColumnHeaders, options);
+    selectWithChangeListener(changeListener, () => {
+      selection.selectAll(includeRowHeaders, includeColumnHeaders, options);
+    });
   };
 
   const getIndexToScroll = (indexMapper: IndexMapper, visualIndex: number) => {
