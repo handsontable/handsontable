@@ -8268,7 +8268,7 @@ export default (): Record<string, unknown> => {
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
-     * @type {ThemeBuilder|string|undefined}
+     * @type {ThemeBuilder|object|string|undefined}
      * @default undefined
      * @category Core
      * @configScope grid

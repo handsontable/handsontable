@@ -23,7 +23,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 19.0 also adds the [`ImportFile`](@/api/importFile.md) plugin, which reads `.xlsx` files with the built-in XLSX engine that section 38 describes; see [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md). It is new, so nothing to migrate.
 
-Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns what [`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) return for a column that does not exist, and applies if you call either of them, call [`getDataAtProp()`](@/api/core.md#getdataatprop) with an index, or add a [`modifyData`](@/api/hooks.md#modifydata) hook. Section 23 concerns the TypeScript types of the [`filters`](@/api/options.md#filters) option, and applies only if you use TypeScript and set `filters` to an object. Section 24 concerns how undo and redo work, and applies if you keep the default [`undo`](@/api/options.md#undo) setting. Section 25 concerns the new [`maxLength`](@/api/options.md#maxlength) option, and applies only if you already keep a `maxLength` key in your cell settings. Section 26 concerns the narrowest width a column can be resized to, and applies if you enable [`dropdownMenu`](@/api/options.md#dropdownmenu) and let users resize columns with [`manualColumnResize`](@/api/options.md#manualcolumnresize), or call [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) or [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes). Section 27 concerns icons rendering as `<i>` elements instead of CSS pseudo-elements, and applies if you style a built-in icon, query for one in a test, or use the [`icons`](@/guides/styling/themes/themes.md#icons) theme parameter. Section 28 concerns moving columns across the freeze line, and applies if you use [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) together with [`manualColumnMove`](@/api/options.md#manualcolumnmove), or if you listen to the column freeze and unfreeze hooks. Section 29 concerns entitlement license keys, and applies only if you pass one in another form than the one you received. Section 30 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + <kbd>**←**</kbd> and <kbd>**→**</kbd> do on a row header, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin with [`navigableHeaders`](@/api/options.md#navigableheaders) enabled. Section 31 concerns the TypeScript props of the React `HotColumn` component, and applies only if you use TypeScript and pass a hook, such as `afterChange`, to `HotColumn`. Section 32 concerns [`editor: false`](@/api/options.md#editor), and applies only if you set it together with a column [`type`](@/api/options.md#type), or on a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) column. Section 33 concerns changing [`dataSchema`](@/api/options.md#dataschema) with [`updateSettings()`](@/api/core.md#updatesettings), and applies only if you change it after the grid is created without setting [`columns`](@/api/options.md#columns). Section 34 concerns the [`colWidths`](@/api/options.md#colwidths) option, and applies only if you set it to an array or a function and your columns can be moved. Section 35 concerns how wide an auto-sized column can get, and applies only if you leave [`autoColumnSize`](@/api/autoColumnSize.md) on and a column holds text wider than the grid. Section 36 concerns what `setValue()` receives in a custom editor that extends [`BaseEditor`](@/guides/cell-functions/cell-editor/cell-editor.md) directly, and applies only if you write one, or build one with the editor factory. Section 37 concerns how a string `rowId` in the [`dataProvider`](@/api/options.md#dataprovider) option reads a property with a dot in its name, and applies only if your rows have such a property or you rewrite the id with a `modifySourceData` hook. Section 38 concerns the XLSX format of the [`ExportFile`](@/api/exportFile.md) plugin, which no longer needs ExcelJS, and applies if you set the [`exportFile`](@/api/options.md#exportfile) option, call `supportsExportFormat('xlsx')`, or export to XLSX. Section 39 concerns [`removeCellMeta()`](@/api/core.md#removecellmeta) with an index outside the grid's range, and applies only if you make such a call. Section 40 concerns which columns a [`dataSchema`](@/api/options.md#dataschema) with non-`null` values creates, and applies only if you set `dataSchema` with such values and don't set [`columns`](@/api/options.md#columns).
+Section 1 concerns the [`Formulas`](@/api/formulas.md) plugin, and applies only if you use it. Section 2 concerns the [`beforeInit`](@/api/hooks.md#beforeinit) hook, and applies only if you pass one in your settings. Section 3 concerns what a cell editor writes when you confirm it without typing, and affects every grid. Sections 4 and 5 concern the [`sanitizer`](@/api/options.md#sanitizer) option, and do not affect you if you do not set one. Section 6 applies whether you set a sanitizer or not. Section 7 concerns custom context menu and column menu items, and applies only if you build one. Section 8 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click does inside a selection, and affects every grid that keeps the default [`selectionMode`](@/api/options.md#selectionmode). Section 9 concerns two deprecated [`Formulas`](@/api/formulas.md) methods, and applies only if you call either of them. Section 10 concerns how many rows are removed with a parent row, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin. Section 11 concerns what a cell stores when you write a plain value into a column whose [`source`](@/api/options.md#source) is an array of `{ key, value }` objects, and applies only if you declare one that way. Section 12 concerns when a [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) column marks a value invalid, and applies only if you set [`strict`](@/api/options.md#strict) to `false` on such a column. Section 13 concerns which row you land on when you leave a merged cell horizontally, and applies only if you use the [`MergeCells`](@/api/mergeCells.md) plugin. Section 14 concerns `tr` elements moving with their rows on a vertical scroll, and applies whether or not you set [`renderMode`](@/api/options.md#rendermode). Section 15 concerns how [`autoColumnSize`](@/api/autoColumnSize.md) measures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) columns, and applies only if you leave that plugin on for those cell types and do not pin them with a column `width` or with [`colWidths`](@/api/options.md#colwidths). Section 16 concerns the new single-line default for those same three cell types, and applies only if you use one of them. Section 17 concerns the [`width`](@/api/options.md#width) and [`height`](@/api/options.md#height) options, and applies if you set `height: 'auto'`, or pass a CSS keyword, a `var()`, or a container-query unit to either option. Section 18 concerns what [`getCopyableData()`](@/api/core.md#getcopyabledata) returns, and applies only if you call it or [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) yourself. Section 19 concerns where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), and [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) editors open their lists, and applies if you use one of those cell types. Section 20 concerns two deprecated [`Core`](@/api/core.md) methods, [`spliceCol()`](@/api/core.md#splicecol) and [`spliceRow()`](@/api/core.md#splicerow), and applies only if you call either of them. Section 21 concerns the right-alignment and `htNumeric` class name of a [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell, and applies only if such a cell can hold a non-numeric value. Section 22 concerns what [`colToProp()`](@/api/core.md#coltoprop) and [`propToCol()`](@/api/core.md#proptocol) return for a column that does not exist, and applies if you call either of them, call [`getDataAtProp()`](@/api/core.md#getdataatprop) with an index, or add a [`modifyData`](@/api/hooks.md#modifydata) hook. Section 23 concerns the TypeScript types of the [`filters`](@/api/options.md#filters) option, and applies only if you use TypeScript and set `filters` to an object. Section 24 concerns how undo and redo work, and applies if you keep the default [`undo`](@/api/options.md#undo) setting. Section 25 concerns the new [`maxLength`](@/api/options.md#maxlength) option, and applies only if you already keep a `maxLength` key in your cell settings. Section 26 concerns the narrowest width a column can be resized to, and applies if you enable [`dropdownMenu`](@/api/options.md#dropdownmenu) and let users resize columns with [`manualColumnResize`](@/api/options.md#manualcolumnresize), or call [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) or [`setManualSizes()`](@/api/manualColumnResize.md#setmanualsizes). Section 27 concerns icons rendering as `<i>` elements instead of CSS pseudo-elements, and applies if you style a built-in icon, query for one in a test, or use the [`icons`](@/guides/styling/themes/themes.md#icons) theme parameter. Section 28 concerns moving columns across the freeze line, and applies if you use [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) together with [`manualColumnMove`](@/api/options.md#manualcolumnmove), or if you listen to the column freeze and unfreeze hooks. Section 29 concerns entitlement license keys, and applies only if you pass one in another form than the one you received. Section 30 concerns what <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + <kbd>**←**</kbd> and <kbd>**→**</kbd> do on a row header, and applies only if you use the [`NestedRows`](@/api/nestedRows.md) plugin with [`navigableHeaders`](@/api/options.md#navigableheaders) enabled. Section 31 concerns the TypeScript props of the React `HotColumn` component, and applies only if you use TypeScript and pass a hook, such as `afterChange`, to `HotColumn`. Section 32 concerns [`editor: false`](@/api/options.md#editor), and applies only if you set it together with a column [`type`](@/api/options.md#type), or on a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) column. Section 33 concerns changing [`dataSchema`](@/api/options.md#dataschema) with [`updateSettings()`](@/api/core.md#updatesettings), and applies only if you change it after the grid is created without setting [`columns`](@/api/options.md#columns). Section 34 concerns the [`colWidths`](@/api/options.md#colwidths) option, and applies only if you set it to an array or a function and your columns can be moved. Section 35 concerns how wide an auto-sized column can get, and applies only if you leave [`autoColumnSize`](@/api/autoColumnSize.md) on and a column holds text wider than the grid. Section 36 concerns what `setValue()` receives in a custom editor that extends [`BaseEditor`](@/guides/cell-functions/cell-editor/cell-editor.md) directly, and applies only if you write one, or build one with the editor factory. Section 37 concerns how a string `rowId` in the [`dataProvider`](@/api/options.md#dataprovider) option reads a property with a dot in its name, and applies only if your rows have such a property or you rewrite the id with a `modifySourceData` hook. Section 38 concerns the XLSX format of the [`ExportFile`](@/api/exportFile.md) plugin, which no longer needs ExcelJS, and applies if you set the [`exportFile`](@/api/options.md#exportfile) option, call `supportsExportFormat('xlsx')`, or export to XLSX. Section 39 concerns [`removeCellMeta()`](@/api/core.md#removecellmeta) with an index outside the grid's range, and applies only if you make such a call. Section 40 concerns which columns a [`dataSchema`](@/api/options.md#dataschema) with non-`null` values creates, and applies only if you set `dataSchema` with such values and don't set [`columns`](@/api/options.md#columns). Section 41 concerns the TypeScript types of ten options, and applies only if you use TypeScript and set one of them.
 
 ## 1. `date` cells reach the formula engine the same way on every data path
 
@@ -2301,3 +2301,90 @@ const hot = new Handsontable(container, {
 ```
 
 Or use `null` for each value in the schema, as the grid does when it reads the schema from your data.
+
+## 41. Ten options are type-checked
+
+Before 19.0, TypeScript typed ten documented options as `any`. They fell into the `[key: string]: any`
+index signature of `GridSettings`, so any value compiled, a wrong one included. Each option now has its
+real type:
+
+| Option | Type |
+| ------ | ---- |
+| [`enterCommits`](@/api/options.md#entercommits) | `boolean` |
+| [`filterSelectedItems`](@/api/options.md#filterselecteditems) | `boolean` |
+| [`searchInput`](@/api/options.md#searchinput) | `boolean` |
+| [`injectCoreCss`](@/api/options.md#injectcorecss) | `boolean` |
+| [`parsePastedValue`](@/api/options.md#parsepastedvalue) | `boolean` |
+| [`maxSelections`](@/api/options.md#maxselections) | `number` |
+| [`notification`](@/api/options.md#notification) | `boolean`, or an object with `stackLimit` and `animation` |
+| [`theme`](@/api/options.md#theme) | A theme name, a theme config object, or a `ThemeBuilder` |
+| [`valueParser`](@/api/options.md#valueparser) | A function that takes the editor value and the cell properties |
+| [`sourceSortFunction`](@/api/options.md#sourcesortfunction) | A function that takes an array of list entries and returns one |
+
+Nothing changes at runtime. This section applies only if you use TypeScript.
+
+### Who is affected
+
+Your code stops compiling in one of these cases:
+
+- A `boolean` option holds another type, such as `0` or `'true'`, or `maxSelections` holds a
+  numeric string.
+- The `notification` object has a key other than `stackLimit` or `animation`. The plugin reads only those two.
+- `theme` holds a value that is neither a string nor an object.
+- Your code reads one of these options back, from `getSettings()`, `getCellMeta()`, or a custom
+  editor's `cellProperties`, and uses it as a definite value. Each option is optional, so TypeScript
+  now reports a possibly `undefined` value, and a `theme` that is a string, an object, or a
+  `ThemeBuilder` needs a type guard before you call a `ThemeBuilder` method on it.
+- Your code calls `valueParser` with one argument. The function now declares both of its
+  parameters: the value and the cell properties.
+
+A callback you write for `valueParser` or `sourceSortFunction` still compiles, whether it annotates its
+parameters or leaves TypeScript to infer them.
+
+### How to migrate
+
+Give the option a value of its type:
+
+```ts
+// Before: a string compiled
+maxSelections: '3',
+
+// After
+maxSelections: 3,
+```
+
+Remove a `notification` key the plugin does not read. Set a toast's duration where you show the message:
+
+```ts
+// Before: the plugin read `stackLimit` and left `duration` alone
+notification: {
+  stackLimit: 5,
+  duration: 3000,
+},
+
+// After
+notification: {
+  stackLimit: 5,
+},
+```
+
+When you read an option back, handle the `undefined` case:
+
+```ts
+// Before: `getSettings().valueParser` was `any`
+const parsed = hot.getSettings().valueParser(value, cellProperties);
+
+// After
+const parsed = hot.getSettings().valueParser?.(value, cellProperties);
+```
+
+If a value comes from a source that TypeScript cannot check, such as a configuration file, convert
+it where you read it:
+
+```ts
+import type { GridSettings } from 'handsontable';
+
+const settings: GridSettings = {
+  maxSelections: Number(config.maxSelections),
+};
+```

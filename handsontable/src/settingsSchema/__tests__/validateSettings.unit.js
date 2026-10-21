@@ -539,6 +539,13 @@ describe('validateSettings', () => {
     expect(brief(validateSettings({ theme: [] }))).toEqual([{ path: 'theme', code: 'invalidType' }]);
   });
 
+  it('should accept a plain theme config object and check the notification settings', () => {
+    expect(validateSettings({ theme: { name: 'custom', tokens: { someToken: '1px' } } }).problems).toEqual([]);
+    expect(validateSettings({ notification: { stackLimit: 3, animation: false } }).problems).toEqual([]);
+    expect(brief(validateSettings({ notification: { stackLimit: 'ten' } })).map(({ code }) => code))
+      .toEqual(['invalidType']);
+  });
+
   it('should report the key of a built-in plugin that is not one of its options', () => {
     expect(brief(validateSettings({ undoRedo: true, autofill: true, columns: [{ undoRedo: false }] }))).toEqual([
       { path: 'undoRedo', code: 'unknownOption' },

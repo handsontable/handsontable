@@ -5356,7 +5356,7 @@ export default function Core(
           let themeObject;
 
           if (typeof (settings.theme as { getThemeConfig?: () => unknown }).getThemeConfig !== 'function') {
-            themeObject = registerTheme(settings.theme);
+            themeObject = registerTheme(settings.theme as Parameters<typeof registerTheme>[0]);
           } else {
             themeObject = settings.theme as ThemeBuilder;
           }

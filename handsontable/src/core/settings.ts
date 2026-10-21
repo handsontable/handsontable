@@ -15,6 +15,8 @@ import type { ColumnConditions, FiltersSettings } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
+import type { NotificationConfig } from '../plugins/notification';
+import type { ThemeBuilder } from '../themes/engine/builder';
 import type { RowSelectionSettings, RowSelectionSource } from '../plugins/rowSelection';
 import type { HeaderCheckboxSettings } from '../plugins/checkboxHeader';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
@@ -157,6 +159,9 @@ export interface GridSettings {
   readOnlyCellClassName?: string;
   readOnlyStyling?: boolean;
   tableClassName?: string | string[];
+  // `object` is the plain theme config the option's table documents (`horizonTheme`). The closed
+  // `ThemeParams` type would reject a config with a token of your own, which compiled as `any`.
+  theme?: ThemeBuilder | object | string;
   themeName?: string;
   colorScheme?: ThemeColorScheme;
   density?: DensityType;
@@ -222,19 +227,33 @@ export interface GridSettings {
   editor?: string | (new (...args: unknown[]) => unknown) | boolean;
   emptyValue?: CellValue;
   enterBeginsEditing?: boolean;
+  enterCommits?: boolean;
   enterMoves?: { col: number; row: number } | ((event: KeyboardEvent) => { col: number; row: number });
   fillHandle?: boolean | string | { autoInsertRow?: boolean; direction?: string };
+  filterSelectedItems?: boolean;
   imeFastEdit?: boolean;
   maxLength?: number;
+  maxSelections?: number;
+  parsePastedValue?: boolean;
   readOnly?: boolean;
+  searchInput?: boolean;
   skipColumnOnPaste?: boolean;
   skipRowOnPaste?: boolean;
   sourceDataValidator?: SourceDataValidatorFn;
   sourceDataWarningMessage?: string;
+  // Method syntax and an `any` parameter on purpose, as for `sanitizer` below: both options were `any`,
+  // so a consumer callback that annotates its parameter more narrowly, or leaves it to be inferred and
+  // calls `value.trim()` or `b.localeCompare(a)`, compiles today. A function property would reject the
+  // first form and an `unknown` or union parameter the second - see `.ai/BREAKING-CHANGES.md`. The
+  // breaking part of declaring these options is the read side (they are optional now) and the arity.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sourceSortFunction?(entries: any[]): any[];
   tabMoves?: { row: number; col: number } | ((event: KeyboardEvent) => { row: number; col: number });
   trimWhitespace?: boolean;
   undo?: boolean | UndoRedoSettings;
   validator?: string | RegExp | ((value: unknown, callback: (valid: boolean) => void) => void);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  valueParser?(value: any, cellProperties: CellProperties): CellValue;
   wordWrap?: boolean;
 
   // Rendering
@@ -322,6 +341,7 @@ export interface GridSettings {
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;
+  notification?: boolean | NotificationConfig;
   freezeBar?: boolean | FreezeBarSettings;
   manualColumnFreeze?: boolean | ManualColumnFreezeSettings;
   manualColumnMove?: boolean | number[];
@@ -377,6 +397,7 @@ export interface GridSettings {
 
   // Layout
   ariaTags?: boolean;
+  injectCoreCss?: boolean;
   layout?: LayoutConfig;
   layoutDirection?: 'inherit' | 'ltr' | 'rtl';
   licenseKey?: string;
