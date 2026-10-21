@@ -6,7 +6,7 @@ import { error as logError, warnOnce } from '../../helpers/console';
 import { announce } from '../../utils/a11yAnnouncer';
 import { detachValue, recordCellChange } from '../../dataMap/dataJournal';
 import { Launch, LaunchQueue } from './launchQueue';
-import { isArrayLike, isProp, toErrorMessage, type Change } from './utils';
+import { getChangeKey, isArrayLike, isProp, toErrorMessage, type Change } from './utils';
 import { normalizeRanges } from '../../utils/copiedRanges';
 import { decorateCell, undecorateCell } from './decoration';
 import { LOADING_TITLE } from '../../i18n/constants';
@@ -140,11 +140,14 @@ interface PendingWrite {
 
 /**
  * One value the plugin passed to the grid that has not landed yet. A cell's flights form a queue, in the
- * order they were written: a change event carrying a flight's source is that flight landing, and while a
- * later flight is still in the queue the landing value is already outdated. The queue is how a write is
- * told apart from another one with the same source, which the source alone cannot do.
+ * order they were written. The grid applies the last write made to a cell, whatever order the validators
+ * answer in: a flight lands as the change tuple it was sent in reaches `afterChange` (the source alone
+ * cannot tell two writes of one call source apart), a later flight still in the queue makes the landing
+ * value outdated, and a flight the grid dropped for a newer applied write never lands, so it is taken out
+ * of the queue when that newer write lands.
  */
 interface Flight {
+  sequence: number;
   source: string;
   write: PendingWrite | null;
   validating: boolean;
@@ -488,6 +491,29 @@ export class AsyncValues extends BasePlugin {
   #rowCount = 0;
 
   /**
+   * The sequence number the next flight takes, so the flights of a cell are ordered across calls.
+   */
+  #flightSequence = 0;
+
+  /**
+   * The flights of the write that is running, by cell, with the source it writes with. A change tuple
+   * that `beforeChange` reports for that source is mapped to its flight in `#flightByChange`.
+   */
+  #writing: { source: string; flights: Map<string, Flight> } | null = null;
+
+  /**
+   * The flight each change tuple the plugin wrote belongs to. The grid reports the same tuple object to
+   * `afterChange` once the write is applied, and never reports a write it dropped for a newer one.
+   */
+  readonly #flightByChange = new WeakMap<CellChange, Flight>();
+
+  /**
+   * The newest flight sequence that was queued on the cell when a write of another source reached
+   * `beforeChange`: when that write lands, every flight up to that sequence was written before it.
+   */
+  readonly #foreignWrites = new WeakMap<CellChange, number>();
+
+  /**
    * Whether a cell meta object may still carry `asyncState`, so `disablePlugin()` knows to clear it.
    */
   #reportedMeta = false;
@@ -521,6 +547,7 @@ export class AsyncValues extends BasePlugin {
     // `afterChange` is not canceled by the very change that started it.
     this.addHook('afterChange', this.#onAfterChange, -1);
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell, -1);
+    this.addHook('beforeChange', this.#onBeforeChange);
     this.addHook('beforeValidate', this.#onBeforeValidate);
     this.addHook('afterValidate', this.#onAfterValidate);
     // Before the application's listeners, so a listener that cancels or writes a cell there already sees
@@ -2066,7 +2093,17 @@ export class AsyncValues extends BasePlugin {
       run.writeStates.add(state);
     }
 
-    const flight: Flight = { source: run.options.source, write, validating: false, state, prop, group: null };
+    this.#flightSequence += 1;
+
+    const flight: Flight = {
+      sequence: this.#flightSequence,
+      source: run.options.source,
+      write,
+      validating: false,
+      state,
+      prop,
+      group: null,
+    };
     const flights = state.flights.get(prop);
 
     if (flights) {
@@ -2130,6 +2167,8 @@ export class AsyncValues extends BasePlugin {
           const hidden: Change[] = [];
           const group: Flight[] = [];
 
+          const flights = new Map<string, Flight>();
+
           planned.forEach(({ prop, value, flight }) => {
             const visualRow = this.#visualRowOf(flight.state.physicalRow);
 
@@ -2138,13 +2177,21 @@ export class AsyncValues extends BasePlugin {
 
             } else {
               visible.push([visualRow, prop, value]);
+              flights.set(getChangeKey(visualRow, prop), flight);
               group.push(flight);
               flight.group = group;
             }
           });
 
           if (visible.length > 0) {
-            attempt(() => this.hot.setDataAtRowProp(visible, '', '', source));
+            this.#writing = { source, flights };
+
+            try {
+              attempt(() => this.hot.setDataAtRowProp(visible, '', '', source));
+
+            } finally {
+              this.#writing = null;
+            }
           }
 
           if (hidden.length > 0) {
@@ -2688,10 +2735,12 @@ export class AsyncValues extends BasePlugin {
    * @param {string|undefined} source The source of the change.
    * @param {Array} cleared Collects the detached entries, with their reasons.
    * @param {Set} landedGroups Collects the write groups whose flights landed.
+   * @param {Array} [change] The change tuple the grid reported, when the change went through validation.
    */
   #onCellChanged(
     physicalRow: number, prop: AsyncValueProp, source: string | undefined,
     cleared: Array<[AsyncValueEntry, AsyncValueCancelReason]>, landedGroups: Set<Flight[]>,
+    change?: CellChange,
   ): void {
     const state = this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
     // Core reads a source ending with `Validator` as a validator correcting the value it validates.
@@ -2712,7 +2761,10 @@ export class AsyncValues extends BasePlugin {
       return;
     }
 
-    const flight = flights?.find(item => item.source === source);
+    // The tuple names the flight exactly. The source cannot, because two writes of one call source can
+    // land in either order.
+    const mapped = change ? this.#flightByChange.get(change) : undefined;
+    const flight = mapped ?? flights?.find(item => item.source === source);
     const own = state.entries.get(prop);
     const write = state.writes.get(prop);
     const dependents = [...state.entries.values()]
@@ -2724,14 +2776,22 @@ export class AsyncValues extends BasePlugin {
       write.landedValue = this.#readSource(state.physicalRow, prop);
 
     } else if (flight) {
-      if (flight.group) {
-        landedGroups.add(flight.group);
+      // A flight the grid dropped for a newer write is already out of the queue and has nothing to land.
+      if (flights?.includes(flight)) {
+        if (flight.group) {
+          landedGroups.add(flight.group);
+        }
+
+        // Only a validated write is ordered by the grid. A write the grid applied has overtaken every
+        // older write to the cell that is still waiting for its validator.
+        this.#endFlightsUpTo(state, prop, mapped && flight.validating ? flight.sequence - 1 : 0);
+        this.#onFlightLanded(state, prop, flight);
       }
 
-      this.#onFlightLanded(state, prop, flight);
-
     } else {
-      // Any other change: a kept write is not the cell's value any more, and the request is stale.
+      // Any other change: a kept write is not the cell's value any more, and the request is stale. The
+      // grid applied it, so it has overtaken the flights written before it that wait for their validator.
+      this.#endFlightsUpTo(state, prop, (change && this.#foreignWrites.get(change)) || 0);
       this.#dropWrite(state, prop);
 
       if (own) {
@@ -2772,6 +2832,20 @@ export class AsyncValues extends BasePlugin {
     if (write && !write.landed && state.writes.get(prop) === write) {
       this.#landWrite(state, prop, write);
     }
+  }
+
+  /**
+   * Takes the flights of a cell up to a sequence out of its queue. The grid drops a write that a newer
+   * write to the cell has overtaken, and a dropped write fires no `afterChange`, so nothing else ends it.
+   *
+   * @param {object} state The row state.
+   * @param {string|number} prop The property of the cell.
+   * @param {number} sequence The newest sequence to take out.
+   */
+  #endFlightsUpTo(state: RowState, prop: AsyncValueProp, sequence: number): void {
+    state.flights.get(prop)
+      ?.filter(flight => flight.sequence <= sequence)
+      .forEach(flight => this.#endFlight(state, prop, flight, true));
   }
 
   /**
@@ -3019,6 +3093,53 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
+   * `beforeChange` hook callback. Pairs each change tuple of the plugin's own write with its flight, and
+   * stamps the tuple of every other write with the newest flight queued on its cell. The grid reports an
+   * applied tuple to `afterChange` as the same object, which is what tells the flights apart there.
+   *
+   * @param {Array} changes The changes about to be written.
+   * @param {string} [source] The source of the changes.
+   */
+  readonly #onBeforeChange = (changes: Array<CellChange | null>, source?: string): void => {
+    // A validator's correction is part of the write it corrects.
+    if (this.#states.size === 0 || (typeof source === 'string' && source.endsWith('Validator'))) {
+      return;
+    }
+
+    const writing = this.#writing?.source === source ? this.#writing : null;
+
+    changes.forEach((change) => {
+      if (change && isProp(change[1])) {
+        if (!writing) {
+          this.#stampForeignWrite(change);
+
+        } else {
+          const flight = writing.flights.get(getChangeKey(change[0], change[1]));
+
+          if (flight) {
+            this.#flightByChange.set(change, flight);
+          }
+        }
+      }
+    });
+  };
+
+  /**
+   * Records which flights a write of another source was written after.
+   *
+   * @param {Array} change The change tuple of the write.
+   */
+  #stampForeignWrite(change: CellChange): void {
+    const physicalRow = this.hot.toPhysicalRow(change[0]);
+    const state = physicalRow === null ? null : this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
+    const flights = state?.flights.get(change[1] as AsyncValueProp);
+
+    if (flights && flights.length > 0) {
+      this.#foreignWrites.set(change, flights[flights.length - 1].sequence);
+    }
+  }
+
+  /**
    * `beforeValidate` hook callback. Marks the plugin's flight to a cell whose validator starts: it lands
    * when the validator answers, in a later task.
    *
@@ -3107,18 +3228,19 @@ export class AsyncValues extends BasePlugin {
   /**
    * Cancels the requests a list of changes affects, and renders when one was canceled.
    *
-   * @param {Array} changes The changes, as `[physicalRow, prop]` pairs.
+   * @param {Array} changes The changes, as `[physicalRow, prop, tuple]`. The tuple is the change the grid
+   *   reported to `afterChange`, and is missing for a write that skips validation.
    * @param {string|undefined} source The source of the changes.
    */
-  #onCellsChanged(changes: Array<[number | null, unknown]>, source: string | undefined): void {
+  #onCellsChanged(changes: Array<[number | null, unknown, CellChange?]>, source: string | undefined): void {
     const cleared: Array<[AsyncValueEntry, AsyncValueCancelReason]> = [];
     const landedGroups = new Set<Flight[]>();
 
     // Every cell is detached before any hook runs, so a throwing cancel listener cannot leave a later cell
     // of the change with a stale request.
-    changes.forEach(([physicalRow, prop]) => {
+    changes.forEach(([physicalRow, prop, change]) => {
       if (physicalRow !== null && isProp(prop)) {
-        this.#onCellChanged(physicalRow, prop, source, cleared, landedGroups);
+        this.#onCellChanged(physicalRow, prop, source, cleared, landedGroups, change);
       }
     });
 
@@ -3154,7 +3276,7 @@ export class AsyncValues extends BasePlugin {
       return;
     }
 
-    this.#onCellsChanged(changes.map(([row, prop]) => [this.hot.toPhysicalRow(row), prop]), source);
+    this.#onCellsChanged(changes.map(change => [this.hot.toPhysicalRow(change[0]), change[1], change]), source);
   };
 
   /**

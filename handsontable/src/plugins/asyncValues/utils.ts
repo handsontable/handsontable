@@ -36,6 +36,17 @@ export function isProp(prop: unknown): prop is AsyncValueProp {
 }
 
 /**
+ * Builds the key that names a cell within one write: its row and column property.
+ *
+ * @param {number} row The row of the change.
+ * @param {string|number} prop The column property of the change.
+ * @returns {string}
+ */
+export function getChangeKey(row: number, prop: AsyncValueProp): string {
+  return `${row}:${prop}`;
+}
+
+/**
  * Tells whether a value is array-like: an array, or an object with a non-negative integer `length`.
  *
  * @param {*} value The value.

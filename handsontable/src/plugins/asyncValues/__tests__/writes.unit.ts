@@ -91,6 +91,73 @@ describe('AsyncValues: writes, flights, and rows', () => {
     destroy();
   });
 
+  [
+    ['the default source', undefined, undefined],
+    ['a source of its own per call', 'first', 'second'],
+  ].forEach(([title, firstSource, secondSource]) => {
+    it(`should record one step with the last value when the validators answer in reverse order (${title})`, async() => {
+      const { answers, validator } = manualValidator();
+      const { hot, plugin, destroy } = createGrid({
+        undo: true,
+        columns: [{ data: 'sku' }, { data: 'name', validator }, { data: 'price' }],
+      });
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      await plugin.setAsyncValue(0, 1, Promise.resolve('v1'), { undo: 'record', source: firstSource });
+      await settle();
+      await plugin.setAsyncValue(0, 1, Promise.resolve('v2'), { undo: 'record', source: secondSource });
+      await settle();
+
+      answers.reverse().forEach(({ answer }) => answer(true));
+      await settle();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('v2');
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('old A');
+      expect(undoRedo.isUndoAvailable()).toBe(false);
+
+      destroy();
+    });
+
+    it(`should record a later call's step after a user edit overtook the value (${title})`, async() => {
+      const { answers, validator } = manualValidator();
+      const { hot, plugin, destroy } = createGrid({
+        undo: true,
+        columns: [{ data: 'sku' }, { data: 'name', validator }, { data: 'price' }],
+      });
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      await plugin.setAsyncValue(0, 1, Promise.resolve('AI 2'), { undo: 'record', source: firstSource });
+      await settle();
+      hot.setDataAtCell(0, 1, 'user value');
+      await settle();
+
+      answers[1].answer(true);
+      await settle();
+      answers[0].answer(true);
+      await settle();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('user value');
+
+      const third = plugin.setAsyncValue(0, 1, Promise.resolve('AI 3'), { undo: 'record', source: secondSource });
+
+      await third;
+      await settle();
+      answers[2].answer(true);
+      await settle();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('AI 3');
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('user value');
+
+      destroy();
+    });
+  });
+
   it('should not apply `meta` for a value a later write replaced while both waited for the validator', async() => {
     const { answers, validator } = manualValidator();
     const { hot, plugin, destroy } = createGrid({
