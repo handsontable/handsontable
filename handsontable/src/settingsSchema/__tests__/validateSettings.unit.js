@@ -561,7 +561,8 @@ describe('validateSettings', () => {
     document.body.appendChild(container);
 
     const hot = new Handsontable(container, {
-      data: Handsontable.helper.createSpreadsheetData(30, 3),
+      // A sheets bar that declares its sheets takes the data from them and warns about `data`.
+      ...(option === 'sheetsBar' ? {} : { data: Handsontable.helper.createSpreadsheetData(30, 3) }),
       colHeaders: true,
       [option]: value,
       licenseKey: 'non-commercial-and-evaluation',
