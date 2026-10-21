@@ -92,6 +92,11 @@
         if (row !== 0) {
           Handsontable.renderers.TextRenderer.apply(this, arguments);
 
+          // Row 1 of the visual-selection-off button column is a plain text cell.
+          if (row === 1 && col === 0) {
+            td.setAttribute('data-testid', 'text-off');
+          }
+
           return;
         }
 

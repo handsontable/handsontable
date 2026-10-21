@@ -1,6 +1,9 @@
 import { devices } from '@playwright/test';
-import { test } from '../fixtures/test';
+import { test, expect } from '../fixtures/test';
 import { TouchInteractiveCellPage } from '../fixtures/pages/TouchInteractiveCellPage';
+
+const IOS_CHROME_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_5 like Mac OS X) ' +
+  'AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.163 Mobile/15E148 Safari/604.1';
 
 /**
  * DEV-332 / DEV-891. Phone emulation matches the report: a renderer button or file input
@@ -73,5 +76,44 @@ test.describe('touch taps on interactive renderer elements', () => {
     await grid.expectClicks('button-blocked', 1);
     await grid.clickBarrier();
     await grid.expectClicksExact('button-blocked', 1);
+  });
+});
+
+test.describe('iOS Chrome with visual selection off', () => {
+  test.use({ userAgent: IOS_CHROME_UA });
+
+  let grid: TouchInteractiveCellPage;
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    // Linux Chromium keeps `navigator.platform` as Linux. `isIOS()` reads that, not the UA.
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'platform', {
+        configurable: true,
+        get: () => 'iPhone',
+      });
+    });
+
+    grid = new TouchInteractiveCellPage(page, theme, bundle);
+    await grid.goto();
+    await grid.installTouchEndLog();
+  });
+
+  test('cancels both taps of a double-tap on a text cell', async () => {
+    expect(await grid.engineFlags()).toEqual({ ios: true, chromeWebKit: true });
+
+    await expect(grid.control('text-off')).toBeVisible();
+    await grid.tap('text-off');
+    await grid.tap('text-off');
+
+    await grid.expectTouchEndsPrevented([true, true]);
+  });
+
+  test('does not cancel a tap on a button', async () => {
+    expect(await grid.engineFlags()).toEqual({ ios: true, chromeWebKit: true });
+
+    await grid.tap('button-off');
+
+    await grid.expectTouchEndsPrevented([false]);
+    await grid.expectClicks('button-off', 1);
   });
 });

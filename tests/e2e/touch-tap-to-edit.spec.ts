@@ -253,6 +253,28 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.expectSelectedCell(3, 1);
   });
 
+  test('a drift past the move threshold over an unselected cell is cancelled and selects nothing', async () => {
+    // A cancelable touchend that moved past the 10px threshold. onMouseDown does not run, so the
+    // first-tap gate does not apply. The scroll branch then clears the pending pair. Cancelling
+    // this touchend is what stops a browser that still synthesizes a click from selecting the cell.
+    await grid.installTouchEndLog();
+    await grid.dispatchTouchDrag(1, 1, 20);
+
+    await expect.poll(() => grid.touchEndLog()).toEqual([{ prevented: true, cancelable: true, down: 0 }]);
+    await grid.expectHookCountExactly('click', 0);
+    await grid.expectHookCountExactly('beforeOnCellMouseDown', 0);
+  });
+
+  test('a drift past the move threshold over the selected cell is not cancelled', async ({ page }) => {
+    await grid.tapCell(1, 1);
+    await page.clock.runFor(200);
+
+    await grid.installTouchEndLog();
+    await grid.dispatchTouchDrag(1, 1, 20);
+
+    await expect.poll(() => grid.touchEndLog()).toEqual([{ prevented: false, cancelable: true, down: 1 }]);
+  });
+
   test('a cancelled long-press releases the mouse-down flag: no drag-selection follows', async ({ page }) => {
     // A held touch: the long-press timer fires the mousedown (selecting the cell) and opens the
     // context menu through the synthetic contextmenu event.

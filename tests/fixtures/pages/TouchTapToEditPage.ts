@@ -82,6 +82,41 @@ export class TouchTapToEditPage {
   }
 
   /**
+   * Record each `touchend` once the grid's own listener has run: whether it was cancelled,
+   * and how many cell mousedowns had already fired. The mousedown count at this moment is the
+   * touch path's own `onMouseDown`. A compatibility mousedown arrives only after `touchend`.
+   */
+  async installTouchEndLog(): Promise<void> {
+    await this.page.evaluate(() => {
+      const target = window as Window & {
+        touchEndLog: { prevented: boolean; cancelable: boolean; down: number }[];
+      };
+
+      target.touchEndLog = [];
+      document.addEventListener('touchend', (event) => {
+        target.touchEndLog.push({
+          prevented: event.defaultPrevented,
+          cancelable: event.cancelable,
+          down: window.hookCounts.beforeOnCellMouseDown,
+        });
+      });
+    });
+  }
+
+  /**
+   * The `touchend` log installed by `installTouchEndLog`.
+   */
+  async touchEndLog(): Promise<{ prevented: boolean; cancelable: boolean; down: number }[]> {
+    return this.page.evaluate(() => {
+      const target = window as Window & {
+        touchEndLog?: { prevented: boolean; cancelable: boolean; down: number }[];
+      };
+
+      return target.touchEndLog ?? [];
+    });
+  }
+
+  /**
    * Dispatch a script-created touch gesture that drifts `dx` pixels before lifting: a
    * `touchstart`, a `touchmove` offset by `dx`, then a `touchend`. These touch events drive
    * Walkontable's 10 px move-threshold path (`LONG_PRESS_MOVE_THRESHOLD`): past that offset the

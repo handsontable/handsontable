@@ -707,22 +707,27 @@ class Event {
       // `isCellsRange` already proved these coords are a cell. A boolean does not narrow the type.
       const focusOnTouchedCell = focusCellRange?.includes(parentCellCoords!);
       const isCheckbox = target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox';
+      const cellWasSelected = this.selectedCellWasTouched(target);
+      const allowTapTarget = interactiveElements.includes(target!.tagName);
 
-      // For browsers that use the WebKit as an engine (excluding Safari), there is a bug. The prevent
-      // default has to be called all the time. Otherwise, the second tap won't be triggered (probably
-      // caused by the native ~300ms delay - https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
-      // To make the interactive elements work, the event target element has to be check. If the element
-      // matches the allow-list, the event is not prevented.
+      // iOS Chrome and Firefox (WebKit, not Safari) drop the second tap unless every touchend is
+      // cancelled (https://webkit.org/blog/5610/more-responsive-tapping-on-ios/). Allow-listed
+      // targets still receive the tap. A drift that ends on the cell focused at touchstart stays
+      // exempt, or the browser drops its compatibility pair.
       const blocksWebKitSecondTap = isIOS() &&
         (isChromeWebKit() || isFirefoxWebKit()) &&
-        this.selectedCellWasTouched(target) &&
-        !interactiveElements.includes(target!.tagName);
+        !allowTapTarget &&
+        (!wasScrolled || !cellWasSelected);
       // The first tap selects; it must not also activate a control or follow a link (#7980).
-      const blocksFirstTapActivation = !this.selectedCellWasTouched(target) &&
+      const blocksFirstTapActivation = !cellWasSelected &&
         focusOnTouchedCell &&
         !isCheckbox;
+      // Not a tap, and the cell was not the focus at touchstart, so onMouseDown never ran. A finger
+      // that stayed inside the browser's tap slop would otherwise synthesize a mousedown after the
+      // scroll branch cleared the pending pair, and that mousedown would select the cell.
+      const blocksNonTapOnUnselectedCell = !isTap && !cellWasSelected && !isCheckbox;
 
-      if (blocksWebKitSecondTap || blocksFirstTapActivation) {
+      if (blocksWebKitSecondTap || blocksFirstTapActivation || blocksNonTapOnUnselectedCell) {
         event.preventDefault();
       }
     }

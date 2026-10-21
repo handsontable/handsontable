@@ -76,6 +76,52 @@ export class TouchInteractiveCellPage {
   }
 
   /**
+   * Record each `touchend` after the grid's listener, so `defaultPrevented` is the grid's decision.
+   */
+  async installTouchEndLog(): Promise<void> {
+    await this.page.evaluate(() => {
+      const target = window as Window & { touchEndPrevented: boolean[] };
+
+      target.touchEndPrevented = [];
+      document.addEventListener('touchend', (event) => {
+        target.touchEndPrevented.push(event.defaultPrevented);
+      });
+    });
+  }
+
+  /**
+   * Whether each `touchend` since `installTouchEndLog` was cancelled.
+   */
+  async touchEndPrevented(): Promise<boolean[]> {
+    return this.page.evaluate(() => {
+      const target = window as Window & { touchEndPrevented?: boolean[] };
+
+      return target.touchEndPrevented ?? [];
+    });
+  }
+
+  /**
+   * Wait until the recorded `touchend` decisions equal `expected`.
+   */
+  async expectTouchEndsPrevented(expected: boolean[]): Promise<void> {
+    await expect.poll(() => this.touchEndPrevented()).toEqual(expected);
+  }
+
+  /**
+   * The engine flags the grid cached at load. `isIOS` reads `navigator.platform`, which a
+   * user-agent override does not change on its own.
+   */
+  async engineFlags(): Promise<{ ios: boolean; chromeWebKit: boolean }> {
+    return this.page.evaluate(() => {
+      const helper = (window as unknown as {
+        Handsontable: { helper: { isIOS: () => boolean; isChromeWebKit: () => boolean } };
+      }).Handsontable.helper;
+
+      return { ios: helper.isIOS(), chromeWebKit: helper.isChromeWebKit() };
+    });
+  }
+
+  /**
    * Click the button outside the grid. `outsideClickDeselects` is off, so this does not
    * clear the cell the tap selected. Its own click is the positive barrier: it is issued
    * after the tap, so a click the tap still owed has already been delivered.
