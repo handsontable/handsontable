@@ -351,14 +351,16 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - **The `cell` option is restated on every switch** (`#effectiveCellOption`), because the load clears
     every cell meta object: the sheet's own entries, the grid-level ones when the sheet declares none
     (and the grid has entries), or `[]` when the baseline holds no grid-level value, which drops the
-    departing sheet's entries from core's record of them. **A return applies the entries at the records
-    they were on when the user left** (`#captureCellOption`, `#cellOptionStates`), not the declared
-    coordinates: core keeps the `cell` option's meta by physical index and moves it with its record on an
-    alteration, so after a row insert the declared coordinates name another record, and restating them made
-    the inserted empty row read-only while the declared record became editable. The entries are stored by
-    physical index, which equals the visual one when they are applied (the load re-initializes the index
-    maps). A duplicate gets its original's current entries, and a server response that replaces the rows
-    drops them, like the ColumnSummary endpoints below.
+    departing sheet's entries from core's record of them. **A return puts the `cell` option's meta back by
+    physical index** (`#captureCellOption`, `#cellOptionStates`, the `cellOptionMetas` argument of
+    `_applySettingsAndData()`), and the `cell` setting keeps its declared value. Core moves that meta with its
+    record on an alteration, while the entries name visual positions, so restating them by coordinate made an
+    inserted empty row read-only and left the declared record editable. Do not translate the stored meta back
+    into `cell` entries: the visual order on a return is not the physical one whenever the sheet's own settings
+    reorder or trim rows during the load (`manualRowMove`, `manualColumnMove`, `trimRows` as an array), and
+    entries written with physical indexes moved the `readOnly` to another record on every round trip. A
+    duplicate gets its original's current meta, put back on its first visit the same way, and a server
+    response that replaces the rows drops it, like the ColumnSummary endpoints below.
   - **NestedRows has to be ON during the load**, so it enables in phase A: an enable with an empty data
     manager then takes its tree from the load (its own `beforeLoadData`) instead of validating the
     departing flat array, which logged "requires an Array of Objects" and turned the plugin off for good.
@@ -391,7 +393,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     switch, while the active sheet declares none, replaces the captured value and drops the stored endpoints
     of every sheet without its own (`#refreshGridColumnSummary`), or the next first visit put the previous
     configuration back. A structurally equal value changes nothing, so a wrapper re-sending its settings on
-    every render keeps the stored endpoints.
+    every render keeps the stored endpoints, but only while each `customFunction` is the same function:
+    `isStructurallyEqual` compares functions by reference, so an inline one rebuilt per render reads as a
+    new configuration and drops them. The same rule as the grid-level `dataProvider`: keep the value stable.
+    The grid-level `cell` follows the same rules (`#gridCellOption`, taken when the workbook starts, and
+    `#refreshGridCellOption`), and a sheet without its own `cell` restates that snapshot, never the live
+    `getSettings().cell`, which a return to another sheet has set to that sheet's value.
   - **The init build applies the opening sheet from `beforeInit`, and core's own init settings pass
     then undoes two parts of it.** It registers the grid-level callback of every hook again (a
     settings hook is one replaceable `initialHook` entry per name, `core/hooks/bucket.ts`), so the

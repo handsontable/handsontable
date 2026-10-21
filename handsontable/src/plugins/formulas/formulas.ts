@@ -313,10 +313,11 @@ function isFormulasUndoState(value: unknown): value is FormulasUndoState {
 const REMOVAL_SPANS_CHUNK_SIZE = 1000;
 
 /**
- * The cell meta keys the built-in value getters read (directly, or through the cell type that sets the
- * getter). A `cell` option entry setting one of them can change the value the engine reads for a cell.
+ * The cell meta keys that decide the value the engine reads for a cell: the ones the built-in value getters
+ * read (directly, or through the cell type that sets the getter), and `preserveTextValue`, which the
+ * engine-bound escaping reads. A `cell` option entry setting one of them can change that value.
  */
-const VALUE_GETTER_META_KEYS = ['type', 'valueGetter', 'source', 'sourceLabel'];
+const VALUE_GETTER_META_KEYS = ['type', 'valueGetter', 'source', 'sourceLabel', 'preserveTextValue'];
 
 // A formula whose reference the engine could not keep. Only operations that remove or relocate
 // cells may put one into the source data - see `#syncFormulasToSourceData`.
@@ -3111,7 +3112,9 @@ export class Formulas extends BasePlugin {
    * has no `afterUpdateSettings` pass (the Core skips the hook on its first run), so the scan
    * stays eager there; `hot.view` is what the Core creates right after that first run.
    *
-   * The reset core's `_applySettingsAndData()` fires after its own load needs no resync when the call
+   * The reset core's `_applySettingsAndData()` fires from the meta phase it held back for its own load
+   * (`_isHeldMetaPhaseRunning()`, never the reset of a full settings update an `afterLoadData` listener makes
+   * in that call, whose `columns` the load never saw) needs no resync when the call
    * declares no `cell` entries and no `columns` function: that load already wrote the sheet through
    * `#onAfterLoadData`, with the column configuration of the call in force, and a second scan cost a full
    * engine write and an AutoColumnSize sweep per sheet switch. `cell` entries and a `columns` function reach
@@ -3121,7 +3124,7 @@ export class Formulas extends BasePlugin {
   #onAfterCellMetaReset = () => {
     this.#closeLeakedGuards();
 
-    if (this.isDataWorkDeferred() && !this.#metaPhaseMayChangeEngineValues()) {
+    if (this.hot._isHeldMetaPhaseRunning() && !this.#metaPhaseMayChangeEngineValues()) {
       return;
     }
 

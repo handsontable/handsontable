@@ -95,7 +95,7 @@ import type { ThemeOverridesInput } from './themes/engine/manager';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
-import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
+import type { CellOptionMetaEntry, GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
 import { applyRootSize, reapplyPixelRootHeight } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
@@ -431,9 +431,10 @@ export default function Core(
   let firstRun: boolean | [null, string] = true;
   /**
    * The step `_applySettingsAndData()` is in: `'configure'` while it applies its settings, `'data'`
-   * while it loads the data and runs the work held back for it, and `null` outside the call.
+   * while it loads the data, `'meta'` while it runs the meta phases it held back, and `null` outside the
+   * call.
    */
-  let dataWorkPhase: 'configure' | 'data' | null = null;
+  let dataWorkPhase: 'configure' | 'data' | 'meta' | null = null;
   /**
    * The meta phases of the settings updates made while `_applySettingsAndData()` configures, run
    * after its load in the order the updates were made.
@@ -5117,9 +5118,24 @@ export default function Core(
     // settings, or the `cell` option writing meta, must not open an operation or be journaled.
     operationScope.suppress(() => {
       if (dataWorkPhase !== 'configure' || init) {
-        applySettings(settings, init);
+        const outerPhase = dataWorkPhase;
+
+        if (outerPhase === 'meta') {
+          dataWorkPhase = 'data';
+        }
+
+        try {
+          applySettings(settings, init);
+        } finally {
+          dataWorkPhase = outerPhase;
+        }
 
         return;
+      }
+
+      if (hasOwnProperty(settings, 'data')) {
+        warn('The "data" setting passed to updateSettings() while another settings and data change is being ' +
+          'applied is ignored: the data that change loads replaces it. Call loadData() once it has finished.');
       }
 
       const metaPhase = applySettings(settings, init, true);
@@ -5166,16 +5182,28 @@ export default function Core(
    * `afterLoadData`) is not supported: this call's meta phase then applies its `cell` entries and
    * `columns` function to the nested call's data. When the call throws before the `onDataReady()` pass ends, every plugin drops the work
    * it recorded for that pass (`BasePlugin#dropDeferredDataWork()`), so a later call cannot run it
-   * against other data; a grid still being built skips the validators here, because its own init pass
-   * runs them. The data is loaded as given: the caller decides what a sheet backed by an external data
+   * against other data; a grid whose init settings pass has not run yet (no view) skips the validators
+   * here, because that pass runs them. An `updateSettings()` made during step 1 that carries `data` warns:
+   * the data this call loads replaces it. The data is loaded as given: the caller decides what a sheet backed by an external data
    * source shows until its fetch lands.
    *
    * @private
    * @param {object} settings The settings to apply.
    * @param {Array} data The data the settings describe.
    * @param {string} source The source of the data load.
+   * @param {Array} [cellOptionMetas] Meta the `cell` option wrote earlier, by physical indexes, to put back
+   * in place of applying `settings.cell` by its coordinates. The `cell` setting is stored as given either
+   * way. A caller that brings rows back (the sheets bar, on a return to a sheet) passes what it kept when
+   * it took them away: the meta follows its records through inserts, removals and moves, while the entries
+   * of the setting name visual positions, which a reordering or trimming plugin of the new settings (a
+   * `manualRowMove` or `trimRows` array) changes during the load.
    */
-  this._applySettingsAndData = function(settings: Partial<GridSettings>, data: unknown[], source: string) {
+  this._applySettingsAndData = function(
+    settings: Partial<GridSettings>,
+    data: unknown[],
+    source: string,
+    cellOptionMetas: CellOptionMetaEntry[] | null = null,
+  ) {
     const suspendsRender = !!instance.view;
 
     if (suspendsRender) {
@@ -5193,15 +5221,16 @@ export default function Core(
 
         try {
           try {
-            const metaPhase = applySettings(settings, false, true);
+            const metaPhase = applySettings(settings, false, true, cellOptionMetas);
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
             applyLoadData(data as unknown[][][], source);
+            dataWorkPhase = 'meta';
             metaPhase?.();
             nestedMetaPhases.forEach(nestedMetaPhase => nestedMetaPhase());
 
-            if (!firstRun) {
+            if (instance.view) {
               runSourceDataValidators(instance, 'loadData');
             }
           } finally {
@@ -5289,6 +5318,19 @@ export default function Core(
   };
 
   /**
+   * Tells a plugin whether the meta phase running now is one `_applySettingsAndData()` held back for its own
+   * load, which is the case only between that load and the `onDataReady()` pass. A full settings update made
+   * from a listener in the same call (an `afterLoadData` listener) runs its meta phase outside this window,
+   * so a plugin that skips work already done by the load skips it for the call's own meta phase only.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  this._isHeldMetaPhaseRunning = function() {
+    return dataWorkPhase === 'meta';
+  };
+
+  /**
    * Reads what decides the columns of a grid without a `columns` option: the number of columns the schema or the
    * data resolves to, and the property each one reads.
    *
@@ -5330,10 +5372,13 @@ export default function Core(
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
    * @param {boolean} [defersDataWork=false] Whether the data the settings describe is loaded after this call.
+   * @param {Array|null} [restoredCellOptionMetas=null] `cell`-option meta, by physical indexes, to put back in
+   * the meta phase instead of applying `settings.cell` (see `_applySettingsAndData()`).
    * @returns {Function|null} The held-back meta phase, or `null` when it ran.
    */
   function applySettings(
-    settings: Partial<GridSettings>, init: boolean, defersDataWork = false
+    settings: Partial<GridSettings>, init: boolean, defersDataWork = false,
+    restoredCellOptionMetas: CellOptionMetaEntry[] | null = null
   ): (() => void) | null {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(instance);
     let i;
@@ -5729,7 +5774,18 @@ export default function Core(
         applyColumnMeta(clen);
       }
 
-      if (isCellOptionRestated) {
+      if (restoredCellOptionMetas !== null) {
+        metaManager.startCellOptionMetaRecording();
+
+        try {
+          restoredCellOptionMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
+            metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+          });
+        } finally {
+          metaManager.endCellOptionMetaRecording();
+        }
+
+      } else if (isCellOptionRestated) {
         // Applied last, so a key restated here wins over both the column meta and any imperative value the
         // replay above put back (preserving legacy behavior). The writes are filed as declarative rather
         // than user-defined - which also de-marks any imperative value for the same key - so a later call

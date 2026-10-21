@@ -220,6 +220,41 @@ describe('plugins applied ahead of their data', () => {
     expect(hot.getDataAtCell(0, 1)).toBe(2);
   });
 
+  it('feeds Formulas the column types an afterLoadData listener sets during the call', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    createGridUpdatingAfterLoad({
+      data: [['x', null]],
+      formulas: { engine, sheetName: 'First' },
+    }, () => hot.updateSettings({ columns: [{ type: 'dropdown', source: [{ key: 1, value: 'Apple' }] }, {}] }));
+    engine.addSheet('Second');
+
+    hot._applySettingsAndData({
+      formulas: { engine, sheetName: 'Second' },
+    }, [[{ key: 1, value: 'Apple' }, '=A1']], 'test');
+
+    expect(hot.getDataAtCell(0, 1)).toBe('Apple');
+  });
+
+  it('feeds Formulas the text a `cell` entry preserves with `preserveTextValue`', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      data: [['x', null]],
+      formulas: { engine, sheetName: 'First' },
+      licenseKey: LICENSE_KEY,
+    });
+    engine.addSheet('Second');
+
+    hot._applySettingsAndData({
+      formulas: { engine, sheetName: 'Second' },
+      columns: [{ type: 'text' }, {}],
+      cell: [{ row: 0, col: 0, preserveTextValue: true }],
+    }, [['007', '=A1']], 'test');
+
+    expect(hot.getDataAtCell(0, 1)).toBe('007');
+  });
+
   it('writes the Formulas engine once for a switch whose `cell` entries set no value-reading key', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 

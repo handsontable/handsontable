@@ -35,7 +35,7 @@ import { isPlainObject } from '../../helpers/object';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { syncIcon } from '../../themes/engine/icons';
-import type { HotInstance } from '../../core/types';
+import type { CellOptionMetaEntry, HotInstance } from '../../core/types';
 import type { GridSettings } from '../../core/settings';
 import type {
   DataProvider,
@@ -406,12 +406,19 @@ export class SheetsBar extends BasePlugin {
    */
   #columnSummaryStates = new WeakMap<Sheet, unknown[]>();
   /**
-   * The `cell` entries of each sheet the user left, at the records they were on then
-   * (`#captureCellOption`).
+   * The meta the `cell` option wrote on each sheet the user left, by physical indexes, as core kept it
+   * then (`#captureCellOption`).
    *
    * @type {WeakMap<object, object[]>}
    */
-  #cellOptionStates = new WeakMap<Sheet, Record<string, unknown>[]>();
+  #cellOptionStates = new WeakMap<Sheet, CellOptionMetaEntry[]>();
+  /**
+   * The grid-level `cell` option, taken when the workbook starts and refreshed by a grid-level update
+   * (`#refreshGridCellOption`). A sheet that declares no `cell` of its own restates it on a switch.
+   *
+   * @type {Array|undefined}
+   */
+  #gridCellOption: unknown = undefined;
   /**
    * The server view of each sheet that loads its rows through its own `dataProvider`.
    *
@@ -665,6 +672,7 @@ export class SheetsBar extends BasePlugin {
         this.#model = new SheetModel(() => this.hot.getTranslatedPhrase(C.SHEETS_BAR_DEFAULT_SHEET_NAME) as string);
         this.#captureGridDataProvider();
         this.#captureGridColumnSummary();
+        this.#gridCellOption = this.hot.getSettings().cell;
         this.#buildInitialWorkbook();
       } finally {
         this.#isInitializing = false;
@@ -1087,9 +1095,11 @@ export class SheetsBar extends BasePlugin {
    * Takes a grid-level `columnSummary` set through `updateSettings()` outside a switch as the new value
    * every sheet without its own one restates (`#captureGridColumnSummary`). The baseline keeps the value it
    * captured otherwise, so the next first visit to a sheet put the previous configuration back. The stored
-   * endpoints of those sheets describe the previous configuration, so they are dropped too. An unchanged
-   * value (a framework wrapper re-sends its settings on every render) changes nothing, and so does an
-   * update made while the active sheet declares its own `columnSummary`: it configures that sheet.
+   * endpoints of those sheets describe the previous configuration, so they are dropped too. A structurally
+   * equal value (a framework wrapper re-sends its settings on every render) changes nothing, but functions
+   * compare by reference: an inline `customFunction` rebuilt on every render reads as a new configuration,
+   * so a host keeps it stable. An update made while the active sheet declares its own `columnSummary`
+   * changes nothing either: it configures that sheet.
    *
    * @param {object} newSettings The settings passed to `updateSettings()`.
    */
@@ -1925,18 +1935,22 @@ export class SheetsBar extends BasePlugin {
    */
   #applySheet(sheet: Sheet, source: string, { restoresState = false }: { restoresState?: boolean } = {}) {
     const payload: Record<string, unknown> = { ...(this.#withBaselineFor(sheet.settings) ?? {}) };
-    const cell = (restoresState ? this.#cellOptionStates.get(sheet) : undefined) ?? this.#effectiveCellOption(payload);
+    const cell = this.#effectiveCellOption(payload);
 
     if (cell) {
       payload.cell = cell;
     }
+
+    const cellOptionMetas = cell ? (this.#cellOptionStates.get(sheet) ?? null) : null;
 
     if (payload.columnSummary && restoresState && this.#columnSummaryStates.has(sheet)) {
       payload.columnSummary = this.#columnSummaryStates.get(sheet);
     }
 
     const apply = () => {
-      this.hot._applySettingsAndData(payload as Partial<GridSettings>, sheet.data as unknown[], `${source}.switch`);
+      this.hot._applySettingsAndData(
+        payload as Partial<GridSettings>, sheet.data as unknown[], `${source}.switch`, cellOptionMetas
+      );
 
       if (this.hot.view) {
         this.#runMergeCellsSettingsPass(!restoresState);
@@ -1971,13 +1985,13 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Stores the `cell` entries in force on the departing sheet at the records they are on now. Core keeps the
-   * meta the `cell` option wrote by physical index and moves it with its record on a row or column
-   * alteration, while the entries name visual positions, so a return that applied them again put a
-   * declared `readOnly` on whatever record had moved into that position, and left the original record
-   * editable. A return applies the stored entries instead (`#applySheet`). The arriving data loads with
-   * fresh index maps, so a physical index is the visual one when the entries are applied. Nothing is
-   * stored while no `cell` entry is in force.
+   * Stores the meta the `cell` option wrote on the departing sheet, by physical indexes. Core moves that meta
+   * with its record on a row or column alteration, while the entries of the setting name visual positions,
+   * which a reordering or trimming plugin of the sheet's own settings (a `manualRowMove` or `trimRows`
+   * array) also changes during the load. A return that applied the entries again by their coordinates put a
+   * declared `readOnly` on another record, on every round trip. A return hands the stored meta to core
+   * instead (`#applySheet`), which puts it back by physical index and stores the `cell` setting as declared.
+   * Nothing is stored while no `cell` entry is in force.
    *
    * @param {object} sheet The departing sheet.
    */
@@ -1992,38 +2006,26 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Returns the `cell` entries in force on the grid at the physical cells their meta is on now, or `null`
-   * while no `cell` entry is in force.
+   * Returns the meta the `cell` option wrote on the grid, by physical indexes, or `null` while no `cell`
+   * entry is in force.
    *
    * @returns {object[]|null}
    */
-  #exportCellOption(): Record<string, unknown>[] | null {
+  #exportCellOption(): CellOptionMetaEntry[] | null {
     const declared = this.hot.getSettings().cell;
 
     if (!Array.isArray(declared) || declared.length === 0) {
       return null;
     }
 
-    const entries = new Map<string, Record<string, unknown>>();
-
-    this.hot._getMetaManager().getCellOptionCellMetas().forEach(({ physicalRow, physicalColumn, key, value }) => {
-      const cellKey = trackedCellKey(physicalRow, physicalColumn);
-      let entry = entries.get(cellKey);
-
-      if (!entry) {
-        entry = { row: physicalRow, col: physicalColumn };
-        entries.set(cellKey, entry);
-      }
-
-      entry[key] = value;
-    });
-
-    return [...entries.values()];
+    return this.hot._getMetaManager().getCellOptionCellMetas().map(entry => ({ ...entry }));
   }
 
   /**
-   * Gives a duplicated sheet the `cell` entries of its original at the records they are on now, written
-   * into the copy's own settings, for the reason `#copyColumnSummaryEndpoints` gives the summaries.
+   * Gives a duplicated sheet the `cell`-option meta of its original as the original holds it now. The copy's
+   * data is a copy of the original's rows, in the same physical order, so the copy's first visit puts that
+   * meta back by physical index like a return does, for the reason `#copyColumnSummaryEndpoints` gives the
+   * summaries.
    *
    * @param {object} original The sheet that was duplicated.
    * @param {object} copy The duplicate.
@@ -2033,8 +2035,44 @@ export class SheetsBar extends BasePlugin {
     const entries = isOriginalShown ? this.#exportCellOption() : (this.#cellOptionStates.get(original) ?? null);
 
     if (entries) {
-      copy.settings = { ...copy.settings, cell: entries };
+      this.#cellOptionStates.set(copy, entries.map(entry => ({ ...entry })));
     }
+  }
+
+  /**
+   * Takes a grid-level `cell` set through `updateSettings()` outside a switch as the value every sheet
+   * without its own `cell` restates (`#gridCellOption`), and drops the meta those sheets stored, which
+   * describes the previous value: a return put it back over the new one. An unchanged value changes
+   * nothing, and so does an update made while the active sheet declares its own `cell`.
+   *
+   * @param {object} newSettings The settings passed to `updateSettings()`.
+   */
+  #refreshGridCellOption(newSettings: Record<string, unknown>) {
+    if (!('cell' in newSettings) || this.#isSwitching || this.#isRestoringBaseline
+      || this.#isInitializing || this.#model === null) {
+      return;
+    }
+
+    const activeId = this.#model.getActiveSheet()?.id;
+    const active = activeId === undefined ? null : this.#model.getSheetById(activeId);
+    const value = newSettings.cell;
+    const declaresCell = (sheet: Sheet | null) => isPlainObject(sheet?.settings) && 'cell' in sheet.settings;
+
+    if (declaresCell(active) || isStructurallyEqual(value, this.#gridCellOption)) {
+      return;
+    }
+
+    this.#gridCellOption = value;
+
+    if (this.#settingsBaseline.has('cell')) {
+      this.#settingsBaseline.set('cell', value);
+    }
+
+    this.#sheetRecords().forEach((sheet) => {
+      if (!declaresCell(sheet)) {
+        this.#cellOptionStates.delete(sheet);
+      }
+    });
   }
 
   /**
@@ -2070,7 +2108,7 @@ export class SheetsBar extends BasePlugin {
    */
   #effectiveCellOption(settings: Record<string, unknown>): unknown[] | null {
     if (!('cell' in settings)) {
-      const gridCell = this.hot.getSettings().cell;
+      const gridCell = this.#gridCellOption;
 
       return Array.isArray(gridCell) && gridCell.length > 0 ? gridCell : null;
     }
@@ -3261,6 +3299,7 @@ export class SheetsBar extends BasePlugin {
    */
   #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
     this.#refreshGridColumnSummary(newSettings);
+    this.#refreshGridCellOption(newSettings);
 
     if (!newSettings.dataProvider) {
       return;

@@ -396,6 +396,46 @@ describe('Core#_applySettingsAndData', () => {
     expect(probeLog.filter(entry => entry[0] === 'owed')).toEqual([]);
   });
 
+  it('warns that a `data` key of an update made while the call configures is ignored', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    let updated = false;
+
+    createGrid({ data: [['old']] });
+    hot.addHook('afterUpdateSettings', () => {
+      if (!updated) {
+        updated = true;
+        hot.updateSettings({ data: [['ignored']] });
+      }
+    });
+
+    hot._applySettingsAndData({ colHeaders: true }, [['new']], 'test');
+
+    expect(hot.getDataAtCell(0, 0)).toBe('new');
+    expect(warn.mock.calls.some(([message]) => String(message).includes('"data" setting passed to updateSettings()')))
+      .toBe(true);
+  });
+
+  it('validates the data of a call made from an init listener', () => {
+    const sources = [];
+
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [['a']],
+      columns: [{
+        sourceDataValidator: (value, cellMeta, source) => {
+          sources.push([value, source]);
+
+          return true;
+        },
+      }],
+      init() {
+        this._applySettingsAndData({ colHeaders: true }, [['b']], 'test');
+      },
+    });
+
+    expect(sources).toEqual([['a', 'init'], ['b', 'loadData']]);
+  });
+
   it('answers that the load is pending only before the load of the call', () => {
     const seen = [];
 

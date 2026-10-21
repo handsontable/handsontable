@@ -521,4 +521,114 @@ describe('SheetsBar applies a sheet against its own data', () => {
 
     expect(hot.getDataAtCol(0)).toEqual([10, 20, 2]);
   });
+
+  it('applies the opening sheet\'s `cell` in place of the grid-level one at init', () => {
+    buildWorkbook([{
+      name: 'Only',
+      data: [['a', 'b']],
+      settings: { cell: [{ row: 0, col: 1, readOnly: true }] },
+    }], {
+      cell: [{ row: 0, col: 0, className: 'grid' }],
+    });
+
+    expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
+    expect(hot.getCellMeta(0, 0).className).toBeUndefined();
+  });
+
+  it('keeps a declared `cell` entry on its record on a sheet whose `manualRowMove` reorders the rows', () => {
+    const bar = buildWorkbook([
+      {
+        name: 'Alpha',
+        data: [['r0'], ['r1'], ['r2']],
+        settings: { manualRowMove: [2, 0, 1], cell: [{ row: 0, col: 0, readOnly: true }] },
+      },
+      { name: 'Beta', data: [['b']] },
+    ]);
+    const readOnlyRows = () => [0, 1, 2].map(row => hot.getCellMeta(row, 0).readOnly);
+
+    expect(hot.getDataAtCol(0)).toEqual(['r2', 'r0', 'r1']);
+    expect(readOnlyRows()).toEqual([true, false, false]);
+
+    bar.setActiveSheet('Beta');
+    bar.setActiveSheet('Alpha');
+    bar.setActiveSheet('Beta');
+    bar.setActiveSheet('Alpha');
+
+    expect(hot.getDataAtCol(0)).toEqual(['r2', 'r0', 'r1']);
+    expect(readOnlyRows()).toEqual([true, false, false]);
+    expect(hot.getSettings().cell).toEqual([{ row: 0, col: 0, readOnly: true }]);
+  });
+
+  it('keeps a declared `cell` entry on its record on a sheet whose `trimRows` trims a row', () => {
+    const bar = buildWorkbook([
+      {
+        name: 'Alpha',
+        data: [['r0'], ['r1'], ['r2']],
+        settings: { trimRows: [0], cell: [{ row: 0, col: 0, readOnly: true }] },
+      },
+      { name: 'Beta', data: [['b']] },
+    ]);
+
+    expect([hot.getDataAtCell(0, 0), hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly])
+      .toEqual(['r1', true, false]);
+
+    bar.setActiveSheet('Beta');
+    bar.setActiveSheet('Alpha');
+
+    expect([hot.getDataAtCell(0, 0), hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly])
+      .toEqual(['r1', true, false]);
+  });
+
+  it('opens a duplicate of a reordered sheet with its `cell` entry on the same record', () => {
+    const bar = buildWorkbook([{
+      name: 'Alpha',
+      data: [['r0'], ['r1'], ['r2']],
+      settings: { manualRowMove: [2, 0, 1], cell: [{ row: 0, col: 0, readOnly: true }] },
+    }]);
+
+    const copy = bar.duplicateSheet(bar.getSheets()[0].id);
+
+    bar.setActiveSheet(copy.id);
+
+    expect(hot.getDataAtCol(0)).toEqual(['r2', 'r0', 'r1']);
+    expect([0, 1, 2].map(row => hot.getCellMeta(row, 0).readOnly)).toEqual([true, false, false]);
+  });
+
+  it('restates the grid-level `cell` on a first visit, not the entries another sheet moved', () => {
+    const bar = buildWorkbook([
+      { name: 'A', data: [['a0'], ['a1']] },
+      { name: 'B', data: [['b0'], ['b1']] },
+      { name: 'C', data: [['c0'], ['c1']] },
+    ], {
+      cell: [{ row: 0, col: 0, readOnly: true }],
+    });
+
+    hot.alter('insert_row_above', 0, 1);
+    bar.setActiveSheet('B');
+    bar.setActiveSheet('A');
+    bar.setActiveSheet('C');
+
+    expect([hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly]).toEqual([true, false]);
+
+    bar.setActiveSheet('A');
+    hot.updateSettings({ sheetsBar: false });
+
+    expect(hot.getSettings().cell).toEqual([{ row: 0, col: 0, readOnly: true }]);
+  });
+
+  it('applies a grid-level `cell` changed at runtime on a sheet that stored its `cell` meta', () => {
+    const bar = buildWorkbook([
+      { name: 'A', data: [['a0']] },
+      { name: 'B', data: [['b0']] },
+    ], {
+      cell: [{ row: 0, col: 0, readOnly: true }],
+    });
+
+    bar.setActiveSheet('B');
+    bar.setActiveSheet('A');
+    hot.updateSettings({ cell: [] });
+    bar.setActiveSheet('B');
+
+    expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
+  });
 });
