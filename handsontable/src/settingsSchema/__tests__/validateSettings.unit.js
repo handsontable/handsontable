@@ -683,4 +683,19 @@ describe('validateSettings', () => {
       columns: [{ data: 'items.0.name' }, { data: 'address.city' }],
     }).problems).toEqual([]);
   });
+  it('should accept the keys of a plugin that declares only its setting keys', () => {
+    class OptionsOnlyPlugin extends BasePlugin {
+      static get SETTING_KEYS() {
+        return ['optionsOnlyOption'];
+      }
+    }
+
+    registerPlugin('optionsOnly', OptionsOnlyPlugin);
+
+    expect(validateSettings({ optionsOnlyOption: true }).problems).toEqual([]);
+  });
+
+  it('should skip a hole in an array, as the grid does', () => {
+    expect(validateSettings({ colWidths: [100, undefined, 200] }).problems).toEqual([]);
+  });
 });

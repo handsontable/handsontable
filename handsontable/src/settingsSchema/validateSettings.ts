@@ -437,7 +437,12 @@ function checkContents(value: unknown, branch: JsonSchemaObject, path: string, c
   } else if (Array.isArray(value) && branch.items) {
     const { items } = branch;
 
-    value.forEach((item, index) => checkValue(item, items, joinPath(path, index), context));
+    // A hole (`[100, undefined, 200]`) gets the pass an unset property gets: the grid uses the default there.
+    value.forEach((item, index) => {
+      if (item !== undefined) {
+        checkValue(item, items, joinPath(path, index), context);
+      }
+    });
 
   } else if (isRecord(value) && branch.properties) {
     const { properties } = branch;
@@ -955,8 +960,9 @@ function checkOption(key: string, value: unknown, level: SettingsSchemaLevel, pa
 
   checkValue(checked, levelNode ?? option, path, context);
 
-  // A value of the wrong type gets one problem, not one more for each check that follows.
-  if (context.problems.length > problemCount) {
+  // A value of the wrong type gets one problem, not one more for each check that follows. A problem
+  // deeper inside the value (`filters.searchMode`) does not stop them: the plugin may still be missing.
+  if (context.problems.slice(problemCount).some(problem => problem.path === path)) {
     return;
   }
 
@@ -1054,14 +1060,19 @@ function readPluginKeys(): Set<string> {
     const pluginClass = getPlugin(name);
     const settingKeys = pluginClass?.SETTING_KEYS;
 
+    // A plugin that does not declare its own key inherits `BasePlugin`'s `'base'`, which says
+    // nothing about where it comes from.
+    const ownKey = pluginClass !== undefined && Object.prototype.hasOwnProperty.call(pluginClass, 'PLUGIN_KEY') ?
+      pluginClass.PLUGIN_KEY : undefined;
+
     // A built-in plugin's options are in the schema. Its key is not always one of them (UndoRedo's
     // key is `undoRedo`, its option `undo`), so accepting it would let a no-op key pass.
-    if (pluginClass === undefined || builtInPlugins.includes(pluginClass.PLUGIN_KEY)) {
+    if (pluginClass === undefined || (ownKey !== undefined && builtInPlugins.includes(ownKey))) {
       return;
     }
 
-    if (pluginClass.PLUGIN_KEY) {
-      keys.add(pluginClass.PLUGIN_KEY);
+    if (ownKey) {
+      keys.add(ownKey);
     }
 
     if (Array.isArray(settingKeys)) {

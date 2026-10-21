@@ -23,6 +23,14 @@ describe('validateSettings with handsontable/base', () => {
     ]);
   });
 
+  it('should report a missing plugin next to a problem inside its settings', () => {
+    expect(validateSettings({ filters: { searchMode: 42 } }).problems.map(({ path, code }) => ({ path, code })))
+      .toEqual([
+        { path: 'filters.searchMode', code: 'invalidType' },
+        { path: 'filters', code: 'pluginNotRegistered' },
+      ]);
+  });
+
   it('should not report a plugin option that turns the plugin off', () => {
     expect(validateSettings({ dropdownMenu: false, filters: undefined }).problems).toEqual([]);
   });

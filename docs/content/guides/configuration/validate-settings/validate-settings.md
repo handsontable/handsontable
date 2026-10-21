@@ -132,7 +132,7 @@ check reads them from the grid. In React, Angular, and Vue, take the instance fr
 const payload = { columns: [{ data: 'name' }, { data: 'agee' }] };
 const { problems } = validateSettings(payload, { hot });
 
-// [{ path: 'columns[1].data', code: 'unknownDataProperty',
+// [{ path: 'columns[1].data', code: 'unknownDataProperty', severity: 'warning',
 //    message: "No row of 'data' has the property 'agee'. Did you mean 'age'?" }]
 ```
 

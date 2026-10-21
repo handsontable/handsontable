@@ -44,6 +44,15 @@ const SRC_DIR = resolve(PACKAGE_DIR, 'src');
  * exits early instead of building a TypeScript program over the settings types again.
  */
 const STAMP = resolve(PACKAGE_DIR, 'node_modules', '.cache', 'settings-schema.stamp');
+/**
+ * Generated files under `src/` that the settings types never import: this script's own output,
+ * and the stylesheet modules `build:styles` rewrites on every run, which would defeat the stamp.
+ */
+const IGNORED_INPUTS = [
+  OUTPUT,
+  resolve(SRC_DIR, 'styles', 'handsontableStyles.js'),
+  resolve(SRC_DIR, 'styles', 'handsontableStyles.ts'),
+];
 
 /**
  * How deep the converter follows nested object types. Deeper levels are emitted as `{}`
@@ -831,10 +840,13 @@ export function buildSettingsSchema() {
     });
   });
 
-  const uncovered = [...grid.keys()].filter(key => !known.has(key) && !isHookKey(key));
+  // `ColumnSettings` can declare a key of its own; one that `metaSchema.ts` does not document would
+  // drop out of `$defs.columnSettings` and read as unknown in every `columns` entry.
+  const uncovered = [...new Set([...grid.keys(), ...column.keys()])]
+    .filter(key => !known.has(key) && !isHookKey(key));
 
   if (uncovered.length > 0) {
-    throw new Error(`GridSettings declares option(s) metaSchema.ts does not: ${uncovered.join(', ')}. ` +
+    throw new Error(`The settings types declare option(s) metaSchema.ts does not: ${uncovered.join(', ')}. ` +
       'Document them in metaSchema.ts, or list them in TYPE_ONLY_OPTIONS in this script.');
   }
 
@@ -849,14 +861,10 @@ export function buildSettingsSchema() {
       if (sameAsGrid) {
         columnProperties[name] = { $ref: `#/properties/${name}` };
       } else {
-        const columnNode = converter.convert(columnType);
         // Keep the option's levels and plugin, but the runtime types of the column-level type.
         const { runtimeTypes: _gridRuntimeTypes, ...annotations } = properties[name]['x-handsontable'];
 
-        columnProperties[name] = {
-          ...columnNode,
-          'x-handsontable': { ...annotations, ...columnNode['x-handsontable'] },
-        };
+        columnProperties[name] = buildNode(name, columnType, annotations);
       }
     }
 
@@ -947,7 +955,7 @@ function readNewestInputTime() {
         if (entry.name !== '__tests__') {
           visit(path);
         }
-      } else if (path !== OUTPUT) {
+      } else if (!IGNORED_INPUTS.includes(path)) {
         newest = Math.max(newest, statSync(path).mtimeMs);
       }
     });

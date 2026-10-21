@@ -10,9 +10,9 @@ import { validateSettings } from 'handsontable/settingsSchema';
 // A documented configuration is valid by definition, so any problem here is a false positive of
 // `validateSettings()` (or an example that really is wrong and needs fixing).
 //
-// The examples are read at run time, so a pull request that changes only the docs does not run
-// this file (the Unit job routes on the files the Jest run imports). Such a change surfaces on
-// the next core pull request or develop push, as `test/__tests__/optionLevels.unit.js` does.
+// The examples are read at run time, so the Unit filter in `checks.yml` names them
+// (`docs/content/guides/**/javascript/example*.js`): a docs-only pull request that changes one runs
+// this file.
 
 const GUIDES_DIR = resolve(__dirname, '../../../../docs/content/guides');
 

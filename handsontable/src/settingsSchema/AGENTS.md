@@ -91,7 +91,7 @@ settings object against it and against what the page registers. Guide:
   (`docsExamples.unit.js`).
 - `docsExamples.unit.js` runs each example with a `Handsontable` that records its settings. A problem it reports is a
   false positive of the validator or a broken example; fix the one that is wrong. An example that binds a missing
-  property on purpose goes in its `EXPECTED_PROBLEMS` with the reason. A docs-only pull request does not route the
-  Unit job, so a new example that trips it surfaces on the next core run.
+  property on purpose goes in its `EXPECTED_PROBLEMS` with the reason. The Unit filter in `checks.yml` names the
+  JavaScript guide examples, so a docs-only pull request that changes one runs this file.
 - `settingsSchema.types.ts` pins the public types; `.config/emitted-types/entry-points.ts` pins the subpath under
   node16, nodenext and bundler resolution.
