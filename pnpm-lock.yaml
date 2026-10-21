@@ -609,6 +609,9 @@ importers:
       hyperformula:
         specifier: ^3.0.0
         version: 3.3.0
+      hyperformula-ui:
+        specifier: 0.3.5
+        version: 0.3.5(hyperformula@3.3.0)
       jasmine-co:
         specifier: ^1.2.2
         version: 1.2.2
@@ -709,6 +712,9 @@ importers:
       hyperformula:
         specifier: 3.3.0
         version: 3.3.0
+      hyperformula-ui:
+        specifier: 0.3.5
+        version: 0.3.5(hyperformula@3.3.0)
 
   visual-tests:
     devDependencies:
@@ -9455,6 +9461,14 @@ packages:
   hyperdyperid@1.2.0:
     resolution: {integrity: sha512-Y93lCzHYgGWdrJ66yIktxiaGULYc6oGiABxhcO5AufBeOyoIdZF7bIfLaOrbM0iGIOXQQgxxRrFEnb+Y6w1n4A==}
     engines: {node: '>=10.18'}
+
+  hyperformula-ui@0.3.5:
+    resolution: {integrity: sha512-g6cG+MRke00pBvvRdlLDOQWE9as5hC5H8W7fJ/qHGn8iaZar9nro41RH5FAXwSknuyFG8B8xol05FEjhygP0Ew==}
+    peerDependencies:
+      hyperformula: ^3.0.0
+    peerDependenciesMeta:
+      hyperformula:
+        optional: true
 
   hyperformula@3.3.0:
     resolution: {integrity: sha512-Mkc7AxP9WQDM4xHo1/XpAwzcpMLkwMand4HO9rfRzP502TBzoR1Z96zoCzRrwXodLSVyh+MD7FvzRVALDxmRFQ==}
@@ -24429,6 +24443,10 @@ snapshots:
   human-signals@8.0.1: {}
 
   hyperdyperid@1.2.0: {}
+
+  hyperformula-ui@0.3.5(hyperformula@3.3.0):
+    optionalDependencies:
+      hyperformula: 3.3.0
 
   hyperformula@3.3.0:
     dependencies:

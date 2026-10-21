@@ -17,6 +17,7 @@
     "axe-core": "4.14.0",
     "eslint": "8.57.1",
     "exceljs": "4.4.0",
-    "hyperformula": "3.3.0"
+    "hyperformula": "3.3.0",
+    "hyperformula-ui": "0.3.5"
   }
 }
