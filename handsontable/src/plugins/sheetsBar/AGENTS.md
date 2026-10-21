@@ -383,6 +383,15 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     overrides. Without that the payload never named `columnSummary`, the stored endpoints were never
     read back, and the plugin kept one sheet's moved endpoints on every other sheet, where they could
     land on a data row. The function form is not captured: it reads its settings again on every pass.
+    Two rules ride along. A genuine teardown gives the grid the active sheet's CURRENT endpoints, not the
+    captured value, unless that sheet declares its own (`#getActiveSheetGridColumnSummary`, read before the
+    model is dropped): the grid keeps the active sheet's rows, and the declared positions wrote the summary
+    over the cell a row insert had moved into them. A rebuild restores the captured value, because the new
+    workbook loads other rows. And a grid-level `columnSummary` set through `updateSettings()` outside a
+    switch, while the active sheet declares none, replaces the captured value and drops the stored endpoints
+    of every sheet without its own (`#refreshGridColumnSummary`), or the next first visit put the previous
+    configuration back. A structurally equal value changes nothing, so a wrapper re-sending its settings on
+    every render keeps the stored endpoints.
   - **The init build applies the opening sheet from `beforeInit`, and core's own init settings pass
     then undoes two parts of it.** It registers the grid-level callback of every hook again (a
     settings hook is one replaceable `initialHook` entry per name, `core/hooks/bucket.ts`), so the

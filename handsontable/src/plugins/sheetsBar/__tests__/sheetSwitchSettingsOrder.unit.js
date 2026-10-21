@@ -487,4 +487,38 @@ describe('SheetsBar applies a sheet against its own data', () => {
 
     expect([hot.getCellMeta(0, 0).readOnly, hot.getCellMeta(1, 0).readOnly]).toEqual([false, true]);
   });
+
+  it('keeps the moved grid-level ColumnSummary on the active sheet when the bar is turned off', () => {
+    const totals = [[1], [2], [null]];
+
+    buildWorkbook([
+      { name: 'A', data: totals },
+      { name: 'B', data: [[10], [20], [null]] },
+    ], {
+      columnSummary: [{ sourceColumn: 0, destinationRow: 2, destinationColumn: 0, type: 'sum', ranges: [[0, 1]] }],
+    });
+
+    hot.alter('insert_row_above', 2, 1);
+    hot.setDataAtCell(2, 0, 7);
+    hot.updateSettings({ sheetsBar: false });
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2, 7, 3]);
+    expect(totals.map(row => row[0])).toEqual([1, 2, 7, 3]);
+  });
+
+  it('restates a grid-level ColumnSummary changed at runtime on a sheet visited for the first time', () => {
+    const bar = buildWorkbook([
+      { name: 'A', data: [[1], [2], [null]] },
+      { name: 'B', data: [[10], [20], [null]] },
+    ], {
+      columnSummary: [{ sourceColumn: 0, destinationRow: 2, destinationColumn: 0, type: 'sum', ranges: [[0, 1]] }],
+    });
+
+    hot.updateSettings({
+      columnSummary: [{ sourceColumn: 0, destinationRow: 2, destinationColumn: 0, type: 'count', ranges: [[0, 1]] }],
+    });
+    bar.setActiveSheet('B');
+
+    expect(hot.getDataAtCol(0)).toEqual([10, 20, 2]);
+  });
 });

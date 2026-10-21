@@ -175,6 +175,16 @@ function isStructurallyEqual(a: unknown, b: unknown): boolean {
 }
 
 /**
+ * Tells whether a sheet declares its own `columnSummary` in its settings.
+ *
+ * @param {object|null} sheet The sheet record.
+ * @returns {boolean}
+ */
+function declaresColumnSummary(sheet: Sheet | null | undefined): boolean {
+  return isPlainObject(sheet?.settings) && 'columnSummary' in sheet.settings;
+}
+
+/**
  * Compares two entries of the `sheets` setting. Entries are equal when they carry the same
  * name, hand over the same `data` array, and declare structurally equal `settings`. The data
  * arrays are compared by reference on purpose — a workbook's data can be arbitrarily large —
@@ -896,10 +906,13 @@ export class SheetsBar extends BasePlugin {
   disablePlugin() {
     if (this.#preservedState === null && this.#model !== null) {
       const discardedSheets = this.#sheetRecords();
+      const keptColumnSummary = this.#rebuildGridDataProvider === null
+        ? this.#getActiveSheetGridColumnSummary()
+        : undefined;
 
       this.#model = null;
       this.#releaseDataProviderContexts(discardedSheets);
-      this.#restoreBaselineToGrid();
+      this.#restoreBaselineToGrid(keptColumnSummary);
     }
 
     super.disablePlugin();
@@ -921,8 +934,15 @@ export class SheetsBar extends BasePlugin {
    * for the moment between the two workbooks. The rebuilt workbook blocks it again from
    * `#rebuildGridDataProvider`. While this method writes, the `dataProvider` gate stands aside,
    * so a `sheetsBar: false` teardown gives the grid its own `dataProvider` back.
+   *
+   * A grid-level `columnSummary` the active sheet does not override goes back at the positions the
+   * endpoints hold on that sheet now (`keptColumnSummary`), because the grid keeps that sheet's rows:
+   * the declared positions would write the summary over a data cell a row insert moved into them.
+   *
+   * @param {Array} [keptColumnSummary] The active sheet's current endpoints, when they replace the
+   * captured grid-level value.
    */
-  #restoreBaselineToGrid() {
+  #restoreBaselineToGrid(keptColumnSummary?: unknown[]) {
     if (this.hot.isDestroyed) {
       return;
     }
@@ -934,6 +954,10 @@ export class SheetsBar extends BasePlugin {
         restored[key] = value === undefined ? null : value;
       }
     });
+
+    if (keptColumnSummary !== undefined) {
+      restored.columnSummary = keptColumnSummary;
+    }
 
     // Each frozen count goes back to the value the grid started with, unless a sheet's own settings already put
     // it in the baseline.
@@ -1039,6 +1063,56 @@ export class SheetsBar extends BasePlugin {
     if (Array.isArray(value) && value.length > 0) {
       this.#settingsBaseline.set('columnSummary', value);
     }
+  }
+
+  /**
+   * Returns the endpoints the grid-level `columnSummary` holds on the active sheet now, or `undefined` when
+   * the baseline holds no `columnSummary`, when the active sheet declares its own, or while the plugin
+   * exports nothing (off, or configured with a function). A teardown gives these back to the grid.
+   *
+   * @returns {Array|undefined}
+   */
+  #getActiveSheetGridColumnSummary(): unknown[] | undefined {
+    const activeId = this.#model?.getActiveSheet()?.id;
+    const active = activeId === undefined ? null : this.#model?.getSheetById(activeId) ?? null;
+
+    if (!this.#settingsBaseline.has('columnSummary') || declaresColumnSummary(active)) {
+      return undefined;
+    }
+
+    return this.hot.getPlugin('columnSummary')?.exportEndpointSettings() ?? undefined;
+  }
+
+  /**
+   * Takes a grid-level `columnSummary` set through `updateSettings()` outside a switch as the new value
+   * every sheet without its own one restates (`#captureGridColumnSummary`). The baseline keeps the value it
+   * captured otherwise, so the next first visit to a sheet put the previous configuration back. The stored
+   * endpoints of those sheets describe the previous configuration, so they are dropped too. An unchanged
+   * value (a framework wrapper re-sends its settings on every render) changes nothing, and so does an
+   * update made while the active sheet declares its own `columnSummary`: it configures that sheet.
+   *
+   * @param {object} newSettings The settings passed to `updateSettings()`.
+   */
+  #refreshGridColumnSummary(newSettings: Record<string, unknown>) {
+    if (!('columnSummary' in newSettings) || this.#isSwitching || this.#isRestoringBaseline
+      || this.#isInitializing || this.#model === null) {
+      return;
+    }
+
+    const activeId = this.#model.getActiveSheet()?.id;
+    const active = activeId === undefined ? null : this.#model.getSheetById(activeId);
+    const value = newSettings.columnSummary;
+
+    if (declaresColumnSummary(active) || isStructurallyEqual(value, this.#settingsBaseline.get('columnSummary'))) {
+      return;
+    }
+
+    this.#settingsBaseline.set('columnSummary', value);
+    this.#sheetRecords().forEach((sheet) => {
+      if (!declaresColumnSummary(sheet)) {
+        this.#columnSummaryStates.delete(sheet);
+      }
+    });
   }
 
   /**
@@ -3186,6 +3260,8 @@ export class SheetsBar extends BasePlugin {
    * @param {object} newSettings The settings passed to `updateSettings()`.
    */
   #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
+    this.#refreshGridColumnSummary(newSettings);
+
     if (!newSettings.dataProvider) {
       return;
     }
