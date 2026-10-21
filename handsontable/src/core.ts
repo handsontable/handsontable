@@ -3098,8 +3098,14 @@ export default function Core(
 
             if (result === false && cellPropertiesReference.allowInvalid === false) {
               onRejected();
-              // cancel the change
-              changes.splice(index, 1);
+              // cancel the change, found by identity because a rejection at a lower index shifts the list.
+              // The change only moves left, so the search runs backwards from where it was registered
+              const position = changes.lastIndexOf(change, index);
+
+              if (position !== -1) {
+                changes.splice(position, 1);
+              }
+
               // we canceled the change, so cell value is still valid
               cellPropertiesReference.valid = true;
               // ...and the stored meta has to hear about it too, or a cache clear that landed while

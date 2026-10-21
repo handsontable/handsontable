@@ -281,4 +281,44 @@ describe('Core validation of writes to the same cell', () => {
     expect(hot.getDataAtCell(0, 0)).toBe('fixed');
     expect(edits).toEqual([[[0, 0, 'a', 'fixed']]]);
   });
+
+  describe('with `allowInvalid: false` and several changes in one call', () => {
+    /**
+     * Writes two invalid values and one valid one in a single call, then answers the validators in
+     * the given order.
+     *
+     * @param {string[]} answerOrder The values in the order their validators answer.
+     */
+    async function writeAndAnswer(answerOrder) {
+      createGrid({
+        data: [['a'], ['b'], ['c']],
+        columns: [{
+          allowInvalid: false,
+          validator: (value, callback) => {
+            pending.push({ value, answer: callback });
+          },
+        }],
+      });
+
+      hot.setDataAtCell([[0, 0, 'bad0'], [1, 0, 'bad1'], [2, 0, 'ok']]);
+      await settle();
+      answerOrder.forEach(value => answer(value, value === 'ok'));
+      await settle();
+    }
+
+    [
+      ['ascending index order', ['bad0', 'bad1', 'ok']],
+      ['descending index order', ['ok', 'bad1', 'bad0']],
+      ['an order with a valid answer between two rejections', ['bad0', 'ok', 'bad1']],
+    ].forEach(([name, answerOrder]) => {
+      it(`should drop every rejected change when the validators answer in ${name}`, async() => {
+        await writeAndAnswer(answerOrder);
+
+        expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'ok']);
+        expect(edits).toEqual([[[2, 0, 'c', 'ok']]]);
+        expect(hot.getCellMeta(0, 0).valid).toBe(true);
+        expect(hot.getCellMeta(1, 0).valid).toBe(true);
+      });
+    });
+  });
 });
