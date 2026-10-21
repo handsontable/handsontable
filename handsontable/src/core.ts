@@ -114,6 +114,8 @@ import {
 } from './dataMap/dataJournal';
 import DataMap from './dataMap/dataMap';
 import { RowIdentity } from './core/rowIdentity/rowIdentity';
+import { createWriteLedger, getCellWriteKey } from './core/writeLedger';
+import type { LedgerCellMeta, WriteLedgerCall } from './core/writeLedger';
 import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
 
@@ -422,6 +424,7 @@ export default function Core(
   let instance: HotInstance = this;
 
   const eventManager = new EventManager(instance);
+  const openWriteLedger = createWriteLedger();
   let datamap: DataMapInstance;
   let dataSource: DataSourceInstance;
   let grid: GridHelperInstance;
@@ -2911,6 +2914,31 @@ export default function Core(
   }
 
   /**
+   * Tells whether a change source marks a correction a validator writes through a nested `setDataAtCell()`.
+   *
+   * @private
+   * @param {*} source The change source.
+   * @returns {boolean}
+   */
+  function isValidatorCorrection(source: unknown) {
+    return typeof source === 'string' && source.endsWith('Validator');
+  }
+
+  /**
+   * Gives a cell the validity of the write that lands on it, after a validator that answered later
+   * wrote its own on the shared cell meta.
+   *
+   * @private
+   * @param {object} cellMeta The cell meta the validators wrote on.
+   * @param {boolean} valid The validity of the write that lands on the cell.
+   * @param {number} structureVersion The structure version captured when validation started.
+   */
+  function restoreValidity(cellMeta: LedgerCellMeta, valid: boolean, structureVersion: number) {
+    cellMeta.valid = valid;
+    persistValidationResult(cellMeta as Parameters<typeof persistValidationResult>[0], valid, structureVersion);
+  }
+
+  /**
    * @ignore
    * @param {Array} changes The 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of validation.
@@ -2926,6 +2954,9 @@ export default function Core(
     const activeEditor = instance.getActiveEditor();
     const waitingForValidator = ValidatorsQueue();
     const pendingRowMetas: Array<{ row?: number, valid?: boolean }> = [];
+    // A correction a validator writes through a nested `setDataAtCell()` is part of the write it
+    // corrects, so it takes no place in the order of the writes to the cell.
+    const ledger = isValidatorCorrection(source) ? null : openWriteLedger();
     let shouldBeCanceled = true;
 
     // Track value corrections applied by validators via setDataAtCell during the validation window.
@@ -2947,7 +2978,7 @@ export default function Core(
       }
     };
     const onAfterChange = (afterChanges: CellChange[] | null | undefined, afterSource: unknown) => {
-      if (typeof afterSource !== 'string' || !afterSource.endsWith('Validator')) {
+      if (!isValidatorCorrection(afterSource)) {
         return;
       }
 
@@ -2959,24 +2990,28 @@ export default function Core(
     waitingForValidator.onQueueEmpty = () => {
       instance.removeHook('afterChange', onAfterChange);
 
-      if (
-        activeEditor &&
-        shouldBeCanceled &&
-        activeEditor._closeAfterDataChange &&
-        doesChangeAffectOpenedEditor(changes, activeEditor)
-      ) {
-        activeEditor.cancelChanges();
-      }
-
       try {
+        ledger?.claim(changes, restoreValidity);
+
+        if (
+          activeEditor &&
+          shouldBeCanceled &&
+          activeEditor._closeAfterDataChange &&
+          doesChangeAffectOpenedEditor(changes, activeEditor)
+        ) {
+          activeEditor.cancelChanges();
+        }
+
         callback(); // called when async validators are resolved and beforeChange was not async
+        ledger?.settle(changes);
       } finally {
+        ledger?.release();
         discardResultsOfUncreatedRows(pendingRowMetas);
       }
     };
 
     try {
-      queueValidators(changes, source, waitingForValidator, pendingRowMetas, () => {
+      queueValidators(changes, source, waitingForValidator, pendingRowMetas, ledger, () => {
         shouldBeCanceled = false;
       });
     } catch (error) {
@@ -2984,6 +3019,7 @@ export default function Core(
       // drains and the call applies nothing. Take the correction hook off now, or it outlives the call.
       waitingForValidator.onQueueEmpty = () => {};
       instance.removeHook('afterChange', onAfterChange);
+      ledger?.release();
       throw error;
     }
 
@@ -2999,6 +3035,7 @@ export default function Core(
    * @param {object} waitingForValidator The queue.
    * @param {Array<object>} pendingRowMetas Collects the cell meta of the cells validated in rows that do
    *   not exist yet.
+   * @param {object|null} ledger Orders the writes to one cell, or `null` for a validator's correction.
    * @param {Function} onRejected Called for each rejected change.
    */
   function queueValidators(
@@ -3006,6 +3043,7 @@ export default function Core(
     source: string | undefined,
     waitingForValidator: ReturnType<typeof ValidatorsQueue>,
     pendingRowMetas: Array<{ row?: number, valid?: boolean }>,
+    ledger: WriteLedgerCall | null,
     onRejected: () => void,
   ) {
     const visibleRowsCount = instance.countRows();
@@ -3045,7 +3083,14 @@ export default function Core(
 
         const structureVersion = metaManager.getStructureVersion();
 
-        instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference) {
+        ledger?.register(
+          changes[i],
+          getCellWriteKey(row, prop, visualCol),
+          cellProperties as LedgerCellMeta,
+          structureVersion,
+        );
+
+        instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference, change) {
           return function(result: boolean) {
             if (typeof result !== 'boolean') {
               throwWithCause('Validation error: result is not boolean');
@@ -3062,9 +3107,10 @@ export default function Core(
               persistValidationResult(cellPropertiesReference, true, structureVersion);
             }
 
+            ledger?.answered(change, result);
             waitingForValidator.removeValidatorFormQueue();
           };
-        }(i, cellProperties)), source);
+        }(i, cellProperties, changes[i])), source);
       }
     }
   }
