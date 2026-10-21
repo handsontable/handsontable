@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-21T08:51:20.287Z",
+  "generatedAt": "2026-10-21T09:17:36.047Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -428,7 +428,7 @@
       "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
       "line": 87,
       "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
-      "count7": 1,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 3,
