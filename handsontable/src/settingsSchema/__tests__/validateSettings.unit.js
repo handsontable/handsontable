@@ -97,6 +97,107 @@ describe('validateSettings', () => {
     ]);
   });
 
+  describe('unknown keys inside a plugin settings object', () => {
+    it.each([
+      [{ filters: { serchMode: 'apply' } }, 'filters.serchMode', 'searchMode'],
+      [{ dropdownMenu: { itemz: ['undo'] } }, 'dropdownMenu.itemz', 'items'],
+      [{ pagination: { pageSzie: 10 } }, 'pagination.pageSzie', 'pageSize'],
+      [{ autoLink: { targett: '_blank' } }, 'autoLink.targett', 'target'],
+      [{ asyncValues: { concurrancy: 2 } }, 'asyncValues.concurrancy', 'concurrency'],
+      [{ dataProvider: { fetchRow() {} } }, 'dataProvider.fetchRow', 'fetchRows'],
+      [{ dragToScroll: { rampDistanse: 5 } }, 'dragToScroll.rampDistanse', 'rampDistance'],
+      [{ fillHandle: { directon: 'vertical' } }, 'fillHandle.directon', 'direction'],
+      [{ manualColumnFreeze: { restoreColumnPostion: true } }, 'manualColumnFreeze.restoreColumnPostion',
+        'restoreColumnPosition'],
+      [{ rowSelection: { selectAl: true } }, 'rowSelection.selectAl', 'selectAll'],
+      [{ sheetsBar: { postion: 'top' } }, 'sheetsBar.postion', 'position'],
+    ])('should report %j with a suggestion', (settings, path, suggestion) => {
+      const key = path.split('.')[1];
+
+      expect(validateSettings(settings)).toEqual({
+        valid: false,
+        problems: [
+          {
+            path,
+            code: 'unknownOption',
+            severity: 'error',
+            message: `Unknown option '${key}'. Did you mean '${suggestion}'?`,
+          },
+        ],
+      });
+    });
+
+    it('should report an unknown key with no close match without a suggestion', () => {
+      expect(validateSettings({ pagination: { qwertyuiop: 1 } }).problems).toEqual([
+        {
+          path: 'pagination.qwertyuiop',
+          code: 'unknownOption',
+          severity: 'error',
+          message: 'Unknown option \'qwertyuiop\'.',
+        },
+      ]);
+    });
+
+    it('should report the unknown key and still check the known ones', () => {
+      expect(brief(validateSettings({ filters: { serchMode: 'apply', searchMode: 'everywhere' } }))).toEqual([
+        { path: 'filters.searchMode', code: 'invalidValue' },
+        { path: 'filters.serchMode', code: 'unknownOption' },
+      ]);
+    });
+
+    it('should accept every documented key of a closed settings object', () => {
+      expect(validateSettings({
+        filters: { searchMode: 'apply', filterFixedRows: false, availableConditions: ['eq'] },
+        dropdownMenu: { items: ['undo'], callback() {}, uiContainer: document.createElement('div') },
+        pagination: {
+          pageSize: 10,
+          pageSizeList: [5, 10],
+          initialPage: 1,
+          showPageSize: true,
+          showCounter: true,
+          showNavigation: true,
+          uiContainer: document.createElement('div'),
+        },
+        autoLink: { target: '_blank', schemes: ['https'], inline: true, strict: false, className: 'link' },
+      }).problems).toEqual([]);
+    });
+
+    it('should not report a key of a settings object the schema leaves open', () => {
+      expect(validateSettings({ columnSorting: { whatever: 1 }, contextMenu: { whatever: 1 } }).problems)
+        .toEqual([]);
+    });
+
+    it('should not throw on a settings object that is a Proxy or has a throwing getter', () => {
+      const proxy = new Proxy({}, {
+        ownKeys() { throw new Error('boom'); },
+        getOwnPropertyDescriptor() { throw new Error('boom'); },
+        get() { throw new Error('boom'); },
+      });
+
+      expect(() => validateSettings({ pagination: proxy })).not.toThrow();
+      expect(() => validateSettings({ filters: { get serchMode() { throw new Error('boom'); } } })).not.toThrow();
+      expect(brief(validateSettings({ filters: { get serchMode() { throw new Error('boom'); } } }))).toEqual([
+        { path: 'filters.serchMode', code: 'unknownOption' },
+      ]);
+    });
+
+    it('should report an own `__proto__` key and ignore the prototype', () => {
+      const settings = { pagination: JSON.parse('{"__proto__": 1, "pageSize": 5}') };
+
+      expect(brief(validateSettings(settings))).toEqual([
+        { path: 'pagination.__proto__', code: 'unknownOption' },
+      ]);
+      expect(validateSettings({ pagination: Object.create({ pageSzie: 1 }) }).problems).toEqual([]);
+    });
+
+    it('should report an unknown key of the column-level filters', () => {
+      expect(brief(validateSettings({ columns: [{ filters: { availableConditions: ['eq'] } }] }))).toEqual([]);
+      expect(brief(validateSettings({ columns: [{ filters: { availableConditionz: ['eq'] } }] }))).toEqual([
+        { path: 'columns[0].filters.availableConditionz', code: 'unknownOption' },
+      ]);
+    });
+  });
+
   it('should accept a function where the option takes one', () => {
     const result = validateSettings({
       renderer(instance, td) { return td; },

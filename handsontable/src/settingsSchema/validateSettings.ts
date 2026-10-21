@@ -461,6 +461,10 @@ function checkContents(value: unknown, branch: JsonSchemaObject, path: string, c
         checkValue(read.value, properties[key], propertyPath, context);
       }
     });
+
+    if (branch.additionalProperties === false) {
+      reportUnknownKeys(value, Object.keys(properties), path, context);
+    }
   }
 }
 
@@ -544,6 +548,40 @@ function describeLevels(levels: SettingsSchemaLevel[]): string {
 }
 
 /**
+ * Builds the "did you mean" sentence of an unknown key, or an empty string when nothing is close.
+ *
+ * @param {string} key The unknown key.
+ * @param {string[]} candidates The keys that are allowed there.
+ * @returns {string}
+ */
+function getSuggestionHint(key: string, candidates: string[]): string {
+  const suggestion = findClosestMatch(key, candidates);
+
+  return suggestion === null ? '' : ` Did you mean '${suggestion}'?`;
+}
+
+/**
+ * Reports the own keys of a settings object that the schema node does not list. Only a node that
+ * lists every key it accepts (`additionalProperties: false`) calls it.
+ *
+ * @param {object} value The settings object.
+ * @param {string[]} knownKeys The keys the node lists.
+ * @param {string} path The object's path.
+ * @param {Context} context The validation state.
+ */
+function reportUnknownKeys(value: Record<string, unknown>, knownKeys: string[], path: string, context: Context): void {
+  Object.keys(value).forEach((key) => {
+    if (!knownKeys.includes(key)) {
+      context.problems.push({
+        path: joinPath(path, key),
+        code: 'unknownOption',
+        message: `Unknown option '${key}'.${getSuggestionHint(key, knownKeys)}`,
+      });
+    }
+  });
+}
+
+/**
  * Reports a key that is not a known option at its level.
  *
  * @param {string} key The key.
@@ -555,8 +593,7 @@ function reportUnknownOption(key: string, level: SettingsSchemaLevel, path: stri
   const candidates = level === 'grid' ?
     [...new Set(getOptionNames(level).concat(Hooks.getSingleton().getRegistered()))] :
     getOptionNames(level);
-  const suggestion = findClosestMatch(key, candidates);
-  const hint = suggestion === null ? '' : ` Did you mean '${suggestion}'?`;
+  const hint = getSuggestionHint(key, candidates);
   // A removed hook may also be a typo of an option (`hiddenColumn` for `hiddenColumns`).
   const removedIn = REMOVED_HOOKS.get(key);
 

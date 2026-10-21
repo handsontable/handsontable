@@ -59,6 +59,16 @@ settings object against it and against what the page registers. Guide:
 - **A plugin's switch can be `@category Core`** (`moveCells`, `selectionHandles`, `dataProvider`, `fillHandle`).
   The generator maps such an option to the plugin whose `PLUGIN_KEY`, or `const SETTING_KEY` (Autofill's
   `fillHandle`), names it, so `pluginNotRegistered` covers it on `handsontable/base`.
+- **A settings object is closed per option, never by default.** `CLOSED_OPTIONS` in the generator lists the plugin
+  options whose object takes no key but the ones the schema lists. Their object branch gets
+  `additionalProperties: false`, and `validateSettings()` reports each other own key as `unknownOption` at its nested
+  path (`filters.serchMode`) with a "did you mean" hint. Add an option only when its type lists every key the plugin
+  reads: the generator fails on an index signature, and `schemaCoverage.unit.js` compares each closed list with the
+  plugin's `DEFAULT_SETTINGS`. `pagination` and `dropdownMenu` are declared `boolean | object` in `GridSettings`, so
+  the key list comes from the interface the plugin exports (`PaginationSettings`, `DropdownMenuSettings`); narrowing
+  the public type instead would be a breaking change for typed object literals. A key a plugin starts to read goes in
+  that interface (or the option's type) in the same change, or a valid configuration is flagged. Nested objects
+  (`filters.availableConditions`, `engines`) stay open.
 - **Two problem codes are warnings** (`unknownDataProperty`, `pluginDisabled`): each is a guess about intent, so it
   is listed with `severity: 'warning'` and does not make the settings invalid. Every other code is an `error`.
   `SettingsProblemCode` ends with `(string & {})`, because a minor release can add a code.
