@@ -7,5 +7,6 @@
     "emitDeclarationOnly": true,
     "outDir": "tmp"
   },
-  "exclude": ["src/**/__tests__/**", "src/**/*.types.ts", "src/**/test/**", "src/3rdparty/**", "**/walkontable/**"]
+  "exclude": ["src/**/__tests__/**", "src/**/*.types.ts", "src/**/test/**", "src/3rdparty/**", "**/walkontable/**",
+    "src/settingsSchema/registries.umd.ts", "src/settingsSchema/pageHandsontable.ts"]
 }

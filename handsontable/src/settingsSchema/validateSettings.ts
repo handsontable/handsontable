@@ -1,13 +1,17 @@
 import { settingsSchema } from './schema';
 import { internals } from './schema.generated';
 import metaSchemaFactory from '../dataMap/metaManager/metaSchema';
-import { Hooks } from '../core/hooks';
 import { REMOVED_HOOKS } from '../core/hooks/constants';
-import { hasCellType } from '../cellTypes/registry';
-import { hasEditor } from '../editors/registry';
-import { hasRenderer } from '../renderers/registry';
-import { hasValidator } from '../validators/registry';
-import { getPlugin, getPluginsNames, hasPlugin } from '../plugins/registry';
+import {
+  getHooks,
+  getPlugin,
+  getPluginsNames,
+  hasCellType,
+  hasEditor,
+  hasPlugin,
+  hasRenderer,
+  hasValidator,
+} from './registries';
 import { findClosestMatch } from './closestMatch';
 import type { HotInstance } from '../core/types';
 import type {
@@ -553,7 +557,7 @@ function describeLevels(levels: SettingsSchemaLevel[]): string {
  */
 function reportUnknownOption(key: string, level: SettingsSchemaLevel, path: string, context: Context): void {
   const candidates = level === 'grid' ?
-    [...new Set(getOptionNames(level).concat(Hooks.getSingleton().getRegistered()))] :
+    [...new Set(getOptionNames(level).concat(getHooks().getRegistered()))] :
     getOptionNames(level);
   const suggestion = findClosestMatch(key, candidates);
   const hint = suggestion === null ? '' : ` Did you mean '${suggestion}'?`;
@@ -922,7 +926,7 @@ function checkOption(key: string, value: unknown, level: SettingsSchemaLevel, pa
     return;
   }
 
-  const isHook = option?.['x-handsontable']?.hook || (option === undefined && Hooks.getSingleton().isRegistered(key));
+  const isHook = option?.['x-handsontable']?.hook || (option === undefined && getHooks().isRegistered(key));
 
   // An unset value is never a problem, whatever the key or the level. Core skips a hook set to
   // anything but a function, so `afterChange: enabled && callback` is fine too.

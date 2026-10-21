@@ -61,6 +61,15 @@
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-production env-cmd -f ../hot.config.js rspack",
       "deps": []
     },
+    "build:settings-schema-umd": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=settings-schema-umd-development env-cmd -f ../hot.config.js rspack",
+      "deps": ["build:settings-schema"],
+      "note": "dist/handsontable.settings-schema.js, the CDN file of handsontable/settingsSchema; reads the registries of the page's Handsontable global"
+    },
+    "build:settings-schema-umd.min": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=settings-schema-umd-production env-cmd -f ../hot.config.js rspack",
+      "deps": ["build:settings-schema"]
+    },
     "generate:themes-static": {
       "cmd": "node scripts/themes/figma/index.mjs",
       "deps": [],
@@ -246,6 +255,8 @@
         "build:languages.min",
         "build:themes-umd",
         "build:themes-umd.min",
+        "build:settings-schema-umd",
+        "build:settings-schema-umd.min",
         "build:umd",
         "build:umd.min",
         "build:es",

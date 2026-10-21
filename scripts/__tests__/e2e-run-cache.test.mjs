@@ -108,6 +108,22 @@ test('rebuilding ONLY the base UMD bundle invalidates the cache (the e2e-main le
   assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
 });
 
+test('rebuilding ONLY the settings schema CDN file invalidates the cache (its spec loads it)', () => {
+  const root = fakeRoot();
+
+  for (const file of ['handsontable.settings-schema.js', 'handsontable.settings-schema.min.js']) {
+    writeFileSync(path.join(root, `handsontable/dist/${file}`), 'schema-v1');
+    recordGreen(root, ['e2e/a.spec.ts']);
+    assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, []);
+    writeFileSync(path.join(root, `handsontable/dist/${file}`), 'schema-v2');
+    assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
+  }
+});
+
+test('an absent settings schema CDN file does not make the environment incomplete', () => {
+  assert.ok(envHash(fakeRoot()).length > 0);
+});
+
 test('reinstalling a different fixture-served engine invalidates the cache', () => {
   const root = fakeRoot();
 

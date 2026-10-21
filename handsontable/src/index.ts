@@ -27,28 +27,33 @@ import * as domEventHelpers from './helpers/dom/event';
 import {
   getRegisteredEditorNames,
   getEditor,
+  hasEditor,
   registerEditor,
 } from './editors/registry';
 import { editorFactory } from './editors/factory';
 import {
   getRegisteredRendererNames,
   getRenderer,
+  hasRenderer,
   registerRenderer,
 } from './renderers/registry';
 import { rendererFactory } from './renderers/factory';
 import {
   getRegisteredValidatorNames,
   getValidator,
+  hasValidator,
   registerValidator,
 } from './validators/registry';
 import {
   getRegisteredCellTypeNames,
   getCellType,
+  hasCellType,
   registerCellType,
 } from './cellTypes/registry';
 import {
   getPluginsNames,
   getPlugin,
+  hasPlugin,
   registerPlugin,
 } from './plugins/registry';
 import { BasePlugin } from './plugins/base';
@@ -72,6 +77,15 @@ interface HandsontableNamespace {
   __GhostTable: typeof GhostTable;
   _getListenersCounter: typeof getListenersCounter;
   _getRegisteredMapsCounter: typeof getRegisteredMapsCounter;
+  _registries: {
+    hasCellType: typeof hasCellType;
+    hasEditor: typeof hasEditor;
+    hasRenderer: typeof hasRenderer;
+    hasValidator: typeof hasValidator;
+    hasPlugin: typeof hasPlugin;
+    getPlugin: typeof getPlugin;
+    getPluginsNames: typeof getPluginsNames;
+  };
   EventManager: typeof EventManager;
   helper: Record<string, unknown>;
   dom: Record<string, unknown>;
@@ -90,6 +104,19 @@ HOT.__GhostTable = GhostTable;
 
 HOT._getListenersCounter = getListenersCounter; // For MemoryLeak tests
 HOT._getRegisteredMapsCounter = getRegisteredMapsCounter; // For MemoryLeak tests
+
+// The live registries, for `handsontable.settings-schema.js` (the CDN build of `handsontable/settingsSchema`).
+// The public `get*` functions throw for an unknown name, and the `plugins` namespace below is a snapshot taken
+// here, so neither can answer "is it registered now".
+HOT._registries = {
+  hasCellType,
+  hasEditor,
+  hasRenderer,
+  hasValidator,
+  hasPlugin,
+  getPlugin,
+  getPluginsNames,
+};
 HOT.EventManager = EventManager;
 
 // Export all helpers to the Handsontable object
