@@ -11,7 +11,9 @@ settings object against it and against what the page registers. Guide:
   the `build:settings-schema` task. `build:es`, `build:commonjs`, `build:types`, `typecheck`, `lint:eslint`,
   `lint:eslint.fix` and `test:unit.jest` depend on it, and the parallel `lint` pipeline lists it too, because its
   scheduler runs only the tasks a pipeline names. A bare `jest` or `tsc` outside the task runner fails on a fresh
-  checkout until one of those has run. Never commit it and never edit it.
+  checkout until one of those has run. Never commit it and never edit it. A run takes about a second (one TypeScript
+  program over the settings types), so it exits early while `node_modules/.cache/settings-schema.stamp` is newer than
+  every file and directory under `src/` and the generator's own inputs; delete the stamp to force a run.
 - It reads two sources and owns neither. `metaSchema.ts` decides **which** options exist and their levels
   (`@configScope`), plugin (`@category`) and `@since`. `GridSettings`, `ColumnSettings` and `CellMeta` decide the
   **value types**, through the TypeScript compiler API, because the JSDoc `@type` has no enums. An option the types
@@ -70,6 +72,10 @@ settings object against it and against what the page registers. Guide:
 - **Built-in plugin keys are not options.** Only third-party plugins' `PLUGIN_KEY` and `SETTING_KEYS` are accepted
   as known keys; the built-in ones are listed in the generated `internals.builtInPlugins`, because `undoRedo` and
   `autofill` are keys that do nothing (the options are `undo` and `fillHandle`).
+- **A `columns[].data` key is read the way `DataMap#get` reads it**: a plain key only when the row owns it (a
+  prototype getter renders an empty cell), while the steps of a dotted path use plain property access.
+- **One bad value, one problem.** The registry, plugin, and data checks of a key run only when its type check
+  passed, so `{ filterValueComparator: 42 }` is not also reported as `pluginDisabled`.
 - **`anyOf` picks the branch with the fewest problems.** `data` is an array of arrays or an array of objects, and
   reporting the first branch's problems turned one bad row into one problem per good row. Problems are appended in a
   loop, never `push(...problems)`, which overflows the stack on a long array.

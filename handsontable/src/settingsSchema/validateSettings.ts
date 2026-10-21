@@ -783,9 +783,9 @@ function getDataSample(context: Context): DataSample {
 }
 
 /**
- * Tells whether a row holds a property: a key named exactly so first, then a dotted path, the
- * order `DataMap#get` reads a cell in. A key counts when the row's property lookup finds it, so a
- * getter on a class of row objects counts too. A path through an array or an empty step counts.
+ * Tells whether a row holds a property, the way `DataMap#get` reads a cell: a key the row owns,
+ * named exactly so, first; then a dotted path, whose steps are read with plain property access, so
+ * a getter on a class of row objects counts there. A path through an array or an empty step counts.
  *
  * @param {*} row The row.
  * @param {string} property The property.
@@ -797,8 +797,9 @@ function hasDataProperty(row: unknown, property: string, dotNotation: boolean): 
     return false;
   }
 
-  if (hasKey(row, property) || !dotNotation || !property.includes('.')) {
-    return hasKey(row, property);
+  // A key the row only inherits renders an empty cell (`DataMap#get` tests `hasOwnProperty`).
+  if (Object.prototype.hasOwnProperty.call(row, property) || !dotNotation || !property.includes('.')) {
+    return Object.prototype.hasOwnProperty.call(row, property);
   }
 
   let current: unknown = row;
@@ -950,7 +951,15 @@ function checkOption(key: string, value: unknown, level: SettingsSchemaLevel, pa
   // past the sample are not type-checked, as the `columns[].data` check reads the sample only.
   const checked = key === 'data' && level === 'grid' && Array.isArray(value) ? value.slice(0, DATA_SAMPLE_SIZE) : value;
 
+  const problemCount = context.problems.length;
+
   checkValue(checked, levelNode ?? option, path, context);
+
+  // A value of the wrong type gets one problem, not one more for each check that follows.
+  if (context.problems.length > problemCount) {
+    return;
+  }
+
   checkRegistryName(value, option, path, context);
   checkPlugin(key, value, option, path, context);
 

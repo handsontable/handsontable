@@ -548,10 +548,10 @@ describe('validateSettings', () => {
     expect(validateSettings({ undo: true, fillHandle: true }).problems).toEqual([]);
   });
 
-  it('should find a column property that a row exposes through a getter', () => {
+  it('should read a column property the way the grid does: own key first, getters along a path', () => {
     class Employee {
-      get name() {
-        return 'Ana';
+      get fullName() {
+        return 'Ana Garcia';
       }
 
       get address() {
@@ -559,10 +559,21 @@ describe('validateSettings', () => {
       }
     }
 
-    expect(validateSettings({
+    // The grid reads a plain key only when the row owns it, so `fullName` renders an empty cell.
+    expect(brief(validateSettings({
       data: [new Employee()],
-      columns: [{ data: 'name' }, { data: 'address.city' }],
-    }).problems).toEqual([]);
+      columns: [{ data: 'fullName' }, { data: 'address.city' }],
+    }))).toEqual([{ path: 'columns[0].data', code: 'unknownDataProperty' }]);
+    expect(brief(validateSettings({ data: [{ name: 'Ana' }], columns: [{ data: 'toString' }] }))).toEqual([
+      { path: 'columns[0].data', code: 'unknownDataProperty' },
+    ]);
+  });
+
+  it('should report a value of the wrong type once, not again for its plugin or registry', () => {
+    expect(brief(validateSettings({ filterValueComparator: 42, type: 7 }))).toEqual([
+      { path: 'filterValueComparator', code: 'invalidType' },
+      { path: 'type', code: 'invalidType' },
+    ]);
   });
 
   it('should read a dotted column property as a key when dataDotNotation is off', () => {

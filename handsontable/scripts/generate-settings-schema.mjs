@@ -24,7 +24,7 @@
  *   node scripts/run.mjs build:settings-schema
  */
 
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
@@ -38,6 +38,12 @@ const CORE_SETTINGS = resolve(PACKAGE_DIR, 'src', 'core', 'settings.ts');
 const PUBLIC_SETTINGS = resolve(PACKAGE_DIR, 'src', 'settings.ts');
 const OUTPUT = resolve(PACKAGE_DIR, 'src', 'settingsSchema', 'schema.generated.ts');
 const PLUGINS_DIR = resolve(PACKAGE_DIR, 'src', 'plugins');
+const SRC_DIR = resolve(PACKAGE_DIR, 'src');
+/**
+ * Touched after every run. While it is newer than everything the generator reads, the next run
+ * exits early instead of building a TypeScript program over the settings types again.
+ */
+const STAMP = resolve(PACKAGE_DIR, 'node_modules', '.cache', 'settings-schema.stamp');
 
 /**
  * How deep the converter follows nested object types. Deeper levels are emitted as `{}`
@@ -917,9 +923,52 @@ export function renderModule({ schema, internals }) {
 }
 
 /**
+ * Returns the newest modification time among the files and directories the generator reads: the
+ * source tree (the settings types import across it, and a directory's time moves when a file in it
+ * is added or deleted), this script, its parser, the TypeScript config, and the compiler version.
+ *
+ * @returns {number} The time in milliseconds.
+ */
+function readNewestInputTime() {
+  let newest = 0;
+
+  const visit = (dir) => {
+    newest = Math.max(newest, statSync(dir).mtimeMs);
+
+    readdirSync(dir, { withFileTypes: true }).forEach((entry) => {
+      const path = resolve(dir, entry.name);
+
+      if (entry.isDirectory()) {
+        if (entry.name !== '__tests__') {
+          visit(path);
+        }
+      } else if (path !== OUTPUT) {
+        newest = Math.max(newest, statSync(path).mtimeMs);
+      }
+    });
+  };
+
+  visit(SRC_DIR);
+  [
+    fileURLToPath(import.meta.url),
+    resolve(currentDir, 'utils', 'option-levels.js'),
+    resolve(PACKAGE_DIR, 'tsconfig.json'),
+    resolve(PACKAGE_DIR, 'node_modules', 'typescript', 'package.json'),
+  ].forEach((file) => {
+    newest = Math.max(newest, statSync(file).mtimeMs);
+  });
+
+  return newest;
+}
+
+/**
  * Entry point: builds the schema and writes the module, unless it would not change.
  */
 function main() {
+  if (existsSync(OUTPUT) && existsSync(STAMP) && statSync(STAMP).mtimeMs >= readNewestInputTime()) {
+    return;
+  }
+
   const source = renderModule(buildSettingsSchema());
   let current = null;
 
@@ -935,6 +984,9 @@ function main() {
     mkdirSync(dirname(OUTPUT), { recursive: true });
     writeFileSync(OUTPUT, source, 'utf8');
   }
+
+  mkdirSync(dirname(STAMP), { recursive: true });
+  writeFileSync(STAMP, '', 'utf8');
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
