@@ -179,6 +179,7 @@ The bar is WCAG 2.2 Level A and AA, and the `handsontable-a11y` skill is the wor
 | Entry points | `src/index.ts` (full), `src/base.ts` (tree-shakeable) |
 | Plugin base class | `src/plugins/base/base.ts` |
 | Meta schema (defaults) | `src/dataMap/metaManager/metaSchema.ts` |
+| Settings JSON Schema and `validateSettings()` (`handsontable/settingsSchema`) | `src/settingsSchema/` (generated from `metaSchema.ts` and the settings types by `scripts/generate-settings-schema.mjs`; read its `AGENTS.md`) |
 | Index translations | `src/translations/` |
 | Walkontable engine | `src/3rdparty/walkontable/src/` (TypeScript, separate build pipeline) |
 | Hooks system | `src/core/hooks/` |

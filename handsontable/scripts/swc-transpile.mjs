@@ -98,15 +98,18 @@ function collectFiles(dir) {
  */
 function addImportExtensions(code, filePath, ext) {
   return code.replace(LOCAL_IMPORT_RE, (match, keyword, quote, importPath) => {
-    if (extname(importPath)) {
+    const absPath = resolve(dirname(filePath), importPath);
+    const hasSourceFile = existsSync(`${absPath}.js`) || existsSync(`${absPath}.ts`) || existsSync(`${absPath}.tsx`);
+
+    // A specifier with an extension is complete, unless the extension is part of a dotted file
+    // name (`./schema.generated` names `schema.generated.ts`), which needs one like any other.
+    if (extname(importPath) && !hasSourceFile) {
       return match;
     }
 
-    const absPath = resolve(dirname(filePath), importPath);
-
     let newPath;
 
-    if (existsSync(`${absPath}.js`) || existsSync(`${absPath}.ts`) || existsSync(`${absPath}.tsx`)) {
+    if (hasSourceFile) {
       newPath = `${importPath}.${ext}`;
     } else if (existsSync(absPath) && lstatSync(absPath).isDirectory()) {
       newPath = `${importPath}/index.${ext}`;

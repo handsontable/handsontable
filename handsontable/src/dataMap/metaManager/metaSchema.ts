@@ -604,7 +604,7 @@ export default (): Record<string, unknown> => {
      * @type {boolean}
      * @default true
      * @category Core
-     * @configScope grid
+     * @configScope grid columns cells cell
      * @since 14.0.0
      */
     ariaTags: true,

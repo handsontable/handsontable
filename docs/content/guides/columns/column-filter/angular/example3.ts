@@ -148,8 +148,6 @@ export class AppComponent {
       }
     },
     height: 'auto',
-    // @ts-ignore
-    example: 'exampleEnableFilterInColumns',
     autoWrapRow: true,
     autoWrapCol: true,
   };

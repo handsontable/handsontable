@@ -156,6 +156,24 @@ if (problems.length > 0) {
   process.exit(1);
 }
 
+/**
+ * The `handsontable/settingsSchema` entry loaded at runtime. Each check fails unless the schema
+ * carries its generated options, which a module resolved to the wrong format (a CommonJS file
+ * default-imported into ES modules) does not.
+ */
+const SETTINGS_SCHEMA_ASSERTION = 'if (!m.settingsSchema.properties.colHeaders) { throw new Error("no options"); }';
+const RUNTIME_CHECKS = [
+  {
+    name: 'settingsSchema, import',
+    args: ['--input-type=module', '-e',
+      `const m = await import('handsontable/settingsSchema'); ${SETTINGS_SCHEMA_ASSERTION}`],
+  },
+  {
+    name: 'settingsSchema, require',
+    args: ['-e', `const m = require('handsontable/settingsSchema'); ${SETTINGS_SCHEMA_ASSERTION}`],
+  },
+];
+
 const workDir = mkdtempSync(path.join(tmpdir(), 'hot-esm-consumer-'));
 let failed = false;
 let spawnFailed = false;
@@ -220,6 +238,20 @@ try {
       }
 
       reportError(`ESM consumer types (${name}) do not compile:\n${result.stdout || ''}${result.stderr || ''}`);
+    }
+  });
+
+  // Types alone do not prove the module loads: an import specifier the build left without an
+  // extension type-checks under every mode and fails at runtime (`./schema.generated` did). Load
+  // the one entry point that runs in Node without a DOM, through the `exports` map, both ways.
+  RUNTIME_CHECKS.forEach(({ name, args }) => {
+    const result = spawnSync(process.execPath, args, { cwd: workDir, encoding: 'utf8' });
+
+    if (result.status === 0) {
+      process.stdout.write(`Runtime import (${name}): ok\n`);
+    } else {
+      failed = true;
+      reportError(`Runtime import (${name}) fails:\n${result.stdout || ''}${result.stderr || ''}`);
     }
   });
 } finally {

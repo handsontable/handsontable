@@ -18,6 +18,7 @@ const gettingStartedItems = [
 const configurationItems = [
   { path: 'guides/configuration/configuration-options/configuration-options' },
   { path: 'guides/configuration/configuration-option-levels/configuration-option-levels' },
+  { path: 'guides/configuration/validate-settings/validate-settings' },
 ];
 
 const aiToolsItems = [

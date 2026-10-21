@@ -2,6 +2,8 @@ import Handsontable from 'handsontable';
 import HandsontableBase from 'handsontable/base';
 import type { HotInstance } from 'handsontable';
 import { CellCoords, CellRange } from 'handsontable/base';
+import { settingsSchema, validateSettings } from 'handsontable/settingsSchema';
+import type { SettingsProblemCode, SettingsValidationResult } from 'handsontable/settingsSchema';
 
 /**
  * Consumer fixture for `scripts/verify-esm-consumer-types.mjs`. It is compiled as an ES module
@@ -45,6 +47,11 @@ export const indexVersion: string | undefined = Handsontable.version;
 export const baseVersion: string | undefined = HandsontableBase.version;
 export const indexPlugin = Handsontable.plugins.AutoColumnSize;
 
+// The `settingsSchema` entry point resolves with its named exports typed.
+export const validation: SettingsValidationResult = validateSettings({ colHeaders: true }, { level: 'grid' });
+export const problemCode: SettingsProblemCode | undefined = validation.problems[0]?.code;
+export const schemaVersion: string | undefined = settingsSchema.$schema;
+
 // Guards. Each line must fail to compile. They fail the check when the default import collapses to `any`.
 // @ts-expect-error `version` is not a number, so `Handsontable` must not be `any`.
 export const indexVersionIsTyped: number = Handsontable.version;
@@ -54,3 +61,5 @@ export const baseVersionIsTyped: number = HandsontableBase.version;
 export type IndexNoSuchMember = Handsontable.NoSuchMember;
 // @ts-expect-error the namespace has no such member, so `HandsontableBase` must not be `any`.
 export type BaseNoSuchMember = HandsontableBase.NoSuchMember;
+// @ts-expect-error `valid` is a boolean, so `validateSettings` must not return `any`.
+export const validIsTyped: string = validation.valid;
