@@ -292,7 +292,7 @@ Each import method takes the format first (`'xlsx'`), the file second, and an op
 - [`importFromArrayBuffer(format, buffer, options)`](@/api/importFile.md#importfromarraybuffer) - imports an `ArrayBuffer`, or a view over one such as a `Uint8Array`. Returns a `Promise` of the result.
 - [`supportsImportFormat(format)`](@/api/importFile.md#supportsimportformat) - `true` when the format can be read.
 
-To type data that doesn't come from a workbook, such as CSV rows, pasted text, or API values, use `inferColumnTypes()`. See [Infer column types](@/guides/import-and-export/infer-column-types/infer-column-types.md).
+To type data that doesn't come from a workbook, such as CSV rows, pasted text, or API values, use [`inferColumnTypes()`](@/api/importFile.md#infercolumntypes). See [Infer column types](@/guides/import-and-export/infer-column-types/infer-column-types.md).
 
 ## Hooks
 

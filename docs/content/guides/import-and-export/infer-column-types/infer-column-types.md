@@ -25,9 +25,35 @@ menuTag: new
 addedIn: "19.0.0"
 ---
 
-Data that doesn't come from a workbook carries no number formats: rows you parsed from a CSV file, text pasted into cells, or values from an API. To type that data, use the [`ImportFile`](@/api/importFile.md) plugin's `inferColumnTypes()` method. It reads the values and returns the column settings, with a measure of how sure it is and, when the data has a header row or is rows of objects, a header for each column. The method needs no engine.
+Data that doesn't come from a workbook carries no number formats: rows you parsed from a CSV file, text pasted into cells, or values from an API. To type that data, use the [`ImportFile`](@/api/importFile.md) plugin's [`inferColumnTypes()`](@/api/importFile.md#infercolumntypes) method. It reads the values and returns the column settings, with a measure of how sure it is and, when the data has a header row or is rows of objects, a header for each column.
 
 [[toc]]
+
+## Prerequisites
+
+When you register modules one by one, register the `ImportFile` plugin (`registerPlugin(ImportFile)`) and the cell types you expect the method to infer: `numeric`, `date`, `intl-datetime`, `time`, `checkbox`, and `dropdown`. An unregistered type is applied as `text`. The method reads no file, so it needs no XLSX engine.
+
+::: only-for react
+
+Get the plugin from the `hotInstance` of your `HotTable` ref: `hotRef.current?.hotInstance?.getPlugin('importFile')`. See [Instance methods](@/guides/getting-started/react-methods/react-methods.md).
+
+:::
+
+::: only-for angular
+
+Get the plugin from the `hotInstance` of your `HotTableComponent` reference. See [Referencing the Handsontable instance](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md).
+
+:::
+
+::: only-for vue
+
+Get the plugin from the `hotInstance` of your `HotTable` template ref: `hotRef.value?.hotInstance?.getPlugin('importFile')`. See [Referencing the Handsontable instance](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md).
+
+:::
+
+## Infer and convert
+
+The examples below call the instance `hot`.
 
 ```javascript
 const rows = [
@@ -66,6 +92,8 @@ The method returns `{ columns, headerRow }`. Each entry of `columns` keeps the g
 | `stats` | A description of the sampled values. Set with the [`stats`](#column-statistics) option. |
 
 Before you load the data, convert it with `convertToInferredTypes(rows, result)`. Each cell type stores its values in a fixed form: a number for `numeric`, `YYYY-MM-DD` for `date`, `YYYY-MM-DDTHH:mm:ss` for `intl-datetime`, `HH:mm:ss` for `time`, and a boolean for `checkbox`. If you skip the conversion, the cells keep the raw strings, and `date`, `intl-datetime`, and `time` cells reject them. The conversion returns a copy, leaves your rows unchanged, and leaves out the header row, which is in `title`.
+
+## How inference works
 
 Inference works this way:
 
@@ -204,3 +232,9 @@ To infer types without a grid, import the same functions from the plugin module:
 - [ImportFile](@/api/importFile.md)
 
 </div>
+
+---
+
+::: tip Trademark notice
+Microsoft® and Excel® are registered trademarks of Microsoft Corporation.
+:::
