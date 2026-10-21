@@ -8,6 +8,8 @@ import {
   hasClass,
   isChildOf,
   getParent,
+  isHTMLElement,
+  isHTMLInputElement,
 } from '../../../helpers/dom/element';
 import { partial } from '../../../helpers/function';
 import {
@@ -75,6 +77,42 @@ export type EventDeps = ReturnType<typeof createEventDeps>;
  * when the event target maps to neither a cell nor a border affordance.
  */
 type ParentCell = ReturnType<Event['parentCell']>;
+
+/**
+ * Whether the finger is on a control the tap is allowed to activate.
+ *
+ * The event target is often nested markup, or the text of a label that owns a file input.
+ *
+ * @param {Element} target The element under the finger.
+ * @returns {boolean}
+ */
+function isTouchActivationTarget(target: Element): boolean {
+  const cell = target.closest('td, th');
+  const activation = target.closest('a, button, input, label');
+
+  if (cell === null || activation === null || !cell.contains(activation)) {
+    return false;
+  }
+
+  if (!isHtmlLabel(activation)) {
+    return true;
+  }
+
+  const labeled = activation.control;
+
+  return isHTMLElement(labeled) && isHTMLInputElement(labeled) && labeled.type === 'file';
+}
+
+/**
+ * Narrows a label so `HTMLLabelElement.control` is visible. That property is the
+ * labeled element for both a wrapping label and a `for` label.
+ *
+ * @param {Element} element A candidate activation control.
+ * @returns {boolean}
+ */
+function isHtmlLabel(element: Element): element is HTMLLabelElement {
+  return element.tagName === 'LABEL';
+}
 
 /**
  * @class Event
@@ -696,36 +734,34 @@ class Event {
     }
 
     const target = eventTargetEl(event);
-    const parentCellCoords = this.parentCell(target)?.coords;
-    const isCellsRange = parentCellCoords !== null && parentCellCoords !== undefined &&
-      ((parentCellCoords.row ?? -1) >= 0 && (parentCellCoords.col ?? -1) >= 0);
+    const parentCellCoords = this.parentCell(target).coords;
+    const isCellsRange = parentCellCoords?.isCell();
     const isEventCancelable = event.cancelable && isCellsRange &&
       this.#deps.wtSettings.getSetting('isDataViewInstance');
 
-    // To prevent accidental redirects or other actions that the interactive elements (e.q "A" link) do
-    // while the cell is highlighted, all touch events that are triggered on different cells are
-    // "preventDefault"'ed. The user can interact with the element (e.q. click on the link that opens
-    // a new page) only when the same cell was previously selected (see related PR #7980).
     if (isEventCancelable) {
-      const interactiveElements = ['A', 'BUTTON', 'INPUT'];
+      const cellWasSelected = this.selectedCellWasTouched(target);
+      const focusCellRange = this.#deps.selectionManager.getFocusSelection()?.cellRange ?? null;
+      // `isCellsRange` already proved these coords are a cell. A boolean does not narrow the type.
+      const focusOnTouchedCell = focusCellRange?.includes(parentCellCoords!);
+      const isCheckbox = target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox';
 
-      // For browsers that use the WebKit as an engine (excluding Safari), there is a bug. The prevent
-      // default has to be called all the time. Otherwise, the second tap won't be triggered (probably
-      // caused by the native ~300ms delay - https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
-      // To make the interactive elements work, the event target element has to be check. If the element
-      // matches the allow-list, the event is not prevented.
-      if (isIOS() &&
-          (isChromeWebKit() || isFirefoxWebKit()) &&
-          this.selectedCellWasTouched(target) &&
-          !interactiveElements.includes(target!.tagName)) {
-        event.preventDefault();
+      // iOS Chrome and iOS Firefox drop the second tap unless preventDefault runs on every
+      // non-interactive tap (https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
+      // With visual selection off the cell is never the focus, so this does not look at
+      // whether the cell was already selected.
+      const blocksWebKitSecondTap = isIOS() &&
+        (isChromeWebKit() || isFirefoxWebKit()) &&
+        !isTouchActivationTarget(target!);
+      // A tap that moved focus onto the cell must not also activate a control (#7980).
+      // A non-tap never ran the deferred mousedown, so a compatibility mousedown inside the
+      // browser's tap slop would otherwise select the unselected cell (#11659). A drift that
+      // ends on the already-selected cell is left alone (DEV-2687).
+      const blocksUnselectedGesture = !cellWasSelected &&
+        !isCheckbox &&
+        (focusOnTouchedCell || !isTap);
 
-      } else if (!this.selectedCellWasTouched(target) &&
-                 !(target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox')) {
-        // For other browsers, prevent default is fired only for the first tap and only when the previous
-        // highlighted cell was different. Checkbox inputs are excluded so that checkboxes with
-        // disableVisualSelection can still be toggled via touch (the focus cellRange is never populated
-        // when visual selection is disabled, so selectedCellWasTouched always returns false for them).
+      if (blocksWebKitSecondTap || blocksUnselectedGesture) {
         event.preventDefault();
       }
     }

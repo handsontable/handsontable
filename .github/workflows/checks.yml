@@ -167,6 +167,9 @@ jobs:
               - './handsontable/test/*.js'
               - './handsontable/test/__mocks__/**'
               - './handsontable/test/helpers/**'
+              # `src/settingsSchema/__tests__/docsExamples.unit.js` runs every JavaScript example of
+              # the guides through `validateSettings()`, so an example change routes Unit too.
+              - './docs/content/guides/**/javascript/example*.js'
             test-handsontable-types:
               - *hot-shared
               - *hot-definition-files

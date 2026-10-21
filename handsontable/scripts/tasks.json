@@ -31,9 +31,14 @@
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-css-production env-cmd -f ../hot.config.js rspack",
       "deps": []
     },
+    "build:settings-schema": {
+      "cmd": "node scripts/generate-settings-schema.mjs",
+      "deps": [],
+      "note": "writes the gitignored src/settingsSchema/schema.generated.ts that handsontable/settingsSchema imports; every task that compiles, lints, or tests src/ depends on it"
+    },
     "build:commonjs": {
       "cmd": "env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format commonjs --out-dir tmp",
-      "deps": ["build:styles.min"],
+      "deps": ["build:styles.min", "build:settings-schema"],
       "note": "needs build:styles.min to finalize handsontableStyles.js before reading src/"
     },
     "build:languages": {
@@ -63,7 +68,7 @@
     },
     "build:types": {
       "cmd": "tsc -p tsconfig.build-types.json",
-      "deps": []
+      "deps": ["build:settings-schema"]
     },
     "downlevel:types": {
       "cmd": "node scripts/downlevel-dts.mjs",
@@ -85,7 +90,7 @@
     },
     "build:es": {
       "cmd": "env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format esm --out-dir tmp --out-ext .mjs",
-      "deps": ["build:styles.min"],
+      "deps": ["build:styles.min", "build:settings-schema"],
       "note": "needs build:styles.min to finalize handsontableStyles.js"
     },
     "build:walkontable": {
@@ -105,12 +110,12 @@
 
     "lint:eslint": {
       "cmd": "eslint --cache --ext .js,.ts,.mjs src/ test/ .config/plugin scripts/",
-      "deps": [],
+      "deps": ["build:settings-schema"],
       "mode": "inherit"
     },
     "lint:eslint.fix": {
       "cmd": "eslint --fix --ext .js,.ts,.mjs src/ test/ .config/plugin scripts/",
-      "deps": [],
+      "deps": ["build:settings-schema"],
       "mode": "inherit"
     },
     "lint:stylelint": {
@@ -125,13 +130,13 @@
     },
     "typecheck": {
       "cmd": "tsc --noEmit",
-      "deps": [],
+      "deps": ["build:settings-schema"],
       "mode": "inherit"
     },
 
     "test:unit.jest": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs env-cmd -f ../hot.config.js jest",
-      "deps": [],
+      "deps": ["build:settings-schema"],
       "mode": "interactive",
       "passthrough": true,
       "passthroughFilter": ["--testPathPattern", "--watch", "--coverage", "--collectCoverageFrom", "--coveragePathIgnorePatterns"],
@@ -232,6 +237,7 @@
       "tasks": [
         "build:styles",
         "build:styles.min",
+        "build:settings-schema",
         "build:themes-css",
         "build:themes-css.min",
         "build:commonjs",
@@ -249,7 +255,7 @@
     },
     "lint": {
       "before": ["build:styles"],
-      "tasks": ["lint:eslint", "lint:stylelint", "typecheck"]
+      "tasks": ["build:settings-schema", "lint:eslint", "lint:stylelint", "typecheck"]
     },
     "lint:fix": {
       "before": ["build:styles"],

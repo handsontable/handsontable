@@ -47,6 +47,8 @@ Available options in the browser's toolbar:
 
 To let the end user copy the contents of column headers, see the [Copy with headers](#copy-with-headers) section.
 
+A cell with the [`copyable`](@/api/options.md#copyable) option set to `false` copies as an empty string, and cutting it clears the cell. The [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type sets `copyable: false` by default. See [Copy, cut, paste, and autofill](@/guides/cell-types/password-cell-type/password-cell-type.md#copy-cut-paste-and-autofill) for how password cells behave.
+
 ### Context menu
 
 When the context menu is enabled, it includes default items, including copy & cut options.

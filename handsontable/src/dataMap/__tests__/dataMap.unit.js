@@ -459,3 +459,142 @@ describe('DataMap duck columns for nested object data without `columns`', () => 
     expect(hot.getDataAtCol(0)).toEqual(['deep0', 'one', 'two']);
   });
 });
+
+describe('DataMap with a `dataSchema` and no `columns` option', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    if (hot) {
+      hot.destroy();
+      hot = null;
+    }
+
+    container.remove();
+  });
+
+  /**
+   * Builds a grid from object data and a schema, without `columns`.
+   *
+   * @param {object} dataSchema The schema.
+   * @param {object[]} data The data rows.
+   * @param {object} [settings] Extra settings.
+   */
+  function build(dataSchema, data, settings = {}) {
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data,
+      dataSchema,
+      ...settings,
+    });
+  }
+
+  it.each([
+    ['number', 0, 7],
+    ['string', 'x', 'a'],
+    ['boolean', false, true],
+    ['undefined', undefined, 'a'],
+  ])('should register a column for a `%s` schema leaf', (_, leaf, value) => {
+    build({ id: leaf, name: null }, [{ id: value, name: 'n' }]);
+
+    expect(hot.countCols()).toBe(2);
+    expect(hot.colToProp(0)).toBe('id');
+    expect(hot.colToProp(1)).toBe('name');
+    expect(hot.getDataAtRow(0)).toEqual([value, 'n']);
+  });
+
+  it('should register every leaf of a schema holding only non-null defaults', () => {
+    build({ id: 0, name: 'x' }, [{ id: 1, name: 'a' }]);
+
+    expect(hot.countCols()).toBe(2);
+    expect(hot.getDataAtRow(0)).toEqual([1, 'a']);
+  });
+
+  it('should register nested non-null leaves under their full property path', () => {
+    build({ a: { b: 'x' }, id: 0 }, [{ id: 1, a: { b: 'deep' } }]);
+
+    expect(hot.colToProp(0)).toBe('a.b');
+    expect(hot.colToProp(1)).toBe('id');
+    expect(hot.getDataAtRow(0)).toEqual(['deep', 1]);
+  });
+
+  it('should write an edit back through a column bound to a non-null schema leaf', () => {
+    build({ id: 0, name: 'x' }, [{ id: 1, name: 'a' }]);
+
+    hot.setDataAtCell(0, 1, 'changed');
+
+    expect(hot.getSourceDataAtRow(0)).toEqual({ id: 1, name: 'changed' });
+  });
+
+  it('should keep an array leaf unregistered, as before', () => {
+    build({ id: 0, tags: [] }, [{ id: 1, tags: [] }]);
+
+    expect(hot.colToProp(0)).toBe('id');
+  });
+
+  it.each([
+    ['function', () => 1, () => 2],
+    ['Date', new Date(2020, 0, 1), new Date(2021, 0, 1)],
+    ['Map', new Map(), new Map()],
+  ])('should keep a `%s` leaf unregistered, so typing there never replaces the value', (_, leaf, value) => {
+    build({ id: 0, extra: leaf }, [{ id: 1, extra: value }]);
+
+    expect(hot.colToProp(0)).toBe('id');
+    expect(hot.getDataAtRow(0)[0]).toBe(1);
+  });
+
+  it('should not register a column for the `__children` key', () => {
+    build({ id: 0, __children: null }, [{ id: 1 }]);
+
+    expect(hot.countCols()).toBe(1);
+    expect(hot.colToProp(0)).toBe('id');
+  });
+
+  it('should register the leaves of a `dataSchema` given as a function', () => {
+    build(() => ({ id: 0, name: 'x' }), [{ id: 1, name: 'a' }]);
+
+    expect(hot.getDataAtRow(0)).toEqual([1, 'a']);
+  });
+
+  it('should keep mapping `null` leaves and a schema derived from the data', () => {
+    build({ id: null, name: null }, [{ id: 1, name: 'a' }]);
+
+    expect(hot.getDataAtRow(0)).toEqual([1, 'a']);
+
+    hot.destroy();
+    hot = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [{ id: 1, nested: { name: 'a' } }],
+    });
+
+    expect(hot.getDataAtRow(0)).toEqual([1, 'a']);
+  });
+
+  it('should keep a spare row holding only schema defaults empty, with readable columns', () => {
+    build({ id: 0, name: 'x' }, [{ id: 1, name: 'a' }], { minSpareRows: 2 });
+
+    expect(hot.countRows()).toBe(3);
+    expect(hot.countEmptyRows(true)).toBe(2);
+    expect(hot.getDataAtRow(1)).toEqual([0, 'x']);
+
+    hot.setDataAtCell(0, 1, 'edited');
+
+    expect(hot.countRows()).toBe(3);
+  });
+
+  it('should keep a spare row of a function `dataSchema` empty when a default depends on the row index', () => {
+    build(index => ({ index, name: null }), [{ index: 0, name: 'a' }], { minSpareRows: 1 });
+
+    expect(hot.countRows()).toBe(2);
+    expect(hot.countEmptyRows(true)).toBe(1);
+
+    hot.setDataAtCell(0, 1, 'edited');
+
+    expect(hot.countRows()).toBe(2);
+  });
+});

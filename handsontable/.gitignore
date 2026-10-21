@@ -33,6 +33,8 @@ node_modules/
 /styles/
 src/styles/handsontableStyles.js
 src/styles/handsontableStyles.ts
+# Written by `build:settings-schema` (scripts/generate-settings-schema.mjs) before every build and test run.
+src/settingsSchema/schema.generated.ts
 # The reports of a mutation run: `evals/score.mjs --mutate` runs Stryker from this directory, and the
 # root's `reports/mutation/` matches the repository root only.
 /reports/mutation/

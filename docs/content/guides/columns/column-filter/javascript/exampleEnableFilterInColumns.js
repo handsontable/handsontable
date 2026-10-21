@@ -135,7 +135,6 @@ new Handsontable(container, {
     }
   },
   height: 'auto',
-  example: 'exampleEnableFilterInColumns',
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
