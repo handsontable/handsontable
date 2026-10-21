@@ -428,6 +428,34 @@ describe('SheetsBar switch with work still in flight', () => {
     });
   });
 
+  describe('a workbook change made from afterSheetTabStateRestore', () => {
+    it('refuses to remove the departing sheet', () => {
+      const changes = [];
+      let removed = null;
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
+        afterSheetTabChange: (from, to) => changes.push([from, to]),
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+      const [a, b] = plugin.getSheets().map(sheet => sheet.id);
+
+      plugin.setActiveSheet('B');
+      hot.addHook('afterSheetTabStateRestore', () => {
+        if (removed === null) {
+          removed = plugin.removeSheet(b);
+        }
+      });
+
+      expect(plugin.setActiveSheet('A')).toBe(true);
+      expect(removed).toBe(false);
+      expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B']);
+      expect(changes).toEqual([[a, b], [b, a]]);
+    });
+  });
+
   describe('removing the active sheet when a listener switches back to it', () => {
     it('keeps the sheet', () => {
       let switchBack = true;

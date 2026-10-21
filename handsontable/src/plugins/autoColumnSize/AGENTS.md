@@ -184,7 +184,7 @@ when a new sweep starts, on `beforeLoadData`, and on a real disable or destroy (
 does not disable, so a wrapper re-render keeps the sweep). Before that, a sweep left running when the data was
 replaced (a sheets bar switch away from a wide sheet) sampled cells the new data does not have, the ghost table kept a
 column it never built, and every later render threw `Cannot read properties of undefined (reading
-'getBoundingClientRect')`. Not on `updateData()`: the React wrapper sends `data` on every re-render, and nothing restarts the sweep after an `updateData()`. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts` ("leaves a wide sheet...").
+'getBoundingClientRect')`. Not on `updateData()`: the React wrapper sends `data` on every re-render, and nothing restarts the sweep after an `updateData()`. A re-render can still shrink the data between two idle tasks, so each chunk clamps the sweep's row and column bounds to `countRows()` and `countCols()` (`processChunk`); without it the sweep sampled columns the grid no longer had and broke the ghost table the same way. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts` ("leaves a wide sheet...", "...when an update shrinks the data").
 
 ## Where to look next
 

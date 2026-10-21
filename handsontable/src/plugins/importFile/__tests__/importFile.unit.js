@@ -100,8 +100,8 @@ function pluginWithFakeHot(importFileSettings, { formulasEnabled = false, rtl = 
     // that: the direction is fixed when the instance is built.
     isRtl: () => rtl,
     updateSettings: settings => calls.push(['updateSettings', settings]),
-    loadData: (data) => {
-      (listeners.beforeLoadData ?? []).forEach(listener => listener(data, false, 'loadData'));
+    loadData: (data, source = 'loadData') => {
+      (listeners.beforeLoadData ?? []).forEach(listener => listener(data, false, source));
       calls.push(['loadData', data]);
     },
     setCellMetaObject: (...args) => calls.push(['setCellMetaObject', ...args]),
@@ -435,6 +435,32 @@ describe('ImportFile overlapping imports', () => {
       .toThrow(/the grid's data was replaced while the file was being read, so its result was not applied/);
     expect(calls.filter(([name]) => name === 'loadData')).toHaveLength(1);
     expect(calls.filter(([name]) => name === 'beforeImport' || name === 'afterImport')).toEqual([]);
+  });
+
+  it('should apply an import when a DataProvider fetch lands while the file is being read', async() => {
+    const { plugin, calls, hot } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+    const read = deferredBlob(fixture('values'));
+    const pending = plugin.importFromBlob('xlsx', read.blob);
+
+    hot.loadData([['fetched page']], 'dataProvider');
+    read.release();
+
+    await pending;
+
+    expect(calls.filter(([name]) => name === 'afterImport')).toHaveLength(1);
+  });
+
+  it('should apply an import whose beforeImport listener clears the grid with loadData()', async() => {
+    const { plugin, calls, hooks, hot } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+
+    hooks.beforeImport = () => {
+      hot.loadData([]);
+    };
+
+    await plugin.importFromArrayBuffer('xlsx', fixture('values'));
+
+    expect(calls.filter(([name]) => name === 'loadData')).toHaveLength(2);
+    expect(calls.filter(([name]) => name === 'afterImport')).toHaveLength(1);
   });
 
   it('should keep rejecting an older import as stale when a newer import loads its data first', async() => {

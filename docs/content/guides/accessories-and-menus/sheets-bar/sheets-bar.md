@@ -194,7 +194,7 @@ Work started on one sheet ends on that sheet, or is canceled.
 - When an `activeSheet` value you send through [`updateSettings()`](@/api/core.md#updatesettings) is refused this way, the bar logs a warning and stays on its sheet. Send the same value again once the cell is saved.
 - A drag you're still holding is canceled: moving cells or rows, resizing a column or a row, the fill handle, and a freeze bar. A column move is not canceled yet.
 - An import that is still reading its file is rejected and changes nothing. [`downloadFileAsync()`](@/api/exportFile.md#downloadfileasync) with the [`Dialog`](@/api/dialog.md) plugin is rejected when the switch happens before the export reads the data.
-- A listener of a `beforeSheetTab*` hook, or of [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture), can't change the workbook. A switch, add, remove, rename, duplicate, or move it asks for returns `false` (`null` for an add or a duplicate).
+- A listener of a `beforeSheetTab*` hook, of [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture), or of [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) can't change the workbook. A switch, add, remove, rename, duplicate, or move it asks for returns `false` (`null` for an add or a duplicate).
 
 ## Tab animations
 

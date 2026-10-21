@@ -28,6 +28,11 @@ export const PLUGIN_KEY = 'importFile';
 export const PLUGIN_PRIORITY = 245;
 
 /**
+ * The source the DataProvider plugin passes to `loadData()` for a fetch.
+ */
+const DATA_PROVIDER_LOAD_SOURCE = 'dataProvider';
+
+/**
  * Plugin-level settings for the `importFile` option in {@link GridSettings}.
  */
 export interface ImportFileSettings {
@@ -551,7 +556,9 @@ export class ImportFile extends BasePlugin {
   #dataReplacedAtTicket = 0;
 
   /**
-   * Whether this plugin is loading an import's result, so its own `loadData()` takes no ticket.
+   * Whether this plugin is loading an import's result, or running its `beforeImport` listeners, so a
+   * `loadData()` made then takes no ticket: the import's own, or one a listener makes to clear the grid
+   * before the result lands.
    */
   #isApplying = false;
 
@@ -795,7 +802,17 @@ export class ImportFile extends BasePlugin {
     // reached the grid (review round 12).
     dropped.warn(detected.kind);
 
-    if (this.hot.runHooks<boolean | void>('beforeImport', result, format) === false) {
+    this.#isApplying = true;
+
+    let canceled: boolean;
+
+    try {
+      canceled = this.hot.runHooks<boolean | void>('beforeImport', result, format) === false;
+    } finally {
+      this.#isApplying = false;
+    }
+
+    if (canceled) {
       return result;
     }
 
@@ -874,10 +891,15 @@ export class ImportFile extends BasePlugin {
   /**
    * Takes an apply ticket when the grid loads data that is not an import's own result, so an import still
    * reading is not applied over it: a sheets bar switch loads another sheet's data, and the result would
-   * land in that sheet.
+   * land in that sheet. A DataProvider fetch takes none: it reloads the rows of the data the import was
+   * started on, which the result replaces anyway.
+   *
+   * @param {Array} data The data being loaded.
+   * @param {boolean} initialLoad Whether this is the grid's first load.
+   * @param {string} [source] The source of the `loadData()` call.
    */
-  #onBeforeLoadData = () => {
-    if (this.#isApplying) {
+  #onBeforeLoadData = (data: unknown, initialLoad: boolean, source?: string) => {
+    if (this.#isApplying || source === DATA_PROVIDER_LOAD_SOURCE) {
       return;
     }
 

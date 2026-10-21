@@ -596,8 +596,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     the load keeps the arriving sheet. When the rollback throws too, the switch's own error is the one
     rethrown.
   - **A listener told about a change before it takes effect cannot change the workbook**
-    (`#runBeforeChangeHook`, read by `#commit`): a change's before-hook and
-    `afterSheetTabStateCapture`. A nested switch or remove from them used to overwrite the departing
+    (`#runBeforeChangeHook`, read by `#commit`): a change's before-hook,
+    `afterSheetTabStateCapture`, and `afterSheetTabStateRestore`, which fires inside `#switchTo` (and
+    again in its rollback). A restore listener that removed the departing sheet left
+    `afterSheetTabChange` reporting a sheet that no longer existed. A nested switch or remove from them used to overwrite the departing
     sheet's view state or throw. The flag does not cover `mutate()`: `#removeSheet` switches to the
     neighbor from inside its own commit, and an `afterSheetTabChange` listener may still switch
     again; `#removeSheet` then checks that the sheet it removes is no longer the active one.

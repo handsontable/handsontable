@@ -224,6 +224,25 @@ export class SheetsBarInFlightWorkPage {
   }
 
   /**
+   * Starts measuring every column again and, in the same task, sends the grid one row of one column
+   * through `updateData()`, the way a framework wrapper re-renders with less data. Answers whether the
+   * measuring was running when the data shrank.
+   */
+  shrinkDataDuringColumnSweep(): Promise<boolean> {
+    return this.page.evaluate(() => {
+      const autoColumnSize = window.hot.getPlugin('autoColumnSize');
+
+      autoColumnSize.recalculateAllColumnsWidth();
+
+      const sweepRunning = autoColumnSize.inProgress;
+
+      window.hot.updateData([['x']]);
+
+      return sweepRunning;
+    });
+  }
+
+  /**
    * Whether AutoColumnSize is still measuring columns.
    */
   isColumnSweepRunning(): Promise<boolean> {

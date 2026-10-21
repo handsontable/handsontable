@@ -151,6 +151,16 @@ test.describe('SheetsBar switch with work still in flight', () => {
     expect(await grid.renderError()).toBeNull();
   });
 
+  test('finishes measuring the columns without breaking later renders when an update shrinks the data', async() => {
+    await grid.goto('wideSheet');
+
+    expect(await grid.shrinkDataDuringColumnSweep()).toBe(true);
+
+    await expect.poll(() => grid.isColumnSweepRunning()).toBe(false);
+
+    expect(await grid.renderError()).toBeNull();
+  });
+
   test('gives the arriving sheet its own selection when the Loading overlay hides', async() => {
     await grid.goto('loading');
 

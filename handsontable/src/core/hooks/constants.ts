@@ -3729,6 +3729,9 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after restoring a sheet's runtime view state (e.g. scroll position,
    * selection) when switching to it. This hook is fired when {@link Options#sheetsBar} option is enabled.
    *
+   * It fires before the switch has finished, so a listener cannot switch, add, remove, rename, duplicate,
+   * or move a sheet: those calls return `false` (`null` for an add or a duplicate).
+   *
    * @since 19.0.0
    * @event Hooks#afterSheetTabStateRestore
    * @param {number} sheetId The id of the sheet the view state was restored to.

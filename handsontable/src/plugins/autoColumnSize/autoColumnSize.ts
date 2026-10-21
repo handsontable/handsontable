@@ -629,6 +629,10 @@ export class AutoColumnSize extends BasePlugin {
      * `columnSamples`) and is continued by the next call. Returns `true` when every column has
      * been processed.
      *
+     * The row and column bounds are clamped to the grid on every call: an `updateData()` between two
+     * idle tasks (a wrapper re-render) can shrink the data, and sampling a column the grid no longer
+     * has left the ghost table with a column it never built.
+     *
      * @param {number} columnsBudget The maximum number of columns to process in this chunk.
      * @param {number} cellsBudget The maximum number of cells to sample in this chunk.
      * @returns {boolean}
@@ -636,8 +640,10 @@ export class AutoColumnSize extends BasePlugin {
     const processChunk = (columnsBudget: number, cellsBudget: number) => {
       let remainingColumns = columnsBudget;
       let remainingCells = cellsBudget;
+      const lastLiveColumn = Math.min(lastColumn, this.hot.countCols() - 1);
+      const lastLiveRow = Math.min(rowsRange.to, this.hot.countRows() - 1);
 
-      while (remainingColumns > 0 && currentColumn <= lastColumn) {
+      while (remainingColumns > 0 && currentColumn <= lastLiveColumn) {
         if (columnSamples === null) {
           if (!shouldMeasureColumn(currentColumn)) {
             currentColumn += 1;
@@ -649,12 +655,12 @@ export class AutoColumnSize extends BasePlugin {
           currentRowCursor = rowsRange.from;
         }
 
-        if (currentRowCursor <= rowsRange.to) {
+        if (currentRowCursor <= lastLiveRow) {
           if (remainingCells <= 0) {
             return false;
           }
 
-          const sliceTo = Math.min(rowsRange.to, currentRowCursor + remainingCells - 1);
+          const sliceTo = Math.min(lastLiveRow, currentRowCursor + remainingCells - 1);
 
           this.samplesGenerator
             .generateSample('col', { from: currentRowCursor, to: sliceTo }, currentColumn, columnSamples);
@@ -663,7 +669,7 @@ export class AutoColumnSize extends BasePlugin {
           currentRowCursor = sliceTo + 1;
         }
 
-        if (currentRowCursor > rowsRange.to) {
+        if (currentRowCursor > lastLiveRow) {
           const physicalColumn = this.hot.toPhysicalColumn(currentColumn);
 
           this.#addGhostTableColumn(currentColumn, columnSamples);
@@ -674,7 +680,7 @@ export class AutoColumnSize extends BasePlugin {
         }
       }
 
-      return currentColumn > lastColumn;
+      return currentColumn > lastLiveColumn;
     };
     const flushGhostTable = () => {
       if (this.ghostTable.columns.length) {

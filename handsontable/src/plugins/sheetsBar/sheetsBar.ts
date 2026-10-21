@@ -1355,9 +1355,11 @@ export class SheetsBar extends BasePlugin {
   };
 
   /**
-   * Runs host listeners that are told about a workbook change before it takes effect: a change's
-   * before-hook, and `afterSheetTabStateCapture`. A workbook change they request is refused
-   * (`#commit`), because the change they were told about would then run on another workbook state.
+   * Runs host listeners that are told about a workbook change before it has finished: a change's
+   * before-hook, `afterSheetTabStateCapture`, and `afterSheetTabStateRestore`, which fires in the
+   * middle of the switch. A workbook change they request is refused (`#commit`), because the change
+   * they were told about would then run on another workbook state: a restore listener that removed the
+   * departing sheet left `afterSheetTabChange` reporting a sheet that no longer exists.
    */
   #runBeforeChangeHook(runListeners: () => void) {
     const wasRunning = this.#isRunningBeforeHook;
@@ -1940,7 +1942,9 @@ export class SheetsBar extends BasePlugin {
     }
 
     if (viewState) {
-      this.hot.runHooks('afterSheetTabStateRestore', newId, newSheet.viewState, source);
+      this.#runBeforeChangeHook(() => {
+        this.hot.runHooks('afterSheetTabStateRestore', newId, newSheet.viewState, source);
+      });
     }
   }
 
