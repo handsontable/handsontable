@@ -53,11 +53,33 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
 
   test('keep the top handle on the outer corner when no clone renders over it', async () => {
     await mobileGrid.goto({ headers: false });
-    await mobileGrid.tapCell(0, 0);
+    await mobileGrid.tapCell(1, 1);
     await mobileGrid.expectHandlesVisible();
 
-    await expect.poll(() => mobileGrid.isTopHandleOnCellOuterCorner(0, 0)).toBe(true);
+    await expect.poll(() => mobileGrid.isTopHandleOnCellOuterCorner(1, 1)).toBe(true);
   });
+
+  // With no headers neither axis has a clone to sit under, so a range starting on row 0, column 0 or both would
+  // push the top handle off the grid edge. The bottom handle assertion is a control: it was never clipped.
+  for (const { direction, start } of [
+    { direction: 'ltr', start: [0, 0] },
+    { direction: 'rtl', start: [0, 0] },
+    { direction: 'ltr', start: [0, 2] },
+    { direction: 'ltr', start: [2, 0] },
+  ] as const) {
+    test(`keep the top handle and its hit area inside the grid for a range starting at ${start} with no headers (${direction})`, async () => {
+      const [row, col] = start;
+
+      await mobileGrid.goto({ direction, headers: false });
+      await mobileGrid.tapCell(row, col);
+      await mobileGrid.selectRange(row, col, row + 2, col + 1);
+      await mobileGrid.expectHandlesVisible();
+
+      await expect.poll(() => mobileGrid.isHandleInsideGrid(mobileGrid.topHandle())).toBe(true);
+      await expect.poll(() => mobileGrid.isHandleInsideGrid(mobileGrid.topHitArea())).toBe(true);
+      await expect.poll(() => mobileGrid.isHandleInsideGrid(mobileGrid.bottomHandle())).toBe(true);
+    });
+  }
 
   test('keep the bottom handle interactive when a range ends on the bottom freeze line', async () => {
     await mobileGrid.goto({ frozenBottom: true, rows: 'tall' });

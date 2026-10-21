@@ -98,6 +98,14 @@ export class MobileHandlesPage {
   }
 
   /**
+   * The hit area of the top-left mobile selection handle, scoped to the master overlay. It is larger
+   * than the painted handle.
+   */
+  topHitArea(): Locator {
+    return this.page.locator('.ht_master .htBorders .topSelectionHandle-HitArea:visible').first();
+  }
+
+  /**
    * The bottom-right mobile selection handle of the focus selection, scoped
    * to the master overlay.
    */
@@ -180,6 +188,24 @@ export class MobileHandlesPage {
 
     return handleBox.y + handleBox.height <= cellBox.y + (handleBox.height / 2)
       && handleBox.x + handleBox.width <= cellBox.x + (handleBox.width / 2);
+  }
+
+  /**
+   * Returns whether the handle, or hit area, sits fully inside the grid's root box, so no edge of the grid
+   * clips it.
+   */
+  async isHandleInsideGrid(handle: Locator): Promise<boolean> {
+    const handleBox = await handle.boundingBox();
+    const gridBox = await this.grid.boundingBox();
+
+    if (!handleBox || !gridBox) {
+      return false;
+    }
+
+    return handleBox.x >= gridBox.x
+      && handleBox.y >= gridBox.y
+      && handleBox.x + handleBox.width <= gridBox.x + gridBox.width
+      && handleBox.y + handleBox.height <= gridBox.y + gridBox.height;
   }
 
   /**

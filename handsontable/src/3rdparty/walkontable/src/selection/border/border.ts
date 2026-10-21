@@ -765,16 +765,21 @@ class Border {
     const isTopHandleUnderTopClone = this.isTopHandleOccludedByClone('row', fromRow);
     const isTopHandleUnderInlineStartClone = this.isTopHandleOccludedByClone('column', fromCol);
 
-    topStyles.top = `${parseInt(String(isTopHandleUnderTopClone ? top + 1 : top - handleSize - 1), 10)}px`;
+    // The handle hangs past the selection's top-start corner, so a range that starts at the first row
+    // or column with no header over it would push the handle off the table and the grid edge would
+    // clip it. Clamp it at the start edges, as the bottom handle is clamped at the end edges below.
+    topStyles.top = `${
+      Math.max(0, parseInt(String(isTopHandleUnderTopClone ? top + 1 : top - handleSize - 1), 10))
+    }px`;
     topStyles[inlinePosProperty] = `${
-      parseInt(String(isTopHandleUnderInlineStartClone ? left + 1 : left - handleSize - 1), 10)
+      Math.max(0, parseInt(String(isTopHandleUnderInlineStartClone ? left + 1 : left - handleSize - 1), 10))
     }px`;
 
     topHitAreaStyles.top = `${
-      parseInt(String(isTopHandleUnderTopClone ? top : top - ((hitAreaSize / 4) * 3)), 10)
+      Math.max(0, parseInt(String(isTopHandleUnderTopClone ? top : top - ((hitAreaSize / 4) * 3)), 10))
     }px`;
     topHitAreaStyles[inlinePosProperty] = `${
-      parseInt(String(isTopHandleUnderInlineStartClone ? left : left - ((hitAreaSize / 4) * 3)), 10)
+      Math.max(0, parseInt(String(isTopHandleUnderInlineStartClone ? left : left - ((hitAreaSize / 4) * 3)), 10))
     }px`;
 
     // Mirror of the row lift below on the inline axis: the `inline_end` clone owns the band past the

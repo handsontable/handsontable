@@ -323,10 +323,16 @@ Note `.wtHolder` is the clipping box on the three scroll-mirrored clones
 holders are composited scroll containers" below), while the clone element is `overflow: visible`
 and ends a few pixels earlier — measure the holder, not the clone.
 
-One case is *not* covered and is not a regression: with both headers off and no frozen panes, a row-0
-top handle is drawn at a negative offset and the master's `.wtHolder` clips it. It was invisible
-before the stacking context too, so it keeps the outer-corner placement
-(`mobile-selection-handles.spec.ts` pins that branch).
+With a header off and no frozen pane, a range that starts at the first row or column has no clone to
+sit under, and the outer-corner placement would put the top handle at a negative offset that the master's
+`.wtHolder` clips. `updateMultipleSelectionHandlesPosition` therefore clamps the top handle and its hit
+area at the start edges with `Math.max(0, ...)`, as the bottom handle is clamped at the end edges, so the
+handle sits over the cell's own corner instead of outside the grid. The hit area hangs further out than
+the handle (`hitAreaSize * 3 / 4`, against `handleSize + 1`), so its clamp also fires for a cell within
+that distance of the table start; the painted handle still keeps the outer-corner placement there.
+`mobile-selection-handles.spec.ts` pins the clamp on each axis and in RTL, and the outer corner in LTR.
+The clamp reads the table's start edge, not the selection's corner: a range whose start is scrolled out
+of the rendered band draws its handle on the first rendered row, as it already did with headers on.
 
 The declarations live in `src/styles/base/_z-index-map.scss`, `css/walkontable.scss` (master and
 clone values, duplicated — keep in sync) and `src/styles/components/core/_selection.scss` (the
