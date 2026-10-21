@@ -4,54 +4,95 @@ import Handsontable from 'handsontable';
 import * as coreRegistries from '../registries';
 import * as pageRegistries from '../registries.umd';
 
-const SOURCE_DIR = path.resolve(__dirname, '..');
-// Any import, re-export or dynamic import of a registry module or of the hook registry, in either quote style.
-const REGISTRY_IMPORT = new RegExp(
-  '(from|import\\()\\s*[\'"]\\.\\./(cellTypes/registry|editors/registry|renderers/registry|validators/registry|' +
-  'plugins/registry|core/hooks|core/hooks/(?!constants)[^\'"]*)[\'"]'
-);
+const SRC_DIR = path.resolve(__dirname, '../..');
+const ENTRY = path.join(SRC_DIR, 'settingsSchema.ts');
+// The files that hold a registry. The CDN file must not bundle any of them: it reads the page's registries.
+const REGISTRY_FILES = [
+  'cellTypes/registry.ts',
+  'editors/registry.ts',
+  'renderers/registry.ts',
+  'validators/registry.ts',
+  'plugins/registry.ts',
+  'utils/staticRegister.ts',
+  'core/hooks/index.ts',
+].map(file => path.join(SRC_DIR, file));
+// What `.config/settings-schema-umd-development.js` swaps in the CDN build.
+const ALIASES = new Map([
+  [path.join(SRC_DIR, 'settingsSchema/registries.ts'), path.join(SRC_DIR, 'settingsSchema/registries.umd.ts')],
+]);
+const EXTERNALS = new Set([path.join(SRC_DIR, 'settingsSchema/pageHandsontable.ts')]);
+// A static import, a bare import, a re-export or a dynamic import, in either quote style.
+const IMPORT_SPECIFIER = /(?:\bfrom|\bimport|\bimport\()\s*['"]([^'"]+)['"]/g;
 
 /**
- * Reads a source with its type-only imports removed: a type import is erased and inlines nothing.
+ * Reads a source with its type-only imports and exports removed: the build erases them, so they inline nothing.
  *
- * @param {string} file The path relative to the module.
+ * @param {string} file The absolute path.
  * @returns {string}
  */
 function readRuntimeSource(file) {
-  return fs.readFileSync(path.join(SOURCE_DIR, file), 'utf8').replace(/^import type[^;]*;$/gm, '');
+  return fs.readFileSync(file, 'utf8').replace(/^(import|export) type[^;]*;$/gm, '');
 }
 
 /**
- * Lists the TypeScript sources of the module, the ones in subdirectories too.
+ * Resolves a relative specifier the way the bundler does.
  *
- * @param {string} dir The directory to list.
- * @returns {string[]} The paths relative to the module.
+ * @param {string} from The importing file.
+ * @param {string} specifier The specifier.
+ * @returns {string|null} The absolute path of the source, or `null` for a package or a missing file.
  */
-function listSources(dir = SOURCE_DIR) {
-  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const fullPath = path.join(dir, entry.name);
+function resolveSource(from, specifier) {
+  if (!specifier.startsWith('.')) {
+    return null;
+  }
 
-    if (entry.isDirectory()) {
-      return entry.name === '__tests__' ? [] : listSources(fullPath);
+  const base = path.resolve(path.dirname(from), specifier);
+
+  return [`${base}.ts`, `${base}.js`, path.join(base, 'index.ts'), path.join(base, 'index.js')]
+    .find(candidate => fs.existsSync(candidate)) ?? null;
+}
+
+/**
+ * Collects every source file the CDN build bundles, following the imports of the public entry.
+ *
+ * @returns {Set<string>} The absolute paths.
+ */
+function collectBundledSources() {
+  const bundled = new Set();
+  const queue = [ENTRY];
+
+  while (queue.length > 0) {
+    const file = queue.pop();
+
+    if (!bundled.has(file) && !EXTERNALS.has(file)) {
+      bundled.add(file);
+
+      Array.from(readRuntimeSource(file).matchAll(IMPORT_SPECIFIER)).forEach(([, specifier]) => {
+        const resolved = resolveSource(file, specifier);
+
+        if (resolved !== null) {
+          queue.push(ALIASES.get(resolved) ?? resolved);
+        }
+      });
     }
+  }
 
-    return entry.name.endsWith('.ts') ? [path.relative(SOURCE_DIR, fullPath)] : [];
-  });
+  return bundled;
 }
 
 describe('settingsSchema registries', () => {
   describe('boundary', () => {
-    it('should read every registry through ./registries and nowhere else', () => {
-      // The CDN file swaps `registries.ts` for `registries.umd.ts`. A module that imports a registry
-      // directly gets inlined with a second, empty copy of it there.
-      const sources = listSources().filter(file => !/^registries(\.umd)?\.ts$/.test(file));
+    it('should bundle no registry into the CDN file, however a module reaches it', () => {
+      // The CDN file swaps `registries.ts` for `registries.umd.ts`. A module that reaches a registry another way
+      // (a barrel such as `../plugins`, a re-export, a helper that imports it) gets the registry inlined with a second,
+      // empty copy, and the file then reports every cell type and plugin as unregistered.
+      const bundled = collectBundledSources();
 
-      expect(sources).toContain('validateSettings.ts');
-
-      sources.forEach((file) => {
-        expect({ file, importsRegistry: REGISTRY_IMPORT.test(readRuntimeSource(file)) })
-          .toEqual({ file, importsRegistry: false });
-      });
+      expect(bundled).toContain(ENTRY);
+      expect(bundled).toContain(path.join(SRC_DIR, 'settingsSchema/validateSettings.ts'));
+      expect(bundled).toContain(path.join(SRC_DIR, 'settingsSchema/registries.umd.ts'));
+      expect(bundled).not.toContain(path.join(SRC_DIR, 'settingsSchema/registries.ts'));
+      expect(REGISTRY_FILES.filter(file => bundled.has(file)).map(file => path.relative(SRC_DIR, file))).toEqual([]);
     });
 
     it('should export the same names from the page adapter as from the core registries', () => {
@@ -136,9 +177,12 @@ describe('settingsSchema registries', () => {
       expect(() => adapter.hasEditor('text')).toThrow('Load handsontable.js or handsontable.full.js before');
     });
 
-    it('should name the problem when the page has a Handsontable without the bridge', () => {
+    it('should fail when the file loads, not in a later call, if the page has a Handsontable without the bridge', () => {
+      // `schema.ts` reads the hooks when the file loads. A Handsontable of an older version has `hooks` and no
+      // bridge, and a throw from a later call would be turned into one `invalidSettings` problem for every call.
       const adapter = loadAdapter({ hooks: {} });
 
+      expect(() => adapter.getHooks()).toThrow('and use files of the same version');
       expect(() => adapter.hasPlugin('Filters')).toThrow('and use files of the same version');
     });
   });

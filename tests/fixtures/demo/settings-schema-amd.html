@@ -26,18 +26,15 @@
   </script>
   <script>
     // A minimal RequireJS-style AMD loader present BEFORE the bundles load, the SharePoint/RequireJS hosting
-    // scenario. Under it the Handsontable bundle registers through `define` and sets no `window.Handsontable`,
-    // so the schema file has to take Handsontable from its AMD dependency (`handsontable`). The loader runs a
-    // factory at once with the modules it already holds, like a real loader would for loaded dependencies. A
-    // bundle names itself `Handsontable`; a project maps that to the `handsontable` the dependency asks for.
+    // scenario. Under it the Handsontable bundle registers through `define` under its own name, `Handsontable`,
+    // and sets no `window.Handsontable`. The schema file asks the loader for a module named `Handsontable`, so it
+    // resolves with no `map`. Like RequireJS, the loader matches ids exactly (case included) and runs a factory at
+    // once with the modules it already holds.
     window.__amdModules = {};
     window.define = function(name, deps, factory) {
-      const aliases = { handsontable: 'Handsontable' };
-      const resolved = deps.map(function(dep) {
-        return window.__amdModules[aliases[dep] || dep];
-      });
-
-      window.__amdModules[name] = factory.apply(null, resolved);
+      window.__amdModules[name] = factory.apply(null, deps.map(function(dep) {
+        return window.__amdModules[dep];
+      }));
     };
     window.define.amd = {};
   </script>

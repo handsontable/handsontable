@@ -20,7 +20,7 @@ settings object against it and against what the page registers. Guide:
   do not declare falls back to its JSDoc `@type` (10 options as of 19.0). A new option therefore needs no change
   here, but a new option the types do not declare gets only the coarse JSDoc type.
 - **Core must not import this module**, and neither may anything core imports. The schema is about 100 KB of JSON
-  (the subpath bundles to about 80 KB minified, 19 KB gzipped), and the main UMD bundles must not carry it (the
+  (the subpath bundles to about 80 KB minified, 18 KB gzipped), and the main UMD bundles must not carry it (the
   CDN file below ships it). Nothing validates settings on its own: `new Handsontable()` and `updateSettings()` never
   call `validateSettings()`.
 - **There is a second build of this module, the CDN file `dist/handsontable.settings-schema.js` (and `.min.js`).** It
@@ -40,9 +40,15 @@ settings object against it and against what the page registers. Guide:
   needs an export in both adapters and an entry in the bridge. `registries.unit.js` pins the boundary (a direct
   registry import fails it), the same export names in the two adapters, and the bridge against the real registries.
   `tests/e2e/settings-schema-umd.spec.ts` pins the built file in a real browser on the plain and the minified bundle,
-  on a script-tag page and on an AMD page, and that the main bundles carry no schema. A schema file of another version
-  than the page's bundle is not detected: it fails on a missing `_registries` with a message that names the load order
-  and the version, and otherwise reads the page's registries against its own schema.
+  on a script-tag page and on an AMD page, and that none of the four main bundles carries the schema. The AMD external
+  is the module `Handsontable` (the name the bundle defines itself under), so a page needs no `map`; the fake loader
+  of `settings-schema-amd.html` matches ids exactly like RequireJS. A schema file next to a bundle that predates
+  `_registries` fails when it loads, with a message that names the load order and the version: `schema.ts` calls
+  `getHooks()` then, and a throw from a later call would end in `validateSettings()`'s catch-all as one
+  `invalidSettings` problem for every call. A bundle of another version that has the bridge is not detected: the file
+  reads that page's registries against its own schema, `REMOVED_HOOKS` and `DEPRECATED_HOOKS`. `registries.umd.ts` and
+  `pageHandsontable.ts` are bundled from `src/` by the CDN build only, so `swc-transpile.mjs` and
+  `tsconfig.build-types.json` leave them out of the package.
 - The hooks are not generated. `schema.ts` adds one property per hook from the hook registry when the module
   loads, and `validateSettings()` asks `Hooks#isRegistered()` at call time, so a hook registered later passes too.
 

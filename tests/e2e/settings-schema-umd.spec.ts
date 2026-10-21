@@ -101,19 +101,22 @@ test.describe('settings schema CDN file', { tag: BUNDLES_TAG }, () => {
     expect(await schemaPage.validate({ filterValueComparator: FUNCTION }, true)).toEqual([]);
   });
 
-  test('is not in the main bundle', async ({ page, bundle }) => {
-    // The file exists so that every CDN page does not carry the ~50 KB schema.
-    const file = bundle === 'umd' ? 'handsontable.js' : 'handsontable.full.min.js';
-    const response = await page.request.get(`/handsontable/dist/${file}`);
+  test('is not in any main bundle', async ({ page }) => {
+    // The file exists so that every CDN page does not carry the ~50 KB schema. The four main bundles all come
+    // from the documented minimal build (`build:umd` and `build:umd.min`).
+    for (const file of ['handsontable.js', 'handsontable.min.js', 'handsontable.full.js', 'handsontable.full.min.js']) {
+      const response = await page.request.get(`/handsontable/dist/${file}`);
 
-    expect(response.ok()).toBe(true);
-    expect(await response.text()).not.toContain('x-handsontable');
+      expect(response.ok(), file).toBe(true);
+      expect(await response.text(), file).not.toContain('x-handsontable');
+    }
   });
 });
 
 /**
  * On a page with an AMD loader the Handsontable bundle registers through `define` and sets no global, so the
- * schema file has to get Handsontable from its AMD dependency instead of a global that is not there.
+ * schema file has to get Handsontable from its AMD dependency, the module `Handsontable`, instead of a global that is
+ * not there.
  */
 test.describe('settings schema CDN file with an AMD loader', { tag: BUNDLES_TAG }, () => {
   const loader: SettingsSchemaLoader = 'amd';

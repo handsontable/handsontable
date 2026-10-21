@@ -22,7 +22,8 @@ module.exports.create = function create(envArgs) {
     delete c.output.libraryExport;
     // Read the registries of the page's `Handsontable` instead of inlining a second, empty copy: the alias swaps the
     // registry adapter, and the external makes the page's `Handsontable` its source. The external is the global
-    // `Handsontable`, or the module an AMD or CommonJS loader resolves for `handsontable` (as in the theme files).
+    // `Handsontable`, or the module a CommonJS loader resolves for `handsontable`, or the AMD module `Handsontable`:
+    // the bundle defines itself under that name, so an AMD page needs no `map` to resolve it.
     c.resolve.alias = {
       ...c.resolve.alias,
       [path.resolve(__dirname, '../src/settingsSchema/registries.ts')]:
@@ -33,7 +34,7 @@ module.exports.create = function create(envArgs) {
         root: 'Handsontable',
         commonjs2: PACKAGE_FILENAME,
         commonjs: PACKAGE_FILENAME,
-        amd: PACKAGE_FILENAME,
+        amd: 'Handsontable',
       },
     };
   });

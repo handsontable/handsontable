@@ -235,12 +235,16 @@ registered names, plugins, and data properties.
 ## Use it from a CDN
 
 The main bundles (`handsontable.js`, `handsontable.full.js`, and their minified files) do not contain the schema.
-Load the separate file `handsontable.settings-schema.js` (or `handsontable.settings-schema.min.js`) after the
-Handsontable bundle. It adds the global `HandsontableSettingsSchema` with `validateSettings()` and `settingsSchema`.
+Since version 19.0.0, a separate file does: load `handsontable.settings-schema.js` (or
+`handsontable.settings-schema.min.js`) after the Handsontable bundle. It adds the global `HandsontableSettingsSchema`
+with `validateSettings()` and `settingsSchema`.
+
+Pin both files to the same version. A schema file next to an older bundle that a cache or a CDN edge still serves
+does not load.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.settings-schema.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/handsontable@<version>/dist/handsontable.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/handsontable@<version>/dist/handsontable.settings-schema.min.js"></script>
 <script>
   const { valid, problems } = HandsontableSettingsSchema.validateSettings({ colHeader: true });
 
@@ -250,11 +254,26 @@ Handsontable bundle. It adds the global `HandsontableSettingsSchema` with `valid
 
 The file carries no registries of its own. It reads the ones of the `Handsontable` on the page, so
 `validateSettings()` sees the cell types, editors, renderers, validators, plugins, and hooks that you register later
-too. Load it after the Handsontable bundle, and use files of the same version.
+too. Load it after the Handsontable bundle.
 
-On a page with an AMD loader, such as RequireJS, the file asks the loader for the `handsontable` module, the way the
-theme files do. Map the module name to the Handsontable bundle in the loader configuration. In a bundler, import
-`handsontable/settingsSchema` from the npm package instead.
+On a page with an AMD loader, such as RequireJS, both files register under a name: `Handsontable` and
+`HandsontableSettingsSchema`. The schema file asks for the module `Handsontable`, so point both names at the files
+and require them by those names:
+
+```js
+requirejs.config({
+  paths: {
+    Handsontable: 'https://cdn.jsdelivr.net/npm/handsontable@<version>/dist/handsontable.full.min',
+    HandsontableSettingsSchema: 'https://cdn.jsdelivr.net/npm/handsontable@<version>/dist/handsontable.settings-schema.min',
+  },
+});
+
+requirejs(['HandsontableSettingsSchema'], ({ validateSettings }) => {
+  console.log(validateSettings({ colHeader: true }));
+});
+```
+
+In a bundler, import `handsontable/settingsSchema` from the npm package instead.
 
 :::
 
@@ -270,9 +289,9 @@ theme files do. Map the module name to the Handsontable bundle in the loader con
   keys are type-checked. A value that is an instance of a class, such as a `ThemeBuilder` for `theme`, is accepted
   without a check of its contents.
 - Only the first 50 rows of `data` are checked, for their type and for the `columns[].data` properties.
-- `settingsSchema` lists the hooks registered when the module loads. A hook that a plugin registers later, such as
-  `afterContextMenuExecute`, is missing from the object if you import `handsontable/settingsSchema` before the
-  plugin. `validateSettings()` accepts it either way.
+- `settingsSchema` lists the hooks registered when the module loads, or, for the CDN file, when the file loads. A
+  hook that a plugin registers later, such as `afterContextMenuExecute`, is missing from the object if you import
+  `handsontable/settingsSchema` (or load the CDN file) before the plugin. `validateSettings()` accepts it either way.
 
 ## Related API reference
 

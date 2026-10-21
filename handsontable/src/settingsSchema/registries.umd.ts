@@ -100,6 +100,11 @@ export function getPluginsNames(): string[] {
  * @returns {Hooks} The `Hooks` singleton.
  */
 export function getHooks(): Hooks {
+  // `schema.ts` calls this when the file loads, so a page without Handsontable, or with a bundle that has no bridge
+  // (an older version), fails there with the message below instead of in the first `validateSettings()` call,
+  // which turns any error into one `invalidSettings` problem.
+  getBridge();
+
   if (pageHandsontable === undefined) {
     throwWithCause(NOT_FOUND_MESSAGE);
   }
