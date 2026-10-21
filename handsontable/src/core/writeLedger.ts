@@ -16,12 +16,18 @@ export interface WriteLedgerCall {
    */
   register: (change: CellChange, key: string, cellMeta: LedgerCellMeta, structureVersion: number) => void;
   /**
-   * Takes out the changes a newer write to the same cell has overtaken. `onOvertaken` receives the
-   * validity the newer write left on the cell, because the overtaken validator wrote its own.
+   * Records the validity a validator answered for a change. The cell meta is shared by every write to
+   * the cell, so it holds only what the last validator to answer wrote.
+   */
+  answered: (change: CellChange, valid: boolean) => void;
+  /**
+   * Takes out the changes a newer write to the same cell has overtaken, and gives the cell the
+   * validity of the write that lands on it. `restoreValidity` receives that validity, because a
+   * validator that answered later wrote its own on the shared cell meta.
    */
   claim: (
     changes: CellChange[],
-    onOvertaken: (cellMeta: LedgerCellMeta, valid: boolean, structureVersion: number) => void,
+    restoreValidity: (cellMeta: LedgerCellMeta, valid: boolean, structureVersion: number) => void,
   ) => void;
   /**
    * Marks the cells of the changes that were applied as written by this call.
@@ -39,10 +45,14 @@ interface CellEntry {
   valid?: boolean;
 }
 
+const accessorIds = new WeakMap<object, number>();
+let accessorCount = 0;
+
 /**
  * Builds the key a write to a cell is ordered by. It names the cell the write lands on: the visual
- * row, which `applyChanges()` writes through, and the property, or the visual column for a column that
- * has no property of its own (an unbound column, or a data accessor function).
+ * row, which `applyChanges()` writes through, and the property. A data accessor function is the
+ * property of its column, so the function itself names the column and survives a column move. An
+ * unbound column has no property, so the visual column stands in for it.
  *
  * @param row The visual row of the change.
  * @param prop The property of the change.
@@ -52,6 +62,15 @@ interface CellEntry {
 export function getCellWriteKey(row: number, prop: CellChange[1] | null, visualColumn: CellChange[1] | null): string {
   if (typeof prop === 'string' || typeof prop === 'number') {
     return `${row}:p${prop}`;
+  }
+
+  if (typeof prop === 'function') {
+    if (!accessorIds.has(prop)) {
+      accessorCount += 1;
+      accessorIds.set(prop, accessorCount);
+    }
+
+    return `${row}:f${accessorIds.get(prop)}`;
   }
 
   return `${row}:c${typeof visualColumn === 'function' ? '' : visualColumn}`;
@@ -76,7 +95,12 @@ export function createWriteLedger() {
 
     const callSequence = sequence;
     const keys = new Set<string>();
-    const changeKeys = new Map<CellChange, { key: string, cellMeta: LedgerCellMeta, structureVersion: number }>();
+    const changeKeys = new Map<CellChange, {
+      key: string,
+      cellMeta: LedgerCellMeta,
+      structureVersion: number,
+      valid?: boolean,
+    }>();
 
     return {
       register(change, key, cellMeta, structureVersion) {
@@ -96,17 +120,31 @@ export function createWriteLedger() {
           cells.set(key, { applied: 0, inflight: 1 });
         }
       },
-      claim(changes, onOvertaken) {
+      answered(change, valid) {
+        const registered = changeKeys.get(change);
+
+        if (registered) {
+          registered.valid = valid;
+        }
+      },
+      claim(changes, restoreValidity) {
         for (let i = changes.length - 1; i >= 0; i--) {
           const registered = changeKeys.get(changes[i]);
           const entry = registered === undefined ? undefined : cells.get(registered.key);
 
-          if (registered && entry && entry.applied > callSequence) {
-            changes.splice(i, 1);
+          if (!registered || !entry) {
+            continue;
+          }
 
-            if (typeof entry.valid === 'boolean') {
-              onOvertaken(registered.cellMeta, entry.valid, registered.structureVersion);
-            }
+          const isOvertaken = entry.applied > callSequence;
+          const valid = isOvertaken ? entry.valid : registered.valid;
+
+          if (isOvertaken) {
+            changes.splice(i, 1);
+          }
+
+          if (typeof valid === 'boolean' && registered.cellMeta.valid !== valid) {
+            restoreValidity(registered.cellMeta, valid, registered.structureVersion);
           }
         }
       },
@@ -117,7 +155,7 @@ export function createWriteLedger() {
 
           if (registered && entry && entry.applied < callSequence) {
             entry.applied = callSequence;
-            entry.valid = registered.cellMeta.valid;
+            entry.valid = registered.valid ?? entry.valid;
           }
         });
       },

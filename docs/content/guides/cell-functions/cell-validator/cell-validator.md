@@ -453,6 +453,8 @@ Mind that changes in table are applied after running all validators (both synchr
 
 When you write to the same cell twice while an asynchronous validator is still running, the last write wins. If the validator of the newer write answers first, Handsontable applies the newer value and drops the older one, and the cell keeps the validity of the newer value. The dropped write fires [`beforeChange`](@/api/hooks.md#beforechange) but not [`afterChange`](@/api/hooks.md#afterchange). If the newer write is rejected because [`allowInvalid`](@/api/options.md#allowinvalid) is `false`, the older write still applies.
 
+The order holds only among writes that wait on a validator. A [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) call is not tracked, and neither is a correction that a validator writes late with a `setDataAtCell()` source ending in `Validator`, so an older validated write can still land on top of either.
+
 ### FAQ: Does the invalid CSS class still apply when <code>allowInvalid</code> is <code>true</code>?
 
 **Yes.** When <code>allowInvalid</code> is and a validator returns <code>false</code>, the value is written to the data source (the editor closes normally), but Handsontable still applies the invalid CSS class to the cell. By default that class is <code>htInvalid</code>; you can change it per-column or globally with the [`invalidCellClassName`](/docs/javascript-data-grid/api/options/#invalidcellclassname) option. The two concerns — whether to accept the value and how to mark the cell — are fully independent. See also the [`allowInvalid`](/docs/javascript-data-grid/api/options/#allowinvalid) option for details.

@@ -2925,15 +2925,15 @@ export default function Core(
   }
 
   /**
-   * Gives a cell the validity the newer write left on it, after the validator of an overtaken write
-   * had set its own.
+   * Gives a cell the validity of the write that lands on it, after a validator that answered later
+   * wrote its own on the shared cell meta.
    *
    * @private
-   * @param {object} cellMeta The cell meta the overtaken validator wrote on.
-   * @param {boolean} valid The validity of the write that overtook it.
+   * @param {object} cellMeta The cell meta the validators wrote on.
+   * @param {boolean} valid The validity of the write that lands on the cell.
    * @param {number} structureVersion The structure version captured when validation started.
    */
-  function restoreOvertakenValidity(cellMeta: LedgerCellMeta, valid: boolean, structureVersion: number) {
+  function restoreValidity(cellMeta: LedgerCellMeta, valid: boolean, structureVersion: number) {
     cellMeta.valid = valid;
     persistValidationResult(cellMeta as Parameters<typeof persistValidationResult>[0], valid, structureVersion);
   }
@@ -2991,7 +2991,7 @@ export default function Core(
       instance.removeHook('afterChange', onAfterChange);
 
       try {
-        ledger?.claim(changes, restoreOvertakenValidity);
+        ledger?.claim(changes, restoreValidity);
 
         if (
           activeEditor &&
@@ -3090,7 +3090,7 @@ export default function Core(
           structureVersion,
         );
 
-        instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference) {
+        instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference, change) {
           return function(result: boolean) {
             if (typeof result !== 'boolean') {
               throwWithCause('Validation error: result is not boolean');
@@ -3107,9 +3107,10 @@ export default function Core(
               persistValidationResult(cellPropertiesReference, true, structureVersion);
             }
 
+            ledger?.answered(change, result);
             waitingForValidator.removeValidatorFormQueue();
           };
-        }(i, cellProperties)), source);
+        }(i, cellProperties, changes[i])), source);
       }
     }
   }

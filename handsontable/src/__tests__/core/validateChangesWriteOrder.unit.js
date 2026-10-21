@@ -249,6 +249,23 @@ describe('Core validation of writes to the same cell', () => {
     expect(hot.getCellMeta(0, 0).valid).toBe(false);
   });
 
+  it('should mark the cell with the result of the write it holds when both calls apply', async() => {
+    createGrid();
+
+    hot.setDataAtCell(0, 0, 'first');
+    hot.setDataAtCell([[0, 0, 'second'], [1, 0, 'z']]);
+    await settle();
+    answer('second', false);
+    await settle();
+    answer('first', true);
+    await settle();
+    answer('z');
+    await settle();
+
+    expect(hot.getDataAtCell(0, 0)).toBe('second');
+    expect(hot.getCellMeta(0, 0).valid).toBe(false);
+  });
+
   it('should still apply a change that a validator corrects through a nested write', async() => {
     createGrid();
 
