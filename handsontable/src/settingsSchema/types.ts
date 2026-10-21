@@ -44,6 +44,11 @@ export interface SettingsSchemaAnnotations {
    * On the root: the keys a settings object may hold that are not documented options.
    */
   internalOptions?: string[];
+  /**
+   * On the root: the keys of the plugins that ship with Handsontable. Any other registered
+   * plugin is a third-party one, and its keys are accepted at every level.
+   */
+  builtInPlugins?: string[];
 }
 
 /**

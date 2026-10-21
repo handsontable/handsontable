@@ -103,13 +103,16 @@ validateSettings({
 | `pluginDisabled`      | An option has no effect because its plugin is off, such as `filterValueComparator` without `filters`. |
 | `unknownDataProperty` | A `columns[].data` property that none of the first 50 data rows has, or an index past the rows. |
 
+A hook set to `undefined` or `null` is not a problem: Handsontable skips it.
+
 The registry checks look at what is registered on the page when you call `validateSettings()`, so call it after
 `registerAllModules()` or your own `register*()` calls.
 
 ## Validate an update
 
 An `updateSettings()` payload often leaves out `data` and the plugin switches. Pass the instance as `hot`, and the
-check reads them from the grid:
+check reads them from the grid. In React, Angular, and Vue, take the instance from the `HotTable` component's
+`hotInstance`:
 
 ```js
 const payload = { columns: [{ data: 'name' }, { data: 'agee' }] };
@@ -182,7 +185,8 @@ unknown keywords, such as Ajv in strict mode, needs the keyword registered:
 import Ajv from 'ajv/dist/2020';
 import { settingsSchema } from 'handsontable/settingsSchema';
 
-const ajv = new Ajv();
+// Several options take more than one JSON type (`width` is a number or a string).
+const ajv = new Ajv({ allowUnionTypes: true });
 
 ajv.addKeyword('x-handsontable');
 
@@ -201,7 +205,12 @@ page: unknown option names, option levels, registered names, plugins, and data p
 - `validateSettings()` never calls a function it finds in the settings, so it does not check what a `columns` or
   `cells` function returns.
 - Unknown keys inside an option's object, such as `filters: { serchMode: 'apply' }`, are not reported. Their known
-  keys are type-checked.
+  keys are type-checked. A value that is an instance of a class, such as a `ThemeBuilder` for `theme`, is accepted
+  without a check of its contents.
+- Only the first 50 rows of `data` are checked, for their type and for the `columns[].data` properties.
+- `settingsSchema` lists the hooks registered when the module loads. A hook that a plugin registers later, such as
+  `afterContextMenuExecute`, is missing from the object if you import `handsontable/settingsSchema` before the
+  plugin. `validateSettings()` accepts it either way.
 - The module is not part of the UMD bundle. Import it from `handsontable/settingsSchema`.
 
 ## Related API reference

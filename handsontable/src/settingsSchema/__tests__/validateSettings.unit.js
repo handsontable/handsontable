@@ -402,4 +402,176 @@ describe('validateSettings', () => {
     });
     expect(Object.isFrozen(settingsSchema.properties.stretchH)).toBe(true);
   });
+  it('should report a problem of a cyclic settings object once', () => {
+    const cyclic = { colHeader: true };
+
+    cyclic.handsontable = cyclic;
+
+    expect(brief(validateSettings(cyclic))).toEqual([{ path: 'colHeader', code: 'unknownOption' }]);
+  });
+
+  it('should stop following nested grids after eight levels', () => {
+    let settings = { colHeader: true };
+
+    for (let level = 0; level < 20; level += 1) {
+      settings = { colHeader: true, handsontable: settings };
+    }
+
+    expect(validateSettings(settings).problems.length).toBe(9);
+  });
+
+  it('should not throw on bad options, and report an unknown level', () => {
+    expect(() => validateSettings({}, null)).not.toThrow();
+    expect(validateSettings({ colHeaders: true }, null).problems).toEqual([]);
+    expect(validateSettings({}, { level: 'row' }).problems).toEqual([
+      {
+        path: '',
+        code: 'invalidSettings',
+        message: 'Unknown level \'row\'. Expected \'grid\', \'column\', or \'cell\'.',
+      },
+    ]);
+    expect(brief(validateSettings({}, { level: 'toString' }))).toEqual([{ path: '', code: 'invalidSettings' }]);
+  });
+
+  it('should keep the problems found before a read that throws deep inside', () => {
+    const throwingRow = new Proxy({}, { ownKeys() { throw new Error('boom'); } });
+
+    expect(brief(validateSettings({
+      colHeader: true,
+      filters: { get searchMode() { throw new Error('boom'); } },
+      data: [throwingRow],
+      columns: [{ data: 'name' }],
+    }))).toEqual([
+      { path: 'colHeader', code: 'unknownOption' },
+      { path: 'filters.searchMode', code: 'invalidValue' },
+      // The row's keys cannot be listed, so it has no `name` the check can find.
+      { path: 'columns[0].data', code: 'unknownDataProperty' },
+    ]);
+  });
+
+  it('should accept a hook set to undefined or null, at any level', () => {
+    expect(validateSettings({
+      afterChange: undefined,
+      beforeChange: null,
+      columns: [{ afterChange: undefined }],
+    }).problems).toEqual([]);
+  });
+
+  it('should report a hook array that holds something other than a function', () => {
+    expect(validateSettings({ afterChange: [() => {}, 1] }).problems).toEqual([
+      {
+        path: 'afterChange',
+        code: 'invalidType',
+        message: 'Expected a function or an array of functions, got an array that holds something else.',
+      },
+    ]);
+  });
+
+  it('should report a removed hook with the version it was removed in', () => {
+    expect(validateSettings({ modifyRow() {} }).problems).toEqual([
+      { path: 'modifyRow', code: 'unknownOption', message: '\'modifyRow\' is a hook that was removed in 8.0.0.' },
+    ]);
+  });
+
+  it('should report only the wrong rows of mixed data, judged against the shape most rows have', () => {
+    const data = Array.from({ length: 40 }, (_, row) => ({ name: `Ana ${row}` }));
+
+    data[3] = 'Ana';
+
+    // `data` is `unknown[][] | object[]`, and an `object` may be an array.
+    expect(validateSettings({ data }).problems).toEqual([
+      { path: 'data[3]', code: 'invalidType', message: 'Expected an array or an object, got a string.' },
+    ]);
+  });
+
+  it('should type-check only a sample of a long data set', () => {
+    const data = Array.from({ length: 200000 }, () => ({ name: 'Ana' }));
+
+    data[100] = 'Ana';
+    data[199999] = 'Ana';
+
+    expect(validateSettings({ data }).problems).toEqual([]);
+
+    data[10] = 'Ana';
+
+    expect(brief(validateSettings({ data }))).toEqual([{ path: 'data[10]', code: 'invalidType' }]);
+  });
+
+  it('should check a plain object or an array given where a class instance is also accepted', () => {
+    class Builder {}
+
+    expect(validateSettings({ theme: new Builder() }).problems).toEqual([]);
+    expect(validateSettings({ theme: 'ht-theme-main' }).problems).toEqual([]);
+    expect(brief(validateSettings({ theme: [] }))).toEqual([{ path: 'theme', code: 'invalidType' }]);
+  });
+
+  it('should report the key of a built-in plugin that is not one of its options', () => {
+    expect(brief(validateSettings({ undoRedo: true, autofill: true, columns: [{ undoRedo: false }] }))).toEqual([
+      { path: 'undoRedo', code: 'unknownOption' },
+      { path: 'autofill', code: 'unknownOption' },
+      { path: 'columns[0].undoRedo', code: 'unknownOption' },
+    ]);
+    expect(validateSettings({ undo: true, fillHandle: true }).problems).toEqual([]);
+  });
+
+  it('should find a column property that a row exposes through a getter', () => {
+    class Employee {
+      get name() {
+        return 'Ana';
+      }
+
+      get address() {
+        return { city: 'Lisbon' };
+      }
+    }
+
+    expect(validateSettings({
+      data: [new Employee()],
+      columns: [{ data: 'name' }, { data: 'address.city' }],
+    }).problems).toEqual([]);
+  });
+
+  it('should read a dotted column property as a key when dataDotNotation is off', () => {
+    expect(brief(validateSettings({
+      dataDotNotation: false,
+      data: [{ 'address.city': 'Lisbon', address: { zip: '1000' } }],
+      columns: [{ data: 'address.city' }, { data: 'address.zip' }],
+    }))).toEqual([{ path: 'columns[1].data', code: 'unknownDataProperty' }]);
+  });
+
+  it('should not check column properties against data that is not an array', () => {
+    expect(validateSettings({ data: 'rows', columns: [{ data: 'name' }] }).problems.map(({ path }) => path))
+      .toEqual(['data']);
+  });
+
+  it('should report a negative cell position', () => {
+    expect(validateSettings({ cell: [{ row: -1, col: 0, readOnly: true }] }).problems).toEqual([
+      { path: 'cell[0].row', code: 'invalidValue', message: 'Expected a number of at least 0, got -1.' },
+    ]);
+  });
+
+  it('should accept an array as the data schema', () => {
+    expect(validateSettings({ dataSchema: [null, null] }).problems).toEqual([]);
+  });
+
+  it('should not report a plugin as off for one column checked on its own', () => {
+    expect(validateSettings({ filterValueComparator: () => 0 }, { level: 'column' }).problems).toEqual([]);
+    expect(brief(validateSettings({ columns: [{ filterValueComparator: () => 0 }] }))).toEqual([
+      { path: 'columns[0].filterValueComparator', code: 'pluginDisabled' },
+    ]);
+  });
+
+  it('should treat a destroyed instance as one with no rows', () => {
+    const container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    const hot = new Handsontable(container, { data: [{ name: 'A' }], licenseKey: 'non-commercial-and-evaluation' });
+
+    hot.destroy();
+    container.remove();
+
+    expect(validateSettings({ columns: [{ data: 'agee' }], filterValueComparator: () => 0 }, { hot }).problems)
+      .toEqual([]);
+  });
 });

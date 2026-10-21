@@ -7,7 +7,7 @@ import { hasEditor } from '../editors/registry';
 import { hasRenderer } from '../renderers/registry';
 import { hasValidator } from '../validators/registry';
 import { getPlugin, getPluginsNames, hasPlugin } from '../plugins/registry';
-import { findClosestMatch } from '../helpers/string';
+import { findClosestMatch } from './closestMatch';
 import type { HotInstance } from '../core/types';
 import type {
   JsonSchemaObject,
@@ -43,6 +43,15 @@ const LEVEL_NODES: Record<SettingsSchemaLevel, JsonSchemaObject> = {
   columns: settingsSchema.$defs?.columnSettings ?? {},
   cells: settingsSchema.$defs?.cellSettings ?? {},
   cell: settingsSchema.$defs?.cellSettings ?? {},
+};
+
+/**
+ * The `level` option's values and the level each one checks.
+ */
+const INPUT_LEVELS: Record<string, SettingsSchemaLevel> = {
+  grid: 'grid',
+  column: 'columns',
+  cell: 'cell',
 };
 
 /**
@@ -98,7 +107,11 @@ interface Context {
    * The keys third-party plugins declare, accepted at every level.
    */
   pluginKeys: Set<string>;
-  dataSample: DataSample | null;
+  /**
+   * What the walk reads once per grid. The object is shared by every copy of the context made
+   * for a branch or a column, so a value read for one column is there for the next.
+   */
+  cache: { dataSample: DataSample | null };
 }
 
 /**
@@ -106,6 +119,10 @@ interface Context {
  */
 interface DataSample {
   rows: unknown[];
+  /**
+   * The keys of the object rows, for a "did you mean" hint.
+   */
+  rowKeys: string[];
   dataSchema: unknown;
   dotNotation: boolean;
 }
@@ -241,8 +258,11 @@ function hasRuntimeType(value: unknown, type: string): boolean {
     return false;
   }
 
+  // A class instance (a `ThemeBuilder`); a plain object or an array is checked against the JSON form.
   if (type === 'object') {
-    return true;
+    const prototype: unknown = Object.getPrototypeOf(value);
+
+    return !Array.isArray(value) && prototype !== Object.prototype && prototype !== null;
   }
 
   if (type === 'HTMLElement') {
@@ -314,6 +334,10 @@ function fitsBranch(value: unknown, branch: JsonSchemaObject): boolean {
     return branch.enum.includes(value);
   }
 
+  if (branch.minimum !== undefined && typeof value === 'number' && value < branch.minimum) {
+    return false;
+  }
+
   if (branch.type === undefined) {
     return true;
   }
@@ -351,6 +375,12 @@ function describeMismatch(value: unknown, node: JsonSchemaObject): { code: Setti
 
   if (literals.length > 0) {
     expected.push(`one of ${literals.map(formatLiteral).join(', ')}`);
+  }
+
+  const minimum = getBranches(node).find(branch => branch.minimum !== undefined)?.minimum;
+
+  if (minimum !== undefined && typeof value === 'number' && value < minimum) {
+    return { code: 'invalidValue', message: `Expected a number of at least ${minimum}, got ${value}.` };
   }
 
   const sameKindAsLiteral = literals.some(literal => typeof literal === typeof value);
@@ -424,9 +454,10 @@ function checkValue(value: unknown, node: JsonSchemaObject, path: string, contex
     return;
   }
 
-  // A value can fit several branches by kind (two array types, for example). It is valid when
-  // the contents of any one of them check out; otherwise the first branch's problems are reported.
-  let firstProblems: SettingsProblem[] | null = null;
+  // A value can fit several branches by kind (an array of arrays and an array of objects, for
+  // `data`). It is valid when the contents of any one of them check out; otherwise the branch with
+  // the fewest problems is the one the value meant, and its problems are reported.
+  let closestProblems: SettingsProblem[] | null = null;
 
   for (const branch of candidates) {
     const branchContext = { ...context, problems: [] };
@@ -437,10 +468,13 @@ function checkValue(value: unknown, node: JsonSchemaObject, path: string, contex
       return;
     }
 
-    firstProblems ??= branchContext.problems;
+    if (closestProblems === null || branchContext.problems.length < closestProblems.length) {
+      closestProblems = branchContext.problems;
+    }
   }
 
-  context.problems.push(...(firstProblems ?? []));
+  // A loop, not `push(...problems)`: a long `data` array can hold more problems than a call takes arguments.
+  (closestProblems ?? []).forEach(problem => context.problems.push(problem));
 }
 
 /**
@@ -494,7 +528,9 @@ function reportUnknownOption(key: string, level: SettingsSchemaLevel, path: stri
     return;
   }
 
-  const candidates = getOptionNames(level).concat(level === 'grid' ? Hooks.getSingleton().getRegistered() : []);
+  const candidates = level === 'grid' ?
+    [...new Set(getOptionNames(level).concat(Hooks.getSingleton().getRegistered()))] :
+    getOptionNames(level);
   const suggestion = findClosestMatch(key, candidates);
 
   context.problems.push({
@@ -526,7 +562,8 @@ function checkHook(key: string, value: unknown, level: SettingsSchemaLevel, path
     context.problems.push({
       path,
       code: 'invalidType',
-      message: `Expected a function or an array of functions, got ${describeKind(value)}.`,
+      message: `Expected a function or an array of functions, got ${
+        Array.isArray(value) ? 'an array that holds something else' : describeKind(value)}.`,
     });
   }
 }
@@ -576,9 +613,12 @@ function isPluginOn(pluginName: string, pluginKey: string, context: Context): bo
   }
 
   if (hot) {
-    const plugin = hot.getPlugin(pluginName) as { isEnabled?: () => boolean } | undefined;
-
-    return Boolean(plugin?.isEnabled?.());
+    try {
+      return Boolean(hot.getPlugin(pluginName)?.isEnabled?.());
+    } catch {
+      // A destroyed instance: nothing to tell, so no problem to report.
+      return true;
+    }
   }
 
   return Boolean(getDefaults()[pluginKey]);
@@ -622,7 +662,8 @@ function checkPlugin(key: string, value: unknown, node: JsonSchemaObject, path: 
     return;
   }
 
-  if (!isPluginOn(pluginName, pluginKey, context)) {
+  // A single column or cell checked on its own (`level: 'column'`) cannot know the grid's switches.
+  if ((context.gridSettings !== null || context.hot !== undefined) && !isPluginOn(pluginName, pluginKey, context)) {
     context.problems.push({
       path,
       code: 'pluginDisabled',
@@ -650,10 +691,15 @@ function readDataRows(context: Context): unknown[] {
   }
 
   const rows = [];
-  const count = hot ? Math.min(hot.countSourceRows(), DATA_SAMPLE_SIZE) : 0;
 
-  for (let row = 0; row < count; row += 1) {
-    rows.push(hot?.getSourceDataAtRow(row));
+  try {
+    const count = hot ? Math.min(hot.countSourceRows(), DATA_SAMPLE_SIZE) : 0;
+
+    for (let row = 0; row < count; row += 1) {
+      rows.push(hot?.getSourceDataAtRow(row));
+    }
+  } catch {
+    // A destroyed instance has no rows to read.
   }
 
   return rows;
@@ -675,7 +721,11 @@ function readSetting(key: string, context: Context): unknown {
     return read.ok ? read.value : undefined;
   }
 
-  return hot ? hot.getSettings()[key] : getDefaults()[key];
+  try {
+    return hot ? hot.getSettings()[key] : getDefaults()[key];
+  } catch {
+    return getDefaults()[key];
+  }
 }
 
 /**
@@ -685,18 +735,33 @@ function readSetting(key: string, context: Context): unknown {
  * @returns {DataSample}
  */
 function getDataSample(context: Context): DataSample {
-  context.dataSample ??= {
-    rows: readDataRows(context).filter(row => typeof row === 'object' && row !== null),
-    dataSchema: readSetting('dataSchema', context),
-    dotNotation: readSetting('dataDotNotation', context) !== false,
-  };
+  if (context.cache.dataSample === null) {
+    const rows = readDataRows(context).filter(row => typeof row === 'object' && row !== null);
+    const rowKeys = new Set<string>();
 
-  return context.dataSample;
+    rows.filter(isRecord).forEach((row) => {
+      try {
+        Object.keys(row).forEach(key => rowKeys.add(key));
+      } catch {
+        // A row whose keys cannot be listed adds no hint.
+      }
+    });
+
+    context.cache.dataSample = {
+      rows,
+      rowKeys: [...rowKeys],
+      dataSchema: readSetting('dataSchema', context),
+      dotNotation: readSetting('dataDotNotation', context) !== false,
+    };
+  }
+
+  return context.cache.dataSample;
 }
 
 /**
- * Tells whether a row holds a property: an own key named exactly so first, then a dotted path,
- * the order `DataMap#get` reads a cell in.
+ * Tells whether a row holds a property: a key named exactly so first, then a dotted path, the
+ * order `DataMap#get` reads a cell in. A key counts when the row's property lookup finds it, so a
+ * getter on a class of row objects counts too.
  *
  * @param {*} row The row.
  * @param {string} property The property.
@@ -708,21 +773,38 @@ function hasDataProperty(row: unknown, property: string, dotNotation: boolean): 
     return false;
   }
 
-  if (Object.prototype.hasOwnProperty.call(row, property) || !dotNotation || !property.includes('.')) {
-    return Object.prototype.hasOwnProperty.call(row, property);
+  if (hasKey(row, property) || !dotNotation || !property.includes('.')) {
+    return hasKey(row, property);
   }
 
   let current: unknown = row;
 
   for (const name of property.split('.')) {
-    if (!isRecord(current) || !Object.prototype.hasOwnProperty.call(current, name)) {
+    const read = isRecord(current) && hasKey(current, name) ? readProperty(current, name) : null;
+
+    if (read === null || !read.ok) {
       return false;
     }
 
-    current = current[name];
+    current = read.value;
   }
 
   return true;
+}
+
+/**
+ * Tells whether an object's property lookup finds a key, without throwing.
+ *
+ * @param {object} object The object.
+ * @param {string} key The key.
+ * @returns {boolean}
+ */
+function hasKey(object: object, key: string): boolean {
+  try {
+    return key in object;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -738,7 +820,7 @@ function checkDataProperty(value: unknown, path: string, context: Context): void
     return;
   }
 
-  const { rows, dataSchema, dotNotation } = getDataSample(context);
+  const { rows, rowKeys, dataSchema, dotNotation } = getDataSample(context);
   const objectRows = rows.filter(isRecord);
   const arrayRows = rows.filter(Array.isArray);
 
@@ -753,7 +835,7 @@ function checkDataProperty(value: unknown, path: string, context: Context): void
   } else if (typeof value === 'string' && objectRows.length > 0 &&
              !hasDataProperty(dataSchema, value, dotNotation) &&
              !objectRows.some(row => hasDataProperty(row, value, dotNotation))) {
-    const suggestion = findClosestMatch(value, [...new Set(objectRows.flatMap(row => Object.keys(row)))]);
+    const suggestion = findClosestMatch(value, rowKeys);
     const hint = suggestion === null ? '' : ` Did you mean '${suggestion}'?`;
 
     context.problems.push({
@@ -797,7 +879,15 @@ function checkOption(key: string, value: unknown, level: SettingsSchemaLevel, pa
     return;
   }
 
-  if (option?.['x-handsontable']?.hook || (option === undefined && Hooks.getSingleton().isRegistered(key))) {
+  const isHook = option?.['x-handsontable']?.hook || (option === undefined && Hooks.getSingleton().isRegistered(key));
+
+  // An unset value is never a problem, whatever the key or the level. Core skips a hook set to
+  // anything but a function, so `afterChange: condition ? callback : undefined` is fine too.
+  if (value === undefined || (isHook && value === null)) {
+    return;
+  }
+
+  if (isHook) {
     checkHook(key, value, level, path, context);
 
     return;
@@ -813,18 +903,17 @@ function checkOption(key: string, value: unknown, level: SettingsSchemaLevel, pa
 
   const levels = option['x-handsontable']?.levels ?? [];
 
-  // An unset value is never a problem, whatever the level.
-  if (value === undefined) {
-    return;
-  }
-
   if (!levels.includes(level)) {
     context.problems.push({ path, code: 'wrongLevel', message: `'${key}' can be set ${describeLevels(levels)} only.` });
 
     return;
   }
 
-  checkValue(value, levelNode ?? option, path, context);
+  // Every row of a large `data` set would make the check as slow as the data is long; the rows
+  // past the sample are not type-checked, as the `columns[].data` check reads the sample only.
+  const checked = key === 'data' && level === 'grid' && Array.isArray(value) ? value.slice(0, DATA_SAMPLE_SIZE) : value;
+
+  checkValue(checked, levelNode ?? option, path, context);
   checkRegistryName(value, option, path, context);
   checkPlugin(key, value, option, path, context);
 
@@ -896,33 +985,36 @@ function checkNestedSettings(
     ...context,
     gridSettings: settings,
     hot: undefined,
-    dataSample: null,
+    cache: { dataSample: null },
   } : { ...context };
 
   nestedContext.depth += 1;
   context.ancestors.add(settings);
   checkSettingsObject(settings, level, path, nestedContext);
   context.ancestors.delete(settings);
-
-  // The nested walk fills its own copy of the context; keep the sample it read for the next column.
-  if (level !== 'grid') {
-    context.dataSample = nestedContext.dataSample;
-  }
 }
 
 /**
- * Lists the settings keys the registered plugins declare.
+ * Lists the settings keys the registered third-party plugins declare.
  *
  * @returns {Set<string>}
  */
 function readPluginKeys(): Set<string> {
   const keys = new Set<string>();
 
+  const builtInPlugins = settingsSchema['x-handsontable']?.builtInPlugins ?? [];
+
   getPluginsNames().forEach((name) => {
     const pluginClass = getPlugin(name);
     const settingKeys = pluginClass?.SETTING_KEYS;
 
-    if (pluginClass?.PLUGIN_KEY) {
+    // A built-in plugin's options are in the schema. Its key is not always one of them (UndoRedo's
+    // key is `undoRedo`, its option `undo`), so accepting it would let a no-op key pass.
+    if (pluginClass === undefined || builtInPlugins.includes(pluginClass.PLUGIN_KEY)) {
+      return;
+    }
+
+    if (pluginClass.PLUGIN_KEY) {
       keys.add(pluginClass.PLUGIN_KEY);
     }
 
@@ -974,13 +1066,23 @@ function readPluginKeys(): Set<string> {
  */
 export function validateSettings(
   settings: unknown,
-  options: ValidateSettingsOptions = {},
+  options: ValidateSettingsOptions | null = {},
 ): SettingsValidationResult {
   const problems: SettingsProblem[] = [];
-  const level: SettingsSchemaLevel = options.level === 'column' ? 'columns' : (options.level ?? 'grid');
 
   try {
-    if (!isRecord(settings)) {
+    const { hot, level: levelOption = 'grid' }: ValidateSettingsOptions = options ?? {};
+    const levelName = String(levelOption);
+    const level = Object.prototype.hasOwnProperty.call(INPUT_LEVELS, levelName) ? INPUT_LEVELS[levelName] : undefined;
+
+    if (level === undefined) {
+      problems.push({
+        path: '',
+        code: 'invalidSettings',
+        message: `Unknown level ${formatLiteral(levelOption)}. Expected 'grid', 'column', or 'cell'.`,
+      });
+
+    } else if (!isRecord(settings)) {
       problems.push({
         path: '',
         code: 'invalidSettings',
@@ -988,20 +1090,19 @@ export function validateSettings(
       });
 
     } else {
-      const context: Context = {
+      checkSettingsObject(settings, level, '', {
         problems,
         ancestors: new Set([settings]),
         depth: 0,
         gridSettings: level === 'grid' ? settings : null,
-        hot: options.hot,
+        hot,
         pluginKeys: readPluginKeys(),
-        dataSample: null,
-      };
-
-      checkSettingsObject(settings, level, '', context);
+        cache: { dataSample: null },
+      });
     }
   } catch {
-    // Only an object built to fail every read (a revoked Proxy) gets here.
+    // A read the checks do not guard threw: a revoked Proxy as the settings object, or a Proxy
+    // nested deeper whose traps throw. The problems found before it are kept.
     problems.push({ path: '', code: 'invalidSettings', message: 'The settings object could not be read.' });
   }
 

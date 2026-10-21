@@ -20,11 +20,11 @@
  * a schema node's `type`. It is listed in the node's `x-handsontable.runtimeTypes`, so a
  * JSON validator rejects it while `validateSettings()` still accepts it at runtime.
  *
- * Usage (from the repo root):
- *   npm run build:settings-schema --prefix handsontable
+ * Usage (from `handsontable/`):
+ *   node scripts/run.mjs build:settings-schema
  */
 
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
@@ -37,6 +37,7 @@ const META_SCHEMA = resolve(PACKAGE_DIR, 'src', 'dataMap', 'metaManager', 'metaS
 const CORE_SETTINGS = resolve(PACKAGE_DIR, 'src', 'core', 'settings.ts');
 const PUBLIC_SETTINGS = resolve(PACKAGE_DIR, 'src', 'settings.ts');
 const OUTPUT = resolve(PACKAGE_DIR, 'src', 'settingsSchema', 'schema.generated.ts');
+const PLUGINS_DIR = resolve(PACKAGE_DIR, 'src', 'plugins');
 
 /**
  * How deep the converter follows nested object types. Deeper levels are emitted as `{}`
@@ -123,7 +124,14 @@ function readDocBlocks(src) {
  * @returns {string} The description, or an empty string.
  */
 function readDescription(block) {
-  const paragraph = block.trim().split(/\n\s*\n/)[0] ?? '';
+  // Most blocks open with the text; some open with a `@description` tag that holds it.
+  const text = block.trim().replace(/^@description\s*/, '');
+  // A markdown table carries no sentence, and its rows would run into the text, so the first
+  // paragraph with text outside a table is the description.
+  const paragraph = text.split(/\n\s*\n/)
+    .map(part => part.split('\n').filter(line => !line.trim().startsWith('|')).join('\n').trim())
+    // A footnote of the table (`\* The exact key ...`) is no description either.
+    .find(part => part !== '' && !part.startsWith('\\*')) ?? '';
 
   if (paragraph.startsWith('@')) {
     return '';
@@ -131,6 +139,8 @@ function readDescription(block) {
 
   return paragraph
     .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/<\/?kbd>/g, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -374,8 +384,9 @@ class TypeConverter {
       return [{ type: 'boolean' }];
     }
 
+    // TypeScript's `object` takes arrays too (`dataSchema: [null, null]`).
     if (hasFlag(type, ts.TypeFlags.NonPrimitive)) {
-      return [{ type: 'object' }];
+      return [{ type: 'object' }, { type: 'array' }];
     }
 
     if (type.isIntersection()) {
@@ -484,6 +495,13 @@ class TypeConverter {
    * @returns {boolean}
    */
   #isDomOrLibClass(type) {
+    // A mapped type (`Partial<GridSettings>`, `Omit<...>`, `Record<...>`) is a plain object whose
+    // symbol comes from the library, so the declaration test below would take it for a class.
+    // eslint-disable-next-line no-bitwise
+    if (((type.objectFlags ?? 0) & ts.ObjectFlags.Mapped) !== 0) {
+      return false;
+    }
+
     const declarations = type.getSymbol()?.getDeclarations() ?? [];
     const fromLib = declarations.length > 0 &&
       declarations.every(declaration => /[\\/]typescript[\\/]lib[\\/]lib\./.test(declaration.getSourceFile().fileName));
@@ -509,7 +527,7 @@ class TypeConverter {
  * Creates a program over the settings types and returns the properties of an interface.
  *
  * @returns {{converter: TypeConverter, grid: Map<string, ts.Type>, column: Map<string, ts.Type>,
- *   cellMeta: Map<string, ts.Type>}}
+ *   cellMeta: Map<string, ts.Type>, typeDocs: Map<string, string>}}
  */
 function readSettingsTypes() {
   const configPath = resolve(PACKAGE_DIR, 'tsconfig.json');
@@ -517,6 +535,8 @@ function readSettingsTypes() {
   const { options } = ts.parseJsonConfigFileContent(config.config, ts.sys, PACKAGE_DIR);
   const program = ts.createProgram([CORE_SETTINGS, PUBLIC_SETTINGS], { ...options, noEmit: true });
   const checker = program.getTypeChecker();
+  // The documentation comment of each declared property, for the options `metaSchema.ts` does not document.
+  const typeDocs = new Map();
 
   /**
    * Reads the properties of an exported interface.
@@ -536,6 +556,14 @@ function readSettingsTypes() {
 
     const declared = checker.getDeclaredTypeOfSymbol(symbol);
 
+    checker.getPropertiesOfType(declared).forEach((property) => {
+      const documentation = ts.displayPartsToString(property.getDocumentationComment(checker));
+
+      if (documentation !== '' && !typeDocs.has(property.getName())) {
+        typeDocs.set(property.getName(), documentation);
+      }
+    });
+
     return new Map(checker.getPropertiesOfType(declared)
       .map(property => [property.getName(), checker.getTypeOfSymbol(property)]));
   };
@@ -545,7 +573,34 @@ function readSettingsTypes() {
     grid: readInterface(CORE_SETTINGS, 'GridSettings'),
     column: readInterface(PUBLIC_SETTINGS, 'ColumnSettings'),
     cellMeta: readInterface(PUBLIC_SETTINGS, 'CellMeta'),
+    typeDocs,
   };
+}
+
+/**
+ * Lists the keys of the plugins that ship with Handsontable, from each plugin's `PLUGIN_KEY`
+ * declaration.
+ *
+ * @returns {string[]}
+ */
+function readBuiltInPluginKeys() {
+  const keys = new Set();
+
+  readdirSync(PLUGINS_DIR, { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .forEach((entry) => {
+      // The key is declared in the plugin's own file, or in its `constants.ts` (`dataProvider`).
+      [`${entry.name}.ts`, 'constants.ts'].forEach((fileName) => {
+        const file = resolve(PLUGINS_DIR, entry.name, fileName);
+        const match = existsSync(file) ? readFileSync(file, 'utf8').match(/export const PLUGIN_KEY = '(\w+)'/) : null;
+
+        if (match) {
+          keys.add(match[1]);
+        }
+      });
+    });
+
+  return [...keys].sort();
 }
 
 /**
@@ -567,7 +622,7 @@ export function buildSettingsSchema() {
   const metaSource = readFileSync(META_SCHEMA, 'utf8');
   const options = parseOptions(metaSource);
   const blocks = readDocBlocks(metaSource);
-  const { converter, grid, column, cellMeta } = readSettingsTypes();
+  const { converter, grid, column, cellMeta, typeDocs } = readSettingsTypes();
   const properties = {};
   const columnProperties = {};
   const cellProperties = {};
@@ -591,7 +646,9 @@ export function buildSettingsSchema() {
   const buildNode = (name, type, annotations) => {
     const block = blocks.get(name) ?? '';
     const node = type ? converter.convert(type) : fromJsDocType((block.match(/@type\s+\{(.+)\}/) || [])[1]);
-    const description = readDescription(block);
+    // An option `metaSchema.ts` does not document takes the comment of its TypeScript declaration.
+    const description = readDescription(block) || readDescription(typeDocs.get(name) ?? '') ||
+      (annotations.levels.includes('grid') ? '' : `The \`${name}\` property of the cell meta.`);
     const nullable = new RegExp(`\\n {4}${name}: null,`).test(metaSource);
 
     if (nullable && !acceptsNull(node)) {
@@ -683,7 +740,7 @@ export function buildSettingsSchema() {
       '`x-handsontable.runtimeTypes` instead of `type`.',
     type: 'object',
     properties,
-    'x-handsontable': { internalOptions },
+    'x-handsontable': { internalOptions, builtInPlugins: readBuiltInPluginKeys() },
     $defs: {
       columnSettings: {
         description: 'The options of one entry of the `columns` option.',

@@ -16,9 +16,9 @@ settings object against it and against what the page registers. Guide:
   **value types**, through the TypeScript compiler API, because the JSDoc `@type` has no enums. An option the types
   do not declare falls back to its JSDoc `@type` (10 options as of 19.0). A new option therefore needs no change
   here, but a new option the types do not declare gets only the coarse JSDoc type.
-- **Core must not import this module**, and neither may anything core imports. The schema is about 50 KB, and the
-  UMD bundles must not carry it. Nothing validates settings on its own: `new Handsontable()` and `updateSettings()`
-  never call `validateSettings()`.
+- **Core must not import this module**, and neither may anything core imports. The schema is about 100 KB of JSON
+  (the subpath bundles to about 80 KB minified, 19 KB gzipped), and the UMD bundles must not carry it. Nothing
+  validates settings on its own: `new Handsontable()` and `updateSettings()` never call `validateSettings()`.
 - The hooks are not generated. `schema.ts` adds one property per hook from the hook registry when the module
   loads, and `validateSettings()` asks `Hooks#isRegistered()` at call time, so a hook registered later passes too.
 
@@ -47,6 +47,20 @@ settings object against it and against what the page registers. Guide:
 - **`getSettings()` must pass.** The grid writes `instance` and `_`-prefixed keys on its own settings object, and
   `metaSchema.ts` has `@private` and bookkeeping keys (`x-handsontable.internalOptions` on the root). All of them are
   accepted without a check.
+- **The generated file's name has a dot in it**, and `scripts/swc-transpile.mjs` used to leave any specifier with an
+  extension-like suffix alone, so the ES build imported `./schema.generated` with no `.mjs` and failed in Node, webpack
+  and rspack, and esbuild loaded the CommonJS copy into an ES graph (every option then read as unknown). The
+  transpiler now adds the extension whenever a source file with that dotted name exists. Types cannot see this; the
+  runtime import step of `scripts/verify-esm-consumer-types.mjs` loads the entry point both ways and fails on it.
+- **Built-in plugin keys are not options.** Only third-party plugins' `PLUGIN_KEY` and `SETTING_KEYS` are accepted
+  as known keys; the built-in ones are listed in the root's `x-handsontable.builtInPlugins`, because `undoRedo` and
+  `autofill` are keys that do nothing (the options are `undo` and `fillHandle`).
+- **`anyOf` picks the branch with the fewest problems.** `data` is an array of arrays or an array of objects, and
+  reporting the first branch's problems turned one bad row into one problem per good row. Problems are appended in a
+  loop, never `push(...problems)`, which overflows the stack on a long array.
+- **A value that holds a class instance (`runtimeTypes: ['object']`) matches only a non-plain object.** A plain
+  object or an array goes through the JSON branches, or `theme: []` and a malformed `filters.availableConditions`
+  pass unchecked.
 
 ## Testing
 
