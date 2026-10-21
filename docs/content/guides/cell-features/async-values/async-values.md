@@ -348,12 +348,12 @@ asyncValues.setAsyncValuesInBatches('all', 'category', classify, { undo: 'record
 
 One undo then reverts the whole run, and one redo applies it again. The values appear while the run is in progress, so the user can keep editing and undoing meanwhile. The step lands on the undo stack once the run's last request settles and its last value passes the cell's validator. For a cell without a validator, the step is there by the time the call's promise resolves. A validator can answer later than that, and the step then lands when the last validator answers.
 
-The step is a `'change'` action with the call's `source`, as [`beforeUndo`](@/api/hooks.md#beforeundo) receives it. It records what the grid stored, after a `valueSetter` or a validator changed the value, a validator that corrects the value through a source ending with `Validator` included. When two calls write one cell while its validator runs, the cell keeps the value of the write made last. Like any new step, it clears the redo history: an undo the user makes while a run is in progress can't be redone once the run's step lands.
+The step is a `'change'` action with the call's `source`, as [`beforeUndo`](@/api/hooks.md#beforeundo) receives it. It records what the grid stored, after a `valueSetter` or a validator changed the value, a validator that corrects the value through a source ending with `Validator` included. When two calls write one cell while its validator runs, the cell keeps the value of the write made last, and that value is what the later call's step records. Like any new step, it clears the redo history: an undo the user makes while a run is in progress can't be redone once the run's step lands.
 
 A few values stay out of the run's step:
 
 - A cell the user edits after its value landed: the user's edit is a step of its own.
-- A cell that a later call writes before this call finishes: the later call's step owns it. With asynchronous validators, this holds only when they answer in write order.
+- A cell that a later call writes before this call finishes: the later call's step owns it.
 - A value the grid dropped because it applied a later write to the same cell instead.
 - A cell that a data update, such as [`updateData()`](@/api/core.md#updatedata), changed after the value landed.
 - The `meta` the run merged into the cells: an undo doesn't remove it.
