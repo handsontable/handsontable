@@ -107,7 +107,7 @@ validateSettings({
 | Code                  | Reported when                                                                                    |
 | --------------------- | ------------------------------------------------------------------------------------------------ |
 | `invalidSettings`     | The input is not a settings object.                                                              |
-| `unknownOption`       | A key is not an option. The message suggests the closest option name when there is one.         |
+| `unknownOption`       | A key is not an option, or not a key of a plugin's settings object. The message suggests the closest name when there is one. |
 | `wrongLevel`          | An option is set at a level it is not read at, such as `fixedRowsTop` inside `columns`, or a hook inside `columns`. See [Option levels](@/guides/configuration/configuration-option-levels/configuration-option-levels.md). |
 | `invalidType`         | A value has the wrong type, such as `rowHeaders: 5`.                                             |
 | `invalidValue`        | A value is not in the allowed set, such as `stretchH: 'full'`, or a value cannot be read.        |
@@ -226,9 +226,10 @@ ajv.addKeyword('x-handsontable');
 const validate = ajv.compile(settingsSchema);
 ```
 
-The JSON Schema checks types and allowed values only, and it accepts unknown keys, because the cell meta takes
-custom keys. Use `validateSettings()` for the checks that depend on the page: unknown option names, option levels,
-registered names, plugins, and data properties.
+The JSON Schema checks types and allowed values. It accepts unknown option names, because the cell meta takes
+custom keys. It rejects an unknown key inside the settings object of a plugin option that lists every key, such as
+`filters`, by setting `additionalProperties` to `false`. Use `validateSettings()` for the checks that depend on the
+page: unknown option names, option levels, registered names, plugins, and data properties.
 
 ::: only-for javascript
 
@@ -285,9 +286,19 @@ In a bundler, import `handsontable/settingsSchema` from the npm package instead.
   `unknownDataProperty` warning.
 - `validateSettings()` never calls a function it finds in the settings, so it does not check what a `columns` or
   `cells` function returns.
-- Unknown keys inside an option's object, such as `filters: { serchMode: 'apply' }`, are not reported. Their known
-  keys are type-checked. A value that is an instance of a class, such as a `ThemeBuilder` for `theme`, is accepted
-  without a check of its contents.
+- `validateSettings()` reports a misspelled key, such as `filters: { serchMode: 'apply' }`, only inside the settings
+  object of some options. Those options are `asyncValues`, `autoLink`, `dataProvider`, `dragToScroll`,
+  `dropdownMenu`, `fillHandle`, `filters`, `manualColumnFreeze`, `pagination`, `rowSelection`, and `sheetsBar`.
+  The `filters` object inside `columns` is checked too, and takes `availableConditions` only.
+- The keys of an object nested in one of these, such as `dragToScroll.interval` and `sheetsBar.animation`, are not
+  checked.
+- The objects of other options, such as `contextMenu`, `columnSorting`, and `comments`, take keys that the schema does
+  not list. A misspelled key inside them is not reported.
+- A custom plugin can read keys from one of these objects that the schema does not list. `validateSettings()` reports
+  those keys as `unknownOption`. A class instance, such as a `dataProvider` object with fields of its own, is not
+  checked.
+- A value that is an instance of a class, such as a `ThemeBuilder` for `theme`, is accepted without a check of its
+  contents.
 - Only the first 50 rows of `data` are checked, for their type and for the `columns[].data` properties.
 - `settingsSchema` lists the hooks registered when the module loads, or, for the CDN file, when the file loads. A
   hook that a plugin registers later, such as `afterContextMenuExecute`, is missing from the object if you import

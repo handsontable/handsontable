@@ -86,6 +86,21 @@ settings object against it and against what the page registers. Guide:
 - **A plugin's switch can be `@category Core`** (`moveCells`, `selectionHandles`, `dataProvider`, `fillHandle`).
   The generator maps such an option to the plugin whose `PLUGIN_KEY`, or `const SETTING_KEY` (Autofill's
   `fillHandle`), names it, so `pluginNotRegistered` covers it on `handsontable/base`.
+- **A settings object is closed per option, never by default.** `CLOSED_OPTIONS` in the generator lists the plugin
+  options whose object takes no key but the ones the schema lists. Their object branch gets
+  `additionalProperties: false`, and `validateSettings()` reports each other own key as `unknownOption` at its nested
+  path (`filters.serchMode`) with a "did you mean" hint. Add an option only when its type lists every key the plugin
+  reads. The generator fails on an index signature. `schemaCoverage.unit.js` compares each closed list with the
+  plugin's `DEFAULT_SETTINGS` (`dropdownMenu` has none, so its three keys are written into that test), pins the exact
+  set of closed options, and checks the column-level `filters`. The docs guide lists the same options by hand, and
+  nothing checks it, so update both. Nested objects such as `filters.availableConditions` stay open. A class instance
+  is not checked, so a `dataProvider` object with fields of its own passes.
+- **`pagination` and `dropdownMenu` take their key list from an interface the plugin exports.** `GridSettings`
+  declares them as `boolean | object` and `boolean | object | string[]`, so the generator reads `PaginationSettings`
+  and `DropdownMenuSettings` (`CLOSED_OPTIONS` names the file and the interface). Narrowing the public type instead
+  would be a breaking change for a typed object literal. The interface also types the values, so a type that is too
+  narrow flags a valid configuration (`items` takes strings and objects mixed, and `uiContainer` takes `null`). A key
+  a plugin starts to read goes in its interface in the same change, or a valid configuration is flagged.
 - **Two problem codes are warnings** (`unknownDataProperty`, `pluginDisabled`): each is a guess about intent, so it
   is listed with `severity: 'warning'` and does not make the settings invalid. Every other code is an `error`.
   `SettingsProblemCode` ends with `(string & {})`, because a minor release can add a code.
