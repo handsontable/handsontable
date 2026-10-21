@@ -3090,7 +3090,7 @@ export default function Core(
           structureVersion,
         );
 
-        instance.validateCell(newValue, cellProperties, (function(cellPropertiesReference, change) {
+        instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference, change) {
           return function(result: boolean) {
             if (typeof result !== 'boolean') {
               throwWithCause('Validation error: result is not boolean');
@@ -3098,8 +3098,9 @@ export default function Core(
 
             if (result === false && cellPropertiesReference.allowInvalid === false) {
               onRejected();
-              // cancel the change, found by identity because every earlier rejection shifts the list
-              const position = changes.indexOf(change);
+              // cancel the change, found by identity because a rejection at a lower index shifts the list.
+              // The change only moves left, so the search runs backwards from where it was registered
+              const position = changes.lastIndexOf(change, index);
 
               if (position !== -1) {
                 changes.splice(position, 1);
@@ -3115,7 +3116,7 @@ export default function Core(
             ledger?.answered(change, result);
             waitingForValidator.removeValidatorFormQueue();
           };
-        }(cellProperties, changes[i])), source);
+        }(i, cellProperties, changes[i])), source);
       }
     }
   }

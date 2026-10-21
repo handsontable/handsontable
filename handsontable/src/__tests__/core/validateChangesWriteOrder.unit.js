@@ -306,35 +306,19 @@ describe('Core validation of writes to the same cell', () => {
       await settle();
     }
 
-    it('should drop every rejected change when the validators answer in ascending index order', async() => {
-      await writeAndAnswer(['bad0', 'bad1', 'ok']);
+    [
+      ['ascending index order', ['bad0', 'bad1', 'ok']],
+      ['descending index order', ['ok', 'bad1', 'bad0']],
+      ['an order with a valid answer between two rejections', ['bad0', 'ok', 'bad1']],
+    ].forEach(([name, answerOrder]) => {
+      it(`should drop every rejected change when the validators answer in ${name}`, async() => {
+        await writeAndAnswer(answerOrder);
 
-      expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'ok']);
-    });
-
-    it('should still drop every rejected change when the validators answer in descending index order', async() => {
-      await writeAndAnswer(['ok', 'bad1', 'bad0']);
-
-      expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'ok']);
-    });
-
-    it('should drop every rejected change when a valid answer sits between two rejections', async() => {
-      await writeAndAnswer(['bad0', 'ok', 'bad1']);
-
-      expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'ok']);
-    });
-
-    it('should report only the applied change to `afterChange`', async() => {
-      await writeAndAnswer(['bad0', 'bad1', 'ok']);
-
-      expect(edits).toEqual([[[2, 0, 'c', 'ok']]]);
-    });
-
-    it('should keep the cells of the rejected changes valid', async() => {
-      await writeAndAnswer(['bad0', 'bad1', 'ok']);
-
-      expect(hot.getCellMeta(0, 0).valid).toBe(true);
-      expect(hot.getCellMeta(1, 0).valid).toBe(true);
+        expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'ok']);
+        expect(edits).toEqual([[[2, 0, 'c', 'ok']]]);
+        expect(hot.getCellMeta(0, 0).valid).toBe(true);
+        expect(hot.getCellMeta(1, 0).valid).toBe(true);
+      });
     });
   });
 });
