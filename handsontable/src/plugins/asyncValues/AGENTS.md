@@ -60,13 +60,22 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   afford. So every write of the call is suppressed like a `'skip'` write, and `#planWrite` keeps a
   `PendingWrite` in the row's `writes` map (it follows the row through inserts, removals, index resets and
   data replacements, because it lives on the `RowState`) and counts it in `run.unlanded`.
-  **A write is matched to its landing through the cell's flight queue, not by `source` alone.** Every value the
-  plugin passes to the grid (kept or not) is a `Flight` in `state.flights`, in write order. A change event with
-  a flight's source is that flight landing (`#onFlightLanded`); while a later flight to the cell is still
-  queued, the value is outdated (two calls wrote the cell while its validator ran) and lands nothing. Matching
-  by source alone recorded `old -> v1` while the cell showed `v2`. Any other change to the cell drops the kept
-  write, so the user's edit stays a step of its own, and its own landing never cancels a newer request for the
-  cell (only the cells that depend on it). Core runs EVERY validator in a later microtask, so a validated write
+  **A write is matched to its landing by its change tuple, not by `source`.** Every value the plugin passes to
+  the grid (kept or not) is a `Flight` in `state.flights`, in write order, with a `sequence`. `#onBeforeChange`
+  maps each tuple of the plugin's own write to its flight (`#flightByChange`, found through `#writing` while
+  `#write` runs), and the grid reports an applied tuple to `afterChange` as the same object, so a landing
+  names its flight exactly (`#onFlightLanded`); the source is only the fallback for a write with no tuple
+  (`setSourceDataAtCell`). Two calls with one source can land in either order, so matching by source booked
+  `v2`'s landing on the first flight. While a later flight to the cell is still queued, a landing value is
+  outdated (two calls wrote the cell while its validator ran) and lands nothing. The grid applies the last
+  write made to a cell (`core/writeLedger.ts`) and fires no `afterChange` for a write it dropped, so a flight
+  never ends by itself: a validated write that lands ends every older flight of the cell, and a write of
+  another source ends the flights queued when it reached `beforeChange` (`#foreignWrites`, stamped by
+  `#stampForeignWrite`). A write made before every queued flight ends none, and a write that skips validation
+  is not ordered by the grid, so it ends none either. A dropped flight left in the queue made every later
+  write to the cell look outdated: its kept write was dropped and its undo step missing. Any other change to
+  the cell drops the kept write, so the user's edit stays a step of its own, and its own landing never cancels
+  a newer request for the cell (only the cells that depend on it). Core runs EVERY validator in a later microtask, so a validated write
   cannot land inside the flush: `beforeValidate` (synchronous, inside the write) marks the flight
   `validating`, `afterValidate` with `allowInvalid: false` ends a rejected one, and any flight that neither
   landed nor validates by the end of `#write` never lands (a `beforeChange` veto) and is ended. Core holds a

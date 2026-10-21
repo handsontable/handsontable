@@ -154,8 +154,45 @@ describe('AsyncValues: writes, flights, and rows', () => {
 
       expect(hot.getDataAtCell(0, 1)).toBe('user value');
 
+      undoRedo.undo();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('old A');
+      expect(undoRedo.isUndoAvailable()).toBe(false);
+
       destroy();
     });
+  });
+
+  it('should keep a value written after a user edit that waits for its validator, and order the next write', async() => {
+    const { answers, validator } = manualValidator();
+    const { hot, plugin, destroy } = createGrid({
+      undo: true,
+      columns: [{ data: 'sku' }, { data: 'name', validator }, { data: 'price' }],
+    });
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    hot.setDataAtCell(0, 1, 'user value');
+    await settle();
+    await plugin.setAsyncValue(0, 1, Promise.resolve('AI'), { undo: 'record' });
+    await settle();
+
+    answers.forEach(({ answer }) => answer(true));
+    await settle();
+
+    expect(hot.getDataAtCell(0, 1)).toBe('AI');
+
+    await plugin.setAsyncValue(0, 1, Promise.resolve('AI 2'), { undo: 'record' });
+    await settle();
+    answers[2].answer(true);
+    await settle();
+
+    expect(hot.getDataAtCell(0, 1)).toBe('AI 2');
+
+    undoRedo.undo();
+
+    expect(hot.getDataAtCell(0, 1)).toBe('AI');
+
+    destroy();
   });
 
   it('should not apply `meta` for a value a later write replaced while both waited for the validator', async() => {
