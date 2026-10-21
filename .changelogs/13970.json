@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed the top selection handle being clipped by the grid edge on touch devices when a range starts in the first row or column of a grid without headers.",
+  "title": "Fixed the top selection handle on touch devices being clipped by the grid edge when a selection starts in the first row without column headers or in the first column without row headers.",
   "type": "fixed",
   "issueOrPR": 13970,
   "breaking": false,

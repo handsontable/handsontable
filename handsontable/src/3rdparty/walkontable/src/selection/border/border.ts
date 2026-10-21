@@ -765,21 +765,25 @@ class Border {
     const isTopHandleUnderTopClone = this.isTopHandleOccludedByClone('row', fromRow);
     const isTopHandleUnderInlineStartClone = this.isTopHandleOccludedByClone('column', fromCol);
 
-    // The handle hangs past the selection's top-start corner, so a range that starts at the first row
-    // or column with no header over it would push the handle off the table and the grid edge would
-    // clip it. Clamp it at the start edges, as the bottom handle is clamped at the end edges below.
-    topStyles.top = `${
-      Math.max(0, parseInt(String(isTopHandleUnderTopClone ? top + 1 : top - handleSize - 1), 10))
-    }px`;
-    topStyles[inlinePosProperty] = `${
-      Math.max(0, parseInt(String(isTopHandleUnderInlineStartClone ? left + 1 : left - handleSize - 1), 10))
-    }px`;
+    const handleTop = parseInt(String(isTopHandleUnderTopClone ? top + 1 : top - handleSize - 1), 10);
+    const handleInline = parseInt(String(isTopHandleUnderInlineStartClone ? left + 1 : left - handleSize - 1), 10);
+    // The handle hangs past the selection's top-start corner. When no clone covers that edge, a range that
+    // starts at the first rendered row or column pushes it off the table and the grid edge clips it. Move
+    // the handle back onto the table, and its hit area by the same distance so the two stay centered. An
+    // axis whose real start is scrolled out of the rendered band is left alone: `top` and `left` then
+    // measure the first rendered track, and a moved handle would sit on it, inside the range.
+    const { wtTable } = this.wot;
+    const topShift = fromRow >= wtTable.getFirstRenderedRow() ? Math.max(0, -handleTop) : 0;
+    const inlineShift = fromCol >= wtTable.getFirstRenderedColumn() ? Math.max(0, -handleInline) : 0;
+
+    topStyles.top = `${handleTop + topShift}px`;
+    topStyles[inlinePosProperty] = `${handleInline + inlineShift}px`;
 
     topHitAreaStyles.top = `${
-      Math.max(0, parseInt(String(isTopHandleUnderTopClone ? top : top - ((hitAreaSize / 4) * 3)), 10))
+      parseInt(String(isTopHandleUnderTopClone ? top : top - ((hitAreaSize / 4) * 3)), 10) + topShift
     }px`;
     topHitAreaStyles[inlinePosProperty] = `${
-      Math.max(0, parseInt(String(isTopHandleUnderInlineStartClone ? left : left - ((hitAreaSize / 4) * 3)), 10))
+      parseInt(String(isTopHandleUnderInlineStartClone ? left : left - ((hitAreaSize / 4) * 3)), 10) + inlineShift
     }px`;
 
     // Mirror of the row lift below on the inline axis: the `inline_end` clone owns the band past the

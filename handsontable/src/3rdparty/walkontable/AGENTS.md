@@ -323,16 +323,27 @@ Note `.wtHolder` is the clipping box on the three scroll-mirrored clones
 holders are composited scroll containers" below), while the clone element is `overflow: visible`
 and ends a few pixels earlier — measure the holder, not the clone.
 
-With a header off and no frozen pane, a range that starts at the first row or column has no clone to
-sit under, and the outer-corner placement would put the top handle at a negative offset that the master's
-`.wtHolder` clips. `updateMultipleSelectionHandlesPosition` therefore clamps the top handle and its hit
-area at the start edges with `Math.max(0, ...)`, as the bottom handle is clamped at the end edges, so the
-handle sits over the cell's own corner instead of outside the grid. The hit area hangs further out than
-the handle (`hitAreaSize * 3 / 4`, against `handleSize + 1`), so its clamp also fires for a cell within
-that distance of the table start; the painted handle still keeps the outer-corner placement there.
-`mobile-selection-handles.spec.ts` pins the clamp on each axis and in RTL, and the outer corner in LTR.
-The clamp reads the table's start edge, not the selection's corner: a range whose start is scrolled out
-of the rendered band draws its handle on the first rendered row, as it already did with headers on.
+A range that starts at the first rendered row or column, with no clone over that edge (a header or a
+frozen pane), would put the top handle at a negative offset that the master's or the clone's `.wtHolder`
+clips: with both headers off and no frozen pane, or in the frozen corner clone at A1.
+`updateMultipleSelectionHandlesPosition` therefore moves the handle back onto the table per axis, and
+shifts the hit area by the same distance so the two stay centered. The off-grid part of the hit area clips.
+The hit area hangs further out than the handle (`hitAreaSize * 3 / 4`, against `handleSize + 1`), so it
+overhangs the table for a cell within that distance of the start while the painted handle does not move.
+
+- **Gate each axis on the real corner being rendered** (`fromRow >= getFirstRenderedRow()`, the same for
+  columns). `top` and `left` measure the first rendered track, not the selection's corner, so for a range
+  whose start is scrolled out of the rendered band the handle would move onto that track, inside the range.
+  Such a handle keeps the unclamped placement and stays clipped. Whether anything else renders above the
+  viewport depends on `viewportRowRenderingOffset`: with `0` the first rendered row is the first visible one.
+- **Do not snap the hit area to the edge on its own.** Clamping it alone moves the 40px touch target over
+  A1 and over the `moveCells` band next to it (`multipleSelectionHandles/AGENTS.md`).
+- A range scrolled out with headers on and a start above `fixedRowsTop` + 1 still hangs its handle above the
+  first rendered row, as before; nothing paints it there.
+
+`handsontable/src/3rdparty/walkontable/test/unit/selection/border/topHandleClamp.unit.ts` pins each branch;
+`tests/e2e/mobile-selection-handles.spec.ts` pins the clamp for both axes, RTL, the frozen corner and the
+scrolled-out start, and the outer corner in LTR.
 
 The declarations live in `src/styles/base/_z-index-map.scss`, `css/walkontable.scss` (master and
 clone values, duplicated — keep in sync) and `src/styles/components/core/_selection.scss` (the

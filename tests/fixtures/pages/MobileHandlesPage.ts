@@ -39,7 +39,7 @@ export class MobileHandlesPage {
    */
   async goto({
     direction = 'ltr', frozen = false, frozenBottom = false, frozenEnd = false, headers = true, rows = 'short',
-    cols = 'short',
+    cols = 'short', rowHeaders, overscan = 'default',
   }: {
     direction?: 'ltr' | 'rtl';
     frozen?: boolean;
@@ -48,6 +48,8 @@ export class MobileHandlesPage {
     headers?: boolean;
     rows?: 'short' | 'tall';
     cols?: 'short' | 'wide';
+    rowHeaders?: boolean;
+    overscan?: 'default' | 'none';
   } = {}): Promise<void> {
     const query = new URLSearchParams({
       theme: this.theme,
@@ -59,7 +61,13 @@ export class MobileHandlesPage {
       headers: headers ? 'on' : 'off',
       rows,
       cols,
+      overscan,
     });
+
+    // Without a value the row headers follow `headers`.
+    if (rowHeaders !== undefined) {
+      query.set('rowHeaders', rowHeaders ? 'on' : 'off');
+    }
 
     await this.page.goto(`/tests/fixtures/demo/mobile-handles.html?${query}`);
     await expect(this.cell(1, 1)).toBeVisible();
@@ -93,16 +101,8 @@ export class MobileHandlesPage {
    * The top-left mobile selection handle of the focus selection, scoped to
    * the master overlay.
    */
-  topHandle(): Locator {
-    return this.page.locator('.ht_master .htBorders .topSelectionHandle:visible').first();
-  }
-
-  /**
-   * The hit area of the top-left mobile selection handle, scoped to the master overlay. It is larger
-   * than the painted handle.
-   */
-  topHitArea(): Locator {
-    return this.page.locator('.ht_master .htBorders .topSelectionHandle-HitArea:visible').first();
+  topHandle(overlay = 'ht_master'): Locator {
+    return this.page.locator(`.${overlay} .htBorders .topSelectionHandle:visible`).first();
   }
 
   /**
@@ -151,8 +151,8 @@ export class MobileHandlesPage {
   /**
    * Returns whether the top handle owns the pixels at the center of its visible marker.
    */
-  async isTopHandleHitAreaAtHandleCenter(): Promise<boolean> {
-    return this.topHandle().evaluate((handle) => {
+  async isTopHandleHitAreaAtHandleCenter(overlay = 'ht_master'): Promise<boolean> {
+    return this.topHandle(overlay).evaluate((handle) => {
       const { left, top, width, height } = handle.getBoundingClientRect();
       const element = document.elementFromPoint(left + (width / 2), top + (height / 2));
 
@@ -191,7 +191,7 @@ export class MobileHandlesPage {
   }
 
   /**
-   * Returns whether the handle, or hit area, sits fully inside the grid's root box, so no edge of the grid
+   * Returns whether the painted handle sits fully inside the grid's root box, so no edge of the grid
    * clips it.
    */
   async isHandleInsideGrid(handle: Locator): Promise<boolean> {
@@ -459,6 +459,17 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Scroll the grid until the given row is the first one the viewport shows, and wait until the master
+   * has drawn that band.
+   */
+  async scrollRowToTop(row: number): Promise<void> {
+    await this.page.evaluate(target => window.hot.scrollViewportTo({ row: target, verticalSnap: 'top' }), row);
+    await expect.poll(() => this.page.evaluate(() => window.hot.getFirstFullyVisibleRow())).toBe(row);
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getFirstRenderedRow()))
+      .toBeGreaterThan(0);
+  }
+
+  /**
    * Scroll back to the start of the grid so the given column is on screen again, and wait until the
    * viewport calculators count it.
    */
@@ -520,11 +531,22 @@ export class MobileHandlesPage {
    * selection edge, away from the round range handles that hang off the corners.
    */
   async pressTopMoveBandMidpoint(): Promise<void> {
+    await this.pressTopMoveBandAt();
+  }
+
+  /**
+   * Presses the top `moveCells` band with the mouse, `along` pixels in from its left edge, or at its
+   * midpoint when `along` is left out.
+   */
+  async pressTopMoveBandAt(along?: number): Promise<void> {
     const box = await this.moveZones().first().boundingBox();
 
     expect(box, 'the top move band must be laid out').not.toBeNull();
 
-    await this.page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+    await this.page.mouse.move(
+      box!.x + (along ?? (box!.width / 2)),
+      box!.y + (box!.height / 2),
+    );
     await this.page.mouse.down();
   }
 

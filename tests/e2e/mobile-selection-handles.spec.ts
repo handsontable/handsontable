@@ -67,7 +67,7 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
     { direction: 'ltr', start: [0, 2] },
     { direction: 'ltr', start: [2, 0] },
   ] as const) {
-    test(`keep the top handle and its hit area inside the grid for a range starting at ${start} with no headers (${direction})`, async () => {
+    test(`keep the top handle inside the grid and under its hit area for a range starting at ${start} with no headers (${direction})`, async () => {
       const [row, col] = start;
 
       await mobileGrid.goto({ direction, headers: false });
@@ -76,10 +76,47 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
       await mobileGrid.expectHandlesVisible();
 
       await expect.poll(() => mobileGrid.isHandleInsideGrid(mobileGrid.topHandle())).toBe(true);
-      await expect.poll(() => mobileGrid.isHandleInsideGrid(mobileGrid.topHitArea())).toBe(true);
       await expect.poll(() => mobileGrid.isHandleInsideGrid(mobileGrid.bottomHandle())).toBe(true);
+      // A tap on the painted handle has to reach its hit area.
+      await expect.poll(() => mobileGrid.isTopHandleHitAreaAtHandleCenter()).toBe(true);
     });
   }
+
+  // The phone config of the ticket: row headers off, column headers on. The `top` clone covers the top
+  // edge, so only the inline axis clamps.
+  test('keep the top handle inside the grid at A1 with column headers on and row headers off', async () => {
+    await mobileGrid.goto({ rowHeaders: false });
+    await mobileGrid.tapCell(0, 0);
+    await mobileGrid.selectRange(0, 0, 2, 1);
+    await mobileGrid.expectHandlesVisible();
+
+    await expect.poll(() => mobileGrid.isHandleInsideGrid(mobileGrid.topHandle())).toBe(true);
+    await expect.poll(() => mobileGrid.isTopHandleHitAreaAtHandleCenter()).toBe(true);
+  });
+
+  // With no headers the frozen corner clone is what covers A1, and its holder clips the handle too.
+  test('keep the top handle of the frozen A1 cell inside the grid with no headers', async () => {
+    const overlay = 'ht_clone_top_inline_start_corner';
+
+    await mobileGrid.goto({ frozen: true, headers: false });
+    await mobileGrid.tapPaintedCell(0, 0);
+    await mobileGrid.selectRange(0, 0, 2, 1);
+
+    await expect(mobileGrid.topHandle(overlay)).toBeVisible();
+    await expect.poll(() => mobileGrid.isHandleInsideGrid(mobileGrid.topHandle(overlay))).toBe(true);
+    await expect.poll(() => mobileGrid.isTopHandleHitAreaAtHandleCenter(overlay)).toBe(true);
+  });
+
+  // `top` is measured from the first rendered row, so a range whose start is scrolled out must not get
+  // its handle clamped onto that row, where it would show up inside the range.
+  test('draw no top handle for a range whose start is scrolled out of the rendered rows', async () => {
+    await mobileGrid.goto({ headers: false, rows: 'tall', overscan: 'none' });
+    await mobileGrid.tapCell(0, 1);
+    await mobileGrid.selectRange(0, 1, 35, 2);
+    await mobileGrid.scrollRowToTop(20);
+
+    await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual([]);
+  });
 
   test('keep the bottom handle interactive when a range ends on the bottom freeze line', async () => {
     await mobileGrid.goto({ frozenBottom: true, rows: 'tall' });
