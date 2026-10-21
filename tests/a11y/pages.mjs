@@ -75,6 +75,8 @@ export const A11Y_PAGES = [
     surface: 'the filters menu on a numeric column: the condition components and their inputs' },
   // Editors, opened with Enter on the selected cell.
   { id: 'text-editor', fixture: 'grid.html', state: 'editor', surface: 'the open text editor' },
+  { id: 'formula-builder', fixture: 'formula-builder.html', cell: [0, 2], state: 'editor',
+    surface: 'the formula bar (address box and formula input) and the open formula editor with a colored reference' },
   { id: 'autocomplete-editor', fixture: 'cell-dropdown-arrow.html', query: 'cellType=autocomplete', cell: [0, 0], state: 'editor',
     surface: 'the open autocomplete editor and its choices list' },
   { id: 'dropdown-editor', fixture: 'cell-dropdown-arrow.html', query: 'cellType=dropdown', cell: [0, 0], state: 'editor',

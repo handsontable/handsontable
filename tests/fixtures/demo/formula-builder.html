@@ -26,6 +26,22 @@
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
+    // The grid variant, through the same kind of allowlist: the name maps to a literal key of
+    // the VARIANTS table below, and an unknown value throws. An absent param is the default grid.
+    window.htVariant = ({
+      default: 'default',
+      sorting: 'sorting',
+      nested: 'nested',
+      'popups-host': 'popups-host',
+      'no-aria': 'no-aria',
+      rtl: 'rtl',
+      frozen: 'frozen',
+      'hidden-row': 'hidden-row',
+      'read-only': 'read-only',
+    })[htParams.get('variant') ?? 'default'];
+    if (!window.htVariant) {
+      throw new Error('Unknown ?variant= value: ' + JSON.stringify(htParams.get('variant')));
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
@@ -40,11 +56,19 @@
   <!--
     FormulaBuilder plugin e2e fixture. Cells are stamped with data-testid via a
     renderer (data-testid="cell-<row>-<col>"). The hyperformula-ui module is loaded as
-    a native ES module straight from node_modules (locally that resolves through
-    the pnpm link; in CI it requires the package to be installed) and injected
-    into the plugin via the `builder` setting.
+    a native ES module from this package's own node_modules (`tests/package.json`
+    pins `hyperformula-ui`, so CI installs it with the `handsontable-tests`
+    workspace) and injected into the plugin via the `builder` setting.
+
+    `?variant=` picks one of the grid configurations in VARIANTS; an absent param is
+    the default grid (formula bar on, formulas in column C), which the a11y scan uses too.
+    The text field before the grid is where a keyboard user starts: Tab from it enters
+    the formula bar, and Shift+Tab out of the bar lands back on it. It is a text field,
+    not a link or a button, because WebKit leaves those out of the Tab order by default.
   -->
+  <input type="text" aria-label="Before the grid" data-testid="before-grid">
   <div id="grid" data-testid="grid"></div>
+  <div id="suggestions-host" data-testid="suggestions-host"></div>
 
   <script>
     // The full bundle bakes HyperFormula in; the base bundle needs it as an external script.
@@ -56,8 +80,6 @@
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
   <script type="module">
-    import * as FormulaBuilderModule from '/tests/node_modules/hyperformula-ui/dist/index.js';
-
     const container = document.querySelector('[data-testid="grid"]');
 
     container.className = `ht-theme-${window.htTheme}`;
@@ -67,27 +89,61 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    window.hot = new Handsontable(container, {
-      data: [
-        [1, 2, '=A1+B1'],
-        [3, 4, '=A2+B2'],
-        [5, 6, '=SUM(C1:C2)'],
-        ['', '', ''],
-        ['', '', '=IF(\n  A1>0,\n  "yes",\n  "no"\n)'],
-      ],
-      colHeaders: true,
-      rowHeaders: true,
-      renderer: testIdRenderer,
-      editor: 'formula',
-      formulas: {
-        engine: HyperFormula,
+    // Settings each variant adds over the default grid. `formulaBuilder` extras are merged
+    // into the plugin settings, so the `builder` module stays the one imported below.
+    const VARIANTS = {
+      default: {},
+      sorting: { settings: { columnSorting: true } },
+      nested: {
+        settings: {
+          colHeaders: false,
+          columnSorting: true,
+          nestedHeaders: [
+            [{ label: 'Inputs', colspan: 2 }, 'Sum'],
+            ['A', 'B', 'C'],
+          ],
+        },
       },
-      formulaBuilder: {
-        builder: FormulaBuilderModule,
-        showFormulaBar: true,
-      },
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+      'popups-host': { formulaBuilder: { popups: { suggestions: { container: '#suggestions-host' } } } },
+      'no-aria': { settings: { ariaTags: false } },
+      rtl: { settings: { layoutDirection: 'rtl' } },
+      frozen: { settings: { fixedRowsTop: 1, fixedColumnsStart: 1 } },
+      'hidden-row': { settings: { hiddenRows: { rows: [1] } } },
+      'read-only': { settings: { cell: [{ row: 0, col: 2, readOnly: true }] } },
+    };
+
+    // The shared fixture contract: a failed module import or a constructor throw lands in
+    // `window.htBuildError`, which `awaitFixtureBuilt()` rethrows with its stack.
+    try {
+      const FormulaBuilderModule = await import('/tests/node_modules/hyperformula-ui/dist/index.js');
+      const variant = VARIANTS[window.htVariant];
+
+      window.FormulaBuilderModule = FormulaBuilderModule;
+      window.hot = new Handsontable(container, Object.assign({
+        data: [
+          [1, 2, '=A1+B1'],
+          [3, 4, '=A2+B2'],
+          [5, 6, '=SUM(C1:C2)'],
+          ['', '', ''],
+          ['', '', '=IF(\n  A1>0,\n  "yes",\n  "no"\n)'],
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        renderer: testIdRenderer,
+        editor: 'formula',
+        formulas: {
+          engine: HyperFormula,
+        },
+        formulaBuilder: Object.assign({
+          builder: FormulaBuilderModule,
+          showFormulaBar: true,
+        }, variant.formulaBuilder || {}),
+        licenseKey: 'non-commercial-and-evaluation',
+      }, variant.settings || {}));
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
   </script>
 </body>
 </html>

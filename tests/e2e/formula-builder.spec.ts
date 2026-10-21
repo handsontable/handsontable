@@ -1,9 +1,10 @@
-import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
 import { FormulaBuilderPage } from '../fixtures/pages/FormulaBuilderPage';
 
 // Themes: the formula bar test compares editor and cell heights, which every theme sizes
 // differently. Bundles: the fixture loads HyperFormula externally on the plain UMD leg.
-test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+// Engines: the tests press real keys, click and double-click, and assert the focus.
+test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
   let grid: FormulaBuilderPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -11,7 +12,7 @@ test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG] }, () =>
     await grid.goto();
   });
 
-  test('renders the grid and formula bar with A1 selected', async () => {
+  test('renders the formula bar, whose address box shows the clicked A1', async () => {
     await expect(grid.formulaBar).toBeVisible();
     await grid.selectCell(0, 0);
     await expect(grid.addressInput).toHaveValue('A1');
@@ -56,11 +57,9 @@ test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG] }, () =>
   });
 
   test('a multi-line formula edited in the formula bar scrolls inside the editor, not the bar', async () => {
-    const barHost = grid.page.locator('.ht-formula-builder__formula-bar');
-    const slot = grid.page.locator('.ht-slot-top');
-    const formulaCell = grid.page.locator('.hfe-formula-bar__cell--formula');
-    const barEditor = grid.page.locator('.hfe-formula-bar__overlay .hfe-editor');
-    const before = await barHost.boundingBox();
+    const before = await grid.formulaBarHost.boundingBox();
+
+    expect(before).not.toBeNull();
 
     await grid.selectCell(4, 2);
     await grid.openBarEditor();
@@ -68,20 +67,24 @@ test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG] }, () =>
 
     // The bar keeps its one-line height: the editor is capped and scrolls its own content,
     // and its scroll port spans the bar's formula cell, padding included.
-    await expect(barEditor).toHaveClass(/hfe-editor--height-capped/);
+    await expect(grid.barEditor).toHaveClass(/hfe-editor--height-capped/);
 
-    const editorBox = await barEditor.boundingBox();
-    const formulaCellBox = await formulaCell.boundingBox();
+    const editorBox = await grid.barEditor.boundingBox();
+    const formulaCellBox = await grid.barFormulaCell.boundingBox();
 
+    // Both boxes must exist: two `undefined` heights would compare equal.
+    expect(editorBox).not.toBeNull();
+    expect(formulaCellBox).not.toBeNull();
     expect(editorBox?.height).toBe(formulaCellBox?.height);
     await expect(grid.editorInput).toHaveJSProperty('clientHeight', editorBox?.height);
     expect(await grid.editorInput.evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
 
     // Nothing above the editor moves: the layout slot does not scroll and the bar stays put.
-    await expect(slot).toHaveJSProperty('scrollTop', 0);
+    await expect(grid.layoutSlotTop).toHaveJSProperty('scrollTop', 0);
 
-    const after = await barHost.boundingBox();
+    const after = await grid.formulaBarHost.boundingBox();
 
+    expect(after).not.toBeNull();
     expect(after?.y).toBe(before?.y);
 
     await grid.page.keyboard.press('Escape');
@@ -96,9 +99,7 @@ test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG] }, () =>
     // The caret touches the ref token, so the referenced cell gets the generated
     // fill class and its selection border renders through Walkontable.
     await expect(grid.cell(0, 0)).toHaveClass(/ht-formula-ref-fill-/);
-    await expect(
-      grid.page.locator('.ht_master [class*="wtBorder"][class*="ht-formula-ref-fill-"]').first(),
-    ).toBeAttached();
+    await expect(grid.refFillBorders('ht_master').first()).toBeAttached();
 
     await grid.page.keyboard.press('Escape');
 
