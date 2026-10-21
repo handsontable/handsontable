@@ -44,11 +44,13 @@ describe('validateSettings', () => {
       {
         path: 'colHeader',
         code: 'unknownOption',
+        severity: 'error',
         message: 'Unknown option \'colHeader\'. Did you mean \'colHeaders\'?',
       },
       {
         path: 'columnSort',
         code: 'unknownOption',
+        severity: 'error',
         message: 'Unknown option \'columnSort\'. Did you mean \'columnSorting\'?',
       },
     ]);
@@ -56,7 +58,7 @@ describe('validateSettings', () => {
 
   it('should report an unknown option with no close match without a suggestion', () => {
     expect(validateSettings({ qwertyuiop: 1 }).problems).toEqual([
-      { path: 'qwertyuiop', code: 'unknownOption', message: 'Unknown option \'qwertyuiop\'.' },
+      { path: 'qwertyuiop', code: 'unknownOption', severity: 'error', message: 'Unknown option \'qwertyuiop\'.' },
     ]);
   });
 
@@ -65,6 +67,7 @@ describe('validateSettings', () => {
       {
         path: 'rowHeaders',
         code: 'invalidType',
+        severity: 'error',
         message: 'Expected an array, a boolean, or a function, got a number.',
       },
     ]);
@@ -79,6 +82,7 @@ describe('validateSettings', () => {
       {
         path: 'stretchH',
         code: 'invalidValue',
+        severity: 'error',
         message: 'Expected one of \'none\', \'all\', \'last\', got \'full\'.',
       },
     ]);
@@ -126,21 +130,25 @@ describe('validateSettings', () => {
       {
         path: 'columns[3].type',
         code: 'unknownCellType',
+        severity: 'error',
         message: '\'currency\' is not a registered cell type.',
       },
       {
         path: 'columns[4].editor',
         code: 'unknownEditor',
+        severity: 'error',
         message: '\'fancy\' is not a registered editor.',
       },
       {
         path: 'columns[4].renderer',
         code: 'unknownRenderer',
+        severity: 'error',
         message: '\'fancy\' is not a registered renderer.',
       },
       {
         path: 'columns[4].validator',
         code: 'unknownValidator',
+        severity: 'error',
         message: '\'fancy\' is not a registered validator.',
       },
     ]);
@@ -161,21 +169,25 @@ describe('validateSettings', () => {
       {
         path: 'title',
         code: 'wrongLevel',
+        severity: 'error',
         message: '\'title\' can be set inside \'columns\' only.',
       },
       {
         path: 'columns[0].fixedRowsTop',
         code: 'wrongLevel',
+        severity: 'error',
         message: '\'fixedRowsTop\' can be set at the grid level only.',
       },
       {
         path: 'columns[0].afterChange',
         code: 'wrongLevel',
+        severity: 'error',
         message: 'Hooks such as \'afterChange\' can be set at the grid level only.',
       },
       {
         path: 'cell[0].colHeaders',
         code: 'wrongLevel',
+        severity: 'error',
         message: '\'colHeaders\' can be set at the grid level only.',
       },
     ]);
@@ -199,11 +211,13 @@ describe('validateSettings', () => {
       {
         path: 'columns[1].data',
         code: 'unknownDataProperty',
+        severity: 'warning',
         message: 'No row of \'data\' has the property \'nmae\'. Did you mean \'name\'?',
       },
       {
         path: 'columns[3].data',
         code: 'unknownDataProperty',
+        severity: 'warning',
         message: 'No row of \'data\' has the property \'address.zip\'.',
       },
     ]);
@@ -233,6 +247,7 @@ describe('validateSettings', () => {
       {
         path: 'filterValueComparator',
         code: 'pluginDisabled',
+        severity: 'warning',
         message: '\'filterValueComparator\' has no effect while the Filters plugin is off. ' +
           'Set \'filters\' to enable it.',
       },
@@ -247,7 +262,7 @@ describe('validateSettings', () => {
   });
 
   it('should validate a single column or cell with the `level` option', () => {
-    expect(brief(validateSettings({ type: 'numeric', colHeaders: true }, { level: 'column' }))).toEqual([
+    expect(brief(validateSettings({ type: 'numeric', colHeaders: true }, { level: 'columns' }))).toEqual([
       { path: 'colHeaders', code: 'wrongLevel' },
     ]);
     expect(brief(validateSettings({ readOnly: 1 }, { level: 'cell' }))).toEqual([
@@ -312,6 +327,7 @@ describe('validateSettings', () => {
       {
         path: 'columns[1].data',
         code: 'unknownDataProperty',
+        severity: 'warning',
         message: 'No row of \'data\' has the property \'agee\'. Did you mean \'age\'?',
       },
     ]);
@@ -369,7 +385,9 @@ describe('validateSettings', () => {
 
     expect(validateSettings(null)).toEqual({
       valid: false,
-      problems: [{ path: '', code: 'invalidSettings', message: 'Expected a settings object, got null.' }],
+      problems: [
+        { path: '', code: 'invalidSettings', severity: 'error', message: 'Expected a settings object, got null.' },
+      ],
     });
     expect(brief(validateSettings(throwing))).toEqual([{ path: 'colHeaders', code: 'invalidValue' }]);
     expect(brief(validateSettings(revoked.proxy))).toEqual([{ path: '', code: 'invalidSettings' }]);
@@ -395,6 +413,9 @@ describe('validateSettings', () => {
     expect(JSON.parse(JSON.stringify(settingsSchema))).toEqual(settingsSchema);
     expect(settingsSchema.$schema).toBe('https://json-schema.org/draft/2020-12/schema');
     expect(settingsSchema.properties.stretchH.enum).toEqual(['none', 'all', 'last']);
+    expect(settingsSchema.properties.afterChange.enum).toEqual([null, false]);
+    expect(settingsSchema.$id).toBeUndefined();
+    expect(settingsSchema['x-handsontable']).toBeUndefined();
     expect(settingsSchema.properties.afterChange['x-handsontable']).toEqual({
       levels: ['grid'],
       hook: true,
@@ -402,6 +423,7 @@ describe('validateSettings', () => {
     });
     expect(Object.isFrozen(settingsSchema.properties.stretchH)).toBe(true);
   });
+
   it('should report a problem of a cyclic settings object once', () => {
     const cyclic = { colHeader: true };
 
@@ -427,7 +449,8 @@ describe('validateSettings', () => {
       {
         path: '',
         code: 'invalidSettings',
-        message: 'Unknown level \'row\'. Expected \'grid\', \'column\', or \'cell\'.',
+        severity: 'error',
+        message: 'Unknown level \'row\'. Expected \'grid\', \'columns\', \'cells\', or \'cell\'.',
       },
     ]);
     expect(brief(validateSettings({}, { level: 'toString' }))).toEqual([{ path: '', code: 'invalidSettings' }]);
@@ -449,10 +472,11 @@ describe('validateSettings', () => {
     ]);
   });
 
-  it('should accept a hook set to undefined or null, at any level', () => {
+  it('should accept a hook set to undefined, null, or false, at any level', () => {
     expect(validateSettings({
       afterChange: undefined,
       beforeChange: null,
+      afterSelection: false,
       columns: [{ afterChange: undefined }],
     }).problems).toEqual([]);
   });
@@ -462,14 +486,25 @@ describe('validateSettings', () => {
       {
         path: 'afterChange',
         code: 'invalidType',
+        severity: 'error',
         message: 'Expected a function or an array of functions, got an array that holds something else.',
       },
     ]);
   });
 
+  it('should suggest an option for a removed hook name that is close to one', () => {
+    expect(validateSettings({ hiddenColumn: true }).problems[0].message)
+      .toBe('\'hiddenColumn\' is a hook that was removed in 8.0.0. Did you mean \'hiddenColumns\'?');
+  });
+
   it('should report a removed hook with the version it was removed in', () => {
     expect(validateSettings({ modifyRow() {} }).problems).toEqual([
-      { path: 'modifyRow', code: 'unknownOption', message: '\'modifyRow\' is a hook that was removed in 8.0.0.' },
+      {
+        path: 'modifyRow',
+        code: 'unknownOption',
+        severity: 'error',
+        message: '\'modifyRow\' is a hook that was removed in 8.0.0. Did you mean \'modifyRowData\'?',
+      },
     ]);
   });
 
@@ -478,9 +513,8 @@ describe('validateSettings', () => {
 
     data[3] = 'Ana';
 
-    // `data` is `unknown[][] | object[]`, and an `object` may be an array.
     expect(validateSettings({ data }).problems).toEqual([
-      { path: 'data[3]', code: 'invalidType', message: 'Expected an array or an object, got a string.' },
+      { path: 'data[3]', code: 'invalidType', severity: 'error', message: 'Expected an object, got a string.' },
     ]);
   });
 
@@ -546,7 +580,12 @@ describe('validateSettings', () => {
 
   it('should report a negative cell position', () => {
     expect(validateSettings({ cell: [{ row: -1, col: 0, readOnly: true }] }).problems).toEqual([
-      { path: 'cell[0].row', code: 'invalidValue', message: 'Expected a number of at least 0, got -1.' },
+      {
+        path: 'cell[0].row',
+        code: 'invalidValue',
+        severity: 'error',
+        message: 'Expected a number of at least 0, got -1.',
+      },
     ]);
   });
 
@@ -555,7 +594,7 @@ describe('validateSettings', () => {
   });
 
   it('should not report a plugin as off for one column checked on its own', () => {
-    expect(validateSettings({ filterValueComparator: () => 0 }, { level: 'column' }).problems).toEqual([]);
+    expect(validateSettings({ filterValueComparator: () => 0 }, { level: 'columns' }).problems).toEqual([]);
     expect(brief(validateSettings({ columns: [{ filterValueComparator: () => 0 }] }))).toEqual([
       { path: 'columns[0].filterValueComparator', code: 'pluginDisabled' },
     ]);
@@ -573,5 +612,64 @@ describe('validateSettings', () => {
 
     expect(validateSettings({ columns: [{ data: 'agee' }], filterValueComparator: () => 0 }, { hot }).problems)
       .toEqual([]);
+  });
+
+  it('should not take a key of Object.prototype for an option', () => {
+    expect(brief(validateSettings(JSON.parse('{"__proto__": {}, "constructor": 1, "toString": 2}')))).toEqual([
+      { path: '__proto__', code: 'unknownOption' },
+      { path: 'constructor', code: 'unknownOption' },
+      { path: 'toString', code: 'unknownOption' },
+    ]);
+    expect(brief(validateSettings({ columns: [{ hasOwnProperty: 1 }] }))).toEqual([
+      { path: 'columns[0].hasOwnProperty', code: 'unknownOption' },
+    ]);
+  });
+
+  it('should keep the settings valid when only warnings are found', () => {
+    const result = validateSettings({
+      data: [{ name: 'Ana' }],
+      columns: [{ data: 'nmae' }],
+      filterValueComparator: () => 0,
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.problems.map(({ code, severity }) => ({ code, severity }))).toEqual([
+      { code: 'unknownDataProperty', severity: 'warning' },
+      { code: 'pluginDisabled', severity: 'warning' },
+    ]);
+  });
+
+  it('should accept ariaTags set per column', () => {
+    expect(validateSettings({ columns: [{ ariaTags: false }] }).problems).toEqual([]);
+  });
+
+  it('should check the object a cells function returns with the cells level', () => {
+    expect(validateSettings({ readOnly: true, comment: { value: 'Checked' } }, { level: 'cells' }).problems)
+      .toEqual([]);
+    expect(brief(validateSettings({ colHeaders: true }, { level: 'cells' }))).toEqual([
+      { path: 'colHeaders', code: 'wrongLevel' },
+    ]);
+  });
+
+  it('should not report an object option given as an array, except the data schema', () => {
+    expect(brief(validateSettings({ hiddenColumns: [1, 2] }))).toEqual([
+      { path: 'hiddenColumns', code: 'invalidType' },
+    ]);
+    expect(validateSettings({ dataSchema: [null, null] }).problems).toEqual([]);
+  });
+
+  it('should not check column properties against a data schema function', () => {
+    expect(validateSettings({
+      data: [{ a: 1 }],
+      dataSchema: () => ({ a: null, b: null }),
+      columns: [{ data: 'a' }, { data: 'b' }],
+    }).problems).toEqual([]);
+  });
+
+  it('should follow a column property through an array and past an empty step', () => {
+    expect(validateSettings({
+      data: [{ items: [{ name: 'Mouse' }], address: null }],
+      columns: [{ data: 'items.0.name' }, { data: 'address.city' }],
+    }).problems).toEqual([]);
   });
 });

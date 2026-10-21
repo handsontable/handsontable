@@ -1,4 +1,5 @@
 import { settingsSchema } from './schema';
+import { internals } from './schema.generated';
 import metaSchemaFactory from '../dataMap/metaManager/metaSchema';
 import { Hooks } from '../core/hooks';
 import { REMOVED_HOOKS } from '../core/hooks/constants';
@@ -31,9 +32,9 @@ const MAX_DEPTH = 8;
 
 /**
  * The keys the grid writes on its own settings object (`instance`, `_initOnlySettings`,
- * `_layoutDirection`), so the result of `getSettings()` passes.
+ * `_layoutDirection`), so the result of `getSettings()` passes. `__proto__` is not one of them.
  */
-const RUNTIME_KEY = /^(_|instance$)/;
+const RUNTIME_KEY = /^(_(?!_proto__$)|instance$)/;
 
 /**
  * The schema node that describes a whole settings object at each level.
@@ -46,11 +47,12 @@ const LEVEL_NODES: Record<SettingsSchemaLevel, JsonSchemaObject> = {
 };
 
 /**
- * The `level` option's values and the level each one checks.
+ * The `level` option's values: the level names the schema's `x-handsontable.levels` uses.
  */
 const INPUT_LEVELS: Record<string, SettingsSchemaLevel> = {
   grid: 'grid',
-  column: 'columns',
+  columns: 'columns',
+  cells: 'cells',
   cell: 'cell',
 };
 
@@ -92,7 +94,7 @@ let defaults: Record<string, unknown> | null = null;
  * The state of one validation.
  */
 interface Context {
-  problems: SettingsProblem[];
+  problems: FoundProblem[];
   /**
    * The settings objects being walked, to stop on a cycle.
    */
@@ -126,6 +128,16 @@ interface DataSample {
   dataSchema: unknown;
   dotNotation: boolean;
 }
+
+/**
+ * A problem as the checks find it; `validateSettings()` adds the severity from the code.
+ */
+type FoundProblem = Omit<SettingsProblem, 'severity'>;
+
+/**
+ * The codes of the problems that may be intended, reported with the `warning` severity.
+ */
+const WARNING_CODES: SettingsProblemCode[] = ['unknownDataProperty', 'pluginDisabled'];
 
 /**
  * The result of reading a property that may throw.
@@ -301,7 +313,24 @@ function hasJsonType(value: unknown, type: string): boolean {
 function resolveOptionRef(node: JsonSchemaObject): JsonSchemaObject {
   const match = node.$ref?.match(/^#\/properties\/(.+)$/);
 
-  return match ? (settingsSchema.properties?.[match[1]] ?? {}) : node;
+  return match ? (getOwnNode(settingsSchema.properties, match[1]) ?? {}) : node;
+}
+
+/**
+ * Reads a node of a `properties` map by its own key only, so a key such as `__proto__` or
+ * `constructor` never finds a member of `Object.prototype`.
+ *
+ * @param {object|undefined} properties The `properties` map.
+ * @param {string} key The key.
+ * @returns {object|undefined}
+ */
+function getOwnNode(
+  properties: Record<string, JsonSchemaObject> | undefined,
+  key: string,
+): JsonSchemaObject | undefined {
+  const isOwn = properties !== undefined && Object.prototype.hasOwnProperty.call(properties, key);
+
+  return isOwn ? properties[key] : undefined;
 }
 
 /**
@@ -457,7 +486,7 @@ function checkValue(value: unknown, node: JsonSchemaObject, path: string, contex
   // A value can fit several branches by kind (an array of arrays and an array of objects, for
   // `data`). It is valid when the contents of any one of them check out; otherwise the branch with
   // the fewest problems is the one the value meant, and its problems are reported.
-  let closestProblems: SettingsProblem[] | null = null;
+  let closestProblems: FoundProblem[] | null = null;
 
   for (const branch of candidates) {
     const branchContext = { ...context, problems: [] };
@@ -481,9 +510,9 @@ function checkValue(value: unknown, node: JsonSchemaObject, path: string, contex
  * Builds the problem of a property that throws when read.
  *
  * @param {string} path The property's path.
- * @returns {SettingsProblem}
+ * @returns {FoundProblem}
  */
-function unreadable(path: string): SettingsProblem {
+function unreadable(path: string): FoundProblem {
   return { path, code: 'invalidValue', message: 'The value could not be read.' };
 }
 
@@ -518,25 +547,20 @@ function describeLevels(levels: SettingsSchemaLevel[]): string {
  * @param {Context} context The validation state.
  */
 function reportUnknownOption(key: string, level: SettingsSchemaLevel, path: string, context: Context): void {
-  if (REMOVED_HOOKS.has(key)) {
-    context.problems.push({
-      path,
-      code: 'unknownOption',
-      message: `'${key}' is a hook that was removed in ${REMOVED_HOOKS.get(key)}.`,
-    });
-
-    return;
-  }
-
   const candidates = level === 'grid' ?
     [...new Set(getOptionNames(level).concat(Hooks.getSingleton().getRegistered()))] :
     getOptionNames(level);
   const suggestion = findClosestMatch(key, candidates);
+  const hint = suggestion === null ? '' : ` Did you mean '${suggestion}'?`;
+  // A removed hook may also be a typo of an option (`hiddenColumn` for `hiddenColumns`).
+  const removedIn = REMOVED_HOOKS.get(key);
 
   context.problems.push({
     path,
     code: 'unknownOption',
-    message: `Unknown option '${key}'.${suggestion === null ? '' : ` Did you mean '${suggestion}'?`}`,
+    message: removedIn === undefined ?
+      `Unknown option '${key}'.${hint}` :
+      `'${key}' is a hook that was removed in ${removedIn}.${hint}`,
   });
 }
 
@@ -656,13 +680,13 @@ function checkPlugin(key: string, value: unknown, node: JsonSchemaObject, path: 
   // Only an option whose plugin is switched by another documented option of the same plugin
   // (`filterValueComparator` and `filters`). `undo` is the UndoRedo switch itself, even though
   // the plugin's key is `undoRedo`.
-  const switchNode = pluginKey === undefined ? undefined : settingsSchema.properties?.[pluginKey];
+  const switchNode = pluginKey === undefined ? undefined : getOwnNode(settingsSchema.properties, pluginKey);
 
   if (pluginKey === undefined || pluginKey === key || switchNode?.['x-handsontable']?.plugin !== pluginName) {
     return;
   }
 
-  // A single column or cell checked on its own (`level: 'column'`) cannot know the grid's switches.
+  // A single column or cell checked on its own (`level: 'columns'`) cannot know the grid's switches.
   if ((context.gridSettings !== null || context.hot !== undefined) && !isPluginOn(pluginName, pluginKey, context)) {
     context.problems.push({
       path,
@@ -761,7 +785,7 @@ function getDataSample(context: Context): DataSample {
 /**
  * Tells whether a row holds a property: a key named exactly so first, then a dotted path, the
  * order `DataMap#get` reads a cell in. A key counts when the row's property lookup finds it, so a
- * getter on a class of row objects counts too.
+ * getter on a class of row objects counts too. A path through an array or an empty step counts.
  *
  * @param {*} row The row.
  * @param {string} property The property.
@@ -780,7 +804,14 @@ function hasDataProperty(row: unknown, property: string, dotNotation: boolean): 
   let current: unknown = row;
 
   for (const name of property.split('.')) {
-    const read = isRecord(current) && hasKey(current, name) ? readProperty(current, name) : null;
+    // `DataMap#get` stops at an empty step and renders an empty cell, so the path can still hold
+    // a value in another row or later.
+    if (current === null || current === undefined) {
+      return true;
+    }
+
+    // A step may index into an array (`items.0.name`).
+    const read = typeof current === 'object' && hasKey(current, name) ? readProperty(current, name) : null;
 
     if (read === null || !read.ok) {
       return false;
@@ -821,6 +852,12 @@ function checkDataProperty(value: unknown, path: string, context: Context): void
   }
 
   const { rows, rowKeys, dataSchema, dotNotation } = getDataSample(context);
+
+  // A `dataSchema` function builds each row's defaults from its index; reading it means calling it.
+  if (typeof dataSchema === 'function') {
+    return;
+  }
+
   const objectRows = rows.filter(isRecord);
   const arrayRows = rows.filter(Array.isArray);
 
@@ -856,7 +893,7 @@ function checkDataProperty(value: unknown, path: string, context: Context): void
  */
 function isAcceptedKey(key: string, context: Context): boolean {
   return context.pluginKeys.has(key) || RUNTIME_KEY.test(key) ||
-    (settingsSchema['x-handsontable']?.internalOptions ?? []).includes(key);
+    internals.internalOptions.includes(key);
 }
 
 /**
@@ -869,8 +906,8 @@ function isAcceptedKey(key: string, context: Context): boolean {
  * @param {Context} context The validation state.
  */
 function checkOption(key: string, value: unknown, level: SettingsSchemaLevel, path: string, context: Context): void {
-  const option = settingsSchema.properties?.[key];
-  const levelNode = LEVEL_NODES[level].properties?.[key];
+  const option = getOwnNode(settingsSchema.properties, key);
+  const levelNode = getOwnNode(LEVEL_NODES[level].properties, key);
 
   // `row` and `col` of a `cell` entry are positions, not options.
   if (option === undefined && levelNode !== undefined) {
@@ -882,8 +919,8 @@ function checkOption(key: string, value: unknown, level: SettingsSchemaLevel, pa
   const isHook = option?.['x-handsontable']?.hook || (option === undefined && Hooks.getSingleton().isRegistered(key));
 
   // An unset value is never a problem, whatever the key or the level. Core skips a hook set to
-  // anything but a function, so `afterChange: condition ? callback : undefined` is fine too.
-  if (value === undefined || (isHook && value === null)) {
+  // anything but a function, so `afterChange: enabled && callback` is fine too.
+  if (value === undefined || (isHook && (value === null || value === false))) {
     return;
   }
 
@@ -1002,7 +1039,7 @@ function checkNestedSettings(
 function readPluginKeys(): Set<string> {
   const keys = new Set<string>();
 
-  const builtInPlugins = settingsSchema['x-handsontable']?.builtInPlugins ?? [];
+  const { builtInPlugins } = internals;
 
   getPluginsNames().forEach((name) => {
     const pluginClass = getPlugin(name);
@@ -1031,7 +1068,9 @@ function readPluginKeys(): Set<string> {
  * page, without applying anything. Use it before passing a stored, user-edited, or generated
  * configuration to `new Handsontable()` or `updateSettings()`.
  *
- * Each problem has a `path` (`columns[3].type`), a `code`, and a `message`. The codes are:
+ * Each problem has a `path` (`columns[3].type`), a `code`, a `severity`, and a `message`. A `warning`
+ * (`unknownDataProperty`, `pluginDisabled`) is a likely mistake that may be intended, and does not make
+ * the settings invalid; every other code is an `error`. A minor release can add a code. The codes are:
  * `unknownOption` (with a "did you mean" hint when an option is close), `wrongLevel` (a grid-only
  * option inside `columns`, for example), `invalidType` and `invalidValue` (a value of the wrong
  * type, or outside the allowed set), `unknownCellType`, `unknownEditor`, `unknownRenderer` and
@@ -1059,16 +1098,17 @@ function readPluginKeys(): Set<string> {
  * @param {object} [options] The validation options.
  * @param {Core} [options.hot] The instance the settings are meant for. Its data rows and its
  * plugins' state are used when the settings do not carry them, as for an `updateSettings()` payload.
- * @param {'grid'|'column'|'cell'} [options.level='grid'] What the object is: the grid settings, one
- * entry of `columns`, or the settings of one cell.
- * @returns {object} An object with `valid` (`true` when no problem was found) and `problems`, an array
- * of `{ path, code, message }`.
+ * @param {'grid'|'columns'|'cells'|'cell'} [options.level='grid'] What the object is, named as in the
+ * schema's levels: the grid settings, one entry of `columns`, the object a `cells` function returns, or
+ * one entry of `cell`.
+ * @returns {object} An object with `valid` (`true` when no problem of the `error` severity was found) and
+ * `problems`, an array of `{ path, code, severity, message }`.
  */
 export function validateSettings(
   settings: unknown,
   options: ValidateSettingsOptions | null = {},
 ): SettingsValidationResult {
-  const problems: SettingsProblem[] = [];
+  const problems: FoundProblem[] = [];
 
   try {
     const { hot, level: levelOption = 'grid' }: ValidateSettingsOptions = options ?? {};
@@ -1079,7 +1119,7 @@ export function validateSettings(
       problems.push({
         path: '',
         code: 'invalidSettings',
-        message: `Unknown level ${formatLiteral(levelOption)}. Expected 'grid', 'column', or 'cell'.`,
+        message: `Unknown level ${formatLiteral(levelOption)}. Expected 'grid', 'columns', 'cells', or 'cell'.`,
       });
 
     } else if (!isRecord(settings)) {
@@ -1106,5 +1146,10 @@ export function validateSettings(
     problems.push({ path: '', code: 'invalidSettings', message: 'The settings object could not be read.' });
   }
 
-  return { valid: problems.length === 0, problems };
+  const results: SettingsProblem[] = problems.map(problem => ({
+    ...problem,
+    severity: WARNING_CODES.includes(problem.code) ? 'warning' : 'error',
+  }));
+
+  return { valid: results.every(({ severity }) => severity === 'warning'), problems: results };
 }

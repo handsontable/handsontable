@@ -11,11 +11,13 @@ describe('validateSettings with handsontable/base', () => {
       {
         path: 'dropdownMenu',
         code: 'pluginNotRegistered',
+        severity: 'error',
         message: '\'dropdownMenu\' has no effect: the DropdownMenu plugin is not registered.',
       },
       {
         path: 'filters',
         code: 'pluginNotRegistered',
+        severity: 'error',
         message: '\'filters\' has no effect: the Filters plugin is not registered.',
       },
     ]);
@@ -27,7 +29,12 @@ describe('validateSettings with handsontable/base', () => {
 
   it('should report a cell type that is not registered', () => {
     expect(validateSettings({ type: 'numeric' }).problems).toEqual([
-      { path: 'type', code: 'unknownCellType', message: '\'numeric\' is not a registered cell type.' },
+      {
+        path: 'type',
+        code: 'unknownCellType',
+        severity: 'error',
+        message: '\'numeric\' is not a registered cell type.',
+      },
     ]);
   });
 

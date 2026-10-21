@@ -8,9 +8,10 @@ settings object against it and against what the page registers. Guide:
 ## What it owns and what it does not
 
 - `schema.generated.ts` is **generated and gitignored**. `scripts/generate-settings-schema.mjs` writes it, run as
-  the `build:settings-schema` task, which `build:es`, `build:commonjs` and `build:types` depend on and the `lint`,
-  `lint:fix` and `test:unit` pipelines run first. A bare `jest` or `tsc` in a fresh checkout fails on the missing
-  module until one of those has run. Never commit it and never edit it.
+  the `build:settings-schema` task. `build:es`, `build:commonjs`, `build:types`, `typecheck`, `lint:eslint`,
+  `lint:eslint.fix` and `test:unit.jest` depend on it, and the parallel `lint` pipeline lists it too, because its
+  scheduler runs only the tasks a pipeline names. A bare `jest` or `tsc` outside the task runner fails on a fresh
+  checkout until one of those has run. Never commit it and never edit it.
 - It reads two sources and owns neither. `metaSchema.ts` decides **which** options exist and their levels
   (`@configScope`), plugin (`@category`) and `@since`. `GridSettings`, `ColumnSettings` and `CellMeta` decide the
   **value types**, through the TypeScript compiler API, because the JSDoc `@type` has no enums. An option the types
@@ -45,15 +46,29 @@ settings object against it and against what the page registers. Guide:
   state, and an input may be a Proxy or carry a throwing getter: every read goes through `readProperty()`, and the
   last-resort `catch` turns anything else into one `invalidSettings` problem.
 - **`getSettings()` must pass.** The grid writes `instance` and `_`-prefixed keys on its own settings object, and
-  `metaSchema.ts` has `@private` and bookkeeping keys (`x-handsontable.internalOptions` on the root). All of them are
-  accepted without a check.
+  `metaSchema.ts` has `@private` and bookkeeping keys. All of them are accepted without a check, except
+  `__proto__`. The generated module exports those keys and the built-in plugin keys as `internals`, next to the
+  schema and not inside it, so the published schema names no private option.
+- **The generator reads `metaSchema.ts` through the TypeScript parser, and fails rather than guess.** A key without
+  `@memberof Options#` and `@configScope` (and without `@private` or a leading `_`) fails the build, so an option
+  cannot slip in unchecked. The parser reads a tag wrapped onto two lines whole; `scripts/utils/option-levels.js`
+  (the docs matrix) reads tags with a regular expression, so the generator also fails when the two disagree on an
+  option's levels.
+- **A plugin's switch can be `@category Core`** (`moveCells`, `selectionHandles`, `dataProvider`, `fillHandle`).
+  The generator maps such an option to the plugin whose `PLUGIN_KEY`, or `const SETTING_KEY` (Autofill's
+  `fillHandle`), names it, so `pluginNotRegistered` covers it on `handsontable/base`.
+- **Two problem codes are warnings** (`unknownDataProperty`, `pluginDisabled`): each is a guess about intent, so it
+  is listed with `severity: 'warning'` and does not make the settings invalid. Every other code is an `error`.
+  `SettingsProblemCode` ends with `(string & {})`, because a minor release can add a code.
+- **Only `dataSchema` widens TypeScript's `object` to take an array** (`OBJECT_OR_ARRAY_OPTIONS`). TS `object` takes
+  arrays, but for `hiddenColumns` or `copyPaste` an array is a mistake.
 - **The generated file's name has a dot in it**, and `scripts/swc-transpile.mjs` used to leave any specifier with an
   extension-like suffix alone, so the ES build imported `./schema.generated` with no `.mjs` and failed in Node, webpack
   and rspack, and esbuild loaded the CommonJS copy into an ES graph (every option then read as unknown). The
   transpiler now adds the extension whenever a source file with that dotted name exists. Types cannot see this; the
   runtime import step of `scripts/verify-esm-consumer-types.mjs` loads the entry point both ways and fails on it.
 - **Built-in plugin keys are not options.** Only third-party plugins' `PLUGIN_KEY` and `SETTING_KEYS` are accepted
-  as known keys; the built-in ones are listed in the root's `x-handsontable.builtInPlugins`, because `undoRedo` and
+  as known keys; the built-in ones are listed in the generated `internals.builtInPlugins`, because `undoRedo` and
   `autofill` are keys that do nothing (the options are `undo` and `fillHandle`).
 - **`anyOf` picks the branch with the fewest problems.** `data` is an array of arrays or an array of objects, and
   reporting the first branch's problems turned one bad row into one problem per good row. Problems are appended in a

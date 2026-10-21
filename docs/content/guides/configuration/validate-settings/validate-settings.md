@@ -37,8 +37,13 @@ The `handsontable/settingsSchema` module gives you two tools:
 
 - `validateSettings()` checks a settings object and returns the problems it finds. It applies nothing and never
   throws.
-- `settingsSchema` is a JSON Schema (draft 2020-12) of every grid, column, and cell option. Use it for editor
-  autocomplete, form generation, or your own validator.
+- `settingsSchema` is a JSON Schema (draft 2020-12) of every grid, column, and cell option. Use it for form
+  generation, your own validator, or, saved to a file, editor autocomplete for JSON configs. See
+  [Use the JSON Schema](#use-the-json-schema).
+
+Both tools read the cell types, editors, renderers, validators, and plugins that the `handsontable` npm package
+registers on the page. Next to the UMD build loaded from a CDN, the module sees none of them, so use it with the
+npm package.
 
 Nothing runs on its own: the grid does not validate its settings, so existing configurations behave as before.
 
@@ -59,13 +64,17 @@ if (valid) {
 }
 ```
 
-Each problem has three properties:
+Each problem has four properties:
 
-| Property  | Description                                                                         |
-| --------- | ----------------------------------------------------------------------------------- |
-| `path`    | Where the problem is, such as `colHeader` or `columns[3].type`. `''` means the whole object. |
-| `code`    | What the problem is about. See [Problem codes](#problem-codes).                      |
-| `message` | A sentence that says what to change.                                                |
+| Property   | Description                                                                         |
+| ---------- | ----------------------------------------------------------------------------------- |
+| `path`     | Where the problem is, such as `colHeader` or `columns[3].type`. `''` means the whole object. |
+| `code`     | What the problem is about. See [Problem codes](#problem-codes).                      |
+| `severity` | `error` for a setting that Handsontable ignores or cannot use. `warning` for a likely mistake that may be intended. |
+| `message`  | A sentence that says what to change.                                                |
+
+`valid` is `true` when no problem has the `error` severity. Warnings are listed, but they do not make the settings
+invalid.
 
 For example, this configuration has three problems:
 
@@ -79,9 +88,12 @@ validateSettings({
 // {
 //   valid: false,
 //   problems: [
-//     { path: 'colHeader', code: 'unknownOption', message: "Unknown option 'colHeader'. Did you mean 'colHeaders'?" },
-//     { path: 'stretchH', code: 'invalidValue', message: "Expected one of 'none', 'all', 'last', got 'full'." },
-//     { path: 'columns[1].type', code: 'unknownCellType', message: "'currency' is not a registered cell type." },
+//     { path: 'colHeader', code: 'unknownOption', severity: 'error',
+//       message: "Unknown option 'colHeader'. Did you mean 'colHeaders'?" },
+//     { path: 'stretchH', code: 'invalidValue', severity: 'error',
+//       message: "Expected one of 'none', 'all', 'last', got 'full'." },
+//     { path: 'columns[1].type', code: 'unknownCellType', severity: 'error',
+//       message: "'currency' is not a registered cell type." },
 //   ],
 // }
 ```
@@ -100,10 +112,12 @@ validateSettings({
 | `unknownRenderer`     | A `renderer` names a renderer that is not registered on the page.                                |
 | `unknownValidator`    | A `validator` names a validator that is not registered on the page.                              |
 | `pluginNotRegistered` | An option belongs to a plugin that is not registered on the page, for example with `handsontable/base` and no `registerPlugin()` call. |
-| `pluginDisabled`      | An option has no effect because its plugin is off, such as `filterValueComparator` without `filters`. |
-| `unknownDataProperty` | A `columns[].data` property that none of the first 50 data rows has, or an index past the rows. |
+| `pluginDisabled`      | A warning: an option has no effect because its plugin is off, such as `filterValueComparator` without `filters`. |
+| `unknownDataProperty` | A warning: a `columns[].data` property that none of the first 50 data rows has, or an index past the rows. |
 
-A hook set to `undefined` or `null` is not a problem: Handsontable skips it.
+A later minor release can add a code, so give a `switch` over the codes a `default` branch.
+
+A hook set to `undefined`, `null`, or `false` is not a problem: Handsontable skips it.
 
 The registry checks look at what is registered on the page when you call `validateSettings()`, so call it after
 `registerAllModules()` or your own `register*()` calls.
@@ -122,11 +136,13 @@ const { problems } = validateSettings(payload, { hot });
 //    message: "No row of 'data' has the property 'agee'. Did you mean 'age'?" }]
 ```
 
-To check one column or one cell instead of the whole grid, pass `level`:
+To check one column or one cell instead of the whole grid, pass `level`. It takes the level names of the schema's
+`x-handsontable.levels`:
 
 ```js
-validateSettings({ type: 'numeric', readOnly: true }, { level: 'column' });
-validateSettings({ readOnly: true }, { level: 'cell' });
+validateSettings({ type: 'numeric', readOnly: true }, { level: 'columns' });
+validateSettings({ readOnly: true }, { level: 'cells' });
+validateSettings({ row: 0, col: 0, readOnly: true }, { level: 'cell' });
 ```
 
 ## Correct generated settings
@@ -159,6 +175,18 @@ async function createGridSettings(prompt) {
 `settingsSchema` is a frozen, JSON-serializable object. Its `properties` list every grid option and hook,
 `$defs.columnSettings` describes an entry of `columns`, and `$defs.cellSettings` describes an entry of `cell`.
 
+No schema file ships with the package. To get editor autocomplete for JSON configs, write the schema to a file in
+your build, and point the `$schema` key of your config files at it:
+
+```js
+import { writeFileSync } from 'node:fs';
+import { registerAllModules } from 'handsontable/registry';
+import { settingsSchema } from 'handsontable/settingsSchema';
+
+registerAllModules();
+writeFileSync('handsontable-settings.schema.json', JSON.stringify(settingsSchema, null, 2));
+```
+
 ```js
 import { settingsSchema } from 'handsontable/settingsSchema';
 
@@ -178,7 +206,8 @@ Each option carries Handsontable-specific details under the `x-handsontable` key
 | `hook`         | `true` for a hook callback.                                                                 |
 
 A value that JSON cannot hold, such as a function, is listed in `runtimeTypes` and not in `type`. A JSON Schema
-validator therefore rejects a function in a JSON document, which cannot carry one anyway. A validator that rejects
+validator therefore rejects a function in a JSON document, which cannot carry one anyway. A hook accepts `null` and
+`false` in JSON, the values Handsontable skips. A validator that rejects
 unknown keywords, such as Ajv in strict mode, needs the keyword registered:
 
 ```js
@@ -193,15 +222,16 @@ ajv.addKeyword('x-handsontable');
 const validate = ajv.compile(settingsSchema);
 ```
 
-The JSON Schema checks types and allowed values only. Use `validateSettings()` for the checks that depend on the
-page: unknown option names, option levels, registered names, plugins, and data properties.
+The JSON Schema checks types and allowed values only, and it accepts unknown keys, because the cell meta takes
+custom keys. Use `validateSettings()` for the checks that depend on the page: unknown option names, option levels,
+registered names, plugins, and data properties.
 
 ## Known limitations
 
 - Custom keys that you store in the cell meta are reported as `unknownOption`. Filter them out by `code` and `path`
   if your application uses them.
-- A column bound on purpose to a property no row has, such as an empty column, is reported as
-  `unknownDataProperty`.
+- A column bound on purpose to a property no row has, such as an empty column, is reported as an
+  `unknownDataProperty` warning.
 - `validateSettings()` never calls a function it finds in the settings, so it does not check what a `columns` or
   `cells` function returns.
 - Unknown keys inside an option's object, such as `filters: { serchMode: 'apply' }`, are not reported. Their known
@@ -211,7 +241,7 @@ page: unknown option names, option levels, registered names, plugins, and data p
 - `settingsSchema` lists the hooks registered when the module loads. A hook that a plugin registers later, such as
   `afterContextMenuExecute`, is missing from the object if you import `handsontable/settingsSchema` before the
   plugin. `validateSettings()` accepts it either way.
-- The module is not part of the UMD bundle. Import it from `handsontable/settingsSchema`.
+- The module is not part of the UMD bundle. Import it from `handsontable/settingsSchema` in the npm package.
 
 ## Related API reference
 

@@ -26,9 +26,10 @@ const EXPECTED_PROBLEMS = {
 };
 
 /**
- * At least this many configurations must be recorded, so the test cannot pass by recording none.
+ * Examples that build no grid, so they record no configuration, with the reason.
  */
-const MIN_RECORDED_CONFIGS = 250;
+const EXAMPLES_WITHOUT_A_GRID = {
+};
 
 /**
  * Lists the JavaScript example files under a directory.
@@ -141,7 +142,15 @@ describe('validateSettings over the documentation examples', () => {
 
   it('should run every example up to its grid', () => {
     expect(failedToRun).toEqual([]);
-    expect(recorded.length).toBeGreaterThanOrEqual(MIN_RECORDED_CONFIGS);
+    expect(examples.length).toBeGreaterThan(0);
+  });
+
+  it('should record a configuration from every example', () => {
+    const recordedFiles = new Set(recorded.map(({ file }) => file));
+    const withoutConfig = examples.map(file => relative(GUIDES_DIR, file))
+      .filter(file => !recordedFiles.has(file) && !EXAMPLES_WITHOUT_A_GRID[file]);
+
+    expect(withoutConfig).toEqual([]);
   });
 
   it('should find no problem in any documented configuration', () => {

@@ -2,13 +2,14 @@ import 'handsontable';
 import { settingsSchema, validateSettings } from 'handsontable/settingsSchema';
 import metaSchemaFactory from 'handsontable/dataMap/metaManager/metaSchema';
 import { Hooks } from 'handsontable/core/hooks';
+import { internals } from 'handsontable/settingsSchema/schema.generated';
 
 // The schema is generated from `metaSchema.ts` and the settings types by
 // `scripts/generate-settings-schema.mjs` on every build and test run. These cases fail when the
 // generator leaves an option or a hook out, or describes a default as invalid.
 describe('settingsSchema coverage', () => {
   const defaults = metaSchemaFactory();
-  const { internalOptions } = settingsSchema['x-handsontable'];
+  const { internalOptions } = internals;
 
   it('should describe every option of metaSchema.ts', () => {
     const missing = Object.keys(defaults)
@@ -20,6 +21,13 @@ describe('settingsSchema coverage', () => {
   it('should list only real keys as internal', () => {
     expect(internalOptions.length).toBeGreaterThan(0);
     expect(internalOptions.filter(key => !Object.prototype.hasOwnProperty.call(defaults, key))).toEqual([]);
+  });
+
+  it('should give the switch of every built-in plugin its plugin', () => {
+    const switches = ['moveCells', 'selectionHandles', 'dataProvider', 'fillHandle', 'filters', 'undo'];
+
+    expect(switches.map(key => settingsSchema.properties[key]['x-handsontable'].plugin))
+      .toEqual(['MoveCells', 'SelectionHandles', 'DataProvider', 'Autofill', 'Filters', 'UndoRedo']);
   });
 
   it('should describe every registered hook', () => {

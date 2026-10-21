@@ -13,6 +13,7 @@ export type {
   JsonSchemaType,
   SettingsProblem,
   SettingsProblemCode,
+  SettingsProblemSeverity,
   SettingsSchemaAnnotations,
   SettingsSchemaLevel,
   SettingsValidationResult,

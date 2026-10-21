@@ -40,15 +40,22 @@ export interface SettingsSchemaAnnotations {
    * `true` for a hook callback.
    */
   hook?: boolean;
+}
+
+/**
+ * What the generator writes next to the schema for `validateSettings()` alone. Not published.
+ */
+export interface GeneratedSchemaInternals {
   /**
-   * On the root: the keys a settings object may hold that are not documented options.
+   * The keys a settings object may hold that are not documented options (`preventWheel`,
+   * `_userDefinedMetaProps`).
    */
-  internalOptions?: string[];
+  internalOptions: string[];
   /**
-   * On the root: the keys of the plugins that ship with Handsontable. Any other registered
-   * plugin is a third-party one, and its keys are accepted at every level.
+   * The keys of the plugins that ship with Handsontable. Any other registered plugin is a
+   * third-party one, and its keys are accepted at every level.
    */
-  builtInPlugins?: string[];
+  builtInPlugins: string[];
 }
 
 /**
@@ -74,7 +81,8 @@ export interface JsonSchemaObject {
 }
 
 /**
- * What a reported problem is about.
+ * What a reported problem is about. A minor release can add a code, so a `switch` over the codes
+ * needs a `default` branch; the `(string & {})` member keeps such code compiling.
  */
 export type SettingsProblemCode =
   | 'invalidSettings'
@@ -88,7 +96,15 @@ export type SettingsProblemCode =
   | 'unknownValidator'
   | 'pluginNotRegistered'
   | 'pluginDisabled'
-  | 'unknownDataProperty';
+  | 'unknownDataProperty'
+  | (string & {});
+
+/**
+ * How sure the check is. An `error` is a setting Handsontable ignores or cannot use. A `warning`
+ * is a likely mistake that may be intended: a data property that the sampled rows do not have
+ * (`unknownDataProperty`), or an option of a plugin that is off (`pluginDisabled`).
+ */
+export type SettingsProblemSeverity = 'error' | 'warning';
 
 /**
  * One problem `validateSettings()` found.
@@ -103,6 +119,10 @@ export interface SettingsProblem {
    */
   code: SettingsProblemCode;
   /**
+   * Whether the problem makes the settings invalid (`error`) or only looks like a mistake (`warning`).
+   */
+  severity: SettingsProblemSeverity;
+  /**
    * A sentence that says what is wrong, for a person or a model to act on.
    */
   message: string;
@@ -113,11 +133,11 @@ export interface SettingsProblem {
  */
 export interface SettingsValidationResult {
   /**
-   * `true` when no problem was found.
+   * `true` when no problem of the `error` severity was found. Warnings do not make settings invalid.
    */
   valid: boolean;
   /**
-   * The problems found, in the order of the settings object.
+   * The problems found, errors and warnings, in the order of the settings object.
    */
   problems: SettingsProblem[];
 }
@@ -133,8 +153,9 @@ export interface ValidateSettingsOptions {
    */
   hot?: HotInstance;
   /**
-   * What the settings object is: the grid settings (default), one entry of `columns`, or the
-   * settings of one cell.
+   * What the settings object is, named as in the schema's `x-handsontable.levels`: the grid
+   * settings (`'grid'`, the default), one entry of `columns` (`'columns'`), the object a `cells`
+   * function returns (`'cells'`), or one entry of `cell` (`'cell'`).
    */
-  level?: 'grid' | 'column' | 'cell';
+  level?: SettingsSchemaLevel;
 }

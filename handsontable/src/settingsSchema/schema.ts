@@ -28,7 +28,8 @@ function createHookNode(hookName: string): JsonSchemaObject {
   return {
     description: `The \`${hookName}\` hook callback.`,
     ...(DEPRECATED_HOOKS.has(hookName) ? { deprecated: true } : {}),
-    not: {},
+    // JSON can hold only the values Handsontable skips for a hook: `null` and `false`.
+    enum: [null, false],
     'x-handsontable': { levels: ['grid'], hook: true, runtimeTypes: ['function'] },
   };
 }

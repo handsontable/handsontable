@@ -29,7 +29,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
-import { parseOptions } from './utils/option-levels.js';
+import { LEVELS, parseOptions } from './utils/option-levels.js';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_DIR = resolve(currentDir, '..');
@@ -100,21 +100,114 @@ const RUNTIME_OBJECT_TYPES = new Map([
 ]);
 
 /**
- * Reads the JSDoc blocks of `metaSchema.ts`, keyed by option name.
+ * Finds the object literal the `metaSchema.ts` factory returns.
  *
- * @param {string} src The contents of `metaSchema.ts`.
- * @returns {Map<string, string>} The block text of each option, with the leading `*` stripped.
+ * @param {ts.SourceFile} source The parsed `metaSchema.ts`.
+ * @returns {ts.ObjectLiteralExpression}
  */
-function readDocBlocks(src) {
-  // The same pattern `parseOptions()` uses, so both read the same block for each option.
-  const blockRe = /\/\*\*([\s\S]*?)\*\/\s*\n {4}([a-zA-Z_][a-zA-Z0-9_]*)\s*[:(]/g;
-  const blocks = new Map();
+function findOptionsLiteral(source) {
+  let literal = null;
 
-  for (const [, rawBlock, name] of src.matchAll(blockRe)) {
-    blocks.set(name, rawBlock.split('\n').map(line => line.replace(/^\s*\*\s?/, '')).join('\n'));
+  const visit = (node) => {
+    if (literal === null && ts.isReturnStatement(node) && node.expression &&
+        ts.isObjectLiteralExpression(node.expression) && ts.isExportAssignment(node.parent.parent.parent)) {
+      literal = node.expression;
+    }
+
+    ts.forEachChild(node, visit);
+  };
+
+  visit(source);
+
+  if (literal === null) {
+    throw new Error(`No options object found in ${META_SCHEMA}: the factory must return an object literal.`);
   }
 
-  return blocks;
+  return literal;
+}
+
+/**
+ * Reads the text of a JSDoc tag: the type of a `@type` tag, the comment of any other.
+ *
+ * @param {ts.JSDocTag} tag The tag.
+ * @param {ts.SourceFile} source The file the tag is in.
+ * @returns {string}
+ */
+function readTagText(tag, source) {
+  if (ts.isJSDocTypeTag(tag)) {
+    return tag.typeExpression.type.getText(source);
+  }
+
+  return (ts.getTextOfJSDocComment(tag.comment) ?? '').trim();
+}
+
+/**
+ * Reads every key of the options object in `metaSchema.ts` with its JSDoc, through the TypeScript
+ * parser, so a tag wrapped onto two lines reads whole.
+ *
+ * A key that starts with `_` or carries `@private` is internal. Every other key must carry
+ * `@memberof Options#` and a `@configScope` with known levels, or the build fails: an option
+ * the generator cannot read must not be accepted unchecked.
+ *
+ * @returns {{options: object[], internalOptions: string[]}}
+ */
+function readMetaOptions() {
+  const source = ts.createSourceFile(META_SCHEMA, readFileSync(META_SCHEMA, 'utf8'), ts.ScriptTarget.Latest, true);
+  const options = [];
+  const internalOptions = [];
+
+  findOptionsLiteral(source).properties.forEach((property) => {
+    const name = property.name.getText(source);
+    const docs = ts.getJSDocCommentsAndTags(property).filter(ts.isJSDoc);
+    const doc = docs[docs.length - 1];
+    const tags = new Map((doc?.tags ?? []).map(tag => [tag.tagName.text, readTagText(tag, source)]));
+
+    if (name.startsWith('_') || tags.has('private')) {
+      internalOptions.push(name);
+
+      return;
+    }
+
+    const levels = (tags.get('configScope') ?? '').split(/\s+/).filter(Boolean);
+    const problem = (tags.get('memberof') !== 'Options#' && 'it has no `@memberof Options#` tag') ||
+      (levels.length === 0 && 'it has no `@configScope` tag') ||
+      (levels.some(level => !LEVELS.includes(level)) && `its \`@configScope\` names an unknown level (${levels})`);
+
+    if (problem) {
+      throw new Error(`Option \`${name}\` in metaSchema.ts cannot be read: ${problem}. Document it as an ` +
+        'option, or mark it `@private`.');
+    }
+
+    options.push({
+      name,
+      levels,
+      category: tags.get('category') || 'Core',
+      since: tags.get('since') || null,
+      type: tags.get('type'),
+      description: readDescription(ts.getTextOfJSDocComment(doc?.comment) || tags.get('description') || ''),
+      nullDefault: ts.isPropertyAssignment(property) && property.initializer.kind === ts.SyntaxKind.NullKeyword,
+    });
+  });
+
+  return { options, internalOptions: internalOptions.sort() };
+}
+
+/**
+ * Fails when `scripts/utils/option-levels.js`, which feeds the option-levels docs page with a
+ * regular expression, reads an option's levels differently from the TypeScript parser.
+ *
+ * @param {object[]} options The options read through the TypeScript parser.
+ */
+function assertOptionLevelsAgree(options) {
+  const regexOptions = new Map(parseOptions(readFileSync(META_SCHEMA, 'utf8')).map(option => [option.name, option]));
+  const disagreements = options
+    .filter(({ name, levels }) => regexOptions.get(name)?.levels.join(' ') !== levels.join(' '))
+    .map(({ name, levels }) => `${name}: ${levels.join(' ')} vs ${regexOptions.get(name)?.levels.join(' ')}`);
+
+  if (disagreements.length > 0) {
+    throw new Error('scripts/utils/option-levels.js reads these option levels differently (parser vs regex): ' +
+      `${disagreements.join('; ')}. Keep each \`@configScope\` tag on one line.`);
+  }
 }
 
 /**
@@ -265,6 +358,27 @@ function mergeMembers(members) {
 }
 
 /**
+ * Options whose TypeScript `object` also means an array. TypeScript's `object` takes arrays, but
+ * for most options (`hiddenColumns`, `copyPaste`) an array is a mistake, so only these widen.
+ */
+const OBJECT_OR_ARRAY_OPTIONS = ['dataSchema'];
+
+/**
+ * Widens the `object` type of an option listed in `OBJECT_OR_ARRAY_OPTIONS` to take an array.
+ *
+ * @param {string} name The option name.
+ * @param {object} node The option's schema node.
+ * @returns {object}
+ */
+function widenNode(name, node) {
+  if (!OBJECT_OR_ARRAY_OPTIONS.includes(name) || node.type !== 'object') {
+    return node;
+  }
+
+  return { ...node, type: ['array', 'object'] };
+}
+
+/**
  * Adds `null` to the values a node accepts. Used for an option whose default is `null`, which
  * its type does not always list (`colHeaders`).
  *
@@ -384,9 +498,8 @@ class TypeConverter {
       return [{ type: 'boolean' }];
     }
 
-    // TypeScript's `object` takes arrays too (`dataSchema: [null, null]`).
     if (hasFlag(type, ts.TypeFlags.NonPrimitive)) {
-      return [{ type: 'object' }, { type: 'array' }];
+      return [{ type: 'object' }];
     }
 
     if (type.isIntersection()) {
@@ -578,13 +691,15 @@ function readSettingsTypes() {
 }
 
 /**
- * Lists the keys of the plugins that ship with Handsontable, from each plugin's `PLUGIN_KEY`
- * declaration.
+ * Reads the plugins that ship with Handsontable: each one's `PLUGIN_KEY`, and the option it
+ * owns under another name (`const SETTING_KEY = 'fillHandle'` in Autofill).
  *
- * @returns {string[]}
+ * @returns {{builtInPlugins: string[], ownerOf: Map<string, string>}} The plugin keys, and the
+ * registered plugin name for each option a plugin owns.
  */
-function readBuiltInPluginKeys() {
-  const keys = new Set();
+function readBuiltInPlugins() {
+  const builtInPlugins = new Set();
+  const ownerOf = new Map();
 
   readdirSync(PLUGINS_DIR, { withFileTypes: true })
     .filter(entry => entry.isDirectory())
@@ -592,15 +707,27 @@ function readBuiltInPluginKeys() {
       // The key is declared in the plugin's own file, or in its `constants.ts` (`dataProvider`).
       [`${entry.name}.ts`, 'constants.ts'].forEach((fileName) => {
         const file = resolve(PLUGINS_DIR, entry.name, fileName);
-        const match = existsSync(file) ? readFileSync(file, 'utf8').match(/export const PLUGIN_KEY = '(\w+)'/) : null;
+        const source = existsSync(file) ? readFileSync(file, 'utf8') : '';
+        const pluginKey = source.match(/export const PLUGIN_KEY = '(\w+)'/)?.[1];
 
-        if (match) {
-          keys.add(match[1]);
+        if (pluginKey === undefined) {
+          return;
+        }
+
+        // The registry stores a plugin under its key with the first letter upper-cased.
+        const pluginName = `${pluginKey[0].toUpperCase()}${pluginKey.slice(1)}`;
+        const settingKey = source.match(/const SETTING_KEY = '(\w+)'/)?.[1];
+
+        builtInPlugins.add(pluginKey);
+        ownerOf.set(pluginKey, pluginName);
+
+        if (settingKey !== undefined) {
+          ownerOf.set(settingKey, pluginName);
         }
       });
     });
 
-  return [...keys].sort();
+  return { builtInPlugins: [...builtInPlugins].sort(), ownerOf };
 }
 
 /**
@@ -616,24 +743,23 @@ function isHookKey(key) {
 /**
  * Builds the schema object.
  *
- * @returns {object} The JSON Schema.
+ * @returns {{schema: object, internals: object}} The JSON Schema, and the lists `validateSettings()`
+ * reads that are not part of it.
  */
 export function buildSettingsSchema() {
-  const metaSource = readFileSync(META_SCHEMA, 'utf8');
-  const options = parseOptions(metaSource);
-  const blocks = readDocBlocks(metaSource);
+  // `@private` options (`preventWheel`) and the meta bookkeeping keys (`_userDefinedMetaProps`)
+  // are real keys of the settings object but not documented options. They stay out of the
+  // schema, in the internals `validateSettings()` reads so it does not report them as unknown.
+  const { options, internalOptions } = readMetaOptions();
+  const { builtInPlugins, ownerOf } = readBuiltInPlugins();
   const { converter, grid, column, cellMeta, typeDocs } = readSettingsTypes();
   const properties = {};
   const columnProperties = {};
   const cellProperties = {};
-  // `@private` options (`preventWheel`) and the meta bookkeeping keys (`_userDefinedMetaProps`)
-  // are real keys of the settings object but not part of the documented options. The schema
-  // lists them by name only, so `validateSettings()` does not report them as unknown.
-  const internalOptions = [...blocks]
-    .filter(([, block]) => /^@private\s*$/m.test(block) || !/@memberof Options#/.test(block))
-    .map(([name]) => name)
-    .sort();
   const known = new Set([...options.map(option => option.name), ...internalOptions]);
+  const optionsByName = new Map(options.map(option => [option.name, option]));
+
+  assertOptionLevelsAgree(options);
 
   /**
    * Builds the schema node of one option.
@@ -644,12 +770,12 @@ export function buildSettingsSchema() {
    * @returns {object}
    */
   const buildNode = (name, type, annotations) => {
-    const block = blocks.get(name) ?? '';
-    const node = type ? converter.convert(type) : fromJsDocType((block.match(/@type\s+\{(.+)\}/) || [])[1]);
+    const option = optionsByName.get(name);
+    const node = widenNode(name, type ? converter.convert(type) : fromJsDocType(option?.type));
     // An option `metaSchema.ts` does not document takes the comment of its TypeScript declaration.
-    const description = readDescription(block) || readDescription(typeDocs.get(name) ?? '') ||
+    const description = option?.description || readDescription(typeDocs.get(name) ?? '') ||
       (annotations.levels.includes('grid') ? '' : `The \`${name}\` property of the cell meta.`);
-    const nullable = new RegExp(`\\n {4}${name}: null,`).test(metaSource);
+    const nullable = option?.nullDefault ?? false;
 
     if (nullable && !acceptsNull(node)) {
       return allowNull({
@@ -667,9 +793,13 @@ export function buildSettingsSchema() {
   };
 
   options.forEach(({ name, category, levels, since }) => {
+    // A plugin's own switch can sit in the Core category (`moveCells`, `fillHandle`), so the plugin
+    // that declares the key decides when the category does not.
+    const plugin = category === 'Core' ? ownerOf.get(name) : category;
+
     properties[name] = buildNode(name, grid.get(name), {
       levels,
-      ...(category === 'Core' ? {} : { plugin: category }),
+      ...(plugin === undefined ? {} : { plugin }),
       ...(since ? { since } : {}),
       ...(REGISTRY_OPTIONS[name] ? { registry: REGISTRY_OPTIONS[name] } : {}),
     });
@@ -731,16 +861,14 @@ export function buildSettingsSchema() {
   properties.cell.type = 'array';
   properties.cell.items = { $ref: '#/$defs/cellSettings' };
 
-  return {
+  const schema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
-    $id: 'https://handsontable.com/schemas/settings.json',
     title: 'Handsontable settings',
     description: 'The configuration options of a Handsontable instance. Generated from the option ' +
       'definitions. A value JSON cannot hold (a function, a class instance) is listed in ' +
       '`x-handsontable.runtimeTypes` instead of `type`.',
     type: 'object',
     properties,
-    'x-handsontable': { internalOptions, builtInPlugins: readBuiltInPluginKeys() },
     $defs: {
       columnSettings: {
         description: 'The options of one entry of the `columns` option.',
@@ -755,24 +883,33 @@ export function buildSettingsSchema() {
       },
     },
   };
+
+  return { schema, internals: { internalOptions, builtInPlugins } };
 }
 
 /**
  * Renders the schema as the TypeScript module the package compiles.
  *
- * @param {object} schema The schema.
+ * @param {object} generated The schema and its internals, from `buildSettingsSchema()`.
+ * @param {object} generated.schema The JSON Schema.
+ * @param {object} generated.internals The lists `validateSettings()` reads that are not part of it.
  * @returns {string} The module source.
  */
-export function renderModule(schema) {
+export function renderModule({ schema, internals }) {
   return [
     '// Generated by scripts/generate-settings-schema.mjs from metaSchema.ts and the settings types.',
     '// Do not edit: the build regenerates it, and the file is not committed.',
-    'import type { JsonSchemaObject } from \'./types\';',
+    'import type { GeneratedSchemaInternals, JsonSchemaObject } from \'./types\';',
     '',
     '/**',
     ' * The JSON Schema of the grid, column, and cell settings, without the hooks.',
     ' */',
     `const schema: JsonSchemaObject = ${JSON.stringify(schema, null, 2)};`,
+    '',
+    '/**',
+    ' * The keys `validateSettings()` accepts without a schema entry. Not published with the schema.',
+    ' */',
+    `export const internals: GeneratedSchemaInternals = ${JSON.stringify(internals, null, 2)};`,
     '',
     'export default schema;',
     '',
