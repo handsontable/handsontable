@@ -8145,9 +8145,8 @@ export default function Core(
    * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
    * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
    * position horizontally.
-   * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
-   * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
-   * focus, it remains focused after the call.
+   * @param {boolean} [changeListener=true] If `true`, the grid moves the browser focus to the selection's highlighted
+   * cell, as before. If `false`, the browser focus stays where it is, such as on an input outside the grid.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectColumns = function(
@@ -8191,9 +8190,8 @@ export default function Core(
    * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
    * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
    * position vertically.
-   * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
-   * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
-   * focus, it remains focused after the call.
+   * @param {boolean} [changeListener=true] If `true`, the grid moves the browser focus to the selection's highlighted
+   * cell, as before. If `false`, the browser focus stays where it is, such as on an input outside the grid.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectRows = function(
@@ -8266,9 +8264,8 @@ export default function Core(
    * the logical coordinates points on them. This only suppresses the highlight shown on headers of a fully-selected
    * row or column. It doesn't affect the focus indicator on the individual cell or header that holds the focus,
    * which stays visible even when {@link Options#navigableHeaders} moves the focus onto a header.
-   * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
-   * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
-   * focus, it remains focused after the call.
+   * @param {boolean} [changeListener=true] If `true`, the grid moves the browser focus to the selection's highlighted
+   * cell, as before. If `false`, the browser focus stays where it is, such as on an input outside the grid.
    */
   this.selectAll = function(
     includeRowHeaders = true,
