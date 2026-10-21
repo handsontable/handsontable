@@ -52,9 +52,9 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * `validateSettings()` accepts there, so a key the plugin starts to read belongs here.
  */
 export interface DropdownMenuSettings {
-  callback?: Function;
+  callback?: Function | null;
   uiContainer?: HTMLElement | null;
-  items?: Array<string | Record<string, unknown>> | Record<string, unknown>;
+  items?: Array<string | Record<string, unknown>> | Record<string, unknown> | null;
 }
 
 /**

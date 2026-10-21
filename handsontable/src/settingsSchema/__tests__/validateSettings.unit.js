@@ -260,6 +260,28 @@ describe('validateSettings', () => {
       ]);
     });
 
+    it('should not check the fields of a class instance, as for any other check of its contents', () => {
+      class Provider {
+        constructor() {
+          this.baseUrl = 'https://example.com';
+        }
+
+        fetchRows() {}
+
+        onRowsCreate() {}
+
+        onRowsRemove() {}
+
+        onRowsUpdate() {}
+      }
+
+      expect(validateSettings({ dataProvider: new Provider() }).problems).toEqual([]);
+    });
+
+    it('should accept `null` for the callback and the items of the dropdown menu', () => {
+      expect(validateSettings({ dropdownMenu: { callback: null, items: null } }).problems).toEqual([]);
+    });
+
     it('should report an own `__proto__` key and ignore the prototype', () => {
       const settings = { pagination: JSON.parse('{"__proto__": 1, "pageSize": 5}') };
 

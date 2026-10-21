@@ -238,9 +238,14 @@ page: unknown option names, option levels, registered names, plugins, and data p
 - `validateSettings()` reports a misspelled key, such as `filters: { serchMode: 'apply' }`, only inside the settings
   object of some options. Those options are `asyncValues`, `autoLink`, `dataProvider`, `dragToScroll`,
   `dropdownMenu`, `fillHandle`, `filters`, `manualColumnFreeze`, `pagination`, `rowSelection`, and `sheetsBar`.
+  The `filters` object inside `columns` is checked too, and takes `availableConditions` only.
+- The keys of an object nested in one of these, such as `dragToScroll.interval` and `sheetsBar.animation`, are not
+  checked.
 - The objects of other options, such as `contextMenu`, `columnSorting`, and `comments`, take keys that the schema does
   not list. A misspelled key inside them is not reported.
-- A third-party plugin that extends one of the options above and reads more keys gets those keys reported.
+- A custom plugin can read keys from one of these objects that the schema does not list. `validateSettings()` reports
+  those keys as `unknownOption`. A class instance, such as a `dataProvider` object with fields of its own, is not
+  checked.
 - A value that is an instance of a class, such as a `ThemeBuilder` for `theme`, is accepted without a check of its
   contents.
 - Only the first 50 rows of `data` are checked, for their type and for the `columns[].data` properties.

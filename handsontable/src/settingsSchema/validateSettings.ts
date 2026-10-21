@@ -593,7 +593,8 @@ function getGridLevelKeys(path: string): string[] {
 /**
  * Reports the own keys of a settings object that the schema node does not list. Only a node that
  * lists every key it accepts (`additionalProperties: false`) calls it. A key set to `undefined` is
- * unset, as it is at the top level, so it passes.
+ * unset, as it is at the top level, so it passes. A class instance is skipped, as for any other check
+ * of its contents.
  *
  * @param {object} value The settings object.
  * @param {string[]} knownKeys The keys the node lists.
@@ -604,9 +605,14 @@ function reportUnknownKeys(value: Record<string, unknown>, knownKeys: string[], 
   let keys: string[];
 
   try {
+    // A class instance (a `dataProvider` object with fields of its own) is not a settings literal.
+    if (hasRuntimeType(value, 'object')) {
+      return;
+    }
+
     keys = Object.keys(value);
   } catch {
-    // A Proxy may throw from `ownKeys`; the keys it holds cannot be listed.
+    // A Proxy may throw from `getPrototypeOf` or `ownKeys`; the keys it holds cannot be listed.
     context.problems.push(unreadable(path));
 
     return;
