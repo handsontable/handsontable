@@ -4,8 +4,8 @@
  * `tests/scripts/a11y-pr-comment.mjs` posts the body built here on every pull request the scan
  * ran on, or edits the comment it posted before (`upsertComment()`, which finds it by
  * `COMMENT_MARKER` and the Actions bot as its author), so a clean pull request shows the scan
- * too. A clean body is short: the headline, the scan, the links and the known findings by issue.
- * A body that needs action lists the findings and ends with them by rule as a chart of text bars
+ * too. A clean body is short: the headline, the scan and the links; a body that needs action
+ * lists the findings as well. Both end with the findings by rule as a chart of text bars
  * (`textBar()`), the HTML report's overview in a form a comment can hold. The comment carries no
  * screenshot: it links the HTML report, where every element is located.
  *
@@ -29,8 +29,7 @@ const BOT_LOGIN = 'github-actions[bot]';
 const BASELINE_PATH = `tests/${BASELINE_FILE}`;
 // How many findings the comment lists before it points to the report.
 const ROWS_SHOWN = 15;
-// How many known issues a clean comment lists, and how many baseline additions it spells out.
-const ISSUES_SHOWN = 12;
+// How many baseline additions the comment spells out before it points to the diff.
 const GROWTH_SHOWN = 10;
 // How many rules the chart shows before it points to the report, and how many characters its
 // longest bar takes.
@@ -110,41 +109,6 @@ function renderRuleChart(comparison, text) {
  */
 export function neutralizeTaskIds(text) {
   return String(text).replace(/\b([A-Z][A-Z0-9]*)-(\d+)\b/g, '$1‑$2');
-}
-
-/**
- * The known findings by issue, the clean comment's overview in place of the rule chart: how many
- * findings and elements of each issue the scan found, most findings first.
- *
- * @param {object} comparison The reporter's comparison.
- * @param {(value: string) => string} text The escaping every value goes through.
- * @returns {string[]} Markdown lines, none when the scan found no known issue.
- */
-function renderIssueTable(comparison, text) {
-  const found = [...comparison.matched, ...comparison.grown, ...comparison.improved];
-  const rows = (comparison.issues ?? [])
-    .map((issue) => {
-      const items = found.filter(item => item.issue === issue.id);
-
-      return { title: issue.title, findings: items.length, nodes: items.reduce((sum, item) => sum + item.nodes, 0) };
-    })
-    .filter(row => row.findings > 0)
-    .sort((a, b) => b.findings - a.findings || a.title.localeCompare(b.title));
-
-  if (rows.length === 0) {
-    return [];
-  }
-
-  const lines = ['', '#### Known findings by issue', '', '| Known issue | Findings | Elements |', '|---|--:|--:|'];
-
-  for (const row of rows.slice(0, ISSUES_SHOWN)) {
-    lines.push(`| ${text(row.title)} | ${row.findings} | ${row.nodes} |`);
-  }
-  if (rows.length > ISSUES_SHOWN) {
-    lines.push('', `…and ${rows.length - ISSUES_SHOWN} more issues in the report.`);
-  }
-
-  return lines;
 }
 
 /**
@@ -355,7 +319,7 @@ export function renderComment(comparison, { reportUrl, runUrl, checkUrl, growth 
     }
   }
   lines.push(...renderGrowth(growth, titles, text));
-  lines.push(...(counts.action > 0 ? renderRuleChart(comparison, text) : renderIssueTable(comparison, text)));
+  lines.push(...renderRuleChart(comparison, text));
 
   const footer = [
     isSafeLink(runUrl) ? `[Workflow run](${runUrl})` : '',

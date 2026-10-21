@@ -1194,8 +1194,8 @@ The reporter writes four outputs into `test-results/a11y/`, and CI publishes eac
   edited in place on every later run (`upsertComment()` finds the old one by `COMMENT_MARKER` and
   the Actions bot as the author), so a reviewer always sees the scan. A clean body is short: the
   headline, the scan (scans, pages × themes, axe-core), the links to the report, the run and the
-  check run, and the known findings by issue. A body that needs action has the headline, what
-  needs action (up to fifteen rows) and the findings by rule as a chart. Never a screenshot (an
+  check run, and the findings by rule as a chart. A body that needs action adds what needs action
+  (up to fifteen rows) before the chart. Never a screenshot (an
   artifact needs a login, and GitHub fetches comment images without one). The chart is a table
   of text bars (`textBar()`, block characters to an eighth), counted by `findingsByRule()` like
   the HTML report's overview: a comment holds no script and no image it can fetch, a Mermaid

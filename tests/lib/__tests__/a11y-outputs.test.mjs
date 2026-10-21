@@ -106,7 +106,7 @@ test('a text bar is its share of the longest one, to an eighth of a character, a
   assert.equal(textBar(20, 10), '█'.repeat(20), 'a bar never outgrows the chart');
 });
 
-test('the comment charts the findings by rule, with what needs action', () => {
+test('the comment charts the findings by rule, with what needs action, in a clean run too', () => {
   const comparison = { ...verdictOf([entry(), entry({ theme: 'horizon' })], [
     finding(), finding({ theme: 'horizon' }), finding({ theme: 'horizon', selector: ['#ht_2'] }),
     finding({ page: 'context-menu', rule: 'label', target: 'textarea.handsontableInput' }),
@@ -119,7 +119,10 @@ test('the comment charts the findings by rule, with what needs action', () => {
   assert.match(chart, new RegExp(`\\| <code>aria-required-children</code> \\| 2 \\| ${'█'.repeat(20)} \\| 3 \\| ▲ 1 grown \\|`));
   assert.match(chart, new RegExp(`\\| <code>label</code> \\| 1 \\| ${'█'.repeat(10)} \\| 1 \\| ✖ 1 new \\|`));
 
-  assert.doesNotMatch(body, /Known findings by issue/, 'the chart replaces the issue table when something needs action');
+
+  const clean = renderComment({ ...verdictOf([entry()], [finding()]), problems: [] });
+
+  assert.match(clean, /<code>aria-required-children<\/code> \| 1 \| █+ \| 1 \| – \|/, 'a clean run is charted the same way');
   assert.doesNotMatch(renderComment({ ...verdictOf([], []), problems: ['broken'] }), /Findings by rule/, 'no chart without a finding');
 });
 
@@ -142,7 +145,7 @@ const comparisonOf = (verdict, extra = {}) => ({ ...verdict, problems: [], engin
 const MENU_ISSUE = { id: 'menu-labels', title: 'Menu items have no accessible name, unlike DEV-77 said' };
 const baseText = entries => JSON.stringify({ axeCoreVersion: '4.14.0', issues: ISSUES, entries });
 
-test('a clean run\'s comment is short: the headline, the scan, the links and the known findings by issue', () => {
+test('a clean run\'s comment is short: the headline, the scan, the links and the findings by rule', () => {
   const body = renderComment(comparisonOf(verdictOf([entry(), entry({ theme: 'horizon', nodes: 2 })], [
     finding(), finding({ theme: 'horizon' }), finding({ theme: 'horizon', selector: ['#ht_2'] }),
   ])), { ...LINKS, growth: { added: [], raised: [] } });
@@ -151,8 +154,8 @@ test('a clean run\'s comment is short: the headline, the scan, the links and the
   assert.match(body, /3 scans \(2 pages × 2 themes\), axe-core 4\.14\.0\. This pull request adds nothing to the baseline\./);
   assert.match(body, /📊 \*\*\[Open the HTML report\]\(https:\/\/github\.com\/o\/r\/actions\/runs\/1\/artifacts\/2\)\*\*/);
   assert.match(body, /\[Workflow run\]\(https:\/\/github\.com\/o\/r\/actions\/runs\/1\) · \[Check run\]\(https:\/\/github\.com\/o\/r\/runs\/3\)/);
-  assert.match(body, /#### Known findings by issue\n\n\| Known issue \| Findings \| Elements \|\n\|---\|--:\|--:\|\n\| The grid root holds children its role does not allow \| 2 \| 3 \|/);
-  assert.doesNotMatch(body, /Findings by rule/, 'a clean comment carries no chart');
+  assert.match(body, new RegExp(`#### Findings by rule\n[\\s\\S]*\\| <code>aria-required-children</code> \\| 2 \\| ${'█'.repeat(20)} \\| 3 \\| – \\|`));
+  assert.doesNotMatch(body, /Known findings by issue/, 'the chart is the one overview');
   assert.doesNotMatch(body, /\| \| Page \|/, 'a clean comment lists no finding');
   assert.ok(body.split('\n').length <= 20, `a clean comment stays short, not ${body.split('\n').length} lines`);
 });
@@ -220,7 +223,7 @@ test('a pull request that grows the baseline says so in the headline and lists w
 
   assert.ok(body.startsWith(`${COMMENT_MARKER}\n### ♿ A11y / axe: ⚠️ No new accessibility findings: 14 known, in 2 known issues · `
     + 'this pull request grows the baseline: 12 added, 1 raised\n'), body.slice(0, 200));
-  assert.ok(body.indexOf('#### Added to the baseline') < body.indexOf('#### Known findings by issue'), 'what was accepted comes before what was known');
+  assert.ok(body.indexOf('#### Added to the baseline') < body.indexOf('#### Findings by rule'), 'what was accepted comes before the chart');
   assert.match(section, /Approving this pull request accepts them as known debt\./);
   assert.match(section, /\| Known issue \| Added \| Raised \|\n\|---\|--:\|--:\|\n\| Menu items have no accessible name, unlike DEV‑77 said \| 12 \| 0 \|\n\| The grid root holds children its role does not allow \| 0 \| 1 \|/);
   assert.match(section, /\| context-menu \| main \| label \| <code>td\.item-0<\/code> \| 1 \| Menu items have no accessible name, unlike DEV‑77 said \|/);
@@ -240,7 +243,6 @@ test('a run that needs action keeps its rows and its chart, and lists baseline g
   assert.match(body, /^### ♿ A11y \/ axe: ⚠️ 1 new \(warn mode\) · this pull request grows the baseline: 1 added$/m);
   assert.ok(body.indexOf('| ✖ New |') < body.indexOf('#### Added to the baseline'), 'what needs action comes first');
   assert.ok(body.indexOf('#### Added to the baseline') < body.indexOf('#### Findings by rule'));
-  assert.doesNotMatch(body, /Known findings by issue/);
 });
 
 /**
