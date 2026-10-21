@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a CDN file, `handsontable.settings-schema.js`, that validates settings against the registries of the `Handsontable` on the page.",
+  "type": "added",
+  "issueOrPR": 13965,
+  "breaking": false,
+  "framework": "none"
+}
