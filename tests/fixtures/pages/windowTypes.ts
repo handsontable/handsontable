@@ -385,6 +385,14 @@ declare global {
       hooks: {
         add(key: string, callback: (...args: unknown[]) => unknown): void;
       };
+      helper: {
+        setBrowserMeta(meta?: { userAgent?: string, vendor?: string }): void;
+        setPlatformMeta(meta?: { platform?: string }): void;
+        isIOS(): boolean;
+        isChromeWebKit(): boolean;
+        isFirefoxWebKit(): boolean;
+        createSpreadsheetData(rows: number, columns: number): string[][];
+      };
     };
     /**
      * Rebuilds the formulas fixture grid with the given dataset, or – the width-window-scroll
