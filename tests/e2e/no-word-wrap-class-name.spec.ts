@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { NoWordWrapClassNamePage } from '../fixtures/pages/NoWordWrapClassNamePage';
 
 /**
@@ -6,7 +6,7 @@ import { NoWordWrapClassNamePage } from '../fixtures/pages/NoWordWrapClassNamePa
  * The custom class name used to replace the built-in `htNoWrap`, the only class with
  * `white-space: nowrap`, so a custom class without its own wrap rule let the cell wrap.
  */
-test.describe('noWordWrapClassName', () => {
+test.describe('noWordWrapClassName', { tag: THEMES_TAG }, () => {
   let grid: NoWordWrapClassNamePage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

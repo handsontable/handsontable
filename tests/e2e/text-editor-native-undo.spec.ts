@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG, THEMES_TAG } from '../fixtures/test';
 import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
 
 /**
@@ -23,7 +23,7 @@ import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
  * runner a real Ctrl+Z reaches the page and undoes nothing (the clipboard shortcuts' trap in
  * `tests/AGENTS.md`).
  */
-test.describe('native undo and redo in the open text editor', { tag: [CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG] }, () => {
+test.describe('native undo and redo in the open text editor', { tag: [CROSS_BROWSER_TAG, CLIPBOARD_SHORTCUT_TAG, THEMES_TAG] }, () => {
   let grid: SharedDemoGridPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

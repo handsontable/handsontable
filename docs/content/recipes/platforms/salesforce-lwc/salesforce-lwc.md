@@ -1,8 +1,8 @@
 ---
 type: tutorial
 title: Run Handsontable in a Salesforce Lightning Web Component
-metaTitle: Salesforce LWC Tutorial - JavaScript Data Grid | Handsontable
-description: Run Handsontable inside a Salesforce Lightning Web Component. Load the grid from a static resource, map Salesforce field metadata to columns, and write cell edits back through Lightning Data Service.
+metaTitle: Salesforce LWC tutorial | Handsontable DataGrid for JavaScript
+description: Run Handsontable DataGrid inside a Salesforce Lightning Web Component. Load the grid from a static resource, map Salesforce field metadata to columns, and write cell edits back through Lightning Data Service.
 permalink: /recipes/platforms/salesforce-lwc
 canonicalUrl: /recipes/platforms/salesforce-lwc
 framework: javascript
@@ -20,7 +20,7 @@ category: Platforms and embedding
 menuTag: new
 ---
 
-In this tutorial, you will run Handsontable inside a Salesforce Lightning Web Component, bound to live Account records. It covers only the glue between the grid and the platform: shipping the library as a static resource, getting its stylesheets across the shadow boundary, mapping Salesforce field metadata to column types, and turning grid hooks into Lightning Data Service calls. It assumes you already write Lightning Web Components.
+In this tutorial, you will run Handsontable DataGrid inside a Salesforce Lightning Web Component, bound to live Account records. It covers only the glue between the grid and the platform: shipping the library as a static resource, getting its stylesheets across the shadow boundary, mapping Salesforce field metadata to column types, and turning grid hooks into Lightning Data Service calls. It assumes you already write Lightning Web Components.
 
 ## Overview
 
@@ -70,7 +70,7 @@ sf project generate --name handsontable-lwc
 cd handsontable-lwc
 ```
 
-## Step 1: Add Handsontable as a static resource
+## Step 1: Add Handsontable DataGrid as a static resource
 
 Vendor three files from the package into a static resource and commit them:
 

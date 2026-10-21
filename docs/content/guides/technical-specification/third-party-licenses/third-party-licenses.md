@@ -1,21 +1,21 @@
 ---
 type: reference
 title: Third-party licenses
-metaTitle: Third-party licenses - JavaScript Data Grid | Handsontable
-description: Learn about the licensing terms of Handsontable's software dependencies.
+metaTitle: Third-party licenses | Handsontable DataGrid for JavaScript
+description: Learn about the licensing terms of Handsontable DataGrid's software dependencies.
 permalink: /third-party-licenses
 canonicalUrl: /third-party-licenses
 react:
-  metaTitle: Third-party licenses - React Data Grid | Handsontable
+  metaTitle: Third-party licenses | Handsontable DataGrid for React
 angular:
-  metaTitle: Third-party licenses - Angular Data Grid | Handsontable
+  metaTitle: Third-party licenses | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Third-party licenses - Vue Data Grid | Handsontable
+  metaTitle: Third-party licenses | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Technical specification
 ---
 
-Learn about the licensing terms of Handsontable's software dependencies.
+Learn about the licensing terms of Handsontable DataGrid's software dependencies.
 
 [[toc]]
 

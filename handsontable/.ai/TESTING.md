@@ -25,6 +25,7 @@ npm run test:walkontable           # Run Walkontable-specific tests
 npm run test:types                 # TypeScript type checking only
 # New Playwright E2E (from the repo root):
 cd tests && npm test               # Playwright functional E2E (visual regression is the separate visual-tests/ package)
+cd tests && npm run test:a11y      # axe-core scan over the curated fixture pages, three themes, compared with tests/a11y/axe-baseline.json
 
 # From monorepo root (npm --prefix):
 npm --prefix handsontable run test:unit
@@ -323,6 +324,7 @@ Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`)
 - But if a legacy Jasmine test is **broken or flaky, fix it by migrating it to Playwright** (delete the `*.spec.js`, write the equivalent `tests/e2e/*.spec.ts`) rather than patching Jasmine. That is how the suite gradually migrates — the tests that hurt most move first.
 - **Migrate, don't patch — and if you must edit, `waitUntil()`.** A routine edit to a frozen spec that has to wait for state uses `waitUntil(condition, timeout)` (a spec global from `test/helpers/common.js`) — never a new `sleep()`, and never `waitForNextAnimationFrames()`, which is a fixed sleep denominated in frames (it awaits at most 2 real frames and pads the rest of the request with 16 ms per frame). A rendered-DOM count assertion pins the viewport first (`containerHeightForRows()`, or `scrollViewportTo()` the target into view).
 - **The flake ledger.** A legacy spec that is red or flaky across **two or more distinct CI runs** gets a migration ticket the next sprint. That is the trigger — not a third failure and not a reviewer's patience. The RefreshDimensions and display-none rerender specs both waited on the ledger until this rule existed (#13334, #13336).
+- **One CI leg on a pull request.** A pull request and a develop push run the suite on `E2E / UMD (theme: main)` only — plain UMD on the main theme, the shape `npm run test:e2e` defaults to. The six legs (three themes × UMD / the minified bundle of `test:production`) run on the `E2E nightly`, the rc/stable publish path and a master push (`.ai/CI.md`, the Jasmine single-leg entry). A spec red on another theme or on the minified bundle alone therefore first shows on the nightly, with `branch: develop` and the runner's isolation verdict in the ledger, and the verdict decides the answer: `passes alone` (the file passes when run alone — an order-dependent flake) is a migration ticket under the ledger rule above; `fails alone` is a deterministic theme- or bundle-only failure, fixed or migrated **before the next RC cut**, because the rc/stable publish path runs the six legs (`test-all`) and its publish needs them green; an unprobed red counts as `fails alone` until a local run on that theme (`--theme=<name>`) says otherwise. Neither is a reason to put a leg back on pull requests. A change you suspect is theme-sensitive is checked before the push with `--theme=horizon` / `--theme=classic`, and against the minified bundle with `npm run test:production` (same flags as `test:e2e`).
 
 ## Mocking
 
@@ -585,6 +587,13 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Config: `visual-tests/playwright.config.ts` and `playwright-cross-browser.config.ts`
 - Screenshots stored in `visual-tests/screenshots/`
 - What earns a capture, and why a visual spec is in addition to, never instead of a Playwright assertion: `visual-tests/AGENTS.md` → Decision rule
+
+**Accessibility scan (axe):**
+- Framework: Playwright + `@axe-core/playwright` (axe-core, WCAG 2.2 A and AA rule tags)
+- Location: `tests/a11y/` — `axe.spec.ts` (the scan), `pages.mjs` (the curated fixture pages, one per accessible surface, each on the three themes), `axe-baseline.json` (the catalog of known issues, and where each shows: one entry per page, theme, rule and element, with its node count), `coverage.mjs` (how the scan covers each plugin and editor folder, enforced by `tests/lib/__tests__/a11y-coverage.test.mjs`)
+- Config: `tests/playwright.a11y.config.ts`; the comparator is `tests/lib/a11y-baseline.mjs`, the reporter `tests/reporters/a11y.ts`
+- CI: one job, `A11y / axe`, in warn mode — a finding that needs action is an annotation, a summary row and a neutral `A11y / axe report` check run, never a red job; the only reds are tooling failures. An HTML report that locates every element (fixture, steps, selector, DOM path, screenshot) opens from the run page, a sticky pull request comment links it, and `a11y-findings.json` gives an implementer agent the same findings, concise. The baseline moves only with the code: the change that fixes a finding deletes its entry
+- It is not a test of a change: a pull request that touches an accessible surface still proves its behavior with a Playwright spec in `tests/e2e/`. How to add a page, baseline a finding, and when warn mode flips: `tests/AGENTS.md` → "A11y: the axe scan and its baseline"
 
 ## Plugin Testing Requirements
 

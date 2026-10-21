@@ -84,7 +84,7 @@ jobs:
   guard:
     name: guard
     if: github.event_name == 'workflow_dispatch' && github.ref_name != 'develop'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Refuse to render a branch this workflow does not compare
         env:
@@ -115,7 +115,7 @@ jobs:
     name: Notify Slack
     needs: [ visual ]
     if: ${{ failure() && github.event_name != 'pull_request' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
     steps:

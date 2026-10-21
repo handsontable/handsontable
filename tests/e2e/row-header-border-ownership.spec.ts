@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { RowHeaderBorderOwnershipPage } from '../fixtures/pages/RowHeaderBorderOwnershipPage';
 
 /**
@@ -21,7 +21,7 @@ import { RowHeaderBorderOwnershipPage } from '../fixtures/pages/RowHeaderBorderO
  * The legacy `colWidth()` helper cannot see it either: it reads `offsetWidth`, which includes the
  * borders and therefore returns the declared width for every column, bug or no bug.
  */
-test.describe('Row header border ownership', () => {
+test.describe('Row header border ownership', { tag: THEMES_TAG }, () => {
   let grid: RowHeaderBorderOwnershipPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Rows sorting
-metaTitle: Rows sorting - JavaScript Data Grid | Handsontable
+metaTitle: Rows sorting | Handsontable DataGrid for JavaScript
 description: Sort rows alphabetically or numerically, in ascending, descending or a custom order, by one or multiple columns.
 permalink: /rows-sorting
 canonicalUrl: /rows-sorting
@@ -27,11 +27,11 @@ tags:
   - sort rows
   - sort columns
 react:
-  metaTitle: Rows sorting - React Data Grid | Handsontable
+  metaTitle: Rows sorting | Handsontable DataGrid for React
 angular:
-  metaTitle: Rows sorting - Angular Data Grid | Handsontable
+  metaTitle: Rows sorting | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Rows sorting - Vue Data Grid | Handsontable
+  metaTitle: Rows sorting | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated
@@ -42,7 +42,7 @@ Sort rows alphabetically or numerically, in ascending, descending, or a custom o
 
 ## Overview
 
-Handsontable provides two plugins for sorting rows:
+Handsontable DataGrid provides two plugins for sorting rows:
 
 - [`ColumnSorting`](@/api/columnSorting.md) -- sorts rows by a **single column** at a time. Clicking a column header cycles through ascending, descending, and unsorted states.
 - [`MultiColumnSorting`](@/api/multiColumnSorting.md) -- sorts rows by **multiple columns** simultaneously. Hold Ctrl/Cmd and click column headers to add more sort criteria.
@@ -54,7 +54,7 @@ pointer moves while the button is held, Handsontable treats the gesture as a col
 
 Both plugins sort the view only. The source data array is never modified. To persist the sorted order back to the data source, see [Saving data](@/guides/getting-started/saving-data/saving-data.md).
 
-`ColumnSorting` and `MultiColumnSorting` are mutually exclusive. Enable only one at a time. If both options are set to `true`, `ColumnSorting` is automatically disabled.
+`ColumnSorting` and `MultiColumnSorting` are mutually exclusive. Enable only one at a time. If both options are set to `true`, `MultiColumnSorting` is automatically disabled. To switch from one plugin to the other, turn one on and the other off in the same call, for example `hot.updateSettings({ columnSorting: true, multiColumnSorting: false })`.
 
 ## Sorting demo
 
@@ -991,7 +991,7 @@ The [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin extends [`ColumnS
 
 The <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> shortcut requires a focused column header. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys.
 
-`ColumnSorting` and `MultiColumnSorting` are mutually exclusive. If both are set to `true`, `ColumnSorting` is automatically disabled.
+`ColumnSorting` and `MultiColumnSorting` are mutually exclusive. If both are set to `true`, `MultiColumnSorting` is automatically disabled.
 
 ### Enable multi-column sorting
 

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { MultiselectOpenLeftPage } from '../fixtures/pages/MultiselectOpenLeftPage';
 
 /**
@@ -10,7 +10,7 @@ import { MultiselectOpenLeftPage } from '../fixtures/pages/MultiselectOpenLeftPa
  * fully clipped option. Hit-test the first painted option, not the last
  * row: horizon's taller items put the last `<li>` below the dropdown fold.
  */
-test.describe('multiselect opens to the left when there is no room on the right', () => {
+test.describe('multiselect opens to the left when there is no room on the right', { tag: THEMES_TAG }, () => {
   let grid: MultiselectOpenLeftPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

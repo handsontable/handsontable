@@ -14,9 +14,9 @@ export const INSTANT = {
   subscriptionHardStop: '2027-12-01T00:00:00Z',
 } as const;
 
-type LicenseKeyName = 'trial' | 'trial-external' | 'subscription' | 'subscription-external' |
+type LicenseKeyName = 'trial' | 'trial-external' | 'subscription' |
   'tampered' | 'legacy-expired' | 'non-commercial-padded' | 'missing' |
-  'bare-block' | 'edited-prose' | 'subscription-pasted' | 'subscription-wrapped' | 'trial-v1';
+  'edited-prose' | 'subscription-pasted' | 'subscription-wrapped' | 'trial-v1';
 type Variant = 'default' | 'no-row-headers' | 'no-headers-frozen' | 'narrow-corner' | 'dialog' |
   'nested' | 'narrow';
 

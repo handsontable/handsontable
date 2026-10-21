@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FragmentSelectionPage, type OverlayName } from '../fixtures/pages/FragmentSelectionPage';
 
 /**
@@ -9,7 +9,7 @@ import { FragmentSelectionPage, type OverlayName } from '../fixtures/pages/Fragm
  * testing membership of the master table alone therefore rejects every cell in a frozen row, a
  * frozen column, or the corner, and the mousedown handler then cancels the gesture.
  */
-test.describe('fragmentSelection in frozen areas', () => {
+test.describe('fragmentSelection in frozen areas', { tag: THEMES_TAG }, () => {
   let grid: FragmentSelectionPage;
 
   /**

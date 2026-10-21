@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { ManualResizeTeardownPage } from '../fixtures/pages/ManualResizeTeardownPage';
 
 /**
@@ -25,7 +25,7 @@ import { ManualResizeTeardownPage } from '../fixtures/pages/ManualResizeTeardown
  * the plugin-level destroy. The other five are pins, and each says so where it could otherwise be
  * mistaken for coverage it does not provide.
  */
-test.describe('Manual resize handle and guide teardown', () => {
+test.describe('Manual resize handle and guide teardown', { tag: THEMES_TAG }, () => {
   let grid: ManualResizeTeardownPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -260,7 +260,7 @@ test.describe('Manual resize handle and guide teardown', () => {
  * resolves the instant it is true, so simply giving it a longer timeout would observe nothing, and
  * `waitForTimeout` is banned here for the same reason.
  */
-test.describe('Manual resize pending autoresize timeout', () => {
+test.describe('Manual resize pending autoresize timeout', { tag: THEMES_TAG }, () => {
   let grid: ManualResizeTeardownPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

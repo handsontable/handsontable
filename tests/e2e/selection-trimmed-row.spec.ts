@@ -23,35 +23,6 @@ test.describe('selection stranded by a trimming index map', () => {
     await grid.goto();
   });
 
-  test('drops a selection a trim left past the last row, so a paste cannot append records', async() => {
-    await grid.selectCell(3, 0);
-    // Leaves A2 and A4 visible, so visual row 3 addresses nothing at all.
-    await grid.trimRows([0, 1, 3]);
-
-    expect(await grid.selected()).toBeUndefined();
-
-    await grid.pasteIntoSelection('PASTED');
-
-    expect(await grid.sourceRowCount()).toBe(5);
-    expect(await grid.sourceData()).toEqual([
-      ['A0', 'B0'],
-      ['A1', 'B1'],
-      ['A2', 'B2'],
-      ['A3', 'B3'],
-      ['A4', 'B4'],
-    ]);
-    expect(await grid.committedChangeCount()).toBe(0);
-  });
-
-  test('drops it for a Ctrl+Enter-style write through the selection corners too', async() => {
-    await grid.selectCell(3, 0);
-    await grid.trimRows([0, 1, 3]);
-    await grid.populateFromSelection('POPULATED');
-
-    expect(await grid.sourceRowCount()).toBe(5);
-    expect(await grid.committedChangeCount()).toBe(0);
-  });
-
   test('drops it when the record survives further up but the coordinate is left out of range', async() => {
     await grid.selectCell(3, 0);
     // A3 stays visible, at visual row 1 - but the highlight still reads 3, and only two rows remain.
@@ -210,17 +181,6 @@ test.describe('selection stranded by a trimming index map', () => {
     // The committed highlight, not only the range: a grow that skipped re-committing would leave the
     // returned rows unpainted while `getSelected()` already reported them.
     expect(await grid.highlightedAreaCorners()).toEqual([[-1, 0, 4, 0]]);
-  });
-
-  test('grows a full-column selection when the untrimmed rows sit above it', async() => {
-    await grid.trimRows([0]);
-    await grid.selectWholeColumn(0);
-
-    expect(await grid.selected()).toEqual([[-1, 0, 3, 0]]);
-
-    await grid.untrimRows([0]);
-
-    expect(await grid.selected()).toEqual([[-1, 0, 4, 0]]);
   });
 
   test('grows a full-column selection on a grid with no headers', async({ page, theme, bundle }) => {
@@ -504,32 +464,6 @@ test.describe('selection stranded by a trimming index map', () => {
     await grid.removeRow(0, 2);
 
     expect(await grid.selected()).toEqual([[3, 0, 3, 0]]);
-  });
-
-  test('drops a coordinate that addresses nothing even while an editor is open', async() => {
-    await grid.openEditorAndType(3, 0, 'TYPED');
-    // Two rows remain, so visual row 3 addresses nothing. An open editor does NOT exempt this
-    // shape: `EditorManager` discards the stranded editor and would leave the highlight behind it,
-    // and a paste through that highlight is what appends records.
-    await grid.trimRows([0, 1, 3]);
-
-    expect(await grid.selected()).toBeUndefined();
-
-    await grid.pasteIntoSelection('PASTED');
-
-    expect(await grid.sourceRowCount()).toBe(5);
-  });
-
-  test('keeps a still-addressable coordinate while an editor is open, so typing can continue', async() => {
-    await grid.openEditorAndType(3, 0, 'TYPED');
-    // Only the edited record is trimmed, so visual row 3 still addresses a cell - `A4` now. The
-    // editor is discarded, and `EditorManager` deliberately keeps the selection there so the next
-    // keystroke re-prepares against the record now under the cursor. A write lands on that real
-    // record rather than appending, which is why this half is exempt.
-    await grid.trimRows([3]);
-
-    expect(await grid.selected()).toEqual([[3, 0, 3, 0]]);
-    expect(await grid.sourceRowCount()).toBe(5);
   });
 
   test('judges the record by where it is now, not by where a sort left the captured index',

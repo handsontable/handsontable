@@ -1,5 +1,5 @@
 import { type Locator } from '@playwright/test';
-import { test, expect } from '../../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../../fixtures/test';
 import { SpreaderLayoutShiftPage } from '../../fixtures/pages/walkontable/SpreaderLayoutShiftPage';
 
 /**
@@ -22,7 +22,7 @@ import { SpreaderLayoutShiftPage } from '../../fixtures/pages/walkontable/Spread
  * LTR and in RTL (where the horizontal offset carries the opposite sign), and over the frozen
  * clones, whose spreaders carry an offset of their own.
  */
-test.describe('walkontable spreader layout shift', { tag: '@walkontable' }, () => {
+test.describe('walkontable spreader layout shift', { tag: ['@walkontable', THEMES_TAG, BUNDLES_TAG] }, () => {
   let wt: SpreaderLayoutShiftPage;
 
   /** A pixel of border compensation either way is by design; anything larger is misplaced. */

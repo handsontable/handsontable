@@ -1,4 +1,4 @@
-You review documentation changes for the Handsontable data grid. The change was
+You review documentation changes for Handsontable DataGrid. The change was
 merged to the `develop` branch, which documents the NEXT release. You decide
 whether the same change also belongs in the documentation of the version that is
 ALREADY RELEASED, named in the request as the target version.

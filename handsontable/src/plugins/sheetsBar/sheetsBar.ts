@@ -1,12 +1,23 @@
 import { BasePlugin } from '../base';
 import { SheetModel, clampSheetName, type Sheet, type SheetDescriptor } from './sheetModel';
 import { SheetsBarUI } from './ui/bar';
-import { TabStrip } from './ui/tabStrip';
+import { TabStrip, type TabBox, type TabStripMotion } from './ui/tabStrip';
+import { resolveSwitchTransition, pillDurationMs, tabSlideDurationMs } from './ui/switchTiming';
+import { MotionGate } from './ui/motionGate';
+import {
+  isValidAnimationSetting,
+  keepAnimatedMotion,
+  resolveAnimationSetting,
+  type SheetsBarAnimationSettings,
+  type SheetsBarMotion,
+} from './ui/animationSettings';
 import { SheetsBarMenus } from './ui/menus';
 import { OverflowController } from './ui/overflow';
 import {
   captureViewState,
+  clearFrozenCountShadow,
   clearMergedCells,
+  FROZEN_COUNT_KEYS,
   keepSelectionOnPage,
   resetViewState,
   resetViewport,
@@ -14,7 +25,8 @@ import {
   restoreViewport,
   type TrackedCellMeta,
   type ViewState,
-} from './viewState';
+} from '../../utils/viewState/viewState';
+import { withoutUndoEntry } from '../../utils/viewState/withoutUndoEntry';
 import * as C from '../../i18n/constants';
 import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
@@ -76,6 +88,19 @@ export interface SheetsBarSettings {
   paging?: boolean;
   position?: 'top' | 'bottom';
   uiContainer?: HTMLElement | null;
+  animation?: boolean | SheetsBarAnimationSettings;
+}
+
+export type { SheetsBarAnimationSettings } from './ui/animationSettings';
+
+/**
+ * The tab positions a change that moves tabs recorded before the repaint, the transition the
+ * slide runs with, and the motion that started it.
+ */
+interface TabMotion {
+  from: Map<number, number>;
+  transitionMs: number;
+  motion: 'remove' | 'move';
 }
 
 /**
@@ -120,6 +145,16 @@ function applyEngineRewritesToSheetData(data: unknown[], serialized: unknown[][]
  * because that removal fires no `afterRemoveCellMeta` (DEV-3135).
  */
 const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
+
+/**
+ * Settings whose plugins read the grid's data when they are applied and need nothing from the
+ * load itself. A switch applies the arriving sheet's settings while the grid still holds the
+ * departing sheet's data, so a truthy value of one of these keys is applied after the arriving
+ * sheet's `loadData()` instead. ColumnSummary checks its endpoints against the table size and
+ * writes its results into the data. NestedRows is not on the list: the load has to run with it
+ * on, so it is applied before the load with its data check held back (`#withoutNestedRowsDataCheck`).
+ */
+const DATA_BOUND_SETTING_KEYS = ['columnSummary'] as const;
 
 /**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
@@ -265,10 +300,9 @@ interface PreservedState {
  * @class SheetsBar
  *
  * @description
- * The plugin renders a tab bar below the grid — or above it, with the `position`
- * setting — and lets the user switch between the
- * sheets of a multi-sheet workbook. Each sheet owns its data, its optional settings,
- * and its runtime view state.
+ * The plugin renders a tab bar below the grid, or above it with the `position` setting,
+ * and lets the user switch between the sheets of a workbook. Each sheet has its own data,
+ * settings overrides, and view state.
  */
 export class SheetsBar extends BasePlugin {
   /**
@@ -296,6 +330,7 @@ export class SheetsBar extends BasePlugin {
       paging: true,
       position: 'bottom',
       uiContainer: null as unknown,
+      animation: true as unknown,
     };
   }
 
@@ -311,6 +346,7 @@ export class SheetsBar extends BasePlugin {
       paging: (value: unknown) => typeof value === 'boolean',
       position: (value: unknown) => value === 'top' || value === 'bottom',
       uiContainer: (value: unknown) => value === null || value === undefined || isHTMLElement(value),
+      animation: isValidAnimationSetting,
     };
   }
 
@@ -326,6 +362,20 @@ export class SheetsBar extends BasePlugin {
    * @type {boolean}
    */
   #isSwitching = false;
+  /**
+   * Holds every tab entrance, tab slide, and marker slide back until the grid has been painted:
+   * the gate opens in the second animation frame after the render that armed it. Shut on a
+   * genuine teardown, never on a workbook-preserving round trip, and armed by the first render
+   * after it.
+   */
+  #motionGate = new MotionGate();
+  /**
+   * Counts the switches that changed the active sheet, so a switch can tell whether a later one
+   * ran inside its own `afterSheetTabChange` and owns the marker slide now.
+   *
+   * @type {number}
+   */
+  #switchCount = 0;
   /**
    * The grid-level value of every setting any sheet has overridden, captured the first time
    * that setting is applied. Switching to a sheet that does not declare a key restores the
@@ -426,6 +476,20 @@ export class SheetsBar extends BasePlugin {
    * @type {TabStrip | null}
    */
   #tabStrip: TabStrip | null = null;
+  /**
+   * The marker slide and tab entrances a workbook-preserving `updatePlugin` carries from the
+   * strip it tears down to the strip it builds. `null` outside that window.
+   *
+   * @type {object|null}
+   */
+  #tabStripMotion: TabStripMotion | null = null;
+  /**
+   * The motion that started the latest tab slide (`remove` or `move`), so a workbook-preserving
+   * `updatePlugin` can tell whether the `animation` setting still lets that slide run.
+   *
+   * @type {string|null}
+   */
+  #tabSlideMotion: SheetsBarMotion | null = null;
   /**
    * Explicit `setCellMeta` writes made while the active sheet is applied, kept so they survive
    * a switch round trip. One bucket per physical cell, one slot per property inside it, so a
@@ -536,6 +600,20 @@ export class SheetsBar extends BasePlugin {
    * @type {number|undefined}
    */
   #neutralFixedColumnsEnd: number | undefined;
+  /**
+   * The grid-level `fixedRowsTop` as it stood before any sheet was applied. It plays the same part as
+   * `#neutralFixedColumnsStart` for the frozen top rows.
+   *
+   * @type {number|undefined}
+   */
+  #neutralFixedRowsTop: number | undefined;
+  /**
+   * The grid-level `fixedRowsBottom` as it stood before any sheet was applied. It plays the same part as
+   * `#neutralFixedColumnsStart` for the frozen bottom rows.
+   *
+   * @type {number|undefined}
+   */
+  #neutralFixedRowsBottom: number | undefined;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings.
@@ -563,6 +641,8 @@ export class SheetsBar extends BasePlugin {
     if (this.#preservedState === null) {
       this.#neutralFixedColumnsStart = this.hot.getSettings().fixedColumnsStart as number | undefined;
       this.#neutralFixedColumnsEnd = this.hot.getSettings().fixedColumnsEnd as number | undefined;
+      this.#neutralFixedRowsTop = this.hot.getSettings().fixedRowsTop as number | undefined;
+      this.#neutralFixedRowsBottom = this.hot.getSettings().fixedRowsBottom as number | undefined;
     }
 
     this.#getDataProvider()?._setContextOwner(this.#contextOwner);
@@ -630,7 +710,9 @@ export class SheetsBar extends BasePlugin {
         ariaTags: this.hot.getSettings().ariaTags !== false,
         isRtl: this.hot.isRtl(),
         syncIcon: syncIconForHot,
+        rootWindow: this.hot.rootWindow,
       });
+      this.#tabStrip.setDragSlide(this.#animation().move);
       this.#tabStrip
         .addLocalHook('tabClick', (id: number) => this.setActiveSheet(id, SOURCE_UI))
         .addLocalHook('tabMenuClick', (
@@ -664,7 +746,7 @@ export class SheetsBar extends BasePlugin {
           }
         })
         .addLocalHook('tabDragCommit', (id: number, toIndex: number) => {
-          if (!this.#moveSheetToIndex(id, toIndex, SOURCE_UI)) {
+          if (!this.#moveSheetToIndex(id, toIndex, SOURCE_UI, false)) {
             this.#refreshUI();
           }
         });
@@ -712,8 +794,16 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, -1);
     this.addHook('afterDocumentKeyDown', this.#onKeyDownWithinBar, -1);
     this.addHook('beforeCompositionStart', this.#onKeyDownWithinBar, -1);
+    this.addHook('afterRender', this.#onAfterRenderArmMotionGate);
 
     this.#refreshUI();
+
+    if (this.#tabStripMotion !== null) {
+      this.#tabStrip?.resumeMotion(
+        keepAnimatedMotion(this.#tabStripMotion, this.#animation(), this.#tabSlideMotion),
+      );
+      this.#tabStripMotion = null;
+    }
 
     super.enablePlugin();
   }
@@ -756,6 +846,7 @@ export class SheetsBar extends BasePlugin {
       this.enablePlugin();
     } finally {
       this.#preservedState = null;
+      this.#tabStripMotion = null;
       this.#retainActiveName = null;
       this.#rebuildGridDataProvider = null;
     }
@@ -847,15 +938,22 @@ export class SheetsBar extends BasePlugin {
       }
     });
 
-    if (!('fixedColumnsStart' in restored)
-      && (this.hot.getSettings().fixedColumnsStart ?? 0) !== (this.#neutralFixedColumnsStart ?? 0)) {
-      restored.fixedColumnsStart = this.#neutralFixedColumnsStart ?? 0;
-    }
+    // Each frozen count goes back to the value the grid started with, unless a sheet's own settings already put
+    // it in the baseline.
+    const neutral = this.#getNeutralFrozenCounts();
 
-    if (!('fixedColumnsEnd' in restored)
-      && (this.hot.getSettings().fixedColumnsEnd ?? 0) !== (this.#neutralFixedColumnsEnd ?? 0)) {
-      restored.fixedColumnsEnd = this.#neutralFixedColumnsEnd ?? 0;
-    }
+    FROZEN_COUNT_KEYS.forEach((key) => {
+      if (!(key in restored) && (this.hot.getSettings()[key] ?? 0) !== (neutral[key] ?? 0)) {
+        restored[key] = neutral[key] ?? 0;
+      }
+    });
+
+    // A count written on the table meta (by the freeze bar, for example) would outlive the write below.
+    FROZEN_COUNT_KEYS.forEach((key) => {
+      if (key in restored) {
+        clearFrozenCountShadow(this.hot, key);
+      }
+    });
 
     if (Object.keys(restored).length === 0) {
       return;
@@ -873,6 +971,20 @@ export class SheetsBar extends BasePlugin {
     } finally {
       this.#isRestoringBaseline = false;
     }
+  }
+
+  /**
+   * The four frozen counts the grid had before any sheet was applied.
+   *
+   * @returns {object}
+   */
+  #getNeutralFrozenCounts() {
+    return {
+      fixedColumnsStart: this.#neutralFixedColumnsStart,
+      fixedColumnsEnd: this.#neutralFixedColumnsEnd,
+      fixedRowsTop: this.#neutralFixedRowsTop,
+      fixedRowsBottom: this.#neutralFixedRowsBottom,
+    };
   }
 
   /**
@@ -914,9 +1026,15 @@ export class SheetsBar extends BasePlugin {
    * Drops the model, the UI modules, the layout slot, and the runtime state. Shared by
    * `disablePlugin` and `destroy`; every handle is optional-chained so the second teardown is
    * a no-op. The settings baseline goes too: it describes the grid as it was before this
-   * workbook, and a workbook configured later starts from the grid as it is then.
+   * workbook, and a workbook configured later starts from the grid as it is then. A
+   * workbook-preserving round trip first takes the strip's running marker slide and tab
+   * entrances, while the strip is still laid out, for the rebuilt strip to continue.
    */
   #releaseState() {
+    if (this.#preservedState !== null) {
+      this.#tabStripMotion = this.#tabStrip?.releaseMotion() ?? null;
+    }
+
     if (isRootInstance(this.hot)) {
       if (this.#registeredSide) {
         this.hot.getLayoutManager().unregister(PLUGIN_KEY, this.#registeredSide);
@@ -938,6 +1056,11 @@ export class SheetsBar extends BasePlugin {
     this.#lastBuiltSheets = undefined;
     this.#isSwitching = false;
     this.#isInitializing = false;
+
+    if (this.#preservedState === null) {
+      this.#motionGate.close();
+    }
+
     this.#tabStrip?.destroy();
     this.#tabStrip = null;
     this.#menus?.destroy();
@@ -960,9 +1083,9 @@ export class SheetsBar extends BasePlugin {
   /**
    * Renames a sheet.
    *
-   * Rejected — and reported as `false` — when the name is blank, unchanged, already taken by
-   * another sheet, already identifying a different sheet in the sheet's formula engine, or a
-   * `beforeSheetTabRename` listener cancels it.
+   * Returns `false` when the id is unknown, the name is blank or unchanged, another sheet
+   * already uses the name (in the bar or in the sheet's formula engine), or a
+   * `beforeSheetTabRename` listener cancels the rename.
    *
    * @param {number} id The sheet's id.
    * @param {string} name The new name. Trimmed, and cut to the name length limit.
@@ -976,9 +1099,10 @@ export class SheetsBar extends BasePlugin {
   /**
    * Duplicates a sheet, placing the copy directly after the original.
    *
-   * The copy carries a deep clone of the sheet's data and settings, and a name derived from the
-   * original. Rejected — and reported as `null` — when the id is unknown or a
-   * `beforeSheetTabAdd` listener cancels it.
+   * The copy gets a deep clone of the sheet's data and settings, and a name based on the
+   * original's. The `formulas` setting is not cloned: the copy shares the original's engine,
+   * under a sheet name of its own. Returns `null` when the id is unknown or a `beforeSheetTabAdd` listener
+   * cancels the copy.
    *
    * @param {number} id The sheet to copy.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -991,10 +1115,9 @@ export class SheetsBar extends BasePlugin {
   /**
    * Removes a sheet.
    *
-   * Removing the active sheet activates its nearest remaining neighbor first, so the grid runs
-   * its normal view-state switch. The last remaining sheet cannot be removed. Rejected — and
-   * reported as `false` — when the id is unknown, it is the last sheet, or a
-   * `beforeSheetTabRemove` listener cancels it.
+   * Removing the active sheet first switches to its nearest neighbor. Returns `false` when the
+   * id is unknown, the sheet is the last one, a `beforeSheetTabRemove` listener cancels the
+   * removal, or the switch to the neighbor is rejected.
    *
    * @param {number} id The sheet to remove.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1005,8 +1128,9 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Activates a sheet by id or unique name. Returns `false` when the sheet does not
-   * exist, is already active, or a `beforeSheetTabChange` listener canceled the switch.
+   * Activates a sheet by id or name. Returns `false` when the sheet doesn't exist, is
+   * already active, another switch is in progress, or a `beforeSheetTabChange` listener
+   * cancels the switch.
    *
    * @param {number|string} idOrName The sheet's id, or its name.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1021,10 +1145,19 @@ export class SheetsBar extends BasePlugin {
       return false;
     }
 
+    let transitionMs = 0;
+    let markerFrom: TabBox | null = null;
+    let switchNumber = 0;
+
     const switched = this.#commit(
       'beforeSheetTabChange',
       [oldId, newId],
       () => {
+        this.#switchCount += 1;
+        switchNumber = this.#switchCount;
+        transitionMs = this.#switchTransition('switch');
+        markerFrom = transitionMs > 0 ? (this.#tabStrip?.captureActiveTabBox() ?? null) : null;
+
         const oldSheet = oldId === null ? null : model.getSheetById(oldId);
 
         if (oldSheet) {
@@ -1059,6 +1192,10 @@ export class SheetsBar extends BasePlugin {
       return false;
     }
 
+    if (this.#ownsMarkerSlide(switchNumber)) {
+      this.#slideActiveTabMarker(markerFrom, transitionMs);
+    }
+
     // Announced for the bar's own gestures only. A switch made through the API is the host
     // page's doing, and one made from the keyboard already moved the focus onto the tab, whose
     // name the reader speaks.
@@ -1070,10 +1207,100 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Moves a sheet to an absolute tab index.
+   * Tells whether a switch still owns the marker slide: the plugin is enabled, and no later
+   * switch ran since, as one an `afterSheetTabChange` listener starts. A later switch started its
+   * own slide, which this one must not replace.
+   */
+  #ownsMarkerSlide(switchNumber: number): boolean {
+    return this.enabled && switchNumber === this.#switchCount;
+  }
+
+  /**
+   * Slides a newly created sheet's tab into the strip. Nothing slides when the entrance is
+   * instant: the `animation` setting turns it off, no theme transition, a user who prefers reduced
+   * motion, or a grid still loading.
+   */
+  #markTabEntering(id: number): void {
+    if (this.#tabStrip === null) {
+      return;
+    }
+
+    this.#tabStrip.markEntering(id, this.#switchTransition('add'));
+  }
+
+  /**
+   * Returns the transition one motion of the bar runs with, or `0` when it is instant: the
+   * `animation` setting turns it off, or the grid still loads (until the motion gate opens, a
+   * marker slide, a tab entrance, and a tab slide are instant, and read nothing from the DOM).
+   */
+  #switchTransition(motion: SheetsBarMotion): number {
+    if (!this.#animation()[motion] || !this.#motionGate.isOpen()) {
+      return 0;
+    }
+
+    return resolveSwitchTransition(this.hot);
+  }
+
+  /**
+   * Returns the `animation` setting resolved to one flag per motion.
+   */
+  #animation() {
+    return resolveAnimationSetting(this.getSetting('animation'));
+  }
+
+  /**
+   * Records where every tab stands before a change that moves tabs, with the transition the
+   * slide will run with, or answers `null` when the motion is instant: the `animation` setting
+   * turns it off, no theme transition, a user who prefers reduced motion, or a grid still
+   * loading.
+   */
+  #captureTabMotion(motion: TabMotion['motion']): TabMotion | null {
+    const transitionMs = this.#tabStrip === null ? 0 : this.#switchTransition(motion);
+
+    if (transitionMs <= 0) {
+      return null;
+    }
+
+    return { from: this.#tabStrip!.captureTabPositions(), transitionMs, motion };
+  }
+
+  /**
+   * Slides the tabs from the places `#captureTabMotion()` recorded to the places the repaint
+   * gave them, led by the tab of `leadId`.
+   */
+  #playTabMotion(motion: TabMotion | null, leadId: number): void {
+    if (motion === null) {
+      return;
+    }
+
+    this.#tabSlideMotion = motion.motion;
+    this.#tabStrip?.slideTabs(motion.from, tabSlideDurationMs(motion.transitionMs), leadId);
+  }
+
+  /**
+   * Slides the active tab marker from the box the previous sheet's tab held to the new active
+   * tab. A switch that does not animate ends a slide still running instead.
+   */
+  #slideActiveTabMarker(from: TabBox | null, transitionMs: number): void {
+    if (this.#tabStrip === null) {
+      return;
+    }
+
+    if (from === null || transitionMs <= 0) {
+      this.#tabStrip.finishIndicator();
+
+      return;
+    }
+
+    this.#tabStrip.slideIndicator(from, pillDurationMs(transitionMs));
+  }
+
+  /**
+   * Moves a sheet to a position in the tab order.
    *
-   * The index is a model index, not a visual one — a caller reading positions off the DOM under
-   * RTL has already accounted for the mirroring, so nothing is mirrored here.
+   * The index counts sheets in tab order, not on screen, so it is the same under RTL.
+   * Returns `false` when the id is unknown, the index is out of range or is the sheet's
+   * current one, or a `beforeSheetTabMove` listener cancels the move.
    *
    * @param {number} id The sheet id.
    * @param {number} to The target index.
@@ -1086,11 +1313,10 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Appends a sheet and returns its descriptor, or `null` when a `beforeSheetTabAdd`
-   * listener canceled the operation.
+   * listener cancels it.
    *
-   * When no `settings` are given and the workbook's sheets share a formula engine, the new
-   * sheet joins it under its own name — the way a spreadsheet's new sheet does — so formulas
-   * work on it and cross-sheet references can reach it right away.
+   * Without `settings`, the new sheet joins the workbook's shared formula engine, if there is
+   * one, under its own name. Formulas and cross-sheet references then work on it right away.
    *
    * @param {string} [name] The sheet's name. Omitted, the next free `Sheet{n}` is used.
    * @param {Array[]} [data] The sheet's data. Omitted, the sheet starts blank.
@@ -1126,6 +1352,7 @@ export class SheetsBar extends BasePlugin {
         }
 
         this.#registerFormulaSheet(added);
+        this.#markTabEntering(added.id);
         this.#refreshUI();
 
         return added;
@@ -1444,7 +1671,7 @@ export class SheetsBar extends BasePlugin {
     // was four sweeps over the same data before a single frame reached the screen.
     const viewState = newSheet.viewState as unknown as ViewState | undefined;
     const switchSheet = () => {
-      if (!viewState?.selection && this.hot.view) {
+      if (this.hot.view) {
         this.hot.deselectCell();
       }
 
@@ -1456,7 +1683,7 @@ export class SheetsBar extends BasePlugin {
       // those declarations were wiped on the sheet's first activation and then captured as
       // its own empty state.
       if (!viewState) {
-        resetViewState(this.hot, this.#neutralFixedColumnsStart, this.#neutralFixedColumnsEnd);
+        resetViewState(this.hot, this.#getNeutralFrozenCounts());
       } else {
         clearMergedCells(this.hot);
       }
@@ -1537,9 +1764,7 @@ export class SheetsBar extends BasePlugin {
       // and be captured as its own state on the first switch away. The reset runs before the
       // sheet is applied, so the opening sheet's own declared `settings` stay in force.
       if (this.hot.view) {
-        this.#withoutUndoEntry(() => resetViewState(
-          this.hot, this.#neutralFixedColumnsStart, this.#neutralFixedColumnsEnd
-        ));
+        this.#withoutUndoEntry(() => resetViewState(this.hot, this.#getNeutralFrozenCounts()));
       }
 
       this.#applySheet(targetSheet, SOURCE_API);
@@ -1560,7 +1785,10 @@ export class SheetsBar extends BasePlugin {
    * is already constructed; during initial plugin setup the view does not exist yet and
    * the grid's own startup render covers it. The settings update runs with core's `min*` padding
    * vetoed, because the grid still holds the departing sheet's data then; the `loadData()` pads
-   * the arriving sheet's data before its `afterLoadData`.
+   * the arriving sheet's data before its `afterLoadData`. NestedRows takes its data from that
+   * load, not from the departing sheet (`#withoutNestedRowsDataCheck`), and on a live grid
+   * ColumnSummary is configured after the load, through a second `updateSettings()`
+   * (`#splitDataBoundSettings`).
    *
    * The merges the settings declare are built after the load, against the arriving sheet's data.
    * With `restoresMerges` set they are not built at all: a sheet that returns with a stored view
@@ -1570,16 +1798,22 @@ export class SheetsBar extends BasePlugin {
    */
   #applySheet(sheet: Sheet, source: string, { restoresMerges = false }: { restoresMerges?: boolean } = {}) {
     const apply = () => {
-      const settings = this.#withBaselineFor(sheet.settings);
+      const { beforeLoad, afterLoad } = this.#splitDataBoundSettings(this.#withBaselineFor(sheet.settings));
 
-      if (settings) {
+      if (beforeLoad) {
         this.#withoutAutoPadding(() => {
           this.#withoutMergeCellsSettingsPass(() => {
-            this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(settings));
+            this.#withoutNestedRowsDataCheck(() => {
+              this.#withoutFormulasSwitchLoad(() => this.hot.updateSettings(beforeLoad));
+            });
           });
         });
       }
       this.hot.loadData(sheet.data as never, `${source}.switch`);
+
+      if (afterLoad) {
+        this.hot.updateSettings(afterLoad);
+      }
 
       if (this.hot.view) {
         this.#runMergeCellsSettingsPass(!restoresMerges);
@@ -1591,6 +1825,52 @@ export class SheetsBar extends BasePlugin {
     } else {
       apply();
     }
+  }
+
+  /**
+   * Splits a switch's settings into the part applied before the arriving sheet's `loadData()` and
+   * the part applied after it. A truthy value of a `DATA_BOUND_SETTING_KEYS` key goes after the
+   * load, so its plugin is configured against the arriving sheet's data. A plugin the departing
+   * sheet left enabled is turned off before the load, or it would run its departing configuration
+   * against the arriving data during the load (ColumnSummary writing its results into it). A falsy
+   * value turns the plugin off, which reads no data, so it stays before the load.
+   *
+   * Without a view the grid is still being built and nothing is split: ColumnSummary computes its
+   * endpoints from its own `afterInit`, against the loaded sheet, and applied after the load it
+   * would write through `setDataAtCell()` before the editor manager exists.
+   *
+   * @param {object|null} settings The settings `#withBaselineFor` built for the arriving sheet.
+   * @returns {object} The settings to apply before and after the load, each `null` when empty.
+   */
+  #splitDataBoundSettings(settings: Record<string, unknown> | null): {
+    beforeLoad: Record<string, unknown> | null,
+    afterLoad: Record<string, unknown> | null,
+  } {
+    if (!settings || !this.hot.view) {
+      return { beforeLoad: settings, afterLoad: null };
+    }
+
+    const beforeLoad = { ...settings };
+    const afterLoad: Record<string, unknown> = {};
+
+    DATA_BOUND_SETTING_KEYS.forEach((key) => {
+      if (!beforeLoad[key]) {
+        return;
+      }
+
+      afterLoad[key] = beforeLoad[key];
+
+      if (this.hot.getPlugin(key)?.enabled) {
+        beforeLoad[key] = false;
+      } else {
+        delete beforeLoad[key];
+      }
+    });
+
+    return {
+      beforeLoad: Object.keys(beforeLoad).length > 0 ? beforeLoad : null,
+      afterLoad: Object.keys(afterLoad).length > 0 ? afterLoad : null,
+    };
   }
 
   /**
@@ -1825,6 +2105,8 @@ export class SheetsBar extends BasePlugin {
    * Removes a sheet. When it is the currently active one, first activates the
    * neighbor the model will pick (so the grid runs its normal view-state
    * capture/restore switch) before removing it. Refuses to remove the last sheet.
+   * Unless the bar's motion is instant, a copy of the removed tab fades out toward the inline
+   * start while the tabs after it slide to close the gap.
    */
   #removeSheet(id: number, source: string = SOURCE_UI): boolean {
     const model = this.#model as SheetModel;
@@ -1849,6 +2131,8 @@ export class SheetsBar extends BasePlugin {
         }
 
         const removedSheet = model.getSheetById(id);
+        const tabMotion = this.#captureTabMotion('remove');
+        const leavingTab = tabMotion === null ? null : (this.#tabStrip?.captureLeavingTab(id) ?? null);
 
         if (!model.removeSheet(id)) {
           return false;
@@ -1861,6 +2145,11 @@ export class SheetsBar extends BasePlugin {
 
         this.#pruneDeclaredSheet(id);
         this.#refreshUI();
+        this.#playTabMotion(tabMotion, -1);
+
+        if (leavingTab !== null && tabMotion !== null) {
+          this.#tabStrip?.slideTabOut(leavingTab, tabMotion.transitionMs);
+        }
 
         return true;
       },
@@ -1930,12 +2219,16 @@ export class SheetsBar extends BasePlugin {
   /**
    * Moves a sheet to an absolute index through the cancellable hook pair.
    *
+   * Unless the move comes from a drag, which already put the tab in its place, the tabs slide
+   * from their old places to the new ones, and the strip reveals the moved tab.
+   *
    * @param {number} id The sheet id.
    * @param {number} to The target index.
    * @param {string} source The operation source reported to the hooks.
+   * @param {boolean} [slide=true] Whether the tabs slide to their new places.
    * @returns {boolean} `true` when the sheet moved.
    */
-  #moveSheetToIndex(id: number, to: number, source: string): boolean {
+  #moveSheetToIndex(id: number, to: number, source: string, slide: boolean = true): boolean {
     const model = this.#model as SheetModel;
     const order = model.getSheets();
     const from = order.findIndex(sheet => sheet.id === id);
@@ -1948,11 +2241,18 @@ export class SheetsBar extends BasePlugin {
       'beforeSheetTabMove',
       [id, to],
       () => {
+        const tabMotion = slide ? this.#captureTabMotion('move') : null;
+
         if (!model.moveSheet(id, to)) {
           return false;
         }
 
         this.#refreshUI();
+        this.#playTabMotion(tabMotion, id);
+
+        if (slide) {
+          this.#tabStrip?.revealTab(id);
+        }
 
         return true;
       },
@@ -2004,6 +2304,7 @@ export class SheetsBar extends BasePlugin {
           this.#registerFormulaSheet(sheet);
         }
 
+        this.#markTabEntering(sheet.id);
         this.#refreshUI();
 
         return sheet;
@@ -2327,22 +2628,7 @@ export class SheetsBar extends BasePlugin {
    * @param {Function} write The operation to run.
    */
   #withoutUndoEntry(write: () => void) {
-    const undoRedo = this.hot.getPlugin('undoRedo') as
-      { enabled?: boolean, ignoreNewActions: boolean } | undefined;
-
-    if (!undoRedo?.enabled || undoRedo.ignoreNewActions) {
-      write();
-
-      return;
-    }
-
-    undoRedo.ignoreNewActions = true;
-
-    try {
-      write();
-    } finally {
-      undoRedo.ignoreNewActions = false;
-    }
+    withoutUndoEntry(this.hot, write);
   }
 
   /**
@@ -2400,6 +2686,34 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Runs a settings update with NestedRows' data check held back. An update that turns the plugin
+   * on runs while the grid still holds the departing sheet's data, and the plugin would validate
+   * that flat array, log an error, and turn itself off for good. With `deferDataCheck` set it takes
+   * the arriving sheet's tree from the `loadData()` that follows, so the load runs with the plugin
+   * on and sizes the rows, the declared hidden and trimmed rows, and the `min*` padding against the
+   * flattened tree.
+   *
+   * @param {Function} update The operation to run.
+   */
+  #withoutNestedRowsDataCheck(update: () => void) {
+    const nestedRows = this.hot.getPlugin('nestedRows');
+
+    if (!nestedRows || nestedRows.deferDataCheck) {
+      update();
+
+      return;
+    }
+
+    nestedRows.deferDataCheck = true;
+
+    try {
+      update();
+    } finally {
+      nestedRows.deferDataCheck = false;
+    }
+  }
+
+  /**
    * Runs the MergeCells settings pass `#withoutMergeCellsSettingsPass` held back, against the
    * arriving sheet's data. With `apply` unset, the declared merges are not built: a sheet that
    * returns with a stored view state restores its own merges, and the declared ones would win over
@@ -2436,6 +2750,15 @@ export class SheetsBar extends BasePlugin {
    */
   #onBeforeAutoCreate = (index: number, amount: number, source?: string) => {
     return this.#blockAutoPadding && source === 'auto' ? false : undefined;
+  };
+
+  /**
+   * Arms the motion gate after a render, so the bar's motion starts in the second animation frame
+   * after it, once the first frame has painted the grid. A no-op once the gate is open or one of
+   * its frames is pending.
+   */
+  #onAfterRenderArmMotionGate = (): void => {
+    this.#motionGate.arm(this.hot.rootWindow, () => this.enabled && !this.hot.isDestroyed);
   };
 
   /**

@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
 import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
 
 /**
@@ -8,7 +8,7 @@ import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
  * `scrollTop`; the real wheel on this grid was the `mouse-wheel` visual spec's, two captures each
  * behind a one-second sleep, on every js variant and the three wrappers. Asserted here since DEV-3351.
  */
-test.describe('the mouse wheel over the grid body', { tag: CROSS_BROWSER_TAG }, () => {
+test.describe('the mouse wheel over the grid body', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   let grid: SharedDemoGridPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

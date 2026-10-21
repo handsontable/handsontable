@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { DialogStatesPage, type Box } from '../fixtures/pages/DialogStatesPage';
 
 /**
@@ -40,7 +40,7 @@ async function expectCoveringTheRoot(dialogPage: DialogStatesPage) {
   expect(hitInsideDialog).toBe(true);
 }
 
-test.describe('dialog states', () => {
+test.describe('dialog states', { tag: THEMES_TAG }, () => {
   test('a solid backdrop covers the grid opaquely, with the content box centered and unfilled', async({
     page, theme, bundle,
   }) => {

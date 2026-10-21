@@ -31,7 +31,7 @@ on:
 jobs:
   umd:
     name: UMD
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: inputs.run-all || inputs.run-umd
     outputs:
       # Set by a step AFTER a successful build+upload (canonical GHA mechanism)
@@ -63,7 +63,7 @@ jobs:
 
   es-cjs:
     name: ES + CJS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: inputs.run-all || inputs.run-es-cjs
     outputs:
       built: ${{ steps.mark.outputs.built }}

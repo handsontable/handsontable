@@ -1,6 +1,12 @@
 import path from 'path';
 import fse from 'fs-extra';
 import glob from 'glob';
+import {
+  ENTRY_SHIM_SUFFIX,
+  listEntryShimTargets,
+  toEntryShim,
+  toMtsDeclaration,
+} from './utils/explicit-esm-specifiers.mjs';
 import { displayErrorMessage, displayWarningMessage } from '../../scripts/utils/console.mjs';
 
 const TARGET_PATH = './tmp/';
@@ -55,23 +61,28 @@ function reportIncompleteness(message) {
  * which TypeScript maps to the .d.ts via its declaration-lookup rules. The .d.ts
  * files handle all internal resolution under their own CJS context.
  *
- * This step runs here (not only in downlevel-dts.mjs) because CI may call
- * `npm run postbuild:partial` after partial build steps without running downlevel:types.
+ * `downlevel-dts.mjs` only rewrites the `.d.ts` files in place and never writes a `.d.mts`. The self-contained
+ * copies below carry the downleveled text only because every build path runs `downlevel:types` before this step
+ * (the `build` pipeline in `tasks.json`, and the CI jobs that call `postbuild:partial`, which
+ * `.github/scripts/__tests__/partial-packaging.test.mjs` pins), so this step always reads downleveled `.d.ts` files.
+ *
+ * Exception: a default-exporting declaration under `SELF_CONTAINED_MTS_DIRS` (theme presets, language
+ * dictionaries) is a self-contained copy, not a wrapper. The `index` and `base` entry points re-export their
+ * default through an entry shim, written right after the loop. The reason and the rules are in
+ * `scripts/utils/explicit-esm-specifiers.mjs`, which is unit tested.
  */
 glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) => {
-  const mtsPath = path.resolve(TARGET_PATH, dtsFile.replace(/\.d\.ts$/, '.d.mts'));
-  const dtsPath = path.resolve(TARGET_PATH, dtsFile);
-  const jsRef = `./${path.basename(dtsFile, '.d.ts')}.js`;
-  const dtsContent = fse.readFileSync(dtsPath, 'utf8');
-  const hasDefault = /\bexport\s+default\b/.test(dtsContent);
-
-  let mtsContent = `export * from '${jsRef}';\n`;
-
-  if (hasDefault) {
-    mtsContent += `export { default } from '${jsRef}';\n`;
+  if (dtsFile.endsWith(ENTRY_SHIM_SUFFIX)) {
+    return;
   }
 
-  fse.outputFileSync(mtsPath, mtsContent);
+  const mtsPath = path.resolve(TARGET_PATH, dtsFile.replace(/\.d\.ts$/, '.d.mts'));
+
+  fse.outputFileSync(mtsPath, toMtsDeclaration(TARGET_PATH, dtsFile));
+});
+
+listEntryShimTargets(TARGET_PATH).forEach((dtsFile) => {
+  fse.outputFileSync(path.resolve(TARGET_PATH, dtsFile.replace(/\.d\.ts$/, ENTRY_SHIM_SUFFIX)), toEntryShim(dtsFile));
 });
 
 /**

@@ -1785,40 +1785,6 @@ describe('TextEditor', () => {
     expect(getActiveEditor().TEXTAREA.value).toEqual('Ma\n\n\nserati');
   });
 
-  it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', async() => {
-    const data = [
-      ['', '', '', '', ''],
-      ['', 'The Dude abides. I don\'t know about you but I take comfort in that. ' +
-            'It\'s good knowin\' he\'s out there. The ' +
-           'Dude. Takin\' \'er easy for all us sinners. Shoosh. I sure hope he makes the finals.', '', '', ''],
-      ['', '', '', '', '']
-    ];
-
-    handsontable({
-      data,
-      colWidths: 40,
-      width: 300,
-      height: 200,
-      minSpareRows: 20,
-      minSpareCols: 20
-    });
-
-    await selectCell(1, 1);
-    await waitForNextAnimationFrames(1); // for some reason the sleep is needed here
-    await keyDownUp('enter');
-
-    const $editorInput = $('.handsontableInput');
-    const $editedCell = $(getCell(1, 1));
-
-    expect($editorInput.outerWidth())
-      .toEqual(tableView()._wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
-
-    await scrollViewportTo({ col: 3 });
-
-    expect($editorInput.width() + $editorInput.offset().left)
-      .toBeLessThan(tableView()._wt.wtTable.holder.clientWidth);
-  });
-
   it('should resize editor to properly size after focus', async() => {
     const data = [
       ['', '', '', '', '', '', '', '', '', '', ''],

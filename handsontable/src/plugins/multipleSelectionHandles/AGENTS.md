@@ -28,6 +28,16 @@ Both together mean: if a feature should work while dragging on mobile, it has to
 
 The handle DOM lives in the border, not here — this plugin only reads the hit-area classes `topSelectionHandle-HitArea` and `bottomSelectionHandle-HitArea` off the event target.
 
+## One overlay draws each handle
+
+Every overlay (the master and each frozen-pane clone) has its own border and its own pair of handles, and the master also renders the frozen panes' cells, under the clones. **Each handle is drawn only by the overlay that owns its corner cell** — `ownsCornerCell()` in `walkontable/src/selection/border/adjustHandlesOwnership.ts`, resolved once per draw in `Border#measure`: the top handle by the owner of the selection's top-start cell, the bottom handle by the owner of its bottom-end cell (a merged block's real corner). Before DEV-749 the master drew a frozen cell's handles too, and the user saw two bottom handles. **The cause is geometry, not stacking:** on `develop` `.ht_master` is a stacking context below the clones (`z-index: 0`, see `walkontable/AGENTS.md`), so the master's copy did not paint over the clone; it hung past the freeze line into the master's own visible area, next to the clone's clamped copy. (On 18.1.2, before the master became a stacking context, the master's copy did also paint above the clones.) Do not chase related bugs through z-index, and do not hand frozen cells back to the master to get its unclipped copy: it sits in the scrolling table, so it slides away from the cell as soon as the grid scrolls.
+
+Consequences:
+
+- A clone's bottom handle is clamped inside its own table size (the clone clips overflow), so for a cell in the last frozen row (`fixedRowsTop`) or the last frozen column it sits a few pixels inside the corner, as it always did after a scroll. Accepted in review; `mobile-selection-handles.spec.ts` pins that it stays next to the corner.
+- The clone-occlusion checks (`isTopHandleOccludedByClone`, `isBottomHandleOccludedByClone`, and its inline-axis twin `isBottomHandleOccludedByInlineEndClone`) apply to every overlay on the scrollable side of an axis. A handle that would hang into a frozen pane is pulled inside its cell: the top handle on the `fixedRowsTop`/`fixedColumnsStart` line and on the first track of an end pane, the bottom handle on the last scrollable row before `fixedRowsBottom` and the last scrollable column before `fixedColumnsEnd`.
+- Testing: a reachable-handle check keeps only the topmost element at a handle's center, so two copies stacked on one pixel read as one. Assert `displayedHandles()` too (`MobileHandlesPage`), which counts every displayed copy.
+
 ## Resolving the finger
 
 **Use `getCellCoordsFromMousePosition()` (`helpers/dom/cellCoords.ts`), not `document.elementFromPoint()`.** The helper clamps the position to the viewport and returns the nearest cell, so a finger dragged *past* the grid edge still maps to a real cell. `elementFromPoint` returns nothing usable out there, which froze the selection at the last rendered cell — half of issue #11658.

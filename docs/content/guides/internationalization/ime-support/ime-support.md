@@ -1,7 +1,7 @@
 ---
 type: explanation
 title: IME support
-metaTitle: IME support - JavaScript Data Grid | Handsontable
+metaTitle: IME support | Handsontable DataGrid for JavaScript
 description: Convert keystrokes to characters not available on the keyboard, using the Input Method Editor. This feature is always enabled and available for cell editors.
 permalink: /ime-support
 canonicalUrl: /ime-support
@@ -12,11 +12,11 @@ tags:
   - chinese
   - latin
 react:
-  metaTitle: IME support - React Data Grid | Handsontable
+  metaTitle: IME support | Handsontable DataGrid for React
 angular:
-  metaTitle: IME support - Angular Data Grid | Handsontable
+  metaTitle: IME support | Handsontable DataGrid for Angular
 vue:
-  metaTitle: IME support - Vue Data Grid | Handsontable
+  metaTitle: IME support | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Internationalization
 ---
@@ -30,7 +30,7 @@ An Input Method Editor (IME) is a component of the operating system (OS) that en
 
 ## IME support in Handsontable
 
-Handsontable supports IME (Input Method Editor) input through the same mechanisms provided by the operating system. When you switch your input source to a language that requires IME (such as Korean, Japanese, or Chinese), you can use it in cell editors just like in any standard text field.
+Handsontable DataGrid supports IME (Input Method Editor) input through the same mechanisms provided by the operating system. When you switch your input source to a language that requires IME (such as Korean, Japanese, or Chinese), you can use it in cell editors just like in any standard text field.
 
 By default, IME support works when editing a cell through the standard edit mode (for example, pressing <kbd>**Enter**</kbd>, <kbd>**F2**</kbd>, or double-clicking a cell).
 If you want to start typing immediately into a selected cell without explicitly opening the editor, you need to enable the imeFastEdit option.

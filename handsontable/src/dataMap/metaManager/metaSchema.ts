@@ -67,6 +67,28 @@ function getSchemaDefault(
 }
 
 /**
+ * Reads the schema that a row was created from. A `dataSchema` function builds each new row from
+ * the row's index, so the defaults of one row can differ from another's and from the no-argument
+ * call `getSchema()` makes. A row that moved since it was created reads as holding no defaults.
+ *
+ * @param {Handsontable} hot The Handsontable instance.
+ * @param {Function|object} dataSchema The `dataSchema` setting.
+ * @param {number} visualRow Visual row index.
+ * @returns {object|undefined} The row's schema, or `undefined` for a `dataSchema` that is not a function.
+ */
+function getRowSchema(
+  hot: HotInstance,
+  dataSchema: unknown,
+  visualRow: number
+): Record<string | number, unknown> | undefined {
+  if (typeof dataSchema !== 'function') {
+    return undefined;
+  }
+
+  return dataSchema(hot.toPhysicalRow(visualRow)) as Record<string | number, unknown>;
+}
+
+/**
  * @alias Options
  * @class Options
  * @description
@@ -75,7 +97,7 @@ function getSchemaDefault(
  *
  * - Enable and disable built-in features
  * - Enable and configure additional [plugins](@/api/plugins.md)
- * - Personalize Handsontable's look
+ * - Personalize Handsontable DataGrid's look
  * - Adjust Handsontable's behavior
  * - Implement your own custom features
  *
@@ -589,6 +611,57 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
+     * The `asyncValues` option configures the [`AsyncValues`](@/api/asyncValues.md) plugin, which
+     * computes cell values asynchronously, from promises, and shows a pending and an error state per
+     * cell.
+     *
+     * You can set the `asyncValues` option to one of the following:
+     *
+     * | Setting           | Description                                                                  |
+     * | ----------------- | ---------------------------------------------------------------------------- |
+     * | `false` (default) | Disable the [`AsyncValues`](@/api/asyncValues.md) plugin                     |
+     * | `true`            | Enable the [`AsyncValues`](@/api/asyncValues.md) plugin with the defaults    |
+     * | An object         | Enable the [`AsyncValues`](@/api/asyncValues.md) plugin and configure it     |
+     *
+     * If you set the `asyncValues` option to an object, you can configure the following settings:
+     *
+     * | Setting         | Possible values                                  | Description                                                                                       |
+     * | --------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+     * | `flush`         | `'microtask'` (default), `'frame'`, or a number  | When settled requests are written: right after the task they settled in, once per animation frame, or after a number of milliseconds that collects results |
+     * | `concurrency`   | A number (default: `6`), or `Infinity`           | The maximum number of sources running at once (a batch counts as one); further requests stay pending until a slot frees |
+     * | `copyPendingAs` | `'previous'` (default) or `'empty'`              | What copying a pending cell puts on the clipboard                                                 |
+     * | `saveToDataProvider` | `false` (default) or `true`                 | Saves each resolved value through the [`dataProvider`](#dataprovider) `onRowsUpdate` callback, one `updateRows()` call per flush |
+     *
+     * The plugin can't be enabled together with the [`nestedRows`](#nestedrows) option, because NestedRows
+     * moves rows without keeping their physical indexes.
+     *
+     * Read more:
+     * - [Async values](@/guides/cell-features/async-values/async-values.md)
+     * - [Plugins: `AsyncValues`](@/api/asyncValues.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @since 19.0.0
+     * @category AsyncValues
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // enable the `AsyncValues` plugin
+     * asyncValues: true,
+     *
+     * // write results once per animation frame, and run at most four requests at once
+     * asyncValues: {
+     *   flush: 'frame',
+     *   concurrency: 4,
+     * },
+     * ```
+     */
+    asyncValues: false,
+
+    /**
+     * @description
      * The `autoLink` option configures the [`AutoLink`](@/api/autoLink.md) plugin, which renders the
      * URLs found in cell values as clickable links.
      *
@@ -988,7 +1061,8 @@ export default (): Record<string, unknown> => {
      *
      * ::: warning
      * When you set `checkedTemplate` to a custom string value (e.g. `'Yes'`), using `true` in your data source to
-     * represent a checked state is no longer valid. Only the exact custom string value matches a checked checkbox.
+     * represent a checked state is no longer valid. A value matches a checked checkbox when it equals the template
+     * or reads the same ignoring letter case (`'yes'` and `'YES'` both match `'Yes'`).
      * Pair `checkedTemplate` with [`uncheckedTemplate`](#uncheckedTemplate) to define both states explicitly.
      * :::
      *
@@ -2059,6 +2133,10 @@ export default (): Record<string, unknown> => {
      * are populated incrementally, so they may be incomplete until the
      * [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires.
      *
+     * When you replace [`customBorders`](#customborders) with `updateSettings()`, the borders that are
+     * already drawn stay visible until the new ones are applied. A border missing from the new
+     * configuration disappears when the load ends.
+     *
      * @since 18.1.0
      * @memberof Options#
      * @type {boolean|object}
@@ -2155,6 +2233,9 @@ export default (): Record<string, unknown> => {
      * grid itself, for example to keep a new row on the current page while the grid is sorted. With **`pagination`** enabled,
      * a skipped refetch leaves the row total and the page count stale until the next `fetchRows` call, so reconcile them yourself.
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
+     *
+     * A string **`rowId`** is read the same way as the [`rowId`](#rowid) option: a property named exactly as the string
+     * wins, dots included, and otherwise the dots read a nested property.
      *
      * Set it to `null` to turn server-backed loading off again, for example through
      * [`updateSettings()`](@/api/core.md#updatesettings).
@@ -2297,6 +2378,62 @@ export default (): Record<string, unknown> => {
      * ```
      */
     dataSchema: undefined,
+
+    /**
+     * The `rowId` option gives each row an id that stays with the row's record when you sort, filter, move,
+     * trim, insert, or remove rows, and when you undo or redo any of those actions.
+     *
+     * Read a row's id with [`getRowId()`](@/api/core.md#getrowid), and find a row by its id with
+     * [`getVisualRowById()`](@/api/core.md#getvisualrowbyid) or [`getPhysicalRowById()`](@/api/core.md#getphysicalrowbyid).
+     *
+     * You can set the `rowId` option to one of the following:
+     *
+     * | Setting    | Description                                                                              |
+     * | ---------- | ---------------------------------------------------------------------------------------- |
+     * | A string   | The property that holds the id in each row object (for example, `'id'` or `'meta.id'`), or the index of that value in each row array |
+     * | A function | A function that receives the source row and returns its id                               |
+     * | `true`     | Handsontable generates the ids: a number for each row, never reused within the instance   |
+     * | `false`    | No row ids                                                                               |
+     *
+     * For a string with a dot, a property named exactly as the string wins (`{ 'meta.id': 'SKU-4821' }`), as it does
+     * for a column's `data` property. Otherwise, the dots read a nested property (`{ meta: { id: 'SKU-4821' } }`), even
+     * when [`dataDotNotation`](#datadotnotation) is `false` and a column with the same `data` shows nothing.
+     *
+     * Keep the ids unique. If two rows share an id, the lookups return the row with the lower physical index.
+     *
+     * Generated ids follow the physical rows. [`loadData()`](@/api/core.md#loaddata) gives every row a new id,
+     * and [`updateData()`](@/api/core.md#updatedata) keeps the ids of the rows that stay, by position. To keep
+     * ids across data loads, store them in the data and use a string or a function.
+     *
+     * When the [`dataProvider`](#dataprovider) option sets its own `rowId`, Handsontable reads row ids with
+     * `dataProvider.rowId`, and ignores the `rowId` option.
+     *
+     * Read more:
+     * - [Row identity](@/guides/rows/row-identity/row-identity.md)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {string|Function|boolean}
+     * @default undefined
+     * @category Core
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // read the id from the `id` property of each row object
+     * rowId: 'id',
+     *
+     * // read the id with a function (return `null` while a row lacks the values, as an empty row does)
+     * rowId: (row) => (row.country == null || row.code == null ? null : `${row.country}-${row.code}`),
+     *
+     * // let Handsontable generate the ids
+     * rowId: true,
+     * ```
+     */
+    rowId: undefined,
 
     /**
      * Configures the date format for date cells using an
@@ -3235,21 +3372,25 @@ export default (): Record<string, unknown> => {
      *
      * | Setting     | Description                                                                                |
      * | ----------- | ------------------------------------------------------------------------------------------ |
-     * | `undefined` | Use the [`ExportFile`](@/api/exportFile.md) plugin with the default configuration          |
+     * | `undefined` | Use the [`ExportFile`](@/api/exportFile.md) plugin with the default configuration, with the context-menu entry hidden |
+     * | `true`      | Use the plugin with the default configuration (built-in xlsx engine), with the context-menu entry shown |
+     * | `false`     | The same as `true`: the plugin stays enabled, its API keeps working, and the context-menu entry is shown. To hide the entry, leave the option `undefined` |
      * | An object   | Enable the [`ExportFile`](@/api/exportFile.md) plugin and modify the plugin options        |
      *
      * If you set the `exportFile` option to an object, you can configure the following options:
      *
      * | Option    | Type     | Default | Description                                                                         |
      * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
-     * | `engines` | `Object` | –       | A map of format keys to their engine constructors. Pass `{ xlsx: ExcelJS }` to enable XLSX export via [ExcelJS](https://github.com/exceljs/exceljs). |
+     * | `engines` | `Object` | –       | Optional. A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to export through ExcelJS instead of the built-in engine. |
      *
      * Read more:
      * - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
+     * - [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md)
+     * - [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
      * - [Plugins: `ExportFile`](@/api/exportFile.md)
      *
      * @memberof Options#
-     * @type {object}
+     * @type {boolean|object}
      * @default undefined
      * @since 17.1.0
      * @category ExportFile
@@ -3257,9 +3398,12 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
+     * // XLSX and CSV export with the built-in engine
+     * exportFile: true,
+     *
+     * // or export XLSX through ExcelJS
      * import ExcelJS from 'exceljs';
      *
-     * // enable XLSX export
      * exportFile: {
      *   engines: { xlsx: ExcelJS },
      * },
@@ -3283,16 +3427,17 @@ export default (): Record<string, unknown> => {
      *
      * | Option    | Type     | Default | Description                                                                         |
      * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
-     * | `engines` | `Object` | –       | A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to enable XLSX import. The key is the file format the engine reads; the import looks up `engines[format]`. |
+     * | `engines` | `Object` | –       | Optional. A map of format keys to engine modules. Pass `{ xlsx: ExcelJS }` to import through ExcelJS instead of the built-in engine. |
      *
-     * `false` disables the plugin. `true` or an object enables it; an engine is still needed to import a file.
+     * `false` disables the plugin. Any other value, including leaving the option out, enables it.
      *
      * Read more:
      * - [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md)
+     * - [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
      * - [Plugins: `ImportFile`](@/api/importFile.md)
      *
      * @memberof Options#
-     * @type {object}
+     * @type {boolean|object}
      * @default undefined
      * @since 19.0.0
      * @category ImportFile
@@ -3300,6 +3445,10 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
+     * // XLSX import with the built-in engine
+     * importFile: true,
+     *
+     * // or import XLSX through ExcelJS
      * import ExcelJS from 'exceljs';
      *
      * importFile: {
@@ -3334,6 +3483,9 @@ export default (): Record<string, unknown> => {
      * row. Setting `direction` to `'horizontal'` also turns `autoInsertRow` off.
      *
      * Rows appended this way bypass [`allowInsertRow`](#allowInsertRow): only `autoInsertRow` governs them.
+     *
+     * The fill handle is shown only when the selection is a single range. A selection of several separate ranges
+     * (for example, made with <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+click) has no fill handle.
      *
      * Read more:
      * - [AutoFill values](@/guides/cell-features/autofill-values/autofill-values.md)
@@ -3695,7 +3847,7 @@ export default (): Record<string, unknown> => {
      * and [`fixedRowsBottom`](#fixedrowsbottom) to freeze all four edges.
      *
      * ::: tip
-     * Freeze only as many columns as fit within the grid's width. Frozen columns are always drawn in full.
+     * Freeze only as many columns as fit within the grid's width. By default, Handsontable draws frozen columns in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
      * the remaining columns into view.
      * :::
@@ -3772,7 +3924,7 @@ export default (): Record<string, unknown> => {
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL, the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing/column-freezing.md) at the right-hand edge of the grid.
      *
      * ::: tip
-     * Freeze only as many columns as fit within the grid's width. Frozen columns are always drawn in full.
+     * Freeze only as many columns as fit within the grid's width. By default, Handsontable draws frozen columns in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
      * the remaining columns into view.
      * :::
@@ -3827,7 +3979,7 @@ export default (): Record<string, unknown> => {
      * :::
      *
      * ::: tip
-     * Freeze only as many rows as fit within the grid's height. Frozen rows are always drawn in full.
+     * Freeze only as many rows as fit within the grid's height. By default, Handsontable draws frozen rows in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
      * the remaining rows into view.
      * :::
@@ -3863,7 +4015,7 @@ export default (): Record<string, unknown> => {
      * :::
      *
      * ::: tip
-     * Freeze only as many rows as fit within the grid's height. Frozen rows are always drawn in full.
+     * Freeze only as many rows as fit within the grid's height. By default, Handsontable draws frozen rows in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
      * If they need more space than the grid has, they cover the whole grid. You can then no longer scroll
      * the remaining rows into view.
      * :::
@@ -4167,6 +4319,50 @@ export default (): Record<string, unknown> => {
     headerClassName: undefined,
 
     /**
+     * @description
+     * The `headerCheckbox` option adds a "check all" checkbox to the header of a
+     * [checkbox](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) column. A click on it checks every
+     * checkbox in the column, or unchecks them when all of them are checked, and writes the values into
+     * the data in one undo step. When only some cells are checked, the header checkbox shows the mixed
+     * state. Read-only cells are skipped.
+     *
+     * You can set the `headerCheckbox` option to one of the following:
+     *
+     * | Setting                  | Description                                                                    |
+     * | ------------------------ | ------------------------------------------------------------------------------ |
+     * | `false` or unset (default) | No header checkbox                                                           |
+     * | `true`                   | A header checkbox that writes to the rows that pass the filters (all pages)    |
+     * | `{ scope: 'filtered' }`  | The same as `true`                                                             |
+     * | `{ scope: 'all' }`       | Also writes to the rows the filters hide                                       |
+     * | `{ scope: 'currentPage' }` | Writes only to the rows on the current page of the [`Pagination`](@/api/pagination.md) plugin |
+     *
+     * The option works only on columns whose [`type`](#type) is `'checkbox'`. Rows hidden with the
+     * [`HiddenRows`](@/api/hiddenRows.md) plugin and rows trimmed with the [`TrimRows`](@/api/trimRows.md)
+     * plugin are never written.
+     *
+     * Read more:
+     * - [Checkbox cell type: Check all in the column header](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#check-all-in-the-column-header)
+     * - [Plugins: `CheckboxHeader`](@/api/checkboxHeader.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category CheckboxHeader
+     * @since 19.0.0
+     * @configScope grid columns
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   { data: 'name' },
+     *   // a "check all" checkbox in the header of the `active` column
+     *   { data: 'active', type: 'checkbox', headerCheckbox: true },
+     * ],
+     * ```
+     */
+    headerCheckbox: undefined,
+
+    /**
      * The `height` option configures the height of your grid.
      *
      * You can set the `height` option to one of the following:
@@ -4456,15 +4652,21 @@ export default (): Record<string, unknown> => {
       const schema = this.getSchema() as Record<string | number, unknown>;
       const prop = this.colToProp(col);
       const rowLen = this.countRows();
+      const isSchemaFunction = typeof dataSchema === 'function';
       // A column index that names no column has no schema entry to compare against. Every value
       // read from it is empty anyway, so the comparisons below are never reached in that case.
-      const schemaDefault = prop === null ?
+      let schemaDefault = prop === null ?
         undefined : getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
       for (row = 0; row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
+          if (isSchemaFunction && prop !== null) {
+            schemaDefault = getSchemaDefault(
+              getRowSchema(this, dataSchema, row)!, prop, dataDotNotation, hasExplicitSchema);
+          }
+
           if (typeof value === 'object') {
             if (isObjectEqual(schemaDefault, value) === false) {
               return false;
@@ -4515,7 +4717,7 @@ export default (): Record<string, unknown> => {
       let value;
       const { dataSchema, dataDotNotation } = this.getSettings();
       const hasExplicitSchema = !!dataSchema;
-      const schema = this.getSchema() as Record<string | number, unknown>;
+      const schema = (getRowSchema(this, dataSchema, row) ?? this.getSchema()) as Record<string | number, unknown>;
       const colLen = this.countCols();
 
       for (col = 0; col < colLen; col++) {
@@ -4755,6 +4957,53 @@ export default (): Record<string, unknown> => {
     licenseKey: undefined,
 
     /**
+     * The `limitFixedToViewport` option keeps the [frozen rows and columns](@/guides/columns/column-freezing/column-freezing.md)
+     * from growing larger than the space the grid has.
+     *
+     * By default, Handsontable draws the frozen area in full. If the frozen rows and columns need more space than
+     * the grid has, they cover the whole grid, and you can no longer scroll the rest of it into view.
+     *
+     * When you set `limitFixedToViewport` to `true`, Handsontable draws only as many frozen columns and rows as fit,
+     * and keeps a strip of the grid scrollable. The option changes what is drawn, not what you configured:
+     * - [`getSettings()`](@/api/core.md#getsettings) still returns the values of [`fixedColumnsStart`](#fixedcolumnsstart),
+     * [`fixedColumnsEnd`](#fixedcolumnsend), [`fixedRowsTop`](#fixedrowstop), and [`fixedRowsBottom`](#fixedrowsbottom).
+     * - The count is measured again when the grid is resized, so the frozen area returns when the grid grows.
+     * - A strip of at least 40 px stays scrollable on each axis.
+     * - The start columns have priority over the end columns, and the top rows have priority over the bottom rows.
+     * When the start columns or top rows fill the grid, the end columns or bottom rows are not drawn as frozen at all.
+     * - When a user changes the frozen area with the [`FreezeBar`](@/api/freezeBar.md) plugin, the new count replaces the
+     * configured one, and the frozen area no longer returns when the grid grows.
+     * - When one more frozen column would not fit, [`freezeColumn()`](@/api/manualColumnFreeze.md#freezecolumn) does
+     * nothing, and its `afterColumnFreeze` hook reports that the freeze was not performed.
+     *
+     * Handsontable measures the frozen area while it renders. When the first measurement was off (a row that was never
+     * drawn, or a scrollbar that appeared), it draws once more, so [`beforeViewRender`](@/api/hooks.md#beforeviewrender) and
+     * [`afterViewRender`](@/api/hooks.md#afterviewrender) can run twice for one render. A change that makes a frozen row
+     * taller can cost that extra draw each time.
+     *
+     * Read more:
+     * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md#frozen-area-size-limit)
+     * - [Row freezing](@/guides/rows/row-freezing/row-freezing.md#frozen-area-size-limit)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @since 19.0.0
+     * @category Core
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // draw only the frozen columns and rows that fit the grid
+     * limitFixedToViewport: true,
+     * ```
+     */
+    limitFixedToViewport: false,
+
+    /**
      * The `locale` option configures Handsontable's [locale](@/guides/internationalization/locale/locale.md) settings.
      *
      * You can set the `locale` option to any valid and canonicalized Unicode BCP 47 locale tag,
@@ -4896,6 +5145,55 @@ export default (): Record<string, unknown> => {
      * ```
      */
     notification: false,
+
+    /**
+     * The `freezeBar` option configures the [`FreezeBar`](@/api/freezeBar.md) plugin.
+     *
+     * The plugin draws a bar on each edge of the frozen area. You drag the bar, or focus it and press the arrow keys,
+     * to change how many rows or columns are frozen. An edge with nothing frozen has a short handle on a corner of
+     * the headers, so users can start freezing from there.
+     *
+     * You can set the `freezeBar` option to one of the following:
+     *
+     * | Setting   | Description                                                                              |
+     * | --------- | ---------------------------------------------------------------------------------------- |
+     * | `true`    | Enable the [`FreezeBar`](@/api/freezeBar.md) plugin for rows and columns                  |
+     * | `false`   | Disable the [`FreezeBar`](@/api/freezeBar.md) plugin                                      |
+     * | An object | Enable the [`FreezeBar`](@/api/freezeBar.md) plugin and choose the axes                   |
+     *
+     * The object form accepts the following properties:
+     *
+     * | Property  | Type      | Default | Description                           |
+     * | --------- | --------- | ------- | ------------------------------------- |
+     * | `rows`    | `boolean` | `true`  | Show the bar for frozen rows          |
+     * | `columns` | `boolean` | `true`  | Show the bar for frozen columns       |
+     *
+     * The plugin changes the frozen counts on the grid only. It does not write them back to the settings you passed
+     * in, so an application that keeps the counts in its own state copies them in the
+     * [`afterFreezeChange`](@/api/hooks.md#afterfreezechange) hook.
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category FreezeBar
+     * @configScope grid
+     * @since 19.0.0
+     *
+     * @example
+     * ```js
+     * // enable the `FreezeBar` plugin
+     * freezeBar: true,
+     *
+     * // enable the `FreezeBar` plugin for columns only
+     * freezeBar: {
+     *   rows: false,
+     * },
+     * ```
+     */
+    freezeBar: undefined,
 
     /**
      * The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.
@@ -6994,6 +7292,75 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
+     * The `rowSelection` option configures the [`RowSelection`](@/api/rowSelection.md) plugin, which
+     * lets the user select rows with checkboxes, including a "select all" checkbox.
+     *
+     * The row selection is a state of its own. It is not the cell selection, and the plugin never
+     * writes it into the data.
+     *
+     * You can set the `rowSelection` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`RowSelection`](@/api/rowSelection.md) plugin                  |
+     * | `true`    | Enable the [`RowSelection`](@/api/rowSelection.md) plugin with its defaults |
+     * | An object | Enable the plugin and configure it                                          |
+     *
+     * If you set the `rowSelection` option to an object, you can configure the following options:
+     *
+     * | Option                   | Possible settings                                             | Default       |
+     * | ------------------------ | ------------------------------------------------------------- | ------------- |
+     * | `mode`                   | `'multiRow'` \| `'singleRow'`                                  | `'multiRow'`  |
+     * | `checkboxes`             | A boolean, or a function `(rowData, physicalRow) => boolean`  | `true`        |
+     * | `headerCheckbox`         | A boolean                                                     | `true`        |
+     * | `selectAll`              | `'all'` \| `'filtered'` \| `'currentPage'`                     | `'all'`       |
+     * | `enableClickSelection`   | `true` \| `false` \| `'enableSelection'` \| `'enableDeselection'` | `false`  |
+     * | `isRowSelectable`        | A function `(rowData, physicalRow) => boolean`                | -             |
+     * | `hideDisabledCheckboxes` | A boolean                                                     | `false`       |
+     * | `checkboxLocation`       | `'rowHeader'` \| `'firstColumn'` \| `{ column }`                | `'rowHeader'` |
+     * | `groupSelects`           | `'descendants'` \| `'self'` \| `'topLevel'`                    | `'descendants'` |
+     *
+     * With the [`NestedRows`](@/api/nestedRows.md) plugin, `groupSelects` sets how the rows of the tree are
+     * selected. With `'descendants'`, selecting a parent row selects every row under it, and a parent shows a
+     * mixed state while only some of the rows under it are selected. With `'self'`, every row is selected on its
+     * own. With `'topLevel'`, only the top-level rows can be selected. The `'singleRow'` mode and a bound
+     * checkbox column (`checkboxLocation: { column }`) use `'self'` in place of `'descendants'`.
+     *
+     * With `checkboxLocation: { column: 'selected' }`, the values of a checkbox column (its `data` property,
+     * or its physical index) are the selection: selecting a row checks its cell, and checking a cell
+     * selects its row.
+     *
+     * Read more:
+     * - [Row selection](@/guides/rows/row-selection/row-selection.md)
+     * - [Server-side row selection](@/guides/getting-started/server-side-data-row-selection/server-side-data-row-selection.md)
+     * - [Plugins: `RowSelection`](@/api/rowSelection.md)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category RowSelection
+     * @since 19.0.0
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * // enable the `RowSelection` plugin with its defaults
+     * rowSelection: true,
+     *
+     * // "select all" acts on the filtered rows, and archived rows cannot be selected
+     * rowSelection: {
+     *   selectAll: 'filtered',
+     *   isRowSelectable: (rowData) => rowData.status !== 'archived',
+     * },
+     * ```
+     */
+    rowSelection: undefined,
+
+    /**
+     * @description
      * The `search` option enables and configures the [`Search`](@/api/search.md) plugin.
      *
      * | Setting           | Description                                                                    |
@@ -7188,6 +7555,7 @@ export default (): Record<string, unknown> => {
      * | `paging`      | Boolean (default: `true`)                            | Controls visibility of the tab-scrolling controls, shown when tabs overflow the bar's width    |
      * | `position`    | `'top'` \| `'bottom'` (default: `'bottom'`)          | The edge of the grid the bar renders on                                                        |
      * | `uiContainer` | An HTML element (default: `null`)                    | The container element where the sheets bar UI will be installed. If not provided, the bar is injected below the root table element |
+     * | `animation`   | Boolean, or an object of booleans (default: `true`) | Turns the tab animations on or off. `false` makes every tab change instant. An object turns single animations off: `switch` (the active tab marker's slide), `add` (a new or duplicated tab's entrance), `remove` (a removed tab's exit and the tabs closing the gap), and `move` (the tabs sliding to new places after a move, and the tabs a drag pushes aside). A key you leave out stays on. Reduced motion and a theme with `--ht-table-transition: 0s` make every tab change instant whatever this option says. The hover color fade is CSS only and is not affected. An invalid value is ignored with a console warning, and the previous value stays in force |
      *
      * Read more:
      * - [Plugins: `SheetsBar`](@/api/sheetsBar.md)
@@ -7214,6 +7582,21 @@ export default (): Record<string, unknown> => {
      *     { name: 'Notes', data: [['Draft']] },
      *   ],
      *   activeSheet: 0,
+     * },
+     *
+     * // animate every tab change (the default)
+     * sheetsBar: {
+     *   animation: true,
+     * },
+     *
+     * // make every tab change instant
+     * sheetsBar: {
+     *   animation: false,
+     * },
+     *
+     * // keep the tab animations, except the slide after a move
+     * sheetsBar: {
+     *   animation: { switch: true, add: true, remove: true, move: false },
      * },
      * ```
      */
@@ -8329,7 +8712,8 @@ export default (): Record<string, unknown> => {
      *
      * ::: warning
      * When you set `uncheckedTemplate` to a custom string value (e.g. `'No'`), using `false` in your data source to
-     * represent an unchecked state is no longer valid. Only the exact custom string value matches an unchecked checkbox.
+     * represent an unchecked state is no longer valid. A value matches an unchecked checkbox when it equals the
+     * template or reads the same ignoring letter case (`'no'` and `'NO'` both match `'No'`).
      * Pair `uncheckedTemplate` with [`checkedTemplate`](#checkedTemplate) to define both states explicitly.
      * :::
      *
@@ -8437,6 +8821,7 @@ export default (): Record<string, unknown> => {
      * | ------------------- | ----------------------------------------------------------------------- |
      * | A custom alias      | Your [custom cell validator](@/guides/cell-functions/cell-validator/cell-validator.md) |
      * | `'autocomplete'`    | `AutocompleteValidator`                                                 |
+     * | `'checkbox'`        | `CheckboxValidator` (opt-in; the `checkbox` cell type doesn't apply it) |
      * | `'date'`            | `DateValidator`                                                         |
      * | `'intl-date'`       | `IntlDateValidator`                                                     |
      * | `'dropdown'`        | `DropdownValidator`                                                     |
@@ -8581,6 +8966,12 @@ export default (): Record<string, unknown> => {
      * @description
      * The `valueSetter` option configures a function that defines what value will be used when setting the cell content.
      * It can be used to modify the value of a cell before it is saved (for example, for object-based data).
+     *
+     * [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) runs the `valueSetter` too. When you address the
+     * cell by a property name, the grid reads the option from the global settings, the [`columns`](#columns)
+     * option, or the [`cell`](#cell) option. It does not run the [`cells`](#cells) function or the
+     * [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) and
+     * [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks.
      *
      * @example
      * ```js

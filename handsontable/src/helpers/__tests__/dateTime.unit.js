@@ -11,6 +11,7 @@ import {
   isValidISODateTime,
   getDateTimeFormat,
 } from 'handsontable/helpers/dateTime';
+import Handsontable from 'handsontable';
 
 describe('Date helper', () => {
   describe('ISO_DATE_REGEX', () => {
@@ -103,6 +104,27 @@ describe('Date helper', () => {
       expect(date.getFullYear()).toBe(2016);
       expect(date.getMonth()).toBe(1);
       expect(date.getDate()).toBe(9);
+    });
+
+    it('should keep years 0001 to 0099 instead of mapping them to 1901 to 1999', () => {
+      [[0, 0, 1], [1, 0, 1], [50, 2, 12], [99, 11, 31], [100, 0, 1]].forEach(([year, month, day]) => {
+        const pad = (value, length) => String(value).padStart(length, '0');
+        const iso = `${pad(year, 4)}-${pad(month + 1, 2)}-${pad(day, 2)}`;
+        const date = parseToLocalDate(iso);
+
+        expect(date.getFullYear()).toBe(year);
+        expect(date.getMonth()).toBe(month);
+        expect(date.getDate()).toBe(day);
+        expect(date.getHours()).toBe(0);
+      });
+    });
+
+    it('should keep the leap day of a leap year below 100', () => {
+      const date = parseToLocalDate('0004-02-29');
+
+      expect(date.getFullYear()).toBe(4);
+      expect(date.getMonth()).toBe(1);
+      expect(date.getDate()).toBe(29);
     });
   });
 
@@ -330,6 +352,30 @@ describe('dateTime datetime helpers', () => {
       expect(d.getMinutes()).toBe(0);
     });
 
+    it('keeps years 0001 to 0099 instead of mapping them to 1901 to 1999', () => {
+      const d = parseToLocalDateTime('0050-03-12T10:20:30.456');
+
+      expect(d.getFullYear()).toBe(50);
+      expect(d.getMonth()).toBe(2);
+      expect(d.getDate()).toBe(12);
+      expect(d.getHours()).toBe(10);
+      expect(d.getMinutes()).toBe(20);
+      expect(d.getSeconds()).toBe(30);
+      expect(d.getMilliseconds()).toBe(456);
+      expect(parseToLocalDateTime('0000-01-01').getFullYear()).toBe(0);
+      expect(parseToLocalDateTime('0001-01-01').getFullYear()).toBe(1);
+      expect(parseToLocalDateTime('0100-01-01').getFullYear()).toBe(100);
+      expect(parseToLocalDateTime('0099-12-31T23:59:59').getFullYear()).toBe(99);
+    });
+
+    it('keeps the leap day of a leap year below 100', () => {
+      const d = parseToLocalDateTime('0004-02-29T12:00:00');
+
+      expect(d.getFullYear()).toBe(4);
+      expect(d.getMonth()).toBe(1);
+      expect(d.getDate()).toBe(29);
+    });
+
     it('returns null for empty and invalid input', () => {
       expect(parseToLocalDateTime('')).toBe(null);
       expect(parseToLocalDateTime(null)).toBe(null);
@@ -347,6 +393,16 @@ describe('dateTime datetime helpers', () => {
 
     it('is false for non-strings', () => {
       expect(isValidISODateTime(20240315)).toBe(false);
+    });
+  });
+
+  describe('Handsontable.helper namespace', () => {
+    it('does not expose the xlsx serial constants', () => {
+      // `src/index.ts` copies every export of `helpers/dateTime` onto `Handsontable.helper`.
+      // The xlsx serial constants live in `utils/xlsxEngine/dates` so they do not leak there.
+      expect(Handsontable.helper.isValidISODate).toBe(isValidISODate);
+      expect(Handsontable.helper).not.toHaveProperty('MS_PER_DAY');
+      expect(Handsontable.helper).not.toHaveProperty('EXCEL_EPOCH_UTC');
     });
   });
 

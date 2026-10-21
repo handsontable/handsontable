@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
 import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
 
 /**
@@ -10,7 +10,7 @@ import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
  * visual spec keeps the row selected by its header (the active row header's look), and the move is
  * asserted here.
  */
-test.describe('moving a row by dragging its header', { tag: CROSS_BROWSER_TAG }, () => {
+test.describe('moving a row by dragging its header', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   let grid: SharedDemoGridPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

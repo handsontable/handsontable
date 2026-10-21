@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
+import { isHTMLElement } from '../../helpers/dom/element';
 import { randomString } from '../../helpers/string';
 import { resolveButtonType, type ButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
@@ -86,7 +87,7 @@ const TICK_MS = 200;
  * @class Notification
  *
  * @description
- * The Notification plugin shows non-blocking toast messages anchored to the Handsontable root.
+ * The Notification plugin shows non-blocking toast messages anchored to the grid root.
  * Enable it with the {@link Options#notification} option. Toasts are exposed to assistive technologies with
  * `aria-live` and do not take keyboard focus when they appear; use **F6** to move focus into the notification region
  * for the grid that currently contains keyboard focus (with several instances on one page, each grid only handles **F6**
@@ -516,7 +517,7 @@ export class Notification extends BasePlugin {
    */
   #normalizeOptions(raw: NotificationMessageOptions): NotificationNormalizedOptions {
     if (!isObject(raw) || (typeof raw.message !== 'string' &&
-      !(typeof HTMLElement !== 'undefined' && raw.message instanceof HTMLElement))) {
+      !isHTMLElement(raw.message))) {
       throwWithCause('Notification.showMessage expects an object with a `message` string or HTMLElement.');
     }
 

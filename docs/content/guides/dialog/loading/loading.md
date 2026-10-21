@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Loading
-metaTitle: Loading - JavaScript Data Grid | Handsontable
+metaTitle: Loading | Handsontable DataGrid for JavaScript
 description: Display loading indicators and progress feedback in your data grid application using the Loading plugin.
 permalink: /loading
 canonicalUrl: /loading
@@ -13,11 +13,11 @@ tags:
   - spinner
   - indicator
 react:
-  metaTitle: Loading - React Data Grid | Handsontable
+  metaTitle: Loading | Handsontable DataGrid for React
 angular:
-  metaTitle: Loading - Angular Data Grid | Handsontable
+  metaTitle: Loading | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Loading - Vue Data Grid | Handsontable
+  metaTitle: Loading | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Dialog
 menuTag: updated
@@ -29,7 +29,7 @@ Display loading indicators and progress feedback in your data grid application u
 
 ## Overview
 
-The Loading plugin provides a loading overlay for Handsontable using the [Dialog](@/api/dialog.md) plugin. It displays a loading indicator with a customizable title, icon, and description. This is useful for showing progress feedback during data operations, API calls, or any other time-consuming tasks.
+The Loading plugin provides a loading overlay for Handsontable DataGrid using the [Dialog](@/api/dialog.md) plugin. It displays a loading indicator with a customizable title, icon, and description. This is useful for showing progress feedback during data operations, API calls, or any other time-consuming tasks.
 
 With simplicity and effectiveness in mind, the loading plugin was designed to provide a consistent user experience with customizable appearance and behavior. It requires the [Dialog](@/api/dialog.md) plugin to be enabled to function properly.
 

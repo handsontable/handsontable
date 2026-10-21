@@ -184,6 +184,36 @@ export class FormulasGridPage {
       cellBox.y + cellBox.height <= inner.bottom + 1);
   }
 
+  /**
+   * Replace the grid's data through `loadData()`, formulas included. Columns 0 and 1 are plain
+   * columns; columns 2-4 are date columns.
+   */
+  async loadData(data: (string | number | null)[][]): Promise<void> {
+    await this.page.evaluate(rows => window.hot.loadData(rows), data);
+  }
+
+  /**
+   * Select one cell through the API and double-click its fill handle with the real pointer.
+   */
+  async doubleClickFillHandleOf(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => window.hot.selectCell(r, c), [row, col] as [number, number]);
+    await this.page.locator('.ht_master .wtBorder.current.corner').first().dblclick();
+  }
+
+  /**
+   * The displayed values of one column, by visual row: a formula reads as its result.
+   */
+  async columnValues(col: number): Promise<(string | number | null)[]> {
+    return this.page.evaluate(column => window.hot.getDataAtCol(column), col);
+  }
+
+  /**
+   * The stored values of one column, by visual row: a formula reads as its text.
+   */
+  async sourceColumnValues(col: number): Promise<(string | number | null)[]> {
+    return this.page.evaluate(column => window.hot.getSourceDataAtCol(column), col);
+  }
+
   /** The grid's data, read through the instance the fixture exposes. */
   async data(): Promise<(string | number | null)[][]> {
     return this.page.evaluate(() => (window as any).hot.getData());

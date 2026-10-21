@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import {
   HostSpanStylesPage,
   HOST_SPAN_STYLES,
@@ -20,7 +20,7 @@ import {
  * can never match by coincidence. A control span outside the grid must compute the host values
  * first, so a fixture that silences the hostile rule fails loud instead of passing vacuously.
  */
-test.describe('host-page span styles do not leak into grid UI spans', () => {
+test.describe('host-page span styles do not leak into grid UI spans', { tag: THEMES_TAG }, () => {
   function expectNotHostValues(metrics: TextMetrics): void {
     for (const property of TEXT_PROPERTIES) {
       expect(metrics[property], `${property} of the cascade parent coincides with the host value`)

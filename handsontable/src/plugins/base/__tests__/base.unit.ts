@@ -6,6 +6,92 @@ import {
 } from 'handsontable/plugins';
 
 describe('BasePlugin', () => {
+  describe('`destroy()` method', () => {
+    it('should stop a plugin destroyed ahead of the grid from answering `updateSettings()` (DEV-775)', () => {
+      const onUpdateSettingsSpy = jest.fn();
+
+      class DestroyAheadPlugin extends BasePlugin {
+        static get PLUGIN_KEY() {
+          return 'destroyAheadPlugin';
+        }
+
+        isEnabled() {
+          return !!this.hot.getSettings().destroyAheadPlugin;
+        }
+
+        onUpdateSettings(newSettings: Record<string, unknown>) {
+          onUpdateSettingsSpy(newSettings);
+          super.onUpdateSettings(newSettings);
+        }
+      }
+
+      registerPlugin('DestroyAheadPlugin', DestroyAheadPlugin);
+
+      const hot = new Handsontable(document.createElement('div'), {
+        destroyAheadPlugin: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const plugin = hot.getPlugin('DestroyAheadPlugin');
+
+      hot.updateSettings({ colHeaders: true });
+
+      expect(onUpdateSettingsSpy).toHaveBeenCalledTimes(1);
+
+      plugin.destroy();
+
+      expect(() => hot.updateSettings({ destroyAheadPlugin: false })).not.toThrow();
+      expect(() => hot.updateSettings({ colHeaders: false })).not.toThrow();
+      expect(onUpdateSettingsSpy).toHaveBeenCalledTimes(1);
+      // The grid destroys every plugin again on its own `destroy()`, after `hot` is already gone.
+      expect(() => hot.destroy()).not.toThrow();
+    });
+
+    it('should not destroy a plugin destroyed ahead of the grid again when the grid is destroyed (DEV-775)', () => {
+      const ownTeardownSpy = jest.fn();
+      const laterPluginDestroySpy = jest.fn();
+      const afterDestroySpy = jest.fn();
+
+      // Mirrors AutoColumnSize and NestedHeaders: the override reads `hot` before reaching the base class.
+      class OwnTeardownPlugin extends BasePlugin {
+        static get PLUGIN_KEY() {
+          return 'ownTeardownPlugin';
+        }
+
+        destroy() {
+          ownTeardownSpy(this.hot.rootElement);
+          super.destroy();
+        }
+      }
+
+      class LaterPlugin extends BasePlugin {
+        static get PLUGIN_KEY() {
+          return 'laterPlugin';
+        }
+
+        destroy() {
+          laterPluginDestroySpy();
+          super.destroy();
+        }
+      }
+
+      registerPlugin('OwnTeardownPlugin', OwnTeardownPlugin);
+      registerPlugin('LaterPlugin', LaterPlugin);
+
+      const hot = new Handsontable(document.createElement('div'), {
+        afterDestroy: afterDestroySpy,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.getPlugin('OwnTeardownPlugin').destroy();
+
+      expect(ownTeardownSpy).toHaveBeenCalledTimes(1);
+      expect(() => hot.destroy()).not.toThrow();
+      expect(ownTeardownSpy).toHaveBeenCalledTimes(1);
+      expect(laterPluginDestroySpy).toHaveBeenCalledTimes(1);
+      expect(afterDestroySpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('`getSetting()` method', () => {
     it('should return raw value from the plugin\'s setting when the key setting is not passed', () => {
       class Test1Plugin extends BasePlugin {

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import {
   ManualResizeGuideGeometryPage,
   type RowHeaderOverlay,
@@ -64,7 +64,7 @@ const CASES: { name: string, overlay: RowHeaderOverlay, rowInOverlay: number, vi
   },
 ];
 
-test.describe('Manual row resize handle and guide geometry', () => {
+test.describe('Manual row resize handle and guide geometry', { tag: THEMES_TAG }, () => {
   let grid: ManualResizeGuideGeometryPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

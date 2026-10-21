@@ -6,7 +6,8 @@ Read this before touching `autofill.ts` or `utils.ts`.
 Two behaviors, one handle:
 
 - **drag-down** — drag the square to expand the selected values into neighboring cells.
-- **copy-down** — double-click the square to copy the selection into all empty cells below.
+- **copy-down** — double-click the square to copy the selection into the empty cells below, as far as the
+  neighboring column has values (see "Copy-down extent").
 
 ## The setting is `fillHandle`, not `autofill`
 
@@ -17,6 +18,81 @@ So `updateSettings({ autofill: … })` does **nothing** — the user-facing opti
 `DEFAULT_SETTINGS` is `{ direction: undefined, autoInsertRow: true }`, both validated by
 `SETTINGS_VALIDATORS`. `direction` accepts only the values in `DIRECTIONS` (or `undefined`, meaning both
 axes are allowed).
+
+## The handle follows the plugin, not only the setting (DEV-775)
+
+Selection draws the handle (`Selection#isCellCornerVisible()` / `isAreaCornerVisible()`), not this
+plugin, and it used to read only the `fillHandle` setting. `disablePlugin()` and `destroy()` leave that
+setting `true`, so the handle stayed on screen and a drag on it did nothing. Selection now also asks the
+grid whether this plugin is enabled (`tableProps.isPluginEnabled('autofill')`), the way it already does for
+`selectionHandles` and `moveCells`. One exception, on purpose: a grid that never **registered** the plugin
+(a tree-shaken build without `AutofillPlugin`, which four visual-test demos are) keeps drawing the handle
+from the setting (`tableProps.isPluginRegistered('autofill')`). Hiding it there is a separate change that
+would alter every such grid's look and its visual goldens.
+
+Selection only reads that state when the grid renders, so a runtime `enablePlugin()`, `disablePlugin()`
+or `destroy()` called on its own re-renders the grid (`#renderAfterRuntimeToggle()`), or the handle
+would change only on the next unrelated render. The render is skipped in the three cases that render
+anyway: before `isPluginsReady` (grid init), inside `onUpdateSettings()` (`#isApplyingSettings`; the
+grid renders right after `afterUpdateSettings`), and inside `updatePlugin()` (`#isReconfiguring`).
+`destroy()` renders after `super.destroy()`, because the handle checks `enabled`, which the base class
+nulls. During the grid's own `destroy()` that render is a no-op: core suspends rendering for the whole
+teardown, because the view is already destroyed when the plugins are.
+
+`enablePlugin()`, `updatePlugin()` and `disablePlugin()` return early on a destroyed instance
+(`!this.hot`), because an application may keep the `getPlugin('autofill')` reference and call it later.
+Each guard has its own case in `tests/e2e/plugin-destroy-update-settings.spec.ts`, and the handle cases
+there assert without any render forced from the test. Also pinned by
+`selection/__tests__/selection.unit.ts`.
+
+## No handle for a non-contiguous selection (DEV-540)
+
+Selection draws the handle, not this plugin: `Selection#isCellCornerVisible()` for a one-cell active
+range, `isAreaCornerVisible()` for a multi-cell one. Both used to look at the ACTIVE range only
+(`isMultiple()`), so a selection of two or more ranges (Ctrl/Cmd+click, or `selectCells()` with several
+ranges) still showed one handle, and `getSelectionData()` reads `getSelectedRangeLast()` – a drag filled
+from the last range and ignored the others. Both predicates now return `false` while
+`selectedRange.size() > 1`, as in spreadsheet applications. Do not "fix" this by teaching the fill to read
+every range: there is no defined way to extend several disjoint ranges at once. Pinned by
+`tests/e2e/fill-handle-non-contiguous.spec.ts` and `selection/__tests__/selection.unit.ts`.
+
+## Copy-down extent (DEV-859)
+
+How far a double-click fills is `getCopyDownEndRow()` in `utils.ts`, a pure helper that
+`getIndexOfLastAdjacentFilledInRow()` feeds with three readers (`CopyDownCellReaders`). The fill follows
+ONE guide column: the left neighbor of the first selected column, or the right neighbor of the last one
+when the left is empty in the first visible row below the selection. Walking down, it stops ABOVE the
+first row where any selected column already holds a value, and AT the first visible row where the guide
+column is empty. Spreadsheet applications behave the same way.
+
+Before DEV-859 the walk gave up entirely (`-1`) when a value appeared anywhere below in the filled column,
+and it remembered the LAST row with a value in EITHER neighbor, so it filled straight across gaps. The
+guide documented that old rule and was changed with the code. A first version of the fix kept "either
+neighbor" per row; review (PR #13906) showed a spreadsheet follows one column, so a right column that runs
+longer than the left one no longer extends the fill. The method keeps its `-1` contract for "nothing to
+fill", because `selectAdjacent()` tests for it.
+
+Four traps, each a regression the first version of the fix shipped:
+
+- **Read stored values, never `getData()`.** With Formulas, `getData()` returns computed values, so a
+  formula that evaluates to `""` reads as empty: it ended the fill as a neighbor and was overwritten in the
+  filled column. The readers use `getSourceDataAtCell(toPhysicalRow(row), column)` (physical row, visual
+  column, the same as `canFillCell()`), one cell at a time, which also avoids copying the whole grid.
+- **A merged area empties the cells it covers** (MergeCells writes `null` there). The guide reader
+  resolves a covered cell to its area's first cell through `mergedCellsCollection.get()`. The filled-column
+  reader does NOT, so MergeCells can still refuse a fill that would cut an area
+  (`tests/e2e/fill-handle-merged-cells.spec.ts`).
+- **`getData()` and the walk include hidden rows** (HiddenRows hides, it does not trim). A hidden row is
+  skipped for the guide test, so a row the user cannot see never ends the fill, and it is never counted as
+  the last filled row. A value in a hidden row of the filled column still stops the fill.
+- **The guide column is chosen in the first VISIBLE row below the selection**, so a hidden row there
+  cannot pick the wrong side.
+- **The guide candidates are the nearest VISIBLE columns on each side**, resolved by the caller and
+  passed in as `startGuideColumn`/`endGuideColumn`. A column hidden with `HiddenColumns` keeps its
+  visual index, so the plain neighbors (`startColumn - 1`, `endColumn + 1`) can be columns the user
+  cannot see, and the fill would follow their data (review on #13906).
+
+Pinned by `__tests__/utils.unit.ts` and `tests/e2e/fill-handle-double-click.spec.ts`.
 
 ## Three hooks it registers on the singleton
 
@@ -39,10 +115,46 @@ counts the drag as well, whenever the pointer sits outside the selected range. W
 with such a drag is never committed: `#onMouseUp` only *reads* `handleDraggedCells`, and calls `fillIn()`
 only when it is greater than 1.
 
-The counting in `#onMouseMove` is gated on its `countDragStep` argument, and `#onAfterScroll` replays the
-last pointer position with `countDragStep = false`. That is the other half of the trap — a scroll that
+The counting lives in `#followPointer`, gated on its `countDragStep` argument, and `#onAfterScroll` replays
+the last pointer position with `countDragStep = false`. That is the other half of the trap — a scroll that
 shifts a new cell under a resting pointer has to redraw the border without registering a drag that never
-happened.
+happened. The two `scrolled after pressing the fill handle` specs in `autofill.spec.js` pin it, and they are
+also why the mouseup gate cannot simply become "the fill border extends past the selection": a scroll moves
+the border too.
+
+The one replay that **does** count is the one after an auto-inserted row (see "Auto-inserting rows"). The
+drag itself grew the grid there, so the new row under the resting pointer is a real drag step. That only
+holds because a scroll replay cannot **start** a row insertion: `#onMouseMove` marks the pointer as
+dragged out only for a real move, or for a replay once a real move has already counted a step
+(`handleDraggedCells > 1`). Without that gate, a page scrolled under a resting pointer inserted a row,
+and the counted replay after it committed a fill the user never dragged.
+
+## Resolving the drag direction (DEV-140)
+
+`redrawBorders()` takes the drag direction from `resolveDragDirection()` (`utils.ts`), fed with how many
+rows and columns the pointer's cell lies outside the selection (`getDistanceOutsideRange()`). The fill
+handle sits on the selection's bottom-end **corner**, so a pointer moving diagonally leaves the selection
+on both axes with its very first sample, however slowly it moves. The direction is then taken from the
+axis the pointer is further outside on, and a tie resolves as vertical (the pre-18.0 behavior, where the
+row axis always won). An axis the `direction` option leaves out is ignored, so it can neither win nor
+block the allowed one. Once resolved, the direction is kept until the pointer comes back inside the
+selection along its axis, and then switches to the other one.
+
+Before DEV-140 the direction was resolved only when exactly one axis had changed. A diagonal drag then
+drew no preview and filled nothing at all – a regression from 18.0.0 (DEV-99, #12344), which replaced
+the old per-sample projection with the sticky direction. Distances are counted in cells, not pixels: no
+layout read, and the same answer under RTL, at the cost of a one-row, one-column move resolving as
+vertical even when the pointer travelled further sideways. The distances are in VISUAL indexes, so hidden
+rows or columns between the selection and the pointer count toward their axis.
+
+**A pointer outside the table adds the cells it reached past the edge.** The cell under it is clamped to
+the table's last row or column, so on its own a pointer far below the last row weighs as much as one
+level with it, and a drag from the last row that drifted one column sideways resolved horizontal.
+`#followPointer()` therefore counts the rows past the bottom edge and the columns past the inline-end
+edge (the left one under RTL) with `countCellsPastEdge()`, sized by the last row and column that are not
+hidden, and `redrawBorders()` adds them to the cell distances. That is still a count of cells, so the
+tie rule and the `direction` filter apply unchanged. Pinned by `__tests__/utils.unit.ts` and
+`tests/e2e/fill-handle-diagonal-drag.spec.ts`.
 
 ## Two drag-state fields, one sentinel (GitHub #13370)
 
@@ -147,9 +259,61 @@ unreachable from its only caller.
 
 ## Auto-inserting rows
 
-With `autoInsertRow: true`, dragging past the last row inserts rows (`insert_row_below`) on a 200 ms
-interval while the pointer stays outside. `addingStarted`, `mouseDragOutside` and `handleDraggedCells`
-together are the state machine for that — clear all of them on teardown, not just one.
+With `autoInsertRow: true`, dragging past the last row inserts one row (`insert_row_below`) 200 ms after the
+pointer is found outside, and another only after the pointer moves again: the insertion is triggered from
+`mousemove`, so a pointer held still does not keep inserting. Reaching the last row by hovering it schedules
+one as well (`addNewRowIfNeeded()`, from `beforeOnCellMouseOver`). `addingStarted`, `mouseDragOutside` and
+`handleDraggedCells` together are the state machine for that — clear all of them on teardown, not just one.
+
+The rules for the row insertion, each a DEV-140 defect:
+
+- **It inserts only while the gesture is live.** A flick released within the 200 ms used to insert a row
+  after the release, with no fill to extend into it. The callback still clears `addingStarted` on that path, so
+  the "Two drag-state fields" rule above about that flag holds.
+- **It follows the pointer after inserting.** The new row appears under a pointer that may not move again
+  before the release, so the timer calls `#followPointer()` with the last position, counted. Without it
+  the preview stayed on the selection and the step counter stayed at 1 (a pointer below the table maps
+  back onto the selection's own last row), so the release filled nothing and left the new row empty.
+  A consequence: when the new row lands **under** the pointer (rows are taller than the pointer's distance
+  below the table), the browser fires `mouseover` on it, the preview now reaches the last row, and
+  `addNewRowIfNeeded()` adds one more spare row. That is the hover rule above working as designed, and it
+  stops after one row, but it makes row counts depend on the theme's row height — the Playwright spec keeps
+  its pointer 80 px below the table for that reason.
+- **It is guarded after `alter()` too.** A hook the insertion runs can end the gesture or destroy the
+  grid; `#lastMouseClientPosition` is private, so `BasePlugin#destroy()` does not clear it, and the
+  replay would run against a torn-down instance without the re-check.
+- **"Outside" means below the table during a vertical drag.** `getIfMouseWasDraggedOutside()` returns
+  `true` exactly when the pointer is below the table and the drag direction is vertical. The direction
+  already weighs the cells past both edges (see "Resolving the drag direction"), so a drag locked
+  vertically inserts a row however far sideways the pointer drifts, and a drag going sideways never
+  does – its sticky direction would leave the new row empty. It used to require `clientX <= tableRight`,
+  so a vertical drag that drifted a few pixels right of the grid inserted nothing, while under RTL the
+  check had no inline-end limit at all.
+- **Below the whole table, the pointer targets the last row.** `#followPointer()` replaces the clamped
+  cell's row with the last row that is not hidden whenever the pointer is below the table. In a grid
+  with a fixed height, the row the drag inserts lands below the visible part, where the clamp to the
+  viewport cannot reach it, so without this the fill stopped one row short and the new row stayed empty
+  (the Formulas `cooperate properly with trimmed rows` spec, in a 130 px grid, on every theme but
+  `classic`).
+- **"Below the table" requires the last row to be rendered.** `hot.table` holds only the RENDERED
+  rows: a long grid with a fixed height renders a few rows past its viewport (the
+  `viewportRowRenderingOffset`) and stops there, so the table element's bottom edge is the end of the
+  data only while the last row that is not hidden is rendered (`#isLastRowRendered()`, through
+  `hot.getLastRenderedVisibleRow()`). Without that check, a pointer some 80 px below a 1000-row grid
+  scrolled to the top counted as below the last row: the last-row targeting above sent the fill to row
+  1000 and overwrote every row on the way (caught in review), and the insertion appended rows at the
+  end of the data, far from the drag (that half predates DEV-140). So the cells past the bottom edge,
+  the last-row targeting and `getIfMouseWasDraggedOutside()` all apply only while the last row is
+  rendered, and the cells past the inline-end edge only while the last column is. Until then, a drag
+  below such a grid extends row by row through DragToScroll, as it always did. Pinned by the two
+  `long fixed-height grid` cases in `tests/e2e/fill-handle-diagonal-drag.spec.ts`.
+
+**Keep the insert call as `alter('insert_row_below', undefined, 1, 'Autofill.fill')` (DEV-139).**
+NestedRows recognizes the fill handle's rows by that source and adds them to the parent of the last
+visible row, so a drag from a child keeps adding children. Two shapes look equivalent and are not.
+Changing the source string silently brings back the new top-level parents. Passing the last row's index
+instead of `undefined` makes the Core move that row's index map values (a hidden flag, a manual row
+height) onto the new row, on every grid. Details in `../nestedRows/AGENTS.md`.
 
 ## Read cell meta transiently
 

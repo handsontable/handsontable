@@ -1884,7 +1884,7 @@ class Selection {
    * @returns {boolean} `true` if the corner element has to be visible, `false` otherwise.
    */
   isCellCornerVisible() {
-    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.isMultiple();
+    return this.#isFillHandleAvailable() && !this.isMultiple();
   }
 
   /**
@@ -1911,7 +1911,37 @@ class Selection {
       return false;
     }
 
-    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && this.isMultiple();
+    return this.#isFillHandleAvailable() && this.isMultiple();
+  }
+
+  /**
+   * Tells whether the fill handle may be drawn at all. The `fillHandle` setting alone is not enough:
+   * once the Autofill plugin is disabled or destroyed at runtime (`getPlugin('autofill').destroy()`)
+   * the setting still reads `true`, and a handle drawn from it does nothing when dragged (DEV-775).
+   * A grid that never registered the plugin (a tree-shaken build without `AutofillPlugin`) keeps
+   * drawing the handle from the setting, as it always has - that is a separate question, and hiding
+   * it there would change every such grid's look. A non-contiguous selection hides it too (DEV-540).
+   *
+   * @returns {boolean}
+   */
+  #isFillHandleAvailable() {
+    if (!this.settings.fillHandle || this.tableProps.isEditorOpened() || this.#isNonContiguous()) {
+      return false;
+    }
+
+    return !this.tableProps.isPluginRegistered('autofill') || this.tableProps.isPluginEnabled('autofill');
+  }
+
+  /**
+   * Tells whether the selection consists of more than one range (Ctrl/Cmd+click, or `selectCells()`
+   * with several ranges). The fill handle is hidden then (DEV-540), as in spreadsheet applications:
+   * Autofill fills from the last range only, so a handle there would silently ignore every other one.
+   * `isMultiple()` cannot answer this – it asks whether the ACTIVE range spans more than one cell.
+   *
+   * @returns {boolean}
+   */
+  #isNonContiguous() {
+    return this.selectedRange.size() > 1;
   }
 
   /**
@@ -2662,7 +2692,7 @@ class Selection {
     this.#extenderTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
     this.#focusTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
 
-    this.#commitHighlightsDirectly();
+    this.commitHighlightsDirectly();
   }
 
   /**
@@ -2686,13 +2716,18 @@ class Selection {
   }
 
   /**
-   * Re-commits every layer's highlight from the current ranges WITHOUT the selection hooks.
+   * Re-commits every layer's highlight from the current ranges without the selection-change hooks.
    *
-   * Both callers run inside an index-mapper update, where the hooks are unsafe: `afterSelection`
-   * makes `EditorManager` prepare an editor, which reads the source data through a `DataMap` that a
-   * data load may have torn down at that moment, and the scroll answer would jump the viewport.
+   * The index-mapper callers run where those hooks are unsafe: `afterSelection` makes `EditorManager`
+   * prepare an editor, which reads the source data through a `DataMap` that a data load may have torn
+   * down, and the scroll answer would jump the viewport. MergeCells calls it from the next view render
+   * after the merged cells change, because the area fill was committed while the range was still
+   * several cells. `isMultiple()` still asks `afterIsMultipleSelection`. That hook is not a
+   * selection-change hook.
+   *
+   * @private
    */
-  #commitHighlightsDirectly(): void {
+  commitHighlightsDirectly(): void {
     this.highlight.clear();
     this.selectedRange.ranges.forEach((range, layerIndex) => this.applyAndCommit(range, layerIndex));
 
@@ -2954,7 +2989,7 @@ class Selection {
    */
   #commitGridTrackingFit(): void {
     if (this.tableProps.isEditorOpened()) {
-      this.#commitHighlightsDirectly();
+      this.commitHighlightsDirectly();
 
       return;
     }

@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
 import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
 
 /**
@@ -17,7 +17,7 @@ import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
  * `box-shadow` on `th.current`, in `--ht-cell-selection-border-color`, which is what the captures
  * showed around the corner and the last header. `expectRing()` reads it.
  */
-test.describe('keyboard focus on the shared demo grid', { tag: CROSS_BROWSER_TAG }, () => {
+test.describe('keyboard focus on the shared demo grid', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   let grid: SharedDemoGridPage;
 
   /**
@@ -128,7 +128,7 @@ test.describe('keyboard focus on the shared demo grid', { tag: CROSS_BROWSER_TAG
  * browser UI to move the focus to, so the focus never leaves its document and this case has no Firefox
  * counterpart.
  */
-test.describe('keyboard focus returning to the shared demo grid', () => {
+test.describe('keyboard focus returning to the shared demo grid', { tag: THEMES_TAG }, () => {
   test('Tab brings the focus back into the grid it left at the edge of the page', async({
     page, theme, bundle,
   }) => {

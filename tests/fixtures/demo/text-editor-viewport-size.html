@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for the text editor's size against the grid's viewport: a 300x200 grid of 40px columns with 20 spare
+    rows and 20 spare columns, so the grid scrolls on both axes, and a long text at (1, 1) that is wider than the
+    cell and wider than the room the viewport leaves to its right. Cells are stamped with
+    data-testid="cell-<row>-<col>". The grid has no frozen panes and no headers, so every cell lives in the master
+    table only and the test ids are unique.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    var container = document.querySelector('[data-testid="grid"]');
+
+    container.className = 'ht-theme-' + window.htTheme;
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: [
+          ['', '', '', '', ''],
+          ['', 'The Dude abides. I don\'t know about you but I take comfort in that. ' +
+            'It\'s good knowin\' he\'s out there. The ' +
+            'Dude. Takin\' \'er easy for all us sinners. Shoosh. I sure hope he makes the finals.', '', '', ''],
+          ['', '', '', '', ''],
+        ],
+        colWidths: 40,
+        width: 300,
+        height: 200,
+        minSpareRows: 20,
+        minSpareCols: 20,
+        afterRenderer: function(td, row, col) {
+          td.setAttribute('data-testid', 'cell-' + row + '-' + col);
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      // The shared fixture contract: `awaitFixtureBuilt()` rethrows this with the constructor's stack.
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

@@ -1,11 +1,11 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 /**
  * The autofill fill handle (`.wtBorder.corner`) against the frozen panes. `.ht_master` starts a
  * stacking context below the overlay clones, and every frozen overlay draws its own handle.
  */
-test.describe('fill handle and frozen panes', () => {
+test.describe('fill handle and frozen panes', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   const WIDE_DATA = Array.from({ length: 10 }, (_, row) =>

@@ -22,6 +22,9 @@ const WAIT_FOR_FUNCTION_POLLING = 'waitForFunction() needs an explicit polling i
   + 'which parallel workers starve, so a healthy page times out with nothing wrong on it. See tests/AGENTS.md '
   + '(Determinism).';
 
+const LEG_TAG_LITERAL = 'A bare leg tag is one typo from a spec that silently runs on one leg. Use THEMES_TAG / '
+  + 'BUNDLES_TAG from fixtures/test. See tests/AGENTS.md (Declaring the legs).';
+
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -72,6 +75,18 @@ module.exports = {
       {
         selector: "Literal[value=/@quarantine/]",
         message: 'A bare @quarantine tag carries no owner and no expiry, and the reporter ignores it (it reads the quarantine annotation, not the tag), so the test is not actually quarantined. Park a flaky test with quarantined(\'DEV-1234\', \'YYYY-MM-DD\', why) from fixtures/quarantine instead. See tests/AGENTS.md (Quarantine).',
+      },
+      {
+        // The leg tags (tests/lib/leg-declarations.mjs) decide which theme × bundle legs a spec runs on, and
+        // Playwright accepts any string as a tag: '@theme', '@Themes' or '@bundle' is a valid tag that no
+        // project greps for, so the spec silently stays on e2e-main. The template twin catches the same tag
+        // written in backticks. The anchored shape is LEG_TAG_LIKE in the lib, pinned by its test.
+        selector: 'Literal[value=/^@(?:[Tt]hemes?|[Bb]undles?)$/]',
+        message: LEG_TAG_LITERAL,
+      },
+      {
+        selector: 'TemplateElement[value.cooked=/^@(?:[Tt]hemes?|[Bb]undles?)$/]',
+        message: LEG_TAG_LITERAL,
       },
       {
         // Three shapes of the same miss: no options argument, an options literal without `polling`, and

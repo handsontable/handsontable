@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { HandsontableEditorListPositionPage, type EditorType } from '../fixtures/pages/HandsontableEditorListPositionPage';
 
 /**
@@ -82,7 +82,7 @@ async function scrollAndPickCell(page: Page, dir: 'ltr' | 'rtl') {
 }
 
 for (const type of ['multiselect', 'handsontable'] as EditorType[]) {
-  test.describe(`RTL page, grid in an inline-block wrapper, ${type} editor`, { tag: '@core' }, () => {
+  test.describe(`RTL page, grid in an inline-block wrapper, ${type} editor`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: HandsontableEditorListPositionPage;
 
     test.beforeEach(async({ page, theme, bundle }) => {
@@ -126,7 +126,7 @@ for (const type of ['multiselect', 'handsontable'] as EditorType[]) {
   });
 }
 
-test.describe('RTL page, grid started 600 px from the page inline-start edge', { tag: '@core' }, () => {
+test.describe('RTL page, grid started 600 px from the page inline-start edge', { tag: ['@core', THEMES_TAG] }, () => {
   test('should not move the window when Enter opens the editor', async({ page, theme, bundle }) => {
     const grid = new HandsontableEditorListPositionPage(page, theme, bundle, {
       dir: 'rtl', layout: 'window', type: 'multiselect', inset: 'start',
@@ -150,7 +150,7 @@ test.describe('RTL page, grid started 600 px from the page inline-start edge', {
   });
 });
 
-test.describe('LTR page, grid in an inline-block wrapper', { tag: '@core' }, () => {
+test.describe('LTR page, grid in an inline-block wrapper', { tag: ['@core', THEMES_TAG] }, () => {
   test('should not move the window when Enter opens the editor', async({ page, theme, bundle }) => {
     await wrapGridInInlineBlock(page);
 

@@ -1,4 +1,4 @@
-import { expect, test } from '../fixtures/test';
+import { expect, test, BUNDLES_TAG } from '../fixtures/test';
 import { DropdownObjectValuesPage } from '../fixtures/pages/DropdownObjectValuesPage';
 
 /**
@@ -12,7 +12,7 @@ import { DropdownObjectValuesPage } from '../fixtures/pages/DropdownObjectValues
  * a function. Row 0 starts on the FIRST entry, which is exactly what a broken lookup falls back to,
  * so every pick below targets another one.
  */
-test.describe('key/value source with object values (sourceLabel)', () => {
+test.describe('key/value source with object values (sourceLabel)', { tag: BUNDLES_TAG }, () => {
   let grid: DropdownObjectValuesPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

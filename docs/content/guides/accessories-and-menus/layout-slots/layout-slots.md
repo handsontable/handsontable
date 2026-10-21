@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Layout slots
-metaTitle: Layout slots - JavaScript Data Grid | Handsontable
+metaTitle: Layout slots | Handsontable DataGrid for JavaScript
 description: Place custom UI in the wrapper slots around the grid and control the order of elements within each slot.
 permalink: /layout-slots
 tags:
@@ -14,7 +14,7 @@ category: Accessories and menus
 addedIn: "18.0.0"
 ---
 
-Place custom UI in the slots that Handsontable renders around the grid, and control the order of the elements within each slot.
+Place custom UI in the slots that Handsontable DataGrid renders around the grid, and control the order of the elements within each slot.
 
 ## Overview
 

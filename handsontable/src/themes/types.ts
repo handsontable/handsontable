@@ -152,6 +152,8 @@ export type TokenKey =
   // Cell selection
   | 'cellSelectionBorderColor'
   | 'cellSelectionBackgroundColor'
+  // Row selection
+  | 'rowSelectionBackgroundColor'
   // Cell autofill
   | 'cellAutofillSize'
   | 'cellAutofillHitAreaSize'
@@ -176,6 +178,12 @@ export type TokenKey =
   | 'cellSelectionHandleBackgroundColor'
   // Resize/Move indicators
   | 'resizeIndicatorColor'
+  | 'freezeBarColor'
+  | 'freezeBarHoverColor'
+  | 'freezeBarHighlightColor'
+  | 'asyncIndicatorColor'
+  | 'asyncErrorBackgroundColor'
+  | 'asyncErrorMarkerColor'
   | 'moveBacklightColor'
   | 'moveBacklightOpacity'
   | 'moveIndicatorColor'
@@ -413,7 +421,6 @@ export type TokenKey =
   | 'sheetsBarTabForegroundColor'
   | 'sheetsBarTabBackgroundColor'
   | 'sheetsBarTabHoverForegroundColor'
-  | 'sheetsBarTabHoverBackgroundColor'
   | 'sheetsBarTabActiveForegroundColor'
   | 'sheetsBarTabActiveBackgroundColor'
   | 'sheetsBarTabActiveBorderWidth'

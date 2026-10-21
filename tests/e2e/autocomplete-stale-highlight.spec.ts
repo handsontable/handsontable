@@ -24,6 +24,7 @@ async function commit(grid: AutocompleteAsyncSourcePage): Promise<void> {
   await grid.resolveQueries(0);
 }
 
+// leg-declarations: ignore pointer-offset -- EditorHiddenCellPage selects with a press 4 px inside the cell's leading padding, clear of every dropdown arrow on all three themes (editor-hidden-cell.spec.ts runs it there); these cases assert committed values only
 test.describe('committing an autocomplete whose choice list is out of date', () => {
   test('keeps a choice the user picked with the arrow keys', async({ page, theme, bundle }) => {
     const grid = new AutocompleteAsyncSourcePage(page, theme, bundle, { editor: 'dropdown' });

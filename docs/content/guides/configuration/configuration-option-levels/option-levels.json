@@ -6,11 +6,11 @@
     "cells",
     "cell"
   ],
-  "total": 179,
+  "total": 185,
   "counts": {
-    "grid": 108,
+    "grid": 113,
     "grid columns cells cell": 64,
-    "grid columns": 6,
+    "grid columns": 7,
     "columns": 1
   },
   "options": [
@@ -103,6 +103,15 @@
       ],
       "since": "14.0.0",
       "note": "The switch is grid level. A per-cell value only changes that cell's ARIA attributes."
+    },
+    {
+      "name": "asyncValues",
+      "category": "AsyncValues",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
+      "note": null
     },
     {
       "name": "autoColumnSize",
@@ -703,6 +712,15 @@
       "note": null
     },
     {
+      "name": "freezeBar",
+      "category": "FreezeBar",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
+      "note": null
+    },
+    {
       "name": "hashLength",
       "category": "Core",
       "levels": [
@@ -736,6 +754,16 @@
         "cell"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "headerCheckbox",
+      "category": "CheckboxHeader",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -887,6 +915,15 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "limitFixedToViewport",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -1329,6 +1366,24 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "rowId",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
+      "note": null
+    },
+    {
+      "name": "rowSelection",
+      "category": "RowSelection",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {

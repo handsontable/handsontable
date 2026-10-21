@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
@@ -14,7 +14,7 @@ import { textRenderer } from 'handsontable/renderers/textRenderer';
   standalone: true,
   imports: [HotTableModule],
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements OnInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
   hotData = [
@@ -27,7 +27,7 @@ export class AppComponent implements AfterViewInit {
 
   hotSettings: GridSettings = {};
 
-  ngAfterViewInit() {
+  ngOnInit() {
     const templateValues = ['one', 'two', 'three'];
 
     function isEmptyRow(instance: Handsontable, row: number) {

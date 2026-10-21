@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 // The fill handle's center sits on the block's corner; allow for the handle's own offset and the
@@ -56,7 +56,7 @@ async function expectOneOutlineAndHandle(
  * overlay drew its own fill handle (DEV-143). The selection must look like the one of an unmerged
  * block: one outline and one fill handle, on the block's bottom-end corner.
  */
-test.describe('selection of a merged cell across the frozen panes', () => {
+test.describe('selection of a merged cell across the frozen panes', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   const BLOCK_ACROSS_BOTH_LINES = { row: 0, col: 0, rowspan: 3, colspan: 3 };
@@ -84,24 +84,6 @@ test.describe('selection of a merged cell across the frozen panes', () => {
     await grid.selectCells(0, 0, 0, 0);
 
     await expectOneOutlineAndHandle(grid, 0, 0, BLOCK_ACROSS_BOTH_LINES);
-  });
-
-  test('draws one outline and one fill handle for a block crossing the row freeze line only', async () => {
-    const block = { row: 1, col: 1, rowspan: 3, colspan: 2 };
-
-    await grid.initGrid({ fixedRowsTop: 2, mergeCells: [block] });
-    await grid.selectCells(1, 1, 1, 1);
-
-    await expectOneOutlineAndHandle(grid, 1, 1, block);
-  });
-
-  test('draws one outline and one fill handle for a block crossing the column freeze line only', async () => {
-    const block = { row: 1, col: 1, rowspan: 2, colspan: 3 };
-
-    await grid.initGrid({ fixedColumnsStart: 2, mergeCells: [block] });
-    await grid.selectCells(1, 1, 1, 1);
-
-    await expectOneOutlineAndHandle(grid, 1, 1, block);
   });
 
   test('keeps the fill handle of a block that fits inside the frozen corner', async () => {
@@ -199,7 +181,7 @@ test.describe('selection of a merged cell across the frozen panes', () => {
  * inline-end clone from the clone's first column on. The clone resolves the block to its first
  * rendered column, so it fills and outlines its part like the master does.
  */
-test.describe('selection of a merged cell that reaches into the end frozen columns', () => {
+test.describe('selection of a merged cell that reaches into the end frozen columns', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   const wideData = () => Array.from({ length: 6 }, (_, r) =>
@@ -234,7 +216,15 @@ test.describe('selection of a merged cell that reaches into the end frozen colum
           ...extra,
         });
 
-        for (const { name, block, extra, owner } of BLOCKS) {
+        // Every shape runs once (ltr, virtualized off). In rtl the direction only moves the border positioning,
+        // which the corner overlays and the boundary shape still exercise. With virtualized merged cells every
+        // inline-end clone clamps the anchor to its first column, and `Border#resolveMergedBlockEdges` looks the
+        // block up again for each of them, so the one-row block stands for the other shapes there.
+        const shapes = BLOCKS.filter(({ name }) => (direction === 'ltr' && !virtualized)
+          || name === 'a block of one row'
+          || (direction === 'rtl' && !virtualized && name !== 'a taller block'));
+
+        for (const { name, block, extra, owner } of shapes) {
           test(`draws one outline and one fill handle around ${name}`, async () => {
             await init(block, extra);
             await grid.scrollToColumn(8);
@@ -244,48 +234,55 @@ test.describe('selection of a merged cell that reaches into the end frozen colum
           });
         }
 
-        test('fills the part of the block in the end clone', async ({ page }) => {
-          await init(BLOCKS[0].block);
-          await grid.scrollToColumn(8);
-          await grid.selectCells(1, 8, 2, 10);
+        // The area scan reads logical indexes: no direction term, and no clamp at scroll 0.
+        if (direction === 'ltr' && !virtualized) {
+          test('fills the part of the block in the end clone', async ({ page }) => {
+            await init(BLOCKS[0].block);
+            await grid.scrollToColumn(8);
+            await grid.selectCells(1, 8, 2, 10);
 
-          await expect.poll(() => page.evaluate(() => {
-            const cell = document.querySelector('.ht_clone_inline_end tbody tr:nth-child(2) td');
+            await expect.poll(() => page.evaluate(() => {
+              const cell = document.querySelector('.ht_clone_inline_end tbody tr:nth-child(2) td');
 
-            return !!cell && (cell.classList.contains('area') || cell.classList.contains('current'));
-          })).toBe(true);
-          // The row above the block is outside the selection.
-          expect(await page.evaluate(() => document.querySelector('.ht_clone_inline_end tbody tr:nth-child(1) td')
-            ?.classList.contains('area'))).toBe(false);
-        });
+              return !!cell && (cell.classList.contains('area') || cell.classList.contains('current'));
+            })).toBe(true);
+            // The row above the block is outside the selection.
+            expect(await page.evaluate(() => document.querySelector('.ht_clone_inline_end tbody tr:nth-child(1) td')
+              ?.classList.contains('area'))).toBe(false);
+          });
+        }
 
-        test('selects the block while its anchor is scrolled out of view', async ({ page }) => {
-          await init(BLOCKS[0].block);
-          await grid.scrollToColumn(0);
-          await grid.selectCells(1, 8, 1, 8, false);
+        // `Table#getCell` and the hook use logical indexes, so the direction does not reach these two.
+        if (direction === 'ltr') {
+          test('selects the block while its anchor is scrolled out of view', async ({ page }) => {
+            await init(BLOCKS[0].block);
+            await grid.scrollToColumn(0);
+            await grid.selectCells(1, 8, 1, 8, false);
 
-          await expect(page.locator('.ht_master [data-testid="cell-1-8"]')).toHaveCount(0);
+            await expect(page.locator('.ht_master [data-testid="cell-1-8"]')).toHaveCount(0);
 
-          // The part of the block in the end clone has its top, bottom and end edges and the fill handle, and
-          // no start edge: the block goes on past the freeze line. The master's header of column 8 is not
-          // rendered here, so the whole-block probe of the page object cannot measure this shape.
-          await expect.poll(() => page.evaluate(() => {
-            const shown = (selector: string) => Array.from(document.querySelectorAll(
-              `.ht_clone_inline_end .wtBorder.current${selector}`
-            )).filter(edge => getComputedStyle(edge).display !== 'none').length;
+            // The part of the block in the end clone has its top, bottom and end edges and the fill handle, and
+            // no start edge: the block goes on past the freeze line. The master's header of column 8 is not
+            // rendered here, so the whole-block probe of the page object cannot measure this shape.
+            await expect.poll(() => page.evaluate(() => {
+              const shown = (selector: string) => Array.from(document.querySelectorAll(
+                `.ht_clone_inline_end .wtBorder.current${selector}`
+              )).filter(edge => getComputedStyle(edge).display !== 'none').length;
 
-            return { edges: shown(':not(.corner)'), handles: shown('.corner') };
-          })).toEqual({ edges: 3, handles: 1 });
-        });
+              return { edges: shown(':not(.corner)'), handles: shown('.corner') };
+            })).toEqual({ edges: 3, handles: 1 });
+          });
 
-        test('answers the end clone\'s cell for a topmost lookup of a covered end column', async ({ page }) => {
-          await init(BLOCKS[0].block);
-          await grid.scrollToColumn(0);
+          test('answers the end clone\'s cell for a topmost lookup of a covered end column', async ({ page }) => {
+            await init(BLOCKS[0].block);
+            await grid.scrollToColumn(0);
 
-          expect(await page.evaluate(() => !!window.hot.getCell(1, 9, true)?.closest('.ht_clone_inline_end')))
-            .toBe(true);
-          expect(await page.evaluate(() => window.hot.getCell(1, 9, true)?.textContent)).toBe('R2C9');
-        });
+            expect(await page.evaluate(() => !!window.hot.getCell(1, 9, true)?.closest('.ht_clone_inline_end')))
+              .toBe(true);
+            expect(await page.evaluate(() => window.hot.getCell(1, 9, true)?.textContent)).toBe('R2C9');
+          });
+        }
+
       });
     }
   }

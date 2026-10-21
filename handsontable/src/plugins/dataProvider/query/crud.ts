@@ -1,19 +1,14 @@
 import { isFunction } from '../../../helpers/function';
-import { getProperty } from '../../../helpers/object';
 import { error as logError } from '../../../helpers/console';
 import { throwWithCause } from '../../../helpers/errors';
 import type { HotInstance } from '../../../core/types';
+import type { RowIdOption } from '../../../utils/rowId';
 import {
   DATA_PROVIDER_BATCH_UPDATE_SOURCES,
   DATA_PROVIDER_ERROR_UPDATE_MISSING_ROW_ID,
   dataProviderErrorRemoveMissingRowId,
 } from '../constants';
 import type { RowUpdatePayload, RowsCreatePayload } from '../dataProvider';
-
-/**
- * Row id option — a property name string, a resolver function, or absent.
- */
-type RowIdOption = string | ((rowData: object | unknown[]) => unknown) | undefined | null;
 
 /**
  * A single afterChange tuple: `[visualRow, prop, oldValue, newValue]`.
@@ -82,43 +77,48 @@ export function enqueueMutation(state: { tail: Promise<void> }, fn: () => Promis
 }
 
 /**
- * Resolves stable row id from a row object using `rowId` option.
- *
- * @param {object|Array} rowData Source row.
- * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
- * @returns {*|undefined}
- */
-export function getRowIdFromRowData(
-  rowData: object | unknown[], rowIdOption: RowIdOption
-): unknown {
-  if (rowIdOption === undefined || rowIdOption === null) {
-    return undefined;
-  }
-  if (isFunction(rowIdOption)) {
-    return (rowIdOption as (rowData: object | unknown[]) => unknown)(rowData);
-  }
-  if (typeof rowIdOption === 'string') {
-    return getProperty(rowData as Record<string, unknown>, rowIdOption);
-  }
-
-  return undefined;
-}
-
-/**
- * Row id for a visual row index.
+ * Row id for a visual row index. The id comes from Core's row identity, which reads `dataProvider.rowId` from the
+ * settings and applies it to the source row itself. `getSourceDataAtRow()` would hand over a copy that
+ * `dataDotNotation` rebuilds, turning a literal dotted key into a nested object, so a string key would read a
+ * different value from the one the cell shows.
  *
  * @param {Core} hot Handsontable instance.
- * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
+ * @param {string|Function|undefined|null} rowIdOption `rowId` from config. Only its kind is checked: without a string
+ * or function key there is no id, the same rule Core uses before it falls back to the grid-level `rowId`.
  * @param {number} visualRow Visual row index.
  * @returns {*|undefined}
  */
 export function getRowIdByVisualRow(
   hot: HotInstance, rowIdOption: RowIdOption, visualRow: number
 ): unknown {
-  return getRowIdFromRowData(
-    hot.getSourceDataAtRow(hot.toPhysicalRow(visualRow)) as object | unknown[],
-    rowIdOption
-  );
+  if (typeof rowIdOption !== 'string' && !isFunction(rowIdOption)) {
+    return undefined;
+  }
+
+  const physicalRow = hot.toPhysicalRow(visualRow);
+
+  return physicalRow === null ? undefined : (hot.getRowIdAtPhysicalRow(physicalRow) ?? undefined);
+}
+
+/**
+ * Reads the id of a row for a CRUD payload. A function key that throws is logged and read as a missing id, so an
+ * update takes the missing-id path (revert, `afterRowsMutationError`) instead of rejecting inside the mutation
+ * queue, where nothing would report it, and a removal raises the missing-id error instead of the key's own.
+ *
+ * @param {Core} hot Handsontable instance.
+ * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
+ * @param {number} visualRow Visual row index.
+ * @returns {*|undefined}
+ */
+function readRowIdOrUndefined(hot: HotInstance, rowIdOption: RowIdOption, visualRow: number): unknown {
+  try {
+    return getRowIdByVisualRow(hot, rowIdOption, visualRow);
+
+  } catch (err) {
+    logError('Reading the row id failed:', err);
+
+    return undefined;
+  }
 }
 
 /**
@@ -172,7 +172,7 @@ export function rowIdsFromAlterRemove(
       const v = start + r;
 
       if (v >= 0 && v < n()) {
-        const id = getRowIdByVisualRow(hot, rowIdOption, v);
+        const id = readRowIdOrUndefined(hot, rowIdOption, v);
 
         if (isMissingRowId(id)) {
           throwWithCause(dataProviderErrorRemoveMissingRowId(v));
@@ -588,7 +588,7 @@ export function prepareUpdateFromChanges(
     const { changesObj, rowData } = buildChangesAndRowData(hot, byRow.get(vr)!);
 
     return {
-      id: getRowIdByVisualRow(hot, rowIdOption, vr),
+      id: readRowIdOrUndefined(hot, rowIdOption, vr),
       changes: changesObj,
       rowData,
     };

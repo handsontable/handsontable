@@ -168,3 +168,13 @@ test('changing the Emitted Types workflow itself turns the job on', () => {
     'verify-types must include emitted-types.yml — otherwise a workflow-only PR skips the job it is changing'
   );
 });
+
+test('an ES module consumer is type-checked with the pinned TypeScript', () => {
+  // attw and the tsc pass over the .d.ts cannot see a .d.mts whose default export is typed as the
+  // CommonJS namespace (DEV-3421). The consumer check must run, and run with the pinned compiler.
+  assert.match(
+    workflow,
+    /TSC="\$TOOLS_BIN\/tsc" node handsontable\/scripts\/verify-esm-consumer-types\.mjs/,
+    'emitted-types.yml must run verify-esm-consumer-types.mjs with TSC="$TOOLS_BIN/tsc"'
+  );
+});

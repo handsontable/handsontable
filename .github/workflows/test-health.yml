@@ -1,7 +1,7 @@
 # The cross-run flake ledger, and where the Playwright E2E time goes.
 #
-# Runs after every completed `Tests`, `Develop`, `Publish`, or `Visual nightly` run
-# and collects every flaky or failed test it left behind as artifacts — the
+# Runs after every completed `Tests`, `Develop`, `Publish`, `Visual nightly` or
+# `E2E nightly` run and collects every flaky or failed test it left behind as artifacts — the
 # Playwright JSON report of each failed leg (`playwright-report-*`, which a green
 # leg uploads too when a flaky test was under quarantine), the Puppeteer runner's
 # failed-specs record (`puppeteer-failed-specs-*`), and the visual compare record
@@ -49,13 +49,17 @@ on:
     # 'Visual nightly' collects the weekday full render: the only build that renders the wrappers for
     # real, and the one where a flaky golden shows up night after night. 'Visual seed' stays out on
     # purpose — a seed's differences are what its merge changed — and the collector skips a seed-tier
-    # record on any run it does see.
-    workflows: ['Tests', 'Develop', 'Publish', 'Visual nightly']
+    # record on any run it does see. 'E2E nightly' collects the full matrix on develop, Playwright and
+    # the frozen Jasmine suite: a Playwright test red there and green on pull requests runs on an axis
+    # its spec did not declare (tests/AGENTS.md, "Declaring the legs"), a Jasmine spec red there alone
+    # fails on a theme or the minified bundle pull requests do not run, and this ledger is where both
+    # are triaged. Its durations artifacts are never recorded (a schedule event is not a develop push).
+    workflows: ['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly']
     types: [completed]
   workflow_dispatch:
     inputs:
       run-id:
-        description: 'Id of the Tests, Develop, Publish, or Visual nightly run to collect (backfill, or testing a change to this workflow)'
+        description: 'Id of the Tests, Develop, Publish, Visual nightly or E2E nightly run to collect (backfill, or testing a change to this workflow)'
         required: true
         type: string
 
@@ -69,7 +73,7 @@ env:
 jobs:
   collect:
     name: Collect
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # A canceled run's artifacts are incomplete by definition. Every other run
     # is worth a look: a red one for its failures, a green one for a flaky test
     # under quarantine, which keeps its leg green but still uploads its report,

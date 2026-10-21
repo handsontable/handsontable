@@ -9,7 +9,9 @@ The single Playwright package for Handsontable: functional end-to-end tests in `
 ```
 tests/
 ├── playwright.config.ts   # one config; projects split e2e (flake-strict) from visual
+├── playwright.a11y.config.ts # the axe scan's config: one project over a11y/, the e2e server inherited
 ├── e2e/                    # functional specs (*.spec.ts)
+├── a11y/                   # the axe scan: axe.spec.ts, pages.mjs (the curated pages), axe-baseline.json
 ├── visual/                 # visual regression — destination for the current visual-tests/ suite
 ├── fixtures/
 │   ├── demo/               # static pages that mount a real grid for tests to drive
@@ -35,6 +37,7 @@ npx playwright install  # browsers, once per version (CI runs inside the pinned 
 cd tests
 npm test                # all projects (package scripts work as usual once installed)
 npm run test:e2e        # the e2e-main leg (plain UMD, main theme) — the same leg the local hooks run
+npm run test:a11y       # the axe scan over the curated fixture pages, three themes (AGENTS.md, "A11y")
 npm run lint            # determinism + parse checks on the specs
 ```
 
@@ -55,10 +58,23 @@ HOT_TEST_PORT=8124 npm test
 
 The functional suite is six projects — theme (`main`/`horizon`/`classic`) ×
 bundle (`umd` = `dist/handsontable.js`, `full-min` =
-`dist/handsontable.full.min.js`), 1:1 with the Puppeteer matrix. The local
-gates (pre-push, the Claude Stop hook, `test:e2e`) run `e2e-main` (plain UMD)
-only; the `-min` legs run in CI. Run a single other leg by hand with
-`npx playwright test --project=e2e-horizon-min`.
+`dist/handsontable.full.min.js`), the shape the Puppeteer matrix has on the E2E nightly. A spec runs on
+`e2e-main` only unless its top-level blocks declare the axes it is sensitive
+to with `THEMES_TAG` / `BUNDLES_TAG` (`AGENTS.md`, "Declaring the legs"); a
+static sweep refuses a spec that touches theme or bundle surface without the
+tag, and the E2E nightly runs every spec on all six legs (and the frozen Jasmine
+suite on its six; a pull request runs that suite on UMD × main alone). The local gates
+(pre-push, the Claude Stop hook, `test:e2e`) run `e2e-main` (plain UMD) only;
+the other legs run in CI, where a long leg runs as several jobs
+(`--shard=<i>/<n>` on the same project: `main` in 3, `horizon` and `classic` in
+2, the `-min` legs whole) at a pinned worker count (`workers` in
+`playwright.config.ts`, CI only; the engines config pins its own; a local run
+keeps Playwright's default). To
+run one shard the way a CI job does: `npx playwright test --project=e2e-main
+--shard=1/3`. Run a single other leg by hand with
+`npx playwright test --project=e2e-horizon-min` (it lists "No tests found" for a
+spec that does not declare both axes), or every leg of one spec with
+`HOT_E2E_FULL_MATRIX=1 npx playwright test e2e/<spec>.spec.ts`.
 
 Tests tagged `@cross-browser` also run on Firefox and WebKit, through a separate
 config with two projects (`e2e-firefox`, `e2e-webkit`) that CI runs in its own job.
@@ -89,6 +105,20 @@ npm --prefix handsontable run test:e2e         # full legacy suite (base bundle)
 npm --prefix handsontable run test:production  # the same suite against handsontable.full.min.js
 npm --prefix handsontable run test:walkontable # the rendering engine's own pipeline
 ```
+
+In CI a pull request runs `test:e2e` on the main theme only (`E2E / UMD (theme: main)`); the
+six legs — three themes, `test:e2e` and `test:production` — run on the E2E nightly, the
+rc/stable publish path and a master push (`.ai/CI.md`, the Jasmine single-leg entry).
+
+## The accessibility scan, locally
+
+`npm run test:a11y` runs axe-core over the pages of `a11y/pages.mjs` on the three themes and
+compares the findings with `a11y/axe-baseline.json`; the HTML report (`a11y-report.html`), the
+agent findings (`a11y-findings.json`), the summary and the comparison land in `test-results/a11y/`. It needs the same build as the e2e tier, and the minified theme
+stylesheets in particular: an unstyled grid gives wrong contrast results without an error. A
+finding outside the baseline is reported, never a red run (warn mode); what fails is a page that
+does not load or a baseline that does not validate. How to add a page or baseline a finding:
+`AGENTS.md`, "A11y: the axe scan and its baseline".
 
 ## One Playwright version across the monorepo
 

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import {
   type AlignmentReport,
   COMPARISONS,
@@ -127,7 +127,7 @@ function expectAligned(
     .toEqual([]);
 }
 
-test.describe('overlay alignment under CSS zoom', () => {
+test.describe('overlay alignment under CSS zoom', { tag: THEMES_TAG }, () => {
   test.beforeEach(async({ page: browserPage, theme, bundle }) => {
     page = new OverlayAlignmentCssZoomPage(browserPage, theme, bundle);
   });

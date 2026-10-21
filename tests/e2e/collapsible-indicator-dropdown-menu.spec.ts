@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { CollapsibleIndicatorDropdownMenuPage } from '../fixtures/pages/CollapsibleIndicatorDropdownMenuPage';
 
 /**
@@ -7,7 +7,7 @@ import { CollapsibleIndicatorDropdownMenuPage } from '../fixtures/pages/Collapsi
  * The press therefore never reached `document`, where the dropdown menu listens for the mousedown that
  * closes it, so the menu stayed open over a group that had just collapsed or expanded.
  */
-test.describe('collapsible indicator pressed while a menu or editor is open', () => {
+test.describe('collapsible indicator pressed while a menu or editor is open', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: CollapsibleIndicatorDropdownMenuPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -91,6 +91,9 @@ test.describe('collapsible indicator pressed while a menu or editor is open', ()
 
     await grid.expectCollapsed();
     await expect(grid.commentEditor()).toBeHidden();
-    expect(await grid.savedComment(3, 0)).toBe('typed note');
+    // The press hides the editor at once, and the text is saved by the editor's `blur`, which Chromium
+    // dispatches for a hidden focused element at the next rendering update, not inside the press. A read in
+    // between sees the comment still empty (measured on both bundles), so the saved text is polled.
+    await expect.poll(() => grid.savedComment(3, 0)).toBe('typed note');
   });
 });

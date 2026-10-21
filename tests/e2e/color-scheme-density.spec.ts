@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { ColorSchemeDensityPage } from '../fixtures/pages/ColorSchemeDensityPage';
 
 /**
@@ -12,8 +12,10 @@ import { ColorSchemeDensityPage } from '../fixtures/pages/ColorSchemeDensityPage
 // Every grid in the fixture renders the engine-driven `main` theme and the fixture always loads
 // `ht-theme-main.min.css`, so every leg of the matrix exercises the real specificity scenario. The
 // theme axis is therefore redundant here rather than misleading, and the bundle axis is genuine —
-// the engine builds its CSS at runtime.
-test.describe('colorScheme and density options', () => {
+// the engine builds its CSS at runtime. Hence BUNDLES_TAG alone, and the computed-style reads below
+// are opted out of the theme-axis sweep:
+// leg-declarations: ignore computed-style -- the fixture pins ht-theme-main on every leg; the spec tests the density/scheme engine, not a theme
+test.describe('colorScheme and density options', { tag: BUNDLES_TAG }, () => {
   test('applies colorScheme set at construction time', async({ page, theme, bundle }) => {
     const grid = new ColorSchemeDensityPage(page, theme, bundle);
 

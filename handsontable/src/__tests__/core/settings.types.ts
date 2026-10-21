@@ -38,6 +38,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   allowRemoveColumn: true,
   allowRemoveRow: true,
   ariaTags: true,
+  asyncValues: oneOf(
+    true,
+    { flush: 'frame' as const, concurrency: 4, copyPendingAs: 'empty' as const, saveToDataProvider: true },
+    { flush: 50 },
+  ),
   autoColumnSize: true,
   autoLink: oneOf(true, {
     target: '_self' as const,
@@ -100,6 +105,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   customBordersProgressive: oneOf(true, { chunkSize: 5000 }),
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataDotNotation: oneOf(true),
+  rowId: oneOf('id', 'meta.id', (row: Handsontable.RowObject | unknown[]) => row, true, false),
   dataProvider: {
     rowId: 'id',
     fetchRows: async() => ({ rows: [], totalRows: 0 }),
@@ -183,7 +189,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',
+  limitFixedToViewport: true,
   locale: 'pl-PL',
+  freezeBar: { rows: true, columns: false },
   manualColumnFreeze: true,
   manualColumnMove: true,
   manualColumnResize: true,
@@ -245,6 +253,17 @@ const allSettings: Required<Handsontable.GridSettings> = {
   rowHeaders: oneOf(true, ['1', '2', '3'], (index: number) => `Row ${index}`),
   rowHeaderWidth: oneOf(25, [25, 30, 55], '25', '25px', ['25px', 30]),
   rowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
+  rowSelection: oneOf(true, {
+    mode: oneOf('multiRow' as const, 'singleRow' as const),
+    checkboxes: oneOf(true, (rowData: unknown, physicalRow: number) => physicalRow > 0),
+    headerCheckbox: true,
+    selectAll: oneOf('all' as const, 'filtered' as const, 'currentPage' as const),
+    enableClickSelection: oneOf(true, 'enableSelection' as const, 'enableDeselection' as const),
+    isRowSelectable: (rowData: unknown, physicalRow: number) => physicalRow !== 0,
+    hideDisabledCheckboxes: false,
+    checkboxLocation: oneOf('rowHeader' as const, 'firstColumn' as const, { column: 'selected' }, { column: 0 }),
+    groupSelects: oneOf('descendants' as const, 'self' as const, 'topLevel' as const),
+  }),
   // The option's own signature is unchanged; `SanitizerContext` is the opt-in annotation. Full
   // coverage, including the call-arity axis, lives in `sanitizer.types.ts`.
   sanitizer: oneOf(
@@ -273,6 +292,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     controls: true,
     paging: true,
     uiContainer: document.body,
+    animation: oneOf(true, false, { switch: true, add: false }, { move: false }),
   }),
   selectOptions: oneOf(
     ['A', 'B', 'C'],
@@ -313,6 +333,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   type: oneOf('autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'numeric', 'password',
     'text', 'time', 'custom.cell.type'),
   uncheckedTemplate: oneOf(true, 'foo', 123),
+  headerCheckbox: oneOf(true, { scope: oneOf('all' as const, 'filtered' as const, 'currentPage' as const) }),
   undo: true,
   dialog: oneOf(true, {
     template: {
@@ -406,6 +427,21 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
   // Hooks via settings object
   afterAddChild: (parent, element, index) => {},
+  afterAsyncValueCancel: (physicalRow, prop, reason, rowId) => {
+    const _physicalRow: number = physicalRow;
+    const _prop: string | number = prop;
+    const _reason: 'edit' | 'dependency' | 'restart' | 'rowRemoved' | 'columnsChanged' | 'dataReplaced' |
+      'manual' | 'disabled' | 'vetoed' = reason;
+    const _rowId: unknown = rowId;
+  },
+  afterAsyncValueReject: (physicalRow, prop, error, message, rowId) => {
+    const _message: string = message;
+  },
+  afterAsyncValueResolve: (physicalRow, prop, value, rowId) => {},
+  afterAsyncValuesIdle: () => {},
+  afterAsyncValueStart: (physicalRow, prop, rowId) => {
+    const _physicalRow: number = physicalRow;
+  },
   afterAutofill: (start, end, data) => {},
   afterBeginEditing: (row, column) => {},
   afterCellMetaReset: () => {},
@@ -449,6 +485,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnFreeze: (columnIndex, isFreezingPerformed) => {},
   afterColumnMove: (columns, target) => {},
   afterColumnResize: (newSize, column, isDoubleClick) => {},
+  afterFreezeChange: (edge, newCount, oldCount, source) => {
+    const pinnedEdge: 'top' | 'bottom' | 'start' | 'end' = edge;
+    const pinnedSource: 'drag' | 'keyboard' | 'api' = source;
+  },
   afterColumnSequenceChange: (source) => {},
   afterCustomBordersUpdate: () => {},
   afterColumnSequenceCacheUpdate: (indexesChangesState) => {
@@ -581,7 +621,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
                    successfullyExpanded) => {},
   afterRowMove: (movedRows, finalIndex, dropIndex, movePossible,
                  orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
+  afterRowIdsRemoved: (rowIds, source) => rowIds.forEach(id => id === source),
+  afterRowIdsReset: () => {},
   afterRowResize: (newSize, row, isDoubleClick) => {},
+  afterRowSelectionChange: (selectedRows, deselectedRows, source) => {},
   afterRowSequenceChange: (source) => {},
   afterRowSequenceCacheUpdate: (indexesChangesState) => {
     const _source: 'init' | 'remove' | 'insert' | 'move' | 'update' | undefined =
@@ -647,6 +690,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterViewportRowCalculatorOverride: (calc) => {},
   afterViewRender: (isForced) => {},
   beforeAddChild: (parent, element, index) => {},
+  beforeAsyncValueResolve: (value, physicalRow, prop, rowId) => (value === 'spam' ? false : value),
+  beforeAsyncValueStart: (physicalRow, prop, rowId) => physicalRow !== 0,
   beforeAutofill: (start, end, data) => {},
   beforeBeginEditing: (row: number, column: number, initialValue, event, fullEditMode: boolean) => {
     event.preventDefault();
@@ -667,6 +712,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnFreeze: (columnIndex, isFreezingPerformed) => false,
   beforeColumnMove: (columns, target) => {},
   beforeColumnResize: (newSize, column, isDoubleClick) => false,
+  beforeFreezeChange: (edge, newCount, oldCount, source) => false,
   beforeColumnSort: (currentSortConfig, destinationSortConfigs, sortPossible) => {
     const _sortPossible: boolean = sortPossible;
   },
@@ -794,6 +840,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible) => {},
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => false,
+  beforeRowSelectionChange: (rowsToSelect, rowsToDeselect, source) => false,
   beforeRowWrap: (isActionInterrupted, newCoords, isRowFlipped) => {
     const _isActionInterrupted: boolean = isActionInterrupted.value;
     const _isRowFlipped: boolean = isRowFlipped;
@@ -1125,6 +1172,7 @@ hot.updateSettings({
     paging: false,
     position: 'top',
     uiContainer: document.createElement('div'),
+    animation: { switch: true, add: true, remove: true, move: false },
   },
   beforeSheetTabChange: (oldSheetId, newSheetId, source) => false,
   afterSheetTabChange: (oldSheetId, newSheetId, source) => {},

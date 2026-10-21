@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { HiddenColumnsIndicatorStretchPage } from '../fixtures/pages/HiddenColumnsIndicatorStretchPage';
 import { HiddenRowsIndicatorAutoHeightPage } from '../fixtures/pages/HiddenRowsIndicatorAutoHeightPage';
 import { HiddenIndicatorPositionPage } from '../fixtures/pages/HiddenIndicatorPositionPage';
@@ -42,7 +42,7 @@ import { HiddenIndicatorPositionPage } from '../fixtures/pages/HiddenIndicatorPo
  * same frozen columns, with the one subject removed. It was already green before the fix.
  */
 
-test.describe('hidden-column indicator on a stretched grid', () => {
+test.describe('hidden-column indicator on a stretched grid', { tag: THEMES_TAG }, () => {
   let grid: HiddenColumnsIndicatorStretchPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
@@ -125,7 +125,7 @@ test.describe('hidden-column indicator on a stretched grid', () => {
   });
 });
 
-test.describe('hidden-row indicator on an auto-height grid', () => {
+test.describe('hidden-row indicator on an auto-height grid', { tag: THEMES_TAG }, () => {
   let grid: HiddenRowsIndicatorAutoHeightPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
@@ -178,7 +178,7 @@ test.describe('hidden-row indicator on an auto-height grid', () => {
   });
 });
 
-test.describe('hidden indicators paint where 18.1.0 painted them', () => {
+test.describe('hidden indicators paint where 18.1.0 painted them', { tag: THEMES_TAG }, () => {
   let grid: HiddenIndicatorPositionPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

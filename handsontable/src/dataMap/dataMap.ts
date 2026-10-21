@@ -13,6 +13,7 @@ import {
   duckSchema,
   hasOwnProperty,
   isObject,
+  isPlainObject,
   objectEach
 } from '../helpers/object';
 import { extendArray, insertValuesInPlace, removeIndexesInPlace, to2dArray } from '../helpers/array';
@@ -248,7 +249,11 @@ class DataMap {
   }
 
   /**
-   * Generates columns' translation cache.
+   * Generates columns' translation cache. A plain object is walked, and every primitive leaf
+   * (`null`, `undefined`, a number, a string, a boolean) gets a column, whatever its default
+   * value. An array, a function, any other object (a `Date`, a `Map`) and the `__children` key get
+   * none. `deepObjectSize()` still counts an array, a function and such an object as a column, so
+   * the count can exceed the number of properties registered here.
    *
    * @param {object} schema An object to generate schema from.
    * @param {number} lastCol The column index.
@@ -262,14 +267,25 @@ class DataMap {
 
     if (typeof schema === 'object' && schema !== null && !Array.isArray(schema)) {
       objectEach(schema, (value: unknown, key: string) => {
-        if (value === null) {
+        const isObjectValue = typeof value === 'object' && value !== null;
+
+        if (
+          key === '__children' ||
+          typeof value === 'function' ||
+          Array.isArray(value) ||
+          (isObjectValue && !isPlainObject(value))
+        ) {
+          return;
+        }
+
+        if (isPlainObject(value)) {
+          lastColumn = this.recursiveDuckColumns(value, lastColumn, `${propertyParent}${key}.`);
+        } else {
           prop = propertyParent + key;
           this.colToPropCache.push(prop);
           this.propToColCache!.set(prop, lastColumn);
 
           lastColumn += 1;
-        } else if (typeof value === 'object' && value !== null) {
-          lastColumn = this.recursiveDuckColumns(value, lastColumn, `${key}.`);
         }
       });
     }
@@ -1112,7 +1128,8 @@ class DataMap {
       for (let i = 0, ilen = sliced.length; i < ilen; i++) {
         out = out[sliced[i]] as Record<string, unknown>;
 
-        if (typeof out === 'undefined') {
+        // A `null` parent has nothing to read under it, while a `null` leaf is a value like any other.
+        if (typeof out === 'undefined' || (out === null && i < ilen - 1)) {
           return null;
         }
       }
@@ -1324,7 +1341,7 @@ class DataMap {
           return;
         }
 
-        if (typeof out[sliced[i]] === 'undefined') {
+        if (typeof out[sliced[i]] === 'undefined' || out[sliced[i]] === null) {
           out[sliced[i]] = {};
         }
         out = out[sliced[i]] as Record<string, unknown>;

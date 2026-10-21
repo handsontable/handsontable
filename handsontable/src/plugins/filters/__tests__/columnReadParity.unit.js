@@ -443,6 +443,33 @@ describe('Filters -> column read parity', () => {
       expect(filters._getValueListDataAtColumn(1).map(({ value }) => value)).toEqual(['x', 'y']);
     });
 
+    it('should offer no values for a grid created with no rows', () => {
+      const filters = buildGrid([], { columns: [{}] }).getPlugin('filters');
+
+      // `getDataAtCol()` reads one `null` there, which is not a value to list.
+      expect(filters._getValueListDataAtColumn(0)).toEqual([]);
+    });
+
+    it('should offer no values once every row is removed', () => {
+      const filters = buildGrid([['a'], ['b']]).getPlugin('filters');
+
+      hot.alter('remove_row', 0, 2);
+
+      expect(hot.countRows()).toBe(0);
+      expect(filters._getValueListDataAtColumn(0)).toEqual([]);
+    });
+
+    // A control, not coverage of the empty-grid guard: `getDataAtCol()` already returns `[]` here.
+    it('should offer no values for a column left with no rows by another column\'s filter', () => {
+      const filters = buildGrid([['a', 'x'], ['b', 'y']]).getPlugin('filters');
+
+      filters.addCondition(1, 'eq', ['z']);
+      filters.filter();
+
+      expect(hot.countRows()).toBe(0);
+      expect(filters._getValueListDataAtColumn(0)).toEqual([]);
+    });
+
     it('should publish one meta object per entry', () => {
       const filters = buildBigGrid().getPlugin('filters');
 

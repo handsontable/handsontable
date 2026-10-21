@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { WidgetCellGridPage } from '../fixtures/pages/WidgetCellGridPage';
 
 /**
@@ -10,7 +10,7 @@ import { WidgetCellGridPage } from '../fixtures/pages/WidgetCellGridPage';
  * the widget's shadow root must reach the browser instead of being replaced
  * by the grid's cell-range copy.
  */
-test.describe('grid with self-managed widgets inside cells', () => {
+test.describe('grid with self-managed widgets inside cells', { tag: BUNDLES_TAG }, () => {
   let grid: WidgetCellGridPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

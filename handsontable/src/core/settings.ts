@@ -15,10 +15,15 @@ import type { ColumnConditions, FiltersSettings } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
+import type { RowSelectionSettings, RowSelectionSource } from '../plugins/rowSelection';
+import type { HeaderCheckboxSettings } from '../plugins/checkboxHeader';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
 import type { ManualColumnFreezeSettings } from '../plugins/manualColumnFreeze';
+import type { FreezeBarSettings, FreezeEdge, FreezeSource } from '../plugins/freezeBar';
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
+import type { ExportFileSettings } from '../plugins/exportFile';
 import type { UndoRedoSettings } from '../plugins/undoRedo';
+import type { AsyncValueCancelReason, AsyncValuesSettings } from '../plugins/asyncValues';
 import type { PasteClipboardData } from '../plugins/copyPaste';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
@@ -34,6 +39,7 @@ import type { RangeType, HotInstance } from './types';
 import type { ThemeColorScheme, DensityType } from '../themes/types';
 import type { IndexesChangeSource } from '../translations/indexMapper';
 import type { SourceLabel } from '../utils/cellSource';
+import type { RowIdSetting } from './rowIdentity/rowIdentity';
 
 export type { PasteClipboardData };
 
@@ -177,6 +183,11 @@ export interface GridSettings {
   data?: unknown[][] | object[];
   dataSchema?: object | ((rowIndex: number) => Record<string, unknown>);
   dataDotNotation?: boolean;
+  /**
+   * How each row gets an id that stays with it across sorting, filtering, moving, inserting, and removing rows:
+   * a property path, a function that returns the id of a source row, or `true` for ids Handsontable generates.
+   */
+  rowId?: RowIdSetting;
   columns?: ColumnSettings[] | ((column: number) => ColumnSettings);
   cell?: object[];
   cells?: (row: number, column: number, prop: string | number) => object;
@@ -265,6 +276,7 @@ export interface GridSettings {
   fixedColumnsStart?: number;
   fixedRowsBottom?: number;
   fixedRowsTop?: number;
+  limitFixedToViewport?: boolean;
 
   // Headers
   colHeaders?: boolean | string[] | ((column: number) => string);
@@ -276,6 +288,7 @@ export interface GridSettings {
   sortByRelevance?: boolean;
 
   // Plugins
+  asyncValues?: boolean | AsyncValuesSettings;
   autoLink?: boolean | {
     target?: '_blank' | '_self';
     schemes?: Array<'http' | 'https' | 'mailto' | 'tel'>;
@@ -309,6 +322,7 @@ export interface GridSettings {
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;
+  freezeBar?: boolean | FreezeBarSettings;
   manualColumnFreeze?: boolean | ManualColumnFreezeSettings;
   manualColumnMove?: boolean | number[];
   manualColumnResize?: boolean | number[];
@@ -318,14 +332,17 @@ export interface GridSettings {
   nestedHeaders?: NestedHeader[][];
   nestedRows?: boolean;
   pagination?: boolean | object;
+  rowSelection?: boolean | RowSelectionSettings;
   search?: boolean | object;
   importFile?: boolean | ImportFileSettings;
+  exportFile?: boolean | ExportFileSettings;
   sheetsBar?: boolean | SheetsBarSettings;
   trimRows?: boolean | number[];
 
   // Checkbox
   checkedTemplate?: unknown;
   uncheckedTemplate?: unknown;
+  headerCheckbox?: boolean | HeaderCheckboxSettings;
 
   // Date / Time
   dateFormat?: Intl.DateTimeFormatOptions;
@@ -395,6 +412,13 @@ export interface GridSettings {
 
   // Hook callbacks
   afterAddChild?: (parent: RowObject, element: RowObject | undefined, index: number | undefined) => void;
+  afterAsyncValueCancel?: (physicalRow: number, prop: string | number, reason: AsyncValueCancelReason,
+    rowId: unknown) => void;
+  afterAsyncValueReject?: (physicalRow: number, prop: string | number, error: unknown, message: string,
+    rowId: unknown) => void;
+  afterAsyncValueResolve?: (physicalRow: number, prop: string | number, value: unknown, rowId: unknown) => void;
+  afterAsyncValuesIdle?: () => void;
+  afterAsyncValueStart?: (physicalRow: number, prop: string | number, rowId: unknown) => void;
   afterAutofill?: (fillData: CellValue[][], sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange,
     direction: 'up' | 'down' | 'left' | 'right') => void;
   afterBeginEditing?: (row: number, column: number) => void;
@@ -409,6 +433,7 @@ export interface GridSettings {
   afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
+  afterFreezeChange?: (edge: FreezeEdge, newCount: number, oldCount: number, source: FreezeSource) => void;
   afterColumnSequenceChange?: (source: ChangeSource) => void;
   afterCustomBordersUpdate?: () => void;
   afterColumnSequenceCacheUpdate?: (indexesChangesState: {
@@ -527,7 +552,10 @@ export interface GridSettings {
     expandPossible: boolean, successfullyExpanded: boolean) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
+  afterRowIdsRemoved?: (rowIds: unknown[], source?: ChangeSource) => void;
+  afterRowIdsReset?: () => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
+  afterRowSelectionChange?: (selectedRows: number[], deselectedRows: number[], source: RowSelectionSource) => void;
   afterRowSequenceChange?: (source: ChangeSource) => void;
   afterRowSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
@@ -598,6 +626,8 @@ export interface GridSettings {
   beforeAddChild?: (parent: RowObject, element?: RowObject, index?: number) => void;
   beforeAlter?: (action: string, index: number | Array<[number, number]>, amount: number,
     source?: ChangeSource, keepEmptyRows?: boolean) => boolean | void;
+  beforeAsyncValueResolve?: (value: unknown, physicalRow: number, prop: string | number, rowId: unknown) => unknown;
+  beforeAsyncValueStart?: (physicalRow: number, prop: string | number, rowId: unknown) => void | boolean;
   beforeAutofill?: (selectionData: CellValue[][], sourceRange: WalkontableCellRange,
     targetRange: WalkontableCellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | void;
   beforeBeginEditing?: (row: number, column: number, initialValue: CellValue,
@@ -616,6 +646,7 @@ export interface GridSettings {
   beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean) => void | boolean;
   beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number | false;
+  beforeFreezeChange?: (edge: FreezeEdge, newCount: number, oldCount: number, source: FreezeSource) => void | boolean;
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[],
     destinationSortConfigs: ColumnSortingConfig[], sortPossible: boolean) => void | boolean;
   beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean, finalIndex: number) => void | boolean;
@@ -714,6 +745,8 @@ export interface GridSettings {
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean) => void | boolean;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void | false;
+  beforeRowSelectionChange?: (rowsToSelect: number[], rowsToDeselect: number[],
+    source: RowSelectionSource) => void | boolean;
   beforeRowsMutation?: (operation: string, payload: RowMutationPayload) => void | boolean;
   beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords,
     isRowFlipped: boolean) => void;

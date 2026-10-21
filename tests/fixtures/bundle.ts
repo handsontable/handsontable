@@ -72,3 +72,25 @@ export async function awaitFixtureBuilt(page: Page): Promise<void> {
     throw new Error(`Handsontable constructor threw in the fixture:\n${buildError}`);
   }
 }
+
+/**
+ * Throws when `bundle` is not one the fixtures know. `theme`, `bundle` and a page object's next
+ * positional argument are same-typed strings, so passing that argument in the bundle's slot is a
+ * one-token slip. The fixture's head script does throw on an unknown `?bundle=`, but it throws before
+ * `window.htBundle` is set, so the body still injects `/handsontable/dist/undefined` and the spec dies
+ * 10s later on a missing cell with nothing naming the cause. Call it first thing in `goto()`.
+ *
+ * It lives here, beside the `Bundle` type, rather than in a page object: this file is plumbing the
+ * leg-declaration sweep does not read, so the comparison to the two bundle names forces no `@bundles`
+ * tag on the specs whose page object only validates its arguments.
+ *
+ * @param {string} bundle The bundle the page object was given.
+ * @param {string} argumentOrder The constructor's argument order, for the message.
+ */
+export function assertKnownBundle(bundle: string, argumentOrder: string): void {
+  if (bundle !== 'umd' && bundle !== 'full-min') {
+    throw new Error(
+      `Unknown bundle ${JSON.stringify(bundle)} - expected 'umd' or 'full-min'. ` +
+      `Check the argument order: ${argumentOrder}.`);
+  }
+}

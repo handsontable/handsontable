@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { PasteParseHookPage, type HookBehavior } from '../fixtures/pages/PasteParseHookPage';
 import { ShadowGridPage } from '../fixtures/pages/ShadowGridPage';
 
@@ -30,7 +30,7 @@ async function openFixture(
   return grid;
 }
 
-test.describe('beforePasteParse', () => {
+test.describe('beforePasteParse', { tag: BUNDLES_TAG }, () => {
   test('fires exactly once per paste', async({ page, theme, bundle }) => {
     const grid = await openFixture(page, theme, bundle);
 
@@ -267,7 +267,7 @@ test.describe('beforePasteParse', () => {
  * must still fire once there.
  */
 for (const delivery of ['normal', 'lws-shape'] as const) {
-  test.describe(`beforePasteParse in a shadow root, ${delivery} delivery`, () => {
+  test.describe(`beforePasteParse in a shadow root, ${delivery} delivery`, { tag: BUNDLES_TAG }, () => {
     test('fires exactly once per paste with the native event', async({ page, theme, bundle }) => {
       const grid = new ShadowGridPage(page, theme, bundle, delivery, true);
       const pasted = `SHADOW-${delivery.toUpperCase()}-4471`;

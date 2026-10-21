@@ -1,6 +1,6 @@
 ---
 name: handsontable-code-review
-description: Use when reviewing changed or staged code, a branch, or a PR in the Handsontable monorepo across architecture, code quality, performance, accessibility, and tests. Covers SOLID / Law of Demeter / plugin decoupling / breaking-changes policy, custom ESLint rules / JSDoc / naming / cognitive complexity, large-array and render-batching performance, WCAG 2.1 AA + keyboard navigation, and the tests a change ships (a named exercising test per new path, scoped mutation, a ticket on every weakened assertion). Trigger when asked to review changes, check a diff against Handsontable conventions, assess architectural correctness, spot performance regressions, verify accessibility, or judge whether a change's tests prove it, and as the design lens before or while implementing any core change.
+description: Use when reviewing changed or staged code, a branch, or a PR in the Handsontable monorepo across architecture, code quality, performance, accessibility, and tests. Covers SOLID / Law of Demeter / plugin decoupling / breaking-changes policy, custom ESLint rules / JSDoc / naming / cognitive complexity, large-array and render-batching performance, WCAG 2.2 AA + keyboard navigation, and the tests a change ships (a named exercising test per new path, scoped mutation, a ticket on every weakened assertion). Trigger when asked to review changes, check a diff against Handsontable conventions, assess architectural correctness, spot performance regressions, verify accessibility, or judge whether a change's tests prove it, and as the design lens before or while implementing any core change.
 ---
 
 # Handsontable code review
@@ -13,7 +13,7 @@ Apply all four dimensions for a full review. For a scoped request ("just check a
 2. Apply each dimension's checklist from its reference file:
    - **Architecture** (`references/architecture.md`): SOLID, Law of Demeter, plugin decoupling, conflict ownership, coordinate-system correctness, breaking-changes policy, convention over configuration. Also the design lens while implementing any core change.
    - **Code quality** (`references/code-quality.md`): custom ESLint rules, JSDoc, naming, cognitive complexity, DRY, the TypeScript boundary.
-   - **Performance & accessibility** (`references/performance-a11y.md`): large-array safety, render batching, memory cleanup, WCAG 2.1 AA, keyboard navigation, ARIA semantics.
+   - **Performance & accessibility** (`references/performance-a11y.md`): large-array safety, render batching, memory cleanup, WCAG 2.2 AA, keyboard navigation, ARIA semantics.
    - **Tests** (`references/tests.md`): a named exercising test for every new interaction path and option form, scoped mutation when unit tests changed, near-duplicate DOM helpers, timing-semantics JSDoc checked against its primitive, a ticket on every weakened or deleted assertion, a DOM/API assertion beside every visual capture.
 3. Report using the output format below, applying the general review practices.
 

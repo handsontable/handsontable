@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { EditorPreventCloseElementPage } from '../fixtures/pages/EditorPreventCloseElementPage';
 
 /**
@@ -15,7 +15,7 @@ import { EditorPreventCloseElementPage } from '../fixtures/pages/EditorPreventCl
  * portal host reaches the same verdict from `rootPortalElement`; that half is pinned by
  * `wrappers/react-wrapper/test/hotTable.spec.tsx`.
  */
-test.describe('An editor whose own input takes the browser focus', () => {
+test.describe('An editor whose own input takes the browser focus', { tag: THEMES_TAG }, () => {
   test('does not unlisten the grid', async({ page, theme, bundle }) => {
     const grid = new EditorPreventCloseElementPage(page, theme, bundle);
 

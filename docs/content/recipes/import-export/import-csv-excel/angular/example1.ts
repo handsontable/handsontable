@@ -1,9 +1,8 @@
 /* file: app.component.ts */
-import { Component, NgZone, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable/base';
 import Papa from 'papaparse';
-import readXlsxFile from 'read-excel-file/browser';
-import type { Sheet } from 'read-excel-file/browser';
 
 interface ParsedPayload {
   headers: string[];
@@ -84,42 +83,60 @@ async function parseCsvFile(file: File): Promise<ParsedPayload> {
 }
 
 async function parseXlsxFile(file: File): Promise<ParsedPayload> {
-  let sheets: Sheet[];
+  // A throwaway grid in a hidden element runs the ImportFile plugin. `apply: false` returns the
+  // mapped sheet without touching the grid, and a refused file rejects with a message that says why.
+  const host = document.createElement('div');
+
+  host.hidden = true;
+  document.body.appendChild(host);
+
+  const parser = new Handsontable(host, {
+    data: [[]],
+    importFile: true,
+    licenseKey: 'non-commercial-and-evaluation',
+  });
+
   try {
-    sheets = await readXlsxFile(file);
-  } catch {
-    throw new Error('Could not read the Excel workbook. The file may be corrupted.');
-  }
-  const firstSheet = sheets[0];
-  if (!firstSheet) {
-    throw new Error('The workbook has no sheets.');
-  }
-  const matrix: unknown[][] = firstSheet.data;
-  if (!matrix.length) {
-    throw new Error('The sheet is empty.');
-  }
-  const rawHeader = (matrix[0] as unknown[]).map((cell) => String(cell ?? '').trim());
-  if (rawHeader.length === 0 || rawHeader.every((h) => h === '')) {
-    throw new Error('No header row found in the Excel sheet.');
-  }
-  const keys = rawHeader.map((h, i) => (h === '' ? `Column ${i + 1}` : h));
-  const rows: Record<string, unknown>[] = [];
-  for (let r = 1; r < matrix.length; r++) {
-    const line = matrix[r] as unknown[];
-    const allEmpty = !line || (line as unknown[]).every((c) => normalizeCellValue(c) === null);
-    if (allEmpty) {
-      continue;
+    const result = await parser.getPlugin('importFile').importFromBlob('xlsx', file, {
+      colHeaders: 'firstRow',
+      apply: false,
+    });
+    const rawHeaders = (Array.isArray(result.colHeaders) ? result.colHeaders : []) as unknown[];
+    const headers = rawHeaders.map((cell, i) => {
+      const text = String(cell ?? '').trim();
+
+      return text === '' ? `Column ${i + 1}` : text;
+    });
+
+    if (headers.length === 0) {
+      throw new Error('No header row found in the Excel sheet.');
     }
-    const obj: Record<string, unknown> = {};
-    for (let c = 0; c < keys.length; c++) {
-      obj[keys[c]] = normalizeCellValue(line[c]);
+
+    const rows: Record<string, unknown>[] = [];
+
+    for (const line of result.data as unknown[][]) {
+      const obj: Record<string, unknown> = {};
+      let allEmpty = true;
+
+      headers.forEach((key, c) => {
+        obj[key] = normalizeCellValue(line[c]);
+        allEmpty = allEmpty && obj[key] === null;
+      });
+
+      if (!allEmpty) {
+        rows.push(obj);
+      }
     }
-    rows.push(obj);
+
+    if (rows.length === 0) {
+      throw new Error('No data rows after the header.');
+    }
+
+    return { headers, rows };
+  } finally {
+    parser.destroy();
+    host.remove();
   }
-  if (rows.length === 0) {
-    throw new Error('No data rows after the header.');
-  }
-  return { headers: keys, rows };
 }
 
 async function parseFile(file: File): Promise<ParsedPayload> {
@@ -190,7 +207,7 @@ async function parseFile(file: File): Promise<ParsedPayload> {
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
-  private readonly zone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   isDragOver = false;
   errorMessage = '';
@@ -254,11 +271,11 @@ Service Pack,Services,true,0`;
     }
     try {
       const payload = await parseFile(file);
-      this.zone.run(() => this.loadIntoGrid(payload));
+      this.loadIntoGrid(payload);
     } catch (e) {
-      this.zone.run(() => {
-        this.errorMessage = e instanceof Error ? e.message : String(e);
-      });
+      this.errorMessage = e instanceof Error ? e.message : String(e);
+    } finally {
+      this.cdr.markForCheck();
     }
   }
 

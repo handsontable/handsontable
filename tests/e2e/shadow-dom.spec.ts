@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { ShadowGridPage } from '../fixtures/pages/ShadowGridPage';
 
 /**
@@ -9,7 +9,7 @@ import { ShadowGridPage } from '../fixtures/pages/ShadowGridPage';
  * the open editor closed, the selection dropped, and the grid stopped
  * listening. These tests drive the real interactions across the boundary.
  */
-test.describe('grid inside a native shadow root', () => {
+test.describe('grid inside a native shadow root', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: ShadowGridPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -256,7 +256,7 @@ test.describe('grid inside a native shadow root', () => {
  * These tests cover that shape, not LWS itself: a real org also runs the grid behind a sandbox
  * membrane, which no fixture here can stand in for.
  */
-test.describe('grid whose clipboard events arrive the way LWS delivers them', () => {
+test.describe('grid whose clipboard events arrive the way LWS delivers them', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: ShadowGridPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

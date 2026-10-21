@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Flatpickr
-metaTitle: Flatpickr Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a custom Handsontable cell type using Flatpickr for a date picker with cross-browser consistency and per-column configuration directly inside your data grid.
+metaTitle: Flatpickr cell type | Handsontable DataGrid for JavaScript
+description: Learn how to create a custom Handsontable DataGrid cell type using Flatpickr for a date picker with cross-browser consistency and per-column configuration directly inside your data grid.
 permalink: /recipes/cell-types/flatpickr
 canonicalUrl: /recipes/cell-types/flatpickr
 tags:
@@ -10,16 +10,16 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Flatpickr Cell Type - React Data Grid | Handsontable
+  metaTitle: Flatpickr cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Flatpickr Cell Type - Angular Data Grid | Handsontable
+  metaTitle: Flatpickr cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Flatpickr Cell Type - Vue Data Grid | Handsontable
+  metaTitle: Flatpickr cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
 ---
 
-This tutorial shows you how to integrate the Flatpickr date picker as a custom Handsontable cell editor, with per-column locale and format configuration.
+This tutorial shows you how to integrate the Flatpickr date picker as a custom Handsontable DataGrid cell editor, with per-column locale and format configuration.
 
 ::: only-for javascript vue
 
@@ -339,13 +339,13 @@ Initialize the editor with the cell's current date value.
 
 ```typescript
 setValue(editor, value) {
-  editor.input.value = value;
+  editor.input.value = value == null ? '' : String(value);
   editor.flatpickr.setDate(value ? new Date(value) : new Date());
 }
 ```
 
 **What's happening:**
-- Set the input's value to the provided date string
+- Set the input's value to the cell value, or to an empty string when the cell is empty
 - Update Flatpickr's selected date using `setDate()` -- use the cell value if present, otherwise the current date
 - This ensures Flatpickr displays the correct date when opened
 - Called to initialize the editor with the cell's current value
@@ -457,7 +457,7 @@ const cellDefinition = {
       return editor.input.value;
     },
     setValue(editor, value) {
-      editor.input.value = value;
+      editor.input.value = value == null ? '' : String(value);
       editor.flatpickr.setDate(value ? new Date(value) : new Date());
     },
   }),
@@ -477,7 +477,7 @@ const cellDefinition = {
 
 **Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
 
-## Step 13: Use in Handsontable with Different Formats
+## Step 13: Use in Handsontable DataGrid with Different Formats
 
 ```javascript
 const container = document.querySelector('#example1');

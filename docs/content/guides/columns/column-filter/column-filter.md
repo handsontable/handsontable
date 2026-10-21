@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Column filter
-metaTitle: Column filter - JavaScript Data Grid | Handsontable
+metaTitle: Column filter | Handsontable DataGrid for JavaScript
 description: Filter your data by values or by a set of conditions.
 permalink: /column-filter
 canonicalUrl: /column-filter
@@ -19,16 +19,16 @@ tags:
   - advanced filter
   - dropdown
 react:
-  metaTitle: Column filter - React Data Grid | Handsontable
+  metaTitle: Column filter | Handsontable DataGrid for React
 angular:
-  metaTitle: Column filter - Angular Data Grid | Handsontable
+  metaTitle: Column filter | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column filter - Vue Data Grid | Handsontable
+  metaTitle: Column filter | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: updated
 ---
-Filter data by values or by a set of conditions, using Handsontable's intuitive user interface or
+Filter data by values or by a set of conditions, using Handsontable DataGrid's intuitive user interface or
 flexible API.
 
 [[toc]]
@@ -552,9 +552,10 @@ filters with the API, see [Clear a column filter](#clear-a-column-filter).
 
 For the **Before**, **After**, **Before or equal to**, **After or equal to**, and **Is between**
 operators on `date`, `intl-date`, and `intl-time` columns, the filter menu shows a native date or
-time input. Pick the value from the browser's picker or type it in your locale's format. When you
-set the condition through the API instead, pass the value as an ISO 8601 string
-(`YYYY-MM-DD` for dates, `HH:mm` for times).
+time input. On `date` and `intl-date` columns, the **Is equal to** and **Is not equal to**
+operators show a native date input as well. Pick the value from the browser's picker or type it in
+your locale's format. When you set the condition through the API instead, pass the value as an
+ISO 8601 string (`YYYY-MM-DD` for dates, `HH:mm` for times).
 
 ## Filtering with nested headers
 
@@ -676,6 +677,9 @@ A few rules apply to every shape:
 - The setting changes the lists only. A condition you add with
   [`addCondition()`](@/api/filters.md#addcondition) still filters, even if the list does not offer
   it, and the column's menu still shows it as the selected condition.
+  A [view state](@/guides/getting-started/view-state/view-state.md) that carries such a condition
+  restores the other columns' filters but leaves out that column's filter, because the restore checks
+  each built-in condition against the lists that the column's cell types offer.
 - A column whose own `availableConditions` is `undefined` uses the grid-level value.
 
 Handsontable logs a console warning when the grid is created, and when you change the setting, for
@@ -754,6 +758,40 @@ between** from numeric columns. The **Brand** column offers a short list of its 
 :::
 
 :::
+
+### List the conditions a column offers
+
+To build valid conditions in your own code, for example in a custom filter form or a prompt for an AI
+assistant, call [`getAvailableConditions()`](@/api/filters.md#getavailableconditions). It returns the
+conditions that the column's **Filter by condition** list offers, in the same order, with the number
+of arguments each one takes:
+
+```js
+const filters = hot.getPlugin('filters');
+
+// column 1 is a numeric column
+filters.getAvailableConditions(1);
+// [
+//   { name: 'empty', inputsCount: 0 },
+//   { name: 'not_empty', inputsCount: 0 },
+//   { name: 'eq', inputsCount: 1 },
+//   { name: 'neq', inputsCount: 1 },
+//   { name: 'gt', inputsCount: 1 },
+//   { name: 'gte', inputsCount: 1 },
+//   { name: 'lt', inputsCount: 1 },
+//   { name: 'lte', inputsCount: 1 },
+//   { name: 'between', inputsCount: 2 },
+//   { name: 'not_between', inputsCount: 2 },
+// ]
+```
+
+The method takes a visual column index, like [`addCondition()`](@/api/filters.md#addcondition). It
+follows the column's data type and the `availableConditions` setting that applies to the column. The
+list leaves out **None** and the separators, and it does not include the **Filter by value**
+condition (`by_value`).
+
+Like the menu, the method reads the data type from the rows that no filter hides. In a column whose
+cells have different types, the list can change when a filter hides rows.
 
 ## Change the order of values in the filter list
 

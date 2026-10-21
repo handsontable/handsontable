@@ -1,5 +1,5 @@
 import { devices } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarPage } from '../fixtures/pages/SheetsBarPage';
 
 /**
@@ -16,7 +16,7 @@ test.use({
   browserName: 'chromium',
 });
 
-test.describe('sheets bar touch drag', () => {
+test.describe('sheets bar touch drag', { tag: THEMES_TAG }, () => {
   test('dragging a tab past its neighbour by touch reorders the strip', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
@@ -96,5 +96,42 @@ test.describe('sheets bar touch drag', () => {
     }, { intervals: [800, 250] }).toBe(1);
 
     await expect(page.locator('.htSheetsBarMenu td.current')).toHaveCount(0);
+  });
+
+  test('a touch drag past a tab being renamed commits the name and throws nothing', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+    const errors: string[] = [];
+
+    page.on('pageerror', error => errors.push(error.message));
+    await bar.goto();
+    await bar.tab(1).locator('.ht-sheets-bar__tab-label').dblclick();
+
+    const input = page.locator('.ht-sheets-bar__tab-rename');
+
+    await expect(input).toBeFocused();
+    await input.fill('Renamed');
+
+    const first = (await bar.tab(0).boundingBox())!;
+    const third = (await bar.tab(2).boundingBox())!;
+    const y = first.y + (first.height / 2);
+    const cdp = await page.context().newCDPSession(page);
+
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: first.x + (first.width / 2), y }],
+    });
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: first.x + first.width, y }],
+    });
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: third.x + (third.width / 2) + 5, y }],
+    });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+
+    await expect(input).toHaveCount(0);
+    await expect(page.locator('.ht-sheets-bar__tab-label', { hasText: 'Renamed' })).toHaveCount(1);
+    expect(errors).toEqual([]);
   });
 });

@@ -3,6 +3,11 @@ import type { CellValue, MoveCellsHookRecord } from './windowTypes';
 import { dragFillHandle } from '../gestures';
 import { awaitBundle } from '../bundle';
 
+/**
+ * The plugins the DEV-775 spec destroys on their own, ahead of the grid.
+ */
+type DestroyablePluginName = 'autofill' | 'comments' | 'filters' | 'autoColumnSize' | 'nestedHeaders';
+
 type Box = { x: number, y: number, width: number, height: number };
 
 /**
@@ -121,6 +126,89 @@ export class SelectionFeaturesPage {
       ([range, scroll]) => window.hot.selectCells([range as number[]], scroll as boolean),
       [[fromRow, fromCol, toRow, toCol], scrollToCell] as const,
     );
+  }
+
+  /**
+   * Select several ranges at once through the instance API, the way `selectCells()` builds a
+   * non-contiguous selection. Each range is `[fromRow, fromCol, toRow, toCol]`.
+   */
+  async selectRanges(ranges: [number, number, number, number][]): Promise<void> {
+    await this.page.evaluate(selection => window.hot.selectCells(selection), ranges);
+  }
+
+  /**
+   * Every fill handle drawn in any overlay – the cell corner (`.current`) and the area corner
+   * (`.area`) alike. Counting across overlays keeps a handle drawn by a frozen clone from hiding.
+   */
+  fillHandlesInAnyOverlay(): Locator {
+    return this.grid.locator('.wtBorder.corner:visible');
+  }
+
+  /**
+   * Select a cell and paste text into it through the CopyPaste plugin's `paste()` – the same write
+   * a Ctrl/Cmd+V makes (source `CopyPaste.paste`), without depending on the system clipboard.
+   */
+  async pasteText(row: number, col: number, text: string): Promise<void> {
+    await this.page.evaluate(([r, c, t]) => {
+      window.hot.selectCell(r, c);
+      window.hot.getPlugin('copyPaste').paste(t);
+    }, [row, col, text] as const);
+  }
+
+  /**
+   * What a checkbox cell holds and shows: the stored source value, whether the renderer drew the
+   * `#bad-value#` state, and whether the cell carries the invalid class.
+   */
+  async checkboxCell(row: number, col: number): Promise<{ value: unknown, badValue: boolean, invalid: boolean }> {
+    return this.page.evaluate(([r, c]) => {
+      const td = window.hot.getCell(r, c, true);
+
+      return {
+        value: window.hot.getSourceDataAtCell(r, c),
+        badValue: Boolean(td?.querySelector('.htBadValue')),
+        invalid: td?.classList.contains('htInvalid') ?? false,
+      };
+    }, [row, col] as const);
+  }
+
+  /**
+   * Write a value through `setDataAtCell()` with an explicit change source.
+   */
+  async setCellValueWithSource(row: number, col: number, value: CellValue, source: string): Promise<void> {
+    await this.page.evaluate(([r, c, v, src]) => window.hot.setDataAtCell(r, c, v, src), [row, col, value, source] as const);
+  }
+
+  /**
+   * Whether the grid renders a cell right now (a row below the viewport has no element).
+   */
+  async isCellRendered(row: number, col: number): Promise<boolean> {
+    return this.page.evaluate(([r, c]) => window.hot.getCell(r, c) !== null, [row, col] as const);
+  }
+
+  /**
+   * Select a cell through the API, make the grid listen, and press a key the way a user does.
+   */
+  async pressKeyOnCell(row: number, col: number, key: string): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      window.hot.selectCell(r, c);
+      window.hot.listen();
+    }, [row, col] as const);
+    await this.page.keyboard.press(key);
+  }
+
+  /**
+   * The values of one column in visual order, read through the instance API.
+   */
+  async visualColumnData(col: number): Promise<CellValue[]> {
+    return this.page.evaluate(c => window.hot.getDataAtCol(c), col);
+  }
+
+  /**
+   * Sort one column through the ColumnSorting plugin.
+   */
+  async sortColumn(col: number, sortOrder: 'asc' | 'desc'): Promise<void> {
+    await this.page.evaluate(([c, order]) => window.hot.getPlugin('columnSorting').sort({ column: c, sortOrder: order }),
+      [col, sortOrder] as const);
   }
 
   /** Clear the selection through the instance API. */
@@ -802,6 +890,73 @@ export class SelectionFeaturesPage {
    * @param {number} row Visual row index.
    */
   async ctrlClickRowHeader(row: number): Promise<void> {
+    await this.#clickRowHeader(row, true);
+  }
+
+  /**
+   * Clicks a row header with no modifier, which selects the whole row as the only range.
+   *
+   * @param {number} row Visual row index.
+   */
+  async clickRowHeader(row: number): Promise<void> {
+    await this.#clickRowHeader(row, false);
+  }
+
+  /**
+   * Drag-selects a range with the real pointer while Ctrl/Cmd is held, which adds it as a new
+   * selection layer instead of replacing the selection.
+   */
+  async ctrlDragSelectCells(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
+    await this.page.keyboard.down('ControlOrMeta');
+    await this.dragSelectCells(fromRow, fromCol, toRow, toCol);
+    await this.page.keyboard.up('ControlOrMeta');
+  }
+
+  /**
+   * Presses Ctrl/Cmd+A, which selects the whole grid as one range.
+   */
+  async pressSelectAll(): Promise<void> {
+    await this.page.keyboard.press('ControlOrMeta+a');
+  }
+
+  /**
+   * Clicks a cell where it is drawn on top, with or without Ctrl/Cmd held. A cell in a frozen row or
+   * column is drawn by a clone that covers the master copy, and `cell()` cannot tell the copies apart,
+   * so the point comes from `getCell(row, col, true)` – the topmost overlay's element.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   * @param {boolean} [withModifier=false] Whether to hold Ctrl/Cmd during the click.
+   */
+  async clickTopmostCell(row: number, col: number, withModifier = false): Promise<void> {
+    const point = await this.page.evaluate(([r, c]) => {
+      const rect = window.hot.getCell(r, c, true)?.getBoundingClientRect();
+
+      return rect ? { x: rect.x + (rect.width / 2), y: rect.y + (rect.height / 2) } : null;
+    }, [row, col] as const);
+
+    if (!point) {
+      throw new Error(`Cell (${row}, ${col}) is not rendered, so it cannot be clicked`);
+    }
+
+    if (withModifier) {
+      await this.page.keyboard.down('ControlOrMeta');
+    }
+
+    await this.page.mouse.click(point.x, point.y);
+
+    if (withModifier) {
+      await this.page.keyboard.up('ControlOrMeta');
+    }
+  }
+
+  /**
+   * Clicks a row header, resolved through the row's own cell and the inline-start header strip.
+   *
+   * @param {number} row Visual row index.
+   * @param {boolean} withModifier Whether to hold Ctrl/Cmd during the click.
+   */
+  async #clickRowHeader(row: number, withModifier: boolean): Promise<void> {
     const cellBox = await this.cell(row, 0).boundingBox();
     const headerBox = await this.grid.locator('.ht_clone_inline_start tbody th').first().boundingBox();
 
@@ -811,9 +966,15 @@ export class SelectionFeaturesPage {
 
     // The row comes from its own cell and the column from the header strip, so neither depends on
     // a position in the rendered rows — which a scrolled grid renumbers.
-    await this.page.keyboard.down('ControlOrMeta');
+    if (withModifier) {
+      await this.page.keyboard.down('ControlOrMeta');
+    }
+
     await this.page.mouse.click(headerBox.x + (headerBox.width / 2), cellBox.y + (cellBox.height / 2));
-    await this.page.keyboard.up('ControlOrMeta');
+
+    if (withModifier) {
+      await this.page.keyboard.up('ControlOrMeta');
+    }
   }
 
   /**
@@ -1240,6 +1401,11 @@ export class SelectionFeaturesPage {
     await this.fillHandle().dblclick();
   }
 
+  /** Every value of a column, by visual row, read through the instance API. */
+  async columnValues(col: number): Promise<CellValue[]> {
+    return this.page.evaluate(column => window.hot.getDataAtCol(column), col);
+  }
+
   /** Drag the fill handle with the real pointer onto the given cell and release. */
   async dragFillHandleTo(row: number, col: number): Promise<void> {
     await dragFillHandle(this.page, this.fillHandle(), this.cell(row, col));
@@ -1285,6 +1451,107 @@ export class SelectionFeaturesPage {
     await this.page.evaluate(() => {
       window.hot.updateSettings({ fillHandle: window.hot.getSettings().fillHandle });
     });
+  }
+
+  /**
+   * Destroy one plugin instance on its own, ahead of the grid, with `getPlugin(name).destroy()`. A
+   * reference to a destroyed Autofill plugin is kept, so `tryCallDestroyedAutofill()` can call it.
+   */
+  async destroyPlugin(pluginName: DestroyablePluginName): Promise<void> {
+    await this.page.evaluate((name) => {
+      if (name === 'autofill') {
+        const plugin = window.hot.getPlugin('autofill');
+
+        window.destroyedAutofill = plugin;
+        plugin.destroy();
+      } else if (name === 'comments') {
+        window.hot.getPlugin('comments').destroy();
+      } else if (name === 'filters') {
+        window.hot.getPlugin('filters').destroy();
+      } else {
+        window.hot.getPlugin(name).destroy();
+      }
+    }, pluginName);
+  }
+
+  /**
+   * Call `updateSettings()` and report the message it threw, or `null` when it did not throw.
+   */
+  async tryUpdateSettings(settings: Record<string, unknown>): Promise<string | null> {
+    return this.page.evaluate((nextSettings) => {
+      try {
+        window.hot.updateSettings(nextSettings);
+
+        return null;
+      } catch (error) {
+        return (error as Error).message;
+      }
+    }, settings);
+  }
+
+  /**
+   * Call one lifecycle method on the Autofill plugin reference `destroyPlugin('autofill')` kept, and
+   * report the message it threw, or `null` when it did not throw. A missing reference is reported as
+   * a failure, so the call cannot pass without reaching the plugin.
+   */
+  async tryCallDestroyedAutofill(
+    method: 'enablePlugin' | 'disablePlugin' | 'updatePlugin'
+  ): Promise<string | null> {
+    return this.page.evaluate((methodName) => {
+      if (!window.destroyedAutofill) {
+        return 'no Autofill reference was kept';
+      }
+
+      try {
+        window.destroyedAutofill[methodName]();
+
+        return null;
+      } catch (error) {
+        return (error as Error).message;
+      }
+    }, method);
+  }
+
+  /**
+   * Destroy the whole grid and report what happened: the message the call threw (or `null`) and
+   * whether `afterDestroy` - the last step of the teardown - ran. The fixture's `hot` reference is
+   * dropped afterwards, so the next `initGrid()` does not destroy the same instance twice.
+   */
+  async tryDestroyGrid(): Promise<{ error: string | null, afterDestroyFired: boolean }> {
+    return this.page.evaluate(() => {
+      let afterDestroyFired = false;
+      let error: string | null = null;
+
+      window.hot.addHook('afterDestroy', () => {
+        afterDestroyFired = true;
+      });
+
+      try {
+        window.hot.destroy();
+      } catch (thrown) {
+        error = (thrown as Error).message;
+      }
+
+      Reflect.deleteProperty(window, 'hot');
+
+      return { error, afterDestroyFired };
+    });
+  }
+
+  /**
+   * Disable or re-enable the Autofill plugin directly, leaving the `fillHandle` setting as it is.
+   * No render is forced here: the plugin has to show or hide the fill handle on its own.
+   */
+  async setAutofillPluginEnabled(enabled: boolean): Promise<void> {
+    await this.page.evaluate((isEnabled) => {
+      const plugin = window.hot.getPlugin('autofill');
+
+      if (isEnabled) {
+        plugin.enablePlugin();
+      } else {
+        plugin.disablePlugin();
+      }
+    }, enabled);
   }
 
   /**

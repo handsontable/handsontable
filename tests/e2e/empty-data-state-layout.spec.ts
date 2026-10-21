@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { EmptyDataStateLayoutPage, type Box, type PanelGeometry } from '../fixtures/pages/EmptyDataStateLayoutPage';
 
 /**
@@ -52,7 +52,7 @@ function expectUnderTheHeaders({ panel, headers }: PanelGeometry) {
   expect(Math.abs(panel.right - row.right), 'panel right vs the header row right').toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
 }
 
-test.describe('empty data state layout', () => {
+test.describe('empty data state layout', { tag: THEMES_TAG }, () => {
   test('with a fixed height the message fills the grid body under the column headers', async({
     page, theme, bundle,
   }) => {

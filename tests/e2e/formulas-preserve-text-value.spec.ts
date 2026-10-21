@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasMoveCellsPage } from '../fixtures/pages/FormulasMoveCellsPage';
 
 /**
@@ -12,7 +12,7 @@ import { FormulasMoveCellsPage } from '../fixtures/pages/FormulasMoveCellsPage';
  * These cases assert through the page object's `expectCell` (rendered `textContent`) –
  * never `cellValue`/`getDataAtCell` – for exactly that reason.
  */
-test.describe('Formulas: preserveTextValue rendered output', () => {
+test.describe('Formulas: preserveTextValue rendered output', { tag: BUNDLES_TAG }, () => {
   let grid: FormulasMoveCellsPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

@@ -1,11 +1,10 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { CellDropdownArrowPage, type CellType } from '../fixtures/pages/CellDropdownArrowPage';
 
-// Every cell type that renders a dropdown indicator. The first three reach the same listener:
-// `dropdownRenderer` and `handsontableRenderer` both delegate to `autocompleteRenderer`.
-// `multiselect` reaches its own element and its own listener (#13316) and is included so the
-// affordance every list cell type shares is asserted in one place.
-const CELL_TYPES: CellType[] = ['autocomplete', 'dropdown', 'handsontable', 'multiselect'];
+// One cell type per renderer that draws a dropdown indicator: `dropdownRenderer` and
+// `handsontableRenderer` delegate to `autocompleteRenderer`, so the `autocomplete` cases cover them,
+// and `multiselect` reaches its own element and its own listener (#13316).
+const CELL_TYPES: CellType[] = ['autocomplete', 'multiselect'];
 
 /**
  * DEV-2677. `autocompleteRenderer` registers a `mousedown` listener that opens the editor when the
@@ -24,7 +23,7 @@ const CELL_TYPES: CellType[] = ['autocomplete', 'dropdown', 'handsontable', 'mul
  * land gives a deterministic point at which a single, non-retrying assertion is meaningful.
  */
 CELL_TYPES.forEach((cellType) => {
-  test.describe(`${cellType} cell dropdown arrow`, () => {
+  test.describe(`${cellType} cell dropdown arrow`, { tag: THEMES_TAG }, () => {
     let grid: CellDropdownArrowPage;
 
     test.beforeEach(async({ page, theme, bundle }) => {
@@ -106,7 +105,7 @@ CELL_TYPES.forEach((cellType) => {
  * the range the cumulative chip width lands in that band, and that width is the one that notices the
  * reservation disappearing — verified by deleting it and watching this fail.
  */
-test.describe('multiselect chips overflowing next to the indicator', () => {
+test.describe('multiselect chips overflowing next to the indicator', { tag: THEMES_TAG }, () => {
   let grid: CellDropdownArrowPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
@@ -130,7 +129,7 @@ test.describe('multiselect chips overflowing next to the indicator', () => {
   });
 });
 
-test.describe('multiselect indicator on a frozen column', () => {
+test.describe('multiselect indicator on a frozen column', { tag: THEMES_TAG }, () => {
   let grid: CellDropdownArrowPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

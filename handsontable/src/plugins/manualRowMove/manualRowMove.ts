@@ -349,7 +349,7 @@ export class ManualRowMove extends BasePlugin {
    * @returns {boolean}
    */
   isFixedRowTop(row: number) {
-    return row < (this.hot.getSettings().fixedRowsTop ?? 0);
+    return row < (this.hot.view?.countFixedRowsTop() ?? this.hot.getSettings().fixedRowsTop ?? 0);
   }
 
   /**
@@ -360,7 +360,9 @@ export class ManualRowMove extends BasePlugin {
    * @returns {boolean}
    */
   isFixedRowBottom(row: number) {
-    return row > this.hot.countRows() - 1 - (this.hot.getSettings().fixedRowsBottom ?? 0);
+    const fixedRowsBottom = this.hot.view?.countFixedRowsBottom() ?? this.hot.getSettings().fixedRowsBottom ?? 0;
+
+    return row > this.hot.countRows() - 1 - fixedRowsBottom;
   }
 
   /**

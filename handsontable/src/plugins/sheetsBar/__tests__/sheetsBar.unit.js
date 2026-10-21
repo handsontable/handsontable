@@ -94,6 +94,7 @@ function buildTabStrip(sheets) {
     ariaTags: true,
     isRtl: false,
     syncIcon: stubSyncIcon,
+    rootWindow: window,
   });
 
   strip.render(sheets);
@@ -403,6 +404,34 @@ describe('SheetsBar plugin', () => {
     hot.getPlugin('columnSorting').clearSort();
 
     expect(hot.getDataAtCol(0)).toEqual(['b', 'a', 'c']);
+  });
+
+  it('keeps the sort on its column after a round trip on a sheet whose columns were moved', () => {
+    hot = new Handsontable(container, {
+      columnSorting: true,
+      sheetsBar: {
+        sheets: [
+          { name: 'Moved', data: [['b', 3], ['a', 1], ['c', 2]] },
+          { name: 'Other', data: [['x', 'y']] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const sheetsBar = hot.getPlugin('sheetsBar');
+    const sorting = hot.getPlugin('columnSorting');
+
+    hot.columnIndexMapper.setIndexesSequence([1, 0]);
+    sorting.sort({ column: 0, sortOrder: 'asc' });
+    sheetsBar.setActiveSheet('Other');
+    sheetsBar.setActiveSheet('Moved');
+
+    expect(sorting.getSortConfig()).toEqual([{ column: 0, sortOrder: 'asc' }]);
+    expect(hot.getData()).toEqual([[1, 'a'], [2, 'c'], [3, 'b']]);
+
+    // Sorting again by the restored config leaves the rows where they are.
+    sorting.sort(sorting.getSortConfig());
+
+    expect(hot.getData()).toEqual([[1, 'a'], [2, 'c'], [3, 'b']]);
   });
 
   it('hides the same rows after a round trip when trimming shifts the visual indexes', () => {
@@ -3176,6 +3205,157 @@ describe('SheetsBar plugin', () => {
     sheetsBar.setActiveSheet('A');
 
     expect(hot.getSettings().fixedColumnsEnd).toBe(2);
+  });
+
+  describe('a freeze written on the table meta, as the freeze bar and ManualColumnFreeze write it', () => {
+    const createWorkbook = () => {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']] },
+            { name: 'B', data: [['x', 'y', 'z'], ['u', 'v', 'w'], ['p', 'q', 'r']] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      return hot.getPlugin('sheetsBar');
+    };
+
+    it('keeps a count restored on its sheet when the app sends its own value again, as a wrapper does on each render', () => {
+      hot = new Handsontable(container, {
+        fixedRowsTop: 1,
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']] },
+            { name: 'B', data: [['x', 'y', 'z'], ['u', 'v', 'w'], ['p', 'q', 'r']] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const sheetsBar = hot.getPlugin('sheetsBar');
+
+      // a drag on sheet A, then a visit to sheet B and back
+      hot.getSettings().fixedRowsTop = 3;
+      hot.render();
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(1);
+
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(3);
+
+      // the app sends the value it was configured with, which equals the grid-level one
+      hot.updateSettings({ fixedRowsTop: 1 });
+
+      expect(hot.getSettings().fixedRowsTop).toBe(3);
+    });
+
+    it('does not carry a start freeze onto a sheet that was never visited, and brings it back to its own sheet', () => {
+      const sheetsBar = createWorkbook();
+
+      hot.getSettings()._fixedColumnsStart = 2;
+      hot.render();
+
+      expect(hot.getSettings().fixedColumnsStart).toBe(2);
+
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedColumnsStart).toBe(0);
+
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedColumnsStart).toBe(2);
+    });
+
+    it('does not carry an end freeze onto a sheet that was never visited, and brings it back to its own sheet', () => {
+      const sheetsBar = createWorkbook();
+
+      hot.getSettings().fixedColumnsEnd = 2;
+      hot.render();
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedColumnsEnd).toBe(0);
+
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedColumnsEnd).toBe(2);
+    });
+
+    it('does not carry frozen top and bottom rows onto a sheet that was never visited, and brings them back', () => {
+      const sheetsBar = createWorkbook();
+
+      hot.getSettings().fixedRowsTop = 1;
+      hot.getSettings().fixedRowsBottom = 1;
+      hot.render();
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(0);
+      expect(hot.getSettings().fixedRowsBottom).toBe(0);
+
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(1);
+      expect(hot.getSettings().fixedRowsBottom).toBe(1);
+    });
+
+    it('does not carry frozen rows set with updateSettings onto a sheet that was never visited', () => {
+      const sheetsBar = createWorkbook();
+
+      hot.updateSettings({ fixedRowsTop: 2, fixedRowsBottom: 1 });
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(0);
+      expect(hot.getSettings().fixedRowsBottom).toBe(0);
+
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(2);
+      expect(hot.getSettings().fixedRowsBottom).toBe(1);
+    });
+
+    it('keeps the rows a never-visited sheet declares in its own settings', () => {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a', 'b'], ['c', 'd'], ['e', 'f']] },
+            { name: 'B', data: [['x', 'y'], ['z', 'w'], ['u', 'v']], settings: { fixedRowsTop: 1 } },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const sheetsBar = hot.getPlugin('sheetsBar');
+
+      sheetsBar.setActiveSheet('B');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(1);
+
+      sheetsBar.setActiveSheet('A');
+
+      expect(hot.getSettings().fixedRowsTop).toBe(0);
+    });
+
+    it('gives the grid its own frozen counts back when the plugin is turned off', () => {
+      hot = new Handsontable(container, {
+        fixedRowsTop: 1,
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a', 'b'], ['c', 'd'], ['e', 'f']] },
+            { name: 'B', data: [['x', 'y'], ['z', 'w'], ['u', 'v']] },
+          ],
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.getSettings().fixedRowsTop = 2;
+      hot.render();
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(hot.getSettings().fixedRowsTop).toBe(1);
+    });
   });
 
   it('keeps the freeze a never-visited sheet declares in its own settings', () => {

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FixedColumnsEndLimitsPage } from '../fixtures/pages/FixedColumnsEndLimitsPage';
 
 /**
@@ -11,7 +11,7 @@ import { FixedColumnsEndLimitsPage } from '../fixtures/pages/FixedColumnsEndLimi
  *
  * Grid of the fixture: 20 rows, 72 px columns, 500 x 300 px viewport, row and column headers.
  */
-test.describe('fixedColumnsEnd and maxCols', { tag: '@core' }, () => {
+test.describe('fixedColumnsEnd and maxCols', { tag: ['@core', THEMES_TAG] }, () => {
   let grid: FixedColumnsEndLimitsPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -56,7 +56,7 @@ test.describe('fixedColumnsEnd and maxCols', { tag: '@core' }, () => {
   });
 });
 
-test.describe('fixedColumnsEnd and minCols', { tag: '@core' }, () => {
+test.describe('fixedColumnsEnd and minCols', { tag: ['@core', THEMES_TAG] }, () => {
   let grid: FixedColumnsEndLimitsPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

@@ -31,6 +31,7 @@ import {
   testKey,
 } from '../lib/test-health.mjs';
 import {
+  DURATIONS_LEGS,
   PLAYWRIGHT_DURATIONS_FILE,
   durationsView,
   mergeDurations,
@@ -416,8 +417,11 @@ test('the ledger chains on the orchestrators and the visual nightly, takes a run
   const workflow = readFileSync(path.join(repoRoot(), '.github/workflows/test-health.yml'), 'utf8');
 
   // `Visual nightly` is the only run the weekday full render's compare record arrives on; a pull request's
-  // arrives on its `Tests` run. `Visual seed` must stay out – its differences are the merge's own.
-  assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly'\]/);
+  // arrives on its `Tests` run. `E2E nightly` is the full matrix on develop – every Playwright spec on six
+  // legs, where a spec that runs on an axis it did not declare first turns red, and the frozen Jasmine
+  // suite on six, where a theme- or bundle-only red first shows (e2e-legs.test.mjs pins the workflow). `Visual seed`
+  // must stay out – its differences are the merge's own.
+  assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly'\]/);
   // The visual ticket line counts runs of this workflow by name, so the name must be the real one.
   assert.ok(workflow.includes(`'${VISUAL_NIGHTLY_WORKFLOW}'`));
   assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/visual-nightly.yml'), 'utf8'),
@@ -755,6 +759,45 @@ const durationsOf = (leg, extra = {}) => summarizePlaywrightReport(
   JSON.parse(readFileSync(DURATIONS_FIXTURE, 'utf8')), { leg, runId: String(RUN.id), runAttempt: 1, ...extra }
 );
 
+/**
+ * A whole leg's summary as the parts its shards upload (`DURATIONS_LEGS` says how many): the spec files
+ * dealt round-robin, each part with its own counts, the leg's wall-clock on every part. One part, the
+ * summary itself, for a leg that runs whole.
+ *
+ * @param {object} summary A whole leg's summary.
+ * @returns {Array<[string, object]>} `[artifact name, part]` pairs.
+ */
+function partsOf(summary) {
+  const total = DURATIONS_LEGS[summary.leg] ?? 1;
+
+  if (total === 1) {
+    return [[`${DURATIONS_ARTIFACT_PREFIX}${summary.leg}`, summary]];
+  }
+
+  return Array.from({ length: total }, (_, offset) => {
+    const files = summary.files.filter((file, index) => index % total === offset);
+    const counts = { tests: 0, skipped: 0, flaky: 0, unexpected: 0 };
+
+    files.forEach(file => file.cases.forEach((entry) => {
+      counts[entry.status === 'skipped' ? 'skipped' : 'tests'] += 1;
+
+      if (entry.status === 'flaky' || entry.status === 'unexpected') {
+        counts[entry.status] += 1;
+      }
+    }));
+
+    return [`${DURATIONS_ARTIFACT_PREFIX}${summary.leg}-s${offset + 1}`, {
+      ...summary,
+      shard: { index: offset + 1, total },
+      summedMs: files.reduce((sum, file) => sum + file.ms, 0),
+      counts,
+      files,
+    }];
+  });
+}
+const artifactFilesOf = (...summaries) => Object.fromEntries(summaries.flatMap(partsOf)
+  .map(([artifact, part]) => [`${artifact}/playwright-durations.json`, JSON.stringify(part)]));
+
 test('classifyArtifact recognizes the durations family beside the three flake families', () => {
   assert.equal(DURATIONS_ARTIFACT_PREFIX, 'playwright-durations-');
   assert.equal(classifyArtifact('playwright-durations-classic-min'), 'durations');
@@ -797,11 +840,18 @@ test('the E2E workflow summarizes and uploads every leg\'s durations, red or gre
   // The post-steps run on `!cancelled()`: a bare `if:` would get `success()` ANDed on and skip every red
   // leg, and `failure()` alone would skip every green one. Both must reach the page.
   const e2e = readFileSync(path.join(repoRoot(), '.github/workflows/e2e.yml'), 'utf8');
-  // The GitHub expression the matrix job names its leg with, as text.
-  // eslint-disable-next-line no-template-curly-in-string
-  const legs = [['playwright', '${{ matrix.theme }}${{ matrix.bundle.suffix }}'], ['playwright-engines', 'engines']];
+  // The GitHub expressions the matrix job names its leg and shard with, as text: the summarizer takes the
+  // shard (`--shard i/n`, empty on an unsharded row) and the part's artifact carries it (`-s<i>`).
+  /* eslint-disable no-template-curly-in-string */
+  const legs = [
+    ['playwright', '${{ matrix.theme }}${{ matrix.bundle.suffix }}',
+      "${{ matrix.shard && format(' --shard {0}/{1}', matrix.shard, matrix.shards) || '' }}",
+      "${{ matrix.shard && format('-s{0}', matrix.shard) || '' }}"],
+    ['playwright-engines', 'engines', '', ''],
+  ];
+  /* eslint-enable no-template-curly-in-string */
 
-  for (const [jobId, leg] of legs) {
+  for (const [jobId, leg, shardOption, partSuffix] of legs) {
     const jobSteps = steps(job(e2e, jobId));
     const at = name => jobSteps.findIndex(step => step.startsWith(`- name: ${name}\n`));
     const run = jobSteps.findIndex(step => /^ {8}id: playwright$/m.test(step));
@@ -821,12 +871,12 @@ test('the E2E workflow summarizes and uploads every leg\'s durations, red or gre
     // An instrument never turns a leg red, not even through an upload-artifact hiccup.
     assert.match(summarizeStep, /^ {8}continue-on-error: true$/m, `${jobId}: summarize must not fail the leg`);
     assert.match(uploadStep, /^ {8}continue-on-error: true$/m, `${jobId}: upload must not fail the leg`);
-    assert.ok(summarizeStep.includes(`\n        run: node .github/scripts/playwright-durations.mjs --leg ${leg}\n`),
-      `${jobId}: the summarizer names the leg the artifact is named after`);
+    assert.ok(summarizeStep.includes(`\n        run: node .github/scripts/playwright-durations.mjs --leg ${leg}${shardOption}\n`),
+      `${jobId}: the summarizer names the leg the artifact is named after, and the shard when the row has one`);
     assert.match(uploadStep, /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m, `${jobId}: upload on !cancelled()`);
     assert.ok(uploadStep.includes(`uses: ${reportPin} `), `${jobId}: the same pinned upload action as the report`);
-    assert.ok(uploadStep.includes(`\n          name: ${DURATIONS_ARTIFACT_PREFIX}${leg}\n`),
-      `${jobId}: the artifact keeps the prefix the collector classifies by`);
+    assert.ok(uploadStep.includes(`\n          name: ${DURATIONS_ARTIFACT_PREFIX}${leg}${partSuffix}\n`),
+      `${jobId}: the artifact keeps the prefix the collector classifies by, plus the shard's -s<i>`);
     assert.ok(uploadStep.includes(`\n          path: tests/${PLAYWRIGHT_DURATIONS_FILE}\n`),
       `${jobId}: one JSON file, not the HTML report`);
     assert.match(uploadStep, /^ {10}if-no-files-found: ignore$/m,
@@ -960,29 +1010,92 @@ function collectorSandbox() {
   };
 }
 
+test('the summarizer CLI records the shard it is told, and refuses one it cannot read', () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'durations-cli-shard-'));
+
+  try {
+    const results = path.join(dir, 'tests/test-results');
+
+    mkdirSync(results, { recursive: true });
+    writeFileSync(path.join(results, 'report.json'), readFileSync(DURATIONS_FIXTURE));
+
+    const written = runScript('.github/scripts/playwright-durations.mjs', ['--leg', 'main', '--shard', '2/3'],
+      { cwd: dir, env: { GITHUB_RUN_ID: String(RUN.id), GITHUB_RUN_ATTEMPT: '1' } });
+
+    assert.equal(written.status, 0, written.stderr);
+    assert.match(written.stdout, /^main shard 2\/3: 45 tests in 5 spec files: 18\.2 min wall-clock/m);
+    assert.deepEqual(JSON.parse(readFileSync(path.join(dir, 'tests', PLAYWRIGHT_DURATIONS_FILE), 'utf8')),
+      durationsOf('main', { shard: { index: 2, total: 3 } }));
+
+    const bad = runScript('.github/scripts/playwright-durations.mjs', ['--leg', 'main', '--shard', '3/2'], { cwd: dir });
+
+    assert.equal(bad.status, 2, 'the caller\'s own mistake, like a missing --leg');
+    assert.match(bad.stderr, /^Bad --shard: a shard is written <index>\/<total>/m);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('collectArtifactFiles names a part\'s shard from its artifact, and a sharded report feeds the ledger with the leg', () => {
+  const run = runContextFromRun(RUN);
+  const file = (artifact, filePath, text) => ({ artifact, path: filePath, text });
+  const part = shard => JSON.stringify(durationsOf('main', { shard }));
+  const { entries, notes, durations } = collectArtifactFiles([
+    file('playwright-durations-main-s2', 'playwright-durations.json', part({ index: 2, total: 3 })),
+    // The artifact decides the shard; a file that says otherwise is noted.
+    file('playwright-durations-main-s1', 'playwright-durations.json', part({ index: 2, total: 3 })),
+    file('playwright-durations-main-min', 'playwright-durations.json', part({ index: 2, total: 3 })),
+    // A part from before shards existed has no shard field at all.
+    file('playwright-durations-classic-min', 'playwright-durations.json', JSON.stringify((() => {
+      const { shard, ...older } = durationsOf('classic-min');
+
+      return older;
+    })())),
+    file('playwright-report-main-s2', PLAYWRIGHT_JSON_REPORT, JSON.stringify(PLAYWRIGHT_REPORT)),
+  ], run);
+
+  assert.deepEqual(durations.map(summary => [summary.leg, summary.shard]), [
+    ['main', { index: 2, total: 3 }],
+    ['main', { index: 1, total: 3 }],
+    ['main-min', null],
+    ['classic-min', null],
+  ]);
+  assert.deepEqual(notes, [
+    'playwright-durations-main-s1: the file names shard 2; recorded as 1',
+    'playwright-durations-main-min: the file names leg main; recorded as main-min',
+    'playwright-durations-main-min: the file names shard 2; recorded as none',
+  ]);
+  assert.deepEqual([...new Set(entries.map(entry => entry.leg))], ['e2e-classic-min'],
+    'the ledger\'s leg is the project each test names, never the artifact\'s shard');
+  assert.equal(classifyArtifact('playwright-report-main-s2'), 'playwright');
+});
+
 test('the collector records a develop push into durations.json, and a second collection is a no-op', () => {
   const sandbox = collectorSandbox();
 
   try {
+    // classic and main arrive as one artifact per shard (`-s1`, `-s2`, …), the way e2e.yml uploads them.
     const artifacts = sandbox.artifacts('artifacts', {
-      'playwright-durations-classic/playwright-durations.json': JSON.stringify(durationsOf('classic')),
-      'playwright-durations-main/playwright-durations.json': JSON.stringify(durationsOf('main')),
+      ...artifactFilesOf(durationsOf('classic'), durationsOf('main')),
       // A leg e2e.yml never runs: skipped, named in a note, and not in the time line.
       'playwright-durations-zzz/playwright-durations.json': JSON.stringify(durationsOf('zzz')),
-      [`playwright-report-classic/${PLAYWRIGHT_JSON_REPORT}`]: JSON.stringify(PLAYWRIGHT_REPORT),
+      [`playwright-report-classic-s2/${PLAYWRIGHT_JSON_REPORT}`]: JSON.stringify(PLAYWRIGHT_REPORT),
     });
     const first = sandbox.collect(DEVELOP_PUSH, artifacts, '2026-10-13T12:00:00Z');
 
     assert.equal(first.status, 0, first.stderr);
     assert.match(first.stdout,
-      /^Playwright wall-clock: classic 18\.2 min, main 18\.2 min \(2 workers\); heaviest file: /m);
+      /^Playwright wall-clock: classic 18\.2 min \(2 shards\), main 18\.2 min \(3 shards\) \(2 workers\); heaviest file: /m);
     assert.match(first.stdout, /^- `leg "zzz": not a leg e2e\.yml runs, skipped`$/m);
+    assert.doesNotMatch(first.stdout, /partial|missing/, 'every shard of both legs arrived');
 
     const before = sandbox.snapshot();
     const durations = JSON.parse(before['durations.json']);
 
-    assert.deepEqual(durations.runs.map(run => [run.runId, run.legs.map(leg => leg.leg)]),
-      [[String(DEVELOP_PUSH.id), ['classic', 'main']]]);
+    assert.deepEqual(durations.runs.map(run => [run.runId, run.legs.map(leg => [leg.leg, leg.shards, leg.parts.length])]),
+      [[String(DEVELOP_PUSH.id), [['classic', 2, 2], ['main', 3, 3]]]]);
+    // The flake entries come from the sharded report under the leg's project, never a `-s2` leg.
+    assert.deepEqual([...new Set(JSON.parse(before['ledger.json']).entries.map(entry => entry.leg))], ['e2e-classic-min']);
     assert.equal(JSON.parse(before['ledger.json']).entries.length, 2, 'the flake ledger is untouched by the durations');
     assert.ok(before['index.html'].includes('Where the time goes'));
 
@@ -1091,10 +1204,11 @@ test('renderStepSummary adds the leg wall-clocks and the heaviest file when the 
 
 test('renderPage draws the "Where the time goes" section from the inlined durations, escaped and runnable', () => {
   const template = readFileSync(path.join(repoRoot(), '.github/test-health/index.template.html'), 'utf8');
-  const legs = [durationsOf('classic'), durationsOf('main')];
+  const main = durationsOf('main');
 
-  legs[1].files[0].cases[0].title = 'stalls </script><b>bold</b> forever';
+  main.files[0].cases[0].title = 'stalls </script><b>bold</b> forever';
 
+  const legs = [durationsOf('classic'), main].flatMap(partsOf).map(([, part]) => part);
   const { doc } = mergeDurations(null, legs, runContextFromRun(DEVELOP_PUSH),
     { now: new Date('2026-10-13T12:00:00Z') });
   const view = durationsView(doc);

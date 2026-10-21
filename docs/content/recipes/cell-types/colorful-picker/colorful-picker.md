@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Colorful Picker
-metaTitle: Color Picker Cell Type - React Data Grid | Handsontable
-description: Learn how to create a custom Handsontable cell type using a color picker for selecting hex colors directly in your data grid.
+metaTitle: Colorful Picker | Handsontable DataGrid for JavaScript
+description: Learn how to create a custom Handsontable DataGrid cell type using a color picker for selecting hex colors directly in your data grid.
 permalink: /recipes/cell-types/colorful-picker
 canonicalUrl: /recipes/cell-types/colorful-picker
 framework: react
@@ -11,15 +11,15 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Color Picker Cell Type - React Data Grid | Handsontable
+  metaTitle: Colorful Picker | Handsontable DataGrid for React
 angular:
-  metaTitle: Color Picker Cell Type - Angular Data Grid | Handsontable
+  metaTitle: Colorful Picker | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Cell Types
 ---
 
-This tutorial shows you how to build a color picker cell in React using the `react-colorful` library and Handsontable's `EditorComponent`.
+This tutorial shows you how to build a color picker cell in React using the `react-colorful` library and Handsontable DataGrid's `EditorComponent`.
 
 ::: only-for react
 
@@ -195,7 +195,7 @@ export const data = inputData.map((el) => ({
 - Each row is an object with columns such as `id`, `itemName`, `itemNo`, `cost`, `valueStock`
 - A `color` property is added with a random hex value in `#RRGGBB` format
 
-## Step 5: Use in Handsontable
+## Step 5: Use in Handsontable DataGrid
 
 Use the editor, custom renderer, and validator on the color column. The example table has multiple columns; the color column uses `hotRenderer` and `validator`.
 

@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, AfterViewInit, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 type ApiUser = {
@@ -61,6 +61,8 @@ const USERS_QUERY = `
 export class AppComponent implements AfterViewInit {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
+  private readonly cdr = inject(ChangeDetectorRef);
+
   status = 'Loading users...';
   hasError = false;
   showRefresh = false;
@@ -106,6 +108,9 @@ export class AppComponent implements AfterViewInit {
       this.hotTable.hotInstance?.loadData([]);
       this.hasError = true;
       this.status = 'Failed to load users. Try again.';
+    } finally {
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so mark it.
+      this.cdr.markForCheck();
     }
   }
 
@@ -126,6 +131,9 @@ export class AppComponent implements AfterViewInit {
       // On error, do not clear the grid -- the existing data is still valid.
       this.hasError = true;
       this.status = 'Failed to load users. Try again.';
+    } finally {
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so mark it.
+      this.cdr.markForCheck();
     }
   }
 

@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Move cells
-metaTitle: Move cells - JavaScript Data Grid | Handsontable
+metaTitle: Move cells | Handsontable DataGrid for JavaScript
 description: Move or copy a selected range of cells by dragging its border. Formula references adjust automatically when the Formulas plugin is active.
 permalink: /move-cells
 canonicalUrl: /move-cells
@@ -12,11 +12,11 @@ tags:
   - relocate cells
   - movecells
 react:
-  metaTitle: Move cells - React Data Grid | Handsontable
+  metaTitle: Move cells | Handsontable DataGrid for React
 angular:
-  metaTitle: Move cells - Angular Data Grid | Handsontable
+  metaTitle: Move cells | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Move cells - Vue Data Grid | Handsontable
+  metaTitle: Move cells | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
 menuTag: new

@@ -20,6 +20,10 @@ import {
 export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
+/**
+ * The source the fill handle inserts its rows with (`Autofill#addRow()`).
+ */
+const AUTOFILL_INSERT_SOURCE = 'Autofill.fill';
 
 /**
  * Error message for the wrong data type error.
@@ -155,6 +159,33 @@ export class NestedRows extends BasePlugin {
   #isRebuilding = false;
 
   /**
+   * The row an insert through the Core API was anchored on, recorded in `beforeCreateRow` and consumed
+   * by the `beforeDataSplice` call that follows it. See `#onBeforeCreateRow`.
+   *
+   * @type {RowObject|null}
+   */
+  #insertAnchor: RowObject | null = null;
+
+  /**
+   * Set by a caller that loads a new dataset right after a settings update, while the grid still
+   * holds the previous one (the sheets bar on a sheet switch). An enable during that update then
+   * takes its data from the `loadData()` that follows, through `#onBeforeLoadData`, instead of
+   * validating the previous dataset, which is not nested and would turn the plugin off.
+   *
+   * @private
+   * @type {boolean}
+   */
+  deferDataCheck = false;
+
+  /**
+   * `true` from an enable that `deferDataCheck` held back until the `loadData()` that brings the
+   * plugin its data.
+   *
+   * @type {boolean}
+   */
+  #awaitsDataLoad = false;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
    *
@@ -201,6 +232,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('beforeDetachChild', this.#onBeforeDetachChild);
     this.addHook('afterDetachChild', this.#onAfterDetachChild);
     this.addHook('modifyRowHeaderWidth', this.#onModifyRowHeaderWidth);
+    this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
     this.addHook('afterCreateRow', this.#onAfterCreateRow);
     this.addHook('beforeRowMove', this.#onBeforeRowMove);
     this.addHook('beforeLoadData', this.#onBeforeLoadData, 1);
@@ -266,6 +298,14 @@ export class NestedRows extends BasePlugin {
     let currentSourceData = this.dataManager!.getData();
     const isDataManagerEmpty = currentSourceData === null;
 
+    if (isDataManagerEmpty && this.deferDataCheck) {
+      this.enablePlugin();
+      this.#awaitsDataLoad = true;
+      super.updatePlugin();
+
+      return;
+    }
+
     if (isDataManagerEmpty) {
       currentSourceData = this.hot.getSettings().data as RowObject[];
 
@@ -313,7 +353,7 @@ export class NestedRows extends BasePlugin {
 
     super.onUpdateSettings(newSettings);
 
-    if (wasEnabled === this.enabled) {
+    if (wasEnabled === this.enabled || this.#awaitsDataLoad) {
       return;
     }
 
@@ -1156,7 +1196,26 @@ export class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   onBeforeDataSplice(index: number, amount: number, element: Record<string, unknown>) {
-    if (this.#skipCoreAPIModifiers || this.dataManager!.isRowHighestLevel(index)) {
+    const anchor = this.#insertAnchor;
+
+    // Defensive: `#onBeforeCreateRow` replaces the anchor before every Core insert anyway.
+    this.#insertAnchor = null;
+
+    if (this.#skipCoreAPIModifiers) {
+      return true;
+    }
+
+    // An insert below the last row of the tree. The splice index alone reads as "past the end", which
+    // the check below would hand to the Core as a top-level append, so the new rows join the anchor's
+    // parent instead. Only the end is handled here: there every level lands at the same flattened
+    // position, so the index maps and the cell meta the Core already shifted stay in step.
+    if (anchor !== null && index === this.dataManager!.countAllRows() && this.#endsWithSubtreeOf(anchor)) {
+      this.dataManager!.appendSiblings(anchor, element as unknown as RowObject[]);
+
+      return false;
+    }
+
+    if (this.dataManager!.isRowHighestLevel(index)) {
       return true;
     }
 
@@ -1534,6 +1593,78 @@ export class NestedRows extends BasePlugin {
   };
 
   /**
+   * Checks whether the last row of the flattened tree is the provided row or one of its descendants,
+   * which is when a sibling appended after it lands at the end of the flattened tree.
+   *
+   * @param {object} rowObject The row object to check.
+   * @returns {boolean}
+   */
+  #endsWithSubtreeOf(rowObject: RowObject): boolean {
+    let node: RowObject | null | undefined = this.dataManager!.getDataObject(this.dataManager!.countAllRows() - 1);
+
+    while (node) {
+      if (node === rowObject) {
+        return true;
+      }
+
+      node = this.dataManager!.getRowParent(node);
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns the row object an insert is anchored on, or `null` for an insert that names no row.
+   *
+   * Two inserts name a row: one with a row index, and the fill handle's, which appends past the
+   * last row while it continues the rows the user drags from, so it is anchored on the last row the
+   * user sees. That is the last RENDERED row, not `countRows() - 1`: HiddenRows keeps a hidden row in
+   * the visual space, so the last visual row can be one the user cannot see. The fill handle passes
+   * no index on purpose: an explicit one would make the Core move the last row's index map values (a
+   * hidden row, a manual height) onto the new row. Any other insert with no row index
+   * (`minSpareRows`, `minRows`, a paste or an edit past the last row, `alter('insert_row_below')`)
+   * keeps appending a top-level row. The plugin's own hand-built inserts never reach the Core splice.
+   *
+   * @param {number} index The visual index of the row the insert is anchored on.
+   * @param {string} [source] The source of the call.
+   * @returns {object|null}
+   */
+  #findInsertAnchor(index: number, source?: string): RowObject | null {
+    if (typeof source === 'string' && source.startsWith('NestedRows.')) {
+      return null;
+    }
+
+    let anchorRow: number | null = null;
+
+    if (Number.isInteger(index) && index >= 0 && index < this.hot.countRows()) {
+      anchorRow = index;
+
+    } else if (source === AUTOFILL_INSERT_SOURCE) {
+      const renderableRows = this.hot.rowIndexMapper.getRenderableIndexesLength();
+
+      anchorRow = renderableRows > 0 ? this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderableRows - 1) : null;
+    }
+
+    const physicalRow = anchorRow === null ? null : this.hot.toPhysicalRow(anchorRow);
+
+    return physicalRow === null ? null : (this.dataManager!.getDataObject(physicalRow) ?? null);
+  }
+
+  /**
+   * `beforeCreateRow` hook callback. Records the row an insert is anchored on (see
+   * `#findInsertAnchor()`), so that `onBeforeDataSplice()` can tell "below the last row" from a
+   * plain append. Every Core insert runs this hook before it splices, and the anchor is replaced on
+   * every call, so the anchor of an insert a listener vetoed never reaches the next one.
+   *
+   * @param {number} index The visual index of the row the insert is anchored on.
+   * @param {number} amount The number of rows to insert.
+   * @param {string} [source] The source of the call.
+   */
+  #onBeforeCreateRow = (index: number, amount: number, source?: string) => {
+    this.#insertAnchor = this.#findInsertAnchor(index, source);
+  };
+
+  /**
    * `afterCreateRow` hook callback.
    */
   #onAfterCreateRow = () => {
@@ -1649,6 +1780,10 @@ export class NestedRows extends BasePlugin {
    * @param {Array} data The source data.
    */
   #onBeforeLoadData = (data: unknown[]) => {
+    const awaitedLoad = this.#awaitsDataLoad;
+
+    this.#awaitsDataLoad = false;
+
     if (!this.#acceptsData(data)) {
       return;
     }
@@ -1657,6 +1792,10 @@ export class NestedRows extends BasePlugin {
 
     this.dataManager!.setData(data as RowObject[]);
     this.dataManager!.rewriteCache();
+
+    if (awaitedLoad && this.hot.view) {
+      this.headersUI!.updateRowHeaderWidth(undefined, false);
+    }
   };
 
   /**

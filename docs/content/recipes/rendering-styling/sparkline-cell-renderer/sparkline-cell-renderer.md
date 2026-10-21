@@ -1,7 +1,7 @@
 ---
 title: Sparkline cell renderer
-metaTitle: Sparkline cell renderer - JavaScript Data Grid | Handsontable
-description: Build a custom Handsontable cell renderer that draws an inline SVG bar chart from an array of numbers in each cell.
+metaTitle: Sparkline cell renderer | Handsontable DataGrid for JavaScript
+description: Build a custom Handsontable DataGrid cell renderer that draws an inline SVG bar chart from an array of numbers in each cell.
 permalink: /recipes/rendering-styling/sparkline-cell-renderer
 canonicalUrl: /recipes/rendering-styling/sparkline-cell-renderer
 tags:
@@ -10,11 +10,11 @@ tags:
   - recipes
   - renderer
 react:
-  metaTitle: Sparkline cell renderer - React Data Grid | Handsontable
+  metaTitle: Sparkline cell renderer | Handsontable DataGrid for React
 angular:
-  metaTitle: Sparkline cell renderer - Angular Data Grid | Handsontable
+  metaTitle: Sparkline cell renderer | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Sparkline cell renderer - Vue Data Grid | Handsontable
+  metaTitle: Sparkline cell renderer | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Rendering and styling
 type: how-to
@@ -72,7 +72,7 @@ This recipe shows how to edit weekly values in table cells and render a mini bar
 - Each row always shows five bar slots. A slot is left empty when its source value is missing or non-numeric.
 - Safe handling when a row has no valid values or when every value in the dataset is zero.
 - Optional coloring: green when a value is at or above the row average, red when below.
-- Interactive behavior -- when you edit W1-W5, Handsontable re-renders the sparkline SVG for that row.
+- Interactive behavior -- when you edit W1-W5, Handsontable DataGrid re-renders the sparkline SVG for that row.
 
 ## Step 1: Run `baseRenderer` before the SVG
 

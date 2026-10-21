@@ -1,6 +1,7 @@
 name: Docs
 
-# Everything docs — lint, plugin tests, Angular-example type-check, the
+# Everything docs — lint, plugin tests, Angular-example type-check, the changed
+# javascript/react/vue examples type-check (DEV-3420), the
 # Cloudflare preview deploy, the functional Playwright specs against that
 # preview (report-only for one sprint), and the label-gated visual suite. The
 # visual suite probes R2 for `docs/base/<base branch>/out.json`, compares the
@@ -8,7 +9,7 @@ name: Docs
 # sticky comment, and holds a `changed` verdict on the `docs-visual-approval`
 # environment — visual.yml's contract, implemented once in the docs-visual-run
 # action (DEV-2860; the action's probe step has the history of the cache it
-# replaced). Internal ordering: lint/plugins/angular in parallel → preview
+# replaced). Internal ordering: lint/plugins/angular/examples in parallel → preview
 # (needs lint+plugins) → functional, and visual (needs preview + the live label
 # gate) → approve. The orchestrator gates the whole module on docs scope.
 on:
@@ -16,12 +17,13 @@ on:
     inputs:
       run-all: { type: boolean, default: false }
       run-angular: { type: boolean, default: false }
+      run-content-types: { type: boolean, default: false }
       is-pr: { type: boolean, default: false }
 
 jobs:
   lint:
     name: lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
@@ -30,7 +32,7 @@ jobs:
 
   plugins:
     name: plugins
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
@@ -42,7 +44,7 @@ jobs:
 
   angular-types:
     name: Angular types
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     # PR-only, and only when the Angular-relevant scope changed.
     if: inputs.is-pr && (inputs.run-all || inputs.run-angular)
@@ -55,12 +57,27 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+  content-types:
+    name: Examples types
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    # PR-only: it diffs the changed examples against the merge ref's first parent.
+    if: inputs.is-pr && (inputs.run-all || inputs.run-content-types)
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          # The merge ref and its first parent (the base) are all the check reads.
+          fetch-depth: 2
+      - uses: ./.github/actions/docs-content-typecheck
+
   # Cheap, early label read (independent of the preview build) — the PR's CURRENT
   # labels, so adding `run-docs-visual` + "Re-run all jobs" activates the visual
   # suite mid-review.
   visual-label:
     name: visual label
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: inputs.is-pr
     outputs:
       run: ${{ steps.check.outputs.run }}
@@ -84,13 +101,13 @@ jobs:
   # Deploys the PR's Cloudflare preview (the standalone docs-staging.yml keeps
   # the trunk develop/release push deploys). PR-only. Depends on all the docs
   # gates so it lands at the BUILD stage (alongside the core build jobs); skipped
-  # gates (angular-types/visual-label off-scope) don't block it.
+  # gates (angular-types/content-types/visual-label off-scope) don't block it.
   preview:
     name: preview
     # Depends on the docs QUALITY gates only — NOT visual-label, which is a live
     # API label read for the optional visual suite (a routing flag, not a gate);
     # coupling the preview to it would skip the deploy if that API call flaked.
-    needs: [ lint, plugins, angular-types ]
+    needs: [ lint, plugins, angular-types, content-types ]
     # Fork-hostile twice over. `docs-staging.yml`'s FIRST step posts a sticky
     # comment, so on a fork PR the job dies there in ~14s and every build and
     # deploy step after it is already skipped (verified: fork PR #13207, run
@@ -115,10 +132,12 @@ jobs:
   # for one sprint (the DEV-2860 report's decision): their pass rate against a
   # live preview has never been measured, so `continue-on-error` keeps them
   # from blocking merges while it is. Flip it off after a sprint of green runs;
-  # the outcome line in the job summary is what to read until then.
+  # the outcome line in the job summary is what to read until then. The one
+  # thing that does block is a run that collected no test at all - see the
+  # job's last step.
   functional:
     name: functional
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     needs: [ preview ]
     if: ${{ !failure() && !cancelled() && inputs.is-pr && needs.preview.result == 'success' }}
@@ -141,9 +160,15 @@ jobs:
         if: ${{ !cancelled() }}
         env:
           OUTCOME: ${{ steps.functional.outcome }}
+          REPORT: ./docs/tests/test-artifacts/report.json
         run: |
           if [ "$OUTCOME" = "success" ]; then result=passed; else result=failed; fi
-          echo "Docs functional specs: $result — report-only for one sprint; see docs/AGENTS.md" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$REPORT" ]; then
+            counts=$(jq -r '.stats | "\(.expected) passed, \(.unexpected) failed, \(.flaky) flaky, \(.skipped) skipped"' "$REPORT")
+          else
+            counts="no report"
+          fi
+          echo "Docs functional specs: $result ($counts) — report-only for one sprint; see docs/AGENTS.md" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload the functional report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
@@ -152,6 +177,24 @@ jobs:
           path: ./docs/tests/test-artifacts/results
           retention-days: 7
           overwrite: true
+      # Report-only covers a spec that fails, not a run that never started. A spec
+      # file that throws on import aborts the whole collection, Playwright then
+      # reports 0 tests, and the step above reads "failed" like any red spec - which
+      # is how every run of this job collected nothing for weeks (the `node:test`
+      # files under docs/tests/lib/__tests__ were imported as specs). So the job
+      # itself fails, and blocks the merge, when the run has no test that ran.
+      # Only the count is read: a load error always shows as a 0 count, while an
+      # error outside a test in a run that did run its specs (a worker teardown
+      # timeout, say) stays report-only like a failing spec. Unlike the seed's fast
+      # check in docs-visual-run, a skipped test is fine here. Last, so the report
+      # is uploaded either way.
+      - name: Check that the functional specs ran
+        if: ${{ !cancelled() }}
+        working-directory: ./docs
+        run: |
+          jq -e '(.stats.expected + .stats.unexpected + .stats.flaky) > 0' \
+            ./tests/test-artifacts/report.json > /dev/null \
+            || { echo "::error::The functional docs specs did not run: the report holds no test that ran (a spec that fails to load aborts the whole run). Read the docs-functional-report artifact."; exit 1; }
 
   # Opt-in through the `run-docs-visual` label in this PR: 441 full-page
   # captures per run. Drop the label gate once the R2 baseline has proven
@@ -159,7 +202,7 @@ jobs:
   # need no change for that, only this job's `needs`/`if`.
   visual:
     name: visual
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 90
     needs: [ visual-label, preview ]
     if: |
@@ -230,7 +273,7 @@ jobs:
   # trusting its configuration, and fails closed when none is.
   approve:
     name: visual approve
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [ visual ]
     # `!failure()` as well as `!cancelled()`, matching visual.yml's `approve`. An
     # `if:` that contains a status-check function replaces the implicit `success()`

@@ -2,13 +2,11 @@
  * @description
  *
  * ::: only-for javascript
- * Handsontable events are the common interface that function in 2 ways: as __callbacks__ and as __hooks__.
+ * Handsontable DataGrid events are the common interface that function in 2 ways: as __callbacks__ and as __hooks__.
  * :::
  *
  * ::: only-for react
- * This page lists all the **Handsontable hooks** – callbacks that let you react before or after an action occurs.
- *
- * Read more on the [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) page.
+ * This page lists all the **Handsontable DataGrid hooks** – callbacks that let you react before or after an action occurs.
  * :::
  *
  * @example
@@ -485,11 +483,13 @@ export const REGISTERED_HOOKS = [
   'afterGetRowHeader',
 
   /**
-   * Fired by the {@link ImportFile} plugin after the imported result was applied to the grid.
+   * Fired by the {@link ImportFile} plugin after the imported result was applied to the grid. Not
+   * fired for an import with `apply: false`, for one that a newer import replaced, or for one the
+   * plugin was disabled during (`importFile: false` while the file was being read).
    *
    * @event Hooks#afterImport
    * @since 19.0.0
-   * @param {object} result The applied {@link ImportFile} result.
+   * @param {ImportResult} result The applied {@link ImportFile} result.
    * @param {string} format The import format, e.g. `'xlsx'`.
    */
   'afterImport',
@@ -862,6 +862,46 @@ export const REGISTERED_HOOKS = [
    * @param {object} cellProperties Object containing the cell's properties.
    */
   'afterRenderer',
+
+  /**
+   * Fired after rows that had ids (see the [`rowId`](@/api/options.md#rowid) option) stopped existing: after a row
+   * removal (an undo or a redo included), and after [`loadData()`](@/api/core.md#loaddata) or
+   * [`updateData()`](@/api/core.md#updatedata) replaced the data with data that no longer holds those ids.
+   *
+   * Use it to cancel pending work, such as an asynchronous request, made for those rows. A row that is trimmed
+   * or filtered out still exists, so it is not reported.
+   *
+   * The hook fires in a microtask once the call that removed the rows has finished, with every id that call
+   * removed. So the rows a call takes away and puts back, like a [`NestedRows`](@/api/nestedRows.md) detach or
+   * row move, are not reported.
+   *
+   * A grid backed by an external data source (the [`DataProvider`](@/api/dataProvider.md) plugin) loads every
+   * page, sort, and filter with `loadData()`, and the rows it drops still exist on the server, so a data load
+   * there reports nothing. A removal the server confirms (`afterRowsMutation` with `'remove'`) is reported with
+   * the `'dataProvider'` source.
+   *
+   * The hook reads the ids only while it has listeners, so a grid that does not listen to it pays nothing.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterRowIdsRemoved
+   * @param {Array} rowIds The ids of the rows that no longer exist.
+   * @param {string} [source] String that identifies the source of the change
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   */
+  'afterRowIdsRemoved',
+
+  /**
+   * Fired after a settings update changed how rows get their ids (the [`rowId`](@/api/options.md#rowid)
+   * option, or `dataProvider.rowId`), while the rows had ids before it. Every id read before the update may now
+   * name another row or none, so look the rows up again or cancel the pending work made for them.
+   *
+   * A function passed as `rowId` is compared by reference: pass the same function on every settings update, or
+   * the hook fires each time.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterRowIdsReset
+   */
+  'afterRowIdsReset',
 
   /**
    * Fired after the cache of the row sequence has been updated.
@@ -1480,13 +1520,35 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Autofill} plugin before populating the data in the autofill feature. This hook is fired when
    * {@link Options#fillHandle} option is enabled.
    *
+   * Several callbacks can return a result for this hook, and the last callback that returns a value decides
+   * the outcome. Global hooks (added with `Handsontable.hooks.add()`) run first, then the hooks of the
+   * instance (the `beforeAutofill` option and `addHook()`). Within each group, callbacks run in ascending
+   * `orderIndex` order, and callbacks with the same `orderIndex` run in the order they were registered. Each
+   * callback receives the previous result as its first argument. A callback that returns a value replaces
+   * the earlier results. A callback that returns `undefined` keeps them. Returning `false` doesn't stop the
+   * callbacks that run later, so a later callback can still return data and the autofill goes ahead.
+   *
+   * When the {@link Formulas} plugin is enabled, it registers its own `beforeAutofill` callback with the
+   * default `orderIndex` of 0. That callback ignores the results of earlier callbacks. It returns `false` when
+   * the engine can't set the target cells, or the filled data with the formulas adjusted. Your callback
+   * overrides the plugin's only if it runs after it. The `beforeAutofill` option set at initialization and a
+   * callback added with `addHook()` after the plugin is enabled run after it. A global hook, a callback added
+   * with `addHook()` before the plugin is enabled, and the `beforeAutofill` option when you enable the plugin
+   * later with `updateSettings()` run before it and are overridden. Disabling and re-enabling the plugin
+   * registers its callback again, after your callbacks that have an `orderIndex` of 0. To always override the
+   * plugin, add your callback with `addHook('beforeAutofill', callback, 1)`: an `orderIndex` greater than 0
+   * runs after the plugin's callback, whenever you add it.
+   *
    * @event Hooks#beforeAutofill
-   * @param {Array[]} selectionData Data the autofill operation will start from.
+   * @param {Array[]|boolean} selectionData Data the autofill operation will start from. A callback that
+   *                                        runs after another callback that returned a value receives that
+   *                                        value instead (for example, `false`).
    * @param {CellRange} sourceRange The range values will be filled from.
    * @param {CellRange} targetRange The range new values will be filled into.
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    *
-   * @returns {boolean|Array[]} If false, the operation is canceled. If array of arrays, the returned data
+   * @returns {boolean|Array[]} If the final result is false, the operation is canceled. If the final result is
+   *                              an array of arrays, the returned data
    *                              will be passed into [`populateFromArray`](@/api/core.md#populatefromarray) instead of the default autofill
    *                              algorithm's result.
    */
@@ -1505,6 +1567,112 @@ export const REGISTERED_HOOKS = [
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    */
   'afterAutofill',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after it starts an asynchronous computation of a cell's
+   * value. The cell is in the pending state.
+   *
+   * @event Hooks#afterAsyncValueStart
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   */
+  'afterAsyncValueStart',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin before it starts an asynchronous computation of a cell's
+   * value. Return `false` to skip the request: the cell does not become pending, its source is not
+   * called, and the request's promise resolves as canceled with the `'vetoed'` reason. No
+   * `afterAsyncValueCancel` hook fires for a skipped request, because nothing was pending.
+   *
+   * The callbacks run one after another, and each one receives the previous callback's result as its first
+   * argument instead of the row index when that result is not `undefined`. So a callback that only allows a
+   * request returns `undefined`, never `true`, and a callback that checks the decision of an earlier one
+   * compares its first argument with `false`. A callback that throws skips its cell's request, and the error
+   * is thrown again once the call has started its other cells.
+   *
+   * @event Hooks#beforeAsyncValueStart
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   * @returns {boolean|undefined} Return `false` to skip the request.
+   */
+  'beforeAsyncValueStart',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin before it passes a resolved value to the grid. Return a value
+   * to write it instead, or `false` to discard the value: the cell keeps its previous value, and the
+   * request ends as canceled with the `'vetoed'` reason. Because `false` discards, a listener cannot
+   * replace a value with a literal `false`; a resolved `false` that no listener changes is written.
+   *
+   * The callbacks run one after another, and each one receives the previous callback's result as its first
+   * argument when that result is not `undefined`. So a callback that keeps the value returns `undefined`, and
+   * a callback that checks for an earlier discard compares its first argument with `false`. Every callback of
+   * a flush runs before any value is written. A callback that throws fails its own cell with the error it
+   * threw. The other cells are written, and then the error is reported as an uncaught error.
+   *
+   * @event Hooks#beforeAsyncValueResolve
+   * @since 19.0.0
+   * @param {*} value The resolved value.
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   * @returns {*} The value to write, `false` to discard it, or `undefined` to keep it.
+   */
+  'beforeAsyncValueResolve',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after it passes a resolved value to the grid. A `beforeChange`
+   * listener or the cell's validator can still change or reject the value, and an asynchronous validator
+   * delays the write.
+   *
+   * @event Hooks#afterAsyncValueResolve
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} value The resolved value.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   */
+  'afterAsyncValueResolve',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after a cell's request rejects. The cell keeps its
+   * previous value and is in the error state.
+   *
+   * @event Hooks#afterAsyncValueReject
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} error The rejection reason.
+   * @param {string} message The error message shown on the cell.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   */
+  'afterAsyncValueReject',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after it cancels a cell's pending request. A late result
+   * of the request is ignored.
+   *
+   * @event Hooks#afterAsyncValueCancel
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell, at the time of the cancellation.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {string} reason Why the request was canceled: `'edit'`, `'dependency'`, `'restart'`,
+   * `'rowRemoved'`, `'columnsChanged'`, `'dataReplaced'`, `'manual'`, `'disabled'`, or `'vetoed'`.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   */
+  'afterAsyncValueCancel',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin when the last pending request settles (resolves, rejects, or is
+   * canceled), so no cell is pending any more.
+   *
+   * @event Hooks#afterAsyncValuesIdle
+   * @since 19.0.0
+   */
+  'afterAsyncValuesIdle',
 
   /**
    * Fired before aligning the cell contents.
@@ -1720,11 +1888,13 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by the {@link ImportFile} plugin after a workbook was read and mapped, and before the
-   * result is applied to the grid. Mutating `result` changes what gets applied.
+   * result is applied to the grid. Mutating `result` changes what gets applied. Not fired for an
+   * import with `apply: false`, for one that a newer import replaced, or for one the plugin was
+   * disabled during. The dropped-features warning is already printed by then.
    *
    * @event Hooks#beforeImport
    * @since 19.0.0
-   * @param {object} result The {@link ImportFile} result about to be applied.
+   * @param {ImportResult} result The {@link ImportFile} result about to be applied.
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @returns {boolean|undefined} If `false`, the result is not applied. The import promise still resolves with it.
    */
@@ -2461,6 +2631,8 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link CopyPaste} plugin before copying the values to the clipboard and before clearing values of
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
+   * Changes the callback makes to `data` also apply to the data that a paste into another Handsontable grid reads.
+   *
    * @event Hooks#beforeCut
    * @param {Array[]} data An array of arrays which contains data to cut.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
@@ -2548,6 +2720,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired before values are copied to the clipboard.
+   *
+   * Changes the callback makes to `data` also apply to the data that a paste into another Handsontable grid reads.
    *
    * @event Hooks#beforeCopy
    * @param {Array[]} data An array of arrays which contains data to copied.
@@ -3047,6 +3221,34 @@ export const REGISTERED_HOOKS = [
   'afterRowMove',
 
   /**
+   * Fired by {@link FreezeBar} plugin before the number of frozen rows or columns changes. Return `false` to cancel
+   * the change. This hook is fired when the {@link Options#freezeBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#beforeFreezeChange
+   * @param {'top'|'bottom'|'start'|'end'} edge The edge of the frozen area. `start` and `end` follow the layout direction.
+   * @param {number} newCount The new number of frozen rows or columns on that edge.
+   * @param {number} oldCount The current number of frozen rows or columns on that edge.
+   * @param {'drag'|'keyboard'|'api'} source What requested the change.
+   * @returns {boolean|undefined} If `false` is returned, the change is canceled.
+   */
+  'beforeFreezeChange',
+
+  /**
+   * Fired by {@link FreezeBar} plugin after the number of frozen rows or columns changed. The plugin changes the
+   * count on the grid only, and does not write it back to the settings you passed in. Copy the new count into your
+   * own state here. This hook is fired when the {@link Options#freezeBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterFreezeChange
+   * @param {'top'|'bottom'|'start'|'end'} edge The edge of the frozen area. `start` and `end` follow the layout direction.
+   * @param {number} newCount The new number of frozen rows or columns on that edge.
+   * @param {number} oldCount The previous number of frozen rows or columns on that edge.
+   * @param {'drag'|'keyboard'|'api'} source What requested the change.
+   */
+  'afterFreezeChange',
+
+  /**
    * Fired by {@link ManualColumnResize} plugin before rendering the table with modified column sizes. This hook is
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
@@ -3498,7 +3700,7 @@ export const REGISTERED_HOOKS = [
    * @since 19.0.0
    * @event Hooks#afterSheetTabStateCapture
    * @param {number} sheetId The id of the sheet the view state was captured from.
-   * @param {object} viewState The captured view state.
+   * @param {object} viewState The captured view state. Its `sortConfig` names each column by its physical index.
    * @param {string} source String that identifies source of hook call.
    */
   'afterSheetTabStateCapture',
@@ -3510,7 +3712,7 @@ export const REGISTERED_HOOKS = [
    * @since 19.0.0
    * @event Hooks#afterSheetTabStateRestore
    * @param {number} sheetId The id of the sheet the view state was restored to.
-   * @param {object} viewState The restored view state.
+   * @param {object} viewState The restored view state. Its `sortConfig` names each column by its physical index.
    * @param {string} source String that identifies source of hook call.
    */
   'afterSheetTabStateRestore',
@@ -3883,6 +4085,46 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} stateChanged `true`, if the action affected any hidden rows, `false` otherwise.
    */
   'afterUnhideRows',
+
+  /**
+   * Fired by the {@link RowSelection} plugin before the row selection changes. Fired only if the
+   * {@link Options#rowSelection} option is enabled. Returning `false` in the callback cancels the change.
+   *
+   * The lists hold only the rows whose state really changes. With a server-backed grid (the
+   * {@link DataProvider} plugin), the lists hold only the loaded rows: a change that affects only rows
+   * on other pages (for example, "select all" while the loaded page is already selected) runs the hook
+   * with two empty lists. To read the full selection, call `getServerSelection()`.
+   *
+   * @since 19.0.0
+   * @event Hooks#beforeRowSelectionChange
+   * @param {number[]} rowsToSelect Physical indexes of the rows about to be selected.
+   * @param {number[]} rowsToDeselect Physical indexes of the rows about to be deselected.
+   * @param {string} source What changed the selection: `'checkbox'`, `'headerCheckbox'`, `'click'`,
+   * `'keyboard'`, `'api'`, or `'dataChange'`. `'dataChange'` means a write to the bound checkbox column
+   * (see {@link Options#rowSelection}) that did not come from editing the cell – for example a paste,
+   * an autofill, or a `setDataAtCell()` call.
+   * @returns {undefined|boolean} If the callback returns `false`, the selection does not change.
+   */
+  'beforeRowSelectionChange',
+
+  /**
+   * Fired by the {@link RowSelection} plugin after the row selection changes. Fired only if the
+   * {@link Options#rowSelection} option is enabled.
+   *
+   * With a server-backed grid (the {@link DataProvider} plugin), the lists hold only the loaded rows: a
+   * change that affects only rows on other pages runs the hook with two empty lists. To read the full
+   * selection, call `getServerSelection()`.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterRowSelectionChange
+   * @param {number[]} selectedRows Physical indexes of the rows that were selected.
+   * @param {number[]} deselectedRows Physical indexes of the rows that were deselected.
+   * @param {string} source What changed the selection: `'checkbox'`, `'headerCheckbox'`, `'click'`,
+   * `'keyboard'`, `'api'`, or `'dataChange'`. `'dataChange'` means a write to the bound checkbox column
+   * (see {@link Options#rowSelection}) that did not come from editing the cell – for example a paste,
+   * an autofill, or a `setDataAtCell()` call.
+   */
+  'afterRowSelectionChange',
 
   /**
    * Fired by {@link HiddenColumns} plugin before marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.

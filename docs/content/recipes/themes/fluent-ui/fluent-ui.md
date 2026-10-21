@@ -1,7 +1,7 @@
 ---
-title: Handsontable with Fluent UI
-metaTitle: Handsontable with Fluent UI - React Data Grid | Handsontable
-description: Integrate Handsontable into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing.
+title: Handsontable DataGrid with Fluent UI
+metaTitle: Fluent UI theme | Handsontable DataGrid for JavaScript
+description: Integrate Handsontable DataGrid into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing.
 permalink: /recipes/themes/fluent-ui
 canonicalUrl: /recipes/themes/fluent-ui
 tags:
@@ -14,13 +14,13 @@ tags:
   - themes
   - Theme API
 react:
-  metaTitle: Handsontable with Fluent UI - React Data Grid | Handsontable
+  metaTitle: Fluent UI theme | Handsontable DataGrid for React
 searchCategory: Recipes
 category: Themes
 type: how-to
 ---
 
-In this tutorial, you will integrate Handsontable into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing. You will learn how to map Fluent UI tokens to Handsontable theme parameters through the Theme API.
+In this tutorial, you will integrate Handsontable DataGrid into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing. You will learn how to map Fluent UI tokens to Handsontable theme parameters through the Theme API.
 
 <iframe src="https://demos.handsontable.com/embed/3w4w5x6f54"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -111,7 +111,7 @@ const colorsFluent = {
 export default colorsFluent;
 ```
 
-## Step 4: Register your Fluent Handsontable theme
+## Step 4: Register your Fluent Handsontable DataGrid theme
 
 Import `icons` together with `colors` and `tokens`. `registerTheme()` requires `icons` - if omitted, ThemeBuilder throws an error.
 
@@ -232,8 +232,8 @@ export default function App() {
 
 ## Next steps
 
-- Explore [Handsontable with Ant Design](@/recipes/themes/ant-design/ant-design.md) for the same token-mapping approach with Ant Design.
-- Explore [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) for Material UI integration.
+- Explore [Handsontable DataGrid with Ant Design](@/recipes/themes/ant-design/ant-design.md) for the same token-mapping approach with Ant Design.
+- Explore [Handsontable DataGrid with MUI](@/recipes/themes/mui-theme/mui-theme.md) for Material UI integration.
 
 ## Related
 

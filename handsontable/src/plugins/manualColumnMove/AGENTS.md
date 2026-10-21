@@ -126,14 +126,24 @@ regressions.
 cannot leave the band, a scrolling column cannot land inside it, and a selection that holds both moves only when
 the result puts the same columns back in the band (a full saved column order that keeps the end columns last
 passes, which is also what the initial `manualColumnMove` array relies on). The band is the last `fixedColumnsEnd`
-columns the grid DRAWS, so the columns `maxCols` hides lie past it and are not frozen. The plugin is enabled before
-the table view exists, so `getFixedColumnsEndCount()` falls back to the same clamp over `countCols()` there. Nothing is restricted while `fixedColumnsEnd` is `0`.
+columns of `hot.countCols()`, so the columns `maxCols` hides lie past it and are not frozen. Nothing is restricted
+while `fixedColumnsEnd` is `0`.
 Unlike the start side (which no plugin guards, see "The start freeze line is positional"), the end side is
 guarded here, because no other plugin owns the end band. `ManualColumnFreeze` additionally refuses to freeze or
 unfreeze in a way that would move a column across the end line, so the end band is protected on both paths. The count is
-`hot.view.countFixedColumnsEnd()` (`TableView`), which clamps over `hot.countCols()`: the same total the renderer
-uses, capped by `maxCols`. Do not count over the uncapped source columns, or the guard protects columns the grid
-never draws. `fixedColumnsStart` keeps the priority when the bands would overlap.
+`getFixedColumnsEndCount()`: `clampFixedColumnsEnd(fixedColumnsEnd, fixedColumnsStart, hot.countCols())`, the same
+clamp and the same total (capped by `maxCols`) the renderer uses. Do not count over the uncapped source columns, or the
+guard protects columns the grid never draws. `fixedColumnsStart` keeps the priority when the bands would overlap.
+**It reads the CONFIGURED band, not `hot.view.countFixedColumnsEnd()`.** With `limitFixedToViewport` the view returns
+the drawn band, which can be smaller. A move from the scrolling columns into the configured band (columns 22 with an
+end band of 10 over 30 columns, while only 2 are drawn) then passed the guard and shifted the columns in between
+into the band, so a different set of columns was frozen at the end once the grid grew. The start side keeps reading
+the drawn band (`isFixedColumnsStart()`), because the start band is positional and a move across its line changes no
+count. This is the same rule `ManualColumnFreeze` and `CollapsibleColumns` follow. **The geometry is the other
+way round:** `isFixedColumnsEnd()` positions the guideline and the backlight (`#getEndBandShift()` is added for a
+column in the end clone), so it reads `hot.view.countFixedColumnsEnd()`, the band the grid draws, as `manualRowMove`
+does. A column that scrolls while its configured band is only partly drawn must not get the shift, or the guideline
+lands off by the remaining scroll distance. The guard and the geometry are two questions with two counts.
 
 The backlight and the guideline live in the master's hider and scroll with it, while the end clone stands at the
 inline-end edge. `#getEndBandShift()` is the distance between the two, never positive and zero at the inline-end

@@ -18,7 +18,7 @@ describe('ResizeGesture', () => {
     rootElement?.remove();
   });
 
-  function createGrid({ rtl = false, selectedRanges = [] } = {}) {
+  function createGrid({ rtl = false, selectedRanges = [], frozen = {} } = {}) {
     rootElement = document.createElement('div');
 
     const table = document.createElement('table');
@@ -36,6 +36,7 @@ describe('ResizeGesture', () => {
     const microtasks = [];
     const state = { rtl };
     const operationScope = new OperationScope();
+    const hookCallbacks = new Map();
     const hot = {
       _getOperationScope: () => operationScope,
       runOperation: (name, callback, source) => operationScope.run(name, source, callback),
@@ -51,8 +52,28 @@ describe('ResizeGesture', () => {
       }),
       _registerMicrotask: jest.fn(callback => microtasks.push(callback)),
       runHooks: jest.fn(),
+      addHook: (name, callback) => {
+        const callbacks = hookCallbacks.get(name) ?? [];
+
+        if (!callbacks.includes(callback)) {
+          callbacks.push(callback);
+          hookCallbacks.set(name, callbacks);
+        }
+      },
+      removeHook: (name, callback) => {
+        const callbacks = hookCallbacks.get(name) ?? [];
+
+        hookCallbacks.set(name, callbacks.filter(entry => entry !== callback));
+      },
+      fireHook: (name) => {
+        (hookCallbacks.get(name) ?? []).forEach(callback => callback());
+      },
+      listen: jest.fn(),
       render: jest.fn(),
       getSelectedRange: () => selectedRanges,
+      getSettings: () => ({ fixedRowsTop: 0, fixedRowsBottom: 0, fixedColumnsStart: 0, ...frozen }),
+      countRows: () => frozen.rows ?? 10,
+      countCols: () => frozen.cols ?? 10,
       selection: {
         isSelected: () => selectedRanges.length > 0,
         isSelectedByCorner: () => false,
@@ -61,6 +82,10 @@ describe('ResizeGesture', () => {
         _wt: { wtTable: { getCoords: () => ({ row: 2, col: 3 }) } },
         getTableWidth: () => 400,
         getTableHeight: () => 300,
+        countFixedColumnsEnd: () => frozen.fixedColumnsEnd ?? 0,
+        countFixedColumnsStart: () => frozen.fixedColumnsStart ?? 0,
+        countFixedRowsTop: () => frozen.fixedRowsTop ?? 0,
+        countFixedRowsBottom: () => frozen.fixedRowsBottom ?? 0,
       },
     };
 
@@ -95,8 +120,8 @@ describe('ResizeGesture', () => {
     };
   }
 
-  function createGesture({ orientation = 'vertical', rtl = false, selectedRanges, axis: axisOverrides } = {}) {
-    const grid = createGrid({ rtl, selectedRanges });
+  function createGesture({ orientation = 'vertical', rtl = false, selectedRanges, frozen, axis: axisOverrides } = {}) {
+    const grid = createGrid({ rtl, selectedRanges, frozen });
     const axis = createAxis(orientation, axisOverrides);
     const owner = createOwner();
     const gesture = new ResizeGesture(grid.hot, axis, owner);
@@ -316,9 +341,114 @@ describe('ResizeGesture', () => {
 
       expect(hot.runHooks).not.toHaveBeenCalled();
     });
+
+    it('should listen when the handle is pressed', () => {
+      const { hot, th, handle } = createGesture();
+
+      mouse('mouseover', th);
+
+      expect(hot.listen).not.toHaveBeenCalled();
+
+      mouse('mousedown', handle(), { pageY: 10 });
+
+      expect(hot.listen).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('geometry', () => {
+    it('should move the handle onto the header an undo or a redo leaves behind', () => {
+      let top = 100;
+      const { hot, th, handle } = createGesture({
+        axis: { getHeaderPosition: () => ({ top, start: 50 }) },
+      });
+
+      mouse('mouseover', th);
+
+      expect(handle().style.top).toBe('94px');
+
+      top = 60;
+      hot.fireHook('afterUndo');
+
+      expect(handle().style.top).toBe('54px');
+
+      top = 20;
+      hot.fireHook('afterRedo');
+
+      expect(handle().style.top).toBe('14px');
+    });
+
+    it('should keep the handle where the drag put it when an undo runs during the press', () => {
+      let top = 100;
+      const { hot, th, owner, handle } = createGesture({
+        axis: { getHeaderPosition: () => ({ top, start: 50 }) },
+      });
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle(), { pageY: 10 });
+      mouse('mousemove', window, { pageY: 40 });
+
+      expect(handle().style.top).toBe('124px');
+
+      top = 60;
+      hot.fireHook('afterUndo');
+
+      expect(handle().style.top).toBe('124px');
+
+      mouse('mouseup', window);
+
+      expect(owner.setManualSize).toHaveBeenCalledWith(2, 30);
+    });
+
+    it('should leave the handle detached when an undo runs after it was removed', () => {
+      let top = 100;
+      const { hot, th, gesture, handle } = createGesture({
+        axis: { getHeaderPosition: () => ({ top, start: 50 }) },
+      });
+
+      mouse('mouseover', th);
+      gesture.detach();
+
+      top = 60;
+      hot.fireHook('afterUndo');
+
+      expect(handle()).toBeNull();
+    });
+
+    it('should detach the handle when an undo removes the header it sits on', () => {
+      const { hot, th, handle } = createGesture();
+
+      mouse('mouseover', th);
+      expect(handle()).not.toBeNull();
+
+      th.remove();
+      hot.fireHook('afterUndo');
+
+      expect(handle()).toBeNull();
+    });
+
+    it('should ignore undo and redo after destroy', () => {
+      let top = 100;
+      const { hot, th, gesture, handle } = createGesture({
+        axis: { getHeaderPosition: () => ({ top, start: 50 }) },
+      });
+
+      mouse('mouseover', th);
+
+      const element = handle();
+
+      expect(element.style.top).toBe('94px');
+
+      gesture.destroy();
+      rootElement.appendChild(element);
+
+      top = 60;
+      hot.fireHook('afterUndo');
+      hot.fireHook('afterRedo');
+
+      expect(element.isConnected).toBe(true);
+      expect(element.style.top).toBe('94px');
+    });
+
     it('should move the top of the handle for a vertical axis', () => {
       const { th, handle } = createGesture({ orientation: 'vertical' });
 
@@ -453,6 +583,78 @@ describe('ResizeGesture', () => {
       mouse('mouseup', window);
 
       expect(vertical.owner.setManualSize).toHaveBeenLastCalledWith(2, 30);
+    });
+  });
+
+  describe('the mark of a frozen edge', () => {
+    // The stand-in header sits at row 2 and column 3, so a vertical handle belongs to the edge after 3 rows, and a
+    // horizontal one to the edge after 4 columns (after 3 when the header is anchored to the inline end).
+    function hover({ orientation = 'vertical', frozen, axis } = {}) {
+      const grid = createGesture({ orientation, frozen, axis });
+
+      mouse('mouseover', grid.th);
+
+      return grid.handle().classList;
+    }
+
+    it('should mark the handle on the edge where the first frozen rows end', () => {
+      const classes = hover({ frozen: { fixedRowsTop: 3 } });
+
+      expect(classes.contains('ht-resize-handle--freeze-before')).toBe(true);
+      expect(classes.contains('ht-resize-handle--freeze-after')).toBe(false);
+    });
+
+    it('should mark the handle on the edge where the last frozen rows start', () => {
+      // 10 rows, the last 7 are frozen: the band starts after the first 3
+      const classes = hover({ frozen: { fixedRowsBottom: 7 } });
+
+      expect(classes.contains('ht-resize-handle--freeze-after')).toBe(true);
+      expect(classes.contains('ht-resize-handle--freeze-before')).toBe(false);
+    });
+
+    it('should mark the handle on the edge where the first frozen columns end', () => {
+      const classes = hover({ orientation: 'horizontal', frozen: { fixedColumnsStart: 4 } });
+
+      expect(classes.contains('ht-resize-handle--freeze-before')).toBe(true);
+    });
+
+    it('should mark the handle of a header anchored to the inline end with the edge where the end columns start',
+      () => {
+        // 10 columns, the last 7 are frozen: the band starts after the first 3, which is the edge of this header
+        const classes = hover({
+          orientation: 'horizontal',
+          frozen: { fixedColumnsEnd: 7 },
+          axis: { isAnchoredAtInlineEnd: () => true },
+        });
+
+        expect(classes.contains('ht-resize-handle--freeze-after')).toBe(true);
+        expect(classes.contains('ht-resize-handle--freeze-before')).toBe(false);
+      });
+
+    it('should not mark a handle on an edge that is not the edge of a frozen band', () => {
+      const classes = hover({ frozen: { fixedRowsTop: 5, fixedRowsBottom: 2 } });
+
+      expect(classes.contains('ht-resize-handle--freeze-before')).toBe(false);
+      expect(classes.contains('ht-resize-handle--freeze-after')).toBe(false);
+    });
+
+    it('should not read the end of the grid as a frozen edge when nothing is frozen at the bottom', () => {
+      // 3 rows, so the edge after the third row is the end of the grid, and the empty band must not claim it
+      const classes = hover({ frozen: { rows: 3 } });
+
+      expect(classes.contains('ht-resize-handle--freeze-after')).toBe(false);
+    });
+
+    it('should clear the mark when the handle moves to an edge that is not frozen', () => {
+      const grid = createGesture({ frozen: { fixedRowsTop: 3 } });
+
+      mouse('mouseover', grid.th);
+      expect(grid.handle().classList.contains('ht-resize-handle--freeze-before')).toBe(true);
+
+      grid.hot.view._wt.wtTable.getCoords = () => ({ row: 5, col: 3 });
+      mouse('mouseover', grid.th);
+
+      expect(grid.handle().classList.contains('ht-resize-handle--freeze-before')).toBe(false);
     });
   });
 

@@ -5,6 +5,7 @@
  * Keeping all plugin imports in one place avoids polluting src/common.ts
  * with 40+ plugin-specific import statements.
  */
+import type { AsyncValues } from './asyncValues';
 import type { AutoColumnSize } from './autoColumnSize';
 import type { Autofill } from './autofill';
 import type { AutoLink } from './autoLink';
@@ -25,6 +26,7 @@ import type { EmptyDataState } from './emptyDataState';
 import type { ExportFile } from './exportFile';
 import type { Filters } from './filters';
 import type { Formulas } from './formulas';
+import type { FreezeBar } from './freezeBar';
 import type { HiddenColumns } from './hiddenColumns';
 import type { HiddenRows } from './hiddenRows';
 import type { ImportFile } from './importFile';
@@ -42,18 +44,22 @@ import type { NestedHeaders } from './nestedHeaders';
 import type { NestedRows } from './nestedRows';
 import type { Notification } from './notification';
 import type { Pagination } from './pagination';
+import type { RowSelection } from './rowSelection';
+import type { CheckboxHeader } from './checkboxHeader';
 import type { Search } from './search';
 import type { SelectionHandles } from './selectionHandles';
 import type { StretchColumns } from './stretchColumns';
 import type { TouchScroll } from './touchScroll';
 import type { TrimRows } from './trimRows';
 import type { UndoRedo } from './undoRedo';
+import type { ViewState } from './viewState';
 
 /**
  * Maps plugin keys (as passed to getPlugin()) to their plugin class types.
  * Extend this interface via module augmentation when adding new plugins.
  */
 export interface PluginTypeMap {
+  asyncValues: AsyncValues;
   autoColumnSize: AutoColumnSize;
   autofill: Autofill;
   autoLink: AutoLink;
@@ -74,6 +80,7 @@ export interface PluginTypeMap {
   exportFile: ExportFile;
   filters: Filters;
   formulas: Formulas;
+  freezeBar: FreezeBar;
   hiddenColumns: HiddenColumns;
   hiddenRows: HiddenRows;
   importFile: ImportFile;
@@ -91,10 +98,13 @@ export interface PluginTypeMap {
   nestedRows: NestedRows;
   notification: Notification;
   pagination: Pagination;
+  rowSelection: RowSelection;
+  checkboxHeader: CheckboxHeader;
   search: Search;
   selectionHandles: SelectionHandles;
   stretchColumns: StretchColumns;
   touchScroll: TouchScroll;
   trimRows: TrimRows;
   undoRedo: UndoRedo;
+  viewState: ViewState;
 }

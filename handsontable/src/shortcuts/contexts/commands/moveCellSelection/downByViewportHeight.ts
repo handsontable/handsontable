@@ -28,7 +28,7 @@ export const command = {
     // When selection lands in the bottom frozen rows area, the normal scroll strategy
     // is blocked by the Walkontable frozen-row guard. Explicitly scroll the master
     // viewport to the bottom so the frozen rows overlay stays aligned.
-    const fixedRowsBottom = hot.getSettings().fixedRowsBottom ?? 0;
+    const fixedRowsBottom = hot.view.countFixedRowsBottom();
     const totalRows = hot.countRows();
     const currentRow = hot.getSelectedRangeActive()?.highlight.row ?? 0;
 

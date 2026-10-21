@@ -21,7 +21,7 @@ interface Boundaries {
 
 /**
  * @description
- * Plugin used to scroll Handsontable by selecting a cell and dragging outside of the visible viewport.
+ * Plugin used to scroll Handsontable DataGrid by selecting a cell and dragging outside of the visible viewport.
  *
  *
  * @class DragToScroll

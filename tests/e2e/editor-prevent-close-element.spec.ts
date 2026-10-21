@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { EditorPreventCloseElementPage } from '../fixtures/pages/EditorPreventCloseElementPage';
 
 /**
@@ -18,7 +18,7 @@ import { EditorPreventCloseElementPage } from '../fixtures/pages/EditorPreventCl
  * the `color-picker` recipe escaped the defect while the `flatpickr` one did not - so without that
  * precondition a case here would go green on unfixed code and pin nothing.
  */
-test.describe('An editor with a preventCloseElement outside the grid', () => {
+test.describe('An editor with a preventCloseElement outside the grid', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('survives the browser focus moving into that element', async({ page, theme, bundle }) => {
     const grid = new EditorPreventCloseElementPage(page, theme, bundle);
 

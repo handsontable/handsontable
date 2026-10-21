@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { SelectionViewportScrollPage } from '../fixtures/pages/SelectionViewportScrollPage';
 
 /**
@@ -8,7 +8,7 @@ import { SelectionViewportScrollPage } from '../fixtures/pages/SelectionViewport
  * own, it must still scroll the window but leave the grid's holders alone, or it pulls the grid back to the
  * selected cell.
  */
-test.describe('viewport scroll of a selection', () => {
+test.describe('viewport scroll of a selection', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: SelectionViewportScrollPage;
 
   // 40 columns of 60px in a 500px-wide grid: column 10 is off screen at first, so selecting it scrolls.
@@ -76,6 +76,14 @@ test.describe('viewport scroll of a selection', () => {
     await grid.initGrid({ data: TALL_DATA, colWidths: 60 });
     await grid.placeGridAcrossTheFold();
     await grid.selectCells(10, 0, 10, 0);
+
+    // The selection's own window scroll runs on the next `afterScroll` when the selection scrolled the viewport
+    // (row 10 is outside the 400px viewport on horizon, inside it on main and classic, where the scroll runs in
+    // a microtask before the evaluate returns). It has to have landed before the window is scrolled back to the
+    // top, or it lands after that and pulls row 10 into the window again (measured: `scrollY` at 215px on
+    // horizon), and the precondition below fails.
+    await expect.poll(() => grid.isCellInWindow(10, 0)).toBe(true);
+
     await grid.scrollWindowToTop();
 
     // The command keeps the range end as many rows below the first visible row as row 10 is now, and row 10 is

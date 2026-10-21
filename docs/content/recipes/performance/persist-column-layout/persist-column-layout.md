@@ -1,6 +1,6 @@
 ---
 title: Persist and restore column widths and order
-metaTitle: Persist and restore column widths and order - JavaScript Data Grid | Handsontable
+metaTitle: Persist and restore column widths and order | Handsontable DataGrid for JavaScript
 description: Save column widths and column order to localStorage as the user resizes or reorders columns, then restore that layout on grid initialization -- so preferences survive a page refresh.
 permalink: /recipes/performance/persist-column-layout
 canonicalUrl: /recipes/performance/persist-column-layout
@@ -14,11 +14,11 @@ tags:
   - afterColumnMove
   - performance
 react:
-  metaTitle: Persist and restore column widths and order - React Data Grid | Handsontable
+  metaTitle: Persist and restore column widths and order | Handsontable DataGrid for React
 angular:
-  metaTitle: Persist and restore column widths and order - Angular Data Grid | Handsontable
+  metaTitle: Persist and restore column widths and order | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Persist and restore column widths and order - Vue Data Grid | Handsontable
+  metaTitle: Persist and restore column widths and order | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Performance
 type: how-to
@@ -78,7 +78,7 @@ A product-inventory grid with six columns (SKU, Name, Category, Price, Stock, St
 
 ## Before you begin
 
-This recipe uses only built-in Handsontable features. No extra dependencies are required.
+This recipe uses only built-in Handsontable DataGrid features. No extra dependencies are required.
 
 You should be familiar with:
 
@@ -137,7 +137,7 @@ function saveLayout(widths, order) {
 
 **What's happening:** `saveLayout` serializes both arrays into a single JSON object and writes it under the storage key. Grouping them in one object means a single `setItem` call -- `localStorage` operations are synchronous and blocking, so minimizing calls reduces the chance of a partial write.
 
-## Step 4 -- Initialize Handsontable with the saved or default layout
+## Step 4 -- Initialize Handsontable DataGrid with the saved or default layout
 
 ```javascript
 const saved = loadLayout();

@@ -1,7 +1,7 @@
 ---
 title: Real-time and Integration Recipes
-metaTitle: Real-time and Integration Recipes - JavaScript Data Grid | Handsontable
-description: Practical recipes for real-time data updates and third-party integrations with Handsontable grids.
+metaTitle: Real-time and Integration Recipes | Handsontable DataGrid for JavaScript
+description: Practical recipes for real-time data updates and third-party integrations with Handsontable DataGrid.
 permalink: /recipes/real-time
 canonicalUrl: /recipes/real-time
 searchCategory: Recipes
@@ -9,17 +9,17 @@ hotPlugin: false
 editLink: false
 type: how-to
 react:
-  metaTitle: Real-time and Integration Recipes - React Data Grid | Handsontable
+  metaTitle: Real-time and Integration Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Real-time and Integration Recipes - Angular Data Grid | Handsontable
+  metaTitle: Real-time and Integration Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Real-time and Integration Recipes - Vue Data Grid | Handsontable
+  metaTitle: Real-time and Integration Recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 
 ## Overview
 
-This section provides practical recipes for pushing live data into Handsontable and connecting it to external services and visualization libraries. Each recipe includes a working example you can copy into your app.
+This section provides practical recipes for pushing live data into Handsontable DataGrid and connecting it to external services and visualization libraries. Each recipe includes a working example you can copy into your app.
 
 ## Available Recipes
 

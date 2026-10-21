@@ -21,6 +21,7 @@ import { ManualResizeSizeOptionResetPage } from '../fixtures/pages/ManualResizeS
  * The sizes are asserted from a real pointer drag on the resize handle, so the stored size is
  * produced the way a user produces it. None of this is checkable in jsdom, where every size is zero.
  */
+// leg-declarations: ignore geometry-helper -- every height and width compared is one the settings configure (rows of 50, 90 and 150 px, columns of 80 and 120 px), above every theme's default
 test.describe('Manual resize versus the size option', () => {
   let grid: ManualResizeSizeOptionResetPage;
 

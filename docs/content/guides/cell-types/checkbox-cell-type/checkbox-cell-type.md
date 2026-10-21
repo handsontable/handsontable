@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Checkbox cell type
-metaTitle: Checkbox cell type - JavaScript Data Grid | Handsontable
+metaTitle: Checkbox cell type | Handsontable DataGrid for JavaScript
 description: Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
 permalink: /checkbox-cell-type
 canonicalUrl: /checkbox-cell-type
 react:
-  metaTitle: Checkbox cell type - React Data Grid | Handsontable
+  metaTitle: Checkbox cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Checkbox cell type - Angular Data Grid | Handsontable
+  metaTitle: Checkbox cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Checkbox cell type - Vue Data Grid | Handsontable
+  metaTitle: Checkbox cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
@@ -30,6 +30,8 @@ To check the box, use the mouse or press <kbd>**Space**</kbd> or <kbd>**Enter**<
 To uncheck the box, use the mouse or press <kbd>**Space**</kbd>, <kbd>**Enter**</kbd>, <kbd>**Delete**</kbd> or <kbd>**Backspace**</kbd>.
 
 You can change the state of multiple cells at once by selecting the cells you want to change and pressing <kbd>**Space**</kbd>.
+
+To let users select whole rows with checkboxes and a "select all" checkbox, without storing the checked state in your data, use [row selection](@/guides/rows/row-selection/row-selection.md) instead.
 
 ## Checkbox true/false values
 
@@ -80,7 +82,7 @@ This is the default usage scenario where column data has a `true` or `false` val
 
 ## Checkbox template
 
-If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable will then update your data using the appropriate template.
+If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable DataGrid will then update your data using the appropriate template.
 
 ::: only-for javascript
 
@@ -124,6 +126,38 @@ If you want to use values other than `true` and `false`, you have to provide thi
 :::
 
 :::
+
+## Values pasted or autofilled into a checkbox
+
+A checkbox cell stores [`checkedTemplate`](@/api/options.md#checkedtemplate) or [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate) whenever a written value matches one of them, regardless of letter case. This applies to pasting, autofill, and API calls such as [`setDataAtCell()`](@/api/core.md#setdataatcell). For example, with the default templates, pasting `False` stores the boolean `false`, and pasting `TRUE` stores `true`. With `checkedTemplate: 'yes'`, pasting `YES` stores `'yes'`.
+
+A value that matches neither template, such as `Ted` dragged in with the fill handle, is stored as it is, and the cell shows `#bad-value#`.
+
+To flag or reject such values, add the built-in `checkbox` validator. The `checkbox` cell type doesn't apply it by default.
+
+```js
+columns: [
+  {
+    type: 'checkbox',
+    // mark values that match neither template as invalid
+    validator: 'checkbox',
+    // reject them instead, and keep the cell's previous value
+    allowInvalid: false,
+  },
+],
+```
+
+With [`allowInvalid`](@/api/options.md#allowinvalid) set to `true` (the default), Handsontable stores the value and adds the `htInvalid` class to the cell. With `allowInvalid: false`, Handsontable rejects the value and the cell keeps its previous value. The validator accepts empty values unless you set [`allowEmpty`](@/api/options.md#allowempty) to `false`. A template that is itself empty (for example, `uncheckedTemplate: ''`) is always valid.
+
+The `checkbox` cell type doesn't register the validator. `registerAllModules()` does. If you register modules one by one, register the validator too:
+
+```js
+import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
+import { registerValidator, checkboxValidator } from 'handsontable/validators';
+
+registerCellType(CheckboxCellType);
+registerValidator(checkboxValidator);
+```
 
 ## Cells with no value
 
@@ -234,6 +268,74 @@ The `value` property of the `label` option can also be a function. The function 
 
 :::
 
+## Check all in the column header
+
+To add a "check all" checkbox to the header of a checkbox column, set the [`headerCheckbox`](@/api/options.md#headercheckbox) option on that column.
+
+- A click on the header checkbox checks every cell in the column. When every cell is already checked, it unchecks them.
+- When only some cells are checked, the header checkbox shows a mixed state, and a click checks all of them.
+- Read-only cells are skipped and aren't counted.
+- The change is one step for [undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md).
+- With the [`navigableHeaders`](@/api/options.md#navigableheaders) option, focus the header and press <kbd>**Space**</kbd>.
+
+::: only-for javascript
+
+::: example #example5 --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example5.js)
+@[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example5.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/react/example5.jsx)
+@[code](@/content/guides/cell-types/checkbox-cell-type/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example5.ts)
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/vue/example5.vue)
+
+:::
+
+:::
+
+By default, the header checkbox writes to the rows that pass the [filters](@/guides/columns/column-filter/column-filter.md), on every page. To change that, pass a `scope`:
+
+```js
+columns: [
+  {
+    data: 'done',
+    type: 'checkbox',
+    // 'filtered' (default), 'all' (also rows the filters hide), or 'currentPage'
+    headerCheckbox: { scope: 'currentPage' },
+  },
+],
+```
+
+To let users select rows rather than edit a value, see [Row selection](@/guides/rows/row-selection/row-selection.md).
+
 ## Extend the checkbox with a custom renderer
 
 To add your own content to a checkbox cell, write a custom [renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) that chains the built-in checkbox renderer and then adds nodes to the cell.
@@ -301,6 +403,7 @@ For the full list of default keyboard shortcuts, see [keyboard shortcuts](@/guid
 <div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
+- [Row selection](@/guides/rows/row-selection/row-selection.md)
 
 </div>
 
@@ -309,6 +412,7 @@ For the full list of default keyboard shortcuts, see [keyboard shortcuts](@/guid
 <div class="boxes-list">
 
 - [checkedTemplate](@/api/options.md#checkedtemplate)
+- [headerCheckbox](@/api/options.md#headercheckbox)
 - [label](@/api/options.md#label)
 - [type](@/api/options.md#type)
 - [uncheckedTemplate](@/api/options.md#uncheckedtemplate)
@@ -337,5 +441,13 @@ For the full list of default keyboard shortcuts, see [keyboard shortcuts](@/guid
 - [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
 - [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
 - [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [CheckboxHeader](@/api/checkboxHeader.md)
 
 </div>

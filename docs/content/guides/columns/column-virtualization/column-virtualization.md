@@ -1,7 +1,7 @@
 ---
 type: explanation
 title: Column virtualization
-metaTitle: Column virtualization - JavaScript Data Grid | Handsontable
+metaTitle: Column virtualization | Handsontable DataGrid for JavaScript
 description: Render hundreds of columns without freezing the browser, using column virtualization.
 permalink: /column-virtualization
 canonicalUrl: /column-virtualization
@@ -10,11 +10,11 @@ tags:
   - render all columns
   - offset
 react:
-  metaTitle: Column virtualization - React Data Grid | Handsontable
+  metaTitle: Column virtualization | Handsontable DataGrid for React
 angular:
-  metaTitle: Column virtualization - Angular Data Grid | Handsontable
+  metaTitle: Column virtualization | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column virtualization - Vue Data Grid | Handsontable
+  metaTitle: Column virtualization | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 ---
@@ -24,7 +24,7 @@ Render hundreds of columns without freezing the browser, using column virtualiza
 
 ## Overview
 
-To process a large number of columns in a browser Handsontable utilizes the virtualization process to display only the visible part of the grid with a small
+To process a large number of columns in a browser Handsontable DataGrid utilizes the virtualization process to display only the visible part of the grid with a small
 offset for a better scrolling experience.
 
 This feature is enabled by default and can be turned off by setting the [`renderAllColumns`](@/api/options.md#renderallcolumns) option to `true`.

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { ManualColumnFreezeBoundaryPage } from '../fixtures/pages/ManualColumnFreezeBoundaryPage';
 
 /**
@@ -13,7 +13,7 @@ import { ManualColumnFreezeBoundaryPage } from '../fixtures/pages/ManualColumnFr
  * `manualColumnFreeze: { restoreColumnPosition: true }` sends an unfrozen column back among the
  * scrollable columns by its data source order, instead of leaving it at the freeze line.
  */
-test.describe('ManualColumnFreeze: the freeze line', () => {
+test.describe('ManualColumnFreeze: the freeze line', { tag: THEMES_TAG }, () => {
   let grid: ManualColumnFreezeBoundaryPage;
 
   const { DEFAULT, RESTORE, RESTORE_END, WINDOW, IDENTITY, FREEZE_LABEL, UNFREEZE_LABEL } = ManualColumnFreezeBoundaryPage;

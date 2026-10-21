@@ -1,5 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { assertKnownBundle, awaitBundle } from '../bundle';
 import { FiltersValueListPage } from './FiltersValueListPage';
 
 /**
@@ -56,7 +56,7 @@ export class OrdersGridPage extends FiltersValueListPage {
    * Opens the fixture and waits for the grid to render its first cell.
    */
   async goto(): Promise<void> {
-    this.assertKnownBundle('(page, theme, bundle, pagination)');
+    assertKnownBundle(this.bundle, '(page, theme, bundle, pagination)');
 
     await this.page.goto(`/tests/fixtures/demo/orders-grid.html?theme=${this.theme}&bundle=${this.bundle}`
       + `&pagination=${this.pagination}`);

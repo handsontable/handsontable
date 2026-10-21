@@ -15,7 +15,16 @@
  *   verdict fails the job again, and the tag on a passing test asks to be
  *   removed.
  * - At most `QUARANTINE_CAP` tests are quarantined at once; the next one fails
- *   the job until one is fixed, so quarantine cannot become the new normal.
+ *   the job until one is fixed, so quarantine cannot become the new normal. The
+ *   reporter counts the tests of the run it sees, and a leg that runs in shards
+ *   (`.github/workflows/e2e.yml`, `--shard`) is several runs: the static sweep in
+ *   `tests/lib/__tests__/quarantine-policy.test.mjs` counts the tree's call sites
+ *   against the same cap, one test at a time (a describe-level quarantine is
+ *   refused there).
+ * - A run that saw no test at all fails. Playwright skips its own "No tests
+ *   found" error whenever `--shard` is set (and in a listing), so a shard whose
+ *   part of a project is empty would otherwise end green having tested nothing;
+ *   this policy owns the exit status, so it says no.
  * - The Playwright tiers only. The functional suite applies it through the
  *   helper and the reporter below; the visual suite applies the same limits to
  *   captures through `visual-tests/visual-quarantine.json`, and
@@ -141,6 +150,7 @@ function quarantineOf(test) {
  * @param {boolean} [input.hadErrors] Whether the run reported an error outside any test (a crashed worker,
  * a config problem). Such a run is never downgraded.
  * @param {number} [input.cap] Override of `QUARANTINE_CAP`.
+ * @param {string|null} [input.shard] The shard the run was (`2/3`), for the message of a run that saw no test.
  * @returns {{
  *   status: 'passed'|'failed'|'timedout'|'interrupted',
  *   downgraded: boolean,
@@ -152,13 +162,19 @@ function quarantineOf(test) {
  * }} The verdict: `problems` fail the run and are printed as errors, `notes` are printed, `warnings` are
  * GitHub `::warning` lines for the checks tab.
  */
-export function evaluateRun({ tests, now, runStatus, hadErrors = false, cap = QUARANTINE_CAP }) {
+export function evaluateRun({ tests, now, runStatus, hadErrors = false, cap = QUARANTINE_CAP, shard = null }) {
   const quarantined = new Map();
   const problems = [];
   const notes = [];
   const warnings = [];
   let quarantinedFlaky = 0;
   let unexplainedFailures = 0;
+
+  if (tests.length === 0) {
+    problems.push(`no test ran${shard ? ` in shard ${shard}` : ''}: Playwright ends a sharded run with no tests green `
+      + '(it skips its "No tests found" error under --shard), and a leg or shard that tested nothing must be red '
+      + '(tests/AGENTS.md, "The matrix")');
+  }
 
   for (const test of tests) {
     const where = `${test.file} › ${test.title}${test.project ? ` [${test.project}]` : ''}`;

@@ -27,3 +27,18 @@ it('checkbox comparing function shouldn\'t change order when comparing empty str
   expect(checkboxSort('asc', defaultTemplates, {})(undefined, null)).toBe(0);
   expect(checkboxSort('desc', defaultTemplates, {})(undefined, null)).toBe(0);
 });
+
+it('checkbox comparing function should sort a case variant with the template it matches (DEV-355)', () => {
+  const templates = { checkedTemplate: 'Yes', uncheckedTemplate: 'No' };
+  const values = ['YES', 'No', 'yes', 'no', 'Yes'];
+
+  expect([...values].sort(checkboxSort('asc', templates, {}))).toEqual(['No', 'no', 'YES', 'yes', 'Yes']);
+});
+
+it('checkbox comparing function should keep the default-template order for an undefined template', () => {
+  const columnMeta = {};
+
+  // With no templates in the column meta, values sort as before: by the default comparator.
+  expect(checkboxSort('asc', columnMeta, {})('TRUE', true)).toBe(checkboxSort('asc', columnMeta, {})('true', true));
+});
+

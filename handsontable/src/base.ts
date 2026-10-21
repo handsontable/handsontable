@@ -151,6 +151,7 @@ interface HandsontableFactory {
   /** Validator functions accessible via the UMD namespace pattern. */
   validators: {
     AutocompleteValidator: typeof import('./validators/autocompleteValidator').autocompleteValidator;
+    CheckboxValidator: typeof import('./validators/checkboxValidator').checkboxValidator;
     DateValidator: typeof import('./validators/dateValidator').dateValidator;
     DropdownValidator: typeof import('./validators/dropdownValidator').dropdownValidator;
     IntlDateValidator: typeof import('./validators/intlDateValidator').intlDateValidator;
@@ -220,12 +221,15 @@ interface HandsontableFactory {
     NestedRows: typeof import('./plugins/nestedRows').NestedRows;
     Notification: typeof import('./plugins/notification').Notification;
     Pagination: typeof import('./plugins/pagination').Pagination;
+    RowSelection: typeof import('./plugins/rowSelection').RowSelection;
+    CheckboxHeader: typeof import('./plugins/checkboxHeader').CheckboxHeader;
     Search: typeof import('./plugins/search').Search;
     SelectionHandles: typeof import('./plugins/selectionHandles').SelectionHandles;
     StretchColumns: typeof import('./plugins/stretchColumns').StretchColumns;
     TouchScroll: typeof import('./plugins/touchScroll').TouchScroll;
     TrimRows: typeof import('./plugins/trimRows').TrimRows;
     UndoRedo: typeof import('./plugins/undoRedo').UndoRedo;
+    ViewState: typeof import('./plugins/viewState').ViewState;
     registerPlugin: typeof import('./plugins/registry').registerPlugin;
     getPlugin: typeof import('./plugins/registry').getPlugin;
     [key: string]: unknown;
@@ -327,6 +331,40 @@ declare namespace Handsontable {
   export type CellChange = CellChangeType;
   export type ChangeSource = ChangeSourceType;
   export type RowObject = RowObjectType;
+  export type Events = import('./core/settings').Events;
+  export type HotInstance = import('./core/types').HotInstance;
+  export type RangeType = import('./core/types').RangeType;
+  export type OverlayType = import('./3rdparty/walkontable/src/types').OverlayType;
+  export type BaseEditorInstance = import('./editors/baseEditor/baseEditor').BaseEditor;
+  export type HooksRegistry = import('./base').HooksRegistry;
+  export type CellCoords = import('./3rdparty/walkontable/src').CellCoords;
+  export type CellRange = import('./3rdparty/walkontable/src').CellRange;
+  export type IndexMapper = import('./translations').IndexMapper;
+  export type SourceRowData = import('./settings').SourceRowData;
+  export type RowIdSetting = import('./core/rowIdentity/rowIdentity').RowIdSetting;
+  export type RowIdKey = import('./utils/rowId').RowIdKey;
+  export type ColumnDataGetterSetterFunction = import('./settings').ColumnDataGetterSetterFunction;
+  export type SelectOptionsObject = import('./settings').SelectOptionsObject;
+  export type RemoveIndexSignature<T> = import('./settings').RemoveIndexSignature<T>;
+  export type OmitHooks<T> = import('./settings').OmitHooks<T>;
+  export type CellType = import('./cellTypes/registry').CellType;
+  export type EditorType = import('./editors/registry').EditorType;
+  export type RendererType = import('./renderers/registry').RendererType;
+  export type ValidatorType = import('./validators/registry').ValidatorType;
+  export type BaseTheme = import('./themes').BaseTheme;
+  export type DensityType = import('./themes').DensityType;
+  export type ThemeBuilder = import('./themes').ThemeBuilder;
+  export type ThemeColorScheme = import('./themes').ThemeColorScheme;
+  export type ThemeColorsConfig = import('./themes').ThemeColorsConfig;
+  export type ThemeConfig = import('./themes').ThemeConfig;
+  export type ThemeDensityConfig = import('./themes').ThemeDensityConfig;
+  export type ThemeDensitySizes = import('./themes').ThemeDensitySizes;
+  export type ThemeIconsConfig = import('./themes').ThemeIconsConfig;
+  export type ThemeLightDarkValue = import('./themes').ThemeLightDarkValue;
+  export type ThemeParams = import('./themes').ThemeParams;
+  export type ThemeSizingConfig = import('./themes').ThemeSizingConfig;
+  export type ThemeTokenValue = import('./themes').ThemeTokenValue;
+  export type ThemeTokensConfig = import('./themes').ThemeTokensConfig;
 
   export namespace editors {
     export type AutocompleteEditor = import('./editors/autocompleteEditor').AutocompleteEditor;
@@ -380,6 +418,7 @@ declare namespace Handsontable {
 
   export namespace validators {
     export type AutocompleteValidator = typeof import('./validators/autocompleteValidator').autocompleteValidator;
+    export type CheckboxValidator = typeof import('./validators/checkboxValidator').checkboxValidator;
     export type DateValidator = typeof import('./validators/dateValidator').dateValidator;
     export type DropdownValidator = typeof import('./validators/dropdownValidator').dropdownValidator;
     export type IntlDateValidator = typeof import('./validators/intlDateValidator').intlDateValidator;
@@ -433,6 +472,7 @@ declare namespace Handsontable {
       export type AvailableConditionsList = import('./plugins/filters').AvailableConditionsList;
       export type AvailableConditionsExclusion = import('./plugins/filters').AvailableConditionsExclusion;
       export type AvailableConditionsDataType = import('./plugins/filters').AvailableConditionsDataType;
+      export type AvailableCondition = import('./plugins/filters').AvailableCondition;
     }
     export type Formulas = import('./plugins/formulas').Formulas;
     export type HiddenColumns = import('./plugins/hiddenColumns').HiddenColumns;
@@ -452,12 +492,37 @@ declare namespace Handsontable {
     export type NestedRows = import('./plugins/nestedRows').NestedRows;
     export type Notification = import('./plugins/notification').Notification;
     export type Pagination = import('./plugins/pagination').Pagination;
+    export type RowSelection = import('./plugins/rowSelection').RowSelection;
+    export namespace RowSelection {
+      export type Settings = import('./plugins/rowSelection').RowSelectionSettings;
+      export type BoundColumn = import('./plugins/rowSelection').RowSelectionBoundColumn;
+      export type GroupSelects = import('./plugins/rowSelection').RowSelectionGroupSelects;
+      export type ServerSelection = import('./plugins/rowSelection').ServerRowSelection;
+    }
+    export type CheckboxHeader = import('./plugins/checkboxHeader').CheckboxHeader;
     export type Search = import('./plugins/search').Search;
     export type SelectionHandles = import('./plugins/selectionHandles').SelectionHandles;
     export type StretchColumns = import('./plugins/stretchColumns').StretchColumns;
     export type TouchScroll = import('./plugins/touchScroll').TouchScroll;
     export type TrimRows = import('./plugins/trimRows').TrimRows;
     export type UndoRedo = import('./plugins/undoRedo').UndoRedo;
+    export type ViewState = import('./plugins/viewState').ViewState;
+    export namespace ViewState {
+      export type State = import('./plugins/viewState').GridViewState;
+      export type Input = import('./plugins/viewState').GridViewStateInput;
+      export type ColumnKey = import('./plugins/viewState').GridViewStateColumnKey;
+      export type SortColumnInput = import('./plugins/viewState').GridViewStateSortColumnInput;
+      export type FilterInput = import('./plugins/viewState').GridViewStateFilterInput;
+      export type Part = import('./plugins/viewState').GridViewStatePart;
+      export type SkipReason = import('./plugins/viewState').GridViewStateSkipReason;
+      export type Issue = import('./plugins/viewState').GridViewStateIssue;
+      export type StateError = import('./plugins/viewState').GridViewStateError;
+      export type SetOptions = import('./plugins/viewState').GridViewStateSetOptions;
+      export type RestoreResult = import('./plugins/viewState').GridViewStateRestoreResult;
+      export type ValidationResult = import('./plugins/viewState').GridViewStateValidationResult;
+      export type Selection = import('./plugins/viewState').GridViewStateSelection;
+      export type SortColumn = import('./plugins/viewState').GridViewStateSortColumn;
+    }
   }
 }
 
@@ -474,6 +539,8 @@ export type {
   CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature, OmitHooks
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
+export type { RowIdSetting } from './core/rowIdentity/rowIdentity';
+export type { RowIdKey } from './utils/rowId';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
 export { IndexMapper } from './translations';

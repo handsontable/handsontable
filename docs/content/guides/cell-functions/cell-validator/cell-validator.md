@@ -1,32 +1,37 @@
 ---
 type: how-to
 title: Cell validator
-metaTitle: Cell validator - JavaScript Data Grid | Handsontable
+metaTitle: Cell validator | Handsontable DataGrid for JavaScript
 description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /cell-validator
 canonicalUrl: /cell-validator
 react:
-  metaTitle: Cell validator - React Data Grid | Handsontable
+  metaTitle: Cell validator | Handsontable DataGrid for React
 angular:
-  metaTitle: Cell validator - Angular Data Grid | Handsontable
+  metaTitle: Cell validator | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Cell validator - Vue Data Grid | Handsontable
+  metaTitle: Cell validator | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell functions
 menuTag: updated
 ---
 
-Cell validators run when a user finishes editing a cell. Use them to enforce data rules such as required fields, numeric ranges, or pattern matching.
+Cell validators run whenever a cell's value changes, whether a user edits, pastes, or autofills it, or your code writes it. Use them to enforce data rules such as required fields, numeric ranges, or pattern matching.
 
 [[toc]]
 
 ## Overview
 
-When you create a validator, assign it an alias so you can reference it by name in column configuration. Handsontable defines 5 aliases by default:
+When you create a validator, assign it an alias so you can reference it by name in column configuration. Handsontable DataGrid defines 10 aliases by default:
 
 - `autocomplete` for `Handsontable.validators.AutocompleteValidator`
+- `checkbox` for `Handsontable.validators.CheckboxValidator`
 - `date` for `Handsontable.validators.DateValidator`
 - `dropdown` for `Handsontable.validators.DropdownValidator`
+- `intl-date` for the `intlDateValidator` function
+- `intl-datetime` for the `intlDatetimeValidator` function
+- `intl-time` for the `intlTimeValidator` function
+- `multiselect` for `Handsontable.validators.MultiselectValidator`
 - `numeric` for `Handsontable.validators.NumericValidator`
 - `time` for `Handsontable.validators.TimeValidator`
 
@@ -104,6 +109,42 @@ columns: [
 ```
 
 :::
+
+## When validation runs
+
+Handsontable validates a cell every time its value changes through the grid. It doesn't matter what made the change. Validation runs for each of these operations:
+
+| Operation | `source` in [`afterChange`](@/api/hooks.md#afterchange) |
+|---|---|
+| Typing in a cell and confirming the edit | `edit` |
+| Pressing <kbd>Delete</kbd> or <kbd>Backspace</kbd> on selected cells | `edit` |
+| Filling a selection with <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd> | `edit` |
+| Pasting | `CopyPaste.paste` |
+| Cutting | `CopyPaste.cut` |
+| Dragging or double-clicking the fill handle | `Autofill.fill` |
+| Selecting **Clear column** in the context menu | `ContextMenu.clearColumn` |
+| Undoing or redoing a change | `UndoRedo.undo`, `UndoRedo.redo` |
+| Calling [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) | `edit`, or the source you pass |
+| Calling [`populateFromArray()`](@/api/core.md#populatefromarray) | `populateFromArray`, or the source you pass |
+
+Undo and redo validate the cells they restore again, so a restored value gets the same valid or invalid state it had before.
+
+These operations don't run validators:
+
+- Loading data with the [`data`](@/api/options.md#data) option, [`loadData()`](@/api/core.md#loaddata), or [`updateData()`](@/api/core.md#updatedata).
+- Writing source data with [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell).
+- Inserting or removing rows and columns.
+
+To validate data you loaded, call [`validateCells()`](@/api/core.md#validatecells), [`validateRows()`](@/api/core.md#validaterows), or [`validateColumns()`](@/api/core.md#validatecolumns).
+
+### If a validator seems not to run
+
+Check these settings first:
+
+- **[`allowInvalid`](@/api/options.md#allowinvalid)** -- With the default `true`, Handsontable saves an invalid value and only marks the cell with the `htInvalid` class. The change isn't rejected. Set `allowInvalid` to `false` to reject invalid values.
+- **Type conversion** -- A `numeric` cell converts the string `'12'` to the number `12` before your validator runs. A validator that checks for a string never matches.
+- **Asynchronous validators** -- Your validator must call `callback(true)` or `callback(false)` on every code path. If it never calls the callback, Handsontable never saves the change, and [`afterChange`](@/api/hooks.md#afterchange) doesn't fire.
+- **[`beforeValidate`](@/api/hooks.md#beforevalidate) return values** -- A `beforeValidate` listener that returns a value replaces the value your validator receives. To only observe validation, don't return anything from the listener.
 
 ## Limit the text length without a validator
 

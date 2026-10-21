@@ -50,10 +50,10 @@ const LIVE_GOLDENS = JSON.parse(
 // demo's RTL dropdown under a new name), which left 67 files. The multi-frameworks trim (DEV-3351)
 // deleted 12 of that family's 14 specs, whose states moved to tests/e2e, which left 55 files, one of
 // them parked. The close-out deleted the parked one, which had rendered nothing since 2025-01-14, so
-// every one of the 54 files left is live.
+// every one of the 54 files left is live. The row selection spec (PRO-87) adds one, so 55 live.
 // Adding or deleting a spec moves this number, and moves a number in LIVE_GOLDENS too – the pair is
 // the review a description cannot give, so update both in the pull request that adds the spec.
-const LIVE_SPEC_COUNT = 54;
+const LIVE_SPEC_COUNT = 55;
 
 /**
  * Every `.spec.ts` under `tests/`, as paths relative to `tests/`, sorted.

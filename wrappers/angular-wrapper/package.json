@@ -1,7 +1,7 @@
 {
   "name": "@handsontable/angular-wrapper",
   "version": "18.1.2",
-  "description": "Best Data Grid for Angular with Spreadsheet Look and Feel.",
+  "description": "Handsontable DataGrid for Angular with a spreadsheet look and feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "license": "SEE LICENSE IN LICENSE.txt",
   "homepage": "https://handsontable.com",

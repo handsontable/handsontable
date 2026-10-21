@@ -173,7 +173,7 @@ class DataSource {
    */
   getAtRow(row: number, startColumn?: number, endColumn?: number, toArray = false) {
     const getAllProps = startColumn === undefined && endColumn === undefined;
-    const { dataDotNotation } = this.hot!.getSettings();
+    const { dataDotNotation, columns, maxCols } = this.hot!.getSettings();
     let dataRow = null;
     let newDataRow: Record<string | number, unknown> | null = null;
 
@@ -203,15 +203,26 @@ class DataSource {
 
       if (!getAllProps || toArray) {
         const rangeStart = 0;
-        const rangeEnd = this.countFirstRowKeys() - 1;
+        // `columns` can declare more columns than the first row has keys (nested paths such as
+        // `list.7` read one key each), so the count of keys alone would cut the declared ones off. The
+        // property cache only reaches the last column that has a `data` option, so a trailing column
+        // without one is counted from the `columns` array, capped by `maxCols` the way the cache is built.
+        const cachedColumns = this.countCachedColumns?.() ?? 0;
+        const declaredColumns = Array.isArray(columns) ?
+          Math.max(cachedColumns, Math.min(maxCols ?? Infinity, columns.length)) : cachedColumns;
+        const rangeEnd = Math.max(this.countFirstRowKeys(), declaredColumns) - 1;
 
         rangeEach(rangeStart, rangeEnd, (column: number) => {
           // An index that names no column comes back as the index, which the integer test below
           // rejects. An unbound column (`{ data: null }`) keeps its `null` property, so it keeps its
-          // slot and the columns after it stay in place.
+          // slot and the columns after it stay in place. A column declared without a `data` option
+          // resolves to its own index instead, so in the array form the declaration of the column
+          // decides whether it keeps its slot.
           const prop = colToPropOrIndex(this.#columnResolver, column);
+          const keepsSlot = !Number.isInteger(prop) ||
+            (toArray && column < declaredColumns && this.hot!.toPhysicalColumn(column) !== null);
 
-          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
+          if (column >= (startColumn || rangeStart) && column <= (endColumn ?? rangeEnd) && keepsSlot) {
             const cellValue = this.getAtPhysicalCell(row, prop as string | number | DataAccessorFn, dataRow);
 
             if (toArray) {

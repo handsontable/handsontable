@@ -20,6 +20,7 @@ import { HeaderSizeStringValuesPage } from '../fixtures/pages/HeaderSizeStringVa
  * builds `` `${value}px` ``, and `columnUtils.getHeaderHeight` runs `Math.max(height, value)`. So a
  * bare numeric string worked. `'100px'` fails the `isNaN` gate and is dropped before either of them.
  */
+// leg-declarations: ignore geometry-helper -- the widths compared are the ones the settings configure (60 and '90px'), which no theme changes
 test.describe('Header size options given as strings', () => {
   let grid: HeaderSizeStringValuesPage;
 

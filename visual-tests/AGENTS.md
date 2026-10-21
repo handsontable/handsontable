@@ -466,6 +466,11 @@ These things about this pipeline are worth knowing before changing it.
 
 ## Determinism
 
+The goldens also depend on the machine that renders them: fonts and anti-aliasing come from the CI runner's
+own Ubuntu image, which is pinned in every workflow (`.ai/CI.md`). A PR that bumps the image has to touch
+`visual-tests/**`, so the full tier renders against `base/develop` and the new render is approved before the
+develop seed makes it the baseline.
+
 A visual spec has no assertion of its own — the screenshot is the assertion — so whatever state the
 page is in when `screenshot()` runs is what the golden records. The rules that keep that state the
 same on every render, enforced at `error` by `visual-tests/.eslintrc.js` (the functional tier's bans
@@ -666,15 +671,16 @@ does for you):
   left eight menu-position specs (120 goldens) as their only guard. `tests/e2e/submenu-position.spec.ts`
   now asserts the placement from DOM rects (the submenu edge to edge with its parent, its first or
   last row level with the row it belongs to, inside the viewport) for the context and dropdown menus,
-  in both grid directions and both document directions, with the grid's holder scrolled and, for the
-  context menu, with the window scrolled, on all six theme and bundle legs. What stays under
+  at rest on the two layouts whose grid and page directions differ (the positioner reads the pointer's
+  client position, so the grid's own scroll never reaches it) and, for the context menu, with the window
+  scrolled on all four layouts, on every theme leg. What stays under
   `tests/js-only/context-menu/` and `tests/js-only/dropdown-menu/` is a check of how the menus look:
   one capture of an open submenu on every js variant, which guards the seam and border between a menu
   and its submenu on each theme, and four on `main` in the single-theme shape
   [Variant declaration](#variant-declaration) describes. The editors family follows the same rule:
-  where the `handsontable` and `dropdown` editors' lists open, in a sized grid (with the page in either
-  direction) and on a page the window scrolls, is asserted in
-  `tests/e2e/handsontable-editor-list-position.spec.ts`. What stays under `tests/js-only/editors/` is one
+  where the editors' lists open is asserted in `tests/e2e/handsontable-editor-list-position.spec.ts`, the
+  `handsontable` list in a sized grid (with the page in either direction) and on a page the window scrolls,
+  and the `dropdown` list on a page the window scrolls. What stays under `tests/js-only/editors/` is one
   capture of each list on every js variant (the handsontable list's columns and header row, and the
   dropdown's focus and hover tokens) and the RTL mirror of each on `main`. The native date picker is the
   browser's, so its one capture is `tests/js-only/complex-demo/rtl/open-date-editor.spec.ts`, on `main`
@@ -745,7 +751,8 @@ does for you):
   focus moves around a dialog that holds inputs, and RTL), `tests/e2e/loading-states.spec.ts` (the
   backdrop for a grid with and without rows, the focused overlay's accent border, the description's
   secondary type, the spinner's gap), `tests/e2e/notification-placement.spec.ts` (each corner's variant,
-  accent bar, action order and close button in both directions, and its place 20 px in from both edges;
+  accent bar, action order and close button in LTR and on one RTL corner, and its place 20 px in from both
+  edges in both directions;
   the end corners' place against the grid is parked, see below),
   `tests/e2e/empty-data-state-layout.spec.ts` (the panel against the headers and the root for a fixed
   height, `auto`, no height, no columns and RTL, its title, description and button each centered, and the

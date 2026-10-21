@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures/test';
+import { test, expect, THEMES_TAG } from '../../fixtures/test';
 import {
   type HeaderPlacement,
   ScrollbarDragEmptyGridPage,
@@ -39,7 +39,7 @@ function expectOnTrack(placements: HeaderPlacement[], when: string): void {
   }
 }
 
-test.describe('Scrollbar drag on a grid with an empty axis', () => {
+test.describe('Scrollbar drag on a grid with an empty axis', { tag: THEMES_TAG }, () => {
   for (const dir of ['ltr', 'rtl'] as const) {
     for (const rowHeaders of ['off', 'on'] as const) {
       test(`keeps the column headers on their columns of a grid with no rows (${dir}, rowHeaders ${rowHeaders})`,

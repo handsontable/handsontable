@@ -420,6 +420,117 @@ Tests: `__tests__/deferredResync.unit.js` (scan count, every drain, init fill, l
 engine size limit, mid-update read, sheet switch, undo depth) and `tests/e2e/formulas-nested-rows-toggle.spec.ts`
 (`rebuilds the sheet once per toggle`).
 
+## A validated write reaches the engine BEFORE the source data
+
+`#onAfterSetDataAtCell` writes a `setDataAtCell()` / `setDataAtRowProp()` change into the engine
+synchronously, but the Core applies a change to the source data only after the column's validators
+resolve — and `validateCell` always resolves in a microtask. Any cell with a validator opens that window:
+a `numeric`, `date`, `dropdown` or `autocomplete` column, or a custom `validator`. A full sheet write from
+the source data inside it (`#writeSheet`, reached from an `updateSettings()` in the same synchronous task)
+scans data that does not hold the change yet and silently drops it from the engine: the cell reads its raw
+formula text through `getDataAtCell()` and every formula depending on it keeps the previous value, with no
+error. Pre-existing — reproduced identically on 18.1.1. Repro: a grid with `columns: [{ type: 'numeric' }]`,
+`setDataAtCell(2, 0, '=SUM(A1:A2)')` then `updateSettings({})` in the same task.
+
+The repair is `#onBeforeChangeRender`. `#onAfterSetDataAtCell` records each change set in
+`#changesAwaitingApply` (a `WeakMap` keyed by the change array — the Core hands the same array to
+`beforeChangeRender`), together with `#sheetWriteCount` and `sheetId`. When the count has moved, or
+the sheet id has changed, by the time the Core applies the set, the set is written into the engine
+again. Five rules:
+
+- **`beforeChangeRender`, not `afterChange`.** The Core renders between the two, so writing back from
+  `afterChange` painted the raw formula text until the next render (negative control in the test below).
+- **`#clearRejectedSheet` does not bump the count.** Writing one change back into a sheet the engine
+  refused to hold would leave it holding that one cell.
+- **A sheet switch in the window does NOT stop the write-back - the engine follows the grid.** The Core
+  applies the validated change to whatever data the grid holds when validation ends, and after a switch
+  that is the switched-to sheet's. A guard on the sheet id used to skip the write-back there, which left
+  the grid holding the change while the engine did not, so the cell showed its raw formula text. The
+  plugin's invariant is that the engine mirrors the grid, so the set is written into the CURRENT sheet.
+  The switch alone does not move the count (its `loadData()` writes no sheet), so the record also keeps
+  the sheet id it was written under, and a changed id triggers the write-back too. Comparing the count
+  alone skipped a bare switch, and the switched-to sheet never got the change. Pinned by `keeps the
+  engine in step with the grid when the sheet switched while the change was validated` (switch plus a
+  full write) and `writes a change into the switched-to sheet when the switch alone ran while the change
+  was validated` (switch only).
+- **After a switch, the switched-AWAY sheet is put back.** `afterSetDataAtCell` already wrote the change
+  into the sheet the grid showed then, and the Core never applies it there, so one `setDataAtCell()` used
+  to land in both sheets: switching back showed a value the grid data never held. `#restoreSwitchedAwaySheet`
+  writes the change set's OLD values back into the sheet recorded on the set (they are what that sheet
+  held, since the grid's data was that sheet's when the change was made), skipping out-of-bounds changes
+  (never written there) and a sheet removed from the engine. **It restores the cells the first write
+  RECORDED (`ChangeSetAwaitingApply#writtenCells`: engine address, grid coordinates, old value), never
+  a fresh mapping.** The index mapping DOES move on a switch: the switch's `loadData` clears runtime
+  trims, so with row 0 trimmed a change to visual row 0 was written to sheet row 1, while a mapping
+  after the switch named sheet row 0 and overwrote it with the old value. Pinned by the `first` sheet
+  assertions in both sheet-switch tests, `puts the switched-away sheet back when a slower validator
+  answers after the switch`, and `restores the recorded cell when a trim the switch cleared moved
+  the rows`.
+- **The restore escapes a text old value like any engine-bound write** (`#escapeEngineBoundValue`): written
+  back raw, a preserved text `'007'` came back as the number 7, and a non-ISO string in a `date` column
+  as a serial number. Pinned by `puts a preserved text value back as text in the switched-away sheet`.
+- **The restore keeps two guards, and only one of them is covered by the other.** The removed-sheet
+  check (`getSheetName(sheetId) === undefined`) skips the whole batch for a sheet removed while the change
+  was validated; `isItPossibleToSetCellContents` guards each cell against the engine's own limits.
+  Deleting the removed-sheet check alone keeps the suite green, because the per-cell guard then absorbs a
+  removed sheet. The per-cell guard is covered by nothing: `writtenCells` records a cell even when the
+  engine refused its FIRST write (`syncChangeWithEngine` past `maxRows`), so on a live switched-away sheet
+  only that guard stops `setCellContents` from throwing `SheetSizeLimitExceededError`. Keep both: the
+  first states the intent and avoids an empty engine batch, the second is the per-cell bound no
+  sheet-level check gives. Pinned by `leaves a switched-away sheet alone when it was removed from the
+  engine before the change was applied` (the removed-sheet case, which throws only with both deleted) and
+  `does not put back a cell the engine refused the first write of` (the per-cell guard alone).
+- **The write-back writes the whole set once, and the out-of-bounds write stands aside.** A change past
+  the last row or column is not written from `afterSetDataAtCell` but from a one-off `afterChange`
+  listener, after the Core created the row. By `beforeChangeRender` that row exists, so the write-back
+  covers it and sets `writtenBack` on the record, which the `afterChange` listener checks. Writing it
+  twice is a redundant engine write and an extra entry on the ENGINE's own undo stack. A grid undo never
+  calls `engine.undo()` (it restores the engine from the state the plugin recorded), so only an app that
+  calls `engine.undo()` itself would see that entry. Pinned by the `setCellContents` count in `writes the
+  out-of-bounds rows of a paste into the engine once, not again from afterChange`. Its neighbor, `undoes a
+  paste past the last row in the grid and the engine`, checks the undo only and does not pin the single
+  write.
+- **The write-back repaints the other sheets' grids that read the cell** (`renderDependentSheets`), like
+  the `afterSetDataAtCell` path: a grid on another sheet kept painting the old value while its data was
+  already right. Pinned by `repaints another sheet's grid that reads the written-back cell`.
+- **The write-back validates the dependents it recalculated**, like the `afterSetDataAtCell` path. The
+  first validation ran against the settings the update replaced (a swapped validator, for one).
+
+**Overlapping async sets on one cell across a switch restore a stale old value (DEV-3308, open).** With
+an async validator, a second set on the same cell, written while the first is still validating, records
+the same old value as the first. When the first set applies on sheet A, the grid switches, and the second
+set applies on the other sheet, `#restoreSwitchedAwaySheet` writes that old value into A over the first
+set's applied value. **Compare-and-restore does NOT fix it** – skipping the restore when a later write
+owns the cell was checked by the reviewer against a patched bundle, and A still ends with the old value,
+because the second set IS the last writer of the cell, so its guard passes. The fix is to refresh the
+recorded old value of the other pending sets that wrote the same cell when a set applies on its own sheet:
+a per-cell list of pending sets beside the `WeakMap`, cleared when a set applies or is dropped. The base
+build also ends with a wrong value here, so this is pre-existing.
+
+A validator's rejection needs no guard **in the write-back**: `validateChanges()` splices a rejected change
+out of the very array `beforeChangeRender` receives, so the write-back never sees it. Keep the write-back
+reading that array, not a copy taken in `afterSetDataAtCell`. **That does not hold for the FIRST write.**
+`afterSetDataAtCell` writes the change into the engine before validation, and nothing puts the old value
+back when the validator rejects it: when every change of the set is rejected `beforeChangeRender` does not
+fire at all, and a partly rejected set is applied without the rejected cell. A formula reading that cell
+shows a wrong result until the next full resync (`allowInvalid: false` numeric column, `setDataAtCell(2, 0,
+'abc')`: the engine holds `'abc'`, the grid keeps the old number). Pre-existing on `develop`, deferred to a
+follow-up. The test `does not write a change the validator rejected back into the engine` calls
+`updateSettings({})`, which rebuilds the sheet from source data, so it does not cover this leak.
+
+The write-back adds one engine undo entry on top of the resync's own, which is what keeps a later grid undo
+of that change consistent: `engine.undo()` then reverts the write-back, not the resync. Without a resync the
+listener costs a `WeakMap` get and delete per change set and writes nothing (measured: a 10,000-change
+`setDataAtCell()` makes 10,000 `setCellContents` calls either way; with a resync, 20,000 – the first write
+plus one write-back).
+
+Older than this repair, and harmless to the grid: WITHOUT a resync, a paste that reaches past the last row
+writes the in-bounds changes and the out-of-bounds ones in two engine batches – two entries on the engine's
+own undo stack for one grid action. A grid undo does not use that stack, so it restores the engine
+correctly; an app that calls `engine.undo()` directly reverts only the out-of-bounds half.
+
+Tests: `__tests__/validatedWriteResync.unit.js`.
+
 ## `skipSheetSwitchLoad`: a `sheetName` change that only binds (DEV-3040)
 
 A `formulas.sheetName` change applied through `updateSettings()` makes `updatePlugin` call
@@ -442,6 +553,34 @@ while the switch load is skipped" pins the `doesSheetExist` fallback; "leaves th
 load and min padding working after a switch threw mid-update" pins the `finally` reset through a
 SheetsBar switch, and SheetsBar's own `#blockAutoPadding` reset with it. "still loads the engine sheet when the host switches the Formulas sheet itself" has no
 SheetsBar, so it only pins the flag's default.
+
+## Object rows: the sheet is only as wide and as aligned as `getSourceDataArray()` makes it
+
+For array-of-objects data the sheet is built from `getSourceDataArray()`, which `DataSource#getAtRow`
+assembles one visual column at a time. Two defects of that read broke every fill, paste and formula that
+addressed a column through the engine (GitHub #13852), and both are invisible in a grid without
+Formulas, because the grid reads cells through `getDataAtCell()`:
+
+- **The loop used to stop at the number of keys in the first row.** `columns` can declare far more
+  columns than a row has keys (`data: 'list.7'` reads one key each), so the array was shorter than the
+  grid and the engine sheet ended where the keys did. Everything past it read `null` in a fill.
+- **A column declared without `data` had no slot.** `colToProp()` answers its own index for such a
+  column, and the old integer test took that for "an index that names no column". Every later column
+  then sat one place to the left of its visual index, so the engine read the neighbor's value. It stays
+  hidden while the shifted values happen to be equal, which is why the report said the fill worked
+  "before Jan 2025": every value there was 0.
+
+A declared column keeps its slot (`undefined` when nothing binds it), the same as a `{ data: null }`
+column. The test for "names no column" is `toPhysicalColumn()`, not the integer prop, and "declared"
+means a place in the `columns` array below `maxCols`: a column `maxCols` cuts off has no slot. (`minCols`
+and `minSpareCols` build no column while `columns` is set, so they never reach this read.) The slots follow
+the VISUAL column order, so a moved column takes its moved place. The loop's end is counted from that array, not from `countCachedColumns()`,
+because the property cache only reaches the last column that has a `data` option, so a trailing
+`Total` column would fall off the sheet. A `columns` function has no length to read, so a trailing
+column without `data` still drops out there. Do not work
+around either defect inside this plugin with a `getDataAtCell()` loop, because that would bypass the
+`modifySourceData` hook and the value getters the sheet relies on.
+Pinned by `src/__tests__/core/core.unit.js` and `tests/e2e/formulas-object-columns.spec.ts`.
 
 ## The engine's sheet size is not the grid's axis length, in either direction
 
@@ -549,6 +688,18 @@ sorts do not restore the original formulas. Product decision (2026-09-16): docum
 this as a known limitation. The supported workaround is `fixedRowsBottom` so
 summary formulas stay out of the sort (#12627). User-facing copy:
 `docs/content/guides/formulas/formula-calculation/formula-calculation.md`.
+
+## `beforeAutofill`: `orderIndex`, then registration order, decides who wins (DEV-3424)
+
+`#onBeforeAutofill` is added in `enablePlugin()` at the default `orderIndex` 0. At init that call comes from
+`afterPluginsInitialized` (`BasePlugin.init()` registers it with `addHookOnce`), which the last plugin's `init()`
+fires inside `beforeInit`, before `updateSettings()` registers the `beforeAutofill` option. The last callback that
+returns a value wins, so the option and any `addHook()` made after enabling beat the plugin, while a global hook,
+an `addHook()` made before enabling, and the option when Formulas is enabled later lose. `updatePlugin()` keeps
+the hook where it is, but `disablePlugin()` plus `enablePlugin()` re-adds it at the END of the `orderIndex` 0
+group and flips the winner. Only `addHook('beforeAutofill', cb, 1)` is independent of timing. Pinned by
+`tests/e2e/formulas-before-autofill-precedence.spec.ts`. Do not change the plugin's `orderIndex` or its
+registration point without treating it as a behavior change.
 
 ## Where to look next
 

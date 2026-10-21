@@ -1,7 +1,7 @@
 {
   "name": "@handsontable/react-wrapper",
   "version": "18.1.2",
-  "description": "Best Data Grid for React with Spreadsheet Look and Feel.",
+  "description": "Handsontable DataGrid for React with a spreadsheet look and feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
   "license": "SEE LICENSE IN LICENSE.txt",

@@ -698,7 +698,9 @@ export class IndexMapper {
    * @returns {number}
    */
   getNumberOfIndexes(): number {
-    return this.getIndexesSequence().length;
+    // Not `getIndexesSequence().length`: an identity sequence is stored compactly, and reading its
+    // values builds an array of every index. Plugins ask for the count on render paths.
+    return this.indexesSequence.getLength();
   }
 
   /**

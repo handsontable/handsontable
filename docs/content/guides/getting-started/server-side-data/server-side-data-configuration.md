@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Server-side configuration
-metaTitle: Server-side configuration - JavaScript Data Grid | Handsontable
+metaTitle: Server-side configuration | Handsontable DataGrid for JavaScript
 description: Handsontable dataProvider configuration -- required keys, pagination and pageSize, query parameters for fetchRows, column sorting, and server-side filters.
 permalink: /server-side-data-configuration
 canonicalUrl: /server-side-data-configuration
@@ -10,11 +10,11 @@ tags:
   - server-side
   - pagination
 react:
-  metaTitle: Server-side configuration - React Data Grid | Handsontable
+  metaTitle: Server-side configuration | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side configuration - Angular Data Grid | Handsontable
+  metaTitle: Server-side configuration | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side configuration - Vue Data Grid | Handsontable
+  metaTitle: Server-side configuration | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Server-side data
 addedIn: "17.1.0"
@@ -63,7 +63,7 @@ The sketch also sets [`filters`](@/api/options.md#filters) for server-driven col
 | `sort` | object or `null` | Object with `prop` (column `data` key) and `order` (`'asc'` or `'desc'`). `null` when unsorted. |
 | `filters` | array or `null` | Server-side filter payload when the Filters plugin runs in server mode (same condition shapes as the Filters API, with `prop` instead of a column index). |
 
-`page` and `pageSize` come from the [Pagination](@/api/pagination.md) plugin when it is enabled, including **`pagination: { pageSize: n }`** so your API receives `n` rows per request. If you omit `pagination` or leave Pagination off, Handsontable still calls `fetchRows` with a fixed **page 1** and the library default page size (10) until you enable pagination or drive pages yourself via [`fetchData`](@/api/dataProvider.md#fetchdata) (you can pass `{ pageSize: n }` there as an override).
+`page` and `pageSize` come from the [Pagination](@/api/pagination.md) plugin when it is enabled, including **`pagination: { pageSize: n }`** so your API receives `n` rows per request. If you omit `pagination` or leave Pagination off, Handsontable DataGrid still calls `fetchRows` with a fixed **page 1** and the library default page size (10) until you enable pagination or drive pages yourself via [`fetchData`](@/api/dataProvider.md#fetchdata) (you can pass `{ pageSize: n }` there as an override).
 
 Respect `signal` so outdated requests abort when the user sorts, filters, or changes pages quickly.
 

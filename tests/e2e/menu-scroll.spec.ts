@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { MenuScrollPage } from '../fixtures/pages/MenuScrollPage';
 
 /**
@@ -8,7 +8,7 @@ import { MenuScrollPage } from '../fixtures/pages/MenuScrollPage';
  * when the anchor scrolls out of the rendered grid viewport. Page scroll and
  * menu-internal scrolls change nothing.
  */
-test.describe('menu follows its anchor on outside element scroll', () => {
+test.describe('menu follows its anchor on outside element scroll', { tag: THEMES_TAG }, () => {
   let menuPage: MenuScrollPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -235,7 +235,7 @@ test.describe('menu follows its anchor on outside element scroll', () => {
   });
 });
 
-test.describe('menu with uiContainer follows its container natively', () => {
+test.describe('menu with uiContainer follows its container natively', { tag: THEMES_TAG }, () => {
   let menuPage: MenuScrollPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

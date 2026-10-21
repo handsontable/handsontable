@@ -1,0 +1,231 @@
+import Handsontable from '../../../base';
+import { registerPlugin } from '../../registry';
+import { Filters } from '..';
+import { DropdownMenu } from '../../dropdownMenu';
+import { ManualColumnMove } from '../../manualColumnMove';
+import { AutoColumnSize } from '../../autoColumnSize';
+import { HiddenRows } from '../../hiddenRows';
+import { HiddenColumns } from '../../hiddenColumns';
+import { TrimRows } from '../../trimRows';
+import { registerCellType, CheckboxCellType, DateCellType, NumericCellType } from '../../../cellTypes';
+
+describe('Filters#_findInvalidConditions', () => {
+  let container;
+  let hot;
+  let filters;
+
+  beforeAll(() => {
+    registerPlugin(AutoColumnSize);
+    registerPlugin(HiddenRows);
+    registerPlugin(HiddenColumns);
+    registerPlugin(TrimRows);
+    registerPlugin(DropdownMenu);
+    registerPlugin(ManualColumnMove);
+    registerPlugin(Filters);
+    registerCellType(CheckboxCellType);
+    registerCellType(NumericCellType);
+    registerCellType(DateCellType);
+  });
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    hot = new Handsontable(container, {
+      data: [['a', 'b'], ['c', 'd']],
+      filters: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    filters = hot.getPlugin('filters');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    hot.destroy();
+    container.remove();
+  });
+
+  const unavailablePaths = list => filters._findUnavailableConditions(list).map(({ path }) => path);
+  const entry = (overrides = {}) => ({
+    column: 0,
+    operation: 'conjunction',
+    conditions: [{ name: 'eq', args: ['a'] }],
+    ...overrides,
+  });
+
+  it('answers null for what exportConditions() returns', () => {
+    filters.addCondition(0, 'eq', ['a']);
+    filters.addCondition(1, 'by_value', [['b']]);
+
+    expect(filters._findInvalidConditions(filters.exportConditions())).toBeNull();
+    expect(filters._findInvalidConditions([])).toBeNull();
+  });
+
+  it.each([
+    ['not an array', { column: 0 }, ''],
+    ['an entry that is not an object', [null], '[0]'],
+    ['a column past the grid', [entry({ column: 2 })], '[0].column'],
+    ['a negative column', [entry({ column: -1 })], '[0].column'],
+    ['an unknown operation', [entry({ operation: 'and' })], '[0].operation'],
+    ['conditions that are not an array', [entry({ conditions: 'eq' })], '[0].conditions'],
+    ['an unregistered condition', [entry({ conditions: [{ name: 'nope', args: [] }] })], '[0].conditions[0].name'],
+    ['arguments that are not an array', [entry({ conditions: [{ name: 'eq', args: 'a' }] })], '[0].conditions[0].args'],
+    ['arguments the decorator rejects', [entry({ conditions: [{ name: 'by_value', args: [5] }] })],
+      '[0].conditions[0].args'],
+    ['one column with two operations', [entry(), entry({ operation: 'disjunction' })], '[1].operation'],
+  ])('points at %s', (_, conditions, path) => {
+    const problem = filters._findInvalidConditions(conditions);
+
+    expect(problem.path).toBe(path);
+    expect(typeof problem.message).toBe('string');
+    expect(problem.message.length).toBeGreaterThan(0);
+  });
+
+  it('accepts a condition the column does not offer, which only _findUnavailableConditions() reports', () => {
+    const list = [
+      entry(),
+      entry({ column: 1, conditions: [{ name: 'contains', args: ['b'] }, { name: 'gt', args: [1] }] }),
+    ];
+
+    expect(filters._findInvalidConditions(list)).toBeNull();
+    expect(filters._findUnavailableConditions(list)).toEqual([{
+      index: 1,
+      path: '[1].conditions[1].name',
+      message: 'gt is not available on column 1, which can offer: empty, not_empty, eq, neq, begins_with, ' +
+        'ends_with, contains, not_contains, so the filter of that column is not restored',
+    }]);
+  });
+
+  it('reports every entry that names an unavailable condition', () => {
+    expect(unavailablePaths([
+      entry({ conditions: [{ name: 'gt', args: [1] }] }),
+      entry({ column: 1 }),
+      entry({ column: 1, conditions: [{ name: 'eq', args: ['b'] }, { name: 'lt', args: [1] }] }),
+    ])).toEqual(['[0].conditions[0].name', '[2].conditions[1].name']);
+  });
+
+  it('reads only as many rows as it needs to accept a condition', () => {
+    const read = jest.spyOn(hot._getMetaManager(), 'getCellMetaTransient');
+    const rowsRead = () => read.mock.calls.filter(([, column]) => column === 0).map(([row]) => row);
+
+    unavailablePaths([entry({ conditions: [{ name: 'contains', args: ['a'] }] })]);
+
+    expect(rowsRead()).toEqual([0]);
+
+    read.mockClear();
+    unavailablePaths([entry({ conditions: [{ name: 'gt', args: [1] }] })]);
+
+    expect(rowsRead()).toEqual([0, 1]);
+  });
+
+  it('leaves the stored meta of a trimmed row alone when the last visible row is hidden', () => {
+    hot.updateSettings({ data: [['a', 'b'], ['c', 'd'], ['e', 'f']], hiddenRows: true });
+    filters = hot.getPlugin('filters');
+    hot.getCellMeta(0, 0);
+    filters.addCondition(1, 'neq', ['b']);
+    filters.filter();
+    hot.getPlugin('hiddenRows').hideRow(1);
+
+    expect(hot.toVisualRow(0)).toBeNull();
+    expect(unavailablePaths([entry({ conditions: [{ name: 'gt', args: [1] }] })]))
+      .toEqual(['[0].conditions[0].name']);
+    expect(String(hot._getMetaManager().getCellMetaIfExists(0, 0).className ?? '')).not.toContain('afterHiddenRow');
+  });
+
+  it('checks the column by its physical index', () => {
+    hot.updateSettings({ columns: [{}, { type: 'numeric' }], manualColumnMove: [1, 0] });
+    filters = hot.getPlugin('filters');
+
+    expect(hot.toVisualColumn(1)).toBe(0);
+    expect(unavailablePaths([entry({ column: 1, conditions: [{ name: 'gt', args: [1] }] })])).toEqual([]);
+    expect(unavailablePaths([entry({ column: 1, conditions: [{ name: 'contains', args: ['b'] }] })]))
+      .toEqual(['[0].conditions[0].name']);
+  });
+
+  it('accepts a condition the menu offered while a filter hid the rows of another type', () => {
+    hot.updateSettings({ cells: (row, column) => (row === 0 && column === 0 ? { type: 'numeric' } : {}) });
+    filters = hot.getPlugin('filters');
+    filters.addCondition(1, 'eq', ['b']);
+    filters.filter();
+
+    expect(filters.getAvailableConditions(0).map(({ name }) => name)).toContain('gt');
+
+    filters.addCondition(0, 'gt', [0]);
+
+    const state = filters.exportConditions();
+
+    filters.clearConditions();
+    filters.filter();
+
+    expect(filters.getAvailableConditions(0).map(({ name }) => name)).not.toContain('gt');
+    expect(unavailablePaths(state)).toEqual([]);
+    expect(unavailablePaths([entry({ conditions: [{ name: 'date_today', args: [] }] })]))
+      .toEqual(['[0].conditions[0].name']);
+  });
+
+  it('reads the type of a row a filter trims, without naming another row to the meta hooks', () => {
+    hot.updateSettings({ cells: (row, column) => (row === 0 && column === 0 ? { type: 'numeric' } : {}) });
+    filters = hot.getPlugin('filters');
+    hot.getCellMeta(0, 0);
+    filters.addCondition(1, 'eq', ['d']);
+    filters.filter();
+
+    expect(hot.toVisualRow(0)).toBeNull();
+    expect(filters.getAvailableConditions(0).map(({ name }) => name)).not.toContain('gt');
+
+    const reads = [];
+    const onAfterGetCellMeta = (row, column, cellMeta) => reads.push([row, cellMeta.row]);
+
+    hot.addHook('afterGetCellMeta', onAfterGetCellMeta);
+
+    const problem = filters._findUnavailableConditions([entry({ conditions: [{ name: 'gt', args: [0] }] })]);
+
+    hot.removeHook('afterGetCellMeta', onAfterGetCellMeta);
+
+    expect(problem).toEqual([]);
+    expect(reads.some(([, physicalRow]) => physicalRow === 0)).toBe(true);
+    reads.forEach(([visualRow, physicalRow]) => {
+      expect([physicalRow, null]).toContain(hot.toPhysicalRow(visualRow));
+    });
+  });
+
+  it('accepts the text list on a column whose rows have different types and none of them is text', () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    hot.updateSettings({
+      cells: (row, column) => (column === 0 ? { type: row === 0 ? 'numeric' : 'date' } : {}),
+    });
+    filters = hot.getPlugin('filters');
+
+    expect(unavailablePaths([entry({ conditions: [{ name: 'contains', args: ['a'] }] })])).toEqual([]);
+    expect(unavailablePaths([entry({ conditions: [{ name: 'gt', args: [1] }] })])).toEqual([]);
+    expect(unavailablePaths([entry({ conditions: [{ name: 'date_today', args: [] }] })])).toEqual([]);
+    expect(unavailablePaths([entry({ conditions: [{ name: 'intl_date_today', args: [] }] })]))
+      .toEqual(['[0].conditions[0].name']);
+  });
+
+  it('follows the availableConditions setting', () => {
+    hot.updateSettings({ filters: { availableConditions: { exclude: ['contains'] } } });
+    filters = hot.getPlugin('filters');
+
+    expect(unavailablePaths([entry()])).toEqual([]);
+    expect(unavailablePaths([entry({ conditions: [{ name: 'contains', args: ['a'] }] })]))
+      .toEqual(['[0].conditions[0].name']);
+  });
+
+  it('accepts the conditions that are in no menu list', () => {
+    expect(unavailablePaths([
+      entry({ conditions: [{ name: 'by_value', args: [['a']] }] }),
+      entry({ column: 1, conditions: [{ name: 'none', args: [] }] }),
+    ])).toEqual([]);
+  });
+
+  it('accepts one operation named twice for a column', () => {
+    expect(filters._findInvalidConditions([entry(), entry()])).toBeNull();
+  });
+
+  it('never touches the current conditions', () => {
+    filters.addCondition(0, 'eq', ['a']);
+    filters._findInvalidConditions([entry({ conditions: [{ name: 'by_value', args: [5] }] })]);
+
+    expect(filters.exportConditions()).toHaveLength(1);
+  });
+});

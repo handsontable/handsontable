@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import type { TestOptions } from './fixtures/test';
+import { FULL_MATRIX_ENV, legGrep, parseFullMatrix } from './lib/leg-declarations.mjs';
 
 // `reuseExistingServer` attaches to whatever already listens on this port. Two
 // checkouts (a worktree and the main clone) on the default port therefore share
@@ -15,6 +16,12 @@ import type { TestOptions } from './fixtures/test';
 // shared port — the exact collision the variable was set to escape — while the
 // developer believes it moved.
 const PORT = resolvePort();
+
+// `HOT_E2E_FULL_MATRIX=1` runs every spec on every project (the nightly, the rc/stable path, a
+// master push); unset, '' and '0' run the shape each spec declares; anything else throws, the
+// resolvePort() precedent: a typo must not quietly turn the night meant to run everything into the
+// reduced run.
+const FULL_MATRIX = parseFullMatrix(process.env[FULL_MATRIX_ENV]);
 
 /**
  * Resolves the server port from `HOT_TEST_PORT`, defaulting to 8123.
@@ -51,24 +58,37 @@ function resolvePort(): number {
  * two are separated by projects so each can carry its own settings — e2e is
  * flake-strict, visual will add screenshot tolerances and masks.
  *
- * Matrix coverage: the functional suite mirrors the Puppeteer e2e matrix
- * 1:1 — theme (main/horizon/classic) × bundle (`umd` = dist/handsontable.js,
- * `full-min` = dist/handsontable.full.min.js) — one project per combination,
- * loading the exact files the Puppeteer `test:e2e` and `test:production` legs
- * load. Every spec is parametrized automatically — authors write one spec and
- * it runs under all legs. CI runs one job per leg (a `theme × bundle` matrix
- * over `--project=e2e-<theme>[-min]`); locally, `npx playwright test` runs
- * all legs and `--project=e2e-horizon` runs one. The bundles Puppeteer does
- * not test either (handsontable.full.js, handsontable.min.js) are deliberately
- * NOT here — extra coverage belongs to the nightly on develop (DEV-2058).
+ * Matrix coverage: the functional suite has the shape the Puppeteer e2e
+ * matrix has on the full-matrix runs — theme (main/horizon/classic) × bundle
+ * (`umd` = dist/handsontable.js, `full-min` = dist/handsontable.full.min.js) —
+ * one project per combination, loading the exact files the Puppeteer
+ * `test:e2e` and `test:production` legs load (a pull request runs that suite
+ * on `main` × UMD alone). Which specs a project runs is DECLARED per spec, with a tag on every
+ * top-level block (`lib/leg-declarations.mjs`; tests/AGENTS.md, "Declaring
+ * the legs"): `e2e-main` runs every spec, `e2e-horizon` and `e2e-classic` run
+ * the specs tagged THEMES_TAG, `e2e-main-min` the specs tagged BUNDLES_TAG,
+ * and `e2e-horizon-min`/`e2e-classic-min` those tagged both — each project's
+ * own `grep` below, never a top-level one, so the engines config that spreads
+ * this one keeps its own filter. `HOT_E2E_FULL_MATRIX=1` (the nightly, the
+ * rc/stable path, a master push) drops the greps and runs every spec on every
+ * project. CI runs one job per leg and shard (an explicit matrix of
+ * `--project=e2e-<theme>[-min]` rows, a long leg cut with `--shard=<i>/<n>`
+ * at the `workers` count pinned below); locally, `npx playwright test` runs the
+ * declared shape, and `--project=e2e-horizon` on an undeclared spec says "No
+ * tests found" by design (no `--pass-with-no-tests`: an empty leg is a red
+ * job, never a green one that ran nothing; an empty shard, which Playwright
+ * lets pass, is failed by the quarantine reporter). The bundles Puppeteer does not
+ * test either (handsontable.full.js, handsontable.min.js) are deliberately
+ * NOT here, and not on the nightly either.
  *
  * Version parity rule: `@playwright/test` here and the CI container image
  * (`mcr.microsoft.com/playwright:v<same>-noble`) bump together, never apart, so
  * local, CI, and baseline generation render identically.
  */
 const E2E_THEMES = ['main', 'horizon', 'classic'] as const;
-// 1:1 with the Puppeteer bundle legs: UMD (dist/handsontable.js, `test:e2e`)
-// and UMD.min (dist/handsontable.full.min.js, `test:production`). The
+// The Puppeteer bundle pair: UMD (dist/handsontable.js, `test:e2e`) and
+// UMD.min (dist/handsontable.full.min.js, `test:production`), which a pull
+// request runs on UMD alone and the nightly on both. The
 // un-suffixed projects run the plain UMD so existing local commands and hooks
 // (`--project=e2e-main`) keep working. That also means every LOCAL gate
 // (pre-push, the Claude Stop hook, `npm run test:e2e` — all pinned to
@@ -84,6 +104,17 @@ export default defineConfig<TestOptions>({
   timeout: 20_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,
+  // CI pins the worker count; a local run keeps Playwright's default (half the
+  // cores). Playwright's default on the 4-vCPU standard runner is 2, and the
+  // suite is one Chromium per worker against a static server, so it has room:
+  // measured on the main leg in one run (38755690783, the same build, the same
+  // 3,377 tests, `nproc` 4), 2 workers took 16.9 min and 4 took 11.9 (1.42×;
+  // the summed per-test time grew 32.8 → 45.9 min, the contention), both runs
+  // clean, with a container peak of 4.8 GiB of the 16 GiB at 4 workers (3.2 at
+  // 2) and no swap. The shard counts in e2e.yml's matrix were derived at this
+  // count, and .github/scripts/__tests__/e2e-legs.test.mjs pins the line. The
+  // engines config (Firefox, WebKit) does not inherit it: it pins 2.
+  workers: process.env.CI ? 4 : undefined,
   // The next three CI values are pinned by
   // .github/scripts/__tests__/playwright-flake-settings.test.mjs — the flake
   // ledger depends on them (tests/AGENTS.md, "Where a flake goes").
@@ -95,7 +126,10 @@ export default defineConfig<TestOptions>({
   // (tests/playwright-report) — plus GitHub annotations, plus the JSON report
   // the cross-run flake ledger reads (`.github/workflows/test-health.yml`; the
   // path is pinned by `.github/scripts/lib/test-health.mjs` and asserted in its
-  // tests). Blob is only for sharded runs, which this suite does not use.
+  // tests). No `blob` reporter: a sharded leg (e2e.yml, `--shard`) keeps this
+  // list per shard, so each shard's job decides its own exit status through the
+  // quarantine reporter and uploads its own report and durations part, and the
+  // test-health collector folds the parts by artifact name.
   // The quarantine reporter (`reporters/quarantine.ts`) runs last and sets the
   // exit status: a flaky test under a live quarantine reports without failing
   // the run, an expired or over-cap quarantine fails it. See tests/AGENTS.md.
@@ -135,6 +169,7 @@ export default defineConfig<TestOptions>({
     ...E2E_BUNDLES.flatMap(({ bundle, suffix }) => E2E_THEMES.map(theme => ({
       name: `e2e-${theme}${suffix}`,
       testDir: 'e2e',
+      grep: legGrep({ theme, bundle, fullMatrix: FULL_MATRIX }),
       use: { ...devices['Desktop Chrome'], theme, bundle },
     }))),
     // Visual regression project — destination for the visual suite (milestone 2/3).

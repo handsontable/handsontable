@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
 import { GridLayoutsPage } from '../fixtures/pages/GridLayoutsPage';
 
 /**
@@ -20,7 +20,7 @@ import { GridLayoutsPage } from '../fixtures/pages/GridLayoutsPage';
  * it too. Each of those drags starts from a fresh page, because a second press on a handle inside the
  * double-click window is an auto-size.
  */
-test.describe('resizing by dragging a header handle', { tag: CROSS_BROWSER_TAG }, () => {
+test.describe('resizing by dragging a header handle', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   let grid: GridLayoutsPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

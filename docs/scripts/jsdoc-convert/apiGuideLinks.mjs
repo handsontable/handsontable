@@ -11,22 +11,27 @@ const contentDir = path.resolve(__dirname, '../../content');
  * feature. The renderer adds a "See the guide" line to the top of that API page (DEV-2809).
  *
  * Rules for an entry:
- * - Plugins only. `Core`, `Hooks`, `Options`, and the editors are not covered.
- * - One primary guide per page. A page that two guides share points at the one that owns the feature.
+ * - Plugins, plus the `hooks.md` and `baseEditor.md` pages. `Options` already links its guides from the
+ *   text of each option, and `Core` is skipped.
+ * - A page can point at one guide (a string) or at several (an array). Use an array only when the
+ *   feature really has two guides, as `exportFile.md` has for CSV and Excel.
  * - The guide must exist, have a `permalink` (the loader skips pages without one, so the link would
  *   404), and not be framework-gated, because one API page serves every framework.
- *   `scripts/validate-api-guide-links.mjs` enforces all three.
+ *   `scripts/validate-api-guide-links.mjs` enforces all three for every guide.
  * - A plugin with no guide of its own has no entry and is listed in `unmappedPlugins` instead.
  *
- * Values are paths relative to `docs/content/`.
+ * Values are a path or an array of paths, relative to `docs/content/`.
  */
 export const apiGuideLinks = {
   'autoColumnSize.md': 'guides/columns/column-width/column-width.md',
+  'asyncValues.md': 'guides/cell-features/async-values/async-values.md',
   'autoLink.md': 'guides/cell-features/clickable-links/clickable-links.md',
   'autoRowHeaderSize.md': 'guides/rows/row-header/row-header.md',
   'autoRowSize.md': 'guides/rows/row-height/row-height.md',
   'autofill.md': 'guides/cell-features/autofill-values/autofill-values.md',
+  'baseEditor.md': 'guides/cell-functions/cell-editor/cell-editor.md',
   'bindRowsWithHeaders.md': 'guides/rows/row-header/row-header.md',
+  'checkboxHeader.md': 'guides/cell-types/checkbox-cell-type/checkbox-cell-type.md',
   'collapsibleColumns.md': 'guides/columns/column-groups/column-groups.md',
   'columnSorting.md': 'guides/rows/rows-sorting/rows-sorting.md',
   'columnSummary.md': 'guides/columns/column-summary/column-summary.md',
@@ -39,11 +44,16 @@ export const apiGuideLinks = {
   'dragToScroll.md': 'guides/accessories-and-menus/drag-to-scroll/drag-to-scroll.md',
   'dropdownMenu.md': 'guides/accessories-and-menus/column-menu/column-menu.md',
   'emptyDataState.md': 'guides/accessories-and-menus/empty-data-state/empty-data-state.md',
-  'exportFile.md': 'guides/accessories-and-menus/export-to-csv/export-to-csv.md',
+  'exportFile.md': [
+    'guides/accessories-and-menus/export-to-csv/export-to-csv.md',
+    'guides/accessories-and-menus/export-to-excel/export-to-excel.md',
+  ],
   'filters.md': 'guides/columns/column-filter/column-filter.md',
   'formulas.md': 'guides/formulas/formula-calculation/formula-calculation.md',
+  'freezeBar.md': 'guides/columns/column-freezing/column-freezing.md',
   'hiddenColumns.md': 'guides/columns/column-hiding/column-hiding.md',
   'hiddenRows.md': 'guides/rows/row-hiding/row-hiding.md',
+  'hooks.md': 'guides/getting-started/events-and-hooks/events-and-hooks.md',
   'importFile.md': 'guides/accessories-and-menus/import-from-excel/import-from-excel.md',
   'loading.md': 'guides/dialog/loading/loading.md',
   'manualColumnFreeze.md': 'guides/columns/column-freezing/column-freezing.md',
@@ -58,12 +68,14 @@ export const apiGuideLinks = {
   'nestedRows.md': 'guides/rows/row-parent-child/row-parent-child.md',
   'notification.md': 'guides/dialog/notification/notification.md',
   'pagination.md': 'guides/rows/rows-pagination/rows-pagination.md',
+  'rowSelection.md': 'guides/rows/row-selection/row-selection.md',
   'search.md': 'guides/navigation/searching-values/searching-values.md',
   'selectionHandles.md': 'guides/cell-features/selection/selection.md',
   'sheetsBar.md': 'guides/accessories-and-menus/sheets-bar/sheets-bar.md',
   'stretchColumns.md': 'guides/columns/column-width/column-width.md',
   'trimRows.md': 'guides/rows/row-trimming/row-trimming.md',
   'undoRedo.md': 'guides/accessories-and-menus/undo-redo/undo-redo.md',
+  'viewState.md': 'guides/getting-started/view-state/view-state.md',
 };
 
 /**
@@ -106,20 +118,19 @@ export const readGuideTitle = (guidePath, baseDir = contentDir) => {
 
 /**
  * Builds the line that points an API page at its guide. The link uses the `@/guides/...` form,
- * which the docs build resolves per framework.
+ * which the docs build resolves per framework. A page with several guides gets one sentence per
+ * guide, so each sentence reads the same as the single-guide one.
  *
  * @param {string} apiFile The API page file name, for example `columnSorting.md`. A leading capital
  *   (`ColumnSorting.md`, the form the renderer receives) is lowercased, as `paths.mjs` does for the output.
- * @param {{ links?: Record<string, string>, baseDir?: string }} [options] Overrides for tests.
+ * @param {{ links?: Record<string, string | string[]>, baseDir?: string }} [options] Overrides for tests.
  * @returns {string} The line, or an empty string when the page has no mapped guide.
  */
 export const buildGuideLinkLine = (apiFile, { links = apiGuideLinks, baseDir = contentDir } = {}) => {
   const key = apiFile.replace(/^[A-Z]/, upper => upper.toLowerCase());
-  const guidePath = Object.hasOwn(links, key) ? links[key] : undefined;
+  const guidePaths = Object.hasOwn(links, key) ? [].concat(links[key]).filter(Boolean) : [];
 
-  if (!guidePath) {
-    return '';
-  }
-
-  return `See the [${readGuideTitle(guidePath, baseDir)}](@/${guidePath}) guide for examples and configuration details.`;
+  return guidePaths
+    .map(guidePath => `See the [${readGuideTitle(guidePath, baseDir)}](@/${guidePath}) guide for examples and configuration details.`)
+    .join(' ');
 };

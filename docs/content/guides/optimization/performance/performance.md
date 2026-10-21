@@ -1,18 +1,18 @@
 ---
 type: how-to
 title: Performance
-metaTitle: Performance - JavaScript Data Grid | Handsontable
+metaTitle: Performance | Handsontable DataGrid for JavaScript
 description: Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 permalink: /performance
 canonicalUrl: /performance
 tags:
   - speed
 react:
-  metaTitle: Performance - React Data Grid | Handsontable
+  metaTitle: Performance | Handsontable DataGrid for React
 angular:
-  metaTitle: Performance - Angular Data Grid | Handsontable
+  metaTitle: Performance | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Performance - Vue Data Grid | Handsontable
+  metaTitle: Performance | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Optimization
 menuTag: updated
@@ -23,7 +23,7 @@ Boost your grid's performance by setting a constant column size, suspending rend
 
 ## Overview
 
-Handsontable performs multiple calculations to display the grid properly. The most demanding actions are performed on load, change, and scroll events. Every single operation decreases the performance, but most of them are unavoidable.
+Handsontable DataGrid performs multiple calculations to display the grid properly. The most demanding actions are performed on load, change, and scroll events. Every single operation decreases the performance, but most of them are unavoidable.
 
 The optimizations on this page come from measuring Handsontable's execution times in various configurations. Each one applies only in certain cases. Check which ones fit your application. To see how those measurements work, browse the [performance test suite](https://github.com/handsontable/handsontable/tree/develop/performance-tests) in the Handsontable repository. It runs scripted interactions in a real browser and records the timings.
 
@@ -177,6 +177,8 @@ Use the [`cells`](@/api/options.md#cells) option only if the above alternatives 
 By default, Handsontable builds the whole [`customBorders`](@/api/options.md#customborders) configuration before the first render. A very large configuration can delay the initial paint.
 
 If your initial configuration borders thousands of cells or more, set [`customBordersProgressive`](@/api/options.md#custombordersprogressive) to `true`. The grid renders first, without the borders, and the borders are applied in background batches. This applies when the `customBorders` array is set at initialization or replaced with `updateSettings()`. The option is opt-in (the default is `false`) and available since 18.1.0.
+
+When you replace the array with `updateSettings()`, the borders that are already drawn stay visible while the new ones are applied. Each cell switches to its new border as soon as that border is applied. A border that the new configuration no longer contains disappears when the load ends. A structural change, such as inserting a row, ends the load early. While the load runs, the Borders context menu and `setBorders()` work on the new configuration, which does not hold the older borders yet.
 
 Progressive application splits the work by `customBorders` entry, but the cost depends on the number of bordered cells. An entry with a `range` is applied in one batch, so a single very large range is not split and can still block rendering.
 

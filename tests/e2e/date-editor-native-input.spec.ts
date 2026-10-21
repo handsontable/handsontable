@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
 
 /**
@@ -16,7 +16,7 @@ import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
  *
  * Chromium only (no `@cross-browser` tag): the picker's `:open` state is read there.
  */
-test.describe('the native date editor', () => {
+test.describe('the native date editor', { tag: THEMES_TAG }, () => {
   let grid: SharedDemoGridPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

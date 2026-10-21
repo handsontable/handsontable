@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FixedColumnsEndPage, type Box } from '../fixtures/pages/FixedColumnsEndPage';
 
 /**
@@ -33,7 +33,7 @@ function expectEditorOnCell(editor: Box, cell: Box, rtl: boolean, label: string)
 for (const direction of ['ltr', 'rtl'] as const) {
   const rtl = direction === 'rtl';
 
-  test.describe(`fixedColumnsEnd editor rectangle (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd editor rectangle (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {
@@ -100,75 +100,78 @@ for (const direction of ['ltr', 'rtl'] as const) {
     });
   });
 
-  test.describe(`fixedColumnsEnd with minSpareCols (${direction})`, { tag: '@core' }, () => {
-    let grid: FixedColumnsEndPage;
+  // LTR only: the spare-column guard and the floor of fixedColumnsEnd read column counts, not positions.
+  if (direction === 'ltr') {
+    test.describe(`fixedColumnsEnd with minSpareCols (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
+      let grid: FixedColumnsEndPage;
 
-    test.beforeEach(async ({ page, theme, bundle }) => {
-      grid = new FixedColumnsEndPage(page, theme, bundle);
+      test.beforeEach(async ({ page, theme, bundle }) => {
+        grid = new FixedColumnsEndPage(page, theme, bundle);
+      });
+
+      /**
+       * Types a value into a cell and commits it.
+       *
+       * @param {number} row Visual row.
+       * @param {number} col Visual column.
+       */
+      const typeInto = async (row: number, col: number) => {
+        await grid.selectCell(row, col);
+        await grid.press('Enter');
+        await expect.poll(() => grid.isEditorOpened()).toBe(true);
+        await grid.page.keyboard.type('x');
+        await grid.press('Enter');
+        await expect.poll(() => grid.isEditorOpened()).toBe(false);
+      };
+
+      test('keeps the typed-in end column frozen and appends no column', async () => {
+        // Control: without end columns the spare column exists from the start and typing into it appends the next.
+        await grid.goto({ rtl, minSpareCols: 1, cols: 4 });
+
+        const columnsBefore = await grid.countCols();
+
+        expect(columnsBefore).toBe(5);
+        await typeInto(2, columnsBefore - 1);
+        await expect.poll(() => grid.countCols()).toBe(columnsBefore + 1);
+
+        await grid.goto({ rtl, minSpareCols: 1, fixedColumnsEnd: 2, cols: 4 });
+        expect(await grid.countCols()).toBe(4);
+        await typeInto(2, 3);
+        // The spare column, when added, is added after the commit: read after the frames that would have drawn it.
+        await grid.settleFrames(5);
+        expect(await grid.countCols()).toBe(4);
+        expect(await grid.fixedColumnsEnd()).toBe(2);
+        expect(await grid.overlayOf(2, 3)).toBe('inline_end');
+      });
+
+      test('treats a fixedColumnsEnd below 1 as no end columns, like the control', async () => {
+        // The renderer floors the option: 0.4 draws no end column, so the spare column exists from the start and
+        // typing into it appends the next one, exactly as in the control above.
+        await grid.goto({ rtl, minSpareCols: 1, fixedColumnsEnd: 0.4, cols: 4 });
+
+        const columnsBefore = await grid.countCols();
+
+        expect(columnsBefore).toBe(5);
+        await typeInto(2, columnsBefore - 1);
+        await expect.poll(() => grid.countCols()).toBe(columnsBefore + 1);
+
+        // Enter moving right off the last column asks for one more column. The keyboard path reads the option
+        // separately from the spare-column guard, and it must floor it the same way.
+        await grid.updateSettings({ enterMoves: { row: 0, col: 1 } });
+
+        const columnsNow = await grid.countCols();
+
+        await grid.selectCell(2, columnsNow - 1);
+        await grid.press('Enter');
+        await expect.poll(() => grid.isEditorOpened()).toBe(true);
+        await grid.press('Enter');
+        await expect.poll(() => grid.countCols()).toBe(columnsNow + 1);
+      });
     });
-
-    /**
-     * Types a value into a cell and commits it.
-     *
-     * @param {number} row Visual row.
-     * @param {number} col Visual column.
-     */
-    const typeInto = async (row: number, col: number) => {
-      await grid.selectCell(row, col);
-      await grid.press('Enter');
-      await expect.poll(() => grid.isEditorOpened()).toBe(true);
-      await grid.page.keyboard.type('x');
-      await grid.press('Enter');
-      await expect.poll(() => grid.isEditorOpened()).toBe(false);
-    };
-
-    test('keeps the typed-in end column frozen and appends no column', async () => {
-      // Control: without end columns the spare column exists from the start and typing into it appends the next.
-      await grid.goto({ rtl, minSpareCols: 1, cols: 4 });
-
-      const columnsBefore = await grid.countCols();
-
-      expect(columnsBefore).toBe(5);
-      await typeInto(2, columnsBefore - 1);
-      await expect.poll(() => grid.countCols()).toBe(columnsBefore + 1);
-
-      await grid.goto({ rtl, minSpareCols: 1, fixedColumnsEnd: 2, cols: 4 });
-      expect(await grid.countCols()).toBe(4);
-      await typeInto(2, 3);
-      // The spare column, when added, is added after the commit: read after the frames that would have drawn it.
-      await grid.settleFrames(5);
-      expect(await grid.countCols()).toBe(4);
-      expect(await grid.fixedColumnsEnd()).toBe(2);
-      expect(await grid.overlayOf(2, 3)).toBe('inline_end');
-    });
-
-    test('treats a fixedColumnsEnd below 1 as no end columns, like the control', async () => {
-      // The renderer floors the option: 0.4 draws no end column, so the spare column exists from the start and
-      // typing into it appends the next one, exactly as in the control above.
-      await grid.goto({ rtl, minSpareCols: 1, fixedColumnsEnd: 0.4, cols: 4 });
-
-      const columnsBefore = await grid.countCols();
-
-      expect(columnsBefore).toBe(5);
-      await typeInto(2, columnsBefore - 1);
-      await expect.poll(() => grid.countCols()).toBe(columnsBefore + 1);
-
-      // Enter moving right off the last column asks for one more column. The keyboard path reads the option
-      // separately from the spare-column guard, and it must floor it the same way.
-      await grid.updateSettings({ enterMoves: { row: 0, col: 1 } });
-
-      const columnsNow = await grid.countCols();
-
-      await grid.selectCell(2, columnsNow - 1);
-      await grid.press('Enter');
-      await expect.poll(() => grid.isEditorOpened()).toBe(true);
-      await grid.press('Enter');
-      await expect.poll(() => grid.countCols()).toBe(columnsNow + 1);
-    });
-  });
+  }
 }
 
-test.describe('fixedColumnsEnd End and Home on a partly drawn main table', { tag: '@core' }, () => {
+test.describe('fixedColumnsEnd End and Home on a partly drawn main table', { tag: ['@core', THEMES_TAG] }, () => {
   let grid: FixedColumnsEndPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

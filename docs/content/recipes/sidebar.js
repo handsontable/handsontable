@@ -85,7 +85,7 @@ const importExportItems = [
     title: 'Export to PDF',
     onlyFor: ['javascript', 'angular', 'react', 'vue'],
   },
-  { path: 'import-export/import-csv-excel/import-csv-excel', title: 'Import from CSV or Excel', onlyFor: ['javascript', 'angular', 'react'] },
+  { path: 'import-export/import-csv-excel/import-csv-excel', title: 'Import from CSV or Excel', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
 ];
 
 const filteringAndSearchItems = [
@@ -98,12 +98,12 @@ const filteringAndSearchItems = [
 ];
 
 const themesItems = [
-  { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/ant-design/ant-design', title: 'Handsontable with Ant Design', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
-  { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/tabler-icons/tabler-icons', title: 'Handsontable with Tabler Icons', onlyFor: ['react', 'javascript', 'angular', 'vue'] },
+  { path: 'themes/base-theme/base-theme', title: 'Handsontable DataGrid with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/custom-theme/custom-theme', title: 'Handsontable DataGrid with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/ant-design/ant-design', title: 'Handsontable DataGrid with Ant Design', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable DataGrid with Fluent UI', onlyFor: ['react'] },
+  { path: 'themes/mui-theme/mui-theme', title: 'Handsontable DataGrid with MUI', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/tabler-icons/tabler-icons', title: 'Handsontable DataGrid with Tabler Icons', onlyFor: ['react', 'javascript', 'angular', 'vue'] },
 ];
 
 const editingValidationItems = [

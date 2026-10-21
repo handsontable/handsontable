@@ -32,7 +32,12 @@
  * writes the files; `.github/workflows/test-health.yml` runs it.
  */
 
-import { PLAYWRIGHT_DURATIONS_FILE, parseDurationSummary, renderDurationsLine } from './playwright-durations.mjs';
+import {
+  PLAYWRIGHT_DURATIONS_FILE,
+  parseDurationSummary,
+  parseLegArtifact,
+  renderDurationsLine,
+} from './playwright-durations.mjs';
 
 export const LEDGER_VERSION = 1;
 
@@ -65,7 +70,8 @@ export const JASMINE_ARTIFACT_PREFIX = 'puppeteer-failed-specs-';
 export const VISUAL_ARTIFACT_PREFIX = 'visual-compare-';
 /**
  * Every Playwright leg's durations (`e2e.yml`, both Playwright jobs, on `!cancelled()`). The suffix is the
- * leg: `main`, `classic-min`, `engines`.
+ * leg: `main`, `classic-min`, `engines`; a sharded leg uploads one artifact per shard, `main-s1`, `main-s2`,
+ * … (`parseLegArtifact` in `./playwright-durations.mjs` reads the leg and the shard back).
  */
 export const DURATIONS_ARTIFACT_PREFIX = 'playwright-durations-';
 
@@ -331,8 +337,10 @@ export function parseVisualRecord(record, run) {
  * stop the rest of the run from being recorded.
  *
  * A durations artifact is not a source of entries: its one file, at the artifact's root, is checked and returned in
- * `durations`, named after the artifact's leg (GitHub keeps artifact names unique within a run, so two
- * legs can never land on one record). Only that family is read for it: the summarizer runs after the
+ * `durations`, named after the artifact's leg and shard (GitHub keeps artifact names unique within a run, so two
+ * legs, or two parts of one, can never land on one record; the reducer folds a leg's parts). The report
+ * family's leg is the project each test names, so a sharded leg's report (`playwright-report-main-s2`) feeds
+ * the ledger with the leg, never the shard. Only the durations family is read for a summary: the summarizer runs after the
  * report upload, so a report artifact does not hold the file today, but the failure upload ships all of
  * `tests/test-results`, and if the steps were ever reordered, reading it there would count the leg twice.
  *
@@ -368,12 +376,22 @@ export function collectArtifactFiles(files, run) {
 
       if (isDurations) {
         const summary = parseDurationSummary(parsed);
-        const leg = file.artifact.slice(DURATIONS_ARTIFACT_PREFIX.length);
+        const { leg, shard } = parseLegArtifact(file.artifact.slice(DURATIONS_ARTIFACT_PREFIX.length));
+        const claimed = summary.shard?.index ?? null;
 
         if (summary.leg !== leg) {
           notes.push(`${file.artifact}: the file names leg ${summary.leg}; recorded as ${leg}`);
         }
-        durations.push({ ...summary, leg });
+        if (claimed !== shard) {
+          notes.push(`${file.artifact}: the file names shard ${claimed ?? 'none'}; recorded as ${shard ?? 'none'}`);
+        }
+        durations.push({
+          ...summary,
+          leg,
+          // The index is the artifact's; the total is what the file says (the reducer checks it against the
+          // legs table), or the index when the file carries none.
+          shard: shard === null ? null : { index: shard, total: Math.max(summary.shard?.total ?? 0, shard) },
+        });
         continue;
       }
 

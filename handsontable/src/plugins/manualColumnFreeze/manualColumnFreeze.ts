@@ -3,7 +3,14 @@ import { Hooks } from '../../core/hooks';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
-import { getEndBandCount, isInEndBand, unfreezeWouldShiftEndBand } from './endBand';
+import {
+  canFreezeFit,
+  getConfiguredStartBandCount,
+  getEndBandCount,
+  getStartBandCount,
+  isInEndBand,
+  unfreezeWouldShiftEndBand,
+} from './endBand';
 
 Hooks.getSingleton().register('beforeColumnFreeze');
 Hooks.getSingleton().register('afterColumnFreeze');
@@ -142,6 +149,10 @@ export class ManualColumnFreeze extends BasePlugin {
    * `freezeColumn()` doesn't re-render the table,
    * so you need to call the `render()` method afterward.
    *
+   * The method does nothing when the column is already frozen, when it belongs to the `fixedColumnsEnd` band, or,
+   * with the `limitFixedToViewport` option on, when one more frozen column would not fit the grid. The
+   * `afterColumnFreeze` hook then reports that the freeze was not performed.
+   *
    * @param {number} column Visual column index.
    */
   freezeColumn(column: number): void {
@@ -157,9 +168,14 @@ export class ManualColumnFreeze extends BasePlugin {
     const settings = this.hot.getSettings();
     // columns are already fixed (frozen), or the column belongs to the `fixedColumnsEnd` band: moving it to
     // the freeze line would pull the column in front of the band into it
-    const freezePerformed = (settings.fixedColumnsStart ?? 0) < this.hot.countCols()
-      && column > (settings.fixedColumnsStart ?? 0) - 1
-      && !isInEndBand(this.hot, column);
+    // A freeze counts from the configured band, not from the memo of the drawn one, so two freezes before a render
+    // both land on the freeze line. With `limitFixedToViewport` the frozen column must fit next to that band: when
+    // the band is already the most that fits, one more frozen column would be cut by the next render.
+    const fixedStart = getConfiguredStartBandCount(this.hot);
+    const freezePerformed = fixedStart < this.hot.countCols()
+      && column > fixedStart - 1
+      && !isInEndBand(this.hot, column)
+      && canFreezeFit(this.hot, column);
 
     const beforeColumnFreezeHook = this.hot.runHooks('beforeColumnFreeze', column, freezePerformed);
 
@@ -168,13 +184,13 @@ export class ManualColumnFreeze extends BasePlugin {
     }
 
     if (freezePerformed) {
-      this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart ?? 0);
+      this.hot.columnIndexMapper.moveIndexes(column, fixedStart);
 
       // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
       // However, keeping the old name still in effect. When both option names are used together,
       // the error is thrown. To prevent that, the plugin needs to modify the original option key
       // to bypass the validation.
-      (settings as { _fixedColumnsStart: number })._fixedColumnsStart += 1;
+      (settings as { _fixedColumnsStart: number })._fixedColumnsStart = fixedStart + 1;
     }
 
     this.hot.runHooks('afterColumnFreeze', column, freezePerformed);
@@ -183,6 +199,11 @@ export class ManualColumnFreeze extends BasePlugin {
   /**
    * Unfreezes the given column (removes it from fixed columns). The column is placed right after the frozen
    * columns, or, with the `restoreColumnPosition` setting, back among the scrollable columns in data order.
+   *
+   * The method does nothing when the column is not frozen, or when unfreezing it would hand a column to the
+   * `fixedColumnsEnd` band. With the `limitFixedToViewport` option on, a column that the grid draws as scrolling
+   * counts as not frozen, and the new count is the drawn count minus one. The `afterColumnUnfreeze` hook then
+   * reports whether the unfreeze was performed.
    *
    * @param {number} column Visual column index.
    */
@@ -198,7 +219,7 @@ export class ManualColumnFreeze extends BasePlugin {
   #unfreezeColumn(column: number): void {
     const settings = this.hot.getSettings();
     // columns are not fixed (not frozen)
-    const fixedStart = settings.fixedColumnsStart ?? 0;
+    const fixedStart = getStartBandCount(this.hot);
     // Unfreezing is also refused when it would hand a column back to the `fixedColumnsEnd` band (the
     // start/end clamp was cutting the band down), as the unfrozen column would slide into it.
     const unfreezePerformed = fixedStart > 0 && (column <= fixedStart - 1) && !unfreezeWouldShiftEndBand(this.hot);
@@ -216,7 +237,7 @@ export class ManualColumnFreeze extends BasePlugin {
       // However, keeping the old name still in effect. When both option names are used together,
       // the error is thrown. To prevent that, the plugin needs to modify the original option key
       // to bypass the validation.
-      (settings as { _fixedColumnsStart: number })._fixedColumnsStart -= 1;
+      (settings as { _fixedColumnsStart: number })._fixedColumnsStart = fixedStart - 1;
 
       this.hot.columnIndexMapper.moveIndexes(column, finalIndex);
     }

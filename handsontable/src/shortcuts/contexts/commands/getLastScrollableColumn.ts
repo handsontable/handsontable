@@ -13,7 +13,6 @@ import type { HotInstance } from '../../../core/types';
  * @returns {number|null} The visual column index, or `null` when no such column exists.
  */
 export function getLastScrollableColumn(hot: HotInstance): number | null {
-  const settings = hot.getSettings();
   const totalColumns = hot.countCols();
   const fixedColumnsEnd = hot.view.countFixedColumnsEnd();
 
@@ -25,5 +24,5 @@ export function getLastScrollableColumn(hot: HotInstance): number | null {
   }
 
   // The start and end columns cover the grid: what is left is a start column, not a column that scrolls.
-  return column !== null && column >= (settings.fixedColumnsStart ?? 0) ? column : null;
+  return column !== null && column >= hot.view.countFixedColumnsStart() ? column : null;
 }

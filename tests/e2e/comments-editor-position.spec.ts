@@ -1,4 +1,4 @@
-import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
 import { CommentsEditorPositionPage } from '../fixtures/pages/CommentsEditorPositionPage';
 
 /**
@@ -11,7 +11,7 @@ import { CommentsEditorPositionPage } from '../fixtures/pages/CommentsEditorPosi
  * check turns one of them red: an RTL page scrolled PART of the way, an RTL page that overflows but
  * is not scrolled yet (`scrollX` 0), and an RTL grid on an LTR page (positive `scrollX`).
  */
-test.describe('Comment editor position - RTL grid scrolled by the window', { tag: CROSS_BROWSER_TAG }, () => {
+test.describe('Comment editor position - RTL grid scrolled by the window', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   test.describe('on an RTL page', () => {
     let grid: CommentsEditorPositionPage;
 

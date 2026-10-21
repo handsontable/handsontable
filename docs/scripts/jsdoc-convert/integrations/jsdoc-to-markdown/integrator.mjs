@@ -6,8 +6,10 @@ import dmd from 'dmd';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const buildJsdocToMarkdownIntegrator = ({ source }) => {
+  // The async API streams jsdoc's output. The sync one buffers it through `spawnSync` with a hardcoded
+  // 20 MiB `maxBuffer` (jsdoc-api), and the API JSON outgrew that, failing with a bare `JSDOC_ERROR: [`.
   const parseJsdoc = (files) => {
-    return jsdoc2md.getTemplateDataSync({
+    return jsdoc2md.getTemplateData({
       files: source(files),
       'no-cache': true,
     });

@@ -1,23 +1,23 @@
 ---
 type: how-to
 title: Cell editor
-metaTitle: Cell editor - JavaScript Data Grid | Handsontable
+metaTitle: Cell editor | Handsontable DataGrid for JavaScript
 description: Create a custom cell editor function, to have full control over how editing works in the cells of your data grid.
 permalink: /cell-editor
 canonicalUrl: /cell-editor
 react:
-  metaTitle: Cell editor - React Data Grid | Handsontable
+  metaTitle: Cell editor | Handsontable DataGrid for React
 angular:
-  metaTitle: Cell editor - Angular Data Grid | Handsontable
+  metaTitle: Cell editor | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Cell editor - Vue Data Grid | Handsontable
+  metaTitle: Cell editor | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell functions
 ---
 
 Create custom cell editors to fully control how values are entered in your data grid.
 
-Each cell can have one editor — a class that manages the editor's DOM element, its value, and the lifecycle from opening to saving. Handsontable's [`EditorManager`](@/api/baseEditor.md) selects and drives the editor automatically. You create editors by extending [`BaseEditor`](@/api/baseEditor.md) or any of the [built-in editor classes](#built-in-editors).
+Each cell can have one editor — a class that manages the editor's DOM element, its value, and the lifecycle from opening to saving. In Handsontable DataGrid, the [`EditorManager`](@/api/baseEditor.md) selects and drives the editor automatically. You create editors by extending [`BaseEditor`](@/api/baseEditor.md) or any of the [built-in editor classes](#built-in-editors).
 
 [[toc]]
 
@@ -25,7 +25,7 @@ Each cell can have one editor — a class that manages the editor's DOM element,
 
 ## Component-based editors
 
-Use React components as editors with the `useHotEditor` hook. The hook returns `value`, `setValue`, and `finishEditing`, plus callbacks for the editor lifecycle (`onOpen`, `onClose`, `onPrepare`, `onFocus`).
+Use React components as editors with the `useHotEditor` hook. The hook returns `value`, `setValue`, and `finishEditing`. It accepts callbacks for the editor lifecycle (`onOpen`, `onClose`, `onPrepare`, `onFocus`). `onOpen` receives the DOM event that opened the editor. It is `undefined` when you call `beginEditing()`.
 
 The wrapper mounts the editor in the grid portal, so a click on the editor does not deselect the cell. Form controls in the editor inherit the grid theme `color-scheme`. The `value` from `useHotEditor` updates in the same render as `setValue`. Still call `event.stopPropagation()` on the `mousedown` event of the editor's root element as a backup.
 
@@ -167,7 +167,7 @@ These methods are already implemented in `BaseEditor`. Override them only when n
 | Method | Description |
 | --- | --- |
 | `prepare()` | Configures the editor for the selected cell. Sets `this.row`, `this.col`, `this.prop`, `this.TD`, and `this.cellProperties`. Parameters: `(row, col, prop, td, originalValue, cellProperties)`. |
-| `beginEditing()` | Sets the initial editor value and calls `open()`. Uses the original cell value when `newInitialValue` is `undefined`. Parameters: `(newInitialValue, event)`. |
+| `beginEditing()` | Sets the initial editor value and calls `open()`. Passes `newInitialValue` to `setValue()` when it is a string. Otherwise passes the cell value after the value getter. Parameters: `(newInitialValue, event)`. |
 | `finishEditing()` | Validates and saves the value, or restores the original when `restoreOriginalValue` is `true`. When `ctrlDown` is `true`, applies the value to all selected cells. Calls `close()` on success or `focus()` when validation fails. Parameters: `(restoreOriginalValue?, ctrlDown?, callback?)`. |
 | `discardEditor()` | Called after validation. If valid, calls `close()`; if invalid, calls `focus()` to keep the editor open. Parameter: `(result)`. |
 | `saveValue()` | Validates and saves `value`. Applies to all selected cells when `ctrlDown` is `true`. Parameters: `(value, ctrlDown)`. |
@@ -182,7 +182,7 @@ You must implement all of these in your custom editor class.
 | --- | --- |
 | `init()` | Called once when the editor object is created. Build the editor's DOM here. |
 | `getValue()` | Returns the current editor value to be saved as the new cell value. |
-| `setValue()` | Updates the editor to display the new value. Parameter: `(newValue)`. |
+| `setValue()` | Updates the editor to display the new value. `beginEditing()` passes the cell value after the value getter, or the string you passed to `beginEditing()`. When the editor needs a string, use `value == null ? '' : String(value)`. Parameter: `(value)`. |
 | `open()` | Shows the editor. |
 | `close()` | Hides the editor after editing ends. |
 | `focus()` | Focuses the editor input. Called when validation fails and the editor must stay open. |

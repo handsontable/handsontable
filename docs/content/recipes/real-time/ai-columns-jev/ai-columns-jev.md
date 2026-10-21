@@ -1,7 +1,7 @@
 ---
 type: tutorial
 title: Add AI-classified columns with Jev
-metaTitle: Add AI-classified columns with Jev - JavaScript Data Grid | Handsontable
+metaTitle: Add AI-classified columns with Jev | Handsontable DataGrid for JavaScript
 description: Send each row to Jev, TypeSafe AI's decision model, and fill new columns with typed answers and calibrated confidence as the results arrive.
 permalink: /recipes/real-time/ai-columns-jev
 canonicalUrl: /recipes/real-time/ai-columns-jev
@@ -38,7 +38,7 @@ In this tutorial, you will add three AI-generated columns to a grid of product r
 
 **Difficulty:** Intermediate
 **Time:** ~20 minutes
-**Stack:** Handsontable, [Jev](https://docs.typesafe.ai) by TypeSafe AI through a small proxy you host
+**Stack:** Handsontable DataGrid, [Jev](https://docs.typesafe.ai) by TypeSafe AI through a small proxy you host
 
 Jev is a decision model, not a chat model. It answers typed questions. A **Noul** is yes or no, a **Score** is a position on ordered levels, and a **Choice** is one option from a list. Score and Choice answers carry a confidence, a probability you can sort, filter, and set thresholds on. There is no free text to parse, so an answer can go straight into a cell.
 
@@ -303,6 +303,10 @@ Three limits to keep in mind:
 
 ## Related
 
-- [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)
-- [`updateSettings()`](@/api/core.md#updatesettings)
-- [`columnSorting`](@/api/options.md#columnsorting)
+<div class="boxes-list">
+
+- [setSourceDataAtCell()](@/api/core.md#setsourcedataatcell)
+- [updateSettings()](@/api/core.md#updatesettings)
+- [columnSorting](@/api/options.md#columnsorting)
+
+</div>

@@ -18,8 +18,11 @@ import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
     note) would be stripped at build time. */}
 <Fragment set:html={AGENT_NOTE_HTML_COMMENT} />
 
-<link rel="icon" media="(prefers-color-scheme: light)" href="/docs/img/favicon.png" />
-<link rel="icon" media="(prefers-color-scheme: dark)" href="/docs/img/favicon-dark.png" />
+{/* Same favicon set as handsontable.com. The mark sits on a black tile, so one file serves both color schemes. */}
+<link rel="icon" href="/docs/favicon/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/docs/favicon/favicon-96x96.png" type="image/png" sizes="96x96" />
+<link rel="icon" href="/docs/favicon/favicon.ico" sizes="48x48" />
+<link rel="apple-touch-icon" href="/docs/favicon/apple-touch-icon.png" sizes="180x180" />
 
 {/* Prevent browser auto-translate (Edge, Chrome, Google Translate) from
     mutating text nodes in the DOM. When translation wraps text in <font>
@@ -31,7 +34,7 @@ import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
 <script is:inline>document.documentElement.setAttribute('translate','no');</script>
 
 <script is:inline>
-  // Remove Starlight's default favicon in favor of light/dark media-query versions above.
+  // Remove Starlight's default favicon in favor of the favicon set above.
   document.querySelector('link[rel="shortcut icon"]')?.remove();
 </script>
 

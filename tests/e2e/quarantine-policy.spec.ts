@@ -33,9 +33,10 @@ const daysFromNow = (days: number) => new Date(Date.now() + (days * DAY_MS)).toI
  *
  * @param name The case name, also the directory name under `test-results/`.
  * @param specSource The synthetic spec's source; `quarantined` is already imported.
+ * @param args Extra arguments for `playwright test` (a `--shard`).
  * @returns The child's exit status and combined output.
  */
-function runSyntheticProject(name: string, specSource: string) {
+function runSyntheticProject(name: string, specSource: string, args: string[] = []) {
   // The six e2e projects run this file in parallel (`fullyParallel`), so the dir carries the
   // project and worker of the running test — two workers never write the same synthetic tree.
   const info = test.info();
@@ -67,7 +68,7 @@ function runSyntheticProject(name: string, specSource: string) {
   // as nested inside the current run.
   const env = Object.fromEntries(Object.entries(process.env)
     .filter(([key]) => !/^(PW_|PLAYWRIGHT_|TEST_WORKER_|TEST_PARALLEL_)/.test(key)));
-  const child = spawnSync(process.execPath, [playwrightCli, 'test', '-c', path.join(dir, 'playwright.config.mjs')], {
+  const child = spawnSync(process.execPath, [playwrightCli, 'test', '-c', path.join(dir, 'playwright.config.mjs'), ...args], {
     cwd: testsRoot,
     env: { ...env, CI: '1', GITHUB_ACTIONS: '', GITHUB_OUTPUT: '', FORCE_COLOR: '0' },
     encoding: 'utf8',
@@ -128,6 +129,22 @@ test.describe('quarantine policy', () => {
     // Every test passed and quarantine flipped the run to failed, so this must NOT claim it passed.
     expect(output).not.toContain('The run passes');
     expect(status).toBe(1);
+  });
+
+  test('a shard that lands on no test fails the run, which Playwright alone would pass', async() => {
+    // One test, two shards: Playwright deals the test to shard 1 and ends shard 2 with nothing run, and
+    // it skips its "No tests found" error whenever --shard is set (lib/runner/index.js, 1.62.1). The
+    // reporter owns the exit status and fails the empty shard; the shard holding the test passes.
+    const alone = 'test(\'alone\', async() => { expect(1).toBe(1); });';
+    const empty = runSyntheticProject('empty-shard', alone, ['--shard=2/2']);
+
+    expect(empty.output).toContain('no test ran in shard 2/2');
+    expect(empty.status).toBe(1);
+
+    const full = runSyntheticProject('full-shard', alone, ['--shard=1/2']);
+
+    expect(full.output).toContain('1 passed');
+    expect(full.status).toBe(0);
   });
 
   test('a quarantine without a task id or beyond the horizon refuses to load', async() => {

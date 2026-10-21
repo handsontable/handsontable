@@ -1,6 +1,6 @@
 ---
 title: Cache the output of an expensive cell renderer
-metaTitle: Cache the output of an expensive cell renderer - JavaScript Data Grid | Handsontable
+metaTitle: Cache the output of an expensive cell renderer | Handsontable DataGrid for JavaScript
 description: Compute a slow cell value once per data record and reuse it on every render, by keying the cache by the record instead of the td element.
 permalink: /recipes/performance/expensive-cell-renderer
 canonicalUrl: /recipes/performance/expensive-cell-renderer
@@ -12,11 +12,11 @@ tags:
   - weakmap
   - scrolling
 react:
-  metaTitle: Cache the output of an expensive cell renderer - React Data Grid | Handsontable
+  metaTitle: Cache the output of an expensive cell renderer | Handsontable DataGrid for React
 angular:
-  metaTitle: Cache the output of an expensive cell renderer - Angular Data Grid | Handsontable
+  metaTitle: Cache the output of an expensive cell renderer | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Cache the output of an expensive cell renderer - Vue Data Grid | Handsontable
+  metaTitle: Cache the output of an expensive cell renderer | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Performance
 type: tutorial
@@ -64,7 +64,7 @@ In this tutorial, you will make an expensive custom renderer cheap by computing 
 **Difficulty:** Intermediate
 **Time:** ~15 minutes
 
-Handsontable calls a cell renderer for every rendered cell on every render -- after each scroll, sort, edit, or `render()` call. A renderer that computes something slow from the cell's data -- a chart, a parsed document, a formatted summary -- repeats that work for the same record again and again. A cache fixes that, but only if you pick the right key.
+Handsontable DataGrid calls a cell renderer for every rendered cell on every render -- after each scroll, sort, edit, or `render()` call. A renderer that computes something slow from the cell's data -- a chart, a parsed document, a formatted summary -- repeats that work for the same record again and again. A cache fixes that, but only if you pick the right key.
 
 [[toc]]
 

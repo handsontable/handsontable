@@ -12,6 +12,7 @@ import {
   setAttribute
 } from '../../helpers/dom/element';
 import { throwWithCause } from '../../helpers/errors';
+import { clampFixedColumnsEnd } from '../../3rdparty/walkontable/src/settings/fixedColumnsEnd';
 import { syncIcon } from '../../themes/engine/icons';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import {
@@ -989,7 +990,12 @@ export class CollapsibleColumns extends BasePlugin {
    * @returns {boolean}
    */
   #reachesFixedColumnsEnd(column: number, colspan: number): boolean {
-    const fixedColumnsEnd = this.hot.view?.countFixedColumnsEnd() ?? 0;
+    const settings = this.hot.getSettings();
+    // The configured band, not the drawn one: with `limitFixedToViewport` the grid may draw fewer end columns for now,
+    // and a group collapsed inside the configured band would end up in the frozen band when the grid grows.
+    const fixedColumnsEnd = clampFixedColumnsEnd(
+      settings.fixedColumnsEnd, settings.fixedColumnsStart, this.hot.countCols()
+    );
 
     if (!fixedColumnsEnd) {
       return false;

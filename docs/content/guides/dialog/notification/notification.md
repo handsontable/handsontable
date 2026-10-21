@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Notification
-metaTitle: Notification - JavaScript Data Grid | Handsontable
+metaTitle: Notification | Handsontable DataGrid for JavaScript
 description: Show non-blocking toast notifications anchored to the grid with the Notification plugin.
 permalink: /notification
 canonicalUrl: /notification
@@ -11,17 +11,17 @@ tags:
   - dialog
   - accessibility
 react:
-  metaTitle: Notification - React Data Grid | Handsontable
+  metaTitle: Notification | Handsontable DataGrid for React
 angular:
-  metaTitle: Notification - Angular Data Grid | Handsontable
+  metaTitle: Notification | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Notification - Vue Data Grid | Handsontable
+  metaTitle: Notification | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Dialog
 addedIn: "17.1.0"
 ---
 
-Show non-blocking toast notifications for save confirmations, errors, and other transient feedback. Toasts are anchored to the Handsontable root, support stacking per corner, and work with the design system themes.
+Show non-blocking toast notifications for save confirmations, errors, and other transient feedback. Toasts are anchored to the grid's root element, support stacking per corner, and work with the design system themes.
 
 [[toc]]
 

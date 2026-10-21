@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ViewChild, ViewEncapsulation, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
@@ -30,7 +30,9 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
 
   hotData: any[] = [];
-  isLoading = false;  
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  isLoading = false;
   buttonText = 'Load Data';
 
   readonly hotSettings: GridSettings = {
@@ -147,7 +149,11 @@ export class AppComponent implements AfterViewInit {
       setTimeout(() => {
         loadingPlugin.hide();
         this.isLoading = false;
+        this.cdr.markForCheck();
       }, 2000);
+    } finally {
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so mark it.
+      this.cdr.markForCheck();
     }
   }
 }

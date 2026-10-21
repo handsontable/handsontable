@@ -47,17 +47,10 @@
 
     container.className = 'ht-theme-' + window.htTheme;
 
-    // A custom editor that only extends the text editor. It overrides nothing, so it inherits the
-    // `maxLength` cap; a column picks it with `editor: 'customText'`.
-    class CustomTextEditor extends Handsontable.editors.TextEditor {}
-
-    Handsontable.editors.registerEditor('customText', CustomTextEditor);
-
-    // Captures a constructor failure so `goto()` can rethrow it instead of timing out on a missing cell.
-    window.fixtureError = null;
-
     window.initMaxLengthGrid = function(overrides) {
-      window.fixtureError = null;
+      // The shared fixture contract: a constructor throw lands in `window.htBuildError`, which
+      // `awaitFixtureBuilt()` and the page object rethrow with its stack. Cleared before each rebuild.
+      delete window.htBuildError;
 
       try {
         if (window.hot) {
@@ -77,7 +70,7 @@
           licenseKey: 'non-commercial-and-evaluation',
         }, overrides || {}));
       } catch (error) {
-        window.fixtureError = String(error && error.stack || error);
+        window.htBuildError = String((error && error.stack) || error);
         throw error;
       }
 

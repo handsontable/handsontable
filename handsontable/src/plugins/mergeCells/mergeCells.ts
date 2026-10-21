@@ -1219,9 +1219,14 @@ export class MergeCells extends BasePlugin {
     }
 
     const columns: { visual: number, physical: number }[] = [];
+    const columnCount = this.hot.countCols();
 
     rangeEach(leftColumn, leftColumn + mergedCell.colspan - 1, (visual) => {
-      const physical = this.hot.toPhysicalColumn(visual);
+      // A shrinking `loadData`/`updateData` leaves the merge on columns the grid no longer has, and
+      // `toPhysicalColumn()` answers `null` for them. Such an index is its own physical index - the
+      // rule `Core#setCellMeta` writes by and `Core#removeCellMeta` reads by - so the meta the merge
+      // left there (kept by `updateData`) is still cleared.
+      const physical = visual < columnCount ? this.hot.toPhysicalColumn(visual) : visual;
 
       if (physical !== null) {
         columns.push({ visual, physical });
@@ -1360,11 +1365,10 @@ export class MergeCells extends BasePlugin {
    * @private
    * @param {CellRange} cellRange Selection cell range.
    * @param {boolean} [auto=false] `true` if called automatically by the plugin.
-   *
    * @fires Hooks#beforeUnmergeCells
    * @fires Hooks#afterUnmergeCells
    */
-  unmergeRange(cellRange: CellRange, auto = false) {
+  unmergeRange(cellRange: CellRange, auto = false): void {
     this.runOperation('unmerge_cells', () => this.#unmergeRange(cellRange, auto), {
       cellRange: deepClone(cellRange),
     });
@@ -1585,7 +1589,7 @@ export class MergeCells extends BasePlugin {
    * @param {CellRange} cellRange Selection cell range.
    * @param {boolean} auto `true` if called automatically by the plugin.
    */
-  #unmergeRange(cellRange: CellRange, auto: boolean) {
+  #unmergeRange(cellRange: CellRange, auto: boolean): void {
     const mergedCells = this.mergedCellsCollection.getWithinRange(cellRange);
 
     if (mergedCells.length === 0) {
@@ -2568,38 +2572,69 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Modifies the information on whether the current selection contains multiple cells. The `afterIsMultipleSelection`
-   * hook callback.
+   * The area highlight was committed for the old merges. The next view render recomputes it once,
+   * before this draw paints. Selection-change hooks do not run. `afterIsMultipleSelection` does,
+   * the same way a plain render asks whether the range is one cell.
+   */
+  #recommitSelectionHighlight(): void {
+    if (!this.mergedCellsCollection.takeSelectionHighlightStale()) {
+      return;
+    }
+
+    if (!this.hot.selection.isSelected()) {
+      return;
+    }
+
+    this.hot.selection.commitHighlightsDirectly();
+  }
+
+  /**
+   * `afterIsMultipleSelection` hook callback.
    *
    * @param {boolean} isMultiple Determines whether the current selection contains multiple cells.
    * @returns {boolean}
    */
   #onAfterIsMultipleSelection = (isMultiple: boolean) => {
     if (isMultiple) {
-      const mergedCells = this.mergedCellsCollection.mergedCells;
       const selectionRange = this.hot.getSelectedRangeActive();
 
       if (!selectionRange) {
         return isMultiple;
       }
 
-      const topStartCoords = selectionRange.getTopStartCorner();
-      const bottomEndCoords = selectionRange.getBottomEndCorner();
-
-      for (let group = 0; group < mergedCells.length; group += 1) {
-        if (
-          topStartCoords.row === mergedCells[group].row &&
-          topStartCoords.col === mergedCells[group].col &&
-          bottomEndCoords.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
-          bottomEndCoords.col === mergedCells[group].col + mergedCells[group].colspan - 1
-        ) {
-          return false;
-        }
+      if (this.#rangeCoversOneMerge(selectionRange)) {
+        return false;
       }
     }
 
     return isMultiple;
   };
+
+  /**
+   * The active range's corners are exactly one merged cell.
+   * Header corners normalize to 0, so a full-column selection looks like the merge that fills that column.
+   *
+   * @param {CellRange} selectionRange The range to test.
+   * @returns {boolean}
+   */
+  #rangeCoversOneMerge(selectionRange: CellRange): boolean {
+    const mergedCells = this.mergedCellsCollection.mergedCells;
+    const topStartCoords = selectionRange.getTopStartCorner();
+    const bottomEndCoords = selectionRange.getBottomEndCorner();
+
+    for (let group = 0; group < mergedCells.length; group += 1) {
+      if (
+        topStartCoords.row === mergedCells[group].row &&
+        topStartCoords.col === mergedCells[group].col &&
+        bottomEndCoords.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
+        bottomEndCoords.col === mergedCells[group].col + mergedCells[group].colspan - 1
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   /**
    * `modifyTransformFocus` hook callback.
@@ -3887,6 +3922,8 @@ export class MergeCells extends BasePlugin {
    * marked as changed, so this draw repaints them.
    */
   #onBeforeViewRender = () => {
+    this.#recommitSelectionHighlight();
+
     const epoch = this.hot.view.getColumnWidthEpoch();
 
     if (epoch === this.#columnWidthEpoch) {
@@ -3908,7 +3945,7 @@ export class MergeCells extends BasePlugin {
     const countCols = this.hot.countCols();
     // Both edges are visual column indexes, like the blocks' columns: the not-hidden count of the start band
     // would move the edge left of the freeze line for every hidden column in the band.
-    const startEdge = Math.min(Number(this.hot.getSettings().fixedColumnsStart) || 0, countCols);
+    const startEdge = Math.min(this.hot.view.countFixedColumnsStart(), countCols);
     const endEdge = countCols - this.hot.view.countFixedColumnsEnd();
 
     this.mergedCellsCollection.mergedCells.forEach(({ row, col, colspan }: MergedCellCoords) => {
@@ -3985,7 +4022,7 @@ export class MergeCells extends BasePlugin {
       // The top overlay renders the first `fixedRowsTop` rows by visual index (hidden ones add no height in the
       // sum), so the clamp counts visual rows: the not-hidden count would cut a row off the span for every
       // hidden row above the block.
-      rowsToSum = Math.min(rowsToSum, (Number(this.hot.getSettings().fixedRowsTop) || 0) - row);
+      rowsToSum = Math.min(rowsToSum, this.hot.view.countFixedRowsTop() - row);
     }
 
     if (rowsToSum <= 1) {

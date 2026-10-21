@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: MultiSelect cell type
-metaTitle: MultiSelect cell type - JavaScript Data Grid | Handsontable
+metaTitle: MultiSelect cell type | Handsontable DataGrid for JavaScript
 description: Collect user input with a list of multiple-selection entries, by using the MultiSelect cell type.
 permalink: /multiselect-cell-type
 canonicalUrl: /multiselect-cell-type
 react:
-  metaTitle: MultiSelect cell type - React Data Grid | Handsontable
+  metaTitle: MultiSelect cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: MultiSelect cell type - Angular Data Grid | Handsontable
+  metaTitle: MultiSelect cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: MultiSelect cell type - Vue Data Grid | Handsontable
+  metaTitle: MultiSelect cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
@@ -36,7 +36,7 @@ The list of selectable options (`source` property) can be provided in two format
 
 ## Integration with formulas
 
-When you use the MultiSelect cell type together with the [Formulas](@/api/options.md#formulas) plugin, Handsontable keeps MultiSelect values in source data as arrays.
+When you use the MultiSelect cell type together with the [Formulas](@/api/options.md#formulas) plugin, Handsontable DataGrid keeps MultiSelect values in source data as arrays.
 
 HyperFormula doesn't accept arrays as direct cell values. Because of that, Handsontable converts MultiSelect arrays to comma-separated strings before passing values to HyperFormula. This behavior keeps the original array format in source data, and allows formula cells to reference MultiSelect values as text (for example, `"Frontend, Backend"`).
 

@@ -36,6 +36,7 @@ export interface FixtureHotInstance {
   getDataAtRow(row: number): CellValue[];
   getSourceDataAtCell(row: number, col: number): CellValue;
   getSourceData(): unknown[];
+  getSourceDataArray(): unknown[][];
   setDataAtCell(row: number, col: number, value: CellValue): void;
   setCellMeta(row: number, col: number, key: string, value: unknown): void;
   getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean, hidden?: boolean, spanned?: boolean };
@@ -107,6 +108,7 @@ export interface FixtureHotInstance {
     getCommentAtCell(row: number, column: number): string | undefined,
     showAtCell(row: number, column: number): boolean,
     focusEditor(): void,
+    destroy(): void,
   };
   getPlugin(name: 'pagination'): {
     setPage(page: number): void,
@@ -123,7 +125,9 @@ export interface FixtureHotInstance {
     clearConditions(column?: number): void,
     filter(): void,
     exportConditions(): unknown[],
+    destroy(): void,
   };
+  getPlugin(name: 'autoColumnSize' | 'nestedHeaders'): { destroy(): void };
   /**
    * Both sorting plugins expose the same `sort()` signature - `MultiColumnSorting` extends
    * `ColumnSorting` and only widens what an array of configs means - so one overload covers
@@ -135,7 +139,16 @@ export interface FixtureHotInstance {
     clearSort(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
-  getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
+  getPlugin(name: 'copyPaste'): { paste(pastableText?: string): void };
+  getPlugin(name: 'autofill'): {
+    mouseDownOnCellCorner: boolean,
+    addingStarted: boolean,
+    enabled: boolean,
+    enablePlugin(): void,
+    disablePlugin(): void,
+    updatePlugin(): void,
+    destroy(): void,
+  };
   getPlugin(name: 'multipleSelectionHandles'): {
     isDragged(): boolean;
     enabled: boolean;
@@ -215,7 +228,10 @@ export interface FixtureHotInstance {
     isFlippedHorizontally?: boolean,
   } | undefined;
   isRtl(): boolean;
+  /** The master overlay's `<table>` element. */
+  table: HTMLTableElement;
   render(): void;
+  destroy(): void;
   listen(): void;
   view: {
     isVerticallyScrollableByWindow(): boolean,
@@ -242,6 +258,7 @@ export interface FixtureHotInstance {
   getColWidth(col: number): number;
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string, horizontalSnap?: string }): boolean;
   selectCells(ranges: number[][]): boolean;
+  selectRows(fromRow: number, toRow: number): boolean;
   selectColumns(fromCol: number, toCol: number): boolean;
   deselectCell(): void;
   getSelectedRangeLast(): FixtureCellRange;
@@ -314,6 +331,11 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /**
+     * DEV-775: a reference to the Autofill plugin kept after `destroy()`, the way an application that
+     * cached `getPlugin('autofill')` still holds it.
+     */
+    destroyedAutofill?: { enablePlugin(): void, disablePlugin(): void, updatePlugin(): void };
     /** Undo fixture: how many vetoed meta writes the listener `UndoGridPage#vetoMetaWrites()` adds saw. */
     metaWriteAttempts: number;
     /**
@@ -405,8 +427,11 @@ declare global {
     pendingValidationCount(): number;
     /** Rebuilds the `maxLength` fixture grid (`max-length.html`) with the given setting overrides. */
     initMaxLengthGrid(overrides?: Record<string, unknown>): boolean;
-    /** The constructor failure the `maxLength` fixture captured, or `null` when the grid was built. */
-    fixtureError: string | null;
+    /**
+     * The constructor failure a loud fixture captured (the shared contract `awaitFixtureBuilt()` in
+     * `fixtures/bundle.ts` rethrows), absent while the grid was built.
+     */
+    htBuildError?: string;
     /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
     initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
     /**
@@ -496,6 +521,14 @@ declare global {
     instrumentDragOutsideCheck(): boolean;
     /** How many drag-outside measurements the healthy grid has taken since instrumentation. */
     dragOutsideCheckCount: number;
+    /** DEV-140 fixture: rebuilds the fill handle grid with the given setting overrides. */
+    initFillGrid(overrides?: Record<string, unknown>): boolean;
+    /** DEV-140 fixture: `rows` x `cols` data labelled like spreadsheet cells (`A1`, `B1`, ...). */
+    buildCellLabels(rows: number, cols: number): string[][];
+    /** DEV-140 fixture: the visual corners of the fill preview, or `null` when none is drawn. */
+    fillPreviewCorners(): [number, number, number, number] | null;
+    /** DEV-140 fixture: every `afterCreateRow` call since the grid was built. */
+    createdRowLog: { index: number, amount: number, source: string }[];
     /** DEV-1159: `Element.prototype.scrollIntoView` calls since the oversized-cell counter reset. */
     htScrollIntoViewCount: number;
     /** DEV-1159: last `scrollIntoView` argument after the counter reset. */

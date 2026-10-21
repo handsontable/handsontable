@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Time cell type
-metaTitle: Time cell type - JavaScript Data Grid | Handsontable
+metaTitle: Time cell type | Handsontable DataGrid for JavaScript
 description: Display, format, sort, and filter time values correctly by using the time cell type.
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
-  metaTitle: Time cell type - React Data Grid | Handsontable
+  metaTitle: Time cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Time cell type - Angular Data Grid | Handsontable
+  metaTitle: Time cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Time cell type - Vue Data Grid | Handsontable
+  metaTitle: Time cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 ---

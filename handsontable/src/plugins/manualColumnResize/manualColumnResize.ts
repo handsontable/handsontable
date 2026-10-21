@@ -567,7 +567,7 @@ export class ManualColumnResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.#gesture.detach();
+    this.#gesture.destroy();
     super.destroy();
   }
 }

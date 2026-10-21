@@ -1,8 +1,8 @@
 ---
 type: reference
 title: TypeScript types
-metaTitle: TypeScript types - JavaScript Data Grid | Handsontable
-description: A complete reference of the TypeScript types and interfaces that Handsontable exports, with usage examples for settings, hook callbacks, custom renderers, and editors.
+metaTitle: TypeScript types | Handsontable DataGrid for JavaScript
+description: A complete reference of the TypeScript types and interfaces that Handsontable DataGrid exports, with usage examples for settings, hook callbacks, custom renderers, and editors.
 permalink: /typescript-types
 canonicalUrl: /typescript-types
 tags:
@@ -11,16 +11,16 @@ tags:
   - interfaces
   - type safety
 react:
-  metaTitle: TypeScript types - React Data Grid | Handsontable
+  metaTitle: TypeScript types | Handsontable DataGrid for React
 angular:
-  metaTitle: TypeScript types - Angular Data Grid | Handsontable
+  metaTitle: TypeScript types | Handsontable DataGrid for Angular
 vue:
-  metaTitle: TypeScript types - Vue Data Grid | Handsontable
+  metaTitle: TypeScript types | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
 ---
 
-Handsontable ships TypeScript declarations for its entire public API. This page lists every type you can import and shows how to use them in common scenarios.
+Handsontable DataGrid ships TypeScript declarations for its entire public API. This page lists every type you can import and shows how to use them in common scenarios.
 
 [[toc]]
 

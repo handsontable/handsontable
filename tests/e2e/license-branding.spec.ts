@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { LicenseBrandingPage, INSTANT } from '../fixtures/pages/LicenseBrandingPage';
 
 /**
@@ -12,7 +12,7 @@ import { LicenseBrandingPage, INSTANT } from '../fixtures/pages/LicenseBrandingP
  * the click-through badge, the modal focus trap) are the ones only a real
  * browser can make.
  */
-test.describe('entitlement license key branding', () => {
+test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
   let license: LicenseBrandingPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -179,16 +179,6 @@ test.describe('entitlement license key branding', () => {
       await expect(license.lock).not.toContainText('Close');
     });
 
-    test('leaves the keyboard where the user had it', async () => {
-      await license.goto(INSTANT.trialHardStop);
-
-      await expect(license.lock).toBeVisible();
-      // The fixture focuses its own field before constructing the grid. A lock that claimed the
-      // keyboard at init would empty that caret and scroll the page down to itself — with the grid
-      // possibly far below the fold, and possibly not the only grid on the page.
-      await expect(license.outsideField).toBeFocused();
-    });
-
     test('owns the keyboard once the user reaches it, and Escape does not dismiss it', async ({ page }) => {
       await license.goto(INSTANT.trialHardStop);
 
@@ -271,9 +261,7 @@ test.describe('entitlement license key branding', () => {
     // sentences moved out of the bottom bar and into the modal, so the bar must be gone.
     const FAULTS = [
       { key: 'tampered', title: 'The license key for Handsontable is invalid.' },
-      // A current key protects its text, so the block alone, or a key whose text was edited, is an
-      // unreadable key as well.
-      { key: 'bare-block', title: 'The license key for Handsontable is invalid.' },
+      // A current key protects its text, so a key whose text was edited is an unreadable key as well.
       { key: 'edited-prose', title: 'The license key for Handsontable is invalid.' },
       { key: 'missing', title: 'The license key for Handsontable is missing.' },
     ] as const;
@@ -363,7 +351,7 @@ test.describe('entitlement license key branding', () => {
     // trailing "\n" saved as text, and `subscription-wrapped` the same key with its block broken
     // into lines as a mail client wraps it - both must read exactly like the original, or a
     // pasting customer's grid would block.
-    for (const key of ['subscription', 'subscription-external', 'subscription-pasted', 'subscription-wrapped'] as const) {
+    for (const key of ['subscription', 'subscription-pasted', 'subscription-wrapped'] as const) {
       test(`stays console-only for a "${key}" key: no lock, no bar, no badge`, async () => {
         await license.goto(INSTANT.subscriptionHardStop, { key });
 

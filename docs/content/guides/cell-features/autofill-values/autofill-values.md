@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Autofill values
-metaTitle: Autofill values - JavaScript Data Grid | Handsontable
-description: Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable's API.
+metaTitle: Autofill values | Handsontable DataGrid for JavaScript
+description: Copy a cell's value into other cells using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable DataGrid's API.
 permalink: /autofill-values
 canonicalUrl: /autofill-values
 tags:
@@ -14,16 +14,16 @@ tags:
   - auto-fill
   - auto fill
 react:
-  metaTitle: Autofill values - React Data Grid | Handsontable
+  metaTitle: Autofill values | Handsontable DataGrid for React
 angular:
-  metaTitle: Autofill values - Angular Data Grid | Handsontable
+  metaTitle: Autofill values | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Autofill values - Vue Data Grid | Handsontable
+  metaTitle: Autofill values | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
 menuTag: updated
 ---
-Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable's API.
+Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable DataGrid's API.
 
 [[toc]]
 
@@ -33,16 +33,27 @@ Autofill lets users drag the fill handle to copy values across adjacent cells. U
 
 Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it to copy and repeat the selected values across adjacent cells.
 
+The fill handle appears only when the selection is a single range. When you select several separate ranges, for example with <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+click, the fill handle is hidden.
+
 You can also **double-click the fill handle** to autofill downward without dragging. Select the four cells from Symbol to Known Isotopes in the `Lithium` row (row header 3) and double-click the fill handle to see this in action.
 
 ### How double-click autofill determines the range
 
-Handsontable scans the rows below your selection and fills down to the last row where the column immediately to the left or right of your selection contains a value. In the example below, the Name column acts as the guide -- the rows with row headers 4 and 5 have values there, so the fill copies the selected values through both rows.
+Handsontable follows one guide column: the column immediately to the left of your selection, or the column to its right if the left one is empty in the first row below your selection. It scans the rows below your selection, one row at a time, and fills down as long as the guide column contains a value. In the example below, the Name column acts as the guide -- the rows with row headers 4 and 5 have values there, so the fill copies the selected values through both rows.
 
-Two conditions must be met for the fill to happen:
+The fill stops at the first row where either of these is true:
 
-- **All cells below the selection in the filled column(s) must be empty.** If any cell below the selection in those columns contains data, double-clicking does nothing.
-- At least one column adjacent to your selection must have data in the rows below.
+- **A cell in the filled column(s) already contains data.** The fill stops above that row, so double-clicking never overwrites existing values.
+- **The guide column is empty.** A gap in the guide column ends the fill, even if more values follow further down.
+
+If the first row below your selection meets one of these conditions, double-clicking does nothing.
+
+A few cells count differently from what they display:
+
+- A formula counts as data, even if it evaluates to an empty string.
+- A merged cell in the guide column counts as one value across all the rows it spans.
+- A hidden row never ends the fill. A value in a hidden row of the filled column still stops the fill above it.
+- A hidden column next to your selection is skipped: the guide column is the nearest visible one.
 
 **Visual difference from drag-fill:** When you drag the fill handle, a preview border shows the target range as you drag. When you double-click, no drag-preview appears -- the cells populate immediately based on the adjacent column data.
 
@@ -261,6 +272,55 @@ The fill handle appears on the selected cell. Autofill copies the selected value
 - **Double-clicking the fill handle** copies the selected values down only, to the last row determined by the adjacent column, as described in [How double-click autofill determines the range](#how-double-click-autofill-determines-the-range).
 
 Use the [`beforeAutofill`](@/api/hooks.md#beforeautofill) hook to change the values before they're written, and the [`afterAutofill`](@/api/hooks.md#afterautofill) hook to react once the fill completes. With the [`Formulas`](@/guides/formulas/formula-calculation/formula-calculation.md) plugin enabled, relative references in copied formulas adjust to each target cell.
+
+When you use `beforeAutofill` together with the `Formulas` plugin, the order of the callbacks decides the result. The last callback that returns a value wins. Global hooks (`Handsontable.hooks.add()`) run before the hooks of an instance. Within the instance, callbacks run in ascending `orderIndex` order, and callbacks with the same `orderIndex` run in the order they were registered. The plugin registers its own `beforeAutofill` callback with the default `orderIndex` of 0 when it's enabled.
+
+- These run after the plugin and override it: the `beforeAutofill` option set at initialization, and an [`addHook()`](@/api/core.md#addhook) call made after the plugin is enabled.
+- These run before the plugin and are overridden by it: a global hook, an `addHook()` call made before the plugin is enabled, and the `beforeAutofill` option when you enable the plugin later with `updateSettings()`.
+
+Disabling and re-enabling the plugin registers its callback again, after your callbacks that have an `orderIndex` of 0. Passing a new `beforeAutofill` function through `updateSettings()` replaces the previous one in place, so it keeps its position. This is what happens when a wrapper re-renders with the same option.
+
+To always override the plugin, add your callback with [`addHook()`](@/api/core.md#addhook) and an `orderIndex` greater than 0. Such a callback runs after the plugin's callback, whenever you add it.
+
+::: only-for javascript
+
+```js
+hot.addHook('beforeAutofill', (selectionData, sourceRange, targetRange, direction) => {
+  return [['n/a']];
+}, 1);
+```
+
+:::
+
+::: only-for react
+
+```jsx
+hotRef.current.hotInstance.addHook('beforeAutofill', (selectionData, sourceRange, targetRange, direction) => {
+  return [['n/a']];
+}, 1);
+```
+
+:::
+
+::: only-for angular
+
+```ts
+hotTable.hotInstance.addHook('beforeAutofill', (selectionData, sourceRange, targetRange, direction) => {
+  return [['n/a']];
+}, 1);
+```
+
+:::
+
+::: only-for vue
+
+```js
+hotTableRef.value?.hotInstance.addHook('beforeAutofill', (selectionData, sourceRange, targetRange, direction) => {
+  return [['n/a']];
+}, 1);
+```
+
+:::
 
 ## Related API reference
 

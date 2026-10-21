@@ -157,6 +157,16 @@ Known residuals, both identical to what the visual comparison gave before:
   the summary silently moves to (or sums) the previous column.
 - Removing the destination row makes the reset clear, and the refresh overwrite, the preceding row's cell.
 
+## A settings update before the grid has a view computes nothing
+
+`updatePlugin()` runs `initEndpoints()` only once the grid has a view. The sheets bar applies its
+opening sheet's settings through `updateSettings()` while the grid is still being built, and the
+endpoints were then checked against the data the grid held before the sheet loaded (an
+out-of-bounds warning for a summary that fits the sheet). The `afterInit` listener computes them
+against the loaded data anyway. Do not move the computation after the load from the caller's side
+instead: before the view exists, the `setDataAtCell()` it writes through throws on the missing
+editor manager.
+
 ## Styling uses `_setCellMetaDeclarative`, not `setCellMeta`
 
 `readOnly` and the `columnSummaryResult` class are written through `hot._setCellMetaDeclarative()`. That is

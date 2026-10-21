@@ -721,9 +721,9 @@ export default defineConfig({
   integrations: [
     replaceHasSelectors(),
     starlight({
-      title: 'Handsontable',
+      title: 'Handsontable DataGrid',
       description:
-        'Handsontable is a JavaScript/TypeScript data grid component for React, Angular, and Vue 3.',
+        'Handsontable DataGrid is a JavaScript/TypeScript component for building data grids in React, Angular, and Vue 3.',
 
       logo: {
         light: './src/assets/logo.svg',
@@ -731,7 +731,7 @@ export default defineConfig({
         replacesTitle: true,
       },
 
-      favicon: '/img/favicon.png',
+      favicon: '/favicon/favicon.ico',
 
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/handsontable/handsontable' },

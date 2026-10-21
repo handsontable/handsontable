@@ -1,7 +1,7 @@
 ---
 title: Import from CSV or Excel
-metaTitle: Import CSV or Excel - JavaScript Data Grid | Handsontable
-description: Load CSV or XLSX files into Handsontable with PapaParse and read-excel-file, preview headers, and handle errors in the browser.
+metaTitle: Import CSV or Excel | Handsontable DataGrid for JavaScript
+description: Load CSV or XLSX files into Handsontable DataGrid with PapaParse and the built-in ImportFile plugin, preview headers, and handle errors in the browser.
 permalink: /recipes/import-export/import-csv-excel
 canonicalUrl: /recipes/import-export/import-csv-excel
 tags:
@@ -11,17 +11,17 @@ tags:
   - excel
   - xlsx
 react:
-  metaTitle: Import CSV or Excel - React Data Grid | Handsontable
+  metaTitle: Import CSV or Excel | Handsontable DataGrid for React
 angular:
-  metaTitle: Import CSV or Excel - Angular Data Grid | Handsontable
+  metaTitle: Import CSV or Excel | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Import CSV or Excel - Vue Data Grid | Handsontable
+  metaTitle: Import CSV or Excel | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Import and Export
 type: how-to
 ---
 
-In this tutorial, you will let users drop or pick a CSV or Excel (`.xlsx`) file, parse it in the browser, and preview column headers before loading rows into Handsontable. You will learn how to use PapaParse and read-excel-file to handle both formats, and how to update `colHeaders` and `columns` from the detected header row.
+In this tutorial, you will let users drop or pick a CSV or Excel (`.xlsx`) file, parse it in the browser, and preview column headers before loading rows into Handsontable DataGrid. You will learn how to use PapaParse for CSV and the built-in `ImportFile` plugin for Excel, infer column types, and show clear errors.
 
 [[toc]]
 
@@ -31,17 +31,17 @@ This recipe shows a small UI with:
 
 - A drag-and-drop zone and a hidden file input.
 - File type detection by extension (`.csv` vs `.xlsx`) and routing to the right parser.
-- [PapaParse](https://www.papaparse.com/) for CSV and [read-excel-file](https://www.npmjs.com/package/read-excel-file) for Excel workbooks.
+- [PapaParse](https://www.papaparse.com/) for CSV and the built-in [`ImportFile`](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) plugin for Excel workbooks.
 - A header preview before you commit data to the grid.
 - Clear error messages for wrong type, empty files, and malformed content.
 
 **Difficulty:** Intermediate  
 **Time:** ~20 minutes  
-**Libraries:** `papaparse`, `read-excel-file` (npm in the docs build; CDN scripts at runtime for your own HTML pages)
+**Libraries:** `papaparse` (npm in the docs build; a CDN script at runtime for your own HTML pages). Excel needs none: the `ImportFile` plugin is part of Handsontable.
 
 ::: only-for javascript
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --html 4 --deps papaparse read-excel-file
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --html 4 --deps papaparse
 
 @[code](@/content/recipes/import-export/import-csv-excel/javascript/example1.js)
 @[code](@/content/recipes/import-export/import-csv-excel/javascript/example1.ts)
@@ -65,7 +65,7 @@ This recipe shows a small UI with:
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2 --css 3 --deps papaparse read-excel-file
+::: example #example1 :angular --ts 1 --html 2 --css 3 --deps papaparse
 
 @[code](@/content/recipes/import-export/import-csv-excel/angular/example1.ts)
 @[code](@/content/recipes/import-export/import-csv-excel/angular/example1.html)
@@ -73,7 +73,7 @@ This recipe shows a small UI with:
 
 :::
 
-In Angular, apply the parsed rows inside `NgZone.run()`, as `handleFile` does. read-excel-file unzips the workbook in Web Workers, so its promise resolves outside Angular's zone. Without `NgZone.run()`, the grid does not update until the next DOM event.
+In Angular, call `markForCheck()` on an injected `ChangeDetectorRef` after you apply the parsed rows, as `handleFile` does. Angular 22 components are `OnPush` by default, and nothing marks the component dirty after the `await`. Without the call, the grid does not update until the next DOM event.
 
 :::
 
@@ -90,14 +90,13 @@ In Angular, apply the parsed rows inside `NgZone.run()`, as `handleFile` does. r
 
 ## CDN scripts (no bundler)
 
-For a plain HTML page, load Handsontable plus the parsers from a CDN (pin versions to match what you test):
+For a plain HTML page, load Handsontable plus PapaParse from a CDN (pin the version to match what you test):
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/read-excel-file@9.3.10/bundle/read-excel-file.min.js"></script>
 ```
 
-The JavaScript and React examples load the same URLs on demand when `window.Papa` / `window.readXlsxFile` are missing, so the pattern matches a script-tag setup. The Angular and Vue examples import `papaparse` and `read-excel-file/browser` from npm instead.
+The JavaScript and React examples load the same URL on demand when `window.Papa` is missing, so the pattern matches a script-tag setup. The Angular and Vue examples import `papaparse` from npm instead.
 
 ## Step 1: Accept files and detect type
 
@@ -121,9 +120,9 @@ Use `accept` on the file input and check `file.name` to route `.csv` and `.xlsx`
 
 **What's happening:**
 - The `accept` attribute restricts the system file picker to `.csv` and `.xlsx`. This is a hint to the browser only -- you must validate the extension in JavaScript as well.
-- The real `<input>` is visually hidden (positioned off-screen with `opacity: 0`) and activated via the wrapping `<label>`. Clicking **Choose file** triggers the file picker without requiring a separate button.
+- The real `<input>` is visually hidden (a 1 px, absolutely positioned element with `opacity: 0`) and activated via the wrapping `<label>`. Clicking **Choose file** triggers the file picker without requiring a separate button.
 - **Load sample data** parses a bundled CSV string so users can try the grid without having to upload a file first.
-- The drop zone has `tabindex="0"` and `role="button"` so keyboard users can focus and activate it.
+- The drop zone has `tabindex="0"` and `role="button"`, so keyboard users can focus it. It has no key handler; keyboard users open the file picker with **Choose file**.
 
 ### Extension detection
 
@@ -214,7 +213,7 @@ async function ensurePapa() {
 1. `loadScript` injects a `<script>` tag and returns a `Promise` that resolves on load and rejects on error.
 2. A `Map` keyed by URL caches the promise so the script is only injected once even if `loadScript` is called multiple times concurrently.
 3. It checks for a pre-existing `<script data-cdn="...">` element -- this handles the case where the tag was already added (e.g., in the docs preview runner).
-4. `ensurePapa` first checks `window.Papa` (already available when using a bundler or a CDN `<script>` tag in your own HTML), and only loads the CDN script when it is absent.
+4. `ensurePapa` first checks `window.Papa` (set when your page loads PapaParse with a `<script>` tag), and only loads the CDN script when it is absent.
 
 **Why lazy-load?**
 - Avoids loading a parser the user might never need.
@@ -273,80 +272,74 @@ function parseCsvText(text, PapaRef) {
 - PapaParse's synchronous `parse(string, opts)` overload is used here (no `complete` callback needed).
 - Used when the user clicks **Load sample data** to parse a CSV string embedded in the script and feed it into the grid.
 
-## Step 3: Parse Excel with read-excel-file
+## Step 3: Parse Excel with the ImportFile plugin
 
-### Lazy-load read-excel-file
+### Read the workbook without a library
 
-The `ensureReadExcelFile` function follows the same lazy-load pattern as `ensurePapa`:
-
-```javascript
-const CDN_READ_EXCEL_FILE = 'https://cdn.jsdelivr.net/npm/read-excel-file@9.3.10/bundle/read-excel-file.min.js';
-
-async function ensureReadExcelFile() {
-  if (typeof window.readXlsxFile !== 'undefined') return window.readXlsxFile;
-  await loadScript(CDN_READ_EXCEL_FILE);
-  if (typeof window.readXlsxFile === 'undefined') throw new Error('read-excel-file did not register on window.');
-  return window.readXlsxFile;
-}
-```
-
-### Parse an Excel file
+The built-in [`ImportFile`](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) plugin reads `.xlsx` files, so Excel needs no parser of its own. The plugin runs on a grid, so the parser creates a throwaway one in a hidden element and destroys it afterwards:
 
 ```javascript
-function normalizeCellValue(value) {
-  if (value === null || value === undefined) return null;
-  if (typeof value === 'number' || typeof value === 'boolean') return value;
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
-  const text = String(value).trim();
-  return text === '' ? null : text;
-}
+async function parseXlsxFile(file) {
+  const host = document.createElement('div');
 
-async function parseXlsxFile(file, readXlsxFileRef) {
-  let sheets;
+  host.hidden = true;
+  document.body.appendChild(host);
+
+  const parser = new Handsontable(host, {
+    data: [[]],
+    importFile: true,
+    licenseKey: 'non-commercial-and-evaluation',
+  });
+
   try {
-    sheets = await readXlsxFileRef(file);
-  } catch {
-    throw new Error('Could not read the Excel workbook. The file may be corrupted.');
-  }
+    const result = await parser.getPlugin('importFile').importFromBlob('xlsx', file, {
+      colHeaders: 'firstRow',
+      apply: false,
+    });
+    const headers = (result.colHeaders ?? []).map((cell, i) => {
+      const text = String(cell ?? '').trim();
 
-  const firstSheet = sheets[0];
-  if (!firstSheet) throw new Error('The workbook has no sheets.');
+      return text === '' ? `Column ${i + 1}` : text;
+    });
 
-  const matrix = firstSheet.data;
-  if (!matrix.length) throw new Error('The sheet is empty.');
-
-  const rawHeader = matrix[0].map((cell) => String(cell ?? '').trim());
-  if (rawHeader.length === 0 || rawHeader.every((h) => h === '')) {
-    throw new Error('No header row found in the Excel sheet.');
-  }
-
-  const keys = rawHeader.map((h, i) => (h === '' ? `Column ${i + 1}` : h));
-
-  const rows = [];
-  for (let r = 1; r < matrix.length; r++) {
-    const line = matrix[r];
-    const allEmpty = !line || line.every((c) => normalizeCellValue(c) === null);
-    if (allEmpty) continue;
-
-    const obj = {};
-    for (let c = 0; c < keys.length; c++) {
-      obj[keys[c]] = normalizeCellValue(line[c]);
+    if (headers.length === 0) {
+      throw new Error('No header row found in the Excel sheet.');
     }
-    rows.push(obj);
-  }
 
-  if (rows.length === 0) throw new Error('No data rows after the header.');
-  return { headers: keys, rows };
+    const rows = [];
+
+    for (const line of result.data) {
+      const obj = {};
+      let allEmpty = true;
+
+      headers.forEach((key, c) => {
+        obj[key] = normalizeCellValue(line[c]);
+        allEmpty = allEmpty && obj[key] === null;
+      });
+
+      if (!allEmpty) {
+        rows.push(obj);
+      }
+    }
+
+    if (rows.length === 0) {
+      throw new Error('No data rows after the header.');
+    }
+
+    return { headers, rows };
+  } finally {
+    parser.destroy();
+    host.remove();
+  }
 }
 ```
 
 **What's happening:**
-1. `readXlsxFile(file)` reads the `File` and resolves to every sheet in the workbook, as `[{ sheet, data }]`. The call is wrapped in a `try/catch` to surface corrupted file errors.
-2. `sheets[0]` picks the first sheet. Multi-sheet workbooks are supported -- extend this if you need a sheet picker.
-3. `data` is a two-dimensional array (matrix), so row 0 is the raw header line and rows 1+ are data. Empty cells are `null`.
-4. Empty header cells get a fallback name (`Column 1`, `Column 2`, ...) to avoid unnamed keys.
-5. Rows that are entirely empty (all cells blank) are skipped -- common in Excel files with blank rows between data.
-6. `normalizeCellValue` keeps native numbers and booleans, turns date cells into `YYYY-MM-DD` strings, trims other strings, and turns blank cells into `null` for consistency with the CSV parser. The empty-row check uses the same helper.
+1. `importFromBlob('xlsx', file, { colHeaders: 'firstRow', apply: false })` reads the first sheet and returns the mapped result without touching the grid: `result.colHeaders` holds the promoted header row and `result.data` the rows below it.
+2. A refused file (an `.xls`, a password-protected workbook, a damaged archive) rejects with the plugin's own message, and `handleFile` shows it as it is. For an `.xls` or a password-protected file, the message says to save it as an unprotected `.xlsx`.
+3. Empty header cells get a fallback name (`Column 1`, `Column 2`, ...), and rows that are entirely empty are skipped, so both parsers return the same `{ headers, rows }` shape.
+4. `normalizeCellValue` keeps numbers and booleans, keeps the `YYYY-MM-DD` strings the plugin derives for date cells, trims other text, and turns blank cells into `null`.
+5. The throwaway grid is destroyed in `finally`, so a rejected file does not leak it. To import straight into a visible grid, with cell types, merges, and formulas (formulas need the `Formulas` plugin), call the same method on that grid without `apply: false`.
 
 ### Route to the right parser
 
@@ -358,8 +351,7 @@ async function parseFile(file) {
     return parseCsvFile(file, PapaRef);
   }
   if (ext === 'xlsx') {
-    const readXlsxFileRef = await ensureReadExcelFile();
-    return parseXlsxFile(file, readXlsxFileRef);
+    return parseXlsxFile(file);
   }
   throw new Error('Unsupported file type. Use a .csv or .xlsx file.');
 }
@@ -367,7 +359,7 @@ async function parseFile(file) {
 
 **What's happening:**
 - `extensionOf` extracts the lowercase extension. Only `.csv` and `.xlsx` are handled; anything else throws immediately before any network request is made.
-- The library is loaded on demand: PapaParse for CSV, read-excel-file for Excel. If only CSV files are imported, read-excel-file is never downloaded.
+- PapaParse is loaded on demand for CSV. Excel goes through the built-in plugin, so nothing is downloaded for it.
 - Both parsers return the same shape: `{ headers: string[], rows: object[] }` -- the rest of the code does not need to know which parser ran.
 
 ## Step 4: Load parsed data into the grid
@@ -439,7 +431,7 @@ In the Vue example, `loadIntoGrid` stores the parsed payload in a `shallowRef` a
 
 A new `key` makes Vue mount a fresh grid for every import. You need it because `HotTable` treats `data` as synchronized by reference: when you pass a new array, it updates `colHeaders` and `columns` but keeps the old rows. The `shallowRef` keeps Vue from wrapping every parsed row in a reactive proxy.
 
-read-excel-file unzips the workbook in a Web Worker, so the result arrives in a later task. Vue picks up a ref that changes after an `await` without extra code.
+The built-in engine reads the workbook asynchronously, so the result arrives in a later task. Vue picks up a ref that changes after an `await` without extra code.
 
 :::
 
@@ -500,10 +492,8 @@ function clearError(el) {
 | CSV has parse errors | First error message from PapaParse |
 | CSV has no header row | `"No header row found in the CSV."` |
 | CSV has no data rows | `"No data rows after the header."` |
-| Excel file is corrupted | `"Could not read the Excel workbook. The file may be corrupted."` |
-| Excel workbook has no sheets | `"The workbook has no sheets."` |
-| Excel sheet is empty | `"The sheet is empty."` |
-| Excel header row is blank | `"No header row found in the Excel sheet."` |
+| Excel workbook refused (an `.xls`, a password-protected or damaged file, a workbook past the import limits) | The `ImportFile` plugin's own message |
+| Excel sheet is empty | `"No header row found in the Excel sheet."` |
 | Excel has no data rows | `"No data rows after the header."` |
 
 The `handleFile` async function is the single place where all parse errors are caught and forwarded to `showError`:
@@ -539,8 +529,8 @@ Click **Load sample data** in the example to populate the grid from the bundled 
 
 1. **User picks or drops a file (or clicks Load sample data)** -- the `change`, `drop`, or sample button event fires and reaches `handleFile` / the sample handler.
 2. **File size check** -- zero-byte files are rejected immediately (file path only).
-3. **Extension routing** -- `parseFile` reads the extension and loads the right parser library on demand. The sample path always uses PapaParse via `parseCsvText`.
-4. **Parsing** -- CSV goes through PapaParse with `header: true`; Excel is read via read-excel-file, which returns each sheet as a matrix with row 0 as the header line.
+3. **Extension routing** -- `parseFile` reads the extension, loads PapaParse on demand for `.csv`, and sends `.xlsx` to the `ImportFile` plugin. The sample path always uses PapaParse via `parseCsvText`.
+4. **Parsing** -- CSV goes through PapaParse with `header: true`; Excel goes through the built-in `ImportFile` plugin with `apply: false`, which returns the promoted header row and the rows below it.
 5. **Normalization** -- empty cells become `null`, and native numbers/booleans are preserved for CSV and Excel.
 6. **Grid population** -- `loadIntoGrid` creates the Handsontable instance on the first call (hiding the empty-state panel) or updates `colHeaders`, `columns`, and data on subsequent calls.
 7. **Grid renders** -- Handsontable re-renders with the new columns and data.
@@ -548,7 +538,7 @@ Click **Load sample data** in the example to populate the grid from the bundled 
 
 ## What you learned
 
-- How to detect the file type by extension and route CSV files through PapaParse and Excel files through read-excel-file with a single handler function.
+- How to detect the file type by extension and route CSV files through PapaParse and Excel files through the built-in `ImportFile` plugin with a single handler function.
 - How to ship a bundled CSV sample so users can demo the grid without uploading a file first.
 - How to call `hot.updateSettings({ colHeaders, columns })` followed by `hot.loadData(rows)` to replace both the column configuration and the data in one step, and how to lazy-instantiate Handsontable behind an empty-state panel.
 - How to handle errors at each stage -- file size, parsing, and grid load -- and surface them in a dedicated error panel.
@@ -560,6 +550,9 @@ Click **Load sample data** in the example to populate the grid from the bundled 
 
 ## Related guides
 
+- [Import from Excel](@/guides/accessories-and-menus/import-from-excel/import-from-excel.md) - Import straight into a grid, with cell types, merges, formulas, and comments from the file.
+- [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md) - How the built-in engine and ExcelJS compare, and their limits.
+- [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md) - Every key an import or export reports.
 - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md) - Export from Handsontable to `.xlsx` with the `ExportFile` plugin.
 
 ---

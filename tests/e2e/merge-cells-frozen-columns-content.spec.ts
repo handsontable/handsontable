@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { MergedCellsFrozenColumnsPage } from '../fixtures/pages/MergedCellsFrozenColumnsPage';
 
 /**
@@ -11,7 +11,7 @@ import { MergedCellsFrozenColumnsPage } from '../fixtures/pages/MergedCellsFroze
  *
  * The content is fixed-size markers (see the fixture), so positions do not depend on font metrics.
  */
-test.describe('content of a merged cell across a frozen-column line', () => {
+test.describe('content of a merged cell across a frozen-column line', { tag: THEMES_TAG }, () => {
   let grid: MergedCellsFrozenColumnsPage;
 
   // Crosses the `fixedColumnsStart: 2` line: two frozen columns and four in the master, so the whole
@@ -24,18 +24,17 @@ test.describe('content of a merged cell across a frozen-column line', () => {
     await grid.goto();
   });
 
-  for (const className of ['htRight', 'htCenter', 'htLeft']) {
-    test(`shows a ${className} value once`, async () => {
-      await grid.initGrid({
-        fixedColumnsStart: 2,
-        mergeCells: [BLOCK],
-        values: ONE_MARKER,
-        cell: [{ row: 1, col: 0, className }],
-      });
-
-      await expect.poll(() => grid.visibleMarkers()).toEqual({ count: 1, panes: [expect.any(String)] });
+  // One alignment: the layout wrapper is the same element for every alignment class.
+  test('shows a htRight value once', async () => {
+    await grid.initGrid({
+      fixedColumnsStart: 2,
+      mergeCells: [BLOCK],
+      values: ONE_MARKER,
+      cell: [{ row: 1, col: 0, className: 'htRight' }],
     });
-  }
+
+    await expect.poll(() => grid.visibleMarkers()).toEqual({ count: 1, panes: [expect.any(String)] });
+  });
 
   test('shows a right-aligned value in the master after a horizontal scroll', async () => {
     // The block ends at column 11, still on screen after the scroll: the value belongs at that end,
@@ -95,17 +94,6 @@ test.describe('content of a merged cell across a frozen-column line', () => {
       values: [{ row: 1, col: 22, value: 'markers:1' }],
     });
     await grid.scrollToColumn(22);
-
-    await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
-  });
-
-  test('shows a value once with virtualized merged cells', async () => {
-    await grid.initGrid({
-      fixedColumnsStart: 2,
-      mergeCells: { virtualized: true, cells: [BLOCK] },
-      values: ONE_MARKER,
-      cell: [{ row: 1, col: 0, className: 'htRight' }],
-    });
 
     await expect.poll(async () => (await grid.visibleMarkers()).count).toBe(1);
   });

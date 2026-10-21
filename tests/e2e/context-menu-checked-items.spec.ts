@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { ContextMenuCheckedItemsPage } from '../fixtures/pages/ContextMenuCheckedItemsPage';
 
 /**
@@ -18,7 +18,7 @@ import { ContextMenuCheckedItemsPage } from '../fixtures/pages/ContextMenuChecke
  * that measure `span.selected` query "Read only" too. The unit suite reaches all six factories but
  * against a stub, so it cannot see the renderer.
  */
-test.describe('context menu items that draw a check mark', () => {
+test.describe('context menu items that draw a check mark', { tag: THEMES_TAG }, () => {
   let menu: ContextMenuCheckedItemsPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

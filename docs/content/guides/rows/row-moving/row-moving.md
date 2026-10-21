@@ -1,21 +1,21 @@
 ---
 type: how-to
 title: Row moving
-metaTitle: Row moving - JavaScript Data Grid | Handsontable
-description: Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
+metaTitle: Row moving | Handsontable DataGrid for JavaScript
+description: Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable DataGrid's API methods).
 permalink: /row-moving
 canonicalUrl: /row-moving
 react:
-  metaTitle: Row moving - React Data Grid | Handsontable
+  metaTitle: Row moving | Handsontable DataGrid for React
 angular:
-  metaTitle: Row moving - Angular Data Grid | Handsontable
+  metaTitle: Row moving | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row moving - Vue Data Grid | Handsontable
+  metaTitle: Row moving | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated
 ---
-Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
+Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable DataGrid's API methods).
 
 [[toc]]
 
@@ -217,7 +217,7 @@ const ExampleComponent = () => {
 
 Keep the rows in a component property, and bind it through the `[data]` input.
 
-The grid is created outside Angular's zone, so the hook also runs outside it. Assigning to a bound property there does not start change detection on its own, and the `[data]` input never sees the new array. Re-enter the zone to write the property, and defer it with `setTimeout` so a synchronous write inside the hook can't trigger `NG0100`:
+The grid is created outside Angular's zone, so the hook also runs outside it. Angular 22 components are `OnPush` by default, so assigning to a bound property there does not mark the component dirty, and the `[data]` input never sees the new array. Write the property and call `markForCheck()` on an injected `ChangeDetectorRef`, which schedules its own tick outside the zone. Defer it with `setTimeout` so a synchronous write inside the hook can't trigger `NG0100`:
 
 ```ts
 @Component({
@@ -227,7 +227,7 @@ The grid is created outside Angular's zone, so the hook also runs outside it. As
   imports: [HotTableModule],
 })
 export class AppComponent {
-  private readonly ngZone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   rows = initialRows;
 
@@ -239,9 +239,8 @@ export class AppComponent {
       }
 
       setTimeout(() => {
-        this.ngZone.run(() => {
-          this.rows = reorderRows(this.rows, movedRows, finalIndex);
-        });
+        this.rows = reorderRows(this.rows, movedRows, finalIndex);
+        this.cdr.markForCheck();
       }, 0);
 
       // cancel the grid's own move -- the assignment above applies it instead

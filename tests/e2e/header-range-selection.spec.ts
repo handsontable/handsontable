@@ -34,10 +34,14 @@ type HeaderRangeCase = {
   // Where the column range leaves the focus. `null` where the grid does not do it yet; the parked test
   // at the end of the file tracks that case.
   columnFocus: { row: number, col: number } | null,
-  rows: [number, number],
-  // The rows the grid draws inside the row range: the range minus its hidden rows.
-  drawnRows: number[],
-  rowFocus: { row: number, col: number },
+  // The row range, on the shapes whose row headers add a case: row headers have no direction term and no
+  // nested level, so the RTL and the nested-headers shapes leave them out.
+  rowRange?: {
+    rows: [number, number],
+    // The rows the grid draws inside the row range: the range minus its hidden rows.
+    drawnRows: number[],
+    focus: { row: number, col: number },
+  },
 };
 
 const CASES: HeaderRangeCase[] = [
@@ -48,10 +52,8 @@ const CASES: HeaderRangeCase[] = [
     columns: [4, 7],
     groups: null,
     columnFocus: { row: 0, col: 4 },
-    rows: [2, 5],
-    drawnRows: [2, 3, 4, 5],
     // Column 0 is hidden, so a row range focuses the first column the grid renders.
-    rowFocus: { row: 2, col: 1 },
+    rowRange: { rows: [2, 5], drawnRows: [2, 3, 4, 5], focus: { row: 2, col: 1 } },
   },
   {
     layout: 'rtl-nested-headers',
@@ -60,9 +62,6 @@ const CASES: HeaderRangeCase[] = [
     // "Extra" spans column 5 alone, so the range covers it; "Details" spans 1-4 and is cut.
     groups: [5],
     columnFocus: { row: 0, col: 2 },
-    rows: [2, 5],
-    drawnRows: [2, 3, 4, 5],
-    rowFocus: { row: 2, col: 0 },
   },
   {
     layout: 'merged-sorted',
@@ -70,9 +69,7 @@ const CASES: HeaderRangeCase[] = [
     columns: [2, 5],
     groups: null,
     columnFocus: { row: 0, col: 2 },
-    rows: [2, 5],
-    drawnRows: [2, 3, 4, 5],
-    rowFocus: { row: 2, col: 0 },
+    rowRange: { rows: [2, 5], drawnRows: [2, 3, 4, 5], focus: { row: 2, col: 0 } },
   },
   {
     layout: 'nested-headers',
@@ -83,9 +80,6 @@ const CASES: HeaderRangeCase[] = [
     // navigableHeaders: true puts the focus on a header, and it should stay on the one the range
     // started from, (-1, 2). It moves to the Shift-clicked one instead: the parked test below.
     columnFocus: null,
-    rows: [2, 5],
-    drawnRows: [2, 3, 4, 5],
-    rowFocus: { row: 2, col: -1 },
   },
   {
     layout: 'nested-rows',
@@ -97,9 +91,7 @@ const CASES: HeaderRangeCase[] = [
     // started from: the flat-header counterpart of the parked nested-headers test below.
     columnFocus: { row: -1, col: 3 },
     // Rows 3, 4 and 5 are hidden, so the third and sixth rendered rows are 2 and 8.
-    rows: [2, 8],
-    drawnRows: [2, 6, 7, 8],
-    rowFocus: { row: 2, col: -1 },
+    rowRange: { rows: [2, 8], drawnRows: [2, 6, 7, 8], focus: { row: 2, col: -1 } },
   },
 ];
 
@@ -146,26 +138,29 @@ test.describe('a header click and a Shift+click select the range between them', 
       }
     });
 
-    test(`selects the rows between two row headers on the ${testCase.route} shape`, async() => {
-      const [first, last] = testCase.rows;
+    const { rowRange } = testCase;
 
-      await grid.goto(testCase.layout);
+    if (rowRange) {
+      test(`selects the rows between two row headers on the ${testCase.route} shape`, async() => {
+        const [first, last] = rowRange.rows;
 
-      const { columns } = await grid.size();
+        await grid.goto(testCase.layout);
 
-      await grid.clickRowHeader(first);
-      await grid.clickRowHeader(last, ['Shift']);
+        const { columns } = await grid.size();
 
-      expect(await grid.selected()).toEqual([[first, -1, last, columns - 1]]);
-      expect(await grid.activeRowHeaders()).toEqual(testCase.drawnRows);
-      expect(await grid.focus()).toEqual(testCase.rowFocus);
-    });
+        await grid.clickRowHeader(first);
+        await grid.clickRowHeader(last, ['Shift']);
+
+        expect(await grid.selected()).toEqual([[first, -1, last, columns - 1]]);
+        expect(await grid.activeRowHeaders()).toEqual(rowRange.drawnRows);
+        expect(await grid.focus()).toEqual(rowRange.focus);
+      });
+    }
   }
 
   // On a grid with nested headers and navigableHeaders, a Shift+click extends the range from the header
   // (or the cell) it started from, and keeps the focus there, like a drag across the headers,
-  // Shift+ArrowRight, the nested-rows shape (navigableHeaders over a single header row) and this shape's
-  // row headers. The range and the focus come from the same anchor, so a later Shift+click that lands
+  // Shift+ArrowRight and the nested-rows shape (navigableHeaders over a single header row) do. The range and the focus come from the same anchor, so a later Shift+click that lands
   // back past the start still measures from it. A header's `level` is its row: 0 is the group row
   // (Product 0-3, Category 4-6, User 7-8, System 9-10), 1 is the leaf row.
   type Click = { level: number, column: number, shift: boolean };

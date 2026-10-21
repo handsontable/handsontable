@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 /**
@@ -13,7 +13,7 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
  */
 const IDENTITY = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-test.describe('row and column move undo bookkeeping', () => {
+test.describe('row and column move undo bookkeeping', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

@@ -1,18 +1,18 @@
 ---
 type: how-to
 title: Column menu
-metaTitle: Column menu - JavaScript Data Grid | Handsontable
+metaTitle: Column menu | Handsontable DataGrid for JavaScript
 description: Display a configurable dropdown menu, triggered by clicking on a button in a column header.
 permalink: /column-menu
 canonicalUrl: /column-menu
 tags:
   - dropdown menu
 react:
-  metaTitle: Column menu - React Data Grid | Handsontable
+  metaTitle: Column menu | Handsontable DataGrid for React
 angular:
-  metaTitle: Column menu - Angular Data Grid | Handsontable
+  metaTitle: Column menu | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column menu - Vue Data Grid | Handsontable
+  metaTitle: Column menu | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated
@@ -32,7 +32,7 @@ Setting one option does not affect the other, even though both accept items in t
 
 ## Quick setup
 
-To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) configuration option to `true` when initializing Handsontable.
+To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) configuration option to `true` when initializing Handsontable DataGrid.
 
 ::: only-for javascript
 

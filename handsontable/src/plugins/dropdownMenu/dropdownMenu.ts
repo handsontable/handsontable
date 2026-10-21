@@ -68,8 +68,6 @@ interface DropdownMenuSettings {
  * or array of any available strings:
  * * `["col_left", "col_right", "remove_col", "---------", "undo", "redo"]`.
  *
- * See [the dropdown menu demo](@/guides/columns/column-menu/column-menu.md) for examples.
- *
  * @example
  * ::: only-for javascript
  * ```js

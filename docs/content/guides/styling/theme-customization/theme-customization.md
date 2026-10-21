@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Theme customization
-metaTitle: Theme Customization - JavaScript Data Grid | Handsontable
-description: Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
+metaTitle: Theme customization | Handsontable DataGrid for JavaScript
+description: Customize Handsontable DataGrid's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
 permalink: /theme-customization
 canonicalUrl: /theme-customization
 tags:
@@ -17,16 +17,16 @@ tags:
   - local variables
   - tokens
 react:
-  metaTitle: Theme Customization - React Data Grid | Handsontable
+  metaTitle: Theme customization | Handsontable DataGrid for React
 angular:
-  metaTitle: Theme Customization - Angular Data Grid | Handsontable
+  metaTitle: Theme customization | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Theme Customization - Vue Data Grid | Handsontable
+  metaTitle: Theme customization | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Styling
 menuTag: updated
 ---
-Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
+Customize Handsontable DataGrid's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
 
 [[toc]]
 
@@ -534,6 +534,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | -------- | ----------------------------------- |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionBorderColor` </div>     | Border color for selected cells     |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionBackgroundColor` </div> | Background color for selected cells |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-row-selection-background-color` </div><div class="variables-table__item"><span>JS:</span> `rowSelectionBackgroundColor` </div> | Background color of rows selected with the [`RowSelection`](@/api/rowSelection.md) plugin. Semi-transparent, so it tints the row's own background |
 
 #### Cell autofill variables
 
@@ -576,6 +577,12 @@ These variables style the handles shown at each edge midpoint of a selected rang
 | Variable | Description                          |
 | -------- | ------------------------------------ |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-resize-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `resizeIndicatorColor` </div> | Color of resize indicators           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-freeze-bar-color` </div><div class="variables-table__item"><span>JS:</span> `freezeBarColor` </div> | Color of the freeze bars |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-freeze-bar-hover-color` </div><div class="variables-table__item"><span>JS:</span> `freezeBarHoverColor` </div> | Color of a freeze bar over the headers when you hover it |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-freeze-bar-highlight-color` </div><div class="variables-table__item"><span>JS:</span> `freezeBarHighlightColor` </div> | Color of a freeze bar over the headers when you press or drag it |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-async-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `asyncIndicatorColor` </div> | Color of the pending indicator of the AsyncValues plugin |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-async-error-background-color` </div><div class="variables-table__item"><span>JS:</span> `asyncErrorBackgroundColor` </div> | Background color of a cell whose async value request failed |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-async-error-marker-color` </div><div class="variables-table__item"><span>JS:</span> `asyncErrorMarkerColor` </div> | Color of the bar at the inline start of a cell whose async value request failed |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-move-backlight-color` </div><div class="variables-table__item"><span>JS:</span> `moveBacklightColor` </div>   | Background color for move operations |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-move-backlight-opacity` </div><div class="variables-table__item"><span>JS:</span> `moveBacklightOpacity` </div> | Opacity of move backlight            |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-move-indicator-color` </div><div class="variables-table__item"><span>JS:</span> `moveIndicatorColor` </div>   | Color of move indicators             |
@@ -902,7 +909,6 @@ These variables style the [Notification](@/guides/dialog/notification/notificati
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabForegroundColor` </div>   | Text color of a sheets bar tab |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-background-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabBackgroundColor` </div>   | Background color of a sheets bar tab |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-hover-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabHoverForegroundColor` </div>   | Text color of a sheets bar tab on hover |
-| <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabHoverBackgroundColor` </div>   | Background color of a sheets bar tab on hover |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-active-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabActiveForegroundColor` </div>   | Text color of the active sheets bar tab |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-active-background-color` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabActiveBackgroundColor` </div>   | Background tint color of the active sheets bar tab |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-sheets-bar-tab-active-border-width` </div><div class="variables-table__item"><span>JS:</span> `sheetsBarTabActiveBorderWidth` </div>   | Width of the active sheets bar tab bottom border |

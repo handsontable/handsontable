@@ -36,7 +36,7 @@ const render = buildRenderer({ logger, dist, generateMarkdown, configuration });
 /// program:
 const errors = [];
 
-for (const data of parse()) { // eslint-disable-line no-restricted-syntax
+for await (const data of parse()) { // eslint-disable-line no-restricted-syntax
   const { type, members, metaData: { parsedTypes } } = data;
   const fileName = `${type}.md`;
 

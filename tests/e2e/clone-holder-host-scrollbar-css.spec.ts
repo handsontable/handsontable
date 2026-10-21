@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { CloneHolderScrollPage } from '../fixtures/pages/CloneHolderScrollPage';
 
 /**
@@ -24,7 +24,7 @@ test.use({
   },
 });
 
-test.describe('Clone holders under a page-wide scrollbar rule', () => {
+test.describe('Clone holders under a page-wide scrollbar rule', { tag: THEMES_TAG }, () => {
   for (const rule of [
     '.handsontable .wtHolder { scrollbar-width: thin !important; }',
     '.handsontable .wtHolder { scrollbar-width: thin; }',

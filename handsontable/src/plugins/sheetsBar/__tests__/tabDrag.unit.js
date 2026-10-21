@@ -263,39 +263,114 @@ describe('TabDrag', () => {
     drag.destroy();
   });
 
-  it('takes the pointer back when a reorder drops the capture, and gives up once the pointer is gone', () => {
+  it('reorders forward without detaching the dragged tab', () => {
+    const onCommit = jest.fn();
+
+    host = buildStrip(4);
+
+    const drag = new TabDrag({ host, dragRoot: host, eventManager: new EventManager({}) }, onCommit);
+    const [first, second, third, fourth] = Array.from(host.children);
+    const observer = new MutationObserver(() => {});
+
+    first.setPointerCapture = jest.fn();
+    observer.observe(host, { childList: true });
+    drag.start(pointer('pointerdown', 50, first), first, 1);
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 60, first));
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 260, first));
+
+    const removed = observer.takeRecords().flatMap(record => Array.from(record.removedNodes));
+
+    observer.disconnect();
+
+    expect(Array.from(host.children)).toEqual([second, third, first, fourth]);
+    expect(removed).not.toContain(first);
+
+    host.ownerDocument.dispatchEvent(pointer('pointerup', 260, first));
+
+    expect(onCommit).toHaveBeenCalledWith(1, 2);
+
+    drag.destroy();
+  });
+
+  it('reorders backward without detaching the dragged tab', () => {
+    const onCommit = jest.fn();
+
+    host = buildStrip(4);
+
+    const drag = new TabDrag({ host, dragRoot: host, eventManager: new EventManager({}) }, onCommit);
+    const [first, second, third, fourth] = Array.from(host.children);
+    const observer = new MutationObserver(() => {});
+
+    fourth.setPointerCapture = jest.fn();
+    observer.observe(host, { childList: true });
+    drag.start(pointer('pointerdown', 350, fourth), fourth, 4);
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 340, fourth));
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 140, fourth));
+
+    const removed = observer.takeRecords().flatMap(record => Array.from(record.removedNodes));
+
+    observer.disconnect();
+
+    expect(Array.from(host.children)).toEqual([first, fourth, second, third]);
+    expect(removed).not.toContain(fourth);
+
+    host.ownerDocument.dispatchEvent(pointer('pointerup', 140, fourth));
+
+    expect(onCommit).toHaveBeenCalledWith(4, 1);
+
+    drag.destroy();
+  });
+
+  it('keeps dragging when the capture moves from a child of the tab onto the tab', () => {
     const onCommit = jest.fn();
 
     host = buildStrip(3);
 
     const drag = new TabDrag({ host, dragRoot: host, eventManager: new EventManager({}) }, onCommit);
     const [first, second, third] = Array.from(host.children);
-    let captures = 0;
+    const label = document.createElement('span');
 
-    first.setPointerCapture = jest.fn(() => {
-      captures += 1;
-
-      if (captures > 2) {
-        throw new Error('InvalidPointerId');
-      }
-    });
-    drag.start(pointer('pointerdown', 50, first), first, 1);
-    host.ownerDocument.dispatchEvent(pointer('pointermove', 60, first));
+    first.appendChild(label);
+    first.setPointerCapture = jest.fn();
+    drag.start(pointer('pointerdown', 50, label), first, 1);
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 60, label));
+    label.dispatchEvent(pointer('lostpointercapture', 60, label));
     host.ownerDocument.dispatchEvent(pointer('pointermove', 160, first));
 
     expect(Array.from(host.children)).toEqual([second, first, third]);
     expect(host.classList.contains('ht-sheets-bar-dragging')).toBe(true);
 
-    first.dispatchEvent(pointer('lostpointercapture', 160, first));
+    host.ownerDocument.dispatchEvent(pointer('pointerup', 160, first));
 
-    expect(first.setPointerCapture).toHaveBeenCalledTimes(2);
+    expect(onCommit).toHaveBeenCalledWith(1, 1);
+
+    drag.destroy();
+  });
+
+  it('cancels the drag without taking the pointer back when the capture is lost', () => {
+    const onCommit = jest.fn();
+
+    host = buildStrip(3);
+
+    const drag = new TabDrag({ host, dragRoot: host, eventManager: new EventManager({}) }, onCommit);
+    const [first, second, third] = Array.from(host.children);
+
+    first.setPointerCapture = jest.fn();
+    drag.start(pointer('pointerdown', 50, first), first, 1);
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 60, first));
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 160, first));
+
     expect(Array.from(host.children)).toEqual([second, first, third]);
+    expect(first.setPointerCapture).toHaveBeenCalledTimes(1);
 
     first.dispatchEvent(pointer('lostpointercapture', 160, first));
 
-    expect(first.setPointerCapture).toHaveBeenCalledTimes(3);
+    expect(first.setPointerCapture).toHaveBeenCalledTimes(1);
     expect(Array.from(host.children)).toEqual([first, second, third]);
     expect(host.classList.contains('ht-sheets-bar-dragging')).toBe(false);
+
+    host.ownerDocument.dispatchEvent(pointer('pointerup', 160, first));
+
     expect(onCommit).not.toHaveBeenCalled();
 
     drag.destroy();

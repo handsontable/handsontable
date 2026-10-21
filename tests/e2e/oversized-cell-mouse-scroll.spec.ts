@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { OversizedCellMouseScrollPage } from '../fixtures/pages/OversizedCellMouseScrollPage';
 
 /**
@@ -21,7 +21,7 @@ import { OversizedCellMouseScrollPage } from '../fixtures/pages/OversizedCellMou
  * events in one evaluate so a delayed overlay redraw cannot make the
  * snapshot stale.
  */
-test.describe('oversized cell mouse scroll', () => {
+test.describe('oversized cell mouse scroll', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: OversizedCellMouseScrollPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

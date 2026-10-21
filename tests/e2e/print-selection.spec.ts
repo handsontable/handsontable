@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { PrintSelectionPage } from '../fixtures/pages/PrintSelectionPage';
 
 /**
@@ -8,7 +8,7 @@ import { PrintSelectionPage } from '../fixtures/pages/PrintSelectionPage';
  * transient selection UI so a printout shows a clean grid, while a user-configured custom border,
  * which renders through the same `.wtBorder` element without a selection class, must still print.
  */
-test.describe('DEV-133 — selection UI on print', () => {
+test.describe('DEV-133 — selection UI on print', { tag: THEMES_TAG }, () => {
   test('fill handle and area border are visible on screen but hidden on print', async({ page, theme, bundle }) => {
     const grid = new PrintSelectionPage(page, theme, bundle);
 

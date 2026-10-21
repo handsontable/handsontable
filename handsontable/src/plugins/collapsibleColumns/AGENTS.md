@@ -106,24 +106,30 @@ instead of only approximating it.
 A group that starts in the `fixedColumnsStart` band gets no toggle (`column >= fixedColumnsStart` in
 `#onAfterGetColHeader`), because collapsing it would change which columns the band covers. The end band follows the
 same rule from the other side: `#reachesFixedColumnsEnd(column, origColspan)` is true when the LAST column of the
-group's AUTHORED range (`column + origColspan - 1`) is in the band, which is the last `hot.view.countFixedColumnsEnd()`
-visual columns. That covers a group inside the band and one that crosses the master/end line.
+group's AUTHORED range (`column + origColspan - 1`) is in the band, which is the last N visual columns, where N is
+the CONFIGURED end band: `clampFixedColumnsEnd(fixedColumnsEnd, fixedColumnsStart, hot.countCols())`. That covers a
+group inside the band and one that crosses the master/end line.
+
+- **Do not switch the guard back to `hot.view.countFixedColumnsEnd()`.** With `limitFixedToViewport` that call returns
+  the DRAWN count, which can be smaller than the configured one while the grid is small. A group collapsed inside
+  the configured band would then land in the frozen band when the grid grows, and lose its toggle there (the
+  stranded state described below). Without the option the two counts are the same number.
 
 - **Judge the authored range, never the visible end.** A collapsed group hides its last columns, and a hidden column
   keeps its slot in the band (the renderer counts the band as the last N VISUAL columns, so the drawn band shrinks).
   Judging by the nearest not-hidden column made the answer depend on the collapse state: with 12 columns,
   `fixedColumnsEnd: 2` and a group over 8 to 10 collapsed through the API, the group had a toggle, expanding it put
-  column 10 in the band and the toggle vanished, so it could not be collapsed again from the UI. The count comes from
-  `countFixedColumnsEnd()` (visual, hidden columns included, clamped against `fixedColumnsStart`), not from the
-  Walkontable `fixedColumnsEnd` and `totalColumns` settings, which count renderable columns.
+  column 10 in the band and the toggle vanished, so it could not be collapsed again from the UI. The count is
+  visual, hidden columns included, and clamped against `fixedColumnsStart`, not read from the Walkontable
+  `fixedColumnsEnd` and `totalColumns` settings, which count renderable columns.
 - `clearButtons()` walks the end clones' header rows on their own (their cells are not index-aligned with the master).
 - **A group that is already collapsed is stranded when `fixedColumnsEnd` is raised so it touches the band.** The
   check runs on render, so the group loses its toggle and cannot be expanded from the header; its columns stay
   hidden until the option is lowered again (or the group is expanded through the API). This is the same as for the
   start band with `fixedColumnsStart`. Not worth a guard: raising the freeze over a collapsed group is a
   configuration change the application owns.
-- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` and `tests/e2e/fixed-columns-end-review4.spec.ts` (LTR and
-  RTL), and by `__tests__/fixedColumnsEnd.unit.ts`.
+- Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` and `tests/e2e/fixed-columns-end-review4.spec.ts` (LTR; the
+  check compares logical column indexes, so RTL takes the same branch), and by `__tests__/fixedColumnsEnd.unit.ts`.
 
 ## Testing
 

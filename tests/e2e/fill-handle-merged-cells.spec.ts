@@ -12,6 +12,12 @@ import { GridLayoutsPage } from '../fixtures/pages/GridLayoutsPage';
  * asserted it for the double click, which computes its own extent. The grid is the merged-cells
  * shape (`grid-layouts.html?layout=merged-sorted`): its merged areas cross column 2 at visual rows
  * 19-21 and 24-25.
+ *
+ * The double click follows the column to the left of the filled one (DEV-859). In this fixture that
+ * column has empty cells outside the merged areas (the initial sort moves the areas away from the
+ * cells MergeCells emptied), and an empty cell ends the fill. Each test fills those gaps first, so
+ * the fill reaches the merged areas. The covered cells stay empty: the fill reads them through their
+ * area's first cell, so with merging on the fill still reaches past them and is refused.
  */
 test.describe('fill-handle double click over merged cells', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: GridLayoutsPage;
@@ -24,6 +30,7 @@ test.describe('fill-handle double click over merged cells', { tag: CROSS_BROWSER
   test('refuses a fill-down that would cut a merged area', async() => {
     const { rows } = await grid.size();
 
+    await grid.fillVisibleGapsInColumn(1, 'guide');
     await grid.prepareFillFrom(2, 0, '1100');
     await grid.doubleClickFillHandle();
 
@@ -41,6 +48,7 @@ test.describe('fill-handle double click over merged cells', { tag: CROSS_BROWSER
     const { rows } = await grid.size();
 
     await grid.updateSettings({ mergeCells: false });
+    await grid.fillVisibleGapsInColumn(1, 'guide');
     await grid.prepareFillFrom(2, 0, '1100');
     await grid.doubleClickFillHandle();
 

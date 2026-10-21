@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { ColumnHeaderWindowScrollPage } from '../fixtures/pages/ColumnHeaderWindowScrollPage';
 
 /**
@@ -27,7 +27,7 @@ import { ColumnHeaderWindowScrollPage } from '../fixtures/pages/ColumnHeaderWind
  * reach: a bottom-edge snap reveals its row rather than clipping it, the scroll still reaches the
  * very last row, and the header's height does not move when the window scrolls.
  */
-test.describe('Column header border ownership, window-scrolled', () => {
+test.describe('Column header border ownership, window-scrolled', { tag: THEMES_TAG }, () => {
   let grid: ColumnHeaderWindowScrollPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

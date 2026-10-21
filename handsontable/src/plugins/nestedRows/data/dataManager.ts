@@ -1176,6 +1176,24 @@ class DataManager {
   }
 
   /**
+   * Appends row objects to the parent of the provided row, right after its last child. Used for an insert
+   * below the last row of the tree, so the anchor is always the last child of its parent and the new rows
+   * land at the end of the flattened tree.
+   *
+   * @private
+   * @param {object} anchor The row object the new rows become siblings of.
+   * @param {object[]} elements Row objects to add.
+   */
+  appendSiblings(anchor: RowObject, elements: RowObject[]) {
+    const parent = this.getRowParent(anchor);
+    const siblings = parent === null ? this.data! : parent.__children!;
+
+    elements.forEach(element => siblings.push(element));
+
+    this.rewriteCache();
+  }
+
+  /**
    * Used to splice the source data. Needed to properly modify the nested structure, which wouldn't work with the
    * default script.
    *

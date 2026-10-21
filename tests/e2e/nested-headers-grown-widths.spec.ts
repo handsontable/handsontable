@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { NestedHeadersGrownWidthsPage } from '../fixtures/pages/NestedHeadersGrownWidthsPage';
 
 /**
@@ -10,7 +10,7 @@ import { NestedHeadersGrownWidthsPage } from '../fixtures/pages/NestedHeadersGro
  *
  * Geometry depends on measured text widths, which read as zero in jsdom, so it is checked here.
  */
-test.describe('nested headers that grow the column widths', () => {
+test.describe('nested headers that grow the column widths', { tag: THEMES_TAG }, () => {
   test('scrolled to the right edge, the grid renders its last column', async({ page, theme, bundle }) => {
     const grid = new NestedHeadersGrownWidthsPage(page, theme, bundle);
 

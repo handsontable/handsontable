@@ -1,16 +1,16 @@
 ---
 type: explanation
 title: Cell functions
-metaTitle: Cell functions - JavaScript Data Grid | Handsontable
-description: Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cells, using cell types.
+metaTitle: Cell functions | Handsontable DataGrid for JavaScript
+description: Render, edit, and validate the contents of your cells, using Handsontable DataGrid's cell functions. Quickly set up your cells, using cell types.
 permalink: /cell-function
 canonicalUrl: /cell-function
 react:
-  metaTitle: Cell functions - React Data Grid | Handsontable
+  metaTitle: Cell functions | Handsontable DataGrid for React
 angular:
-  metaTitle: Cell functions - Angular Data Grid | Handsontable
+  metaTitle: Cell functions | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Cell functions - Vue Data Grid | Handsontable
+  metaTitle: Cell functions | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell functions
 ---
@@ -21,7 +21,7 @@ A cell function is one of three components -- renderer, editor, or validator -- 
 
 ## Overview
 
-Every Handsontable cell has three associated functions that handle distinct concerns:
+Every Handsontable DataGrid cell has three associated functions that handle distinct concerns:
 
 | Function | Role | Implemented as |
 | --- | --- | --- |

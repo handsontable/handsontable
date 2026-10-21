@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
 import { isObject, isPlainObject } from '../../helpers/object';
-import { isHTMLElement } from '../../helpers/dom/element';
+import { isHTMLElement, isDocumentFragment } from '../../helpers/dom/element';
 import { isButtonType } from '../../helpers/uiButton';
 import { getSanitizer } from '../../utils/sanitizer';
 import { isRootInstance } from '../../utils/rootInstance';
@@ -19,7 +19,7 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * @class Dialog
  *
  * @description
- * The dialog plugin provides a modal dialog system for Handsontable. It allows you to display custom content in modal dialogs
+ * The dialog plugin provides a modal dialog system for Handsontable DataGrid. It allows you to display custom content in modal dialogs
  * that overlay the table, providing a way to show notifications, error messages, loading indicators, or any other interactive content.
  *
  * In order to enable the dialog mechanism, {@link Options#dialog} option must be set to `true`.
@@ -217,7 +217,8 @@ export class Dialog extends BasePlugin {
           )),
       content: (value: unknown) => typeof value === 'string' ||
         isHTMLElement(value) ||
-        (typeof DocumentFragment !== 'undefined' && value instanceof DocumentFragment),
+        // Realm-safe: a grid inside an iframe builds its nodes from the iframe's document.
+        isDocumentFragment(value),
       customClassName: (value: unknown) => typeof value === 'string',
       background: (value: unknown) => typeof value === 'string' && ['solid', 'semi-transparent'].includes(value),
       contentBackground: (value: unknown) => typeof value === 'boolean',

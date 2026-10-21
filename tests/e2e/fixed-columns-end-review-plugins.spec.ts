@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { FixedColumnsEndReviewPage } from '../fixtures/pages/FixedColumnsEndReviewPage';
 
 /**
@@ -13,7 +13,7 @@ import { FixedColumnsEndReviewPage } from '../fixtures/pages/FixedColumnsEndRevi
  */
 const ORIGINAL_ORDER = Array.from({ length: 10 }, (_, c) => `R1C${c + 1}`);
 
-test.describe('fixedColumnsEnd and ManualColumnFreeze', { tag: '@core' }, () => {
+test.describe('fixedColumnsEnd and ManualColumnFreeze', { tag: ['@core', THEMES_TAG] }, () => {
   let grid: FixedColumnsEndReviewPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -62,7 +62,7 @@ test.describe('fixedColumnsEnd and ManualColumnFreeze', { tag: '@core' }, () => 
 for (const direction of ['ltr', 'rtl'] as const) {
   const rtl = direction === 'rtl';
 
-  test.describe(`fixedColumnsEnd and a NestedHeaders group continuation (${direction})`, { tag: '@core' }, () => {
+  test.describe(`fixedColumnsEnd and a NestedHeaders group continuation (${direction})`, { tag: ['@core', THEMES_TAG] }, () => {
     let grid: FixedColumnsEndReviewPage;
 
     test.beforeEach(async ({ page, theme, bundle }) => {

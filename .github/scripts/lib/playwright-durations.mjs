@@ -4,6 +4,10 @@
  * Every Playwright leg of `.github/workflows/e2e.yml`, green or red, summarizes its JSON report into
  * one small file (`playwright-durations.json`, uploaded as `playwright-durations-<leg>`): the leg's
  * wall-clock, worker count and test counts, and the milliseconds of every spec file and every test.
+ * A leg that runs in shards (`--shard=<i>/<n>`, one job per shard) uploads one such file per shard,
+ * `playwright-durations-<leg>-s<i>`, each naming its shard; the collector folds a leg's parts back into
+ * one record (`foldShardParts`), with the leg's wall-clock being its longest shard, since the shards run
+ * side by side, and `DURATIONS_LEGS` saying how many parts make the leg whole.
  * `test-health.yml` records the files of develop pushes, and only those, into `test-health/durations.json`
  * on `gh-pages`, beside the flake ledger (a pull request's files stay in its own run for 3 days, so its
  * run commits to `gh-pages` only for a flake), and the test-health page draws its "Where the time goes"
@@ -63,14 +67,26 @@ export const SLOW_TEST_MS = 3000;
 export const HEAVIEST_FILES = 30;
 
 /**
- * The legs `e2e.yml` runs: the six Chromium legs of the theme × bundle matrix and the engines job, named as
- * their artifacts name them. The collector reads every pull request's artifacts, a fork's included, so a
- * durations artifact for any other leg is noted and skipped rather than stored. `__tests__/playwright-durations.test.mjs`
- * derives the same list from `e2e.yml`, so a change to the matrix fails there until this list follows.
+ * The legs `e2e.yml` runs, named as their artifacts name them (the six Chromium legs of the theme × bundle
+ * matrix and the engines job), and the number of shards each one runs in. A leg over the wall-clock target
+ * is split with Playwright's `--shard=<i>/<n>`, one job per shard, and every shard uploads its own part,
+ * `playwright-durations-<leg>-s<i>` (an unsharded leg's part carries no suffix). The collector folds a
+ * leg's parts into one record, and this table says how many parts make the leg whole: a leg with a part
+ * missing is recorded as partial, left out of the budget, and keeps the per-test rows it had. The collector
+ * reads every pull request's artifacts, a fork's included, so a part for any other leg, or for a shard past
+ * the count here, is noted and skipped rather than stored. `__tests__/playwright-durations.test.mjs` derives
+ * the same table from `e2e.yml`'s matrix, so a change to the legs or their shards fails there until this
+ * table follows.
  */
-export const DURATIONS_LEGS = Object.freeze([
-  'classic', 'classic-min', 'engines', 'horizon', 'horizon-min', 'main', 'main-min',
-]);
+export const DURATIONS_LEGS = Object.freeze({
+  classic: 2, 'classic-min': 1, engines: 1, horizon: 2, 'horizon-min': 1, main: 3, 'main-min': 1,
+});
+
+/**
+ * The suffix a shard's artifacts carry after the leg: `-s<index>` (`playwright-durations-main-s2`,
+ * `playwright-report-main-s2`). `parseLegArtifact` reads it back.
+ */
+export const SHARD_SUFFIX = /^(.+?)-s([1-9]\d*)$/;
 
 /**
  * How many slow tests the page lists, slowest first; the section title gives the full count.
@@ -97,6 +113,9 @@ const COUNT_KEYS = ['tests', 'skipped', 'flaky', 'unexpected'];
  * @property {string[]} projects The Playwright projects that ran in the leg, sorted.
  * @property {string|null} runId The workflow run that wrote the summary (`GITHUB_RUN_ID`), or `null` outside CI.
  * @property {number|null} runAttempt Its attempt (`GITHUB_RUN_ATTEMPT`), or `null` outside CI.
+ * @property {{index: number, total: number}|null} shard The shard the run was (`--shard=index/total`), or
+ * `null` for a leg that runs whole. A summary written before shards existed has no such field; readers take
+ * that as `null`.
  * @property {number|null} workers The workers the run used.
  * @property {string} startTime When the run started, ISO 8601.
  * @property {number} wallMs The run's wall-clock, in milliseconds.
@@ -137,6 +156,48 @@ function isIsoTime(value) {
 }
 
 /**
+ * Whether a value names a shard: `{ index, total }`, integers, 1 ≤ index ≤ total.
+ *
+ * @param {unknown} value The value.
+ * @returns {boolean} The verdict.
+ */
+function isShard(value) {
+  return !!value && typeof value === 'object' && !Array.isArray(value)
+    && Number.isInteger(value.index) && Number.isInteger(value.total) && value.index >= 1 && value.total >= value.index;
+}
+
+/**
+ * The shard a `--shard` flag names, the form Playwright takes it in: `<index>/<total>`.
+ *
+ * @param {string} text The flag's value.
+ * @returns {{index: number, total: number}} The shard.
+ */
+export function parseShardFlag(text) {
+  const match = /^([1-9]\d*)\/([1-9]\d*)$/.exec(String(text ?? ''));
+  const shard = match ? { index: Number(match[1]), total: Number(match[2]) } : null;
+
+  if (!isShard(shard)) {
+    throw new Error(`a shard is written <index>/<total> with 1 <= index <= total, as Playwright's --shard takes it; got ${JSON.stringify(text)}`);
+  }
+
+  return shard;
+}
+
+/**
+ * The leg and shard an artifact name's suffix stands for: `main-s2` is shard 2 of `main`, `main-min` the
+ * whole `main-min` leg. The artifact name decides, never the file inside it: GitHub keeps artifact names
+ * unique within a run, so two parts can never land on one shard.
+ *
+ * @param {string} suffix The artifact name after `playwright-durations-` (or `playwright-report-`).
+ * @returns {{leg: string, shard: number|null}} The leg and the shard index, `null` for an unsharded leg.
+ */
+export function parseLegArtifact(suffix) {
+  const match = SHARD_SUFFIX.exec(suffix);
+
+  return match ? { leg: match[1], shard: Number(match[2]) } : { leg: suffix, shard: null };
+}
+
+/**
  * A leg's durations from its Playwright JSON report.
  *
  * The report nests suites: a file-level suite (whose title is the file path) holds the `describe`
@@ -149,14 +210,19 @@ function isIsoTime(value) {
  * @param {string} options.leg The leg's name, as the artifact names it.
  * @param {string|null} [options.runId] The run that wrote the report.
  * @param {number|null} [options.runAttempt] Its attempt.
+ * @param {{index: number, total: number}|null} [options.shard] The shard the run was, when the leg runs in
+ * shards (`--shard=index/total`).
  * @returns {LegSummary} The summary.
  */
-export function summarizePlaywrightReport(report, { leg, runId = null, runAttempt = null } = {}) {
+export function summarizePlaywrightReport(report, { leg, runId = null, runAttempt = null, shard = null } = {}) {
   if (!report || typeof report !== 'object' || !Array.isArray(report.suites)) {
     throw new Error('not a Playwright JSON report (no `suites` array)');
   }
   if (typeof leg !== 'string' || leg === '') {
     throw new Error('the leg name is required');
+  }
+  if (shard !== null && !isShard(shard)) {
+    throw new Error('shard must be null or { index, total } with 1 <= index <= total');
   }
 
   const { duration, startTime } = report.stats ?? {};
@@ -232,6 +298,7 @@ export function summarizePlaywrightReport(report, { leg, runId = null, runAttemp
     projects: [...projects].sort(),
     runId: runId ? String(runId) : null,
     runAttempt: Number.isInteger(attempt) && attempt > 0 ? attempt : null,
+    shard: shard === null ? null : { index: shard.index, total: shard.total },
     workers: isAmount(workers) ? workers : null,
     startTime: new Date(started).toISOString(),
     wallMs: Math.round(duration),
@@ -271,6 +338,9 @@ export function parseDurationSummary(value) {
   }
   if (value.runAttempt !== null && !(Number.isInteger(value.runAttempt) && value.runAttempt > 0)) {
     fail('runAttempt must be a positive integer or null');
+  }
+  if (value.shard !== undefined && value.shard !== null && !isShard(value.shard)) {
+    fail('shard must be null or { index, total } with 1 <= index <= total');
   }
   if (value.workers !== null && !isAmount(value.workers)) {
     fail('workers must be a number or null');
@@ -432,15 +502,62 @@ function legStatistics(samples) {
 }
 
 /**
- * The budget input: per leg, P50 and P90 of the wall-clock and the test count over the stored pushes, one
- * vote per push, and how many pushes were left out (a test failed every attempt, or none ran).
+ * The shape a leg ran in: how many shards and how many workers. A record from before a change to either
+ * measures another thing (a 17-minute unsharded leg on 2 workers beside 5-minute shards on 4), so the
+ * budget counts only the records of the leg's latest shape.
  *
- * @param {object[]} runs The stored runs.
+ * @param {object} leg A stored leg record.
+ * @returns {{shards: number, workers: number|null}} The shape.
+ */
+function shapeOf(leg) {
+  return { shards: leg.shards ?? 1, workers: leg.workers ?? null };
+}
+
+/**
+ * Whether two shapes are the same.
+ *
+ * @param {{shards: number, workers: number|null}} a One shape.
+ * @param {{shards: number, workers: number|null}} b The other.
+ * @returns {boolean} The verdict.
+ */
+function sameShape(a, b) {
+  return a.shards === b.shards && a.workers === b.workers;
+}
+
+/**
+ * The latest record of each leg over the stored runs (newest first), the last attempt of its run.
+ *
+ * @param {object[]} runs The stored runs, newest first.
+ * @returns {Map<string, object>} The record by leg.
+ */
+function latestRecords(runs) {
+  const latest = new Map();
+
+  for (const run of runs) {
+    for (const leg of run.legs) {
+      const current = latest.get(leg.leg);
+
+      if (!current || (current.runId === run.runId && leg.runAttempt > current.runAttempt)) {
+        latest.set(leg.leg, { ...leg, runId: run.runId });
+      }
+    }
+  }
+
+  return latest;
+}
+
+/**
+ * The budget input: per leg, P50 and P90 of the wall-clock and the test count over the stored pushes, one
+ * vote per push, over the records of the leg's latest shape (shards and workers) only, and how many pushes
+ * were left out (a test failed every attempt, none ran, a shard has no part, or another shape).
+ *
+ * @param {object[]} runs The stored runs, newest first.
  * @param {number} windowDays The retention window.
  * @returns {object} The budget block.
  */
 function budgetOf(runs, windowDays) {
   const legs = new Map();
+  const latest = latestRecords(runs);
   let from = null;
   let to = null;
 
@@ -459,12 +576,12 @@ function budgetOf(runs, windowDays) {
 
     for (const leg of last.values()) {
       if (!legs.has(leg.leg)) {
-        legs.set(leg.leg, { samples: [], excluded: 0 });
+        legs.set(leg.leg, { samples: [], excluded: 0, ...shapeOf(latest.get(leg.leg)) });
       }
 
       const bucket = legs.get(leg.leg);
 
-      if (leg.unexpected > 0 || leg.tests === 0) {
+      if (isLeftOut(leg) || !sameShape(shapeOf(leg), bucket)) {
         bucket.excluded += 1;
       } else {
         bucket.samples.push(leg);
@@ -479,8 +596,185 @@ function budgetOf(runs, windowDays) {
     legs: Object.fromEntries([...legs.keys()].sort().map(name => [name, {
       ...legStatistics(legs.get(name).samples),
       excluded: legs.get(name).excluded,
+      shards: legs.get(name).shards,
+      workers: legs.get(name).workers,
     }])),
   };
+}
+
+/**
+ * Whether a leg record is left out of the budget: a shard of it is missing, a test failed every attempt,
+ * or no test ran. Its wall-clock describes something other than the leg (retries and timeouts, or a part
+ * of it).
+ *
+ * @param {object} leg The stored leg record.
+ * @returns {boolean} The verdict.
+ */
+function isLeftOut(leg) {
+  return Array.isArray(leg.missing) || leg.unexpected > 0 || leg.tests === 0;
+}
+
+/**
+ * One leg's summary from the parts its shards uploaded.
+ *
+ * The shards of a leg run side by side, so the leg's wall-clock is its longest part and its start is
+ * the earliest; everything else adds up: the summed time, the counts, and each spec file's tests and
+ * cases, which keep their shard's order. The attempt is the latest any part ran in: "Re-run failed
+ * jobs" re-runs the red shard alone, and the leg's final state is that shard's new part beside the
+ * others' first-attempt parts. An unsharded leg is one part without a shard, read as shard 1 of 1.
+ *
+ * Two clocks, both kept. `wallMs`, the longest part, is what the leg costs when its shards start
+ * together, the number the shard counts are derived from and the budget reads. `shards.spanMs`, from
+ * the first part's start to the last part's end, is what a pull request waited when the shards
+ * queued: three five-minute shards starting ten minutes apart fold to a five-minute `wallMs` and a
+ * twenty-five-minute span.
+ *
+ * A part for a shard past `total` is noted and skipped (the artifact names are a pull request's, and
+ * `DURATIONS_LEGS`, not the file, says how many shards the leg has). A shard with no part leaves the
+ * leg partial: `missing` names it, and the caller decides what a partial leg may do. A part without a
+ * shard for a leg that runs in shards is an older run's whole leg (a re-run of a push from before the
+ * shards): alone, it is recorded as the whole leg it is, with a note; beside shard parts, it is skipped
+ * with a note, never read as shard 1.
+ *
+ * @param {string} leg The leg.
+ * @param {LegSummary[]} parts The leg's parts, in any order, each naming its shard (or `null`).
+ * @param {number} total How many shards make the leg whole (`DURATIONS_LEGS[leg]`).
+ * @returns {{summary: (LegSummary & {shards: {total: number, spanMs: number, parts: object[], missing: number[]}})|null,
+ * missing: number[], notes: string[]}} The folded summary (`null` when no part was usable; its `shards.total`
+ * is 1 for an unsharded part recorded as a whole leg), the shards that have no part, and notes for the step
+ * summary.
+ */
+export function foldShardParts(leg, parts, total) {
+  const notes = [];
+  const byIndex = new Map();
+  const whole = parts.filter(part => part.shard === null);
+  let usable = parts;
+
+  if (total > 1 && whole.length > 0) {
+    if (whole.length === parts.length) {
+      notes.push(`leg ${leg}: ${whole.length === 1 ? 'an unsharded part' : `${whole.length} unsharded parts`} for a leg `
+        + `e2e.yml runs in ${total} shards (a run from before the shards); recorded as a whole leg`);
+      total = 1;
+    } else {
+      notes.push(`leg ${leg}: ${whole.length === 1 ? 'an unsharded part' : `${whole.length} unsharded parts`} beside `
+        + `${parts.length - whole.length} shard part(s); the unsharded ${whole.length === 1 ? 'one is' : 'ones are'} skipped`);
+      usable = parts.filter(part => part.shard !== null);
+    }
+  }
+
+  for (const part of usable) {
+    const index = part.shard?.index ?? 1;
+
+    if (!(Number.isInteger(index) && index >= 1 && index <= total)) {
+      notes.push(`leg ${leg}: a part for shard ${index}, and e2e.yml runs the leg in ${total}; skipped`);
+      continue;
+    }
+    if (part.shard && part.shard.total !== total) {
+      notes.push(`leg ${leg}: the part for shard ${index} says ${part.shard.total} shards; e2e.yml runs ${total}`);
+    }
+    // The artifact names are unique within a run, so one part per index is the rule; a later attempt wins
+    // all the same, so a forged pair cannot roll a shard back.
+    const current = byIndex.get(index);
+
+    if (!current || ((part.runAttempt ?? 0) - (current.runAttempt ?? 0)
+      || Date.parse(part.startTime) - Date.parse(current.startTime)) > 0) {
+      byIndex.set(index, part);
+    }
+  }
+
+  const missing = Array.from({ length: total }, (_, offset) => offset + 1).filter(index => !byIndex.has(index));
+  const ordered = [...byIndex.keys()].sort((a, b) => a - b).map(index => [index, byIndex.get(index)]);
+
+  if (ordered.length === 0) {
+    return { summary: null, missing, notes };
+  }
+
+  const projects = new Set();
+  const counts = { tests: 0, skipped: 0, flaky: 0, unexpected: 0 };
+  const byFile = new Map();
+  const runIds = new Set(ordered.map(([, part]) => part.runId));
+  let runAttempt = null;
+  let workers = null;
+  let startTime = null;
+  let lastEnd = 0;
+  let wallMs = 0;
+  let summedMs = 0;
+
+  for (const [, part] of ordered) {
+    part.projects.forEach(project => projects.add(project));
+    COUNT_KEYS.forEach((key) => {
+      counts[key] += part.counts[key];
+    });
+    runAttempt = part.runAttempt === null ? runAttempt : Math.max(runAttempt ?? 0, part.runAttempt);
+    workers = part.workers === null ? workers : Math.max(workers ?? 0, part.workers);
+    startTime = startTime === null || Date.parse(part.startTime) < Date.parse(startTime) ? part.startTime : startTime;
+    lastEnd = Math.max(lastEnd, Date.parse(part.startTime) + part.wallMs);
+    wallMs = Math.max(wallMs, part.wallMs);
+    summedMs += part.summedMs;
+
+    for (const file of part.files) {
+      const key = `${file.file}\u0000${file.project}`;
+
+      if (!byFile.has(key)) {
+        byFile.set(key, { file: file.file, project: file.project, tests: 0, ms: 0, cases: [] });
+      }
+
+      const bucket = byFile.get(key);
+
+      bucket.tests += file.tests;
+      bucket.ms += file.ms;
+      bucket.cases.push(...file.cases);
+    }
+  }
+
+  const files = [...byFile.values()].sort((a, b) => b.ms - a.ms
+    || a.file.localeCompare(b.file)
+    || a.project.localeCompare(b.project));
+
+  return {
+    summary: {
+      version: DURATIONS_VERSION,
+      leg,
+      projects: [...projects].sort(),
+      runId: runIds.size === 1 ? ordered[0][1].runId : null,
+      runAttempt,
+      shard: null,
+      workers,
+      startTime,
+      wallMs,
+      summedMs,
+      counts,
+      files,
+      shards: {
+        total,
+        spanMs: Math.max(wallMs, lastEnd - Date.parse(startTime)),
+        parts: ordered.map(([index, part]) => ({
+          index,
+          runAttempt: part.runAttempt,
+          startTime: part.startTime,
+          workers: part.workers,
+          wallMs: part.wallMs,
+          summedMs: part.summedMs,
+          ...part.counts,
+        })),
+        missing,
+      },
+    },
+    missing,
+    notes,
+  };
+}
+
+/**
+ * The compact form a leg record and a source keep of a sharded leg's parts: one row per part, as
+ * `[shard, attempt, wall-clock ms, tests that ran]`.
+ *
+ * @param {{parts: object[]}} shards The folded summary's `shards`.
+ * @param {number} runAttempt The record's attempt, for a part that names none.
+ * @returns {Array<[number, number, number, number]>} The rows, by shard.
+ */
+function partRows(shards, runAttempt) {
+  return shards.parts.map(part => [part.index, part.runAttempt ?? runAttempt, part.wallMs, part.tests]);
 }
 
 /**
@@ -625,9 +919,14 @@ export function serializeDurations(doc) {
  *   from a run where it passed on its first attempt: a test that failed or was flaky in the incoming run
  *   keeps the time the rows last had for it (its own time is retries and timeouts, which the flake ledger
  *   tracks), and a skipped or removed test has no cell.
+ * - A sharded leg arrives as one summary per shard (`playwright-durations-<leg>-s<i>`, the collector names
+ *   each part's shard from its artifact). The parts are folded into one record (`foldShardParts`): the
+ *   leg's wall-clock is its longest part, the counts and the rows add up, and the record keeps a row per
+ *   part. A leg with a shard missing is recorded as partial (`missing` names the shards), is left out of
+ *   the budget, and keeps the per-test rows it had, like a leg that ran no test.
  * - The summaries are untrusted: a fork's pull request runs its own `e2e.yml`. A leg outside
- *   `DURATIONS_LEGS` and a leg that claims to start after the run ended are noted and skipped, so nothing
- *   can invent a leg or pin a record past the retention window.
+ *   `DURATIONS_LEGS`, a part for a shard the leg does not have, and a part that claims to start after the
+ *   run ended are noted and skipped, so nothing can invent a leg or pin a record past the retention window.
  * - Records older than the retention window go, and so do a leg's rows. The rows get at most half the
  *   cap: past it, the rows of the oldest legs go first. Past the cap, the oldest runs go first, whole.
  * - `updatedAt` moves only when the stored text changed, so a collection that adds nothing leaves
@@ -703,26 +1002,63 @@ export function mergeDurations(previous, summaries, run, {
 
   headers.set(run.runId, header);
 
-  for (const summary of summaries) {
-    if (!DURATIONS_LEGS.includes(summary.leg)) {
-      notes.push(`leg ${JSON.stringify(summary.leg.slice(0, 60))}: not a leg e2e.yml runs, skipped`);
+  const partsByLeg = new Map();
+
+  for (const part of summaries) {
+    const where = part.shard ? `leg ${part.leg} shard ${part.shard.index}` : `leg ${part.leg}`;
+
+    if (!Object.hasOwn(DURATIONS_LEGS, part.leg)) {
+      notes.push(`leg ${JSON.stringify(part.leg.slice(0, 60))}: not a leg e2e.yml runs, skipped`);
       continue;
     }
-    if (!(Date.parse(summary.startTime) <= latestStart)) {
-      notes.push(`leg ${summary.leg}: starts at ${summary.startTime}, after run ${run.runId} ended, skipped`);
+    if (!(Date.parse(part.startTime) <= latestStart)) {
+      notes.push(`${where}: starts at ${part.startTime}, after run ${run.runId} ended, skipped`);
       continue;
+    }
+    if (part.runId !== null && part.runId !== run.runId) {
+      notes.push(`${where}: the durations were written by run ${part.runId}, collected as run ${run.runId}`);
+    }
+    if (!partsByLeg.has(part.leg)) {
+      partsByLeg.set(part.leg, []);
+    }
+    partsByLeg.get(part.leg).push(part);
+  }
+
+  for (const [legName, parts] of [...partsByLeg].sort(([a], [b]) => a.localeCompare(b))) {
+    const fold = foldShardParts(legName, parts, DURATIONS_LEGS[legName]);
+
+    notes.push(...fold.notes);
+
+    if (fold.summary === null) {
+      continue;
+    }
+
+    const { summary, missing } = fold;
+    const partial = missing.length > 0;
+    // The fold's count, not the table's: an unsharded part alone is recorded as the whole leg it is.
+    const total = summary.shards.total;
+
+    if (partial) {
+      notes.push(`leg ${legName}: no part for shard${missing.length === 1 ? '' : 's'} ${missing.join(', ')} of ${total}; `
+        + 'recorded as partial, left out of the budget, and its per-test rows are the run before\'s');
     }
 
     recorded.push(summary);
 
     const ownRun = summary.runId === null || summary.runId === run.runId;
-
-    if (!ownRun) {
-      notes.push(`${summary.leg}: the durations were written by run ${summary.runId}, collected as run ${run.runId}`);
-    }
-
     const runAttempt = ownRun && summary.runAttempt ? summary.runAttempt : run.runAttempt;
-    const key = recordKey(run.runId, summary.leg, runAttempt);
+    const key = recordKey(run.runId, legName, runAttempt);
+    // An unsharded, whole leg keeps the record shape from before shards existed, so its stored text is
+    // unchanged; a sharded or partial leg adds its shard count, its span (first start to last end), a row
+    // per part, and the missing shards.
+    const shardFields = total > 1 || partial
+      ? {
+        shards: total,
+        spanMs: summary.shards.spanMs,
+        parts: partRows(summary.shards, runAttempt),
+        ...(partial ? { missing } : {}),
+      }
+      : {};
 
     if (!records.has(key)) {
       added += 1;
@@ -731,7 +1067,7 @@ export function mergeDurations(previous, summaries, run, {
     records.set(key, {
       runId: run.runId,
       leg: {
-        leg: summary.leg,
+        leg: legName,
         runAttempt,
         at: summary.startTime,
         workers: summary.workers,
@@ -741,17 +1077,19 @@ export function mergeDurations(previous, summaries, run, {
         skipped: summary.counts.skipped,
         flaky: summary.counts.flaky,
         unexpected: summary.counts.unexpected,
+        ...shardFields,
       },
     });
 
     // A leg that ran no test (its web server never started, a filter matched nothing) has no rows to give,
-    // and must not wipe the rows of the leg's last run that had some.
-    if (summary.counts.tests === 0) {
+    // and must not wipe the rows of the leg's last run that had some; neither may a partial leg, whose
+    // missing shard's tests would read as removed.
+    if (summary.counts.tests === 0 || partial) {
       continue;
     }
 
     const source = {
-      leg: summary.leg,
+      leg: legName,
       projects: [...summary.projects].sort(),
       runId: run.runId,
       runAttempt,
@@ -764,8 +1102,9 @@ export function mergeDurations(previous, summaries, run, {
       wallMs: summary.wallMs,
       workers: summary.workers,
       tests: summary.counts.tests,
+      ...(total > 1 ? { shards: total, spanMs: summary.shards.spanMs, parts: partRows(summary.shards, runAttempt) } : {}),
     };
-    const current = latest.sources.get(summary.leg);
+    const current = latest.sources.get(legName);
     // The later run by id, then the later attempt: run ids follow commit order, so a "Re-run failed jobs"
     // on an older push, days later, never replaces a newer commit's rows. An equal rank is the same
     // execution collected again: the incoming copy wins, which keeps that a no-op.
@@ -775,13 +1114,13 @@ export function mergeDurations(previous, summaries, run, {
     if (!outranked) {
       // A test that failed or was flaky here keeps the time the rows last had for it; every other cell of
       // the leg is replaced, so a test that is gone from the leg loses its row.
-      const kept = cellsOf(latest, summary.leg);
+      const kept = cellsOf(latest, legName);
 
-      removeLeg(latest, summary.leg);
-      latest.sources.set(summary.leg, source);
+      removeLeg(latest, legName);
+      latest.sources.set(legName, source);
 
       for (const file of summary.files) {
-        const column = `${summary.leg}\u0000${file.project}`;
+        const column = `${legName}\u0000${file.project}`;
 
         if (!latest.cells.has(file.file)) {
           latest.cells.set(file.file, new Map());
@@ -927,6 +1266,8 @@ export function durationsView(doc) {
   const slowTestMs = doc.slowTestMs ?? SLOW_TEST_MS;
   const heaviestFiles = [];
   const slowTests = [];
+  // Each leg's latest record: a run of another shape (shards, workers) is drawn as left out.
+  const latest = latestRecords(doc.runs);
 
   for (const [file, rows] of Object.entries(doc.latest.files)) {
     const perLeg = new Map();
@@ -977,7 +1318,10 @@ export function durationsView(doc) {
     legs,
     runs: doc.runs.map(run => [run.runId, run.headSha.slice(0, 10)]),
     // [run index, leg index, start time (ms since epoch), wall-clock ms, tests that ran, attempt, left out of
-    // the budget: 0 counted, 1 a test failed every attempt or none ran, 2 a later attempt re-ran the leg]
+    // the budget: 0 counted, 1 a test failed every attempt or none ran, 2 a later attempt re-ran the leg,
+    // 3 a shard has no part, 4 another shape (shards or workers) than the leg's latest run; then the shards
+    // as [[shard, attempt, wall-clock ms, tests], …] for a sharded leg, null for a whole one; then the span
+    // from the first shard's start to the last shard's end, null for a whole leg]
     points: doc.runs.flatMap((run, runIndex) => {
       const lastAttempt = new Map();
 
@@ -986,13 +1330,18 @@ export function durationsView(doc) {
       return run.legs.map((leg) => {
         let leftOut = 0;
 
-        if (leg.unexpected > 0 || leg.tests === 0) {
+        if (Array.isArray(leg.missing)) {
+          leftOut = 3;
+        } else if (leg.unexpected > 0 || leg.tests === 0) {
           leftOut = 1;
         } else if (leg.runAttempt < lastAttempt.get(leg.leg)) {
           leftOut = 2;
+        } else if (!sameShape(shapeOf(leg), shapeOf(latest.get(leg.leg)))) {
+          leftOut = 4;
         }
 
-        return [runIndex, legs.indexOf(leg.leg), Date.parse(leg.at), leg.wallMs, leg.tests, leg.runAttempt, leftOut];
+        return [runIndex, legs.indexOf(leg.leg), Date.parse(leg.at), leg.wallMs, leg.tests, leg.runAttempt, leftOut,
+          Array.isArray(leg.parts) ? leg.parts : null, isAmount(leg.spanMs) ? leg.spanMs : null];
       });
     }),
     budget: doc.budget,
@@ -1051,6 +1400,19 @@ export function renderDurationsLine(summaries) {
       + `leg${heaviest[1].legs.size === 1 ? '' : 's'})`
     : '';
 
-  return `Playwright wall-clock: ${sorted.map(summary => `${summary.leg} ${minutes(summary.wallMs)} min`).join(', ')}`
+  // A sharded leg's wall-clock is its longest shard; a partial one says how many parts it has.
+  const shardText = (summary) => {
+    const shards = summary.shards;
+
+    if (!shards || shards.total < 2) {
+      return '';
+    }
+
+    return shards.missing.length > 0
+      ? ` (${shards.parts.length} of ${shards.total} shards)`
+      : ` (${shards.total} shards)`;
+  };
+
+  return `Playwright wall-clock: ${sorted.map(summary => `${summary.leg} ${minutes(summary.wallMs)} min${shardText(summary)}`).join(', ')}`
     + `${workerText}${heaviestText}.`;
 }

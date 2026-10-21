@@ -40,20 +40,27 @@ const serverSideItems = [
   { path: 'guides/getting-started/server-side-data/server-side-data-configuration' },
   { path: 'guides/getting-started/server-side-data/server-side-data-crud' },
   { path: 'guides/getting-started/server-side-data/server-side-data-fetching' },
+  { path: 'guides/getting-started/server-side-data-row-selection/server-side-data-row-selection' },
 ];
 
 const dataManagementItems = [
   { path: 'guides/getting-started/binding-to-data/binding-to-data' },
   { path: 'guides/getting-started/saving-data/saving-data' },
+  { path: 'guides/getting-started/view-state/view-state' },
   { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
   { path: 'guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes' },
-  { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
-  { path: 'guides/accessories-and-menus/import-from-excel/import-from-excel' },
-  { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
   { path: 'guides/cell-features/clipboard/clipboard' },
   { path: 'guides/data-management/collaboration/collaboration' },
 ];
 
+const importAndExportItems = [
+  { path: 'guides/import-and-export/import-and-export/import-and-export', title: 'Overview' },
+  { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
+  { path: 'guides/accessories-and-menus/import-from-excel/import-from-excel' },
+  { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
+  { path: 'guides/accessories-and-menus/xlsx-engine/xlsx-engine' },
+  { path: 'guides/import-and-export/dropped-features/dropped-features' },
+];
 
 const columnsItems = [
   { path: 'guides/columns/react-hot-column/react-hot-column', onlyFor: ['react'] },
@@ -73,6 +80,7 @@ const rowsItems = [
   { path: 'guides/rows/row-header/row-header' },
   { path: 'guides/rows/row-parent-child/row-parent-child' },
   { path: 'guides/rows/row-hiding/row-hiding' },
+  { path: 'guides/rows/row-selection/row-selection' },
   { path: 'guides/rows/row-moving/row-moving' },
   { path: 'guides/rows/row-freezing/row-freezing' },
   { path: 'guides/rows/row-height/row-height' },
@@ -80,6 +88,7 @@ const rowsItems = [
   { path: 'guides/rows/rows-sorting/rows-sorting' },
   { path: 'guides/rows/rows-pagination/rows-pagination' },
   { path: 'guides/rows/row-trimming/row-trimming' },
+  { path: 'guides/rows/row-identity/row-identity' },
   { path: 'guides/rows/row-prepopulating/row-prepopulating' },
 ];
 
@@ -91,6 +100,7 @@ const cellFeaturesItems = [
   { path: 'guides/cell-features/text-alignment/text-alignment' },
   { path: 'guides/cell-features/read-only-cells/read-only-cells' },
   { path: 'guides/cell-features/clickable-links/clickable-links' },
+  { path: 'guides/cell-features/async-values/async-values' },
   { path: 'guides/cell-features/comments/comments' },
   { path: 'guides/cell-features/autofill-values/autofill-values' },
   { path: 'guides/cell-features/formatting-cells/formatting-cells' },
@@ -240,6 +250,7 @@ module.exports = {
     { title: 'Formulas', children: formulasItems },
     { title: 'Server-side data', children: serverSideItems },
     { title: 'Data management', children: dataManagementItems },
+    { title: 'Import and export', children: importAndExportItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
     { title: 'Accessibility and navigation', children: navigationAndAccessibilityItems },

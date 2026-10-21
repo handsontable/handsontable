@@ -67,7 +67,7 @@ env:
 jobs:
   render:
     name: ${{ matrix.config.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # A cap, because the seed's concurrency group deliberately never cancels: a
     # render wedged on a browser install or an `aws s3 sync` would otherwise hold
     # that group for GitHub's six-hour default and every push behind it waits —
@@ -91,6 +91,12 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: ./.github/actions/setup-workspace
 
+      # Playwright downloads Firefox and WebKit builds per distro release, and
+      # runner.os is `Linux` on every Ubuntu image, so the image name keeps a
+      # cache saved on one Ubuntu release from restoring onto the next.
+      - name: Read the runner image
+        id: runner-image
+        run: echo "name=$ImageOS" >> "$GITHUB_OUTPUT"
       - name: Cache Playwright browsers
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
         id: playwright-cache
@@ -98,7 +104,7 @@ jobs:
           path: ~/.cache/ms-playwright
           # pnpm-workspace.yaml is in the key because the Playwright version
           # lives in its catalog — package.json alone no longer changes on bumps.
-          key: playwright-${{ matrix.config.cache }}-${{ runner.os }}-${{ hashFiles('visual-tests/package.json', 'pnpm-workspace.yaml') }}
+          key: playwright-${{ matrix.config.cache }}-${{ runner.os }}-${{ steps.runner-image.outputs.name }}-${{ hashFiles('visual-tests/package.json', 'pnpm-workspace.yaml') }}
       - name: Install Playwright browser binaries
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx --no playwright install ${{ matrix.config.browsers }}
@@ -254,7 +260,7 @@ jobs:
 
   compare:
     name: Compare
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Same reason as the render job's cap. Observed at 1.5-2.5 minutes; the fetch
     # and publish of 1646 objects is the only part that can hang.
     timeout-minutes: 30
@@ -816,7 +822,7 @@ jobs:
   # trusting its configuration, and fails closed when none is.
   approve:
     name: approve
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [ compare ]
     # `!failure()` as well as `!cancelled()`, matching `compare`'s own guard. An
     # `if:` that CONTAINS a status-check function replaces the implicit `success()`

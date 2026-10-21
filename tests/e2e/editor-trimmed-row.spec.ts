@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { EditorTrimmedRowPage } from '../fixtures/pages/EditorTrimmedRowPage';
 
 const UNTOUCHED = [
@@ -20,7 +20,7 @@ const UNTOUCHED = [
  * Every case here asserts the whole source data set AND the record count. Checking one cell is not
  * enough: a commit that lands on the right record while growing the dataset is still the bug.
  */
-test.describe('Filters trims the edited record away', () => {
+test.describe('Filters trims the edited record away', { tag: BUNDLES_TAG }, () => {
   /**
    * The append shape, and the severe one: the edited visual row sits past the post-filter row
    * count, so `applyChanges()` creates the missing rows to reach it. Before the fix this produced
@@ -79,7 +79,7 @@ test.describe('Filters trims the edited record away', () => {
  * invisible" misses it entirely - which is why the fix resolves the editor's physical record on
  * every trimming change rather than testing for disappearance.
  */
-test.describe('Filters keeps the edited record but moves it', () => {
+test.describe('Filters keeps the edited record but moves it', { tag: BUNDLES_TAG }, () => {
   /**
    * `filter()` re-selects the highlighted column before it returns, and that selection change is
    * what commits the edit - synchronously, inside `filter()`. So the edit does land, and it must
@@ -117,7 +117,7 @@ test.describe('Filters keeps the edited record but moves it', () => {
  * armed and corrupts on whatever the user does next. These cases therefore end with a real commit
  * trigger rather than reading the data straight after the trim.
  */
-test.describe('trimRows removes or moves the edited record', () => {
+test.describe('trimRows removes or moves the edited record', { tag: BUNDLES_TAG }, () => {
   /**
    * With the record gone the edit is dropped, and it must be dropped THERE - not left pending on a
    * stale coordinate. Before the fix the editor stayed open and the next click committed `'EDITED'`
@@ -225,7 +225,7 @@ test.describe('trimRows removes or moves the edited record', () => {
  * than the bug, so the fix compares the edited record's resolved visual index instead of trusting
  * the change event.
  */
-test.describe('a trimming-map write that moves nothing', () => {
+test.describe('a trimming-map write that moves nothing', { tag: BUNDLES_TAG }, () => {
   test('leaves the open edit untouched', async({ page, theme, bundle }) => {
     const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
@@ -259,7 +259,7 @@ test.describe('a trimming-map write that moves nothing', () => {
  * survive rather than improve: the editor's cell has no rendered `TD` at all, and a physical index
  * shift that no trimming map performed.
  */
-test.describe('states the captured record has to survive', () => {
+test.describe('states the captured record has to survive', { tag: BUNDLES_TAG }, () => {
   /**
    * `EditorManager#prepareEditor()` does its work only when the edited cell has a rendered `TD`, so
    * a cell scrolled out of the viewport leaves the editor open on coordinates the manager will not
@@ -333,7 +333,7 @@ test.describe('states the captured record has to survive', () => {
  * one that separates the two: the record being edited sits at a visual index that belongs to a
  * different physical row, and the assertion is which physical record the value lands on.
  */
-test.describe('a sorted index mapping under the trim', () => {
+test.describe('a sorted index mapping under the trim', { tag: BUNDLES_TAG }, () => {
   /**
    * Sorted descending, visual 1 is physical 3 (`'A3'`). The filter then trims physical 0, 1 and 4,
    * leaving `'A3'` and `'A2'` at visual 0 and 1 - so the edited record moves up one slot and the
@@ -375,7 +375,7 @@ test.describe('a sorted index mapping under the trim', () => {
  * different record - so the same reconciliation has to cover both, and the row count never betrays
  * these because no record is added or removed.
  */
-test.describe('a sequence change under an open editor', () => {
+test.describe('a sequence change under an open editor', { tag: BUNDLES_TAG }, () => {
   /**
    * Sorting descending while `'A4'` is being edited moves that record from visual 4 to visual 0.
    * Before the gate covered sequence changes, the stale visual row 4 addressed `'A0'` and the edit
@@ -447,7 +447,7 @@ test.describe('a sequence change under an open editor', () => {
  * Core only closes the editor when the removed range covers the highlighted row (`core.ts`), so an
  * `alter()` elsewhere in the grid leaves the edit open and live.
  */
-test.describe('a structural change while an editor is open', () => {
+test.describe('a structural change while an editor is open', { tag: BUNDLES_TAG }, () => {
   /**
    * Sorted descending, visual 0 is physical 4 (`'A4'`). Removing visual row 4 removes `'A0'` - a
    * different record entirely - and `'A4'` is still at visual 0, so the edit must still commit onto
@@ -524,7 +524,7 @@ test.describe('a structural change while an editor is open', () => {
  * followed by a re-prepare that happened to clear the latch. It exists so a future refactor back to
  * a hook-armed design has to prove the same property.
  */
-test.describe('a structural change that gets vetoed', () => {
+test.describe('a structural change that gets vetoed', { tag: BUNDLES_TAG }, () => {
   test('leaves the reconciliation working for the rest of the edit', async({ page, theme, bundle }) => {
     const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
@@ -555,7 +555,7 @@ test.describe('a structural change that gets vetoed', () => {
  * it, which are the two shapes the column arm of the repair exists for. Without these the captured
  * physical column, the column half of the recapture, and the column index count are all dead code.
  */
-test.describe('an index-map change on the column axis', () => {
+test.describe('an index-map change on the column axis', { tag: BUNDLES_TAG }, () => {
   /**
    * Moving column 0 to index 1 puts the edited cell at visual column 1. The editor has to follow it,
    * or the commit lands in column `'B'`.
@@ -611,7 +611,7 @@ test.describe('an index-map change on the column axis', () => {
  * rebuilds. Sequence permutations keep their visual range because one rectangular range cannot
  * represent records that a move or sort makes non-contiguous.
  */
-test.describe('commit paths that read the selection after trimming', () => {
+test.describe('commit paths that read the selection after trimming', { tag: BUNDLES_TAG }, () => {
   /**
    * Selecting an entire column uses `-1` as the range's row-header sentinel. When the editor's
    * record moves, only real visual coordinates may move; shifting the sentinel makes the selection
@@ -973,7 +973,7 @@ test.describe('commit paths that read the selection after trimming', () => {
  * changes. The mapper's cache-update source lets the repair preserve the edit against the NEW data
  * set rather than discarding it.
  */
-test.describe('a data swap under an open editor', () => {
+test.describe('a data swap under an open editor', { tag: BUNDLES_TAG }, () => {
   /**
    * The same swap at the SAME length routes to the rearrangement repair, which resolves the captured index against a data set
    * that shares nothing with the one the edit was typed into. A replaced `data` prop of unchanged
@@ -1030,7 +1030,7 @@ test.describe('a data swap under an open editor', () => {
  * Two states around the edges of the repair: an editor that exists but has not been typed into, and
  * the public hook being fired by hand.
  */
-test.describe('edges of the repair', () => {
+test.describe('edges of the repair', { tag: BUNDLES_TAG }, () => {
   /**
    * Rebuilding a selection against an empty visual grid must clear it. A fallback visual index of
    * zero would otherwise leave an addressable-looking selection that a later keystroke can append to.
@@ -1126,43 +1126,15 @@ test.describe('edges of the repair', () => {
  * editor's own coordinates address nothing, so there is nothing left to follow. What it can do is
  * refuse to write, which is what the next index-map change does.
  */
-test.describe('a removal that strands the editor', () => {
-  test('discards rather than appending when a later filter would commit through it',
-    async({ page, theme, bundle }) => {
-      const grid = new EditorTrimmedRowPage(page, theme, bundle);
-
-      await grid.goto();
-
-      await grid.selectRangeWithFocusAt([0, 0, 4, 0], 4, 0);
-      await grid.typeOnSelection('EDITED');
-
-      // Row 1 goes; the highlight is not inside the removed range and the range's top-start corner
-      // is above it, so neither `closeEditor()` nor `shiftRows()` touches the editor.
-      await grid.removeRow(1);
-
-      await expect.poll(() => grid.editorRow()).toBe(4);
-      expect(await grid.sourceRowCount()).toBe(4);
-
-      // On develop this filter commits through visual row 4 and appends four records.
-      await grid.filterToValues(0, ['A2']);
-
-      expect(await grid.committedChangeCount()).toBe(0);
-      expect(await grid.sourceRowCount()).toBe(4);
-      expect(await grid.sourceData()).toEqual([
-        ['A0', 'B0'],
-        ['A2', 'B2'],
-        ['A3', 'B3'],
-        ['A4', 'B4'],
-      ]);
-    });
-
+test.describe('a removal that strands the editor', { tag: BUNDLES_TAG }, () => {
   /**
    * The same strand with NO task boundary at all: `alter()` and `filter()` in one synchronous
    * block, one line of application code apart. The window that protects the editor INSIDE
    * `alter()` must be closed by the time `alter()` returns - a window closed on a zero-delay
    * timeout instead is still open when the filter runs, skips the discard, and the filter's
-   * re-selection commits through visual row 4 and appends four records. Unlike the case above,
-   * which needs the filter to outrun the timer, this fails deterministically on the unfixed code.
+   * re-selection commits through visual row 4 and appends four records. A filter that waits for a
+   * later task would fail only when it outran the timer; this one fails deterministically on the
+   * unfixed code.
    */
   test('discards when the filter lands in the same task as the removal',
     async({ page, theme, bundle }) => {
@@ -1199,7 +1171,7 @@ test.describe('a removal that strands the editor', () => {
  * discarding would throw away an edit that was about to commit correctly – `develop` commits it, so
  * doing anything else here is a regression rather than a gap.
  */
-test.describe('an index-map change nested inside a removal', () => {
+test.describe('an index-map change nested inside a removal', { tag: BUNDLES_TAG }, () => {
   test('keeps an edit that the pending re-prepare is about to rescue',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);
@@ -1400,7 +1372,7 @@ test.describe('an index-map change nested inside a removal', () => {
  * Removing the selected LAST record is the case that clamps: the highlight has to move onto the new
  * last record, which the nested removal then moves up by one.
  */
-test.describe('a nested alter inside a context-menu removal', () => {
+test.describe('a nested alter inside a context-menu removal', { tag: BUNDLES_TAG }, () => {
   test('keeps the selection on the record after the removed row', async({ page, theme, bundle }) => {
     const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
@@ -1437,7 +1409,7 @@ test.describe('a nested alter inside a context-menu removal', () => {
  * outermost scope's close-time flush runs with nothing held in the ordinary case, and it must not
  * re-select then - or every `alter()` after a select-all fires those hooks twice more.
  */
-test.describe('a structural change after select all', () => {
+test.describe('a structural change after select all', { tag: BUNDLES_TAG }, () => {
   test('re-selects the grid once for an insert', async({ page, theme, bundle }) => {
     const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
@@ -1488,7 +1460,7 @@ test.describe('a structural change after select all', () => {
  * A selection rather than an open editor: a nested removal at the edited row closes the editor,
  * because it reads the highlight before the outer shift has moved it - `develop` does the same.
  */
-test.describe('the order held shifts are folded in', () => {
+test.describe('the order held shifts are folded in', { tag: BUNDLES_TAG }, () => {
   test('keeps the selection on its record when the nested removal is below the outer one',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);
@@ -1627,7 +1599,7 @@ test.describe('the order held shifts are folded in', () => {
  * A held shift was computed for the selection that existed when it was recorded. A selection made
  * after that is not the one it describes, so the shift must not be written onto it.
  */
-test.describe('a selection made while a shift is held', () => {
+test.describe('a selection made while a shift is held', { tag: BUNDLES_TAG }, () => {
   test('stays where it was made', async({ page, theme, bundle }) => {
     const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
@@ -1648,7 +1620,7 @@ test.describe('a selection made while a shift is held', () => {
  * An `alter()` that throws closes its scope without writing the held shifts. Writing them runs the
  * selection hooks, and a consumer that throws there would replace the error the caller has to see.
  */
-test.describe('a throwing alter with a held shift', () => {
+test.describe('a throwing alter with a held shift', { tag: BUNDLES_TAG }, () => {
   test('reports its own error, not one a selection hook throws', async({ page, theme, bundle }) => {
     const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
@@ -1669,7 +1641,7 @@ test.describe('a throwing alter with a held shift', () => {
  * not a count. So the scope is stamped as usual, and a nested removal lands on the record after both
  * removals - `develop` lands it one row up.
  */
-test.describe('a nested alter inside batch()', () => {
+test.describe('a nested alter inside batch()', { tag: BUNDLES_TAG }, () => {
   test('lands on the record after both removals', async({ page, theme, bundle }) => {
     const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
@@ -1694,7 +1666,7 @@ test.describe('a nested alter inside batch()', () => {
  * scope closed on a zero-delay timeout instead of inline would be open when the filter reconciles,
  * skip the discard, and append a fourth record (DEV-2756).
  */
-test.describe('a data swap that strands the editor', () => {
+test.describe('a data swap that strands the editor', { tag: BUNDLES_TAG }, () => {
   test('discards when the filter lands in the same task as the swap',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);
@@ -1744,7 +1716,7 @@ test.describe('a data swap that strands the editor', () => {
  * captured record survives and guides the repair on its own. The removal below is what clears it
  * and leaves the editor's stale coordinates as the only thing left to read.
  */
-test.describe('a vetoed alter between a strand and a filter', () => {
+test.describe('a vetoed alter between a strand and a filter', { tag: BUNDLES_TAG }, () => {
   test('closes its scope so the filter still discards', async({ page, theme, bundle }) => {
     const grid = new EditorTrimmedRowPage(page, theme, bundle);
 
@@ -1815,7 +1787,7 @@ test.describe('a vetoed alter between a strand and a filter', () => {
  * its scroll, skips closing an open editor, and skips `prepareEditor()`. The grid then looks alive
  * but takes no typing at all (DEV-2831 review).
  */
-test.describe('a data replacement whose selection repair throws', () => {
+test.describe('a data replacement whose selection repair throws', { tag: BUNDLES_TAG }, () => {
   test('ends the selection source it began, so the grid still takes typing',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);
@@ -1856,7 +1828,7 @@ test.describe('a data replacement whose selection repair throws', () => {
  * they survive a `Shift+Up` that shrinks the selection, so reading either would grow a shrunk
  * selection back to the whole column.
  */
-test.describe('a grid-tracking extent through a restore', () => {
+test.describe('a grid-tracking extent through a restore', { tag: BUNDLES_TAG }, () => {
   /**
    * An UNTRIM is the only shape that separates re-pinning from shrinking. On a removal the two agree
    * by construction - a select-all's span covers every record, so its surviving records ARE the
@@ -2021,7 +1993,7 @@ test.describe('a grid-tracking extent through a restore', () => {
  * contiguous, which is what lets a shrunk range still be one `CellRange` - but a record REVEALED
  * between two corners lands inside the rectangle they describe, and no `CellRange` can exclude it.
  */
-test.describe('a trimming update that reveals records', () => {
+test.describe('a trimming update that reveals records', { tag: BUNDLES_TAG }, () => {
   test('does not widen the active range onto a record an untrim revealed between its corners',
     async({ page, theme, bundle }) => {
       const grid = new EditorTrimmedRowPage(page, theme, bundle);

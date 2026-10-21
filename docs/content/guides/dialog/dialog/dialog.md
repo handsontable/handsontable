@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Dialog
-metaTitle: Dialog - JavaScript Data Grid | Handsontable
+metaTitle: Dialog | Handsontable DataGrid for JavaScript
 description: Display modal dialogs, alerts, loading indicators, and notifications to enhance user interaction and provide feedback in your data grid application.
 permalink: /dialog
 canonicalUrl: /dialog
@@ -13,11 +13,11 @@ tags:
   - confirm
   - prompt
 react:
-  metaTitle: Dialog - React Data Grid | Handsontable
+  metaTitle: Dialog | Handsontable DataGrid for React
 angular:
-  metaTitle: Dialog - Angular Data Grid | Handsontable
+  metaTitle: Dialog | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Dialog - Vue Data Grid | Handsontable
+  metaTitle: Dialog | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Dialog
 menuTag: updated
@@ -29,7 +29,7 @@ Display modal dialogs, alerts, loading indicators, and notifications to enhance 
 
 ## Overview
 
-The Dialog plugin provides a modal dialog system for Handsontable that allows you to display custom content in modal dialogs that overlay the table. This is useful for showing notifications, error messages, loading indicators, or any other interactive content that requires user attention.
+The Dialog plugin provides a modal dialog system for Handsontable DataGrid that allows you to display custom content in modal dialogs that overlay the table. This is useful for showing notifications, error messages, loading indicators, or any other interactive content that requires user attention.
 
 The dialog system is designed to be flexible and customizable, supporting various content types including plain text, HTML, and DOM elements. It also provides options for styling, animations, and user interaction controls.
 

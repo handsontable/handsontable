@@ -4,7 +4,6 @@ import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { FunctionArgumentType, FunctionPlugin, HyperFormula } from 'hyperformula';
 import type { GridSettings } from 'handsontable/settings';
-import type { DetailedSettings } from 'handsontable/plugins/formulas';
 
 // HyperFormula does not export its parser and interpreter types from the package
 // entry point, so derive them from the inherited `runFunction` signature.
@@ -56,7 +55,7 @@ const hotSettings = ref<GridSettings>({
   colHeaders: true,
   rowHeaders: true,
   height: 'auto',
-  formulas: { engine: markRaw(HyperFormula) } as DetailedSettings,
+  formulas: { engine: markRaw(HyperFormula) },
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',

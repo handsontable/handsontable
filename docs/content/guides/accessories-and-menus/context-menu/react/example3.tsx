@@ -1,5 +1,6 @@
 import { HotTable } from '@handsontable/react-wrapper';
-import { ContextMenu, DetailedSettings } from 'handsontable/plugins/contextMenu';
+import type Handsontable from 'handsontable/base';
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
@@ -37,14 +38,14 @@ const sanitizeMenuLabel = (html: string): string => {
   return template.innerHTML;
 };
 
-const contextMenuSettings: DetailedSettings = {
-  callback(key, selection, clickEvent) {
+const contextMenuSettings = {
+  callback(key: string, selection: unknown[], clickEvent?: Event) {
     // Common callback for all options
     console.log(key, selection, clickEvent);
   },
   items: {
     row_above: {
-      disabled() {
+      disabled(this: Handsontable.Core) {
         // `disabled` can be a boolean or a function
         // Disable option when first row was clicked
         return this.getSelectedLast()?.[0] === 0; // `this` === hot
@@ -62,7 +63,7 @@ const contextMenuSettings: DetailedSettings = {
         // `name` can be a string or a function
         return '<b>Custom option</b>'; // Name can contain HTML
       },
-      hidden() {
+      hidden(this: Handsontable.Core) {
         // `hidden` can be a boolean or a function
         // Hide the option when the first column was clicked
         return this.getSelectedLast()?.[1] == 0; // `this` === hot

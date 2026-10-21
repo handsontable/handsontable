@@ -1,8 +1,8 @@
 ---
 type: explanation
 title: Events and hooks
-metaTitle: Events and hooks - JavaScript Data Grid | Handsontable
-description: Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
+metaTitle: Events and hooks | Handsontable DataGrid for JavaScript
+description: Run your code before or after data grid actions, using Handsontable DataGrid's API hooks (callbacks). For example, control what happens with the user's input.
 permalink: /events-and-hooks
 canonicalUrl: /events-and-hooks
 tags:
@@ -16,16 +16,16 @@ tags:
 - events
 - hooks
 react:
-  metaTitle: Events and hooks - React Data Grid | Handsontable
+  metaTitle: Events and hooks | Handsontable DataGrid for React
 angular:
-  metaTitle: Events and hooks - Angular Data Grid | Handsontable
+  metaTitle: Events and hooks | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Events and hooks - Vue Data Grid | Handsontable
+  metaTitle: Events and hooks | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Data management
 menuTag: updated
 ---
-Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
+Run your code before or after specific data grid actions, using Handsontable DataGrid's API hooks (callbacks). For example, control what happens with the user's input.
 
 [[toc]]
 
@@ -380,7 +380,7 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 | Value                                              | Description                                                                                                                                                                                                            |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `auto`                                             | Action triggered by Handsontable, and the reason for it is related directly to the settings applied to Handsontable. For example, [`afterCreateRow`](@/api/hooks.md#aftercreaterow) will be fired with this when [`minSpareRows`](@/api/options.md#minsparerows) will be greater than 0. |
-| `edit`                                             | Action triggered by Handsontable after the data has been changed, e.g., after an edit or using [`setDataAtCell()`](@/api/core.md#setdataatcell), [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop), or [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) methods. |
+| `edit`                                             | Action triggered by Handsontable after the data has been changed, e.g., after an edit or using [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) methods. |
 | `loadData`                                         | Action triggered by Handsontable after the [`loadData`](@/api/core.md#loaddata) method has been called with the [`data`](@/api/options.md#data) property.
 | `updateData`                                         | Action triggered by Handsontable after the [`updateData`](@/api/core.md#updatedata) method has been called; e.g., before or after a data change.                                                                                                     |
 | `updateSettings`                                   | Action triggered by [`updateSettings()`](@/api/core.md#updatesettings) when its settings object includes the [`data`](@/api/options.md#data) option. The [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and [`afterUpdateData`](@/api/hooks.md#afterupdatedata) hooks receive this source. |
@@ -400,8 +400,8 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 | [`ContextMenu.rowBelow`](@/api/contextMenu.md)     | Action triggered by the ContextMenu plugin after the "Insert row below" has been clicked.                                                                                                                              |
 | [`CopyPaste.paste`](@/api/copyPaste.md)            | Action triggered by the CopyPaste plugin after the value has been pasted.                                                                                                                                              |
 | [`MergeCells`](@/api/mergeCells.md)                | Action triggered by the MergeCells plugin when clearing the merged cells' underlying cells. |
-| [`SheetsBar.api`](@/api/sheetsBar.md)             | Action triggered by the SheetsBar plugin's API methods. Data hooks that run while a sheet switch loads the arriving sheet's data receive `SheetsBar.api.switch`. |
-| [`SheetsBar.ui`](@/api/sheetsBar.md)              | Action triggered by the SheetsBar plugin's tab bar -- a click, a drag, or one of its menus. Data hooks that run during the switch receive `SheetsBar.ui.switch`. |
+| [`SheetsBar.api`](@/api/sheetsBar.md)             | Action triggered by the SheetsBar plugin's API methods. During a sheet switch, `beforeLoadData` and `afterLoadData` receive `SheetsBar.api.switch`. |
+| [`SheetsBar.ui`](@/api/sheetsBar.md)              | Action triggered from the sheets bar: a click, a key, a drag, or a menu. During a sheet switch, `beforeLoadData` and `afterLoadData` receive `SheetsBar.ui.switch`. |
 | [`UndoRedo.redo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been redone.                                                                                                                                              |
 | [`UndoRedo.undo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been undone.                                                                                                                                              |
 | [`ColumnSummary.set`](@/api/columnSummary.md)      | Action triggered by the ColumnSummary plugin after the calculation has been done.                                                                                                                                      |

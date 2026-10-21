@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures/test';
+import { test, expect, THEMES_TAG } from '../../fixtures/test';
 import { MergeCellsDragOutsidePage } from '../../fixtures/pages/MergeCellsDragOutsidePage';
 
 /**
@@ -7,7 +7,7 @@ import { MergeCellsDragOutsidePage } from '../../fixtures/pages/MergeCellsDragOu
  * from the bounds alone. The count is of the lookups themselves, with a pointer outside as the positive
  * control, so a lookup that stops being counted cannot leave the test green.
  */
-test.describe('the pointer lookup of a held drag', () => {
+test.describe('the pointer lookup of a held drag', { tag: THEMES_TAG }, () => {
   let grid: MergeCellsDragOutsidePage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

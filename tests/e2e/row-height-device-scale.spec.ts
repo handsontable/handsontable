@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { RowHeightDeviceScalePage } from '../fixtures/pages/RowHeightDeviceScalePage';
 
 /**
@@ -16,7 +16,7 @@ import { RowHeightDeviceScalePage } from '../fixtures/pages/RowHeightDeviceScale
  * the row count — a fraction of one device pixel — while the defect grew without bound, so
  * the threshold separates them decisively at any grid size.
  */
-test.describe('row height under sub-100% device scaling', () => {
+test.describe('row height under sub-100% device scaling', { tag: THEMES_TAG }, () => {
   let grid: RowHeightDeviceScalePage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -54,7 +54,7 @@ test.describe('row height under sub-100% device scaling', () => {
   });
 });
 
-test.describe('row height at 50% — a border that lands on a whole pixel', () => {
+test.describe('row height at 50% — a border that lands on a whole pixel', { tag: THEMES_TAG }, () => {
   let grid: RowHeightDeviceScalePage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -75,7 +75,7 @@ test.describe('row height at 50% — a border that lands on a whole pixel', () =
   });
 });
 
-test.describe('row height at 100% — the control', () => {
+test.describe('row height at 100% — the control', { tag: THEMES_TAG }, () => {
   let grid: RowHeightDeviceScalePage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

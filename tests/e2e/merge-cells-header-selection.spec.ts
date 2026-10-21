@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { test, expect, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { test, expect, CROSS_BROWSER_TAG, THEMES_TAG } from '../fixtures/test';
 import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
 
 /**
@@ -16,7 +16,7 @@ import { SharedDemoGridPage } from '../fixtures/pages/SharedDemoGridPage';
  * so it cannot tell whether the column layers TOGETHER count as a full cover. The second test starts the
  * column layers from a cell outside the merge, so only their union covers it.
  */
-test.describe('a merged cell under a column selection', { tag: CROSS_BROWSER_TAG }, () => {
+test.describe('a merged cell under a column selection', { tag: [CROSS_BROWSER_TAG, THEMES_TAG] }, () => {
   let grid: SharedDemoGridPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

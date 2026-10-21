@@ -26,14 +26,20 @@ runs:
         node-version-file: '.nvmrc'
         cache: 'pnpm'
 
+    - name: Read the runner image
+      if: inputs.puppeteer-chrome == 'true'
+      id: runner-image
+      shell: bash
+      run: echo "name=$ImageOS" >> "$GITHUB_OUTPUT"
+
     - name: Cache Chrome for Puppeteer
       if: inputs.puppeteer-chrome == 'true'
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
       with:
         path: ~/.cache/puppeteer
-        key: puppeteer-chrome-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+        key: puppeteer-chrome-${{ runner.os }}-${{ steps.runner-image.outputs.name }}-${{ hashFiles('pnpm-lock.yaml') }}
         restore-keys: |
-          puppeteer-chrome-${{ runner.os }}-
+          puppeteer-chrome-${{ runner.os }}-${{ steps.runner-image.outputs.name }}-
 
     - name: Install dependencies
       if: inputs.puppeteer-chrome != 'true'
