@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where two writes to the same cell that waited on an asynchronous validator were applied in the order the validators answered, so the older value could overwrite the newer one. The last write to a cell now wins, and a write that a newer one overtook no longer fires `afterChange`. A validator that corrects a value through `setDataAtCell()` with a source that does not end in `Validator` now wins over the change that triggered it, and that change fires no `afterChange`.",
+  "type": "fixed",
+  "issueOrPR": 13954,
+  "breaking": false,
+  "framework": "none"
+}

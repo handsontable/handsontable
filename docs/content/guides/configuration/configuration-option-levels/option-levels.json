@@ -8,8 +8,8 @@
   ],
   "total": 185,
   "counts": {
-    "grid": 113,
-    "grid columns cells cell": 64,
+    "grid": 112,
+    "grid columns cells cell": 65,
     "grid columns": 7,
     "columns": 1
   },
@@ -99,7 +99,10 @@
       "name": "ariaTags",
       "category": "Core",
       "levels": [
-        "grid"
+        "grid",
+        "columns",
+        "cells",
+        "cell"
       ],
       "since": "14.0.0",
       "note": "The switch is grid level. A per-cell value only changes that cell's ARIA attributes."

@@ -2631,6 +2631,8 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link CopyPaste} plugin before copying the values to the clipboard and before clearing values of
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
+   * Changes the callback makes to `data` also apply to the data that a paste into another Handsontable grid reads.
+   *
    * @event Hooks#beforeCut
    * @param {Array[]} data An array of arrays which contains data to cut.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
@@ -2718,6 +2720,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired before values are copied to the clipboard.
+   *
+   * Changes the callback makes to `data` also apply to the data that a paste into another Handsontable grid reads.
    *
    * @event Hooks#beforeCopy
    * @param {Array[]} data An array of arrays which contains data to copied.

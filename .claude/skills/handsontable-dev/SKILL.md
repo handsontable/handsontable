@@ -181,7 +181,7 @@ Extract a helper to fix a violation.
 | Renderer | `src/renderers/index.ts` + `src/renderers/factory.ts` |
 | Validator | `src/validators/index.ts` |
 | Cell type | `src/cellTypes/index.ts` |
-| Any new option / hook | `src/dataMap/metaManager/metaSchema.ts` + `src/core/settings.ts` |
+| Any new option / hook | `src/dataMap/metaManager/metaSchema.ts` + `src/core/settings.ts` (the settings JSON Schema regenerates from both on the next build or test run; `src/settingsSchema/AGENTS.md`) |
 
 ---
 
