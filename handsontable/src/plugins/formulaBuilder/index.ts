@@ -1,7 +1,12 @@
 export { FormulaBuilder, PLUGIN_KEY, PLUGIN_PRIORITY } from './formulaBuilder';
 export type {
-  CoreModule,
+  FormulaBuilderErrorPopupOptions,
+  FormulaBuilderFunctionHelpOptions,
+  FormulaBuilderLayoutDirection,
   FormulaBuilderPluginSettings,
-  OverlayLike,
-  VisualHfIndexMapping,
+  FormulaBuilderPopupHostOption,
+  FormulaBuilderPopupsOptions,
+  FormulaBuilderStepDirection,
+  FormulaBuilderSuggestionsOptions,
+  FormulaEditorHandle,
 } from './types';

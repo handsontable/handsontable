@@ -1,11 +1,34 @@
-import type { EventManager, EventScope, FormulaEditor } from 'hyperformula-ui';
 import { editorFactory } from '../../editors/factory';
 import { EDITOR_STATE } from '../../editors/baseEditor';
-import { getEditor, registerEditor } from '../../editors/registry';
+import { getEditor, hasEditor, registerEditor } from '../../editors/registry';
+import EventManager from '../../eventManager';
+import { addClass, removeClass } from '../../helpers/dom/element';
+import type { FormulaEditorHandle } from './types';
 
 export const FORMULA_EDITOR_ALIAS = 'formula';
 export const EDITING_CELL_CLASS = 'ht-formula-builder__editing-cell';
 export const INLINE_EDITOR_CLASS = 'ht-formula-builder__inline-editor';
+
+/**
+ * Every layer class `BaseEditor#getEditedCellsLayerClass()` can return. The editor container
+ * carries the one of the edited cell's overlay, so the shared z-index map
+ * (`styles/base/_z-index-map.scss`) stacks it the way it stacks the text editor: above its own
+ * pane, below every frozen pane that overlaps it.
+ */
+const EDITOR_LAYER_CLASSES = [
+  'ht_clone_master',
+  'ht_clone_left',
+  'ht_clone_inline_start',
+  'ht_clone_inline_end',
+  'ht_clone_bottom',
+  'ht_clone_bottom_left_corner',
+  'ht_clone_bottom_inline_start_corner',
+  'ht_clone_bottom_inline_end_corner',
+  'ht_clone_top',
+  'ht_clone_top_left_corner',
+  'ht_clone_top_inline_start_corner',
+  'ht_clone_top_inline_end_corner',
+];
 
 /**
  * Constructor shape returned by the editor factory.
@@ -15,15 +38,24 @@ interface BaseEditorCtor {
 }
 
 /**
- * Extra state the formula editor shim keeps on the editor instance.
+ * The state the formula editor shim keeps on Handsontable's editor instance. The plugin reads
+ * the same instance through `hot.getActiveEditor()`, so this one interface describes it everywhere.
  */
-interface FormulaEditorProperties {
+export interface FormulaHostEditor {
   /**
-   * The wrapper element the core formula editor mounts into.
+   * The visual row of the edited cell.
+   */
+  row?: number;
+  /**
+   * The visual column of the edited cell.
+   */
+  col?: number;
+  /**
+   * The wrapper element the formula editor mounts into.
    */
   input: HTMLElement;
   /**
-   * The printable-key seed captured by `setValue` before the overlay editor attaches.
+   * The printable-key seed captured by `setValue` before the formula editor attaches.
    */
   _pending?: string;
   /**
@@ -31,17 +63,41 @@ interface FormulaEditorProperties {
    */
   _original?: string;
   /**
-   * Marks the editor as hidden by the formula bar handoff.
+   * Hides the inline editor while the formula bar edits the cell.
    */
-  _hfeHidden?: boolean;
+  _hiddenByFormulaBar?: boolean;
   /**
-   * The keyboard guard scope of the current edit session, `null` between sessions.
+   * The keyboard guard of the current edit session, `null` between sessions.
    */
-  _guardScope?: EventScope | null;
+  _keyboardGuard?: EventManager | null;
   /**
-   * The plain-textarea fallback mounted when the plugin is disabled or missing.
+   * The plain-textarea fallback mounted when the plugin is disabled.
    */
   _fallbackInput?: HTMLTextAreaElement;
+  /**
+   * Re-measures and re-positions the editor.
+   */
+  refreshDimensions?(force?: boolean): void;
+  /**
+   * Replaces the editor value.
+   */
+  setValue?(value: string): void;
+  /**
+   * Opens the editor, optionally seeded with a value.
+   */
+  beginEditing?(value?: string): void;
+  /**
+   * Switches the editor to full edit mode (arrow keys move the caret).
+   */
+  enableFullEditMode?(): void;
+  /**
+   * Closes the editor, saving or restoring the value.
+   */
+  finishEditing?(restoreOriginal?: boolean, ctrlDown?: boolean, callback?: () => void): void;
+  /**
+   * Moves the focus into the editor.
+   */
+  focus?(): void;
 }
 
 /**
@@ -53,40 +109,31 @@ export interface FormulaEditorPluginSurface {
    */
   enabled?: boolean;
   /**
-   * The plugin's DOM event manager (used for the keyboard guard scope),
-   * `null` while the plugin is disabled.
-   */
-  events: EventManager | null;
-  /**
-   * Mounts the core formula editor into the inline wrapper.
+   * Mounts the formula editor into the inline wrapper.
    *
    * @param {HTMLElement} mount The wrapper element.
    * @param {string} seed The initial editor content.
    */
   handleInlineEditStart(mount: HTMLElement, seed: string): void;
   /**
-   * Tears the core formula editor down after the shim closes.
+   * Tears the formula editor down after the shim closes.
    */
   handleInlineEditClose(): void;
   /**
-   * Returns the live core formula editor, or `null` when not editing.
+   * Returns the live formula editor, or `null` when not editing.
    *
-   * @returns {FormulaEditor | null}
+   * @returns {FormulaEditorHandle | null}
    */
-  getActiveEditor(): FormulaEditor | null;
+  getActiveEditor(): FormulaEditorHandle | null;
 }
 
 /**
  * Host shape used to reach the plugin from an editor instance.
  */
 interface EditorHost {
-  instance?: {
-    getPlugin?(name: string): unknown;
-    rootDocument?: Document;
-  };
-  hot?: {
-    getPlugin?(name: string): unknown;
-    rootDocument?: Document;
+  hot: {
+    getPlugin(name: string): unknown;
+    rootDocument: Document;
   };
 }
 
@@ -97,23 +144,9 @@ interface EditorHost {
  * @returns {FormulaEditorPluginSurface | null}
  */
 function resolvePlugin(editor: unknown): FormulaEditorPluginSurface | null {
-  const host = editor as EditorHost;
-  const hot = host.instance ?? host.hot;
-  const plugin = hot?.getPlugin?.('formulaBuilder');
+  const plugin = (editor as EditorHost).hot.getPlugin('formulaBuilder');
 
   return (plugin as FormulaEditorPluginSurface | undefined) ?? null;
-}
-
-/**
- * Resolves the host document from an editor instance.
- *
- * @param {unknown} editor The editor instance.
- * @returns {Document}
- */
-function resolveDocument(editor: unknown): Document {
-  const host = editor as EditorHost;
-
-  return (host.instance ?? host.hot)!.rootDocument!;
 }
 
 /**
@@ -124,20 +157,15 @@ function resolveDocument(editor: unknown): Document {
  * the wrapper has content - the factory's `open()` calls `refreshDimensions()`
  * BEFORE `afterOpen()` runs, so that first pass always finds an empty wrapper
  * and leaves the container `display: none`. The enabled-plugin path recovers
- * because `handleInlineEditStart` happens to trigger its own forced refresh
- * (via `setInlineEditorVisible`); this fallback has no such plugin call, so it
+ * because `handleInlineEditStart` triggers its own forced refresh (via
+ * `setInlineEditorVisible`); this fallback has no such plugin call, so it
  * must force one itself - otherwise the mounted textarea sits inside a hidden,
  * zero-size container and can never actually receive focus.
  *
  * @param {object} editor The editor instance.
  */
-function mountFallbackTextarea(editor: {
-  input: HTMLElement;
-  _original?: string;
-  _fallbackInput?: HTMLTextAreaElement;
-  refreshDimensions?(force?: boolean): void;
-}): void {
-  const textarea = resolveDocument(editor).createElement('textarea');
+function mountFallbackTextarea(editor: FormulaHostEditor & EditorHost): void {
+  const textarea = editor.hot.rootDocument.createElement('textarea');
 
   textarea.className = 'handsontableInput';
   textarea.value = editor._original ?? '';
@@ -173,26 +201,19 @@ export function resolveInlineSeed(editor: SeedSourceEditor): string {
 /**
  * Editor shape used by the dimension/stacking logic.
  */
-interface ScrollAwareEditor {
+interface ScrollAwareEditor extends FormulaHostEditor {
   state: string;
   getEditedCell(): HTMLElement | null | undefined;
-  close(): void;
+  getEditedCellsLayerClass(): string;
   container: HTMLElement;
-  input: HTMLElement;
   TD: HTMLElement | null;
   hot: {
-    rootElement: HTMLElement;
     rootWindow: Window & typeof globalThis;
-    isRtl?(): boolean;
+    isRtl(): boolean;
     view?: {
-      getOverlayByName(overlayName: string): {
-        holder: HTMLElement | Window;
-        clone: { wtTable: { wtRootElement: HTMLElement } } | null;
-      } | null;
+      getOverlayByName(overlayName: string): { holder: HTMLElement | Window } | null;
     };
   };
-  autoResize?: { init(...args: unknown[]): void; unObserve(): void };
-  _hfeHidden?: boolean;
 }
 
 /**
@@ -213,9 +234,7 @@ function applyContentEdgeWidth(editor: ScrollAwareEditor, editedCell: HTMLElemen
 
   const holderRect = holder.getBoundingClientRect();
   const cellRect = editedCell.getBoundingClientRect();
-  const rtl = editor.hot.isRtl?.() ??
-    editor.hot.rootWindow.getComputedStyle(editedCell).direction === 'rtl';
-  const available = rtl ?
+  const available = editor.hot.isRtl() ?
     cellRect.right - (holderRect.left + holder.clientLeft) :
     holderRect.left + holder.clientWidth - cellRect.left;
 
@@ -225,158 +244,106 @@ function applyContentEdgeWidth(editor: ScrollAwareEditor, editedCell: HTMLElemen
   );
 }
 
-const ABOVE_ORDINARY_OVERLAY_Z_INDEX = 11;
-
 /**
- * Collects the z-indexes of every frozen-pane clone except the editor's own container.
+ * Gives the editor container the layer class of the edited cell's overlay, replacing the
+ * previous one, so the shared z-index map stacks it (see {@link EDITOR_LAYER_CLASSES}).
  *
  * @param {ScrollAwareEditor} editor The editor instance.
- * @returns {number[]}
  */
-function frozenPaneZIndexes(editor: ScrollAwareEditor): number[] {
-  const zIndexes: number[] = [];
-
-  for (const overlay of editor.hot.rootElement.querySelectorAll<HTMLElement>(
-    '[class*="ht_clone"]',
-  )) {
-    if (overlay === editor.container) {
-      continue;
-    }
-
-    const zIndex = Number.parseInt(editor.hot.rootWindow.getComputedStyle(overlay).zIndex, 10);
-
-    if (!Number.isNaN(zIndex)) {
-      zIndexes.push(zIndex);
-    }
-  }
-
-  return zIndexes;
+function applyEditorLayerClass(editor: ScrollAwareEditor): void {
+  removeClass(editor.container, EDITOR_LAYER_CLASSES);
+  addClass(editor.container, editor.getEditedCellsLayerClass());
 }
 
 /**
- * Stacks the editor container so it renders above its own pane but below any
- * frozen pane that overlaps it.
+ * Re-measures and re-positions the inline editor. Replaces the factory's own
+ * `refreshDimensions`, which it calls first.
  *
  * @param {ScrollAwareEditor} editor The editor instance.
- * @param {HTMLElement} editedCell The edited cell element.
+ * @param {Function} baseRefreshDimensions The factory's `refreshDimensions`.
+ * @param {boolean} force Whether to refresh outside the EDITING state.
  */
-function stackEditorAgainstOverlays(editor: ScrollAwareEditor, editedCell: HTMLElement): void {
-  const frozenZIndexes = frozenPaneZIndexes(editor);
-  const cellPane = editedCell.closest<HTMLElement>('[class*="ht_clone"]');
-  const cellPaneZIndex = cellPane ?
-    Number.parseInt(editor.hot.rootWindow.getComputedStyle(cellPane).zIndex, 10) :
-    Number.NaN;
-  const isScrollAreaCell = Number.isNaN(cellPaneZIndex);
-  const panesAbove = frozenZIndexes.filter(zIndex => isScrollAreaCell || zIndex > cellPaneZIndex);
-
-  let stackedZIndex: number;
-
-  if (panesAbove.length > 0) {
-    stackedZIndex = Math.min(...panesAbove) - 1;
-  } else if (isScrollAreaCell) {
-    stackedZIndex = ABOVE_ORDINARY_OVERLAY_Z_INDEX;
-  } else {
-    stackedZIndex = cellPaneZIndex + 1;
-  }
-
-  editor.container.style.zIndex = String(Math.max(stackedZIndex, ABOVE_ORDINARY_OVERLAY_Z_INDEX));
-}
-
-/**
- * Measures the current-selection border box drawn by Walkontable around the edited cell.
- *
- * @param {HTMLElement} editedCell The edited cell element.
- * @returns {DOMRect | null}
- */
-function currentSelectionBorderBox(editedCell: HTMLElement): DOMRect | null {
-  const overlay = editedCell.closest<HTMLElement>('[class*="ht_clone"], .ht_master');
-
-  if (!overlay) {
-    return null;
-  }
-
-  const ownerWindow = editedCell.ownerDocument.defaultView;
-
-  if (!ownerWindow) {
-    return null;
-  }
-
-  const sides = [...overlay.querySelectorAll<HTMLElement>('.htBorders .wtBorder.current')].filter(
-    (border) => {
-      if (ownerWindow.getComputedStyle(border).display === 'none') {
-        return false;
-      }
-
-      const rect = border.getBoundingClientRect();
-
-      return Math.min(rect.width, rect.height) <= 3 && Math.max(rect.width, rect.height) > 10;
-    },
-  );
-
-  if (sides.length === 0) {
-    return null;
-  }
-
-  const rects = sides.map(border => border.getBoundingClientRect());
-  const top = Math.min(...rects.map(rect => rect.top));
-  const bottom = Math.max(...rects.map(rect => rect.bottom));
-  const left = Math.min(...rects.map(rect => rect.left));
-  const right = Math.max(...rects.map(rect => rect.right));
-
-  return new DOMRect(left, top, right - left, bottom - top);
-}
-
-/**
- * Nudges the editor container so it sits exactly on the selection border.
- *
- * @param {HTMLElement} container The editor container element.
- * @param {HTMLElement} wrap The inline wrapper element.
- * @param {HTMLElement} editedCell The edited cell element.
- */
-function alignContainerToSelectionBorder(
-  container: HTMLElement,
-  wrap: HTMLElement,
-  editedCell: HTMLElement,
+function refreshFormulaEditorDimensions(
+  editor: ScrollAwareEditor,
+  baseRefreshDimensions: (force?: boolean) => void,
+  force: boolean,
 ): void {
-  const selectionBox = currentSelectionBorderBox(editedCell);
+  if (editor._hiddenByFormulaBar || editor.input.childElementCount === 0) {
+    editor.container.style.display = 'none';
 
-  if (!selectionBox) {
     return;
   }
 
-  const containerRect = container.getBoundingClientRect();
-  const topDelta = selectionBox.top - containerRect.top;
-  const leftDelta = selectionBox.left - containerRect.left;
+  if (editor.state !== EDITOR_STATE.EDITING && !force) {
+    return;
+  }
 
-  container.style.top = `${Number.parseFloat(container.style.top || '0') + topDelta}px`;
-  container.style.left = `${Number.parseFloat(container.style.left || '0') + leftDelta}px`;
-  wrap.style.height = `${selectionBox.height}px`;
+  const editedCell = editor.getEditedCell();
+
+  if (!editedCell) {
+    editor.TD = null;
+    editor.container.style.display = '';
+    editor.container.style.opacity = '0';
+    editor.container.style.pointerEvents = 'none';
+
+    return;
+  }
+
+  editor.container.style.display = '';
+  editor.container.style.opacity = '';
+  editor.container.style.pointerEvents = '';
+  baseRefreshDimensions.call(editor, force);
+  editor.container.style.height = '';
+  editor.input.style.height = `${editedCell.offsetHeight}px`;
+  editedCell.classList.add(EDITING_CELL_CLASS);
+  applyContentEdgeWidth(editor, editedCell);
+  applyEditorLayerClass(editor);
+}
+
+/**
+ * Starts the keyboard guard of an edit session: the keys typed into the formula editor stop at
+ * its wrapper, so the grid's document-level shortcut recorder never handles them a second time.
+ *
+ * @param {FormulaHostEditor} editor The editor instance.
+ */
+function startKeyboardGuard(editor: FormulaHostEditor): void {
+  if (editor._keyboardGuard) {
+    return;
+  }
+
+  // Each guard gets a context object of its own. `EventManager` stores its listeners on the
+  // context, and `destroy()` clears every listener stored there, so a guard built on the editor
+  // itself would, one task after its session closed, also strip the guard of a session that
+  // reopened in the meantime.
+  const guard = new EventManager({});
+  const stop = (event: Event) => event.stopPropagation();
+
+  guard.addEventListener(editor.input, 'keydown', stop);
+  guard.addEventListener(editor.input, 'keyup', stop);
+  guard.addEventListener(editor.input, 'keypress', stop);
+  editor._keyboardGuard = guard;
 }
 
 /**
  * Builds the formula cell editor class: a Handsontable editor shim whose content
- * is the core formula editor mounted by the plugin. The keyboard guard scope is
- * created per edit session (in `afterOpen`) and disposed one task after close, so
- * it still guards the keystroke that closed the session yet never outlives the
- * plugin's enable cycle.
+ * is the formula editor mounted by the plugin. The keyboard guard is created per
+ * edit session (in `afterOpen`) and destroyed one task after close, so it still
+ * guards the keystroke that closed the session.
  *
- * Save-value invariant: `getValue()` never fabricates a value - while the overlay
+ * Save-value invariant: `getValue()` never fabricates a value - while the formula
  * editor is attached it returns the live buffer; once it is gone it falls back to
  * `_original` (captured in `beforeOpen`), never `_pending` (the printable-key seed).
  *
  * @returns {Function} The editor class.
  */
 export function createFormulaCellEditor(): BaseEditorCtor {
-  const EditorClass = editorFactory<FormulaEditorProperties>({
+  const EditorClass = editorFactory<FormulaHostEditor>({
     init(editor) {
-      const wrap = resolveDocument(editor).createElement('div');
+      const wrap = editor.hot.rootDocument.createElement('div');
 
       wrap.className = INLINE_EDITOR_CLASS;
-      wrap.style.width = '100%';
-      wrap.style.height = '100%';
-
       editor.input = wrap;
-      (editor as unknown as ScrollAwareEditor).autoResize = {
+      (editor as unknown as { autoResize: object }).autoResize = {
         init: () => {},
         unObserve: () => {},
       };
@@ -387,7 +354,7 @@ export function createFormulaCellEditor(): BaseEditorCtor {
 
       editor._pending = original;
       editor._original = original;
-      editor._hfeHidden = false;
+      editor._hiddenByFormulaBar = false;
     },
     afterOpen(editor) {
       const plugin = resolvePlugin(editor);
@@ -399,19 +366,7 @@ export function createFormulaCellEditor(): BaseEditorCtor {
       }
 
       editor._fallbackInput = undefined;
-
-      if (plugin.events && !editor._guardScope) {
-        const guardScope = plugin.events.createScope('cell-editor-guard', {
-          stopPropagation: true,
-        });
-
-        guardScope.listen(editor.input, 'keydown', () => {});
-        guardScope.listen(editor.input, 'keyup', () => {});
-        guardScope.listen(editor.input, 'keypress', () => {});
-        guardScope.activate();
-        editor._guardScope = guardScope;
-      }
-
+      startKeyboardGuard(editor);
       editor.input.replaceChildren();
       plugin.handleInlineEditStart(editor.input, resolveInlineSeed(editor as SeedSourceEditor));
     },
@@ -432,7 +387,7 @@ export function createFormulaCellEditor(): BaseEditorCtor {
 
       if (activeEditor) {
         // Handsontable reads this only on the commit path (`finishEditing`), so close
-        // unbalanced parens first - the core keyboard commit does the same, but a
+        // unbalanced parens first - the keyboard commit does the same, but a
         // native commit (outside-grid click) would otherwise save `=SUM(A1` as-is.
         activeEditor.closeUnbalancedParens();
 
@@ -452,19 +407,18 @@ export function createFormulaCellEditor(): BaseEditorCtor {
       }
     },
     afterClose(editor) {
-      const guardScope = editor._guardScope;
+      const guard = editor._keyboardGuard;
 
-      if (guardScope) {
-        editor._guardScope = null;
+      if (guard) {
+        editor._keyboardGuard = null;
         // The keystroke that committed the edit is still bubbling when `afterClose`
-        // runs (the commit closes the editor synchronously), so disposing now would
-        // un-guard that in-flight event and let the grid's document-level shortcut
-        // recorder re-handle it (e.g. Enter re-opening the editor one row below).
-        // A microtask is NOT enough: trusted-event dispatch checkpoints microtasks
-        // between listener invocations, so it would still unbind mid-bubble. Defer a
-        // full task; `dispose()` is idempotent, so a plugin-teardown `disposeAll()`
-        // firing first stays safe, and `_registerTimeout` self-clears on destroy.
-        editor.hot._registerTimeout(() => guardScope.dispose());
+        // runs (the commit closes the editor synchronously), so removing the guard now
+        // would let the grid's document-level shortcut recorder re-handle that event
+        // (e.g. Enter re-opening the editor one row below). A microtask is NOT enough:
+        // trusted-event dispatch checkpoints microtasks between listener invocations, so
+        // it would still unbind mid-bubble. Defer a full task; `_registerTimeout`
+        // self-clears on destroy.
+        editor.hot._registerTimeout(() => guard.destroy());
       }
 
       editor._fallbackInput = undefined;
@@ -486,68 +440,13 @@ export function createFormulaCellEditor(): BaseEditorCtor {
     this: ScrollAwareEditor,
     force = false,
   ): void {
-    if (this._hfeHidden) {
-      this.container.style.display = 'none';
-
-      return;
-    }
-
-    if (this.input.childElementCount === 0) {
-      this.container.style.display = 'none';
-
-      return;
-    }
-
-    if (this.state !== EDITOR_STATE.EDITING && !force) {
-      return;
-    }
-
-    const editedCell = this.getEditedCell();
-
-    if (!editedCell) {
-      this.TD = null;
-      this.container.style.display = '';
-      this.container.style.opacity = '0';
-      this.container.style.pointerEvents = 'none';
-
-      return;
-    }
-
-    this.container.style.display = '';
-    this.container.style.opacity = '';
-    this.container.style.pointerEvents = '';
-    baseRefreshDimensions.call(this, force);
-    this.container.style.height = '';
-    this.input.style.height = `${editedCell.offsetHeight}px`;
-    alignContainerToSelectionBorder(this.container, this.input, editedCell);
-    editedCell.classList.add(EDITING_CELL_CLASS);
-    applyContentEdgeWidth(this, editedCell);
-    stackEditorAgainstOverlays(this, editedCell);
+    refreshFormulaEditorDimensions(this, baseRefreshDimensions, force);
   };
 
   return EditorClass as unknown as BaseEditorCtor;
 }
 
-let formulaEditorClassCache: unknown = null;
-
-/**
- * Resolves (and memoizes) the registered formula editor class - this runs once
- * per rendered cell via `isFormulaEditor`, so the registry lookup with its
- * try/catch must not repeat per call.
- *
- * @returns {unknown}
- */
-function resolveFormulaEditorClass(): unknown {
-  if (formulaEditorClassCache === null) {
-    try {
-      formulaEditorClassCache = getEditor(FORMULA_EDITOR_ALIAS);
-    } catch {
-      return null;
-    }
-  }
-
-  return formulaEditorClassCache;
-}
+let formulaEditorClass: BaseEditorCtor | null = null;
 
 /**
  * Checks whether the given editor (alias or class) is the formula editor.
@@ -556,26 +455,24 @@ function resolveFormulaEditorClass(): unknown {
  * @returns {boolean}
  */
 export function isFormulaEditor(editor: unknown): boolean {
-  if (editor === FORMULA_EDITOR_ALIAS) {
-    return true;
-  }
-
-  return editor !== undefined && editor === resolveFormulaEditorClass();
+  return editor === FORMULA_EDITOR_ALIAS || (editor !== undefined && editor === formulaEditorClass);
 }
 
 /**
- * Registers the formula editor under its alias, once.
+ * Registers the formula editor under its alias, once per page. Runs from the plugin
+ * constructor, never from `enablePlugin()`: a cell configured with
+ * `editor: 'formula'` must resolve whether or not the plugin managed to enable, or selecting it throws
+ * `No registered editor found under "formula" name`. With the plugin off, the shim mounts a
+ * plain textarea instead.
  */
 export function registerFormulaEditor(): void {
-  let registered = true;
+  if (hasEditor(FORMULA_EDITOR_ALIAS)) {
+    // Another copy of the plugin (or the application) may own the alias already; reuse it.
+    formulaEditorClass = getEditor(FORMULA_EDITOR_ALIAS) as unknown as BaseEditorCtor;
 
-  try {
-    getEditor(FORMULA_EDITOR_ALIAS);
-  } catch {
-    registered = false;
+    return;
   }
 
-  if (!registered) {
-    registerEditor(FORMULA_EDITOR_ALIAS, createFormulaCellEditor() as never);
-  }
+  formulaEditorClass ??= createFormulaCellEditor();
+  registerEditor(FORMULA_EDITOR_ALIAS, formulaEditorClass as never);
 }

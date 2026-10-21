@@ -41,6 +41,12 @@ settings object against it and against what the page registers. Guide:
   plugin is switched by another documented option of the same plugin. `undo` is UndoRedo's own switch although the
   plugin key is `undoRedo`, and `headerCheckbox` is CheckboxHeader's although the key is `checkboxHeader`, so a
   test on the plugin key alone reports both as off.
+- **An editor a plugin ships is accepted from the plugin's static `EDITORS` list.** The editor registry
+  learns such an alias only when the plugin's first instance is built (FormulaBuilder registers `formula` in
+  its constructor, because importing the plugin registry must register plugins only, as the `registerAll*`
+  registry tests pin), so a `validateSettings()` call before any grid exists would otherwise report
+  `unknownEditor` for a documented configuration. `isEditorProvidedByPlugin()` reads `EDITORS` off every
+  registered plugin class.
 - **The registries are page-global**, so the registry and plugin checks run without `hot` and see whatever was
   registered when `validateSettings()` is called. `hot` adds only the data rows and the plugin state that an
   `updateSettings()` payload does not carry.

@@ -1,69 +1,22 @@
 import * as hfeCore from 'hyperformula-ui';
-import { HyperFormula } from 'hyperformula';
-import type { HotInstance } from '../../../core/types';
 import { registerAsRootInstance } from '../../../utils/rootInstance';
 import { FormulaBuilder } from '../formulaBuilder';
-import { makeGridSelectionApiStub } from './helpers/stubs';
-
-/**
- * Builds an identity visual/HyperFormula axis syncer for the Formulas plugin fake.
- *
- * @returns {{ getHfIndexFromVisualIndex: Function, getVisualIndexFromHfIndex: Function }}
- */
-function makeAxisSyncer() {
-  return {
-    getHfIndexFromVisualIndex: (visualIndex: number) => visualIndex,
-    getVisualIndexFromHfIndex: (hfIndex: number) => hfIndex,
-  };
-}
+import { makePluginHotStub } from './helpers/pluginHotStub';
 
 /**
  * Builds a root-instance Handsontable stub with a mocked layout manager and the
  * given `formulaBuilder` setting.
  *
  * @param {unknown} formulaBuilderSetting The `formulaBuilder` settings value.
- * @returns {{ layoutManager: { register: jest.Mock, unregister: jest.Mock }, settings: Record<string, unknown>, hot: Record<string, unknown> }}
+ * @returns {ReturnType<typeof makePluginHotStub>}
  */
 function makeSlotHotStub(formulaBuilderSetting: unknown) {
-  const engine = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
-  const settings: Record<string, unknown> = { formulaBuilder: formulaBuilderSetting };
-  const layoutManager = { register: jest.fn(), unregister: jest.fn() };
-  const formulas = {
-    enabled: true,
-    engine,
-    sheetId: 0,
-    rowAxisSyncer: makeAxisSyncer(),
-    columnAxisSyncer: makeAxisSyncer(),
-  };
-  const hot = {
-    rootElement: document.createElement('div'),
-    rootDocument: document,
-    rootWindow: window,
-    getSettings: () => settings,
-    getPlugin: (name: string) => (name === 'formulas' ? formulas : undefined),
-    getLayoutManager: () => layoutManager,
-    updateSettings: jest.fn(),
-    addHook: jest.fn(),
-    removeHook: jest.fn(),
-    getActiveEditor: jest.fn(),
-    getCell: () => document.createElement('td'),
-    getCoords: () => null,
-    countRows: () => 0,
-    countCols: () => 0,
-    render: jest.fn(),
-    getFirstRenderedVisibleRow: () => 0,
-    getLastRenderedVisibleRow: () => 100,
-    getFirstRenderedVisibleColumn: () => 0,
-    getLastRenderedVisibleColumn: () => 100,
-    setDataAtCell: jest.fn(),
-    getCurrentThemeName: () => null,
-    isRtl: () => false,
-    ...makeGridSelectionApiStub(),
-  };
+  const stub = makePluginHotStub();
 
-  registerAsRootInstance(hot);
+  stub.settings.formulaBuilder = formulaBuilderSetting;
+  registerAsRootInstance(stub.hot);
 
-  return { layoutManager, settings, hot };
+  return stub;
 }
 
 describe('FormulaBuilder plugin formula bar layout slot', () => {
@@ -73,7 +26,7 @@ describe('FormulaBuilder plugin formula bar layout slot', () => {
 
   it('registers a bar host in the top layout slot when showFormulaBar is true', () => {
     const stub = makeSlotHotStub({ builder: hfeCore, showFormulaBar: true });
-    const plugin = new FormulaBuilder(stub.hot as unknown as HotInstance);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -93,7 +46,7 @@ describe('FormulaBuilder plugin formula bar layout slot', () => {
 
   it('renders the core fx affordance inside the bar host', () => {
     const stub = makeSlotHotStub({ builder: hfeCore, showFormulaBar: true });
-    const plugin = new FormulaBuilder(stub.hot as unknown as HotInstance);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -115,7 +68,7 @@ describe('FormulaBuilder plugin formula bar layout slot', () => {
 
   it('does not register a slot when showFormulaBar is false', () => {
     const stub = makeSlotHotStub({ builder: hfeCore, showFormulaBar: false });
-    const plugin = new FormulaBuilder(stub.hot as unknown as HotInstance);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -125,7 +78,7 @@ describe('FormulaBuilder plugin formula bar layout slot', () => {
   it('does not register a slot for the boolean shorthand setting', () => {
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     const stub = makeSlotHotStub(true);
-    const plugin = new FormulaBuilder(stub.hot as unknown as HotInstance);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -134,7 +87,7 @@ describe('FormulaBuilder plugin formula bar layout slot', () => {
 
   it('unregisters the bar host on disable', () => {
     const stub = makeSlotHotStub({ builder: hfeCore, showFormulaBar: true });
-    const plugin = new FormulaBuilder(stub.hot as unknown as HotInstance);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
     plugin.disablePlugin();
@@ -144,7 +97,7 @@ describe('FormulaBuilder plugin formula bar layout slot', () => {
 
   it('does not unregister on disable when the bar was never shown', () => {
     const stub = makeSlotHotStub({ builder: hfeCore, showFormulaBar: false });
-    const plugin = new FormulaBuilder(stub.hot as unknown as HotInstance);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
     plugin.disablePlugin();
@@ -160,7 +113,7 @@ describe('FormulaBuilder plugin formula bar layout slot', () => {
         throw new Error('hook failure');
       }
     });
-    const plugin = new FormulaBuilder(stub.hot as unknown as HotInstance);
+    const plugin = new FormulaBuilder(stub.instance);
 
     expect(() => plugin.enablePlugin()).toThrow('hook failure');
     expect(stub.layoutManager.unregister).toHaveBeenCalledWith('formulaBuilder', 'top');
@@ -175,7 +128,7 @@ describe('FormulaBuilder plugin formula bar layout slot', () => {
         throw new Error('hook failure');
       }
     });
-    const plugin = new FormulaBuilder(stub.hot as unknown as HotInstance);
+    const plugin = new FormulaBuilder(stub.instance);
 
     expect(() => plugin.enablePlugin()).toThrow('hook failure');
 

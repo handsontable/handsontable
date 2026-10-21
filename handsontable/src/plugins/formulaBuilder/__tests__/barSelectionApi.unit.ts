@@ -1,4 +1,6 @@
 import { FormulaBuilder } from '../formulaBuilder';
+import { getFormulaBuilderAdapter } from '../handsontableAdapter';
+import type { HandsontableAdapter } from '../handsontableAdapter';
 import { makePluginHotStub } from './helpers/pluginHotStub';
 import type { PluginHotStubBundle } from './helpers/pluginHotStub';
 
@@ -56,6 +58,22 @@ function enabledPlugin(stub: PluginHotStubBundle): FormulaBuilder {
   plugin.enablePlugin();
 
   return plugin;
+}
+
+/**
+ * Returns the adapter of an enabled plugin.
+ *
+ * @param {FormulaBuilder} plugin The enabled plugin.
+ * @returns {HandsontableAdapter}
+ */
+function adapterOf(plugin: FormulaBuilder): HandsontableAdapter {
+  const adapter = getFormulaBuilderAdapter(plugin);
+
+  if (!adapter) {
+    throw new Error('the plugin has no adapter');
+  }
+
+  return adapter;
 }
 
 describe('FormulaBuilder selection API used by the formula bar', () => {
@@ -150,6 +168,25 @@ describe('FormulaBuilder selection API used by the formula bar', () => {
     plugin.disablePlugin();
   });
 
+  it.each([
+    ['finds a formula cell that is exactly the last cell of the budget', [99, 99], [[99, 99]]],
+    ['does not reach the cell one past the budget', [100, 0], []],
+  ] as const)('selectFirstFormulaCell %s', (_label, formulaCell, expectedSelection) => {
+    // Row-major over 100 columns: (99, 99) is the 10,000th scanned cell, (100, 0) the 10,001st.
+    const stub = makePluginHotStub();
+
+    layoutGrid(stub, { rows: 200, cols: 100, viewportRows: [0, 0], viewportCols: [0, 0] });
+    useFormulaEditorAt(stub, [[formulaCell[0], formulaCell[1]]]);
+
+    const plugin = enabledPlugin(stub);
+
+    plugin.selectFirstFormulaCell();
+
+    expect(stub.hot.selectCell.mock.calls).toEqual(expectedSelection);
+
+    plugin.disablePlugin();
+  });
+
   it('selectFirstFormulaCell selects nothing when no cell uses the formula editor', () => {
     const stub = makePluginHotStub();
 
@@ -218,6 +255,48 @@ describe('FormulaBuilder raw cell API used by the formula bar', () => {
   });
 });
 
+describe('FormulaBuilder.getRawCellText coordinates', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+  });
+
+  it('takes visual indexes and reads the HyperFormula cell they map to', () => {
+    const stub = makePluginHotStub();
+
+    stub.engine.addSheet('Sheet1');
+    stub.engine.setCellContents({ sheet: 0, row: 0, col: 0 }, [['visual'], ['=2+3']]);
+    // Visual row 0 is HyperFormula row 1 (a sort moved it), and the reverse.
+    stub.formulas.rowAxisSyncer = {
+      getHfIndexFromVisualIndex: visualRow => (visualRow === 0 ? 1 : 0),
+      getVisualIndexFromHfIndex: hfRow => (hfRow === 1 ? 0 : 1),
+    };
+
+    const plugin = enabledPlugin(stub);
+
+    expect(plugin.getRawCellText(0, 0)).toBe('=2+3');
+    expect(plugin.getRawCellText(1, 0)).toBe('visual');
+
+    plugin.disablePlugin();
+  });
+
+  it('returns an empty string for a visual cell with no HyperFormula index', () => {
+    const stub = makePluginHotStub();
+
+    stub.engine.addSheet('Sheet1');
+    stub.engine.setCellContents({ sheet: 0, row: 0, col: 0 }, [['=1+1']]);
+    stub.formulas.columnAxisSyncer = {
+      getHfIndexFromVisualIndex: () => -1,
+      getVisualIndexFromHfIndex: () => -1,
+    };
+
+    const plugin = enabledPlugin(stub);
+
+    expect(plugin.getRawCellText(0, 0)).toBe('');
+
+    plugin.disablePlugin();
+  });
+});
+
 describe('FormulaBuilder adapter end of the formula bar contract', () => {
   afterEach(() => {
     document.body.replaceChildren();
@@ -231,8 +310,8 @@ describe('FormulaBuilder adapter end of the formula bar contract', () => {
 
     const plugin = enabledPlugin(stub);
 
-    expect(plugin.adapter.getCellFormula({ sheet: '', row: 0, col: 0 })).toBe('7');
-    expect(plugin.adapter.getCellFormula({ sheet: '', row: 0, col: 1 })).toBe('=A1*2');
+    expect(adapterOf(plugin).getCellFormula({ sheet: '', row: 0, col: 0 })).toBe('7');
+    expect(adapterOf(plugin).getCellFormula({ sheet: '', row: 0, col: 1 })).toBe('=A1*2');
 
     plugin.disablePlugin();
   });
@@ -245,7 +324,7 @@ describe('FormulaBuilder adapter end of the formula bar contract', () => {
 
     const plugin = enabledPlugin(stub);
 
-    plugin.adapter.selectFirstCell();
+    adapterOf(plugin).selectFirstCell();
 
     expect(stub.hot.selectCell.mock.calls).toEqual([[2, 2]]);
 
@@ -256,8 +335,8 @@ describe('FormulaBuilder adapter end of the formula bar contract', () => {
     const stub = makePluginHotStub();
     const plugin = enabledPlugin(stub);
 
-    plugin.adapter.setActiveCell({ sheet: '', row: 2, col: 3 });
-    plugin.adapter.setSelection({
+    adapterOf(plugin).setActiveCell({ sheet: '', row: 2, col: 3 });
+    adapterOf(plugin).setSelection({
       start: { sheet: '', row: 1, col: 1 },
       end: { sheet: '', row: 2, col: 3 },
     });

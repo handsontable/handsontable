@@ -1,11 +1,43 @@
 // Formula Builder
 
+@use "sass:list";
+@use "../../utils/mixins";
+
+// The error color for TEXT (a `#DIV/0!` value, an unknown function name, an invalid reference,
+// the error popup title). The theme's notification error accent is drawn for borders and icons
+// and measures 3.4:1 on white in every light theme, below the 4.5:1 that text needs (WCAG 1.4.3).
+// Mixing 30% of the foreground color in keeps the hue and clears 5:1 in the light themes; in the
+// dark themes the foreground is light, so the mix only lightens the red against the dark background.
+$error-text-color: color-mix(in srgb, var(--ht-notification-error-accent) 70%, var(--ht-foreground-color));
+
+// The reference palette of hyperformula-ui (light, dark), in its own order. It colors the reference
+// text in the editor and the formula bar, and the highlight borders on the grid. As shipped, five of
+// the eight light colors measure below 3:1 on white (#ff9500: 2.19, #30d158: 2.02), under the 4.5:1
+// that text needs and the 3:1 a border needs (WCAG 1.4.3, 1.4.11). Mixing 40% of the editor
+// foreground in keeps each hue apart and lifts the lowest of them to 4.79:1 on white; in the dark
+// themes the foreground is light, and the lowest measures 6.7:1. The values have to be restated
+// here: a custom property cannot refer to its own previous value.
+$reference-palette: (
+  1: (#007bff, #0a84ff),
+  2: (#ff9500, #ff9d0a),
+  3: (#af52de, #bf5af2),
+  4: (#30d158, #34c759),
+  5: (#ff2d54, #ff375f),
+  6: (#30b0c7, #40c8e0),
+  7: (#5856d6, #5e5ce6),
+  8: (#a2855e, #ac8e68),
+);
+
 @mixin output {
+  // The theme class sits on the grid root and on the popup portal that hyperformula-ui mounts in
+  // the document body. Match it as a class token (`ht-theme-` at the start of the attribute or
+  // after a space), never as a bare substring, so a host-page class such as `my-ht-theme-switch`
+  // is never themed.
   .handsontable,
-  [class*="ht-theme-"] {
+  [class^="ht-theme-"],
+  [class*=" ht-theme-"] {
     /* Core tokens */
-    --hfe-font-family:
-      var(--ht-font-family), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --hfe-font-family: #{mixins.$font-family-stack};
     --hfe-font-size: var(--ht-font-size);
     --hfe-line-height: var(--ht-line-height);
     --hfe-formula-bar-input-focus-ring: var(--ht-accent-color, var(--hfe-color-focus-ring));
@@ -15,7 +47,7 @@
     --hfe-color-foreground-secondary: var(--ht-foreground-secondary-color);
     --hfe-color-accent: var(--ht-accent-color);
     --hfe-color-border: var(--ht-border-color);
-    --hfe-color-error: var(--ht-notification-error-accent);
+    --hfe-color-error: #{$error-text-color};
     --hfe-color-highlight: color-mix(
       in srgb,
       var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity),
@@ -60,24 +92,33 @@
       color-mix(in srgb, var(--ht-menu-shadow-color) var(--ht-menu-shadow-opacity), transparent);
 
     /* Token */
-    --hfe-token-fn-unknown: var(--ht-notification-error-accent);
+    --hfe-token-fn-unknown: #{$error-text-color};
     --hfe-token-num: var(--ht-foreground-color);
     --hfe-token-str: var(--ht-foreground-color);
     --hfe-token-bool: var(--ht-foreground-color);
     --hfe-token-op: var(--ht-foreground-color);
     --hfe-token-paren: var(--ht-foreground-color);
-    --hfe-token-paren-err: var(--ht-notification-error-accent);
+    --hfe-token-paren-err: #{$error-text-color};
     --hfe-token-paren-match: var(--ht-accent-color);
     --hfe-token-bracket: var(--ht-foreground-color);
     --hfe-token-sep: var(--ht-foreground-color);
     --hfe-token-ident: var(--ht-foreground-color);
-    --hfe-token-err: var(--ht-notification-error-accent);
-    --hfe-token-ref-invalid: var(--ht-notification-error-accent);
+    --hfe-token-err: #{$error-text-color};
+    --hfe-token-ref-invalid: #{$error-text-color};
     --hfe-token-comment: var(--ht-read-only-color);
 
     /* Error popup */
     --hfe-error-padding-horizontal: var(--ht-comments-textarea-horizontal-padding);
     --hfe-error-padding-vertical: var(--ht-comments-textarea-vertical-padding);
+
+    /* Reference palette (see $reference-palette) */
+    @each $index, $colors in $reference-palette {
+      --hfe-ref-#{$index}: color-mix(
+        in srgb,
+        light-dark(#{list.nth($colors, 1)}, #{list.nth($colors, 2)}) 60%,
+        var(--ht-cell-editor-foreground-color)
+      );
+    }
 
     /* Formula bar */
     --hfe-formula-bar-background: var(--ht-background-color);
@@ -97,6 +138,11 @@
 
   .handsontable .hfe-editor--focused {
     outline: none;
+  }
+
+  .handsontable .ht-formula-builder__inline-editor {
+    width: 100%;
+    height: 100%;
   }
 
   .handsontable .ht-formula-builder__inline-editor .hfe-editor {
@@ -171,10 +217,10 @@
     color: transparent;
   }
 
-  /* Scoped to the grid root and theme roots so a host-page element whose class
-     merely contains "hfe-" is never affected. */
-  .handsontable [class*="hfe-"],
-  [class*="ht-theme-"] [class*="hfe-"] {
+  /* Scoped to the grid root and theme roots, and matched as a class token, so a host-page
+     element whose class merely contains "hfe-" is never affected. */
+  .handsontable :is([class^="hfe-"], [class*=" hfe-"]),
+  :is([class^="ht-theme-"], [class*=" ht-theme-"]) :is([class^="hfe-"], [class*=" hfe-"]) {
     color-scheme: inherit;
   }
 }

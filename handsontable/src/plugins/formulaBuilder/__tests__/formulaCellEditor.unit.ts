@@ -7,6 +7,7 @@ import {
   registerFormulaEditor,
   resolveInlineSeed,
 } from '../formulaCellEditor';
+import { makeEditorHotStub } from './helpers/pluginHotStub';
 
 interface RefreshableEditorPrototype {
   refreshDimensions(force?: boolean): void;
@@ -46,61 +47,6 @@ function makeRoot(): HTMLElement {
 }
 
 /**
- * Appends an `ht_clone_top` overlay with the given z-index to a root element.
- *
- * @param {HTMLElement} rootElement The grid root element.
- * @param {string} zIndex The overlay z-index.
- */
-function appendOverlay(rootElement: HTMLElement, zIndex: string): void {
-  const overlay = document.createElement('div');
-
-  overlay.className = 'ht_clone_top';
-  overlay.style.position = 'absolute';
-  overlay.style.zIndex = zIndex;
-  rootElement.appendChild(overlay);
-}
-
-/**
- * Creates an attached root element pre-populated with `ht_clone` overlays.
- *
- * @param {string[]} zIndexes The overlay z-indexes.
- * @returns {HTMLElement}
- */
-function makeRootWithOverlays(zIndexes: string[]): HTMLElement {
-  const rootElement = document.createElement('div');
-
-  for (const zIndex of zIndexes) {
-    appendOverlay(rootElement, zIndex);
-  }
-
-  document.body.appendChild(rootElement);
-
-  return rootElement;
-}
-
-/**
- * Appends a frozen `ht_clone_inline_start` pane holding one cell to a root element.
- *
- * @param {HTMLElement} rootElement The grid root element.
- * @param {string} paneZIndex The frozen pane z-index.
- * @returns {HTMLTableCellElement} The cell inside the pane.
- */
-function appendFrozenCell(rootElement: HTMLElement, paneZIndex: string): HTMLTableCellElement {
-  const pane = document.createElement('div');
-
-  pane.className = 'ht_clone_inline_start';
-  pane.style.position = 'absolute';
-  pane.style.zIndex = paneZIndex;
-
-  const cell = document.createElement('td');
-
-  pane.appendChild(cell);
-  rootElement.appendChild(pane);
-
-  return cell;
-}
-
-/**
  * Builds an editor instance stub in the "open and editing" state.
  *
  * @param {HTMLElement} rootElement The grid root element.
@@ -113,7 +59,7 @@ function makeOpenEditorStub(rootElement: HTMLElement, view?: OverlayView) {
   inputEl.appendChild(document.createElement('span'));
 
   return {
-    _hfeHidden: false,
+    _hiddenByFormulaBar: false,
     _opened: true,
     state: EDITOR_STATE.EDITING as string,
     input: inputEl,
@@ -121,6 +67,7 @@ function makeOpenEditorStub(rootElement: HTMLElement, view?: OverlayView) {
     container: document.createElement('div'),
     getEditedCell: () => document.createElement('td'),
     getEditedCellRect: () => ({ top: 10, start: 5, width: 120, height: 28 }),
+    getEditedCellsLayerClass: () => 'ht_clone_master',
     close: jest.fn(),
     hot: {
       rootElement,
@@ -150,6 +97,90 @@ describe('registerFormulaEditor', () => {
   });
 });
 
+describe('registerFormulaEditor in a fresh module registry', () => {
+  /**
+   * Loads the given modules in an isolated module registry, so the editor registry starts empty
+   * and nothing registered by another test is visible.
+   *
+   * @param {Function} body Receives the isolated modules.
+   */
+  function withFreshModules(body: (modules: {
+    registry: typeof import('../../../editors/registry');
+    editorModule: typeof import('../formulaCellEditor');
+    removeAlias: () => void;
+  }) => void): void {
+    jest.isolateModules(() => {
+      /* eslint-disable global-require, @typescript-eslint/no-var-requires */
+      const registry = require('../../../editors/registry');
+      const editorModule = require('../formulaCellEditor');
+      const { collection } = require('../../../utils/staticRegister');
+      /* eslint-enable global-require, @typescript-eslint/no-var-requires */
+
+      body({
+        registry,
+        editorModule,
+        removeAlias: () => collection.get('editors').delete(FORMULA_EDITOR_ALIAS),
+      });
+    });
+  }
+
+  it('leaves the editor registry alone when the plugin module loads, and lists the alias on the class', () => {
+    jest.isolateModules(() => {
+      /* eslint-disable global-require, @typescript-eslint/no-var-requires */
+      const registry = require('../../../editors/registry');
+      const { FormulaBuilder } = require('../formulaBuilder');
+      /* eslint-enable global-require, @typescript-eslint/no-var-requires */
+
+      // Importing a plugin must register nothing but the plugin (the `registerAll*` registry tests),
+      // so the alias waits for the first instance; `validateSettings()` reads `EDITORS` meanwhile.
+      expect(registry.hasEditor(FORMULA_EDITOR_ALIAS)).toBe(false);
+      expect(FormulaBuilder.EDITORS).toEqual([FORMULA_EDITOR_ALIAS]);
+    });
+  });
+
+  it('does not create a second class on a second call', () => {
+    withFreshModules(({ registry, editorModule }) => {
+      editorModule.registerFormulaEditor();
+
+      const first = registry.getEditor(FORMULA_EDITOR_ALIAS);
+
+      editorModule.registerFormulaEditor();
+
+      expect(registry.getEditor(FORMULA_EDITOR_ALIAS)).toBe(first);
+    });
+  });
+
+  it('re-registers the same class after the alias is removed from the registry', () => {
+    withFreshModules(({ registry, editorModule, removeAlias }) => {
+      editorModule.registerFormulaEditor();
+
+      const first = registry.getEditor(FORMULA_EDITOR_ALIAS);
+
+      removeAlias();
+
+      expect(registry.hasEditor(FORMULA_EDITOR_ALIAS)).toBe(false);
+
+      editorModule.registerFormulaEditor();
+
+      expect(registry.hasEditor(FORMULA_EDITOR_ALIAS)).toBe(true);
+      expect(registry.getEditor(FORMULA_EDITOR_ALIAS)).toBe(first);
+      expect(editorModule.isFormulaEditor(first)).toBe(true);
+    });
+  });
+
+  it('reuses a class another copy registered under the alias and matches it', () => {
+    withFreshModules(({ registry, editorModule }) => {
+      const ForeignFormulaEditor = editorModule.createFormulaCellEditor();
+
+      registry.registerEditor(FORMULA_EDITOR_ALIAS, ForeignFormulaEditor as never);
+      editorModule.registerFormulaEditor();
+
+      expect(registry.getEditor(FORMULA_EDITOR_ALIAS)).toBe(ForeignFormulaEditor);
+      expect(editorModule.isFormulaEditor(ForeignFormulaEditor)).toBe(true);
+    });
+  });
+});
+
 describe('isFormulaEditor', () => {
   it('accepts the alias string', () => {
     expect(isFormulaEditor(FORMULA_EDITOR_ALIAS)).toBe(true);
@@ -170,13 +201,13 @@ describe('isFormulaEditor', () => {
   });
 });
 
-describe('refreshDimensions with _hfeHidden', () => {
-  it('hides the container and skips the cell lookup while _hfeHidden is set', () => {
+describe('refreshDimensions with _hiddenByFormulaBar', () => {
+  it('hides the container and skips the cell lookup while _hiddenByFormulaBar is set', () => {
     const prototype = makeEditorPrototype();
     const editor = makeOpenEditorStub(makeRoot());
     const getEditedCell = jest.fn(() => document.createElement('td'));
 
-    editor._hfeHidden = true;
+    editor._hiddenByFormulaBar = true;
     editor.getEditedCell = getEditedCell;
 
     prototype.refreshDimensions.call(editor);
@@ -186,16 +217,16 @@ describe('refreshDimensions with _hfeHidden', () => {
     expect(editor.close).not.toHaveBeenCalled();
   });
 
-  it('shows the container again after _hfeHidden is cleared', () => {
+  it('shows the container again after _hiddenByFormulaBar is cleared', () => {
     const prototype = makeEditorPrototype();
     const editor = makeOpenEditorStub(makeRoot());
 
-    editor._hfeHidden = true;
+    editor._hiddenByFormulaBar = true;
     prototype.refreshDimensions.call(editor);
 
     expect(editor.container.style.display).toBe('none');
 
-    editor._hfeHidden = false;
+    editor._hiddenByFormulaBar = false;
     prototype.refreshDimensions.call(editor);
 
     expect(editor.container.style.display).toBe('block');
@@ -214,92 +245,6 @@ describe('refreshDimensions inline host height', () => {
     prototype.refreshDimensions.call(editor);
 
     expect(editor.input.style.height).toBe('48px');
-  });
-});
-
-describe('refreshDimensions overlay stacking for a scroll-area cell', () => {
-  it('drops the container below the lowest ht_clone overlay', () => {
-    const prototype = makeEditorPrototype();
-    const editor = makeOpenEditorStub(makeRootWithOverlays(['105', '120', '90']));
-
-    prototype.refreshDimensions.call(editor);
-
-    expect(editor.container.style.display).toBe('block');
-    expect(editor.container.style.zIndex).toBe('89');
-  });
-
-  it('falls back to the ordinary-overlay z-index when no frozen overlays exist', () => {
-    const prototype = makeEditorPrototype();
-    const editor = makeOpenEditorStub(makeRootWithOverlays([]));
-
-    prototype.refreshDimensions.call(editor);
-
-    expect(editor.container.style.zIndex).toBe('11');
-  });
-
-  it('never drops below the ordinary-overlay floor even when a frozen overlay sits low', () => {
-    const prototype = makeEditorPrototype();
-    const editor = makeOpenEditorStub(makeRootWithOverlays(['5']));
-
-    prototype.refreshDimensions.call(editor);
-
-    expect(editor.container.style.zIndex).toBe('11');
-  });
-
-  it('recomputes on every refresh instead of caching a stale value', () => {
-    const prototype = makeEditorPrototype();
-    const rootElement = makeRootWithOverlays(['105']);
-    const editor = makeOpenEditorStub(rootElement);
-
-    prototype.refreshDimensions.call(editor);
-
-    expect(editor.container.style.zIndex).toBe('104');
-
-    appendOverlay(rootElement, '50');
-    prototype.refreshDimensions.call(editor);
-
-    expect(editor.container.style.zIndex).toBe('49');
-  });
-});
-
-describe('refreshDimensions overlay stacking for a frozen cell', () => {
-  it('stacks just below the next pane above the cell\'s own frozen pane', () => {
-    const prototype = makeEditorPrototype();
-    const rootElement = makeRootWithOverlays(['180']);
-    const editor = makeOpenEditorStub(rootElement);
-    const cell = appendFrozenCell(rootElement, '160');
-
-    editor.getEditedCell = () => cell;
-
-    prototype.refreshDimensions.call(editor);
-
-    expect(editor.container.style.zIndex).toBe('179');
-  });
-
-  it('keeps a top-corner cell above every pane', () => {
-    const prototype = makeEditorPrototype();
-    const rootElement = makeRootWithOverlays(['120', '160']);
-    const editor = makeOpenEditorStub(rootElement);
-    const cell = appendFrozenCell(rootElement, '180');
-
-    editor.getEditedCell = () => cell;
-
-    prototype.refreshDimensions.call(editor);
-
-    expect(editor.container.style.zIndex).toBe('181');
-  });
-
-  it('never drops below the ordinary-overlay floor', () => {
-    const prototype = makeEditorPrototype();
-    const rootElement = makeRootWithOverlays(['8']);
-    const editor = makeOpenEditorStub(rootElement);
-    const cell = appendFrozenCell(rootElement, '5');
-
-    editor.getEditedCell = () => cell;
-
-    prototype.refreshDimensions.call(editor);
-
-    expect(editor.container.style.zIndex).toBe('11');
   });
 });
 
@@ -427,7 +372,6 @@ describe('getValue fallback alignment', () => {
 
 describe('plain-textarea fallback for a disabled or missing plugin', () => {
   interface FallbackPluginSurface {
-    events?: unknown;
     handleInlineEditStart: jest.Mock;
     handleInlineEditClose: jest.Mock;
     getActiveEditor: () => null;
@@ -443,6 +387,10 @@ describe('plain-textarea fallback for a disabled or missing plugin', () => {
     refreshDimensions?(force?: boolean): void;
   }
 
+  afterEach(() => {
+    document.body.replaceChildren();
+  });
+
   /**
    * Builds a constructible editor instance wired to a plugin surface that may be
    * missing (`null`) or report `enabled: false` - the shape `getPlugin('formulaBuilder')`
@@ -455,36 +403,16 @@ describe('plain-textarea fallback for a disabled or missing plugin', () => {
   function buildEditor(
     plugin: { enabled: boolean } | null,
   ): { editor: FallbackEditor; plugin: FallbackPluginSurface | null } {
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const core = require('hyperformula-ui');
     const pluginSurface: FallbackPluginSurface | null = plugin === null ? null : {
-      events: new core.EventManager(),
       handleInlineEditStart: jest.fn(),
       handleInlineEditClose: jest.fn(),
       getActiveEditor: () => null,
       enabled: plugin.enabled,
     };
-    const shortcutContext = { addShortcuts: jest.fn(), removeShortcutsByGroup: jest.fn() };
-    const rootElement = document.createElement('div');
-
     // The fallback textarea must actually receive focus (verified against
     // `document.activeElement`), and jsdom only focuses elements connected to
-    // the document.
-    document.body.appendChild(rootElement);
-
-    const hotStub = {
-      rootDocument: document,
-      rootElement,
-      rootWindow: window,
-      getPlugin: () => pluginSurface ?? undefined,
-      addHook: jest.fn(),
-      removeHook: jest.fn(),
-      _registerTimeout: (callback: () => void, delay?: number) => setTimeout(callback, delay),
-      getShortcutManager: () => ({
-        setActiveContextName: jest.fn(),
-        getContext: () => shortcutContext,
-      }),
-    };
+    // the document - the stub's root element is attached.
+    const hotStub = makeEditorHotStub(pluginSurface ?? undefined);
     const EditorClass = createFormulaCellEditor() as unknown as new (hot: unknown) => FallbackEditor;
 
     return { editor: new EditorClass(hotStub), plugin: pluginSurface };
@@ -564,124 +492,151 @@ describe('resolveInlineSeed', () => {
   });
 });
 
-describe('cell-editor-guard scope lifecycle', () => {
+describe('keyboard guard lifecycle', () => {
+  interface GuardEditor {
+    input: HTMLElement;
+    _keyboardGuard?: unknown;
+    open(): void;
+    close(): void;
+  }
+
+  let documentKeyListener: jest.Mock;
+
+  beforeEach(() => {
+    documentKeyListener = jest.fn();
+    document.addEventListener('keydown', documentKeyListener);
+    document.addEventListener('keyup', documentKeyListener);
+    document.addEventListener('keypress', documentKeyListener);
+  });
+
+  afterEach(() => {
+    document.removeEventListener('keydown', documentKeyListener);
+    document.removeEventListener('keyup', documentKeyListener);
+    document.removeEventListener('keypress', documentKeyListener);
+    document.body.replaceChildren();
+  });
+
   /**
-   * Builds a constructible editor instance wired to a plugin surface with a real
-   * core EventManager.
+   * Builds an editor shim wired to an enabled plugin surface, with its wrapper attached inside
+   * the grid root so key events bubble up to the document.
    *
-   * @returns {{ editor: object }}
+   * @returns {{ editor: GuardEditor, hot: ReturnType<typeof makeEditorHotStub> }}
    */
-  function makeGuardHarness(): {
-    editor: { input: HTMLElement; open(): void; close(): void };
-    rootElement: HTMLElement;
-    } {
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const core = require('hyperformula-ui');
+  function makeGuardHarness() {
     const pluginSurface = {
-      events: new core.EventManager(),
+      enabled: true,
       handleInlineEditStart: jest.fn(),
       handleInlineEditClose: jest.fn(),
       getActiveEditor: () => null,
     };
-    const shortcutContext = { addShortcuts: jest.fn(), removeShortcutsByGroup: jest.fn() };
-    const hotStub = {
-      rootDocument: document,
-      rootElement: document.createElement('div'),
-      rootWindow: window,
-      getPlugin: (name: string) => (name === 'formulaBuilder' ? pluginSurface : undefined),
-      addHook: jest.fn(),
-      removeHook: jest.fn(),
-      _registerTimeout: (callback: () => void, delay?: number) => setTimeout(callback, delay),
-      getShortcutManager: () => ({
-        setActiveContextName: jest.fn(),
-        getContext: () => shortcutContext,
-      }),
-    };
-    const EditorClass = createFormulaCellEditor() as unknown as new (hot: unknown) => {
-      input: HTMLElement;
-      open(): void;
-      close(): void;
-    };
+    const hot = makeEditorHotStub(pluginSurface);
+    const EditorClass = createFormulaCellEditor() as unknown as new (hot: unknown) => GuardEditor;
+    const editor = new EditorClass(hot);
 
-    return { editor: new EditorClass(hotStub), rootElement: hotStub.rootElement };
+    hot.rootElement.appendChild(editor.input);
+
+    return { editor, hot };
   }
 
-  it('attaches guard listeners on open and removes them a full task after close', async() => {
+  /**
+   * Dispatches a bubbling keyboard event on the editor wrapper.
+   *
+   * @param {GuardEditor} editor The editor shim.
+   * @param {string} type The event type.
+   */
+  function press(editor: GuardEditor, type = 'keydown'): void {
+    editor.input.dispatchEvent(new KeyboardEvent(type, { key: 'Enter', bubbles: true }));
+  }
+
+  /**
+   * Resolves after the next macrotask, the earliest a `_registerTimeout` callback runs.
+   *
+   * @returns {Promise<void>}
+   */
+  function nextTask(): Promise<void> {
+    return new Promise((resolve) => { setTimeout(resolve, 0); });
+  }
+
+  it('keeps keydown, keyup and keypress on the editor input from reaching the document while open', () => {
     const { editor } = makeGuardHarness();
-    const addSpy = jest.spyOn(editor.input, 'addEventListener');
-    const removeSpy = jest.spyOn(editor.input, 'removeEventListener');
 
     editor.open();
+    press(editor, 'keydown');
+    press(editor, 'keyup');
+    press(editor, 'keypress');
 
-    expect(addSpy.mock.calls.map(call => call[0])).toEqual(
-      expect.arrayContaining(['keydown', 'keyup', 'keypress']),
-    );
+    expect(documentKeyListener).not.toHaveBeenCalled();
 
     editor.close();
+  });
 
-    // The keystroke that committed the edit is still bubbling when the editor
-    // closes — the guard must stay armed for it.
-    expect(removeSpy).not.toHaveBeenCalled();
+  it('lets keys through before the session opens', () => {
+    const { editor } = makeGuardHarness();
 
-    // A microtask flush must NOT unbind it either: trusted-event dispatch runs a
-    // microtask checkpoint between listener invocations, so a microtask-deferred
-    // disposal would still un-guard the in-flight keystroke mid-bubble.
+    press(editor);
+
+    expect(documentKeyListener).toHaveBeenCalledTimes(1);
+  });
+
+  it('still guards the committing keystroke after close, in the same task and after a microtask', async() => {
+    const { editor, hot } = makeGuardHarness();
+
+    editor.open();
+    editor.close();
+
+    // The keystroke that committed the edit is still bubbling when the editor closes.
+    press(editor);
+
+    expect(documentKeyListener).not.toHaveBeenCalled();
+
+    // Trusted-event dispatch runs a microtask checkpoint between listeners, so a
+    // microtask-deferred disposal would un-guard the in-flight keystroke mid-bubble.
     await Promise.resolve();
+    press(editor);
 
-    expect(removeSpy).not.toHaveBeenCalled();
-
-    // Only a later task may unbind.
-    await new Promise((resolve) => { setTimeout(resolve, 0); });
-
-    expect(removeSpy.mock.calls.map(call => call[0])).toEqual(
-      expect.arrayContaining(['keydown', 'keyup', 'keypress']),
-    );
+    expect(documentKeyListener).not.toHaveBeenCalled();
+    expect(editor._keyboardGuard).toBeNull();
+    expect(hot._registerTimeout).toHaveBeenCalledTimes(1);
+    expect(hot._registerTimeout.mock.calls[0][1]).toBeUndefined();
   });
 
-  it('still stops the committing keystroke from reaching the document after close', async() => {
-    const { editor, rootElement } = makeGuardHarness();
-
-    document.body.appendChild(rootElement);
-
-    const documentKeydown = jest.fn();
-
-    document.addEventListener('keydown', documentKeydown);
-
-    try {
-      editor.open();
-      editor.close();
-
-      // Same tick as close: the event that triggered the commit is still
-      // in flight — the guard must swallow it.
-      editor.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-
-      expect(documentKeydown).not.toHaveBeenCalled();
-
-      await new Promise((resolve) => { setTimeout(resolve, 0); });
-
-      // After the deferred disposal the guard is gone.
-      editor.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-
-      expect(documentKeydown).toHaveBeenCalledTimes(1);
-    } finally {
-      document.removeEventListener('keydown', documentKeydown);
-      rootElement.remove();
-    }
-  });
-
-  it('re-arms the guard on a later edit session', () => {
+  it('lets keys reach the document once the timeout task has destroyed the guard', async() => {
     const { editor } = makeGuardHarness();
 
     editor.open();
     editor.close();
+    await nextTask();
+    press(editor);
 
-    const addSpy = jest.spyOn(editor.input, 'addEventListener');
+    expect(documentKeyListener).toHaveBeenCalledTimes(1);
+  });
+
+  it('arms a new guard for the next session', async() => {
+    const { editor } = makeGuardHarness();
 
     editor.open();
+    editor.close();
+    await nextTask();
+    editor.open();
+    press(editor);
 
-    expect(addSpy.mock.calls.map(call => call[0])).toEqual(
-      expect.arrayContaining(['keydown', 'keyup', 'keypress']),
-    );
+    expect(documentKeyListener).not.toHaveBeenCalled();
+
+    editor.close();
+  });
+
+  it('keeps the new session guarded when it opens before the previous guard is destroyed', async() => {
+    const { editor } = makeGuardHarness();
+
+    editor.open();
+    editor.close();
+    editor.open();
+
+    // The previous session's deferred destroy runs now; it must not take the new guard with it.
+    await nextTask();
+    press(editor);
+
+    expect(documentKeyListener).not.toHaveBeenCalled();
 
     editor.close();
   });

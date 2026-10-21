@@ -4051,8 +4051,8 @@ export default (): Record<string, unknown> => {
     /**
      * The `formulaBuilder` option configures the [`FormulaBuilder`](@/api/formulaBuilder.md) plugin.
      *
-     * The [`FormulaBuilder`](@/api/formulaBuilder.md) plugin provides a spreadsheet-grade formula
-     * editing experience (formula bar, inline formula editor with colored references, reference
+     * The [`FormulaBuilder`](@/api/formulaBuilder.md) plugin adds spreadsheet-style formula
+     * editing (a formula bar, an inline formula editor with colored references, reference
      * picking, and formula error indicators) on top of the [`Formulas`](@/api/formulas.md) plugin,
      * which must be enabled with a configured engine.
      *
@@ -4060,17 +4060,27 @@ export default (): Record<string, unknown> => {
      *
      * | Property         | Possible values                                                 |
      * | ---------------- | --------------------------------------------------------------- |
-     * | `builder`        | The `hyperformula-ui` module namespace (`import * as FormulaBuilderModule from 'hyperformula-ui'`) |
-     * | `showFormulaBar` | A boolean - renders the formula bar above the grid when `true`  |
+     * | `builder`        | The `hyperformula-ui` module namespace (`import * as FormulaBuilderModule from 'hyperformula-ui'`). Required. |
+     * | `showFormulaBar` | A boolean. Renders the formula bar above the grid when `true`. Default: `false`. |
+     * | `popups`         | An object with the popup options: `showClose`, `suggestions`, `fnHelp`, and `error`. |
+     * | `direction`      | `'ltr'` or `'rtl'`. The layout direction of the editor and its popups. Default: the grid's layout direction. |
+     *
+     * Formula editing is opt-in per cell: set [`editor`](#editor) to `'formula'` on the cells,
+     * columns, or grid that use the formula editor.
      *
      * Read more:
+     * - [Formula builder](@/guides/formulas/formula-builder/formula-builder.md)
      * - [Plugins: `Formulas`](@/api/formulas.md)
      *
-     * @since 18.1.0
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 19.0.0
      * @memberof Options#
      * @type {object}
      * @default undefined
      * @category FormulaBuilder
+     * @configScope grid
      *
      * @example
      * ```js

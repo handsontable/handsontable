@@ -312,6 +312,32 @@ describe('validateSettings', () => {
       .toEqual([]);
   });
 
+  it('should accept an editor a registered plugin lists in `EDITORS` before any grid registers it', () => {
+    class EditorProvidingPlugin extends BasePlugin {
+      static get PLUGIN_KEY() {
+        return 'editorProvidingPlugin';
+      }
+
+      static get EDITORS() {
+        return ['providedByPlugin'];
+      }
+    }
+
+    registerPlugin(EditorProvidingPlugin);
+
+    expect(validateSettings({ editor: 'providedByPlugin' }).problems).toEqual([]);
+    expect(validateSettings({ columns: [{ editor: 'notProvidedByAnyPlugin' }] }).problems).toEqual([{
+      path: 'columns[0].editor',
+      code: 'unknownEditor',
+      severity: 'error',
+      message: '\'notProvidedByAnyPlugin\' is not a registered editor.',
+    }]);
+  });
+
+  it('should accept the formula builder editor with the built-in plugins registered and no grid built', () => {
+    expect(validateSettings({ editor: 'formula' }).problems).toEqual([]);
+  });
+
   it('should read the data rows and the plugin state of `hot` for a partial update', () => {
     const container = document.createElement('div');
 

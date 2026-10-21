@@ -1,66 +1,137 @@
+import { getCellCoordsFromMousePosition } from '../../../helpers/dom/cellCoords';
 import { HandsontableAdapter } from '../handsontableAdapter';
 import { makeAdapterOptions, makeHotStub, makePluginStub } from './helpers/stubs';
+import type { HotStubShape } from './helpers/stubs';
+
+// The pointer-to-cell resolution is a collaborator of the adapter (the shared helper the
+// selection and DragToScroll use too), not the unit under test.
+jest.mock('../../../helpers/dom/cellCoords', () => ({
+  getCellCoordsFromMousePosition: jest.fn(),
+}));
+
+const resolveCoords = getCellCoordsFromMousePosition as jest.Mock;
 
 /**
- * Builds an adapter over a stub grid whose every cell maps to visual (1, 2).
+ * Builds an adapter over a stub grid.
  *
- * @returns {{ adapter: HandsontableAdapter, overlayHost: HTMLElement }}
+ * @param {object} [options] Per-test overrides.
+ * @param {Partial<HotStubShape>} [options.hot] Handsontable stub overrides.
+ * @param {object} [options.mapping] Index-mapping overrides.
+ * @returns {{ adapter: HandsontableAdapter, hot: object }}
  */
-function makeAdapter() {
+function makeAdapter(options: {
+  hot?: Partial<HotStubShape>;
+  mapping?: Parameters<typeof makeAdapterOptions>[2];
+} = {}) {
   const overlayHost = document.createElement('div');
 
   document.body.appendChild(overlayHost);
 
-  const hot = makeHotStub({ getCoords: () => ({ row: 1, col: 2 }) });
-  const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+  const hot = makeHotStub(options.hot);
+  const adapter = new HandsontableAdapter(
+    makeAdapterOptions(hot, overlayHost, options.mapping),
+    makePluginStub(),
+  );
 
-  return { adapter, overlayHost };
+  return { adapter, hot };
 }
-
-type ElementFromPointDocument = Document & {
-  elementFromPoint: (x: number, y: number) => Element | null;
-};
 
 describe('HandsontableAdapter.getCellAddressAt', () => {
   afterEach(() => {
-    delete (document as Partial<ElementFromPointDocument>).elementFromPoint;
+    resolveCoords.mockReset();
     document.body.replaceChildren();
   });
 
-  it('returns the address for a td inside the overlay host', () => {
-    const { adapter, overlayHost } = makeAdapter();
-    const cell = document.createElement('td');
+  it('resolves the pointer through getCellCoordsFromMousePosition and returns the HF address', () => {
+    const { adapter, hot } = makeAdapter();
 
-    overlayHost.appendChild(cell);
-    (document as ElementFromPointDocument).elementFromPoint = jest.fn(() => cell);
+    resolveCoords.mockReturnValue({ row: 1, col: 2 });
 
-    expect(adapter.getCellAddressAt(10, 10)).toEqual({ sheet: '', row: 1, col: 2 });
+    expect(adapter.getCellAddressAt(10, 20)).toEqual({ sheet: '', row: 1, col: 2 });
+    expect(resolveCoords).toHaveBeenCalledWith(hot, 10, 20);
+
+    adapter.destroy();
   });
 
-  it('ignores a td that belongs to another table on the page', () => {
+  it('returns the nearest cell for a pointer held past the viewport edge', () => {
     const { adapter } = makeAdapter();
-    const foreign = document.createElement('td');
 
-    document.body.appendChild(foreign);
-    (document as ElementFromPointDocument).elementFromPoint = jest.fn(() => foreign);
+    // The helper clamps an out-of-viewport pointer to the nearest rendered cell.
+    resolveCoords.mockReturnValue({ row: 49, col: 0 });
 
-    expect(adapter.getCellAddressAt(10, 10)).toBeNull();
+    expect(adapter.getCellAddressAt(-500, 99999)).toEqual({ sheet: '', row: 49, col: 0 });
+
+    adapter.destroy();
   });
 
-  it('returns null when the visual coordinates cannot be mapped to HyperFormula space', () => {
-    const overlayHost = document.createElement('div');
+  it('translates the visual cell into HyperFormula space through the index mapping', () => {
+    const { adapter } = makeAdapter({
+      mapping: { visualToHfRow: row => row + 10, visualToHfCol: col => col + 3 },
+    });
 
-    document.body.appendChild(overlayHost);
+    resolveCoords.mockReturnValue({ row: 1, col: 2 });
 
-    const hot = makeHotStub({ getCoords: () => ({ row: 1, col: 2 }) });
-    const options = makeAdapterOptions(hot, overlayHost, { visualToHfRow: () => -1 });
-    const adapter = new HandsontableAdapter(options, makePluginStub());
-    const cell = document.createElement('td');
+    expect(adapter.getCellAddressAt(0, 0)).toEqual({ sheet: '', row: 11, col: 5 });
 
-    overlayHost.appendChild(cell);
-    (document as ElementFromPointDocument).elementFromPoint = jest.fn(() => cell);
+    adapter.destroy();
+  });
+
+  it('returns null without resolving the pointer when the grid has no view', () => {
+    const { adapter } = makeAdapter({ hot: { view: undefined } as unknown as Partial<HotStubShape> });
+
+    resolveCoords.mockReturnValue({ row: 1, col: 2 });
 
     expect(adapter.getCellAddressAt(10, 10)).toBeNull();
+    expect(resolveCoords).not.toHaveBeenCalled();
+  });
+
+  it('returns null when the pointer resolves to no cell', () => {
+    const { adapter } = makeAdapter();
+
+    resolveCoords.mockReturnValue(null);
+
+    expect(adapter.getCellAddressAt(10, 10)).toBeNull();
+
+    adapter.destroy();
+  });
+
+  it.each([
+    ['a column header', { row: -1, col: 2 }],
+    ['a row header', { row: 1, col: -1 }],
+    ['the corner', { row: -1, col: -1 }],
+    ['an unset row', { row: null, col: 2 }],
+    ['an unset column', { row: 1, col: null }],
+  ])('returns null when the pointer resolves to %s', (_label, coords) => {
+    const { adapter } = makeAdapter();
+
+    resolveCoords.mockReturnValue(coords);
+
+    expect(adapter.getCellAddressAt(10, 10)).toBeNull();
+
+    adapter.destroy();
+  });
+
+  it('accepts the cell at visual row 0 and column 0 (not a header)', () => {
+    const { adapter } = makeAdapter();
+
+    resolveCoords.mockReturnValue({ row: 0, col: 0 });
+
+    expect(adapter.getCellAddressAt(1, 1)).toEqual({ sheet: '', row: 0, col: 0 });
+
+    adapter.destroy();
+  });
+
+  it.each([
+    ['row', { visualToHfRow: () => -1 }],
+    ['column', { visualToHfCol: () => -1 }],
+  ])('returns null when the visual %s cannot be mapped to HyperFormula space', (_axis, mapping) => {
+    const { adapter } = makeAdapter({ mapping });
+
+    resolveCoords.mockReturnValue({ row: 1, col: 2 });
+
+    expect(adapter.getCellAddressAt(10, 10)).toBeNull();
+
+    adapter.destroy();
   });
 });
 
@@ -69,29 +140,67 @@ describe('HandsontableAdapter.getGridSize', () => {
     document.body.replaceChildren();
   });
 
-  it('reports the engine sheet dimensions when available', () => {
+  /**
+   * Builds an adapter over a grid with the given physical index counts and engine dimensions.
+   *
+   * @param {number} rows The row index count.
+   * @param {number} cols The column index count.
+   * @param {{ rows: number, cols: number } | null} sheetDimensions The engine sheet dimensions.
+   * @returns {HandsontableAdapter}
+   */
+  function makeSizedAdapter(
+    rows: number,
+    cols: number,
+    sheetDimensions: { rows: number; cols: number } | null,
+  ) {
     const overlayHost = document.createElement('div');
 
     document.body.appendChild(overlayHost);
 
-    const hot = makeHotStub({ countRows: () => 8, countCols: () => 4 });
-    const options = {
-      ...makeAdapterOptions(hot, overlayHost),
-      getSheetDimensions: () => ({ rows: 10, cols: 6 }),
-    };
-    const adapter = new HandsontableAdapter(options, makePluginStub());
+    // countRows/countCols report the visual (untrimmed) counts, which getGridSize must ignore.
+    const hot = makeHotStub({
+      countRows: () => 1,
+      countCols: () => 1,
+      rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => rows },
+      columnIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => cols },
+    });
 
-    expect(adapter.getGridSize()).toEqual({ rows: 10, cols: 6 });
+    return new HandsontableAdapter(
+      makeAdapterOptions(hot, overlayHost, {}, { getSheetDimensions: () => sheetDimensions }),
+      makePluginStub(),
+    );
+  }
+
+  it('reports the index count when the engine occupies less than the grid', () => {
+    // A 100-row grid whose data stops at row 3 still navigates all 100 rows.
+    const adapter = makeSizedAdapter(100, 8, { rows: 3, cols: 2 });
+
+    expect(adapter.getGridSize()).toEqual({ rows: 100, cols: 8 });
+
+    adapter.destroy();
   });
 
-  it('falls back to the visual counts when the engine dimensions are unavailable', () => {
-    const overlayHost = document.createElement('div');
+  it('widens the size to the engine dimensions when the sheet holds more than the grid', () => {
+    const adapter = makeSizedAdapter(5, 4, { rows: 10, cols: 6 });
 
-    document.body.appendChild(overlayHost);
+    expect(adapter.getGridSize()).toEqual({ rows: 10, cols: 6 });
 
-    const hot = makeHotStub({ countRows: () => 8, countCols: () => 4 });
-    const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+    adapter.destroy();
+  });
+
+  it('takes the larger value per axis independently', () => {
+    const adapter = makeSizedAdapter(5, 40, { rows: 10, cols: 6 });
+
+    expect(adapter.getGridSize()).toEqual({ rows: 10, cols: 40 });
+
+    adapter.destroy();
+  });
+
+  it('reports the index counts when the engine dimensions are unavailable', () => {
+    const adapter = makeSizedAdapter(8, 4, null);
 
     expect(adapter.getGridSize()).toEqual({ rows: 8, cols: 4 });
+
+    adapter.destroy();
   });
 });

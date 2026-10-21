@@ -1,5 +1,5 @@
 import { HandsontableAdapter } from '../handsontableAdapter';
-import type { VisualHfIndexMapping } from '../types';
+import type { VisualHfIndexMapping } from '../internalTypes';
 import type { HotStubShape } from './helpers/stubs';
 import { makeAdapterOptions, makeHotStub, makePluginStub } from './helpers/stubs';
 
@@ -136,16 +136,31 @@ describe('HandsontableAdapter.scrollCellIntoView', () => {
     expect(scrollViewportTo).toHaveBeenCalledWith({ row: 5, col: 3 });
   });
 
-  it('does not throw when the host reports no fully-visible bounds', () => {
-    const hot = makeHotStub({ getCell: () => null });
+  it('scrolls to the cell without a snap when the host reports no fully-visible bounds', () => {
+    const scrollViewportTo = jest.fn(() => true);
+    const hot = makeHotStub({ getCell: () => null, scrollViewportTo });
     const overlayHost = document.createElement('div');
 
     document.body.appendChild(overlayHost);
 
     const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
 
-    expect(() => adapter.scrollCellIntoView({ sheet: '', row: 1, col: 1 })).not.toThrow();
+    adapter.scrollCellIntoView({ sheet: '', row: 1, col: 1 });
+
+    expect(scrollViewportTo.mock.calls).toEqual([[{ row: 1, col: 1 }]]);
   });
+
+  it.each(['firstRow', 'lastRow', 'firstCol', 'lastCol'] as const)(
+    'falls back to an unsnapped scroll when only %s is unknown',
+    (unknownBound) => {
+      const { adapter, scrollViewportTo } = makeAdapter({ [unknownBound]: -1 });
+
+      // Inside the known bounds on both axes, so a snapped path would not scroll at all.
+      adapter.scrollCellIntoView({ sheet: '', row: 15, col: 5 });
+
+      expect(scrollViewportTo.mock.calls).toEqual([[{ row: 15, col: 5 }]]);
+    },
+  );
 });
 
 describe('HandsontableAdapter.getActiveCell', () => {

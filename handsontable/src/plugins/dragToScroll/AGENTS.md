@@ -34,6 +34,8 @@ Rules that cost real bugs to learn:
 
 The guards exist because those hooks fire unconditionally from `TableView`, while the owning plugin may reject the press. Without the check, auto-scroll would run with no drag in progress.
 
+**A stopped mousedown is not armed.** The `beforeOnCellMouseDown` path returns early when an earlier listener called `stopImmediatePropagation()` on the event. Such a listener owns the gesture: `TableView` skips its selection handling for it, so there is no selection to extend, and the owner scrolls on its own if it needs to. The FormulaBuilder reference drag is the in-tree case. Its own edge auto-scroller drives the drag, and arming here as well scrolled the viewport twice per tick. It used to work around that by disabling and re-enabling this plugin on every pick, which re-registered these hooks at the tail of every list. The check depends on the stopping listener running first in the same hook, which FormulaBuilder guarantees with order index `-1`.
+
 **The mobile guard asks about one finger, not about the gesture.** `isDragged()` only says that *some* handle is held, and it stays `true` for the whole drag - so it also arms auto-scroll for any later finger landing anywhere in the document, with no handle press of its own. `isDraggedBy(touch.identifier)` asks whether *this* finger is the one on the handle, which is the question the guard actually needs.
 
 **The ordering the guards depend on comes from two different mechanisms — do not mix them up.**

@@ -405,6 +405,158 @@ describe('HandsontableAdapter custom-selection highlights', () => {
     adapter.destroy();
   });
 
+  it.each([
+    ['color', { color: 'blue' }],
+    ['fill', { fill: true }],
+  ])('re-registers the selection when only the %s changes on the same range', (_label, change) => {
+    const { adapter, hot } = makeAdapter();
+
+    adapter.setHighlights([{ range: range(1, 1, 2, 2), color: 'red', fill: false }]);
+
+    const [first] = customSelectionsOf(hot);
+
+    adapter.setHighlights([{ range: range(1, 1, 2, 2), color: 'red', fill: false, ...change }]);
+
+    const selections = customSelectionsOf(hot);
+
+    // An in-place range update would keep the old border color and class.
+    expect(first.destroy).toHaveBeenCalledTimes(1);
+    expect(selections).toHaveLength(1);
+    expect(selections[0]).not.toBe(first);
+    expect((selections[0].settings.border as { color: string }).color).toBe(change.color ?? 'red');
+    expect(selections[0].settings.className).toMatch(
+      change.fill ? /^ht-formula-ref-fill-/ : /^ht-formula-ref-line-/,
+    );
+
+    adapter.destroy();
+  });
+
+  it('accepts a strict var() reference even where CSS.supports rejects it', () => {
+    const hot = makeHotStub({
+      rootWindow: {
+        ...window,
+        getComputedStyle: window.getComputedStyle.bind(window),
+        CSS: { supports: () => false },
+      } as unknown as Window & typeof globalThis,
+    } as Parameters<typeof makeHotStub>[0]);
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+
+    adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'var(--x)' }]);
+
+    expect(customSelectionsOf(hot)).toHaveLength(1);
+
+    adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'rgb(1, 2, 3)' }]);
+
+    // A non-var() color is left to CSS.supports, which rejects it here.
+    expect(customSelectionsOf(hot)).toHaveLength(0);
+
+    adapter.destroy();
+  });
+
+  it('rejects a var() reference followed by a declaration break-out', () => {
+    const hot = makeHotStub({
+      rootWindow: {
+        ...window,
+        getComputedStyle: window.getComputedStyle.bind(window),
+        CSS: { supports: () => true },
+      } as unknown as Window & typeof globalThis,
+    } as Parameters<typeof makeHotStub>[0]);
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+
+    adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'var(--x);}' }]);
+
+    expect(customSelectionsOf(hot)).toHaveLength(0);
+
+    adapter.destroy();
+  });
+
+  it.each(['0px', '-2px', 'thick'])(
+    'falls back to the default border width for %p and re-probes on the next registration',
+    (unusable) => {
+      let cssValue = unusable;
+      const hot = makeHotStub({
+        rootWindow: {
+          ...window,
+          getComputedStyle: () => ({ getPropertyValue: () => cssValue }),
+        } as unknown as Window & typeof globalThis,
+      } as Parameters<typeof makeHotStub>[0]);
+      const overlayHost = document.createElement('div');
+
+      document.body.appendChild(overlayHost);
+
+      const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+
+      adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'red' }]);
+
+      expect((customSelectionsOf(hot)[0].settings.border as { width: number }).width).toBe(2);
+
+      cssValue = '4px';
+      adapter.setHighlights([{ range: range(1, 1, 1, 1), color: 'blue' }]);
+
+      expect((customSelectionsOf(hot)[0].settings.border as { width: number }).width).toBe(4);
+
+      adapter.destroy();
+    },
+  );
+
+  it('keeps a whole-column span whose last HyperFormula row is trimmed', () => {
+    // A1:A10000 spans more than the per-index scan limit; a filter trimmed the last 10 rows,
+    // so the run ends on the last row that still has a visual index.
+    const { adapter, hot } = makeAdapter({
+      mapping: { hfToVisualRow: hfRow => (hfRow >= 9990 ? -1 : hfRow) },
+    });
+
+    adapter.setHighlights([{ range: range(0, 0, 9999, 0), color: 'red' }]);
+
+    const selections = customSelectionsOf(hot);
+
+    expect(selections).toHaveLength(1);
+    expect(selections[0].visualCellRange).toEqual({
+      highlight: { row: 0, col: 0 },
+      from: { row: 0, col: 0 },
+      to: { row: 9989, col: 0 },
+    });
+
+    adapter.destroy();
+  });
+
+  it('walks inward past trimmed rows at both ends of a wide span', () => {
+    const { adapter, hot } = makeAdapter({
+      mapping: { hfToVisualRow: hfRow => (hfRow < 3 || hfRow > 4000 ? -1 : hfRow - 3) },
+    });
+
+    adapter.setHighlights([{ range: range(0, 0, 9999, 0), color: 'red' }]);
+
+    const selections = customSelectionsOf(hot);
+
+    expect(selections).toHaveLength(1);
+    expect(selections[0].visualCellRange).toEqual({
+      highlight: { row: 0, col: 0 },
+      from: { row: 0, col: 0 },
+      to: { row: 3997, col: 0 },
+    });
+
+    adapter.destroy();
+  });
+
+  it('drops a wide span whose every row is trimmed', () => {
+    const { adapter, hot } = makeAdapter({ mapping: { hfToVisualRow: () => -1 } });
+
+    adapter.setHighlights([{ range: range(0, 0, 2500, 0), color: 'red' }]);
+
+    expect(customSelectionsOf(hot)).toHaveLength(0);
+
+    adapter.destroy();
+  });
+
   it('drops highlights whose ranges cannot be mapped to visual space', () => {
     const { adapter, hot } = makeAdapter({
       mapping: { hfToVisualRow: () => -1 },

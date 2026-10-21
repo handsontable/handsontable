@@ -1,93 +1,34 @@
-import { HyperFormula } from 'hyperformula';
-import type { HotInstance } from '../../../core/types';
 import { FormulaBuilder } from '../formulaBuilder';
+import { findHook, makePluginHotStub } from './helpers/pluginHotStub';
 
 /**
- * Builds a Handsontable stub rich enough for the plugin to enable: `formulaBuilder`
- * settings carrying the injected `hyperformula-ui` module, a Formulas plugin stub with an
- * empty HyperFormula engine and identity axis syncers, and a movable selection
- * highlight exposed through `getSelectedRangeLast`.
+ * Builds a plugin-ready Handsontable stub whose every cell uses the formula editor and whose
+ * selection highlight is movable through `highlightRef`.
  *
  * @param {{ row: number, col: number } | undefined} highlight The initial highlight cell.
- * @returns {{ highlightRef: object, hot: object }}
+ * @returns {object} The stub bundle plus `highlightRef`.
  */
 function makeLiveSelectionHotStub(highlight: { row: number; col: number } | undefined) {
-  // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-  const core = require('hyperformula-ui');
-  const engine = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
-  const identitySyncer = {
-    getHfIndexFromVisualIndex: (visualIndex: number) => visualIndex,
-    getVisualIndexFromHfIndex: (hfIndex: number) => hfIndex,
-  };
-  const formulas = {
-    enabled: true,
-    engine,
-    sheetId: 0,
-    rowAxisSyncer: identitySyncer,
-    columnAxisSyncer: identitySyncer,
-  };
-  const settings: Record<string, unknown> = { formulaBuilder: { builder: core } };
   const highlightRef = { current: highlight };
+  const stub = makePluginHotStub({}, {
+    getLastRenderedVisibleRow: () => 100,
+    getLastRenderedVisibleColumn: () => 100,
+    getCellMetaTransient: jest.fn(() => ({ editor: 'formula' })),
+    getSelectedRangeLast: () =>
+      (highlightRef.current ? { highlight: highlightRef.current } : undefined),
+  });
 
-  return {
-    highlightRef,
-    hot: {
-      rootElement: document.createElement('div'),
-      rootDocument: document,
-      rootWindow: window,
-      getSettings: () => settings,
-      getPlugin: (name: string) => (name === 'formulas' ? formulas : undefined),
-      addHook: jest.fn(),
-      removeHook: jest.fn(),
-      getActiveEditor: jest.fn(),
-      getCell: () => document.createElement('td'),
-      getCoords: () => null,
-      countRows: () => 0,
-      countCols: () => 0,
-      render: jest.fn(),
-      getFirstRenderedVisibleRow: () => 0,
-      getLastRenderedVisibleRow: () => 100,
-      getFirstRenderedVisibleColumn: () => 0,
-      getLastRenderedVisibleColumn: () => 100,
-      setDataAtCell: jest.fn(),
-      getCellMetaTransient: () => ({ editor: 'formula' }),
-      getSelectedRangeLast: () =>
-        (highlightRef.current ? { highlight: highlightRef.current } : undefined),
-      view: { getOverlayByName: () => null },
-      getCurrentThemeName: () => null,
-      isRtl: () => false,
-    },
-  };
+  return { ...stub, highlightRef };
 }
 
 /**
- * Builds the plugin over a live-selection stub, cast through the real instance type.
+ * Builds the plugin over a live-selection stub.
  *
  * @param {ReturnType<typeof makeLiveSelectionHotStub>} stub The Handsontable stub bundle.
  * @returns {FormulaBuilder}
  */
 function makePlugin(stub: ReturnType<typeof makeLiveSelectionHotStub>): FormulaBuilder {
-  return new FormulaBuilder(stub.hot as unknown as HotInstance);
-}
-
-/**
- * Returns the hook listener registered on the stub under the given hook name.
- *
- * @param {ReturnType<typeof makeLiveSelectionHotStub>} stub The Handsontable stub bundle.
- * @param {string} name The hook name.
- * @returns {Function}
- */
-function findHook(
-  stub: ReturnType<typeof makeLiveSelectionHotStub>,
-  name: string,
-): (...args: never[]) => void {
-  const call = (stub.hot.addHook as jest.Mock).mock.calls.find(entry => entry[0] === name);
-
-  if (!call) {
-    throw new Error(`hook ${name} not registered`);
-  }
-
-  return call[1] as (...args: never[]) => void;
+  return new FormulaBuilder(stub.instance);
 }
 
 describe('FormulaBuilder plugin live selection tracking', () => {
@@ -100,7 +41,7 @@ describe('FormulaBuilder plugin live selection tracking', () => {
     const received: unknown[] = [];
 
     plugin.onFormulaCellSelection(selection => received.push(selection));
-    const afterSelection = findHook(stub, 'afterSelection');
+    const afterSelection = findHook(stub.hot, 'afterSelection');
 
     (afterSelection as (...args: number[]) => void)(1, 1, 2, 1);
     (afterSelection as (...args: number[]) => void)(1, 1, 3, 1);
@@ -120,7 +61,7 @@ describe('FormulaBuilder plugin live selection tracking', () => {
     const received: unknown[] = [];
 
     plugin.onFormulaCellSelection(selection => received.push(selection));
-    const afterSelection = findHook(stub, 'afterSelection');
+    const afterSelection = findHook(stub.hot, 'afterSelection');
 
     (afterSelection as (...args: number[]) => void)(1, 1, 2, 1);
     (afterSelection as (...args: number[]) => void)(1, 1, 2, 1);
@@ -140,7 +81,7 @@ describe('FormulaBuilder plugin live selection tracking', () => {
       const received: unknown[] = [];
 
       plugin.onFormulaCellSelection(selection => received.push(selection));
-      const selectionEnd = findHook(stub, 'afterSelectionEnd');
+      const selectionEnd = findHook(stub.hot, 'afterSelectionEnd');
 
       (selectionEnd as (...args: number[]) => void)(1, 1, 3, 3);
       stub.highlightRef.current = { row: 1, col: 2 };
@@ -162,7 +103,7 @@ describe('FormulaBuilder plugin live selection tracking', () => {
     const received: unknown[] = [];
 
     plugin.onFormulaCellSelection(selection => received.push(selection));
-    const selectionEnd = findHook(stub, 'afterSelectionEnd');
+    const selectionEnd = findHook(stub.hot, 'afterSelectionEnd');
 
     (selectionEnd as (...args: number[]) => void)(1, 1, 3, 3);
     (selectionEnd as (...args: number[]) => void)(1, 1, 3, 3);
@@ -189,7 +130,7 @@ describe('FormulaBuilder plugin live selection tracking', () => {
     const received: unknown[] = [];
 
     plugin.onFormulaCellSelection(selection => received.push(selection));
-    const focusSet = findHook(stub, 'afterSelectionFocusSet');
+    const focusSet = findHook(stub.hot, 'afterSelectionFocusSet');
 
     stub.highlightRef.current = { row: 3, col: 4 };
     (focusSet as (...args: number[]) => void)(3, 4);
@@ -208,7 +149,7 @@ describe('FormulaBuilder plugin live selection tracking', () => {
     const selectionMoves: unknown[] = [];
 
     plugin.onSelection(selection => selectionMoves.push(selection));
-    const afterSelection = findHook(stub, 'afterSelection');
+    const afterSelection = findHook(stub.hot, 'afterSelection');
 
     (afterSelection as (...args: number[]) => void)(1, 1, 2, 1);
 

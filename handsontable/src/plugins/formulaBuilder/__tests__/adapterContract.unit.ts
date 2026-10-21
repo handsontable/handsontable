@@ -14,7 +14,6 @@ function makeSpyPlugin(): { plugin: FormulaBuilderPluginLike; unsubscribe: jest.
   const unsubscribe = jest.fn();
   const plugin: FormulaBuilderPluginLike = {
     ...makePluginStub(),
-    getRawCellText: jest.fn(() => '=B2'),
     onEditorClose: jest.fn(() => unsubscribe),
     onSwitchToInline: jest.fn(() => unsubscribe),
     commitInlineEdit: jest.fn(),
@@ -29,15 +28,22 @@ function makeSpyPlugin(): { plugin: FormulaBuilderPluginLike; unsubscribe: jest.
  * Builds an adapter over a bare grid stub and the given plugin.
  *
  * @param {FormulaBuilderPluginLike} plugin The plugin surface.
+ * @param {Function} readCellText The injected raw-cell-text reader.
  * @returns {{ adapter: HandsontableAdapter, customSelections: () => CustomSelectionStub[] }}
  */
-function makeAdapter(plugin: FormulaBuilderPluginLike = makePluginStub()) {
+function makeAdapter(
+  plugin: FormulaBuilderPluginLike = makePluginStub(),
+  readCellText: (hfRow: number, hfCol: number) => string = () => '',
+) {
   const hot = makeHotStub();
   const overlayHost = document.createElement('div');
 
   document.body.appendChild(overlayHost);
 
-  const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), plugin);
+  const adapter = new HandsontableAdapter(
+    makeAdapterOptions(hot, overlayHost, {}, { readCellText }),
+    plugin,
+  );
   const customSelections = () =>
     (hot as unknown as { selection: { highlight: { customSelections: CustomSelectionStub[] } } })
       .selection.highlight.customSelections;
@@ -246,12 +252,12 @@ describe('HandsontableAdapter delegation to the plugin', () => {
     adapter.destroy();
   });
 
-  it('getCellFormula reads the raw text at the address row and column', () => {
-    const { plugin } = makeSpyPlugin();
-    const { adapter } = makeAdapter(plugin);
+  it('getCellFormula reads the raw text at the HyperFormula address through readCellText', () => {
+    const readCellText = jest.fn(() => '=B2');
+    const { adapter } = makeAdapter(makePluginStub(), readCellText);
 
     expect(adapter.getCellFormula({ sheet: '', row: 2, col: 3 })).toBe('=B2');
-    expect(plugin.getRawCellText).toHaveBeenCalledWith(2, 3);
+    expect(readCellText).toHaveBeenCalledWith(2, 3);
 
     adapter.destroy();
   });

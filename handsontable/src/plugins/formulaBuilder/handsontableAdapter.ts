@@ -17,10 +17,16 @@ import type {
 } from 'hyperformula-ui';
 import type { PickEmitter } from 'hyperformula-ui';
 import { warn } from '../../helpers/console';
+import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import type { HotInstance } from '../../core/types';
 import type { default as VisualSelection } from '../../selection/highlight/visualSelection';
-import type { CoreModule, OverlayLike, VisualHfIndexMapping } from './types';
+import type { CoreModule, VisualHfIndexMapping } from './internalTypes';
 
+/**
+ * The widest HyperFormula span (in indexes) the adapter maps index by index into visual runs.
+ * A wider span (a whole-column reference such as `A:A`) maps only its two ends, as one run, so
+ * a sheet-wide reference never walks every row of the sheet on each keystroke.
+ */
 const MAX_HF_INDEX_SCAN = 2000;
 
 /**
@@ -152,6 +158,10 @@ export interface HandsontableAdapterOptions {
    * Returns the engine sheet dimensions in HyperFormula space, or `null` when unknown.
    */
   getSheetDimensions?: () => { rows: number; cols: number } | null;
+  /**
+   * Returns the raw cell text (formula source or stringified value) at HyperFormula coordinates.
+   */
+  readCellText: (hfRow: number, hfCol: number) => string;
 }
 
 /**
@@ -178,14 +188,6 @@ export interface FormulaBuilderPluginLike {
       } | null,
     ) => void,
   ): () => void;
-  /**
-   * Returns the raw cell text (formula source or stringified value) at HyperFormula coordinates.
-   *
-   * @param {number} row The HyperFormula row index.
-   * @param {number} col The HyperFormula column index.
-   * @returns {string}
-   */
-  getRawCellText(row: number, col: number): string;
   /**
    * Subscribes to inline edit session starts.
    *
@@ -247,6 +249,37 @@ export interface FormulaBuilderPluginLike {
 }
 
 /**
+ * The adapter of each enabled plugin instance, keyed by the plugin. The adapter is not a public
+ * member of the plugin: its methods take `hyperformula-ui` types, and a public declaration that
+ * named the package would not resolve where it is not installed (see `types.ts`).
+ */
+const adaptersByPlugin = new WeakMap<object, HandsontableAdapter>();
+
+/**
+ * Records (or clears, with `null`) the adapter of a plugin instance.
+ *
+ * @param {object} plugin The plugin instance.
+ * @param {HandsontableAdapter | null} adapter The adapter, or `null` on teardown.
+ */
+export function setFormulaBuilderAdapter(plugin: object, adapter: HandsontableAdapter | null): void {
+  if (adapter === null) {
+    adaptersByPlugin.delete(plugin);
+  } else {
+    adaptersByPlugin.set(plugin, adapter);
+  }
+}
+
+/**
+ * Returns the adapter of an enabled plugin instance, or `null` while it is disabled.
+ *
+ * @param {object} plugin The plugin instance.
+ * @returns {HandsontableAdapter | null}
+ */
+export function getFormulaBuilderAdapter(plugin: object): HandsontableAdapter | null {
+  return adaptersByPlugin.get(plugin) ?? null;
+}
+
+/**
  * Implements the `hyperformula-ui` `IGridAdapter` contract against a live Handsontable
  * instance: geometry and highlight rendering, visual/HyperFormula index translation,
  * pick event brokering, and editor lifecycle delegation back to the plugin.
@@ -284,6 +317,10 @@ export class HandsontableAdapter implements IGridAdapter {
    * Returns the engine sheet dimensions in HyperFormula space, or `null` when unknown.
    */
   readonly #getSheetDimensions: (() => { rows: number; cols: number } | null) | null;
+  /**
+   * Reads the raw cell text at HyperFormula coordinates.
+   */
+  readonly #readCellText: (hfRow: number, hfCol: number) => string;
   /**
    * Pick event fan-out.
    */
@@ -378,6 +415,7 @@ export class HandsontableAdapter implements IGridAdapter {
     this.#mapping = options.indexMapping;
     this.#core = options.core;
     this.#getSheetDimensions = options.getSheetDimensions ?? null;
+    this.#readCellText = options.readCellText;
     this.#plugin = plugin;
     this.#emitter = new this.#core.PickEmitter();
 
@@ -406,34 +444,30 @@ export class HandsontableAdapter implements IGridAdapter {
    * @returns {HTMLElement | null}
    */
   getScrollHolder(): HTMLElement | null {
-    const holder = (this.#hot.view.getOverlayByName('top') as OverlayLike | null)?.holder;
+    const overlay = this.#hot.view.getOverlayByName('top') as { holder?: unknown } | null;
 
-    return holder instanceof HTMLElement ? holder : null;
+    return overlay?.holder instanceof HTMLElement ? overlay.holder : null;
   }
 
   /**
-   * Resolves the cell address rendered at the given viewport coordinates.
+   * Resolves the cell address at the given viewport coordinates. The reference drag calls this
+   * while it auto-scrolls, with the pointer held past the viewport edge, so the position is
+   * resolved with `getCellCoordsFromMousePosition()`, which clamps to the nearest rendered cell -
+   * `elementFromPoint()` finds the scrollbar or the page out there, and the range would stop
+   * growing at the last rendered cell.
    *
    * @param {number} x The horizontal viewport coordinate.
    * @param {number} y The vertical viewport coordinate.
    * @returns {CellAddress | null}
    */
   getCellAddressAt(x: number, y: number): CellAddress | null {
-    const elementAtPoint = this.#hot.rootDocument.elementFromPoint(x, y) as HTMLElement | null;
-
-    if (!elementAtPoint) {
+    if (!this.#hot.view) {
       return null;
     }
 
-    const cellEl = elementAtPoint.closest('td') as HTMLElement | null;
+    const coords = getCellCoordsFromMousePosition(this.#hot, x, y);
 
-    if (!cellEl || !this.#overlayHost.contains(cellEl)) {
-      return null;
-    }
-
-    const coords = this.#hot.getCoords(cellEl);
-
-    if (!coords || coords.row === null || coords.col === null) {
+    if (!coords || coords.row === null || coords.col === null || coords.row < 0 || coords.col < 0) {
       return null;
     }
 
@@ -627,13 +661,19 @@ export class HandsontableAdapter implements IGridAdapter {
    * @returns {GridSize}
    */
   getGridSize(): GridSize {
+    // The engine's sheet dimensions are its OCCUPIED extent, not the grid: a 100-row grid whose
+    // data stops at row 3 reports 3 rows, and the formula bar refuses to navigate past an index
+    // at or beyond this size. Every grid row has a HyperFormula index (trimmed rows included), so
+    // the physical index count is the size, and the engine extent only widens it when the sheet
+    // holds more than the grid shows.
     const sheetSize = this.#getSheetDimensions?.();
+    const rows = this.#hot.rowIndexMapper.getNumberOfIndexes();
+    const cols = this.#hot.columnIndexMapper.getNumberOfIndexes();
 
-    if (sheetSize && sheetSize.rows > 0 && sheetSize.cols > 0) {
-      return { rows: sheetSize.rows, cols: sheetSize.cols };
-    }
-
-    return this.#visualGridSize();
+    return {
+      rows: Math.max(rows, sheetSize?.rows ?? 0),
+      cols: Math.max(cols, sheetSize?.cols ?? 0),
+    };
   }
 
   /**
@@ -806,7 +846,7 @@ export class HandsontableAdapter implements IGridAdapter {
    * @returns {string}
    */
   getCellFormula(address: CellAddress): string {
-    return this.#plugin.getRawCellText(address.row, address.col);
+    return this.#readCellText(address.row, address.col);
   }
 
   /**
@@ -1123,7 +1163,7 @@ export class HandsontableAdapter implements IGridAdapter {
     for (const item of items) {
       if (!this.#isSafeColor(item.color)) {
         warn(`FormulaBuilder: ignored a highlight with the unsupported color "${item.color}".`);
-        continue; // eslint-disable-line no-continue
+        continue;
       }
 
       const rowRuns = this.#visualRuns(item.range.start.row, item.range.end.row, hfToVisualRow);
@@ -1393,7 +1433,7 @@ export class HandsontableAdapter implements IGridAdapter {
       const hfIndex = visualToHf(visualIndex);
 
       if (hfIndex < 0) {
-        continue; // eslint-disable-line no-continue
+        continue;
       }
 
       let backgroundColor: string | null = null;
@@ -1426,12 +1466,25 @@ export class HandsontableAdapter implements IGridAdapter {
     hfToVisual: (hfIndex: number) => number,
   ): VisualRun[] {
     if (endHf - startHf > MAX_HF_INDEX_SCAN) {
-      const startVisual = hfToVisual(startHf);
-      const endVisual = hfToVisual(endHf);
+      // Walk inward past trimmed ends: a whole-column reference ends on the last sheet row,
+      // which a filter may have trimmed, and dropping the whole run would highlight nothing.
+      let first = startHf;
+      let last = endHf;
 
-      if (startVisual < 0 || endVisual < 0) {
+      while (first <= last && hfToVisual(first) < 0) {
+        first += 1;
+      }
+
+      while (last >= first && hfToVisual(last) < 0) {
+        last -= 1;
+      }
+
+      if (first > last) {
         return [];
       }
+
+      const startVisual = hfToVisual(first);
+      const endVisual = hfToVisual(last);
 
       return [{ start: Math.min(startVisual, endVisual), end: Math.max(startVisual, endVisual) }];
     }

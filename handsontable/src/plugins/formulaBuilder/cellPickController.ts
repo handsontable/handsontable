@@ -6,8 +6,10 @@ import type {
   HeaderPick,
   RangeDragTracker,
 } from 'hyperformula-ui';
+import { stopImmediatePropagation } from '../../helpers/dom/event';
+import { getDeepActiveElement } from '../../helpers/dom/element';
 import type { HandsontableAdapter } from './handsontableAdapter';
-import type { CoreModule } from './types';
+import type { CoreModule } from './internalTypes';
 
 /**
  * Row/column coordinates in visual space.
@@ -81,18 +83,17 @@ export interface CellPickControllerDeps {
    * @returns {Document}
    */
   getRootDocument(): Document;
-  /**
-   * Disables the DragToScroll plugin while a reference drag is active.
-   */
-  suspendDragToScroll(): void;
-  /**
-   * Re-enables the DragToScroll plugin after a reference drag ends.
-   */
-  resumeDragToScroll(): void;
 }
 
 /**
  * Owns click/drag reference picking on the grid, cells and headers alike.
+ *
+ * A pick claims the whole mouse gesture: its listeners run first (order index `-1`, see the
+ * plugin's `AGENTS.md`), set every flag of the selection controller, and stop the event's
+ * immediate propagation. The core then skips its own selection handling and every
+ * `afterOnCell*` listener - so NestedHeaders never selects a group span under a header pick -
+ * and DragToScroll, which runs later in the same hook, sees the stopped event and stays out of
+ * the drag that the pick's own edge auto-scroller drives.
  *
  * Handsontable reports header coordinates as negative (`{row: -1}` on a column
  * header, `{col: -1}` on a row header, both negative on the corner - bailed on),
@@ -126,6 +127,11 @@ export class CellPickController {
    * Disarms the pending trailing click swallow, when armed.
    */
   #headerClickSwallowCleanup: (() => void) | null = null;
+  /**
+   * Removes the document and window listeners of the active drag, when one is active. They are
+   * bound for the length of a drag only, so an idle grid adds no document `mousemove` listener.
+   */
+  #removeDragListeners: (() => void) | null = null;
 
   /**
    * `beforeOnCellMouseDown` hook listener.
@@ -143,7 +149,7 @@ export class CellPickController {
   ): void => this.#handleBeforeMouseDown(event, coords, eventController);
 
   /**
-   * `beforeOnCellMouseOver` hook listener.
+   * `beforeOnCellMouseOver` and `beforeOnCellMouseOverOutside` hook listener.
    *
    * @param {MouseEvent | undefined} event The mouse event.
    * @param {GridCoords} coords The visual cell coordinates.
@@ -156,24 +162,9 @@ export class CellPickController {
     cellEl: HTMLTableCellElement | undefined,
     eventController: SelectionController,
   ): void => {
-    this.#handleHover(coords, eventController);
-  };
-
-  /**
-   * `beforeOnCellMouseOverOutside` hook listener.
-   *
-   * @param {MouseEvent | undefined} event The mouse event.
-   * @param {GridCoords} coords The visual cell coordinates.
-   * @param {HTMLTableCellElement | undefined} cellEl The hovered cell element.
-   * @param {SelectionController} eventController Handsontable's selection suppressor.
-   */
-  onBeforeMouseOverOutside = (
-    event: MouseEvent | undefined,
-    coords: GridCoords,
-    cellEl: HTMLTableCellElement | undefined,
-    eventController: SelectionController,
-  ): void => {
-    this.#handleHover(coords, eventController);
+    if (this.#handleHover(coords, eventController)) {
+      this.#claim(event);
+    }
   };
 
   /**
@@ -235,10 +226,7 @@ export class CellPickController {
    * Cancels any active drag and disarms the click swallow.
    */
   reset(): void {
-    if (this.#tracker.isActive() || this.#headerTracker.isActive()) {
-      this.#deps.resumeDragToScroll();
-    }
-
+    this.#unlistenDrag();
     this.#tracker.cancel();
     this.#headerTracker.cancel();
     this.#disarmHeaderClickSwallow();
@@ -319,7 +307,7 @@ export class CellPickController {
 
     if (barSelected && coords.row === barSelected.row && coords.col === barSelected.col) {
       this.#suppress(eventController);
-      event?.preventDefault?.();
+      event?.preventDefault();
       this.#deps.emitSwitchToInline();
 
       return;
@@ -338,10 +326,10 @@ export class CellPickController {
     }
 
     this.#suppress(eventController);
-    event?.preventDefault?.();
-    this.#focusBeforePick = this.#deps.getRootDocument().activeElement as HTMLElement | null;
-    this.#deps.suspendDragToScroll();
+    this.#claim(event);
+    this.#focusBeforePick = this.#activeElement();
 
+    this.#listenDrag();
     this.#tracker.begin(
       { sheet: '', col: anchor.col, row: anchor.row },
       Boolean(event?.metaKey || event?.ctrlKey),
@@ -391,11 +379,11 @@ export class CellPickController {
     }
 
     this.#suppress(eventController);
-    event?.preventDefault?.();
-    this.#focusBeforePick = this.#deps.getRootDocument().activeElement as HTMLElement | null;
-    this.#deps.suspendDragToScroll();
+    this.#claim(event);
+    this.#focusBeforePick = this.#activeElement();
 
     this.#headerAxis = axis;
+    this.#listenDrag();
     this.#headerTracker.begin(axis, hfIndex, Boolean(event?.metaKey || event?.ctrlKey));
     this.#armHeaderClickSwallow();
   }
@@ -469,6 +457,8 @@ export class CellPickController {
   #handleDocMouseUp(): void {
     const wasActive = this.#tracker.isActive() || this.#headerTracker.isActive();
 
+    this.#unlistenDrag();
+
     this.#tracker.finish();
     this.#headerTracker.finish();
 
@@ -478,11 +468,66 @@ export class CellPickController {
       (this.#deps.getHostActiveEditor() as { focus?: () => void } | undefined)?.focus?.();
     }
 
-    if (wasActive) {
-      this.#deps.resumeDragToScroll();
+    this.#focusBeforePick = null;
+  }
+
+  /**
+   * Binds the document and window listeners that follow a drag until it ends.
+   */
+  #listenDrag(): void {
+    this.#unlistenDrag();
+
+    const rootDocument = this.#deps.getRootDocument();
+    const rootWindow = rootDocument.defaultView;
+
+    rootDocument.addEventListener('mouseup', this.onDocMouseUp);
+    rootDocument.addEventListener('mousemove', this.onDocMouseMove);
+    rootDocument.addEventListener('scroll', this.onDocScroll, { capture: true });
+    rootWindow?.addEventListener('blur', this.onWindowBlur);
+
+    this.#removeDragListeners = () => {
+      rootDocument.removeEventListener('mouseup', this.onDocMouseUp);
+      rootDocument.removeEventListener('mousemove', this.onDocMouseMove);
+      rootDocument.removeEventListener('scroll', this.onDocScroll, { capture: true });
+      rootWindow?.removeEventListener('blur', this.onWindowBlur);
+    };
+  }
+
+  /**
+   * Removes the listeners the drag bound.
+   */
+  #unlistenDrag(): void {
+    this.#removeDragListeners?.();
+    this.#removeDragListeners = null;
+  }
+
+  /**
+   * Claims the mouse gesture for the pick: keeps the focus in the formula editor and stops the
+   * event, so the core skips its selection handling and the `afterOnCell*` listeners, and
+   * DragToScroll stays out (see the class description).
+   *
+   * @param {MouseEvent | undefined} event The mouse event.
+   */
+  #claim(event: MouseEvent | undefined): void {
+    if (!event) {
+      return;
     }
 
-    this.#focusBeforePick = null;
+    event.preventDefault();
+    stopImmediatePropagation(event);
+  }
+
+  /**
+   * Returns the focused element, looking through open shadow roots - a raw
+   * `document.activeElement` names the shadow host when the grid renders inside one, and
+   * restoring the focus to the host would not reach the editor.
+   *
+   * @returns {HTMLElement | null}
+   */
+  #activeElement(): HTMLElement | null {
+    const element = getDeepActiveElement(this.#deps.getRootDocument());
+
+    return element instanceof HTMLElement ? element : null;
   }
 
   /**
@@ -501,8 +546,9 @@ export class CellPickController {
    *
    * @param {GridCoords} coords The visual cell coordinates.
    * @param {SelectionController} eventController Handsontable's selection suppressor.
+   * @returns {boolean} Whether an active drag claimed the event.
    */
-  #handleHover(coords: GridCoords, eventController: SelectionController): void {
+  #handleHover(coords: GridCoords, eventController: SelectionController): boolean {
     if (this.#headerTracker.isActive() && this.#headerAxis) {
       const axisCoordinate = this.#headerAxis === 'column' ? coords.col : coords.row;
 
@@ -518,37 +564,37 @@ export class CellPickController {
 
       this.#suppress(eventController);
 
-      return;
+      return true;
     }
 
     const adapter = this.#deps.getAdapter();
     const editor = this.#deps.getActiveEditor();
 
     if (!editor || !adapter) {
-      return;
+      return false;
     }
 
     if (!editor.isFormula()) {
-      return;
+      return false;
     }
 
     if (!this.#tracker.isActive() && !editor.isRefSelectionActive()) {
-      return;
+      return false;
     }
 
     this.#suppress(eventController);
 
     if (!this.#tracker.isActive()) {
-      return;
+      return false;
     }
 
     const clamped = { row: Math.max(coords.row, 0), col: Math.max(coords.col, 0) };
     const mapped = this.#deps.toHfCoords(clamped);
 
-    if (mapped.row < 0 || mapped.col < 0) {
-      return;
+    if (mapped.row >= 0 && mapped.col >= 0) {
+      this.#tracker.extendTo({ sheet: '', col: mapped.col, row: mapped.row });
     }
 
-    this.#tracker.extendTo({ sheet: '', col: mapped.col, row: mapped.row });
+    return true;
   }
 }

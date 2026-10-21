@@ -1,7 +1,8 @@
 import type { FormulaEditor } from 'hyperformula-ui';
+import { isImmediatePropagationStopped } from '../../../helpers/dom/event';
 import { CellPickController } from '../cellPickController';
 import type { HandsontableAdapter } from '../handsontableAdapter';
-import type { CoreModule } from '../types';
+import type { CoreModule } from '../internalTypes';
 
 // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
 const core = require('hyperformula-ui') as CoreModule;
@@ -9,6 +10,8 @@ const EPHEMERAL_COLOR = core.EPHEMERAL_COLOR;
 
 afterEach(() => {
   document.body.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+  document.body.replaceChildren();
+  jest.restoreAllMocks();
 });
 
 interface GridCoords {
@@ -90,8 +93,6 @@ function makeHarness(options: HarnessOptions = {}) {
     closeUnbalancedParens,
   };
   const emitSwitchToInline = jest.fn();
-  const suspendDragToScroll = jest.fn();
-  const resumeDragToScroll = jest.fn();
   const controller = new CellPickController({
     core,
     getAdapter: () => (hasAdapter ? (adapterStub as unknown as HandsontableAdapter) : null),
@@ -102,8 +103,6 @@ function makeHarness(options: HarnessOptions = {}) {
     getHostActiveEditor: () => hostActiveEditor,
     getScrollHolder: () => holder as unknown as HTMLElement,
     getRootDocument: () => document,
-    suspendDragToScroll,
-    resumeDragToScroll,
   });
 
   return {
@@ -111,8 +110,6 @@ function makeHarness(options: HarnessOptions = {}) {
     adapterStub,
     emitSwitchToInline,
     holder,
-    suspendDragToScroll,
-    resumeDragToScroll,
     closeUnbalancedParens,
   };
 }
@@ -133,15 +130,15 @@ function makeFlags(): EventFlags {
  * @param {GridCoords} coords The pressed cell coordinates.
  * @param {object} eventInit Extra mouse event fields (ctrlKey/metaKey).
  * @param {EventFlags} flags The event-controller flags passed to the hook.
- * @returns {object} The synthetic event and the flags object.
+ * @returns {object} The mousedown event and the flags object.
  */
 function pressCell(
   controller: CellPickController,
   coords: GridCoords,
-  eventInit: { ctrlKey?: boolean; metaKey?: boolean; clientX?: number; clientY?: number } = {},
+  eventInit: MouseEventInit = {},
   flags = makeFlags(),
 ) {
-  const event = { preventDefault: jest.fn(), ...eventInit };
+  const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true, buttons: 1, ...eventInit });
 
   controller.onBeforeMouseDown(event, coords, undefined, flags);
 
@@ -154,10 +151,16 @@ function pressCell(
  * @param {CellPickController} controller The controller under test.
  * @param {GridCoords} coords The hovered cell coordinates.
  * @param {EventFlags} flags The event-controller flags passed to the hook.
+ * @param {MouseEvent} [event] The mouseover event passed to the hook.
  * @returns {EventFlags} The flags object.
  */
-function hoverCell(controller: CellPickController, coords: GridCoords, flags = makeFlags()) {
-  controller.onBeforeMouseOver(undefined, coords, undefined, flags);
+function hoverCell(
+  controller: CellPickController,
+  coords: GridCoords,
+  flags = makeFlags(),
+  event: MouseEvent | undefined = undefined,
+) {
+  controller.onBeforeMouseOver(event, coords, undefined, flags);
 
   return flags;
 }
@@ -198,7 +201,8 @@ describe('CellPickController.onBeforeMouseDown', () => {
     const { event, flags } = pressCell(controller, { row: -1, col: 2 });
 
     expect(flags).toEqual({ row: false, column: false, cell: false });
-    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+    expect(isImmediatePropagationStopped(event)).toBe(false);
     expect(adapterStub.emitHeaderPick).not.toHaveBeenCalled();
   });
 
@@ -217,7 +221,7 @@ describe('CellPickController.onBeforeMouseDown', () => {
     const { event, flags } = pressCell(controller, { row: 1, col: 2 });
 
     expect(flags).toEqual({ row: true, column: true, cell: true });
-    expect(event.preventDefault).toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(true);
     expect(emitSwitchToInline).toHaveBeenCalledTimes(1);
     expect(adapterStub.highlightRange).not.toHaveBeenCalled();
   });
@@ -227,7 +231,8 @@ describe('CellPickController.onBeforeMouseDown', () => {
     const { event, flags } = pressCell(controller, { row: 1, col: 2 });
 
     expect(flags).toEqual({ row: false, column: false, cell: false });
-    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+    expect(isImmediatePropagationStopped(event)).toBe(false);
     expect(adapterStub.highlightRange).not.toHaveBeenCalled();
   });
 
@@ -343,45 +348,15 @@ describe('CellPickController.onBeforeMouseOver header clamping', () => {
   });
 });
 
-describe('CellPickController.onBeforeMouseOverOutside', () => {
-  /**
-   * Simulates a mouseover outside the rendered grid area.
-   *
-   * @param {CellPickController} controller The controller under test.
-   * @param {GridCoords} coords The edge cell coordinates reported by Handsontable.
-   * @param {EventFlags} flags The event-controller flags passed to the hook.
-   * @returns {EventFlags} The flags object.
-   */
-  function hoverOutside(controller: CellPickController, coords: GridCoords, flags = makeFlags()) {
-    controller.onBeforeMouseOverOutside(undefined, coords, undefined, flags);
+describe('CellPickController.onBeforeMouseOver past the rendered area', () => {
+  // The plugin registers the same listener for `beforeOnCellMouseOver` and
+  // `beforeOnCellMouseOverOutside`; the latter reports the edge cell.
 
-    return flags;
-  }
-
-  it('suppresses native selection extension while a pick is active', () => {
-    const { controller } = makeHarness();
-
-    pressCell(controller, { row: 1, col: 1 });
-
-    const flags = hoverOutside(controller, { row: 5, col: 2 });
-
-    expect(flags).toEqual({ row: true, column: true, cell: true });
-  });
-
-  it('extends the pick range to the outside edge cell', () => {
+  it('extends the pick range to the edge cell reported outside the grid', () => {
     const { controller, adapterStub } = makeHarness();
 
     pressCell(controller, { row: 1, col: 1 });
-    hoverOutside(controller, { row: 5, col: 2 });
-
-    expect(adapterStub.highlightRange).toHaveBeenLastCalledWith(
-      {
-        start: { sheet: '', row: 1, col: 1 },
-        end: { sheet: '', row: 5, col: 2 },
-      },
-      EPHEMERAL_COLOR,
-    );
-
+    hoverCell(controller, { row: 5, col: 2 });
     controller.onDocMouseUp();
 
     expect(adapterStub.emitRangePick).toHaveBeenCalledWith({
@@ -393,12 +368,210 @@ describe('CellPickController.onBeforeMouseOverOutside', () => {
     });
   });
 
-  it('suppresses the event while editing a formula even before a pick starts', () => {
-    const { controller, adapterStub } = makeHarness();
-    const flags = hoverOutside(controller, { row: 5, col: 2 });
+  it('stops the hover event while a cell drag is active', () => {
+    const { controller } = makeHarness();
+    const event = new MouseEvent('mouseover', { cancelable: true });
+
+    pressCell(controller, { row: 1, col: 1 });
+
+    const flags = hoverCell(controller, { row: 5, col: 2 }, makeFlags(), event);
 
     expect(flags).toEqual({ row: true, column: true, cell: true });
+    expect(isImmediatePropagationStopped(event)).toBe(true);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('stops the hover event while a header drag is active', () => {
+    const { controller } = makeHarness();
+    const event = new MouseEvent('mouseover', { cancelable: true });
+
+    pressCell(controller, { row: -1, col: 1 });
+    hoverCell(controller, { row: 3, col: 4 }, makeFlags(), event);
+
+    expect(isImmediatePropagationStopped(event)).toBe(true);
+  });
+
+  it('suppresses native extension but does not stop the event before a drag starts', () => {
+    const { controller, adapterStub } = makeHarness();
+    const event = new MouseEvent('mouseover', { cancelable: true });
+    const flags = hoverCell(controller, { row: 5, col: 2 }, makeFlags(), event);
+
+    expect(flags).toEqual({ row: true, column: true, cell: true });
+    expect(isImmediatePropagationStopped(event)).toBe(false);
+    expect(event.defaultPrevented).toBe(false);
     expect(adapterStub.highlightRange).not.toHaveBeenCalled();
+  });
+
+  it('does not stop the hover event after the drag finished', () => {
+    const { controller } = makeHarness();
+    const event = new MouseEvent('mouseover', { cancelable: true });
+
+    pressCell(controller, { row: 1, col: 1 });
+    controller.onDocMouseUp();
+    hoverCell(controller, { row: 5, col: 2 }, makeFlags(), event);
+
+    expect(isImmediatePropagationStopped(event)).toBe(false);
+  });
+
+  it('extends a cell drag to a hover at row 0 and column 0', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 3, col: 3 });
+    hoverCell(controller, { row: 0, col: 0 });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitRangePick).toHaveBeenCalledWith({
+      ref: {
+        start: { sheet: '', row: 0, col: 0 },
+        end: { sheet: '', row: 3, col: 3 },
+      },
+      append: false,
+    });
+  });
+});
+
+describe('CellPickController gesture claim', () => {
+  it('prevents the default and stops the immediate propagation of a cell pick mousedown', () => {
+    const { controller } = makeHarness();
+    const { event } = pressCell(controller, { row: 1, col: 2 });
+
+    // A stopped event makes the core skip its selection and DragToScroll stay out.
+    expect(event.defaultPrevented).toBe(true);
+    expect(isImmediatePropagationStopped(event)).toBe(true);
+  });
+
+  it('prevents the default and stops the immediate propagation of a header pick mousedown', () => {
+    const { controller } = makeHarness();
+    const { event } = pressCell(controller, { row: -1, col: 2 });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(isImmediatePropagationStopped(event)).toBe(true);
+  });
+
+  it('does not stop a mousedown that falls through to native handling', () => {
+    const { controller } = makeHarness({ refSelectionActive: false });
+    const { event } = pressCell(controller, { row: 1, col: 2 });
+
+    expect(isImmediatePropagationStopped(event)).toBe(false);
+  });
+
+  it('does not stop a mousedown whose cell cannot be mapped to HyperFormula space', () => {
+    const { controller, adapterStub } = makeHarness({ rowOffset: -10 });
+    const { event, flags } = pressCell(controller, { row: 1, col: 2 });
+
+    expect(isImmediatePropagationStopped(event)).toBe(false);
+    expect(flags).toEqual({ row: false, column: false, cell: false });
+    expect(adapterStub.highlightRange).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [{ row: 0, col: 1 }],
+    [{ row: 1, col: 0 }],
+    [{ row: 0, col: 0 }],
+  ])('treats a press at %p as a cell pick, not a header pick', (coords) => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, coords);
+
+    expect(controller.isHeaderPickActive()).toBe(false);
+
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitCellPick).toHaveBeenCalledWith({
+      ref: { sheet: '', row: coords.row, col: coords.col },
+      append: false,
+    });
+    expect(adapterStub.emitHeaderPick).not.toHaveBeenCalled();
+  });
+});
+
+describe('CellPickController drag listeners', () => {
+  /**
+   * Lists the event types bound on a target through the spied method.
+   *
+   * @param {jest.SpyInstance} spy The `addEventListener`/`removeEventListener` spy.
+   * @returns {string[]}
+   */
+  function typesOf(spy: jest.SpyInstance): string[] {
+    return spy.mock.calls.map(call => call[0] as string);
+  }
+
+  it('adds no document or window listener while idle', () => {
+    const documentAdd = jest.spyOn(document, 'addEventListener');
+    const windowAdd = jest.spyOn(window, 'addEventListener');
+    const { controller } = makeHarness({ refSelectionActive: false });
+
+    // An ineligible press and a hover do not start a drag either.
+    pressCell(controller, { row: 1, col: 2 });
+    hoverCell(controller, { row: 2, col: 2 });
+
+    expect(typesOf(documentAdd)).not.toContain('mousemove');
+    expect(typesOf(documentAdd)).not.toContain('mouseup');
+    expect(typesOf(documentAdd)).not.toContain('scroll');
+    expect(typesOf(windowAdd)).not.toContain('blur');
+  });
+
+  it.each([
+    ['a cell drag', { row: 1, col: 1 }],
+    ['a header drag', { row: -1, col: 1 }],
+  ])('binds mouseup, mousemove, capture scroll and window blur for %s and removes them on finish', (
+    _label,
+    coords,
+  ) => {
+    const documentAdd = jest.spyOn(document, 'addEventListener');
+    const documentRemove = jest.spyOn(document, 'removeEventListener');
+    const windowAdd = jest.spyOn(window, 'addEventListener');
+    const windowRemove = jest.spyOn(window, 'removeEventListener');
+    const { controller } = makeHarness();
+
+    pressCell(controller, coords);
+
+    expect(documentAdd).toHaveBeenCalledWith('mouseup', controller.onDocMouseUp);
+    expect(documentAdd).toHaveBeenCalledWith('mousemove', controller.onDocMouseMove);
+    expect(documentAdd).toHaveBeenCalledWith('scroll', controller.onDocScroll, { capture: true });
+    expect(windowAdd).toHaveBeenCalledWith('blur', controller.onWindowBlur);
+    expect(documentRemove).not.toHaveBeenCalledWith('mousemove', controller.onDocMouseMove);
+
+    document.dispatchEvent(new MouseEvent('mouseup'));
+
+    expect(documentRemove).toHaveBeenCalledWith('mouseup', controller.onDocMouseUp);
+    expect(documentRemove).toHaveBeenCalledWith('mousemove', controller.onDocMouseMove);
+    expect(documentRemove).toHaveBeenCalledWith('scroll', controller.onDocScroll, { capture: true });
+    expect(windowRemove).toHaveBeenCalledWith('blur', controller.onWindowBlur);
+  });
+
+  it('finishes the pick through the bound document mouseup listener', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 2, col: 3 });
+    document.dispatchEvent(new MouseEvent('mouseup'));
+
+    expect(adapterStub.emitCellPick).toHaveBeenCalledWith({
+      ref: { sheet: '', row: 2, col: 3 },
+      append: false,
+    });
+
+    // The listener is gone: a later document mouseup re-enters nothing.
+    document.dispatchEvent(new MouseEvent('mouseup'));
+
+    expect(adapterStub.emitCellPick).toHaveBeenCalledTimes(1);
+  });
+
+  it('removes the drag listeners on reset', () => {
+    const documentRemove = jest.spyOn(document, 'removeEventListener');
+    const windowRemove = jest.spyOn(window, 'removeEventListener');
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 2, col: 3 });
+    controller.reset();
+
+    expect(documentRemove).toHaveBeenCalledWith('mousemove', controller.onDocMouseMove);
+    expect(documentRemove).toHaveBeenCalledWith('mouseup', controller.onDocMouseUp);
+    expect(windowRemove).toHaveBeenCalledWith('blur', controller.onWindowBlur);
+
+    document.dispatchEvent(new MouseEvent('mouseup'));
+
+    expect(adapterStub.emitCellPick).not.toHaveBeenCalled();
   });
 });
 
@@ -495,36 +668,6 @@ describe('CellPickController autoscroll', () => {
   function moveTo(controller: CellPickController, x: number, y: number) {
     controller.onDocMouseMove({ clientX: x, clientY: y, buttons: 1 } as MouseEvent);
   }
-
-  it('suspends drag-to-scroll when a pick starts and resumes it on mouseup', () => {
-    const { controller, suspendDragToScroll, resumeDragToScroll } = makeHarness();
-
-    pressCell(controller, { row: 1, col: 1 });
-
-    expect(suspendDragToScroll).toHaveBeenCalledTimes(1);
-    expect(resumeDragToScroll).not.toHaveBeenCalled();
-
-    controller.onDocMouseUp();
-
-    expect(resumeDragToScroll).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not suspend drag-to-scroll when ref selection is inactive', () => {
-    const { controller, suspendDragToScroll } = makeHarness({ refSelectionActive: false });
-
-    pressCell(controller, { row: 1, col: 1 });
-
-    expect(suspendDragToScroll).not.toHaveBeenCalled();
-  });
-
-  it('resumes drag-to-scroll when the pick is reset', () => {
-    const { controller, resumeDragToScroll } = makeHarness();
-
-    pressCell(controller, { row: 1, col: 1 });
-    controller.reset();
-
-    expect(resumeDragToScroll).toHaveBeenCalledTimes(1);
-  });
 
   it('scrolls the holder down when the pointer moves below it', () => {
     const { controller, holder } = makeHarness();
@@ -674,7 +817,7 @@ describe('CellPickController header picking', () => {
     controller.onDocMouseUp();
 
     expect(flags).toEqual({ row: true, column: true, cell: true });
-    expect(event.preventDefault).toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(true);
     expect(adapterStub.emitHeaderPick).toHaveBeenCalledWith({
       axis: 'column',
       sheet: '',
@@ -727,6 +870,93 @@ describe('CellPickController header picking', () => {
       sheet: '',
       start: 5,
       end: 5,
+      append: false,
+    });
+  });
+});
+
+describe('CellPickController header picking modifiers and axes', () => {
+  it.each([
+    ['Ctrl', { ctrlKey: true }],
+    ['Meta', { metaKey: true }],
+  ])('sets append on a header pick pressed with %s', (_label, modifiers) => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: -1, col: 2 }, modifiers);
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitHeaderPick).toHaveBeenCalledWith({
+      axis: 'column',
+      sheet: '',
+      start: 2,
+      end: 2,
+      append: true,
+    });
+  });
+
+  it('extends a row header drag along the row axis through a body hover', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 2, col: -1 });
+    hoverCell(controller, { row: 5, col: 6 });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitHeaderPick).toHaveBeenCalledWith({
+      axis: 'row',
+      sheet: '',
+      start: 2,
+      end: 5,
+      append: false,
+    });
+  });
+
+  it('keeps a row header drag in place over a column header and still suppresses', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 2, col: -1 });
+
+    const flags = hoverCell(controller, { row: -1, col: 3 });
+
+    controller.onDocMouseUp();
+
+    expect(flags).toEqual({ row: true, column: true, cell: true });
+    expect(adapterStub.emitHeaderPick).toHaveBeenCalledWith({
+      axis: 'row',
+      sheet: '',
+      start: 2,
+      end: 2,
+      append: false,
+    });
+  });
+
+  it('extends a column header drag to column 0', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: -1, col: 3 });
+    hoverCell(controller, { row: -1, col: 0 });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitHeaderPick).toHaveBeenCalledWith({
+      axis: 'column',
+      sheet: '',
+      start: 0,
+      end: 3,
+      append: false,
+    });
+  });
+
+  it('extends a row header drag to row 0', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: 3, col: -1 });
+    hoverCell(controller, { row: 0, col: -1 });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitHeaderPick).toHaveBeenCalledWith({
+      axis: 'row',
+      sheet: '',
+      start: 0,
+      end: 3,
       append: false,
     });
   });
@@ -886,6 +1116,30 @@ describe('CellPickController header pick focus restore', () => {
     expect(document.activeElement).toBe(barInput);
     expect(hostFocus).not.toHaveBeenCalled();
     barInput.remove();
+  });
+});
+
+describe('CellPickController focus restore inside a shadow root', () => {
+  it('restores the focus to the element inside an open shadow root, not to its host', () => {
+    const { controller } = makeHarness();
+    const host = document.createElement('div');
+    const shadowRoot = host.attachShadow({ mode: 'open' });
+    const innerInput = document.createElement('input');
+    const stealingInput = document.createElement('input');
+
+    shadowRoot.appendChild(innerInput);
+    document.body.append(host, stealingInput);
+    innerInput.focus();
+
+    // The document reports the host; only the shadow root knows the real target.
+    expect(document.activeElement).toBe(host);
+
+    pressCell(controller, { row: 1, col: 1 });
+    stealingInput.focus();
+    controller.onDocMouseUp();
+
+    expect(document.activeElement).toBe(host);
+    expect(shadowRoot.activeElement).toBe(innerInput);
   });
 });
 

@@ -1,58 +1,92 @@
-import type { LayoutDirection, PopupsOptions } from 'hyperformula-ui';
+/**
+ * The public types of the FormulaBuilder plugin.
+ *
+ * Nothing here imports `hyperformula-ui`: the package is a devDependency of Handsontable, so a
+ * published declaration that named it would fail to resolve (TS2307) in every application that
+ * does not install it. The shapes below mirror the package's own types, and
+ * `__tests__/formulaBuilder.types.ts` asserts that both directions stay assignable, so a package
+ * change that breaks the mirror fails the type tests instead of reaching users.
+ */
 
 /**
- * The `hyperformula-ui` module namespace, injected through the plugin settings so the
- * Handsontable bundle never imports the package at runtime.
+ * A one-cell step direction (a commit with Enter, Shift+Enter, Tab, or Shift+Tab).
  */
-export type CoreModule = typeof import('hyperformula-ui');
+export type FormulaBuilderStepDirection = 'up' | 'down' | 'left' | 'right';
 
 /**
- * Structural shape of a Walkontable overlay as consumed by the adapter.
+ * The layout direction of the formula editor and its popups.
  */
-export interface OverlayLike {
+export type FormulaBuilderLayoutDirection = 'ltr' | 'rtl';
+
+/**
+ * Docks a popup into a host container instead of the floating overlay.
+ */
+export interface FormulaBuilderPopupHostOption {
   /**
-   * The overlay scroll holder element (`window` for the master overlay of a window-scrolled grid).
+   * The host element, or a CSS selector that resolves to it. Omit it to keep the popup floating.
    */
-  holder: HTMLElement | Window;
-  /**
-   * The overlay clone giving access to the cloned table root element.
-   */
-  clone: { wtTable: { wtRootElement: HTMLElement } } | null;
+  container?: HTMLElement | string;
 }
 
 /**
- * Bidirectional index translation between the visual grid space and the
- * HyperFormula (source) space, built from the Formulas plugin axis syncers.
+ * The autocomplete popup options.
  */
-export interface VisualHfIndexMapping {
+export interface FormulaBuilderSuggestionsOptions extends FormulaBuilderPopupHostOption {
   /**
-   * Maps a visual row index to its HyperFormula row index (`-1` when unresolvable).
-   *
-   * @param {number} visualRow The visual row index.
-   * @returns {number}
+   * Shows the keyboard-hints footer. Defaults to `true`.
    */
-  visualToHfRow(visualRow: number): number;
+  showKeyboardHelp?: boolean;
   /**
-   * Maps a visual column index to its HyperFormula column index (`-1` when unresolvable).
-   *
-   * @param {number} visualCol The visual column index.
-   * @returns {number}
+   * Shows the close button. Defaults to `false`.
    */
-  visualToHfCol(visualCol: number): number;
+  showClose?: boolean;
   /**
-   * Maps a HyperFormula row index to its visual row index (`-1` when trimmed).
-   *
-   * @param {number} hfRow The HyperFormula row index.
-   * @returns {number}
+   * Includes named expressions among the suggestions. Defaults to `true`.
    */
-  hfToVisualRow(hfRow: number): number;
+  showNamedExpressions?: boolean;
+}
+
+/**
+ * The function help popup options.
+ */
+export interface FormulaBuilderFunctionHelpOptions extends FormulaBuilderPopupHostOption {
   /**
-   * Maps a HyperFormula column index to its visual column index (`-1` when trimmed).
-   *
-   * @param {number} hfCol The HyperFormula column index.
-   * @returns {number}
+   * Shows the close button. Defaults to `false`.
    */
-  hfToVisualCol(hfCol: number): number;
+  showClose?: boolean;
+}
+
+/**
+ * The error popup options.
+ */
+export interface FormulaBuilderErrorPopupOptions {
+  /**
+   * Shows the close button. Defaults to `false`.
+   */
+  showClose?: boolean;
+}
+
+/**
+ * The `popups` option of the plugin. The top-level `showClose` is the default that each popup
+ * can override.
+ */
+export interface FormulaBuilderPopupsOptions {
+  /**
+   * Shows the close button on every popup that does not set its own.
+   */
+  showClose?: boolean;
+  /**
+   * The autocomplete popup options.
+   */
+  suggestions?: FormulaBuilderSuggestionsOptions;
+  /**
+   * The function help popup options.
+   */
+  fnHelp?: FormulaBuilderFunctionHelpOptions;
+  /**
+   * The error popup options.
+   */
+  error?: FormulaBuilderErrorPopupOptions;
 }
 
 /**
@@ -60,7 +94,7 @@ export interface VisualHfIndexMapping {
  */
 export interface FormulaBuilderPluginSettings {
   /**
-   * The `hyperformula-ui` module namespace (its `FormulaBuilder` class plus runtime utilities).
+   * The `hyperformula-ui` module namespace (`import * as FormulaBuilderModule from 'hyperformula-ui'`).
    */
   builder: unknown;
   /**
@@ -68,11 +102,33 @@ export interface FormulaBuilderPluginSettings {
    */
   showFormulaBar?: boolean;
   /**
-   * Popup behavior options forwarded to the formula editor.
+   * The popup options forwarded to the formula editor.
    */
-  popups?: PopupsOptions;
+  popups?: FormulaBuilderPopupsOptions;
   /**
-   * Layout direction override forwarded to the formula editor.
+   * The layout direction of the formula editor and its popups. Defaults to the grid's layout direction.
    */
-  direction?: LayoutDirection;
+  direction?: FormulaBuilderLayoutDirection;
+}
+
+/**
+ * The part of the live formula editor the plugin exposes.
+ */
+export interface FormulaEditorHandle {
+  /**
+   * Moves the focus into the editor.
+   */
+  focus(): void;
+  /**
+   * Returns the editor text.
+   */
+  getValue(): string;
+  /**
+   * Replaces the editor text.
+   */
+  setValue(value: string): void;
+  /**
+   * Appends the closing parentheses an unfinished formula is missing.
+   */
+  closeUnbalancedParens(): void;
 }

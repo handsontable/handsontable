@@ -1,5 +1,10 @@
 import { BasePlugin } from '../base';
-import { getFirstChangedTouch, getTouchPointById, isRightClick } from '../../helpers/dom/event';
+import {
+  getFirstChangedTouch,
+  getTouchPointById,
+  isImmediatePropagationStopped,
+  isRightClick,
+} from '../../helpers/dom/event';
 import { getParentWindow } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { AutoScroller } from './autoScroller';
@@ -154,6 +159,14 @@ export class DragToScroll extends BasePlugin {
     });
 
     this.addHook('beforeOnCellMouseDown', (event: MouseEvent, _coords: unknown, _TD: unknown, controller: unknown) => {
+      // A listener that stopped the event owns the gesture: the core skips its selection handling
+      // for it, so there is no selection to extend, and the owner scrolls on its own if it needs
+      // to (the FormulaBuilder reference drag runs its own edge auto-scroller). Listening anyway
+      // would scroll the viewport a second time on every tick of that drag.
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
+
       const typedController = (typeof controller === 'object' && controller !== null)
         ? controller as { row?: boolean; column?: boolean }
         : null;

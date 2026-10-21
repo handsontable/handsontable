@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../../../core/types';
-import type { VisualHfIndexMapping } from '../../types';
+import type { VisualHfIndexMapping } from '../../internalTypes';
 import type {
   FormulaBuilderPluginLike,
   HandsontableAdapterOptions,
@@ -10,6 +10,7 @@ import type {
  */
 export interface IndexMapperStub {
   getRenderableFromVisualIndex: (visualIndex: number) => number | null;
+  getNumberOfIndexes: () => number;
 }
 
 /**
@@ -225,8 +226,14 @@ export function makeHotStub(overrides: Partial<HotStubShape> = {}): HotInstance 
     getActiveEditor: () => undefined,
     getSelectedRangeLast: () => undefined,
     getCellMetaTransient: () => ({}),
-    rowIndexMapper: { getRenderableFromVisualIndex: (visualIndex: number) => visualIndex },
-    columnIndexMapper: { getRenderableFromVisualIndex: (visualIndex: number) => visualIndex },
+    rowIndexMapper: {
+      getRenderableFromVisualIndex: (visualIndex: number) => visualIndex,
+      getNumberOfIndexes: () => 0,
+    },
+    columnIndexMapper: {
+      getRenderableFromVisualIndex: (visualIndex: number) => visualIndex,
+      getNumberOfIndexes: () => 0,
+    },
     addHook: () => undefined,
     removeHook: () => undefined,
     render: () => undefined,
@@ -277,7 +284,6 @@ export function makePluginStub(): FormulaBuilderPluginLike {
   return {
     getActiveFormulaCell: () => null,
     onFormulaCellSelection: () => () => undefined,
-    getRawCellText: () => '',
     onInlineEditStart: () => () => undefined,
     onEditorClose: () => () => undefined,
     onSwitchToInline: () => () => undefined,
@@ -296,12 +302,14 @@ export function makePluginStub(): FormulaBuilderPluginLike {
  * @param {HotInstance} hot The Handsontable stub.
  * @param {HTMLElement} overlayHost The overlay host element.
  * @param {Partial<VisualHfIndexMapping>} mappingOverrides Index-mapping overrides.
+ * @param {Partial<HandsontableAdapterOptions>} optionOverrides Other option overrides.
  * @returns {HandsontableAdapterOptions}
  */
 export function makeAdapterOptions(
   hot: HotInstance,
   overlayHost: HTMLElement,
   mappingOverrides: Partial<VisualHfIndexMapping> = {},
+  optionOverrides: Partial<HandsontableAdapterOptions> = {},
 ): HandsontableAdapterOptions {
   // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
   const core = require('hyperformula-ui');
@@ -312,5 +320,7 @@ export function makeAdapterOptions(
     sheetName: '',
     core,
     indexMapping: makeIdentityMapping(mappingOverrides),
+    readCellText: () => '',
+    ...optionOverrides,
   };
 }

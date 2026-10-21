@@ -1,28 +1,85 @@
 import type {
-  Direction,
-  EventManager,
-  EventScope,
   FormulaBuilder as FormulaBuilderCore,
   FormulaEditor,
   HyperFormulaLike,
-  Unsubscribe,
 } from 'hyperformula-ui';
 import { BasePlugin } from '../base';
 import { warn } from '../../helpers/console';
-import { throwWithCause } from '../../helpers/errors';
+import { isObject } from '../../helpers/object';
 import { isRootInstance } from '../../utils/rootInstance';
+import type { HotInstance } from '../../core/types';
+import type { PluginTypeMap } from '../types';
+import type { CellProperties } from '../../settings';
 import { CellPickController } from './cellPickController';
-import { EDITING_CELL_CLASS, isFormulaEditor, registerFormulaEditor } from './formulaCellEditor';
-import { HandsontableAdapter } from './handsontableAdapter';
-import type { CoreModule, FormulaBuilderPluginSettings } from './types';
+import {
+  EDITING_CELL_CLASS,
+  FORMULA_EDITOR_ALIAS,
+  isFormulaEditor,
+  registerFormulaEditor,
+  type FormulaHostEditor,
+} from './formulaCellEditor';
+import { HandsontableAdapter, setFormulaBuilderAdapter } from './handsontableAdapter';
+import { REQUIRED_CORE_MEMBERS, type CoreModule } from './internalTypes';
+import type {
+  FormulaBuilderLayoutDirection,
+  FormulaBuilderPluginSettings,
+  FormulaBuilderPopupsOptions,
+  FormulaBuilderStepDirection,
+  FormulaEditorHandle,
+} from './types';
 
 export const PLUGIN_KEY = 'formulaBuilder';
 export const PLUGIN_PRIORITY = 265;
+
+type Formulas = PluginTypeMap['formulas'];
 
 const FORMULA_BAR_SLOT_KEY = 'formulaBuilder';
 const FALLBACK_SCAN_CELL_CAP = 10000;
 const FORMULA_BAR_SLOT_WEIGHT = 100;
 const FORMULA_BAR_CLASS = 'ht-formula-builder__formula-bar';
+/**
+ * The order index of the plugin's cell mouse listeners. A reference pick has to see a mousedown
+ * before every other listener (NestedHeaders, ColumnSorting, DragToScroll, ...), because it
+ * claims the gesture by stopping the event. Plugin priority orders only the FIRST enable: a
+ * later `updatePlugin()` re-registers the hooks at the tail of each list, which is how the pick
+ * used to lose to NestedHeaders after a theme switch. An order index survives re-registration.
+ */
+const CELL_MOUSE_HOOK_ORDER = -1;
+/**
+ * The attribute `hyperformula-ui` writes on a cell it marks as an error.
+ */
+const CELL_ERROR_ATTRIBUTE = 'data-hfe-error';
+
+/**
+ * A selection range in visual coordinates.
+ */
+interface VisualRange {
+  startRow: number;
+  startCol: number;
+  endRow: number;
+  endCol: number;
+}
+
+/**
+ * A formula-cell selection reported to the formula bar.
+ */
+interface FormulaCellSelection {
+  active: { row: number; col: number };
+  range: VisualRange;
+}
+
+/**
+ * The settings the enabled plugin was built from, compared on every `updatePlugin()` so a
+ * settings update that changes none of them (a React or Angular re-render re-sends every prop
+ * with a new object) keeps the built plugin, its formula bar, and any open edit.
+ */
+interface AppliedConfig {
+  core: unknown;
+  showFormulaBar: boolean;
+  direction: FormulaBuilderLayoutDirection | undefined;
+  popups: FormulaBuilderPopupsOptions | undefined;
+  engine: unknown;
+}
 
 /**
  * A minimal listener registry with unsubscribe semantics.
@@ -67,46 +124,50 @@ class ListenerSet<TArgs extends unknown[] = []> {
 }
 
 /**
- * The Formulas plugin surface consumed by this plugin.
+ * Compares two settings values: plain objects and arrays by content, everything else (an
+ * element, a function, a module namespace) by identity.
+ *
+ * @param {unknown} first The first value.
+ * @param {unknown} second The second value.
+ * @returns {boolean}
  */
-interface FormulasPluginLike {
-  enabled: boolean;
-  engine: HyperFormulaLike & {
-    getCellValue(addr: { sheet: number; row: number; col: number }): unknown;
-    getCellFormula(addr: { sheet: number; row: number; col: number }): string | undefined;
-    getCellSerialized(addr: { sheet: number; row: number; col: number }): unknown;
-    getSheetDimensions?(sheetId: number): { width: number; height: number };
-  } | null;
-  sheetId: number | null;
-  rowAxisSyncer: {
-    getHfIndexFromVisualIndex(visualIndex: number): number;
-    getVisualIndexFromHfIndex(hfIndex: number): number;
-  } | null;
-  columnAxisSyncer: {
-    getHfIndexFromVisualIndex(visualIndex: number): number;
-    getVisualIndexFromHfIndex(hfIndex: number): number;
-  } | null;
+function isSameSettingValue(first: unknown, second: unknown): boolean {
+  if (first === second) {
+    return true;
+  }
+
+  if (Array.isArray(first) && Array.isArray(second)) {
+    return first.length === second.length &&
+      first.every((item, index) => isSameSettingValue(item, second[index]));
+  }
+
+  if (!isObject(first) || !isObject(second) || Array.isArray(first) || Array.isArray(second)) {
+    return false;
+  }
+
+  const firstObject = first as Record<string, unknown>;
+  const secondObject = second as Record<string, unknown>;
+  const keys = Object.keys(firstObject);
+
+  return keys.length === Object.keys(secondObject).length &&
+    keys.every(key => isSameSettingValue(firstObject[key], secondObject[key]));
 }
 
 /**
- * Handsontable's active editor surface consumed by this plugin.
+ * Lists the module members the plugin needs that the given `builder` value does not provide.
+ *
+ * @param {unknown} core The `builder` setting value.
+ * @returns {string[]}
  */
-interface HotEditorLike {
-  row?: number;
-  col?: number;
-  _hfeHidden?: boolean;
-  refreshDimensions?(force?: boolean): void;
-  setValue?(value: string): void;
-  finishEditing?(restoreOriginal?: boolean, ctrlDown?: boolean, callback?: () => void): void;
-}
+function findMissingCoreMembers(core: unknown): string[] {
+  // A module namespace (`import * as`) is not a plain object, so `isObject()` would reject it.
+  if (typeof core !== 'object' || core === null) {
+    return [...REQUIRED_CORE_MEMBERS];
+  }
 
-/**
- * Index mapper surface used for hidden-row/column-aware directional commit.
- */
-interface IndexMapperLike {
-  getRenderableFromVisualIndex(visualIndex: number): number | null;
-  getVisualFromRenderableIndex(renderableIndex: number): number | null;
-  getRenderableIndexesLength(): number;
+  const members = core as Record<string, unknown>;
+
+  return REQUIRED_CORE_MEMBERS.filter(name => typeof members[name] !== 'function');
 }
 
 /**
@@ -114,7 +175,7 @@ interface IndexMapperLike {
  * @class FormulaBuilder
  *
  * @description
- * This plugin provides a spreadsheet-grade formula editing experience on top of the
+ * This plugin provides a spreadsheet-style formula editing experience on top of the
  * {@link Formulas} plugin: a formula bar, an inline formula cell editor with colored
  * references, cell/range/header reference picking by mouse or keyboard, and formula
  * error indicators rendered in the grid.
@@ -126,6 +187,8 @@ interface IndexMapperLike {
  * selections), so they follow frozen panes, scrolling, and hidden or reordered rows
  * and columns natively, and the plugin leaves the grid root element's inline styles
  * untouched.
+ *
+ * Every row and column index the public methods take or return is a visual index.
  *
  * @example
  * ::: only-for javascript
@@ -177,6 +240,14 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
+   * The editor aliases the plugin provides. `validateSettings()` accepts them for a registered
+   * plugin before any grid exists, while the editor registry learns them from the first instance.
+   */
+  static get EDITORS() {
+    return [FORMULA_EDITOR_ALIAS];
+  }
+
+  /**
    * Returns the setting keys that, when present in an `updateSettings` config object, trigger
    * the plugin update. `formulas` is included because the plugin borrows the engine from the
    * Formulas plugin at enable time - a Formulas reconfiguration must re-run the enable cycle
@@ -191,23 +262,27 @@ export class FormulaBuilder extends BasePlugin {
    */
   #core: CoreModule | null = null;
   /**
-   * The grid adapter (created lazily, destroyed on disable).
+   * The grid adapter (created on enable, destroyed on disable).
    */
   #adapter: HandsontableAdapter | null = null;
   /**
-   * The core `FormulaBuilder` facade instance (set while enabled).
+   * The `hyperformula-ui` `FormulaBuilder` instance (set while enabled).
    */
   #builder: FormulaBuilderCore | null = null;
   /**
-   * The engine borrowed from the Formulas plugin (set while enabled).
+   * The Formulas plugin instance. It is stable for the instance's lifetime; its engine, sheet id,
+   * and axis syncers are read per call, so a Formulas re-enable never leaves stale references.
    */
-  #engine: NonNullable<FormulasPluginLike['engine']> | null = null;
+  #formulas: Formulas | null = null;
   /**
-   * The Formulas plugin instance, resolved once per enable cycle. The instance is
-   * stable for the Handsontable lifetime; its syncer/sheetId FIELDS are read per
-   * call so a Formulas re-enable never leaves stale references here.
+   * The settings the enabled plugin was built from (see {@link AppliedConfig}).
    */
-  #formulas: FormulasPluginLike | null = null;
+  #appliedConfig: AppliedConfig | null = null;
+  /**
+   * The engine sheet id the builder was constructed with. The builder cannot be re-pointed at
+   * another sheet, so it is rebuilt when the Formulas plugin binds the grid to a different one.
+   */
+  #builtSheetId: number | null = null;
   /**
    * The formula bar host element registered in the top layout slot, or `null`.
    */
@@ -217,7 +292,7 @@ export class FormulaBuilder extends BasePlugin {
    */
   #selected = { row: 0, col: 0 };
   /**
-   * The live core formula editor, or `null` when not editing.
+   * The live formula editor, or `null` when not editing.
    */
   #activeEditor: FormulaEditor | null = null;
   /**
@@ -227,12 +302,7 @@ export class FormulaBuilder extends BasePlugin {
   /**
    * The selected range the formula bar tracks, in visual coordinates.
    */
-  #barSelectedRange: {
-    startRow: number;
-    startCol: number;
-    endRow: number;
-    endCol: number;
-  } | null = null;
+  #barSelectedRange: VisualRange | null = null;
   /**
    * Dedupe key for bar selection emits (anchor + focus + active together).
    */
@@ -245,24 +315,13 @@ export class FormulaBuilder extends BasePlugin {
     activeCol: number;
   } | null = null;
   /**
-   * Whether the DragToScroll plugin was suspended for a reference drag.
-   */
-  #dragToScrollSuspended = false;
-  /**
    * Click/drag reference picking controller (created on enable).
    */
   #cellPick: CellPickController | null = null;
   /**
    * Bar selection listeners.
    */
-  readonly #barSelectionListeners = new ListenerSet<
-    [
-      {
-        active: { row: number; col: number };
-        range: { startRow: number; startCol: number; endRow: number; endCol: number };
-      } | null,
-    ]
-  >();
+  readonly #barSelectionListeners = new ListenerSet<[FormulaCellSelection | null]>();
   /**
    * Tracked-selection listeners.
    */
@@ -280,180 +339,29 @@ export class FormulaBuilder extends BasePlugin {
    */
   readonly #switchToInlineListeners = new ListenerSet();
   /**
-   * The plugin's DOM event manager (created from the injected core module on enable).
+   * Removes the scroll listener that re-anchors the inline editor during an edit session.
    */
-  #events: EventManager | null = null;
+  #removeInlineScrollListener: (() => void) | null = null;
   /**
-   * Scroll listener scope active while an inline edit session runs.
+   * Whether a scroll re-anchor of the inline editor is queued for the next animation frame.
    */
-  #inlineScrollScope: EventScope | null = null;
+  #reanchorQueued = false;
   /**
-   * The theme class name captured at enable time (compared in `afterSetTheme`).
+   * The theme class name the builder was constructed with (compared in `afterSetTheme`).
    */
   #currentThemeClassName: string | undefined;
 
   /**
-   * `afterRenderer` hook listener - marks the edited cell and renders error indicators.
-   *
-   * @param {HTMLTableCellElement} cellEl The rendered cell element.
-   * @param {number} row The visual row index.
-   * @param {number} col The visual column index.
+   * @param {HotInstance} hotInstance The Handsontable instance.
    */
-  #onAfterRenderer = (cellEl: HTMLTableCellElement, row: number, col: number): void => {
-    if (this.#activeEditor) {
-      const hostEditor = this.#hostEditor();
-
-      if (
-        hostEditor &&
-        !hostEditor._hfeHidden &&
-        hostEditor.row === row &&
-        hostEditor.col === col
-      ) {
-        cellEl.classList.add(EDITING_CELL_CLASS);
-      }
-    }
-
-    if (row < 0 || col < 0 || !this.#engine || !this.#isFormulaCell(row, col)) {
-      return;
-    }
-
-    const hfRow = this.#visualToHfRow(row);
-    const hfCol = this.#visualToHfCol(col);
-
-    if (hfRow < 0 || hfCol < 0) {
-      return;
-    }
-
-    const cellValue = this.#engine.getCellValue({ sheet: this.#sheetId, row: hfRow, col: hfCol });
-
-    this.#builder?.markCell(cellEl, cellValue);
-  };
-
-  /**
-   * `afterSelectionEnd` hook listener - moves the tracked selection after a
-   * completed selection gesture.
-   *
-   * @param {number} anchorRow The anchor visual row index.
-   * @param {number} anchorCol The anchor visual column index.
-   * @param {number} focusRow The focus visual row index.
-   * @param {number} focusCol The focus visual column index.
-   */
-  #onAfterSelectionEnd = (
-    anchorRow: number,
-    anchorCol: number,
-    focusRow: number,
-    focusCol: number,
-  ): void => {
-    if (this.#isEditing()) {
-      return;
-    }
-
-    const formulaCell = this.#emitBarSelection(anchorRow, anchorCol, focusRow, focusCol);
-
-    if (!formulaCell) {
-      return;
-    }
-
-    this.setSelected(anchorRow, anchorCol);
-  };
-
-  /**
-   * `afterDeselect` hook listener - clears the bar selection (and the dedupe key).
-   */
-  #onAfterDeselect = (): void => {
-    if (this.#isEditing()) {
-      return;
-    }
-
-    this.#lastEmittedSelectionCoords = null;
-    this.#barSelected = null;
-    this.#barSelectedRange = null;
-    this.#barSelectionListeners.emit(null);
-  };
-
-  /**
-   * `beforeColumnSort` hook listener - blocks the sort caused by the mousedown
-   * that began a header pick.
-   *
-   * @returns {boolean | undefined}
-   */
-  #onBeforeColumnSort = (): boolean | undefined =>
-    (this.#cellPick?.isHeaderPickActive() ? false : undefined);
-
-  /**
-   * `afterSetTheme` hook listener - re-initializes the plugin when the theme
-   * class actually changed.
-   */
-  #onAfterSetTheme = (): void => {
-    if (this.#builder === null) {
-      return;
-    }
-
-    if (this.#themeClassName() === this.#currentThemeClassName) {
-      return;
-    }
-
-    this.updatePlugin();
-  };
-
-  /**
-   * `afterSelection` hook listener - mirrors the bar live during a drag or
-   * keyboard step without moving the tracked selection.
-   *
-   * @param {number} anchorRow The anchor visual row index.
-   * @param {number} anchorCol The anchor visual column index.
-   * @param {number} focusRow The focus visual row index.
-   * @param {number} focusCol The focus visual column index.
-   */
-  #onAfterSelection = (
-    anchorRow: number,
-    anchorCol: number,
-    focusRow: number,
-    focusCol: number,
-  ): void => {
-    if (this.#isEditing()) {
-      return;
-    }
-
-    this.#emitBarSelection(anchorRow, anchorCol, focusRow, focusCol);
-  };
-
-  /**
-   * `afterSelectionFocusSet` hook listener - re-emits the bar selection when only
-   * the highlight moved (Tab/Shift+Tab within a range).
-   */
-  #onAfterSelectionFocusSet = (): void => {
-    if (this.#isEditing()) {
-      return;
-    }
-
-    const range = this.hot.getSelectedRangeLast();
-
-    if (!range) {
-      return;
-    }
-
-    const { from, to } = range;
-
-    if (from.row === null || from.col === null || to.row === null || to.col === null) {
-      return;
-    }
-
-    this.#emitBarSelection(from.row, from.col, to.row, to.col);
-  };
-
-  /**
-   * `afterColumnResize`/`afterRowResize` hook listener - re-anchors the inline
-   * editor overlay after a manual resize relayouts the grid mid-session (scroll
-   * and window-resize already re-anchor; header-handle resizes do not emit either).
-   */
-  #onAfterSizeChange = (): void => {
-    if (this.#activeEditor === null) {
-      return;
-    }
-
-    this.#hostEditor()?.refreshDimensions?.(true);
-  };
+  constructor(hotInstance: HotInstance) {
+    super(hotInstance);
+    // A cell configured with `editor: 'formula'` must resolve whether or not the plugin enables, so
+    // the alias is registered when the instance is built, not in `enablePlugin()`. Not when the
+    // module loads: importing the plugin registry must register plugins only (pinned by the
+    // `registerAll*` registry tests).
+    registerFormulaEditor();
+  }
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -476,33 +384,36 @@ export class FormulaBuilder extends BasePlugin {
 
     try {
       setUpSucceeded = this.#setUpPlugin();
-    } catch (error) {
-      this.#teardownPluginState();
-
-      throw error;
+    } finally {
+      if (!setUpSucceeded) {
+        this.#teardownPluginState();
+      }
     }
 
-    if (!setUpSucceeded) {
-      this.#teardownPluginState();
-
-      return;
+    if (setUpSucceeded) {
+      super.enablePlugin();
     }
-
-    super.enablePlugin();
   }
 
   /**
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin(): void {
-    this.#teardownPluginState();
     super.disablePlugin();
+    this.#teardownPluginState();
   }
 
   /**
-   * Update plugin state after Handsontable settings update.
+   * Update plugin state after Handsontable settings update. A settings update that changes
+   * nothing the plugin was built from keeps the built plugin (see {@link AppliedConfig}).
    */
   updatePlugin(): void {
+    if (this.enabled && this.#isConfigUnchanged()) {
+      super.updatePlugin();
+
+      return;
+    }
+
     this.disablePlugin();
     this.enablePlugin();
 
@@ -517,32 +428,12 @@ export class FormulaBuilder extends BasePlugin {
       this.disablePlugin();
     }
 
-    this.#events?.disposeAll();
-    this.#events = null;
     this.#selectionListeners.clear();
     this.#barSelectionListeners.clear();
     this.#editorStartListeners.clear();
     this.#editorCloseListeners.clear();
     this.#switchToInlineListeners.clear();
     super.destroy();
-  }
-
-  /**
-   * The plugin's DOM event manager, `null` while the plugin is disabled.
-   *
-   * @returns {EventManager | null}
-   */
-  get events(): EventManager | null {
-    return this.#events;
-  }
-
-  /**
-   * The grid adapter backing the core editor.
-   *
-   * @returns {HandsontableAdapter}
-   */
-  get adapter(): HandsontableAdapter {
-    return this.#ensureAdapter();
   }
 
   /**
@@ -578,7 +469,7 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Mounts the core formula editor into the inline wrapper (called by the editor shim).
+   * Mounts the formula editor into the inline wrapper (called by the editor shim).
    *
    * @param {HTMLElement} mount The wrapper element.
    * @param {string} seed The initial editor content.
@@ -586,11 +477,7 @@ export class FormulaBuilder extends BasePlugin {
   handleInlineEditStart(mount: HTMLElement, seed: string): void {
     this.#editorStartListeners.emit({ mount, seed });
 
-    if (!this.#activeEditor && this.#engine) {
-      if (!this.#builder) {
-        throwWithCause('FormulaBuilder: builder not initialized');
-      }
-
+    if (!this.#activeEditor && this.#builder) {
       if (!this.#builder.hasFormulaBar) {
         this.setInlineEditorVisible(true);
       }
@@ -602,26 +489,13 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Binds (or clears) the live core editor reference.
-   *
-   * @param {FormulaEditor | null} editor The editor, or `null` to unbind.
-   */
-  bindInlineEditor(editor: FormulaEditor | null): void {
-    this.#activeEditor = editor;
-
-    if (editor) {
-      this.#adapter?.enterRefSelectionMode();
-    }
-  }
-
-  /**
    * Saves the given value through Handsontable's editor manager, optionally
    * moving the selection one (renderable) step in a direction.
    *
    * @param {string} value The value to save.
    * @param {string} [direction] Optional post-commit selection step direction.
    */
-  commitInlineEdit(value: string, direction?: Direction): void {
+  commitInlineEdit(value: string, direction?: FormulaBuilderStepDirection): void {
     const editor = this.#hostEditor();
 
     if (!editor) {
@@ -639,77 +513,21 @@ export class FormulaBuilder extends BasePlugin {
     const selected = this.hot.getSelectedLast();
 
     editor.finishEditing?.(false, false, () => {
-      if (!selected) {
-        return;
-      }
-
-      const row = selected[0];
-      const col = selected[1];
+      const row = selected?.[0];
+      const col = selected?.[1];
 
       if (row === undefined || col === undefined || row < 0 || col < 0) {
         return;
       }
 
-      let rowDelta = 0;
-      let colDelta = 0;
-
-      if (direction === 'up') {
-        rowDelta = -1;
-      } else if (direction === 'down') {
-        rowDelta = 1;
-      } else if (direction === 'left') {
-        colDelta = -1;
-      } else if (direction === 'right') {
-        colDelta = 1;
-      }
-
-      const mappers = this.hot as unknown as {
-        rowIndexMapper?: IndexMapperLike;
-        columnIndexMapper?: IndexMapperLike;
-      };
+      const rowDelta = { up: -1, down: 1, left: 0, right: 0 }[direction];
+      const colDelta = { up: 0, down: 0, left: -1, right: 1 }[direction];
 
       this.hot.selectCell(
-        this.#stepVisualIndex(mappers.rowIndexMapper, row, rowDelta, this.hot.countRows()),
-        this.#stepVisualIndex(mappers.columnIndexMapper, col, colDelta, this.hot.countCols()),
+        this.#stepVisualIndex('row', row, rowDelta),
+        this.#stepVisualIndex('col', col, colDelta),
       );
     });
-  }
-
-  /**
-   * Steps a visual index by one renderable position so hidden rows/columns are skipped.
-   *
-   * @param {IndexMapperLike | undefined} mapper The axis index mapper.
-   * @param {number} visualIndex The current visual index.
-   * @param {number} delta The step delta (-1, 0, or 1).
-   * @param {number} totalCount The axis length.
-   * @returns {number}
-   */
-  #stepVisualIndex(
-    mapper: IndexMapperLike | undefined,
-    visualIndex: number,
-    delta: number,
-    totalCount: number,
-  ): number {
-    if (delta === 0) {
-      return visualIndex;
-    }
-
-    const clamped = Math.min(Math.max(visualIndex + delta, 0), totalCount - 1);
-
-    if (!mapper) {
-      return clamped;
-    }
-
-    const renderable = mapper.getRenderableFromVisualIndex(visualIndex);
-
-    if (renderable === null) {
-      return clamped;
-    }
-
-    const lastRenderable = mapper.getRenderableIndexesLength() - 1;
-    const nextRenderable = Math.min(Math.max(renderable + delta, 0), lastRenderable);
-
-    return mapper.getVisualFromRenderableIndex(nextRenderable) ?? visualIndex;
   }
 
   /**
@@ -720,13 +538,8 @@ export class FormulaBuilder extends BasePlugin {
     this.#hostEditor()?.finishEditing?.(true);
 
     const selected = this.hot.getSelectedLast();
-
-    if (!selected) {
-      return;
-    }
-
-    const row = selected[0];
-    const col = selected[1];
+    const row = selected?.[0];
+    const col = selected?.[1];
 
     if (row === undefined || col === undefined || row < 0 || col < 0) {
       return;
@@ -739,8 +552,8 @@ export class FormulaBuilder extends BasePlugin {
    * Tears the inline edit session down (called by the editor shim on close).
    */
   handleInlineEditClose(): void {
-    this.#inlineScrollScope?.dispose();
-    this.#inlineScrollScope = null;
+    this.#removeInlineScrollListener?.();
+    this.#removeInlineScrollListener = null;
     this.#builder?.closeEditor();
     this.#activeEditor = null;
     this.#cellPick?.reset();
@@ -749,11 +562,11 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Returns the live core formula editor, or `null` when not editing.
+   * Returns the live formula editor, or `null` when not editing.
    *
-   * @returns {FormulaEditor | null}
+   * @returns {FormulaEditorHandle | null}
    */
-  getActiveEditor(): FormulaEditor | null {
+  getActiveEditor(): FormulaEditorHandle | null {
     return this.#activeEditor;
   }
 
@@ -763,7 +576,7 @@ export class FormulaBuilder extends BasePlugin {
    * @param {Function} callback Receives the editor mount element and the typed seed.
    * @returns {Function} Unsubscribe function.
    */
-  onInlineEditStart(callback: (event: { mount: HTMLElement; seed: string }) => void): Unsubscribe {
+  onInlineEditStart(callback: (event: { mount: HTMLElement; seed: string }) => void): () => void {
     return this.#editorStartListeners.add(callback);
   }
 
@@ -773,7 +586,7 @@ export class FormulaBuilder extends BasePlugin {
    * @param {Function} callback Invoked when editing should switch to the inline editor.
    * @returns {Function} Unsubscribe function.
    */
-  onSwitchToInline(callback: () => void): Unsubscribe {
+  onSwitchToInline(callback: () => void): () => void {
     return this.#switchToInlineListeners.add(callback);
   }
 
@@ -792,14 +605,7 @@ export class FormulaBuilder extends BasePlugin {
    * @param {Function} callback Receives the selection or `null` on deselect.
    * @returns {Function} Unsubscribe function.
    */
-  onFormulaCellSelection(
-    callback: (
-      selection: {
-        active: { row: number; col: number };
-        range: { startRow: number; startCol: number; endRow: number; endCol: number };
-      } | null,
-    ) => void,
-  ): Unsubscribe {
+  onFormulaCellSelection(callback: (selection: FormulaCellSelection | null) => void): () => void {
     return this.#barSelectionListeners.add(callback);
   }
 
@@ -898,7 +704,7 @@ export class FormulaBuilder extends BasePlugin {
    * @param {Function} callback Receives the visual coordinates.
    * @returns {Function} Unsubscribe function.
    */
-  onSelection(callback: (selection: { row: number; col: number }) => void): Unsubscribe {
+  onSelection(callback: (selection: { row: number; col: number }) => void): () => void {
     return this.#selectionListeners.add(callback);
   }
 
@@ -908,24 +714,19 @@ export class FormulaBuilder extends BasePlugin {
    * @param {Function} callback Invoked when the inline editor closes.
    * @returns {Function} Unsubscribe function.
    */
-  onEditorClose(callback: () => void): Unsubscribe {
+  onEditorClose(callback: () => void): () => void {
     return this.#editorCloseListeners.add(callback);
   }
 
   /**
-   * Returns the raw cell text (formula source or stringified value) at
-   * HyperFormula coordinates.
+   * Returns the raw cell text: the formula source of a formula cell, or the stringified value.
    *
-   * @param {number} row The HyperFormula row index.
-   * @param {number} col The HyperFormula column index.
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
    * @returns {string}
    */
   getRawCellText(row: number, col: number): string {
-    if (!this.#engine || !this.#core) {
-      return '';
-    }
-
-    return this.#core.readCellText(this.#engine, { sheet: this.#sheetId, row, col });
+    return this.#readCellText(this.#visualToHfRow(row), this.#visualToHfCol(col));
   }
 
   /**
@@ -955,13 +756,197 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    editor._hfeHidden = !visible;
+    editor._hiddenByFormulaBar = !visible;
     editor.refreshDimensions?.();
 
     if (!visible) {
       this.#clearEditingCellMark();
     }
   }
+
+  /**
+   * `afterRenderer` hook listener - marks the edited cell and renders error indicators. Reads
+   * the editor from the `cellProperties` the hook already passes: this runs for every rendered
+   * cell on every draw, and resolving the meta again would double its cost.
+   *
+   * @param {HTMLTableCellElement} cellEl The rendered cell element.
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {string|number} prop The column property.
+   * @param {unknown} value The rendered value.
+   * @param {CellProperties} cellProperties The cell meta.
+   */
+  #onAfterRenderer = (
+    cellEl: HTMLTableCellElement,
+    row: number,
+    col: number,
+    prop: string | number,
+    value: unknown,
+    cellProperties: CellProperties,
+  ): void => {
+    if (this.#activeEditor) {
+      const hostEditor = this.#hostEditor();
+
+      if (
+        hostEditor &&
+        !hostEditor._hiddenByFormulaBar &&
+        hostEditor.row === row &&
+        hostEditor.col === col
+      ) {
+        cellEl.classList.add(EDITING_CELL_CLASS);
+      }
+    }
+
+    const isFormulaCell = row >= 0 && col >= 0 && isFormulaEditor(cellProperties.editor);
+    const hfRow = isFormulaCell ? this.#visualToHfRow(row) : -1;
+    const hfCol = isFormulaCell ? this.#visualToHfCol(col) : -1;
+
+    if (hfRow < 0 || hfCol < 0) {
+      // The grid recycles cell elements, so one that showed an error for another cell keeps the
+      // mark until something clears it.
+      if (cellEl.hasAttribute(CELL_ERROR_ATTRIBUTE)) {
+        this.#builder?.markCell(cellEl, null);
+      }
+
+      return;
+    }
+
+    const cellValue = this.#engine?.getCellValue({ sheet: this.#sheetId, row: hfRow, col: hfCol });
+
+    this.#builder?.markCell(cellEl, cellValue);
+
+    // The grid writes its ARIA attributes only under `ariaTags`, and so does the plugin.
+    if (!this.hot.getSettings().ariaTags) {
+      cellEl.removeAttribute('aria-invalid');
+    }
+  };
+
+  /**
+   * `afterSelectionEnd` hook listener - moves the tracked selection after a
+   * completed selection gesture.
+   *
+   * @param {number} anchorRow The anchor visual row index.
+   * @param {number} anchorCol The anchor visual column index.
+   * @param {number} focusRow The focus visual row index.
+   * @param {number} focusCol The focus visual column index.
+   */
+  #onAfterSelectionEnd = (
+    anchorRow: number,
+    anchorCol: number,
+    focusRow: number,
+    focusCol: number,
+  ): void => {
+    if (this.#isEditing()) {
+      return;
+    }
+
+    if (this.#emitBarSelection(anchorRow, anchorCol, focusRow, focusCol)) {
+      this.setSelected(anchorRow, anchorCol);
+    }
+  };
+
+  /**
+   * `afterDeselect` hook listener - clears the bar selection (and the dedupe key).
+   */
+  #onAfterDeselect = (): void => {
+    if (this.#isEditing()) {
+      return;
+    }
+
+    this.#lastEmittedSelectionCoords = null;
+    this.#barSelected = null;
+    this.#barSelectedRange = null;
+    this.#barSelectionListeners.emit(null);
+  };
+
+  /**
+   * `beforeColumnSort` hook listener - blocks the sort caused by the mousedown
+   * that began a header pick.
+   *
+   * @returns {boolean | undefined}
+   */
+  #onBeforeColumnSort = (): boolean | undefined =>
+    (this.#cellPick?.isHeaderPickActive() ? false : undefined);
+
+  /**
+   * `afterSetTheme` hook listener - rebuilds the builder when the theme class actually
+   * changed, because the builder applies its theming class once, at construction.
+   */
+  #onAfterSetTheme = (): void => {
+    if (this.#builder === null || this.#themeClassName() === this.#currentThemeClassName) {
+      return;
+    }
+
+    this.#rebuildBuilder();
+  };
+
+  /**
+   * `afterLoadData`/`afterUpdateData` hook listener - rebuilds the builder when the data load
+   * bound the grid to another engine sheet. The plugin enables before the first data load, while
+   * the Formulas plugin has no sheet id yet, and `Formulas#switchSheet()` reloads the data too.
+   */
+  #onAfterDataLoad = (): void => {
+    if (this.#builder !== null && this.#sheetId !== this.#builtSheetId) {
+      this.#rebuildBuilder();
+    }
+  };
+
+  /**
+   * `afterSelection` hook listener - mirrors the bar live during a drag or
+   * keyboard step without moving the tracked selection.
+   *
+   * @param {number} anchorRow The anchor visual row index.
+   * @param {number} anchorCol The anchor visual column index.
+   * @param {number} focusRow The focus visual row index.
+   * @param {number} focusCol The focus visual column index.
+   */
+  #onAfterSelection = (
+    anchorRow: number,
+    anchorCol: number,
+    focusRow: number,
+    focusCol: number,
+  ): void => {
+    if (this.#isEditing()) {
+      return;
+    }
+
+    this.#emitBarSelection(anchorRow, anchorCol, focusRow, focusCol);
+  };
+
+  /**
+   * `afterSelectionFocusSet` hook listener - re-emits the bar selection when only
+   * the highlight moved (Tab/Shift+Tab within a range).
+   */
+  #onAfterSelectionFocusSet = (): void => {
+    if (this.#isEditing()) {
+      return;
+    }
+
+    const range = this.hot.getSelectedRangeLast();
+
+    if (!range) {
+      return;
+    }
+
+    const { from, to } = range;
+
+    if (from.row === null || from.col === null || to.row === null || to.col === null) {
+      return;
+    }
+
+    this.#emitBarSelection(from.row, from.col, to.row, to.col);
+  };
+
+  /**
+   * `afterColumnResize`/`afterRowResize` hook listener - re-anchors the inline
+   * editor overlay after a manual resize relayouts the grid mid-session (scroll
+   * and window-resize already re-anchor; header-handle resizes do not emit either).
+   */
+  #onAfterSizeChange = (): void => {
+    if (this.#activeEditor !== null) {
+      this.#hostEditor()?.refreshDimensions?.(true);
+    }
+  };
 
   /**
    * Emits the bar selection (deduped on anchor + focus + active together).
@@ -978,12 +963,10 @@ export class FormulaBuilder extends BasePlugin {
     focusRow: number,
     focusCol: number,
   ): boolean {
-    const formulaCell =
-      anchorRow >= 0 && anchorCol >= 0 && this.#isFormulaCell(anchorRow, anchorCol);
+    const formulaCell = this.#isFormulaCell(anchorRow, anchorCol);
     const highlight = this.hot.getSelectedRangeLast()?.highlight;
     const activeRow = highlight?.row ?? anchorRow;
     const activeCol = highlight?.col ?? anchorCol;
-    const coords = { anchorRow, anchorCol, focusRow, focusCol, activeRow, activeCol };
     const last = this.#lastEmittedSelectionCoords;
 
     if (
@@ -998,8 +981,7 @@ export class FormulaBuilder extends BasePlugin {
       return formulaCell;
     }
 
-    this.#lastEmittedSelectionCoords = coords;
-
+    this.#lastEmittedSelectionCoords = { anchorRow, anchorCol, focusRow, focusCol, activeRow, activeCol };
     this.#barSelected = formulaCell ? { row: activeRow, col: activeCol } : null;
     this.#barSelectedRange = formulaCell ?
       {
@@ -1019,34 +1001,69 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Returns the Formulas plugin instance.
+   * Steps a visual index by one renderable position so hidden rows/columns are skipped.
    *
-   * @returns {FormulasPluginLike | undefined}
+   * @param {'row' | 'col'} axis The axis to step on.
+   * @param {number} visualIndex The current visual index.
+   * @param {number} delta The step delta (-1, 0, or 1).
+   * @returns {number}
    */
-  #formulasPlugin(): FormulasPluginLike | undefined {
-    if (!this.#formulas) {
-      this.#formulas = (this.hot.getPlugin('formulas') as unknown as FormulasPluginLike) ?? null;
+  #stepVisualIndex(axis: 'row' | 'col', visualIndex: number, delta: number): number {
+    if (delta === 0) {
+      return visualIndex;
     }
 
-    return this.#formulas ?? undefined;
+    const mapper = axis === 'row' ? this.hot.rowIndexMapper : this.hot.columnIndexMapper;
+    const renderable = mapper.getRenderableFromVisualIndex(visualIndex);
+
+    if (renderable === null) {
+      const count = axis === 'row' ? this.hot.countRows() : this.hot.countCols();
+
+      return Math.min(Math.max(visualIndex + delta, 0), count - 1);
+    }
+
+    const lastRenderable = mapper.getRenderableIndexesLength() - 1;
+    const nextRenderable = Math.min(Math.max(renderable + delta, 0), lastRenderable);
+
+    return mapper.getVisualFromRenderableIndex(nextRenderable) ?? visualIndex;
   }
 
   /**
    * Returns Handsontable's active editor.
    *
-   * @returns {HotEditorLike | undefined}
+   * @returns {FormulaHostEditor | undefined}
    */
-  #hostEditor(): HotEditorLike | undefined {
-    return this.hot.getActiveEditor() as HotEditorLike | undefined;
+  #hostEditor(): FormulaHostEditor | undefined {
+    return this.hot.getActiveEditor() as FormulaHostEditor | undefined;
   }
 
   /**
-   * The engine sheet id backing this grid.
+   * The Formulas plugin instance, looked up once.
+   *
+   * @returns {Formulas | null}
+   */
+  get #formulasPlugin(): Formulas | null {
+    this.#formulas ??= this.hot.getPlugin('formulas') ?? null;
+
+    return this.#formulas;
+  }
+
+  /**
+   * The Formulas plugin's engine, or `null` when it has none.
+   *
+   * @returns {object | null}
+   */
+  get #engine() {
+    return this.#formulasPlugin?.engine ?? null;
+  }
+
+  /**
+   * The engine sheet id backing this grid (`0` before the Formulas plugin binds one).
    *
    * @returns {number}
    */
   get #sheetId(): number {
-    return this.#formulasPlugin()?.sheetId ?? 0;
+    return this.#formulasPlugin?.sheetId ?? 0;
   }
 
   /**
@@ -1056,7 +1073,7 @@ export class FormulaBuilder extends BasePlugin {
    * @returns {number}
    */
   #visualToHfRow(visualRow: number): number {
-    return this.#formulasPlugin()?.rowAxisSyncer?.getHfIndexFromVisualIndex(visualRow) ?? -1;
+    return this.#formulasPlugin?.rowAxisSyncer?.getHfIndexFromVisualIndex(visualRow) ?? -1;
   }
 
   /**
@@ -1066,7 +1083,7 @@ export class FormulaBuilder extends BasePlugin {
    * @returns {number}
    */
   #visualToHfCol(visualCol: number): number {
-    return this.#formulasPlugin()?.columnAxisSyncer?.getHfIndexFromVisualIndex(visualCol) ?? -1;
+    return this.#formulasPlugin?.columnAxisSyncer?.getHfIndexFromVisualIndex(visualCol) ?? -1;
   }
 
   /**
@@ -1076,7 +1093,7 @@ export class FormulaBuilder extends BasePlugin {
    * @returns {number}
    */
   #hfToVisualRow(hfRow: number): number {
-    return this.#formulasPlugin()?.rowAxisSyncer?.getVisualIndexFromHfIndex(hfRow) ?? -1;
+    return this.#formulasPlugin?.rowAxisSyncer?.getVisualIndexFromHfIndex(hfRow) ?? -1;
   }
 
   /**
@@ -1086,78 +1103,27 @@ export class FormulaBuilder extends BasePlugin {
    * @returns {number}
    */
   #hfToVisualCol(hfCol: number): number {
-    return this.#formulasPlugin()?.columnAxisSyncer?.getVisualIndexFromHfIndex(hfCol) ?? -1;
+    return this.#formulasPlugin?.columnAxisSyncer?.getVisualIndexFromHfIndex(hfCol) ?? -1;
   }
 
   /**
-   * Maps visual coordinates to HyperFormula coordinates.
+   * Reads the raw cell text at HyperFormula coordinates (`''` for an unresolvable cell).
    *
-   * @param {{ row: number, col: number }} coords The visual coordinates.
-   * @returns {{ row: number, col: number }}
+   * @param {number} hfRow The HyperFormula row index.
+   * @param {number} hfCol The HyperFormula column index.
+   * @returns {string}
    */
-  #toHfCoords(coords: { row: number; col: number }): { row: number; col: number } {
-    return { row: this.#visualToHfRow(coords.row), col: this.#visualToHfCol(coords.col) };
-  }
+  #readCellText(hfRow: number, hfCol: number): string {
+    const engine = this.#engine;
 
-  /**
-   * Suspends the DragToScroll plugin for the duration of a reference drag.
-   */
-  #suspendDragToScroll(): void {
-    const dragToScroll = this.hot.getPlugin('dragToScroll');
-
-    if (dragToScroll?.enabled) {
-      dragToScroll.disablePlugin();
-      dragToScroll.unlisten();
-      this.#dragToScrollSuspended = true;
-    }
-  }
-
-  /**
-   * Resumes the DragToScroll plugin after a reference drag ends.
-   */
-  #resumeDragToScroll(): void {
-    if (this.#dragToScrollSuspended) {
-      this.hot.getPlugin('dragToScroll')?.enablePlugin();
-      this.#dragToScrollSuspended = false;
-    }
-  }
-
-  /**
-   * Returns the adapter, creating it on first use.
-   *
-   * @returns {HandsontableAdapter}
-   */
-  #ensureAdapter(): HandsontableAdapter {
-    if (this.#adapter) {
-      return this.#adapter;
+    if (!engine || !this.#core || hfRow < 0 || hfCol < 0) {
+      return '';
     }
 
-    if (!this.#engine || !this.#core) {
-      throwWithCause('FormulaBuilder is disabled');
-    }
-
-    this.#adapter = new HandsontableAdapter(
-      {
-        hot: this.hot,
-        overlayHost: this.hot.rootElement,
-        sheetName: '',
-        core: this.#core,
-        indexMapping: {
-          visualToHfRow: row => this.#visualToHfRow(row),
-          visualToHfCol: col => this.#visualToHfCol(col),
-          hfToVisualRow: row => this.#hfToVisualRow(row),
-          hfToVisualCol: col => this.#hfToVisualCol(col),
-        },
-        getSheetDimensions: () => {
-          const dimensions = this.#engine?.getSheetDimensions?.(this.#sheetId);
-
-          return dimensions ? { rows: dimensions.height, cols: dimensions.width } : null;
-        },
-      },
-      this,
+    return this.#core.readCellText(
+      engine as unknown as Parameters<CoreModule['readCellText']>[0],
+      { sheet: this.#sheetId, row: hfRow, col: hfCol },
     );
-
-    return this.#adapter;
   }
 
   /**
@@ -1200,37 +1166,60 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Releases every enable-time resource.
+   * Reads the settings the plugin is built from, warning about and dropping invalid values.
+   *
+   * @returns {AppliedConfig}
    */
-  #teardownPluginState(): void {
-    if (this.#activeEditor) {
-      // Close the host editor while the core editor still exists - destroying the
-      // builder under an open session leaves Handsontable's editor in EDITING state
-      // over a torn-down mount, and its eventual close commits the stale original.
-      this.#hostEditor()?.finishEditing?.(true);
+  #readConfig(): AppliedConfig {
+    const settings = this.hot.getSettings()[PLUGIN_KEY] as
+      | boolean
+      | Partial<FormulaBuilderPluginSettings>
+      | undefined;
+    const object = typeof settings === 'object' && settings !== null ? settings : {};
+    const { showFormulaBar, direction, popups } = object;
+
+    if (showFormulaBar !== undefined && typeof showFormulaBar !== 'boolean') {
+      warn('The `showFormulaBar` option of the FormulaBuilder plugin takes a boolean. The formula bar' +
+        ' is not shown.');
     }
 
-    this.#events?.disposeAll();
-    this.#events = null;
-    this.#inlineScrollScope = null;
-    this.#builder?.destroy();
-    this.#builder = null;
+    let validDirection: FormulaBuilderLayoutDirection | undefined;
 
-    if (this.#formulaBarHost) {
-      this.hot.getLayoutManager().unregister(FORMULA_BAR_SLOT_KEY, 'top');
-      this.#formulaBarHost = null;
+    if (direction === 'ltr' || direction === 'rtl') {
+      validDirection = direction;
+    } else if (direction !== undefined) {
+      warn('The `direction` option of the FormulaBuilder plugin takes `\'ltr\'` or `\'rtl\'`. The' +
+        ' grid\'s layout direction is used instead.');
     }
 
-    this.#adapter?.destroy();
-    this.#adapter = null;
-    this.#engine = null;
-    this.#formulas = null;
-    this.#activeEditor = null;
-    this.#cellPick?.reset();
-    this.#cellPick = null;
-    this.#barSelected = null;
-    this.#barSelectedRange = null;
-    this.#lastEmittedSelectionCoords = null;
+    return {
+      core: object.builder,
+      showFormulaBar: showFormulaBar === true,
+      direction: validDirection,
+      popups: isObject(popups) ? popups : undefined,
+      engine: this.#engine,
+    };
+  }
+
+  /**
+   * Whether the current settings match the ones the enabled plugin was built from.
+   *
+   * @returns {boolean}
+   */
+  #isConfigUnchanged(): boolean {
+    const applied = this.#appliedConfig;
+
+    if (applied === null || !this.#formulasPlugin?.enabled) {
+      return false;
+    }
+
+    const current = this.#readConfig();
+
+    return applied.core === current.core &&
+      applied.engine === current.engine &&
+      applied.showFormulaBar === current.showFormulaBar &&
+      applied.direction === current.direction &&
+      isSameSettingValue(applied.popups, current.popups);
   }
 
   /**
@@ -1239,48 +1228,32 @@ export class FormulaBuilder extends BasePlugin {
    * @returns {boolean} Whether the plugin set up successfully.
    */
   #setUpPlugin(): boolean {
-    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY] as
-      | boolean
-      | FormulaBuilderPluginSettings
-      | undefined;
-    const core = typeof pluginSettings === 'object' ?
-      pluginSettings.builder as CoreModule | undefined :
-      undefined;
+    const config = this.#readConfig();
+    const missingMembers = findMissingCoreMembers(config.core);
 
-    if (!core || typeof core.FormulaBuilder !== 'function') {
-      warn('Missing the required `builder` key in the FormulaBuilder settings. Please fill it' +
-        ' with the module namespace of the formula-builder package (its `FormulaBuilder` class' +
-        ' and utilities).');
+    if (missingMembers.length > 0) {
+      warn('The `builder` key of the FormulaBuilder settings must be the `hyperformula-ui` module' +
+        ' namespace (`import * as FormulaBuilderModule from \'hyperformula-ui\'`). It is missing' +
+        ` ${missingMembers.map(name => `\`${name}\``).join(', ')}. The plugin stays disabled.`);
 
       return false;
     }
 
-    const formulas = this.#formulasPlugin();
-
-    if (!formulas?.enabled || !formulas.engine) {
+    if (!this.#formulasPlugin?.enabled || !this.#engine) {
       warn('The FormulaBuilder plugin requires the Formulas plugin to be enabled with a' +
         ' configured engine.');
 
       return false;
     }
 
+    const core = config.core as CoreModule;
+
     this.#core = core;
-    this.#engine = formulas.engine;
-    this.#events = new core.EventManager();
+    this.#appliedConfig = config;
+    this.#adapter = this.#createAdapter(core);
+    setFormulaBuilderAdapter(this, this.#adapter);
 
-    const rootEl = this.hot.rootElement;
-    const themeClassName = this.#themeClassName();
-
-    this.#currentThemeClassName = themeClassName;
-
-    const adapter = this.#ensureAdapter();
-    const popups = typeof pluginSettings === 'object' ? pluginSettings.popups : undefined;
-    const showFormulaBar =
-      typeof pluginSettings === 'object' && pluginSettings.showFormulaBar === true;
-    const direction = (typeof pluginSettings === 'object' ? pluginSettings.direction : undefined) ??
-      (this.hot.isRtl() ? 'rtl' : 'ltr');
-
-    if (showFormulaBar && !this.#formulaBarHost && isRootInstance(this.hot)) {
+    if (config.showFormulaBar && isRootInstance(this.hot)) {
       const barHost = this.hot.rootDocument.createElement('div');
 
       barHost.className = FORMULA_BAR_CLASS;
@@ -1291,50 +1264,30 @@ export class FormulaBuilder extends BasePlugin {
       this.#formulaBarHost = barHost;
     }
 
-    this.#builder = new core.FormulaBuilder({
-      rootEl,
-      ...(themeClassName !== undefined && { className: themeClassName }),
-      adapter,
-      hyperformula: this.#engine,
-      sheetId: this.#sheetId,
-      ...(popups !== undefined && { popups }),
-      ...(direction !== undefined && { direction }),
-      ...(this.#formulaBarHost !== null && { formulaBarContainer: this.#formulaBarHost }),
-    });
-
-    registerFormulaEditor();
-
+    this.#createBuilder();
     this.#cellPick = new CellPickController({
       core,
       getAdapter: () => this.#adapter,
       getActiveEditor: () => this.#activeEditor,
       getBarSelected: () => this.#barSelected,
-      toHfCoords: coords => this.#toHfCoords(coords),
+      toHfCoords: coords => ({ row: this.#visualToHfRow(coords.row), col: this.#visualToHfCol(coords.col) }),
       emitSwitchToInline: () => this.#switchToInlineListeners.emit(),
       getHostActiveEditor: () => this.hot.getActiveEditor(),
       getScrollHolder: () => this.#adapter?.getScrollHolder() ?? null,
       getRootDocument: () => this.hot.rootDocument,
-      suspendDragToScroll: () => this.#suspendDragToScroll(),
-      resumeDragToScroll: () => this.#resumeDragToScroll(),
     });
-
-    const hostScope = this.#events.createScope('host-bindings');
-
-    hostScope.listen(this.hot.rootDocument, 'mouseup', this.#cellPick.onDocMouseUp);
-    hostScope.listen(this.hot.rootDocument, 'mousemove', this.#cellPick.onDocMouseMove);
-    hostScope.listen(this.hot.rootDocument, 'scroll', this.#cellPick.onDocScroll, { capture: true });
-    hostScope.listen(this.hot.rootWindow, 'blur', this.#cellPick.onWindowBlur);
-    hostScope.activate();
 
     this.addHook('afterRenderer', this.#onAfterRenderer);
     this.addHook('afterSelectionEnd', this.#onAfterSelectionEnd);
     this.addHook('afterDeselect', this.#onAfterDeselect);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
+    this.addHook('afterLoadData', this.#onAfterDataLoad);
+    this.addHook('afterUpdateData', this.#onAfterDataLoad);
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterSelectionFocusSet', this.#onAfterSelectionFocusSet);
-    this.addHook('beforeOnCellMouseDown', this.#cellPick.onBeforeMouseDown);
-    this.addHook('beforeOnCellMouseOver', this.#cellPick.onBeforeMouseOver);
-    this.addHook('beforeOnCellMouseOverOutside', this.#cellPick.onBeforeMouseOverOutside);
+    this.addHook('beforeOnCellMouseDown', this.#cellPick.onBeforeMouseDown, CELL_MOUSE_HOOK_ORDER);
+    this.addHook('beforeOnCellMouseOver', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
+    this.addHook('beforeOnCellMouseOverOutside', this.#cellPick.onBeforeMouseOver, CELL_MOUSE_HOOK_ORDER);
     this.addHook('beforeColumnSort', this.#onBeforeColumnSort);
     this.addHook('afterColumnResize', this.#onAfterSizeChange);
     this.addHook('afterRowResize', this.#onAfterSizeChange);
@@ -1343,25 +1296,146 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Re-anchors the inline editor on scroll for the duration of an edit session.
+   * Creates the grid adapter the builder drives.
+   *
+   * @param {CoreModule} core The `hyperformula-ui` module namespace.
+   * @returns {HandsontableAdapter}
    */
-  #bindInlineScrollReanchor(): void {
-    this.#inlineScrollScope?.dispose();
-    this.#inlineScrollScope = null;
+  #createAdapter(core: CoreModule): HandsontableAdapter {
+    return new HandsontableAdapter(
+      {
+        hot: this.hot,
+        overlayHost: this.hot.rootElement,
+        sheetName: '',
+        core,
+        indexMapping: {
+          visualToHfRow: row => this.#visualToHfRow(row),
+          visualToHfCol: col => this.#visualToHfCol(col),
+          hfToVisualRow: row => this.#hfToVisualRow(row),
+          hfToVisualCol: col => this.#hfToVisualCol(col),
+        },
+        getSheetDimensions: () => {
+          const dimensions = this.#engine?.getSheetDimensions(this.#sheetId);
 
-    const holder = this.#adapter?.getScrollHolder();
+          return dimensions ? { rows: dimensions.height, cols: dimensions.width } : null;
+        },
+        readCellText: (hfRow, hfCol) => this.#readCellText(hfRow, hfCol),
+      },
+      this,
+    );
+  }
 
-    if (!holder || !this.#events) {
+  /**
+   * Constructs the `hyperformula-ui` builder against the current theme and engine sheet.
+   */
+  #createBuilder(): void {
+    const core = this.#core;
+    const config = this.#appliedConfig;
+
+    if (!core || !config || !this.#adapter) {
       return;
     }
 
-    const scope = this.#events.createScope('inline-scroll-reanchor');
+    const themeClassName = this.#themeClassName();
 
-    scope.listen(holder, 'scroll', () => {
-      this.#hostEditor()?.refreshDimensions?.(true);
+    this.#currentThemeClassName = themeClassName;
+    this.#builtSheetId = this.#sheetId;
+    this.#builder = new core.FormulaBuilder({
+      rootEl: this.hot.rootElement,
+      ...(themeClassName !== undefined && { className: themeClassName }),
+      adapter: this.#adapter,
+      // The Formulas plugin types its engine structurally; it is the HyperFormula instance.
+      hyperformula: this.#engine as unknown as HyperFormulaLike,
+      sheetId: this.#builtSheetId,
+      ...(config.popups !== undefined && { popups: config.popups }),
+      direction: config.direction ?? (this.hot.isRtl() ? 'rtl' : 'ltr'),
+      ...(this.#formulaBarHost !== null && { formulaBarContainer: this.#formulaBarHost }),
     });
-    scope.activate();
-    this.#inlineScrollScope = scope;
+  }
+
+  /**
+   * Replaces the builder with a new one (a theme change or another engine sheet). An open edit
+   * is cancelled first, while the old builder still exists - see `#teardownPluginState()`.
+   */
+  #rebuildBuilder(): void {
+    this.#cancelOpenEdit();
+    this.#builder?.destroy();
+    this.#builder = null;
+    this.#createBuilder();
+  }
+
+  /**
+   * Cancels an open inline edit through Handsontable's editor, which closes the formula editor.
+   */
+  #cancelOpenEdit(): void {
+    if (this.#activeEditor) {
+      // Destroying the builder under an open session would leave Handsontable's editor in the
+      // EDITING state over a torn-down mount, and its eventual close would commit the stale
+      // original.
+      this.#hostEditor()?.finishEditing?.(true);
+    }
+  }
+
+  /**
+   * Releases every enable-time resource.
+   */
+  #teardownPluginState(): void {
+    this.#cancelOpenEdit();
+    this.#removeInlineScrollListener?.();
+    this.#removeInlineScrollListener = null;
+    this.#builder?.destroy();
+    this.#builder = null;
+
+    if (this.#formulaBarHost) {
+      this.hot.getLayoutManager().unregister(FORMULA_BAR_SLOT_KEY, 'top');
+      this.#formulaBarHost = null;
+    }
+
+    this.#adapter?.destroy();
+    this.#adapter = null;
+    setFormulaBuilderAdapter(this, null);
+    this.#core = null;
+    this.#appliedConfig = null;
+    this.#builtSheetId = null;
+    this.#activeEditor = null;
+    this.#cellPick?.reset();
+    this.#cellPick = null;
+    this.#barSelected = null;
+    this.#barSelectedRange = null;
+    this.#lastEmittedSelectionCoords = null;
+  }
+
+  /**
+   * Re-anchors the inline editor on scroll for the duration of an edit session, once per
+   * animation frame: a scroll fires many events per frame, and each re-anchor measures layout.
+   */
+  #bindInlineScrollReanchor(): void {
+    this.#removeInlineScrollListener?.();
+    this.#removeInlineScrollListener = null;
+
+    const holder = this.#adapter?.getScrollHolder();
+
+    if (!holder) {
+      return;
+    }
+
+    const onScroll = () => {
+      if (this.#reanchorQueued) {
+        return;
+      }
+
+      this.#reanchorQueued = true;
+      this.hot.rootWindow.requestAnimationFrame(() => {
+        this.#reanchorQueued = false;
+
+        if (this.#activeEditor !== null && !this.hot.isDestroyed) {
+          this.#hostEditor()?.refreshDimensions?.(true);
+        }
+      });
+    };
+
+    holder.addEventListener('scroll', onScroll);
+    this.#removeInlineScrollListener = () => holder.removeEventListener('scroll', onScroll);
   }
 
   /**

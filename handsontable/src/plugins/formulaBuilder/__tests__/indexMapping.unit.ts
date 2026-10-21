@@ -1,14 +1,16 @@
+import { getCellCoordsFromMousePosition } from '../../../helpers/dom/cellCoords';
 import { HandsontableAdapter } from '../handsontableAdapter';
-import type { VisualHfIndexMapping } from '../types';
+import type { VisualHfIndexMapping } from '../internalTypes';
 import type { HotStubShape } from './helpers/stubs';
 import { makeAdapterOptions, makeHotStub, makePluginStub } from './helpers/stubs';
 
+// The pointer-to-cell resolution is a collaborator of the adapter, not the unit under test.
+jest.mock('../../../helpers/dom/cellCoords', () => ({
+  getCellCoordsFromMousePosition: jest.fn(),
+}));
+
 const ROW_OFFSET = 100;
 const COL_OFFSET = 200;
-
-type ElementFromPointDocument = Document & {
-  elementFromPoint: (x: number, y: number) => Element | null;
-};
 
 /**
  * Builds an index mapping that offsets rows by 100 and columns by 200, with
@@ -41,7 +43,13 @@ function makeMappedAdapter(
   document.body.appendChild(overlayHost);
 
   const mapping = { ...makeOffsetMapping(), ...mappingOverrides };
-  const hot = makeHotStub({ countRows: () => 7, countCols: () => 9, ...hotOverrides });
+  const hot = makeHotStub({
+    countRows: () => 7,
+    countCols: () => 9,
+    rowIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 7 },
+    columnIndexMapper: { getRenderableFromVisualIndex: index => index, getNumberOfIndexes: () => 9 },
+    ...hotOverrides,
+  });
   const plugin = {
     ...makePluginStub(),
     selectFormulaCell: jest.fn(),
@@ -78,9 +86,11 @@ function buildAdapterWithHidden({
     countCols: () => size.cols,
     rowIndexMapper: {
       getRenderableFromVisualIndex: (visualIndex: number) => (hiddenRows.includes(visualIndex) ? null : visualIndex),
+      getNumberOfIndexes: () => size.rows,
     },
     columnIndexMapper: {
       getRenderableFromVisualIndex: (visualIndex: number) => (hiddenCols.includes(visualIndex) ? null : visualIndex),
+      getNumberOfIndexes: () => size.cols,
     },
   });
   const plugin = makePluginStub();
@@ -89,19 +99,15 @@ function buildAdapterWithHidden({
 }
 
 afterEach(() => {
-  delete (document as Partial<ElementFromPointDocument>).elementFromPoint;
+  (getCellCoordsFromMousePosition as jest.Mock).mockReset();
   document.body.replaceChildren();
 });
 
 describe('HandsontableAdapter index mapping', () => {
   it('translates the cell under the pointer into HF space through the injected mapping', () => {
-    const { adapter, overlayHost, mapping } = makeMappedAdapter({
-      getCoords: () => ({ row: 3, col: 4 }),
-    });
-    const cell = document.createElement('td');
+    const { adapter, mapping } = makeMappedAdapter();
 
-    overlayHost.appendChild(cell);
-    (document as ElementFromPointDocument).elementFromPoint = jest.fn(() => cell);
+    (getCellCoordsFromMousePosition as jest.Mock).mockReturnValue({ row: 3, col: 4 });
 
     expect(adapter.getCellAddressAt(10, 10)).toEqual({
       sheet: '',
@@ -208,7 +214,7 @@ describe('HandsontableAdapter index mapping', () => {
 });
 
 describe('HandsontableAdapter host delegation', () => {
-  it('reads the grid size from the host instance', () => {
+  it('reads the grid size from the host index mappers', () => {
     const { adapter } = makeMappedAdapter();
 
     expect(adapter.getGridSize()).toEqual({ rows: 7, cols: 9 });

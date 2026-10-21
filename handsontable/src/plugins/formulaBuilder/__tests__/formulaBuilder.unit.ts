@@ -1,168 +1,115 @@
 import { HyperFormula } from 'hyperformula';
 import { EDITOR_STATE } from '../../../editors/baseEditor';
-import { getEditor } from '../../../editors/registry';
+import { getEditor, hasEditor } from '../../../editors/registry';
+import { isImmediatePropagationStopped } from '../../../helpers/dom/event';
+import { collection as staticRegisterCollection } from '../../../utils/staticRegister';
 import { registerAsRootInstance } from '../../../utils/rootInstance';
 import { FormulaBuilder } from '../formulaBuilder';
-import type { CoreModule } from '../types';
-import { makeGridSelectionApiStub } from './helpers/stubs';
-import type { GridSelectionApiStub } from './helpers/stubs';
+import { getFormulaBuilderAdapter } from '../handsontableAdapter';
+import type { HandsontableAdapter } from '../handsontableAdapter';
+import { REQUIRED_CORE_MEMBERS } from '../internalTypes';
+import type { CoreModule } from '../internalTypes';
+import { findHook, makeIndexMapperStub, makePluginHotStub } from './helpers/pluginHotStub';
 
 // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
 const core = require('hyperformula-ui') as CoreModule;
 
 const EDITING_CELL_CLASS = 'ht-formula-builder__editing-cell';
 
-type HookRegistrar = jest.Mock<void, [string, (...args: unknown[]) => unknown]>;
-
-interface IndexMapperStub {
-  getRenderableFromVisualIndex(visualIndex: number): number | null;
-  getVisualFromRenderableIndex(renderableIndex: number): number | null;
-  getRenderableIndexesLength(): number;
-}
-
-interface LayoutManagerStub {
-  register: jest.Mock<void, [string, HTMLElement, { side: string; weight: number }]>;
-  unregister: jest.Mock<void, [string, string]>;
-}
-
-interface HotStubShape {
-  rootElement: HTMLElement;
-  rootDocument: Document;
-  rootWindow: Window & typeof globalThis;
-  getSettings: () => Record<string, unknown>;
-  getPlugin: (pluginName: string) => unknown;
-  updateSettings: jest.Mock;
-  addHook: HookRegistrar;
-  removeHook: HookRegistrar;
-  getActiveEditor: () => unknown;
-  getCell: () => HTMLElement;
-  getCoords: () => unknown;
-  countRows: () => number;
-  countCols: () => number;
-  render: jest.Mock;
-  getFirstRenderedVisibleRow: () => number;
-  getLastRenderedVisibleRow: () => number;
-  getFirstRenderedVisibleColumn: () => number;
-  getLastRenderedVisibleColumn: () => number;
-  getFirstFullyVisibleRow: () => number;
-  getLastFullyVisibleRow: () => number;
-  getFirstFullyVisibleColumn: () => number;
-  getLastFullyVisibleColumn: () => number;
-  getDataAtCell: (row: number, col: number) => unknown;
-  setDataAtCell: jest.Mock;
-  scrollViewportTo: jest.Mock;
-  getSelectedRangeLast: () => unknown;
-  getSelectedLast: () => number[] | undefined;
-  getCellMetaTransient: (row: number, col: number) => Record<string, unknown>;
-  selectCell: jest.Mock;
-  selectCells: jest.Mock;
-  view: GridSelectionApiStub['view'];
-  selection: GridSelectionApiStub['selection'];
-  guid: GridSelectionApiStub['guid'];
-  _createCellCoords: GridSelectionApiStub['_createCellCoords'];
-  _createCellRange: GridSelectionApiStub['_createCellRange'];
-  getLayoutManager: () => LayoutManagerStub;
-  getCurrentThemeName: () => string | null;
-  isRtl: () => boolean;
-  themeManager?: { getClassName: () => string | undefined };
-  rowIndexMapper?: IndexMapperStub;
-  columnIndexMapper?: IndexMapperStub;
-}
-
 /**
- * Builds a fully-wired Handsontable stub around a real HyperFormula engine and
- * a fake (enabled) Formulas plugin exposing identity axis syncers.
+ * Builds the shared plugin stub with a 101x101 rendered viewport.
  *
  * @param {object} pluginSettings Extra `formulaBuilder` settings merged over the `builder` key.
- * @returns {object} The engine, fake formulas plugin, settings, spies, and the hot stub.
+ * @returns {ReturnType<typeof makePluginHotStub>}
  */
 function makeFullHotStub(pluginSettings: Record<string, unknown> = {}) {
-  const engine = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
-  const identitySyncer = {
-    getHfIndexFromVisualIndex: (visualIndex: number) => visualIndex,
-    getVisualIndexFromHfIndex: (hfIndex: number) => hfIndex,
-  };
-  const formulas = {
-    enabled: true,
-    engine: engine as HyperFormula | null,
-    sheetId: 0,
-    rowAxisSyncer: identitySyncer,
-    columnAxisSyncer: identitySyncer,
-  };
-  const settings: Record<string, unknown> = {
-    formulaBuilder: { builder: core, ...pluginSettings },
-  };
-  const updateSettings = jest.fn((next: Record<string, unknown>) => Object.assign(settings, next));
-  const layoutManager: LayoutManagerStub = { register: jest.fn(), unregister: jest.fn() };
-  const hot: HotStubShape = {
-    rootElement: document.createElement('div'),
-    rootDocument: document,
-    rootWindow: window,
-    getSettings: () => settings,
-    getPlugin: pluginName => (pluginName === 'formulas' ? formulas : undefined),
-    updateSettings,
-    addHook: jest.fn(),
-    removeHook: jest.fn(),
-    getActiveEditor: () => undefined,
-    getCell: () => document.createElement('td'),
-    getCoords: () => null,
-    countRows: () => 0,
-    countCols: () => 0,
-    render: jest.fn(),
-    getFirstRenderedVisibleRow: () => 0,
+  return makePluginHotStub(pluginSettings, {
     getLastRenderedVisibleRow: () => 100,
-    getFirstRenderedVisibleColumn: () => 0,
     getLastRenderedVisibleColumn: () => 100,
-    getFirstFullyVisibleRow: () => -1,
-    getLastFullyVisibleRow: () => -1,
-    getFirstFullyVisibleColumn: () => -1,
-    getLastFullyVisibleColumn: () => -1,
-    getDataAtCell: () => null,
-    setDataAtCell: jest.fn(),
-    scrollViewportTo: jest.fn(() => true),
-    getSelectedRangeLast: () => undefined,
-    getSelectedLast: () => undefined,
-    getCellMetaTransient: () => ({}),
-    selectCell: jest.fn(),
-    selectCells: jest.fn(),
-    ...makeGridSelectionApiStub(),
-    getLayoutManager: () => layoutManager,
-    getCurrentThemeName: () => null,
-    isRtl: () => false,
-    rowIndexMapper: {
-      getRenderableFromVisualIndex: visual => visual,
-      getVisualFromRenderableIndex: renderable => renderable,
-      getRenderableIndexesLength: () => 0,
-    },
-    columnIndexMapper: {
-      getRenderableFromVisualIndex: visual => visual,
-      getVisualFromRenderableIndex: renderable => renderable,
-      getRenderableIndexesLength: () => 0,
-    },
-  };
-
-  return { engine, formulas, settings, updateSettings, layoutManager, hot };
+  });
 }
 
 /**
- * Returns the callback registered under a hook name on the stub.
+ * Returns the adapter of an enabled plugin.
  *
- * @param {object} stub The stub bundle returned by `makeFullHotStub`.
- * @param {string} hookName The hook name to look up.
- * @returns {Function} The registered hook callback.
+ * @param {FormulaBuilder} plugin The enabled plugin.
+ * @returns {HandsontableAdapter}
  */
-function findHook(
-  stub: ReturnType<typeof makeFullHotStub>,
-  hookName: string,
-): (...args: unknown[]) => unknown {
-  const call = stub.hot.addHook.mock.calls.find(entry => entry[0] === hookName);
+function adapterOf(plugin: FormulaBuilder): HandsontableAdapter {
+  const adapter = getFormulaBuilderAdapter(plugin);
 
-  if (!call) {
-    throw new Error(`hook ${hookName} not registered`);
+  if (!adapter) {
+    throw new Error('the plugin has no adapter');
   }
 
-  return call[1];
+  return adapter;
 }
+
+/**
+ * Wraps the real `hyperformula-ui` module so every builder the plugin constructs and destroys is
+ * recorded. The module is the plugin's injected collaborator, so spying on it does not mock
+ * the unit under test.
+ *
+ * @returns {object} The module to inject, plus the constructed and destroyed builders.
+ */
+function makeSpiedCore() {
+  const created: Array<{ options: Record<string, unknown>; instance: object }> = [];
+  const destroyed: object[] = [];
+  const RealFormulaBuilder = core.FormulaBuilder;
+
+  class SpiedFormulaBuilder extends RealFormulaBuilder {
+    constructor(options: ConstructorParameters<typeof RealFormulaBuilder>[0]) {
+      super(options);
+      created.push({ options: options as unknown as Record<string, unknown>, instance: this });
+    }
+
+    destroy(): void {
+      destroyed.push(this);
+      super.destroy();
+    }
+  }
+
+  return { module: { ...core, FormulaBuilder: SpiedFormulaBuilder }, created, destroyed };
+}
+
+/**
+ * Builds a host editor stub that records the calls the plugin makes on Handsontable's editor.
+ *
+ * @param {object} [overrides] Extra members.
+ * @returns {object}
+ */
+function makeHostEditor(overrides: Record<string, unknown> = {}) {
+  return {
+    row: 0,
+    col: 0,
+    _hiddenByFormulaBar: false,
+    refreshDimensions: jest.fn(),
+    setValue: jest.fn(),
+    finishEditing: jest.fn(),
+    ...overrides,
+  };
+}
+
+/**
+ * Opens an inline edit session on an enabled plugin, mounting the formula editor into an
+ * attached element with the given seed.
+ *
+ * @param {FormulaBuilder} plugin The enabled plugin.
+ * @param {string} seed The editor content.
+ * @returns {HTMLElement} The mount element.
+ */
+function openSession(plugin: FormulaBuilder, seed: string): HTMLElement {
+  const mount = document.createElement('div');
+
+  document.body.appendChild(mount);
+  plugin.handleInlineEditStart(mount, seed);
+
+  return mount;
+}
+
+afterEach(() => {
+  document.body.replaceChildren();
+});
 
 /**
  * Reads the patched `refreshDimensions` method off the registered formula editor class.
@@ -201,7 +148,7 @@ describe('FormulaBuilder.enablePlugin validation', () => {
 
     stub.settings.formulaBuilder = true;
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -214,7 +161,7 @@ describe('FormulaBuilder.enablePlugin validation', () => {
 
     stub.hot.getPlugin = () => undefined;
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -227,7 +174,7 @@ describe('FormulaBuilder.enablePlugin validation', () => {
 
     stub.formulas.engine = null;
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -236,18 +183,31 @@ describe('FormulaBuilder.enablePlugin validation', () => {
   });
 });
 
-it('registers the formula named editor on enable', () => {
+it('registers the formula editor in the constructor, so it resolves even when enable fails', () => {
+  const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
   const stub = makeFullHotStub();
-  const plugin = new FormulaBuilder(stub.hot as never);
+
+  // Undo the module-load registration, so only the constructor can restore the alias.
+  staticRegisterCollection.get('editors')?.delete('formula');
+  stub.settings.formulaBuilder = true;
+
+  expect(hasEditor('formula')).toBe(false);
+
+  const plugin = new FormulaBuilder(stub.instance);
+
+  expect(hasEditor('formula')).toBe(true);
 
   plugin.enablePlugin();
 
+  expect(plugin.enabled).toBe(false);
   expect(typeof getEditor('formula')).toBe('function');
+
+  warnSpy.mockRestore();
 });
 
 it('parks the editor invisibly but focusable when its cell scrolls out of view', () => {
   const stub = makeFullHotStub();
-  const plugin = new FormulaBuilder(stub.hot as never);
+  const plugin = new FormulaBuilder(stub.instance);
 
   plugin.enablePlugin();
 
@@ -281,7 +241,7 @@ it('parks the editor invisibly but focusable when its cell scrolls out of view',
 
 it('keeps the container hidden when refreshed after the editor closed', () => {
   const stub = makeFullHotStub();
-  const plugin = new FormulaBuilder(stub.hot as never);
+  const plugin = new FormulaBuilder(stub.instance);
 
   plugin.enablePlugin();
 
@@ -301,7 +261,7 @@ it('keeps the container hidden when refreshed after the editor closed', () => {
 
 it('hides the container when the wrap has no child element (empty-container guard)', () => {
   const stub = makeFullHotStub();
-  const plugin = new FormulaBuilder(stub.hot as never);
+  const plugin = new FormulaBuilder(stub.instance);
 
   plugin.enablePlugin();
 
@@ -326,7 +286,7 @@ it('restores grid focus after cancelling the inline edit', () => {
   stub.hot.getActiveEditor = () => ({ finishEditing });
   stub.hot.getSelectedLast = () => [2, 3, 2, 3];
 
-  const plugin = new FormulaBuilder(stub.hot as never);
+  const plugin = new FormulaBuilder(stub.instance);
 
   plugin.enablePlugin();
   plugin.cancelInlineEdit();
@@ -336,116 +296,209 @@ it('restores grid focus after cancelling the inline edit', () => {
 });
 
 /**
- * Builds a stub whose master overlay exposes a real scroll holder element and
- * whose active editor records `refreshDimensions` calls.
+ * Builds a stub whose master overlay exposes a real scroll holder element and whose active
+ * editor records `refreshDimensions` calls, with `requestAnimationFrame` queued for the test.
  *
- * @returns {object} The stub bundle, holder element, and `refreshDimensions` spy.
+ * @returns {object} The stub bundle, holder element, `refreshDimensions` spy, and frame queue.
  */
 function makeHotStubWithHolder() {
   const stub = makeFullHotStub();
   const holder = document.createElement('div');
-  const refreshDimensions = jest.fn();
+  const hostEditor = makeHostEditor();
+  const frames: FrameRequestCallback[] = [];
 
   stub.hot.view = { getOverlayByName: () => ({ holder, clone: null }), render: jest.fn() };
-  stub.hot.getActiveEditor = () => ({ refreshDimensions });
+  stub.hot.getActiveEditor = () => hostEditor;
+  jest.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+    frames.push(callback);
 
-  return { stub, holder, refreshDimensions };
+    return frames.length;
+  });
+
+  const flushFrames = () => frames.splice(0).forEach(callback => callback(0));
+
+  return { stub, holder, refreshDimensions: hostEditor.refreshDimensions, flushFrames, frames };
 }
 
-it('re-anchors the inline editor synchronously on holder scroll while editing', () => {
-  const { stub, holder, refreshDimensions } = makeHotStubWithHolder();
-  const plugin = new FormulaBuilder(stub.hot as never);
+describe('FormulaBuilder inline scroll re-anchor', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
-  plugin.enablePlugin();
-  plugin.handleInlineEditStart(document.createElement('div'), '=A1');
-  refreshDimensions.mockClear();
+  it('re-anchors the inline editor once per animation frame on holder scroll', () => {
+    const { stub, holder, refreshDimensions, flushFrames, frames } = makeHotStubWithHolder();
+    const plugin = new FormulaBuilder(stub.instance);
 
-  holder.dispatchEvent(new Event('scroll'));
+    plugin.enablePlugin();
+    openSession(plugin, '=A1');
+    refreshDimensions.mockClear();
+    // Drop the frames the formula editor itself queued while mounting.
+    frames.splice(0);
 
-  expect(refreshDimensions).toHaveBeenCalledWith(true);
+    holder.dispatchEvent(new Event('scroll'));
+    holder.dispatchEvent(new Event('scroll'));
+    holder.dispatchEvent(new Event('scroll'));
+
+    expect(refreshDimensions).not.toHaveBeenCalled();
+    expect(frames).toHaveLength(1);
+
+    flushFrames();
+
+    expect(refreshDimensions.mock.calls).toEqual([[true]]);
+
+    // A scroll in the next frame queues a new re-anchor.
+    holder.dispatchEvent(new Event('scroll'));
+    flushFrames();
+
+    expect(refreshDimensions).toHaveBeenCalledTimes(2);
+  });
+
+  it('skips a queued re-anchor when the session closed before the frame', () => {
+    const { stub, holder, refreshDimensions, flushFrames } = makeHotStubWithHolder();
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+    openSession(plugin, '=A1');
+    holder.dispatchEvent(new Event('scroll'));
+    plugin.handleInlineEditClose();
+    refreshDimensions.mockClear();
+    flushFrames();
+
+    expect(refreshDimensions).not.toHaveBeenCalled();
+  });
+
+  it('skips a queued re-anchor when the grid was destroyed before the frame', () => {
+    const { stub, holder, refreshDimensions, flushFrames } = makeHotStubWithHolder();
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+    openSession(plugin, '=A1');
+    holder.dispatchEvent(new Event('scroll'));
+    stub.hot.isDestroyed = true;
+    refreshDimensions.mockClear();
+    flushFrames();
+
+    expect(refreshDimensions).not.toHaveBeenCalled();
+  });
+
+  it('stops listening to holder scroll once the inline editor closes', () => {
+    const { stub, holder, refreshDimensions, frames } = makeHotStubWithHolder();
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+    openSession(plugin, '=A1');
+    plugin.handleInlineEditClose();
+    refreshDimensions.mockClear();
+    frames.splice(0);
+
+    holder.dispatchEvent(new Event('scroll'));
+
+    expect(frames).toHaveLength(0);
+    expect(refreshDimensions).not.toHaveBeenCalled();
+  });
 });
 
-it('stops re-anchoring on holder scroll once the inline editor closes', () => {
-  const { stub, holder, refreshDimensions } = makeHotStubWithHolder();
-  const plugin = new FormulaBuilder(stub.hot as never);
+describe('FormulaBuilder edited-cell mark', () => {
+  it('marks the edited cell only while the inline editor is visible', () => {
+    const stub = makeFullHotStub();
+    const hostEditor = makeHostEditor({ row: 2, col: 0 });
 
-  plugin.enablePlugin();
-  plugin.handleInlineEditStart(document.createElement('div'), '=A1');
-  plugin.handleInlineEditClose();
-  refreshDimensions.mockClear();
+    stub.hot.getActiveEditor = () => hostEditor;
 
-  holder.dispatchEvent(new Event('scroll'));
+    const plugin = new FormulaBuilder(stub.instance);
 
-  expect(refreshDimensions).not.toHaveBeenCalled();
-});
+    plugin.enablePlugin();
+    openSession(plugin, '=A1');
 
-const fakeInlineEditor = {
-  getValue: () => '=',
-  isFormula: () => true,
-  isRefSelectionActive: () => true,
-  getRefPreviewColor: () => '#000',
-} as never;
+    const afterRenderer = findHook(stub.hot, 'afterRenderer');
+    const visibleCell = document.createElement('td');
 
-it('marks the edited cell only while the inline editor is visible', () => {
-  const stub = makeFullHotStub();
-  const hostEditor = { row: 2, col: 0, _hfeHidden: false };
+    afterRenderer(visibleCell, 2, 0, 0, null, {});
 
-  stub.hot.getActiveEditor = () => hostEditor;
+    expect(visibleCell.classList.contains(EDITING_CELL_CLASS)).toBe(true);
 
-  const plugin = new FormulaBuilder(stub.hot as never);
+    hostEditor._hiddenByFormulaBar = true;
 
-  plugin.enablePlugin();
-  plugin.bindInlineEditor(fakeInlineEditor);
+    const hiddenCell = document.createElement('td');
 
-  const afterRenderer = findHook(stub, 'afterRenderer');
-  const visibleCell = document.createElement('td');
+    afterRenderer(hiddenCell, 2, 0, 0, null, {});
 
-  afterRenderer(visibleCell, 2, 0);
+    expect(hiddenCell.classList.contains(EDITING_CELL_CLASS)).toBe(false);
+  });
 
-  expect(visibleCell.classList.contains(EDITING_CELL_CLASS)).toBe(true);
+  it.each([
+    ['another row', 3, 0],
+    ['another column', 2, 1],
+  ])('does not mark a cell in %s', (_label, row, col) => {
+    const stub = makeFullHotStub();
+    const hostEditor = makeHostEditor({ row: 2, col: 0 });
 
-  hostEditor._hfeHidden = true;
+    stub.hot.getActiveEditor = () => hostEditor;
 
-  const hiddenCell = document.createElement('td');
+    const plugin = new FormulaBuilder(stub.instance);
 
-  afterRenderer(hiddenCell, 2, 0);
+    plugin.enablePlugin();
+    openSession(plugin, '=A1');
 
-  expect(hiddenCell.classList.contains(EDITING_CELL_CLASS)).toBe(false);
-});
+    const cell = document.createElement('td');
 
-it('clears the edited-cell mark when the inline editor is hidden for the bar', () => {
-  const stub = makeFullHotStub();
-  const hostEditor = { _hfeHidden: false, refreshDimensions: jest.fn() };
+    findHook(stub.hot, 'afterRenderer')(cell, row, col, col, null, {});
 
-  stub.hot.getActiveEditor = () => hostEditor;
+    expect(cell.classList.contains(EDITING_CELL_CLASS)).toBe(false);
+  });
 
-  const plugin = new FormulaBuilder(stub.hot as never);
+  it('does not mark the host editor cell while no session is open', () => {
+    const stub = makeFullHotStub();
+    const hostEditor = makeHostEditor({ row: 2, col: 0 });
 
-  plugin.enablePlugin();
+    stub.hot.getActiveEditor = () => hostEditor;
 
-  const marked = document.createElement('td');
+    const plugin = new FormulaBuilder(stub.instance);
 
-  marked.classList.add(EDITING_CELL_CLASS);
-  stub.hot.rootElement.appendChild(marked);
+    plugin.enablePlugin();
 
-  plugin.setInlineEditorVisible(false);
+    const cell = document.createElement('td');
 
-  expect(hostEditor._hfeHidden).toBe(true);
-  expect(marked.classList.contains(EDITING_CELL_CLASS)).toBe(false);
+    findHook(stub.hot, 'afterRenderer')(cell, 2, 0, 0, null, {});
+
+    expect(cell.classList.contains(EDITING_CELL_CLASS)).toBe(false);
+  });
+
+  it('clears the edited-cell mark when the inline editor is hidden for the bar', () => {
+    const stub = makeFullHotStub();
+    const hostEditor = makeHostEditor();
+
+    stub.hot.getActiveEditor = () => hostEditor;
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    const marked = document.createElement('td');
+
+    marked.classList.add(EDITING_CELL_CLASS);
+    stub.hot.rootElement.appendChild(marked);
+
+    plugin.setInlineEditorVisible(false);
+
+    expect(hostEditor._hiddenByFormulaBar).toBe(true);
+    expect(hostEditor.refreshDimensions).toHaveBeenCalled();
+    expect(marked.classList.contains(EDITING_CELL_CLASS)).toBe(false);
+  });
 });
 
 it('does not touch global HOT settings on enable', () => {
   const stub = makeFullHotStub();
-  const plugin = new FormulaBuilder(stub.hot as never);
+  const plugin = new FormulaBuilder(stub.instance);
 
   plugin.enablePlugin();
 
-  expect(stub.updateSettings).not.toHaveBeenCalled();
+  expect(stub.hot.updateSettings).not.toHaveBeenCalled();
 });
 
 it('attaches hooks on enable and removes them on disable', () => {
   const stub = makeFullHotStub();
-  const plugin = new FormulaBuilder(stub.hot as never);
+  const plugin = new FormulaBuilder(stub.instance);
 
   stub.hot.addHook.mockClear();
   plugin.enablePlugin();
@@ -469,13 +522,59 @@ it('attaches hooks on enable and removes them on disable', () => {
   expect(removedHooks).toEqual(expect.arrayContaining(addedHooks));
 });
 
-it('lets column sorting proceed while no header pick is active', () => {
+it('registers the three cell mouse listeners at order index -1, both mouseover hooks with one listener', () => {
   const stub = makeFullHotStub();
-  const plugin = new FormulaBuilder(stub.hot as never);
+  const plugin = new FormulaBuilder(stub.instance);
 
   plugin.enablePlugin();
 
-  expect(findHook(stub, 'beforeColumnSort')()).toBe(undefined);
+  const callOf = (name: string) => stub.hot.addHook.mock.calls.find(call => call[0] === name);
+  const mouseDown = callOf('beforeOnCellMouseDown');
+  const mouseOver = callOf('beforeOnCellMouseOver');
+  const mouseOverOutside = callOf('beforeOnCellMouseOverOutside');
+
+  expect(mouseDown?.[2]).toBe(-1);
+  expect(mouseOver?.[2]).toBe(-1);
+  expect(mouseOverOutside?.[2]).toBe(-1);
+  expect(mouseOverOutside?.[1]).toBe(mouseOver?.[1]);
+});
+
+it('lets column sorting proceed while no header pick is active', () => {
+  const stub = makeFullHotStub();
+  const plugin = new FormulaBuilder(stub.instance);
+
+  plugin.enablePlugin();
+
+  expect(findHook(stub.hot, 'beforeColumnSort')()).toBe(undefined);
+});
+
+it('blocks the column sort a header pick mousedown would cause, until the pick ends', () => {
+  const stub = makeFullHotStub();
+
+  stub.engine.addSheet('Sheet1');
+  const plugin = new FormulaBuilder(stub.instance);
+
+  plugin.enablePlugin();
+  openSession(plugin, '=SUM(');
+
+  const editor = plugin.getActiveEditor() as unknown as { isRefSelectionActive(): boolean };
+
+  expect(editor.isRefSelectionActive()).toBe(true);
+
+  const event = new MouseEvent('mousedown', { cancelable: true });
+
+  findHook(stub.hot, 'beforeOnCellMouseDown')(event, { row: -1, col: 1 }, undefined, {
+    row: false,
+    column: false,
+    cell: false,
+  });
+
+  expect(isImmediatePropagationStopped(event)).toBe(true);
+  expect(findHook(stub.hot, 'beforeColumnSort')()).toBe(false);
+
+  document.dispatchEvent(new MouseEvent('mouseup'));
+
+  expect(findHook(stub.hot, 'beforeColumnSort')()).toBe(undefined);
 });
 
 /**
@@ -488,83 +587,10 @@ function makeCellRangeStub(active: { row: number; col: number }) {
   return { highlight: active };
 }
 
-describe('FormulaBuilder drag-to-scroll suspension', () => {
-  /**
-   * Builds a DragToScroll plugin stub.
-   *
-   * @param {boolean} enabled Whether the host enabled the plugin.
-   * @returns {object} The stub.
-   */
-  function makeDragToScrollStub(enabled: boolean) {
-    return { enabled, disablePlugin: jest.fn(), enablePlugin: jest.fn(), unlisten: jest.fn() };
-  }
-
-  /**
-   * Enables the plugin, binds a ref-mode editor, and presses a body cell.
-   *
-   * @param {boolean} dragToScrollEnabled Whether the DragToScroll stub reports enabled.
-   * @returns {object} The plugin and the DragToScroll stub.
-   */
-  function startPick(dragToScrollEnabled: boolean) {
-    const stub = makeFullHotStub();
-    const dragToScroll = makeDragToScrollStub(dragToScrollEnabled);
-    const baseGetPlugin = stub.hot.getPlugin;
-
-    stub.hot.getPlugin = pluginName =>
-      (pluginName === 'dragToScroll' ? dragToScroll : baseGetPlugin(pluginName));
-
-    const plugin = new FormulaBuilder(stub.hot as never);
-
-    plugin.enablePlugin();
-    plugin.bindInlineEditor(fakeInlineEditor);
-
-    const mouseDown = findHook(stub, 'beforeOnCellMouseDown');
-
-    mouseDown({ preventDefault: jest.fn() }, { row: 1, col: 1 }, undefined, {
-      row: false,
-      column: false,
-      cell: false,
-    });
-
-    return { plugin, dragToScroll };
-  }
-
-  it('disables an enabled dragToScroll plugin on pick start and re-enables it on mouseup', () => {
-    const { dragToScroll } = startPick(true);
-
-    expect(dragToScroll.disablePlugin).toHaveBeenCalledTimes(1);
-    expect(dragToScroll.enablePlugin).not.toHaveBeenCalled();
-
-    document.dispatchEvent(new MouseEvent('mouseup'));
-
-    expect(dragToScroll.enablePlugin).toHaveBeenCalledTimes(1);
-  });
-
-  it('clears stale dragToScroll listening state on suspend so resume cannot auto-scroll', () => {
-    const { dragToScroll } = startPick(true);
-
-    expect(dragToScroll.unlisten).toHaveBeenCalledTimes(1);
-
-    document.dispatchEvent(new MouseEvent('mouseup'));
-
-    expect(dragToScroll.unlisten).toHaveBeenCalledTimes(1);
-  });
-
-  it('never touches a dragToScroll plugin the host has disabled', () => {
-    const { dragToScroll } = startPick(false);
-
-    expect(dragToScroll.disablePlugin).not.toHaveBeenCalled();
-
-    document.dispatchEvent(new MouseEvent('mouseup'));
-
-    expect(dragToScroll.enablePlugin).not.toHaveBeenCalled();
-  });
-});
-
 describe('FormulaBuilder eager adapter', () => {
   it('builds the adapter during enablePlugin so overlay hooks are ready before the first edit', () => {
     const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     stub.hot.addHook.mockClear();
     plugin.enablePlugin();
@@ -575,11 +601,11 @@ describe('FormulaBuilder eager adapter', () => {
     expect(hooksAfterEnable).toContain('afterGetColHeader');
     expect(hooksAfterEnable).toContain('afterGetRowHeader');
 
-    expect(plugin.adapter).toBeDefined();
+    expect(getFormulaBuilderAdapter(plugin)).not.toBeNull();
 
-    const hooksAfterAdapter = stub.hot.addHook.mock.calls.map(call => call[0]);
+    plugin.disablePlugin();
 
-    expect(hooksAfterAdapter).toContain('afterViewRender');
+    expect(getFormulaBuilderAdapter(plugin)).toBeNull();
   });
 });
 
@@ -589,7 +615,7 @@ describe('FormulaBuilder formula bar host', () => {
 
     registerAsRootInstance(stub.hot);
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -604,7 +630,7 @@ describe('FormulaBuilder formula bar host', () => {
 
   it('skips the bar host on a non-root instance', () => {
     const stub = makeFullHotStub({ showFormulaBar: true });
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -619,20 +645,19 @@ describe('FormulaBuilder formula-cell scoping', () => {
     stub.engine.addSheet('Sheet1');
     stub.engine.setCellContents({ sheet: 0, row: 0, col: 0 }, [['=1/0']]);
     stub.engine.setCellContents({ sheet: 0, row: 0, col: 1 }, [['=1/0']]);
-    stub.hot.getCellMetaTransient = (_row, col) => ({ editor: col === 0 ? 'formula' : 'numeric' });
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
-    const renderCell = findHook(stub, 'afterRenderer');
+    const renderCell = findHook(stub.hot, 'afterRenderer');
     const formulaCell = document.createElement('td');
     const plainCell = document.createElement('td');
 
-    renderCell(formulaCell, 0, 0);
-    renderCell(plainCell, 0, 1);
+    renderCell(formulaCell, 0, 0, 0, null, { editor: 'formula' });
+    renderCell(plainCell, 0, 1, 1, null, { editor: 'numeric' });
 
-    expect(formulaCell.dataset.hfeError).toBeDefined();
+    expect(formulaCell.dataset.hfeError).toBe('#DIV/0!');
     expect(plainCell.dataset.hfeError).toBeUndefined();
   });
 
@@ -641,11 +666,11 @@ describe('FormulaBuilder formula-cell scoping', () => {
 
     stub.hot.getActiveEditor = () => ({ isOpened: () => true, row: 0 });
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
-    const mouseDown = findHook(stub, 'beforeOnCellMouseDown');
+    const mouseDown = findHook(stub.hot, 'beforeOnCellMouseDown');
     const eventController = { row: false, column: false, cell: false };
 
     mouseDown(undefined, { row: 1, col: 1 }, undefined, eventController);
@@ -655,61 +680,61 @@ describe('FormulaBuilder formula-cell scoping', () => {
 
   it('lets the native editor commit on a cell click when editing a formula with an inactive caret', () => {
     const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
-    plugin.bindInlineEditor({
-      isRefSelectionActive: () => false,
-      getValue: () => '=SUM(A1:A10)',
-      isFormula: () => true,
-      closeUnbalancedParens: () => {},
-    } as never);
+    openSession(plugin, '=SUM(A1:A10)');
 
-    const mouseDown = findHook(stub, 'beforeOnCellMouseDown');
+    const editor = plugin.getActiveEditor() as unknown as {
+      isFormula(): boolean;
+      isRefSelectionActive(): boolean;
+    };
+
+    expect(editor.isFormula()).toBe(true);
+    expect(editor.isRefSelectionActive()).toBe(false);
+
+    const event = new MouseEvent('mousedown', { cancelable: true });
     const eventController = { row: false, column: false, cell: false };
 
-    mouseDown(undefined, { row: 1, col: 1 }, undefined, eventController);
+    findHook(stub.hot, 'beforeOnCellMouseDown')(event, { row: 1, col: 1 }, undefined, eventController);
 
     expect(eventController.cell).toBe(false);
+    expect(isImmediatePropagationStopped(event)).toBe(false);
   });
 
   it('lets the editor commit on a grid click when editing a non-formula value', () => {
     const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
-    plugin.bindInlineEditor({
-      isRefSelectionActive: () => false,
-      getValue: () => '123',
-      isFormula: () => false,
-    } as never);
+    openSession(plugin, '123');
 
-    const mouseDown = findHook(stub, 'beforeOnCellMouseDown');
+    const event = new MouseEvent('mousedown', { cancelable: true });
     const eventController = { row: false, column: false, cell: false };
 
-    mouseDown(undefined, { row: 1, col: 1 }, undefined, eventController);
+    findHook(stub.hot, 'beforeOnCellMouseDown')(event, { row: 1, col: 1 }, undefined, eventController);
 
     expect(eventController.cell).toBe(false);
+    expect(isImmediatePropagationStopped(event)).toBe(false);
   });
 
-  it('ref-picks (replaces) while ref selection is active', () => {
+  it('ref-picks (replaces) while ref selection is active and claims the mousedown', () => {
     const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
+
+    stub.engine.addSheet('Sheet1');
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
-    plugin.bindInlineEditor({
-      isRefSelectionActive: () => true,
-      getValue: () => '=SUM(',
-      isFormula: () => true,
-      getRefPreviewColor: () => 'var(--hfe-ref-1)',
-    } as never);
+    openSession(plugin, '=SUM(');
 
-    const mouseDown = findHook(stub, 'beforeOnCellMouseDown');
+    const event = new MouseEvent('mousedown', { cancelable: true });
     const eventController = { row: false, column: false, cell: false };
 
-    mouseDown(undefined, { row: 1, col: 1 }, undefined, eventController);
+    findHook(stub.hot, 'beforeOnCellMouseDown')(event, { row: 1, col: 1 }, undefined, eventController);
 
-    expect(eventController.cell).toBe(true);
+    expect(eventController).toEqual({ row: true, column: true, cell: true });
+    expect(event.defaultPrevented).toBe(true);
+    expect(isImmediatePropagationStopped(event)).toBe(true);
 
     document.dispatchEvent(new MouseEvent('mouseup'));
   });
@@ -717,9 +742,9 @@ describe('FormulaBuilder formula-cell scoping', () => {
   it('tracks selection only on formula cells', () => {
     const stub = makeFullHotStub();
 
-    stub.hot.getCellMetaTransient = (_row, col) => ({ editor: col === 0 ? 'formula' : 'numeric' });
+    stub.hot.getCellMetaTransient.mockImplementation((_row, col) => ({ editor: col === 0 ? 'formula' : 'numeric' }));
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -727,7 +752,7 @@ describe('FormulaBuilder formula-cell scoping', () => {
 
     plugin.onSelection(selection => seen.push(selection));
 
-    const selectionEnd = findHook(stub, 'afterSelectionEnd');
+    const selectionEnd = findHook(stub.hot, 'afterSelectionEnd');
 
     stub.hot.getSelectedRangeLast = () => makeCellRangeStub({ row: 0, col: 1 });
     selectionEnd(0, 1, 0, 1);
@@ -740,16 +765,16 @@ describe('FormulaBuilder formula-cell scoping', () => {
   it('emits null for a header selection (negative anchor)', () => {
     const stub = makeFullHotStub();
 
-    stub.hot.getCellMetaTransient = () => ({ editor: 'formula' });
+    stub.hot.getCellMetaTransient.mockImplementation(() => ({ editor: 'formula' }));
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
     const received: unknown[] = [];
 
     plugin.onFormulaCellSelection(selection => received.push(selection));
-    findHook(stub, 'afterSelectionEnd')(-1, 2, 5, 2);
+    findHook(stub.hot, 'afterSelectionEnd')(-1, 2, 5, 2);
 
     expect(received[0]).toBeNull();
   });
@@ -757,17 +782,17 @@ describe('FormulaBuilder formula-cell scoping', () => {
   it('emits active + full range from afterSelectionEnd', () => {
     const stub = makeFullHotStub();
 
-    stub.hot.getCellMetaTransient = () => ({ editor: 'formula' });
+    stub.hot.getCellMetaTransient.mockImplementation(() => ({ editor: 'formula' }));
     stub.hot.getSelectedRangeLast = () => makeCellRangeStub({ row: 4, col: 2 });
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
     const received: unknown[] = [];
 
     plugin.onFormulaCellSelection(selection => received.push(selection));
-    findHook(stub, 'afterSelectionEnd')(4, 2, 1, 3);
+    findHook(stub.hot, 'afterSelectionEnd')(4, 2, 1, 3);
 
     expect(received[0]).toEqual({
       active: { row: 4, col: 2 },
@@ -778,19 +803,19 @@ describe('FormulaBuilder formula-cell scoping', () => {
   it('clears the bar selection on afterDeselect and re-emits the next selection', () => {
     const stub = makeFullHotStub();
 
-    stub.hot.getCellMetaTransient = () => ({ editor: 'formula' });
+    stub.hot.getCellMetaTransient.mockImplementation(() => ({ editor: 'formula' }));
     stub.hot.getSelectedRangeLast = () => makeCellRangeStub({ row: 2, col: 1 });
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
     const received: unknown[] = [];
-    const selectionEnd = findHook(stub, 'afterSelectionEnd');
+    const selectionEnd = findHook(stub.hot, 'afterSelectionEnd');
 
     plugin.onFormulaCellSelection(selection => received.push(selection));
     selectionEnd(2, 1, 2, 1);
-    findHook(stub, 'afterDeselect')();
+    findHook(stub.hot, 'afterDeselect')();
 
     expect(received).toHaveLength(2);
     expect(received[1]).toBeNull();
@@ -809,7 +834,7 @@ describe('FormulaBuilder formula-cell scoping', () => {
 describe('FormulaBuilder inline-edit plumbing', () => {
   it('onInlineEditStart fires with mount and seed when handleInlineEditStart is called', () => {
     const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -826,36 +851,14 @@ describe('FormulaBuilder inline-edit plumbing', () => {
     expect(events[0]?.seed).toBe('=SUM(');
   });
 
-  it('bindInlineEditor sets the active editor', () => {
-    const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
-
-    plugin.enablePlugin();
-
-    const fakeEditor = { getValue: () => '=A1' } as never;
-
-    plugin.bindInlineEditor(fakeEditor);
-
-    expect(plugin.getActiveEditor()).toBe(fakeEditor);
-  });
-
-  it('bindInlineEditor(null) clears the active editor', () => {
-    const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
-
-    plugin.enablePlugin();
-    plugin.bindInlineEditor({ getValue: () => '' } as never);
-    plugin.bindInlineEditor(null);
-
-    expect(plugin.getActiveEditor()).toBeNull();
-  });
-
   it('handleInlineEditClose clears the active editor and notifies close listeners', () => {
     const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
-    plugin.bindInlineEditor({ getValue: () => '=B2' } as never);
+    openSession(plugin, '=B2');
+
+    expect(plugin.getActiveEditor()).not.toBeNull();
 
     let closed = false;
 
@@ -870,7 +873,7 @@ describe('FormulaBuilder inline-edit plumbing', () => {
 
   it('creates a local FormulaEditor into the mount when no bar controller is subscribed', () => {
     const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -886,14 +889,14 @@ describe('FormulaBuilder inline-edit plumbing', () => {
 describe('FormulaBuilder API surface', () => {
   it('returns null active editor when disabled', () => {
     const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     expect(plugin.getActiveEditor()).toBeNull();
   });
 
   it('returns default selection { row: 0, col: 0 } initially', () => {
     const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -902,7 +905,7 @@ describe('FormulaBuilder API surface', () => {
 
   it('notifies selection listeners on setSelected', () => {
     const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -920,7 +923,7 @@ describe('FormulaBuilder API surface', () => {
     stub.engine.addSheet('Sheet1');
     stub.engine.setCellContents({ sheet: 0, row: 0, col: 0 }, [[42, '=A1+1']]);
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -933,11 +936,11 @@ describe('FormulaBuilder API surface', () => {
 
     stub.hot.countRows = () => 3;
     stub.hot.countCols = () => 3;
-    stub.hot.getCellMetaTransient = (row, col) => ({
+    stub.hot.getCellMetaTransient.mockImplementation((row, col) => ({
       editor: row === 2 && col === 1 ? 'formula' : 'numeric',
-    });
+    }));
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
     plugin.selectFirstFormulaCell();
@@ -947,7 +950,7 @@ describe('FormulaBuilder API surface', () => {
 
   it('destroy removes attached hooks and tears down resources even without explicit disable', () => {
     const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
     plugin.destroy();
@@ -983,8 +986,10 @@ describe('FormulaBuilder directional commit', () => {
     stub.hot.getSelectedLast = () => selected;
     stub.hot.countRows = () => 5;
     stub.hot.countCols = () => 5;
+    stub.hot.rowIndexMapper = makeIndexMapperStub(5);
+    stub.hot.columnIndexMapper = makeIndexMapperStub(5);
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -1006,11 +1011,7 @@ describe('FormulaBuilder directional commit', () => {
       getRenderableFromVisualIndex: visual => (visual < 2 ? visual : visual - 1),
       getVisualFromRenderableIndex: renderable => (renderable < 2 ? renderable : renderable + 1),
       getRenderableIndexesLength: () => 4,
-    };
-    stub.hot.columnIndexMapper = {
-      getRenderableFromVisualIndex: visual => visual,
-      getVisualFromRenderableIndex: renderable => renderable,
-      getRenderableIndexesLength: () => 5,
+      getNumberOfIndexes: () => 5,
     };
 
     plugin.commitInlineEdit('=A1', 'down');
@@ -1018,65 +1019,66 @@ describe('FormulaBuilder directional commit', () => {
     expect(selectCell).toHaveBeenCalledWith(3, 0);
   });
 
-  it('clamps at the grid edge without a mapper', () => {
-    const { stub, plugin, selectCell } = makeCommitContext([4, 0, 4, 0]);
-
-    stub.hot.rowIndexMapper = undefined;
-    stub.hot.columnIndexMapper = undefined;
+  it('clamps at the last renderable row', () => {
+    const { plugin, selectCell } = makeCommitContext([4, 0, 4, 0]);
 
     plugin.commitInlineEdit('=A1', 'down');
 
     expect(selectCell).toHaveBeenCalledWith(4, 0);
   });
+
+  it.each([
+    [2, 3],
+    [4, 4],
+  ])('steps by the visual count from a non-renderable row %p, clamped to the grid', (from, to) => {
+    const { stub, plugin, selectCell } = makeCommitContext([from, 0, from, 0]);
+
+    // The edited row has no renderable index.
+    stub.hot.rowIndexMapper = { ...makeIndexMapperStub(5), getRenderableFromVisualIndex: () => null };
+
+    plugin.commitInlineEdit('=A1', 'down');
+
+    expect(selectCell).toHaveBeenCalledWith(to, 0);
+  });
 });
 
 describe('FormulaBuilder theme tracking', () => {
-  /**
-   * Counts how many times a hook name was registered on the stub.
-   *
-   * @param {object} stub The stub bundle returned by `makeFullHotStub`.
-   * @param {string} hookName The hook name to count.
-   * @returns {number} The registration count.
-   */
-  function countHookRegistrations(
-    stub: ReturnType<typeof makeFullHotStub>,
-    hookName: string,
-  ): number {
-    return stub.hot.addHook.mock.calls.filter(call => call[0] === hookName).length;
-  }
-
-  it('re-initialises when the theme class changes', () => {
-    const stub = makeFullHotStub();
+  it('rebuilds the builder (not the plugin) when the theme class changes', () => {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module });
     let theme: string | undefined = 'ht-theme-main';
 
     stub.hot.themeManager = { getClassName: () => theme };
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
-    const before = countHookRegistrations(stub, 'afterRenderer');
+    const hookRegistrations = stub.hot.addHook.mock.calls.length;
 
     theme = 'ht-theme-horizon';
-    findHook(stub, 'afterSetTheme')();
+    findHook(stub.hot, 'afterSetTheme')();
 
-    expect(countHookRegistrations(stub, 'afterRenderer')).toBe(before + 1);
+    expect(spied.created.map(entry => entry.options.className))
+      .toEqual(['ht-theme-main', 'ht-theme-horizon']);
+    expect(spied.destroyed).toEqual([spied.created[0].instance]);
+    expect(stub.hot.addHook.mock.calls).toHaveLength(hookRegistrations);
+    expect(plugin.enabled).toBe(true);
   });
 
-  it('does not re-initialise when the theme class is unchanged', () => {
-    const stub = makeFullHotStub();
+  it('keeps the builder when the theme class is unchanged', () => {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module });
 
     stub.hot.themeManager = { getClassName: () => 'ht-theme-main' };
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
+    findHook(stub.hot, 'afterSetTheme')();
 
-    const before = countHookRegistrations(stub, 'afterRenderer');
-
-    findHook(stub, 'afterSetTheme')();
-
-    expect(countHookRegistrations(stub, 'afterRenderer')).toBe(before);
+    expect(spied.created).toHaveLength(1);
+    expect(spied.destroyed).toHaveLength(0);
   });
 
   it('falls back to the string theme name when no themeManager exists', () => {
@@ -1084,7 +1086,7 @@ describe('FormulaBuilder theme tracking', () => {
 
     stub.hot.getCurrentThemeName = () => 'ht-theme-main-dark';
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -1096,37 +1098,443 @@ describe('FormulaBuilder theme tracking', () => {
     plugin.disablePlugin();
   });
 
-  it('re-initialises when the string theme name changes without a themeManager', () => {
-    const stub = makeFullHotStub();
+  it('rebuilds the builder when the string theme name changes without a themeManager', () => {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module });
     let theme: string | null = 'ht-theme-main';
 
     stub.hot.getCurrentThemeName = () => theme;
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
-
-    const before = countHookRegistrations(stub, 'afterRenderer');
-
     theme = 'ht-theme-main-dark';
-    findHook(stub, 'afterSetTheme')();
+    findHook(stub.hot, 'afterSetTheme')();
 
-    expect(countHookRegistrations(stub, 'afterRenderer')).toBe(before + 1);
+    expect(spied.created.map(entry => entry.options.className))
+      .toEqual(['ht-theme-main', 'ht-theme-main-dark']);
+  });
+
+  it('cancels an open edit before destroying the old builder', () => {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module });
+    const order: string[] = [];
+    const hostEditor = makeHostEditor({
+      finishEditing: jest.fn((restore?: boolean) => order.push(`finishEditing(${restore})`)),
+    });
+    let theme = 'ht-theme-main';
+
+    stub.hot.getActiveEditor = () => hostEditor;
+    stub.hot.getCurrentThemeName = () => theme;
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+    openSession(plugin, '=A1');
+
+    const firstBuilder = spied.created[0].instance as { destroy(): void };
+    const realDestroy = firstBuilder.destroy.bind(firstBuilder);
+
+    firstBuilder.destroy = () => {
+      order.push('destroy');
+      realDestroy();
+    };
+    theme = 'ht-theme-horizon';
+    findHook(stub.hot, 'afterSetTheme')();
+
+    expect(order).toEqual(['finishEditing(true)', 'destroy']);
   });
 });
 
-describe('FormulaBuilder event-manager lifecycle', () => {
-  it('disposes the event manager on disable', () => {
-    const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.hot as never);
+describe('FormulaBuilder engine sheet binding', () => {
+  /**
+   * Builds an enabled plugin over an engine with two sheets, bound to sheet 0.
+   *
+   * @returns {object} The stub bundle and the spied module records.
+   */
+  function makeTwoSheetPlugin() {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module });
+
+    stub.engine.addSheet('First');
+    stub.engine.addSheet('Second');
+
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
-    expect(plugin.events).not.toBe(null);
+    return { stub, spied };
+  }
 
+  it.each(['afterLoadData', 'afterUpdateData'])(
+    'rebuilds the builder with the new sheet id when %s binds another sheet',
+    (hookName) => {
+      const { stub, spied } = makeTwoSheetPlugin();
+
+      stub.formulas.sheetId = 1;
+      findHook(stub.hot, hookName)();
+
+      expect(spied.created.map(entry => entry.options.sheetId)).toEqual([0, 1]);
+      expect(spied.destroyed).toEqual([spied.created[0].instance]);
+    },
+  );
+
+  it.each(['afterLoadData', 'afterUpdateData'])(
+    'keeps the builder when %s leaves the grid on the same sheet',
+    (hookName) => {
+      const { stub, spied } = makeTwoSheetPlugin();
+
+      findHook(stub.hot, hookName)();
+
+      expect(spied.created).toHaveLength(1);
+      expect(spied.destroyed).toHaveLength(0);
+    },
+  );
+
+  it('builds against sheet 0 before Formulas binds a sheet and keeps it when the load binds 0', () => {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module });
+
+    stub.formulas.sheetId = null;
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+    stub.formulas.sheetId = 0;
+    findHook(stub.hot, 'afterLoadData')();
+
+    expect(spied.created.map(entry => entry.options.sheetId)).toEqual([0]);
+  });
+});
+
+describe('FormulaBuilder.updatePlugin', () => {
+  /**
+   * Builds an enabled plugin with an open edit session over the spied module.
+   *
+   * @param {object} pluginSettings The initial `formulaBuilder` settings (without `builder`).
+   * @returns {object} The stub bundle, spied module, plugin, and host editor.
+   */
+  function makeEditingPlugin(pluginSettings: Record<string, unknown> = {}) {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module, ...pluginSettings });
+    const hostEditor = makeHostEditor();
+
+    stub.hot.getActiveEditor = () => hostEditor;
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+    openSession(plugin, '=A1');
+
+    return { stub, spied, plugin, hostEditor };
+  }
+
+  /**
+   * Replaces the `formulaBuilder` settings with a fresh object and runs `updatePlugin()`.
+   *
+   * @param {object} bundle The `makeEditingPlugin` result.
+   * @param {object} next The next settings (the current `builder` unless given).
+   */
+  function update(bundle: ReturnType<typeof makeEditingPlugin>, next: Record<string, unknown>): void {
+    bundle.stub.settings.formulaBuilder = { builder: bundle.spied.module, ...next };
+    bundle.plugin.updatePlugin();
+  }
+
+  it('keeps the builder and the open edit when a re-render re-sends equal settings', () => {
+    const container = document.createElement('div');
+    const popups = () => ({ showClose: true, suggestions: { container, showKeyboardHelp: false } });
+    const bundle = makeEditingPlugin({ showFormulaBar: false, direction: 'ltr', popups: popups() });
+    const activeEditor = bundle.plugin.getActiveEditor();
+
+    update(bundle, { showFormulaBar: false, direction: 'ltr', popups: popups() });
+
+    expect(bundle.spied.created).toHaveLength(1);
+    expect(bundle.spied.destroyed).toHaveLength(0);
+    expect(bundle.hostEditor.finishEditing).not.toHaveBeenCalled();
+    expect(bundle.plugin.getActiveEditor()).toBe(activeEditor);
+    expect(bundle.plugin.enabled).toBe(true);
+  });
+
+  it.each([
+    ['the builder module', () => ({ builder: makeSpiedCore().module })],
+    ['showFormulaBar', () => ({ showFormulaBar: true })],
+    ['direction', () => ({ direction: 'rtl' })],
+    ['a popups value', () => ({ popups: { showClose: false } })],
+    ['the popups key set', () => ({ popups: { showClose: true, fnHelp: {} } })],
+    ['the popup container element', () => ({
+      popups: { showClose: true, suggestions: { container: document.createElement('div') } },
+    })],
+  ])('rebuilds when %s changes, cancelling the open edit first', (_label, makeChange) => {
+    const container = document.createElement('div');
+    const bundle = makeEditingPlugin({ popups: { showClose: true, suggestions: { container } } });
+
+    update(bundle, { popups: { showClose: true, suggestions: { container } }, ...makeChange() });
+
+    expect(bundle.hostEditor.finishEditing).toHaveBeenCalledWith(true);
+    expect(bundle.spied.destroyed).toContain(bundle.spied.created[0].instance);
+    expect(bundle.plugin.enabled).toBe(true);
+  });
+
+  it('rebuilds when the Formulas plugin hands over another engine', () => {
+    const bundle = makeEditingPlugin();
+    const nextEngine = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+    bundle.stub.formulas.engine = nextEngine;
+    update(bundle, {});
+
+    expect(bundle.spied.created).toHaveLength(2);
+    expect(bundle.spied.created[1].options.hyperformula).toBe(nextEngine);
+  });
+});
+
+describe('FormulaBuilder settings validation', () => {
+  let warnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it.each(REQUIRED_CORE_MEMBERS.map(name => [name]))(
+    'warns naming `%s` and stays disabled when the builder module lacks it',
+    (missing) => {
+      const { [missing]: _dropped, ...incomplete } = core as unknown as Record<string, unknown>;
+      const stub = makeFullHotStub({ builder: incomplete });
+      const plugin = new FormulaBuilder(stub.instance);
+
+      plugin.enablePlugin();
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0][0]).toContain(`It is missing \`${missing}\`.`);
+      expect(plugin.enabled).toBe(false);
+      expect(getFormulaBuilderAdapter(plugin)).toBeNull();
+    },
+  );
+
+  it('names every missing member in one warning', () => {
+    const { formatRef: _formatRef, stepCell: _stepCell, ...incomplete } =
+      core as unknown as Record<string, unknown>;
+    const stub = makeFullHotStub({ builder: incomplete });
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    expect(warnSpy.mock.calls[0][0]).toContain('It is missing `formatRef`, `stepCell`.');
+  });
+
+  it('treats a member that is not a function as missing', () => {
+    const stub = makeFullHotStub({ builder: { ...core, normalizeRange: 'not a function' } });
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    expect(warnSpy.mock.calls[0][0]).toContain('It is missing `normalizeRange`.');
+    expect(plugin.enabled).toBe(false);
+  });
+
+  it('warns and does not show the bar for a non-boolean showFormulaBar', () => {
+    const stub = makeFullHotStub({ showFormulaBar: 'yes' });
+
+    registerAsRootInstance(stub.hot);
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('`showFormulaBar`'));
+    expect(stub.layoutManager.register).not.toHaveBeenCalled();
+    expect(plugin.enabled).toBe(true);
+  });
+
+  it.each([
+    [false, 'ltr'],
+    [true, 'rtl'],
+  ])('warns for an invalid direction and falls back to the grid direction (isRtl: %p)', (isRtl, expected) => {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module, direction: 'up' });
+
+    stub.hot.isRtl = () => isRtl;
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('`direction`'));
+    expect(spied.created[0].options.direction).toBe(expected);
+  });
+
+  it('passes a valid direction through without a warning', () => {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module, direction: 'rtl' });
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(spied.created[0].options.direction).toBe('rtl');
+  });
+});
+
+describe('FormulaBuilder afterRenderer', () => {
+  /**
+   * Builds an enabled plugin over an engine whose A1 holds a `#DIV/0!` error and B1 a number.
+   *
+   * @returns {object} The stub bundle and the afterRenderer listener.
+   */
+  function makeRenderContext() {
+    const stub = makeFullHotStub();
+
+    stub.engine.addSheet('Sheet1');
+    stub.engine.setCellContents({ sheet: 0, row: 0, col: 0 }, [['=1/0', 5]]);
+    stub.settings.ariaTags = true;
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    return { stub, afterRenderer: findHook(stub.hot, 'afterRenderer') };
+  }
+
+  /**
+   * Builds a cell element carrying a stale error mark from a previous paint.
+   *
+   * @returns {HTMLTableCellElement}
+   */
+  function makeStaleErrorCell(): HTMLTableCellElement {
+    const cell = document.createElement('td');
+
+    cell.setAttribute('data-hfe-error', '#REF!');
+    cell.setAttribute('aria-invalid', 'true');
+
+    return cell;
+  }
+
+  it('reads the editor from the cellProperties argument, not from the cell meta', () => {
+    const { stub, afterRenderer } = makeRenderContext();
+    const cell = document.createElement('td');
+
+    stub.hot.getCellMetaTransient.mockClear();
+    stub.hot.getCellMetaTransient.mockImplementation(() => ({ editor: 'text' }));
+    afterRenderer(cell, 0, 0, 0, null, { editor: 'formula' });
+
+    expect(cell.getAttribute('data-hfe-error')).toBe('#DIV/0!');
+    expect(stub.hot.getCellMetaTransient).not.toHaveBeenCalled();
+  });
+
+  it('accepts the registered formula editor class as well as the alias', () => {
+    const { afterRenderer } = makeRenderContext();
+    const cell = document.createElement('td');
+
+    afterRenderer(cell, 0, 0, 0, null, { editor: getEditor('formula') });
+
+    expect(cell.hasAttribute('data-hfe-error')).toBe(true);
+  });
+
+  it('clears a stale error mark from a recycled cell that is no longer a formula cell', () => {
+    const { afterRenderer } = makeRenderContext();
+    const cell = makeStaleErrorCell();
+
+    afterRenderer(cell, 0, 1, 1, 5, { editor: 'numeric' });
+
+    expect(cell.hasAttribute('data-hfe-error')).toBe(false);
+    expect(cell.hasAttribute('aria-invalid')).toBe(false);
+  });
+
+  it('clears the mark of a formula cell whose value is no longer an error', () => {
+    const { afterRenderer } = makeRenderContext();
+    const cell = makeStaleErrorCell();
+
+    afterRenderer(cell, 0, 1, 1, 5, { editor: 'formula' });
+
+    expect(cell.hasAttribute('data-hfe-error')).toBe(false);
+  });
+
+  it.each([
+    ['a column header row', -1, 0],
+    ['a row header column', 0, -1],
+  ])('neither reads the engine nor marks %s', (_label, row, col) => {
+    const { stub, afterRenderer } = makeRenderContext();
+    const getCellValue = jest.spyOn(stub.engine, 'getCellValue');
+    const cell = document.createElement('td');
+
+    afterRenderer(cell, row, col, col, null, { editor: 'formula' });
+
+    expect(getCellValue).not.toHaveBeenCalled();
+    expect(cell.hasAttribute('data-hfe-error')).toBe(false);
+  });
+
+  it('marks a formula cell at row 0 and column 0', () => {
+    const { afterRenderer } = makeRenderContext();
+    const cell = document.createElement('td');
+
+    afterRenderer(cell, 0, 0, 0, null, { editor: 'formula' });
+
+    expect(cell.hasAttribute('data-hfe-error')).toBe(true);
+  });
+
+  it.each(['row', 'column'])(
+    'clears a stale mark without reading the engine when the %s has no HyperFormula index',
+    (axis) => {
+      const { stub, afterRenderer } = makeRenderContext();
+      const unresolvable = { getHfIndexFromVisualIndex: () => -1, getVisualIndexFromHfIndex: () => -1 };
+
+      if (axis === 'row') {
+        stub.formulas.rowAxisSyncer = unresolvable;
+      } else {
+        stub.formulas.columnAxisSyncer = unresolvable;
+      }
+
+      const getCellValue = jest.spyOn(stub.engine, 'getCellValue');
+      const cell = makeStaleErrorCell();
+
+      afterRenderer(cell, 0, 0, 0, null, { editor: 'formula' });
+
+      expect(getCellValue).not.toHaveBeenCalled();
+      expect(cell.hasAttribute('data-hfe-error')).toBe(false);
+    },
+  );
+
+  it('keeps aria-invalid on an error cell under ariaTags and removes it without', () => {
+    const { stub, afterRenderer } = makeRenderContext();
+    const withAria = document.createElement('td');
+
+    afterRenderer(withAria, 0, 0, 0, null, { editor: 'formula' });
+
+    expect(withAria.getAttribute('aria-invalid')).toBe('true');
+
+    stub.settings.ariaTags = false;
+
+    const withoutAria = document.createElement('td');
+
+    afterRenderer(withoutAria, 0, 0, 0, null, { editor: 'formula' });
+
+    expect(withoutAria.hasAttribute('data-hfe-error')).toBe(true);
+    expect(withoutAria.hasAttribute('aria-invalid')).toBe(false);
+  });
+});
+
+describe('FormulaBuilder.disablePlugin', () => {
+  it('disables the base plugin before tearing down an open edit', () => {
+    const stub = makeFullHotStub();
+    const plugin = new FormulaBuilder(stub.instance);
+    const states: Array<{ enabled: boolean; rendererRemoved: boolean }> = [];
+    const hostEditor = makeHostEditor({
+      finishEditing: jest.fn(() => states.push({
+        enabled: plugin.enabled,
+        rendererRemoved: stub.hot.removeHook.mock.calls.some(call => call[0] === 'afterRenderer'),
+      })),
+    });
+
+    stub.hot.getActiveEditor = () => hostEditor;
+    plugin.enablePlugin();
+    openSession(plugin, '=A1');
     plugin.disablePlugin();
 
-    expect(plugin.events).toBe(null);
+    expect(states).toEqual([{ enabled: false, rendererRemoved: true }]);
+    expect(hostEditor.finishEditing).toHaveBeenCalledWith(true);
   });
 });
 
@@ -1145,7 +1553,7 @@ describe('FormulaBuilder perf-sensitive paths', () => {
     stub.hot.getLastRenderedVisibleColumn = () => 10;
     stub.hot.getCellMetaTransient = getCellMetaTransient as never;
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
     plugin.selectFirstFormulaCell();
@@ -1166,7 +1574,7 @@ describe('FormulaBuilder perf-sensitive paths', () => {
     stub.hot.getLastRenderedVisibleColumn = () => 10;
     stub.hot.getCellMetaTransient = getCellMetaTransient as never;
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
     plugin.selectFirstFormulaCell();
@@ -1182,7 +1590,7 @@ describe('FormulaBuilder perf-sensitive paths', () => {
 
     stub.hot.getPlugin = getPluginSpy as never;
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
@@ -1191,7 +1599,7 @@ describe('FormulaBuilder perf-sensitive paths', () => {
     const lookupsAfterEnable = formulasLookups();
 
     for (let step = 0; step < 20; step++) {
-      plugin.adapter.stepCell({ sheet: '', row: 1, col: 1 }, 'down');
+      adapterOf(plugin).stepCell({ sheet: '', row: 1, col: 1 }, 'down');
     }
 
     expect(formulasLookups()).toBe(lookupsAfterEnable);
@@ -1201,17 +1609,19 @@ describe('FormulaBuilder perf-sensitive paths', () => {
 describe('FormulaBuilder resize re-anchor', () => {
   it('re-anchors the inline editor on afterColumnResize / afterRowResize during a session', () => {
     const stub = makeFullHotStub();
-    const refreshDimensions = jest.fn();
+    const hostEditor = makeHostEditor();
+    const { refreshDimensions } = hostEditor;
 
-    stub.hot.getActiveEditor = () => ({ refreshDimensions });
+    stub.hot.getActiveEditor = () => hostEditor;
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
-    plugin.bindInlineEditor({ getValue: () => '=A1' } as never);
+    openSession(plugin, '=A1');
+    refreshDimensions.mockClear();
 
-    findHook(stub, 'afterColumnResize')();
-    findHook(stub, 'afterRowResize')();
+    findHook(stub.hot, 'afterColumnResize')();
+    findHook(stub.hot, 'afterRowResize')();
 
     expect(refreshDimensions).toHaveBeenCalledTimes(2);
     expect(refreshDimensions).toHaveBeenCalledWith(true);
@@ -1223,11 +1633,11 @@ describe('FormulaBuilder resize re-anchor', () => {
 
     stub.hot.getActiveEditor = () => ({ refreshDimensions });
 
-    const plugin = new FormulaBuilder(stub.hot as never);
+    const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
 
-    findHook(stub, 'afterColumnResize')();
+    findHook(stub.hot, 'afterColumnResize')();
 
     expect(refreshDimensions).not.toHaveBeenCalled();
   });

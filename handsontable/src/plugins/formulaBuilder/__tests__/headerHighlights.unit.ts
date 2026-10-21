@@ -125,6 +125,34 @@ describe('HandsontableAdapter header highlights', () => {
     overlayHost.remove();
   });
 
+  it('repaints the header tint when only `whole` changes on the same range and color', () => {
+    const { hot, hooks } = makeHot();
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+    const { whole, ...plainHighlight } = wholeColHighlight(2);
+
+    adapter.setHighlights([plainHighlight]);
+
+    const th = document.createElement('th');
+
+    overlayHost.appendChild(th);
+    hooks.afterGetColHeader?.[0]?.(2, th);
+    hooks.afterViewRender?.forEach(listener => listener());
+
+    expect(th.style.backgroundColor).toBe('');
+
+    // Same range and color: only `whole` tells the two sets apart.
+    adapter.setHighlights([{ ...plainHighlight, whole }]);
+
+    expect(th.style.backgroundColor).not.toBe('');
+
+    adapter.destroy();
+    overlayHost.remove();
+  });
+
   it('afterGetColHeader hook leaves non-highlighted columns unstyled', () => {
     const { hot, hooks } = makeHot();
     const overlayHost = document.createElement('div');
