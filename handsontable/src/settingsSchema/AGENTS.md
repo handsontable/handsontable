@@ -65,8 +65,9 @@ settings object against it and against what the page registers. Guide:
   (`useState(null)`), `checkPlugin()` already skips `null` for every plugin option, and a runtime probe of every such
   option found none that throws or warns on `null`. The public types stay as they are: widening
   `GridSettings.pagination` would break readers of `getSettings()`. A cell-meta-only key (`comment`) has no entry and
-  keeps its type. `null` is legal, not always "off": `autoColumnSize` and `importFile` read only `false` as off, so
-  `null` leaves them on and the validator does not warn. `schemaCoverage.unit.js` pins the rule for every such option.
+  keeps its type. `null` means "unset", the same as omitting the option, not "off": a plugin that is off by default
+  stays off, and `autoColumnSize` and `importFile` (default `undefined`, on) stay on. Only `false` turns those two
+  off, so the validator rightly does not warn. `schemaCoverage.unit.js` pins the rule for every such option.
 - **A type narrower than what the plugin accepts is a false positive, so keep the two together.**
   `DataProviderConfig.rowId` is `RowIdKey` (`utils/rowId.ts`), the type of the grid-level `rowId`: a string path or a
   function of the source row. Its validator in the plugin's `constants.ts` accepts any function. Narrowing either
