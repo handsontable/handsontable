@@ -796,6 +796,26 @@ describe('DataProvider context owner contract', () => {
       expect(provider.lastQuery().page).toBe(1);
     });
 
+    it('keep the page a context was changing to when a save refetches it from off screen', async() => {
+      const provider = createDeferredProvider();
+      const first = { name: 'first' };
+      const owner = createOwner(first);
+
+      await createGrid(provider, { owner });
+
+      const plugin = hot.getPlugin('dataProvider');
+
+      void plugin.removeRows(['a']);
+      await settle();
+      void plugin.fetchData({ page: 2 });
+      await settle();
+
+      owner.current = { name: 'second' };
+      await provider.settleMutation();
+
+      expect(provider.lastQuery().page).toBe(2);
+    });
+
     it('decide a remove\'s page fallback from the latest response the owner keeps', async() => {
       const provider = createDeferredProvider();
       const first = { name: 'first' };

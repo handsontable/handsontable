@@ -596,11 +596,13 @@ export class DataProvider extends BasePlugin {
 
       const offScreen = target !== null && !this.#isVisible(target);
       const latest = offScreen ? this.#latestResultFor(target) : null;
-      const pageBeforeFetch = target === null ? this.#queryParameters.page : this.#queryFor(target).page;
+      const shownPage = target === null ? this.#queryParameters.page : this.#queryFor(target).page;
+      const pendingPage = target === null ? undefined : this.#pendingQueryFor(target)?.page;
+      const pageBeforeFetch = pendingPage ?? shownPage;
       const rowsLoaded = offScreen ? latest?.rows.length ?? rowsLoadedAtQueue : this.hot.countRows();
       const removesEveryLoadedRow = ids.length >= rowsLoaded && rowsLoaded >= 1;
 
-      if (removesEveryLoadedRow && pageBeforeFetch > 1) {
+      if (removesEveryLoadedRow && pageBeforeFetch > 1 && pageBeforeFetch === shownPage) {
         await this.#refetchFor(target, { page: pageBeforeFetch - 1, skipLoading: true });
 
         return;
@@ -910,7 +912,23 @@ export class DataProvider extends BasePlugin {
       return Promise.resolve(null);
     }
 
-    return this.#fetchFor(binding, overrides);
+    return this.#fetchFor(binding, overrides, this.#pendingQueryFor(binding));
+  }
+
+  /**
+   * Returns the query of the running fetch of a binding's context, so a refetch that follows a save keeps the page,
+   * sort, and filters the user asked for and that have not landed yet. `#queryParameters` (or, for a context that is
+   * not shown, the owner's latest response) still holds the previous ones until that fetch succeeds, and the refetch
+   * aborts it. The query is a snapshot, so a key a `beforeDataProviderFetch` listener added to the params is not
+   * carried into the refetch.
+   *
+   * @param {object} binding The request binding.
+   * @returns {object|undefined} `undefined` when no fetch of the binding's context is running.
+   */
+  #pendingQueryFor(binding: RequestBinding): DataProviderQueryParameters | undefined {
+    const pending = this.#inFlight.get(binding.context);
+
+    return pending ? this.#snapshotQueryParameters(pending.params) : undefined;
   }
 
   /**
