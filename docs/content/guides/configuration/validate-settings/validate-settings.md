@@ -41,9 +41,13 @@ The `handsontable/settingsSchema` module gives you two tools:
   generation, your own validator, or, saved to a file, editor autocomplete for JSON configs. See
   [Use the JSON Schema](#use-the-json-schema).
 
-Both tools read the cell types, editors, renderers, validators, and plugins that the `handsontable` npm package
-registers on the page. Next to the UMD build loaded from a CDN, the module sees none of them, so use it with the
-npm package.
+Both tools read the cell types, editors, renderers, validators, and plugins that Handsontable registers on the page.
+
+::: only-for javascript
+
+If you load Handsontable from a CDN, see [Use it from a CDN](#use-it-from-a-cdn).
+
+:::
 
 Nothing runs on its own: the grid does not validate its settings, so existing configurations behave as before.
 
@@ -226,6 +230,34 @@ The JSON Schema checks types and allowed values only, and it accepts unknown key
 custom keys. Use `validateSettings()` for the checks that depend on the page: unknown option names, option levels,
 registered names, plugins, and data properties.
 
+::: only-for javascript
+
+## Use it from a CDN
+
+The main bundles (`handsontable.js`, `handsontable.full.js`, and their minified files) do not contain the schema.
+Load the separate file `handsontable.settings-schema.js` (or `handsontable.settings-schema.min.js`) after the
+Handsontable bundle. It adds the global `HandsontableSettingsSchema` with `validateSettings()` and `settingsSchema`.
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.settings-schema.min.js"></script>
+<script>
+  const { valid, problems } = HandsontableSettingsSchema.validateSettings({ colHeader: true });
+
+  console.log(valid, problems); // false, [{ path: 'colHeader', code: 'unknownOption', ... }]
+</script>
+```
+
+The file carries no registries of its own. It reads the ones of the `Handsontable` on the page, so
+`validateSettings()` sees the cell types, editors, renderers, validators, plugins, and hooks that you register later
+too. Load it after the Handsontable bundle, and use files of the same version.
+
+On a page with an AMD loader, such as RequireJS, the file asks the loader for the `handsontable` module, the way the
+theme files do. Map the module name to the Handsontable bundle in the loader configuration. In a bundler, import
+`handsontable/settingsSchema` from the npm package instead.
+
+:::
+
 ## Known limitations
 
 - Custom keys that you store in the cell meta are reported as `unknownOption`. Filter them out by `code` and `path`
@@ -241,7 +273,6 @@ registered names, plugins, and data properties.
 - `settingsSchema` lists the hooks registered when the module loads. A hook that a plugin registers later, such as
   `afterContextMenuExecute`, is missing from the object if you import `handsontable/settingsSchema` before the
   plugin. `validateSettings()` accepts it either way.
-- The module is not part of the UMD bundle. Import it from `handsontable/settingsSchema` in the npm package.
 
 ## Related API reference
 

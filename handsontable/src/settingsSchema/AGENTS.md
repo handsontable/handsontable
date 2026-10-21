@@ -20,8 +20,29 @@ settings object against it and against what the page registers. Guide:
   do not declare falls back to its JSDoc `@type` (10 options as of 19.0). A new option therefore needs no change
   here, but a new option the types do not declare gets only the coarse JSDoc type.
 - **Core must not import this module**, and neither may anything core imports. The schema is about 100 KB of JSON
-  (the subpath bundles to about 80 KB minified, 19 KB gzipped), and the UMD bundles must not carry it. Nothing
-  validates settings on its own: `new Handsontable()` and `updateSettings()` never call `validateSettings()`.
+  (the subpath bundles to about 80 KB minified, 19 KB gzipped), and the main UMD bundles must not carry it (the
+  CDN file below ships it). Nothing validates settings on its own: `new Handsontable()` and `updateSettings()` never
+  call `validateSettings()`.
+- **There is a second build of this module, the CDN file `dist/handsontable.settings-schema.js` (and `.min.js`).** It
+  is built by `build:settings-schema-umd` and `build:settings-schema-umd.min` from `src/settingsSchema.ts` (configs
+  `.config/settings-schema-umd-*.js`), as the global `HandsontableSettingsSchema`. It must read the registries of the
+  `Handsontable` the page already loaded: a bundle that inlines the core registries reads its own empty copy and
+  reports every `type` and plugin option. So **every registry read goes through `registries.ts`** (`hasCellType`,
+  `hasEditor`, `hasRenderer`, `hasValidator`, `hasPlugin`, `getPlugin`, `getPluginsNames`, `getHooks`), and no other
+  module here imports a registry or the hook registry (`core/hooks`; `core/hooks/constants` is plain data and is
+  fine). Two build settings swap the source. An alias maps `registries.ts` to `registries.umd.ts`, and an external
+  maps `./pageHandsontable` (the one import of `registries.umd.ts`) to the global `Handsontable`, or to the
+  module an AMD or CommonJS loader resolves for `handsontable`, like the theme files. Without the external the file
+  throws at load on a page whose loader keeps `Handsontable` out of the global, because the bundle registers through
+  `define` there. The adapter reads the live registries through `Handsontable.hooks` and the private
+  `Handsontable._registries` in `src/index.ts`: the public `get*` functions throw for an unknown name, and the
+  `plugins` namespace is a snapshot taken at load, so neither answers "is it registered now". A new registry read
+  needs an export in both adapters and an entry in the bridge. `registries.unit.js` pins the boundary (a direct
+  registry import fails it), the same export names in the two adapters, and the bridge against the real registries.
+  `tests/e2e/settings-schema-umd.spec.ts` pins the built file in a real browser on the plain and the minified bundle,
+  on a script-tag page and on an AMD page, and that the main bundles carry no schema. A schema file of another version
+  than the page's bundle is not detected: it fails on a missing `_registries` with a message that names the load order
+  and the version, and otherwise reads the page's registries against its own schema.
 - The hooks are not generated. `schema.ts` adds one property per hook from the hook registry when the module
   loads, and `validateSettings()` asks `Hooks#isRegistered()` at call time, so a hook registered later passes too.
 
