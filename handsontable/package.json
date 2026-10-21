@@ -226,6 +226,12 @@
         }
       },
       {
+        "./settingsSchema": {
+          "import": { "types": "./settingsSchema.d.mts", "default": "./settingsSchema.mjs" },
+          "require": { "types": "./settingsSchema.d.ts", "default": "./settingsSchema.js" }
+        }
+      },
+      {
         "./themes": {
           "import": { "types": "./themes/index.d.mts", "default": "./themes/index.mjs" },
           "require": { "types": "./themes/index.d.ts", "default": "./themes/index.js" }

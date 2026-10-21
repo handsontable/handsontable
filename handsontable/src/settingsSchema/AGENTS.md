@@ -1,0 +1,62 @@
+# Settings JSON Schema and `validateSettings()`
+
+The public `handsontable/settingsSchema` entry (`src/settingsSchema.ts`): `settingsSchema`, a JSON Schema
+(draft 2020-12) of the grid, column, and cell options plus the hooks, and `validateSettings()`, which checks a
+settings object against it and against what the page registers. Guide:
+`docs/content/guides/configuration/validate-settings/validate-settings.md`.
+
+## What it owns and what it does not
+
+- `schema.generated.ts` is **generated and gitignored**. `scripts/generate-settings-schema.mjs` writes it, run as
+  the `build:settings-schema` task, which `build:es`, `build:commonjs` and `build:types` depend on and the `lint`,
+  `lint:fix` and `test:unit` pipelines run first. A bare `jest` or `tsc` in a fresh checkout fails on the missing
+  module until one of those has run. Never commit it and never edit it.
+- It reads two sources and owns neither. `metaSchema.ts` decides **which** options exist and their levels
+  (`@configScope`), plugin (`@category`) and `@since`. `GridSettings`, `ColumnSettings` and `CellMeta` decide the
+  **value types**, through the TypeScript compiler API, because the JSDoc `@type` has no enums. An option the types
+  do not declare falls back to its JSDoc `@type` (10 options as of 19.0). A new option therefore needs no change
+  here, but a new option the types do not declare gets only the coarse JSDoc type.
+- **Core must not import this module**, and neither may anything core imports. The schema is about 50 KB, and the
+  UMD bundles must not carry it. Nothing validates settings on its own: `new Handsontable()` and `updateSettings()`
+  never call `validateSettings()`.
+- The hooks are not generated. `schema.ts` adds one property per hook from the hook registry when the module
+  loads, and `validateSettings()` asks `Hooks#isRegistered()` at call time, so a hook registered later passes too.
+
+## The traps
+
+- **A value JSON cannot hold goes in `x-handsontable.runtimeTypes`, never in `type`.** A function, a `RegExp`, a DOM
+  element or a class instance is not a JSON type, so a JSON validator must reject it in a JSON document, while
+  `validateSettings()` accepts it at runtime. A node with no JSON form at all is `not: {}` plus `runtimeTypes`.
+- **A default must pass its own entry.** An option whose `metaSchema.ts` default is `null` gets `null` added to its
+  type even when the TS type omits it (`colHeaders`). `schemaCoverage.unit.js` checks every default.
+- **Levels come from `@configScope` and nothing else.** A wrong tag shows up as a `wrongLevel` false positive on a
+  documented configuration. Fix the tag (and re-run `generate:option-levels`), not the validator.
+- **The column-level `data` and `filters` have their own types** (`ColumnSettings`), so `$defs.columnSettings` holds
+  a converted node for them and a `$ref` to the grid option for the rest. Their `x-handsontable` keeps the option's
+  levels and plugin but the column type's `runtimeTypes`: the grid `data` takes no function, a column `data` does.
+- **`pluginDisabled` is for a dependent option only** (`filterValueComparator` under `filters`): an option whose
+  plugin is switched by another documented option of the same plugin. `undo` is UndoRedo's own switch although the
+  plugin key is `undoRedo`, and `headerCheckbox` is CheckboxHeader's although the key is `checkboxHeader`, so a
+  test on the plugin key alone reports both as off.
+- **The registries are page-global**, so the registry and plugin checks run without `hot` and see whatever was
+  registered when `validateSettings()` is called. `hot` adds only the data rows and the plugin state that an
+  `updateSettings()` payload does not carry.
+- **Never call a function from the settings, and never throw.** A `columns` or `cells` function may read external
+  state, and an input may be a Proxy or carry a throwing getter: every read goes through `readProperty()`, and the
+  last-resort `catch` turns anything else into one `invalidSettings` problem.
+- **`getSettings()` must pass.** The grid writes `instance` and `_`-prefixed keys on its own settings object, and
+  `metaSchema.ts` has `@private` and bookkeeping keys (`x-handsontable.internalOptions` on the root). All of them are
+  accepted without a check.
+
+## Testing
+
+- `npm run test:unit --prefix handsontable -- --testPathPattern=settingsSchema` runs the behavior
+  (`validateSettings.unit.js`, `validateSettingsBase.unit.js` for a page with `handsontable/base` only), the coverage of
+  every option, hook and default (`schemaCoverage.unit.js`), and every JavaScript example of the docs guides
+  (`docsExamples.unit.js`).
+- `docsExamples.unit.js` runs each example with a `Handsontable` that records its settings. A problem it reports is a
+  false positive of the validator or a broken example; fix the one that is wrong. An example that binds a missing
+  property on purpose goes in its `EXPECTED_PROBLEMS` with the reason. A docs-only pull request does not route the
+  Unit job, so a new example that trips it surfaces on the next core run.
+- `settingsSchema.types.ts` pins the public types; `.config/emitted-types/entry-points.ts` pins the subpath under
+  node16, nodenext and bundler resolution.
