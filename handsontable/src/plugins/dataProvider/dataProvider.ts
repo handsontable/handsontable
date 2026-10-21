@@ -596,7 +596,9 @@ export class DataProvider extends BasePlugin {
 
       const offScreen = target !== null && !this.#isVisible(target);
       const latest = offScreen ? this.#latestResultFor(target) : null;
-      const pageBeforeFetch = target === null ? this.#queryParameters.page : this.#queryFor(target).page;
+      const pageBeforeFetch = target === null
+        ? this.#queryParameters.page
+        : (this.#pendingQueryFor(target) ?? this.#queryFor(target)).page;
       const rowsLoaded = offScreen ? latest?.rows.length ?? rowsLoadedAtQueue : this.hot.countRows();
       const removesEveryLoadedRow = ids.length >= rowsLoaded && rowsLoaded >= 1;
 
@@ -910,7 +912,23 @@ export class DataProvider extends BasePlugin {
       return Promise.resolve(null);
     }
 
-    return this.#fetchFor(binding, overrides);
+    return this.#fetchFor(binding, overrides, this.#pendingQueryFor(binding));
+  }
+
+  /**
+   * Returns the query of the running fetch of a shown binding's context, so a refetch that follows a save keeps
+   * the page, sort, and filters the user asked for and that have not landed yet. `#queryParameters` still holds
+   * the previous ones until that fetch succeeds, and the refetch aborts it.
+   *
+   * @param {object} binding The request binding.
+   * @returns {object|undefined} `undefined` when the binding's context is not shown or no fetch is running.
+   */
+  #pendingQueryFor(binding: RequestBinding): DataProviderQueryParameters | undefined {
+    if (!this.#isVisible(binding)) {
+      return undefined;
+    }
+
+    return this.#inFlight.get(binding.context)?.params;
   }
 
   /**
