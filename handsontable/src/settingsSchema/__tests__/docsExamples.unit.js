@@ -1,6 +1,6 @@
-import { existsSync, readdirSync, readFileSync } from 'fs';
+import { readdirSync, readFileSync } from 'fs';
 import { deserialize, serialize } from 'v8';
-import { basename, join, relative, resolve } from 'path';
+import { join, relative, resolve } from 'path';
 import ts from 'typescript';
 import Handsontable from 'handsontable';
 import { validateSettings } from 'handsontable/settingsSchema';
@@ -96,19 +96,26 @@ describe('validateSettings over the documentation examples', () => {
   const failedToRun = [];
 
   beforeAll(() => {
+    const { querySelector, getElementById } = document;
+
+    // An example looks up its container and the buttons or inputs of its own markup before it
+    // builds the grid. Every lookup that finds nothing gets an empty element, so no markup has to
+    // be parsed into the page.
+    document.querySelector = function(selector) {
+      return querySelector.call(this, selector) ?? document.body.appendChild(document.createElement('div'));
+    };
+    document.getElementById = function(id) {
+      return getElementById.call(this, id) ?? document.body.appendChild(document.createElement('div'));
+    };
+
     examples.forEach((file) => {
       const { outputText } = ts.transpileModule(readFileSync(file, 'utf8'), {
         compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, esModuleInterop: true },
       });
       const before = recorded.length;
 
-      const html = file.replace(/\.js$/, '.html');
-
       currentFile = relative(GUIDES_DIR, file);
-      // The container the docs page renders for the example (`::: example #example1`), plus the
-      // example's own markup: the buttons or inputs it reads before it builds the grid.
-      document.body.innerHTML = `<div id="${basename(file, '.js')}"></div>${
-        existsSync(html) ? readFileSync(html, 'utf8') : ''}`;
+      document.body.replaceChildren();
 
       try {
         // eslint-disable-next-line no-new-func
@@ -127,6 +134,9 @@ describe('validateSettings over the documentation examples', () => {
         }
       }
     });
+
+    document.querySelector = querySelector;
+    document.getElementById = getElementById;
   });
 
   it('should run every example up to its grid', () => {
