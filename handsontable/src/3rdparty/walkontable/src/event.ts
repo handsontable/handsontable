@@ -77,6 +77,28 @@ export type EventDeps = ReturnType<typeof createEventDeps>;
 type ParentCell = ReturnType<Event['parentCell']>;
 
 /**
+ * Whether the finger is on a control the tap is allowed to activate.
+ *
+ * A file input's event target is a span.
+ *
+ * @param {Element} target The element under the finger.
+ * @returns {boolean}
+ */
+function isTouchActivationTarget(target: Element): boolean {
+  if (target.tagName === 'A' || target.tagName === 'BUTTON' || target.tagName === 'INPUT') {
+    return true;
+  }
+
+  const label = target.closest('label');
+  const controlId = label?.getAttribute('for');
+  const owned = controlId
+    ? label?.ownerDocument.getElementById(controlId)
+    : label?.querySelector('input[type="file"]');
+
+  return owned?.tagName === 'INPUT' && owned?.getAttribute('type')?.toLowerCase() === 'file';
+}
+
+/**
  * @class Event
  */
 class Event {
@@ -702,27 +724,28 @@ class Event {
       this.#deps.wtSettings.getSetting('isDataViewInstance');
 
     if (isEventCancelable) {
-      const interactiveElements = ['A', 'BUTTON', 'INPUT'];
+      const cellWasSelected = this.selectedCellWasTouched(target);
       const focusCellRange = this.#deps.selectionManager.getFocusSelection()?.cellRange ?? null;
       // `isCellsRange` already proved these coords are a cell. A boolean does not narrow the type.
       const focusOnTouchedCell = focusCellRange?.includes(parentCellCoords!);
       const isCheckbox = target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox';
 
-      // For browsers that use the WebKit as an engine (excluding Safari), there is a bug. The prevent
-      // default has to be called all the time. Otherwise, the second tap won't be triggered (probably
-      // caused by the native ~300ms delay - https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
-      // To make the interactive elements work, the event target element has to be check. If the element
-      // matches the allow-list, the event is not prevented.
+      // iOS Chrome and iOS Firefox drop the second tap unless preventDefault runs on every
+      // non-interactive tap (https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
+      // With visual selection off the cell is never the focus, so this does not look at
+      // whether the cell was already selected.
       const blocksWebKitSecondTap = isIOS() &&
         (isChromeWebKit() || isFirefoxWebKit()) &&
-        this.selectedCellWasTouched(target) &&
-        !interactiveElements.includes(target!.tagName);
-      // The first tap selects; it must not also activate a control or follow a link (#7980).
-      const blocksFirstTapActivation = !this.selectedCellWasTouched(target) &&
-        focusOnTouchedCell &&
-        !isCheckbox;
+        !isTouchActivationTarget(target!);
+      // A tap that moved focus onto the cell must not also activate a control (#7980).
+      // A non-tap never ran the deferred mousedown, so a compatibility mousedown inside the
+      // browser's tap slop would otherwise select the unselected cell (#11659). A drift that
+      // ends on the already-selected cell is left alone (DEV-2687).
+      const blocksUnselectedGesture = !cellWasSelected &&
+        !isCheckbox &&
+        (focusOnTouchedCell || !isTap);
 
-      if (blocksWebKitSecondTap || blocksFirstTapActivation) {
+      if (blocksWebKitSecondTap || blocksUnselectedGesture) {
         event.preventDefault();
       }
     }
