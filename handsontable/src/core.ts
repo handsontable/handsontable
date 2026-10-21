@@ -184,6 +184,16 @@ function isUndoRedoSource(source: string | undefined): boolean {
 }
 
 /**
+ * Tells whether a change source marks a correction a validator writes through a nested `setDataAtCell()`.
+ *
+ * @param {*} source The change source.
+ * @returns {boolean}
+ */
+function isValidatorCorrection(source: unknown): boolean {
+  return typeof source === 'string' && source.endsWith('Validator');
+}
+
+/**
  * The operation name each `alter()` action runs under. The names are the `actionType` values the
  * UndoRedo hooks have always reported for these actions, so they must not change.
  */
@@ -2916,17 +2926,6 @@ export default function Core(
         delete cellProperties.valid;
       }
     });
-  }
-
-  /**
-   * Tells whether a change source marks a correction a validator writes through a nested `setDataAtCell()`.
-   *
-   * @private
-   * @param {*} source The change source.
-   * @returns {boolean}
-   */
-  function isValidatorCorrection(source: unknown) {
-    return typeof source === 'string' && source.endsWith('Validator');
   }
 
   /**
@@ -8164,7 +8163,7 @@ export default function Core(
   this.selectColumns = function(
     startColumn: number,
     endColumn = startColumn,
-    focusPosition: number | {row?: number, col?: number},
+    focusPosition?: number | {row?: number, col?: number},
     changeListener = true
   ) {
     return selectWithChangeListener(
@@ -8211,7 +8210,7 @@ export default function Core(
   this.selectRows = function(
     startRow: number,
     endRow = startRow,
-    focusPosition: number | {row?: number, col?: number},
+    focusPosition?: number | {row?: number, col?: number},
     changeListener = true
   ) {
     return selectWithChangeListener(

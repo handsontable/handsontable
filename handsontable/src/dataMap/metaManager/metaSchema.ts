@@ -67,6 +67,25 @@ function getSchemaDefault(
 }
 
 /**
+ * Tells whether a non-empty cell value is the default its column has in the data schema.
+ *
+ * An object value is compared structurally. Any other value counts only when a `dataSchema` was
+ * configured, because the duck-typed schema holds no defaults to compare against.
+ *
+ * @param {*} value The cell value.
+ * @param {*} schemaDefault The schema default of the column.
+ * @param {boolean} hasExplicitSchema Whether a `dataSchema` was configured.
+ * @returns {boolean}
+ */
+function isSchemaDefault(value: unknown, schemaDefault: unknown, hasExplicitSchema: boolean): boolean {
+  if (typeof value === 'object') {
+    return isObjectEqual(schemaDefault, value);
+  }
+
+  return hasExplicitSchema && schemaDefault === value;
+}
+
+/**
  * Reads the schema that a row was created from. A `dataSchema` function builds each new row from
  * the row's index, so the defaults of one row can differ from another's and from the no-argument
  * call `getSchema()` makes. A row that moved since it was created reads as holding no defaults.
@@ -4674,19 +4693,9 @@ export default (): Record<string, unknown> => {
               getRowSchema(this, dataSchema, row)!, prop, dataDotNotation, hasExplicitSchema);
           }
 
-          if (typeof value === 'object') {
-            if (isObjectEqual(schemaDefault, value) === false) {
-              return false;
-            }
-
-            continue;
+          if (!isSchemaDefault(value, schemaDefault, hasExplicitSchema)) {
+            return false;
           }
-
-          if (hasExplicitSchema && schemaDefault === value) {
-            continue;
-          }
-
-          return false;
         }
       }
 
