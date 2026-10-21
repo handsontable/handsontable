@@ -287,10 +287,13 @@ measurement, which is what a grid built inside a `display: none` container measu
 ## `abort()` ends a drag the owner's data left
 
 `abort()` ends a pressed drag the way the context menu does (`detach()`, which closes the held step, then
-`#pressed = false`), and stores no size. ManualColumnResize calls it on `beforeLoadData`: the
-drag's indexes belong to the data that left, and the release resized the columns of the data that replaced it (a
-sheets bar switch). Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. It is not called from `detach()` - see the fourth teardown trap. ManualRowResize does not call
-it yet (open).
+`#pressed = false`), and stores no size. Both resize plugins call it on `beforeLoadData`: the
+drag's indexes belong to the data that left, and the release resized the tracks of the data that replaced it (a
+sheets bar switch). Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. It is not called from `detach()` - see the fourth teardown trap. It also
+resets the double-click count, even with no press held: a double-click leaves the 500ms timer armed after its second
+release, and the timer then auto-sized the same index on the arriving data, with a size and an undo step the user
+never made. Pinned by `__tests__/resizeGesture.unit.js` ("should not resize from a double-click window that an
+abort() ended").
 
 ## Where to look next
 

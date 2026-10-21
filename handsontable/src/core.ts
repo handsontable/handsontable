@@ -452,10 +452,16 @@ export default function Core(
   // closure, not on the instance, because `destroy` nulls every instance property before it runs.
   const operationScope = new OperationScope();
   /**
-   * The number of validator calls `validateCell` started that have not answered yet. A call that throws,
-   * or answers more than once, is counted out once; a validator that never answers stays counted.
+   * The number of validator calls `validateCell` started on the data the grid holds that have not
+   * answered yet. A call that throws, or answers more than once, is counted out once. A validator that
+   * never answers stays counted until the next `loadData()`, which starts a new count.
    */
   let pendingValidatorAnswers = 0;
+  /**
+   * Advances on every `loadData()`. A validator call remembers the load it started on, and its answer is
+   * counted out only while that load is still the current one.
+   */
+  let validationLoadGeneration = 0;
   /**
    * Watches the root wrapper's edge slots for a height change (a bar that mounts after init, wraps
    * after a locale switch, or grows a horizontal scrollbar once its width is clamped). A slot's
@@ -3448,10 +3454,14 @@ export default function Core(
       // was not recorded – so the answer runs inside the call's operation.
       const hold = operationScope.hold();
       let answered = false;
+      const loadGeneration = validationLoadGeneration;
       const countAnswer = () => {
         if (!answered) {
           answered = true;
-          pendingValidatorAnswers -= 1;
+
+          if (loadGeneration === validationLoadGeneration) {
+            pendingValidatorAnswers -= 1;
+          }
         }
       };
 
@@ -4642,7 +4652,8 @@ export default function Core(
    * Tells whether a validator call is still waiting for its answer. A change made through
    * {@link Core#setDataAtCell} or an editor is applied to the data the grid holds when its last validator
    * answers, so anything that replaces the grid's data must not run in the meantime. A validator that
-   * throws counts as answered.
+   * throws counts as answered. A `loadData()` call starts a new count, so a validator that never answers
+   * stops counting once the grid loads other data.
    *
    * @private
    * @memberof Core#
@@ -4859,6 +4870,9 @@ export default function Core(
    * @param {string} source The source of the call.
    */
   function applyLoadData(data: unknown[][][] | object[], source: string) {
+    pendingValidatorAnswers = 0;
+    validationLoadGeneration += 1;
+
     runWithGridTrackingFitsSuspended(() => replaceData(
       data,
       (newDataMap: DataMapInstance) => {

@@ -3573,7 +3573,9 @@ export const REGISTERED_HOOKS = [
    * edit stays saved even when a listener cancels the switch. It does not fire when the switch is
    * refused because a cell value is still waiting for its validator, or because the editor holds a
    * value its validator rejected. A listener cannot switch, add, remove, rename, duplicate, or move
-   * a sheet: those calls return `false` (`null` for an add or a duplicate).
+   * a sheet: those calls return `false` (`null` for an add or a duplicate). A change it makes to a cell
+   * with a validator refuses the switch, because the change would otherwise be written into the
+   * arriving sheet.
    *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabChange
@@ -3600,6 +3602,9 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before adding a new sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
+   * A listener cannot switch, add, remove, rename, duplicate, or move a sheet: those calls return
+   * `false` (`null` for an add or a duplicate).
+   *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabAdd
    * @param {string|null} name The requested sheet name, or `null` for a default-generated name.
@@ -3624,6 +3629,9 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before removing a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
+   * A listener cannot switch, add, remove, rename, duplicate, or move a sheet: those calls return
+   * `false` (`null` for an add or a duplicate).
+   *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabRemove
    * @param {number} sheetId The id of the sheet to be removed.
@@ -3646,6 +3654,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link SheetsBar} plugin before renaming a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
+   *
+   * A listener cannot switch, add, remove, rename, duplicate, or move a sheet: those calls return
+   * `false` (`null` for an add or a duplicate).
    *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabRename
@@ -3674,6 +3685,9 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before moving a sheet to a new tab position. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
+   * A listener cannot switch, add, remove, rename, duplicate, or move a sheet: those calls return
+   * `false` (`null` for an add or a duplicate).
+   *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabMove
    * @param {number} sheetId The id of the sheet being moved.
@@ -3698,6 +3712,10 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link SheetsBar} plugin after capturing a sheet's runtime view state (e.g. scroll position,
    * selection) before switching away from it. This hook is fired when {@link Options#sheetsBar} option is enabled.
+   *
+   * A listener cannot switch, add, remove, rename, duplicate, or move a sheet: those calls return
+   * `false` (`null` for an add or a duplicate). A change it makes to a cell with a validator refuses
+   * the switch, because the change would otherwise be written into the arriving sheet.
    *
    * @since 19.0.0
    * @event Hooks#afterSheetTabStateCapture

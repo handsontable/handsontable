@@ -73,6 +73,13 @@ const GRID_LEVEL_DATA_PROVIDER_WARNING = 'The grid-level `dataProvider` is disab
   'enabled. Declare `dataProvider` in the `settings` of each sheet that loads from a server.';
 
 /**
+ * Console message for an `activeSheet` setting whose switch was refused because a cell value still
+ * waits for its validator, or the cell editor holds a value its validator rejected.
+ */
+const ACTIVE_SHEET_REFUSED_WARNING = 'The `activeSheet` setting was not applied because a cell value is ' +
+  'still being validated or was rejected. Send the same value again once the cell is saved.';
+
+/**
  * A sheet definition accepted by the `sheets` setting.
  */
 export interface SheetsBarSheetConfig {
@@ -800,6 +807,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.hot.getFocusManager().registerOutsideClickExemptElement(this.#ui.getContainer());
+    this.eventManager.addEventListener(this.#ui.getContainer(), 'pointerdown', this.#onBarPointerDown);
     this.#registerFocusScope();
     this.#registerShortcuts();
 
@@ -889,6 +897,11 @@ export class SheetsBar extends BasePlugin {
    * wrapper re-emitting its whole configuration, so it is always an explicit switch request —
    * including back to a value that was acted on before. A full re-emit is judged by value: one
    * equal to the last acted-on value changes nothing, a new one switches.
+   *
+   * A value is recorded once the switch got as far as its listeners, so a switch a
+   * `beforeSheetTabChange` listener cancels is not asked again on every wrapper re-render. A switch
+   * refused while a change waits for its validator, or while the editor holds a rejected value, is
+   * not recorded and warns: the same value sent again retries it.
    */
   #applyActiveSheetSetting(payload: unknown) {
     const wanted = this.getSetting('activeSheet');
@@ -900,11 +913,14 @@ export class SheetsBar extends BasePlugin {
 
     const target = typeof wanted === 'number' ? this.getSheets()[wanted] : undefined;
 
-    // Recorded only once the sheet is shown: a refused switch (a value still waiting for its
-    // validator) must be retried when the same value is sent again, or the setting and the shown
-    // sheet stay apart.
-    if (target && !target.isActive && !this.setActiveSheet(target.id)) {
-      return;
+    if (target && !target.isActive) {
+      if (!this.#finishEditing()) {
+        warn(ACTIVE_SHEET_REFUSED_WARNING);
+
+        return;
+      }
+
+      this.setActiveSheet(target.id);
     }
 
     this.#lastActiveSheetSetting = wanted;
@@ -1189,8 +1205,11 @@ export class SheetsBar extends BasePlugin {
    * returns `false`, and switches nothing, while a cell value waits for an asynchronous
    * validator, or while the editor holds a value its validator rejected (`allowInvalid: false`):
    * the value would otherwise be written into the arriving sheet. Validators always answer after
-   * the edit, so a call made while the cell editor is open returns `false` even for a valid value:
-   * close the editor first and switch once `afterValidate` has fired. It also returns `false` when
+   * the edit, so a call made while the editor of a cell with a validator is open returns `false`
+   * even for a valid value: close the editor first and switch once `afterValidate` has fired. A
+   * change that a `beforeSheetTabChange` or `afterSheetTabStateCapture` listener makes to a cell
+   * with a validator refuses the switch the same way. A validator that never calls its callback
+   * blocks switching until {@link Core#loadData} loads other data. It also returns `false` when
    * it is called from a listener of a workbook change's before-hook, such as
    * `beforeSheetTabChange`, or of `afterSheetTabStateCapture`.
    *
@@ -1201,13 +1220,17 @@ export class SheetsBar extends BasePlugin {
   setActiveSheet(idOrName: number | string, source: string = SOURCE_API): boolean {
     const model = this.#model;
     const newId = model?.resolveId(idOrName) ?? null;
-    const oldId = model?.getActiveSheet()?.id ?? null;
 
-    if (model === null || newId === null || newId === oldId || this.#isSwitching) {
+    if (
+      model === null || newId === null || newId === model.getActiveSheet()?.id ||
+      this.#isSwitching || this.#isRunningBeforeHook || !this.#finishEditing()
+    ) {
       return false;
     }
 
-    if (!this.#finishEditing()) {
+    const oldId = model.getActiveSheet()?.id ?? null;
+
+    if (newId === oldId) {
       return false;
     }
 
@@ -1238,6 +1261,10 @@ export class SheetsBar extends BasePlugin {
           if (!this.#isLive(model)) {
             return false;
           }
+        }
+
+        if (!this.#isEditingSettled()) {
+          return false;
         }
 
         const dialog = this.hot.getPlugin('dialog');
@@ -1290,16 +1317,42 @@ export class SheetsBar extends BasePlugin {
    * the arriving sheet when the validator answers, or the editor would stay over it.
    */
   #finishEditing(): boolean {
+    this.#saveCellEditor();
+    this.hot.getPlugin('comments')?._saveAndCloseEditor();
+
+    return this.#isEditingSettled();
+  }
+
+  /**
+   * Saves and closes the cell editor, unless it already waits for its validator.
+   */
+  #saveCellEditor() {
     const editor = this.hot.getActiveEditor();
 
     if (editor?.isOpened() && !editor.isWaiting()) {
       this.hot.destroyEditor(false, false);
     }
-
-    this.hot.getPlugin('comments')?._saveAndCloseEditor();
-
-    return !editor?.isOpened() && !this.hot._hasPendingValidation();
   }
+
+  /**
+   * Tells whether no change waits for its validator and no cell editor is open. Asked before the
+   * listeners of a switch run and again right before the arriving data loads, because a listener can
+   * start a validated change of its own (a `setDataAtCell()` call that stamps the departing sheet).
+   */
+  #isEditingSettled(): boolean {
+    return !this.hot.getActiveEditor()?.isOpened() && !this.hot._hasPendingValidation();
+  }
+
+  /**
+   * A press anywhere in the bar saves the cell editor. A mouse press does the same through the grid's
+   * outside-click handling, which skips the mouse events a touch screen synthesizes. On a touch screen
+   * the editor would close only in the tab's `click` handler, and a validator answers after that, so
+   * the first tap would be refused. Saving on the press gives the validator time to answer before the
+   * `click`.
+   */
+  #onBarPointerDown = () => {
+    this.#saveCellEditor();
+  };
 
   /**
    * Runs host listeners that are told about a workbook change before it takes effect: a change's
@@ -1797,7 +1850,12 @@ export class SheetsBar extends BasePlugin {
 
       if (departingSheet && this.#loadedSheetId !== newId) {
         model.setActiveSheet(departingSheet.id);
-        this.#showSheet(departingSheet, source);
+
+        try {
+          this.#showSheet(departingSheet, source);
+        } catch {
+          throw error;
+        }
       }
 
       throw error;

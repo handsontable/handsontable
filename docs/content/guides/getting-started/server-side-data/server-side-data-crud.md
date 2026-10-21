@@ -40,6 +40,8 @@ When a user edits a cell, the update flows through these steps in order:
 5. **On success**: [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) fires, then Handsontable refetches the current page (with `skipLoading: true` so the loading overlay does not flash).
 6. **On failure**: the optimistic values roll back and [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires. If [`notification`](@/api/options.md#notification) is enabled, an error toast appears.
 
+Every fetch, a refetch included, replaces the grid's rows with [`loadData()`](@/api/core.md#loaddata). A drag the user still holds when the rows arrive is canceled: moving cells or rows, resizing a column or a row, the fill handle, and a freeze bar. A [`downloadFileAsync()`](@/api/exportFile.md#downloadfileasync) call that waits for the export dialog when the rows arrive is rejected, because the rows it was asked to export are gone.
+
 ### `onRowsCreate`
 
 Called when the user inserts rows (for example from the context menu). Payload shape:

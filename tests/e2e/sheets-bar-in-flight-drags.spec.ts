@@ -3,8 +3,8 @@ import { SheetsBarInFlightDragPage } from '../fixtures/pages/SheetsBarInFlightDr
 
 /**
  * A drag held while the grid's data is replaced, here by a sheet switch made through the API, used to
- * be committed on release into the sheet that arrived: a cell or row move, a column resize, a fill, and
- * a freeze drag. The gesture is now canceled with the data it was started on. Each test first checks that
+ * be committed on release into the sheet that arrived: a cell or row move, a column or row resize, a
+ * fill, and a freeze drag. The gesture is now canceled with the data it was started on. Each test first checks that
  * its drag really started, so a gesture that never engaged cannot pass for a canceled one.
  */
 test.describe('SheetsBar switch during a drag', { tag: THEMES_TAG }, () => {
@@ -60,6 +60,20 @@ test.describe('SheetsBar switch during a drag', { tag: THEMES_TAG }, () => {
     await grid.release();
 
     expect(await grid.columnWidth(0)).toBe(widthBefore);
+  });
+
+  test('cancels a row resize', async() => {
+    await grid.startRowResize(0);
+
+    expect(await grid.isDragInProgress('rowResize')).toBe(true);
+    expect(await grid.setActiveSheet('Beta')).toBe(true);
+    expect(await grid.isDragInProgress('rowResize')).toBe(false);
+
+    await grid.release();
+
+    expect(await grid.manualRowHeight(0)).toBeNull();
+    expect(await grid.setActiveSheet('Alpha')).toBe(true);
+    expect(await grid.manualRowHeight(0)).toBeNull();
   });
 
   test('cancels a fill', async() => {

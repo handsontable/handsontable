@@ -274,9 +274,13 @@ export class ResizeGesture {
   /**
    * Ends a drag without storing a size, the way opening a context menu over it does. The owner calls it
    * when the grid's data is replaced under the drag: the indexes it resizes belong to the data that
-   * left, and the release would resize the tracks of the data that replaced it.
+   * left, and the release would resize the tracks of the data that replaced it. It also ends the
+   * double-click window, or the pending auto-size timer would auto-size the same index on the data that
+   * replaced it, with a size and an undo step the user never asked for.
    */
   abort() {
+    this.#dblclick = 0;
+
     if (!this.#pressed) {
       return;
     }

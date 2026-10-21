@@ -1264,6 +1264,11 @@ export class Comments extends BasePlugin {
    * editor opened through the API is not blurred by a switch made through the API, so it stayed
    * over the arriving sheet and saved its text into that sheet's cell.
    *
+   * Only a focused editor is saved. Typing needs the focus, and a blur saves on its own, so an
+   * unfocused editor holds nothing new: a hover preview, or one the API opened. Its text may also
+   * belong to another cell than the plugin's range, which `setCommentAtCell()` moves without
+   * touching the editor, so saving it could write one cell's comment over another's.
+   *
    * @private
    */
   _saveAndCloseEditor(): void {
@@ -1271,9 +1276,7 @@ export class Comments extends BasePlugin {
       return;
     }
 
-    // An editor nobody focused or typed into (a hover preview, or one the API opened) has nothing
-    // to save, and saving it would write an empty comment, with an undo step, onto the cell.
-    if (this.#editor.isFocused() || this.#editor.getValue() !== (this.getComment() ?? '')) {
+    if (this.#editor.isFocused()) {
       this.#saveEditorComment();
     }
 

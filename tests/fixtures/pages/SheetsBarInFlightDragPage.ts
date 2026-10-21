@@ -66,6 +66,19 @@ export class SheetsBarInFlightDragPage extends SheetsBarInFlightWorkPage {
   }
 
   /**
+   * Starts resizing a row by its resize handle, held over a cell below it.
+   */
+  async startRowResize(row: number): Promise<void> {
+    await this.page.mouse.move(0, 0);
+    await this.page.locator('.ht_clone_inline_start .htCore tbody tr').nth(row).locator('th').hover();
+
+    const handle = this.page.locator('.manualRowResizer');
+
+    await expect(handle).toBeVisible();
+    await this.#dragFromTo(handle, this.cell(row + 2, 0));
+  }
+
+  /**
    * Selects a cell and starts dragging its fill handle, held over another cell.
    */
   async startFill(toRow: number, toCol: number): Promise<void> {
@@ -94,7 +107,7 @@ export class SheetsBarInFlightDragPage extends SheetsBarInFlightWorkPage {
   /**
    * Whether the gesture of a kind is in progress, read from the state its plugin keeps while it runs.
    */
-  isDragInProgress(kind: 'cellMove' | 'rowMove' | 'columnResize' | 'fill' | 'freeze'): Promise<boolean> {
+  isDragInProgress(kind: 'cellMove' | 'rowMove' | 'columnResize' | 'rowResize' | 'fill' | 'freeze'): Promise<boolean> {
     return this.page.evaluate((gesture) => {
       const { hot } = window;
 
@@ -105,6 +118,8 @@ export class SheetsBarInFlightDragPage extends SheetsBarInFlightWorkPage {
           return hot.rootElement.classList.contains('on-moving--rows');
         case 'columnResize':
           return !!document.querySelector('.manualColumnResizerGuide.active');
+        case 'rowResize':
+          return !!document.querySelector('.manualRowResizerGuide.active');
         case 'fill':
           return !!(hot.getPlugin('autofill') as unknown as { mouseDownOnCellCorner: boolean }).mouseDownOnCellCorner;
         default:
@@ -140,6 +155,14 @@ export class SheetsBarInFlightDragPage extends SheetsBarInFlightWorkPage {
    */
   columnWidth(col: number): Promise<number> {
     return this.page.evaluate(c => window.hot.getColWidth(c), col);
+  }
+
+  /**
+   * The height ManualRowResize stores for a row of the sheet the grid shows, or `null` when the user set
+   * none.
+   */
+  manualRowHeight(row: number): Promise<number | null> {
+    return this.page.evaluate(r => window.hot.getPlugin('manualRowResize').getManualSize(r), row);
   }
 
   /**

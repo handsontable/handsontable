@@ -8,6 +8,40 @@ import { SheetsBarInFlightWorkPage } from '../fixtures/pages/SheetsBarInFlightWo
  * validation sorted it, a comment editor saved into its cell, and the Loading overlay put the departing
  * sheet's selection on it.
  */
+/**
+ * On a touch screen the grid ignores the mouse events a tap synthesizes, so the cell editor stayed open
+ * until the tab's `click` closed it, and the validator then answered too late for that click: the first
+ * tap on another tab saved the edit and switched nothing.
+ */
+test.describe('SheetsBar tap on a tab while a cell with a validator is edited', () => {
+  let grid: SheetsBarInFlightWorkPage;
+
+  test.use({ hasTouch: true });
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new SheetsBarInFlightWorkPage(page, theme, bundle);
+  });
+
+  test.afterEach(() => {
+    expect(grid.pageErrors).toEqual([]);
+  });
+
+  test('switches on the first tap, and the edit stays on its sheet', async({ page }) => {
+    await grid.goto('rejectedValue');
+
+    await grid.cell(0, 0).click();
+    await page.keyboard.type('good');
+
+    expect(await grid.isEditorOpened()).toBe(true);
+
+    await grid.tab('Beta').tap();
+
+    await expect(grid.tab('Beta')).toHaveAttribute('aria-current', 'true');
+    expect(await grid.declaredSheetColumn(0, 0)).toEqual(['good', 'a1', 'a2']);
+    expect(await grid.declaredSheetColumn(1, 0)).toEqual(['b3', 'b1', 'b2']);
+  });
+});
+
 test.describe('SheetsBar switch with work still in flight', () => {
   let grid: SheetsBarInFlightWorkPage;
 

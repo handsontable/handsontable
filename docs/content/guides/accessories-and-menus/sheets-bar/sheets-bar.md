@@ -188,8 +188,11 @@ Work started on one sheet ends on that sheet, or is canceled.
 
 - A switch saves the cell you're editing, and a comment you're typing, on the sheet you leave. The edit stays saved even when a [`beforeSheetTabChange`](@/api/hooks.md#beforesheettabchange) listener cancels the switch.
 - A switch doesn't happen while a cell value waits for an asynchronous validator, or while the editor holds a value its validator rejected with [`allowInvalid: false`](@/api/options.md#allowinvalid). Clicking a tab, its menu, or the add button does nothing then, and [`setActiveSheet()`](@/api/sheetsBar.md#setactivesheet) returns `false`. Correct the value and press Enter, press Escape to discard it, or wait for the validator, and switch again.
-- Validators always answer after the edit, so `setActiveSheet()` called while the cell editor is open returns `false` even for a valid value. Close the editor first, and switch once [`afterValidate`](@/api/hooks.md#aftervalidate) has fired.
-- A drag you're still holding is canceled: moving cells or rows, resizing a column, the fill handle, and a freeze bar. A column move and a row resize are not canceled yet.
+- Validators always answer after the edit, so `setActiveSheet()` called while the editor of a cell with a validator is open returns `false` even for a valid value. Close the editor first, and switch once [`afterValidate`](@/api/hooks.md#aftervalidate) has fired. A cell without a validator saves at once, and the switch goes through.
+- A change that a [`beforeSheetTabChange`](@/api/hooks.md#beforesheettabchange) or [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) listener makes to a cell with a validator refuses the switch the same way.
+- A validator that never calls its callback blocks switching until [`loadData()`](@/api/core.md#loaddata) loads other data.
+- When an `activeSheet` value you send through [`updateSettings()`](@/api/core.md#updatesettings) is refused this way, the bar logs a warning and stays on its sheet. Send the same value again once the cell is saved.
+- A drag you're still holding is canceled: moving cells or rows, resizing a column or a row, the fill handle, and a freeze bar. A column move is not canceled yet.
 - An import that is still reading its file is rejected and changes nothing. [`downloadFileAsync()`](@/api/exportFile.md#downloadfileasync) with the [`Dialog`](@/api/dialog.md) plugin is rejected when the switch happens before the export reads the data.
 - A listener of a `beforeSheetTab*` hook, or of [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture), can't change the workbook. A switch, add, remove, rename, duplicate, or move it asks for returns `false` (`null` for an add or a duplicate).
 

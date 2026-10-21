@@ -50,7 +50,7 @@
     - comments: 'Alpha' and 'Beta', with `comments`.
     - loading: 'Alpha' and 'Beta', with `loading`.
     - drags: 'Alpha' and 'Beta', with every drag gesture on: `moveCells`, `manualRowMove`,
-      `manualColumnResize`, `fillHandle` and `freezeBar`.
+      `manualColumnResize`, `manualRowResize`, `fillHandle` and `freezeBar`.
     - wideSheet: 'Alpha' (300 rows by 150 columns) and 'Beta' (3 rows by 2 columns), with
       `autoColumnSize`, so measuring Alpha's columns takes several idle tasks.
   -->
@@ -113,6 +113,7 @@
           moveCells: true,
           manualRowMove: true,
           manualColumnResize: true,
+          manualRowResize: true,
           fillHandle: true,
           freezeBar: true,
         },
