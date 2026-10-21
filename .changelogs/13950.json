@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed touch taps on buttons and file inputs inside cells, and links in cells are now followed on tap when visual selection is off.",
+  "type": "fixed",
+  "issueOrPR": 13950,
+  "breaking": false,
+  "framework": "none"
+}
