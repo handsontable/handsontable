@@ -121,6 +121,29 @@ test.describe('selection from an external input', { tag: CROSS_BROWSER_TAG }, ()
     });
   });
 
+  test('selectCells with changeListener false keeps the external input focused when afterSelection calls selectCell', async({ page, theme, bundle }) => {
+    const grid = new ExternalInputSelectionPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.armSelectCellsWithNestedSelectRows('selectCell');
+    await grid.externalInput.focus();
+    await expect(grid.externalInput).toBeFocused();
+
+    // One character. The nested plain `selectCell()` calls `listen()`, so the next key opens the editor.
+    await page.keyboard.type('a');
+
+    await expect(grid.externalInput).toBeFocused();
+    await expect(grid.externalInput).toHaveValue('a');
+    await expect(grid.externalInput).toHaveAccessibleName('External field');
+    await expect.poll(() => grid.selected()).toEqual([[1, 1, 1, 1]]);
+    await expect.poll(() => grid.focusState()).toMatchObject({
+      external: true,
+      listening: true,
+      row: 1,
+      col: 1,
+    });
+  });
+
   test('selectRows with changeListener false inside batch keeps the external input focused', async({ page, theme, bundle }) => {
     const grid = new ExternalInputSelectionPage(page, theme, bundle);
 

@@ -50,12 +50,13 @@ export class ExternalInputSelectionPage {
   }
 
   /**
-   * On the input's next keyup, calls the named selection method once.
-   * `changeListener: false` is passed as the trailing argument. Omitting it calls the method
-   * the way existing code does, with no extra argument.
+   * Calls one selection method on each of the input's next keyups, then removes the listener.
+   * Pass `false` to send `changeListener: false` on the first call. `followUp`, when set,
+   * runs on the next keyup as a default call.
    *
-   * @param method Which selection method the keyup calls.
+   * @param method Which selection method the first keyup calls.
    * @param changeListener Pass `false` to opt out of moving focus. Omit it for the default call.
+   * @param followUp A second selection method, called on the following keyup without the flag.
    */
   async armSelectionOnFirstKeyup(
     method: SelectionMethod,
@@ -115,13 +116,16 @@ export class ExternalInputSelectionPage {
   }
 
   /**
-   * `afterSelection` also runs for the inner `selectRows`, so a second call would recurse.
+   * On the next keyup, calls `selectCells([[0, 0]], true, false)`. An `afterSelection`
+   * hook at order -1 then calls `inner` once, with no `changeListener` argument.
+   * That inner call fires the hook again, so the hook returns and does not recurse.
    *
-   * The order index is -1 so the hook runs before the focus manager. A callback declared
-   * in the constructor settings is registered before that manager and has the same order.
+   * @param inner Which plain call the hook makes. Defaults to `selectRows`.
    */
-  async armSelectCellsWithNestedSelectRows(): Promise<void> {
-    await this.page.evaluate(() => {
+  async armSelectCellsWithNestedSelectRows(
+    inner: 'selectRows' | 'selectCell' = 'selectRows',
+  ): Promise<void> {
+    await this.page.evaluate((nestedCall) => {
       const input = document.querySelector('[data-testid="ext"]');
 
       if (!(input instanceof HTMLInputElement)) {
@@ -136,7 +140,12 @@ export class ExternalInputSelectionPage {
         }
 
         nested = true;
-        window.hot.selectRows(2);
+
+        if (nestedCall === 'selectCell') {
+          window.hot.selectCell(1, 1);
+        } else {
+          window.hot.selectRows(2);
+        }
       }, -1);
 
       const onKeyUp = () => {
@@ -145,9 +154,15 @@ export class ExternalInputSelectionPage {
       };
 
       input.addEventListener('keyup', onKeyUp);
-    });
+    }, inner);
   }
 
+  /**
+   * Selects inside `batch()`. Pass `false` to call with `changeListener: false`.
+   *
+   * @param method `selectRows` or `selectCells`.
+   * @param changeListener Pass `false` to opt out of moving focus. Omit it for the default call.
+   */
   async selectInsideBatch(method: 'selectRows' | 'selectCells', changeListener?: false): Promise<void> {
     await this.page.evaluate(({ method: selectionMethod, changeListener: listen }) => {
       window.hot.batch(() => {
