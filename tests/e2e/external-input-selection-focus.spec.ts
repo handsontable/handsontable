@@ -75,5 +75,107 @@ test.describe('selection from an external input', { tag: CROSS_BROWSER_TAG }, ()
         col: highlight.col,
       });
     });
+
+    test(`${method} with changeListener false, then a default call, moves focus to the highlighted cell`, async({ page, theme, bundle }) => {
+      const grid = new ExternalInputSelectionPage(page, theme, bundle);
+
+      await grid.goto();
+      await grid.armSelectionOnFirstKeyup(method, false, method);
+      await grid.externalInput.focus();
+      await expect(grid.externalInput).toBeFocused();
+
+      await page.keyboard.type('ab');
+
+      await expect(grid.externalInput).toHaveValue('ab');
+      await expect(grid.externalInput).not.toBeFocused();
+      await expect.poll(() => grid.selected()).toEqual(selected);
+      await expect.poll(() => grid.focusState()).toEqual({
+        external: false,
+        onHighlight: true,
+        listening: false,
+        row: highlight.row,
+        col: highlight.col,
+      });
+    });
   }
+
+  test('selectCells with changeListener false keeps the external input focused when afterSelection calls selectRows', async({ page, theme, bundle }) => {
+    const grid = new ExternalInputSelectionPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.armSelectCellsWithNestedSelectRows();
+    await grid.externalInput.focus();
+    await expect(grid.externalInput).toBeFocused();
+
+    await page.keyboard.type('ab');
+
+    await expect(grid.externalInput).toBeFocused();
+    await expect(grid.externalInput).toHaveValue('ab');
+    await expect(grid.externalInput).toHaveAccessibleName('External field');
+    await expect.poll(() => grid.selected()).toEqual([[2, -1, 2, 4]]);
+    await expect.poll(() => grid.focusState()).toMatchObject({
+      external: true,
+      listening: false,
+      row: 2,
+      col: 0,
+    });
+  });
+
+  test('selectRows with changeListener false inside batch keeps the external input focused', async({ page, theme, bundle }) => {
+    const grid = new ExternalInputSelectionPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.externalInput.focus();
+    await expect(grid.externalInput).toBeFocused();
+
+    await grid.selectInsideBatch('selectRows', false);
+
+    await expect(grid.externalInput).toBeFocused();
+    await expect.poll(() => grid.selected()).toEqual([[2, -1, 2, 4]]);
+    await expect.poll(() => grid.focusState()).toMatchObject({
+      external: true,
+      listening: false,
+      row: 2,
+      col: 0,
+    });
+  });
+
+  test('selectCells with changeListener false inside batch keeps the external input focused', async({ page, theme, bundle }) => {
+    const grid = new ExternalInputSelectionPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.externalInput.focus();
+    await expect(grid.externalInput).toBeFocused();
+
+    await grid.selectInsideBatch('selectCells', false);
+
+    await expect(grid.externalInput).toBeFocused();
+    await expect.poll(() => grid.selected()).toEqual([[1, 1, 1, 1]]);
+    await expect.poll(() => grid.focusState()).toMatchObject({
+      external: true,
+      listening: false,
+      row: 1,
+      col: 1,
+    });
+  });
+
+  test('selectRows inside batch without the flag moves focus to the highlighted cell', async({ page, theme, bundle }) => {
+    const grid = new ExternalInputSelectionPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.externalInput.focus();
+    await expect(grid.externalInput).toBeFocused();
+
+    await grid.selectInsideBatch('selectRows');
+
+    await expect(grid.externalInput).not.toBeFocused();
+    await expect.poll(() => grid.selected()).toEqual([[2, -1, 2, 4]]);
+    await expect.poll(() => grid.focusState()).toEqual({
+      external: false,
+      onHighlight: true,
+      listening: false,
+      row: 2,
+      col: 0,
+    });
+  });
 });

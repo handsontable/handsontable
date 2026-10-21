@@ -92,11 +92,15 @@ export class FocusGridManager {
    */
   #debouncedSelect = new Map();
   /**
-   * Flag to indicate if the selection has changed.
+   * Focus decision for a selection whose render has not run yet.
    *
-   * @type {boolean}
+   * `suspended` is read when the selection changes. `batch()` and `suspendRender()` defer that
+   * render until after `resume()` has cleared `#isSuspended`, and `#getSelectedCell` can defer
+   * its callback until `afterScroll`.
+   *
+   * @type {{ suspended: boolean } | null}
    */
-  #hasSelectionChange = false;
+  #pendingFocus: { suspended: boolean } | null = null;
   /**
    * Flag indicating whether automatic focus management for the upcoming selection cycle is suspended.
    * When `true`, `#focusCell` does not steal an externally focused input/textarea/select element,
@@ -458,13 +462,10 @@ export class FocusGridManager {
 
   /**
    * Manage the browser's focus after each cell selection change.
+   *
+   * @param {boolean} suspended Whether focus management was suspended when the selection changed.
    */
-  #focusCell() {
-    // Capture the suspend flag synchronously. `#getSelectedCell` may defer its callback via
-    // `afterScroll` when the target cell is not yet rendered, by which time `resume()` may
-    // have run. Reading `this.#isSuspended` inside the callback would miss the suspend window.
-    const suspended = this.#isSuspended;
-
+  #focusCell(suspended: boolean) {
     this.#getSelectedCell((selectedCell) => {
       const deepActiveElement = getDeepActiveElement(this.#hot.rootDocument);
       const activeElement = isHTMLElement(deepActiveElement) ? deepActiveElement : null;
@@ -521,17 +522,21 @@ export class FocusGridManager {
    * Handle the after selection change event.
    */
   #onAfterSelectionChange() {
-    this.#hasSelectionChange = true;
+    this.#pendingFocus = { suspended: this.#isSuspended };
   }
 
   /**
    * Focuses the cell after the render event when the selection has changed.
    */
   #onAfterRender() {
-    if (this.#hasSelectionChange) {
-      this.#hasSelectionChange = false;
-      this.#focusCell();
+    const pendingFocus = this.#pendingFocus;
+
+    if (!pendingFocus) {
+      return;
     }
+
+    this.#pendingFocus = null;
+    this.#focusCell(pendingFocus.suspended);
   }
 
   /**

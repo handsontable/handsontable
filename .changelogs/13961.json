@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Added an optional changeListener argument to selectRows(), selectColumns(), and selectAll() so a selection can keep focus on an input outside the grid.",
+  "title": "Added an optional `changeListener` argument to `selectRows()`, `selectColumns()`, and `selectAll()` so a selection can keep focus on an input outside the grid.",
   "type": "added",
   "issueOrPR": 13961,
   "breaking": false,

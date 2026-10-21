@@ -68,6 +68,17 @@ export interface ViewportScrollerInstance {
 }
 
 /**
+ * Options for `selectAll`.
+ *
+ * `focusPosition` is one cell, or `false` to leave the focus where it is. Both `row` and `col`
+ * are required. `selectAll` ignores an object that has only one of them.
+ */
+export interface SelectAllOptions {
+  focusPosition?: { row: number; col: number } | boolean;
+  disableHeadersHighlight?: boolean;
+}
+
+/**
  * Handsontable Core instance interface.
  * Provides type-safe access to the Core API without requiring circular imports.
  *
@@ -118,10 +129,7 @@ export interface HotInstance {
   selectAll(
     includeRowHeaders?: boolean,
     includeColumnHeaders?: boolean,
-    options?: {
-      focusPosition?: { row?: number; col?: number } | boolean;
-      disableHeadersHighlight?: boolean;
-    },
+    options?: SelectAllOptions,
     changeListener?: boolean
   ): void;
   deselectCell(): void;

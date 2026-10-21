@@ -215,6 +215,8 @@ hot.selectAll(false, true, { focusPosition: { row: 1, col: 2 } });
 hot.selectAll(false, true, { focusPosition: { row: 1, col: 2 }, disableHeadersHighlight: true });
 hot.selectAll(false, true, { disableHeadersHighlight: false });
 hot.selectAll(true, true, { focusPosition: false }, false);
+// @ts-expect-error `focusPosition` needs both `row` and `col`. A partial object is ignored.
+hot.selectAll(false, true, { focusPosition: { row: 1 } });
 hot.selectCell(123, 123, 123, 123, true, true);
 (hot as any).selectCell(123, 'prop1', 123, 'prop2', true, true);
 hot.selectCells([[123, 123, 123, 123]], true, true);

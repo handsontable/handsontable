@@ -95,7 +95,7 @@ import type { ThemeOverridesInput } from './themes/engine/manager';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
-import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
+import type { GridHelperInstance, HotInstance, SelectAllOptions, ViewportScrollerInstance } from './core/types';
 import { applyRootSize, reapplyPixelRootHeight } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
@@ -315,10 +315,7 @@ interface CoreInternals {
   selectAll(
     includeRowHeaders?: boolean,
     includeColumnHeaders?: boolean,
-    options?: {
-      focusPosition?: { row?: number; col?: number } | boolean;
-      disableHeadersHighlight?: boolean;
-    },
+    options?: SelectAllOptions,
     changeListener?: boolean
   ): void;
 }
@@ -8087,8 +8084,13 @@ export default function Core(
     } finally {
       // Always release the suspended state even if `selection.selectCells` throws on malformed
       // coordinates. Otherwise the flags would leak across subsequent calls.
+      // `resume()` assigns a boolean, so it runs only for the call that suspended. A default
+      // call must not clear a suspend an outer `changeListener: false` call is still holding.
       viewportScroller.resume();
-      focusGridManager.resume();
+
+      if (changeListener === false) {
+        focusGridManager.resume();
+      }
     }
 
     if (wasSelected && changeListener) {
@@ -8100,10 +8102,14 @@ export default function Core(
 
   // `selectRows`, `selectColumns`, and `selectAll` do not call `listen()` on the default path.
   // `selectCells` does. Calling `listen()` here would change `isListening()` for existing callers.
+  // The default path also leaves the focus manager alone. `resume()` assigns a boolean, so a
+  // default call from an `afterSelection` hook would clear a suspend the outer call still holds.
   const selectWithChangeListener = <T>(changeListener: boolean, select: () => T): T => {
-    if (changeListener === false) {
-      focusGridManager.suspend();
+    if (changeListener !== false) {
+      return select();
     }
+
+    focusGridManager.suspend();
 
     try {
       return select();
@@ -8146,7 +8152,9 @@ export default function Core(
    * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
    * position horizontally.
    * @param {boolean} [changeListener=true] If `true`, the grid moves the browser focus to the selection's highlighted
-   * cell, as before. If `false`, the browser focus stays where it is, such as on an input outside the grid.
+   * cell, as before. Unlike `selectCells()`, the grid does not start listening. If `false`, the browser focus stays
+   * on an outside input, textarea, select, or contenteditable. A focused button, the document body, or an iframe
+   * still loses focus to the highlighted cell.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectColumns = function(
@@ -8191,7 +8199,9 @@ export default function Core(
    * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
    * position vertically.
    * @param {boolean} [changeListener=true] If `true`, the grid moves the browser focus to the selection's highlighted
-   * cell, as before. If `false`, the browser focus stays where it is, such as on an input outside the grid.
+   * cell, as before. Unlike `selectCells()`, the grid does not start listening. If `false`, the browser focus stays
+   * on an outside input, textarea, select, or contenteditable. A focused button, the document body, or an iframe
+   * still loses focus to the highlighted cell.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectRows = function(
@@ -8265,15 +8275,14 @@ export default function Core(
    * row or column. It doesn't affect the focus indicator on the individual cell or header that holds the focus,
    * which stays visible even when {@link Options#navigableHeaders} moves the focus onto a header.
    * @param {boolean} [changeListener=true] If `true`, the grid moves the browser focus to the selection's highlighted
-   * cell, as before. If `false`, the browser focus stays where it is, such as on an input outside the grid.
+   * cell, as before. Unlike `selectCells()`, the grid does not start listening. If `false`, the browser focus stays
+   * on an outside input, textarea, select, or contenteditable. A focused button, the document body, or an iframe
+   * still loses focus to the highlighted cell.
    */
   this.selectAll = function(
     includeRowHeaders = true,
     includeColumnHeaders = includeRowHeaders,
-    options?: {
-      focusPosition?: { row?: number; col?: number } | boolean;
-      disableHeadersHighlight?: boolean;
-    },
+    options?: SelectAllOptions,
     changeListener = true
   ) {
     viewportScroller.skipNextScrollCycle();
