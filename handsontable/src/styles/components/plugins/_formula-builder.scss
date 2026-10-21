@@ -111,6 +111,42 @@
     --hfe-padding-horizontal: calc(var(--ht-cell-horizontal-padding) + 1px);
   }
 
+  /* The formula bar is laid out by hyperformula-ui; the rules below adapt it to the
+     grid without touching that package. The bar host element is the `.hfe-formula-bar`
+     itself, so the rules compound the plugin class onto it and carry one more class
+     than the core rules, which are injected after this stylesheet and would otherwise
+     win a specificity tie. */
+  .ht-formula-builder__formula-bar .hfe-formula-bar__overlay {
+    /* The bar keeps its one-line height while editing: a multi-line formula scrolls
+       inside the editor instead of growing an overlay over the grid. The editor's
+       layout slot scrolls its own overflow, so a taller overlay would otherwise make
+       focusing the editor scroll the whole bar out of view. */
+    --hfe-editor-max-lines: 1;
+  }
+
+  .ht-formula-builder__formula-bar.hfe-formula-bar .hfe-formula-bar__cell--formula {
+    /* The vertical padding moves from the cell onto the editor input and the idle
+       overlay, so the capped editor's scroll port spans the whole cell height. The
+       cell keeps only the start padding; the editor runs to the end edge. */
+    padding: 0;
+    padding-inline-start: var(--hfe-formula-bar-padding-horizontal);
+  }
+
+  .ht-formula-builder__formula-bar.hfe-formula-bar .hfe-formula-bar__idle {
+    height: calc(var(--hfe-line-height) + 2 * var(--hfe-formula-bar-padding-vertical));
+  }
+
+  .ht-formula-builder__formula-bar.hfe-formula-bar .hfe-overlay,
+  .ht-formula-builder__formula-bar.hfe-formula-bar .hfe-editor__input {
+    padding: var(--hfe-formula-bar-padding-vertical) 0;
+  }
+
+  .ht-formula-builder__formula-bar .hfe-editor--height-capped .hfe-overlay,
+  .ht-formula-builder__formula-bar .hfe-editor--height-capped .hfe-editor__input {
+    /* The core narrows a capped editor's scrollbar; the bar uses the regular one. */
+    scrollbar-width: auto;
+  }
+
   .handsontable .ht-formula-builder__inline-editor .hfe-editor::after {
     content: "";
     position: absolute;

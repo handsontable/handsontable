@@ -1,7 +1,9 @@
-import { test, expect, BUNDLES_TAG } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { FormulaBuilderPage } from '../fixtures/pages/FormulaBuilderPage';
 
-test.describe('formulaBuilder plugin', { tag: BUNDLES_TAG }, () => {
+// Themes: the formula bar test compares editor and cell heights, which every theme sizes
+// differently. Bundles: the fixture loads HyperFormula externally on the plain UMD leg.
+test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: FormulaBuilderPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -51,6 +53,38 @@ test.describe('formulaBuilder plugin', { tag: BUNDLES_TAG }, () => {
     await grid.editorInput.fill('=6*7');
     await grid.page.keyboard.press('Enter');
     await grid.expectCell(3, 0, '42');
+  });
+
+  test('a multi-line formula edited in the formula bar scrolls inside the editor, not the bar', async () => {
+    const barHost = grid.page.locator('.ht-formula-builder__formula-bar');
+    const slot = grid.page.locator('.ht-slot-top');
+    const formulaCell = grid.page.locator('.hfe-formula-bar__cell--formula');
+    const barEditor = grid.page.locator('.hfe-formula-bar__overlay .hfe-editor');
+    const before = await barHost.boundingBox();
+
+    await grid.selectCell(4, 2);
+    await grid.openBarEditor();
+    await expect(grid.editorInput).toHaveValue(/\n/);
+
+    // The bar keeps its one-line height: the editor is capped and scrolls its own content,
+    // and its scroll port spans the bar's formula cell, padding included.
+    await expect(barEditor).toHaveClass(/hfe-editor--height-capped/);
+
+    const editorBox = await barEditor.boundingBox();
+    const formulaCellBox = await formulaCell.boundingBox();
+
+    expect(editorBox?.height).toBe(formulaCellBox?.height);
+    await expect(grid.editorInput).toHaveJSProperty('clientHeight', editorBox?.height);
+    expect(await grid.editorInput.evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
+
+    // Nothing above the editor moves: the layout slot does not scroll and the bar stays put.
+    await expect(slot).toHaveJSProperty('scrollTop', 0);
+
+    const after = await barHost.boundingBox();
+
+    expect(after?.y).toBe(before?.y);
+
+    await grid.page.keyboard.press('Escape');
   });
 
   test('typing a reference highlights the referenced cell through a native custom selection', async () => {
