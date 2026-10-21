@@ -1777,6 +1777,13 @@ export default (): Record<string, unknown> => {
      * | `true` (default)                                                                                               | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>, add the cell's value to the clipboard         |
      * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) [cell type](#type))        | - On pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>, add an empty string (`""`) to the clipboard   |
      *
+     * With `copyable: false`, the cell's value doesn't move through other user actions either: cutting the cell
+     * clears it and adds an empty string to the clipboard, and dragging the fill handle from it fills the target
+     * cells with empty strings. Data access methods, such as [`getDataAtCell()`](@/api/core.md#getdataatcell), still return
+     * the real value, while copy-related methods, such as [`getCopyableData()`](@/api/core.md#getcopyabledata), return an empty string.
+     * The `copyable` option is not a security measure: formulas and the [`ExportFile`](@/api/exportFile.md) plugin still read the real value.
+     * See [Password cell type: Copy, cut, paste, and autofill](@/guides/cell-types/password-cell-type/password-cell-type.md#copy-cut-paste-and-autofill).
+     *
      * Read more:
      * - [Clipboard](@/guides/cell-features/clipboard/clipboard.md)
      * - [Setting options: Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)

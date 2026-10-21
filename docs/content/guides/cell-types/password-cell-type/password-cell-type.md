@@ -211,6 +211,49 @@ When `hashRevealDelay` is set, the editor switches from a native `<input type="p
 
 :::
 
+## Copy, cut, paste, and autofill
+
+The password cell type sets the [`copyable`](@/api/options.md#copyable) option to `false`, so copy, cut, paste, and autofill don't move a password value to the clipboard or to another cell. Each of these actions writes an empty value in its place:
+
+| Action | What happens to a password cell |
+| --- | --- |
+| Copy | The clipboard gets an empty string for the cell. The previous clipboard content is replaced. In a range that also holds other cells, the password column copies as an empty column. |
+| Cut | The cell is cleared, and the clipboard gets an empty string. You can't paste the cut value anywhere. |
+| Paste | The cell accepts pasted text like a text cell. Pasting a copied password cell writes an empty string, which clears the target cell. |
+| Autofill | Dragging the fill handle from a password cell fills the target cells with empty strings, which clears them. In a range that also holds other cells, the other columns fill as usual and the password column is cleared. A double-click on the fill handle fills only empty cells, so it clears nothing. |
+
+To restore a cleared value, use undo (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Z**</kbd>).
+
+The data access methods still return the real value: [`getDataAtCell()`](@/api/core.md#getdataatcell) and [`getSourceData()`](@/api/core.md#getsourcedata) read the plain text stored in the data source. The copy-related methods follow `copyable`: [`getCopyableData()`](@/api/core.md#getcopyabledata) and [`getCopyableSourceData()`](@/api/core.md#getcopyablesourcedata) return an empty string for a password cell, and the [`CopyPaste`](@/api/copyPaste.md) plugin's [`copy()`](@/api/copyPaste.md#copy) and [`cut()`](@/api/copyPaste.md#cut) methods put an empty string on the clipboard.
+
+The `copyable` option is not a security measure. It doesn't hide the value from other features: with the [`formulas`](@/api/options.md#formulas) option enabled, a formula such as `=B2` displays the plain password, and the [`ExportFile`](@/api/exportFile.md) plugin exports the real value.
+
+### Keep passwords from being cleared
+
+To stop autofill, paste, and cut from clearing password cells, skip those changes in the [`beforeChange`](@/api/hooks.md#beforechange) hook. A skipped change leaves the cell's value as it was:
+
+```js
+beforeChange(changes, source) {
+  if (!['Autofill.fill', 'CopyPaste.paste', 'CopyPaste.cut'].includes(source)) {
+    return;
+  }
+
+  changes.forEach((change, index) => {
+    const [row, prop, , newValue] = change ?? [];
+
+    // autofill and paste write an empty string, cut writes `null`
+    if (change && (newValue === '' || newValue === null) &&
+        this.getCellMetaTransient(row, this.propToCol(prop)).copyable === false) {
+      changes[index] = null;
+    }
+  });
+},
+```
+
+The hook reads the Handsontable instance from `this`, so pass it as a regular function or method, not as an arrow function. In React, Angular, or Vue, you can also read the instance from the component's ref instead of `this`.
+
+The hook protects every cell with `copyable: false`, not only password cells. It can't tell a password's empty value from a real empty value, so pasting an empty cell over a password cell, or filling down from an empty cell, is skipped too. With this hook, a user can still clear a password cell by editing it, or with <kbd>**Delete**</kbd>.
+
 ## Result
 
 After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field (or `<input type="text">` when `hashRevealDelay` is set). The actual data is stored in plain text in the data source and is not encrypted by Handsontable DataGrid.
@@ -228,6 +271,7 @@ The password cell editor is a text editor, so it uses the standard [edition keyb
 <div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
+- [Clipboard](@/guides/cell-features/clipboard/clipboard.md)
 
 </div>
 
@@ -236,6 +280,7 @@ The password cell editor is a text editor, so it uses the standard [edition keyb
 <div class="boxes-list">
 
 - [type](@/api/options.md#type)
+- [copyable](@/api/options.md#copyable)
 - [hashLength](@/api/options.md#hashlength)
 - [hashRevealDelay](@/api/options.md#hashrevealdelay)
 - [hashSymbol](@/api/options.md#hashsymbol)
