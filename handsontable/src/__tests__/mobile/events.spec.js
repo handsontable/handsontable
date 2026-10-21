@@ -3,12 +3,24 @@ const id = 'testContainer';
 describe('Events', () => {
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    // Headless Chrome has no touch support, so the grid would skip the touch listeners.
+    // The property is what `isTouchSupported()` checks. A browser that already has it
+    // keeps its own.
+    if (!('ontouchstart' in window)) {
+      this.addedTouchSupport = true;
+      window.ontouchstart = null;
+    }
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
       this.$container.remove();
+    }
+
+    if (this.addedTouchSupport) {
+      delete window.ontouchstart;
     }
   });
 
@@ -362,5 +374,123 @@ describe('Events', () => {
 
       expect(event.defaultPrevented).toBeFalse();
     });
+  });
+
+  describe('touch drift over an unselected cell', () => {
+    async function driftTouchEnd(element) {
+      const rect = element.getBoundingClientRect();
+      const x = parseInt(rect.left, 10) + 3;
+      const y = parseInt(rect.top, 10) + 3;
+
+      await triggerTouchEvent('touchstart', element, x, y);
+      // 40px is past the 10px scroll threshold, so this is not a tap.
+      await triggerTouchEvent('touchmove', element, x + 40, y);
+
+      const touchEnd = await triggerTouchEvent('touchend', element, x + 40, y);
+
+      return touchEnd;
+    }
+
+    it('should preventDefault a drift that ends on an unselected cell, with and without visual selection', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 3),
+        width: 400,
+        height: 400,
+      });
+
+      const cell = getCell(2, 1);
+
+      expect(getSelected()).toBeUndefined();
+
+      const drifted = await driftTouchEnd(cell);
+
+      expect(drifted.defaultPrevented).toBeTrue();
+      expect(getSelected()).toBeUndefined();
+
+      await destroy();
+
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', '<button type="button">Go</button>', 'C2'],
+          ['A3', 'B3', 'C3'],
+          ['A4', 'B4', 'C4'],
+        ],
+        width: 400,
+        height: 400,
+        disableVisualSelection: true,
+        renderer: 'html',
+      });
+
+      const plainCell = getCell(2, 1);
+      const plainDrift = await driftTouchEnd(plainCell);
+
+      expect(plainDrift.defaultPrevented).toBeTrue();
+      expect(getSelected()).toBeUndefined();
+
+      const button = getCell(1, 1).querySelector('button');
+      const buttonDrift = await driftTouchEnd(button);
+
+      expect(buttonDrift.defaultPrevented).toBeTrue();
+      expect(getSelected()).toBeUndefined();
+
+      await triggerTouchEvent('touchstart', button);
+      const buttonTap = await triggerTouchEvent('touchend', button);
+
+      expect(buttonTap.defaultPrevented).toBeFalse();
+    });
+  });
+
+  it('should preventDefault both taps of a double-tap on a plain cell when visual selection is off on iOS Chrome', async() => {
+    const iosChromeUa = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_5 like Mac OS X) ' +
+      'AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.163 Mobile/15E148 Safari/604.1';
+
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      width: 400,
+      height: 400,
+      disableVisualSelection: true,
+    });
+
+    // Read at touchend, after the listeners were registered for this browser.
+    Handsontable.helper.setPlatformMeta({ platform: 'iPhone' });
+    Handsontable.helper.setBrowserMeta({ userAgent: iosChromeUa });
+
+    try {
+      const cell = getCell(1, 1);
+
+      await triggerTouchEvent('touchstart', cell);
+
+      const firstTouchEnd = await triggerTouchEvent('touchend', cell);
+
+      await triggerTouchEvent('touchstart', cell);
+
+      const secondTouchEnd = await triggerTouchEvent('touchend', cell);
+
+      expect(firstTouchEnd.defaultPrevented).toBeTrue();
+      expect(secondTouchEnd.defaultPrevented).toBeTrue();
+      expect(getActiveEditor().isOpened()).toBe(true);
+
+      await destroy();
+
+      handsontable({
+        data: [['<button type="button">Go</button>']],
+        width: 400,
+        height: 400,
+        disableVisualSelection: true,
+        renderer: 'html',
+      });
+
+      const button = getCell(0, 0).querySelector('button');
+
+      await triggerTouchEvent('touchstart', button);
+
+      const buttonTap = await triggerTouchEvent('touchend', button);
+
+      expect(buttonTap.defaultPrevented).toBeFalse();
+    } finally {
+      Handsontable.helper.setPlatformMeta();
+      Handsontable.helper.setBrowserMeta();
+    }
   });
 });
