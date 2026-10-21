@@ -3090,7 +3090,7 @@ export default function Core(
           structureVersion,
         );
 
-        instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference, change) {
+        instance.validateCell(newValue, cellProperties, (function(cellPropertiesReference, change) {
           return function(result: boolean) {
             if (typeof result !== 'boolean') {
               throwWithCause('Validation error: result is not boolean');
@@ -3098,8 +3098,13 @@ export default function Core(
 
             if (result === false && cellPropertiesReference.allowInvalid === false) {
               onRejected();
-              // cancel the change
-              changes.splice(index, 1);
+              // cancel the change, found by identity because every earlier rejection shifts the list
+              const position = changes.indexOf(change);
+
+              if (position !== -1) {
+                changes.splice(position, 1);
+              }
+
               // we canceled the change, so cell value is still valid
               cellPropertiesReference.valid = true;
               // ...and the stored meta has to hear about it too, or a cache clear that landed while
@@ -3110,7 +3115,7 @@ export default function Core(
             ledger?.answered(change, result);
             waitingForValidator.removeValidatorFormQueue();
           };
-        }(i, cellProperties, changes[i])), source);
+        }(cellProperties, changes[i])), source);
       }
     }
   }

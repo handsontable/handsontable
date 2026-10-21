@@ -281,4 +281,60 @@ describe('Core validation of writes to the same cell', () => {
     expect(hot.getDataAtCell(0, 0)).toBe('fixed');
     expect(edits).toEqual([[[0, 0, 'a', 'fixed']]]);
   });
+
+  describe('with `allowInvalid: false` and several changes in one call', () => {
+    /**
+     * Writes two invalid values and one valid one in a single call, then answers the validators in
+     * the given order.
+     *
+     * @param {string[]} answerOrder The values in the order their validators answer.
+     */
+    async function writeAndAnswer(answerOrder) {
+      createGrid({
+        data: [['a'], ['b'], ['c']],
+        columns: [{
+          allowInvalid: false,
+          validator: (value, callback) => {
+            pending.push({ value, answer: callback });
+          },
+        }],
+      });
+
+      hot.setDataAtCell([[0, 0, 'bad0'], [1, 0, 'bad1'], [2, 0, 'ok']]);
+      await settle();
+      answerOrder.forEach(value => answer(value, value === 'ok'));
+      await settle();
+    }
+
+    it('should drop every rejected change when the validators answer in ascending index order', async() => {
+      await writeAndAnswer(['bad0', 'bad1', 'ok']);
+
+      expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'ok']);
+    });
+
+    it('should still drop every rejected change when the validators answer in descending index order', async() => {
+      await writeAndAnswer(['ok', 'bad1', 'bad0']);
+
+      expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'ok']);
+    });
+
+    it('should drop every rejected change when a valid answer sits between two rejections', async() => {
+      await writeAndAnswer(['bad0', 'ok', 'bad1']);
+
+      expect(hot.getDataAtCol(0)).toEqual(['a', 'b', 'ok']);
+    });
+
+    it('should report only the applied change to `afterChange`', async() => {
+      await writeAndAnswer(['bad0', 'bad1', 'ok']);
+
+      expect(edits).toEqual([[[2, 0, 'c', 'ok']]]);
+    });
+
+    it('should keep the cells of the rejected changes valid', async() => {
+      await writeAndAnswer(['bad0', 'bad1', 'ok']);
+
+      expect(hot.getCellMeta(0, 0).valid).toBe(true);
+      expect(hot.getCellMeta(1, 0).valid).toBe(true);
+    });
+  });
 });
