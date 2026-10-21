@@ -303,8 +303,9 @@ export class FocusGridManager {
    * Suspend automatic focus management until `resume()` is called. While suspended, an
    * externally focused element (input, textarea, select, or contenteditable located outside
    * Handsontable) keeps the browser focus when a programmatic selection is applied, and the
-   * editor textarea is not auto-refocused (`imeFastEdit`). Used by `selectCells()` when
-   * `changeListener` is `false`. Note: an `activeElement` of `<body>` or an `<iframe>` element
+   * editor textarea is not auto-refocused (`imeFastEdit`). Used by `selectCells()`, `selectRows()`,
+   * `selectColumns()`, and `selectAll()` when `changeListener` is `false`. Note: an `activeElement`
+   * of `<body>` or an `<iframe>` element
    * does not count as an external input - in those cases focus still moves to the cell.
    *
    * @since 17.0.2
@@ -471,7 +472,7 @@ export class FocusGridManager {
       // When focus management is suspended and an external focusable element (outside Handsontable)
       // currently owns the browser focus, keep it - do not blur and do not move focus to the cell.
       // This preserves the focus of inputs that live next to the grid when a programmatic selection
-      // is applied via `selectCells(..., changeListener = false)`. See #10038.
+      // is applied with `changeListener` set to `false`. See #10038.
       if (suspended && activeElement && isOutsideInput(activeElement)) {
         return;
       }

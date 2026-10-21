@@ -312,7 +312,15 @@ interface CoreInternals {
   timeouts: ReturnType<typeof setTimeout>[];
   microtasks: Array<{ cancelled: boolean }>;
   _validateCells(callback?: (valid: boolean) => void, rows?: number[], columns?: number[]): void;
-  selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean, options?: Record<string, unknown>): void;
+  selectAll(
+    includeRowHeaders?: boolean,
+    includeColumnHeaders?: boolean,
+    options?: {
+      focusPosition?: { row?: number; col?: number } | boolean;
+      disableHeadersHighlight?: boolean;
+    },
+    changeListener?: boolean
+  ): void;
 }
 
 /**
@@ -8090,6 +8098,20 @@ export default function Core(
     return wasSelected;
   };
 
+  // `selectRows`, `selectColumns`, and `selectAll` do not call `listen()` on the default path.
+  // `selectCells` does. Calling `listen()` here would change `isListening()` for existing callers.
+  const selectWithChangeListener = <T>(changeListener: boolean, select: () => T): T => {
+    if (changeListener === false) {
+      focusGridManager.suspend();
+    }
+
+    try {
+      return select();
+    } finally {
+      focusGridManager.resume();
+    }
+  };
+
   /**
    * Select column specified by `startColumn` visual index, column property or a range of columns finishing at `endColumn`.
    *
@@ -8109,6 +8131,8 @@ export default function Core(
    * hot.selectColumns(2, 5, { row: 2, col: 3 });
    * // Select range of columns using column properties.
    * hot.selectColumns('id', 'last_name');
+   * // Select a column without switching the keyboard focus to Handsontable.
+   * hot.selectColumns(1, 1, 0, false);
    * ```
    *
    * @memberof Core#
@@ -8121,12 +8145,21 @@ export default function Core(
    * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
    * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
    * position horizontally.
+   * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
+   * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
+   * focus, it remains focused after the call.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectColumns = function(
-    startColumn: number, endColumn = startColumn, focusPosition: number | {row?: number, col?: number}
+    startColumn: number,
+    endColumn = startColumn,
+    focusPosition: number | {row?: number, col?: number},
+    changeListener = true
   ) {
-    return selection.selectColumns(startColumn, endColumn, focusPosition);
+    return selectWithChangeListener(
+      changeListener,
+      () => selection.selectColumns(startColumn, endColumn, focusPosition)
+    );
   };
 
   /**
@@ -8144,6 +8177,8 @@ export default function Core(
    * hot.selectRows(2, 1, 1);
    * // Select range of rows using visual indexes and move the focus position somewhere in the middle of the range.
    * hot.selectRows(2, 5, { row: 2, col: 3 });
+   * // Select a row without switching the keyboard focus to Handsontable.
+   * hot.selectRows(1, 1, 0, false);
    * ```
    *
    * @memberof Core#
@@ -8156,12 +8191,21 @@ export default function Core(
    * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
    * values point to the cell range. An object with `row` and `col` properties also can be passed to change the focus
    * position vertically.
+   * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
+   * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
+   * focus, it remains focused after the call.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectRows = function(
-    startRow: number, endRow = startRow, focusPosition: number | {row?: number, col?: number}
+    startRow: number,
+    endRow = startRow,
+    focusPosition: number | {row?: number, col?: number},
+    changeListener = true
   ) {
-    return selection.selectRows(startRow, endRow, focusPosition);
+    return selectWithChangeListener(
+      changeListener,
+      () => selection.selectRows(startRow, endRow, focusPosition)
+    );
   };
 
   /**
@@ -8195,6 +8239,8 @@ export default function Core(
    *
    * // Select all cells in the table, without headers and corner elements.
    * hot.selectAll(false);
+   * // Select all cells without switching the keyboard focus to Handsontable.
+   * hot.selectAll(true, true, { focusPosition: false }, false);
    * ```
    *
    * @since 0.38.2
@@ -8220,12 +8266,23 @@ export default function Core(
    * the logical coordinates points on them. This only suppresses the highlight shown on headers of a fully-selected
    * row or column. It doesn't affect the focus indicator on the individual cell or header that holds the focus,
    * which stays visible even when {@link Options#navigableHeaders} moves the focus onto a header.
+   * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
+   * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
+   * focus, it remains focused after the call.
    */
   this.selectAll = function(
-    includeRowHeaders = true, includeColumnHeaders = includeRowHeaders, options: Record<string, unknown>
+    includeRowHeaders = true,
+    includeColumnHeaders = includeRowHeaders,
+    options?: {
+      focusPosition?: { row?: number; col?: number } | boolean;
+      disableHeadersHighlight?: boolean;
+    },
+    changeListener = true
   ) {
     viewportScroller.skipNextScrollCycle();
-    selection.selectAll(includeRowHeaders, includeColumnHeaders, options);
+    selectWithChangeListener(changeListener, () => {
+      selection.selectAll(includeRowHeaders, includeColumnHeaders, options);
+    });
   };
 
   const getIndexToScroll = (indexMapper: IndexMapper, visualIndex: number) => {

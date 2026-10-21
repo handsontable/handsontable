@@ -113,8 +113,17 @@ export interface HotInstance {
   selectCells(
     selectionRanges?: (number | undefined)[][] | unknown[], scrollToCell?: boolean, changeListener?: boolean
   ): boolean;
-  selectColumns(start: number, end?: number, focusPosition?: unknown): boolean;
-  selectRows(start: number, end?: number, focusPosition?: unknown): boolean;
+  selectColumns(start: number, end?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
+  selectRows(start: number, end?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
+  selectAll(
+    includeRowHeaders?: boolean,
+    includeColumnHeaders?: boolean,
+    options?: {
+      focusPosition?: { row?: number; col?: number } | boolean;
+      disableHeadersHighlight?: boolean;
+    },
+    changeListener?: boolean
+  ): void;
   deselectCell(): void;
 
   // Index mapping
