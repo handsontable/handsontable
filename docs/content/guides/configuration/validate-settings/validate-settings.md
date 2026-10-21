@@ -211,8 +211,9 @@ Each option carries Handsontable-specific details under the `x-handsontable` key
 
 A value that JSON cannot hold, such as a function, is listed in `runtimeTypes` and not in `type`. A JSON Schema
 validator therefore rejects a function in a JSON document, which cannot carry one anyway. A hook accepts `null` and
-`false` in JSON, the values Handsontable skips. A validator that rejects
-unknown keywords, such as Ajv in strict mode, needs the keyword registered:
+`false` in JSON, the values Handsontable skips. An option of a plugin, such as `pagination` or `filters`, accepts
+`null` as well, because a framework wrapper sends it on a first render, before your configuration loads. A validator
+that rejects unknown keywords, such as Ajv in strict mode, needs the keyword registered:
 
 ```js
 import Ajv from 'ajv/dist/2020';
