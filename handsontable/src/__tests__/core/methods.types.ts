@@ -211,7 +211,7 @@ hot.selectAll();
 hot.selectAll(true);
 hot.selectAll(true, false);
 hot.selectAll(false, true, { focusPosition: { row: 1, col: 2 } });
-(hot as any).selectAll(false, true, { focusPosition: new CellCoords(1, 2) });
+hot.selectAll(false, true, { focusPosition: new CellCoords(1, 2) });
 hot.selectAll(false, true, { focusPosition: { row: 1, col: 2 }, disableHeadersHighlight: true });
 hot.selectAll(false, true, { disableHeadersHighlight: false });
 hot.selectAll(true, true, { focusPosition: false }, false);

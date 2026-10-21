@@ -70,11 +70,12 @@ export interface ViewportScrollerInstance {
 /**
  * Options for `selectAll`.
  *
- * `focusPosition` is one cell, or `false` to leave the focus where it is. Both `row` and `col`
- * are required. `selectAll` ignores an object that has only one of them.
+ * `focusPosition` is one cell, or `false` to leave the focus where it is. A plain object
+ * needs both `row` and `col`. A `CellCoords` instance is accepted too. `selectAll` ignores
+ * an object that has only one of them.
  */
 export interface SelectAllOptions {
-  focusPosition?: { row: number; col: number } | boolean;
+  focusPosition?: { row: number; col: number } | CellCoords | boolean;
   disableHeadersHighlight?: boolean;
 }
 

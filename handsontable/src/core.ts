@@ -8084,8 +8084,8 @@ export default function Core(
     } finally {
       // Always release the suspended state even if `selection.selectCells` throws on malformed
       // coordinates. Otherwise the flags would leak across subsequent calls.
-      // `resume()` assigns a boolean, so it runs only for the call that suspended. A default
-      // call must not clear a suspend an outer `changeListener: false` call is still holding.
+      // `resume()` sets the flag to false, so it runs only for the call that suspended.
+      // A default call must not clear a suspend that an outer `changeListener: false` call still holds.
       viewportScroller.resume();
 
       if (changeListener === false) {
@@ -8102,8 +8102,6 @@ export default function Core(
 
   // `selectRows`, `selectColumns`, and `selectAll` do not call `listen()` on the default path.
   // `selectCells` does. Calling `listen()` here would change `isListening()` for existing callers.
-  // The default path also leaves the focus manager alone. `resume()` assigns a boolean, so a
-  // default call from an `afterSelection` hook would clear a suspend the outer call still holds.
   const selectWithChangeListener = <T>(changeListener: boolean, select: () => T): T => {
     if (changeListener !== false) {
       return select();
@@ -8258,7 +8256,7 @@ export default function Core(
    * @param {boolean} [includeColumnHeaders=false] If `true`, includes the column headers in the selection.
    *
    * @param {object} [options] Additional object with options. Since 14.0.0.
-   * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
+   * @param {{row: number, col: number} | CellCoords | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range. If `false`, the focus
    * position won't be changed. When the {@link Options#navigableHeaders} option is disabled (the default), a

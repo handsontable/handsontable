@@ -92,15 +92,14 @@ export class FocusGridManager {
    */
   #debouncedSelect = new Map();
   /**
-   * Focus decision for a selection whose render has not run yet.
+   * Suspend flag captured when the selection changed, until render applies it.
+   * `null` means nothing is waiting. `false` still moves focus, so absence is `null`.
+   * `batch()` and `suspendRender()` defer that render until after `resume()` clears
+   * `#isSuspended`, and `#getSelectedCell` can defer its callback until `afterScroll`.
    *
-   * `suspended` is read when the selection changes. `batch()` and `suspendRender()` defer that
-   * render until after `resume()` has cleared `#isSuspended`, and `#getSelectedCell` can defer
-   * its callback until `afterScroll`.
-   *
-   * @type {{ suspended: boolean } | null}
+   * @type {boolean | null}
    */
-  #pendingFocus: { suspended: boolean } | null = null;
+  #pendingFocus: boolean | null = null;
   /**
    * Flag indicating whether automatic focus management for the upcoming selection cycle is suspended.
    * When `true`, `#focusCell` does not steal an externally focused input/textarea/select element,
@@ -522,21 +521,21 @@ export class FocusGridManager {
    * Handle the after selection change event.
    */
   #onAfterSelectionChange() {
-    this.#pendingFocus = { suspended: this.#isSuspended };
+    this.#pendingFocus = this.#isSuspended;
   }
 
   /**
    * Focuses the cell after the render event when the selection has changed.
    */
   #onAfterRender() {
-    const pendingFocus = this.#pendingFocus;
+    const suspended = this.#pendingFocus;
 
-    if (!pendingFocus) {
+    if (suspended === null) {
       return;
     }
 
     this.#pendingFocus = null;
-    this.#focusCell(pendingFocus.suspended);
+    this.#focusCell(suspended);
   }
 
   /**
