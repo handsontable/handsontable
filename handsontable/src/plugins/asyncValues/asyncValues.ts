@@ -129,13 +129,16 @@ interface AsyncValueEntry {
  * A value a call wrote, kept until the call is finalized when the call records an undo step or applies
  * meta. It is `landed` once the grid stored it (the write's own change event), with the value the grid
  * stored, and dropped when the write cannot land (a `beforeChange` veto, a rejection under
- * `allowInvalid: false`) or when any other change reaches the cell first.
+ * `allowInvalid: false`) or when any other change reaches the cell first. A write that has not landed
+ * stays under the next call's write to the cell (`supersedes`): the grid applies the last write made, so
+ * the older one lands only when the newer one does not, a rejection for one.
  */
 interface PendingWrite {
   run: Run;
   oldValue: unknown;
   landed: boolean;
   landedValue: unknown;
+  supersedes: PendingWrite | null;
 }
 
 /**
@@ -2086,10 +2089,19 @@ export class AsyncValues extends BasePlugin {
         oldValue: detachValue(this.#readSource(physicalRow, prop)),
         landed: false,
         landedValue: undefined,
+        supersedes: null,
       };
+      const previous = state.writes.get(prop);
 
-      // A write of another call still kept for this cell is replaced: this value goes over it.
-      this.#dropWrite(state, prop);
+      // A write of another call that has not landed stays under this one, which goes over it. A write that
+      // landed is replaced.
+      if (previous?.landed) {
+        this.#dropWrite(state, prop);
+
+      } else if (previous) {
+        write.supersedes = previous;
+      }
+
       state.writes.set(prop, write);
       run.unlanded += 1;
       run.writeStates.add(state);
@@ -2741,7 +2753,7 @@ export class AsyncValues extends BasePlugin {
    * @param {string|undefined} source The source of the change.
    * @param {Array} cleared Collects the detached entries, with their reasons.
    * @param {Set} landedGroups Collects the write groups whose flights landed.
-   * @param {Array} [change] The change tuple the grid reported, when the change went through validation.
+   * @param {Array} [change] The change tuple the grid reported. A source write has none.
    */
   #onCellChanged(
     physicalRow: number, prop: AsyncValueProp, source: string | undefined,
@@ -2845,7 +2857,14 @@ export class AsyncValues extends BasePlugin {
       this.#endFlightsUpTo(state, prop, overtaken);
     }
 
-    this.#dropWrite(state, prop);
+    const kept = state.writes.get(prop);
+    const keptFlight = kept && !kept.landed ? this.#findQueuedFlight(state, prop, kept) : undefined;
+
+    // A write the grid will still apply after this change keeps its place: only a validated flight written
+    // after the change is ordered by the grid.
+    if (!keptFlight?.validated || keptFlight.sequence <= (overtaken ?? 0)) {
+      this.#dropWrite(state, prop);
+    }
 
     if (own) {
       this.#detach(own);
@@ -2867,8 +2886,8 @@ export class AsyncValues extends BasePlugin {
     this.#endFlight(state, prop, flight, false);
 
     if (state.flights.has(prop)) {
-      if (write && state.writes.get(prop) === write) {
-        this.#dropWrite(state, prop);
+      if (write) {
+        this.#removeWrite(state, prop, write);
       }
 
       return;
@@ -3084,6 +3103,7 @@ export class AsyncValues extends BasePlugin {
     write.landed = true;
     write.landedValue = this.#readSource(state.physicalRow, prop);
     run.unlanded -= 1;
+    this.#dropSuperseded(write);
 
     if (meta && row !== null && typeof column === 'number' && column >= 0) {
       this.hot._getOperationScope().suppress(() => {
@@ -3100,27 +3120,109 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
-   * Drops a kept write: a change that is not the write's own reached the cell, the write cannot land, or
-   * another call's value replaces it.
+   * Drops a kept write with the writes under it: a change that is not the write's own reached the cell, or
+   * the write cannot land.
    *
    * @param {object} state The row state.
    * @param {string|number} prop The property of the cell.
    */
   #dropWrite(state: RowState, prop: AsyncValueProp): void {
-    const write = state.writes.get(prop);
+    const head = state.writes.get(prop);
 
-    if (!write) {
+    if (!head) {
       return;
     }
 
-    state.writes.delete(prop);
+    const dropped: PendingWrite[] = [];
 
-    if (!write.landed) {
-      write.run.unlanded -= 1;
+    for (let write: PendingWrite | null = head; write; write = write.supersedes) {
+      dropped.push(write);
+    }
+
+    state.writes.delete(prop);
+    dropped.forEach((write) => {
+      write.supersedes = null;
+      write.run.unlanded -= write.landed ? 0 : 1;
+    });
+    this.#releaseRowState(state);
+    dropped.forEach(write => this.#maybeFinalize(write.run));
+  }
+
+  /**
+   * Drops the writes under a write that landed: the grid applied the newer one, so they never land.
+   *
+   * @param {object} write The write that landed.
+   */
+  #dropSuperseded(write: PendingWrite): void {
+    const dropped: PendingWrite[] = [];
+
+    for (let older = write.supersedes; older; older = older.supersedes) {
+      dropped.push(older);
+    }
+
+    write.supersedes = null;
+    dropped.forEach((older) => {
+      older.supersedes = null;
+      older.run.unlanded -= older.landed ? 0 : 1;
+    });
+    dropped.forEach(older => this.#maybeFinalize(older.run));
+  }
+
+  /**
+   * Takes one write out of a cell's kept writes. The write under it, when there is one, is the cell's kept
+   * write again, unless its own flight is gone: it can no longer land.
+   *
+   * @param {object} state The row state.
+   * @param {string|number} prop The property of the cell.
+   * @param {object} write The write to take out.
+   */
+  #removeWrite(state: RowState, prop: AsyncValueProp, write: PendingWrite): void {
+    const head = state.writes.get(prop);
+    let above: PendingWrite | null = head === write ? null : (head ?? null);
+
+    while (above && above.supersedes !== write) {
+      above = above.supersedes;
+    }
+
+    if (head !== write && !above) {
+      this.#releaseRowState(state);
+
+      return;
+    }
+
+    if (above) {
+      above.supersedes = write.supersedes;
+
+    } else if (write.supersedes) {
+      state.writes.set(prop, write.supersedes);
+
+    } else {
+      state.writes.delete(prop);
+    }
+
+    write.supersedes = null;
+    write.run.unlanded -= write.landed ? 0 : 1;
+
+    const revealed = state.writes.get(prop);
+
+    if (revealed && !revealed.landed && !this.#findQueuedFlight(state, prop, revealed)) {
+      this.#removeWrite(state, prop, revealed);
     }
 
     this.#releaseRowState(state);
     this.#maybeFinalize(write.run);
+  }
+
+  /**
+   * Finds the queued flight of a kept write.
+   *
+   * @param {object} state The row state.
+   * @param {string|number} prop The property of the cell.
+   * @param {object} write The write.
+   * @returns {object|undefined}
+   */
+  #findQueuedFlight(state: RowState, prop: AsyncValueProp, write: PendingWrite): Flight | undefined {
+    return state.flights.get(prop)?.find(flight => flight.write === write);
   }
 
   /**
@@ -3130,10 +3232,17 @@ export class AsyncValues extends BasePlugin {
    * @param {object} state The discarded row state.
    */
   #forgetWrites(state: RowState): void {
-    const writes = [...state.writes.values()];
+    const writes: PendingWrite[] = [];
 
+    state.writes.forEach((head) => {
+      for (let write: PendingWrite | null = head; write; write = write.supersedes) {
+        writes.push(write);
+      }
+    });
     state.writes.clear();
     writes.forEach((write) => {
+      write.supersedes = null;
+
       if (!write.landed) {
         write.run.unlanded -= 1;
       }
@@ -3209,6 +3318,8 @@ export class AsyncValues extends BasePlugin {
     if (found) {
       found.flight.validating = true;
       found.flight.validated = true;
+      // What the validator receives, after a `valueSetter` changed the value: `afterValidate` reports it.
+      found.flight.value = value;
     }
   };
 
@@ -3278,8 +3389,8 @@ export class AsyncValues extends BasePlugin {
       state.flights.delete(prop);
     }
 
-    if (failed && flight.write && state.writes.get(prop) === flight.write) {
-      this.#dropWrite(state, prop);
+    if (failed && flight.write) {
+      this.#removeWrite(state, prop, flight.write);
 
     } else {
       this.#releaseRowState(state);
@@ -3290,7 +3401,7 @@ export class AsyncValues extends BasePlugin {
    * Cancels the requests a list of changes affects, and renders when one was canceled.
    *
    * @param {Array} changes The changes, as `[physicalRow, prop, tuple]`. The tuple is the change the grid
-   *   reported to `afterChange`, and is missing for a write that skips validation.
+   *   reported to `afterChange`, and is missing for a source write (`afterSetSourceDataAtCell`).
    * @param {string|undefined} source The source of the changes.
    */
   #onCellsChanged(changes: Array<[number | null, unknown, CellChange?]>, source: string | undefined): void {
