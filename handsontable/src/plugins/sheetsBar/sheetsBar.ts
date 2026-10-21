@@ -73,11 +73,13 @@ const GRID_LEVEL_DATA_PROVIDER_WARNING = 'The grid-level `dataProvider` is disab
   'enabled. Declare `dataProvider` in the `settings` of each sheet that loads from a server.';
 
 /**
- * Console message for an `activeSheet` setting whose switch was refused because a cell value still
- * waits for its validator, or the cell editor holds a value its validator rejected.
+ * Console message for an `activeSheet` setting whose switch was refused: another switch is running (the
+ * value came from a listener of that switch), a cell value still waits for its validator, or the cell
+ * editor holds a value its validator rejected.
  */
-const ACTIVE_SHEET_REFUSED_WARNING = 'The `activeSheet` setting was not applied because a cell value is ' +
-  'still being validated or was rejected. Send the same value again once the cell is saved.';
+const ACTIVE_SHEET_REFUSED_WARNING = 'The `activeSheet` setting was not applied because another sheet switch ' +
+  'is running, or a cell value is still being validated or was rejected. Send the same value again once the ' +
+  'switch has finished or the cell is saved.';
 
 /**
  * A sheet definition accepted by the `sheets` setting.
@@ -920,7 +922,8 @@ export class SheetsBar extends BasePlugin {
    * `beforeSheetTabChange` listener cancels is not asked again on every wrapper re-render. A switch
    * refused while a change waits for its validator, or while the editor holds a rejected value, is
    * not recorded and warns: the same value sent again retries it. That includes a change a listener
-   * of the switch starts, which the second check right before the load refuses.
+   * of the switch starts, which the second check right before the load refuses, and a value sent
+   * while another switch runs or from a before-hook listener, where `setActiveSheet()` refuses too.
    */
   #applyActiveSheetSetting(payload: unknown) {
     const wanted = this.getSetting('activeSheet');
@@ -933,7 +936,10 @@ export class SheetsBar extends BasePlugin {
     const target = typeof wanted === 'number' ? this.getSheets()[wanted] : undefined;
 
     if (target && !target.isActive) {
-      if (!this.#finishEditing() || (!this.setActiveSheet(target.id) && !this.#isEditingSettled())) {
+      if (
+        this.#isSwitching || this.#isRunningBeforeHook || !this.#finishEditing() ||
+        (!this.setActiveSheet(target.id) && !this.#isEditingSettled())
+      ) {
         warn(ACTIVE_SHEET_REFUSED_WARNING);
 
         return;

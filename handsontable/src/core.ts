@@ -466,7 +466,9 @@ export default function Core(
   let pendingValidatorAnswers = 0;
   /**
    * Whether `validateChanges` is calling `validateCell` right now, so the call counts as a change that
-   * waits for its validator.
+   * waits for its validator. `validateCell` reads and clears it first, before any hook runs: a
+   * `beforeValidate` listener can make a validated change of its own, and its nested `validateChanges`
+   * would otherwise set or clear the flag the outer call reads.
    */
   let isValidatingChange = false;
   /**
@@ -3427,6 +3429,10 @@ export default function Core(
     callback: (valid: boolean) => void,
     source: string
   ) {
+    const isChangeCall = isValidatingChange;
+
+    isValidatingChange = false;
+
     let validator = instance.getCellValidator(cellProperties);
 
     // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
@@ -3477,7 +3483,7 @@ export default function Core(
       // `afterValidate` listeners write belongs to that call's undo step – or to none, when the call
       // was not recorded – so the answer runs inside the call's operation.
       const hold = operationScope.hold();
-      let answered = !isValidatingChange;
+      let answered = !isChangeCall;
       const loadGeneration = validationLoadGeneration;
       const countAnswer = () => {
         if (!answered) {
@@ -3489,7 +3495,7 @@ export default function Core(
         }
       };
 
-      if (isValidatingChange) {
+      if (isChangeCall) {
         pendingValidatorAnswers += 1;
       }
 

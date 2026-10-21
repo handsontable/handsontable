@@ -699,6 +699,73 @@ describe('SheetsBar switch with work still in flight', () => {
     });
   });
 
+  describe('the activeSheet setting sent from a listener of a switch', () => {
+    it.each([
+      'beforeSheetTabChange',
+      'afterSheetTabStateCapture',
+    ])('warns and records nothing when sent from %s', (hookName) => {
+      const sheets = [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }, { name: 'C', data: [['c']] }];
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      let sent = false;
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets, activeSheet: 0 },
+        [hookName]: () => {
+          if (!sent) {
+            sent = true;
+            hot.updateSettings({ sheetsBar: { sheets, activeSheet: 2 } });
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      expect(plugin.setActiveSheet('B')).toBe(true);
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('`activeSheet` setting was not applied'));
+
+      hot.updateSettings({ sheetsBar: { sheets, activeSheet: 2 } });
+
+      expect(plugin.getSheets()[2].isActive).toBe(true);
+    });
+  });
+
+  describe('a validated change made from a beforeValidate listener', () => {
+    it('keeps the outer change counted, so the sheet does not switch while it waits', async() => {
+      const sheets = [{ name: 'Alpha', data: [['a', 'x']] }, { name: 'Beta', data: [['b', 'y']] }];
+      const answers = [];
+      let nested = false;
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets },
+        validator: (value, callback) => answers.push({ value, callback }),
+        beforeValidate: (value) => {
+          if (!nested && value === 'outerVal') {
+            nested = true;
+            hot.setDataAtCell(0, 1, 'nestedVal');
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      hot.setDataAtCell(0, 0, 'outerVal');
+      await flushMicrotasks();
+
+      expect(answers.map(({ value }) => value).sort()).toEqual(['nestedVal', 'outerVal']);
+
+      answers.find(({ value }) => value === 'nestedVal').callback(true);
+
+      expect(plugin.setActiveSheet('Beta')).toBe(false);
+
+      answers.find(({ value }) => value === 'outerVal').callback(true);
+
+      expect(sheets[0].data).toEqual([['outerVal', 'nestedVal']]);
+      expect(sheets[1].data).toEqual([['b', 'y']]);
+    });
+  });
+
   describe('validations that hold no change', () => {
     it('lets the sheet switch while validateCells() waits for its validators', () => {
       const answers = [];
