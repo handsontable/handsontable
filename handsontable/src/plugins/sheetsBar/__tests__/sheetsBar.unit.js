@@ -2011,7 +2011,7 @@ describe('SheetsBar plugin', () => {
     expect(rowsAtLoad).toBe(1);
   });
 
-  it('reports an unknown Formulas sheet name applied ahead of its data, and binds the sheet the load fills', () => {
+  it('binds a Formulas sheet name the engine lacks to the sheet the load adds and fills, with no error', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -2024,7 +2024,7 @@ describe('SheetsBar plugin', () => {
 
     hot._applySettingsAndData({ formulas: { engine, sheetName: 'Missing' } }, [[200]], 'test');
 
-    expect(errorSpy).toHaveBeenCalledWith('The sheet named `Missing` does not exist, switch aborted.');
+    expect(errorSpy).not.toHaveBeenCalled();
     expect(formulas.sheetName).toBe('Missing');
     expect(engine.getSheetSerialized(engine.getSheetId('Missing'))).toEqual([[200]]);
     expect(engine.getSheetSerialized(engine.getSheetId('Budget'))).toEqual([[100]]);
@@ -2118,7 +2118,7 @@ describe('SheetsBar plugin', () => {
     expect(engine.getSheetSerialized(engine.getSheetId('Rates'))).toEqual([[0.23]]);
   });
 
-  it('keeps a rename\'s formula rewrites off the undo stack', () => {
+  it('undoes a rename as one step, the tab and its formula rewrites together', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
     hot = new Handsontable(container, {
@@ -2148,6 +2148,13 @@ describe('SheetsBar plugin', () => {
 
     hot.getPlugin('undoRedo').undo();
 
+    expect(sheetsBar.getSheets()[1].name).toBe('Rates');
+    expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*Rates!A1');
+    expect(hot.getDataAtCell(0, 1)).toBe(23);
+
+    hot.getPlugin('undoRedo').redo();
+
+    expect(sheetsBar.getSheets()[1].name).toBe('Fees');
     expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*Fees!A1');
     expect(hot.getDataAtCell(0, 1)).toBe(23);
   });

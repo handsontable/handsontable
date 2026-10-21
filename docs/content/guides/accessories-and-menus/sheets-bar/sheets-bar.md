@@ -174,7 +174,7 @@ Right-click a tab, or click the chevron on the active tab, to open its menu. On 
 
 ## Per-sheet view state
 
-Each sheet keeps its own view state: scroll position, selection, sort, filters, row and column order, hidden rows and columns, trimmed rows, frozen rows and columns, merged cells, custom borders, manual column widths and row heights, cell meta (except the `valid` flag, which the next validation sets again), and the [`Pagination`](@/api/pagination.md) page and page size. A sheet you haven't opened yet doesn't inherit the previous sheet's sort, filters, sizes, or selection. It opens with only what its own `settings` declare, on the configured [`initialPage`](@/api/options.md#pagination) and page size.
+Each sheet keeps its own view state: scroll position, selection, sort, filters, row and column order, hidden rows and columns, trimmed rows, frozen rows and columns, merged cells, custom borders, manual column widths and row heights, cell meta (except the `valid` flag, which the next validation sets again), whether formula text is shown ([`showFormulas()`](@/api/formulas.md#showformulas)), and the [`Pagination`](@/api/pagination.md) page and page size. A sheet you haven't opened yet doesn't inherit the previous sheet's sort, filters, sizes, or selection. It opens with only what its own `settings` declare, on the configured [`initialPage`](@/api/options.md#pagination) and page size.
 
 To capture and restore a view without the sheets bar, see [Save and restore the view state](@/guides/getting-started/view-state/view-state.md).
 
@@ -335,6 +335,13 @@ To reference other sheets in a formula, give each sheet the same [HyperFormula](
 Pass a built engine (`HyperFormula.buildEmpty()`), not the `HyperFormula` class. With the class, each sheet gets its own engine and can't read the other sheets' data. The plugin logs a console warning when a sheet passes the class with a `sheetName`.
 
 A sheet added at runtime, with the add button or with `addSheet()` without `settings`, joins the shared engine under its own name, so other sheets can reference it right away.
+
+How formulas behave across sheets:
+
+- A reference into a sorted sheet, or a sheet with moved rows or columns, reads the rows in the order you left that sheet in. When you come back, the sheet shows the formulas and values it had when you left.
+- Renaming a sheet updates the references to it on every sheet, in your data arrays too. A name that HyperFormula can only read in quotes, such as `2026`, is written as `='2026'!A1`. To undo a rename, use undo, the same as for an edit.
+- Inserting, removing, or moving rows or columns updates the references other sheets hold to them. The data array of a sheet that isn't sorted and has no moved rows or columns gets the new formulas as well.
+- A duplicated sheet gets its own copy of the sheet's named expressions, and its references to its own sheet name point to the copy.
 
 ## Known limitations
 

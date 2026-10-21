@@ -443,14 +443,11 @@ describe('Formulas deferred resync', () => {
     otherContainer.remove();
   });
 
-  it('drops the owed resync when a listener disables and re-enables the plugin mid-update', () => {
+  it('writes the new data when a listener disables and re-enables the plugin mid-update', () => {
     const { engine, writes } = buildFlat();
     const plugin = hot.getPlugin('formulas');
     let toggled = false;
 
-    // Pins the documented gap: `disablePlugin()` clears the flag and `enablePlugin()` finds the
-    // sheet still in the user-supplied engine, so nothing writes the new data until the next
-    // update. Formulas' own `updatePlugin()` does not take this path.
     hot.addHook('afterUpdateSettings', () => {
       if (toggled) {
         return;
@@ -463,14 +460,11 @@ describe('Formulas deferred resync', () => {
 
     writes.mockClear();
     hot.updateSettings({ data: [[5, '=A1*2']] });
-
-    expect(writes).not.toHaveBeenCalled();
-    expect(sheetContent(engine)).toEqual([[1, '=A1+10'], [2, '=A2+10']]);
-
-    hot.updateSettings({ readOnly: true });
+    hot.render();
 
     expect(writes).toHaveBeenCalledTimes(1);
     expect(sheetContent(engine)).toEqual([[5, '=A1*2']]);
+    expect(hot.getDataAtCell(0, 1)).toBe(10);
   });
 
   it('does not write the grid into a sheet the update switched to', () => {

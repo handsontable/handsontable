@@ -155,6 +155,17 @@ export interface FormulasHyperlinkSettings {
 }
 
 /**
+ * The order an engine holds one of its sheets in, as `exportEngineOrder()` reports it while the sheet
+ * is bound, for `runWithEngineOrderHeld()` to take over when the sheet is bound again.
+ */
+export interface FormulasEngineSheetOrder {
+  readonly engine: HyperFormulaEngine;
+  readonly sheetId: number;
+  readonly rowOrder: EngineOrder;
+  readonly columnOrder: EngineOrder;
+}
+
+/**
  * The expected shape of the `formulas` plugin settings object (the non-boolean form).
  */
 interface FormulasPluginSettings {
@@ -414,6 +425,28 @@ export class Formulas extends BasePlugin {
    * this flag, which is what lets the cell editor show it whether or not this mode is on.
    */
   #showFormulasFlag = false;
+
+  /**
+   * How many `runWithEngineOrderHeld()` calls are running. While it is above zero the axis syncers keep
+   * the grid's order changes from the engine, an index syncer created by an enable in between included.
+   *
+   * @type {number}
+   */
+  #engineOrderHolds = 0;
+
+  /**
+   * The engine sheet the load inside the running `runWithEngineOrderHeld()` call takes over instead of
+   * writing the loaded data into it, and whether a load did. `null` outside such a call.
+   */
+  #pendingAdoption: { order: FormulasEngineSheetOrder; adopted: boolean } | null = null;
+
+  /**
+   * The `formulas.sheetName` setting the binding last followed (see `#requestedSheetName()`), or
+   * `undefined` before the first one.
+   *
+   * @type {string|undefined}
+   */
+  #followedSheetNameSetting: string | undefined = undefined;
 
   /**
    * Flag needed to mark if Handsontable was initialized with no data.
@@ -924,6 +957,11 @@ export class Formulas extends BasePlugin {
       if (typeof newSheetName === 'string') {
         this.#updateSheetNameAndSheetId(newSheetName);
       }
+
+    } else if (this.sheetName !== null && this.hot.view && !this.#hotWasInitializedWithEmptyData
+      && !this.isDataLoadPending()) {
+      this.#updateSheetNameAndSheetId(this.sheetName);
+      this.#sheetResyncPending = true;
     }
 
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
@@ -974,6 +1012,10 @@ export class Formulas extends BasePlugin {
 
     this.rowAxisSyncer = this.indexSyncer.getForAxis('row');
     this.columnAxisSyncer = this.indexSyncer.getForAxis('column');
+
+    if (this.#engineOrderHolds > 0) {
+      this.indexSyncer.setOrderHeld(true);
+    }
 
     this.addHook('afterRowSequenceChange', this.rowAxisSyncer!.getIndexesChangeSyncMethod());
     this.addHook('afterColumnSequenceChange', this.columnAxisSyncer!.getIndexesChangeSyncMethod());
@@ -1151,29 +1193,38 @@ export class Formulas extends BasePlugin {
    * @param {object} newSettings New set of settings passed to the `updateSettings` method.
    */
   updatePlugin(newSettings: Record<string, unknown>) {
+    this.#followEngineChange(newSettings);
+
     const newEngineSettings = getEngineSettingsWithOverrides(this.hot.getSettings());
 
     if (this.engine && haveEngineSettingsChanged(this.engine.getConfig(), newEngineSettings)) {
       this.engine.updateConfig(newEngineSettings);
     }
 
-    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+    const requestedSheetName = this.#requestedSheetName();
 
     if (
-      pluginSettings !== undefined &&
-      typeof pluginSettings !== 'boolean' &&
-      pluginSettings.sheetName !== undefined &&
+      requestedSheetName !== undefined &&
       // Sheet ids are compared rather than names, because `sheetName` holds the engine's casing
       // while the setting keeps the one it was written with. An unknown name has no id, which
       // still differs from the current one and lets `switchSheet` report it.
-      this.engine?.getSheetId(pluginSettings.sheetName) !== this.sheetId
+      this.engine?.getSheetId(requestedSheetName) !== this.sheetId
     ) {
-      if (this.isDataLoadPending() && this.engine?.doesSheetExist(pluginSettings.sheetName)) {
-        this.#updateSheetNameAndSheetId(pluginSettings.sheetName);
+      const sheetExists = this.engine?.doesSheetExist(requestedSheetName) === true;
 
-      } else {
-        this.switchSheet(pluginSettings.sheetName);
+      if (this.isDataLoadPending()) {
+        if (sheetExists) {
+          this.#updateSheetNameAndSheetId(requestedSheetName);
+          this.#followedSheetNameSetting = requestedSheetName;
+        }
+
+      } else if (sheetExists || this.sheetName !== null) {
+        this.switchSheet(requestedSheetName);
       }
+    }
+
+    if (!this.isDataLoadPending()) {
+      this.#followedSheetNameSetting = this.#readSheetNameSetting();
     }
 
     // If no data was passed to the `updateSettings` method and no sheet is connected to the instance -> create a
@@ -1201,6 +1252,63 @@ export class Formulas extends BasePlugin {
     this.#refreshHyperlinksSetting();
 
     super.updatePlugin(newSettings);
+  }
+
+  /**
+   * Returns the `formulas.sheetName` setting when it asks for a sheet: it names one, and it changed since
+   * the binding last followed it (`#followedSheetNameSetting`). The binding is kept by sheet id and
+   * follows an engine rename of the sheet (`#onEngineSheetRenamed`), while the setting keeps the name it
+   * was written with, so an unchanged setting is not a request. Read as one, it found the old name after
+   * the sheets bar renamed the shown sheet: a `language` or `maxRows` update logged that the sheet does
+   * not exist and bound the grid to any sheet that took the old name since, and a `loadData()` added a
+   * new sheet under the old name.
+   *
+   * @returns {string|undefined}
+   */
+  #requestedSheetName(): string | undefined {
+    const sheetName = this.#readSheetNameSetting();
+
+    return sheetName !== this.#followedSheetNameSetting ? sheetName : undefined;
+  }
+
+  /**
+   * Returns the `formulas.sheetName` setting, or `undefined` when there is none.
+   *
+   * @returns {string|undefined}
+   */
+  #readSheetNameSetting(): string | undefined {
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+
+    return isFormulasSettingsObject(pluginSettings) ? pluginSettings.sheetName : undefined;
+  }
+
+  /**
+   * Moves the plugin to another engine instance when a settings update sets one. The engine is set up
+   * on enable only, so the plugin kept the first sheet's engine while every later sheet named another:
+   * the sheets bar switched between sheets bound to two engines, the edits of the second landed in a
+   * copy of its sheet inside the first engine, and the formulas of the second engine never saw them.
+   * The old engine's sheet is left where it is, and the plugin binds the sheet the settings name in the
+   * new engine. An engine class (or `{ hyperformula }`) builds the engine itself, so only an instance
+   * counts as a change.
+   *
+   * @param {object} newSettings The settings update.
+   */
+  #followEngineChange(newSettings: Record<string, unknown>) {
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+    const engine = isFormulasSettingsObject(pluginSettings) ? pluginSettings.engine : undefined;
+
+    if (
+      !this.enabled || !hasOwnProperty(newSettings, PLUGIN_KEY) || !isObject(engine)
+      || typeof (engine as { hyperformula?: unknown }).hyperformula === 'function' || engine === this.engine
+    ) {
+      return;
+    }
+
+    this.disablePlugin();
+    this.sheetName = null;
+    this.sheetId = null;
+    this.#followedSheetNameSetting = undefined;
+    this.enablePlugin();
   }
 
   /**
@@ -1380,6 +1488,72 @@ export class Formulas extends BasePlugin {
 
     if (serialized.length > 0) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
+    }
+  }
+
+  /**
+   * Returns the order the engine holds the bound sheet in, when it is not the physical order on either
+   * axis (a sort or a move reached the engine), or `null`. A caller that loads the sheet's data again
+   * later and puts the same row and column order back on the grid passes it to
+   * {@link Formulas#runWithEngineOrderHeld}, which then takes the engine sheet over instead of writing
+   * the data into it.
+   *
+   * @private
+   * @returns {object|null}
+   */
+  exportEngineOrder(): FormulasEngineSheetOrder | null {
+    if (!this.enabled || !this.engine || this.sheetId === null || !this.#hasOwnSheet()
+      || (this.rowAxisSyncer!.isEngineOrderPhysical() && this.columnAxisSyncer!.isEngineOrderPhysical())) {
+      return null;
+    }
+
+    return {
+      engine: this.engine,
+      sheetId: this.sheetId,
+      rowOrder: this.rowAxisSyncer!.getEngineOrder(),
+      columnOrder: this.columnAxisSyncer!.getEngineOrder(),
+    };
+  }
+
+  /**
+   * Runs an operation that replaces the grid's data and puts a row and column order back on it: the
+   * SheetsBar plugin, on a sheet switch. While it runs, the grid's order changes do not reach the engine,
+   * so the sheet the grid leaves keeps the order the user left it in, and the order changes on the way to
+   * the arriving sheet's order (a sort cleared and applied again) leave no mark in the engine. When it
+   * ends, the grid's order is sent once.
+   *
+   * The engine moves formula cells on every order it is handed, so the sheet's formula text in the
+   * engine depends on how the order was reached, and loading the sheet's data and sorting it again gives
+   * other formulas than the ones the user saw. With `adopt` given (what {@link Formulas#exportEngineOrder}
+   * reported when the sheet was left), a load that binds that sheet takes the engine sheet over instead:
+   * it writes nothing, and the order the engine holds becomes the stored one, which the grid's order
+   * ends on.
+   *
+   * @private
+   * @param {Function} run The operation.
+   * @param {object|null} [adopt] The engine order of the sheet a load in the operation takes over.
+   */
+  runWithEngineOrderHeld(run: () => void, adopt: FormulasEngineSheetOrder | null = null): void {
+    this.#engineOrderHolds += 1;
+
+    const outermost = this.#engineOrderHolds === 1;
+
+    if (outermost) {
+      this.#pendingAdoption = adopt === null ? null : { order: adopt, adopted: false };
+    }
+
+    this.indexSyncer?.setOrderHeld(true);
+
+    try {
+      run();
+
+    } finally {
+      this.#engineOrderHolds -= 1;
+
+      if (outermost) {
+        this.#pendingAdoption = null;
+        this.indexSyncer?.setOrderHeld(false, this.enabled && this.engine !== null);
+      }
     }
   }
 
@@ -3124,7 +3298,8 @@ export class Formulas extends BasePlugin {
   #onAfterCellMetaReset = () => {
     this.#closeLeakedGuards();
 
-    if (this.hot._isHeldMetaPhaseRunning() && !this.#metaPhaseMayChangeEngineValues()) {
+    if (this.hot._isHeldMetaPhaseRunning()
+      && (this.#pendingAdoption?.adopted || !this.#metaPhaseMayChangeEngineValues())) {
       return;
     }
 
@@ -3145,6 +3320,11 @@ export class Formulas extends BasePlugin {
       this.#sheetResyncPending = true;
       this.#sheetIdAtLastSync = this.sheetId;
 
+      return;
+    }
+
+    if (this.sheetId !== null && this.#sheetIdAtLastSync === this.sheetId
+      && this.#sourceRowCountAtLastSync === this.hot.countSourceRows() && !this.#metaPhaseMayChangeEngineValues()) {
       return;
     }
 
@@ -3359,17 +3539,26 @@ export class Formulas extends BasePlugin {
 
     this.#closeLeakedGuards();
 
-    const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
-    const settingsSheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
     // Fall back to the sheet this instance already owns. Without it every `loadData`/`updateData`
     // call adds a sheet and abandons the previous one - with its whole dependency graph - inside
     // the engine, which the engine then recalculates on every subsequent call.
-    const sheetName = setupSheet(this.engine, settingsSheetName ?? this.sheetName);
+    const sheetName = setupSheet(
+      this.engine, this.#requestedSheetName() ?? this.sheetName ?? this.#readSheetNameSetting(),
+    );
 
     this.#updateSheetNameAndSheetId(sheetName);
+    this.#followedSheetNameSetting = this.#readSheetNameSetting();
 
     if (source === 'updateSettings') {
       // For performance reasons, the initialization will be done in afterCellMetaReset hook
+      return;
+    }
+
+    if (!this.#hotWasInitializedWithEmptyData && this.#pendingAdoption?.order.engine === this.engine
+      && this.#pendingAdoption.order.sheetId === this.sheetId) {
+      this.#adoptEngineSheet(this.#pendingAdoption.order);
+      this.#pendingAdoption.adopted = true;
+
       return;
     }
 
@@ -3382,6 +3571,22 @@ export class Formulas extends BasePlugin {
       this.switchSheet(this.sheetName);
     }
   };
+
+  /**
+   * Binds the sheet a load brought back without writing the loaded data into it: the engine already holds
+   * the sheet as the grid left it, in the order `order` describes, and its formula text there is what the
+   * user saw (see {@link Formulas#runWithEngineOrderHeld}). The order is taken over without being sent,
+   * and the grid's order ends on it.
+   *
+   * @param {object} order The engine order the sheet was left in.
+   */
+  #adoptEngineSheet(order: FormulasEngineSheetOrder) {
+    this.#sheetResyncPending = false;
+    this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+    this.rowAxisSyncer!.adoptEngineOrder(order.rowOrder);
+    this.columnAxisSyncer!.adoptEngineOrder(order.columnOrder);
+    this.#recordSyncedLayout();
+  }
 
   /**
    * Fills the sheet with the source data, renders the grids that read it, and returns the cells

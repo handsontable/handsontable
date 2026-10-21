@@ -119,6 +119,13 @@ class AxisSyncer {
    * @type {HfTranslationCache|null}
    */
   #translationCache: HfTranslationCache | null = null;
+  /**
+   * Whether the grid's order changes are kept from the engine (see `setOrderHeld()`). While it is set,
+   * the engine keeps the order it holds, and the translation reads that order instead of the grid's.
+   *
+   * @type {boolean}
+   */
+  #orderHeld = false;
 
   /**
    * Initializes the axis syncer for the given axis with the corresponding index mapper and parent index syncer references.
@@ -148,7 +155,8 @@ class AxisSyncer {
    */
   #getTranslationCache(): HfTranslationCache {
     if (this.#translationCache === null) {
-      const physicalIndexOfHf = this.#indexMapper.getIndexesSequence();
+      const gridSequence = this.#indexMapper.getIndexesSequence();
+      const physicalIndexOfHf = this.#orderHeld ? this.#getHeldEngineSequence(gridSequence) : gridSequence;
       const notTrimmedIndexes = this.#indexMapper.getNotTrimmedIndexes();
       const hfIndexOfPhysical: number[] = new Array<number>(physicalIndexOfHf.length);
       const visualIndexOfPhysical: number[] = new Array<number>(physicalIndexOfHf.length).fill(-1);
@@ -165,6 +173,76 @@ class AxisSyncer {
     }
 
     return this.#translationCache;
+  }
+
+  /**
+   * Returns the physical indexes in the order the engine holds them, as long as the grid's sequence: the
+   * elements the stored engine order names first, then every other physical index in ascending order, the
+   * order a sheet fed its content holds them in. Used while the order is held, when the grid's sequence
+   * and the engine's order can differ.
+   *
+   * @param {number[]} gridSequence The grid's sequence of physical indexes.
+   * @returns {number[]}
+   */
+  #getHeldEngineSequence(gridSequence: number[]): number[] {
+    const length = gridSequence.length;
+    const sequence: number[] = [];
+    const held = new Set<number>();
+
+    this.#indexesSequence.forEach((physicalIndex) => {
+      if (physicalIndex < length && !held.has(physicalIndex)) {
+        sequence.push(physicalIndex);
+        held.add(physicalIndex);
+      }
+    });
+
+    for (let physicalIndex = 0; sequence.length < length; physicalIndex += 1) {
+      if (!held.has(physicalIndex)) {
+        sequence.push(physicalIndex);
+      }
+    }
+
+    return sequence;
+  }
+
+  /**
+   * Keeps the grid's order changes from the engine, or sends the grid's current order once the hold
+   * ends. While the order is held, the engine keeps the order it holds, and every translation reads
+   * that order, so a cell read in between still finds its own value. A caller that changes the grid's
+   * order several times on the way to a known end order holds it around the changes: each order the
+   * engine is handed moves formula cells (references shift with them, `#REF!` past the first row), so
+   * the intermediate orders would leave their mark even when the end order is the one the engine already
+   * holds.
+   *
+   * @param {boolean} held Whether the order is held.
+   * @param {boolean} [syncOnRelease=true] Whether ending the hold sends the grid's current order.
+   */
+  setOrderHeld(held: boolean, syncOnRelease: boolean = true) {
+    if (this.#orderHeld === held) {
+      return;
+    }
+
+    this.#orderHeld = held;
+    this.#translationCache = null;
+
+    const engine = this.#indexSyncer.getEngine();
+    const sequence = this.#indexMapper.getIndexesSequence();
+
+    if (!held && syncOnRelease && engine !== null && this.#indexSyncer.getSheetId() !== null
+      && sequence.length > 0 && !this.#isSheetRemoved()) {
+      this.#syncOrderWithEngine(sequence);
+    }
+  }
+
+  /**
+   * Tells whether the engine holds its elements in physical order: no order reached it since it was fed
+   * its content, or the orders it got cancel out.
+   *
+   * @returns {boolean}
+   */
+  isEngineOrderPhysical() {
+    return this.#fillSequence === null
+      && this.#indexesSequence.every((physicalIndex, engineIndex) => physicalIndex === engineIndex);
   }
 
   /**
@@ -216,6 +294,7 @@ class AxisSyncer {
   adoptEngineOrder(order: EngineOrder) {
     this.#indexesSequence = order.sequence.slice();
     this.#fillSequence = order.fillSequence === null ? null : order.fillSequence.slice();
+    this.#translationCache = null;
   }
 
   /**
@@ -229,6 +308,10 @@ class AxisSyncer {
    * @returns {boolean}
    */
   isHfOrderPhysical() {
+    if (this.#orderHeld) {
+      return this.isEngineOrderPhysical();
+    }
+
     const physicalIndexOfHf = this.#indexMapper.getIndexesSequence();
 
     for (let hfIndex = 0; hfIndex < physicalIndexOfHf.length; hfIndex += 1) {
@@ -527,7 +610,7 @@ class AxisSyncer {
 
       if (source === 'update' && newSequence.length > 0) {
         // A sheet the host removed from the engine has no order to follow: asking its size throws.
-        if (!this.#isSheetRemoved()) {
+        if (!this.#orderHeld && !this.#isSheetRemoved()) {
           this.#syncOrderWithEngine(newSequence);
         }
 
@@ -554,7 +637,7 @@ class AxisSyncer {
     const sequence = this.#indexMapper.getIndexesSequence();
     const isIdentity = sequence.every((value, index) => value === index);
 
-    if (isIdentity || sequence.length === 0) {
+    if (isIdentity || sequence.length === 0 || this.#orderHeld) {
       return true;
     }
 
@@ -583,6 +666,7 @@ class AxisSyncer {
     // carrying over what the engine used to hold.
     this.#indexesSequence = [];
     this.#fillSequence = null;
+    this.#translationCache = null;
 
     this.#syncInitialOrder();
   }
