@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
 
 /**
  * Page Object for the FormulaBuilder plugin fixture.
@@ -11,14 +12,16 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class FormulaBuilderPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly formulaBar: Locator;
   readonly addressInput: Locator;
   readonly editorInput: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.formulaBar = page.locator('.hfe-formula-bar').first();
     this.addressInput = page.locator('.hfe-formula-bar__address-input').first();
@@ -29,7 +32,8 @@ export class FormulaBuilderPage {
    * Navigate to the fixture and wait for the grid to render.
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/formula-builder.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/formula-builder.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 

@@ -1,11 +1,11 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { FormulaBuilderPage } from '../fixtures/pages/FormulaBuilderPage';
 
-test.describe('formulaBuilder plugin', () => {
+test.describe('formulaBuilder plugin', { tag: BUNDLES_TAG }, () => {
   let grid: FormulaBuilderPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new FormulaBuilderPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle);
     await grid.goto();
   });
 
