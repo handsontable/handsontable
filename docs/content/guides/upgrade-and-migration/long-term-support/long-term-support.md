@@ -59,6 +59,16 @@ Every major release progresses through distinct support phases:
 
 Current-only (odd-numbered) releases skip the LTS phases entirely, moving directly from Current to End-of-Life after 6 months. These releases allow the community to preview and test upcoming features before they stabilize in the next LTS release.
 
+### Support status by version
+
+The LTS policy applies to Handsontable `16.0.0` and later. Versions released before `16.0.0` (`15.x` and earlier) predate this policy and are no longer supported.
+
+| Release line                                                                  | Release type  | Support                                                                                      |
+| ----------------------------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------- |
+| `15.x` and earlier                                                            | Pre-policy    | **End-of-Life**: no longer supported                                                         |
+| Even-numbered releases: `16.0.0`, `18.0.0`, `20.0.0`, and so on               | LTS           | Current, then Active LTS, then Maintenance LTS, then End-of-Life (about 30 months in total)  |
+| Odd-numbered releases: `17.0.0`, `19.0.0`, `21.0.0`, and so on                | Current-only  | Current for 6 months, then **End-of-Life**                                                   |
+
 ## Choosing a release
 
 *   For **mission-critical production deployments**, use the latest Active LTS version. These releases offer the best balance of stability, performance, and security with guaranteed long-term support. Enterprise environments with strict change management requirements particularly benefit from the predictable maintenance windows and extended support lifecycle.
