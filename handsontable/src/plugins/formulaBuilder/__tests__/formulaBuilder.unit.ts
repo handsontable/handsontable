@@ -8,7 +8,7 @@ import { makeGridSelectionApiStub } from './helpers/stubs';
 import type { GridSelectionApiStub } from './helpers/stubs';
 
 // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-const core = require('@hfe/core') as CoreModule;
+const core = require('hyperformula-ui') as CoreModule;
 
 const EDITING_CELL_CLASS = 'ht-formula-builder__editing-cell';
 

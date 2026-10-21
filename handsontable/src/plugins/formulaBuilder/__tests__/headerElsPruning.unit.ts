@@ -1,4 +1,4 @@
-import type { RangeHighlight } from '@hfe/core';
+import type { RangeHighlight } from 'hyperformula-ui';
 import type { HotInstance } from '../../../core/types';
 import { HandsontableAdapter } from '../handsontableAdapter';
 import { makeAdapterOptions, makeHotStub, makePluginStub } from './helpers/stubs';

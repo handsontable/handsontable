@@ -1,4 +1,4 @@
-import type { CellRange } from '@hfe/core';
+import type { CellRange } from 'hyperformula-ui';
 import { HandsontableAdapter } from '../handsontableAdapter';
 import { makeAdapterOptions, makeHotStub, makePluginStub } from './helpers/stubs';
 import type { CustomSelectionStub } from './helpers/stubs';

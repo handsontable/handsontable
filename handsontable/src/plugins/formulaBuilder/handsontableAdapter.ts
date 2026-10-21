@@ -14,8 +14,8 @@ import type {
   RangePick,
   RangePickListener,
   Unsubscribe,
-} from '@hfe/core';
-import type { PickEmitter } from '@hfe/core';
+} from 'hyperformula-ui';
+import type { PickEmitter } from 'hyperformula-ui';
 import { warn } from '../../helpers/console';
 import type { HotInstance } from '../../core/types';
 import type { default as VisualSelection } from '../../selection/highlight/visualSelection';
@@ -145,7 +145,7 @@ export interface HandsontableAdapterOptions {
    */
   indexMapping: VisualHfIndexMapping;
   /**
-   * The injected `@hfe/core` module namespace.
+   * The injected `hyperformula-ui` module namespace.
    */
   core: CoreModule;
   /**
@@ -247,7 +247,7 @@ export interface FormulaBuilderPluginLike {
 }
 
 /**
- * Implements the `@hfe/core` `IGridAdapter` contract against a live Handsontable
+ * Implements the `hyperformula-ui` `IGridAdapter` contract against a live Handsontable
  * instance: geometry and highlight rendering, visual/HyperFormula index translation,
  * pick event brokering, and editor lifecycle delegation back to the plugin.
  */
@@ -277,7 +277,7 @@ export class HandsontableAdapter implements IGridAdapter {
    */
   readonly #plugin: FormulaBuilderPluginLike;
   /**
-   * The injected `@hfe/core` module namespace.
+   * The injected `hyperformula-ui` module namespace.
    */
   readonly #core: CoreModule;
   /**
@@ -1003,7 +1003,7 @@ export class HandsontableAdapter implements IGridAdapter {
    * (reposition-only) draw is enough: the Walkontable selection manager re-scans
    * every selection on each draw, fast or full, on the master table and every
    * overlay clone. During grid initialization the view does not exist yet (the
-   * `@hfe/core` builder resets highlights while the plugin enables), and the
+   * `hyperformula-ui` builder resets highlights while the plugin enables), and the
    * initial draw renders the registered selections anyway.
    */
   #redraw(): void {

@@ -304,7 +304,7 @@ export function makeAdapterOptions(
   mappingOverrides: Partial<VisualHfIndexMapping> = {},
 ): HandsontableAdapterOptions {
   // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-  const core = require('@hfe/core');
+  const core = require('hyperformula-ui');
 
   return {
     hot,

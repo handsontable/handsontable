@@ -1,10 +1,10 @@
-import type { FormulaEditor } from '@hfe/core';
+import type { FormulaEditor } from 'hyperformula-ui';
 import { CellPickController } from '../cellPickController';
 import type { HandsontableAdapter } from '../handsontableAdapter';
 import type { CoreModule } from '../types';
 
 // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-const core = require('@hfe/core') as CoreModule;
+const core = require('hyperformula-ui') as CoreModule;
 const EPHEMERAL_COLOR = core.EPHEMERAL_COLOR;
 
 afterEach(() => {

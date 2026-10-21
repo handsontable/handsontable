@@ -456,7 +456,7 @@ describe('plain-textarea fallback for a disabled or missing plugin', () => {
     plugin: { enabled: boolean } | null,
   ): { editor: FallbackEditor; plugin: FallbackPluginSurface | null } {
     // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const core = require('@hfe/core');
+    const core = require('hyperformula-ui');
     const pluginSurface: FallbackPluginSurface | null = plugin === null ? null : {
       events: new core.EventManager(),
       handleInlineEditStart: jest.fn(),
@@ -576,7 +576,7 @@ describe('cell-editor-guard scope lifecycle', () => {
     rootElement: HTMLElement;
     } {
     // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const core = require('@hfe/core');
+    const core = require('hyperformula-ui');
     const pluginSurface = {
       events: new core.EventManager(),
       handleInlineEditStart: jest.fn(),

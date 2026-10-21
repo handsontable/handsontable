@@ -4,7 +4,7 @@ import { FormulaBuilder } from '../formulaBuilder';
 
 /**
  * Builds a Handsontable stub rich enough for the plugin to enable: `formulaBuilder`
- * settings carrying the injected `@hfe/core` module, a Formulas plugin stub with an
+ * settings carrying the injected `hyperformula-ui` module, a Formulas plugin stub with an
  * empty HyperFormula engine and identity axis syncers, and a movable selection
  * highlight exposed through `getSelectedRangeLast`.
  *
@@ -13,7 +13,7 @@ import { FormulaBuilder } from '../formulaBuilder';
  */
 function makeLiveSelectionHotStub(highlight: { row: number; col: number } | undefined) {
   // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-  const core = require('@hfe/core');
+  const core = require('hyperformula-ui');
   const engine = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
   const identitySyncer = {
     getHfIndexFromVisualIndex: (visualIndex: number) => visualIndex,

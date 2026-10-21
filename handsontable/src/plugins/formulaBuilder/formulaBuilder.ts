@@ -6,7 +6,7 @@ import type {
   FormulaEditor,
   HyperFormulaLike,
   Unsubscribe,
-} from '@hfe/core';
+} from 'hyperformula-ui';
 import { BasePlugin } from '../base';
 import { warn } from '../../helpers/console';
 import { throwWithCause } from '../../helpers/errors';
@@ -120,7 +120,7 @@ interface IndexMapperLike {
  * error indicators rendered in the grid.
  *
  * The plugin requires the {@link Formulas} plugin to be enabled with a configured engine,
- * and the `@hfe/core` module to be passed in via the `builder` setting.
+ * and the `hyperformula-ui` module to be passed in via the `builder` setting.
  *
  * Reference highlights render through the grid's own selection machinery (custom
  * selections), so they follow frozen panes, scrolling, and hidden or reordered rows
@@ -130,7 +130,7 @@ interface IndexMapperLike {
  * @example
  * ::: only-for javascript
  * ```js
- * import * as FormulaBuilderModule from '@hfe/core';
+ * import * as FormulaBuilderModule from 'hyperformula-ui';
  * import { HyperFormula } from 'hyperformula';
  *
  * const hot = new Handsontable(container, {
@@ -187,7 +187,7 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * The injected `@hfe/core` module namespace (set while enabled).
+   * The injected `hyperformula-ui` module namespace (set while enabled).
    */
   #core: CoreModule | null = null;
   /**

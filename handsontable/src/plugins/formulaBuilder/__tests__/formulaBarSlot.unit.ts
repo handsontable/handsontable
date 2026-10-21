@@ -1,4 +1,4 @@
-import * as hfeCore from '@hfe/core';
+import * as hfeCore from 'hyperformula-ui';
 import { HyperFormula } from 'hyperformula';
 import type { HotInstance } from '../../../core/types';
 import { registerAsRootInstance } from '../../../utils/rootInstance';

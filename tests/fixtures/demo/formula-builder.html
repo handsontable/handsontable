@@ -39,7 +39,7 @@
 <body>
   <!--
     FormulaBuilder plugin e2e fixture. Cells are stamped with data-testid via a
-    renderer (data-testid="cell-<row>-<col>"). The @hfe/core module is loaded as
+    renderer (data-testid="cell-<row>-<col>"). The hyperformula-ui module is loaded as
     a native ES module straight from node_modules (locally that resolves through
     the pnpm link; in CI it requires the package to be installed) and injected
     into the plugin via the `builder` setting.
@@ -56,7 +56,7 @@
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
   <script type="module">
-    import * as FormulaBuilderModule from '/handsontable/node_modules/@hfe/core/dist/index.js';
+    import * as FormulaBuilderModule from '/tests/node_modules/hyperformula-ui/dist/index.js';
 
     const container = document.querySelector('[data-testid="grid"]');
 

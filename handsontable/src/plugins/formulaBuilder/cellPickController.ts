@@ -5,7 +5,7 @@ import type {
   HeaderDragTracker,
   HeaderPick,
   RangeDragTracker,
-} from '@hfe/core';
+} from 'hyperformula-ui';
 import type { HandsontableAdapter } from './handsontableAdapter';
 import type { CoreModule } from './types';
 
@@ -31,7 +31,7 @@ interface SelectionController {
  */
 export interface CellPickControllerDeps {
   /**
-   * The injected `@hfe/core` module namespace.
+   * The injected `hyperformula-ui` module namespace.
    */
   core: CoreModule;
   /**

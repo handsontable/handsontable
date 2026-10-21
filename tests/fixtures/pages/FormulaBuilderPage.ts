@@ -6,7 +6,7 @@ import { awaitBundle } from '../bundle';
  *
  * Grid cells are addressed via the `data-testid` stamped by the fixture
  * renderer; the formula bar and editor use the stable class names owned by the
- * @hfe/core package (`.hfe-formula-bar`, `.hfe-editor__input`). Waits are
+ * hyperformula-ui package (`.hfe-formula-bar`, `.hfe-editor__input`). Waits are
  * condition-based — never fixed timeouts.
  */
 export class FormulaBuilderPage {

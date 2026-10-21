@@ -1,4 +1,4 @@
-import type { EventManager, EventScope, FormulaEditor } from '@hfe/core';
+import type { EventManager, EventScope, FormulaEditor } from 'hyperformula-ui';
 import { editorFactory } from '../../editors/factory';
 import { EDITOR_STATE } from '../../editors/baseEditor';
 import { getEditor, registerEditor } from '../../editors/registry';

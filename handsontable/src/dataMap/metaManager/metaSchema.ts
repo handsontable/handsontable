@@ -4031,7 +4031,7 @@ export default (): Record<string, unknown> => {
      *
      * | Property         | Possible values                                                 |
      * | ---------------- | --------------------------------------------------------------- |
-     * | `builder`        | The `@hfe/core` module namespace (`import * as FormulaBuilderModule from '@hfe/core'`) |
+     * | `builder`        | The `hyperformula-ui` module namespace (`import * as FormulaBuilderModule from 'hyperformula-ui'`) |
      * | `showFormulaBar` | A boolean - renders the formula bar above the grid when `true`  |
      *
      * Read more:
@@ -4045,7 +4045,7 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * import * as FormulaBuilderModule from '@hfe/core';
+     * import * as FormulaBuilderModule from 'hyperformula-ui';
      * import { HyperFormula } from 'hyperformula';
      *
      * formulas: {

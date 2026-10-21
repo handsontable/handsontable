@@ -1,10 +1,10 @@
-import type { LayoutDirection, PopupsOptions } from '@hfe/core';
+import type { LayoutDirection, PopupsOptions } from 'hyperformula-ui';
 
 /**
- * The `@hfe/core` module namespace, injected through the plugin settings so the
+ * The `hyperformula-ui` module namespace, injected through the plugin settings so the
  * Handsontable bundle never imports the package at runtime.
  */
-export type CoreModule = typeof import('@hfe/core');
+export type CoreModule = typeof import('hyperformula-ui');
 
 /**
  * Structural shape of a Walkontable overlay as consumed by the adapter.
@@ -60,7 +60,7 @@ export interface VisualHfIndexMapping {
  */
 export interface FormulaBuilderPluginSettings {
   /**
-   * The `@hfe/core` module namespace (its `FormulaBuilder` class plus runtime utilities).
+   * The `hyperformula-ui` module namespace (its `FormulaBuilder` class plus runtime utilities).
    */
   builder: unknown;
   /**
