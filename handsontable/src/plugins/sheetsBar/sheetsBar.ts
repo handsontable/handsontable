@@ -901,7 +901,8 @@ export class SheetsBar extends BasePlugin {
    * A value is recorded once the switch got as far as its listeners, so a switch a
    * `beforeSheetTabChange` listener cancels is not asked again on every wrapper re-render. A switch
    * refused while a change waits for its validator, or while the editor holds a rejected value, is
-   * not recorded and warns: the same value sent again retries it.
+   * not recorded and warns: the same value sent again retries it. That includes a change a listener
+   * of the switch starts, which the second check right before the load refuses.
    */
   #applyActiveSheetSetting(payload: unknown) {
     const wanted = this.getSetting('activeSheet');
@@ -914,13 +915,11 @@ export class SheetsBar extends BasePlugin {
     const target = typeof wanted === 'number' ? this.getSheets()[wanted] : undefined;
 
     if (target && !target.isActive) {
-      if (!this.#finishEditing()) {
+      if (!this.#finishEditing() || (!this.setActiveSheet(target.id) && !this.#isEditingSettled())) {
         warn(ACTIVE_SHEET_REFUSED_WARNING);
 
         return;
       }
-
-      this.setActiveSheet(target.id);
     }
 
     this.#lastActiveSheetSetting = wanted;

@@ -452,11 +452,17 @@ export default function Core(
   // closure, not on the instance, because `destroy` nulls every instance property before it runs.
   const operationScope = new OperationScope();
   /**
-   * The number of validator calls `validateCell` started on the data the grid holds that have not
-   * answered yet. A call that throws, or answers more than once, is counted out once. A validator that
-   * never answers stays counted until the next `loadData()`, which starts a new count.
+   * The number of validator calls made for a change (`validateChanges`) on the data the grid holds that
+   * have not answered yet. A call that throws, or answers more than once, is counted out once. A validator
+   * that never answers stays counted until the next `loadData()`, which starts a new count. Calls made by
+   * `validateCells()` and its siblings are not counted: they hold no change waiting to be written.
    */
   let pendingValidatorAnswers = 0;
+  /**
+   * Whether `validateChanges` is calling `validateCell` right now, so the call counts as a change that
+   * waits for its validator.
+   */
+  let isValidatingChange = false;
   /**
    * Advances on every `loadData()`. A validator call remembers the load it started on, and its answer is
    * counted out only while that load is still the current one.
@@ -3066,26 +3072,32 @@ export default function Core(
 
         const structureVersion = metaManager.getStructureVersion();
 
-        instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference) {
-          return function(result: boolean) {
-            if (typeof result !== 'boolean') {
-              throwWithCause('Validation error: result is not boolean');
-            }
+        isValidatingChange = true;
 
-            if (result === false && cellPropertiesReference.allowInvalid === false) {
-              onRejected();
-              // cancel the change
-              changes.splice(index, 1);
-              // we canceled the change, so cell value is still valid
-              cellPropertiesReference.valid = true;
-              // ...and the stored meta has to hear about it too, or a cache clear that landed while
-              // the validator was running leaves the kept value wearing the rejected edit's mark.
-              persistValidationResult(cellPropertiesReference, true, structureVersion);
-            }
+        try {
+          instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference) {
+            return function(result: boolean) {
+              if (typeof result !== 'boolean') {
+                throwWithCause('Validation error: result is not boolean');
+              }
 
-            waitingForValidator.removeValidatorFormQueue();
-          };
-        }(i, cellProperties)), source);
+              if (result === false && cellPropertiesReference.allowInvalid === false) {
+                onRejected();
+                // cancel the change
+                changes.splice(index, 1);
+                // we canceled the change, so cell value is still valid
+                cellPropertiesReference.valid = true;
+                // ...and the stored meta has to hear about it too, or a cache clear that landed while
+                // the validator was running leaves the kept value wearing the rejected edit's mark.
+                persistValidationResult(cellPropertiesReference, true, structureVersion);
+              }
+
+              waitingForValidator.removeValidatorFormQueue();
+            };
+          }(i, cellProperties)), source);
+        } finally {
+          isValidatingChange = false;
+        }
       }
     }
   }
@@ -3453,7 +3465,7 @@ export default function Core(
       // `afterValidate` listeners write belongs to that call's undo step – or to none, when the call
       // was not recorded – so the answer runs inside the call's operation.
       const hold = operationScope.hold();
-      let answered = false;
+      let answered = !isValidatingChange;
       const loadGeneration = validationLoadGeneration;
       const countAnswer = () => {
         if (!answered) {
@@ -3465,7 +3477,9 @@ export default function Core(
         }
       };
 
-      pendingValidatorAnswers += 1;
+      if (isValidatingChange) {
+        pendingValidatorAnswers += 1;
+      }
 
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
@@ -3486,6 +3500,7 @@ export default function Core(
                 markCellMetaChanged(cellProperties);
 
                 persistValidationResult(cellProperties, valid, structureVersion);
+                countAnswer();
 
                 done(valid);
                 instance.runHooks(
@@ -4649,11 +4664,13 @@ export default function Core(
   };
 
   /**
-   * Tells whether a validator call is still waiting for its answer. A change made through
+   * Tells whether a validator call made for a change is still waiting for its answer. A change made through
    * {@link Core#setDataAtCell} or an editor is applied to the data the grid holds when its last validator
    * answers, so anything that replaces the grid's data must not run in the meantime. A validator that
    * throws counts as answered. A `loadData()` call starts a new count, so a validator that never answers
-   * stops counting once the grid loads other data.
+   * stops counting once the grid loads other data. `validateCells()` and its siblings hold no change, so
+   * their calls are not counted. The answer is counted out before its change is written, so an
+   * `afterChange` listener of the last answer already reads `false`.
    *
    * @private
    * @memberof Core#

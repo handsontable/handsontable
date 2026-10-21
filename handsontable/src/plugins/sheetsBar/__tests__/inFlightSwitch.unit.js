@@ -666,6 +666,78 @@ describe('SheetsBar switch with work still in flight', () => {
     });
   });
 
+  describe('the activeSheet setting refused by a change a listener starts', () => {
+    it('warns, and switches when the same value is sent again after the validator answered', async() => {
+      const sheets = [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }];
+      const answers = [];
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      let stamp = true;
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets, activeSheet: 0 },
+        validator: (value, callback) => answers.push(callback),
+        beforeSheetTabChange: () => {
+          if (stamp) {
+            stamp = false;
+            hot.setDataAtCell(0, 0, 'left');
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.updateSettings({ sheetsBar: { sheets, activeSheet: 1 } });
+
+      expect(hot.getPlugin('sheetsBar').getSheets()[0].isActive).toBe(true);
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('`activeSheet` setting was not applied'));
+
+      await flushMicrotasks();
+      answers.splice(0).forEach(answer => answer(true));
+      hot.updateSettings({ sheetsBar: { sheets, activeSheet: 1 } });
+
+      expect(hot.getPlugin('sheetsBar').getSheets()[1].isActive).toBe(true);
+      expect(sheets[0].data).toEqual([['left']]);
+    });
+  });
+
+  describe('validations that hold no change', () => {
+    it('lets the sheet switch while validateCells() waits for its validators', () => {
+      const answers = [];
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
+        validator: (value, callback) => answers.push(callback),
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.validateCells();
+
+      expect(hot.getPlugin('sheetsBar').setActiveSheet('Beta')).toBe(true);
+    });
+
+    it('lets an afterChange listener of a validated edit switch the sheet', async() => {
+      const sheets = [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }];
+      let switched = null;
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets },
+        validator: (value, callback) => callback(true),
+        afterChange: (changes, source) => {
+          if (source === 'edit' && switched === null) {
+            switched = hot.getPlugin('sheetsBar').setActiveSheet('Beta');
+          }
+        },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.setDataAtCell(0, 0, 'typed');
+      await flushMicrotasks();
+
+      expect(switched).toBe(true);
+      expect(sheets[0].data).toEqual([['typed']]);
+      expect(sheets[1].data).toEqual([['b']]);
+    });
+  });
+
   describe('validator answers', () => {
     it('keeps counting a pending validator when another one answers twice', async() => {
       const answers = [];

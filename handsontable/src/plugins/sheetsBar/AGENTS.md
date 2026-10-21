@@ -566,7 +566,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     validator answers, so a switch in that window wrote the edit into the arriving sheet. A
     refused click shows nothing: the editor stays open over its own cell. Do not "defer" the switch
     until the validator answers instead – that was rejected for this bar. Core counts each
-    validator call (`validateCell`) until it answers or throws, so a validator that throws does not
+    validator call made for a change (`validateCell` from `validateChanges`, never `validateCells()`)
+    until it answers or throws, so a validator that throws does not
     block switching for the grid's life; one that never answers does. Every validator answers in a
     microtask, so an API `setActiveSheet()` made while the editor of a cell with a validator is open
     is refused even for a valid value. A tab click is not: a `pointerdown` anywhere in the bar saves
