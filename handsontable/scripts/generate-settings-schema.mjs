@@ -425,7 +425,8 @@ function widenNode(name, node) {
 
 /**
  * Fails the build when an object type of a closed option has an index signature, because such a type
- * accepts any key and no list can be exhaustive.
+ * accepts any key and no list can be exhaustive. A bare `Record<string, unknown>` member and an
+ * intersection with one count too.
  *
  * @param {ts.TypeChecker} checker The type checker.
  * @param {ts.Type} type The option's type, or the interface that lists its keys.
@@ -435,8 +436,7 @@ function assertNoIndexSignature(checker, type, name) {
   const members = type.isUnion() ? type.types : [type];
 
   members
-    .filter(member => hasFlag(member, ts.TypeFlags.Object) && !checker.isArrayType(member) &&
-      checker.getPropertiesOfType(member).length > 0)
+    .filter(member => hasFlag(member, ts.TypeFlags.Object, ts.TypeFlags.Intersection) && !checker.isArrayType(member))
     .forEach((member) => {
       if (checker.getIndexInfosOfType(member).length > 0) {
         throw new Error(`${name} is in CLOSED_OPTIONS but its type has an index signature, so it accepts any key.`);
@@ -509,6 +509,12 @@ function closeOptionNode(name, node, converter, type, listedType) {
   }
 
   const branches = (anyOf ?? [single]).flatMap((branch, index) => replaced[index] ?? [branch]);
+
+  // An open `object` branch beside a closed one matches any key, so the option would only look closed.
+  if (branches.some(branch => [branch.type ?? []].flat().includes('object') && branch.additionalProperties !== false)) {
+    throw new Error(`${name} is in CLOSED_OPTIONS but keeps an object branch that accepts any key.`);
+  }
+
   const closed = branches.length === 1 ? branches[0] : { anyOf: branches };
 
   return annotations ? { ...closed, 'x-handsontable': annotations } : closed;

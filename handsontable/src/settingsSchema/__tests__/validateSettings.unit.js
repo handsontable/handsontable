@@ -229,14 +229,35 @@ describe('validateSettings', () => {
       ]);
     });
 
-    it('should report one problem for a settings object that is a Proxy that throws on every trap', () => {
+    it('should report an unreadable settings object and go on when a Proxy throws on every trap', () => {
       const proxy = new Proxy({}, {
         ownKeys() { throw new Error('boom'); },
         getOwnPropertyDescriptor() { throw new Error('boom'); },
         get() { throw new Error('boom'); },
       });
 
-      expect(brief(validateSettings({ pagination: proxy }))).toEqual([{ path: '', code: 'invalidSettings' }]);
+      expect(brief(validateSettings({ pagination: proxy, rowHeaders: 5 }))).toEqual([
+        { path: 'pagination', code: 'invalidValue' },
+        { path: 'rowHeaders', code: 'invalidType' },
+      ]);
+    });
+
+    it('should skip a key that is set to `undefined`, as the top level does', () => {
+      expect(validateSettings({ filters: { serchMode: undefined }, notAnOption: undefined }).problems).toEqual([]);
+      expect(brief(validateSettings({ filters: { serchMode: undefined, serchMod: 'apply' } }))).toEqual([
+        { path: 'filters.serchMod', code: 'unknownOption' },
+      ]);
+    });
+
+    it('should say that a key is read at the grid level when it is set per column', () => {
+      expect(validateSettings({ columns: [{ filters: { searchMode: 'apply' } }] }).problems).toEqual([
+        {
+          path: 'columns[0].filters.searchMode',
+          code: 'wrongLevel',
+          severity: 'error',
+          message: '\'searchMode\' can be set at the grid level only.',
+        },
+      ]);
     });
 
     it('should report an own `__proto__` key and ignore the prototype', () => {
@@ -523,7 +544,18 @@ describe('validateSettings', () => {
     container.remove();
   });
 
-  it('should report nothing for the settings of a live grid with the closed plugins enabled', () => {
+  it.each([
+    ['filters', { searchMode: 'apply' }],
+    ['dropdownMenu', { items: ['col_left'] }],
+    ['pagination', { pageSize: 10 }],
+    ['autoLink', { target: '_blank' }],
+    ['asyncValues', { flush: 'microtask' }],
+    ['dragToScroll', { rampDistance: 30 }],
+    ['fillHandle', { direction: 'vertical' }],
+    ['manualColumnFreeze', { restoreColumnPosition: true }],
+    ['rowSelection', { mode: 'multiRow' }],
+    ['sheetsBar', { sheets: [{ name: 'One', data: [[1, 2, 3]] }] }],
+  ])('should report no unknown key for the settings of a live grid with %s enabled', (option, value) => {
     const container = document.createElement('div');
 
     document.body.appendChild(container);
@@ -531,10 +563,7 @@ describe('validateSettings', () => {
     const hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(30, 3),
       colHeaders: true,
-      filters: { searchMode: 'apply' },
-      dropdownMenu: { items: ['filter_by_value'] },
-      pagination: { pageSize: 10 },
-      autoLink: { target: '_blank' },
+      [option]: value,
       licenseKey: 'non-commercial-and-evaluation',
     });
     const ownSettings = {};
@@ -544,7 +573,8 @@ describe('validateSettings', () => {
       ownSettings[key] = hot.getSettings()[key];
     }
 
-    expect(validateSettings(ownSettings).problems.filter(({ code }) => code === 'unknownOption')).toEqual([]);
+    expect(typeof ownSettings[option]).toBe('object');
+    expect(validateSettings(ownSettings).problems.filter(({ path }) => path.startsWith(`${option}.`))).toEqual([]);
 
     hot.destroy();
     container.remove();

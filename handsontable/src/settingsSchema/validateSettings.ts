@@ -171,6 +171,21 @@ function readProperty(object: object, key: string | number): Read {
 }
 
 /**
+ * Tells whether an object has a key of its own, without throwing: a Proxy may throw from the trap behind it.
+ *
+ * @param {object} object The object.
+ * @param {string} key The property.
+ * @returns {boolean}
+ */
+function hasOwnKey(object: object, key: string): boolean {
+  try {
+    return Object.hasOwn(object, key);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Tells whether a value is an object that holds settings: not `null`, an array, or a function.
  *
  * @param {*} value The value.
@@ -448,7 +463,7 @@ function checkContents(value: unknown, branch: JsonSchemaObject, path: string, c
     const { properties } = branch;
 
     Object.keys(properties).forEach((key) => {
-      if (!Object.prototype.hasOwnProperty.call(value, key)) {
+      if (!hasOwnKey(value, key)) {
         return;
       }
 
@@ -561,8 +576,24 @@ function getSuggestionHint(key: string, candidates: string[]): string {
 }
 
 /**
+ * Lists the keys of the grid-level settings object of the option a path ends in, so a key that the grid
+ * level reads but a column or cell level does not (`columns[0].filters.searchMode`) is not reported as a typo.
+ *
+ * @param {string} path The path of the settings object.
+ * @returns {string[]}
+ */
+function getGridLevelKeys(path: string): string[] {
+  const optionName = path.match(/([^.[\]]+)$/)?.[1];
+  const node = optionName === undefined ? undefined : getOwnNode(settingsSchema.properties, optionName);
+  const object = node && getBranches(node).find(branch => branch.additionalProperties === false);
+
+  return Object.keys(object?.properties ?? {});
+}
+
+/**
  * Reports the own keys of a settings object that the schema node does not list. Only a node that
- * lists every key it accepts (`additionalProperties: false`) calls it.
+ * lists every key it accepts (`additionalProperties: false`) calls it. A key set to `undefined` is
+ * unset, as it is at the top level, so it passes.
  *
  * @param {object} value The settings object.
  * @param {string[]} knownKeys The keys the node lists.
@@ -581,14 +612,29 @@ function reportUnknownKeys(value: Record<string, unknown>, knownKeys: string[], 
     return;
   }
 
+  const gridKeys = getGridLevelKeys(path);
+
   keys.forEach((key) => {
-    if (!knownKeys.includes(key)) {
-      context.problems.push({
-        path: joinPath(path, key),
-        code: 'unknownOption',
-        message: `Unknown option '${key}'.${getSuggestionHint(key, knownKeys)}`,
-      });
+    if (knownKeys.includes(key)) {
+      return;
     }
+
+    const read = readProperty(value, key);
+
+    // A cleared key reads as `undefined` and is unset; one that cannot be read is still reported.
+    if (read.ok && read.value === undefined) {
+      return;
+    }
+
+    context.problems.push(gridKeys.includes(key) ? {
+      path: joinPath(path, key),
+      code: 'wrongLevel',
+      message: `'${key}' can be set at the grid level only.`,
+    } : {
+      path: joinPath(path, key),
+      code: 'unknownOption',
+      message: `Unknown option '${key}'.${getSuggestionHint(key, knownKeys)}`,
+    });
   });
 }
 

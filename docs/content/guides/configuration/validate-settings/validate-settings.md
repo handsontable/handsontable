@@ -103,7 +103,7 @@ validateSettings({
 | Code                  | Reported when                                                                                    |
 | --------------------- | ------------------------------------------------------------------------------------------------ |
 | `invalidSettings`     | The input is not a settings object.                                                              |
-| `unknownOption`       | A key is not an option, or not a key of a plugin's settings object. The message suggests the closest name. |
+| `unknownOption`       | A key is not an option, or not a key of a plugin's settings object. The message suggests the closest name when there is one. |
 | `wrongLevel`          | An option is set at a level it is not read at, such as `fixedRowsTop` inside `columns`, or a hook inside `columns`. See [Option levels](@/guides/configuration/configuration-option-levels/configuration-option-levels.md). |
 | `invalidType`         | A value has the wrong type, such as `rowHeaders: 5`.                                             |
 | `invalidValue`        | A value is not in the allowed set, such as `stretchH: 'full'`, or a value cannot be read.        |
