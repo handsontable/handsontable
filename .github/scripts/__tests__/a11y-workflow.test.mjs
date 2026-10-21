@@ -82,6 +82,8 @@ test('a11y.yml is one job, axe, in the Playwright container, running the a11y co
   assert.match(comment, /^ {8}continue-on-error: true$/m, `${A11Y}: the comment reports and never decides the job. ${DOC}`);
   assert.match(comment, /github\.event_name == 'pull_request'/, `${A11Y}: a comment needs a pull request. ${DOC}`);
   assert.match(comment, /A11Y_PR_NUMBER: \$\{\{ github\.event\.pull_request\.number \}\}/);
+  assert.match(comment, /A11Y_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/,
+    `${A11Y}: the comment compares the pull request's baseline with the base commit's, so a baseline that grows does not read as clean. ${DOC}`);
   assert.match(comment, /A11Y_CHECK_URL: \$\{\{ steps\.check\.outputs\.check-url \}\}/);
 });
 

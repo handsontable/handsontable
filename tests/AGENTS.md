@@ -1190,16 +1190,30 @@ The reporter writes four outputs into `test-results/a11y/`, and CI publishes eac
   jQuery and Bootstrap from public CDNs, could not show screenshots, and listed known and new
   findings alike.
 - **The sticky pull request comment** (`lib/a11y-pr-comment.mjs`, posted by
-  `scripts/a11y-pr-comment.mjs`): the headline, what needs action (up to fifteen rows), the
-  findings by rule as a chart, and the links to the report, the run and the check run, never a
-  screenshot (an artifact needs a login, and GitHub fetches comment images without one). The
-  chart is a table of text bars (`textBar()`, block characters to an eighth), counted by
-  `findingsByRule()` like the HTML report's overview: a comment holds no script and no image it
-  can fetch, a Mermaid chart renders in a frame a screen reader cannot read, and GitHub strips
-  `aria-hidden`, so the bars sit in their own `Chart` column beside the numbers. It is posted only when something needs action
-  or the tooling failed, and edited in place on every later run, so a fixed pull request shows a
-  clean comment and a clean one gets none. It finds its old comment by `COMMENT_MARKER` and the
-  Actions bot as the author.
+  `scripts/a11y-pr-comment.mjs`): posted on every pull request the scan ran on, clean or not, and
+  edited in place on every later run (`upsertComment()` finds the old one by `COMMENT_MARKER` and
+  the Actions bot as the author), so a reviewer always sees the scan. A clean body is short: the
+  headline, the scan (scans, pages × themes, axe-core), the links to the report, the run and the
+  check run, and the known findings by issue. A body that needs action has the headline, what
+  needs action (up to fifteen rows) and the findings by rule as a chart. Never a screenshot (an
+  artifact needs a login, and GitHub fetches comment images without one). The chart is a table
+  of text bars (`textBar()`, block characters to an eighth), counted by `findingsByRule()` like
+  the HTML report's overview: a comment holds no script and no image it can fetch, a Mermaid
+  chart renders in a frame a screen reader cannot read, and GitHub strips `aria-hidden`, so the
+  bars sit in their own `Chart` column beside the numbers.
+- **Baseline growth is in the comment, not the check run.** The comparator judges the scan
+  against the pull request's own baseline, so a pull request that adds entries to it reads as
+  clean. The comment step reads the base commit's baseline through the contents API
+  (`A11Y_BASE_SHA`, `readBaseBaseline()`) and `baselineGrowth()` lists every entry the pull
+  request adds (keyed by page, theme, rule, target and issue, so an entry moved to another issue
+  counts) and every count it raises: the headline turns ⚠️ and says how many, and a section groups
+  them by issue and spells out the first ten. A base file that is missing or not JSON is one line
+  saying the growth is unknown, never a failed step. The check run stays as it is: it judges the
+  scan, it never reads the base, and a neutral icon on every pull request that baselines a finding
+  the documented way would stop meaning "the scan found something". Approving the pull request
+  accepts the listed debt. `node scripts/a11y-pr-comment.mjs --dry-run --base <file>` prints the
+  growth locally, from a copy of the base branch's baseline
+  (`git show origin/develop:tests/a11y/axe-baseline.json`).
 - **The agent findings** (`a11y-findings.json`, `lib/a11y-findings.mjs`): the same run, concise and
   machine-readable, for an implementer agent. `needsAction` lists each finding that needs action
   with its page, theme, fixture URL, steps, rule, WCAG criteria, element, counts, remedy and up to

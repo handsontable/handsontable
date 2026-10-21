@@ -17,9 +17,10 @@ name: A11y
 # from the run page, built to locate every element (fixture, steps, selector, DOM path,
 # screenshot). The `A11y / axe report` check run on the pull request's head commit: its
 # icon is the visible gate (neutral = something needs action in warn mode), and its
-# annotations sit on the line to change. A sticky pull request comment with the
-# headline, what needs action and the report link, posted only when something needs
-# action and edited when a later run is clean. And `a11y-findings.json` for an
+# annotations sit on the line to change. A sticky pull request comment on every pull
+# request the scan ran on, edited in place by later runs: the headline, what needs
+# action, what the pull request added to the baseline (compared with the base commit's)
+# and the report link. And `a11y-findings.json` for an
 # implementer agent, in the zipped raw results with a short retention: they are the
 # evidence behind a warning, not a record.
 #
@@ -102,15 +103,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           A11Y_REPORT_URL: ${{ steps.report.outputs.artifact-url }}
         run: node tests/scripts/a11y-check-run.mjs
-      # The sticky comment (tests/lib/a11y-pr-comment.mjs): posted when something needs action,
-      # edited when a later run is clean, never a screenshot; it links the HTML report. Pull
-      # requests only, behind the same guard (a fork's token cannot comment).
+      # The sticky comment (tests/lib/a11y-pr-comment.mjs): posted on the first run, clean or not,
+      # and edited in place by every later one; never a screenshot, it links the HTML report. It
+      # reads the base commit's baseline (A11Y_BASE_SHA, through the contents API) to list what the
+      # pull request adds to it. Pull requests only, behind the same guard (a fork's token cannot
+      # comment).
       - name: Post the report comment
         if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           A11Y_PR_NUMBER: ${{ github.event.pull_request.number }}
+          A11Y_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           A11Y_REPORT_URL: ${{ steps.report.outputs.artifact-url }}
           A11Y_CHECK_URL: ${{ steps.check.outputs.check-url }}
         run: node tests/scripts/a11y-pr-comment.mjs
