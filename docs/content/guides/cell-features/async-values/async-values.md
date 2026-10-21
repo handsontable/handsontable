@@ -348,18 +348,21 @@ asyncValues.setAsyncValuesInBatches('all', 'category', classify, { undo: 'record
 
 One undo then reverts the whole run, and one redo applies it again. The values appear while the run is in progress, so the user can keep editing and undoing meanwhile. The step lands on the undo stack once the run's last request settles and its last value passes the cell's validator. By the time the call's promise resolves, the step is there.
 
-The step is a `'change'` action with the call's `source`, as [`beforeUndo`](@/api/hooks.md#beforeundo) receives it. It records what the grid stored, after a `valueSetter` or a validator changed the value, a validator that corrects the value through a source ending with `Validator` included. When two calls write one cell while its validator runs, the cell keeps the value the grid stored last, and that value is what the later call's step records. Like any new step, it clears the redo history: an undo the user makes while a run is in progress can't be redone once the run's step lands.
+The step is a `'change'` action with the call's `source`, as [`beforeUndo`](@/api/hooks.md#beforeundo) receives it. It records what the grid stored, after a `valueSetter` or a validator changed the value, a validator that corrects the value through a source ending with `Validator` included. When two calls write one cell while its validator runs, the cell keeps the value of the write made last. Like any new step, it clears the redo history: an undo the user makes while a run is in progress can't be redone once the run's step lands.
 
 A few values stay out of the run's step:
 
 - A cell the user edits after its value landed: the user's edit is a step of its own.
 - A cell that a later call writes before this call finishes: the later call's step owns it.
+- A value the grid dropped because a later write to its cell was applied first.
 - A cell that a data update, such as [`updateData()`](@/api/core.md#updatedata), changed after the value landed.
 - The `meta` the run merged into the cells: an undo doesn't remove it.
 
 If you disable the plugin while a call is in progress, the call's step records the values that already landed.
 
-A cell's validator decides when a value lands, and the grid applies validated values in the order their validators answer. So if the user edits a cell while the async value written to it still waits for its validator, and the user's value is validated first, the async value then lands over the user's edit.
+A cell's validator decides when a value lands. When two writes reach one cell while its validator runs, the grid applies the write made last, whatever order the validators answer in. So if the user edits a cell while the async value written to it still waits for its validator, and the edit's validator answers first, the user's edit stays and the grid drops the async value. If the async value's validator answers first, the value lands and the edit then replaces it. If the edit is rejected by a validator with [`allowInvalid: false`](@/api/options.md#allowinvalid), the async value still lands.
+
+A dropped async value still ends as `{ status: 'resolved', value }`, because the plugin passed it to the grid. No cancel hook fires: the plugin cancels a request on an edit only while the request is still pending. The dropped value fires [`beforeChange`](@/api/hooks.md#beforechange), but not [`afterChange`](@/api/hooks.md#afterchange) (see [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md)). To tell that a value landed, listen to `afterChange` for the request's [`source`](#request-options). A row hidden by a filter fires no `afterChange` (see [Validation](#how-async-values-work-with-other-features)).
 
 An undo or redo that changes a pending cell cancels its request, and redo does not start it again.
 
@@ -405,7 +408,7 @@ The plugin sends the values of one flush in one [`updateRows()`](@/api/dataProvi
 
 ## How async values work with other features
 
-- **Validation:** a resolved value goes through `beforeChange`, the cell's validator, and `afterChange`, with the request's `source`. A row hidden by a filter, or past [`maxRows`](@/api/options.md#maxrows), has no visual index, so its value is written with [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell): the cell's validator does not run, a [`sourceDataValidator`](@/api/options.md#sourcedatavalidator) does, and `afterChange` does not fire.
+- **Validation:** a resolved value goes through `beforeChange`, the cell's validator, and `afterChange`, with the request's `source`. A later write to the cell can drop the value before `afterChange` (see [Undo](#undo)). A row hidden by a filter, or past [`maxRows`](@/api/options.md#maxrows), has no visual index, so its value is written with [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell): the cell's validator does not run, a [`sourceDataValidator`](@/api/options.md#sourcedatavalidator) does, and `afterChange` does not fire.
 - **Many calls:** each call that starts or cancels requests renders the grid once. To start many cells, call [`setAsyncValuesForRows()`](@/api/asyncValues.md#setasyncvaluesforrows) or [`setAsyncValues()`](@/api/asyncValues.md#setasyncvalues) once, or wrap your loop in [`batch()`](@/api/core.md#batch).
 - **Copy, paste, and export:** copy and export read the cell's current value -- its previous value while a request is pending or failed. With `copyPendingAs: 'empty'` in the plugin's options, copying or cutting puts an empty value for a pending cell. The empty value also applies to the data a paste into another Handsontable grid reads, including with `parsePastedValue`. A paste into a pending cell is an edit, so it cancels the request.
 - **Rows and columns:** inserting rows keeps every request on its record. Removing a row cancels its requests. In array data, whose column properties are indexes, inserting or removing a column cancels the requests of that column and the columns after it.
