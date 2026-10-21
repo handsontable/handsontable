@@ -68,6 +68,18 @@ export interface ViewportScrollerInstance {
 }
 
 /**
+ * Options for `selectAll`.
+ *
+ * `focusPosition` is one cell, or `false` to leave the focus where it is. A plain object
+ * needs both `row` and `col`. A `CellCoords` instance is accepted too. `selectAll` ignores
+ * an object that has only one of them.
+ */
+export interface SelectAllOptions {
+  focusPosition?: { row: number; col: number } | CellCoords | boolean;
+  disableHeadersHighlight?: boolean;
+}
+
+/**
  * Handsontable Core instance interface.
  * Provides type-safe access to the Core API without requiring circular imports.
  *
@@ -113,8 +125,14 @@ export interface HotInstance {
   selectCells(
     selectionRanges?: (number | undefined)[][] | unknown[], scrollToCell?: boolean, changeListener?: boolean
   ): boolean;
-  selectColumns(start: number, end?: number, focusPosition?: unknown): boolean;
-  selectRows(start: number, end?: number, focusPosition?: unknown): boolean;
+  selectColumns(start: number, end?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
+  selectRows(start: number, end?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
+  selectAll(
+    includeRowHeaders?: boolean,
+    includeColumnHeaders?: boolean,
+    options?: SelectAllOptions,
+    changeListener?: boolean
+  ): void;
   deselectCell(): void;
 
   // Index mapping

@@ -92,11 +92,14 @@ export class FocusGridManager {
    */
   #debouncedSelect = new Map();
   /**
-   * Flag to indicate if the selection has changed.
+   * Suspend flag captured when the selection changed, until render applies it.
+   * `null` means nothing is waiting. `false` still moves focus, so absence is `null`.
+   * `batch()` and `suspendRender()` defer that render until after `resume()` clears
+   * `#isSuspended`, and `#getSelectedCell` can defer its callback until `afterScroll`.
    *
-   * @type {boolean}
+   * @type {boolean | null}
    */
-  #hasSelectionChange = false;
+  #pendingFocus: boolean | null = null;
   /**
    * Flag indicating whether automatic focus management for the upcoming selection cycle is suspended.
    * When `true`, `#focusCell` does not steal an externally focused input/textarea/select element,
@@ -303,8 +306,9 @@ export class FocusGridManager {
    * Suspend automatic focus management until `resume()` is called. While suspended, an
    * externally focused element (input, textarea, select, or contenteditable located outside
    * Handsontable) keeps the browser focus when a programmatic selection is applied, and the
-   * editor textarea is not auto-refocused (`imeFastEdit`). Used by `selectCells()` when
-   * `changeListener` is `false`. Note: an `activeElement` of `<body>` or an `<iframe>` element
+   * editor textarea is not auto-refocused (`imeFastEdit`). Used by `selectCells()`, `selectRows()`,
+   * `selectColumns()`, and `selectAll()` when `changeListener` is `false`. Note: an `activeElement`
+   * of `<body>` or an `<iframe>` element
    * does not count as an external input - in those cases focus still moves to the cell.
    *
    * @since 17.0.2
@@ -457,13 +461,10 @@ export class FocusGridManager {
 
   /**
    * Manage the browser's focus after each cell selection change.
+   *
+   * @param {boolean} suspended Whether focus management was suspended when the selection changed.
    */
-  #focusCell() {
-    // Capture the suspend flag synchronously. `#getSelectedCell` may defer its callback via
-    // `afterScroll` when the target cell is not yet rendered, by which time `resume()` may
-    // have run. Reading `this.#isSuspended` inside the callback would miss the suspend window.
-    const suspended = this.#isSuspended;
-
+  #focusCell(suspended: boolean) {
     this.#getSelectedCell((selectedCell) => {
       const deepActiveElement = getDeepActiveElement(this.#hot.rootDocument);
       const activeElement = isHTMLElement(deepActiveElement) ? deepActiveElement : null;
@@ -471,7 +472,7 @@ export class FocusGridManager {
       // When focus management is suspended and an external focusable element (outside Handsontable)
       // currently owns the browser focus, keep it - do not blur and do not move focus to the cell.
       // This preserves the focus of inputs that live next to the grid when a programmatic selection
-      // is applied via `selectCells(..., changeListener = false)`. See #10038.
+      // is applied with `changeListener` set to `false`. See #10038.
       if (suspended && activeElement && isOutsideInput(activeElement)) {
         return;
       }
@@ -520,17 +521,21 @@ export class FocusGridManager {
    * Handle the after selection change event.
    */
   #onAfterSelectionChange() {
-    this.#hasSelectionChange = true;
+    this.#pendingFocus = this.#isSuspended;
   }
 
   /**
    * Focuses the cell after the render event when the selection has changed.
    */
   #onAfterRender() {
-    if (this.#hasSelectionChange) {
-      this.#hasSelectionChange = false;
-      this.#focusCell();
+    const suspended = this.#pendingFocus;
+
+    if (suspended === null) {
+      return;
     }
+
+    this.#pendingFocus = null;
+    this.#focusCell(suspended);
   }
 
   /**
