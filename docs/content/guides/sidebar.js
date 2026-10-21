@@ -57,6 +57,7 @@ const importAndExportItems = [
   { path: 'guides/import-and-export/import-and-export/import-and-export', title: 'Overview' },
   { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
   { path: 'guides/accessories-and-menus/import-from-excel/import-from-excel' },
+  { path: 'guides/import-and-export/infer-column-types/infer-column-types' },
   { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
   { path: 'guides/accessories-and-menus/xlsx-engine/xlsx-engine' },
   { path: 'guides/import-and-export/dropped-features/dropped-features' },
