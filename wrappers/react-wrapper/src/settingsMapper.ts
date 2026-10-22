@@ -32,6 +32,12 @@ export class SettingsMapper {
   /**
    * Parse component settings into Handsontable-compatible settings.
    *
+   * A prop whose value is `undefined` counts as not passed and is left out, so the option keeps its
+   * default. An own `undefined` key would shadow that default in the settings cascade. The one
+   * exception is an update of a prop that had a value in the previous props: `undefined` is forwarded
+   * then, because that is how an app clears an option it set earlier (`height={full ? undefined : 400}`).
+   * `null` and `false` are real values and are forwarded.
+   *
    * @param {object} properties Object containing properties from the HotTable object.
    * @param {object} additionalSettings Additional settings.
    * @param {boolean} additionalSettings.isInit Flag determining whether the settings are being set during initialization.
@@ -75,11 +81,15 @@ export class SettingsMapper {
 
       return false;
     };
+    const isNotPassed = (key: keyof HotTableProps) => {
+      return properties[key] === undefined && (isInit || prevProps[key] === undefined);
+    };
     const newSettings: Handsontable.GridSettings = {};
 
     Object.keys(properties).forEach((key) => {
       if (
         key !== 'children' &&
+        !isNotPassed(key as keyof HotTableProps) &&
         !shouldSkipProp(key as keyof Handsontable.GridSettings)
       ) {
         (newSettings as any)[key] = properties[key as keyof HotTableProps];

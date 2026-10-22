@@ -230,6 +230,8 @@ To apply configuration options to the entire grid, pass your options as a second
 
 To apply configuration options to the entire grid, pass your options as individual props of the [`HotTable`](@/guides/getting-started/installation/installation.md#_4-use-the-hottable-component) or [`HotColumn`](@/guides/columns/react-hot-column/react-hot-column.md) components.
 
+A prop set to `undefined` counts as a prop you did not pass, so the option keeps its default value.
+
 :::
 
 ::: only-for angular
