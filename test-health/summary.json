@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-22T11:36:38.604Z",
+  "generatedAt": "2026-10-22T12:44:13.488Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -3078,7 +3078,7 @@
       "file": "handsontable/src/__tests__/core/onKeyDown.spec.js",
       "line": null,
       "title": "Core_onKeyDown while editing (full edit mode) should finish editing and advance to lower cell when enter is pressed (with async validator)",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
