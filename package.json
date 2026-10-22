@@ -126,6 +126,7 @@
       "external-editor>tmp": "^0.2.6",
       "uuid@<11.1.1": "^11.1.1",
       "vite@6": "^6.4.3",
+      "vite@8": "^8.3.5",
       "vue": "^3.5.42",
       "webpack-dev-middleware@7": "^7.4.6",
       "webpack-dev-server": "^5.2.6"
