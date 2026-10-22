@@ -42,7 +42,7 @@ You can import `handsontable` and `@handsontable/vue3`, and call `registerAllMod
 
 ::: tip
 
-The `@handsontable/vue3` wrapper adds an automatically generated `id` attribute to the container only after the component mounts in the browser, so the server-rendered markup and the first client render match. Earlier versions of the wrapper generated that `id` on the server too, which made Vue log a `Hydration attribute mismatch` warning. If you use such a version, pass an explicit `id` to `<HotTable>`, or use `<ClientOnly>`.
+The `@handsontable/vue3` wrapper adds an automatically generated `id` attribute to the container only after the component mounts in the browser, so the server-rendered markup and the first client render match. Wrapper versions that predate this change generated that `id` on the server too. With Vue 3.5 or later, that made Vue log a `Hydration attribute mismatch` warning. To avoid the warning on such a version, pass an explicit `id` to `<HotTable>`, or use `<ClientOnly>`.
 
 :::
 

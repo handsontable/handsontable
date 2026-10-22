@@ -1,5 +1,5 @@
 <template>
-  <div :id="containerId" style="height: 100%">
+  <div :id="id" style="height: 100%">
     <!-- `hot-column` children render invisible comment anchors in source order.
          Handsontable appends its own DOM to this container without clearing
          pre-existing nodes, so the anchors survive; the parent reads their
@@ -86,7 +86,6 @@ const HotTable = defineComponent({
       columnSettings: null as HotTableProps[] | null,
       columnsCache: new Map<VNode, HotTableProps>(),
       columnsRefreshScheduled: false,
-      generatedId: '',
       get hotInstance(): Handsontable | null {
         if (!this.__hotInstance || (this.__hotInstance && !this.__hotInstance.isDestroyed)) {
 
@@ -104,17 +103,6 @@ const HotTable = defineComponent({
         this.__hotInstance = hotInstance;
       },
     };
-  },
-  computed: {
-    /**
-     * The container id: the `id` prop, or an id generated after mounting. The generated one is
-     * left out of the server-rendered markup so that hydration finds no attribute mismatch.
-     *
-     * @returns {string|undefined} The container id.
-     */
-    containerId(): string | undefined {
-      return this.id || this.generatedId || undefined;
-    },
   },
   methods: {
     /**
@@ -266,7 +254,13 @@ const HotTable = defineComponent({
     },
   },
   mounted() {
-    this.generatedId = generateContainerId();
+    // The auto-generated id is set here, on the client only, and not through a prop default or reactive
+    // data: an id created on the server never matches the browser's, which breaks hydration, and a
+    // reactive id would re-render every `HotTable` right after mounting.
+    if (!this.id) {
+      this.$el.id = generateContainerId();
+    }
+
     this.columnSettings = this.getColumnSettings();
     this.hotInit();
   },

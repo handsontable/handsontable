@@ -1,6 +1,5 @@
-/* eslint-disable no-console */
 import * as vue from 'vue';
-import { createSSRApp, h, nextTick } from 'vue';
+import { createSSRApp, h } from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { mount } from '@vue/test-utils';
 import HotTable from '../src/HotTable.vue';
@@ -27,6 +26,11 @@ function loadIsolatedHotTable() {
 }
 
 describe('Server-side rendering', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.dontMock('vue');
+  });
+
   it('should not render an auto-generated `id` attribute on the server', async() => {
     const html = await renderToString(createSSRApp({
       render: () => h(HotTable, { data: createSampleData(1, 1), licenseKey }),
@@ -59,20 +63,21 @@ describe('Server-side rendering', () => {
       render: () => h(ClientHotTable, { data: createSampleData(1, 1), licenseKey }),
     });
 
-    app.mount(container);
+    try {
+      app.mount(container);
 
-    const hydrationWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('Hydration'));
+      const hydrationWarnings = warnSpy.mock.calls.filter(args => String(args[0]).includes('Hydration'));
 
-    expect(hydrationWarnings).toEqual([]);
-
-    app.unmount();
-    container.remove();
-    warnSpy.mockRestore();
+      expect(hydrationWarnings).toEqual([]);
+    } finally {
+      app.unmount();
+      container.remove();
+    }
   });
 });
 
 describe('Auto-generated container `id`', () => {
-  it('should be set on the container after the component is mounted', async() => {
+  it('should be set on the container as soon as the component is mounted', () => {
     const testWrapper = mount(HotTable, {
       props: {
         data: createSampleData(1, 1),
@@ -80,18 +85,14 @@ describe('Auto-generated container `id`', () => {
       },
     });
 
-    await nextTick();
-
     expect(testWrapper.element.id).toMatch(/^hot-/);
 
     testWrapper.unmount();
   });
 
-  it('should be unique for every `HotTable` instance', async() => {
+  it('should be unique for every `HotTable` instance', () => {
     const first = mount(HotTable, { props: { data: createSampleData(1, 1), licenseKey } });
     const second = mount(HotTable, { props: { data: createSampleData(1, 1), licenseKey } });
-
-    await nextTick();
 
     expect(first.element.id).toMatch(/^hot-/);
     expect(second.element.id).toMatch(/^hot-/);
