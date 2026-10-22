@@ -525,7 +525,9 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   `elementFromPoint` at the same point returned the text. Give a phone fixture that tag, assert the
   trusted event's target before what the tap did (`TouchInteractiveCellPage.tapPointOn()`), and
   declare `THEMES_TAG` on a spec that aims a tap at a point: the theme's padding decides what is
-  near it.
+  near it. The sweep does not catch every such tap. It flags `elementFromPoint`, a box read in the
+  spec, and a fixed offset from a box edge, but not `locator.tap()` or a centered point a page
+  object computes, so declare the axis yourself there.
 - iPhone emulation does **not** catch iPadOS 13+ (desktop Macintosh UA + `MacIntel` +
   `maxTouchPoints > 2`). For that path, use Desktop Chrome, `hasTouch: true`, a Macintosh
   Safari `userAgent`, and `addInitScript` that sets `navigator.platform = 'MacIntel'` and
