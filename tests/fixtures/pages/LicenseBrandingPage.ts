@@ -101,7 +101,7 @@ export class LicenseBrandingPage {
    * all, which is what a grid that must NOT be branded reports.
    */
   async cornerGlyph(cell: Locator = this.cornerHeaderCell): Promise<{
-    maskImage: string; backgroundImage: string; backgroundSize: string;
+    maskImage: string; backgroundImage: string; backgroundSize: string; backgroundColor: string;
     widthPx: number; heightPx: number; cellWidthPx: number; cellHeightPx: number;
   }> {
     return cell.evaluate((element) => {
@@ -111,6 +111,7 @@ export class LicenseBrandingPage {
         maskImage: glyph.maskImage,
         backgroundImage: glyph.backgroundImage,
         backgroundSize: glyph.backgroundSize,
+        backgroundColor: glyph.backgroundColor,
         widthPx: parseFloat(glyph.width),
         heightPx: parseFloat(glyph.height),
         cellWidthPx: (element as HTMLElement).offsetWidth,

@@ -94,6 +94,7 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
     test('keeps the dot blue while the pointer is over the corner', async () => {
       await license.goto(INSTANT.duringTrial);
 
+      const restingGlyph = await license.cornerGlyph();
       const before = await license.cornerGlyphPaint();
 
       await license.cornerHeaderCell.hover();
@@ -101,6 +102,9 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       const glyph = await license.cornerGlyph();
       const after = await license.cornerGlyphPaint();
 
+      // The hover state is really in effect: it darkens the "H" through `background-color`...
+      expect(glyph.backgroundColor).not.toBe(restingGlyph.backgroundColor);
+      // ...and leaves the dot layer, and the blue it paints, alone.
       expect(glyph.backgroundImage.toLowerCase()).toContain('%231a42e8');
       expect(after.blue).toEqual(before.blue);
     });
