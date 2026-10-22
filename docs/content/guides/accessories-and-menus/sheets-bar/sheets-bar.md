@@ -336,14 +336,6 @@ Pass a built engine (`HyperFormula.buildEmpty()`), not the `HyperFormula` class.
 
 A sheet added at runtime, with the add button or with `addSheet()` without `settings`, joins the shared engine under its own name, so other sheets can reference it right away.
 
-How formulas behave across sheets:
-
-- A reference into a sorted sheet, or a sheet with moved rows or columns, reads the rows in the order you left that sheet in. When you come back, the sheet shows the formulas and values it had when you left.
-- Renaming a sheet updates the references to it on every sheet, in your data arrays too. A data array or row you froze (for example, with Immer) stays as it is: the sheets bar works on a copy instead. A new name that HyperFormula can read only in quotes, such as `2026` or `Sales-EU`, gets them (`='2026'!A1`), and a formula that leaves those quotes out still works. A rename that changes only the case of the letters is a rename too. Undo reverts a rename.
-- Removing a sheet turns the references to it into `#REF!` right away. Adding a sheet with the same name makes them read that sheet.
-- Inserting, removing, or moving rows or columns updates the references other sheets hold to them. The data array of a sheet that isn't sorted and has no moved rows or columns gets the new formulas as well.
-- A duplicated sheet gets its own copy of the sheet's named expressions, and its references to its own sheet name point to the copy.
-
 ## Known limitations
 
 - The grid holds one sheet at a time, so methods such as [`getData()`](@/api/core.md#getdata) and [`getDataAtCell()`](@/api/core.md#getdataatcell) read only the active sheet.
@@ -351,6 +343,8 @@ How formulas behave across sheets:
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
 - A sorted sheet, or a sheet with moved rows or columns, comes back with the formulas HyperFormula holds for it. To change such a sheet's cells while it isn't shown, pass a new `data` array: a change made in place to the array it was shown with isn't seen.
 - After a rename, `getSettings().formulas.sheetName` keeps the old name. The grid stays bound to the renamed sheet.
+- Renaming a sheet, or inserting, removing, or moving rows or columns, rewrites formula text in your `data` arrays.
+- A frozen `data` array (for example, from Immer) isn't written. The sheets bar uses a copy, so update your store yourself.
 - If the window scrolls the grid (no [`height`](@/api/options.md#height) and no scrollable parent), the bar sits below the last row. To keep it in view, set `height`, or put the grid in a container with a fixed height and `overflow: auto`.
 
 ## Related keyboard shortcuts
