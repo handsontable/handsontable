@@ -17,6 +17,7 @@ vue:
   metaTitle: Batch operations | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Optimization
+menuTag: updated
 ---
 Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid's performance.
 

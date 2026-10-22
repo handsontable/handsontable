@@ -20,7 +20,7 @@ vue:
   metaTitle: Shadow DOM | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
-menuTag: new
+menuTag: updated
 addedIn: "18.1.0"
 ---
 

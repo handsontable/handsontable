@@ -13,6 +13,7 @@ vue:
   metaTitle: Custom cell definitions | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell functions
+menuTag: updated
 addedIn: "17.0.0"
 ---
 

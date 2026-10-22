@@ -24,6 +24,7 @@ vue:
   metaTitle: Design system | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Styling
+menuTag: updated
 ---
 The Handsontable DataGrid design system defines the tokens, themes, and components that control the grid visual appearance. Read this to understand how themes and CSS variables relate.
 

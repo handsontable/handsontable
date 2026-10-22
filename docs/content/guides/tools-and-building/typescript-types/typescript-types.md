@@ -18,6 +18,7 @@ vue:
   metaTitle: TypeScript types | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
+menuTag: updated
 ---
 
 Handsontable DataGrid ships TypeScript declarations for its entire public API. This page lists every type you can import and shows how to use them in common scenarios.

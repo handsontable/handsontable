@@ -13,7 +13,7 @@ vue:
   metaTitle: Text cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
-menuTag: new
+menuTag: updated
 ---
 Use the text cell type, the default cell type in Handsontable DataGrid, to display and edit plain text values.
 

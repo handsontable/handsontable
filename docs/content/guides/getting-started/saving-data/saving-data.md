@@ -17,7 +17,6 @@ vue:
   metaTitle: Saving data | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
-menuTag: updated
 ---
 Save data after each change to the data set, using Handsontable DataGrid's API hooks. Preserve the table's state by saving data to the local storage.
 

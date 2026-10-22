@@ -13,6 +13,7 @@ vue:
   metaTitle: Deprecation policy | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Upgrade and migration
+menuTag: updated
 ---
 This page explains how Handsontable DataGrid handles deprecated APIs -- including the grace period before removal and how you will be notified.
 

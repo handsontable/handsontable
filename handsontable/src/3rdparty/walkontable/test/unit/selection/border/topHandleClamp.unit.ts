@@ -12,6 +12,7 @@ type HandleStub = {
   selectionHandles: { styles: { top: Styles, topHitArea: Styles, bottom: Styles, bottomHitArea: Styles } },
   settings: Record<string, unknown>,
   isTopHandleOccludedByClone: (axis: 'row' | 'column') => boolean,
+  isSouthEastOfAreaSelection: () => boolean,
   isBottomHandleOccludedByInlineEndClone: () => boolean,
   isBottomHandleOccludedByClone: () => boolean,
 };
@@ -28,10 +29,11 @@ const HIT_AREA_SIZE = 40;
  * @param {number} [options.firstRenderedColumn=0] The first column the table renders.
  * @param {boolean} [options.underTopClone=false] Whether a clone covers the top edge.
  * @param {boolean} [options.underInlineStartClone=false] Whether a clone covers the inline-start edge.
+ * @param {boolean} [options.cornerVisible=false] Whether the handles are shown at all, so their `display` is set.
  * @returns {object}
  */
 function createBorder({ rtl = false, firstRenderedRow = 0, firstRenderedColumn = 0, underTopClone = false,
-  underInlineStartClone = false } = {}): HandleStub {
+  underInlineStartClone = false, cornerVisible = false } = {}): HandleStub {
   return Object.assign(Object.create(Border.prototype), {
     wot: {
       wtSettings: { getSetting: (key: string) => (key === 'rtlMode' ? rtl : undefined) },
@@ -50,8 +52,9 @@ function createBorder({ rtl = false, firstRenderedRow = 0, firstRenderedColumn =
         bottomHitArea: {},
       },
     },
-    settings: {},
+    settings: cornerVisible ? { border: { cornerVisible: () => true } } : {},
     isTopHandleOccludedByClone: (axis: 'row' | 'column') => (axis === 'row' ? underTopClone : underInlineStartClone),
+    isSouthEastOfAreaSelection: () => true,
     isBottomHandleOccludedByInlineEndClone: () => false,
     isBottomHandleOccludedByClone: () => false,
   }) as HandleStub;
@@ -136,5 +139,55 @@ describe('Border#updateMultipleSelectionHandlesPosition, top handle at the start
 
     expect(styles.top).toMatchObject({ top: '31px', left: '51px' });
     expect(styles.topHitArea).toMatchObject({ top: '30px', left: '50px' });
+  });
+
+  describe('display', () => {
+    it('should hide the handle and its hit area when a clone covers a start row that is scrolled out', () => {
+      // `top` measures the first rendered row, which is the first visible one with no row overscan.
+      const styles = position(createBorder({ underTopClone: true, firstRenderedRow: 20, cornerVisible: true }),
+        { row: 0, col: 1, top: 0, left: 50 });
+
+      expect(styles.top.display).toBe('none');
+      expect(styles.topHitArea.display).toBe('none');
+      expect(styles.bottom.display).toBe('block');
+    });
+
+    it('should hide the handle when a clone covers a start column that is scrolled out', () => {
+      const styles = position(
+        createBorder({ underInlineStartClone: true, firstRenderedColumn: 10, cornerVisible: true }),
+        { row: 1, col: 0, top: 30, left: 0 },
+      );
+
+      expect(styles.top.display).toBe('none');
+      expect(styles.topHitArea.display).toBe('none');
+    });
+
+    it('should hide the handle when no clone covers the edge and the start is scrolled out', () => {
+      const styles = position(createBorder({ firstRenderedRow: 20, cornerVisible: true }),
+        { row: 3, col: 1, top: 0, left: 50 });
+
+      expect(styles.top.display).toBe('none');
+      expect(styles.topHitArea.display).toBe('none');
+    });
+
+    it('should show the handle when the real start is the first rendered track', () => {
+      const styles = position(
+        createBorder({ underTopClone: true, firstRenderedRow: 20, firstRenderedColumn: 4, cornerVisible: true }),
+        { row: 20, col: 4, top: 0, left: 0 },
+      );
+
+      expect(styles.top.display).toBe('block');
+      expect(styles.topHitArea.display).toBe('block');
+    });
+
+    it('should show the handle of a header-anchored corner whatever the first rendered track is', () => {
+      const styles = position(
+        createBorder({ underTopClone: true, firstRenderedRow: 20, firstRenderedColumn: 4, cornerVisible: true }),
+        { row: -1, col: -1, top: 0, left: 0 },
+      );
+
+      expect(styles.top.display).toBe('block');
+      expect(styles.topHitArea.display).toBe('block');
+    });
   });
 });

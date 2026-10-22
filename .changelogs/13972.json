@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the fill handle of the last column and the last row being covered by an overlay scrollbar (for example, in Firefox on Windows 11) when the grid scrolls inside its own container, which made it impossible to drag.",
+  "type": "fixed",
+  "issueOrPR": 13972,
+  "breaking": false,
+  "framework": "none"
+}
