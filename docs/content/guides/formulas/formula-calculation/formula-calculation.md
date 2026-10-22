@@ -36,13 +36,6 @@ Filling formula cells with [autofill](@/guides/cell-features/autofill-values/aut
 You can use formulas in a single-sheet mode or with multiple Handsontable instances with
 cross-sheet references.
 
-A sheet name that HyperFormula can read only in quotes, such as `2026` or `Лист2`, works with or
-without the quotes. Handsontable adds them before the formula reaches HyperFormula. Every formula
-text the grid hands out has them too: the editor, [`getSourceData()`](@/api/core.md#getsourcedata),
-[`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell), copy, autofill, and the export, for
-example `='Лист2'!A1`. Your data array keeps the text you wrote until an inserted, removed, or
-moved row or column makes Handsontable write the updated formulas back into it.
-
 Double click on a cell to open the editor and preview the formula.
 
 ::: only-for javascript
@@ -512,21 +505,10 @@ const hotSettings2 = ref({
 
 :::
 
-### Change the engine or the sheet with `updateSettings()`
-
-Passing another HyperFormula instance in `formulas.engine` through
-[`updateSettings()`](@/api/core.md#updatesettings) moves the grid to that engine, and binds the sheet
-`formulas.sheetName` names in it. Keep the instance stable: a framework component that builds a new
-engine on every render moves the grid to an empty engine each time. Build it once, for example with
-`useMemo` in React.
-
-`formulas.sheetName` binds the sheet it names whenever it differs from the sheet the grid shows, as
-long as the engine holds that sheet. A sheet that the engine doesn't hold yet is bound by the next
-update that names it, after you add the sheet to the engine. After
-[`switchSheet()`](@/api/formulas.md#switchsheet), the next settings update that reaches the plugin
-binds the sheet `formulas.sheetName` names again.
-
 ### Multiple Handsontable instances with an external shared HyperFormula instance
+
+Build the HyperFormula instance once, for example with `useMemo` in React: passing a new instance in
+`formulas.engine` moves the grid to that engine.
 
 ::: only-for javascript
 
