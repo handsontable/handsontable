@@ -65,7 +65,11 @@ export function propFactory(source: 'HotTable' | 'HotColumn'): VueProps<HotTable
  * @returns {string} The container id.
  */
 export function generateContainerId(): string {
-  return `hot-${Math.random().toString(36).substring(5)}`;
+  const buffer = new Uint16Array(3);
+
+  globalThis.crypto.getRandomValues(buffer);
+
+  return `hot-${Array.from(buffer, value => value.toString(16).padStart(4, '0')).join('')}`;
 }
 
 /**
