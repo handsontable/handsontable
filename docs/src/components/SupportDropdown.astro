@@ -119,6 +119,13 @@ const links = [
     white-space: nowrap;
   }
 
+  /* Narrow tablets: tighter, like the header's nav links. */
+  @media (max-width: 57.49rem) {
+    .support-trigger {
+      padding-inline: 0.5rem;
+    }
+  }
+
   .support-trigger:hover {
     color: var(--sl-color-white);
     background: var(--sl-color-gray-7, var(--sl-color-gray-6));
