@@ -306,6 +306,48 @@ export class SheetsBarPage {
   }
 
   /**
+   * The indicator's viewport box as it is drawn now, with its transitions left where they are.
+   */
+  async indicatorBox(): Promise<{ left: number, width: number, transitions: number }> {
+    return this.page.evaluate(() => {
+      const indicator = document.querySelector('.ht-sheets-bar__tab-indicator');
+
+      if (!(indicator instanceof HTMLElement)) {
+        throw new Error('No indicator to measure');
+      }
+
+      const rect = indicator.getBoundingClientRect();
+
+      return { left: rect.left, width: rect.width, transitions: indicator.getAnimations().length };
+    });
+  }
+
+  /**
+   * Remembers the bar's root, its tab strip, its tabs and the indicator, for `barElementsKept()`.
+   */
+  async rememberBarElements(): Promise<void> {
+    await this.page.evaluate(() => {
+      const target = window as never as { htBarElements: Element[] };
+
+      target.htBarElements = [
+        ...document.querySelectorAll('.ht-sheets-bar, .ht-sheets-bar__tabs, .ht-sheets-bar__tab, ' +
+          '.ht-sheets-bar__tab-indicator'),
+      ];
+    });
+  }
+
+  /**
+   * Whether every element `rememberBarElements()` recorded is still the one in the document.
+   */
+  async barElementsKept(): Promise<boolean> {
+    return this.page.evaluate(() => {
+      const { htBarElements } = window as never as { htBarElements: Element[] };
+
+      return htBarElements.length > 0 && htBarElements.every(element => element.isConnected);
+    });
+  }
+
+  /**
    * The name of the last sheet in the workbook, which is where a new sheet lands.
    */
   async lastSheetName(): Promise<string> {

@@ -126,7 +126,12 @@ Details that bite:
 outcomes in this order:
 
 1. enabled but `isEnabled()` now false → `disablePlugin()`
-2. disabled but `isEnabled()` now true → `enablePlugin()`, unless a hard conflict blocks it
+2. disabled but `isEnabled()` now true → `updatePluginSettings(getSettings()[PLUGIN_KEY])`, then
+   `enablePlugin()`, unless a hard conflict blocks it. The refresh comes first because `enablePlugin()`
+   reads `getSetting()`: without it a plugin turned on by an update read the value it held before (the
+   default, or the settings it was last disabled with), so `updateSettings({ bindRowsWithHeaders: 'strict' })`
+   bound loose, and a SheetsBar turned off and on again rebuilt its old workbook first. Branch 4 refreshes the
+   settings again in the same call, which is idempotent.
 3. enabled and still enabled but a hard conflict is now active → `disablePlugin()` and **return**
 4. enabled, still enabled, and the payload is relevant per `SETTING_KEYS` → `updatePluginSettings()` then
    `updatePlugin(newSettings)`

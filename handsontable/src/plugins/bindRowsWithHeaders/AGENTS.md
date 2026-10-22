@@ -23,6 +23,11 @@ the position it occupies) and a removal leaves a **gap** in the sequence.
 Both extend `IndexMap` with an identity initializer — `(index) => index` — so before anything moves, each
 header maps to itself.
 
+An `updateSettings()` that turns the plugin on reaches `enablePlugin()` with the new value already in
+`getSetting()` (BasePlugin refreshes the plugin settings first, `../base/AGENTS.md`). Before that,
+`updateSettings({ bindRowsWithHeaders: 'strict' })` on a grid without the plugin bound loose, and so did a
+sheets bar sheet declaring `'strict'`. Pinned by `../base/__tests__/onUpdateSettingsEnable.unit.js`.
+
 Two consequences:
 
 - **The strategy is resolved in `enablePlugin()` and baked into the registered map instance.** Changing the

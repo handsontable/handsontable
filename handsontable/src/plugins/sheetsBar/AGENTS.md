@@ -78,11 +78,34 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the grid-level `sheetsBar` object wholesale, so a partial payload (`{ paging: false }`,
   `{ activeSheet: 2 }`) must be judged through the plugin's merged `getSetting('sheets')`, not
   the raw grid value, or every UI tweak would rebuild the workbook. "Structurally unchanged"
-  compares each sheet's `settings` by content and its `data` by reference — an equal fresh
-  literal with stable data references keeps the workbook; recreated data arrays rebuild it (a
-  rebuild re-activates the previous sheet by name when `activeSheet` itself did not change). A
-  changed `activeSheet` on a preserved cycle is an explicit switch request. A sheet's own
-  `settings` cannot carry a `sheetsBar` key. The neutral `fixedColumnsStart` is captured only
+  compares each sheet's `settings` by content (a `Date` by its time value, two invalid dates
+  equal) and its `data` by reference — an equal fresh literal with stable data references keeps
+  the workbook; recreated data arrays rebuild it (a rebuild re-activates the previous sheet by
+  name when `activeSheet` itself did not change). The comparison is against a **snapshot** of the
+  value the workbook was built from (`snapshotSheetsList`: the array and each entry copied, each
+  `settings` copied level by level, `data` by reference), never the host's own array: a host that
+  edits its array or a sheet's `settings` in place and sends it again compared it with itself, and
+  the change, the active sheet's new settings included, was ignored. `#pruneDeclaredSheet` splices
+  the snapshot beside the host's array (`#lastBuiltEntries` maps the two), or the next re-send of
+  the pruned array read as a new workbook. A changed `activeSheet` on a preserved cycle is an
+  explicit switch request. **A preserved cycle that changes nothing the bar is built from does
+  not tear the bar down** (`#readUiSettings`: `position`, `uiContainer`, `controls`, `paging`,
+  `animation`, the grid's `ariaTags` and direction; the theme is kept in step by
+  `#onAfterSetTheme`, so it is not one of them). Every wrapper re-render is such a cycle, and the
+  teardown cancelled an open rename and a drag, and the rest of the typed name landed in the
+  selected cell. A new setting the bar's elements read at enable belongs in `#readUiSettings`, or
+  changing it does nothing until an unrelated rebuild. A sheet's own `settings` cannot carry a
+  `sheetsBar` key.
+- **A grid-level value set later through `updateSettings()` refreshes the baseline**
+  (`#refreshSettingsBaseline`, the first step of `#onAfterUpdateSettings` at `orderIndex` -1, so it
+  runs before BasePlugin's own listener tears the bar down or rebuilds it in the same call). Only
+  keys already in the baseline are refreshed, and only when the active sheet does not declare the
+  key, unless the payload also names `sheetsBar` (a wrapper's re-send, or a teardown or rebuild with
+  grid-level values beside it, which restates the grid's own configuration). Without it a
+  `readOnly` lock the host set on a plain sheet was undone by the next switch, by `sheetsBar: false`,
+  and by a rebuild in the same payload. `dataProvider`, `columnSummary` and `cell` keep their own
+  rules (`SELF_BASELINED_KEYS`). The four frozen counts' neutral values are not refreshed: they
+  describe the grid as the workbook started. The neutral `fixedColumnsStart` is captured only
   on a non-preserved enable, and a genuine teardown first restores the settings baseline to
   the grid (`#restoreBaselineToGrid`, which empties the baseline before its `updateSettings`
   call — the write re-enters `disablePlugin` on a `sheetsBar: false` teardown, and the empty
@@ -155,7 +178,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   - `#onAfterUpdateSettings` blocks a value set later through `updateSettings({ dataProvider })` unless the active sheet declares a truthy own `dataProvider` (the user re-configuring the visible server sheet). It is registered with **`orderIndex` -1**, ahead of every plugin's `onUpdateSettings`: at the default order DataProvider enabled first, started a `fetchRows` call for the blocked value, and raised the loading overlay that the abort never cleared.
   - `#onBeforeUpdateData` keeps the visible sheet's rows. Core writes the new setting and, while `hasExternalDataSource` answers `true`, replaces the grid's data with a fresh `[]` placeholder (`updateData([], 'updateSettings')`) before any `afterUpdateSettings` listener runs; the sheet record still pointed at the local rows, but the grid held `[]`, and the next switch away stored `[]` as the sheet's data. The redirect answers the placeholder with the array the grid already shows (`updateData` on the same array keeps the index maps, so the sort and filters survive). It only matters while DataProvider's `hasExternalDataSource` listener is registered — the constructor one survives until DataProvider's first disable (`clearHooks()`), so the trap is a workbook that opened on a local sheet.
   - `#isRestoringBaseline` makes the gate stand aside while the teardown restores the grid-level value, and `disablePlugin()` drops the model before that restore, so the restored `dataProvider` fetches as a plain grid. On a `sheets` **rebuild** the grid-level value is not written back at all: `updatePlugin()` carries it in `#rebuildGridDataProvider`, `#restoreBaselineToGrid()` skips it, and the new workbook's capture reads it from there (written back, it enabled DataProvider and fetched for the moment between the two workbooks).
-  - `#keepActiveSheetDataProvider()` keeps a `dataProvider` the user sets through `updateSettings()` on the visible server sheet as that sheet's own, so a switch away and back applies it again instead of the declared one. It replaces the record's `settings` object (it may be the host's declared one) instead of writing into it. The block itself (`#recordBlockedGridDataProvider()` plus `updateSettings({ dataProvider: null })`) runs on EVERY call that carries a truthy grid-level `dataProvider`, including a wrapper re-sending the same settings on each render: core applies the payload before any listener runs and has no hook to strip a key first, and the value has to be written back through `updateSettings()` because core stores it on the global meta layer a direct write would only shadow. That misconfiguration is warned about once; the fix is on the host's side. On a **server** sheet the same re-send would otherwise read as the user re-configuring that sheet: `#isResentGridDataProvider()` recognizes the recorded grid-level object by identity, and `#restoreActiveSheetDataProvider()` writes the sheet's own `dataProvider` back through a nested `updateSettings()` inside `_runWithoutFetching()` (no abort, no refetch). DataProvider's `updatePlugin()` then skips the outer call, whose payload no longer matches the grid's value, and `#onBeforeUpdateData` keeps the visible rows for both calls (core empties them on any payload that names `dataProvider`). Only a stable object is caught: an inline literal the host rebuilds on every render is a new value each time, and reads as a re-configure. That limit is part of the public docs (the `dataProvider` option's JSDoc in `metaSchema.ts` and the sheets bar guide tell a host to keep a grid-level object stable); keep them in step if the gate changes.
+  - `#keepActiveSheetDataProvider()` keeps a `dataProvider` the user sets through `updateSettings()` on the visible server sheet as that sheet's own, so a switch away and back applies it again instead of the declared one. An explicit `dataProvider: null` is kept the same way (only `null`: an `undefined` is "not passed", and a wrapper may send it on every render), which turns the sheet local; before, the declared provider came back on the next return. The bar's own `updateSettings({ dataProvider: null })` reaches the same listener, and changes nothing there because it only runs for a sheet without a `dataProvider` of its own. It replaces the record's `settings` object (it may be the host's declared one) instead of writing into it. The block itself (`#recordBlockedGridDataProvider()` plus `updateSettings({ dataProvider: null })`) runs on EVERY call that carries a truthy grid-level `dataProvider`, including a wrapper re-sending the same settings on each render: core applies the payload before any listener runs and has no hook to strip a key first, and the value has to be written back through `updateSettings()` because core stores it on the global meta layer a direct write would only shadow. That misconfiguration is warned about once; the fix is on the host's side. On a **server** sheet the same re-send would otherwise read as the user re-configuring that sheet: `#isResentGridDataProvider()` recognizes the recorded grid-level object by identity, and `#restoreActiveSheetDataProvider()` writes the sheet's own `dataProvider` back through a nested `updateSettings()` inside `_runWithoutFetching()` (no abort, no refetch). DataProvider's `updatePlugin()` then skips the outer call, whose payload no longer matches the grid's value, and `#onBeforeUpdateData` keeps the visible rows for both calls (core empties them on any payload that names `dataProvider`). Only a stable object is caught: an inline literal the host rebuilds on every render is a new value each time, and reads as a re-configure. That limit is part of the public docs (the `dataProvider` option's JSDoc in `metaSchema.ts` and the sheets bar guide tell a host to keep a grid-level object stable); keep them in step if the gate changes.
   A sheet's own declared `dataProvider` runs the switch's `updateSettings({ dataProvider })` call like any other overridden key; DataProvider applies it without a refetch because the whole `#switchTo` runs inside `dataProvider._runContextChange()` (`#withoutFetching`), which is passive.
 - **The bar is the DataProvider context owner; everything sheet-shaped about server data lives here.** The contract is internal (`../dataProvider/AGENTS.md`, "Owner contract: contexts (internal)"): `#contextOwner` is registered with `_setContextOwner()` at the top of `enablePlugin()` and removed at the end of `disablePlugin()`, and all calls go through the `_`-prefixed DataProvider methods. Never replace it with hooks — a user listener could rewrite what the bar receives. The pieces:
   - **Context.** `getContext()` answers a **frozen empty token** per sheet (`#contextOf()`, `#contextTokens` + the reverse `#sheetsByContext`, both `WeakMap`s), never the `Sheet` record, so no outside code can reach a sheet's data or settings through DataProvider. Identity is per record, so a removed sheet or a sheet of a replaced workbook (whose ids restart at 1) can never be mistaken for a current one. It is registered before the workbook is built: a rebuild on a live grid applies the opening server sheet, and starts its first fetch, inside `enablePlugin()`. Without a model it answers `null`, so the settings a teardown restores fetch as a plain grid.
@@ -174,7 +197,15 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   skipped (redirect still applies) when `hasExternalDataSource` is `true` for the active sheet —
   that load is core's own placeholder `[]` from a `dataProvider`-backed sheet, not a real
   top-level `data` clash, and without the check every workbook whose first sheet declares a
-  `dataProvider` would warn on every load.
+  `dataProvider` would warn on every load. **The same rule holds on an update**:
+  `#keepDeclaredSheetRows` (called from `#onBeforeUpdateData` for the `updateSettings` source) hands
+  core the rows the grid shows instead of a top-level `data` beside a declared workbook, with the same
+  one warning. Applied, it replaced the active sheet's rows, and the next switch away stored the host's
+  array as that sheet's data; a wrapper re-sending its `data` prop on a re-render did that unasked. It
+  stands aside for a `sheetsBar: true` workbook (no declared entries: the grid's own data is its only
+  sheet), during a switch, and while `hasExternalDataSource` answers `true`, because the incoming array
+  is then core's `[]` placeholder for a `dataProvider` the user re-configured on the visible server
+  sheet. Keep the DataProvider redirects ahead of it in `#onBeforeUpdateData`.
 - **Known and accepted:** a truthy grid-level `dataProvider` triggers the gate warning even when it is not a complete configuration (the gate does not validate it); and a genuine teardown drops the model before it restores the grid-level settings, so listeners of the restore's `updateSettings()` already see a grid without sheets (`getSheets()` is empty).
 - **`removeSheet` prunes the declared entry out of the configured `sheets` arrays**
   (`#pruneDeclaredSheet`, entries mapped per sheet id in `#declaredEntries`), mirroring how
@@ -559,10 +590,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     the move slide. `render()` clears the strip, so it re-inserts each copy first in the strip, under
     the tabs and the marker, with a negative `animation-delay`; a drag start, a rename, and
     `destroy()` remove it, and a preserved rebuild hands it over in `releaseMotion()`.
-  - A workbook-preserving `updatePlugin()` keeps the motion running. The tab strip is rebuilt on
-    that round trip, so `#releaseState()` takes its motion first (`TabStrip.releaseMotion()`, while
-    the old strip is still laid out) and `enablePlugin()` hands it to the new strip after the first
-    render (`resumeMotion()`).
+  - A workbook-preserving `updatePlugin()` keeps the motion running. When nothing the bar is built
+    from changed (`#readUiSettings`), the round trip builds nothing and the motion simply runs on.
+    When something did, the tab strip is rebuilt, so `#releaseState()` takes its motion first
+    (`TabStrip.releaseMotion()`, while the old strip is still laid out) and `enablePlugin()` hands it to
+    the new strip after the first render (`resumeMotion()`). The specs drive that second path with an
+    `animation` value of the same meaning in another shape (`EVERY_MOTION` in
+    `tests/e2e/sheets-bar-switch-animation.spec.ts`).
   - The tab's one `transition` list carries `transform` (drag and move slides) and `color` over
     `T`; reduced motion drops both. A hovered tab changes its text color only
     (`--ht-sheets-bar-tab-hover-foreground-color`) and keeps its resting background: no tab paints

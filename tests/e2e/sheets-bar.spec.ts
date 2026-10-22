@@ -573,6 +573,35 @@ test.describe('sheets bar', { tag: THEMES_TAG }, () => {
     expect(await bar.dataAtCell(1, 1)).toBe('A4');
   });
 
+  test('a rename keeps its input when the same `sheetsBar` value is sent again mid-typing', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(1, 1).click();
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
+
+    await bar.tab(0).locator('.ht-sheets-bar__tab-label').dblclick();
+    await expect(bar.renameInput).toBeFocused();
+    await page.keyboard.type('Quar');
+
+    await page.evaluate(() => {
+      const { hot, htSheets } = window as never as { hot: any, htSheets: object[] };
+
+      hot.updateSettings({ sheetsBar: { sheets: htSheets.map(sheet => ({ ...sheet })) } });
+    });
+
+    await expect(bar.renameInput).toBeFocused();
+    await page.keyboard.type('terly');
+    await page.keyboard.press('Enter');
+
+    await expect(bar.tabByName('Quarterly')).toBeVisible();
+    expect(await bar.isEditorOpened()).toBe(false);
+    expect(await bar.dataAtCell(1, 1)).toBe('A4');
+  });
+
   test('Shift+Tab into a sheet that was never visited does not select the previous sheet\'s cell', async ({
     page, theme, bundle,
   }) => {

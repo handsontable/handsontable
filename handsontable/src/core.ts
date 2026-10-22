@@ -8242,12 +8242,16 @@ export default function Core(
   /**
    * Return column width from settings (no guessing). Private use intended.
    *
+   * A `null` width names no width and is returned as `undefined`, the way `AutoColumnSize#isEnabled()`
+   * reads `colWidths: null`. Returned as a width, it skipped the AutoColumnSize sizes in `getColWidth()`,
+   * and every column fell back to the default width.
+   *
    * @private
    * @memberof Core#
    * @function _getColWidthFromSettings
    * @param {number} col Visual col index. The `colWidths` array and function are read by the
    * matching physical index.
-   * @returns {number}
+   * @returns {number|undefined}
    */
   this._getColWidthFromSettings = function(col: number) {
     let width;
@@ -8278,7 +8282,7 @@ export default function Core(
       }
     }
 
-    return width as number | undefined;
+    return (width ?? undefined) as number | undefined;
   };
 
   /**

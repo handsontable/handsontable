@@ -168,6 +168,13 @@ width.
   itself now — see "The engine decides for itself when the overlays need resizing" in
   `../../3rdparty/walkontable/AGENTS.md`, and do not add the call back.
 - `requestAnimationFrame` batching in the codebase is thin, and this is one of the few files using it.
+- **`colWidths: null` names no width, on both sides.** `isEnabled()` reads it as unset (`!colWidths`), and
+  `_getColWidthFromSettings()` returns `undefined` for a `null` width, so `getColumnWidth()` takes the measured
+  size. It used to return the `null`, which `getColWidth()` passed through as a width and every column drew at
+  the default 50px while the plugin reported itself enabled. The sheets bar writes `null` for a key only some
+  sheets declare (its `undefined` baseline), so every sheet after one declaring `colWidths` was fixed at 50px,
+  and an xlsx export from it wrote one-character columns. Pinned by
+  `../sheetsBar/__tests__/settingsBaseline.unit.js`.
 - **`hot._getColWidthFromSettings()` takes a VISUAL index.** It translates the index to the physical one itself for the `colWidths` array and function (`colWidths` is addressed by physical index), and it reads `getCellMeta(0, col)`, which also takes a visual index. Pass the visual column at every call site; passing the physical one translates twice and reads another column's width once columns are moved.
 
 ## Notes for docs

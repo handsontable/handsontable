@@ -159,14 +159,35 @@ function applyEngineRewritesToSheetData(data: unknown[], serialized: unknown[][]
 const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
 
 /**
+ * Baseline keys a later grid-level `updateSettings()` does not refresh through the generic rule, because
+ * each has a rule of its own: the bar blocks a grid-level `dataProvider`, and the grid-level `columnSummary`
+ * and `cell` also drop the state each sheet stored for the previous value.
+ */
+const SELF_BASELINED_KEYS = new Set(['dataProvider', 'columnSummary', 'cell']);
+
+/**
+ * The warning a top-level `data` beside a declared workbook raises, once, at init or on an update.
+ */
+const TOP_LEVEL_DATA_WARNING = 'The `data` setting is ignored when `sheetsBar.sheets` declares a workbook — ' +
+  'each sheet declares its own data.';
+
+/**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
- * compared element by element, plain objects key by key, and everything else — a class
- * instance such as a HyperFormula engine, a function, a DOM element — by reference, since a
- * copy of those is a different thing, not an equal one.
+ * compared element by element, plain objects key by key, dates by their time value, and everything
+ * else — a class instance such as a HyperFormula engine, a function, a DOM element — by reference,
+ * since a copy of those is a different thing, not an equal one. A date is a value: a framework
+ * wrapper rebuilds an inline `new Date(...)` on every render, and two invalid dates are equal too.
  */
 function isStructurallyEqual(a: unknown, b: unknown): boolean {
   if (a === b) {
     return true;
+  }
+
+  if (a instanceof Date && b instanceof Date) {
+    const aTime = a.getTime();
+    const bTime = b.getTime();
+
+    return aTime === bTime || (Number.isNaN(aTime) && Number.isNaN(bTime));
   }
 
   if (Array.isArray(a) && Array.isArray(b)) {
@@ -229,6 +250,42 @@ function isSameSheetsList(a: unknown, b: unknown): boolean {
   }
 
   return a.every((entry, index) => isSameSheetConfig(entry, b[index]));
+}
+
+/**
+ * Copies a settings value for a snapshot: arrays and object literals are copied level by level, everything
+ * else is kept by reference. Only an object whose prototype is `Object.prototype` (or `null`) is copied:
+ * `isPlainObject` also answers `true` for a class instance such as a HyperFormula engine, whose object
+ * graph has cycles, and copying it never ended. A kept reference still compares equal to itself.
+ */
+function copySettingsValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(copySettingsValue);
+  }
+
+  const prototype: unknown = isPlainObject(value) ? Object.getPrototypeOf(value) : undefined;
+
+  if (isPlainObject(value) && (prototype === Object.prototype || prototype === null)) {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, copySettingsValue(entry)]));
+  }
+
+  return value;
+}
+
+/**
+ * Takes a snapshot of a `sheets` value for {@link isSameSheetsList}: the array and each entry are copied,
+ * each entry's `settings` level by level, and its `data` is kept by reference. A host that edits its own
+ * array or a sheet's settings object in place and sends it again otherwise compares it with itself, and
+ * the change is ignored.
+ */
+function snapshotSheetsList(sheets: unknown): unknown {
+  if (!Array.isArray(sheets)) {
+    return sheets;
+  }
+
+  return (sheets as unknown[]).map((entry: unknown) => (
+    isPlainObject(entry) ? { ...entry, settings: copySettingsValue(entry.settings) } : entry
+  ));
 }
 
 /**
@@ -602,6 +659,22 @@ export class SheetsBar extends BasePlugin {
    */
   #lastBuiltSheets: unknown = undefined;
   /**
+   * The host's own entries of the `sheets` value the workbook was built from, in the order of
+   * `#lastBuiltSheets`, so `removeSheet()` can take a pruned entry out of the snapshot too: the host's
+   * array loses that entry in place, and a snapshot still holding it would read that array, sent again,
+   * as a new workbook.
+   *
+   * @type {Array}
+   */
+  #lastBuiltEntries: unknown[] = [];
+  /**
+   * The settings the bar's elements were built from (`#readUiSettings`), so a workbook-preserving
+   * `updatePlugin` can keep the elements when none of them changed.
+   *
+   * @type {object|null}
+   */
+  #builtUiSettings: Record<string, unknown> | null = null;
+  /**
    * The `activeSheet` setting as it was last acted on, so a preserved re-enable can tell an
    * explicit switch request (`updateSettings({ sheetsBar: { activeSheet: 2 } })`) apart from a
    * wrapper re-emitting the value the workbook was built with.
@@ -712,7 +785,8 @@ export class SheetsBar extends BasePlugin {
       this.#lastActiveSheetSetting = this.getSetting('activeSheet');
     }
 
-    this.#lastBuiltSheets = this.getSetting('sheets');
+    this.#recordBuiltSheets();
+    this.#builtUiSettings = this.#readUiSettings();
 
     // Injected into the bar and the tab strip so both stay decoupled from the theme engine —
     // shared here rather than declared per call site.
@@ -863,6 +937,11 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   *
+   * A framework wrapper sends its whole configuration on every render. When neither the workbook nor
+   * anything the bar's elements were built from changed (`#readUiSettings`), the bar is left as it is and
+   * only an `activeSheet` request is acted on: a teardown cancels an open rename and a drag, and the rest
+   * of the name the user was typing landed in the selected cell.
    */
   updatePlugin(newSettings?: Record<string, unknown>) {
     // Read through `getSetting()`, not the raw grid settings: `updateSettings` replaces the
@@ -878,6 +957,14 @@ export class SheetsBar extends BasePlugin {
       }
       : null;
     const activeSheetSettingBefore = this.#lastActiveSheetSetting;
+
+    if (preservedState && isStructurallyEqual(this.#readUiSettings(), this.#builtUiSettings)) {
+      this.#recordBuiltSheets();
+      this.#applyActiveSheetSetting(newSettings?.[PLUGIN_KEY]);
+      super.updatePlugin();
+
+      return;
+    }
 
     // A rebuild discards the runtime state by contract, but it does not have to flip the sheet
     // in front of the user: when the `activeSheet` setting itself did not change, the rebuilt
@@ -909,6 +996,36 @@ export class SheetsBar extends BasePlugin {
     }
 
     super.updatePlugin();
+  }
+
+  /**
+   * Records the `sheets` value the workbook was built from, as a snapshot (`snapshotSheetsList`), with the
+   * host's own entries beside it for `#pruneDeclaredSheet`.
+   */
+  #recordBuiltSheets() {
+    const sheets = this.getSetting<unknown>('sheets');
+
+    this.#lastBuiltSheets = snapshotSheetsList(sheets);
+    this.#lastBuiltEntries = Array.isArray(sheets) ? [...(sheets as unknown[])] : [];
+  }
+
+  /**
+   * Reads every setting the bar's elements are built from: its own layout and controls options, and the
+   * grid's ARIA and direction, which `enablePlugin` hands to the bar and the tab strip. The theme is not
+   * one of them: `#onAfterSetTheme` keeps the built bar in step with it.
+   *
+   * @returns {object}
+   */
+  #readUiSettings(): Record<string, unknown> {
+    return {
+      position: this.getSetting('position'),
+      uiContainer: this.getSetting('uiContainer'),
+      controls: this.getSetting('controls'),
+      paging: this.getSetting('paging'),
+      animation: this.getSetting('animation'),
+      ariaTags: this.hot.getSettings().ariaTags,
+      isRtl: this.hot.isRtl(),
+    };
   }
 
   /**
@@ -1178,6 +1295,38 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Takes a grid-level value set through `updateSettings()` outside a switch as the baseline of its key, so
+   * a switch to a sheet that does not declare the key, a `sheetsBar: false` teardown, and a rebuild give the
+   * grid that value back, not the one captured when a sheet first overrode the key. A value set while the
+   * active sheet declares the key configures that sheet and leaves the baseline alone, unless the same
+   * payload names `sheetsBar`: such a payload restates the grid's own configuration (a framework wrapper's
+   * re-send, or a teardown or rebuild with grid-level values beside it). Only keys already in the baseline
+   * are refreshed: a key first overridden later reads the grid then. `dataProvider`, `columnSummary` and
+   * `cell` keep their own rules (`#onAfterUpdateSettings`, `#refreshGridColumnSummary`,
+   * `#refreshGridCellOption`).
+   *
+   * @param {object} newSettings The settings passed to `updateSettings()`.
+   */
+  #refreshSettingsBaseline(newSettings: Record<string, unknown>) {
+    if (this.#isSwitching || this.#isRestoringBaseline || this.#isInitializing || this.#model === null) {
+      return;
+    }
+
+    const ownSettings = this.#activeSheetRecord()?.settings;
+    const restatesGrid = PLUGIN_KEY in newSettings;
+
+    Object.keys(newSettings).forEach((key) => {
+      if (SELF_BASELINED_KEYS.has(key) || !this.#settingsBaseline.has(key)) {
+        return;
+      }
+
+      if (restatesGrid || !(isPlainObject(ownSettings) && key in ownSettings)) {
+        this.#settingsBaseline.set(key, newSettings[key]);
+      }
+    });
+  }
+
+  /**
    * Records a grid-level `dataProvider` the bar disables, so a genuine teardown gives it back, and
    * warns about it once.
    */
@@ -1226,6 +1375,8 @@ export class SheetsBar extends BasePlugin {
     this.#declaredEntries = new Map();
     this.#settingsBaseline = new Map();
     this.#lastBuiltSheets = undefined;
+    this.#lastBuiltEntries = [];
+    this.#builtUiSettings = null;
     this.#isSwitching = false;
     this.#isInitializing = false;
 
@@ -2704,6 +2855,13 @@ export class SheetsBar extends BasePlugin {
     if (mergedSheets !== rawSheets) {
       prune(mergedSheets);
     }
+
+    const builtIndex = this.#lastBuiltEntries.indexOf(entry);
+
+    if (builtIndex !== -1 && Array.isArray(this.#lastBuiltSheets)) {
+      this.#lastBuiltEntries.splice(builtIndex, 1);
+      this.#lastBuiltSheets.splice(builtIndex, 1);
+    }
   }
 
   /**
@@ -3462,8 +3620,7 @@ export class SheetsBar extends BasePlugin {
 
     if (!isExternalDataSourcePlaceholder && !this.#warnedAboutTopLevelData) {
       this.#warnedAboutTopLevelData = true;
-      warn('The `data` setting is ignored when `sheetsBar.sheets` declares a workbook — each ' +
-        'sheet declares its own data.');
+      warn(TOP_LEVEL_DATA_WARNING);
     }
 
     return activeSheet.data;
@@ -3504,17 +3661,49 @@ export class SheetsBar extends BasePlugin {
    * @returns {Array|undefined} The grid's current rows while a blocked `dataProvider` is applied.
    */
   #onBeforeUpdateData = (sourceData: unknown[], initialLoad: boolean, source: string) => {
-    const { dataProvider } = this.hot.getSettings();
-
-    if (source !== 'updateSettings' || !dataProvider) {
+    if (source !== 'updateSettings') {
       return;
     }
 
-    if (this.#blocksGridDataProvider() || this.#isRestoringSheetDataProvider
-      || this.#isResentGridDataProvider(dataProvider)) {
+    const { dataProvider } = this.hot.getSettings();
+
+    if (dataProvider && (this.#blocksGridDataProvider() || this.#isRestoringSheetDataProvider
+      || this.#isResentGridDataProvider(dataProvider))) {
       return this.#getLiveSourceData();
     }
+
+    return this.#keepDeclaredSheetRows(sourceData);
   };
+
+  /**
+   * Keeps the visible sheet's rows when an `updateSettings()` call sends a top-level `data` beside a
+   * declared workbook. Each sheet declares its own data, so the top-level value is ignored on an update the
+   * way `#onBeforeLoadData` ignores it at init (one warning covers both): applied, it replaced the active
+   * sheet's rows, and the next switch away stored the host's array as that sheet's data. A framework wrapper
+   * re-sends its `data` prop on a re-render, which is how this happens without the host asking for it.
+   * A `sheetsBar: true` workbook declares no sheets, so its only sheet is the grid's own data and still
+   * follows the update. While the active sheet has an external data source, the incoming array is core's
+   * own placeholder for DataProvider (a `dataProvider` the user re-configured on the visible server sheet),
+   * and it goes through.
+   *
+   * @param {Array} sourceData The rows about to be loaded.
+   * @returns {Array|undefined} The rows the grid shows, when the incoming ones are ignored.
+   */
+  #keepDeclaredSheetRows(sourceData: unknown[]): unknown[] | undefined {
+    const liveData = this.#getLiveSourceData();
+
+    if (this.#isSwitching || this.#declaredEntries.size === 0 || sourceData === liveData
+      || this.hot.runHooks('hasExternalDataSource') === true) {
+      return;
+    }
+
+    if (!this.#warnedAboutTopLevelData) {
+      this.#warnedAboutTopLevelData = true;
+      warn(TOP_LEVEL_DATA_WARNING);
+    }
+
+    return liveData;
+  }
 
   /**
    * Blocks a grid-level `dataProvider` set through a later `updateSettings()` call, the same way
@@ -3527,8 +3716,13 @@ export class SheetsBar extends BasePlugin {
    * @param {object} newSettings The settings passed to `updateSettings()`.
    */
   #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
+    this.#refreshSettingsBaseline(newSettings);
     this.#refreshGridColumnSummary(newSettings);
     this.#refreshGridCellOption(newSettings);
+
+    if (newSettings.dataProvider === null) {
+      this.#keepActiveSheetDataProvider(null);
+    }
 
     if (!newSettings.dataProvider) {
       return;
@@ -3591,9 +3785,12 @@ export class SheetsBar extends BasePlugin {
   /**
    * Keeps a `dataProvider` the user sets through `updateSettings()` on the visible server sheet as
    * that sheet's own, so switching away and back applies it again instead of the one the sheet was
-   * declared with. The sheet record's `settings` object is replaced, never written into: it may be
-   * the object the host declared. A switch applying a sheet, and the teardown restoring the
-   * grid-level value, are left alone.
+   * declared with. That includes `null`, which turns the sheet into a local one: without it the
+   * declared `dataProvider` came back on the next return. The sheet record's `settings` object is
+   * replaced, never written into: it may be the object the host declared. A switch applying a sheet,
+   * and the teardown restoring the grid-level value, are left alone. The bar's own
+   * `updateSettings({ dataProvider: null })`, which takes a blocked grid-level value off a sheet with no
+   * `dataProvider` of its own, changes nothing here.
    */
   #keepActiveSheetDataProvider(dataProvider: unknown) {
     if (this.#isSwitching || this.#isRestoringBaseline) {

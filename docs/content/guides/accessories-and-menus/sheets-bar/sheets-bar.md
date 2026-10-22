@@ -77,7 +77,9 @@ Each tab of the [`SheetsBar`](@/api/sheetsBar.md) plugin is one sheet, with its 
 
 Set [`sheetsBar`](@/api/options.md#sheetsbar) to `true` for one sheet with the grid's data, or pass an object to define the workbook, pick the sheet that opens first, and show or hide the bar's controls.
 
-Each entry in `sheets` is one sheet: a tab label, the source data, and optional grid settings that apply while the sheet is active. A setting the sheet doesn't declare keeps its grid-level value.
+Each entry in `sheets` is one sheet: a tab label, the source data, and optional grid settings that apply while the sheet is active. A setting the sheet doesn't declare keeps its grid-level value. That includes a grid-level value you set later with [`updateSettings()`](@/api/core.md#updatesettings): it applies to every sheet that doesn't declare the setting, and it stays on the grid when you turn the bar off.
+
+Each sheet brings its own data, so the grid-level [`data`](@/api/options.md#data) option is ignored when `sheets` declares a workbook, both on initialization and in `updateSettings()`. The console shows a warning the first time. To change a sheet's data, pass a new `sheets` value or call [`loadData()`](@/api/core.md#loaddata) while the sheet is active.
 
 ```javascript
 const configurationOptions = {
@@ -242,6 +244,7 @@ How server sheets behave when you switch:
 - A fetch or a save that's still running when you switch away finishes for the sheet that started it. A create on a sheet with `refetchAfterCreate: false` that finishes while its sheet is hidden refetches that sheet anyway, because there's no grid showing it to add the rows to.
 - If a request fails while its sheet is hidden, [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) or [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires right away. The error notification appears when you return to the sheet. `afterDataProviderFetchError` gets a third argument, `isVisible`, set to `false`.
 - A duplicated sheet starts with a copy of the original's rows. If the original has already loaded rows, the copy doesn't fetch on its first visit.
+- A `dataProvider` you pass through `updateSettings()` while a server sheet is shown becomes that sheet's own, and so does `dataProvider: null`, which turns the sheet into a local one. Your declared `sheets` value isn't changed.
 
 With `refetchAfterCreate: false`, your [`onRowsCreate`](@/guides/getting-started/server-side-data/server-side-data-crud.md#onrowscreate) adds the new rows to the grid itself. The grid shows the active sheet, which can change while the request runs, so add the rows only when the sheet that owns this provider is still active. Compare against the sheet the provider belongs to, not the sheet that was active when `onRowsCreate` started: a create queued behind another save starts after the user may have switched.
 
@@ -325,7 +328,7 @@ A sheet added at runtime, with the add button or with `addSheet()` without `sett
 ## Known limitations
 
 - The grid holds one sheet at a time, so methods such as [`getData()`](@/api/core.md#getdata) and [`getDataAtCell()`](@/api/core.md#getdataatcell) read only the active sheet.
-- Passing a changed `sheets` value to [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the workbook and drops sheets added with `addSheet()`. A `sheets` value counts as unchanged when it has the same number of sheets, and each has the same `name`, `settings` with the same content (functions and class instances are compared by reference), and the same `data` array. In framework wrappers, keep your `data` arrays stable. Changing only `controls`, `paging`, or `position` never rebuilds the workbook.
+- Passing a changed `sheets` value to [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the workbook and drops sheets added with `addSheet()`. A `sheets` value counts as unchanged when it has the same number of sheets, and each has the same `name`, `settings` with the same content (dates are compared by their value, functions and other class instances by reference), and the same `data` array. In framework wrappers, keep your `data` arrays stable. Changing only `controls`, `paging`, or `position` never rebuilds the workbook. The plugin compares against a copy of the `sheets` value it was built from, so an array or a `settings` object you edit in place and pass again counts as changed.
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
 - If the window scrolls the grid (no [`height`](@/api/options.md#height) and no scrollable parent), the bar sits below the last row. To keep it in view, set `height`, or put the grid in a container with a fixed height and `overflow: auto`.
 

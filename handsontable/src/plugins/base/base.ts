@@ -674,6 +674,7 @@ export class BasePlugin {
       if (this.isHardConflictBlocked()) {
         return;
       }
+      this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
       this.enablePlugin();
     }
 
