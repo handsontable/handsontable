@@ -16,6 +16,10 @@
  *     (`stretchH` is `string` there and `'none' | 'all' | 'last'` in the type). An option the
  *     types do not declare falls back to its JSDoc `@type`.
  *
+ * A plugin option listed in `CLOSED_OPTIONS` also gets `additionalProperties: false` on its object, so
+ * `validateSettings()` reports a key inside it that the schema does not list. For an option the
+ * public types declare as a bare `object`, the key list comes from an interface the plugin exports.
+ *
  * A value JSON cannot hold (a function, a class, a `RegExp`, a DOM element) is not part of
  * a schema node's `type`. It is listed in the node's `x-handsontable.runtimeTypes`, so a
  * JSON validator rejects it while `validateSettings()` still accepts it at runtime.
@@ -87,6 +91,27 @@ const REGISTRY_OPTIONS = {
  * They are read from the cell meta, so every level accepts them.
  */
 const TYPE_ONLY_OPTIONS = ['getValue', 'handsontable'];
+
+/**
+ * The plugin options whose settings object lists every key it reads, so `validateSettings()` reports
+ * any other key inside it as `unknownOption`. An option is closed plugin by plugin, never by default:
+ * a type that is incomplete or open-ended (an index signature, a bare `object`) would flag a valid
+ * configuration. A value names the interface that lists the keys of an option the public types declare
+ * as a bare `object`, by the file it is exported from (relative to `src/`) and its name.
+ */
+const CLOSED_OPTIONS = new Map([
+  ['asyncValues', undefined],
+  ['autoLink', undefined],
+  ['dataProvider', undefined],
+  ['dragToScroll', undefined],
+  ['fillHandle', undefined],
+  ['filters', undefined],
+  ['manualColumnFreeze', undefined],
+  ['rowSelection', undefined],
+  ['sheetsBar', undefined],
+  ['dropdownMenu', { file: 'plugins/dropdownMenu/dropdownMenu.ts', name: 'DropdownMenuSettings' }],
+  ['pagination', { file: 'plugins/pagination/pagination.ts', name: 'PaginationSettings' }],
+]);
 
 /**
  * The plugins of the `CellMeta` keys that belong to one.
@@ -399,6 +424,103 @@ function widenNode(name, node) {
 }
 
 /**
+ * Fails the build when an object type of a closed option has an index signature, because such a type
+ * accepts any key and no list can be exhaustive. A bare `Record<string, unknown>` member and an
+ * intersection with one count too.
+ *
+ * @param {ts.TypeChecker} checker The type checker.
+ * @param {ts.Type} type The option's type, or the interface that lists its keys.
+ * @param {string} name The option name.
+ */
+function assertNoIndexSignature(checker, type, name) {
+  const members = type.isUnion() ? type.types : [type];
+
+  members
+    .filter(member => hasFlag(member, ts.TypeFlags.Object, ts.TypeFlags.Intersection) && !checker.isArrayType(member))
+    .forEach((member) => {
+      if (checker.getIndexInfosOfType(member).length > 0) {
+        throw new Error(`${name} is in CLOSED_OPTIONS but its type has an index signature, so it accepts any key.`);
+      }
+    });
+}
+
+/**
+ * Closes the object type of one branch of a closed option's node.
+ *
+ * @param {string} name The option name.
+ * @param {object} branch A branch of the option's node.
+ * @param {object|undefined} listed The converted interface that lists the keys, for an option typed as `object`.
+ * @returns {object[]|null} The branches that replace it, or `null` when it holds no object type to close.
+ */
+function closeBranch(name, branch, listed) {
+  const types = [branch.type ?? []].flat();
+  // A bare `object` (no key list yet) takes the interface's keys; a typed object keeps its own.
+  const hasKeyList = branch.properties !== undefined;
+
+  if (!types.includes('object') || hasKeyList === Boolean(listed)) {
+    return null;
+  }
+
+  const properties = listed ? listed.properties : branch.properties;
+
+  if (!properties) {
+    throw new Error(`${name} is in CLOSED_OPTIONS but no key list was found for it.`);
+  }
+
+  const others = types.filter(branchType => branchType !== 'object');
+  const closed = { ...branch, type: 'object', properties, additionalProperties: false };
+
+  if (others.length === 0) {
+    return [closed];
+  }
+
+  return [{ type: others.length === 1 ? others[0] : others }, closed];
+}
+
+/**
+ * Marks the object branch of an option in `CLOSED_OPTIONS` as listing every key it accepts
+ * (`additionalProperties: false`). An option typed as a bare `object` takes its key list from
+ * the interface in `listedType`.
+ *
+ * @param {string} name The option name.
+ * @param {object} node The option's schema node.
+ * @param {TypeConverter} converter The type converter.
+ * @param {ts.Type|undefined} type The option's type, when the types declare it.
+ * @param {ts.Type|undefined} listedType The interface that lists the keys, for an option typed as `object`.
+ * @returns {object} The node, with its object branch closed.
+ */
+function closeOptionNode(name, node, converter, type, listedType) {
+  if (!CLOSED_OPTIONS.has(name)) {
+    return node;
+  }
+
+  if (!type) {
+    throw new Error(`${name} is in CLOSED_OPTIONS but the settings types do not declare it.`);
+  }
+
+  assertNoIndexSignature(converter.checker, listedType ?? type, name);
+
+  const { anyOf, 'x-handsontable': annotations, ...single } = node;
+  const listed = listedType && converter.convert(listedType);
+  const replaced = (anyOf ?? [single]).map(branch => closeBranch(name, branch, listed));
+
+  if (replaced.every(branches => branches === null)) {
+    throw new Error(`${name} is in CLOSED_OPTIONS but has no object type to close.`);
+  }
+
+  const branches = (anyOf ?? [single]).flatMap((branch, index) => replaced[index] ?? [branch]);
+
+  // An open `object` branch beside a closed one matches any key, so the option would only look closed.
+  if (branches.some(branch => [branch.type ?? []].flat().includes('object') && branch.additionalProperties !== false)) {
+    throw new Error(`${name} is in CLOSED_OPTIONS but keeps an object branch that accepts any key.`);
+  }
+
+  const closed = branches.length === 1 ? branches[0] : { anyOf: branches };
+
+  return annotations ? { ...closed, 'x-handsontable': annotations } : closed;
+}
+
+/**
  * Adds `null` to the values a node accepts. Used for an option whose default is `null`, which
  * its type does not always list (`colHeaders`).
  *
@@ -660,16 +782,36 @@ class TypeConverter {
  * Creates a program over the settings types and returns the properties of an interface.
  *
  * @returns {{converter: TypeConverter, grid: Map<string, ts.Type>, column: Map<string, ts.Type>,
- *   cellMeta: Map<string, ts.Type>, typeDocs: Map<string, string>}}
+ *   cellMeta: Map<string, ts.Type>, listed: Map<string, ts.Type>, typeDocs: Map<string, string>}}
  */
 function readSettingsTypes() {
   const configPath = resolve(PACKAGE_DIR, 'tsconfig.json');
   const config = ts.readConfigFile(configPath, ts.sys.readFile);
   const { options } = ts.parseJsonConfigFileContent(config.config, ts.sys, PACKAGE_DIR);
-  const program = ts.createProgram([CORE_SETTINGS, PUBLIC_SETTINGS], { ...options, noEmit: true });
+  const listedFiles = [...CLOSED_OPTIONS.values()].filter(Boolean).map(({ file }) => resolve(SRC_DIR, file));
+  const program = ts.createProgram([CORE_SETTINGS, PUBLIC_SETTINGS, ...listedFiles], { ...options, noEmit: true });
   const checker = program.getTypeChecker();
   // The documentation comment of each declared property, for the options `metaSchema.ts` does not document.
   const typeDocs = new Map();
+
+  /**
+   * Finds an exported interface.
+   *
+   * @param {string} file The file that declares the interface.
+   * @param {string} name The interface name.
+   * @returns {ts.Type}
+   */
+  const readDeclaredType = (file, name) => {
+    const sourceFile = program.getSourceFile(file);
+    const moduleSymbol = checker.getSymbolAtLocation(sourceFile);
+    const symbol = checker.getExportsOfModule(moduleSymbol).find(exported => exported.getName() === name);
+
+    if (!symbol) {
+      throw new Error(`${name} is not exported from ${file}.`);
+    }
+
+    return checker.getDeclaredTypeOfSymbol(symbol);
+  };
 
   /**
    * Reads the properties of an exported interface.
@@ -679,15 +821,7 @@ function readSettingsTypes() {
    * @returns {Map<string, ts.Type>}
    */
   const readInterface = (file, name) => {
-    const sourceFile = program.getSourceFile(file);
-    const moduleSymbol = checker.getSymbolAtLocation(sourceFile);
-    const symbol = checker.getExportsOfModule(moduleSymbol).find(exported => exported.getName() === name);
-
-    if (!symbol) {
-      throw new Error(`${name} is not exported from ${file}.`);
-    }
-
-    const declared = checker.getDeclaredTypeOfSymbol(symbol);
+    const declared = readDeclaredType(file, name);
 
     checker.getPropertiesOfType(declared).forEach((property) => {
       const documentation = ts.displayPartsToString(property.getDocumentationComment(checker));
@@ -701,11 +835,17 @@ function readSettingsTypes() {
       .map(property => [property.getName(), checker.getTypeOfSymbol(property)]));
   };
 
+  // The interface that lists the keys of each closed option the public types declare as a bare `object`.
+  const listed = new Map([...CLOSED_OPTIONS]
+    .filter(([, source]) => source !== undefined)
+    .map(([name, { file, name: typeName }]) => [name, readDeclaredType(resolve(SRC_DIR, file), typeName)]));
+
   return {
     converter: new TypeConverter(checker),
     grid: readInterface(CORE_SETTINGS, 'GridSettings'),
     column: readInterface(PUBLIC_SETTINGS, 'ColumnSettings'),
     cellMeta: readInterface(PUBLIC_SETTINGS, 'CellMeta'),
+    listed,
     typeDocs,
   };
 }
@@ -772,7 +912,7 @@ export function buildSettingsSchema() {
   // schema, in the internals `validateSettings()` reads so it does not report them as unknown.
   const { options, internalOptions } = readMetaOptions();
   const { builtInPlugins, ownerOf } = readBuiltInPlugins();
-  const { converter, grid, column, cellMeta, typeDocs } = readSettingsTypes();
+  const { converter, grid, column, cellMeta, listed, typeDocs } = readSettingsTypes();
   const properties = {};
   const columnProperties = {};
   const cellProperties = {};
@@ -791,11 +931,20 @@ export function buildSettingsSchema() {
    */
   const buildNode = (name, type, annotations) => {
     const option = optionsByName.get(name);
-    const node = widenNode(name, type ? converter.convert(type) : fromJsDocType(name, option?.type));
+    const node = closeOptionNode(
+      name,
+      widenNode(name, type ? converter.convert(type) : fromJsDocType(name, option?.type)),
+      converter,
+      type,
+      listed.get(name),
+    );
     // An option `metaSchema.ts` does not document takes the comment of its TypeScript declaration.
     const description = option?.description || readDescription(typeDocs.get(name) ?? '') ||
       (annotations.levels.includes('grid') ? '' : `The \`${name}\` property of the cell meta.`);
-    const nullable = option?.nullDefault ?? false;
+    // The types of a plugin's options omit `null`, but an app's own state can hold it before the configuration
+    // loads (`useState(null)`) and every plugin accepts it, so the schema takes it for every documented plugin
+    // option. A cell-meta-only key (`comment`) has no entry in `metaSchema.ts` and keeps its type.
+    const nullable = (option?.nullDefault ?? false) || (option !== undefined && annotations.plugin !== undefined);
 
     if (nullable && !acceptsNull(node)) {
       return allowNull({

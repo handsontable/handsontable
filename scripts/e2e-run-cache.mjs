@@ -108,6 +108,12 @@ export function envHash(root) {
     h.update(fileHash(path.join(root, `handsontable/styles/${css}.min.css`)));
   }
 
+  // The CDN files of `handsontable/settingsSchema`, loaded by the settings schema fixture next to the bundles above.
+  // Not required: a spec that does not load them must not be re-run, or skipped, because they are absent.
+  for (const file of ['handsontable.settings-schema.js', 'handsontable.settings-schema.min.js']) {
+    h.update(fileHash(path.join(root, `handsontable/dist/${file}`)));
+  }
+
   for (const f of listFiles(path.join(root, 'tests/fixtures'))) {
     h.update(f).update(fileHash(f));
   }

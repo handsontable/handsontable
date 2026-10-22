@@ -5,6 +5,7 @@ import { hasOwnProperty } from '../../helpers/object';
 import * as I18nC from '../../i18n/constants';
 import { BasePlugin } from '../base';
 import type { HotInstance } from '../../core/types';
+import type { RowIdKey } from '../../utils/rowId';
 import {
   PLUGIN_KEY,
   PLUGIN_PRIORITY,
@@ -217,7 +218,7 @@ export interface RowMutationRemovePayload {
 export type RowMutationPayload = RowMutationCreatePayload | RowMutationUpdatePayload | RowMutationRemovePayload;
 
 export interface DataProviderConfig {
-  rowId: string;
+  rowId: RowIdKey;
   fetchRows: (queryParameters: DataProviderQueryParameters, options: DataProviderFetchOptions) =>
     Promise<DataProviderFetchResult>;
   onRowsCreate?: (payload: RowsCreatePayload) => Promise<unknown[]>;

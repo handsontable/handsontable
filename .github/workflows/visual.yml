@@ -157,6 +157,8 @@ jobs:
           else
             npm run in handsontable build:umd
             npm run in handsontable build:umd.min
+            npm run in handsontable build:settings-schema-umd
+            npm run in handsontable build:settings-schema-umd.min
             npm run in handsontable build:languages
             npm run in handsontable build:languages.min
             # Deliberately NOT build.yml's two theme UMD tasks (`build:themes-umd`,

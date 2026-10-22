@@ -97,6 +97,228 @@ describe('validateSettings', () => {
     ]);
   });
 
+  describe('unknown keys inside a plugin settings object', () => {
+    it.each([
+      [{ filters: { serchMode: 'apply' } }, 'filters.serchMode', 'searchMode'],
+      [{ dropdownMenu: { itemz: ['undo'] } }, 'dropdownMenu.itemz', 'items'],
+      [{ pagination: { pageSzie: 10 } }, 'pagination.pageSzie', 'pageSize'],
+      [{ autoLink: { targett: '_blank' } }, 'autoLink.targett', 'target'],
+      [{ asyncValues: { concurrancy: 2 } }, 'asyncValues.concurrancy', 'concurrency'],
+      [{ dataProvider: { fetchRow() {} } }, 'dataProvider.fetchRow', 'fetchRows'],
+      [{ dragToScroll: { rampDistanse: 5 } }, 'dragToScroll.rampDistanse', 'rampDistance'],
+      [{ fillHandle: { directon: 'vertical' } }, 'fillHandle.directon', 'direction'],
+      [{ manualColumnFreeze: { restoreColumnPostion: true } }, 'manualColumnFreeze.restoreColumnPostion',
+        'restoreColumnPosition'],
+      [{ rowSelection: { selectAl: true } }, 'rowSelection.selectAl', 'selectAll'],
+      [{ sheetsBar: { postion: 'top' } }, 'sheetsBar.postion', 'position'],
+    ])('should report %j with a suggestion', (settings, path, suggestion) => {
+      const key = path.split('.')[1];
+
+      expect(validateSettings(settings)).toEqual({
+        valid: false,
+        problems: [
+          {
+            path,
+            code: 'unknownOption',
+            severity: 'error',
+            message: `Unknown option '${key}'. Did you mean '${suggestion}'?`,
+          },
+        ],
+      });
+    });
+
+    it('should report an unknown key with no close match without a suggestion', () => {
+      expect(validateSettings({ pagination: { qwertyuiop: 1 } }).problems).toEqual([
+        {
+          path: 'pagination.qwertyuiop',
+          code: 'unknownOption',
+          severity: 'error',
+          message: 'Unknown option \'qwertyuiop\'.',
+        },
+      ]);
+    });
+
+    it('should report the unknown key and still check the known ones', () => {
+      expect(brief(validateSettings({ filters: { serchMode: 'apply', searchMode: 'everywhere' } }))).toEqual([
+        { path: 'filters.searchMode', code: 'invalidValue' },
+        { path: 'filters.serchMode', code: 'unknownOption' },
+      ]);
+    });
+
+    it.each([
+      ['filters', { searchMode: 'apply', filterFixedRows: false, availableConditions: ['eq'] }],
+      ['dropdownMenu', { items: ['undo'], callback() {}, uiContainer: document.createElement('div') }],
+      ['dropdownMenu', { items: ['filter_by_value', '---------', { key: 'custom', name: 'Custom' }] }],
+      ['dropdownMenu', { items: { filter_by_value: {}, filter_action_bar: {} }, uiContainer: null }],
+      ['pagination', {
+        pageSize: 'auto',
+        pageSizeList: ['auto', 5, 10],
+        initialPage: 1,
+        showPageSize: true,
+        showCounter: true,
+        showNavigation: true,
+        uiContainer: document.createElement('div'),
+      }],
+      ['autoLink', { target: '_blank', schemes: ['https'], inline: true, strict: false, className: 'link' }],
+      ['asyncValues', { flush: 'frame', concurrency: 2, copyPendingAs: 'empty', saveToDataProvider: true }],
+      ['dataProvider', { fetchRows() {},
+        onRowsCreate() {},
+        onRowsRemove() {},
+        onRowsUpdate() {},
+        rowId: 'id',
+        refetchAfterCreate: true }],
+      ['dataProvider', { fetchRows() {},
+        onRowsCreate() {},
+        onRowsRemove() {},
+        onRowsUpdate() {},
+        rowId: row => row.id }],
+      ['dragToScroll', { interval: { min: 10, max: 50 }, rampDistance: 30 }],
+      ['fillHandle', { direction: 'vertical', autoInsertRow: false }],
+      ['manualColumnFreeze', { restoreColumnPosition: true }],
+      ['rowSelection', { mode: 'multiRow',
+        checkboxes: true,
+        headerCheckbox: true,
+        selectAll: 'all',
+        enableClickSelection: true,
+        isRowSelectable() { return true; },
+        hideDisabledCheckboxes: false,
+        checkboxLocation: 'rowHeader',
+        groupSelects: 'self' }],
+      ['sheetsBar', { sheets: [{ name: 'One', data: [[1]] }],
+        activeSheet: 0,
+        controls: true,
+        paging: true,
+        position: 'top',
+        uiContainer: null,
+        animation: { add: true } }],
+    ])('should accept every documented form of %s: %j', (option, value) => {
+      expect(validateSettings({ [option]: value }).problems).toEqual([]);
+    });
+
+    it.each([
+      ['filters', true], ['dropdownMenu', true], ['dropdownMenu', ['undo']], ['pagination', true],
+      ['autoLink', false], ['asyncValues', true], ['dataProvider', null], ['dragToScroll', true],
+      ['fillHandle', 'vertical'], ['fillHandle', true], ['manualColumnFreeze', true], ['rowSelection', true],
+      ['sheetsBar', true],
+    ])('should accept the short form of %s: %j', (option, value) => {
+      expect(validateSettings({ [option]: value }).problems).toEqual([]);
+    });
+
+    it.each([
+      'pagination', 'filters', 'columnSorting', 'hiddenColumns', 'dropdownMenu', 'undo', 'fillHandle', 'sheetsBar',
+    ])('should accept `null` for the plugin option %s', (option) => {
+      expect(validateSettings({ [option]: null })).toEqual({ valid: true, problems: [] });
+    });
+
+    it('should accept `null` for a plugin option on a column', () => {
+      expect(validateSettings({ columns: [{ columnSorting: null, filters: null }] }))
+        .toEqual({ valid: true, problems: [] });
+    });
+
+    it('should still report a wrong type for a plugin option that accepts `null`', () => {
+      expect(brief(validateSettings({ pagination: 42 }))).toEqual([{ path: 'pagination', code: 'invalidType' }]);
+    });
+
+    it('should accept the closed options inside `columns` and a `cell` entry', () => {
+      expect(validateSettings({
+        columns: [{ autoLink: { target: '_self' }, filters: { availableConditions: ['eq'] } }],
+        cell: [{ row: 0, col: 0, autoLink: { inline: true } }],
+      }).problems).toEqual([]);
+      expect(brief(validateSettings({ columns: [{ autoLink: { targett: '_self' } }] }))).toEqual([
+        { path: 'columns[0].autoLink.targett', code: 'unknownOption' },
+      ]);
+    });
+
+    it('should not report a key of a settings object the schema leaves open', () => {
+      expect(validateSettings({ columnSorting: { whatever: 1 }, contextMenu: { whatever: 1 } }).problems)
+        .toEqual([]);
+    });
+
+    it('should report a throwing getter of an unknown key without reading it', () => {
+      expect(brief(validateSettings({ filters: { get serchMode() { throw new Error('boom'); } } }))).toEqual([
+        { path: 'filters.serchMode', code: 'unknownOption' },
+      ]);
+    });
+
+    it('should report an unreadable settings object and keep checking the other options', () => {
+      const unlistable = new Proxy({ pageSize: 5 }, { ownKeys() { throw new Error('boom'); } });
+
+      expect(brief(validateSettings({ pagination: unlistable, rowHeaders: 5 }))).toEqual([
+        { path: 'pagination', code: 'invalidValue' },
+        { path: 'rowHeaders', code: 'invalidType' },
+      ]);
+    });
+
+    it('should report an unreadable settings object and go on when a Proxy throws on every trap', () => {
+      const proxy = new Proxy({}, {
+        ownKeys() { throw new Error('boom'); },
+        getOwnPropertyDescriptor() { throw new Error('boom'); },
+        get() { throw new Error('boom'); },
+      });
+
+      expect(brief(validateSettings({ pagination: proxy, rowHeaders: 5 }))).toEqual([
+        { path: 'pagination', code: 'invalidValue' },
+        { path: 'rowHeaders', code: 'invalidType' },
+      ]);
+    });
+
+    it('should skip a key that is set to `undefined`, as the top level does', () => {
+      expect(validateSettings({ filters: { serchMode: undefined }, notAnOption: undefined }).problems).toEqual([]);
+      expect(brief(validateSettings({ filters: { serchMode: undefined, serchMod: 'apply' } }))).toEqual([
+        { path: 'filters.serchMod', code: 'unknownOption' },
+      ]);
+    });
+
+    it('should say that a key is read at the grid level when it is set per column', () => {
+      expect(validateSettings({ columns: [{ filters: { searchMode: 'apply' } }] }).problems).toEqual([
+        {
+          path: 'columns[0].filters.searchMode',
+          code: 'wrongLevel',
+          severity: 'error',
+          message: '\'searchMode\' can be set at the grid level only.',
+        },
+      ]);
+    });
+
+    it('should not check the fields of a class instance, as for any other check of its contents', () => {
+      class Provider {
+        constructor() {
+          this.baseUrl = 'https://example.com';
+        }
+
+        fetchRows() {}
+
+        onRowsCreate() {}
+
+        onRowsRemove() {}
+
+        onRowsUpdate() {}
+      }
+
+      expect(validateSettings({ dataProvider: new Provider() }).problems).toEqual([]);
+    });
+
+    it('should accept `null` for the callback and the items of the dropdown menu', () => {
+      expect(validateSettings({ dropdownMenu: { callback: null, items: null } }).problems).toEqual([]);
+    });
+
+    it('should report an own `__proto__` key and ignore the prototype', () => {
+      const settings = { pagination: JSON.parse('{"__proto__": 1, "pageSize": 5}') };
+
+      expect(brief(validateSettings(settings))).toEqual([
+        { path: 'pagination.__proto__', code: 'unknownOption' },
+      ]);
+      expect(validateSettings({ pagination: Object.create({ pageSzie: 1 }) }).problems).toEqual([]);
+    });
+
+    it('should report an unknown key of the column-level filters', () => {
+      expect(brief(validateSettings({ columns: [{ filters: { availableConditions: ['eq'] } }] }))).toEqual([]);
+      expect(brief(validateSettings({ columns: [{ filters: { availableConditionz: ['eq'] } }] }))).toEqual([
+        { path: 'columns[0].filters.availableConditionz', code: 'unknownOption' },
+      ]);
+    });
+  });
+
   it('should accept a function where the option takes one', () => {
     const result = validateSettings({
       renderer(instance, td) { return td; },
@@ -359,6 +581,43 @@ describe('validateSettings', () => {
     }
 
     expect(validateSettings(ownSettings).problems).toEqual([]);
+
+    hot.destroy();
+    container.remove();
+  });
+
+  it.each([
+    ['filters', { searchMode: 'apply' }],
+    ['dropdownMenu', { items: ['col_left'] }],
+    ['pagination', { pageSize: 10 }],
+    ['autoLink', { target: '_blank' }],
+    ['asyncValues', { flush: 'microtask' }],
+    ['dragToScroll', { rampDistance: 30 }],
+    ['fillHandle', { direction: 'vertical' }],
+    ['manualColumnFreeze', { restoreColumnPosition: true }],
+    ['rowSelection', { mode: 'multiRow' }],
+    ['sheetsBar', { sheets: [{ name: 'One', data: [[1, 2, 3]] }] }],
+  ])('should report no unknown key for the settings of a live grid with %s enabled', (option, value) => {
+    const container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    const hot = new Handsontable(container, {
+      // A sheets bar that declares its sheets takes the data from them and warns about `data`.
+      ...(option === 'sheetsBar' ? {} : { data: Handsontable.helper.createSpreadsheetData(30, 3) }),
+      colHeaders: true,
+      [option]: value,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    const ownSettings = {};
+
+    // eslint-disable-next-line guard-for-in
+    for (const key in hot.getSettings()) {
+      ownSettings[key] = hot.getSettings()[key];
+    }
+
+    expect(typeof ownSettings[option]).toBe('object');
+    expect(validateSettings(ownSettings).problems.filter(({ path }) => path.startsWith(`${option}.`))).toEqual([]);
 
     hot.destroy();
     container.remove();

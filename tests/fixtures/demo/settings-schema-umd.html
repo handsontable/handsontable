@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Settings schema CDN file e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects,
+    // mapped through fixed allowlists to literals so a crafted param is never reflected into the
+    // document. An absent param keeps the default; an unknown one throws, so a typo in the project
+    // config is a red leg rather than a mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // The CDN file of `handsontable/settingsSchema` that goes with each bundle: the plain file next to the plain
+    // bundle, the minified one next to the minified bundle.
+    window.htSchemaBundle = ({ umd: 'handsontable.settings-schema.js', 'full-min': 'handsontable.settings-schema.min.js' })[
+      htParams.get('bundle') ?? 'umd'
+    ];
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    A grid on the page's own Handsontable, so a spec can pass `hot` to validateSettings(). The schema file
+    loads after the bundle and reads its registries; it is not a second copy of them.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htSchemaBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // What the spec drives: the page object reads these two, so the AMD fixture can supply the same pair.
+    window.htApi = { Handsontable, schema: window.HandsontableSettingsSchema };
+
+    window.hot = new Handsontable(container, {
+      data: [
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+      ],
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>
