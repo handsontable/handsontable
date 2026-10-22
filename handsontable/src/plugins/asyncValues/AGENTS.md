@@ -241,6 +241,13 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   next one, a nested `alter()` from a `beforeRemoveRow` listener overwrote it, and a listener that widened
   `physicalRows` after the plugin's own ran was never in it. Each left an entry with a stale `physicalRow`
   whose result then landed on another record. Pinned by the veto and nested-removal cases.
+- **The cancel hook reports a dropped row's id from its `RowState`, never from the map.** By the time
+  `#notifyCleared()` runs for a removed or replaced row, the index map and the data hold another record (or
+  none) at that physical index, so `#rowIdOf(physicalRow)` named the neighbor, or `null` for the last row.
+  `RowState#rowId` is read when the state is created, and `#onDataReplaced()` refreshes it from the id
+  captured before the replacement. A state that is not `dropped` (a `'dependency'`, `'edit'` or
+  `'columnsChanged'` cancel) still reads the live id. Pinned by the "`afterAsyncValueCancel` payload" block
+  in `__tests__/rows.unit.ts`.
 - **A `RowState`'s `physicalRow` goes stale on a row insert or removal.** The map shifts the values, not the
   states, so `#syncRows()` re-reads every state's row from the map after `afterCreateRow` and `afterRemoveRow`
   (one pass over the rows, only while a state exists), before any cancel hook runs. Both are registered at

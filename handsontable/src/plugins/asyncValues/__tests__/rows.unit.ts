@@ -173,4 +173,143 @@ describe('AsyncValues: rows by physical index and by id', () => {
       destroy();
     });
   });
+
+  describe('the `afterAsyncValueCancel` payload', () => {
+    const rows = () => [...products(), { id: 'e', sku: 'E', name: 'old E', price: 5 }];
+
+    /**
+     * Builds a grid with a pending request on the `name` of every row, and a spy on the cancel hook.
+     */
+    function createPendingGrid(settings: Record<string, unknown> = {}) {
+      const grid = createGrid({ data: rows(), rowId: 'id', ...settings });
+      const cancel = jest.fn();
+
+      grid.hot.addHook('afterAsyncValueCancel', cancel);
+      grid.plugin.setAsyncValuesForRows('all', 'name', () => deferred().promise);
+
+      return { ...grid, cancel };
+    }
+
+    it('should report the id of the removed row, not the one that took its place', () => {
+      const { hot, cancel, destroy } = createPendingGrid();
+
+      hot.alter('remove_row', 1, 1);
+
+      expect(cancel.mock.calls).toEqual([[1, 'name', 'rowRemoved', 'b']]);
+
+      destroy();
+    });
+
+    it('should report the id of the removed last row, not `null`', () => {
+      const { hot, cancel, destroy } = createPendingGrid();
+
+      hot.alter('remove_row', 4, 1);
+
+      expect(cancel.mock.calls).toEqual([[4, 'name', 'rowRemoved', 'e']]);
+
+      destroy();
+    });
+
+    it('should report the id of every row of a removal of several rows', () => {
+      const { hot, cancel, destroy } = createPendingGrid();
+
+      hot.alter('remove_row', 1, 2);
+
+      expect(cancel.mock.calls).toHaveLength(2);
+      expect(cancel.mock.calls).toEqual(expect.arrayContaining([
+        [1, 'name', 'rowRemoved', 'b'],
+        [2, 'name', 'rowRemoved', 'c'],
+      ]));
+
+      destroy();
+    });
+
+    it('should report the id of every row of a removal of non-contiguous rows', () => {
+      const { hot, cancel, destroy } = createPendingGrid();
+
+      hot.alter('remove_row', [[0, 1], [3, 2]]);
+
+      // The groups are removed one after the other, so the physical row of a later group is read after the
+      // earlier one shifted it; the ids are what must match.
+      expect(cancel.mock.calls.map(call => [call[2], call[3]]).sort()).toEqual([
+        ['rowRemoved', 'a'],
+        ['rowRemoved', 'd'],
+        ['rowRemoved', 'e'],
+      ]);
+
+      destroy();
+    });
+
+    it('should report the id of the removed row when the rows were sorted first', () => {
+      const { hot, cancel, destroy } = createPendingGrid({ columnSorting: true });
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      // The first visual row is now "e", the fifth physical row.
+      hot.alter('remove_row', 0, 1);
+
+      expect(cancel.mock.calls).toEqual([[4, 'name', 'rowRemoved', 'e']]);
+
+      destroy();
+    });
+
+    it('should report the ids of the rows an `updateData()` drops', () => {
+      const { hot, cancel, destroy } = createPendingGrid();
+
+      hot.updateData([rows()[4], rows()[0], rows()[2]]);
+
+      expect(cancel.mock.calls).toHaveLength(2);
+      expect(cancel.mock.calls).toEqual(expect.arrayContaining([
+        [1, 'name', 'rowRemoved', 'b'],
+        [3, 'name', 'rowRemoved', 'd'],
+      ]));
+
+      destroy();
+    });
+
+    it('should report the ids of the rows a `loadData()` drops', () => {
+      const { hot, cancel, destroy } = createPendingGrid();
+
+      hot.loadData([rows()[2], rows()[3]]);
+
+      expect(cancel.mock.calls).toHaveLength(3);
+      expect(cancel.mock.calls).toEqual(expect.arrayContaining([
+        [0, 'name', 'rowRemoved', 'a'],
+        [1, 'name', 'rowRemoved', 'b'],
+        [4, 'name', 'rowRemoved', 'e'],
+      ]));
+
+      destroy();
+    });
+
+    it('should not report the id the new data holds when a `loadData()` cancels rows that had none', () => {
+      const withoutIds = rows().map(({ id, ...row }) => row);
+      const { hot, plugin, destroy } = createGrid({ data: withoutIds, rowId: 'id' });
+      const cancel = jest.fn();
+
+      hot.addHook('afterAsyncValueCancel', cancel);
+      plugin.setAsyncValue(1, 1, () => deferred().promise);
+      hot.loadData(rows());
+
+      expect(cancel.mock.calls).toEqual([[1, 'name', 'dataReplaced', null]]);
+
+      destroy();
+    });
+
+    it('should report the id of the row for a `columnsChanged` cancel', () => {
+      const { hot, plugin, destroy } = createGrid({
+        data: [['a', 1], ['b', 2], ['c', 3]],
+        columns: undefined,
+        rowId: (row: unknown[]) => row[0],
+      });
+      const cancel = jest.fn();
+
+      hot.addHook('afterAsyncValueCancel', cancel);
+      plugin.setAsyncValue(1, 1, () => deferred().promise);
+      hot.alter('insert_col_start', 1);
+
+      expect(cancel.mock.calls).toEqual([[1, 1, 'columnsChanged', 'b']]);
+
+      destroy();
+    });
+  });
 });
