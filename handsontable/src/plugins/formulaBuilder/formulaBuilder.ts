@@ -4,7 +4,7 @@ import type {
   HyperFormulaLike,
 } from 'hyperformula-ui';
 import { BasePlugin } from '../base';
-import { warn } from '../../helpers/console';
+import { warnOnce } from '../../helpers/console';
 import { isObject } from '../../helpers/object';
 import { isRootInstance } from '../../utils/rootInstance';
 import type { HotInstance } from '../../core/types';
@@ -156,6 +156,32 @@ function isSameSettingValue(first: unknown, second: unknown): boolean {
 
   return keys.length === Object.keys(secondObject).length &&
     keys.every(key => isSameSettingValue(firstObject[key], secondObject[key]));
+}
+
+/**
+ * Copies a settings value: plain objects and arrays are copied level by level, and everything else (an
+ * element in `container`, a function) is kept by reference. The copy is what the plugin compares a
+ * later update against, so an object the application changes in place still reads as a change.
+ *
+ * @param {unknown} value The value to copy.
+ * @returns {unknown}
+ */
+function copySettingValue<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return (value as unknown[]).map(item => copySettingValue<unknown>(item)) as T;
+  }
+
+  if (!isObject(value)) {
+    return value;
+  }
+
+  const copy: Record<string, unknown> = {};
+
+  Object.entries(value as Record<string, unknown>).forEach(([key, item]) => {
+    copy[key] = copySettingValue(item);
+  });
+
+  return copy as T;
 }
 
 /**
@@ -355,6 +381,18 @@ export class FormulaBuilder extends BasePlugin {
    * The theme class name the builder was constructed with (compared in `afterSetTheme`).
    */
   #currentThemeClassName: string | undefined;
+  /**
+   * The suggestions host set through `attachSuggestionsHost()`, re-applied to every rebuilt builder.
+   */
+  #suggestionsHost: HTMLElement | string | null = null;
+  /**
+   * The function help host set through `attachFnHelpHost()`, re-applied to every rebuilt builder.
+   */
+  #fnHelpHost: HTMLElement | string | null = null;
+  /**
+   * Removes the listener the Formulas plugin calls before it detaches its engine.
+   */
+  #removeEngineDetachListener: (() => void) | null = null;
 
   /**
    * @param {HotInstance} hotInstance The Handsontable instance.
@@ -413,7 +451,7 @@ export class FormulaBuilder extends BasePlugin {
    * nothing the plugin was built from keeps the built plugin (see {@link AppliedConfig}).
    */
   updatePlugin(): void {
-    if (this.enabled && this.#isConfigUnchanged()) {
+    if (this.enabled && this.#builder !== null && this.#isConfigUnchanged()) {
       super.updatePlugin();
 
       return;
@@ -438,6 +476,8 @@ export class FormulaBuilder extends BasePlugin {
     this.#editorStartListeners.clear();
     this.#editorCloseListeners.clear();
     this.#switchToInlineListeners.clear();
+    this.#suggestionsHost = null;
+    this.#fnHelpHost = null;
     super.destroy();
   }
 
@@ -448,6 +488,7 @@ export class FormulaBuilder extends BasePlugin {
    */
   attachSuggestionsHost(container: HTMLElement | string): void {
     this.#builder?.attachSuggestionsHost(container);
+    this.#suggestionsHost = container;
   }
 
   /**
@@ -455,6 +496,7 @@ export class FormulaBuilder extends BasePlugin {
    */
   detachSuggestionsHost(): void {
     this.#builder?.detachSuggestionsHost();
+    this.#suggestionsHost = null;
   }
 
   /**
@@ -464,6 +506,7 @@ export class FormulaBuilder extends BasePlugin {
    */
   attachFnHelpHost(container: HTMLElement | string): void {
     this.#builder?.attachFnHelpHost(container);
+    this.#fnHelpHost = container;
   }
 
   /**
@@ -471,18 +514,26 @@ export class FormulaBuilder extends BasePlugin {
    */
   detachFnHelpHost(): void {
     this.#builder?.detachFnHelpHost();
+    this.#fnHelpHost = null;
   }
 
   /**
    * Mounts the formula editor into the inline wrapper (called by the editor shim).
    *
+   * @private
    * @param {HTMLElement} mount The wrapper element.
    * @param {string} seed The initial editor content.
+   * @returns {boolean} Whether the formula editor was mounted. Without a builder (its creation failed,
+   * or the Formulas plugin detached the engine) the shim mounts a plain textarea instead.
    */
-  handleInlineEditStart(mount: HTMLElement, seed: string): void {
+  handleInlineEditStart(mount: HTMLElement, seed: string): boolean {
+    if (this.#builder === null) {
+      return false;
+    }
+
     this.#editorStartListeners.emit({ mount, seed });
 
-    if (!this.#activeEditor && this.#builder) {
+    if (!this.#activeEditor) {
       if (!this.#builder.hasFormulaBar) {
         this.setInlineEditorVisible(true);
       }
@@ -491,6 +542,8 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     this.#bindInlineScrollReanchor();
+
+    return true;
   }
 
   /**
@@ -886,6 +939,18 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
+   * Called by the Formulas plugin right before it detaches its engine (it is turned off, its engine
+   * is replaced, or the grid is destroyed). The builder subscribes to the engine's events, so it is
+   * destroyed here, while the engine still works: when the Formulas plugin built the engine itself it
+   * destroys it right after, and a builder torn down later throws from its engine unsubscribe and
+   * leaks its popup portal and live region. The plugin stays enabled without a builder until its
+   * next update rebuilds or disables it; the `formula` editor opens a plain textarea meanwhile.
+   */
+  #onEngineDetach = (): void => {
+    this.#destroyBuilder();
+  };
+
+  /**
    * `afterLoadData`/`afterUpdateData` hook listener - rebuilds the builder when the data load
    * bound the grid to another engine sheet. The plugin enables before the first data load, while
    * the Formulas plugin has no sheet id yet, and `Formulas#switchSheet()` reloads the data too.
@@ -1184,8 +1249,8 @@ export class FormulaBuilder extends BasePlugin {
     const { showFormulaBar, direction, popups } = object;
 
     if (showFormulaBar !== undefined && typeof showFormulaBar !== 'boolean') {
-      warn('The `showFormulaBar` option of the FormulaBuilder plugin takes a boolean. The formula bar' +
-        ' is not shown.');
+      warnOnce(this.hot, 'formulaBuilder.showFormulaBar', 'The `showFormulaBar` option of the' +
+        ' FormulaBuilder plugin takes a boolean. The formula bar is not shown.');
     }
 
     let validDirection: FormulaBuilderLayoutDirection | undefined;
@@ -1193,15 +1258,15 @@ export class FormulaBuilder extends BasePlugin {
     if (direction === 'ltr' || direction === 'rtl') {
       validDirection = direction;
     } else if (direction !== undefined) {
-      warn('The `direction` option of the FormulaBuilder plugin takes `\'ltr\'` or `\'rtl\'`. The' +
-        ' grid\'s layout direction is used instead.');
+      warnOnce(this.hot, 'formulaBuilder.direction', 'The `direction` option of the FormulaBuilder plugin' +
+        ' takes `\'ltr\'` or `\'rtl\'`. The grid\'s layout direction is used instead.');
     }
 
     return {
       core: object.builder,
       showFormulaBar: showFormulaBar === true,
       direction: validDirection,
-      popups: isObject(popups) ? popups : undefined,
+      popups: isObject(popups) ? copySettingValue(popups) : undefined,
       engine: this.#engine,
     };
   }
@@ -1236,17 +1301,21 @@ export class FormulaBuilder extends BasePlugin {
     const config = this.#readConfig();
     const missingMembers = findMissingCoreMembers(config.core);
 
+    // `BasePlugin` calls `enablePlugin()` again on every settings update while the plugin stays
+    // disabled, and the React and Angular wrappers update on every render, so each warning is shown
+    // once per grid.
     if (missingMembers.length > 0) {
-      warn('The `builder` key of the FormulaBuilder settings must be the `hyperformula-ui` module' +
-        ' namespace (`import * as FormulaBuilderModule from \'hyperformula-ui\'`). It is missing' +
-        ` ${missingMembers.map(name => `\`${name}\``).join(', ')}. The plugin stays disabled.`);
+      warnOnce(this.hot, 'formulaBuilder.builder', 'The `builder` key of the FormulaBuilder settings must' +
+        ' be the `hyperformula-ui` module namespace (`import * as FormulaBuilderModule from' +
+        ` 'hyperformula-ui'\`). It is missing ${missingMembers.map(name => `\`${name}\``).join(', ')}.` +
+        ' The plugin stays disabled.');
 
       return false;
     }
 
     if (!this.#formulasPlugin?.enabled || !this.#engine) {
-      warn('The FormulaBuilder plugin requires the Formulas plugin to be enabled with a' +
-        ' configured engine.');
+      warnOnce(this.hot, 'formulaBuilder.formulas', 'The FormulaBuilder plugin requires the Formulas' +
+        ' plugin to be enabled with a configured engine.');
 
       return false;
     }
@@ -1255,6 +1324,7 @@ export class FormulaBuilder extends BasePlugin {
 
     this.#core = core;
     this.#appliedConfig = config;
+    this.#removeEngineDetachListener = this.#formulasPlugin?.addEngineDetachListener(this.#onEngineDetach) ?? null;
     this.#adapter = this.#createAdapter(core);
     setFormulaBuilderAdapter(this, this.#adapter);
 
@@ -1337,25 +1407,124 @@ export class FormulaBuilder extends BasePlugin {
     const core = this.#core;
     const config = this.#appliedConfig;
 
-    if (!core || !config || !this.#adapter) {
+    if (!core || !config || !this.#adapter || !this.#engine) {
       return;
     }
 
     const themeClassName = this.#themeClassName();
+    const popups = this.#resolvePopupContainers(config.popups);
 
     this.#currentThemeClassName = themeClassName;
     this.#builtSheetId = this.#sheetId;
-    this.#builder = new core.FormulaBuilder({
-      rootEl: this.hot.rootElement,
-      ...(themeClassName !== undefined && { className: themeClassName }),
-      adapter: this.#adapter,
-      // The Formulas plugin types its engine structurally; it is the HyperFormula instance.
-      hyperformula: this.#engine as unknown as HyperFormulaLike,
-      sheetId: this.#builtSheetId,
-      ...(config.popups !== undefined && { popups: config.popups }),
-      direction: config.direction ?? (this.hot.isRtl() ? 'rtl' : 'ltr'),
-      ...(this.#formulaBarHost !== null && { formulaBarContainer: this.#formulaBarHost }),
+
+    try {
+      this.#builder = new core.FormulaBuilder({
+        rootEl: this.hot.rootElement,
+        ...(themeClassName !== undefined && { className: themeClassName }),
+        adapter: this.#adapter,
+        // The Formulas plugin types its engine structurally; it is the HyperFormula instance.
+        hyperformula: this.#engine as unknown as HyperFormulaLike,
+        sheetId: this.#builtSheetId,
+        ...(popups !== undefined && { popups }),
+        direction: config.direction ?? (this.hot.isRtl() ? 'rtl' : 'ltr'),
+        ...(this.#formulaBarHost !== null && { formulaBarContainer: this.#formulaBarHost }),
+      });
+    } catch (error) {
+      // A rebuild runs from a hook (`afterSetTheme`, `afterLoadData`), where a throw would escape into
+      // the application's call. The `formula` editor opens a plain textarea while there is no builder.
+      warnOnce(this.hot, 'formulaBuilder.create', 'The FormulaBuilder plugin could not create the formula' +
+        ' editor, so formula cells open a plain text editor.', error);
+      this.#builder = null;
+
+      return;
+    }
+
+    this.#reattachPopupHosts();
+  }
+
+  /**
+   * Returns the `popups` options with every `container` selector that matches no element dropped, so
+   * that popup floats instead. `hyperformula-ui` throws from its constructor for such a selector, and a
+   * framework can unmount the container between two renders.
+   *
+   * @param {FormulaBuilderPopupsOptions | undefined} popups The `popups` setting.
+   * @returns {FormulaBuilderPopupsOptions | undefined}
+   */
+  #resolvePopupContainers(
+    popups: FormulaBuilderPopupsOptions | undefined,
+  ): FormulaBuilderPopupsOptions | undefined {
+    if (popups === undefined) {
+      return undefined;
+    }
+
+    const resolved = copySettingValue(popups);
+
+    (['suggestions', 'fnHelp'] as const).forEach((popupName) => {
+      const popup = resolved[popupName];
+
+      if (popup !== undefined && !this.#isContainerAvailable(popup.container)) {
+        warnOnce(this.hot, `formulaBuilder.popups.${popupName}.container`, `The \`popups.${popupName}` +
+          '.container` option of the FormulaBuilder plugin names no element in the document, so the' +
+          ' popup floats next to the editor instead.');
+        delete popup.container;
+      }
     });
+
+    return resolved;
+  }
+
+  /**
+   * Whether a popup `container` value (an element or a CSS selector) can be mounted into. An omitted
+   * container is available: the popup floats.
+   *
+   * @param {HTMLElement | string | undefined} container The container value.
+   * @returns {boolean}
+   */
+  #isContainerAvailable(container: HTMLElement | string | undefined): boolean {
+    if (typeof container !== 'string') {
+      return true;
+    }
+
+    try {
+      return this.hot.rootDocument.querySelector(container) !== null;
+    } catch {
+      // An invalid selector.
+      return false;
+    }
+  }
+
+  /**
+   * Re-applies the hosts set through `attachSuggestionsHost()` and `attachFnHelpHost()` to a newly
+   * built builder, so a theme change or a sheet change keeps them.
+   */
+  #reattachPopupHosts(): void {
+    const builder = this.#builder;
+
+    if (builder === null) {
+      return;
+    }
+
+    const reattach = (
+      name: string,
+      host: HTMLElement | string | null,
+      attach: (target: HTMLElement | string) => void,
+    ) => {
+      if (host === null) {
+        return;
+      }
+
+      if (!this.#isContainerAvailable(host)) {
+        warnOnce(this.hot, `formulaBuilder.${name}`, `The host passed to \`${name}()\` names no element in` +
+          ' the document anymore, so the popup floats next to the editor instead.');
+
+        return;
+      }
+
+      attach(host);
+    };
+
+    reattach('attachSuggestionsHost', this.#suggestionsHost, host => builder.attachSuggestionsHost(host));
+    reattach('attachFnHelpHost', this.#fnHelpHost, host => builder.attachFnHelpHost(host));
   }
 
   /**
@@ -1363,10 +1532,17 @@ export class FormulaBuilder extends BasePlugin {
    * is cancelled first, while the old builder still exists - see `#teardownPluginState()`.
    */
   #rebuildBuilder(): void {
+    this.#destroyBuilder();
+    this.#createBuilder();
+  }
+
+  /**
+   * Cancels an open edit and destroys the builder, if there is one.
+   */
+  #destroyBuilder(): void {
     this.#cancelOpenEdit();
     this.#builder?.destroy();
     this.#builder = null;
-    this.#createBuilder();
   }
 
   /**
@@ -1385,11 +1561,11 @@ export class FormulaBuilder extends BasePlugin {
    * Releases every enable-time resource.
    */
   #teardownPluginState(): void {
-    this.#cancelOpenEdit();
+    this.#removeEngineDetachListener?.();
+    this.#removeEngineDetachListener = null;
+    this.#destroyBuilder();
     this.#removeInlineScrollListener?.();
     this.#removeInlineScrollListener = null;
-    this.#builder?.destroy();
-    this.#builder = null;
 
     if (this.#formulaBarHost) {
       this.hot.getLayoutManager().unregister(FORMULA_BAR_SLOT_KEY, 'top');

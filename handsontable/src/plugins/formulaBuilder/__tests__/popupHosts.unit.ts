@@ -1,5 +1,5 @@
 import { FormulaBuilder } from '../formulaBuilder';
-import { makePluginHotStub } from './helpers/pluginHotStub';
+import { findHook, makePluginHotStub } from './helpers/pluginHotStub';
 
 const HOSTED_CLASS = 'hfe-popup--hosted';
 
@@ -194,5 +194,103 @@ describe('FormulaBuilder popup hosts', () => {
     plugin.attachFnHelpHost(host);
 
     expect(host.childElementCount).toBe(0);
+  });
+
+  it('keeps the hosts set through attach*Host() when a theme change rebuilds the builder', () => {
+    const stub = makePluginHotStub();
+    let themeName = 'ht-theme-main';
+
+    stub.hot.getCurrentThemeName = () => themeName;
+
+    const plugin = new FormulaBuilder(stub.instance);
+    const suggestionsHost = makeHost();
+    const fnHelpHost = makeHost();
+
+    plugin.enablePlugin();
+    plugin.attachSuggestionsHost(suggestionsHost);
+    plugin.attachFnHelpHost(fnHelpHost);
+
+    const portalBefore = latestPortal();
+
+    themeName = 'ht-theme-main-dark';
+    findHook(stub.hot, 'afterSetTheme')();
+
+    expect(latestPortal()).not.toBe(portalBefore);
+    expect(popupIn(suggestionsHost, 'hfe-suggestions').classList.contains(HOSTED_CLASS)).toBe(true);
+    expect(popupIn(fnHelpHost, 'hfe-fn-help').classList.contains(HOSTED_CLASS)).toBe(true);
+    expect(latestPortal().querySelector('.hfe-suggestions')).toBeNull();
+
+    plugin.detachSuggestionsHost();
+    themeName = 'ht-theme-main';
+    findHook(stub.hot, 'afterSetTheme')();
+
+    expect(popupIn(latestPortal(), 'hfe-suggestions')).toBeDefined();
+    expect(popupIn(fnHelpHost, 'hfe-fn-help')).toBeDefined();
+
+    plugin.disablePlugin();
+  });
+
+  it('floats a popup whose `container` selector names no element, with a warning, instead of throwing', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const stub = makePluginHotStub({
+      popups: { suggestions: { container: '#no-such-dock' } },
+    });
+    const plugin = new FormulaBuilder(stub.instance);
+
+    expect(() => plugin.enablePlugin()).not.toThrow();
+    expect(plugin.enabled).toBe(true);
+    expect(popupIn(latestPortal(), 'hfe-suggestions').classList.contains(HOSTED_CLASS)).toBe(false);
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('`popups.suggestions.container`'));
+
+    plugin.disablePlugin();
+    warnSpy.mockRestore();
+  });
+
+  it('keeps the plugin enabled when a rebuild finds the docked container gone', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const host = makeHost('rebuild-dock');
+    const stub = makePluginHotStub({
+      popups: { suggestions: { container: '#rebuild-dock' } },
+    });
+    let themeName = 'ht-theme-main';
+
+    stub.hot.getCurrentThemeName = () => themeName;
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    expect(popupIn(host, 'hfe-suggestions')).toBeDefined();
+
+    host.remove();
+    themeName = 'ht-theme-main-dark';
+
+    expect(() => findHook(stub.hot, 'afterSetTheme')()).not.toThrow();
+    expect(plugin.enabled).toBe(true);
+    expect(popupIn(latestPortal(), 'hfe-suggestions')).toBeDefined();
+
+    plugin.disablePlugin();
+    warnSpy.mockRestore();
+  });
+
+  it('rebuilds when the application changes the `popups` object in place and updates the settings', () => {
+    const popups: { suggestions: { showClose?: boolean } } = { suggestions: {} };
+    const stub = makePluginHotStub({ popups });
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    const portalBefore = latestPortal();
+
+    plugin.updatePlugin();
+
+    expect(latestPortal()).toBe(portalBefore);
+
+    popups.suggestions.showClose = true;
+    plugin.updatePlugin();
+
+    expect(latestPortal()).not.toBe(portalBefore);
+
+    plugin.disablePlugin();
   });
 });

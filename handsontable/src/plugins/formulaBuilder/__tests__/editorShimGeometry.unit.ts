@@ -151,7 +151,7 @@ interface ShimEditor {
 function makeShimEditor(activeEditor: { focus: jest.Mock; setValue: jest.Mock } | null): ShimEditor {
   const plugin = {
     enabled: true,
-    handleInlineEditStart: jest.fn(),
+    handleInlineEditStart: jest.fn(() => true),
     handleInlineEditClose: jest.fn(),
     getActiveEditor: () => activeEditor,
   };

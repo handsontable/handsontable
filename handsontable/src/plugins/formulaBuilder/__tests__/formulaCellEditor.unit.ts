@@ -404,7 +404,7 @@ describe('plain-textarea fallback for a disabled or missing plugin', () => {
     plugin: { enabled: boolean } | null,
   ): { editor: FallbackEditor; plugin: FallbackPluginSurface | null } {
     const pluginSurface: FallbackPluginSurface | null = plugin === null ? null : {
-      handleInlineEditStart: jest.fn(),
+      handleInlineEditStart: jest.fn(() => true),
       handleInlineEditClose: jest.fn(),
       getActiveEditor: () => null,
       enabled: plugin.enabled,
@@ -525,7 +525,7 @@ describe('keyboard guard lifecycle', () => {
   function makeGuardHarness() {
     const pluginSurface = {
       enabled: true,
-      handleInlineEditStart: jest.fn(),
+      handleInlineEditStart: jest.fn(() => true),
       handleInlineEditClose: jest.fn(),
       getActiveEditor: () => null,
     };

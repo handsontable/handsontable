@@ -156,6 +156,20 @@ describe('FormulaBuilder.enablePlugin validation', () => {
     expect(plugin.enabled).toBe(false);
   });
 
+  it('warns once per grid while every settings update retries the enable', () => {
+    const stub = makeFullHotStub();
+
+    stub.settings.formulaBuilder = true;
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+    plugin.enablePlugin();
+    plugin.enablePlugin();
+
+    expect(warnSpy.mock.calls.filter(([message]) => String(message).includes('`builder`'))).toHaveLength(1);
+  });
+
   it('warns and stays disabled when the formulas plugin is missing', () => {
     const stub = makeFullHotStub();
 

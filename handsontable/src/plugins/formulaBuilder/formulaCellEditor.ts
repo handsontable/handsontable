@@ -2,12 +2,19 @@ import { editorFactory } from '../../editors/factory';
 import { EDITOR_STATE } from '../../editors/baseEditor';
 import { getEditor, hasEditor, registerEditor } from '../../editors/registry';
 import EventManager from '../../eventManager';
+import { warn } from '../../helpers/console';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import type { FormulaEditorHandle } from './types';
 
 export const FORMULA_EDITOR_ALIAS = 'formula';
 export const EDITING_CELL_CLASS = 'ht-formula-builder__editing-cell';
 export const INLINE_EDITOR_CLASS = 'ht-formula-builder__inline-editor';
+
+/**
+ * Marks every editor class `createFormulaCellEditor()` builds, so a copy built by another bundle on the
+ * page (or a test) is not mistaken for an application's own `formula` editor.
+ */
+const FORMULA_SHIM_MARK = Symbol.for('handsontable.formulaBuilder.formulaCellEditor');
 
 /**
  * Every layer class `BaseEditor#getEditedCellsLayerClass()` can return. The editor container
@@ -113,8 +120,9 @@ export interface FormulaEditorPluginSurface {
    *
    * @param {HTMLElement} mount The wrapper element.
    * @param {string} seed The initial editor content.
+   * @returns {boolean} Whether the formula editor was mounted.
    */
-  handleInlineEditStart(mount: HTMLElement, seed: string): void;
+  handleInlineEditStart(mount: HTMLElement, seed: string): boolean;
   /**
    * Tears the formula editor down after the shim closes.
    */
@@ -359,16 +367,20 @@ export function createFormulaCellEditor(): BaseEditorCtor {
     afterOpen(editor) {
       const plugin = resolvePlugin(editor);
 
-      if (!plugin || plugin.enabled === false) {
+      editor._fallbackInput = undefined;
+      editor.input.replaceChildren();
+
+      if (
+        !plugin ||
+        plugin.enabled === false ||
+        !plugin.handleInlineEditStart(editor.input, resolveInlineSeed(editor as SeedSourceEditor))
+      ) {
         mountFallbackTextarea(editor);
 
         return;
       }
 
-      editor._fallbackInput = undefined;
       startKeyboardGuard(editor);
-      editor.input.replaceChildren();
-      plugin.handleInlineEditStart(editor.input, resolveInlineSeed(editor as SeedSourceEditor));
     },
     onFocus(editor) {
       if (editor._fallbackInput) {
@@ -443,10 +455,16 @@ export function createFormulaCellEditor(): BaseEditorCtor {
     refreshFormulaEditorDimensions(this, baseRefreshDimensions, force);
   };
 
+  (EditorClass as unknown as Record<symbol, boolean>)[FORMULA_SHIM_MARK] = true;
+
   return EditorClass as unknown as BaseEditorCtor;
 }
 
 let formulaEditorClass: BaseEditorCtor | null = null;
+/**
+ * Whether the warning about a `formula` alias registered by someone else was shown on this page.
+ */
+let foreignAliasWarned = false;
 
 /**
  * Checks whether the given editor (alias or class) is the formula editor.
@@ -468,7 +486,18 @@ export function isFormulaEditor(editor: unknown): boolean {
 export function registerFormulaEditor(): void {
   if (hasEditor(FORMULA_EDITOR_ALIAS)) {
     // Another copy of the plugin (or the application) may own the alias already; reuse it.
-    formulaEditorClass = getEditor(FORMULA_EDITOR_ALIAS) as unknown as BaseEditorCtor;
+    const registered = getEditor(FORMULA_EDITOR_ALIAS) as unknown as BaseEditorCtor;
+
+    const isShim = (registered as unknown as Record<symbol, boolean> | undefined)?.[FORMULA_SHIM_MARK] === true;
+
+    if (!isShim && !foreignAliasWarned) {
+      foreignAliasWarned = true;
+      warn('An editor is already registered under the "formula" alias, so cells with `editor: \'formula\'`' +
+        ' use that editor and not the one of the FormulaBuilder plugin. Register your own editor under' +
+        ' another name to use the formula editor.');
+    }
+
+    formulaEditorClass = registered;
 
     return;
   }

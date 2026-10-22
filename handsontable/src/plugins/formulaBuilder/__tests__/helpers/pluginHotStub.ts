@@ -32,6 +32,11 @@ export interface FormulasStub {
   sheetId: number | null;
   rowAxisSyncer: AxisSyncerStub;
   columnAxisSyncer: AxisSyncerStub;
+  /**
+   * The listeners the plugin registered through `addEngineDetachListener()`.
+   */
+  engineDetachListeners: Set<() => void>;
+  addEngineDetachListener: (listener: () => void) => () => void;
 }
 
 /**
@@ -149,6 +154,12 @@ export function makePluginHotStub(
     sheetId: 0,
     rowAxisSyncer: makeIdentitySyncer(),
     columnAxisSyncer: makeIdentitySyncer(),
+    engineDetachListeners: new Set(),
+    addEngineDetachListener(listener) {
+      this.engineDetachListeners.add(listener);
+
+      return () => this.engineDetachListeners.delete(listener);
+    },
   };
   const settings: Record<string, unknown> = {
     formulaBuilder: { builder: core, ...pluginSettings },
