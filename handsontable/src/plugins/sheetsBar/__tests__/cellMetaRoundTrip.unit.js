@@ -288,6 +288,15 @@ describe('SheetsBar cell meta round trip', () => {
     expect(hot.getCellMeta(4, 1).className).toBeUndefined();
   });
 
+  it('keeps the meta of a column the `columns` setting adds past the data\'s width', () => {
+    const bar = build({ columns: [{}, {}, {}] });
+
+    hot.setCellMeta(0, 2, 'className', 'marked');
+    roundTrip(bar);
+
+    expect(hot.getCellMeta(0, 2).className).toBe('marked');
+  });
+
   it('keeps the meta of a row that was padding when it was set, once it is part of the sheet\'s data', () => {
     hot = new Handsontable(container, {
       minRows: 5,

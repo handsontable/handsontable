@@ -5792,15 +5792,23 @@ export default function Core(
    * later, since an `auto` insert shifts no meta. A row that was a filler when the meta was set is part of
    * the caller's data by the time it comes back, so it keeps its meta.
    *
+   * The fillers are the last ones inside the source data (`DataMap#isTrailingFillerRow`/`Column` past the
+   * source size answers `true` with no filler at all), so a column a `columns` entry adds past the width of
+   * the data is not taken for one.
+   *
    * @private
    * @param {object} keptCellMetas The user-set meta and the invalid marks to write back.
    */
   function replayKeptCellMetas(keptCellMetas: KeptCellMetas): void {
     const rowCount = instance.rowIndexMapper.getNumberOfIndexes();
     const columnCount = instance.columnIndexMapper.getNumberOfIndexes();
-    const isLoaded = ({ physicalRow, physicalColumn }: { physicalRow: number, physicalColumn: number }) =>
-      physicalRow < rowCount && physicalColumn < columnCount &&
-      !datamap.isTrailingFillerRow(physicalRow) && !datamap.isTrailingFillerColumn(physicalColumn);
+    const sourceRowCount = instance.countSourceRows();
+    const sourceColumnCount = instance.countSourceCols();
+    const isFiller = ({ physicalRow, physicalColumn }: { physicalRow: number, physicalColumn: number }) =>
+      (physicalRow < sourceRowCount && datamap.isTrailingFillerRow(physicalRow)) ||
+      (physicalColumn < sourceColumnCount && datamap.isTrailingFillerColumn(physicalColumn));
+    const isLoaded = (entry: { physicalRow: number, physicalColumn: number }) =>
+      entry.physicalRow < rowCount && entry.physicalColumn < columnCount && !isFiller(entry);
 
     replayCellMetas(keptCellMetas.userDefined.filter(isLoaded));
     metaManager.restoreInvalidCellMetas(keptCellMetas.invalid.filter(isLoaded));
