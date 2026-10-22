@@ -33,7 +33,15 @@ test.describe('formulaBuilder on a read-only cell', { tag: [THEMES_TAG, BUNDLES_
     expect(await grid.editorOpened()).toBe(false);
     await expect(grid.cell(0, 2)).toBeFocused();
 
-    // The bar shows the formula but refuses the edit.
+    // Positive control for the bar: a click on it opens the editor on the writable C2.
+    await grid.selectCellByApi(1, 2);
+    await grid.barFormulaArea.click();
+    await expect.poll(() => grid.editorOpened()).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+
+    // The bar shows the formula of the read-only C1 but refuses the edit.
+    await grid.selectCellByApi(0, 2);
     await expect(grid.barFormulaArea).toContainText('=A1+B1');
     await grid.barFormulaArea.click();
     await page.keyboard.type('7');
@@ -143,7 +151,8 @@ test.describe('formulaBuilder in a right-to-left grid', { tag: [THEMES_TAG, BUND
   });
 });
 
-test.describe('formulaBuilder settings updates', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+// Engine-neutral: settings updates and the DOM they leave, so not tagged for the other engines.
+test.describe('formulaBuilder settings updates', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: FormulaBuilderPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

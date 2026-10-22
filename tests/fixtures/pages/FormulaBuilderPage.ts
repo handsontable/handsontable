@@ -52,7 +52,10 @@ interface FixtureWindow {
     setDataAtCell(row: number, col: number, value: unknown): void;
     isListening(): boolean;
     getActiveEditor(): { isOpened?: () => boolean } | undefined;
-    getPlugin(name: string): { getSortConfig?: () => unknown[] } | undefined;
+    getPlugin(name: string): {
+      getSortConfig?: () => unknown[];
+      sort?: (config: { column: number; sortOrder: 'asc' | 'desc' }) => void;
+    } | undefined;
     getCurrentThemeName(): string | null;
     useTheme(name: string): void;
     updateSettings(settings: Record<string, unknown>): void;
@@ -118,6 +121,10 @@ export class FormulaBuilderPage {
    * The element the `popups-host` variant docks the suggestions popup into.
    */
   readonly suggestionsHost: Locator;
+  /**
+   * The error popup a focused or hovered error cell opens.
+   */
+  readonly errorPopup: Locator;
 
   constructor(page: Page, theme = 'main', bundle: Bundle = 'umd', variant: FormulaBuilderVariant = 'default') {
     this.page = page;
@@ -140,6 +147,7 @@ export class FormulaBuilderPage {
     this.suggestionOptions = this.suggestions.getByRole('option');
     this.fnHelp = page.locator('.hfe-fn-help[role="dialog"]:not([hidden])');
     this.suggestionsHost = page.getByTestId('suggestions-host');
+    this.errorPopup = page.locator('.hfe-error');
   }
 
   /**
@@ -367,6 +375,19 @@ export class FormulaBuilderPage {
   async editorOpened(): Promise<boolean> {
     return this.page.evaluate(
       () => (window as unknown as FixtureWindow).hot.getActiveEditor()?.isOpened?.() ?? false);
+  }
+
+  /**
+   * Sorts a column through the ColumnSorting plugin's API.
+   *
+   * @param {number} column The visual column index.
+   * @param {'asc' | 'desc'} sortOrder The sort order.
+   */
+  async sortBy(column: number, sortOrder: 'asc' | 'desc'): Promise<void> {
+    await this.page.evaluate(
+      ([c, order]) => (window as unknown as FixtureWindow).hot.getPlugin('columnSorting')
+        ?.sort?.({ column: c, sortOrder: order }),
+      [column, sortOrder] as const);
   }
 
   /**

@@ -38,13 +38,19 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
   });
 
   test('Ctrl/Cmd+click appends a second reference', async({ page }) => {
-    await grid.cell(2, 0).click();
-    await expect(grid.editorInput).toHaveValue('=A3');
+    // Every click lands on a different cell: two quick clicks on one cell are a double click
+    // (`tests/AGENTS.md`).
+    await grid.cell(1, 0).click();
+    await expect(grid.editorInput).toHaveValue('=A2');
 
     await page.keyboard.press('+');
     await grid.cell(2, 0).click({ modifiers: ['ControlOrMeta'] });
+    await expect(grid.editorInput).toHaveValue('=A2+A3');
+
+    // With the caret right after a reference, Ctrl/Cmd+click does not replace it: it appends the
+    // new reference after an argument separator, the way a spreadsheet builds a multi-area list.
     await grid.cell(2, 1).click({ modifiers: ['ControlOrMeta'] });
-    await expect(grid.editorInput).toHaveValue('=A3+A3,B3');
+    await expect(grid.editorInput).toHaveValue('=A2+A3,B3');
   });
 
   test('a column header click inserts a whole-column reference, and a header drag a column range', async({ page }) => {
@@ -105,9 +111,9 @@ test.describe('formulaBuilder picking with nested headers', { tag: [THEMES_TAG, 
     await expect(grid.editorInput).toBeFocused();
 
     await grid.columnHeader('Inputs').click();
-    // The reference names column A; whether a group pick should span the whole group (A:B) is an
-    // open question to the plugin owners, so the test pins that a column reference was picked.
-    await expect(grid.editorInput).toHaveValue(/^=A:[AB]$/);
+    // A group header covers columns A and B, and a pick of it inserts both, the way a click on it
+    // selects both.
+    await expect(grid.editorInput).toHaveValue('=A:B');
     await expect(grid.editorInput).toBeFocused();
     expect(await grid.editorOpened()).toBe(true);
     expect(await grid.selectedAll()).toEqual([[3, 0, 3, 0]]);
@@ -145,5 +151,34 @@ test.describe('formulaBuilder picking with nested headers', { tag: [THEMES_TAG, 
     await expect(grid.formulaBar).toHaveClass(new RegExp(`\\b${target}\\b`));
 
     await pickGroupHeader(page);
+  });
+});
+
+// A pick after a sort: the visual cell the user clicks and the engine cell the reference names are
+// different rows, and the mapping between them is the plugin's.
+test.describe('formulaBuilder picking on a sorted grid', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle, 'sorting');
+    await grid.goto();
+  });
+
+  test('a click inserts the reference of the clicked data, highlights the clicked cell, and commits its value', async({ page }) => {
+    await grid.sortBy(1, 'desc');
+    // Column B descending: the row that holds 6 (engine row 3) is now the first row.
+    await grid.expectCell(0, 1, '6');
+
+    await grid.selectCellByApi(3, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    await grid.cell(0, 1).click();
+    await expect(grid.editorInput).toHaveValue('=B3');
+    await expect(grid.cell(0, 1)).toHaveClass(/ht-formula-ref-/);
+    await expect(grid.cell(1, 1)).not.toHaveClass(/ht-formula-ref-/);
+
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.dataAt(3, 0)).toBe(6);
   });
 });

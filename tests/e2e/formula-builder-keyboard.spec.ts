@@ -159,6 +159,20 @@ test.describe('formulaBuilder keyboard point mode', { tag: [THEMES_TAG, BUNDLES_
     expect(await grid.sourceAt(3, 1)).toBe('=B1:B3');
   });
 
+  test('ArrowLeft and ArrowRight pick the neighbor references', async({ page }) => {
+    await grid.selectCellByApi(3, 1);
+    await page.keyboard.press('=');
+    await page.keyboard.press('ArrowLeft');
+    await expect(grid.editorInput).toHaveValue('=A4');
+
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    await expect(grid.editorInput).toHaveValue('=C4');
+
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape');
+  });
+
   test('Ctrl/Cmd+arrow jumps the reference cursor to the edge of the data block', async({ page }) => {
     await grid.selectCellByApi(3, 0);
     await page.keyboard.press('=');
@@ -220,5 +234,59 @@ test.describe('formulaBuilder commit right after the previous commit', { tag: [T
     await expect(grid.cell(3, 1)).toBeFocused();
     expect(await grid.selectedLast()).toEqual([3, 1, 3, 1]);
     expect(await grid.sourceAt(3, 2)).toBe('=2*3');
+  });
+});
+
+// In a right-to-left grid the columns run from right to left, so ArrowLeft points at the next
+// column and ArrowRight at the previous one, the way the grid's own selection moves.
+test.describe('formulaBuilder keyboard point mode in a right-to-left grid', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('ArrowLeft picks the next column and ArrowRight the previous one', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'rtl');
+
+    await grid.goto();
+    await grid.selectCellByApi(3, 1);
+    await page.keyboard.press('=');
+    await page.keyboard.press('ArrowLeft');
+    await expect(grid.editorInput).toHaveValue('=C4');
+
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    await expect(grid.editorInput).toHaveValue('=A4');
+
+    await page.keyboard.press('Enter');
+    await expect(grid.cell(4, 1)).toBeFocused();
+    expect(await grid.sourceAt(3, 1)).toBe('=A4');
+  });
+});
+
+// A key the formula editor does not handle reaches the grid, like from the grid's own editors: an
+// arrow key commits a quick edit (one opened by typing) and moves the selection.
+test.describe('formulaBuilder quick edit', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('an arrow key commits a value typed into a cell and moves the selection', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.selectCellByApi(3, 0);
+    await page.keyboard.type('abc');
+    await expect(grid.editorInput).toHaveValue('abc');
+    await page.keyboard.press('ArrowDown');
+
+    await expect(grid.cell(4, 0)).toBeFocused();
+    expect(await grid.editorOpened()).toBe(false);
+    expect(await grid.sourceAt(3, 0)).toBe('abc');
+  });
+
+  test('an arrow key moves the caret in a value opened with Enter', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.selectCellByApi(0, 0);
+    await page.keyboard.press('Enter');
+    await expect(grid.editorInput).toBeFocused();
+    await page.keyboard.press('ArrowLeft');
+
+    expect(await grid.editorOpened()).toBe(true);
+    expect(await grid.selectedLast()).toEqual([0, 0, 0, 0]);
+    await page.keyboard.press('Escape');
   });
 });

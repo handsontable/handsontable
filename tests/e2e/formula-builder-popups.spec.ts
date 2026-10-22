@@ -87,7 +87,8 @@ test.describe('formulaBuilder autocomplete popup', { tag: [THEMES_TAG, BUNDLES_T
   });
 });
 
-test.describe('formulaBuilder docked suggestions popup', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+// Engine-neutral: a DOM placement, so not tagged for the other engines.
+test.describe('formulaBuilder docked suggestions popup', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('popups.suggestions.container docks the listbox into the host element', async({ page, theme, bundle }) => {
     const grid = new FormulaBuilderPage(page, theme, bundle, 'popups-host');
 
@@ -103,7 +104,8 @@ test.describe('formulaBuilder docked suggestions popup', { tag: [THEMES_TAG, BUN
   });
 });
 
-test.describe('formulaBuilder error indicator', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+// Engine-neutral: attributes written on render, so not tagged for the other engines.
+test.describe('formulaBuilder error indicator', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('an error result marks the cell, and a later plain value clears the mark from the same element', async({ page, theme, bundle }) => {
     const grid = new FormulaBuilderPage(page, theme, bundle);
 
@@ -142,3 +144,31 @@ test.describe('formulaBuilder error indicator', { tag: [THEMES_TAG, BUNDLES_TAG,
     await expect(cell).not.toHaveAttribute('role', /.*/);
   });
 });
+
+// A keyboard user reaches an error cell, hears its message (the cell's accessible description), opens
+// the error popup with the focus, and closes it with Escape. Engines: real keys and focus.
+test.describe('formulaBuilder error message by keyboard', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('the error cell describes its message, and Escape closes the popup the focus opened', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.setDataAt(3, 2, '=FOO(1)');
+    await grid.expectCell(3, 2, '#NAME?');
+
+    await grid.selectCellByApi(3, 1);
+    await page.keyboard.press('ArrowRight');
+
+    const cell = grid.cell(3, 2);
+
+    await expect(cell).toBeFocused();
+    await expect(cell).toHaveAttribute('aria-invalid', 'true');
+    // The description carries the code and the engine's message, not only the code the cell shows.
+    await expect(cell).toHaveAttribute('aria-description', /^#NAME\? — .+/);
+    await expect(grid.errorPopup).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(grid.errorPopup).toBeHidden();
+    await expect(cell).toBeFocused();
+  });
+});
+
