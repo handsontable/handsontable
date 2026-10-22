@@ -727,7 +727,7 @@ export class HandsontableAdapter {
 
     const visualFrom = { sheet: from.sheet, row: startRow, col: startCol };
     // A hidden cell counts as empty, so the jump stops at the edge of the data the user can see.
-    const found = this.#core.findDataEdge(visualFrom, direction, size, (row, col) => {
+    const found = this.#core.findDataEdge(visualFrom, this.#toVisualDirection(direction), size, (row, col) => {
       if (!this.#isVisualCellRenderable(row, col)) {
         return false;
       }
@@ -759,14 +759,15 @@ export class HandsontableAdapter {
     }
 
     const size = this.#visualGridSize();
+    const visualDirection = this.#toVisualDirection(direction);
     let stepped = this.#core.stepCell(
       { sheet: from.sheet, col: startCol, row: startRow },
-      direction,
+      visualDirection,
       size,
     );
 
     while (!this.#isVisualCellRenderable(stepped.row, stepped.col)) {
-      const next = this.#core.stepCell(stepped, direction, size);
+      const next = this.#core.stepCell(stepped, visualDirection, size);
 
       if (next.row === stepped.row && next.col === stepped.col) {
         return from;
@@ -1044,6 +1045,26 @@ export class HandsontableAdapter {
     this.#fillStyleEl = null;
     this.#refClassByKey.clear();
     this.#emitter.clear();
+  }
+
+  /**
+   * Turns the direction of an arrow key into a direction in visual column order. The package reports
+   * the key (`left` for ArrowLeft); in a right-to-left grid the columns run from right to left, so
+   * ArrowLeft points at the next visual column, the way the grid's own selection moves.
+   *
+   * @param {Direction} direction The arrow key's direction.
+   * @returns {Direction}
+   */
+  #toVisualDirection(direction: Direction): Direction {
+    if (!this.#hot.isRtl()) {
+      return direction;
+    }
+
+    if (direction === 'left') {
+      return 'right';
+    }
+
+    return direction === 'right' ? 'left' : direction;
   }
 
   /**

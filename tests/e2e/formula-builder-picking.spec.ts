@@ -154,8 +154,8 @@ test.describe('formulaBuilder picking with nested headers', { tag: [THEMES_TAG, 
   });
 });
 
-// A pick after a sort: the visual cell the user clicks and the engine cell the reference names are
-// different rows, and the mapping between them is the plugin's.
+// A pick after a sort: the reference must name the data the user clicked, highlight the clicked cell,
+// and commit the clicked cell's value, whatever order the sort left the grid and the engine in.
 test.describe('formulaBuilder picking on a sorted grid', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: FormulaBuilderPage;
 
@@ -166,7 +166,8 @@ test.describe('formulaBuilder picking on a sorted grid', { tag: [THEMES_TAG, BUN
 
   test('a click inserts the reference of the clicked data, highlights the clicked cell, and commits its value', async({ page }) => {
     await grid.sortBy(1, 'desc');
-    // Column B descending: the row that holds 6 (engine row 3) is now the first row.
+    // Column B descending: the row that holds 6 is now the first row. The Formulas plugin reorders
+    // the engine's sheet with the sort, so that row is the engine's first row too, and `B1` names it.
     await grid.expectCell(0, 1, '6');
 
     await grid.selectCellByApi(3, 0);
@@ -174,7 +175,7 @@ test.describe('formulaBuilder picking on a sorted grid', { tag: [THEMES_TAG, BUN
     await expect(grid.editorInput).toBeFocused();
 
     await grid.cell(0, 1).click();
-    await expect(grid.editorInput).toHaveValue('=B3');
+    await expect(grid.editorInput).toHaveValue('=B1');
     await expect(grid.cell(0, 1)).toHaveClass(/ht-formula-ref-/);
     await expect(grid.cell(1, 1)).not.toHaveClass(/ht-formula-ref-/);
 

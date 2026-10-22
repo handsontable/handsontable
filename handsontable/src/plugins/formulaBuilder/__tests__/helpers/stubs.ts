@@ -190,6 +190,7 @@ export interface HotStubShape extends GridSelectionApiStub {
   rootWindow: Window & typeof globalThis;
   rootElement: HTMLElement;
   getCurrentThemeName: () => string | null;
+  isRtl: () => boolean;
 }
 
 /**
@@ -257,6 +258,7 @@ export function makeHotStub(overrides: Partial<HotStubShape> = {}): HotInstance 
     rootWindow: window as Window & typeof globalThis,
     rootElement: document.body,
     getCurrentThemeName: () => null,
+    isRtl: () => false,
     ...makeGridSelectionApiStub(),
     ...overrides,
   };

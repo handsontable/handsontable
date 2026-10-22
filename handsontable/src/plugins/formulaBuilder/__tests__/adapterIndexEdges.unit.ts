@@ -245,3 +245,32 @@ describe('HandsontableAdapter header tints', () => {
     adapter.destroy();
   });
 });
+
+describe('HandsontableAdapter arrow directions in a right-to-left grid', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+  });
+
+  it.each([
+    [false, 'left', 1],
+    [false, 'right', 3],
+    [true, 'left', 3],
+    [true, 'right', 1],
+  ] as const)('with isRtl() %s, a %s step from column 2 lands on column %i', (rtl, direction, col) => {
+    const { adapter } = makeAdapter({ countRows: () => 5, countCols: () => 5, isRtl: () => rtl });
+
+    expect(adapter.stepCell({ sheet: '', row: 1, col: 2 }, direction)).toEqual({ sheet: '', row: 1, col });
+  });
+
+  it('jumps to the data edge in the visual direction of the key', () => {
+    const { adapter } = makeAdapter({
+      countRows: () => 3,
+      countCols: () => 6,
+      isRtl: () => true,
+      getDataAtCell: (_row, col) => (col <= 4 ? 'x' : ''),
+    });
+
+    expect(adapter.getDataEdge({ sheet: '', row: 0, col: 0 }, 'left')).toEqual({ sheet: '', row: 0, col: 4 });
+  });
+});
+
