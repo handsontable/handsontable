@@ -146,11 +146,14 @@ function guidepupReader(screenReader: ScreenReaderPlaywright): Reader {
     },
     async ready() {
       // NVDA switches to focus mode on its own when the focus lands on a gridcell (its treatment of
-      // ARIA grids). Pinning it keeps every transcript in the mode a grid user works in: the last mode
-      // NVDA announced decides, and a toggle corrects it when the last one was browse mode or none.
+      // ARIA grids), but Guidepup logs only what a command captured, so that switch is not in the log.
+      // Pinning it keeps every transcript in the mode a grid user works in: the last mode the log holds
+      // decides, a toggle corrects it when that was browse mode or none, and a toggle that lands in
+      // browse mode (NVDA had switched already) is toggled back.
+      // The raw text, never the normalized one: the normalizer strips the mode phrases as chatter.
       const entering = [...(await screenReader.spokenPhraseLog())];
-      const lastMode = (phrases: string[]) => phrases.map(normalizeAnnouncement).reduce<string | null>(
-        (mode, phrase) => (/\b(focus|browse) mode\b/.test(phrase) ? phrase.match(/\b(focus|browse) mode\b/)![0] : mode), null);
+      const lastMode = (phrases: string[]) => phrases.reduce<string | null>(
+        (mode, phrase) => String(phrase).toLowerCase().match(/\b(focus|browse) mode\b/)?.[0] ?? mode, null);
 
       if (lastMode(entering) !== 'focus mode') {
         await screenReader.perform(NVDAKeyCodeCommands.toggleBetweenBrowseAndFocusMode, { capture: true });
