@@ -82,7 +82,7 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   cycle); meanwhile the shim mounts the plain textarea (`handleInlineEditStart()` returns `false`).
   Pinned on a real grid by `__tests__/realGridTeardown.unit.ts`.
 - **A rebuild never throws from a hook.** A `popups.*.container` selector that matches nothing is dropped
-  with a warning before the package constructor sees it (it throws for one), and any other constructor
+  with a warning before the package constructor sees it (hyperformula-ui 0.3.5 throws for one), and any other constructor
   throw is caught and warned. Hosts set through `attach*Host()` are kept on the plugin and re-applied to
   every rebuilt builder. `popups` is stored as a copy, so an object changed in place reads as a change.
 - **Commit, cancel and open go through the grid's own code, not a copy of it.** A commit with a
@@ -164,26 +164,35 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `tests/e2e/`.
 - **The error colors are mixed for text.** The theme's notification error accent measures 3.4:1 on white,
   enough for the error triangle but not for 4.5:1 text, so `_formula-builder.scss` mixes 30% of the
-  foreground color into every text-level error token. The package's reference palette is restated the
-  same way (`$reference-palette`, 60% hue and 40% editor foreground): as shipped, five of its eight light
-  colors measured below 3:1 on white, which failed both the reference text and the highlight borders that
-  share those tokens. The axe scan caught it on the `formula-builder` page.
+  foreground color into every text-level error token. The reference palette is the package's own: its
+  defaults clear 4.5:1 on the editor backgrounds and stay apart from each other, so the plugin does not
+  restate `--hfe-ref-1` to `--hfe-ref-8` (an application can, on the theme class). Neither does it
+  override the error cell's font or `color-scheme`: the package reads `--hfe-font-family`, which the plugin
+  sets, for the error value and the error popup title alike, and sets `color-scheme` only on its roots,
+  where the theme class wins.
+- **The phrases come from the grid's language and are taken at construction.** Every accessible name,
+  hint and announcement of the editor is a `FormulaBuilder:` key in `src/i18n/constants.ts`, passed to the
+  package as its `phrases` option (`#phrases()`). The package reads them once, so `afterLanguageChange`
+  rebuilds the builder. The dictionary picks the dependent-error count's plural form by index (0 for one,
+  1 for more) and the plugin substitutes `[count]` itself; languages with more plural forms use a
+  count-neutral wording for the second form. The hint phrases carry no surrounding spaces: the package adds
+  them.
+- **The builder is built in the grid's document.** `rootDocument` is `hot.rootDocument`, so a grid in an
+  iframe gets its selectors resolved and its styles injected there, and a grid in a shadow root passes the
+  shadow root as `portalParent`, so the popups and the live region stay in the same tree as the editor and
+  its ARIA references resolve.
+- **Ctrl/Cmd+Enter fills the selection through the grid's editor.** The adapter's `commitFill()` calls
+  `commitInlineEditToSelection()`, which saves through `finishEditing(false, true)`: the `ctrlDown` path of
+  `BaseEditor#saveValue()`, shared with the grid's own fill (`selection/fillSelection.ts`). Alt+Enter inserts
+  a line break.
 
 ## Known gaps
 
 The `hyperformula-ui` side of each is listed for the package maintainers (the review of PR #13172).
 
-- The popups and the live region mount in the global `document.body`, and the package has no option for
-  their parent. The axe scan marks that portal on two pages (`formula-builder-suggestions`,
-  `formula-builder-function-help`); the error popup and the live region are not scanned. In a shadow
-  root or an iframe the popups land in the top-level document, and their ARIA references cross the
-  boundary.
-- The idle formula bar does not treat a named expression as a reference, while the cell editor does,
-  so the references after one get a different color in the bar (the package's `FormulaBarCell`).
-- Ctrl/Cmd+Enter inserts a line break in the package, so it cannot fill the selection as in the grid's
-  other editors.
-- The accessible names ("Cell address", "Formula editor", ...) and the announcements are English strings
-  inside the package, with no option to pass translated phrases.
+- In a grid that is not in a shadow root, the popups and the live region mount in the document body. The
+  axe scan marks that portal on two pages (`formula-builder-suggestions`, `formula-builder-function-help`);
+  the error popup and the live region are not scanned.
 - The `formula` alias is registered by the first grid built with the plugin registered, so with the full
   bundle every page that builds a grid has it (the constructor trap above explains why).
 - The horizon theme's accent focus ring measures below 3:1; it is the theme token every grid surface uses.
