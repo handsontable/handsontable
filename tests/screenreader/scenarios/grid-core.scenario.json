@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "id": "grid-core",
+  "surface": "The grid body and its headers, the cell editor, the context menu, a range and a sort, through the keyboard alone.",
+  "fixture": "screenreader-grid.html",
+  "setup": [
+    { "selectCell": [0, 0] }
+  ],
+  "steps": [
+    {
+      "id": "arrow-right",
+      "action": { "press": "ArrowRight" },
+      "expect": [["34"], ["age", "column 3", "row 2"]],
+      "note": "The cell to the right: its value, and its column (the header the cell is described by, or its index)."
+    },
+    {
+      "id": "arrow-down",
+      "action": { "press": "ArrowDown" },
+      "expect": [["28"], ["age", "column 3", "row 3"]]
+    },
+    {
+      "id": "arrow-left",
+      "action": { "press": "ArrowLeft" },
+      "expect": [["bruno"], ["name", "column 2", "row 3"]]
+    },
+    {
+      "id": "arrow-up",
+      "action": { "press": "ArrowUp" },
+      "expect": [["alice"], ["name", "column 2", "row 2"]]
+    },
+    {
+      "id": "into-column-header",
+      "action": { "press": "ArrowUp" },
+      "expect": [["name"], ["column header", "header", "column 2", "row 1"]],
+      "note": "navigableHeaders: ArrowUp from the first row enters the column header."
+    },
+    {
+      "id": "back-to-cell",
+      "action": { "press": "ArrowDown" },
+      "expect": [["alice"]]
+    },
+    {
+      "id": "into-row-header",
+      "action": { "press": "ArrowLeft" },
+      "expect": [["1"], ["row header", "header", "column 1", "row 2"]],
+      "note": "navigableHeaders: ArrowLeft from the first column enters the row header."
+    },
+    {
+      "id": "back-from-row-header",
+      "action": { "press": "ArrowRight" },
+      "expect": [["alice"]]
+    },
+    {
+      "id": "open-editor",
+      "action": { "press": "Enter" },
+      "expect": [["alice"], ["edit", "editable", "text area", "textarea", "multi line", "multiline"]],
+      "note": "Enter opens the text editor on the cell: the editor's value and its editable role."
+    },
+    {
+      "id": "close-editor",
+      "action": { "press": "Escape" },
+      "expect": [["alice"]],
+      "note": "Escape leaves the editor; the focus returns to the cell."
+    },
+    {
+      "id": "open-context-menu",
+      "action": { "press": "Shift+F10" },
+      "after": { "visible": ".htContextMenu .ht_master .htCore tbody td" },
+      "expect": [["insert row above"], ["menu"]],
+      "note": "Shift+F10 opens the context menu with its first item highlighted."
+    },
+    {
+      "id": "menu-arrow-down",
+      "action": { "press": "ArrowDown" },
+      "expect": [["insert row below"]]
+    },
+    {
+      "id": "menu-arrow-down-again",
+      "action": { "press": "ArrowDown" },
+      "expect": [["insert column left"]]
+    },
+    {
+      "id": "close-context-menu",
+      "action": { "press": "Escape" },
+      "after": { "hidden": ".htContextMenu .ht_master .htCore tbody td" },
+      "expect": [["alice"]],
+      "note": "Escape closes the menu and the focus returns to the cell that opened it."
+    },
+    {
+      "id": "extend-range",
+      "action": { "press": "Shift+ArrowRight" },
+      "expect": [["selected", "34", "age", "2 cells", "range"]],
+      "note": "Shift+ArrowRight extends the selection; the focus stays on the anchor cell, so what a screen reader says here is the state change (aria-selected on the new cell) or nothing. A miss is a finding about the grid, not about the lane."
+    },
+    {
+      "id": "extend-range-again",
+      "action": { "press": "Shift+ArrowRight" },
+      "expect": [["selected", "oslo", "city", "3 cells", "range"]]
+    },
+    {
+      "id": "up-to-header-for-sort",
+      "action": { "press": "ArrowUp" },
+      "expect": [["name"], ["column header", "header", "column 2", "row 1"]]
+    },
+    {
+      "id": "sort-ascending",
+      "action": { "press": "Enter" },
+      "expect": [["ascending", "sorted"]],
+      "note": "Enter on a sortable header sorts the column; aria-sort changes on the focused header."
+    },
+    {
+      "id": "sort-descending",
+      "action": { "press": "Enter" },
+      "expect": [["descending", "sorted"]]
+    }
+  ]
+}

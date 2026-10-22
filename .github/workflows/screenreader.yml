@@ -1,0 +1,135 @@
+name: Screen reader
+
+# The screen reader lanes: a real screen reader driven through Guidepup over the scenarios of
+# tests/screenreader/scenarios/ (the policy is tests/AGENTS.md, "Screen readers: the NVDA lane"). The
+# Accessibility Conformance Report's evidence for what a cell, a header, a state and a status message
+# announce (WCAG 1.3.1, 4.1.2, 4.1.3) comes from here, not from the accessibility tree alone, which the
+# axe scan (a11y.yml) already covers.
+#
+# Report-only, by design, and nothing here gates a pull request: the job has `continue-on-error`, the
+# test never fails on a token group in report mode, and the verdict is the `Screen reader / <project>
+# report` check run (neutral when a token group is missing or a golden differs) plus the job summary.
+# The only reds inside the job are tooling: a fixture that does not load, a screen reader that does
+# not start, a scenario that never reached its `after` state.
+#
+# One job per browser (the matrix), one browser per job, because Guidepup runs one screen reader per
+# machine and the browsers are headed: NVDA on `windows-2025`, the runner Guidepup's own suite is
+# green on (2 to 2.5 minutes per job there). The mitigations that suite uses are here too: Playwright
+# `retries: 2` and a five-minute test timeout (the config), a fresh NVDA per test with a stop in a
+# `finally` (Guidepup's fixture), and Guidepup 0.36.1+ for the NVDA quit fix. `timeout-minutes: 30`
+# bounds a hung screen reader.
+#
+# Build-dependent like a11y.yml: it downloads the UMD build artifact the caller's Build module uploads.
+# The caller is screenreader-nightly.yml (a cron, and a dispatch from any ref); the pull-request Tests
+# pipeline does not call it. With `update-goldens` the run records the goldens on the runner and
+# uploads them as an artifact, which is the only way to record an NVDA golden, since nobody has NVDA
+# on a Mac: download, commit under tests/screenreader/goldens/<project>/, done.
+#
+# The VoiceOver lane (macOS, `setup --ci --macos-record`, `setup install voiceover`, the `vo-webkit`
+# and `vo-chromium` projects, `max-parallel: 2` under the organization's cap of five macOS jobs) is
+# the next pull request; it joins this file as a second job.
+on:
+  workflow_call:
+    inputs:
+      update-goldens:
+        description: Record the goldens from this run and upload them as an artifact instead of comparing.
+        type: boolean
+        default: false
+
+jobs:
+  nvda:
+    name: NVDA (${{ matrix.browser }})
+    runs-on: windows-2025
+    timeout-minutes: 30
+    # Report-only: a red job here would show as a failure on the run, and the run is a report.
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [ chromium, firefox ]
+    # Job-level, like a11y.yml: `checks: write` posts the report check run. Kept off the workflow level
+    # so nothing else in the run inherits it.
+    permissions:
+      contents: read
+      checks: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      # The commit the check run goes on. On a pull request it is the head, not the merge commit
+      # `github.sha` names, or the check never shows on the pull request.
+      SCREENREADER_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      SCREENREADER_PROJECT: nvda-${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - name: Download the Handsontable UMD build artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-umd
+      - run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
+        name: Install pnpm
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        name: Use Node.js
+        with:
+          node-version-file: '.nvmrc'
+      - name: Install the Playwright test package
+        run: pnpm install --filter handsontable-tests
+      # Guidepup's own recipe, in its order: the environment first (`setup --ci` is a no-op on Windows
+      # today and stays for the day it is not), the browser, then the screen reader assets. `install
+      # nvda` resolves the NVDA build from the installed @guidepup/guidepup's manifest (portable NVDA
+      # 2026.2 with the Guidepup add-on), so it runs inside tests/, where that package is installed.
+      - name: Prepare the environment for screen reader automation
+        run: cd tests && npx @guidepup/setup setup --ci
+      - name: Install the browser
+        run: cd tests && npx playwright install ${{ matrix.browser }}
+      - name: Install NVDA
+        run: cd tests && npx @guidepup/setup install nvda
+      - name: Run the scenarios
+        id: scenarios
+        env:
+          HOT_SR_UPDATE_GOLDENS: ${{ inputs.update-goldens && '1' || '' }}
+        run: cd tests && npx playwright test --config playwright.screenreader.config.ts --project=nvda-${{ matrix.browser }}
+      # Every run, red or green: the transcripts (one JSON and one log per scenario), the summary the
+      # report step writes below, and the Playwright report with the traces of a red scenario.
+      - name: Write the job summary
+        if: ${{ !cancelled() }}
+        run: node tests/scripts/screenreader-report.mjs
+      - name: Upload the transcripts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: screenreader-transcripts-nvda-${{ matrix.browser }}
+          path: tests/test-results/screenreader
+          if-no-files-found: warn
+          retention-days: 14
+          overwrite: true
+      - name: Upload the Playwright report
+        id: report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: screenreader-playwright-report-nvda-${{ matrix.browser }}
+          path: tests/playwright-report/screenreader
+          if-no-files-found: ignore
+          retention-days: 14
+          overwrite: true
+      - name: Upload the recorded goldens
+        if: ${{ !cancelled() && inputs.update-goldens }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: screenreader-goldens-nvda-${{ matrix.browser }}
+          path: tests/screenreader/goldens
+          if-no-files-found: warn
+          retention-days: 14
+          overwrite: true
+      # The visible verdict (tests/lib/screenreader-report.mjs), on the commit the run tested. A
+      # fork's or Dependabot's token cannot write checks, so the canonical guard skips it there; the
+      # summary and the transcripts still carry everything. It reports and never decides the job.
+      - name: Post the report check run
+        if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) }}
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCREENREADER_REPORT_URL: ${{ steps.report.outputs.artifact-url }}
+        run: node tests/scripts/screenreader-report.mjs --check-run

@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "nested-rows",
+  "surface": "The treegrid rows of the NestedRows plugin: a collapse and an expand from the row header, and the level a cell announces.",
+  "fixture": "nested-rows-treegrid.html",
+  "setup": [
+    { "selectCell": [0, -1] }
+  ],
+  "steps": [
+    {
+      "id": "collapse-parent",
+      "action": { "press": "Enter" },
+      "expect": [["collapsed"], ["1", "root a"]],
+      "note": "Enter on a parent's row header collapses it: the polite announcement names the row, and aria-expanded flips on the focused header."
+    },
+    {
+      "id": "expand-parent",
+      "action": { "press": "Enter" },
+      "expect": [["expanded"], ["1", "root a"]]
+    },
+    {
+      "id": "into-parent-cell",
+      "action": { "press": "ArrowRight" },
+      "expect": [["root a"], ["level 1", "1 of 2", "row 2", "name", "column 2"]],
+      "note": "aria-level, aria-posinset and aria-setsize sit on the row; what a screen reader makes of them for a cell is what this step records."
+    },
+    {
+      "id": "down-to-child",
+      "action": { "press": "ArrowDown" },
+      "expect": [["a 1"], ["level 2", "1 of 3", "row 3", "name", "column 2"]]
+    }
+  ]
+}

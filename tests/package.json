@@ -7,11 +7,17 @@
     "test": "playwright test",
     "test:e2e": "playwright test --project=e2e-main",
     "report": "playwright show-report",
-    "lint": "eslint --ext .js,.mjs,.ts a11y e2e fixtures reporters lib scripts",
-    "test:a11y": "playwright test --config playwright.a11y.config.ts"
+    "lint": "eslint --ext .js,.mjs,.ts a11y e2e fixtures reporters lib scripts screenreader",
+    "test:a11y": "playwright test --config playwright.a11y.config.ts",
+    "test:screenreader": "playwright test --config playwright.screenreader.config.ts",
+    "test:screenreader:update-goldens": "playwright test --config playwright.screenreader.config.ts --update-snapshots",
+    "screenreader:report": "node scripts/screenreader-report.mjs --dry-run"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
+    "@guidepup/guidepup": "0.36.4",
+    "@guidepup/playwright": "0.20.0",
+    "@guidepup/setup": "0.29.3",
     "@playwright/test": "catalog:",
     "@typescript-eslint/parser": "8.61.0",
     "axe-core": "4.14.0",
