@@ -119,12 +119,17 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   keeps no copy of its own while a sheet is shown, and adds no listener to the cell meta read path or to
   row and column changes. When the user leaves a sheet, `#captureCellMeta` stores in `viewState.cellMeta`,
   by physical indexes, every key set through `setCellMeta()` (core's `getUserDefinedCellMetas()`, which
-  includes what an undo put back) and a `valid: false` entry for each cell whose last validation failed
-  (`getInvalidCellMetas()`, the marks the validation flow writes without `setCellMeta()`). A return hands
-  them to `_applySettingsAndData()` as `keptCellMetas`, and core writes them in the meta phase, after the
-  `cell`-option replay and before `afterCellMetaReset`, through `MetaManager` (no hooks, no undo entry, no
-  render). From then on they are ordinary cell meta, so undo and redo, `alter()`, a host `loadData()` from
-  `afterSheetTabStateRestore`, and the `type` expansion act on them as on a grid without the bar.
+  includes what an undo put back) and a `valid: false` entry for each cell whose meta holds one
+  (`getInvalidCellMetas()`, which also lists the marks the validation flow writes without `setCellMeta()`).
+  A return hands them to `_applySettingsAndData()` as `keptCellMetas`, and core writes them in the meta
+  phase, before the `cell`-option replay (a restated `cell` entry wins on a key both set, as it does in
+  core's own cache-reset replay) and before `afterCellMetaReset`, through `MetaManager` (no hooks, no undo
+  entry, no render). An entry past the loaded rows or columns is dropped: the host may have shortened the
+  sheet's data while it was hidden, and meta stored past the end lands on a row an `auto` append adds later.
+  From then on they are ordinary cell meta, so undo and redo, `alter()`, a host `loadData()` from
+  `afterSheetTabStateRestore`, and the `type` expansion act on them as on a grid without the bar. The
+  `afterSheetTabStateCapture` JSDoc tells listeners that `cellMeta` is physical and can hold `valid: false`
+  and internal `_` keys (`_typeEditorRequested` is what carries an `editor: true` and must stay).
   - **This replaced a lazy overlay, and its failures are the reason not to bring one back.** The old
     `#trackedCellMeta` map was pasted over every meta read from `afterGetCellMeta`. It was a second
     source of truth: an undo restores meta without `setCellMeta()`, so undone values came back; it wrote a
@@ -140,14 +145,21 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     entries, which are not stored as user meta.
   - **Left out of the snapshot** (`UNKEPT_META_KEYS`): MergeCells' `hidden` and `spanned`, because the
     switch restores the merges and a kept copy would stay on the cells of a stored merge that no longer
-    fits; and a `valid` set through `setCellMeta()`, because the invalid marks come from core's own record
-    of failed validations, so a `valid: true` cannot hide a failure.
+    fits; and `valid` as a user-defined key, because `valid` comes only from core's list of the cells whose
+    meta holds `valid: false`, whatever wrote it, so a `valid: false` is kept and a `valid: true` is dropped.
+  - **A kept key makes the source-data validators look at every cell only when it can bring a validator in.**
+    The load's `runSourceDataValidators()` runs after the meta phase, and it used to scan every cell whenever
+    any user-defined meta existed. With no column validator it now skips unless a kept key is `type` or
+    `sourceDataValidator` (`canStoredMetaAddValidator()` in `dataMap/sourceDataValidator.ts`), so a comment or a
+    `readOnly` no longer costs a per-cell pass on every switch back.
   - **Known limit:** a mark is put back as it was. A cell that becomes invalid while its sheet is hidden is
     not marked until it is validated again, because validating the whole sheet on every switch costs too
     much; the sheets bar guide says so.
   - **A duplicate takes its original's meta** (`#copyCellMeta`): the grid's when the original is shown,
-    what it left with otherwise, with each entry copied. A copy has no view state until the user leaves it,
-    so the entries wait in `#copiedCellMeta` for its first visit. A server response that replaces a hidden
+    what it left with otherwise, with each entry copied and a plain object or array value deep-cloned (a
+    class instance is shared, because a clone would lose its prototype). A copy has no view state until the
+    user leaves it, so the entries wait in `#copiedCellMeta` for its first visit, stored even when empty so the
+    copy does not take declared borders its original no longer has. A server response that replaces a hidden
     sheet's rows drops both, because they describe the old rows.
 - **A live-grid build resets the view state.** `#buildInitialWorkbook` calls `resetViewState`
   after applying the opening sheet whenever the grid's view exists — `loadData` does not clear
@@ -426,12 +438,19 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     bucket, which `getUserDefinedCellMetas()` does not read, at init or on a switch. Known gap: a hook only sheets declare, with no grid-level callback, is restored
     as `null`, which removes nothing, so it keeps running on the sheets that do not declare it. The
     opening sheet's hooks also miss the init load's own events (`afterLoadData` of the first load).
-- **Custom borders are restored with the logical sides only.** `getBorders()` records carry both
-  `start`/`end` and their legacy `left`/`right` copies (`denormalizeBorder()`), and `setBorders()`
-  throws when it gets both pairs, and on `left`/`right` alone in RTL. `restoreCustomBorders()`
-  therefore passes `top`, `bottom`, `start` and `end` only. Passing every side made the switch back
-  to any bordered sheet throw, which dropped its borders and its stored selection. Pinned by the
-  `custom borders` block in `__tests__/viewState.unit.js`.
+- **A sheet's custom borders come back as its kept `borders` cell meta, never from the view state's border
+  list.** That list (`customBorders`, captured from `getBorders()`) holds visual coordinates only, so it missed
+  a border on a row the filters hid, and replaying it through `setBorders()` after a `clearBorders()` deleted
+  that border's meta for good. Three steps keep the meta the one record. (1) On a return `#showSheet` calls
+  `clearCustomBorders()` before the load, as it clears merges: CustomBorders' `onDataReady()` writes its model
+  into the cell meta when its setting is `true`, and the departing model would land on the arriving rows. (2)
+  `#applySheet` turns a declared `customBorders` array into `true` whenever the sheet comes back with kept meta
+  (a return, or a duplicate's first visit), because the declared pass would replace the borders the user left
+  with. (3) Once the row and column order is restored (`restoreViewState`, or right after the load for a
+  duplicate's first visit), `rebuildCustomBordersFromCellMeta()` calls CustomBorders' `@private`
+  `_rebuildFromCellMeta()`, which fills the model from the meta at the cells' current visual coordinates. A
+  border on a filtered row has no visual index then and is skipped, and the plugin's own `afterFilter` rebuild
+  draws it once the filter is cleared. Pinned by the border cases in `__tests__/cellMetaRoundTrip.unit.js`.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).

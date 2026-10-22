@@ -5326,9 +5326,10 @@ export default function Core(
    * `manualRowMove` or `trimRows` array) changes during the load.
    * @param {object} [keptCellMetas] The meta set through `setCellMeta()` and the invalid marks the rows carried
    * when the caller took them away, by physical indexes, to put back in the meta phase. They are written
-   * before the cell types expand and before `afterCellMetaReset`, so a `type` comes back with its renderer
-   * and validator, and they go into core's cell meta, so undo, row and column changes and a later data load
-   * treat them as they treat any other meta.
+   * before the cell types expand, before the `cell` option (which wins on a key both set) and before
+   * `afterCellMetaReset`, so a `type` comes back with its renderer and validator, and they go into core's
+   * cell meta, so undo, row and column changes and a later data load treat them as they treat any other
+   * meta. An entry past the loaded rows or columns is dropped.
    */
   this._applySettingsAndData = function(
     settings: Partial<GridSettings>,
@@ -5775,6 +5776,24 @@ export default function Core(
   }
 
   /**
+   * Writes back the cell meta a caller kept with a set of rows (see `_applySettingsAndData()`). An entry past
+   * the loaded rows or columns is dropped: the caller's data can be shorter than when the meta was kept, and
+   * meta stored past its end would land on a row an append adds later, since an `auto` insert shifts no meta.
+   *
+   * @private
+   * @param {object} keptCellMetas The user-set meta and the invalid marks to write back.
+   */
+  function replayKeptCellMetas(keptCellMetas: KeptCellMetas): void {
+    const rowCount = instance.rowIndexMapper.getNumberOfIndexes();
+    const columnCount = instance.columnIndexMapper.getNumberOfIndexes();
+    const isLoaded = ({ physicalRow, physicalColumn }: { physicalRow: number, physicalColumn: number }) =>
+      physicalRow < rowCount && physicalColumn < columnCount;
+
+    replayCellMetas(keptCellMetas.userDefined.filter(isLoaded));
+    metaManager.restoreInvalidCellMetas(keptCellMetas.invalid.filter(isLoaded));
+  }
+
+  /**
    * Runs a write with the meta manager filing it as declarative `cell`-option meta.
    *
    * @private
@@ -6055,16 +6074,17 @@ export default function Core(
       applyColumnMeta(clen);
     }
 
+    // Before the `cell` option, for the reason `resetMetaCaches()` gives: a restated `cell` entry wins
+    // over a value the user set on the same key.
+    if (keptCellMetas !== null) {
+      replayKeptCellMetas(keptCellMetas);
+    }
+
     if (restoredCellOptionMetas !== null) {
       recordCellOptionMeta(() => replayCellMetas(restoredCellOptionMetas));
 
     } else if (isCellOptionRestated) {
       applyCellOption(settings.cell as Record<string, unknown>[]);
-    }
-
-    if (keptCellMetas !== null) {
-      replayCellMetas(keptCellMetas.userDefined);
-      metaManager.restoreInvalidCellMetas(keptCellMetas.invalid);
     }
 
     instance.runHooks('afterCellMetaReset');

@@ -70,10 +70,21 @@ export class SheetsBarCellMetaPage {
   }
 
   /**
-   * Presses "check all" in the checkbox column's header.
+   * Clicks the "check all" checkbox in the checkbox column's header.
    */
-  checkAll(): Promise<boolean> {
-    return this.page.evaluate(() => window.hot.getPlugin('checkboxHeader').setColumnChecked(0, true));
+  async checkAll(): Promise<void> {
+    await this.page.locator('.ht_clone_top input.htCheckboxHeaderInput').click();
+  }
+
+  /**
+   * The `EDITOR_TYPE` of the editor the cell opens with.
+   */
+  editorType(row: number, col: number): Promise<string | undefined> {
+    return this.page.evaluate(([r, c]) => {
+      const editor = window.hot.getCellEditor(r, c) as unknown as { EDITOR_TYPE?: string } | undefined;
+
+      return editor?.EDITOR_TYPE;
+    }, [row, col]);
   }
 
   checkboxColumn(): Promise<unknown[]> {

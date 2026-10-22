@@ -17,9 +17,11 @@ import { OverflowController } from './ui/overflow';
 import {
   captureViewState,
   clearFrozenCountShadow,
+  clearCustomBorders,
   clearMergedCells,
   FROZEN_COUNT_KEYS,
   keepSelectionOnPage,
+  rebuildCustomBordersFromCellMeta,
   resetViewState,
   resetViewport,
   restoreViewState,
@@ -31,7 +33,7 @@ import { withoutUndoEntry } from '../../utils/viewState/withoutUndoEntry';
 import * as C from '../../i18n/constants';
 import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
-import { isPlainObject } from '../../helpers/object';
+import { deepClone, isPlainObject } from '../../helpers/object';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { syncIcon } from '../../themes/engine/icons';
@@ -140,9 +142,9 @@ function applyEngineRewritesToSheetData(data: unknown[], serialized: unknown[][]
 /**
  * User-set cell meta keys a sheet does not keep when the user leaves it. `hidden` and `spanned` are
  * MergeCells' own bookkeeping, not options: the switch restores the merges, which writes them again, and a
- * kept copy would stay on the cells of a stored merge that no longer fits and is dropped. `valid` is kept
- * from core's record of the failed validations instead, so a `setCellMeta(row, col, 'valid', true)` cannot
- * hide a failure.
+ * kept copy would stay on the cells of a stored merge that no longer fits and is dropped. `valid` is read
+ * from core's own list of the cells whose meta holds `valid: false` instead, whatever wrote it, so only a
+ * `valid: false` is kept and a `valid: true` is dropped.
  */
 const UNKEPT_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
 
@@ -1978,15 +1980,20 @@ export class SheetsBar extends BasePlugin {
         resetViewState(this.hot, this.#getSwitchNeutralFrozenCounts());
       } else {
         clearMergedCells(this.hot);
+        clearCustomBorders(this.hot);
       }
+
+      const copiedCellMeta = viewState ? undefined : this.#copiedCellMeta.get(newSheet);
 
       this.#applySheet(newSheet, source, {
         restoresState: viewState !== undefined,
-        cellMeta: viewState ? viewState.cellMeta : this.#copiedCellMeta.get(newSheet),
+        cellMeta: viewState ? viewState.cellMeta : copiedCellMeta,
       });
 
       if (viewState) {
         restoreViewState(this.hot, viewState);
+      } else if (copiedCellMeta) {
+        rebuildCustomBordersFromCellMeta(this.hot);
       }
     };
 
@@ -2099,7 +2106,9 @@ export class SheetsBar extends BasePlugin {
    *
    * `cellMeta` is the cell meta the sheet's rows carried when the user left it (`#captureCellMeta`). Core
    * writes it back in the meta phase, before the cell types expand, so it is ordinary cell meta again:
-   * undo, a row or column change, and a later `loadData()` treat it as they treat any other.
+   * undo, a row or column change, and a later `loadData()` treat it as they treat any other. That meta is
+   * the record of the sheet's custom borders too, so a declared `customBorders` array is not applied again
+   * when it is given: the declared pass would replace the borders the user left with by the declared ones.
    */
   #applySheet(
     sheet: Sheet,
@@ -2115,6 +2124,10 @@ export class SheetsBar extends BasePlugin {
 
     const cellOptionMetas = cell ? (this.#cellOptionStates.get(sheet) ?? null) : null;
     const keptCellMetas = cellMeta && cellMeta.length > 0 ? SheetsBar.#toKeptCellMetas(cellMeta) : null;
+
+    if (cellMeta && Array.isArray(payload.customBorders)) {
+      payload.customBorders = true;
+    }
 
     if (payload.columnSummary && restoresState && this.#columnSummaryStates.has(sheet)) {
       payload.columnSummary = this.#columnSummaryStates.get(sheet);
@@ -2222,8 +2235,10 @@ export class SheetsBar extends BasePlugin {
   /**
    * Gives a duplicated sheet the cell meta its original carries now: the grid's when the original is shown,
    * or what it left with otherwise. The copy's data is a copy of the original's rows in the same physical
-   * order, so its first visit puts the meta back by physical index like a return does. Each entry is copied,
-   * so a later change on one sheet does not reach the other.
+   * order, so its first visit puts the meta back by physical index like a return does, borders included, and
+   * it is stored even when empty, so the copy does not take the declared borders its original no longer has.
+   * Each entry is copied, and so is a plain object or array value, so a change made in place on one sheet
+   * does not reach the other.
    *
    * @param {object} original The sheet that was duplicated.
    * @param {object} copy The duplicate.
@@ -2234,8 +2249,11 @@ export class SheetsBar extends BasePlugin {
       ? this.#captureCellMeta()
       : ((original.viewState?.cellMeta as TrackedCellMeta[] | undefined) ?? this.#copiedCellMeta.get(original));
 
-    if (entries && entries.length > 0) {
-      this.#copiedCellMeta.set(copy, entries.map(entry => ({ ...entry })));
+    if (entries) {
+      this.#copiedCellMeta.set(copy, entries.map(entry => ({
+        ...entry,
+        value: isPlainObject(entry.value) || Array.isArray(entry.value) ? deepClone(entry.value) : entry.value,
+      })));
     }
   }
 
@@ -3394,8 +3412,8 @@ export class SheetsBar extends BasePlugin {
    * Returns the cell meta the grid's rows carry now, by physical indexes, for a sheet the user is about to
    * leave: every key set through `setCellMeta()` (or put back by an undo of one), and a `valid: false` entry
    * for each cell whose last validation failed. The keys MergeCells keeps for itself (`hidden`, `spanned`) are
-   * left out, because the switch restores the merges, and so is a `valid` the user set: the invalid marks
-   * are read from core's own record of them.
+   * left out, because the switch restores the merges. `valid` comes only from core's list of the cells whose
+   * meta holds `valid: false`, so a `valid: true` is dropped.
    *
    * @returns {object[]}
    */

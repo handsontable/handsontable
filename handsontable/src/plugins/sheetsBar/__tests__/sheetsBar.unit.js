@@ -710,7 +710,7 @@ describe('SheetsBar plugin', () => {
     expect(hot.getSelected()).toEqual([[1, 1, 1, 1]]);
   });
 
-  it('keeps one tracked entry per cell property however often it is written', () => {
+  it('keeps one entry per cell property however often it is written', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       licenseKey: 'non-commercial-and-evaluation',
@@ -730,7 +730,7 @@ describe('SheetsBar plugin', () => {
     expect(captured.cellMeta).toEqual([{ row: 0, col: 0, key: 'className', value: 'odd' }]);
   });
 
-  it('keeps a failed validation mark and drops a passed one', () => {
+  it('keeps a `valid: false` and drops a `valid: true` the user set', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a', 'b']] }, { name: 'B', data: [['b']] }] },
       licenseKey: 'non-commercial-and-evaluation',
@@ -758,10 +758,10 @@ describe('SheetsBar plugin', () => {
 
     expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
     expect(hot.getCellMeta(0, 0).valid).toBe(false);
-    expect(hot.getCellMeta(0, 1).valid).not.toBe(true);
+    expect(hot.getCellMeta(0, 1).valid).toBeUndefined();
   });
 
-  it('stops serving a tracked property once removeCellMeta drops it', () => {
+  it('does not bring back a property removeCellMeta dropped', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       licenseKey: 'non-commercial-and-evaluation',
@@ -869,7 +869,7 @@ describe('SheetsBar plugin', () => {
     ]);
   });
 
-  it('serves tracked meta lazily through the meta-read path after a round trip', () => {
+  it('brings the kept meta back to every cell after a round trip, far off screen included', () => {
     const data = Array.from({ length: 200 }, (_, r) => [`a${r}`, `b${r}`]);
 
     hot = new Handsontable(container, {
@@ -883,18 +883,15 @@ describe('SheetsBar plugin', () => {
     sheetsBar.setActiveSheet('B');
     sheetsBar.setActiveSheet('A');
 
-    // Nothing was replayed eagerly on the switch; the answers come from the meta-read path
-    // the moment each cell is asked about — the far-off-screen cell included, so a paste or
-    // an editor reaching it gets the same verdict the renderer would.
     expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
     expect(hot.getCellMeta(150, 1).className).toBe('marked');
     expect(hot.getCellMetaTransient(150, 1).className).toBe('marked');
     expect(hot.getCellMeta(1, 0).readOnly).not.toBe(true);
   });
 
-  describe('tracked cell meta across structural changes', () => {
+  describe('kept cell meta across structural changes', () => {
     /**
-     * Creates a two-sheet grid whose first sheet is `rows` x `cols`, with `readOnly` tracked on
+     * Creates a two-sheet grid whose first sheet is `rows` x `cols`, with `readOnly` set on
      * the given visual cells.
      *
      * @param {number} rows The number of rows on the first sheet.
@@ -935,8 +932,8 @@ describe('SheetsBar plugin', () => {
     }
 
     /**
-     * Switches away from the first sheet and back, so the tracked meta is captured and served
-     * again from the sheet's view state.
+     * Switches away from the first sheet and back, so the meta is kept in the sheet's view state and
+     * written back with its rows.
      *
      * @param {Handsontable} instance The grid to switch.
      */
@@ -945,7 +942,7 @@ describe('SheetsBar plugin', () => {
       instance.getPlugin('sheetsBar').setActiveSheet('A');
     }
 
-    it('moves a tracked property up with its cell when a row above it is removed', () => {
+    it('moves a property up with its cell when a row above it is removed', () => {
       hot = createGridWithReadOnlyCells(8, 2, [[5, 0]]);
 
       hot.alter('remove_row', 0);
@@ -957,7 +954,7 @@ describe('SheetsBar plugin', () => {
       expect(getReadOnlyCellValues(hot)).toEqual(['5:0']);
     });
 
-    it('drops the tracked properties of a removed row', () => {
+    it('drops the properties of a removed row', () => {
       hot = createGridWithReadOnlyCells(8, 2, [[2, 0], [5, 1]]);
       const sheetId = hot.getPlugin('sheetsBar').getSheets()[0].id;
       let captured = null;
@@ -978,7 +975,7 @@ describe('SheetsBar plugin', () => {
       expect(getReadOnlyCellValues(hot)).toEqual(['5:1']);
     });
 
-    it('re-keys tracked properties across a non-contiguous row removal', () => {
+    it('keeps properties on their cells across a non-contiguous row removal', () => {
       hot = createGridWithReadOnlyCells(10, 1, [[1, 0], [4, 0], [6, 0], [9, 0]]);
 
       hot.alter('remove_row', [[0, 1], [3, 2], [7, 1]]);
@@ -990,7 +987,7 @@ describe('SheetsBar plugin', () => {
       expect(getReadOnlyCellValues(hot)).toEqual(['1:0', '6:0', '9:0']);
     });
 
-    it('moves a tracked property down with its cell when rows are inserted above it', () => {
+    it('moves a property down with its cell when rows are inserted above it', () => {
       hot = createGridWithReadOnlyCells(8, 2, [[1, 0], [5, 1]]);
 
       hot.alter('insert_row_above', 3, 2);
@@ -1003,7 +1000,7 @@ describe('SheetsBar plugin', () => {
       expect(getReadOnlyCellValues(hot)).toEqual(['1:0', '5:1']);
     });
 
-    it('keeps a tracked property on its cell when a row is inserted below it', () => {
+    it('keeps a property on its cell when a row is inserted below it', () => {
       hot = createGridWithReadOnlyCells(8, 1, [[3, 0]]);
 
       hot.alter('insert_row_below', 3);
@@ -1012,7 +1009,7 @@ describe('SheetsBar plugin', () => {
       expect(hot.getCellMeta(3, 0).readOnly).toBe(true);
     });
 
-    it('moves a tracked property left with its cell when a column before it is removed', () => {
+    it('moves a property left with its cell when a column before it is removed', () => {
       hot = createGridWithReadOnlyCells(3, 5, [[1, 3]]);
 
       hot.alter('remove_col', 0);
@@ -1024,7 +1021,7 @@ describe('SheetsBar plugin', () => {
       expect(getReadOnlyCellValues(hot)).toEqual(['1:3']);
     });
 
-    it('drops the tracked properties of a removed column', () => {
+    it('drops the properties of a removed column', () => {
       hot = createGridWithReadOnlyCells(3, 5, [[0, 1], [2, 3]]);
 
       hot.alter('remove_col', 1);
@@ -1036,7 +1033,7 @@ describe('SheetsBar plugin', () => {
       expect(getReadOnlyCellValues(hot)).toEqual(['2:3']);
     });
 
-    it('moves a tracked property right with its cell when columns are inserted before it', () => {
+    it('moves a property right with its cell when columns are inserted before it', () => {
       hot = createGridWithReadOnlyCells(3, 5, [[1, 2]]);
 
       hot.alter('insert_col_start', 0, 2);
@@ -1049,7 +1046,7 @@ describe('SheetsBar plugin', () => {
       expect(getReadOnlyCellValues(hot)).toEqual(['1:2']);
     });
 
-    it('keeps a tracked property on its cell when a column is inserted after it', () => {
+    it('keeps a property on its cell when a column is inserted after it', () => {
       hot = createGridWithReadOnlyCells(3, 5, [[1, 2]]);
 
       hot.alter('insert_col_end', 2);
@@ -1058,7 +1055,7 @@ describe('SheetsBar plugin', () => {
       expect(hot.getCellMeta(1, 2).readOnly).toBe(true);
     });
 
-    it('does not re-key the arriving sheet for the `auto` rows the switch creates', () => {
+    it('does not shift the arriving sheet\'s meta for the `auto` rows the switch creates', () => {
       const tallData = Array.from({ length: 30 }, (_, r) => [`a${r}`]);
       const shortData = Array.from({ length: 5 }, (_, r) => [`b${r}`]);
       const paddedData = Array.from({ length: 8 }, (_, r) => [`c${r}`]);
@@ -1109,7 +1106,7 @@ describe('SheetsBar plugin', () => {
       expect(hot.getCellMeta(2, 0).readOnly).toBe(true);
     });
 
-    it('forgets the tracked properties when the host loads a new dataset', () => {
+    it('forgets the properties when the host loads a new dataset', () => {
       hot = createGridWithReadOnlyCells(4, 2, [[1, 0]]);
 
       hot.loadData([['n0', 'n0'], ['n1', 'n1'], ['n2', 'n2']]);
@@ -1121,7 +1118,7 @@ describe('SheetsBar plugin', () => {
       expect(getReadOnlyCellValues(hot)).toEqual([]);
     });
 
-    it('keeps the tracked properties when the host updates the dataset in place', () => {
+    it('keeps the properties when the host updates the dataset in place', () => {
       hot = createGridWithReadOnlyCells(4, 2, [[1, 0]]);
 
       hot.updateData([['u0', 'u0'], ['u1', 'u1'], ['u2', 'u2']]);
@@ -4807,7 +4804,7 @@ describe('SheetsBar plugin', () => {
     expect(hot.getDataAtCell(0, 0)).toBe('c');
   });
 
-  it('does not replay cell meta tracked before a workbook rebuild', () => {
+  it('does not replay cell meta set before a workbook rebuild', () => {
     hot = new Handsontable(container, {
       data: [['a']],
       sheetsBar: true,

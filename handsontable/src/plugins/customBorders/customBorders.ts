@@ -615,6 +615,18 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
+   * Rebuilds the border model from the `borders` cell meta at the cells' current visual coordinates. The
+   * sheets bar calls it when a sheet comes back: core writes the sheet's kept cell meta back with its rows,
+   * so the meta holds the sheet's borders, a border on a row the filters hide included, and the model is
+   * filled in from it once the sheet's row and column order is restored.
+   *
+   * @private
+   */
+  _rebuildFromCellMeta(): void {
+    this.#rebuildModelFromMeta();
+  }
+
+  /**
    * The state is a version only. The borders live in the `borders` cell meta, and UndoRedo reads the
    * columns a step changed from its journal.
    *

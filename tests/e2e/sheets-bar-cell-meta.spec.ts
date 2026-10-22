@@ -28,6 +28,7 @@ test.describe('SheetsBar keeps the cell meta of a sheet across a round trip', { 
     await grid.roundTrip();
 
     await expect(grid.cell(1, 2)).toHaveClass(/\bhtNumeric\b/);
+    expect(await grid.editorType(1, 2)).toBe('numeric');
     expect(await grid.validateAndRead(0, 2)).toBe(false);
     expect(await grid.validateAndRead(1, 2)).toBe(true);
   });
@@ -39,7 +40,8 @@ test.describe('SheetsBar keeps the cell meta of a sheet across a round trip', { 
 
     await grid.roundTrip();
 
-    expect(await grid.checkAll()).toBe(true);
-    expect(await grid.checkboxColumn()).toEqual([true, true, false, false, true]);
+    await grid.checkAll();
+
+    await expect.poll(() => grid.checkboxColumn()).toEqual([true, true, false, false, true]);
   });
 });

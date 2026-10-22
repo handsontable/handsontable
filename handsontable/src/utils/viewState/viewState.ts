@@ -929,35 +929,25 @@ function restoreMergedCells(hot: HotInstance, state: ViewState) {
 }
 
 /**
- * The keys of a saved border record that describe its sides. The record also carries its
- * position and id, which `setBorders()` does not take, and the legacy `left`/`right` copies of
- * `start`/`end`, which `setBorders()` rejects next to them (and rejects outright in RTL).
+ * Restores custom borders from the `borders` cell meta, which is the record of a sheet's borders: the sheets
+ * bar keeps it with the sheet's other cell meta and core writes it back with the rows. The border list the
+ * view state captures (`customBorders`) is not replayed, because it holds visual coordinates only and so
+ * misses a border on a row the filters hide. Runs after the row and column order is restored, since the
+ * model keeps visual coordinates.
  */
-const BORDER_SIDES = ['top', 'bottom', 'start', 'end'];
+export function rebuildCustomBordersFromCellMeta(hot: HotInstance): void {
+  (getEnabledPlugin(hot, 'customBorders') as { _rebuildFromCellMeta: () => void } | undefined)
+    ?._rebuildFromCellMeta();
+}
 
 /**
- * Restores custom borders, clearing the current set first.
+ * Removes every custom border, from the model and from the cell meta. The sheets bar runs it before a sheet
+ * comes back, while the grid still holds the departing sheet's rows: the arriving sheet's borders come back
+ * as its kept cell meta, and a departing border left in the model would be written onto the arriving rows
+ * when CustomBorders applies its settings.
  */
-function restoreCustomBorders(hot: HotInstance, state: ViewState) {
-  const customBorders = getEnabledPlugin(hot, 'customBorders') as
-    {
-      clearBorders: () => void,
-      setBorders: (ranges: unknown[], borderObject?: Record<string, unknown>) => void,
-    } | undefined;
-
-  if (!customBorders) {
-    return;
-  }
-
-  customBorders.clearBorders();
-  state.customBorders.forEach((border) => {
-    const { row, col } = border as { row: number, col: number };
-    const sides = Object.fromEntries(
-      BORDER_SIDES.filter(side => side in border).map(side => [side, border[side]]),
-    );
-
-    customBorders.setBorders([[row, col, row, col]], sides);
-  });
+export function clearCustomBorders(hot: HotInstance): void {
+  (getEnabledPlugin(hot, 'customBorders') as { clearBorders: () => void } | undefined)?.clearBorders();
 }
 
 /**
@@ -1018,7 +1008,7 @@ export function restoreViewState(
     }
 
     if (covers('customBorders')) {
-      restoreCustomBorders(hot, state);
+      rebuildCustomBordersFromCellMeta(hot);
     }
   });
 
@@ -1293,7 +1283,7 @@ export function resetViewState(hot: HotInstance, neutral: NeutralFrozenCounts = 
     restoreTrimmedState(hot, state);
     restoreHiddenState(hot, state);
     clearManualSizes(hot);
-    restoreCustomBorders(hot, state);
+    clearCustomBorders(hot);
   });
 
   hot.render();

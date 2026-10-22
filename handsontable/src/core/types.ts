@@ -43,8 +43,8 @@ export interface CellOptionMetaEntry {
 
 /**
  * The cell meta a caller took away with a set of rows and brings back with them, addressed by physical
- * indexes: the keys set through `setCellMeta()` (or an undo of one), and the cells whose last validation
- * failed, which the validation flow marks without `setCellMeta()`.
+ * indexes: the keys set through `setCellMeta()` (or an undo of one), and the cells whose meta holds
+ * `valid: false`, which the validation flow writes without `setCellMeta()`.
  */
 export interface KeptCellMetas {
   userDefined: CellOptionMetaEntry[];
