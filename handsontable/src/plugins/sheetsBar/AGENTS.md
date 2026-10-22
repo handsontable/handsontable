@@ -120,7 +120,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   rewritten text is copied into the inactive sheets' data (`#syncInactiveSheetsFromEngine()`):
   HyperFormula moves `=Data!A5` to `=Data!A6` inside itself, and the Formulas plugin writes the
   new text back only for the grids it knows. Only a sheet the engine holds in physical order is
-  copied cell by cell. A removed sheet is removed
+  copied cell by cell. Every engine call the bar makes itself (add, feed, remove, the copied
+  named expressions) runs through `#withEngineRepaint()`, which collects the engine's
+  `valuesUpdated` changes and repaints the grids that read them (`Formulas#renderDependentSheets()`):
+  the Formulas plugin repaints only after its own engine calls, so a formula reading a sheet the bar
+  removed kept painting its old value. It repaints only while the bar's grid is bound to that
+  engine. A removed sheet is removed
   from the engine; a duplicate binds to an engine sheet of its own, with its references to its
   own sheet name pointed at the copy and the original's sheet-scoped named expressions copied
   before its content is fed (`#registerFormulaCopy()`); a runtime-added sheet with

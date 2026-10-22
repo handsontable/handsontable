@@ -209,6 +209,47 @@ describe('SheetsBar formula sheets', () => {
     });
   });
 
+  describe('remove and add', () => {
+    it('repaints a formula that reads a sheet removed and added again', () => {
+      const engine = buildEngine();
+
+      hot = build([boundSheet(engine, 'Summary', [['=Prices!A1']]), boundSheet(engine, 'Prices', [[99]])]);
+
+      expect(hot.getCell(0, 0).textContent).toBe('99');
+
+      sheetsBar().removeSheet(idOf('Prices'));
+
+      expect(hot.getCell(0, 0).textContent).toBe('#REF!');
+
+      sheetsBar().addSheet('Prices', [[7]]);
+
+      expect(hot.getCell(0, 0).textContent).toBe('7');
+    });
+
+    it('repaints another grid on the same engine that reads the removed sheet', () => {
+      const engine = buildEngine();
+      const otherContainer = document.createElement('div');
+
+      document.body.appendChild(otherContainer);
+      hot = build([boundSheet(engine, 'Summary', [[1]]), boundSheet(engine, 'Prices', [[99]])]);
+
+      const other = new Handsontable(otherContainer, {
+        data: [['=Prices!A1']],
+        formulas: { engine, sheetName: 'Report' },
+        licenseKey: LICENSE_KEY,
+      });
+
+      expect(other.getCell(0, 0).textContent).toBe('99');
+
+      sheetsBar().removeSheet(idOf('Prices'));
+
+      expect(other.getCell(0, 0).textContent).toBe('#REF!');
+
+      other.destroy();
+      otherContainer.remove();
+    });
+  });
+
   describe('engine binding', () => {
     it('registers a sheet of object rows bound to the shared engine', () => {
       const engine = buildEngine();

@@ -361,6 +361,8 @@ interface SheetFormulas {
     getNamedExpressionFormula?: (name: string, scope?: number) => string | undefined;
     getNamedExpressionValue?: (name: string, scope?: number) => unknown;
     addNamedExpression?: (name: string, expression: unknown, scope?: number, options?: unknown) => void;
+    on?: (event: string, listener: (changes: unknown[]) => void) => void;
+    off?: (event: string, listener: (changes: unknown[]) => void) => void;
   };
   sheetName?: string;
 }
@@ -3241,7 +3243,21 @@ export class SheetsBar extends BasePlugin {
     }
 
     const engine = formulas.engine!;
-    let engineName = formulas.sheetName;
+
+    this.#withEngineRepaint(engine, () => this.#feedFormulaSheet(sheet, formulas, engine, feed, beforeFeed));
+  }
+
+  /**
+   * Adds the sheet to `engine` when the engine does not hold it yet, and feeds it the sheet's data.
+   */
+  #feedFormulaSheet(
+    sheet: Sheet,
+    formulas: SheetFormulas,
+    engine: NonNullable<SheetFormulas['engine']>,
+    feed: boolean,
+    beforeFeed?: (sheetId: number) => void,
+  ) {
+    let engineName = formulas.sheetName!;
 
     if (!engine.doesSheetExist!(engineName)) {
       // The engine may normalize the name it is asked for — two tabs the model tells apart can
@@ -3328,7 +3344,39 @@ export class SheetsBar extends BasePlugin {
     const sheetId = engine!.getSheetId!(formulas.sheetName);
 
     if (typeof sheetId === 'number') {
-      engine!.removeSheet!(sheetId);
+      this.#withEngineRepaint(engine!, () => engine!.removeSheet!(sheetId));
+    }
+  }
+
+  /**
+   * Runs an engine call the bar makes itself and repaints every grid on that engine whose sheet it
+   * recalculated. The Formulas plugin repaints only after the engine calls it makes, so a formula
+   * reading a sheet the bar removed or added kept painting its old value while `getDataAtCell()`
+   * already returned the new one. The changes are read from the engine's `valuesUpdated` event, which
+   * also reports the recalculation an added sheet triggers. The grids are repainted through the
+   * Formulas plugin of the bar's grid, so only while it is bound to the same engine.
+   *
+   * @param {object} engine The engine.
+   * @param {Function} run The engine call.
+   */
+  #withEngineRepaint(engine: NonNullable<SheetFormulas['engine']>, run: () => void) {
+    let changes: unknown[] = [];
+    const collect = (updated: unknown[]) => {
+      changes = changes.concat(updated);
+    };
+
+    engine.on?.('valuesUpdated', collect);
+
+    try {
+      run();
+    } finally {
+      engine.off?.('valuesUpdated', collect);
+    }
+
+    const formulas = this.hot.getPlugin('formulas');
+
+    if (changes.length > 0 && this.hot.view && formulas?.enabled && formulas.engine === engine) {
+      formulas.renderDependentSheets(changes, true);
     }
   }
 
