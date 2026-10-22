@@ -301,4 +301,112 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(plugin.getActiveFormulaCell()).toBeNull();
     });
   });
+
+  describe('the plain textarea of a `formula` cell while the plugin is off', () => {
+    /**
+     * Builds a grid whose FormulaBuilder plugin stays disabled (no `builder` module).
+     *
+     * @returns {Handsontable}
+     */
+    function createDisabledGrid(): Handsontable {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      createGrid({ formulaBuilder: {} });
+      warn.mockRestore();
+
+      expect(hot.getPlugin('formulaBuilder').enabled).toBe(false);
+
+      return hot;
+    }
+
+    /**
+     * Returns the fallback textarea of the open editor.
+     *
+     * @returns {HTMLTextAreaElement}
+     */
+    function fallbackTextarea(): HTMLTextAreaElement {
+      const textarea = container.querySelector<HTMLTextAreaElement>('.ht-formula-builder__inline-editor > textarea');
+
+      if (!textarea) {
+        throw new Error('no fallback textarea');
+      }
+
+      return textarea;
+    }
+
+    it('starts empty when typing opened it, so the typed character replaces the value', () => {
+      createDisabledGrid();
+      hot.selectCell(1, 1);
+      hot._getEditorManager().openEditor('', new KeyboardEvent('keydown', { key: 'x' }));
+
+      expect(fallbackTextarea().value).toBe('');
+    });
+
+    it('starts with the cell value when Enter opened it', () => {
+      createDisabledGrid();
+      hot.selectCell(1, 1);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+
+      expect(fallbackTextarea().value).toBe('B2');
+    });
+
+    it('is styled as the grid\'s text editor, and only while it is mounted', () => {
+      createDisabledGrid();
+      hot.selectCell(1, 1);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+
+      const holder = fallbackTextarea().closest('.handsontableInputHolder');
+
+      expect(holder).not.toBeNull();
+
+      hot._getEditorManager().closeEditor(true);
+
+      expect(holder?.classList.contains('handsontableInputHolder')).toBe(false);
+    });
+  });
+
+  describe('keys the formula editor does not handle', () => {
+    /**
+     * Returns the formula editor's text input.
+     *
+     * @returns {HTMLTextAreaElement}
+     */
+    function formulaInput(): HTMLTextAreaElement {
+      const input = container.querySelector<HTMLTextAreaElement>('.ht-formula-builder__inline-editor textarea');
+
+      if (!input) {
+        throw new Error('no formula editor input');
+      }
+
+      return input;
+    }
+
+    it('reach the grid, so `beforeKeyDown` fires', () => {
+      const beforeKeyDown = jest.fn();
+
+      createGrid({ beforeKeyDown });
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 }, 'abc');
+      beforeKeyDown.mockClear();
+      formulaInput().dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true }));
+
+      expect(beforeKeyDown).toHaveBeenCalledTimes(1);
+    });
+
+    it('stop at the editor when the formula editor handled them', () => {
+      const beforeKeyDown = jest.fn();
+
+      createGrid({ beforeKeyDown });
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 }, 'abc');
+      beforeKeyDown.mockClear();
+
+      const enter = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+
+      formulaInput().dispatchEvent(enter);
+
+      expect(enter.defaultPrevented).toBe(true);
+      expect(beforeKeyDown).not.toHaveBeenCalled();
+    });
+  });
 });

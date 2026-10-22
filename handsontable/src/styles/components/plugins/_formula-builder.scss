@@ -145,6 +145,15 @@ $reference-palette: (
     height: 100%;
   }
 
+  /* The plain textarea a `formula` cell opens while the plugin is off. Its container carries the text
+     editor's holder class, which styles it; it fills the cell like the text editor's textarea. */
+  .handsontable .ht-formula-builder__inline-editor > .handsontableInput {
+    width: 100%;
+    height: 100%;
+    resize: none;
+    overflow: hidden;
+  }
+
   .handsontable .ht-formula-builder__inline-editor .hfe-editor {
     box-shadow: none;
 

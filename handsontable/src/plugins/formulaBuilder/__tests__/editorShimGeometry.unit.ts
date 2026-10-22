@@ -191,7 +191,8 @@ describe('formula editor shim focus and value delegation', () => {
     editor.setValue(null);
 
     expect(activeEditor.setValue.mock.calls).toEqual([['42'], ['']]);
-    expect(editor._pending).toBeUndefined();
+    // `_pending` mirrors the last value, for the plain-textarea fallback.
+    expect(editor._pending).toBe('');
   });
 
   it('setValue() keeps the value pending while no core editor is live', () => {

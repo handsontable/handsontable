@@ -422,6 +422,8 @@ describe('plain-textarea fallback for a disabled or missing plugin', () => {
     const { editor } = buildEditor({ enabled: false });
 
     editor._original = '=B2*C2';
+    editor._pending = '=B2*C2';
+    editor.enableFullEditMode();
     editor.open();
 
     const fallback = editor.input.querySelector('textarea');
@@ -545,7 +547,14 @@ describe('keyboard guard lifecycle', () => {
    * @param {string} type The event type.
    */
   function press(editor: GuardEditor, type = 'keydown'): void {
-    editor.input.dispatchEvent(new KeyboardEvent(type, { key: 'Enter', bubbles: true }));
+    const event = new KeyboardEvent(type, { key: 'Enter', bubbles: true, cancelable: true });
+
+    // The formula editor handled the key: its own listener, below the wrapper, prevented the default.
+    if (type === 'keydown') {
+      event.preventDefault();
+    }
+
+    editor.input.dispatchEvent(event);
   }
 
   /**

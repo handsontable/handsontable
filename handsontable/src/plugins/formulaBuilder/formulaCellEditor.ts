@@ -3,12 +3,17 @@ import { EDITOR_STATE } from '../../editors/baseEditor';
 import { getEditor, hasEditor, registerEditor } from '../../editors/registry';
 import EventManager from '../../eventManager';
 import { warn } from '../../helpers/console';
-import { addClass, removeClass } from '../../helpers/dom/element';
+import { addClass, isHTMLElement, removeClass } from '../../helpers/dom/element';
 import type { FormulaEditorHandle } from './types';
 
 export const FORMULA_EDITOR_ALIAS = 'formula';
 export const EDITING_CELL_CLASS = 'ht-formula-builder__editing-cell';
 export const INLINE_EDITOR_CLASS = 'ht-formula-builder__inline-editor';
+/**
+ * The class the grid's text editor puts on its container. The plain-textarea fallback carries it while
+ * mounted, so the textarea is styled like the text editor's (the rules are scoped to this class).
+ */
+const TEXT_EDITOR_HOLDER_CLASS = 'handsontableInputHolder';
 
 /**
  * Marks every editor class `createFormulaCellEditor()` builds, so a copy built by another bundle on the
@@ -172,15 +177,19 @@ function resolvePlugin(editor: unknown): FormulaEditorPluginSurface | null {
  *
  * @param {object} editor The editor instance.
  */
-function mountFallbackTextarea(editor: FormulaHostEditor & EditorHost): void {
+function mountFallbackTextarea(editor: FormulaHostEditor & EditorHost & { container: HTMLElement }): void {
   const textarea = editor.hot.rootDocument.createElement('textarea');
 
   textarea.className = 'handsontableInput';
-  textarea.value = editor._original ?? '';
+  // The same seed the formula editor gets: the cell value for Enter or F2, and an empty string when
+  // typing opened the editor, so the typed character lands in an empty textarea.
+  textarea.value = resolveInlineSeed(editor as SeedSourceEditor);
   editor.input.replaceChildren(textarea);
   editor._fallbackInput = textarea;
+  addClass(editor.container, TEXT_EDITOR_HOLDER_CLASS);
   editor.refreshDimensions?.(true);
   textarea.focus();
+  textarea.setSelectionRange(textarea.value.length, textarea.value.length);
 }
 
 /**
@@ -192,8 +201,9 @@ interface SeedSourceEditor {
 }
 
 /**
- * Returns the printable-key seed for an inline edit session: the pending value
- * in fast-edit mode (typing started the edit), empty otherwise (Enter/F2 opened it).
+ * Returns the seed for an inline edit session: the cell value in full-edit mode (Enter or F2 opened
+ * the editor), and an empty string in fast-edit mode (typing opened it, and the typed character
+ * follows).
  *
  * @param {SeedSourceEditor} editor The editor instance.
  * @returns {string}
@@ -232,7 +242,8 @@ interface ScrollAwareEditor extends FormulaHostEditor {
  */
 function applyContentEdgeWidth(editor: ScrollAwareEditor, editedCell: HTMLElement): void {
   const holderCandidate = editor.hot.view?.getOverlayByName('top')?.holder;
-  const holder = holderCandidate instanceof HTMLElement ? holderCandidate : null;
+  // `isHTMLElement()`: a grid in an iframe has elements of its own realm, which `instanceof` rejects.
+  const holder = isHTMLElement(holderCandidate) ? holderCandidate : null;
 
   if (!holder) {
     editor.input.style.removeProperty('--hfe-editor-max-width');
@@ -309,8 +320,11 @@ function refreshFormulaEditorDimensions(
 }
 
 /**
- * Starts the keyboard guard of an edit session: the keys typed into the formula editor stop at
- * its wrapper, so the grid's document-level shortcut recorder never handles them a second time.
+ * Starts the keyboard guard of an edit session: a key the formula editor handled (it calls
+ * `preventDefault()` on it: Enter, Tab, Escape, the point-mode arrows, ...) stops at its wrapper, so
+ * the grid's document-level shortcut recorder never handles it a second time. Every other key goes on
+ * to the grid, the way it does from the grid's own editors: `beforeKeyDown` and
+ * `afterDocumentKeyDown` fire, and an arrow key commits a quick edit and moves the selection.
  *
  * @param {FormulaHostEditor} editor The editor instance.
  */
@@ -324,11 +338,24 @@ function startKeyboardGuard(editor: FormulaHostEditor): void {
   // itself would, one task after its session closed, also strip the guard of a session that
   // reopened in the meantime.
   const guard = new EventManager({});
-  const stop = (event: Event) => event.stopPropagation();
+  // The key of the last `keydown` that was stopped; its `keypress` and `keyup` are stopped too.
+  let stoppedKey: string | null = null;
+  const stopHandledKeyDown = (event: KeyboardEvent) => {
+    stoppedKey = event.defaultPrevented ? event.key : null;
 
-  guard.addEventListener(editor.input, 'keydown', stop);
-  guard.addEventListener(editor.input, 'keyup', stop);
-  guard.addEventListener(editor.input, 'keypress', stop);
+    if (stoppedKey !== null) {
+      event.stopPropagation();
+    }
+  };
+  const stopFollowUp = (event: KeyboardEvent) => {
+    if (event.key === stoppedKey) {
+      event.stopPropagation();
+    }
+  };
+
+  guard.addEventListener(editor.input, 'keydown', stopHandledKeyDown);
+  guard.addEventListener(editor.input, 'keyup', stopFollowUp);
+  guard.addEventListener(editor.input, 'keypress', stopFollowUp);
   editor._keyboardGuard = guard;
 }
 
@@ -368,6 +395,7 @@ export function createFormulaCellEditor(): BaseEditorCtor {
       const plugin = resolvePlugin(editor);
 
       editor._fallbackInput = undefined;
+      removeClass(editor.container, TEXT_EDITOR_HOLDER_CLASS);
       editor.input.replaceChildren();
 
       if (
@@ -412,11 +440,13 @@ export function createFormulaCellEditor(): BaseEditorCtor {
       const stringValue = value === null || value === undefined ? '' : String(value);
       const inner = resolvePlugin(editor)?.getActiveEditor();
 
-      if (inner) {
+      if (editor._fallbackInput) {
+        editor._fallbackInput.value = stringValue;
+      } else if (inner) {
         inner.setValue(stringValue);
-      } else {
-        editor._pending = stringValue;
       }
+
+      editor._pending = stringValue;
     },
     afterClose(editor) {
       const guard = editor._keyboardGuard;
@@ -434,6 +464,7 @@ export function createFormulaCellEditor(): BaseEditorCtor {
       }
 
       editor._fallbackInput = undefined;
+      removeClass(editor.container, TEXT_EDITOR_HOLDER_CLASS);
       editor.input.replaceChildren();
       resolvePlugin(editor)?.handleInlineEditClose();
     },
