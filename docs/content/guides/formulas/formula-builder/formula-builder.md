@@ -353,7 +353,7 @@ formulaBuilder: {
 
 ## Reference colors
 
-The colors of the references and of their highlights, and the color of error text, come from CSS custom properties: `--hfe-ref-1` to `--hfe-ref-8` (the reference colors, in the order references appear in a formula) and `--hfe-color-error`. The theme declares them on the grid's root element, the formula bar (`.hfe-formula-bar`), and the popup portal (`.hfe-popup-portal`), so a value declared on an ancestor, such as the grid's container, does not reach them. Declare your values on the same elements, with a selector at least as specific as the theme's:
+The colors of the references and of their highlights, and the color of error text, come from CSS custom properties: `--hfe-ref-1` to `--hfe-ref-8` (the reference colors, in the order references appear in a formula) and `--hfe-color-error`. The default reference colors clear a 4.5:1 contrast ratio on the editor's light and dark backgrounds, and no two of them look alike. The theme declares `--hfe-color-error` on the grid's root element, the formula bar (`.hfe-formula-bar`), and the popup portal (`.hfe-popup-portal`). Declare your values on the same elements, because the popup portal is not inside the grid's container:
 
 ```css
 .handsontable,
@@ -366,6 +366,10 @@ The colors of the references and of their highlights, and the color of error tex
 
 Keep the contrast of each color at 4.5:1 or more against the editor background, because the colors are used for text.
 
+## Language
+
+The accessible names of the formula bar and the editor, the autocomplete hints, and the screen reader announcements follow the grid's [`language`](@/api/options.md#language) setting, and change with it.
+
 ## Keyboard shortcuts
 
 The formula editor handles these keys while you edit a cell, either in place or in the formula bar:
@@ -376,7 +380,8 @@ The formula editor handles these keys while you edit a cell, either in place or 
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Commit the edit and move the selection the opposite way. |
 | <kbd>**Tab**</kbd> | <kbd>**Tab**</kbd> | Commit the edit and move the selection to the next cell, as set by [`tabMoves`](@/api/options.md#tabmoves): right by default, left in a right-to-left grid. With the autocomplete popup open, insert the highlighted suggestion. |
 | <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | Commit the edit and move the selection to the previous cell. |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break in the formula. Unlike in the grid's other editors, it does not fill the selected cells with the value. |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Commit the edit to every selected cell, as in the grid's other editors. The selection stays where it is. |
+| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌥</kbd>+<kbd>**Enter**</kbd> | Insert a line break in the formula. |
 | <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | Close the open popup. With no popup open, leave point mode, or cancel the edit. The selection stays as it is. |
 | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | With the autocomplete popup open, move through the suggestions. |
 | Arrow keys | Arrow keys | In a value you started by typing (not a formula with a reference valid at the caret), commit the edit and move the selection, as in the grid's other editors. |
@@ -399,10 +404,7 @@ The arrow-key shortcuts of [keyboard point mode](#keyboard-point-mode) work in a
 - The plugin requires the `Formulas` plugin with a HyperFormula engine. It does not work with other formula engines.
 - The plugin operates on the sheet bound to the grid instance. Cross-sheet formula editing works, but reference picking targets the current grid only.
 - The `hyperformula-ui` package ships separately from Handsontable. You install it yourself, and you pass it to the plugin through the `builder` setting.
-- The accessible names of the formula bar and the editor, and the screen reader announcements, are in English. The `hyperformula-ui` package has no option to translate them yet.
-- The popups and their screen reader announcements render at the end of the document body, outside the grid's root element. In a grid inside a shadow root or an iframe, they render in the top-level document.
-- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd> inserts a line break in the formula editor. It does not fill the selected cells, as it does in the grid's other editors.
-- The formula bar shows a named expression, such as `TaxRate`, as plain text. In the cell editor, it is colored like a reference, so the references after it can get a different color in the formula bar.
+- In a grid that is not inside a shadow root, the popups and their screen reader announcements render at the end of the document body, outside the grid's root element.
 
 ## Result
 
