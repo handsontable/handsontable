@@ -245,12 +245,12 @@ $reference-palette: (
   }
 
   /* hyperformula-ui sets `color-scheme: light dark` on every element whose class contains "hfe-",
-     so its `light-dark()` colors follow the operating system instead of the grid's theme. Its roots
-     and their descendants inherit the scheme of the theme instead. The roots are matched by class;
-     the descendants still need the attribute test, because the package sets the scheme on each of
-     them, but only inside a package root. */
-  :is(.hfe-editor, .hfe-formula-bar, .hfe-popup-portal, .hfe-suggestions, .hfe-fn-help),
-  :is(.hfe-editor, .hfe-formula-bar, .hfe-popup-portal, .hfe-suggestions, .hfe-fn-help) [class*="hfe-"] {
+     so its `light-dark()` colors follow the operating system instead of the grid's theme. The package
+     roots that carry the theme class (the formula bar, the popup portal, a hosted popup) get the
+     theme's own scheme from it, so only the elements inside a root or inside the grid inherit: the
+     roots must stay out of this rule, which would tie with the theme class and win. The descendants
+     still need the attribute test, because the package sets the scheme on each of them. */
+  :is(.handsontable, .hfe-formula-bar, .hfe-popup-portal, .hfe-suggestions, .hfe-fn-help) [class*="hfe-"] {
     color-scheme: inherit;
   }
 }
