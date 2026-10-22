@@ -1993,6 +1993,14 @@ export default function Core(
         // `alter('remove_row', ...)` and then `Filters#filter()` - discard the stranded edit
         // instead of committing through it and appending records (DEV-2739).
         editorManager.resumeStrandDiscards();
+
+        // The index mapper update already asked for a full render and dropped the size caches, but a
+        // `hot.render()` a hook made from inside this call consumed that request and rebuilt the caches from
+        // state this call had not finished writing, such as the `colHeaders` and `colWidths` arrays. The
+        // closing render must repaint the headers and re-measure the widths. It sits in the `finally`, so a
+        // hook that throws after the arrays were written does not leave the next fast draw with that paint.
+        instance.forceFullRender = true;
+        instance.view.invalidateColumnWidthCache();
       }
 
       instance.view.render();
