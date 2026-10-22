@@ -305,7 +305,12 @@ function makeHotStubWithHolder() {
   const hostEditor = makeHostEditor();
   const frames: FrameRequestCallback[] = [];
 
-  stub.hot.view = { getOverlayByName: () => ({ holder, clone: null }), render: jest.fn() };
+  stub.hot.view = {
+    ...stub.hot.view,
+    getOverlayByName: () => ({ holder, clone: null }),
+    render: jest.fn(),
+    _wt: { wtOverlays: { topOverlay: { mainTableScrollableElement: holder } } },
+  } as typeof stub.hot.view;
   stub.hot.getActiveEditor = () => hostEditor;
   jest.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
     frames.push(callback);

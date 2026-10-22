@@ -140,7 +140,14 @@ export function makeRangeStub(highlight: CoordsStub, from?: CoordsStub, to?: Coo
 export function makeGridSelectionApiStub(guid = 'ht_teststub'): GridSelectionApiStub {
   return {
     guid,
-    view: { getOverlayByName: () => null, render: jest.fn() },
+    view: {
+      getOverlayByName: () => null,
+      render: jest.fn(),
+      countFixedRowsTop: () => 0,
+      countFixedRowsBottom: () => 0,
+      countFixedColumnsStart: () => 0,
+      countFixedColumnsEnd: () => 0,
+    },
     selection: { highlight: makeHighlightStub() },
     _createCellCoords: (row: number, col: number) => ({ row, col }),
     _createCellRange: makeRangeStub,
@@ -254,7 +261,49 @@ export function makeHotStub(overrides: Partial<HotStubShape> = {}): HotInstance 
     ...overrides,
   };
 
+  withLocalHooks(stub.rowIndexMapper);
+  withLocalHooks(stub.columnIndexMapper);
+
   return stub as unknown as HotInstance;
+}
+
+/**
+ * Gives an index-mapper stub the local-hook methods the adapter subscribes through (`cacheUpdated`),
+ * unless the test already provided them. The registered listeners are kept, so a test can fire them.
+ *
+ * @param {object} mapper The index-mapper stub, changed in place.
+ * @returns {object} The same stub.
+ */
+export function withLocalHooks<T extends object>(mapper: T): T & {
+  localHooks: Map<string, Set<() => void>>;
+  addLocalHook(name: string, callback: () => void): void;
+  removeLocalHook(name: string, callback: () => void): void;
+  runLocalHooks(name: string): void;
+} {
+  const target = mapper as T & Record<string, unknown>;
+
+  if (typeof target.addLocalHook !== 'function') {
+    const localHooks = new Map<string, Set<() => void>>();
+
+    Object.assign(target, {
+      localHooks,
+      addLocalHook(name: string, callback: () => void) {
+        if (!localHooks.has(name)) {
+          localHooks.set(name, new Set());
+        }
+
+        localHooks.get(name)?.add(callback);
+      },
+      removeLocalHook(name: string, callback: () => void) {
+        localHooks.get(name)?.delete(callback);
+      },
+      runLocalHooks(name: string) {
+        localHooks.get(name)?.forEach(callback => callback());
+      },
+    });
+  }
+
+  return target as ReturnType<typeof withLocalHooks<T>>;
 }
 
 /**

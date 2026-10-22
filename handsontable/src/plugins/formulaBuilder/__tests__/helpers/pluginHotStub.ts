@@ -1,7 +1,7 @@
 import { HyperFormula } from 'hyperformula';
 import type { HotInstance } from '../../../../core/types';
 type CoreModule = typeof import('hyperformula-ui');
-import { makeGridSelectionApiStub } from './stubs';
+import { makeGridSelectionApiStub, withLocalHooks } from './stubs';
 import type { GridSelectionApiStub } from './stubs';
 
 /**
@@ -208,6 +208,9 @@ export function makePluginHotStub(
     columnIndexMapper: makeIndexMapperStub(),
     ...overrides,
   };
+
+  withLocalHooks(hot.rowIndexMapper);
+  withLocalHooks(hot.columnIndexMapper);
 
   return { engine, formulas, settings, layoutManager, hot, instance: hot as unknown as HotInstance };
 }

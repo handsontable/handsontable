@@ -452,4 +452,46 @@ describe('HandsontableAdapter.stepCell', () => {
       col: 0,
     });
   });
+
+  it.each([
+    ['a top frozen row', { countFixedRowsTop: () => 2 }, { sheet: '', row: 0, col: 3 }],
+    ['a bottom frozen row', { countFixedRowsBottom: () => 1 }, { sheet: '', row: 99, col: 3 }],
+    ['a start frozen column', { countFixedColumnsStart: () => 1 }, { sheet: '', row: 15, col: 0 }],
+    ['an end frozen column', { countFixedColumnsEnd: () => 1 }, { sheet: '', row: 15, col: 49 }],
+  ])('does not scroll to %s, which is always in view', (_name, frozen, address) => {
+    const view = {
+      ...makeHotStub().view,
+      ...frozen,
+    };
+    const { adapter, scrollViewportTo } = makeAdapter({}, {
+      countRows: () => 100,
+      countCols: () => 50,
+      view,
+    } as Partial<HotStubShape>);
+
+    adapter.scrollCellIntoView(address);
+
+    expect(scrollViewportTo).not.toHaveBeenCalled();
+  });
+
+  it('scrolls the other axis of a cell in a frozen row', () => {
+    const view = { ...makeHotStub().view, countFixedRowsTop: () => 2 };
+    const { adapter, scrollViewportTo } = makeAdapter({}, { countRows: () => 100, countCols: () => 50, view } as
+      Partial<HotStubShape>);
+
+    adapter.scrollCellIntoView({ sheet: '', row: 0, col: 12 });
+
+    expect(scrollViewportTo).toHaveBeenCalledWith({ col: 12, horizontalSnap: 'end' });
+  });
+
+  it('falls back to an unsnapped scroll when no row is fully visible (the getters answer null)', () => {
+    const { adapter, scrollViewportTo } = makeAdapter({}, {
+      getFirstFullyVisibleRow: () => null,
+      getLastFullyVisibleRow: () => null,
+    } as unknown as Partial<HotStubShape>);
+
+    adapter.scrollCellIntoView({ sheet: '', row: 40, col: 3 });
+
+    expect(scrollViewportTo).toHaveBeenCalledWith({ row: 40, col: 3 });
+  });
 });

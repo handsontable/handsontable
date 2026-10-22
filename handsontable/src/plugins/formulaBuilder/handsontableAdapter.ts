@@ -3,6 +3,7 @@
 import type { PickEmitter } from 'hyperformula-ui';
 import { warn } from '../../helpers/console';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
+import { isHTMLElement } from '../../helpers/dom/element';
 import type { HotInstance } from '../../core/types';
 import type { default as VisualSelection } from '../../selection/highlight/visualSelection';
 import type { VisualHfIndexMapping } from './internalTypes';
@@ -36,6 +37,14 @@ type CoreModule = typeof import('hyperformula-ui');
 const MAX_HF_INDEX_SCAN = 2000;
 
 /**
+ * The most custom selections one highlight may produce. Under a sort or a move, one reference range
+ * maps to one selection per contiguous visual run, and a 2D range multiplies the row runs by the
+ * column runs; past this many, the highlight falls back to its visual bounding box, drawn as a border
+ * only (a fill would tint cells the reference does not cover).
+ */
+const MAX_SELECTIONS_PER_HIGHLIGHT = 50;
+
+/**
  * The fallback border width (px) of a reference highlight, used when the
  * `--hfe-reference-border-width` theme variable does not resolve to a positive number.
  */
@@ -63,22 +72,6 @@ const BORDER_DASH_MASK = 'repeating-linear-gradient(45deg, #000 0 2px, transpare
  * `color-mix(in srgb, ...)`.
  */
 const SAFE_COLOR_PATTERN = /^[\w#%(),./*+\s-]+$/;
-
-/**
- * Grid hooks that signal a structural index change (order or visibility) able to
- * remap the visual coordinates a registered highlight was derived with.
- */
-const STRUCTURAL_HOOKS = [
-  'afterColumnSort',
-  'afterRowMove',
-  'afterColumnMove',
-  'afterHideRows',
-  'afterUnhideRows',
-  'afterHideColumns',
-  'afterUnhideColumns',
-  'afterTrimRow',
-  'afterUntrimRow',
-] as const;
 
 /**
  * The visual (grid-space) cell range type produced by the Handsontable coordinate factory.
@@ -137,7 +130,7 @@ interface TintSpan {
 }
 
 /**
- * Construction options for {@link HandsontableAdapter}.
+ * Construction options for `HandsontableAdapter`.
  */
 export interface HandsontableAdapterOptions {
   /**
@@ -333,7 +326,7 @@ export class HandsontableAdapter {
    */
   readonly #emitter: PickEmitter;
   /**
-   * The persistent reference highlights last passed to {@link setHighlights},
+   * The persistent reference highlights last passed to `setHighlights()`,
    * kept for header tinting and change detection.
    */
   #persistentItems: RangeHighlight[] = [];
@@ -366,7 +359,7 @@ export class HandsontableAdapter {
    */
   #fillStyleEl: HTMLStyleElement | null = null;
   /**
-   * The consumer theming class applied through {@link setOverlayClassName}.
+   * The consumer theming class applied through `setOverlayClassName()`.
    */
   #overlayClassName: string | null = null;
   /**
@@ -375,17 +368,24 @@ export class HandsontableAdapter {
    */
   #borderWidth: number | null = null;
   /**
-   * Column header elements tracked via the `afterGetColHeader` hook.
+   * Column header elements tracked via the `afterGetColHeader` hook, keyed by visual index. A column
+   * renders its header in the master table and in every overlay clone, so each index keeps all of its
+   * copies. With nested headers only the bottom level is kept: an upper level spans a group of
+   * columns, and a reference to one of them must not tint the whole group.
    */
-  readonly #colHeaderEls = new Map<number, HTMLElement>();
+  readonly #colHeaderEls = new Map<number, Set<HTMLElement>>();
   /**
-   * Row header elements tracked via the `afterGetRowHeader` hook.
+   * The header level the tracked column headers belong to (the lowest one rendered).
    */
-  readonly #rowHeaderEls = new Map<number, HTMLElement>();
+  #colHeaderLevel = -1;
+  /**
+   * Row header elements tracked via the `afterGetRowHeader` hook, keyed by visual index, every copy.
+   */
+  readonly #rowHeaderEls = new Map<number, Set<HTMLElement>>();
   /**
    * Bound `afterGetColHeader` listener (removed in `destroy`).
    */
-  readonly #colHeaderHook: (col: number, th: HTMLElement) => void;
+  readonly #colHeaderHook: (col: number, th: HTMLElement, headerLevel?: number) => void;
   /**
    * Bound `afterGetRowHeader` listener (removed in `destroy`).
    */
@@ -398,14 +398,30 @@ export class HandsontableAdapter {
    */
   readonly #pruneHeaderElsHook: () => void;
   /**
-   * Re-derives the registered highlights when a structural index change (sort,
-   * move, hide/show, trim) remaps the visual coordinates they were derived with.
+   * Marks the highlights stale when an index mapper rebuilt its cache: a sort, a move, hiding,
+   * trimming (Filters, TrimRows, a NestedRows collapse), a row or column insert or removal, a page
+   * change, or a data load can each remap the visual coordinates the highlights were derived with.
+   * The cache update can run in the middle of a batch, so the highlights are re-derived before the
+   * next draw (`beforeViewRender`), not here.
    */
-  readonly #onStructuralChange = (): void => {
+  readonly #onIndexCacheUpdated = (): void => {
     if (this.#persistentItems.length > 0) {
-      this.#applyPersistentItems();
+      this.#persistentItemsStale = true;
     }
   };
+  /**
+   * Re-derives stale highlights right before a draw, so the draw paints them on their new cells.
+   */
+  readonly #beforeViewRenderHook = (): void => {
+    if (this.#persistentItemsStale) {
+      this.#persistentItemsStale = false;
+      this.#applyPersistentItems(false);
+    }
+  };
+  /**
+   * Whether an index change happened since the highlights were last derived.
+   */
+  #persistentItemsStale = false;
   /**
    * Guards double destruction.
    */
@@ -426,11 +442,18 @@ export class HandsontableAdapter {
     this.#plugin = plugin;
     this.#emitter = new this.#core.PickEmitter();
 
-    this.#colHeaderHook = (col, th) => {
-      this.#colHeaderEls.set(col, th);
+    this.#colHeaderHook = (col, th, headerLevel = 0) => {
+      if (headerLevel > this.#colHeaderLevel) {
+        this.#colHeaderLevel = headerLevel;
+        this.#colHeaderEls.clear();
+      }
+
+      if (headerLevel === this.#colHeaderLevel) {
+        this.#trackHeader(this.#colHeaderEls, col, th);
+      }
     };
     this.#rowHeaderHook = (row, th) => {
-      this.#rowHeaderEls.set(row, th);
+      this.#trackHeader(this.#rowHeaderEls, row, th);
     };
     this.#pruneHeaderElsHook = () => {
       this.#pruneDetachedHeaderEls();
@@ -439,21 +462,24 @@ export class HandsontableAdapter {
     this.#hot.addHook('afterGetColHeader', this.#colHeaderHook);
     this.#hot.addHook('afterGetRowHeader', this.#rowHeaderHook);
     this.#hot.addHook('afterViewRender', this.#pruneHeaderElsHook);
-
-    for (const hookName of STRUCTURAL_HOOKS) {
-      this.#hot.addHook(hookName, this.#onStructuralChange);
-    }
+    this.#hot.addHook('beforeViewRender', this.#beforeViewRenderHook);
+    this.#hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    this.#hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
   }
 
   /**
-   * Returns the master overlay scroll holder element, or `null` for window-scrolled grids.
+   * Returns the element that scrolls the grid's rows: the master holder, or a scrolling ancestor of
+   * the grid. Returns `null` when the window owns the axis (no `height`, or a grid taller than its
+   * content), because a page scroll needs no element to follow: the editor moves with the page.
    *
    * @returns {HTMLElement | null}
    */
   getScrollHolder(): HTMLElement | null {
-    const overlay = this.#hot.view.getOverlayByName('top') as { holder?: unknown } | null;
+    const scrollable = this.#hot.view?._wt?.wtOverlays?.topOverlay?.mainTableScrollableElement;
 
-    return overlay?.holder instanceof HTMLElement ? overlay.holder : null;
+    // `isHTMLElement()` rather than `instanceof HTMLElement`: a grid in an iframe driven from the
+    // parent page has elements of the iframe's realm.
+    return isHTMLElement(scrollable) ? scrollable : null;
   }
 
   /**
@@ -700,11 +726,17 @@ export class HandsontableAdapter {
     }
 
     const visualFrom = { sheet: from.sheet, row: startRow, col: startCol };
-    const edge = this.#core.findDataEdge(visualFrom, direction, size, (row, col) => {
+    // A hidden cell counts as empty, so the jump stops at the edge of the data the user can see.
+    const found = this.#core.findDataEdge(visualFrom, direction, size, (row, col) => {
+      if (!this.#isVisualCellRenderable(row, col)) {
+        return false;
+      }
+
       const value = this.#hot.getDataAtCell(row, col);
 
       return value !== null && value !== '' && value !== undefined;
     });
+    const edge = this.#nearestRenderableToward(found, visualFrom);
     const hfRow = this.#mapping.visualToHfRow(edge.row);
     const hfCol = this.#mapping.visualToHfCol(edge.col);
 
@@ -766,8 +798,10 @@ export class HandsontableAdapter {
     const lastRow = this.#hot.getLastFullyVisibleRow();
     const firstCol = this.#hot.getFirstFullyVisibleColumn();
     const lastCol = this.#hot.getLastFullyVisibleColumn();
-
-    const hasBounds = firstRow >= 0 && lastRow >= 0 && firstCol >= 0 && lastCol >= 0;
+    // The getters answer `null` (not `-1`) when no row or column is fully visible, for example a row
+    // taller than the viewport, and `null >= 0` is `true`.
+    const isIndex = (value: number | null): value is number => Number.isInteger(value) && (value as number) >= 0;
+    const hasBounds = isIndex(firstRow) && isIndex(lastRow) && isIndex(firstCol) && isIndex(lastCol);
 
     if (!hasBounds) {
       this.#hot.scrollViewportTo({ row: visualRow, col: visualCol });
@@ -782,20 +816,26 @@ export class HandsontableAdapter {
       horizontalSnap?: 'start' | 'end';
     } = {};
 
-    if (visualRow > lastRow) {
-      target.row = visualRow;
-      target.verticalSnap = 'bottom';
-    } else if (visualRow < firstRow) {
-      target.row = visualRow;
-      target.verticalSnap = 'top';
+    // A cell in a frozen band is always in view. Forcing a snap there bypasses Walkontable's
+    // frozen-band guard and scrolls the master viewport to its first (or last) track.
+    if (!this.#isInFrozenRowBand(visualRow)) {
+      if (visualRow > lastRow) {
+        target.row = visualRow;
+        target.verticalSnap = 'bottom';
+      } else if (visualRow < firstRow) {
+        target.row = visualRow;
+        target.verticalSnap = 'top';
+      }
     }
 
-    if (visualCol > lastCol) {
-      target.col = visualCol;
-      target.horizontalSnap = 'end';
-    } else if (visualCol < firstCol) {
-      target.col = visualCol;
-      target.horizontalSnap = 'start';
+    if (!this.#isInFrozenColumnBand(visualCol)) {
+      if (visualCol > lastCol) {
+        target.col = visualCol;
+        target.horizontalSnap = 'end';
+      } else if (visualCol < firstCol) {
+        target.col = visualCol;
+        target.horizontalSnap = 'start';
+      }
     }
 
     if (target.row !== undefined || target.col !== undefined) {
@@ -891,8 +931,11 @@ export class HandsontableAdapter {
    * @param {CellAddress} address The target address in HyperFormula coordinates.
    */
   setActiveCell(address: CellAddress): void {
-    const visualRow = this.#mapping.hfToVisualRow(address.row);
-    const visualCol = this.#mapping.hfToVisualCol(address.col);
+    // A trimmed row (Filters, TrimRows) has no visual index. The address box already accepted the
+    // address, so the selection moves to the nearest row or column the grid shows instead of staying
+    // put while the box names a cell that is not selected.
+    const visualRow = this.#nearestVisual(address.row, 'row');
+    const visualCol = this.#nearestVisual(address.col, 'col');
 
     if (visualRow < 0 || visualCol < 0) {
       return;
@@ -907,10 +950,14 @@ export class HandsontableAdapter {
    * @param {CellRange} range The target range in HyperFormula coordinates.
    */
   setSelection(range: CellRange): void {
-    const startRow = this.#mapping.hfToVisualRow(range.start.row);
-    const startCol = this.#mapping.hfToVisualCol(range.start.col);
-    const endRow = this.#mapping.hfToVisualRow(range.end.row);
-    const endCol = this.#mapping.hfToVisualCol(range.end.col);
+    // A corner on a trimmed index moves inward to the nearest index the grid shows, so `A2:A5` with
+    // row 2 trimmed selects `A3:A5`. A range that holds no shown index selects nothing.
+    const rowToVisual = (index: number) => this.#mapping.hfToVisualRow(index);
+    const colToVisual = (index: number) => this.#mapping.hfToVisualCol(index);
+    const startRow = this.#firstVisualIn(range.start.row, range.end.row, rowToVisual);
+    const startCol = this.#firstVisualIn(range.start.col, range.end.col, colToVisual);
+    const endRow = this.#firstVisualIn(range.end.row, range.start.row, rowToVisual);
+    const endCol = this.#firstVisualIn(range.end.col, range.start.col, colToVisual);
 
     if (startRow < 0 || startCol < 0 || endRow < 0 || endCol < 0) {
       return;
@@ -987,10 +1034,9 @@ export class HandsontableAdapter {
     this.#hot.removeHook('afterGetColHeader', this.#colHeaderHook);
     this.#hot.removeHook('afterGetRowHeader', this.#rowHeaderHook);
     this.#hot.removeHook('afterViewRender', this.#pruneHeaderElsHook);
-
-    for (const hookName of STRUCTURAL_HOOKS) {
-      this.#hot.removeHook(hookName, this.#onStructuralChange);
-    }
+    this.#hot.removeHook('beforeViewRender', this.#beforeViewRenderHook);
+    this.#hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
+    this.#hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexCacheUpdated);
 
     this.clearHighlights();
     this.setOverlayClassName(null);
@@ -1013,22 +1059,155 @@ export class HandsontableAdapter {
   }
 
   /**
+   * Walks a cell back toward a start cell, one step at a time on the axis it moved along, until it is
+   * rendered. Returns the start cell when every cell in between is hidden.
+   *
+   * @param {CellAddress} cell The cell in visual coordinates.
+   * @param {CellAddress} start The start cell in visual coordinates.
+   * @returns {CellAddress}
+   */
+  #nearestRenderableToward(cell: CellAddress, start: CellAddress): CellAddress {
+    const rowStep = Math.sign(start.row - cell.row);
+    const colStep = Math.sign(start.col - cell.col);
+    let { row, col } = cell;
+
+    while (!this.#isVisualCellRenderable(row, col)) {
+      if (row === start.row && col === start.col) {
+        return start;
+      }
+
+      row += rowStep;
+      col += colStep;
+    }
+
+    return { ...cell, row, col };
+  }
+
+  /**
+   * Returns the visual index of a HyperFormula index, or of the nearest index that has one (the
+   * following one first), searching the grid's indexes; `-1` when the axis shows nothing.
+   *
+   * @param {number} hfIndex The HyperFormula index.
+   * @param {'row' | 'col'} axis The axis.
+   * @returns {number}
+   */
+  #nearestVisual(hfIndex: number, axis: 'row' | 'col'): number {
+    const hfToVisual = axis === 'row' ?
+      (index: number) => this.#mapping.hfToVisualRow(index) :
+      (index: number) => this.#mapping.hfToVisualCol(index);
+    const lastIndex = (axis === 'row' ? this.#hot.rowIndexMapper : this.#hot.columnIndexMapper)
+      .getNumberOfIndexes() - 1;
+    const exact = hfToVisual(hfIndex);
+
+    if (exact >= 0 || hfIndex < 0 || hfIndex > lastIndex) {
+      return exact;
+    }
+
+    for (let distance = 1; hfIndex + distance <= lastIndex || hfIndex - distance >= 0; distance++) {
+      const after = hfIndex + distance <= lastIndex ? hfToVisual(hfIndex + distance) : -1;
+
+      if (after >= 0) {
+        return after;
+      }
+
+      const before = hfIndex - distance >= 0 ? hfToVisual(hfIndex - distance) : -1;
+
+      if (before >= 0) {
+        return before;
+      }
+    }
+
+    return -1;
+  }
+
+  /**
+   * Returns the visual index of the first HyperFormula index from `from` toward `to` (inclusive) that
+   * has one, or `-1`.
+   *
+   * @param {number} from The HyperFormula index to start at.
+   * @param {number} to The HyperFormula index to stop at.
+   * @param {Function} hfToVisual The axis translation.
+   * @returns {number}
+   */
+  #firstVisualIn(from: number, to: number, hfToVisual: (index: number) => number): number {
+    const step = from <= to ? 1 : -1;
+
+    for (let index = from; step > 0 ? index <= to : index >= to; index += step) {
+      const visual = hfToVisual(index);
+
+      if (visual >= 0) {
+        return visual;
+      }
+    }
+
+    return -1;
+  }
+
+  /**
+   * Whether a visual row is in the top or bottom frozen band.
+   *
+   * @param {number} visualRow The visual row index.
+   * @returns {boolean}
+   */
+  #isInFrozenRowBand(visualRow: number): boolean {
+    const view = this.#hot.view;
+    const bottomCount = view.countFixedRowsBottom();
+
+    return visualRow < view.countFixedRowsTop() ||
+      (bottomCount > 0 && visualRow >= this.#hot.countRows() - bottomCount);
+  }
+
+  /**
+   * Whether a visual column is in the start or end frozen band.
+   *
+   * @param {number} visualCol The visual column index.
+   * @returns {boolean}
+   */
+  #isInFrozenColumnBand(visualCol: number): boolean {
+    const view = this.#hot.view;
+    const endCount = view.countFixedColumnsEnd();
+
+    return visualCol < view.countFixedColumnsStart() ||
+      (endCount > 0 && visualCol >= this.#hot.countCols() - endCount);
+  }
+
+  /**
+   * Records a rendered header element under its visual index.
+   *
+   * @param {Map<number, Set<HTMLElement>>} headerEls The tracked headers of one axis.
+   * @param {number} visualIndex The visual index.
+   * @param {HTMLElement} headerEl The header element.
+   */
+  #trackHeader(headerEls: Map<number, Set<HTMLElement>>, visualIndex: number, headerEl: HTMLElement): void {
+    let copies = headerEls.get(visualIndex);
+
+    if (copies === undefined) {
+      copies = new Set();
+      headerEls.set(visualIndex, copies);
+    }
+
+    copies.add(headerEl);
+  }
+
+  /**
    * Drops header elements that Handsontable discarded on its last render pass;
    * headers render only for the visible window, so stale entries would pin
    * detached `<th>` subtrees for every index ever scrolled past.
    */
   #pruneDetachedHeaderEls(): void {
-    for (const [col, headerEl] of this.#colHeaderEls) {
-      if (!headerEl.isConnected) {
-        this.#colHeaderEls.delete(col);
-      }
-    }
+    [this.#colHeaderEls, this.#rowHeaderEls].forEach((headerEls) => {
+      headerEls.forEach((copies, visualIndex) => {
+        copies.forEach((headerEl) => {
+          if (!headerEl.isConnected) {
+            copies.delete(headerEl);
+          }
+        });
 
-    for (const [row, headerEl] of this.#rowHeaderEls) {
-      if (!headerEl.isConnected) {
-        this.#rowHeaderEls.delete(row);
-      }
-    }
+        if (copies.size === 0) {
+          headerEls.delete(visualIndex);
+        }
+      });
+    });
   }
 
   /**
@@ -1046,11 +1225,13 @@ export class HandsontableAdapter {
   /**
    * Derives specs from the stored persistent highlights and syncs the grid's
    * custom selections and header tints to them, redrawing only when the derived
-   * specs actually changed. Shared by {@link setHighlights} and the structural
+   * specs actually changed. Shared by `setHighlights()` and the structural
    * change listener (sort/move/hide can remap visual coordinates while the
    * source highlights stay the same).
    */
-  #applyPersistentItems(): void {
+  #applyPersistentItems(redraw = true): void {
+    this.#persistentItemsStale = false;
+
     const specs = this.#selectionSpecs(this.#persistentItems, false);
 
     if (this.#sameSpecs(this.#persistentSpecs, specs)) {
@@ -1065,7 +1246,10 @@ export class HandsontableAdapter {
     this.#replaceSelections(this.#persistentSelections, specs, previousSpecs);
     this.#moveEphemeralToTail();
     this.#renderHeaderTints();
-    this.#redraw();
+
+    if (redraw) {
+      this.#redraw();
+    }
   }
 
   /**
@@ -1129,14 +1313,26 @@ export class HandsontableAdapter {
 
     const { customSelections } = this.#hot.selection.highlight;
     const ephemeralSet = new Set(this.#ephemeralSelections);
-    const others = customSelections.filter(selection => !ephemeralSet.has(selection));
 
-    if (others.length === customSelections.length) {
+    // Compacts the collection in place (a spread `push` overflows the stack on a large collection,
+    // and CustomBorders keeps one entry per bordered cell range there).
+    let kept = 0;
+
+    for (let index = 0; index < customSelections.length; index++) {
+      if (!ephemeralSet.has(customSelections[index])) {
+        customSelections[kept] = customSelections[index];
+        kept += 1;
+      }
+    }
+
+    if (kept === customSelections.length) {
       return;
     }
 
-    customSelections.length = 0;
-    customSelections.push(...others, ...this.#ephemeralSelections);
+    customSelections.length = kept;
+    this.#ephemeralSelections.forEach((selection) => {
+      customSelections.push(selection);
+    });
   }
 
   /**
@@ -1159,8 +1355,21 @@ export class HandsontableAdapter {
         continue;
       }
 
-      const rowRuns = this.#visualRuns(item.range.start.row, item.range.end.row, hfToVisualRow);
-      const colRuns = this.#visualRuns(item.range.start.col, item.range.end.col, hfToVisualCol);
+      // The lexer keeps a range as typed, so `=SUM(B5:A1)` arrives reversed.
+      const { start, end } = item.range;
+      let rowRuns = this.#visualRuns(
+        Math.min(start.row, end.row), Math.max(start.row, end.row), hfToVisualRow, 'row',
+      );
+      let colRuns = this.#visualRuns(
+        Math.min(start.col, end.col), Math.max(start.col, end.col), hfToVisualCol, 'col',
+      );
+      let fill = item.fill ?? fillDefault;
+
+      if (rowRuns.length * colRuns.length > MAX_SELECTIONS_PER_HIGHLIGHT) {
+        rowRuns = this.#boundingRun(rowRuns);
+        colRuns = this.#boundingRun(colRuns);
+        fill = false;
+      }
 
       for (const rowRun of rowRuns) {
         for (const colRun of colRuns) {
@@ -1170,7 +1379,7 @@ export class HandsontableAdapter {
           specs.push({
             range: this.#hot._createCellRange(from, from, to),
             color: item.color,
-            fill: item.fill ?? fillDefault,
+            fill,
           });
         }
       }
@@ -1221,14 +1430,21 @@ export class HandsontableAdapter {
     const { highlight } = this.#hot.selection;
     const { customSelections } = highlight;
     const ownedSet = new Set(owned);
+    let kept = 0;
 
-    for (let index = customSelections.length - 1; index >= 0; index--) {
-      if (ownedSet.has(customSelections[index])) {
-        customSelections[index].destroy();
-        customSelections.splice(index, 1);
+    // One pass that compacts the collection in place, instead of a `splice` per owned entry.
+    for (let index = 0; index < customSelections.length; index++) {
+      const selection = customSelections[index];
+
+      if (ownedSet.has(selection)) {
+        selection.destroy();
+      } else {
+        customSelections[kept] = selection;
+        kept += 1;
       }
     }
 
+    customSelections.length = kept;
     owned.length = 0;
 
     for (const spec of specs) {
@@ -1338,7 +1554,7 @@ export class HandsontableAdapter {
   /**
    * Resolves (and caches) the reference-highlight border width from the
    * `--hfe-reference-border-width` theme variable, falling back to
-   * {@link DEFAULT_BORDER_WIDTH} when it does not resolve to a positive number.
+   * `DEFAULT_BORDER_WIDTH` when it does not resolve to a positive number.
    *
    * @returns {number}
    */
@@ -1409,12 +1625,12 @@ export class HandsontableAdapter {
    * makes as large as the sheet. The last matching span wins, mirroring the
    * source highlight order.
    *
-   * @param {Map<number, HTMLElement>} headerEls Tracked header elements keyed by visual index.
+   * @param {Map<number, Set<HTMLElement>>} headerEls Tracked header elements keyed by visual index.
    * @param {TintSpan[]} spans The whole-axis highlight spans in HyperFormula space.
    * @param {Function} visualToHf Visual-to-HyperFormula index translation for the axis.
    */
   #tintTrackedHeaders(
-    headerEls: Map<number, HTMLElement>,
+    headerEls: Map<number, Set<HTMLElement>>,
     spans: TintSpan[],
     visualToHf: (visualIndex: number) => number,
   ): void {
@@ -1422,7 +1638,7 @@ export class HandsontableAdapter {
       return;
     }
 
-    for (const [visualIndex, headerEl] of headerEls) {
+    for (const [visualIndex, copies] of headerEls) {
       const hfIndex = visualToHf(visualIndex);
 
       if (hfIndex < 0) {
@@ -1438,26 +1654,59 @@ export class HandsontableAdapter {
       }
 
       if (backgroundColor !== null) {
-        headerEl.style.backgroundColor = backgroundColor;
-        this.#styledHeaderEls.add(headerEl);
+        const color = backgroundColor;
+
+        copies.forEach((headerEl) => {
+          headerEl.style.backgroundColor = color;
+          this.#styledHeaderEls.add(headerEl);
+        });
       }
     }
   }
 
   /**
-   * Maps an inclusive HyperFormula index span to sorted contiguous visual runs.
-   * Spans wider than `MAX_HF_INDEX_SCAN` map only their endpoints as one run.
+   * Collapses runs into the one run that spans them all.
+   *
+   * @param {VisualRun[]} runs The runs, sorted.
+   * @returns {VisualRun[]}
+   */
+  #boundingRun(runs: VisualRun[]): VisualRun[] {
+    if (runs.length <= 1) {
+      return runs;
+    }
+
+    return [{ start: runs[0].start, end: runs[runs.length - 1].end }];
+  }
+
+  /**
+   * Maps an inclusive HyperFormula index span to sorted contiguous visual runs. A span that covers
+   * every index of the axis (a whole-column or whole-row reference) is the whole visual axis,
+   * whatever the order. Other spans wider than `MAX_HF_INDEX_SCAN` map only their endpoints as one run.
    *
    * @param {number} startHf The first HyperFormula index.
    * @param {number} endHf The last HyperFormula index.
    * @param {Function} hfToVisual Per-axis HyperFormula-to-visual translation.
+   * @param {'row' | 'col'} axis The axis the span is on.
    * @returns {VisualRun[]}
    */
   #visualRuns(
     startHf: number,
     endHf: number,
     hfToVisual: (hfIndex: number) => number,
+    axis: 'row' | 'col',
   ): VisualRun[] {
+    if (endHf - startHf > MAX_HF_INDEX_SCAN) {
+      // Every grid index has a HyperFormula index (trimmed ones included), so a span over all of them
+      // covers every visual index, in any order.
+      const hfCount = axis === 'row' ?
+        this.#hot.rowIndexMapper.getNumberOfIndexes() : this.#hot.columnIndexMapper.getNumberOfIndexes();
+      const visualCount = axis === 'row' ? this.#hot.countRows() : this.#hot.countCols();
+
+      if (startHf <= 0 && endHf >= hfCount - 1 && visualCount > 0) {
+        return [{ start: 0, end: visualCount - 1 }];
+      }
+    }
+
     if (endHf - startHf > MAX_HF_INDEX_SCAN) {
       // Walk inward past trimmed ends: a whole-column reference ends on the last sheet row,
       // which a filter may have trimmed, and dropping the whole run would highlight nothing.

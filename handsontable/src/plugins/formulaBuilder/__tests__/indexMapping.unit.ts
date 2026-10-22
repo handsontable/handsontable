@@ -220,19 +220,24 @@ describe('HandsontableAdapter host delegation', () => {
     expect(adapter.getGridSize()).toEqual({ rows: 7, cols: 9 });
   });
 
-  it('resolves the master scroll holder through hot.view and falls back to null', () => {
+  it('resolves the element that scrolls the rows, and null when the window scrolls them', () => {
     const holder = document.createElement('div');
-    const getOverlayByName = jest.fn((overlayName: string) =>
-      (overlayName === 'top' ? { holder, clone: null } : null),
-    );
-    const { adapter } = makeMappedAdapter({ view: { getOverlayByName } });
+    const viewWith = (mainTableScrollableElement: unknown) => ({
+      _wt: { wtOverlays: { topOverlay: { mainTableScrollableElement } } },
+    });
+    const { adapter } = makeMappedAdapter({ view: viewWith(holder) } as Parameters<typeof makeMappedAdapter>[0]);
 
     expect(adapter.getScrollHolder()).toBe(holder);
-    expect(getOverlayByName).toHaveBeenCalledWith('top');
 
-    const { adapter: holderless } = makeMappedAdapter();
+    const { adapter: windowScrolled } = makeMappedAdapter(
+      { view: viewWith(window) } as Parameters<typeof makeMappedAdapter>[0],
+    );
 
-    expect(holderless.getScrollHolder()).toBeNull();
+    expect(windowScrolled.getScrollHolder()).toBeNull();
+
+    const { adapter: noView } = makeMappedAdapter();
+
+    expect(noView.getScrollHolder()).toBeNull();
   });
 });
 

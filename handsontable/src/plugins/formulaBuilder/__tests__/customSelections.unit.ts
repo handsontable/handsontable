@@ -325,7 +325,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
     adapter.destroy();
   });
 
-  it('re-derives highlights when a structural hook fires after an index change', () => {
+  it('re-derives the highlights before the next draw after an index mapper rebuilt its cache', () => {
     const hooks: Record<string, ((...args: unknown[]) => void)[]> = {};
     let colShift = 0;
     const hot = makeHotStub({
@@ -342,18 +342,38 @@ describe('HandsontableAdapter custom-selection highlights', () => {
       makeAdapterOptions(hot, overlayHost, { hfToVisualCol: hfCol => hfCol + colShift }),
       makePluginStub(),
     );
+    const columnIndexMapper = hot.columnIndexMapper as unknown as { runLocalHooks(name: string): void };
 
     adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'red' }]);
 
+    // A move, a filter, an insert, a page change: any of them rebuilds the mapper's cache.
     colShift = 3;
-    hooks.afterColumnMove?.forEach(listener => listener());
+    columnIndexMapper.runLocalHooks('cacheUpdated');
 
     const selections = customSelectionsOf(hot);
 
-    expect(selections).toHaveLength(1);
-    expect((selections[0].visualCellRange as { from: { col: number } }).from.col).toBe(3);
+    // Nothing changes inside the cache update, which can run in the middle of a batch.
+    expect((selections[0].visualCellRange as { from: { col: number } }).from.col).toBe(0);
+
+    hooks.beforeViewRender?.forEach(listener => listener());
+
+    expect(customSelectionsOf(hot)).toHaveLength(1);
+    expect((customSelectionsOf(hot)[0].visualCellRange as { from: { col: number } }).from.col).toBe(3);
 
     adapter.destroy();
+  });
+
+  it('stops listening to the index mappers when destroyed', () => {
+    const hot = makeHotStub();
+    const overlayHost = document.createElement('div');
+    const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+    const rowIndexMapper = hot.rowIndexMapper as unknown as { localHooks: Map<string, Set<unknown>> };
+
+    expect(rowIndexMapper.localHooks.get('cacheUpdated')?.size).toBe(1);
+
+    adapter.destroy();
+
+    expect(rowIndexMapper.localHooks.get('cacheUpdated')?.size).toBe(0);
   });
 
   it('drops highlights carrying a color able to break out of the stylesheet', () => {
