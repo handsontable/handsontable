@@ -101,6 +101,25 @@ test.describe('iPadOS selection range handles', { tag: THEMES_TAG }, () => {
     await expect(grid.movingRoot()).toHaveCount(0);
   });
 
+  // With no headers the top band of a range at A1 starts at the grid edge, where the clamped top handle
+  // now sits. Its hit area must stay a corner target, not swallow the band next to it.
+  test('starts a moveCells drag from a mouse press on the top band next to the range handle at A1', async ({ page }) => {
+    await grid.goto({ headers: false });
+    await grid.enableMoveCells();
+    await grid.selectRange(0, 0, 2, 2);
+    await grid.expectHandlesVisible();
+    await expect(grid.moveZones().first()).toBeVisible();
+
+    await grid.pressTopMoveBandAt(30);
+
+    await expect(grid.movingRoot()).toHaveCount(1);
+
+    await page.keyboard.press('Escape');
+    await page.mouse.up();
+
+    await expect(grid.movingRoot()).toHaveCount(0);
+  });
+
   test('does not extend the selection from a mouse drag on the range handle', async () => {
     await grid.enableMoveCells();
     await grid.selectRange(1, 1, 1, 1);
