@@ -17,9 +17,10 @@ name: A11y
 # from the run page, built to locate every element (fixture, steps, selector, DOM path,
 # screenshot). The `A11y / axe report` check run on the pull request's head commit: its
 # icon is the visible gate (neutral = something needs action in warn mode), and its
-# annotations sit on the line to change. A sticky pull request comment with the
-# headline, what needs action and the report link, posted only when something needs
-# action and edited when a later run is clean. And `a11y-findings.json` for an
+# annotations sit on the line to change. A sticky pull request comment on every pull
+# request the scan ran on, edited in place by later runs: the headline, what needs
+# action, what the pull request added to the baseline (compared with the base commit's)
+# and the report link. And `a11y-findings.json` for an
 # implementer agent, in the zipped raw results with a short retention: they are the
 # evidence behind a warning, not a record.
 #
@@ -49,6 +50,7 @@ jobs:
       A11Y_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        id: checkout
       - name: Download the Handsontable UMD build artifact
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
         with:
@@ -102,15 +104,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           A11Y_REPORT_URL: ${{ steps.report.outputs.artifact-url }}
         run: node tests/scripts/a11y-check-run.mjs
-      # The sticky comment (tests/lib/a11y-pr-comment.mjs): posted when something needs action,
-      # edited when a later run is clean, never a screenshot; it links the HTML report. Pull
-      # requests only, behind the same guard (a fork's token cannot comment).
+      # The sticky comment (tests/lib/a11y-pr-comment.mjs): posted on the first run, clean or not,
+      # and edited in place by every later one; never a screenshot, it links the HTML report. It
+      # reads the baseline at the first parent of the checked-out merge commit (A11Y_CHECKOUT_SHA,
+      # through the REST API) to list what the pull request adds to it: the payload's base.sha can
+      # be older than the tip the merge ref was built on (a re-run, a base merged in), so it is
+      # only the fallback. Pull requests only, behind the same guard (a fork's token cannot
+      # comment).
       - name: Post the report comment
         if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           A11Y_PR_NUMBER: ${{ github.event.pull_request.number }}
+          A11Y_CHECKOUT_SHA: ${{ steps.checkout.outputs.commit }}
+          A11Y_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           A11Y_REPORT_URL: ${{ steps.report.outputs.artifact-url }}
           A11Y_CHECK_URL: ${{ steps.check.outputs.check-url }}
         run: node tests/scripts/a11y-pr-comment.mjs
