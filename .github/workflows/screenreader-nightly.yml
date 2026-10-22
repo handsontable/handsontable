@@ -65,7 +65,7 @@ jobs:
     uses: ./.github/workflows/screenreader.yml
     with:
       # TEMPORARY, the proof run records the goldens: restored to the dispatch input before the pull request is ready.
-      update-goldens: ${{ github.event_name == 'workflow_dispatch' && inputs.update-goldens || github.event_name == 'push' }}
+      update-goldens: ${{ github.event_name == 'workflow_dispatch' && inputs.update-goldens || false }}
     secrets: inherit
 
   # Optional Slack ping, develop only; fires only when the webhook secret exists (an absent secret is

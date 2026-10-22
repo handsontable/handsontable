@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "scenario": "nested-rows",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-10-22T14:21:32.043Z"
+  },
+  "steps": {
+    "collapse-parent": "1 row header collapsed row 2 column 1 collapsed row 1",
+    "expand-parent": "1 row header expanded row 2 column 1 expanded row 1 expanded rows shown 5",
+    "into-parent-cell": "root a selected name row 2 column 2",
+    "down-to-child": "a 1 selected name row 3 column 2"
+  }
+}
