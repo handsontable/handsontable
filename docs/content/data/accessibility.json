@@ -1,0 +1,165 @@
+{
+  "$comment": "The single source of truth for every public accessibility claim: the target, the conformance report, the tested screen readers and browsers, the known limitations, and the notes. Shape, consumers, and how to change it: docs/AGENTS.md, section 2.20. Docs pages read it through {{$a11y.<key>}} template variables, the READMEs and the website read the strings it renders, and scripts/accessibility-claims.mjs fails on any public text that contradicts it.",
+  "target": {
+    "standard": "WCAG",
+    "version": "2.2",
+    "level": "Level A and AA",
+    "url": "https://www.w3.org/TR/WCAG22/",
+    "wording": {
+      "long": "targets WCAG 2.2 Level A and AA",
+      "short": "targets WCAG 2.2 AA"
+    }
+  },
+  "report": {
+    "title": "Accessibility conformance report (VPAT)",
+    "version": "1.1",
+    "date": "March 2026",
+    "slug": "accessibility-conformance-report",
+    "url": "https://handsontable.com/docs/javascript-data-grid/accessibility-conformance-report/",
+    "docsPath": "@/guides/accessibility/accessibility-conformance-report/accessibility-conformance-report.md",
+    "template": "VPAT 2.5 (October 2024)",
+    "evaluatedProductVersion": null,
+    "audit": {
+      "auditor": "Kinaole",
+      "period": "December 2025 to January 2026",
+      "coverage": "the Level A and AA criteria that WCAG 2.2 shares with its previous version; the six criteria new in WCAG 2.2 (2.4.11, 2.5.7, 2.5.8, 3.2.6, 3.3.7, and 3.3.8) were assessed internally"
+    },
+    "next": {
+      "version": "1.2",
+      "status": "in preparation",
+      "scope": "every Level A and AA criterion judged, the evaluated product version stated, and the international edition of the VPAT template"
+    }
+  },
+  "matrix": [
+    {
+      "name": "VoiceOver",
+      "version": "macOS 15.3.2",
+      "platform": "macOS",
+      "howTested": ["audit"]
+    },
+    {
+      "name": "VoiceOver",
+      "version": "iOS 18.3",
+      "platform": "iOS",
+      "howTested": ["audit", "manual-per-major"]
+    },
+    {
+      "name": "NVDA",
+      "version": "2025.3",
+      "platform": "Windows 11",
+      "howTested": ["audit"]
+    },
+    {
+      "name": "JAWS",
+      "version": null,
+      "platform": "Windows",
+      "howTested": ["not-tested"]
+    }
+  ],
+  "browsers": [
+    { "name": "Chrome", "version": "141.0.7390.66" },
+    { "name": "Firefox", "version": "143.0.4" }
+  ],
+  "knownLimitations": [
+    {
+      "id": "sorting-not-announced",
+      "text": "Sorting state changes are not announced to screen readers.",
+      "criteria": ["4.1.3"],
+      "tracker": "#2375"
+    },
+    {
+      "id": "range-selection-not-announced",
+      "text": "A range selection is not announced; only the focused cell is.",
+      "criteria": ["4.1.2", "4.1.3"],
+      "tracker": "#2343"
+    },
+    {
+      "id": "nested-headers-announcement",
+      "text": "Nested column headers are not announced reliably.",
+      "criteria": ["4.1.2"],
+      "tracker": "#2373"
+    },
+    {
+      "id": "no-table-description",
+      "text": "There is no option to give the grid an accessible description.",
+      "criteria": ["1.3.1"],
+      "tracker": "#3044"
+    },
+    {
+      "id": "formula-result-not-indicated",
+      "text": "A cell that shows a formula result is not distinguished from a typed value.",
+      "criteria": ["4.1.2", "4.1.3"],
+      "tracker": "#3046"
+    },
+    {
+      "id": "empty-cell-index-not-announced",
+      "text": "The position of an empty cell is not announced.",
+      "criteria": ["4.1.3"],
+      "tracker": "#2441"
+    },
+    {
+      "id": "date-picker-not-announced",
+      "text": "The date picker (Pikaday) is not announced properly.",
+      "criteria": ["4.1.2"],
+      "tracker": null
+    },
+    {
+      "id": "loading-icon-not-hidden",
+      "text": "The loading icon (an SVG) is not hidden from screen readers.",
+      "criteria": ["1.1.1"],
+      "tracker": null
+    },
+    {
+      "id": "dialog-default-name",
+      "text": "The dialog's default accessible name is the word \"Dialog\"; pass `ariaLabel` to name it after its content.",
+      "criteria": ["4.1.2"],
+      "tracker": null
+    },
+    {
+      "id": "menu-separators-interactive",
+      "text": "Menu separators are exposed as interactive menu items.",
+      "criteria": ["1.3.1", "4.1.2"],
+      "tracker": null
+    },
+    {
+      "id": "filter-checkbox-group",
+      "text": "The checkbox list in the filter menu has no group semantics.",
+      "criteria": ["1.3.1", "4.1.2"],
+      "tracker": null
+    },
+    {
+      "id": "horizon-contrast",
+      "text": "The summary row and some icons of the Horizon theme fail the contrast ratio.",
+      "criteria": ["1.4.3", "1.4.11"],
+      "tracker": null
+    },
+    {
+      "id": "frozen-counts",
+      "text": "With frozen rows, frozen columns, or both, some screen readers read the total number of rows and columns incorrectly.",
+      "criteria": [],
+      "tracker": null
+    },
+    {
+      "id": "frozen-header-name",
+      "text": "When you select a cell in a frozen row or column, NVDA might announce the wrong column header name.",
+      "criteria": [],
+      "tracker": null
+    },
+    {
+      "id": "dynamic-aria-omitted",
+      "text": "Screen readers sometimes omit ARIA attributes that change dynamically.",
+      "criteria": [],
+      "tracker": null
+    },
+    {
+      "id": "aria-rowcount",
+      "text": "The `aria-rowcount` attribute is set to `-1` on purpose, because most screen readers ignore or misread it; this keeps VoiceOver accurate. Handsontable will revisit this once screen readers handle the attribute consistently.",
+      "criteria": [],
+      "tracker": null
+    }
+  ],
+  "notes": {
+    "mobile": "VoiceOver on iOS was part of the last audit. Mobile screen readers are checked by hand once per major release and are not part of the automated runs.",
+    "automation": "Automated nightly screen-reader runs with NVDA and VoiceOver are being set up. They join this list when they run."
+  }
+}

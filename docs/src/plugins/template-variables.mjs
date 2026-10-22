@@ -28,6 +28,14 @@
  *   a "Changelog" link stays current without a manual edit every major release.
  *   Callers that resolve `@/...md` links must substitute before doing so, or the
  *   link lands on a page that does not exist.
+ * - `{{$a11y.<key>}}` - a value rendered from the accessibility data file
+ *   (`content/data/accessibility.json`): the target wording, the conformance
+ *   report's version and date, the tested screen readers, the known limitations.
+ *   The keys are the ones `accessibilityTemplateValues()` in
+ *   `accessibility-data.mjs` returns; an unknown key throws, so a typo fails the
+ *   build instead of printing a placeholder. A value may hold Markdown (a list, a
+ *   table, an `@/...md` link), which is why this runs before the link resolution
+ *   too. Shape and consumers: `docs/AGENTS.md`, section 2.20.
  */
 
 import {
@@ -36,6 +44,22 @@ import {
   CURRENT_EXAMPLES_BRANCH,
 } from './docs-version.mjs';
 import { LATEST_CHANGELOG_MAJOR } from './changelog-parser.mjs';
+import { accessibilityTemplateValues, loadAccessibilityData } from './accessibility-data.mjs';
+
+let defaultA11yValues = null;
+
+/**
+ * The `{{$a11y.<key>}}` values of this build, read from the data file once.
+ *
+ * @returns {Record<string, string>} The values.
+ */
+function getDefaultA11yValues() {
+  if (defaultA11yValues === null) {
+    defaultA11yValues = accessibilityTemplateValues(loadAccessibilityData());
+  }
+
+  return defaultA11yValues;
+}
 
 /**
  * Replaces every supported `{{$name}}` template variable in a string.
@@ -52,6 +76,8 @@ import { LATEST_CHANGELOG_MAJOR } from './changelog-parser.mjs';
  * @param {string} [options.examplesBranch] Replacement for `{{$examplesBranch}}`.
  * @param {string|number} [options.latestChangelogVersion] Replacement for
  *   `{{$latestChangelogVersion}}`.
+ * @param {Record<string, string>} [options.a11y] The `{{$a11y.<key>}}` values;
+ *   defaults to the ones rendered from the accessibility data file.
  * @returns {string}
  */
 export function replaceTemplateVariables(text, {
@@ -60,10 +86,21 @@ export function replaceTemplateVariables(text, {
   minorVersion = CURRENT_DOCS_MINOR_VERSION,
   examplesBranch = CURRENT_EXAMPLES_BRANCH,
   latestChangelogVersion = LATEST_CHANGELOG_MAJOR,
+  a11y = null,
 } = {}) {
   // The replacements are passed as functions so a `$` in a value (`$&`, `$1`)
   // cannot be read as a replacement pattern.
   return text
+    .replace(/\{\{\s*\$a11y\.([\w.]+)\s*\}\}/g, (placeholder, key) => {
+      const values = a11y ?? getDefaultA11yValues();
+
+      if (!Object.hasOwn(values, key)) {
+        throw new Error(`Unknown template variable ${placeholder}: accessibility-data.mjs provides ` +
+          `${Object.keys(values).join(', ')} (see docs/AGENTS.md, section 2.20)`);
+      }
+
+      return values[key];
+    })
     .replace(/\{\{\s*\$basePath\s*\}\}/g, () => basePath)
     .replace(/\{\{\s*\$currentVersion\s*\}\}/g, () => version)
     .replace(/\{\{\s*\$currentMinorVersion\s*\}\}/g, () => minorVersion)

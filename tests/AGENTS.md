@@ -1008,8 +1008,9 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
   theme `.min.css` gives an unstyled grid whose contrast and target-size results are wrong
   without anything failing.
 - **WCAG 2.2 A and AA, violations only.** The rule set is the tags `wcag2a`, `wcag2aa`, `wcag21a`,
-  `wcag21aa` and `wcag22aa`, the level the published conformance report claims
-  (`docs/content/guides/accessibility/accessibility-conformance-report/`); best-practice rules are
+  `wcag21aa` and `wcag22aa`, the target level; the published conformance report
+  (`docs/content/guides/accessibility/accessibility-conformance-report/`) states conformance per
+  criterion. Best-practice rules are
   not in it, on purpose. An `incomplete` result (axe could not decide, most often a contrast it
   could not compute) is counted in the raw scan JSON and the report, and is never a finding.
 - **One bundle, three themes, and the variants on pages of their own.** The scan runs on the plain

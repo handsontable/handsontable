@@ -1071,3 +1071,83 @@ spec, the action, and the workflows.
 - **The guide must be framework-neutral and have a `permalink`.** The loader builds every page that has a `permalink` for all four frameworks, so an `onlyFor` guide is not a dead link, but one API page serves every framework and the target would be missing from the other frameworks' navigation. A guide with no `permalink` is skipped by the loader, so its link would 404.
 - **The gate is `npm run docs:validate-api-guide-links`.** `npm run build` runs it before `docs:api`, so a renamed guide fails with a readable message instead of an ENOENT from the generator. Unit tests are in `scripts/__tests__/validate-api-guide-links.test.mjs`, run by `docs:test:plugins`. It fails on a missing guide, a guide with no title or permalink, a guide missing from the sidebar, an `onlyFor` guide (array or string), a key that is neither a plugin directory nor `hooks.md`/`baseEditor.md` (so `core.md` fails), an empty guide array, every guide of an array that breaks a rule above, an `unmappedPlugins` name that is not a plugin directory, and a plugin directory that is neither mapped nor listed. It reads the sources and `content/guides` only, so it does not need `docs:api` first. The test that checks the generated `content/api/*.md` skips until `docs:api` has run, and fails on a missing or stale page after that.
 - **Tooling, not content.** The map and the renderer are outside `docs/content/**`, so the docs sync does not port them to `prod-docs/*`. The line reaches the live site at the next prod-docs cut, or through a hand cherry-pick.
+
+## 2.20 Accessibility claims have one source: `content/data/accessibility.json`
+
+Every public accessibility claim - the target, the conformance report's version and date, the
+tested screen readers and browsers, the known limitations - is written once, in
+`content/data/accessibility.json`, and rendered everywhere else. Before the file existed the guide
+said "meets WCAG 2.1 AA" under a report that judges WCAG 2.2 per criterion, a recipe targeted
+"WCAG 2.1 AA compliance", three pages listed JAWS, which no audit has run, and the website had its
+own copies of all of it (28 contradictions across 43 files, counted on 2026-10-22). The approved
+public wording is **"targets WCAG 2.2 Level A and AA"** (short form "targets WCAG 2.2 AA"), with a
+link to the report; never "meets", "compliant", "conformance with", or "certified". A screen reader
+is named only when the file's matrix lists it as tested.
+
+### The shape
+
+| Key | Holds | Rules |
+|---|---|---|
+| `target` | `standard`, `version`, `level`, `url`, and `wording.long` / `wording.short` | each wording starts with "targets" (the validator rejects anything else) |
+| `report` | `title`, `version`, `date`, `slug`, `url`, `docsPath` (an `@/...md` link), `template`, `evaluatedProductVersion` (a string, or `null` while the report does not state it), `audit` (`auditor`, `period`, `coverage`), `next` (`version`, `status`, `scope`, or `null`) | `url` is the JavaScript docs URL; the READMEs derive their framework-prefixed form from `slug` |
+| `matrix[]` | one entry per screen reader and platform: `name`, `version` (`null` when not tested), `platform`, `howTested[]` | `howTested` values: `audit` (the external audit in `report.audit`), `automated-nightly`, `manual-per-major`, `not-tested`; `not-tested` stands alone. An entry whose only value is `not-tested` records a decision and is never rendered - its name is what public text must not use |
+| `browsers[]` | `name`, `version` (full) | sentences use the major version |
+| `knownLimitations[]` | `id`, `text` (Markdown), `criteria[]` (WCAG numbers), `tracker` (the report's reference, or `null`) | ids are unique; the order is the rendered order |
+| `notes` | `mobile`, `automation` | one sentence or two each; rendered verbatim |
+
+`src/plugins/accessibility-data.mjs` is the only reader: `loadAccessibilityData()` validates the
+shape (`validateAccessibilityData()`) and throws with the field's name, so a broken file fails the
+docs build and the root tooling suite instead of rendering `undefined`.
+
+### The consumers
+
+- **Docs pages** read it through the `{{$a11y.<key>}}` template variables (`template-variables.mjs`,
+  so all three pipelines resolve them). The keys are what `accessibilityTemplateValues()` returns:
+  `target.name`, `target.level`, `target.long`, `target.short`, `target.url`, `target.link`,
+  `report.title`, `report.version`, `report.date`, `report.url`, `report.docsPath`, `report.link`,
+  `report.template`, `report.evaluatedProductVersion`, `report.auditor`, `report.auditPeriod`,
+  `report.auditCoverage`, `report.next.version`, `report.next.status`, `report.next.scope`,
+  `matrix.table`, `matrix.list`, `matrix.sentence`, `matrix.names`, `browsers.sentence`,
+  `browsers.list`, `knownLimitations.list`, `notes.mobile`, `notes.automation`. An unknown key
+  throws at build time. A value may hold Markdown (a list, a table, an `@/...md` link), so put a
+  list or table variable on a line of its own with blank lines around it, and keep it out of a
+  `::: tip` aside, whose body is not parsed as Markdown (2.12). The accessibility guide, the
+  conformance report page, the ARIA recipe, and the Pikaday recipe use them; the tooling test
+  requires the guide and the report page to render the target, the version, the date, and the
+  matrix from them rather than from literals.
+- **The READMEs** (root and the three wrappers) carry
+  `[targets WCAG 2.2 AA](https://handsontable.com/docs/<prefix>/accessibility-conformance-report/)`
+  next to their Accessibility feature link; the test derives the sentence and each README's prefix
+  from the file. The unprefixed `/docs/accessibility-conformance-report/` 404s, so the root README
+  uses the `javascript-data-grid` prefix, which `scripts/readme-check.mjs` accepts for it.
+- **The website** (handsontable.com, a separate repository) copies
+  `content/data/accessibility-website-strings.json`, which
+  `npm run docs:export-accessibility-strings` writes from the data file (`websiteStrings()`). The
+  export is committed and the tooling test fails when it is stale, so regenerate it in the same
+  change as the data. The website's `src/content/data/accessibility.json` is that copy; the chip,
+  the trust card, the solutions page, and the `llms.txt` line read it.
+- **The report generator** (the sibling task that replaces the report page with a generated
+  international-edition VPAT) reads the same file: the version, the date, the evaluated product
+  version, the matrix, and the known limitations are its inputs, and `report.next` is what the
+  page announces until the next version is published.
+
+### The gate
+
+`scripts/accessibility-claims.mjs` (root `test:tooling`, through
+`scripts/__tests__/accessibility-claims.test.mjs`; `node scripts/accessibility-claims.mjs` prints
+the findings) scans `docs/content/**` (not the generated `api/`), the four READMEs, the core source
+under `handsontable/src` (its JSDoc is the API reference), and the website export for `WCAG 2.0`
+or `WCAG 2.1` in any spelling, "meets ... WCAG", "conformance with WCAG", "compliant", "compliance",
+and "certified" in an accessibility sentence, and any screen reader the matrix does not list as
+tested. Historical text keeps its wording through the allowlist in that script: the changelog pages,
+the migration guides, and the version highlights. A new screen reader goes into
+`SCREEN_READER_NAMES` there as well as into the matrix. Release blog posts live in the website
+repository; a dated post keeps its text and gets an editor's note with `updatedDate`.
+
+### Changing it
+
+1. Edit `content/data/accessibility.json` (a new audit updates `matrix`, `browsers`, and
+   `report.audit`; a new report version updates `report.version`, `report.date`, and
+   `report.evaluatedProductVersion`, and moves `report.next` on).
+2. Run `npm run docs:export-accessibility-strings` and commit the export.
+3. Run `npm run test:tooling` at the root; copy the export into the website repository.

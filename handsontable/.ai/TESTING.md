@@ -589,7 +589,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - What earns a capture, and why a visual spec is in addition to, never instead of a Playwright assertion: `visual-tests/AGENTS.md` → Decision rule
 
 **Accessibility scan (axe):**
-- Framework: Playwright + `@axe-core/playwright` (axe-core, WCAG 2.2 A and AA rule tags)
+- Framework: Playwright + `@axe-core/playwright` (axe-core, WCAG 2.2 A and AA rule tags – the target level; the published conformance report states conformance per criterion)
 - Location: `tests/a11y/` — `axe.spec.ts` (the scan), `pages.mjs` (the curated fixture pages, one per accessible surface, each on the three themes), `axe-baseline.json` (the catalog of known issues, and where each shows: one entry per page, theme, rule and element, with its node count), `coverage.mjs` (how the scan covers each plugin and editor folder, enforced by `tests/lib/__tests__/a11y-coverage.test.mjs`)
 - Config: `tests/playwright.a11y.config.ts`; the comparator is `tests/lib/a11y-baseline.mjs`, the reporter `tests/reporters/a11y.ts`
 - CI: one job, `A11y / axe`, in warn mode — a finding that needs action is an annotation, a summary row and a neutral `A11y / axe report` check run, never a red job; the only reds are tooling failures. An HTML report that locates every element (fixture, steps, selector, DOM path, screenshot) opens from the run page, a sticky pull request comment links it, and `a11y-findings.json` gives an implementer agent the same findings, concise. The baseline moves only with the code: the change that fixes a finding deletes its entry

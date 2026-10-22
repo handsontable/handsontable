@@ -1,0 +1,35 @@
+{
+  "$generated": "Generated from docs/content/data/accessibility.json by docs/scripts/export-accessibility-strings.mjs. Do not edit: change the data file and run `npm run docs:export-accessibility-strings --prefix docs`.",
+  "target": {
+    "name": "WCAG 2.2",
+    "level": "Level A and AA",
+    "url": "https://www.w3.org/TR/WCAG22/",
+    "wording": {
+      "long": "targets WCAG 2.2 Level A and AA",
+      "short": "targets WCAG 2.2 AA"
+    }
+  },
+  "report": {
+    "title": "Accessibility conformance report (VPAT)",
+    "version": "1.1",
+    "date": "March 2026",
+    "url": "https://handsontable.com/docs/javascript-data-grid/accessibility-conformance-report/",
+    "evaluatedProductVersion": null
+  },
+  "screenReaders": {
+    "names": [
+      "VoiceOver",
+      "NVDA"
+    ],
+    "sentence": "VoiceOver (macOS and iOS) and NVDA (Windows)"
+  },
+  "browsers": {
+    "sentence": "Chrome 141 and Firefox 143"
+  },
+  "strings": {
+    "chip": "Targets WCAG 2.2 AA",
+    "trustCardLabel": "WCAG 2.2",
+    "trustCardText": "Handsontable DataGrid targets WCAG 2.2 Level A and AA. The accessibility conformance report (version 1.1, March 2026) states the result per success criterion, tested with VoiceOver (macOS and iOS) and NVDA (Windows).",
+    "screenReaderSupport": "screen reader support (tested with VoiceOver (macOS and iOS) and NVDA (Windows), in Chrome 141 and Firefox 143)"
+  }
+}
