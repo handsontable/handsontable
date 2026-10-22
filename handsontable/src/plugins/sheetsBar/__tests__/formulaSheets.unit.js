@@ -209,6 +209,28 @@ describe('SheetsBar formula sheets', () => {
     });
   });
 
+  describe('sheet names the engine reads only in quotes', () => {
+    it('calculates an unquoted reference on the active sheet and on a sheet not shown yet', () => {
+      const engine = buildEngine();
+      const third = [['=Лист2!A1*10']];
+
+      hot = build([
+        boundSheet(engine, 'Лист1', [['=Лист2!A1', '=\'Лист2\'!A1']]),
+        boundSheet(engine, 'Лист2', [[7]]),
+        boundSheet(engine, 'Лист3', third),
+      ]);
+
+      expect(third[0][0]).toBe('=Лист2!A1*10');
+
+      expect(hot.getDataAtRow(0)).toEqual([7, 7]);
+      expect(engine.getCellValue({ sheet: engine.getSheetId('Лист3'), row: 0, col: 0 })).toBe(70);
+
+      sheetsBar().setActiveSheet('Лист3');
+
+      expect(hot.getDataAtCell(0, 0)).toBe(70);
+    });
+  });
+
   describe('remove and add', () => {
     it('repaints a formula that reads a sheet removed and added again', () => {
       const engine = buildEngine();

@@ -583,8 +583,15 @@ engine class (or `{ hyperformula }`) builds the engine itself.
 ## Sheet names the engine reads only in quotes
 
 HyperFormula's unparser writes a sheet name without quotes whenever it can (`=2026!A1` for a sheet
-named `2026`) and then cannot parse that text back. Every formula text that leaves the engine through
-this plugin therefore goes through `#readableFormula()` (or `#readableSheet()` for a whole sheet),
+named `2026`) and then cannot parse that text back, and its parser cannot read a name outside its
+unquoted grammar at all (`=Лист2!A1` is `#ERROR!`, while `='Лист2'!A1` works). The same rule runs in
+both directions. **On the way in**, `#escapeEngineBoundValue()` quotes a formula before anything else
+(cell edits, `setSourceDataAtCell`, the switched-away restore), `#escapeSourceDataArray()` quotes the
+formulas of every bulk write before its date and text gate (load, resync, inserted rows), and
+`addSheet(name, data)` quotes the rows it feeds; the host's own array is never written by these.
+Without it the editor showed `='Лист2'!A1` (the read side below) over an `#ERROR!` the engine held
+for the unquoted text. **On the way out**, every formula text that leaves the engine through
+this plugin goes through `#readableFormula()` (or `#readableSheet()` for a whole sheet),
 which runs `quoteUnreadableSheetNames()` from `../../utils/formulaReferences.ts`: an unquoted name
 the engine cannot read is quoted, everything else is left as written. That covers the source-data
 read (`modifySourceData`, so the editor opens on `='2026'!A1`), `switchSheet()`, the write-back of

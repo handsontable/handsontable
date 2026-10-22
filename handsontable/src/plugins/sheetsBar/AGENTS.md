@@ -111,7 +111,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   parse it. The engine hands out the same unquoted text everywhere else too (an editor, a copy,
   a write-back), so the Formulas plugin quotes it on the way out (`../formulas/AGENTS.md`, "Sheet
   names the engine reads only in quotes"), and `#syncInactiveSheetsFromEngine()` uses the same
-  `quoteUnreadableSheetNames()`. A rename that renamed an engine sheet is one undo step (`#recordRenameStep()`, the
+  `quoteUnreadableSheetNames()`, and so does every feed of a sheet's data into the engine
+  (`#readableEngineContent()`), so `=Лист2!A1` in a sheet not shown yet calculates too. A rename that renamed an engine sheet is one undo step (`#recordRenameStep()`, the
   legacy `done()` path): the steps before it hold text with the old name, so undoing an older row
   removal against the renamed engine read `#REF!`; undone in order, the rename goes first. A
   rename that only changes the case of the name renames that one engine sheet, not a collision

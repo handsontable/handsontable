@@ -56,6 +56,73 @@ describe('Formulas text of a reference to a sheet the engine reads only in quote
     expect(data[0][0]).toBe('=\'2026\'!A1');
   });
 
+  describe('a name the engine cannot read unquoted in the data', () => {
+    /**
+     * Builds a grid on a sheet that reads the engine sheet `Лист2`.
+     *
+     * @param {Array[]} data The grid's data.
+     * @param {object} [settings] More grid settings.
+     * @returns {HyperFormula}
+     */
+    function buildCyrillicGrid(data, settings = {}) {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      engine.addSheet('Лист2');
+      engine.setSheetContent(engine.getSheetId('Лист2'), [[7]]);
+
+      hot = new Handsontable(container, {
+        data,
+        formulas: { engine, sheetName: 'Report' },
+        licenseKey: LICENSE_KEY,
+        ...settings,
+      });
+
+      return engine;
+    }
+
+    it('calculates a loaded formula and leaves the data as written', () => {
+      const data = [['=Лист2!A1', 'x']];
+
+      buildCyrillicGrid(data);
+
+      expect(hot.getDataAtCell(0, 0)).toBe(7);
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=\'Лист2\'!A1');
+      expect(data[0][0]).toBe('=Лист2!A1');
+    });
+
+    it('calculates a loaded formula in a column whose text the engine escapes', () => {
+      buildCyrillicGrid([['=Лист2!A1', '007']], { columns: [{}, { type: 'text', preserveTextValue: true }] });
+
+      expect(hot.getDataAtCell(0, 0)).toBe(7);
+      expect(hot.getDataAtCell(0, 1)).toBe('007');
+    });
+
+    it('calculates a formula typed into a cell and one written to the source data', () => {
+      buildCyrillicGrid([['x', 'y']]);
+
+      hot.setDataAtCell(0, 0, '=Лист2!A1*2');
+      hot.setSourceDataAtCell(0, 1, '=Лист2!A1*3');
+
+      expect(hot.getDataAtRow(0)).toEqual([14, 21]);
+    });
+
+    it('calculates a formula in a row the grid inserts', () => {
+      buildCyrillicGrid([['x']]);
+
+      hot.alter('insert_row_above', 0);
+      hot.setDataAtCell(0, 0, '=Лист2!A1+1');
+
+      expect(hot.getDataAtCell(0, 0)).toBe(8);
+    });
+
+    it('calculates a formula in a sheet added through the plugin', () => {
+      const engine = buildCyrillicGrid([['x']]);
+      const name = hot.getPlugin('formulas').addSheet('Extra', [['=Лист2!A1']]);
+
+      expect(engine.getCellValue({ sheet: engine.getSheetId(name), row: 0, col: 0 })).toBe(7);
+    });
+  });
+
   it('writes the quoted text into the data when a row insert moves the reference', () => {
     const data = [['=\'2026\'!A1+0', 'x'], ['plain', 'y']];
 

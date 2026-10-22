@@ -36,6 +36,10 @@ Filling formula cells with [autofill](@/guides/cell-features/autofill-values/aut
 You can use formulas in a single-sheet mode or with multiple Handsontable instances with
 cross-sheet references.
 
+A sheet name that HyperFormula can read only in quotes, such as `2026` or `Лист2`, works with or
+without the quotes. Handsontable adds them before the formula reaches HyperFormula, and the editor
+shows the formula with them, for example `='Лист2'!A1`.
+
 Double click on a cell to open the editor and preview the formula.
 
 ::: only-for javascript

@@ -3283,8 +3283,66 @@ export class SheetsBar extends BasePlugin {
     // would keep feeding stale values into the cross-sheet formulas until each sheet is
     // visited once.
     if (feed) {
-      engine.setSheetContent!(sheetId, toEngineContent(sheet.data, sheet.settings?.columns));
+      engine.setSheetContent!(sheetId, this.#readableEngineContent(
+        engine, toEngineContent(sheet.data, sheet.settings?.columns),
+      ));
     }
+  }
+
+  /**
+   * Returns a function that quotes every sheet name in a formula that `engine` cannot read without
+   * quotes (`#sheetNameText`), asking the engine once per name.
+   *
+   * @param {object} engine The engine.
+   * @returns {Function}
+   */
+  #formulaQuoterFor(engine: NonNullable<SheetFormulas['engine']>): (formula: string) => string {
+    const readable = new Map<string, boolean>();
+    const canReadUnquoted = (name: string) => {
+      if (!readable.has(name)) {
+        readable.set(name, this.#sheetNameText(engine, name) === name);
+      }
+
+      return readable.get(name)!;
+    };
+
+    return formula => quoteUnreadableSheetNames(formula, canReadUnquoted);
+  }
+
+  /**
+   * Returns the content the bar feeds `engine` with the quotes the engine needs around a sheet name it
+   * cannot read unquoted (`=Лист2!A1` becomes `='Лист2'!A1`), the rule the Formulas plugin applies to
+   * every formula it writes into the engine. A row with nothing to quote is kept, and a changed row is
+   * a copy, so the host's data is never written.
+   *
+   * @param {object} engine The engine.
+   * @param {Array} content The rows to feed.
+   * @returns {Array}
+   */
+  #readableEngineContent(engine: NonNullable<SheetFormulas['engine']>, content: unknown[]): unknown[] {
+    const quoteIfNeeded = this.#formulaQuoterFor(engine);
+
+    return content.map((row) => {
+      if (!Array.isArray(row)) {
+        return row;
+      }
+
+      const cells = row as unknown[];
+      let copy: unknown[] | null = null;
+
+      cells.forEach((cell, columnIndex) => {
+        if (typeof cell === 'string' && cell.startsWith('=')) {
+          const text = quoteIfNeeded(cell);
+
+          if (text !== cell) {
+            copy ??= cells.slice();
+            copy[columnIndex] = text;
+          }
+        }
+      });
+
+      return copy ?? cells;
+    });
   }
 
   /**
@@ -3761,15 +3819,7 @@ export class SheetsBar extends BasePlugin {
    */
   #syncInactiveSheetsFromEngine(engine: NonNullable<SheetFormulas['engine']>) {
     const active = this.#activeSheetRecord();
-    const readable = new Map<string, boolean>();
-    const canReadUnquoted = (name: string) => {
-      if (!readable.has(name)) {
-        readable.set(name, this.#sheetNameText(engine, name) === name);
-      }
-
-      return readable.get(name)!;
-    };
-    const quoteIfNeeded = (formula: string) => quoteUnreadableSheetNames(formula, canReadUnquoted);
+    const quoteIfNeeded = this.#formulaQuoterFor(engine);
 
     this.#sheetRecords().forEach((sheet) => {
       const formulas = formulasSettingOf(sheet);

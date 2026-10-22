@@ -339,7 +339,7 @@ A sheet added at runtime, with the add button or with `addSheet()` without `sett
 How formulas behave across sheets:
 
 - A reference into a sorted sheet, or a sheet with moved rows or columns, reads the rows in the order you left that sheet in. When you come back, the sheet shows the formulas and values it had when you left.
-- Renaming a sheet updates the references to it on every sheet, in your data arrays too. A name that HyperFormula can only read in quotes, such as `2026`, is written as `='2026'!A1`. To undo a rename, use undo, the same as for an edit.
+- Renaming a sheet updates the references to it on every sheet, in your data arrays too. A name that HyperFormula can only read in quotes, such as `2026` or `Лист2`, is written as `='2026'!A1`, and a formula that leaves those quotes out still works. To undo a rename, use undo, the same as for an edit.
 - Inserting, removing, or moving rows or columns updates the references other sheets hold to them. The data array of a sheet that isn't sorted and has no moved rows or columns gets the new formulas as well.
 - A duplicated sheet gets its own copy of the sheet's named expressions, and its references to its own sheet name point to the copy.
 

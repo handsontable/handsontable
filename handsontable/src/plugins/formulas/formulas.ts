@@ -1491,7 +1491,7 @@ export class Formulas extends BasePlugin {
       const actualSheetName = this.engine!.addSheet(sheetName ?? undefined);
 
       if (sheetData) {
-        this.engine!.setSheetContent(this.engine!.getSheetId(actualSheetName), sheetData);
+        this.engine!.setSheetContent(this.engine!.getSheetId(actualSheetName), this.#readableSheet(sheetData));
       }
 
       return actualSheetName;
@@ -2745,6 +2745,10 @@ export class Formulas extends BasePlugin {
    * `setSourceDataAtCell` path came to send an invalid date to the engine unescaped while the other
    * two escaped it.
    *
+   * A formula gets the quotes the engine needs around a sheet name it cannot read unquoted
+   * (`#readableFormula()`), the same rule as the text read back out of the engine, so a cell's text and
+   * the formula the engine calculates are the same.
+   *
    * The `date` branch RETURNS rather than falling through to the preserved text check, so a cell
    * declaring both `type: 'date'` and `preserveTextValue: true` is treated as a date. The
    * combination is contradictory - `isPreservedText()` requires `type: 'text'` - and the only way
@@ -2759,6 +2763,10 @@ export class Formulas extends BasePlugin {
    * @returns {*} The escaped value, or the original value when no escaping applies.
    */
   #escapeEngineBoundValue(value: unknown, cellMeta: { type?: string; preserveTextValue?: boolean }): unknown {
+    if (isFormula(value)) {
+      return this.#readableFormula(value);
+    }
+
     if (isDate(value, cellMeta.type)) {
       if (isDateValid(value)) {
         // Rewriting the date from the Handsontable format to the engine format.
@@ -3084,10 +3092,7 @@ export class Formulas extends BasePlugin {
    * @param {number} [columnOffset=0] Index of the array's first column, in the array's own column space.
    */
   #escapeSourceDataArray(sourceDataArray: unknown[][], rowOffset = 0, columnOffset = 0) {
-    if (!this.#needsEngineBoundEscaping()) {
-      return;
-    }
-
+    const escapesText = this.#needsEngineBoundEscaping();
     const columnsInVisualOrder = !this.#doesEngineHoldPhysicalColumns();
     const metaManager = this.hot._getMetaManager();
 
@@ -3096,10 +3101,20 @@ export class Formulas extends BasePlugin {
       const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
 
       rowData.forEach((cellValue: unknown, arrayColumnIndex: number) => {
-        // Values that the escaping can never change – non-strings, and formulas, which the engine
-        // parses on its own – skip the meta read altogether. That read is the expensive part of
-        // this full-dataset scan, and it runs the user-provided `cells` function.
-        if (typeof cellValue !== 'string' || isFormula(cellValue)) {
+        // Values that the escaping can never change – non-strings, and formulas, which only get the
+        // quotes a sheet name needs – skip the meta read altogether. That read is the expensive part
+        // of this full-dataset scan, and it runs the user-provided `cells` function.
+        if (typeof cellValue !== 'string') {
+          return;
+        }
+
+        if (isFormula(cellValue)) {
+          sourceDataArray[arrayRowIndex][arrayColumnIndex] = this.#readableFormula(cellValue);
+
+          return;
+        }
+
+        if (!escapesText) {
           return;
         }
 
