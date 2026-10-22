@@ -255,30 +255,55 @@ that the corner overlays still draw the overhang for a frozen column; the iPad b
 
 ## The last track's fill handle clears an overlay scrollbar (DEV-982)
 
-`isCornerLiftedAtInlineEnd` and `isCornerLiftedAtBlockEnd` pull the grid's last column's and last
-row's fill handle inside the selection, flush with the holder's edge. An overlay ("floating")
-scrollbar is painted over exactly that strip: Firefox and Chrome on Windows 11, and macOS with "Show
-scroll bars" set to "When scrolling". It takes no layout space, so nothing else moves the handle
-away from it. The scrollbar then takes the hover and the press, and the drag scrolls the grid instead
-of filling. `Border#getCornerScrollbarClearance` adds the strip the frozen overlays already keep clear
-(`axisScrollbarClearance`, `OVERLAY_SCROLLBAR_CLEARANCE`) to that lift. Four rules:
+An overlay ("floating") scrollbar takes no layout space and is painted over the content at the
+holder's edge: Firefox and Chrome on Windows 11, and macOS with "Show scroll bars" set to "When
+scrolling". The grid's last column's and last row's fill handle sits at that edge (flush with it once
+`isCornerLiftedAtInlineEnd` / `isCornerLiftedAtBlockEnd` pull it inside), so the scrollbar takes the
+hover and the press, and the drag scrolls the grid instead of filling. `Border#getCornerScrollbarShift`
+keeps the handle out of the strip the frozen overlays already keep clear (`axisScrollbarClearance`,
+`OVERLAY_SCROLLBAR_CLEARANCE`, read through `Border#getCornerScrollbarClearance`). Six rules:
 
-- **Static, not tied to `ScrollbarVisibility`.** The bands open while the pointer is within
-  `OVERLAY_SCROLLBAR_PROXIMITY` (26px) of the edge, so a lift that followed them would move the
-  handle away while the user reaches for it. The cost is a handle that sits 16px inside the cell's
-  corner on the last column and row whenever the scrollbar is an overlay one and the axis scrolls.
+- **Measured from the holder's edge, not from the lift.** The shift is what the handle needs to end
+  16px before the holder's visible inline-end edge (the LEFT one in RTL) or bottom edge, from the
+  cell's client rect. Keying it on the lift predicates got both directions wrong: a last column ending
+  4-15px short of the edge is not lifted and stayed under the scrollbar, and an RTL grid narrower
+  than its holder is lifted against its own edge, far from the scrollbar, and moved for nothing. A
+  shifted handle is always lifted too, so `wtCornerInlineEndEdge` / `wtCornerBlockEndEdge` keep its
+  hit area out of the strip. The shift stops 1px inside the cell's start, so a track narrower than
+  the strip keeps the handle in its own cell, partly in the strip.
+- **Static, not tied to `ScrollbarVisibility`.** The clearance bands open on a scroll and a hover only
+  holds them open, but the browsers' own overlay scrollbars also appear when the pointer reaches the
+  edge, before any band does, so the handle has to be clear before then. The cost is a handle 16px
+  inside the cell's corner on the last column and row whenever the scrollbar is an overlay one and the
+  axis scrolls.
 - **The master only, the grid's last track only, and no end pane.** With `fixedColumnsEnd` or
-  `fixedRowsBottom` the last track belongs to an end clone, which already stands beside the strip.
-  The last scrollable track before an end pane is lifted for the pane (`isFrozenEndBoundaryEdge`),
-  not for the scrollbar.
-- **Gated like the frozen overlays' strip**: `holderOwnsAxisScrollbar` (the window does not own the
-  axis, and a pointer can grab a scrollbar) plus `hasVerticalScroll()`/`hasHorizontalScroll()` for the
-  axis. A classic scrollbar, an axis that does not scroll, and a touch-only device give 0.
-- **No headless browser hit-tests an overlay scrollbar**, and headed ones on macOS ignore the
-  Chromium and Firefox flags that would force one. `tests/e2e/fill-handle-overlay-scrollbar.spec.ts`
-  hides every scrollbar with `scrollbar-width: none` before the grid loads, so the holder and the
-  width probe read 0, and asserts the geometry; the covered handle itself is checked by hand on a real
-  device. Unit-pinned in `test/unit/selection/border/cornerScrollbarClearance.unit.ts`.
+  `fixedRowsBottom` the last track is drawn by an end clone, and a frozen row's or column's handle by
+  the `top` or `inline_start` clone. Those clones are clipped out of the strip while its band is open
+  (the clip-path `InlineEndOverlay` / `BottomOverlay` publish), so a handle they draw on the last track
+  is cut, not covered; that case is not handled here.
+- **A grid the window scrolls is not covered.** `holderOwnsAxisScrollbar` gates the clearance, so an
+  axis the window owns (a grid with no `height`) gets 0, while the page's own overlay scrollbar can
+  still sit over a last column that reaches the viewport edge. The changelog names the holder case
+  only.
+- **The resize pills step aside.** A moved handle lands where the bottom pill (last column) or the end
+  pill (last row) of a one-column or one-row range is centered, and the pills are above the handle
+  (115 against 110). `positionAdjustHandles` slides that pill toward the selection's start until it
+  clears the handle and its hit area (`cornerScrollbarAvoidance`, written by the corner pass of
+  `paint()`, which runs first), and a moved handle takes `z-index: 116` inline for the case a pill
+  cannot clear, such as the end pill of a one-row range. 116 stays below every overlay clone (120 and
+  up).
+- **No browser the suite launches paints an overlay scrollbar, and none hit-tests one.**
+  `tests/e2e/fill-handle-overlay-scrollbar.spec.ts` hides the grid's scrollbars with
+  `.wtHolder, .htScrollbarTest { scrollbar-width: none !important; }` before the grid loads (the
+  `!important` is what beats the theme's `scrollbar-width: auto` on `.wtHolder`; Chromium alone would
+  pass without it, because Playwright launches it with `--hide-scrollbars`), so the holder and the
+  width probe read 0, and asserts the geometry and that the handle stays out of the clearance band a
+  wheel scroll opens. It carries `CROSS_BROWSER_TAG`. The covered handle itself is checked by hand on
+  a real device. Unit-pinned in `test/unit/selection/border/cornerScrollbarClearance.unit.ts`.
+
+Known limit: in the bottom-end corner cell both shifts apply, and on a dropdown or autocomplete cell
+there the handle lands on the top-start part of `.htAutocompleteArrow`, which itself lies mostly in
+the strips. Shifting one axis only would put the handle back under the other scrollbar.
 
 ## Custom border `width: 0` is a real value (DEV-1137)
 

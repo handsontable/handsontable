@@ -185,6 +185,12 @@ class Border {
    */
   declare cornerStyle: CSSStyleDeclaration | null;
   /**
+   * Where the fill handle was drawn when {@link Border#getCornerScrollbarShift} moved it, in the
+   * coordinates of the handle's own style (`inlineStart` in the inline position property, `top`), or
+   * `null` on an axis it did not move. The resize pills read it so they do not sit on the moved handle.
+   */
+  declare cornerScrollbarAvoidance: { inlineStart: number | null, top: number | null };
+  /**
    * Created in the constructor only when `isMobileOrIpadOS()` is true. Guard every use —
    * `isIpadOS()` reads `navigator.maxTouchPoints` live, so Chrome device toolbar can flip
    * it after construction and leave this undefined.
@@ -1639,23 +1645,24 @@ class Border {
   }
 
   /**
-   * The extra distance the fill handle of the grid's last column (`'vertical'`) or last row
-   * (`'horizontal'`) is pulled back, so the master holder's overlay ("floating") scrollbar does not
-   * cover it. An overlay scrollbar takes no layout space and is painted over the content at the
-   * holder's edge - exactly where the lifted handle lands flush - so the scrollbar takes the hover and
-   * the press, and the handle cannot be dragged (Firefox and Chrome on Windows 11, macOS with "Show
-   * scroll bars" set to "Automatically" or "When scrolling"). It is the same strip the frozen overlays
-   * keep clear for that scrollbar (`axisScrollbarClearance`), so it is 0 for a space-taking scrollbar,
-   * for an axis the holder does not scroll or the window owns, and on a touch-only device.
+   * The strip the master holder's overlay ("floating") scrollbar is painted over, on the edge the
+   * fill handle of the grid's last column (`'vertical'`) or last row (`'horizontal'`) has to keep
+   * clear of. An overlay scrollbar takes no layout space and is painted over the content at the
+   * holder's edge, so the scrollbar takes the hover and the press there, and the handle cannot be
+   * dragged (Firefox and Chrome on Windows 11, macOS with "Show scroll bars" set to "Automatically"
+   * or "When scrolling"). It is the strip the frozen overlays keep clear for that scrollbar
+   * (`axisScrollbarClearance`), so it is 0 for a space-taking scrollbar, for an axis the holder does
+   * not scroll or the window owns, and on a touch-only device.
    *
-   * Only the master's handle on the grid's last track moves. A `fixedColumnsEnd`/`fixedRowsBottom`
-   * pane already sits beside that strip, and the last scrollable track before it is lifted for the
-   * pane, not for the scrollbar.
+   * Only the master's handle on the grid's last track is covered. With `fixedColumnsEnd` or
+   * `fixedRowsBottom` the last track is drawn by an end clone, and a frozen row's or column's handle
+   * by the `top` or `inline_start` clone; those clones are clipped out of the strip while its band is
+   * open, and their handles are out of scope here.
    *
    * @private
    * @param {number} toIndex The selection's inline-end column (`'vertical'`) or bottom row (`'horizontal'`).
    * @param {'vertical' | 'horizontal'} axis The scrollbar whose strip to clear.
-   * @returns {number} The extra lift, in pixels.
+   * @returns {number} The strip, in pixels, or 0 when nothing covers the handle.
    */
   getCornerScrollbarClearance(toIndex: number, axis: 'vertical' | 'horizontal'): number {
     const isVertical = axis === 'vertical';
@@ -1675,15 +1682,80 @@ class Border {
     const axisOwnedByWindow = isVertical
       ? wtViewport.isVerticallyScrollableByWindow()
       : wtViewport.isHorizontallyScrollableByWindow();
-    const axisScrolls = isVertical ? wtViewport.hasVerticalScroll() : wtViewport.hasHorizontalScroll();
+    // The ownership first: on a window-owned axis the scroll checks take the measuring path.
+    const clearanceApplies = holderOwnsAxisScrollbar(axisOwnedByWindow, rootWindow) &&
+      (isVertical ? wtViewport.hasVerticalScroll() : wtViewport.hasHorizontalScroll());
 
     return axisScrollbarClearance(
       geometryReader,
       wtTable.holder,
       geometryReader.getScrollbarWidth(rootDocument),
-      holderOwnsAxisScrollbar(axisOwnedByWindow, rootWindow) && axisScrolls,
+      clearanceApplies,
       axis
     );
+  }
+
+  /**
+   * How far the fill handle of the grid's last column (`'vertical'`) or last row (`'horizontal'`)
+   * moves past the flush lift so it stays out of the overlay scrollbar's strip
+   * ({@link Border#getCornerScrollbarClearance}), or `null` when the strip does not reach it.
+   *
+   * The answer comes from the cell's distance to the holder's visible edge on that axis (the
+   * inline-end edge, which is the left one in RTL, or the bottom edge), not from whether the handle
+   * is already lifted. A last column that ends a few pixels short of that edge is not lifted and
+   * still sits under the scrollbar, and an RTL grid narrower than its holder is lifted against its
+   * own edge, far from the scrollbar. A non-`null` answer means the caller lifts the handle (and its
+   * hit area, through `wtCornerInlineEndEdge` / `wtCornerBlockEndEdge`) and moves it that much more.
+   * The shift never moves the handle out of its own cell, so a track narrower than the strip keeps
+   * the handle at the cell's start rather than on the previous track (1px inside it, past the cell's
+   * start border).
+   *
+   * @private
+   * @param {number} toIndex The selection's inline-end column (`'vertical'`) or bottom row (`'horizontal'`).
+   * @param {'vertical' | 'horizontal'} axis The scrollbar whose strip to clear.
+   * @param {HTMLElement} TD The cell that carries the fill handle.
+   * @param {boolean} isRtl Whether the grid renders right-to-left.
+   * @returns {number | null} The extra shift past the flush lift, in pixels, or `null`.
+   */
+  getCornerScrollbarShift(
+    toIndex: number,
+    axis: 'vertical' | 'horizontal',
+    TD: HTMLElement,
+    isRtl: boolean,
+  ): number | null {
+    const clearance = this.getCornerScrollbarClearance(toIndex, axis);
+
+    if (clearance === 0) {
+      return null;
+    }
+
+    const { geometryReader } = this.wot.domBindings;
+    const { holder } = this.wot.wtTable;
+    const holderRect = geometryReader.getBoundingClientRect(holder);
+    const cellRect = geometryReader.getBoundingClientRect(TD);
+    const isVertical = axis === 'vertical';
+    const handleSize = parseInt(
+      String(isVertical ? this.cornerDefaultStyle.width : this.cornerDefaultStyle.height), 10
+    );
+    let distance;
+    let cellSize;
+
+    if (isVertical) {
+      cellSize = cellRect.width;
+      distance = isRtl
+        ? cellRect.left - (holderRect.right - geometryReader.clientWidth(holder))
+        : holderRect.left + geometryReader.clientWidth(holder) - cellRect.right;
+    } else {
+      cellSize = cellRect.height;
+      distance = holderRect.top + geometryReader.clientHeight(holder) - cellRect.bottom;
+    }
+
+    // An unlifted handle hangs half its size past the cell's end.
+    if (distance - Math.ceil(handleSize / 2) >= clearance) {
+      return null;
+    }
+
+    return Math.min(Math.max(0, Math.ceil(clearance - distance)), Math.max(0, Math.floor(cellSize) - handleSize - 2));
   }
 
   /**
@@ -2221,6 +2293,8 @@ class Border {
     const rendersFillCorner = checkRow <= lastRenderedRow && checkCol <= lastRenderedColumn &&
       Boolean(cornerVisibleSetting || this.selectionHandles) && this.canOverlayDrawFillCorner(checkRow, checkCol);
 
+    this.cornerScrollbarAvoidance = { inlineStart: null, top: null };
+
     if (
       isMobileOrIpadOS() ||
       !cornerVisibleSetting ||
@@ -2258,38 +2332,52 @@ class Border {
       const cornerHalfHeight = Math.ceil(parseInt(String(this.cornerDefaultStyle.height), 10) / 2);
       const fillHandleAnchor = this.getFillHandleAnchor(toTDEl, toOffset, trimToWindow);
 
-      const liftsAtInlineEnd = this.isCornerLiftedAtInlineEnd(
+      const inlineEndShift = this.getCornerScrollbarShift(toColumn, 'vertical', toTDEl, isRtl);
+      const liftsAtInlineEnd = inlineEndShift !== null || this.isCornerLiftedAtInlineEnd(
         toColumn, fillHandleAnchor.left, toTDEl, trimmingContainer, isRtl
       );
 
       if (liftsAtInlineEnd) {
         const inlineStartPosition = Math.floor(
           inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
-        ) - this.getCornerScrollbarClearance(toColumn, 'vertical');
+        ) - (inlineEndShift ?? 0);
 
         addClass(this.corner!, 'wtCornerInlineEndEdge');
 
         this.cornerStyle![inlinePosProperty] = `${inlineStartPosition - 1}px`;
+
+        if (inlineEndShift !== null) {
+          this.cornerScrollbarAvoidance.inlineStart = inlineStartPosition - 1;
+        }
       } else {
         removeClass(this.corner!, 'wtCornerInlineEndEdge');
       }
 
-      const liftsAtBlockEnd = this.isCornerLiftedAtBlockEnd(
+      const blockEndShift = this.getCornerScrollbarShift(toRow, 'horizontal', toTDEl, isRtl);
+      const liftsAtBlockEnd = blockEndShift !== null || this.isCornerLiftedAtBlockEnd(
         toRow, fillHandleAnchor.top, toTDEl, trimmingContainer
       );
 
       if (liftsAtBlockEnd) {
         const cornerTopPosition = Math.floor(
           top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation
-        ) - this.getCornerScrollbarClearance(toRow, 'horizontal');
+        ) - (blockEndShift ?? 0);
 
         addClass(this.corner!, 'wtCornerBlockEndEdge');
 
         this.cornerStyle!.top = `${cornerTopPosition - 1}px`;
+
+        if (blockEndShift !== null) {
+          this.cornerScrollbarAvoidance.top = cornerTopPosition - 1;
+        }
       } else {
         removeClass(this.corner!, 'wtCornerBlockEndEdge');
       }
 
+      // A moved handle can land on a resize pill (z-index 115) that cannot slide clear of it, such as
+      // the end pill of a one-row range. The handle is the press the user aims at there, so it goes
+      // just above the pills, still below every overlay clone (120 and up).
+      this.cornerStyle!.zIndex = inlineEndShift !== null || blockEndShift !== null ? '116' : '';
       this.cornerStyle!.display = 'block';
     }
 
@@ -2870,8 +2958,24 @@ class Border {
       s.top.top = `${top - Math.round(topH / 2)}px`;
       s.top.display = 'block';
     }
+    // A fill handle moved off an overlay scrollbar (DEV-982) can land where the bottom pill (a
+    // last-column handle) or the end pill (a last-row handle) is centered. The pill is above the
+    // handle, so a press there would resize instead of fill: slide that pill toward the selection's
+    // start until it clears the handle and its hit area, but not past the selection's start.
+    const avoidance = this.cornerScrollbarAvoidance ?? { inlineStart: null, top: null };
+    const readToken = (name: string) => parseInt(String(stylesHandler.getCSSVariableValue(name) ?? '0'), 10) || 0;
+    const autofillSize = readToken('cell-autofill-size');
+    const autofillHit = readToken('cell-autofill-hit-area-size');
+    const handleGap = Math.max(2, Math.ceil((autofillHit - autofillSize) / 2) + 1);
+
     if (toRow < lastRow) {
-      s.bottom[inlineProp] = `${inlineStart + Math.round(width / 2) - Math.round(bottomW / 2)}px`;
+      let bottomStart = inlineStart + Math.round(width / 2) - Math.round(bottomW / 2);
+
+      if (avoidance.inlineStart !== null && bottomStart + bottomW > avoidance.inlineStart - handleGap) {
+        bottomStart = Math.max(inlineStart, avoidance.inlineStart - handleGap - bottomW);
+      }
+
+      s.bottom[inlineProp] = `${bottomStart}px`;
       s.bottom.top = `${top + height - Math.round(bottomH / 2)}px`;
       s.bottom.display = 'block';
     }
@@ -2882,8 +2986,14 @@ class Border {
       s.start.display = 'block';
     }
     if (toColumn < lastColumn) {
+      let endTop = top + Math.round(height / 2) - Math.round(endH / 2);
+
+      if (avoidance.top !== null && endTop + endH > avoidance.top - handleGap) {
+        endTop = Math.max(top, avoidance.top - handleGap - endH);
+      }
+
       s.end[inlineProp] = `${inlineStart + width - Math.round(endW / 2)}px`;
-      s.end.top = `${top + Math.round(height / 2) - Math.round(endH / 2)}px`;
+      s.end.top = `${endTop}px`;
       s.end.display = 'block';
     }
   }
