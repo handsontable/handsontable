@@ -443,12 +443,14 @@ export class HandsontableAdapter {
     this.#emitter = new this.#core.PickEmitter();
 
     this.#colHeaderHook = (col, th, headerLevel = 0) => {
-      if (headerLevel > this.#colHeaderLevel) {
-        this.#colHeaderLevel = headerLevel;
+      const bottomLevel = this.#bottomColHeaderLevel(headerLevel);
+
+      if (bottomLevel !== this.#colHeaderLevel) {
+        this.#colHeaderLevel = bottomLevel;
         this.#colHeaderEls.clear();
       }
 
-      if (headerLevel === this.#colHeaderLevel) {
+      if (headerLevel === bottomLevel) {
         this.#trackHeader(this.#colHeaderEls, col, th);
       }
     };
@@ -468,14 +470,21 @@ export class HandsontableAdapter {
   }
 
   /**
-   * Returns the element that scrolls the grid's rows: the master holder, or a scrolling ancestor of
-   * the grid. Returns `null` when the window owns the axis (no `height`, or a grid taller than its
-   * content), because a page scroll needs no element to follow: the editor moves with the page.
+   * Returns the element that scrolls the grid: the master holder, or a scrolling ancestor of the
+   * grid. The element that scrolls the rows wins; with the window scrolling the rows, the element
+   * that scrolls the columns. Returns `null` when the window owns both axes, because a page scroll
+   * needs no element to follow: the editor moves with the page.
    *
    * @returns {HTMLElement | null}
    */
   getScrollHolder(): HTMLElement | null {
-    const scrollable = this.#hot.view?._wt?.wtOverlays?.topOverlay?.mainTableScrollableElement;
+    const overlays = this.#hot.view?._wt?.wtOverlays;
+    // The vertical owner first. With no `height` and a pixel `width` the window scrolls the rows
+    // while the holder still scrolls the columns, so the horizontal owner is asked too.
+    const scrollable = [
+      overlays?.topOverlay?.mainTableScrollableElement,
+      overlays?.inlineStartOverlay?.mainTableScrollableElement,
+    ].find(element => isHTMLElement(element));
 
     // `isHTMLElement()` rather than `instanceof HTMLElement`: a grid in an iframe driven from the
     // parent page has elements of the iframe's realm.
@@ -1190,6 +1199,21 @@ export class HandsontableAdapter {
 
     return visualCol < view.countFixedColumnsStart() ||
       (endCount > 0 && visualCol >= this.#hot.countCols() - endCount);
+  }
+
+  /**
+   * Returns the column header level whose headers are tracked: the bottom one the grid renders
+   * (the levels are counted on every draw, so the level follows a `nestedHeaders` change). A view
+   * that does not count them falls back to the deepest level seen so far.
+   */
+  #bottomColHeaderLevel(headerLevel: number): number {
+    const levels = this.#hot.view?.getColumnHeadersCount?.();
+
+    if (typeof levels === 'number' && levels > 0) {
+      return levels - 1;
+    }
+
+    return Math.max(headerLevel, this.#colHeaderLevel);
   }
 
   /**

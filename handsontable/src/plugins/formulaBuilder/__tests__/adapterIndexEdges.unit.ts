@@ -244,6 +244,50 @@ describe('HandsontableAdapter header tints', () => {
 
     adapter.destroy();
   });
+
+  it('follows the header levels down when the grid renders fewer of them', () => {
+    const hooks: Record<string, ((...args: unknown[]) => void)[]> = {};
+    let levels = 3;
+    const { adapter } = makeAdapter({
+      countRows: () => 5,
+      countCols: () => 5,
+      view: { getColumnHeadersCount: () => levels, render: () => {} },
+      addHook: (name: string, callback: (...args: unknown[]) => void) => {
+        (hooks[name] ??= []).push(callback);
+      },
+    } as unknown as Partial<HotStubShape>);
+    const header = (level: number) => {
+      const th = document.createElement('th');
+
+      document.body.appendChild(th);
+      hooks.afterGetColHeader.forEach(listener => listener(1, th, level));
+
+      return th;
+    };
+
+    adapter.setHighlights([{ range: range(0, 1, 1048575, 1), color: 'red', whole: 'column' }]);
+
+    const finishDraw = () => hooks.afterViewRender.forEach(listener => listener());
+    const groupHeader = header(1);
+    const nestedHeader = header(2);
+
+    finishDraw();
+
+    expect(nestedHeader.style.backgroundColor).not.toBe('');
+    expect(groupHeader.style.backgroundColor).toBe('');
+
+    // `updateSettings({ nestedHeaders: false })`: the next draw renders level 0 only.
+    levels = 1;
+    nestedHeader.remove();
+
+    const plainHeader = header(0);
+
+    finishDraw();
+
+    expect(plainHeader.style.backgroundColor).not.toBe('');
+
+    adapter.destroy();
+  });
 });
 
 describe('HandsontableAdapter arrow directions in a right-to-left grid', () => {

@@ -249,3 +249,30 @@ test.describe('formulaBuilder settings updates', { tag: [THEMES_TAG, BUNDLES_TAG
     await grid.expectCell(0, 2, '3');
   });
 });
+
+test.describe('formulaBuilder in a grid the window scrolls vertically', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('a reference drag held past the grid end edge scrolls the columns', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'split-scroll');
+
+    await grid.goto();
+    await grid.selectCellByApi(3, 0);
+    await page.keyboard.type('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    const holder = grid.grid.locator('.ht_master .wtHolder');
+    const scrollLeft = () => holder.evaluate(element => element.scrollLeft);
+    const holderBox = await holder.boundingBox();
+
+    expect(await scrollLeft()).toBe(0);
+
+    await grid.cell(0, 0).hover();
+    await page.mouse.down();
+    // Past the holder's end edge, level with the first row: only the columns can scroll there.
+    await page.mouse.move((holderBox?.x ?? 0) + (holderBox?.width ?? 0) + 20, (await grid.cell(0, 0).boundingBox())?.y ?? 0, { steps: 5 });
+
+    await expect.poll(scrollLeft).toBeGreaterThan(0);
+
+    await page.mouse.up();
+    await expect(grid.editorInput).toHaveValue(/^=A1:[BC]1$/);
+  });
+});

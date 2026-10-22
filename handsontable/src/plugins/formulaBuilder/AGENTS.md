@@ -126,6 +126,14 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 - **A drag past the viewport edge resolves through `getCellCoordsFromMousePosition()`.** The pick's edge
   auto-scroller calls `getCellAddressAt()` with the pointer outside the grid, where `elementFromPoint()`
   finds the scrollbar and the range would stop at the last rendered cell.
+- **`getScrollHolder()` asks both axis owners.** The package's edge auto-scroller gets one element and a
+  `null` turns it off. With no `height` and a pixel `width` the window scrolls the rows and the master
+  holder the columns, so asking only the vertical owner (`topOverlay`) returned `null` there and a drag
+  past the end edge stopped scrolling the columns. The vertical owner wins; `inlineStartOverlay` is the
+  fallback (`split-scroll` fixture variant, `formula-builder-layout.spec.ts`).
+- **The tracked column header level comes from `TableView#getColumnHeadersCount()`, not from the levels
+  seen.** A deepest-level-seen rule only grows, so `updateSettings({ nestedHeaders: false })` (which does
+  not rebuild the adapter) left level 0 untracked and the column headers untinted for good.
 - **The editor's text field must carry `data-hot-input`.** After every selection change the focus
   manager focuses the selected cell and blurs the focused element unless `isOutsideInput()` says it is a
   grid input, which it reads from that attribute. The text editor sets it on its `TEXTAREA`; the

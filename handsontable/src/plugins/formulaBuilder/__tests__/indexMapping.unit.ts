@@ -239,6 +239,21 @@ describe('HandsontableAdapter host delegation', () => {
 
     expect(noView.getScrollHolder()).toBeNull();
   });
+
+  it('resolves the holder that scrolls the columns when the window scrolls the rows', () => {
+    const holder = document.createElement('div');
+    const view = {
+      _wt: {
+        wtOverlays: {
+          topOverlay: { mainTableScrollableElement: window },
+          inlineStartOverlay: { mainTableScrollableElement: holder },
+        },
+      },
+    };
+    const { adapter } = makeMappedAdapter({ view } as Parameters<typeof makeMappedAdapter>[0]);
+
+    expect(adapter.getScrollHolder()).toBe(holder);
+  });
 });
 
 describe('stepCell over hidden columns', () => {

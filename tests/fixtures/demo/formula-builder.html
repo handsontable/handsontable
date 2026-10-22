@@ -38,6 +38,7 @@
       frozen: 'frozen',
       'hidden-row': 'hidden-row',
       'read-only': 'read-only',
+      'split-scroll': 'split-scroll',
     })[htParams.get('variant') ?? 'default'];
     if (!window.htVariant) {
       throw new Error('Unknown ?variant= value: ' + JSON.stringify(htParams.get('variant')));
@@ -110,6 +111,8 @@
       frozen: { settings: { fixedRowsTop: 1, fixedColumnsStart: 1 } },
       'hidden-row': { settings: { hiddenRows: { rows: [1] } } },
       'read-only': { settings: { cell: [{ row: 0, col: 2, readOnly: true }] } },
+      // A pixel width and no height: the window scrolls the rows, the grid's holder the columns.
+      'split-scroll': { settings: { width: 300, colWidths: 200 } },
     };
 
     // The shared fixture contract: a failed module import or a constructor throw lands in

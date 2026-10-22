@@ -13,7 +13,8 @@ export type FormulaBuilderVariant =
   | 'rtl'
   | 'frozen'
   | 'hidden-row'
-  | 'read-only';
+  | 'read-only'
+  | 'split-scroll';
 
 /**
  * The overlay a frozen cell is drawn in, by the class of its clone.
