@@ -5337,7 +5337,8 @@ export default function Core(
    * before the cell types expand, before the `cell` option (which wins on a key both set) and before
    * `afterCellMetaReset`, so a `type` comes back with its renderer and validator, and they go into core's
    * cell meta, so undo, row and column changes and a later data load treat them as they treat any other
-   * meta. An entry past the loaded rows or columns is dropped.
+   * meta. An entry past the loaded data, or on a row or column the load appended for a `min*` setting, is
+   * dropped.
    */
   this._applySettingsAndData = function(
     settings: Partial<GridSettings>,
@@ -5784,9 +5785,12 @@ export default function Core(
   }
 
   /**
-   * Writes back the cell meta a caller kept with a set of rows (see `_applySettingsAndData()`). An entry past
-   * the loaded rows or columns is dropped: the caller's data can be shorter than when the meta was kept, and
-   * meta stored past its end would land on a row an append adds later, since an `auto` insert shifts no meta.
+   * Writes back the cell meta a caller kept with a set of rows (see `_applySettingsAndData()`). An entry is
+   * dropped when its row or column is not part of the loaded data: past the end, or one the load appended to
+   * reach `minRows`, `minSpareRows`, `minCols` or `minSpareCols`. The caller's data can be shorter than when
+   * the meta was kept, and meta written there would land on a filler row, or on a row an `auto` append adds
+   * later, since an `auto` insert shifts no meta. A row that was a filler when the meta was set is part of
+   * the caller's data by the time it comes back, so it keeps its meta.
    *
    * @private
    * @param {object} keptCellMetas The user-set meta and the invalid marks to write back.
@@ -5795,7 +5799,8 @@ export default function Core(
     const rowCount = instance.rowIndexMapper.getNumberOfIndexes();
     const columnCount = instance.columnIndexMapper.getNumberOfIndexes();
     const isLoaded = ({ physicalRow, physicalColumn }: { physicalRow: number, physicalColumn: number }) =>
-      physicalRow < rowCount && physicalColumn < columnCount;
+      physicalRow < rowCount && physicalColumn < columnCount &&
+      !datamap.isTrailingFillerRow(physicalRow) && !datamap.isTrailingFillerColumn(physicalColumn);
 
     replayCellMetas(keptCellMetas.userDefined.filter(isLoaded));
     metaManager.restoreInvalidCellMetas(keptCellMetas.invalid.filter(isLoaded));

@@ -266,6 +266,43 @@ describe('SheetsBar cell meta round trip', () => {
     expect(hot.getCellMeta(2, 0).readOnly).toBe(false);
   });
 
+  it('does not put kept meta on the rows the load adds to reach `minRows`', () => {
+    const data = [['a', 'b'], ['c', 'd'], ['e', 'f']];
+
+    hot = new Handsontable(container, {
+      minRows: 5,
+      sheetsBar: { sheets: [{ name: 'One', data }, { name: 'Two', data: [['x', 'y']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const bar = hot.getPlugin('sheetsBar');
+
+    hot.setCellMeta(2, 0, 'readOnly', true);
+    hot.setCellMeta(4, 1, 'className', 'marked');
+    bar.setActiveSheet('Two');
+    data.length = 1;
+    bar.setActiveSheet('One');
+
+    expect(hot.countRows()).toBe(5);
+    expect(hot.getCellMeta(2, 0).readOnly).toBe(false);
+    expect(hot.getCellMeta(4, 1).className).toBeUndefined();
+  });
+
+  it('keeps the meta of a row that was padding when it was set, once it is part of the sheet\'s data', () => {
+    hot = new Handsontable(container, {
+      minRows: 5,
+      sheetsBar: { sheets: [{ name: 'One', data: [['a', 'b']] }, { name: 'Two', data: [['x', 'y']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const bar = hot.getPlugin('sheetsBar');
+
+    hot.setCellMeta(3, 0, 'readOnly', true);
+    roundTrip(bar);
+
+    expect(hot.getCellMeta(3, 0).readOnly).toBe(true);
+  });
+
   it('draws the borders a duplicate takes from its original', () => {
     const bar = build({ customBorders: true });
 

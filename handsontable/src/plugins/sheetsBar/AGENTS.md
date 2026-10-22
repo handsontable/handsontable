@@ -124,8 +124,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   A return hands them to `_applySettingsAndData()` as `keptCellMetas`, and core writes them in the meta
   phase, before the `cell`-option replay (a restated `cell` entry wins on a key both set, as it does in
   core's own cache-reset replay) and before `afterCellMetaReset`, through `MetaManager` (no hooks, no undo
-  entry, no render). An entry past the loaded rows or columns is dropped: the host may have shortened the
-  sheet's data while it was hidden, and meta stored past the end lands on a row an `auto` append adds later.
+  entry, no render). An entry past the loaded data, or on a filler row or column the load appended for
+  `minRows`, `minSpareRows`, `minCols` or `minSpareCols` (`DataMap#isTrailingFillerRow`/`Column`), is dropped:
+  the host may have shortened the sheet's data while it was hidden, and that meta would land on a filler or
+  on a row an `auto` append adds later. A filler the user set meta on while the sheet was shown is part of
+  the sheet's data by then, so it keeps its meta.
   From then on they are ordinary cell meta, so undo and redo, `alter()`, a host `loadData()` from
   `afterSheetTabStateRestore`, and the `type` expansion act on them as on a grid without the bar. The
   `afterSheetTabStateCapture` JSDoc tells listeners that `cellMeta` is physical and can hold `valid: false`
