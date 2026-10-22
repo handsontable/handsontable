@@ -17,8 +17,9 @@ settings object against it and against what the page registers. Guide:
 - It reads two sources and owns neither. `metaSchema.ts` decides **which** options exist and their levels
   (`@configScope`), plugin (`@category`) and `@since`. `GridSettings`, `ColumnSettings` and `CellMeta` decide the
   **value types**, through the TypeScript compiler API, because the JSDoc `@type` has no enums. An option the types
-  do not declare falls back to its JSDoc `@type` (10 options as of 19.0). A new option therefore needs no change
-  here, but a new option the types do not declare gets only the coarse JSDoc type.
+  do not declare falls back to its JSDoc `@type`. A new option needs no change here, but one the types do not
+  declare gets only the coarse JSDoc type, and `settingsTypesCoverage.unit.js` fails: declare it in `GridSettings`
+  (or `CellMeta`). None falls back as of 19.0 (it was 10).
 - **Core must not import this module**, and neither may anything core imports. The schema is about 100 KB of JSON
   (the subpath bundles to about 80 KB minified, 18 KB gzipped), and the main UMD bundles must not carry it (the
   CDN file below ships it). Nothing validates settings on its own: `new Handsontable()` and `updateSettings()` never
@@ -54,6 +55,12 @@ settings object against it and against what the page registers. Guide:
 
 ## The traps
 
+- **A type that names a class must be listed in `RUNTIME_OBJECT_TYPES`, or it bloats the schema.** The converter
+  expands every property it can read, so `theme: ThemeBuilder | ... | string` put the class's `#private` fields into
+  the schema, and a `ThemeParams` member added every icon and token: 102 KB for one option, over 130 KB in all
+  against 65 KB for the rest. `ThemeBuilder` is listed (a class instance, `runtimeTypes`), and `theme` takes `object` for a plain config.
+  A new option typed with a class or another wide type needs the same, and `settingsTypesCoverage.unit.js` fails when
+  any option node passes 3000 characters.
 - **A value JSON cannot hold goes in `x-handsontable.runtimeTypes`, never in `type`.** A function, a `RegExp`, a DOM
   element or a class instance is not a JSON type, so a JSON validator must reject it in a JSON document, while
   `validateSettings()` accepts it at runtime. A node with no JSON form at all is `not: {}` plus `runtimeTypes`.

@@ -186,6 +186,16 @@ function isUndoRedoSource(source: string | undefined): boolean {
 }
 
 /**
+ * Tells whether a change source marks a correction a validator writes through a nested `setDataAtCell()`.
+ *
+ * @param {*} source The change source.
+ * @returns {boolean}
+ */
+function isValidatorCorrection(source: unknown): boolean {
+  return typeof source === 'string' && source.endsWith('Validator');
+}
+
+/**
  * The operation name each `alter()` action runs under. The names are the `actionType` values the
  * UndoRedo hooks have always reported for these actions, so they must not change.
  */
@@ -2962,17 +2972,6 @@ export default function Core(
   }
 
   /**
-   * Tells whether a change source marks a correction a validator writes through a nested `setDataAtCell()`.
-   *
-   * @private
-   * @param {*} source The change source.
-   * @returns {boolean}
-   */
-  function isValidatorCorrection(source: unknown) {
-    return typeof source === 'string' && source.endsWith('Validator');
-  }
-
-  /**
    * Gives a cell the validity of the write that lands on it, after a validator that answered later
    * wrote its own on the shared cell meta.
    *
@@ -5653,7 +5652,7 @@ export default function Core(
       let themeObject;
 
       if (typeof (theme as { getThemeConfig?: () => unknown }).getThemeConfig !== 'function') {
-        themeObject = registerTheme(theme);
+        themeObject = registerTheme(theme as Parameters<typeof registerTheme>[0]);
       } else {
         themeObject = theme as ThemeBuilder;
       }
@@ -8787,7 +8786,7 @@ export default function Core(
   this.selectColumns = function(
     startColumn: number,
     endColumn = startColumn,
-    focusPosition: number | {row?: number, col?: number},
+    focusPosition?: number | {row?: number, col?: number},
     changeListener = true
   ) {
     return selectWithChangeListener(
@@ -8834,7 +8833,7 @@ export default function Core(
   this.selectRows = function(
     startRow: number,
     endRow = startRow,
-    focusPosition: number | {row?: number, col?: number},
+    focusPosition?: number | {row?: number, col?: number},
     changeListener = true
   ) {
     return selectWithChangeListener(
