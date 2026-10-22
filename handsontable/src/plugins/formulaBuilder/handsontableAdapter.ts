@@ -217,6 +217,13 @@ export interface FormulaBuilderPluginLike {
    */
   commitInlineEdit(value: string, direction?: Direction): void;
   /**
+   * Saves the value into every cell of the selected ranges, as Ctrl/Cmd+Enter does in the grid's
+   * own editors.
+   *
+   * @param {string} value The value to save.
+   */
+  commitInlineEditToSelection(value: string): void;
+  /**
    * Cancels the inline edit and restores grid focus.
    */
   cancelInlineEdit(): void;
@@ -1014,6 +1021,15 @@ export class HandsontableAdapter {
    */
   commit(value: string, direction?: Direction): void {
     this.#plugin.commitInlineEdit(value, direction);
+  }
+
+  /**
+   * Commits the current edit into every selected cell (Ctrl/Cmd+Enter).
+   *
+   * @param {string} value The value to save.
+   */
+  commitFill(value: string): void {
+    this.#plugin.commitInlineEditToSelection(value);
   }
 
   /**

@@ -597,6 +597,24 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
+   * Saves the given value into every cell of the selected ranges through Handsontable's editor, the
+   * way Ctrl/Cmd+Enter does in the grid's own editors. The selection stays where it is.
+   *
+   * @private
+   * @param {string} value The value to save.
+   */
+  commitInlineEditToSelection(value: string): void {
+    const editor = this.#hostEditor();
+
+    if (!editor) {
+      return;
+    }
+
+    editor.setValue?.(value);
+    editor.finishEditing?.(false, true);
+  }
+
+  /**
    * Cancels the edit and restores the original value. The selection is left as it is, ranges and
    * layers included, the way Escape leaves it in the grid's own editors; only the focus goes back
    * to the grid.

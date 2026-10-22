@@ -215,6 +215,35 @@ describe('FormulaBuilder editing on a real grid', () => {
     });
   });
 
+  describe('committing to the whole selection', () => {
+    it('writes the value into every selected cell and keeps the selection', async() => {
+      createGrid();
+      hot.selectCell(1, 1, 2, 2);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+      adapter().commitFill('7');
+      await settle();
+
+      expect(hot.getData(1, 1, 2, 2)).toEqual([['7', '7'], ['7', '7']]);
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+      expect(hot.getSelectedLast()).toEqual([1, 1, 2, 2]);
+      expect(isEditorOpened()).toBe(false);
+    });
+
+    it('writes into the edited cell only when a single cell is selected', async() => {
+      createGrid();
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+
+      expect(isEditorOpened()).toBe(true);
+
+      adapter().commitFill('9');
+      await settle();
+
+      expect(hot.getDataAtCell(1, 1)).toBe('9');
+      expect(hot.getData(0, 0, 2, 2).flat().filter(value => value === '9')).toHaveLength(1);
+    });
+  });
+
   describe('cancelling', () => {
     it('restores the value and keeps a selected range', () => {
       createGrid();
