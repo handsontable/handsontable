@@ -295,6 +295,44 @@ describe('Settings mapper unit tests', () => {
       expect(result.width).toBe(500);
     });
 
+    it('should skip props whose value is `undefined`, but keep `null` and `false`', () => {
+      const props: HotTableProps = {
+        copyPaste: undefined,
+        fillHandle: null as any,
+        undo: false,
+        width: 300,
+      };
+
+      [{ isInit: true }, { isInit: false, prevProps: {} }].forEach((options) => {
+        const result = SettingsMapper.getSettings(props, options);
+
+        expect(Object.keys(result)).toEqual(['fillHandle', 'undo', 'width']);
+        expect(result.fillHandle).toBe(null);
+        expect(result.undo).toBe(false);
+      });
+    });
+
+    it('should forward the option default on update only for a prop that had a value before', () => {
+      const result = SettingsMapper.getSettings(
+        { height: undefined, colWidths: undefined, copyPaste: undefined, undo: undefined },
+        { isInit: false, prevProps: { height: 300, colWidths: [50, 60], copyPaste: false } }
+      );
+
+      expect(Object.keys(result)).toEqual(['height', 'colWidths', 'copyPaste']);
+      expect(result.height).toBe(undefined);
+      expect(result.colWidths).toBe(undefined);
+      expect(result.copyPaste).toBe(true);
+    });
+
+    it('should not forward `undefined` during initialization even when previous props are given', () => {
+      const result = SettingsMapper.getSettings(
+        { height: undefined },
+        { isInit: true, prevProps: { height: 300 } }
+      );
+
+      expect(Object.keys(result)).toEqual([]);
+    });
+
     it('should include init-only settings during initialization', () => {
       const nextProps: HotTableProps = {
         renderAllRows: true,

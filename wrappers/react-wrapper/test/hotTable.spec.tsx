@@ -1353,3 +1353,77 @@ describe('Root size options', () => {
     warnSpy.mockRestore();
   });
 });
+
+describe('Props set to `undefined`', () => {
+  const baseProps: HotTableProps = {
+    data: createSpreadsheetData(3, 3),
+    licenseKey: 'non-commercial-and-evaluation',
+  };
+  const pluginProps: Array<[keyof HotTableProps, string]> = [
+    ['copyPaste', 'copyPaste'],
+    ['fillHandle', 'autofill'],
+    ['undo', 'undoRedo'],
+    ['dragToScroll', 'dragToScroll'],
+  ];
+
+  it.each(pluginProps)('should keep `%s` on its default when the prop is `undefined` at init', (prop, plugin) => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, [prop]: undefined });
+    const hot = hotTableRef.current!.hotInstance!;
+
+    expect(hot.getPlugin(plugin as any).enabled).toBe(true);
+  });
+
+  it('should keep a default option value when the prop is `undefined` at init', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, allowInsertRow: undefined });
+
+    expect(hotTableRef.current!.hotInstance!.getSettings().allowInsertRow).toBe(true);
+  });
+
+  it('should still apply `null` and `false` props', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, copyPaste: null as any, undo: false });
+    const hot = hotTableRef.current!.hotInstance!;
+
+    expect(hot.getPlugin('copyPaste').enabled).toBe(false);
+    expect(hot.getPlugin('undoRedo').enabled).toBe(false);
+  });
+
+  it('should clear an option whose default is `undefined` when its prop changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, colWidths: 150 });
+    const hot = hotTableRef.current!.hotInstance!;
+
+    expect(hot.getSettings().colWidths).toBe(150);
+
+    renderHotTableWithProps({ ...baseProps, colWidths: undefined }, true, hotTableRef);
+
+    expect(hot.getSettings().colWidths).toBe(undefined);
+  });
+
+  it('should restore the default when a prop that had a value changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, copyPaste: false });
+    const hot = hotTableRef.current!.hotInstance!;
+
+    expect(hot.getPlugin('copyPaste').enabled).toBe(false);
+
+    renderHotTableWithProps({ ...baseProps, copyPaste: undefined }, true, hotTableRef);
+
+    expect(hot.getPlugin('copyPaste').enabled).toBe(true);
+  });
+
+  it('should keep a default when a prop stays `undefined` across updates', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, copyPaste: undefined });
+
+    renderHotTableWithProps({ ...baseProps, copyPaste: undefined, width: 300 }, true, hotTableRef);
+
+    expect(hotTableRef.current!.hotInstance!.getPlugin('copyPaste').enabled).toBe(true);
+  });
+
+  it('should keep the grid-level value when a `HotColumn` prop is `undefined`', () => {
+    const hotTableRef = renderHotTableWithProps({
+      ...baseProps,
+      readOnly: true,
+      children: [<HotColumn key="0" readOnly={undefined} />],
+    } as HotTableProps);
+
+    expect(hotTableRef.current!.hotInstance!.getCellMeta(0, 0).readOnly).toBe(true);
+  });
+});
