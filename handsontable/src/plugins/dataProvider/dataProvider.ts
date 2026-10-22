@@ -448,10 +448,27 @@ export class DataProvider extends BasePlugin {
     this.enablePlugin();
 
     if (!this.#isPassive && this.hot.view) {
-      void this.#fetchDataSilently();
+      if (this.isDataWorkDeferred()) {
+        this.deferDataWork();
+      } else {
+        void this.#fetchDataSilently();
+      }
     }
 
     super.updatePlugin();
+  }
+
+  /**
+   * Starts the fetch an update left for this step. Core's `_applySettingsAndData()` applies settings
+   * ahead of their data, and `fetchRows` is called as soon as a fetch starts, so a fetch started then
+   * would run before the call has loaded its data.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (this.takeDeferredDataWork() && !this.#isPassive) {
+      void this.#fetchDataSilently();
+    }
   }
 
   /**

@@ -233,6 +233,13 @@ theme's default row height (29 px on `main`) rather than the height the strategy
 full" check built on it passes or fails by accident. The Playwright spec pages forward and takes the
 first rendered row's height instead.
 
+## Page state applied ahead of its data waits for `onDataReady()`
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), `updatePlugin()` leaves `#refreshUI()` to `onDataReady()`. Run before, it clamped the
+declared `initialPage` against the rows the grid still held (or none, before the first load) and rendered
+them under the new configuration.
+
 ## `PaginationSettings` lists the keys `validateSettings()` accepts
 
 `src/settingsSchema` reads the exported `PaginationSettings` interface in `pagination.ts` as the full key list of the

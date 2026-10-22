@@ -422,12 +422,30 @@ export class CustomBorders extends BasePlugin {
         this.enablePlugin();
       }
 
-      this.changeBorderSettings();
+      if (this.isDataWorkDeferred()) {
+        this.deferDataWork();
+      } else {
+        this.changeBorderSettings();
+      }
     } finally {
       this.#carriedBorders = null;
     }
 
     super.updatePlugin();
+  }
+
+  /**
+   * Applies the borders the settings declare once the data they describe is loaded. Core's
+   * `_applySettingsAndData()` applies settings ahead of their data, and `updatePlugin()` holds the
+   * pass back then: run against the rows the grid still held, it dropped every border outside them and
+   * wrote the rest into cell meta the load then cleared.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (this.takeDeferredDataWork()) {
+      this.changeBorderSettings(false);
+    }
   }
 
   /**

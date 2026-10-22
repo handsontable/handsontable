@@ -264,17 +264,51 @@ export class ColumnSummary extends BasePlugin {
    *
    * Before the grid has a view (a settings update made while the grid is still being built, such as
    * the sheets bar applying its opening sheet), the endpoints are left to the `afterInit` listener,
-   * which computes them against the data the grid starts with.
+   * which computes them against the data the grid starts with. While core applies the settings ahead
+   * of their data (`isDataWorkDeferred()`), they are left to `onDataReady()`.
    */
   updatePlugin(): void {
     this.disablePlugin();
     this.enablePlugin();
 
     if (this.hot.view) {
-      this.endpoints!.initEndpoints();
+      if (this.isDataWorkDeferred()) {
+        this.deferDataWork();
+      } else {
+        this.endpoints!.initEndpoints();
+      }
     }
 
     super.updatePlugin();
+  }
+
+  /**
+   * Computes the summaries once the data they describe is loaded. Core's `_applySettingsAndData()`
+   * applies settings ahead of their data, and the endpoints wait for this step then: parsed and
+   * calculated against the rows the grid still held, they were checked against the wrong size (a
+   * false out-of-bounds warning) and their results were written into those rows. Endpoints that were
+   * already parsed are recalculated, because the load replaced the rows they read.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (this.takeDeferredDataWork()) {
+      this.endpoints!.initEndpoints();
+    } else {
+      this.endpoints?.refreshAllEndpoints();
+    }
+  }
+
+  /**
+   * Returns the endpoints in the form of the plugin's settings, at the positions they hold now, or `null`
+   * while the plugin is off or configured with a function. The sheets bar stores them when the user
+   * leaves a sheet and applies them on the return, so a summary a row insert moved stays where it went.
+   *
+   * @private
+   * @returns {object[]|null}
+   */
+  exportEndpointSettings(): EndpointConfig[] | null {
+    return this.enabled && this.endpoints ? this.endpoints.exportSettings() : null;
   }
 
   /**
@@ -690,7 +724,7 @@ export class ColumnSummary extends BasePlugin {
    * @param {boolean} firstRun `true` if called on initial load, `false` otherwise.
    */
   #onAfterLoadData = (data: unknown[], firstRun: boolean) => {
-    if (!firstRun) {
+    if (!firstRun && !this.isDataWorkDeferred()) {
       this.endpoints!.refreshAllEndpoints();
     }
   };
