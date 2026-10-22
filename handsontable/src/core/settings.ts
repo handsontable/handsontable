@@ -314,7 +314,7 @@ export interface GridSettings {
   emptyDataState?: boolean | object;
   filters?: boolean | FiltersSettings;
   filterValueComparator?: (a: unknown, b: unknown) => number;
-  formulaBuilder?: boolean | FormulaBuilderPluginSettings;
+  formulaBuilder?: false | FormulaBuilderPluginSettings;
   formulas?: boolean | {
     engine: unknown;
     sheetName?: string;

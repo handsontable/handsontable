@@ -17,6 +17,11 @@ new Handsontable(document.createElement('div'), {
 });
 
 new Handsontable(document.createElement('div'), {
+  formulaBuilder: false,
+});
+
+new Handsontable(document.createElement('div'), {
+  // @ts-expect-error - `true` cannot enable the plugin: the `builder` module is required.
   formulaBuilder: true,
 });
 

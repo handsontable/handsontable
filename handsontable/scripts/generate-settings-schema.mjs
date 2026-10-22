@@ -106,6 +106,7 @@ const CLOSED_OPTIONS = new Map([
   ['dragToScroll', undefined],
   ['fillHandle', undefined],
   ['filters', undefined],
+  ['formulaBuilder', undefined],
   ['manualColumnFreeze', undefined],
   ['rowSelection', undefined],
   ['sheetsBar', undefined],

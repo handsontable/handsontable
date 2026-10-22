@@ -3043,6 +3043,7 @@ export default (): Record<string, unknown> => {
      * | `'date'`            | `DateEditor`                                                               |
      * | `'intl-date'`       | `IntlDateEditor`                                                           |
      * | `'dropdown'`        | `DropdownEditor`                                                           |
+     * | `'formula'`         | The [`FormulaBuilder`](@/api/formulaBuilder.md) formula editor (a plain text editor while that plugin is off) |
      * | `'handsontable'`    | `HandsontableEditor`                                                       |
      * | `'numeric'`         | `NumericEditor`                                                            |
      * | `'password'`        | `PasswordEditor`                                                           |
@@ -4059,7 +4060,8 @@ export default (): Record<string, unknown> => {
      * picking, and formula error indicators) on top of the [`Formulas`](@/api/formulas.md) plugin,
      * which must be enabled with a configured engine.
      *
-     * You can set the `formulaBuilder` option to an object with the following properties:
+     * You can set the `formulaBuilder` option to `false` (the plugin is off) or to an object with the
+     * following properties. There is no `true`: the plugin needs the `builder` module to run.
      *
      * | Property         | Possible values                                                 |
      * | ---------------- | --------------------------------------------------------------- |
@@ -4080,7 +4082,7 @@ export default (): Record<string, unknown> => {
      *
      * @since 19.0.0
      * @memberof Options#
-     * @type {object}
+     * @type {object|boolean}
      * @default undefined
      * @category FormulaBuilder
      * @configScope grid
@@ -4090,6 +4092,8 @@ export default (): Record<string, unknown> => {
      * import * as FormulaBuilderModule from 'hyperformula-ui';
      * import { HyperFormula } from 'hyperformula';
      *
+     * // the formula editor on every cell
+     * editor: 'formula',
      * formulas: {
      *   engine: HyperFormula,
      * },

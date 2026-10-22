@@ -1450,6 +1450,40 @@ describe('FormulaBuilder afterRenderer', () => {
     expect(withoutAria.hasAttribute('data-hfe-error')).toBe(true);
     expect(withoutAria.hasAttribute('aria-invalid')).toBe(false);
   });
+
+  it('describes an error cell with its message under ariaTags, and only then', () => {
+    const { stub, afterRenderer } = makeRenderContext();
+    const withAria = document.createElement('td');
+
+    afterRenderer(withAria, 0, 0, 0, null, { editor: 'formula' });
+
+    expect(withAria.getAttribute('aria-description')).toBe(withAria.getAttribute('data-hfe-error'));
+    expect(withAria.getAttribute('aria-description')).toContain('#');
+
+    stub.settings.ariaTags = false;
+
+    const withoutAria = document.createElement('td');
+
+    afterRenderer(withoutAria, 0, 0, 0, null, { editor: 'formula' });
+
+    expect(withoutAria.hasAttribute('aria-description')).toBe(false);
+  });
+
+  it('removes its description from a recycled cell, and leaves an application\'s own alone', () => {
+    const { afterRenderer } = makeRenderContext();
+    const recycled = document.createElement('td');
+    const appDescribed = document.createElement('td');
+
+    afterRenderer(recycled, 0, 0, 0, null, { editor: 'formula' });
+    afterRenderer(recycled, 0, 1, 1, null, { editor: 'text' });
+
+    expect(recycled.hasAttribute('aria-description')).toBe(false);
+
+    appDescribed.setAttribute('aria-description', 'Total of the quarter');
+    afterRenderer(appDescribed, 0, 1, 1, null, { editor: 'text' });
+
+    expect(appDescribed.getAttribute('aria-description')).toBe('Total of the quarter');
+  });
 });
 
 describe('FormulaBuilder.disablePlugin', () => {

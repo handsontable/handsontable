@@ -14,9 +14,12 @@ $error-text-color: color-mix(in srgb, var(--ht-notification-error-accent) 70%, v
 // text in the editor and the formula bar, and the highlight borders on the grid. As shipped, five of
 // the eight light colors measure below 3:1 on white (#ff9500: 2.19, #30d158: 2.02), under the 4.5:1
 // that text needs and the 3:1 a border needs (WCAG 1.4.3, 1.4.11). Mixing 40% of the editor
-// foreground in keeps each hue apart and lifts the lowest of them to 4.79:1 on white; in the dark
-// themes the foreground is light, and the lowest measures 6.7:1. The values have to be restated
-// here: a custom property cannot refer to its own previous value.
+// foreground in keeps each hue apart and lifts the lowest of them to 4.77:1 on white (classic, the
+// lowest of the light themes). The values have to be restated here: a custom property cannot refer to
+// its own previous value. They are not `--ht-*` tokens yet: an application overrides them through the
+// `--hfe-ref-1` ... `--hfe-ref-8` and `--hfe-color-error` properties, declared on an element this block
+// targets (the grid root, `.hfe-formula-bar`, `.hfe-popup-portal`) with a selector at least as
+// specific as the ones below.
 $reference-palette: (
   1: (#007bff, #0a84ff),
   2: (#ff9500, #ff9d0a),
@@ -29,13 +32,15 @@ $reference-palette: (
 );
 
 @mixin output {
-  // The theme class sits on the grid root and on the popup portal that hyperformula-ui mounts in
-  // the document body. Match it as a class token (`ht-theme-` at the start of the attribute or
-  // after a space), never as a bare substring, so a host-page class such as `my-ht-theme-switch`
-  // is never themed.
+  // hyperformula-ui puts the grid's theme class on the grid root, the formula bar, the popup portal
+  // it mounts in the document body, and a popup moved into a host element. Those are the elements
+  // the tokens are declared on, matched by class: an attribute-substring selector cannot use the
+  // browser's class index and is tested against every element of the page on each style recalc.
   .handsontable,
-  [class^="ht-theme-"],
-  [class*=" ht-theme-"] {
+  .hfe-formula-bar,
+  .hfe-popup-portal,
+  .hfe-suggestions,
+  .hfe-fn-help {
     /* Core tokens */
     --hfe-font-family: #{mixins.$font-family-stack};
     --hfe-font-size: var(--ht-font-size);
@@ -226,10 +231,19 @@ $reference-palette: (
     color: transparent;
   }
 
-  /* Scoped to the grid root and theme roots, and matched as a class token, so a host-page
-     element whose class merely contains "hfe-" is never affected. */
-  .handsontable :is([class^="hfe-"], [class*=" hfe-"]),
-  :is([class^="ht-theme-"], [class*=" ht-theme-"]) :is([class^="hfe-"], [class*=" hfe-"]) {
+  /* An error value is a cell value: it keeps the grid's font, the one the error popup's title uses too.
+     hyperformula-ui sets its formula font there, which made the two differ. */
+  .handsontable td.hfe-cell--error {
+    font-family: inherit;
+  }
+
+  /* hyperformula-ui sets `color-scheme: light dark` on every element whose class contains "hfe-",
+     so its `light-dark()` colors follow the operating system instead of the grid's theme. Its roots
+     and their descendants inherit the scheme of the theme instead. The roots are matched by class;
+     the descendants still need the attribute test, because the package sets the scheme on each of
+     them, but only inside a package root. */
+  :is(.hfe-editor, .hfe-formula-bar, .hfe-popup-portal, .hfe-suggestions, .hfe-fn-help),
+  :is(.hfe-editor, .hfe-formula-bar, .hfe-popup-portal, .hfe-suggestions, .hfe-fn-help) [class*="hfe-"] {
     color-scheme: inherit;
   }
 }

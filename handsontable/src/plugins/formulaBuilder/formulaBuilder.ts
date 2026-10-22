@@ -7,6 +7,8 @@ import { BasePlugin } from '../base';
 import { warnOnce } from '../../helpers/console';
 import { isObject } from '../../helpers/object';
 import { isRootInstance } from '../../utils/rootInstance';
+import { A11Y_DESCRIPTION } from '../../helpers/a11y';
+import { removeAttribute, setAttribute } from '../../helpers/dom/element';
 import type { HotInstance } from '../../core/types';
 import type { PluginTypeMap } from '../types';
 import type { CellProperties } from '../../settings';
@@ -58,6 +60,10 @@ const CELL_MOUSE_HOOK_ORDER = -1;
  * The attribute `hyperformula-ui` writes on a cell it marks as an error.
  */
 const CELL_ERROR_ATTRIBUTE = 'data-hfe-error';
+/**
+ * The attribute that carries a cell's error message to assistive technology.
+ */
+const CELL_DESCRIPTION_ATTRIBUTE = A11Y_DESCRIPTION('')[0];
 
 /**
  * A selection range in visual coordinates.
@@ -232,6 +238,8 @@ function findMissingCoreMembers(core: unknown): string[] {
  * import { HyperFormula } from 'hyperformula';
  *
  * const hot = new Handsontable(container, {
+ *   // the formula editor on every cell
+ *   editor: 'formula',
  *   formulas: {
  *     engine: HyperFormula,
  *   },
@@ -245,6 +253,7 @@ function findMissingCoreMembers(core: unknown): string[] {
  * ::: only-for react
  * ```jsx
  * <HotTable
+ *   hotEditor="formula"
  *   formulas={{ engine: HyperFormula }}
  *   formulaBuilder={{ builder: FormulaBuilderModule, showFormulaBar: true }}
  * />
@@ -253,6 +262,7 @@ function findMissingCoreMembers(core: unknown): string[] {
  * ::: only-for angular
  * ```ts
  * hotSettings: Handsontable.GridSettings = {
+ *   editor: 'formula',
  *   formulas: { engine: HyperFormula },
  *   formulaBuilder: { builder: FormulaBuilderModule, showFormulaBar: true },
  * };
@@ -310,7 +320,7 @@ export class FormulaBuilder extends BasePlugin {
    */
   #formulas: Formulas | null = null;
   /**
-   * The settings the enabled plugin was built from (see {@link AppliedConfig}).
+   * The settings the enabled plugin was built from (see `AppliedConfig`).
    */
   #appliedConfig: AppliedConfig | null = null;
   /**
@@ -389,6 +399,11 @@ export class FormulaBuilder extends BasePlugin {
    * Removes the listener the Formulas plugin calls before it detaches its engine.
    */
   #removeEngineDetachListener: (() => void) | null = null;
+  /**
+   * The cell elements the plugin gave an error description to. The grid recycles cell elements, so
+   * a description is removed only from a cell the plugin wrote it on, never from an application's.
+   */
+  readonly #describedCells = new WeakSet<HTMLElement>();
 
   /**
    * @param {HotInstance} hotInstance The Handsontable instance.
@@ -444,7 +459,7 @@ export class FormulaBuilder extends BasePlugin {
 
   /**
    * Update plugin state after Handsontable settings update. A settings update that changes
-   * nothing the plugin was built from keeps the built plugin (see {@link AppliedConfig}).
+   * nothing the plugin was built from keeps the built plugin (see `AppliedConfig` in the source).
    */
   updatePlugin(): void {
     if (this.enabled && this.#builder !== null && this.#isConfigUnchanged()) {
@@ -599,6 +614,8 @@ export class FormulaBuilder extends BasePlugin {
 
   /**
    * Tears the inline edit session down (called by the editor shim on close).
+   *
+   * @private
    */
   handleInlineEditClose(): void {
     this.#removeInlineScrollListener?.();
@@ -617,6 +634,7 @@ export class FormulaBuilder extends BasePlugin {
   /**
    * Returns the live formula editor, or `null` when not editing.
    *
+   * @private
    * @returns {FormulaEditorHandle | null}
    */
   getActiveEditor(): FormulaEditorHandle | null {
@@ -626,6 +644,7 @@ export class FormulaBuilder extends BasePlugin {
   /**
    * Subscribes to inline edit session starts.
    *
+   * @private
    * @param {Function} callback Receives the editor mount element and the typed seed.
    * @returns {Function} Unsubscribe function.
    */
@@ -636,6 +655,7 @@ export class FormulaBuilder extends BasePlugin {
   /**
    * Subscribes to bar-to-inline handoff requests.
    *
+   * @private
    * @param {Function} callback Invoked when editing should switch to the inline editor.
    * @returns {Function} Unsubscribe function.
    */
@@ -646,6 +666,7 @@ export class FormulaBuilder extends BasePlugin {
   /**
    * Returns the active formula cell in visual coordinates, or `null`.
    *
+   * @private
    * @returns {{ row: number, col: number } | null}
    */
   getActiveFormulaCell(): { row: number; col: number } | null {
@@ -655,6 +676,7 @@ export class FormulaBuilder extends BasePlugin {
   /**
    * Subscribes to formula-cell selection changes in visual coordinates.
    *
+   * @private
    * @param {Function} callback Receives the selection or `null` on deselect.
    * @returns {Function} Unsubscribe function.
    */
@@ -667,6 +689,8 @@ export class FormulaBuilder extends BasePlugin {
    * scanned first, then the rest of the grid up to a fixed cell budget - an
    * uncapped scan would resolve cell meta for every cell of a large grid on the
    * UI thread before giving up.
+   *
+   * @private
    */
   selectFirstFormulaCell(): void {
     const firstRow = Math.max(this.hot.getFirstRenderedVisibleRow(), 0);
@@ -708,6 +732,7 @@ export class FormulaBuilder extends BasePlugin {
   /**
    * Selects a single cell in visual coordinates.
    *
+   * @private
    * @param {number} row The visual row index.
    * @param {number} col The visual column index.
    */
@@ -718,6 +743,7 @@ export class FormulaBuilder extends BasePlugin {
   /**
    * Selects a cell range in visual coordinates.
    *
+   * @private
    * @param {number} startRow The visual start row index.
    * @param {number} startCol The visual start column index.
    * @param {number} endRow The visual end row index.
@@ -730,6 +756,7 @@ export class FormulaBuilder extends BasePlugin {
   /**
    * Subscribes to editor close events.
    *
+   * @private
    * @param {Function} callback Invoked when the inline editor closes.
    * @returns {Function} Unsubscribe function.
    */
@@ -751,6 +778,7 @@ export class FormulaBuilder extends BasePlugin {
   /**
    * Shows or hides the inline editor overlay (formula bar handoff).
    *
+   * @private
    * @param {boolean} visible Whether the editor should be visible.
    */
   setInlineEditorVisible(visible: boolean): void {
@@ -812,6 +840,8 @@ export class FormulaBuilder extends BasePlugin {
         this.#builder?.markCell(cellEl, null);
       }
 
+      this.#describeCellError(cellEl);
+
       return;
     }
 
@@ -823,7 +853,29 @@ export class FormulaBuilder extends BasePlugin {
     if (!this.hot.getSettings().ariaTags) {
       cellEl.removeAttribute('aria-invalid');
     }
+
+    this.#describeCellError(cellEl);
   };
+
+  /**
+   * Gives an error cell its message as an accessible description, and removes the one the plugin gave
+   * a recycled cell that no longer shows an error. The error popup also points the cell at its message
+   * (`aria-errormessage`), but only while the popup is open, and screen reader support for that
+   * attribute is uneven, so a user who lands on the cell would otherwise hear only the error code.
+   *
+   * @param {HTMLTableCellElement} cellEl The rendered cell element.
+   */
+  #describeCellError(cellEl: HTMLTableCellElement): void {
+    const message = cellEl.getAttribute(CELL_ERROR_ATTRIBUTE);
+
+    if (message && this.hot.getSettings().ariaTags) {
+      setAttribute(cellEl, [A11Y_DESCRIPTION(message)]);
+      this.#describedCells.add(cellEl);
+    } else if (this.#describedCells.has(cellEl)) {
+      removeAttribute(cellEl, CELL_DESCRIPTION_ATTRIBUTE);
+      this.#describedCells.delete(cellEl);
+    }
+  }
 
   /**
    * `afterSelectionEnd` hook listener - moves the tracked selection after a

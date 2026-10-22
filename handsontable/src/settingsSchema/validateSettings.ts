@@ -70,9 +70,6 @@ const SETTINGS_REFS: Record<string, SettingsSchemaLevel> = {
 };
 
 /**
- * The problem code and the noun of each registry an option's name comes from.
- */
-/**
  * Tells whether a registered plugin provides an editor under the name. A plugin that ships an
  * editor of its own lists the aliases in a static `EDITORS` array (FormulaBuilder's `formula`) and
  * registers them when its first instance is built, so before any grid exists the editor registry
@@ -89,6 +86,9 @@ function isEditorProvidedByPlugin(name: string): boolean {
   });
 }
 
+/**
+ * The problem code and the noun of each registry an option's name comes from.
+ */
 const REGISTRIES = {
   cellType: { code: 'unknownCellType', noun: 'cell type', has: hasCellType },
   editor: {
