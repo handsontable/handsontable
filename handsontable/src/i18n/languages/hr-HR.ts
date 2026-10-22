@@ -192,11 +192,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'Saznajte više',
   [C.FORMULA_BUILDER_CLOSE]: 'Zatvori',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Nevažeća adresa ćelije: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: 'Nije moguće odabrati [text]',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Pogreška u [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    'Još [count] ćelija sada sadrži pogrešku.',
-    'Broj drugih ćelija s pogreškom: [count].',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Još [count] ćelija sada sadrži pogrešku.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Broj drugih ćelija s pogreškom: [count].',
 };
 
 export default dictionary;

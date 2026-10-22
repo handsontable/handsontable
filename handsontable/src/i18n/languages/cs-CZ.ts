@@ -177,11 +177,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'Další informace',
   [C.FORMULA_BUILDER_CLOSE]: 'Zavřít',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Neplatná adresa buňky: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: '[text] nelze vybrat',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Chyba v [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    'Další [count] buňka nyní obsahuje chybu.',
-    'Počet dalších buněk s chybou: [count].',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Další [count] buňka nyní obsahuje chybu.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Počet dalších buněk s chybou: [count].',
 };
 
 export default dictionary;

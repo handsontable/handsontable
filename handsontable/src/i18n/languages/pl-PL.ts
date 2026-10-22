@@ -186,11 +186,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'Więcej informacji',
   [C.FORMULA_BUILDER_CLOSE]: 'Zamknij',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Nieprawidłowy adres komórki: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: 'Nie można zaznaczyć [text]',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Błąd w [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    'Jeszcze [count] komórka zawiera teraz błąd.',
-    'Liczba innych komórek z błędem: [count].',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Jeszcze [count] komórka zawiera teraz błąd.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Liczba innych komórek z błędem: [count].',
 };
 
 export default dictionary;

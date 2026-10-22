@@ -176,11 +176,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: '자세히 알아보기',
   [C.FORMULA_BUILDER_CLOSE]: '닫기',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: '잘못된 셀 주소: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: '[text]을(를) 선택할 수 없습니다',
   [C.FORMULA_BUILDER_CELL_ERROR]: '[cell]의 오류: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    '다른 셀 [count]개에 이제 오류가 있습니다.',
-    '다른 셀 [count]개에 이제 오류가 있습니다.',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '다른 셀 [count]개에 이제 오류가 있습니다.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '다른 셀 [count]개에 이제 오류가 있습니다.',
 };
 
 export default dictionary;

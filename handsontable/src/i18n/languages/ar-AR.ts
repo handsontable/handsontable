@@ -178,11 +178,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'معرفة المزيد',
   [C.FORMULA_BUILDER_CLOSE]: 'إغلاق',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'عنوان خلية غير صالح: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: 'لا يمكن تحديد [text]',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'خطأ في [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    'تحتوي خلية أخرى الآن على خطأ.',
-    'عدد الخلايا الأخرى التي تحتوي على أخطاء: [count].',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'تحتوي خلية أخرى الآن على خطأ.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'عدد الخلايا الأخرى التي تحتوي على أخطاء: [count].',
 };
 
 export default dictionary;

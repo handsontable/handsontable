@@ -179,11 +179,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: '了解详细信息',
   [C.FORMULA_BUILDER_CLOSE]: '关闭',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: '无效的单元格地址: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: '无法选择 [text]',
   [C.FORMULA_BUILDER_CELL_ERROR]: '[cell] 中出现错误: [message]。',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    '另有 [count] 个单元格现在包含错误。',
-    '另有 [count] 个单元格现在包含错误。',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '另有 [count] 个单元格现在包含错误。',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '另有 [count] 个单元格现在包含错误。',
 };
 
 export default dictionary;

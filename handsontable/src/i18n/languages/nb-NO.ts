@@ -176,11 +176,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'Finn ut mer',
   [C.FORMULA_BUILDER_CLOSE]: 'Lukk',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Ugyldig celleadresse: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: 'Kan ikke merke [text]',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Feil i [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    '[count] celle til inneholder nå en feil.',
-    '[count] celler til inneholder nå feil.',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '[count] celle til inneholder nå en feil.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '[count] celler til inneholder nå feil.',
 };
 
 export default dictionary;

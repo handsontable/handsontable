@@ -176,11 +176,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'Подробнее',
   [C.FORMULA_BUILDER_CLOSE]: 'Закрыть',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Недопустимый адрес ячейки: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: 'Не удается выделить [text]',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Ошибка в [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    'Ещё [count] ячейка теперь содержит ошибку.',
-    'Число других ячеек с ошибкой: [count].',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Ещё [count] ячейка теперь содержит ошибку.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Число других ячеек с ошибкой: [count].',
 };
 
 export default dictionary;

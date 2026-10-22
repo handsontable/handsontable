@@ -182,11 +182,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'Meer informatie',
   [C.FORMULA_BUILDER_CLOSE]: 'Sluiten',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Ongeldig celadres: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: 'Kan [text] niet selecteren',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Fout in [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    'Nog [count] cel bevat nu een fout.',
-    'Nog [count] cellen bevatten nu fouten.',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Nog [count] cel bevat nu een fout.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Nog [count] cellen bevatten nu fouten.',
 };
 
 export default dictionary;

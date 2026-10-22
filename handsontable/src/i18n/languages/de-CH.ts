@@ -176,11 +176,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'Mehr erfahren',
   [C.FORMULA_BUILDER_CLOSE]: 'Schließen',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Ungültiger Zellbezug: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: '[text] kann nicht ausgewählt werden',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Fehler in [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    '[count] weitere Zelle enthält jetzt einen Fehler.',
-    '[count] weitere Zellen enthalten jetzt Fehler.',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '[count] weitere Zelle enthält jetzt einen Fehler.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '[count] weitere Zellen enthalten jetzt Fehler.',
 };
 
 export default dictionary;

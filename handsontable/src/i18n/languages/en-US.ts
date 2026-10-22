@@ -183,11 +183,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'Learn more',
   [C.FORMULA_BUILDER_CLOSE]: 'Close',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Invalid cell address: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: 'Cannot select [text]',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Error in [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    '[count] more cell now contains an error.',
-    '[count] more cells now contain errors.',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '[count] more cell now contains an error.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '[count] more cells now contain errors.',
 };
 
 export default dictionary;

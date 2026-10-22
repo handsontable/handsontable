@@ -6,7 +6,6 @@ import type {
 import { BasePlugin } from '../base';
 import { warnOnce } from '../../helpers/console';
 import { isObject } from '../../helpers/object';
-import { substitute } from '../../helpers/string';
 import * as C from '../../i18n/constants';
 import { isRootInstance } from '../../utils/rootInstance';
 import { A11Y_DESCRIPTION } from '../../helpers/a11y';
@@ -1532,10 +1531,11 @@ export class FormulaBuilder extends BasePlugin {
       learnMore: phrase(C.FORMULA_BUILDER_LEARN_MORE),
       close: phrase(C.FORMULA_BUILDER_CLOSE),
       invalidCellAddress: (text: string) => phrase(C.FORMULA_BUILDER_INVALID_ADDRESS, { text }),
+      cellUnavailable: (text: string) => phrase(C.FORMULA_BUILDER_CELL_UNAVAILABLE, { text }),
       cellError: (cell: string, message: string) => phrase(C.FORMULA_BUILDER_CELL_ERROR, { cell, message }),
-      // The dictionary keys a count by plural form (0 one, 1 more), so the count goes in afterwards.
+      // One key per form: the dictionary cannot pick a plural form and fill in a variable at once.
       dependentCellErrors: (count: number) =>
-        substitute(phrase(C.FORMULA_BUILDER_DEPENDENT_ERRORS, count === 1 ? 0 : 1), { count }),
+        phrase(count === 1 ? C.FORMULA_BUILDER_DEPENDENT_ERROR : C.FORMULA_BUILDER_DEPENDENT_ERRORS, { count }),
     };
   }
 

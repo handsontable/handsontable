@@ -182,11 +182,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: '詳細情報',
   [C.FORMULA_BUILDER_CLOSE]: '閉じる',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: '無効なセル アドレス: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: '[text] を選択できません',
   [C.FORMULA_BUILDER_CELL_ERROR]: '[cell] のエラー: [message]。',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    'ほかに [count] 個のセルがエラーになりました。',
-    'ほかに [count] 個のセルがエラーになりました。',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'ほかに [count] 個のセルがエラーになりました。',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'ほかに [count] 個のセルがエラーになりました。',
 };
 
 export default dictionary;

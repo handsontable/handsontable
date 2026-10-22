@@ -176,11 +176,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: '深入了解',
   [C.FORMULA_BUILDER_CLOSE]: '關閉',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: '無效的儲存格位址: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: '無法選取 [text]',
   [C.FORMULA_BUILDER_CELL_ERROR]: '[cell] 發生錯誤: [message]。',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    '另有 [count] 個儲存格現在包含錯誤。',
-    '另有 [count] 個儲存格現在包含錯誤。',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '另有 [count] 個儲存格現在包含錯誤。',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '另有 [count] 個儲存格現在包含錯誤。',
 };
 
 export default dictionary;

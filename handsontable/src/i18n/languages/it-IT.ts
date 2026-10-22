@@ -179,11 +179,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'Ulteriori informazioni',
   [C.FORMULA_BUILDER_CLOSE]: 'Chiudi',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Indirizzo di cella non valido: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: 'Impossibile selezionare [text]',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Errore in [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    'Ora [count] altra cella contiene un errore.',
-    'Ora [count] altre celle contengono errori.',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Ora [count] altra cella contiene un errore.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Ora [count] altre celle contengono errori.',
 };
 
 export default dictionary;

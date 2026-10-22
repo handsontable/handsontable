@@ -180,11 +180,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'Uzzināt vairāk',
   [C.FORMULA_BUILDER_CLOSE]: 'Aizvērt',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Nederīga šūnas adrese: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: 'Nevar atlasīt [text]',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Kļūda šūnā [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    'Vēl [count] šūnā tagad ir kļūda.',
-    'Citu šūnu ar kļūdām skaits: [count].',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Vēl [count] šūnā tagad ir kļūda.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Citu šūnu ar kļūdām skaits: [count].',
 };
 
 export default dictionary;

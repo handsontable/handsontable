@@ -184,11 +184,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'بیشتر بدانید',
   [C.FORMULA_BUILDER_CLOSE]: 'بستن',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'آدرس سلول نامعتبر: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: 'انتخاب [text] ممکن نیست',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'خطا در [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    '[count] سلول دیگر اکنون خطا دارد.',
-    '[count] سلول دیگر اکنون خطا دارند.',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '[count] سلول دیگر اکنون خطا دارد.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '[count] سلول دیگر اکنون خطا دارند.',
 };
 
 export default dictionary;

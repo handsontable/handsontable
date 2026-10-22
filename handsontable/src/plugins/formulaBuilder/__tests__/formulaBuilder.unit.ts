@@ -1008,6 +1008,23 @@ describe('FormulaBuilder document and popup parent', () => {
   });
 });
 
+describe('FormulaBuilder phrases', () => {
+  it('passes a translation for every phrase the package defines', () => {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module });
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    const phrases = spied.created[0]?.options.phrases as Record<string, unknown>;
+
+    expect(Object.keys(phrases).sort()).toEqual(Object.keys(core.DEFAULT_PHRASES).sort());
+    expect((phrases.cellUnavailable as (text: string) => string)('B7')).toBe('Cannot select B7');
+    expect((phrases.dependentCellErrors as (count: number) => string)(3))
+      .toBe('3 more cells now contain errors.');
+  });
+});
+
 describe('FormulaBuilder theme tracking', () => {
   it('rebuilds the builder (not the plugin) when the theme class changes', () => {
     const spied = makeSpiedCore();

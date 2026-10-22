@@ -173,9 +173,10 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 - **The phrases come from the grid's language and are taken at construction.** Every accessible name,
   hint and announcement of the editor is a `FormulaBuilder:` key in `src/i18n/constants.ts`, passed to the
   package as its `phrases` option (`#phrases()`). The package reads them once, so `afterLanguageChange`
-  rebuilds the builder. The dictionary picks the dependent-error count's plural form by index (0 for one,
-  1 for more) and the plugin substitutes `[count]` itself; languages with more plural forms use a
-  count-neutral wording for the second form. The hint phrases carry no surrounding spaces: the package adds
+  rebuilds the builder. The dependent-error count has one key per form (`dependentCellError` for one,
+  `dependentCellErrors` for more): the dictionary's formatters cannot pick a plural form and fill in
+  `[count]` in one call, because the substitution blanks every variable it is not given. Languages with
+  more plural forms use a count-neutral wording for the second key. The hint phrases carry no surrounding spaces: the package adds
   them.
 - **The builder is built in the grid's document.** `rootDocument` is `hot.rootDocument`, so a grid in an
   iframe gets its selectors resolved and its styles injected there, and a grid in a shadow root passes the

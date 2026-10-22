@@ -182,11 +182,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_LEARN_MORE]: 'Más información',
   [C.FORMULA_BUILDER_CLOSE]: 'Cerrar',
   [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Dirección de celda no válida: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: 'No se puede seleccionar [text]',
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Error en [cell]: [message].',
-  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
-    '[count] celda más contiene ahora un error.',
-    '[count] celdas más contienen ahora errores.',
-  ],
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '[count] celda más contiene ahora un error.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '[count] celdas más contienen ahora errores.',
 };
 
 export default dictionary;
