@@ -15,6 +15,7 @@ vue:
   metaTitle: Comments | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
+menuTag: updated
 ---
 Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
 

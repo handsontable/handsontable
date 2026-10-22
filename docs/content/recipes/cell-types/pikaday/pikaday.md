@@ -17,6 +17,7 @@ vue:
   metaTitle: Pikaday cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
+menuTag: updated
 ---
 
 This tutorial shows you how to integrate the Pikaday date picker as a custom Handsontable DataGrid cell editor, with portal positioning and Moment.js formatting. This recipe also serves as a migration guide for users moving away from the built-in `date` cell type.
