@@ -1387,7 +1387,7 @@ describe('Props set to `undefined`', () => {
     expect(hot.getPlugin('undoRedo').enabled).toBe(false);
   });
 
-  it('should still clear an option when a prop that had a value changes to `undefined` on update', () => {
+  it('should clear an option whose default is `undefined` when its prop changes to `undefined` on update', () => {
     const hotTableRef = renderHotTableWithProps({ ...baseProps, colWidths: 150 });
     const hot = hotTableRef.current!.hotInstance!;
 
@@ -1396,6 +1396,17 @@ describe('Props set to `undefined`', () => {
     renderHotTableWithProps({ ...baseProps, colWidths: undefined }, true, hotTableRef);
 
     expect(hot.getSettings().colWidths).toBe(undefined);
+  });
+
+  it('should restore the default when a prop that had a value changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, copyPaste: false });
+    const hot = hotTableRef.current!.hotInstance!;
+
+    expect(hot.getPlugin('copyPaste').enabled).toBe(false);
+
+    renderHotTableWithProps({ ...baseProps, copyPaste: undefined }, true, hotTableRef);
+
+    expect(hot.getPlugin('copyPaste').enabled).toBe(true);
   });
 
   it('should keep a default when a prop stays `undefined` across updates', () => {

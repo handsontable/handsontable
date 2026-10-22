@@ -33,9 +33,10 @@ export class SettingsMapper {
    * Parse component settings into Handsontable-compatible settings.
    *
    * A prop whose value is `undefined` counts as not passed and is left out, so the option keeps its
-   * default. An own `undefined` key would shadow that default in the settings cascade. The one
-   * exception is an update of a prop that had a value in the previous props: `undefined` is forwarded
-   * then, because that is how an app clears an option it set earlier (`height={full ? undefined : 400}`).
+   * default. An own `undefined` key would shadow that default in the settings cascade. On an update
+   * of a prop that had a value in the previous props, the option's default is forwarded instead, so
+   * the grid matches a fresh mount with the same props (`height={full ? undefined : 400}` clears the
+   * height, `copyPaste={on ? false : undefined}` turns copy and paste back on).
    * `null` and `false` are real values and are forwarded.
    *
    * @param {object} properties Object containing properties from the HotTable object.
@@ -92,7 +93,9 @@ export class SettingsMapper {
         !isNotPassed(key as keyof HotTableProps) &&
         !shouldSkipProp(key as keyof Handsontable.GridSettings)
       ) {
-        (newSettings as any)[key] = properties[key as keyof HotTableProps];
+        const value = properties[key as keyof HotTableProps];
+
+        (newSettings as any)[key] = value === undefined ? Handsontable.DefaultSettings[key] : value;
       }
     });
 
