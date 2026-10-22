@@ -1,5 +1,5 @@
 import * as vue from 'vue';
-import { createSSRApp, h } from 'vue';
+import { createSSRApp, h, nextTick } from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { mount } from '@vue/test-utils';
 import HotTable from '../src/HotTable.vue';
@@ -100,6 +100,25 @@ describe('Auto-generated container `id`', () => {
 
     first.unmount();
     second.unmount();
+  });
+
+  it('should restore the generated `id` when an explicit `id` is cleared', async() => {
+    const testWrapper = mount(HotTable, {
+      props: {
+        id: 'my-grid',
+        data: createSampleData(1, 1),
+        licenseKey,
+      },
+    });
+
+    expect(testWrapper.element.id).toBe('my-grid');
+
+    await testWrapper.setProps({ id: undefined });
+    await nextTick();
+
+    expect(testWrapper.element.id).toMatch(/^hot-/);
+
+    testWrapper.unmount();
   });
 
   it('should not override an explicitly passed `id`', () => {

@@ -35,14 +35,14 @@ Handsontable DataGrid works in a Nuxt application with server-side rendering (SS
 
 Nuxt renders Vue components on the server before sending HTML to the browser. When it renders a `<HotTable>` component on the server:
 
-- The server renders an empty container `<div>`.
+- The server renders a container `<div>` with no grid content.
 - The browser hydrates the page and mounts the grid into that container.
 
 You can import `handsontable` and `@handsontable/vue3`, and call `registerAllModules()`, in server code. Handsontable does not need `<ClientOnly>` or a `.client.vue` file to run in Nuxt.
 
 ::: tip
 
-The `@handsontable/vue3` wrapper adds an automatically generated `id` attribute to the container only after the component mounts in the browser, so the server-rendered markup and the first client render match. Wrapper versions that predate this change generated that `id` on the server too. With Vue 3.5 or later, that made Vue log a `Hydration attribute mismatch` warning. To avoid the warning on such a version, pass an explicit `id` to `<HotTable>`, or use `<ClientOnly>`.
+The `@handsontable/vue3` wrapper adds an automatically generated `id` attribute to the container only after the component mounts in the browser, so the server-rendered markup and the first client render match. Wrapper versions 18.1.2 and earlier generated that `id` on the server too. With Vue 3.4 or later, that made Vue log a `Hydration attribute mismatch` warning. If you use such a version, pass an explicit `id` to `<HotTable>`, or use `<ClientOnly>`.
 
 :::
 
@@ -170,7 +170,7 @@ Try the default setup before you reach for this option.
 
 ## Result
 
-Handsontable renders in the browser. The SSR pass renders an empty container, the `#fallback` content (with `<ClientOnly>`), or nothing (with `.client.vue`). The grid initializes once the Vue component mounts on the client.
+Handsontable renders in the browser. The SSR pass renders a container with no grid content, the `#fallback` content (with `<ClientOnly>`), or nothing (with `.client.vue`). The grid initializes once the Vue component mounts on the client.
 
 <div class="boxes-list gray">
 
