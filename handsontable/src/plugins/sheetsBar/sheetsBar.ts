@@ -35,7 +35,7 @@ import { isPlainObject } from '../../helpers/object';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { syncIcon } from '../../themes/engine/icons';
-import type { CellOptionMetaEntry, HotInstance } from '../../core/types';
+import type { CellOptionMetaEntry, HotInstance, KeptCellMetas } from '../../core/types';
 import type { GridSettings } from '../../core/settings';
 import type {
   DataProvider,
@@ -116,14 +116,6 @@ interface TabMotion {
 }
 
 /**
- * The key a cell's tracked meta bucket is stored under — one bucket per physical cell, so the
- * meta-read path can answer "does this cell carry tracked writes" with a single lookup.
- */
-function trackedCellKey(row: number, col: number): string {
-  return `${row}:${col}`;
-}
-
-/**
  * Writes an engine's rewritten formula strings straight into a sheet's data array. Used for
  * sheets that are not in front of the grid, whose engine content was seeded from that same
  * array — the two layouts are one, so the strings go back index for index.
@@ -146,17 +138,13 @@ function applyEngineRewritesToSheetData(data: unknown[], serialized: unknown[][]
 }
 
 /**
- * Tracked cell-meta keys that are derived state rather than configuration: the next validation
- * recomputes them from the data, so replaying a captured value after a switch would restore a
- * stale verdict — and a validated sheet writes one such entry per cell, which is what made the
- * tracking balloon to six figures on large sheets.
- *
- * `hidden` and `spanned` are MergeCells' own bookkeeping, not options: the plugin writes them when it
- * merges and removes them when it unmerges, and the switch restores the merges itself. Tracked, they
- * came back on every read after MergeCells removed them from a row that was trimmed at the time,
- * because that removal fires no `afterRemoveCellMeta` (DEV-3135).
+ * User-set cell meta keys a sheet does not keep when the user leaves it. `hidden` and `spanned` are
+ * MergeCells' own bookkeeping, not options: the switch restores the merges, which writes them again, and a
+ * kept copy would stay on the cells of a stored merge that no longer fits and is dropped. `valid` is kept
+ * from core's record of the failed validations instead, so a `setCellMeta(row, col, 'valid', true)` cannot
+ * hide a failure.
  */
-const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
+const UNKEPT_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
 
 /**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
@@ -302,7 +290,6 @@ interface ServerSheetView {
  */
 interface PreservedState {
   model: SheetModel;
-  trackedCellMeta: Map<string, Map<string, unknown>>;
   settingsBaseline: Map<string, unknown>;
   declaredEntries: Map<number, SheetsBarSheetConfig>;
 }
@@ -545,20 +532,13 @@ export class SheetsBar extends BasePlugin {
    */
   #tabSlideMotion: SheetsBarMotion | null = null;
   /**
-   * Explicit `setCellMeta` writes made while the active sheet is applied, kept so they survive
-   * a switch round trip. One bucket per physical cell, one slot per property inside it, so a
-   * property written many times costs one slot holding the last value. Derived keys (`valid`)
-   * are not tracked at all — see {@link UNTRACKED_META_KEYS}. Cleared and reloaded from the
-   * target sheet's captured view state on every switch.
+   * The cell meta a duplicate takes from its original, put back on the copy's first visit. A sheet the
+   * user has left keeps its meta in its view state (`#captureCellMeta`); a copy has no view state until
+   * the user leaves it once, so this is read only while it has none.
    *
-   * The entries are never replayed eagerly: `#onAfterGetCellMeta` serves them the moment a
-   * cell's meta is actually read — the renderer for the ~viewport, `getCellMeta` for any API
-   * consumer — so a switch costs nothing per entry and no meta object is materialized for a
-   * cell nobody asks about.
-   *
-   * @type {Map<string, Map<string, unknown>>}
+   * @type {WeakMap<Sheet, object[]>}
    */
-  #trackedCellMeta = new Map<string, Map<string, unknown>>();
+  #copiedCellMeta = new WeakMap<Sheet, TrackedCellMeta[]>();
   /**
    * The declared `sheets` entry each built sheet came from, so removing a sheet can prune its
    * entry out of the configured arrays — the settings object would otherwise keep the removed
@@ -610,7 +590,7 @@ export class SheetsBar extends BasePlugin {
    */
   #lastActiveSheetSetting: unknown = undefined;
   /**
-   * The model, the tracked cell meta, and the settings baseline carried across an
+   * The model and the settings baseline carried across an
    * `updatePlugin` teardown when the incoming `sheetsBar` setting is structurally unchanged.
    * `null` outside that window.
    *
@@ -693,7 +673,6 @@ export class SheetsBar extends BasePlugin {
 
     if (this.#preservedState) {
       this.#model = this.#preservedState.model;
-      this.#trackedCellMeta = this.#preservedState.trackedCellMeta;
       this.#settingsBaseline = this.#preservedState.settingsBaseline;
       this.#declaredEntries = this.#preservedState.declaredEntries;
     } else {
@@ -834,14 +813,6 @@ export class SheetsBar extends BasePlugin {
 
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
-    this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
-    this.addHook('afterRemoveCellMeta', this.#onAfterRemoveCellMeta);
-    this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
-    this.addHook('afterCreateRow', this.#onAfterCreateRow, -1);
-    this.addHook('afterRemoveRow', this.#onAfterRemoveRow, -1);
-    this.addHook('afterCreateCol', this.#onAfterCreateCol, -1);
-    this.addHook('afterRemoveCol', this.#onAfterRemoveCol, -1);
-    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, -1);
@@ -872,7 +843,6 @@ export class SheetsBar extends BasePlugin {
     const preservedState = this.#model !== null && isSameSheetsList(this.getSetting('sheets'), this.#lastBuiltSheets)
       ? {
         model: this.#model,
-        trackedCellMeta: this.#trackedCellMeta,
         settingsBaseline: this.#settingsBaseline,
         declaredEntries: this.#declaredEntries,
       }
@@ -1222,7 +1192,6 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.#model = null;
-    this.#trackedCellMeta = new Map();
     this.#declaredEntries = new Map();
     this.#settingsBaseline = new Map();
     this.#lastBuiltSheets = undefined;
@@ -1357,7 +1326,7 @@ export class SheetsBar extends BasePlugin {
 
         if (oldSheet) {
           this.#syncActiveSheetData();
-          oldSheet.viewState = captureViewState(this.hot, this.#flattenTrackedCellMeta()) as
+          oldSheet.viewState = captureViewState(this.hot, this.#captureCellMeta()) as
             unknown as Record<string, unknown>;
           this.#captureColumnSummary(oldSheet);
           this.#captureCellOption(oldSheet);
@@ -1802,6 +1771,7 @@ export class SheetsBar extends BasePlugin {
 
       this.#columnSummaryStates.delete(sheet);
       this.#cellOptionStates.delete(sheet);
+      this.#copiedCellMeta.delete(sheet);
 
       if (sheet.viewState) {
         sheet.viewState = { ...sheet.viewState, cellMeta: [] };
@@ -1985,10 +1955,6 @@ export class SheetsBar extends BasePlugin {
   #showSheet(newSheet: Sheet, source: string) {
     const newId = newSheet.id;
 
-    this.#trackedCellMeta = SheetsBar.#groupTrackedCellMeta(
-      (newSheet.viewState?.cellMeta as TrackedCellMeta[] | undefined) ?? [],
-    );
-
     // The whole switch paints once. Applying the sheet, restoring its view state, re-selecting
     // and scrolling each ask for a full render on their own, and every one of those renders
     // re-measures the column widths of the sheet that has just arrived — on a large sheet that
@@ -2014,7 +1980,10 @@ export class SheetsBar extends BasePlugin {
         clearMergedCells(this.hot);
       }
 
-      this.#applySheet(newSheet, source, { restoresState: viewState !== undefined });
+      this.#applySheet(newSheet, source, {
+        restoresState: viewState !== undefined,
+        cellMeta: viewState ? viewState.cellMeta : this.#copiedCellMeta.get(newSheet),
+      });
 
       if (viewState) {
         restoreViewState(this.hot, viewState);
@@ -2127,8 +2096,16 @@ export class SheetsBar extends BasePlugin {
    * With `restoresState` set the sheet returns with a stored view state. It then gets the ColumnSummary
    * endpoints it left with (`#captureColumnSummary`), and the merges its settings declare are not built:
    * the stored ones are restored instead, and the declared ones would win over the ones the user changed.
+   *
+   * `cellMeta` is the cell meta the sheet's rows carried when the user left it (`#captureCellMeta`). Core
+   * writes it back in the meta phase, before the cell types expand, so it is ordinary cell meta again:
+   * undo, a row or column change, and a later `loadData()` treat it as they treat any other.
    */
-  #applySheet(sheet: Sheet, source: string, { restoresState = false }: { restoresState?: boolean } = {}) {
+  #applySheet(
+    sheet: Sheet,
+    source: string,
+    { restoresState = false, cellMeta }: { restoresState?: boolean, cellMeta?: TrackedCellMeta[] } = {},
+  ) {
     const payload: Record<string, unknown> = { ...(this.#withBaselineFor(sheet.settings) ?? {}) };
     const cell = this.#effectiveCellOption(payload);
 
@@ -2137,6 +2114,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     const cellOptionMetas = cell ? (this.#cellOptionStates.get(sheet) ?? null) : null;
+    const keptCellMetas = cellMeta && cellMeta.length > 0 ? SheetsBar.#toKeptCellMetas(cellMeta) : null;
 
     if (payload.columnSummary && restoresState && this.#columnSummaryStates.has(sheet)) {
       payload.columnSummary = this.#columnSummaryStates.get(sheet);
@@ -2147,7 +2125,8 @@ export class SheetsBar extends BasePlugin {
 
       try {
         this.hot._applySettingsAndData(
-          payload as Partial<GridSettings>, sheet.data as unknown[], `${source}.switch`, cellOptionMetas
+          payload as Partial<GridSettings>, sheet.data as unknown[], `${source}.switch`, cellOptionMetas,
+          keptCellMetas,
         );
       } finally {
         this.#loadingSheet = null;
@@ -2237,6 +2216,26 @@ export class SheetsBar extends BasePlugin {
 
     if (entries) {
       this.#cellOptionStates.set(copy, entries.map(entry => ({ ...entry })));
+    }
+  }
+
+  /**
+   * Gives a duplicated sheet the cell meta its original carries now: the grid's when the original is shown,
+   * or what it left with otherwise. The copy's data is a copy of the original's rows in the same physical
+   * order, so its first visit puts the meta back by physical index like a return does. Each entry is copied,
+   * so a later change on one sheet does not reach the other.
+   *
+   * @param {object} original The sheet that was duplicated.
+   * @param {object} copy The duplicate.
+   */
+  #copyCellMeta(original: Sheet, copy: Sheet) {
+    const isOriginalShown = this.#model?.getActiveSheet()?.id === original.id;
+    const entries = isOriginalShown
+      ? this.#captureCellMeta()
+      : ((original.viewState?.cellMeta as TrackedCellMeta[] | undefined) ?? this.#copiedCellMeta.get(original));
+
+    if (entries && entries.length > 0) {
+      this.#copiedCellMeta.set(copy, entries.map(entry => ({ ...entry })));
     }
   }
 
@@ -2801,6 +2800,7 @@ export class SheetsBar extends BasePlugin {
         this.#copyServerView(original, sheet);
         this.#copyColumnSummaryEndpoints(original, sheet);
         this.#copyCellOption(original, sheet);
+        this.#copyCellMeta(original, sheet);
 
         // The copy cannot share the original's engine sheet — two tabs writing into one set of
         // cells — so it gets an engine sheet of its own, named like the copy, seeded with the
@@ -3186,105 +3186,6 @@ export class SheetsBar extends BasePlugin {
   };
 
   /**
-   * Tracks explicit cell-meta writes for the active sheet so they survive a switch
-   * round-trip. Writes performed while a switch is applying state are skipped via the
-   * switching guard, writes the declarative `cell` option makes (core's init pass included) are never
-   * user meta, and derived keys (`valid`) are not tracked at all — the next validation
-   * recomputes them, and a validated sheet writes one per cell.
-   *
-   * The hook hands over visual indexes, which only mean something against the row and column
-   * order in force at write time — a write made before a sort would land on whatever cell
-   * sits at that visual spot after a restore. Entries are therefore stored physical, and
-   * translated back when they are served.
-   */
-  #onAfterSetCellMeta = (row: number, col: number, key: string, value: unknown) => {
-    if (this.#isSwitching || UNTRACKED_META_KEYS.has(key)
-      || this.hot._getMetaManager().isRecordingCellOptionMeta()) {
-      return;
-    }
-
-    const physicalRow = this.hot.toPhysicalRow(row);
-    const physicalCol = this.hot.toPhysicalColumn(col);
-
-    if (physicalRow === null || physicalCol === null) {
-      return;
-    }
-
-    const cellKey = trackedCellKey(physicalRow, physicalCol);
-    let bucket = this.#trackedCellMeta.get(cellKey);
-
-    if (!bucket) {
-      bucket = new Map();
-      this.#trackedCellMeta.set(cellKey, bucket);
-    }
-
-    bucket.set(key, value);
-  };
-
-  /**
-   * Drops a removed property from the tracked map. Without this, the lazy overlay would keep
-   * serving the value on every later meta read — a `removeCellMeta('readOnly')` would come
-   * back on the next render as if it never happened.
-   */
-  #onAfterRemoveCellMeta = (row: number, col: number, key: string) => {
-    if (this.#isSwitching || this.#trackedCellMeta.size === 0) {
-      return;
-    }
-
-    const physicalRow = this.hot.toPhysicalRow(row);
-    const physicalCol = this.hot.toPhysicalColumn(col);
-
-    if (physicalRow === null || physicalCol === null) {
-      return;
-    }
-
-    const cellKey = trackedCellKey(physicalRow, physicalCol);
-    const bucket = this.#trackedCellMeta.get(cellKey);
-
-    if (bucket) {
-      bucket.delete(key);
-
-      if (bucket.size === 0) {
-        this.#trackedCellMeta.delete(cellKey);
-      }
-    }
-  };
-
-  /**
-   * Shifts the tracked rows at or below the first inserted row down by the inserted amount.
-   * The buckets are keyed by physical row, and an insert renumbers every physical row from the
-   * insertion point on — core's `MetaManager` shifts its own cell meta the same way — so a key
-   * left alone would serve its properties onto the cell that now sits at the old index.
-   */
-  #onAfterCreateRow = (visualRow: number, amount: number, source?: string) => {
-    this.#shiftTrackedCellMetaOnCreate('row', this.hot.toPhysicalRow(visualRow), amount, source);
-  };
-
-  /**
-   * Drops the tracked buckets of the removed rows and shifts the rows below them up, so each
-   * bucket keeps following its cell.
-   */
-  #onAfterRemoveRow = (visualRow: number, amount: number, physicalRows: number[]) => {
-    this.#shiftTrackedCellMetaOnRemove('row', physicalRows);
-  };
-
-  /**
-   * Shifts the tracked columns at or after the first inserted column by the inserted amount,
-   * for the reason `#onAfterCreateRow` gives.
-   */
-  #onAfterCreateCol = (visualColumn: number, amount: number, source?: string) => {
-    this.#shiftTrackedCellMetaOnCreate('col', this.hot.toPhysicalColumn(visualColumn), amount, source);
-  };
-
-  /**
-   * Drops the tracked buckets of the removed columns and shifts the columns after them, for the
-   * reason `#onAfterRemoveRow` gives.
-   */
-  #onAfterRemoveCol = (visualColumn: number, amount: number, physicalColumns: number[]) => {
-    this.#shiftTrackedCellMetaOnRemove('col', physicalColumns);
-  };
-
-  /**
    * Records which sheet's rows the grid holds once `#applySheet` has loaded them. Registered first
    * (`orderIndex` -1), so a later `afterLoadData` listener that throws cannot hide a load that
    * happened.
@@ -3293,124 +3194,6 @@ export class SheetsBar extends BasePlugin {
     if (this.#loadingSheet !== null) {
       this.#loadedSheetId = this.#loadingSheet.id;
     }
-  };
-
-  /**
-   * Forgets every tracked write when the host loads a new dataset. `loadData` clears core's cell
-   * meta, so a surviving bucket would paint the old dataset's `readOnly` or `className` onto
-   * whichever new row sits at that physical index. The plugin's own loads — the initial build
-   * and every switch — are skipped: they bring the arriving sheet's map in themselves.
-   */
-  #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean) => {
-    if (initialLoad || this.#isSwitching || this.#isInitializing) {
-      return;
-    }
-
-    this.#trackedCellMeta = new Map();
-  };
-
-  /**
-   * Moves every tracked bucket at or past `firstPhysicalIndex` on the given axis by `amount`.
-   *
-   * An `auto` insert is skipped, because `DataMap` does not shift core's cell meta for it
-   * (`minRows`, `minSpareRows`, and the rows a paste adds). That also covers the rows a switch
-   * creates while the arriving sheet's map is in place over the outgoing sheet's data. A key can
-   * outlive its row after an `updateData` shrink, so an append is not skipped on its own; it
-   * must move such a key the way core moves its meta.
-   */
-  #shiftTrackedCellMetaOnCreate(
-    axis: 'row' | 'col', firstPhysicalIndex: number | null, amount: number, source?: string,
-  ) {
-    if (
-      source === 'auto' || this.#trackedCellMeta.size === 0 ||
-      firstPhysicalIndex === null || amount <= 0
-    ) {
-      return;
-    }
-
-    this.#rekeyTrackedCellMeta(axis, index => (index >= firstPhysicalIndex ? index + amount : index));
-  }
-
-  /**
-   * Drops the tracked buckets on the removed physical indexes of the given axis, and moves every
-   * other bucket back by the number of removed indexes before it. The removed indexes may be
-   * any set: adjacent visual rows or columns map to scattered physical ones once they are
-   * sorted, moved, or trimmed.
-   */
-  #shiftTrackedCellMetaOnRemove(axis: 'row' | 'col', removedPhysicalIndexes: number[]) {
-    if (this.#trackedCellMeta.size === 0 || removedPhysicalIndexes.length === 0) {
-      return;
-    }
-
-    const removed = [...new Set(removedPhysicalIndexes)].sort((a, b) => a - b);
-
-    this.#rekeyTrackedCellMeta(axis, (index) => {
-      let low = 0;
-      let high = removed.length;
-
-      while (low < high) {
-        const middle = Math.floor((low + high) / 2);
-
-        if (removed[middle] < index) {
-          low = middle + 1;
-        } else {
-          high = middle;
-        }
-      }
-
-      return removed[low] === index ? null : index - low;
-    });
-  }
-
-  /**
-   * Rebuilds the tracked map with each bucket's index on the given axis passed through
-   * `mapIndex`. A `null` result drops the bucket.
-   */
-  #rekeyTrackedCellMeta(axis: 'row' | 'col', mapIndex: (index: number) => number | null) {
-    const rekeyed = new Map<string, Map<string, unknown>>();
-
-    this.#trackedCellMeta.forEach((bucket, cellKey) => {
-      const [row, col] = cellKey.split(':').map(Number);
-      const mapped = mapIndex(axis === 'row' ? row : col);
-
-      if (mapped !== null) {
-        rekeyed.set(axis === 'row' ? trackedCellKey(mapped, col) : trackedCellKey(row, mapped), bucket);
-      }
-    });
-
-    this.#trackedCellMeta = rekeyed;
-  }
-
-  /**
-   * Serves the tracked cell-meta writes lazily, the moment a cell's meta is actually read —
-   * the renderer for the viewport, `getCellMeta` for a paste, an editor, or any API consumer.
-   * Replaying the whole map eagerly on every switch cost one `setCellMeta` call and one
-   * permanently stored meta object per entry; serving on read costs one lookup per asked-about
-   * cell and materializes nothing for cells nobody asks about.
-   *
-   * This runs on the hottest read path in the grid, so it bails out first thing when nothing
-   * is tracked, and it only writes a property whose value actually differs — an unconditional
-   * write would shadow the column- and grid-level cascade for no reason.
-   */
-  #onAfterGetCellMeta = (row: number, col: number, cellProperties: Record<string, unknown>) => {
-    if (this.#trackedCellMeta.size === 0 || row < 0 || col < 0) {
-      return;
-    }
-
-    const physicalRow = this.hot.toPhysicalRow(row);
-    const physicalCol = this.hot.toPhysicalColumn(col);
-
-    if (physicalRow === null || physicalCol === null) {
-      return;
-    }
-
-    const bucket = this.#trackedCellMeta.get(trackedCellKey(physicalRow, physicalCol));
-
-    bucket?.forEach((value, key) => {
-      if (cellProperties[key] !== value) {
-        cellProperties[key] = value;
-      }
-    });
   };
 
   /**
@@ -3608,40 +3391,50 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Flattens the per-cell buckets into the flat entry list the captured view state carries.
+   * Returns the cell meta the grid's rows carry now, by physical indexes, for a sheet the user is about to
+   * leave: every key set through `setCellMeta()` (or put back by an undo of one), and a `valid: false` entry
+   * for each cell whose last validation failed. The keys MergeCells keeps for itself (`hidden`, `spanned`) are
+   * left out, because the switch restores the merges, and so is a `valid` the user set: the invalid marks
+   * are read from core's own record of them.
+   *
+   * @returns {object[]}
    */
-  #flattenTrackedCellMeta(): TrackedCellMeta[] {
+  #captureCellMeta(): TrackedCellMeta[] {
+    const metaManager = this.hot._getMetaManager();
     const entries: TrackedCellMeta[] = [];
 
-    this.#trackedCellMeta.forEach((bucket, cellKey) => {
-      const [row, col] = cellKey.split(':').map(Number);
-
-      bucket.forEach((value, key) => {
-        entries.push({ row, col, key, value });
-      });
+    metaManager.getUserDefinedCellMetas().forEach(({ physicalRow, physicalColumn, key, value }) => {
+      if (!UNKEPT_META_KEYS.has(key)) {
+        entries.push({ row: physicalRow, col: physicalColumn, key, value });
+      }
+    });
+    metaManager.getInvalidCellMetas().forEach(({ physicalRow, physicalColumn }) => {
+      entries.push({ row: physicalRow, col: physicalColumn, key: 'valid', value: false });
     });
 
     return entries;
   }
 
   /**
-   * Groups a captured flat entry list back into per-cell buckets.
+   * Splits a sheet's kept cell meta into what core puts back after the sheet's rows load: the keys the user
+   * set, and the cells to mark invalid.
+   *
+   * @param {object[]} entries The entries `#captureCellMeta` returned.
+   * @returns {object}
    */
-  static #groupTrackedCellMeta(entries: TrackedCellMeta[]): Map<string, Map<string, unknown>> {
-    const grouped = new Map<string, Map<string, unknown>>();
+  static #toKeptCellMetas(entries: TrackedCellMeta[]): KeptCellMetas {
+    const kept: KeptCellMetas = { userDefined: [], invalid: [] };
 
     entries.forEach(({ row, col, key, value }) => {
-      const cellKey = trackedCellKey(row, col);
-      let bucket = grouped.get(cellKey);
-
-      if (!bucket) {
-        bucket = new Map();
-        grouped.set(cellKey, bucket);
+      if (key === 'valid') {
+        if (value === false) {
+          kept.invalid.push({ physicalRow: row, physicalColumn: col });
+        }
+      } else {
+        kept.userDefined.push({ physicalRow: row, physicalColumn: col, key, value });
       }
-
-      bucket.set(key, value);
     });
 
-    return grouped;
+    return kept;
   }
 }

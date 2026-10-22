@@ -5,9 +5,10 @@ import { clamp } from '../../helpers/number';
 import { safeBatch } from '../safeBatch';
 
 /**
- * One tracked explicit cell-meta write. The indexes are physical: a visual index only means
- * something against the row and column order in force when it was read, and the entries are
- * served lazily against whatever order is in force when the cell's meta is next read.
+ * One key of the cell meta a sheet's rows carried when the user left it: a key set through
+ * `setCellMeta()`, or `valid: false` for a cell whose last validation failed. The indexes are
+ * physical, so each entry goes back onto its record whatever row and column order the sheet
+ * returns with.
  */
 export interface TrackedCellMeta {
   row: number;
@@ -967,10 +968,9 @@ function restoreCustomBorders(hot: HotInstance, state: ViewState) {
  * of that visual space and a hidden child would no longer be found by its visual index; then
  * sizes, merges, freeze, and borders, none of which depend on each other.
  *
- * The tracked cell meta (`state.cellMeta`) is deliberately not replayed here: the plugin
- * serves it lazily from its `afterGetCellMeta` hook, so a switch pays nothing per entry and
- * no meta object is materialized for a cell nobody reads — replaying 130k validated-sheet
- * entries eagerly made a switch measurably slower and tripled the heap.
+ * The kept cell meta (`state.cellMeta`) is not replayed here: the sheets bar hands it to core's
+ * `_applySettingsAndData()` together with the sheet's rows, which writes it back before the cell
+ * types expand, so a `type` comes back with its renderer and validator.
  *
  * The selection and the scroll position are left to {@link restoreViewport}: both need the
  * grid painted with the arriving sheet's sizes, and this runs inside a render batch.

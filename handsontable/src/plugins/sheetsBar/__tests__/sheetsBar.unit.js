@@ -730,9 +730,9 @@ describe('SheetsBar plugin', () => {
     expect(captured.cellMeta).toEqual([{ row: 0, col: 0, key: 'className', value: 'odd' }]);
   });
 
-  it('does not track the `valid` flag — the next validation recomputes it', () => {
+  it('keeps a failed validation mark and drops a passed one', () => {
     hot = new Handsontable(container, {
-      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
+      sheetsBar: { sheets: [{ name: 'A', data: [['a', 'b']] }, { name: 'B', data: [['b']] }] },
       licenseKey: 'non-commercial-and-evaluation',
     });
     let captured = null;
@@ -743,17 +743,22 @@ describe('SheetsBar plugin', () => {
 
     hot.setCellMeta(0, 0, 'valid', false);
     hot.setCellMeta(0, 0, 'readOnly', true);
+    hot.setCellMeta(0, 1, 'valid', true);
 
     const sheetsBar = hot.getPlugin('sheetsBar');
 
     sheetsBar.setActiveSheet('B');
 
-    expect(captured.cellMeta).toEqual([{ row: 0, col: 0, key: 'readOnly', value: true }]);
+    expect(captured.cellMeta).toEqual([
+      { row: 0, col: 0, key: 'readOnly', value: true },
+      { row: 0, col: 0, key: 'valid', value: false },
+    ]);
 
     sheetsBar.setActiveSheet('A');
 
     expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
-    expect(hot.getCellMeta(0, 0).valid).not.toBe(false);
+    expect(hot.getCellMeta(0, 0).valid).toBe(false);
+    expect(hot.getCellMeta(0, 1).valid).not.toBe(true);
   });
 
   it('stops serving a tracked property once removeCellMeta drops it', () => {
