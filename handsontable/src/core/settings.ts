@@ -160,7 +160,9 @@ export interface GridSettings {
   readOnlyStyling?: boolean;
   tableClassName?: string | string[];
   // `object` is the plain theme config the option's table documents (`horizonTheme`). The closed
-  // `ThemeParams` type would reject a config with a token of your own, which compiled as `any`.
+  // `ThemeParams` type would reject a config with a token of your own, which compiled as `any`. The
+  // cost is that an array or a function also compiles; `validateSettings()` rejects the array and the
+  // grid ignores both, and `Record<string, unknown>` would reject `horizonTheme`, an interface type.
   theme?: ThemeBuilder | object | string;
   themeName?: string;
   colorScheme?: ThemeColorScheme;

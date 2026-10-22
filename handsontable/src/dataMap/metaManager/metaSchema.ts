@@ -4748,19 +4748,9 @@ export default (): Record<string, unknown> => {
           const schemaDefault = prop === null ?
             undefined : getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
-          if (typeof value === 'object') {
-            if (isObjectEqual(schemaDefault, value) === false) {
-              return false;
-            }
-
-            continue;
+          if (!isSchemaDefault(value, schemaDefault, hasExplicitSchema)) {
+            return false;
           }
-
-          if (hasExplicitSchema && schemaDefault === value) {
-            continue;
-          }
-
-          return false;
         }
       }
 

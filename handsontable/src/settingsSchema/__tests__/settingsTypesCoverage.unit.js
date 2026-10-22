@@ -11,9 +11,13 @@ describe('settings types coverage', () => {
 
   it('should keep every option node small', () => {
     // A type that names a class (`ThemeBuilder`) or a wide config (`ThemeParams`) expands into every
-    // field and token it holds: `theme` alone grew the published schema from 65 KB to 167 KB. List a
-    // class in the generator's `RUNTIME_OBJECT_TYPES`, or type the option as `object`.
-    const oversized = Object.entries(settingsSchema.properties)
+    // field and token it holds: `theme` alone grew the published schema from 65 KB to over 130 KB. List a
+    // class in the generator's `RUNTIME_OBJECT_TYPES`, or type the option as `object`. The column level
+    // builds its nodes on its own, so they are scanned as well.
+    const oversized = [
+      ...Object.entries(settingsSchema.properties),
+      ...Object.entries(settingsSchema.$defs.columnSettings.properties),
+    ]
       .filter(([, node]) => JSON.stringify(node).length > 3000)
       .map(([name]) => name);
 

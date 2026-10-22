@@ -57,8 +57,8 @@ settings object against it and against what the page registers. Guide:
 
 - **A type that names a class must be listed in `RUNTIME_OBJECT_TYPES`, or it bloats the schema.** The converter
   expands every property it can read, so `theme: ThemeBuilder | ... | string` put the class's `#private` fields into
-  the schema, and a `ThemeParams` member added every icon and token: 102 KB for one option, 167 KB against 65 KB for
-  the rest. `ThemeBuilder` is listed (a class instance, `runtimeTypes`), and `theme` takes `object` for a plain config.
+  the schema, and a `ThemeParams` member added every icon and token: 102 KB for one option, over 130 KB in all
+  against 65 KB for the rest. `ThemeBuilder` is listed (a class instance, `runtimeTypes`), and `theme` takes `object` for a plain config.
   A new option typed with a class or another wide type needs the same, and `settingsTypesCoverage.unit.js` fails when
   any option node passes 3000 characters.
 - **A value JSON cannot hold goes in `x-handsontable.runtimeTypes`, never in `type`.** A function, a `RegExp`, a DOM
