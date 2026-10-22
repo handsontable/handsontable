@@ -294,3 +294,27 @@ describe('FormulaBuilder popup hosts', () => {
     plugin.disablePlugin();
   });
 });
+
+describe('FormulaBuilder popup hosts in a shadow root', () => {
+  it('docks a popup into a host its selector finds in the grid\'s shadow root', () => {
+    const shadowHost = document.createElement('div');
+    const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
+    const helpHost = document.createElement('div');
+
+    helpHost.id = 'help-host';
+    document.body.appendChild(shadowHost);
+
+    const stub = makePluginHotStub({ popups: { fnHelp: { container: '#help-host' } } });
+
+    shadowRoot.append(stub.hot.rootElement, helpHost);
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    expect(helpHost.querySelector('.hfe-fn-help')).not.toBeNull();
+
+    plugin.disablePlugin();
+    shadowHost.remove();
+  });
+});

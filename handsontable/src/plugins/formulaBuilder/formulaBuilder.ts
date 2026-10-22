@@ -1572,8 +1572,8 @@ export class FormulaBuilder extends BasePlugin {
 
       if (popup !== undefined && !this.#isContainerAvailable(popup.container)) {
         warnOnce(this.hot, `formulaBuilder.popups.${popupName}.container`, `The \`popups.${popupName}` +
-          '.container` option of the FormulaBuilder plugin names no element in the document, so the' +
-          ' popup floats next to the editor instead.');
+          '.container` option of the FormulaBuilder plugin names no element in the grid\'s document or' +
+          ' shadow root, so the popup floats next to the editor instead.');
         delete popup.container;
       }
     });
@@ -1582,8 +1582,8 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Whether a popup `container` value (an element or a CSS selector) can be mounted into. An omitted
-   * container is available: the popup floats.
+   * Whether a popup `container` value (an element or a CSS selector, looked up in the grid's shadow root
+   * and in its document) can be mounted into. An omitted container is available: the popup floats.
    *
    * @param {HTMLElement | string | undefined} container The container value.
    * @returns {boolean}
@@ -1594,7 +1594,9 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     try {
-      return this.hot.rootDocument.querySelector(container) !== null;
+      // The package looks a selector up in the grid's shadow root first, then in the document.
+      return (this.#gridShadowRoot() ?? this.hot.rootDocument).querySelector(container) !== null ||
+        this.hot.rootDocument.querySelector(container) !== null;
     } catch {
       // An invalid selector.
       return false;
