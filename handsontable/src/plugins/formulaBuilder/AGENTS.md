@@ -3,7 +3,8 @@
 Covers `formulaBuilder.ts` (lifecycle, settings, the public API), `handsontableAdapter.ts` (the
 `hyperformula-ui` `IGridAdapter` contract: index translation, highlights, navigation),
 `cellPickController.ts` (mouse reference picking), `formulaCellEditor.ts` (the `formula` editor shim),
-`types.ts` (public types) and `internalTypes.ts` (types that may name the package). Read this before
+`types.ts` (public types), `gridContract.ts` (the package's adapter contract, restated for the
+declarations) and `internalTypes.ts`. Read this before
 touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse paths.
 
 ## What it owns and what it does not
@@ -21,15 +22,20 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 
 ## The traps
 
-- **No public declaration may name `hyperformula-ui`.** It is a devDependency, so a published `.d.ts` that
-  imported it would fail with TS2307 in every application that does not install it, or decay to `any` under
-  `skipLibCheck`. `types.ts` mirrors the package shapes the public API needs, and
-  `__tests__/formulaBuilder.types.ts` asserts the mirror in both directions plus the key sets, because mutual
-  assignability alone cannot see an optional key dropped from one side. Everything that names the package
-  lives where no public declaration reaches it: `internalTypes.ts`, the adapter, the pick controller, and the
-  plugin's `#` fields, which emit as `#private`. That is why the adapter is not a plugin member: tests reach it
-  through `getFormulaBuilderAdapter(plugin)`. After changing a public signature, build the declarations and
-  check that nothing reachable from `tmp/base.d.ts` imports the package.
+- **No emitted declaration may name `hyperformula-ui`, internal ones included.** It is a devDependency,
+  and the `Emitted Types` check compiles EVERY `tmp/**/*.d.ts` with TypeScript 5.1 and no dependencies
+  installed, so one `import type ... from 'hyperformula-ui'` in any emitted file fails with TS2307 (it did,
+  on `cellPickController.d.ts`, `handsontableAdapter.d.ts` and `internalTypes.d.ts`). Checking only the
+  declarations reachable from `tmp/base.d.ts` is not enough: a deep import reaches the rest. So `types.ts`
+  mirrors the public shapes, `gridContract.ts` mirrors the adapter contract every internal signature uses,
+  and `__tests__/formulaBuilder.types.ts` pins both against the package in both directions plus the key
+  sets, and pins `HandsontableAdapter` against the package's `IGridAdapter`. The package's own types may
+  appear only on `#` fields (they emit as `#private`) and in non-exported aliases such as each module's
+  local `CoreModule`; an exported alias would be emitted. Settings and constructor options that carry the
+  module are typed `unknown` and cast once. Tests reach the adapter through `getFormulaBuilderAdapter(plugin)`.
+  To reproduce the check locally, hide `handsontable/node_modules/hyperformula-ui`, run the workflow's
+  `tsc -p tsconfig.verify-types.json` step with TypeScript 5.1.6 after `build:types` and `downlevel:types`,
+  then restore the link.
 - **A reference pick claims the whole mouse gesture, and it has to run first.** The three cell mouse
   listeners are registered at order index `-1` (`CELL_MOUSE_HOOK_ORDER`). A pick sets every controller flag,
   calls `preventDefault()` (the editor keeps the focus), and calls `stopImmediatePropagation()`, so

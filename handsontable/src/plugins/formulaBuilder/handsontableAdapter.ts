@@ -1,26 +1,32 @@
-import type {
-  CellAddress,
-  CellPick,
-  CellPickListener,
-  CellRange,
-  Direction,
-  GridSelection,
-  GridSize,
-  HeaderPick,
-  HeaderPickListener,
-  IGridAdapter,
-  OutsideClickCommitMode,
-  RangeHighlight,
-  RangePick,
-  RangePickListener,
-  Unsubscribe,
-} from 'hyperformula-ui';
+// Only the `#` fields use the package's types (they emit as `#private`); every signature uses the
+// local mirror in `gridContract.ts`, because no emitted declaration may name the package.
 import type { PickEmitter } from 'hyperformula-ui';
 import { warn } from '../../helpers/console';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import type { HotInstance } from '../../core/types';
 import type { default as VisualSelection } from '../../selection/highlight/visualSelection';
-import type { CoreModule, VisualHfIndexMapping } from './internalTypes';
+import type { VisualHfIndexMapping } from './internalTypes';
+import type {
+  CellAddress,
+  CellPick,
+  CellPickListener,
+  CellRange,
+  GridDirection as Direction,
+  GridSelection,
+  GridSize,
+  HeaderPick,
+  HeaderPickListener,
+  OutsideClickCommitMode,
+  RangeHighlight,
+  RangePick,
+  RangePickListener,
+  Unsubscribe,
+} from './gridContract';
+
+/**
+ * The `hyperformula-ui` module namespace (see `internalTypes.ts` for why it is not shared).
+ */
+type CoreModule = typeof import('hyperformula-ui');
 
 /**
  * The widest HyperFormula span (in indexes) the adapter maps index by index into visual runs.
@@ -151,9 +157,10 @@ export interface HandsontableAdapterOptions {
    */
   indexMapping: VisualHfIndexMapping;
   /**
-   * The injected `hyperformula-ui` module namespace.
+   * The injected `hyperformula-ui` module namespace. Typed `unknown` so this declaration does not
+   * name the package; the plugin validated it before building the adapter.
    */
-  core: CoreModule;
+  core: unknown;
   /**
    * Returns the engine sheet dimensions in HyperFormula space, or `null` when unknown.
    */
@@ -284,7 +291,7 @@ export function getFormulaBuilderAdapter(plugin: object): HandsontableAdapter | 
  * instance: geometry and highlight rendering, visual/HyperFormula index translation,
  * pick event brokering, and editor lifecycle delegation back to the plugin.
  */
-export class HandsontableAdapter implements IGridAdapter {
+export class HandsontableAdapter {
   /**
    * Outside-click commits are handled natively by Handsontable's editor manager.
    */
@@ -413,7 +420,7 @@ export class HandsontableAdapter implements IGridAdapter {
     this.#overlayHost = options.overlayHost;
     this.#sheetName = options.sheetName ?? '';
     this.#mapping = options.indexMapping;
-    this.#core = options.core;
+    this.#core = options.core as CoreModule;
     this.#getSheetDimensions = options.getSheetDimensions ?? null;
     this.#readCellText = options.readCellText;
     this.#plugin = plugin;

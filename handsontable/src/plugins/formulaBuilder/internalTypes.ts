@@ -1,15 +1,14 @@
 /**
- * The internal types of the FormulaBuilder plugin. These may name `hyperformula-ui`, because no
- * public declaration reaches this module: the plugin barrel (`index.ts`) does not export it, and no
- * public member of the plugin class uses these types in its signature. Keep it that way - see the
- * header of `types.ts` for why a public declaration must not name the package.
+ * The internal types of the FormulaBuilder plugin. No emitted declaration may name
+ * `hyperformula-ui` (see `gridContract.ts`), so the package's module type stays private here.
  */
 
 /**
- * The `hyperformula-ui` module namespace, injected through the plugin settings so the
- * Handsontable bundle never imports the package at runtime.
+ * The `hyperformula-ui` module namespace. Not exported: an exported alias would put the package
+ * in this file's declaration, and every emitted declaration is compiled without the package
+ * (see `gridContract.ts`). Each module that needs it for a `#` field declares its own.
  */
-export type CoreModule = typeof import('hyperformula-ui');
+type CoreModule = typeof import('hyperformula-ui');
 
 /**
  * The module members the plugin calls. The `builder` setting is checked for every one of them

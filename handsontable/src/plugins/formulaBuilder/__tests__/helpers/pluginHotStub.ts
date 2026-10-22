@@ -1,6 +1,6 @@
 import { HyperFormula } from 'hyperformula';
 import type { HotInstance } from '../../../../core/types';
-import type { CoreModule } from '../../internalTypes';
+type CoreModule = typeof import('hyperformula-ui');
 import { makeGridSelectionApiStub } from './stubs';
 import type { GridSelectionApiStub } from './stubs';
 

@@ -2,7 +2,7 @@ import type { FormulaEditor } from 'hyperformula-ui';
 import { isImmediatePropagationStopped } from '../../../helpers/dom/event';
 import { CellPickController } from '../cellPickController';
 import type { HandsontableAdapter } from '../handsontableAdapter';
-import type { CoreModule } from '../internalTypes';
+type CoreModule = typeof import('hyperformula-ui');
 
 // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
 const core = require('hyperformula-ui') as CoreModule;

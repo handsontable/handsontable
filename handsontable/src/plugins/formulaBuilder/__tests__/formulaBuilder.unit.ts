@@ -8,7 +8,7 @@ import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import type { HandsontableAdapter } from '../handsontableAdapter';
 import { REQUIRED_CORE_MEMBERS } from '../internalTypes';
-import type { CoreModule } from '../internalTypes';
+type CoreModule = typeof import('hyperformula-ui');
 import { findHook, makeIndexMapperStub, makePluginHotStub } from './helpers/pluginHotStub';
 
 // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires

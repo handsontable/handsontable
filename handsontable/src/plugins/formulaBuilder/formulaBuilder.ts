@@ -19,7 +19,12 @@ import {
   type FormulaHostEditor,
 } from './formulaCellEditor';
 import { HandsontableAdapter, setFormulaBuilderAdapter } from './handsontableAdapter';
-import { REQUIRED_CORE_MEMBERS, type CoreModule } from './internalTypes';
+import { REQUIRED_CORE_MEMBERS } from './internalTypes';
+
+/**
+ * The `hyperformula-ui` module namespace (see `internalTypes.ts` for why it is not shared).
+ */
+type CoreModule = typeof import('hyperformula-ui');
 import type {
   FormulaBuilderLayoutDirection,
   FormulaBuilderPluginSettings,

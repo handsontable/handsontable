@@ -7,6 +7,8 @@ import type {
   FormulaEditorHandle,
 } from 'handsontable/plugins/formulaBuilder';
 import type * as HyperFormulaUi from 'hyperformula-ui';
+import type * as GridContract from 'handsontable/plugins/formulaBuilder/gridContract';
+import type { HandsontableAdapter } from 'handsontable/plugins/formulaBuilder/handsontableAdapter';
 
 class FakeBuilderModule {}
 
@@ -69,6 +71,35 @@ const stepDirectionFromPublic: HyperFormulaUi.Direction = publicStepDirection;
 declare const packageEditor: HyperFormulaUi.FormulaEditor;
 const editorHandle: FormulaEditorHandle = packageEditor;
 
+// No emitted declaration may name the package (the Emitted Types check compiles them all
+// without it), so `gridContract.ts` restates the adapter contract. Pin every shape both ways and
+// by key set, and the adapter against the package's own `IGridAdapter`.
+type Mutual<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+const contractShapes: [
+  Mutual<GridContract.CellAddress, HyperFormulaUi.CellAddress>,
+  Mutual<GridContract.CellRange, HyperFormulaUi.CellRange>,
+  Mutual<GridContract.GridSize, HyperFormulaUi.GridSize>,
+  Mutual<GridContract.GridSelection, HyperFormulaUi.GridSelection>,
+  Mutual<GridContract.RangeHighlight, HyperFormulaUi.RangeHighlight>,
+  Mutual<GridContract.CellPick, HyperFormulaUi.CellPick>,
+  Mutual<GridContract.RangePick, HyperFormulaUi.RangePick>,
+  Mutual<GridContract.HeaderPick, HyperFormulaUi.HeaderPick>,
+  Mutual<GridContract.HeaderAxis, HyperFormulaUi.HeaderAxis>,
+  Mutual<GridContract.GridDirection, HyperFormulaUi.Direction>,
+  Mutual<GridContract.OutsideClickCommitMode, HyperFormulaUi.OutsideClickCommitMode>,
+  Mutual<GridContract.RefSelectionColorResolver, HyperFormulaUi.RefSelectionColorResolver>,
+] = [true, true, true, true, true, true, true, true, true, true, true, true];
+const contractKeys: [
+  SameKeys<GridContract.CellAddress, HyperFormulaUi.CellAddress>,
+  SameKeys<GridContract.RangeHighlight, HyperFormulaUi.RangeHighlight>,
+  SameKeys<GridContract.HeaderPick, HyperFormulaUi.HeaderPick>,
+  SameKeys<GridContract.GridSelection, HyperFormulaUi.GridSelection>,
+] = [true, true, true, true];
+
+declare const adapter: HandsontableAdapter;
+const gridAdapter: HyperFormulaUi.IGridAdapter = adapter;
+const pickingEditor: GridContract.PickingEditor = packageEditor;
+
 const plugin = new Handsontable(document.createElement('div'), {}).getPlugin('formulaBuilder');
 const activeEditor: FormulaEditorHandle | null = plugin.getActiveEditor();
 const rawText: string = plugin.getRawCellText(0, 0);
@@ -82,6 +113,10 @@ export {
   popupsFromPackage,
   popupsFromPublic,
   popupKeys,
+  contractShapes,
+  contractKeys,
+  gridAdapter,
+  pickingEditor,
   layoutDirectionFromPackage,
   layoutDirectionFromPublic,
   stepDirectionFromPackage,

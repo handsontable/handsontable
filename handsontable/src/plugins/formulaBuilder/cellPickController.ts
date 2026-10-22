@@ -1,15 +1,14 @@
-import type {
-  CellRange,
-  FormulaEditor,
-  HeaderAxis,
-  HeaderDragTracker,
-  HeaderPick,
-  RangeDragTracker,
-} from 'hyperformula-ui';
+// Only the `#` fields use the package's types; signatures use `gridContract.ts` (see there).
+import type { HeaderDragTracker, RangeDragTracker } from 'hyperformula-ui';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { getDeepActiveElement } from '../../helpers/dom/element';
 import type { HandsontableAdapter } from './handsontableAdapter';
-import type { CoreModule } from './internalTypes';
+import type { CellRange, HeaderAxis, HeaderPick, PickingEditor } from './gridContract';
+
+/**
+ * The `hyperformula-ui` module namespace (see `internalTypes.ts` for why it is not shared).
+ */
+type CoreModule = typeof import('hyperformula-ui');
 
 /**
  * Row/column coordinates in visual space.
@@ -35,7 +34,7 @@ export interface CellPickControllerDeps {
   /**
    * The injected `hyperformula-ui` module namespace.
    */
-  core: CoreModule;
+  core: unknown;
   /**
    * Returns the live adapter, or `null` before enable/after destroy.
    *
@@ -45,9 +44,9 @@ export interface CellPickControllerDeps {
   /**
    * Returns the live core formula editor, or `null` when not editing.
    *
-   * @returns {FormulaEditor | null}
+   * @returns {PickingEditor | null}
    */
-  getActiveEditor(): FormulaEditor | null;
+  getActiveEditor(): PickingEditor | null;
   /**
    * Returns the visual coordinates of the cell the formula bar edits, or `null`.
    *
@@ -107,6 +106,10 @@ export class CellPickController {
    * Injected plugin dependencies.
    */
   readonly #deps: CellPickControllerDeps;
+  /**
+   * The injected `hyperformula-ui` module namespace.
+   */
+  readonly #core: CoreModule;
   /**
    * Cell/range reference drag tracker.
    */
@@ -194,7 +197,8 @@ export class CellPickController {
    */
   constructor(deps: CellPickControllerDeps) {
     this.#deps = deps;
-    this.#tracker = new deps.core.RangeDragTracker({
+    this.#core = deps.core as CoreModule;
+    this.#tracker = new this.#core.RangeDragTracker({
       getScrollElement: () => this.#deps.getScrollHolder(),
       getCellAddressAt: (x, y) => this.#deps.getAdapter()?.getCellAddressAt(x, y) ?? null,
       onPreview: (range, append) => this.#previewRange(range, append),
@@ -202,7 +206,7 @@ export class CellPickController {
       onDropCell: pick => this.#deps.getAdapter()?.emitCellPick(pick),
       onDropRange: pick => this.#deps.getAdapter()?.emitRangePick(pick),
     });
-    this.#headerTracker = new deps.core.HeaderDragTracker({
+    this.#headerTracker = new this.#core.HeaderDragTracker({
       sheet: '',
       onPreview: pick => this.#previewHeader(pick),
       onDrop: pick => this.#deps.getAdapter()?.emitHeaderPick(pick),
@@ -263,7 +267,7 @@ export class CellPickController {
       return;
     }
 
-    const expanded = this.#deps.core.expandHeaderSpan(pick, adapter.getGridSize());
+    const expanded = this.#core.expandHeaderSpan(pick, adapter.getGridSize());
 
     adapter.highlightRange(expanded, editor.getRefPreviewColor(expanded, pick.append, pick.axis));
   }
@@ -344,14 +348,14 @@ export class CellPickController {
    * @param {GridCoords} coords The visual coordinates (one axis negative).
    * @param {SelectionController} eventController Handsontable's selection suppressor.
    * @param {HandsontableAdapter | null} adapter The live adapter.
-   * @param {FormulaEditor | null} editor The live core editor.
+   * @param {PickingEditor | null} editor The live formula editor.
    */
   #handleHeaderMouseDown(
     event: MouseEvent | undefined,
     coords: GridCoords,
     eventController: SelectionController,
     adapter: HandsontableAdapter | null,
-    editor: FormulaEditor | null,
+    editor: PickingEditor | null,
   ): void {
     if ((event?.target as HTMLElement | null)?.closest?.('.collapsibleIndicator')) {
       return;
@@ -397,7 +401,7 @@ export class CellPickController {
     const swallowDocument = this.#deps.getScrollHolder()?.ownerDocument ??
       this.#deps.getRootDocument();
 
-    this.#headerClickSwallowCleanup = this.#deps.core.armTrailingClickSwallow(
+    this.#headerClickSwallowCleanup = this.#core.armTrailingClickSwallow(
       swallowDocument,
       clickTarget => Boolean(clickTarget.closest('th')),
     );
