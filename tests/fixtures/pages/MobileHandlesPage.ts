@@ -460,13 +460,33 @@ export class MobileHandlesPage {
 
   /**
    * Scroll the grid until the given row is the first one the viewport shows, and wait until the master
-   * has drawn that band.
+   * has drawn that band, with its first rendered row past `rangeStartRow` (the start of the selection
+   * that must be scrolled out).
    */
-  async scrollRowToTop(row: number): Promise<void> {
+  async scrollRowToTop(row: number, rangeStartRow = 0): Promise<void> {
     await this.page.evaluate(target => window.hot.scrollViewportTo({ row: target, verticalSnap: 'top' }), row);
     await expect.poll(() => this.page.evaluate(() => window.hot.getFirstFullyVisibleRow())).toBe(row);
     await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getFirstRenderedRow()))
-      .toBeGreaterThan(0);
+      .toBeGreaterThan(rangeStartRow);
+  }
+
+  /**
+   * Scroll back to the top-start corner of the grid and wait until its first row is the first one rendered.
+   */
+  async scrollToGridStart(): Promise<void> {
+    await this.page.evaluate(() => window.hot.scrollViewportTo({ row: 0, col: 0, verticalSnap: 'top' }));
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getFirstRenderedRow())).toBe(0);
+  }
+
+  /**
+   * Scroll horizontally so the given column is the first fully visible one, and wait until the table's
+   * first rendered column is past `rangeStartCol` (the start of the selection that must be scrolled out).
+   */
+  async scrollColumnToStart(col: number, rangeStartCol = 0): Promise<void> {
+    await this.page.evaluate(target => window.hot.scrollViewportTo({ col: target, horizontalSnap: 'start' }), col);
+    await expect.poll(() => this.page.evaluate(() => window.hot.getFirstFullyVisibleColumn())).toBe(col);
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getFirstRenderedColumn()))
+      .toBeGreaterThan(rangeStartCol);
   }
 
   /**

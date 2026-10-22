@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the top selection handle on touch devices being drawn on the first visible row or column when the range start is scrolled out of view.",
+  "type": "fixed",
+  "issueOrPR": 13975,
+  "breaking": false,
+  "framework": "none"
+}

@@ -332,18 +332,31 @@ The hit area hangs further out than the handle (`hitAreaSize * 3 / 4`, against `
 overhangs the table for a cell within that distance of the start while the painted handle does not move.
 
 - **Gate each axis on the real corner being rendered** (`fromRow >= getFirstRenderedRow()`, the same for
-  columns). `top` and `left` measure the first rendered track, not the selection's corner, so for a range
+  columns; the same two booleans decide the display below). `top` and `left` measure the first rendered track, not the selection's corner, so for a range
   whose start is scrolled out of the rendered band the handle would move onto that track, inside the range.
-  Such a handle keeps the unclamped placement and stays clipped. Whether anything else renders above the
-  viewport depends on `viewportRowRenderingOffset`: with `0` the first rendered row is the first visible one.
+  Such a handle keeps the unclamped placement. Whether anything else renders above the viewport depends on
+  `viewportRowRenderingOffset`: with `0` the first rendered row is the first visible one.
+- **A handle whose real corner is not rendered is not drawn at all** (`isCornerScrolledOut` in
+  `updateMultipleSelectionHandlesPosition`, which sets `display: none` on the handle and its hit area, on
+  either axis). A clone-covered edge puts the handle
+  at `top + 1`, and `top` is the first rendered row, so with `viewportRowRenderingOffset: 0` and column headers
+  on the handle sat on the first visible row, grabbable, though the range's start was off screen (the column
+  axis the same way with `viewportColumnRenderingOffset: 0` and row headers). With the default overscan the
+  first rendered row sits under the header, which is why it only showed without overscan. A negative corner
+  index is a header-anchored selection and counts as rendered. Ownership comes first: a clone
+  never draws a handle for a corner it does not own. On its own frozen axis the owning clone always renders the
+  corner; on the other axis a clone follows the master's band, so a frozen-row start whose column is scrolled
+  out is hidden too. The comparison is in renderable indexes, the space the corners arrive in: translating
+  them to visual would break it with hidden rows. With `mergeCells: { virtualized: true }` and no overscan,
+  a merged block whose root is scrolled out loses its top handle while part of the block is still on screen,
+  because that mode does not pull the render band back to the root (without `virtualized` it does, and the
+  handle stays). The handle belongs to the real corner, so that is intended.
 - **Do not snap the hit area to the edge on its own.** Clamping it alone moves the 40px touch target over
   A1 and over the `moveCells` band next to it (`multipleSelectionHandles/AGENTS.md`).
-- A range scrolled out with headers on and a start above `fixedRowsTop` + 1 still hangs its handle above the
-  first rendered row, as before; nothing paints it there.
 
 `handsontable/src/3rdparty/walkontable/test/unit/selection/border/topHandleClamp.unit.ts` pins each branch;
-`tests/e2e/mobile-selection-handles.spec.ts` pins the clamp for both axes, RTL, the frozen corner and the
-scrolled-out start, and the outer corner in LTR.
+`tests/e2e/mobile-selection-handles.spec.ts` pins the clamp for both axes, RTL, the frozen corner, the
+scrolled-out start on both axes with and without headers, and the outer corner in LTR.
 
 The declarations live in `src/styles/base/_z-index-map.scss`, `css/walkontable.scss` (master and
 clone values, duplicated — keep in sync) and `src/styles/components/core/_selection.scss` (the
