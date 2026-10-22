@@ -7039,12 +7039,18 @@ export default function Core(
   /**
    * Returns an array of column values from the data source.
    *
+   * The `column` argument is a visual index, so it follows moved and trimmed columns. A hidden column keeps
+   * its index. To read a column by its physical index, translate it first with {@link Core#toVisualColumn}.
+   * A trimmed column has no visual index, so this method cannot read it.
+   *
+   * __Note__: {@link Core#setSourceDataAtCell} takes a physical column index, so a read and a write at the
+   * same number can address different columns.
+   *
    * @memberof Core#
    * @function getSourceDataAtCol
    * @param {number} column Visual column index.
    * @returns {Array} Array of the column's cell values.
    */
-  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCol = function(column: number) {
     return dataSource.getAtColumn(column);
   };
@@ -7254,6 +7260,14 @@ export default function Core(
   /**
    * Returns a single value from the data source.
    *
+   * The `row` argument is a physical index. A numeric `column` is a visual index, so it follows moved and
+   * trimmed columns. A hidden column keeps its index. To read a column by its physical index, translate it
+   * first with {@link Core#toVisualColumn}, or pass the column's prop name. A trimmed column has no visual
+   * index, so read it by its prop name.
+   *
+   * __Note__: {@link Core#setSourceDataAtCell} takes a physical column index, so a read and a write at the
+   * same number can address different columns.
+   *
    * @memberof Core#
    * @function getSourceDataAtCell
    * @param {number} row Physical row index.
@@ -7261,7 +7275,6 @@ export default function Core(
    *   accessor function (called as `column(dataRow)`).
    * @returns {*} Cell data.
    */
-  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCell = function(row: number, column: number | string | ColumnDataGetterSetterFunction) {
     return dataSource.getAtCell(row, column);
   };
