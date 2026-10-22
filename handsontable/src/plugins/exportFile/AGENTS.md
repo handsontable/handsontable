@@ -384,6 +384,14 @@ Other rules:
 
 `DataProvider#_getNaturalColWidth()` reads a column's configured width through `hot._getColWidthFromSettings(visualColumn)`, which takes a VISUAL index and reads the `colWidths` array and function by the physical one. Do not copy that translation or index `colWidths` yourself. A width that is not a finite number falls back to `defaultColumnWidth`. See `../autoColumnSize/AGENTS.md`, "Known concerns".
 
+## A `loadData()` during the overlay wait rejects the download
+
+`downloadFileAsync()` with the Dialog plugin reads the data only after the double `requestAnimationFrame`, so a
+`loadData()` in between (a sheets bar switch) exported the data loaded in the meantime. The plugin counts loads on
+`beforeLoadData` (`#dataLoads`) and `#assertDataKept()` rejects when the count moved. Rejecting rather than reading
+the data before the wait keeps the reason the wait exists: the overlay paints before the export blocks the thread.
+Only `loadData()` counts, not `updateData()`. Pinned by `__tests__/exportFile.unit.js`.
+
 ## Where to look next
 
 - `../importFile/AGENTS.md` for the read direction — same adapters, same `_HotValidation` sheet, and the

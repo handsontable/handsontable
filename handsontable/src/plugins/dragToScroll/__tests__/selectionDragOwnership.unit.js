@@ -65,6 +65,30 @@ describe('DragToScroll selection-drag ownership', () => {
     expect(hot.getPlugin('dragToScroll').isListening()).toBe(true);
   });
 
+  it('stops auto-scroll for a move drag that loadData() ended', () => {
+    build();
+    hot.selectCells([[1, 1, 3, 3]]);
+    hot.runHooks('afterOnSelectionEdgeMouseDown', mouseDown(), 'top');
+
+    expect(hot.getPlugin('dragToScroll').isListening()).toBe(true);
+
+    hot.loadData([['y']]);
+
+    expect(hot.getPlugin('moveCells').isDragActive()).toBe(false);
+    expect(hot.getPlugin('dragToScroll').isListening()).toBe(false);
+  });
+
+  it('keeps auto-scroll for a cell drag-select across loadData()', () => {
+    build();
+    hot.runHooks('beforeOnCellMouseDown', mouseDown(), null, null, {});
+
+    expect(hot.getPlugin('dragToScroll').isListening()).toBe(true);
+
+    hot.loadData([['y']]);
+
+    expect(hot.getPlugin('dragToScroll').isListening()).toBe(true);
+  });
+
   it('does not start auto-scroll for a move drag the MoveCells plugin rejected', () => {
     build();
     // No selection at all — MoveCells bails, so there is no drag for auto-scroll to serve.

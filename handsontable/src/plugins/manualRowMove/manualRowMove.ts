@@ -121,6 +121,7 @@ export class ManualRowMove extends BasePlugin {
         this.#onBeforeOnCellMouseOverOutside(controller as Record<string, unknown>));
     this.addHook('afterScrollHorizontally', this.#onAfterScrollHorizontally);
     this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('beforeLoadData', this.#onBeforeDataReplace);
 
     this.buildPluginUI();
     this.registerEvents();
@@ -700,6 +701,21 @@ export class ManualRowMove extends BasePlugin {
     this.#backlight.build();
     this.#guideline.build();
   }
+
+  /**
+   * Cancels a row drag held while the grid's data is replaced (`loadData()`, a sheet
+   * switch). The rows it holds are indexes of the data it started on, and the release would move the
+   * rows of the data that replaced it.
+   */
+  #onBeforeDataReplace = () => {
+    if (!this.#pressed) {
+      return;
+    }
+
+    this.#pressed = false;
+    this.#rowsToMove.length = 0;
+    removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
+  };
 
   /**
    * Callback for the `afterLoadData` hook.

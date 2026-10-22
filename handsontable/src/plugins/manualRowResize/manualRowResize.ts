@@ -121,6 +121,7 @@ export class ManualRowResize extends BasePlugin {
       });
 
     this.addHook('modifyRowHeight', this.#onModifyRowHeight);
+    this.addHook('beforeLoadData', this.#onBeforeDataReplace);
 
     this.#gesture.bindEvents(this.eventManager);
 
@@ -425,6 +426,14 @@ export class ManualRowResize extends BasePlugin {
   afterMouseDownTimeout() {
     this.#gesture.afterMouseDownTimeout();
   }
+
+  /**
+   * Cancels a resize drag held while the grid's data is replaced (`loadData()`, a sheet
+   * switch), so the release does not resize the rows of the data that replaced it.
+   */
+  #onBeforeDataReplace = () => {
+    this.#gesture.abort();
+  };
 
   /**
    * Modifies the provided row height, based on the plugin settings.

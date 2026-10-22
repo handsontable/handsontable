@@ -165,6 +165,7 @@ export class DragToScroll extends BasePlugin {
     this.addHook('afterOnSelectionHandleMouseDown', this.#onSelectionHandleMouseDown);
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterScroll', this.#onAfterScroll);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
 
     this.registerEvents();
 
@@ -396,6 +397,17 @@ export class DragToScroll extends BasePlugin {
 
     this.listen();
   }
+
+  /**
+   * Stops auto-scrolling a move-cells or autofill drag when `loadData()` replaces the data. Both
+   * plugins end such a drag there, and the button is still held, so without this the auto-scroller
+   * kept scrolling the data that replaced it until the release.
+   */
+  #onBeforeLoadData = (): void => {
+    if (this.#activeDragKind === 'move' || this.#activeDragKind === 'corner') {
+      this.unlisten();
+    }
+  };
 
   /**
    * Starts auto-scrolling for a move-zone drag, but only if MoveCells actually began one.

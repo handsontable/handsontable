@@ -152,6 +152,15 @@ moves focus into a modal in all circumstances; re-deciding it is a product call,
 `tabindex="-1"` on its own `contentElement`, which is why a buttonless `confirm` was focusable inside while
 its container was not.)
 
+## The stashed selection belongs to the view that was shown
+
+`show()` stashes the selection and `hide()` imports it back, as coordinates. When the view changes under an open
+dialog (a sheets bar switch), those coordinates name the departing sheet's cells, so the sheets bar calls
+`_adoptViewSelection()` (`@private`) after the switch: the dialog takes the selection the grid shows then as the one
+to restore, and clears it while it stays open. A plain `loadData()` under an open dialog keeps the old behavior on
+purpose (show loading, reload, hide, and the cursor is back where it was). EmptyDataState's `isViewChange` is the
+same rule. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts`.
+
 ## Where to look next
 
 - The plugin that reuses this one as its host: `../loading/AGENTS.md`.

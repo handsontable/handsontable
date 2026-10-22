@@ -320,6 +320,7 @@ export interface HotInstance {
   _getDataSource(): DataSourceInstance;
   _getMetaManager(): MetaManagerInstance;
   _getOperationScope(): OperationScope;
+  _hasPendingValidation(): boolean;
   _applySettingsAndData(
     settings: Partial<GridSettings>, data: unknown[], source: string, cellOptionMetas?: CellOptionMetaEntry[] | null
   ): void;

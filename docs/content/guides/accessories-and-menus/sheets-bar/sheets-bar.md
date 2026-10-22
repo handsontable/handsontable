@@ -182,6 +182,20 @@ A switch away from a sheet with a selection clears it before the next sheet load
 
 To run your code when a sheet's state is saved or restored, use the [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks.
 
+## Unfinished work when you switch sheets
+
+Work started on one sheet ends on that sheet, or is canceled.
+
+- A switch saves the cell you're editing, and a comment you're typing, on the sheet you leave. The edit stays saved even when a [`beforeSheetTabChange`](@/api/hooks.md#beforesheettabchange) listener cancels the switch.
+- A switch doesn't happen while a cell value waits for an asynchronous validator, or while the editor holds a value its validator rejected with [`allowInvalid: false`](@/api/options.md#allowinvalid). Clicking a tab, its menu, or the add button does nothing then, and [`setActiveSheet()`](@/api/sheetsBar.md#setactivesheet) returns `false`. Correct the value and press Enter, press Escape to discard it, or wait for the validator, and switch again.
+- Validators always answer after the edit, so `setActiveSheet()` called while the editor of a cell with a validator is open returns `false` even for a valid value. Close the editor first, and switch once [`afterValidate`](@/api/hooks.md#aftervalidate) has fired. A cell without a validator saves at once, and the switch goes through.
+- A change that a [`beforeSheetTabChange`](@/api/hooks.md#beforesheettabchange) or [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) listener makes to a cell with a validator refuses the switch the same way.
+- A validator that never calls its callback blocks switching until [`loadData()`](@/api/core.md#loaddata) loads other data.
+- When an `activeSheet` value you send through [`updateSettings()`](@/api/core.md#updatesettings) is refused this way, the bar logs a warning and stays on its sheet. Send the same value again once the cell is saved.
+- A drag you're still holding is canceled: moving cells or rows, resizing a column or a row, the fill handle, and a freeze bar. A column move is not canceled yet.
+- An import that is still reading its file is rejected and changes nothing. [`downloadFileAsync()`](@/api/exportFile.md#downloadfileasync) with the [`Dialog`](@/api/dialog.md) plugin is rejected when the switch happens before the export reads the data.
+- A listener of a `beforeSheetTab*` hook, of [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture), or of [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) can't change the workbook. A switch, add, remove, rename, duplicate, or move it asks for returns `false` (`null` for an add or a duplicate).
+
 ## Tab animations
 
 When you switch sheets, the active tab marker slides from the old tab to the new one. A tab you create or duplicate slides into the strip. When you move a sheet with the tab menu or the API, the tabs slide to their new places. A tab you delete fades out, and the tabs after it slide over to close the gap. When you hover a tab, its text color fades in and out. The grid itself switches at once.
@@ -239,9 +253,35 @@ How server sheets behave when you switch:
 
 - A sheet fetches its rows the first time you open it.
 - When you come back, the sheet shows the rows, sort, filters, and page it had when you left, without a new fetch. To refresh it, call [`fetchData()`](@/api/dataProvider.md#fetchdata).
-- A fetch or a save that's still running when you switch away finishes for the sheet that started it.
+- A fetch or a save that's still running when you switch away finishes for the sheet that started it. A create on a sheet with `refetchAfterCreate: false` that finishes while its sheet is hidden refetches that sheet anyway, because there's no grid showing it to add the rows to.
 - If a request fails while its sheet is hidden, [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) or [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires right away. The error notification appears when you return to the sheet. `afterDataProviderFetchError` gets a third argument, `isVisible`, set to `false`.
 - A duplicated sheet starts with a copy of the original's rows. If the original has already loaded rows, the copy doesn't fetch on its first visit.
+
+With `refetchAfterCreate: false`, your [`onRowsCreate`](@/guides/getting-started/server-side-data/server-side-data-crud.md#onrowscreate) adds the new rows to the grid itself. The grid shows the active sheet, which can change while the request runs, so add the rows only when the sheet that owns this provider is still active. Compare against the sheet the provider belongs to, not the sheet that was active when `onRowsCreate` started: a create queued behind another save starts after the user may have switched.
+
+```js
+const isSheetActive = name => hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive)?.name === name;
+
+const ordersProvider = {
+  refetchAfterCreate: false,
+  onRowsCreate: async({ position, referenceRowId, rowsAmount }) => {
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      body: JSON.stringify({ position, referenceRowId, rowsAmount }),
+    });
+    const created = await response.json();
+
+    if (isSheetActive('Orders')) {
+      hot.updateData([...hot.getSourceData(), ...created]);
+    }
+
+    return created;
+  },
+  // fetchRows, onRowsUpdate, onRowsRemove...
+};
+```
+
+When the sheet isn't active anymore, the plugin refetches it, so the new rows are there when you return.
 
 For the `dataProvider` setup itself, see [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).
 

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // The workbook under test, through the same fail-loud allowlist.
+    window.htWorkbook = ({
+      asyncValidator: 'asyncValidator',
+      rejectedValue: 'rejectedValue',
+      comments: 'comments',
+      loading: 'loading',
+      drags: 'drags',
+      wideSheet: 'wideSheet',
+    })[htParams.get('workbook') ?? 'asyncValidator'];
+    if (!window.htWorkbook) {
+      throw new Error('Unknown ?workbook= value: ' + JSON.stringify(htParams.get('workbook')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    Workbooks with work that can still be running when the user switches sheets.
+    - asyncValidator: 'Alpha' and 'Beta', with `columnSorting`. Every validator call waits until
+      `window.answerValidators(valid)` answers it.
+    - rejectedValue: 'Alpha' and 'Beta', `allowInvalid: false`, and a validator that rejects 'bad'.
+    - comments: 'Alpha' and 'Beta', with `comments`.
+    - loading: 'Alpha' and 'Beta', with `loading`.
+    - drags: 'Alpha' and 'Beta', with every drag gesture on: `moveCells`, `manualRowMove`,
+      `manualColumnResize`, `manualRowResize`, `fillHandle` and `freezeBar`.
+    - wideSheet: 'Alpha' (300 rows by 150 columns) and 'Beta' (3 rows by 2 columns), with
+      `autoColumnSize`, so measuring Alpha's columns takes several idle tasks.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The closing tag is
+    // split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+    const sheet = (name, prefix) => ({
+      name,
+      data: [[`${prefix}3`, `${prefix}-x`], [`${prefix}1`, `${prefix}-y`], [`${prefix}2`, `${prefix}-z`]],
+    });
+    const twoSheets = () => [sheet('Alpha', 'a'), sheet('Beta', 'b')];
+
+    window.pendingValidations = [];
+    window.answerValidators = (valid) => {
+      const answers = window.pendingValidations.splice(0);
+
+      answers.forEach(answer => answer(valid));
+
+      return answers.length;
+    };
+
+    const workbooks = {
+      asyncValidator: {
+        grid: {
+          columnSorting: true,
+          validator: (value, callback) => window.pendingValidations.push(callback),
+        },
+        sheets: twoSheets(),
+      },
+      rejectedValue: {
+        grid: {
+          allowInvalid: false,
+          validator: (value, callback) => callback(value !== 'bad'),
+        },
+        sheets: twoSheets(),
+      },
+      comments: {
+        grid: { comments: true },
+        sheets: twoSheets(),
+      },
+      loading: {
+        grid: { loading: true },
+        sheets: twoSheets(),
+      },
+      drags: {
+        grid: {
+          moveCells: true,
+          manualRowMove: true,
+          manualColumnResize: true,
+          manualRowResize: true,
+          fillHandle: true,
+          freezeBar: true,
+        },
+        sheets: twoSheets(),
+      },
+      wideSheet: {
+        grid: { autoColumnSize: true },
+        sheets: [
+          {
+            name: 'Alpha',
+            data: Array.from({ length: 300 }, (_, row) => Array.from({ length: 150 }, (__, col) => `r${row}c${col}`)),
+          },
+          sheet('Beta', 'b'),
+        ],
+      },
+    };
+
+    const { grid, sheets } = workbooks[window.htWorkbook];
+
+    window.workbook = { sheets };
+
+    try {
+      window.hot = new Handsontable(container, {
+        rowHeaders: true,
+        colHeaders: true,
+        renderer: testIdRenderer,
+        width: 600,
+        height: 300,
+        ...grid,
+        sheetsBar: { sheets },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+    }
+  </script>
+</body>
+</html>

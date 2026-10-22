@@ -1927,13 +1927,13 @@ describe('SheetsBar plugin', () => {
 
     expect(() => hot.getPlugin('sheetsBar').setActiveSheet('Rates')).toThrow('update failed');
     expect(hot._isDataWorkDeferred()).toBe(false);
-    expect(formulas.sheetName).toBe('Rates');
+    expect(formulas.sheetName).toBe('Budget');
 
     loadSources.length = 0;
-    hot.updateSettings({ formulas: { engine, sheetName: 'Budget' } });
+    hot.updateSettings({ formulas: { engine, sheetName: 'Rates' } });
 
     expect(loadSources).toEqual(['Formulas.switchSheet']);
-    expect(formulas.sheetName).toBe('Budget');
+    expect(formulas.sheetName).toBe('Rates');
 
     hot.updateSettings({ minRows: 4 });
 

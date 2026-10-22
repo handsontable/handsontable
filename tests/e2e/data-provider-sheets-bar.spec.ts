@@ -449,6 +449,26 @@ test.describe('dataProvider with sheetsBar', { tag: THEMES_TAG }, () => {
     });
   });
 
+  test.describe('a create with refetchAfterCreate off that finishes off-screen', () => {
+    test.beforeEach(async({ page, theme, bundle }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto({ noRefetchAfterCreate: true });
+    });
+
+    test('refetches the sheet it was made on, so the new row is there on return', async() => {
+      await grid.startCreateRow('ORD-05');
+      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
+      await grid.clickTab(1);
+      await grid.releaseUpdates();
+      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
+      await grid.release('ORD');
+
+      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
+      await grid.clickTab(0);
+      await expect(grid.cell(0, 1)).toHaveText('#2');
+    });
+  });
+
   test.describe('remove and duplicate', () => {
     test.beforeEach(async({ page, theme, bundle }) => {
       grid = new DataProviderSheetsBarPage(page, theme, bundle);
