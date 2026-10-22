@@ -516,6 +516,16 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   whether to create the mobile selection handles from `isMobileOrIpadOS()` at grid
   construction time, so without the emulation the handles never exist and the spec fails for
   the wrong reason. Assert the handle is visible before touching it.
+- **`elementFromPoint` does not predict where a trusted tap lands.** Chromium's touch adjustment
+  moves a tap toward a nearby control (a link, a button, an input, a label) within an area sized in
+  screen pixels, and does so at a zero touch radius too. A phone fixture without
+  `<meta name="viewport" content="width=device-width, initial-scale=1">` lays out 980px wide at
+  0.42 scale, so that area reaches 2.4 times as far in CSS px and covers most of a cell: a tap on a
+  label's text landed on the file input below it, and on `horizon` on the cell padding, while
+  `elementFromPoint` at the same point returned the text. Give a phone fixture that tag, assert the
+  trusted event's target before what the tap did (`TouchInteractiveCellPage.tapPointOn()`), and
+  declare `THEMES_TAG` on a spec that aims a tap at a point: the theme's padding decides what is
+  near it.
 - iPhone emulation does **not** catch iPadOS 13+ (desktop Macintosh UA + `MacIntel` +
   `maxTouchPoints > 2`). For that path, use Desktop Chrome, `hasTouch: true`, a Macintosh
   Safari `userAgent`, and `addInitScript` that sets `navigator.platform = 'MacIntel'` and
