@@ -167,6 +167,21 @@ against the loaded data anyway. Do not move the computation after the load from 
 instead: before the view exists, the `setDataAtCell()` it writes through throws on the missing
 editor manager.
 
+## `exportEndpointSettings()` gives back the endpoints where they are now
+
+A row or column alteration moves an endpoint, while `this.settings` keeps the declared positions.
+`ColumnSummary#exportEndpointSettings()` (`@private`, through `Endpoints#exportSettings()`) answers the
+current endpoints in settings form, so a caller that applies the settings again later (the sheets bar,
+on a return to a sheet) does not write a summary over the data cell an insert moved into the declared
+position. A `reversedRowCoords` destination is given back as the offset from the bottom it has now
+(`countAddressableRows() - destinationRow - 1`), not the declared `reversedRowOffset`: a removal that
+leaves the summary parked above a data row, or a `minSpareRows` row that an `auto` insert adds below it,
+changes that offset, and re-applying the declared one wrote the total over the data row. A whole-table
+default range is left out so it keeps following the table. An explicit `ranges: []` is exported as `[]`:
+`assignSetting()` leaves `ranges` unset for it and sets no `rangesFromDefault`, so leaving the key out made the
+return parse it as the whole-table default.
+The function form answers `null`, because it reads its settings again on every pass.
+
 ## Styling uses `_setCellMetaDeclarative`, not `setCellMeta`
 
 `readOnly` and the `columnSummaryResult` class are written through `hot._setCellMetaDeclarative()`. That is
@@ -363,3 +378,11 @@ not widen the skip back to every `auto` action. `reversedRowCoordsAlter.unit.js`
 
 Note: the legacy Jasmine E2E runner swallows `console.log`, so debugging a calculation there needs an
 assertion, not a print.
+
+## Endpoints applied ahead of their data wait for `onDataReady()`
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), `updatePlugin()` leaves `initEndpoints()` to `onDataReady()`, and the `afterLoadData`
+refresh is skipped: run against the rows the grid still held, the endpoints were checked against the wrong
+size and their results were written into those rows. `onDataReady()` parses and computes the pending
+endpoints, or recalculates the ones already parsed, because the load replaced the rows they read.

@@ -56,6 +56,12 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   dropped on any `columns` update that changed a field.
 - **The indicator press is stopped by setting the grid's `isImmediatePropagationEnabled = false` flag only, never with the `stopImmediatePropagation()` helper from `helpers/dom/event`.** The helper also sets `cancelBubble`, so the press never reaches `document`, where a dropdown menu or context menu listens for the `mousedown` that closes it, and the menu stays open over a group that just collapsed or expanded (DEV-214). The flag alone is enough: `tableView` checks it right after `beforeOnCellMouseDown` and skips selection handling. The helper stays right for callers that really must stop bubbling.
 
+- **`clearButtons()` walks the header rows the table drew, never the level count the settings declare.**
+  One `updateSettings()` can carry a deeper `nestedHeaders` and `collapsibleColumns: false` together.
+  NestedHeaders (280) updates first, so the configured level count is already the new one while the
+  table still shows the old rows, and the disable threw `Cannot read properties of undefined (reading
+  'childNodes')`. Pinned by `__tests__/clearButtons.unit.ts`.
+
 ## The indicator is a real element, updated in place on every draw
 
 `#onAfterGetColHeader` runs for every collapsible header on every draw, so it must not rebuild the

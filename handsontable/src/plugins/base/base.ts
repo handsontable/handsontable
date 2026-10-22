@@ -158,6 +158,10 @@ export class BasePlugin {
    */
   #hooks: Record<string, HookCallback[]> = {};
   /**
+   * Whether the plugin owes work to core's `onDataReady()` pass (see `deferDataWork()`).
+   */
+  #deferredDataWork = false;
+  /**
    * The lifecycle listeners the constructor registers directly on the Handsontable instance. They
    * bypass `addHook()`, so `clearHooks()` never removes them - `destroy()` does.
    */
@@ -294,6 +298,7 @@ export class BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin(): void {
+    this.#deferredDataWork = false;
     this.eventManager?.clear();
     this.clearHooks();
     this.enabled = false;
@@ -555,6 +560,84 @@ export class BasePlugin {
     }
 
     return false;
+  }
+
+  /**
+   * Optional step core's `_applySettingsAndData()` calls once the data the settings describe is loaded,
+   * for every enabled plugin that defines it, in plugin priority order (see `isDataWorkDeferred()`).
+   *
+   * @private
+   */
+  onDataReady?(): void;
+
+  /**
+   * Whether the settings this plugin is applying describe data the grid has not loaded yet. Core's
+   * `_applySettingsAndData()` applies settings first and loads their data after, the order the grid's
+   * own initialization uses, and answers `true` from its settings pass through the load and the
+   * held-back meta phase (`afterCellMetaReset` included), dropping only before the `onDataReady()`
+   * pass. A plugin whose `enablePlugin()` or `updatePlugin()` reads or writes the loaded rows skips that
+   * work while this is `true`, records it with `deferDataWork()` and does it in `onDataReady()` when
+   * `takeDeferredDataWork()` answers `true`. Core calls `onDataReady()` once the data is loaded, in plugin
+   * priority order, for every enabled plugin that has one. Work that needs the load itself, rather than
+   * the loaded rows, waits only while `isDataLoadPending()` answers `true`.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isDataWorkDeferred(): boolean {
+    return this.hot._isDataWorkDeferred();
+  }
+
+  /**
+   * Whether the data the settings describe is still to be loaded: `true` only while core's
+   * `_applySettingsAndData()` applies its settings, before its load. Work that needs that load itself (a
+   * check of the incoming data, a sheet the load fills) waits for it while this is `true`, and does the work
+   * at once when the settings arrive later in the call (an `afterLoadData` listener), because the load has
+   * already run then.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isDataLoadPending(): boolean {
+    return this.hot._isDataLoadPending();
+  }
+
+  /**
+   * Records that the plugin owes work to core's `onDataReady()` pass, which runs once the data the settings
+   * describe is loaded. Nothing is recorded while the grid has no view: core skips that pass on a grid still
+   * being built, and the plugin's own `afterInit` does the work there. The record is dropped when the plugin
+   * is disabled, and when the call fails before the pass, so it can never run against another call's data.
+   *
+   * @private
+   */
+  deferDataWork(): void {
+    if (this.hot.view) {
+      this.#deferredDataWork = true;
+    }
+  }
+
+  /**
+   * Answers whether the plugin owes work to `onDataReady()` (see `deferDataWork()`), and clears the record.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  takeDeferredDataWork(): boolean {
+    const owed = this.#deferredDataWork;
+
+    this.#deferredDataWork = false;
+
+    return owed;
+  }
+
+  /**
+   * Drops the work the plugin owes to `onDataReady()`. Core calls it when `_applySettingsAndData()` fails
+   * before that pass.
+   *
+   * @private
+   */
+  dropDeferredDataWork(): void {
+    this.#deferredDataWork = false;
   }
 
   /**

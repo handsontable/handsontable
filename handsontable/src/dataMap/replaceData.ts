@@ -131,6 +131,9 @@ function warnAboutUndetectableColumns(hotInstance: HotInstance, data: unknown[],
 /**
  * Loads new data to Handsontable.
  *
+ * The source-data validators are skipped while `Core#_applySettingsAndData()` loads the data: a `columns`
+ * function reaches the column meta only in its meta phase, after the load, so the call runs them itself then.
+ *
  * @private
  * @param {Array} data Array of arrays or array of objects containing data.
  * @param {Function} setDataMapFunction Function that updates the datamap instance.
@@ -225,7 +228,7 @@ function replaceData(
   // After the callback, because `adjustRowsAndCols()` in it applies `minCols` and `minSpareCols`.
   warnAboutUndetectableColumns(hotInstance, data as unknown[], loadedRowsCount);
 
-  if (!firstRun) {
+  if (!firstRun && !hotInstance._isDataWorkDeferred()) {
     runSourceDataValidators(hotInstance, internalSource);
   }
 

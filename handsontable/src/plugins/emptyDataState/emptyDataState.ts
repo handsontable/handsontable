@@ -327,12 +327,8 @@ export class EmptyDataState extends BasePlugin {
 
     this.addHook('afterInit', this.#onAfterInit);
     this.addHook('afterRender', this.#onAfterRender);
-    this.addHook('afterRowSequenceCacheUpdate', () => {
-      this.#toggleEmptyDataState();
-    });
-    this.addHook('afterColumnSequenceCacheUpdate', () => {
-      this.#toggleEmptyDataState();
-    });
+    this.addHook('afterRowSequenceCacheUpdate', this.#onSequenceCacheUpdate);
+    this.addHook('afterColumnSequenceCacheUpdate', this.#onSequenceCacheUpdate);
     this.addHook('beforeFilter', this.#onBeforeFilter);
     this.addHook('beforeDataProviderFetch', (queryParameters: Record<string, unknown>) => {
       if (!queryParameters.skipLoading) {
@@ -344,7 +340,37 @@ export class EmptyDataState extends BasePlugin {
 
     super.enablePlugin();
 
-    this.#toggleEmptyDataState();
+    this.#onSequenceCacheUpdate();
+  }
+
+  /**
+   * Toggles the empty state after the row or column sequence changed, or leaves the toggle for
+   * `onDataReady()` while core applies settings ahead of their data. The sequence changes several times
+   * on the way (the settings pass, the load re-initializing the index maps), and a toggle on one of the
+   * intermediate states showed the overlay, and took the keyboard, for a grid about to receive rows.
+   * Without a view (the grid is still being built) the toggle runs as before: it does nothing then, and
+   * the plugin's own `afterInit` shows or hides the overlay.
+   */
+  #onSequenceCacheUpdate = () => {
+    if (this.isDataWorkDeferred() && this.hot.view) {
+      this.deferDataWork();
+    } else {
+      this.#toggleEmptyDataState();
+    }
+  };
+
+  /**
+   * Shows or hides the empty state once the data the settings describe is loaded. Core's
+   * `_applySettingsAndData()` applies settings ahead of their data, and an enable leaves the toggle for
+   * this step then: run against the rows the grid still held (or none, before the first load), it
+   * showed the overlay and took the keyboard for a grid about to receive rows.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (this.takeDeferredDataWork()) {
+      this.#toggleEmptyDataState();
+    }
   }
 
   /**

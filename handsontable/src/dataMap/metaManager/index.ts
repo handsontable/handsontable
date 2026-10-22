@@ -575,6 +575,16 @@ export default class MetaManager {
   }
 
   /**
+   * Whether a `cell`-option recording scope is open, so the cell meta being written comes from the
+   * declarative `cell` option rather than from a `setCellMeta` call.
+   *
+   * @returns {boolean}
+   */
+  isRecordingCellOptionMeta(): boolean {
+    return this.cellMeta.isRecordingCellOptionMeta();
+  }
+
+  /**
    * Creates one or more rows at specific position.
    *
    * @param {number} physicalRow The physical row index which points from what position the row is added.

@@ -95,7 +95,9 @@ import type { ThemeOverridesInput } from './themes/engine/manager';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
-import type { GridHelperInstance, HotInstance, SelectAllOptions, ViewportScrollerInstance } from './core/types';
+import type {
+  CellOptionMetaEntry, GridHelperInstance, HotInstance, SelectAllOptions, ViewportScrollerInstance,
+} from './core/types';
 import { applyRootSize, reapplyPixelRootHeight } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
@@ -447,6 +449,22 @@ export default function Core(
   let focusGridManager: FocusGridManager;
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
+  /**
+   * The step `_applySettingsAndData()` is in: `'configure'` while it applies its settings, `'data'`
+   * while it loads the data, `'meta'` while it runs the meta phases it held back, and `null` outside the
+   * call.
+   */
+  let dataWorkPhase: 'configure' | 'data' | 'meta' | null = null;
+  /**
+   * The meta phases of the settings updates made while `_applySettingsAndData()` configures, run
+   * after its load in the order the updates were made.
+   */
+  let heldMetaPhases: (() => void)[] = [];
+  /**
+   * The settings core's own init settings pass applies, while `beforeInit` runs, or `null` outside that
+   * window (see `_replaceInitPassSettings()`).
+   */
+  let initPassSettings: Record<string, unknown> | null = null;
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -2545,7 +2563,13 @@ export default function Core(
     // array-form `beforeInit` would then warn twice per instance.
     registerSettingsHook('beforeInit', mergedUserSettings.beforeInit as HookCallback | HookCallback[] | undefined);
 
-    instance.runHooks('beforeInit');
+    initPassSettings = mergedUserSettings as Record<string, unknown>;
+
+    try {
+      instance.runHooks('beforeInit');
+    } finally {
+      initPassSettings = null;
+    }
 
     if (isMobileOrIpadOS()) {
       addClass(instance.rootElement, 'mobile');
@@ -5150,7 +5174,218 @@ export default function Core(
   this.updateSettings = function(settings: Partial<GridSettings>, init = false) {
     // Applying settings is not a user action: a plugin that updates its state from the new
     // settings, or the `cell` option writing meta, must not open an operation or be journaled.
-    operationScope.suppress(() => applySettings(settings, init));
+    operationScope.suppress(() => {
+      if (dataWorkPhase !== 'configure' || init) {
+        const outerPhase = dataWorkPhase;
+
+        if (outerPhase === 'meta') {
+          dataWorkPhase = 'data';
+        }
+
+        try {
+          applySettings(settings, init);
+        } finally {
+          dataWorkPhase = outerPhase;
+        }
+
+        return;
+      }
+
+      if (hasOwnProperty(settings, 'data')) {
+        warn('The "data" setting passed to updateSettings() while another settings and data change is being ' +
+          'applied is ignored: the data that change loads replaces it. Call loadData() once it has finished.');
+      }
+
+      const metaPhase = applySettings(settings, init, true);
+
+      if (metaPhase) {
+        heldMetaPhases.push(metaPhase);
+      }
+    });
+  };
+
+  /**
+   * Applies new settings together with the data they describe, in the order the grid's own
+   * initialization uses. A plain `updateSettings()` followed by `loadData()` lets every plugin
+   * reconfigure against the data the grid still holds, and lets core size that data to the new
+   * `min*` values; this call does neither.
+   *
+   * 1. The settings are merged and their hooks registered, and every plugin enables, disables or
+   *    updates through `afterUpdateSettings`, while `_isDataWorkDeferred()` answers `true`. Core
+   *    skips everything that reads or writes the loaded rows: the data phase, the late `columns`
+   *    pass, the `cell` option, `afterCellMetaReset`, the `min*` padding and surplus removal, and
+   *    the render. A grid being built has no data map until step 2, so a plugin must not count rows
+   *    while the flag is up.
+   * 2. `loadData(data, source)` runs with the new configuration in force, so the load hooks reach
+   *    the plugins enabled in step 1 and the load sizes the new data to the new `min*` values.
+   * 3. The held-back meta phase runs against the new data, its `afterCellMetaReset` still inside the
+   *    deferred window (a listener can tell it follows this call's own load), then the source-data
+   *    validators run once, against the column meta of the new settings (the load skips them, because
+   *    a `columns` function reaches the column meta only in the meta phase), then every plugin's optional
+   *    `onDataReady()` in plugin priority order. A grid that is still being built (no view yet) skips
+   *    that step: its plugins do the same work from their own `afterInit`. Rendering is suspended for the whole call and resumed
+   *    in a `finally`, so the grid renders once, after step 3, and a throwing listener cannot leave it
+   *    suspended.
+   *
+   * Recording is suppressed for the whole call, as for `updateSettings()` and `loadData()`. Used by
+   * the SheetsBar plugin, which switches the grid between sheets.
+   *
+   * A public `updateSettings()` made during step 1 (a plugin turning a conflicting plugin off from its
+   * `enablePlugin()`) is deferred the same way: its data phase and padding are left to the load, and its
+   * meta phase runs after this call's own, in the order the updates were made. One made later (an
+   * `afterLoadData` listener) applies in full. In both, plugins still see `_isDataWorkDeferred()` answer
+   * `true`, so their data work waits for the `onDataReady()` pass of this call. A nested
+   * `_applySettingsAndData()` restores the outer call's step when it ends and leaves that pass to the
+   * outer call. A nested call made after this call's load (a listener switching sheets from
+   * `afterLoadData`) is not supported: this call's meta phase then applies its `cell` entries and
+   * `columns` function to the nested call's data. When the call throws before the `onDataReady()` pass ends, every plugin drops the work
+   * it recorded for that pass (`BasePlugin#dropDeferredDataWork()`), so a later call cannot run it
+   * against other data; a grid whose init settings pass has not run yet (no view) skips the validators
+   * here, because that pass runs them. An `updateSettings()` made during step 1 that carries `data` warns:
+   * the data this call loads replaces it. The data is loaded as given: the caller decides what a sheet backed by an external data
+   * source shows until its fetch lands.
+   *
+   * @private
+   * @param {object} settings The settings to apply.
+   * @param {Array} data The data the settings describe.
+   * @param {string} source The source of the data load.
+   * @param {Array} [cellOptionMetas] Meta the `cell` option wrote earlier, by physical indexes, to put back
+   * in place of applying `settings.cell` by its coordinates. The `cell` setting is stored as given either
+   * way. A caller that brings rows back (the sheets bar, on a return to a sheet) passes what it kept when
+   * it took them away: the meta follows its records through inserts, removals and moves, while the entries
+   * of the setting name visual positions, which a reordering or trimming plugin of the new settings (a
+   * `manualRowMove` or `trimRows` array) changes during the load.
+   */
+  this._applySettingsAndData = function(
+    settings: Partial<GridSettings>,
+    data: unknown[],
+    source: string,
+    cellOptionMetas: CellOptionMetaEntry[] | null = null,
+  ) {
+    const suspendsRender = !!instance.view;
+
+    if (suspendsRender) {
+      instance.suspendRender();
+    }
+
+    try {
+      operationScope.suppress(() => {
+        const outerPhase = dataWorkPhase;
+        const outerHeldMetaPhases = heldMetaPhases;
+        const isNested = outerPhase !== null;
+
+        dataWorkPhase = 'configure';
+        heldMetaPhases = [];
+
+        try {
+          try {
+            const metaPhase = applySettings(settings, false, true, cellOptionMetas);
+            const nestedMetaPhases = heldMetaPhases;
+
+            dataWorkPhase = 'data';
+            applyLoadData(data as unknown[][][], source);
+            dataWorkPhase = 'meta';
+            metaPhase?.();
+            nestedMetaPhases.forEach(nestedMetaPhase => nestedMetaPhase());
+
+            if (instance.view) {
+              runSourceDataValidators(instance, 'loadData');
+            }
+          } finally {
+            dataWorkPhase = outerPhase;
+            heldMetaPhases = outerHeldMetaPhases;
+          }
+
+          if (instance.view && !isNested) {
+            pluginsRegistry.getItems().forEach(([, plugin]) => {
+              const readyPlugin = plugin as BasePlugin;
+
+              if (readyPlugin.enabled && typeof readyPlugin.onDataReady === 'function') {
+                readyPlugin.onDataReady();
+              }
+            });
+          }
+        } catch (error) {
+          if (!isNested) {
+            pluginsRegistry.getItems().forEach(([, plugin]) => {
+              (plugin as BasePlugin).dropDeferredDataWork();
+            });
+          }
+
+          throw error;
+        }
+      });
+    } finally {
+      if (suspendsRender) {
+        instance.resumeRender();
+      }
+    }
+  };
+
+  /**
+   * Tells a plugin whether the settings it is applying describe data that is not loaded yet, which
+   * is the case while `_applySettingsAndData()` applies them. Work that reads or writes the loaded
+   * rows waits for the plugin's `onDataReady()` then.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  this._isDataWorkDeferred = function() {
+    return dataWorkPhase !== null;
+  };
+
+  /**
+   * Replaces values the init settings pass is about to apply, and returns the values it replaced. Callable
+   * from `beforeInit` only; anywhere else it changes nothing and returns `null`. The pass registers every
+   * hook callback of the settings and applies their `cell` option after the first load, so a plugin that
+   * applied settings of its own in `beforeInit` (the SheetsBar plugin, its opening sheet) would see the pass
+   * replace its hook callbacks and its `cell` entries with the grid-level ones. Replaced here, they are
+   * applied once, by the pass itself, with no settings update of their own.
+   *
+   * @private
+   * @param {object} settings The values to apply in the init settings pass instead.
+   * @returns {object|null} The values the pass held for those keys before, or `null` outside `beforeInit`.
+   */
+  this._replaceInitPassSettings = function(settings: Record<string, unknown>) {
+    if (initPassSettings === null) {
+      return null;
+    }
+
+    const passSettings = initPassSettings;
+    const replaced: Record<string, unknown> = {};
+
+    Object.keys(settings).forEach((key) => {
+      replaced[key] = passSettings[key];
+      passSettings[key] = settings[key];
+    });
+
+    return replaced;
+  };
+
+  /**
+   * Tells a plugin whether the data the settings describe is still to be loaded, which is the case only
+   * while `_applySettingsAndData()` applies its settings, before its load. Work that needs that load (a
+   * check of the incoming data, a sheet the load fills) waits for it then; once the load has run, it does
+   * the work at once.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  this._isDataLoadPending = function() {
+    return dataWorkPhase === 'configure';
+  };
+
+  /**
+   * Tells a plugin whether the meta phase running now is one `_applySettingsAndData()` held back for its own
+   * load, which is the case only between that load and the `onDataReady()` pass. A full settings update made
+   * from a listener in the same call (an `afterLoadData` listener) runs its meta phase outside this window,
+   * so a plugin that skips work already done by the load skips it for the call's own meta phase only.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  this._isHeldMetaPhaseRunning = function() {
+    return dataWorkPhase === 'meta';
   };
 
   /**
@@ -5184,11 +5419,25 @@ export default function Core(
    * The body of `updateSettings()`, run with recording suppressed. It is called directly, not through
    * the instance, so a spy on `updateSettings()` sees each call once.
    *
+   * With `defersDataWork` set (only `_applySettingsAndData()` passes it), the data phase, the `min*`
+   * sizing and the render are skipped, and the meta phase is returned instead of run, for the caller
+   * to run once its data is loaded. A `columns` value the early column pass cannot apply (`null`, or a
+   * function) resets the column meta before the caller's load, because that load validates and renders
+   * through the column meta layer and would otherwise read the previous columns' types; the meta phase
+   * applies the function form against the loaded data.
+   *
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
+   * @param {boolean} [defersDataWork=false] Whether the data the settings describe is loaded after this call.
+   * @param {Array|null} [restoredCellOptionMetas=null] `cell`-option meta, by physical indexes, to put back in
+   * the meta phase instead of applying `settings.cell` (see `_applySettingsAndData()`).
+   * @returns {Function|null} The held-back meta phase, or `null` when it ran.
    */
-  function applySettings(settings: Partial<GridSettings>, init: boolean) {
+  function applySettings(
+    settings: Partial<GridSettings>, init: boolean, defersDataWork = false,
+    restoredCellOptionMetas: CellOptionMetaEntry[] | null = null
+  ): (() => void) | null {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(instance);
     let i;
 
@@ -5498,105 +5747,135 @@ export default function Core(
       applyColumnMeta(earlyColumnsSetting.length);
     }
 
-    // Load data or create data map
-    if (instance.runHooks('hasExternalDataSource') === true) {
-      // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
-      if (settings.data) {
-        warn('The "data" setting is ignored when "hasExternalDataSource" returns `true`.');
-      }
+    const resetsColumnMetaBeforeLoad = defersDataWork && earlyColumnsSetting === null &&
+      settings.columns !== undefined;
 
-      // Replace the in-memory placeholder only when the update touches init, `data`, or `dataProvider`. Otherwise
-      // `updateData([], …)` would empty the grid without a refetch, because DataProvider runs `updatePlugin` only when
-      // `dataProvider` is present in this payload.
-      const shouldSyncExternalPlaceholderData = init ||
-        hasOwnProperty(settings, 'data') ||
-        hasOwnProperty(settings, 'dataProvider');
+    if (resetsColumnMetaBeforeLoad) {
+      resetMetaCaches();
+    }
 
-      if (shouldSyncExternalPlaceholderData) {
-        dataUpdateFunction([], 'updateSettings');
+    const applyDataPhase = () => {
+      // Load data or create data map
+      if (instance.runHooks('hasExternalDataSource') === true) {
+        // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
+        if (settings.data) {
+          warn('The "data" setting is ignored when "hasExternalDataSource" returns `true`.');
+        }
+
+        // Replace the in-memory placeholder only when the update touches init, `data`, or `dataProvider`. Otherwise
+        // `updateData([], …)` would empty the grid without a refetch, because DataProvider runs `updatePlugin` only when
+        // `dataProvider` is present in this payload.
+        const shouldSyncExternalPlaceholderData = init ||
+          hasOwnProperty(settings, 'data') ||
+          hasOwnProperty(settings, 'dataProvider');
+
+        if (shouldSyncExternalPlaceholderData) {
+          dataUpdateFunction([], 'updateSettings');
+        } else if (settings.columns !== undefined) {
+          datamap.createMap();
+          instance.initIndexMappers();
+        }
+
+      } else if (settings.data === undefined && tableMeta.data === undefined) {
+        dataUpdateFunction(null as unknown as unknown[], 'updateSettings'); // data source created just now
+
+      } else if (settings.data !== undefined) {
+        dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
+
+        // `updateData()` keeps the index state, which would now apply to the properties of a new schema.
+        if (hasColumnLayoutChanged(previousColumnLayout)) {
+          instance.initIndexMappers();
+        }
+
       } else if (settings.columns !== undefined) {
         datamap.createMap();
+
+        // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
         instance.initIndexMappers();
+
+      } else if (previousColumnLayout !== null && !tableMeta.columns) {
+        // Without `columns`, a new `dataSchema` can change the number of columns and the property each one reads.
+        // The index mappers and the column-to-property map start over when it did, as for `columns`. A schema that
+        // only changes the default values of new rows leaves the grid as it is.
+        datamap.createMap();
+
+        if (hasColumnLayoutChanged(previousColumnLayout)) {
+          instance.initIndexMappers();
+        }
       }
+    };
 
-    } else if (settings.data === undefined && tableMeta.data === undefined) {
-      dataUpdateFunction(null as unknown as unknown[], 'updateSettings'); // data source created just now
-
-    } else if (settings.data !== undefined) {
-      dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
-
-      // `updateData()` keeps the index state, which would now apply to the properties of a new schema.
-      if (hasColumnLayoutChanged(previousColumnLayout)) {
-        instance.initIndexMappers();
-      }
-
-    } else if (settings.columns !== undefined) {
-      datamap.createMap();
-
-      // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
-      instance.initIndexMappers();
-
-    } else if (previousColumnLayout !== null && !tableMeta.columns) {
-      // Without `columns`, a new `dataSchema` can change the number of columns and the property each one reads.
-      // The index mappers and the column-to-property map start over when it did, as for `columns`. A schema that
-      // only changes the default values of new rows leaves the grid as it is.
-      datamap.createMap();
-
-      if (hasColumnLayoutChanged(previousColumnLayout)) {
-        instance.initIndexMappers();
-      }
+    if (!defersDataWork) {
+      applyDataPhase();
     }
 
     if (!firstRun && settings.language) {
       setLanguage(settings.language);
     }
 
-    const clen = instance.countCols();
+    const applyMetaPhase = () => {
+      const clen = instance.countCols();
 
-    // Clear the meta caches, unless the early pass above already did it for this call.
-    if (earlyColumnsSetting === null &&
-        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined)) {
-      resetMetaCaches();
-    }
-
-    // The pass for everything the early one does not handle: a `columns` FUNCTION, and a payload that
-    // does not name `columns` at all (an update still has to re-read a function that reads external
-    // state). Skipped when the early pass ran, because it could not add anything: for an array,
-    // `getInitialColumnCount()` returns `columns.length`, so `clen` can never exceed the bound the
-    // early pass already used, and re-applying would only pay `extend()` a second time per column -
-    // which the React and Angular wrappers, re-sending `columns` on every commit, would pay per render.
-    if (clen > 0 && earlyColumnsSetting === null) {
-      applyColumnMeta(clen);
-    }
-
-    if (isCellOptionRestated) {
-      // Applied last, so a key restated here wins over both the column meta and any imperative value the
-      // replay above put back (preserving legacy behavior). The writes are filed as declarative rather
-      // than user-defined - which also de-marks any imperative value for the same key - so a later call
-      // that does not restate `cell` replays them, and `updateSettings({ cell: [] })` still removes every
-      // previously declared entry.
-      metaManager.startCellOptionMetaRecording();
-
-      try {
-        (settings.cell as Record<string, unknown>[]).forEach((cell: Record<string, unknown>) => {
-          // `row` and `col` locate the entry - they are not cell meta. `setCellMetaObject` writes every own
-          // key, so leaving them in stores the entry's *visual* coordinates on a meta object that
-          // `getCellMeta` stamps with *physical* ones, and would put two junk keys per declared cell into
-          // the replay snapshot.
-          const { row, col, ...cellSettings } = cell;
-
-          instance.setCellMetaObject(row as number, col as number, cellSettings);
-        });
-      } finally {
-        metaManager.endCellOptionMetaRecording();
+      // Clear the meta caches, unless the early pass above already did it for this call.
+      if (earlyColumnsSetting === null && !resetsColumnMetaBeforeLoad &&
+          (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined)) {
+        resetMetaCaches();
       }
-    }
 
-    instance.runHooks('afterCellMetaReset');
+      // The pass for everything the early one does not handle: a `columns` FUNCTION, and a payload that
+      // does not name `columns` at all (an update still has to re-read a function that reads external
+      // state). Skipped when the early pass ran, because it could not add anything: for an array,
+      // `getInitialColumnCount()` returns `columns.length`, so `clen` can never exceed the bound the
+      // early pass already used, and re-applying would only pay `extend()` a second time per column -
+      // which the React and Angular wrappers, re-sending `columns` on every commit, would pay per render.
+      if (clen > 0 && earlyColumnsSetting === null) {
+        applyColumnMeta(clen);
+      }
+
+      if (restoredCellOptionMetas !== null) {
+        metaManager.startCellOptionMetaRecording();
+
+        try {
+          restoredCellOptionMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
+            metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+          });
+        } finally {
+          metaManager.endCellOptionMetaRecording();
+        }
+
+      } else if (isCellOptionRestated) {
+        // Applied last, so a key restated here wins over both the column meta and any imperative value the
+        // replay above put back (preserving legacy behavior). The writes are filed as declarative rather
+        // than user-defined - which also de-marks any imperative value for the same key - so a later call
+        // that does not restate `cell` replays them, and `updateSettings({ cell: [] })` still removes every
+        // previously declared entry.
+        metaManager.startCellOptionMetaRecording();
+
+        try {
+          (settings.cell as Record<string, unknown>[]).forEach((cell: Record<string, unknown>) => {
+            // `row` and `col` locate the entry - they are not cell meta. `setCellMetaObject` writes every own
+            // key, so leaving them in stores the entry's *visual* coordinates on a meta object that
+            // `getCellMeta` stamps with *physical* ones, and would put two junk keys per declared cell into
+            // the replay snapshot.
+            const { row, col, ...cellSettings } = cell;
+
+            instance.setCellMetaObject(row as number, col as number, cellSettings);
+          });
+        } finally {
+          metaManager.endCellOptionMetaRecording();
+        }
+      }
+
+      instance.runHooks('afterCellMetaReset');
+    };
+
+    if (!defersDataWork) {
+      applyMetaPhase();
+    }
 
     // for the first run, we need to run the source data warnings after cell meta initialization
     // otherwise there is no access to `sourceDataValidator` function
-    if (firstRun) {
+    if (firstRun && !defersDataWork) {
       runSourceDataValidators(instance, 'init');
     }
 
@@ -5619,16 +5898,18 @@ export default function Core(
       instance.runHooks('afterUpdateSettings', settings);
     }
 
-    // Before `adjustRowsAndCols()`, which only ever adds. When this call replaced the data, nothing is removed: the
-    // data phase already sized the new axis to the merged values, so there is no surplus left to give back.
-    if (!init) {
-      grid.removeSurplusRowsAndCols(previousMinimumSizes);
-    }
+    if (!defersDataWork) {
+      // Before `adjustRowsAndCols()`, which only ever adds. When this call replaced the data, nothing is removed:
+      // the data phase already sized the new axis to the merged values, so there is no surplus left to give back.
+      if (!init) {
+        grid.removeSurplusRowsAndCols(previousMinimumSizes);
+      }
 
-    grid.adjustRowsAndCols();
+      grid.adjustRowsAndCols();
 
-    if (instance.view && !firstRun) {
-      instance.render();
+      if (instance.view && !firstRun) {
+        instance.render();
+      }
     }
 
     // Fired after the render above, so a listener reading cell sizes sees the new density. The
@@ -5645,6 +5926,8 @@ export default function Core(
     if (isRootInstance(instance)) {
       layoutManager?.applyConfig(tableMeta.layout as LayoutConfig | undefined);
     }
+
+    return defersDataWork ? applyMetaPhase : null;
   }
 
   /**

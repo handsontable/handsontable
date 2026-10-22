@@ -167,6 +167,11 @@ describe('validateSettings', () => {
         onRowsUpdate() {},
         rowId: 'id',
         refetchAfterCreate: true }],
+      ['dataProvider', { fetchRows() {},
+        onRowsCreate() {},
+        onRowsRemove() {},
+        onRowsUpdate() {},
+        rowId: row => row.id }],
       ['dragToScroll', { interval: { min: 10, max: 50 }, rampDistance: 30 }],
       ['fillHandle', { direction: 'vertical', autoInsertRow: false }],
       ['manualColumnFreeze', { restoreColumnPosition: true }],
@@ -197,6 +202,21 @@ describe('validateSettings', () => {
       ['sheetsBar', true],
     ])('should accept the short form of %s: %j', (option, value) => {
       expect(validateSettings({ [option]: value }).problems).toEqual([]);
+    });
+
+    it.each([
+      'pagination', 'filters', 'columnSorting', 'hiddenColumns', 'dropdownMenu', 'undo', 'fillHandle', 'sheetsBar',
+    ])('should accept `null` for the plugin option %s', (option) => {
+      expect(validateSettings({ [option]: null })).toEqual({ valid: true, problems: [] });
+    });
+
+    it('should accept `null` for a plugin option on a column', () => {
+      expect(validateSettings({ columns: [{ columnSorting: null, filters: null }] }))
+        .toEqual({ valid: true, problems: [] });
+    });
+
+    it('should still report a wrong type for a plugin option that accepts `null`', () => {
+      expect(brief(validateSettings({ pagination: 42 }))).toEqual([{ path: 'pagination', code: 'invalidType' }]);
     });
 
     it('should accept the closed options inside `columns` and a `cell` entry', () => {

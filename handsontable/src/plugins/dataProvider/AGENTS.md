@@ -89,3 +89,12 @@ From `handsontable/`:
 - Whole plugin: `npm run test:e2e --testPathPattern=plugins/dataProvider`
 
 The `__tests__/` tree is split by kind: `methods/`, `hooks/`, `plugins/` (interactions with Pagination, Filters, ColumnSorting), `query/*.unit.js`, plus `alter.spec.js` for the context-menu insert/remove path. Specs that must assert "no refetch happened" wait on the `afterRowsMutation` spy: the refetch, when enabled, starts synchronously right after that hook, so `fetchRows` already reflects it.
+
+## A fetch an update starts ahead of its data waits for `onDataReady()`
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), `updatePlugin()` leaves its silent fetch to `onDataReady()`. `fetchRows` is called
+synchronously when a fetch starts, so without the hold it ran before the call had loaded its data, against the
+grid the call replaces. A tab switch is passive (`_runContextChange()`), so nothing is fetched there; building a
+workbook on a live grid is not, and an opening sheet with its own `dataProvider` fetches from `onDataReady()`.
+Pinned by `__tests__/deferredFetch.unit.js`.

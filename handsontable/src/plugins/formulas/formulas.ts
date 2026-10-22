@@ -3,7 +3,7 @@ import { staticRegister } from '../../utils/staticRegister';
 import { deprecatedWarnOnce, error, warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isNumeric } from '../../helpers/number';
-import { isObject, isPlainObject } from '../../helpers/object';
+import { hasOwnProperty, isObject, isPlainObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
 import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
@@ -311,6 +311,13 @@ function isFormulasUndoState(value: unknown): value is FormulasUndoState {
 // Maximum number of `[startIndex, amount]` spans passed to a single variadic engine
 // `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
 const REMOVAL_SPANS_CHUNK_SIZE = 1000;
+
+/**
+ * The cell meta keys that decide the value the engine reads for a cell: the ones the built-in value getters
+ * read (directly, or through the cell type that sets the getter), and `preserveTextValue`, which the
+ * engine-bound escaping reads. A `cell` option entry setting one of them can change that value.
+ */
+const VALUE_GETTER_META_KEYS = ['type', 'valueGetter', 'source', 'sourceLabel', 'preserveTextValue'];
 
 // A formula whose reference the engine could not keep. Only operations that remove or relocate
 // cells may put one into the source data - see `#syncFormulasToSourceData`.
@@ -841,18 +848,6 @@ export class Formulas extends BasePlugin {
    */
   sheetName: string | null = null;
   /**
-   * The flag that makes a `sheetName` change applied through `updateSettings` bind the sheet
-   * without loading its content into the grid. Set by a caller that loads the sheet's data
-   * itself right after the update (the SheetsBar plugin), so the grid is loaded once, not twice.
-   * That load's `afterLoadData` writes the data into the sheet bound here. A name the engine does
-   * not know still goes through `switchSheet`, which reports it.
-   *
-   * @private
-   * @type {boolean}
-   */
-  skipSheetSwitchLoad = false;
-
-  /**
    * Whether the engine currently holds the sheet this instance is bound to, or `null` when the
    * engine has to be asked again. The `modifyData` and `modifySourceData` hooks read it once per
    * cell read, so the engine lookup is cached and dropped only when a sheet is added, renamed, or
@@ -1173,7 +1168,7 @@ export class Formulas extends BasePlugin {
       // still differs from the current one and lets `switchSheet` report it.
       this.engine?.getSheetId(pluginSettings.sheetName) !== this.sheetId
     ) {
-      if (this.skipSheetSwitchLoad && this.engine?.doesSheetExist(pluginSettings.sheetName)) {
+      if (this.isDataLoadPending() && this.engine?.doesSheetExist(pluginSettings.sheetName)) {
         this.#updateSheetNameAndSheetId(pluginSettings.sheetName);
 
       } else {
@@ -1183,7 +1178,7 @@ export class Formulas extends BasePlugin {
 
     // If no data was passed to the `updateSettings` method and no sheet is connected to the instance -> create a
     // new sheet using the currently used data. Otherwise, it will be handled by the `afterLoadData` call.
-    if (!newSettings.data && this.sheetName === null) {
+    if (!newSettings.data && !this.isDataLoadPending() && this.sheetName === null) {
       const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
       const sheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
 
@@ -3065,7 +3060,12 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * `beforeLoadData` hook callback.
+   * `beforeLoadData` hook callback. A grid counts as built without data when no `data` setting exists,
+   * except for the load core's `_applySettingsAndData()` makes: that load carries the data of the call,
+   * before the setting is stored (the sheets bar loads its opening sheet that way), and treating that grid
+   * as empty made every later settings update reload it from the engine sheet. The exception is scoped to
+   * that call on purpose: a grid built with a `dataProvider` and no `data` loads a `[]` placeholder first,
+   * and must keep reading the engine sheet as its data.
    *
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
@@ -3078,8 +3078,29 @@ export class Formulas extends BasePlugin {
 
     // This flag needs to be defined, because not passing data to HOT results in HOT auto-generating a `null`-filled
     // initial dataset.
-    this.#hotWasInitializedWithEmptyData = isUndefined(this.hot.getSettings().data);
+    this.#hotWasInitializedWithEmptyData = isUndefined(this.hot.getSettings().data) &&
+      !(this.isDataWorkDeferred() && Array.isArray(sourceData));
   };
+
+  /**
+   * Whether the meta phase core runs after the load of `_applySettingsAndData()` can change a value the
+   * engine reads: it applies the `cell` option and the `columns` function form, and a cell type either
+   * sets (a key/value dropdown resolves an object to its label) decides that value. The load wrote the
+   * sheet before either was applied. Core resets the column meta before that load for `columns: null`,
+   * so the load already reads the values that call describes. Only a `cell` entry that sets a key the
+   * built-in value getters read counts (`VALUE_GETTER_META_KEYS`): the sheets bar restates a grid-level
+   * `cell` on every switch, and an entry that only sets `readOnly` or a class made every switch pay a
+   * full engine write. A custom `valueGetter` that reads another key of a `cell` entry is not seen.
+   *
+   * @returns {boolean}
+   */
+  #metaPhaseMayChangeEngineValues(): boolean {
+    const { cell, columns } = this.hot.getSettings();
+
+    return typeof columns === 'function' || (Array.isArray(cell) && cell.some(
+      entry => isObject(entry) && VALUE_GETTER_META_KEYS.some(key => hasOwnProperty(entry, key))
+    ));
+  }
 
   /**
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
@@ -3090,9 +3111,22 @@ export class Formulas extends BasePlugin {
    * and `#resyncSheet` runs it later, once per cycle - see `#sheetResyncPending`. Construction
    * has no `afterUpdateSettings` pass (the Core skips the hook on its first run), so the scan
    * stays eager there; `hot.view` is what the Core creates right after that first run.
+   *
+   * The reset core's `_applySettingsAndData()` fires from the meta phase it held back for its own load
+   * (`_isHeldMetaPhaseRunning()`, never the reset of a full settings update an `afterLoadData` listener makes
+   * in that call, whose `columns` the load never saw) needs no resync when the call
+   * declares no `cell` entries and no `columns` function: that load already wrote the sheet through
+   * `#onAfterLoadData`, with the column configuration of the call in force, and a second scan cost a full
+   * engine write and an AutoColumnSize sweep per sheet switch. `cell` entries and a `columns` function reach
+   * the cell meta only after that load, and a cell type they set can change the value the engine reads (a
+   * key/value dropdown resolves an object to its label), so such a call resyncs as any settings update does.
    */
   #onAfterCellMetaReset = () => {
     this.#closeLeakedGuards();
+
+    if (this.hot._isHeldMetaPhaseRunning() && !this.#metaPhaseMayChangeEngineValues()) {
+      return;
+    }
 
     // The reload below and the scan in `#resyncSheet` both run a full-dataset read whose per-cell
     // meta read fires `cells()` and the `beforeGetCellMeta`/`afterGetCellMeta` listeners – see

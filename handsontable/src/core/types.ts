@@ -31,6 +31,16 @@ import type { BaseRenderer } from '../renderers/baseRenderer';
 /**
  * Represents a selection range with start/end row/col coordinates.
  */
+/**
+ * One key of the meta the `cell` option wrote on a cell, addressed by physical indexes.
+ */
+export interface CellOptionMetaEntry {
+  physicalRow: number;
+  physicalColumn: number;
+  key: string;
+  value: unknown;
+}
+
 export interface RangeType {
   startRow: number;
   startCol: number;
@@ -310,6 +320,13 @@ export interface HotInstance {
   _getDataSource(): DataSourceInstance;
   _getMetaManager(): MetaManagerInstance;
   _getOperationScope(): OperationScope;
+  _applySettingsAndData(
+    settings: Partial<GridSettings>, data: unknown[], source: string, cellOptionMetas?: CellOptionMetaEntry[] | null
+  ): void;
+  _isDataWorkDeferred(): boolean;
+  _isDataLoadPending(): boolean;
+  _isHeldMetaPhaseRunning(): boolean;
+  _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
 
   // DOM references
   rootElement: HTMLElement;
