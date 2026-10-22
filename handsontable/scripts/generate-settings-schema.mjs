@@ -905,9 +905,8 @@ function isHookKey(key) {
 /**
  * Builds the schema object.
  *
- * @returns {{schema: object, internals: object, fromJsDoc: string[]}} The JSON Schema, the lists
- * `validateSettings()` reads that are not part of it, and the options whose type the settings types do
- * not declare, which the schema takes from their JSDoc `@type` instead.
+ * @returns {{schema: object, internals: object}} The JSON Schema, and the lists `validateSettings()`
+ * reads that are not part of it, with the options whose type the settings types do not declare.
  */
 export function buildSettingsSchema() {
   // `@private` options (`preventWheel`) and the meta bookkeeping keys (`_userDefinedMetaProps`)
@@ -1058,7 +1057,7 @@ export function buildSettingsSchema() {
     },
   };
 
-  return { schema, internals: { internalOptions, builtInPlugins }, fromJsDoc: [...fromJsDoc] };
+  return { schema, internals: { internalOptions, builtInPlugins, fromJsDoc: [...fromJsDoc] } };
 }
 
 /**
