@@ -271,11 +271,13 @@ keeps the handle out of the strip the frozen overlays already keep clear (`axisS
   shifted handle is always lifted too, so `wtCornerInlineEndEdge` / `wtCornerBlockEndEdge` keep its
   hit area out of the strip. The shift stops 1px inside the cell's start, so a track narrower than
   the strip keeps the handle in its own cell, partly in the strip.
-- **Static, not tied to `ScrollbarVisibility`.** The clearance bands open on a scroll and a hover only
-  holds them open, but the browsers' own overlay scrollbars also appear when the pointer reaches the
-  edge, before any band does, so the handle has to be clear before then. The cost is a handle 16px
-  inside the cell's corner on the last column and row whenever the scrollbar is an overlay one and the
-  axis scrolls.
+- **Static, not tied to `ScrollbarVisibility`.** A shift that followed the bands would move the
+  handle 16px each time a scroll opens a band and back each time it fades, so the handle would jump
+  under a pointer on its way to it. The bands are also the grid's own estimate of when the browser
+  shows its scrollbar (a scroll opens one, a hover only holds it open), not a report from the
+  browser, and a handle that is always clear does not depend on that estimate. The cost is a handle
+  16px inside the cell's corner on the last column and row whenever the scrollbar is an overlay one
+  and the axis scrolls.
 - **The master only, the grid's last track only, and no end pane.** With `fixedColumnsEnd` or
   `fixedRowsBottom` the last track is drawn by an end clone, and a frozen row's or column's handle by
   the `top` or `inline_start` clone. Those clones are clipped out of the strip while its band is open
