@@ -34,6 +34,10 @@ interface HarnessOptions {
   rowOffset?: number;
   cellAtPoint?: GridCoords | null;
   hostActiveEditor?: { focus: () => void };
+  /**
+   * The visual column span each column header covers, by its column (a nested-header group).
+   */
+  headerSpans?: Record<number, { start: number; end: number }>;
 }
 
 interface HolderStub {
@@ -72,6 +76,7 @@ function makeHarness(options: HarnessOptions = {}) {
     rowOffset = 0,
     cellAtPoint = null,
     hostActiveEditor,
+    headerSpans = {},
   } = options;
   const holder = makeHolder();
   const adapterStub = {
@@ -103,6 +108,7 @@ function makeHarness(options: HarnessOptions = {}) {
     getHostActiveEditor: () => hostActiveEditor,
     getScrollHolder: () => holder as unknown as HTMLElement,
     getRootDocument: () => document,
+    getColumnHeaderSpan: coords => headerSpans[coords.col] ?? { start: coords.col, end: coords.col },
   });
 
   return {
@@ -1152,5 +1158,76 @@ describe('CellPickController header drag lost-mouseup fallback', () => {
 
     expect(controller.isHeaderPickActive()).toBe(false);
     expect(adapterStub.emitHeaderPick).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('CellPickController press filter', () => {
+  it.each([
+    ['the secondary (right) button', 2],
+    ['the middle button', 1],
+  ])('does not pick on %s', (_name, button) => {
+    const { controller, adapterStub } = makeHarness();
+    const { event, flags } = pressCell(controller, { row: 1, col: 1 }, { button });
+
+    controller.onDocMouseUp();
+
+    expect(flags).toEqual({ row: false, column: false, cell: false });
+    expect(event.defaultPrevented).toBe(false);
+    expect(adapterStub.emitCellPick).not.toHaveBeenCalled();
+  });
+
+  it('does not pick a header on the secondary button', () => {
+    const { controller, adapterStub } = makeHarness();
+
+    pressCell(controller, { row: -1, col: 2 }, { button: 2 });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitHeaderPick).not.toHaveBeenCalled();
+  });
+
+  it('picks on a tap, and the tap finishes the pick without a mouseup', () => {
+    const { controller, adapterStub } = makeHarness();
+    const touch = { identifier: 7, clientX: 10, clientY: 10 } as unknown as Touch;
+    const event = new Event('touchend', { cancelable: true }) as unknown as MouseEvent;
+
+    Object.defineProperty(event, 'changedTouches', { value: [touch] });
+    Object.defineProperty(event, 'touches', { value: [] });
+    controller.onBeforeMouseDown(event, { row: 1, col: 1 }, undefined, makeFlags());
+
+    expect(adapterStub.emitCellPick).toHaveBeenCalledTimes(1);
+    expect(controller.isHeaderPickActive()).toBe(false);
+  });
+});
+
+describe('CellPickController nested-header group picks', () => {
+  it('picks every column a nested-header group covers', () => {
+    const { controller, adapterStub } = makeHarness({ headerSpans: { 2: { start: 2, end: 4 } } });
+
+    pressCell(controller, { row: -2, col: 2 });
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitHeaderPick).toHaveBeenCalledWith({
+      axis: 'column',
+      sheet: '',
+      start: 2,
+      end: 4,
+      append: false,
+    });
+  });
+
+  it('keeps the whole start group when the drag moves toward the start', () => {
+    const { controller, adapterStub } = makeHarness({ headerSpans: { 4: { start: 4, end: 6 } } });
+
+    pressCell(controller, { row: -2, col: 4 });
+    controller.onBeforeMouseOver(new MouseEvent('mouseover'), { row: -1, col: 1 }, undefined, makeFlags());
+    controller.onDocMouseUp();
+
+    expect(adapterStub.emitHeaderPick).toHaveBeenCalledWith({
+      axis: 'column',
+      sheet: '',
+      start: 1,
+      end: 6,
+      append: false,
+    });
   });
 });

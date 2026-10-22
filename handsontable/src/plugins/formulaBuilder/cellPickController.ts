@@ -1,7 +1,14 @@
 // Only the `#` fields use the package's types; signatures use `gridContract.ts` (see there).
 import type { HeaderDragTracker, RangeDragTracker } from 'hyperformula-ui';
-import { stopImmediatePropagation } from '../../helpers/dom/event';
-import { getDeepActiveElement } from '../../helpers/dom/element';
+import { isMacOS } from '../../helpers/browser';
+import {
+  getFirstChangedTouch,
+  getTouchPointById,
+  hasTouchList,
+  isLeftClick,
+  stopImmediatePropagation,
+} from '../../helpers/dom/event';
+import { getDeepActiveElement, isHTMLElement } from '../../helpers/dom/element';
 import type { HandsontableAdapter } from './handsontableAdapter';
 import type { CellRange, HeaderAxis, HeaderPick, PickingEditor } from './gridContract';
 
@@ -82,6 +89,61 @@ export interface CellPickControllerDeps {
    * @returns {Document}
    */
   getRootDocument(): Document;
+  /**
+   * Returns the visual columns a column header covers: one column, or a nested-header group's span.
+   *
+   * @param {GridCoords} coords The header coordinates (a negative row).
+   * @returns {{ start: number, end: number }}
+   */
+  getColumnHeaderSpan(coords: GridCoords): { start: number; end: number };
+}
+
+/**
+ * Whether a press may start a pick: a primary-button mouse press or a touch. A right-click opens the
+ * context menu and a middle click scrolls, so neither picks. On macOS Ctrl+click is the context menu
+ * gesture too, although it reports the primary button.
+ *
+ * @param {MouseEvent | undefined} event The press event, or `undefined` for a press made by the API.
+ * @returns {boolean}
+ */
+function isPickPress(event: MouseEvent | undefined): boolean {
+  if (event === undefined || hasTouchList(event)) {
+    return true;
+  }
+
+  return isLeftClick(event) && !(isMacOS() && event.ctrlKey);
+}
+
+/**
+ * Whether a press appends a reference instead of replacing the one at the caret: Ctrl or Cmd, the
+ * modifier the grid adds a selection layer with. A macOS Ctrl+click never gets here, see
+ * `isPickPress()`.
+ *
+ * @param {MouseEvent | undefined} event The press event.
+ * @returns {boolean}
+ */
+function isAppendPress(event: MouseEvent | undefined): boolean {
+  return Boolean(event?.metaKey || event?.ctrlKey);
+}
+
+/**
+ * Reads the viewport position of a press, from the first changed touch of a touch event.
+ *
+ * @param {MouseEvent | undefined} event The press event.
+ * @returns {{ x: number, y: number } | undefined}
+ */
+function readPressPoint(event: MouseEvent | undefined): { x: number; y: number } | undefined {
+  if (event === undefined) {
+    return undefined;
+  }
+
+  if (hasTouchList(event)) {
+    const touch = getFirstChangedTouch(event);
+
+    return touch ? { x: touch.clientX, y: touch.clientY } : undefined;
+  }
+
+  return { x: event.clientX, y: event.clientY };
 }
 
 /**
@@ -135,6 +197,15 @@ export class CellPickController {
    * bound for the length of a drag only, so an idle grid adds no document `mousemove` listener.
    */
   #removeDragListeners: (() => void) | null = null;
+  /**
+   * The identifier of the finger a touch pick follows, or `null` for a mouse pick.
+   */
+  #touchId: number | null = null;
+  /**
+   * The HyperFormula span of the header a header drag started on (a nested-header group covers
+   * several), whether it appends, and the index the header tracker is anchored at now.
+   */
+  #headerDrag: { start: number; end: number; append: boolean; trackerAnchor: number } | null = null;
 
   /**
    * `beforeOnCellMouseDown` hook listener.
@@ -191,6 +262,19 @@ export class CellPickController {
    * Document `mouseup` listener finishing the active drag.
    */
   onDocMouseUp = (): void => this.#handleDocMouseUp();
+
+  /**
+   * Document `touchend`/`touchcancel` listener finishing a touch pick. On a touch device the press
+   * reaches the grid from `touchend` (Walkontable defers it there), and Walkontable then cancels the
+   * compatibility mouse events, so no `mouseup` ever finishes the pick.
+   *
+   * @param {TouchEvent} event The touch event.
+   */
+  onDocTouchEnd = (event: TouchEvent): void => {
+    if (this.#touchId === null || getTouchPointById(event, this.#touchId) === null) {
+      this.#handleDocMouseUp();
+    }
+  };
 
   /**
    * @param {CellPickControllerDeps} deps Injected plugin dependencies.
@@ -293,6 +377,10 @@ export class CellPickController {
       return;
     }
 
+    if (!isPickPress(event)) {
+      return;
+    }
+
     if (coords.row < 0 || coords.col < 0) {
       this.#handleHeaderMouseDown(event, coords, eventController, adapter, editor);
 
@@ -333,12 +421,17 @@ export class CellPickController {
     this.#claim(event);
     this.#focusBeforePick = this.#activeElement();
 
-    this.#listenDrag();
+    this.#listenDrag(event);
     this.#tracker.begin(
       { sheet: '', col: anchor.col, row: anchor.row },
-      Boolean(event?.metaKey || event?.ctrlKey),
-      event ? { x: event.clientX, y: event.clientY } : undefined,
+      isAppendPress(event),
+      readPressPoint(event),
     );
+
+    // A touch press arrives from `touchend`, with the finger already lifted: the tap is the whole pick.
+    if (event !== undefined && hasTouchList(event)) {
+      this.#handleDocMouseUp();
+    }
   }
 
   /**
@@ -374,11 +467,13 @@ export class CellPickController {
     }
 
     const axis: HeaderAxis = coords.col < 0 ? 'row' : 'column';
-    const hfIndex = axis === 'row' ?
-      this.#deps.toHfCoords({ row: coords.row, col: 0 }).row :
-      this.#deps.toHfCoords({ row: 0, col: coords.col }).col;
+    // A nested-header group covers several columns, and a pick of it inserts all of them, the way a
+    // click on it selects them all.
+    const span = axis === 'column' ? this.#deps.getColumnHeaderSpan(coords) : { start: coords.row, end: coords.row };
+    const hfStart = this.#toHfAxisIndex(axis, span.start);
+    const hfEnd = this.#toHfAxisIndex(axis, span.end);
 
-    if (hfIndex < 0) {
+    if (hfStart < 0 || hfEnd < 0) {
       return;
     }
 
@@ -387,9 +482,75 @@ export class CellPickController {
     this.#focusBeforePick = this.#activeElement();
 
     this.#headerAxis = axis;
-    this.#listenDrag();
-    this.#headerTracker.begin(axis, hfIndex, Boolean(event?.metaKey || event?.ctrlKey));
+    this.#listenDrag(event);
+    this.#headerDrag = {
+      start: Math.min(hfStart, hfEnd),
+      end: Math.max(hfStart, hfEnd),
+      append: isAppendPress(event),
+      trackerAnchor: Math.min(hfStart, hfEnd),
+    };
+    this.#headerTracker.begin(axis, this.#headerDrag.start, this.#headerDrag.append);
+
+    if (hfEnd !== hfStart) {
+      this.#headerTracker.extendTo(axis, this.#headerDrag.end);
+    }
+
     this.#armHeaderClickSwallow();
+
+    if (event !== undefined && hasTouchList(event)) {
+      this.#handleDocMouseUp();
+    }
+  }
+
+  /**
+   * Extends the header drag over a hovered header. The pick always covers the whole header the drag
+   * started on and the whole hovered one (a nested-header group spans several columns), so the
+   * tracker, which keeps one anchor index, is re-anchored at the far side of the start header when
+   * the drag crosses to its other side.
+   *
+   * @param {GridCoords} coords The hovered coordinates.
+   * @param {number} axisCoordinate The hovered visual index on the drag's axis.
+   */
+  #extendHeaderDrag(coords: GridCoords, axisCoordinate: number): void {
+    const axis = this.#headerAxis;
+    const drag = this.#headerDrag;
+
+    if (axis === null || drag === null) {
+      return;
+    }
+
+    const span = axis === 'column' && coords.row < 0 ?
+      this.#deps.getColumnHeaderSpan(coords) : { start: axisCoordinate, end: axisCoordinate };
+    const hfStart = this.#toHfAxisIndex(axis, span.start);
+    const hfEnd = this.#toHfAxisIndex(axis, span.end);
+
+    if (hfStart < 0 || hfEnd < 0) {
+      return;
+    }
+
+    const towardStart = Math.min(hfStart, hfEnd) < drag.start;
+    const anchor = towardStart ? drag.end : drag.start;
+    const far = towardStart ? Math.min(hfStart, hfEnd) : Math.max(hfStart, hfEnd, drag.end);
+
+    if (anchor !== drag.trackerAnchor) {
+      drag.trackerAnchor = anchor;
+      this.#headerTracker.begin(axis, anchor, drag.append);
+    }
+
+    this.#headerTracker.extendTo(axis, far);
+  }
+
+  /**
+   * Maps a visual header index to the HyperFormula index of its axis.
+   *
+   * @param {HeaderAxis} axis The header axis.
+   * @param {number} visualIndex The visual row or column index.
+   * @returns {number}
+   */
+  #toHfAxisIndex(axis: HeaderAxis, visualIndex: number): number {
+    return axis === 'row' ?
+      this.#deps.toHfCoords({ row: visualIndex, col: 0 }).row :
+      this.#deps.toHfCoords({ row: 0, col: visualIndex }).col;
   }
 
   /**
@@ -467,31 +628,43 @@ export class CellPickController {
     this.#headerTracker.finish();
 
     if (this.#focusBeforePick) {
-      this.#focusBeforePick.focus();
+      // The drag may have auto-scrolled the grid; focusing the editor must not scroll it back.
+      this.#focusBeforePick.focus({ preventScroll: true });
     } else if (wasActive) {
       (this.#deps.getHostActiveEditor() as { focus?: () => void } | undefined)?.focus?.();
     }
 
     this.#focusBeforePick = null;
+    this.#touchId = null;
+    this.#headerDrag = null;
   }
 
   /**
    * Binds the document and window listeners that follow a drag until it ends.
+   *
+   * @param {MouseEvent | undefined} event The press that started the drag.
    */
-  #listenDrag(): void {
+  #listenDrag(event: MouseEvent | undefined): void {
     this.#unlistenDrag();
 
     const rootDocument = this.#deps.getRootDocument();
     const rootWindow = rootDocument.defaultView;
 
+    this.#touchId = event !== undefined && hasTouchList(event) ?
+      getFirstChangedTouch(event)?.identifier ?? null : null;
+
     rootDocument.addEventListener('mouseup', this.onDocMouseUp);
     rootDocument.addEventListener('mousemove', this.onDocMouseMove);
+    rootDocument.addEventListener('touchend', this.onDocTouchEnd);
+    rootDocument.addEventListener('touchcancel', this.onDocTouchEnd);
     rootDocument.addEventListener('scroll', this.onDocScroll, { capture: true });
     rootWindow?.addEventListener('blur', this.onWindowBlur);
 
     this.#removeDragListeners = () => {
       rootDocument.removeEventListener('mouseup', this.onDocMouseUp);
       rootDocument.removeEventListener('mousemove', this.onDocMouseMove);
+      rootDocument.removeEventListener('touchend', this.onDocTouchEnd);
+      rootDocument.removeEventListener('touchcancel', this.onDocTouchEnd);
       rootDocument.removeEventListener('scroll', this.onDocScroll, { capture: true });
       rootWindow?.removeEventListener('blur', this.onWindowBlur);
     };
@@ -531,7 +704,8 @@ export class CellPickController {
   #activeElement(): HTMLElement | null {
     const element = getDeepActiveElement(this.#deps.getRootDocument());
 
-    return element instanceof HTMLElement ? element : null;
+    // `isHTMLElement()`, not `instanceof HTMLElement`: a grid in an iframe has elements of its own realm.
+    return isHTMLElement(element) ? element : null;
   }
 
   /**
@@ -557,13 +731,7 @@ export class CellPickController {
       const axisCoordinate = this.#headerAxis === 'column' ? coords.col : coords.row;
 
       if (axisCoordinate >= 0) {
-        const hfIndex = this.#headerAxis === 'column' ?
-          this.#deps.toHfCoords({ row: 0, col: axisCoordinate }).col :
-          this.#deps.toHfCoords({ row: axisCoordinate, col: 0 }).row;
-
-        if (hfIndex >= 0) {
-          this.#headerTracker.extendTo(this.#headerAxis, hfIndex);
-        }
+        this.#extendHeaderDrag(coords, axisCoordinate);
       }
 
       this.#suppress(eventController);

@@ -1038,6 +1038,24 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
+   * Returns the visual columns a column header covers: a nested-header group spans several, every
+   * other header one. Read through the NestedHeaders plugin, the way its own click selects the span.
+   *
+   * @param {{ row: number, col: number }} coords The header coordinates (a negative row).
+   * @returns {{ start: number, end: number }}
+   */
+  #columnHeaderSpan(coords: { row: number; col: number }): { start: number; end: number } {
+    const nestedHeaders = this.hot.getPlugin('nestedHeaders');
+    const node = nestedHeaders?.enabled ? nestedHeaders._getHeaderTreeNodeDataByCoords(coords) : null;
+
+    if (!node || typeof node.columnIndex !== 'number' || typeof node.origColspan !== 'number') {
+      return { start: coords.col, end: coords.col };
+    }
+
+    return { start: node.columnIndex, end: node.columnIndex + node.origColspan - 1 };
+  }
+
+  /**
    * Returns Handsontable's active editor.
    *
    * @returns {FormulaHostEditor | undefined}
@@ -1289,6 +1307,7 @@ export class FormulaBuilder extends BasePlugin {
       getHostActiveEditor: () => this.hot.getActiveEditor(),
       getScrollHolder: () => this.#adapter?.getScrollHolder() ?? null,
       getRootDocument: () => this.hot.rootDocument,
+      getColumnHeaderSpan: coords => this.#columnHeaderSpan(coords),
     });
 
     this.addHook('afterRenderer', this.#onAfterRenderer);
