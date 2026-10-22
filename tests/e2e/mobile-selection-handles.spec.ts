@@ -118,12 +118,73 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
     await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual([]);
   });
 
+  // With headers on, the `top` clone covers row 0, so the handle of a range starting there is placed inside the
+  // cell, on `top` = the first rendered row. With no row overscan that row is the first visible one.
+  test('draw no top handle for a range whose start row is scrolled out, with headers on', async () => {
+    await mobileGrid.goto({ rows: 'tall', overscan: 'none' });
+    await mobileGrid.tapCell(0, 1);
+    await mobileGrid.selectRange(0, 1, 35, 2);
+    await mobileGrid.scrollRowToTop(20);
+
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).toEqual([]);
+  });
+
+  test('draw no top handle for a range whose start column is scrolled out, with headers on', async () => {
+    await mobileGrid.goto({ cols: 'wide', overscan: 'none' });
+    await mobileGrid.tapCell(1, 0);
+    await mobileGrid.selectRange(1, 0, 2, 17);
+    await mobileGrid.scrollColumnToStart(10);
+
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).toEqual([]);
+  });
+
+  // A clone owns the corner on its own frozen axis only; on the other axis it follows the master's band.
+  test('draw no top handle for a frozen-row start whose column is scrolled out', async () => {
+    await mobileGrid.goto({ frozen: true, cols: 'wide', overscan: 'none' });
+    await mobileGrid.selectRange(0, 3, 2, 17);
+    await mobileGrid.scrollColumnToStart(10);
+
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).toEqual([]);
+  });
+
+  test('draw no top handle for a frozen-column start whose row is scrolled out', async () => {
+    await mobileGrid.goto({ frozen: true, rows: 'tall', overscan: 'none' });
+    await mobileGrid.selectRange(3, 0, 35, 1);
+    await mobileGrid.scrollRowToTop(20);
+
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).toEqual([]);
+  });
+
+  test('bring the top handle back once the range start scrolls into view again', async () => {
+    await mobileGrid.goto({ rows: 'tall', overscan: 'none' });
+    await mobileGrid.tapCell(0, 1);
+    await mobileGrid.selectRange(0, 1, 35, 2);
+    await mobileGrid.scrollRowToTop(20);
+    await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual([]);
+
+    await mobileGrid.scrollToGridStart();
+
+    await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual(['ht_master']);
+  });
+
+  // The corner of a range that starts in a frozen row is owned by the frozen overlay, which never scrolls
+  // out of view, so scrolling the body must not take the handle away from it.
+  test('keep the top handle of a range starting in a frozen row while the body is scrolled', async () => {
+    await mobileGrid.goto({ frozen: true, rows: 'tall', overscan: 'none' });
+    await mobileGrid.selectRange(0, 3, 35, 4);
+    await mobileGrid.scrollRowToTop(20);
+
+    await expect.poll(() => mobileGrid.reachableTopHandles()).toEqual(['ht_clone_top']);
+  });
+
   test('keep the bottom handle interactive when a range ends on the bottom freeze line', async () => {
     await mobileGrid.goto({ frozenBottom: true, rows: 'tall' });
     await mobileGrid.tapCell(1, 1);
     await mobileGrid.selectRange(1, 1, 37, 3);
-    await mobileGrid.expectHandlesVisible();
 
+    // `selectCell` scrolls the range end into view, so the start row is out of the rendered rows and has no top handle.
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).toEqual([]);
+    await expect(mobileGrid.bottomHandle()).toBeVisible();
     await expect.poll(() => mobileGrid.isBottomHandleHitAreaAtHandleCenter()).toBe(true);
   });
 

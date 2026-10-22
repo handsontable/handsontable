@@ -58,10 +58,10 @@
       throw new Error('Unknown ?rowHeaders= value: ' + JSON.stringify(params.get('rowHeaders')));
     }
 
-    // `none` renders only the rows the viewport shows, so a range whose start is scrolled out has no rendered
-    // row above the viewport to hide behind.
-    window.htRowOverscan = ({ default: 'auto', none: 0 })[params.get('overscan') ?? 'default'];
-    if (window.htRowOverscan === undefined) {
+    // `none` renders only the rows and columns the viewport shows, so a range whose start is scrolled out has
+    // no rendered track before the viewport to hide behind.
+    window.htOverscan = ({ default: 'auto', none: 0 })[params.get('overscan') ?? 'default'];
+    if (window.htOverscan === undefined) {
       throw new Error('Unknown ?overscan= value: ' + JSON.stringify(params.get('overscan')));
     }
 
@@ -112,7 +112,8 @@
       height: 300,
       colHeaders: window.htHeaders,
       rowHeaders: window.htRowHeaders,
-      viewportRowRenderingOffset: window.htRowOverscan,
+      viewportRowRenderingOffset: window.htOverscan,
+      viewportColumnRenderingOffset: window.htOverscan,
       fixedRowsTop: window.htFrozen,
       fixedColumnsStart: window.htFrozen,
       fixedRowsBottom: window.htFrozenBottom,

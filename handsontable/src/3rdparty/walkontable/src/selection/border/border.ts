@@ -773,8 +773,13 @@ class Border {
     // axis whose real start is scrolled out of the rendered band is left alone: `top` and `left` then
     // measure the first rendered track, and a moved handle would sit on it, inside the range.
     const { wtTable } = this.wot;
-    const topShift = fromRow >= wtTable.getFirstRenderedRow() ? Math.max(0, -handleTop) : 0;
-    const inlineShift = fromCol >= wtTable.getFirstRenderedColumn() ? Math.max(0, -handleInline) : 0;
+    const isRowStartRendered = fromRow >= wtTable.getFirstRenderedRow();
+    const isColumnStartRendered = fromCol >= wtTable.getFirstRenderedColumn();
+    const topShift = isRowStartRendered ? Math.max(0, -handleTop) : 0;
+    const inlineShift = isColumnStartRendered ? Math.max(0, -handleInline) : 0;
+    // A negative index is a header-anchored corner, which always renders. A start that is scrolled out of
+    // the rendered band gets no handle at all, as `top` and `left` would put it on the first rendered track.
+    const isCornerScrolledOut = (fromRow >= 0 && !isRowStartRendered) || (fromCol >= 0 && !isColumnStartRendered);
 
     topStyles.top = `${handleTop + topShift}px`;
     topStyles[inlinePosProperty] = `${handleInline + inlineShift}px`;
@@ -824,7 +829,7 @@ class Border {
     const cornerVisible = this.settings.border?.cornerVisible;
 
     if (cornerVisible && typeof cornerVisible === 'function' && cornerVisible()) {
-      const topDisplay = ownership.top ? 'block' : 'none';
+      const topDisplay = ownership.top && !isCornerScrolledOut ? 'block' : 'none';
 
       topStyles.display = topDisplay;
       topHitAreaStyles.display = topDisplay;

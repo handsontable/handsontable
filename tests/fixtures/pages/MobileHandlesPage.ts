@@ -470,6 +470,25 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Scroll back to the top-start corner of the grid and wait until its first row is the first one rendered.
+   */
+  async scrollToGridStart(): Promise<void> {
+    await this.page.evaluate(() => window.hot.scrollViewportTo({ row: 0, col: 0, verticalSnap: 'top' }));
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getFirstRenderedRow())).toBe(0);
+  }
+
+  /**
+   * Scroll horizontally so the given column is the first fully visible one, and wait until the table's
+   * first rendered column is past the grid's start.
+   */
+  async scrollColumnToStart(col: number): Promise<void> {
+    await this.page.evaluate(target => window.hot.scrollViewportTo({ col: target, horizontalSnap: 'start' }), col);
+    await expect.poll(() => this.page.evaluate(() => window.hot.getFirstFullyVisibleColumn())).toBe(col);
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getFirstRenderedColumn()))
+      .toBeGreaterThan(0);
+  }
+
+  /**
    * Scroll back to the start of the grid so the given column is on screen again, and wait until the
    * viewport calculators count it.
    */
