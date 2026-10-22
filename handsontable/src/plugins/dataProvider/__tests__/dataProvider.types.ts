@@ -47,6 +47,25 @@ const configWithWrongRefetchType: DataProviderConfig = { rowId: 'id', refetchAft
 
 void configWithWrongRefetchType;
 
+const configWithRowIdFunction: DataProviderConfig = {
+  rowId: row => (row as { id: number }).id,
+  fetchRows: minimalConfig.fetchRows,
+};
+
+// A function that declares its row type is assignable too, as it is to the grid-level `rowId`.
+const configWithTypedRowIdFunction: DataProviderConfig = {
+  rowId: (row: Handsontable.RowObject | unknown[]) => (Array.isArray(row) ? row[0] : row.id),
+  fetchRows: minimalConfig.fetchRows,
+};
+
+void configWithRowIdFunction;
+void configWithTypedRowIdFunction;
+
+// @ts-expect-error `rowId` accepts a string path or a function, not a number.
+const configWithWrongRowIdType: DataProviderConfig = { rowId: 1, fetchRows: minimalConfig.fetchRows };
+
+void configWithWrongRowIdType;
+
 const hot = new Handsontable(document.createElement('div'), {
   dataProvider: minimalConfig,
 });

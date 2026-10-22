@@ -941,7 +941,10 @@ export function buildSettingsSchema() {
     // An option `metaSchema.ts` does not document takes the comment of its TypeScript declaration.
     const description = option?.description || readDescription(typeDocs.get(name) ?? '') ||
       (annotations.levels.includes('grid') ? '' : `The \`${name}\` property of the cell meta.`);
-    const nullable = option?.nullDefault ?? false;
+    // The types of a plugin's options omit `null`, but an app's own state can hold it before the configuration
+    // loads (`useState(null)`) and every plugin accepts it, so the schema takes it for every documented plugin
+    // option. A cell-meta-only key (`comment`) has no entry in `metaSchema.ts` and keeps its type.
+    const nullable = (option?.nullDefault ?? false) || (option !== undefined && annotations.plugin !== undefined);
 
     if (nullable && !acceptsNull(node)) {
       return allowNull({
