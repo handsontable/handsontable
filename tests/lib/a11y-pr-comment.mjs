@@ -10,8 +10,8 @@
  * screenshot: it links the HTML report, where every element is located.
  *
  * The scan is compared with the pull request's own baseline, so a pull request that adds entries
- * to it reads as clean. `baselineGrowth()` compares the base commit's baseline
- * (`readBaseBaseline()`) with the pull request's, and the comment lists what the pull request
+ * to it reads as clean. `baselineGrowth()` compares the base commit's baseline (`baseCommit()`,
+ * `readBaseBaseline()`) with the pull request's, and the comment lists what the pull request
  * added or raised, by issue: debt it accepts, in front of the reviewer. The check run does not
  * read the base; it judges the scan alone.
  *
@@ -114,12 +114,14 @@ export function neutralizeTaskIds(text) {
 /**
  * What the pull request adds to the baseline: the entries the base commit's baseline does not
  * have, and the entries whose node count it raises. An entry is keyed as the comparator keys it
- * (page, theme, rule and target), and by its issue too, so an entry moved to another issue counts
- * as added under that one. A deleted entry or a lowered count is not growth.
+ * (page, theme, rule and target). An entry the base has under another issue is moved, not added:
+ * renaming or splitting an issue moves every entry it had, and adds no debt. A deleted entry or a
+ * lowered count is not growth.
  *
  * @param {{text?: string, error?: string}} base The base commit's baseline file (`readBaseBaseline()`).
  * @param {object|null} head The pull request's baseline, parsed; `null` when it could not be read.
- * @returns {{added: object[], raised: object[]}|{error: string}} The growth, or why it is unknown.
+ * @returns {{added: object[], raised: object[], moved: object[]}|{error: string}} The growth, or why it is unknown;
+ * a raised entry carries `baseNodes`, a moved one `baseIssue` and `baseIssueTitle`.
  */
 export function baselineGrowth(base, head) {
   if (base.error) {
@@ -140,22 +142,25 @@ export function baselineGrowth(base, head) {
     return { error: 'the base branch\'s baseline has no entries list' };
   }
 
-  const key = item => `${entryKey(item)}|${item.issue}`;
-  const recorded = new Map(document.entries.map(item => [key(item), item.nodes]));
+  const baseTitles = new Map((Array.isArray(document.issues) ? document.issues : []).map(issue => [issue?.id, issue?.title]));
+  const recorded = new Map(document.entries.map(item => [entryKey(item), item]));
   const added = [];
   const raised = [];
+  const moved = [];
 
   for (const item of head.entries) {
-    const baseNodes = recorded.get(key(item));
+    const before = recorded.get(entryKey(item));
 
-    if (baseNodes === undefined) {
+    if (!before) {
       added.push(item);
-    } else if (item.nodes > baseNodes) {
-      raised.push({ ...item, baseNodes });
+    } else if (item.nodes > before.nodes) {
+      raised.push({ ...item, baseNodes: before.nodes });
+    } else if (item.issue !== before.issue) {
+      moved.push({ ...item, baseIssue: before.issue, baseIssueTitle: baseTitles.get(before.issue) ?? before.issue });
     }
   }
 
-  return { added, raised };
+  return { added, raised, moved };
 }
 
 /**
@@ -177,8 +182,8 @@ function growthHeadline(growth) {
 
 /**
  * The baseline growth section: the additions by issue, then the first few spelled out, raised
- * counts first (a known finding that spread is the change a diff hides best: one number). A growth
- * that could not be read is one line that says so.
+ * counts first (a known finding that spread is the change a diff hides best: one number), then the
+ * entries moved to another issue. A growth that could not be read is one line that says so.
  *
  * @param {object} [growth] What `baselineGrowth()` returned.
  * @param {Map<string, string>} titles The issue titles by id.
@@ -199,7 +204,7 @@ function renderGrowth(growth, titles, text) {
   ];
 
   if (rows.length === 0) {
-    return [];
+    return renderMoves(growth.moved ?? [], titles, text);
   }
 
   const byIssue = new Map();
@@ -233,7 +238,37 @@ function renderGrowth(growth, titles, text) {
       + 'the HTML report locates each one under its known issue.');
   }
 
-  return lines;
+  return [...lines, ...renderMoves(growth.moved ?? [], titles, text)];
+}
+
+/**
+ * The line for the entries the pull request moved to another issue, by where they went. An issue
+ * renamed or split moves its entries without adding debt, so they are not in the growth.
+ *
+ * @param {object[]} moved The moved entries (`baselineGrowth()`).
+ * @param {Map<string, string>} titles The issue titles by id.
+ * @param {(value: string) => string} text The escaping every value goes through.
+ * @returns {string[]} Markdown lines, none when nothing moved.
+ */
+function renderMoves(moved, titles, text) {
+  if (moved.length === 0) {
+    return [];
+  }
+
+  const pairs = new Map();
+
+  for (const item of moved) {
+    const key = `${item.baseIssue}|${item.issue}`;
+    const pair = pairs.get(key) ?? { from: item.baseIssueTitle, to: titles.get(item.issue) ?? item.issue, count: 0 };
+
+    pair.count += 1;
+    pairs.set(key, pair);
+  }
+
+  const parts = [...pairs.values()]
+    .map(({ from, to, count }) => `${count} ${count === 1 ? 'entry' : 'entries'} from ${text(from)} to ${text(to)}`);
+
+  return ['', `> **Moved between issues,** which adds no debt: ${parts.join('; ')}.`];
 }
 
 /**
@@ -331,6 +366,38 @@ export function renderComment(comparison, { reportUrl, runUrl, checkUrl, growth 
   lines.push('', `<sub>${footer.join(' · ')}</sub>`, '');
 
   return lines.join('\n');
+}
+
+/**
+ * The commit to read the base baseline at: the first parent of the commit the job checked out. On
+ * a pull request that is the merge commit, and its first parent is the base branch tip it merged
+ * into, so the two baselines differ by this pull request's changes alone. The payload's
+ * `base.sha` can be older than that tip (a re-run replays the old payload against a rebuilt merge
+ * ref, and a branch that merged the base in after it forked has the same shape), and every base
+ * commit in between would read as growth (`.ai/CI.md`), so it is only the fallback for a checkout
+ * that is not a merge commit. A failed read is an error, never a guess.
+ *
+ * @param {object} input The request.
+ * @param {Function} input.request The REST client, as `readBaseBaseline()` takes it.
+ * @param {string} input.repoApi The repository's API URL.
+ * @param {string} [input.checkedOut] The commit the job checked out (`A11Y_CHECKOUT_SHA`).
+ * @param {string} [input.payloadBase] The pull request's base commit from the event (`A11Y_BASE_SHA`).
+ * @returns {Promise<{sha?: string}|{error: string}>} The commit, or why it is unknown.
+ */
+export async function baseCommit({ request, repoApi, checkedOut, payloadBase }) {
+  if (!checkedOut) {
+    return { sha: payloadBase };
+  }
+
+  let commit;
+
+  try {
+    commit = await request(`${repoApi}/commits/${encodeURIComponent(checkedOut)}`);
+  } catch (error) {
+    return { error: `reading the checked-out commit ${checkedOut.slice(0, 12)} ${error.status ? `answered ${error.status}` : `failed (${error.message})`}` };
+  }
+
+  return { sha: commit.parents?.length === 2 ? commit.parents[0].sha : payloadBase };
 }
 
 /**

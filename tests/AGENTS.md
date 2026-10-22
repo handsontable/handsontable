@@ -1203,17 +1203,23 @@ The reporter writes four outputs into `test-results/a11y/`, and CI publishes eac
   bars sit in their own `Chart` column beside the numbers.
 - **Baseline growth is in the comment, not the check run.** The comparator judges the scan
   against the pull request's own baseline, so a pull request that adds entries to it reads as
-  clean. The comment step reads the base commit's baseline through the contents API
-  (`A11Y_BASE_SHA`, `readBaseBaseline()`) and `baselineGrowth()` lists every entry the pull
-  request adds (keyed by page, theme, rule, target and issue, so an entry moved to another issue
-  counts) and every count it raises: the headline turns ⚠️ and says how many, and a section groups
-  them by issue and spells out the first ten. A base file that is missing or not JSON is one line
-  saying the growth is unknown, never a failed step. The check run stays as it is: it judges the
-  scan, it never reads the base, and a neutral icon on every pull request that baselines a finding
-  the documented way would stop meaning "the scan found something". Approving the pull request
-  accepts the listed debt. `node scripts/a11y-pr-comment.mjs --dry-run --base <file>` prints the
-  growth locally, from a copy of the base branch's baseline
-  (`git show origin/develop:tests/a11y/axe-baseline.json`).
+  clean. The comment step reads the baseline at the base commit through the REST API
+  (`baseCommit()`, `readBaseBaseline()`) and `baselineGrowth()` lists every entry the pull request
+  adds and every count it raises: the headline turns ⚠️ and says how many, and a section groups
+  them by issue and spells out the first ten. The base commit is the first parent of the
+  checked-out merge commit (`A11Y_CHECKOUT_SHA`), never the payload's `base.sha` when there is a
+  merge commit: a re-run, or a branch that merged the base in, leaves `base.sha` behind the tip the
+  merge ref was built on, and every base change in between would read as growth (`.ai/CI.md`, the
+  diff-scoped gate trap). An entry is keyed as the comparator keys it (page, theme, rule, target),
+  so one the base has under another issue is moved, not added: renaming or splitting an issue
+  moves all its entries, adds no debt, and gets one line saying where they went. A base file that
+  is missing or not JSON is one line saying the growth is unknown, never a failed step. The check
+  run stays as it is: it judges the scan, it never reads the base, and a neutral icon on every pull
+  request that baselines a finding the documented way would stop meaning "the scan found
+  something". Approving the pull request accepts the listed debt. Locally, read the base at the
+  merge base, not at `origin/develop`, or everything `develop` changed since the branch forked
+  reads as this branch's: `git show "$(git merge-base origin/develop HEAD)":tests/a11y/axe-baseline.json > base.json`,
+  then `node scripts/a11y-pr-comment.mjs --dry-run --base base.json`.
 - **The agent findings** (`a11y-findings.json`, `lib/a11y-findings.mjs`): the same run, concise and
   machine-readable, for an implementer agent. `needsAction` lists each finding that needs action
   with its page, theme, fixture URL, steps, rule, WCAG criteria, element, counts, remedy and up to
@@ -1232,7 +1238,8 @@ The reporter writes four outputs into `test-results/a11y/`, and CI publishes eac
 A fork's or Dependabot's token can write neither checks nor comments, so both steps carry the
 canonical fork guard and `continue-on-error`; the summary, the report and the agent findings
 still carry everything there. Locally, `node scripts/a11y-check-run.mjs --dry-run` and
-`node scripts/a11y-pr-comment.mjs --dry-run` print what CI would post. The raw axe result per page
+`node scripts/a11y-pr-comment.mjs --dry-run --base <file>` print what CI would post (without
+`--base` the comment leaves the baseline growth out, which CI always reports). The raw axe result per page
 and theme, with its screenshot, is in the `a11y-axe-results` artifact (`scans/<page>--<theme>.json`,
 three days), beside `comparison.json`, `a11y-findings.json` and `summary.md`. GitHub shows at most
 ten warning annotations per step, so a run with many findings shows the first ten there and the

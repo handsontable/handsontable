@@ -1,9 +1,10 @@
 /**
  * Posts or edits the axe scan's sticky comment on the pull request.
  *
- * Reads `test-results/a11y/comparison.json` (the a11y reporter writes it), reads the base
- * commit's `a11y/axe-baseline.json` through the contents API and compares it with the pull
- * request's (`baselineGrowth()`), builds the body through `lib/a11y-pr-comment.mjs`, and edits
+ * Reads `test-results/a11y/comparison.json` (the a11y reporter writes it), reads
+ * `a11y/axe-baseline.json` at the base commit (the checked-out merge commit's first parent,
+ * `baseCommit()`) through the contents API and compares it with the pull request's
+ * (`baselineGrowth()`), builds the body through `lib/a11y-pr-comment.mjs`, and edits
  * the comment it posted on an earlier run or posts a new one (`upsertComment()`): every pull
  * request the scan ran on gets the comment, a clean one included. Run by
  * `.github/workflows/a11y.yml` on a pull request, behind the fork guard (a fork's token cannot
@@ -11,16 +12,18 @@
  * Playwright container has no `gh`.
  *
  * Environment: `GITHUB_TOKEN` (with `pull-requests: write`), `GITHUB_REPOSITORY`,
- * `A11Y_PR_NUMBER`, `A11Y_BASE_SHA` (the pull request's base commit; without it the comment says
- * the growth is unknown), and optionally `A11Y_REPORT_URL`, `A11Y_CHECK_URL`, `GITHUB_API_URL`,
- * `GITHUB_SERVER_URL` and `GITHUB_RUN_ID`. `--dry-run` prints the body instead and needs none of
- * them; with `--base <file>` (a copy of the base branch's baseline, such as
- * `git show origin/develop:tests/a11y/axe-baseline.json`) it reports the growth too.
+ * `A11Y_PR_NUMBER`, `A11Y_CHECKOUT_SHA` (the commit the job checked out) and `A11Y_BASE_SHA` (the
+ * event's base commit, the fallback when the checkout is not a merge commit; without either the
+ * comment says the growth is unknown), and optionally `A11Y_REPORT_URL`, `A11Y_CHECK_URL`,
+ * `GITHUB_API_URL`, `GITHUB_SERVER_URL` and `GITHUB_RUN_ID`. `--dry-run` prints the body instead
+ * and needs none of them; with `--base <file>` (the baseline at the merge base,
+ * `git show "$(git merge-base origin/develop HEAD)":tests/a11y/axe-baseline.json`) it reports the
+ * growth too.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { baselineGrowth, readBaseBaseline, renderComment, upsertComment } from '../lib/a11y-pr-comment.mjs';
+import { baseCommit, baselineGrowth, readBaseBaseline, renderComment, upsertComment } from '../lib/a11y-pr-comment.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const COMPARISON = path.join(TESTS_ROOT, 'test-results/a11y/comparison.json');
@@ -95,7 +98,9 @@ let base;
 if (baseFile) {
   base = existsSync(baseFile) ? { text: readFileSync(baseFile, 'utf8') } : { error: `${baseFile} does not exist` };
 } else if (!dryRun) {
-  base = await readBaseBaseline({ request, repoApi: api, sha: env.A11Y_BASE_SHA });
+  const commit = await baseCommit({ request, repoApi: api, checkedOut: env.A11Y_CHECKOUT_SHA, payloadBase: env.A11Y_BASE_SHA });
+
+  base = commit.error ? commit : await readBaseBaseline({ request, repoApi: api, sha: commit.sha });
 }
 
 const growth = base ? baselineGrowth(base, readHeadBaseline()) : undefined;

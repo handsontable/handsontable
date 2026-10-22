@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { compareViolations } from '../a11y-baseline.mjs';
 import { FINDINGS_SCHEMA, agentFindings } from '../a11y-findings.mjs';
 import {
-  COMMENT_MARKER, baselineGrowth, neutralizeTaskIds, readBaseBaseline, renderComment, textBar, upsertComment,
+  COMMENT_MARKER, baseCommit, baselineGrowth, neutralizeTaskIds, readBaseBaseline, renderComment, textBar, upsertComment,
 } from '../a11y-pr-comment.mjs';
 
 const PAGES = [
@@ -148,7 +148,7 @@ const baseText = entries => JSON.stringify({ axeCoreVersion: '4.14.0', issues: I
 test('a clean run\'s comment is short: the headline, the scan, the links and the findings by rule', () => {
   const body = renderComment(comparisonOf(verdictOf([entry(), entry({ theme: 'horizon', nodes: 2 })], [
     finding(), finding({ theme: 'horizon' }), finding({ theme: 'horizon', selector: ['#ht_2'] }),
-  ])), { ...LINKS, growth: { added: [], raised: [] } });
+  ])), { ...LINKS, growth: { added: [], raised: [], moved: [] } });
 
   assert.ok(body.startsWith(`${COMMENT_MARKER}\n### ♿ A11y / axe: ✅ No new accessibility findings: 2 known, in 1 known issues\n`), body.slice(0, 120));
   assert.match(body, /3 scans \(2 pages × 2 themes\), axe-core 4\.14\.0\. This pull request adds nothing to the baseline\./);
@@ -167,7 +167,7 @@ test('a comparison from before the scan shape was recorded still renders its sca
   assert.doesNotMatch(body, /adds nothing to the baseline/, 'without the base branch\'s baseline the comment says nothing about growth');
 });
 
-test('baselineGrowth lists the entries the pull request adds and the counts it raises, keyed with the issue', () => {
+test('baselineGrowth lists the entries the pull request adds, the counts it raises and the entries it moves to another issue', () => {
   const head = {
     issues: [...ISSUES, MENU_ISSUE],
     entries: [
@@ -181,12 +181,39 @@ test('baselineGrowth lists the entries the pull request adds and the counts it r
   assert.deepEqual(growth.added.map(item => [item.page, item.theme, item.rule, item.issue]), [
     ['grid', 'classic', 'aria-required-children', 'grid-roles'],
     ['context-menu', 'main', 'label', 'menu-labels'],
-    ['context-menu', 'horizon', 'aria-required-children', 'menu-labels'],
-  ], 'an entry moved to another issue is added under that issue');
+  ]);
   assert.deepEqual(growth.raised.map(item => [item.theme, item.nodes, item.baseNodes]), [['horizon', 3, 1]]);
-  assert.deepEqual(baselineGrowth({ text: baseText(head.entries) }, head), { added: [], raised: [] });
+  assert.deepEqual(growth.moved.map(item => [item.page, item.theme, item.issue, item.baseIssue, item.baseIssueTitle]), [
+    ['context-menu', 'horizon', 'menu-labels', 'grid-roles', ISSUES[0].title],
+  ], 'an entry keyed as the comparator keys it, under another issue, is moved, not added');
+  assert.deepEqual(baselineGrowth({ text: baseText(head.entries) }, head), { added: [], raised: [], moved: [] });
   assert.deepEqual(baselineGrowth({ text: baseText([entry({ nodes: 4 })]) }, { issues: ISSUES, entries: [entry({ nodes: 2 })] }),
-    { added: [], raised: [] }, 'a lowered count and a deleted entry are not growth');
+    { added: [], raised: [], moved: [] }, 'a lowered count and a deleted entry are not growth');
+});
+
+test('renaming an issue moves its entries: no new debt, one line that says where they went', () => {
+  const renamed = { id: 'grid-roles-renamed', title: 'The grid root, renamed' };
+  const base = [entry(), entry({ theme: 'horizon' })];
+  const head = { issues: [renamed], entries: base.map(item => ({ ...item, issue: renamed.id })) };
+  const growth = baselineGrowth({ text: baseText(base) }, head);
+  const verdict = compareViolations({ baseline: head.entries, issues: head.issues, scanned, mode: 'warn', violations: [finding(), finding({ theme: 'horizon' })] });
+  const body = renderComment(comparisonOf(verdict), { growth });
+
+  assert.deepEqual([growth.added.length, growth.raised.length, growth.moved.length], [0, 0, 2]);
+  assert.match(body, /### ♿ A11y \/ axe: ✅ No new accessibility findings: 2 known, in 1 known issues\n/, 'a rename is not growth');
+  assert.match(body, /This pull request adds nothing to the baseline\./);
+  assert.match(body, /> \*\*Moved between issues,\*\* which adds no debt: 2 entries from The grid root holds children its role does not allow to The grid root, renamed\./);
+  assert.doesNotMatch(body, /Added to the baseline/);
+});
+
+test('a move beside growth is listed after the additions', () => {
+  const head = { issues: [...ISSUES, MENU_ISSUE], entries: [entry({ issue: 'menu-labels' }), entry({ theme: 'horizon' })] };
+  const verdict = compareViolations({ baseline: head.entries, issues: head.issues, scanned, mode: 'warn', violations: [finding(), finding({ theme: 'horizon' })] });
+  const body = renderComment(comparisonOf(verdict), { growth: baselineGrowth({ text: baseText([entry()]) }, head) });
+
+  assert.match(body, /this pull request grows the baseline: 1 added\n/);
+  assert.ok(body.indexOf('#### Added to the baseline') < body.indexOf('**Moved between issues,**'));
+  assert.match(body, /1 entry from The grid root holds children its role does not allow to Menu items have no accessible name, unlike DEV‑77 said\./);
 });
 
 test('a missing or unreadable baseline on either side is reported as such, never thrown', () => {
@@ -315,4 +342,22 @@ test('readBaseBaseline reads the base commit\'s file raw, and reports a missing 
     { error: 'reading the base commit\'s tests/a11y/axe-baseline.json answered 500' });
   assert.deepEqual(await readBaseBaseline({ request: found.request, repoApi: REPO_API, sha: '' }),
     { error: 'no base commit was given (A11Y_BASE_SHA)' });
+});
+
+test('the base commit is the checked-out merge commit\'s first parent, so a rebuilt merge ref compares like with like', async() => {
+  const merge = stubApi([[/^GET .*\/commits\/m1$/, () => ({ sha: 'm1', parents: [{ sha: 'develop-tip' }, { sha: 'head' }] })]]);
+
+  assert.deepEqual(await baseCommit({ request: merge.request, repoApi: REPO_API, checkedOut: 'm1', payloadBase: 'stale-base' }), { sha: 'develop-tip' });
+  assert.deepEqual(merge.calls, [`GET ${REPO_API}/commits/m1`]);
+
+  const single = stubApi([[/^GET .*\/commits\/h1$/, () => ({ sha: 'h1', parents: [{ sha: 'p' }] })]]);
+
+  assert.deepEqual(await baseCommit({ request: single.request, repoApi: REPO_API, checkedOut: 'h1', payloadBase: 'b1' }), { sha: 'b1' },
+    'a checkout that is not a merge commit falls back to the pull request\'s base commit');
+  assert.deepEqual(await baseCommit({ request: single.request, repoApi: REPO_API, checkedOut: '', payloadBase: 'b1' }), { sha: 'b1' });
+
+  const broken = stubApi([[/./, () => { throw Object.assign(new Error('boom'), { status: 500 }); }]]);
+
+  assert.deepEqual(await baseCommit({ request: broken.request, repoApi: REPO_API, checkedOut: '0123456789abcdef', payloadBase: 'b1' }),
+    { error: 'reading the checked-out commit 0123456789ab answered 500' }, 'a failed read is unknown growth, never a guess from a stale base');
 });
