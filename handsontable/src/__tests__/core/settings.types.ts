@@ -148,7 +148,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   fixedColumnsStart: 123,
   fixedRowsBottom: 123,
   fixedRowsTop: 123,
-  formulaBuilder: oneOf(true, {
+  formulaBuilder: oneOf(false, {
     builder: class {},
     showFormulaBar: true,
   }),
