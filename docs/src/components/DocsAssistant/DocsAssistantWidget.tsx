@@ -47,7 +47,7 @@ export function DocsAssistantWidget() {
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const resizingRef = useRef(false);
   const { state, send, stop, retry, clear, clearAndSend, setFeedback } = useAssistant();
-  const { visible: bubbleVisible, dismiss: dismissBubble } = useProactiveBubble(open);
+  const { visible: bubbleVisible, dismiss: dismissBubble, hideForFocus } = useProactiveBubble(open);
 
   useEffect(() => {
     try {
@@ -132,13 +132,19 @@ export function DocsAssistantWidget() {
   }, []);
 
   // The bubble's "Ask AI" opens the chat with the same prefilled draft as the ToC button.
+  // Unlike that explicit button, an unsolicited card must not cost the reader an existing
+  // conversation: it starts a new thread only when there is none, and otherwise adds the
+  // question to the composer of the current one.
+  const hasThread = state.messages.length > 0;
   const askAboutPage = useCallback(
     (pageTitle: string) => {
-      clear();
+      if (!hasThread) {
+        clear();
+      }
       setPendingDraft(`I have a question about the "${pageTitle}" page.\n`);
       setOpen(true);
     },
-    [clear],
+    [clear, hasThread],
   );
 
   return (
@@ -200,7 +206,9 @@ export function DocsAssistantWidget() {
           onFeedback={setFeedback}
         />
       </aside>
-      {bubbleVisible && <ProactiveBubble onAsk={askAboutPage} onDismiss={dismissBubble} />}
+      {bubbleVisible && (
+        <ProactiveBubble onAsk={askAboutPage} onDismiss={dismissBubble} onFocusCovered={hideForFocus} />
+      )}
     </>
   );
 }
