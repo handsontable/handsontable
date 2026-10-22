@@ -1995,6 +1995,10 @@ export default function Core(
         editorManager.resumeStrandDiscards();
       }
 
+      // The index mapper update already asked for a full render, but a `hot.render()` a hook made from
+      // inside this call consumed that request and painted from state this call had not finished
+      // writing, such as the `colHeaders` array. A fast draw would keep that paint.
+      instance.forceFullRender = true;
       instance.view.render();
     },
 
