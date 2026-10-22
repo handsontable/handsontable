@@ -70,6 +70,79 @@ export class AlterRenderInHookHeadersPage {
   }
 
   /**
+   * Run `hot.alter()` in the page and return the message of the error it threw, or `null` when it did not throw.
+   */
+  async alterExpectingError(action: string, index: number, amount = 1): Promise<string | null> {
+    return this.page.evaluate(([a, i, n]) => {
+      try {
+        (window as any).hot.alter(a, i, n);
+      } catch (error) {
+        return (error as Error).message;
+      }
+
+      return null;
+    }, [action, index, amount] as const);
+  }
+
+  /**
+   * Give the six columns alternating widths (50, 200) and a fixed size, so the grid scrolls inside its own holder.
+   * The row headers go, so the columns alone decide how much of the scroll range is visible.
+   */
+  async useMixedColumnWidths(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as any).hot.updateSettings({
+        colWidths: [50, 200, 50, 200, 50, 200],
+        width: 300,
+        height: 300,
+        rowHeaders: false,
+      });
+    });
+  }
+
+  /**
+   * Make the next `afterSelection` call throw, once. The selection shift `alter()` makes after it rewrote the
+   * header array fires that hook.
+   */
+  async throwFromAfterSelectionOnce(): Promise<void> {
+    await this.page.evaluate(() => {
+      const hot = (window as any).hot;
+      let armed = true;
+
+      hot.addHook('afterSelection', () => {
+        if (armed) {
+          armed = false;
+          throw new Error('thrown from afterSelection');
+        }
+      });
+    });
+  }
+
+  /**
+   * Select a cell through the API.
+   */
+  async selectCell(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => (window as any).hot.selectCell(r, c), [row, col] as const);
+  }
+
+  /**
+   * Scroll the last column into view.
+   */
+  async scrollToLastColumn(): Promise<void> {
+    await this.page.evaluate(() => {
+      const hot = (window as any).hot;
+
+      hot.scrollViewportTo({ row: 0, col: hot.countCols() - 1 });
+    });
+  }
+
+  /**
+   * The first column the viewport shows in full.
+   */
+  async firstFullyVisibleColumn(): Promise<number> {
+    return this.page.evaluate(() => (window as any).hot.getFirstFullyVisibleColumn());
+  }
+
+  /**
    * The column labels the API reports, in visual order.
    */
   async apiColHeaders(): Promise<string[]> {
