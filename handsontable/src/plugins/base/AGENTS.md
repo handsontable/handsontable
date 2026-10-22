@@ -243,6 +243,7 @@ without a priority in registration order. Registering two plugins on the same pr
 | | | 245 | importFile |
 | 50 | columnSorting | 250 | filters |
 | 60 | comments | 260 | formulas |
+| | | 265 | formulaBuilder |
 | 70 | contextMenu | 270 | autoLink |
 | 80 | copyPaste | 280 | nestedHeaders |
 | 90 | customBorders | 290 | collapsibleColumns |
@@ -278,6 +279,10 @@ hook's callback list. Four load-bearing cases, so do not renumber casually:
 - MoveCells (25) and SelectionHandles (24) settle their drag state before DragToScroll (100) reads it in a hook.
 - ColumnSorting (50) before MultiColumnSorting (170).
 - UndoRedo (1000) last, so every other plugin's hooks are registered before it starts recording actions.
+- `formulaBuilder` (265) enables after `formulas` (260) because it borrows the engine at enable time. Its
+  three cell mouse listeners do NOT rely on priority: they are registered at order index `-1`, because a
+  reference pick must see the mousedown before NestedHeaders (280), ColumnSorting (50), and DragToScroll
+  (100), and priority stops ordering them after the first `updatePlugin()` (see `../formulaBuilder/AGENTS.md`).
 - `autoLink` (270) enables after `formulas` (260) so its `afterRenderer` runs after the HYPERLINK wrap on a fresh
   grid, but nothing relies on that: both `afterRenderer` callbacks converge from either order (see
   `../formulas/AGENTS.md`), because `updateSettings` can register `Formulas` later.

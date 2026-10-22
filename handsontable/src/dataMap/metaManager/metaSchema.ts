@@ -3062,6 +3062,7 @@ export default (): Record<string, unknown> => {
      * | `'date'`            | `DateEditor`                                                               |
      * | `'intl-date'`       | `IntlDateEditor`                                                           |
      * | `'dropdown'`        | `DropdownEditor`                                                           |
+     * | `'formula'`         | The [`FormulaBuilder`](@/api/formulaBuilder.md) formula editor (a plain text editor while that plugin is off) |
      * | `'handsontable'`    | `HandsontableEditor`                                                       |
      * | `'numeric'`         | `NumericEditor`                                                            |
      * | `'password'`        | `PasswordEditor`                                                           |
@@ -4069,6 +4070,59 @@ export default (): Record<string, unknown> => {
      * ```
      */
     fixedRowsTop: 0,
+
+    /**
+     * The `formulaBuilder` option configures the [`FormulaBuilder`](@/api/formulaBuilder.md) plugin.
+     *
+     * The [`FormulaBuilder`](@/api/formulaBuilder.md) plugin adds spreadsheet-style formula
+     * editing (a formula bar, an inline formula editor with colored references, reference
+     * picking, and formula error indicators) on top of the [`Formulas`](@/api/formulas.md) plugin,
+     * which must be enabled with a configured engine.
+     *
+     * You can set the `formulaBuilder` option to `false` (the plugin is off) or to an object with the
+     * following properties. There is no `true`: the plugin needs the `builder` module to run.
+     *
+     * | Property         | Possible values                                                 |
+     * | ---------------- | --------------------------------------------------------------- |
+     * | `builder`        | The `hyperformula-ui` module namespace (`import * as FormulaBuilderModule from 'hyperformula-ui'`). Required. |
+     * | `showFormulaBar` | A boolean. Renders the formula bar above the grid when `true`. Default: `false`. |
+     * | `popups`         | An object with the popup options: `showClose`, `suggestions`, `fnHelp`, and `error`. |
+     * | `direction`      | `'ltr'` or `'rtl'`. The layout direction of the editor and its popups. Default: the grid's layout direction. |
+     *
+     * Formula editing is opt-in per cell: set [`editor`](#editor) to `'formula'` on the cells,
+     * columns, or grid that use the formula editor.
+     *
+     * Read more:
+     * - [Formula builder](@/guides/formulas/formula-builder/formula-builder.md)
+     * - [Plugins: `Formulas`](@/api/formulas.md)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {object|boolean}
+     * @default undefined
+     * @category FormulaBuilder
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * import * as FormulaBuilderModule from 'hyperformula-ui';
+     * import { HyperFormula } from 'hyperformula';
+     *
+     * // the formula editor on every cell
+     * editor: 'formula',
+     * formulas: {
+     *   engine: HyperFormula,
+     * },
+     * formulaBuilder: {
+     *   builder: FormulaBuilderModule,
+     *   showFormulaBar: true,
+     * },
+     * ```
+     */
+    formulaBuilder: undefined,
 
     /**
      * The `formulas` option configures the [`Formulas`](@/api/formulas.md) plugin.

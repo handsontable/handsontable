@@ -12,6 +12,7 @@ import type {
   ColumnDataGetterSetterFunction, RemoveIndexSignature,
 } from '../settings';
 import type { ColumnConditions, FiltersSettings } from '../plugins/filters';
+import type { FormulaBuilderPluginSettings } from '../plugins/formulaBuilder';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
@@ -334,6 +335,7 @@ export interface GridSettings {
   emptyDataState?: boolean | object;
   filters?: boolean | FiltersSettings;
   filterValueComparator?: (a: unknown, b: unknown) => number;
+  formulaBuilder?: false | FormulaBuilderPluginSettings;
   formulas?: boolean | {
     engine: unknown;
     sheetName?: string;

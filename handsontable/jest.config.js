@@ -23,6 +23,8 @@ module.exports = {
     '<rootDir>/node_modules/'
   ],
   testRunner: 'jest-jasmine2',
+  // hyperformula-ui ships ES modules only; babel-jest must transform it like our own source.
+  transformIgnorePatterns: ['/node_modules/(?!(\\.pnpm/)?hyperformula-ui[@/])'],
   moduleNameMapper: {
     // The generated core stylesheet makes jsdom's `getComputedStyle` about 10x slower per grid.
     // See the mock's own comment, and `test/helpers/realCoreStyles.js` for specs that need it.

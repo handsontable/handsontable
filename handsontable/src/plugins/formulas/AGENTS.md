@@ -714,6 +714,14 @@ group and flips the winner. Only `addHook('beforeAutofill', cb, 1)` is independe
 `tests/e2e/formulas-before-autofill-precedence.spec.ts`. Do not change the plugin's `orderIndex` or its
 registration point without treating it as a behavior change.
 
+## Engine-detach listeners
+
+`addEngineDetachListener()` (`@private`) lets another plugin release what it subscribed on the engine
+before the engine goes away. The listeners run right before `unregisterEngine()` in `disablePlugin()`
+and `destroy()`, while the engine still works: an engine the plugin built itself is destroyed right
+after, when this grid was its last user. The FormulaBuilder plugin destroys its builder there. The
+listener set lives on the plugin instance across enable cycles and is cleared in `destroy()`.
+
 ## Where to look next
 
 - Sort-after-`#REF!` is a known limitation (DEV-917), not a remapping feature: `../columnSorting/AGENTS.md`.
