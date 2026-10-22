@@ -122,4 +122,24 @@ test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BR
 
     await grid.page.keyboard.press('Escape');
   });
+
+  test('the edit keeps the focus and its highlight when the application inserts a row', async({ page }) => {
+    await grid.selectCellByApi(3, 1);
+    await page.keyboard.type('=A1');
+    await expect(grid.editorInput).toBeFocused();
+    await expect(grid.cell(0, 0)).toHaveClass(/ht-formula-ref-/);
+
+    // The insert moves the selection, after which the grid focuses the selected cell unless the
+    // focused element is one of its own inputs.
+    await page.evaluate(() => (window as unknown as { hot: { alter(action: string, index: number): void } })
+      .hot.alter('insert_row_above', 0));
+
+    await expect(grid.editorInput).toBeFocused();
+    expect(await grid.editorOpened()).toBe(true);
+    // `A1` now names the inserted (empty) first row, and the highlight follows it.
+    await expect(grid.cell(0, 0)).toHaveClass(/ht-formula-ref-/);
+
+    await page.keyboard.press('Escape');
+  });
 });
+

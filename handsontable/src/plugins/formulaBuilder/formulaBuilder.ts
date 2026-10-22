@@ -61,6 +61,10 @@ const CELL_MOUSE_HOOK_ORDER = -1;
  */
 const CELL_ERROR_ATTRIBUTE = 'data-hfe-error';
 /**
+ * The class of the text field `hyperformula-ui` edits a formula in.
+ */
+const EDITOR_INPUT_SELECTOR = '.hfe-editor__input';
+/**
  * The attribute that carries a cell's error message to assistive technology.
  */
 const CELL_DESCRIPTION_ATTRIBUTE = A11Y_DESCRIPTION('')[0];
@@ -542,6 +546,7 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     this.#editorStartListeners.emit({ mount, seed });
+    this.#markEditorInputAsGridInput(mount);
 
     if (!this.#activeEditor) {
       if (!this.#builder.hasFormulaBar) {
@@ -1087,6 +1092,23 @@ export class FormulaBuilder extends BasePlugin {
     const command = direction === 'right' ? moveCellSelectionInlineStart : moveCellSelectionInlineEnd;
 
     command.callback(this.hot, event);
+  }
+
+  /**
+   * Marks the formula editor's text field as one of the grid's own inputs (`data-hot-input`), the way
+   * the text editor marks its `TEXTAREA`. After a selection change the focus manager moves the focus to
+   * the selected cell unless the focused element is a grid input, so without the mark a row inserted or
+   * removed while a formula is edited took the focus out of the open editor. The editor is shared, and
+   * mounted in the cell or in the formula bar, so both places are looked in.
+   *
+   * @param {HTMLElement} mount The inline editor mount.
+   */
+  #markEditorInputAsGridInput(mount: HTMLElement): void {
+    [mount, this.#formulaBarHost].forEach((root) => {
+      root?.querySelectorAll<HTMLElement>(EDITOR_INPUT_SELECTOR).forEach((input) => {
+        input.setAttribute('data-hot-input', '');
+      });
+    });
   }
 
   /**

@@ -181,6 +181,9 @@ function mountFallbackTextarea(editor: FormulaHostEditor & EditorHost & { contai
   const textarea = editor.hot.rootDocument.createElement('textarea');
 
   textarea.className = 'handsontableInput';
+  // A grid input, like the text editor's: the focus manager keeps the focus in it when the selection
+  // changes while it is open.
+  textarea.setAttribute('data-hot-input', '');
   // The same seed the formula editor gets: the cell value for Enter or F2, and an empty string when
   // typing opened the editor, so the typed character lands in an empty textarea.
   textarea.value = resolveInlineSeed(editor as SeedSourceEditor);

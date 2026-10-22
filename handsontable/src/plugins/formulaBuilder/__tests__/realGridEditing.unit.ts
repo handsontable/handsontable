@@ -365,6 +365,31 @@ describe('FormulaBuilder editing on a real grid', () => {
     });
   });
 
+  describe('the editor field is a grid input', () => {
+    it('marks the formula editor field with data-hot-input, so a selection change keeps the focus in it', () => {
+      createGrid();
+      hot.selectCell(1, 1);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 }, '=A1');
+
+      const input = container.querySelector('.ht-formula-builder__inline-editor .hfe-editor__input');
+
+      expect(input?.hasAttribute('data-hot-input')).toBe(true);
+    });
+
+    it('marks the plain textarea too while the plugin is off', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      createGrid({ formulaBuilder: {} });
+      warn.mockRestore();
+      hot.selectCell(1, 1);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+
+      const textarea = container.querySelector('.ht-formula-builder__inline-editor > textarea');
+
+      expect(textarea?.hasAttribute('data-hot-input')).toBe(true);
+    });
+  });
+
   describe('keys the formula editor does not handle', () => {
     /**
      * Returns the formula editor's text input.

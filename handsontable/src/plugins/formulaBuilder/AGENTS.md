@@ -126,6 +126,14 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 - **A drag past the viewport edge resolves through `getCellCoordsFromMousePosition()`.** The pick's edge
   auto-scroller calls `getCellAddressAt()` with the pointer outside the grid, where `elementFromPoint()`
   finds the scrollbar and the range would stop at the last rendered cell.
+- **The editor's text field must carry `data-hot-input`.** After every selection change the focus
+  manager focuses the selected cell and blurs the focused element unless `isOutsideInput()` says it is a
+  grid input, which it reads from that attribute. The text editor sets it on its `TEXTAREA`; the
+  `hyperformula-ui` field (`.hfe-editor__input`) and the plain fallback textarea do not have it on their
+  own, so an `alter()` while a formula was edited took the focus out of the open editor and the package
+  hid the highlights. `handleInlineEditStart()` marks the field in the cell and in the formula bar, and
+  the fallback marks its textarea. jsdom never reaches that blur, so the guard is the Playwright test
+  "the edit keeps the focus and its highlight when the application inserts a row".
 - **The shim's keyboard guard stops only the keys the formula editor handled.** A `keydown` the package
   handled has its default prevented; the guard stops it (and its `keypress`/`keyup`) at the wrapper so
   the grid's shortcuts do not handle it again. Every other key reaches the grid, so `beforeKeyDown` fires
