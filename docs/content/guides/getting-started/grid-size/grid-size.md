@@ -486,6 +486,8 @@ For live examples of both modes, see the [column stretching](@/guides/columns/co
 
 Handsontable observes window resizing. If the window's dimensions have changed, then we check if Handsontable should resize itself too. Due to the performance issue, we use the debounce method to respond on window resize.
 
+Handsontable also re-measures its rows and columns when the page finishes loading a web font. A font that loads after the grid renders changes the size of the text without changing the size of the container. Without the re-measure, wrapped rows would fall out of line with their row headers, and columns sized by [`autoColumnSize`](@/api/options.md#autocolumnsize) would cut off the wider text. The grid listens to the [CSS Font Loading API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Font_Loading_API) (`document.fonts`), so it needs no configuration.
+
 You can easily overwrite this behavior by returning `false` in the [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) hook.
 
 ::: only-for javascript
