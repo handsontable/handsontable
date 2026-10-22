@@ -17,7 +17,7 @@
     "slug": "accessibility-conformance-report",
     "url": "https://handsontable.com/docs/javascript-data-grid/accessibility-conformance-report/",
     "docsPath": "@/guides/accessibility/accessibility-conformance-report/accessibility-conformance-report.md",
-    "template": "VPAT 2.5 (October 2024)",
+    "template": "VPAT® 2.5 (October 2024)",
     "evaluatedProductVersion": null,
     "audit": {
       "auditor": "Kinaole",

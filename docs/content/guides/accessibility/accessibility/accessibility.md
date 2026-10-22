@@ -289,7 +289,7 @@ Handsontable keeps the grid accessible with the following measures:
 - An automated [axe-core](https://github.com/dequelabs/axe-core) scan with the WCAG 2.2 Level A and AA rule tags runs in CI on every change, on the three built-in themes, and reports every new finding.
 - Keyboard-only end-to-end tests prove the keyboard path and the accessible name of every surface you operate.
 - The {{$a11y.report.link}} states the result per success criterion. Version {{$a11y.report.next.version}} is {{$a11y.report.next.status}}: {{$a11y.report.next.scope}}.
-- Screen readers: {{$a11y.notes.automation}} {{$a11y.notes.mobile}}
+- Screen-reader testing with the matrix listed under [Support for screen readers](#support-for-screen-readers).
 
 ## Known limitations
 
