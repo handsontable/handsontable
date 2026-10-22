@@ -99,14 +99,19 @@ class IndexSyncer {
   }
 
   /**
-   * Holds or releases the order changes of both axes (see `AxisSyncer#setOrderHeld()`).
+   * Holds or releases the order changes of both axes (see `AxisSyncer#setOrderHeld()`). The column axis
+   * is released even when sending the row order throws: left held, no column order change would reach
+   * the engine until the plugin is turned off and on again.
    *
    * @param {boolean} held Whether the order is held.
    * @param {boolean} [syncOnRelease=true] Whether ending the hold sends the grid's current order.
    */
   setOrderHeld(held: boolean, syncOnRelease: boolean = true) {
-    this.#rowIndexSyncer.setOrderHeld(held, syncOnRelease);
-    this.#columnIndexSyncer.setOrderHeld(held, syncOnRelease);
+    try {
+      this.#rowIndexSyncer.setOrderHeld(held, syncOnRelease);
+    } finally {
+      this.#columnIndexSyncer.setOrderHeld(held, syncOnRelease);
+    }
   }
 
   /**

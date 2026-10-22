@@ -146,6 +146,26 @@ function trackedCellKey(row: number, col: number): string {
 const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
 
 /**
+ * The undo step types (and operation names) that insert, remove or move rows, columns or cells: the
+ * steps whose undo or redo makes the formula engine rewrite references other sheets hold.
+ */
+const STRUCTURAL_STEPS = new Set([
+  'insert_row', 'insert_col', 'remove_row', 'remove_col', 'row_move', 'col_move', 'move_cells',
+]);
+
+/**
+ * Whether a row or column insert or removal with this source reached the formula engine as it happened:
+ * the rows the minimum sizes add (`auto`) never do, and an undo or redo replays its rows before the engine
+ * is put back.
+ *
+ * @param {string} [source] The operation source.
+ * @returns {boolean}
+ */
+function isEngineChangingSource(source?: string): boolean {
+  return source !== 'auto' && !source?.startsWith('UndoRedo.');
+}
+
+/**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
  * compared element by element, plain objects key by key, and everything else — a class
  * instance such as a HyperFormula engine, a function, a DOM element — by reference, since a
@@ -241,6 +261,7 @@ interface SheetFormulas {
     getNamedExpressionValue?: (name: string, scope?: number) => unknown;
     addNamedExpression?: (name: string, expression: unknown, scope?: number, options?: unknown) => void;
     getCellFormula?: (address: { sheet: number, row: number, col: number }) => string | undefined;
+    normalizeFormula?: (formula: string) => string;
     on?: (event: string, listener: (changes: unknown[]) => void) => void;
     off?: (event: string, listener: (changes: unknown[]) => void) => void;
   };
@@ -412,6 +433,14 @@ export class SheetsBar extends BasePlugin {
    */
   #isRunningBeforeHook = false;
   /**
+   * Whether the last workbook change was canceled by its before-hook listener (`#commit`). A rename undo
+   * step reads it to tell a listener's veto, which keeps the step on its stack, from a rename that can no
+   * longer happen.
+   *
+   * @type {boolean}
+   */
+  #lastCommitCanceled = false;
+  /**
    * Holds every tab entrance, tab slide, and marker slide back until the grid has been painted:
    * the gate opens in the second animation frame after the render that armed it. Shut on a
    * genuine teardown, never on a workbook-preserving round trip, and armed by the first render
@@ -444,6 +473,13 @@ export class SheetsBar extends BasePlugin {
    * @type {boolean}
    */
   #isInitializing = false;
+  /**
+   * The engine changes the feeds of a workbook build caused, repainted once the build ends
+   * (`#repaintAfterBuild`).
+   *
+   * @type {Array<object>}
+   */
+  #changesToRepaint: Array<{ engine: NonNullable<SheetFormulas['engine']>, changes: unknown[] }> = [];
   /**
    * The ColumnSummary endpoints of each sheet the user left, at the positions they held then
    * (`#captureColumnSummary`).
@@ -738,6 +774,8 @@ export class SheetsBar extends BasePlugin {
         this.#isInitializing = false;
       }
 
+      this.#repaintAfterBuild();
+
       this.#lastActiveSheetSetting = this.getSetting('activeSheet');
     }
 
@@ -874,8 +912,10 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterCreateCol', this.#onAfterCreateAxisItems, 1);
     this.addHook('afterRemoveRow', this.#onAfterRemoveAxisItems, 1);
     this.addHook('afterRemoveCol', this.#onAfterRemoveAxisItems, 1);
-    ['afterRowMove', 'afterColumnMove', 'afterMoveCells', 'afterUndo', 'afterRedo'].forEach((hookName) => {
-      this.addHook(hookName as 'afterUndo', this.#onAfterStructureChange, 1);
+    this.addHook('afterUndo', this.#onAfterUndoRedo, 1);
+    this.addHook('afterRedo', this.#onAfterUndoRedo, 1);
+    ['afterRowMove', 'afterColumnMove', 'afterMoveCells'].forEach((hookName) => {
+      this.addHook(hookName as 'afterRowMove', this.#onAfterStructureChange, 1);
     });
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
@@ -1401,8 +1441,6 @@ export class SheetsBar extends BasePlugin {
             unknown as Record<string, unknown>;
           this.#captureColumnSummary(oldSheet);
           this.#captureCellOption(oldSheet);
-          this.#captureEngineOrder(oldSheet);
-          this.#captureFormulaText(oldSheet);
           this.#runBeforeChangeHook(() => {
             this.hot.runHooks('afterSheetTabStateCapture', oldId, oldSheet.viewState, source);
           });
@@ -1410,6 +1448,9 @@ export class SheetsBar extends BasePlugin {
           if (!this.#isLive(model)) {
             return false;
           }
+
+          this.#captureEngineOrder(oldSheet);
+          this.#captureFormulaText(oldSheet);
         }
 
         if (!this.#isEditingSettled()) {
@@ -2693,6 +2734,7 @@ export class SheetsBar extends BasePlugin {
     this.#runBeforeChangeHook(() => {
       canceled = this.hot.runHooks(beforeHook, ...beforeArgs, source) === false;
     });
+    this.#lastCommitCanceled = canceled;
 
     if (canceled || !this.#isLive(model)) {
       return false;
@@ -2716,7 +2758,12 @@ export class SheetsBar extends BasePlugin {
    * cancels, or the model rejects the name (collision with another sheet).
    */
   #commitRename(id: number, newName: string, source: string = SOURCE_UI): boolean {
-    const model = this.#model as SheetModel;
+    const model = this.#model;
+
+    if (!model) {
+      return false;
+    }
+
     const sheet = model.getSheetById(id);
 
     if (!sheet || typeof newName !== 'string') {
@@ -2763,8 +2810,10 @@ export class SheetsBar extends BasePlugin {
    * a redo renames it again). The steps recorded before it hold formula text with the old name, and the
    * engine knows only the new one: undoing an older row removal put `=Prices!A1` back into a workbook
    * whose sheet is `Costs`, and the cell showed `#REF!`. Undone in order, the rename goes first, and
-   * every older step meets the name its text was written with. A rename the hooks or a name collision
-   * refuse leaves the step on its stack.
+   * every older step meets the name its text was written with. Only a `beforeSheetTabRename` listener's
+   * veto leaves the step on its stack. A step whose bar was turned off or replaced, whose sheet was removed,
+   * or whose name another sheet took since, passes as done: kept on the stack, it was the step every undo
+   * hit again, and the older steps could not be reached. Nothing is recorded while UndoRedo is off.
    *
    * @param {number} id The renamed sheet.
    * @param {string} oldName Its name before the rename.
@@ -2772,13 +2821,30 @@ export class SheetsBar extends BasePlugin {
    * @param {string} source The operation source.
    */
   #recordRenameStep(id: number, oldName: string, newName: string, source: string) {
-    this.hot.getPlugin('undoRedo')?.done(() => ({
+    const undoRedo = this.hot.getPlugin('undoRedo');
+    const owner = this.#model;
+
+    if (!undoRedo?.enabled) {
+      return;
+    }
+
+    const replay = (name: string, replaySource: string): boolean => {
+      if (this.#model !== owner || !owner?.getSheetById(id)) {
+        return true;
+      }
+
+      this.#lastCommitCanceled = false;
+
+      return this.#commitRename(id, name, replaySource) || !this.#lastCommitCanceled;
+    };
+
+    undoRedo.done(() => ({
       actionType: 'rename_sheet',
       undo: (hot: HotInstance, callback: (result?: { wasUndone?: boolean }) => void) => {
-        callback({ wasUndone: this.#commitRename(id, oldName, 'UndoRedo.undo') });
+        callback({ wasUndone: replay(oldName, 'UndoRedo.undo') });
       },
       redo: (hot: HotInstance, callback: (result?: { wasRedone?: boolean }) => void) => {
-        callback({ wasRedone: this.#commitRename(id, newName, 'UndoRedo.redo') });
+        callback({ wasRedone: replay(newName, 'UndoRedo.redo') });
       },
     }), source);
   }
@@ -3324,11 +3390,44 @@ export class SheetsBar extends BasePlugin {
       engine.off?.('valuesUpdated', collect);
     }
 
+    if (this.#isInitializing) {
+      this.#changesToRepaint.push({ engine, changes });
+
+      return;
+    }
+
+    this.#repaintDependents(engine, changes, true);
+  }
+
+  /**
+   * Repaints the grids on `engine` whose sheets `changes` recalculated, through the Formulas plugin of the
+   * bar's grid, so only while it is bound to that engine.
+   *
+   * @param {object} engine The engine.
+   * @param {Array} changes The engine's changes.
+   * @param {boolean} renderSelf Whether the bar's own grid is repainted too.
+   */
+  #repaintDependents(engine: NonNullable<SheetFormulas['engine']>, changes: unknown[], renderSelf: boolean) {
     const formulas = this.hot.getPlugin('formulas');
 
     if (changes.length > 0 && this.hot.view && formulas?.enabled && formulas.engine === engine) {
-      formulas.renderDependentSheets(changes, true);
+      formulas.renderDependentSheets(changes, renderSelf);
     }
+  }
+
+  /**
+   * Repaints, once, the other grids that read the sheets a workbook build fed. A build feeds every sheet
+   * while the grid still shows the previous workbook, so a repaint per feed drew stale data once per sheet;
+   * the bar's own grid is drawn when the opening sheet is applied.
+   */
+  #repaintAfterBuild() {
+    const byEngine = new Map<NonNullable<SheetFormulas['engine']>, unknown[]>();
+
+    this.#changesToRepaint.forEach(({ engine, changes }) => {
+      byEngine.set(engine, (byEngine.get(engine) ?? []).concat(changes));
+    });
+    this.#changesToRepaint = [];
+    byEngine.forEach((changes, engine) => this.#repaintDependents(engine, changes, false));
   }
 
   /**
@@ -3711,20 +3810,35 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * `afterCreateRow`/`afterCreateCol` listener for `#onAfterStructureChange`. The rows and columns core
-   * appends for `minSpareRows` and the other minimum sizes (source `auto`) never reach the engine.
+   * appends for `minSpareRows` and the other minimum sizes (source `auto`) never reach the engine. An
+   * undo or redo replays its rows through `alter()` before the Formulas plugin puts the engine back, so
+   * its sync waits for `afterUndo`/`afterRedo` (`#onAfterUndoRedo`).
    */
   #onAfterCreateAxisItems = (index: number, amount: number, source?: string) => {
-    if (source !== 'auto') {
+    if (isEngineChangingSource(source)) {
       this.#onAfterStructureChange();
     }
   };
 
   /**
-   * `afterRemoveRow`/`afterRemoveCol` listener for `#onAfterStructureChange`, with the same `auto`
-   * exception as `#onAfterCreateAxisItems`.
+   * `afterRemoveRow`/`afterRemoveCol` listener for `#onAfterStructureChange`, with the same exceptions
+   * as `#onAfterCreateAxisItems`.
    */
   #onAfterRemoveAxisItems = (index: number, amount: number, physicalIndexes: number[], source?: string) => {
-    if (source !== 'auto') {
+    if (isEngineChangingSource(source)) {
+      this.#onAfterStructureChange();
+    }
+  };
+
+  /**
+   * `afterUndo`/`afterRedo` listener for `#onAfterStructureChange`, for a step that inserted, removed or
+   * moved rows, columns or cells. A step that changed only cells rewrites no reference, and every undo of
+   * an edit used to read the other sheets.
+   *
+   * @param {object} action The undone or redone step.
+   */
+  #onAfterUndoRedo = (action: { actionType?: string, operations?: string[] }) => {
+    if ([action.actionType, ...(action.operations ?? [])].some(name => STRUCTURAL_STEPS.has(name ?? ''))) {
       this.#onAfterStructureChange();
     }
   };
@@ -3754,11 +3868,16 @@ export class SheetsBar extends BasePlugin {
     }
 
     const quoteIfNeeded = this.#formulaQuoterFor(engine);
-    const needles = [activeName, formatSheetName(activeName, true)].map(name => name.toLowerCase());
+    const needles = [activeName, formatSheetName(activeName, true), '#ref!'].map(name => name.toLowerCase());
     const namesActiveSheet = (formula: string) => {
       const text = formula.toLowerCase();
 
       return needles.some(needle => text.includes(needle));
+    };
+    const readsAsEngineText = (cell: string, text: string) => {
+      const readable = quoteIfNeeded(cell);
+
+      return engine.validateFormula?.(readable) === true && engine.normalizeFormula?.(readable) === text;
     };
 
     this.#sheetRecords().forEach((sheet) => {
@@ -3790,7 +3909,7 @@ export class SheetsBar extends BasePlugin {
           const fromEngine = engine.getCellFormula!({ sheet: sheetId, row: engineRow, col: engineColumn });
           const text = typeof fromEngine === 'string' ? quoteIfNeeded(fromEngine) : cell;
 
-          if (text !== cell) {
+          if (text !== cell && !readsAsEngineText(cell, text)) {
             changes.push({ path, key: key as number | string, text });
           }
         });

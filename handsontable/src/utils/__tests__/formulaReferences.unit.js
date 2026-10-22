@@ -3,10 +3,10 @@ import {
 } from '../formulaReferences';
 
 describe('quoteUnreadableSheetNames', () => {
-  const startsWithDigit = name => !/^\d/.test(name);
+  const readableUnquoted = name => !/^\d/.test(name);
 
   it('quotes an unquoted name the engine cannot read and leaves the rest as written', () => {
-    expect(quoteUnreadableSheetNames('=2026!A1+Costs!B2+\'Q1 Data\'!C3', startsWithDigit))
+    expect(quoteUnreadableSheetNames('=2026!A1+Costs!B2+\'Q1 Data\'!C3', readableUnquoted))
       .toBe('=\'2026\'!A1+Costs!B2+\'Q1 Data\'!C3');
   });
 
@@ -22,6 +22,10 @@ describe('quoteUnreadableSheetNames', () => {
     const decomposed = 'Café';
 
     expect(quoteUnreadableSheetNames(`=${decomposed}!A1`, () => false)).toBe(`='${decomposed}'!A1`);
+  });
+
+  it('reads a name with a letter outside the Basic Multilingual Plane as one name', () => {
+    expect(quoteUnreadableSheetNames('=\u{20000}x!A1', () => false)).toBe('=\'\u{20000}x\'!A1');
   });
 
   it('returns a formula with no sheet reference without asking about any name', () => {
@@ -57,6 +61,18 @@ describe('rewriteSheetReferences', () => {
 
     expect(rewriteSheetReferences(formula, reference => (/^(value|ref)$/i.test(reference.name) ? 'Costs' : null)))
       .toBe('=IFERROR(A1,#VALUE!)+#REF!+Costs!A1+Costs!B2');
+  });
+
+  it('skips a string literal with an escaped quote and a `!` in it', () => {
+    expect(rewriteSheetReferences('="a""b!"&Prices!A1', rename('Prices', 'Costs'))).toBe('="a""b!"&Costs!A1');
+  });
+
+  it('returns a formula with an unclosed quote as it is', () => {
+    expect(rewriteSheetReferences('=\'O\'\'Brien!A1', rename('O\'Brien', 'Costs'))).toBe('=\'O\'\'Brien!A1');
+  });
+
+  it('reads a quoted name that holds a `!` as one name', () => {
+    expect(rewriteSheetReferences('=\'A!B\'!A1', rename('A!B', 'Costs'))).toBe('=Costs!A1');
   });
 
   it('leaves a name inside a string literal alone', () => {

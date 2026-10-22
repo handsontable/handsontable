@@ -1,8 +1,9 @@
 import { expect, type Locator, type Page } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { awaitBundle, type Bundle } from '../bundle';
 
 export type FormulasOrderWorkbook =
-  'sortedReport' | 'summary' | 'sortedData' | 'movedColumns' | 'sortedFormulas' | 'sortedSum' | 'showFormulas';
+  'sortedReport' | 'summary' | 'sortedData' | 'movedColumns' | 'sortedFormulas' | 'sortedSum' | 'showFormulas'
+  | 'quotedNames';
 
 /**
  * Page object for the sheets-bar-formulas-order fixture (fixtures/demo/sheets-bar-formulas-order.html):
@@ -12,10 +13,10 @@ export type FormulasOrderWorkbook =
 export class SheetsBarFormulasOrderPage {
   readonly page: Page;
   readonly theme: string;
-  readonly bundle: string;
+  readonly bundle: Bundle;
   readonly pageErrors: string[] = [];
 
-  constructor(page: Page, theme = 'main', bundle = 'umd') {
+  constructor(page: Page, theme = 'main', bundle: Bundle = 'umd') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
@@ -73,6 +74,17 @@ export class SheetsBarFormulasOrderPage {
     return this.page.evaluate(([sheetName, sheetData]) => {
       window.hot.getPlugin('sheetsBar').addSheet(sheetName as string, sheetData as unknown[][]);
     }, [name, data]);
+  }
+
+  /**
+   * Selects a cell, presses Enter to open its editor, and returns the text the editor shows.
+   */
+  async openEditor(row: number, col: number): Promise<string> {
+    await this.page.evaluate(([r, c]) => window.hot.selectCell(r, c), [row, col]);
+    await this.page.keyboard.press('Enter');
+    await expect.poll(() => this.page.evaluate(() => window.hot.getActiveEditor()?.isOpened() ?? false)).toBe(true);
+
+    return this.page.evaluate(() => String(window.hot.getActiveEditor()!.getValue()));
   }
 
   sort(column: number, sortOrder: 'asc' | 'desc'): Promise<void> {

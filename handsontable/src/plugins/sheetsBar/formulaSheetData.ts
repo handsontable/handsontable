@@ -38,6 +38,7 @@ export interface FormulaTextChange {
   path: number[];
   key: CellKey;
   text: string;
+  keyParts?: CellKey[];
 }
 
 /**
@@ -256,13 +257,13 @@ export function toEngineContent(data: unknown[], settings: SheetLayoutSettings):
  */
 export function collectFormulaTextChanges(data: unknown[], rewrite: (formula: string) => string): FormulaTextChange[] {
   const changes: FormulaTextChange[] = [];
-  const scan = (value: unknown, path: number[], key: string | null) => {
+  const scan = (value: unknown, path: number[], keyParts: string[]) => {
     if (typeof value === 'string') {
-      if (key !== null && value.startsWith('=')) {
+      if (keyParts.length > 0 && value.startsWith('=')) {
         const text = rewrite(value);
 
         if (text !== value) {
-          changes.push({ path, key, text });
+          changes.push({ path, key: keyParts.join('.'), keyParts, text });
         }
       }
 
@@ -275,7 +276,7 @@ export function collectFormulaTextChanges(data: unknown[], rewrite: (formula: st
 
     Object.keys(value as object).forEach((childKey) => {
       if (childKey !== '__children') {
-        scan((value as Record<string, unknown>)[childKey], path, key === null ? childKey : `${key}.${childKey}`);
+        scan((value as Record<string, unknown>)[childKey], path, keyParts.concat(childKey));
       }
     });
   };
@@ -292,7 +293,7 @@ export function collectFormulaTextChanges(data: unknown[], rewrite: (formula: st
         }
       });
     } else {
-      scan(row, path, null);
+      scan(row, path, []);
     }
   });
 
@@ -380,7 +381,7 @@ export function isChangeTargetFrozen(data: unknown[], change: FormulaTextChange)
  * @returns {Array}
  */
 export function writeFormulaTextChanges(data: unknown[], changes: FormulaTextChange[]): unknown[] {
-  return changes.reduce<unknown[]>((current, { path, key, text }) => {
+  return changes.reduce<unknown[]>((current, { path, key, keyParts, text }) => {
     const parts: CellKey[] = [];
     let row: unknown = current;
 
@@ -395,7 +396,7 @@ export function writeFormulaTextChanges(data: unknown[], changes: FormulaTextCha
     });
 
     return withValueAt(
-      current as unknown as Record<number, unknown>, parts.concat(toKeyParts(row, key)), text,
+      current as unknown as Record<number, unknown>, parts.concat(keyParts ?? toKeyParts(row, key)), text,
     ) as unknown as unknown[];
   }, data);
 }

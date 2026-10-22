@@ -27,6 +27,25 @@ test.describe('SheetsBar formulas across a sorted or moved sheet', { tag: BUNDLE
     });
   });
 
+  test.describe('sheet names HyperFormula reads only in quotes', () => {
+    test('opens the editor on the quoted name and keeps the value when Enter commits it', async() => {
+      await grid.goto('quotedNames');
+      await expect(grid.cell(0, 0)).toHaveText('7');
+
+      expect(await grid.openEditor(0, 0)).toBe('=\'Лист2\'!A1');
+      await grid.page.keyboard.press('Enter');
+      await expect(grid.cell(0, 0)).toHaveText('7');
+
+      expect(await grid.renameSheet('Prices', '2026')).toBe(true);
+      await expect(grid.cell(0, 1)).toHaveText('99');
+
+      expect(await grid.openEditor(0, 1)).toBe('=\'2026\'!A1');
+      await grid.page.keyboard.press('Enter');
+      await expect(grid.cell(0, 1)).toHaveText('99');
+      expect(await grid.consoleMessages()).toEqual([]);
+    });
+  });
+
   test.describe('remove and add', () => {
     test('repaints a formula that reads a sheet removed and added again', async() => {
       await grid.goto('sortedReport');
@@ -96,23 +115,24 @@ test.describe('SheetsBar formulas across a sorted or moved sheet', { tag: BUNDLE
       await expect(grid.cell(1, 0)).toHaveText('7');
     });
 
-    const changes: Array<[string, (page: SheetsBarFormulasOrderPage) => Promise<void>]> = [
-      ['a row inserted', page => page.alter('insert_row_above', 0)],
-      ['a row removed', page => page.alter('remove_row', 0)],
-      ['a formula edited', page => page.setDataAtCell(0, 1, '=A1*100')],
+    const changes: Array<[string, (page: SheetsBarFormulasOrderPage) => Promise<void>, unknown[][]]> = [
+      ['a row inserted', page => page.alter('insert_row_above', 0), [[null, null], [1, 10], [2, 20], [3, 30]]],
+      ['a row removed', page => page.alter('remove_row', 0), [[2, 20], [3, 30]]],
+      ['a formula edited', page => page.setDataAtCell(0, 1, '=A1*100'), [[1, 100], [2, 20], [3, 30]]],
     ];
 
-    changes.forEach(([name, change]) => {
+    changes.forEach(([name, change, expected]) => {
       test(`keeps the values of a sorted sheet after ${name}`, async() => {
         await grid.goto('sortedFormulas');
         await grid.sort(0, 'asc');
+
+        expect(await grid.getData()).toEqual([[1, 10], [2, 20], [3, 30]]);
+
         await change(grid);
 
-        const before = await grid.getData();
-
+        expect(await grid.getData()).toEqual(expected);
         expect(await grid.switchTo('Other', 'Sheet')).toEqual([true, true]);
-
-        expect(await grid.getData()).toEqual(before);
+        expect(await grid.getData()).toEqual(expected);
       });
     });
 

@@ -341,10 +341,10 @@ A sheet added at runtime, with the add button or with `addSheet()` without `sett
 - The grid holds one sheet at a time, so methods such as [`getData()`](@/api/core.md#getdata) and [`getDataAtCell()`](@/api/core.md#getdataatcell) read only the active sheet.
 - Passing a changed `sheets` value to [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the workbook and drops sheets added with `addSheet()`. A `sheets` value counts as unchanged when it has the same number of sheets, and each has the same `name`, `settings` with the same content (functions and class instances are compared by reference), and the same `data` array. In framework wrappers, keep your `data` arrays stable. Changing only `controls`, `paging`, or `position` never rebuilds the workbook.
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
-- A sorted sheet, or a sheet with moved rows or columns, comes back with the formulas HyperFormula holds for it. To change such a sheet's cells while it isn't shown, pass a new `data` array: a change made in place to the array it was shown with isn't seen.
+- A sorted sheet, or a sheet with moved rows or columns, comes back with the formulas HyperFormula holds for it, so an in-place change to its `data` while it isn't shown isn't seen. To change it, pass a new `sheets` value, which rebuilds the workbook.
 - After a rename, `getSettings().formulas.sheetName` keeps the old name. The grid stays bound to the renamed sheet.
 - Renaming a sheet, or inserting, removing, or moving rows or columns, rewrites formula text in your `data` arrays.
-- A frozen `data` array (for example, from Immer) isn't written. The sheets bar uses a copy, so update your store yourself.
+- A frozen `data` array (for example, from Immer) isn't written. The sheets bar uses a copy, so update your store yourself. On the active sheet, such a rename also clears the undo history.
 - If the window scrolls the grid (no [`height`](@/api/options.md#height) and no scrollable parent), the bar sits below the last row. To keep it in view, set `height`, or put the grid in a container with a fixed height and `overflow: auto`.
 
 ## Related keyboard shortcuts

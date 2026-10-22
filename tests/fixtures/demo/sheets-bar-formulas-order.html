@@ -35,6 +35,7 @@
       sortedFormulas: 'sortedFormulas',
       sortedSum: 'sortedSum',
       showFormulas: 'showFormulas',
+      quotedNames: 'quotedNames',
     })[htParams.get('workbook') ?? 'sortedReport'];
     if (!window.htWorkbook) {
       throw new Error('Unknown ?workbook= value: ' + JSON.stringify(htParams.get('workbook')));
@@ -56,6 +57,7 @@
       each, and 'Other'.
     - sortedSum: 'Sheet' (`columnSorting`) with 1, 2, 3 and `=SUM(A1:A3)` in B2, and 'Other'.
     - showFormulas: 'F1' and 'F2' with a formula, and 'Plain' with no formulas.
+    - quotedNames: 'Report' with `=Лист2!A1` and `=Prices!A1`, 'Лист2' with 7, and 'Prices' with 99.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -116,6 +118,11 @@
       sortedSum: [
         bound('Sheet', [[1, null], [2, '=SUM(A1:A3)'], [3, null]], { columnSorting: true }),
         bound('Other', [['x']]),
+      ],
+      quotedNames: [
+        bound('Report', [['=Лист2!A1', '=Prices!A1']]),
+        bound('Лист2', [[7]]),
+        bound('Prices', [[99]]),
       ],
       showFormulas: [
         bound('F1', [[1, '=A1+1']]),

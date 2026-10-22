@@ -507,9 +507,6 @@ const hotSettings2 = ref({
 
 ### Multiple Handsontable instances with an external shared HyperFormula instance
 
-Build the HyperFormula instance once, for example with `useMemo` in React: passing a new instance in
-`formulas.engine` moves the grid to that engine.
-
 ::: only-for javascript
 
 ```js

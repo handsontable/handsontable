@@ -136,6 +136,51 @@ describe('SheetsBar formula sheets', () => {
       expect(hot.getDataAtCell(0, 0)).toBe(198);
     });
 
+    it('lets undo pass a rename step whose bar was turned off, and never renames a sheet of a new workbook', () => {
+      const engine = buildEngine();
+
+      hot = build([boundSheet(engine, 'Report', [['=Prices!A1']]), boundSheet(engine, 'Prices', [[99]])]);
+      sheetsBar().renameSheet(idOf('Prices'), 'Costs');
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(() => hot.getPlugin('undoRedo').undo()).not.toThrow();
+
+      hot.updateSettings({ sheetsBar: true });
+      hot.getPlugin('undoRedo').undo();
+
+      expect(sheetsBar().getSheets().map(sheet => sheet.name)).not.toContain('Prices');
+    });
+
+    it('lets undo pass a rename step of a sheet removed since, and reach the older steps', () => {
+      const engine = buildEngine();
+      const undoRedo = () => hot.getPlugin('undoRedo');
+
+      hot = build([boundSheet(engine, 'Report', [['=Prices!A1', 'x']]), boundSheet(engine, 'Prices', [[99]])]);
+      hot.setDataAtCell(0, 1, 'y');
+      sheetsBar().renameSheet(idOf('Prices'), 'Costs');
+      sheetsBar().removeSheet(idOf('Costs'));
+
+      undoRedo().undo();
+      undoRedo().undo();
+
+      expect(hot.getDataAtCell(0, 1)).toBe('x');
+      expect(undoRedo().isUndoAvailable()).toBe(false);
+    });
+
+    it('records no rename step while undo is off', () => {
+      const engine = buildEngine();
+
+      hot = new Handsontable(container, {
+        sheetsBar: { sheets: [boundSheet(engine, 'Report', [['=Prices!A1']]), boundSheet(engine, 'Prices', [[99]])] },
+        undo: false,
+        licenseKey: LICENSE_KEY,
+      });
+      sheetsBar().renameSheet(idOf('Prices'), 'Costs');
+      hot.updateSettings({ undo: true });
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+    });
+
     it('is undone before an older row removal, so the removed formula reads its sheet again', () => {
       const engine = buildEngine();
       const undoRedo = () => hot.getPlugin('undoRedo');
@@ -276,6 +321,16 @@ describe('SheetsBar formula sheets', () => {
       expect(rows[0].totals.sum).toBe('=Costs!A1');
     });
 
+    it('renames a reference under a nested key that holds a dot, and adds no key', () => {
+      const engine = buildEngine();
+      const rows = [{ a: { 'b.c': '=Prices!A1' } }];
+
+      hot = build([boundSheet(engine, 'Prices', [[99]]), boundSheet(engine, 'Report', rows)]);
+      sheetsBar().renameSheet(idOf('Prices'), 'Costs');
+
+      expect(rows[0].a).toEqual({ 'b.c': '=Costs!A1' });
+    });
+
     it('renames the references of a NestedRows tree at the rows they were written in', () => {
       const engine = buildEngine();
       const tree = [
@@ -330,7 +385,129 @@ describe('SheetsBar formula sheets', () => {
     });
   });
 
+  describe('a workbook rebuild', () => {
+    it('repaints another grid that reads the fed sheets once, with the new values', () => {
+      const engine = buildEngine();
+      const otherContainer = document.createElement('div');
+      const sheets = values => [
+        boundSheet(engine, 'A', [[0]]),
+        boundSheet(engine, 'B', [[values[0]]]),
+        boundSheet(engine, 'C', [[values[1]]]),
+        boundSheet(engine, 'D', [[values[2]]]),
+      ];
+
+      document.body.appendChild(otherContainer);
+      hot = build(sheets([1, 2, 3]));
+
+      const other = new Handsontable(otherContainer, {
+        data: [['=B!A1', '=C!A1', '=D!A1']],
+        formulas: { engine, sheetName: 'Other' },
+        licenseKey: LICENSE_KEY,
+      });
+      let renders = 0;
+
+      other.addHook('afterRender', () => {
+        renders += 1;
+      });
+      hot.updateSettings({ sheetsBar: { sheets: sheets([4, 5, 6]) } });
+
+      expect(other.getDataAtRow(0)).toEqual([4, 5, 6]);
+      expect(renders).toBe(1);
+
+      other.destroy();
+      otherContainer.remove();
+    });
+  });
+
+  describe('other sheets after a structural change', () => {
+    it('brings back a reference an undone row removal turned into #REF!', () => {
+      const engine = buildEngine();
+      const summary = [['=Data!A5']];
+
+      hot = build([boundSheet(engine, 'Data', [[10], [20], [30], [40], [50]]), boundSheet(engine, 'Summary', summary)]);
+      hot.alter('remove_row', 4);
+
+      expect(summary[0][0]).toBe('=#REF!');
+
+      hot.getPlugin('undoRedo').undo();
+
+      expect(summary[0][0]).toBe('=Data!A5');
+    });
+
+    it('keeps the text the host wrote when no reference moved', () => {
+      const engine = buildEngine();
+      const summary = [['=sum(data!a1:a2)', '=data!a5']];
+
+      hot = build([boundSheet(engine, 'Data', [[10], [20], [30], [40], [50]]), boundSheet(engine, 'Summary', summary)]);
+      hot.alter('insert_row_above', 3);
+
+      expect(summary[0]).toEqual(['=sum(data!a1:a2)', '=Data!A6']);
+    });
+
+    it('reads no other sheet when an undone step changed only cells', () => {
+      const engine = buildEngine();
+
+      hot = build([boundSheet(engine, 'Data', [[10], [20]]), boundSheet(engine, 'Summary', [['=Data!A1']])]);
+      hot.setDataAtCell(0, 0, 11);
+
+      const read = jest.spyOn(engine, 'getCellFormula');
+
+      hot.getPlugin('undoRedo').undo();
+      hot.getPlugin('undoRedo').redo();
+
+      expect(read).not.toHaveBeenCalled();
+    });
+  });
+
   describe('engine order', () => {
+    it('calculates a sheet that declares a row move order on its first visit as a plain grid does', () => {
+      const rows = () => [[1, '=A1*10'], [2, '=A2*10'], [3, '=A3*10'], ['=A1+A2', '=SUM(A1:A3)']];
+      const plainContainer = document.createElement('div');
+
+      document.body.appendChild(plainContainer);
+
+      const plainEngine = buildEngine();
+      const plain = new Handsontable(plainContainer, {
+        data: rows(),
+        manualRowMove: [2, 0, 1],
+        formulas: { engine: plainEngine, sheetName: 'A' },
+        licenseKey: LICENSE_KEY,
+      });
+      const expected = { data: plain.getData(), engine: plainEngine.getSheetSerialized(plainEngine.getSheetId('A')) };
+
+      plain.destroy();
+      plainContainer.remove();
+
+      const engine = buildEngine();
+
+      hot = build([boundSheet(engine, 'B', [[9]]), boundSheet(engine, 'A', rows(), { manualRowMove: [2, 0, 1] })]);
+      sheetsBar().setActiveSheet('A');
+
+      expect(hot.getData()).toEqual(expected.data);
+      expect(engine.getSheetSerialized(engine.getSheetId('A'))).toEqual(expected.engine);
+    });
+
+    it('keeps each row reading its own cells when a listener sorts the sheet as it is left', () => {
+      const engine = buildEngine();
+      let sortOnLeave = true;
+
+      hot = build([
+        boundSheet(engine, 'A', [[1, '=A1*10'], [3, '=A2*10'], [2, '=A3*10']], { columnSorting: true }),
+        boundSheet(engine, 'B', [[9]]),
+      ]);
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+      hot.addHook('afterSheetTabStateCapture', () => {
+        if (sortOnLeave) {
+          sortOnLeave = false;
+          hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+        }
+      });
+      sheetsBar().setActiveSheet('B');
+      sheetsBar().setActiveSheet('A');
+
+      expect(hot.getData().map(([value, formula]) => formula - (value * 10))).toEqual([0, 0, 0]);
+    });
+
     it('brings back a sorted sheet that declares a row move order', () => {
       const engine = buildEngine();
 

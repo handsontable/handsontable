@@ -1,4 +1,5 @@
 import AxisSyncer from '../../indexSyncer/axisSyncer';
+import IndexSyncer from '../../indexSyncer';
 
 /**
  * Builds an index mapper stub whose sequence a test can replace.
@@ -60,7 +61,48 @@ describe('AxisSyncer while the order is held', () => {
     expect([0, 1, 2].map(physicalRow => axisSyncer.getHfIndexFromPhysicalIndex(physicalRow))).toEqual([1, 2, 0]);
   });
 
-  it('sends no move and keeps the engine order, and sends the order the grid ends on once released', () => {
+  it('sends the order the grid ends on once, when the hold is released', () => {
+    const engine = createRecordingEngine();
+    const indexMapper = createMockIndexMapper([0, 1, 2]);
+    const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
+
+    axisSyncer.setOrderHeld(true);
+    indexMapper.state.indexesSequence = [2, 0, 1];
+    axisSyncer.getIndexesChangeSyncMethod()('update');
+    indexMapper.state.indexesSequence = [1, 2, 0];
+    axisSyncer.getIndexesChangeSyncMethod()('update');
+
+    expect(engine.calls).toEqual([]);
+
+    axisSyncer.setOrderHeld(false);
+
+    expect(engine.calls).toEqual([['setRowOrder', 0, [2, 0, 1]]]);
+  });
+
+  it('releases the column axis when sending the row order throws', () => {
+    const calls = [];
+    const engine = {
+      getSheetDimensions: () => ({ width: 2, height: 2 }),
+      getSheetName: () => 'Sheet1',
+      setRowOrder: () => {
+        throw new Error('row order');
+      },
+      setColumnOrder: (...args) => calls.push(args),
+    };
+    const rows = createMockIndexMapper([0, 1]);
+    const columns = createMockIndexMapper([0, 1]);
+    const indexSyncer = new IndexSyncer(rows, columns, () => {});
+
+    indexSyncer.setupSyncEndpoint(engine, 0);
+    indexSyncer.setOrderHeld(true);
+    rows.state.indexesSequence = [1, 0];
+    columns.state.indexesSequence = [1, 0];
+
+    expect(() => indexSyncer.setOrderHeld(false)).toThrow('row order');
+    expect(calls).toEqual([[0, [1, 0]]]);
+  });
+
+  it('sends no move and keeps the engine order while held', () => {
     const engine = createRecordingEngine();
     const indexMapper = createMockIndexMapper([0, 1, 2]);
     const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));

@@ -125,16 +125,25 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `quoteUnreadableSheetNames()`, and so does every feed of a sheet's data into the engine
   (`#readableEngineContent()`), so `=Лист2!A1` in a sheet not shown yet calculates too. A rename that renamed an engine sheet is one undo step (`#recordRenameStep()`, the
   legacy `done()` path): the steps before it hold text with the old name, so undoing an older row
-  removal against the renamed engine read `#REF!`; undone in order, the rename goes first. A
-  rename that only changes the case of the name renames that one engine sheet, not a collision
+  removal against the renamed engine read `#REF!`; undone in order, the rename goes first. The step
+  is recorded only while UndoRedo is on and keeps the model it was made in: replayed after the bar was
+  turned off or rebuilt, after its sheet was removed, or when another sheet took the name, it passes as
+  done (`#lastCommitCanceled` keeps a `beforeSheetTabRename` veto on the stack, nothing else), or it
+  threw on a `null` model and every later undo hit it again. Renaming an active sheet whose data the
+  host froze goes through `updateData()`, which clears the undo history (a known limitation in the
+  guide). A rename that only changes the case of the name renames that one engine sheet, not a collision
   (`isOtherEngineSheet()` compares sheet ids). After a structural change on the active sheet
   (rows or columns inserted, removed or moved, cells moved, or undo/redo of one) the engine's
-  rewritten text is copied into the inactive sheets' data (`#syncInactiveSheetsFromEngine()`):
+  rewritten text is copied into the inactive sheets' data (`#syncInactiveSheetsFromEngine()`; for
+  undo and redo only after a structural step, `#onAfterUndoRedo`, once the restore is complete, so the
+  row hooks of the replay itself are skipped):
   HyperFormula moves `=Data!A5` to `=Data!A6` inside itself, and the Formulas plugin writes the
   new text back only for the grids it knows. Only a sheet the engine holds in physical order is
-  written, and only its formula cells whose text names the active sheet are read, one by one
-  (`getCellFormula`): serializing every inactive sheet made each insert, removal, move and undo pay
-  for the whole workbook (+21% per `alter` on five 10,000 x 5 sheets, measured). **The bar feeds,
+  written, and only its formula cells whose text names the active sheet, or holds `#REF!` (an undone
+  removal brings the reference back), are read, one by one. A cell is written only when its references
+  differ: the host's own text (`=sum(data!a1)`) is kept when the engine's normalized text of it is the
+  same. Reading cell by cell (`getCellFormula`) replaced serializing every inactive sheet, which made
+  each insert, removal, move and undo pay for the whole workbook (+21% per `alter` on five 10,000 x 5 sheets, measured). **The bar feeds,
   copies back and renames through one column layout** (`getEngineColumnLayout()` in
   `formulaSheetData.ts`), the one the Formulas plugin feeds a shown sheet with: array rows as they
   are unless `columns` or `maxCols` leaves data columns out, then the shown columns only; object rows
@@ -150,7 +159,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `valuesUpdated` changes and repaints the grids that read them (`Formulas#renderDependentSheets()`):
   the Formulas plugin repaints only after its own engine calls, so a formula reading a sheet the bar
   removed kept painting its old value. It repaints only while the bar's grid is bound to that
-  engine. A removed sheet is removed
+  engine, and a workbook build repaints once when it ends (`#repaintAfterBuild`), not once per fed
+  sheet while the grid still shows the previous workbook. A removed sheet is removed
   from the engine; a duplicate binds to an engine sheet of its own, with its references to its
   own sheet name pointed at the copy and the original's sheet-scoped named expressions copied
   before its content is fed (`#registerFormulaCopy()`); a runtime-added sheet with
@@ -185,7 +195,9 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   length takes the engine sheet over (`#engineOrderToAdopt`): the load writes nothing and adopts the
   order, which the restored grid order then matches, so nothing is sent at all. A host that replaced
   or resized the data while the sheet was away gets the plain load (and the old re-sort). A host
-  that changed cells in place on an away sorted sheet is not seen; nothing documents that path.
+  that changed cells in place on an away sorted sheet is not seen; the sheets bar guide's known
+  limitations and the wrapper `AGENTS.md` pitfall tables say so. The order is captured after the
+  `afterSheetTabStateCapture` listeners, so a sort one of them makes is part of it.
   A sorted inactive sheet's data keeps its old text: the bar does not copy engine text into it
   (`#syncInactiveSheetsFromEngine` skips it), and a rename rewrites only the name in it. Pinned by
   `tests/e2e/sheets-bar-formulas-order.spec.ts`.

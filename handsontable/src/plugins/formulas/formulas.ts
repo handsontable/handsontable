@@ -1366,9 +1366,18 @@ export class Formulas extends BasePlugin {
         return row;
       }
 
-      const readable = row.map(cell => this.#readableFormula(cell));
+      let readable: unknown[] | null = null;
 
-      return readable.some((cell, index) => cell !== row[index]) ? readable : row;
+      row.forEach((cell: unknown, index: number) => {
+        const text = this.#readableFormula(cell);
+
+        if (text !== cell) {
+          readable ??= row.slice();
+          readable[index] = text;
+        }
+      });
+
+      return readable ?? row;
     }) as T;
   }
 
@@ -1400,16 +1409,25 @@ export class Formulas extends BasePlugin {
    * the sheets bar switched between sheets bound to two engines, the edits of the second landed in a
    * copy of its sheet inside the first engine, and the formulas of the second engine never saw them.
    * The old engine's sheet is left where it is, and the plugin binds the sheet the settings name in the
-   * new engine. An engine class (or `{ hyperformula }`) builds an engine of the plugin's own, so it counts
-   * as a change only when the current engine is an instance the host passed: kept on that instance, a sheet
-   * that passes the class wrote itself into another sheet's engine.
+   * new engine.
+   *
+   * An instance counts only when it already holds the sheet `sheetName` names, as every engine the sheets
+   * bar binds does. A component that builds a new, empty engine on every render (the React examples do)
+   * keeps the grid on its first engine, as before: following it moved the grid to an empty engine on every
+   * render. An engine class (or `{ hyperformula }`) builds an engine of the plugin's own, so it counts only
+   * while a load is pending (a sheets bar switch) and the current engine is an instance the host passed:
+   * kept on that instance, a sheet that passes the class wrote itself into another sheet's engine.
    *
    * @param {object} newSettings The settings update.
    */
   #followEngineChange(newSettings: Record<string, unknown>) {
     const engine = this.#readEngineSetting();
-    const fromClass = isEngineClassSetting(engine);
-    const changed = fromClass ? !this.#engineBuiltFromClass : isObject(engine) && engine !== this.engine;
+    const sheetName = this.#readSheetNameSetting();
+    const holdsSheet = sheetName !== undefined && isObject(engine)
+      && (engine as { doesSheetExist?: (name: string) => boolean }).doesSheetExist?.(sheetName) === true;
+    const changed = isEngineClassSetting(engine)
+      ? !this.#engineBuiltFromClass && this.isDataLoadPending()
+      : isObject(engine) && engine !== this.engine && holdsSheet;
 
     if (!this.enabled || !hasOwnProperty(newSettings, PLUGIN_KEY) || !changed) {
       return;
@@ -3163,7 +3181,7 @@ export class Formulas extends BasePlugin {
 
     sourceDataArray.forEach((rowData: unknown[], arrayRowIndex: number) => {
       const physicalRow = rowOffset + arrayRowIndex;
-      const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
+      const visualRow = escapesText ? (this.hot.toVisualRow(physicalRow) ?? physicalRow) : physicalRow;
 
       rowData.forEach((cellValue: unknown, arrayColumnIndex: number) => {
         if (typeof cellValue !== 'string') {
@@ -3171,7 +3189,9 @@ export class Formulas extends BasePlugin {
         }
 
         if (isFormula(cellValue)) {
-          sourceDataArray[arrayRowIndex][arrayColumnIndex] = this.#readableFormula(cellValue);
+          if (cellValue.includes('!')) {
+            sourceDataArray[arrayRowIndex][arrayColumnIndex] = this.#readableFormula(cellValue);
+          }
 
           return;
         }

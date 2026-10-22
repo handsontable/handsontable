@@ -23,6 +23,30 @@ function isNameCharacter(character: string | undefined): boolean {
 }
 
 /**
+ * Returns the whole character (code point) that starts at `index`, so a letter outside the Basic
+ * Multilingual Plane is read as one character, not as two halves of a surrogate pair.
+ */
+function characterAt(formula: string, index: number): string | undefined {
+  const codePoint = formula.codePointAt(index);
+
+  return codePoint === undefined ? undefined : String.fromCodePoint(codePoint);
+}
+
+/**
+ * Returns the whole character (code point) that ends right before `index`.
+ */
+function characterBefore(formula: string, index: number): string | undefined {
+  if (index <= 0) {
+    return undefined;
+  }
+
+  const low = formula.charCodeAt(index - 1);
+  const start = low >= 0xDC00 && low <= 0xDFFF && index >= 2 ? index - 2 : index - 1;
+
+  return characterAt(formula, start);
+}
+
+/**
  * Returns the index right after an error literal that starts at `start` (`#DIV/0!`, `#N/A`, `#NAME?`, or a
  * translated one): the `#`, the word, and its closing `!` or `?` when there is one. Read as a name, the word
  * in front of the `!` looked like a sheet reference, and quoting it turned `#DIV/0!` into `#DIV/'0'!`.
@@ -100,8 +124,8 @@ export function rewriteSheetReferences(formula: string, rewrite: (reference: She
   let index = 0;
 
   while (index < formula.length) {
-    const character = formula[index];
-    let end = index + 1;
+    const character = characterAt(formula, index)!;
+    let end = index + character.length;
     let reference: SheetReference | null = null;
 
     if (character === '"') {
@@ -116,9 +140,11 @@ export function rewriteSheetReferences(formula: string, rewrite: (reference: She
       end = quoted?.end ?? formula.length;
       reference = quoted !== null && formula[end] === '!' ? { name: quoted.name, quoted: true } : null;
 
-    } else if (isNameCharacter(character) && !isNameCharacter(formula[index - 1])) {
-      while (isNameCharacter(formula[end])) {
-        end += 1;
+    } else if (isNameCharacter(characterAt(formula, index)) && !isNameCharacter(characterBefore(formula, index))) {
+      end = index;
+
+      while (isNameCharacter(characterAt(formula, end))) {
+        end += characterAt(formula, end)!.length;
       }
 
       reference = formula[end] === '!' ? { name: formula.slice(index, end), quoted: false } : null;

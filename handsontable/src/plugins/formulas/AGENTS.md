@@ -577,8 +577,28 @@ through settings updates and a data load" in `../sheetsBar/__tests__/formulaShee
 The engine is set up on enable only, so the plugin kept the first engine while a sheets bar switched to a
 sheet bound to a second one: the second sheet's edits landed in a copy of it inside the first engine, and
 the second engine's formulas never saw them. The plugin is disabled and enabled again with no sheet
-bound, and binds the sheet the settings name in the new engine. Only an instance counts, because an
-engine class (or `{ hyperformula }`) builds the engine itself.
+bound, and binds the sheet the settings name in the new engine. **Only an instance that already holds the
+sheet `sheetName` names counts**, as every engine the sheets bar binds does. The React examples build
+`HyperFormula.buildEmpty()` in the component body and the wrapper forwards `formulas` on every commit, so
+following any new instance moved such a grid to an empty engine on every render (and a test of exactly that
+ran out of memory). An empty new instance is ignored, as it was before.
+
+**The `afterCellMetaReset` that follows the call's own load resyncs only when a `cell` entry sets a key that decides the value the engine reads (`type`, `valueGetter`, `source`, `sourceLabel`, and `preserveTextValue`, which the engine-bound escaping reads; `VALUE_GETTER_META_KEYS`) or `columns` is a function.** Only the reset of the call's own held meta phase skips (`_isHeldMetaPhaseRunning()`): a full `updateSettings()` an `afterLoadData` listener makes in the same call runs its meta phase outside that window, and its `columns` reached the column meta after the load wrote the sheet, so it resyncs. The sheets bar restates a grid-level `cell` on every switch, so counting any entry made every switch of such a workbook pay the resync, even for an entry that only sets `readOnly`. A custom `valueGetter` that reads another key of a `cell` entry is not seen. Core resets the column meta before that load for `columns: null` (the sheets bar sends it for a sheet without `columns`), so that payload needs no resync. The two `updatePlugin()` branches that bind a sheet for the load (the `sheetName` rebind without `switchSheet()`, and the skipped fill from the current data) ask `isDataLoadPending()`, not `isDataWorkDeferred()`: an enable from an `afterLoadData` listener in that call comes after the load, and waiting for it left `sheetName` `null`.
+The load already wrote the sheet with the call's column configuration, so a resync there was a second full
+engine write and a second AutoColumnSize sweep per switch (`tests/e2e/sheet-switch-autosize.spec.ts` pins
+one). The `cell` entries are applied after the load, though, and a cell type they set can change the value
+the engine reads (a key/value dropdown resolves an object to its label), and so are the column types of a
+`columns` function (core's early `columns` pass covers the array form only), so such a call resyncs once
+(`#metaPhaseMayChangeEngineValues()`, pinned by "feeds Formulas the value a cell type from the `cell`
+option resolves on the new data" in `../sheetsBar/__tests__/deferredPluginWork.unit.js`).
+
+**`#hotWasInitializedWithEmptyData` reads the loaded array, not only the `data` setting.** It decides
+whether the engine sheet is the grid's data source, and it is set in `beforeLoadData`. Core's first
+load can carry a real array before the `data` setting is stored (the sheets bar loads its opening sheet
+that way), and a check of the setting alone then marked the grid as empty, so every later settings
+update reloaded the grid from the engine sheet. The array check is scoped to that call
+(`isDataWorkDeferred()`): a grid built with a `dataProvider` and no `data` loads a `[]` placeholder first
+and must keep reading the engine sheet as its data, and a grid built without data loads `null`.
 
 ## Sheet names the engine reads only in quotes
 
@@ -619,8 +639,9 @@ added the sheet binds it (recorded at once, the retry did nothing and logged not
 the setting's sheet again, as it did before `#requestedSheetName()` existed. The plugin's own reloads go
 through the private `#loadSheet()` and keep it, which is what keeps the rename case (an engine rename the
 binding followed, with the setting still on the old name) from asking for the old name. **An engine class
-setting over a user instance is an engine change** (`#engineBuiltFromClass`): kept on the instance, a sheet
-that passes the class wrote itself into another sheet's engine. Pinned by `__tests__/sheetNameSetting.unit.js`
+setting over a user instance is an engine change while a load is pending** (`#engineBuiltFromClass`, the
+sheets bar's switch): kept on the instance, a sheet that passes the class wrote itself into another sheet's
+engine. Pinned by `__tests__/sheetNameSetting.unit.js`
 and the engine binding cases of `../sheetsBar/__tests__/formulaSheets.unit.js`.
 
 **A sheet the engine refuses still gets the sync endpoint** (`#clearRejectedSheet()` calls
@@ -651,7 +672,12 @@ reached through the typed `getPlugin('formulas')`:
 `'move'` sequence change leaves the stored order alone; the release sends the order the grid ends on.
 A sheet with an array `manualRowMove` re-applies its moves in `afterLoadData`, after this plugin adopted
 the engine order, and the move sent then was computed against the held order and asked the engine for a
-row number past its sheet (`Invalid arguments …`, rows scrambled). `#getHeldEngineSequence()` reads the
+row number past its sheet (`Invalid arguments …`, rows scrambled). Moves are held on a first visit too,
+with no adopted order: the release then sends the order with `setRowOrder`, the same call a plain grid's
+first load makes for an initial `manualRowMove` (`#syncInitialOrder()`), so the sheet calculates as a
+plain grid with those settings does (pinned in `../sheetsBar/__tests__/formulaSheets.unit.js`).
+The release clears the column axis even when sending the row order throws (`IndexSyncer#setOrderHeld()`).
+`#getHeldEngineSequence()` reads the
 stored order, then the order an empty sheet was filled in (`#fillSequence`), then the ascending tail,
 the order `#getEngineElements()` reads. **Rows or columns inserted or removed inside the hold are not
 supported**: the engine changes positionally through the held order, which the stored sequence then no
@@ -661,23 +687,6 @@ longer describes. Nothing in the sheets bar's switch does it. Pinned by
 The caller decides when the data is still the one the engine holds; the sheets bar compares the array
 object and its length. `isHfOrderPhysical()` answers for the engine's order while held, so
 `#syncFormulasToSourceData()` never writes engine text into data the engine holds in another order.
-
-**The `afterCellMetaReset` that follows the call's own load resyncs only when a `cell` entry sets a key that decides the value the engine reads (`type`, `valueGetter`, `source`, `sourceLabel`, and `preserveTextValue`, which the engine-bound escaping reads; `VALUE_GETTER_META_KEYS`) or `columns` is a function.** Only the reset of the call's own held meta phase skips (`_isHeldMetaPhaseRunning()`): a full `updateSettings()` an `afterLoadData` listener makes in the same call runs its meta phase outside that window, and its `columns` reached the column meta after the load wrote the sheet, so it resyncs. The sheets bar restates a grid-level `cell` on every switch, so counting any entry made every switch of such a workbook pay the resync, even for an entry that only sets `readOnly`. A custom `valueGetter` that reads another key of a `cell` entry is not seen. Core resets the column meta before that load for `columns: null` (the sheets bar sends it for a sheet without `columns`), so that payload needs no resync. The two `updatePlugin()` branches that bind a sheet for the load (the `sheetName` rebind without `switchSheet()`, and the skipped fill from the current data) ask `isDataLoadPending()`, not `isDataWorkDeferred()`: an enable from an `afterLoadData` listener in that call comes after the load, and waiting for it left `sheetName` `null`.
-The load already wrote the sheet with the call's column configuration, so a resync there was a second full
-engine write and a second AutoColumnSize sweep per switch (`tests/e2e/sheet-switch-autosize.spec.ts` pins
-one). The `cell` entries are applied after the load, though, and a cell type they set can change the value
-the engine reads (a key/value dropdown resolves an object to its label), and so are the column types of a
-`columns` function (core's early `columns` pass covers the array form only), so such a call resyncs once
-(`#metaPhaseMayChangeEngineValues()`, pinned by "feeds Formulas the value a cell type from the `cell`
-option resolves on the new data" in `../sheetsBar/__tests__/deferredPluginWork.unit.js`).
-
-**`#hotWasInitializedWithEmptyData` reads the loaded array, not only the `data` setting.** It decides
-whether the engine sheet is the grid's data source, and it is set in `beforeLoadData`. Core's first
-load can carry a real array before the `data` setting is stored (the sheets bar loads its opening sheet
-that way), and a check of the setting alone then marked the grid as empty, so every later settings
-update reloaded the grid from the engine sheet. The array check is scoped to that call
-(`isDataWorkDeferred()`): a grid built with a `dataProvider` and no `data` loads a `[]` placeholder first
-and must keep reading the engine sheet as its data, and a grid built without data loads `null`.
 
 ## Object rows: the sheet is only as wide and as aligned as `getSourceDataArray()` makes it
 
