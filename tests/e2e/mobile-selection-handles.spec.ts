@@ -123,6 +123,7 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
   test('draw no top handle for a range whose start row is scrolled out, with headers on', async () => {
     await mobileGrid.goto({ rows: 'tall', overscan: 'none' });
     await mobileGrid.tapCell(0, 1);
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).not.toEqual([]);
     await mobileGrid.selectRange(0, 1, 35, 2);
     await mobileGrid.scrollRowToTop(20);
 
@@ -132,6 +133,17 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
   test('draw no top handle for a range whose start column is scrolled out, with headers on', async () => {
     await mobileGrid.goto({ cols: 'wide', overscan: 'none' });
     await mobileGrid.tapCell(1, 0);
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).not.toEqual([]);
+    await mobileGrid.selectRange(1, 0, 2, 17);
+    await mobileGrid.scrollColumnToStart(10);
+
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).toEqual([]);
+  });
+
+  test('draw no top handle for a range whose start column is scrolled out, with no headers', async () => {
+    await mobileGrid.goto({ headers: false, cols: 'wide', overscan: 'none' });
+    await mobileGrid.tapCell(1, 0);
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).not.toEqual([]);
     await mobileGrid.selectRange(1, 0, 2, 17);
     await mobileGrid.scrollColumnToStart(10);
 
@@ -141,16 +153,20 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
   // A clone owns the corner on its own frozen axis only; on the other axis it follows the master's band.
   test('draw no top handle for a frozen-row start whose column is scrolled out', async () => {
     await mobileGrid.goto({ frozen: true, cols: 'wide', overscan: 'none' });
+    await mobileGrid.selectRange(0, 3, 2, 4);
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).not.toEqual([]);
     await mobileGrid.selectRange(0, 3, 2, 17);
-    await mobileGrid.scrollColumnToStart(10);
+    await mobileGrid.scrollColumnToStart(10, 3);
 
     await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).toEqual([]);
   });
 
   test('draw no top handle for a frozen-column start whose row is scrolled out', async () => {
     await mobileGrid.goto({ frozen: true, rows: 'tall', overscan: 'none' });
+    await mobileGrid.selectRange(3, 0, 4, 1);
+    await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).not.toEqual([]);
     await mobileGrid.selectRange(3, 0, 35, 1);
-    await mobileGrid.scrollRowToTop(20);
+    await mobileGrid.scrollRowToTop(20, 3);
 
     await expect.poll(() => mobileGrid.displayedHandles('topSelectionHandle-HitArea')).toEqual([]);
   });

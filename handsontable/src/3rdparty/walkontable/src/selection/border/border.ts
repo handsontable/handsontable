@@ -708,10 +708,10 @@ class Border {
   }
 
   /**
-   * @param {number} fromRow The visual row index of the selection's top-left corner.
-   * @param {number} fromCol The visual column index of the selection's top-left corner.
-   * @param {number} toRow The visual row index of the selection's bottom-right corner.
-   * @param {number} toCol The visual column index of the selection's bottom-right corner.
+   * @param {number} fromRow The renderable row index of the selection's top-left corner.
+   * @param {number} fromCol The renderable column index of the selection's top-left corner.
+   * @param {number} toRow The renderable row index of the selection's bottom-right corner.
+   * @param {number} toCol The renderable column index of the selection's bottom-right corner.
    * @param {number} top The top position of the handler.
    * @param {number} left The left position of the handler.
    * @param {number} width The width of the handler.

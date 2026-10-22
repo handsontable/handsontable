@@ -346,7 +346,11 @@ overhangs the table for a cell within that distance of the start while the paint
   index is a header-anchored selection and counts as rendered. Ownership comes first: a clone
   never draws a handle for a corner it does not own. On its own frozen axis the owning clone always renders the
   corner; on the other axis a clone follows the master's band, so a frozen-row start whose column is scrolled
-  out is hidden too.
+  out is hidden too. The comparison is in renderable indexes, the space the corners arrive in: translating
+  them to visual would break it with hidden rows. With `mergeCells: { virtualized: true }` and no overscan,
+  a merged block whose root is scrolled out loses its top handle while part of the block is still on screen,
+  because that mode does not pull the render band back to the root (without `virtualized` it does, and the
+  handle stays). The handle belongs to the real corner, so that is intended.
 - **Do not snap the hit area to the edge on its own.** Clamping it alone moves the 40px touch target over
   A1 and over the `moveCells` band next to it (`multipleSelectionHandles/AGENTS.md`).
 
