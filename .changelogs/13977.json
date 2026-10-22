@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed rows falling out of line with their headers, a grid keeping its old height, and auto-sized columns clipping text when a web font finished loading after the grid rendered.",
+  "type": "fixed",
+  "issueOrPR": 13977,
+  "breaking": false,
+  "framework": "none"
+}
