@@ -7263,10 +7263,10 @@ export default function Core(
    *
    * The `row` argument is a physical index. A numeric `column` is a visual index, so it follows moved and
    * trimmed columns. A hidden column keeps its index. To read a column by its physical index, translate it
-   * first with {@link Core#toVisualColumn}, or pass the column's prop name. A trimmed column has no visual
-   * index: read it by its prop name with an array of objects, or with {@link Core#getSourceData} and a
-   * physical range with an array of arrays. An index past the last visible column is read as a physical
-   * index.
+   * first with {@link Core#toVisualColumn}, or, with an array of objects, pass the column's prop name. A
+   * trimmed column has no visual index: read it by its prop name with an array of objects, or with
+   * {@link Core#getSourceData} and a physical range with an array of arrays. An index past the last visible
+   * column is read as a physical index.
    *
    * __Note__: {@link Core#setSourceDataAtCell} takes a physical column index, so a read and a write at the
    * same number can address different columns.
