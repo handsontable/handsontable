@@ -857,39 +857,25 @@ export class HandsontableAdapter {
   }
 
   /**
-   * Opens the inline editor on the active cell, optionally seeding it. Returns
-   * `false` without opening when the active cell is read-only, since Handsontable's
-   * own editor manager silently no-ops there and would otherwise leave the caller
-   * believing an edit session started.
+   * Opens the inline editor on the active cell, optionally seeding it, through Handsontable's editor
+   * manager, the way a key or a double-click opens it: the `beforeBeginEditing` veto, the read-only,
+   * header, and hidden-cell checks, and a fresh prepare after `loadData()`/`updateData()` all apply.
+   * Returns whether an editor actually opened, so the formula bar never believes an edit session
+   * started on a cell that cannot be edited.
    *
    * @param {CellAddress} _address Unused; Handsontable always edits the active cell.
    * @param {string} [seed] Initial editor content.
-   * @returns {boolean} Whether an editor was available to open.
+   * @returns {boolean} Whether the editor opened.
    */
   beginEdit(_address: CellAddress, seed?: string): boolean {
-    const highlight = this.#hot.getSelectedRangeLast()?.highlight;
+    // `openEditor()` takes the event that opened the editor and passes it to `beforeBeginEditing`.
+    // The formula bar opens it from its own focus or click, which the grid never saw, so there is
+    // no grid event to pass.
+    this.#hot._getEditorManager().openEditor(seed ?? null, undefined as unknown as Event, true);
 
-    if (
-      highlight !== undefined &&
-      highlight.row !== null &&
-      highlight.col !== null &&
-      this.#hot.getCellMetaTransient(highlight.row, highlight.col).readOnly
-    ) {
-      return false;
-    }
+    const editor = this.#hot.getActiveEditor() as { isOpened?(): boolean } | undefined;
 
-    const editor = this.#hot.getActiveEditor() as
-      | { beginEditing(value?: string): void; enableFullEditMode?(): void }
-      | undefined;
-
-    if (!editor) {
-      return false;
-    }
-
-    editor.enableFullEditMode?.();
-    editor.beginEditing(seed);
-
-    return true;
+    return editor?.isOpened?.() === true;
   }
 
   /**

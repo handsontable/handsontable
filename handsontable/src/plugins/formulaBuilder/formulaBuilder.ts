@@ -10,6 +10,10 @@ import { isRootInstance } from '../../utils/rootInstance';
 import type { HotInstance } from '../../core/types';
 import type { PluginTypeMap } from '../types';
 import type { CellProperties } from '../../settings';
+import { command as moveCellSelectionInlineEnd } from '../../shortcuts/contexts/commands/moveCellSelection/inlineEnd';
+import {
+  command as moveCellSelectionInlineStart,
+} from '../../shortcuts/contexts/commands/moveCellSelection/inlineStart';
 import { CellPickController } from './cellPickController';
 import {
   EDITING_CELL_CLASS,
@@ -319,10 +323,6 @@ export class FormulaBuilder extends BasePlugin {
    */
   #formulaBarHost: HTMLElement | null = null;
   /**
-   * The last selection reported through `onSelection`.
-   */
-  #selected = { row: 0, col: 0 };
-  /**
    * The live formula editor, or `null` when not editing.
    */
   #activeEditor: FormulaEditor | null = null;
@@ -353,10 +353,6 @@ export class FormulaBuilder extends BasePlugin {
    * Bar selection listeners.
    */
   readonly #barSelectionListeners = new ListenerSet<[FormulaCellSelection | null]>();
-  /**
-   * Tracked-selection listeners.
-   */
-  readonly #selectionListeners = new ListenerSet<[{ row: number; col: number }]>();
   /**
    * Inline edit start listeners.
    */
@@ -471,7 +467,6 @@ export class FormulaBuilder extends BasePlugin {
       this.disablePlugin();
     }
 
-    this.#selectionListeners.clear();
     this.#barSelectionListeners.clear();
     this.#editorStartListeners.clear();
     this.#editorCloseListeners.clear();
@@ -547,9 +542,13 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Saves the given value through Handsontable's editor manager, optionally
-   * moving the selection one (renderable) step in a direction.
+   * Saves the given value through Handsontable's editor manager and, with a direction, moves the
+   * selection the way the grid's own editors do: Enter and Shift+Enter (`down`, `up`) follow
+   * `enterMoves`, Tab and Shift+Tab (`right`, `left`) follow `tabMoves`, and both move within a
+   * selected range instead of collapsing it. Nothing moves when the save was rejected (a validator
+   * with `allowInvalid: false`), because the editor then stays open on the invalid value.
    *
+   * @private
    * @param {string} value The value to save.
    * @param {string} [direction] Optional post-commit selection step direction.
    */
@@ -568,42 +567,34 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    const selected = this.hot.getSelectedLast();
-
-    editor.finishEditing?.(false, false, () => {
-      const row = selected?.[0];
-      const col = selected?.[1];
-
-      if (row === undefined || col === undefined || row < 0 || col < 0) {
+    editor.finishEditing?.(false, false, (dataSaved?: boolean) => {
+      if (dataSaved === false || this.hot.isDestroyed) {
         return;
       }
 
-      const rowDelta = { up: -1, down: 1, left: 0, right: 0 }[direction];
-      const colDelta = { up: 0, down: 0, left: -1, right: 1 }[direction];
-
-      this.hot.selectCell(
-        this.#stepVisualIndex('row', row, rowDelta),
-        this.#stepVisualIndex('col', col, colDelta),
-      );
+      this.#moveSelectionAfterCommit(direction);
     });
   }
 
   /**
-   * Cancels the edit, restores the original value, and re-selects the cell so
-   * DOM focus returns to the grid.
+   * Cancels the edit and restores the original value. The selection is left as it is, ranges and
+   * layers included, the way Escape leaves it in the grid's own editors; only the focus goes back
+   * to the grid.
+   *
+   * @private
    */
   cancelInlineEdit(): void {
     this.#hostEditor()?.finishEditing?.(true);
 
-    const selected = this.hot.getSelectedLast();
-    const row = selected?.[0];
-    const col = selected?.[1];
-
-    if (row === undefined || col === undefined || row < 0 || col < 0) {
+    if (this.hot.isDestroyed) {
       return;
     }
 
-    this.hot.selectCell(row, col);
+    const focusManager = this.hot.getFocusManager();
+
+    this.hot.listen();
+    focusManager.focusOnHighlightedCell();
+    focusManager.refocusToEditorTextarea();
   }
 
   /**
@@ -617,6 +608,10 @@ export class FormulaBuilder extends BasePlugin {
     this.#cellPick?.reset();
     this.#clearEditingCellMark();
     this.#editorCloseListeners.emit();
+    // The selection hooks are ignored while an edit is open, and an edit with a validator closes a
+    // microtask after the deselect or the `selectCell()` that ended it, so the bar would keep
+    // showing the old cell. Re-read the selection now that the edit is over.
+    this.#emitBarSelection();
   }
 
   /**
@@ -733,40 +728,6 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
-   * Returns the last tracked single-cell selection in visual coordinates.
-   *
-   * @returns {{ row: number, col: number }}
-   */
-  getSelected(): { row: number; col: number } {
-    return { ...this.#selected };
-  }
-
-  /**
-   * Updates the tracked single-cell selection and notifies listeners on change.
-   *
-   * @param {number} row The visual row index.
-   * @param {number} col The visual column index.
-   */
-  setSelected(row: number, col: number): void {
-    if (this.#selected.row === row && this.#selected.col === col) {
-      return;
-    }
-
-    this.#selected = { row, col };
-    this.#selectionListeners.emit({ row, col });
-  }
-
-  /**
-   * Subscribes to tracked single-cell selection changes.
-   *
-   * @param {Function} callback Receives the visual coordinates.
-   * @returns {Function} Unsubscribe function.
-   */
-  onSelection(callback: (selection: { row: number; col: number }) => void): () => void {
-    return this.#selectionListeners.add(callback);
-  }
-
-  /**
    * Subscribes to editor close events.
    *
    * @param {Function} callback Invoked when the inline editor closes.
@@ -785,21 +746,6 @@ export class FormulaBuilder extends BasePlugin {
    */
   getRawCellText(row: number, col: number): string {
     return this.#readCellText(this.#visualToHfRow(row), this.#visualToHfCol(col));
-  }
-
-  /**
-   * Saves raw cell input through Handsontable, parsing numbers and booleans.
-   *
-   * @param {number} row The visual row index.
-   * @param {number} col The visual column index.
-   * @param {string} raw The raw input text.
-   */
-  commitCellRaw(row: number, col: number, raw: string): void {
-    if (!this.#core) {
-      return;
-    }
-
-    this.hot.setDataAtCell(row, col, this.#core.parseCellInput(raw));
   }
 
   /**
@@ -888,19 +834,12 @@ export class FormulaBuilder extends BasePlugin {
    * @param {number} focusRow The focus visual row index.
    * @param {number} focusCol The focus visual column index.
    */
-  #onAfterSelectionEnd = (
-    anchorRow: number,
-    anchorCol: number,
-    focusRow: number,
-    focusCol: number,
-  ): void => {
+  #onAfterSelectionEnd = (): void => {
     if (this.#isEditing()) {
       return;
     }
 
-    if (this.#emitBarSelection(anchorRow, anchorCol, focusRow, focusCol)) {
-      this.setSelected(anchorRow, anchorCol);
-    }
+    this.#emitBarSelection();
   };
 
   /**
@@ -911,10 +850,7 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    this.#lastEmittedSelectionCoords = null;
-    this.#barSelected = null;
-    this.#barSelectedRange = null;
-    this.#barSelectionListeners.emit(null);
+    this.#clearBarSelection();
   };
 
   /**
@@ -970,17 +906,12 @@ export class FormulaBuilder extends BasePlugin {
    * @param {number} focusRow The focus visual row index.
    * @param {number} focusCol The focus visual column index.
    */
-  #onAfterSelection = (
-    anchorRow: number,
-    anchorCol: number,
-    focusRow: number,
-    focusCol: number,
-  ): void => {
+  #onAfterSelection = (): void => {
     if (this.#isEditing()) {
       return;
     }
 
-    this.#emitBarSelection(anchorRow, anchorCol, focusRow, focusCol);
+    this.#emitBarSelection();
   };
 
   /**
@@ -992,19 +923,7 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    const range = this.hot.getSelectedRangeLast();
-
-    if (!range) {
-      return;
-    }
-
-    const { from, to } = range;
-
-    if (from.row === null || from.col === null || to.row === null || to.col === null) {
-      return;
-    }
-
-    this.#emitBarSelection(from.row, from.col, to.row, to.col);
+    this.#emitBarSelection();
   };
 
   /**
@@ -1019,24 +938,47 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
-   * Emits the bar selection (deduped on anchor + focus + active together).
-   *
-   * @param {number} anchorRow The anchor visual row index.
-   * @param {number} anchorCol The anchor visual column index.
-   * @param {number} focusRow The focus visual row index.
-   * @param {number} focusCol The focus visual column index.
-   * @returns {boolean} Whether the anchor is a formula cell.
+   * Clears the bar selection (and the dedupe key) and tells the listeners.
    */
-  #emitBarSelection(
-    anchorRow: number,
-    anchorCol: number,
-    focusRow: number,
-    focusCol: number,
-  ): boolean {
-    const formulaCell = this.#isFormulaCell(anchorRow, anchorCol);
-    const highlight = this.hot.getSelectedRangeLast()?.highlight;
-    const activeRow = highlight?.row ?? anchorRow;
-    const activeCol = highlight?.col ?? anchorCol;
+  #clearBarSelection(): void {
+    if (this.#lastEmittedSelectionCoords === null && this.#barSelected === null) {
+      return;
+    }
+
+    this.#lastEmittedSelectionCoords = null;
+    this.#barSelected = null;
+    this.#barSelectedRange = null;
+    this.#barSelectionListeners.emit(null);
+  }
+
+  /**
+   * Emits the bar selection from the grid's ACTIVE selection layer (deduped on anchor + focus +
+   * active together). The focused cell is not always on the last layer (Tab and Enter wrap between
+   * layers with `autoWrapRow`/`autoWrapCol`), and in a range it is not always the anchor, so the
+   * layer comes from `getSelectedRangeActive()` and whether the bar edits a formula is decided by
+   * the highlighted cell. Nothing is selected: the bar is cleared.
+   */
+  #emitBarSelection(): void {
+    const range = this.hot.getSelectedRangeActive();
+    const { from, to, highlight } = range ?? {};
+
+    if (
+      !range || from?.row === null || from?.col === null || to?.row === null || to?.col === null ||
+      highlight?.row === null || highlight?.col === null
+    ) {
+      this.#clearBarSelection();
+
+      return;
+    }
+
+    // A row or column header selection starts the range on the header (-1); the bar reports cells.
+    const anchorRow = Math.max(from!.row, 0);
+    const anchorCol = Math.max(from!.col, 0);
+    const focusRow = Math.max(to!.row, 0);
+    const focusCol = Math.max(to!.col, 0);
+    const activeRow = highlight!.row;
+    const activeCol = highlight!.col;
+    const formulaCell = this.#isFormulaCell(activeRow, activeCol);
     const last = this.#lastEmittedSelectionCoords;
 
     if (
@@ -1048,7 +990,7 @@ export class FormulaBuilder extends BasePlugin {
       last.activeRow === activeRow &&
       last.activeCol === activeCol
     ) {
-      return formulaCell;
+      return;
     }
 
     this.#lastEmittedSelectionCoords = { anchorRow, anchorCol, focusRow, focusCol, activeRow, activeCol };
@@ -1066,36 +1008,33 @@ export class FormulaBuilder extends BasePlugin {
         { active: this.#barSelected, range: this.#barSelectedRange } :
         null,
     );
-
-    return formulaCell;
   }
 
   /**
-   * Steps a visual index by one renderable position so hidden rows/columns are skipped.
+   * Moves the selection after a commit in a direction, through the same code the grid runs for the
+   * key: `EditorManager#moveSelectionAfterEnter()` for Enter and Shift+Enter, and the Tab commands for
+   * Tab and Shift+Tab. A synthetic keyboard event carries the key, because `enterMoves` and
+   * `tabMoves` may be functions of the event.
    *
-   * @param {'row' | 'col'} axis The axis to step on.
-   * @param {number} visualIndex The current visual index.
-   * @param {number} delta The step delta (-1, 0, or 1).
-   * @returns {number}
+   * @param {FormulaBuilderStepDirection} direction The step direction.
    */
-  #stepVisualIndex(axis: 'row' | 'col', visualIndex: number, delta: number): number {
-    if (delta === 0) {
-      return visualIndex;
+  #moveSelectionAfterCommit(direction: FormulaBuilderStepDirection): void {
+    const KeyboardEventClass = this.hot.rootWindow.KeyboardEvent;
+
+    if (direction === 'up' || direction === 'down') {
+      const event = new KeyboardEventClass('keydown', { key: 'Enter', shiftKey: direction === 'up' });
+
+      this.hot._getEditorManager().moveSelectionAfterEnter(event);
+
+      return;
     }
 
-    const mapper = axis === 'row' ? this.hot.rowIndexMapper : this.hot.columnIndexMapper;
-    const renderable = mapper.getRenderableFromVisualIndex(visualIndex);
+    // The package commits `right` on Tab and `left` on Shift+Tab in either layout direction. The grid
+    // binds Tab to the command named `InlineStart` and Shift+Tab to `InlineEnd`; both apply `tabMoves`.
+    const event = new KeyboardEventClass('keydown', { key: 'Tab', shiftKey: direction === 'left' });
+    const command = direction === 'right' ? moveCellSelectionInlineStart : moveCellSelectionInlineEnd;
 
-    if (renderable === null) {
-      const count = axis === 'row' ? this.hot.countRows() : this.hot.countCols();
-
-      return Math.min(Math.max(visualIndex + delta, 0), count - 1);
-    }
-
-    const lastRenderable = mapper.getRenderableIndexesLength() - 1;
-    const nextRenderable = Math.min(Math.max(renderable + delta, 0), lastRenderable);
-
-    return mapper.getVisualFromRenderableIndex(nextRenderable) ?? visualIndex;
+    command.callback(this.hot, event);
   }
 
   /**

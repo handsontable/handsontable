@@ -208,33 +208,6 @@ describe('FormulaBuilder raw cell API used by the formula bar', () => {
     document.body.replaceChildren();
   });
 
-  it.each([
-    [' 12.5 ', 12.5],
-    ['-3', -3],
-    ['1e3', 1000],
-    ['=A1+1', '=A1+1'],
-    ['abc', 'abc'],
-    ['', ''],
-  ])('commitCellRaw(%j) stores %j through setDataAtCell', (raw, stored) => {
-    const stub = makePluginHotStub();
-    const plugin = enabledPlugin(stub);
-
-    plugin.commitCellRaw(2, 3, raw);
-
-    expect(stub.hot.setDataAtCell.mock.calls).toEqual([[2, 3, stored]]);
-
-    plugin.disablePlugin();
-  });
-
-  it('commitCellRaw writes nothing while the plugin is disabled', () => {
-    const stub = makePluginHotStub();
-    const plugin = new FormulaBuilder(stub.instance);
-
-    plugin.commitCellRaw(0, 0, '5');
-
-    expect(stub.hot.setDataAtCell).not.toHaveBeenCalled();
-  });
-
   it('getRawCellText is empty before enabling and after disabling', () => {
     const stub = makePluginHotStub();
 

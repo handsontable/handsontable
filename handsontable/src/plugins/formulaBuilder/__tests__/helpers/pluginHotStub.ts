@@ -72,6 +72,7 @@ export interface PluginHotStubShape {
   setDataAtCell: jest.Mock;
   scrollViewportTo: jest.Mock;
   getSelectedRangeLast: () => unknown;
+  getSelectedRangeActive: () => unknown;
   getSelectedLast: () => number[] | undefined;
   getCellMetaTransient: jest.Mock<Record<string, unknown>, [number, number]>;
   selectCell: jest.Mock;
@@ -194,6 +195,7 @@ export function makePluginHotStub(
     setDataAtCell: jest.fn(),
     scrollViewportTo: jest.fn(() => true),
     getSelectedRangeLast: () => undefined,
+    getSelectedRangeActive: () => undefined,
     getSelectedLast: () => undefined,
     getCellMetaTransient: jest.fn(() => ({})),
     selectCell: jest.fn(),

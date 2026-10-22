@@ -293,22 +293,6 @@ it('hides the container when the wrap has no child element (empty-container guar
   expect(editor.container.style.display).toBe('none');
 });
 
-it('restores grid focus after cancelling the inline edit', () => {
-  const stub = makeFullHotStub();
-  const finishEditing = jest.fn();
-
-  stub.hot.getActiveEditor = () => ({ finishEditing });
-  stub.hot.getSelectedLast = () => [2, 3, 2, 3];
-
-  const plugin = new FormulaBuilder(stub.instance);
-
-  plugin.enablePlugin();
-  plugin.cancelInlineEdit();
-
-  expect(finishEditing).toHaveBeenCalledWith(true);
-  expect(stub.hot.selectCell).toHaveBeenCalledWith(2, 3);
-});
-
 /**
  * Builds a stub whose master overlay exposes a real scroll holder element and whose active
  * editor records `refreshDimensions` calls, with `requestAnimationFrame` queued for the test.
@@ -592,13 +576,19 @@ it('blocks the column sort a header pick mousedown would cause, until the pick e
 });
 
 /**
- * Builds a Handsontable selection range stub exposing the highlight cell.
+ * Builds the active selection layer the plugin reads through `getSelectedRangeActive()`.
  *
- * @param {object} active The active (highlight) cell coordinates.
- * @returns {object} The range stub.
+ * @param {{ row: number, col: number }} active The highlighted cell.
+ * @param {{ row: number, col: number }} [from] The range start, the highlight by default.
+ * @param {{ row: number, col: number }} [to] The range end, the highlight by default.
+ * @returns {object}
  */
-function makeCellRangeStub(active: { row: number; col: number }) {
-  return { highlight: active };
+function makeCellRangeStub(
+  active: { row: number; col: number },
+  from: { row: number; col: number } = active,
+  to: { row: number; col: number } = active,
+) {
+  return { from, to, highlight: active };
 }
 
 describe('FormulaBuilder eager adapter', () => {
@@ -753,7 +743,7 @@ describe('FormulaBuilder formula-cell scoping', () => {
     document.dispatchEvent(new MouseEvent('mouseup'));
   });
 
-  it('tracks selection only on formula cells', () => {
+  it('tracks the bar selection only on formula cells', () => {
     const stub = makeFullHotStub();
 
     stub.hot.getCellMetaTransient.mockImplementation((_row, col) => ({ editor: col === 0 ? 'formula' : 'numeric' }));
@@ -762,24 +752,25 @@ describe('FormulaBuilder formula-cell scoping', () => {
 
     plugin.enablePlugin();
 
-    const seen: Array<{ row: number; col: number }> = [];
-
-    plugin.onSelection(selection => seen.push(selection));
-
     const selectionEnd = findHook(stub.hot, 'afterSelectionEnd');
 
-    stub.hot.getSelectedRangeLast = () => makeCellRangeStub({ row: 0, col: 1 });
+    stub.hot.getSelectedRangeActive = () => makeCellRangeStub({ row: 0, col: 1 });
     selectionEnd(0, 1, 0, 1);
-    stub.hot.getSelectedRangeLast = () => makeCellRangeStub({ row: 1, col: 0 });
+
+    expect(plugin.getActiveFormulaCell()).toBeNull();
+
+    stub.hot.getSelectedRangeActive = () => makeCellRangeStub({ row: 1, col: 0 });
     selectionEnd(1, 0, 1, 0);
 
-    expect(seen).toEqual([{ row: 1, col: 0 }]);
+    expect(plugin.getActiveFormulaCell()).toEqual({ row: 1, col: 0 });
   });
 
-  it('emits null for a header selection (negative anchor)', () => {
+  it('shows the highlighted formula cell of a header selection, with the range clamped to cells', () => {
     const stub = makeFullHotStub();
 
     stub.hot.getCellMetaTransient.mockImplementation(() => ({ editor: 'formula' }));
+    stub.hot.getSelectedRangeActive = () =>
+      makeCellRangeStub({ row: 0, col: 2 }, { row: -1, col: 2 }, { row: 5, col: 2 });
 
     const plugin = new FormulaBuilder(stub.instance);
 
@@ -790,14 +781,37 @@ describe('FormulaBuilder formula-cell scoping', () => {
     plugin.onFormulaCellSelection(selection => received.push(selection));
     findHook(stub.hot, 'afterSelectionEnd')(-1, 2, 5, 2);
 
-    expect(received[0]).toBeNull();
+    expect(received[0]).toEqual({
+      active: { row: 0, col: 2 },
+      range: { startRow: 0, startCol: 2, endRow: 5, endCol: 2 },
+    });
+  });
+
+  it('emits null when the highlight is on a header', () => {
+    const stub = makeFullHotStub();
+
+    stub.hot.getCellMetaTransient.mockImplementation(() => ({ editor: 'formula' }));
+    stub.hot.getSelectedRangeActive = () => makeCellRangeStub({ row: -1, col: 2 });
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    const received: unknown[] = [];
+
+    plugin.onFormulaCellSelection(selection => received.push(selection));
+    findHook(stub.hot, 'afterSelectionEnd')(-1, 2, -1, 2);
+
+    expect(received).toEqual([null]);
+    expect(plugin.getActiveFormulaCell()).toBeNull();
   });
 
   it('emits active + full range from afterSelectionEnd', () => {
     const stub = makeFullHotStub();
 
     stub.hot.getCellMetaTransient.mockImplementation(() => ({ editor: 'formula' }));
-    stub.hot.getSelectedRangeLast = () => makeCellRangeStub({ row: 4, col: 2 });
+    stub.hot.getSelectedRangeActive = () =>
+      makeCellRangeStub({ row: 4, col: 2 }, { row: 4, col: 2 }, { row: 1, col: 3 });
 
     const plugin = new FormulaBuilder(stub.instance);
 
@@ -818,7 +832,7 @@ describe('FormulaBuilder formula-cell scoping', () => {
     const stub = makeFullHotStub();
 
     stub.hot.getCellMetaTransient.mockImplementation(() => ({ editor: 'formula' }));
-    stub.hot.getSelectedRangeLast = () => makeCellRangeStub({ row: 2, col: 1 });
+    stub.hot.getSelectedRangeActive = () => makeCellRangeStub({ row: 2, col: 1 });
 
     const plugin = new FormulaBuilder(stub.instance);
 
@@ -908,29 +922,6 @@ describe('FormulaBuilder API surface', () => {
     expect(plugin.getActiveEditor()).toBeNull();
   });
 
-  it('returns default selection { row: 0, col: 0 } initially', () => {
-    const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.instance);
-
-    plugin.enablePlugin();
-
-    expect(plugin.getSelected()).toEqual({ row: 0, col: 0 });
-  });
-
-  it('notifies selection listeners on setSelected', () => {
-    const stub = makeFullHotStub();
-    const plugin = new FormulaBuilder(stub.instance);
-
-    plugin.enablePlugin();
-
-    const seen: Array<{ row: number; col: number }> = [];
-
-    plugin.onSelection(selection => seen.push(selection));
-    plugin.setSelected(2, 3);
-
-    expect(seen).toEqual([{ row: 2, col: 3 }]);
-  });
-
   it('getRawCellText returns formula when present, otherwise serialized value', () => {
     const stub = makeFullHotStub();
 
@@ -979,80 +970,6 @@ describe('FormulaBuilder API surface', () => {
         'beforeOnCellMouseOver',
       ]),
     );
-  });
-});
-
-describe('FormulaBuilder directional commit', () => {
-  /**
-   * Builds an enabled plugin around a host editor whose `finishEditing` invokes its callback.
-   *
-   * @param {number[] | undefined} selected The `getSelectedLast` result.
-   * @returns {object} The stub bundle, plugin, and `selectCell` spy.
-   */
-  function makeCommitContext(selected: number[] | undefined) {
-    const stub = makeFullHotStub();
-    const finishEditing = jest.fn((_restore?: boolean, _ctrl?: boolean, callback?: () => void) =>
-      callback?.(),
-    );
-    const setValue = jest.fn();
-
-    stub.hot.getActiveEditor = () => ({ setValue, finishEditing });
-    stub.hot.getSelectedLast = () => selected;
-    stub.hot.countRows = () => 5;
-    stub.hot.countCols = () => 5;
-    stub.hot.rowIndexMapper = makeIndexMapperStub(5);
-    stub.hot.columnIndexMapper = makeIndexMapperStub(5);
-
-    const plugin = new FormulaBuilder(stub.instance);
-
-    plugin.enablePlugin();
-
-    return { stub, plugin, selectCell: stub.hot.selectCell };
-  }
-
-  it('does not move the selection when the last selection was a header', () => {
-    const { plugin, selectCell } = makeCommitContext([-1, 0, -1, 0]);
-
-    plugin.commitInlineEdit('=A1', 'down');
-
-    expect(selectCell).not.toHaveBeenCalled();
-  });
-
-  it('skips hidden rows when committing downward', () => {
-    const { stub, plugin, selectCell } = makeCommitContext([1, 0, 1, 0]);
-
-    stub.hot.rowIndexMapper = {
-      getRenderableFromVisualIndex: visual => (visual < 2 ? visual : visual - 1),
-      getVisualFromRenderableIndex: renderable => (renderable < 2 ? renderable : renderable + 1),
-      getRenderableIndexesLength: () => 4,
-      getNumberOfIndexes: () => 5,
-    };
-
-    plugin.commitInlineEdit('=A1', 'down');
-
-    expect(selectCell).toHaveBeenCalledWith(3, 0);
-  });
-
-  it('clamps at the last renderable row', () => {
-    const { plugin, selectCell } = makeCommitContext([4, 0, 4, 0]);
-
-    plugin.commitInlineEdit('=A1', 'down');
-
-    expect(selectCell).toHaveBeenCalledWith(4, 0);
-  });
-
-  it.each([
-    [2, 3],
-    [4, 4],
-  ])('steps by the visual count from a non-renderable row %p, clamped to the grid', (from, to) => {
-    const { stub, plugin, selectCell } = makeCommitContext([from, 0, from, 0]);
-
-    // The edited row has no renderable index.
-    stub.hot.rowIndexMapper = { ...makeIndexMapperStub(5), getRenderableFromVisualIndex: () => null };
-
-    plugin.commitInlineEdit('=A1', 'down');
-
-    expect(selectCell).toHaveBeenCalledWith(to, 0);
   });
 });
 
