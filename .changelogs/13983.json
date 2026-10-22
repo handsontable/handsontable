@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where column headers stayed on the wrong columns after an `afterCreateCol` or `afterRemoveCol` hook called `render()`.",
+  "type": "fixed",
+  "issueOrPR": 13983,
+  "breaking": false,
+  "framework": "none"
+}
