@@ -87,9 +87,11 @@ split across batches still merge correctly. A plain synchronous call owns and cl
   the configuration never targeted.
 - **Do not render from `afterCreateRow` / `afterCreateCol` / `afterRemove*`.** Those fire from inside
   `alter()`, before it finishes rewriting the headers, and `alter()` renders when it is done. A forced
-  mid-`alter()` render paints a header row the closing render then treats as up to date, so labels stay
-  bound to their pre-insert columns while the new column is appended at the end — clicking a header then
-  selects a different column than the label sits on (#11031).
+  mid-`alter()` render paints from half-written state and costs a draw the closing render repeats.
+  `grid.runAlter()` sets `forceFullRender` before that closing render, so a render from those hooks no
+  longer leaves the headers on the wrong columns (#11031). The plugin's own handlers never render, and
+  must keep it that way: the extra draw is pure cost, and anything that reads the DOM inside `alter()`
+  still sees the half-written paint.
 - **Skip the shift for auto-inserted rows and columns.** `minSpareRows` / `minSpareCols` append at the end
   and do **not** shift cell meta in the core (`DataMap#createCol` skips `metaManager.createColumn` when
   `source === 'auto'`), so shifting the model would diverge from the meta.
