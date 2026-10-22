@@ -18,7 +18,6 @@ react:
   metaTitle: Cell comments with Liveblocks | Handsontable DataGrid for React
 searchCategory: Recipes
 category: Real-time & Integrations
-menuTag: new
 ---
 
 In this tutorial, you will add threaded comments anchored to individual Handsontable DataGrid cells with [Liveblocks](https://liveblocks.io) Comments. You will learn how to attach a comment thread to a cell through thread metadata, and how to render a comment pin and composer inside a cell with a custom renderer.

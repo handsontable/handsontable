@@ -17,7 +17,6 @@ vue:
   metaTitle: Column moving | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
-menuTag: updated
 ---
 Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable DataGrid's API methods).
 

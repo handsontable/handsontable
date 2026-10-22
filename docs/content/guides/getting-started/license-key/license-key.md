@@ -13,7 +13,6 @@ vue:
   metaTitle: License key | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
-menuTag: updated
 ---
 Activate Handsontable DataGrid, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 

@@ -24,7 +24,6 @@ vue:
   metaTitle: Custom shortcuts | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Navigation
-menuTag: updated
 ---
 Use the [`ShortcutManager`](@/api/shortcutManager.md) API to add, remove, replace, or block keyboard shortcuts in Handsontable DataGrid.
 

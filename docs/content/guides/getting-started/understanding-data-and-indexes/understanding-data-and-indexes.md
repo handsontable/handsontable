@@ -19,7 +19,6 @@ vue:
   metaTitle: Understanding data and indexes | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Data management
-menuTag: new
 ---
 Handsontable DataGrid keeps two views of your data -- the source data you provided and the visual dataset the user currently sees -- and addresses each one with its own kind of index. Read this to understand which API methods operate on which view, and how features such as sorting, moving, hiding, and trimming affect them.
 

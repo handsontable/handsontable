@@ -17,7 +17,6 @@ vue:
   metaTitle: Row hiding | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
-menuTag: updated
 ---
 Hide individual rows to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
 

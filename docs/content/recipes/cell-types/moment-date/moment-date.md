@@ -19,7 +19,6 @@ vue:
   metaTitle: Moment.js date cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
-menuTag: updated
 ---
 
 This tutorial shows you how to layer Moment.js on top of Handsontable DataGrid's built-in `date` cell type, so a column keeps its own display format and still accepts loosely written dates.
