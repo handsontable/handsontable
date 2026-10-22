@@ -52,7 +52,7 @@ describe('settingsSchema coverage', () => {
 
     // The count is pinned, so an option that loses its `plugin` annotation fails here instead of dropping out of
     // the list silently. Update it when a plugin option is added or removed.
-    expect(pluginOptions.length).toBe(50);
+    expect(pluginOptions.length).toBe(51);
     expect(rejecting).toEqual([]);
   });
 
