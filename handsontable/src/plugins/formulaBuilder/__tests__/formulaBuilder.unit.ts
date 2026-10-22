@@ -978,6 +978,36 @@ describe('FormulaBuilder API surface', () => {
   });
 });
 
+describe('FormulaBuilder document and popup parent', () => {
+  it('builds the editor in the grid\'s document, with the popups in the document body', () => {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module });
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    expect(spied.created[0]?.options.rootDocument).toBe(stub.hot.rootDocument);
+    expect(spied.created[0]?.options.portalParent).toBeUndefined();
+  });
+
+  it('keeps the popups in the grid\'s shadow root', () => {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module });
+    const shadowHost = document.createElement('div');
+    const shadowRoot = shadowHost.attachShadow({ mode: 'open' });
+
+    document.body.appendChild(shadowHost);
+    shadowRoot.appendChild(stub.hot.rootElement);
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    expect(spied.created[0]?.options.portalParent).toBe(shadowRoot);
+    expect(shadowRoot.querySelector('.hfe-popup-portal')).not.toBeNull();
+  });
+});
+
 describe('FormulaBuilder theme tracking', () => {
   it('rebuilds the builder (not the plugin) when the theme class changes', () => {
     const spied = makeSpiedCore();

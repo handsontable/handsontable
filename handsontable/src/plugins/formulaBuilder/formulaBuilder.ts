@@ -1463,6 +1463,7 @@ export class FormulaBuilder extends BasePlugin {
 
     const themeClassName = this.#themeClassName();
     const popups = this.#resolvePopupContainers(config.popups);
+    const shadowRoot = this.#gridShadowRoot();
 
     this.#currentThemeClassName = themeClassName;
     this.#builtSheetId = this.#sheetId;
@@ -1470,6 +1471,11 @@ export class FormulaBuilder extends BasePlugin {
     try {
       this.#builder = new core.FormulaBuilder({
         rootEl: this.hot.rootElement,
+        // The grid may live in an iframe: selectors resolve there and the styles go there.
+        rootDocument: this.hot.rootDocument,
+        // In a shadow root the popups and the live region stay in it, so the editor's ARIA
+        // references resolve and the styles reach them.
+        ...(shadowRoot !== null && { portalParent: shadowRoot }),
         ...(themeClassName !== undefined && { className: themeClassName }),
         adapter: this.#adapter,
         // The Formulas plugin types its engine structurally; it is the HyperFormula instance.
@@ -1490,6 +1496,17 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     this.#reattachPopupHosts();
+  }
+
+  /**
+   * Returns the shadow root the grid is rendered in, or `null` when it is in a document.
+   *
+   * @returns {ShadowRoot | null}
+   */
+  #gridShadowRoot(): ShadowRoot | null {
+    const rootNode = this.hot.rootElement.getRootNode();
+
+    return rootNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE && 'host' in rootNode ? rootNode as ShadowRoot : null;
   }
 
   /**
