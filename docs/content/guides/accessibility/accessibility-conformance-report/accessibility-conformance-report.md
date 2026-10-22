@@ -10,7 +10,7 @@ tags:
   - a11y
   - vpat
   - wcag
-  - compliance
+  - wcag 2.2
   - conformance
   - section 508
 react:
@@ -23,9 +23,9 @@ searchCategory: Guides
 category: Accessibility
 ---
 
-This page is the Voluntary Product Accessibility Template (VPAT) for Handsontable, documenting conformance with WCAG 2.1 and Section 508 accessibility standards.
+This page is the Accessibility Conformance Report (ACR) of Handsontable DataGrid, version {{$a11y.report.version}} ({{$a11y.report.date}}), in the Voluntary Product Accessibility Template (VPAT) format. It states, per success criterion, how the grid conforms to the Web Content Accessibility Guidelines ({{$a11y.target.name}}) at {{$a11y.target.level}}, the level Handsontable targets.
 
-This Accessibility Conformance Report (ACR) follows the VPAT&reg; 2.5 format developed by the Information Technology Industry Council (ITI). It describes how Handsontable, a JavaScript data grid component, conforms to the Web Content Accessibility Guidelines (WCAG) 2.2 at Level A and Level AA.
+This report follows the VPAT&reg; 2.5 format developed by the Information Technology Industry Council (ITI). Version {{$a11y.report.next.version}} is {{$a11y.report.next.status}}: {{$a11y.report.next.scope}}.
 
 [[toc]]
 
@@ -33,13 +33,14 @@ This Accessibility Conformance Report (ACR) follows the VPAT&reg; 2.5 format dev
 
 <table>
   <tr><td><strong>Product name</strong></td><td>Handsontable - JavaScript Data Grid</td></tr>
-  <tr><td><strong>Report date</strong></td><td>March 2026</td></tr>
-  <tr><td><strong>Report version</strong></td><td>1.1</td></tr>
-  <tr><td><strong>Standards covered</strong></td><td>WCAG 2.2 Level A and AA</td></tr>
+  <tr><td><strong>Report date</strong></td><td>{{$a11y.report.date}}</td></tr>
+  <tr><td><strong>Report version</strong></td><td>{{$a11y.report.version}}</td></tr>
+  <tr><td><strong>Product version evaluated</strong></td><td>{{$a11y.report.evaluatedProductVersion}}</td></tr>
+  <tr><td><strong>Standards covered</strong></td><td>{{$a11y.target.name}} {{$a11y.target.level}}</td></tr>
   <tr><td><strong>Vendor</strong></td><td>Handsontable sp. z o.o.</td></tr>
   <tr><td><strong>Contact</strong></td><td>support@handsontable.com</td></tr>
-  <tr><td><strong>Audit report reference</strong></td><td>Kinaole (December 2025 - January 2026)</td></tr>
-  <tr><td><strong>VPAT template version</strong></td><td>VPAT&reg; 2.5 (October 2024)</td></tr>
+  <tr><td><strong>Audit report reference</strong></td><td>{{$a11y.report.auditor}} ({{$a11y.report.auditPeriod}})</td></tr>
+  <tr><td><strong>VPAT template version</strong></td><td>{{$a11y.report.template}}</td></tr>
 </table>
 
 ::: tip
@@ -54,7 +55,7 @@ This report covers the following standard:
 
 - **Web Content Accessibility Guidelines 2.2** - [https://www.w3.org/TR/WCAG22/](https://www.w3.org/TR/WCAG22/) - Level A and Level AA
 
-WCAG 2.2, published October 2023, supersedes WCAG 2.1. It removes Success Criterion 4.1.1 Parsing and adds nine new success criteria. The Kinaole audit report (December 2025 - January 2026) was conducted against WCAG 2.1; additional WCAG 2.2 criteria are assessed via internal evaluation and noted accordingly.
+WCAG 2.2, published October 2023, supersedes the previous version of the guidelines. It removes Success Criterion 4.1.1 Parsing and adds six Level A and AA success criteria; the three criteria it adds at Level AAA are out of this report's scope. The {{$a11y.report.auditor}} audit ({{$a11y.report.auditPeriod}}) covered {{$a11y.report.auditCoverage}}.
 
 ## Notes
 
@@ -67,15 +68,26 @@ Row and column virtualization is enabled by default. For complete assistive tech
 
 Known issues are tracked in the public GitHub repository at [github.com/handsontable/handsontable](https://github.com/handsontable/handsontable) and in an internal backlog.
 
+{{$a11y.notes.mobile}}
+
 ## Evaluation methods
 
 - Manual keyboard-only navigation testing across all major interaction patterns
-- Screen reader testing: **VoiceOver** (macOS Sequoia 15.3.2 / iOS 18.3) and **NVDA 2025.3** (Windows 11)
-- Browsers tested: Chrome 141.0.7390.66, Firefox 143.0.4
+- Screen reader testing with the assistive technologies listed below
 - Additional testing on Android 14
 - Color contrast analysis using contrast ratio measurement tools
 - HTML/ARIA code inspection of rendered markup
-- **Kinaole accessibility audit report** (December 2025 / January 2026) - this ACR was prepared internally by Handsontable based on that report
+- **{{$a11y.report.auditor}} accessibility audit report** ({{$a11y.report.auditPeriod}}) - this ACR was prepared internally by Handsontable based on that report
+
+### Assistive technologies and browsers
+
+Screen readers:
+
+{{$a11y.matrix.list}}
+
+Browsers:
+
+{{$a11y.browsers.list}}
 
 ### Audit scope - 8 interaction patterns evaluated
 
@@ -87,12 +99,6 @@ Known issues are tracked in the public GitHub repository at [github.com/handsont
 - Row Parents (nested rows with expand/collapse)
 - Merged Cells with Formula
 - Empty Data State
-
-::: tip
-
-JAWS is listed as a supported screen reader in Handsontable documentation and is addressed in code design. However, JAWS was not included in the most recent formal audit cycle (December 2025 - January 2026). Internal testing with JAWS is under evaluation for inclusion in future audit cycles.
-
-:::
 
 ## Conformance summary
 
@@ -486,13 +492,13 @@ The following issues are acknowledged, tracked, and actively prioritized. Transp
 
 ## WCAG 2.2 assessment notes
 
-This report targets **WCAG 2.2 Level AA**, published October 2023. WCAG 2.2 removes Success Criterion 4.1.1 Parsing and adds the following criteria (all included in the tables above):
+This report targets **{{$a11y.target.name}} {{$a11y.target.level}}**, published October 2023. WCAG 2.2 removes Success Criterion 4.1.1 Parsing and adds six Level A and AA criteria, all included in the tables above:
 
 - **Level A (new):** 3.2.6 Consistent Help, 3.3.7 Redundant Entry - both assessed as Not Applicable to a data grid component.
-- **Level A (inherited from WCAG 2.1, now formally assessed):** 2.5.1 Pointer Gestures (Partially Supports), 2.5.2 Pointer Cancellation (Supports), 2.5.3 Label in Name (Partially Supports), 2.5.4 Motion Actuation (Not Applicable).
+- **Level A (unchanged from the previous version, now formally assessed):** 2.5.1 Pointer Gestures (Partially Supports), 2.5.2 Pointer Cancellation (Supports), 2.5.3 Label in Name (Partially Supports), 2.5.4 Motion Actuation (Not Applicable).
 - **Level AA (new):** 2.4.11 Focus Not Obscured Minimum (Not Evaluated - frozen rows/columns require dedicated testing), 2.5.7 Dragging Movements (Partially Supports - drag alternatives incomplete), 2.5.8 Target Size Minimum (Not Evaluated - formal verification pending), 3.3.8 Accessible Authentication Minimum (Not Applicable).
 
-The Kinaole audit report (December 2025 - January 2026) covered WCAG 2.1 A and AA criteria. The nine WCAG 2.2-specific criteria have been assessed internally and are clearly labeled in the tables above. A future audit cycle will include formal third-party evaluation of all WCAG 2.2 additions.
+The tables above label the six criteria new in WCAG 2.2, which were assessed internally. Version {{$a11y.report.next.version}} of this report is {{$a11y.report.next.status}}: {{$a11y.report.next.scope}}.
 
 ## Legal disclaimer
 
@@ -502,7 +508,7 @@ Accessibility is an ongoing commitment. Handsontable maintains an active issue b
 
 Conformance claims reflect the **default configuration** of Handsontable. Developer-controlled options ([`navigableHeaders`](@/api/options.md#navigableheaders), [`renderAllRows`](@/api/options.md#renderallrows), [`renderAllColumns`](@/api/options.md#renderallcolumns), [`tabNavigation`](@/api/options.md#tabnavigation), and others) may significantly affect the accessible experience. Developers are responsible for implementing appropriate configurations and for overall application-level accessibility.
 
-This document does not constitute a legal certification of conformance. Use of this document is voluntary and for informational procurement purposes.
+This document is not a legal attestation of conformance. Use of this document is voluntary and for informational procurement purposes.
 
 ## Related
 
@@ -511,3 +517,5 @@ This document does not constitute a legal certification of conformance. Use of t
 - [Accessibility](@/guides/accessibility/accessibility/accessibility.md)
 
 </div>
+
+Microsoft and Excel are registered trademarks of Microsoft Corporation. Google Sheets is a trademark of Google LLC.
