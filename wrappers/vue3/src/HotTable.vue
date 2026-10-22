@@ -18,6 +18,7 @@ import { defineComponent, VNode, markRaw } from 'vue';
 import Handsontable from 'handsontable/base';
 import {
   HOT_DESTROYED_WARNING,
+  generateContainerId,
   prepareSettings,
   propFactory,
 } from './helpers';
@@ -36,6 +37,15 @@ const HotTable = defineComponent({
     };
   },
   watch: {
+    // Vue removes the attribute when `id` is cleared, so put the generated one back after the patch.
+    id: {
+      handler(id) {
+        if (!id) {
+          this.$el.id = this.getGeneratedId();
+        }
+      },
+      flush: 'post',
+    },
     $props: {
       handler(props) {
         const settings = prepareSettings(props, this.hotInstance ? this.hotInstance.getSettings() : undefined);
@@ -81,6 +91,7 @@ const HotTable = defineComponent({
       /* eslint-enable vue/no-reserved-keys */
       miscCache: {
         currentSourceColumns: null,
+        generatedId: '',
       },
       columnSettings: null as HotTableProps[] | null,
       columnsCache: new Map<VNode, HotTableProps>(),
@@ -104,6 +115,19 @@ const HotTable = defineComponent({
     };
   },
   methods: {
+    /**
+     * Get the id used when the `id` prop is not passed. It is created once per instance.
+     *
+     * @returns {string} The generated container id.
+     */
+    getGeneratedId(): string {
+      if (!this.miscCache.generatedId) {
+        this.miscCache.generatedId = generateContainerId();
+      }
+
+      return this.miscCache.generatedId;
+    },
+
     /**
      * Initialize Handsontable.
      */
@@ -253,6 +277,13 @@ const HotTable = defineComponent({
     },
   },
   mounted() {
+    // The auto-generated id is set here, on the client only, and not through a prop default or reactive
+    // data: an id created on the server never matches the browser's, which breaks hydration, and a
+    // reactive id would re-render every `HotTable` right after mounting.
+    if (!this.id) {
+      this.$el.id = this.getGeneratedId();
+    }
+
     this.columnSettings = this.getColumnSettings();
     this.hotInit();
   },
