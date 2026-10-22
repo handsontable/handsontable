@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-22T04:04:05.004Z",
+  "generatedAt": "2026-10-22T08:11:31.102Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -2696,7 +2696,7 @@
       "file": "handsontable/src/plugins/formulas/__tests__/plugins/autofill.spec.js",
       "line": null,
       "title": "Formulas Integration with Autofill should cooperate properly with trimmed rows (populating not trimmed elements)",
-      "count7": 2,
+      "count7": 0,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
