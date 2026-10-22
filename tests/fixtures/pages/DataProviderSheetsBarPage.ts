@@ -23,6 +23,7 @@ interface GotoOptions {
   userErrorListeners?: boolean;
   userFetchListener?: boolean;
   noEmptyDataState?: boolean;
+  noRefetchAfterCreate?: boolean;
   releaseInitialFetch?: boolean;
 }
 
@@ -149,7 +150,8 @@ export class DataProviderSheetsBarPage {
    * (`?frozenOrders=1`). `userErrorListeners: true` adds user error-hook listeners that return values
    * (`?userErrorListeners=1`). `userFetchListener: true` adds a user `afterDataProviderFetch` listener that returns
    * an inflated `totalRows` (`?userFetchListener=1`). `noEmptyDataState: true` builds the grid without EmptyDataState
-   * (`?noEmptyDataState=1`). `releaseInitialFetch: false` returns while the initial `ORD` fetch is still pending.
+   * (`?noEmptyDataState=1`). `noRefetchAfterCreate: true` sets `refetchAfterCreate: false` on both server sheets
+   * (`?noRefetchAfterCreate=1`). `releaseInitialFetch: false` returns while the initial `ORD` fetch is still pending.
    */
   async goto(options: GotoOptions = {}): Promise<void> {
     const extraParams = [
@@ -165,6 +167,7 @@ export class DataProviderSheetsBarPage {
       options.userErrorListeners ? '&userErrorListeners=1' : '',
       options.userFetchListener ? '&userFetchListener=1' : '',
       options.noEmptyDataState ? '&noEmptyDataState=1' : '',
+      options.noRefetchAfterCreate ? '&noRefetchAfterCreate=1' : '',
     ].join('');
 
     await this.page.goto(

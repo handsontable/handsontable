@@ -40,6 +40,8 @@ When a user edits a cell, the update flows through these steps in order:
 5. **On success**: [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) fires, then Handsontable refetches the current page (with `skipLoading: true` so the loading overlay does not flash).
 6. **On failure**: the optimistic values roll back and [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires. If [`notification`](@/api/options.md#notification) is enabled, an error toast appears.
 
+Every fetch, a refetch included, replaces the grid's rows with [`loadData()`](@/api/core.md#loaddata). A drag the user still holds when the rows arrive is canceled: moving cells or rows, resizing a column or a row, the fill handle, and a freeze bar. A [`downloadFileAsync()`](@/api/exportFile.md#downloadfileasync) call that waits for the export dialog when the rows arrive is rejected, because the rows it was asked to export are gone.
+
 ### `onRowsCreate`
 
 Called when the user inserts rows (for example from the context menu). Payload shape:
@@ -59,6 +61,8 @@ Append the new rows at the end of the current page. `updateData()` keeps cell me
 With [`pagination`](@/api/options.md#pagination) enabled, two things stay stale until that next `fetchRows` call: the row total does not change, and the current page grows past `pageSize` (for example, page 1 shows 11 rows with `pageSize: 10`), because in server mode Pagination does not hide rows on its side.
 
 If a `fetchRows` request is still running when the create finishes (for example, a sort or filter change made just before the insert), Handsontable refetches anyway, so the late response cannot remove the rows you applied.
+
+With the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#server-backed-sheets), the user can switch sheets while the request runs, and `hot` then shows another sheet. Add the rows only while the sheet that made the request is active. A create that finishes while its sheet is hidden refetches that sheet anyway.
 
 The example shows only the keys that change; the other keys stay as in [Configuration](@/guides/getting-started/server-side-data/server-side-data-configuration.md).
 
@@ -104,7 +108,7 @@ From the plugin instance (`hot.getPlugin('dataProvider')`), you can also call [`
 ### Mutation hooks
 
 - [`beforeRowsMutation`](@/api/hooks.md#beforerowsmutation) — `(operation, payload)`; return `false` to cancel. For **create** and **remove**, the server callback is not invoked and there is no refetch. For **update** from the grid, `false` reverts optimistic cell values and skips `onRowsUpdate`; cell validators run only when the hook allows the mutation to continue.
-- [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) — runs after the server mutation callback succeeds and before the post-mutation refetch (for `create`, the refetch is skipped when `refetchAfterCreate` is `false`).
+- [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) — runs after the server mutation callback succeeds and before the post-mutation refetch (for `create`, the refetch is skipped when `refetchAfterCreate` is `false`, except in the cases described under [`onRowsCreate`](#onrowscreate)).
 - [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) — runs when the mutation callback throws or rejects, when validation fails before the request, or when the refetch after a successful update fails.
 
 `operation` is `'create'`, `'update'`, or `'remove'`. The hook `payload` is a wrapper object, not the same reference as the callback argument: `'create'` uses `{ rowsCreate }` (same inner shape as `onRowsCreate`), `'update'` uses `{ rows }` (the array passed to `onRowsUpdate`), and `'remove'` uses `{ rowsRemove }` (the id array passed to `onRowsRemove`).

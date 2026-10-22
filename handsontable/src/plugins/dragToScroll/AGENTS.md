@@ -55,6 +55,14 @@ The guards exist because those hooks fire unconditionally from `TableView`, whil
 
 `#onAfterSelection` sets `preventScrolling.value = true` while listening and outside the viewport, so `setRangeEnd` does not scroll-into-view and undo the auto-scroll. It is deliberately limited to the active-drag window, or ordinary `selectCell` calls would stop scrolling into view.
 
+## A data load ends the auto-scroll of a drag its owner ended
+
+MoveCells and Autofill end a held drag on `beforeLoadData` (a sheets bar switch, a DataProvider fetch), but the
+button is still down, so this plugin kept scrolling the data that replaced it until the release. `#onBeforeLoadData`
+calls `unlisten()` for the `move` and `corner` kinds; it runs after both owners' listeners, which are enabled first
+(priorities 25 and 20 against 100). A plain cell drag-select (`cell`) and a handle drag (`handle`) keep scrolling:
+their owners do not end on a load. Pinned by `__tests__/selectionDragOwnership.unit.js`.
+
 ## Where to look next
 
 - The mobile drag that drives this plugin: `../multipleSelectionHandles/AGENTS.md`.

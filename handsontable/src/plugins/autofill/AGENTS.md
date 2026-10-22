@@ -344,6 +344,12 @@ The fill handle arms DragToScroll through `afterOnCellCornerMouseDown`, and Drag
 **not** extend the selection for a corner drag — this plugin owns that continuation via its own
 `afterScroll` listener. See `../dragToScroll/AGENTS.md`.
 
+## A corner gesture ends when the data is replaced
+
+`beforeLoadData` runs `#resetDragState()` while `mouseDownOnCellCorner` is set. A switch clears
+the fill preview, but the next `mouseover` redrew it on the arriving sheet's restored selection, and the release
+filled that sheet. Gated on the flag, per the rule above. Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. Pinned by `tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
+
 ## Where to look next
 
 - Auto-scroll arming and the per-drag-kind ownership rule: `../dragToScroll/AGENTS.md`.

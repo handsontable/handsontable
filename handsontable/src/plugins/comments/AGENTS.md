@@ -243,6 +243,18 @@ of its own to capture. What the plugin owns is how many steps a user action make
   cleared at once - a flag left set would skip the save of the next real edit. Pinned in
   `tests/e2e/undo-plugin-state.spec.ts`.
 
+## A sheet switch saves and closes the editor first
+
+`_saveAndCloseEditor()` (`@private`) saves the open editor's text the way a blur does (`#saveEditorComment`) and
+closes it without a second save (`#closeEditorWithoutSave`). The sheets bar calls it before it captures the sheet it
+leaves: an editor opened through the API is not blurred by a switch made through the API, so it stayed over the
+arriving sheet and its text was saved into that sheet's cell. It saves only a focused editor. Typing needs the focus
+and a blur saves on its own, so an unfocused editor (a hover preview, one the API opened) holds nothing new: saving
+it wrote an empty comment, with an undo step, onto the cell. Do not widen the test to "the text differs from the
+comment": `setCommentAtCell()` moves the plugin's range without touching the editor, so the text then belongs to
+another cell, and the save wrote one cell's comment over another's. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts` and
+`../sheetsBar/__tests__/inFlightSwitch.unit.js`.
+
 ## Where to look next
 
 - The menu the items land in: `../contextMenu/AGENTS.md`.

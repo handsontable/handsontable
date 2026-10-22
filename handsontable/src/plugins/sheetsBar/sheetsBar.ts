@@ -73,6 +73,15 @@ const GRID_LEVEL_DATA_PROVIDER_WARNING = 'The grid-level `dataProvider` is disab
   'enabled. Declare `dataProvider` in the `settings` of each sheet that loads from a server.';
 
 /**
+ * Console message for an `activeSheet` setting whose switch was refused: another switch is running (the
+ * value came from a listener of that switch), a cell value still waits for its validator, or the cell
+ * editor holds a value its validator rejected.
+ */
+const ACTIVE_SHEET_REFUSED_WARNING = 'The `activeSheet` setting was not applied because another sheet switch ' +
+  'is running, or a cell value is still being validated or was rejected. Send the same value again once the ' +
+  'switch has finished or the cell is saved.';
+
+/**
  * A sheet definition accepted by the `sheets` setting.
  */
 export interface SheetsBarSheetConfig {
@@ -365,6 +374,27 @@ export class SheetsBar extends BasePlugin {
    * @type {boolean}
    */
   #isSwitching = false;
+  /**
+   * The id of the sheet whose rows the grid holds. The model points at the arriving sheet before
+   * its data loads, so the two differ while a switch runs, and stay different when the switch
+   * throws before the load (`#switchTo` then points the model back at this sheet).
+   *
+   * @type {number|null}
+   */
+  #loadedSheetId: number | null = null;
+  /**
+   * The sheet `#applySheet` is loading, read by `#onAfterSheetLoad`.
+   *
+   * @type {Sheet|null}
+   */
+  #loadingSheet: Sheet | null = null;
+  /**
+   * Whether a workbook change's before-hook is running. A listener of that hook cannot change the
+   * workbook: the change it was told about would then run on another workbook state.
+   *
+   * @type {boolean}
+   */
+  #isRunningBeforeHook = false;
   /**
    * Holds every tab entrance, tab slide, and marker slide back until the grid has been painted:
    * the gate opens in the second animation frame after the render that armed it. Shut on a
@@ -659,6 +689,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.#getDataProvider()?._setContextOwner(this.#contextOwner);
+    this.addHook('afterLoadData', this.#onAfterSheetLoad, -1);
 
     if (this.#preservedState) {
       this.#model = this.#preservedState.model;
@@ -709,6 +740,12 @@ export class SheetsBar extends BasePlugin {
         // the user asked for a new sheet in order to work in it. The API `addSheet()` stays
         // silent, so a script building a workbook does not walk the grid through every sheet.
         .addLocalHook('addSheetClick', () => {
+          // The new sheet is meant to be switched to, so it is not added when that switch would be
+          // refused: the tab would appear while the grid stays on the sheet being edited.
+          if (!this.#finishEditing()) {
+            return;
+          }
+
           const added = this.addSheet(undefined, undefined, undefined, SOURCE_UI);
 
           if (added !== null) {
@@ -791,6 +828,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.hot.getFocusManager().registerOutsideClickExemptElement(this.#ui.getContainer());
+    this.eventManager.addEventListener(this.#ui.getContainer(), 'pointerdown', this.#onBarPointerDown);
     this.#registerFocusScope();
     this.#registerShortcuts();
 
@@ -879,6 +917,13 @@ export class SheetsBar extends BasePlugin {
    * wrapper re-emitting its whole configuration, so it is always an explicit switch request —
    * including back to a value that was acted on before. A full re-emit is judged by value: one
    * equal to the last acted-on value changes nothing, a new one switches.
+   *
+   * A value is recorded once the switch got as far as its listeners, so a switch a
+   * `beforeSheetTabChange` listener cancels is not asked again on every wrapper re-render. A switch
+   * refused while a change waits for its validator, or while the editor holds a rejected value, is
+   * not recorded and warns: the same value sent again retries it. That includes a change a listener
+   * of the switch starts, which the second check right before the load refuses, and a value sent
+   * while another switch runs or from a before-hook listener, where `setActiveSheet()` refuses too.
    */
   #applyActiveSheetSetting(payload: unknown) {
     const wanted = this.getSetting('activeSheet');
@@ -888,13 +933,20 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    this.#lastActiveSheetSetting = wanted;
-
     const target = typeof wanted === 'number' ? this.getSheets()[wanted] : undefined;
 
     if (target && !target.isActive) {
-      this.setActiveSheet(target.id);
+      if (
+        this.#isSwitching || this.#isRunningBeforeHook || !this.#finishEditing() ||
+        (!this.setActiveSheet(target.id) && !this.#isEditingSettled())
+      ) {
+        warn(ACTIVE_SHEET_REFUSED_WARNING);
+
+        return;
+      }
     }
+
+    this.#lastActiveSheetSetting = wanted;
   }
 
   /**
@@ -1178,6 +1230,7 @@ export class SheetsBar extends BasePlugin {
     this.#isInitializing = false;
 
     if (this.#preservedState === null) {
+      this.#loadedSheetId = null;
       this.#motionGate.close();
     }
 
@@ -1204,8 +1257,9 @@ export class SheetsBar extends BasePlugin {
    * Renames a sheet.
    *
    * Returns `false` when the id is unknown, the name is blank or unchanged, another sheet
-   * already uses the name (in the bar or in the sheet's formula engine), or a
-   * `beforeSheetTabRename` listener cancels the rename.
+   * already uses the name (in the bar or in the sheet's formula engine), a
+   * `beforeSheetTabRename` listener cancels the rename, or it is called from a listener of a
+   * workbook change's before-hook.
    *
    * @param {number} id The sheet's id.
    * @param {string} name The new name. Trimmed, and cut to the name length limit.
@@ -1221,8 +1275,8 @@ export class SheetsBar extends BasePlugin {
    *
    * The copy gets a deep clone of the sheet's data and settings, and a name based on the
    * original's. The `formulas` setting is not cloned: the copy shares the original's engine,
-   * under a sheet name of its own. Returns `null` when the id is unknown or a `beforeSheetTabAdd` listener
-   * cancels the copy.
+   * under a sheet name of its own. Returns `null` when the id is unknown, a `beforeSheetTabAdd` listener
+   * cancels the copy, or it is called from a listener of a workbook change's before-hook.
    *
    * @param {number} id The sheet to copy.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1237,7 +1291,8 @@ export class SheetsBar extends BasePlugin {
    *
    * Removing the active sheet first switches to its nearest neighbor. Returns `false` when the
    * id is unknown, the sheet is the last one, a `beforeSheetTabRemove` listener cancels the
-   * removal, or the switch to the neighbor is rejected.
+   * removal, the switch to the neighbor is rejected, or it is called from a listener of a
+   * workbook change's before-hook, such as `beforeSheetTabChange`.
    *
    * @param {number} id The sheet to remove.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -1252,6 +1307,18 @@ export class SheetsBar extends BasePlugin {
    * already active, another switch is in progress, or a `beforeSheetTabChange` listener
    * cancels the switch.
    *
+   * The switch first saves the cell editor and the comment editor on the sheet you leave. It
+   * returns `false`, and switches nothing, while a cell value waits for an asynchronous
+   * validator, or while the editor holds a value its validator rejected (`allowInvalid: false`):
+   * the value would otherwise be written into the arriving sheet. Validators always answer after
+   * the edit, so a call made while the editor of a cell with a validator is open returns `false`
+   * even for a valid value: close the editor first and switch once `afterValidate` has fired. A
+   * change that a `beforeSheetTabChange` or `afterSheetTabStateCapture` listener makes to a cell
+   * with a validator refuses the switch the same way. A validator that never calls its callback
+   * blocks switching until {@link Core#loadData} loads other data. It also returns `false` when
+   * it is called from a listener of a workbook change's before-hook, such as
+   * `beforeSheetTabChange`, or of `afterSheetTabStateCapture`.
+   *
    * @param {number|string} idOrName The sheet's id, or its name.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
    * @returns {boolean} `true` when the sheet was activated.
@@ -1259,9 +1326,17 @@ export class SheetsBar extends BasePlugin {
   setActiveSheet(idOrName: number | string, source: string = SOURCE_API): boolean {
     const model = this.#model;
     const newId = model?.resolveId(idOrName) ?? null;
-    const oldId = model?.getActiveSheet()?.id ?? null;
 
-    if (model === null || newId === null || newId === oldId || this.#isSwitching) {
+    if (
+      model === null || newId === null || newId === model.getActiveSheet()?.id ||
+      this.#isSwitching || this.#isRunningBeforeHook || !this.#finishEditing()
+    ) {
+      return false;
+    }
+
+    const oldId = model.getActiveSheet()?.id ?? null;
+
+    if (newId === oldId) {
       return false;
     }
 
@@ -1281,17 +1356,26 @@ export class SheetsBar extends BasePlugin {
         const oldSheet = oldId === null ? null : model.getSheetById(oldId);
 
         if (oldSheet) {
-          if (this.hot.getActiveEditor()?.isOpened()) {
-            this.hot.destroyEditor(false, false);
-          }
-
           this.#syncActiveSheetData();
           oldSheet.viewState = captureViewState(this.hot, this.#flattenTrackedCellMeta()) as
             unknown as Record<string, unknown>;
           this.#captureColumnSummary(oldSheet);
           this.#captureCellOption(oldSheet);
-          this.hot.runHooks('afterSheetTabStateCapture', oldId, oldSheet.viewState, source);
+          this.#runBeforeChangeHook(() => {
+            this.hot.runHooks('afterSheetTabStateCapture', oldId, oldSheet.viewState, source);
+          });
+
+          if (!this.#isLive(model)) {
+            return false;
+          }
         }
+
+        if (!this.#isEditingSettled()) {
+          return false;
+        }
+
+        const dialog = this.hot.getPlugin('dialog');
+        const isDialogOpen = !!dialog?.isVisible();
 
         try {
           this.#isSwitching = true;
@@ -1300,6 +1384,9 @@ export class SheetsBar extends BasePlugin {
           this.#isSwitching = false;
         }
 
+        if (isDialogOpen) {
+          dialog?._adoptViewSelection();
+        }
         this.#refreshUI();
         this.#showServerSheet();
 
@@ -1326,6 +1413,79 @@ export class SheetsBar extends BasePlugin {
     }
 
     return true;
+  }
+
+  /**
+   * Finishes what the user is typing before a switch captures the departing sheet. The cell editor
+   * saves its value, and a comment editor opened through the API, which no click on a tab blurs,
+   * saves its text. Answers `false`, and the switch does not happen, while a change still waits for
+   * its validator, the editor's own save included, or while the editor stays open because its
+   * validator rejected the value (`allowInvalid: false`): the change would otherwise be written into
+   * the arriving sheet when the validator answers, or the editor would stay over it.
+   */
+  #finishEditing(): boolean {
+    this.#saveCellEditor();
+    this.hot.getPlugin('comments')?._saveAndCloseEditor();
+
+    return this.#isEditingSettled();
+  }
+
+  /**
+   * Saves and closes the cell editor, unless it already waits for its validator.
+   */
+  #saveCellEditor() {
+    const editor = this.hot.getActiveEditor();
+
+    if (editor?.isOpened() && !editor.isWaiting()) {
+      this.hot.destroyEditor(false, false);
+    }
+  }
+
+  /**
+   * Tells whether no change waits for its validator and no cell editor is open. Asked before the
+   * listeners of a switch run and again right before the arriving data loads, because a listener can
+   * start a validated change of its own (a `setDataAtCell()` call that stamps the departing sheet).
+   */
+  #isEditingSettled(): boolean {
+    return !this.hot.getActiveEditor()?.isOpened() && !this.hot._hasPendingValidation();
+  }
+
+  /**
+   * A press anywhere in the bar saves the cell editor. A mouse press does the same through the grid's
+   * outside-click handling, which skips the mouse events a touch screen synthesizes. On a touch screen
+   * the editor would close only in the tab's `click` handler, and a validator answers after that, so
+   * the first tap would be refused. Saving on the press gives the validator time to answer before the
+   * `click`.
+   */
+  #onBarPointerDown = () => {
+    this.#saveCellEditor();
+  };
+
+  /**
+   * Runs host listeners that are told about a workbook change before it has finished: a change's
+   * before-hook, `afterSheetTabStateCapture`, and `afterSheetTabStateRestore`, which fires in the
+   * middle of the switch. A workbook change they request is refused (`#commit`), because the change
+   * they were told about would then run on another workbook state: a restore listener that removed the
+   * departing sheet left `afterSheetTabChange` reporting a sheet that no longer exists.
+   */
+  #runBeforeChangeHook(runListeners: () => void) {
+    const wasRunning = this.#isRunningBeforeHook;
+
+    this.#isRunningBeforeHook = true;
+
+    try {
+      runListeners();
+    } finally {
+      this.#isRunningBeforeHook = wasRunning;
+    }
+  }
+
+  /**
+   * Tells whether the plugin still runs the workbook it ran before a host listener was called: the
+   * grid is not destroyed, the bar is on, and the workbook was not replaced.
+   */
+  #isLive(model: SheetModel | null): boolean {
+    return !!this.hot && !this.hot.isDestroyed && this.enabled && this.#model === model;
   }
 
   /**
@@ -1422,7 +1582,8 @@ export class SheetsBar extends BasePlugin {
    *
    * The index counts sheets in tab order, not on screen, so it is the same under RTL.
    * Returns `false` when the id is unknown, the index is out of range or is the sheet's
-   * current one, or a `beforeSheetTabMove` listener cancels the move.
+   * current one, a `beforeSheetTabMove` listener cancels the move, or it is called from a listener
+   * of a workbook change's before-hook.
    *
    * @param {number} id The sheet id.
    * @param {number} to The target index.
@@ -1435,7 +1596,7 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Appends a sheet and returns its descriptor, or `null` when a `beforeSheetTabAdd`
-   * listener cancels it.
+   * listener cancels it or it is called from a listener of a workbook change's before-hook.
    *
    * Without `settings`, the new sheet joins the workbook's shared formula engine, if there is
    * one, under its own name. Formulas and cross-sheet references then work on it right away.
@@ -1767,11 +1928,11 @@ export class SheetsBar extends BasePlugin {
    * another one, so the record is only guaranteed current right after this call.
    */
   #syncActiveSheetData() {
-    const activeId = this.#model?.getActiveSheet()?.id ?? null;
-    const activeSheet = activeId === null ? null : this.#model?.getSheetById(activeId);
+    const loadedId = this.#loadedSheetId ?? this.#model?.getActiveSheet()?.id ?? null;
+    const loadedSheet = loadedId === null ? null : this.#model?.getSheetById(loadedId);
 
-    if (activeSheet) {
-      activeSheet.data = this.#getLiveSourceData();
+    if (loadedSheet) {
+      loadedSheet.data = this.#getLiveSourceData();
     }
   }
 
@@ -1788,9 +1949,41 @@ export class SheetsBar extends BasePlugin {
    * count opened unfrozen.
    */
   #switchTo(model: SheetModel, newId: number, source: string) {
+    const departingId = this.#loadedSheetId;
+
     model.setActiveSheet(newId);
 
-    const newSheet = model.getSheetById(newId) as Sheet;
+    try {
+      this.#showSheet(model.getSheetById(newId) as Sheet, source);
+    } catch (error) {
+      const departingSheet = departingId === null ? undefined : model.getSheetById(departingId);
+
+      if (departingSheet && this.#loadedSheetId !== newId) {
+        model.setActiveSheet(departingSheet.id);
+
+        try {
+          this.#showSheet(departingSheet, source);
+        } catch {
+          throw error;
+        }
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * Applies the sheet the model has just activated, and restores its view state. When this throws
+   * before the sheet's data loaded, the grid still holds the departing sheet's rows, while the
+   * arriving sheet's settings are applied over them and the neutral reset has already cleared their
+   * filters, hidden rows, merges, and sizes. `#switchTo` then shows the departing sheet again, from
+   * the view state captured a moment before: left at the arriving one, the next switch stored the
+   * departing rows as the arriving sheet's data, and two tabs then shared one array; only pointing
+   * the model back left the departing sheet without its view state, and the next switch away stored
+   * that empty state as its own.
+   */
+  #showSheet(newSheet: Sheet, source: string) {
+    const newId = newSheet.id;
 
     this.#trackedCellMeta = SheetsBar.#groupTrackedCellMeta(
       (newSheet.viewState?.cellMeta as TrackedCellMeta[] | undefined) ?? [],
@@ -1857,7 +2050,9 @@ export class SheetsBar extends BasePlugin {
     }
 
     if (viewState) {
-      this.hot.runHooks('afterSheetTabStateRestore', newId, newSheet.viewState, source);
+      this.#runBeforeChangeHook(() => {
+        this.hot.runHooks('afterSheetTabStateRestore', newId, newSheet.viewState, source);
+      });
     }
   }
 
@@ -1912,7 +2107,7 @@ export class SheetsBar extends BasePlugin {
         this.hot.updateSettings(settings);
       }
 
-      model.addSheet(null, this.#getLiveSourceData());
+      this.#loadedSheetId = model.addSheet(null, this.#getLiveSourceData()).id;
     }
   }
 
@@ -1948,9 +2143,15 @@ export class SheetsBar extends BasePlugin {
     }
 
     const apply = () => {
-      this.hot._applySettingsAndData(
-        payload as Partial<GridSettings>, sheet.data as unknown[], `${source}.switch`, cellOptionMetas
-      );
+      this.#loadingSheet = sheet;
+
+      try {
+        this.hot._applySettingsAndData(
+          payload as Partial<GridSettings>, sheet.data as unknown[], `${source}.switch`, cellOptionMetas
+        );
+      } finally {
+        this.#loadingSheet = null;
+      }
 
       if (this.hot.view) {
         this.#runMergeCellsSettingsPass(!restoresState);
@@ -2322,6 +2523,10 @@ export class SheetsBar extends BasePlugin {
    * passed to `toAfterArgs` on success. `mutate` is responsible for calling
    * `#refreshUI()` itself before returning a successful payload, so the tab strip is
    * always repainted before the after-hook runs.
+   *
+   * A workbook change requested by a before-hook listener is refused, because the change the
+   * listener was told about would then run on another workbook state. And the change stops when a
+   * listener destroyed the grid, turned the bar off, or replaced the workbook (`#isLive`).
    */
   #commit<T>(
     beforeHook: string,
@@ -2331,7 +2536,19 @@ export class SheetsBar extends BasePlugin {
     toAfterArgs: (payload: T) => unknown[],
     source: string,
   ): T | false {
-    if (this.hot.runHooks(beforeHook, ...beforeArgs, source) === false) {
+    const model = this.#model;
+
+    if (this.#isRunningBeforeHook) {
+      return false;
+    }
+
+    let canceled = false;
+
+    this.#runBeforeChangeHook(() => {
+      canceled = this.hot.runHooks(beforeHook, ...beforeArgs, source) === false;
+    });
+
+    if (canceled || !this.#isLive(model)) {
       return false;
     }
 
@@ -2416,7 +2633,8 @@ export class SheetsBar extends BasePlugin {
           const remaining = sheets.filter(sheet => sheet.id !== id);
           const switched = this.setActiveSheet(remaining[Math.min(index, remaining.length - 1)].id, source);
 
-          if (!switched) {
+          // An `afterSheetTabChange` listener may have switched back to the sheet being removed.
+          if (!switched || model.getActiveSheet()?.id === id) {
             return false;
           }
         }
@@ -3064,6 +3282,17 @@ export class SheetsBar extends BasePlugin {
    */
   #onAfterRemoveCol = (visualColumn: number, amount: number, physicalColumns: number[]) => {
     this.#shiftTrackedCellMetaOnRemove('col', physicalColumns);
+  };
+
+  /**
+   * Records which sheet's rows the grid holds once `#applySheet` has loaded them. Registered first
+   * (`orderIndex` -1), so a later `afterLoadData` listener that throws cannot hide a load that
+   * happened.
+   */
+  #onAfterSheetLoad = () => {
+    if (this.#loadingSheet !== null) {
+      this.#loadedSheetId = this.#loadingSheet.id;
+    }
   };
 
   /**

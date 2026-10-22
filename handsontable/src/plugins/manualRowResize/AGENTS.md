@@ -50,6 +50,12 @@ verifying the underlying issue is resolved.
 It is public and row-only, and it returns the size the pointer described last - `ResizeGesture#getCurrentSize()`,
 or `0` before the first drag.
 
+## A data load cancels a held drag
+
+`#onBeforeDataReplace` calls `ResizeGesture#abort()` on `beforeLoadData`, the way the column plugin does: the drag's
+rows belong to the data that left (a sheets bar switch). Not on `updateData()`, which the React wrapper sends on every
+re-render. Pinned by `tests/e2e/sheets-bar-in-flight-drags.spec.ts` ("cancels a row resize").
+
 ## `afterMouseDownTimeout()` is a forward
 
 Every other gesture method moved into `ResizeGesture`. This one stays as a one-line forward for parity with the
