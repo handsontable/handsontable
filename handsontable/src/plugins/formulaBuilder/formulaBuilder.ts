@@ -6,6 +6,8 @@ import type {
 import { BasePlugin } from '../base';
 import { warnOnce } from '../../helpers/console';
 import { isObject } from '../../helpers/object';
+import { substitute } from '../../helpers/string';
+import * as C from '../../i18n/constants';
 import { isRootInstance } from '../../utils/rootInstance';
 import { A11Y_DESCRIPTION } from '../../helpers/a11y';
 import { removeAttribute, setAttribute } from '../../helpers/dom/element';
@@ -950,6 +952,16 @@ export class FormulaBuilder extends BasePlugin {
   };
 
   /**
+   * `afterLanguageChange` hook listener - rebuilds the builder, because it takes its phrases once,
+   * at construction.
+   */
+  #onAfterLanguageChange = (): void => {
+    if (this.#builder !== null) {
+      this.#rebuildBuilder();
+    }
+  };
+
+  /**
    * Called by the Formulas plugin right before it detaches its engine (it is turned off, its engine
    * is replaced, or the grid is destroyed). The builder subscribes to the engine's events, so it is
    * destroyed here, while the engine still works: when the Formulas plugin built the engine itself it
@@ -1406,6 +1418,7 @@ export class FormulaBuilder extends BasePlugin {
     this.addHook('afterSelectionEnd', this.#onAfterSelectionEnd);
     this.addHook('afterDeselect', this.#onAfterDeselect);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
+    this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
     this.addHook('afterLoadData', this.#onAfterDataLoad);
     this.addHook('afterUpdateData', this.#onAfterDataLoad);
     this.addHook('afterSelection', this.#onAfterSelection);
@@ -1484,6 +1497,7 @@ export class FormulaBuilder extends BasePlugin {
         ...(popups !== undefined && { popups }),
         direction: config.direction ?? (this.hot.isRtl() ? 'rtl' : 'ltr'),
         ...(this.#formulaBarHost !== null && { formulaBarContainer: this.#formulaBarHost }),
+        phrases: this.#phrases(),
       });
     } catch (error) {
       // A rebuild runs from a hook (`afterSetTheme`, `afterLoadData`), where a throw would escape into
@@ -1496,6 +1510,33 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     this.#reattachPopupHosts();
+  }
+
+  /**
+   * Returns the formula editor's accessible names, hints and announcements in the grid's language.
+   *
+   * @returns {object}
+   */
+  #phrases() {
+    const phrase = (key: string, args?: unknown): string => this.hot.getTranslatedPhrase(key, args);
+
+    return {
+      formulaEditor: phrase(C.FORMULA_BUILDER_EDITOR),
+      formulaInput: phrase(C.FORMULA_BUILDER_INPUT),
+      cellAddress: phrase(C.FORMULA_BUILDER_CELL_ADDRESS),
+      formulaSuggestions: phrase(C.FORMULA_BUILDER_SUGGESTIONS),
+      acceptSuggestionHint: phrase(C.FORMULA_BUILDER_ACCEPT_HINT),
+      navigateSuggestionsHint: phrase(C.FORMULA_BUILDER_NAVIGATE_HINT),
+      functionHelp: phrase(C.FORMULA_BUILDER_FUNCTION_HELP),
+      functionHelpFor: (name: string) => phrase(C.FORMULA_BUILDER_FUNCTION_HELP_FOR, { name }),
+      learnMore: phrase(C.FORMULA_BUILDER_LEARN_MORE),
+      close: phrase(C.FORMULA_BUILDER_CLOSE),
+      invalidCellAddress: (text: string) => phrase(C.FORMULA_BUILDER_INVALID_ADDRESS, { text }),
+      cellError: (cell: string, message: string) => phrase(C.FORMULA_BUILDER_CELL_ERROR, { cell, message }),
+      // The dictionary keys a count by plural form (0 one, 1 more), so the count goes in afterwards.
+      dependentCellErrors: (count: number) =>
+        substitute(phrase(C.FORMULA_BUILDER_DEPENDENT_ERRORS, count === 1 ? 0 : 1), { count }),
+    };
   }
 
   /**

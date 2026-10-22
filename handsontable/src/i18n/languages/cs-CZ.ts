@@ -166,6 +166,22 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Ukotvené sloupce na konci',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Rozbalen řádek [label], zobrazené rozbalené řádky: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sbalen řádek [label]',
+  [C.FORMULA_BUILDER_EDITOR]: 'Editor vzorců',
+  [C.FORMULA_BUILDER_INPUT]: 'Vstup vzorce',
+  [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Adresa buňky',
+  [C.FORMULA_BUILDER_SUGGESTIONS]: 'Návrhy vzorců',
+  [C.FORMULA_BUILDER_ACCEPT_HINT]: 'pro potvrzení.',
+  [C.FORMULA_BUILDER_NAVIGATE_HINT]: 'pro pohyb',
+  [C.FORMULA_BUILDER_FUNCTION_HELP]: 'Nápověda k funkci',
+  [C.FORMULA_BUILDER_FUNCTION_HELP_FOR]: 'Nápověda k funkci [name]',
+  [C.FORMULA_BUILDER_LEARN_MORE]: 'Další informace',
+  [C.FORMULA_BUILDER_CLOSE]: 'Zavřít',
+  [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Neplatná adresa buňky: [text]',
+  [C.FORMULA_BUILDER_CELL_ERROR]: 'Chyba v [cell]: [message].',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
+    'Další [count] buňka nyní obsahuje chybu.',
+    'Počet dalších buněk s chybou: [count].',
+  ],
 };
 
 export default dictionary;

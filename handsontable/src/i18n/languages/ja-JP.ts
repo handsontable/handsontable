@@ -171,6 +171,22 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: '末尾の 固定された列',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '行 [label] を展開しました。展開された行数: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '行 [label] を折りたたみました',
+  [C.FORMULA_BUILDER_EDITOR]: '数式エディター',
+  [C.FORMULA_BUILDER_INPUT]: '数式入力',
+  [C.FORMULA_BUILDER_CELL_ADDRESS]: 'セル アドレス',
+  [C.FORMULA_BUILDER_SUGGESTIONS]: '数式の候補',
+  [C.FORMULA_BUILDER_ACCEPT_HINT]: 'で確定。',
+  [C.FORMULA_BUILDER_NAVIGATE_HINT]: 'で移動',
+  [C.FORMULA_BUILDER_FUNCTION_HELP]: '関数のヘルプ',
+  [C.FORMULA_BUILDER_FUNCTION_HELP_FOR]: '[name] 関数のヘルプ',
+  [C.FORMULA_BUILDER_LEARN_MORE]: '詳細情報',
+  [C.FORMULA_BUILDER_CLOSE]: '閉じる',
+  [C.FORMULA_BUILDER_INVALID_ADDRESS]: '無効なセル アドレス: [text]',
+  [C.FORMULA_BUILDER_CELL_ERROR]: '[cell] のエラー: [message]。',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
+    'ほかに [count] 個のセルがエラーになりました。',
+    'ほかに [count] 個のセルがエラーになりました。',
+  ],
 };
 
 export default dictionary;

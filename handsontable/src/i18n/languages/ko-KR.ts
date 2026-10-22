@@ -165,6 +165,22 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: '끝 쪽 고정된 열',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '[label]행 펼침, 펼쳐진 행: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '[label]행 접음',
+  [C.FORMULA_BUILDER_EDITOR]: '수식 편집기',
+  [C.FORMULA_BUILDER_INPUT]: '수식 입력',
+  [C.FORMULA_BUILDER_CELL_ADDRESS]: '셀 주소',
+  [C.FORMULA_BUILDER_SUGGESTIONS]: '수식 제안',
+  [C.FORMULA_BUILDER_ACCEPT_HINT]: '키로 적용.',
+  [C.FORMULA_BUILDER_NAVIGATE_HINT]: '키로 이동',
+  [C.FORMULA_BUILDER_FUNCTION_HELP]: '함수 도움말',
+  [C.FORMULA_BUILDER_FUNCTION_HELP_FOR]: '[name] 함수 도움말',
+  [C.FORMULA_BUILDER_LEARN_MORE]: '자세히 알아보기',
+  [C.FORMULA_BUILDER_CLOSE]: '닫기',
+  [C.FORMULA_BUILDER_INVALID_ADDRESS]: '잘못된 셀 주소: [text]',
+  [C.FORMULA_BUILDER_CELL_ERROR]: '[cell]의 오류: [message].',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
+    '다른 셀 [count]개에 이제 오류가 있습니다.',
+    '다른 셀 [count]개에 이제 오류가 있습니다.',
+  ],
 };
 
 export default dictionary;

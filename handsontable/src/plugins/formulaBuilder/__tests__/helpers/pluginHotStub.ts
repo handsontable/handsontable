@@ -1,5 +1,6 @@
 import { HyperFormula } from 'hyperformula';
 import type { HotInstance } from '../../../../core/types';
+import { DEFAULT_LANGUAGE_CODE, getTranslatedPhrase } from '../../../../i18n/registry';
 type CoreModule = typeof import('hyperformula-ui');
 import { makeGridSelectionApiStub, withLocalHooks } from './stubs';
 import type { GridSelectionApiStub } from './stubs';
@@ -55,6 +56,7 @@ export interface PluginHotStubShape {
   removeHook: jest.Mock;
   _registerTimeout: jest.Mock;
   getActiveEditor: () => unknown;
+  getTranslatedPhrase: (dictionaryKey: string, extraArguments?: unknown) => string;
   getCell: () => HTMLElement;
   getCoords: () => unknown;
   countRows: () => number;
@@ -178,6 +180,8 @@ export function makePluginHotStub(
     removeHook: jest.fn(),
     _registerTimeout: jest.fn((callback: () => void, delay?: number) => setTimeout(callback, delay)),
     getActiveEditor: () => undefined,
+    getTranslatedPhrase: (dictionaryKey: string, extraArguments?: unknown) =>
+      getTranslatedPhrase(DEFAULT_LANGUAGE_CODE, dictionaryKey, extraArguments) as string,
     getCell: () => document.createElement('td'),
     getCoords: () => null,
     countRows: () => 0,

@@ -165,6 +165,22 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: '末尾凍結的欄',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: '已展開列 [label]，顯示的展開列數：[count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: '已摺疊列 [label]',
+  [C.FORMULA_BUILDER_EDITOR]: '公式編輯器',
+  [C.FORMULA_BUILDER_INPUT]: '公式輸入',
+  [C.FORMULA_BUILDER_CELL_ADDRESS]: '儲存格位址',
+  [C.FORMULA_BUILDER_SUGGESTIONS]: '公式建議',
+  [C.FORMULA_BUILDER_ACCEPT_HINT]: '接受。',
+  [C.FORMULA_BUILDER_NAVIGATE_HINT]: '瀏覽',
+  [C.FORMULA_BUILDER_FUNCTION_HELP]: '函數說明',
+  [C.FORMULA_BUILDER_FUNCTION_HELP_FOR]: '[name] 函數說明',
+  [C.FORMULA_BUILDER_LEARN_MORE]: '深入了解',
+  [C.FORMULA_BUILDER_CLOSE]: '關閉',
+  [C.FORMULA_BUILDER_INVALID_ADDRESS]: '無效的儲存格位址: [text]',
+  [C.FORMULA_BUILDER_CELL_ERROR]: '[cell] 發生錯誤: [message]。',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
+    '另有 [count] 個儲存格現在包含錯誤。',
+    '另有 [count] 個儲存格現在包含錯誤。',
+  ],
 };
 
 export default dictionary;

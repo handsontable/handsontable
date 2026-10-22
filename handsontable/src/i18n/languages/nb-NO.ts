@@ -165,6 +165,22 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Frosne kolonner på slutten',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Utvidet rad [label], viste utvidede rader: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Slått sammen rad [label]',
+  [C.FORMULA_BUILDER_EDITOR]: 'Formelredigering',
+  [C.FORMULA_BUILDER_INPUT]: 'Formelinndata',
+  [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Celleadresse',
+  [C.FORMULA_BUILDER_SUGGESTIONS]: 'Formelforslag',
+  [C.FORMULA_BUILDER_ACCEPT_HINT]: 'for å godta.',
+  [C.FORMULA_BUILDER_NAVIGATE_HINT]: 'for å navigere',
+  [C.FORMULA_BUILDER_FUNCTION_HELP]: 'Funksjonshjelp',
+  [C.FORMULA_BUILDER_FUNCTION_HELP_FOR]: 'Hjelp for funksjonen [name]',
+  [C.FORMULA_BUILDER_LEARN_MORE]: 'Finn ut mer',
+  [C.FORMULA_BUILDER_CLOSE]: 'Lukk',
+  [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Ugyldig celleadresse: [text]',
+  [C.FORMULA_BUILDER_CELL_ERROR]: 'Feil i [cell]: [message].',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
+    '[count] celle til inneholder nå en feil.',
+    '[count] celler til inneholder nå feil.',
+  ],
 };
 
 export default dictionary;

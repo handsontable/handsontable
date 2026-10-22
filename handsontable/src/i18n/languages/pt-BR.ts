@@ -165,6 +165,22 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Colunas congeladas no fim',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Linha [label] expandida, linhas expandidas exibidas: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Linha [label] recolhida',
+  [C.FORMULA_BUILDER_EDITOR]: 'Editor de fórmulas',
+  [C.FORMULA_BUILDER_INPUT]: 'Entrada de fórmula',
+  [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Endereço da célula',
+  [C.FORMULA_BUILDER_SUGGESTIONS]: 'Sugestões de fórmulas',
+  [C.FORMULA_BUILDER_ACCEPT_HINT]: 'para aceitar.',
+  [C.FORMULA_BUILDER_NAVIGATE_HINT]: 'para navegar',
+  [C.FORMULA_BUILDER_FUNCTION_HELP]: 'Ajuda da função',
+  [C.FORMULA_BUILDER_FUNCTION_HELP_FOR]: 'Ajuda da função [name]',
+  [C.FORMULA_BUILDER_LEARN_MORE]: 'Saiba mais',
+  [C.FORMULA_BUILDER_CLOSE]: 'Fechar',
+  [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Endereço de célula inválido: [text]',
+  [C.FORMULA_BUILDER_CELL_ERROR]: 'Erro em [cell]: [message].',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
+    'Mais [count] célula agora contém um erro.',
+    'Mais [count] células agora contêm erros.',
+  ],
 };
 
 export default dictionary;

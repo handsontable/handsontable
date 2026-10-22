@@ -181,6 +181,22 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'Zamrznuti stupci na kraju',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen redak [label], prikazani prošireni retci: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Sažet redak [label]',
+  [C.FORMULA_BUILDER_EDITOR]: 'Uređivač formula',
+  [C.FORMULA_BUILDER_INPUT]: 'Unos formule',
+  [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Adresa ćelije',
+  [C.FORMULA_BUILDER_SUGGESTIONS]: 'Prijedlozi formula',
+  [C.FORMULA_BUILDER_ACCEPT_HINT]: 'za prihvaćanje.',
+  [C.FORMULA_BUILDER_NAVIGATE_HINT]: 'za kretanje',
+  [C.FORMULA_BUILDER_FUNCTION_HELP]: 'Pomoć za funkciju',
+  [C.FORMULA_BUILDER_FUNCTION_HELP_FOR]: 'Pomoć za funkciju [name]',
+  [C.FORMULA_BUILDER_LEARN_MORE]: 'Saznajte više',
+  [C.FORMULA_BUILDER_CLOSE]: 'Zatvori',
+  [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Nevažeća adresa ćelije: [text]',
+  [C.FORMULA_BUILDER_CELL_ERROR]: 'Pogreška u [cell]: [message].',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
+    'Još [count] ćelija sada sadrži pogrešku.',
+    'Broj drugih ćelija s pogreškom: [count].',
+  ],
 };
 
 export default dictionary;

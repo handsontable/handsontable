@@ -173,6 +173,22 @@ const dictionary = {
   [C.FREEZE_BAR_COLUMNS_END]: 'ستون‌های ثابت در انتها',
   [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'ردیف [label] باز شد، ردیف‌های بازشدهٔ نمایش داده‌شده: [count]',
   [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'ردیف [label] بسته شد',
+  [C.FORMULA_BUILDER_EDITOR]: 'ویرایشگر فرمول',
+  [C.FORMULA_BUILDER_INPUT]: 'ورودی فرمول',
+  [C.FORMULA_BUILDER_CELL_ADDRESS]: 'آدرس سلول',
+  [C.FORMULA_BUILDER_SUGGESTIONS]: 'پیشنهادهای فرمول',
+  [C.FORMULA_BUILDER_ACCEPT_HINT]: 'برای پذیرفتن.',
+  [C.FORMULA_BUILDER_NAVIGATE_HINT]: 'برای پیمایش',
+  [C.FORMULA_BUILDER_FUNCTION_HELP]: 'راهنمای تابع',
+  [C.FORMULA_BUILDER_FUNCTION_HELP_FOR]: 'راهنمای تابع [name]',
+  [C.FORMULA_BUILDER_LEARN_MORE]: 'بیشتر بدانید',
+  [C.FORMULA_BUILDER_CLOSE]: 'بستن',
+  [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'آدرس سلول نامعتبر: [text]',
+  [C.FORMULA_BUILDER_CELL_ERROR]: 'خطا در [cell]: [message].',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: [
+    '[count] سلول دیگر اکنون خطا دارد.',
+    '[count] سلول دیگر اکنون خطا دارند.',
+  ],
 };
 
 export default dictionary;
