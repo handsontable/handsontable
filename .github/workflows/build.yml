@@ -46,6 +46,10 @@ jobs:
           cd handsontable
           npm run build:umd
           npm run build:umd.min
+          # The CDN file of handsontable/settingsSchema; it reads the registries of the Handsontable
+          # global, so the published dist/ carries it next to the two bundles above.
+          npm run build:settings-schema-umd
+          npm run build:settings-schema-umd.min
           npm run build:languages
           npm run build:languages.min
           # dist/themes/** comes only from these two tasks. Without them the artifact

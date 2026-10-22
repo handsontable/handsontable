@@ -82,6 +82,12 @@ test('a11y.yml is one job, axe, in the Playwright container, running the a11y co
   assert.match(comment, /^ {8}continue-on-error: true$/m, `${A11Y}: the comment reports and never decides the job. ${DOC}`);
   assert.match(comment, /github\.event_name == 'pull_request'/, `${A11Y}: a comment needs a pull request. ${DOC}`);
   assert.match(comment, /A11Y_PR_NUMBER: \$\{\{ github\.event\.pull_request\.number \}\}/);
+  assert.match(comment, /A11Y_CHECKOUT_SHA: \$\{\{ steps\.checkout\.outputs\.commit \}\}/,
+    `${A11Y}: the comment reads the base baseline at the checked-out merge commit's first parent, so a baseline that grows does not read as clean `
+      + `and a rebuilt merge ref does not list the base's own changes as growth. ${DOC}`);
+  assert.match(stepsOf.find(entry => /actions\/checkout@/.test(entry)) ?? '', /^ {8}id: checkout$/m, `${A11Y}: the comment reads the checked-out commit from this step's output. ${DOC}`);
+  assert.match(comment, /A11Y_BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/,
+    `${A11Y}: the event's base commit is the fallback for a checkout that is not a merge commit. ${DOC}`);
   assert.match(comment, /A11Y_CHECK_URL: \$\{\{ steps\.check\.outputs\.check-url \}\}/);
 });
 

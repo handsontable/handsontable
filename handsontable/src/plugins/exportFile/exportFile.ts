@@ -405,6 +405,12 @@ export class ExportFile extends BasePlugin {
   #pendingObjectUrls = new Set<string>();
 
   /**
+   * The number of `loadData()` calls the grid has made, read by `downloadFileAsync()` to notice data
+   * that replaced the grid's while it waited for the progress overlay to paint.
+   */
+  #dataLoads = 0;
+
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -444,6 +450,7 @@ export class ExportFile extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
 
     super.enablePlugin();
   }
@@ -641,7 +648,9 @@ export class ExportFile extends BasePlugin {
    * For text-based formats (e.g. `'csv'`), the download is triggered immediately
    * and the returned `Promise` resolves right away.
    * For binary formats (e.g. `'xlsx'`), the export runs asynchronously. When the
-   * `dialog` plugin is enabled, a progress overlay is shown for the duration of the export.
+   * `dialog` plugin is enabled, a progress overlay is shown for the duration of the export. The
+   * export reads the data after the overlay is painted, so a {@link Core#loadData} call made before
+   * that, for example a sheets bar switch, rejects the returned `Promise` and downloads nothing.
    *
    * @param {string} format Export format type e.g. `'csv'` or `'xlsx'`.
    * @param {object} options Export options.
@@ -682,6 +691,8 @@ export class ExportFile extends BasePlugin {
     };
 
     if (hasDialog && formatter.binary) {
+      const loadsAtStart = this.#dataLoads;
+
       dialogPlugin.show({
         content: buildExportDialogContent(
           this.hot.getTranslatedPhrase(EXPORT_FILE_DIALOG_TITLE), this.hot.rootDocument
@@ -703,6 +714,7 @@ export class ExportFile extends BasePlugin {
 
       try {
         this.#assertAlive();
+        this.#assertDataKept(loadsAtStart);
         await runExport();
       } finally {
         // A destroyed grid has already torn the dialog down with it.
@@ -752,6 +764,27 @@ export class ExportFile extends BasePlugin {
       throwWithCause('ExportFile: the Handsontable instance was destroyed while the file was being exported.');
     }
   }
+
+  /**
+   * Rejects a download whose grid loaded other data while the progress overlay was being painted. The
+   * export was asked for the data shown when it was called, and with a sheets bar the data loaded since
+   * is another sheet's.
+   *
+   * @param {number} loadsAtStart The number of data loads when the export was called.
+   */
+  #assertDataKept(loadsAtStart: number) {
+    if (this.#dataLoads !== loadsAtStart) {
+      throwWithCause('ExportFile: the grid\'s data was replaced while the file was being exported, so nothing was '
+        + 'downloaded.');
+    }
+  }
+
+  /**
+   * Counts the grid's data loads, for `#assertDataKept()`.
+   */
+  #onBeforeLoadData = () => {
+    this.#dataLoads += 1;
+  };
 
   /**
    * Returns `true` when the plugin can produce an export in the given format. `'csv'` always can,

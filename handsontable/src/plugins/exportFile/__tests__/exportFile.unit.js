@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin } from 'handsontable/plugins';
 import { ExportFile } from '../exportFile';
+import { Dialog } from '../../dialog/dialog';
 import ExportDataProvider from '../dataProvider';
 import BaseType from '../types/_base';
 import { normalizeExportOptions } from '../utils';
@@ -305,6 +306,7 @@ describe('ExportFile downloads and the grid lifecycle', () => {
 
   beforeAll(() => {
     registerPlugin(ExportFile);
+    registerPlugin(Dialog);
   });
 
   beforeEach(() => {
@@ -380,6 +382,65 @@ describe('ExportFile downloads and the grid lifecycle', () => {
 
     await expect(pending).rejects.toThrow(/ExportFile: the Handsontable instance was destroyed/);
     expect(createSpy).not.toHaveBeenCalled();
+  });
+
+  it('should reject an export whose grid loads other data while the progress overlay is shown', async() => {
+    hot.destroy();
+    hot = new Handsontable(container, {
+      data: [['a', 1], ['b', 2]],
+      exportFile: true,
+      dialog: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const frames = [];
+
+    jest.spyOn(hot.rootWindow, 'requestAnimationFrame').mockImplementation((callback) => {
+      frames.push(callback);
+
+      return frames.length;
+    });
+
+    const pending = hot.getPlugin('exportFile').downloadFileAsync('xlsx');
+
+    hot.loadData([['other sheet', 3]]);
+
+    while (frames.length > 0) {
+      frames.shift()(0);
+    }
+
+    await expect(pending).rejects
+      .toThrow(/ExportFile: the grid's data was replaced while the file was being exported/);
+    expect(createSpy).not.toHaveBeenCalled();
+    expect(hot.getPlugin('dialog').isVisible()).toBe(false);
+  });
+
+  it('should export when nothing replaces the data while the progress overlay is shown', async() => {
+    hot.destroy();
+    hot = new Handsontable(container, {
+      data: [['a', 1], ['b', 2]],
+      exportFile: true,
+      dialog: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const frames = [];
+
+    jest.spyOn(hot.rootWindow, 'requestAnimationFrame').mockImplementation((callback) => {
+      frames.push(callback);
+
+      return frames.length;
+    });
+
+    const pending = hot.getPlugin('exportFile').downloadFileAsync('xlsx');
+
+    while (frames.length > 0) {
+      frames.shift()(0);
+    }
+
+    await pending;
+
+    expect(createSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should name the destroyed instance, not throw a TypeError, for an export started after destroy()', async() => {

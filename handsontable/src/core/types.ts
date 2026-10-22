@@ -31,6 +31,16 @@ import type { BaseRenderer } from '../renderers/baseRenderer';
 /**
  * Represents a selection range with start/end row/col coordinates.
  */
+/**
+ * One key of the meta the `cell` option wrote on a cell, addressed by physical indexes.
+ */
+export interface CellOptionMetaEntry {
+  physicalRow: number;
+  physicalColumn: number;
+  key: string;
+  value: unknown;
+}
+
 export interface RangeType {
   startRow: number;
   startCol: number;
@@ -65,6 +75,18 @@ export interface ViewportScrollerInstance {
   resume(): void;
   skipNextScrollCycle(): void;
   [key: string]: unknown;
+}
+
+/**
+ * Options for `selectAll`.
+ *
+ * `focusPosition` is one cell, or `false` to leave the focus where it is. A plain object
+ * needs both `row` and `col`. A `CellCoords` instance is accepted too. `selectAll` ignores
+ * an object that has only one of them.
+ */
+export interface SelectAllOptions {
+  focusPosition?: { row: number; col: number } | CellCoords | boolean;
+  disableHeadersHighlight?: boolean;
 }
 
 /**
@@ -113,8 +135,14 @@ export interface HotInstance {
   selectCells(
     selectionRanges?: (number | undefined)[][] | unknown[], scrollToCell?: boolean, changeListener?: boolean
   ): boolean;
-  selectColumns(start: number, end?: number, focusPosition?: unknown): boolean;
-  selectRows(start: number, end?: number, focusPosition?: unknown): boolean;
+  selectColumns(start: number, end?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
+  selectRows(start: number, end?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
+  selectAll(
+    includeRowHeaders?: boolean,
+    includeColumnHeaders?: boolean,
+    options?: SelectAllOptions,
+    changeListener?: boolean
+  ): void;
   deselectCell(): void;
 
   // Index mapping
@@ -292,6 +320,14 @@ export interface HotInstance {
   _getDataSource(): DataSourceInstance;
   _getMetaManager(): MetaManagerInstance;
   _getOperationScope(): OperationScope;
+  _hasPendingValidation(): boolean;
+  _applySettingsAndData(
+    settings: Partial<GridSettings>, data: unknown[], source: string, cellOptionMetas?: CellOptionMetaEntry[] | null
+  ): void;
+  _isDataWorkDeferred(): boolean;
+  _isDataLoadPending(): boolean;
+  _isHeldMetaPhaseRunning(): boolean;
+  _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
 
   // DOM references
   rootElement: HTMLElement;

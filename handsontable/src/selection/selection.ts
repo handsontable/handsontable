@@ -2209,7 +2209,7 @@ class Selection {
    * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
    * headers, `false` otherwise.
    * @param {object} [options] Additional object with options.
-   * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
+   * @param {{row: number, col: number} | CellCoords | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range. If `false`, the focus
    * position won't be changed. When the {@link Options#navigableHeaders} option is disabled (the default), a
@@ -2220,7 +2220,7 @@ class Selection {
    * which stays visible even when {@link Options#navigableHeaders} moves the focus onto a header.
    */
   selectAll(includeRowHeaders = false, includeColumnHeaders = false, options: {
-    focusPosition?: SelectionFocusPosition | boolean; disableHeadersHighlight?: boolean
+    focusPosition?: SelectionFocusPosition | CellCoords | boolean; disableHeadersHighlight?: boolean
   } = { focusPosition: false, disableHeadersHighlight: false }) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();

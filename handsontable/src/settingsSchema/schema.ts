@@ -1,6 +1,6 @@
 import generatedSchema from './schema.generated';
-import { Hooks } from '../core/hooks';
 import { DEPRECATED_HOOKS } from '../core/hooks/constants';
+import { getHooks } from './registries';
 import type { JsonSchemaObject } from './types';
 
 /**
@@ -44,7 +44,7 @@ function createHookNode(hookName: string): JsonSchemaObject {
 function buildSchema(): JsonSchemaObject {
   const properties: Record<string, JsonSchemaObject> = { ...generatedSchema.properties };
 
-  Hooks.getSingleton().getRegistered().forEach((hookName: string) => {
+  getHooks().getRegistered().forEach((hookName: string) => {
     properties[hookName] ??= createHookNode(hookName);
   });
 

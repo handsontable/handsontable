@@ -28,6 +28,21 @@ const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requi
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
 
 /**
+ * The keys the plugin reads from the `pagination` object. `settingsSchema` lists them as the only keys
+ * `validateSettings()` accepts there, so a key the plugin starts to read belongs here and in
+ * `DEFAULT_SETTINGS`.
+ */
+export interface PaginationSettings {
+  pageSize?: number | 'auto';
+  pageSizeList?: Array<number | 'auto'>;
+  initialPage?: number;
+  showPageSize?: boolean;
+  showCounter?: boolean;
+  showNavigation?: boolean;
+  uiContainer?: HTMLElement | null;
+}
+
+/**
  * The page state `Pagination#captureState()` records.
  */
 interface PageState {
@@ -485,6 +500,22 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Computes the page state once the data the settings describe is loaded. Core's
+   * `_applySettingsAndData()` applies settings ahead of their data, and `updatePlugin()` leaves the
+   * computation for this step then: run against the rows the grid still held, it clamped the declared
+   * `initialPage` to their page count and rendered them under the new configuration.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (!this.takeDeferredDataWork()) {
+      return;
+    }
+
+    this.#refreshUI();
+  }
+
+  /**
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
@@ -497,7 +528,11 @@ export class Pagination extends BasePlugin {
       this.#isUpdatingPlugin = false;
     }
 
-    this.#refreshUI();
+    if (this.isDataWorkDeferred()) {
+      this.deferDataWork();
+    } else {
+      this.#refreshUI();
+    }
 
     super.updatePlugin();
   }

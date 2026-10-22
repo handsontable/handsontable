@@ -86,6 +86,14 @@ pay for. A new consumer lives in a plugin.
   indicator on another column), and translating ahead of the call, against the order being restored,
   is wrong for the same reason. Translate against whatever cache the plugin reads at that moment, which
   `hot.toVisualColumn()` does. The public layer relies on this: its `sort` part is physical too.
+- **`resetViewState()` runs no filter pass, and it clears the sizes of a DISABLED resize plugin too.** Its
+  only caller is the sheets bar, which loads the arriving sheet's data right after it, and that load empties
+  the condition collection and the Filters trimming map; the reset only drops the Filters fallback
+  (`importBaselineConditions([])`). A pass there filtered the departing rows and fired `beforeFilter` and
+  `afterFilter` for a sheet the user was leaving. A disabled ManualColumnResize or ManualRowResize keeps
+  the sizes it had when it was turned off and replays them when turned on again, so `clearManualSizes()`
+  reaches it through `getPlugin()`, not `getEnabledPlugin()`. A new caller that does not load data after
+  the reset needs the filter pass back.
 
 Tests: `__tests__/viewState.unit.js` (the engine), plus SheetsBar's own suites and
 `plugins/viewState/__tests__/viewState.unit.js` (the public layer through the engine).

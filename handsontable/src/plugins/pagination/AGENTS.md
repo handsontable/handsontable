@@ -232,3 +232,17 @@ starts a new page once a row's height would bring the page's total to the viewpo
 theme's default row height (29 px on `main`) rather than the height the strategy used, so a "page is
 full" check built on it passes or fails by accident. The Playwright spec pages forward and takes the
 first rendered row's height instead.
+
+## Page state applied ahead of its data waits for `onDataReady()`
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), `updatePlugin()` leaves `#refreshUI()` to `onDataReady()`. Run before, it clamped the
+declared `initialPage` against the rows the grid still held (or none, before the first load) and rendered
+them under the new configuration.
+
+## `PaginationSettings` lists the keys `validateSettings()` accepts
+
+`src/settingsSchema` reads the exported `PaginationSettings` interface in `pagination.ts` as the full key list of the
+`pagination` object, and reports any other key as `unknownOption`. The plugin itself does not use the interface for
+anything else. A key the plugin starts to read must be added there in the same change, with a type that accepts every
+value the plugin tolerates, or a valid configuration is flagged.

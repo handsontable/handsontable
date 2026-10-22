@@ -239,6 +239,16 @@ export default class CellMeta {
   }
 
   /**
+   * Whether a `cell`-option recording scope is open, so the write being made comes from the declarative
+   * `cell` option rather than from a `setCellMeta` call.
+   *
+   * @returns {boolean}
+   */
+  isRecordingCellOptionMeta(): boolean {
+    return this.#cellOptionMetaRecordingCount > 0;
+  }
+
+  /**
    * Closes one `cell`-option recording scope opened by `startCellOptionMetaRecording`, and the user-defined
    * recording suspension that came with it.
    *

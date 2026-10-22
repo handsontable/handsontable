@@ -796,12 +796,14 @@ function restoreCanceledSortStates(sorting: SortingPlugin, sortConfig: SortedCol
  * clears, so a sheet that was never resized does not inherit the previous sheet's sizes.
  * The bulk call empties the whole map at once — a per-index loop over `countRows()` would
  * both cost one call per row on the switch path and miss every index the arriving sheet
- * trims out of the count.
+ * trims out of the count. A disabled plugin is cleared too: it keeps the sizes it had when it was
+ * turned off and puts them back when it is turned on again, so a sheet with the plugin off between
+ * a resized sheet and a never-visited one carried the resized sheet's sizes over to the new one.
  */
 function clearManualSizes(hot: HotInstance) {
-  const manualColumnResize = getEnabledPlugin(hot, 'manualColumnResize') as
+  const manualColumnResize = hot.getPlugin('manualColumnResize') as
     { clearManualSizes: () => void } | undefined;
-  const manualRowResize = getEnabledPlugin(hot, 'manualRowResize') as
+  const manualRowResize = hot.getPlugin('manualRowResize') as
     { clearManualSizes: () => void } | undefined;
 
   manualColumnResize?.clearManualSizes();
@@ -864,6 +866,19 @@ function restoreFilterConditions(hot: HotInstance, state: ViewState) {
   if (!runFilterPass(hot, filters)) {
     filters.importBaselineConditions(state.filterConditions);
   }
+}
+
+/**
+ * Drops the conditions the Filters plugin falls back to after a canceled pass, without running a
+ * filter pass. The reset is always followed by the arriving sheet's `loadData()`, which empties the
+ * condition collection and resets the plugin's trimming map, so a pass here would only filter the
+ * departing sheet's rows and fire the filter hooks for a sheet the user is leaving.
+ */
+function clearFilterBaseline(hot: HotInstance) {
+  const filters = getEnabledPlugin(hot, 'filters') as
+    { importBaselineConditions: (conditions: unknown[]) => void } | undefined;
+
+  filters?.importBaselineConditions([]);
 }
 
 /**
@@ -1255,6 +1270,8 @@ function setFrozenCount(hot: HotInstance, key: FrozenCountKey, value: number): v
  * sort, merges, borders, manual sizes, or a freeze set at runtime (`fixedColumnsStart`
  * carries the value the grid started with): `loadData` resets the index mappers and
  * ColumnSorting clears itself on `afterLoadData`, but every other collection survives it.
+ * Every caller loads the arriving sheet's data right after the reset, which also empties the
+ * filter conditions, so the reset runs no filter pass of its own.
  *
  * The merges are cleared first. MergeCells takes the span attributes off the rendered cells it
  * finds through `getCell()` at their visual coordinates, and those coordinates hold only while
@@ -1272,7 +1289,7 @@ export function resetViewState(hot: HotInstance, neutral: NeutralFrozenCounts = 
 
     clearMergedCells(hot);
     getSortingPlugin(hot)?.sort([]);
-    restoreFilterConditions(hot, state);
+    clearFilterBaseline(hot);
     restoreTrimmedState(hot, state);
     restoreHiddenState(hot, state);
     clearManualSizes(hot);

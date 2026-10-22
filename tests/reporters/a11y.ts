@@ -31,8 +31,9 @@ import { A11Y_PAGES } from '../a11y/pages.mjs';
  * (`findingsFromScan()`), and asks `compareViolations()` what is new, grown, matched, improved,
  * stale and unverified. Into `test-results/a11y/` it writes:
  *
- * - `comparison.json`: the verdict, the tooling problems and notes (the check run is built from it,
- *   `scripts/a11y-check-run.mjs`);
+ * - `comparison.json`: the verdict, the tooling problems and notes, and the scans' count, pages,
+ *   themes and engines (the check run and the pull request comment are built from it,
+ *   `scripts/a11y-check-run.mjs` and `scripts/a11y-pr-comment.mjs`);
  * - `summary.md`: the job summary, also appended to the GitHub job summary;
  * - `a11y-report.html`: the HTML report (`lib/a11y-report.mjs`), one self-contained file built to
  *   locate every element, with the scans' screenshots inlined;
@@ -127,10 +128,11 @@ export default class A11yReporter implements Reporter {
       scanned: scans.map(({ page, theme }) => ({ page, theme })),
       mode: this.#mode,
     });
+    const scannedPages = new Set(scans.map(scan => scan.page)).size;
+    const scannedThemes = new Set(scans.map(scan => scan.theme)).size;
     const summary = [
       renderSummary(verdict),
-      `${scans.length} scans completed (${new Set(scans.map(scan => scan.page)).size} pages × `
-        + `${new Set(scans.map(scan => scan.theme)).size} themes); axe-core ${engines.join(', ') || 'none'}.`,
+      `${scans.length} scans completed (${scannedPages} pages × ${scannedThemes} themes); axe-core ${engines.join(', ') || 'none'}.`,
       ...notes.map(note => `\n> ${note}`),
       ...(problems.length > 0 ? ['', '### Tooling problems', '', ...problems.map(problem => `- ${problem}`)] : []),
       '',
@@ -138,7 +140,7 @@ export default class A11yReporter implements Reporter {
 
     mkdirSync(this.#outputDir, { recursive: true });
     writeFileSync(path.join(this.#outputDir, 'comparison.json'),
-      `${JSON.stringify({ ...verdict, problems, notes, engines, scans: scans.length }, null, 2)}\n`);
+      `${JSON.stringify({ ...verdict, problems, notes, engines, scans: scans.length, scannedPages, scannedThemes }, null, 2)}\n`);
     writeFileSync(path.join(this.#outputDir, 'summary.md'), summary);
     writeFileSync(path.join(this.#outputDir, 'a11y-report.html'), renderHtmlReport({
       verdict,

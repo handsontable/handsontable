@@ -47,11 +47,14 @@ const BUTTON_ICON_CLASS_NAME = 'ht-dropdown-menu-button-icon';
 const HEADER_WITH_BUTTON_CLASS_NAME = 'has-header-button';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
-interface DropdownMenuSettings {
-  callback?: Function;
-  uiContainer?: HTMLElement;
-  items?: Record<string, unknown>[] | string[];
-  [key: string]: unknown;
+/**
+ * The keys the plugin reads from the `dropdownMenu` object. `settingsSchema` lists them as the only keys
+ * `validateSettings()` accepts there, so a key the plugin starts to read belongs here.
+ */
+export interface DropdownMenuSettings {
+  callback?: Function | null;
+  uiContainer?: HTMLElement | null;
+  items?: Array<string | Record<string, unknown>> | Record<string, unknown> | null;
 }
 
 /**

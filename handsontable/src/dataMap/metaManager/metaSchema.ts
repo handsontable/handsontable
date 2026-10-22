@@ -2242,7 +2242,10 @@ export default (): Record<string, unknown> => {
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
      * A string **`rowId`** is read the same way as the [`rowId`](#rowid) option: a property named exactly as the string
-     * wins, dots included, and otherwise the dots read a nested property.
+     * wins, dots included, and otherwise the dots read a nested property. **`rowId`** can also be a function that
+     * receives the source row and returns its id. Keep that function as a stable reference: a new function passed
+     * on each [`updateSettings()`](@/api/core.md#updatesettings) call counts as a new key and fires
+     * [`afterRowIdsReset`](@/api/hooks.md#afterrowidsreset).
      *
      * Set it to `null` to turn server-backed loading off again, for example through
      * [`updateSettings()`](@/api/core.md#updatesettings).

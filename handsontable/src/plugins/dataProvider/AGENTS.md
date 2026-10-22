@@ -66,7 +66,9 @@ A mutation captures `#currentBinding()` when it is queued (`createRows`, `remove
 
 **`updateData()` keeps cell meta by physical row, so the documented apply pattern appends.** Only `loadData()` calls `metaManager.clearCellsCache()`; `updateData()` rebuilds the `DataMap` and `fitToLength()`s the row index mapper, which adds the new index at the end. A `splice` into the middle therefore moves the data under the meta: the new row shows the pushed-down row's `readOnly`/comment/invalid mark, and every row below is off by one, until the next fetch. The guide's example uses `push` for that reason (review of #13563); a Playwright spec (`tests/e2e/data-provider-refetch-after-create.spec.ts`) pins that a `readOnly` mark stays on its record across the insert.
 
-**The skip has one exception: an in-flight `fetchRows` forces the refetch anyway.** The old post-create `fetchData()` also aborted whatever fetch was running (a sort or filter fetch started just before the insert) through `#createFetchAbortController()`. With the refetch skipped nothing aborts it, the mutation queue does not wait on fetches, and the integrator has no public cancel, so the late response would `loadData()` the applied row out of the grid. `createRows()` checks `#inFlight.has(context)` for its binding's context and refetches when it is true; `afterDataProviderFetchAbort` fires for the superseded request. `refetchAfterCreate: undefined` is valid (the base plugin validates every key that is `in` the object, and wrapper props send explicit `undefined`), and reads as the default.
+**The skip has two exceptions. The first: an in-flight `fetchRows` forces the refetch anyway.** The old post-create `fetchData()` also aborted whatever fetch was running (a sort or filter fetch started just before the insert) through `#createFetchAbortController()`. With the refetch skipped nothing aborts it, the mutation queue does not wait on fetches, and the integrator has no public cancel, so the late response would `loadData()` the applied row out of the grid. `createRows()` checks `#inFlight.has(context)` for its binding's context and refetches when it is true; `afterDataProviderFetchAbort` fires for the superseded request. `refetchAfterCreate: undefined` is valid (the base plugin validates every key that is `in` the object, and wrapper props send explicit `undefined`), and reads as the default.
+
+**A second exception: a create whose context is not shown when it finishes refetches that context.** With the refetch off, `onRowsCreate` applies the rows itself, through `hot`, which shows another view by then. The recipe the guides show applies them only while the view that made the request is shown, so without the refetch that view kept the stored response it had before the create, and the new row was missing on return. The refetch goes to the owner through `onDetachedRequest` like every other off-screen refetch. Pinned by the `refetchAfterCreate off` block of `tests/e2e/data-provider-sheets-bar.spec.ts`.
 
 ## Row ids come from Core, row data from the copy
 
@@ -89,3 +91,12 @@ From `handsontable/`:
 - Whole plugin: `npm run test:e2e --testPathPattern=plugins/dataProvider`
 
 The `__tests__/` tree is split by kind: `methods/`, `hooks/`, `plugins/` (interactions with Pagination, Filters, ColumnSorting), `query/*.unit.js`, plus `alter.spec.js` for the context-menu insert/remove path. Specs that must assert "no refetch happened" wait on the `afterRowsMutation` spy: the refetch, when enabled, starts synchronously right after that hook, so `fetchRows` already reflects it.
+
+## A fetch an update starts ahead of its data waits for `onDataReady()`
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), `updatePlugin()` leaves its silent fetch to `onDataReady()`. `fetchRows` is called
+synchronously when a fetch starts, so without the hold it ran before the call had loaded its data, against the
+grid the call replaces. A tab switch is passive (`_runContextChange()`), so nothing is fetched there; building a
+workbook on a live grid is not, and an opening sheet with its own `dataProvider` fetches from `onDataReady()`.
+Pinned by `__tests__/deferredFetch.unit.js`.

@@ -67,6 +67,7 @@ function fakeDocument() {
 function pluginWithFakeHot(importFileSettings, { formulasEnabled = false, rtl = false } = {}) {
   const calls = [];
   const hooks = {};
+  const listeners = {};
   const rootDocument = fakeDocument();
   const hot = {
     // The stylesheet is mounted in the wrapper element; the fake head stands in for it.
@@ -76,9 +77,13 @@ function pluginWithFakeHot(importFileSettings, { formulasEnabled = false, rtl = 
     toVisualRow: row => row,
     toVisualColumn: col => col,
     // `BasePlugin`'s constructor registers three hooks straight on `hot` (not on itself), so a
-    // real `new ImportFile(hot)` needs this stub even though this suite never fires a hook.
-    addHook: () => {},
-    removeHook: () => {},
+    // real `new ImportFile(hot)` needs this stub. `loadData` below fires the `beforeLoadData` ones.
+    addHook: (name, callback) => {
+      listeners[name] = [...(listeners[name] ?? []), callback];
+    },
+    removeHook: (name, callback) => {
+      listeners[name] = (listeners[name] ?? []).filter(listener => listener !== callback);
+    },
     getSettings: () => ({ importFile: importFileSettings }),
     getPlugin: name => ({
       formulas: { isEnabled: () => formulasEnabled },
@@ -95,7 +100,10 @@ function pluginWithFakeHot(importFileSettings, { formulasEnabled = false, rtl = 
     // that: the direction is fixed when the instance is built.
     isRtl: () => rtl,
     updateSettings: settings => calls.push(['updateSettings', settings]),
-    loadData: data => calls.push(['loadData', data]),
+    loadData: (data, source = 'loadData') => {
+      (listeners.beforeLoadData ?? []).forEach(listener => listener(data, false, source));
+      calls.push(['loadData', data]);
+    },
     setCellMetaObject: (...args) => calls.push(['setCellMetaObject', ...args]),
   };
   const plugin = new ImportFile(hot);
@@ -413,6 +421,60 @@ describe('ImportFile overlapping imports', () => {
 
     expect(afterImports).toHaveLength(1);
     expect(afterImports[0][1]).toBe(newerResult);
+  });
+
+  it('should reject an import when the grid loads other data while the file is being read', async() => {
+    const { plugin, calls, hot } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+    const read = deferredBlob(fixture('values'));
+    const pending = plugin.importFromBlob('xlsx', read.blob);
+
+    hot.loadData([['other sheet']]);
+    read.release();
+
+    await expect(pending).rejects
+      .toThrow(/the grid's data was replaced while the file was being read, so its result was not applied/);
+    expect(calls.filter(([name]) => name === 'loadData')).toHaveLength(1);
+    expect(calls.filter(([name]) => name === 'beforeImport' || name === 'afterImport')).toEqual([]);
+  });
+
+  it('should apply an import when a DataProvider fetch lands while the file is being read', async() => {
+    const { plugin, calls, hot } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+    const read = deferredBlob(fixture('values'));
+    const pending = plugin.importFromBlob('xlsx', read.blob);
+
+    hot.loadData([['fetched page']], 'dataProvider');
+    read.release();
+
+    await pending;
+
+    expect(calls.filter(([name]) => name === 'afterImport')).toHaveLength(1);
+  });
+
+  it('should apply an import whose beforeImport listener clears the grid with loadData()', async() => {
+    const { plugin, calls, hooks, hot } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+
+    hooks.beforeImport = () => {
+      hot.loadData([]);
+    };
+
+    await plugin.importFromArrayBuffer('xlsx', fixture('values'));
+
+    expect(calls.filter(([name]) => name === 'loadData')).toHaveLength(2);
+    expect(calls.filter(([name]) => name === 'afterImport')).toHaveLength(1);
+  });
+
+  it('should keep rejecting an older import as stale when a newer import loads its data first', async() => {
+    const { plugin } = pluginWithFakeHot({ engines: { xlsx: ExcelJS } });
+    const slow = deferredBlob(fixture('values'));
+    const fast = deferredBlob(fixture('values'));
+    const older = plugin.importFromBlob('xlsx', slow.blob);
+    const newer = plugin.importFromBlob('xlsx', fast.blob);
+
+    fast.release();
+    await newer;
+    slow.release();
+
+    await expect(older).rejects.toThrow(STALE);
   });
 
   it('should reject the older import even when it finishes first', async() => {

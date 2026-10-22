@@ -1177,6 +1177,12 @@ export class TabStrip {
     }
 
     const tab = this.getTab(sheet.id);
+
+    // A refused switch leaves another sheet in front of the user, and the menu would act on the
+    // sheet they cannot see.
+    if (!tab?.classList.contains('ht-sheets-bar__tab--active')) {
+      return;
+    }
     const chevron = tab?.querySelector('.ht-sheets-bar__tab-chevron');
 
     // The tab is the control the menu belongs to — it is what takes the focus back and what

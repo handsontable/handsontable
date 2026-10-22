@@ -257,9 +257,20 @@ export interface FixtureHotInstance {
   getRowHeight(row: number): number | undefined;
   getColWidth(col: number): number;
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string, horizontalSnap?: string }): boolean;
-  selectCells(ranges: number[][]): boolean;
-  selectRows(fromRow: number, toRow: number): boolean;
-  selectColumns(fromCol: number, toCol: number): boolean;
+  selectCells(ranges: number[][], scrollToCell?: boolean, changeListener?: boolean): boolean;
+  batch<T>(operations: () => T): T;
+  selectRows(fromRow: number, toRow?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
+  selectColumns(fromCol: number, toCol?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
+  selectAll(
+    includeRowHeaders?: boolean,
+    includeColumnHeaders?: boolean,
+    options?: {
+      focusPosition?: { row: number, col: number } | boolean,
+      disableHeadersHighlight?: boolean,
+    },
+    changeListener?: boolean,
+  ): void;
+  isListening(): boolean;
   deselectCell(): void;
   getSelectedRangeLast(): FixtureCellRange;
   /** The rendered element of a cell or header, the topmost overlay's with `topmost`, or `null` when none is rendered. */
@@ -271,7 +282,7 @@ export interface FixtureHotInstance {
     name: 'beforeSetCellMeta',
     callback: (row: number, column: number, key: string, value: unknown) => boolean | undefined,
   ): void;
-  addHook(name: string, callback: () => void): void;
+  addHook(name: string, callback: () => void, orderIndex?: number): void;
   removeHook(name: string, callback: () => void): void;
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];

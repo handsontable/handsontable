@@ -1,4 +1,4 @@
-import 'handsontable';
+import Handsontable from 'handsontable';
 import { settingsSchema, validateSettings } from 'handsontable/settingsSchema';
 import metaSchemaFactory from 'handsontable/dataMap/metaManager/metaSchema';
 import { Hooks } from 'handsontable/core/hooks';
@@ -42,6 +42,77 @@ describe('settingsSchema coverage', () => {
       .filter(key => !(settingsSchema.properties[key]['x-handsontable']?.levels?.length > 0));
 
     expect(withoutLevels).toEqual([]);
+  });
+
+  it('should accept `null` for every documented option of a plugin', () => {
+    const pluginOptions = Object.keys(settingsSchema.properties)
+      .filter(key => Object.prototype.hasOwnProperty.call(defaults, key))
+      .filter(key => settingsSchema.properties[key]['x-handsontable'].plugin !== undefined);
+    const rejecting = pluginOptions.filter(key => validateSettings({ [key]: null }).problems.length > 0);
+
+    // The count is pinned, so an option that loses its `plugin` annotation fails here instead of dropping out of
+    // the list silently. Update it when a plugin option is added or removed.
+    expect(pluginOptions.length).toBe(50);
+    expect(rejecting).toEqual([]);
+  });
+
+  describe('closed settings objects', () => {
+    /**
+     * Returns the `additionalProperties: false` object branches of an option node, by path.
+     *
+     * @param {object} node The schema node.
+     * @param {string} path The node's path.
+     * @returns {Array<[string, object]>}
+     */
+    function findClosed(node, path) {
+      const branches = node.anyOf ?? [node];
+
+      return branches.flatMap(branch => [
+        ...(branch.additionalProperties === false ? [[path, branch]] : []),
+        ...Object.entries(branch.properties ?? {}).flatMap(([key, child]) => findClosed(child, `${path}.${key}`)),
+        ...(branch.items ? findClosed(branch.items, `${path}[]`) : []),
+      ]);
+    }
+
+    const closed = Object.fromEntries(Object.entries(settingsSchema.properties)
+      .flatMap(([key, node]) => findClosed(node, key)));
+
+    it('should close the plugin options whose types list every key', () => {
+      // The docs guide names the same options under "Known limitations"; keep the two in step.
+      expect(Object.keys(closed).filter(path => !path.includes('.') && !path.includes('[')).sort()).toEqual([
+        'asyncValues', 'autoLink', 'dataProvider', 'dragToScroll', 'dropdownMenu', 'fillHandle', 'filters',
+        'manualColumnFreeze', 'pagination', 'rowSelection', 'sheetsBar',
+      ]);
+    });
+
+    it('should close only options of a plugin', () => {
+      const withoutPlugin = Object.keys(closed)
+        .filter(path => settingsSchema.properties[path.split(/[.[]/)[0]]['x-handsontable'].plugin === undefined);
+
+      expect(withoutPlugin).toEqual([]);
+    });
+
+    it('should list the keys the plugin itself declares', () => {
+      const topLevel = Object.entries(closed).filter(([path]) => !path.includes('.') && !path.includes('['));
+      // DropdownMenu declares no defaults: its keys are the ones the plugin reads from the object.
+      const declared = { dropdownMenu: ['callback', 'items', 'uiContainer'] };
+
+      topLevel.forEach(([path, branch]) => {
+        const pluginName = settingsSchema.properties[path]['x-handsontable'].plugin;
+        const pluginDefaults = Handsontable.plugins[pluginName].DEFAULT_SETTINGS;
+        const expected = declared[path] ?? Object.keys(pluginDefaults);
+
+        expect([path, Object.keys(branch.properties).sort()]).toEqual([path, [...expected].sort()]);
+      });
+    });
+
+    it('should close the column-level filters on the one key the plugin reads per column', () => {
+      const branches = settingsSchema.$defs.columnSettings.properties.filters.anyOf;
+      const object = branches.find(branch => branch.type === 'object');
+
+      expect(object.additionalProperties).toBe(false);
+      expect(Object.keys(object.properties)).toEqual(['availableConditions']);
+    });
   });
 
   it('should accept the default value of every option', () => {

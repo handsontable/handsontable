@@ -107,6 +107,7 @@ describe('production build configs', () => {
     'production.js',
     'languages-production.js',
     'themes-umd-production.js',
+    'settings-schema-umd-production.js',
   ])('should minify with ASCII-only output in %s', (name) => {
     // eslint-disable-next-line global-require, import/no-dynamic-require
     const configs = [].concat(require(join(CONFIG_DIR, name)).create({}));

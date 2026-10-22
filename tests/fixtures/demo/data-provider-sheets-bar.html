@@ -67,6 +67,7 @@
     way a memoizing data layer does. `window.htServer.totalRows` sets how many rows the server holds
     (25 by default), read when a request is released. The server honors `contains` filter conditions,
     so a filtered total is real. Every pending request records the `params` it was called with.
+    `?noRefetchAfterCreate=1` gives both server sheets `refetchAfterCreate: false`.
 
     Every `fetchRows` call parks on a deferred promise until the spec releases it
     (`window.htServer.release(prefix)`), so the spec decides exactly when a response lands.
@@ -226,6 +227,7 @@
 
     const provider = prefix => ({
       rowId: 'id',
+      ...(fixtureParams.has('noRefetchAfterCreate') ? { refetchAfterCreate: false } : {}),
       fetchRows: makeFetchRows(prefix),
       onRowsCreate: parkMutation,
       onRowsUpdate: (rows) => {
