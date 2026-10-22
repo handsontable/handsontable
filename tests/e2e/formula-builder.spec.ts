@@ -106,4 +106,20 @@ test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BR
     // Cancelling the edit clears the highlight again.
     await expect(grid.cell(0, 0)).not.toHaveClass(/ht-formula-ref-fill-/);
   });
+
+  test('a referenced cell is highlighted but not reported as selected', async () => {
+    await grid.openEditor(3, 0);
+    await grid.editorInput.click();
+    await grid.editorInput.press('ControlOrMeta+a');
+    await grid.editorInput.fill('=SUM(A1:B2)');
+
+    // The reference highlight is a custom selection: it paints the cells, and the grid's selection
+    // attribute stays on the cell being edited.
+    await expect(grid.cell(1, 1)).toHaveClass(/ht-formula-ref-/);
+    await expect(grid.cell(1, 1)).not.toHaveAttribute('aria-selected');
+    await expect(grid.cell(0, 0)).not.toHaveAttribute('aria-selected');
+    await expect(grid.cell(3, 0)).toHaveAttribute('aria-selected', 'true');
+
+    await grid.page.keyboard.press('Escape');
+  });
 });
