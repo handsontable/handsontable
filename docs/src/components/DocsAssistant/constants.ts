@@ -4,9 +4,9 @@ export const STORAGE_KEYS = {
   width: 'hot-docs-chat-width',
   threadId: 'hot-docs-chat-thread-id',
   /**
-   * sessionStorage: set once the proactive bubble was shown, dismissed, or the chat was opened.
+   * localStorage: set once the reader closes the proactive bubble, which then never shows again.
    */
-  bubbleSeen: 'hot-docs-chat-bubble-seen',
+  bubbleDismissed: 'hot-docs-chat-bubble-dismissed',
 } as const;
 
 export const WIDTH = {
@@ -17,13 +17,14 @@ export const WIDTH = {
 
 /**
  * Proactive bubble trigger (SU-598, stage I): the reader reached the bottom of a
- * long page and stayed idle. The bubble shows at most once per browser session.
+ * long page and stayed idle. The bubble can show again on later pages, until the
+ * reader closes it once.
  */
 export const BUBBLE = {
   /**
    * How long the reader must stay idle at the bottom of the page.
    */
-  idleMs: 5000,
+  idleMs: 3000,
   /**
    * How close to the end of the page (px) still counts as "the bottom".
    */

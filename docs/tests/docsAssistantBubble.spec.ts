@@ -4,12 +4,12 @@ import { test, expect, type Page } from '@playwright/test';
  * Docs assistant proactive bubble (SU-598, stage I).
  *
  * The bubble appears when a reader reaches the bottom of a long page and stays
- * idle for 5 seconds. It shows at most once per session, never opens the chat
- * on its own, and stays away once dismissed.
+ * idle for 3 seconds. It can show again on later page loads, never opens the
+ * chat on its own, and never comes back once the reader closes it.
  */
 
 const LONG_PAGE = '/javascript-data-grid/performance/';
-const IDLE_MS = 5000;
+const IDLE_MS = 3000;
 
 // Mirror the cookie setup used by the other docs E2E tests.
 test.beforeEach(async ({ page, baseURL }) => {
@@ -67,10 +67,10 @@ async function scrollToBottom(page: Page): Promise<void> {
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
 }
 
-test('shows a bubble after 5 seconds idle at the bottom, without opening the chat', async ({ page, baseURL }) => {
+test('shows a bubble after 3 seconds idle at the bottom, without opening the chat', async ({ page, baseURL }) => {
   await openLongPage(page, baseURL);
 
-  const bubble = page.locator('.da-bubble');
+  const bubble = page.locator('.da-proactive');
 
   // Not at the bottom yet: nothing appears, however long the reader waits.
   await page.waitForTimeout(IDLE_MS + 500);
@@ -90,7 +90,7 @@ test('does not come back after the reader dismisses it', async ({ page, baseURL 
   await openLongPage(page, baseURL);
   await scrollToBottom(page);
 
-  const bubble = page.locator('.da-bubble');
+  const bubble = page.locator('.da-proactive');
 
   await expect(bubble).toBeVisible({ timeout: IDLE_MS + 3000 });
   await page.getByRole('button', { name: 'Dismiss suggestion' }).click();
@@ -102,24 +102,66 @@ test('does not come back after the reader dismisses it', async ({ page, baseURL 
   await page.waitForTimeout(IDLE_MS + 1000);
   await expect(bubble).toHaveCount(0);
 
-  // New page load in the same session.
+  // New page load in the same tab.
   await page.reload();
   await page.waitForLoadState('load');
   await page.evaluate(() => window.docsAssistantEnsureMounted?.());
   await scrollToBottom(page);
   await page.waitForTimeout(IDLE_MS + 1000);
   await expect(bubble).toHaveCount(0);
+
+  // A new tab starts a new session, and the dismissal still holds.
+  const newTab = await page.context().newPage();
+
+  await openLongPage(newTab, baseURL);
+  await scrollToBottom(newTab);
+  await newTab.waitForTimeout(IDLE_MS + 1000);
+  await expect(newTab.locator('.da-proactive')).toHaveCount(0);
+});
+
+test('shows again on the next page load when the reader did not close it', async ({ page, baseURL }) => {
+  await openLongPage(page, baseURL);
+  await scrollToBottom(page);
+
+  const bubble = page.locator('.da-proactive');
+
+  await expect(bubble).toBeVisible({ timeout: IDLE_MS + 3000 });
+
+  await page.reload();
+  await page.waitForLoadState('load');
+  await page.evaluate(() => window.docsAssistantEnsureMounted?.());
+  await expect(bubble).toHaveCount(0);
+  await scrollToBottom(page);
+  await expect(bubble).toBeVisible({ timeout: IDLE_MS + 3000 });
+});
+
+test('comes back after the chat it opened is closed', async ({ page, baseURL }) => {
+  await openLongPage(page, baseURL);
+  await scrollToBottom(page);
+
+  const bubble = page.locator('.da-proactive');
+
+  await expect(bubble).toBeVisible({ timeout: IDLE_MS + 3000 });
+  await page.locator('.da-proactive-ask').click();
+  await expect(page.locator('.da-panel')).toHaveAttribute('data-open', 'true');
+  await expect(bubble).toHaveCount(0);
+
+  // Opening the chat only hides the bubble; it is not a dismissal.
+  await page.getByRole('button', { name: 'Close assistant' }).click();
+  await expect(page.locator('.da-panel')).toHaveAttribute('data-open', 'false');
+  await scrollToBottom(page);
+  await expect(bubble).toBeVisible({ timeout: IDLE_MS + 3000 });
 });
 
 test('"Ask AI" in the bubble opens the chat with a draft about the page', async ({ page, baseURL }) => {
   await openLongPage(page, baseURL);
   await scrollToBottom(page);
 
-  await expect(page.locator('.da-bubble')).toBeVisible({ timeout: IDLE_MS + 3000 });
-  await page.locator('.da-bubble-ask').click();
+  await expect(page.locator('.da-proactive')).toBeVisible({ timeout: IDLE_MS + 3000 });
+  await page.locator('.da-proactive-ask').click();
 
   await expect(page.locator('.da-panel')).toHaveAttribute('data-open', 'true');
-  await expect(page.locator('.da-bubble')).toHaveCount(0);
+  await expect(page.locator('.da-proactive')).toHaveCount(0);
   await expect(page.locator('.da-panel textarea')).toHaveValue(/I have a question about the ".+" page\./);
 });
 
@@ -128,7 +170,7 @@ test('can be reached, named, and dismissed with the keyboard only', async ({ pag
   await scrollToBottom(page);
 
   const bubble = page.getByRole('region', { name: 'Docs assistant suggestion' });
-  const askButton = bubble.getByRole('button', { name: /^Questions about ".+"\? Ask AI$/ });
+  const askButton = bubble.getByRole('button', { name: /^Ask AI Questions about ".+"\?$/ });
   const dismissButton = bubble.getByRole('button', { name: 'Dismiss suggestion' });
 
   await expect(bubble).toBeVisible({ timeout: IDLE_MS + 3000 });
@@ -140,7 +182,7 @@ test('can be reached, named, and dismissed with the keyboard only', async ({ pag
   while (!reached && tabs < 300) {
     await page.keyboard.press('Tab');
     tabs += 1;
-    reached = await page.evaluate(() => !!document.activeElement?.closest('.da-bubble'));
+    reached = await page.evaluate(() => !!document.activeElement?.closest('.da-proactive'));
   }
 
   expect(reached, 'Tab reaches the bubble').toBe(true);
