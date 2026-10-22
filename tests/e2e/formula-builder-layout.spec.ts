@@ -181,6 +181,62 @@ test.describe('formulaBuilder settings updates', { tag: [THEMES_TAG, BUNDLES_TAG
     await grid.expectCell(3, 0, '3');
   });
 
+  test('turning the plugin off and on at runtime switches between the text editor and the formula editor', async({ page }) => {
+    const plainTextarea = grid.inlineEditorContainer.locator('.ht-formula-builder__inline-editor > textarea');
+
+    /**
+     * Opens the editor on C1 with Enter, checks which editor opened, and cancels it.
+     *
+     * @param expected The editor expected to open.
+     */
+    const expectEditorOnC1 = async(expected: 'formula' | 'text') => {
+      await grid.selectCellByApi(0, 2);
+      await page.keyboard.press('Enter');
+
+      if (expected === 'formula') {
+        await expect(grid.editorInput).toBeFocused();
+        await expect(grid.editorInput).toHaveValue('=A1+B1');
+        await expect(plainTextarea).toHaveCount(0);
+      } else {
+        // The plain textarea is styled and sized as the grid's text editor, not a bare browser textarea.
+        await expect(plainTextarea).toBeFocused();
+        await expect(plainTextarea).toHaveValue('=A1+B1');
+        await expect(plainTextarea).toHaveClass('handsontableInput');
+        await expect(plainTextarea).toHaveCSS('resize', 'none');
+        await expect(grid.inlineEditorContainer).toHaveClass(/\bhandsontableInputHolder\b/);
+
+        const [field, cell] = await Promise.all([plainTextarea.boundingBox(), grid.cell(0, 2).boundingBox()]);
+
+        expect(Math.abs((field?.height ?? 0) - (cell?.height ?? -10))).toBeLessThanOrEqual(2);
+      }
+
+      await page.keyboard.press('Escape');
+      expect(await grid.editorOpened()).toBe(false);
+    };
+    const run = (code: string) => page.evaluate(code);
+
+    await expectEditorOnC1('formula');
+
+    await run('hot.updateSettings({ formulaBuilder: false })');
+    await expectEditorOnC1('text');
+
+    await run('hot.updateSettings({ formulaBuilder: { builder: FormulaBuilderModule, showFormulaBar: true } })');
+    await expectEditorOnC1('formula');
+
+    await run('hot.getPlugin("formulaBuilder").disablePlugin()');
+    await expectEditorOnC1('text');
+
+    await run('hot.getPlugin("formulaBuilder").enablePlugin()');
+    await expectEditorOnC1('formula');
+
+    // With the Formulas plugin off there is no engine, so the formula editor cannot run either.
+    await run('hot.updateSettings({ formulas: false })');
+    await expectEditorOnC1('text');
+
+    await run('hot.updateSettings({ formulas: { engine: HyperFormula } })');
+    await expectEditorOnC1('formula');
+  });
+
   test('turning showFormulaBar off removes the formula bar', async() => {
     await expect(grid.formulaBar).toBeVisible();
 
