@@ -64,7 +64,9 @@ const summary = `## ${report.title}\n\n${report.summary}`;
 mkdirSync(OUTPUT_DIR, { recursive: true });
 writeFileSync(path.join(OUTPUT_DIR, 'summary.md'), `${summary}\n`);
 
-if (env.GITHUB_STEP_SUMMARY) {
+// The job summary is written once, by the summary step; the check-run step runs this script a second
+// time and must not append it again.
+if (env.GITHUB_STEP_SUMMARY && !postRun) {
   appendFileSync(env.GITHUB_STEP_SUMMARY, `${summary}\n`);
 }
 

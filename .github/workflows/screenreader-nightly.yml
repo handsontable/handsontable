@@ -34,6 +34,10 @@ on:
   # themselves.
   pull_request:
     paths: [ '.github/workflows/screenreader-nightly.yml' ]
+  # TEMPORARY, for the proof run of the pull request that adds this file: a workflow cannot be
+  # dispatched before it exists on the default branch. Reverted before the pull request is ready.
+  push:
+    branches: [ 'feature/DEV-3579_NVDA-screen-reader-lane' ]
 
 # NO permissions block — the parity rule of e2e-nightly.yml and visual-nightly.yml: the called workflow
 # validates its job-level grants against the default token this caller hands down.
@@ -60,7 +64,8 @@ jobs:
     if: github.event_name != 'pull_request'
     uses: ./.github/workflows/screenreader.yml
     with:
-      update-goldens: ${{ github.event_name == 'workflow_dispatch' && inputs.update-goldens || false }}
+      # TEMPORARY, the proof run records the goldens: restored to the dispatch input before the pull request is ready.
+      update-goldens: ${{ github.event_name == 'workflow_dispatch' && inputs.update-goldens || github.event_name == 'push' }}
     secrets: inherit
 
   # Optional Slack ping, develop only; fires only when the webhook secret exists (an absent secret is
