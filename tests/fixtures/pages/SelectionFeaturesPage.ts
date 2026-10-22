@@ -1658,6 +1658,47 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * How far the fill handle stands inside the master holder's inline-end and bottom edges, in
+   * pixels - the strip an overlay scrollbar of the holder is painted over. Negative when the handle
+   * hangs past the edge.
+   */
+  async fillHandleInsetFromHolderEdges(): Promise<{ inlineEnd: number, bottom: number }> {
+    const handleBox = await this.fillHandle().boundingBox();
+
+    if (!handleBox) {
+      throw new Error('The fill handle is not rendered.');
+    }
+
+    return this.page.evaluate((handle) => {
+      const holder = document.querySelector<HTMLElement>('[data-testid="grid"] .ht_master .wtHolder')!;
+      const holderBox = holder.getBoundingClientRect();
+      const inlineEnd = window.hot.getSettings().layoutDirection === 'rtl'
+        ? handle.x - holderBox.left
+        : holderBox.right - (handle.x + handle.width);
+
+      return {
+        inlineEnd: Math.round(inlineEnd),
+        bottom: Math.round(holderBox.bottom - (handle.y + handle.height)),
+      };
+    }, handleBox);
+  }
+
+  /**
+   * The layout space the master holder gives its vertical and horizontal scrollbars. `0` on both
+   * axes is an overlay ("floating") scrollbar, painted over the cells.
+   */
+  async holderScrollbarGutters(): Promise<{ vertical: number, horizontal: number }> {
+    return this.page.evaluate(() => {
+      const holder = document.querySelector<HTMLElement>('[data-testid="grid"] .ht_master .wtHolder')!;
+
+      return {
+        vertical: holder.offsetWidth - holder.clientWidth,
+        horizontal: holder.offsetHeight - holder.clientHeight,
+      };
+    });
+  }
+
+  /**
    * What the browser hit-tests at the center of the fill handle, as `<overlay>/<class name>`. A
    * frozen pane that occludes the handle owns those pixels, so the topmost element there belongs to
    * that pane rather than to the master. Match on the overlay and treat the class name as detail:

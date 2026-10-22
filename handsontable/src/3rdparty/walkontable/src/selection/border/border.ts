@@ -25,6 +25,7 @@ import type { InteriorEdges, RenderedBand } from './utils';
 import { CUSTOM_SELECTION_TYPE } from '../constants';
 import { INLINE_END_CLONE_TYPES } from '../../overlay/constants';
 import { getSpreaderOffset } from '../../overlay/spreaderOffset';
+import { axisScrollbarClearance, holderOwnsAxisScrollbar } from '../../overlay/scrollbarClearance';
 import {
   ADJUST_HANDLE_EDGES,
   getAxisSegment,
@@ -1638,6 +1639,54 @@ class Border {
   }
 
   /**
+   * The extra distance the fill handle of the grid's last column (`'vertical'`) or last row
+   * (`'horizontal'`) is pulled back, so the master holder's overlay ("floating") scrollbar does not
+   * cover it. An overlay scrollbar takes no layout space and is painted over the content at the
+   * holder's edge - exactly where the lifted handle lands flush - so the scrollbar takes the hover and
+   * the press, and the handle cannot be dragged (Firefox and Chrome on Windows 11, macOS with "Show
+   * scroll bars" set to "Automatically" or "When scrolling"). It is the same strip the frozen overlays
+   * keep clear for that scrollbar (`axisScrollbarClearance`), so it is 0 for a space-taking scrollbar,
+   * for an axis the holder does not scroll or the window owns, and on a touch-only device.
+   *
+   * Only the master's handle on the grid's last track moves. A `fixedColumnsEnd`/`fixedRowsBottom`
+   * pane already sits beside that strip, and the last scrollable track before it is lifted for the
+   * pane, not for the scrollbar.
+   *
+   * @private
+   * @param {number} toIndex The selection's inline-end column (`'vertical'`) or bottom row (`'horizontal'`).
+   * @param {'vertical' | 'horizontal'} axis The scrollbar whose strip to clear.
+   * @returns {number} The extra lift, in pixels.
+   */
+  getCornerScrollbarClearance(toIndex: number, axis: 'vertical' | 'horizontal'): number {
+    const isVertical = axis === 'vertical';
+    const totalSetting = isVertical ? 'totalColumns' : 'totalRows';
+    const fixedEndSetting = isVertical ? 'fixedColumnsEnd' : 'fixedRowsBottom';
+
+    if (
+      !this.wot.wtTable.isMaster ||
+      toIndex !== (this.wot.getSetting(totalSetting) as number) - 1 ||
+      (this.wot.getSetting(fixedEndSetting) as number) > 0
+    ) {
+      return 0;
+    }
+
+    const { wtTable, wtViewport, rootDocument, rootWindow } = this.wot;
+    const { geometryReader } = this.wot.domBindings;
+    const axisOwnedByWindow = isVertical
+      ? wtViewport.isVerticallyScrollableByWindow()
+      : wtViewport.isHorizontallyScrollableByWindow();
+    const axisScrolls = isVertical ? wtViewport.hasVerticalScroll() : wtViewport.hasHorizontalScroll();
+
+    return axisScrollbarClearance(
+      geometryReader,
+      wtTable.holder,
+      geometryReader.getScrollbarWidth(rootDocument),
+      holderOwnsAxisScrollbar(axisOwnedByWindow, rootWindow) && axisScrolls,
+      axis
+    );
+  }
+
+  /**
    * Block-axis mirror of {@link Border#isCornerLiftedAtInlineEnd}. Two rows pull the fill handle back
    * inside the selection's bottom edge: the grid's last row, where the overhang would spill out of
    * the trimming container, and the last scrollable row above the `fixedRowsBottom` line, where the
@@ -2216,7 +2265,7 @@ class Border {
       if (liftsAtInlineEnd) {
         const inlineStartPosition = Math.floor(
           inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
-        );
+        ) - this.getCornerScrollbarClearance(toColumn, 'vertical');
 
         addClass(this.corner!, 'wtCornerInlineEndEdge');
 
@@ -2232,7 +2281,7 @@ class Border {
       if (liftsAtBlockEnd) {
         const cornerTopPosition = Math.floor(
           top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation
-        );
+        ) - this.getCornerScrollbarClearance(toRow, 'horizontal');
 
         addClass(this.corner!, 'wtCornerBlockEndEdge');
 

@@ -253,6 +253,33 @@ pane part of it. Pinned by the "fill handle of a frozen top row" block of
 that the corner overlays still draw the overhang for a frozen column; the iPad bottom handle is pinned in
 `tests/e2e/ipad-selection-handles.spec.ts`.
 
+## The last track's fill handle clears an overlay scrollbar (DEV-982)
+
+`isCornerLiftedAtInlineEnd` and `isCornerLiftedAtBlockEnd` pull the grid's last column's and last
+row's fill handle inside the selection, flush with the holder's edge. An overlay ("floating")
+scrollbar is painted over exactly that strip: Firefox and Chrome on Windows 11, and macOS with "Show
+scroll bars" set to "When scrolling". It takes no layout space, so nothing else moves the handle
+away from it. The scrollbar then takes the hover and the press, and the drag scrolls the grid instead
+of filling. `Border#getCornerScrollbarClearance` adds the strip the frozen overlays already keep clear
+(`axisScrollbarClearance`, `OVERLAY_SCROLLBAR_CLEARANCE`) to that lift. Four rules:
+
+- **Static, not tied to `ScrollbarVisibility`.** The bands open while the pointer is within
+  `OVERLAY_SCROLLBAR_PROXIMITY` (26px) of the edge, so a lift that followed them would move the
+  handle away while the user reaches for it. The cost is a handle that sits 16px inside the cell's
+  corner on the last column and row whenever the scrollbar is an overlay one and the axis scrolls.
+- **The master only, the grid's last track only, and no end pane.** With `fixedColumnsEnd` or
+  `fixedRowsBottom` the last track belongs to an end clone, which already stands beside the strip.
+  The last scrollable track before an end pane is lifted for the pane (`isFrozenEndBoundaryEdge`),
+  not for the scrollbar.
+- **Gated like the frozen overlays' strip**: `holderOwnsAxisScrollbar` (the window does not own the
+  axis, and a pointer can grab a scrollbar) plus `hasVerticalScroll()`/`hasHorizontalScroll()` for the
+  axis. A classic scrollbar, an axis that does not scroll, and a touch-only device give 0.
+- **No headless browser hit-tests an overlay scrollbar**, and headed ones on macOS ignore the
+  Chromium and Firefox flags that would force one. `tests/e2e/fill-handle-overlay-scrollbar.spec.ts`
+  hides every scrollbar with `scrollbar-width: none` before the grid loads, so the holder and the
+  width probe read 0, and asserts the geometry; the covered handle itself is checked by hand on a real
+  device. Unit-pinned in `test/unit/selection/border/cornerScrollbarClearance.unit.ts`.
+
 ## Custom border `width: 0` is a real value (DEV-1137)
 
 `getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.
