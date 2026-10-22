@@ -18,7 +18,6 @@ tags:
   - renderer
 searchCategory: Guides
 category: Cell features
-menuTag: updated
 ---
 Style cells dynamically based on their values, so you can highlight outliers, flag errors, or visualize data ranges.
 

@@ -20,7 +20,6 @@ vue:
   metaTitle: Text alignment | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
-menuTag: updated
 ---
 Align values within cells: horizontally (to the right, left, center, or by justifying them), and vertically (to the top, middle, or bottom of the cell).
 

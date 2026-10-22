@@ -13,7 +13,6 @@ tags:
   - encapsulation
 searchCategory: Recipes
 category: Platforms and embedding
-menuTag: new
 ---
 
 In this tutorial, you will wrap Handsontable DataGrid in a custom element that owns its own shadow root. It covers only the glue between the grid and the element: getting the stylesheets to both sides of the shadow boundary, passing data and settings in through methods, emitting cell edits out as DOM events, and destroying the instance when the element leaves the page. It assumes you already write custom elements.

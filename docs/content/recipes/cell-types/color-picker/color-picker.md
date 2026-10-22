@@ -17,6 +17,7 @@ vue:
   metaTitle: Color picker cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
+menuTag: updated
 ---
 
 This tutorial shows you how to integrate the Pickr color picker library as a custom Handsontable DataGrid cell editor, with a swatch renderer and hex validation.

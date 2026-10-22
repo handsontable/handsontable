@@ -17,7 +17,6 @@ vue:
   metaTitle: Add a column to an object-based dataset | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Context Menu
-menuTag: new
 type: how-to
 ---
 

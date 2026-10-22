@@ -18,6 +18,7 @@ vue:
   metaTitle: Import CSV or Excel | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Import and Export
+menuTag: updated
 type: how-to
 ---
 

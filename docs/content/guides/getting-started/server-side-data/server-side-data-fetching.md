@@ -18,6 +18,7 @@ vue:
   metaTitle: Server-side fetching and examples | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Server-side data
+menuTag: updated
 addedIn: "17.1.0"
 ---
 
