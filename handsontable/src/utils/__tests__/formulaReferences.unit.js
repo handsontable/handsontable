@@ -1,4 +1,20 @@
-import { formatSheetName, rewriteSheetReferences } from '../formulaReferences';
+import { formatSheetName, quoteUnreadableSheetNames, rewriteSheetReferences } from '../formulaReferences';
+
+describe('quoteUnreadableSheetNames', () => {
+  const startsWithDigit = name => !/^\d/.test(name);
+
+  it('quotes an unquoted name the engine cannot read and leaves the rest as written', () => {
+    expect(quoteUnreadableSheetNames('=2026!A1+Costs!B2+\'Q1 Data\'!C3', startsWithDigit))
+      .toBe('=\'2026\'!A1+Costs!B2+\'Q1 Data\'!C3');
+  });
+
+  it('returns a formula with no sheet reference without asking about any name', () => {
+    const canReadUnquoted = jest.fn(() => true);
+
+    expect(quoteUnreadableSheetNames('=SUM(A1:A3)', canReadUnquoted)).toBe('=SUM(A1:A3)');
+    expect(canReadUnquoted).not.toHaveBeenCalled();
+  });
+});
 
 describe('rewriteSheetReferences', () => {
   const rename = (from, to) => reference => (reference.name === from ? to : null);

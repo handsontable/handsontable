@@ -130,3 +130,24 @@ export function rewriteSheetReferences(formula: string, rewrite: (reference: She
 export function formatSheetName(name: string, quoted: boolean): string {
   return quoted ? `'${name.replace(/'/g, '\'\'')}'` : name;
 }
+
+/**
+ * Quotes every sheet name a formula references without quotes that the formula engine cannot read
+ * without them. HyperFormula writes such a name (one that starts with a digit, as `2026` or `1Q`) without
+ * quotes when it hands out formula text, and then fails to parse that text, so the text is checked before
+ * it reaches a cell, an editor, the host's data, or the engine again. A formula with no sheet reference
+ * comes back as the same string without being scanned.
+ *
+ * @param {string} formula The formula text, starting with `=`.
+ * @param {Function} canReadUnquoted Tells whether the engine reads a sheet name without quotes.
+ * @returns {string}
+ */
+export function quoteUnreadableSheetNames(formula: string, canReadUnquoted: (name: string) => boolean): string {
+  if (!formula.includes('!')) {
+    return formula;
+  }
+
+  return rewriteSheetReferences(formula, reference => (
+    !reference.quoted && !canReadUnquoted(reference.name) ? formatSheetName(reference.name, true) : null
+  ));
+}

@@ -580,6 +580,20 @@ the second engine's formulas never saw them. The plugin is disabled and enabled 
 bound, and binds the sheet the settings name in the new engine. Only an instance counts, because an
 engine class (or `{ hyperformula }`) builds the engine itself.
 
+## Sheet names the engine reads only in quotes
+
+HyperFormula's unparser writes a sheet name without quotes whenever it can (`=2026!A1` for a sheet
+named `2026`) and then cannot parse that text back. Every formula text that leaves the engine through
+this plugin therefore goes through `#readableFormula()` (or `#readableSheet()` for a whole sheet),
+which runs `quoteUnreadableSheetNames()` from `../../utils/formulaReferences.ts`: an unquoted name
+the engine cannot read is quoted, everything else is left as written. That covers the source-data
+read (`modifySourceData`, so the editor opens on `='2026'!A1`), `switchSheet()`, the write-back of
+rewritten formulas, the undo snapshot and peer rewrites, fill, copy and cut, show-formulas paint, and
+MoveCells. Committing the editor text unchanged used to make the cell `#ERROR!`. Whether a name is
+readable is asked of the engine itself (`validateFormula('=<name>!A1')`) and cached per name in
+`#unquotedSheetNames`, cleared on enable. A formula with no `!` returns at once, so the hot read
+path pays one `indexOf`. Pinned by `__tests__/sheetNameQuoting.unit.js`.
+
 ## The engine order of a sheet the grid leaves and loads again (`runWithEngineOrderHeld()`)
 
 Every order the axis syncer hands the engine (`setRowOrder`, `setColumnOrder`) moves the formula cells,

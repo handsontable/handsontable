@@ -40,6 +40,7 @@ import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './eng
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
 import { getValueGetterValue } from '../../utils/valueAccessors';
+import { quoteUnreadableSheetNames } from '../../utils/formulaReferences';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 import type AxisSyncer from './indexSyncer/axisSyncer';
@@ -447,6 +448,14 @@ export class Formulas extends BasePlugin {
    * @type {string|undefined}
    */
   #followedSheetNameSetting: string | undefined = undefined;
+
+  /**
+   * Whether the engine reads a sheet name without quotes, per name (`#canReadUnquoted`). Cleared on
+   * enable, when the engine can change.
+   *
+   * @type {Map<string, boolean>}
+   */
+  #unquotedSheetNames = new Map<string, boolean>();
 
   /**
    * Flag needed to mark if Handsontable was initialized with no data.
@@ -937,6 +946,7 @@ export class Formulas extends BasePlugin {
 
     this.engine = setupEngine(this.hot) ?? this.engine;
     this.#ownSheetExists = null;
+    this.#unquotedSheetNames.clear();
     this.#sheetsNotNamingOwnSheet.clear();
 
     if (!this.engine) {
@@ -1272,6 +1282,63 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Tells whether the engine reads a sheet name without quotes, asking the engine's own parser once per
+   * name.
+   *
+   * @param {string} name The sheet name.
+   * @returns {boolean}
+   */
+  #canReadUnquoted = (name: string): boolean => {
+    let readable = this.#unquotedSheetNames.get(name);
+
+    if (readable === undefined) {
+      readable = this.engine?.validateFormula(`=${name}!A1`) !== false;
+      this.#unquotedSheetNames.set(name, readable);
+    }
+
+    return readable;
+  };
+
+  /**
+   * Returns formula text read from the engine in a form the engine can parse again. HyperFormula writes a
+   * sheet name that starts with a digit (`2026`, `1Q`) without the quotes it needs, even when the formula
+   * was written with them, and then fails to parse its own text: an editor opened on `='2026'!A1` and
+   * committed unchanged turned the cell into `#ERROR!`. Every formula text that leaves the engine (the
+   * source data reads, the copy, a fill, a move, the reload of a sheet, the text written back into the
+   * data, and the text undo keeps) goes through here. A value that is not a formula, or a formula with no
+   * sheet reference, comes back as it was.
+   *
+   * @param {*} value A value read from the engine.
+   * @returns {*}
+   */
+  #readableFormula<T>(value: T): T {
+    if (typeof value !== 'string' || !value.startsWith('=')) {
+      return value;
+    }
+
+    return quoteUnreadableSheetNames(value, this.#canReadUnquoted) as T;
+  }
+
+  /**
+   * Applies `#readableFormula()` to every cell of a sheet read from the engine. A row with nothing to
+   * change is kept as the same array.
+   *
+   * @param {Array[]} rows The rows.
+   * @returns {Array[]}
+   */
+  #readableSheet<T extends unknown[][]>(rows: T): T {
+    return rows.map((row) => {
+      if (!Array.isArray(row)) {
+        return row;
+      }
+
+      const readable = row.map(cell => this.#readableFormula(cell));
+
+      return readable.some((cell, index) => cell !== row[index]) ? readable : row;
+    }) as T;
+  }
+
+  /**
    * Returns the `formulas.sheetName` setting, or `undefined` when there is none.
    *
    * @returns {string|undefined}
@@ -1476,7 +1543,7 @@ export class Formulas extends BasePlugin {
     this.#updateSheetNameAndSheetId(sheetName);
 
     const unescaped = this.#unescapeEngineSheetArray(
-      this.engine.getSheetSerialized(this.sheetId), isSameSheetReload
+      this.#readableSheet(this.engine.getSheetSerialized(this.sheetId)), isSameSheetReload
     );
     // The engine trims each row's trailing empty cells, and the core reads the column count off the
     // first row, so a first row that ends in an emptied cell would load a grid one column short.
@@ -2104,7 +2171,9 @@ export class Formulas extends BasePlugin {
       const count = candidates.length;
 
       engine.getSheetFormulas(sheet).forEach((formulasRow, row) => {
-        formulasRow.forEach((formula, col) => {
+        formulasRow.forEach((engineFormula, col) => {
+          const formula = this.#readableFormula(engineFormula);
+
           if (formula !== undefined && namesThisSheet(formula)) {
             candidates.push({ kind: 'cell', sheet, row, col, before: formula, after: formula });
           }
@@ -2119,7 +2188,7 @@ export class Formulas extends BasePlugin {
     // A named expression can reach this sheet with or without naming it, so each one is a candidate.
     [undefined, ...sheetIds].forEach((scope) => {
       engine.listNamedExpressions(scope).forEach((name: string) => {
-        const formula: string | undefined = engine.getNamedExpressionFormula(name, scope);
+        const formula: string | undefined = this.#readableFormula(engine.getNamedExpressionFormula(name, scope));
 
         if (formula !== undefined) {
           candidates.push({ kind: 'name', name, scope, before: formula, after: formula });
@@ -2141,9 +2210,9 @@ export class Formulas extends BasePlugin {
     const rewritten: PeerRewrite[] = [];
 
     candidates.forEach((candidate) => {
-      const after: string | undefined = candidate.kind === 'cell' ?
+      const after: string | undefined = this.#readableFormula(candidate.kind === 'cell' ?
         engine.getCellFormula({ sheet: candidate.sheet, row: candidate.row, col: candidate.col }) :
-        engine.getNamedExpressionFormula(candidate.name, candidate.scope);
+        engine.getNamedExpressionFormula(candidate.name, candidate.scope));
 
       if (after === candidate.before) {
         return;
@@ -2195,7 +2264,7 @@ export class Formulas extends BasePlugin {
             return;
           }
 
-          if (engine.getCellFormula(address) !== expected) {
+          if (this.#readableFormula(engine.getCellFormula(address)) !== expected) {
             keptEdited = true;
           } else if (engine.isItPossibleToSetCellContents(address)) {
             engine.setCellContents(address, text ?? null);
@@ -2209,7 +2278,7 @@ export class Formulas extends BasePlugin {
           return;
         }
 
-        if (engine.getNamedExpressionFormula(rewrite.name, rewrite.scope) !== expected) {
+        if (this.#readableFormula(engine.getNamedExpressionFormula(rewrite.name, rewrite.scope)) !== expected) {
           keptEdited = true;
         } else if (text !== undefined &&
             engine.isItPossibleToChangeNamedExpression(rewrite.name, text, rewrite.scope)) {
@@ -2288,7 +2357,7 @@ export class Formulas extends BasePlugin {
       return null;
     }
 
-    const content: unknown[][] = this.engine.getSheetSerialized(this.sheetId);
+    const content: unknown[][] = this.#readableSheet(this.engine.getSheetSerialized(this.sheetId));
 
     if (previous !== null) {
       content.forEach((row, index) => {
@@ -3170,7 +3239,7 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    const fillRangeData = this.engine!.getFillRangeData(engineSourceRange, engineTargetRange);
+    const fillRangeData = this.#readableSheet(this.engine!.getFillRangeData(engineSourceRange, engineTargetRange));
     const {
       row: sourceStartRow,
       col: sourceStartColumn,
@@ -3774,7 +3843,7 @@ export class Formulas extends BasePlugin {
       sheet: this.sheetId,
     };
 
-    fastInnerText(TD, String(this.engine!.getCellSerialized(address)));
+    fastInnerText(TD, String(this.#readableFormula(this.engine!.getCellSerialized(address))));
   };
 
   /**
@@ -3815,7 +3884,7 @@ export class Formulas extends BasePlugin {
           sheet: this.sheetId,
         };
 
-        data[rowIndex][columnIndex] = this.engine!.getCellSerialized(address);
+        data[rowIndex][columnIndex] = this.#readableFormula(this.engine!.getCellSerialized(address));
       });
     });
   };
@@ -3884,7 +3953,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    valueHolder.value = this.engine!.getCellSerialized(address);
+    valueHolder.value = this.#readableFormula(this.engine!.getCellSerialized(address));
   };
 
   /**
@@ -4514,10 +4583,11 @@ export class Formulas extends BasePlugin {
     try {
       if (cells === undefined) {
         engine.getSheetFormulas(sheetId).forEach((formulasRow, hfRow) => {
-          formulasRow?.forEach((formula, hfColumn) => collect(hfRow, hfColumn, formula));
+          formulasRow?.forEach((formula, hfColumn) => collect(hfRow, hfColumn, this.#readableFormula(formula)));
         });
       } else {
-        cells.forEach(({ row, col }) => collect(row, col, engine.getCellFormula({ sheet: sheetId, row, col })));
+        cells.forEach(({ row, col }) => collect(row, col,
+          this.#readableFormula(engine.getCellFormula({ sheet: sheetId, row, col }))));
       }
     } finally {
       this.#internalOperationPending = false;
@@ -4968,11 +5038,11 @@ export class Formulas extends BasePlugin {
       for (let c = 0; c < width; c++) {
         const hfRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(tgtFromRow + r);
         const hfCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(tgtFromCol + c);
-        const serialized = this.engine!.getCellSerialized({
+        const serialized = this.#readableFormula(this.engine!.getCellSerialized({
           sheet: this.sheetId,
           row: hfRow,
           col: hfCol,
-        });
+        }));
 
         // The serialized content keeps the escape apostrophe that dates and preserved text values
         // were written with, so it is unescaped before it goes back into the grid. The meta comes

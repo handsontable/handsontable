@@ -87,6 +87,21 @@ describe('SheetsBar formula sheets', () => {
       expect(hot.getDataAtCell(0, 0)).toBe(99);
     });
 
+    it('keeps a reference to a digit-named sheet working when its cell is committed unchanged', () => {
+      const engine = buildEngine();
+      const report = [['=Prices!A1']];
+
+      hot = build([boundSheet(engine, 'Report', report), boundSheet(engine, 'Prices', [[99]])]);
+      sheetsBar().renameSheet(idOf('Prices'), '2026');
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=\'2026\'!A1');
+
+      hot.setDataAtCell(0, 0, hot.getSourceDataAtCell(0, 0));
+
+      expect(hot.getDataAtCell(0, 0)).toBe(99);
+      expect(report[0][0]).toBe('=\'2026\'!A1');
+    });
+
     it('does not throw on a sheet whose data the host froze, and renames every sheet', () => {
       const engine = buildEngine();
       const frozen = Object.freeze([Object.freeze(['=Prices!A1'])]);

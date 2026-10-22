@@ -95,7 +95,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   turns object rows into arrays (`toEngineContent()`, through the sheet's `columns[].data` paths
   or its keys): HyperFormula takes an array of arrays only, and threw at construction and from
   `addSheet()`. A tab rename renames the engine sheet and rewrites the old name in the formula
-  text of every bound sheet's data (`#rewriteFormulaText()`, through `formulaReferences.ts`):
+  text of every bound sheet's data (`#rewriteFormulaText()`, through `../../utils/formulaReferences.ts`, shared with the Formulas plugin):
   HyperFormula rewrites references only inside itself, and the raw arrays would resurrect the
   old name on the next switch. **The data's own text is rewritten, never replaced by the
   engine's**: a sorted or moved sheet is held in another order in the engine (see the next
@@ -108,7 +108,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   through `colToProp`); the rest are direct source writes plus one render. A new name the engine
   cannot read back unquoted gets quotes (`#sheetNameText()`, checked with the engine's own
   `validateFormula()`): HyperFormula writes `=2026!A1` for a sheet named `2026` and then fails to
-  parse it. A rename that renamed an engine sheet is one undo step (`#recordRenameStep()`, the
+  parse it. The engine hands out the same unquoted text everywhere else too (an editor, a copy,
+  a write-back), so the Formulas plugin quotes it on the way out (`../formulas/AGENTS.md`, "Sheet
+  names the engine reads only in quotes"), and `#syncInactiveSheetsFromEngine()` uses the same
+  `quoteUnreadableSheetNames()`. A rename that renamed an engine sheet is one undo step (`#recordRenameStep()`, the
   legacy `done()` path): the steps before it hold text with the old name, so undoing an older row
   removal against the renamed engine read `#REF!`; undone in order, the rename goes first. A
   rename that only changes the case of the name renames that one engine sheet, not a collision

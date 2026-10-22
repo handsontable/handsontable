@@ -33,7 +33,7 @@ import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
 import { getProperty, isObject, isPlainObject } from '../../helpers/object';
 import { localeLowerCase } from '../../helpers/string';
-import { formatSheetName, rewriteSheetReferences } from './formulaReferences';
+import { formatSheetName, quoteUnreadableSheetNames, rewriteSheetReferences } from '../../utils/formulaReferences';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { syncIcon } from '../../themes/engine/icons';
@@ -3713,20 +3713,15 @@ export class SheetsBar extends BasePlugin {
    */
   #syncInactiveSheetsFromEngine(engine: NonNullable<SheetFormulas['engine']>) {
     const active = this.#activeSheetRecord();
-    const nameTexts = new Map<string, string>();
-    const quoteIfNeeded = (formula: string) => rewriteSheetReferences(formula, (reference) => {
-      if (reference.quoted) {
-        return null;
+    const readable = new Map<string, boolean>();
+    const canReadUnquoted = (name: string) => {
+      if (!readable.has(name)) {
+        readable.set(name, this.#sheetNameText(engine, name) === name);
       }
 
-      if (!nameTexts.has(reference.name)) {
-        nameTexts.set(reference.name, this.#sheetNameText(engine, reference.name));
-      }
-
-      const text = nameTexts.get(reference.name)!;
-
-      return text === reference.name ? null : text;
-    });
+      return readable.get(name)!;
+    };
+    const quoteIfNeeded = (formula: string) => quoteUnreadableSheetNames(formula, canReadUnquoted);
 
     this.#sheetRecords().forEach((sheet) => {
       const formulas = formulasSettingOf(sheet);
