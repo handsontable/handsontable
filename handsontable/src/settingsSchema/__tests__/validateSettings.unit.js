@@ -210,10 +210,6 @@ describe('validateSettings', () => {
       expect(validateSettings({ [option]: null })).toEqual({ valid: true, problems: [] });
     });
 
-    it('should accept the `null` a React pagination example sends on its first render', () => {
-      expect(validateSettings({ data: [['A1']], pagination: null })).toEqual({ valid: true, problems: [] });
-    });
-
     it('should accept `null` for a plugin option on a column', () => {
       expect(validateSettings({ columns: [{ columnSorting: null, filters: null }] }))
         .toEqual({ valid: true, problems: [] });

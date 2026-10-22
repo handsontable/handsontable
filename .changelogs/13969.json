@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed `validateSettings()` reporting a `dataProvider.rowId` function and `null` for a plugin option, such as `pagination`, as invalid.",
+  "title": "Fixed the TypeScript type of `dataProvider.rowId` rejecting a function, which the plugin accepts. Code that reads `dataProvider.rowId` back as a string now has to narrow it.",
   "type": "fixed",
   "issueOrPR": 13969,
-  "breaking": false,
+  "breaking": true,
   "framework": "none"
 }

@@ -61,13 +61,15 @@ settings object against it and against what the page registers. Guide:
   type even when the TS type omits it (`colHeaders`). `schemaCoverage.unit.js` checks every default.
 - **Every documented option of a plugin accepts `null`, by one generator rule and not per option.** `buildNode` in
   the generator adds `null` when the option has a plugin and an entry in `metaSchema.ts`, the switches and the
-  sub-options (`filterValueComparator`, `parsePastedValue`) alike: a framework wrapper sends `null` on a first render
-  (`useState(null)`), `checkPlugin()` already skips `null` for every plugin option, and a runtime probe of every such
-  option found none that throws or warns on `null`. The public types stay as they are: widening
-  `GridSettings.pagination` would break readers of `getSettings()`. A cell-meta-only key (`comment`) has no entry and
-  keeps its type. `null` means "unset", the same as omitting the option, not "off": a plugin that is off by default
-  stays off, and `autoColumnSize` and `importFile` (default `undefined`, on) stay on. Only `false` turns those two
-  off, so the validator rightly does not warn. `schemaCoverage.unit.js` pins the rule for every such option.
+  sub-options (`filterValueComparator`, `parsePastedValue`) alike: an app's own state can hold `null` before the
+  configuration loads (`useState(null)`, which the wrappers pass through), `checkPlugin()` already skips `null` for
+  every plugin option, and a runtime probe of every such option found none that throws or warns on `null`. The public
+  types stay as they are: widening `GridSettings.pagination` would break readers of `getSettings()`. A cell-meta-only
+  key (`comment`) has no entry and keeps its type. **`null` is not one thing at runtime.** A plugin that is on by
+  default and checks `!!settings[key]` (`copyPaste`, `fillHandle`, `undo`, `dragToScroll`) turns off on `null`, at
+  init and after `updateSettings()`, as it does on `false`. `autoColumnSize` and `importFile` check `!== false`, so
+  `null` leaves them on. The validator accepts both without a hint, and the guide says so. `schemaCoverage.unit.js`
+  pins the rule for every such option.
 - **A type narrower than what the plugin accepts is a false positive, so keep the two together.**
   `DataProviderConfig.rowId` is `RowIdKey` (`utils/rowId.ts`), the type of the grid-level `rowId`: a string path or a
   function of the source row. Its validator in the plugin's `constants.ts` accepts any function. Narrowing either

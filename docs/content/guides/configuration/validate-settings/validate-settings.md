@@ -212,8 +212,11 @@ Each option carries Handsontable-specific details under the `x-handsontable` key
 A value that JSON cannot hold, such as a function, is listed in `runtimeTypes` and not in `type`. A JSON Schema
 validator therefore rejects a function in a JSON document, which cannot carry one anyway. A hook accepts `null` and
 `false` in JSON, the values Handsontable skips. An option of a plugin, such as `pagination` or `filters`, accepts
-`null` as well, because a framework wrapper sends it on a first render, before your configuration loads. A validator
-that rejects unknown keywords, such as Ajv in strict mode, needs the keyword registered:
+`null` as well, for example a value your app's state holds before the configuration loads. `null` does not always
+mean "off". For a plugin that is on by default and read by truthiness (`copyPaste`, `fillHandle`, `undo`,
+`dragToScroll`), `null` turns it off, as `false` does. For `autoColumnSize` and `importFile`, only `false` turns the
+plugin off, so `null` leaves it on. Set `false` when you mean off. A validator that rejects unknown keywords, such as
+Ajv in strict mode, needs the keyword registered:
 
 ```js
 import Ajv from 'ajv/dist/2020';
