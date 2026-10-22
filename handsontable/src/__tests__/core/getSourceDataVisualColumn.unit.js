@@ -101,6 +101,35 @@ describe('Core source data getters and the column index', () => {
     hot.destroy();
   });
 
+  it('should read the trimmed column of an array of arrays by a physical range, not by a number', () => {
+    const hot = buildGrid(arrayData());
+    const trimmingMap = hot.columnIndexMapper.createAndRegisterIndexMap('test-trim', 'trimming');
+
+    trimmingMap.setValueAtIndex(0, true);
+
+    // The number 0 names the first visible column, which is B.
+    expect(hot.getSourceDataAtCell(0, 0)).toBe('B1');
+    expect(hot.getSourceDataAtCol(0)).toEqual(['B1', 'B2']);
+    // The trimmed column A is reachable only by a physical range.
+    expect(hot.getSourceData(0, 0, 1, 0)).toEqual([['A1'], ['A2']]);
+
+    hot.destroy();
+  });
+
+  it('should read an index past the last visible column of an array of arrays as a physical index', () => {
+    const hot = buildGrid(arrayData());
+    const trimmingMap = hot.columnIndexMapper.createAndRegisterIndexMap('test-trim', 'trimming');
+
+    trimmingMap.setValueAtIndex(0, true);
+
+    // Three columns stay visible (B, C, D), so the visual index 3 names no column and falls back to the
+    // physical column 3, which is D.
+    expect(hot.countCols()).toBe(3);
+    expect(hot.getSourceDataAtCell(0, 3)).toBe('D1');
+
+    hot.destroy();
+  });
+
   it('should read a range of an array of arrays by physical column indexes', () => {
     const hot = buildGrid(arrayData());
 
