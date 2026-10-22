@@ -94,7 +94,7 @@
     "ng-packagr": "^22.2.4",
     "ts-jest": "^29.4.12",
     "typescript": "~6.0.3",
-    "vite": "^6.0.0"
+    "vite": "^8.1.6"
   },
   "publishConfig": {
     "directory": "dist/hot-table",
