@@ -60,6 +60,21 @@ export class SheetsBarFormulasOrderPage {
     }, [name, newName]);
   }
 
+  removeSheet(name: string): Promise<boolean> {
+    return this.page.evaluate((sheetName) => {
+      const sheetsBar = window.hot.getPlugin('sheetsBar');
+      const sheet = sheetsBar.getSheets().find(descriptor => descriptor.name === sheetName)!;
+
+      return sheetsBar.removeSheet(sheet.id);
+    }, name);
+  }
+
+  addSheet(name: string, data: unknown[][]): Promise<void> {
+    return this.page.evaluate(([sheetName, sheetData]) => {
+      window.hot.getPlugin('sheetsBar').addSheet(sheetName as string, sheetData as unknown[][]);
+    }, [name, data]);
+  }
+
   sort(column: number, sortOrder: 'asc' | 'desc'): Promise<void> {
     return this.page.evaluate(([col, order]) => {
       window.hot.getPlugin('columnSorting').sort({ column: col as number, sortOrder: order as 'asc' | 'desc' });

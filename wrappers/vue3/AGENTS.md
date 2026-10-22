@@ -62,5 +62,6 @@
 |---|---|
 | `arr.push(...largeArray)` with large arrays | Causes stack overflow with 10k+ elements. Use `forEach` loop instead. |
 | Passing `dataProvider` together with `sheetsBar` | A grid-level `dataProvider` is ignored while the sheets bar is on. Put `dataProvider` in each server sheet's `settings`, and keep every `sheets[i].data` reference, and each sheet's `dataProvider` object with its callbacks, referentially stable across re-renders: sheet settings are compared structurally and functions by identity, so a new data array or an inline callback rebuilds the workbook and drops each sheet's cached server state (rows, sort, filters, page). |
+| Editing an away sorted sheet's `data` in place with `sheetsBar` and `formulas` | A sheet left sorted, or with moved rows or columns, comes back with the formulas the formula engine holds for it, as long as its `data` is the same array with the same length. A cell changed in place in that array while the sheet is away is not seen. Pass a new `data` array for that sheet to change it. |
 
 For detailed guidance: use skill `vue-wrapper-dev`

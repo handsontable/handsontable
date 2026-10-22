@@ -599,7 +599,33 @@ rewritten formulas, the undo snapshot and peer rewrites, fill, copy and cut, sho
 MoveCells. Committing the editor text unchanged used to make the cell `#ERROR!`. Whether a name is
 readable is asked of the engine itself (`validateFormula('=<name>!A1')`) and cached per name in
 `#unquotedSheetNames`, cleared on enable. A formula with no `!` returns at once, so the hot read
-path pays one `indexOf`. Pinned by `__tests__/sheetNameQuoting.unit.js`.
+path pays one `includes('!')`. Pinned by `__tests__/sheetNameQuoting.unit.js`.
+
+Two tokenizer rules sit under all of this. **An error literal is never a sheet name**: the scanner
+skips `#` up to its `!` or `?`, because `#DIV/0!` reads as the name `0` in front of a `!`, and quoting
+it wrote `#DIV/'0'!` into every formula with that literal (into the host data too, after a row insert);
+a sheet named `REF` or `Value` would also have had its rename rewrite `#REF!` and `#VALUE!`. **The
+engine's own answer counts only for a name made of name characters** (`isUnquotedSheetName()`):
+`validateFormula('=Sales-EU!A1')` is `true` because the engine parses it as a subtraction, so a name
+with an operator, a space or a quote is always quoted. The bar's `#sheetNameText()` applies that rule;
+the read and write paths here only ever see tokenized names, which hold name characters only.
+
+## `sheetName`, `switchSheet()` and the engine instance
+
+**The setting counts as followed only once the binding matches it** (`#followSheetNameSettingWhenBound()`):
+a `sheetName` the engine did not hold yet stays a request, so the same setting sent again after the host
+added the sheet binds it (recorded at once, the retry did nothing and logged nothing). **The public
+`switchSheet()` drops the followed setting**, so the next settings update that reaches the plugin binds
+the setting's sheet again, as it did before `#requestedSheetName()` existed. The plugin's own reloads go
+through the private `#loadSheet()` and keep it, which is what keeps the rename case (an engine rename the
+binding followed, with the setting still on the old name) from asking for the old name. **An engine class
+setting over a user instance is an engine change** (`#engineBuiltFromClass`): kept on the instance, a sheet
+that passes the class wrote itself into another sheet's engine. Pinned by `__tests__/sheetNameSetting.unit.js`
+and the engine binding cases of `../sheetsBar/__tests__/formulaSheets.unit.js`.
+
+**A sheet the engine refuses still gets the sync endpoint** (`#clearRejectedSheet()` calls
+`setupSyncEndpoint()`): left on the sheet bound before, a sort of the refused sheet reordered that other
+sheet's formula cells.
 
 ## The engine order of a sheet the grid leaves and loads again (`runWithEngineOrderHeld()`)
 
@@ -618,7 +644,19 @@ reached through the typed `getPlugin('formulas')`:
   once (unless the plugin was turned off in between). With `adopt` given, a load inside the call that
   binds that engine sheet takes it over (`#adoptEngineSheet()`): it writes nothing, sets up the sync
   endpoint and adopts the stored order, and the meta-phase resync of that call is skipped, since the
-  engine sheet already holds what the `cell` entries decided.
+  engine sheet already holds what the `cell` entries decided. Only the first such load takes it over
+  (`adopted`): a listener that loads other data in the same call gets an ordinary write.
+
+**A move inside the hold is an order change like a sort.** `calculateAndSyncMoves()` sends nothing and a
+`'move'` sequence change leaves the stored order alone; the release sends the order the grid ends on.
+A sheet with an array `manualRowMove` re-applies its moves in `afterLoadData`, after this plugin adopted
+the engine order, and the move sent then was computed against the held order and asked the engine for a
+row number past its sheet (`Invalid arguments …`, rows scrambled). `#getHeldEngineSequence()` reads the
+stored order, then the order an empty sheet was filled in (`#fillSequence`), then the ascending tail,
+the order `#getEngineElements()` reads. **Rows or columns inserted or removed inside the hold are not
+supported**: the engine changes positionally through the held order, which the stored sequence then no
+longer describes. Nothing in the sheets bar's switch does it. Pinned by
+`__tests__/indexSyncer/axisSyncerHeldOrder.unit.js`.
 
 The caller decides when the data is still the one the engine holds; the sheets bar compares the array
 object and its length. `isHfOrderPhysical()` answers for the engine's order while held, so

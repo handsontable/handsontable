@@ -56,6 +56,17 @@ describe('Formulas text of a reference to a sheet the engine reads only in quote
     expect(data[0][0]).toBe('=\'2026\'!A1');
   });
 
+  it('keeps the error literals of a formula working through the text it hands out and a row insert', () => {
+    const data = [[1, '=IF(A1>5,#DIV/0!,7)', '=IFERROR(1/0,#N/A)']];
+
+    buildGrid(data);
+    hot.alter('insert_row_above', 0);
+
+    expect(hot.getDataAtRow(1)).toEqual([1, 7, '#N/A']);
+    expect(hot.getSourceDataAtCell(1, 1)).toBe('=IF(A2>5,#DIV/0!,7)');
+    expect(data[1][1]).toBe('=IF(A2>5,#DIV/0!,7)');
+  });
+
   describe('a name the engine cannot read unquoted in the data', () => {
     /**
      * Builds a grid on a sheet that reads the engine sheet `Лист2`.

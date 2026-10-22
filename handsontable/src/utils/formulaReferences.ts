@@ -12,13 +12,29 @@ export interface SheetReference {
   quoted: boolean;
 }
 
-const NAME_CHARACTER = /[\p{L}\p{N}_]/u;
+const NAME_CHARACTER = /[\p{L}\p{M}\p{N}_]/u;
+const ERROR_LITERAL_CHARACTER = /[\p{L}\p{M}\p{N}_./]/u;
 
 /**
  * Tells whether a character can be part of a sheet name written without quotes.
  */
 function isNameCharacter(character: string | undefined): boolean {
   return character !== undefined && NAME_CHARACTER.test(character);
+}
+
+/**
+ * Returns the index right after an error literal that starts at `start` (`#DIV/0!`, `#N/A`, `#NAME?`, or a
+ * translated one): the `#`, the word, and its closing `!` or `?` when there is one. Read as a name, the word
+ * in front of the `!` looked like a sheet reference, and quoting it turned `#DIV/0!` into `#DIV/'0'!`.
+ */
+function skipErrorLiteral(formula: string, start: number): number {
+  let index = start + 1;
+
+  while (index < formula.length && ERROR_LITERAL_CHARACTER.test(formula[index])) {
+    index += 1;
+  }
+
+  return formula[index] === '!' || formula[index] === '?' ? index + 1 : index;
 }
 
 /**
@@ -70,7 +86,7 @@ function readQuotedName(formula: string, start: number): { name: string, end: nu
 
 /**
  * Rewrites the sheet names a formula references. `rewrite` gets each sheet name that stands in front of a
- * `!` outside a string literal, and returns the text to put in its place (quotes included), or `null` to
+ * `!` outside a string literal and outside an error literal, and returns the text to put in its place (quotes included), or `null` to
  * keep it. Everything else is kept as written, so a formula with nothing to rewrite comes back as the same
  * string.
  *
@@ -90,6 +106,9 @@ export function rewriteSheetReferences(formula: string, rewrite: (reference: She
 
     if (character === '"') {
       end = skipStringLiteral(formula, index);
+
+    } else if (character === '#') {
+      end = skipErrorLiteral(formula, index);
 
     } else if (character === '\'') {
       const quoted = readQuotedName(formula, index);
@@ -118,6 +137,19 @@ export function rewriteSheetReferences(formula: string, rewrite: (reference: She
   }
 
   return changed ? result : formula;
+}
+
+/**
+ * Tells whether a sheet name is made only of the characters a name written without quotes can hold, so a
+ * formula reads it as one name. A name such as `Sales-EU` is not: `=Sales-EU!A1` is the subtraction of
+ * `Sales` and `EU!A1`, which an engine parses without complaint, so asking the engine alone whether it reads
+ * the name unquoted answers yes for the wrong reason.
+ *
+ * @param {string} name The sheet name.
+ * @returns {boolean}
+ */
+export function isUnquotedSheetName(name: string): boolean {
+  return name.length > 0 && Array.from(name).every(character => isNameCharacter(character));
 }
 
 /**

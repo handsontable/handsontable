@@ -1,4 +1,6 @@
-import { formatSheetName, quoteUnreadableSheetNames, rewriteSheetReferences } from '../formulaReferences';
+import {
+  formatSheetName, isUnquotedSheetName, quoteUnreadableSheetNames, rewriteSheetReferences,
+} from '../formulaReferences';
 
 describe('quoteUnreadableSheetNames', () => {
   const startsWithDigit = name => !/^\d/.test(name);
@@ -6,6 +8,20 @@ describe('quoteUnreadableSheetNames', () => {
   it('quotes an unquoted name the engine cannot read and leaves the rest as written', () => {
     expect(quoteUnreadableSheetNames('=2026!A1+Costs!B2+\'Q1 Data\'!C3', startsWithDigit))
       .toBe('=\'2026\'!A1+Costs!B2+\'Q1 Data\'!C3');
+  });
+
+  it('leaves error literals alone, including the ones with a digit before the `!`', () => {
+    const canReadUnquoted = jest.fn(() => false);
+    const formula = '=IFERROR(1/0,#DIV/0!)&IF(A1,#N/A,#NAME?)&#REF!&#VALUE!&#NULL!&#NUM!';
+
+    expect(quoteUnreadableSheetNames(formula, canReadUnquoted)).toBe(formula);
+    expect(canReadUnquoted).not.toHaveBeenCalled();
+  });
+
+  it('reads a decomposed accented name as one name', () => {
+    const decomposed = 'Café';
+
+    expect(quoteUnreadableSheetNames(`=${decomposed}!A1`, () => false)).toBe(`='${decomposed}'!A1`);
   });
 
   it('returns a formula with no sheet reference without asking about any name', () => {
@@ -36,6 +52,13 @@ describe('rewriteSheetReferences', () => {
     expect(seen).toEqual([{ name: 'O\'Brien', quoted: true }]);
   });
 
+  it('leaves an error literal alone when a sheet carries the same word', () => {
+    const formula = '=IFERROR(A1,#VALUE!)+#REF!+Value!A1+REF!B2';
+
+    expect(rewriteSheetReferences(formula, reference => (/^(value|ref)$/i.test(reference.name) ? 'Costs' : null)))
+      .toBe('=IFERROR(A1,#VALUE!)+#REF!+Costs!A1+Costs!B2');
+  });
+
   it('leaves a name inside a string literal alone', () => {
     expect(rewriteSheetReferences('="Prices!A1"&Prices!A1', rename('Prices', 'Costs'))).toBe('="Prices!A1"&Costs!A1');
   });
@@ -56,6 +79,18 @@ describe('rewriteSheetReferences', () => {
 
   it('reads letters outside the Latin script as part of a name', () => {
     expect(rewriteSheetReferences('=Лист2!A1', rename('Лист2', '\'Лист3\''))).toBe('=\'Лист3\'!A1');
+  });
+});
+
+describe('isUnquotedSheetName', () => {
+  it('accepts a name a formula reads as one name, in any script', () => {
+    expect(['Prices', 'Data_2', '2026', 'Лист2', 'Café'].map(isUnquotedSheetName))
+      .toEqual([true, true, true, true, true]);
+  });
+
+  it('rejects a name with an operator, a space, a quote or nothing in it', () => {
+    expect(['Sales-EU', 'a+b', 'a&b', 'Q1 Data', 'O\'Brien', ''].map(isUnquotedSheetName))
+      .toEqual([false, false, false, false, false, false]);
   });
 });
 

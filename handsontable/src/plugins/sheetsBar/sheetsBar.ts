@@ -31,9 +31,15 @@ import { withoutUndoEntry } from '../../utils/viewState/withoutUndoEntry';
 import * as C from '../../i18n/constants';
 import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
-import { getProperty, isObject, isPlainObject } from '../../helpers/object';
-import { localeLowerCase } from '../../helpers/string';
-import { formatSheetName, quoteUnreadableSheetNames, rewriteSheetReferences } from '../../utils/formulaReferences';
+import { isPlainObject } from '../../helpers/object';
+import {
+  formatSheetName, isUnquotedSheetName, quoteUnreadableSheetNames, rewriteSheetReferences,
+} from '../../utils/formulaReferences';
+import {
+  collectFormulaTextChanges, getEngineCellKeys, getEngineColumnLayout, isChangeTargetFrozen, listSheetRows, readCell,
+  toEngineContent, writeFormulaTextChanges,
+} from './formulaSheetData';
+import type { FormulaTextChange, SheetLayoutSettings } from './formulaSheetData';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { syncIcon } from '../../themes/engine/icons';
@@ -124,134 +130,6 @@ interface TabMotion {
  */
 function trackedCellKey(row: number, col: number): string {
   return `${row}:${col}`;
-}
-
-/**
- * Returns a sheet's data as the rows of cells a formula engine takes. An array row is passed as it is.
- * An object row becomes one cell per column, read through the column's `data` path when the sheet
- * declares `columns`, or per own key in order otherwise, the way a grid without `columns` lays it out. A
- * cell that holds an object or a function gets `null`, as the engine accepts only plain values: the
- * Formulas plugin feeds such a sheet the same way when it is shown, through its column configuration.
- * HyperFormula refuses anything but an array of arrays, so passing object rows threw at construction and
- * from `addSheet()`.
- *
- * @param {Array} data The sheet's data.
- * @param {unknown} columns The sheet's `columns` setting.
- * @returns {Array[]}
- */
-function toEngineContent(data: unknown[], columns: unknown): unknown[] {
-  if (data.every(row => Array.isArray(row))) {
-    return data;
-  }
-
-  const paths = Array.isArray(columns)
-    ? columns.map(column => (isObject(column) ? (column as { data?: unknown }).data : undefined))
-    : null;
-
-  return data.map((row): unknown[] => {
-    if (Array.isArray(row)) {
-      return row as unknown[];
-    }
-
-    if (!isObject(row)) {
-      return [];
-    }
-
-    const record = row as Record<string, unknown>;
-
-    return (paths ?? Object.keys(record)).map((path) => {
-      const value = typeof path === 'string' ? getProperty(record, path) : undefined;
-
-      return value === undefined || isObject(value) || typeof value === 'function' ? null : value;
-    });
-  });
-}
-
-/**
- * One formula cell of a sheet's data that gets new text: the row's index in the data, the column's index
- * (array rows) or key (object rows), and the text.
- */
-interface FormulaTextChange {
-  row: number;
-  key: number | string;
-  text: string;
-}
-
-/**
- * Collects the formula cells of a sheet's data whose text a rewrite changes. Nothing is written, so a
- * caller can apply every change at once, and only after it knows all of them.
- *
- * @param {Array} data The sheet's data, array rows or object rows.
- * @param {Function} rewrite Maps a formula's text to its new text, or to the same string.
- * @returns {object[]}
- */
-function collectFormulaTextChanges(data: unknown[], rewrite: (formula: string) => string): FormulaTextChange[] {
-  const changes: FormulaTextChange[] = [];
-
-  data.forEach((row, rowIndex) => {
-    if (typeof row !== 'object' || row === null) {
-      return;
-    }
-
-    const cells = row as Record<string | number, unknown>;
-    const keys: Array<number | string> = Array.isArray(row) ? row.map((_, index) => index) : Object.keys(cells);
-
-    keys.forEach((key) => {
-      const cell = cells[key];
-
-      if (typeof cell === 'string' && cell.startsWith('=')) {
-        const text = rewrite(cell);
-
-        if (text !== cell) {
-          changes.push({ row: rowIndex, key, text });
-        }
-      }
-    });
-  });
-
-  return changes;
-}
-
-/**
- * Writes formula text changes into a sheet's data that is not in front of the grid. A row the host froze
- * (an Immer store, `Object.freeze`) is replaced by a copy, and so is the array when it is frozen too, so
- * no write throws halfway through. Returns the array that holds the changes: the same one, or the copy.
- *
- * @param {Array} data The sheet's data.
- * @param {object[]} changes The changes `collectFormulaTextChanges()` found.
- * @returns {Array}
- */
-function writeFormulaTextChanges(data: unknown[], changes: FormulaTextChange[]): unknown[] {
-  const copies = new Map<number, Record<string | number, unknown>>();
-
-  changes.forEach(({ row, key, text }) => {
-    const original = data[row] as Record<string | number, unknown>;
-
-    if (!Object.isFrozen(original)) {
-      return;
-    }
-
-    const fresh = Array.isArray(original)
-      ? (original as unknown[]).slice() as unknown as Record<number, unknown>
-      : { ...original };
-    const copy: Record<string | number, unknown> = copies.get(row) ?? fresh;
-
-    copy[key] = text;
-    copies.set(row, copy);
-  });
-
-  const target = copies.size > 0 && Object.isFrozen(data) ? data.slice() : data;
-
-  copies.forEach((copy, row) => {
-    target[row] = copy;
-  });
-  changes.forEach(({ row, key, text }) => {
-    if (!copies.has(row)) {
-      (target[row] as Record<string | number, unknown>)[key] = text;
-    }
-  });
-
-  return target;
 }
 
 /**
@@ -354,6 +232,7 @@ interface SheetFormulas {
     getSheetId?: (name: string) => number | undefined;
     getSheetName?: (sheetId: number) => string | undefined;
     setSheetContent?: (sheetId: number, content: unknown[]) => void;
+    isItPossibleToReplaceSheetContent?: (sheetId: number, content: unknown[]) => boolean;
     getSheetSerialized?: (sheetId: number) => unknown[][];
     validateFormula?: (formula: string) => boolean;
     listNamedExpressions?: (scope?: number) => string[];
@@ -361,6 +240,7 @@ interface SheetFormulas {
     getNamedExpressionFormula?: (name: string, scope?: number) => string | undefined;
     getNamedExpressionValue?: (name: string, scope?: number) => unknown;
     addNamedExpression?: (name: string, expression: unknown, scope?: number, options?: unknown) => void;
+    getCellFormula?: (address: { sheet: number, row: number, col: number }) => string | undefined;
     on?: (event: string, listener: (changes: unknown[]) => void) => void;
     off?: (event: string, listener: (changes: unknown[]) => void) => void;
   };
@@ -394,10 +274,12 @@ function isOtherEngineSheet(engine: NonNullable<SheetFormulas['engine']>, oldNam
 }
 
 /**
- * Whether two sheet names name one sheet to the engine, which compares them without regard to case.
+ * Whether two sheet names name one sheet to the engine, which compares them without regard to case
+ * through a plain `toLowerCase()`. A locale-aware lower case follows the host: on a Turkish host `ITEMS`
+ * becomes `ıtems`, so a rename of the engine sheet `items` left `=ITEMS!A1` behind in the host's data.
  */
 function isSameSheetName(first: string, second: string): boolean {
-  return localeLowerCase(first) === localeLowerCase(second);
+  return first.toLowerCase() === second.toLowerCase();
 }
 
 /**
@@ -996,6 +878,7 @@ export class SheetsBar extends BasePlugin {
       this.addHook(hookName as 'afterUndo', this.#onAfterStructureChange, 1);
     });
     this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('afterUpdateData', this.#onAfterUpdateData);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, -1);
@@ -1413,7 +1296,10 @@ export class SheetsBar extends BasePlugin {
    * Returns `false` when the id is unknown, the name is blank or unchanged, another sheet
    * already uses the name (in the bar or in the sheet's formula engine), a
    * `beforeSheetTabRename` listener cancels the rename, or it is called from a listener of a
-   * workbook change's before-hook.
+   * workbook change's before-hook. A name that changes only the case of the letters is a rename.
+   *
+   * With the `Formulas` plugin, the references to the sheet are rewritten in the data of every sheet
+   * that shares its formula engine, and the rename is one undo step.
    *
    * @param {number} id The sheet's id.
    * @param {string} name The new name. Trimmed, and cut to the name length limit.
@@ -3283,9 +3169,16 @@ export class SheetsBar extends BasePlugin {
     // would keep feeding stale values into the cross-sheet formulas until each sheet is
     // visited once.
     if (feed) {
-      engine.setSheetContent!(sheetId, this.#readableEngineContent(
-        engine, toEngineContent(sheet.data, sheet.settings?.columns),
-      ));
+      const content = this.#readableEngineContent(engine, toEngineContent(sheet.data, this.#layoutSettingsOf(sheet)));
+
+      if (engine.isItPossibleToReplaceSheetContent?.(sheetId, content) === false) {
+        engine.setSheetContent!(sheetId, [[]]);
+        warn(`The data of the sheet "${sheet.name}" could not be passed to the formula engine, so its ` +
+          'formulas were cleared. It most likely exceeds the engine\'s `maxRows` or `maxColumns` limit.');
+
+      } else {
+        engine.setSheetContent!(sheetId, content);
+      }
     }
   }
 
@@ -3495,16 +3388,18 @@ export class SheetsBar extends BasePlugin {
    * Returns a sheet name as a formula has to reference it: in quotes when the engine cannot read it
    * without them. HyperFormula writes a name that starts with a digit (`2026`, `1Q`) without quotes,
    * and then cannot read its own text back, so the text the bar writes is checked with the engine
-   * itself rather than with a copy of its grammar.
+   * itself rather than with a copy of its grammar. The engine is asked only about a name a formula reads
+   * as one name (`isUnquotedSheetName()`): it parses `=Sales-EU!A1` as a subtraction, so it would answer
+   * yes for a name that needs quotes.
    *
    * @param {object} engine The engine.
    * @param {string} name The sheet name.
    * @returns {string}
    */
   #sheetNameText(engine: NonNullable<SheetFormulas['engine']>, name: string): string {
-    const unquoted = formatSheetName(name, false);
+    const readable = isUnquotedSheetName(name) && engine.validateFormula?.(`=${name}!A1`) !== false;
 
-    return formatSheetName(name, engine.validateFormula?.(`=${unquoted}!A1`) === false);
+    return formatSheetName(name, !readable);
   }
 
   /**
@@ -3552,21 +3447,28 @@ export class SheetsBar extends BasePlugin {
    * @param {string} source The operation source.
    */
   #writeActiveFormulaText(sheet: Sheet, changes: FormulaTextChange[], source: string) {
-    const physicalOrder = this.hot.getPlugin('formulas')?.exportEngineOrder() === null;
+    const formulas = this.hot.getPlugin('formulas');
+    const physicalOrder = formulas?.exportEngineOrder() === null;
+    const physicalRowOf = new Map<string, number>();
     const edits: Array<[number, number, string]> = [];
-    let wroteDirectly = false;
+    const direct: FormulaTextChange[] = [];
 
-    changes.forEach(({ row, key, text }) => {
-      const visualRow = this.hot.toVisualRow(row);
+    listSheetRows(sheet.data, !!this.#layoutSettingsOf(sheet).nestedRows).forEach(({ path }, physicalRow) => {
+      physicalRowOf.set(path.join('/'), physicalRow);
+    });
+
+    changes.forEach((change) => {
+      const { key, text } = change;
+      const physicalRow = physicalRowOf.get(change.path.join('/'));
+      const visualRow = physicalRow === undefined ? null : this.hot.toVisualRow(physicalRow);
       const visualColumn = typeof key === 'number' ? this.hot.toVisualColumn(key) : this.hot.propToCol(key);
       const addressable = physicalOrder && visualRow !== null && typeof visualColumn === 'number'
-        && visualColumn >= 0 && this.hot.colToProp(visualColumn) === key;
+        && visualColumn >= 0 && this.hot.colToProp(visualColumn) === key && !isChangeTargetFrozen(sheet.data, change);
 
       if (addressable) {
         edits.push([visualRow, visualColumn, text]);
       } else {
-        (sheet.data[row] as Record<string | number, unknown>)[key] = text;
-        wroteDirectly = true;
+        direct.push(change);
       }
     });
 
@@ -3574,9 +3476,27 @@ export class SheetsBar extends BasePlugin {
       this.#withoutUndoEntry(() => this.hot.setDataAtCell(edits, `${source}.rename`));
     }
 
-    if (wroteDirectly) {
-      this.hot.render();
+    if (direct.length === 0) {
+      return;
     }
+
+    const data = writeFormulaTextChanges(sheet.data, direct);
+
+    if (data === sheet.data) {
+      this.hot.render();
+
+      return;
+    }
+
+    const load = () => this.#withoutUndoEntry(() => this.hot.updateData(data as unknown[][], `${source}.rename`));
+
+    if (formulas?.enabled) {
+      formulas.runWithEngineOrderHeld(load, formulas.exportEngineOrder());
+    } else {
+      load();
+    }
+
+    sheet.data = data;
   }
 
   /**
@@ -3603,10 +3523,11 @@ export class SheetsBar extends BasePlugin {
   /**
    * Runs an operation without recording it on the undo stack. Two callers need it. The rename
    * rewrites travel through `setDataAtCell` so `afterChange` fires and the grid repaints, but
-   * the engine rename they follow is not an undoable action — an undo restoring the old
-   * reference strings against the already-renamed engine sheet would resolve them to `#REF!`.
-   * And a sheet switch re-applies the arriving sheet's sort, filters, and merges through the
-   * public APIs, which the user did not just perform.
+   * they are part of the rename, which `#recordRenameStep()` records as one step of its own:
+   * recorded on their own, an undo would restore the old reference strings against the
+   * already-renamed engine sheet and resolve them to `#REF!`. And a sheet switch re-applies the
+   * arriving sheet's sort, filters, and merges through the public APIs, which the user did not
+   * just perform.
    *
    * @param {Function} write The operation to run.
    */
@@ -3810,16 +3731,35 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Copies the engine's formula text into the data of every sheet bound to `engine` that is not in front
-   * of the grid, cell by cell. Only a sheet the engine holds in physical order is written: a sheet left
-   * sorted or with moved rows or columns has its rows in another order there, and its formulas exist only
-   * in the engine until the user returns, when the bar takes the engine sheet over (`#captureEngineOrder`).
-   * A reference to a sheet name the engine cannot read back without quotes gets them (`#sheetNameText`).
+   * of the grid. Only a sheet the engine holds in physical order is written: a sheet left sorted or with
+   * moved rows or columns has its rows in another order there, and its formulas exist only in the engine
+   * until the user returns, when the bar takes the engine sheet over (`#captureEngineOrder`).
+   *
+   * The engine's cells are matched to the data through the layout the sheet is fed with
+   * (`getEngineColumnLayout()`), so a sheet whose `columns` leaves data columns out, a sheet of object rows
+   * and a NestedRows tree are written at the cells their text came from; a layout the bar cannot know ahead
+   * of time (a `columns` function, a `dataSchema`) is skipped. Only the formula cells whose text names the
+   * active sheet are read, one by one: a structural change rewrites nothing else, and serializing every
+   * other sheet made each row insert, removal, move and undo pay for the whole workbook. A reference to a
+   * sheet name the engine cannot read back without quotes gets them (`#sheetNameText`).
    *
    * @param {object} engine The engine.
    */
   #syncInactiveSheetsFromEngine(engine: NonNullable<SheetFormulas['engine']>) {
     const active = this.#activeSheetRecord();
+    const activeName = this.hot.getPlugin('formulas')?.sheetName;
+
+    if (!activeName || !engine.getCellFormula) {
+      return;
+    }
+
     const quoteIfNeeded = this.#formulaQuoterFor(engine);
+    const needles = [activeName, formatSheetName(activeName, true)].map(name => name.toLowerCase());
+    const namesActiveSheet = (formula: string) => {
+      const text = formula.toLowerCase();
+
+      return needles.some(needle => text.includes(needle));
+    };
 
     this.#sheetRecords().forEach((sheet) => {
       const formulas = formulasSettingOf(sheet);
@@ -3830,23 +3770,28 @@ export class SheetsBar extends BasePlugin {
         return;
       }
 
-      const serialized = engine.getSheetSerialized!(sheetId);
+      const settings = this.#layoutSettingsOf(sheet);
+      const layout = getEngineColumnLayout(sheet.data, settings);
+
+      if (layout === null) {
+        return;
+      }
+
       const changes: FormulaTextChange[] = [];
 
-      sheet.data.forEach((row, rowIndex) => {
-        if (!Array.isArray(row)) {
-          return;
-        }
+      listSheetRows(sheet.data, !!settings.nestedRows).forEach(({ row, path }, engineRow) => {
+        getEngineCellKeys(row, layout).forEach((key, engineColumn) => {
+          const cell = typeof key === 'number' || typeof key === 'string' ? readCell(row, key) : undefined;
 
-        row.forEach((cell, columnIndex) => {
-          const fromEngine = serialized[rowIndex]?.[columnIndex];
+          if (typeof cell !== 'string' || !cell.startsWith('=') || !namesActiveSheet(cell)) {
+            return;
+          }
 
-          if (typeof cell === 'string' && cell.startsWith('=') && typeof fromEngine === 'string') {
-            const text = quoteIfNeeded(fromEngine);
+          const fromEngine = engine.getCellFormula!({ sheet: sheetId, row: engineRow, col: engineColumn });
+          const text = typeof fromEngine === 'string' ? quoteIfNeeded(fromEngine) : cell;
 
-            if (text !== cell) {
-              changes.push({ row: rowIndex, key: columnIndex, text });
-            }
+          if (text !== cell) {
+            changes.push({ path, key: key as number | string, text });
           }
         });
       });
@@ -3855,6 +3800,32 @@ export class SheetsBar extends BasePlugin {
         this.#replaceSheetData(sheet, writeFormulaTextChanges(sheet.data, changes));
       }
     });
+  }
+
+  /**
+   * Returns the settings that decide where a sheet's cells sit in its engine sheet, as the sheet is shown
+   * with them: its own value of each key, else the grid-level value the switch restores for it.
+   *
+   * @param {object} sheet The sheet.
+   * @returns {object}
+   */
+  #layoutSettingsOf(sheet: Sheet): SheetLayoutSettings {
+    const own = (sheet.settings ?? {}) as Record<string, unknown>;
+    const gridSettings = this.hot.getSettings() as unknown as Record<string, unknown>;
+    const valueOf = (key: string) => {
+      if (Object.prototype.hasOwnProperty.call(own, key)) {
+        return own[key];
+      }
+
+      return this.#settingsBaseline.has(key) ? this.#settingsBaseline.get(key) : gridSettings[key];
+    };
+
+    return {
+      columns: valueOf('columns'),
+      maxCols: valueOf('maxCols'),
+      dataSchema: valueOf('dataSchema'),
+      nestedRows: valueOf('nestedRows'),
+    };
   }
 
   /**
@@ -3870,6 +3841,18 @@ export class SheetsBar extends BasePlugin {
 
     this.#trackedCellMeta = new Map();
     this.#syncActiveSheetData();
+  };
+
+  /**
+   * Points the active sheet's record at the array the host replaced the grid's data with through
+   * `updateData()`, which is how the React, Vue and Angular wrappers hand a grid new data. Left on the old
+   * array, a rename rewrote the formulas of the array the grid no longer shows and wrote that text over
+   * the cells of the live one.
+   */
+  #onAfterUpdateData = () => {
+    if (!this.#isSwitching && !this.#isInitializing) {
+      this.#syncActiveSheetData();
+    }
   };
 
   /**

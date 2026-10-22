@@ -27,6 +27,20 @@ test.describe('SheetsBar formulas across a sorted or moved sheet', { tag: BUNDLE
     });
   });
 
+  test.describe('remove and add', () => {
+    test('repaints a formula that reads a sheet removed and added again', async() => {
+      await grid.goto('sortedReport');
+      await expect(grid.cell(0, 0)).toHaveText('99');
+
+      expect(await grid.removeSheet('Prices')).toBe(true);
+      await expect(grid.cell(0, 0)).toHaveText('#REF!');
+
+      await grid.addSheet('Prices', [[7]]);
+      await expect(grid.cell(0, 0)).toHaveText('7');
+      expect(await grid.consoleMessages()).toEqual([]);
+    });
+  });
+
   test.describe('structural changes', () => {
     test('moves a reference on another sheet when a row is inserted above the cell it reads', async() => {
       await grid.goto('summary');

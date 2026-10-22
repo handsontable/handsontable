@@ -87,6 +87,17 @@ describe('SheetsBar formula sheets', () => {
       expect(hot.getDataAtCell(0, 0)).toBe(99);
     });
 
+    it('quotes a new name with an operator in it', () => {
+      const engine = buildEngine();
+      const report = [['=Prices!A1', '=SUM(Prices!A1:A2)']];
+
+      hot = build([boundSheet(engine, 'Report', report), boundSheet(engine, 'Prices', [[99], [1]])]);
+      sheetsBar().renameSheet(idOf('Prices'), 'Sales-EU');
+
+      expect(report[0]).toEqual(['=\'Sales-EU\'!A1', '=SUM(\'Sales-EU\'!A1:A2)']);
+      expect(hot.getDataAtRow(0)).toEqual([99, 100]);
+    });
+
     it('keeps a reference to a digit-named sheet working when its cell is committed unchanged', () => {
       const engine = buildEngine();
       const report = [['=Prices!A1']];
@@ -162,6 +173,20 @@ describe('SheetsBar formula sheets', () => {
       expect(report[0][0]).toBe('=Prices!A1');
     });
 
+    it('rewrites the array the host replaced the active sheet\'s data with through updateData', () => {
+      const engine = buildEngine();
+      const first = [['=Prices!A1', 'x']];
+      const live = [['plain', '=Prices!A1*2'], ['two', 'y']];
+
+      hot = build([boundSheet(engine, 'Report', first), boundSheet(engine, 'Prices', [[99]])]);
+      hot.updateData(live);
+      sheetsBar().renameSheet(idOf('Prices'), 'Costs');
+
+      expect(live).toEqual([['plain', '=Costs!A1*2'], ['two', 'y']]);
+      expect(first).toEqual([['=Prices!A1', 'x']]);
+      expect(hot.getData()).toEqual([['plain', 198], ['two', 'y']]);
+    });
+
     it('rewrites the array the host loaded into the active sheet', () => {
       const engine = buildEngine();
       const loaded = [['=Prices!A1*2'], ['=Prices!A1+1']];
@@ -206,6 +231,199 @@ describe('SheetsBar formula sheets', () => {
 
       expect(hot.getSettings().data[0][1]).toBe('=\'A (2)\'!A1*10');
       expect(hot.getDataAtRow(0)).toEqual([7, 70, 70]);
+    });
+  });
+
+  describe('sheet data layout', () => {
+    it('keeps the formulas of a sheet whose columns leave a data column out when another sheet gets a row', () => {
+      const engine = buildEngine();
+      const data = [['a', '=Other!A1', '=Other!A2']];
+
+      hot = build([
+        boundSheet(engine, 'Data', data, { columns: [{ data: 0 }, { data: 2 }] }),
+        boundSheet(engine, 'Other', [[1], [2]]),
+      ]);
+      sheetsBar().setActiveSheet('Other');
+      hot.alter('insert_row_above', 0);
+
+      expect(data).toEqual([['a', '=Other!A1', '=Other!A3']]);
+    });
+
+    it('reads object rows of a sheet not shown yet by the first row\'s columns, nested ones included', () => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Report', [['=Data!A2', '=Data!D1', '=Data!B1']]),
+        boundSheet(engine, 'Data', [
+          { a: 1, address: { city: 'Oslo', zip: '0150' }, total: 5 },
+          { total: 6, address: { zip: '0151', city: 'Bergen' }, a: 4 },
+        ]),
+      ]);
+
+      expect(hot.getDataAtRow(0)).toEqual([4, 5, 'Oslo']);
+    });
+
+    it('renames a reference at a nested property of an object row', () => {
+      const engine = buildEngine();
+      const rows = [{ name: 'x', totals: { sum: '=Prices!A1' } }];
+
+      hot = build([
+        boundSheet(engine, 'Prices', [[99]]),
+        boundSheet(engine, 'Report', rows, { columns: [{ data: 'name' }, { data: 'totals.sum' }] }),
+      ]);
+      sheetsBar().renameSheet(idOf('Prices'), 'Costs');
+
+      expect(rows[0].totals.sum).toBe('=Costs!A1');
+    });
+
+    it('renames the references of a NestedRows tree at the rows they were written in', () => {
+      const engine = buildEngine();
+      const tree = [
+        { label: 'p1', value: '=Prices!A1', __children: [{ label: 'c1', value: 'plain' }] },
+        { label: 'p2', value: 'plain', __children: [{ label: 'c2', value: '=Prices!A1*2' }] },
+      ];
+
+      hot = build([
+        boundSheet(engine, 'Report', tree, { nestedRows: true, columns: [{ data: 'label' }, { data: 'value' }] }),
+        boundSheet(engine, 'Prices', [[5]]),
+      ]);
+      sheetsBar().renameSheet(idOf('Prices'), 'Costs');
+
+      expect(tree[0].value).toBe('=Costs!A1');
+      expect(tree[0].__children[0].value).toBe('plain');
+      expect(tree[1].value).toBe('plain');
+      expect(tree[1].__children[0].value).toBe('=Costs!A1*2');
+      expect(hot.getDataAtCol(1)).toEqual([5, 'plain', 'plain', 10]);
+    });
+
+    it('renames the references of an active sheet whose data the host froze, without throwing', () => {
+      const engine = buildEngine();
+      const frozen = Object.freeze([Object.freeze(['=Prices!A1', 'x'])]);
+
+      hot = build([boundSheet(engine, 'Report', frozen), boundSheet(engine, 'Prices', [[99]])]);
+
+      expect(() => sheetsBar().renameSheet(idOf('Prices'), 'Costs')).not.toThrow();
+      expect(frozen[0][0]).toBe('=Prices!A1');
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=Costs!A1');
+      expect(hot.getDataAtCell(0, 0)).toBe(99);
+    });
+
+    it('reads no other sheet whole when the active sheet gets a row', () => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'Data', [[1], [2]]),
+        boundSheet(engine, 'Plain', [[1, 2], [3, 4]]),
+        boundSheet(engine, 'Refs', [['=Data!A2']]),
+      ]);
+
+      const serialize = jest.spyOn(engine, 'getSheetSerialized');
+
+      hot.alter('insert_row_above', 0);
+
+      expect(serialize).not.toHaveBeenCalled();
+      expect(sheetsBar().getSheets().length).toBe(3);
+
+      sheetsBar().setActiveSheet('Refs');
+
+      expect(hot.getSourceDataAtCell(0, 0)).toBe('=Data!A3');
+    });
+  });
+
+  describe('engine order', () => {
+    it('brings back a sorted sheet that declares a row move order', () => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'A', [[1, '=A1*10'], [2, '=A2*10'], [3, '=A3*10']], {
+          manualRowMove: [2, 0, 1],
+          columnSorting: true,
+        }),
+        boundSheet(engine, 'B', [[9]]),
+      ]);
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      const sorted = hot.getData();
+
+      sheetsBar().setActiveSheet('B');
+      sheetsBar().setActiveSheet('A');
+
+      expect(sorted).toEqual([[3, 30], [2, 20], [1, 10]]);
+      expect(hot.getData()).toEqual(sorted);
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('engine order, a switch that throws', () => {
+    it('keeps each row of a sorted sheet reading its own cells after a return to it threw', () => {
+      const engine = buildEngine();
+      let fail = false;
+
+      hot = build([
+        boundSheet(engine, 'A', [[1, '=A1*10'], [2, '=A2*10'], [3, '=A3*10']], { columnSorting: true }),
+        boundSheet(engine, 'B', [[9]]),
+      ]);
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      sheetsBar().setActiveSheet('B');
+      hot.addHook('afterLoadData', () => {
+        if (fail) {
+          throw new Error('listener');
+        }
+      });
+      fail = true;
+
+      expect(() => sheetsBar().setActiveSheet('A')).toThrow('listener');
+
+      fail = false;
+      sheetsBar().setActiveSheet('B');
+      sheetsBar().setActiveSheet('A');
+
+      expect(hot.getData().map(([value, formula]) => formula - (value * 10))).toEqual([0, 0, 0]);
+    });
+  });
+
+  describe('engine order, a sheet the engine refuses', () => {
+    it('leaves the sheet it switched away from alone when the arriving sheet is too large for the engine', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', maxColumns: 2 });
+
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      hot = build([
+        boundSheet(engine, 'A', [[1, '=A1*10'], [2, '=A2*10']]),
+        boundSheet(engine, 'B', [[2, 'x', 'y'], [1, 'x', 'y']], { columnSorting: true }),
+      ]);
+      sheetsBar().setActiveSheet('B');
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(engine.getSheetSerialized(engine.getSheetId('A'))).toEqual([[1, '=A1*10'], [2, '=A2*10']]);
+
+      sheetsBar().setActiveSheet('A');
+      sheetsBar().setActiveSheet('B');
+
+      expect(engine.getSheetSerialized(engine.getSheetId('A'))).toEqual([[1, '=A1*10'], [2, '=A2*10']]);
+    });
+  });
+
+  describe('engine order, a load of other data in the switch', () => {
+    it('feeds the engine the data a listener loads after the sheet was taken over', () => {
+      const engine = buildEngine();
+
+      hot = build([
+        boundSheet(engine, 'A', [[1, '=A1*10'], [2, '=A2*10']], { columnSorting: true }),
+        boundSheet(engine, 'B', [[9]]),
+      ]);
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      sheetsBar().setActiveSheet('B');
+      let reloaded = false;
+
+      hot.addHook('afterLoadData', () => {
+        if (!reloaded) {
+          reloaded = true;
+          hot.loadData([[5, '=A1*2'], [6, '=A2*2']]);
+        }
+      });
+      sheetsBar().setActiveSheet('A');
+
+      expect(hot.getData()).toEqual([[6, 12], [5, 10]]);
     });
   });
 
@@ -286,6 +504,7 @@ describe('SheetsBar formula sheets', () => {
 
       expect(engine.getSheetSerialized(engine.getSheetId('B'))).toEqual([[5, '=A!A1+1']]);
       expect(() => sheetsBar().addSheet('C', [{ x: 1 }], { formulas: { engine, sheetName: 'C' } })).not.toThrow();
+      expect(engine.getSheetSerialized(engine.getSheetId('C'))).toEqual([[1]]);
     });
 
     it('feeds the opening sheet to the engine once', () => {
@@ -315,6 +534,22 @@ describe('SheetsBar formula sheets', () => {
 
       expect(errorSpy).not.toHaveBeenCalled();
       expect(hot.getDataAtCell(0, 1)).toBe(2);
+    });
+
+    it('builds an engine again for a sheet that passes the class after one bound to an instance', () => {
+      const shared = buildEngine();
+
+      hot = build([
+        { name: 'A', data: [[1, '=A1*2']], settings: { formulas: { engine: HyperFormula, sheetName: 'A' } } },
+        boundSheet(shared, 'B', [[5, '=A1+1']]),
+      ]);
+      sheetsBar().setActiveSheet('B');
+      sheetsBar().setActiveSheet('A');
+
+      expect(hot.getPlugin('formulas').engine).not.toBe(shared);
+      expect(shared.getSheetNames()).toEqual(['B']);
+      expect(hot.getDataAtCell(0, 1)).toBe(2);
+      expect(errorSpy).not.toHaveBeenCalled();
     });
 
     it('moves to the engine the arriving sheet is bound to', () => {

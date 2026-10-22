@@ -177,9 +177,10 @@ class AxisSyncer {
 
   /**
    * Returns the physical indexes in the order the engine holds them, as long as the grid's sequence: the
-   * elements the stored engine order names first, then every other physical index in ascending order, the
-   * order a sheet fed its content holds them in. Used while the order is held, when the grid's sequence
-   * and the engine's order can differ.
+   * elements the stored engine order names first, then the ones the order an empty sheet was filled in
+   * names (`#fillSequence`), then every other physical index in ascending order, the order a sheet fed its
+   * content holds them in. The same order `#getEngineElements()` reads. Used while the order is held, when
+   * the grid's sequence and the engine's order can differ.
    *
    * @param {number[]} gridSequence The grid's sequence of physical indexes.
    * @returns {number[]}
@@ -188,18 +189,18 @@ class AxisSyncer {
     const length = gridSequence.length;
     const sequence: number[] = [];
     const held = new Set<number>();
-
-    this.#indexesSequence.forEach((physicalIndex) => {
+    const take = (physicalIndex: number) => {
       if (physicalIndex < length && !held.has(physicalIndex)) {
         sequence.push(physicalIndex);
         held.add(physicalIndex);
       }
-    });
+    };
+
+    this.#indexesSequence.forEach(take);
+    this.#fillSequence?.forEach(take);
 
     for (let physicalIndex = 0; sequence.length < length; physicalIndex += 1) {
-      if (!held.has(physicalIndex)) {
-        sequence.push(physicalIndex);
-      }
+      take(physicalIndex);
     }
 
     return sequence;
@@ -434,13 +435,16 @@ class AxisSyncer {
   }
 
   /**
-   * Calculating where to move HF elements and performing already calculated moves.
+   * Calculating where to move HF elements and performing already calculated moves. While the order is held,
+   * a move is an order change like a sort: nothing is sent, and the release sends the order the grid ends
+   * on. A move sent then was computed against the engine's held order, not the grid's, and asked the engine
+   * for a target position it does not have.
    *
    * @param {boolean} movePossible Indicates if it was possible to move HOT indexes to the desired position.
    * @param {boolean} orderChanged Indicates if order of HOT indexes was changed by move.
    */
   calculateAndSyncMoves(movePossible: boolean, orderChanged: boolean) {
-    if (movePossible === false || orderChanged === false) {
+    if (movePossible === false || orderChanged === false || this.#orderHeld) {
       return;
     }
 
@@ -607,6 +611,10 @@ class AxisSyncer {
   getIndexesChangeSyncMethod() {
     return (source: string) => {
       const newSequence = this.#indexMapper.getIndexesSequence();
+
+      if (source === 'move' && this.#orderHeld) {
+        return;
+      }
 
       if (source === 'update' && newSequence.length > 0) {
         // A sheet the host removed from the engine has no order to follow: asking its size throws.
