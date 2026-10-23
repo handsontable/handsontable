@@ -99,7 +99,7 @@
     },
     {
       "id": "date-picker-not-announced",
-      "text": "The date picker (Pikaday) is not announced properly.",
+      "text": "The audited version's date picker (Pikaday) was not announced properly. Since 18.0.0 the built-in date cell type uses the browser's native date input, which the audit did not cover; a custom Pikaday editor keeps the gap.",
       "criteria": ["4.1.2"],
       "reportRef": null
     },
