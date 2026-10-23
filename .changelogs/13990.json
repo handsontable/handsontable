@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `afterAsyncValueCancel` hook of the AsyncValues plugin, which reported the id of a neighboring row, or `null`, for a row that was removed or replaced.",
+  "type": "fixed",
+  "issueOrPR": 13990,
+  "breaking": false,
+  "framework": "none"
+}
