@@ -34,6 +34,10 @@ on:
   # themselves.
   pull_request:
     paths: [ '.github/workflows/screenreader-nightly.yml' ]
+  # TEMPORARY, for the planted-defect run of the pull request that adds this file: a workflow cannot
+  # be dispatched before it exists on the default branch. Reverted in the next commit.
+  push:
+    branches: [ 'feature/DEV-3579_NVDA-screen-reader-lane' ]
 
 # NO permissions block — the parity rule of e2e-nightly.yml and visual-nightly.yml: the called workflow
 # validates its job-level grants against the default token this caller hands down.

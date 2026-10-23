@@ -55,6 +55,12 @@
         navigableHeaders: true,
         licenseKey: 'non-commercial-and-evaluation',
       });
+
+      // PLANTED DEFECT, temporary: the sort state is hidden from assistive technology, so a screen
+      // reader cannot announce a sort. Reverted in the next commit.
+      window.hot.addHook('afterGetColHeader', (column, TH) => {
+        TH.removeAttribute('aria-sort');
+      });
     } catch (error) {
       // The runner turns a constructor throw into a red test before any step runs.
       window.htBuildError = error;
