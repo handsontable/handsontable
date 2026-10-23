@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the AsyncValues plugin canceling the request of a row that still exists after the data array was changed in place (as the Vue wrapper does) and the last row index was dropped.",
+  "type": "fixed",
+  "issueOrPR": 13996,
+  "breaking": false,
+  "framework": "none"
+}
