@@ -15,9 +15,12 @@ interface FontFaceSetLike {
  * no resize observer sees it.
  *
  * The watcher listens for `loading` and then waits for `ready`, not for `loadingdone`: WebKit fires
- * `loading` but never `loadingdone`. `ready` settles once every pending font has loaded, so a burst of
- * fonts (one `loading` per font face) ends in one call. When another load starts before the callback
- * runs, the watcher waits for that load as well.
+ * `loading` but never `loadingdone`. `loading` fires once each time the set goes from loaded to loading,
+ * not once per font face: a face that starts loading while another one is still loading fires nothing.
+ * `ready` settles once every pending font has loaded, so a burst of fonts ends in one call. When another
+ * load starts before the callback runs, the watcher waits for that load as well. A load already in
+ * progress when the watcher starts is waited for the same way, because its `loading` event fired before
+ * the listener was added.
  *
  * Returns a function that removes the listener and drops a pending call. When the document has no `fonts`
  * set (the CSS Font Loading API is missing), nothing is watched and the returned function does nothing.
@@ -37,11 +40,13 @@ export function watchFontLoads(
   }
 
   let isWaiting = false;
-  let isStopped = false;
+  // Dropped on stop: a `ready` that never settles (a font load that hangs) keeps the pending `then`
+  // callback, and through this the grid that is gone, for as long as the document lives.
+  let callback: (() => void) | null = onFontsLoaded;
 
   const waitForReady = () => {
     fontFaceSet.ready.then(() => {
-      if (isStopped) {
+      if (callback === null) {
         return;
       }
 
@@ -54,7 +59,7 @@ export function watchFontLoads(
       }
 
       isWaiting = false;
-      onFontsLoaded();
+      callback();
     }, () => {
       isWaiting = false;
     });
@@ -71,8 +76,14 @@ export function watchFontLoads(
 
   fontFaceSet.addEventListener('loading', onLoading);
 
+  // `loading` fires only when the set goes from loaded to loading, so a font that started loading before
+  // the watcher (for example, the page's own text asked for it first) fires no event the watcher sees.
+  if (fontFaceSet.status === 'loading') {
+    onLoading();
+  }
+
   return () => {
-    isStopped = true;
+    callback = null;
     fontFaceSet.removeEventListener('loading', onLoading);
   };
 }

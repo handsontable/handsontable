@@ -462,6 +462,11 @@ export default function Core(
    * `init` started watching.
    */
   let stopWatchingFontLoads: (() => void) | null = null;
+  /**
+   * Waits for a grid that was hidden when a web font loaded to be shown, so the re-measure skipped then
+   * runs (see `refreshAfterFontsLoad()`), or `null` when no re-measure is owed.
+   */
+  let fontRefreshVisibilityObserver: IntersectionObserver | null = null;
 
   const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
@@ -2684,26 +2689,44 @@ export default function Core(
    * of line with their row headers and frozen columns, the grid keeps its old height, and columns sized
    * from their content clip the wider text.
    *
-   * The handler drops every measured size and renders. `refreshDimensions()` is not enough: it skips the
-   * render when the container keeps its size, which is the case for a grid with a fixed `height`.
+   * The handler fires `afterFontsLoad`, on which the sizing plugins re-measure, then drops the engine's
+   * size caches and renders. `refreshDimensions()` is not enough: it skips the render when the container
+   * keeps its size, which is the case for a grid with a fixed `height`. On a hidden grid the re-measure
+   * waits until the grid is shown.
    */
   function refreshAfterFontsLoad() {
     if (!instance || instance.isDestroyed || !instance.view) {
       return;
     }
 
-    const autoColumnSize = instance.getPlugin('autoColumnSize');
-    const autoRowSize = instance.getPlugin('autoRowSize');
+    // The auto-size plugins skip measuring a hidden grid, and a scroll draw after the grid is shown
+    // measures only the columns that have no width yet. So the re-measure waits until the grid is shown.
+    if (!instance.view.isVisible()) {
+      if (fontRefreshVisibilityObserver === null) {
+        fontRefreshVisibilityObserver = observeVisibilityChangeOnce(instance.rootElement, () => {
+          fontRefreshVisibilityObserver = null;
+          refreshAfterFontsLoad();
+        });
+      }
 
-    if (autoColumnSize?.isEnabled()) {
-      autoColumnSize.recalculateAllColumnsWidth();
+      return;
     }
 
-    if (autoRowSize?.isEnabled()) {
-      autoRowSize.clearCache();
-    }
+    fontRefreshVisibilityObserver?.disconnect();
+    fontRefreshVisibilityObserver = null;
 
+    // The sizing plugins re-measure what they measured from text (AutoColumnSize, AutoRowSize,
+    // AutoRowHeaderSize, NestedHeaders). Core does not name them, so a plugin added later only needs a hook.
+    instance.runHooks('afterFontsLoad');
+
+    // Walkontable's records of rows taller than the default stay: without AutoRowSize nothing else knows
+    // the height of a row outside the rendered band, and dropping them would draw every such row above the
+    // viewport at the default height, which moves a grid scrolled far down to other rows. The band is
+    // measured again on this render, and every other row when it is drawn.
     instance.view.invalidateIndexSizesCache();
+    // `render()` is not a full repaint under `renderMode: 'onChange'`, and a cell whose renderer reads a
+    // size (a merged block's height) would keep the stale one.
+    instance.renderChangeTracker.markAllChanged();
     instance.render();
   }
 
@@ -8553,6 +8576,8 @@ export default function Core(
     slotsResizeObserver = null;
     stopWatchingFontLoads?.();
     stopWatchingFontLoads = null;
+    fontRefreshVisibilityObserver?.disconnect();
+    fontRefreshVisibilityObserver = null;
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();

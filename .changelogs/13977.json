@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed rows falling out of line with their headers, a grid keeping its old height, and auto-sized columns clipping text when a web font finished loading after the grid rendered.",
+  "title": "Fixed an issue where the grid kept stale row, column, and height measurements after a web font finished loading. Added the `afterFontsLoad` hook.",
   "type": "fixed",
   "issueOrPR": 13977,
   "breaking": false,

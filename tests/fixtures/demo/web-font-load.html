@@ -27,6 +27,8 @@
     body { font-family: sans-serif; margin: 1rem; }
     /* The face is added by the test only after the grid has drawn, so the first draw measures the fallback. */
     .ht-late-font { font-family: 'HtLateFont', sans-serif !important; font-size: 15px !important; }
+    /* `?headers=1`: every header label uses the late font, ghost tables included (they sit outside the grid). */
+    body.ht-late-headers th { font-family: 'HtLateFont', sans-serif !important; font-size: 15px !important; }
   </style>
 </head>
 <body>
@@ -47,28 +49,71 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    // ?variant flags: height=1 (a fixed grid height, so the container never resizes), auto=1 (autoRowSize).
-    window.hot = new Handsontable(container, {
-      data: [
-        ['', '', '', ''],
-        ['', 'The long text should be wrapped', '', ''],
-        ['', '', '', ''],
-        ['', '', 'Auto-sized column, no wrap', ''],
-        ['', '', '', ''],
-        ['', '', '', ''],
-      ],
-      height: variant.get('height') === '1' ? 400 : undefined,
-      colHeaders: true,
-      rowHeaders: true,
-      autoRowSize: variant.get('auto') === '1',
-      fixedColumnsStart: 1,
-      columns: [{}, { width: 120 }, {}, {}],
-      cell: [
-        { row: 1, col: 1, className: 'ht-late-font' },
-        { row: 3, col: 2, className: 'ht-late-font', wordWrap: false },
-      ],
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+    // ?variant flags: height=1 (a fixed grid height, so the container never resizes), auto=1 (autoRowSize),
+    // preload=1 (a font load is already in progress when the grid is created, see below), many=1 (3000 more
+    // rows whose column B wraps in the late font, to scroll far down), headers=1 (see below).
+    const data = [
+      ['', '', '', ''],
+      ['', 'The long text should be wrapped', '', ''],
+      ['', '', '', ''],
+      ['', '', 'Auto-sized column, no wrap', ''],
+      ['', '', '', ''],
+      ['', '', '', ''],
+    ];
+
+    if (variant.get('many') === '1') {
+      for (let row = 0; row < 3000; row++) {
+        data.push(['', `Row ${row} has long text that should be wrapped`, '', '']);
+      }
+    }
+
+    // headers=1: row header labels sized by AutoRowHeaderSize, and a nested header label over two columns.
+    const withHeaders = variant.get('headers') === '1';
+
+    if (withHeaders) {
+      document.body.classList.add('ht-late-headers');
+    }
+
+    const createGrid = () => {
+      window.hot = new Handsontable(container, {
+        data,
+        ...(withHeaders ? {
+          rowHeaders: row => `Row label ${row + 1}`,
+          autoRowHeaderSize: true,
+          nestedHeaders: [
+            // Over columns A (empty) and B (a fixed width), whose cells do not widen with the font, so only
+            // NestedHeaders' own measurement can widen them for the label.
+            [{ label: 'A nested header label wider than both of its columns', colspan: 2 }, 'C', 'D'],
+            ['A', 'B', 'C', 'D'],
+          ],
+        } : {}),
+        height: variant.get('height') === '1' ? 400 : undefined,
+        colHeaders: true,
+        ...(withHeaders ? {} : { rowHeaders: true }),
+        autoRowSize: variant.get('auto') === '1',
+        fixedColumnsStart: 1,
+        columns: [{}, { width: 120, className: variant.get('many') === '1' ? 'ht-late-font' : '' }, {}, {}],
+        cell: [
+          { row: 1, col: 1, className: 'ht-late-font' },
+          { row: 3, col: 2, className: 'ht-late-font', wordWrap: false },
+        ],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    };
+
+    if (variant.get('preload') === '1') {
+      // A face from a URL the test holds open (WebFontLoadPage#holdFontRequest), so `document.fonts` is
+      // still loading when the grid is created. The grid is created in a later task than the `loading`
+      // event, the way a page whose own text asked for a font first creates it, so the watcher never sees
+      // that event. The face never loads (the test answers 404); it only keeps the set loading.
+      const blocker = new FontFace('HtBlockerFont', 'url("/__ht-held-font.woff2")');
+
+      document.fonts.add(blocker);
+      blocker.load().catch(() => {});
+      document.fonts.addEventListener('loading', () => setTimeout(createGrid), { once: true });
+    } else {
+      createGrid();
+    }
   </script>
 </body>
 </html>

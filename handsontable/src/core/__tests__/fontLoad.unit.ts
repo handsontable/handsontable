@@ -95,6 +95,43 @@ describe('watchFontLoads', () => {
     expect(onFontsLoaded).toHaveBeenCalledTimes(1);
   });
 
+  it('should call back once a load that started before it began watching is ready', async() => {
+    const fonts = new FakeFontFaceSet();
+    const onFontsLoaded = jest.fn();
+
+    // The `loading` event fired before the watcher started, and a face that joins the load in progress
+    // fires none, so the watcher sees no event at all.
+    fonts.startLoading();
+    watchFontLoads({ fonts }, onFontsLoaded);
+    await flushPromises();
+
+    expect(onFontsLoaded).not.toHaveBeenCalled();
+
+    fonts.finishLoading();
+    await flushPromises();
+
+    expect(onFontsLoaded).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call back once when the `loading` event of a load in progress arrives after it began watching', async() => {
+    const fonts = new FakeFontFaceSet();
+    const onFontsLoaded = jest.fn();
+    let resolveReady: () => void = () => {};
+
+    // The load started in the same task, so its `loading` event is still queued.
+    fonts.status = 'loading';
+    fonts.ready = new Promise<void>((resolve) => {
+      resolveReady = resolve;
+    });
+    watchFontLoads({ fonts }, onFontsLoaded);
+    fonts.dispatchEvent(new Event('loading'));
+    fonts.status = 'loaded';
+    resolveReady();
+    await flushPromises();
+
+    expect(onFontsLoaded).toHaveBeenCalledTimes(1);
+  });
+
   it('should not call back when nothing started loading', async() => {
     const fonts = new FakeFontFaceSet();
     const onFontsLoaded = jest.fn();
@@ -136,6 +173,29 @@ describe('watchFontLoads', () => {
     await flushPromises();
 
     expect(onFontsLoaded).toHaveBeenCalledTimes(1);
+  });
+
+  it('should remove the listener it added when it stops watching', () => {
+    const fonts = new FakeFontFaceSet();
+    const addEventListener = jest.spyOn(fonts, 'addEventListener');
+    const removeEventListener = jest.spyOn(fonts, 'removeEventListener');
+    const stop = watchFontLoads({ fonts }, jest.fn());
+
+    expect(addEventListener).toHaveBeenCalledTimes(1);
+    expect(removeEventListener).not.toHaveBeenCalled();
+
+    stop();
+
+    expect(removeEventListener).toHaveBeenCalledTimes(1);
+    expect(removeEventListener).toHaveBeenCalledWith('loading', addEventListener.mock.calls[0][1]);
+  });
+
+  it('should watch nothing when the `fonts` set cannot take listeners', () => {
+    const onFontsLoaded = jest.fn();
+    const stop = watchFontLoads({ fonts: {} as unknown as FakeFontFaceSet }, onFontsLoaded);
+
+    expect(() => stop()).not.toThrow();
+    expect(onFontsLoaded).not.toHaveBeenCalled();
   });
 
   it('should watch nothing when the document has no `fonts` set', () => {

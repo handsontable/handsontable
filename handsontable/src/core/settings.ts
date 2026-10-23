@@ -472,6 +472,7 @@ export interface GridSettings {
   afterEmptyDataStateHide?: () => void;
   afterEmptyDataStateShow?: () => void;
   afterFilter?: (conditionsStack: ColumnConditions[]) => void;
+  afterFontsLoad?: () => void;
   afterFormulasValuesUpdate?: (changes: unknown[]) => void;
   afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => void;

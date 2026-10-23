@@ -49,6 +49,10 @@ test.describe('Web font loaded after the first draw', { tag: [THEMES_TAG, CROSS_
 
     const before = await grid.geometry();
 
+    // The root holds the whole table before the font loads, so the poll below can stay false only because
+    // the grid did not grow.
+    expect(before.rootHeight).toBeGreaterThanOrEqual(before.tableHeight);
+
     await grid.loadFont();
 
     await expect.poll(async() => {
@@ -58,17 +62,116 @@ test.describe('Web font loaded after the first draw', { tag: [THEMES_TAG, CROSS_
     }).toBe(true);
   });
 
-  test('does not throw when a font loads after the grid is destroyed', async({ page, theme, bundle }) => {
+  test('re-measures after a font load that was already in progress when the grid was created', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    const releaseFontRequest = await grid.holdFontRequest();
+
+    await grid.goto('&preload=1');
+
+    // The grid was created while a load was in progress, so the `loading` event fired before it watched.
+    expect(await grid.fontsStatus()).toBe('loading');
+    await expectAligned(grid);
+
+    const before = await grid.geometry();
+
+    // The face joins the load in progress, so the document fires no new `loading` event for it.
+    await grid.loadFont();
+    releaseFontRequest();
+
+    await expect.poll(async() => (await grid.geometry()).wrappedCellHeight).toBeGreaterThan(before.wrappedCellHeight);
+    await expectAligned(grid);
+    expect((await grid.geometry()).autoSizedCellWidth).toBeGreaterThan(before.autoSizedCellWidth);
+  });
+
+  test('re-measures a grid that was hidden when the font loaded once it is shown', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+
+    await grid.goto();
+    await expectAligned(grid);
+
+    const before = await grid.geometry();
+
+    // The columns were measured with the fallback font while the grid was shown, so they hold widths
+    // that a later draw does not re-measure.
+    await grid.setGridDisplayed(false);
+    await grid.loadFont();
+    await grid.setGridDisplayed(true);
+
+    await expect.poll(async() => (await grid.geometry()).autoSizedCellWidth).toBeGreaterThan(before.autoSizedCellWidth);
+    await expectAligned(grid);
+  });
+
+  test('never drops a measured row height while autoRowSize re-measures', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // Past the 500 rows AutoRowSize measures at once, and above the rows on screen, so only the idle sweep
+    // reaches it and its height decides where the rows on screen are drawn.
+    const sweptRow = 1000;
+
+    await grid.goto('&height=1&auto=1&many=1');
+    await grid.scrollBelowRow(sweptRow);
+
+    const heightBefore = await grid.rowHeight(sweptRow) ?? 0;
+
+    expect(heightBefore).toBeGreaterThan(0);
+
+    await grid.recordRowHeight(sweptRow);
+    await grid.loadFont();
+
+    // The wider font makes every wrapped row taller, so the sweep is done once this row is taller.
+    await expect.poll(async() => await grid.rowHeight(sweptRow) ?? 0).toBeGreaterThan(heightBefore);
+
+    // A dropped height cache drew the row at the default height until the sweep reached it, so every
+    // row above the viewport shrank and the grid scrolled to other rows.
+    const recorded = await grid.recordedRowHeights();
+
+    expect(recorded.length).toBeGreaterThan(0);
+    expect(recorded.filter(height => height === undefined || height < heightBefore)).toEqual([]);
+  });
+
+  test('stops watching font loads when the grid is destroyed', async({ page, theme, bundle }) => {
     const grid = new WebFontLoadPage(page, theme, bundle);
     const errors: Error[] = [];
 
     page.on('pageerror', error => errors.push(error));
 
+    await grid.trackFontListeners();
     await grid.goto();
+
+    // The grid watches the font set while it lives, so the count below can only drop because it stopped.
+    expect(await grid.fontLoadingListeners()).toBe(1);
+
     await grid.destroyGrid();
+
+    expect(await grid.fontLoadingListeners()).toBe(0);
+
     await grid.loadFont();
     await grid.waitForFrames(5);
 
     expect(errors).toEqual([]);
+  });
+
+  test('re-measures row header and nested header labels', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+
+    await grid.goto('&headers=1');
+
+    const before = await grid.headerGeometry();
+
+    expect(before.rowLabel).toBeLessThanOrEqual(before.rowCell);
+    expect(before.nestedLabel).toBeLessThanOrEqual(before.nestedCell);
+
+    await grid.loadFont();
+
+    // The labels get wider, and each header cell grows to hold its label again.
+    await expect.poll(async() => {
+      const after = await grid.headerGeometry();
+
+      return {
+        rowLabelGrew: after.rowLabel > before.rowLabel,
+        rowLabelFits: after.rowLabel <= after.rowCell,
+        nestedLabelGrew: after.nestedLabel > before.nestedLabel,
+        nestedLabelFits: after.nestedLabel <= after.nestedCell,
+      };
+    }).toEqual({ rowLabelGrew: true, rowLabelFits: true, nestedLabelGrew: true, nestedLabelFits: true });
   });
 });

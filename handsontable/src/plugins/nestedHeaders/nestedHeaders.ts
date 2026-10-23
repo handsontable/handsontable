@@ -460,6 +460,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeCopy', this.#onBeforeCopy);
     this.addHook('beforeSelectColumns', this.#onBeforeSelectColumns);
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
+    this.addHook('afterFontsLoad', this.#onAfterFontsLoad);
     this.addHook('afterViewportColumnCalculatorOverride', this.#onAfterViewportColumnCalculatorOverride);
     this.addHook('modifyFocusedElement', this.#onModifyFocusedElement);
     // Sync the header tree's hidden state from the hiding map *before* the focus highlight is
@@ -1980,6 +1981,14 @@ export class NestedHeaders extends BasePlugin {
    */
   #onAfterRemoveCol = (visualColumnIndex: number, amount: number, physicalColumns: number[]) => {
     this.#stateManager.removeColumns(visualColumnIndex, amount, physicalColumns);
+    this.#updateWidthsMap = true;
+  };
+
+  /**
+   * Rebuilds the widths map on the next render after the document loaded a web font, because the ghost
+   * table measured the multi-column labels with the fallback font.
+   */
+  #onAfterFontsLoad = () => {
     this.#updateWidthsMap = true;
   };
 
