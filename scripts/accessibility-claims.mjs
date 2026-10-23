@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 import {
   loadAccessibilityData,
   allowedScreenReaderNames,
+  accessibilityTemplateValues,
 } from '../docs/src/plugins/accessibility-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -48,16 +49,33 @@ export const ACCESSIBILITY_CONTEXT =
   /accessib|wcag|\bada\b|section 508|\b508\b|\blevel a{1,3}\b|en 301 549|vpat|a11y|screen.reader|assistive/i;
 
 /**
- * The rules. `pattern` runs per line; a rule with `context: true` fires only when the sentence
- * around the match, or the file's path, is about accessibility.
+ * The standard's name, abbreviated or spelled out, as a regular expression source.
+ *
+ * @type {string}
+ */
+const WCAG_NAME = '(?:WCAG|Web Content Accessibility Guidelines)';
+
+/**
+ * The message the rules that catch a conformance claim share.
+ *
+ * @type {string}
+ */
+const CLAIMS_CONFORMANCE_MESSAGE =
+  'claims conformance or compliance with WCAG; the approved wording is "targets WCAG 2.2 Level A and AA"';
+
+/**
+ * The rules. `pattern` runs per line, and again over each paragraph with its hard-wrapped lines
+ * joined (see `joinWrappedLines()`); a rule with `context: true` fires only when the sentence around
+ * the match, or the file's path, is about accessibility.
  *
  * @type {{id: string, pattern: RegExp, message: string, context?: boolean}[]}
  */
 export const RULES = [
   {
     id: 'superseded-wcag-version',
-    // `(?!\.?\d)` rejects 2.10 and 2.1.1 but keeps "WCAG 2.1." at the end of a sentence.
-    pattern: /\b(?:WCAG|Web Content Accessibility Guidelines)\s?2[.]?[01](?!\.?\d)/gi,
+    // The name and the version may be split by spaces, a hyphen, Markdown emphasis, `&nbsp;`, or
+    // "v"/"version". `(?!\.?\d)` rejects 2.10 and 2.1.1 but keeps "WCAG 2.1." at a sentence end.
+    pattern: new RegExp(`\\b${WCAG_NAME}(?:[\\s*_-]|&nbsp;)*(?:v(?:ersion)?\\s*)?2[.]?[01](?!\\.?\\d)`, 'gi'),
     message: 'names WCAG 2.0 or 2.1; the target is WCAG 2.2',
   },
   {
@@ -67,9 +85,21 @@ export const RULES = [
   },
   {
     id: 'conformance-with-wcag',
-    pattern: new RegExp('\\b(?:in\\s+)?(?:conformance|compliance|compliant|conformant)\\s+(?:with|to)\\s+(?:the\\s+)?' +
-      '(?:WCAG|Web Content Accessibility Guidelines)\\b', 'gi'),
-    message: 'claims conformance or compliance with WCAG; the approved wording is "targets WCAG 2.2 Level A and AA"',
+    // "in conformance with WCAG", and the adjective after the name: "WCAG 2.2 AA compliant". A dot
+    // inside a version number does not end the gap between the two.
+    pattern: new RegExp([
+      `\\b(?:in\\s+)?(?:conformance|compliance|compliant|conformant)\\s+(?:with|to)\\s+(?:the\\s+)?${WCAG_NAME}\\b`,
+      '\\bWCAG\\b(?:[^.\\n]|\\.(?=\\d)){0,30}?\\b(?:conformant|compliant)\\b',
+    ].join('|'), 'gi'),
+    message: CLAIMS_CONFORMANCE_MESSAGE,
+  },
+  {
+    id: 'claims-conformance',
+    // The verbs: "conforms to WCAG", "complies with the WCAG", "adheres to WCAG". No row of the
+    // conformance report's criteria tables uses one, so every verb stays in the pattern.
+    pattern: new RegExp(
+      `\\b(?:conforms?|complies|comply|adheres?|adhering)\\s+(?:to|with)\\s+(?:the\\s+)?${WCAG_NAME}\\b`, 'gi'),
+    message: CLAIMS_CONFORMANCE_MESSAGE,
   },
   {
     id: 'compliant',
@@ -88,7 +118,8 @@ export const RULES = [
 /**
  * Paths, relative to the repository root, whose text is historical and keeps its wording: a
  * changelog entry or a version highlight describes what a release said at the time. The data file
- * itself is listed because it records which screen readers were not tested, by name.
+ * itself is listed because it records which screen readers were not tested, by name; its text is
+ * scanned through the values it renders instead (`scanAccessibilityData()`).
  *
  * @type {string[]}
  */
@@ -127,7 +158,93 @@ function sentenceAround(line, index) {
 }
 
 /**
- * Scans one text for claims the data file does not back.
+ * Joins the hard-wrapped lines of a text, so a claim split across lines (a JSDoc block, a wrapped
+ * Markdown paragraph) is matched as one phrase. A line break with the indentation and the JSDoc star
+ * around it becomes one space; a blank line is a paragraph break and stays a line break, so a match
+ * never spans two paragraphs.
+ *
+ * @param {string} text The text.
+ * @returns {{joined: string, lineAt: (index: number) => number}} The joined text, and the original
+ *   1-based line of an index in it.
+ */
+export function joinWrappedLines(text) {
+  const pieces = [];
+  const starts = [0];
+  const lines = [1];
+  let line = 1;
+  let last = 0;
+  let length = 0;
+
+  for (const m of text.matchAll(/(?:\r?\n[ \t]*\*?[ \t]*)+/g)) {
+    const piece = text.slice(last, m.index);
+    const breaks = m[0].split('\n').length - 1;
+    const separator = breaks > 1 ? '\n' : ' ';
+
+    pieces.push(piece, separator);
+    length += piece.length + separator.length;
+    line += breaks;
+    last = m.index + m[0].length;
+    starts.push(length);
+    lines.push(line);
+  }
+  pieces.push(text.slice(last));
+
+  const lineAt = (index) => {
+    let low = 0;
+    let high = starts.length - 1;
+
+    while (low < high) {
+      const mid = Math.ceil((low + high) / 2);
+
+      if (starts[mid] <= index) {
+        low = mid;
+      } else {
+        high = mid - 1;
+      }
+    }
+
+    return lines[low];
+  };
+
+  return { joined: pieces.join(''), lineAt };
+}
+
+/**
+ * Runs the rules over one segment of text: a line, or a paragraph of the joined text.
+ *
+ * @param {string} segment The text.
+ * @param {(index: number) => number} lineAt The original line of an index in the segment.
+ * @param {object} options The scan options.
+ * @param {string} options.file The repo-relative path, for the report.
+ * @param {boolean} options.pathIsAccessibility Whether the path alone puts every sentence in context.
+ * @returns {{file: string, line: number, rule: string, match: string, message: string}[]} The findings.
+ */
+function scanSegment(segment, lineAt, { file, pathIsAccessibility }) {
+  const findings = [];
+
+  for (const rule of RULES) {
+    rule.pattern.lastIndex = 0;
+    let m = rule.pattern.exec(segment);
+
+    while (m !== null) {
+      const inContext = !rule.context || pathIsAccessibility ||
+        ACCESSIBILITY_CONTEXT.test(sentenceAround(segment, m.index));
+
+      if (inContext) {
+        findings.push({ file, line: lineAt(m.index), rule: rule.id, match: m[0], message: rule.message });
+      }
+      m = rule.pattern.exec(segment);
+    }
+  }
+
+  return findings;
+}
+
+/**
+ * Scans one text for claims the data file does not back. The rules run twice: per line, and per
+ * paragraph with the hard-wrapped lines joined, which catches a phrase such as " * meets\n * WCAG
+ * 2.1". A finding of the second pass is reported at the line its match starts on, and dropped when
+ * the first pass already reported the same rule, line, and match.
  *
  * @param {string} text The file's text.
  * @param {object} options The scan options.
@@ -138,25 +255,13 @@ function sentenceAround(line, index) {
 export function scanText(text, { file, allowedScreenReaders }) {
   const findings = [];
   const allowed = new Set(allowedScreenReaders.map(name => name.toLowerCase()));
-  const pathIsAccessibility = /accessib|a11y/i.test(file);
+  const options = { file, pathIsAccessibility: /accessib|a11y/i.test(file) };
   const screenReaderRule = new RegExp(`\\b(${SCREEN_READER_NAMES.join('|')})\\b`, 'gi');
 
   text.split('\n').forEach((line, i) => {
-    for (const rule of RULES) {
-      rule.pattern.lastIndex = 0;
-      let m = rule.pattern.exec(line);
+    findings.push(...scanSegment(line, () => i + 1, options));
 
-      while (m !== null) {
-        const inContext = !rule.context || pathIsAccessibility ||
-          ACCESSIBILITY_CONTEXT.test(sentenceAround(line, m.index));
-
-        if (inContext) {
-          findings.push({ file, line: i + 1, rule: rule.id, match: m[0], message: rule.message });
-        }
-        m = rule.pattern.exec(line);
-      }
-    }
-
+    // A screen reader's name is one word, so the joined pass below cannot find one this pass missed.
     screenReaderRule.lastIndex = 0;
     let m = screenReaderRule.exec(line);
 
@@ -175,7 +280,48 @@ export function scanText(text, { file, allowedScreenReaders }) {
     }
   });
 
+  const seen = new Set(findings.map(f => `${f.rule}\n${f.line}\n${f.match}`));
+  const { joined, lineAt } = joinWrappedLines(text);
+  let offset = 0;
+
+  for (const paragraph of joined.split('\n')) {
+    const paragraphStart = offset;
+
+    for (const finding of scanSegment(paragraph, index => lineAt(paragraphStart + index), options)) {
+      const key = `${finding.rule}\n${finding.line}\n${finding.match}`;
+
+      if (!seen.has(key)) {
+        seen.add(key);
+        findings.push(finding);
+      }
+    }
+    offset += paragraph.length + 1;
+  }
+
   return findings;
+}
+
+/**
+ * Scans the data file's own text: every value it renders through the `{{$a11y.<key>}}` variables
+ * and every known limitation's text. The file is allowlisted, because its matrix names the screen
+ * readers that were not tested, and the pages carry only placeholders, so without this pass a claim
+ * written into the data file would reach every page unchecked. A finding names the key, as
+ * `docs/content/data/accessibility.json#<key>`.
+ *
+ * @param {object} data The validated data.
+ * @returns {{file: string, line: number, rule: string, match: string, message: string}[]} The findings.
+ */
+export function scanAccessibilityData(data) {
+  const allowedScreenReaders = allowedScreenReaderNames(data);
+  const texts = [
+    ...Object.entries(accessibilityTemplateValues(data)),
+    ...data.knownLimitations.map((limitation, i) => [`knownLimitations[${i}].text`, limitation.text]),
+  ];
+
+  return texts.flatMap(([key, text]) => scanText(text, {
+    file: `docs/content/data/accessibility.json#${key}`,
+    allowedScreenReaders,
+  }));
 }
 
 /**
@@ -237,7 +383,7 @@ export function publicFiles() {
 }
 
 /**
- * Scans the repository.
+ * Scans the repository: the public files, and the data file's own text (`scanAccessibilityData()`).
  *
  * @param {object} [options] The scan options.
  * @param {object} [options.data] The accessibility data; loaded from the committed file by default.
@@ -247,9 +393,12 @@ export function publicFiles() {
 export function scanRepository({ data = loadAccessibilityData(), files = publicFiles() } = {}) {
   const allowedScreenReaders = allowedScreenReaderNames(data);
 
-  return files
-    .filter(file => !isAllowlisted(file))
-    .flatMap(file => scanText(readFileSync(path.join(ROOT, file), 'utf8'), { file, allowedScreenReaders }));
+  return [
+    ...files
+      .filter(file => !isAllowlisted(file))
+      .flatMap(file => scanText(readFileSync(path.join(ROOT, file), 'utf8'), { file, allowedScreenReaders })),
+    ...scanAccessibilityData(data),
+  ];
 }
 
 /**

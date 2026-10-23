@@ -1,13 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { replaceTemplateVariables } from '../template-variables.mjs';
+import { mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { readAccessibilityTemplateValues, replaceTemplateVariables } from '../template-variables.mjs';
 import {
   CURRENT_DOCS_VERSION,
   CURRENT_DOCS_MINOR_VERSION,
   CURRENT_EXAMPLES_BRANCH,
 } from '../docs-version.mjs';
 import { LATEST_CHANGELOG_MAJOR } from '../changelog-parser.mjs';
-import { loadAccessibilityData } from '../accessibility-data.mjs';
+import { ACCESSIBILITY_DATA_FILE, loadAccessibilityData } from '../accessibility-data.mjs';
 
 const values = {
   basePath: '/docs',
@@ -106,4 +109,29 @@ test('an unknown {{$a11y.<key>}} throws instead of rendering a placeholder', () 
 
 test('{{$a11y.<key>}} defaults come from the accessibility data file', () => {
   assert.equal(replaceTemplateVariables('{{$a11y.report.version}}'), loadAccessibilityData().report.version);
+});
+
+test('{{$a11y.<key>}} values are re-read when the data file changes, so docs:dev needs no restart', () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'a11y-data-'));
+  const file = path.join(dir, 'accessibility.json');
+  const data = JSON.parse(readFileSync(ACCESSIBILITY_DATA_FILE, 'utf8'));
+
+  try {
+    writeFileSync(file, JSON.stringify(data));
+    utimesSync(file, 1_000_000, 1_000_000);
+
+    const first = readAccessibilityTemplateValues(file);
+
+    assert.equal(first['notes.mobile'], data.notes.mobile);
+    assert.equal(readAccessibilityTemplateValues(file), first, 'an unchanged file is served from the cache');
+
+    data.notes.mobile = 'Mobile screen readers are checked by hand.';
+    writeFileSync(file, JSON.stringify(data));
+    utimesSync(file, 2_000_000, 2_000_000);
+
+    assert.equal(readAccessibilityTemplateValues(file)['notes.mobile'], 'Mobile screen readers are checked by hand.',
+      'a new modification time re-reads the file');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  scanText, scanRepository, formatFindings, isAllowlisted, publicFiles, SCREEN_READER_NAMES,
+  scanText, scanRepository, scanAccessibilityData, formatFindings, isAllowlisted, publicFiles, SCREEN_READER_NAMES,
 } from '../accessibility-claims.mjs';
 import {
   loadAccessibilityData, validateAccessibilityData, accessibilityTemplateValues, allowedScreenReaderNames,
@@ -28,6 +28,9 @@ const scan = (text, file = 'docs/content/guides/some-page/some-page.md') => scan
   allowedScreenReaders: tested,
 });
 const rules = findings => findings.map(f => f.rule);
+const lineRules = findings => findings
+  .map(f => [f.line, f.rule])
+  .sort((a, b) => a[0] - b[0] || a[1].localeCompare(b[1]));
 
 const GUIDE = 'docs/content/guides/accessibility/accessibility/accessibility.md';
 const REPORT = 'docs/content/guides/accessibility/accessibility-conformance-report/accessibility-conformance-report.md';
@@ -48,6 +51,36 @@ test('the data file is valid, and the validator names what is wrong', () => {
   assert.ok(errors.some(e => e.includes('matrix[0].howTested')), 'an unknown howTested value is rejected');
   assert.ok(errors.some(e => e.includes('report.version')), 'a missing report field is named');
   assert.ok(errors.some(e => e.includes('knownLimitations[0].reportRef')), 'a limitation names its report ref or null');
+});
+
+test('the validator requires a version for a tested screen reader and rejects inherited and null values', () => {
+  const untestedVersion = structuredClone(data);
+
+  untestedVersion.matrix[0].version = null;
+
+  assert.ok(validateAccessibilityData(untestedVersion).some(e => e.includes('matrix[0].version')),
+    'a tested entry renders its version, so null is allowed only for not-tested');
+
+  const inherited = structuredClone(data);
+
+  inherited.matrix[0].howTested = ['constructor'];
+
+  assert.ok(validateAccessibilityData(inherited).some(e => e.includes('matrix[0].howTested has "constructor"')),
+    'a howTested value is an own key of HOW_TESTED, not anything `in` finds on its prototype');
+
+  const nullTarget = structuredClone(data);
+
+  nullTarget.target = null;
+
+  assert.ok(validateAccessibilityData(nullTarget).some(e => e.startsWith('target must be')),
+    'a null object is named as the missing field instead of throwing on its first property');
+
+  const arrayNotes = structuredClone(data);
+
+  arrayNotes.notes = [];
+
+  assert.ok(validateAccessibilityData(arrayNotes).some(e => e.startsWith('notes must be')),
+    'an array is not an object');
 });
 
 test('report.next.sentence is empty when no next version is planned, and limitations cite the report ref', () => {
@@ -111,6 +144,47 @@ test('scanText flags a superseded WCAG version in prose, a link, a tag, a senten
   ]);
 });
 
+test('scanText flags a superseded WCAG version whatever separates the name from the number', () => {
+  const flagged = ['WCAG v2.1', 'WCAG version 2.1', 'WCAG-2.1', 'WCAG  2.1', '**WCAG** 2.1', 'WCAG&nbsp;2.1'];
+  const notFlagged = ['WCAG 2.2', 'WCAG 2.1.1', 'WCAG 2.10'];
+
+  for (const text of flagged) {
+    assert.deepEqual(lineRules(scan(text)), [[1, 'superseded-wcag-version']], `"${text}" names WCAG 2.1`);
+  }
+  for (const text of notFlagged) {
+    assert.deepEqual(scan(text), [], `"${text}" is not WCAG 2.0 or 2.1`);
+  }
+});
+
+test('scanText flags a phrase wrapped across lines once, at the line where it starts', () => {
+  assert.deepEqual(lineRules(scan(' * It meets\n * WCAG 2.1 today.')), [
+    [1, 'meets-wcag'], [2, 'superseded-wcag-version'],
+  ], 'a hard-wrapped JSDoc line is read as one phrase');
+  assert.deepEqual(lineRules(scan('Handsontable meets WCAG 2.1.')), [
+    [1, 'meets-wcag'], [1, 'superseded-wcag-version'],
+  ], 'the joined pass does not repeat what the per-line pass found');
+  assert.deepEqual(scan('About accessibility.\n\nThe license keeps you compliant'), [],
+    'a blank line ends the paragraph, so the context of one paragraph never reaches the next');
+});
+
+test('scanText flags the claim verbs and a compliant after the name', () => {
+  const findings = scan([
+    'Handsontable conforms to WCAG 2.2.',
+    'The grid complies with the Web Content Accessibility Guidelines.',
+    'We adhere to WCAG 2.2 Level AA.',
+    'The grid is WCAG 2.2 AA compliant.',
+    'The export conforms to the CSV standard.',
+  ].join('\n'));
+
+  assert.deepEqual(lineRules(findings), [
+    [1, 'claims-conformance'],
+    [2, 'claims-conformance'],
+    [3, 'claims-conformance'],
+    [4, 'compliant'],
+    [4, 'conformance-with-wcag'],
+  ]);
+});
+
 test('scanText flags meets, compliant, conformance with and certified only as accessibility claims', () => {
   const flagged = scan([
     'Targeting WCAG 2.2 AA compliance.',
@@ -119,10 +193,13 @@ test('scanText flags meets, compliant, conformance with and certified only as ac
     'With version 14, Handsontable meets WCAG 2.2 at level AA.',
   ].join('\n'));
 
-  assert.ok(rules(flagged).includes('compliant'));
-  assert.ok(rules(flagged).includes('conformance-with-wcag'));
-  assert.ok(rules(flagged).includes('certified'));
-  assert.ok(rules(flagged).includes('meets-wcag'));
+  assert.deepEqual(lineRules(flagged), [
+    [1, 'compliant'],
+    [2, 'compliant'],
+    [2, 'conformance-with-wcag'],
+    [3, 'certified'],
+    [4, 'meets-wcag'],
+  ]);
 
   const notFlagged = scan([
     'We use Fossa to stay compliant with third-party license terms.',
@@ -179,6 +256,22 @@ test('the scan covers the docs content, the four READMEs and the core source, ne
   assert.ok(!files.some(file => file.startsWith('docs/content/api/')),
     'the generated API reference is not scanned');
   assert.ok(!files.some(file => /\.(?:spec|unit)\.[jt]s$/.test(file)), 'tests are not public text');
+});
+
+test('the data file\'s own text is scanned, and a finding names its key', () => {
+  assert.deepEqual(scanAccessibilityData(data), [], 'the committed data makes no claim it does not back');
+
+  const fixture = structuredClone(data);
+
+  fixture.notes.mobile = 'Handsontable meets WCAG 2.1 AA on mobile.';
+
+  const findings = scanAccessibilityData(fixture);
+
+  assert.deepEqual(findings.map(f => [f.file, f.rule]).sort(), [
+    ['docs/content/data/accessibility.json#notes.mobile', 'meets-wcag'],
+    ['docs/content/data/accessibility.json#notes.mobile', 'superseded-wcag-version'],
+  ]);
+  assert.equal(scanRepository({ data: fixture, files: [] }).length, 2, 'scanRepository includes the data file\'s text');
 });
 
 test('no public text contradicts the accessibility data file', () => {

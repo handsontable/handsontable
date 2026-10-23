@@ -1091,7 +1091,7 @@ as tested.
 |---|---|---|
 | `target` | `standard`, `version`, `level`, `url`, and `wording.long` / `wording.short` | each wording starts with "targets" (the validator rejects anything else) |
 | `report` | `title`, `version`, `date`, `slug`, `url`, `docsPath` (an `@/...md` link), `template`, `evaluatedProductVersion` (a string, or `null` while the report does not state it), `audit` (`auditor`, `period`, `coverage`), `next` (`version`, `status`, `scope`, or `null`) | `url` is the JavaScript docs URL; the READMEs derive their framework-prefixed form from `slug` |
-| `matrix[]` | one entry per screen reader and platform: `name`, `version` (`null` when not tested), `platform`, `howTested[]` | `howTested` values: `audit` (the external audit in `report.audit`), `automated-nightly`, `manual-per-major`, `not-tested`; `not-tested` stands alone. An entry whose only value is `not-tested` records a decision and is never rendered - its name is what public text must not use |
+| `matrix[]` | one entry per screen reader and platform: `name`, `version` (`null` only when `howTested` is `not-tested`), `platform`, `howTested[]` | `howTested` values: `audit` (the external audit in `report.audit`), `automated-nightly`, `manual-per-major`, `not-tested`; `not-tested` stands alone. An entry whose only value is `not-tested` records a decision and is never rendered - its name is what public text must not use |
 | `browsers[]` | `name`, `version` (full) | sentences use the major version |
 | `knownLimitations[]` | `id`, `text` (Markdown), `criteria[]` (WCAG numbers), `reportRef` (the report's own "Ref." column, such as `#2375`, or `null`) | ids are unique; the order is the rendered order. `reportRef` is not a GitHub issue number (`#2375` on GitHub is an unrelated issue), so it renders as "ref. #2375 in the report" |
 | `notes` | `mobile`, `automation` | one sentence or two each; rendered verbatim |
@@ -1117,7 +1117,9 @@ docs build and the root tooling suite instead of rendering `undefined`.
   "Version  is : .". A value may hold Markdown (a list, a table, an `@/...md` link), so put a list
   or table variable on a line of its own with blank lines around it, and keep it out of a
   `::: tip` aside: the loader converts asides to HTML before it substitutes template variables, so
-  a variable holding Markdown inside an aside lands in already-emitted HTML. The accessibility
+  a variable holding Markdown inside an aside lands in already-emitted HTML. The values are cached
+  until the data file's modification time changes, so the dev server picks up a data-file edit on
+  the next page render, with no restart. The accessibility
   guide, the conformance report page, the ARIA recipe, and the Pikaday recipe use them; the
   tooling test requires the guide and the report page to render the target, the version, the date,
   and the matrix from them rather than from literals.
@@ -1144,10 +1146,26 @@ docs build and the root tooling suite instead of rendering `undefined`.
 `scripts/__tests__/accessibility-claims.test.mjs`; `node scripts/accessibility-claims.mjs` prints
 the findings) scans `docs/content/**` (the pages, the data files, and the example sources they
 embed; not the generated `api/`), the four READMEs, the core source under `handsontable/src` (its
-JSDoc is the API reference), and the website export for `WCAG 2.0` or `WCAG 2.1` in any spelling
-(spelled out as "Web Content Accessibility Guidelines" too), "meets ... WCAG", "conformance with
-WCAG", "compliant", "compliance", and "certified" in an accessibility sentence (a bare "508" or
-"Level AA" makes one), and any screen reader the matrix does not list as tested. Historical text keeps its wording through the allowlist in that script: the changelog pages,
+JSDoc is the API reference), the website export, and the data file's own text: every value it
+renders through `{{$a11y.<key>}}` and every `knownLimitations[].text`, each reported as
+`docs/content/data/accessibility.json#<key>`. The data file itself is allowlisted, because its
+matrix names the untested screen readers, and the pages hold only placeholders, so its values are
+the only way its text gets checked. The rules flag:
+
+- `WCAG 2.0` or `WCAG 2.1` in any spelling: spelled out as "Web Content Accessibility Guidelines",
+  or with spaces, a hyphen, Markdown emphasis, `&nbsp;`, or "v"/"version" between the name and the
+  number (`WCAG v2.1`, `WCAG-2.1`, `**WCAG** 2.1`). `WCAG 2.10` and `WCAG 2.1.1` pass.
+- "meets ... WCAG", "conformance with WCAG", and the adjective after the name ("WCAG 2.2 AA
+  compliant").
+- The claim verbs "conforms to", "complies with", and "adheres to" WCAG.
+- "compliant", "compliance", and "certified" in an accessibility sentence (a bare "508" or
+  "Level AA" makes one).
+- Any screen reader the matrix does not list as tested.
+
+Every rule runs per line, and again per paragraph with the hard-wrapped lines joined: a line break
+with its indentation and JSDoc star reads as one space, and a blank line ends the paragraph. So a
+claim wrapped across lines (" * meets\n * WCAG 2.1") is caught and reported at the line where it
+starts. Historical text keeps its wording through the allowlist in that script: the changelog pages,
 the migration guides, and the version highlights. A new screen reader goes into
 `SCREEN_READER_NAMES` there as well as into the matrix. Release blog posts live in the website
 repository; a dated post keeps its text and gets an editor's note with `updatedDate`.

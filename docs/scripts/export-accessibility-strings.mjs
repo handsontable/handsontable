@@ -17,7 +17,9 @@ import { loadAccessibilityData, websiteStringsJson } from '../src/plugins/access
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-/** The export's path. */
+/**
+ * The export's path.
+ */
 export const WEBSITE_STRINGS_FILE = resolve(__dirname, '../content/data/accessibility-website-strings.json');
 
 /**

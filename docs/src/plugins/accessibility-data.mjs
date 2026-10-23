@@ -23,7 +23,9 @@ import { dirname, resolve } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-/** Where the data lives, next to `version-highlights/`. */
+/**
+ * Where the data lives, next to `version-highlights/`.
+ */
 export const ACCESSIBILITY_DATA_FILE = resolve(__dirname, '../../content/data/accessibility.json');
 
 /**
@@ -50,7 +52,16 @@ export const HOW_TESTED = {
 export function validateAccessibilityData(data) {
   const errors = [];
   const need = (value, path, type = 'string') => {
-    const ok = type === 'array' ? Array.isArray(value) : typeof value === type && value !== '';
+    let ok;
+
+    if (type === 'array') {
+      ok = Array.isArray(value);
+    } else if (type === 'object') {
+      // `typeof null` and `typeof []` are both 'object': neither holds the fields read next.
+      ok = typeof value === 'object' && value !== null && !Array.isArray(value);
+    } else {
+      ok = typeof value === type && value !== '';
+    }
 
     if (!ok) {
       errors.push(`${path} must be a non-empty ${type}`);
@@ -90,7 +101,8 @@ export function validateAccessibilityData(data) {
     }
 
     if (report.evaluatedProductVersion !== null) {
-      need(report.evaluatedProductVersion, 'report.evaluatedProductVersion (a string, or null when the report does not state it)');
+      need(report.evaluatedProductVersion,
+        'report.evaluatedProductVersion (a string, or null when the report does not state it)');
     }
 
     if (need(report.audit, 'report.audit', 'object')) {
@@ -99,7 +111,9 @@ export function validateAccessibilityData(data) {
       need(report.audit.coverage, 'report.audit.coverage');
     }
 
-    if (report.next !== null && need(report.next, 'report.next (an object, or null when no next version is planned)', 'object')) {
+    const nextPath = 'report.next (an object, or null when no next version is planned)';
+
+    if (report.next !== null && need(report.next, nextPath, 'object')) {
       need(report.next.version, 'report.next.version');
       need(report.next.status, 'report.next.status');
       need(report.next.scope, 'report.next.scope');
@@ -111,8 +125,11 @@ export function validateAccessibilityData(data) {
       need(entry.name, `matrix[${i}].name`);
       need(entry.platform, `matrix[${i}].platform`);
 
-      if (entry.version !== null) {
-        need(entry.version, `matrix[${i}].version (a string, or null when not tested)`);
+      // A tested entry renders its version; only an entry recorded as not tested may leave it null.
+      const notTested = Array.isArray(entry.howTested) && entry.howTested.includes('not-tested');
+
+      if (!notTested || entry.version !== null) {
+        need(entry.version, `matrix[${i}].version (a string; null only when howTested is not-tested)`);
       }
 
       if (need(entry.howTested, `matrix[${i}].howTested`, 'array')) {
@@ -121,7 +138,7 @@ export function validateAccessibilityData(data) {
         }
 
         for (const how of entry.howTested) {
-          if (!(how in HOW_TESTED)) {
+          if (!Object.hasOwn(HOW_TESTED, how)) {
             errors.push(`matrix[${i}].howTested has "${how}"; the values are ${Object.keys(HOW_TESTED).join(', ')}`);
           }
         }

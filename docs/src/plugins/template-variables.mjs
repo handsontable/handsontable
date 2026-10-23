@@ -35,30 +35,52 @@
  *   `accessibility-data.mjs` returns; an unknown key throws, so a typo fails the
  *   build instead of printing a placeholder. A value may hold Markdown (a list, a
  *   table, an `@/...md` link), which is why this runs before the link resolution
- *   too. Shape and consumers: `docs/AGENTS.md`, section 2.20.
+ *   too. The values are re-read when the data file's modification time changes, so
+ *   the dev server picks up an edit on the next page render. Shape and consumers:
+ *   `docs/AGENTS.md`, section 2.20.
  */
 
+import { statSync } from 'node:fs';
 import {
   CURRENT_DOCS_VERSION,
   CURRENT_DOCS_MINOR_VERSION,
   CURRENT_EXAMPLES_BRANCH,
 } from './docs-version.mjs';
 import { LATEST_CHANGELOG_MAJOR } from './changelog-parser.mjs';
-import { accessibilityTemplateValues, loadAccessibilityData } from './accessibility-data.mjs';
-
-let defaultA11yValues = null;
+import {
+  ACCESSIBILITY_DATA_FILE,
+  accessibilityTemplateValues,
+  loadAccessibilityData,
+} from './accessibility-data.mjs';
 
 /**
- * The `{{$a11y.<key>}}` values of this build, read from the data file once.
+ * The rendered values per data file, with the modification time they were read at.
  *
+ * @type {Map<string, {mtimeMs: number, values: Record<string, string>}>}
+ */
+const a11yValuesCache = new Map();
+
+/**
+ * The `{{$a11y.<key>}}` values rendered from an accessibility data file. They are cached until the
+ * file's modification time changes, so `docs:dev` picks up an edit to the data file on the next
+ * page render instead of after a restart, and a build reads the file once.
+ *
+ * @param {string} [file] The data file; defaults to the committed one.
  * @returns {Record<string, string>} The values.
  */
-function getDefaultA11yValues() {
-  if (defaultA11yValues === null) {
-    defaultA11yValues = accessibilityTemplateValues(loadAccessibilityData());
+export function readAccessibilityTemplateValues(file = ACCESSIBILITY_DATA_FILE) {
+  const { mtimeMs } = statSync(file);
+  const cached = a11yValuesCache.get(file);
+
+  if (cached && cached.mtimeMs === mtimeMs) {
+    return cached.values;
   }
 
-  return defaultA11yValues;
+  const values = accessibilityTemplateValues(loadAccessibilityData(file));
+
+  a11yValuesCache.set(file, { mtimeMs, values });
+
+  return values;
 }
 
 /**
@@ -88,18 +110,21 @@ export function replaceTemplateVariables(text, {
   latestChangelogVersion = LATEST_CHANGELOG_MAJOR,
   a11y = null,
 } = {}) {
+  let a11yValues = a11y;
+
   // The replacements are passed as functions so a `$` in a value (`$&`, `$1`)
   // cannot be read as a replacement pattern.
   return text
     .replace(/\{\{\s*\$a11y\.([\w.]+)\s*\}\}/g, (placeholder, key) => {
-      const values = a11y ?? getDefaultA11yValues();
+      // Read once per call, and only for text that uses a variable: one `stat` per page.
+      a11yValues ??= readAccessibilityTemplateValues();
 
-      if (!Object.hasOwn(values, key)) {
+      if (!Object.hasOwn(a11yValues, key)) {
         throw new Error(`Unknown template variable ${placeholder}: accessibility-data.mjs provides ` +
-          `${Object.keys(values).join(', ')} (see docs/AGENTS.md, section 2.20)`);
+          `${Object.keys(a11yValues).join(', ')} (see docs/AGENTS.md, section 2.20)`);
       }
 
-      return values[key];
+      return a11yValues[key];
     })
     .replace(/\{\{\s*\$basePath\s*\}\}/g, () => basePath)
     .replace(/\{\{\s*\$currentVersion\s*\}\}/g, () => version)
