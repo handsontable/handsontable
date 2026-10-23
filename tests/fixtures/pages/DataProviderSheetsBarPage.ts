@@ -25,6 +25,7 @@ interface GotoOptions {
   noEmptyDataState?: boolean;
   noRefetchAfterCreate?: boolean;
   releaseInitialFetch?: boolean;
+  ordersBorders?: boolean;
 }
 
 /**
@@ -168,6 +169,7 @@ export class DataProviderSheetsBarPage {
       options.userFetchListener ? '&userFetchListener=1' : '',
       options.noEmptyDataState ? '&noEmptyDataState=1' : '',
       options.noRefetchAfterCreate ? '&noRefetchAfterCreate=1' : '',
+      options.ordersBorders ? '&ordersBorders=1' : '',
     ].join('');
 
     await this.page.goto(
@@ -382,6 +384,15 @@ export class DataProviderSheetsBarPage {
    */
   async selectedLast(): Promise<number[] | null> {
     return this.page.evaluate(() => window.hot.getSelectedLast() ?? null);
+  }
+
+  /**
+   * The `[row, col]` cells of the custom borders the grid draws, sorted.
+   */
+  async borderCells(): Promise<number[][]> {
+    return this.page.evaluate(() => window.hot.getPlugin('customBorders').getBorders()
+      .map(({ row, col }) => [row, col])
+      .sort(([rowA, colA], [rowB, colB]) => (rowA - rowB) || (colA - colB)));
   }
 
   /**

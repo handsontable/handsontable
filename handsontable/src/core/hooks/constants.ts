@@ -3725,6 +3725,11 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterSheetTabStateCapture
    * @param {number} sheetId The id of the sheet the view state was captured from.
    * @param {object} viewState The captured view state. Its `sortConfig` names each column by its physical index.
+   * Its `cellMeta` lists the cell meta the sheet keeps, one `{ row, col, key, value }` entry per key, where `row`
+   * and `col` are physical indexes: every key set through `setCellMeta()` except `hidden`, `spanned` and `valid`,
+   * internal keys starting with `_` included, and a `valid: false` entry for each cell marked invalid. Its
+   * `customBorders` lists the borders on screen for reading only: the sheet's borders come back with `cellMeta`,
+   * so a change made to that list is not applied.
    * @param {string} source String that identifies source of hook call.
    */
   'afterSheetTabStateCapture',

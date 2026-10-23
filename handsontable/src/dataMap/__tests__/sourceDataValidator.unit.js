@@ -214,6 +214,37 @@ describe('runSourceDataValidators', () => {
     expect(validator).toHaveBeenCalledTimes(20 * 3);
   });
 
+  it('should skip the scan when no column has a validator and the imperative meta cannot bring one in', () => {
+    const { hot, getCellMetaUncached, getAtCell } = createMockHot({
+      rows: 20,
+      cols: 3,
+      userDefinedCellMetas: [
+        { physicalRow: 2, physicalColumn: 0, key: 'readOnly', value: true },
+        { physicalRow: 4, physicalColumn: 1, key: 'comment', value: { value: 'note' } },
+      ],
+    });
+
+    runSourceDataValidators(hot, 'loadData');
+
+    expect(getCellMetaUncached).toHaveBeenCalledTimes(3);
+    expect(getAtCell).not.toHaveBeenCalled();
+  });
+
+  it.each(['type', 'sourceDataValidator'])(
+    'should scan every cell when no column has a validator but imperative meta sets `%s`',
+    (key) => {
+      const { hot, getCellMetaUncached } = createMockHot({
+        rows: 20,
+        cols: 3,
+        userDefinedCellMetas: [{ physicalRow: 2, physicalColumn: 0, key, value: 'date' }],
+      });
+
+      runSourceDataValidators(hot, 'loadData');
+
+      expect(getCellMetaUncached).toHaveBeenCalledTimes(3 + (20 * 3));
+    },
+  );
+
   it('should still scan when a `cell` array is present even if the column probe finds no validator', () => {
     // No column validator, but a stored cell might carry one — the scan must run (not skip). With no
     // validator on any cell here it does no validation work, but it must NOT skip the array case.

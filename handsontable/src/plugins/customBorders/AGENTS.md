@@ -245,6 +245,19 @@ user-authored one such as `{ top: { width: 2 } }`. So it must not be required to
 write's coordinates; the canonical (complete, denormalized) object is written back to the meta, an
 all-hidden result clears the cell, and the model entry is upserted — so meta and model cannot diverge.
 
+## The sheets bar restores borders from the meta
+
+`_rebuildFromCellMeta()` (`@private`) marks the model for a rebuild from the `borders` cell meta, with no
+meta write and no hook. The sheets bar calls it when a sheet comes back: core writes the sheet's kept cell
+meta back with its rows, so the meta already holds the sheet's borders, a border on a row the filters hide
+included. **The rebuild is deferred like the one a filter or a trim asks for** (`#deferRebuildAfterIndexChange`),
+and must stay deferred: the bar calls it inside the view-state restore, which runs with the index cache
+suspended, so a rebuild run there translated each physical index through the order from before the restored
+sort or column move and drew the border on another record. It runs on the next model read or render, once the
+cache has resumed. It replaced a `clearBorders()` plus `setBorders()` replay of a visual-coordinate list,
+which lost every border on a filtered row. Pinned by the sorted-sheet and moved-column cases in
+`../sheetsBar/__tests__/cellMetaRoundTrip.unit.js`. The bar's side of it is in `../sheetsBar/AGENTS.md`.
+
 ## `width: 0` is a real value
 
 Walkontable honors an explicit `width: 0` (DEV-1137). See `../../3rdparty/walkontable/AGENTS.md`

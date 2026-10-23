@@ -172,9 +172,9 @@ left-column cell only where its **stored** meta owns them (`getCellMetaIfExists`
 re-anchor is not the original one, but is always in that column. Removing them from every left-column row
 fired `afterRemoveCellMeta` 21 times for a 3x2 merge where `develop` fires 15; pinned at 15. A trimmed row
 has no visual index, so its meta is removed through `_getMetaManager().removeCellMeta()` by physical index,
-and the `before`/`afterRemoveCellMeta` hooks do not fire for it. SheetsBar therefore does not track
-`hidden`/`spanned` at all (its `UNTRACKED_META_KEYS`): a tracked copy would come back after that hookless
-removal. Pinned by `__tests__/trimmedMergeMetaReset.unit.js`.
+and the `before`/`afterRemoveCellMeta` hooks do not fire for it. SheetsBar does not keep
+`hidden`/`spanned` when the user leaves a sheet (its `UNKEPT_META_KEYS`): the switch restores the merges,
+which writes them again, and a kept copy would stay on the cells of a stored merge that no longer fits. Pinned by `__tests__/trimmedMergeMetaReset.unit.js`.
 
 **A record a merge stops drawing over is cleaned when the mapping changes, not when the merge is
 dropped.** The reset above cannot reach a record the merge drew over (after a sort) once a trim has purged
