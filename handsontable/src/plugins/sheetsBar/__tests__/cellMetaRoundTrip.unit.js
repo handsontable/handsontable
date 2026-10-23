@@ -263,9 +263,8 @@ describe('SheetsBar cell meta round trip', () => {
     expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
   });
 
-  it('adds no listener to the cell meta read path or to row and column changes', () => {
-    const hookNames = ['afterGetCellMeta', 'afterSetCellMeta', 'afterRemoveCellMeta', 'afterCreateRow',
-      'afterRemoveRow', 'afterCreateCol', 'afterRemoveCol'];
+  it('adds no listener to the cell meta read and write paths', () => {
+    const hookNames = ['afterGetCellMeta', 'afterSetCellMeta', 'afterRemoveCellMeta'];
 
     hot = new Handsontable(container, {
       data: [['a', 'b']],

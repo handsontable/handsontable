@@ -406,11 +406,19 @@ Rules that keep it correct:
   sheet, not at the end, so the delta is not an append and the insert positions would have to be derived
   from the tree. More machinery and more ways to be quietly wrong; revisit only if the deferral above turns
   out to be unsafe.
-- **Known gap:** a foreign `afterUpdateSettings` listener that runs `disablePlugin(); enablePlugin()` on
-  this plugin mid-update drops the owed resync (`disablePlugin` clears the flag, `enablePlugin` finds the
-  sheet still in a user-supplied engine and skips the rebuild), so the sheet keeps the previous data until
-  the next update. Formulas' own `updatePlugin` does not do this. Not fixed, because setting the flag on
-  every re-enable would also rescan a plain runtime re-enable, which never rebuilt the sheet before.
+- **An enable on a live grid whose sheet a shared engine still holds owes a resync.** The engine keeps
+  the sheet as it was when the plugin was turned off, and the edits made since are only in the grid's
+  data: before this, a re-enable bound the stale sheet, so those edits were ignored by every formula,
+  and a foreign `afterUpdateSettings` listener that ran `disablePlugin(); enablePlugin()` mid-update
+  lost the update's data the same way. `enablePlugin()` sets `#sheetResyncPending` there, which the
+  next draw or read drains. Three cases skip it: no view yet (construction), a grid built without data
+  (it reads the engine sheet as its data), and a load core is about to make (`isDataLoadPending()`,
+  the sheets bar's switch), which feeds the sheet itself. Pinned by `__tests__/reenableSharedEngine.unit.js`
+  and "writes the new data when a listener disables and re-enables the plugin mid-update".
+- **At construction, a sheet a load in the same build already wrote is not scanned again** when the
+  row count is the same and the meta phase cannot change what the engine reads
+  (`#metaPhaseMayChangeEngineValues()`): the sheets bar loads its opening sheet itself, and the eager
+  construction resync fed it a second time.
 - **On a SHRINK, `getSheetDimensions()` is the wrong probe.** The engine grows a sheet to calculate
   values outside it and does not hand that extent back, so after a four-row grid drops to two the
   dimensions still report four while the content is correct. Assert `getSheetSerialized()` instead —
@@ -539,16 +547,43 @@ A `formulas.sheetName` change applied through `updateSettings()` makes `updatePl
 sheet's data itself right after the settings, so while `isDataWorkDeferred()` answers `true`
 `updatePlugin` binds the sheet with `#updateSheetNameAndSheetId()` instead, and the load then reaches
 `#onAfterLoadData`, which writes the loaded array into the bound sheet. Three rules. A name the engine
-does not know still goes through `switchSheet()`, so the error is reported, and the load that follows
-then binds a new sheet of that name filled with the loaded data, as a plain `updateSettings()` plus
-`loadData()` does. The branch that fills a new sheet from the grid's current data when no sheet is
+does not know is left to the load, which adds a sheet of that name and fills it with the loaded data, as
+a plain `updateSettings()` plus `loadData()` does, so it is not an error: going through `switchSheet()`
+there logged "The sheet named X does not exist, switch aborted" on the first visit of every sheet a
+sheets bar workbook bound to the `HyperFormula` class or to a second engine. Outside such a call a
+missing name still goes through `switchSheet()`, which reports it, unless no sheet is bound at all, when
+the branch below adds one from the grid's data. The branch that fills a new sheet from the grid's current data when no sheet is
 bound is skipped in the same window: the grid still holds the previous data then (at init, no data map
 at all), and the load fills the sheet. And a host's own `updateSettings({ formulas: { sheetName } })`
 is never deferred, so it keeps relying on `switchSheet()` to fill the grid. Tests, all in
 `../sheetsBar/__tests__/sheetsBar.unit.js`: "loads the grid once per switch" pins the single load;
-"reports an unknown Formulas sheet name applied ahead of its data, and binds the sheet the load fills"
-pins the `doesSheetExist` fallback; "leaves the Formulas switch load and min padding working after a
+"binds a Formulas sheet name the engine lacks to the sheet the load adds and fills, with no error"
+pins the missing-name path; "leaves the Formulas switch load and min padding working after a
 switch threw mid-update" pins that a throwing switch leaves the flag down.
+
+**Only a `sheetName` setting that changed asks for another sheet (`#requestedSheetName()`).** The binding
+is kept by sheet id and follows an engine rename (`#onEngineSheetRenamed`), while the setting keeps the
+name it was written with. Read as a request every time, the old name made a `language` or `maxRows`
+update log that the sheet does not exist and bind the grid to any sheet that took the old name since, and
+made a `loadData()` add a new sheet under the old name. `#followedSheetNameSetting` holds the setting the
+binding last followed; it is updated at the end of `updatePlugin()` outside a pending load, when the
+pending branch binds an existing sheet, and in `#onAfterLoadData`. Do not write the new name onto the
+table meta instead: a shadow there survived the sheets bar's next switch payload, so the plugin stayed
+bound to the renamed sheet and wrote the arriving sheet's data into it. `getSettings().formulas.sheetName`
+therefore keeps the old name after a rename. Pinned by "keeps the active sheet bound after its rename,
+through settings updates and a data load" in `../sheetsBar/__tests__/formulaSheets.unit.js`.
+
+**A sheets bar switch that sets another engine instance moves the plugin to it (`#followEngineChange()`).**
+The engine is set up on enable only, so the plugin kept the first engine while a sheets bar switched to a
+sheet bound to a second one: the second sheet's edits landed in a copy of it inside the first engine, and
+the second engine's formulas never saw them. The plugin is disabled and enabled again with no sheet
+bound, and binds the sheet the settings name in the new engine. **Only an instance that already holds the
+sheet `sheetName` names counts**, as every engine the sheets bar binds does. The React examples build
+`HyperFormula.buildEmpty()` in the component body and the wrapper forwards `formulas` on every commit, so
+following any new instance moved such a grid to an empty engine on every render (and a test of exactly that
+ran out of memory). An empty new instance is ignored, as it was before. And only a call whose load is
+pending (`isDataLoadPending()`) follows, so a plain `updateSettings()` with another instance keeps the
+engine the grid was built with, as before.
 
 **The `afterCellMetaReset` that follows the call's own load resyncs only when a `cell` entry sets a key that decides the value the engine reads (`type`, `valueGetter`, `source`, `sourceLabel`, and `preserveTextValue`, which the engine-bound escaping reads; `VALUE_GETTER_META_KEYS`) or `columns` is a function.** Only the reset of the call's own held meta phase skips (`_isHeldMetaPhaseRunning()`): a full `updateSettings()` an `afterLoadData` listener makes in the same call runs its meta phase outside that window, and its `columns` reached the column meta after the load wrote the sheet, so it resyncs. The sheets bar restates a grid-level `cell` on every switch, so counting any entry made every switch of such a workbook pay the resync, even for an entry that only sets `readOnly`. A custom `valueGetter` that reads another key of a `cell` entry is not seen. Core resets the column meta before that load for `columns: null` (the sheets bar sends it for a sheet without `columns`), so that payload needs no resync. The two `updatePlugin()` branches that bind a sheet for the load (the `sheetName` rebind without `switchSheet()`, and the skipped fill from the current data) ask `isDataLoadPending()`, not `isDataWorkDeferred()`: an enable from an `afterLoadData` listener in that call comes after the load, and waiting for it left `sheetName` `null`.
 The load already wrote the sheet with the call's column configuration, so a resync there was a second full
@@ -566,6 +601,96 @@ that way), and a check of the setting alone then marked the grid as empty, so ev
 update reloaded the grid from the engine sheet. The array check is scoped to that call
 (`isDataWorkDeferred()`): a grid built with a `dataProvider` and no `data` loads a `[]` placeholder first
 and must keep reading the engine sheet as its data, and a grid built without data loads `null`.
+
+## Sheet names the engine reads only in quotes
+
+HyperFormula's unparser writes a sheet name without quotes whenever it can (`=2026!A1` for a sheet
+named `2026`) and then cannot parse that text back, and its parser cannot read a name outside its
+unquoted grammar at all (`=Лист2!A1` is `#ERROR!`, while `='Лист2'!A1` works). The same rule runs in
+both directions. **On the way in**, `#escapeEngineBoundValue()` quotes a formula before anything else
+(cell edits, `setSourceDataAtCell`, the switched-away restore), `#escapeSourceDataArray()` quotes the
+formulas of every bulk write before its date and text gate (load, resync, inserted rows), and
+`addSheet(name, data)` quotes the rows it feeds; the host's own array is never written by these.
+Without it the editor showed `='Лист2'!A1` (the read side below) over an `#ERROR!` the engine held
+for the unquoted text. **On the way out**, every formula text that leaves the engine through
+this plugin goes through `#readableFormula()` (or `#readableSheet()` for a whole sheet),
+which runs `quoteUnreadableSheetNames()` from `../../utils/formulaReferences.ts`: an unquoted name
+the engine cannot read is quoted, everything else is left as written. That covers the source-data
+read (`modifySourceData`, so the editor opens on `='2026'!A1`), `switchSheet()`, the write-back of
+rewritten formulas, the undo snapshot and peer rewrites, fill, copy and cut, show-formulas paint, and
+MoveCells. Committing the editor text unchanged used to make the cell `#ERROR!`. Whether a name is
+readable is asked of the engine itself (`validateFormula('=<name>!A1')`) and cached per name in
+`#unquotedSheetNames`, cleared on enable. A formula with no `!` returns at once, so the hot read
+path pays one `includes('!')`. Pinned by `__tests__/sheetNameQuoting.unit.js`.
+
+Two tokenizer rules sit under all of this. **An error literal is never a sheet name**: the scanner
+skips `#` up to its `!` or `?`, because `#DIV/0!` reads as the name `0` in front of a `!`, and quoting
+it wrote `#DIV/'0'!` into every formula with that literal (into the host data too, after a row insert);
+a sheet named `REF` or `Value` would also have had its rename rewrite `#REF!` and `#VALUE!`. **The
+engine's own answer counts only for a name made of name characters** (`isUnquotedSheetName()`):
+`validateFormula('=Sales-EU!A1')` is `true` because the engine parses it as a subtraction, so a name
+with an operator, a space or a quote is always quoted. The bar's `#sheetNameText()` applies that rule;
+the read and write paths here only ever see tokenized names, which hold name characters only.
+
+## `sheetName`, `switchSheet()` and the engine instance
+
+**The setting counts as followed only once the binding matches it** (`#followSheetNameSettingWhenBound()`):
+a `sheetName` the engine did not hold yet stays a request, so the same setting sent again after the host
+added the sheet binds it (recorded at once, the retry did nothing and logged nothing). **The public
+`switchSheet()` drops the followed setting**, so the next settings update that reaches the plugin binds
+the setting's sheet again, as it did before `#requestedSheetName()` existed. The plugin's own reloads go
+through the private `#loadSheet()` and keep it, which is what keeps the rename case (an engine rename the
+binding followed, with the setting still on the old name) from asking for the old name. **An engine class
+setting over a user instance is an engine change while a load is pending** (`#engineBuiltFromClass`, the
+sheets bar's switch): kept on the instance, a sheet that passes the class wrote itself into another sheet's
+engine. Pinned by `__tests__/sheetNameSetting.unit.js`
+and the engine binding cases of `../sheetsBar/__tests__/formulaSheets.unit.js`.
+
+**A sheet the engine refuses still gets the sync endpoint** (`#clearRejectedSheet()` calls
+`setupSyncEndpoint()`): left on the sheet bound before, a sort of the refused sheet reordered that other
+sheet's formula cells.
+
+## The engine order of a sheet the grid leaves and loads again (`runWithEngineOrderHeld()`)
+
+Every order the axis syncer hands the engine (`setRowOrder`, `setColumnOrder`) moves the formula cells,
+and their text with them, so a sheet's formula text in the engine depends on how its order was reached
+(see Undo/redo above, and "Sorting does not remap formula addresses" below). A caller that replaces the grid's data and puts the same order back
+(the sheets bar, on a switch) therefore cannot load the data and sort it again. Two `@private` methods,
+reached through the typed `getPlugin('formulas')`:
+
+- `exportEngineOrder()` returns the bound sheet's engine order (`getEngineOrder()` of both syncers) when
+  it is not physical on either axis, or `null`.
+- `runWithEngineOrderHeld(run, adopt)` runs `run` with both syncers held (`AxisSyncer#setOrderHeld()`):
+  an `'update'` order change is not sent, and the translation reads the engine's own order
+  (`#getHeldEngineSequence()`) instead of the grid's sequence, so a read in between finds its cell. A
+  syncer an enable creates inside the call starts held. When the call ends, the grid's order is sent
+  once (unless the plugin was turned off in between). With `adopt` given, a load inside the call that
+  binds that engine sheet takes it over (`#adoptEngineSheet()`): it writes nothing, sets up the sync
+  endpoint and adopts the stored order, and the meta-phase resync of that call is skipped, since the
+  engine sheet already holds what the `cell` entries decided. Only the first such load takes it over
+  (`adopted`): a listener that loads other data in the same call gets an ordinary write.
+
+**A move inside the hold is an order change like a sort once an engine order was adopted in it.**
+`calculateAndSyncMoves()` sends nothing and a `'move'` sequence change leaves the stored order alone; the
+release sends the order the grid ends on. A sheet with an array `manualRowMove` re-applies its moves in
+`afterLoadData`, after this plugin adopted the engine order, and the move sent then was computed against
+the held order and asked the engine for a row number past its sheet (`Invalid arguments …`, rows
+scrambled). Without an adopted order (a first visit) the move reaches the engine through `moveRows`, as
+on a plain grid's `loadData()`: held there, the release sent the order with `setRowOrder`, which turns
+references into `#REF!` (`=A2*10` on a `[2, 3, 4, 0, 1]` order) where `moveRows` keeps them. The flag is
+`AxisSyncer#adoptedWhileHeld`, set by `adoptEngineOrder()` during a hold and cleared when a hold starts or
+ends (pinned in `../sheetsBar/__tests__/formulaSheets.unit.js` against a plain grid's `loadData()`).
+The release clears the column axis even when sending the row order throws (`IndexSyncer#setOrderHeld()`).
+`#getHeldEngineSequence()` reads the
+stored order, then the order an empty sheet was filled in (`#fillSequence`), then the ascending tail,
+the order `#getEngineElements()` reads. **Rows or columns inserted or removed inside the hold are not
+supported**: the engine changes positionally through the held order, which the stored sequence then no
+longer describes. Nothing in the sheets bar's switch does it. Pinned by
+`__tests__/indexSyncer/axisSyncerHeldOrder.unit.js`.
+
+The caller decides when the data is still the one the engine holds; the sheets bar compares the array
+object and its length. `isHfOrderPhysical()` answers for the engine's order while held, so
+`#syncFormulasToSourceData()` never writes engine text into data the engine holds in another order.
 
 ## Object rows: the sheet is only as wide and as aligned as `getSourceDataArray()` makes it
 

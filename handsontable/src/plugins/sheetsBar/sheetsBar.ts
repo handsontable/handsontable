@@ -34,6 +34,14 @@ import * as C from '../../i18n/constants';
 import { announce } from '../../utils/a11yAnnouncer';
 import { isRootInstance } from '../../utils/rootInstance';
 import { deepClone, isPlainObject } from '../../helpers/object';
+import {
+  formatSheetName, isUnquotedSheetName, quoteUnreadableSheetNames, rewriteSheetReferences,
+} from '../../utils/formulaReferences';
+import {
+  collectFormulaTextChanges, getEngineCellKeys, getEngineColumnLayout, isChangeTargetFrozen, listSheetRows, readCell,
+  toEngineContent, writeFormulaTextChanges,
+} from './formulaSheetData';
+import type { FormulaTextChange, SheetLayoutSettings } from './formulaSheetData';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { syncIcon } from '../../themes/engine/icons';
@@ -47,6 +55,7 @@ import type {
   DataProviderFetchResult,
   DataProviderRequestKind,
 } from '../dataProvider/dataProvider';
+import type { FormulasEngineSheetOrder } from '../formulas/formulas';
 
 export const PLUGIN_KEY = 'sheetsBar';
 export const PLUGIN_PRIORITY = 910;
@@ -118,28 +127,6 @@ interface TabMotion {
 }
 
 /**
- * Writes an engine's rewritten formula strings straight into a sheet's data array. Used for
- * sheets that are not in front of the grid, whose engine content was seeded from that same
- * array — the two layouts are one, so the strings go back index for index.
- */
-function applyEngineRewritesToSheetData(data: unknown[], serialized: unknown[][]): void {
-  data.forEach((row, rowIndex) => {
-    if (!Array.isArray(row)) {
-      return;
-    }
-
-    row.forEach((cell, columnIndex) => {
-      const fromEngine = serialized[rowIndex]?.[columnIndex];
-
-      if (typeof cell === 'string' && cell.startsWith('=')
-        && typeof fromEngine === 'string' && fromEngine !== cell) {
-        row[columnIndex] = fromEngine;
-      }
-    });
-  });
-}
-
-/**
  * User-set cell meta keys a sheet does not keep when the user leaves it. `hidden` and `spanned` are
  * MergeCells' own bookkeeping, not options: the switch restores the merges, which writes them again, and a
  * kept copy would stay on the cells of a stored merge that no longer fits and is dropped. `valid` is read
@@ -147,6 +134,26 @@ function applyEngineRewritesToSheetData(data: unknown[], serialized: unknown[][]
  * `valid: false` is kept and a `valid: true` is dropped.
  */
 const UNKEPT_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
+
+/**
+ * The undo step types (and operation names) that insert, remove or move rows, columns or cells: the
+ * steps whose undo or redo makes the formula engine rewrite references other sheets hold.
+ */
+const STRUCTURAL_STEPS = new Set([
+  'insert_row', 'insert_col', 'remove_row', 'remove_col', 'row_move', 'col_move', 'move_cells', 'nested_rows_detach',
+]);
+
+/**
+ * Whether a row or column insert or removal with this source reached the formula engine as it happened:
+ * the rows the minimum sizes add (`auto`) never do, and an undo or redo replays its rows before the engine
+ * is put back.
+ *
+ * @param {string} [source] The operation source.
+ * @returns {boolean}
+ */
+function isEngineChangingSource(source?: string): boolean {
+  return source !== 'auto' && !source?.startsWith('UndoRedo.');
+}
 
 /**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
@@ -233,8 +240,20 @@ interface SheetFormulas {
     renameSheet?: (sheetId: number, name: string) => void;
     removeSheet?: (sheetId: number) => void;
     getSheetId?: (name: string) => number | undefined;
+    getSheetName?: (sheetId: number) => string | undefined;
     setSheetContent?: (sheetId: number, content: unknown[]) => void;
+    isItPossibleToReplaceSheetContent?: (sheetId: number, content: unknown[]) => boolean;
     getSheetSerialized?: (sheetId: number) => unknown[][];
+    validateFormula?: (formula: string) => boolean;
+    listNamedExpressions?: (scope?: number) => string[];
+    getNamedExpression?: (name: string, scope?: number) => { options?: unknown } | null;
+    getNamedExpressionFormula?: (name: string, scope?: number) => string | undefined;
+    getNamedExpressionValue?: (name: string, scope?: number) => unknown;
+    addNamedExpression?: (name: string, expression: unknown, scope?: number, options?: unknown) => void;
+    getCellFormula?: (address: { sheet: number, row: number, col: number }) => string | undefined;
+    normalizeFormula?: (formula: string) => string;
+    on?: (event: string, listener: (changes: unknown[]) => void) => void;
+    off?: (event: string, listener: (changes: unknown[]) => void) => void;
   };
   sheetName?: string;
 }
@@ -254,6 +273,24 @@ function formulasSettingOf(sheet: Sheet): SheetFormulas | null {
  */
 function isEngineInstance(engine: SheetFormulas['engine']): boolean {
   return typeof engine === 'object' && engine !== null && typeof engine.doesSheetExist === 'function';
+}
+
+/**
+ * Whether the engine holds a sheet under `newName` that is not the one bound under `oldName`. The engine
+ * matches names without regard to case, so `prices` and `Prices` name one sheet, and a rename that only
+ * changes the case is a rename of that sheet, not a collision with another one.
+ */
+function isOtherEngineSheet(engine: NonNullable<SheetFormulas['engine']>, oldName: string, newName: string): boolean {
+  return engine.doesSheetExist!(newName) && engine.getSheetId!(newName) !== engine.getSheetId!(oldName);
+}
+
+/**
+ * Whether two sheet names name one sheet to the engine, which compares them without regard to case
+ * through a plain `toLowerCase()`. A locale-aware lower case follows the host: on a Turkish host `ITEMS`
+ * becomes `ıtems`, so a rename of the engine sheet `items` left `=ITEMS!A1` behind in the host's data.
+ */
+function isSameSheetName(first: string, second: string): boolean {
+  return first.toLowerCase() === second.toLowerCase();
 }
 
 /**
@@ -385,6 +422,14 @@ export class SheetsBar extends BasePlugin {
    */
   #isRunningBeforeHook = false;
   /**
+   * Whether the last workbook change was canceled by its before-hook listener (`#commit`). A rename undo
+   * step reads it to tell a listener's veto, which keeps the step on its stack, from a rename that can no
+   * longer happen.
+   *
+   * @type {boolean}
+   */
+  #lastCommitCanceled = false;
+  /**
    * Holds every tab entrance, tab slide, and marker slide back until the grid has been painted:
    * the gate opens in the second animation frame after the render that armed it. Shut on a
    * genuine teardown, never on a workbook-preserving round trip, and armed by the first render
@@ -418,6 +463,13 @@ export class SheetsBar extends BasePlugin {
    */
   #isInitializing = false;
   /**
+   * The engine changes the feeds of a workbook build caused, repainted once the build ends
+   * (`#repaintAfterBuild`).
+   *
+   * @type {Array<object>}
+   */
+  #changesToRepaint: Array<{ engine: NonNullable<SheetFormulas['engine']>, changes: unknown[] }> = [];
+  /**
    * The ColumnSummary endpoints of each sheet the user left, at the positions they held then
    * (`#captureColumnSummary`).
    *
@@ -438,6 +490,19 @@ export class SheetsBar extends BasePlugin {
    * @type {Array|undefined}
    */
   #gridCellOption: unknown = undefined;
+  /**
+   * The order the formula engine held each sheet in when the user left it sorted or with moved rows or
+   * columns, with the data array and its length at that moment (`#captureEngineOrder`).
+   *
+   * @type {WeakMap<object, object>}
+   */
+  #engineOrders = new WeakMap<Sheet, { order: FormulasEngineSheetOrder; data: unknown[]; length: number }>();
+  /**
+   * The sheets the user left with formula text shown (`Formulas#showFormulas()`).
+   *
+   * @type {WeakSet<object>}
+   */
+  #formulaTextSheets = new WeakSet<Sheet>();
   /**
    * The server view of each sheet that loads its rows through its own `dataProvider`.
    *
@@ -686,9 +751,15 @@ export class SheetsBar extends BasePlugin {
         this.#captureGridColumnSummary();
         this.#gridCellOption = this.hot.getSettings().cell;
         this.#buildInitialWorkbook();
+      } catch (error) {
+        this.#changesToRepaint = [];
+
+        throw error;
       } finally {
         this.#isInitializing = false;
       }
+
+      this.#repaintAfterBuild();
 
       this.#lastActiveSheetSetting = this.getSetting('activeSheet');
     }
@@ -815,6 +886,17 @@ export class SheetsBar extends BasePlugin {
 
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
+    this.addHook('afterCreateRow', this.#onAfterCreateAxisItems, 1);
+    this.addHook('afterCreateCol', this.#onAfterCreateAxisItems, 1);
+    this.addHook('afterRemoveRow', this.#onAfterRemoveAxisItems, 1);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveAxisItems, 1);
+    this.addHook('afterUndo', this.#onAfterUndoRedo, 1);
+    this.addHook('afterRedo', this.#onAfterUndoRedo, 1);
+    ['afterRowMove', 'afterColumnMove', 'afterMoveCells'].forEach((hookName) => {
+      this.addHook(hookName as 'afterRowMove', this.#onAfterStructureChange, 1);
+    });
+    this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('afterUpdateData', this.#onAfterUpdateData);
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, -1);
@@ -1230,7 +1312,10 @@ export class SheetsBar extends BasePlugin {
    * Returns `false` when the id is unknown, the name is blank or unchanged, another sheet
    * already uses the name (in the bar or in the sheet's formula engine), a
    * `beforeSheetTabRename` listener cancels the rename, or it is called from a listener of a
-   * workbook change's before-hook.
+   * workbook change's before-hook. A name that changes only the case of the letters is a rename.
+   *
+   * With the `Formulas` plugin, the references to the sheet are rewritten in the data of every sheet
+   * that shares its formula engine, and the rename is one undo step.
    *
    * @param {number} id The sheet's id.
    * @param {string} name The new name. Trimmed, and cut to the name length limit.
@@ -1339,6 +1424,9 @@ export class SheetsBar extends BasePlugin {
           if (!this.#isLive(model)) {
             return false;
           }
+
+          this.#captureEngineOrder(oldSheet);
+          this.#captureFormulaText(oldSheet);
         }
 
         if (!this.#isEditingSettled()) {
@@ -1998,14 +2086,20 @@ export class SheetsBar extends BasePlugin {
         this.#copiedCellMeta.delete(newSheet);
         rebuildCustomBordersFromCellMeta(this.hot);
       }
+
+      this.#restoreFormulaText(newSheet);
     };
 
+    const engineOrder = viewState ? this.#engineOrderToAdopt(newSheet) : null;
+
     this.#withoutUndoEntry(() => {
-      if (this.hot.view) {
-        this.#batchRender(switchSheet);
-      } else {
-        switchSheet();
-      }
+      this.#withEngineOrderHeld(() => {
+        if (this.hot.view) {
+          this.#batchRender(switchSheet);
+        } else {
+          switchSheet();
+        }
+      }, engineOrder);
     });
 
     // The selection, the scroll position, and the hook wait for the batch to end: the first two
@@ -2051,7 +2145,6 @@ export class SheetsBar extends BasePlugin {
         const sheet = model.addSheet(entry.name ?? null, entry.data, entry.settings);
 
         this.#declaredEntries.set(sheet.id, entry);
-        this.#registerFormulaSheet(sheet);
       });
 
       const activeIndex = this.getSetting<number>('activeSheet') ?? 0;
@@ -2062,6 +2155,8 @@ export class SheetsBar extends BasePlugin {
       const target = retained ?? descriptors[activeIndex] ?? descriptors[0];
 
       const targetSheet = model.getSheetById(target.id) as Sheet;
+
+      this.#sheetRecords().forEach(sheet => this.#registerFormulaSheet(sheet, { feed: sheet !== targetSheet }));
 
       model.setActiveSheet(target.id);
 
@@ -2159,6 +2254,103 @@ export class SheetsBar extends BasePlugin {
       this.#batchRender(apply);
     } else {
       apply();
+    }
+  }
+
+  /**
+   * Stores the order the formula engine holds the departing sheet in, when a sort or a move reached the
+   * engine. The engine moves formula cells on every order it gets, and the sheet's data does not follow
+   * (the Formulas plugin writes formula text back into the data only while the order is physical), so
+   * the formulas the user saw on a sorted or moved sheet exist only in the engine. Loading the data again
+   * and sorting it produced other formulas: `#REF!` in place of moved columns, other sums. A return with
+   * the same data array, still as long as when the user left, takes the engine sheet over instead
+   * (`#engineOrderToAdopt`). Nothing is stored for a sheet in physical order, whose data matches the
+   * engine.
+   *
+   * @param {object} sheet The departing sheet.
+   */
+  #captureEngineOrder(sheet: Sheet) {
+    const order = this.hot.getPlugin('formulas')?.exportEngineOrder() ?? null;
+
+    if (order) {
+      this.#engineOrders.set(sheet, { order, data: sheet.data, length: sheet.data.length });
+    } else {
+      this.#engineOrders.delete(sheet);
+    }
+  }
+
+  /**
+   * Records whether the departing sheet shows formula text (`Formulas#showFormulas()`). The mode is kept
+   * per sheet, like a sort or the filters: it lives on the Formulas plugin, so it carried over to the next
+   * formulas sheet, while a sheet without formulas turned the plugin off and dropped it.
+   *
+   * @param {object} sheet The departing sheet.
+   */
+  #captureFormulaText(sheet: Sheet) {
+    const formulas = this.hot.getPlugin('formulas');
+
+    if (formulas?.enabled && formulas.isShowingFormulas()) {
+      this.#formulaTextSheets.add(sheet);
+    } else {
+      this.#formulaTextSheets.delete(sheet);
+    }
+  }
+
+  /**
+   * Shows or hides formula text for the arriving sheet as the user left it, or hides it on a sheet the
+   * user has not left with formula text shown.
+   *
+   * @param {object} sheet The arriving sheet.
+   */
+  #restoreFormulaText(sheet: Sheet) {
+    const formulas = this.hot.getPlugin('formulas');
+
+    if (!formulas?.enabled || formulas.isShowingFormulas() === this.#formulaTextSheets.has(sheet)) {
+      return;
+    }
+
+    if (this.#formulaTextSheets.has(sheet)) {
+      formulas.showFormulas();
+    } else {
+      formulas.hideFormulas();
+    }
+  }
+
+  /**
+   * Returns the engine order a returning sheet takes over, or `null` when its data must be loaded into
+   * the engine: nothing was stored, the host replaced or resized the data while the sheet was away, or
+   * the engine no longer holds the sheet under its binding.
+   *
+   * @param {object} sheet The arriving sheet.
+   * @returns {object|null}
+   */
+  #engineOrderToAdopt(sheet: Sheet): FormulasEngineSheetOrder | null {
+    const stored = this.#engineOrders.get(sheet);
+    const formulas = formulasSettingOf(sheet);
+
+    if (!stored || stored.data !== sheet.data || stored.length !== sheet.data.length
+      || !formulas?.sheetName || (formulas.engine as unknown) !== stored.order.engine
+      || stored.order.engine.getSheetId(formulas.sheetName) !== stored.order.sheetId) {
+      return null;
+    }
+
+    return stored.order;
+  }
+
+  /**
+   * Runs a sheet switch with the grid's order changes kept from the formula engine
+   * (`Formulas#runWithEngineOrderHeld`), or as it is when the Formulas plugin is not registered.
+   *
+   * @param {Function} run The switch.
+   * @param {object|null} engineOrder The engine order the arriving sheet takes over.
+   */
+  #withEngineOrderHeld(run: () => void, engineOrder: FormulasEngineSheetOrder | null) {
+    const formulas = this.hot.getPlugin('formulas');
+
+    if (formulas) {
+      formulas.runWithEngineOrderHeld(run, engineOrder);
+    } else {
+      run();
     }
   }
 
@@ -2570,6 +2762,7 @@ export class SheetsBar extends BasePlugin {
     this.#runBeforeChangeHook(() => {
       canceled = this.hot.runHooks(beforeHook, ...beforeArgs, source) === false;
     });
+    this.#lastCommitCanceled = canceled;
 
     if (canceled || !this.#isLive(model)) {
       return false;
@@ -2593,7 +2786,12 @@ export class SheetsBar extends BasePlugin {
    * cancels, or the model rejects the name (collision with another sheet).
    */
   #commitRename(id: number, newName: string, source: string = SOURCE_UI): boolean {
-    const model = this.#model as SheetModel;
+    const model = this.#model;
+
+    if (!model) {
+      return false;
+    }
+
     const sheet = model.getSheetById(id);
 
     if (!sheet || typeof newName !== 'string') {
@@ -2615,7 +2813,10 @@ export class SheetsBar extends BasePlugin {
           return false;
         }
 
-        this.#renameFormulaSheet(sheet, oldName, trimmed, source);
+        if (this.#renameFormulaSheet(sheet, oldName, trimmed, source)) {
+          this.#recordRenameStep(id, oldName, trimmed, source);
+        }
+
         this.#refreshUI();
 
         return trimmed;
@@ -2630,6 +2831,50 @@ export class SheetsBar extends BasePlugin {
     }
 
     return committed !== false && committed !== undefined;
+  }
+
+  /**
+   * Records a rename that renamed a formula engine sheet as an undo step, which renames the tab back (and
+   * a redo renames it again). The steps recorded before it hold formula text with the old name, and the
+   * engine knows only the new one: undoing an older row removal put `=Prices!A1` back into a workbook
+   * whose sheet is `Costs`, and the cell showed `#REF!`. Undone in order, the rename goes first, and
+   * every older step meets the name its text was written with. Only a `beforeSheetTabRename` listener's
+   * veto leaves the step on its stack. A step whose bar was turned off or replaced, whose sheet was removed,
+   * or whose name another sheet took since, passes as done: kept on the stack, it was the step every undo
+   * hit again, and the older steps could not be reached. Nothing is recorded while UndoRedo is off.
+   *
+   * @param {number} id The renamed sheet.
+   * @param {string} oldName Its name before the rename.
+   * @param {string} newName Its name after it.
+   * @param {string} source The operation source.
+   */
+  #recordRenameStep(id: number, oldName: string, newName: string, source: string) {
+    const undoRedo = this.hot.getPlugin('undoRedo');
+    const owner = this.#model;
+
+    if (!undoRedo?.enabled) {
+      return;
+    }
+
+    const replay = (name: string, replaySource: string): boolean => {
+      if (this.#model !== owner || !owner?.getSheetById(id)) {
+        return true;
+      }
+
+      this.#lastCommitCanceled = false;
+
+      return this.#commitRename(id, name, replaySource) || !this.#lastCommitCanceled;
+    };
+
+    undoRedo.done(() => ({
+      actionType: 'rename_sheet',
+      undo: (hot: HotInstance, callback: (result?: { wasUndone?: boolean }) => void) => {
+        callback({ wasUndone: replay(oldName, 'UndoRedo.undo') });
+      },
+      redo: (hot: HotInstance, callback: (result?: { wasRedone?: boolean }) => void) => {
+        callback({ wasRedone: replay(newName, 'UndoRedo.redo') });
+      },
+    }), source);
   }
 
   /**
@@ -2832,11 +3077,10 @@ export class SheetsBar extends BasePlugin {
         const formulas = formulasSettingOf(sheet);
 
         if (formulas?.sheetName && isEngineInstance(formulas.engine)) {
-          sheet.settings = {
-            ...sheet.settings,
-            formulas: { ...formulas, sheetName: freeEngineName(formulas.engine!, sheet.name) },
-          };
-          this.#registerFormulaSheet(sheet);
+          const copyName = freeEngineName(formulas.engine!, sheet.name);
+
+          sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: copyName } };
+          this.#registerFormulaCopy(sheet, formulas.engine!, formulas.sheetName, copyName);
         }
 
         this.#markTabEntering(sheet.id);
@@ -2959,7 +3203,10 @@ export class SheetsBar extends BasePlugin {
    * no other sheet can reference — worth a warning when a `sheetName` suggests the intent was
    * a shared workbook.
    */
-  #registerFormulaSheet(sheet: Sheet | null) {
+  #registerFormulaSheet(
+    sheet: Sheet | null,
+    { feed = true, beforeFeed }: { feed?: boolean, beforeFeed?: (sheetId: number) => void } = {},
+  ) {
     const formulas = sheet ? formulasSettingOf(sheet) : null;
 
     if (!sheet || !formulas?.sheetName) {
@@ -2977,7 +3224,21 @@ export class SheetsBar extends BasePlugin {
     }
 
     const engine = formulas.engine!;
-    let engineName = formulas.sheetName;
+
+    this.#withEngineRepaint(engine, () => this.#feedFormulaSheet(sheet, formulas, engine, feed, beforeFeed));
+  }
+
+  /**
+   * Adds the sheet to `engine` when the engine does not hold it yet, and feeds it the sheet's data.
+   */
+  #feedFormulaSheet(
+    sheet: Sheet,
+    formulas: SheetFormulas,
+    engine: NonNullable<SheetFormulas['engine']>,
+    feed: boolean,
+    beforeFeed?: (sheetId: number) => void,
+  ) {
+    let engineName = formulas.sheetName!;
 
     if (!engine.doesSheetExist!(engineName)) {
       // The engine may normalize the name it is asked for — two tabs the model tells apart can
@@ -2992,13 +3253,125 @@ export class SheetsBar extends BasePlugin {
 
     const sheetId = engine.getSheetId!(engineName);
 
+    if (typeof sheetId !== 'number') {
+      return;
+    }
+
+    beforeFeed?.(sheetId);
+
     // Fed on every registration, not only when the sheet is new to the engine: a rebuilt
     // workbook can reuse the names with new data, and an engine sheet left on its old content
     // would keep feeding stale values into the cross-sheet formulas until each sheet is
     // visited once.
-    if (typeof sheetId === 'number') {
-      engine.setSheetContent!(sheetId, sheet.data);
+    if (feed) {
+      const content = this.#readableEngineContent(engine, toEngineContent(sheet.data, this.#layoutSettingsOf(sheet)));
+
+      if (engine.isItPossibleToReplaceSheetContent?.(sheetId, content) === false) {
+        engine.setSheetContent!(sheetId, [[]]);
+        warn(`The data of the sheet "${sheet.name}" could not be passed to the formula engine, so its ` +
+          'formulas were cleared. It most likely exceeds the engine\'s `maxRows` or `maxColumns` limit.');
+
+      } else {
+        engine.setSheetContent!(sheetId, content);
+      }
     }
+  }
+
+  /**
+   * Returns a function that quotes every sheet name in a formula that `engine` cannot read without
+   * quotes (`#sheetNameText`), asking the engine once per name.
+   *
+   * @param {object} engine The engine.
+   * @returns {Function}
+   */
+  #formulaQuoterFor(engine: NonNullable<SheetFormulas['engine']>): (formula: string) => string {
+    const readable = new Map<string, boolean>();
+    const canReadUnquoted = (name: string) => {
+      if (!readable.has(name)) {
+        readable.set(name, this.#sheetNameText(engine, name) === name);
+      }
+
+      return readable.get(name)!;
+    };
+
+    return formula => quoteUnreadableSheetNames(formula, canReadUnquoted);
+  }
+
+  /**
+   * Returns the content the bar feeds `engine` with the quotes the engine needs around a sheet name it
+   * cannot read unquoted (`=Лист2!A1` becomes `='Лист2'!A1`), the rule the Formulas plugin applies to
+   * every formula it writes into the engine. A row with nothing to quote is kept, and a changed row is
+   * a copy, so the host's data is never written.
+   *
+   * @param {object} engine The engine.
+   * @param {Array} content The rows to feed.
+   * @returns {Array}
+   */
+  #readableEngineContent(engine: NonNullable<SheetFormulas['engine']>, content: unknown[]): unknown[] {
+    const quoteIfNeeded = this.#formulaQuoterFor(engine);
+
+    return content.map((row) => {
+      if (!Array.isArray(row)) {
+        return row;
+      }
+
+      const cells = row as unknown[];
+      let copy: unknown[] | null = null;
+
+      cells.forEach((cell, columnIndex) => {
+        if (typeof cell === 'string' && cell.startsWith('=')) {
+          const text = quoteIfNeeded(cell);
+
+          if (text !== cell) {
+            copy ??= cells.slice();
+            copy[columnIndex] = text;
+          }
+        }
+      });
+
+      return copy ?? cells;
+    });
+  }
+
+  /**
+   * Registers a duplicated sheet in the engine of its original, as a copy of the original's engine sheet.
+   * A copy is a sheet of its own, so a reference the original makes to itself by name (`=Budget!B1` on
+   * `Budget`) names the copy in the copy, as spreadsheet apps duplicate a sheet; kept as it was, the
+   * copy's formulas read the original's cells and ignored the copy's own. The original's sheet-scoped
+   * named expressions are copied too, with the same change, before the copy's content is fed: without
+   * them its formulas read `#NAME?`.
+   *
+   * @param {object} sheet The copy.
+   * @param {object} engine The engine.
+   * @param {string} originalName The original's engine sheet name.
+   * @param {string} copyName The copy's engine sheet name.
+   */
+  #registerFormulaCopy(
+    sheet: Sheet, engine: NonNullable<SheetFormulas['engine']>, originalName: string, copyName: string,
+  ) {
+    const copyText = this.#sheetNameText(engine, copyName);
+    const repoint = (formula: string) => rewriteSheetReferences(formula, reference => (
+      isSameSheetName(reference.name, originalName) ? copyText : null
+    ));
+    const originalId = engine.getSheetId!(originalName);
+
+    this.#replaceSheetData(sheet, writeFormulaTextChanges(sheet.data, collectFormulaTextChanges(sheet.data, repoint)));
+    this.#registerFormulaSheet(sheet, {
+      beforeFeed: (copyId) => {
+        if (typeof originalId !== 'number') {
+          return;
+        }
+
+        engine.listNamedExpressions?.(originalId).forEach((name) => {
+          const formula = engine.getNamedExpressionFormula?.(name, originalId);
+          const expression = formula === undefined
+            ? engine.getNamedExpressionValue?.(name, originalId)
+            : repoint(formula);
+
+          engine.addNamedExpression?.(name, expression, copyId, engine.getNamedExpression?.(name, originalId)?.options);
+        });
+      },
+    });
   }
 
   /**
@@ -3017,8 +3390,73 @@ export class SheetsBar extends BasePlugin {
     const sheetId = engine!.getSheetId!(formulas.sheetName);
 
     if (typeof sheetId === 'number') {
-      engine!.removeSheet!(sheetId);
+      this.#withEngineRepaint(engine!, () => engine!.removeSheet!(sheetId));
     }
+  }
+
+  /**
+   * Runs an engine call the bar makes itself and repaints every grid on that engine whose sheet it
+   * recalculated. The Formulas plugin repaints only after the engine calls it makes, so a formula
+   * reading a sheet the bar removed or added kept painting its old value while `getDataAtCell()`
+   * already returned the new one. The changes are read from the engine's `valuesUpdated` event, which
+   * also reports the recalculation an added sheet triggers. The grids are repainted through the
+   * Formulas plugin of the bar's grid, so only while it is bound to the same engine.
+   *
+   * @param {object} engine The engine.
+   * @param {Function} run The engine call.
+   */
+  #withEngineRepaint(engine: NonNullable<SheetFormulas['engine']>, run: () => void) {
+    let changes: unknown[] = [];
+    const collect = (updated: unknown[]) => {
+      changes = changes.concat(updated);
+    };
+
+    engine.on?.('valuesUpdated', collect);
+
+    try {
+      run();
+    } finally {
+      engine.off?.('valuesUpdated', collect);
+    }
+
+    if (this.#isInitializing) {
+      this.#changesToRepaint.push({ engine, changes });
+
+      return;
+    }
+
+    this.#repaintDependents(engine, changes, true);
+  }
+
+  /**
+   * Repaints the grids on `engine` whose sheets `changes` recalculated, through the Formulas plugin of the
+   * bar's grid, so only while it is bound to that engine.
+   *
+   * @param {object} engine The engine.
+   * @param {Array} changes The engine's changes.
+   * @param {boolean} renderSelf Whether the bar's own grid is repainted too.
+   */
+  #repaintDependents(engine: NonNullable<SheetFormulas['engine']>, changes: unknown[], renderSelf: boolean) {
+    const formulas = this.hot.getPlugin('formulas');
+
+    if (changes.length > 0 && this.hot.view && formulas?.enabled && formulas.engine === engine) {
+      formulas.renderDependentSheets(changes, renderSelf);
+    }
+  }
+
+  /**
+   * Repaints, once, the other grids that read the sheets a workbook build fed. A build feeds every sheet
+   * while the grid still shows the previous workbook, so a repaint per feed drew stale data once per sheet;
+   * the bar's own grid is drawn when the opening sheet is applied.
+   */
+  #repaintAfterBuild() {
+    const byEngine = new Map<NonNullable<SheetFormulas['engine']>, unknown[]>();
+
+    this.#changesToRepaint.forEach(({ engine, changes }) => {
+      byEngine.set(engine, (byEngine.get(engine) ?? []).concat(changes));
+    });
+    this.#changesToRepaint = [];
+    byEngine.forEach((changes, engine) => this.#repaintDependents(engine, changes, false));
   }
 
   /**
@@ -3034,7 +3472,7 @@ export class SheetsBar extends BasePlugin {
     return formulas?.sheetName === oldName
       && isEngineInstance(formulas.engine)
       && formulas.engine!.doesSheetExist!(oldName)
-      && formulas.engine!.doesSheetExist!(newName);
+      && isOtherEngineSheet(formulas.engine!, oldName, newName);
   }
 
   /**
@@ -3044,121 +3482,180 @@ export class SheetsBar extends BasePlugin {
    * the workbook becomes `=New!A1` by itself. A binding whose `sheetName` never matched the tab
    * name is deliberately left alone — the formulas reference the engine name, not the tab.
    */
-  #renameFormulaSheet(sheet: Sheet, oldName: string, newName: string, source: string) {
+  #renameFormulaSheet(sheet: Sheet, oldName: string, newName: string, source: string): boolean {
     const formulas = formulasSettingOf(sheet);
     const engine = formulas?.engine;
 
     if (
       !formulas || formulas.sheetName !== oldName || !isEngineInstance(engine)
-      || !engine!.doesSheetExist!(oldName) || engine!.doesSheetExist!(newName)
+      || !engine!.doesSheetExist!(oldName) || isOtherEngineSheet(engine!, oldName, newName)
     ) {
-      return;
+      return false;
     }
 
     const sheetId = engine!.getSheetId!(oldName);
 
     if (typeof sheetId !== 'number') {
-      return;
+      return false;
     }
 
     engine!.renameSheet!(sheetId, newName);
-    sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: newName } };
-    this.#syncFormulaDataFromEngine(engine!, source);
+
+    const engineName = engine!.getSheetName?.(sheetId) ?? newName;
+    const nameText = this.#sheetNameText(engine!, engineName);
+
+    sheet.settings = { ...sheet.settings, formulas: { ...formulas, sheetName: engineName } };
+    this.#rewriteFormulaText(engine!, formula => rewriteSheetReferences(formula, reference => (
+      isSameSheetName(reference.name, oldName) ? nameText : null
+    )), source);
+
+    return true;
   }
 
   /**
-   * Writes the engine's formula strings back into the data of every sheet bound to it.
+   * Returns a sheet name as a formula has to reference it: in quotes when the engine cannot read it
+   * without them. HyperFormula writes a name that starts with a digit (`2026`, `1Q`) without quotes,
+   * and then cannot read its own text back, so the text the bar writes is checked with the engine
+   * itself rather than with a copy of its grammar. The engine is asked only about a name a formula reads
+   * as one name (`isUnquotedSheetName()`): it parses `=Sales-EU!A1` as a subtraction, so it would answer
+   * yes for a name that needs quotes.
    *
-   * A rename rewrites the references inside the engine only; each sheet's data array still
-   * carries the strings it was written with, and the next switch would feed those back and
-   * resurrect the old name as a `#REF!`. Only formula cells are touched — values stay the
-   * caller's own.
-   *
-   * The active sheet's rewrites go through `setDataAtCell()` where the grid can address the
-   * cell faithfully: its data array is the one the grid renders from, so a direct write would
-   * repaint nothing and fire no `afterChange` — a host saving the workbook off that hook would
-   * never learn the strings moved. "Faithfully" is a real constraint: the Formulas plugin keys
-   * the engine by physical column while `setDataAtCell` writes the source through the
-   * `columns[].data` binding, so under a non-identity `data` remap one call cannot reach the
-   * source cell and its engine cell at once — such cells (and trimmed ones) are written
-   * straight into the source array instead, followed by one render.
+   * @param {object} engine The engine.
+   * @param {string} name The sheet name.
+   * @returns {string}
    */
-  #syncFormulaDataFromEngine(engine: NonNullable<SheetFormulas['engine']>, source: string) {
-    const activeId = this.#model?.getActiveSheet()?.id ?? null;
+  #sheetNameText(engine: NonNullable<SheetFormulas['engine']>, name: string): string {
+    const readable = isUnquotedSheetName(name) && engine.validateFormula?.(`=${name}!A1`) !== false;
 
-    this.getSheets().forEach(({ id }) => {
-      const sheet = this.#model?.getSheetById(id);
-      const formulas = sheet ? formulasSettingOf(sheet) : null;
-      const sheetId = formulas?.sheetName ? engine.getSheetId!(formulas.sheetName) : undefined;
+    return formatSheetName(name, !readable);
+  }
 
-      if (!sheet || formulas?.engine !== engine || typeof sheetId !== 'number') {
-        return;
-      }
+  /**
+   * Rewrites the formula text of every sheet bound to an engine with `rewrite`, in the data the host
+   * holds. A rename makes HyperFormula rewrite the references inside the engine only, and the next load
+   * of a sheet's data would feed the old name back as a `#REF!`.
+   *
+   * The data's own text is rewritten, never replaced by the engine's: on a sorted or moved sheet the
+   * engine holds its rows in another order, and its formula text was moved with them, so copying it
+   * cell by cell overwrote the formulas of other rows. Every change is found before any is written.
+   *
+   * @param {object} engine The engine.
+   * @param {Function} rewrite Maps a formula's text to its new text.
+   * @param {string} source The operation source.
+   */
+  #rewriteFormulaText(
+    engine: NonNullable<SheetFormulas['engine']>, rewrite: (formula: string) => string, source: string,
+  ) {
+    const active = this.#activeSheetRecord();
+    const pending = this.#sheetRecords()
+      .filter(sheet => formulasSettingOf(sheet)?.engine === engine)
+      .map(sheet => ({ sheet, changes: collectFormulaTextChanges(sheet.data, rewrite) }))
+      .filter(({ changes }) => changes.length > 0);
 
-      const serialized = engine.getSheetSerialized!(sheetId);
-
-      if (id === activeId) {
-        this.#applyEngineRewritesToActiveSheet(sheet, serialized, source);
+    pending.forEach(({ sheet, changes }) => {
+      if (sheet === active) {
+        this.#writeActiveFormulaText(sheet, changes, source);
       } else {
-        applyEngineRewritesToSheetData(sheet.data, serialized);
+        this.#replaceSheetData(sheet, writeFormulaTextChanges(sheet.data, changes));
       }
     });
   }
 
   /**
-   * Writes the engine's rewritten formula strings into the active sheet. A cell goes through
-   * `setDataAtCell` only when the grid addresses it faithfully — its indexes resolve to a
-   * visual position whose `colToProp` points back at the same source index, which a
-   * non-identity `columns[].data` remap breaks. The rest are written straight into the source
-   * array, and one render repaints them.
+   * Writes formula text changes into the active sheet. A cell goes through `setDataAtCell()` where the grid
+   * addresses it faithfully, so `afterChange` fires and a host saving off that hook learns the new text:
+   * the engine holds the sheet in physical order (`setDataAtCell()` writes the text into the engine as
+   * well, and on a sorted or moved sheet the engine's text at that cell is another formula), and the
+   * cell's indexes resolve to a visual position whose `colToProp` points back at the same source key (a
+   * non-identity `columns[].data` binding breaks that). The rest are written straight into the source
+   * array, followed by one render.
+   *
+   * @param {object} sheet The active sheet.
+   * @param {object[]} changes The changes.
+   * @param {string} source The operation source.
    */
-  #applyEngineRewritesToActiveSheet(sheet: Sheet, serialized: unknown[][], source: string) {
-    const changes: Array<[number, number, string]> = [];
-    let wroteDirectly = false;
+  #writeActiveFormulaText(sheet: Sheet, changes: FormulaTextChange[], source: string) {
+    const formulas = this.hot.getPlugin('formulas');
+    const physicalOrder = formulas?.exportEngineOrder() === null;
+    const physicalRowOf = new Map<string, number>();
+    const edits: Array<[number, number, string]> = [];
+    const direct: FormulaTextChange[] = [];
 
-    sheet.data.forEach((row, rowIndex) => {
-      if (!Array.isArray(row)) {
-        return;
-      }
-
-      row.forEach((cell, columnIndex) => {
-        const current = typeof cell === 'string' ? cell : null;
-        const fromEngine = serialized[rowIndex]?.[columnIndex];
-
-        if (!current?.startsWith('=') || typeof fromEngine !== 'string' || fromEngine === current) {
-          return;
-        }
-
-        const visualRow = this.hot.toVisualRow(rowIndex);
-        const visualColumn = this.hot.toVisualColumn(columnIndex);
-        const addressable = visualRow !== null && visualColumn !== null
-          && this.hot.colToProp(visualColumn) === columnIndex;
-
-        if (addressable) {
-          changes.push([visualRow, visualColumn as number, fromEngine]);
-        } else {
-          row[columnIndex] = fromEngine;
-          wroteDirectly = true;
-        }
-      });
+    listSheetRows(sheet.data, !!this.#layoutSettingsOf(sheet).nestedRows).forEach(({ path }, physicalRow) => {
+      physicalRowOf.set(path.join('/'), physicalRow);
     });
 
-    if (changes.length > 0) {
-      this.#withoutUndoEntry(() => this.hot.setDataAtCell(changes, `${source}.rename`));
+    changes.forEach((change) => {
+      const { key, text } = change;
+      const physicalRow = physicalRowOf.get(change.path.join('/'));
+      const visualRow = physicalRow === undefined ? null : this.hot.toVisualRow(physicalRow);
+      const visualColumn = typeof key === 'number' ? this.hot.toVisualColumn(key) : this.hot.propToCol(key);
+      const addressable = physicalOrder && visualRow !== null && typeof visualColumn === 'number'
+        && visualColumn >= 0 && this.hot.colToProp(visualColumn) === key && !isChangeTargetFrozen(sheet.data, change);
+
+      if (addressable) {
+        edits.push([visualRow, visualColumn, text]);
+      } else {
+        direct.push(change);
+      }
+    });
+
+    if (edits.length > 0) {
+      this.#withoutUndoEntry(() => this.hot.setDataAtCell(edits, `${source}.rename`));
     }
 
-    if (wroteDirectly) {
-      this.hot.render();
+    if (direct.length === 0) {
+      return;
     }
+
+    const data = writeFormulaTextChanges(sheet.data, direct);
+
+    if (data === sheet.data) {
+      this.hot.render();
+
+      return;
+    }
+
+    const load = () => this.#withoutUndoEntry(() => this.hot.updateData(data as unknown[][], `${source}.rename`));
+
+    if (formulas?.enabled) {
+      formulas.runWithEngineOrderHeld(load, formulas.exportEngineOrder());
+    } else {
+      load();
+    }
+
+    sheet.data = data;
+  }
+
+  /**
+   * Points a sheet that is not in front of the grid at a new data array, and keeps the engine order
+   * stored for it (`#captureEngineOrder`) valid when only the array, not its rows, changed.
+   *
+   * @param {object} sheet The sheet.
+   * @param {Array} data The new data, or the sheet's own array.
+   */
+  #replaceSheetData(sheet: Sheet, data: unknown[]) {
+    if (data === sheet.data) {
+      return;
+    }
+
+    const stored = this.#engineOrders.get(sheet);
+
+    if (stored?.data === sheet.data) {
+      this.#engineOrders.set(sheet, { ...stored, data });
+    }
+
+    sheet.data = data;
   }
 
   /**
    * Runs an operation without recording it on the undo stack. Two callers need it. The rename
    * rewrites travel through `setDataAtCell` so `afterChange` fires and the grid repaints, but
-   * the engine rename they follow is not an undoable action — an undo restoring the old
-   * reference strings against the already-renamed engine sheet would resolve them to `#REF!`.
-   * And a sheet switch re-applies the arriving sheet's sort, filters, and merges through the
-   * public APIs, which the user did not just perform.
+   * they are part of the rename, which `#recordRenameStep()` records as one step of its own:
+   * recorded on their own, an undo would restore the old reference strings against the
+   * already-renamed engine sheet and resolve them to `#REF!`. And a sheet switch re-applies the
+   * arriving sheet's sort, filters, and merges through the public APIs, which the user did not
+   * just perform.
    *
    * @param {Function} write The operation to run.
    */
@@ -3217,6 +3714,196 @@ export class SheetsBar extends BasePlugin {
   #onAfterSheetLoad = () => {
     if (this.#loadingSheet !== null) {
       this.#loadedSheetId = this.#loadingSheet.id;
+    }
+  };
+
+  /**
+   * Brings the formula text of the sheets not in front of the grid in line with the engine after the
+   * active sheet changed shape: rows or columns inserted, removed or moved, cells moved, or such a change
+   * undone or redone. HyperFormula rewrites the references other sheets hold into the active sheet
+   * (`=Data!A5` becomes `=Data!A6` after a row inserted above), but only inside itself, and the Formulas
+   * plugin writes the new text back for the grids it knows, not for the sheets the bar keeps. The next
+   * switch then fed the old text back, so the reference pointed at another row, and a reference into a
+   * removed row read a number instead of `#REF!`.
+   */
+  #onAfterStructureChange = (): void => {
+    if (this.#isSwitching || this.#isInitializing) {
+      return;
+    }
+
+    const engine = this.hot.getPlugin('formulas')?.engine as SheetFormulas['engine'] | null | undefined;
+
+    if (isEngineInstance(engine ?? undefined)) {
+      this.#syncInactiveSheetsFromEngine(engine!);
+    }
+  };
+
+  /**
+   * `afterCreateRow`/`afterCreateCol` listener for `#onAfterStructureChange`. The rows and columns core
+   * appends for `minSpareRows` and the other minimum sizes (source `auto`) never reach the engine. An
+   * undo or redo replays its rows through `alter()` before the Formulas plugin puts the engine back, so
+   * its sync waits for `afterUndo`/`afterRedo` (`#onAfterUndoRedo`).
+   */
+  #onAfterCreateAxisItems = (index: number, amount: number, source?: string) => {
+    if (isEngineChangingSource(source)) {
+      this.#onAfterStructureChange();
+    }
+  };
+
+  /**
+   * `afterRemoveRow`/`afterRemoveCol` listener for `#onAfterStructureChange`, with the same exceptions
+   * as `#onAfterCreateAxisItems`.
+   */
+  #onAfterRemoveAxisItems = (index: number, amount: number, physicalIndexes: number[], source?: string) => {
+    if (isEngineChangingSource(source)) {
+      this.#onAfterStructureChange();
+    }
+  };
+
+  /**
+   * `afterUndo`/`afterRedo` listener for `#onAfterStructureChange`, for a step that inserted, removed or
+   * moved rows, columns or cells. A step that changed only cells rewrites no reference, and every undo of
+   * an edit used to read the other sheets.
+   *
+   * @param {object} action The undone or redone step.
+   */
+  #onAfterUndoRedo = (action: { actionType?: string, operations?: string[] }) => {
+    if ([action.actionType, ...(action.operations ?? [])].some(name => STRUCTURAL_STEPS.has(name ?? ''))) {
+      this.#onAfterStructureChange();
+    }
+  };
+
+  /**
+   * Copies the engine's formula text into the data of every sheet bound to `engine` that is not in front
+   * of the grid. Only a sheet the engine holds in physical order is written: a sheet left sorted or with
+   * moved rows or columns has its rows in another order there, and its formulas exist only in the engine
+   * until the user returns, when the bar takes the engine sheet over (`#captureEngineOrder`).
+   *
+   * The engine's cells are matched to the data through the layout the sheet is fed with
+   * (`getEngineColumnLayout()`), so a sheet whose `columns` leaves data columns out, a sheet of object rows
+   * and a NestedRows tree are written at the cells their text came from; a layout the bar cannot know ahead
+   * of time (a `columns` function, a `dataSchema`) is skipped. Only the formula cells whose text names the
+   * active sheet are read, one by one: a structural change rewrites nothing else, and serializing every
+   * other sheet made each row insert, removal, move and undo pay for the whole workbook. A reference to a
+   * sheet name the engine cannot read back without quotes gets them (`#sheetNameText`).
+   *
+   * @param {object} engine The engine.
+   */
+  #syncInactiveSheetsFromEngine(engine: NonNullable<SheetFormulas['engine']>) {
+    const active = this.#activeSheetRecord();
+    const activeName = this.hot.getPlugin('formulas')?.sheetName;
+
+    if (!activeName || !engine.getCellFormula) {
+      return;
+    }
+
+    const quoteIfNeeded = this.#formulaQuoterFor(engine);
+    const needles = [activeName, formatSheetName(activeName, true), '#ref!'].map(name => name.toLowerCase());
+    const namesActiveSheet = (formula: string) => {
+      const text = formula.toLowerCase();
+
+      return needles.some(needle => text.includes(needle));
+    };
+    const readsAsEngineText = (cell: string, text: string) => {
+      const readable = quoteIfNeeded(cell);
+
+      if (engine.validateFormula?.(readable) !== true) {
+        return false;
+      }
+
+      const normalized = engine.normalizeFormula?.(readable);
+
+      return typeof normalized === 'string' && quoteIfNeeded(normalized) === text;
+    };
+
+    this.#sheetRecords().forEach((sheet) => {
+      const formulas = formulasSettingOf(sheet);
+      const sheetId = formulas?.sheetName ? engine.getSheetId!(formulas.sheetName) : undefined;
+
+      if (sheet === active || formulas?.engine !== engine || typeof sheetId !== 'number'
+        || this.#engineOrders.has(sheet)) {
+        return;
+      }
+
+      const settings = this.#layoutSettingsOf(sheet);
+      const layout = getEngineColumnLayout(sheet.data, settings);
+
+      if (layout === null) {
+        return;
+      }
+
+      const changes: FormulaTextChange[] = [];
+
+      listSheetRows(sheet.data, !!settings.nestedRows).forEach(({ row, path }, engineRow) => {
+        getEngineCellKeys(row, layout).forEach((key, engineColumn) => {
+          const cell = typeof key === 'number' || typeof key === 'string' ? readCell(row, key) : undefined;
+
+          if (typeof cell !== 'string' || !cell.startsWith('=') || !namesActiveSheet(cell)) {
+            return;
+          }
+
+          const fromEngine = engine.getCellFormula!({ sheet: sheetId, row: engineRow, col: engineColumn });
+          const text = typeof fromEngine === 'string' ? quoteIfNeeded(fromEngine) : cell;
+
+          if (text !== cell && !readsAsEngineText(cell, text)) {
+            changes.push({ path, key: key as number | string, text });
+          }
+        });
+      });
+
+      if (changes.length > 0) {
+        this.#replaceSheetData(sheet, writeFormulaTextChanges(sheet.data, changes));
+      }
+    });
+  }
+
+  /**
+   * Returns the settings that decide where a sheet's cells sit in its engine sheet, as the sheet is shown
+   * with them: its own value of each key, else the grid-level value the switch restores for it.
+   *
+   * @param {object} sheet The sheet.
+   * @returns {object}
+   */
+  #layoutSettingsOf(sheet: Sheet): SheetLayoutSettings {
+    const own = (sheet.settings ?? {}) as Record<string, unknown>;
+    const gridSettings = this.hot.getSettings() as unknown as Record<string, unknown>;
+    const valueOf = (key: string) => {
+      if (Object.prototype.hasOwnProperty.call(own, key)) {
+        return own[key];
+      }
+
+      return this.#settingsBaseline.has(key) ? this.#settingsBaseline.get(key) : gridSettings[key];
+    };
+
+    return {
+      columns: valueOf('columns'),
+      maxCols: valueOf('maxCols'),
+      dataSchema: valueOf('dataSchema'),
+      nestedRows: valueOf('nestedRows'),
+    };
+  }
+
+  /**
+   * Points the active sheet's record at the array the host loaded into the grid. The plugin's own loads
+   * (the initial build and every switch) are skipped: they load the sheet's own array.
+   */
+  #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean) => {
+    if (initialLoad || this.#isSwitching || this.#isInitializing) {
+      return;
+    }
+
+    this.#syncActiveSheetData();
+  };
+
+  /**
+   * Points the active sheet's record at the array the host replaced the grid's data with through
+   * `updateData()`, which is how the React, Vue and Angular wrappers hand a grid new data. Left on the old
+   * array, a rename rewrote the formulas of the array the grid no longer shows and wrote that text over
+   * the cells of the live one.
+   */
+  #onAfterUpdateData = () => {
+    if (!this.#isSwitching && !this.#isInitializing) {
+      this.#syncActiveSheetData();
     }
   };
 
