@@ -392,6 +392,19 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
+   * Whether the sampling settings have been applied once, so a later `enablePlugin()` can tell a real
+   * change from the first read.
+   */
+  #samplingApplied = false;
+  /**
+   * Set by an `enablePlugin()` that applied changed sampling settings to a plugin that measured before.
+   * `BasePlugin` hands the new settings to `enablePlugin()`, so the `updatePlugin()` of the same
+   * `updateSettings()` call no longer sees the change, and the sizes measured under the previous settings
+   * stay cached (the map survives a disable). `updatePlugin()` consumes it.
+   */
+  #samplingChangedOnEnable = false;
+
+  /**
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin(): void {
@@ -399,7 +412,8 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
-    this.#applySamplingSettings();
+    this.#samplingChangedOnEnable = this.#applySamplingSettings() && this.#samplingApplied;
+    this.#samplingApplied = true;
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
@@ -445,9 +459,11 @@ export class AutoRowSize extends BasePlugin {
       this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
     }
 
-    if (this.#applySamplingSettings()) {
+    if (this.#applySamplingSettings() || this.#samplingChangedOnEnable) {
       this.clearCache();
     }
+
+    this.#samplingChangedOnEnable = false;
 
     super.updatePlugin();
   }

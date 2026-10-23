@@ -59,6 +59,46 @@ describe('updateSettings() with a hook set to `null`', () => {
     expect(second).not.toHaveBeenCalled();
   });
 
+  it('removes a callback an earlier settings object passed beside a later array', () => {
+    const fromFirstSettings = jest.fn();
+    const fromArray = jest.fn();
+
+    build({ afterChange: fromFirstSettings });
+    hot.updateSettings({ afterChange: [fromArray] });
+    hot.updateSettings({ afterChange: null });
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(fromFirstSettings).not.toHaveBeenCalled();
+    expect(fromArray).not.toHaveBeenCalled();
+  });
+
+  it('removes the callbacks of every array the settings passed', () => {
+    const first = jest.fn();
+    const second = jest.fn();
+    const third = jest.fn();
+
+    build({ afterChange: [first, second] });
+    hot.updateSettings({ afterChange: [third] });
+    hot.updateSettings({ afterChange: null });
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(first).not.toHaveBeenCalled();
+    expect(second).not.toHaveBeenCalled();
+    expect(third).not.toHaveBeenCalled();
+  });
+
+  it('removes only the hook it is passed for', () => {
+    const afterChange = jest.fn();
+    const beforeChange = jest.fn();
+
+    build({ afterChange, beforeChange });
+    hot.updateSettings({ afterChange: null });
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(afterChange).not.toHaveBeenCalled();
+    expect(beforeChange).toHaveBeenCalledTimes(1);
+  });
+
   it('leaves a listener added with `addHook()` registered', () => {
     const fromSettings = jest.fn();
     const added = jest.fn();

@@ -2518,8 +2518,9 @@ export default function Core(
    *
    * The callback is also written to the table meta, so that `getSettings()` returns it back.
    *
-   * `null` removes what a settings object registered for the hook (the callback, or each callback of an
-   * array) and writes `null` to the table meta. Without it a settings hook could only be replaced, never
+   * `null` removes every callback settings objects registered for the hook (the callback the latest one
+   * passed, and the callbacks of every array passed before it, which run beside it) and writes `null` to the
+   * table meta. Without it a settings hook could only be replaced, never
    * removed, so a sheets bar sheet's own hook kept running on every other sheet. `undefined` still means
    * "not passed" and changes nothing. The bucket marks the entries the settings registered, and the removal
    * takes only those: a listener added with `addHook()` stays, even when it is the same function.
@@ -2533,30 +2534,13 @@ export default function Core(
       Hooks.getSingleton()._addFromSettings(key, hook, instance);
 
     } else if (hook === null) {
-      removeSettingsHook(key);
+      Hooks.getSingleton()._removeFromSettings(key, instance);
 
     } else {
       return;
     }
 
     tableMeta[key] = hook;
-  }
-
-  /**
-   * Removes the callbacks a settings object registered for a hook, as `getSettings()` holds them.
-   *
-   * @private
-   * @param {string} key A hook name.
-   */
-  function removeSettingsHook(key: string) {
-    const registered: unknown = tableMeta[key];
-    const callbacks = Array.isArray(registered) ? registered : [registered];
-
-    callbacks.forEach((callback: unknown) => {
-      if (isFunction(callback)) {
-        Hooks.getSingleton()._removeFromSettings(key, callback as HookCallback, instance);
-      }
-    });
   }
 
   this.init = function() {
@@ -6347,6 +6331,9 @@ export default function Core(
    * grid to column to cell (see
    * [Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)).
    * To read the effective value for a specific cell, use {@link Core#getCellMeta}. To read column-level meta, use {@link Core#getColumnMeta}.
+   *
+   * A hook removed through `updateSettings({ <hook>: null })` reads back as `null`, so check a hook callback
+   * read from the returned object before you call it.
    *
    * @memberof Core#
    * @function getSettings

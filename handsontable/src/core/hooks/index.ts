@@ -190,17 +190,17 @@ export class Hooks {
   }
 
   /**
-   * Removes a hook callback that a settings object registered (`_addFromSettings()`). A callback that an
-   * `addHook()` call registered, the same function included, is left in place.
+   * Removes every callback that settings objects registered for a hook (`_addFromSettings()`), including
+   * the callbacks of arrays earlier settings passed. A callback that an `addHook()` call registered, the same
+   * function included, is left in place.
    *
    * @private
    * @param {string} key Hook name.
-   * @param {Function} callback The callback to remove.
    * @param {object} context A Handsontable instance.
-   * @returns {boolean} `true` when an entry was removed.
+   * @returns {number} How many callbacks were removed.
    */
-  _removeFromSettings(key: string, callback: HookCallback, context: Record<string, unknown>) {
-    return this.getBucket(context).removeFromSettings(key, callback);
+  _removeFromSettings(key: string, context: Record<string, unknown>) {
+    return this.getBucket(context).removeFromSettings(key);
   }
 
   /**

@@ -125,7 +125,7 @@ const configurationOptions = {
 
 ### Keep sheet data stable
 
-Pass each sheet's `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. The React wrapper sends the `sheetsBar` prop to the grid on every render. If a sheet's `data` is a new array, the plugin rebuilds the workbook and drops the user's edits, sort, filters, and any sheets added at runtime.
+Pass each sheet's `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. The React wrapper sends the `sheetsBar` prop to the grid on every render. If a sheet's `data` is a new array, the plugin rebuilds the workbook and drops the user's edits, sort, filters, and any sheets added at runtime. The same applies to a function or a class instance in a sheet's `settings`, such as a `renderer` or a `cells` function: an inline one is a new value on every render, so define it outside the component or memoize it.
 
 ```jsx
 // Rebuilds the workbook on every render

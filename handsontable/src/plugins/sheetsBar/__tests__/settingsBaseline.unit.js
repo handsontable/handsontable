@@ -1,6 +1,7 @@
 import Handsontable from '../../../index';
 import ExportDataProvider from '../../exportFile/dataProvider';
 import BaseType from '../../exportFile/types/_base';
+import { loadFixture } from '../../../utils/xlsxEngine/__tests__/helpers/fixtures';
 
 const LICENSE_KEY = 'non-commercial-and-evaluation';
 
@@ -117,6 +118,24 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       expect(hot.getSettings().readOnly).toBe(true);
     });
 
+    it('is not taken from the settings an import writes on the active sheet', async() => {
+      const bar = buildWorkbook([
+        { name: 'Plain', data: [['a']] },
+        { name: 'Fixed', data: [['b']], settings: { colWidths: 120 } },
+        { name: 'Other', data: [['c']] },
+      ], { importFile: true });
+
+      bar.setActiveSheet('Fixed');
+      bar.setActiveSheet('Plain');
+      await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', loadFixture('layout'), { importLayout: true });
+
+      expect(Array.isArray(hot.getSettings().colWidths)).toBe(true);
+
+      bar.setActiveSheet('Other');
+
+      expect(hot.getSettings().colWidths).toBeNull();
+    });
+
     it('does not replace the baseline when it is set on a sheet that declares the key', () => {
       const bar = buildWorkbook(sheets());
 
@@ -146,6 +165,36 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       expect(input).not.toBeNull();
       expect(input.isConnected).toBe(true);
       expect(hot.rootWrapperElement.querySelector('.ht-sheets-bar')).toBe(barElement);
+    });
+
+    it('keeps the bar when the same settings arrive with a sheet settings object that refers to itself', () => {
+      const cyclic = { label: 'loop' };
+
+      cyclic.self = cyclic;
+
+      const sheets = [{ name: 'Alpha', data: [['a']], settings: { meta: cyclic } }];
+      const bar = buildWorkbook(sheets);
+
+      bar.addSheet('Runtime');
+
+      expect(() => hot.updateSettings({ sheetsBar: { sheets } })).not.toThrow();
+      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha', 'Runtime']);
+    });
+
+    it('rebuilds the bar when the `animation` object is edited in place and sent again', () => {
+      const animation = { move: true };
+      const sheets = [{ name: 'Alpha', data: [['a']] }];
+
+      hot = new Handsontable(container, { sheetsBar: { sheets, animation }, licenseKey: LICENSE_KEY });
+
+      const strip = () => hot.rootWrapperElement.querySelector('.ht-sheets-bar__tabs');
+
+      expect(strip().style.getPropertyValue('--ht-private-tab-slide-duration')).toBe('');
+
+      animation.move = false;
+      hot.updateSettings({ sheetsBar: { sheets, animation } });
+
+      expect(strip().style.getPropertyValue('--ht-private-tab-slide-duration')).toBe('0ms');
     });
 
     it('still switches when only `activeSheet` changed', () => {
@@ -253,6 +302,51 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       hot.updateSettings({ sheetsBar: { sheets } });
 
       expect(hot.getSettings().readOnly).toBe(true);
+    });
+
+    it('reads a fresh inline function in a sheet\'s settings as a new workbook', () => {
+      const data = [['a']];
+      const bar = buildWorkbook([{ name: 'Alpha', data, settings: { cells: () => ({}) } }]);
+
+      bar.addSheet('Runtime');
+      hot.updateSettings({ sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { cells: () => ({}) } }] } });
+
+      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha']);
+    });
+
+    it('keeps the workbook when the host sends its array again after `removeSheet()` pruned it', () => {
+      const sheets = [
+        { name: 'Alpha', data: [['a']] },
+        { name: 'Beta', data: [['b']] },
+        { name: 'Gamma', data: [['c']] },
+      ];
+      const bar = buildWorkbook(sheets);
+
+      bar.addSheet('Runtime');
+      bar.removeSheet(bar.getSheets()[2].id);
+      hot.updateSettings({ sheetsBar: { sheets } });
+
+      expect(sheets.map(sheet => sheet.name)).toEqual(['Alpha', 'Beta']);
+      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha', 'Beta', 'Runtime']);
+    });
+
+    it('keeps the workbook when a host that rebuilds its entries on every render removes a sheet', () => {
+      const dataA = [['a']];
+      const dataB = [['b']];
+      const dataC = [['c']];
+      const entries = () => [
+        { name: 'Alpha', data: dataA },
+        { name: 'Beta', data: dataB },
+        { name: 'Gamma', data: dataC },
+      ];
+      const bar = buildWorkbook(entries());
+
+      bar.addSheet('Runtime');
+      hot.updateSettings({ sheetsBar: { sheets: entries() } });
+      bar.removeSheet(bar.getSheets()[2].id);
+      hot.updateSettings({ sheetsBar: { sheets: entries().slice(0, 2) } });
+
+      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha', 'Beta', 'Runtime']);
     });
 
     it('keeps the workbook when the same array is sent again unchanged', () => {
@@ -414,6 +508,43 @@ describe('SheetsBar settings baseline and lifecycle', () => {
         .toHaveLength(1);
     });
 
+    it('loads the rows sent in the same call that turns the bar off', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      buildWorkbook([{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }]);
+      hot.updateSettings({ sheetsBar: false, data: [['new']] });
+
+      expect(hot.getDataAtCell(0, 0)).toBe('new');
+    });
+
+    it('loads the rows sent in the same call that turns the declared workbook into `sheetsBar: true`', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const bar = buildWorkbook([{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }]);
+
+      hot.updateSettings({ sheetsBar: true, data: [['new']] });
+
+      expect(hot.getDataAtCell(0, 0)).toBe('new');
+      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Sheet1']);
+    });
+
+    it('loads the rows sent in the same call that drops the declared sheets', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      buildWorkbook([{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }]);
+      hot.updateSettings({ sheetsBar: { sheets: null }, data: [['new']] });
+
+      expect(hot.getDataAtCell(0, 0)).toBe('new');
+    });
+
+    it('still ignores the rows of a call that sends the same declared workbook again', () => {
+      const sheets = [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }];
+
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      buildWorkbook(sheets);
+      hot.updateSettings({ sheetsBar: { sheets }, data: [['new']] });
+
+      expect(hot.getDataAtCell(0, 0)).toBe('a');
+    });
+
     it('still reaches a `sheetsBar: true` workbook, whose only sheet is the grid\'s own data', () => {
       hot = new Handsontable(container, {
         data: [['a']],
@@ -479,6 +610,19 @@ describe('SheetsBar settings baseline and lifecycle', () => {
 
       expect(hot.getSettings().dataProvider).toBeNull();
       expect(hot.getPlugin('dataProvider').enabled).toBe(false);
+    });
+
+    it('is not taken from a wrapper sending `dataProvider: null` again beside `sheetsBar`', async() => {
+      const own = makeProvider();
+      const sheets = [{ name: 'Server', data: [], settings: { dataProvider: own } }, { name: 'Local', data: [[1]] }];
+      const bar = buildWorkbook(sheets);
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+      hot.updateSettings({ sheetsBar: { sheets }, dataProvider: null });
+      bar.setActiveSheet('Local');
+      bar.setActiveSheet('Server');
+
+      expect(hot.getSettings().dataProvider).toBe(own);
     });
 
     it('leaves the declared settings object alone', async() => {

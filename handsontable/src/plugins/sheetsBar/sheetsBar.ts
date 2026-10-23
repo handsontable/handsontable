@@ -177,8 +177,13 @@ const TOP_LEVEL_DATA_WARNING = 'The `data` setting is ignored when `sheetsBar.sh
  * else — a class instance such as a HyperFormula engine, a function, a DOM element — by reference,
  * since a copy of those is a different thing, not an equal one. A date is a value: a framework
  * wrapper rebuilds an inline `new Date(...)` on every render, and two invalid dates are equal too.
+ *
+ * `compared` holds the pairs already being compared, so an object literal that refers to itself (a tree
+ * node pointing at its parent) ends the walk instead of recursing until the stack overflows. The
+ * comparison runs against a copy (`copySettingsValue`), never the host's object itself, so the two sides
+ * are never the same reference.
  */
-function isStructurallyEqual(a: unknown, b: unknown): boolean {
+function isStructurallyEqual(a: unknown, b: unknown, compared = new WeakMap<object, Set<unknown>>()): boolean {
   if (a === b) {
     return true;
   }
@@ -190,18 +195,36 @@ function isStructurallyEqual(a: unknown, b: unknown): boolean {
     return aTime === bTime || (Number.isNaN(aTime) && Number.isNaN(bTime));
   }
 
-  if (Array.isArray(a) && Array.isArray(b)) {
-    return a.length === b.length && a.every((entry, index) => isStructurallyEqual(entry, b[index]));
+  const isArrayPair = Array.isArray(a) && Array.isArray(b);
+  const isObjectPair = isPlainObject(a) && isPlainObject(b);
+
+  if (!isArrayPair && !isObjectPair) {
+    return false;
   }
 
-  if (isPlainObject(a) && isPlainObject(b)) {
-    const aKeys = Object.keys(a);
+  const pairs = compared.get(a as object) ?? new Set<unknown>();
 
-    return aKeys.length === Object.keys(b).length
-      && aKeys.every(key => key in b && isStructurallyEqual(a[key], (b as Record<string, unknown>)[key]));
+  if (pairs.has(b)) {
+    return true;
   }
 
-  return false;
+  pairs.add(b);
+  compared.set(a as object, pairs);
+
+  if (isArrayPair) {
+    const left = a as unknown[];
+    const right = b as unknown[];
+
+    return left.length === right.length
+      && left.every((entry, index) => isStructurallyEqual(entry, right[index], compared));
+  }
+
+  const left = a as Record<string, unknown>;
+  const right = b as Record<string, unknown>;
+  const leftKeys = Object.keys(left);
+
+  return leftKeys.length === Object.keys(right).length
+    && leftKeys.every(key => key in right && isStructurallyEqual(left[key], right[key], compared));
 }
 
 /**
@@ -257,19 +280,44 @@ function isSameSheetsList(a: unknown, b: unknown): boolean {
  * else is kept by reference. Only an object whose prototype is `Object.prototype` (or `null`) is copied:
  * `isPlainObject` also answers `true` for a class instance such as a HyperFormula engine, whose object
  * graph has cycles, and copying it never ended. A kept reference still compares equal to itself.
+ *
+ * `copies` maps every array and object literal already copied to its copy, so a value that refers to itself
+ * is copied with the same shape instead of recursing until the stack overflows, and a sub-object two keys
+ * share is copied once.
  */
-function copySettingsValue(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(copySettingsValue);
-  }
-
+function copySettingsValue(value: unknown, copies = new WeakMap<object, unknown>()): unknown {
   const prototype: unknown = isPlainObject(value) ? Object.getPrototypeOf(value) : undefined;
+  const isObjectLiteral = isPlainObject(value) && (prototype === Object.prototype || prototype === null);
 
-  if (isPlainObject(value) && (prototype === Object.prototype || prototype === null)) {
-    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, copySettingsValue(entry)]));
+  if (!Array.isArray(value) && !isObjectLiteral) {
+    return value;
   }
 
-  return value;
+  const source = value as object;
+
+  if (copies.has(source)) {
+    return copies.get(source);
+  }
+
+  if (Array.isArray(source)) {
+    const copy: unknown[] = [];
+
+    copies.set(source, copy);
+    source.forEach((entry: unknown) => {
+      copy.push(copySettingsValue(entry, copies));
+    });
+
+    return copy;
+  }
+
+  const copy: Record<string, unknown> = {};
+
+  copies.set(source, copy);
+  Object.entries(source).forEach(([key, entry]) => {
+    copy[key] = copySettingsValue(entry, copies);
+  });
+
+  return copy;
 }
 
 /**
@@ -786,7 +834,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.#recordBuiltSheets();
-    this.#builtUiSettings = this.#readUiSettings();
+    this.#builtUiSettings = copySettingsValue(this.#readUiSettings()) as Record<string, unknown>;
 
     // Injected into the bar and the tab strip so both stay decoupled from the theme engine —
     // shared here rather than declared per call site.
@@ -948,9 +996,16 @@ export class SheetsBar extends BasePlugin {
     // grid-level `sheetsBar` object wholesale, so a partial payload such as
     // `{ sheetsBar: { paging: false } }` carries no `sheets` key there — while the plugin's own
     // merged settings still do. Only a genuinely different `sheets` value is a new workbook.
-    const preservedState = this.#model !== null && isSameSheetsList(this.getSetting('sheets'), this.#lastBuiltSheets)
+    const model = this.#model;
+    const keepsWorkbook = model !== null && isSameSheetsList(this.getSetting('sheets'), this.#lastBuiltSheets);
+
+    if (keepsWorkbook) {
+      this.#repointDeclaredEntries(this.getSetting('sheets'));
+    }
+
+    const preservedState = keepsWorkbook && model !== null
       ? {
-        model: this.#model,
+        model,
         trackedCellMeta: this.#trackedCellMeta,
         settingsBaseline: this.#settingsBaseline,
         declaredEntries: this.#declaredEntries,
@@ -996,6 +1051,32 @@ export class SheetsBar extends BasePlugin {
     }
 
     super.updatePlugin();
+  }
+
+  /**
+   * Points each sheet's declared entry at the entry of the `sheets` value sent now, by its position in the
+   * value the workbook was built from. A framework wrapper rebuilds the entry objects on every render, and
+   * `#pruneDeclaredSheet` finds an entry by identity: still pointing at the first render's objects, it found
+   * nothing in the host's array or in the snapshot, so a removal pruned neither, and the host's next value,
+   * one sheet shorter, read as a new workbook.
+   *
+   * @param {Array} sheets The `sheets` value sent now, structurally equal to the built one.
+   */
+  #repointDeclaredEntries(sheets: unknown) {
+    if (!Array.isArray(sheets)) {
+      return;
+    }
+
+    const entries = new Map<number, SheetsBarSheetConfig>();
+
+    this.#declaredEntries.forEach((entry, id) => {
+      const index = this.#lastBuiltEntries.indexOf(entry);
+      const sent = index === -1 ? undefined : (sheets as SheetsBarSheetConfig[])[index];
+
+      entries.set(id, sent ?? entry);
+    });
+
+    this.#declaredEntries = entries;
   }
 
   /**
@@ -1298,17 +1379,22 @@ export class SheetsBar extends BasePlugin {
    * Takes a grid-level value set through `updateSettings()` outside a switch as the baseline of its key, so
    * a switch to a sheet that does not declare the key, a `sheetsBar: false` teardown, and a rebuild give the
    * grid that value back, not the one captured when a sheet first overrode the key. A value set while the
-   * active sheet declares the key configures that sheet and leaves the baseline alone, unless the same
-   * payload names `sheetsBar`: such a payload restates the grid's own configuration (a framework wrapper's
-   * re-send, or a teardown or rebuild with grid-level values beside it). Only keys already in the baseline
-   * are refreshed: a key first overridden later reads the grid then. `dataProvider`, `columnSummary` and
-   * `cell` keep their own rules (`#onAfterUpdateSettings`, `#refreshGridColumnSummary`,
-   * `#refreshGridCellOption`).
+   * active sheet declares the key leaves the baseline alone and is not kept anywhere: it shows on that sheet
+   * until the user leaves, and a return applies the sheet's declared value again. That holds unless the same
+   * payload names `sheetsBar`: such a payload restates the grid's own configuration (the React and Angular
+   * wrappers re-send it with every update; a teardown or a rebuild with grid-level values beside it). The
+   * Vue wrapper sends only the keys that changed, so a grid-level value changed there while the active sheet
+   * declares it never reaches the baseline. Only keys already in the baseline are refreshed: a key first
+   * overridden later reads the grid then. The settings an import writes (ImportFile's own `updateSettings()`
+   * calls) describe the imported file on the sheet shown, not the grid, so they are left out too.
+   * `dataProvider`, `columnSummary` and `cell` keep their own rules (`#onAfterUpdateSettings`,
+   * `#refreshGridColumnSummary`, `#refreshGridCellOption`).
    *
    * @param {object} newSettings The settings passed to `updateSettings()`.
    */
   #refreshSettingsBaseline(newSettings: Record<string, unknown>) {
-    if (this.#isSwitching || this.#isRestoringBaseline || this.#isInitializing || this.#model === null) {
+    if (this.#isSwitching || this.#isRestoringBaseline || this.#isInitializing || this.#model === null
+      || this.hot.getPlugin('importFile')?._isApplyingImport()) {
       return;
     }
 
@@ -3693,7 +3779,7 @@ export class SheetsBar extends BasePlugin {
     const liveData = this.#getLiveSourceData();
 
     if (this.#isSwitching || this.#declaredEntries.size === 0 || sourceData === liveData
-      || this.hot.runHooks('hasExternalDataSource') === true) {
+      || !this.#declaresWorkbookNow() || this.hot.runHooks('hasExternalDataSource') === true) {
       return;
     }
 
@@ -3703,6 +3789,25 @@ export class SheetsBar extends BasePlugin {
     }
 
     return liveData;
+  }
+
+  /**
+   * Tells whether the grid-level `sheetsBar` setting still declares a workbook. Core loads an
+   * `updateSettings()` payload's `data` before `afterUpdateSettings`, where the bar is turned off or
+   * rebuilt, so `#keepDeclaredSheetRows` runs while the previous workbook is still built: for
+   * `{ sheetsBar: false, data }`, `sheetsBar: true`, or `sheets: null` the setting already says there is
+   * no declared workbook, and the rows belong to the plain grid or the sheet that wraps it.
+   *
+   * @returns {boolean}
+   */
+  #declaresWorkbookNow(): boolean {
+    const setting: unknown = this.hot.getSettings()[PLUGIN_KEY];
+
+    if (!isPlainObject(setting)) {
+      return false;
+    }
+
+    return !('sheets' in setting) || (Array.isArray(setting.sheets) && setting.sheets.length > 0);
   }
 
   /**
@@ -3720,7 +3825,7 @@ export class SheetsBar extends BasePlugin {
     this.#refreshGridColumnSummary(newSettings);
     this.#refreshGridCellOption(newSettings);
 
-    if (newSettings.dataProvider === null) {
+    if (newSettings.dataProvider === null && !(PLUGIN_KEY in newSettings)) {
       this.#keepActiveSheetDataProvider(null);
     }
 

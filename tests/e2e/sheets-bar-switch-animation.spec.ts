@@ -211,6 +211,9 @@ test.describe('sheets bar switch animation – active tab marker', { tag: [THEME
     const bar = new SheetsBarPage(page, theme, bundle);
 
     await openPaused(bar);
+
+    const duration = SPEC_TIMING[theme].marker;
+
     await bar.clickTab(1);
 
     const midway = await bar.indicatorBoxAt(0.5);
@@ -225,6 +228,12 @@ test.describe('sheets bar switch animation – active tab marker', { tag: [THEME
 
     expect(kept.transitions).toBeGreaterThan(0);
     expectSameBox(kept, midway);
+    expectSameBox(await bar.indicatorBoxAt(1), await bar.tabBox(1));
+
+    await page.clock.runFor(Math.ceil(duration) + 1);
+
+    await expect(bar.indicator).toHaveCount(0);
+    await expect(bar.strip).not.toHaveClass(/ht-sheets-bar__tabs--indicator-moving/);
   });
 
   test('a round trip that rebuilds the bar keeps the marker sliding from where it is', async ({

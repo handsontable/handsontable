@@ -172,16 +172,22 @@ export class HooksBucket {
   }
 
   /**
-   * Removes the entry of a callback that a settings object registered (true delete), and only that one: an
-   * entry an `addHook()` call registered, or claimed by registering the same callback again, stays. Returns
-   * `true` if an entry was removed.
+   * Removes every entry of a hook that a settings object registered (true delete): the callback the latest
+   * settings passed and the callbacks of every array earlier settings passed beside it. An entry an
+   * `addHook()` call registered, or claimed by registering the same callback again, stays. Returns how many
+   * entries were removed.
    *
    * @param {string} hookName The name of the hook.
-   * @param {*} callback The callback function to remove.
-   * @returns {boolean}
+   * @returns {number}
    */
-  removeFromSettings(hookName: string, callback: HookCallback): boolean {
-    return this.#removeWhere(hookName, node => node.callback === callback && node.fromSettings);
+  removeFromSettings(hookName: string): number {
+    let removed = 0;
+
+    while (this.#removeWhere(hookName, node => node.fromSettings)) {
+      removed += 1;
+    }
+
+    return removed;
   }
 
   /**

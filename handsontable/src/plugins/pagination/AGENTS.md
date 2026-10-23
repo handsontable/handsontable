@@ -48,11 +48,12 @@ or `resetPage()`.
 
 Copy `#currentPage` from the raw `hot.getSettings().pagination.initialPage`, not
 from `getSetting('initialPage')`. `onUpdateSettings` branch 2 (disabled →
-enabled) calls `enablePlugin()` before `updatePluginSettings()`, so
-`#pluginSettings` still holds the previous value. Stamping the tracker from the
-new declared number while applying the stale `getSetting()` result would skip
-the later `updatePlugin()` pass and leave the wrong page. The grid settings
-object is already merged when `enablePlugin()` runs.
+enabled) used to call `enablePlugin()` before `updatePluginSettings()`, so
+`#pluginSettings` held the previous value; it now refreshes the settings first
+(`../base/AGENTS.md`), but the raw value keeps this plugin independent of that
+order. Stamping the tracker from the new declared number while applying a stale
+`getSetting()` result would skip the later `updatePlugin()` pass and leave the
+wrong page. The grid settings object is already merged when `enablePlugin()` runs.
 
 ## `PLUGIN_PRIORITY = 900`, and the `init` hook is pinned early
 

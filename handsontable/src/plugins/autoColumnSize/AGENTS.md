@@ -90,6 +90,11 @@ silently ignored when they arrived through `updateSettings()` (DEV-2850). Four r
   in place — the same limitation `#onAfterLoadData` already has, and a smaller wrong than a grid of default
   widths. It also clears `#columnWidthsToRefresh`, so the header-change entries queued earlier in
   `updatePlugin()` are not measured a second time in the same render.
+- **A sampling change in the call that turns the plugin on again is measured too.** `BasePlugin` refreshes
+  the plugin settings before `enablePlugin()`, so `enablePlugin()` applies the new sampling settings and the
+  `updatePlugin()` of the same call sees no change. `enablePlugin()` therefore records a change it applied to
+  a plugin that measured before (`#samplingChangedOnEnable`), and `updatePlugin()` re-measures for it once.
+  The widths map survives a disable, so without it the widths measured under the old settings stayed.
 - **Re-measure only on a real change.** `updatePlugin()` runs on *every* `updateSettings()` call, and the
   React and Angular wrappers re-send unchanged settings on every update (React on every commit). An
   unconditional re-measure would walk every column on each of them — which the `skipUnchangedWrites` rule

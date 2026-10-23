@@ -134,4 +134,35 @@ describe('AutoColumnSize sampling settings', () => {
 
     hot.destroy();
   });
+
+  it('should re-measure every column when the update that turns the plugin on again changes a sampling setting', () => {
+    const hot = buildGrid({ autoColumnSize: { samplingRatio: 5 } });
+    const plugin = hot.getPlugin('autoColumnSize');
+
+    hot.updateSettings({ autoColumnSize: false });
+
+    const recalculateAll = spyOn(plugin, 'recalculateAllColumnsWidth').and.callThrough();
+
+    hot.updateSettings({ autoColumnSize: { samplingRatio: 10 } });
+
+    expect(plugin.samplesGenerator.getSampleCount()).toBe(10);
+    expect(recalculateAll).toHaveBeenCalledTimes(1);
+
+    hot.destroy();
+  });
+
+  it('should keep the measured widths when the plugin is turned on again with the same sampling settings', () => {
+    const hot = buildGrid({ autoColumnSize: { samplingRatio: 5 } });
+    const plugin = hot.getPlugin('autoColumnSize');
+
+    hot.updateSettings({ autoColumnSize: false });
+
+    const recalculateAll = spyOn(plugin, 'recalculateAllColumnsWidth').and.callThrough();
+
+    hot.updateSettings({ autoColumnSize: { samplingRatio: 5 } });
+
+    expect(recalculateAll).not.toHaveBeenCalled();
+
+    hot.destroy();
+  });
 });

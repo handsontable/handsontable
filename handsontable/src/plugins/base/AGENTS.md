@@ -130,8 +130,12 @@ outcomes in this order:
    `enablePlugin()`, unless a hard conflict blocks it. The refresh comes first because `enablePlugin()`
    reads `getSetting()`: without it a plugin turned on by an update read the value it held before (the
    default, or the settings it was last disabled with), so `updateSettings({ bindRowsWithHeaders: 'strict' })`
-   bound loose, and a SheetsBar turned off and on again rebuilt its old workbook first. Branch 4 refreshes the
-   settings again in the same call, which is idempotent.
+   bound loose, and a SheetsBar turned off and on again rebuilt its old workbook first. Branch 4 then skips its
+   own refresh in that call: a second one logged every validation warning twice, and for a payload carrying
+   only a foreign `SETTING_KEYS` option it passed `undefined` and wiped what branch 2 read. A plugin whose
+   `updatePlugin()` compares a value against the one it applied before can no longer see the change there in
+   the enabling call, because `enablePlugin()` already applied it: AutoColumnSize and AutoRowSize record a
+   sampling change seen in `enablePlugin()` for `updatePlugin()` to act on.
 3. enabled and still enabled but a hard conflict is now active → `disablePlugin()` and **return**
 4. enabled, still enabled, and the payload is relevant per `SETTING_KEYS` → `updatePluginSettings()` then
    `updatePlugin(newSettings)`

@@ -116,4 +116,35 @@ describe('AutoRowSize sampling settings', () => {
 
     hot.destroy();
   });
+
+  it('should drop the measured heights when the update that turns the plugin on again changes a sampling setting', () => {
+    const hot = buildGrid({ autoRowSize: { samplingRatio: 5 } });
+    const plugin = hot.getPlugin('autoRowSize');
+
+    hot.updateSettings({ autoRowSize: false });
+
+    const clearCache = spyOn(plugin, 'clearCache').and.callThrough();
+
+    hot.updateSettings({ autoRowSize: { samplingRatio: 10 } });
+
+    expect(plugin.samplesGenerator.getSampleCount()).toBe(10);
+    expect(clearCache).toHaveBeenCalledTimes(1);
+
+    hot.destroy();
+  });
+
+  it('should keep the measured heights when the plugin is turned on again with the same sampling settings', () => {
+    const hot = buildGrid({ autoRowSize: { samplingRatio: 5 } });
+    const plugin = hot.getPlugin('autoRowSize');
+
+    hot.updateSettings({ autoRowSize: false });
+
+    const clearCache = spyOn(plugin, 'clearCache').and.callThrough();
+
+    hot.updateSettings({ autoRowSize: { samplingRatio: 5 } });
+
+    expect(clearCache).not.toHaveBeenCalled();
+
+    hot.destroy();
+  });
 });

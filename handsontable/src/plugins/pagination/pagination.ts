@@ -291,10 +291,9 @@ export class Pagination extends BasePlugin {
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const declaredInitialPage = readDeclaredInitialPage(settings);
 
-    // Use the raw grid value, not `getSetting()`. `onUpdateSettings` branch 2
-    // (disabled → enabled) calls `enablePlugin()` before `updatePluginSettings()`,
-    // so `#pluginSettings` is still stale. Core has already merged the new
-    // `pagination` object onto `hot.getSettings()`.
+    // Use the raw grid value, which core has already merged when this runs. `getSetting()`
+    // reads the plugin's own copy, which `onUpdateSettings` now refreshes before an enable too,
+    // but the raw value does not depend on that order.
     if (typeof declaredInitialPage !== 'number') {
       this.#appliedInitialPage = undefined;
     } else if (declaredInitialPage !== this.#appliedInitialPage) {
