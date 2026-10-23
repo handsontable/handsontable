@@ -342,6 +342,58 @@ describe('SheetsBar settings baseline and lifecycle', () => {
     });
   });
 
+  describe('a hook only one sheet declares', () => {
+    it('does not run on a sheet that does not declare it', () => {
+      const afterChange = jest.fn();
+      const bar = buildWorkbook([
+        { name: 'Hooked', data: [['a']], settings: { afterChange } },
+        { name: 'Plain', data: [['b']] },
+      ]);
+
+      bar.setActiveSheet('Plain');
+      afterChange.mockClear();
+      hot.setDataAtCell(0, 0, 'x');
+
+      expect(afterChange).not.toHaveBeenCalled();
+
+      bar.setActiveSheet('Hooked');
+      afterChange.mockClear();
+      hot.setDataAtCell(0, 0, 'y');
+
+      expect(afterChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not run after a `sheetsBar: false` teardown', () => {
+      const afterChange = jest.fn();
+
+      buildWorkbook([
+        { name: 'Hooked', data: [['a']], settings: { afterChange } },
+        { name: 'Plain', data: [['b']] },
+      ]);
+      hot.updateSettings({ sheetsBar: false });
+      afterChange.mockClear();
+      hot.setDataAtCell(0, 0, 'x');
+
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+
+    it('gives a sheet without its own callback the grid-level one back', () => {
+      const gridLevel = jest.fn();
+      const own = jest.fn();
+      const bar = buildWorkbook([
+        { name: 'Hooked', data: [['a']], settings: { afterChange: own } },
+        { name: 'Plain', data: [['b']] },
+      ], { afterChange: gridLevel });
+
+      bar.setActiveSheet('Plain');
+      own.mockClear();
+      hot.setDataAtCell(0, 0, 'x');
+
+      expect(own).not.toHaveBeenCalled();
+      expect(gridLevel).toHaveBeenCalled();
+    });
+  });
+
   describe('a top-level `data` beside a declared workbook', () => {
     it('is ignored when an update sends it, like at init', () => {
       const topLevel = [['top']];

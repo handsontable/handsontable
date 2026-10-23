@@ -449,9 +449,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     every other key, for a function: core keeps one settings callback per hook name. A grid-level ARRAY
     of callbacks is added through `Hooks#add` instead and keeps running beside a sheet's callback on every
     sheet. No write the `cell` option makes is tracked as cell meta the user set (`#onAfterSetCellMeta` asks
-    `MetaManager#isRecordingCellOptionMeta()`), at init or on a switch. Known gap: a hook only sheets declare, with no grid-level callback, is restored
-    as `null`, which removes nothing, so it keeps running on the sheets that do not declare it. The
-    opening sheet's hooks also miss the init load's own events (`afterLoadData` of the first load).
+    `MetaManager#isRecordingCellOptionMeta()`), at init or on a switch. A hook only sheets declare, with no
+    grid-level callback, is restored as `null`, and core removes the settings callback for a `null` hook
+    (`registerSettingsHook` in `core.ts`), so it stops running on the sheets that do not declare it and after
+    a `sheetsBar: false` teardown. Before that removal existed, `null` removed nothing and the hook ran
+    everywhere. The opening sheet's hooks still miss the init load's own events (`afterLoadData` of the
+    first load).
 - **Custom borders are restored with the logical sides only.** `getBorders()` records carry both
   `start`/`end` and their legacy `left`/`right` copies (`denormalizeBorder()`), and `setBorders()`
   throws when it gets both pairs, and on `left`/`right` alone in RTL. `restoreCustomBorders()`

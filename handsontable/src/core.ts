@@ -2518,22 +2518,47 @@ export default function Core(
    *
    * The callback is also written to the table meta, so that `getSettings()` returns it back.
    *
+   * `null` removes what a settings object registered for the hook (the callback, or each callback of an
+   * array) and writes `null` to the table meta. Without it a settings hook could only be replaced, never
+   * removed, so a sheets bar sheet's own hook kept running on every other sheet. `undefined` still means
+   * "not passed" and changes nothing. Listeners added with `addHook()` are never touched.
+   *
    * @private
    * @param {string} key A hook name.
-   * @param {Function|Function[]} hook A callback, or an array of callbacks, to register.
+   * @param {Function|Function[]|null} hook A callback, or an array of callbacks, to register, or `null`.
    */
-  function registerSettingsHook(key: string, hook: HookCallback | HookCallback[] | undefined) {
+  function registerSettingsHook(key: string, hook: HookCallback | HookCallback[] | null | undefined) {
     if (isFunction(hook)) {
       Hooks.getSingleton().addAsFixed(key, hook, instance);
 
     } else if (Array.isArray(hook)) {
       Hooks.getSingleton().add(key, hook, instance);
 
+    } else if (hook === null) {
+      removeSettingsHook(key);
+
     } else {
       return;
     }
 
     tableMeta[key] = hook;
+  }
+
+  /**
+   * Removes the callbacks a settings object registered for a hook, as `getSettings()` holds them.
+   *
+   * @private
+   * @param {string} key A hook name.
+   */
+  function removeSettingsHook(key: string) {
+    const registered: unknown = tableMeta[key];
+    const callbacks = Array.isArray(registered) ? registered : [registered];
+
+    callbacks.forEach((callback: unknown) => {
+      if (isFunction(callback)) {
+        Hooks.getSingleton().remove(key, callback as HookCallback, instance);
+      }
+    });
   }
 
   this.init = function() {
@@ -5225,6 +5250,10 @@ export default function Core(
    * A failed validation result is preserved as well, so a cell marked invalid keeps its `htInvalid` class across
    * `updateSettings`. To reset the validation state, use [loadData()](@/api/core.md#loaddata) or validate the cells again.
    *
+   * A hook passed in `settings` replaces the callback that earlier settings passed for the same hook. A hook set to
+   * `null` removes that callback (or every callback of an array) and leaves `null` in {@link Core#getSettings}. A hook
+   * set to `undefined` is left as it is. Listeners added with {@link Core#addHook} are not affected by either.
+   *
    * This method reinitializes the affected plugins and then renders, so it does more work than a plain
    * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
    * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
@@ -5594,7 +5623,7 @@ export default function Core(
         instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
-        registerSettingsHook(i, settings[i] as HookCallback | HookCallback[] | undefined);
+        registerSettingsHook(i, settings[i] as HookCallback | HookCallback[] | null | undefined);
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
         applyUpdatedSetting(settings, i);
