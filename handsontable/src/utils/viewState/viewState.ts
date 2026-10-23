@@ -5,9 +5,10 @@ import { clamp } from '../../helpers/number';
 import { safeBatch } from '../safeBatch';
 
 /**
- * One tracked explicit cell-meta write. The indexes are physical: a visual index only means
- * something against the row and column order in force when it was read, and the entries are
- * served lazily against whatever order is in force when the cell's meta is next read.
+ * One key of the cell meta a sheet's rows carried when the user left it: a key set through
+ * `setCellMeta()`, or `valid: false` for a cell whose last validation failed. The indexes are
+ * physical, so each entry goes back onto its record whatever row and column order the sheet
+ * returns with.
  */
 export interface TrackedCellMeta {
   row: number;
@@ -51,8 +52,19 @@ export interface ViewState {
   fixedColumnsEnd: number | undefined;
   fixedRowsTop?: number | undefined;
   fixedRowsBottom?: number | undefined;
+
+  /**
+   * The custom borders on screen, by visual coordinates, for a listener to read. A sheets bar return
+   * does not replay it: the borders come back with the sheet's kept cell meta, so a change made to this
+   * list is not applied.
+   */
   customBorders: Array<Record<string, unknown>>;
-  cellMeta: TrackedCellMeta[];
+
+  /**
+   * The cell meta the sheet keeps, by physical indexes. Absent when a server response replaced the
+   * sheet's rows while it was hidden, because the meta described the old rows.
+   */
+  cellMeta?: TrackedCellMeta[];
   pagination: PaginationState | null;
 
   /**
@@ -928,35 +940,33 @@ function restoreMergedCells(hot: HotInstance, state: ViewState) {
 }
 
 /**
- * The keys of a saved border record that describe its sides. The record also carries its
- * position and id, which `setBorders()` does not take, and the legacy `left`/`right` copies of
- * `start`/`end`, which `setBorders()` rejects next to them (and rejects outright in RTL).
+ * Restores custom borders from the `borders` cell meta, which is the record of a sheet's borders: the sheets
+ * bar keeps it with the sheet's other cell meta and core writes it back with the rows. The border list the
+ * view state captures (`customBorders`) is not replayed, because it holds visual coordinates only and so
+ * misses a border on a row the filters hide. The model keeps visual coordinates, so CustomBorders only marks
+ * it for a rebuild here, and the rebuild runs on the next model read or render, once the restore's batch
+ * has resumed the index cache with the restored sort and moves.
  */
-const BORDER_SIDES = ['top', 'bottom', 'start', 'end'];
+export function rebuildCustomBordersFromCellMeta(hot: HotInstance): void {
+  const customBorders = hot.getPlugin('customBorders');
+
+  if (customBorders?.enabled) {
+    customBorders._rebuildFromCellMeta();
+  }
+}
 
 /**
- * Restores custom borders, clearing the current set first.
+ * Removes every custom border, from the model and from the cell meta. The sheets bar runs it before a sheet
+ * comes back, while the grid still holds the departing sheet's rows: the arriving sheet's borders come back
+ * as its kept cell meta, and a departing border left in the model would be written onto the arriving rows
+ * when CustomBorders applies its settings.
  */
-function restoreCustomBorders(hot: HotInstance, state: ViewState) {
-  const customBorders = getEnabledPlugin(hot, 'customBorders') as
-    {
-      clearBorders: () => void,
-      setBorders: (ranges: unknown[], borderObject?: Record<string, unknown>) => void,
-    } | undefined;
+export function clearCustomBorders(hot: HotInstance): void {
+  const customBorders = hot.getPlugin('customBorders');
 
-  if (!customBorders) {
-    return;
+  if (customBorders?.enabled) {
+    customBorders.clearBorders();
   }
-
-  customBorders.clearBorders();
-  state.customBorders.forEach((border) => {
-    const { row, col } = border as { row: number, col: number };
-    const sides = Object.fromEntries(
-      BORDER_SIDES.filter(side => side in border).map(side => [side, border[side]]),
-    );
-
-    customBorders.setBorders([[row, col, row, col]], sides);
-  });
 }
 
 /**
@@ -967,10 +977,9 @@ function restoreCustomBorders(hot: HotInstance, state: ViewState) {
  * of that visual space and a hidden child would no longer be found by its visual index; then
  * sizes, merges, freeze, and borders, none of which depend on each other.
  *
- * The tracked cell meta (`state.cellMeta`) is deliberately not replayed here: the plugin
- * serves it lazily from its `afterGetCellMeta` hook, so a switch pays nothing per entry and
- * no meta object is materialized for a cell nobody reads — replaying 130k validated-sheet
- * entries eagerly made a switch measurably slower and tripled the heap.
+ * The kept cell meta (`state.cellMeta`) is not replayed here: the sheets bar hands it to core's
+ * `_applySettingsAndData()` together with the sheet's rows, which writes it back before the cell
+ * types expand, so a `type` comes back with its renderer and validator.
  *
  * The selection and the scroll position are left to {@link restoreViewport}: both need the
  * grid painted with the arriving sheet's sizes, and this runs inside a render batch.
@@ -1018,7 +1027,7 @@ export function restoreViewState(
     }
 
     if (covers('customBorders')) {
-      restoreCustomBorders(hot, state);
+      rebuildCustomBordersFromCellMeta(hot);
     }
   });
 
@@ -1293,7 +1302,7 @@ export function resetViewState(hot: HotInstance, neutral: NeutralFrozenCounts = 
     restoreTrimmedState(hot, state);
     restoreHiddenState(hot, state);
     clearManualSizes(hot);
-    restoreCustomBorders(hot, state);
+    clearCustomBorders(hot);
   });
 
   hot.render();
