@@ -1,7 +1,7 @@
 ---
 title: Custom keyboard shortcuts
 metaTitle: Custom keyboard shortcuts - JavaScript Data Grid | Handsontable
-description: Register custom keyboard shortcuts in Handsontable using the ShortcutManager API. Add Ctrl+D to duplicate rows and Ctrl+Enter to submit grid data.
+description: Register custom keyboard shortcuts in Handsontable DataGrid using the ShortcutManager API. Add Ctrl+D to duplicate rows and Ctrl+Shift+Enter to submit grid data.
 permalink: /recipes/accessibility/keyboard-shortcuts
 canonicalUrl: /recipes/accessibility/keyboard-shortcuts
 tags:
@@ -18,10 +18,11 @@ vue:
   metaTitle: Custom keyboard shortcuts - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Accessibility & UX
+menuTag: updated
 type: how-to
 ---
 
-In this tutorial, you will register custom keyboard shortcuts in Handsontable using the ShortcutManager API. You will learn how to add shortcuts like Ctrl+D to duplicate rows and Ctrl+Enter to submit grid data without conflicting with existing browser or grid shortcuts.
+In this tutorial, you will register custom keyboard shortcuts in Handsontable DataGrid using the ShortcutManager API. You will learn how to add shortcuts like Ctrl+D to duplicate rows and Ctrl+Shift+Enter to submit grid data, with key chords the grid leaves free.
 
 ::: only-for javascript
 
@@ -61,14 +62,14 @@ In this tutorial, you will register custom keyboard shortcuts in Handsontable us
 **Difficulty:** Beginner
 **Time:** ~15 minutes
 
-Handsontable's `ShortcutManager` API lets you register custom keyboard shortcuts that fire only when the grid has focus. This recipe shows how to add two common shortcuts: `Ctrl+D` to duplicate a selected row, and `Ctrl+Enter` to collect and submit the grid's data.
+Handsontable's `ShortcutManager` API lets you register custom keyboard shortcuts that fire only when the grid has focus. This recipe shows how to add two common shortcuts: `Ctrl+D` to duplicate a selected row, and `Ctrl+Shift+Enter` to collect and submit the grid's data.
 
 ## What You'll Build
 
 A grid with two custom shortcuts:
 
 - `Ctrl+D` -- duplicates the currently selected row and inserts the copy directly below it.
-- `Ctrl+Enter` -- reads all grid data and displays a submission summary in the shortcut log.
+- `Ctrl+Shift+Enter` -- reads all grid data and displays a submission summary in the shortcut log.
 - A shortcut log table below the grid that shows the last shortcut triggered and the last submission.
 
 ## Before you begin
@@ -164,11 +165,11 @@ gridContext.addShortcut({
 - `hot.alter('insert_row_below', row)` -- inserts a new empty row immediately below the selected row.
 - `hot.populateFromArray(row + 1, 0, [Object.values(rowData)])` -- fills the new row with the original row's values. `populateFromArray` expects a 2-D array, so wrap the flat values array in an outer array.
 
-## Step 4: Register Ctrl+Enter to submit the grid data
+## Step 4: Register Ctrl+Shift+Enter to submit the grid data
 
 ```javascript
 gridContext.addShortcut({
-  keys: [['Control', 'Enter']],
+  keys: [['Control', 'Shift', 'Enter']],
   group: 'customActions',
   runOnlyIf: () => true,
   callback: (event) => {
@@ -179,7 +180,7 @@ gridContext.addShortcut({
     const rowCount = data.length;
     const timestamp = new Date().toLocaleTimeString();
 
-    lastShortcutEl.textContent = 'Ctrl+Enter -- data submitted';
+    lastShortcutEl.textContent = 'Ctrl+Shift+Enter -- data submitted';
     lastSubmissionEl.textContent = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
   },
 });
@@ -195,8 +196,8 @@ const lastSubmissionEl = preview.querySelector('.last-submission');
 
 **What's happening:**
 
-- `keys: [['Control', 'Enter']]` -- fires on `Ctrl+Enter`. In a standard HTML form, `Enter` submits, but inside a data grid you often want to capture `Ctrl+Enter` for a deliberate "submit all" action.
-- `event.preventDefault()` -- in some browsers `Ctrl+Enter` can trigger form submission or other default behavior; this prevents it.
+- `keys: [['Control', 'Shift', 'Enter']]` -- fires on `Ctrl+Shift+Enter`. In a standard HTML form, `Enter` submits, but inside a data grid you often want to capture a chord for a deliberate "submit all" action. The grid already binds `Ctrl+Enter` (fill the selection with the active cell's value) and `Alt+Enter` (open the cell's link), so the recipe uses a chord the grid context leaves free. Inside an open editor the same chord saves and closes the editor, which is why this shortcut fires from a selected cell, not from an editor.
+- `event.preventDefault()` -- in some browsers `Ctrl+Shift+Enter` can trigger form submission or other default behavior; this prevents it.
 - `hot.getData()` -- returns a 2-D array of all visible cell values (respecting column and row order after sorting or filtering).
 - `hot.getColHeader()` -- returns the current column header labels as an array.
 - The summary is written to the shortcut log table below the grid. In a real application you would replace this with a `fetch()` call or a Redux action.
@@ -232,7 +233,7 @@ The table below lists the most commonly overridden built-in shortcuts:
 1. **Grid renders** -- `ShortcutManager` initializes with the `'grid'` context and all built-in shortcuts already registered.
 2. **User focuses the grid** -- the `'grid'` context becomes active; your custom shortcuts are now listening.
 3. **User presses Ctrl+D** -- `ShortcutManager` matches the key combination against registered handlers. The `runOnlyIf` guard runs first. If a row is selected, the callback fires: the selected row is read, a new row is inserted below, and the copy is populated.
-4. **User presses Ctrl+Enter** -- `ShortcutManager` matches `Ctrl+Enter`, calls `event.preventDefault()`, reads `hot.getData()`, and writes a summary to the shortcut log table.
+4. **User presses Ctrl+Shift+Enter** -- `ShortcutManager` matches `Ctrl+Shift+Enter`, calls `event.preventDefault()`, reads `hot.getData()`, and writes a summary to the shortcut log table.
 5. **User focuses outside the grid** -- the `'grid'` context deactivates; your shortcuts no longer fire.
 
 ## What you learned

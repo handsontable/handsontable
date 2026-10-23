@@ -43,7 +43,7 @@
   }
 }
 
-/* Sub-bar buttons — WCAG 2.5.8 minimum 44px touch targets */
+/* Sub-bar buttons - 44px touch targets. WCAG 2.2 SC 2.5.8 (Level AA) needs 24 by 24 px; 44px follows SC 2.5.5 (Level AAA). */
 .mobile-sidebar-toggle,
 .mobile-toc-toggle {
   display: flex;
