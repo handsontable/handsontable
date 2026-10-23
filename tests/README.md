@@ -128,9 +128,10 @@ does not load or a baseline that does not validate. How to add a page or baselin
 ## The screen reader lane, locally
 
 `npm run test:screenreader` runs the scenarios of `screenreader/scenarios/` against a real screen reader
-through Guidepup: NVDA on Windows (`npx @guidepup/setup install nvda` in this directory once, after the
-install), the VoiceOver projects on macOS once that lane lands. It needs the same build as the e2e tier.
-A missing token group or a golden difference is reported, never a red run (report mode); what fails is a
+through Guidepup: NVDA on Windows (`npx -y @guidepup/setup@0.29.3 install nvda` in this directory once,
+after the install; the setup CLI is never a dependency, because its optional recording helper depends on a
+GPL-licensed ffmpeg build), the VoiceOver projects on macOS once that lane lands. It needs the same build
+as the e2e tier. A missing token group or a golden difference is reported, never a red run (report mode); what fails is a
 fixture that does not load or a screen reader that does not start. The transcripts land in
 `test-results/screenreader/transcripts/`, and `npm run screenreader:report` prints the summary and the
 check-run payload CI would post. Without a screen reader, `HOT_SR_LANE=dom-echo npm run test:screenreader`

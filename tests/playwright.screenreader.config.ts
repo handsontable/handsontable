@@ -23,7 +23,7 @@ import base from './playwright.config';
  *
  * CI: `.github/workflows/screenreader.yml`, one job per browser on a Windows runner, started by
  * `screenreader-nightly.yml`. Locally on Windows: `npm --prefix tests run test:screenreader`, after
- * `npx @guidepup/setup install nvda` in `tests/` and the UMD build with the minified stylesheets.
+ * `npx -y @guidepup/setup@0.29.3 install nvda` in `tests/` and the UMD build with the minified stylesheets.
  */
 const LANES = {
   nvda: [

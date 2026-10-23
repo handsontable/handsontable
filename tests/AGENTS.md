@@ -1270,8 +1270,10 @@ unescaped newline or `%` would cut the one line that explains a red job.
 ## Screen readers: the NVDA lane
 
 `screenreader/screenreader.spec.ts` drives a real screen reader through Guidepup
-(`@guidepup/playwright`, `@guidepup/guidepup`, `@guidepup/setup`; MIT, devDependencies of this
-package only) over the scenarios of `screenreader/scenarios/`, one Playwright project per screen
+(`@guidepup/playwright` and `@guidepup/guidepup`, MIT, devDependencies of this package only; the
+`@guidepup/setup` CLI, pinned at 0.29.3, runs through `npx -y` and is never installed, because its
+optional recording helper depends on a GPL-licensed ffmpeg build, which the dependency rule keeps
+out of the lockfile) over the scenarios of `screenreader/scenarios/`, one Playwright project per screen
 reader and browser (`playwright.screenreader.config.ts`: `nvda-chromium`, `nvda-firefox`; the
 VoiceOver projects `vo-webkit` and `vo-chromium` are named for the next lane). It writes a transcript
 per scenario, and `scripts/screenreader-report.mjs` turns the transcripts into the job summary and the
@@ -1366,7 +1368,7 @@ of it.
   the announcements; a nightly dispatch from the branch for the real ones; the goldens from an
   `update-goldens` dispatch, read before they are committed. Keep every step's `"id"` on its own line:
   the check run annotates that line.
-- **Locally on Windows**: `npx @guidepup/setup install nvda` in `tests/` once (the portable NVDA build
+- **Locally on Windows**: `npx -y @guidepup/setup@0.29.3 install nvda` in `tests/` once (the portable NVDA build
   the installed `@guidepup/guidepup` names, with the Guidepup add-on), the UMD build with the
   minified stylesheets, then `npm run test:screenreader`. The lane follows the platform: NVDA on
   Windows, the VoiceOver projects on macOS once that runner exists, and `HOT_SR_LANE` to pick one

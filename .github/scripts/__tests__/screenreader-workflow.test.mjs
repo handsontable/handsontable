@@ -42,8 +42,10 @@ test('screenreader.yml is one NVDA job on Windows, one browser per job, report-o
   assert.match(nvda, /^ {6}checks: write$/m, `${LANE}: the report check run needs checks: write at job level.`);
   assert.match(step('Download the Handsontable UMD build artifact'), /name: handsontable-build-umd/,
     `${LANE}: the lane consumes the UMD build artifact the Build module uploads. ${DOC}`);
-  assert.match(step('Install NVDA'), /^ {8}run: cd tests && npx @guidepup\/setup install nvda$/m,
-    `${LANE}: NVDA is installed from inside tests/, where @guidepup/guidepup resolves its manifest. ${DOC}`);
+  assert.match(step('Install NVDA'), /^ {8}run: cd tests && npx -y @guidepup\/setup@0\.29\.3 install nvda$/m,
+    `${LANE}: NVDA is installed from inside tests/, where @guidepup/guidepup resolves its manifest, by the setup CLI at its pinned version through npx: the CLI is never a dependency, because its optional recording helper depends on a GPL-licensed ffmpeg build. ${DOC}`);
+  assert.match(step('Prepare the environment for screen reader automation'), /^ {8}run: cd tests && npx -y @guidepup\/setup@0\.29\.3 setup --ci$/m,
+    `${LANE}: the environment step runs the same pinned setup CLI through npx. ${DOC}`);
   assert.match(step('Run the scenarios'), /^ {8}run: cd tests && npx playwright test --config playwright\.screenreader\.config\.ts --project=nvda-\$\{\{ matrix\.browser \}\}$/m,
     `${LANE}: the run step runs the screen reader config on the job's browser and nothing else. ${DOC}`);
 
@@ -93,4 +95,14 @@ test('the screen reader config keeps the lane serial, patient and outside the fl
   assert.match(config, /name: 'nvda-firefox'/);
   assert.match(config, /name: 'vo-webkit'/, `${CONFIG}: the VoiceOver projects are named, for the next pull request.`);
   assert.match(config, /name: 'vo-chromium'/);
+});
+
+test('the Guidepup setup CLI is never installed: its optional recording helper depends on a GPL-licensed ffmpeg build', () => {
+  const manifest = JSON.parse(read('tests/package.json'));
+  const declared = { ...manifest.dependencies, ...manifest.devDependencies, ...manifest.optionalDependencies };
+
+  assert.equal(declared['@guidepup/setup'], undefined,
+    'tests/package.json: the setup CLI runs through `npx -y @guidepup/setup@<version>` in the workflow, never as a dependency (root AGENTS.md, Dependency management: permissive licenses, transitively).');
+  assert.doesNotMatch(read('pnpm-lock.yaml'), /ffmpeg-static|@guidepup\/record|@guidepup\/setup/,
+    'pnpm-lock.yaml: nothing may bring the GPL-licensed ffmpeg-static build (through @guidepup/record) into the lockfile.');
 });

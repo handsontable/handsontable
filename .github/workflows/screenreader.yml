@@ -79,12 +79,16 @@ jobs:
       # today and stays for the day it is not), the browser, then the screen reader assets. `install
       # nvda` resolves the NVDA build from the installed @guidepup/guidepup's manifest (portable NVDA
       # 2026.2 with the Guidepup add-on), so it runs inside tests/, where that package is installed.
+      # The setup CLI runs through `npx -y` at a pinned version, the way Guidepup's own CI runs it, and
+      # is never installed: its optional recording helper depends on a GPL-licensed ffmpeg build, which
+      # the dependency rule (root AGENTS.md) keeps out of the lockfile. The version is pinned here and in
+      # tests/AGENTS.md ("Screen readers: the NVDA lane").
       - name: Prepare the environment for screen reader automation
-        run: cd tests && npx @guidepup/setup setup --ci
+        run: cd tests && npx -y @guidepup/setup@0.29.3 setup --ci
       - name: Install the browser
         run: cd tests && npx playwright install ${{ matrix.browser }}
       - name: Install NVDA
-        run: cd tests && npx @guidepup/setup install nvda
+        run: cd tests && npx -y @guidepup/setup@0.29.3 install nvda
       - name: Run the scenarios
         id: scenarios
         env:
