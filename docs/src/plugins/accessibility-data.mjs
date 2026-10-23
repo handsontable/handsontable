@@ -148,8 +148,8 @@ export function validateAccessibilityData(data) {
       need(limitation.text, `knownLimitations[${i}].text`);
       need(limitation.criteria, `knownLimitations[${i}].criteria`, 'array');
 
-      if (limitation.tracker !== null) {
-        need(limitation.tracker, `knownLimitations[${i}].tracker (a string, or null)`);
+      if (limitation.reportRef !== null) {
+        need(limitation.reportRef, `knownLimitations[${i}].reportRef (a string, or null)`);
       }
 
       if (ids.has(limitation.id)) {
@@ -345,7 +345,8 @@ export function browsersList(data) {
 
 /**
  * The known limitations as a Markdown list, each with its WCAG criteria and its reference in the
- * conformance report where one exists.
+ * conformance report where one exists. `reportRef` is the report's own "Ref." column (`#2375`),
+ * not a GitHub issue number, so it renders as "ref. #2375 in the report".
  *
  * @param {object} data The validated data.
  * @returns {string} The list.
@@ -357,15 +358,15 @@ export function knownLimitationsList(data) {
     if (limitation.criteria.length > 0) {
       details.push(`WCAG ${limitation.criteria.join(', ')}`);
     }
-    if (limitation.tracker) {
-      details.push(`issue ${limitation.tracker} in the report`);
+    if (limitation.reportRef) {
+      details.push(`ref. ${limitation.reportRef} in the report`);
     }
 
     if (details.length === 0) {
       return `- ${limitation.text}`;
     }
 
-    // The details sit inside the sentence: "... not announced (WCAG 4.1.3; issue #2375 in the report)."
+    // The details sit inside the sentence: "... not announced (WCAG 4.1.3; ref. #2375 in the report)."
     const text = limitation.text.endsWith('.') ? limitation.text.slice(0, -1) : limitation.text;
 
     return `- ${text} (${details.join('; ')}).`;
@@ -375,6 +376,10 @@ export function knownLimitationsList(data) {
 /**
  * Every `{{$a11y.<key>}}` value a docs page can use, as a flat map keyed by the dotted name. A page
  * that names a key missing here fails its build, so add a key here before using it in content.
+ *
+ * `report.next` may be `null` (no next version planned). The three `report.next.*` parts are then
+ * empty, so a page composes the announcement from `report.next.sentence`, which is empty too,
+ * rather than from the parts, which would render "Version  is : .".
  *
  * @param {object} data The validated data.
  * @returns {Record<string, string>} The values.
@@ -405,6 +410,7 @@ export function accessibilityTemplateValues(data) {
     'report.next.version': next ? next.version : '',
     'report.next.status': next ? next.status : '',
     'report.next.scope': next ? next.scope : '',
+    'report.next.sentence': next ? `Version ${next.version} of this report is ${next.status}: ${next.scope}.` : '',
     'matrix.table': matrixTable(data),
     'matrix.list': matrixList(data),
     'matrix.sentence': screenReadersSentence(data),
@@ -421,7 +427,8 @@ export function accessibilityTemplateValues(data) {
  * The strings the handsontable.com repository publishes. The website has no access to this
  * repository at build time, so `docs/scripts/export-accessibility-strings.mjs` writes this object
  * to `docs/content/data/accessibility-website-strings.json`, and the website keeps a copy of that
- * file. The root tooling suite fails when the committed export drifts from the data.
+ * file. The root tooling suite fails when the committed export drifts from the data. The website
+ * composes its sentences from the fields; `strings` holds only the chip and the trust card label.
  *
  * @param {object} data The validated data.
  * @returns {object} The export, ready to serialize.
@@ -429,8 +436,6 @@ export function accessibilityTemplateValues(data) {
 export function websiteStrings(data) {
   const { target, report } = data;
   const targetName = `${target.standard} ${target.version}`;
-  const screenReaders = screenReadersSentence(data);
-  const browsers = browsersSentence(data);
 
   return {
     $generated: 'Generated from docs/content/data/accessibility.json by ' +
@@ -451,18 +456,14 @@ export function websiteStrings(data) {
     },
     screenReaders: {
       names: allowedScreenReaderNames(data),
-      sentence: screenReaders,
+      sentence: screenReadersSentence(data),
     },
     browsers: {
-      sentence: browsers,
+      sentence: browsersSentence(data),
     },
     strings: {
       chip: `Targets ${targetName} ${target.level.replace('Level ', '').replace('A and AA', 'AA')}`,
       trustCardLabel: targetName,
-      trustCardText: `Handsontable DataGrid ${target.wording.long}. The accessibility conformance ` +
-        `report (version ${report.version}, ${report.date}) states the result per success ` +
-        `criterion, tested with ${screenReaders}.`,
-      screenReaderSupport: `screen reader support (tested with ${screenReaders}, in ${browsers})`,
     },
   };
 }

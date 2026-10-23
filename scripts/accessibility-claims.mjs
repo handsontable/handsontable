@@ -39,11 +39,13 @@ export const SCREEN_READER_NAMES = ['JAWS', 'NVDA', 'VoiceOver', 'TalkBack', 'Na
 /**
  * What makes a sentence an accessibility sentence: the words that put "compliant" or "certified"
  * in scope. Outside this context the words are about something else (a license, a reseller) and
- * are left alone.
+ * are left alone. A bare "508" and "Level A", "AA", or "AAA" count, so "508 compliant" and "Level
+ * AA compliant" are claims even without the word WCAG.
  *
  * @type {RegExp}
  */
-export const ACCESSIBILITY_CONTEXT = /accessib|wcag|\bada\b|section 508|en 301 549|vpat|a11y|screen.reader|assistive/i;
+export const ACCESSIBILITY_CONTEXT =
+  /accessib|wcag|\bada\b|section 508|\b508\b|\blevel a{1,3}\b|en 301 549|vpat|a11y|screen.reader|assistive/i;
 
 /**
  * The rules. `pattern` runs per line; a rule with `context: true` fires only when the sentence
@@ -54,7 +56,8 @@ export const ACCESSIBILITY_CONTEXT = /accessib|wcag|\bada\b|section 508|en 301 5
 export const RULES = [
   {
     id: 'superseded-wcag-version',
-    pattern: /\bWCAG\s?2[.]?[01](?![\d.])/gi,
+    // `(?!\.?\d)` rejects 2.10 and 2.1.1 but keeps "WCAG 2.1." at the end of a sentence.
+    pattern: /\b(?:WCAG|Web Content Accessibility Guidelines)\s?2[.]?[01](?!\.?\d)/gi,
     message: 'names WCAG 2.0 or 2.1; the target is WCAG 2.2',
   },
   {
@@ -208,15 +211,23 @@ function walk(dir, keep) {
 const TEST_FILE = /(?:^|\/)(?:__tests__|test|tests)\/|\.(?:spec|unit|types|d)\.[cm]?[jt]sx?$/;
 
 /**
- * The public text this check reads: the docs content (every page, recipe, and data file; the
- * generated API reference is not content), the four published READMEs, the core source whose JSDoc
- * becomes the API reference, and the website strings export.
+ * The docs content files: the pages and data files, and the example sources the pages embed, whose
+ * comments and strings render on the page too.
+ *
+ * @type {RegExp}
+ */
+const DOCS_CONTENT_FILE = /\.(?:md|mdx|json|js|ts|tsx|jsx|vue|html)$/;
+
+/**
+ * The public text this check reads: the docs content (every page, recipe, and data file, and the
+ * example sources the pages embed; the generated API reference is not content), the four published
+ * READMEs, the core source whose JSDoc becomes the API reference, and the website strings export.
  *
  * @returns {string[]} Repo-relative paths.
  */
 export function publicFiles() {
   return [
-    ...walk('docs/content', file => /\.(?:md|mdx|json)$/.test(file) && !file.startsWith('docs/content/api/')),
+    ...walk('docs/content', file => DOCS_CONTENT_FILE.test(file) && !file.startsWith('docs/content/api/')),
     'README.md',
     'wrappers/react-wrapper/README.md',
     'wrappers/angular-wrapper/README.md',

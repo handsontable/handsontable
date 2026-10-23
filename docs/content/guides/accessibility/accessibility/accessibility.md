@@ -30,7 +30,7 @@ addedIn: "14.0.0"
 ---
 Handsontable DataGrid supports keyboard navigation, screen readers, and ARIA roles. Use these steps to configure accessible behavior for your users.
 
-Handsontable {{$a11y.target.long}}. The {{$a11y.report.link}} states, per success criterion, how far the grid gets there today.
+Handsontable {{$a11y.target.long}}. The {{$a11y.report.link}} states how far the grid conforms today, per success criterion.
 
 [[toc]]
 
@@ -43,10 +43,10 @@ Accessibility features of Handsontable include:
 - Flexible API to configure keyboard shortcuts and navigation methods.
 - A published {{$a11y.report.link}}, version {{$a11y.report.version}} ({{$a11y.report.date}}), with the result per success criterion and the known gaps.
 
-## Conformance with standards
+## Standards built on WCAG
 
 Most local standards and regulations build on the Web Content Accessibility Guidelines ([WCAG]({{$a11y.target.url}})).
-Handsontable {{$a11y.target.long}}. The {{$a11y.report.link}}, version {{$a11y.report.version}} ({{$a11y.report.date}}), states the conformance level of every success criterion and lists the known gaps.
+Handsontable {{$a11y.target.long}}. The {{$a11y.report.link}}, version {{$a11y.report.version}} ({{$a11y.report.date}}), states, for each success criterion, the conformance level or that it was not evaluated, and lists the known gaps.
 The standards that build on WCAG include:
 
 **USA**
@@ -286,9 +286,9 @@ The quality of custom Handsontable modifications can impact your application's a
 
 Handsontable keeps the grid accessible with the following measures:
 
-- An automated [axe-core](https://github.com/dequelabs/axe-core) scan with the WCAG 2.2 Level A and AA rule tags runs in CI on every change, on the three built-in themes, and reports every new finding.
-- Keyboard-only end-to-end tests prove the keyboard path and the accessible name of every surface you operate.
-- The {{$a11y.report.link}} states the result per success criterion. Version {{$a11y.report.next.version}} is {{$a11y.report.next.status}}: {{$a11y.report.next.scope}}.
+- An automated [axe-core](https://github.com/dequelabs/axe-core) scan with the WCAG 2.2 Level A and AA rule tags runs in CI on every change to the grid, on the three built-in themes, and reports every new finding.
+- Keyboard-only end-to-end tests cover the keyboard path of the grid's controls, and every change to a control adds one that also checks its accessible name.
+- The {{$a11y.report.link}} states the result per success criterion. {{$a11y.report.next.sentence}}
 - Screen-reader testing with the matrix listed under [Support for screen readers](#support-for-screen-readers).
 
 ## Known limitations

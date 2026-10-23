@@ -40,12 +40,37 @@ test('the data file is valid, and the validator names what is wrong', () => {
   broken.target.wording.long = 'meets WCAG 2.2 AA';
   broken.matrix[0].howTested = ['by hand'];
   delete broken.report.version;
+  delete broken.knownLimitations[0].reportRef;
 
   const errors = validateAccessibilityData(broken);
 
   assert.ok(errors.some(e => e.includes('target.wording.long')), 'the wording must start with "targets"');
   assert.ok(errors.some(e => e.includes('matrix[0].howTested')), 'an unknown howTested value is rejected');
   assert.ok(errors.some(e => e.includes('report.version')), 'a missing report field is named');
+  assert.ok(errors.some(e => e.includes('knownLimitations[0].reportRef')), 'a limitation names its report ref or null');
+});
+
+test('report.next.sentence is empty when no next version is planned, and limitations cite the report ref', () => {
+  const fixture = structuredClone(data);
+
+  fixture.report.next = { version: '9.9', status: 'in preparation', scope: 'every criterion judged' };
+  fixture.knownLimitations = [
+    { id: 'sorting', text: 'Sorting is not announced.', criteria: ['4.1.3'], reportRef: '#2375' },
+    { id: 'description', text: 'There is no description.', criteria: [], reportRef: null },
+  ];
+
+  const values = accessibilityTemplateValues(fixture);
+
+  assert.equal(values['report.next.sentence'], 'Version 9.9 of this report is in preparation: every criterion judged.');
+  assert.equal(values['knownLimitations.list'],
+    '- Sorting is not announced (WCAG 4.1.3; ref. #2375 in the report).\n- There is no description.',
+    'the ref is the report\'s own Ref. column, not a GitHub issue');
+
+  fixture.report.next = null;
+
+  assert.deepEqual(validateAccessibilityData(fixture), [], 'report.next may be null');
+  assert.equal(accessibilityTemplateValues(fixture)['report.next.sentence'], '',
+    'a null next version renders nothing, never "Version  is : ."');
 });
 
 test('the matrix decides which screen readers public text may name', () => {
@@ -60,7 +85,7 @@ test('the matrix decides which screen readers public text may name', () => {
   }
 });
 
-test('scanText flags a superseded WCAG version in prose, in a link and in a tag', () => {
+test('scanText flags a superseded WCAG version in prose, a link, a tag, a sentence end, and spelled out', () => {
   const findings = scan([
     'Handsontable meets requirements outlined in the [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/)' +
     ' guidelines.',
@@ -72,6 +97,18 @@ test('scanText flags a superseded WCAG version in prose, in a link and in a tag'
     'meets-wcag', 'superseded-wcag-version', 'superseded-wcag-version', 'superseded-wcag-version',
   ]);
   assert.equal(findings.filter(f => f.line === 3).length, 0, 'WCAG 2.2 is the target and never a finding');
+
+  // A version that ends a sentence and the spelled-out name make the same claim.
+  const endings = scan([
+    'Handsontable meets WCAG 2.1.',
+    'WCAG 2.0.',
+    'built to Web Content Accessibility Guidelines 2.1',
+    'WCAG 2.2.',
+  ].join('\n'));
+
+  assert.deepEqual(endings.map(f => `${f.line} ${f.rule}`).sort(), [
+    '1 meets-wcag', '1 superseded-wcag-version', '2 superseded-wcag-version', '3 superseded-wcag-version',
+  ]);
 });
 
 test('scanText flags meets, compliant, conformance with and certified only as accessibility claims', () => {
@@ -94,6 +131,11 @@ test('scanText flags meets, compliant, conformance with and certified only as ac
   ].join('\n'), 'docs/content/guides/security/security/security.md');
 
   assert.deepEqual(notFlagged, [], 'compliance with a license and a certified reseller are not accessibility claims');
+
+  const bareStandards = scan(['Our grid is 508 compliant.', 'Level AA compliant grid.'].join('\n'));
+
+  assert.deepEqual(bareStandards.map(f => [f.line, f.rule]), [[1, 'compliant'], [2, 'compliant']],
+    'a bare 508 or Level AA puts compliant in an accessibility sentence');
 });
 
 test('scanText flags a screen reader the matrix does not list, in any case', () => {
@@ -127,6 +169,8 @@ test('the scan covers the docs content, the four READMEs and the core source, ne
     'the website export is public text');
   assert.ok(files.includes('handsontable/src/dataMap/metaManager/metaSchema.ts'),
     'the JSDoc becomes the API reference');
+  assert.ok(files.includes('docs/content/recipes/accessibility/aria-grid/javascript/example1.js'),
+    'the example sources the pages embed are public text');
 
   for (const { file } of READMES) {
     assert.ok(files.includes(file), `${file} is scanned`);
@@ -165,9 +209,10 @@ test('the guide and the report page read the target, the report version and the 
 
   const guideKeys = [
     'target.long', 'report.version', 'report.date', 'matrix.list', 'knownLimitations.list', 'notes.mobile',
+    'report.next.sentence',
   ];
   const reportKeys = [
-    'report.version', 'report.date', 'matrix.list', 'browsers.list', 'notes.mobile', 'report.next.version',
+    'report.version', 'report.date', 'matrix.list', 'browsers.list', 'notes.mobile', 'report.next.sentence',
   ];
 
   for (const key of guideKeys) {
@@ -179,6 +224,8 @@ test('the guide and the report page read the target, the report version and the 
 
   // A literal copy of a value the variable carries is the drift this file exists to stop.
   for (const [file, text] of [[GUIDE, guide], [REPORT, report]]) {
+    assert.ok(!text.includes('{{$a11y.report.next.version}}'),
+      `${file}: compose the next version from {{$a11y.report.next.sentence}}, which a null next renders empty`);
     assert.ok(!text.includes(`Report version</strong></td><td>${data.report.version}`),
       `${file}: the report version is a variable, not a literal`);
     assert.ok(!/^- (?:NVDA|VoiceOver) \(/m.test(text),

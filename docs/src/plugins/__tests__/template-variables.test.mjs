@@ -7,6 +7,7 @@ import {
   CURRENT_EXAMPLES_BRANCH,
 } from '../docs-version.mjs';
 import { LATEST_CHANGELOG_MAJOR } from '../changelog-parser.mjs';
+import { loadAccessibilityData } from '../accessibility-data.mjs';
 
 const values = {
   basePath: '/docs',
@@ -90,4 +91,19 @@ test('resolves {{$latestChangelogVersion}} to the highest existing changelog maj
 
 test('leaves unknown variables untouched', () => {
   assert.equal(replaceTemplateVariables('{{$notAVariable}}', values), '{{$notAVariable}}');
+});
+
+test('resolves {{$a11y.<key>}} from the values passed in', () => {
+  assert.equal(
+    replaceTemplateVariables('{{$a11y.target.short}}', { a11y: { 'target.short': 'targets WCAG 2.2 AA' } }),
+    'targets WCAG 2.2 AA'
+  );
+});
+
+test('an unknown {{$a11y.<key>}} throws instead of rendering a placeholder', () => {
+  assert.throws(() => replaceTemplateVariables('{{$a11y.nope}}'), /Unknown template variable/);
+});
+
+test('{{$a11y.<key>}} defaults come from the accessibility data file', () => {
+  assert.equal(replaceTemplateVariables('{{$a11y.report.version}}'), loadAccessibilityData().report.version);
 });
