@@ -25,7 +25,9 @@
           "age"
         ],
         [
-          "row 2",
+          "row 2"
+        ],
+        [
           "column 3"
         ]
       ],
@@ -44,7 +46,9 @@
           "age"
         ],
         [
-          "row 3",
+          "row 3"
+        ],
+        [
           "column 3"
         ]
       ]
@@ -62,7 +66,9 @@
           "name"
         ],
         [
-          "row 3",
+          "row 3"
+        ],
+        [
           "column 2"
         ]
       ]
@@ -80,7 +86,9 @@
           "name"
         ],
         [
-          "row 2",
+          "row 2"
+        ],
+        [
           "column 2"
         ]
       ]
@@ -98,11 +106,13 @@
           "column header"
         ],
         [
-          "row 1",
+          "row 1"
+        ],
+        [
           "column 2"
         ]
       ],
-      "note": "navigableHeaders: ArrowUp from the first row enters the column header."
+      "note": "navigableHeaders: ArrowUp from the first row enters the column header. Finding: NVDA with Chromium announces the header row as `row 7` (its committed golden), so `row 1` misses there."
     },
     {
       "id": "back-to-cell",
@@ -128,11 +138,13 @@
           "row header"
         ],
         [
-          "row 2",
+          "row 2"
+        ],
+        [
           "column 1"
         ]
       ],
-      "note": "navigableHeaders: ArrowLeft from the first column enters the row header."
+      "note": "navigableHeaders: ArrowLeft from the first column enters the row header. Finding: NVDA with Chromium announces the row header's row as `row 8` (its committed golden), so `row 2` misses there."
     },
     {
       "id": "back-from-row-header",
@@ -175,7 +187,7 @@
           "alice"
         ]
       ],
-      "note": "Escape leaves the editor; the focus returns to the cell."
+      "note": "Escape leaves the editor and the focus returns to the cell. Finding: NVDA says nothing here on both browsers (the committed goldens are empty)."
     },
     {
       "id": "open-context-menu",
@@ -193,7 +205,7 @@
           "menu"
         ]
       ],
-      "note": "Shift+F10 opens the context menu with its first item highlighted."
+      "note": "Shift+F10 opens the context menu with its first item highlighted. Finding: NVDA announces the menu as a table; Chromium said `menu` only in the run that recorded its golden, and Firefox says it last."
     },
     {
       "id": "menu-arrow-down",
@@ -230,7 +242,7 @@
           "alice"
         ]
       ],
-      "note": "Escape closes the menu and the focus returns to the cell that opened it."
+      "note": "Escape closes the menu, and the focus should return to the cell that opened it. Finding: NVDA announces the document instead on both browsers (the committed goldens): the focus leaves the grid."
     },
     {
       "id": "reselect-cell",
@@ -248,7 +260,9 @@
           "name"
         ],
         [
-          "row 2",
+          "row 2"
+        ],
+        [
           "column 2"
         ]
       ],
@@ -261,14 +275,13 @@
       },
       "expect": [
         [
-          "selected",
-          "34",
-          "age",
-          "2 cells",
-          "range"
+          "34"
+        ],
+        [
+          "selected"
         ]
       ],
-      "note": "Shift+ArrowRight extends the selection; the focus stays on the anchor cell, so what a screen reader says here is the state change (aria-selected on the new cell) or nothing. A miss is a finding about the grid, not about the lane."
+      "note": "Shift+ArrowRight extends the selection, so the new end cell and its selected state are each required. Finding: NVDA says nothing on both browsers (the committed goldens are empty), because the focus stays on the anchor cell."
     },
     {
       "id": "extend-range-again",
@@ -277,13 +290,13 @@
       },
       "expect": [
         [
-          "selected",
-          "oslo",
-          "city",
-          "3 cells",
-          "range"
+          "oslo"
+        ],
+        [
+          "selected"
         ]
-      ]
+      ],
+      "note": "The next cell joins the range: its value and the selected state are each required. Finding: NVDA says nothing on both browsers (the committed goldens are empty)."
     },
     {
       "id": "up-to-header-for-sort",
@@ -298,10 +311,13 @@
           "column header"
         ],
         [
-          "row 1",
+          "row 1"
+        ],
+        [
           "column 2"
         ]
-      ]
+      ],
+      "note": "ArrowUp from the range's anchor cell enters its column header, to sort it. Finding: NVDA with Chromium announces the header row as `row 7` (its committed golden), so `row 1` misses there."
     },
     {
       "id": "sort-ascending",
@@ -310,8 +326,7 @@
       },
       "expect": [
         [
-          "ascending",
-          "sorted"
+          "ascending"
         ]
       ],
       "note": "Enter on a sortable header sorts the column; aria-sort changes on the focused header."
@@ -323,8 +338,7 @@
       },
       "expect": [
         [
-          "descending",
-          "sorted"
+          "descending"
         ]
       ]
     }

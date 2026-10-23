@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ACTIONS, PRESS_PATTERN, SCENARIO_FILE_SUFFIX, loadScenarios, scenarioUrl, validateScenario } from '../screenreader-scenario.mjs';
@@ -68,6 +69,55 @@ test('the validator accepts the sample and names each problem', () => {
   assert.match(problems({ steps: [{ id: 'a', action: { press: 'a' }, expect: [] }, { id: 'a', action: { press: 'b' }, expect: [] }] }).join('\n'), /duplicate id "a"/);
   assert.match(problems({ steps: [{ id: 'a', action: { press: 'a' }, expect: [], later: 1 }] }).join('\n'), /unknown field "later"/);
   assert.deepEqual(validateScenario('nope'), ['the scenario is not an object']);
+});
+
+test('a synonym that normalizes to nothing is refused, naming the step and the token', () => {
+  const expecting = expect => validateScenario({ ...valid(), steps: [{ id: 'close-editor', action: { press: 'Escape' }, expect }] },
+    { fixtures: FIXTURES, fileName: 'sample.scenario.json' });
+
+  ['.', '-', 'clickable', 'Focus mode.'].forEach((token) => {
+    const problems = expecting([['alice'], ['x', token]]).join('\n');
+
+    assert.ok(problems.includes(`steps[0].expect[1]: step "close-editor": the synonym ${JSON.stringify(token)} normalizes to an empty string`), `${token}: ${problems}`);
+  });
+  assert.deepEqual(expecting([['alice'], ['34.5', 'row 2']]), [], 'a synonym with a fact in it is fine');
+});
+
+test('a step id starts with a letter: JSON.parse would move an integer-like key ahead of the others in the golden', () => {
+  const ids = id => validateScenario({ ...valid(), steps: [{ id, action: { press: 'a' }, expect: [] }] }, { fixtures: FIXTURES, fileName: 'sample.scenario.json' });
+
+  assert.match(ids('2').join('\n'), /steps\[0\]: id must be a kebab-case slug that starts with a letter, got "2"/);
+  assert.match(ids('2-cells').join('\n'), /starts with a letter/);
+  assert.deepEqual(ids('cell-2'), []);
+  assert.deepEqual(Object.keys(JSON.parse('{"a": 1, "2": 2}')), ['2', 'a'], 'why: an integer-like key is reordered');
+  assert.match(validateScenario({ ...valid(), id: '1st' }).join('\n'), /^id must be a kebab-case slug that starts with a letter/m, 'the scenario id too');
+});
+
+test('loadScenarios reports a file that does not parse as invalid JSON, and lets a validator exception through', () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'screenreader-scenarios-'));
+
+  try {
+    writeFileSync(path.join(dir, 'broken.scenario.json'), '{ "schema": 1,');
+    writeFileSync(path.join(dir, 'sample.scenario.json'), JSON.stringify({ ...valid(), surface: 'short' }));
+
+    const [broken, sample] = loadScenarios(dir, { fixtures: FIXTURES });
+
+    assert.equal(broken.fileName, 'broken.scenario.json');
+    assert.equal(broken.scenario, null);
+    assert.match(broken.problems.join('\n'), /^not valid JSON: /);
+    assert.equal(sample.scenario.id, 'sample');
+    assert.deepEqual(sample.problems, ['surface must say what the scenario covers, in at least ten characters'], 'a parsed file gets the validator\'s problems');
+
+    const throwing = {
+      includes() {
+        throw new Error('validator bug');
+      },
+    };
+
+    assert.throws(() => loadScenarios(dir, { fixtures: throwing }), /validator bug/, 'an exception from the validator is not reported as invalid JSON');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('a press is a Playwright key name or chord, checked on the pull request', () => {

@@ -11,7 +11,8 @@
  *   a wording change in NVDA or in the core shows as a diff in the summary and never as a red job.
  *
  * `normalizeAnnouncement()` is the shared layer under both: lowercase, Unicode-folded, punctuation
- * dropped, whitespace collapsed, and the screen reader's own chatter removed. Phrases differ per screen
+ * dropped (a `.` or `,` inside a number stays), whitespace collapsed, and the screen reader's own
+ * chatter removed. Phrases differ per screen
  * reader, so the scenario data and these tiers are what the lanes share, never the strings.
  *
  * No I/O in here. The spec (`screenreader/screenreader.spec.ts`) writes the transcripts, the report
@@ -35,34 +36,36 @@ export const SCREENREADER_MODE = 'report';
 export const CHATTER = ['focus mode', 'browse mode', 'clickable'];
 
 /**
+ * The chatter phrases as one pattern: a whole phrase, with no character other than whitespace on either
+ * side, so `unclickable` stays and two phrases in a row (`clickable clickable`, which NVDA says for
+ * nested clickable elements) both go. The phrases are lowercase words joined by single spaces, so they
+ * need no escaping; `lib/__tests__/screenreader-transcript.test.mjs` keeps them that way.
+ */
+const CHATTER_PATTERN = new RegExp(`(?<!\\S)(?:${CHATTER.join('|')})(?!\\S)`, 'g');
+/**
+ * What the normalizer turns into a space: every run of characters that is not a letter, a digit or
+ * whitespace, except a `.` or a `,` with a digit on both sides, which stays part of its number
+ * (`34.5`, `1,000`).
+ */
+const NOT_A_WORD = /(?:(?<!\p{Nd})[.,]|[.,](?!\p{Nd})|[^\p{L}\p{N}\s.,])+/gu;
+
+/**
  * Normalizes an announcement for comparison: NFKC, lowercase, every run of characters that is not a
- * letter, a digit or a space becomes one space, the chatter phrases are dropped, whitespace collapses.
+ * letter, a digit or a space becomes one space (a `.` or a `,` between two digits stays, so `34.5` is
+ * one number and never the `34` of a token), the chatter phrases are dropped, whitespace collapses.
  *
  * @param {unknown} text The announcement as the screen reader spoke it.
  * @returns {string} The normalized text.
  */
 export function normalizeAnnouncement(text) {
-  let normalized = String(text ?? '')
+  return String(text ?? '')
     .normalize('NFKC')
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s]+/gu, ' ')
+    .replace(NOT_A_WORD, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(CHATTER_PATTERN, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-
-  CHATTER.forEach((phrase) => {
-    normalized = normalized.split(` ${phrase} `).join(' ');
-    if (normalized.startsWith(`${phrase} `)) {
-      normalized = normalized.slice(phrase.length + 1);
-    }
-    if (normalized.endsWith(` ${phrase}`)) {
-      normalized = normalized.slice(0, -(phrase.length + 1));
-    }
-    if (normalized === phrase) {
-      normalized = '';
-    }
-  });
-
-  return normalized.replace(/\s+/g, ' ').trim();
 }
 
 /**
@@ -80,7 +83,10 @@ const POSITION_AFTER = '(?! of )';
  * digits alone (`"1"`) is a value, so it matches only a standalone number that is not part of a
  * position phrase: not after `row `, `column `, `col `, `level ` or `of `, and not before ` of `.
  * Otherwise every announcement that carries a position (`row 8 column 1`) would satisfy a bare
- * number group.
+ * number group. A decimal or a grouped number (`34.5`, `1,000`) is one word, so `34` never matches
+ * inside it. Two limits follow from the rule: a negative number loses its sign (`-34` matches `34`,
+ * because the normalizer drops the `-`), and a number right after `of` is read as a set position, so
+ * a value there (`total of 34`) never matches.
  *
  * @param {string} normalized The normalized announcement.
  * @param {string} token The normalized synonym.
@@ -100,7 +106,8 @@ function containsToken(normalized, token) {
  * digits alone (`"1"`) is a value, not a position: it matches only a standalone number that is not
  * preceded by `row `, `column `, `col `, `level ` or `of ` and not followed by ` of `, so `["1"]`
  * is satisfied by `1 row header row 8` and not by `row 8 column 1`, `collapsed row 1` or `1 of 3`.
- * A group that means a position spells it out (`"row 1"`).
+ * A group that means a position spells it out (`"row 1"`). The limits of the digit rule (a lost sign,
+ * a value after `of`) are on `containsToken()`.
  *
  * @param {string} normalized The normalized announcement.
  * @param {string[][]} groups The token groups of the step.
@@ -211,7 +218,8 @@ export function renderTranscriptLog(transcript) {
     const tokens = step.tokens.groups.length === 0
       ? 'tokens: none'
       : `tokens ${step.tokens.passed ? 'PASS' : 'FAIL'}: ${step.tokens.groups.map(group => (group.matched === null ? `MISSING [${group.synonyms.join(' | ')}]` : group.matched)).join(', ')}`;
-    const golden = transcript.golden.status === 'missing' || transcript.golden.status === 'incomplete'
+    // No verdict where nothing was compared: no golden, a partial run, or a run that recorded one.
+    const golden = ['missing', 'recorded', 'incomplete'].includes(transcript.golden.status)
       ? ''
       : ` | golden ${transcript.golden.differences.some(item => item.id === step.id) ? 'DIFF' : 'same'}`;
 

@@ -5,7 +5,9 @@ export interface TokenVerdict { passed: boolean; groups: TokenGroupMatch[] }
 export interface GoldenDifference { id: string; expected: string | null; actual: string | null }
 export interface GoldenVerdict { status: 'missing' | 'match' | 'differs' | 'recorded' | 'incomplete'; differences: GoldenDifference[] }
 /**
- * Where a run stopped when a step threw: the step being run and the error's message.
+ * Where a run stopped when it threw: the id of the step being run, or `setup` when it stopped before
+ * the first step (the page load, the reader's entry, the setup actions or the mode pin), and the
+ * error's message.
  */
 export interface TranscriptIncomplete { step: string; error: string }
 

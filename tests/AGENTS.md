@@ -1309,55 +1309,69 @@ it.
   keystroke; the scenario reads the same on every lane, because what differs per screen reader is the
   wording, which the goldens hold per project.
 - **Two assertion tiers.** The **required tokens** are each step's `expect`: synonym groups
-  (`[["34"], ["age", "column 3", "row 2"]]`), each group satisfied by any one synonym found as a whole
-  phrase in the normalized announcement, all groups required. A synonym of digits alone (`"34"`) is a
-  value, never a position: it matches a standalone number that no `row `, `column `, `col `, `level `
-  or `of ` precedes and no ` of ` follows, so a group that means a position spells it out (`"row 1"`).
-  Ask for facts (the cell text, a position or a header, a role or a state), never for wording, so the
-  same groups hold on every screen reader; a group that lists alternatives (`"age"` or `"column 3"`)
-  says the announcement must place the cell somehow, not how. This tier is what gates later. The
-  **goldens** (`screenreader/goldens/<project>/<scenario>.json`) are the exact normalized announcement
-  per step, advisory only: a wording change in NVDA, the browser or the core shows as a golden
-  difference in the summary, and the fix is to re-record once the new wording is right. The normalizer
-  (`normalizeAnnouncement()`) lowercases, folds Unicode, drops punctuation, collapses whitespace and
-  removes the screen reader's own chatter (`CHATTER`: the mode switch, `clickable`).
+  (`[["34"], ["age"], ["row 2"], ["column 3"]]`), each group satisfied by any one synonym found as a
+  whole phrase in the normalized announcement, all groups required. A synonym of digits alone (`"34"`)
+  is a value, never a position: it matches a standalone number that no `row `, `column `, `col `,
+  `level ` or `of ` precedes and no ` of ` follows, so a group that means a position spells it out
+  (`"row 1"`). A `.` or `,` between two digits stays in the number, so `34` never matches `34.5`. The
+  rule has two limits: a negative number loses its sign (`-34` matches `34`), and a number right after
+  `of` is read as a set position and never matches (`total of 34`). Ask for facts (the cell text, a
+  position or a header, a role or a state), never for wording, so the same groups hold on every screen
+  reader. **One fact per group**: the synonyms of a group are the ways to say that one fact (`"level 1"`
+  or `"1 of 2"`, `"edit"` or `"multi line"`), never two facts, because a group passes on any one of
+  them: `["row 1", "column 2"]` passed on a header NVDA placed in row 7. This tier is what gates later.
+  The **goldens** (`screenreader/goldens/<project>/<scenario>.json`) are the exact normalized
+  announcement per step, advisory only: a wording change in NVDA, the browser or the core shows as a
+  golden difference in the summary, and the fix is to re-record once the new wording is right. The
+  normalizer (`normalizeAnnouncement()`) lowercases, folds Unicode, drops punctuation, collapses
+  whitespace and removes the screen reader's own chatter (`CHATTER`: the mode switch, `clickable`).
 - **Recording goldens is a CI job, because nobody has NVDA on a Mac.** Dispatch the nightly from the
   branch with the `update-goldens` input: the run records every project's goldens on the runner
   (`HOT_SR_UPDATE_GOLDENS=1`, or Playwright's `--update-snapshots` through
   `npm run test:screenreader:update-goldens`) and uploads them as
   `screenreader-goldens-nvda-<browser>`; download, commit under `screenreader/goldens/<project>/`,
-  done. A run with `update-goldens` compares nothing and reports `recorded`. Commit a golden only from
-  a transcript whose announcements are right: a golden pins the wording, it does not judge it.
+  done. A run with `update-goldens` compares nothing and reports `recorded`. A golden pins the wording
+  as recorded, a finding included: a step NVDA stays silent on is an empty string in it, and a wrong
+  row is the wrong row. The scenario's `note` says which steps record a finding (`Finding: …`), so a
+  golden difference on such a step can be the fix; re-record the golden when the finding is fixed.
   `lib/__tests__/screenreader-goldens.test.mjs` (root `test:tooling`) reads every committed golden: it
   parses, has `schema` 1, names its file as its scenario and its directory as its project (a project of
-  the config, never `dom-echo-chromium`, and an `nvda-*` golden was recorded by NVDA), and lists the
-  scenario's step ids in order. A step renamed, added, removed or moved therefore fails that test until
-  the golden is re-recorded.
-- **Where the transcripts go.** `test-results/screenreader/transcripts/<project>--<scenario>.json` (the
-  steps with the spoken text, the normalized text, the token verdict, the golden verdict and the
+  the config, never `dom-echo-chromium`, and an `nvda-*` golden was recorded by NVDA), lists the
+  scenario's step ids in order, and holds each step as a normalized string (what the update mode
+  writes; a hand-edited raw text would differ on every run). A step renamed, added, removed or moved
+  therefore fails that test until the golden is re-recorded. A step id starts with a letter, because
+  `JSON.parse` moves an integer-like key (`"2"`) ahead of the others.
+- **Where the transcripts go.** `test-results/screenreader/transcripts/<project>--<scenario>.json`
+  (the steps with the spoken text, the normalized text, the token verdict, the golden verdict and the
   timing, plus what the screen reader said while entering the page) and `.log` beside it, readable
-  without a tool; `summary.md` next to them. A scenario whose step throws still leaves its transcript:
-  the steps captured so far plus `incomplete` (the step it stopped at and the error), no golden
-  comparison (`golden.status` is `incomplete`, and the update mode records nothing from it), and the
-  test stays red; the report reads it as a tooling problem ("scenario <id> stopped at step <step>") and
-  still shows the captured steps. CI uploads the directory as `screenreader-transcripts-nvda-<browser>`
-  and the Playwright report as `screenreader-playwright-report-nvda-<browser>`, both outside the
-  `playwright-report-*` glob the flake ledger reads, and the config has no JSON reporter, so nothing
-  here becomes a flake record.
+  without a tool; `summary.md` next to them. A scenario that throws still leaves its transcript: the
+  steps captured so far plus `incomplete` (the step it stopped at and the error; the step is `setup`
+  when it stopped before the first step, in the page load, the reader's entry, the setup actions or
+  the mode pin), no golden comparison (`golden.status` is `incomplete`, and the update mode records
+  nothing from it), and the test stays red; the report reads it as a tooling problem ("scenario <id>
+  stopped at step <step>") and still shows the captured steps. Each attempt deletes the scenario's
+  transcript before it starts, so a retry never leaves the previous attempt's file behind. CI uploads
+  the directory as `screenreader-transcripts-nvda-<browser>` and the Playwright report as
+  `screenreader-playwright-report-nvda-<browser>`, both outside the `playwright-report-*` glob the
+  flake ledger reads, and the config has no JSON reporter, so nothing here becomes a flake record.
 - **The runner enters the grid the way a user does, then pins the mode.** The Guidepup reader calls
   `navigateToWebContent()` (the browser window focused, the reader at the top of the document), the
   setup selects a cell through the API, and `ready()` reads the mode NVDA last announced (a mode switch
   is spoken, not played, through the `virtualBuffers.passThroughAudioIndication` setting the start
   options turn off) and toggles once or twice until it is focus mode: NVDA switches to focus mode on
   its own when the focus lands on a gridcell, and the toggle round trip is what keeps every transcript
-  in that mode whatever NVDA did. The focus highlighter is off in the same settings. Then the log is
+  in that mode whatever NVDA did. The last mode phrase wins, inside one phrase too; a toggle that names
+  no mode leaves `(no mode announced after the toggle)` at the end of the transcript's `entering`, and
+  the run goes on. The focus highlighter is off in the same settings. Then the log is
   cleared, and every step is `screenReader.capture(() => …, { capture: true })`, which waits a second
   of silence after the last phrase. A step whose capture is empty is listened to once more for another
   silence window, so a phrase NVDA speaks late (Shift+F10 on Firefox) usually lands on its own step.
   Guidepup discards speech that arrives while it stops the previous utterance, so the second listen
   reduces late phrases in the next step, it does not remove them. A step therefore costs a second and
   more, and a scenario is minutes: the config's test timeout is five minutes with two retries,
-  Guidepup's own mitigations, and the job's `timeout-minutes` is 30.
+  Guidepup's own mitigations. The run step's `timeout-minutes` is 25 and the job's 30: a step timeout
+  is a step failure, so the transcripts, the summary and the check run still come, where a job timeout
+  cancels them.
 - **A screen reader is one per machine, so the lane is serial and headed.** `withGuidepup()` pins one
   worker, no parallelism and `headless: false` on every project; the matrix gives each browser its own
   job. The spec adds no serial mode on top: it would skip every scenario after a red one and re-run the
@@ -1367,16 +1381,19 @@ it.
   own way into the grid (`interact()`), which is the next pull request.
 - **`HOT_SR_LANE=dom-echo` proves the runner without a screen reader.** On any platform,
   `HOT_SR_LANE=dom-echo npm run test:screenreader` runs every scenario in headless Chromium against a
-  reader that echoes the focused element's accessible name, role, grid position and states two frames
-  after the action. It validates a new scenario, a change to the runner or the report locally before
-  the Windows job does; its transcripts carry `dom-echo-chromium`, it never runs in CI, and its
-  goldens are never committed, because it says nothing about a screen reader.
+  reader that echoes the focused element's accessible name, role (in the words a screen reader speaks:
+  `column header`, `menu item`, `edit`), grid position and states two frames after the action. The
+  echo checks the fixture, the keys, the `after` states and the report plumbing, locally, before the
+  Windows job does. Its wording rows are not evidence: it always announces the focused element, so a
+  step a screen reader stays silent on (`close-editor`) announces on the echo, and a token row there
+  says nothing about NVDA. Its transcripts carry `dom-echo-chromium`, it never runs in CI, and its
+  goldens are never committed.
 - **A missing token group is a finding or a strict token list, and the transcript says which.** Read
   the spoken text: an announcement that carries the fact in other words widens the synonyms; one that
-  lacks the fact is a defect to fix in the core (the lane's purpose) and stays listed until it is. A
-  group a step cannot satisfy by design records the gap: `extend-range` in `grid-core` asks for the
-  selected state of a range extension, which moves no focus, and a miss there is the finding. Never
-  delete a group to turn a row green.
+  lacks the fact is a defect to fix in the core (the lane's purpose) and stays listed until it is, with
+  a `Finding: …` sentence in the step's `note`. A group a step cannot satisfy today records the gap:
+  `extend-range` in `grid-core` asks for the new end cell and its selected state, a range extension
+  moves no focus, and a miss there is the finding. Never delete a group to turn a row green.
 - **Adding a scenario**: a fixture under `fixtures/demo/` that keeps the fixture contract (the
   `?theme=`/`?bundle=` block, `window.hot`, a constructor throw captured as `htBuildError`), small
   enough that every step's target is rendered; the file `screenreader/scenarios/<surface>.scenario.json`

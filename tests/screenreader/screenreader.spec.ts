@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { release } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,9 +33,9 @@ import {
  *
  * Report-only while `SCREENREADER_MODE` is `report`: a missing token group or a golden difference is
  * recorded, never asserted. What fails a test is tooling: a fixture that does not load, a constructor
- * throw, a step whose `after` state never comes, a screen reader that does not start. A step that
- * throws still leaves the transcript, with the steps captured before it and where it stopped
- * (`incomplete`).
+ * throw, a step whose `after` state never comes, a screen reader that does not start. A run that
+ * throws, in a step or before the first one, still leaves the transcript, with the steps captured
+ * before it and where it stopped (`incomplete`).
  *
  * Goldens: `--update-snapshots` (`npm run test:screenreader:update-goldens`) or `HOT_SR_UPDATE_GOLDENS=1`
  * writes `goldens/<project>/<scenario>.json` from the run. Nobody records an NVDA golden on a Mac: the
@@ -82,6 +82,31 @@ const DOM_ECHO = process.env.HOT_SR_LANE === 'dom-echo';
 const NVDA_SETTINGS = {
   vision: { NVDAHighlighter: { highlightFocus: false, highlightNavigator: false, highlightBrowseMode: false, enabled: false } },
   virtualBuffers: { passThroughAudioIndication: false },
+};
+/**
+ * What `ready()` records in `entering` when the mode toggle named no mode: the run goes on, and the
+ * transcript says the mode was never confirmed.
+ */
+const NO_MODE_ANNOUNCED = '(no mode announced after the toggle)';
+/**
+ * The `incomplete.step` of a run that stopped before its first step: the page load, the reader's
+ * entry, the setup actions or the mode pin.
+ */
+const SETUP_STEP = 'setup';
+/**
+ * The words a screen reader speaks for a role, for the `dom-echo` reader: the raw ARIA role is one word
+ * (`columnheader`), and a token group asks for the spoken words (`column header`). A role not listed
+ * is echoed as it is.
+ */
+const SPOKEN_ROLES: Record<string, string> = {
+  gridcell: 'cell',
+  columnheader: 'column header',
+  rowheader: 'row header',
+  menuitem: 'menu item',
+  menuitemcheckbox: 'menu item checkbox',
+  menu: 'menu',
+  treegrid: 'tree grid',
+  textarea: 'edit',
 };
 
 /**
@@ -152,21 +177,34 @@ function guidepupReader(screenReader: ScreenReaderPlaywright): Reader {
       // ARIA grids), but Guidepup logs only what a command captured, so that switch is not in the log.
       // Pinning it keeps every transcript in the mode a grid user works in: the last mode the log holds
       // decides, a toggle corrects it when that was browse mode or none, and a toggle that lands in
-      // browse mode (NVDA had switched already) is toggled back.
+      // browse mode (NVDA had switched already) is toggled back. The last mode phrase wins, inside one
+      // phrase too (`focus mode. browse mode` is browse mode). When the last toggle names no mode, the
+      // run goes on, and `entering` ends with `NO_MODE_ANNOUNCED`, so the transcript says the mode was
+      // never confirmed.
       // The raw text, never the normalized one: the normalizer strips the mode phrases as chatter.
       const entering = [...(await screenReader.spokenPhraseLog())];
-      const lastMode = (phrases: string[]) => phrases.reduce<string | null>(
-        (mode, phrase) => String(phrase).toLowerCase().match(/\b(focus|browse) mode\b/)?.[0] ?? mode, null);
+      const lastMode = (phrases: string[]) => phrases.reduce<string | null>((mode, phrase) => {
+        const found = [...String(phrase).toLowerCase().matchAll(/\b(focus|browse) mode\b/g)];
 
-      if (lastMode(entering) !== 'focus mode') {
+        return found.length > 0 ? found[found.length - 1][0] : mode;
+      }, null);
+      const toggle = async() => {
         await screenReader.perform(NVDAKeyCodeCommands.toggleBetweenBrowseAndFocusMode, { capture: true });
         const toggled = await screenReader.lastSpokenPhrase();
 
         entering.push(toggled);
 
-        if (lastMode([toggled]) === 'browse mode') {
-          await screenReader.perform(NVDAKeyCodeCommands.toggleBetweenBrowseAndFocusMode, { capture: true });
-          entering.push(await screenReader.lastSpokenPhrase());
+        return lastMode([toggled]);
+      };
+
+      if (lastMode(entering) !== 'focus mode') {
+        let mode = await toggle();
+
+        if (mode === 'browse mode') {
+          mode = await toggle();
+        }
+        if (mode === null) {
+          entering.push(NO_MODE_ANNOUNCED);
         }
       }
       await screenReader.clearSpokenPhraseLog();
@@ -194,8 +232,11 @@ function guidepupReader(screenReader: ScreenReaderPlaywright): Reader {
 }
 
 /**
- * The reader of the `dom-echo` lane: the focused element's accessible name, role and grid position,
- * read from the DOM two frames after the action (the focus settles a frame after some keys).
+ * The reader of the `dom-echo` lane: the focused element's accessible name, role (in the words a
+ * screen reader speaks, `SPOKEN_ROLES`) and grid position, read from the DOM two frames after the
+ * action (the focus settles a frame after some keys). It always announces the focused element, so a
+ * step a screen reader stays silent on announces here: it proves the fixture, the keys, the `after`
+ * states and the report, never the wording.
  *
  * @param page The page.
  * @returns The reader.
@@ -210,7 +251,7 @@ function domEchoReader(page: Page): Reader {
     async capture(action) {
       await action();
 
-      return page.evaluate(() => new Promise<string>((resolve) => {
+      return page.evaluate(roles => new Promise<string>((resolve) => {
         requestAnimationFrame(() => requestAnimationFrame(() => {
           const element = document.activeElement;
 
@@ -222,7 +263,8 @@ function domEchoReader(page: Page): Reader {
 
           const live = [...document.querySelectorAll('[aria-live]')].map(region => region.textContent?.trim() ?? '').filter(Boolean);
           const name = element.getAttribute('aria-label') ?? (element as HTMLTextAreaElement).value ?? element.textContent?.trim() ?? '';
-          const role = element.getAttribute('role') ?? element.tagName.toLowerCase();
+          const rawRole = element.getAttribute('role') ?? element.tagName.toLowerCase();
+          const role = Object.hasOwn(roles, rawRole) ? roles[rawRole] : rawRole;
           const row = element.closest('tr')?.getAttribute('aria-rowindex');
           const col = element.getAttribute('aria-colindex');
           const described = element.getAttribute('aria-describedby')?.split(' ').map(id => document.getElementById(id)?.textContent?.trim()).filter(Boolean).join(' ');
@@ -230,7 +272,7 @@ function domEchoReader(page: Page): Reader {
 
           resolve([name, role, described, row ? `row ${row}` : '', col ? `column ${col}` : '', ...states, ...live].filter(Boolean).join('. '));
         }));
-      }));
+      }), SPOKEN_ROLES);
     },
   };
 }
@@ -257,6 +299,17 @@ function errorText(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
 
   return message.replace(/\u001b\[[0-9;]*m/g, '').trim();
+}
+
+/**
+ * The path of a scenario's transcript on this project, without the extension (`.json`, `.log`).
+ *
+ * @param testInfo The test's info.
+ * @param scenario The scenario.
+ * @returns The path.
+ */
+function transcriptBase(testInfo: TestInfo, scenario: Scenario): string {
+  return path.join(TRANSCRIPTS_DIR, `${testInfo.project.name}--${scenario.id}`);
 }
 
 /**
@@ -304,7 +357,7 @@ async function writeTranscript(page: Page, reader: Reader, scenario: Scenario, t
 
   mkdirSync(TRANSCRIPTS_DIR, { recursive: true });
 
-  const file = path.join(TRANSCRIPTS_DIR, `${project}--${scenario.id}`);
+  const file = transcriptBase(testInfo, scenario);
 
   writeFileSync(`${file}.json`, `${JSON.stringify({ ...transcript, entering: run.entering }, null, 2)}\n`);
   writeFileSync(`${file}.log`, renderTranscriptLog(transcript));
@@ -313,7 +366,8 @@ async function writeTranscript(page: Page, reader: Reader, scenario: Scenario, t
 }
 
 /**
- * Runs one scenario with a reader and writes its transcript, also when a step throws.
+ * Runs one scenario with a reader and writes its transcript, also when it throws: in a step, or before
+ * the first one (`incomplete.step` is then `SETUP_STEP`).
  *
  * @param page The page.
  * @param reader The reader.
@@ -323,25 +377,33 @@ async function writeTranscript(page: Page, reader: Reader, scenario: Scenario, t
 async function runScenario(page: Page, reader: Reader, scenario: Scenario, testInfo: TestInfo): Promise<void> {
   const startedAt = new Date().toISOString();
   const started = Date.now();
-
-  await page.goto(scenarioUrl(scenario));
-  await awaitBundle(page);
-  await awaitFixtureBuilt(page);
-  await reader.enter();
-
-  for (const action of scenario.setup ?? []) {
-    await runAction(page, action);
-  }
-
-  const entering = await reader.ready();
   const steps: TranscriptStep[] = [];
-  let running = '';
+  let entering: string[] = [];
+  let running = SETUP_STEP;
   let incomplete: TranscriptIncomplete | undefined;
 
-  // The transcript is written whatever happens to the steps: a step that throws (an `after` state that
-  // never comes, a capture that fails) leaves the steps captured so far and the step it stopped at,
-  // which is what a red nightly is read from. The error is rethrown, so the test stays red.
+  // A retry writes the same file names: the previous attempt's transcript goes first, so an attempt
+  // that never writes its own (a test timeout ends it without the `finally`) leaves no transcript for
+  // the report to misread, instead of the last attempt's.
+  rmSync(`${transcriptBase(testInfo, scenario)}.json`, { force: true });
+  rmSync(`${transcriptBase(testInfo, scenario)}.log`, { force: true });
+
+  // The transcript is written whatever happens: a failure while the page loads, the reader enters or
+  // the setup runs (`setup`), or in a step (an `after` state that never comes, a capture that fails),
+  // leaves the steps captured so far and where it stopped, which is what a red nightly is read from.
+  // The error is rethrown, so the test stays red.
   try {
+    await page.goto(scenarioUrl(scenario));
+    await awaitBundle(page);
+    await awaitFixtureBuilt(page);
+    await reader.enter();
+
+    for (const action of scenario.setup ?? []) {
+      await runAction(page, action);
+    }
+
+    entering = await reader.ready();
+
     for (const step of scenario.steps) {
       running = step.id;
 

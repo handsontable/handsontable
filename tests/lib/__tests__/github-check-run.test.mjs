@@ -49,6 +49,22 @@ test('no annotations is one POST with an empty list, on the API root given', asy
   assert.equal('details_url' in calls[0].body, false);
 });
 
+test('a PATCH that fails after the POST created the check run throws with the PATCH and its status', async() => {
+  const calls = [];
+  const created = fakeFetch(calls);
+  const failed = fakeFetch(calls, false);
+
+  await assert.rejects(
+    postCheckRun({
+      token: 't', repository: 'o/r', headSha: 'abc', payload: payload(Array.from({ length: 60 }, (_, index) => annotation(index + 1))),
+      fetchImpl: (url, init) => (calls.length === 0 ? created(url, init) : failed(url, init)),
+    }),
+    /^Error: PATCH https:\/\/api\.github\.com\/repos\/o\/r\/check-runs\/42 answered 403: forbidden$/,
+  );
+  assert.deepEqual(calls.map(call => [call.method, call.body.output.annotations.length]), [['POST', 50], ['PATCH', 10]],
+    'the check run exists with its first fifty annotations; the batch after it is the one that failed');
+});
+
 test('an error status throws with the method, the URL, the status and the body', async() => {
   await assert.rejects(
     postCheckRun({ token: 't', repository: 'o/r', headSha: 'abc', payload: payload([]), fetchImpl: fakeFetch([], false) }),

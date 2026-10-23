@@ -63,7 +63,7 @@ jobs:
     uses: ./.github/workflows/screenreader.yml
     with:
       update-goldens: ${{ github.event_name == 'workflow_dispatch' && inputs.update-goldens || false }}
-    secrets: inherit
+    # No `secrets: inherit`: the called workflow reads only secrets.GITHUB_TOKEN, which every job has.
 
   # Optional Slack ping, develop only; fires only when the webhook secret exists (an absent secret is
   # an empty string, so the step skips itself). The same webhook as the visual and E2E nightlies, on

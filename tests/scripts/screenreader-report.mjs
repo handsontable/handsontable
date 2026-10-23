@@ -17,6 +17,7 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { escapeMarkdownText } from '../lib/a11y-baseline.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 import { buildReport, stepLines } from '../lib/screenreader-report.mjs';
 import { SCENARIO_FILE_SUFFIX } from '../lib/screenreader-scenario.mjs';
@@ -59,7 +60,8 @@ const report = buildReport({
   runUrl,
   lines,
 });
-const summary = `## ${report.title}\n\n${report.summary}`;
+// The title is escaped like every value in the summary: a tooling failure's title carries raw error text.
+const summary = `## ${escapeMarkdownText(report.title)}\n\n${report.summary}`;
 
 mkdirSync(OUTPUT_DIR, { recursive: true });
 writeFileSync(path.join(OUTPUT_DIR, 'summary.md'), `${summary}\n`);

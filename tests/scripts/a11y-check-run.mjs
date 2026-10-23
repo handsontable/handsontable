@@ -1,13 +1,11 @@
 /**
  * Posts the `A11y / axe report` check run for the commit the axe job scanned.
  *
- * Reads `test-results/a11y/comparison.json` (the a11y reporter writes it), builds
- * the payload through `lib/a11y-check-run.mjs`, and creates the check run through
- * the Checks API (`lib/github-check-run.mjs`, which adds annotations past the first 50 in further
- * requests). Run by
- * `.github/workflows/a11y.yml` after the scan, behind the fork guard (a fork's
- * token cannot write checks) and with `continue-on-error`: the check run reports,
- * it never decides the job.
+ * Reads `test-results/a11y/comparison.json` (the a11y reporter writes it), builds the payload
+ * through `lib/a11y-check-run.mjs`, and creates the check run through the Checks API
+ * (`lib/github-check-run.mjs`, which adds annotations past the first 50 in further requests). Run
+ * by `.github/workflows/a11y.yml` after the scan, behind the fork guard (a fork's token cannot
+ * write checks) and with `continue-on-error`: the check run reports, it never decides the job.
  *
  * Environment: `GITHUB_TOKEN` (with `checks: write`), `GITHUB_REPOSITORY`,
  * `A11Y_HEAD_SHA` (the pull request's head, not the merge commit, or the check

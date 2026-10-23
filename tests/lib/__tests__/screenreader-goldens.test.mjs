@@ -4,7 +4,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadScenarios } from '../screenreader-scenario.mjs';
-import { GOLDEN_SCHEMA } from '../screenreader-transcript.mjs';
+import { GOLDEN_SCHEMA, normalizeAnnouncement } from '../screenreader-transcript.mjs';
 
 // tests/AGENTS.md ("Screen readers: the NVDA lane", "Recording goldens"): a golden is recorded on the
 // Windows runner and committed by hand, so nothing but this test reads it before the next nightly. A
@@ -76,8 +76,15 @@ test('every committed golden belongs to a screen reader project and its scenario
     assert.ok(projects.includes(project), `${where}: "${project}" is a project of playwright.screenreader.config.ts`);
     assert.notEqual(project, DOM_ECHO_PROJECT, `${where}: the dom-echo lane's goldens are never committed`);
     assert.ok(scenario, `${where}: the scenario "${id}" exists under screenreader/scenarios/`);
+    assert.ok(typeof golden.steps === 'object' && golden.steps !== null && !Array.isArray(golden.steps),
+      `${where}: "steps" is an object of step id to normalized announcement, got ${JSON.stringify(golden.steps)}`);
     assert.deepEqual(Object.keys(golden.steps), scenario.steps.map(step => step.id),
       `${where}: the golden's steps are the scenario's step ids, in order. A step renamed, added, removed or moved needs the golden re-recorded (the nightly's update-goldens dispatch).`);
+    Object.entries(golden.steps).forEach(([step, announcement]) => {
+      assert.equal(typeof announcement, 'string', `${where}: step "${step}" is a string, got ${JSON.stringify(announcement)}`);
+      assert.equal(announcement, normalizeAnnouncement(announcement),
+        `${where}: step "${step}" holds the normalized announcement, as the update mode writes it; a raw or hand-edited text would differ on every run`);
+    });
 
     if (project.startsWith('nvda-')) {
       assert.match(String(golden.recorded?.screenReader), /^NVDA/, `${where}: an NVDA project's golden was recorded by NVDA`);

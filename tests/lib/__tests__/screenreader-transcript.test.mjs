@@ -44,6 +44,22 @@ test('normalizeAnnouncement strips the screen reader chatter wherever it sits', 
   assert.equal(normalizeAnnouncement('unclickable thing'), 'unclickable thing', 'only a whole phrase is chatter');
 });
 
+test('normalizeAnnouncement strips adjacent chatter phrases, every repeat of them', () => {
+  assert.equal(normalizeAnnouncement('alice clickable clickable row 2'), 'alice row 2', 'NVDA says `clickable` once per nested clickable element');
+  assert.equal(normalizeAnnouncement('focus mode focus mode'), '');
+  assert.equal(normalizeAnnouncement('Browse mode. Focus mode. Alice'), 'alice');
+  assert.equal(normalizeAnnouncement('focus  mode'), '', 'a phrase split by extra whitespace is still the phrase');
+  CHATTER.forEach(phrase => assert.match(phrase, /^[a-z]+(?: [a-z]+)*$/, `"${phrase}": a chatter phrase is lowercase words joined by single spaces, so the pattern needs no escaping`));
+});
+
+test('normalizeAnnouncement keeps a `.` or `,` between two digits as part of the number', () => {
+  assert.equal(normalizeAnnouncement('Price: 34.5, row 2'), 'price 34.5 row 2');
+  assert.equal(normalizeAnnouncement('1,000 rows.'), '1,000 rows');
+  assert.equal(normalizeAnnouncement('row 2, 3 cells'), 'row 2 3 cells', 'a comma followed by a space is punctuation');
+  assert.equal(normalizeAnnouncement('A.1 and 5.a'), 'a 1 and 5 a', 'a dot with a letter on one side is punctuation');
+  assert.equal(normalizeAnnouncement('34..'), '34');
+});
+
 test('matchTokenGroups needs one synonym per group, as a whole phrase', () => {
   const verdict = matchTokenGroups('34 age row 2 column 3', [['34'], ['name', 'column 3'], ['row 22', 'row 2']]);
 
@@ -66,6 +82,14 @@ test('a synonym of digits alone is a value: a position phrase never satisfies it
   assert.equal(matchTokenGroups('34 age row 2 column 3', [['34'], ['3']]).groups[1].matched, null, '`3` is not inside `34`, and `column 3` is a position');
   assert.equal(matchTokenGroups('collapsed row 1', [['row 1']]).passed, true, 'a position is asked for by spelling it out');
   assert.equal(matchTokenGroups('row 8 column 1', [['column 1']]).passed, true, 'a synonym with words keeps the whole-phrase match');
+});
+
+test('a whole-word number never matches inside a decimal or a grouped number, and the digit rule has two known limits', () => {
+  assert.equal(matchTokenGroups(normalizeAnnouncement('Price 34.5'), [['34']]).passed, false, '`34` is not the value 34.5');
+  assert.equal(matchTokenGroups(normalizeAnnouncement('1,000 rows'), [['1']]).passed, false, '`1` is not the value 1,000');
+  assert.equal(matchTokenGroups(normalizeAnnouncement('Price 34.5'), [['34.5']]).passed, true, 'a decimal is asked for as written');
+  assert.equal(matchTokenGroups(normalizeAnnouncement('-34'), [['34']]).passed, true, 'limit: a negative number loses its sign');
+  assert.equal(matchTokenGroups(normalizeAnnouncement('Total of 34'), [['34']]).passed, false, 'limit: a number right after `of` is a set position');
 });
 
 test('compareWithGolden reports every differing, new and vanished step', () => {
@@ -113,4 +137,13 @@ test('the log of a run that stopped at a step names the step and the error above
   assert.match(log, /^# golden: incomplete\n# INCOMPLETE: stopped at step open-editor: step open-editor: \.handsontableInput visible timed out\n\n\[arrow-right\]/m);
   assert.match(log, /tokens PASS: 34, age\n$/, 'no golden verdict on a step of a partial run');
   assert.doesNotMatch(renderTranscriptLog(transcript()), /INCOMPLETE/);
+});
+
+test('the log of a run that recorded the golden gives no golden verdict per step: nothing was compared', () => {
+  const log = renderTranscriptLog(transcript({ golden: { status: 'recorded', differences: [] } }));
+
+  assert.match(log, /^# golden: recorded$/m);
+  assert.match(log, /tokens PASS: 34, age\n/);
+  assert.doesNotMatch(log, /\| golden/, 'no `golden same` on a step nothing was compared with');
+  assert.match(renderTranscriptLog(transcript({ golden: { status: 'match', differences: [] } })), /tokens PASS: 34, age \| golden same/, 'a compared run keeps its verdict');
 });

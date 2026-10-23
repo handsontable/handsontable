@@ -14,6 +14,7 @@
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { normalizeAnnouncement } from './screenreader-transcript.mjs';
 
 export const SCENARIO_SCHEMA = 1;
 export const SCENARIO_FILE_SUFFIX = '.scenario.json';
@@ -50,7 +51,12 @@ export const PRESS_PATTERN = new RegExp(
   + '|F(?:1[0-2]|[1-9])|Digit[0-9]|Key[A-Z]|[^\\p{C}\\s])$',
   'u',
 );
-const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+/**
+ * A scenario or step id: a kebab-case slug that starts with a letter. A step id is a key of the golden's
+ * `steps` object, and `JSON.parse` moves an integer-like key (`"2"`) ahead of every other, so such an id
+ * would read as a reordered step.
+ */
+const ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 const QUERY_PATTERN = /^[A-Za-z0-9=&_.-]*$/;
 const SELECTOR_LIMIT = 200;
 
@@ -79,7 +85,7 @@ export function validateScenario(doc, { fixtures, fileName } = {}) {
     problems.push(`schema must be ${SCENARIO_SCHEMA}, got ${JSON.stringify(doc.schema)}`);
   }
   if (typeof doc.id !== 'string' || !ID_PATTERN.test(doc.id)) {
-    problems.push(`id must be a kebab-case slug, got ${JSON.stringify(doc.id)}`);
+    problems.push(`id must be a kebab-case slug that starts with a letter, got ${JSON.stringify(doc.id)}`);
   } else if (fileName !== undefined && fileName !== `${doc.id}${SCENARIO_FILE_SUFFIX}`) {
     problems.push(`the file is named "${fileName}", the scenario "${doc.id}": the name must be "${doc.id}${SCENARIO_FILE_SUFFIX}"`);
   }
@@ -139,7 +145,7 @@ function validateStep(step, where) {
   Object.keys(step).filter(key => !known.has(key)).forEach(key => problems.push(`${where}: unknown field "${key}"`));
 
   if (typeof step.id !== 'string' || !ID_PATTERN.test(step.id)) {
-    problems.push(`${where}: id must be a kebab-case slug, got ${JSON.stringify(step.id)}`);
+    problems.push(`${where}: id must be a kebab-case slug that starts with a letter, got ${JSON.stringify(step.id)}`);
   }
   validateAction(step.action, `${where}.action`).forEach(problem => problems.push(problem));
 
@@ -150,7 +156,15 @@ function validateStep(step, where) {
       if (!Array.isArray(group) || group.length === 0
         || group.some(token => typeof token !== 'string' || token.trim() === '')) {
         problems.push(`${where}.expect[${index}]: a token group is a non-empty array of non-empty strings`);
+
+        return;
       }
+      // A synonym that normalizes to nothing (punctuation alone, or the screen reader's own chatter)
+      // can never match, so its group would fail every night once the lane gates.
+      group.filter(token => normalizeAnnouncement(token) === '').forEach((token) => {
+        problems.push(`${where}.expect[${index}]: step "${step.id}": the synonym ${JSON.stringify(token)} normalizes to an empty string `
+          + '(punctuation or screen reader chatter alone), so it can never match');
+      });
     });
   }
   if (step.after !== undefined) {
@@ -214,16 +228,15 @@ export function loadScenarios(directory, { fixtures } = {}) {
     .sort()
     .map((fileName) => {
       let scenario = null;
-      let problems = [];
 
+      // Only the parse is caught: an exception from the validator is a bug in it, never invalid JSON.
       try {
         scenario = JSON.parse(readFileSync(path.join(directory, fileName), 'utf8'));
-        problems = validateScenario(scenario, { fixtures, fileName });
       } catch (error) {
-        problems = [`not valid JSON: ${error instanceof Error ? error.message : String(error)}`];
+        return { fileName, scenario, problems: [`not valid JSON: ${error instanceof Error ? error.message : String(error)}`] };
       }
 
-      return { fileName, scenario, problems };
+      return { fileName, scenario, problems: validateScenario(scenario, { fixtures, fileName }) };
     });
 }
 

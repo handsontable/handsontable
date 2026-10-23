@@ -138,7 +138,8 @@ that never reaches its state, or a screen reader that does not start. The transc
 `test-results/screenreader/transcripts/`, and `npm run screenreader:report` is a dry run: it writes
 `test-results/screenreader/summary.md` and prints the check-run payload CI would post. Without a screen
 reader, `HOT_SR_LANE=dom-echo npm run test:screenreader` runs the same scenarios against the focused element
-in headless Chromium, which proves a scenario or a runner change before the Windows job does. Goldens are
+in headless Chromium, which checks the fixture, the keys, the `after` states and the report before the
+Windows job does; its wording rows are not evidence, because it always announces the focused element. Goldens are
 recorded by the nightly's `update-goldens` dispatch, not locally. The rules: `AGENTS.md`, "Screen readers:
 the NVDA lane".
 

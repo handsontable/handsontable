@@ -16,14 +16,15 @@ name: Screen reader
 # machine and the browsers are headed: NVDA on `windows-2025`, the runner Guidepup's own suite is
 # green on (2 to 2.5 minutes per job there). The mitigations that suite uses are here too: Playwright
 # `retries: 2` and a five-minute test timeout (the config), a fresh NVDA per test with a stop in a
-# `finally` (Guidepup's fixture), and Guidepup 0.36.1+ for the NVDA quit fix. `timeout-minutes: 30`
-# bounds a hung screen reader.
+# `finally` (Guidepup's fixture), and Guidepup 0.36.1+ for the NVDA quit fix. The run step's
+# `timeout-minutes: 25` bounds a hung screen reader, and the job's 30 is the backstop.
 #
 # Build-dependent like a11y.yml: it downloads the UMD build artifact the caller's Build module uploads.
 # The caller is screenreader-nightly.yml (a cron, and a dispatch from any ref); the pull-request Tests
 # pipeline does not call it. With `update-goldens` the run records the goldens on the runner and
-# uploads them as an artifact, which is the only way to record an NVDA golden, since nobody has NVDA
-# on a Mac: download, commit under tests/screenreader/goldens/<project>/, done.
+# uploads them as an artifact, which is the only way to record an NVDA golden without a Windows
+# machine (`npm run test:screenreader:update-goldens` records them on one): download, commit under
+# tests/screenreader/goldens/<project>/, done.
 #
 # The VoiceOver lane (macOS, `setup --ci --macos-record`, `setup install voiceover`, the `vo-webkit`
 # and `vo-chromium` projects, `max-parallel: 2` under the organization's cap of five macOS jobs) is
@@ -61,7 +62,11 @@ jobs:
       SCREENREADER_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       SCREENREADER_PROJECT: nvda-${{ matrix.browser }}
     steps:
+      # Nothing in this job pushes, so the token stays out of .git/config: the `npx -y` steps below
+      # resolve the setup CLI's dependencies fresh on every run, and the token carries `checks: write`.
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
       - name: Download the Handsontable UMD build artifact
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
         with:
@@ -89,8 +94,12 @@ jobs:
         run: cd tests && npx playwright install ${{ matrix.browser }}
       - name: Install NVDA
         run: cd tests && npx -y @guidepup/setup@0.29.3 install nvda
+      # 25 minutes, under the job's 30: a step timeout is a step failure, so the summary, the uploads
+      # and the check run below still run, where a job timeout cancels them and leaves no evidence. The
+      # worst case is 2 scenarios x 3 attempts x the config's 300 s test timeout, 30 minutes.
       - name: Run the scenarios
         id: scenarios
+        timeout-minutes: 25
         env:
           HOT_SR_UPDATE_GOLDENS: ${{ inputs.update-goldens && '1' || '' }}
         run: cd tests && npx playwright test --config playwright.screenreader.config.ts --project=nvda-${{ matrix.browser }}
