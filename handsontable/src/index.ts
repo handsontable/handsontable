@@ -242,7 +242,7 @@ export { IndexMapper } from './translations';
 export type { GridSettings, Events, SanitizerContext, TextExtractorContext, PasteClipboardData } from './core/settings';
 export type {
   CellValue, CellChange, ColumnDataGetterSetterFunction, RowObject, ChangeSource,
-  CellMeta, CellProperties, ColumnSettings, SourceRowData, RemoveIndexSignature, OmitHooks
+  CellMeta, CellProperties, ColumnSettings, SourceRowData, RemoveIndexSignature, OmitHooks, SettingsUpdate
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
 export type { RowIdSetting } from './core/rowIdentity/rowIdentity';

@@ -219,6 +219,8 @@ const hotSettings = ref({
 
 The first argument may be modified and passed on through the Handsontable hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
 
+A hook you pass in the settings stays registered until you replace or remove it. To replace it, pass another callback through [`updateSettings()`](@/api/core.md#updatesettings). To remove it, pass `null`: `hot.updateSettings({ afterChange: null })`. Passing `undefined` changes nothing, and neither call touches a listener you added with [`addHook()`](@/api/core.md#addhook). To remove one of those, call [`removeHook()`](@/api/core.md#removehook) with the same callback.
+
 ## Commonly used hooks
 
 Handsontable exposes hundreds of hooks. The ones below are the hooks you reach for most often, grouped by what they do. Unlike the [`source` argument list](#definition-for-source-argument) further down this page, this grouping is about purpose, not about which callbacks receive a `source` argument.

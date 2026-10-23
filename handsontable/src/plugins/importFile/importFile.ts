@@ -584,6 +584,18 @@ export class ImportFile extends BasePlugin {
   }
 
   /**
+   * Tells whether the plugin is loading an import's result into the grid (or running its `beforeImport`
+   * listeners). The `updateSettings()` calls an import makes then carry the imported file's layout for the
+   * grid it lands on, not a grid-level configuration, so the sheets bar does not take them as one.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  _isApplyingImport(): boolean {
+    return this.#isApplying;
+  }
+
+  /**
    * Enabled unless the `importFile` option is `false`; the engine decides what it can import.
    */
   isEnabled(): boolean {

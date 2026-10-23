@@ -656,6 +656,11 @@ export class BasePlugin {
    * enabled disables if a conflicting top-level setting becomes truthy, even when this plugin's SETTING_KEYS do not
    * overlap the updateSettings payload.
    *
+   * A call that turns the plugin on refreshes the plugin settings from the merged grid settings before
+   * `enablePlugin()`, which reads them, and does not refresh them again before `updatePlugin()`: a second
+   * refresh logged every validation warning twice, and, for a payload carrying only a foreign `SETTING_KEYS`
+   * option, wiped what the first one read.
+   *
    * @private
    * @param {object} newSettings New set of settings passed to the updateSettings method.
    */
@@ -670,10 +675,14 @@ export class BasePlugin {
       this.disablePlugin();
     }
 
+    let settingsRefreshed = false;
+
     if (!this.enabled && this.isEnabled()) {
       if (this.isHardConflictBlocked()) {
         return;
       }
+      this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
+      settingsRefreshed = true;
       this.enablePlugin();
     }
 
@@ -692,7 +701,10 @@ export class BasePlugin {
       this.isEnabled() &&
       relevantToSettings
     ) {
-      this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
+      if (!settingsRefreshed) {
+        this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
+      }
+
       this.updatePlugin(newSettings);
     }
   }

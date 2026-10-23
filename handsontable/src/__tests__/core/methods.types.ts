@@ -1,7 +1,7 @@
 import Handsontable, {
   CellCoords,
 } from 'handsontable/base';
-import type { HotInstance } from 'handsontable';
+import type { HotInstance, SettingsUpdate } from 'handsontable';
 import type { BasePlugin } from 'handsontable/plugins';
 
 interface CellProperties {
@@ -268,6 +268,22 @@ hot.unlisten();
 (hot as any).updateData([[1, 2, 3], [1, 2, 3]]);
 (hot as any).updateData([{ a: 'a', b: 2, c: '' }, { a: 'a', b: 2, c: '' }]);
 hot.updateSettings({}, true);
+hot.updateSettings({ afterChange: null });
+const settingsPatch: SettingsUpdate = { afterChange: null, readOnly: true };
+const asSettingsUpdate: Parameters<typeof hot.updateSettings>[0] = settingsPatch;
+
+hot.updateSettings(settingsPatch);
+hot.updateSettings(asSettingsUpdate);
+const withOldSignature: (settings: Partial<Handsontable.GridSettings>, init?: boolean) => void = hot.updateSettings;
+
+withOldSignature({ readOnly: true });
+hot.updateSettings({ beforeChange: null, afterSelection: null, modifyColWidth: null });
+hot.updateSettings({ afterChange: (changes, source) => {} });
+hot.updateSettings({ afterChange: undefined });
+// @ts-expect-error A hook still takes a function of its own signature, not a string.
+hot.updateSettings({ afterChange: 'log' });
+// @ts-expect-error An option that is not a hook keeps its own type.
+hot.updateSettings({ readOnly: null });
 (hot as any).useTheme('ht-theme-sth');
 hot.validateCell('test', cellProperties, (valid: boolean) => {}, 'sourceString');
 (hot as any).validateCells((valid: boolean) => {});

@@ -1571,6 +1571,10 @@ export default (): Record<string, unknown> => {
      * | An array    | Set widths separately for each column,<br>by physical column index                                   | `colWidths: [100, 120, undefined]`                                |
      * | A function  | Set column widths dynamically,<br>on each render, by physical column index                           | `colWidths(physicalColumnIndex) { return physicalColumnIndex * 10; }` |
      * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                            |
+     * | `null`      | Same as `undefined`: no width is set,<br>so the {@link AutoColumnSize} plugin sizes the columns        | `colWidths: null`                                                 |
+     *
+     * A `null` entry in the array, a `null` returned by the function, and a column `width: null` also set no
+     * width: the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook receives `undefined` for that column.
      *
      * The array and the function address a column by its physical index, so a width stays with its column
      * when the user moves the column. The physical index doesn't change when columns are moved

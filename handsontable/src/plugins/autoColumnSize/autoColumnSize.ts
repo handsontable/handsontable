@@ -407,6 +407,19 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
+   * Whether the sampling settings have been applied once, so a later `enablePlugin()` can tell a real
+   * change from the first read.
+   */
+  #samplingApplied = false;
+  /**
+   * Set by an `enablePlugin()` that applied changed sampling settings to a plugin that measured before.
+   * `BasePlugin` hands the new settings to `enablePlugin()`, so the `updatePlugin()` of the same
+   * `updateSettings()` call no longer sees the change, and the sizes measured under the previous settings
+   * stay cached (the map survives a disable). `updatePlugin()` consumes it.
+   */
+  #samplingChangedOnEnable = false;
+
+  /**
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin(): void {
@@ -414,7 +427,8 @@ export class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    this.#applySamplingSettings();
+    this.#samplingChangedOnEnable = this.#applySamplingSettings() && this.#samplingApplied;
+    this.#samplingApplied = true;
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeLoadData', this.#onBeforeDataReplace);
@@ -472,9 +486,11 @@ export class AutoColumnSize extends BasePlugin {
     // view. This mirrors `#onAfterLoadData`, the other "everything is stale" path. On a grid that
     // is not visible it is a no-op, which leaves the previous widths in place - the same
     // limitation that path already has, and a smaller wrong than a grid of default widths.
-    if (this.#applySamplingSettings()) {
+    if (this.#applySamplingSettings() || this.#samplingChangedOnEnable) {
       this.recalculateAllColumnsWidth();
     }
+
+    this.#samplingChangedOnEnable = false;
 
     // Settings may remap the data that feeds the samples (e.g. a new `columns` definition), so
     // the cached samples cannot be trusted — the next re-measure falls back to a full scan.
