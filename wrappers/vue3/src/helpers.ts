@@ -52,11 +52,24 @@ export function propFactory(source: 'HotTable' | 'HotColumn'): VueProps<HotTable
   if (source === 'HotTable') {
     propSchema.id = {
       type: String,
-      default: `hot-${Math.random().toString(36).substring(5)}`
     };
   }
 
   return propSchema;
+}
+
+/**
+ * Generate a random id for the `HotTable` container. It has to be created on the client only: an id
+ * generated on the server never matches the one the browser generates while hydrating.
+ *
+ * @returns {string} The container id.
+ */
+export function generateContainerId(): string {
+  const buffer = new Uint16Array(3);
+
+  globalThis.crypto.getRandomValues(buffer);
+
+  return `hot-${Array.from(buffer, value => value.toString(16).padStart(4, '0')).join('')}`;
 }
 
 /**

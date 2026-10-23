@@ -1,3 +1,4 @@
+@use "sass:math";
 @use "../../utils/mixins";
 
 // Handsontable license branding: the corner "H." badge + its popover (shown for a running or
@@ -10,7 +11,11 @@
 // let a host application blank out the license mark, and the glyph has to render from the base
 // stylesheet anyway, without the per-theme icon-CSS regeneration that needs the gitignored Figma
 // `tokens.json`.
-$license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' height='16' viewBox='0 0 14.8626 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H3.28665V4.35577H7.03576V0H10.306V11.407H7.03576V6.90834H3.28665V11.407H0V0Z' fill='%23000'/%3E%3Cpath d='M11.0991 12.236H14.8633V16.0001H11.0991V12.236Z' fill='%23000'/%3E%3C/svg%3E";
+$license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='11.1415' height='16' viewBox='0 0 11.1415 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.61799e-05 3.17744H2.06687V7.04929H5.89738V3.17744H7.96421V12.8226H5.89738V8.84054H2.06687V12.8226H4.61799e-05V3.17744Z' fill='%23000'/%3E%3Cpath d='M7.96408 12.8226H11.1415V16H7.96408V12.8226Z' fill='%23000'/%3E%3C/svg%3E";
+// The blue dot of the logo, drawn in the same 11.1415x16 viewBox as the mask above so that two layers sized
+// `contain` and centered land on each other. The brand blue is fixed (it is the logo, not a theme color), so it
+// lives in the image and not behind a custom property.
+$license-badge-dot: "data:image/svg+xml;charset=utf-8,%3Csvg width='11.1415' height='16' viewBox='0 0 11.1415 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.96408 12.8226H11.1415V16H7.96408V12.8226Z' fill='%231A42E8'/%3E%3C/svg%3E";
 
 @mixin output {
   .ht-license-badge-wrapper {
@@ -59,6 +64,12 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' he
     // theme and the light/dark scheme instead of pinning one gray: #a3a3a3 in main light, #aeaeae in
     // horizon light, and so on. The literal is only the no-theme fallback.
     background-color: var(--ht-license-badge-color, var(--ht-disabled-color, #a3a3a3));
+    // The blue dot of the logo: a background layer over the themed "H", clipped by the same mask. Hover
+    // darkens `background-color` only, so the dot stays blue.
+    background-image: url($license-badge-dot);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
     pointer-events: none;
     -webkit-mask-image: url($license-badge-icon);
     mask-image: url($license-badge-icon);
@@ -273,7 +284,10 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='14.8626' he
         (var(--ht-line-height, 20px) - var(--ht-license-badge-size, 16px)) / 2
       );
       inset-inline-start: var(--ht-cell-horizontal-padding, 8px);
-      inline-size: var(--ht-license-badge-size, 16px);
+      // The box has the logomark's own 11.1415:16 proportions, so `contain` fills it edge to edge and the
+      // "H" starts exactly at the start padding in both directions (a 16px square box would leave the mask
+      // flush with the physical left edge, off the start edge in RTL).
+      inline-size: calc(var(--ht-license-badge-size, 16px) * #{math.div(11.1415, 16)});
       block-size: var(--ht-license-badge-size, 16px);
       background-color: var(--ht-license-badge-color, var(--ht-disabled-color, #a3a3a3));
       -webkit-mask-image: url($license-badge-icon);

@@ -1993,6 +1993,14 @@ export default function Core(
         // `alter('remove_row', ...)` and then `Filters#filter()` - discard the stranded edit
         // instead of committing through it and appending records (DEV-2739).
         editorManager.resumeStrandDiscards();
+
+        // The index mapper update already asked for a full render and dropped the size caches, but a
+        // `hot.render()` a hook made from inside this call consumed that request and rebuilt the caches from
+        // state this call had not finished writing, such as the `colHeaders` and `colWidths` arrays. The
+        // closing render must repaint the headers and re-measure the widths. It sits in the `finally`, so a
+        // hook that throws after the arrays were written does not leave the next fast draw with that paint.
+        instance.forceFullRender = true;
+        instance.view.invalidateColumnWidthCache();
       }
 
       instance.view.render();
@@ -7039,12 +7047,19 @@ export default function Core(
   /**
    * Returns an array of column values from the data source.
    *
+   * The `column` argument is a visual index, so it follows moved and trimmed columns. A hidden column keeps
+   * its index. To read a column by its physical index, translate it first with {@link Core#toVisualColumn}.
+   * A trimmed column has no visual index, so this method cannot read it. For an array of arrays, read it
+   * with {@link Core#getSourceData} and a physical range.
+   *
+   * __Note__: {@link Core#setSourceDataAtCell} takes a physical column index, so a read and a write at the
+   * same number can address different columns.
+   *
    * @memberof Core#
    * @function getSourceDataAtCol
    * @param {number} column Visual column index.
    * @returns {Array} Array of the column's cell values.
    */
-  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCol = function(column: number) {
     return dataSource.getAtColumn(column);
   };
@@ -7254,6 +7269,16 @@ export default function Core(
   /**
    * Returns a single value from the data source.
    *
+   * The `row` argument is a physical index. A numeric `column` is a visual index, so it follows moved and
+   * trimmed columns. A hidden column keeps its index. To read a column by its physical index, translate it
+   * first with {@link Core#toVisualColumn}, or, with an array of objects, pass the column's prop name. A
+   * trimmed column has no visual index: read it by its prop name with an array of objects, or with
+   * {@link Core#getSourceData} and a physical range with an array of arrays. An index past the last visible
+   * column is read as a physical index.
+   *
+   * __Note__: {@link Core#setSourceDataAtCell} takes a physical column index, so a read and a write at the
+   * same number can address different columns.
+   *
    * @memberof Core#
    * @function getSourceDataAtCell
    * @param {number} row Physical row index.
@@ -7261,7 +7286,6 @@ export default function Core(
    *   accessor function (called as `column(dataRow)`).
    * @returns {*} Cell data.
    */
-  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCell = function(row: number, column: number | string | ColumnDataGetterSetterFunction) {
     return dataSource.getAtCell(row, column);
   };

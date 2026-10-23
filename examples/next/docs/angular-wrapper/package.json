@@ -9,6 +9,7 @@
     "*"
   ],
   "overrides": {
-    "webpack-dev-middleware@8": "^8.3.0"
+    "webpack-dev-middleware@8": "^8.3.0",
+    "vite": "^8.3.5"
   }
 }

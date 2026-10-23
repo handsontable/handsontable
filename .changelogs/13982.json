@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Vue 3 wrapper rendering a different default `HotTable` container `id` on the server and in the browser, which logged a hydration mismatch warning in Nuxt. The generated `id` is now unique per instance and set after mounting.",
+  "type": "fixed",
+  "issueOrPR": 13982,
+  "breaking": false,
+  "framework": "vue"
+}

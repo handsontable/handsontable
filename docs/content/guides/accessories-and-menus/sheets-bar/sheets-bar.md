@@ -182,20 +182,6 @@ A switch away from a sheet with a selection clears it before the next sheet load
 
 To run your code when a sheet's state is saved or restored, use the [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) and [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) hooks.
 
-## Unfinished work when you switch sheets
-
-Work started on one sheet ends on that sheet, or is canceled.
-
-- A switch saves the cell you're editing, and a comment you're typing, on the sheet you leave. The edit stays saved even when a [`beforeSheetTabChange`](@/api/hooks.md#beforesheettabchange) listener cancels the switch.
-- A switch doesn't happen while a cell value waits for an asynchronous validator, or while the editor holds a value its validator rejected with [`allowInvalid: false`](@/api/options.md#allowinvalid). Clicking a tab, its menu, or the add button does nothing then, and [`setActiveSheet()`](@/api/sheetsBar.md#setactivesheet) returns `false`. Correct the value and press Enter, press Escape to discard it, or wait for the validator, and switch again.
-- Validators always answer after the edit, so `setActiveSheet()` called while the editor of a cell with a validator is open returns `false` even for a valid value. Close the editor first, and switch once [`afterValidate`](@/api/hooks.md#aftervalidate) has fired. A cell without a validator saves at once, and the switch goes through.
-- A change that a [`beforeSheetTabChange`](@/api/hooks.md#beforesheettabchange) or [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture) listener makes to a cell with a validator refuses the switch the same way.
-- A validator that never calls its callback blocks switching until [`loadData()`](@/api/core.md#loaddata) loads other data.
-- When an `activeSheet` value you send through [`updateSettings()`](@/api/core.md#updatesettings) is refused this way, the bar logs a warning and stays on its sheet. Send the same value again once the cell is saved.
-- A drag you're still holding is canceled: moving cells or rows, resizing a column or a row, the fill handle, and a freeze bar. A column move is not canceled yet.
-- An import that is still reading its file is rejected and changes nothing. [`downloadFileAsync()`](@/api/exportFile.md#downloadfileasync) with the [`Dialog`](@/api/dialog.md) plugin is rejected when the switch happens before the export reads the data.
-- A listener of a `beforeSheetTab*` hook, of [`afterSheetTabStateCapture`](@/api/hooks.md#aftersheettabstatecapture), or of [`afterSheetTabStateRestore`](@/api/hooks.md#aftersheettabstaterestore) can't change the workbook. A switch, add, remove, rename, duplicate, or move it asks for returns `false` (`null` for an add or a duplicate).
-
 ## Tab animations
 
 When you switch sheets, the active tab marker slides from the old tab to the new one. A tab you create or duplicate slides into the strip. When you move a sheet with the tab menu or the API, the tabs slide to their new places. A tab you delete fades out, and the tabs after it slide over to close the gap. When you hover a tab, its text color fades in and out. The grid itself switches at once.
