@@ -38,6 +38,9 @@ const INDICATOR_ICON_SLOT_CLASS = 'collapsibleIndicator__icon';
 // collapse hooks never report a column that is merely hidden in the expanded state.
 const VISIBLE_WHEN_MAP_NAME = 'collapsibleColumns.visibleWhen';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
+// The group both sorting plugins register their `Enter` header shortcut under. A string, not an import:
+// plugins do not import each other.
+const SHORTCUTS_GROUP_SORTING = 'columnSorting';
 
 /**
  * The collapsed header groups, as `CollapsibleColumns#captureState()` records them.
@@ -357,8 +360,13 @@ export class CollapsibleColumns extends BasePlugin {
    * @private
    */
   registerShortcuts() {
-    this.hot.getShortcutManager()
-      .getContext('grid')
+    const context = this.hot.getShortcutManager().getContext('grid');
+    // Enter on a collapsible header collapses it and never sorts, whichever plugin registered first: when
+    // a sorting shortcut is already on `Enter`, go in front of it, otherwise in front of the editor.
+    const hasSortingShortcut = context?.getShortcuts(['Enter'])
+      .some(({ group }) => group === SHORTCUTS_GROUP_SORTING);
+
+    context
       ?.addShortcut({
         keys: [['Enter']],
         callback: () => {
@@ -395,7 +403,7 @@ export class CollapsibleColumns extends BasePlugin {
         runOnlyIf: (): boolean => !!(this.hot.getSelectedRangeActive()?.isSingle() &&
           this.hot.getSelectedRangeActive()?.highlight.isHeader()),
         group: SHORTCUTS_GROUP,
-        relativeToGroup: SHORTCUTS_GROUP_EDITOR,
+        relativeToGroup: hasSortingShortcut ? SHORTCUTS_GROUP_SORTING : SHORTCUTS_GROUP_EDITOR,
         position: 'before',
       });
   }

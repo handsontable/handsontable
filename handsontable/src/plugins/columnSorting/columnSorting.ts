@@ -76,6 +76,9 @@ export const PLUGIN_PRIORITY = 50;
 export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 export const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
+// The group CollapsibleColumns registers its `Enter` header shortcut under. A string, not an import:
+// plugins do not import each other.
+const SHORTCUTS_GROUP_COLLAPSIBLE = 'collapsibleColumns';
 /**
  * Default for the `sortFixedRows` option: rows pinned by `fixedRowsTop` or `fixedRowsBottom` stay
  * where they are and take no part in the sort.
@@ -372,8 +375,13 @@ export class ColumnSorting extends BasePlugin {
    * @private
    */
   registerShortcuts() {
-    this.hot.getShortcutManager()
-      .getContext('grid')
+    const context = this.hot.getShortcutManager().getContext('grid');
+    // Enter on a collapsible header collapses it and never sorts, whichever plugin registered first: when a
+    // CollapsibleColumns shortcut is already on `Enter`, go behind it, otherwise in front of the editor.
+    const hasCollapsibleShortcut = context?.getShortcuts(['Enter'])
+      .some(({ group }) => group === SHORTCUTS_GROUP_COLLAPSIBLE);
+
+    context
       ?.addShortcut({
         keys: [['Enter']],
         callback: () => {
@@ -401,8 +409,8 @@ export class ColumnSorting extends BasePlugin {
             highlight.row < 0 && highlight.col !== null && highlight.col >= 0 &&
             highlightedHeaderElement && isBottomMostColumnHeader(highlightedHeaderElement));
         },
-        relativeToGroup: SHORTCUTS_GROUP_EDITOR,
-        position: 'before',
+        relativeToGroup: hasCollapsibleShortcut ? SHORTCUTS_GROUP_COLLAPSIBLE : SHORTCUTS_GROUP_EDITOR,
+        position: hasCollapsibleShortcut ? 'after' : 'before',
         group: SHORTCUTS_GROUP,
       });
   }
