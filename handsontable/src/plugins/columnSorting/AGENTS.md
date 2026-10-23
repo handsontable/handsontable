@@ -449,10 +449,11 @@ special-case it.
 
 ## `Enter` on a collapsible header belongs to CollapsibleColumns
 
-The `Enter` header shortcut here sits in the `'columnSorting'` shortcut group, and CollapsibleColumns anchors its own
-`Enter` shortcut before that group by name so a collapsible header collapses instead of sorting. Rename the group,
-or register the shortcut under another one, and that order breaks: `tests/e2e/collapsible-enter-vs-sorting.spec.ts`
-goes red. Details: `../collapsibleColumns/AGENTS.md`.
+The `Enter` header shortcut here sits in the `'columnSorting'` shortcut group. CollapsibleColumns anchors its own
+`Enter` shortcut before that group by name, and this plugin anchors behind the `'collapsibleColumns'` group by name
+when it is already there, so a collapsible header collapses instead of sorting in either registration order. Rename
+either group, or register the shortcut under another one, and that order breaks:
+`tests/e2e/collapsible-enter-vs-sorting.spec.ts` goes red. Details: `../collapsibleColumns/AGENTS.md`.
 
 ## Where to look next
 

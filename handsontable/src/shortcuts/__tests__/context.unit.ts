@@ -403,8 +403,16 @@ describe('context', () => {
 
       return context;
     };
-    const getGroups = (context: ReturnType<typeof createContext>) => {
-      return context.getShortcuts(COMBO).map(shortcut => shortcut.group);
+    const getGroups = (context: ReturnType<typeof createContext>, combo = COMBO) => {
+      return context.getShortcuts(combo).map(shortcut => shortcut.group);
+    };
+    const addNextTo = (
+      context: ReturnType<typeof createContext>,
+      group: string,
+      relativeToGroup: string,
+      position?: 'before' | 'after',
+    ) => {
+      context.addShortcut({ keys: KEYS, group, relativeToGroup, position, callback: () => {} });
     };
 
     it.each([
@@ -424,13 +432,7 @@ describe('context', () => {
     ) => {
       const context = createOrderedContext([...groups]);
 
-      context.addShortcut({
-        keys: KEYS,
-        group: 'X',
-        relativeToGroup: anchor,
-        position,
-        callback: () => {},
-      });
+      addNextTo(context, 'X', anchor, position);
 
       expect(getGroups(context)).toEqual(expected);
     });
@@ -438,13 +440,7 @@ describe('context', () => {
     it('should place the shortcut right before a lone anchor', () => {
       const context = createOrderedContext(['A']);
 
-      context.addShortcut({
-        keys: KEYS,
-        group: 'X',
-        relativeToGroup: 'A',
-        position: 'before',
-        callback: () => {},
-      });
+      addNextTo(context, 'X', 'A', 'before');
 
       expect(getGroups(context)).toEqual(['X', 'A']);
     });
@@ -457,13 +453,7 @@ describe('context', () => {
       (position, expected) => {
         const context = createOrderedContext(['A', 'A', 'B']);
 
-        context.addShortcut({
-          keys: KEYS,
-          group: 'X',
-          relativeToGroup: 'A',
-          position,
-          callback: () => {},
-        });
+        addNextTo(context, 'X', 'A', position);
 
         expect(getGroups(context)).toEqual(expected);
       }
@@ -472,12 +462,7 @@ describe('context', () => {
     it('should place the shortcut after the anchor when `position` is omitted', () => {
       const context = createOrderedContext(['A', 'B']);
 
-      context.addShortcut({
-        keys: KEYS,
-        group: 'X',
-        relativeToGroup: 'A',
-        callback: () => {},
-      });
+      addNextTo(context, 'X', 'A');
 
       expect(getGroups(context)).toEqual(['A', 'X', 'B']);
     });
@@ -487,13 +472,7 @@ describe('context', () => {
       (position) => {
         const context = createOrderedContext(['A', 'B']);
 
-        context.addShortcut({
-          keys: KEYS,
-          group: 'X',
-          relativeToGroup: 'missing',
-          position,
-          callback: () => {},
-        });
+        addNextTo(context, 'X', 'missing', position);
 
         expect(getGroups(context)).toEqual(['A', 'B', 'X']);
       }
@@ -516,23 +495,51 @@ describe('context', () => {
       });
 
       expect(getGroups(context)).toEqual(['A', 'X', 'B']);
-      expect(context.getShortcuts(otherCombo).map(shortcut => shortcut.group)).toEqual(['A', 'X', 'B']);
+      expect(getGroups(context, otherCombo)).toEqual(['A', 'X', 'B']);
     });
 
-    it('should keep registration order of shortcuts placed before the same anchor', () => {
+    it('should run the newest shortcut first when several are placed before the same anchor', () => {
       const context = createOrderedContext(['anchor', 'other']);
 
-      ['first', 'second', 'third'].forEach((group) => {
-        context.addShortcut({
-          keys: KEYS,
-          group,
-          relativeToGroup: 'anchor',
-          position: 'before',
-          callback: () => {},
-        });
-      });
+      ['first', 'second', 'third'].forEach(group => addNextTo(context, group, 'anchor', 'before'));
 
-      expect(getGroups(context)).toEqual(['first', 'second', 'third', 'anchor', 'other']);
+      expect(getGroups(context)).toEqual(['third', 'second', 'first', 'anchor', 'other']);
+    });
+
+    it('should run the newest shortcut first when several are placed after the same anchor', () => {
+      const context = createOrderedContext(['anchor', 'other']);
+
+      ['first', 'second', 'third'].forEach(group => addNextTo(context, group, 'anchor', 'after'));
+
+      expect(getGroups(context)).toEqual(['anchor', 'third', 'second', 'first', 'other']);
+    });
+
+    it('should put a shortcut in front of the run of shortcuts that are before the same anchor', () => {
+      const context = createOrderedContext(['editor']);
+
+      addNextTo(context, 'plugin', 'editor', 'before');
+      addNextTo(context, 'app', 'editor', 'before');
+
+      expect(getGroups(context)).toEqual(['app', 'plugin', 'editor']);
+    });
+
+    it('should stop stepping back at a shortcut that is placed relative to another group', () => {
+      const context = createOrderedContext(['sorting', 'editor']);
+
+      addNextTo(context, 'sortingPlugin', 'editor', 'before');
+      addNextTo(context, 'collapse', 'sortingPlugin', 'before');
+      addNextTo(context, 'app', 'editor', 'before');
+
+      expect(getGroups(context)).toEqual(['sorting', 'collapse', 'app', 'sortingPlugin', 'editor']);
+    });
+
+    it('should let a shortcut placed before the anchor of another shortcut run before it', () => {
+      const context = createOrderedContext(['editor']);
+
+      addNextTo(context, 'first', 'editor', 'before');
+      addNextTo(context, 'second', 'first', 'before');
+
+      expect(getGroups(context)).toEqual(['second', 'first', 'editor']);
     });
   });
 });

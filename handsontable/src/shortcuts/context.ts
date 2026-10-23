@@ -54,6 +54,17 @@ export function isContextObject(objectToCheck: unknown): objectToCheck is Contex
 }
 
 /**
+ * Checks whether a shortcut was added `before` the given group of actions.
+ *
+ * @param {object} shortcut The registered shortcut.
+ * @param {string} group The name of the group of actions.
+ * @returns {boolean}
+ */
+const isPlacedBefore = (shortcut: Partial<Shortcut>, group: string | undefined): boolean => {
+  return shortcut.relativeToGroup === group && shortcut.position === 'before';
+};
+
+/**
  * The `ShortcutContext` API lets you store and manage [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md) in a given [context](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#keyboard-shortcut-contexts).
  *
  * Each `ShortcutContext` object stores and manages its own set of keyboard shortcuts.
@@ -118,9 +129,8 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
    * @param {object} [options.captureCtrl=false] If set to `true`: captures the state of the Control/Meta modifier key
    * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
    * @param {object} [options.position='after'] The order in which the shortcut's action runs:
-   * `'before'` or `'after'` the `relativeToGroup` group of actions. The action goes directly in front of,
-   * or behind, the first action of that group. Several `'before'` actions run in the order you add them.
-   * Several `'after'` actions run in the reverse order.
+   * `'before'` or `'after'` the `relativeToGroup` group of actions. The action goes next to the first action
+   * of that group. When you add several actions next to the same group, the newest one runs first.
    * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    * @param {object} [options.forwardToContext] The context object where the event will be forwarded to.
    */
@@ -179,8 +189,14 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
         let insertionIndex = shortcuts.findIndex((shortcut: Partial<Shortcut>) => shortcut.group === relativeToGroup);
 
         if (insertionIndex !== -1) {
-          // `splice` inserts in front of the index, which is already the "before" position.
-          if (position !== 'before') {
+          if (position === 'before') {
+            // `splice` inserts in front of the index. Step back over the actions already placed before the same
+            // group, so the newest one runs first, like with `'after'`.
+            while (insertionIndex > 0 && isPlacedBefore(shortcuts[insertionIndex - 1], relativeToGroup)) {
+              insertionIndex -= 1;
+            }
+
+          } else {
             insertionIndex += 1;
           }
 
@@ -208,9 +224,8 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
    * @param {object} [options.stopPropagation=false] If set to `true`: stops the event's propagation
    * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
    * @param {object} [options.position='after'] The order in which a shortcut's action runs:
-   * `'before'` or `'after'` a `relativeToGroup` group of actions. The action goes directly in front of,
-   * or behind, the first action of that group. Several `'before'` actions run in the order you add them.
-   * Several `'after'` actions run in the reverse order.
+   * `'before'` or `'after'` a `relativeToGroup` group of actions. The action goes next to the first action
+   * of that group. When you add several actions next to the same group, the newest one runs first.
    * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    * @param {object} [options.forwardToContext] The context object where the event will be forwarded to.
    */

@@ -728,12 +728,11 @@ row semantics. Six things look simpler than they are.
   keeps the covered check in its `runOnlyIf`. Not
   `canAccessCellContent()`: that also asks for rendered cells, and with every column hidden it took
   <kbd>Enter</kbd> on a still-visible row header away, which worked before.
-- **They sit before `GRID_GROUP`.** `Context#addShortcut()` inserts a `'before'` shortcut directly in front
-  of the first entry of the anchor group, so the chord stays ahead of the grid's jump even when a host
-  shortcut shares the key. Several `'before'` registrants on one anchor run in registration order, but several
-  `'after'` registrants run reversed (the two Tab `after` shortcuts already do), because `'after'` also
-  anchors on the first entry of the group. The one `'before'` pair whose order mattered, CollapsibleColumns
-  against the sorting plugins on <kbd>Enter</kbd>, is settled in `../collapsibleColumns/AGENTS.md`. A rebuild
+- **They sit before `GRID_GROUP`.** `Context#addShortcut()` inserts a `'before'` shortcut next to the first entry of
+  the anchor group, in front of the `'before'` entries already placed there, so the chord stays ahead of the
+  grid's jump even when a host shortcut shares the key. The newest shortcut next to a group runs first, for
+  `'before'` and `'after'` alike. The one `'before'` pair whose order mattered, CollapsibleColumns against the
+  sorting plugins on <kbd>Enter</kbd>, is settled in `../collapsibleColumns/AGENTS.md`. A rebuild
   (`updateSettings({ nestedRows })`) unregisters and re-registers the chords, which
   `tests/e2e/nested-rows-treegrid-a11y.spec.ts` pins.
 

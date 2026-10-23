@@ -62,19 +62,18 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   table still shows the old rows, and the disable threw `Cannot read properties of undefined (reading
   'childNodes')`. Pinned by `__tests__/clearButtons.unit.ts`.
 
-- **`Enter` on a collapsible header collapses it and never sorts; the order is chosen when this plugin registers
-  its shortcut, not by plugin priority.** ColumnSorting (50) and MultiColumnSorting (170) register their `Enter`
-  header shortcut in the `grid` context before this plugin (290) does, and every one of them places itself
-  `before` an anchor, so a plain "before the editor group" put the sorting shortcut first whenever this plugin
-  registered second: on a bottom-row group header, `Enter` sorted and the group never collapsed.
-  `registerShortcuts()` therefore anchors `before` the `'columnSorting'` group when a shortcut of that group is
-  already on `Enter` (both sorting plugins register it under that one name, MultiColumnSorting through its parent
-  class), and before the editor group otherwise. That string is a literal, not an import: plugins do not import
-  each other. The opposite order needs no special case, because a sorting shortcut registered later goes before the
-  editor group, which is behind this one. A plugin registers again only on a disabled-to-enabled flip (an
-  `updateSettings()` that leaves it on does not), so a sorting plugin turned off and on, or swapped for the other
-  one, is the way sorting lands behind this shortcut after init. Pinned by `tests/e2e/collapsible-enter-vs-sorting.spec.ts`, including the case where this
-  plugin registers before any sorting shortcut exists (the editor-group anchor).
+- **`Enter` on a collapsible header collapses it and never sorts; the order is chosen when either plugin registers
+  its shortcut, not by plugin priority.** The newest shortcut next to a group runs first, so whichever of
+  CollapsibleColumns (290) and the sorting plugins (ColumnSorting 50, MultiColumnSorting 170) registers its `Enter`
+  header shortcut last would run first. Each therefore looks at the other's group on `Enter`. This plugin goes
+  `before` the `'columnSorting'` group when a shortcut of that group is already there (both sorting plugins register
+  it under that name, MultiColumnSorting through its parent class), and before the editor group otherwise.
+  ColumnSorting goes `after` the `'collapsibleColumns'` group when one is already there, and before the editor group
+  otherwise. Both names are literals, not imports: plugins do not import each other. A plugin registers again only on
+  a disabled-to-enabled flip (an `updateSettings()` that leaves it on does not), so a sorting plugin turned off and on,
+  or swapped for the other one, is how the order changes after init. Pinned by
+  `tests/e2e/collapsible-enter-vs-sorting.spec.ts`, which covers init, either plugin registering again, and this
+  plugin registering before any sorting shortcut exists.
 
 ## The indicator is a real element, updated in place on every draw
 

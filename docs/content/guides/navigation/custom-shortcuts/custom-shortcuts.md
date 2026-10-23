@@ -215,9 +215,7 @@ gridContext.addShortcut({
 });
 ```
 
-A new action goes directly before, or after, the first action of the `relativeToGroup` group. Several actions added `before` the same group run in the order you add them. Several actions added `after` it run in the reverse order.
-
-Handsontable plugins add their own actions to some keys. For example, column sorting handles `Enter` on the bottom column header, and the checkbox renderer handles `Enter`, `Delete`, and `Backspace` in checkbox cells. These actions can return `false`, which stops the actions that come after them. To run your action first, set `relativeToGroup` to the group of that plugin's action, `'columnSorting'` or `'checkboxRenderer'`.
+A new action goes next to the first action of the `relativeToGroup` group. When you add several actions next to the same group, the newest one runs first.
 
 ## Remove a keyboard shortcut
 
