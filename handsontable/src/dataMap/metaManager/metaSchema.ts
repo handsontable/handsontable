@@ -407,15 +407,29 @@ export default (): Record<string, unknown> => {
     allowRemoveRow: true,
 
     /**
-     * If set to `true`, the accessibility-related ARIA tags will be added to the table. If set to `false`, they
-     * will be omitted.
-     * Defaults to `true`.
+     * The `ariaTags` option decides whether Handsontable adds the ARIA roles and attributes that describe
+     * the grid to assistive technologies: `role="treegrid"` on the grid, `role="row"` on each row,
+     * `role="gridcell"` on each cell, the header roles, `aria-sort`, `aria-expanded`, and the rest.
+     * It defaults to `true`. Set it to `false` only when you add your own ARIA markup. The option also
+     * removes the `tabindex` the grid puts on cells, headers, and menu items, so browser focus no longer
+     * moves onto them. The menu styles read `aria-expanded` too, so a menu item keeps its focus outline
+     * while its submenu is open.
+     *
+     * Read more:
+     * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md)
+     * - [Accessibility conformance report](@/guides/accessibility/accessibility-conformance-report/accessibility-conformance-report.md)
      *
      * @memberof Options#
      * @type {boolean}
      * @default true
      * @category Core
      * @since 14.0.0
+     *
+     * @example
+     * ```js
+     * // turn the ARIA roles and attributes off (default: true)
+     * ariaTags: false,
+     * ```
      */
     ariaTags: true,
 
@@ -4551,10 +4565,16 @@ export default (): Record<string, unknown> => {
     navigableHeaders: false,
 
     /**
-     * When set to `false`, the `tabNavigation` option changes the behavior of the
-     * <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts. The Handsontable
-     * no more captures that shortcuts to make the grid navigation available (`tabNavigation: true`)
-     * but returns control to the browser so the native page navigation is possible.
+     * The `tabNavigation` option decides what the <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd>
+     * keys do while the grid has the focus.
+     *
+     * | Setting          | Description                                                                                                                                                     |
+     * | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | The grid captures <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> and moves the selection between cells, so the grid is a set of tab stops (the spreadsheet mode). |
+     * | `false`          | The grid returns both keys to the browser, so <kbd>Tab</kbd> leaves the grid and the grid is one tab stop in the page's tab sequence (the data grid mode).          |
+     *
+     * Pair `tabNavigation: false` with [`navigableHeaders: true`](#navigableHeaders) for the data grid mode
+     * described in the [Accessibility](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation) guide.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -4567,10 +4587,10 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // you can't navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
+     * // Tab leaves the grid: one tab stop, the arrow keys move between cells
      * tabNavigation: false,
      *
-     * // default behavior: you can navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
+     * // default behavior: Tab and Shift+Tab move between cells
      * tabNavigation: true,
      * ```
      */

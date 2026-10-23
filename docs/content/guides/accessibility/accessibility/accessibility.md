@@ -9,14 +9,14 @@ tags:
   - accessibility
   - a11y
   - aria
-  - jaws
   - nvda
   - voiceover
   - wcag
+  - wcag 2.2
   - section 508
   - ada
-  - compliance
   - vpat
+  - conformance report
 react:
   metaTitle: Accessibility - React Data Grid | Handsontable
 angular:
@@ -25,11 +25,12 @@ vue:
   metaTitle: Accessibility - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessibility
+menuTag: updated
 addedIn: "14.0.0"
 ---
 Handsontable supports keyboard navigation, screen readers, and ARIA roles. Use these steps to configure accessible behavior for your users.
 
-Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by people with disabilities.
+Handsontable {{$a11y.target.long}}. The {{$a11y.report.link}} states how far the grid conforms today, per success criterion.
 
 [[toc]]
 
@@ -38,14 +39,15 @@ Handsontable is designed to be accessible, aligning with global standards. We pr
 Accessibility features of Handsontable include:
 
 - Keyboard navigation that lets you use the grid without a mouse.
-- Support for the most popular screen readers.
+- Support for screen readers, tested with {{$a11y.matrix.sentence}}.
 - Flexible API to configure keyboard shortcuts and navigation methods.
+- A published {{$a11y.report.link}}, version {{$a11y.report.version}} ({{$a11y.report.date}}), with the result per success criterion and the known gaps.
 
-## Conformance with standards
+## Standards built on WCAG
 
-Most global standards and regulations are created in accordance with WCAG (Web Content Accessibility Guidelines).
-Handsontable meets requirements outlined in the [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/) guidelines,
-which makes it compatible with most local standards, such as:
+Most local standards and regulations build on the Web Content Accessibility Guidelines ([WCAG]({{$a11y.target.url}})).
+Handsontable {{$a11y.target.long}}. The {{$a11y.report.link}}, version {{$a11y.report.version}} ({{$a11y.report.date}}), states, for each success criterion, the conformance level or that it was not evaluated, and lists the known gaps.
+The standards that build on WCAG include:
 
 **USA**
 
@@ -116,11 +118,15 @@ For filter-menu-specific navigation details, including <kbd>**Tab**</kbd> traver
 
 Although semantic HTML doesn't need any additional attributes to be properly interpreted by assistive technologies, some of Handsontable's complex features are not fully covered by the HTML specification. That's why Handsontable provides support for screen readers with ARIA attributes (Accessible Rich Internet Applications) applied to its HTML markup.
 
-Each new version of Handsontable is thoroughly tested for accessibility with the following screen readers:
+Handsontable is tested with the screen readers below. The list is the tested matrix of the {{$a11y.report.link}}; it changes only when an audit or an automated run adds to it.
 
-- NVDA (Windows)
-- JAWS (Windows)
-- VoiceOver (macOS)
+{{$a11y.matrix.list}}
+
+Browsers in the last audit: {{$a11y.browsers.sentence}}.
+
+{{$a11y.notes.mobile}}
+
+{{$a11y.notes.automation}}
 
 ## Accessible data grid demo
 
@@ -183,8 +189,8 @@ However, assistive technologies rely on the elements within the DOM appearing in
 Otherwise, they require the use of [additional ARIA attributes](https://www.w3.org/WAI/ARIA/apg/practices/grid-and-table-properties),
 such as `row-colindex` or `aria-rowindex`, to understand the grid's structure and accurately announce (read) it to the user.
 
-We already use ARIA attributes to describe data sorting, hidden columns or rows, and merged cells.
-Unfortunately, our tests have discovered scenarios where screen readers either announce incorrect indices or omit the ARIA attributes altogether.
+Handsontable describes hidden columns or rows, merged cells, and the sort order of a column (`aria-sort`) with ARIA attributes.
+Screen readers do not always read them: a change of the sort order is not announced, and in some scenarios a screen reader announces incorrect indices or omits the attributes. See [Known limitations](#known-limitations).
 To address this issue, we recommend disabling DOM virtualization, which entails loading all grid elements into the browser.
 This action creates a complete [Accessibility tree](https://developer.mozilla.org/en-US/docs/Glossary/Accessibility_tree) that can be easily parsed
 and interpreted by assistive technology.
@@ -253,7 +259,7 @@ const hotSettings = ref({
 
 ## High-contrast theme
 
-The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast with Handsontable's default theme, you can:
+The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG22/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast with Handsontable's default theme, you can:
 
 - Override the grid's CSS with your own styles.
 - Use third-party software, such as the [High Contrast](https://chrome.google.com/webstore/detail/high-contrast/djcfdncoelnlbldjfhinnjlhdjlikmph) extension for Chrome, supported by Google.
@@ -264,7 +270,7 @@ When you customize Handsontable, it's you who's responsible for ensuring the acc
 
 Our recommendations for custom development:
 
-- Test your code against WCAG 2.1 requirements frequently.
+- Test your code against the [{{$a11y.target.name}}]({{$a11y.target.url}}) {{$a11y.target.level}} success criteria frequently.
 - Use proper color contrast, font size, and semantic HTML.
 - If needed, implement additional WAI-ARIA attributes.
 - Avoid flashing or blinking content.
@@ -278,23 +284,22 @@ The quality of custom Handsontable modifications can impact your application's a
 
 ## Maintaining accessibility
 
-We make sure our data grid remains accessible by taking the following measures:
+Handsontable keeps the grid accessible with the following measures:
 
-- We check Handsontable's accessibility score with a range of accessibility testing tools.
-- We use automated visual regression testing.
-- We manually test all of Handsontable's features with the most popular screen readers.
-- We use automated unit and end-to-end tests.
+- An automated [axe-core](https://github.com/dequelabs/axe-core) scan with the WCAG 2.2 Level A and AA rule tags runs in CI on every change to the grid, on the three built-in themes, and reports every new finding.
+- Keyboard-only end-to-end tests cover the keyboard path of the grid's controls, and every change to a control adds one that also checks its accessible name.
+- The {{$a11y.report.link}} states the result per success criterion. {{$a11y.report.next.sentence}}
+- Screen-reader testing with the matrix listed under [Support for screen readers](#support-for-screen-readers).
 
 ## Known limitations
 
-- When [frozen rows](@/guides/rows/row-freezing/row-freezing.md), [frozen columns](@/guides/columns/column-freezing/column-freezing.md), or both, are enabled, some screen readers may incorrectly read the total number of rows and columns.
-- When you select a cell that's part of a frozen row, frozen column, or both, NVDA and JAWS might incorrectly announce that cell's column header name.
-- Dynamic ARIA attributes are sometimes omitted by screen readers.
-- The `aria-rowcount` attribute is intentionally set to `-1`, as most screen readers either ignore or misinterpret it. This configuration ensures accuracy with screen readers such as VoiceOver. We plan to revise this approach once screen readers consistently handle the `aria-rowcount` attribute correctly.
+The {{$a11y.report.link}} lists the ones that carry a reference and a success criterion; the rest come from Handsontable's own testing.
+
+{{$a11y.knownLimitations.list}}
 
 ## Result
 
-Your grid now supports keyboard navigation, screen reader announcements, and ARIA attributes for all major interactive elements.
+Your grid now supports keyboard navigation and carries ARIA attributes on its interactive elements. Screen readers announce the focused cell and the menus; the sort order and a range selection are not announced yet (see [Known limitations](#known-limitations)).
 
 ## API reference
 
@@ -338,3 +343,5 @@ Didn't find what you need? Try this:
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>
+
+Microsoft and Excel are registered trademarks of Microsoft Corporation. Google Sheets is a trademark of Google LLC.

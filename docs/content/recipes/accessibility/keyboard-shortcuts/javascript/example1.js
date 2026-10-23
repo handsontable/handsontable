@@ -65,9 +65,9 @@ gridContext.addShortcut({
   },
 });
 
-// Ctrl+Enter: submit the grid data
+// Ctrl+Shift+Enter: submit the grid data
 gridContext.addShortcut({
-  keys: [['Control', 'Enter']],
+  keys: [['Control', 'Shift', 'Enter']],
   group: 'customActions',
   runOnlyIf: () => true,
   callback: (event) => {
@@ -78,7 +78,7 @@ gridContext.addShortcut({
     const rowCount = data.length;
     const timestamp = new Date().toLocaleTimeString();
 
-    lastShortcutEl.textContent = 'Ctrl+Enter -- data submitted';
+    lastShortcutEl.textContent = 'Ctrl+Shift+Enter -- data submitted';
     lastSubmissionEl.textContent = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
   },
 });

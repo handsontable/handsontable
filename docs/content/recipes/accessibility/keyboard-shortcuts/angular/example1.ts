@@ -106,9 +106,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       },
     });
 
-    // Ctrl+Enter: submit the grid data
+    // Ctrl+Shift+Enter: submit the grid data
     gridContext.addShortcut({
-      keys: [['Control', 'Enter']],
+      keys: [['Control', 'Shift', 'Enter']],
       group: 'customActions',
       runOnlyIf: () => true,
       callback: (event: Event) => {
@@ -120,7 +120,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         const timestamp = new Date().toLocaleTimeString();
 
         this.ngZone.run(() => {
-          this.lastShortcut = 'Ctrl+Enter -- data submitted';
+          this.lastShortcut = 'Ctrl+Shift+Enter -- data submitted';
           this.lastSubmission = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
         });
       },

@@ -1,7 +1,7 @@
 ---
 title: ARIA-friendly grid
 metaTitle: ARIA-Friendly Grid with Row Descriptions - JavaScript Data Grid | Handsontable
-description: Configure Handsontable for screen reader compatibility using ariaTags, tabMoves, aria-label on cells, and aria-sort on headers -- targeting WCAG 2.1 AA compliance.
+description: Configure Handsontable DataGrid for screen reader compatibility using ariaTags, tabMoves, aria-label on cells, and aria-sort on headers, for a grid that targets WCAG 2.2 Level A and AA.
 permalink: /recipes/accessibility/aria-grid
 canonicalUrl: /recipes/accessibility/aria-grid
 tags:
@@ -18,10 +18,11 @@ vue:
   metaTitle: ARIA-Friendly Grid with Row Descriptions - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Accessibility & UX
+menuTag: updated
 type: how-to
 ---
 
-In this tutorial, you will configure Handsontable for screen reader compatibility. You will learn how to use `ariaTags`, `tabMoves`, aria-label on cells, and aria-sort on headers to target WCAG 2.1 AA compliance.
+In this tutorial, you will configure Handsontable DataGrid for screen reader compatibility. You will learn how to use `ariaTags`, `tabMoves`, aria-label on cells, and aria-sort on headers for a grid that {{$a11y.target.long}}.
 
 ::: only-for javascript
 
@@ -64,11 +65,11 @@ This recipe shows how to configure Handsontable so screen readers can navigate t
 ## What You'll Build
 
 A grid that:
-- Exposes `role="grid"`, `role="row"`, and `role="gridcell"` on the DOM elements screen readers expect
+- Exposes `role="treegrid"`, `role="row"`, and `role="gridcell"` on the DOM elements screen readers expect
 - Sets `aria-label` on each cell combining the column name and the cell value (e.g., `"Name: Ana García"`)
 - Marks each column header with `aria-sort="none"` initially, updated to `ascending` or `descending` when sorted
 - Moves focus one row down on both Tab and Enter so keyboard users advance predictably
-- Disables wrap-around navigation to prevent disorienting jumps to the opposite end of the grid
+- Keeps wrap-around navigation off, so focus never jumps to the opposite end of the grid
 
 ## Before you begin
 
@@ -76,7 +77,7 @@ No additional dependencies are required. This recipe uses only the Handsontable 
 
 If you have not set up a Handsontable project yet, follow the [Quick start](@/guides/getting-started/installation/installation.md) guide first.
 
-## Step 1: Enable ARIA roles with `ariaTags`
+## Step 1: Keep ARIA roles on with `ariaTags`
 
 ```javascript
 const hot = new Handsontable(container, {
@@ -86,9 +87,9 @@ const hot = new Handsontable(container, {
 ```
 
 **What's happening:**
-Setting `ariaTags: true` instructs Handsontable to stamp `role="grid"` on the outermost table container, `role="row"` on each row element, and `role="gridcell"` on each data cell. These roles are required by ARIA's grid pattern, allowing screen readers to announce the structure of the table correctly.
+`ariaTags` is `true` by default, so Handsontable already stamps `role="treegrid"` on the grid's root element, `role="row"` on each row element, and `role="gridcell"` on each data cell. The example sets it explicitly so the dependency is visible. These roles come from ARIA's grid pattern and let screen readers announce the structure of the table.
 
-Without this option the DOM is still a visual table, but screen readers have no semantic cues to describe rows and cells as belonging to an interactive data grid.
+With `ariaTags: false` the DOM is still a visual table, but screen readers have no semantic cues to describe rows and cells as belonging to an interactive data grid. Set it to `false` only when you add your own ARIA markup.
 
 ## Step 2: Configure Tab and Enter navigation for screen readers
 
@@ -106,7 +107,7 @@ const hot = new Handsontable(container, {
 
 Both options accept a `{ row, col }` object. Negative values move backwards.
 
-## Step 3: Disable wrap-around navigation
+## Step 3: Keep wrap-around navigation off
 
 ```javascript
 const hot = new Handsontable(container, {
@@ -117,9 +118,9 @@ const hot = new Handsontable(container, {
 ```
 
 **What's happening:**
-By default, pressing Tab on the last column wraps focus to the first column of the next row, and pressing Tab on the last cell of the grid wraps back to the first cell. For sighted users this is convenient. For screen reader users it is disorienting -- the reader may announce a sudden column or row change that appears to have no cause.
+`autoWrapRow` and `autoWrapCol` are `false` by default, so the selection stops at the grid's edges. When either is `true`, pressing Tab on the last column wraps focus to the first column of the next row, and pressing Tab on the last cell of the grid wraps back to the first cell. For sighted users this is convenient. For screen reader users it is disorienting -- the reader may announce a sudden column or row change that appears to have no cause.
 
-Setting both `autoWrapRow` and `autoWrapCol` to `false` makes the grid stop at the boundaries, which matches what screen reader users expect from a navigation region.
+Keeping both `autoWrapRow` and `autoWrapCol` at `false` makes the grid stop at the boundaries, which matches what screen reader users expect from a navigation region. The example sets them explicitly so a grid-level configuration that turns wrapping on cannot change this.
 
 ## Step 4: Add `aria-label` to cells with a custom renderer
 
@@ -169,13 +170,13 @@ const hot = new Handsontable(container, {
 **What's happening:**
 The `afterGetColHeader` hook fires every time Handsontable renders a column header. The callback receives the visual column index (`col`) and the `<th>` DOM element (`TH`).
 
-The `aria-sort` attribute on a column header tells screen readers whether the column is sorted and in which direction. WCAG 2.1 Success Criterion 1.3.1 requires that sort state is conveyed programmatically, not just visually.
+The `aria-sort` attribute on a column header tells screen readers whether the column is sorted and in which direction. WCAG 2.2 Success Criterion 1.3.1 requires that sort state is conveyed programmatically, not just visually.
 
-The check `!TH.hasAttribute('aria-sort')` avoids overwriting `aria-sort` when the `columnSorting` plugin has already set it. When the user clicks a header to sort, Handsontable's `columnSorting` plugin updates `aria-sort` automatically to `"ascending"` or `"descending"`. The hook above only sets the initial `"none"` state that the plugin does not set on first render.
+The check `!TH.hasAttribute('aria-sort')` avoids overwriting `aria-sort` when the `ColumnSorting` plugin has already set it. With `columnSorting` enabled and `ariaTags` on, the plugin sets `aria-sort` on every column header it renders: `"none"` before sorting, `"ascending"` or `"descending"` after. The hook is a safety net for a header the plugin does not own, for example one you render yourself. Screen readers do not announce a change of the sort order yet; see the known limitations in the [Accessibility](@/guides/accessibility/accessibility/accessibility.md#known-limitations) guide.
 
 ## How It Works - Complete Flow
 
-1. **Initial render** -- `ariaTags: true` stamps `role="grid"`, `role="row"`, and `role="gridcell"` on the DOM. The `afterGetColHeader` hook sets `aria-sort="none"` on each header. The custom renderer sets `aria-label="Column: value"` on each cell.
+1. **Initial render** -- `ariaTags: true` stamps `role="treegrid"`, `role="row"`, and `role="gridcell"` on the DOM. The `ColumnSorting` plugin sets `aria-sort="none"` on each header, and the `afterGetColHeader` hook adds it to any header that has none. The custom renderer sets `aria-label="Column: value"` on each cell.
 2. **User presses Tab** -- Focus moves to the next row in the same column (not the next cell sideways). Screen readers announce the new row.
 3. **User presses Enter** -- Any open editor commits the value and focus moves one row down.
 4. **User clicks a column header** -- The `columnSorting` plugin sorts the data and updates `aria-sort` on the header to `"ascending"` or `"descending"`. The custom renderer re-runs and updates all `aria-label` attributes to reflect the new row order.
@@ -196,15 +197,15 @@ You can also use the **Full Page Accessibility Tree** (the document icon in the 
 
 ## What you learned
 
-- `ariaTags: true` adds the semantic roles (`grid`, `row`, `gridcell`) that screen readers rely on.
+- `ariaTags: true` (the default) adds the semantic roles (`treegrid`, `row`, `gridcell`) that screen readers rely on.
 - A custom renderer calling `TD.setAttribute('aria-label', ...)` gives every cell a descriptive, self-contained label.
-- `afterGetColHeader` initializes `aria-sort="none"` on each header; the `columnSorting` plugin updates it automatically when sorting.
+- The `ColumnSorting` plugin sets `aria-sort` on each header it renders; the `afterGetColHeader` hook adds `aria-sort="none"` to a header that has none.
 - `tabMoves` and `enterMoves` set to `{ row: 1, col: 0 }` align keyboard navigation with screen reader conventions.
-- `autoWrapRow: false` and `autoWrapCol: false` prevent disorienting focus jumps at grid boundaries.
+- `autoWrapRow` and `autoWrapCol` stay `false` (their default), so focus never jumps across a grid boundary.
 
 ## Next steps
 
 - Explore the full ARIA Grid pattern in the [WAI-ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/patterns/grid/).
 - Add `aria-live` regions outside the grid to announce data loading states when used with the `DataProvider` plugin.
-- Test with a real screen reader -- [NVDA](https://www.nvaccess.org/) (Windows, free) and [VoiceOver](https://support.apple.com/guide/voiceover/welcome/mac) (macOS/iOS, built-in) are the most commonly used.
-- Review [WCAG 2.1 Success Criterion 4.1.2](https://www.w3.org/TR/WCAG21/#name-role-value) for the full Name, Role, Value requirement that `aria-label` and `role` attributes address.
+- Test with a real screen reader. Handsontable is tested with {{$a11y.matrix.sentence}}, the matrix of the {{$a11y.report.link}}.
+- Review [WCAG 2.2 Success Criterion 4.1.2](https://www.w3.org/TR/WCAG22/#name-role-value) for the full Name, Role, Value requirement that `aria-label` and `role` attributes address.

@@ -429,9 +429,9 @@ Do not use relative paths (`../`) for internal links.
 
 ### Template variables in links
 
-Never hardcode a branch name in a GitHub link. Five template variables resolve at
+Never hardcode a branch name in a GitHub link. Six template variable families resolve at
 build time - production builds point at the frozen branch for the docs version,
-every other build points at the development branch. All five are declared and
+every other build points at the development branch. All six are declared and
 substituted in `src/plugins/template-variables.mjs`, the sole registry:
 
 | Variable | Production | Otherwise | Use for |
@@ -441,6 +441,7 @@ substituted in `src/plugins/template-variables.mjs`, the sole registry:
 | `{{$currentVersion}}` | package.json version | `0.0.0-next-<sha>-<date>` | version strings, runner links |
 | `{{$latestChangelogVersion}}` | highest `changelog-N` major | same | links to the newest changelog page |
 | `{{$basePath}}` | `''` | `''` | root-relative asset paths |
+| `{{$a11y.<key>}}` | values from `content/data/accessibility.json` | values from `content/data/accessibility.json` | accessibility claims (2.20) |
 
 Three pipelines substitute them and all three go through that module: the content
 loader (`src/plugins/framework-loader.mjs`), the Vite pre-transform
@@ -621,3 +622,110 @@ Both halves are guarded, on three different triggers - know which one you are re
 | `tests/markdownProseSpacing.spec.ts` | the reader-visible gap on a built page | only when the PR carries the `run-docs-visual` label - it lives in `testDir: './tests'`, the opt-in visual suite |
 
 So the label-gated spec is a backstop, not a gate. The first two are what actually hold the line on a normal PR.
+
+---
+
+## 2.20 Accessibility claims have one source: `content/data/accessibility.json`
+
+Every public accessibility claim - the target, the conformance report's version and date, the
+tested screen readers and browsers, the known limitations - is written once, in
+`content/data/accessibility.json`, and rendered everywhere else. Before the file existed the guide
+said "meets WCAG 2.1 AA" under a report that judges WCAG 2.2 per criterion, a recipe targeted
+"WCAG 2.1 AA compliance", three pages listed JAWS, which no audit has run, and the website had its
+own copies of all of it. The approved public wording is **"targets WCAG 2.2 Level A and AA"**
+(short form "targets WCAG 2.2 AA"), with a link to the report; never "meets", "compliant",
+"conformance with", or "certified". A screen reader is named only when the file's matrix lists it
+as tested.
+
+### The shape
+
+| Key | Holds | Rules |
+|---|---|---|
+| `target` | `standard`, `version`, `level`, `url`, and `wording.long` / `wording.short` | each wording starts with "targets" (the validator rejects anything else) |
+| `report` | `title`, `version`, `date`, `slug`, `url`, `docsPath` (an `@/...md` link), `template`, `evaluatedProductVersion` (a string, or `null` while the report does not state it), `audit` (`auditor`, `period`, `coverage`), `next` (`version`, `status`, `scope`, or `null`) | `url` is the JavaScript docs URL; the READMEs derive their framework-prefixed form from `slug` |
+| `matrix[]` | one entry per screen reader and platform: `name`, `version` (`null` only when `howTested` is `not-tested`), `platform`, `howTested[]` | `howTested` values: `audit` (the external audit in `report.audit`), `automated-nightly`, `manual-per-major`, `not-tested`; `not-tested` stands alone. An entry whose only value is `not-tested` records a decision and is never rendered - its name is what public text must not use |
+| `browsers[]` | `name`, `version` (full) | sentences use the major version |
+| `knownLimitations[]` | `id`, `text` (Markdown), `criteria[]` (WCAG numbers), `reportRef` (the report's own "Ref." column, such as `#2375`, or `null`) | ids are unique; the order is the rendered order. `reportRef` is not a GitHub issue number (`#2375` on GitHub is an unrelated issue), so it renders as "ref. #2375 in the report" |
+| `notes` | `mobile`, `automation` | one sentence or two each; rendered verbatim |
+
+`src/plugins/accessibility-data.mjs` is the only reader: `loadAccessibilityData()` validates the
+shape (`validateAccessibilityData()`) and throws with the field's name, so a broken file fails the
+docs build and the root tooling suite instead of rendering `undefined`.
+
+### The consumers
+
+- **Docs pages** read it through the `{{$a11y.<key>}}` template variables (`template-variables.mjs`,
+  so all three pipelines resolve them). The keys are what `accessibilityTemplateValues()` returns:
+  `target.name`, `target.level`, `target.long`, `target.short`, `target.url`, `target.link`,
+  `report.title`, `report.version`, `report.date`, `report.url`, `report.docsPath`, `report.link`,
+  `report.template`, `report.evaluatedProductVersion`, `report.auditor`, `report.auditPeriod`,
+  `report.auditCoverage`, `report.next.version`, `report.next.status`, `report.next.scope`,
+  `report.next.sentence`, `matrix.table`, `matrix.list`, `matrix.sentence`, `matrix.names`,
+  `browsers.sentence`, `browsers.list`, `knownLimitations.list`, `notes.mobile`,
+  `notes.automation`. An unknown key throws at build time. `report.next` may be `null` (no next
+  version planned); the three `report.next.*` parts then render empty, and so does
+  `report.next.sentence` ("Version 1.2 of this report is in preparation: ..."). Announce the next
+  version with `report.next.sentence`, never by composing the parts, which would render
+  "Version  is : .". A value may hold Markdown (a list, a table, an `@/...md` link), so put a list
+  or table variable on a line of its own with blank lines around it, and keep it out of a
+  `::: tip` aside: the loader converts asides to HTML before it substitutes template variables, so
+  a variable holding Markdown inside an aside lands in already-emitted HTML. The values are cached
+  until the data file's modification time changes, so the dev server picks up a data-file edit on
+  the next page render, with no restart. The accessibility
+  guide, the conformance report page, the ARIA recipe, and the Pikaday recipe use them; the
+  tooling test requires the guide and the report page to render the target, the version, the date,
+  and the matrix from them rather than from literals.
+- **The READMEs** (root and the three wrappers) carry
+  `[targets WCAG 2.2 AA](https://handsontable.com/docs/<prefix>/accessibility-conformance-report/)`
+  next to their Accessibility feature link; the test derives the sentence and each README's prefix
+  from the file. The unprefixed `/docs/accessibility-conformance-report/` 404s, so the root README
+  uses the `javascript-data-grid` prefix, which `scripts/readme-check.mjs` accepts for it.
+- **The website** (handsontable.com, a separate repository) copies
+  `content/data/accessibility-website-strings.json`, which
+  `npm run docs:export-accessibility-strings` writes from the data file (`websiteStrings()`). The
+  export is committed and the tooling test fails when it is stale, so regenerate it in the same
+  change as the data. The website's `src/content/data/accessibility.json` is that copy; the chip,
+  the trust card, the solutions page, and the `llms.txt` line read it. The website composes its
+  sentences from the export's fields; `strings` holds only `chip` and `trustCardLabel`.
+- **The report generator** (the sibling task that replaces the report page with a generated
+  international-edition VPAT) reads the same file: the version, the date, the evaluated product
+  version, the matrix, and the known limitations are its inputs, and `report.next` is what the
+  page announces until the next version is published.
+
+### The gate
+
+`scripts/accessibility-claims.mjs` (root `test:tooling`, through
+`scripts/__tests__/accessibility-claims.test.mjs`; `node scripts/accessibility-claims.mjs` prints
+the findings) scans `docs/content/**` (the pages, the data files, and the example sources they
+embed; not the generated `api/`), the four READMEs, the core source under `handsontable/src` (its
+JSDoc is the API reference), the website export, and the data file's own text: every value it
+renders through `{{$a11y.<key>}}` and every `knownLimitations[].text`, each reported as
+`docs/content/data/accessibility.json#<key>`. The data file itself is allowlisted, because its
+matrix names the untested screen readers, and the pages hold only placeholders, so its values are
+the only way its text gets checked. The rules flag:
+
+- `WCAG 2.0` or `WCAG 2.1` in any spelling: spelled out as "Web Content Accessibility Guidelines",
+  or with spaces, a hyphen, Markdown emphasis, `&nbsp;`, or "v"/"version" between the name and the
+  number (`WCAG v2.1`, `WCAG-2.1`, `**WCAG** 2.1`). `WCAG 2.10` and `WCAG 2.1.1` pass.
+- "meets ... WCAG", "conformance with WCAG", and the adjective after the name ("WCAG 2.2 AA
+  compliant").
+- The claim verbs "conforms to", "complies with", and "adheres to" WCAG.
+- "compliant", "compliance", and "certified" in an accessibility sentence (a bare "508" or
+  "Level AA" makes one).
+- Any screen reader the matrix does not list as tested.
+
+Every rule runs per line, and again per paragraph with the hard-wrapped lines joined: a line break
+with its indentation and JSDoc star reads as one space, and a blank line ends the paragraph. So a
+claim wrapped across lines (" * meets\n * WCAG 2.1") is caught and reported at the line where it
+starts. Historical text keeps its wording through the allowlist in that script: the changelog pages,
+the migration guides, and the version highlights. A new screen reader goes into
+`SCREEN_READER_NAMES` there as well as into the matrix. Release blog posts live in the website
+repository; a dated post keeps its text and gets an editor's note with `updatedDate`.
+
+### Changing it
+
+1. Edit `content/data/accessibility.json` (a new audit updates `matrix`, `browsers`, and
+   `report.audit`; a new report version updates `report.version`, `report.date`, and
+   `report.evaluatedProductVersion`, and moves `report.next` on).
+2. Run `npm run docs:export-accessibility-strings` and commit the export.
+3. Run `npm run test:tooling` at the root; copy the export into the website repository.

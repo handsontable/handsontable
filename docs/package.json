@@ -16,6 +16,7 @@
     "docs:test:plugins": "node --test src/plugins/__tests__/*.test.mjs src/lib/__tests__/*.test.mjs src/components/__tests__/*.test.mjs src/scripts/__tests__/*.test.mjs cloudflare/__tests__/*.test.mjs deploy/__tests__/*.test.mjs scripts/__tests__/*.test.mjs scripts/jsdoc-convert/renderer/preProcessors/__tests__/*.test.mjs",
     "docs:test:runner-links": "node scripts/test-runner-links.mjs",
     "docs:validate-highlights": "node scripts/validate-version-highlights.mjs",
+    "docs:export-accessibility-strings": "node scripts/export-accessibility-strings.mjs",
     "docs:validate-added-in": "node scripts/validate-added-in.mjs",
     "docs:validate-layer-order": "node scripts/validate-layer-order.mjs",
     "docs:lint": "eslint --ext .js,.mjs,.ts,.astro src content",
