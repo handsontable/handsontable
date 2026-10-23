@@ -215,6 +215,8 @@ gridContext.addShortcut({
 });
 ```
 
+A new action goes next to the first action of the `relativeToGroup` group. When you add several actions next to the same group, the newest one runs first.
+
 ## Remove a keyboard shortcut
 
 To remove a keyboard shortcut (e.g., one of the [default](#default-custom-shortcuts) keyboard shortcuts):

@@ -1,5 +1,5 @@
 import { devices } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { TouchInteractiveCellPage } from '../fixtures/pages/TouchInteractiveCellPage';
 
 /**
@@ -7,15 +7,17 @@ import { TouchInteractiveCellPage } from '../fixtures/pages/TouchInteractiveCell
  * receives no click when `disableVisualSelection` is on, because every `touchend` is cancelled.
  * Pixel 7 is the profile from the report. Chromium synthesizes the click `locator.tap()` would
  * produce on that device.
+ *
+ * `THEMES_TAG`: which node a tap lands on depends on the theme's cell padding. Chromium's touch
+ * adjustment moves a trusted tap toward a nearby control, so `elementFromPoint` does not predict
+ * the target on its own.
  */
-// leg-declarations: ignore geometry-helper -- touchEndOnCell() and pointOn() read a box only to place a touch. The compared values are the touchend target tag, defaultPrevented, and the click count.
-// leg-declarations: ignore hit-test -- pointOn() uses elementFromPoint only to land on the named node. The assertions are that tag, whether touchend was cancelled, and the click count.
 test.use({
   ...devices['Pixel 7'],
   browserName: 'chromium',
 });
 
-test.describe('touch taps on interactive renderer elements', () => {
+test.describe('touch taps on interactive renderer elements', { tag: THEMES_TAG }, () => {
   let grid: TouchInteractiveCellPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

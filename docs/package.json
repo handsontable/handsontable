@@ -18,6 +18,7 @@
     "docs:test:runner-links": "node scripts/test-runner-links.mjs",
     "docs:type-check-content": "node content-type-check/check.mjs",
     "docs:validate-highlights": "node scripts/validate-version-highlights.mjs",
+    "docs:export-accessibility-strings": "node scripts/export-accessibility-strings.mjs",
     "docs:validate-added-in": "node scripts/validate-added-in.mjs",
     "docs:validate-api-guide-links": "node scripts/validate-api-guide-links.mjs",
     "docs:validate-changelog-links": "node scripts/check-changelog-api-links.mjs",

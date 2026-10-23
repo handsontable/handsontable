@@ -160,7 +160,10 @@ data the grid still holds. The call has three phases:
 2. **Load.** A normal `loadData()` with the new configuration in force. The load hooks reach the plugins
    enabled in phase 1, every index map re-initializes, and the load sizes the new data to the new `min*`
    values. `isDataWorkDeferred()` still answers `true`.
-3. **Data ready.** The `cell` option and `afterCellMetaReset` run against the new data, then the
+3. **Data ready.** The cell meta the caller kept with the rows (the `keptCellMetas` argument: the meta set
+   through `setCellMeta()` and the invalid marks, by physical index, minus entries past the data or on a
+   `min*` filler) is written back, then the `cell` option (which wins on a key both set) and
+   `afterCellMetaReset` run against the new data, then the
    source-data validators once (the load skips them on this path, because a `columns` function reaches the
    column meta only now, and validating during the load blanked a value under the previous sheet's rules),
    then every **enabled** plugin's optional `onDataReady()` in `PLUGIN_PRIORITY` order, then one render

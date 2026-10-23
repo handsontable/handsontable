@@ -628,6 +628,124 @@ describe('AsyncValues: rows the index mapper resizes without row hooks', () => {
     destroy();
   });
 
+  describe('with row ids and an in-place splice', () => {
+    const fiveProducts = () => [...products(), { id: 'e', sku: 'E', name: 'old E', price: 5 }];
+
+    /**
+     * Starts a request for every row and keeps its settle functions by row id.
+     */
+    const startAll = (plugin: ReturnType<typeof createGrid>['plugin']) => {
+      const requests: Record<string, ReturnType<typeof deferred>> = {};
+
+      plugin.setAsyncValuesForRows('all', 'name', (context: { rowId: unknown }) => {
+        requests[String(context.rowId)] = deferred();
+
+        return requests[String(context.rowId)].promise;
+      });
+
+      return requests;
+    };
+
+    it('should keep the request of the last row when a row before it is spliced out', async() => {
+      const data = fiveProducts();
+      const { hot, plugin, destroy } = createGrid({ data, rowId: 'id' });
+      const cancel = jest.fn();
+
+      hot.addHook('afterAsyncValueCancel', cancel);
+
+      const requests = startAll(plugin);
+
+      data.splice(1, 1);
+      hot.batch(() => hot.rowIndexMapper.removeIndexes([4]));
+      await settle();
+
+      expect(cancel.mock.calls.map(call => [call[0], call[2], call[3]])).toEqual([[1, 'rowRemoved', 'b']]);
+      expect(plugin.getPendingCells()).toEqual([
+        { physicalRow: 0, prop: 'name', rowId: 'a' },
+        { physicalRow: 1, prop: 'name', rowId: 'c' },
+        { physicalRow: 2, prop: 'name', rowId: 'd' },
+        { physicalRow: 3, prop: 'name', rowId: 'e' },
+      ]);
+
+      requests.e.resolve('new E');
+      await settle();
+
+      expect(hot.getSourceDataAtRow(3)).toEqual({ id: 'e', sku: 'E', name: 'new E', price: 5 });
+
+      destroy();
+    });
+
+    it('should keep every request when a row is inserted in the middle of the data', async() => {
+      const data = fiveProducts();
+      const { hot, plugin, destroy } = createGrid({ data, rowId: 'id' });
+      const cancel = jest.fn();
+
+      hot.addHook('afterAsyncValueCancel', cancel);
+
+      const requests = startAll(plugin);
+      const mapper = hot.rowIndexMapper;
+
+      data.splice(2, 0, { id: 'z', sku: 'Z', name: 'old Z', price: 0 });
+      hot.batch(() => mapper.insertIndexes(mapper.getNumberOfIndexes(), 1));
+      await settle();
+
+      expect(cancel).not.toHaveBeenCalled();
+      expect(plugin.getPendingCells().map(cell => [cell.physicalRow, cell.rowId])).toEqual([
+        [0, 'a'], [1, 'b'], [3, 'c'], [4, 'd'], [5, 'e'],
+      ]);
+
+      requests.d.resolve('new D');
+      await settle();
+
+      expect(hot.getSourceDataAtRow(4)).toEqual({ id: 'd', sku: 'D', name: 'new D', price: 4 });
+
+      destroy();
+    });
+
+    it('should cancel only the spliced-out row and let the last row land when the row before it is spliced', async() => {
+      const data = fiveProducts();
+      const { hot, plugin, destroy } = createGrid({ data, rowId: 'id' });
+      const cancel = jest.fn();
+
+      hot.addHook('afterAsyncValueCancel', cancel);
+
+      const requests = startAll(plugin);
+
+      data.splice(3, 1);
+      hot.batch(() => hot.rowIndexMapper.removeIndexes([4]));
+      await settle();
+
+      expect(cancel.mock.calls.map(call => [call[2], call[3]])).toEqual([['rowRemoved', 'd']]);
+      expect(plugin.getPendingCells().map(cell => [cell.physicalRow, cell.rowId])).toEqual([
+        [0, 'a'], [1, 'b'], [2, 'c'], [3, 'e'],
+      ]);
+
+      requests.e.resolve('new E');
+      await settle();
+
+      expect(hot.getSourceDataAtRow(3)).toEqual({ id: 'e', sku: 'E', name: 'new E', price: 5 });
+
+      destroy();
+    });
+
+    it('should keep the request of the last row when the last row itself is spliced out', async() => {
+      const data = fiveProducts();
+      const { hot, plugin, destroy } = createGrid({ data, rowId: 'id' });
+      const cancel = jest.fn();
+
+      hot.addHook('afterAsyncValueCancel', cancel);
+      startAll(plugin);
+      data.pop();
+      hot.batch(() => hot.rowIndexMapper.removeIndexes([4]));
+      await settle();
+
+      expect(cancel.mock.calls.map(call => [call[2], call[3]])).toEqual([['rowRemoved', 'e']]);
+      expect(plugin.countPending()).toBe(4);
+
+      destroy();
+    });
+  });
+
   it('should cancel a request whose row the index mapper drops from its end', async() => {
     const data = products();
     const { hot, plugin, destroy } = createGrid({ data });

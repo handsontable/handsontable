@@ -41,6 +41,16 @@ export interface CellOptionMetaEntry {
   value: unknown;
 }
 
+/**
+ * The cell meta a caller took away with a set of rows and brings back with them, addressed by physical
+ * indexes: the keys set through `setCellMeta()` (or an undo of one), and the cells whose meta holds
+ * `valid: false`, which the validation flow writes without `setCellMeta()`.
+ */
+export interface KeptCellMetas {
+  userDefined: CellOptionMetaEntry[];
+  invalid: Array<{ physicalRow: number, physicalColumn: number }>;
+}
+
 export interface RangeType {
   startRow: number;
   startCol: number;
@@ -322,7 +332,8 @@ export interface HotInstance {
   _getOperationScope(): OperationScope;
   _hasPendingValidation(): boolean;
   _applySettingsAndData(
-    settings: Partial<GridSettings>, data: unknown[], source: string, cellOptionMetas?: CellOptionMetaEntry[] | null
+    settings: Partial<GridSettings>, data: unknown[], source: string, cellOptionMetas?: CellOptionMetaEntry[] | null,
+    keptCellMetas?: KeptCellMetas | null
   ): void;
   _isDataWorkDeferred(): boolean;
   _isDataLoadPending(): boolean;

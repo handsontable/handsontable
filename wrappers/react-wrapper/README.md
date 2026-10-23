@@ -43,7 +43,7 @@
 &nbsp;&nbsp;✅&nbsp; [IME support](https://handsontable.com/docs/react-data-grid/ime-support/) <br>
 &nbsp;&nbsp;✅&nbsp; [Internationalization](https://handsontable.com/docs/react-data-grid/language/) <br>
 &nbsp;&nbsp;✅&nbsp; [RTL support](https://handsontable.com/docs/react-data-grid/layout-direction/) <br>
-&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/react-data-grid/accessibility/) <br>
+&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/react-data-grid/accessibility/) ([targets WCAG 2.2 AA](https://handsontable.com/docs/react-data-grid/accessibility-conformance-report/)) <br>
 &nbsp;&nbsp;✅&nbsp; [Keyboard shortcuts](https://handsontable.com/docs/react-data-grid/keyboard-shortcuts/) <br>
 &nbsp;&nbsp;✅&nbsp; [Sorting data](https://handsontable.com/docs/react-data-grid/rows-sorting/) <br>
 &nbsp;&nbsp;✅&nbsp; [Filtering data](https://handsontable.com/docs/react-data-grid/column-filter/) <br>

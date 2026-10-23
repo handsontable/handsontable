@@ -45,6 +45,7 @@ export interface HyperFormulaEngine {
     name: string, expression: unknown, scope?: number, options?: Record<string, string | number | boolean>,
   ): unknown[];
   normalizeFormula(formula: string): string;
+  validateFormula(formula: string): boolean;
   getSheetDimensions(sheetId: number): { width: number; height: number };
   getCellType(address: { sheet: number | null; row: number; col: number }): unknown;
   doesCellHaveFormula(address: { sheet: number | null; row: number; col: number }): boolean;

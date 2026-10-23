@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - Enter on a collapsible header with sorting</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document - no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back - a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for the Enter key on a header that is both a collapsible group and a sortable column.
+    Header rows: A | B (columns 1-3) | C (columns 4-5) on top, a, b, c, d | E (columns 4-5) below, so "E" is a
+    collapsible group in the bottom-most header row, where the sorting plugins also act on Enter. "?sorting="
+    picks the sorting plugin (columnSorting or multiColumnSorting, never both - they conflict).
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // Same fixed allowlist rule as ?theme=/?bundle=: a literal key per known value, a throw for anything else.
+    const sortingKey = ({ columnSorting: 'columnSorting', multiColumnSorting: 'multiColumnSorting' })[
+      htParams.get('sorting') ?? 'columnSorting'
+    ];
+
+    if (!sortingKey) {
+      throw new Error('Unknown ?sorting= value: ' + JSON.stringify(htParams.get('sorting')));
+    }
+
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: [
+          [3, 'x', 1, 9, 5, 7],
+          [1, 'y', 2, 8, 6, 4],
+          [2, 'z', 3, 7, 4, 1],
+        ],
+        colHeaders: true,
+        navigableHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 3 }, { label: 'C', colspan: 2 }],
+          ['a', 'b', 'c', 'd', { label: 'E', colspan: 2 }],
+        ],
+        collapsibleColumns: true,
+        [sortingKey]: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>
