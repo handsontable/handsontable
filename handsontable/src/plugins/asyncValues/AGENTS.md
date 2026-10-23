@@ -235,8 +235,10 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   `#syncRows()` first dropped the state of the last row, which still exists one index lower after a splice
   (the Vue wrapper's `matchHotMappersSize`). Without ids the states keep their physical rows, so the fix
   covers only the rows that have an id: a `rowId` function that returns `null` for a row leaves that row's
-  state on its index, where it also blocks an id'd state that has to move there (that one is canceled as
-  `'rowRemoved'`). Pinned by the "with row ids and an in-place splice" block in `__tests__/writes.unit.ts`.
+  state on its index. That state then points at another record: after `splice(1, 1)` its request stays on
+  the old index, its value lands in the record that moved there, and that record's own request is canceled
+  as `'rowRemoved'` (the state also blocks any id'd state that has to move to its index). Known limit, the
+  same as before the fix. Pinned by the "with row ids and an in-place splice" block in `__tests__/writes.unit.ts`.
 - **A load is guarded by `#replacingData`.** A load's spare rows fire `afterCreateRow` before `afterLoadData`,
   and the requests belong to the replacement, not to a row removal. A load that throws never reaches
   `after*Data`, so a microtask queued in `before*Data` clears the flag and runs the replacement as a load.
