@@ -55,12 +55,6 @@
         navigableHeaders: true,
         licenseKey: 'non-commercial-and-evaluation',
       });
-
-      // PLANTED DEFECT, temporary: the cells lose their column header association after every draw,
-      // so a screen reader can no longer name the column of a cell. Reverted in the next commit.
-      window.hot.addHook('afterViewRender', () => {
-        container.querySelectorAll('td[aria-describedby]').forEach(td => td.removeAttribute('aria-describedby'));
-      });
     } catch (error) {
       // The runner turns a constructor throw into a red test before any step runs.
       window.htBuildError = error;
