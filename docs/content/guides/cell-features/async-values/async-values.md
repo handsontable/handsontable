@@ -336,6 +336,10 @@ A value written to a row hidden by a filter fires no `afterChange` (see [Validat
 import { ASYNC_VALUE_CANCEL_REASONS } from 'handsontable/plugins/asyncValues';
 ```
 
+When a row is removed or replaced (the `'rowRemoved'` and `'dataReplaced'` reasons), `rowId` is the id the row held, not the id of the row that now sits at its index. Without row ids it is `null`.
+
+When you remove several non-contiguous groups of rows, the grid removes the groups one at a time. `physicalRow` is then the row's index just before its own group is removed. Key your handling on `rowId`.
+
 ## Undo
 
 By default (`undo: 'skip'`), a resolved value is not added to the undo history. Undo of an earlier edit of the same cell restores the value that edit replaced, over the async value.

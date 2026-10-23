@@ -2472,8 +2472,10 @@ export class AsyncValues extends BasePlugin {
       // One throwing listener must not cost the other cells their hooks.
       failure = this.#runEach(canceled, ([entry, reason]) => {
         const physicalRow = rowOf(entry);
+        // The state of a removed or replaced row keeps the id it had; the map holds another record there now.
+        const rowId = entry.state.dropped ? entry.state.rowId : this.#rowIdOf(physicalRow);
 
-        this.hot.runHooks('afterAsyncValueCancel', physicalRow, entry.prop, reason, this.#rowIdOf(physicalRow));
+        this.hot.runHooks('afterAsyncValueCancel', physicalRow, entry.prop, reason, rowId);
       });
 
     } finally {
@@ -3411,6 +3413,19 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
+   * Re-reads the id a row's state keeps, for a row whose data changed.
+   *
+   * @param {number} physicalRow The physical row.
+   */
+  #refreshRowId(physicalRow: number): void {
+    const state = this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
+
+    if (state) {
+      state.rowId = this.#rowIdOf(physicalRow);
+    }
+  }
+
+  /**
    * Cancels the requests a list of changes affects, and renders when one was canceled.
    *
    * @param {Array} changes The changes, as `[physicalRow, prop, tuple]`. The tuple is the change the grid
@@ -3420,11 +3435,18 @@ export class AsyncValues extends BasePlugin {
   #onCellsChanged(changes: Array<[number | null, unknown, CellChange?]>, source: string | undefined): void {
     const cleared: Array<[AsyncValueEntry, AsyncValueCancelReason]> = [];
     const landedGroups = new Set<Flight[]>();
+    const refreshedRows = new Set<number>();
 
     // Every cell is detached before any hook runs, so a throwing cancel listener cannot leave a later cell
     // of the change with a stale request.
     changes.forEach(([physicalRow, prop, change]) => {
       if (physicalRow !== null && isProp(prop)) {
+        // An edit can change the row's id, which the row's state keeps for the cancel hook and `#followRows()`.
+        if (!refreshedRows.has(physicalRow)) {
+          refreshedRows.add(physicalRow);
+          this.#refreshRowId(physicalRow);
+        }
+
         this.#onCellChanged(physicalRow, prop, source, cleared, landedGroups, change);
       }
     });
@@ -3647,6 +3669,8 @@ export class AsyncValues extends BasePlugin {
       }
 
       if (target === null || target >= length || rowsMap.getValueAtIndex(target) !== null) {
+        // The new data has replaced the row's record, so the id captured before is the one to report.
+        row.state.rowId = row.rowId;
         lostReasons.set(row.state, isLoad && !this.#hasId(row) ? 'dataReplaced' : 'rowRemoved');
 
         return;
