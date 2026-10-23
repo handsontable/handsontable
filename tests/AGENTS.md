@@ -1336,8 +1336,10 @@ of it.
   mode on its own when the focus lands on a gridcell, and the toggle round trip is what keeps every
   transcript in that mode whatever NVDA did. The focus highlighter is off in the same settings. Then
   the log is cleared, and every step is `screenReader.capture(() => …, { capture: true })`, which
-  waits a second of silence after the last phrase. A step therefore costs a second and more, and a
-  scenario is minutes: the config's test timeout is five minutes with two retries, Guidepup's own
+  waits a second of silence after the last phrase. A step whose capture is empty is listened to once
+  more for a second silence window, so a phrase NVDA speaks late (Shift+F10 on Firefox) lands on its
+  own step and a silent step is two seconds of silence. A step therefore costs a second and more, and
+  a scenario is minutes: the config's test timeout is five minutes with two retries, Guidepup's own
   mitigations, and the job's `timeout-minutes` is 30.
 - **A screen reader is one per machine, so the lane is serial and headed.** `withGuidepup()` pins one
   worker, no parallelism and `headless: false` on every project; the matrix gives each browser its own

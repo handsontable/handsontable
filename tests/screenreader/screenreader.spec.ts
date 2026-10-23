@@ -173,7 +173,17 @@ function guidepupReader(screenReader: ScreenReaderPlaywright): Reader {
     async capture(action) {
       const { spokenPhrase } = await screenReader.capture(action, { capture: true });
 
-      return spokenPhrase;
+      if (spokenPhrase !== '') {
+        return spokenPhrase;
+      }
+
+      // Nothing within a second of silence: listen once more. NVDA can speak more than a second after
+      // the action completed (Shift+F10 on Firefox announced the menu that late, and the phrase landed
+      // in the next step's capture), so a late phrase lands on its own step, and a step that stays
+      // empty is proven silent by two silence windows. Guidepup's silence window is the wait.
+      const late = await screenReader.capture(async() => {}, { capture: true });
+
+      return late.spokenPhrase;
     },
   };
 }
