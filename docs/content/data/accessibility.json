@@ -22,7 +22,7 @@
     "audit": {
       "auditor": "Kinaole",
       "period": "December 2025 to January 2026",
-      "coverage": "the Level A and AA criteria its tables mark as evaluated; of the six criteria new in WCAG 2.2 (2.4.11, 2.5.7, 2.5.8, 3.2.6, 3.3.7, and 3.3.8), four were judged internally and two (2.4.11 and 2.5.8) are not evaluated yet"
+      "coverage": "the Level A and AA criteria the report's tables mark as evaluated, except the six criteria new in WCAG 2.2 (2.4.11, 2.5.7, 2.5.8, 3.2.6, 3.3.7, and 3.3.8); four of those were judged internally and two (2.4.11 and 2.5.8) are not evaluated yet"
     },
     "next": {
       "version": "1.2",
