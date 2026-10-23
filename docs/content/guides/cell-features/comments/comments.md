@@ -23,6 +23,8 @@ Add a comment (a note) to a cell, using the context menu, just like in Excel. Ed
 
 The Comments plugin lets users attach text notes to individual cells. Use it when reviewers need to annotate data without changing cell values.
 
+The plugin shows and edits a comment in a text field, so it doesn't parse the comment as HTML. If you use the comment text elsewhere, for example in your own interface, escape or sanitize it first.
+
 ## Enable the plugin
 
 Set the [`comments`](@/api/options.md#comments) configuration option to `true` to enable the feature and add all the needed context menu items. For example:
