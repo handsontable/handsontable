@@ -18,6 +18,7 @@ vue:
   metaTitle: Custom keyboard shortcuts | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Accessibility & UX
+menuTag: updated
 type: how-to
 ---
 

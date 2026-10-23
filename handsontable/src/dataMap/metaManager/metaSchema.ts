@@ -618,9 +618,10 @@ export default (): Record<string, unknown> => {
      * The `ariaTags` option decides whether Handsontable adds the ARIA roles and attributes that describe
      * the grid to assistive technologies: `role="treegrid"` on the grid, `role="row"` on each row,
      * `role="gridcell"` on each cell, the header roles, `aria-sort`, `aria-expanded`, and the rest.
-     * It defaults to `true`. Set it to `false` only when you add your own ARIA markup – nothing else in
-     * the grid reads these attributes, so turning them off changes what a screen reader hears and nothing
-     * else.
+     * It defaults to `true`. Set it to `false` only when you add your own ARIA markup. The option also
+     * removes the `tabindex` the grid puts on cells, headers, and menu items, so browser focus no longer
+     * moves onto them. The menu styles read `aria-expanded` too, so a menu item keeps its focus outline
+     * while its submenu is open.
      *
      * Read more:
      * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md)

@@ -293,7 +293,7 @@ Handsontable keeps the grid accessible with the following measures:
 
 ## Known limitations
 
-The {{$a11y.report.link}} tracks these in detail, with the success criterion each one affects.
+The {{$a11y.report.link}} lists the ones that carry a reference and a success criterion; the rest come from Handsontable's own testing.
 
 {{$a11y.knownLimitations.list}}
 

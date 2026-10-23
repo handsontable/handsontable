@@ -24,7 +24,7 @@ category: Accessibility
 menuTag: updated
 ---
 
-This page is version {{$a11y.report.version}} ({{$a11y.report.date}}) of the Accessibility Conformance Report (ACR) of Handsontable DataGrid, in the Voluntary Product Accessibility Template (VPAT) format. It states, per success criterion, how the grid conforms to the Web Content Accessibility Guidelines ({{$a11y.target.name}}) at {{$a11y.target.level}}, the level Handsontable targets.
+This page is version {{$a11y.report.version}} ({{$a11y.report.date}}) of the Accessibility Conformance Report (ACR) of Handsontable DataGrid, in the Voluntary Product Accessibility Template (VPAT) format. It states the conformance level of the grid for each success criterion of the Web Content Accessibility Guidelines ({{$a11y.target.name}}) at {{$a11y.target.level}}, the level Handsontable targets, or that the criterion was not evaluated.
 
 This report follows the VPAT&reg; 2.5 format developed by the Information Technology Industry Council (ITI). {{$a11y.report.next.sentence}}
 
@@ -493,11 +493,14 @@ The following issues are acknowledged, tracked, and actively prioritized. Transp
 
 ## WCAG 2.2 assessment notes
 
-This report targets **{{$a11y.target.name}} {{$a11y.target.level}}**, published October 2023. WCAG 2.2 removes Success Criterion 4.1.1 Parsing and adds six Level A and AA criteria, all included in the tables above:
+This report targets **{{$a11y.target.name}} {{$a11y.target.level}}**, published October 2023. WCAG 2.2 removes Success Criterion 4.1.1 Parsing and adds six Level A and AA criteria, all included in the tables above.
 
 - **Level A (new):** 3.2.6 Consistent Help, 3.3.7 Redundant Entry - both assessed as Not Applicable to a data grid component.
-- **Level A (unchanged from the previous version, now formally assessed):** 2.5.1 Pointer Gestures (Partially Supports), 2.5.2 Pointer Cancellation (Supports), 2.5.3 Label in Name (Partially Supports), 2.5.4 Motion Actuation (Not Applicable).
 - **Level AA (new):** 2.4.11 Focus Not Obscured Minimum (Not Evaluated - frozen rows/columns require dedicated testing), 2.5.7 Dragging Movements (Partially Supports - drag alternatives incomplete), 2.5.8 Target Size Minimum (Not Evaluated - formal verification pending), 3.3.8 Accessible Authentication Minimum (Not Applicable).
+
+Four Level A criteria from the previous version were outside the audit scope and were judged internally:
+
+- **Level A (unchanged from the previous version, now formally assessed):** 2.5.1 Pointer Gestures (Partially Supports), 2.5.2 Pointer Cancellation (Supports), 2.5.3 Label in Name (Partially Supports), 2.5.4 Motion Actuation (Not Applicable).
 
 The tables above label the six criteria new in WCAG 2.2; two of them (2.4.11 and 2.5.8) are not evaluated yet. {{$a11y.report.next.sentence}}
 

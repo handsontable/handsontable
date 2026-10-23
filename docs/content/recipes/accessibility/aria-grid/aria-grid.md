@@ -1,7 +1,7 @@
 ---
 title: ARIA-friendly grid
 metaTitle: ARIA-friendly grid with row descriptions | Handsontable DataGrid for JavaScript
-description: Configure Handsontable DataGrid for screen reader compatibility using ariaTags, tabMoves, aria-label on cells, and aria-sort on headers -- following WCAG 2.2 Level A and AA.
+description: Configure Handsontable DataGrid for screen reader compatibility using ariaTags, tabMoves, aria-label on cells, and aria-sort on headers, for a grid that targets WCAG 2.2 Level A and AA.
 permalink: /recipes/accessibility/aria-grid
 canonicalUrl: /recipes/accessibility/aria-grid
 tags:
@@ -22,7 +22,7 @@ menuTag: updated
 type: how-to
 ---
 
-In this tutorial, you will configure Handsontable DataGrid for screen reader compatibility. You will learn how to use `ariaTags`, `tabMoves`, aria-label on cells, and aria-sort on headers to follow the success criteria of {{$a11y.target.name}} {{$a11y.target.level}}, the level Handsontable targets.
+In this tutorial, you will configure Handsontable DataGrid for screen reader compatibility. You will learn how to use `ariaTags`, `tabMoves`, aria-label on cells, and aria-sort on headers for a grid that {{$a11y.target.long}}.
 
 ::: only-for javascript
 
@@ -69,7 +69,7 @@ A grid that:
 - Sets `aria-label` on each cell combining the column name and the cell value (e.g., `"Name: Ana García"`)
 - Marks each column header with `aria-sort="none"` initially, updated to `ascending` or `descending` when sorted
 - Moves focus one row down on both Tab and Enter so keyboard users advance predictably
-- Disables wrap-around navigation to prevent disorienting jumps to the opposite end of the grid
+- Keeps wrap-around navigation off, so focus never jumps to the opposite end of the grid
 
 ## Before you begin
 
@@ -107,7 +107,7 @@ const hot = new Handsontable(container, {
 
 Both options accept a `{ row, col }` object. Negative values move backwards.
 
-## Step 3: Disable wrap-around navigation
+## Step 3: Keep wrap-around navigation off
 
 ```javascript
 const hot = new Handsontable(container, {
