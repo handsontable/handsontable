@@ -639,3 +639,134 @@
   padding: 0.5rem 0;
   color: var(--sl-color-accent);
 }
+
+/* ── Proactive bubble (SU-598) ──────────────────────────────────────── */
+/*
+ * Figma: Docs > AI Bubble > ProactiveBubble (node 2783:1275). Square corners, a hairline
+ * border, and --sl-* tokens (#f8f8f8 bg, #e4e4e4 border, #3d3d3d text in the light theme)
+ * so the card follows the dark theme too. The welcome illustration sticks out above the card.
+ */
+
+.da-proactive {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 50;
+  box-sizing: border-box;
+  width: min(20rem, calc(100vw - 2rem));
+  background: var(--sl-color-bg);
+  color: var(--sl-color-text);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.12);
+  animation: da-proactive-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.da-proactive-ask {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 15px;
+  box-sizing: border-box;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.75rem 1rem;
+  color: inherit;
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: -0.15px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+/* The whole card is the button, so a hover tint makes that visible. */
+.da-proactive-ask:hover {
+  background: var(--sl-color-gray-6);
+}
+.da-proactive-ask:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: -2px;
+}
+.da-proactive-title {
+  font-weight: 700;
+  line-height: 1.7;
+  transition: color 0.15s;
+}
+.da-proactive-ask:hover .da-proactive-title {
+  color: var(--sl-color-white);
+}
+/*
+ * Two lines at most, kept clear of the illustration on the right. Figma breaks the
+ * sample title by hand; a long page title is clamped instead.
+ */
+.da-proactive-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  max-width: 8.5rem;
+  min-height: 48px;
+  line-height: 20px;
+}
+/*
+ * Figma stretches the 75x86 art into a 150x150 box; the default `meet` keeps its
+ * proportions, as the chat panel's welcome screen does.
+ */
+.da-proactive-illustration {
+  position: absolute;
+  left: 154px;
+  top: -46px;
+  width: 150px;
+  height: 150px;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  animation: da-proactive-illustration-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both;
+}
+.da-proactive-close {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+}
+
+/* The card slides in from the right edge while it fades in, then the illustration pops up. */
+@keyframes da-proactive-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(100% + 1.5rem));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes da-proactive-illustration-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes da-proactive-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+/* No movement for readers who ask for less motion: the card only fades in. */
+@media (prefers-reduced-motion: reduce) {
+  .da-proactive {
+    animation: da-proactive-fade-in 0.2s ease both;
+  }
+  .da-proactive-illustration {
+    animation: none;
+  }
+}
+@media print {
+  .da-proactive {
+    display: none;
+  }
+}
