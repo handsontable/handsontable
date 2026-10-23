@@ -573,7 +573,7 @@ bound to the renamed sheet and wrote the arriving sheet's data into it. `getSett
 therefore keeps the old name after a rename. Pinned by "keeps the active sheet bound after its rename,
 through settings updates and a data load" in `../sheetsBar/__tests__/formulaSheets.unit.js`.
 
-**A settings update that sets another engine instance moves the plugin to it (`#followEngineChange()`).**
+**A sheets bar switch that sets another engine instance moves the plugin to it (`#followEngineChange()`).**
 The engine is set up on enable only, so the plugin kept the first engine while a sheets bar switched to a
 sheet bound to a second one: the second sheet's edits landed in a copy of it inside the first engine, and
 the second engine's formulas never saw them. The plugin is disabled and enabled again with no sheet
@@ -581,7 +581,9 @@ bound, and binds the sheet the settings name in the new engine. **Only an instan
 sheet `sheetName` names counts**, as every engine the sheets bar binds does. The React examples build
 `HyperFormula.buildEmpty()` in the component body and the wrapper forwards `formulas` on every commit, so
 following any new instance moved such a grid to an empty engine on every render (and a test of exactly that
-ran out of memory). An empty new instance is ignored, as it was before.
+ran out of memory). An empty new instance is ignored, as it was before. And only a call whose load is
+pending (`isDataLoadPending()`) follows, so a plain `updateSettings()` with another instance keeps the
+engine the grid was built with, as before.
 
 **The `afterCellMetaReset` that follows the call's own load resyncs only when a `cell` entry sets a key that decides the value the engine reads (`type`, `valueGetter`, `source`, `sourceLabel`, and `preserveTextValue`, which the engine-bound escaping reads; `VALUE_GETTER_META_KEYS`) or `columns` is a function.** Only the reset of the call's own held meta phase skips (`_isHeldMetaPhaseRunning()`): a full `updateSettings()` an `afterLoadData` listener makes in the same call runs its meta phase outside that window, and its `columns` reached the column meta after the load wrote the sheet, so it resyncs. The sheets bar restates a grid-level `cell` on every switch, so counting any entry made every switch of such a workbook pay the resync, even for an entry that only sets `readOnly`. A custom `valueGetter` that reads another key of a `cell` entry is not seen. Core resets the column meta before that load for `columns: null` (the sheets bar sends it for a sheet without `columns`), so that payload needs no resync. The two `updatePlugin()` branches that bind a sheet for the load (the `sheetName` rebind without `switchSheet()`, and the skipped fill from the current data) ask `isDataLoadPending()`, not `isDataWorkDeferred()`: an enable from an `afterLoadData` listener in that call comes after the load, and waiting for it left `sheetName` `null`.
 The load already wrote the sheet with the call's column configuration, so a resync there was a second full
@@ -668,14 +670,16 @@ reached through the typed `getPlugin('formulas')`:
   engine sheet already holds what the `cell` entries decided. Only the first such load takes it over
   (`adopted`): a listener that loads other data in the same call gets an ordinary write.
 
-**A move inside the hold is an order change like a sort.** `calculateAndSyncMoves()` sends nothing and a
-`'move'` sequence change leaves the stored order alone; the release sends the order the grid ends on.
-A sheet with an array `manualRowMove` re-applies its moves in `afterLoadData`, after this plugin adopted
-the engine order, and the move sent then was computed against the held order and asked the engine for a
-row number past its sheet (`Invalid arguments …`, rows scrambled). Moves are held on a first visit too,
-with no adopted order: the release then sends the order with `setRowOrder`, the same call a plain grid's
-first load makes for an initial `manualRowMove` (`#syncInitialOrder()`), so the sheet calculates as a
-plain grid with those settings does (pinned in `../sheetsBar/__tests__/formulaSheets.unit.js`).
+**A move inside the hold is an order change like a sort once an engine order was adopted in it.**
+`calculateAndSyncMoves()` sends nothing and a `'move'` sequence change leaves the stored order alone; the
+release sends the order the grid ends on. A sheet with an array `manualRowMove` re-applies its moves in
+`afterLoadData`, after this plugin adopted the engine order, and the move sent then was computed against
+the held order and asked the engine for a row number past its sheet (`Invalid arguments …`, rows
+scrambled). Without an adopted order (a first visit) the move reaches the engine through `moveRows`, as
+on a plain grid's `loadData()`: held there, the release sent the order with `setRowOrder`, which turns
+references into `#REF!` (`=A2*10` on a `[2, 3, 4, 0, 1]` order) where `moveRows` keeps them. The flag is
+`AxisSyncer#adoptedWhileHeld`, set by `adoptEngineOrder()` during a hold and cleared when a hold starts or
+ends (pinned in `../sheetsBar/__tests__/formulaSheets.unit.js` against a plain grid's `loadData()`).
 The release clears the column axis even when sending the row order throws (`IndexSyncer#setOrderHeld()`).
 `#getHeldEngineSequence()` reads the
 stored order, then the order an empty sheet was filled in (`#fillSequence`), then the ascending tail,

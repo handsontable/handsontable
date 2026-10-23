@@ -1404,19 +1404,19 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Moves the plugin to another engine instance when a settings update sets one. The engine is set up
+   * Moves the plugin to another engine instance when a sheets bar switch sets one. The engine is set up
    * on enable only, so the plugin kept the first sheet's engine while every later sheet named another:
    * the sheets bar switched between sheets bound to two engines, the edits of the second landed in a
    * copy of its sheet inside the first engine, and the formulas of the second engine never saw them.
    * The old engine's sheet is left where it is, and the plugin binds the sheet the settings name in the
    * new engine.
    *
-   * An instance counts only when it already holds the sheet `sheetName` names, as every engine the sheets
-   * bar binds does. A component that builds a new, empty engine on every render (the React examples do)
-   * keeps the grid on its first engine, as before: following it moved the grid to an empty engine on every
-   * render. An engine class (or `{ hyperformula }`) builds an engine of the plugin's own, so it counts only
-   * while a load is pending (a sheets bar switch) and the current engine is an instance the host passed:
-   * kept on that instance, a sheet that passes the class wrote itself into another sheet's engine.
+   * Only a call that loads the sheet's data next (`isDataLoadPending()`, a sheets bar switch) follows a
+   * change, so a plain `updateSettings()` keeps the engine the grid was built with, as before. An instance
+   * counts only when it already holds the sheet `sheetName` names, as every engine the sheets bar binds
+   * does. An engine class (or `{ hyperformula }`) builds an engine of the plugin's own, so it counts only
+   * when the current engine is an instance the host passed: kept on that instance, a sheet that passes the
+   * class wrote itself into another sheet's engine.
    *
    * @param {object} newSettings The settings update.
    */
@@ -1425,9 +1425,9 @@ export class Formulas extends BasePlugin {
     const sheetName = this.#readSheetNameSetting();
     const holdsSheet = sheetName !== undefined && isObject(engine)
       && (engine as { doesSheetExist?: (name: string) => boolean }).doesSheetExist?.(sheetName) === true;
-    const changed = isEngineClassSetting(engine)
-      ? !this.#engineBuiltFromClass && this.isDataLoadPending()
-      : isObject(engine) && engine !== this.engine && holdsSheet;
+    const changed = this.isDataLoadPending() && (isEngineClassSetting(engine)
+      ? !this.#engineBuiltFromClass
+      : isObject(engine) && engine !== this.engine && holdsSheet);
 
     if (!this.enabled || !hasOwnProperty(newSettings, PLUGIN_KEY) || !changed) {
       return;
@@ -2905,9 +2905,9 @@ export class Formulas extends BasePlugin {
    * was applied per PHYSICAL cell (`#escapeSourceDataArray`), so its inverse has to resolve the same
    * physical cell, and the engine index translates to it through the axis syncers.
    *
-   * The whole scan is skipped – just like the escape scan – when `#needsEngineBoundEscaping()`
-   * reports that no configuration layer can mark a cell for escaping, so a sheet switch in the
-   * default configuration pays no per-cell meta read. Within the scan, values the unescaping can
+   * The whole scan is skipped when `#needsEngineBoundEscaping()` reports that no configuration
+   * layer can mark a cell for escaping, so a sheet switch in the default configuration pays no
+   * per-cell meta read (the escape scan skips its meta reads on the same gate). Within the scan, values the unescaping can
    * never change skip the meta read for the same reason.
    *
    * Accepted residual, on this cross-sheet path only: both the gate and the per-value confirmation
@@ -3152,8 +3152,8 @@ export class Formulas extends BasePlugin {
    * built in visual order. That distinction is read from `#doesEngineHoldPhysicalColumns()`, the one
    * place that answers it – see its note.
    *
-   * The scan is skipped entirely when `#needsEngineBoundEscaping()` reports that no configuration
-   * layer can mark a cell for escaping.
+   * The meta reads are skipped when `#needsEngineBoundEscaping()` reports that no configuration
+   * layer can mark a cell for escaping; the scan itself still runs for the formulas (see below).
    *
    * Observable side effect, on every path that runs this scan: the per-cell meta read is a
    * TRANSIENT one, so the user's `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`

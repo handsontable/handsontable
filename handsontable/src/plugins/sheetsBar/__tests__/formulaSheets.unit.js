@@ -143,12 +143,29 @@ describe('SheetsBar formula sheets', () => {
       sheetsBar().renameSheet(idOf('Prices'), 'Costs');
       hot.updateSettings({ sheetsBar: false });
 
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(true);
       expect(() => hot.getPlugin('undoRedo').undo()).not.toThrow();
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+      expect(engine.getSheetNames()).toEqual(['Report', 'Costs']);
 
       hot.updateSettings({ sheetsBar: true });
       hot.getPlugin('undoRedo').undo();
 
       expect(sheetsBar().getSheets().map(sheet => sheet.name)).not.toContain('Prices');
+    });
+
+    it('drops the rename step with the history when the bar rebuilds the workbook', () => {
+      const engine = buildEngine();
+      const otherEngine = buildEngine();
+
+      hot = build([boundSheet(engine, 'Report', [['=Prices!A1']]), boundSheet(engine, 'Prices', [[99]])]);
+      sheetsBar().renameSheet(idOf('Prices'), 'Costs');
+      hot.updateSettings({
+        sheetsBar: { sheets: [boundSheet(otherEngine, 'Report', [[1]]), boundSheet(otherEngine, 'Costs', [[2]])] },
+      });
+
+      expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+      expect(sheetsBar().getSheets().map(sheet => sheet.name)).toEqual(['Report', 'Costs']);
     });
 
     it('lets undo pass a rename step of a sheet removed since, and reach the older steps', () => {
@@ -417,6 +434,42 @@ describe('SheetsBar formula sheets', () => {
       other.destroy();
       otherContainer.remove();
     });
+    it('repaints each cell once in the build after a build that threw', () => {
+      const engine = buildEngine();
+
+      hot = build([boundSheet(engine, 'A', [[0]])]);
+
+      const feed = jest.spyOn(engine, 'setSheetContent');
+
+      feed.mockImplementation((sheetId, content) => {
+        if (sheetId === engine.getSheetId('Z')) {
+          throw new Error('feed');
+        }
+
+        return HyperFormula.prototype.setSheetContent.call(engine, sheetId, content);
+      });
+
+      expect(() => hot.updateSettings({
+        sheetsBar: {
+          sheets: [boundSheet(engine, 'A', [[1]]), boundSheet(engine, 'X', [[7]]), boundSheet(engine, 'Z', [[9]])],
+        },
+      })).toThrow('feed');
+
+      feed.mockRestore();
+
+      const repaint = jest.spyOn(hot.getPlugin('formulas'), 'renderDependentSheets');
+
+      hot.updateSettings({ sheetsBar: { sheets: [boundSheet(engine, 'A', [[2]]), boundSheet(engine, 'Y', [[8]])] } });
+
+      const repaintedTwice = repaint.mock.calls.filter(([changes]) => {
+        const addresses = changes.map(({ address }) => `${address.sheet}:${address.row}:${address.col}`);
+
+        return new Set(addresses).size !== addresses.length;
+      });
+
+      expect(repaint).toHaveBeenCalled();
+      expect(repaintedTwice).toEqual([]);
+    });
   });
 
   describe('other sheets after a structural change', () => {
@@ -434,6 +487,28 @@ describe('SheetsBar formula sheets', () => {
       expect(summary[0][0]).toBe('=Data!A5');
     });
 
+    it('brings back a reference into the rows a detach moved when the detach is undone', () => {
+      const engine = buildEngine();
+      const tree = [
+        { label: 'p1', value: 1, __children: [{ label: 'c1', value: 2 }, { label: 'c2', value: 3 }] },
+        { label: 'p2', value: 4 },
+      ];
+      const summary = [['=Report!B3']];
+
+      hot = build([
+        boundSheet(engine, 'Report', tree, { nestedRows: true, columns: [{ data: 'label' }, { data: 'value' }] }),
+        boundSheet(engine, 'Summary', summary),
+      ]);
+      hot.getPlugin('nestedRows').dataManager.detachFromParent([1, 0, 1, 1]);
+
+      const detached = summary[0][0];
+
+      hot.getPlugin('undoRedo').undo();
+
+      expect(detached).not.toBe('=Report!B3');
+      expect(summary[0][0]).toBe('=Report!B3');
+    });
+
     it('keeps the text the host wrote when no reference moved', () => {
       const engine = buildEngine();
       const summary = [['=sum(data!a1:a2)', '=data!a5']];
@@ -442,6 +517,16 @@ describe('SheetsBar formula sheets', () => {
       hot.alter('insert_row_above', 3);
 
       expect(summary[0]).toEqual(['=sum(data!a1:a2)', '=Data!A6']);
+    });
+
+    it('keeps the text the host wrote for a sheet the engine reads only in quotes when no reference moved', () => {
+      const engine = buildEngine();
+      const summary = [['=sum(\'2026\'!a1:a2)', '=\'2026\'!a5']];
+
+      hot = build([boundSheet(engine, '2026', [[10], [20], [30], [40], [50]]), boundSheet(engine, 'Summary', summary)]);
+      hot.alter('insert_row_above', 3);
+
+      expect(summary[0]).toEqual(['=sum(\'2026\'!a1:a2)', '=\'2026\'!A6']);
     });
 
     it('reads no other sheet when an undone step changed only cells', () => {
@@ -460,27 +545,36 @@ describe('SheetsBar formula sheets', () => {
   });
 
   describe('engine order', () => {
-    it('calculates a sheet that declares a row move order on its first visit as a plain grid does', () => {
-      const rows = () => [[1, '=A1*10'], [2, '=A2*10'], [3, '=A3*10'], ['=A1+A2', '=SUM(A1:A3)']];
+    it('calculates a sheet that declares a row move order on its first visit as a plain grid loading it does', () => {
+      const rows = () => [[1, '=A5+1000'], [2, '=A1*10'], [3, '=A2*10'], [4, '=A3*10'], [5, '=A4*10']];
       const plainContainer = document.createElement('div');
 
       document.body.appendChild(plainContainer);
 
       const plainEngine = buildEngine();
       const plain = new Handsontable(plainContainer, {
-        data: rows(),
-        manualRowMove: [2, 0, 1],
+        data: [[0]],
+        manualRowMove: [2, 3, 4, 0, 1],
         formulas: { engine: plainEngine, sheetName: 'A' },
         licenseKey: LICENSE_KEY,
       });
-      const expected = { data: plain.getData(), engine: plainEngine.getSheetSerialized(plainEngine.getSheetId('A')) };
+
+      plain.loadData(rows());
+
+      const expected = {
+        data: plain.getData(),
+        engine: plainEngine.getSheetSerialized(plainEngine.getSheetId('A')),
+      };
 
       plain.destroy();
       plainContainer.remove();
 
       const engine = buildEngine();
 
-      hot = build([boundSheet(engine, 'B', [[9]]), boundSheet(engine, 'A', rows(), { manualRowMove: [2, 0, 1] })]);
+      hot = build([
+        boundSheet(engine, 'B', [[9]]),
+        boundSheet(engine, 'A', rows(), { manualRowMove: [2, 3, 4, 0, 1] }),
+      ]);
       sheetsBar().setActiveSheet('A');
 
       expect(hot.getData()).toEqual(expected.data);

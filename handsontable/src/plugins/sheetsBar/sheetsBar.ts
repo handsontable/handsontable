@@ -150,7 +150,7 @@ const UNTRACKED_META_KEYS = new Set(['valid', 'hidden', 'spanned']);
  * steps whose undo or redo makes the formula engine rewrite references other sheets hold.
  */
 const STRUCTURAL_STEPS = new Set([
-  'insert_row', 'insert_col', 'remove_row', 'remove_col', 'row_move', 'col_move', 'move_cells',
+  'insert_row', 'insert_col', 'remove_row', 'remove_col', 'row_move', 'col_move', 'move_cells', 'nested_rows_detach',
 ]);
 
 /**
@@ -770,6 +770,10 @@ export class SheetsBar extends BasePlugin {
         this.#captureGridColumnSummary();
         this.#gridCellOption = this.hot.getSettings().cell;
         this.#buildInitialWorkbook();
+      } catch (error) {
+        this.#changesToRepaint = [];
+
+        throw error;
       } finally {
         this.#isInitializing = false;
       }
@@ -3877,7 +3881,13 @@ export class SheetsBar extends BasePlugin {
     const readsAsEngineText = (cell: string, text: string) => {
       const readable = quoteIfNeeded(cell);
 
-      return engine.validateFormula?.(readable) === true && engine.normalizeFormula?.(readable) === text;
+      if (engine.validateFormula?.(readable) !== true) {
+        return false;
+      }
+
+      const normalized = engine.normalizeFormula?.(readable);
+
+      return typeof normalized === 'string' && quoteIfNeeded(normalized) === text;
     };
 
     this.#sheetRecords().forEach((sheet) => {

@@ -102,13 +102,13 @@ describe('AxisSyncer while the order is held', () => {
     expect(calls).toEqual([[0, [1, 0]]]);
   });
 
-  it('sends no move and keeps the engine order while held', () => {
+  it('sends no move and keeps the engine order while an order adopted in the hold is held', () => {
     const engine = createRecordingEngine();
     const indexMapper = createMockIndexMapper([0, 1, 2]);
     const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
 
-    axisSyncer.adoptEngineOrder({ sequence: [2, 0, 1], fillSequence: null });
     axisSyncer.setOrderHeld(true);
+    axisSyncer.adoptEngineOrder({ sequence: [2, 0, 1], fillSequence: null });
     axisSyncer.storeMovesInformation([0, 1, 2], 0, true);
     indexMapper.state.indexesSequence = [2, 0, 1];
     axisSyncer.getIndexesChangeSyncMethod()('move');
@@ -120,5 +120,41 @@ describe('AxisSyncer while the order is held', () => {
     axisSyncer.setOrderHeld(false);
 
     expect(engine.calls).toEqual([]);
+  });
+
+  it('sends a move made in the hold when no engine order was adopted, and nothing on release', () => {
+    const engine = createRecordingEngine();
+    const indexMapper = createMockIndexMapper([0, 1, 2]);
+    const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
+
+    axisSyncer.setOrderHeld(true);
+    axisSyncer.storeMovesInformation([2], 0, true);
+    indexMapper.state.indexesSequence = [2, 0, 1];
+    axisSyncer.getIndexesChangeSyncMethod()('move');
+    axisSyncer.calculateAndSyncMoves(true, true);
+
+    expect(engine.calls.map(([method]) => method)).toEqual(['moveRows']);
+    expect(axisSyncer.getEngineOrder().sequence).toEqual([2, 0, 1]);
+
+    axisSyncer.setOrderHeld(false);
+
+    expect(engine.calls.map(([method]) => method)).toEqual(['moveRows']);
+  });
+
+  it('forgets an adopted order when the hold ends', () => {
+    const engine = createRecordingEngine();
+    const indexMapper = createMockIndexMapper([2, 0, 1]);
+    const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
+
+    axisSyncer.setOrderHeld(true);
+    axisSyncer.adoptEngineOrder({ sequence: [2, 0, 1], fillSequence: null });
+    axisSyncer.setOrderHeld(false);
+    axisSyncer.setOrderHeld(true);
+    axisSyncer.storeMovesInformation([0], 2, true);
+    indexMapper.state.indexesSequence = [0, 1, 2];
+    axisSyncer.getIndexesChangeSyncMethod()('move');
+    axisSyncer.calculateAndSyncMoves(true, true);
+
+    expect(engine.calls.map(([method]) => method)).toEqual(['moveRows']);
   });
 });

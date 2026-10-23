@@ -133,7 +133,7 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   host froze goes through `updateData()`, which clears the undo history (a known limitation in the
   guide). A rename that only changes the case of the name renames that one engine sheet, not a collision
   (`isOtherEngineSheet()` compares sheet ids). After a structural change on the active sheet
-  (rows or columns inserted, removed or moved, cells moved, or undo/redo of one) the engine's
+  (rows or columns inserted, removed or moved, cells moved, a NestedRows detach, or undo/redo of one) the engine's
   rewritten text is copied into the inactive sheets' data (`#syncInactiveSheetsFromEngine()`; for
   undo and redo only after a structural step, `#onAfterUndoRedo`, once the restore is complete, so the
   row hooks of the replay itself are skipped):

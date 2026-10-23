@@ -55,7 +55,7 @@ describe('Formulas `sheetName` setting', () => {
     expect(hot.getDataAtCell(0, 1)).toBe(6);
   });
 
-  it('moves to a new engine instance that holds the sheet the setting names', () => {
+  it('keeps its engine when a plain settings update passes another instance that holds the sheet', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const other = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
@@ -67,7 +67,8 @@ describe('Formulas `sheetName` setting', () => {
     });
     hot.updateSettings({ formulas: { engine: other, sheetName: 'S' } });
 
-    expect(hot.getPlugin('formulas').engine).toBe(other);
+    expect(hot.getPlugin('formulas').engine).toBe(engine);
+    expect(hot.getDataAtCell(0, 1)).toBe(2);
   });
 
   it('switches the sheet on an update that names only `sheetName`', () => {

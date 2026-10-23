@@ -126,6 +126,14 @@ class AxisSyncer {
    * @type {boolean}
    */
   #orderHeld = false;
+  /**
+   * Whether an engine order was taken over while the order is held (see `adoptEngineOrder()`). Only then
+   * are the grid's moves kept from the engine: a move is computed against the grid's order, which the
+   * adopted engine order does not follow until the hold ends.
+   *
+   * @type {boolean}
+   */
+  #adoptedWhileHeld = false;
 
   /**
    * Initializes the axis syncer for the given axis with the corresponding index mapper and parent index syncer references.
@@ -224,6 +232,7 @@ class AxisSyncer {
     }
 
     this.#orderHeld = held;
+    this.#adoptedWhileHeld = false;
     this.#translationCache = null;
 
     const engine = this.#indexSyncer.getEngine();
@@ -295,6 +304,7 @@ class AxisSyncer {
   adoptEngineOrder(order: EngineOrder) {
     this.#indexesSequence = order.sequence.slice();
     this.#fillSequence = order.fillSequence === null ? null : order.fillSequence.slice();
+    this.#adoptedWhileHeld = this.#orderHeld;
     this.#translationCache = null;
   }
 
@@ -435,16 +445,17 @@ class AxisSyncer {
   }
 
   /**
-   * Calculating where to move HF elements and performing already calculated moves. While the order is held,
-   * a move is an order change like a sort: nothing is sent, and the release sends the order the grid ends
-   * on. A move sent then was computed against the engine's held order, not the grid's, and asked the engine
+   * Calculating where to move HF elements and performing already calculated moves. While an engine order
+   * taken over in the hold is held, a move is an order change like a sort: nothing is sent, and the release
+   * sends the order the grid ends on. Without one, the move reaches the engine as it does outside the hold,
+   * so a sheet loaded in the hold calculates as a plain grid loading it does. A move sent then was computed against the engine's held order, not the grid's, and asked the engine
    * for a target position it does not have.
    *
    * @param {boolean} movePossible Indicates if it was possible to move HOT indexes to the desired position.
    * @param {boolean} orderChanged Indicates if order of HOT indexes was changed by move.
    */
   calculateAndSyncMoves(movePossible: boolean, orderChanged: boolean) {
-    if (movePossible === false || orderChanged === false || this.#orderHeld) {
+    if (movePossible === false || orderChanged === false || this.#adoptedWhileHeld) {
       return;
     }
 
@@ -612,7 +623,7 @@ class AxisSyncer {
     return (source: string) => {
       const newSequence = this.#indexMapper.getIndexesSequence();
 
-      if (source === 'move' && this.#orderHeld) {
+      if (source === 'move' && this.#adoptedWhileHeld) {
         return;
       }
 
