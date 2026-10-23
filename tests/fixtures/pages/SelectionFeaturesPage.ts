@@ -1383,6 +1383,14 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * The autofill fill handle of a multi-cell range (drawn by the area border, not the focus cell's),
+   * scoped to the master overlay.
+   */
+  rangeFillHandle(): Locator {
+    return this.page.locator('.ht_master .wtBorder.area.corner:visible');
+  }
+
+  /**
    * The visible edges of the autofill "fill" border in the master overlay — the dashed preview
    * that follows the pointer while the fill handle is dragged. Empty once no fill gesture is
    * in progress.
@@ -1404,6 +1412,11 @@ export class SelectionFeaturesPage {
   /** Every value of a column, by visual row, read through the instance API. */
   async columnValues(col: number): Promise<CellValue[]> {
     return this.page.evaluate(column => window.hot.getDataAtCol(column), col);
+  }
+
+  /** Every value of a row, by visual column, read through the instance API. */
+  async rowValues(row: number): Promise<CellValue[]> {
+    return this.page.evaluate(visualRow => window.hot.getDataAtRow(visualRow), row);
   }
 
   /** Drag the fill handle with the real pointer onto the given cell and release. */
@@ -1658,13 +1671,95 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * How far the fill handle stands inside the master holder's inline-end and bottom edges, in
+   * pixels - the strip an overlay scrollbar of the holder is painted over - next to the same
+   * distances for the cell it belongs to (the selection's bottom-end cell). Negative when the handle
+   * or the cell reaches past the edge. `withinCellInline` says whether the handle still lies inside
+   * that cell along the inline axis (an unlifted handle hangs past the cell's bottom by design).
+   */
+  async fillHandleInsetFromHolderEdges(): Promise<{
+    inlineEnd: number, bottom: number, cellInlineEnd: number, cellBottom: number, withinCellInline: boolean,
+  }> {
+    const handleBox = await this.fillHandle().boundingBox();
+
+    if (!handleBox) {
+      throw new Error('The fill handle is not rendered.');
+    }
+
+    return this.page.evaluate((handle) => {
+      const holder = document.querySelector<HTMLElement>('[data-testid="grid"] .ht_master .wtHolder')!;
+      const holderBox = holder.getBoundingClientRect();
+      const { row, col } = window.hot.getSelectedRangeLast()!.getBottomEndCorner();
+      const cellBox = window.hot.getCell(row, col)!.getBoundingClientRect();
+      const rtl = window.hot.isRtl();
+      const handleEnd = rtl ? handle.x : handle.x + handle.width;
+      const cellEnd = rtl ? cellBox.left : cellBox.right;
+      const toEdge = (x: number) => Math.round(rtl ? x - holderBox.left : holderBox.right - x);
+      const handleStart = rtl ? handle.x + handle.width : handle.x;
+      const cellStart = rtl ? cellBox.right : cellBox.left;
+      const insideInline = rtl
+        ? handleStart <= cellStart + 1 && handleEnd >= cellEnd - 1
+        : handleStart >= cellStart - 1 && handleEnd <= cellEnd + 1;
+
+      return {
+        inlineEnd: toEdge(handleEnd),
+        bottom: Math.round(holderBox.bottom - (handle.y + handle.height)),
+        cellInlineEnd: toEdge(cellEnd),
+        cellBottom: Math.round(holderBox.bottom - cellBox.bottom),
+        withinCellInline: insideInline,
+      };
+    }, handleBox);
+  }
+
+  /**
+   * Whether the fill handle overlaps an open scrollbar clearance band (`.htScrollbarClearanceFiller`),
+   * the strip the grid keeps clear for an overlay scrollbar while it shows. `bandShown` is `false`
+   * when no band is open, which makes `overlaps` meaningless.
+   */
+  async fillHandleOverlapsScrollbarBand(): Promise<{ bandShown: boolean, overlaps: boolean }> {
+    const handleBox = await this.fillHandle().boundingBox();
+
+    if (!handleBox) {
+      throw new Error('The fill handle is not rendered.');
+    }
+
+    return this.page.evaluate((handle) => {
+      const bands = Array.from(document.querySelectorAll<HTMLElement>('[data-testid="grid"] .htScrollbarClearanceFiller'))
+        .map(band => band.getBoundingClientRect())
+        .filter(rect => rect.width > 0 && rect.height > 0);
+
+      return {
+        bandShown: bands.length > 0,
+        overlaps: bands.some(rect => handle.x < rect.right && handle.x + handle.width > rect.left &&
+          handle.y < rect.bottom && handle.y + handle.height > rect.top),
+      };
+    }, handleBox);
+  }
+
+  /**
+   * The layout space the master holder gives its vertical and horizontal scrollbars. `0` on both
+   * axes is an overlay ("floating") scrollbar, painted over the cells.
+   */
+  async holderScrollbarGutters(): Promise<{ vertical: number, horizontal: number }> {
+    return this.page.evaluate(() => {
+      const holder = document.querySelector<HTMLElement>('[data-testid="grid"] .ht_master .wtHolder')!;
+
+      return {
+        vertical: holder.offsetWidth - holder.clientWidth,
+        horizontal: holder.offsetHeight - holder.clientHeight,
+      };
+    });
+  }
+
+  /**
    * What the browser hit-tests at the center of the fill handle, as `<overlay>/<class name>`. A
    * frozen pane that occludes the handle owns those pixels, so the topmost element there belongs to
    * that pane rather than to the master. Match on the overlay and treat the class name as detail:
-   * which of the pane's elements is topmost at that point depends on the theme's cell metrics.
+   * which of the pane's elements is topmost at that point depends on the theme's cell metrics. Pass
+   * `rangeFillHandle()` for a multi-cell range, whose handle belongs to the area border.
    */
-  async elementAtFillHandleCenter(): Promise<string> {
-    const handleBox = await this.fillHandle().boundingBox();
+  async elementAtFillHandleCenter(handle: Locator = this.fillHandle()): Promise<string> {
+    const handleBox = await handle.boundingBox();
 
     if (!handleBox) {
       throw new Error('The fill handle is not rendered.');

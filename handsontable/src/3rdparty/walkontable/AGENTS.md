@@ -253,6 +253,60 @@ pane part of it. Pinned by the "fill handle of a frozen top row" block of
 that the corner overlays still draw the overhang for a frozen column; the iPad bottom handle is pinned in
 `tests/e2e/ipad-selection-handles.spec.ts`.
 
+## The last track's fill handle clears an overlay scrollbar (DEV-982)
+
+An overlay ("floating") scrollbar takes no layout space and is painted over the content at the
+holder's edge: Firefox and Chrome on Windows 11, and macOS with "Show scroll bars" set to "When
+scrolling". The grid's last column's and last row's fill handle sits at that edge (flush with it once
+`isCornerLiftedAtInlineEnd` / `isCornerLiftedAtBlockEnd` pull it inside), so the scrollbar takes the
+hover and the press, and the drag scrolls the grid instead of filling. `Border#getCornerScrollbarShift`
+keeps the handle out of the strip the frozen overlays already keep clear (`axisScrollbarClearance`,
+`OVERLAY_SCROLLBAR_CLEARANCE`, read through `Border#getCornerScrollbarClearance`). Six rules:
+
+- **Measured from the holder's edge, not from the lift.** The shift is what the handle needs to end
+  16px before the holder's visible inline-end edge (the LEFT one in RTL) or bottom edge, from the
+  cell's client rect. Keying it on the lift predicates got both directions wrong: a last column ending
+  4-15px short of the edge is not lifted and stayed under the scrollbar, and an RTL grid narrower
+  than its holder is lifted against its own edge, far from the scrollbar, and moved for nothing. A
+  shifted handle is always lifted too, so `wtCornerInlineEndEdge` / `wtCornerBlockEndEdge` keep its
+  hit area out of the strip. The shift stops 1px inside the cell's start, so a track narrower than
+  the strip keeps the handle in its own cell, partly in the strip.
+- **Static, not tied to `ScrollbarVisibility`.** A shift that followed the bands would move the
+  handle 16px each time a scroll opens a band and back each time it fades, so the handle would jump
+  under a pointer on its way to it. The bands are also the grid's own estimate of when the browser
+  shows its scrollbar (a scroll opens one, a hover only holds it open), not a report from the
+  browser, and a handle that is always clear does not depend on that estimate. The cost is a handle
+  16px inside the cell's corner on the last column and row whenever the scrollbar is an overlay one
+  and the axis scrolls.
+- **The master only, the grid's last track only, and no end pane.** With `fixedColumnsEnd` or
+  `fixedRowsBottom` the last track is drawn by an end clone, and a frozen row's or column's handle by
+  the `top` or `inline_start` clone. Those clones are clipped out of the strip while its band is open
+  (the clip-path `InlineEndOverlay` / `BottomOverlay` publish), so a handle they draw on the last track
+  is cut, not covered; that case is not handled here.
+- **A grid the window scrolls is not covered.** `holderOwnsAxisScrollbar` gates the clearance, so an
+  axis the window owns (a grid with no `height`) gets 0, while the page's own overlay scrollbar can
+  still sit over a last column that reaches the viewport edge. The changelog names the holder case
+  only.
+- **The resize pills step aside.** A moved handle lands where the bottom pill (last column) or the end
+  pill (last row) of a one-column or one-row range is centered, and the pills are above the handle
+  (115 against 110). `positionAdjustHandles` slides that pill toward the selection's start until it
+  clears the handle and its hit area (`cornerScrollbarAvoidance`, written by the corner pass of
+  `paint()`, which runs first), and a moved handle takes `z-index: 116` inline for the case a pill
+  cannot clear, such as the end pill of a one-row range. 116 stays below every overlay clone (120 and
+  up).
+- **No browser the suite launches paints an overlay scrollbar, and none hit-tests one.**
+  `tests/e2e/fill-handle-overlay-scrollbar.spec.ts` hides the grid's scrollbars with
+  `.wtHolder, .htScrollbarTest { scrollbar-width: none !important; }` before the grid loads (the
+  `!important` is what beats the theme's `scrollbar-width: auto` on `.wtHolder`; Chromium alone would
+  pass without it, because Playwright launches it with `--hide-scrollbars`), so the holder and the
+  width probe read 0, and asserts the geometry and that the handle stays out of the clearance band a
+  wheel scroll opens. It carries `CROSS_BROWSER_TAG`. The covered handle itself is checked by hand on
+  a real device. Unit-pinned in `test/unit/selection/border/cornerScrollbarClearance.unit.ts`.
+
+Known limit: in the bottom-end corner cell both shifts apply, and on a dropdown or autocomplete cell
+there the handle lands on the top-start part of `.htAutocompleteArrow`, which itself lies mostly in
+the strips. Shifting one axis only would put the handle back under the other scrollbar.
+
 ## Custom border `width: 0` is a real value (DEV-1137)
 
 `getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.
@@ -332,18 +386,31 @@ The hit area hangs further out than the handle (`hitAreaSize * 3 / 4`, against `
 overhangs the table for a cell within that distance of the start while the painted handle does not move.
 
 - **Gate each axis on the real corner being rendered** (`fromRow >= getFirstRenderedRow()`, the same for
-  columns). `top` and `left` measure the first rendered track, not the selection's corner, so for a range
+  columns; the same two booleans decide the display below). `top` and `left` measure the first rendered track, not the selection's corner, so for a range
   whose start is scrolled out of the rendered band the handle would move onto that track, inside the range.
-  Such a handle keeps the unclamped placement and stays clipped. Whether anything else renders above the
-  viewport depends on `viewportRowRenderingOffset`: with `0` the first rendered row is the first visible one.
+  Such a handle keeps the unclamped placement. Whether anything else renders above the viewport depends on
+  `viewportRowRenderingOffset`: with `0` the first rendered row is the first visible one.
+- **A handle whose real corner is not rendered is not drawn at all** (`isCornerScrolledOut` in
+  `updateMultipleSelectionHandlesPosition`, which sets `display: none` on the handle and its hit area, on
+  either axis). A clone-covered edge puts the handle
+  at `top + 1`, and `top` is the first rendered row, so with `viewportRowRenderingOffset: 0` and column headers
+  on the handle sat on the first visible row, grabbable, though the range's start was off screen (the column
+  axis the same way with `viewportColumnRenderingOffset: 0` and row headers). With the default overscan the
+  first rendered row sits under the header, which is why it only showed without overscan. A negative corner
+  index is a header-anchored selection and counts as rendered. Ownership comes first: a clone
+  never draws a handle for a corner it does not own. On its own frozen axis the owning clone always renders the
+  corner; on the other axis a clone follows the master's band, so a frozen-row start whose column is scrolled
+  out is hidden too. The comparison is in renderable indexes, the space the corners arrive in: translating
+  them to visual would break it with hidden rows. With `mergeCells: { virtualized: true }` and no overscan,
+  a merged block whose root is scrolled out loses its top handle while part of the block is still on screen,
+  because that mode does not pull the render band back to the root (without `virtualized` it does, and the
+  handle stays). The handle belongs to the real corner, so that is intended.
 - **Do not snap the hit area to the edge on its own.** Clamping it alone moves the 40px touch target over
   A1 and over the `moveCells` band next to it (`multipleSelectionHandles/AGENTS.md`).
-- A range scrolled out with headers on and a start above `fixedRowsTop` + 1 still hangs its handle above the
-  first rendered row, as before; nothing paints it there.
 
 `handsontable/src/3rdparty/walkontable/test/unit/selection/border/topHandleClamp.unit.ts` pins each branch;
-`tests/e2e/mobile-selection-handles.spec.ts` pins the clamp for both axes, RTL, the frozen corner and the
-scrolled-out start, and the outer corner in LTR.
+`tests/e2e/mobile-selection-handles.spec.ts` pins the clamp for both axes, RTL, the frozen corner, the
+scrolled-out start on both axes with and without headers, and the outer corner in LTR.
 
 The declarations live in `src/styles/base/_z-index-map.scss`, `css/walkontable.scss` (master and
 clone values, duplicated — keep in sync) and `src/styles/components/core/_selection.scss` (the

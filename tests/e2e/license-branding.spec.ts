@@ -60,6 +60,55 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
         .toBe(`${await license.cornerWidthPx()}px`);
     });
 
+    test('paints the new logo with a blue dot at the foot of the "H"', async ({ page }) => {
+      await license.goto(INSTANT.duringTrial);
+
+      await expect(page.locator('.ht-license-badge-on')).toBeAttached();
+
+      const glyph = await license.cornerGlyph();
+
+      // The mask is the whole logomark; the dot is a background layer clipped by it, so a hover
+      // that darkens `background-color` leaves the dot blue.
+      expect(glyph.backgroundImage).toMatch(/^url\(/);
+      expect(glyph.backgroundImage.toLowerCase()).toContain('%231a42e8');
+      expect(glyph.backgroundSize).toBe('contain');
+
+      // What the browser really paints: the blue ink is the dot, a 3.2px square sitting at the foot of
+      // the "H" (the gray ink). A dot layer that drifts off the mask, or is clipped away by it, paints no
+      // blue, or a blue that is not at the foot of the "H".
+      const { blue, ink } = await license.cornerGlyphPaint();
+
+      expect(blue).not.toBeNull();
+      expect(ink).not.toBeNull();
+      expect(blue!.maxX - blue!.minX).toBeGreaterThanOrEqual(2);
+      expect(blue!.maxX - blue!.minX).toBeLessThanOrEqual(4.5);
+      expect(blue!.maxY - blue!.minY).toBeGreaterThanOrEqual(2);
+      expect(blue!.maxY - blue!.minY).toBeLessThanOrEqual(4.5);
+      // In the 16px box the dot starts 7.96px right of the "H"'s left edge and ends 12.82px below its top
+      // edge (the logomark's viewBox); measured from the "H" so the check does not depend on where the
+      // cell puts the glyph.
+      expect(Math.abs((blue!.minX - ink!.minX) - 7.96)).toBeLessThanOrEqual(1.5);
+      expect(Math.abs((blue!.maxY - ink!.minY) - 12.82)).toBeLessThanOrEqual(1.5);
+    });
+
+    test('keeps the dot blue while the pointer is over the corner', async () => {
+      await license.goto(INSTANT.duringTrial);
+
+      const restingGlyph = await license.cornerGlyph();
+      const before = await license.cornerGlyphPaint();
+
+      await license.cornerHeaderCell.hover();
+
+      const glyph = await license.cornerGlyph();
+      const after = await license.cornerGlyphPaint();
+
+      // The hover state is really in effect: it darkens the "H" through `background-color`...
+      expect(glyph.backgroundColor).not.toBe(restingGlyph.backgroundColor);
+      // ...and leaves the dot layer, and the blue it paints, alone.
+      expect(glyph.backgroundImage.toLowerCase()).toContain('%231a42e8');
+      expect(after.blue).toEqual(before.blue);
+    });
+
     test('scales the glyph down inside a corner narrower than it', async () => {
       await license.goto(INSTANT.duringTrial, { variant: 'narrow-corner' });
 
@@ -177,6 +226,18 @@ test.describe('entitlement license key branding', { tag: THEMES_TAG }, () => {
       await expect(license.lock).toContainText('Your Handsontable trial license key expired on 2026-09-26.');
       // There is no Close button and no Escape shortcut — the hard stop is final.
       await expect(license.lock).not.toContainText('Close');
+    });
+
+    test('paints the grayed logomark in the lock strip without the blue dot', async () => {
+      await license.goto(INSTANT.trialHardStop);
+
+      const glyph = await license.lockGlyph();
+
+      expect(glyph.maskImage).not.toBe('none');
+      expect(glyph.backgroundImage).toBe('none');
+      // The box has the logomark's own 11.1415:16 proportions, so its "H" starts at the start padding
+      // in both text directions.
+      expect(glyph.widthPx / glyph.heightPx).toBeCloseTo(11.1415 / 16, 2);
     });
 
     test('owns the keyboard once the user reaches it, and Escape does not dismiss it', async ({ page }) => {

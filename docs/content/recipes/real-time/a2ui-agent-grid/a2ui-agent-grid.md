@@ -19,7 +19,6 @@ react:
   metaTitle: Agent-driven grid with A2UI | Handsontable DataGrid for React
 searchCategory: Recipes
 category: Real-time & Integrations
-menuTag: new
 ---
 
 In this tutorial, you will let an AI agent describe a grid in [A2UI](https://a2ui.org/) JSON and have Handsontable DataGrid render it. You will build a custom A2UI component, `HotGrid`, that evaluates agent-authored formulas with HyperFormula in the browser, applies the agent's follow-up updates in place, and sends the user's edits back to the agent.

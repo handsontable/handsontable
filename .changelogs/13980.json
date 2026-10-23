@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Updated the logo in the trial license badge and the lock screen to the new Handsontable branding.",
+  "type": "changed",
+  "issueOrPR": 13980,
+  "breaking": false,
+  "framework": "none"
+}

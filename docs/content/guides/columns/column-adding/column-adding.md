@@ -18,7 +18,7 @@ vue:
   metaTitle: Adding and removing columns | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
-menuTag: new
+menuTag: updated
 ---
 Insert and remove columns programmatically with the [`alter()`](@/api/core.md#alter) method, through the context menu, or automatically with spare columns.
 

@@ -13,7 +13,7 @@ vue:
   metaTitle: Date-time cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
-menuTag: new
+menuTag: updated
 addedIn: "18.1.0"
 ---
 Display, format, sort, and filter combined date and time values by using the datetime cell type. Edit values via a native date-time picker.

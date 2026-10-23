@@ -13,6 +13,7 @@ vue:
   metaTitle: Long-term support (LTS) | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Upgrade and migration
+menuTag: updated
 ---
 LTS (Long-Term Support) versions are Handsontable DataGrid release lines that are maintained and supported for an extended period. 
 

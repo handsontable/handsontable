@@ -18,6 +18,7 @@ vue:
   metaTitle: Notification | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Dialog
+menuTag: updated
 addedIn: "17.1.0"
 ---
 
