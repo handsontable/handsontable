@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-23T09:05:44.930Z",
+  "generatedAt": "2026-10-23T11:53:47.422Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -2657,7 +2657,7 @@
       "file": "e2e/async-image-frozen-columns.spec.ts",
       "line": 138,
       "title": "Async image in a scrolling column beside frozen columns › aligns the overlays when the renderer keeps a failing image",
-      "count7": 2,
+      "count7": 1,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
