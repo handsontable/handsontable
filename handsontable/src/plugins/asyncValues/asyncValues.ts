@@ -3710,22 +3710,41 @@ export class AsyncValues extends BasePlugin {
   };
 
   /**
-   * Re-reads every row state's physical row from the map (dropping the states of removed rows) and, with
-   * row ids, moves a state whose id another row now holds, or drops one whose id no row holds: the data
-   * array was changed in place, so the index mapper only grew or shrank at its end.
+   * With row ids, puts every row state on the row that holds its id and drops one whose id no row holds,
+   * then re-reads the physical row of the states without an id from the map (dropping the states of
+   * removed rows): the data array was changed in place, so the index mapper only grew or shrank at its
+   * end. The ids go first: the map's own loss (the last index) says nothing about which record was
+   * removed, and reading it first dropped the request of a row that still exists.
    */
   readonly #followRows = (): void => {
     if (this.#isGone() || !this.#rowsMap || this.#states.size === 0 || this.#replacingData) {
       return;
     }
 
+    const changed = this.#followRowIds(this.#rowsMap);
+
     this.#syncRows();
 
-    const rowsMap = this.#rowsMap;
-    const lost = new Map<RowState, AsyncValueCancelReason>();
-    const moves: Array<{ state: RowState; target: number }> = [];
+    if (changed) {
+      this.hot.markAllCellsChanged();
+      this.hot.render();
+    }
+  };
 
-    [...this.#states].forEach((state) => {
+  /**
+   * Places each row state that has an id on the row that holds the id, wherever the map holds the state
+   * now (or does not hold it any more), and drops the states whose id no row holds or whose row another
+   * state took.
+   *
+   * @param {object} rowsMap The map of the row states.
+   * @returns {boolean} `true` when a state moved or was dropped.
+   */
+  #followRowIds(rowsMap: PhysicalIndexToValueMap): boolean {
+    const lost = new Map<RowState, AsyncValueCancelReason>();
+    const placements = new Map<RowState, number>();
+    let changed = false;
+
+    this.#states.forEach((state) => {
       if (state.rowId === null || state.rowId === undefined) {
         return;
       }
@@ -3736,22 +3755,44 @@ export class AsyncValues extends BasePlugin {
       if (target === null) {
         lost.set(state, 'rowRemoved');
 
-      } else if (target !== state.physicalRow) {
-        moves.push({ state, target });
+      } else {
+        placements.set(state, target);
+        changed = changed || target !== state.physicalRow;
       }
     });
 
-    if (lost.size === 0 && moves.length === 0) {
-      return;
+    if (!changed && lost.size === 0) {
+      return false;
     }
 
-    [...lost.keys(), ...moves.map(({ state }) => state)].forEach((state) => {
-      if (rowsMap.getValueAtIndex(state.physicalRow) === state) {
-        rowsMap.setValueAtIndex(state.physicalRow, null);
+    this.#placeRowStates(rowsMap, placements, lost);
+    this.#dropReplacedRowStates(new Set(), lost);
+
+    return true;
+  }
+
+  /**
+   * Moves the row states to their target rows. A slot is cleared first when it holds a state that moves,
+   * a state that is lost, or one the plugin no longer tracks (an empty state a stale row left in the map),
+   * so a swap works and a dead state never blocks a row. A state whose target a state without an id still
+   * holds is added to `lost`.
+   *
+   * @param {object} rowsMap The map of the row states.
+   * @param {Map} placements The target physical row of each state.
+   * @param {Map} lost Collects the states that could not be placed.
+   */
+  #placeRowStates(
+    rowsMap: PhysicalIndexToValueMap,
+    placements: Map<RowState, number>,
+    lost: Map<RowState, AsyncValueCancelReason>
+  ): void {
+    (rowsMap.getValues() as Array<RowState | null>).forEach((state, physicalRow) => {
+      if (state && (placements.has(state) || lost.has(state) || !this.#states.has(state))) {
+        rowsMap.setValueAtIndex(physicalRow, null);
       }
     });
-    moves.forEach(({ state, target }) => {
-      if (rowsMap.getValueAtIndex(target) !== null) {
+    placements.forEach((target, state) => {
+      if (target >= rowsMap.getLength() || rowsMap.getValueAtIndex(target) !== null) {
         lost.set(state, 'rowRemoved');
 
         return;
@@ -3760,11 +3801,7 @@ export class AsyncValues extends BasePlugin {
       rowsMap.setValueAtIndex(target, state);
       state.physicalRow = target;
     });
-
-    this.#dropReplacedRowStates(new Set(), lost);
-    this.hot.markAllCellsChanged();
-    this.hot.render();
-  };
+  }
 
   /**
    * Tells whether a captured row had an id.
