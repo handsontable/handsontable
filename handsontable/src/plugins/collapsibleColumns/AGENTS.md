@@ -73,9 +73,7 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   each other. The opposite order needs no special case, because a sorting shortcut registered later goes before the
   editor group, which is behind this one. A plugin registers again only on a disabled-to-enabled flip (an
   `updateSettings()` that leaves it on does not), so a sorting plugin turned off and on, or swapped for the other
-  one, is the way sorting lands behind this shortcut after init. Before `addShortcut()` positioned `before`
-  correctly, the result depended on how many shortcuts the key already had, and a sorting plugin registered a second
-  time took `Enter` back. Pinned by `tests/e2e/collapsible-enter-vs-sorting.spec.ts`, including the case where this
+  one, is the way sorting lands behind this shortcut after init. Pinned by `tests/e2e/collapsible-enter-vs-sorting.spec.ts`, including the case where this
   plugin registers before any sorting shortcut exists (the editor-group anchor).
 
 ## The indicator is a real element, updated in place on every draw

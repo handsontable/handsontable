@@ -13,7 +13,7 @@ export class CollapsibleEnterVsSortingPage {
   readonly bundle: string;
   readonly sorting: SortingPlugin;
 
-  constructor(page: Page, theme = 'main', bundle: Bundle | string = 'umd', sorting: SortingPlugin = 'columnSorting') {
+  constructor(page: Page, theme = 'main', bundle: Bundle = 'umd', sorting: SortingPlugin = 'columnSorting') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;

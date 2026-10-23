@@ -730,12 +730,12 @@ row semantics. Six things look simpler than they are.
   <kbd>Enter</kbd> on a still-visible row header away, which worked before.
 - **They sit before `GRID_GROUP`.** `Context#addShortcut()` inserts a `'before'` shortcut directly in front
   of the first entry of the anchor group, so the chord stays ahead of the grid's jump even when a host
-  shortcut shares the key. The helper used to place it one slot too early, which for a group at index 0
-  meant before the LAST entry: a host shortcut appended after the grid's would have put the chord behind the
-  jump. Several `'before'` registrants on one key now run in registration order, and the one pair whose order
-  mattered, CollapsibleColumns against the sorting plugins on <kbd>Enter</kbd>, is settled in
-  `../collapsibleColumns/AGENTS.md`. A rebuild (`updateSettings({ nestedRows })`) unregisters and
-  re-registers the chords, which `tests/e2e/nested-rows-treegrid-a11y.spec.ts` pins.
+  shortcut shares the key. Several `'before'` registrants on one anchor run in registration order, but several
+  `'after'` registrants run reversed (the two Tab `after` shortcuts already do), because `'after'` also
+  anchors on the first entry of the group. The one `'before'` pair whose order mattered, CollapsibleColumns
+  against the sorting plugins on <kbd>Enter</kbd>, is settled in `../collapsibleColumns/AGENTS.md`. A rebuild
+  (`updateSettings({ nestedRows })`) unregisters and re-registers the chords, which
+  `tests/e2e/nested-rows-treegrid-a11y.spec.ts` pins.
 
 ## How it interacts with the rest of the grid
 

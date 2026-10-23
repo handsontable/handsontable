@@ -449,6 +449,26 @@ describe('context', () => {
       expect(getGroups(context)).toEqual(['X', 'A']);
     });
 
+    it.each([
+      ['before', ['X', 'A', 'A', 'B']],
+      ['after', ['A', 'X', 'A', 'B']],
+    ] as const)(
+      'should place the shortcut %s the first entry of an anchor group that has several entries',
+      (position, expected) => {
+        const context = createOrderedContext(['A', 'A', 'B']);
+
+        context.addShortcut({
+          keys: KEYS,
+          group: 'X',
+          relativeToGroup: 'A',
+          position,
+          callback: () => {},
+        });
+
+        expect(getGroups(context)).toEqual(expected);
+      }
+    );
+
     it('should place the shortcut after the anchor when `position` is omitted', () => {
       const context = createOrderedContext(['A', 'B']);
 

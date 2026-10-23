@@ -118,7 +118,9 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
    * @param {object} [options.captureCtrl=false] If set to `true`: captures the state of the Control/Meta modifier key
    * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
    * @param {object} [options.position='after'] The order in which the shortcut's action runs:
-   * `'before'` or `'after'` the `relativeToGroup` group of actions
+   * `'before'` or `'after'` the `relativeToGroup` group of actions. The action goes directly in front of,
+   * or behind, the first action of that group. Several `'before'` actions run in the order you add them.
+   * Several `'after'` actions run in the reverse order.
    * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    * @param {object} [options.forwardToContext] The context object where the event will be forwarded to.
    */
@@ -206,7 +208,9 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
    * @param {object} [options.stopPropagation=false] If set to `true`: stops the event's propagation
    * @param {object} [options.preventDefault=true] If set to `true`: prevents the default behavior
    * @param {object} [options.position='after'] The order in which a shortcut's action runs:
-   * `'before'` or `'after'` a `relativeToGroup` group of actions
+   * `'before'` or `'after'` a `relativeToGroup` group of actions. The action goes directly in front of,
+   * or behind, the first action of that group. Several `'before'` actions run in the order you add them.
+   * Several `'after'` actions run in the reverse order.
    * @param {object} [options.relativeToGroup] The name of a group of actions, used to determine an action's `position`
    * @param {object} [options.forwardToContext] The context object where the event will be forwarded to.
    */
