@@ -192,7 +192,7 @@ To visualize magnitude, compute a background color from each value and apply it 
 
 ## Make conditional formatting accessible
 
-Color alone does not meet [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/#use-of-color). Readers with color vision deficiencies, or anyone viewing the grid in high-contrast mode, can miss a signal that relies only on color.
+Color alone does not satisfy [WCAG 2.2 Success Criterion 1.4.1 Use of Color](https://www.w3.org/WAI/WCAG22/quickref/#use-of-color), a Level A criterion. Readers with color vision deficiencies, or anyone viewing the grid in high-contrast mode, can miss a signal that relies only on color.
 
 - Pair color with a second cue: a symbol, text label, or font weight. In the first example, the `loss` class adds a marker; in the second, losses appear in parentheses.
 - In a color scale, keep the underlying value visible so the color stays supplementary.

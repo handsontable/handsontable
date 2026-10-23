@@ -165,13 +165,13 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 
 ## Accessibility
 
-The bar is WCAG 2.2 Level A and AA, and the `handsontable-a11y` skill is the workflow: an accessibility plan before the code, the build rules, the proof, and the fix loop for a scan finding. The rules a core change must not get wrong:
+The bar is WCAG 2.2 Level A and AA, the target level (the published conformance report states conformance per criterion), and the `handsontable-a11y` skill is the workflow: an accessibility plan before the code, the build rules, the proof, and the fix loop for a scan finding. The rules a core change must not get wrong:
 
 - **Roles and ARIA attributes go through `src/helpers/a11y.ts`**, written with `setAttribute(element, [A11Y_…()])` from `helpers/dom/element`. A missing attribute gets a helper there, not a string literal at the call site.
 - **A role keeps its required parents and children.** Menus and lists are Handsontable grids, so a widget role on a `td` needs `role="presentation"` on the `table`, `tbody` and `tr` around it; the baseline's `menu-roles`, `menu-separators` and `filters-listbox` issues are what skipping it looks like.
 - **Names and announcements are i18n phrases** (`src/i18n/constants.ts`), like every user-visible string. A change without a focus move is announced with `announce()` from `src/utils/a11yAnnouncer.ts`, which defaults to `'assertive'`: a status message passes `'polite'`, and `assertive` is for errors.
 - **Keys go through a shortcut context and focus through a focus scope** (the focus-scope bullets in Common Pitfalls above). A surface that takes focus returns it to the cell or its opener on close.
-- **`ariaTags: false` turns off ARIA and nothing else.** No behavior reads an `aria-*` attribute or depends on one existing.
+- **`ariaTags: false` turns off the ARIA roles and attributes, and what is set alongside them.** The `tabindex="-1"` on cells, headers, and menu items is written only while ARIA is on (`src/3rdparty/walkontable/src/render/cells.ts`, `columnHeaders.ts`, `rowHeaders.ts`, `src/plugins/contextMenu/menu/menu.ts`), so with the option off browser focus no longer moves onto them, and the menu styles keyed on `aria-expanded` (`src/styles/components/plugins/_dropdown-menu.scss`, `src/styles/components/editors/_dropdown-editor.scss`) stop distinguishing an open submenu. No JavaScript reads an `aria-*` attribute back to decide behavior; the option's JSDoc in `metaSchema.ts` says the same.
 - **A new plugin or editor is accounted for in the scan.** It adds its entry to `tests/a11y/coverage.mjs` (the scanned pages, why it draws nothing, or a counted gap), and the root `test:tooling` fails until it does; a plugin with UI adds a page to `tests/a11y/pages.mjs`.
 
 ## Key File Locations

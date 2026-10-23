@@ -24,7 +24,7 @@
     {
       "prNumber": 10585,
       "tagline": "Tab navigation across the grid",
-      "whyItMatters": "A new tabNavigation option lets users move through the grid as part of the surrounding page's tab order. Pair it with navigableHeaders for full keyboard navigation - both are required for accessible single-page apps."
+      "whyItMatters": "A new tabNavigation option decides what Tab does. With the default true, Tab and Shift+Tab move between cells, so the grid is a set of tab stops. With false, the grid hands both keys back to the browser and is one tab stop in the page's tab order. Pair tabNavigation: false with navigableHeaders: true for the data grid mode of the accessibility guide."
     },
     {
       "prNumber": 10529,
