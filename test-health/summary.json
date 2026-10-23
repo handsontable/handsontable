@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-23T04:04:33.157Z",
+  "generatedAt": "2026-10-23T08:57:08.702Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 408,
+    "tests": 409,
     "needsTicket": 24,
     "quarantined": 0,
-    "entries": 2128
+    "entries": 2129
   },
   "rows": [
     {
@@ -3062,6 +3062,41 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected '' to equal 'cyan'.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/plugins/manualColumnResize/__tests__/manualColumnResize.spec.js|manualColumnResize should autosize selected columns after double click on handler",
+      "tier": "jasmine",
+      "file": "handsontable/src/plugins/manualColumnResize/__tests__/manualColumnResize.spec.js",
+      "line": null,
+      "title": "manualColumnResize should autosize selected columns after double click on handler",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-23T08:56:11Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/39925616148",
+        "branch": "develop",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected 50 to be less than 50.",
         "source": "ci"
       },
       "needsTicket": false
