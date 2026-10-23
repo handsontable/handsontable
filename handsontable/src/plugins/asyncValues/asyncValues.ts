@@ -2472,8 +2472,10 @@ export class AsyncValues extends BasePlugin {
       // One throwing listener must not cost the other cells their hooks.
       failure = this.#runEach(canceled, ([entry, reason]) => {
         const physicalRow = rowOf(entry);
+        // The state of a removed or replaced row keeps the id it had; the map holds another record there now.
+        const rowId = entry.state.dropped ? entry.state.rowId : this.#rowIdOf(physicalRow);
 
-        this.hot.runHooks('afterAsyncValueCancel', physicalRow, entry.prop, reason, this.#rowIdOf(physicalRow));
+        this.hot.runHooks('afterAsyncValueCancel', physicalRow, entry.prop, reason, rowId);
       });
 
     } finally {
@@ -3647,6 +3649,8 @@ export class AsyncValues extends BasePlugin {
       }
 
       if (target === null || target >= length || rowsMap.getValueAtIndex(target) !== null) {
+        // The new data has replaced the row's record, so the id captured before is the one to report.
+        row.state.rowId = row.rowId;
         lostReasons.set(row.state, isLoad && !this.#hasId(row) ? 'dataReplaced' : 'rowRemoved');
 
         return;

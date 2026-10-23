@@ -1657,11 +1657,13 @@ export const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterAsyncValueCancel
    * @since 19.0.0
-   * @param {number} physicalRow Physical row index of the cell, at the time of the cancellation.
+   * @param {number} physicalRow Physical row index of the cell, at the time of the cancellation. For a
+   * removal of several non-contiguous groups of rows, it is the index just before that row's own group is removed.
    * @param {string|number} prop The property of the cell's column.
    * @param {string} reason Why the request was canceled: `'edit'`, `'dependency'`, `'restart'`,
    * `'rowRemoved'`, `'columnsChanged'`, `'dataReplaced'`, `'manual'`, `'disabled'`, or `'vetoed'`.
    * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   * For a row that was removed or replaced, it is the id the row held before.
    */
   'afterAsyncValueCancel',
 
