@@ -96,7 +96,7 @@ import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coor
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
 import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
 import type {
-  CellOptionMetaEntry, GridHelperInstance, HotInstance, SelectAllOptions, ViewportScrollerInstance,
+  CellOptionMetaEntry, GridHelperInstance, HotInstance, KeptCellMetas, SelectAllOptions, ViewportScrollerInstance,
 } from './core/types';
 import { applyRootSize, reapplyPixelRootHeight } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
@@ -5332,12 +5332,20 @@ export default function Core(
    * it took them away: the meta follows its records through inserts, removals and moves, while the entries
    * of the setting name visual positions, which a reordering or trimming plugin of the new settings (a
    * `manualRowMove` or `trimRows` array) changes during the load.
+   * @param {object} [keptCellMetas] The meta set through `setCellMeta()` and the invalid marks the rows carried
+   * when the caller took them away, by physical indexes, to put back in the meta phase. They are written
+   * before the cell types expand, before the `cell` option (which wins on a key both set) and before
+   * `afterCellMetaReset`, so a `type` comes back with its renderer and validator, and they go into core's
+   * cell meta, so undo, row and column changes and a later data load treat them as they treat any other
+   * meta. An entry past the loaded data, or on a row or column the load appended for a `min*` setting, is
+   * dropped.
    */
   this._applySettingsAndData = function(
     settings: Partial<GridSettings>,
     data: unknown[],
     source: string,
     cellOptionMetas: CellOptionMetaEntry[] | null = null,
+    keptCellMetas: KeptCellMetas | null = null,
   ) {
     const suspendsRender = !!instance.view;
 
@@ -5356,7 +5364,7 @@ export default function Core(
 
         try {
           try {
-            const metaPhase = applySettings(settings, false, true, cellOptionMetas);
+            const metaPhase = applySettings(settings, false, true, cellOptionMetas, keptCellMetas);
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
@@ -5777,6 +5785,36 @@ export default function Core(
   }
 
   /**
+   * Writes back the cell meta a caller kept with a set of rows (see `_applySettingsAndData()`). An entry is
+   * dropped when its row or column is not part of the loaded data: past the end, or one the load appended to
+   * reach `minRows`, `minSpareRows`, `minCols` or `minSpareCols`. The caller's data can be shorter than when
+   * the meta was kept, and meta written there would land on a filler row, or on a row an `auto` append adds
+   * later, since an `auto` insert shifts no meta. A row that was a filler when the meta was set is part of
+   * the caller's data by the time it comes back, so it keeps its meta.
+   *
+   * The fillers are the last ones inside the source data (`DataMap#isTrailingFillerRow`/`Column` past the
+   * source size answers `true` with no filler at all), so a column a `columns` entry adds past the width of
+   * the data is not taken for one.
+   *
+   * @private
+   * @param {object} keptCellMetas The user-set meta and the invalid marks to write back.
+   */
+  function replayKeptCellMetas(keptCellMetas: KeptCellMetas): void {
+    const rowCount = instance.rowIndexMapper.getNumberOfIndexes();
+    const columnCount = instance.columnIndexMapper.getNumberOfIndexes();
+    const sourceRowCount = instance.countSourceRows();
+    const sourceColumnCount = instance.countSourceCols();
+    const isFiller = ({ physicalRow, physicalColumn }: { physicalRow: number, physicalColumn: number }) =>
+      (physicalRow < sourceRowCount && datamap.isTrailingFillerRow(physicalRow)) ||
+      (physicalColumn < sourceColumnCount && datamap.isTrailingFillerColumn(physicalColumn));
+    const isLoaded = (entry: { physicalRow: number, physicalColumn: number }) =>
+      entry.physicalRow < rowCount && entry.physicalColumn < columnCount && !isFiller(entry);
+
+    replayCellMetas(keptCellMetas.userDefined.filter(isLoaded));
+    metaManager.restoreInvalidCellMetas(keptCellMetas.invalid.filter(isLoaded));
+  }
+
+  /**
    * Runs a write with the meta manager filing it as declarative `cell`-option meta.
    *
    * @private
@@ -6028,12 +6066,14 @@ export default function Core(
    * @param {boolean} isCellOptionRestated Whether the call restates the `cell` option.
    * @param {Array|null} restoredCellOptionMetas `cell`-option meta, by physical indexes, to put back instead of
    * applying `settings.cell` (see `_applySettingsAndData()`).
+   * @param {object|null} keptCellMetas The user-set meta and invalid marks to put back (see `_applySettingsAndData()`).
    */
   function applyMetaPhase(
     settings: Partial<GridSettings>,
     columnPhase: { earlyColumnsSetting: unknown[] | null, resetsColumnMetaBeforeLoad: boolean },
     isCellOptionRestated: boolean,
-    restoredCellOptionMetas: CellOptionMetaEntry[] | null
+    restoredCellOptionMetas: CellOptionMetaEntry[] | null,
+    keptCellMetas: KeptCellMetas | null
   ): void {
     const { earlyColumnsSetting, resetsColumnMetaBeforeLoad } = columnPhase;
     const clen = instance.countCols();
@@ -6053,6 +6093,12 @@ export default function Core(
     // which the React and Angular wrappers, re-sending `columns` on every commit, would pay per render.
     if (clen > 0 && earlyColumnsSetting === null) {
       applyColumnMeta(clen);
+    }
+
+    // Before the `cell` option, for the reason `resetMetaCaches()` gives: a restated `cell` entry wins
+    // over a value the user set on the same key.
+    if (keptCellMetas !== null) {
+      replayKeptCellMetas(keptCellMetas);
     }
 
     if (restoredCellOptionMetas !== null) {
@@ -6205,11 +6251,14 @@ export default function Core(
    * @param {boolean} [defersDataWork=false] Whether the data the settings describe is loaded after this call.
    * @param {Array|null} [restoredCellOptionMetas=null] `cell`-option meta, by physical indexes, to put back in
    * the meta phase instead of applying `settings.cell` (see `_applySettingsAndData()`).
+   * @param {object|null} [keptCellMetas=null] The user-set meta and invalid marks to put back in the meta phase
+   * (see `_applySettingsAndData()`).
    * @returns {Function|null} The held-back meta phase, or `null` when it ran.
    */
   function applySettings(
     settings: Partial<GridSettings>, init: boolean, defersDataWork = false,
-    restoredCellOptionMetas: CellOptionMetaEntry[] | null = null
+    restoredCellOptionMetas: CellOptionMetaEntry[] | null = null,
+    keptCellMetas: KeptCellMetas | null = null
   ): (() => void) | null {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(instance);
 
@@ -6251,7 +6300,9 @@ export default function Core(
       setLanguage(settings.language);
     }
 
-    const metaPhase = () => applyMetaPhase(settings, columnPhase, isCellOptionRestated, restoredCellOptionMetas);
+    const metaPhase = () => applyMetaPhase(
+      settings, columnPhase, isCellOptionRestated, restoredCellOptionMetas, keptCellMetas
+    );
 
     if (!defersDataWork) {
       metaPhase();

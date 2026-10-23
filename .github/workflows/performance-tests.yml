@@ -60,17 +60,17 @@ jobs:
             exit 1
           fi
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-        with:
-          version: 10.30.2
-
       - name: Use Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        with:
+          version: 10.30.2
+          cache: true
 
       # Reuse the shared UMD build artifact instead of rebuilding (one of the
       # 5→2 build de-duplications); without it the run builds its own. One

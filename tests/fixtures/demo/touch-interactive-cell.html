@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <!--
+    A phone page lays out at the device width. Without this tag, Chromium lays the page out
+    980px wide and shows it at 0.42 scale. Touch adjustment moves a tap toward a nearby control
+    within an area sized in screen pixels, so at that scale it reaches 2.4 times as far in CSS px.
+    A tap on the label text then landed on the file input below it, or on the cell padding on
+    horizon, while elementFromPoint still reported the text.
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Handsontable touch interactive cell fixture (DEV-332)</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
