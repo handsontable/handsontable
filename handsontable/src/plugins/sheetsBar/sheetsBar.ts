@@ -1773,10 +1773,12 @@ export class SheetsBar extends BasePlugin {
 
       this.#columnSummaryStates.delete(sheet);
       this.#cellOptionStates.delete(sheet);
-      this.#copiedCellMeta.delete(sheet);
 
       if (sheet.viewState) {
-        sheet.viewState = { ...sheet.viewState, cellMeta: [] };
+        const viewState = { ...sheet.viewState };
+
+        delete viewState.cellMeta;
+        sheet.viewState = viewState;
       }
 
       return;
@@ -1993,6 +1995,7 @@ export class SheetsBar extends BasePlugin {
       if (viewState) {
         restoreViewState(this.hot, viewState);
       } else if (copiedCellMeta) {
+        this.#copiedCellMeta.delete(newSheet);
         rebuildCustomBordersFromCellMeta(this.hot);
       }
     };
@@ -2109,6 +2112,8 @@ export class SheetsBar extends BasePlugin {
    * undo, a row or column change, and a later `loadData()` treat it as they treat any other. That meta is
    * the record of the sheet's custom borders too, so a declared `customBorders` array is not applied again
    * when it is given: the declared pass would replace the borders the user left with by the declared ones.
+   * It is not given for a sheet whose rows a server response replaced while it was hidden, so the declared
+   * borders apply to the fresh rows.
    */
   #applySheet(
     sheet: Sheet,
@@ -2237,8 +2242,9 @@ export class SheetsBar extends BasePlugin {
    * or what it left with otherwise. The copy's data is a copy of the original's rows in the same physical
    * order, so its first visit puts the meta back by physical index like a return does, borders included, and
    * it is stored even when empty, so the copy does not take the declared borders its original no longer has.
-   * Each entry is copied, and so is a plain object or array value, so a change made in place on one sheet
-   * does not reach the other.
+   * It is dropped once the copy has been shown. Each entry is copied, and so is a plain object or array value,
+   * so a change made in place on one sheet does not reach the other. A class instance at the top level is
+   * shared, and one nested inside an object value comes out as a plain object.
    *
    * @param {object} original The sheet that was duplicated.
    * @param {object} copy The duplicate.

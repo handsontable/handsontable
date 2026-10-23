@@ -615,15 +615,18 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Rebuilds the border model from the `borders` cell meta at the cells' current visual coordinates. The
-   * sheets bar calls it when a sheet comes back: core writes the sheet's kept cell meta back with its rows,
-   * so the meta holds the sheet's borders, a border on a row the filters hide included, and the model is
-   * filled in from it once the sheet's row and column order is restored.
+   * Marks the border model for a rebuild from the `borders` cell meta. The sheets bar calls it when a sheet
+   * comes back: core writes the sheet's kept cell meta back with its rows, so the meta holds the sheet's
+   * borders, a border on a row the filters hide included. The rebuild is deferred like the one a filter or
+   * a trim asks for, and runs the first time anything reads the model (the next render at the latest). The
+   * view-state restore runs with the index cache suspended, so a rebuild run from there translated each
+   * physical index through the order from before the restored sort or move, and drew the border on
+   * another record.
    *
    * @private
    */
   _rebuildFromCellMeta(): void {
-    this.#rebuildModelFromMeta();
+    this.#deferRebuildAfterIndexChange();
   }
 
   /**

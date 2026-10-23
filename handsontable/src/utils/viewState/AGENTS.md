@@ -6,7 +6,7 @@ and scroll. Read this before touching `viewState.ts`. Two callers share it, and 
 import it, so it stays out of a `handsontable/base` build:
 
 - SheetsBar (`plugins/sheetsBar/`) uses it on every sheet switch, with no part filter, so every step
-  runs (merges, custom borders, and the kept cell meta included). `ViewState` is published
+  runs (merges and custom borders; the kept cell meta goes to core with the rows). `ViewState` is published
   only as the type `SheetsBarViewState`.
 - The `ViewState` plugin (`plugins/viewState/`) is the public layer: it turns the internal state into
   the versioned, JSON-safe `GridViewState`, checks it, and passes the engine a set of parts. Its rules

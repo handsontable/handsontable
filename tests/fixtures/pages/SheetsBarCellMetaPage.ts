@@ -87,6 +87,10 @@ export class SheetsBarCellMetaPage {
     }, [row, col]);
   }
 
+  rowCount(): Promise<number> {
+    return this.page.evaluate(() => window.hot.countRows());
+  }
+
   checkboxColumn(): Promise<unknown[]> {
     return this.page.evaluate(() => window.hot.getSourceDataAtCol(0));
   }

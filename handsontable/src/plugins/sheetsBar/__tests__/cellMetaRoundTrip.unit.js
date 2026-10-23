@@ -8,6 +8,10 @@ import { DropdownMenu } from '../../dropdownMenu/dropdownMenu';
 import { HiddenRows } from '../../hiddenRows/hiddenRows';
 import { AutoColumnSize } from '../../autoColumnSize/autoColumnSize';
 import { RowSelection } from '../../rowSelection/rowSelection';
+import { ColumnSorting } from '../../columnSorting/columnSorting';
+import { ManualColumnMove } from '../../manualColumnMove/manualColumnMove';
+import { ManualRowMove } from '../../manualRowMove/manualRowMove';
+import { TrimRows } from '../../trimRows/trimRows';
 import { registerCellType } from '../../../cellTypes/registry';
 import { CheckboxCellType } from '../../../cellTypes/checkboxType/checkboxType';
 
@@ -29,6 +33,10 @@ describe('SheetsBar cell meta round trip', () => {
     registerPlugin(HiddenRows);
     registerPlugin(Filters);
     registerPlugin(RowSelection);
+    registerPlugin(ColumnSorting);
+    registerPlugin(ManualColumnMove);
+    registerPlugin(ManualRowMove);
+    registerPlugin(TrimRows);
     registerCellType(CheckboxCellType);
     Object.defineProperty(Element.prototype, 'scrollIntoView', { configurable: true, value: () => {} });
   });
@@ -197,6 +205,64 @@ describe('SheetsBar cell meta round trip', () => {
     expect(hot.getCellMeta(0, 0).className).toBe('marked');
   });
 
+  it('does not share an object value of the cell meta between a duplicate and its original', () => {
+    const bar = build();
+
+    hot.setCellMeta(0, 0, 'comment', { value: 'original' });
+
+    const copy = bar.duplicateSheet(bar.getSheets()[0].id);
+
+    bar.setActiveSheet(copy.id);
+    hot.getCellMeta(0, 0).comment.value = 'changed in place';
+    bar.setActiveSheet('One');
+
+    expect(hot.getCellMeta(0, 0).comment.value).toBe('original');
+  });
+
+  it('keeps the meta on its record when the sheet\'s own settings reorder its rows during the load', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'One', data: [['a'], ['c'], ['e']], settings: { manualRowMove: [2, 0, 1] } },
+          { name: 'Two', data: [['x']] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const bar = hot.getPlugin('sheetsBar');
+
+    expect(hot.getDataAtCol(0)).toEqual(['e', 'a', 'c']);
+
+    hot.setCellMeta(0, 0, 'readOnly', true);
+    roundTrip(bar);
+
+    expect(hot.getDataAtCol(0)).toEqual(['e', 'a', 'c']);
+    expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+    expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
+  });
+
+  it('keeps the meta on its record when the sheet\'s own settings trim its rows during the load', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'One', data: [['a'], ['c'], ['e']], settings: { trimRows: [0] } },
+          { name: 'Two', data: [['x']] },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const bar = hot.getPlugin('sheetsBar');
+
+    hot.setCellMeta(0, 0, 'readOnly', true);
+    roundTrip(bar);
+
+    expect(hot.getDataAtCell(0, 0)).toBe('c');
+    expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+    expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
+  });
+
   it('adds no listener to the cell meta read path or to row and column changes', () => {
     const hookNames = ['afterGetCellMeta', 'afterSetCellMeta', 'afterRemoveCellMeta', 'afterCreateRow',
       'afterRemoveRow', 'afterCreateCol', 'afterRemoveCol'];
@@ -288,6 +354,55 @@ describe('SheetsBar cell meta round trip', () => {
     expect(hot.getCellMeta(4, 1).className).toBeUndefined();
   });
 
+  it('does not put kept meta on the columns the load adds to reach `minCols`', () => {
+    const data = [['a', 'b'], ['c', 'd']];
+
+    hot = new Handsontable(container, {
+      minCols: 4,
+      sheetsBar: { sheets: [{ name: 'One', data }, { name: 'Two', data: [['x', 'y']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const bar = hot.getPlugin('sheetsBar');
+
+    hot.setCellMeta(0, 3, 'className', 'marked');
+    bar.setActiveSheet('Two');
+    data.forEach((row) => {
+      row.length = 2;
+    });
+    bar.setActiveSheet('One');
+
+    expect(hot.countCols()).toBe(4);
+    expect(hot.getCellMeta(0, 3).className).toBeUndefined();
+  });
+
+  it('does not put a kept invalid mark on the rows the load adds to reach `minRows`', async() => {
+    const data = [['bad', 'b'], ['c', 'd'], ['e', 'f']];
+
+    hot = new Handsontable(container, {
+      minRows: 5,
+      validator: (value, callback) => callback(value !== 'bad'),
+      sheetsBar: { sheets: [{ name: 'One', data }, { name: 'Two', data: [['x', 'y']] }] },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const bar = hot.getPlugin('sheetsBar');
+
+    hot.validateCells();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    hot.setDataAtCell(2, 0, 'bad');
+    await new Promise(resolve => hot.addHookOnce('afterValidate', () => resolve()));
+
+    expect(hot.getCellMeta(2, 0).valid).toBe(false);
+
+    bar.setActiveSheet('Two');
+    data.length = 1;
+    bar.setActiveSheet('One');
+
+    expect(hot.getCellMeta(0, 0).valid).toBe(false);
+    expect(hot.getCellMeta(2, 0).valid).not.toBe(false);
+  });
+
   it('keeps the meta of a column the `columns` setting adds past the data\'s width', () => {
     const bar = build({ columns: [{}, {}, {}] });
 
@@ -349,6 +464,63 @@ describe('SheetsBar cell meta round trip', () => {
 
     expect(borderCells()).toEqual([[0, 0]]);
     expect(hot.getCellMeta(1, 1).borders).toBeUndefined();
+  });
+
+  it('brings a border back to its record on a sorted sheet', () => {
+    const bar = build({ customBorders: true, columnSorting: true });
+
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+    hot.getPlugin('customBorders').setBorders([[0, 0, 0, 0]], redTop);
+    roundTrip(bar);
+    hot.render();
+
+    expect(hot.getDataAtCell(0, 0)).toBe('e');
+    expect(borderCells()).toEqual([[0, 0]]);
+  });
+
+  it('brings a border back to its record on a sheet with a moved column', () => {
+    const bar = build({ customBorders: true, manualColumnMove: true });
+
+    hot.getPlugin('manualColumnMove').moveColumn(1, 0);
+    hot.render();
+    hot.getPlugin('customBorders').setBorders([[0, 0, 0, 0]], redTop);
+    roundTrip(bar);
+    hot.render();
+
+    expect(hot.getDataAtCell(0, 0)).toBe('b');
+    expect(borderCells()).toEqual([[0, 0]]);
+  });
+
+  it('keeps each sheet\'s own borders when the sheets declare `customBorders` themselves', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          {
+            name: 'One',
+            data: [['a', 'b'], ['c', 'd'], ['e', 'f']],
+            settings: { customBorders: [{ row: 1, col: 1, ...redTop }] },
+          },
+          { name: 'Two', data: [['x', 'y'], ['z', 'w'], ['v', 'u']], settings: { customBorders: true } },
+        ],
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const bar = hot.getPlugin('sheetsBar');
+
+    hot.getPlugin('customBorders').clearBorders();
+    hot.getPlugin('customBorders').setBorders([[0, 0, 0, 0]], redTop);
+    bar.setActiveSheet('Two');
+    hot.getPlugin('customBorders').setBorders([[2, 1, 2, 1]], redTop);
+    bar.setActiveSheet('One');
+
+    expect(borderCells()).toEqual([[0, 0]]);
+    expect(hot.getCellMeta(1, 1).borders).toBeUndefined();
+    expect(hot.getCellMeta(2, 1).borders).toBeUndefined();
+
+    bar.setActiveSheet('Two');
+
+    expect(borderCells()).toEqual([[2, 1]]);
   });
 
   it('keeps a border on a row the filters hid when the user left', () => {

@@ -52,8 +52,19 @@ export interface ViewState {
   fixedColumnsEnd: number | undefined;
   fixedRowsTop?: number | undefined;
   fixedRowsBottom?: number | undefined;
+
+  /**
+   * The custom borders on screen, by visual coordinates, for a listener to read. A sheets bar return
+   * does not replay it: the borders come back with the sheet's kept cell meta, so a change made to this
+   * list is not applied.
+   */
   customBorders: Array<Record<string, unknown>>;
-  cellMeta: TrackedCellMeta[];
+
+  /**
+   * The cell meta the sheet keeps, by physical indexes. Absent when a server response replaced the
+   * sheet's rows while it was hidden, because the meta described the old rows.
+   */
+  cellMeta?: TrackedCellMeta[];
   pagination: PaginationState | null;
 
   /**
@@ -932,12 +943,16 @@ function restoreMergedCells(hot: HotInstance, state: ViewState) {
  * Restores custom borders from the `borders` cell meta, which is the record of a sheet's borders: the sheets
  * bar keeps it with the sheet's other cell meta and core writes it back with the rows. The border list the
  * view state captures (`customBorders`) is not replayed, because it holds visual coordinates only and so
- * misses a border on a row the filters hide. Runs after the row and column order is restored, since the
- * model keeps visual coordinates.
+ * misses a border on a row the filters hide. The model keeps visual coordinates, so CustomBorders only marks
+ * it for a rebuild here, and the rebuild runs on the next model read or render, once the restore's batch
+ * has resumed the index cache with the restored sort and moves.
  */
 export function rebuildCustomBordersFromCellMeta(hot: HotInstance): void {
-  (getEnabledPlugin(hot, 'customBorders') as { _rebuildFromCellMeta: () => void } | undefined)
-    ?._rebuildFromCellMeta();
+  const customBorders = hot.getPlugin('customBorders');
+
+  if (customBorders?.enabled) {
+    customBorders._rebuildFromCellMeta();
+  }
 }
 
 /**
@@ -947,7 +962,11 @@ export function rebuildCustomBordersFromCellMeta(hot: HotInstance): void {
  * when CustomBorders applies its settings.
  */
 export function clearCustomBorders(hot: HotInstance): void {
-  (getEnabledPlugin(hot, 'customBorders') as { clearBorders: () => void } | undefined)?.clearBorders();
+  const customBorders = hot.getPlugin('customBorders');
+
+  if (customBorders?.enabled) {
+    customBorders.clearBorders();
+  }
 }
 
 /**

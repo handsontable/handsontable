@@ -177,6 +177,22 @@ test.describe('dataProvider with sheetsBar', { tag: THEMES_TAG }, () => {
       expect(await grid.cellMeta(0, 1, 'readOnly')).toBeFalsy();
     });
 
+    test('a response that lands off-screen brings back the borders the sheet declares', async({
+      page, theme, bundle,
+    }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto({ ordersBorders: true });
+      await grid.clickTab(1);
+      await grid.clickTab(0);
+      await grid.startFetch();
+      await grid.clickTab(1);
+      await grid.release('ORD');
+      await grid.clickTab(0);
+
+      await expect(grid.cell(0, 1)).toHaveText('#2');
+      await expect.poll(() => grid.borderCells()).toEqual([[0, 1]]);
+    });
+
     test('a memoized fetchRows that returns the same array does not empty the sheet it lands in', async({
       page, theme, bundle,
     }) => {

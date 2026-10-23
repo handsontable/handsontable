@@ -37,9 +37,11 @@ test.describe('SheetsBar keeps the cell meta of a sheet across a round trip', { 
     await grid.setCellMeta(2, 0, 'readOnly', true);
     await grid.setCellMeta(3, 0, 'readOnly', true);
     await grid.filterByTag('a');
+    await expect.poll(() => grid.rowCount()).toBe(3);
 
     await grid.roundTrip();
 
+    await expect.poll(() => grid.rowCount()).toBe(3);
     await grid.checkAll();
 
     await expect.poll(() => grid.checkboxColumn()).toEqual([true, true, false, false, true]);

@@ -150,20 +150,29 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     switch restores the merges and a kept copy would stay on the cells of a stored merge that no longer
     fits; and `valid` as a user-defined key, because `valid` comes only from core's list of the cells whose
     meta holds `valid: false`, whatever wrote it, so a `valid: false` is kept and a `valid: true` is dropped.
-  - **A kept key makes the source-data validators look at every cell only when it can bring a validator in.**
-    The load's `runSourceDataValidators()` runs after the meta phase, and it used to scan every cell whenever
-    any user-defined meta existed. With no column validator it now skips unless a kept key is `type` or
-    `sourceDataValidator` (`canStoredMetaAddValidator()` in `dataMap/sourceDataValidator.ts`), so a comment or a
-    `readOnly` no longer costs a per-cell pass on every switch back.
+  - **A kept key makes the source-data validators look at every cell only when its name can bring a
+    validator in.** The load's `runSourceDataValidators()` runs after the meta phase, and it used to scan
+    every cell whenever any user-defined meta existed. With no column validator it now skips unless a kept
+    key is `type` or `sourceDataValidator` (`canStoredMetaAddValidator()` in `dataMap/sourceDataValidator.ts`),
+    so a comment or a `readOnly` no longer costs a per-cell pass on every switch back. A kept `type` still
+    pays it, and validates nothing: the uncached read the validators use does not expand a stored `type`, so
+    the cell has no `sourceDataValidator` of its own there. Develop scanned on any user meta, so this is no
+    regression.
   - **Known limit:** a mark is put back as it was. A cell that becomes invalid while its sheet is hidden is
     not marked until it is validated again, because validating the whole sheet on every switch costs too
     much; the sheets bar guide says so.
   - **A duplicate takes its original's meta** (`#copyCellMeta`): the grid's when the original is shown,
     what it left with otherwise, with each entry copied and a plain object or array value deep-cloned (a
-    class instance is shared, because a clone would lose its prototype). A copy has no view state until the
-    user leaves it, so the entries wait in `#copiedCellMeta` for its first visit, stored even when empty so the
-    copy does not take declared borders its original no longer has. A server response that replaces a hidden
-    sheet's rows drops both, because they describe the old rows.
+    class instance at the top level is shared, because a clone would lose its prototype; one nested inside an
+    object value comes out as a plain object). A copy has no view state until the user leaves it, so the
+    entries wait in `#copiedCellMeta` for its first visit, stored even when empty so the copy does not take
+    declared borders its original no longer has, and dropped once that visit has loaded the copy.
+  - **A server response that replaces a hidden sheet's rows removes `cellMeta` from its view state**
+    (`#keepDetachedOutcome`), because the meta described the old rows. The field is absent rather than empty
+    on purpose: an empty list means "the user left no meta", which on a return keeps a declared
+    `customBorders` array from being applied (the user cleared the borders), while an absent one lets the
+    declared borders apply to the fresh rows. Pinned by "a response that lands off-screen brings back the
+    borders the sheet declares" in `tests/e2e/data-provider-sheets-bar.spec.ts`.
 - **A live-grid build resets the view state.** `#buildInitialWorkbook` calls `resetViewState`
   after applying the opening sheet whenever the grid's view exists — `loadData` does not clear
   filters, hidden or trimmed indexes, merges, borders, or manual sizes, and an `updatePlugin`
@@ -451,9 +460,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   (a return, or a duplicate's first visit), because the declared pass would replace the borders the user left
   with. (3) Once the row and column order is restored (`restoreViewState`, or right after the load for a
   duplicate's first visit), `rebuildCustomBordersFromCellMeta()` calls CustomBorders' `@private`
-  `_rebuildFromCellMeta()`, which fills the model from the meta at the cells' current visual coordinates. A
-  border on a filtered row has no visual index then and is skipped, and the plugin's own `afterFilter` rebuild
-  draws it once the filter is cleared. Pinned by the border cases in `__tests__/cellMetaRoundTrip.unit.js`.
+  `_rebuildFromCellMeta()`, through the typed `hot.getPlugin('customBorders')`, which marks the model for a
+  rebuild from the meta. The rebuild must stay deferred: the restore runs with the index cache suspended, and
+  a rebuild run there put a border on a sorted sheet or a moved column onto another record. A border on a
+  filtered row has no visual index then and is skipped, and the plugin's own `afterFilter` rebuild draws it
+  once the filter is cleared. The view state's `customBorders` list is still captured for listeners to read,
+  and nothing replays it. Pinned by the border cases in `__tests__/cellMetaRoundTrip.unit.js`.
 - Switching calls `loadData()`, which clears the UndoRedo stacks; the state-restore hook and
   the announced switch fire after the batch, and switch announcements are made for the bar's
   own gestures only (`SOURCE_UI`).
