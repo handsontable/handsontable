@@ -1728,7 +1728,7 @@ describe('SheetsBar plugin', () => {
     expect(formulas.sheetName).toBe('Budget');
     expect(hot.getSourceDataAtCell(0, 1)).toBe('=A1*Rates!A1');
     expect(hot.getDataAtCell(0, 1)).toBe(23);
-    expect(formulas.skipSheetSwitchLoad).toBe(false);
+    expect(hot._isDataWorkDeferred()).toBe(false);
   });
 
   it('keeps the formula engine in step with a sheet edited before the switch away', () => {
@@ -1926,14 +1926,14 @@ describe('SheetsBar plugin', () => {
     throwOnUpdate = true;
 
     expect(() => hot.getPlugin('sheetsBar').setActiveSheet('Rates')).toThrow('update failed');
-    expect(formulas.skipSheetSwitchLoad).toBe(false);
-    expect(formulas.sheetName).toBe('Rates');
+    expect(hot._isDataWorkDeferred()).toBe(false);
+    expect(formulas.sheetName).toBe('Budget');
 
     loadSources.length = 0;
-    hot.updateSettings({ formulas: { engine, sheetName: 'Budget' } });
+    hot.updateSettings({ formulas: { engine, sheetName: 'Rates' } });
 
     expect(loadSources).toEqual(['Formulas.switchSheet']);
-    expect(formulas.sheetName).toBe('Budget');
+    expect(formulas.sheetName).toBe('Rates');
 
     hot.updateSettings({ minRows: 4 });
 
@@ -2011,7 +2011,7 @@ describe('SheetsBar plugin', () => {
     expect(rowsAtLoad).toBe(1);
   });
 
-  it('reports an unknown Formulas sheet name even while the switch load is skipped', () => {
+  it('reports an unknown Formulas sheet name applied ahead of its data, and binds the sheet the load fills', () => {
     const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -2022,13 +2022,12 @@ describe('SheetsBar plugin', () => {
     });
     const formulas = hot.getPlugin('formulas');
 
-    formulas.skipSheetSwitchLoad = true;
-    hot.updateSettings({ formulas: { engine, sheetName: 'Missing' } });
-    formulas.skipSheetSwitchLoad = false;
+    hot._applySettingsAndData({ formulas: { engine, sheetName: 'Missing' } }, [[200]], 'test');
 
     expect(errorSpy).toHaveBeenCalledWith('The sheet named `Missing` does not exist, switch aborted.');
-    expect(formulas.sheetName).toBe('Budget');
-    expect(engine.doesSheetExist('Missing')).toBe(false);
+    expect(formulas.sheetName).toBe('Missing');
+    expect(engine.getSheetSerialized(engine.getSheetId('Missing'))).toEqual([[200]]);
+    expect(engine.getSheetSerialized(engine.getSheetId('Budget'))).toEqual([[100]]);
 
     errorSpy.mockRestore();
   });
@@ -4789,11 +4788,16 @@ describe('SheetsBar plugin', () => {
 
     const plugin = hot.getPlugin('sheetsBar');
 
-    jest.spyOn(hot, 'loadData').mockImplementationOnce(() => {
-      throw new Error('switch failed');
+    let failNextLoad = true;
+
+    hot.addHook('afterLoadData', () => {
+      if (failNextLoad) {
+        failNextLoad = false;
+        throw new Error('switch failed');
+      }
     });
 
-    expect(() => plugin.setActiveSheet('B')).toThrow();
+    expect(() => plugin.setActiveSheet('B')).toThrow('switch failed');
     expect(plugin.setActiveSheet('C')).toBe(true);
     expect(hot.getDataAtCell(0, 0)).toBe('c');
   });

@@ -17,8 +17,9 @@ settings object against it and against what the page registers. Guide:
 - It reads two sources and owns neither. `metaSchema.ts` decides **which** options exist and their levels
   (`@configScope`), plugin (`@category`) and `@since`. `GridSettings`, `ColumnSettings` and `CellMeta` decide the
   **value types**, through the TypeScript compiler API, because the JSDoc `@type` has no enums. An option the types
-  do not declare falls back to its JSDoc `@type` (10 options as of 19.0). A new option therefore needs no change
-  here, but a new option the types do not declare gets only the coarse JSDoc type.
+  do not declare falls back to its JSDoc `@type`. A new option needs no change here, but one the types do not
+  declare gets only the coarse JSDoc type, and `settingsTypesCoverage.unit.js` fails: declare it in `GridSettings`
+  (or `CellMeta`). None falls back as of 19.0 (it was 10).
 - **Core must not import this module**, and neither may anything core imports. The schema is about 100 KB of JSON
   (the subpath bundles to about 80 KB minified, 18 KB gzipped), and the main UMD bundles must not carry it (the
   CDN file below ships it). Nothing validates settings on its own: `new Handsontable()` and `updateSettings()` never
@@ -54,11 +55,33 @@ settings object against it and against what the page registers. Guide:
 
 ## The traps
 
+- **A type that names a class must be listed in `RUNTIME_OBJECT_TYPES`, or it bloats the schema.** The converter
+  expands every property it can read, so `theme: ThemeBuilder | ... | string` put the class's `#private` fields into
+  the schema, and a `ThemeParams` member added every icon and token: 102 KB for one option, over 130 KB in all
+  against 65 KB for the rest. `ThemeBuilder` is listed (a class instance, `runtimeTypes`), and `theme` takes `object` for a plain config.
+  A new option typed with a class or another wide type needs the same, and `settingsTypesCoverage.unit.js` fails when
+  any option node passes 3000 characters.
 - **A value JSON cannot hold goes in `x-handsontable.runtimeTypes`, never in `type`.** A function, a `RegExp`, a DOM
   element or a class instance is not a JSON type, so a JSON validator must reject it in a JSON document, while
   `validateSettings()` accepts it at runtime. A node with no JSON form at all is `not: {}` plus `runtimeTypes`.
 - **A default must pass its own entry.** An option whose `metaSchema.ts` default is `null` gets `null` added to its
   type even when the TS type omits it (`colHeaders`). `schemaCoverage.unit.js` checks every default.
+- **Every documented option of a plugin accepts `null`, by one generator rule and not per option.** `buildNode` in
+  the generator adds `null` when the option has a plugin and an entry in `metaSchema.ts`, the switches and the
+  sub-options (`filterValueComparator`, `parsePastedValue`) alike: an app's own state can hold `null` before the
+  configuration loads (`useState(null)`, which the wrappers pass through), `checkPlugin()` already skips `null` for
+  every plugin option, and a runtime probe of every such option found none that throws or warns on `null`. The public
+  types stay as they are: widening `GridSettings.pagination` would break readers of `getSettings()`. A cell-meta-only
+  key (`comment`) has no entry and keeps its type. **`null` is not one thing at runtime.** A plugin that is on by
+  default and checks `!!settings[key]` (`copyPaste`, `fillHandle`, `undo`, `dragToScroll`) turns off on `null`, at
+  init and after `updateSettings()`, as it does on `false`. `autoColumnSize` and `importFile` check `!== false`, so
+  `null` leaves them on. The validator accepts both without a hint, and the guide says so. `schemaCoverage.unit.js`
+  pins the rule for every such option.
+- **A type narrower than what the plugin accepts is a false positive, so keep the two together.**
+  `DataProviderConfig.rowId` is `RowIdKey` (`utils/rowId.ts`), the type of the grid-level `rowId`: a string path or a
+  function of the source row. Its validator in the plugin's `constants.ts` accepts any function. Narrowing either
+  side flags the function form the guide shows, and typing the function's parameter `unknown` rejects a function that
+  declares its row type (contravariance).
 - **Levels come from `@configScope` and nothing else.** A wrong tag shows up as a `wrongLevel` false positive on a
   documented configuration. Fix the tag (and re-run `generate:option-levels`), not the validator.
 - **The column-level `data` and `filters` have their own types** (`ColumnSettings`), so `$defs.columnSettings` holds

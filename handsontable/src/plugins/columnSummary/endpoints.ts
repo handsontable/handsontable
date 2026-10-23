@@ -116,6 +116,46 @@ class Endpoints {
   }
 
   /**
+   * Returns the endpoints in the form of the plugin's settings, at the positions they hold now. A row or
+   * column alteration shifts an endpoint's destination and ranges, and the settings still name the
+   * positions they declared, so a caller that applies the settings again later (the sheets bar, on a
+   * return to a sheet) applies these instead. A destination counted from the bottom is given back as the
+   * offset it has now, which differs from the declared one once a removal left the summary parked above a
+   * data row, and a whole-table range is left out so it keeps following the table. Returns `null` for the
+   * function form, which reads its settings again on every pass, and before the endpoints are parsed.
+   *
+   * @returns {object[]|null}
+   */
+  exportSettings(): EndpointConfig[] | null {
+    if (this.settingsType === 'function' || !Array.isArray(this.endpoints)) {
+      return null;
+    }
+
+    return this.endpoints.map((endpoint) => {
+      const settings: EndpointConfig = {
+        destinationRow: endpoint.reversedRowCoords
+          ? this.countAddressableRows() - endpoint.destinationRow! - 1
+          : endpoint.destinationRow,
+        destinationColumn: endpoint.destinationColumn,
+        sourceColumn: endpoint.sourceColumn,
+        reversedRowCoords: endpoint.reversedRowCoords,
+        type: endpoint.type,
+        forceNumeric: endpoint.forceNumeric,
+        suppressDataTypeErrors: endpoint.suppressDataTypeErrors,
+        customFunction: endpoint.customFunction,
+        readOnly: endpoint.readOnly,
+        roundFloat: endpoint.roundFloat,
+      };
+
+      if (!endpoint.rangesFromDefault) {
+        settings.ranges = Array.isArray(endpoint.ranges) ? endpoint.ranges.map(range => range.slice()) : [];
+      }
+
+      return settings;
+    });
+  }
+
+  /**
    * Get a single endpoint object.
    *
    * @param {number} index Index of the endpoint.

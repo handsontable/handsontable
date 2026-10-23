@@ -137,6 +137,8 @@ const RUNTIME_OBJECT_TYPES = new Map([
   ['Function', 'function'],
   ['Map', 'Map'],
   ['Set', 'Set'],
+  // A class instance. Its `#private` fields would otherwise land in the schema as properties.
+  ['ThemeBuilder', 'object'],
 ]);
 
 /**
@@ -904,7 +906,7 @@ function isHookKey(key) {
  * Builds the schema object.
  *
  * @returns {{schema: object, internals: object}} The JSON Schema, and the lists `validateSettings()`
- * reads that are not part of it.
+ * reads that are not part of it, with the options whose type the settings types do not declare.
  */
 export function buildSettingsSchema() {
   // `@private` options (`preventWheel`) and the meta bookkeeping keys (`_userDefinedMetaProps`)
@@ -917,6 +919,7 @@ export function buildSettingsSchema() {
   const columnProperties = {};
   const cellProperties = {};
   const known = new Set([...options.map(option => option.name), ...internalOptions]);
+  const fromJsDoc = new Set();
   const optionsByName = new Map(options.map(option => [option.name, option]));
 
   assertOptionLevelsAgree(options);
@@ -931,6 +934,11 @@ export function buildSettingsSchema() {
    */
   const buildNode = (name, type, annotations) => {
     const option = optionsByName.get(name);
+
+    if (!type) {
+      fromJsDoc.add(name);
+    }
+
     const node = closeOptionNode(
       name,
       widenNode(name, type ? converter.convert(type) : fromJsDocType(name, option?.type)),
@@ -941,7 +949,10 @@ export function buildSettingsSchema() {
     // An option `metaSchema.ts` does not document takes the comment of its TypeScript declaration.
     const description = option?.description || readDescription(typeDocs.get(name) ?? '') ||
       (annotations.levels.includes('grid') ? '' : `The \`${name}\` property of the cell meta.`);
-    const nullable = option?.nullDefault ?? false;
+    // The types of a plugin's options omit `null`, but an app's own state can hold it before the configuration
+    // loads (`useState(null)`) and every plugin accepts it, so the schema takes it for every documented plugin
+    // option. A cell-meta-only key (`comment`) has no entry in `metaSchema.ts` and keeps its type.
+    const nullable = (option?.nullDefault ?? false) || (option !== undefined && annotations.plugin !== undefined);
 
     if (nullable && !acceptsNull(node)) {
       return allowNull({
@@ -1049,7 +1060,7 @@ export function buildSettingsSchema() {
     },
   };
 
-  return { schema, internals: { internalOptions, builtInPlugins } };
+  return { schema, internals: { internalOptions, builtInPlugins, fromJsDoc: [...fromJsDoc] } };
 }
 
 /**

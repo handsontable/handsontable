@@ -17,6 +17,7 @@ vue:
   metaTitle: Server-side configuration | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Server-side data
+menuTag: updated
 addedIn: "17.1.0"
 ---
 

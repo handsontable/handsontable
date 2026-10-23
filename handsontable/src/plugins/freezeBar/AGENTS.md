@@ -49,6 +49,7 @@ Covers `freezeBar.ts` (the plugin), `snapResolver.ts` (pointer to count) and the
 - **A press saves an open editor, and commits only when it became a drag.** `preventDefault()` on the press drops the compatibility `mousedown`, which is what saves an editor on a press outside the grid, so `#onPointerDown` calls `finishEditing()` itself. A release that never passed the threshold writes nothing., for the count read at the press may be stale by then (an undo, for example).
 - **Teardown must be safe mid-drag.** Wrappers call `disablePlugin()` and `enablePlugin()` on a rerender. `#teardown` aborts the drag (it removes the document listeners and stores nothing), removes the indicators of the drag and every bar.
 - **`SETTING_KEYS` is left at its default.** The bars follow `afterRender`, so a change of the frozen counts from anywhere (the API, `alter()`, undo) repositions them without a settings round trip.
+- **A drag ends when the data is replaced.** `beforeLoadData` runs `#abortDrag`, which stores nothing. With a sheets bar the count a drag would write belongs to the sheet that was left, and the drag measured that sheet's tracks. Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. Pinned by `tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
 
 ## Where to look next
 

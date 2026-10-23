@@ -39,7 +39,7 @@ export class MobileHandlesPage {
    */
   async goto({
     direction = 'ltr', frozen = false, frozenBottom = false, frozenEnd = false, headers = true, rows = 'short',
-    cols = 'short',
+    cols = 'short', rowHeaders, overscan = 'default',
   }: {
     direction?: 'ltr' | 'rtl';
     frozen?: boolean;
@@ -48,6 +48,8 @@ export class MobileHandlesPage {
     headers?: boolean;
     rows?: 'short' | 'tall';
     cols?: 'short' | 'wide';
+    rowHeaders?: boolean;
+    overscan?: 'default' | 'none';
   } = {}): Promise<void> {
     const query = new URLSearchParams({
       theme: this.theme,
@@ -59,7 +61,13 @@ export class MobileHandlesPage {
       headers: headers ? 'on' : 'off',
       rows,
       cols,
+      overscan,
     });
+
+    // Without a value the row headers follow `headers`.
+    if (rowHeaders !== undefined) {
+      query.set('rowHeaders', rowHeaders ? 'on' : 'off');
+    }
 
     await this.page.goto(`/tests/fixtures/demo/mobile-handles.html?${query}`);
     await expect(this.cell(1, 1)).toBeVisible();
@@ -93,8 +101,8 @@ export class MobileHandlesPage {
    * The top-left mobile selection handle of the focus selection, scoped to
    * the master overlay.
    */
-  topHandle(): Locator {
-    return this.page.locator('.ht_master .htBorders .topSelectionHandle:visible').first();
+  topHandle(overlay = 'ht_master'): Locator {
+    return this.page.locator(`.${overlay} .htBorders .topSelectionHandle:visible`).first();
   }
 
   /**
@@ -143,8 +151,8 @@ export class MobileHandlesPage {
   /**
    * Returns whether the top handle owns the pixels at the center of its visible marker.
    */
-  async isTopHandleHitAreaAtHandleCenter(): Promise<boolean> {
-    return this.topHandle().evaluate((handle) => {
+  async isTopHandleHitAreaAtHandleCenter(overlay = 'ht_master'): Promise<boolean> {
+    return this.topHandle(overlay).evaluate((handle) => {
       const { left, top, width, height } = handle.getBoundingClientRect();
       const element = document.elementFromPoint(left + (width / 2), top + (height / 2));
 
@@ -180,6 +188,24 @@ export class MobileHandlesPage {
 
     return handleBox.y + handleBox.height <= cellBox.y + (handleBox.height / 2)
       && handleBox.x + handleBox.width <= cellBox.x + (handleBox.width / 2);
+  }
+
+  /**
+   * Returns whether the painted handle sits fully inside the grid's root box, so no edge of the grid
+   * clips it.
+   */
+  async isHandleInsideGrid(handle: Locator): Promise<boolean> {
+    const handleBox = await handle.boundingBox();
+    const gridBox = await this.grid.boundingBox();
+
+    if (!handleBox || !gridBox) {
+      return false;
+    }
+
+    return handleBox.x >= gridBox.x
+      && handleBox.y >= gridBox.y
+      && handleBox.x + handleBox.width <= gridBox.x + gridBox.width
+      && handleBox.y + handleBox.height <= gridBox.y + gridBox.height;
   }
 
   /**
@@ -433,6 +459,37 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Scroll the grid until the given row is the first one the viewport shows, and wait until the master
+   * has drawn that band, with its first rendered row past `rangeStartRow` (the start of the selection
+   * that must be scrolled out).
+   */
+  async scrollRowToTop(row: number, rangeStartRow = 0): Promise<void> {
+    await this.page.evaluate(target => window.hot.scrollViewportTo({ row: target, verticalSnap: 'top' }), row);
+    await expect.poll(() => this.page.evaluate(() => window.hot.getFirstFullyVisibleRow())).toBe(row);
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getFirstRenderedRow()))
+      .toBeGreaterThan(rangeStartRow);
+  }
+
+  /**
+   * Scroll back to the top-start corner of the grid and wait until its first row is the first one rendered.
+   */
+  async scrollToGridStart(): Promise<void> {
+    await this.page.evaluate(() => window.hot.scrollViewportTo({ row: 0, col: 0, verticalSnap: 'top' }));
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getFirstRenderedRow())).toBe(0);
+  }
+
+  /**
+   * Scroll horizontally so the given column is the first fully visible one, and wait until the table's
+   * first rendered column is past `rangeStartCol` (the start of the selection that must be scrolled out).
+   */
+  async scrollColumnToStart(col: number, rangeStartCol = 0): Promise<void> {
+    await this.page.evaluate(target => window.hot.scrollViewportTo({ col: target, horizontalSnap: 'start' }), col);
+    await expect.poll(() => this.page.evaluate(() => window.hot.getFirstFullyVisibleColumn())).toBe(col);
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getFirstRenderedColumn()))
+      .toBeGreaterThan(rangeStartCol);
+  }
+
+  /**
    * Scroll back to the start of the grid so the given column is on screen again, and wait until the
    * viewport calculators count it.
    */
@@ -494,11 +551,22 @@ export class MobileHandlesPage {
    * selection edge, away from the round range handles that hang off the corners.
    */
   async pressTopMoveBandMidpoint(): Promise<void> {
+    await this.pressTopMoveBandAt();
+  }
+
+  /**
+   * Presses the top `moveCells` band with the mouse, `along` pixels in from its left edge, or at its
+   * midpoint when `along` is left out.
+   */
+  async pressTopMoveBandAt(along?: number): Promise<void> {
     const box = await this.moveZones().first().boundingBox();
 
     expect(box, 'the top move band must be laid out').not.toBeNull();
 
-    await this.page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+    await this.page.mouse.move(
+      box!.x + (along ?? (box!.width / 2)),
+      box!.y + (box!.height / 2),
+    );
     await this.page.mouse.down();
   }
 

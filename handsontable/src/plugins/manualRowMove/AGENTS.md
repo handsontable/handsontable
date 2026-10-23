@@ -62,6 +62,14 @@ If you change move semantics, check `nestedRows` in the same pass.
 `registerConflict('dataProvider', ['manualRowMove', …])`: with a complete server-backed `dataProvider`
 configuration, **DataProvider** is the plugin that stays disabled. See `../base/AGENTS.md`.
 
+## A drag ends when the data is replaced
+
+`beforeLoadData` cancels a held header drag (`#onBeforeDataReplace`: the pressed flag, the
+rows to move and the moving classes), so the `mouseup` takes its early return. The rows a drag holds are visual
+indexes of the data it started on, and the release moved the rows of the data that replaced it (a sheets bar switch).
+Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. ManualColumnMove has the same shape and is not covered yet (open). Pinned by
+`tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
+
 ## Where to look next
 
 - The column mirror and the shared index semantics: `../manualColumnMove/AGENTS.md`.

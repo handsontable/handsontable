@@ -531,28 +531,41 @@ correctly; an app that calls `engine.undo()` directly reverts only the out-of-bo
 
 Tests: `__tests__/validatedWriteResync.unit.js`.
 
-## `skipSheetSwitchLoad`: a `sheetName` change that only binds (DEV-3040)
+## A `sheetName` change applied ahead of its data only binds (DEV-3040)
 
 A `formulas.sheetName` change applied through `updateSettings()` makes `updatePlugin` call
-`switchSheet()`, which `loadData()`s the engine sheet's serialized content into the grid. A caller
-that loads the sheet's data itself right after the update — the SheetsBar plugin, on every switch —
-paid two full loads (index maps, cell-meta reset, AutoColumnSize sweep, every host `afterLoadData`).
-The `@private` field `skipSheetSwitchLoad` makes `updatePlugin` bind the sheet with
-`#updateSheetNameAndSheetId()` instead, and the caller's `loadData()` then reaches `#onAfterLoadData`,
-which writes the loaded array into the bound sheet — the same final state the double load reached.
-Three rules. A name the engine does not know still goes through `switchSheet()`, so the error is
-reported. The flag is set and reset by the caller around the one `updateSettings()` call, in a
-`finally`, and must never stay on: a host's own `updateSettings({ formulas: { sheetName } })` relies on
-`switchSheet()` to fill the grid. And it is a field, not a method, because SheetsBar reaches it through
-`hot.getPlugin('formulas')` without importing this plugin (the `UndoRedo#ignoreNewActions` pattern).
-With the load skipped, the grid still holds the caller's previous data for the rest of the update, so
-anything core writes there lands in it: SheetsBar vetoes core's `min*` padding (`auto` creates) for
-that update and lets its load pad the arriving data — see `../sheetsBar/AGENTS.md`. Tests, all in `../sheetsBar/__tests__/sheetsBar.unit.js`:
-"loads the grid once per switch" pins the single load; "reports an unknown Formulas sheet name even
-while the switch load is skipped" pins the `doesSheetExist` fallback; "leaves the Formulas switch
-load and min padding working after a switch threw mid-update" pins the `finally` reset through a
-SheetsBar switch, and SheetsBar's own `#blockAutoPadding` reset with it. "still loads the engine sheet when the host switches the Formulas sheet itself" has no
-SheetsBar, so it only pins the flag's default.
+`switchSheet()`, which `loadData()`s the engine sheet's serialized content into the grid. Core's
+`_applySettingsAndData()` (the SheetsBar plugin, on every switch, see `../base/AGENTS.md`) loads the
+sheet's data itself right after the settings, so while `isDataWorkDeferred()` answers `true`
+`updatePlugin` binds the sheet with `#updateSheetNameAndSheetId()` instead, and the load then reaches
+`#onAfterLoadData`, which writes the loaded array into the bound sheet. Three rules. A name the engine
+does not know still goes through `switchSheet()`, so the error is reported, and the load that follows
+then binds a new sheet of that name filled with the loaded data, as a plain `updateSettings()` plus
+`loadData()` does. The branch that fills a new sheet from the grid's current data when no sheet is
+bound is skipped in the same window: the grid still holds the previous data then (at init, no data map
+at all), and the load fills the sheet. And a host's own `updateSettings({ formulas: { sheetName } })`
+is never deferred, so it keeps relying on `switchSheet()` to fill the grid. Tests, all in
+`../sheetsBar/__tests__/sheetsBar.unit.js`: "loads the grid once per switch" pins the single load;
+"reports an unknown Formulas sheet name applied ahead of its data, and binds the sheet the load fills"
+pins the `doesSheetExist` fallback; "leaves the Formulas switch load and min padding working after a
+switch threw mid-update" pins that a throwing switch leaves the flag down.
+
+**The `afterCellMetaReset` that follows the call's own load resyncs only when a `cell` entry sets a key that decides the value the engine reads (`type`, `valueGetter`, `source`, `sourceLabel`, and `preserveTextValue`, which the engine-bound escaping reads; `VALUE_GETTER_META_KEYS`) or `columns` is a function.** Only the reset of the call's own held meta phase skips (`_isHeldMetaPhaseRunning()`): a full `updateSettings()` an `afterLoadData` listener makes in the same call runs its meta phase outside that window, and its `columns` reached the column meta after the load wrote the sheet, so it resyncs. The sheets bar restates a grid-level `cell` on every switch, so counting any entry made every switch of such a workbook pay the resync, even for an entry that only sets `readOnly`. A custom `valueGetter` that reads another key of a `cell` entry is not seen. Core resets the column meta before that load for `columns: null` (the sheets bar sends it for a sheet without `columns`), so that payload needs no resync. The two `updatePlugin()` branches that bind a sheet for the load (the `sheetName` rebind without `switchSheet()`, and the skipped fill from the current data) ask `isDataLoadPending()`, not `isDataWorkDeferred()`: an enable from an `afterLoadData` listener in that call comes after the load, and waiting for it left `sheetName` `null`.
+The load already wrote the sheet with the call's column configuration, so a resync there was a second full
+engine write and a second AutoColumnSize sweep per switch (`tests/e2e/sheet-switch-autosize.spec.ts` pins
+one). The `cell` entries are applied after the load, though, and a cell type they set can change the value
+the engine reads (a key/value dropdown resolves an object to its label), and so are the column types of a
+`columns` function (core's early `columns` pass covers the array form only), so such a call resyncs once
+(`#metaPhaseMayChangeEngineValues()`, pinned by "feeds Formulas the value a cell type from the `cell`
+option resolves on the new data" in `../sheetsBar/__tests__/deferredPluginWork.unit.js`).
+
+**`#hotWasInitializedWithEmptyData` reads the loaded array, not only the `data` setting.** It decides
+whether the engine sheet is the grid's data source, and it is set in `beforeLoadData`. Core's first
+load can carry a real array before the `data` setting is stored (the sheets bar loads its opening sheet
+that way), and a check of the setting alone then marked the grid as empty, so every later settings
+update reloaded the grid from the engine sheet. The array check is scoped to that call
+(`isDataWorkDeferred()`): a grid built with a `dataProvider` and no `data` loads a `[]` placeholder first
+and must keep reading the engine sheet as its data, and a grid built without data loads `null`.
 
 ## Object rows: the sheet is only as wide and as aligned as `getSourceDataArray()` makes it
 

@@ -19,6 +19,7 @@ vue:
   metaTitle: Undo / redo with a custom UI | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
+menuTag: updated
 type: how-to
 ---
 

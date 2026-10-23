@@ -289,7 +289,7 @@ Pass the `sheets` option to write several grids into one workbook, one per entry
 
 Each export method takes the format first, `'csv'` or `'xlsx'`, and an options object second.
 
-- [`downloadFileAsync(format, options)`](@/api/exportFile.md#downloadfileasync) - starts a download and returns a `Promise`. CSV and XLSX.
+- [`downloadFileAsync(format, options)`](@/api/exportFile.md#downloadfileasync) - starts a download and returns a `Promise`. CSV and XLSX. With the [`Dialog`](@/api/dialog.md) plugin, an XLSX export reads the data after its progress overlay is shown, so a [`loadData()`](@/api/core.md#loaddata) call in between, such as a [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md) tab switch, rejects the `Promise` and downloads nothing.
 - [`exportAsBlobAsync(format, options)`](@/api/exportFile.md#exportasblobasync) - returns a `Promise` of a `Blob`. CSV and XLSX.
 - [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile), [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob), and [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - synchronous, CSV only. They throw for `'xlsx'`.
 - [`supportsExportFormat(format)`](@/api/exportFile.md#supportsexportformat) - `true` when the format can be written.

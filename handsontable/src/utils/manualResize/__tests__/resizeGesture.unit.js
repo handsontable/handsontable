@@ -886,6 +886,24 @@ describe('ResizeGesture', () => {
       expect(afterResizeCalls(hot)).toEqual([['afterTestResize', 55, 2, true]]);
     });
 
+    it('should not resize from a double-click window that an abort() ended', () => {
+      const { hot, th, owner, gesture, handle, timeouts } = createGesture();
+
+      mouse('mouseover', th);
+      mouse('mousedown', handle());
+      mouse('mouseup', window);
+      mouse('mousedown', handle());
+      mouse('mouseup', window);
+
+      owner.setManualSize.mockClear();
+      hot.runHooks.mockClear();
+      gesture.abort();
+      timeouts[0]();
+
+      expect(hot.runHooks).not.toHaveBeenCalled();
+      expect(owner.setManualSize).not.toHaveBeenCalled();
+    });
+
     it('should not resize from a single press', () => {
       const { hot, th, owner, handle, timeouts } = createGesture();
 

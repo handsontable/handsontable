@@ -17,6 +17,7 @@ vue:
   metaTitle: Conditional row coloring | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Rendering and styling
+menuTag: updated
 type: how-to
 ---
 

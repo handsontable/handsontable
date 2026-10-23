@@ -239,9 +239,35 @@ How server sheets behave when you switch:
 
 - A sheet fetches its rows the first time you open it.
 - When you come back, the sheet shows the rows, sort, filters, and page it had when you left, without a new fetch. To refresh it, call [`fetchData()`](@/api/dataProvider.md#fetchdata).
-- A fetch or a save that's still running when you switch away finishes for the sheet that started it.
+- A fetch or a save that's still running when you switch away finishes for the sheet that started it. A create on a sheet with `refetchAfterCreate: false` that finishes while its sheet is hidden refetches that sheet anyway, because there's no grid showing it to add the rows to.
 - If a request fails while its sheet is hidden, [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) or [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires right away. The error notification appears when you return to the sheet. `afterDataProviderFetchError` gets a third argument, `isVisible`, set to `false`.
 - A duplicated sheet starts with a copy of the original's rows. If the original has already loaded rows, the copy doesn't fetch on its first visit.
+
+With `refetchAfterCreate: false`, your [`onRowsCreate`](@/guides/getting-started/server-side-data/server-side-data-crud.md#onrowscreate) adds the new rows to the grid itself. The grid shows the active sheet, which can change while the request runs, so add the rows only when the sheet that owns this provider is still active. Compare against the sheet the provider belongs to, not the sheet that was active when `onRowsCreate` started: a create queued behind another save starts after the user may have switched.
+
+```js
+const isSheetActive = name => hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive)?.name === name;
+
+const ordersProvider = {
+  refetchAfterCreate: false,
+  onRowsCreate: async({ position, referenceRowId, rowsAmount }) => {
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      body: JSON.stringify({ position, referenceRowId, rowsAmount }),
+    });
+    const created = await response.json();
+
+    if (isSheetActive('Orders')) {
+      hot.updateData([...hot.getSourceData(), ...created]);
+    }
+
+    return created;
+  },
+  // fetchRows, onRowsUpdate, onRowsRemove...
+};
+```
+
+When the sheet isn't active anymore, the plugin refetches it, so the new rows are there when you return.
 
 For the `dataProvider` setup itself, see [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).
 

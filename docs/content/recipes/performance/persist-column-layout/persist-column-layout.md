@@ -21,6 +21,7 @@ vue:
   metaTitle: Persist and restore column widths and order | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Performance
+menuTag: updated
 type: how-to
 ---
 

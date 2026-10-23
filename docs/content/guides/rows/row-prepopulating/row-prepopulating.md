@@ -18,6 +18,7 @@ vue:
   metaTitle: Row pre-populating | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Pre-populate new rows with default values when users add rows to the grid.
 

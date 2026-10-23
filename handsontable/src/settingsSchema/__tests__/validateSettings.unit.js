@@ -167,6 +167,11 @@ describe('validateSettings', () => {
         onRowsUpdate() {},
         rowId: 'id',
         refetchAfterCreate: true }],
+      ['dataProvider', { fetchRows() {},
+        onRowsCreate() {},
+        onRowsRemove() {},
+        onRowsUpdate() {},
+        rowId: row => row.id }],
       ['dragToScroll', { interval: { min: 10, max: 50 }, rampDistance: 30 }],
       ['fillHandle', { direction: 'vertical', autoInsertRow: false }],
       ['manualColumnFreeze', { restoreColumnPosition: true }],
@@ -197,6 +202,21 @@ describe('validateSettings', () => {
       ['sheetsBar', true],
     ])('should accept the short form of %s: %j', (option, value) => {
       expect(validateSettings({ [option]: value }).problems).toEqual([]);
+    });
+
+    it.each([
+      'pagination', 'filters', 'columnSorting', 'hiddenColumns', 'dropdownMenu', 'undo', 'fillHandle', 'sheetsBar',
+    ])('should accept `null` for the plugin option %s', (option) => {
+      expect(validateSettings({ [option]: null })).toEqual({ valid: true, problems: [] });
+    });
+
+    it('should accept `null` for a plugin option on a column', () => {
+      expect(validateSettings({ columns: [{ columnSorting: null, filters: null }] }))
+        .toEqual({ valid: true, problems: [] });
+    });
+
+    it('should still report a wrong type for a plugin option that accepts `null`', () => {
+      expect(brief(validateSettings({ pagination: 42 }))).toEqual([{ path: 'pagination', code: 'invalidType' }]);
     });
 
     it('should accept the closed options inside `columns` and a `cell` entry', () => {
@@ -776,6 +796,13 @@ describe('validateSettings', () => {
     expect(validateSettings({ theme: new Builder() }).problems).toEqual([]);
     expect(validateSettings({ theme: 'ht-theme-main' }).problems).toEqual([]);
     expect(brief(validateSettings({ theme: [] }))).toEqual([{ path: 'theme', code: 'invalidType' }]);
+  });
+
+  it('should accept a plain theme config object and check the notification settings', () => {
+    expect(validateSettings({ theme: { name: 'custom', tokens: { someToken: '1px' } } }).problems).toEqual([]);
+    expect(validateSettings({ notification: { stackLimit: 3, animation: false } }).problems).toEqual([]);
+    expect(brief(validateSettings({ notification: { stackLimit: 'ten' } })).map(({ code }) => code))
+      .toEqual(['invalidType']);
   });
 
   it('should report the key of a built-in plugin that is not one of its options', () => {

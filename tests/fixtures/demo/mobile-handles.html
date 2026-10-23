@@ -51,6 +51,20 @@
       throw new Error('Unknown ?headers= value: ' + JSON.stringify(params.get('headers')));
     }
 
+    // The row headers follow `headers` unless named, so the phone config of DEV-1079 (row headers off, column
+    // headers on) can be built: only the inline edge then has no clone over it.
+    window.htRowHeaders = ({ follow: window.htHeaders, on: true, off: false })[params.get('rowHeaders') ?? 'follow'];
+    if (window.htRowHeaders === undefined) {
+      throw new Error('Unknown ?rowHeaders= value: ' + JSON.stringify(params.get('rowHeaders')));
+    }
+
+    // `none` renders only the rows and columns the viewport shows, so a range whose start is scrolled out has
+    // no rendered track before the viewport to hide behind.
+    window.htOverscan = ({ default: 'auto', none: 0 })[params.get('overscan') ?? 'default'];
+    if (window.htOverscan === undefined) {
+      throw new Error('Unknown ?overscan= value: ' + JSON.stringify(params.get('overscan')));
+    }
+
     // A tall data set is needed for the bottom frozen pane and for the scrolled cases.
     window.htRows = ({ short: 5, tall: 40 })[params.get('rows') ?? 'short'];
     if (window.htRows === undefined) {
@@ -97,7 +111,9 @@
       width: 350,
       height: 300,
       colHeaders: window.htHeaders,
-      rowHeaders: window.htHeaders,
+      rowHeaders: window.htRowHeaders,
+      viewportRowRenderingOffset: window.htOverscan,
+      viewportColumnRenderingOffset: window.htOverscan,
       fixedRowsTop: window.htFrozen,
       fixedColumnsStart: window.htFrozen,
       fixedRowsBottom: window.htFrozenBottom,

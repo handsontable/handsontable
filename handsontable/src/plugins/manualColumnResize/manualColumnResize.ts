@@ -137,6 +137,7 @@ export class ManualColumnResize extends BasePlugin {
     this.addHook('modifyColWidth', this.#onModifyColWidth, 1);
     this.addHook('beforeStretchingColumnWidth', this.#onBeforeStretchingColumnWidth, 1);
     this.addHook('beforeColumnResize', this.#onBeforeColumnResize);
+    this.addHook('beforeLoadData', this.#onBeforeDataReplace);
 
     this.#gesture.bindEvents(this.eventManager);
 
@@ -553,6 +554,14 @@ export class ManualColumnResize extends BasePlugin {
     }
 
     return stretchedWidth;
+  };
+
+  /**
+   * Cancels a resize drag held while the grid's data is replaced (`loadData()`, a sheet
+   * switch), so the release does not resize the columns of the data that replaced it.
+   */
+  #onBeforeDataReplace = () => {
+    this.#gesture.abort();
   };
 
   /**

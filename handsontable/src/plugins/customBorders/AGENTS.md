@@ -87,9 +87,11 @@ split across batches still merge correctly. A plain synchronous call owns and cl
   the configuration never targeted.
 - **Do not render from `afterCreateRow` / `afterCreateCol` / `afterRemove*`.** Those fire from inside
   `alter()`, before it finishes rewriting the headers, and `alter()` renders when it is done. A forced
-  mid-`alter()` render paints a header row the closing render then treats as up to date, so labels stay
-  bound to their pre-insert columns while the new column is appended at the end — clicking a header then
-  selects a different column than the label sits on (#11031).
+  mid-`alter()` render paints from half-written state and costs a draw the closing render repeats.
+  `grid.runAlter()` sets `forceFullRender` before that closing render, so a render from those hooks no
+  longer leaves the headers on the wrong columns (#11031). The plugin's own handlers never render, and
+  must keep it that way: the extra draw is pure cost, and anything that reads the DOM inside `alter()`
+  still sees the half-written paint.
 - **Skip the shift for auto-inserted rows and columns.** `minSpareRows` / `minSpareCols` append at the end
   and do **not** shift cell meta in the core (`DataMap#createCol` skips `metaManager.createColumn` when
   `source === 'auto'`), so shifting the model would diverge from the meta.
@@ -285,3 +287,10 @@ breaks** — that is expected; update the assertion and reference the issue.
 read through `hot.view.countFixedColumnsEnd()`, so the start columns keep the priority). The end clone renders the last
 columns even when the master range is far from them, exactly like the start clone, so a border on an end column
 has to be in the working set or it is never drawn. Pinned by `tests/e2e/fixed-columns-end-plugins.spec.ts`.
+
+## Declared borders applied ahead of their data wait for `onDataReady()`
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), `updatePlugin()` holds `changeBorderSettings()` back for `onDataReady()`, which runs it
+without its own render (core renders once). Run before, it dropped every border outside the rows the grid
+still held and wrote the rest into cell meta the load then cleared.

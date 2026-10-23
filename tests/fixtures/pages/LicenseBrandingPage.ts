@@ -17,6 +17,8 @@ export const INSTANT = {
 type LicenseKeyName = 'trial' | 'trial-external' | 'subscription' |
   'tampered' | 'legacy-expired' | 'non-commercial-padded' | 'missing' |
   'edited-prose' | 'subscription-pasted' | 'subscription-wrapped' | 'trial-v1';
+export interface PixelBox { minX: number; maxX: number; minY: number; maxY: number }
+
 type Variant = 'default' | 'no-row-headers' | 'no-headers-frozen' | 'narrow-corner' | 'dialog' |
   'nested' | 'narrow';
 
@@ -99,19 +101,100 @@ export class LicenseBrandingPage {
    * all, which is what a grid that must NOT be branded reports.
    */
   async cornerGlyph(cell: Locator = this.cornerHeaderCell): Promise<{
-    maskImage: string; widthPx: number; heightPx: number; cellWidthPx: number; cellHeightPx: number;
+    maskImage: string; backgroundImage: string; backgroundSize: string; backgroundColor: string;
+    widthPx: number; heightPx: number; cellWidthPx: number; cellHeightPx: number;
   }> {
     return cell.evaluate((element) => {
       const glyph = getComputedStyle(element, '::after');
 
       return {
         maskImage: glyph.maskImage,
+        backgroundImage: glyph.backgroundImage,
+        backgroundSize: glyph.backgroundSize,
+        backgroundColor: glyph.backgroundColor,
         widthPx: parseFloat(glyph.width),
         heightPx: parseFloat(glyph.height),
         cellWidthPx: (element as HTMLElement).offsetWidth,
         cellHeightPx: (element as HTMLElement).offsetHeight,
       };
     });
+  }
+
+  /**
+   * The mask and the background layers of the logomark the lock screen paints in its header strip
+   * (the lock's own `::after`), and the size of its box.
+   */
+  async lockGlyph(): Promise<{ maskImage: string; backgroundImage: string; widthPx: number; heightPx: number }> {
+    return this.lock.evaluate((element) => {
+      const glyph = getComputedStyle(element, '::after');
+
+      return {
+        maskImage: glyph.maskImage,
+        backgroundImage: glyph.backgroundImage,
+        widthPx: parseFloat(glyph.width),
+        heightPx: parseFloat(glyph.height),
+      };
+    });
+  }
+
+  /**
+   * Bounding boxes, in CSS pixels from the cell's top-left, of the BLUE pixels and of the other "ink"
+   * pixels (neutral gray that differs from the cell background, i.e. the "H") the corner glyph really paints. Read from a
+   * screenshot, because computed styles cannot tell whether the dot landed on the mask or was clipped
+   * away. The cell's own 3px frame is skipped so its borders are not counted as ink.
+   */
+  async cornerGlyphPaint(cell: Locator = this.cornerHeaderCell): Promise<{
+    blue: PixelBox | null; ink: PixelBox | null;
+  }> {
+    const png = (await cell.screenshot()).toString('base64');
+
+    return this.page.evaluate(async (base64) => {
+      const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${base64}`)).blob());
+      const canvas = document.createElement('canvas');
+
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+
+      const context = canvas.getContext('2d')!;
+
+      context.drawImage(bitmap, 0, 0);
+
+      const { data } = context.getImageData(0, 0, bitmap.width, bitmap.height);
+      const frame = 3;
+      const at = (x: number, y: number) => {
+        const i = (y * bitmap.width + x) * 4;
+
+        return [data[i], data[i + 1], data[i + 2]];
+      };
+      const background = at(frame, frame);
+      const blue: number[][] = [];
+      const ink: number[][] = [];
+
+      for (let y = frame; y < bitmap.height - frame; y++) {
+        for (let x = frame; x < bitmap.width - frame; x++) {
+          const [r, g, b] = at(x, y);
+
+          if (b - r > 100 && b > 150) {
+            blue.push([x, y]);
+          } else if (
+            Math.abs(r - background[0]) + Math.abs(g - background[1]) + Math.abs(b - background[2]) > 60 &&
+            Math.max(r, g, b) - Math.min(r, g, b) <= 20
+          ) {
+            // Neutral gray only: the antialiased edge of the dot is a blend of blue and gray and is not the "H".
+            ink.push([x, y]);
+          }
+        }
+      }
+
+      const box = (points: number[][]) => (points.length === 0 ? null : {
+        minX: Math.min(...points.map(p => p[0])),
+        maxX: Math.max(...points.map(p => p[0])) + 1,
+        minY: Math.min(...points.map(p => p[1])),
+        maxY: Math.max(...points.map(p => p[1])) + 1,
+      });
+
+      return { blue: box(blue), ink: box(ink) };
+    }, png);
   }
 
   /**

@@ -193,3 +193,9 @@ Either way, `afterEmptyDataStateHide` fires last.
 
 The shortcut behavior is pinned by the Playwright spec, not by `__tests__/keyboardShortcuts/`: it needs a
 real context menu and real key events, and the legacy suite is frozen.
+
+## The enable-time toggle waits for `onDataReady()` when settings arrive ahead of data
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), `enablePlugin()` leaves `#toggleEmptyDataState()` to `onDataReady()`. Run before, it
+showed the overlay and took the keyboard for a grid about to receive rows.

@@ -17,7 +17,6 @@ tags:
   - recipes
 searchCategory: Recipes
 category: Platforms and embedding
-menuTag: new
 ---
 
 In this tutorial, you will run Handsontable DataGrid inside a Salesforce Lightning Web Component, bound to live Account records. It covers only the glue between the grid and the platform: shipping the library as a static resource, getting its stylesheets across the shadow boundary, mapping Salesforce field metadata to column types, and turning grid hooks into Lightning Data Service calls. It assumes you already write Lightning Web Components.

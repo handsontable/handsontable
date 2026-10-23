@@ -44,6 +44,18 @@ describe('settingsSchema coverage', () => {
     expect(withoutLevels).toEqual([]);
   });
 
+  it('should accept `null` for every documented option of a plugin', () => {
+    const pluginOptions = Object.keys(settingsSchema.properties)
+      .filter(key => Object.prototype.hasOwnProperty.call(defaults, key))
+      .filter(key => settingsSchema.properties[key]['x-handsontable'].plugin !== undefined);
+    const rejecting = pluginOptions.filter(key => validateSettings({ [key]: null }).problems.length > 0);
+
+    // The count is pinned, so an option that loses its `plugin` annotation fails here instead of dropping out of
+    // the list silently. Update it when a plugin option is added or removed.
+    expect(pluginOptions.length).toBe(50);
+    expect(rejecting).toEqual([]);
+  });
+
   describe('closed settings objects', () => {
     /**
      * Returns the `additionalProperties: false` object branches of an option node, by path.

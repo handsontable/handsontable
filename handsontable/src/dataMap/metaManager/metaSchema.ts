@@ -67,6 +67,25 @@ function getSchemaDefault(
 }
 
 /**
+ * Tells whether a non-empty cell value is the default its column has in the data schema.
+ *
+ * An object value is compared structurally. Any other value counts only when a `dataSchema` was
+ * configured, because the duck-typed schema holds no defaults to compare against.
+ *
+ * @param {*} value The cell value.
+ * @param {*} schemaDefault The schema default of the column.
+ * @param {boolean} hasExplicitSchema Whether a `dataSchema` was configured.
+ * @returns {boolean}
+ */
+function isSchemaDefault(value: unknown, schemaDefault: unknown, hasExplicitSchema: boolean): boolean {
+  if (typeof value === 'object') {
+    return isObjectEqual(schemaDefault, value);
+  }
+
+  return hasExplicitSchema && schemaDefault === value;
+}
+
+/**
  * Reads the schema that a row was created from. A `dataSchema` function builds each new row from
  * the row's index, so the defaults of one row can differ from another's and from the no-argument
  * call `getSchema()` makes. A row that moved since it was created reads as holding no defaults.
@@ -2242,7 +2261,10 @@ export default (): Record<string, unknown> => {
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
      * A string **`rowId`** is read the same way as the [`rowId`](#rowid) option: a property named exactly as the string
-     * wins, dots included, and otherwise the dots read a nested property.
+     * wins, dots included, and otherwise the dots read a nested property. **`rowId`** can also be a function that
+     * receives the source row and returns its id. Keep that function as a stable reference: a new function passed
+     * on each [`updateSettings()`](@/api/core.md#updatesettings) call counts as a new key and fires
+     * [`afterRowIdsReset`](@/api/hooks.md#afterrowidsreset).
      *
      * Set it to `null` to turn server-backed loading off again, for example through
      * [`updateSettings()`](@/api/core.md#updatesettings).
@@ -4674,19 +4696,9 @@ export default (): Record<string, unknown> => {
               getRowSchema(this, dataSchema, row)!, prop, dataDotNotation, hasExplicitSchema);
           }
 
-          if (typeof value === 'object') {
-            if (isObjectEqual(schemaDefault, value) === false) {
-              return false;
-            }
-
-            continue;
+          if (!isSchemaDefault(value, schemaDefault, hasExplicitSchema)) {
+            return false;
           }
-
-          if (hasExplicitSchema && schemaDefault === value) {
-            continue;
-          }
-
-          return false;
         }
       }
 
@@ -4736,19 +4748,9 @@ export default (): Record<string, unknown> => {
           const schemaDefault = prop === null ?
             undefined : getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
-          if (typeof value === 'object') {
-            if (isObjectEqual(schemaDefault, value) === false) {
-              return false;
-            }
-
-            continue;
+          if (!isSchemaDefault(value, schemaDefault, hasExplicitSchema)) {
+            return false;
           }
-
-          if (hasExplicitSchema && schemaDefault === value) {
-            continue;
-          }
-
-          return false;
         }
       }
 
@@ -8268,7 +8270,7 @@ export default (): Record<string, unknown> => {
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
-     * @type {ThemeBuilder|string|undefined}
+     * @type {ThemeBuilder|object|string|undefined}
      * @default undefined
      * @category Core
      * @configScope grid
