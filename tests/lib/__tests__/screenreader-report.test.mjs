@@ -30,6 +30,12 @@ test('stepLines finds the line of every step id', () => {
   assert.deepEqual([...stepLines(SOURCE)], [['arrow-right', 4], ['open-editor', 8]]);
 });
 
+test('stepLines never takes the scenario\'s own id for a step named like the scenario', () => {
+  const source = '{\n  "schema": 1,\n  "id": "grid-core",\n  "steps": [\n    {\n      "id": "grid-core",\n      "action": {}\n    }\n  ]\n}\n';
+
+  assert.deepEqual([...stepLines(source)], [['grid-core', 6]], 'the scenario id sits two spaces in, a step id four or more');
+});
+
 test('a clean run is a success named after the project', () => {
   const report = build([transcript()]);
 
@@ -44,6 +50,38 @@ test('a clean run is a success named after the project', () => {
   assert.match(report.summary, /### grid-core on nvda-chromium/);
   assert.match(report.summary, /\| arrow-right \| press ArrowRight \| 34 age row 2 \| ✔ 34<br>✔ age \| ✔ same \| 1500 \|/);
   assert.match(report.summary, /### Timing\n\n\| Scenario \| Steps \| Duration \| Per step \|\n\|---\|---:\|---:\|---:\|\n\| grid-core \| 2 \| 3\.0 s \| 1\.5 s \|\n\| \*\*total\*\* \| 2 \| 3\.0 s \| 1\.5 s \|/);
+});
+
+test('the clean headline counts its nouns, and a run that recorded every golden says so', () => {
+  const one = build([transcript({ steps: [step('arrow-right', '34 age row 2', [['34']])] })]);
+
+  assert.equal(one.title, '✔ 1 scenario, 1 step: every token group present, every golden matched');
+  assert.match(one.summary, /\. 1 step in 3\.0 s,/, 'the scenario line counts its step too');
+
+  const recorded = build([
+    transcript({ golden: { status: 'recorded', differences: [] } }),
+    transcript({ scenario: 'nested-rows', golden: { status: 'recorded', differences: [] } }),
+  ], { expectedScenarios: ['grid-core', 'nested-rows'] });
+
+  assert.equal(recorded.conclusion, 'success');
+  assert.equal(recorded.title, '✔ 2 scenarios, 4 steps: every token group present, goldens recorded');
+});
+
+test('a scenario that stopped at a step is a tooling failure, and the steps it captured are still rendered', () => {
+  const report = build([transcript({
+    steps: [step('arrow-right', '34 age row 2', [['34'], ['age']])],
+    golden: { status: 'incomplete', differences: [] },
+    incomplete: { step: 'open-editor', error: 'step open-editor: .handsontableInput visible\n\nexpect(locator).toBeVisible() failed' },
+  })]);
+
+  assert.equal(report.conclusion, 'failure');
+  assert.equal(report.title, '✖ Tooling failure: scenario grid-core stopped at step open-editor: step open-editor: .handsontableInput visible expect(locator).toBeVisible() failed');
+  assert.match(report.summary, /> Tooling problem: scenario grid-core stopped at step open-editor/);
+  assert.match(report.summary, /> Stopped at step open-editor: step open-editor: \.handsontableInput visible/);
+  assert.match(report.summary, /1 step in 3\.0 s, every token group present, no golden comparison\./);
+  assert.match(report.summary, /\| arrow-right \| press ArrowRight \| 34 age row 2 \| ✔ 34<br>✔ age \| – \| 1500 \|/, 'the captured step is in the table, with no golden verdict');
+  assert.doesNotMatch(report.summary, /no transcript for "grid-core"/, 'a partial transcript is a transcript');
+  assert.equal(report.counts.goldenMissing, 0, 'a partial run is not a missing golden');
 });
 
 test('a missing token group is neutral in report mode, with an annotation on the step line', () => {

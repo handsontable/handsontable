@@ -17,6 +17,7 @@ import {
   renderTranscriptLog,
   type Golden,
   type Transcript,
+  type TranscriptIncomplete,
   type TranscriptStep,
 } from '../lib/screenreader-transcript.mjs';
 
@@ -32,7 +33,9 @@ import {
  *
  * Report-only while `SCREENREADER_MODE` is `report`: a missing token group or a golden difference is
  * recorded, never asserted. What fails a test is tooling: a fixture that does not load, a constructor
- * throw, a step whose `after` state never comes, a screen reader that does not start.
+ * throw, a step whose `after` state never comes, a screen reader that does not start. A step that
+ * throws still leaves the transcript, with the steps captured before it and where it stopped
+ * (`incomplete`).
  *
  * Goldens: `--update-snapshots` (`npm run test:screenreader:update-goldens`) or `HOT_SR_UPDATE_GOLDENS=1`
  * writes `goldens/<project>/<scenario>.json` from the run. Nobody records an NVDA golden on a Mac: the
@@ -177,10 +180,12 @@ function guidepupReader(screenReader: ScreenReaderPlaywright): Reader {
         return spokenPhrase;
       }
 
-      // Nothing within a second of silence: listen once more. NVDA can speak more than a second after
-      // the action completed (Shift+F10 on Firefox announced the menu that late, and the phrase landed
-      // in the next step's capture), so a late phrase lands on its own step, and a step that stays
-      // empty is proven silent by two silence windows. Guidepup's silence window is the wait.
+      // Nothing within a second of silence: listen once more for another silence window. NVDA can
+      // speak more than a second after the action completed (Shift+F10 on Firefox announced the menu
+      // that late, and the phrase landed in the next step's capture), so a late phrase usually lands on
+      // its own step. Guidepup discards speech that arrives while it stops the previous utterance, so
+      // the second listen reduces late phrases in the next step, it does not remove them. Guidepup's
+      // silence window is the wait.
       const late = await screenReader.capture(async() => {}, { capture: true });
 
       return late.spokenPhrase;
@@ -231,7 +236,84 @@ function domEchoReader(page: Page): Reader {
 }
 
 /**
- * Runs one scenario with a reader and writes its transcript.
+ * What one run of a scenario captured, for its transcript.
+ */
+interface ScenarioRun {
+  startedAt: string;
+  started: number;
+  steps: TranscriptStep[];
+  entering: string[];
+  incomplete?: TranscriptIncomplete;
+}
+
+/**
+ * The text of an error for a transcript: its message without the terminal colors a Playwright
+ * assertion message carries.
+ *
+ * @param error The error.
+ * @returns The text.
+ */
+function errorText(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return message.replace(/\u001b\[[0-9;]*m/g, '').trim();
+}
+
+/**
+ * Writes a scenario's transcript (`.json` and `.log`) and attaches both to the test. A complete run is
+ * compared with the project's golden, or records it; a run that stopped at a step (`incomplete`) is
+ * compared with nothing and records nothing, because half the steps would read as the whole wording.
+ *
+ * @param page The page.
+ * @param reader The reader.
+ * @param scenario The scenario.
+ * @param testInfo The test's info.
+ * @param run What the run captured.
+ */
+async function writeTranscript(page: Page, reader: Reader, scenario: Scenario, testInfo: TestInfo, run: ScenarioRun): Promise<void> {
+  const project = testInfo.project.name;
+  const goldenFile = path.join(GOLDENS_DIR, project, `${scenario.id}.json`);
+  const transcript: Transcript = {
+    schema: TRANSCRIPT_SCHEMA,
+    scenario: scenario.id,
+    surface: scenario.surface,
+    project,
+    mode: SCREENREADER_MODE,
+    attempt: testInfo.retry,
+    environment: {
+      screenReader: reader.name,
+      browser: `${testInfo.project.use.defaultBrowserType ?? 'chromium'} ${page.context().browser()?.version() ?? ''}`.trim(),
+      platform: `${process.platform} ${release()}`,
+    },
+    startedAt: run.startedAt,
+    durationMs: Date.now() - run.started,
+    steps: run.steps,
+    golden: { status: 'incomplete', differences: [] },
+    ...(run.incomplete ? { incomplete: run.incomplete } : {}),
+  };
+
+  if (!run.incomplete && updatesGoldens(testInfo)) {
+    mkdirSync(path.dirname(goldenFile), { recursive: true });
+    writeFileSync(goldenFile, `${JSON.stringify(goldenFromTranscript(transcript), null, 2)}\n`);
+    transcript.golden = { status: 'recorded', differences: [] };
+  } else if (!run.incomplete) {
+    const golden: Golden | null = existsSync(goldenFile) ? JSON.parse(readFileSync(goldenFile, 'utf8')) : null;
+
+    transcript.golden = compareWithGolden(golden, run.steps);
+  }
+
+  mkdirSync(TRANSCRIPTS_DIR, { recursive: true });
+
+  const file = path.join(TRANSCRIPTS_DIR, `${project}--${scenario.id}`);
+
+  writeFileSync(`${file}.json`, `${JSON.stringify({ ...transcript, entering: run.entering }, null, 2)}\n`);
+  writeFileSync(`${file}.log`, renderTranscriptLog(transcript));
+  await testInfo.attach('transcript', { path: `${file}.json`, contentType: 'application/json' });
+  await testInfo.attach('transcript-log', { path: `${file}.log`, contentType: 'text/plain' });
+}
+
+/**
+ * Runs one scenario with a reader and writes its transcript, also when a step throws.
  *
  * @param page The page.
  * @param reader The reader.
@@ -239,7 +321,6 @@ function domEchoReader(page: Page): Reader {
  * @param testInfo The test's info.
  */
 async function runScenario(page: Page, reader: Reader, scenario: Scenario, testInfo: TestInfo): Promise<void> {
-  const project = testInfo.project.name;
   const startedAt = new Date().toISOString();
   const started = Date.now();
 
@@ -254,52 +335,32 @@ async function runScenario(page: Page, reader: Reader, scenario: Scenario, testI
 
   const entering = await reader.ready();
   const steps: TranscriptStep[] = [];
+  let running = '';
+  let incomplete: TranscriptIncomplete | undefined;
 
-  for (const step of scenario.steps) {
-    const stepStarted = Date.now();
-    const spoken = await reader.capture(async() => {
-      await runAction(page, step.action);
-      await awaitAfter(page, step);
-    });
-    const normalized = normalizeAnnouncement(spoken);
+  // The transcript is written whatever happens to the steps: a step that throws (an `after` state that
+  // never comes, a capture that fails) leaves the steps captured so far and the step it stopped at,
+  // which is what a red nightly is read from. The error is rethrown, so the test stays red.
+  try {
+    for (const step of scenario.steps) {
+      running = step.id;
 
-    steps.push({ id: step.id, action: step.action, spoken, normalized, tokens: matchTokenGroups(normalized, step.expect), durationMs: Date.now() - stepStarted });
+      const stepStarted = Date.now();
+      const spoken = await reader.capture(async() => {
+        await runAction(page, step.action);
+        await awaitAfter(page, step);
+      });
+      const normalized = normalizeAnnouncement(spoken);
+
+      steps.push({ id: step.id, action: step.action, spoken, normalized, tokens: matchTokenGroups(normalized, step.expect), durationMs: Date.now() - stepStarted });
+    }
+  } catch (error) {
+    incomplete = { step: running, error: errorText(error) };
+
+    throw error;
+  } finally {
+    await writeTranscript(page, reader, scenario, testInfo, { startedAt, started, steps, entering, incomplete });
   }
-
-  const goldenFile = path.join(GOLDENS_DIR, project, `${scenario.id}.json`);
-  const golden: Golden | null = existsSync(goldenFile) ? JSON.parse(readFileSync(goldenFile, 'utf8')) : null;
-  const transcript: Transcript = {
-    schema: TRANSCRIPT_SCHEMA,
-    scenario: scenario.id,
-    surface: scenario.surface,
-    project,
-    mode: SCREENREADER_MODE,
-    attempt: testInfo.retry,
-    environment: {
-      screenReader: reader.name,
-      browser: `${testInfo.project.use.defaultBrowserType ?? 'chromium'} ${page.context().browser()?.version() ?? ''}`.trim(),
-      platform: `${process.platform} ${release()}`,
-    },
-    startedAt,
-    durationMs: Date.now() - started,
-    steps,
-    golden: compareWithGolden(golden, steps),
-  };
-
-  if (updatesGoldens(testInfo)) {
-    mkdirSync(path.dirname(goldenFile), { recursive: true });
-    writeFileSync(goldenFile, `${JSON.stringify(goldenFromTranscript(transcript), null, 2)}\n`);
-    transcript.golden = { status: 'recorded', differences: [] };
-  }
-
-  mkdirSync(TRANSCRIPTS_DIR, { recursive: true });
-
-  const file = path.join(TRANSCRIPTS_DIR, `${project}--${scenario.id}`);
-
-  writeFileSync(`${file}.json`, `${JSON.stringify({ ...transcript, entering }, null, 2)}\n`);
-  writeFileSync(`${file}.log`, renderTranscriptLog(transcript));
-  await testInfo.attach('transcript', { path: `${file}.json`, contentType: 'application/json' });
-  await testInfo.attach('transcript-log', { path: `${file}.log`, contentType: 'text/plain' });
 
   if (SCREENREADER_MODE === 'gate') {
     const failed = steps.filter(step => !step.tokens.passed).map(step => step.id);
@@ -310,9 +371,10 @@ async function runScenario(page: Page, reader: Reader, scenario: Scenario, testI
 
 const scenarios = loadScenarios(SCENARIOS_DIR, { fixtures: FIXTURES });
 
-// One scenario at a time: a screen reader is one per machine, and the dom-echo lane keeps the same
-// order so its transcripts read like the others'.
-base.describe.configure({ mode: 'serial' });
+// One scenario at a time on a screen reader lane comes from the config: `withGuidepup` pins one worker
+// and no parallelism, because a screen reader is one per machine. The dom-echo lane drives no screen
+// reader and keeps the base config's parallelism. No serial mode on top: it would skip every scenario
+// after a red one, and re-run the scenarios that passed on a retry.
 screenReaderTest.use({
   screenReaderStartOptions: { capture: true, settings: process.platform === 'win32' ? NVDA_SETTINGS : undefined },
 });

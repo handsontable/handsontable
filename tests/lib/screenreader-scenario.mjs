@@ -25,6 +25,31 @@ export const SCENARIO_FILE_SUFFIX = '.scenario.json';
  * in the grid before the first key.
  */
 export const ACTIONS = ['press', 'type', 'selectCell'];
+/**
+ * The modifiers a `press` chord may start with, joined to the key by `+` (`Shift+F10`,
+ * `Control+Alt+M`), as Playwright names them.
+ */
+export const PRESS_MODIFIERS = ['Shift', 'Control', 'Alt', 'Meta', 'ControlOrMeta'];
+/**
+ * The named keys a `press` may end with, as Playwright names them; any other key is one printable
+ * character (`a`, `M`, `/`).
+ */
+export const PRESS_KEYS = [
+  'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape', 'Tab', 'Backspace', 'Delete', 'Insert',
+  'Home', 'End', 'PageUp', 'PageDown', 'Space', 'F1..F12', 'Digit0..9', 'KeyA..KeyZ',
+];
+/**
+ * A `press` value Playwright accepts: an optional chord of `PRESS_MODIFIERS` joined by `+`, then one of
+ * `PRESS_KEYS` or a single printable character. A misspelled key (`ArrowRigth`) is refused on the pull
+ * request: `page.keyboard.press()` would throw only inside the Windows job, or, for an unknown single
+ * word, type nothing a user could.
+ */
+export const PRESS_PATTERN = new RegExp(
+  `^(?:(?:${PRESS_MODIFIERS.join('|')})\\+)*`
+  + '(?:Arrow(?:Up|Down|Left|Right)|Enter|Escape|Tab|Backspace|Delete|Insert|Home|End|PageUp|PageDown|Space'
+  + '|F(?:1[0-2]|[1-9])|Digit[0-9]|Key[A-Z]|[^\\p{C}\\s])$',
+  'u',
+);
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const QUERY_PATTERN = /^[A-Za-z0-9=&_.-]*$/;
 const SELECTOR_LIMIT = 200;
@@ -163,6 +188,10 @@ function validateAction(action, where) {
   }
   if ((name === 'press' || name === 'type') && (typeof value !== 'string' || value.length === 0)) {
     return [`${where}: ${name} takes a non-empty string`];
+  }
+  if (name === 'press' && !PRESS_PATTERN.test(value)) {
+    return [`${where}: press "${value}" is not a Playwright key: an optional chord of ${PRESS_MODIFIERS.join(', ')} joined by "+", `
+      + `then one of ${PRESS_KEYS.join(', ')} or a single printable character`];
   }
   if (name === 'selectCell' && !(Array.isArray(value) && value.length === 2 && value.every(Number.isInteger))) {
     return [`${where}: selectCell takes [row, col]`];

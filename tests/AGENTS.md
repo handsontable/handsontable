@@ -1272,17 +1272,17 @@ unescaped newline or `%` would cut the one line that explains a red job.
 `screenreader/screenreader.spec.ts` drives a real screen reader through Guidepup
 (`@guidepup/playwright` and `@guidepup/guidepup`, MIT, devDependencies of this package only; the
 `@guidepup/setup` CLI, pinned at 0.29.3, runs through `npx -y` and is never installed, because its
-optional recording helper depends on a GPL-licensed ffmpeg build, which the dependency rule keeps
-out of the lockfile) over the scenarios of `screenreader/scenarios/`, one Playwright project per screen
-reader and browser (`playwright.screenreader.config.ts`: `nvda-chromium`, `nvda-firefox`; the
-VoiceOver projects `vo-webkit` and `vo-chromium` are named for the next lane). It writes a transcript
-per scenario, and `scripts/screenreader-report.mjs` turns the transcripts into the job summary and the
+optional recording helper depends on a GPL-licensed ffmpeg build, which the dependency rule keeps out
+of the lockfile) over the scenarios of `screenreader/scenarios/`, one Playwright project per screen
+reader and browser (`playwright.screenreader.config.ts`: `nvda-chromium`, `nvda-firefox`; the VoiceOver
+projects `vo-webkit` and `vo-chromium` are named for the next lane). It writes a transcript per
+scenario, and `scripts/screenreader-report.mjs` turns the transcripts into the job summary and the
 `Screen reader / <project> report` check run. CI runs it on its own nightly
 (`.github/workflows/screenreader-nightly.yml` calling `screenreader.yml`, NVDA on `windows-2025`, one
 browser per job), never in the pull-request Tests pipeline. This is the evidence the Accessibility
 Conformance Report cites for what a cell, a header, a state and a status message announce (WCAG 1.3.1,
-4.1.2, 4.1.3): the axe scan reads the accessibility tree, this lane reads what a screen reader makes
-of it.
+4.1.2, 4.1.3): the axe scan reads the accessibility tree, this lane reads what a screen reader makes of
+it.
 
 - **Report-only, and the rule is one constant.** `SCREENREADER_MODE` in `lib/screenreader-transcript.mjs`
   is `report`: a missing token group or a golden difference is a row in the summary, a line in the
@@ -1298,57 +1298,73 @@ of it.
   that puts the focus in the grid, so the first key reaches it) and ordered `steps`. A step has an
   `id`, one `action` (`press` a Playwright key or chord, `type` text, `selectCell` `[row, col]`), its
   `expect` token groups, an optional `after` (`{ "visible": "<selector>" }` or `{ "hidden": … }`,
-  awaited inside the capture so the state's announcement is in it, and a red test when it never
-  comes) and a `note`. The schema is `lib/screenreader-scenario.mjs`, and
+  awaited inside the capture so the state's announcement is in it, and a red test when it never comes)
+  and a `note`. The schema is `lib/screenreader-scenario.mjs`, and
   `lib/__tests__/screenreader-scenarios.test.mjs` (root `test:tooling`) validates every committed file,
-  so a mistake fails on the pull request and not inside a 30-minute Windows job. Keys go to the page
-  with `page.keyboard.press()`, so the screen reader sees the page react and never the keystroke; the
-  scenario reads the same on every lane, because what differs per screen reader is the wording, which
-  the goldens hold per project.
+  so a mistake fails on the pull request and not inside a 30-minute Windows job. That includes every
+  `press` value, checked against Playwright's key names (`PRESS_PATTERN`: an optional chord of `Shift`,
+  `Control`, `Alt`, `Meta` or `ControlOrMeta` joined by `+`, then a named key such as `ArrowRight`,
+  `F10` or `KeyA`, or one printable character), so a misspelled `ArrowRigth` is refused there. Keys go
+  to the page with `page.keyboard.press()`, so the screen reader sees the page react and never the
+  keystroke; the scenario reads the same on every lane, because what differs per screen reader is the
+  wording, which the goldens hold per project.
 - **Two assertion tiers.** The **required tokens** are each step's `expect`: synonym groups
   (`[["34"], ["age", "column 3", "row 2"]]`), each group satisfied by any one synonym found as a whole
-  phrase in the normalized announcement, all groups required. Ask for facts (the cell text, a position
-  or a header, a role or a state), never for wording, so the same groups hold on every screen reader;
-  a group that lists alternatives (`"age"` or `"column 3"`) says the announcement must place the cell
-  somehow, not how. This tier is what gates later. The **goldens**
-  (`screenreader/goldens/<project>/<scenario>.json`) are the exact normalized announcement per step,
-  advisory only: a wording change in NVDA, the browser or the core shows as a golden difference in
-  the summary, and the fix is to re-record once the new wording is right. The normalizer
+  phrase in the normalized announcement, all groups required. A synonym of digits alone (`"34"`) is a
+  value, never a position: it matches a standalone number that no `row `, `column `, `col `, `level `
+  or `of ` precedes and no ` of ` follows, so a group that means a position spells it out (`"row 1"`).
+  Ask for facts (the cell text, a position or a header, a role or a state), never for wording, so the
+  same groups hold on every screen reader; a group that lists alternatives (`"age"` or `"column 3"`)
+  says the announcement must place the cell somehow, not how. This tier is what gates later. The
+  **goldens** (`screenreader/goldens/<project>/<scenario>.json`) are the exact normalized announcement
+  per step, advisory only: a wording change in NVDA, the browser or the core shows as a golden
+  difference in the summary, and the fix is to re-record once the new wording is right. The normalizer
   (`normalizeAnnouncement()`) lowercases, folds Unicode, drops punctuation, collapses whitespace and
   removes the screen reader's own chatter (`CHATTER`: the mode switch, `clickable`).
 - **Recording goldens is a CI job, because nobody has NVDA on a Mac.** Dispatch the nightly from the
   branch with the `update-goldens` input: the run records every project's goldens on the runner
   (`HOT_SR_UPDATE_GOLDENS=1`, or Playwright's `--update-snapshots` through
-  `npm run test:screenreader:update-goldens`) and uploads them as `screenreader-goldens-nvda-<browser>`;
-  download, commit under `screenreader/goldens/<project>/`, done. A run with `update-goldens` compares
-  nothing and reports `recorded`. Commit a golden only from a transcript whose announcements are right:
-  a golden pins the wording, it does not judge it.
-- **Where the transcripts go.** `test-results/screenreader/transcripts/<project>--<scenario>.json`
-  (the steps with the spoken text, the normalized text, the token verdict, the golden verdict and the
+  `npm run test:screenreader:update-goldens`) and uploads them as
+  `screenreader-goldens-nvda-<browser>`; download, commit under `screenreader/goldens/<project>/`,
+  done. A run with `update-goldens` compares nothing and reports `recorded`. Commit a golden only from
+  a transcript whose announcements are right: a golden pins the wording, it does not judge it.
+  `lib/__tests__/screenreader-goldens.test.mjs` (root `test:tooling`) reads every committed golden: it
+  parses, has `schema` 1, names its file as its scenario and its directory as its project (a project of
+  the config, never `dom-echo-chromium`, and an `nvda-*` golden was recorded by NVDA), and lists the
+  scenario's step ids in order. A step renamed, added, removed or moved therefore fails that test until
+  the golden is re-recorded.
+- **Where the transcripts go.** `test-results/screenreader/transcripts/<project>--<scenario>.json` (the
+  steps with the spoken text, the normalized text, the token verdict, the golden verdict and the
   timing, plus what the screen reader said while entering the page) and `.log` beside it, readable
-  without a tool; `summary.md` next to them. CI uploads the directory as
-  `screenreader-transcripts-nvda-<browser>` and the Playwright report as
-  `screenreader-playwright-report-nvda-<browser>`, both outside the `playwright-report-*` glob the flake
-  ledger reads, and the config has no JSON reporter, so nothing here becomes a flake record.
+  without a tool; `summary.md` next to them. A scenario whose step throws still leaves its transcript:
+  the steps captured so far plus `incomplete` (the step it stopped at and the error), no golden
+  comparison (`golden.status` is `incomplete`, and the update mode records nothing from it), and the
+  test stays red; the report reads it as a tooling problem ("scenario <id> stopped at step <step>") and
+  still shows the captured steps. CI uploads the directory as `screenreader-transcripts-nvda-<browser>`
+  and the Playwright report as `screenreader-playwright-report-nvda-<browser>`, both outside the
+  `playwright-report-*` glob the flake ledger reads, and the config has no JSON reporter, so nothing
+  here becomes a flake record.
 - **The runner enters the grid the way a user does, then pins the mode.** The Guidepup reader calls
   `navigateToWebContent()` (the browser window focused, the reader at the top of the document), the
-  setup selects a cell through the API, and `ready()` reads the mode NVDA last announced (a mode
-  switch is spoken, not played, through the `virtualBuffers.passThroughAudioIndication` setting the
-  start options turn off) and toggles once or twice until it is focus mode: NVDA switches to focus
-  mode on its own when the focus lands on a gridcell, and the toggle round trip is what keeps every
-  transcript in that mode whatever NVDA did. The focus highlighter is off in the same settings. Then
-  the log is cleared, and every step is `screenReader.capture(() => …, { capture: true })`, which
-  waits a second of silence after the last phrase. A step whose capture is empty is listened to once
-  more for a second silence window, so a phrase NVDA speaks late (Shift+F10 on Firefox) lands on its
-  own step and a silent step is two seconds of silence. A step therefore costs a second and more, and
-  a scenario is minutes: the config's test timeout is five minutes with two retries, Guidepup's own
-  mitigations, and the job's `timeout-minutes` is 30.
+  setup selects a cell through the API, and `ready()` reads the mode NVDA last announced (a mode switch
+  is spoken, not played, through the `virtualBuffers.passThroughAudioIndication` setting the start
+  options turn off) and toggles once or twice until it is focus mode: NVDA switches to focus mode on
+  its own when the focus lands on a gridcell, and the toggle round trip is what keeps every transcript
+  in that mode whatever NVDA did. The focus highlighter is off in the same settings. Then the log is
+  cleared, and every step is `screenReader.capture(() => …, { capture: true })`, which waits a second
+  of silence after the last phrase. A step whose capture is empty is listened to once more for another
+  silence window, so a phrase NVDA speaks late (Shift+F10 on Firefox) usually lands on its own step.
+  Guidepup discards speech that arrives while it stops the previous utterance, so the second listen
+  reduces late phrases in the next step, it does not remove them. A step therefore costs a second and
+  more, and a scenario is minutes: the config's test timeout is five minutes with two retries,
+  Guidepup's own mitigations, and the job's `timeout-minutes` is 30.
 - **A screen reader is one per machine, so the lane is serial and headed.** `withGuidepup()` pins one
   worker, no parallelism and `headless: false` on every project; the matrix gives each browser its own
-  job. Two things follow. A second Guidepup lane (VoiceOver) is a second job, never a second project
-  in the same job. And the reader is behind the spec's `Reader` interface (`enter`, `ready`,
-  `capture`), so a lane adds its reader and leaves the scenarios alone: VoiceOver needs its own way
-  into the grid (`interact()`), which is the next pull request.
+  job. The spec adds no serial mode on top: it would skip every scenario after a red one and re-run the
+  passed ones on a retry. Two things follow. A second Guidepup lane (VoiceOver) is a second job, never
+  a second project in the same job. And the reader is behind the spec's `Reader` interface (`enter`,
+  `ready`, `capture`), so a lane adds its reader and leaves the scenarios alone: VoiceOver needs its
+  own way into the grid (`interact()`), which is the next pull request.
 - **`HOT_SR_LANE=dom-echo` proves the runner without a screen reader.** On any platform,
   `HOT_SR_LANE=dom-echo npm run test:screenreader` runs every scenario in headless Chromium against a
   reader that echoes the focused element's accessible name, role, grid position and states two frames
@@ -1368,11 +1384,13 @@ of it.
   the announcements; a nightly dispatch from the branch for the real ones; the goldens from an
   `update-goldens` dispatch, read before they are committed. Keep every step's `"id"` on its own line:
   the check run annotates that line.
-- **Locally on Windows**: `npx -y @guidepup/setup@0.29.3 install nvda` in `tests/` once (the portable NVDA build
-  the installed `@guidepup/guidepup` names, with the Guidepup add-on), the UMD build with the
-  minified stylesheets, then `npm run test:screenreader`. The lane follows the platform: NVDA on
-  Windows, the VoiceOver projects on macOS once that runner exists, and `HOT_SR_LANE` to pick one
-  explicitly.
+- **Locally on Windows**: `npx -y @guidepup/setup@0.29.3 install nvda` in `tests/` once (the portable
+  NVDA build the installed `@guidepup/guidepup` names, with the Guidepup add-on), the UMD build with
+  the minified stylesheets, then `npm run test:screenreader`. The lane follows the platform: NVDA on
+  Windows, and `HOT_SR_LANE` to pick one explicitly. macOS has no default lane yet: the config throws
+  unless `HOT_SR_LANE` is set, because the VoiceOver runner lands in the next pull request, and a
+  default would start VoiceOver only for the spec to throw. On a Mac, `HOT_SR_LANE=dom-echo` runs the
+  scenarios without a screen reader.
 
 The chain from the nightly to the config is pinned by `.github/scripts/__tests__/screenreader-workflow.test.mjs`;
 the normalizer, the matcher, the golden diff, the report and the check-run poster by the

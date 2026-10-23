@@ -66,20 +66,52 @@ export function normalizeAnnouncement(text) {
 }
 
 /**
+ * The words before a number that make it a position rather than a value (`row 8`, `column 1`,
+ * `col 1`, `level 2`, the `3` of `1 of 3`).
+ */
+const POSITION_BEFORE = '(?<!\\b(?:row|column|col|level|of) )';
+/**
+ * The words after a number that make it a position rather than a value (the `1` of `1 of 3`).
+ */
+const POSITION_AFTER = '(?! of )';
+
+/**
+ * Whether a normalized synonym is a whole-phrase match inside a normalized announcement. A synonym of
+ * digits alone (`"1"`) is a value, so it matches only a standalone number that is not part of a
+ * position phrase: not after `row `, `column `, `col `, `level ` or `of `, and not before ` of `.
+ * Otherwise every announcement that carries a position (`row 8 column 1`) would satisfy a bare
+ * number group.
+ *
+ * @param {string} normalized The normalized announcement.
+ * @param {string} token The normalized synonym.
+ * @returns {boolean} Whether it matches.
+ */
+function containsToken(normalized, token) {
+  if (/^\d+$/.test(token)) {
+    return new RegExp(`(?<!\\S)${POSITION_BEFORE}${token}${POSITION_AFTER}(?!\\S)`).test(normalized);
+  }
+
+  return ` ${normalized} `.includes(` ${token} `);
+}
+
+/**
  * The first synonym of each group that the normalized announcement contains. A synonym is normalized
- * the same way and matched as a whole-word phrase, so `row 2` does not match `row 22`.
+ * the same way and matched as a whole-word phrase, so `row 2` does not match `row 22`. A synonym of
+ * digits alone (`"1"`) is a value, not a position: it matches only a standalone number that is not
+ * preceded by `row `, `column `, `col `, `level ` or `of ` and not followed by ` of `, so `["1"]`
+ * is satisfied by `1 row header row 8` and not by `row 8 column 1`, `collapsed row 1` or `1 of 3`.
+ * A group that means a position spells it out (`"row 1"`).
  *
  * @param {string} normalized The normalized announcement.
  * @param {string[][]} groups The token groups of the step.
  * @returns {{passed: boolean, groups: {synonyms: string[], matched: string|null}[]}} The verdict.
  */
 export function matchTokenGroups(normalized, groups) {
-  const padded = ` ${normalized} `;
   const result = groups.map((synonyms) => {
     const matched = synonyms.find((synonym) => {
       const token = normalizeAnnouncement(synonym);
 
-      return token !== '' && padded.includes(` ${token} `);
+      return token !== '' && containsToken(normalized, token);
     });
 
     return { synonyms, matched: matched ?? null };
@@ -158,7 +190,9 @@ export function transcriptCounts(transcript) {
 }
 
 /**
- * The human-readable log of a transcript, one line per step.
+ * The human-readable log of a transcript, one line per step. A transcript of a run that stopped at a
+ * step (`incomplete`) says so in its header, with the step and the error, above the steps captured
+ * before it.
  *
  * @param {object} transcript The transcript.
  * @returns {string} The log.
@@ -168,13 +202,16 @@ export function renderTranscriptLog(transcript) {
     `# ${transcript.scenario} on ${transcript.project} (${transcript.environment.screenReader}, ${transcript.environment.browser})`,
     `# ${transcript.startedAt}, ${transcript.durationMs} ms, mode ${transcript.mode}, attempt ${transcript.attempt}`,
     `# golden: ${transcript.golden.status}${transcript.golden.differences.length ? ` (${transcript.golden.differences.length} differences)` : ''}`,
+    ...(transcript.incomplete
+      ? [`# INCOMPLETE: stopped at step ${transcript.incomplete.step}: ${String(transcript.incomplete.error).replace(/\s+/g, ' ').trim()}`]
+      : []),
     '',
   ];
   const lines = transcript.steps.map((step) => {
     const tokens = step.tokens.groups.length === 0
       ? 'tokens: none'
       : `tokens ${step.tokens.passed ? 'PASS' : 'FAIL'}: ${step.tokens.groups.map(group => (group.matched === null ? `MISSING [${group.synonyms.join(' | ')}]` : group.matched)).join(', ')}`;
-    const golden = transcript.golden.status === 'missing'
+    const golden = transcript.golden.status === 'missing' || transcript.golden.status === 'incomplete'
       ? ''
       : ` | golden ${transcript.golden.differences.some(item => item.id === step.id) ? 'DIFF' : 'same'}`;
 

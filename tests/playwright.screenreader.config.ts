@@ -15,11 +15,13 @@ import base from './playwright.config';
  * base URL and the trace settings are inherited. `withGuidepup` pins one worker, no parallelism and
  * headed browsers: a screen reader is one per machine and reads what is on screen.
  *
- * The lane follows the platform: NVDA projects on Windows, VoiceOver projects on macOS (the VoiceOver
- * runner lands in the next pull request; the projects are named here so the goldens and the workflow
- * can be prepared). `HOT_SR_LANE=dom-echo` runs the scenarios on any platform against a reader that
- * echoes the focused element's accessible name and role, which proves the runner, the scenarios and
- * the report without a screen reader; it never runs in CI and records no golden anyone keeps.
+ * The lane follows the platform: NVDA projects on Windows. On macOS the config refuses to pick a lane
+ * unless `HOT_SR_LANE` names one, because the VoiceOver runner lands in the next pull request: started
+ * by default, the fixture would turn VoiceOver on only for the spec to throw (the projects are named here
+ * so the goldens and the workflow can be prepared). `HOT_SR_LANE=dom-echo` runs the scenarios on any
+ * platform against a reader that echoes the focused element's accessible name and role, which proves
+ * the runner, the scenarios and the report without a screen reader; it never runs in CI and records no
+ * golden anyone keeps.
  *
  * CI: `.github/workflows/screenreader.yml`, one job per browser on a Windows runner, started by
  * `screenreader-nightly.yml`. Locally on Windows: `npm --prefix tests run test:screenreader`, after
@@ -40,7 +42,9 @@ const LANES = {
 } as const;
 
 /**
- * The lane for this run: the explicit `HOT_SR_LANE`, otherwise the platform's screen reader.
+ * The lane for this run: the explicit `HOT_SR_LANE`, otherwise the platform's screen reader. macOS has
+ * no default until the VoiceOver runner lands: an explicit `HOT_SR_LANE=voiceover` still selects its
+ * projects.
  *
  * @returns {keyof typeof LANES} The lane.
  */
@@ -58,7 +62,8 @@ function resolveLane(): keyof typeof LANES {
     return 'nvda';
   }
   if (process.platform === 'darwin') {
-    return 'voiceover';
+    throw new Error('No default screen reader lane on macOS yet: the VoiceOver runner lands in the next pull request. '
+      + 'Set HOT_SR_LANE=dom-echo to run the scenarios without a screen reader.');
   }
 
   throw new Error('No screen reader lane for this platform: set HOT_SR_LANE=dom-echo to run the scenarios without one.');
@@ -85,5 +90,7 @@ const config = defineConfig({
 });
 
 // The dom-echo lane starts no screen reader, so it keeps the headless browser and the base config's
-// parallelism is irrelevant (one spec, serial by `test.describe.configure` in the spec).
+// parallelism: its scenarios may run side by side, each on its own page. The screen reader lanes run one
+// scenario at a time because `withGuidepup` pins one worker and no parallelism; the spec adds no serial
+// mode, which would skip the scenarios after a red one and re-run the passed ones on a retry.
 export default lane === 'dom-echo' ? config : withGuidepup(config);

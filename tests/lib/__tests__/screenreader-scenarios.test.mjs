@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACTIONS, SCENARIO_FILE_SUFFIX, loadScenarios, scenarioUrl, validateScenario } from '../screenreader-scenario.mjs';
+import { ACTIONS, PRESS_PATTERN, SCENARIO_FILE_SUFFIX, loadScenarios, scenarioUrl, validateScenario } from '../screenreader-scenario.mjs';
 import { stepLines } from '../screenreader-report.mjs';
 import { SCREENREADER_MODE, SCREENREADER_MODES } from '../screenreader-transcript.mjs';
 
@@ -68,6 +68,19 @@ test('the validator accepts the sample and names each problem', () => {
   assert.match(problems({ steps: [{ id: 'a', action: { press: 'a' }, expect: [] }, { id: 'a', action: { press: 'b' }, expect: [] }] }).join('\n'), /duplicate id "a"/);
   assert.match(problems({ steps: [{ id: 'a', action: { press: 'a' }, expect: [], later: 1 }] }).join('\n'), /unknown field "later"/);
   assert.deepEqual(validateScenario('nope'), ['the scenario is not an object']);
+});
+
+test('a press is a Playwright key name or chord, checked on the pull request', () => {
+  const press = key => validateScenario({ ...valid(), steps: [{ id: 'a', action: { press: key }, expect: [] }] }, { fixtures: FIXTURES, fileName: 'sample.scenario.json' });
+
+  assert.match(press('ArrowRigth').join('\n'), /steps\[0\]\.action: press "ArrowRigth" is not a Playwright key/, 'a misspelled key names itself');
+  assert.match(validateScenario({ ...valid(), setup: [{ press: 'Ctrl+A' }] }).join('\n'), /setup\[0\]: press "Ctrl\+A" is not a Playwright key/, 'the setup is checked too; the modifier is Control');
+  assert.deepEqual(press('Shift+F10'), []);
+  assert.deepEqual(press('Control+Alt+M'), []);
+  assert.deepEqual(press('a'), []);
+  assert.deepEqual(press('ControlOrMeta+KeyA'), []);
+  ['ArrowRigth', 'F13', 'Shift+', 'shift+a', 'Keyz', 'Enter ', 'Shift+ArrowRigth'].forEach(key => assert.equal(PRESS_PATTERN.test(key), false, key));
+  ['ArrowUp', 'Escape', 'Tab', 'PageDown', 'Space', 'F1', 'F12', 'Digit0', 'KeyZ', 'Shift+ArrowRight', 'Alt+Shift+ArrowDown', '/'].forEach(key => assert.equal(PRESS_PATTERN.test(key), true, key));
 });
 
 test('the action vocabulary is the three the runner implements', () => {

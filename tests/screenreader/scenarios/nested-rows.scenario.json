@@ -10,13 +10,13 @@
     {
       "id": "collapse-parent",
       "action": { "press": "Enter" },
-      "expect": [["collapsed"], ["1", "root a"]],
-      "note": "Enter on a parent's row header collapses it: the polite announcement names the row, and aria-expanded flips on the focused header."
+      "expect": [["collapsed"], ["row 1", "root a"]],
+      "note": "Enter on a parent's row header collapses it: the polite announcement names the row the way the plugin phrases it (\"row 1\"; a reader that names the row by its cell text says \"root a\"), and aria-expanded flips on the focused header."
     },
     {
       "id": "expand-parent",
       "action": { "press": "Enter" },
-      "expect": [["expanded"], ["1", "root a"]]
+      "expect": [["expanded"], ["row 1", "root a"]]
     },
     {
       "id": "into-parent-cell",

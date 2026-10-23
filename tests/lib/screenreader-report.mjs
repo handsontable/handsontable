@@ -7,8 +7,9 @@
  * fails on a token group in report mode), so this check run is the visible verdict: `neutral` when a
  * token group is missing, a golden differs or none is recorded yet, `success` when every step carries
  * its tokens and matches its golden, `failure` for a tooling failure (no transcript for a scenario,
- * none at all) or, in gate mode, a missing token group. Its annotations sit on the step's line in the
- * scenario file. Pure: `scripts/screenreader-report.mjs` reads the files and posts.
+ * none at all, a scenario that stopped at a step) or, in gate mode, a missing token group. Its
+ * annotations sit on the step's line in the scenario file. Pure: `scripts/screenreader-report.mjs`
+ * reads the files and posts.
  */
 import { escapeMarkdownText, isSafeLink } from './a11y-baseline.mjs';
 import { SCREENREADER_MODE, describeAction, transcriptCounts } from './screenreader-transcript.mjs';
@@ -29,7 +30,9 @@ export function checkRunName(project) {
 }
 
 /**
- * The line of each step's `"id"` in a scenario file, by step id.
+ * The line of each step's `"id"` in a scenario file, by step id. Only a line indented by four spaces or
+ * more counts: the scenario's own `"id"` sits two spaces in, so a step named like the scenario is never
+ * annotated on the scenario's line.
  *
  * @param {string} source The file's text.
  * @returns {Map<string, number>} The 1-based lines.
@@ -38,7 +41,7 @@ export function stepLines(source) {
   const lines = new Map();
 
   source.split('\n').forEach((line, index) => {
-    const match = /^\s*"id":\s*"([a-z0-9-]+)"/.exec(line);
+    const match = /^ {4,}"id":\s*"([a-z0-9-]+)"/.exec(line);
 
     if (match && !lines.has(match[1])) {
       lines.set(match[1], index + 1);
@@ -71,6 +74,8 @@ export function buildReport({
   const missing = expectedScenarios.filter(id => !found.has(id));
   const tooling = [
     ...problems,
+    ...sorted.filter(transcript => transcript.incomplete)
+      .map(transcript => `scenario ${transcript.scenario} stopped at step ${transcript.incomplete.step}: ${String(transcript.incomplete.error).replace(/\s+/g, ' ').trim()}`),
     ...missing.map(id => `no transcript for "${id}": the test did not reach the end of the scenario`),
     ...(sorted.length === 0 && missing.length === 0 ? ['the run left no transcript'] : []),
   ];
@@ -114,7 +119,7 @@ export function buildReport({
  * The counts over every transcript.
  *
  * @param {object[]} transcripts The transcripts.
- * @returns {{scenarios: number, steps: number, tokenFailures: number, goldenDifferences: number, goldenMissing: number, durationMs: number}} The counts.
+ * @returns {{scenarios: number, steps: number, tokenFailures: number, goldenDifferences: number, goldenMissing: number, goldenRecorded: number, durationMs: number}} The counts.
  */
 function countAll(transcripts) {
   return transcripts.reduce((total, transcript) => {
@@ -126,9 +131,21 @@ function countAll(transcripts) {
       tokenFailures: total.tokenFailures + counts.tokenFailures,
       goldenDifferences: total.goldenDifferences + counts.goldenDifferences,
       goldenMissing: total.goldenMissing + (counts.goldenStatus === 'missing' ? 1 : 0),
+      goldenRecorded: total.goldenRecorded + (counts.goldenStatus === 'recorded' ? 1 : 0),
       durationMs: total.durationMs + counts.durationMs,
     };
-  }, { scenarios: 0, steps: 0, tokenFailures: 0, goldenDifferences: 0, goldenMissing: 0, durationMs: 0 });
+  }, { scenarios: 0, steps: 0, tokenFailures: 0, goldenDifferences: 0, goldenMissing: 0, goldenRecorded: 0, durationMs: 0 });
+}
+
+/**
+ * A count with its noun, singular for one.
+ *
+ * @param {number} count The count.
+ * @param {string} noun The singular noun.
+ * @returns {string} The text (`1 step`, `2 steps`).
+ */
+function counted(count, noun) {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`;
 }
 
 /**
@@ -151,7 +168,9 @@ function headlineOf(counts, mode) {
     parts.push(`${counts.goldenMissing} scenario${counts.goldenMissing === 1 ? '' : 's'} without a golden`);
   }
   if (parts.length === 0) {
-    return `${counts.scenarios} scenario${counts.scenarios === 1 ? '' : 's'}, ${counts.steps} steps: every token group present, every golden matched`;
+    const goldens = counts.scenarios > 0 && counts.goldenRecorded === counts.scenarios ? 'goldens recorded' : 'every golden matched';
+
+    return `${counted(counts.scenarios, 'scenario')}, ${counted(counts.steps, 'step')}: every token group present, ${goldens}`;
   }
 
   return `${parts.join(', ')} (${mode} mode)`;
@@ -171,19 +190,23 @@ function renderScenarios(transcripts) {
       match: 'golden matched',
       differs: `${counts.goldenDifferences} golden difference${counts.goldenDifferences === 1 ? '' : 's'}`,
       recorded: 'golden recorded by this run',
+      incomplete: 'no golden comparison',
     }[transcript.golden.status] ?? transcript.golden.status;
     const head = `### ${escapeMarkdownText(transcript.scenario)} on ${escapeMarkdownText(transcript.project)}\n\n`
       + `${escapeMarkdownText(transcript.environment.screenReader)}, ${escapeMarkdownText(transcript.environment.browser)}, `
-      + `${escapeMarkdownText(transcript.environment.platform)}. ${counts.steps} steps in ${seconds(counts.durationMs)}, `
-      + `${counts.tokenFailures === 0 ? 'every token group present' : `${counts.tokenFailures} step${counts.tokenFailures === 1 ? '' : 's'} missing a token group`}, ${golden}.`
-      + (transcript.attempt > 0 ? ` Attempt ${transcript.attempt + 1}.` : '');
+      + `${escapeMarkdownText(transcript.environment.platform)}. ${counted(counts.steps, 'step')} in ${seconds(counts.durationMs)}, `
+      + `${counts.tokenFailures === 0 ? 'every token group present' : `${counted(counts.tokenFailures, 'step')} missing a token group`}, ${golden}.`
+      + (transcript.attempt > 0 ? ` Attempt ${transcript.attempt + 1}.` : '')
+      + (transcript.incomplete
+        ? `\n\n> Stopped at step ${escapeMarkdownText(transcript.incomplete.step)}: ${escapeMarkdownText(transcript.incomplete.error)}. The steps below are the ones captured before it.`
+        : '');
     const rows = transcript.steps.map((step) => {
       const tokens = step.tokens.groups.length === 0
         ? '–'
         : step.tokens.groups.map(group => (group.matched === null
           ? `✖ missing: ${escapeMarkdownText(group.synonyms.join(' | '))}`
           : `✔ ${escapeMarkdownText(group.matched)}`)).join('<br>');
-      const goldenCell = transcript.golden.status === 'missing' || transcript.golden.status === 'recorded'
+      const goldenCell = ['missing', 'recorded', 'incomplete'].includes(transcript.golden.status)
         ? '–'
         : (transcript.golden.differences.some(item => item.id === step.id) ? '✖ differs' : '✔ same');
 

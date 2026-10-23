@@ -48,6 +48,15 @@ test('screenreader.yml is one NVDA job on Windows, one browser per job, report-o
     `${LANE}: the environment step runs the same pinned setup CLI through npx. ${DOC}`);
   assert.match(step('Run the scenarios'), /^ {8}run: cd tests && npx playwright test --config playwright\.screenreader\.config\.ts --project=nvda-\$\{\{ matrix\.browser \}\}$/m,
     `${LANE}: the run step runs the screen reader config on the job's browser and nothing else. ${DOC}`);
+  assert.match(step('Run the scenarios'), /^ {10}HOT_SR_UPDATE_GOLDENS: \$\{\{ inputs\.update-goldens && '1' \|\| '' \}\}$/m,
+    `${LANE}: the update-goldens input reaches the spec as HOT_SR_UPDATE_GOLDENS, '1' or empty: the spec records on '1' only. ${DOC}`);
+
+  const goldens = step('Upload the recorded goldens');
+
+  assert.match(goldens, /^ {8}if: \$\{\{ !cancelled\(\) && inputs\.update-goldens \}\}$/m,
+    `${LANE}: the recorded goldens upload on an update-goldens run only, red or green. ${DOC}`);
+  assert.match(goldens, /^ {10}name: screenreader-goldens-nvda-\$\{\{ matrix\.browser \}\}$/m,
+    `${LANE}: one goldens artifact per browser, the name tests/AGENTS.md tells you to download. ${DOC}`);
 
   const transcripts = step('Upload the transcripts');
 
@@ -76,6 +85,8 @@ test('screenreader-nightly.yml calls the lane after the UMD build, on its own cr
   assert.match(job(nightly, 'build'), /^ {6}run-umd: true$/m, `${NIGHTLY}: the lane needs the UMD artifact.`);
   assert.match(job(nightly, 'screenreader'), /^ {4}uses: \.\/\.github\/workflows\/screenreader\.yml$/m);
   assert.match(job(nightly, 'screenreader'), /^ {4}needs: \[ build \]$/m);
+  assert.match(job(nightly, 'screenreader'), /^ {6}update-goldens: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.update-goldens \|\| false \}\}$/m,
+    `${NIGHTLY}: only a dispatch records goldens; the cron always compares. ${DOC}`);
   assert.match(nightly, /^ {2}group: screenreader-nightly-\$\{\{ github\.ref \}\}$/m, `${NIGHTLY}: a static concurrency prefix, never the workflow-name expression.`);
   assert.doesNotMatch(stripYamlComments(read(TESTS)), /screenreader/, `${TESTS}: the lane is report-only and nightly; it is not a pull-request job. ${DOC}`);
 });
@@ -95,6 +106,8 @@ test('the screen reader config keeps the lane serial, patient and outside the fl
   assert.match(config, /name: 'nvda-firefox'/);
   assert.match(config, /name: 'vo-webkit'/, `${CONFIG}: the VoiceOver projects are named, for the next pull request.`);
   assert.match(config, /name: 'vo-chromium'/);
+  assert.match(config, /if \(process\.platform === 'darwin'\) \{\s*throw new Error\(/,
+    `${CONFIG}: macOS has no default lane until the VoiceOver runner lands; defaulting to it would start VoiceOver only for the spec to throw. HOT_SR_LANE picks one explicitly.`);
 });
 
 test('the Guidepup setup CLI is never installed: its optional recording helper depends on a GPL-licensed ffmpeg build', () => {

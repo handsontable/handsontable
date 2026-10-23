@@ -3,7 +3,11 @@ import type { ScenarioAction } from './screenreader-scenario.mjs';
 export interface TokenGroupMatch { synonyms: string[]; matched: string | null }
 export interface TokenVerdict { passed: boolean; groups: TokenGroupMatch[] }
 export interface GoldenDifference { id: string; expected: string | null; actual: string | null }
-export interface GoldenVerdict { status: 'missing' | 'match' | 'differs' | 'recorded'; differences: GoldenDifference[] }
+export interface GoldenVerdict { status: 'missing' | 'match' | 'differs' | 'recorded' | 'incomplete'; differences: GoldenDifference[] }
+/**
+ * Where a run stopped when a step threw: the step being run and the error's message.
+ */
+export interface TranscriptIncomplete { step: string; error: string }
 
 export interface TranscriptStep {
   id: string;
@@ -32,6 +36,7 @@ export interface Transcript {
   durationMs: number;
   steps: TranscriptStep[];
   golden: GoldenVerdict;
+  incomplete?: TranscriptIncomplete;
 }
 
 export interface Golden {

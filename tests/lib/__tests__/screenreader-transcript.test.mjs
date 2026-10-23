@@ -55,6 +55,19 @@ test('matchTokenGroups needs one synonym per group, as a whole phrase', () => {
   assert.equal(matchTokenGroups('anything', []).passed, true, 'a step with no group asserts nothing');
 });
 
+test('a synonym of digits alone is a value: a position phrase never satisfies it', () => {
+  assert.equal(matchTokenGroups('name column header row 1 column 2', [['1']]).passed, false, '`row 1` is a position, not the value 1');
+  assert.equal(matchTokenGroups('1 row header row 8 column 1', [['1']]).passed, true, 'the leading label is the value 1; `column 1` is not');
+  assert.equal(matchTokenGroups('collapsed row 1', [['1']]).passed, false);
+  assert.equal(matchTokenGroups('1 of 3', [['1']]).passed, false, '`1 of 3` is a position in a set');
+  assert.equal(matchTokenGroups('1 of 3', [['3']]).passed, false, 'so is its `3`');
+  assert.equal(matchTokenGroups('level 2 a 1', [['2']]).passed, false, '`level 2` is a position too');
+  assert.equal(matchTokenGroups('col 4 4', [['4']]).passed, true, 'a standalone 4 after the position still counts');
+  assert.equal(matchTokenGroups('34 age row 2 column 3', [['34'], ['3']]).groups[1].matched, null, '`3` is not inside `34`, and `column 3` is a position');
+  assert.equal(matchTokenGroups('collapsed row 1', [['row 1']]).passed, true, 'a position is asked for by spelling it out');
+  assert.equal(matchTokenGroups('row 8 column 1', [['column 1']]).passed, true, 'a synonym with words keeps the whole-phrase match');
+});
+
 test('compareWithGolden reports every differing, new and vanished step', () => {
   const steps = [{ id: 'a', normalized: 'alice' }, { id: 'b', normalized: 'bruno' }];
 
@@ -88,4 +101,16 @@ test('transcriptCounts and the log say what passed and what did not', () => {
   assert.match(log, /\[arrow-right\] press ArrowRight \(2100 ms\)\n {2}spoken: "34 {2}Age {2}row 2 column 3"\n {2}tokens PASS: 34, age \| golden same/);
   assert.match(log, /\[open-editor\] press Enter[^\n]*\n[^\n]*\n {2}tokens FAIL: alice, MISSING \[text area\] \| golden DIFF/);
   assert.equal(describeAction({ selectCell: [0, -1] }), 'selectCell [0, -1]');
+});
+
+test('the log of a run that stopped at a step names the step and the error above the steps it captured', () => {
+  const log = renderTranscriptLog(transcript({
+    steps: transcript().steps.slice(0, 1),
+    golden: { status: 'incomplete', differences: [] },
+    incomplete: { step: 'open-editor', error: 'step open-editor: .handsontableInput visible\n  timed out' },
+  }));
+
+  assert.match(log, /^# golden: incomplete\n# INCOMPLETE: stopped at step open-editor: step open-editor: \.handsontableInput visible timed out\n\n\[arrow-right\]/m);
+  assert.match(log, /tokens PASS: 34, age\n$/, 'no golden verdict on a step of a partial run');
+  assert.doesNotMatch(renderTranscriptLog(transcript()), /INCOMPLETE/);
 });

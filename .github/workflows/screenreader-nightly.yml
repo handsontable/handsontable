@@ -12,8 +12,10 @@ name: Screen reader nightly
 # Triage. A missing token group is a finding about the grid (the announcement lacks the cell text, a
 # position or a role) or a token list that is too strict: read the transcript, then fix the core or
 # widen the synonyms. A golden difference is a wording change: re-record with the `update-goldens`
-# input once the new wording is right. A red job is tooling (NVDA did not start, a fixture did not
-# load), never a finding.
+# input once the new wording is right. A red step inside a lane job is tooling (NVDA did not start, a
+# fixture did not load), never a finding, and it shows on that job's `failure` check run and summary:
+# the jobs carry `continue-on-error`, so they report success to this run and nothing here reaches
+# Slack for them. Slack hears only of a run that never reached the lane (the `notify` job below).
 on:
   schedule:
     # 04:30 UTC Tue–Sat: after the E2E nightly (03:30), clear of the visual nightly (02:00), the
@@ -65,8 +67,10 @@ jobs:
 
   # Optional Slack ping, develop only; fires only when the webhook secret exists (an absent secret is
   # an empty string, so the step skips itself). The same webhook as the visual and E2E nightlies, on
-  # purpose: the channel that triages one nightly triages the other. The lane is report-only, so what
-  # fails here is the tooling (the build, a job that did not reach its summary), never an announcement.
+  # purpose: the channel that triages one nightly triages the other. The lane's jobs carry job-level
+  # `continue-on-error`, so they report success to this caller whatever happened inside them, and
+  # `failure()` here fires only when the UMD build failed or the called workflow could not start. A red
+  # lane job never reaches Slack: its verdict is the `Screen reader / <project> report` check runs.
   notify:
     name: Notify Slack
     needs: [ screenreader ]
@@ -83,5 +87,5 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": ":red_circle: Screen reader nightly on ${{ github.ref_name }} failed to run: the NVDA lane did not reach its transcripts (the lane itself is report-only, so this is the build or the tooling, never an announcement).\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTriage: tests/AGENTS.md, Screen readers: the NVDA lane."
+              "text": ":red_circle: Screen reader nightly on ${{ github.ref_name }} never reached the NVDA lane: the UMD build failed, or the called workflow could not start. A red lane job is not reported here (its jobs carry continue-on-error); its verdict is each browser's Screen reader report check run.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTriage: tests/AGENTS.md, Screen readers: the NVDA lane."
             }
