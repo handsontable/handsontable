@@ -227,11 +227,16 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   wrapper runs this on every commit, and rewriting every state cost about 60 ms per commit with 100k pending.
 - **The index mapper can change the row count with no row hook.** The Vue wrapper keeps the data array by
   reference and only resizes the mapper at its end (`matchHotMappersSize`). The `cacheUpdated` local hook
-  notices the count change, and a microtask later (after an `alter()` has synced itself) `#followRows` re-reads
-  every state's row from the map, dropping the ones the map lost, moves a state whose `rowId` hint (kept on
-  the `RowState`) another row now holds, and cancels (`'rowRemoved'`) one whose id no row holds: a row spliced
-  out of the middle leaves its index to the next record, which the map cannot tell. Without ids the states keep
-  their physical rows.
+  notices the count change, and a microtask later (after an `alter()` has synced itself) `#followRows` first
+  puts every state that has a `rowId` hint (kept on the `RowState`) on the row that holds the id, wherever the
+  map holds it, and cancels (`'rowRemoved'`) one whose id no row holds: a row spliced out of the middle leaves
+  its index to the next record, which the map cannot tell. Only then does `#syncRows()` re-read the states
+  without an id from the map and drop the ones it lost. The order matters: the map loses its LAST index, so
+  `#syncRows()` first dropped the state of the last row, which still exists one index lower after a splice
+  (the Vue wrapper's `matchHotMappersSize`). Without ids the states keep their physical rows, so the fix
+  covers only the rows that have an id: a `rowId` function that returns `null` for a row leaves that row's
+  state on its index, where it also blocks an id'd state that has to move there (that one is canceled as
+  `'rowRemoved'`). Pinned by the "with row ids and an in-place splice" block in `__tests__/writes.unit.ts`.
 - **A load is guarded by `#replacingData`.** A load's spare rows fire `afterCreateRow` before `afterLoadData`,
   and the requests belong to the replacement, not to a row removal. A load that throws never reaches
   `after*Data`, so a microtask queued in `before*Data` clears the flag and runs the replacement as a load.
