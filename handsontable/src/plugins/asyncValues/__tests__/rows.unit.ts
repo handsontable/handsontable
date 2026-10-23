@@ -322,6 +322,44 @@ describe('AsyncValues: rows by physical index and by id', () => {
       destroy();
     });
 
+    it('should report the edited id of a row removed after a source write changed its id', () => {
+      const { hot, cancel, destroy } = createPendingGrid();
+
+      hot.setSourceDataAtCell(1, 'id', 'b2');
+      hot.alter('remove_row', 1, 1);
+
+      expect(cancel.mock.calls).toEqual([[1, 'name', 'rowRemoved', 'b2']]);
+
+      destroy();
+    });
+
+    it('should report the edited id of a row removed after a visual write changed its id', () => {
+      const { hot, cancel, destroy } = createPendingGrid();
+
+      hot.setDataAtRowProp(1, 'id', 'b2');
+      hot.alter('remove_row', 1, 1);
+
+      expect(cancel.mock.calls).toEqual([[1, 'name', 'rowRemoved', 'b2']]);
+
+      destroy();
+    });
+
+    it('should keep the request of a row whose id was edited when the index mapper shrinks at its end', async() => {
+      const { hot, plugin, destroy } = createGrid({ data: rows(), rowId: 'id' });
+      const cancel = jest.fn();
+
+      hot.addHook('afterAsyncValueCancel', cancel);
+      plugin.setAsyncValueAt({ rowId: 'c', prop: 'name' }, () => deferred().promise);
+      hot.setSourceDataAtCell(2, 'id', 'c2');
+      hot.batch(() => hot.rowIndexMapper.removeIndexes([4]));
+      await settle();
+
+      expect(cancel).not.toHaveBeenCalled();
+      expect(plugin.countPending()).toBe(1);
+
+      destroy();
+    });
+
     it('should keep reading the live id for a state that is not dropped (a `columnsChanged` cancel)', () => {
       const { hot, plugin, destroy } = createGrid({
         data: [['a', 1], ['b', 2], ['c', 3]],
