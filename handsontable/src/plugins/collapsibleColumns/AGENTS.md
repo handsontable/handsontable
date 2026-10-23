@@ -62,6 +62,22 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   table still shows the old rows, and the disable threw `Cannot read properties of undefined (reading
   'childNodes')`. Pinned by `__tests__/clearButtons.unit.ts`.
 
+- **`Enter` on a collapsible header collapses it and never sorts; the order is chosen when this plugin registers
+  its shortcut, not by plugin priority.** ColumnSorting (50) and MultiColumnSorting (170) register their `Enter`
+  header shortcut in the `grid` context before this plugin (290) does, and every one of them places itself
+  `before` an anchor, so a plain "before the editor group" put the sorting shortcut first whenever this plugin
+  registered second: on a bottom-row group header, `Enter` sorted and the group never collapsed.
+  `registerShortcuts()` therefore anchors `before` the `'columnSorting'` group when a shortcut of that group is
+  already on `Enter` (both sorting plugins register it under that one name, MultiColumnSorting through its parent
+  class), and before the editor group otherwise. That string is a literal, not an import: plugins do not import
+  each other. The opposite order needs no special case, because a sorting shortcut registered later goes before the
+  editor group, which is behind this one. A plugin registers again only on a disabled-to-enabled flip (an
+  `updateSettings()` that leaves it on does not), so a sorting plugin turned off and on, or swapped for the other
+  one, is the way sorting lands behind this shortcut after init. Before `addShortcut()` positioned `before`
+  correctly, the result depended on how many shortcuts the key already had, and a sorting plugin registered a second
+  time took `Enter` back. Pinned by `tests/e2e/collapsible-enter-vs-sorting.spec.ts`, including the case where this
+  plugin registers before any sorting shortcut exists (the editor-group anchor).
+
 ## The indicator is a real element, updated in place on every draw
 
 `#onAfterGetColHeader` runs for every collapsible header on every draw, so it must not rebuild the
