@@ -83,6 +83,6 @@ They combine well: skills give the agent working knowledge up front, and the MCP
 
 ::: tip
 
-The Docs MCP Server searches documentation. If you want your agent to run spreadsheet calculations through HyperFormula instead, that's the separate <a href="https://hyperformula.handsontable.com/docs/guide/mcp-server.html" target="_blank" rel="noopener noreferrer">HyperFormula MCP Server</a> (early access).
+The Docs MCP Server searches documentation. If you want your agent to run spreadsheet calculations through HyperFormula instead, that's the separate <a href="https://handsontable.com/docs/hyperformula/guide/mcp-server.html" target="_blank" rel="noopener noreferrer">HyperFormula MCP Server</a> (early access).
 
 :::
