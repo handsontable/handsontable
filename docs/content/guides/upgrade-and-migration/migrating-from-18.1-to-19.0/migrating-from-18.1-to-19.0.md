@@ -2413,7 +2413,9 @@ In 18.1, a hook you passed in the settings could be replaced, but not removed:
 callback kept running, and [`getSettings()`](@/api/core.md#getsettings) still returned it. In 19.0,
 `null` removes the callback, or every callback of an array, that the settings passed for that hook,
 and `getSettings()` returns `null` for it. A listener you added with
-[`addHook()`](@/api/core.md#addhook) is not affected, and `undefined` still leaves the hook as it is.
+[`addHook()`](@/api/core.md#addhook) is never removed this way, even when it is the same function, and
+`undefined` still leaves the hook as it is. In TypeScript, the settings object of `updateSettings()`
+accepts `null` for every hook.
 
 ```js
 const hot = new Handsontable(container, {

@@ -10,6 +10,7 @@ import {
 } from '../utils/rootSize';
 import type { GridSettings } from './settings';
 import type { HotInstance } from './types';
+import type { SettingsUpdate } from '../settings';
 
 /**
  * The two root size options, which are also the inline style properties they write.
@@ -336,7 +337,7 @@ function hasScrollOwnerChanged(before: RootSizeSnapshot, after: RootSizeSnapshot
  * @param {boolean} init `true` on the first call, when the initial inline style is captured.
  * @returns {RootSizeResult}
  */
-export function applyRootSize(instance: HotInstance, settings: Partial<GridSettings>, init: boolean): RootSizeResult {
+export function applyRootSize(instance: HotInstance, settings: SettingsUpdate, init: boolean): RootSizeResult {
   const { rootElement } = instance;
 
   if (init) {

@@ -72,6 +72,54 @@ describe('updateSettings() with a hook set to `null`', () => {
     expect(added).toHaveBeenCalledTimes(1);
   });
 
+  it('leaves a listener added with `addHook()` before the settings passed the same function', () => {
+    const afterChange = jest.fn();
+
+    build();
+    hot.addHook('afterChange', afterChange);
+    hot.updateSettings({ afterChange });
+    hot.updateSettings({ afterChange: null });
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(afterChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves a listener added with `addHook()` after the settings passed the same function', () => {
+    const afterChange = jest.fn();
+
+    build({ afterChange });
+    hot.addHook('afterChange', afterChange);
+    hot.updateSettings({ afterChange: null });
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(afterChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves a listener added with `addHook()` that is also an item of a settings array', () => {
+    const shared = jest.fn();
+    const settingsOnly = jest.fn();
+
+    build({ afterChange: [shared, settingsOnly] });
+    hot.addHook('afterChange', shared);
+    hot.updateSettings({ afterChange: null });
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(shared).toHaveBeenCalledTimes(1);
+    expect(settingsOnly).not.toHaveBeenCalled();
+  });
+
+  it('leaves a listener added with `Hooks#addAsFixed()`', () => {
+    const fixed = jest.fn();
+
+    build();
+    Handsontable.hooks.addAsFixed('afterChange', fixed, hot);
+    hot.updateSettings({ afterChange: fixed });
+    hot.updateSettings({ afterChange: null });
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(fixed).toHaveBeenCalledTimes(1);
+  });
+
   it('keeps the callback when the hook is passed as `undefined`', () => {
     const afterChange = jest.fn();
 

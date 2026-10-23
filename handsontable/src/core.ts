@@ -94,7 +94,7 @@ import type { ThemeBuilder } from './themes/engine/builder';
 import type { ThemeOverridesInput } from './themes/engine/manager';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
-import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
+import type { CellChange, CellProperties, ColumnDataGetterSetterFunction, SettingsUpdate } from './settings';
 import type {
   CellOptionMetaEntry, GridHelperInstance, HotInstance, SelectAllOptions, ViewportScrollerInstance,
 } from './core/types';
@@ -2521,18 +2521,16 @@ export default function Core(
    * `null` removes what a settings object registered for the hook (the callback, or each callback of an
    * array) and writes `null` to the table meta. Without it a settings hook could only be replaced, never
    * removed, so a sheets bar sheet's own hook kept running on every other sheet. `undefined` still means
-   * "not passed" and changes nothing. Listeners added with `addHook()` are never touched.
+   * "not passed" and changes nothing. The bucket marks the entries the settings registered, and the removal
+   * takes only those: a listener added with `addHook()` stays, even when it is the same function.
    *
    * @private
    * @param {string} key A hook name.
    * @param {Function|Function[]|null} hook A callback, or an array of callbacks, to register, or `null`.
    */
   function registerSettingsHook(key: string, hook: HookCallback | HookCallback[] | null | undefined) {
-    if (isFunction(hook)) {
-      Hooks.getSingleton().addAsFixed(key, hook, instance);
-
-    } else if (Array.isArray(hook)) {
-      Hooks.getSingleton().add(key, hook, instance);
+    if (isFunction(hook) || Array.isArray(hook)) {
+      Hooks.getSingleton()._addFromSettings(key, hook, instance);
 
     } else if (hook === null) {
       removeSettingsHook(key);
@@ -2556,7 +2554,7 @@ export default function Core(
 
     callbacks.forEach((callback: unknown) => {
       if (isFunction(callback)) {
-        Hooks.getSingleton().remove(key, callback as HookCallback, instance);
+        Hooks.getSingleton()._removeFromSettings(key, callback as HookCallback, instance);
       }
     });
   }
@@ -2804,7 +2802,7 @@ export default function Core(
    * injected by the ThemeManager constructor, so nothing has to be refreshed in that case.
    * @returns {boolean} `true` when the overrides changed and `afterSetTheme` still has to run.
    */
-  function applyThemeOverrides(settings: GridSettings, init: boolean): boolean {
+  function applyThemeOverrides(settings: SettingsUpdate, init: boolean): boolean {
     const overrides = readThemeOverrides(settings);
 
     if (!hasOwnProperty(overrides, 'colorScheme') && !hasOwnProperty(overrides, 'density')) {
@@ -5277,7 +5275,7 @@ export default function Core(
    * @fires Hooks#afterCellMetaReset
    * @fires Hooks#afterUpdateSettings
    */
-  this.updateSettings = function(settings: Partial<GridSettings>, init = false) {
+  this.updateSettings = function(settings: SettingsUpdate, init = false) {
     // Applying settings is not a user action: a plugin that updates its state from the new
     // settings, or the `cell` option writing meta, must not open an operation or be journaled.
     operationScope.suppress(() => {
@@ -5363,7 +5361,7 @@ export default function Core(
    * `manualRowMove` or `trimRows` array) changes during the load.
    */
   this._applySettingsAndData = function(
-    settings: Partial<GridSettings>,
+    settings: SettingsUpdate,
     data: unknown[],
     source: string,
     cellOptionMetas: CellOptionMetaEntry[] | null = null,
@@ -5527,7 +5525,7 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    */
-  function assertSupportedSettings(settings: Partial<GridSettings>): void {
+  function assertSupportedSettings(settings: SettingsUpdate): void {
     if (isDefined(settings.rows)) {
       throwWithCause('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
     }
@@ -5547,7 +5545,7 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    */
-  function warnAboutRowHeightsAlias(settings: Partial<GridSettings>): void {
+  function warnAboutRowHeightsAlias(settings: SettingsUpdate): void {
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
       warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
         'As one is the alias of the other, only one of them can be used at a time. ' +
@@ -5562,7 +5560,7 @@ export default function Core(
    * @param {object} settings A settings object (see {@link Options}).
    * @param {string} key The name of the option to write.
    */
-  function applyUpdatedSetting(settings: Partial<GridSettings>, key: string): void {
+  function applyUpdatedSetting(settings: SettingsUpdate, key: string): void {
     // An `editor` of `true` names no editor, so it reads as "the setting was not passed" — and a
     // setting that is not passed leaves the previous value alone. Writing the boolean here would
     // bypass `normalizeEditorSetting()`, which only runs on the layer `updateMeta` calls, and
@@ -5606,7 +5604,7 @@ export default function Core(
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
    */
-  function mergeSettingsIntoMeta(settings: Partial<GridSettings>, init: boolean): void {
+  function mergeSettingsIntoMeta(settings: SettingsUpdate, init: boolean): void {
     let i;
 
     // eslint-disable-next-line no-restricted-syntax
@@ -5642,7 +5640,7 @@ export default function Core(
    * @param {boolean} themeNameOptionExists Whether the payload names `themeName`.
    */
   function initializeTheme(
-    settings: Partial<GridSettings>,
+    settings: SettingsUpdate,
     rootContainerThemeClassName: string | undefined,
     themeOptionExists: boolean,
     themeNameOptionExists: boolean
@@ -5710,7 +5708,7 @@ export default function Core(
    * @param {boolean} themeNameOptionExists Whether the payload names `themeName`.
    */
   function updateTheme(
-    settings: Partial<GridSettings>,
+    settings: SettingsUpdate,
     rootContainerThemeClassName: string | undefined,
     themeOptionExists: boolean,
     themeNameOptionExists: boolean
@@ -5752,7 +5750,7 @@ export default function Core(
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
    */
-  function applyThemeSettings(settings: Partial<GridSettings>, init: boolean): void {
+  function applyThemeSettings(settings: SettingsUpdate, init: boolean): void {
     const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
     const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
     const themeOptionExists = hasOwnProperty(settings, 'theme');
@@ -5785,7 +5783,7 @@ export default function Core(
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} isCellOptionRestated Whether the payload restates `cell` as an array.
    */
-  function warnAboutInvalidCellOption(settings: Partial<GridSettings>, isCellOptionRestated: boolean): void {
+  function warnAboutInvalidCellOption(settings: SettingsUpdate, isCellOptionRestated: boolean): void {
     if (settings.cell !== undefined && settings.cell !== null && !isCellOptionRestated) {
       warnOnce(instance.rootElement, 'Core.invalidCellOption',
         'The "cell" option must be an array of objects. The passed value was ignored, and the previously ' +
@@ -5914,7 +5912,7 @@ export default function Core(
    * early (`null` when none was), and whether the column meta was reset for a form that cannot be.
    */
   function applyColumnMetaBeforeLoad(
-    settings: Partial<GridSettings>, isCellOptionRestated: boolean, defersDataWork: boolean
+    settings: SettingsUpdate, isCellOptionRestated: boolean, defersDataWork: boolean
   ): { earlyColumnsSetting: unknown[] | null, resetsColumnMetaBeforeLoad: boolean } {
     const earlyColumnsSetting = settings.columns !== undefined && Array.isArray(tableMeta.columns)
       ? tableMeta.columns
@@ -5949,7 +5947,7 @@ export default function Core(
    * @param {Function} dataUpdateFunction `loadData()` on the first run, `updateData()` after it.
    */
   function applyExternalDataPhase(
-    settings: Partial<GridSettings>, init: boolean, dataUpdateFunction: (data: unknown[], source: string) => void
+    settings: SettingsUpdate, init: boolean, dataUpdateFunction: (data: unknown[], source: string) => void
   ): void {
     // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
     if (settings.data) {
@@ -5983,7 +5981,7 @@ export default function Core(
    * @param {Function} dataUpdateFunction `loadData()` on the first run, `updateData()` after it.
    */
   function applyDataPhase(
-    settings: Partial<GridSettings>,
+    settings: SettingsUpdate,
     init: boolean,
     previousColumnLayout: ColumnLayout | null,
     dataUpdateFunction: (data: unknown[], source: string) => void
@@ -6059,7 +6057,7 @@ export default function Core(
    * applying `settings.cell` (see `_applySettingsAndData()`).
    */
   function applyMetaPhase(
-    settings: Partial<GridSettings>,
+    settings: SettingsUpdate,
     columnPhase: { earlyColumnsSetting: unknown[] | null, resetsColumnMetaBeforeLoad: boolean },
     isCellOptionRestated: boolean,
     restoredCellOptionMetas: CellOptionMetaEntry[] | null
@@ -6103,7 +6101,7 @@ export default function Core(
    * @returns {object} The `min*` sizes, the column layout (`null` when the payload cannot change it) and the root
    * `height` and `width` as they stand.
    */
-  function readSettingsBaseline(settings: Partial<GridSettings>, init: boolean) {
+  function readSettingsBaseline(settings: SettingsUpdate, init: boolean) {
     return {
       // A lowered minimum is compared with the value that sized the grid.
       previousMinimumSizes: {
@@ -6164,7 +6162,7 @@ export default function Core(
    * @returns {object} The outcome of `applyRootSize()`.
    */
   function applyRootSizeSettings(
-    settings: Partial<GridSettings>,
+    settings: SettingsUpdate,
     init: boolean,
     previousRootSize: { height: unknown, width: unknown }
   ): ReturnType<typeof applyRootSize> {
@@ -6184,7 +6182,7 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    */
-  function notifySettingsUpdated(settings: Partial<GridSettings>): void {
+  function notifySettingsUpdated(settings: SettingsUpdate): void {
     if (instance.view) {
       instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
       instance.view._wt.exportSettingsAsClassNames();
@@ -6237,7 +6235,7 @@ export default function Core(
    * @returns {Function|null} The held-back meta phase, or `null` when it ran.
    */
   function applySettings(
-    settings: Partial<GridSettings>, init: boolean, defersDataWork = false,
+    settings: SettingsUpdate, init: boolean, defersDataWork = false,
     restoredCellOptionMetas: CellOptionMetaEntry[] | null = null
   ): (() => void) | null {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(instance);

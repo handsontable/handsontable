@@ -106,6 +106,18 @@ export type OmitHooks<T> = {
 };
 
 /**
+ * The settings {@link Core#updateSettings} takes: every option of `GridSettings`, optional, and every hook
+ * may also be `null`, which removes the callback that earlier settings passed for it. Only the hooks take
+ * the extra `null`: an option that is not a hook keeps its own type.
+ *
+ * A mapped type rather than an intersection with `Partial<GridSettings>`: an intersection narrows each
+ * hook back to the declared callback, and the `null` is lost.
+ */
+export type SettingsUpdate = {
+  [K in keyof GridSettings]?: K extends HookSettingKey ? GridSettings[K] | null : GridSettings[K];
+};
+
+/**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
  *
  * The base type is `RemoveIndexSignature<GridSettings>`, not `GridSettings` itself: `Omit` over a type

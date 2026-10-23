@@ -159,6 +159,51 @@ export class Hooks {
   }
 
   /**
+   * Registers a hook callback that a settings object passed. A function replaces the callback earlier settings
+   * passed for the hook (`addAsFixed()`), and each callback of an array is added beside the others (`add()`).
+   * The entries are marked as the settings' own, so `_removeFromSettings()` can remove them later and never
+   * an entry an `addHook()` call registered.
+   *
+   * @private
+   * @param {string} key Hook name.
+   * @param {Function|Function[]} callback A callback, or an array of callbacks.
+   * @param {object} context A Handsontable instance.
+   * @returns {Hooks} Instance of Hooks.
+   */
+  _addFromSettings(key: string, callback: HookCallback | HookCallback[], context: Record<string, unknown>) {
+    if (Array.isArray(callback)) {
+      arrayEach(callback, (c: unknown) => {
+        if (REMOVED_HOOKS.has(key)) {
+          warn(substitute(REMOVED_MESSAGE, { hookName: key, removedInVersion: REMOVED_HOOKS.get(key) }));
+        }
+        if (DEPRECATED_HOOKS.has(key)) {
+          warn(DEPRECATED_HOOKS.get(key));
+        }
+
+        this.getBucket(context).add(key, c as HookCallback, { fromSettings: true });
+      });
+    } else {
+      this.getBucket(context).add(key, callback, { initialHook: true, fromSettings: true });
+    }
+
+    return this;
+  }
+
+  /**
+   * Removes a hook callback that a settings object registered (`_addFromSettings()`). A callback that an
+   * `addHook()` call registered, the same function included, is left in place.
+   *
+   * @private
+   * @param {string} key Hook name.
+   * @param {Function} callback The callback to remove.
+   * @param {object} context A Handsontable instance.
+   * @returns {boolean} `true` when an entry was removed.
+   */
+  _removeFromSettings(key: string, callback: HookCallback, context: Record<string, unknown>) {
+    return this.getBucket(context).removeFromSettings(key, callback);
+  }
+
+  /**
    * Removes a listener from a hook with a given name. If the `context` argument is provided, it removes a listener from a local hook assigned to the given Handsontable instance.
    *
    * @param {string} key Hook/Event name.

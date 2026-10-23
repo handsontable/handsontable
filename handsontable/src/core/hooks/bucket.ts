@@ -15,6 +15,13 @@ export interface HookEntry {
   runOnce: boolean;
   initialHook: boolean;
   /**
+   * Whether a settings object registered the entry (`updateSettings()` or the grid's initial settings).
+   * Only such an entry can be removed by a hook set to `null` in the settings (`removeFromSettings()`).
+   * An entry that `add()` met again from any other registration, `addHook()` included, loses the mark,
+   * so the settings can never remove a listener that was added through the API.
+   */
+  fromSettings: boolean;
+  /**
    * Intrusive singly-linked-list pointer to the next entry. The entry IS the list node (no wrapper
    * object) so dispatch reads `entry.callback` with a single indirection. `null` marks the tail.
    */
@@ -92,12 +99,13 @@ export class HooksBucket {
    *
    * @param {string} hookName The name of the hook.
    * @param {Function} callback The callback function to add.
-   * @param {{ orderIndex?: number, runOnce?: boolean, initialHook?: boolean }} options The options object.
+   * @param {{ orderIndex?: number, runOnce?: boolean, initialHook?: boolean, fromSettings?: boolean }} options The
+   * options object.
    */
   add(
     hookName: string,
     callback: HookCallback,
-    options: { orderIndex?: number; runOnce?: boolean; initialHook?: boolean } = {}
+    options: { orderIndex?: number; runOnce?: boolean; initialHook?: boolean; fromSettings?: boolean } = {}
   ) {
     let list = this.#hooks.get(hookName);
 
@@ -107,8 +115,14 @@ export class HooksBucket {
     }
 
     // Adding the same callback twice is silently ignored. With true-delete a match is always a live entry.
+    const fromSettings = !!options.fromSettings;
+
     for (let node = list.head; node !== null; node = node.next) {
       if (node.callback === callback) {
+        if (!fromSettings) {
+          node.fromSettings = false;
+        }
+
         return;
       }
     }
@@ -123,13 +137,14 @@ export class HooksBucket {
       for (let node = list.head; node !== null; node = node.next) {
         if (node.initialHook) {
           node.callback = callback;
+          node.fromSettings = fromSettings;
 
           return;
         }
       }
     }
 
-    this.#insertByOrder(list, { callback, orderIndex, runOnce, initialHook, next: null });
+    this.#insertByOrder(list, { callback, orderIndex, runOnce, initialHook, fromSettings, next: null });
   }
 
   /**
@@ -153,6 +168,30 @@ export class HooksBucket {
    * @returns {boolean}
    */
   remove(hookName: string, callback: HookCallback): boolean {
+    return this.#removeWhere(hookName, node => node.callback === callback);
+  }
+
+  /**
+   * Removes the entry of a callback that a settings object registered (true delete), and only that one: an
+   * entry an `addHook()` call registered, or claimed by registering the same callback again, stays. Returns
+   * `true` if an entry was removed.
+   *
+   * @param {string} hookName The name of the hook.
+   * @param {*} callback The callback function to remove.
+   * @returns {boolean}
+   */
+  removeFromSettings(hookName: string, callback: HookCallback): boolean {
+    return this.#removeWhere(hookName, node => node.callback === callback && node.fromSettings);
+  }
+
+  /**
+   * Removes the first entry of a hook that the predicate accepts (true delete).
+   *
+   * @param {string} hookName The name of the hook.
+   * @param {Function} matches The predicate an entry has to pass.
+   * @returns {boolean}
+   */
+  #removeWhere(hookName: string, matches: (node: HookEntry) => boolean): boolean {
     const list = this.#hooks.get(hookName);
 
     if (!list) {
@@ -163,7 +202,7 @@ export class HooksBucket {
     let node = list.head;
 
     while (node !== null) {
-      if (node.callback === callback) {
+      if (matches(node)) {
         if (prev) {
           prev.next = node.next;
         } else {
