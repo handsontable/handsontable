@@ -18,14 +18,14 @@ addedIn: "17.0.0"
 ---
 Collect user input with a list of multiple-selection choices, by using the MultiSelect cell type.
 
-The multiselect cell type lets users pick multiple values from a dropdown list. Values are stored as a comma-separated string or array.
+The multiselect cell type lets users pick multiple values from a dropdown list. Values are stored in the source data as an array.
 
 [[toc]]
 
 ## Overview
 The MultiSelect cell type is designed for scenarios where you need to save and manage a list of values within a single cell. With this cell type, users can open a dropdown menu containing all available options and select any number of values, rather than being limited to just one.
 
-Once selections are made, the values are stored in the table's source data as an array associated with that particular cell. This approach provides both flexibility and clarity when working with datasets that require multiple values per field.
+Once selections are made, the values are stored in the table's source data as an array associated with that particular cell. This approach provides both flexibility and clarity when working with datasets that require multiple values per field. If you set a plain string as the cell value, the renderer shows the whole string as one item. It doesn't split the string at commas.
 
 For a clear visual representation, the MultiSelect renderer displays each selected value as an individual, removable chip within the cell. This makes it easy for users to see exactly which values are selected at a glance and to remove any item with a single action if needed.
 
@@ -233,7 +233,7 @@ When working with object-based MultiSelect data, you can use methods like [`getS
 
 ## Result
 
-After configuring the multiselect cell type, cells display a dropdown that allows selecting multiple items. Each selected value appears as a removable chip inside the cell. The underlying data source stores the selections as an array (or as a comma-separated string when used with the Formulas plugin).
+After configuring the multiselect cell type, cells display a dropdown that allows selecting multiple items. Each selected value appears as a removable chip inside the cell. The underlying data source stores the selections as an array. This also applies when you use the Formulas plugin: only the copy passed to HyperFormula is a comma-separated string.
 
 ## Related articles
 
