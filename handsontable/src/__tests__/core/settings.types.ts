@@ -664,6 +664,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSetDataAtRowProp: (changes, source) => {},
   afterSetSourceDataAtCell: (changes, source) => {},
   afterSetTheme: (themeName, firstRun) => {},
+  afterFontsLoad: () => {},
   afterSheetAdded: (addedSheetDisplayName) => {},
   afterSheetRemoved: (removedSheetDisplayName, changes) => {},
   afterSheetRenamed: (oldDisplayName, newDisplayName) => {},

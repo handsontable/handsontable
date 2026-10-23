@@ -353,6 +353,8 @@ export class AutoRowHeaderSize extends BasePlugin {
     // A theme carries its own font and cell padding, so every measured width is wrong under a new
     // one. `useTheme()` does not go through `updateSettings`, so nothing else would notice.
     this.addHook('afterSetTheme', this.#onInvalidate);
+    // A web font that loads after the headers were measured changes the width of their labels the same way.
+    this.addHook('afterFontsLoad', this.#onInvalidate);
     // Recalculated formulas can feed a label without any cell write being reported, and the payload
     // describes engine addresses rather than rows - so the whole thing is measured again.
     this.addHook('afterFormulasValuesUpdate', this.#onInvalidate);

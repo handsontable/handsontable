@@ -402,6 +402,7 @@ export class AutoRowSize extends BasePlugin {
     this.#applySamplingSettings();
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('afterFontsLoad', this.#onAfterFontsLoad);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
     this.addHook('beforeColumnResize', this.#onBeforeColumnResize);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
@@ -1052,6 +1053,16 @@ export class AutoRowSize extends BasePlugin {
     }
 
     return newSize;
+  };
+
+  /**
+   * Re-measures every row after the document loaded a web font. The heights are overwritten in place:
+   * `clearCache()` would draw every row past the synchronous limit at the default height until the idle
+   * sweep reaches it, which moves a grid scrolled far down to other rows. Core fires the hook only on a
+   * visible grid.
+   */
+  #onAfterFontsLoad = () => {
+    this.recalculateAllRowsHeight();
   };
 
   /**
