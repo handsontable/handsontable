@@ -177,10 +177,8 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
         let insertionIndex = shortcuts.findIndex((shortcut: Partial<Shortcut>) => shortcut.group === relativeToGroup);
 
         if (insertionIndex !== -1) {
-          if (position === 'before') {
-            insertionIndex -= 1;
-
-          } else {
+          // `splice` inserts in front of the index, which is already the "before" position.
+          if (position !== 'before') {
             insertionIndex += 1;
           }
 
