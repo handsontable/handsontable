@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-23T12:31:24.624Z",
+  "generatedAt": "2026-10-24T04:02:44.789Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 409,
     "needsTicket": 24,
     "quarantined": 0,
-    "entries": 2129
+    "entries": 2131
   },
   "rows": [
     {
@@ -2338,6 +2338,40 @@
       "needsTicket": false
     },
     {
+      "key": "playwright|e2e/formulas-object-columns.spec.ts|Formulas: fill handle over object rows read through `columns` › fills the value of the source cell when the source column lies past the keys of the first row",
+      "tier": "playwright",
+      "file": "e2e/formulas-object-columns.spec.ts",
+      "line": 44,
+      "title": "Formulas: fill handle over object rows read through `columns` › fills the value of the source cell when the source column lies past the keys of the first row",
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 2,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-horizon",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-24T04:01:57Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40059535736",
+        "branch": "develop",
+        "leg": "e2e-horizon-min",
+        "status": "failed",
+        "error": "Error: the fill handle never moved onto the selected cell",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/touch-interactive-cell.spec.ts|touch taps on interactive renderer elements › a tap on a file input label runs the input when visual selection is off",
       "tier": "playwright",
       "file": "e2e/touch-interactive-cell.spec.ts",
@@ -2613,40 +2647,6 @@
         "leg": "cross-browser/chromium",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 e927584fef09",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/formulas-object-columns.spec.ts|Formulas: fill handle over object rows read through `columns` › fills the value of the source cell when the source column lies past the keys of the first row",
-      "tier": "playwright",
-      "file": "e2e/formulas-object-columns.spec.ts",
-      "line": 44,
-      "title": "Formulas: fill handle over object rows read through `columns` › fills the value of the source cell when the source column lies past the keys of the first row",
-      "count7": 2,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-horizon",
-        "e2e-horizon-min"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-23T04:03:45Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/39896786689",
-        "branch": "develop",
-        "leg": "e2e-horizon-min",
-        "status": "failed",
-        "error": "Error: the fill handle never moved onto the selected cell",
         "source": "ci"
       },
       "needsTicket": false
