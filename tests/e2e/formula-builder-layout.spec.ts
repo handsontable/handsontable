@@ -277,6 +277,36 @@ test.describe('formulaBuilder in a grid the window scrolls vertically', { tag: [
   });
 });
 
+// A theme switch during an edit, as an application that follows `prefers-color-scheme` makes one:
+// the builder takes its theme class at construction, and rebuilding it cancelled the open edit.
+test.describe('formulaBuilder theme switch during an edit', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle);
+    await grid.goto();
+  });
+
+  test('keeps the typed formula, and the rebuilt bar takes the new theme after the commit', async({ page }) => {
+    await grid.selectCellByApi(3, 0);
+    await page.keyboard.press('=');
+    await page.keyboard.type('A1*10');
+    await expect(grid.editorInput).toHaveValue('=A1*10');
+
+    const target = await grid.switchToAnotherTheme();
+
+    await expect(grid.editorInput).toHaveValue('=A1*10');
+    await expect(grid.editorInput).toBeFocused();
+    expect(await grid.editorOpened()).toBe(true);
+
+    await page.keyboard.press('Enter');
+    await expect(grid.cell(4, 0)).toBeFocused();
+    expect(await grid.sourceAt(3, 0)).toBe('=A1*10');
+    expect(await grid.dataAt(3, 0)).toBe(10);
+    await expect(grid.formulaBar).toHaveClass(new RegExp(`\\b${target}\\b`));
+  });
+});
+
 // A grid inside a shadow root reads no document stylesheet, so the rules the plugin generates for
 // its highlights (the dashed border mask and the cell tint) must be mounted in the grid's own tree.
 test.describe('formulaBuilder in a shadow root', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {

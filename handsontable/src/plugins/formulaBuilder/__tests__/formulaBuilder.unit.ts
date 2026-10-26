@@ -1153,13 +1153,13 @@ describe('FormulaBuilder theme tracking', () => {
       .toEqual(['ht-theme-main', 'ht-theme-main-dark']);
   });
 
-  it('cancels an open edit before destroying the old builder', () => {
+  it.each([
+    ['a theme change', 'afterSetTheme'],
+    ['a language change', 'afterLanguageChange'],
+  ])('keeps an open edit through %s and rebuilds the builder once the edit closes', async(_label, hookName) => {
     const spied = makeSpiedCore();
     const stub = makeFullHotStub({ builder: spied.module });
-    const order: string[] = [];
-    const hostEditor = makeHostEditor({
-      finishEditing: jest.fn((restore?: boolean) => order.push(`finishEditing(${restore})`)),
-    });
+    const hostEditor = makeHostEditor();
     let theme = 'ht-theme-main';
 
     stub.hot.getActiveEditor = () => hostEditor;
@@ -1170,17 +1170,39 @@ describe('FormulaBuilder theme tracking', () => {
     plugin.enablePlugin();
     openSession(plugin, '=A1');
 
-    const firstBuilder = spied.created[0].instance as { destroy(): void };
-    const realDestroy = firstBuilder.destroy.bind(firstBuilder);
+    // An application that follows `prefers-color-scheme` swaps the theme while the user types.
+    theme = 'ht-theme-main-dark';
+    findHook(stub.hot, hookName)();
 
-    firstBuilder.destroy = () => {
-      order.push('destroy');
-      realDestroy();
-    };
-    theme = 'ht-theme-horizon';
-    findHook(stub.hot, 'afterSetTheme')();
+    expect(hostEditor.finishEditing).not.toHaveBeenCalled();
+    expect(spied.created).toHaveLength(1);
+    expect(spied.destroyed).toHaveLength(0);
 
-    expect(order).toEqual(['finishEditing(true)', 'destroy']);
+    plugin.handleInlineEditClose();
+
+    // Not inside the close, which runs in the builder's own commit handler, but a task later.
+    expect(spied.created).toHaveLength(1);
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(spied.created.map(entry => entry.options.className)).toEqual(['ht-theme-main', 'ht-theme-main-dark']);
+    expect(spied.destroyed).toEqual([spied.created[0].instance]);
+  });
+
+  it('does not rebuild on close when nothing changed during the edit', async() => {
+    const spied = makeSpiedCore();
+    const stub = makeFullHotStub({ builder: spied.module });
+
+    stub.hot.getActiveEditor = () => makeHostEditor();
+
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+    openSession(plugin, '=A1');
+    plugin.handleInlineEditClose();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(spied.created).toHaveLength(1);
   });
 });
 

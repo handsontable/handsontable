@@ -415,6 +415,10 @@ export class FormulaBuilder extends BasePlugin {
    * Whether the last enable attempt failed because the Formulas plugin was off, during the init.
    */
   #formulasWarningPending = false;
+  /**
+   * Whether a theme or language change arrived during an edit, so the builder is rebuilt when it closes.
+   */
+  #rebuildAfterEdit = false;
 
   /**
    * @param {HotInstance} hotInstance The Handsontable instance.
@@ -666,6 +670,13 @@ export class FormulaBuilder extends BasePlugin {
     // microtask after the deselect or the `selectCell()` that ended it, so the bar would keep
     // showing the old cell. Re-read the selection now that the edit is over.
     this.#emitBarSelection();
+
+    if (this.#rebuildAfterEdit) {
+      // A task later: the close runs inside the builder's own commit handler, which is still on the
+      // stack, and destroying the builder under it would leave that handler working on a torn-down
+      // editor. A new edit opened by then defers the rebuild again.
+      this.hot._registerTimeout(this.#rebuildDeferred, 0);
+    }
   }
 
   /**
@@ -998,7 +1009,7 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    this.#rebuildBuilder();
+    this.#rebuildOrDefer();
   };
 
   /**
@@ -1007,9 +1018,36 @@ export class FormulaBuilder extends BasePlugin {
    */
   #onAfterLanguageChange = (): void => {
     if (this.#builder !== null) {
-      this.#rebuildBuilder();
+      this.#rebuildOrDefer();
     }
   };
+
+  /**
+   * Runs the rebuild a theme or language change held back during an edit.
+   */
+  #rebuildDeferred = (): void => {
+    if (!this.#rebuildAfterEdit || this.#activeEditor || this.#builder === null) {
+      return;
+    }
+
+    this.#rebuildAfterEdit = false;
+    this.#rebuildBuilder();
+  };
+
+  /**
+   * Rebuilds the builder for a new theme or language, or, while an edit is open, once it closes.
+   * A rebuild cancels the open edit, and an application that follows `prefers-color-scheme` can swap
+   * the theme while the user types, so the typed formula would be lost.
+   */
+  #rebuildOrDefer(): void {
+    if (this.#activeEditor) {
+      this.#rebuildAfterEdit = true;
+
+      return;
+    }
+
+    this.#rebuildBuilder();
+  }
 
   /**
    * Called by the Formulas plugin right before it detaches its engine (it is turned off, its engine
@@ -1713,6 +1751,8 @@ export class FormulaBuilder extends BasePlugin {
    * is cancelled first, while the old builder still exists - see `#teardownPluginState()`.
    */
   #rebuildBuilder(): void {
+    // Any rebuild takes the current theme and language, so one held back for an edit is done too.
+    this.#rebuildAfterEdit = false;
     this.#destroyBuilder();
     this.#createBuilder();
   }
@@ -1742,6 +1782,7 @@ export class FormulaBuilder extends BasePlugin {
    * Releases every enable-time resource.
    */
   #teardownPluginState(): void {
+    this.#rebuildAfterEdit = false;
     this.#removeEngineDetachListener?.();
     this.#removeEngineDetachListener = null;
     this.#destroyBuilder();

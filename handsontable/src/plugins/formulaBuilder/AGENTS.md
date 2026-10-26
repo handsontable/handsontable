@@ -71,7 +71,10 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 - **A theme change rebuilds the builder, not the plugin.** The builder applies its theming class once, at
   construction, and the body-mounted popup portal needs it to resolve `light-dark()` against the grid's
   scheme rather than the OS one. String themes leave `themeManager` `null`, so the class comes from
-  `getCurrentThemeName()`.
+  `getCurrentThemeName()`. A theme or language change that arrives during an edit is held back
+  (`#rebuildAfterEdit`) and rebuilt a task after the edit closes: a rebuild cancels the edit, and an
+  application that follows `prefers-color-scheme` swaps the theme while the user types. Not inside
+  `handleInlineEditClose()` itself, which runs inside the old builder's commit handler.
 - **Rebuilding or tearing down under an open edit cancels the edit first.** Destroying the builder while
   Handsontable's editor is EDITING leaves it over a torn-down mount, and its later close commits the stale
   original. `#cancelOpenEdit()` runs before every `destroy()` (`#destroyBuilder()`).
