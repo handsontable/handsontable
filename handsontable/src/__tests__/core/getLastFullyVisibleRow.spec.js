@@ -152,4 +152,64 @@ describe('Core.getLastFullyVisibleRow', () => {
 
     expect(getLastFullyVisibleRow()).toBe(afterInit);
   });
+
+  /**
+   * Values a caller can read after the grid has drawn.
+   *
+   * @param {boolean} autoRowSize `true` when the AutoRowSize plugin measured the header.
+   * @returns {object}
+   */
+  function contentHeaderSnapshot(autoRowSize) {
+    const holder = spec().$container.find('.ht_master .wtHolder')[0];
+    const thead = spec().$container.find('.ht_master table.htCore thead')[0];
+    const snapshot = {
+      lastFullyVisibleRow: getLastFullyVisibleRow(),
+      visibleRows: countVisibleRows(),
+      renderedRows: countRenderedRows(),
+      columnHeaderHeight: hot().view.getColumnHeaderHeight(),
+      theadHeight: thead.offsetHeight,
+      horizontalScrollbar: holder.offsetHeight - holder.clientHeight,
+      verticalScrollbar: holder.offsetWidth - holder.clientWidth,
+    };
+
+    if (autoRowSize) {
+      snapshot.measuredHeaderHeight = getPlugin('autoRowSize').getColumnHeaderHeight();
+    }
+
+    return snapshot;
+  }
+
+  it('should match a later render for a content-sized column header on the first draw', async() => {
+    // A header that is one pixel off changes the last fully visible row only at some heights.
+    const columns = 4;
+    const colHeaders = Array.from({ length: columns }, () => 'A<br>B');
+    const mismatches = [];
+
+    for (const autoRowSize of [false, true]) {
+      for (let height = 250; height <= 320; height += 1) {
+        handsontable({
+          data: createSpreadsheetData(40, columns),
+          width: 600,
+          height,
+          colHeaders,
+          colWidths: 80,
+          autoRowSize,
+        });
+
+        const init = contentHeaderSnapshot(autoRowSize);
+
+        await render();
+
+        const afterRender = contentHeaderSnapshot(autoRowSize);
+
+        if (JSON.stringify(init) !== JSON.stringify(afterRender)) {
+          mismatches.push({ autoRowSize, height, init, afterRender });
+        }
+
+        destroy();
+      }
+    }
+
+    expect(mismatches).toEqual([]);
+  }, 180000);
 });
