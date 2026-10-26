@@ -48,7 +48,11 @@ export class FormulasObjectColumnsPage {
     await expect(this.fillHandle).toBeVisible();
 
     // The handle exists before the selection border is laid out, as a 2x2 box at the grid's corner,
-    // and a press on it there arms nothing. Wait for it to sit on the end corner of the selected cell.
+    // and a press on it there arms nothing. Wait for it to sit on the inline-end edge of the selected
+    // cell, anywhere from its top to just past its bottom: on the grid's last row, when that row ends at
+    // the holder's bottom edge, the handle is lifted inside the cell and out of the overlay scrollbar's
+    // strip (`Border#getCornerScrollbarShift`). How far depends on the row height, so on the theme:
+    // 20 px on `horizon`, whose wrapped values make this fixture's rows 57 px tall.
     await expect.poll(async() => {
       const cell = await this.cell(row, col).boundingBox();
       const handle = await this.fillHandle.boundingBox();
@@ -57,8 +61,10 @@ export class FormulasObjectColumnsPage {
         return false;
       }
 
+      const handleCenterY = handle.y + handle.height / 2;
+
       return Math.abs(handle.x + handle.width / 2 - (cell.x + cell.width)) <= 8 &&
-        Math.abs(handle.y + handle.height / 2 - (cell.y + cell.height)) <= 8;
+        handleCenterY >= cell.y && handleCenterY <= cell.y + cell.height + 8;
     }, { message: 'the fill handle never moved onto the selected cell' }).toBe(true);
   }
 
