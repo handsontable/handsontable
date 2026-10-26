@@ -6,15 +6,17 @@ import * as formulaBuilder from 'hyperformula-ui';
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
-  const data: (string | number)[][] = [
-    ['SKU-4821', 142, 96, '=(B1-C1)/C1'],
-    ['SKU-0093', 67, 88, '=(B2-C2)/C2'],
-    ['SKU-3310', 205, 0, '=(B3-C3)/C3'],
-    ['SKU-1275', 58, 41, '=(B4-C4)/C4'],
-    ['SKU-9004', 310, 264, '=(B5-C5)/C5'],
-  ];
+// Declared outside the component: the wrapper compares `data` by identity, so a new array on
+// every render would replace the grid's data, the user's edits included.
+const data: (string | number)[][] = [
+  ['SKU-4821', 142, 96, '=(B1-C1)/C1'],
+  ['SKU-0093', 67, 88, '=(B2-C2)/C2'],
+  ['SKU-3310', 205, 0, '=(B3-C3)/C3'],
+  ['SKU-1275', 58, 41, '=(B4-C4)/C4'],
+  ['SKU-9004', 310, 264, '=(B5-C5)/C5'],
+];
 
+const ExampleComponent = () => {
   return (
     <HotTable
       data={data}
