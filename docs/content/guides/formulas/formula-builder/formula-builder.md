@@ -54,11 +54,13 @@ Import the `hyperformula-ui` module namespace, and pass it in the `formulaBuilde
 ::: only-for javascript
 
 ```javascript
-import Handsontable from 'handsontable/base';
+// The full `handsontable` package registers every module, the `Formulas` and `FormulaBuilder` plugins included.
+import Handsontable from 'handsontable';
 import { HyperFormula } from 'hyperformula';
 import * as formulaBuilder from 'hyperformula-ui';
 
 const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
   editor: 'formula',
   formulas: {
     engine: HyperFormula,
@@ -75,8 +77,12 @@ const hot = new Handsontable(container, {
 ::: only-for react
 
 ```jsx
+import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
 import * as formulaBuilder from 'hyperformula-ui';
+
+// Registers the `Formulas` and `FormulaBuilder` plugins, among others.
+registerAllModules();
 
 <HotTable
   columns={[{ editor: 'formula' }]}
@@ -92,8 +98,12 @@ The React wrapper reserves the top-level `editor` prop for React component edito
 ::: only-for angular
 
 ```typescript
+import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
 import * as formulaBuilder from 'hyperformula-ui';
+
+// Registers the `Formulas` and `FormulaBuilder` plugins, among others.
+registerAllModules();
 
 gridSettings: GridSettings = {
   editor: 'formula',
@@ -107,8 +117,12 @@ gridSettings: GridSettings = {
 ::: only-for vue
 
 ```typescript
+import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
 import * as formulaBuilder from 'hyperformula-ui';
+
+// Registers the `Formulas` and `FormulaBuilder` plugins, among others.
+registerAllModules();
 
 const hotSettings: GridSettings = {
   editor: 'formula',
