@@ -187,50 +187,12 @@ If you're using Angular 21 or newer, please note that older versions of `@handso
 
 ## Server-side rendering (SSR)
 
-Currently, `HotTable` cannot be rendered on the server-side. If your application uses SSR, render it only in the browser using the `@if` control flow block.
-
-```ts
-import { isPlatformBrowser } from "@angular/common";
-import { Component, inject, PLATFORM_ID } from "@angular/core";
-import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
-
-@Component({
-  standalone: true,
-  selector: "app-root",
-  imports: [HotTableModule],
-  templateUrl: "./app.html",
-  styleUrl: "./app.scss",
-})
-export class App {
-  private platformId = inject(PLATFORM_ID);
-  readonly isBrowser = isPlatformBrowser(this.platformId);
-
-  readonly data = [
-    ["SKU-4821", "Stainless Steel Water Bottle", "Harbor Goods", "Drinkware", "Seattle"],
-    ["SKU-0093", "Wireless Mouse", "Alpine Supply Co.", "Electronics", "Denver"],
-    ["SKU-1170", "Ergonomic Office Chair", "Cascade Distributors", "Furniture", "Portland"],
-    ["SKU-2208", "USB-C Charging Cable", "Summit Trading", "Electronics", "Austin"],
-    ["SKU-3341", "Aluminum Water Filter", "Northgate Wholesale", "Drinkware", "Minneapolis"],
-  ];
-  readonly gridSettings: GridSettings = {
-    rowHeaders: true,
-    colHeaders: ["SKU", "Product", "Supplier", "Category", "Warehouse"],
-    height: "auto",
-    autoWrapRow: true,
-    autoWrapCol: true,
-    manualRowResize: true,
-    manualColumnResize: true,
-  };
-}
-```
-
-```html
-<div>
-  @if (isBrowser) {
-    <hot-table [data]="data" [settings]="gridSettings" />
-  }
-</div>
-```
+Include `<hot-table>` in the template when Angular renders the page on the server.
+That render does not throw.
+`HotTableComponent` does not create the grid.
+`hotInstance` stays `null`.
+The server HTML contains no Handsontable grid.
+In the browser, the component creates the grid in `ngAfterViewInit`.
 
 ## Result
 
