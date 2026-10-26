@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a message after `npm i handsontable` that points AI assistants to the SKILLS file. npm shows it only with `--foreground-scripts`, and pnpm 10 runs it only after you approve the script.",
+  "type": "added",
+  "issueOrPR": 14011,
+  "breaking": false,
+  "framework": "none"
+}
