@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed `getLastFullyVisibleRow()` returning a row too far down right after initialization when the grid has column headers.",
+  "title": "Fixed the first render computing the visible rows and the scrollbar without the column header.",
   "type": "fixed",
   "issueOrPR": 14013,
   "breaking": false,

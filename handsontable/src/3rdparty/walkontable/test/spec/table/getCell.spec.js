@@ -604,9 +604,9 @@ describe('WalkontableTable', () => {
 
         expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'master').toBe(2);
         expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'master').toBe(2);
-        expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'master').toBe(5);
+        expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'master').toBe(4);
         expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'master').toBe(3);
-        expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'master').toBe(4);
+        expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'master').toBe(3);
         expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'master').toBe(2);
 
         expect(wt.wtOverlays.bottomInlineStartCornerOverlay).not.toBe(undefined);
@@ -628,9 +628,9 @@ describe('WalkontableTable', () => {
         expect(wt.wtOverlays.inlineStartOverlay.clone).not.toBe(undefined);
         expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'inlineStart').toBe(2);
         expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'inlineStart').toBe(2);
-        expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'inlineStart').toBe(5);
+        expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'inlineStart').toBe(4);
         expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'inlineStart').toBe(3);
-        expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'inlineStart').toBe(4);
+        expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'inlineStart').toBe(3);
         expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'inlineStart').toBe(2);
 
         expect(wt.wtOverlays.topInlineStartCornerOverlay).not.toBe(undefined);

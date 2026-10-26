@@ -27,6 +27,7 @@ import {
 import EventManager from './eventManager';
 import { CellPainter } from './core/incrementalRender/cellPainter';
 import { RenderSizeProbe } from './renderSizeProbe';
+import GhostTable from './utils/ghostTable';
 import { getRenderedRowHeight } from './core/viewportScroll/scrollStrategies/singleScroll';
 import {
   isImmediatePropagationStopped,
@@ -437,12 +438,85 @@ class TableView {
       this.#refreshEffectiveFixed(isFullRender);
 
       this.#drawRenderedCells = false;
+      this.#measureContentColumnHeader();
       this._wt.draw(!isFullRender);
       this.#redrawOnceWhenEffectiveFixedMoved(isFullRender);
       this.#updateScrollbarClassNames();
 
       this.hot.runHooks('afterRender', isFullRender);
       this.hot.forceFullRender = false;
+    }
+  }
+
+  /**
+   * Measures a content-sized column header before the head rows exist.
+   *
+   * The first layout read happens while the head section is empty, so a header taller than the
+   * default row is still unknown and the visible rows are chosen without it. AutoRowSize and an
+   * explicit `columnHeaderHeight` already supply that number. Otherwise the ghost table renders
+   * the header, and the probe keeps the border-box height for this draw.
+   */
+  #measureContentColumnHeader(): void {
+    if (this.renderSizeProbe.columnHeaderHeights.size > 0 || !this.hot.hasColHeaders()) {
+      return;
+    }
+
+    const provided = this.hot.runHooks('modifyColumnHeaderHeight');
+
+    if (typeof provided === 'number') {
+      return;
+    }
+
+    const configured = resolveHeaderSizeSetting(
+      this.settings.columnHeaderHeight, this, 'columnHeaderHeight'
+    );
+
+    if (typeof configured === 'number' || (Array.isArray(configured) && configured.length > 0)) {
+      return;
+    }
+
+    const columnCount = this.hot.countCols();
+
+    if (columnCount <= 0) {
+      return;
+    }
+
+    const strings: { col: number, value: string }[] = [];
+
+    for (let column = 0; column < columnCount; column++) {
+      strings.push({ col: column, value: '' });
+    }
+
+    const ghostTable = new GhostTable(this.hot);
+
+    ghostTable.addColumnHeadersRow(new Map([[0, { strings }]]));
+
+    if (!ghostTable.rows.length) {
+      return;
+    }
+
+    ghostTable.injectTable();
+
+    try {
+      const table = ghostTable.rows[0].table as HTMLTableElement;
+      const cells = table.tHead?.rows[0]?.cells;
+      let measured = 0;
+
+      if (cells) {
+        for (let index = 0; index < cells.length; index++) {
+          const cell = cells[index];
+
+          if (cell.rowSpan <= 1 && cell.offsetHeight > measured) {
+            measured = cell.offsetHeight;
+          }
+        }
+      }
+
+      if (measured > 0) {
+        this.renderSizeProbe.columnHeaderHeights.set(0, measured);
+      }
+    } finally {
+      ghostTable.clean();
     }
   }
 

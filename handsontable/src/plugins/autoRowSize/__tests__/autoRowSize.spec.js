@@ -605,7 +605,10 @@ describe('AutoRowSize', () => {
 
     const L = getThemeLayout();
 
-    expect(rowHeight(spec().$container, -1)).toBeAroundValue(L.cellContentHeight + (3 * L.lineHeight));
+    // The head row's border box adds the top frame and the bottom gridline to the four text lines.
+    expect(rowHeight(spec().$container, -1)).toBeAroundValue(
+      L.cellContentHeight + (3 * L.lineHeight) + (2 * L.cellBorderWidth)
+    );
   });
 
   it('should properly count height', async() => {
