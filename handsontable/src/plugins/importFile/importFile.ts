@@ -563,6 +563,13 @@ export class ImportFile extends BasePlugin {
   #isApplying = false;
 
   /**
+   * Whether this plugin is loading an import's result into the grid (`applyImportResult()`). Unlike
+   * `#isApplying`, it is not set while the `beforeImport` listeners run: settings a listener changes are
+   * the host's own.
+   */
+  #isApplyingResult = false;
+
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -581,6 +588,19 @@ export class ImportFile extends BasePlugin {
    */
   static get SETTING_KEYS() {
     return [PLUGIN_KEY];
+  }
+
+  /**
+   * Tells whether the plugin is loading an import's result into the grid. The `updateSettings()` calls an
+   * import makes then carry the imported file's layout for the grid it lands on, not a grid-level
+   * configuration, so the sheets bar does not take them as one. It answers `false` while the `beforeImport`
+   * listeners run: a setting a listener changes is the host's own.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  _isApplyingImport(): boolean {
+    return this.#isApplyingResult;
   }
 
   /**
@@ -821,11 +841,13 @@ export class ImportFile extends BasePlugin {
     this.#assertLatest(ticket);
 
     this.#isApplying = true;
+    this.#isApplyingResult = true;
 
     try {
       applyImportResult(this.hot, result, { importLayout: resolved.importLayout });
     } finally {
       this.#isApplying = false;
+      this.#isApplyingResult = false;
     }
 
     this.hot.runHooks('afterImport', result, format);

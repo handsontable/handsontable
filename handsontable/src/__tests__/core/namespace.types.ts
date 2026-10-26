@@ -26,6 +26,7 @@ import type {
   SourceRowData,
   RowIdKey,
   RowIdSetting,
+  SettingsUpdate,
   ThemeBuilder,
   ThemeColorScheme,
   ThemeColorsConfig,
@@ -303,6 +304,7 @@ const _sameIndexMapper: Same<Handsontable.IndexMapper, IndexMapper> = true;
 const _sameSourceRowData: Same<Handsontable.SourceRowData, SourceRowData> = true;
 const _sameRowIdSetting: Same<Handsontable.RowIdSetting, RowIdSetting> = true;
 const _sameRowIdKey: Same<Handsontable.RowIdKey, RowIdKey> = true;
+const _sameSettingsUpdate: Same<Handsontable.SettingsUpdate, SettingsUpdate> = true;
 const _sameColumnDataGetterSetterFunction: Same<
   Handsontable.ColumnDataGetterSetterFunction, ColumnDataGetterSetterFunction
 > = true;

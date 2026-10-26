@@ -77,7 +77,9 @@ Each tab of the [`SheetsBar`](@/api/sheetsBar.md) plugin is one sheet, with its 
 
 Set [`sheetsBar`](@/api/options.md#sheetsbar) to `true` for one sheet with the grid's data, or pass an object to define the workbook, pick the sheet that opens first, and show or hide the bar's controls.
 
-Each entry in `sheets` is one sheet: a tab label, the source data, and optional grid settings that apply while the sheet is active. A setting the sheet doesn't declare keeps its grid-level value.
+Each entry in `sheets` is one sheet: a tab label, the source data, and optional grid settings that apply while the sheet is active. A setting the sheet doesn't declare keeps its grid-level value. That includes a grid-level value you set later with [`updateSettings()`](@/api/core.md#updatesettings): it applies to every sheet that doesn't declare the setting, and it stays on the grid when you turn the bar off. Set it while a sheet that doesn't declare the setting is active. A value you set while the active sheet declares the setting shows only on that sheet, until you leave it, and the other sheets don't get it. The exception is an `updateSettings()` call that also passes `sheetsBar`: its grid-level values apply to every sheet that doesn't declare them.
+
+Each sheet brings its own data, so the grid-level [`data`](@/api/options.md#data) option is ignored when `sheets` declares a workbook, both on initialization and in `updateSettings()`. The console shows a warning the first time. To change a sheet's data, pass a new `sheets` value or call [`loadData()`](@/api/core.md#loaddata) while the sheet is active.
 
 ```javascript
 const configurationOptions = {
@@ -123,7 +125,7 @@ const configurationOptions = {
 
 ### Keep sheet data stable
 
-Pass each sheet's `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. The React wrapper sends the `sheetsBar` prop to the grid on every render. If a sheet's `data` is a new array, the plugin rebuilds the workbook and drops the user's edits, sort, filters, and any sheets added at runtime.
+Pass each sheet's `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. The React wrapper sends the `sheetsBar` prop to the grid on every render. If a sheet's `data` is a new array, the plugin rebuilds the workbook and drops the user's edits, sort, filters, and any sheets added at runtime. The same applies to a function or a class instance in a sheet's `settings`, such as a `renderer` or a `cells` function: an inline one is a new value on every render, so define it outside the component or memoize it.
 
 ```jsx
 // Rebuilds the workbook on every render
@@ -242,6 +244,7 @@ How server sheets behave when you switch:
 - A fetch or a save that's still running when you switch away finishes for the sheet that started it. A create on a sheet with `refetchAfterCreate: false` that finishes while its sheet is hidden refetches that sheet anyway, because there's no grid showing it to add the rows to.
 - If a request fails while its sheet is hidden, [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) or [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires right away. The error notification appears when you return to the sheet. `afterDataProviderFetchError` gets a third argument, `isVisible`, set to `false`.
 - A duplicated sheet starts with a copy of the original's rows. If the original has already loaded rows, the copy doesn't fetch on its first visit.
+- A `dataProvider` you pass through `updateSettings()` while a server sheet is shown becomes that sheet's own, and so does `dataProvider: null`, which turns the sheet into a local one, unless the same call also passes `sheetsBar`. A React `dataProvider={null}` prop arrives beside `sheetsBar` on every render, so it doesn't turn a server sheet local. Your declared `sheets` value isn't changed.
 
 With `refetchAfterCreate: false`, your [`onRowsCreate`](@/guides/getting-started/server-side-data/server-side-data-crud.md#onrowscreate) adds the new rows to the grid itself. The grid shows the active sheet, which can change while the request runs, so add the rows only when the sheet that owns this provider is still active. Compare against the sheet the provider belongs to, not the sheet that was active when `onRowsCreate` started: a create queued behind another save starts after the user may have switched.
 
@@ -325,7 +328,7 @@ A sheet added at runtime, with the add button or with `addSheet()` without `sett
 ## Known limitations
 
 - The grid holds one sheet at a time, so methods such as [`getData()`](@/api/core.md#getdata) and [`getDataAtCell()`](@/api/core.md#getdataatcell) read only the active sheet.
-- Passing a changed `sheets` value to [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the workbook and drops sheets added with `addSheet()`. A `sheets` value counts as unchanged when it has the same number of sheets, and each has the same `name`, `settings` with the same content (functions and class instances are compared by reference), and the same `data` array. In framework wrappers, keep your `data` arrays stable. Changing only `controls`, `paging`, or `position` never rebuilds the workbook.
+- Passing a changed `sheets` value to [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the workbook and drops sheets added with `addSheet()`. A `sheets` value counts as unchanged when it has the same number of sheets, and each has the same `name`, `settings` with the same content (dates are compared by their value, functions and other class instances by reference), and the same `data` array. In framework wrappers, keep your `data` arrays stable. Changing only `controls`, `paging`, or `position` never rebuilds the workbook. The plugin compares against a copy of the `sheets` value it was built from, so an array or a `settings` object you edit in place and pass again counts as changed.
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
 - A sorted sheet, or a sheet with moved rows or columns, comes back with the formulas HyperFormula holds for it, so an in-place change to its `data` while it isn't shown isn't seen. To change it, pass a new `sheets` value, which rebuilds the workbook.
 - After a rename, `getSettings().formulas.sheetName` keeps the old name. The grid stays bound to the renamed sheet.

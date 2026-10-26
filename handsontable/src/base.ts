@@ -347,6 +347,7 @@ declare namespace Handsontable {
   export type SelectOptionsObject = import('./settings').SelectOptionsObject;
   export type RemoveIndexSignature<T> = import('./settings').RemoveIndexSignature<T>;
   export type OmitHooks<T> = import('./settings').OmitHooks<T>;
+  export type SettingsUpdate = import('./settings').SettingsUpdate;
   export type CellType = import('./cellTypes/registry').CellType;
   export type EditorType = import('./editors/registry').EditorType;
   export type RendererType = import('./renderers/registry').RendererType;
@@ -536,7 +537,7 @@ export {
 export type { GridSettings, Events, SanitizerContext, TextExtractorContext, PasteClipboardData } from './core/settings';
 export type {
   CellValue, CellChange, ColumnDataGetterSetterFunction, RowObject, SourceRowData, ChangeSource,
-  CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature, OmitHooks
+  CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature, OmitHooks, SettingsUpdate
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
 export type { RowIdSetting } from './core/rowIdentity/rowIdentity';

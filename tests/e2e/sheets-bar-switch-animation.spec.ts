@@ -10,6 +10,12 @@ const SPEC_TIMING: Record<string, { transition: number, marker: number }> = {
 };
 
 /**
+ * An `animation` value that turns on every motion, like the default `true`, in another shape: sent with
+ * the same `sheets`, it keeps the workbook but rebuilds the bar, which hands the running motion over.
+ */
+const EVERY_MOTION = { switch: true, add: true, remove: true, move: true };
+
+/**
  * Freezes the page clock once the fixture has loaded, so the timers that end the slide only run
  * when the test advances time, and holds every CSS transition at its start for
  * the test to seek.
@@ -199,7 +205,7 @@ test.describe('sheets bar switch animation – active tab marker', { tag: [THEME
     expect(await bar.tabSurfaceColor(1)).toBe('rgb(255, 0, 0)');
   });
 
-  test('a wrapper re-sending the same sheets keeps the marker sliding from where it is', async ({
+  test('a wrapper re-sending the same sheets leaves the bar and its sliding marker as they are', async ({
     page, theme, bundle,
   }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
@@ -212,7 +218,38 @@ test.describe('sheets bar switch animation – active tab marker', { tag: [THEME
 
     const midway = await bar.indicatorBoxAt(0.5);
 
+    await bar.rememberBarElements();
     await bar.resendSheetsSetting();
+
+    expect(await bar.barElementsKept()).toBe(true);
+    await expect(bar.strip).toHaveClass(/ht-sheets-bar__tabs--indicator-moving/);
+
+    const kept = await bar.indicatorBox();
+
+    expect(kept.transitions).toBeGreaterThan(0);
+    expectSameBox(kept, midway);
+    expectSameBox(await bar.indicatorBoxAt(1), await bar.tabBox(1));
+
+    await page.clock.runFor(Math.ceil(duration) + 1);
+
+    await expect(bar.indicator).toHaveCount(0);
+    await expect(bar.strip).not.toHaveClass(/ht-sheets-bar__tabs--indicator-moving/);
+  });
+
+  test('a round trip that rebuilds the bar keeps the marker sliding from where it is', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await openPaused(bar);
+
+    const duration = SPEC_TIMING[theme].marker;
+
+    await bar.clickTab(1);
+
+    const midway = await bar.indicatorBoxAt(0.5);
+
+    await bar.setAnimation(EVERY_MOTION);
 
     await expect(bar.indicator).toHaveCount(1);
     await expect(bar.strip).toHaveClass(/ht-sheets-bar__tabs--indicator-moving/);
@@ -405,7 +442,9 @@ test.describe('sheets bar switch animation – new tab entrance', { tag: [THEMES
     expect(await bar.tabEntrance('Delta')).toEqual({ entering: true, delay: '-40ms' });
   });
 
-  test('a wrapper re-sending the same sheets keeps a new tab sliding in', async ({ page, theme, bundle }) => {
+  test('a wrapper re-sending the same sheets leaves a new tab sliding in on its own element', async ({
+    page, theme, bundle,
+  }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
     await openPaused(bar);
@@ -414,7 +453,29 @@ test.describe('sheets bar switch animation – new tab entrance', { tag: [THEMES
     const name = await bar.lastSheetName();
 
     await page.clock.runFor(40);
+    await bar.rememberBarElements();
     await bar.resendSheetsSetting();
+
+    expect(await bar.barElementsKept()).toBe(true);
+    expect((await bar.tabEntrance(name)).entering).toBe(true);
+
+    const { transition } = SPEC_TIMING[theme];
+
+    await page.clock.runFor(Math.ceil(transition) - 40 + 1);
+
+    expect(await bar.tabEntrance(name)).toEqual({ entering: false, delay: '' });
+  });
+
+  test('a round trip that rebuilds the bar keeps a new tab sliding in', async ({ page, theme, bundle }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await openPaused(bar);
+    await bar.addButton.click();
+
+    const name = await bar.lastSheetName();
+
+    await page.clock.runFor(40);
+    await bar.setAnimation(EVERY_MOTION);
 
     await expect(bar.tabByName(name)).toHaveCount(1);
     expect(await bar.tabEntrance(name)).toEqual({ entering: true, delay: '-40ms' });

@@ -90,6 +90,11 @@ silently ignored when they arrived through `updateSettings()` (DEV-2850). Four r
   in place — the same limitation `#onAfterLoadData` already has, and a smaller wrong than a grid of default
   widths. It also clears `#columnWidthsToRefresh`, so the header-change entries queued earlier in
   `updatePlugin()` are not measured a second time in the same render.
+- **A sampling change in the call that turns the plugin on again is measured too.** `BasePlugin` refreshes
+  the plugin settings before `enablePlugin()`, so `enablePlugin()` applies the new sampling settings and the
+  `updatePlugin()` of the same call sees no change. `enablePlugin()` therefore records a change it applied to
+  a plugin that measured before (`#samplingChangedOnEnable`), and `updatePlugin()` re-measures for it once.
+  The widths map survives a disable, so without it the widths measured under the old settings stayed.
 - **Re-measure only on a real change.** `updatePlugin()` runs on *every* `updateSettings()` call, and the
   React and Angular wrappers re-send unchanged settings on every update (React on every commit). An
   unconditional re-measure would walk every column on each of them — which the `skipUnchangedWrites` rule
@@ -168,6 +173,13 @@ width.
   itself now — see "The engine decides for itself when the overlays need resizing" in
   `../../3rdparty/walkontable/AGENTS.md`, and do not add the call back.
 - `requestAnimationFrame` batching in the codebase is thin, and this is one of the few files using it.
+- **`colWidths: null` names no width, on both sides.** `isEnabled()` reads it as unset (`!colWidths`), and
+  `_getColWidthFromSettings()` returns `undefined` for a `null` width, so `getColumnWidth()` takes the measured
+  size. It used to return the `null`, which `getColWidth()` passed through as a width and every column drew at
+  the default 50px while the plugin reported itself enabled. The sheets bar writes `null` for a key only some
+  sheets declare (its `undefined` baseline), so every sheet after one declaring `colWidths` was fixed at 50px,
+  and an xlsx export from it wrote one-character columns. Pinned by
+  `../sheetsBar/__tests__/settingsBaseline.unit.js`.
 - **`hot._getColWidthFromSettings()` takes a VISUAL index.** It translates the index to the physical one itself for the `colWidths` array and function (`colWidths` is addressed by physical index), and it reads `getCellMeta(0, col)`, which also takes a visual index. Pass the visual column at every call site; passing the physical one translates twice and reads another column's width once columns are moved.
 
 ## Notes for docs

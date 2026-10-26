@@ -69,6 +69,10 @@ Three rules hold that in place, and all three are load-bearing:
   **This is the common path, not an edge case:** the Vue wrapper omits every settings key whose value is
   unchanged (`wrappers/vue3/src/helpers.ts`, `simpleEqual`), so a Vue app sends a payload *without*
   `autoRowSize` on virtually every prop change.
+- **A sampling change in the call that turns the plugin on again clears the cache too.** `enablePlugin()`
+  applies the new settings first (`BasePlugin` refreshes them before it), so it records the change
+  (`#samplingChangedOnEnable`) for the `updatePlugin()` of the same call, which would otherwise see none and
+  keep the heights measured under the old settings.
 - **Clear the cache only when a value actually changed.** `updatePlugin()` runs on every `updateSettings()`
   call, and the React and Angular wrappers re-send unchanged settings on every update (React on every
   commit). An unconditional `clearCache()` would therefore re-measure every row on every commit.

@@ -11,7 +11,7 @@ import type CellCoords from '../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../3rdparty/walkontable/src/cell/range';
 import type { Events, GridSettings } from './settings';
 import type { RenderChangeTracker } from './incrementalRender/renderChangeTracker';
-import type { CellProperties, ColumnDataGetterSetterFunction } from '../settings';
+import type { CellProperties, ColumnDataGetterSetterFunction, SettingsUpdate } from '../settings';
 import type { default as SelectionManager } from '../selection/selection';
 import type { default as ViewInstance } from '../tableView';
 import type { ShortcutManager } from '../shortcuts/manager';
@@ -128,7 +128,7 @@ export interface HotInstance {
 
   // Settings
   getSettings(): GridSettings;
-  updateSettings(settings: Partial<GridSettings>, init?: boolean): void;
+  updateSettings(settings: SettingsUpdate, init?: boolean): void;
 
   // Selection
   selection: SelectionManager;
