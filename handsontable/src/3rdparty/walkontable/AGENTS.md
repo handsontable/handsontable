@@ -914,6 +914,18 @@ The header level is **not** `columnHeaders.length - headerIndex`:
   into `style.right` puts the full-column / select-all highlight on the wrong side of the cell.
   Rows are top/height on both directions.
 
+## An empty column-header section measures as 0
+
+`beginDrawLayout` runs before the head rows are rendered. `Viewport#getColumnHeaderHeight`
+reads `outerHeight(THEAD)` there, and an empty section reports 0. The layout snapshot
+stores that 0, and on the snapshot path the visible-row calculator is not rebuilt after
+the head rows exist, so `getLastFullyVisibleRow()` stays high until the next render.
+The empty section uses the sum of the known per-level header heights instead. The first
+head row's top gridline is added only while that row is still on the stylesheet height.
+A taller inline height already includes the gridline (`adjustColumnHeaderHeights`). Once
+the section has rows, the DOM measure is the source again. Do not paper over the 0 with
+another calculator rebuild after the draw.
+
 ## Border ownership: the header owns its gridline, on both axes
 
 Both axes are settled, and they are now symmetric. On the column axis a row header `th` carries its
