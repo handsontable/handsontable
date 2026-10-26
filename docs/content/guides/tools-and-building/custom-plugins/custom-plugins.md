@@ -622,13 +622,30 @@ const settings = ref<GridSettings>({
 
 To use the plugin's API, call the [`getPlugin`](@/api/core.md#getplugin) method to get a reference to the plugin's instance.
 
+In TypeScript, cast that reference to `CustomPlugin`. `getPlugin()` returns `BasePlugin`.
+
 ::: only-for javascript
+
+<code-group>
+  <code-block title="JavaScript">
 
 ```js
 const pluginInstance = hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
 
 pluginInstance.externalMethodExample();
 ```
+
+  </code-block>
+  <code-block title="TypeScript">
+
+```ts
+const pluginInstance = hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY) as CustomPlugin;
+
+pluginInstance.externalMethodExample();
+```
+
+  </code-block>
+</code-group>
 
 :::
 
@@ -710,7 +727,7 @@ import { CustomPlugin } from './customPlugin';
 const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
 
 function usePlugin() {
-  const pluginInstance = hotRef.value?.hotInstance?.getPlugin(CustomPlugin.PLUGIN_KEY);
+  const pluginInstance = hotRef.value?.hotInstance?.getPlugin(CustomPlugin.PLUGIN_KEY) as CustomPlugin;
 
   pluginInstance?.externalMethodExample();
 }
