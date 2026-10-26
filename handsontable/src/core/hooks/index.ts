@@ -191,6 +191,24 @@ export class Hooks {
   }
 
   /**
+   * Makes the callbacks that settings objects registered for a hook exactly `callback`
+   * (`HooksBucket#replaceFromSettings()`): a function takes the place of the fixed settings callback, an array
+   * keeps the callbacks it names where they are, and every other settings callback is removed. A callback
+   * that an `addHook()` call registered is left in place.
+   *
+   * @private
+   * @param {string} key Hook name.
+   * @param {Function|Function[]} callback A callback, or an array of callbacks.
+   * @param {object} context A Handsontable instance.
+   * @returns {Hooks} Instance of Hooks.
+   */
+  _replaceFromSettings(key: string, callback: HookCallback | HookCallback[], context: Record<string, unknown>) {
+    this.getBucket(context).replaceFromSettings(key, callback);
+
+    return this;
+  }
+
+  /**
    * Removes a listener from a hook with a given name. If the `context` argument is provided, it removes a listener from a local hook assigned to the given Handsontable instance.
    *
    * @param {string} key Hook/Event name.

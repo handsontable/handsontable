@@ -1,5 +1,6 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
+import type { HookCallback } from '../../core/hooks/bucket';
 import { SheetModel, clampSheetName, type Sheet, type SheetDescriptor } from './sheetModel';
 import { SheetsBarUI } from './ui/bar';
 import { TabStrip, type TabBox, type TabStripMotion } from './ui/tabStrip';
@@ -1328,7 +1329,7 @@ export class SheetsBar extends BasePlugin {
 
     try {
       this.#isRestoringBaseline = true;
-      this.#clearRestoredSettingsHooks(restored);
+      this.#syncSettingsHooks(restored);
       this.hot.updateSettings(restored);
     } finally {
       this.#isRestoringBaseline = false;
@@ -2503,7 +2504,7 @@ export class SheetsBar extends BasePlugin {
       this.#loadingSheet = sheet;
 
       try {
-        this.#clearRestoredSettingsHooks(payload, sheet.settings);
+        this.#syncSettingsHooks(payload, sheet.settings);
         this.hot._applySettingsAndData(
           payload as Partial<GridSettings>, sheet.data as unknown[], `${source}.switch`, cellOptionMetas,
           keptCellMetas,
@@ -2930,29 +2931,36 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Removes every callback the settings registered for each hook the payload restores from the baseline,
-   * before the payload is applied. A function in the settings replaces only the earlier settings function,
-   * and an array is added beside the earlier callbacks, so restoring a grid-level array left a sheet's own
-   * function running, and restoring a grid-level function left a sheet's own array running, on every other
-   * sheet and after a teardown. A hook the sheet declares itself keeps the documented behavior: its function
-   * replaces the grid-level function, and a grid-level array keeps running beside it. A `null` value needs
-   * nothing here, because core removes the settings callbacks for it.
+   * Makes the settings callbacks of each hook the payload sets exactly the callbacks the arriving sheet runs
+   * with, before the payload is applied (`Hooks#_replaceFromSettings()`). Core's own path cannot: a function
+   * in the settings replaces only the earlier settings function, and an array is added beside the earlier
+   * callbacks, so the departing sheet's callbacks kept running on the arriving sheet, and after a teardown,
+   * whenever either value was an array. A function keeps the place of the one it replaces, so a switch
+   * leaves the order of the settings callback and the `addHook()` listeners alone. A grid-level array keeps
+   * running beside a sheet's own callback, as it always did: it is registered again after the sheet's. A
+   * `null` value needs nothing here, because core removes the settings callbacks for it.
    *
    * @param {object} payload The settings about to be applied.
    * @param {object} [ownSettings] The arriving sheet's own settings.
    */
-  #clearRestoredSettingsHooks(payload: Record<string, unknown>, ownSettings?: Record<string, unknown>) {
+  #syncSettingsHooks(payload: Record<string, unknown>, ownSettings?: Record<string, unknown>) {
     const hooks = Hooks.getSingleton();
+    const context = this.hot as unknown as Record<string, unknown>;
 
     Object.keys(payload).forEach((key) => {
       const value = payload[key];
 
-      if (
-        (typeof value === 'function' || Array.isArray(value))
-        && !(ownSettings && key in ownSettings)
-        && (hooks.isRegistered(key) || hooks.isDeprecated(key))
-      ) {
-        hooks._removeFromSettings(key, this.hot as unknown as Record<string, unknown>);
+      if ((typeof value !== 'function' && !Array.isArray(value))
+        || !(hooks.isRegistered(key) || hooks.isDeprecated(key))) {
+        return;
+      }
+
+      hooks._replaceFromSettings(key, value as HookCallback | HookCallback[], context);
+
+      const gridLevel = this.#settingsBaseline.get(key);
+
+      if (ownSettings && key in ownSettings && Array.isArray(gridLevel)) {
+        hooks._addFromSettings(key, gridLevel as HookCallback[], context);
       }
     });
   }

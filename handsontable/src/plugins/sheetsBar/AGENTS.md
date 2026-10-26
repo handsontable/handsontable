@@ -586,11 +586,13 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     every other key, for a function: core keeps one settings callback per hook name. A grid-level ARRAY
     of callbacks is added through `Hooks#add` instead and keeps running beside a sheet's callback on every
     sheet. No write the `cell` option makes is kept as cell meta the user set: core files it in the `cell`-option
-    bucket, which `getUserDefinedCellMetas()` does not read, at init or on a switch. Restoring a grid-level hook value (a function or an array) on a sheet that does not declare the
-    hook first removes every callback the settings registered for it (`#clearRestoredSettingsHooks`, on a
-    switch and on a teardown): an array is added beside the earlier callbacks, so restoring `[g]` left a
-    sheet's own function running on every other sheet, and restoring a function left a sheet's own array
-    running. A hook only sheets declare, with no grid-level
+    bucket, which `getUserDefinedCellMetas()` does not read, at init or on a switch. Every hook value the bar applies, a sheet's own or a restored grid-level one, first replaces the
+    settings callbacks of that hook (`#syncSettingsHooks`, through `Hooks#_replaceFromSettings()`, on a switch
+    and on a teardown): core adds an array beside the earlier callbacks and swaps only the fixed entry for a
+    function, so the departing sheet's callbacks kept running on the next sheet whenever either value was an
+    array. A function takes the fixed entry's place, so a switch keeps the order of the settings callback and
+    the `addHook()` listeners; removing and adding it again moved it behind them. A grid-level array is
+    registered again after a sheet's own callback, so it still runs beside it. A hook only sheets declare, with no grid-level
     callback, is restored as `null`, and core removes the settings callback for a `null` hook
     (`registerSettingsHook` in `core.ts`), so it stops running on the sheets that do not declare it and after
     a `sheetsBar: false` teardown. Before that removal existed, `null` removed nothing and the hook ran

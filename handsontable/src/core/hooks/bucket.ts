@@ -180,14 +180,80 @@ export class HooksBucket {
    * `addHook()` call registered, or claimed by registering the same callback again, stays. Returns how many
    * entries were removed.
    *
-   * The entries go in one pass, and each removed entry is pointed at the next entry that stays (or `null`).
-   * A run that is in progress may hold a removed entry: one that sets its own hook to `null` from inside an
-   * array, for example. It then moves on to the entries that stay and skips the other removed ones.
+   * The entries go in one pass (`#removeSettingsEntries`), so a run that is in progress skips them.
    *
    * @param {string} hookName The name of the hook.
    * @returns {number}
    */
   removeFromSettings(hookName: string): number {
+    return this.#removeSettingsEntries(hookName, () => false);
+  }
+
+  /**
+   * Makes the entries a settings object registered for a hook exactly `callback`, keeping each entry that
+   * stays where it is. A function goes into the fixed settings entry (`initialHook`) in place, so it keeps
+   * its position among the `addHook()` listeners, and every other settings entry is removed. For an array,
+   * the settings entries whose callback the array names stay, the others are removed, and the callbacks
+   * missing from the list are added at the end. An entry an `addHook()` call registered is never touched:
+   * when it holds the function the settings pass, it keeps that function and no settings entry is added.
+   *
+   * Core's own settings path cannot do this: a function there replaces only the fixed entry and an array is
+   * added beside the earlier callbacks. The sheets bar needs it to replace one sheet's hooks with the
+   * next sheet's.
+   *
+   * @param {string} hookName The name of the hook.
+   * @param {Function|Function[]} callback The callback, or the callbacks, the settings now pass.
+   */
+  replaceFromSettings(hookName: string, callback: HookCallback | HookCallback[]) {
+    if (Array.isArray(callback)) {
+      const wanted = new Set<HookCallback>(callback);
+
+      this.#removeSettingsEntries(hookName, node => wanted.has(node.callback));
+      callback.forEach(item => this.add(hookName, item, { fromSettings: true }));
+
+      return;
+    }
+
+    let fixed: HookEntry | null = null;
+
+    this.#removeSettingsEntries(hookName, (node) => {
+      if (fixed === null && node.initialHook) {
+        fixed = node;
+
+        return true;
+      }
+
+      return false;
+    });
+
+    const keptFixed = fixed as HookEntry | null;
+    const claimed = this.getHooks(hookName)
+      .some(node => node !== keptFixed && node.callback === callback);
+
+    if (keptFixed && !claimed) {
+      keptFixed.callback = callback;
+
+      return;
+    }
+
+    if (keptFixed) {
+      this.#removeSettingsEntries(hookName, node => node !== keptFixed);
+    }
+
+    this.add(hookName, callback, { initialHook: true, fromSettings: true });
+  }
+
+  /**
+   * Removes the entries of a hook that a settings object registered, except the ones `keep` accepts, in one
+   * pass (true delete). Each removed entry is pointed at the next entry that stays (or `null`), so a run
+   * that is in progress and holds a removed entry moves on to the entries that stay and skips the other
+   * removed ones: an array callback that sets its own hook to `null`, for example.
+   *
+   * @param {string} hookName The name of the hook.
+   * @param {Function} keep The predicate a settings entry has to pass to stay.
+   * @returns {number} How many entries were removed.
+   */
+  #removeSettingsEntries(hookName: string, keep: (node: HookEntry) => boolean): number {
     const list = this.#hooks.get(hookName);
 
     if (!list) {
@@ -204,7 +270,7 @@ export class HooksBucket {
     while (node !== null) {
       const next: HookEntry | null = node.next;
 
-      if (node.fromSettings) {
+      if (node.fromSettings && !keep(node)) {
         pending.push(node);
         removed += 1;
       } else {

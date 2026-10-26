@@ -546,6 +546,84 @@ describe('SheetsBar settings baseline and lifecycle', () => {
     });
   });
 
+  describe('a hook both sheets declare', () => {
+    /**
+     * Switches from the first sheet to the second and edits a cell.
+     *
+     * @param {*} first The first sheet's `afterChange`.
+     * @param {*} second The second sheet's `afterChange`.
+     * @param {object} [settings] Grid-level settings.
+     */
+    function switchAndEdit(first, second, settings = {}) {
+      const bar = buildWorkbook([
+        { name: 'First', data: [['a']], settings: { afterChange: first } },
+        { name: 'Second', data: [['b']], settings: { afterChange: second } },
+      ], settings);
+
+      bar.setActiveSheet('Second');
+      hot.setDataAtCell(0, 0, 'x');
+    }
+
+    it('does not run the departing sheet\'s array beside the arriving sheet\'s array', () => {
+      const departing = jest.fn();
+      const arriving = jest.fn();
+
+      switchAndEdit([departing], [arriving]);
+
+      expect(departing).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+      expect(arriving).toHaveBeenCalledWith(expect.anything(), 'edit');
+    });
+
+    it('does not run the departing sheet\'s function beside the arriving sheet\'s array', () => {
+      const departing = jest.fn();
+      const arriving = jest.fn();
+
+      switchAndEdit(departing, [arriving]);
+
+      expect(departing).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+      expect(arriving).toHaveBeenCalledWith(expect.anything(), 'edit');
+    });
+
+    it('does not run the departing sheet\'s array beside the arriving sheet\'s function', () => {
+      const departing = jest.fn();
+      const arriving = jest.fn();
+
+      switchAndEdit([departing], arriving);
+
+      expect(departing).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+      expect(arriving).toHaveBeenCalledWith(expect.anything(), 'edit');
+    });
+
+    it('keeps a grid-level array running beside the arriving sheet\'s callback', () => {
+      const gridLevel = jest.fn();
+      const departing = jest.fn();
+      const arriving = jest.fn();
+
+      switchAndEdit(departing, arriving, { afterChange: [gridLevel] });
+
+      expect(departing).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+      expect(arriving).toHaveBeenCalledWith(expect.anything(), 'edit');
+      expect(gridLevel).toHaveBeenCalledWith(expect.anything(), 'edit');
+    });
+  });
+
+  describe('the order of a grid-level hook and an `addHook()` listener', () => {
+    it('stays the same after a round trip through a sheet that declares the hook', () => {
+      const calls = [];
+      const bar = buildWorkbook([
+        { name: 'Plain', data: [['a']] },
+        { name: 'Hooked', data: [['b']], settings: { afterChange: () => {} } },
+      ], { afterChange: (changes, source) => source === 'edit' && calls.push('grid') });
+
+      hot.addHook('afterChange', (changes, source) => source === 'edit' && calls.push('listener'));
+      bar.setActiveSheet('Hooked');
+      bar.setActiveSheet('Plain');
+      hot.setDataAtCell(0, 0, 'x');
+
+      expect(calls).toEqual(['grid', 'listener']);
+    });
+  });
+
   describe('a hook the grid sets as an array', () => {
     const sheets = own => [
       { name: 'Plain', data: [['a']] },
