@@ -89,6 +89,60 @@ test.describe('formulaBuilder mouse reference picking', { tag: [THEMES_TAG, BUND
   });
 });
 
+// A pick with the caret inside an existing reference replaces that reference, the way Google Sheets
+// does it, instead of inserting into the middle of the token (after the `:` of a range) or
+// committing the edit (inside a cell address). The replace rule lives in hyperformula-ui
+// (`RefController.refTokenAtCaret()`); these pin that the grid hands the press to it. The edits
+// open with Enter, so the arrows move the caret instead of closing a typed-open edit.
+test.describe('formulaBuilder picking inside an existing reference', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle, 'sorting');
+    await grid.goto();
+  });
+
+  test('a drag with the caret after the colon of a range replaces the whole range', async({ page }) => {
+    await grid.selectCellByApi(2, 2);
+    await page.keyboard.press('Enter');
+    await expect(grid.editorInput).toHaveValue('=SUM(C1:C2)');
+    // `=SUM(C1:C2|)` -> `=SUM(C1:C|2)` -> `=SUM(C1:|C2)`: the arrows move the caret, because the
+    // character before it is not a reference opener until the caret lands after the colon.
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('ArrowLeft');
+
+    await grid.drag(grid.cell(0, 0), grid.cell(1, 1));
+    await expect(grid.editorInput).toHaveValue('=SUM(A1:B2)');
+    await expect(grid.editorInput).toBeFocused();
+    expect(await grid.selectedAll()).toEqual([[2, 2, 2, 2]]);
+
+    await page.keyboard.press('Enter');
+    await expect(grid.cell(3, 2)).toBeFocused();
+    expect(await grid.sourceAt(2, 2)).toBe('=SUM(A1:B2)');
+    expect(await grid.dataAt(2, 2)).toBe(10);
+  });
+
+  test('a click with the caret inside a cell reference replaces it and keeps the edit open', async({ page }) => {
+    await grid.selectCellByApi(0, 2);
+    await page.keyboard.press('Enter');
+    await expect(grid.editorInput).toHaveValue('=A1+B1');
+    // `=A1+B1|` -> `=A1+B|1`.
+    await page.keyboard.press('ArrowLeft');
+
+    await grid.cell(1, 0).click();
+    await expect(grid.editorInput).toHaveValue('=A1+A2');
+    await expect(grid.editorInput).toBeFocused();
+    expect(await grid.editorOpened()).toBe(true);
+    expect(await grid.selectedAll()).toEqual([[0, 2, 0, 2]]);
+
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape');
+    await expect(grid.cell(0, 2)).toBeFocused();
+    expect(await grid.sourceAt(0, 2)).toBe('=A1+B1');
+  });
+});
+
 // NestedHeaders: a header pick must claim the press before NestedHeaders (and ColumnSorting) see
 // it, also after the plugin re-registers its hooks, while a press with no edit open keeps the
 // nested-header selection behavior.

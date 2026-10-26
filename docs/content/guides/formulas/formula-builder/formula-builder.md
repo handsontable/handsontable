@@ -193,12 +193,13 @@ The bar renders in the grid's top layout slot, so it takes part in the [layout](
 
 ## Reference picking
 
-While the caret sits at a position where a reference is valid - after `=`, an operator, an argument separator, or an opening parenthesis - the grid switches to reference picking:
+While the caret sits at a position where a reference is valid - after `=`, an operator, an argument separator, or an opening parenthesis - or inside an existing reference, the grid switches to reference picking:
 
 - **Click a cell** to insert its reference.
 - **Drag across cells** to insert a range reference, with a live preview highlight.
 - **Click or drag row or column headers** to insert whole-row or whole-column references, such as `B:D` or `3:5`. Header picking suppresses column sorting and menu actions for that click.
-- Hold <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> to append another reference instead of replacing the pending one.
+- With the caret inside an existing reference, a pick replaces that reference.
+- Hold <kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> to append another reference instead of replacing the pending one or the one under the caret.
 
 Every inserted reference gets a color, and the referenced ranges highlight in the grid with matching colors while you edit.
 
