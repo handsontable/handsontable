@@ -17,15 +17,8 @@ import { isHTMLElement } from '../../../../helpers/dom/element';
 import { resolveWidthBoundingRoot } from '../overlay/axisOwner';
 import { scrollbarAxisThickness } from '../overlay/scrollbarClearance';
 import { boundWorkspaceWidth } from './rootWidthBound';
+import { renderedBottomBorderWidth } from '../axisSizing/hiderCompensation';
 import type { StylesHandler } from '../types';
-
-/**
- * The declared width of the first head row's top gridline, in CSS pixels.
- *
- * `_base.scss` sets `border-top-width: 1px` on `tr:first-child`. Used only when the
- * computed border cannot be read.
- */
-const DECLARED_HEADER_TOP_GRIDLINE = 1;
 
 /**
  * Column-header band height while the head section has no rows yet.
@@ -68,13 +61,7 @@ function knownColumnHeaderBandHeight(viewport: Viewport): number {
     return height;
   }
 
-  const readStyle = stylesHandler.getStyleForTD;
-  const border = Number.parseFloat(
-    typeof readStyle === 'function' ? `${readStyle.call(stylesHandler, 'border-bottom-width')}` : ''
-  );
-  const gridline = Number.isFinite(border) ? Math.round(border) : DECLARED_HEADER_TOP_GRIDLINE;
-
-  return height + gridline;
+  return height + Math.round(renderedBottomBorderWidth(stylesHandler));
 }
 
 /**

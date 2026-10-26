@@ -916,15 +916,9 @@ The header level is **not** `columnHeaders.length - headerIndex`:
 
 ## An empty column-header section measures as 0
 
-`beginDrawLayout` runs before the head rows are rendered. `Viewport#getColumnHeaderHeight`
-reads `outerHeight(THEAD)` there, and an empty section reports 0. The layout snapshot
-stores that 0, and on the snapshot path the visible-row calculator is not rebuilt after
-the head rows exist, so `getLastFullyVisibleRow()` stays high until the next render.
-The empty section uses the sum of the known per-level header heights instead. The first
-head row's top gridline is added only while that row is still on the stylesheet height.
-A taller inline height already includes the gridline (`adjustColumnHeaderHeights`). Once
-the section has rows, the DOM measure is the source again. Do not paper over the 0 with
-another calculator rebuild after the draw.
+`beginDrawLayout` reads the column-header section before its rows exist, and an empty
+section measures as 0. On the snapshot path that 0 stays until the next render, so the
+empty section has to use the known header heights. Do not hide it with another calculator rebuild.
 
 ## Border ownership: the header owns its gridline, on both axes
 
