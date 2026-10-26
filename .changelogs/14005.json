@@ -2,7 +2,7 @@
   "issuesOrigin": "private",
   "title": "Fixed which rows and columns count as fully visible when the grid's scrollbars differ in size from each other or from the browser default.",
   "type": "fixed",
-  "issueOrPR": 14000,
+  "issueOrPR": 14005,
   "breaking": false,
   "framework": "none"
 }
