@@ -18,6 +18,7 @@ import {
   ViewportRowsCalculator,
 } from '../calculator';
 import type { default as Viewport } from './viewport';
+import { reservedScrollbarSpace, scrollbarAxisThickness } from '../overlay/scrollbarClearance';
 
 /**
  * Which viewport box a calculator reads from the layout snapshot. `'render'` is scrollbar-unaware
@@ -36,6 +37,7 @@ export interface CalculatorFactory {
     calculatorTypes?: string[], band?: ViewportBand, options?: { proposeOnly?: boolean }): ViewportColumnsCalculator;
   createCalculators(fastDraw?: boolean, options?: { stationaryBands?: boolean }): boolean;
   createVisibleCalculators(): void;
+  syncVisibleCalculatorsToHolderScrollbars(): void;
   usesLayoutSnapshotForCalculators(): boolean;
   allowsStationaryBands(): boolean;
   allowsRowRecycling(): boolean;
@@ -238,10 +240,10 @@ export const calculatorFactory: CalculatorFactory = {
     }
 
     if (!useSnapshot) {
-      const { geometryReader } = this.deps;
+      const measured = reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal');
 
-      if (geometryReader.clientHeight(wtTable.holder) !== geometryReader.offsetHeight(wtTable.holder)) {
-        scrollbarHeight = geometryReader.getScrollbarWidth(this.deps.rootDocument);
+      if (measured > 0) {
+        scrollbarHeight = measured;
       }
     }
 
@@ -326,10 +328,10 @@ export const calculatorFactory: CalculatorFactory = {
     }
 
     if (!useSnapshot) {
-      const { geometryReader } = this.deps;
+      const measured = reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'vertical');
 
-      if (geometryReader.clientWidth(wtTable.holder) !== geometryReader.offsetWidth(wtTable.holder)) {
-        width -= geometryReader.getScrollbarWidth(this.deps.rootDocument);
+      if (measured > 0) {
+        width -= measured;
       }
     }
 
@@ -443,6 +445,35 @@ export const calculatorFactory: CalculatorFactory = {
     this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible') ?? null;
     this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible') ?? null;
     this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible') ?? null;
+  },
+
+  /**
+   * Rebuilds the visible-range calculators when the holder's painted scrollbars are not the
+   * thicknesses the snapshot reserved.
+   *
+   * `beginDrawLayout` runs before the hider exists, so that read often sees no gutter and keeps the
+   * probe. This second read is after the hider write, and it rebuilds only when the numbers differ.
+   *
+   * @this Viewport
+   */
+  syncVisibleCalculatorsToHolderScrollbars(this: Viewport): void {
+    if (!this.usesLayoutSnapshotForCalculators()) {
+      return;
+    }
+
+    const { geometryReader } = this.deps;
+    const layout = this.getLayout();
+    const scrollbarWidth = scrollbarAxisThickness(
+      geometryReader, this.wtTable.holder, 'vertical', layout.scrollbarWidth);
+    const scrollbarHeight = scrollbarAxisThickness(
+      geometryReader, this.wtTable.holder, 'horizontal', layout.scrollbarHeight);
+
+    if (scrollbarWidth === layout.scrollbarWidth && scrollbarHeight === layout.scrollbarHeight) {
+      return;
+    }
+
+    this.invalidateLayout();
+    this.createVisibleCalculators();
   },
 
   /**
