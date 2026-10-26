@@ -1,5 +1,5 @@
 import EventManager from 'handsontable/eventManager';
-import { isImmediatePropagationStopped } from 'handsontable/helpers/dom/event';
+import { isImmediatePropagationStopped, stopImmediatePropagation } from 'handsontable/helpers/dom/event';
 
 describe('EventManager', () => {
   it('should add/remove/clear event for multiple instances', () => {
@@ -276,109 +276,116 @@ describe('EventManager', () => {
     button.remove();
   });
 
-  it('should not throw when stopImmediatePropagation is an own non-writable property', () => {
+  it('should keep the real event when stopImmediatePropagation is frozen like Angular event replay', () => {
     const em = new EventManager({});
     const button = document.createElement('button');
 
     document.body.appendChild(button);
 
-    const seen = [];
-    let nativeCalls = 0;
-
-    em.addEventListener(button, 'click', (event) => {
-      seen.push('grid');
-      event.stopImmediatePropagation();
-      expect(isImmediatePropagationStopped(event)).toBe(true);
-    });
-    button.addEventListener('click', () => {
-      seen.push('later');
-    });
-
     const event = new MouseEvent('click', { bubbles: true, cancelable: true });
-    const nativeStop = event.stopImmediatePropagation.bind(event);
+    let replayStopped = false;
+    const nativeStopPropagation = event.stopPropagation.bind(event);
 
     Object.defineProperty(event, 'stopImmediatePropagation', {
       configurable: false,
       writable: false,
       value() {
-        nativeCalls += 1;
-        nativeStop();
+        replayStopped = true;
+        nativeStopPropagation();
       },
     });
 
+    const received = [];
+
+    em.addEventListener(button, 'click', (listenerEvent) => {
+      received.push(listenerEvent);
+      listenerEvent.stopImmediatePropagation();
+    });
+    em.addEventListener(button, 'click', (listenerEvent) => {
+      received.push(listenerEvent);
+    });
+
     expect(() => button.dispatchEvent(event)).not.toThrow();
-    expect(seen).toEqual(['grid']);
-    expect(nativeCalls).toBe(1);
+    expect(received.length).toBe(2);
+    expect(received[0]).toBe(event);
+    expect(received[1]).toBe(event);
+    expect(replayStopped).toBe(true);
+    expect(isImmediatePropagationStopped(event)).toBe(false);
+
+    stopImmediatePropagation(event);
     expect(isImmediatePropagationStopped(event)).toBe(true);
 
     em.destroy();
     button.remove();
   });
 
-  it('should still call later listeners when a frozen stopImmediatePropagation is not used', () => {
+  it('should still override an own writable stopImmediatePropagation', () => {
     const em = new EventManager({});
     const button = document.createElement('button');
 
     document.body.appendChild(button);
-
-    const seen = [];
-
-    em.addEventListener(button, 'click', () => {
-      seen.push('grid');
-    });
-    button.addEventListener('click', () => {
-      seen.push('later');
-    });
-
-    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
-
-    Object.defineProperty(event, 'stopImmediatePropagation', {
-      configurable: false,
-      writable: false,
-      value() {},
-    });
-
-    expect(() => button.dispatchEvent(event)).not.toThrow();
-    expect(seen).toEqual(['grid', 'later']);
-
-    em.destroy();
-    button.remove();
-  });
-
-  it('should stop later listeners when stopImmediatePropagation is non-writable but configurable', () => {
-    const em = new EventManager({});
-    const button = document.createElement('button');
-
-    document.body.appendChild(button);
-
-    const seen = [];
-    let nativeCalls = 0;
-
-    em.addEventListener(button, 'click', (event) => {
-      seen.push('grid');
-      event.stopImmediatePropagation();
-      expect(isImmediatePropagationStopped(event)).toBe(true);
-    });
-    button.addEventListener('click', () => {
-      seen.push('later');
-    });
 
     const event = new MouseEvent('click', { bubbles: true, cancelable: true });
     const nativeStop = event.stopImmediatePropagation.bind(event);
+    let nativeCalls = 0;
 
     Object.defineProperty(event, 'stopImmediatePropagation', {
       configurable: true,
-      writable: false,
+      writable: true,
       value() {
         nativeCalls += 1;
         nativeStop();
       },
     });
 
+    const seen = [];
+
+    em.addEventListener(button, 'click', (listenerEvent) => {
+      seen.push('grid');
+      listenerEvent.stopImmediatePropagation();
+      expect(listenerEvent).toBe(event);
+      expect(isImmediatePropagationStopped(listenerEvent)).toBe(true);
+    });
+    button.addEventListener('click', () => {
+      seen.push('later');
+    });
+
     expect(() => button.dispatchEvent(event)).not.toThrow();
     expect(seen).toEqual(['grid']);
     expect(nativeCalls).toBe(1);
-    expect(isImmediatePropagationStopped(event)).toBe(true);
+
+    em.destroy();
+    button.remove();
+  });
+
+  it('should still override stopImmediatePropagation when the own property has a setter', () => {
+    const em = new EventManager({});
+    const button = document.createElement('button');
+
+    document.body.appendChild(button);
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    const nativeStop = event.stopImmediatePropagation.bind(event);
+    let installed;
+
+    Object.defineProperty(event, 'stopImmediatePropagation', {
+      configurable: true,
+      get() {
+        return installed || nativeStop;
+      },
+      set(value) {
+        installed = value;
+      },
+    });
+
+    em.addEventListener(button, 'click', (listenerEvent) => {
+      listenerEvent.stopImmediatePropagation();
+      expect(listenerEvent).toBe(event);
+      expect(isImmediatePropagationStopped(listenerEvent)).toBe(true);
+    });
+
+    expect(() => button.dispatchEvent(event)).not.toThrow();
+    expect(typeof installed).toBe('function');
 
     em.destroy();
     button.remove();
