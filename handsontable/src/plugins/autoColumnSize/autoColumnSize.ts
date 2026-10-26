@@ -701,7 +701,9 @@ export class AutoColumnSize extends BasePlugin {
             continue;
           }
 
-          const cachedSamples = reuseSamples ?
+          // A column with a queued edit is sampled again: its cached samples predate the edit, and the
+          // queue waits for the sweep to end before it can refresh them.
+          const cachedSamples = reuseSamples && !this.#columnWidthsToRefresh.has(currentColumn) ?
             this.#columnSamplesCache.get(this.#toPhysicalColumn(currentColumn)) : undefined;
 
           if (cachedSamples !== undefined) {
@@ -740,12 +742,29 @@ export class AutoColumnSize extends BasePlugin {
 
       return queueIndex >= columnQueue.length;
     };
+    /**
+     * Writes the measured widths and tells whether any of them belongs to a column on screen.
+     *
+     * @returns {boolean}
+     */
     const flushGhostTable = () => {
-      if (this.ghostTable.columns.length) {
-        this.#updateColumnWidthsMapBasedOnGhostTable();
-        this.measuredColumns = queueIndex;
-        this.ghostTable.clean();
+      if (!this.ghostTable.columns.length) {
+        return false;
       }
+
+      const onScreenColumns = this.#onScreenColumns();
+      const changedOnScreen = this.ghostTable.columns.some(column => onScreenColumns.has(column.col as number));
+
+      this.#updateColumnWidthsMapBasedOnGhostTable();
+
+      // `measuredColumns` counts a prefix of the visual columns, which a sweep in another order does not extend.
+      if (!viewportFirst) {
+        this.measuredColumns = queueIndex;
+      }
+
+      this.ghostTable.clean();
+
+      return changedOnScreen;
     };
 
     const loop = () => {
@@ -762,14 +781,20 @@ export class AutoColumnSize extends BasePlugin {
         AutoColumnSize.CALCULATION_STEP + 1,
         AutoColumnSize.CALCULATION_CELLS_BUDGET,
       );
+      const changedOnScreen = flushGhostTable();
 
-      flushGhostTable();
-
-      if (!isDone) {
-        this.#sweepTask = requestIdleTask(loop);
-
-      } else {
+      if (isDone) {
         this.#finishSweep();
+      } else {
+        this.#sweepTask = requestIdleTask(loop);
+      }
+
+      // A width written from an idle task reaches the screen only through a draw: the width map's observer
+      // drops the engine's cache and nothing else. A re-measure draws when a chunk changed a column on
+      // screen, and once more when it ends, for the columns scrolled into view while it ran and for the
+      // edits queued meanwhile (`#refreshQueuedColumnsWidth()` waits for the sweep to end).
+      if (reuseSamples && (changedOnScreen || isDone)) {
+        this.hot.render();
       }
     };
 
@@ -788,26 +813,50 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Lists the visual columns in the order a sweep measures them: ascending, or with the rendered columns
-   * first so that the first chunk measures what is on screen.
+   * Lists the visual columns in the order a sweep measures them: ascending, or with the columns on screen
+   * first so that the first chunk measures what the user sees.
    *
-   * @param {boolean} viewportFirst If `true`, the rendered columns come first.
+   * @param {boolean} viewportFirst If `true`, the columns on screen come first.
    * @returns {number[]}
    */
   #columnSweepOrder(viewportFirst: boolean): number[] {
     const columns = Array.from({ length: this.hot.countCols() }, (_, column) => column);
-    const firstVisibleColumn = this.getFirstVisibleColumn();
-    const lastVisibleColumn = this.getLastVisibleColumn();
 
-    if (!viewportFirst || firstVisibleColumn === -1 || lastVisibleColumn === -1) {
+    if (!viewportFirst) {
       return columns;
     }
 
-    return [
-      ...columns.slice(firstVisibleColumn, lastVisibleColumn + 1),
-      ...columns.slice(0, firstVisibleColumn),
-      ...columns.slice(lastVisibleColumn + 1),
-    ];
+    const onScreenColumns = this.#onScreenColumns();
+
+    return [...onScreenColumns, ...columns.filter(column => !onScreenColumns.has(column))];
+  }
+
+  /**
+   * Collects the visual columns on screen: the frozen ones at both edges and the rendered range of the
+   * scrollable part. The rendered range alone misses the frozen columns once the grid is scrolled
+   * sideways, since the master table then starts past them.
+   *
+   * @returns {Set<number>}
+   */
+  #onScreenColumns(): Set<number> {
+    const countCols = this.hot.countCols();
+    const onScreenColumns = new Set<number>();
+
+    const fixedColumnsStart = Math.min(this.hot.view.countFixedColumnsStart(), countCols);
+    const firstFixedColumnEnd = Math.max(countCols - this.hot.view.countFixedColumnsEnd(), 0);
+
+    rangeEach(0, fixedColumnsStart - 1, column => onScreenColumns.add(column));
+
+    const firstVisibleColumn = this.getFirstVisibleColumn();
+    const lastVisibleColumn = this.getLastVisibleColumn();
+
+    if (firstVisibleColumn !== -1 && lastVisibleColumn !== -1) {
+      rangeEach(firstVisibleColumn, Math.min(lastVisibleColumn, countCols - 1), column => onScreenColumns.add(column));
+    }
+
+    rangeEach(firstFixedColumnEnd, countCols - 1, column => onScreenColumns.add(column));
+
+    return onScreenColumns;
   }
 
   /**
@@ -1280,7 +1329,7 @@ export class AutoColumnSize extends BasePlugin {
   /**
    * Re-measures every column after the document loaded a web font. The sweep takes the columns on screen
    * first and measures one chunk now, so the render that follows the hook draws them in the new font; the
-   * rest wait for idle tasks. Measuring every column at once held the page for 0.7–0.9 s on the first load
+   * rest wait for idle tasks, and the sweep draws the grid again as they reach the screen. Measuring every column at once held the page for 0.7–0.9 s on the first load
    * after init on a 100k × 20 grid, because the init sweep drops its samples. The font changes how the
    * sampled values render, not which values are sampled, so a column with cached samples is measured from
    * them: `recalculateAllColumnsWidth()` would drop that cache, and the next render would sample every

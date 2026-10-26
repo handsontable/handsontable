@@ -69,9 +69,26 @@ samples is measured from them, at no sampling cost), so the first chunk – one 
 `CALCULATION_CELLS_BUDGET` of cells, run synchronously – covers what is on screen, and the rest waits for idle tasks.
 While that sweep runs, `#reMeasureSweep` makes `calculateVisibleColumnsWidth()` ignore `forceFullRender`: the forced
 render right after the hook otherwise re-walks every on-screen column without cached samples over the whole row
-range, which held the page for 0.7 s on a 100k × 20 grid, the same cost the chunking had just avoided. **Never pass
-`reuseSamples` to a sweep that follows a data change**: its cached samples describe the previous data. Pinned by
-`tests/e2e/web-font-load.spec.ts` ("measures the first columns on screen at once...").
+range, which held the page for 0.7 s on a 100k × 20 grid, the same cost the chunking had just avoided. Four rules
+that sweep follows, each one a review finding:
+
+- **A chunk that changed an on-screen column draws the grid, and so does the last chunk.** A width written from an
+  idle task reaches the screen only through a draw: the `columnWidthsMap` observer calls
+  `invalidateColumnWidthCache()` and nothing else, so without it the on-screen columns past the first chunk kept
+  the fallback-font width until an unrelated render. The draw at the end also covers columns scrolled into view
+  while the sweep ran and consumes the refresh queue (`#refreshQueuedColumnsWidth()` waits for `inProgress`).
+- **"On screen" is `#onScreenColumns()`: the frozen columns at both edges plus the master table's rendered range.**
+  Once the grid is scrolled sideways, `getFirstRenderedVisibleColumn()` starts past the frozen band, so the
+  rendered range alone would queue the frozen columns behind it.
+- **A column with an entry in `#columnWidthsToRefresh` is sampled again, never measured from its cache.** An edit
+  during the sweep is queued, but the queue is consumed only after the sweep, so the cached samples predate the
+  edit.
+- **`measuredColumns` is left alone.** It counts a prefix of the visual columns for `isNeedRecalculate()`, which a
+  sweep in viewport-first order does not extend.
+
+**Never pass `reuseSamples` to a sweep that follows a data change**: its cached samples describe the previous data.
+Pinned by `tests/e2e/web-font-load.spec.ts` ("measures the first columns on screen at once...", "measures a frozen
+column...", "samples a column edited while...").
 
 ## The sampling settings are re-read in `updatePlugin()`, and only a real change re-measures
 

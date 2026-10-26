@@ -67,9 +67,11 @@
       }
     }
 
-    // wide=1: 40 columns in a 600px wide grid, so most of them are outside the viewport, and 25000 rows, so
+    // wide=1: 40 columns in a 1200px wide grid, so most of them are outside the viewport (column F stays on
+    // screen after the font widens A and C), and 25000 rows, so
     // one chunk of AutoColumnSize's sweep (100000 cells) measures four of them. Copies of the no-wrap
-    // late-font text sit in F4, on screen but past that chunk, and in the last column, far off screen. The
+    // late-font text sit in A4 (the frozen column), F4, on screen but past that chunk, and in the last
+    // column, far off screen. The
     // column count stays under the 50 columns AutoColumnSize measures at init without idle tasks: the idle
     // part re-draws the grid, which caches the samples of the columns on screen before the font loads
     // (so does a grid without a fixed height, through the resize that follows its first draw).
@@ -84,6 +86,7 @@
           row.push(String(rowIndex));
         }
       });
+      data[3][0] = 'Frozen column, no wrap';
       data[3][5] = 'Auto-sized column, no wrap';
       data[3][39] = 'Auto-sized column, no wrap';
     }
@@ -109,7 +112,7 @@
           ],
         } : {}),
         height: variant.get('height') === '1' ? 400 : undefined,
-        width: wide ? 600 : undefined,
+        width: wide ? 1200 : undefined,
         colHeaders: true,
         ...(withHeaders ? {} : { rowHeaders: true }),
         autoRowSize: variant.get('auto') === '1',
@@ -120,6 +123,7 @@
           { row: 1, col: 1, className: 'ht-late-font' },
           { row: 3, col: 2, className: 'ht-late-font', wordWrap: false },
           ...(wide ? [
+            { row: 3, col: 0, className: 'ht-late-font', wordWrap: false },
             { row: 3, col: 5, className: 'ht-late-font', wordWrap: false },
             { row: 3, col: 39, className: 'ht-late-font', wordWrap: false },
           ] : []),

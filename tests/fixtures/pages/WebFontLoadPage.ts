@@ -10,9 +10,10 @@ interface FontLoadGrid {
   getLastRenderedVisibleColumn(): number | null;
   getRowHeight(row: number): number | undefined;
   getColWidth(column: number): number;
-  getCell(row: number, column: number): HTMLElement | null;
-  addHook(name: 'afterRender' | 'afterFontsLoad', callback: () => void): void;
-  getPlugin(name: 'autoRowSize'): { inProgress: boolean };
+  getCell(row: number, column: number, topmost?: boolean): HTMLElement | null;
+  setDataAtCell(row: number, column: number, value: string): void;
+  addHook(name: 'afterRender' | 'afterFontsLoad' | 'beforeRender', callback: () => void, orderIndex?: number): void;
+  getPlugin(name: 'autoRowSize' | 'autoColumnSize'): { inProgress: boolean };
 }
 
 interface GridGeometry {
@@ -251,6 +252,59 @@ export class WebFontLoadPage {
   }
 
   /**
+   * Writes `value` into a cell right after the next font re-measure starts (the `afterFontsLoad` hook, after
+   * AutoColumnSize's own listener), so the edit lands while the plugin's sweep is in progress.
+   */
+  async editDuringFontsLoad(row: number, column: number, value: string): Promise<void> {
+    await this.page.evaluate(([visualRow, visualColumn, newValue]) => {
+      const win = window as unknown as { hot: FontLoadGrid, htEditedDuringFontsLoad: boolean };
+
+      win.htEditedDuringFontsLoad = false;
+      win.hot.addHook('afterFontsLoad', () => {
+        win.hot.setDataAtCell(visualRow as number, visualColumn as number, newValue as string);
+        win.htEditedDuringFontsLoad = true;
+      });
+    }, [row, column, value]);
+  }
+
+  /**
+   * Records the width the grid holds for `column` at the start of every render from now on, ahead of the
+   * plugins' own `beforeRender` listeners (a negative hook order), so the value is the one the render was
+   * asked to draw, before AutoColumnSize refreshes queued columns. Read the list with
+   * `recordedBeforeRenderWidths()`.
+   */
+  async recordColumnWidthBeforeRenders(column: number): Promise<void> {
+    await this.page.evaluate((visualColumn) => {
+      const win = window as unknown as { hot: FontLoadGrid, htBeforeRenderWidths: number[] };
+
+      win.htBeforeRenderWidths = [];
+      win.hot.addHook('beforeRender', () => {
+        win.htBeforeRenderWidths.push(win.hot.getColWidth(visualColumn));
+      }, -100);
+    }, column);
+  }
+
+  /**
+   * Reads the widths `recordColumnWidthBeforeRenders()` recorded, one per render.
+   */
+  async recordedBeforeRenderWidths(): Promise<number[]> {
+    return this.page.evaluate(() => (window as unknown as { htBeforeRenderWidths: number[] }).htBeforeRenderWidths);
+  }
+
+  /**
+   * Waits until the edit of `editDuringFontsLoad()` has landed (so the font re-measure has started: the
+   * document's `fonts.ready` resolves for the test before the grid's own handler runs) and AutoColumnSize
+   * has no sweep in progress any more.
+   */
+  async waitForFontSweepAfterEdit(): Promise<void> {
+    await expect.poll(() => this.page.evaluate(() => {
+      const win = window as unknown as { hot: FontLoadGrid, htEditedDuringFontsLoad: boolean };
+
+      return win.htEditedDuringFontsLoad && !win.hot.getPlugin('autoColumnSize').inProgress;
+    })).toBe(true);
+  }
+
+  /**
    * Reads the widths `recordColumnWidthsAfterFontsLoad()` recorded, one list per render.
    */
   async recordedColumnWidths(): Promise<number[][]> {
@@ -270,11 +324,12 @@ export class WebFontLoadPage {
   }
 
   /**
-   * Tells whether the text of a rendered cell fits its box (`scrollWidth` within `clientWidth`).
+   * Tells whether the text of a rendered cell fits its box (`scrollWidth` within `clientWidth`). Reads the
+   * topmost cell, which for a frozen column is the one in its overlay.
    */
   async cellTextFits(row: number, column: number): Promise<boolean> {
     return this.page.evaluate(([visualRow, visualColumn]) => {
-      const cell = (window as unknown as { hot: FontLoadGrid }).hot.getCell(visualRow, visualColumn);
+      const cell = (window as unknown as { hot: FontLoadGrid }).hot.getCell(visualRow, visualColumn, true);
 
       return cell !== null && cell.scrollWidth <= cell.clientWidth;
     }, [row, column]);

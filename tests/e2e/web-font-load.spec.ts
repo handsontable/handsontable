@@ -130,7 +130,7 @@ test.describe('Web font loaded after the first draw', { tag: [THEMES_TAG, CROSS_
   test('measures the first columns on screen at once and the rest in idle chunks', async({ page, theme, bundle }) => {
     const grid = new WebFontLoadPage(page, theme, bundle);
     // The no-wrap late-font text sits in columns C and F, on screen, and in the last of 40 columns, outside
-    // a 600px wide grid. The grid has 25000 rows, so one chunk of AutoColumnSize's sweep (100000 cells)
+    // a 1200px wide grid. The grid has 25000 rows, so one chunk of AutoColumnSize's sweep (100000 cells)
     // measures the first four columns on screen, and column F waits with the columns off screen. The fixed
     // height keeps the grid from re-drawing after its first draw, which would cache the on-screen columns'
     // samples and let the chunk take them for free.
@@ -160,11 +160,64 @@ test.describe('Web font loaded after the first draw', { tag: [THEMES_TAG, CROSS_
     expect(firstRender[0]).toBeGreaterThan(before[0]);
     expect(firstRender.slice(1)).toEqual(before.slice(1));
 
-    // The idle sweep reaches every column, and the text off screen fits once the grid scrolls there.
-    await expect.poll(() => grid.columnWidth(lateOnScreen)).toBeGreaterThan(before[1]);
+    // The idle sweep reaches every column and draws the grid again, so column F fits its text without any
+    // further interaction, and the text off screen fits once the grid scrolls there.
+    await expect.poll(() => grid.cellTextFits(3, lateOnScreen)).toBe(true);
     await expect.poll(() => grid.columnWidth(offScreen)).toBeGreaterThan(before[2]);
     await grid.scrollToColumn(offScreen);
     expect(await grid.cellTextFits(3, offScreen)).toBe(true);
+  });
+
+  test('measures a frozen column with the columns on screen after a sideways scroll', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // Column A is frozen, and its no-wrap late-font text sits in A4. Scrolled to column 20, the master table's
+    // rendered range starts past it, so only the frozen band puts it on screen.
+    const frozen = 0;
+    const offScreen = 39;
+
+    await grid.goto('&wide=1&height=1');
+    await grid.scrollToColumn(20);
+
+    const before = [await grid.columnWidth(frozen), await grid.columnWidth(offScreen)];
+
+    await grid.recordColumnWidthsAfterFontsLoad([frozen, offScreen]);
+    await grid.loadFont();
+
+    // The first chunk takes the frozen column with the rendered ones, so the render that follows the font
+    // load already has it re-measured, while the last column waits for an idle task.
+    await expect.poll(async() => (await grid.recordedColumnWidths()).length).toBeGreaterThan(0);
+
+    const [firstRender] = await grid.recordedColumnWidths();
+
+    expect(firstRender[0]).toBeGreaterThan(before[0]);
+    expect(firstRender[1]).toBe(before[1]);
+    await expect.poll(() => grid.cellTextFits(3, frozen)).toBe(true);
+  });
+
+  test('samples a column edited while the font re-measure runs instead of reusing its cached samples', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // A column off screen, which the sweep reaches only in an idle task, long after the edit below.
+    const edited = 30;
+    const longValue = 'A value far longer than every other one in this column';
+
+    await grid.goto('&wide=1&height=1');
+
+    const before = await grid.columnWidth(edited);
+
+    await grid.recordColumnWidthBeforeRenders(edited);
+    await grid.editDuringFontsLoad(0, edited, longValue);
+    await grid.loadFont();
+    await grid.waitForFontSweepAfterEdit();
+
+    // The sweep's own render at its end already asks for the width of the edited value: the column was
+    // sampled again, not measured from the samples cached before the edit. The queued refresh that runs
+    // inside that render would have corrected it only afterwards.
+    const widths = await grid.recordedBeforeRenderWidths();
+
+    expect(widths.length).toBeGreaterThan(0);
+    expect(widths[widths.length - 1]).toBeGreaterThan(before);
+    await grid.scrollToColumn(edited);
+    expect(await grid.cellTextFits(0, edited)).toBe(true);
   });
 
   test('never drops a measured row height while autoRowSize re-measures', async({ page, theme, bundle }) => {
