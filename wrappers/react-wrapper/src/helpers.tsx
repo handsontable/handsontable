@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable/base';
-import { HotTableProps } from './types';
+import { HotRendererProps, HotTableProps } from './types';
 
 let bulkComponentContainer: DocumentFragment | null = null;
 
@@ -47,6 +47,14 @@ export const UNEXPECTED_HOTCOLUMN_CHILDREN_WARNING = 'Unexpected children nodes 
     'HotColumn components do not support any children.';
 
 /**
+ * Warning when a Handsontable function renderer is passed to the React `renderer` prop.
+ *
+ * That prop is a React component. A classic function renderer belongs on `hotRenderer`.
+ */
+export const CLASSIC_FUNCTION_RENDERER_WARNING = 'The `renderer` prop expects a React component. ' +
+  'Pass a Handsontable function renderer to `hotRenderer` instead.';
+
+/**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
  */
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' +
@@ -78,6 +86,36 @@ export function warn(...args: any[]) {
   if (typeof console !== 'undefined') {
     console.warn(...args);
   }
+}
+
+/**
+ * Function renderers that already produced `CLASSIC_FUNCTION_RENDERER_WARNING`.
+ * Keyed by the function, so one function warns once no matter how many cells render it.
+ */
+const warnedClassicFunctionRenderers = new WeakSet<object>();
+
+/**
+ * Warn when `renderer` holds a Handsontable function renderer.
+ *
+ * A React component is called with one props object, so its `length` stays below 3.
+ * A classic renderer declares `(instance, td, row, col, prop, value, cellProperties)`,
+ * so its `length` is at least 3. The prop is still rendered as a component. Picking
+ * the call style from `length` would change behavior, because a component with default
+ * parameters reports `length` 0.
+ *
+ * @param {ComponentType} renderer Component passed through the `renderer` prop.
+ */
+export function warnAboutClassicFunctionRenderer(renderer: ComponentType<HotRendererProps>): void {
+  if (typeof renderer !== 'function' || renderer.length < 3) {
+    return;
+  }
+
+  if (warnedClassicFunctionRenderers.has(renderer)) {
+    return;
+  }
+
+  warnedClassicFunctionRenderers.add(renderer);
+  warn(CLASSIC_FUNCTION_RENDERER_WARNING);
 }
 
 /**
