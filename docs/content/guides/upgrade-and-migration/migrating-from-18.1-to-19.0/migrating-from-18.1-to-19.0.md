@@ -2408,19 +2408,41 @@ const settings: GridSettings = {
 
 ## 42. The React wrapper requires React 18
 
-`@handsontable/react-wrapper` calls `useId`. React added that hook in 18.0.0. On React 16 and React 17 the component throws `useId is not a function`, and the grid renders no cells. Before 19.0 the package declared only `handsontable` as a peer dependency. npm installed the wrapper beside React 16 or 17 and printed no warning.
+`@handsontable/react-wrapper` calls `useId`. React added that hook in 18.0.0. On React 16 and React 17 `useId` is `undefined`, so the component throws a `TypeError` when it renders, and the grid renders no cells. Before 19.0 the package declared only `handsontable` as a peer dependency. npm installed the wrapper beside React 16 or 17 and printed no warning.
 
-In 19.0 the package declares `react` and `react-dom` at `>=18.0.0` as peer dependencies. The `handsontable` peer is unchanged.
+In 19.0 the package declares `react` and `react-dom` at `>=18.0.0` as peer dependencies, next to `handsontable`.
 
 ### Who is affected
 
-You are affected if you use `@handsontable/react-wrapper` with React 16 or React 17. Those versions already failed at runtime. npm 7 and later now refuses the install with a peer dependency conflict (`ERESOLVE`).
+You are affected if you use `@handsontable/react-wrapper` with React 16 or React 17. Those versions already failed at runtime. npm 7 and later now refuses the install with a peer dependency conflict (`ERESOLVE`). pnpm and Yarn print a peer dependency warning by default.
 
 React 18 and React 19 meet the new range.
 
 ### How to migrate
 
 Upgrade `react` and `react-dom` to 18.0.0 or later.
+
+Before, npm installed 18.1 of the wrapper beside React 17 and printed no warning:
+
+```json
+"dependencies": {
+  "@handsontable/react-wrapper": "^18.1.0",
+  "handsontable": "^18.1.0",
+  "react": "^17.0.2",
+  "react-dom": "^17.0.2"
+}
+```
+
+After, React 18 or later is required next to 19.0 of the wrapper:
+
+```json
+"dependencies": {
+  "@handsontable/react-wrapper": "^19.0.0",
+  "handsontable": "^19.0.0",
+  "react": "^18.0.0",
+  "react-dom": "^18.0.0"
+}
+```
 
 ```bash
 npm install react@^18.0.0 react-dom@^18.0.0
