@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed an error on every request when an Angular grid renders on the server, and an error on click after Angular hydrates the page.",
+  "title": "Fixed an error on every request when an Angular grid renders on the server.",
   "type": "fixed",
   "issueOrPR": 0,
   "breaking": false,
-  "framework": "none"
+  "framework": "angular"
 }

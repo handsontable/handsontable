@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an error on click after Angular hydrates the page.",
+  "type": "fixed",
+  "issueOrPR": 1,
+  "breaking": false,
+  "framework": "none"
+}
