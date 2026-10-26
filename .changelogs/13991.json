@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `ShortcutContext#addShortcut()` placing a `position: 'before'` shortcut one slot too early, so it now runs directly before its `relativeToGroup` group. Pressing Enter on a collapsible column header with column sorting enabled now always collapses it.",
+  "type": "fixed",
+  "issueOrPR": 13991,
+  "breaking": false,
+  "framework": "none"
+}
