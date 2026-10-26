@@ -212,4 +212,63 @@ describe('Core.getLastFullyVisibleRow', () => {
 
     expect(mismatches).toEqual([]);
   }, 180000);
+
+  it('should keep nested header level heights and the first-draw row when auto row size is on', async() => {
+    const theme = getThemeLayout();
+    const levelHeight = theme.defaultDataRowHeight;
+    const painted = [
+      levelHeight + theme.cellBorderWidth,
+      levelHeight,
+      levelHeight,
+    ];
+    const nestedHeaders = [
+      [{ label: 'A', colspan: 2 }, { label: 'B', colspan: 2 }],
+      ['A1', 'A2', 'B1', 'B2'],
+      ['a', 'b', 'c', 'd'],
+    ];
+
+    handsontable({
+      data: createSpreadsheetData(40, 4),
+      width: 600,
+      height: 300,
+      colWidths: 80,
+      autoRowSize: true,
+      nestedHeaders,
+    });
+
+    const rows = spec().$container.find('.ht_master table.htCore thead tr');
+
+    expect(getPlugin('autoRowSize').getColumnHeaderHeight()).toBe(levelHeight);
+    expect([rows[0].offsetHeight, rows[1].offsetHeight, rows[2].offsetHeight]).toEqual(painted);
+    expect(hot().view.getColumnHeaderHeight()).toBe(painted[0] + painted[1] + painted[2]);
+
+    destroy();
+
+    const mismatches = [];
+
+    for (let height = 250; height <= 320; height += 1) {
+      handsontable({
+        data: createSpreadsheetData(40, 4),
+        width: 600,
+        height,
+        colWidths: 80,
+        autoRowSize: true,
+        nestedHeaders,
+      });
+
+      const init = contentHeaderSnapshot(true);
+
+      await render();
+
+      const afterRender = contentHeaderSnapshot(true);
+
+      if (JSON.stringify(init) !== JSON.stringify(afterRender)) {
+        mismatches.push({ height, init, afterRender });
+      }
+
+      destroy();
+    }
+
+    expect(mismatches).toEqual([]);
+  }, 180000);
 });

@@ -29,7 +29,7 @@ cache (full renders from data or settings changes do). Without that guard **ever
 selection-driven one — re-samples the header row across all columns and forces a ghost-table reflow, even
 when every height is already cached.
 
-## DOM details
+## Two DOM details
 
 - **`htFirstDatasetColumnNotRendered`** is a class this plugin puts on the root element and must remove in
   `disablePlugin()`. It suppresses the inline-start border on the first rendered data cell, and since
@@ -39,10 +39,6 @@ when every height is already cached.
   `handsontable/src/3rdparty/walkontable/AGENTS.md`, "Column-axis border ownership").
 - **The first rendered row gets +1px** to compensate for its `border-top-width`. That compensation is
   per-render, not baked into the cached height.
-- **Ghost header cells keep their bottom border.** `.htGhostTable table thead th` must not zero
-  `border-bottom-width`. The rendered head row owns that gridline, and the ghost table's border box
-  is the height `modifyColumnHeaderHeight` returns. Dropping the border makes `A<br>B` report 49 while
-  the head row renders 50, and the first layout then treats 49 as a finished border box.
 
 ## `updateSettings` does not recalculate — with one exception
 

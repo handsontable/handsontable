@@ -205,9 +205,7 @@
       }
     }
 
-    // Body rows drop the top border, because the header owns that gridline, and add the pixel
-    // back into the row height. Header cells keep the bottom border: the ghost table's border
-    // box is what a content-sized header reports, and the rendered head row includes that gridline.
+    // Force the ghost table to ignore the additional 1px border for the first rows in the table
     &.htGhostTable {
       &.htNestedHeaders table {
         border-spacing: 0;
@@ -215,6 +213,12 @@
       }
 
       table {
+        thead {
+          th {
+            border-bottom-width: 0;
+          }
+        }
+
         tbody {
           tr {
             &:first-of-type {

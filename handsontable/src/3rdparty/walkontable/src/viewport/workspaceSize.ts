@@ -29,6 +29,11 @@ import type { StylesHandler } from '../types';
  * taller than the default is written as an inline height (`adjustColumnHeaderHeights`),
  * and that border box already contains the top gridline.
  *
+ * AutoRowSize is the exception. Its ghost measurement drops the bottom gridline, so the
+ * number is not a border box, and the rendered cell grows by that pixel. The viewport
+ * records that on `columnHeaderHeightOmitsBottomBorder`. The pixel is added here, to the
+ * band, and not to the number painted on each header level.
+ *
  * Returns 0 when there is no styles handler to read the heights from. A bare Walkontable
  * host may omit it, and the DOM measure stays the answer there.
  *
@@ -57,7 +62,12 @@ function knownColumnHeaderBandHeight(viewport: Viewport): number {
   const firstLevelHeight = viewport.wtTable.getColumnHeaderHeight(0) || 0;
 
   // The inline height is the border box, so the top gridline is already inside it.
+  // A ghost measurement is not: the rendered cell is one gridline taller than the number.
   if (firstLevelHeight > defaultRowHeight) {
+    if (viewport.columnHeaderHeightOmitsBottomBorder) {
+      return height + Math.round(renderedBottomBorderWidth(stylesHandler));
+    }
+
     return height;
   }
 

@@ -286,6 +286,13 @@ class TableView {
    */
   #drawRenderedCells = false;
   /**
+   * The content-header probe is not a displayed column. `appendColHeader` must not emit
+   * `afterGetColHeader` for those cells, or a listener sees an extra pass on the first render.
+   *
+   * @type {boolean}
+   */
+  #measuringContentColumnHeader = false;
+  /**
    * Whether a check of the frozen counts is queued after a column width change that did not render.
    *
    * @type {boolean}
@@ -453,61 +460,67 @@ class TableView {
    *
    * The first layout read happens while the head section is empty, so a header taller than the
    * default row is still unknown and the visible rows are chosen without it. AutoRowSize and an
-   * explicit `columnHeaderHeight` already supply that number. Otherwise the ghost table renders
-   * the header, and the probe keeps the border-box height for this draw.
+   * explicit `columnHeaderHeight` already supply that number, through the same callback the engine
+   * reads. Otherwise the ghost table renders the columns this draw will paint, and the probe keeps
+   * the border-box height, gridline included. The shared ghost stylesheet still drops that
+   * border, so the probe puts it back on its own cells.
    */
   #measureContentColumnHeader(): void {
     if (this.renderSizeProbe.columnHeaderHeights.size > 0 || !this.hot.hasColHeaders()) {
       return;
     }
 
-    const provided = this.hot.runHooks('modifyColumnHeaderHeight');
+    const provided: unknown = this._wt.wtSettings.getSetting<unknown>('columnHeaderHeight');
 
-    if (typeof provided === 'number') {
+    if (typeof provided === 'number' || (Array.isArray(provided) && provided.length > 0)) {
       return;
     }
 
-    const configured = resolveHeaderSizeSetting(
-      this.settings.columnHeaderHeight, this, 'columnHeaderHeight'
-    );
+    const columns = this.#columnsRenderedOnFirstDraw();
 
-    if (typeof configured === 'number' || (Array.isArray(configured) && configured.length > 0)) {
-      return;
-    }
-
-    const columnCount = this.hot.countCols();
-
-    if (columnCount <= 0) {
+    if (columns.length === 0) {
       return;
     }
 
     const strings: { col: number, value: string }[] = [];
 
-    for (let column = 0; column < columnCount; column++) {
-      strings.push({ col: column, value: '' });
+    for (let index = 0; index < columns.length; index++) {
+      strings.push({ col: columns[index], value: '' });
     }
 
     const ghostTable = new GhostTable(this.hot);
 
-    ghostTable.addColumnHeadersRow(new Map([[0, { strings }]]));
-
-    if (!ghostTable.rows.length) {
-      return;
-    }
-
-    ghostTable.injectTable();
+    this.#measuringContentColumnHeader = true;
 
     try {
+      ghostTable.addColumnHeadersRow(new Map([[0, { strings }]]));
+
+      if (!ghostTable.rows.length) {
+        return;
+      }
+
+      ghostTable.injectTable();
       const table = ghostTable.rows[0].table as HTMLTableElement;
       const cells = table.tHead?.rows[0]?.cells;
+      const readBorder = this.hot.stylesHandler.getStyleForTD('border-bottom-width');
+      const borderBottomWidth = typeof readBorder === 'number' ? `${readBorder}px` : (readBorder || '1px');
       let measured = 0;
 
       if (cells) {
+        const measurable: HTMLTableCellElement[] = [];
+
         for (let index = 0; index < cells.length; index++) {
           const cell = cells[index];
 
-          if (cell.rowSpan <= 1 && cell.offsetHeight > measured) {
-            measured = cell.offsetHeight;
+          if (cell.rowSpan <= 1) {
+            cell.style.borderBottomWidth = borderBottomWidth;
+            measurable.push(cell);
+          }
+        }
+
+        for (let index = 0; index < measurable.length; index++) {
+          if (measurable[index].offsetHeight > measured) {
+            measured = measurable[index].offsetHeight;
           }
         }
       }
@@ -516,8 +529,69 @@ class TableView {
         this.renderSizeProbe.columnHeaderHeights.set(0, measured);
       }
     } finally {
+      this.#measuringContentColumnHeader = false;
       ghostTable.clean();
     }
+  }
+
+  /**
+   * Visual columns the first draw will paint: the rendered scroll band, plus the frozen columns
+   * the calculator leaves out of that band.
+   *
+   * The propose-only calculator still reads the header height, and that caches the pre-probe
+   * value. The memos are cleared before this returns.
+   *
+   * @returns {number[]}
+   */
+  #columnsRenderedOnFirstDraw(): number[] {
+    const viewport = this._wt.wtViewport;
+
+    viewport.columnWidthCache.ensureBuilt();
+
+    const rendered = viewport
+      .createColumnsCalculator(['rendered'], 'render', { proposeOnly: true })
+      .getResultsFor('rendered');
+
+    viewport.columnHeaderHeight = NaN;
+    viewport.columnHeaderHeightFraction = NaN;
+    viewport.invalidateLayout();
+
+    const total = this.countRenderableColumns();
+    const fixedStart = this._wt.wtSettings.getSetting<number>('fixedColumnsStart') || 0;
+    const fixedEnd = this._wt.wtSettings.getSetting<number>('fixedColumnsEnd') || 0;
+    const renderable = new Set<number>();
+    const addRange = (from: number, to: number) => {
+      for (let column = from; column <= to; column++) {
+        renderable.add(column);
+      }
+    };
+
+    if (fixedStart > 0) {
+      addRange(0, Math.min(fixedStart, total) - 1);
+    }
+
+    const start = rendered?.startColumn ?? null;
+    const end = rendered?.endColumn ?? null;
+
+    if (start !== null && end !== null && end >= start) {
+      addRange(Math.max(0, start), Math.min(total - 1, end));
+    }
+
+    if (fixedEnd > 0) {
+      addRange(Math.max(total - fixedEnd, 0), total - 1);
+    }
+
+    const visual: number[] = [];
+
+    renderable.forEach((column) => {
+      const visualIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(column);
+
+      if (visualIndex !== null && visualIndex !== undefined) {
+        visual.push(visualIndex);
+      }
+    });
+
+    return visual;
   }
 
   /**
@@ -2168,8 +2242,18 @@ class TableView {
           Array.isArray(configured) ? configured.length : 0,
           probe.size ? Math.max(...probe.keys()) + 1 : 0,
         );
+        // AutoRowSize's number omits the bottom gridline. An explicit option and a winning probe
+        // already include it. Recorded for the band, not added to the value returned here.
+        let omitsBottomBorder = false;
 
         if (levels === 0) {
+          omitsBottomBorder = typeof hookHeight === 'number' &&
+            !(typeof configured === 'number' && configured > 0);
+
+          if (this._wt) {
+            this._wt.wtViewport.columnHeaderHeightOmitsBottomBorder = omitsBottomBorder;
+          }
+
           return configured || hookHeight;
         }
 
@@ -2183,14 +2267,25 @@ class TableView {
           // still grow the header past that when the actual header content is taller, replacing the
           // old oversized-header DOM measurement.
           let base;
+          let fromHook = false;
 
           if (typeof configuredAtLevel === 'number') {
             base = configuredAtLevel;
           } else if (typeof hookHeight === 'number') {
             base = hookHeight;
+            fromHook = true;
           }
 
           const probeAtLevel = probe.get(level);
+
+          if (typeof probeAtLevel === 'number' && !(typeof base === 'number' && base >= probeAtLevel)) {
+            fromHook = false;
+          }
+
+          if (level === 0) {
+            omitsBottomBorder = fromHook;
+          }
+
           const candidates: number[] = [];
 
           if (typeof base === 'number') {
@@ -2201,6 +2296,10 @@ class TableView {
           }
 
           perLevel[level] = candidates.length ? Math.max(...candidates) : undefined;
+        }
+
+        if (this._wt) {
+          this._wt.wtViewport.columnHeaderHeightOmitsBottomBorder = omitsBottomBorder;
         }
 
         return perLevel;
@@ -3005,7 +3104,9 @@ class TableView {
       TH.appendChild(div);
     }
 
-    this.hot.runHooks('afterGetColHeader', visualColumnIndex, TH, headerLevel);
+    if (!this.#measuringContentColumnHeader) {
+      this.hot.runHooks('afterGetColHeader', visualColumnIndex, TH, headerLevel);
+    }
   }
 
   /**
