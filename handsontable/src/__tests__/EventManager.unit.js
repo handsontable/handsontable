@@ -276,21 +276,21 @@ describe('EventManager', () => {
     button.remove();
   });
 
-  it('should keep the real event when stopImmediatePropagation is frozen like Angular event replay', () => {
+  it('should keep the real event when stopImmediatePropagation is frozen like Angular\'s event dispatcher', () => {
     const em = new EventManager({});
     const button = document.createElement('button');
 
     document.body.appendChild(button);
 
     const event = new MouseEvent('click', { bubbles: true, cancelable: true });
-    let replayStopped = false;
+    let dispatcherStopped = false;
     const nativeStopPropagation = event.stopPropagation.bind(event);
 
     Object.defineProperty(event, 'stopImmediatePropagation', {
       configurable: false,
       writable: false,
       value() {
-        replayStopped = true;
+        dispatcherStopped = true;
         nativeStopPropagation();
       },
     });
@@ -309,7 +309,7 @@ describe('EventManager', () => {
     expect(received.length).toBe(2);
     expect(received[0]).toBe(event);
     expect(received[1]).toBe(event);
-    expect(replayStopped).toBe(true);
+    expect(dispatcherStopped).toBe(true);
     expect(isImmediatePropagationStopped(event)).toBe(false);
 
     stopImmediatePropagation(event);

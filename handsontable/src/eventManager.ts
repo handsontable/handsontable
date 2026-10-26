@@ -236,7 +236,8 @@ class EventManager {
 function extendEvent(event: Event): Event {
   const ownStop = Object.getOwnPropertyDescriptor(event, 'stopImmediatePropagation');
 
-  // Angular event replay defines this method with `Object.defineProperty` and leaves it
+  // Angular's event dispatcher defines this in `prepareEventForBubbling` with
+  // `Object.defineProperty`, for live and replayed events alike, and leaves it
   // non-writable. Assigning throws. Listeners compare this event by identity, so this
   // returns the same object.
   if (ownStop !== undefined && ownStop.writable !== true && typeof ownStop.set !== 'function') {
