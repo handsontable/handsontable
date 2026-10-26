@@ -53,6 +53,7 @@ export interface PluginHotStubShape {
   getPlugin: (pluginName: string) => unknown;
   updateSettings: jest.Mock;
   addHook: jest.Mock;
+  addHookOnce: jest.Mock;
   removeHook: jest.Mock;
   _registerTimeout: jest.Mock;
   getActiveEditor: () => unknown;
@@ -177,6 +178,7 @@ export function makePluginHotStub(
     getPlugin: pluginName => (pluginName === 'formulas' ? formulas : undefined),
     updateSettings: jest.fn((next: Record<string, unknown>) => Object.assign(settings, next)),
     addHook: jest.fn(),
+    addHookOnce: jest.fn(),
     removeHook: jest.fn(),
     _registerTimeout: jest.fn((callback: () => void, delay?: number) => setTimeout(callback, delay)),
     getActiveEditor: () => undefined,

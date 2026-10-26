@@ -84,6 +84,13 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   builder until its next `updatePlugin()`, which rebuilds it (`#builder === null` forces the full
   cycle); meanwhile the shim mounts the plain textarea (`handleInlineEditStart()` returns `false`).
   Pinned on a real grid by `__tests__/realGridTeardown.unit.ts`.
+- **The "requires the Formulas plugin" warning waits for `afterInit` during the init.** A SheetsBar
+  workbook declares `formulas` per sheet, and those settings enable the Formulas plugin after this plugin's
+  first enable attempt, which then fails for a moment and succeeds later in the same init. The plugin
+  records that failure and warns from `afterInit` only if it is still off (`#formulasWarningPending`);
+  after the init it warns at once. Pinned by `__tests__/sheetsBar.unit.ts`, which also pins the builder
+  rebuild on each sheet switch. A stub grid never runs `afterInit`, so a stub test of a post-init enable
+  calls `finishInit()` first.
 - **A rebuild never throws from a hook.** A `popups.*.container` selector that matches nothing is dropped
   with a warning before the package constructor sees it (hyperformula-ui 0.3.5 throws for one), and any other constructor
   throw is caught and warned. Hosts set through `attach*Host()` are kept on the plugin and re-applied to

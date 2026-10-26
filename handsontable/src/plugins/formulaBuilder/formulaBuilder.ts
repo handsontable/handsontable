@@ -410,6 +410,14 @@ export class FormulaBuilder extends BasePlugin {
    * a description is removed only from a cell the plugin wrote it on, never from an application's.
    */
   readonly #describedCells = new WeakSet<HTMLElement>();
+  /**
+   * Whether the grid's init has finished (`afterInit` ran).
+   */
+  #initDone = false;
+  /**
+   * Whether the last enable attempt failed because the Formulas plugin was off, during the init.
+   */
+  #formulasWarningPending = false;
 
   /**
    * @param {HotInstance} hotInstance The Handsontable instance.
@@ -421,6 +429,7 @@ export class FormulaBuilder extends BasePlugin {
     // module loads: importing the plugin registry must register plugins only (pinned by the
     // `registerAll*` registry tests).
     registerFormulaEditor();
+    this.hot.addHookOnce('afterInit', this.#onAfterInit);
   }
 
   /**
@@ -962,6 +971,28 @@ export class FormulaBuilder extends BasePlugin {
     (this.#cellPick?.isHeaderPickActive() ? false : undefined);
 
   /**
+   * Warns that the plugin cannot enable without the Formulas plugin, once per grid.
+   */
+  #warnFormulasMissing(): void {
+    warnOnce(this.hot, 'formulaBuilder.formulas', 'The FormulaBuilder plugin requires the Formulas' +
+      ' plugin to be enabled with a configured engine.');
+  }
+
+  /**
+   * `afterInit` hook listener - shows the Formulas warning an enable attempt held back during the
+   * init, if the plugin is still off now that the init applied every setting.
+   */
+  #onAfterInit = (): void => {
+    this.#initDone = true;
+
+    if (this.#formulasWarningPending && !this.enabled) {
+      this.#warnFormulasMissing();
+    }
+
+    this.#formulasWarningPending = false;
+  };
+
+  /**
    * `afterSetTheme` hook listener - rebuilds the builder when the theme class actually
    * changed, because the builder applies its theming class once, at construction.
    */
@@ -1396,9 +1427,16 @@ export class FormulaBuilder extends BasePlugin {
       return false;
     }
 
+    this.#formulasWarningPending = false;
+
     if (!this.#formulasPlugin?.enabled || !this.#engine) {
-      warnOnce(this.hot, 'formulaBuilder.formulas', 'The FormulaBuilder plugin requires the Formulas' +
-        ' plugin to be enabled with a configured engine.');
+      // During the init the Formulas plugin may still be enabled later, from settings a plugin applies
+      // in `beforeInit` (SheetsBar's per-sheet `formulas`), so the warning waits for `afterInit`.
+      if (this.#initDone) {
+        this.#warnFormulasMissing();
+      } else {
+        this.#formulasWarningPending = true;
+      }
 
       return false;
     }

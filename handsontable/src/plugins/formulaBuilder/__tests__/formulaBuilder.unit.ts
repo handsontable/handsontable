@@ -133,6 +133,17 @@ describe('FormulaBuilder plugin registration', () => {
   });
 });
 
+/**
+ * Runs the `afterInit` listener the plugin registered on a stub, the way a real grid ends its init.
+ *
+ * @param {{ hot: { addHookOnce: jest.Mock } }} stub The stub bundle.
+ */
+function finishInit(stub: { hot: { addHookOnce: jest.Mock } }): void {
+  stub.hot.addHookOnce.mock.calls
+    .filter(([name]) => name === 'afterInit')
+    .forEach(([, listener]) => listener());
+}
+
 describe('FormulaBuilder.enablePlugin validation', () => {
   let warnSpy: jest.SpyInstance;
 
@@ -219,6 +230,7 @@ describe('FormulaBuilder.enablePlugin validation', () => {
 
     const plugin = new FormulaBuilder(stub.instance);
 
+    finishInit(stub);
     plugin.enablePlugin();
 
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Formulas plugin'));
@@ -232,6 +244,7 @@ describe('FormulaBuilder.enablePlugin validation', () => {
 
     const plugin = new FormulaBuilder(stub.instance);
 
+    finishInit(stub);
     plugin.enablePlugin();
 
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Formulas plugin'));
