@@ -1498,6 +1498,32 @@ describe('FormulaBuilder afterRenderer', () => {
     expect(withoutAria.hasAttribute('aria-invalid')).toBe(false);
   });
 
+  it.each([
+    ['a formula cell whose value is not an error', 'formula', document.createElement('td')],
+    ['a recycled cell that is no longer a formula cell', 'numeric', null],
+  ])('keeps the aria-invalid a validator gave %s', (_label, editor, freshCell) => {
+    const { afterRenderer } = makeRenderContext();
+    // The base renderer has just written `aria-invalid` for `valid: false`; a recycled cell also
+    // still carries the error mark of the formula cell it showed before.
+    const cell = freshCell ?? makeStaleErrorCell();
+
+    cell.setAttribute('aria-invalid', 'true');
+    afterRenderer(cell, 0, 1, 1, 5, { editor, valid: false });
+
+    expect(cell.hasAttribute('data-hfe-error')).toBe(false);
+    expect(cell.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('does not keep a validator\'s aria-invalid without ariaTags', () => {
+    const { stub, afterRenderer } = makeRenderContext();
+    const cell = makeStaleErrorCell();
+
+    stub.settings.ariaTags = false;
+    afterRenderer(cell, 0, 1, 1, 5, { editor: 'formula', valid: false });
+
+    expect(cell.hasAttribute('aria-invalid')).toBe(false);
+  });
+
   it('describes an error cell with its message under ariaTags, and only then', () => {
     const { stub, afterRenderer } = makeRenderContext();
     const withAria = document.createElement('td');

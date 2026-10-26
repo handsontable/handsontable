@@ -419,6 +419,19 @@ describe('FormulaBuilder editing on a real grid', () => {
     });
   });
 
+  describe('a cell a validator rejected', () => {
+    it('keeps aria-invalid next to htInvalid', () => {
+      createGrid();
+      hot.setCellMeta(0, 0, 'valid', false);
+      hot.render();
+
+      const cell = hot.getCell(0, 0) as HTMLTableCellElement;
+
+      expect(cell.classList.contains('htInvalid')).toBe(true);
+      expect(cell.getAttribute('aria-invalid')).toBe('true');
+    });
+  });
+
   describe('keys the formula editor does not handle', () => {
     /**
      * Returns the formula editor's text input.

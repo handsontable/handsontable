@@ -8,7 +8,7 @@ import { warnOnce } from '../../helpers/console';
 import { isObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';
 import { isRootInstance } from '../../utils/rootInstance';
-import { A11Y_DESCRIPTION } from '../../helpers/a11y';
+import { A11Y_DESCRIPTION, A11Y_INVALID } from '../../helpers/a11y';
 import { removeAttribute, setAttribute } from '../../helpers/dom/element';
 import type { HotInstance } from '../../core/types';
 import type { PluginTypeMap } from '../types';
@@ -862,6 +862,7 @@ export class FormulaBuilder extends BasePlugin {
       // mark until something clears it.
       if (cellEl.hasAttribute(CELL_ERROR_ATTRIBUTE)) {
         this.#builder?.markCell(cellEl, null);
+        this.#keepValidatorInvalid(cellEl, cellProperties);
       }
 
       this.#describeCellError(cellEl);
@@ -878,8 +879,23 @@ export class FormulaBuilder extends BasePlugin {
       cellEl.removeAttribute('aria-invalid');
     }
 
+    this.#keepValidatorInvalid(cellEl, cellProperties);
     this.#describeCellError(cellEl);
   };
+
+  /**
+   * Puts back the `aria-invalid` the base renderer wrote for a cell a validator rejected. Clearing an
+   * error mark removes `aria-invalid` whoever wrote it, so without this a rejected cell kept its
+   * `htInvalid` look while a screen reader reported it as valid.
+   *
+   * @param {HTMLTableCellElement} cellEl The rendered cell element.
+   * @param {CellProperties} cellProperties The cell meta.
+   */
+  #keepValidatorInvalid(cellEl: HTMLTableCellElement, cellProperties: CellProperties): void {
+    if (cellProperties.valid === false && this.hot.getSettings().ariaTags) {
+      setAttribute(cellEl, [A11Y_INVALID()]);
+    }
+  }
 
   /**
    * Gives an error cell its message as an accessible description, and removes the one the plugin gave

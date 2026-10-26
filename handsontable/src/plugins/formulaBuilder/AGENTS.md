@@ -116,7 +116,10 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `cellProperties` the hook passes, never from `getCellMetaTransient()`, which would resolve the cascade
   (and a `cells` callback) a second time per cell. It also clears the error mark (`data-hfe-error`) from a
   cell that is no longer a formula cell, because the grid recycles cell elements, and it removes the
-  `aria-invalid` that `markCell()` writes when `ariaTags` is `false`.
+  `aria-invalid` that `markCell()` writes when `ariaTags` is `false`. Clearing a mark
+  (`markCell(cell, null)`) removes `aria-invalid` whoever wrote it, the base renderer's `valid: false`
+  included, so `#keepValidatorInvalid()` writes it back for a cell a validator rejected; without that a
+  rejected cell kept `htInvalid` while a screen reader heard it as valid.
 - **Two coordinate spaces, and the public API speaks only one.** Every public method takes and returns
   VISUAL indexes (`getRawCellText` included). The adapter speaks HyperFormula space to the package and
   translates at its boundary, guarding every `-1` (a trimmed or unresolvable index) before it reaches
