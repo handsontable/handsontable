@@ -100,7 +100,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   commands (`right`/`left`), so `enterMoves`, `tabMoves`, ranges and layers behave as in every other
   editor, and only when the save succeeded (`dataSaved`). The package commits `right` on Tab in either
   direction, and the grid binds Tab to the command named `moveCellSelectionInlineStart` (the names are
-  inverted), so `right` maps to `InlineStart`. A cancel leaves the selection alone and only returns the
+  inverted). A Tab commit runs the grid context's own Tab shortcuts (`getContext('grid').getShortcuts()`),
+  the path the text editor forwards to, not the move command alone: the `GRID_TAB_NAVIGATION_GROUP` pair
+  around the move drops the selection when Tab has nowhere to go, so the next Tab leaves the grid. A cancel leaves the selection alone and only returns the
   focus. The formula bar opens the editor through `EditorManager#openEditor()`, so `beforeBeginEditing`,
   the read-only, header and hidden checks, and the re-prepare after `loadData()` apply. Pinned by
   `__tests__/realGridEditing.unit.ts`.

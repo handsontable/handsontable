@@ -109,6 +109,19 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     expect(await grid.sourceAt(3, 2)).toBe('=2*3');
     await grid.expectCell(3, 2, '6');
   });
+
+  test('Tab on the last cell commits and drops the selection, as in the text editor', async({ page }) => {
+    // The grid's Tab pair drops the selection when Tab has nowhere to move it, so the next Tab
+    // leaves the grid. The last cell of the last row has no cell after it (`autoWrapRow` is off).
+    await grid.selectCellByApi(4, 2);
+    await page.keyboard.press('8');
+    await expect(grid.editorInput).toHaveValue('8');
+    await page.keyboard.press('Tab');
+
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    expect(await grid.sourceAt(4, 2)).toBe('8');
+    await expect.poll(() => grid.selectedAll()).toBeNull();
+  });
 });
 
 // Point mode: with a reference valid at the caret, the arrow keys pick references (the guide's

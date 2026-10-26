@@ -13,10 +13,7 @@ import { removeAttribute, setAttribute } from '../../helpers/dom/element';
 import type { HotInstance } from '../../core/types';
 import type { PluginTypeMap } from '../types';
 import type { CellProperties } from '../../settings';
-import { command as moveCellSelectionInlineEnd } from '../../shortcuts/contexts/commands/moveCellSelection/inlineEnd';
-import {
-  command as moveCellSelectionInlineStart,
-} from '../../shortcuts/contexts/commands/moveCellSelection/inlineStart';
+import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
 import { CellPickController } from './cellPickController';
 import {
   EDITING_CELL_CLASS,
@@ -1169,12 +1166,21 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    // The package commits `right` on Tab and `left` on Shift+Tab in either layout direction. The grid
-    // binds Tab to the command named `InlineStart` and Shift+Tab to `InlineEnd`; both apply `tabMoves`.
+    // The package commits `right` on Tab and `left` on Shift+Tab in either layout direction. The
+    // grid's own editors forward Tab to the grid context, which runs the move (applying `tabMoves`)
+    // between the two halves of its Tab-navigation pair; that pair drops the selection when Tab has
+    // nowhere to go, so the next Tab leaves the grid. Running only the move kept the selection.
+    const keys = direction === 'left' ? ['Shift', 'Tab'] : ['Tab'];
     const event = new KeyboardEventClass('keydown', { key: 'Tab', shiftKey: direction === 'left' });
-    const command = direction === 'right' ? moveCellSelectionInlineStart : moveCellSelectionInlineEnd;
+    const shortcuts = this.hot.getShortcutManager().getContext(GRID_SCOPE)?.getShortcuts(keys) ?? [];
 
-    command.callback(this.hot, event);
+    for (let index = 0; index < shortcuts.length; index++) {
+      const { runOnlyIf, callback } = shortcuts[index];
+
+      if (runOnlyIf?.(event) === true && callback(event, keys) === false) {
+        break;
+      }
+    }
   }
 
   /**

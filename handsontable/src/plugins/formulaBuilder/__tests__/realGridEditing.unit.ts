@@ -164,6 +164,38 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(hot.getSelectedLast()).toEqual([2, 2, 2, 2]);
     });
 
+    // A 2x2 grid, so every cell is rendered in jsdom (which draws only the first rows and columns).
+    const SMALL_DATA = [['Q1', 'Q2'], ['Q3', 'Q4']];
+
+    it.each([
+      ['right', [1, 1]],
+      ['left', [0, 0]],
+    ] as const)('lets a %s commit at the end of the grid leave it, like Tab in the text editor', async(
+      direction, [row, col],
+    ) => {
+      // The grid's Tab pair (`GRID_TAB_NAVIGATION_GROUP`) drops the selection when Tab has nowhere to
+      // move it, so the next Tab leaves the grid; the move command alone kept the selection.
+      createGrid({ data: SMALL_DATA });
+      hot.selectCell(row, col);
+      adapter().beginEdit({ sheet: '', row, col });
+      adapter().commit('9', direction);
+      await settle();
+
+      expect(hot.getDataAtCell(row, col)).toBe('9');
+      expect(hot.getSelected()).toBeUndefined();
+    });
+
+    it('keeps the selection on a Tab commit that has a cell to move to', async() => {
+      createGrid({ data: SMALL_DATA });
+      hot.selectCell(1, 0);
+      adapter().beginEdit({ sheet: '', row: 1, col: 0 });
+      adapter().commit('9', 'right');
+      await settle();
+
+      expect(hot.getDataAtCell(1, 0)).toBe('9');
+      expect(hot.getSelectedLast()).toEqual([1, 1, 1, 1]);
+    });
+
     it('stays on the last row when Enter has nowhere to go', async() => {
       createGrid();
       hot.selectCell(4, 1);
