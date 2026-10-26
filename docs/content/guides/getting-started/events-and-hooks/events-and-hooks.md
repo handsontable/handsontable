@@ -375,6 +375,8 @@ Note that some callbacks are checked on this page by default.
 
 It's worth mentioning that some Handsontable hooks are triggered from the Handsontable core and some from the plugins. In some situations, it is helpful to know what triggered the callback. Did Handsontable trigger it, or was it triggered by external code or a user action? That's why in crucial hooks, Handsontable delivers `source` as an argument informing you who triggered the action and providing detailed information about the source. Using the information retrieved in the `source`, you can create additional conditions.
 
+`source` helps tell actions apart. For example, `afterCreateRow` receives `'ContextMenu.rowAbove'` or `'ContextMenu.rowBelow'` when the user inserts a row from the context menu. It receives `'auto'` when Handsontable creates the row itself, for example when `minRows` or `minSpareRows` adds a row, or a paste reaches past the last row. For columns, `afterCreateCol` receives `'ContextMenu.columnLeft'` or `'ContextMenu.columnRight'`, and `'auto'` when `minCols` or `minSpareCols` adds a column, or a paste reaches past the last column. Don't confuse these values with the context menu item keys, such as `row_above` and `col_left`.
+
 `source` argument is optional. It takes the following values:
 
 | Value                                              | Description                                                                                                                                                                                                            |

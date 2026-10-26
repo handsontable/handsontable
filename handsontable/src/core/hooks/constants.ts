@@ -282,6 +282,10 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created columns in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.columnLeft'` or `'ContextMenu.columnRight'` when the user
+   *                          inserts a column from the context menu, and `'auto'` when the `minCols` or
+   *                          `minSpareCols` option adds columns. These are not the context menu item keys
+   *                          (`col_left`, `col_right`).
    * @returns {*} If `false` then creating columns is canceled.
    * @example
    * ::: only-for javascript
@@ -353,6 +357,10 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created columns in the data source.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.columnLeft'` or `'ContextMenu.columnRight'` when the user
+   *                          inserts a column from the context menu, and `'auto'` when the `minCols` or
+   *                          `minSpareCols` option adds columns. These are not the context menu item keys
+   *                          (`col_left`, `col_right`).
    */
   'afterCreateCol',
 
@@ -366,6 +374,9 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of rows to be created.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.rowAbove'` or `'ContextMenu.rowBelow'` when the user inserts
+   *                          a row from the context menu, and `'auto'` when the `minRows` or `minSpareRows` option
+   *                          adds rows. These are not the context menu item keys (`row_above`, `row_below`).
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeCreateRow',
@@ -378,6 +389,9 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.rowAbove'` or `'ContextMenu.rowBelow'` when the user inserts
+   *                          a row from the context menu, and `'auto'` when the `minRows` or `minSpareRows` option
+   *                          adds rows. These are not the context menu item keys (`row_above`, `row_below`).
    */
   'afterCreateRow',
 
