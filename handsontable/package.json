@@ -175,6 +175,7 @@
       "dist/themes",
       "styles",
       "languages",
+      "scripts/postinstall-skills-message.cjs",
       "../CHANGELOG.md",
       "../handsontable-non-commercial-license.pdf",
       "../LICENSE.txt",

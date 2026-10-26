@@ -329,6 +329,11 @@ fse.writeJSONSync(`${TARGET_PATH}/package.json`, {
   // CJS type declarations under moduleResolution: "node16". Not added to the
   // source package.json to avoid breaking ESM import syntax in test files.
   type: 'commonjs',
+  // Prints the SKILLS file hint after a user installs the package. It is written only here, not
+  // to the source package.json, so it never runs on installs inside this repository.
+  scripts: {
+    postinstall: 'node scripts/postinstall-skills-message.cjs',
+  },
   exports: {
     ...targetExports,
   },
