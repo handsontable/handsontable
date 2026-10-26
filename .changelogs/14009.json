@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed `@handsontable/react-wrapper` to declare `react` and `react-dom` 18.0.0 or later as peer dependencies, so npm refuses to install it next to React 16 or 17, where it fails at runtime. See the migration guide.",
+  "type": "changed",
+  "issueOrPR": 14009,
+  "breaking": true,
+  "framework": "react"
+}
