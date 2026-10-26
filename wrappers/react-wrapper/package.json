@@ -92,7 +92,9 @@
     "uglify-js": "^3.4.9"
   },
   "peerDependencies": {
-    "handsontable": "^18.0.0"
+    "handsontable": "^18.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "scripts": {
     "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min && npm run prepare:types",
