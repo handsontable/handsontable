@@ -41,10 +41,10 @@ The plugin builds on the formula calculation engine and an external UI module:
 
 ## Enable the formula builder
 
-Install the `hyperformula-ui` package next to `hyperformula`. The plugin is tested with `hyperformula-ui` 0.3.5, so install that version: the 0.x line can change its API in a minor version, and an incompatible version makes the plugin [disable itself with a warning](#configuration-options).
+Install the `hyperformula-ui` package next to `hyperformula`. The plugin is tested with `hyperformula-ui` 0.3.6, so install that version: the 0.x line can change its API in a minor version, and an incompatible version makes the plugin [disable itself with a warning](#configuration-options).
 
 ```bash
-npm install hyperformula hyperformula-ui@0.3.5
+npm install hyperformula hyperformula-ui@0.3.6
 ```
 
 `hyperformula-ui` is licensed together with HyperFormula, under the same terms. See [HyperFormula license](@/guides/formulas/installation/installation.md#license-hyperformula) before you use it in your application.

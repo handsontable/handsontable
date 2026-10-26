@@ -95,7 +95,7 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   rebuild on each sheet switch. A stub grid never runs `afterInit`, so a stub test of a post-init enable
   calls `finishInit()` first.
 - **A rebuild never throws from a hook.** A `popups.*.container` selector that matches nothing is dropped
-  with a warning before the package constructor sees it (hyperformula-ui 0.3.5 throws for one), and any other constructor
+  with a warning before the package constructor sees it (hyperformula-ui 0.3.5 threw for one; 0.3.6 warns), and any other constructor
   throw is caught and warned. Hosts set through `attach*Host()` are kept on the plugin and re-applied to
   every rebuilt builder. `popups` is stored as a copy, so an object changed in place reads as a change.
 - **Commit, cancel and open go through the grid's own code, not a copy of it.** A commit with a
