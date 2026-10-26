@@ -55,9 +55,9 @@ const ExampleComponent = () => {
       },
     });
 
-    // Ctrl+Enter: submit the grid data
+    // Ctrl+Shift+Enter: submit the grid data
     gridContext.addShortcut({
-      keys: [['Control', 'Enter']],
+      keys: [['Control', 'Shift', 'Enter']],
       group: 'customActions',
       runOnlyIf: () => true,
       callback: (event) => {
@@ -68,7 +68,7 @@ const ExampleComponent = () => {
         const rowCount = data.length;
         const timestamp = new Date().toLocaleTimeString();
 
-        setLastShortcut('Ctrl+Enter -- data submitted');
+        setLastShortcut('Ctrl+Shift+Enter -- data submitted');
         setLastSubmission(`[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`);
       },
     });
