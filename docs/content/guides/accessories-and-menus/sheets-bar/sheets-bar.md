@@ -77,7 +77,9 @@ Each tab of the [`SheetsBar`](@/api/sheetsBar.md) plugin is one sheet, with its 
 
 Set [`sheetsBar`](@/api/options.md#sheetsbar) to `true` for one sheet with the grid's data, or pass an object to define the workbook, pick the sheet that opens first, and show or hide the bar's controls.
 
-Each entry in `sheets` is one sheet: a tab label, the source data, and optional grid settings that apply while the sheet is active. A setting the sheet doesn't declare keeps its grid-level value. That includes a grid-level value you set later with [`updateSettings()`](@/api/core.md#updatesettings): it applies to every sheet that doesn't declare the setting, and it stays on the grid when you turn the bar off. Set it while a sheet that doesn't declare the setting is active. A value you set while the active sheet declares the setting shows only on that sheet, until you leave it, and the other sheets don't get it. The exception is an `updateSettings()` call that also passes `sheetsBar`: its grid-level values apply to every sheet that doesn't declare them.
+Each entry in `sheets` is one sheet: a tab label, the source data, and optional grid settings that apply while the sheet is active. A setting the sheet doesn't declare keeps its grid-level value. A sheet's own settings always win over the grid-level ones. A value you set later with [`updateSettings()`](@/api/core.md#updatesettings) is a grid-level value: it applies to every sheet that doesn't declare the setting, and it stays on the grid when you turn the bar off. While the active sheet declares the setting, the sheet keeps its own value, and the new value reaches the other sheets. To change a sheet's own settings, call [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings).
+
+The plugin works on your `sheets` array the way the grid works on your [`data`](@/api/options.md#data) array: it writes into it. A rename changes the entry's `name`, a sheet the user adds or duplicates is appended to the array with its own `data`, and a removed sheet's entry is spliced out. Moving a tab changes only the tab order, not the array. So your array always describes the workbook, sheets added at runtime included. Keep the array, its entries, and their `data` mutable: a frozen array (for example, from Immer) throws, as a frozen `data` array does.
 
 Each sheet brings its own data, so the grid-level [`data`](@/api/options.md#data) option is ignored when `sheets` declares a workbook, both on initialization and in `updateSettings()`. The console shows a warning the first time. To change a sheet's data, pass a new `sheets` value or call [`loadData()`](@/api/core.md#loaddata) while the sheet is active.
 
@@ -99,10 +101,10 @@ const configurationOptions = {
       },
       { name: 'Notes', data: [['Draft']] },
     ],
-    // Set the index (within `sheets`) of the sheet to activate
-    // on initialization. Passed later through `updateSettings()`
-    // with a changed value, it switches the active sheet without
-    // rebuilding the workbook
+    // Set the position, within your `sheets` array, of the sheet to
+    // activate on initialization. Passed later through
+    // `updateSettings()` with a changed value, it switches the
+    // active sheet without rebuilding the workbook
     activeSheet: 0,
     // Show or hide the add-sheet and all-sheets menu controls
     controls: true,
@@ -123,21 +125,21 @@ const configurationOptions = {
 
 ::: only-for react
 
-### Keep sheet data stable
+### Keep the `sheets` array stable
 
-Pass each sheet's `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. The React wrapper sends the `sheetsBar` prop to the grid on every render. If a sheet's `data` is a new array, the plugin rebuilds the workbook and drops the user's edits, sort, filters, and any sheets added at runtime. The same applies to a function or a class instance in a sheet's `settings`, such as a `renderer` or a `cells` function: an inline one is a new value on every render, so define it outside the component or memoize it.
+Pass `sheets` as a stable array, the same way you pass `data` to a grid: a constant declared outside the component, a `useState` value, or a `useMemo` result. The React wrapper sends the `sheetsBar` prop to the grid on every render, and the plugin writes the user's renames, added sheets, and removed sheets into that array. An array written inline is a new one on every render, without those changes, so the plugin reads it as another workbook and rebuilds it: the user's renames, added sheets, sort, filters, and edits are gone.
 
 ```jsx
-// Rebuilds the workbook on every render
-<HotTable sheetsBar={{ sheets: [{ name: 'Budget', data: [['Rent', 1200]] }] }} />
+// Loses the user's changes on the next render
+<HotTable sheetsBar={{ sheets: [{ name: 'Budget', data: budgetData }] }} />
 
 // Keeps the workbook
-const budgetData = [['Rent', 1200]];
+const sheets = [{ name: 'Budget', data: [['Rent', 1200]] }];
 
-<HotTable sheetsBar={{ sheets: [{ name: 'Budget', data: budgetData }] }} />
+<HotTable sheetsBar={{ sheets }} />
 ```
 
-A new `settings` object on each render keeps the workbook only when its values are equal. Functions and class instances, such as a renderer or a HyperFormula engine, are compared by reference, so define them outside the component or memoize them. For the exact rule, see [Known limitations](#known-limitations).
+The same applies to a function or a class instance in a sheet's `settings`, such as a `renderer` or a `cells` function: define it outside the component or memoize it. Don't copy the plugin's changes into your own state: your array already holds them. For the exact rule, see [Known limitations](#known-limitations).
 
 :::
 
@@ -165,7 +167,12 @@ sheetsBar.removeSheet(2);
 
 // move a sheet to another position in the tab order
 sheetsBar.moveSheetToIndex(3, 0);
+
+// change a sheet's own settings, by id or by name
+sheetsBar.updateSheetSettings('Budget', { readOnly: true });
 ```
+
+Each of these methods writes its change into your `sheets` array, except `moveSheetToIndex()`, which changes only the tab order, and `updateSheetSettings()`, which keeps the sheet's new settings with the plugin and leaves the entry's `settings` as you declared them.
 
 ## Tab menus
 
@@ -328,7 +335,9 @@ A sheet added at runtime, with the add button or with `addSheet()` without `sett
 ## Known limitations
 
 - The grid holds one sheet at a time, so methods such as [`getData()`](@/api/core.md#getdata) and [`getDataAtCell()`](@/api/core.md#getdataatcell) read only the active sheet.
-- Passing a changed `sheets` value to [`updateSettings()`](@/api/core.md#updatesettings) rebuilds the workbook and drops sheets added with `addSheet()`. A `sheets` value counts as unchanged when it has the same number of sheets, and each has the same `name`, `settings` with the same content (dates are compared by their value, functions and other class instances by reference), and the same `data` array. In framework wrappers, keep your `data` arrays stable. Changing only `controls`, `paging`, or `position` never rebuilds the workbook. The plugin compares against a copy of the `sheets` value it was built from, so an array or a `settings` object you edit in place and pass again counts as changed.
+- Passing the same `sheets` array to [`updateSettings()`](@/api/core.md#updatesettings) again keeps the workbook. The plugin doesn't watch your own edits of that array or its entries: to change the workbook, call the plugin's methods. Passing another array rebuilds the workbook, unless the array matches the workbook as the plugin last wrote it: the same number of sheets, in the same order, each with the same `name`, `settings` with the same content (dates are compared by their value, functions and other class instances by reference), and the same `data` array. In framework wrappers, keep your `sheets` array stable. Changing only `controls`, `paging`, or `position` never rebuilds the workbook.
+- `activeSheet` is a position in your `sheets` array. When a sheet in front of it is removed, the plugin lowers its own copy of the value, so it keeps naming the same sheet. If you keep the value in your own state, update it after [`afterSheetTabRemove`](@/api/hooks.md#aftersheettabremove): passing the old number again switches to the sheet now at that position.
+- A sheet's `data` that the plugin replaces with a new array, for example a server response for a sheet that isn't shown, isn't written into your entry.
 - Switching sheets clears the [`UndoRedo`](@/api/undoRedo.md) history.
 - A sorted sheet, or a sheet with moved rows or columns, comes back with the formulas HyperFormula holds for it, so an in-place change to its `data` while it isn't shown isn't seen. To change it, pass a new `sheets` value, which rebuilds the workbook.
 - After a rename, `getSettings().formulas.sheetName` keeps the old name. The grid stays bound to the renamed sheet.

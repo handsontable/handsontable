@@ -465,6 +465,11 @@ export default function Core(
    * window (see `_replaceInitPassSettings()`).
    */
   let initPassSettings: Record<string, unknown> | null = null;
+  /**
+   * The function that reads every `updateSettings()` payload before it is applied, or `null` when no
+   * caller registered one (see `_setSettingsFilter()`).
+   */
+  let settingsFilter: ((settings: Record<string, unknown>) => Record<string, unknown>) | null = null;
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -5261,6 +5266,10 @@ export default function Core(
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings: SettingsUpdate, init = false) {
+    const applied = !init && settingsFilter !== null
+      ? settingsFilter(settings as Record<string, unknown>) as SettingsUpdate
+      : settings;
+
     // Applying settings is not a user action: a plugin that updates its state from the new
     // settings, or the `cell` option writing meta, must not open an operation or be journaled.
     operationScope.suppress(() => {
@@ -5272,7 +5281,7 @@ export default function Core(
         }
 
         try {
-          applySettings(settings, init);
+          applySettings(applied, init);
         } finally {
           dataWorkPhase = outerPhase;
         }
@@ -5280,12 +5289,12 @@ export default function Core(
         return;
       }
 
-      if (hasOwnProperty(settings, 'data')) {
+      if (hasOwnProperty(applied, 'data')) {
         warn('The "data" setting passed to updateSettings() while another settings and data change is being ' +
           'applied is ignored: the data that change loads replaces it. Call loadData() once it has finished.');
       }
 
-      const metaPhase = applySettings(settings, init, true);
+      const metaPhase = applySettings(applied, init, true);
 
       if (metaPhase) {
         heldMetaPhases.push(metaPhase);
@@ -5457,6 +5466,23 @@ export default function Core(
     });
 
     return replaced;
+  };
+
+  /**
+   * Registers the function that reads every later `updateSettings()` payload before core applies it, and
+   * returns the payload to apply instead. Passing `null` removes it. One filter at a time: the SheetsBar
+   * plugin is the only caller, and it uses it to keep the visible sheet's own settings when a grid-level
+   * value for the same key arrives (a framework wrapper sends every prop again on each render). The filter
+   * must return a new object rather than change the one it was given, which belongs to the caller of
+   * `updateSettings()`. The init settings pass is never filtered.
+   *
+   * @private
+   * @param {Function|null} filter The function to register, or `null`.
+   */
+  this._setSettingsFilter = function(
+    filter: ((settings: Record<string, unknown>) => Record<string, unknown>) | null
+  ) {
+    settingsFilter = filter;
   };
 
   /**
