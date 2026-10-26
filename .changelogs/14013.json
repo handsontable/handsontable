@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `getLastFullyVisibleRow()` returning a row too far down right after initialization when the grid has column headers.",
+  "type": "fixed",
+  "issueOrPR": 14013,
+  "breaking": false,
+  "framework": "none"
+}
