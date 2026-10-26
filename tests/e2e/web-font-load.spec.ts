@@ -101,6 +101,32 @@ test.describe('Web font loaded after the first draw', { tag: [THEMES_TAG, CROSS_
     await expectAligned(grid);
   });
 
+  test('waits once, not once a frame, for a grid whose root element skips its contents', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+
+    await grid.trackIntersectionObservers();
+    await grid.goto();
+    await expectAligned(grid);
+
+    const before = await grid.geometry();
+
+    // `content-visibility: hidden` keeps the root element's box in the layout and skips the table inside
+    // it, so an observer on the root element fires at once while the grid still reads as hidden. Re-arming
+    // it from its own callback made the grid arm a new observer on every frame while it stayed hidden.
+    await grid.setGridContentHidden(true);
+    await grid.loadFont();
+    await grid.waitForFrames(5);
+
+    expect(await grid.intersectionObserveCalls()).toBe(1);
+
+    // The one observer still fires once the grid is shown, which is the positive control for the count.
+    await grid.setGridContentHidden(false);
+
+    await expect.poll(async() => (await grid.geometry()).autoSizedCellWidth).toBeGreaterThan(before.autoSizedCellWidth);
+    await expectAligned(grid);
+    expect(await grid.intersectionObserveCalls()).toBe(1);
+  });
+
   test('never drops a measured row height while autoRowSize re-measures', async({ page, theme, bundle }) => {
     const grid = new WebFontLoadPage(page, theme, bundle);
     // Past the 500 rows AutoRowSize measures at once, and above the rows on screen, so only the idle sweep

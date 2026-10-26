@@ -130,6 +130,43 @@ export class WebFontLoadPage {
   }
 
   /**
+   * Skips the contents of the grid's root element (`content-visibility: hidden`) or renders them again.
+   * Unlike `display: none`, the root element keeps a box in the layout while the table inside it has none.
+   * The root element is the div the grid creates inside the fixture's container, so it is reached through
+   * the instance.
+   */
+  async setGridContentHidden(hidden: boolean): Promise<void> {
+    await this.page.evaluate((isHidden) => {
+      (window as unknown as { hot: { rootElement: HTMLElement } }).hot.rootElement.style.contentVisibility = isHidden ? 'hidden' : '';
+    }, hidden);
+  }
+
+  /**
+   * Counts the elements handed to `IntersectionObserver#observe()` from the next navigation on. Call it
+   * before `goto()`, and read the count with `intersectionObserveCalls()`.
+   */
+  async trackIntersectionObservers(): Promise<void> {
+    await this.page.addInitScript(() => {
+      const observe = IntersectionObserver.prototype.observe;
+      const win = window as unknown as { htIntersectionObserveCalls: number };
+
+      win.htIntersectionObserveCalls = 0;
+      IntersectionObserver.prototype.observe = function(target: Element) {
+        win.htIntersectionObserveCalls += 1;
+        observe.call(this, target);
+      };
+    });
+  }
+
+  /**
+   * Reads how many times an `IntersectionObserver` started observing an element (see
+   * `trackIntersectionObservers()`).
+   */
+  async intersectionObserveCalls(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { htIntersectionObserveCalls: number }).htIntersectionObserveCalls);
+  }
+
+  /**
    * Scrolls the grid down until its first fully visible row is below `row`, and waits until the grid has
    * drawn there.
    */

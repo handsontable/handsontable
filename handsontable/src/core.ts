@@ -2764,7 +2764,11 @@ export default function Core(
     // measures only the columns that have no width yet. So the re-measure waits until the grid is shown.
     if (!instance.view.isVisible()) {
       if (fontRefreshVisibilityObserver === null) {
-        fontRefreshVisibilityObserver = observeVisibilityChangeOnce(instance.rootElement, () => {
+        // The observer watches the table `isVisible()` reads, not the root element. The two can disagree:
+        // a root element with `content-visibility: hidden` has a box and intersects the viewport, while
+        // the table inside it has no box. An observer on the root would then fire at once, see the grid
+        // still hidden, and arm again on every frame for as long as the grid stays hidden.
+        fontRefreshVisibilityObserver = observeVisibilityChangeOnce(instance.view._wt.wtTable.TABLE, () => {
           fontRefreshVisibilityObserver = null;
           refreshAfterFontsLoad();
         });
