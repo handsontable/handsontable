@@ -1,4 +1,5 @@
 import EventManager from 'handsontable/eventManager';
+import { isImmediatePropagationStopped } from 'handsontable/helpers/dom/event';
 
 describe('EventManager', () => {
   it('should add/remove/clear event for multiple instances', () => {
@@ -248,6 +249,139 @@ describe('EventManager', () => {
     em2.destroyWithOwnEventsOnly();
 
     expect(instance.eventListeners.length).toEqual(1);
+  });
+
+  it('should stop later listeners when the callback calls stopImmediatePropagation', () => {
+    const em = new EventManager({});
+    const button = document.createElement('button');
+
+    document.body.appendChild(button);
+
+    const seen = [];
+
+    em.addEventListener(button, 'click', (event) => {
+      seen.push('grid');
+      event.stopImmediatePropagation();
+      expect(isImmediatePropagationStopped(event)).toBe(true);
+    });
+    button.addEventListener('click', () => {
+      seen.push('later');
+    });
+
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+
+    expect(seen).toEqual(['grid']);
+
+    em.destroy();
+    button.remove();
+  });
+
+  it('should not throw when stopImmediatePropagation is an own non-writable property', () => {
+    const em = new EventManager({});
+    const button = document.createElement('button');
+
+    document.body.appendChild(button);
+
+    const seen = [];
+    let nativeCalls = 0;
+
+    em.addEventListener(button, 'click', (event) => {
+      seen.push('grid');
+      event.stopImmediatePropagation();
+      expect(isImmediatePropagationStopped(event)).toBe(true);
+    });
+    button.addEventListener('click', () => {
+      seen.push('later');
+    });
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    const nativeStop = event.stopImmediatePropagation.bind(event);
+
+    Object.defineProperty(event, 'stopImmediatePropagation', {
+      configurable: false,
+      writable: false,
+      value() {
+        nativeCalls += 1;
+        nativeStop();
+      },
+    });
+
+    expect(() => button.dispatchEvent(event)).not.toThrow();
+    expect(seen).toEqual(['grid']);
+    expect(nativeCalls).toBe(1);
+    expect(isImmediatePropagationStopped(event)).toBe(true);
+
+    em.destroy();
+    button.remove();
+  });
+
+  it('should still call later listeners when a frozen stopImmediatePropagation is not used', () => {
+    const em = new EventManager({});
+    const button = document.createElement('button');
+
+    document.body.appendChild(button);
+
+    const seen = [];
+
+    em.addEventListener(button, 'click', () => {
+      seen.push('grid');
+    });
+    button.addEventListener('click', () => {
+      seen.push('later');
+    });
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+    Object.defineProperty(event, 'stopImmediatePropagation', {
+      configurable: false,
+      writable: false,
+      value() {},
+    });
+
+    expect(() => button.dispatchEvent(event)).not.toThrow();
+    expect(seen).toEqual(['grid', 'later']);
+
+    em.destroy();
+    button.remove();
+  });
+
+  it('should stop later listeners when stopImmediatePropagation is non-writable but configurable', () => {
+    const em = new EventManager({});
+    const button = document.createElement('button');
+
+    document.body.appendChild(button);
+
+    const seen = [];
+    let nativeCalls = 0;
+
+    em.addEventListener(button, 'click', (event) => {
+      seen.push('grid');
+      event.stopImmediatePropagation();
+      expect(isImmediatePropagationStopped(event)).toBe(true);
+    });
+    button.addEventListener('click', () => {
+      seen.push('later');
+    });
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    const nativeStop = event.stopImmediatePropagation.bind(event);
+
+    Object.defineProperty(event, 'stopImmediatePropagation', {
+      configurable: true,
+      writable: false,
+      value() {
+        nativeCalls += 1;
+        nativeStop();
+      },
+    });
+
+    expect(() => button.dispatchEvent(event)).not.toThrow();
+    expect(seen).toEqual(['grid']);
+    expect(nativeCalls).toBe(1);
+    expect(isImmediatePropagationStopped(event)).toBe(true);
+
+    em.destroy();
+    button.remove();
   });
 
   it('should not delegate to removeEventListener to clear multiple events', () => {

@@ -235,13 +235,88 @@ class EventManager {
  */
 function extendEvent(event: Event): Event {
   const nativeStopImmediatePropagation = event.stopImmediatePropagation;
-
-  event.stopImmediatePropagation = function() {
-    nativeStopImmediatePropagation.apply(this);
+  const override = function(this: Event) {
+    nativeStopImmediatePropagation.call(this);
     _stopImmediatePropagation(this);
   };
 
-  return event;
+  const ownStop = Object.getOwnPropertyDescriptor(event, 'stopImmediatePropagation');
+
+  if (ownStop === undefined || ownStop.writable === true || typeof ownStop.set === 'function') {
+    event.stopImmediatePropagation = override;
+
+    return event;
+  }
+
+  if (ownStop.configurable === true) {
+    Object.defineProperty(event, 'stopImmediatePropagation', {
+      configurable: true,
+      enumerable: ownStop.enumerable === true,
+      writable: true,
+      value: override,
+    });
+
+    return event;
+  }
+
+  // Angular event replay defines this method with `Object.defineProperty` and leaves it
+  // non-writable and non-configurable. A proxy of that event cannot return a different
+  // function for the property (the engine rejects it), so the callback sees a stand-in
+  // that still reads and writes the real event.
+  return relayFrozenStopImmediatePropagation(event, nativeStopImmediatePropagation);
+}
+
+/**
+ * Builds the event a listener receives when `stopImmediatePropagation` is an own
+ * non-writable, non-configurable property.
+ *
+ * Proxying `event` itself cannot return a different function for that property.
+ * The stand-in forwards every other read and write to `event`, and its
+ * `stopImmediatePropagation` still calls the installed function and records the stop.
+ *
+ * @param {Event} event The event whose `stopImmediatePropagation` cannot be replaced.
+ * @param {Function} nativeStopImmediatePropagation The function currently installed on `event`.
+ * @returns {Event} The stand-in passed to the listener.
+ */
+function relayFrozenStopImmediatePropagation(
+  event: Event,
+  nativeStopImmediatePropagation: Event['stopImmediatePropagation']
+): Event {
+  const stop = () => {
+    nativeStopImmediatePropagation.call(event);
+    _stopImmediatePropagation(event);
+  };
+
+  const handler: ProxyHandler<object> = {
+    get(_target, property): unknown {
+      if (property === 'stopImmediatePropagation') {
+        return stop;
+      }
+
+      const value = Reflect.get(event, property, event) as unknown;
+
+      if (typeof value !== 'function') {
+        return value;
+      }
+
+      const method = value as (this: unknown, ...args: unknown[]) => unknown;
+
+      return (...args: unknown[]) => method.apply(event, args);
+    },
+    set(_target, property, value): boolean {
+      (event as Event & Record<PropertyKey, unknown>)[property] = value;
+
+      return true;
+    },
+    has(_target, property): boolean {
+      return property in event;
+    },
+    getPrototypeOf(): object | null {
+      return Object.getPrototypeOf(event) as object | null;
+    },
+  };
+
+  return new Proxy(Object.create(null), handler) as Event;
 }
 
 export default EventManager;
