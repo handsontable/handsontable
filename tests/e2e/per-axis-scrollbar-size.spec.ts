@@ -33,6 +33,8 @@ test.describe('per-axis holder scrollbar thickness', { tag: THEMES_TAG }, () => 
       await grid.goto();
       await grid.initScrollingGrid(sizing);
 
+      expect(await grid.usesLayoutSnapshotForCalculators()).toBe(sizing === 'predicted');
+
       const edges = await grid.fullyVisibleCellEdges();
       const holder = await grid.holderScrollbarGutters();
       const probe = await grid.probeGutters();
@@ -62,6 +64,8 @@ test.describe('per-axis holder scrollbar thickness', { tag: THEMES_TAG }, () => 
       await grid.goto();
       await grid.initScrollingGrid(sizing);
 
+      expect(await grid.usesLayoutSnapshotForCalculators()).toBe(sizing === 'predicted');
+
       const edges = await grid.fullyVisibleCellEdges();
       const holder = await grid.holderScrollbarGutters();
       const probe = await grid.probeGutters();
@@ -82,4 +86,24 @@ test.describe('per-axis holder scrollbar thickness', { tag: THEMES_TAG }, () => 
       await expect.poll(() => grid.horizontalScrollOffset()).toBeGreaterThan(0);
     });
   }
+
+  test('default scrollbars do not rebuild the visible calculators', async({ page, theme, bundle }) => {
+    const grid = new PerAxisScrollbarPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.initScrollingGrid('predicted');
+
+    expect(await grid.usesLayoutSnapshotForCalculators()).toBe(true);
+
+    const holder = await grid.holderScrollbarGutters();
+    const probe = await grid.probeGutters();
+
+    // The sync rebuilds only when these differ. Equal gutters make a positive count the equality
+    // return being gone.
+    expect(holder.vertical).toBeGreaterThan(0);
+    expect(holder.vertical).toBe(probe.vertical);
+    expect(holder.horizontal).toBe(probe.horizontal);
+
+    expect(await grid.countVisibleCalculatorBuilds(3)).toBe(0);
+  });
 });

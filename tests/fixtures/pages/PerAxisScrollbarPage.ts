@@ -49,25 +49,70 @@ export class PerAxisScrollbarPage extends SelectionFeaturesPage {
    * Rebuilds a grid tall and wide enough that an 85px scrollbar error changes the fully-visible
    * count on every theme, including horizon rows.
    *
-   * @param sizing `predicted` forces the single-pass snapshot (uniform sizes, auto-size plugins
-   * off). `measured` leaves the default plugins on, so the viewport is measured from the holder.
+   * `predicted` forces the single-pass snapshot. Sizes are uniform and the auto-size plugins are off.
+   * `measured` turns `mergeCells` on, which forces `singlePassLayout` off. The viewport calculators
+   * and the scroll checks then measure the holder. There are no merged cells, so the ranges stay
+   * the cell boxes.
+   *
+   * @param sizing Which viewport path to build.
    */
   async initScrollingGrid(sizing: 'predicted' | 'measured'): Promise<void> {
     const data = Array.from({ length: 40 }, (_, row) =>
       Array.from({ length: 20 }, (_, col) => `R${row + 1}C${col + 1}`));
-    const uniform = sizing === 'predicted'
+    const settings = sizing === 'predicted'
       ? { autoRowSize: false, autoColumnSize: false, colWidths: 70, rowHeights: 42 }
-      : { colWidths: 70 };
+      : { colWidths: 70, mergeCells: true };
 
-    await this.page.evaluate(({ gridData, settings }) => {
+    await this.page.evaluate(({ gridData, settings: gridSettings }) => {
       window.initSelectionGrid({
         data: gridData,
         width: 420,
         height: 320,
-        ...settings,
+        ...gridSettings,
       });
-    }, { gridData: data, settings: uniform });
+    }, { gridData: data, settings });
     await expect(this.cell(0, 0)).toBeVisible();
+  }
+
+  /**
+   * Whether the viewport calculators read the layout snapshot. False is the legacy measure path.
+   */
+  async usesLayoutSnapshotForCalculators(): Promise<boolean> {
+    return this.page.evaluate(() => (window as unknown as {
+      hot: { view: { _wt: { wtViewport: { usesLayoutSnapshotForCalculators(): boolean } } } }
+    }).hot.view._wt.wtViewport.usesLayoutSnapshotForCalculators());
+  }
+
+  /**
+   * How many times a full redraw rebuilds the visible-range calculators.
+   *
+   * On a steady snapshot draw the other `createVisibleCalculators` sites are already skipped, so a
+   * positive count is the scrollbar sync rebuilding.
+   *
+   * @param renders How many `render()` calls to count.
+   */
+  async countVisibleCalculatorBuilds(renders: number): Promise<number> {
+    return this.page.evaluate((count) => {
+      const wtViewport = (window as unknown as {
+        hot: { view: { _wt: { wtViewport: { createVisibleCalculators(): void } } } }
+      }).hot.view._wt.wtViewport;
+      const original = wtViewport.createVisibleCalculators.bind(wtViewport);
+      let calls = 0;
+
+      wtViewport.createVisibleCalculators = () => {
+        calls += 1;
+
+        return original();
+      };
+
+      for (let i = 0; i < count; i += 1) {
+        window.hot.render();
+      }
+
+      wtViewport.createVisibleCalculators = original;
+
+      return calls;
+    }, renders);
   }
 
   /**
