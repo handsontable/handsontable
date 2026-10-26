@@ -258,7 +258,20 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(hot.getData(1, 1, 2, 2)).toEqual([['7', '7'], ['7', '7']]);
       expect(hot.getDataAtCell(0, 0)).toBe('A1');
       expect(hot.getSelectedLast()).toEqual([1, 1, 2, 2]);
+      // The focus moves within the range by `enterMoves`, as after Ctrl/Cmd+Enter in the text editor.
+      expect(hot.getSelectedRangeActive()?.highlight.toObject()).toEqual({ row: 2, col: 1 });
       expect(isEditorOpened()).toBe(false);
+    });
+
+    it('moves the focus within the range by a custom enterMoves', async() => {
+      createGrid({ enterMoves: { row: 0, col: 1 } });
+      hot.selectCell(1, 1, 2, 2);
+      adapter().beginEdit({ sheet: '', row: 1, col: 1 });
+      adapter().commitFill('7');
+      await settle();
+
+      expect(hot.getSelectedLast()).toEqual([1, 1, 2, 2]);
+      expect(hot.getSelectedRangeActive()?.highlight.toObject()).toEqual({ row: 1, col: 2 });
     });
 
     it('writes into the edited cell only when a single cell is selected', async() => {

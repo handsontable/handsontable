@@ -110,6 +110,22 @@ test.describe('formulaBuilder keyboard flow', { tag: [THEMES_TAG, BUNDLES_TAG, C
     await grid.expectCell(3, 2, '6');
   });
 
+  test('Ctrl/Cmd+Enter fills the selected range and moves the focus within it, as in the text editor', async({ page }) => {
+    await page.evaluate(() => (window as unknown as { hot: { selectCell: (...args: number[]) => void } })
+      .hot.selectCell(3, 0, 4, 1));
+    await expect(grid.cell(3, 0)).toBeFocused();
+    await page.keyboard.press('7');
+    await expect(grid.editorInput).toHaveValue('7');
+    await page.keyboard.press('ControlOrMeta+Enter');
+
+    await expect.poll(() => grid.editorOpened()).toBe(false);
+    expect(await page.evaluate(() => (window as unknown as { hot: { getData: (...args: number[]) => unknown } })
+      .hot.getData(3, 0, 4, 1))).toEqual([['7', '7'], ['7', '7']]);
+    expect(await grid.selectedAll()).toEqual([[3, 0, 4, 1]]);
+    // `enterMoves` moves the focus one row down inside the range.
+    await expect(grid.cell(4, 0)).toBeFocused();
+  });
+
   test('Tab on the last cell commits and drops the selection, as in the text editor', async({ page }) => {
     // The grid's Tab pair drops the selection when Tab has nowhere to move it, so the next Tab
     // leaves the grid. The last cell of the last row has no cell after it (`autoWrapRow` is off).

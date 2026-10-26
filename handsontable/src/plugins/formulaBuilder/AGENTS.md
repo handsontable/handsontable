@@ -206,7 +206,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `shadow` fixture variant pins both (`formula-builder-layout.spec.ts`).
 - **Ctrl/Cmd+Enter fills the selection through the grid's editor.** The adapter's `commitFill()` calls
   `commitInlineEditToSelection()`, which saves through `finishEditing(false, true)`: the `ctrlDown` path of
-  `BaseEditor#saveValue()`, shared with the grid's own fill (`selection/fillSelection.ts`). Alt+Enter inserts
+  `BaseEditor#saveValue()`, shared with the grid's own fill (`selection/fillSelection.ts`). After a
+  successful save it moves the focus within the range with `EditorManager#moveSelectionAfterEnter()` and a
+  synthetic Ctrl/Cmd+Enter event, as `editorCloseAndSaveByEnter` does for the text editor. Alt+Enter inserts
   a line break.
 
 ## Known gaps

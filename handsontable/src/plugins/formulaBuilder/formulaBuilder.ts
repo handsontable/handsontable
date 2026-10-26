@@ -14,6 +14,7 @@ import type { HotInstance } from '../../core/types';
 import type { PluginTypeMap } from '../types';
 import type { CellProperties } from '../../settings';
 import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
+import { isMacOS } from '../../helpers/browser';
 import { CellPickController } from './cellPickController';
 import {
   EDITING_CELL_CLASS,
@@ -617,7 +618,8 @@ export class FormulaBuilder extends BasePlugin {
 
   /**
    * Saves the given value into every cell of the selected ranges through Handsontable's editor, the
-   * way Ctrl/Cmd+Enter does in the grid's own editors. The selection stays where it is.
+   * way Ctrl/Cmd+Enter does in the grid's own editors. The ranges stay selected, and after a successful
+   * save the focus moves within them by `enterMoves`, as it does there.
    *
    * @private
    * @param {string} value The value to save.
@@ -630,7 +632,19 @@ export class FormulaBuilder extends BasePlugin {
     }
 
     editor.setValue?.(value);
-    editor.finishEditing?.(false, true);
+    editor.finishEditing?.(false, true, (dataSaved?: boolean) => {
+      if (dataSaved === false || this.hot.isDestroyed) {
+        return;
+      }
+
+      // `editorCloseAndSaveByEnter` moves the focus within the filled range by `enterMoves`, with the
+      // chord's event, which `enterMoves` may read.
+      const KeyboardEventClass = this.hot.rootWindow.KeyboardEvent;
+      const isMac = isMacOS();
+      const event = new KeyboardEventClass('keydown', { key: 'Enter', ctrlKey: !isMac, metaKey: isMac });
+
+      this.hot._getEditorManager().moveSelectionAfterEnter(event);
+    });
   }
 
   /**
