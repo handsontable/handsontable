@@ -98,8 +98,6 @@ test.describe('per-axis holder scrollbar thickness', { tag: THEMES_TAG }, () => 
     const holder = await grid.holderScrollbarGutters();
     const probe = await grid.probeGutters();
 
-    // The sync rebuilds only when these differ. Equal gutters make a positive count the equality
-    // return being gone.
     expect(holder.vertical).toBeGreaterThan(0);
     expect(holder.vertical).toBe(probe.vertical);
     expect(holder.horizontal).toBe(probe.horizontal);
