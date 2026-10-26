@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an error on every request when an Angular grid renders on the server.",
-  "type": "fixed",
-  "issueOrPR": 0,
-  "breaking": false,
-  "framework": "angular"
-}
