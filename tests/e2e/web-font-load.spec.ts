@@ -127,6 +127,46 @@ test.describe('Web font loaded after the first draw', { tag: [THEMES_TAG, CROSS_
     expect(await grid.intersectionObserveCalls()).toBe(1);
   });
 
+  test('measures the first columns on screen at once and the rest in idle chunks', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // The no-wrap late-font text sits in columns C and F, on screen, and in the last of 40 columns, outside
+    // a 600px wide grid. The grid has 25000 rows, so one chunk of AutoColumnSize's sweep (100000 cells)
+    // measures the first four columns on screen, and column F waits with the columns off screen. The fixed
+    // height keeps the grid from re-drawing after its first draw, which would cache the on-screen columns'
+    // samples and let the chunk take them for free.
+    const firstOnScreen = 2;
+    const lateOnScreen = 5;
+    const offScreen = 39;
+
+    await grid.goto('&wide=1&height=1');
+    await expectAligned(grid);
+
+    expect(await grid.lastRenderedColumn()).toBeGreaterThanOrEqual(lateOnScreen);
+
+    const columns = [firstOnScreen, lateOnScreen, offScreen];
+    const before = await Promise.all(columns.map(column => grid.columnWidth(column)));
+
+    await grid.recordColumnWidthsAfterFontsLoad(columns);
+    await grid.loadFont();
+
+    // Measuring every column at once held the page for close to a second on a large grid, so the sweep takes
+    // the columns on screen first and measures one chunk before the render that follows the font load. The
+    // other columns wait for idle tasks, the ones on screen included: the forced render after the load used
+    // to sample them over the whole row range, which cost as much as measuring everything at once.
+    await expect.poll(async() => (await grid.recordedColumnWidths()).length).toBeGreaterThan(0);
+
+    const [firstRender] = await grid.recordedColumnWidths();
+
+    expect(firstRender[0]).toBeGreaterThan(before[0]);
+    expect(firstRender.slice(1)).toEqual(before.slice(1));
+
+    // The idle sweep reaches every column, and the text off screen fits once the grid scrolls there.
+    await expect.poll(() => grid.columnWidth(lateOnScreen)).toBeGreaterThan(before[1]);
+    await expect.poll(() => grid.columnWidth(offScreen)).toBeGreaterThan(before[2]);
+    await grid.scrollToColumn(offScreen);
+    expect(await grid.cellTextFits(3, offScreen)).toBe(true);
+  });
+
   test('never drops a measured row height while autoRowSize re-measures', async({ page, theme, bundle }) => {
     const grid = new WebFontLoadPage(page, theme, bundle);
     // Past the 500 rows AutoRowSize measures at once, and above the rows on screen, so only the idle sweep

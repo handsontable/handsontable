@@ -62,6 +62,17 @@ idle-task chunks (`requestIdleTask`). Do not move work out of the synchronous ha
 
 The async loop must cancel its frame when the instance was destroyed mid-calculation.
 
+Every full sweep goes through `#sweepColumns()`. `calculateAllColumnsWidth()` runs it in ascending order with the
+`syncLimit` columns measured exactly. The web-font re-measure (`#onAfterFontsLoad`, DEV-199) runs it with no exact
+columns, `viewportFirst` (the rendered columns come first in the queue) and `reuseSamples` (a column with cached
+samples is measured from them, at no sampling cost), so the first chunk – one `CALCULATION_STEP` of columns or one
+`CALCULATION_CELLS_BUDGET` of cells, run synchronously – covers what is on screen, and the rest waits for idle tasks.
+While that sweep runs, `#reMeasureSweep` makes `calculateVisibleColumnsWidth()` ignore `forceFullRender`: the forced
+render right after the hook otherwise re-walks every on-screen column without cached samples over the whole row
+range, which held the page for 0.7 s on a 100k × 20 grid, the same cost the chunking had just avoided. **Never pass
+`reuseSamples` to a sweep that follows a data change**: its cached samples describe the previous data. Pinned by
+`tests/e2e/web-font-load.spec.ts` ("measures the first columns on screen at once...").
+
 ## The sampling settings are re-read in `updatePlugin()`, and only a real change re-measures
 
 `samplingRatio`, `allowSampleDuplicates` and `useHeaders` are applied in `#applySamplingSettings()`, called
@@ -132,7 +143,9 @@ Three consequences:
   `columns` definition, for instance).
 - **The synchronous sweep's samples are dropped on purpose.** It runs inside the `init` / `afterLoadData`
   hook cascade, *before* other plugins re-apply their cell meta (MergeCells' `spanned`/`hidden`), so what it
-  collected cannot be trusted for later re-measures.
+  collected cannot be trusted for later re-measures. The cost shows on the first forced render after init: it
+  re-walks every on-screen column over the whole row range (0.65 s on 100k × 20), and so did the first web-font
+  re-measure until it moved to the chunked sweep above.
 
 ## The `afterLoadData` sweep relies on the Formulas plugin running first (DEV-2905)
 

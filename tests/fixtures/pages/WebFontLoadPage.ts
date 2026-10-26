@@ -5,10 +5,13 @@ import { awaitBundle } from '../bundle';
  * The part of the fixture's Handsontable instance (`window.hot`) the page object calls.
  */
 interface FontLoadGrid {
-  scrollViewportTo(options: { row: number, verticalSnap: 'top' }): boolean;
+  scrollViewportTo(options: { row: number, verticalSnap: 'top' } | { col: number, horizontalSnap: 'end' }): boolean;
   getFirstFullyVisibleRow(): number | null;
+  getLastRenderedVisibleColumn(): number | null;
   getRowHeight(row: number): number | undefined;
-  addHook(name: 'afterRender', callback: () => void): void;
+  getColWidth(column: number): number;
+  getCell(row: number, column: number): HTMLElement | null;
+  addHook(name: 'afterRender' | 'afterFontsLoad', callback: () => void): void;
   getPlugin(name: 'autoRowSize'): { inProgress: boolean };
 }
 
@@ -208,6 +211,73 @@ export class WebFontLoadPage {
         win.htRecordedRowHeights.push(win.hot.getRowHeight(visualRow));
       });
     }, row);
+  }
+
+  /**
+   * Reads the width the grid holds for a column (AutoColumnSize's measurement, at least the default width).
+   */
+  async columnWidth(column: number): Promise<number> {
+    return this.page.evaluate(visualColumn => (window as unknown as { hot: FontLoadGrid }).hot
+      .getColWidth(visualColumn), column);
+  }
+
+  /**
+   * Reads the last column the grid has rendered, on screen or just past its edge.
+   */
+  async lastRenderedColumn(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { hot: FontLoadGrid }).hot
+      .getLastRenderedVisibleColumn() ?? -1);
+  }
+
+  /**
+   * Records the widths the grid holds for `columns` after every render that follows the next font
+   * re-measure (the `afterFontsLoad` hook). Read the list with `recordedColumnWidths()`.
+   */
+  async recordColumnWidthsAfterFontsLoad(columns: number[]): Promise<void> {
+    await this.page.evaluate((visualColumns) => {
+      const win = window as unknown as { hot: FontLoadGrid, htRecordedColumnWidths: number[][] };
+      let fontsLoaded = false;
+
+      win.htRecordedColumnWidths = [];
+      win.hot.addHook('afterFontsLoad', () => {
+        fontsLoaded = true;
+      });
+      win.hot.addHook('afterRender', () => {
+        if (fontsLoaded) {
+          win.htRecordedColumnWidths.push(visualColumns.map(column => win.hot.getColWidth(column)));
+        }
+      });
+    }, columns);
+  }
+
+  /**
+   * Reads the widths `recordColumnWidthsAfterFontsLoad()` recorded, one list per render.
+   */
+  async recordedColumnWidths(): Promise<number[][]> {
+    return this.page.evaluate(() => (window as unknown as { htRecordedColumnWidths: number[][] })
+      .htRecordedColumnWidths);
+  }
+
+  /**
+   * Scrolls the grid right to `column`, and waits until the grid has drawn a cell of it.
+   */
+  async scrollToColumn(column: number): Promise<void> {
+    await this.page.evaluate((visualColumn) => {
+      (window as unknown as { hot: FontLoadGrid }).hot.scrollViewportTo({ col: visualColumn, horizontalSnap: 'end' });
+    }, column);
+    await expect.poll(() => this.page.evaluate(visualColumn => (window as unknown as { hot: FontLoadGrid }).hot
+      .getCell(0, visualColumn) !== null, column)).toBe(true);
+  }
+
+  /**
+   * Tells whether the text of a rendered cell fits its box (`scrollWidth` within `clientWidth`).
+   */
+  async cellTextFits(row: number, column: number): Promise<boolean> {
+    return this.page.evaluate(([visualRow, visualColumn]) => {
+      const cell = (window as unknown as { hot: FontLoadGrid }).hot.getCell(visualRow, visualColumn);
+
+      return cell !== null && cell.scrollWidth <= cell.clientWidth;
+    }, [row, column]);
   }
 
   /**
