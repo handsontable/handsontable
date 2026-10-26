@@ -282,6 +282,10 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created columns in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.columnLeft'` or `'ContextMenu.columnRight'` when the user
+   *                          inserts a column from the context menu, and `'auto'` when the `minCols` or
+   *                          `minSpareCols` option adds columns. These are not the context menu item keys
+   *                          (`col_left`, `col_right`).
    * @returns {*} If `false` then creating columns is canceled.
    * @example
    * ::: only-for javascript
@@ -353,6 +357,10 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created columns in the data source.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.columnLeft'` or `'ContextMenu.columnRight'` when the user
+   *                          inserts a column from the context menu, and `'auto'` when the `minCols` or
+   *                          `minSpareCols` option adds columns. These are not the context menu item keys
+   *                          (`col_left`, `col_right`).
    */
   'afterCreateCol',
 
