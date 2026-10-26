@@ -33,24 +33,26 @@ test.describe('per-axis holder scrollbar thickness', { tag: THEMES_TAG }, () => 
       await grid.goto();
       await grid.initScrollingGrid(sizing);
 
-      const view = await grid.readViewport();
+      const edges = await grid.fullyVisibleCellEdges();
+      const holder = await grid.holderScrollbarGutters();
+      const probe = await grid.probeGutters();
 
       // The rule took effect on the probe and not on the holder. Without this the assertions below
       // pass on a machine where both gutters are 0.
-      expect(view.holderVertical).toBeGreaterThan(0);
-      expect(view.holderHorizontal).toBe(view.holderVertical);
-      expect(view.probeVertical).toBeGreaterThan(view.holderVertical);
-      expect(view.lastRow).toBeGreaterThan(0);
-      expect(view.lastCol).toBeGreaterThan(0);
+      expect(holder.vertical).toBeGreaterThan(0);
+      expect(holder.horizontal).toBe(holder.vertical);
+      expect(probe.vertical).toBeGreaterThan(holder.vertical);
+      expect(edges.lastRow).toBeGreaterThan(0);
+      expect(edges.lastCol).toBeGreaterThan(0);
 
-      expect(view.apiRow).toBe(view.lastRow);
-      expect(view.apiCol).toBe(view.lastCol);
+      expect(await grid.lastFullyVisibleRow()).toBe(edges.lastRow);
+      expect(await grid.lastFullyVisibleColumn()).toBe(edges.lastCol);
 
-      await grid.clickCell(view.lastRow, 0);
-      expect((await grid.scrollOffset()).scrollTop).toBe(0);
+      await grid.cell(edges.lastRow, 0).click();
+      expect(await grid.verticalScrollOffset()).toBe(0);
 
       await page.keyboard.press('ArrowDown');
-      await expect.poll(() => grid.scrollOffset().then(offset => offset.scrollTop)).toBeGreaterThan(0);
+      await expect.poll(() => grid.verticalScrollOffset()).toBeGreaterThan(0);
     });
 
     test(`holder webkit scrollbar hides the column it covers (${sizing})`, async({ page, theme, bundle }) => {
@@ -60,22 +62,24 @@ test.describe('per-axis holder scrollbar thickness', { tag: THEMES_TAG }, () => 
       await grid.goto();
       await grid.initScrollingGrid(sizing);
 
-      const view = await grid.readViewport();
+      const edges = await grid.fullyVisibleCellEdges();
+      const holder = await grid.holderScrollbarGutters();
+      const probe = await grid.probeGutters();
 
-      expect(view.holderVertical).toBeGreaterThan(view.probeVertical);
-      expect(view.holderHorizontal).toBeGreaterThan(0);
-      expect(view.holderHorizontal).toBeLessThan(view.holderVertical);
-      expect(view.lastRow).toBeGreaterThan(0);
-      expect(view.lastCol).toBeGreaterThan(0);
+      expect(holder.vertical).toBeGreaterThan(probe.vertical);
+      expect(holder.horizontal).toBeGreaterThan(0);
+      expect(holder.horizontal).toBeLessThan(holder.vertical);
+      expect(edges.lastRow).toBeGreaterThan(0);
+      expect(edges.lastCol).toBeGreaterThan(0);
 
-      expect(view.apiRow).toBe(view.lastRow);
-      expect(view.apiCol).toBe(view.lastCol);
+      expect(await grid.lastFullyVisibleRow()).toBe(edges.lastRow);
+      expect(await grid.lastFullyVisibleColumn()).toBe(edges.lastCol);
 
-      await grid.clickCell(0, view.lastCol);
-      expect((await grid.scrollOffset()).scrollLeft).toBe(0);
+      await grid.cell(0, edges.lastCol).click();
+      expect(await grid.horizontalScrollOffset()).toBe(0);
 
       await page.keyboard.press('ArrowRight');
-      await expect.poll(() => grid.scrollOffset().then(offset => offset.scrollLeft)).toBeGreaterThan(0);
+      await expect.poll(() => grid.horizontalScrollOffset()).toBeGreaterThan(0);
     });
   }
 });

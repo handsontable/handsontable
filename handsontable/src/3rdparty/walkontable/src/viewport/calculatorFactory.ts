@@ -18,7 +18,7 @@ import {
   ViewportRowsCalculator,
 } from '../calculator';
 import type { default as Viewport } from './viewport';
-import { scrollbarAxisThickness } from '../overlay/scrollbarClearance';
+import { reservedScrollbarSpace, scrollbarAxisThickness } from '../overlay/scrollbarClearance';
 
 /**
  * Which viewport box a calculator reads from the layout snapshot. `'render'` is scrollbar-unaware
@@ -240,16 +240,7 @@ export const calculatorFactory: CalculatorFactory = {
     }
 
     if (!useSnapshot) {
-      const { geometryReader } = this.deps;
-      // The holder's horizontal gutter, not the document probe. The probe is one number for both
-      // axes and does not describe this scroller. A missing gutter stays 0 (overlay scrollbar, or
-      // the window owns this axis) rather than subtracting a predicted bar that is not there.
-      const measured = scrollbarAxisThickness(
-        geometryReader,
-        wtTable.holder,
-        'horizontal',
-        0,
-      );
+      const measured = reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'horizontal');
 
       if (measured > 0) {
         scrollbarHeight = measured;
@@ -337,13 +328,7 @@ export const calculatorFactory: CalculatorFactory = {
     }
 
     if (!useSnapshot) {
-      const { geometryReader } = this.deps;
-      const measured = scrollbarAxisThickness(
-        geometryReader,
-        wtTable.holder,
-        'vertical',
-        0,
-      );
+      const measured = reservedScrollbarSpace(this.deps.geometryReader, wtTable.holder, 'vertical');
 
       if (measured > 0) {
         width -= measured;
@@ -466,14 +451,8 @@ export const calculatorFactory: CalculatorFactory = {
    * Rebuilds the visible-range calculators when the holder's painted scrollbars are not the
    * thicknesses the snapshot reserved.
    *
-   * The snapshot is gathered at the start of the draw, often before the holder has a gutter, so it
-   * falls back to the document probe. That probe is one number and it is not this holder. By the
-   * time the hider has been written the gutter is real. This reads it once per axis (the overlay
-   * pass just above has already forced that layout) and rebuilds only when the numbers differ, so
-   * a default scrollbar, where the probe and the gutter match, does not rebuild.
-   *
-   * Off the snapshot path the calculators already subtract the measured gutter. Window scroll does
-   * not use the snapshot.
+   * `beginDrawLayout` runs before the hider exists, so that read often sees no gutter and keeps the
+   * probe. This second read is after the hider write, and it rebuilds only when the numbers differ.
    *
    * @this Viewport
    */

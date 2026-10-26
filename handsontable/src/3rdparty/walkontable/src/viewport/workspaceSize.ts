@@ -144,8 +144,6 @@ function measureHasHorizontalScroll(viewport: Viewport): boolean {
   // Only the holder's own vertical scrollbar narrows the horizontal scrollport. When the window owns
   // the vertical axis its scrollbar sits outside the grid's box.
   const holderHasVerticalScrollbar = !viewport.isVerticallyScrollableByWindow() && measureHasVerticalScroll(viewport);
-  // Predict with the probe only while the holder has not painted the bar yet. Once it has, the
-  // gutter is the width the horizontal check has to leave free.
   const scrollbarWidth = holderHasVerticalScrollbar
     ? scrollbarAxisThickness(
       geometryReader,

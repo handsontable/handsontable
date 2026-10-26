@@ -297,17 +297,11 @@ export function reservedScrollbarSpace(
 /**
  * The thickness to reserve for one scrollbar.
  *
- * The holder's own gutter wins once the browser has carved it out: that is the scrollbar the cells
- * actually sit beside, and the two axes are not the same number. The document probe is only the
- * prediction, used when there is no holder yet or this axis has no gutter but the layout still has
- * to reserve a bar. `.wtHolder` has no border, so the gutter is the scrollbar (see
- * `reservedScrollbarSpace`).
- *
  * @param {GeometryReader} geometryReader The geometry reader.
  * @param {HTMLElement | null | undefined} holder The master holder, when it exists.
  * @param {'vertical' | 'horizontal'} axis Which scrollbar. Vertical consumes width.
- * @param {number} probe `getScrollbarWidth()` for this document. One number for both axes.
- * @returns {number}
+ * @param {number} probe The thickness to use when the holder has no gutter on this axis.
+ * @returns {number} The holder's gutter when it is above zero, otherwise `probe`.
  */
 export function scrollbarAxisThickness(
   geometryReader: GeometryReader,

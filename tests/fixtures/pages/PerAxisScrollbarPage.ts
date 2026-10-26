@@ -1,6 +1,5 @@
-import { expect, type Page } from '@playwright/test';
-import { awaitBundle, type Bundle } from '../bundle';
-import './windowTypes';
+import { expect } from '@playwright/test';
+import { SelectionFeaturesPage } from './SelectionFeaturesPage';
 
 /**
  * Which scrollbar the stylesheet is trying to disagree with the engine's probe.
@@ -22,36 +21,11 @@ const RULES: Record<ScrollbarRule, string> = {
   ].join('\n'),
 };
 
-interface ViewportRead {
-  lastRow: number;
-  lastCol: number;
-  apiRow: number;
-  apiCol: number;
-  holderVertical: number;
-  holderHorizontal: number;
-  probeVertical: number;
-  probeHorizontal: number;
-  scrollTop: number;
-  scrollLeft: number;
-}
-
 /**
  * A grid whose scrollbars are restyled before Handsontable is constructed, so the cached probe and
- * the holder's own gutters can disagree.
+ * the holder's own gutters can disagree. Same fixture as {@link SelectionFeaturesPage}.
  */
-export class PerAxisScrollbarPage {
-  readonly page: Page;
-
-  readonly theme: string;
-
-  readonly bundle: Bundle;
-
-  constructor(page: Page, theme: string, bundle: Bundle) {
-    this.page = page;
-    this.theme = theme;
-    this.bundle = bundle;
-  }
-
+export class PerAxisScrollbarPage extends SelectionFeaturesPage {
   /**
    * Installs the scrollbar rule into the fixture document, before any script runs.
    * `getScrollbarWidth()` caches on the first grid, and the fixture constructs one during load.
@@ -69,17 +43,6 @@ export class PerAxisScrollbarPage {
 
       await route.fulfill({ response, body });
     });
-  }
-
-  /**
-   * Opens the selection fixture (theme and bundle from the project) and waits for its grid.
-   */
-  async goto(): Promise<void> {
-    await this.page.goto(
-      `/tests/fixtures/demo/selection-features.html?theme=${this.theme}&bundle=${this.bundle}`
-    );
-    await awaitBundle(this.page);
-    await expect(this.page.getByTestId('cell-0-0')).toBeVisible();
   }
 
   /**
@@ -104,14 +67,13 @@ export class PerAxisScrollbarPage {
         ...settings,
       });
     }, { gridData: data, settings: uniform });
-    await expect(this.page.getByTestId('cell-0-0')).toBeVisible();
+    await expect(this.cell(0, 0)).toBeVisible();
   }
 
   /**
-   * The fully-visible edges from cell boxes, the API's answer, and the probe versus the holder.
-   * One evaluation, so the reads describe one frame.
+   * The last row and column whose master cell box sits fully inside the holder's client box.
    */
-  async readViewport(): Promise<ViewportRead> {
+  async fullyVisibleCellEdges(): Promise<{ lastRow: number, lastCol: number }> {
     return this.page.evaluate(() => {
       const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
       const holderRect = holder.getBoundingClientRect();
@@ -138,6 +100,16 @@ export class PerAxisScrollbarPage {
         }
       });
 
+      return { lastRow, lastCol };
+    });
+  }
+
+  /**
+   * The throw-away probe's scrollbar gutters, measured the way `getScrollbarWidth()` measures them.
+   * Width is the vertical bar, height the horizontal bar.
+   */
+  async probeGutters(): Promise<{ vertical: number, horizontal: number }> {
+    return this.page.evaluate(() => {
       const probe = document.createElement('div');
       const inner = document.createElement('div');
 
@@ -147,42 +119,12 @@ export class PerAxisScrollbarPage {
       probe.appendChild(inner);
       document.body.appendChild(probe);
 
-      const probeVertical = probe.offsetWidth - probe.clientWidth;
-      const probeHorizontal = probe.offsetHeight - probe.clientHeight;
+      const vertical = probe.offsetWidth - probe.clientWidth;
+      const horizontal = probe.offsetHeight - probe.clientHeight;
 
       probe.remove();
 
-      return {
-        lastRow,
-        lastCol,
-        apiRow: window.hot.getLastFullyVisibleRow(),
-        apiCol: window.hot.getLastFullyVisibleColumn(),
-        holderVertical: holder.offsetWidth - holder.clientWidth,
-        holderHorizontal: holder.offsetHeight - holder.clientHeight,
-        probeVertical,
-        probeHorizontal,
-        scrollTop: holder.scrollTop,
-        scrollLeft: holder.scrollLeft,
-      };
-    });
-  }
-
-  /**
-   * Clicks the cell. A fully visible cell must not move the holder; the selection scroll runs
-   * before this returns.
-   */
-  async clickCell(row: number, col: number): Promise<void> {
-    await this.page.getByTestId(`cell-${row}-${col}`).click();
-  }
-
-  /**
-   * The master holder's scroll offsets, read together.
-   */
-  async scrollOffset(): Promise<{ scrollTop: number, scrollLeft: number }> {
-    return this.page.evaluate(() => {
-      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
-
-      return { scrollTop: holder.scrollTop, scrollLeft: holder.scrollLeft };
+      return { vertical, horizontal };
     });
   }
 }

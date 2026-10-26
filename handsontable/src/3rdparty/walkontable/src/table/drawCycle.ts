@@ -302,9 +302,6 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
         wtViewport.createVisibleCalculators();
       }
 
-      // After the hider write above (`refresh` → `adjustElementsSize`). The snapshot gathered at
-      // the start of the draw may have reserved the document probe; the holder gutter is knowable
-      // only now. No-op when the two already agree.
       wtViewport.syncVisibleCalculatorsToHolderScrollbars();
 
       wtOverlays.applyToDOM();

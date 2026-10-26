@@ -39,8 +39,7 @@ function solveElementScrollbars(input: LayoutInput): {
 
   // Corrective pass: a horizontal scrollbar we just decided on consumes height, which may now push
   // the content past the vertical box. This can only turn the vertical scrollbar on, never off (the
-  // box only shrinks), so one pass is enough. The height it consumes is the horizontal bar's own
-  // thickness, not the vertical bar's.
+  // box only shrinks), so one pass is enough.
   if (hasHorizontalScroll && !hasVerticalScroll && !suppressVertical) {
     hasVerticalScroll = contentHeight > workspaceHeight - scrollbarHeight;
   }

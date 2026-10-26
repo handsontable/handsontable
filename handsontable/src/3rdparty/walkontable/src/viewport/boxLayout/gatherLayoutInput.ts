@@ -72,10 +72,6 @@ export function gatherLayoutInput(deps: LayoutDeps): LayoutInput {
   const trimmingContainer = deps.getTopOverlay().trimmingContainer;
   const isWindow = trimmingContainer === rootWindow;
   const isRtl = wtSettings.getSetting<boolean>('rtlMode');
-  // One probe for both axes. It describes a throw-away div, not the holder. Element mode replaces
-  // it per axis when the holder has already carved a gutter (one offset/client pair each, the same
-  // read the overlay clearance does later in the draw). Window mode keeps the probe: the document
-  // owns the scrollbars, and the calculators do not read this snapshot there.
   const probe = geometryReader.getScrollbarWidth(rootDocument);
   const holder = isWindow ? null : wtTable.holder;
   const scrollbarWidth = scrollbarAxisThickness(geometryReader, holder, 'vertical', probe);

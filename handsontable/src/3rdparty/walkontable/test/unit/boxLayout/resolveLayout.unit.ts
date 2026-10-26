@@ -178,6 +178,38 @@ describe('resolveLayout', () => {
       expect(snapshot.innerHeight).toBe(390);
     });
 
+    it('should not induce a vertical scrollbar when content height equals the box minus the horizontal thickness', () => {
+      // 390 === 400 - 10, so the content still fits. The test is exclusive. A `>=` comparison, or
+      // subtracting the 100px vertical thickness (390 > 300), would turn the vertical bar on.
+      const snapshot = resolveLayout(input({
+        scrollbarWidth: 100,
+        scrollbarHeight: 10,
+        totalContentWidth: 900,
+        totalContentHeight: 390,
+      }));
+
+      expect(snapshot.hasHorizontalScroll).toBe(true);
+      expect(snapshot.hasVerticalScroll).toBe(false);
+      expect(snapshot.innerWidth).toBe(500);
+      expect(snapshot.innerHeight).toBe(390);
+    });
+
+    it('should not induce a horizontal scrollbar when content width equals the box minus the vertical thickness', () => {
+      // 490 === 500 - 10. Subtracting the 100px horizontal thickness instead (490 > 400) would turn
+      // the horizontal bar on.
+      const snapshot = resolveLayout(input({
+        scrollbarWidth: 10,
+        scrollbarHeight: 100,
+        totalContentWidth: 490,
+        totalContentHeight: 900,
+      }));
+
+      expect(snapshot.hasVerticalScroll).toBe(true);
+      expect(snapshot.hasHorizontalScroll).toBe(false);
+      expect(snapshot.innerWidth).toBe(490);
+      expect(snapshot.innerHeight).toBe(400);
+    });
+
     it('should subtract the scrollbar from the inner box only on the present axis', () => {
       const snapshot = resolveLayout(input({ totalContentHeight: 900 })); // vertical only
 
