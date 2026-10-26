@@ -118,11 +118,96 @@ describe('SheetsBar: the `sheets` array works like `data`', () => {
       expect(sheets.map(entry => entry.name)).toEqual(['A', 'B']);
     });
 
-    it('throws on a frozen array, as a frozen `data` array does', () => {
+    it('throws on an add into a frozen array before anything changes', () => {
+      const sheets = Object.freeze([{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }]);
+      const plugin = buildWorkbook(sheets);
+      const added = jest.fn();
+
+      hot.addHook('afterSheetTabAdd', added);
+
+      expect(() => plugin.addSheet('New')).toThrow();
+      expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B']);
+      expect(added).not.toHaveBeenCalled();
+    });
+
+    it('throws on a duplicate into a frozen array before anything changes', () => {
       const sheets = Object.freeze([{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }]);
       const plugin = buildWorkbook(sheets);
 
-      expect(() => plugin.addSheet('New')).toThrow(TypeError);
+      expect(() => plugin.duplicateSheet(idOf(plugin, 'A'))).toThrow();
+      expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B']);
+    });
+
+    it('throws on a rename of a frozen entry before anything changes', () => {
+      const sheets = [Object.freeze({ name: 'A', data: [[1]] }), { name: 'B', data: [[2]] }];
+      const plugin = buildWorkbook(sheets);
+      const renamed = jest.fn();
+
+      hot.addHook('afterSheetTabRename', renamed);
+
+      expect(() => plugin.renameSheet(idOf(plugin, 'A'), 'A2')).toThrow();
+      expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B']);
+      expect(renamed).not.toHaveBeenCalled();
+    });
+
+    it('throws on a removal from a frozen array before anything changes', () => {
+      const sheets = Object.freeze([
+        { name: 'A', data: [[1]] },
+        { name: 'B', data: [[2]] },
+        { name: 'C', data: [[3]] },
+      ]);
+      const plugin = buildWorkbook(sheets, { activeSheet: 1 });
+      const removed = jest.fn();
+
+      hot.addHook('afterSheetTabRemove', removed);
+
+      expect(() => plugin.removeSheet(idOf(plugin, 'B'))).toThrow();
+      expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B', 'C']);
+      expect(activeName(plugin)).toBe('B');
+      expect(removed).not.toHaveBeenCalled();
+    });
+
+    it('stores a sheet the bar created through the array it was pushed into', () => {
+      const pushed = [];
+      const sheets = [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }];
+      const tracked = new Proxy(sheets, {
+        set(target, key, value) {
+          if (key !== 'length') {
+            const entry = new Proxy(value, {
+              set(entryTarget, entryKey, entryValue) {
+                pushed.push(entryValue);
+                entryTarget[entryKey] = entryValue;
+
+                return true;
+              },
+            });
+
+            target[key] = entry;
+          } else {
+            target[key] = value;
+          }
+
+          return true;
+        },
+      });
+      const plugin = buildWorkbook(tracked);
+
+      plugin.addSheet('Extra');
+      plugin.renameSheet(idOf(plugin, 'Extra'), 'Extra2');
+
+      expect(pushed).toEqual(['Extra2']);
+      expect(sheets[2].name).toBe('Extra2');
+    });
+
+    it('writes a rename into the entry that holds the sheet when the app edited the array in place', () => {
+      const sheets = [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }, { name: 'C', data: [[3]] }];
+      const plugin = buildWorkbook(sheets);
+
+      sheets.splice(0, 1);
+      hot.updateSettings({ sheetsBar: { sheets } });
+      plugin.renameSheet(idOf(plugin, 'B'), 'B2');
+
+      expect(sheets.map(entry => entry.name)).toEqual(['B2', 'C']);
     });
   });
 
@@ -255,6 +340,51 @@ describe('SheetsBar: the `sheets` array works like `data`', () => {
       expect(activeName(plugin)).toBe('C');
     });
 
+    it('keeps the active sheet when the app sends its unchanged value again after a removal in front of it', () => {
+      const sheets = [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }, { name: 'C', data: [[3]] }];
+      const plugin = buildWorkbook(sheets, { activeSheet: 1 });
+
+      plugin.removeSheet(idOf(plugin, 'A'));
+      hot.updateSettings({ sheetsBar: { sheets, activeSheet: 1 } });
+
+      expect(activeName(plugin)).toBe('B');
+    });
+
+    it('keeps the active sheet when the app sends its unchanged value again after the sheet it named was removed', () => {
+      const sheets = [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }, { name: 'C', data: [[3]] }];
+      const plugin = buildWorkbook(sheets, { activeSheet: 0 });
+
+      plugin.setActiveSheet('C');
+      plugin.removeSheet(idOf(plugin, 'A'));
+      hot.updateSettings({ sheetsBar: { sheets, activeSheet: 0 } });
+
+      expect(activeName(plugin)).toBe('C');
+    });
+
+    it('keeps the active sheet when a payload without `activeSheet` follows a removal', () => {
+      const sheets = [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }, { name: 'C', data: [[3]] }];
+      const plugin = buildWorkbook(sheets, { activeSheet: 2 });
+
+      plugin.setActiveSheet('B');
+      plugin.removeSheet(idOf(plugin, 'A'));
+      hot.updateSettings({ sheetsBar: { paging: false } });
+
+      expect(activeName(plugin)).toBe('B');
+    });
+
+    it('counts in tab order when the bar declares no `sheets` array', () => {
+      hot = new Handsontable(container, { data: [[1]], sheetsBar: true, licenseKey: LICENSE_KEY });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      plugin.addSheet('Second');
+      plugin.addSheet('Third');
+      plugin.moveSheetToIndex(idOf(plugin, 'Third'), 0);
+      hot.updateSettings({ sheetsBar: { activeSheet: 0 } });
+
+      expect(activeName(plugin)).toBe('Third');
+    });
+
     it('leaves the app\'s own `sheetsBar` object alone', () => {
       const sheets = [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }, { name: 'C', data: [[3]] }];
       const barSettings = { sheets, activeSheet: 2 };
@@ -330,6 +460,89 @@ describe('SheetsBar: the `sheets` array works like `data`', () => {
       hot = new Handsontable(container, { data: [[1]], licenseKey: LICENSE_KEY });
 
       expect(hot.getPlugin('sheetsBar').updateSheetSettings('Sheet 1', { readOnly: true })).toBe(false);
+    });
+
+    it('applies a new `cell` to a hidden sheet the user already visited', () => {
+      const plugin = buildWorkbook([
+        { name: 'A', data: [[1, 2]] },
+        { name: 'B', data: [[3, 4]], settings: { cell: [{ row: 0, col: 0, className: 'old' }] } },
+      ]);
+
+      plugin.setActiveSheet('B');
+      plugin.setActiveSheet('A');
+      plugin.updateSheetSettings('B', { cell: [{ row: 0, col: 1, className: 'new' }] });
+      plugin.setActiveSheet('B');
+
+      expect(hot.getCellMeta(0, 0).className).toBeUndefined();
+      expect(hot.getCellMeta(0, 1).className).toBe('new');
+    });
+
+    it('applies a new `columnSummary` to a hidden sheet the user already visited', () => {
+      const summary = type => [{ sourceColumn: 0, destinationRow: 2, destinationColumn: 0, type, ranges: [[0, 1]] }];
+      const plugin = buildWorkbook([
+        { name: 'A', data: [[1]] },
+        { name: 'B', data: [[1], [2], [null]], settings: { columnSummary: summary('sum') } },
+      ]);
+
+      plugin.setActiveSheet('B');
+
+      expect(hot.getDataAtCell(2, 0)).toBe(3);
+
+      plugin.setActiveSheet('A');
+      plugin.updateSheetSettings('B', { columnSummary: summary('max') });
+      plugin.setActiveSheet('B');
+
+      expect(hot.getDataAtCell(2, 0)).toBe(2);
+    });
+
+    it('applies new `mergeCells` to a hidden sheet the user already visited', () => {
+      const plugin = buildWorkbook([
+        { name: 'A', data: [[1]] },
+        { name: 'B', data: [[1, 2], [3, 4]], settings: { mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }] } },
+      ]);
+
+      plugin.setActiveSheet('B');
+      plugin.setActiveSheet('A');
+      plugin.updateSheetSettings('B', { mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }] });
+      plugin.setActiveSheet('B');
+
+      expect(hot.getCellMeta(0, 0).colspan).toBe(2);
+      expect(hot.getCellMeta(0, 0).rowspan).toBe(1);
+    });
+
+    it('applies new `customBorders` to a hidden sheet the user already visited', () => {
+      const border = (row, col) => [{ row, col, top: { width: 2, color: 'blue' } }];
+      const plugin = buildWorkbook([
+        { name: 'A', data: [[1]] },
+        { name: 'B', data: [[1, 2], [3, 4]], settings: { customBorders: border(0, 0) } },
+      ]);
+
+      plugin.setActiveSheet('B');
+      plugin.setActiveSheet('A');
+      plugin.updateSheetSettings('B', { customBorders: border(1, 1) });
+      plugin.setActiveSheet('B');
+
+      const borders = hot.getPlugin('customBorders').getBorders();
+
+      expect(borders.map(entry => [entry.row, entry.col])).toEqual([[1, 1]]);
+    });
+
+    it('refuses a sheet\'s `data`, which the sheets bar keeps itself', () => {
+      const plugin = buildWorkbook([{ name: 'A', data: [[1, 2]] }, { name: 'B', data: [[3, 4]] }]);
+
+      plugin.updateSheetSettings('A', { data: [[9, 9]], readOnly: true });
+      plugin.setActiveSheet('B');
+      hot.updateSettings({ sheetsBar: false });
+
+      expect(hot.getDataAtCell(0, 0)).toBe(3);
+    });
+
+    it('returns `false` when nothing changes', () => {
+      const plugin = buildWorkbook([{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }]);
+
+      expect(plugin.updateSheetSettings('A', {})).toBe(false);
+      expect(plugin.updateSheetSettings('A', { colHeaders: undefined })).toBe(false);
+      expect(plugin.updateSheetSettings('A', { sheetsBar: false, data: [[9]] })).toBe(false);
     });
 
     it('ignores a `sheetsBar` key, which a sheet cannot carry', () => {

@@ -44,6 +44,7 @@ import {
 } from './formulaSheetData';
 import type { FormulaTextChange, SheetLayoutSettings } from './formulaSheetData';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
+import { throwWithCause } from '../../helpers/errors';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { syncIcon } from '../../themes/engine/icons';
 import type { CellOptionMetaEntry, HotInstance, KeptCellMetas } from '../../core/types';
@@ -92,6 +93,13 @@ const GRID_LEVEL_DATA_PROVIDER_WARNING = 'The grid-level `dataProvider` is disab
 const ACTIVE_SHEET_REFUSED_WARNING = 'The `activeSheet` setting was not applied because another sheet switch ' +
   'is running, or a cell value is still being validated or was rejected. Send the same value again once the ' +
   'switch has finished or the cell is saved.';
+
+/**
+ * The error a rename, an add, a duplicate or a removal throws, before anything changes, when the `sheets`
+ * array or the sheet's entry is frozen.
+ */
+const SHEETS_NOT_WRITABLE_ERROR = 'The sheets bar writes renamed, added and removed sheets into the ' +
+  '`sheetsBar.sheets` array, and that array or its entry is frozen. Pass a mutable array.';
 
 /**
  * A sheet definition accepted by the `sheets` setting.
@@ -171,6 +179,12 @@ const SELF_BASELINED_KEYS = new Set(['dataProvider', 'columnSummary', 'cell']);
 const UNFILTERED_SETTING_KEYS = new Set([PLUGIN_KEY, 'data', 'dataProvider']);
 
 /**
+ * Keys `updateSheetSettings()` does not take: the bar itself, which a sheet cannot reconfigure, and `data`,
+ * which is the sheet's `data` in the host's `sheets` array, not one of its settings.
+ */
+const UNSETTABLE_SHEET_KEYS = new Set([PLUGIN_KEY, 'data']);
+
+/**
  * The warning a top-level `data` beside a declared workbook raises, once, at init or on an update.
  */
 const TOP_LEVEL_DATA_WARNING = 'The `data` setting is ignored when `sheetsBar.sheets` declares a workbook — ' +
@@ -230,6 +244,18 @@ function isStructurallyEqual(a: unknown, b: unknown, compared = new WeakMap<obje
 
   return leftKeys.length === Object.keys(right).length
     && leftKeys.every(key => key in right && isStructurallyEqual(left[key], right[key], compared));
+}
+
+/**
+ * Tells whether a value is an entry of the `sheets` setting: an object. A Vue reactive array hands back a
+ * proxy of the object pushed into it, and the bar keeps that proxy, so its later writes reach the host's
+ * reactivity.
+ *
+ * @param {*} value The value to check.
+ * @returns {boolean}
+ */
+function isSheetConfig(value: unknown): value is SheetsBarSheetConfig {
+  return isPlainObject(value);
 }
 
 /**
@@ -622,6 +648,20 @@ export class SheetsBar extends BasePlugin {
    * @type {WeakMap<object, object[]>}
    */
   #cellOptionStates = new WeakMap<Sheet, CellOptionMetaEntry[]>();
+  /**
+   * The sheets whose `mergeCells` `updateSheetSettings()` changed while they were hidden: their next visit
+   * builds the declared merges instead of restoring the ones the user left with.
+   *
+   * @type {WeakSet<object>}
+   */
+  #redeclaredMerges = new WeakSet<Sheet>();
+  /**
+   * The sheets whose `customBorders` `updateSheetSettings()` changed while they were hidden: their next
+   * visit applies the declared borders instead of the ones kept in their cell meta.
+   *
+   * @type {WeakSet<object>}
+   */
+  #redeclaredBorders = new WeakSet<Sheet>();
   /**
    * The grid-level `cell` option, taken when the workbook starts and refreshed by a grid-level update
    * (`#refreshGridCellOption`). A sheet that declares no `cell` of its own restates it on a switch.
@@ -1113,7 +1153,7 @@ export class SheetsBar extends BasePlugin {
     const model = this.#model;
     const keepsWorkbook = model !== null && this.#keepsWorkbookFor(this.getSetting('sheets'));
 
-    if (keepsWorkbook) {
+    if (keepsWorkbook && this.getSetting('sheets') !== this.#builtSheetsArray) {
       this.#repointDeclaredEntries(this.getSetting('sheets'));
     }
 
@@ -1188,7 +1228,9 @@ export class SheetsBar extends BasePlugin {
    * value the workbook was built from. A framework wrapper rebuilds the entry objects on every render, and
    * `#pruneDeclaredSheet` finds an entry by identity: still pointing at the first render's objects, it found
    * nothing in the host's array or in the snapshot, so a removal pruned neither, and the host's next value,
-   * one sheet shorter, read as a new workbook.
+   * one sheet shorter, read as a new workbook. It runs only for another array: the same array keeps its
+   * entries, and mapped by position after the host's own edit of it (which the bar does not watch), a rename
+   * wrote into the entry of another sheet.
    *
    * @param {Array} sheets The `sheets` value sent now, structurally equal to the built one.
    */
@@ -1254,6 +1296,41 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Throws, before anything changes, when the host's `sheets` arrays cannot take an added or a removed entry.
+   * The write into the array comes after the model has changed, so a frozen array (Immer, Redux Toolkit,
+   * `Object.freeze`) used to throw halfway: the tab was in the model, the strip, the formula engine and the
+   * after-hook were not. A workbook that declares no array has nothing to write.
+   */
+  #assertSheetArraysWritable() {
+    if (this.#configuredSheetArrays().some(sheets => !Object.isExtensible(sheets))) {
+      throwWithCause(SHEETS_NOT_WRITABLE_ERROR);
+    }
+  }
+
+  /**
+   * Throws, before anything changes, when a sheet's entry in the host's `sheets` array cannot take a new
+   * `name`, for the same reason as `#assertSheetArraysWritable`.
+   *
+   * @param {number} id The sheet about to be renamed.
+   */
+  #assertDeclaredNameWritable(id: number) {
+    const entry = this.#declaredEntries.get(id);
+
+    if (!entry) {
+      return;
+    }
+
+    const descriptor = Object.getOwnPropertyDescriptor(entry, 'name');
+    const isWritable = descriptor
+      ? descriptor.writable === true || typeof descriptor.set === 'function'
+      : Object.isExtensible(entry);
+
+    if (!isWritable) {
+      throwWithCause(SHEETS_NOT_WRITABLE_ERROR);
+    }
+  }
+
+  /**
    * Writes a sheet the bar created (an add or a duplicate) into the host's `sheets` arrays, at their end,
    * the way core appends a row past the last source row: `{ name, data }`, plus `settings` when the sheet has
    * any. Its `data` is the array the sheet holds, so the host's array reads the rows the user types into it.
@@ -1277,7 +1354,10 @@ export class SheetsBar extends BasePlugin {
     }
 
     arrays.forEach(sheets => sheets.push(entry));
-    this.#declaredEntries.set(sheet.id, entry);
+
+    const stored = arrays[0][arrays[0].length - 1];
+
+    this.#declaredEntries.set(sheet.id, isSheetConfig(stored) ? stored : entry);
     this.#recordBuiltSheets();
   }
 
@@ -1313,16 +1393,27 @@ export class SheetsBar extends BasePlugin {
    * not recorded and warns: the same value sent again retries it. That includes a change a listener
    * of the switch starts, which the second check right before the load refuses, and a value sent
    * while another switch runs or from a before-hook listener, where `setActiveSheet()` refuses too.
+   *
+   * The value is read from the payload, the number the host sent, and compared with the number the host
+   * sent last, never with the plugin's own copy, which `#shiftActiveSheetSetting` lowers after a removal.
+   * The grid does the same with a frozen count `alter()` lowered: a re-sent unchanged value leaves it alone.
+   * Compared with the lowered copy, a React or Angular host's unchanged `activeSheet` read as a new request
+   * on its next render after a removal, and the grid jumped to another sheet. A payload without
+   * `activeSheet` asks for nothing.
    */
   #applyActiveSheetSetting(payload: unknown) {
-    const wanted = this.getSetting('activeSheet');
-    const isExplicitRequest = isPlainObject(payload) && 'activeSheet' in payload && !('sheets' in payload);
+    if (!isPlainObject(payload) || typeof payload.activeSheet !== 'number') {
+      return;
+    }
+
+    const wanted = payload.activeSheet;
+    const isExplicitRequest = !('sheets' in payload);
 
     if (!isExplicitRequest && wanted === this.#lastActiveSheetSetting) {
       return;
     }
 
-    const targetId = typeof wanted === 'number' ? this.#physicalOrder[wanted] : undefined;
+    const targetId = this.#sheetIdAtPosition(wanted);
     const target = targetId === undefined ? undefined : this.getSheets().find(sheet => sheet.id === targetId);
 
     if (target && !target.isActive) {
@@ -1340,19 +1431,31 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Keeps the stored `activeSheet` naming the same sheet after a removal shifted the positions of the host's
-   * `sheets` array, the way `alter()` lowers `fixedRowsBottom` when it removes a frozen row. A removal in
-   * front of it lowers it by one; a removal of the sheet it names moves it to the sheet that became active.
-   * The value is written into the plugin's own settings, never into the host's `sheetsBar` object, and is
-   * recorded as acted on, so sending it again switches nothing. A host that keeps its own copy of the value
-   * and sends the old number again asks for the sheet now at that position.
+   * Returns the id of the sheet at a position of `activeSheet`: the host's `sheets` array, or the tab order
+   * for a workbook that declares no array (`sheetsBar: true`), where no other order exists.
+   *
+   * @param {number} position The position.
+   * @returns {number|undefined}
+   */
+  #sheetIdAtPosition(position: number): number | undefined {
+    return this.#builtSheetsArray === undefined ? this.getSheets()[position]?.id : this.#physicalOrder[position];
+  }
+
+  /**
+   * Keeps the plugin's own `activeSheet` naming the same sheet after a removal shifted the positions of the
+   * host's `sheets` array, the way `alter()` lowers `fixedRowsBottom` when it removes a frozen row. A removal
+   * in front of it lowers it by one; a removal of the sheet it names moves it to the sheet that became
+   * active. The value is written into the plugin's own settings, never into the host's `sheetsBar` object,
+   * and the number the host sent last stays the one a later payload is compared with
+   * (`#applyActiveSheetSetting`), so the host's unchanged value sent again switches nothing.
    *
    * @param {number} removedIndex The position the removed sheet had in the host's array.
    */
   #shiftActiveSheetSetting(removedIndex: number) {
     const stored = this.getSetting<unknown>('activeSheet');
 
-    if (typeof stored !== 'number' || removedIndex === -1 || removedIndex > stored) {
+    if (this.#builtSheetsArray === undefined || typeof stored !== 'number' || removedIndex === -1
+      || removedIndex > stored) {
       return;
     }
 
@@ -1364,7 +1467,6 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.updatePluginSettings({ activeSheet: shifted });
-    this.#lastActiveSheetSetting = shifted;
   }
 
   /**
@@ -1713,7 +1815,9 @@ export class SheetsBar extends BasePlugin {
       return this.#keepsWorkbookFor(null);
     }
 
-    return this.#keepsWorkbookFor('sheets' in next ? next.sheets : this.getSetting('sheets'));
+    const declaresValidSheets = 'sheets' in next && SheetsBar.SETTINGS_VALIDATORS.sheets(next.sheets);
+
+    return this.#keepsWorkbookFor(declaresValidSheets ? next.sheets : this.getSetting('sheets'));
   }
 
   /**
@@ -1867,18 +1971,22 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Updates a sheet's own settings, the way {@link Core#updateSettings} updates the grid's: the keys you
-   * pass are merged into the settings the sheet already has, and a key passed as `undefined` is left out.
-   * On the visible sheet the change applies at once; on any other sheet it applies when the sheet is
-   * shown next. The settings stay with the sheet: the entry in your `sheets` array keeps the `settings`
-   * you declared, the way {@link Core#updateSettings} never writes into the object you passed it.
+   * pass are merged into the settings the sheet already has. A key passed as `undefined` is left out, as
+   * {@link Core#updateSettings} leaves it out, so a key a sheet declares cannot be removed from it, only
+   * given another value. On the visible sheet the change applies at once; on any other sheet it applies
+   * when the sheet is shown next, in place of what the sheet kept from your last visit for that key (its
+   * merged cells, custom borders, `cell` meta and column summary positions). The settings stay with the
+   * sheet: the entry in your `sheets` array keeps the `settings` you declared, the way
+   * {@link Core#updateSettings} never writes into the object you passed it.
    *
    * A sheet's own settings win over the grid-level ones, so this is how you change a setting the sheet
    * declares: {@link Core#updateSettings} changes only the grid-level value of a key the visible sheet
    * declares.
    *
-   * Returns `false` when the bar is off, the sheet does not exist, `settings` is not an object, a sheet
-   * switch is in progress, or it is called from a listener of a workbook change's before-hook. A
-   * `sheetsBar` key is ignored: a sheet cannot reconfigure the bar.
+   * Returns `false` when the bar is off, the sheet does not exist, `settings` is not an object or changes
+   * nothing, a sheet switch is in progress, or it is called from a listener of a workbook change's
+   * before-hook. A `sheetsBar` key is ignored, because a sheet cannot reconfigure the bar, and so is `data`,
+   * because a sheet's rows are its `data` in your `sheets` array.
    *
    * @param {number|string} idOrName The sheet's id, or its name.
    * @param {object} settings The settings to merge into the sheet's own.
@@ -1894,13 +2002,19 @@ export class SheetsBar extends BasePlugin {
     }
 
     const changes = Object.fromEntries(
-      Object.entries(settings).filter(([key, value]) => key !== PLUGIN_KEY && value !== undefined)
+      Object.entries(settings).filter(([key, value]) => !UNSETTABLE_SHEET_KEYS.has(key) && value !== undefined)
     );
+
+    if (Object.keys(changes).length === 0) {
+      return false;
+    }
 
     sheet.settings = { ...(sheet.settings ?? {}), ...changes };
 
-    if (model?.getActiveSheet()?.id === id && Object.keys(changes).length > 0) {
+    if (model?.getActiveSheet()?.id === id) {
       this.#applyToVisibleSheet(changes, sheet.settings);
+    } else {
+      this.#dropKeptStateFor(sheet, Object.keys(changes));
     }
 
     return true;
@@ -2209,7 +2323,7 @@ export class SheetsBar extends BasePlugin {
    * one, under its own name. Formulas and cross-sheet references then work on it right away.
    *
    * @param {string} [name] The sheet's name. Omitted, the next free `Sheet{n}` is used.
-   * @param {Array[]} [data] The sheet's data. Omitted, the sheet starts blank.
+   * @param {Array} [data] The sheet's data: rows as arrays, or as objects. Omitted, the sheet starts blank.
    * @param {object} [settings] The sheet's settings. Omitted, the sheet inherits the
    * workbook's shared formula engine when one is configured.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -2217,7 +2331,7 @@ export class SheetsBar extends BasePlugin {
    */
   addSheet(
     name?: string,
-    data?: unknown[][],
+    data?: unknown[],
     settings?: Record<string, unknown>,
     source: string = SOURCE_API,
   ): SheetDescriptor | null {
@@ -2226,6 +2340,8 @@ export class SheetsBar extends BasePlugin {
     if (model === null) {
       return null;
     }
+
+    this.#assertSheetArraysWritable();
 
     const sheet = this.#commit(
       'beforeSheetTabAdd',
@@ -2685,7 +2801,7 @@ export class SheetsBar extends BasePlugin {
   #buildInitialWorkbook() {
     const model = this.#model as SheetModel;
     const sheetsSetting = this.getSetting('sheets') as
-      Array<{ name?: string, data?: unknown[][], settings?: Record<string, unknown> }> | null;
+      Array<{ name?: string, data?: unknown[], settings?: Record<string, unknown> }> | null;
 
     if (Array.isArray(sheetsSetting) && sheetsSetting.length > 0) {
       this.#declaredEntries = new Map();
@@ -2780,7 +2896,7 @@ export class SheetsBar extends BasePlugin {
     const cellOptionMetas = cell ? (this.#cellOptionStates.get(sheet) ?? null) : null;
     const keptCellMetas = cellMeta && cellMeta.length > 0 ? SheetsBar.#toKeptCellMetas(cellMeta) : null;
 
-    if (cellMeta && Array.isArray(payload.customBorders)) {
+    if (cellMeta && Array.isArray(payload.customBorders) && !this.#redeclaredBorders.has(sheet)) {
       payload.customBorders = true;
     }
 
@@ -2802,8 +2918,11 @@ export class SheetsBar extends BasePlugin {
       }
 
       if (this.hot.view) {
-        this.#runMergeCellsSettingsPass(!restoresState);
+        this.#runMergeCellsSettingsPass(!restoresState || this.#redeclaredMerges.has(sheet));
       }
+
+      this.#redeclaredMerges.delete(sheet);
+      this.#redeclaredBorders.delete(sheet);
     };
 
     if (this.hot.view) {
@@ -3262,6 +3381,60 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Drops what a hidden sheet kept from the user's last visit for the keys `updateSheetSettings()` changed,
+   * so its next visit applies the new values. A return otherwise restores the kept state in place of the
+   * declared one: the `cell` meta by physical index (`#cellOptionStates`), the column summary positions
+   * (`#columnSummaryStates`), the merges and the borders, and a change made while the sheet was hidden was
+   * lost.
+   *
+   * @param {object} sheet The hidden sheet.
+   * @param {string[]} keys The keys that changed.
+   */
+  #dropKeptStateFor(sheet: Sheet, keys: string[]) {
+    if (keys.includes('cell')) {
+      this.#cellOptionStates.delete(sheet);
+    }
+
+    if (keys.includes('columnSummary')) {
+      this.#columnSummaryStates.delete(sheet);
+    }
+
+    if (keys.includes('mergeCells') && sheet.viewState) {
+      sheet.viewState = { ...sheet.viewState, mergedCells: [] };
+      this.#redeclaredMerges.add(sheet);
+    }
+
+    if (keys.includes('customBorders')) {
+      this.#dropKeptBorders(sheet);
+    }
+  }
+
+  /**
+   * Takes the custom borders out of the cell meta a hidden sheet kept (its view state, or a duplicate's
+   * copy of its original's meta), where the borders live, and marks the sheet so its next visit applies
+   * the declared borders.
+   *
+   * @param {object} sheet The hidden sheet.
+   */
+  #dropKeptBorders(sheet: Sheet) {
+    const kept = sheet.viewState?.cellMeta;
+    const copied = this.#copiedCellMeta.get(sheet);
+
+    if (Array.isArray(kept)) {
+      sheet.viewState = {
+        ...sheet.viewState,
+        cellMeta: kept.filter(entry => isPlainObject(entry) && entry.key !== 'borders'),
+      };
+    }
+
+    if (copied) {
+      this.#copiedCellMeta.set(sheet, copied.filter(entry => entry.key !== 'borders'));
+    }
+
+    this.#redeclaredBorders.add(sheet);
+  }
+
+  /**
    * Makes the settings callbacks of each hook the payload sets exactly the callbacks the arriving sheet runs
    * with, before the payload is applied (`Hooks#_replaceFromSettings()`). Core's own path cannot: a function
    * in the settings replaces only the earlier settings function, and an array is added beside the earlier
@@ -3439,6 +3612,10 @@ export class SheetsBar extends BasePlugin {
     const canAttempt = trimmed !== '' && trimmed !== oldName
       && !this.#renameCollidesInEngine(sheet, oldName, trimmed);
 
+    if (canAttempt) {
+      this.#assertDeclaredNameWritable(id);
+    }
+
     const committed = canAttempt && this.#commit(
       'beforeSheetTabRename',
       [id, oldName, trimmed],
@@ -3546,6 +3723,8 @@ export class SheetsBar extends BasePlugin {
     if (sheets.length <= 1 || !sheets.some(sheet => sheet.id === id)) {
       return false;
     }
+
+    this.#assertSheetArraysWritable();
 
     const removed = this.#commit(
       'beforeSheetTabRemove',
@@ -3708,6 +3887,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.#syncActiveSheetData();
+    this.#assertSheetArraysWritable();
 
     const duplicated = this.#commit(
       'beforeSheetTabAdd',

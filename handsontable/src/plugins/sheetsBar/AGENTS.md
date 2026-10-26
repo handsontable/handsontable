@@ -92,9 +92,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   copied too, `data` by reference), taken again after every write the bar makes (`#recordBuiltSheets`), so a
   wrapper that copies the array, or rebuilds its entries as fresh literals of the current state, keeps the
   workbook, and an inline literal of the original declaration does not once the user renamed, added or
-  removed a sheet. A preserved cycle also re-points `#declaredEntries` at the
+  removed a sheet. A preserved cycle that sends another array also re-points `#declaredEntries` at the
   entries just sent, by position (`#repointDeclaredEntries`): a wrapper rebuilds its entry objects on every
-  render, and an identity lookup against the first render's objects pruned nothing. The copy and the
+  render, and an identity lookup against the first render's objects pruned nothing. The same array is not
+  re-pointed: its entries are already the ones the bar wrote, and re-pointing by position after a host edit
+  of the array tied a sheet to another sheet's entry. The copy and the
   comparison both carry a cycle guard (`copySettingsValue`'s `copies` map, `isStructurallyEqual`'s
   `compared` pairs): the comparison used to meet the host's own object and stop at `a === b`, and against a
   copy a self-referencing object literal in a sheet's `settings` recursed until the stack overflowed.
@@ -117,14 +119,22 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   editor and `columns` over the visible sheet's own until the user left the sheet. It stands aside for the
   bar's own writes (`#isSwitching`, `#isRestoringBaseline`, `#isInitializing`, `#isApplyingOwnSettings`), for
   ImportFile's (`_isApplyingImport()`: an import lays the file out on the sheet shown), and for a payload that
-  turns the bar off or declares another workbook (`#filtersGridSettings`). It never takes `sheetsBar`, `data`
-  (`#keepDeclaredSheetRows` owns it) or `dataProvider` (the gate below owns it), and it returns a new object,
-  never changing the caller's. A plugin's own corrective `updateSettings()` outside a switch on a key the
-  sheet declares is taken off too. The way to change a sheet's own settings is
+  turns the bar off or declares another workbook (`#filtersGridSettings`). A `sheets` value the plugin's
+  validator rejects declares no workbook: the bar keeps the current one, so the filter keeps filtering. It
+  never takes `sheetsBar`, `data` (`#keepDeclaredSheetRows` owns it) or `dataProvider` (the gate below owns
+  it), and it returns a new object, never changing the caller's. When it takes every key out, core runs no
+  settings cycle at all (no `afterUpdateSettings`, no render). A plugin's own corrective `updateSettings()`
+  outside a switch on a key the sheet declares is taken off too. The way to change a sheet's own settings is
   `updateSheetSettings()`, which merges into the sheet record's `settings` (a new object: the host's entry
-  keeps the `settings` it declared, as `updateSettings()` never writes into the object it was passed) and
-  applies the keys to the visible sheet through `#applyToVisibleSheet` (baseline first, then the hooks, then
-  `updateSettings()` under `#isApplyingOwnSettings`).
+  keeps the `settings` it declared, as `updateSettings()` never writes into the object it was passed). It
+  refuses `sheetsBar` and `data` (`UNSETTABLE_SHEET_KEYS`; a sheet's rows are its `data`), reads an
+  `undefined` value as "not passed", and returns `false` when nothing is left to change. The visible sheet
+  gets the keys through `#applyToVisibleSheet` (baseline first, then the hooks, then `updateSettings()` under
+  `#isApplyingOwnSettings`). A hidden sheet the user already visited returns with its kept state, which would
+  win over the new value, so `#dropKeptStateFor` drops the kept part the keys describe: the `cell`-option meta,
+  the ColumnSummary endpoints, and for `mergeCells` and `customBorders` the stored merges or the kept `borders`
+  meta plus a flag (`#redeclaredMerges`, `#redeclaredBorders`) that makes the next return build the declared
+  value instead of skipping it.
 - **A grid-level value set later through `updateSettings()` refreshes the baseline**
   (`#refreshSettingsBaseline`, the first step of `#onAfterUpdateSettings` at `orderIndex` -1, so it
   runs before BasePlugin's own listener tears the bar down or rebuilds it in the same call). Only
@@ -365,16 +375,25 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   configured array (`#configuredSheetArrays`: the grid-level and the merged one, usually one object). Each
   write ends in `#recordBuiltSheets`, so the snapshot stays the array as the bar left it. The host never has
   to copy a change back, and the host's own edits of the array are not watched. A frozen array or entry
-  throws, as a frozen `data` array does on an edit, and the docs say so. Tab order is NOT written: a move is
+  throws, as a frozen `data` array does on an edit, and the docs say so. The check runs before anything
+  changes (`#assertSheetArraysWritable`, `#assertDeclaredNameWritable`, called ahead of the model change in
+  add, duplicate, remove and the rename commit): thrown from the write itself, it left the tab added or
+  removed with no hook fired and no record in the array. An added entry is read back from the array after
+  the push, so a Vue reactive proxy, not the raw object, is what later renames write into (a write into the
+  raw object never reached the app's template). Tab order is NOT written: a move is
   internal, like a row move. Instead `#physicalOrder` keeps the sheet ids in the host array's order (filled by
   the build, appended by an add and a duplicate, spliced by a removal, carried across a preserved cycle).
   `activeSheet` is a position there, not in the tab order: at the build, in `#applyActiveSheetSetting`, and
   after a removal, where `#shiftActiveSheetSetting` lowers the stored value (through `updatePluginSettings()`,
   so the plugin's own copy changes and the host's `sheetsBar` object does not) the way `alter()` lowers
-  `fixedRowsBottom`, and records it as acted on. Resolving it in tab order made a controlled React
-  `activeSheet` switch forever after a tab move. Two limits: a sheet's `data` the bar replaces with a new
-  array (a server response for a hidden sheet, a frozen array copied on a rename) is not written into the
-  entry; and a `sheetsBar: true` workbook has no array, so nothing is written there.
+  `fixedRowsBottom`. Resolving it in tab order made a controlled React `activeSheet` switch forever after a
+  tab move. **A re-sent `activeSheet` is compared with the last number the host sent**
+  (`#lastActiveSheetSetting`), never with the lowered copy: a wrapper re-sending `1` after the removal of
+  sheet 0 read as a change from the lowered `0` and jumped to another sheet. A payload without `sheets` (a
+  partial `updateSettings({ sheetsBar: { activeSheet } })`) is always an explicit request. Two limits: a
+  sheet's `data` the bar replaces with a new array (a server response for a hidden sheet, a frozen array
+  copied on a rename) is not written into the entry; and a `sheetsBar: true` workbook has no array, so
+  nothing is written there and its `activeSheet` counts in tab order (`#sheetIdAtPosition`).
 - **Never wrap host-reachable code in `Core#batch`/`batchRender`** — neither resumes in a
   `finally`, and a listener throwing mid-switch would leave the grid render-suspended for
   life. The plugin's `#batchRender` and core `viewState.ts`'s `safeBatch` are the guarded forms

@@ -52,4 +52,38 @@ describe('cooperation with the SheetsBar plugin', () => {
 
     testWrapper.unmount();
   });
+
+  it('shows the rename of a sheet the bar added in the app\'s reactive `sheets`', async() => {
+    const App = {
+      components: { HotTable },
+      template: `
+        <div>
+          <span id="sheet-names">{{ sheets.map(sheet => sheet.name).join(',') }}</span>
+          <HotTable
+            licenseKey="non-commercial-and-evaluation"
+            :sheetsBar="{ sheets }"
+            ></HotTable>
+        </div>`,
+      data() {
+        return {
+          sheets: [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }],
+        };
+      },
+    };
+
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+    const plugin = hotInstance.getPlugin('sheetsBar');
+
+    plugin.addSheet('Extra');
+    await nextTick();
+    plugin.renameSheet(plugin.getSheets().find(sheet => sheet.name === 'Extra').id, 'Extra2');
+    await nextTick();
+
+    expect(testWrapper.find('#sheet-names').text()).toBe('A,B,Extra2');
+
+    testWrapper.unmount();
+  });
 });

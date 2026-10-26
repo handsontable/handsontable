@@ -124,6 +124,23 @@ describe('HotTable with a sheets bar', () => {
     expect(plugin.getSheets().find(sheet => sheet.isActive)!.name).toBe('A');
   });
 
+  it('keeps the active sheet when the parent re-renders with the same `activeSheet` after a removal', () => {
+    const sheets = [{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }, { name: 'C', data: [[3]] }];
+    const props = (): HotTableProps => ({
+      licenseKey: 'non-commercial-and-evaluation',
+      sheetsBar: { sheets, activeSheet: 1 },
+    });
+    const ref = renderHotTableWithProps(props(), false);
+    const plugin = ref.current!.hotInstance!.getPlugin('sheetsBar');
+
+    act(() => {
+      plugin.removeSheet(plugin.getSheets().find(sheet => sheet.name === 'A')!.id);
+    });
+    renderHotTableWithProps(props(), false, ref);
+
+    expect(plugin.getSheets().find(sheet => sheet.isActive)!.name).toBe('B');
+  });
+
   it('keeps a renamed and an added sheet in the app\'s own `sheets` across re-renders', () => {
     const ref = React.createRef<HotTableRef>();
     let rerender: () => void = () => {};

@@ -33,6 +33,7 @@ describe('SheetsBar: a sheet\'s own settings win over grid-level updates', () =>
     hot?.destroy();
     hot = null;
     container.remove();
+    jest.restoreAllMocks();
   });
 
   /**
@@ -121,6 +122,29 @@ describe('SheetsBar: a sheet\'s own settings win over grid-level updates', () =>
 
     expect(payload).toEqual({ colHeaders: ['c', 'd'], readOnly: true });
     expect(hot.getSettings().readOnly).toBe(true);
+  });
+
+  it('keeps the visible sheet\'s headers when the payload carries a `sheets` value the bar rejects', () => {
+    const plugin = buildWorkbook();
+    const ids = plugin.getSheets().map(sheet => sheet.id);
+
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    plugin.setActiveSheet('Own');
+    hot.updateSettings({ sheetsBar: { sheets: 'not a list' }, colHeaders: ['c', 'd'] });
+
+    expect(plugin.getSheets().map(sheet => sheet.id)).toEqual(ids);
+    expect(hot.getColHeader(0)).toBe('X');
+  });
+
+  it('runs no settings cycle when every key of the payload belongs to the visible sheet', () => {
+    const plugin = buildWorkbook();
+    const updated = jest.fn();
+
+    plugin.setActiveSheet('Own');
+    hot.addHook('afterUpdateSettings', updated);
+    hot.updateSettings({ colHeaders: ['c', 'd'] });
+
+    expect(updated).not.toHaveBeenCalled();
   });
 
   it('leaves a grid without the bar unfiltered', () => {

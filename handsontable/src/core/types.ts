@@ -339,7 +339,7 @@ export interface HotInstance {
   _isDataLoadPending(): boolean;
   _isHeldMetaPhaseRunning(): boolean;
   _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
-  _setSettingsFilter(filter: ((settings: Record<string, unknown>) => Record<string, unknown>) | null): void;
+  _setSettingsFilter(filter: ((settings: SettingsUpdate) => SettingsUpdate) | null): void;
 
   // DOM references
   rootElement: HTMLElement;

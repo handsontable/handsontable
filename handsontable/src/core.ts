@@ -469,7 +469,7 @@ export default function Core(
    * The function that reads every `updateSettings()` payload before it is applied, or `null` when no
    * caller registered one (see `_setSettingsFilter()`).
    */
-  let settingsFilter: ((settings: Record<string, unknown>) => Record<string, unknown>) | null = null;
+  let settingsFilter: ((settings: SettingsUpdate) => SettingsUpdate) | null = null;
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -5266,9 +5266,11 @@ export default function Core(
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings: SettingsUpdate, init = false) {
-    const applied = !init && settingsFilter !== null
-      ? settingsFilter(settings as Record<string, unknown>) as SettingsUpdate
-      : settings;
+    const applied = !init && settingsFilter !== null ? settingsFilter(settings) : settings;
+
+    if (applied !== settings && Object.keys(applied).length === 0) {
+      return;
+    }
 
     // Applying settings is not a user action: a plugin that updates its state from the new
     // settings, or the `cell` option writing meta, must not open an operation or be journaled.
@@ -5474,14 +5476,15 @@ export default function Core(
    * plugin is the only caller, and it uses it to keep the visible sheet's own settings when a grid-level
    * value for the same key arrives (a framework wrapper sends every prop again on each render). The filter
    * must return a new object rather than change the one it was given, which belongs to the caller of
-   * `updateSettings()`. The init settings pass is never filtered.
+   * `updateSettings()`. A payload the filter empties is not applied at all: no settings cycle runs and
+   * `afterUpdateSettings` does not fire, so the Vue wrapper, which sends a key again whenever it differs
+   * from the grid's live value, does not pay one empty cycle per edit. `afterUpdateSettings` listeners
+   * receive the filtered payload. The init settings pass is never filtered.
    *
    * @private
    * @param {Function|null} filter The function to register, or `null`.
    */
-  this._setSettingsFilter = function(
-    filter: ((settings: Record<string, unknown>) => Record<string, unknown>) | null
-  ) {
+  this._setSettingsFilter = function(filter: ((settings: SettingsUpdate) => SettingsUpdate) | null) {
     settingsFilter = filter;
   };
 
