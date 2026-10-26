@@ -187,12 +187,7 @@ If you're using Angular 21 or newer, please note that older versions of `@handso
 
 ## Server-side rendering (SSR)
 
-Include `<hot-table>` in the template when Angular renders the page on the server.
-That render does not throw.
-`HotTableComponent` does not create the grid.
-`hotInstance` stays `null`.
-The server HTML contains no Handsontable grid.
-In the browser, the component creates the grid in `ngAfterViewInit`.
+You can include `<hot-table>` in a template that Angular renders on the server, and the server render doesn't throw. On the server, `HotTableComponent` doesn't create a grid, so `hotInstance` stays `null` and the server HTML contains no Handsontable grid. In the browser, the component creates the grid in `ngAfterViewInit`.
 
 ## Result
 
