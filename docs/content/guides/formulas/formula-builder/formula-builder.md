@@ -361,7 +361,9 @@ The colors of the references and of their highlights, the look of the highlights
 | `--hfe-ref-1` to `--hfe-ref-8` | package palette | The reference colors, in the order references appear in a formula. |
 | `--hfe-reference-border-width` | `1px` | The border width of a reference highlight in the grid. |
 | `--hfe-selection-opacity` | `0.08` | The opacity of the tint that fills the referenced cells. |
-| `--hfe-color-error` | theme error color | The color of error text. | The default reference colors clear a 4.5:1 contrast ratio on the editor's light and dark backgrounds, and no two of them look alike. The theme declares `--hfe-color-error` on the grid's root element, the formula bar (`.hfe-formula-bar`), and the popup portal (`.hfe-popup-portal`). Declare your values on the same elements, because the popup portal is not inside the grid's container:
+| `--hfe-color-error` | theme error color | The color of error text. |
+
+The default reference colors clear a 4.5:1 contrast ratio on the editor's light and dark backgrounds, and no two of them look alike. The theme declares `--hfe-color-error` on the grid's root element, the formula bar (`.hfe-formula-bar`), and the popup portal (`.hfe-popup-portal`). Declare your values on the same elements, because the popup portal is not inside the grid's container. The theme's declarations have no specificity, so yours take precedence whatever order the stylesheets load in:
 
 ```css
 .handsontable,

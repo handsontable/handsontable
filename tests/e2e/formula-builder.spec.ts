@@ -23,6 +23,26 @@ test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BR
     await expect(grid.addressInput).toHaveValue('B1');
   });
 
+  test('a page stylesheet loaded before the grid overrides the theme\'s formula builder tokens', async({ page }) => {
+    // The core stylesheet reaches the page after the application's own CSS, so its token block must
+    // not out-rank a plain class selector: the guide tells applications to declare on these classes.
+    const values = await page.evaluate(() => {
+      const style = document.createElement('style');
+
+      style.textContent = '.handsontable, .hfe-formula-bar { --hfe-color-error: rgb(1, 2, 3); }';
+      document.head.prepend(style);
+
+      const read = (el: Element | null) => (el ? getComputedStyle(el).getPropertyValue('--hfe-color-error').trim() : null);
+
+      return {
+        grid: read((window as unknown as { hot: { rootElement: Element } }).hot.rootElement),
+        bar: read(document.querySelector('.hfe-formula-bar')),
+      };
+    });
+
+    expect(values).toEqual({ grid: 'rgb(1, 2, 3)', bar: 'rgb(1, 2, 3)' });
+  });
+
   test('seeded formulas compute through the engine', async () => {
     await grid.expectCell(0, 2, '3');
     await grid.expectCell(1, 2, '7');

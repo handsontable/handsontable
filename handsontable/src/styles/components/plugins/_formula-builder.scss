@@ -21,11 +21,16 @@ $accent-text-color: color-mix(in srgb, var(--ht-accent-color) 55%, var(--ht-fore
   // it mounts in the document body, and a popup moved into a host element. Those are the elements
   // the tokens are declared on, matched by class: an attribute-substring selector cannot use the
   // browser's class index and is tested against every element of the page on each style recalc.
-  .handsontable,
-  .hfe-formula-bar,
-  .hfe-popup-portal,
-  .hfe-suggestions,
-  .hfe-fn-help {
+  // `:where()` drops the block to zero specificity: the core stylesheet reaches the page after the
+  // application's own CSS, so at one class an application's `.handsontable { --hfe-… }` lost the tie.
+  // The package declares its defaults on `:root`, so a declaration on the element still beats them.
+  :where(
+    .handsontable,
+    .hfe-formula-bar,
+    .hfe-popup-portal,
+    .hfe-suggestions,
+    .hfe-fn-help
+  ) {
     /* Core tokens */
     --hfe-font-family: #{mixins.$font-family-stack};
     --hfe-font-size: var(--ht-font-size);
