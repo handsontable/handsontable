@@ -90,14 +90,7 @@ export class Hooks {
     if (Array.isArray(callback)) {
       arrayEach(callback, (c: unknown) => this.add(key, c as HookCallback, context));
     } else {
-
-      if (REMOVED_HOOKS.has(key)) {
-        warn(substitute(REMOVED_MESSAGE, { hookName: key, removedInVersion: REMOVED_HOOKS.get(key) }));
-      }
-      if (DEPRECATED_HOOKS.has(key)) {
-        warn(DEPRECATED_HOOKS.get(key));
-      }
-
+      this.#warnIfRetired(key);
       this.getBucket(context).add(key, callback, { orderIndex, runOnce: false });
     }
 
@@ -173,13 +166,7 @@ export class Hooks {
   _addFromSettings(key: string, callback: HookCallback | HookCallback[], context: Record<string, unknown>) {
     if (Array.isArray(callback)) {
       arrayEach(callback, (c: unknown) => {
-        if (REMOVED_HOOKS.has(key)) {
-          warn(substitute(REMOVED_MESSAGE, { hookName: key, removedInVersion: REMOVED_HOOKS.get(key) }));
-        }
-        if (DEPRECATED_HOOKS.has(key)) {
-          warn(DEPRECATED_HOOKS.get(key));
-        }
-
+        this.#warnIfRetired(key);
         this.getBucket(context).add(key, c as HookCallback, { fromSettings: true });
       });
     } else {
@@ -259,6 +246,22 @@ export class Hooks {
     p1 = this.#runHandlers(this.getBucket(context).getList(key), context, key, context, p1, p2, p3, p4, p5, p6);
 
     return p1;
+  }
+
+  /**
+   * Warns when a hook name was removed or deprecated. `add()` and the array branch of `_addFromSettings()`
+   * warn on every callback they attach. A function passed through settings does not warn: the wrappers
+   * re-send their hooks on every render, so it would warn on each one.
+   *
+   * @param {string} key Hook name.
+   */
+  #warnIfRetired(key: string) {
+    if (REMOVED_HOOKS.has(key)) {
+      warn(substitute(REMOVED_MESSAGE, { hookName: key, removedInVersion: REMOVED_HOOKS.get(key) }));
+    }
+    if (DEPRECATED_HOOKS.has(key)) {
+      warn(DEPRECATED_HOOKS.get(key));
+    }
   }
 
   /**

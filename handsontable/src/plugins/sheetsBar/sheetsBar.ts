@@ -1068,7 +1068,7 @@ export class SheetsBar extends BasePlugin {
     const activeSheetSettingBefore = this.#lastActiveSheetSetting;
 
     if (preservedState && isStructurallyEqual(this.#readUiSettings(), this.#builtUiSettings)) {
-      this.#recordBuiltSheets();
+      this.#recordBuiltEntries();
       this.#applyActiveSheetSetting(newSettings?.[PLUGIN_KEY]);
       super.updatePlugin();
 
@@ -1138,9 +1138,18 @@ export class SheetsBar extends BasePlugin {
    * host's own entries beside it for `#pruneDeclaredSheet`.
    */
   #recordBuiltSheets() {
+    this.#lastBuiltSheets = snapshotSheetsList(this.getSetting<unknown>('sheets'));
+    this.#recordBuiltEntries();
+  }
+
+  /**
+   * Points `#lastBuiltEntries` at the host's entries just sent, keeping the snapshot. A preserved cycle
+   * already proved the snapshot equal to them (`isSameSheetsList`), so copying every sheet's `settings`
+   * again on each wrapper re-render would buy nothing.
+   */
+  #recordBuiltEntries() {
     const sheets = this.getSetting<unknown>('sheets');
 
-    this.#lastBuiltSheets = snapshotSheetsList(sheets);
     this.#lastBuiltEntries = Array.isArray(sheets) ? [...(sheets as unknown[])] : [];
   }
 

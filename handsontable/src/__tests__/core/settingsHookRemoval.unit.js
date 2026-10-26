@@ -47,6 +47,30 @@ describe('updateSettings() with a hook set to `null`', () => {
     expect(afterChange).not.toHaveBeenCalled();
   });
 
+  it('removes a callback the settings passed again unchanged', () => {
+    const afterChange = jest.fn();
+
+    build({ afterChange });
+    hot.updateSettings({ afterChange });
+    hot.updateSettings({ afterChange: null });
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(afterChange).not.toHaveBeenCalled();
+  });
+
+  it('removes a callback that replaced the one the initial settings passed', () => {
+    const first = jest.fn();
+    const second = jest.fn();
+
+    build({ afterChange: first });
+    hot.updateSettings({ afterChange: second });
+    hot.updateSettings({ afterChange: null });
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(first).not.toHaveBeenCalled();
+    expect(second).not.toHaveBeenCalled();
+  });
+
   it('removes every callback of an array passed in the settings', () => {
     const first = jest.fn();
     const second = jest.fn();

@@ -5232,9 +5232,10 @@ export default function Core(
    * A failed validation result is preserved as well, so a cell marked invalid keeps its `htInvalid` class across
    * `updateSettings`. To reset the validation state, use [loadData()](@/api/core.md#loaddata) or validate the cells again.
    *
-   * A hook passed in `settings` replaces the callback that earlier settings passed for the same hook. A hook set to
-   * `null` removes that callback (or every callback of an array) and leaves `null` in {@link Core#getSettings}. A hook
-   * set to `undefined` is left as it is. Listeners added with {@link Core#addHook} are not affected by either.
+   * A hook function passed in `settings` replaces the function that earlier settings passed for the same hook. An
+   * array of callbacks is added beside the callbacks earlier settings passed. A hook set to `null` removes every
+   * callback that settings passed for it and leaves `null` in {@link Core#getSettings}. A hook set to `undefined` is
+   * left as it is. Listeners added with {@link Core#addHook} are not affected by either.
    *
    * This method reinitializes the affected plugins and then renders, so it does more work than a plain
    * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
