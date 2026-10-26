@@ -53,7 +53,10 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   Otherwise selecting the cell throws `No registered editor found under "formula" name`. With the plugin
   off, the shim mounts a plain textarea. Not at module load either: importing the plugin registry must register plugins
   only (the `registerAll*` registry tests). The static `EDITORS` list is what lets `validateSettings()` accept
-  `formula` before any grid exists (`../../settingsSchema/AGENTS.md`).
+  `formula` before any grid exists (`../../settingsSchema/AGENTS.md`). The registration stays silent when
+  an application owns the alias: the warning about it comes from `enablePlugin()` (`warnOnce` per grid),
+  because with the full bundle every grid runs the constructor, and a grid that never sets `formulaBuilder`
+  has no conflict to report.
 - **The builder is bound to one engine sheet, and the sheet id is not known at enable time.** The plugin
   enables before the first data load, while `Formulas#sheetId` is still `null`. The builder takes `sheetId`
   only at construction and uses it to parse references, list named expressions, and test the own sheet. So

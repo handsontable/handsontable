@@ -2,7 +2,6 @@ import { editorFactory } from '../../editors/factory';
 import { EDITOR_STATE } from '../../editors/baseEditor';
 import { getEditor, hasEditor, registerEditor } from '../../editors/registry';
 import EventManager from '../../eventManager';
-import { warn } from '../../helpers/console';
 import { addClass, isHTMLElement, removeClass } from '../../helpers/dom/element';
 import type { FormulaEditorHandle } from './types';
 
@@ -495,10 +494,6 @@ export function createFormulaCellEditor(): BaseEditorCtor {
 }
 
 let formulaEditorClass: BaseEditorCtor | null = null;
-/**
- * Whether the warning about a `formula` alias registered by someone else was shown on this page.
- */
-let foreignAliasWarned = false;
 
 /**
  * Checks whether the given editor (alias or class) is the formula editor.
@@ -508,6 +503,24 @@ let foreignAliasWarned = false;
  */
 export function isFormulaEditor(editor: unknown): boolean {
   return editor === FORMULA_EDITOR_ALIAS || (editor !== undefined && editor === formulaEditorClass);
+}
+
+/**
+ * Checks whether the `formula` alias belongs to an editor that is not the plugin's, which an
+ * application may register under that name. The plugin warns about it only from `enablePlugin()`:
+ * with the full bundle every grid builds the plugin, and a grid that never turns it on has no
+ * conflict to report.
+ *
+ * @returns {boolean}
+ */
+export function isFormulaAliasForeign(): boolean {
+  if (!hasEditor(FORMULA_EDITOR_ALIAS)) {
+    return false;
+  }
+
+  const registered = getEditor(FORMULA_EDITOR_ALIAS) as unknown as Record<symbol, boolean> | undefined;
+
+  return registered?.[FORMULA_SHIM_MARK] !== true;
 }
 
 /**
@@ -521,15 +534,6 @@ export function registerFormulaEditor(): void {
   if (hasEditor(FORMULA_EDITOR_ALIAS)) {
     // Another copy of the plugin (or the application) may own the alias already; reuse it.
     const registered = getEditor(FORMULA_EDITOR_ALIAS) as unknown as BaseEditorCtor;
-
-    const isShim = (registered as unknown as Record<symbol, boolean> | undefined)?.[FORMULA_SHIM_MARK] === true;
-
-    if (!isShim && !foreignAliasWarned) {
-      foreignAliasWarned = true;
-      warn('An editor is already registered under the "formula" alias, so cells with `editor: \'formula\'`' +
-        ' use that editor and not the one of the FormulaBuilder plugin. Register your own editor under' +
-        ' another name to use the formula editor.');
-    }
 
     formulaEditorClass = registered;
 

@@ -21,6 +21,7 @@ import { CellPickController } from './cellPickController';
 import {
   EDITING_CELL_CLASS,
   FORMULA_EDITOR_ALIAS,
+  isFormulaAliasForeign,
   isFormulaEditor,
   registerFormulaEditor,
   type FormulaHostEditor,
@@ -437,6 +438,12 @@ export class FormulaBuilder extends BasePlugin {
   enablePlugin(): void {
     if (this.enabled) {
       return;
+    }
+
+    if (isFormulaAliasForeign()) {
+      warnOnce(this.hot, 'formulaBuilder.editorAlias', 'An editor is already registered under the "formula"' +
+        ' alias, so cells with `editor: \'formula\'` use that editor and not the one of the FormulaBuilder' +
+        ' plugin. Register your own editor under another name to use the formula editor.');
     }
 
     let setUpSucceeded = false;

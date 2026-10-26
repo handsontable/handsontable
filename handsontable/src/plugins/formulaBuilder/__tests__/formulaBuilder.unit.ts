@@ -1,6 +1,7 @@
 import { HyperFormula } from 'hyperformula';
 import { EDITOR_STATE } from '../../../editors/baseEditor';
-import { getEditor, hasEditor } from '../../../editors/registry';
+import { getEditor, hasEditor, registerEditor } from '../../../editors/registry';
+import { TextEditor } from '../../../editors/textEditor';
 import { isImmediatePropagationStopped } from '../../../helpers/dom/event';
 import { collection as staticRegisterCollection } from '../../../utils/staticRegister';
 import { registerAsRootInstance } from '../../../utils/rootInstance';
@@ -154,6 +155,47 @@ describe('FormulaBuilder.enablePlugin validation', () => {
 
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('`builder`'));
     expect(plugin.enabled).toBe(false);
+  });
+
+  describe('with an application editor registered under the formula alias', () => {
+    let ownAlias: unknown;
+
+    beforeEach(() => {
+      const editors = staticRegisterCollection.get('editors');
+
+      // Builds a plugin first, so the plugin's own class exists, then hands the alias to an
+      // application editor the way `registerEditor('formula', MyEditor)` would.
+      new FormulaBuilder(makeFullHotStub().instance); // eslint-disable-line no-new
+      ownAlias = editors.get('formula');
+      registerEditor('formula', class ApplicationFormulaEditor extends TextEditor {});
+      warnSpy.mockClear();
+    });
+
+    afterEach(() => {
+      staticRegisterCollection.get('editors').set('formula', ownAlias);
+    });
+
+    it('does not warn for a grid that never turns the plugin on', () => {
+      new FormulaBuilder(makeFullHotStub().instance); // eslint-disable-line no-new
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('warns once per grid that turns the plugin on', () => {
+      const first = makeFullHotStub();
+      const second = makeFullHotStub();
+      const firstPlugin = new FormulaBuilder(first.instance);
+      const secondPlugin = new FormulaBuilder(second.instance);
+
+      firstPlugin.enablePlugin();
+      firstPlugin.disablePlugin();
+      firstPlugin.enablePlugin();
+      secondPlugin.enablePlugin();
+
+      const aliasWarnings = warnSpy.mock.calls.filter(([message]) => String(message).includes('"formula" alias'));
+
+      expect(aliasWarnings).toHaveLength(2);
+    });
   });
 
   it('warns once per grid while every settings update retries the enable', () => {
