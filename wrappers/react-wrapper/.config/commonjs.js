@@ -8,7 +8,9 @@ export const cjsConfig = {
     format: env,
     indent: false,
     file: `./commonjs/${filename}`,
-    exports: 'named'
+    exports: 'named',
+    // Rollup inserts "use strict" first, then prepends this banner, so the directive stays first.
+    banner: "'use client';",
   },
   plugins: baseConfig.plugins,
 };
