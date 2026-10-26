@@ -125,8 +125,10 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   only on cells of an area, fill or focus layer (`selectedCells` in `selection/manager.ts`). Otherwise a
   screen reader reported every referenced cell as selected.
 - **An error cell carries its message as `aria-description`** (under `ariaTags`), written in
-  `afterRenderer` from the package's `data-hfe-error` mark and removed only from a cell the plugin wrote
-  it on (a `WeakSet`), so an application's own description survives the grid's cell recycling.
+  `afterRenderer` from the package's `data-hfe-error` mark. The plugin keeps the text it wrote per element
+  (a `WeakMap`) and removes the attribute only while it still holds that text: a recycled element can carry
+  the plugin's description from its last cell, but a renderer runs before `afterRenderer` and may already
+  have written the application's own, which a "did the plugin touch this element" check deleted.
 - **`afterRenderer` runs for every rendered cell on every draw.** It reads the editor from the
   `cellProperties` the hook passes, never from `getCellMetaTransient()`, which would resolve the cascade
   (and a `cells` callback) a second time per cell. It also clears the error mark (`data-hfe-error`) from a

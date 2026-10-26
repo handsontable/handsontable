@@ -1634,6 +1634,30 @@ describe('FormulaBuilder afterRenderer', () => {
 
     expect(appDescribed.getAttribute('aria-description')).toBe('Total of the quarter');
   });
+
+  it('keeps the description an application wrote on a recycled cell that showed an error before', () => {
+    const { afterRenderer } = makeRenderContext();
+    const cell = document.createElement('td');
+
+    // The cell shows the `#DIV/0!` of A1 first, so the plugin describes it.
+    afterRenderer(cell, 0, 0, 0, null, { editor: 'formula' });
+
+    expect(cell.hasAttribute('aria-description')).toBe(true);
+
+    // The grid recycles the element for B1, and the application's renderer describes it first.
+    cell.setAttribute('aria-description', 'Q2 revenue');
+    afterRenderer(cell, 0, 1, 1, 5, { editor: 'formula' });
+
+    expect(cell.getAttribute('aria-description')).toBe('Q2 revenue');
+
+    // Recycled again, with no description of anybody's: nothing of the plugin's is left to remove.
+    cell.removeAttribute('aria-description');
+    afterRenderer(cell, 0, 0, 0, null, { editor: 'formula' });
+    cell.setAttribute('aria-description', 'Q1 revenue');
+    afterRenderer(cell, 0, 1, 1, 5, { editor: 'formula' });
+
+    expect(cell.getAttribute('aria-description')).toBe('Q1 revenue');
+  });
 });
 
 describe('FormulaBuilder.disablePlugin', () => {

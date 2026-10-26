@@ -403,10 +403,11 @@ export class FormulaBuilder extends BasePlugin {
    */
   #removeEngineDetachListener: (() => void) | null = null;
   /**
-   * The cell elements the plugin gave an error description to. The grid recycles cell elements, so
-   * a description is removed only from a cell the plugin wrote it on, never from an application's.
+   * The error description the plugin wrote on each cell element. The grid recycles cell elements, and
+   * a renderer may describe a recycled one before the plugin runs, so a description is removed only
+   * while it is still the text the plugin wrote, never an application's.
    */
-  readonly #describedCells = new WeakSet<HTMLElement>();
+  readonly #describedCells = new WeakMap<HTMLElement, string>();
   /**
    * Whether the grid's init has finished (`afterInit` ran).
    */
@@ -934,11 +935,22 @@ export class FormulaBuilder extends BasePlugin {
 
     if (message && this.hot.getSettings().ariaTags) {
       setAttribute(cellEl, [A11Y_DESCRIPTION(message)]);
-      this.#describedCells.add(cellEl);
-    } else if (this.#describedCells.has(cellEl)) {
-      removeAttribute(cellEl, CELL_DESCRIPTION_ATTRIBUTE);
-      this.#describedCells.delete(cellEl);
+      this.#describedCells.set(cellEl, message);
+
+      return;
     }
+
+    const written = this.#describedCells.get(cellEl);
+
+    if (written === undefined) {
+      return;
+    }
+
+    if (cellEl.getAttribute(CELL_DESCRIPTION_ATTRIBUTE) === written) {
+      removeAttribute(cellEl, CELL_DESCRIPTION_ATTRIBUTE);
+    }
+
+    this.#describedCells.delete(cellEl);
   }
 
   /**
