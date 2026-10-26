@@ -2432,7 +2432,8 @@ hot.updateSettings({ afterChange: null });
 - You pass `null` for a hook in `updateSettings()` and expect the earlier callback to keep running.
 - You use a framework wrapper and set a hook prop to `null`, for example
   `afterChange={isTracking ? logChange : null}` in React. The callback is now removed when the prop
-  becomes `null`. A prop set to `undefined` still leaves the callback in place.
+  becomes `null`. A prop set to `undefined` still leaves the callback in place. The wrapper prop types
+  do not accept `null` for a hook yet, so in TypeScript this line does not compile.
 
 ### How to migrate
 
@@ -2440,18 +2441,23 @@ To keep the callback, leave the hook out of the call, or pass the callback again
 
 ## 43. `colWidths: null` sizes columns like `undefined`
 
-In 18.1, a `null` column width was passed on as a width. With
-[`colWidths: null`](@/api/options.md#colwidths), a `null` entry in a `colWidths` array, a `colWidths`
-function returning `null`, or a column `width: null`,
-[`getColWidth()`](@/api/core.md#getcolwidth) returned `null`, and every such column was drawn at the
-default 50px width, although the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin reported itself
-enabled. In 19.0, `null` sets no width, the same as `undefined`: AutoColumnSize sizes the column, and
-the [`modifyColWidth`](@/api/hooks.md#modifycolwidth) hook receives `undefined` for it.
+In 18.1, [`colWidths: null`](@/api/options.md#colwidths) was passed on as a width:
+[`getColWidth()`](@/api/core.md#getcolwidth) returned `null` for every column, and every column was
+drawn at the default 50px width, although the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin
+reported itself enabled. In 19.0, `colWidths: null` sets no width, the same as `undefined`, and
+AutoColumnSize sizes the columns.
+
+A `null` entry in a `colWidths` array, or a `colWidths` function returning `null`, also sets no width
+now: `getColWidth()` returns the default width instead of `null`, and the
+[`modifyColWidth`](@/api/hooks.md#modifycolwidth) hook receives `undefined` for that column.
+AutoColumnSize stays off there, because any other `colWidths` value turns it off, so those columns
+keep the 50px width. A column `width: null` behaves like `undefined` and falls back to `colWidths`.
 
 ### Who is affected
 
-- You set `colWidths: null` (or a `null` width for some columns) and rely on 50px columns.
-- Your `modifyColWidth` callback checks `width === null`.
+- You set `colWidths: null` and rely on 50px columns.
+- Your `modifyColWidth` callback checks `width === null`, or your code expects `getColWidth()` to
+  return `null`.
 
 ### How to migrate
 

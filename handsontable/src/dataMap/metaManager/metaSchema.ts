@@ -1573,8 +1573,11 @@ export default (): Record<string, unknown> => {
      * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                            |
      * | `null`      | Same as `undefined`: no width is set,<br>so the {@link AutoColumnSize} plugin sizes the columns        | `colWidths: null`                                                 |
      *
-     * A `null` entry in the array, a `null` returned by the function, and a column `width: null` also set no
-     * width: the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook receives `undefined` for that column.
+     * A `null` entry in the array and a `null` returned by the function also set no width: the
+     * [modifyColWidth](@/api/hooks.md#modifyColWidth) hook receives `undefined` for that column. The
+     * {@link AutoColumnSize} plugin stays off there, because any other `colWidths` value turns it off, so such a
+     * column gets the default 50px width. A column `width: null` behaves like `undefined` and falls back to
+     * `colWidths`.
      *
      * The array and the function address a column by its physical index, so a width stays with its column
      * when the user moves the column. The physical index doesn't change when columns are moved

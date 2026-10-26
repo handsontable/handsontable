@@ -71,6 +71,54 @@ describe('updateSettings() with a hook set to `null`', () => {
     expect(second).not.toHaveBeenCalled();
   });
 
+  it('skips the later callbacks of an array when one of them sets the hook to `null` during the run', () => {
+    const b = jest.fn();
+    const c = jest.fn();
+    const a = jest.fn((changes, source) => source === 'edit' && hot.updateSettings({ afterChange: null }));
+
+    build({ afterChange: [a, b, c] });
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(a).toHaveBeenCalledTimes(1);
+    expect(b).not.toHaveBeenCalled();
+    expect(c).not.toHaveBeenCalled();
+  });
+
+  it('keeps running the callbacks after the removed ones when an array removes itself during the run', () => {
+    const listener = jest.fn();
+    const a = jest.fn((changes, source) => source === 'edit' && hot.updateSettings({ afterChange: null }));
+
+    build({ afterChange: [a, jest.fn()] });
+    hot.addHook('afterChange', listener);
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a listener `addHook()` added for the function the settings passed when the settings pass another one', () => {
+    const fn = jest.fn();
+    const other = jest.fn();
+
+    build({ afterChange: fn });
+    hot.addHook('afterChange', fn);
+    hot.updateSettings({ afterChange: other });
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(other).toHaveBeenCalledTimes(1);
+  });
+
+  it('removes a settings callback that `addHookOnce()` was passed again', () => {
+    const fn = jest.fn();
+
+    build({ afterChange: fn });
+    hot.addHookOnce('afterChange', fn);
+    hot.updateSettings({ afterChange: null });
+    hot.setDataAtCell(0, 0, 'x');
+
+    expect(fn).not.toHaveBeenCalled();
+  });
+
   it('removes every callback of an array passed in the settings', () => {
     const first = jest.fn();
     const second = jest.fn();

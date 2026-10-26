@@ -92,7 +92,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ],
   columnSorting: true,
   columnSummary: [],
-  colWidths: oneOf(100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100))),
+  colWidths: oneOf(
+    100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100)),
+    null, [120, null, undefined], ((index: number) => oneOf(100, null, undefined)),
+  ),
   commentedCellClassName: 'foo',
   comments: true,
   contextMenu: true,

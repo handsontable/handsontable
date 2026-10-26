@@ -170,8 +170,8 @@ const TOP_LEVEL_DATA_WARNING = 'The `data` setting is ignored when `sheetsBar.sh
 
 /**
  * Compares two values structurally, with two deliberate reference-equality floors: arrays are
- * compared element by element, plain objects key by key, dates by their time value, and everything
- * else — a class instance such as a HyperFormula engine, a function, a DOM element — by reference,
+ * compared element by element, object literals key by key (`isObjectLiteral`), dates by their time value,
+ * and everything else — a class instance such as a HyperFormula engine, a function, a DOM element — by reference,
  * since a copy of those is a different thing, not an equal one. A date is a value: a framework
  * wrapper rebuilds an inline `new Date(...)` on every render, and two invalid dates are equal too.
  *
@@ -193,7 +193,7 @@ function isStructurallyEqual(a: unknown, b: unknown, compared = new WeakMap<obje
   }
 
   const isArrayPair = Array.isArray(a) && Array.isArray(b);
-  const isObjectPair = isPlainObject(a) && isPlainObject(b);
+  const isObjectPair = isObjectLiteral(a) && isObjectLiteral(b);
 
   if (!isArrayPair && !isObjectPair) {
     return false;
@@ -273,20 +273,39 @@ function isSameSheetsList(a: unknown, b: unknown): boolean {
 }
 
 /**
- * Copies a settings value for a snapshot: arrays and object literals are copied level by level, everything
- * else is kept by reference. Only an object whose prototype is `Object.prototype` (or `null`) is copied:
- * `isPlainObject` also answers `true` for a class instance such as a HyperFormula engine, whose object
- * graph has cycles, and copying it never ended. A kept reference still compares equal to itself.
+ * Tells whether a value is an object literal: an object whose prototype is `Object.prototype` or `null`.
+ * `isPlainObject` also answers `true` for a class instance such as a HyperFormula engine.
+ *
+ * @param {*} value The value to check.
+ * @returns {boolean}
+ */
+function isObjectLiteral(value: unknown): boolean {
+  if (!isPlainObject(value)) {
+    return false;
+  }
+
+  const prototype: unknown = Object.getPrototypeOf(value);
+
+  return prototype === Object.prototype || prototype === null;
+}
+
+/**
+ * Copies a settings value for a snapshot: arrays and object literals are copied level by level, a date is
+ * copied by its time value, and everything else is kept by reference. A class instance such as a
+ * HyperFormula engine is not copied: its object graph has cycles, and copying it never ended. A kept
+ * reference still compares equal to itself. A date is copied because the host can edit it in place
+ * (`setFullYear()`) and send it again, and a kept reference would compare the edited date with itself.
  *
  * `copies` maps every array and object literal already copied to its copy, so a value that refers to itself
  * is copied with the same shape instead of recursing until the stack overflows, and a sub-object two keys
  * share is copied once.
  */
 function copySettingsValue(value: unknown, copies = new WeakMap<object, unknown>()): unknown {
-  const prototype: unknown = isPlainObject(value) ? Object.getPrototypeOf(value) : undefined;
-  const isObjectLiteral = isPlainObject(value) && (prototype === Object.prototype || prototype === null);
+  if (value instanceof Date) {
+    return new Date(value.getTime());
+  }
 
-  if (!Array.isArray(value) && !isObjectLiteral) {
+  if (!Array.isArray(value) && !isObjectLiteral(value)) {
     return value;
   }
 
@@ -1309,6 +1328,7 @@ export class SheetsBar extends BasePlugin {
 
     try {
       this.#isRestoringBaseline = true;
+      this.#clearRestoredSettingsHooks(restored);
       this.hot.updateSettings(restored);
     } finally {
       this.#isRestoringBaseline = false;
@@ -2483,6 +2503,7 @@ export class SheetsBar extends BasePlugin {
       this.#loadingSheet = sheet;
 
       try {
+        this.#clearRestoredSettingsHooks(payload, sheet.settings);
         this.hot._applySettingsAndData(
           payload as Partial<GridSettings>, sheet.data as unknown[], `${source}.switch`, cellOptionMetas,
           keptCellMetas,
@@ -2906,6 +2927,34 @@ export class SheetsBar extends BasePlugin {
     const merged = { ...restored, ...(settings ?? {}) };
 
     return Object.keys(merged).length > 0 ? merged : null;
+  }
+
+  /**
+   * Removes every callback the settings registered for each hook the payload restores from the baseline,
+   * before the payload is applied. A function in the settings replaces only the earlier settings function,
+   * and an array is added beside the earlier callbacks, so restoring a grid-level array left a sheet's own
+   * function running, and restoring a grid-level function left a sheet's own array running, on every other
+   * sheet and after a teardown. A hook the sheet declares itself keeps the documented behavior: its function
+   * replaces the grid-level function, and a grid-level array keeps running beside it. A `null` value needs
+   * nothing here, because core removes the settings callbacks for it.
+   *
+   * @param {object} payload The settings about to be applied.
+   * @param {object} [ownSettings] The arriving sheet's own settings.
+   */
+  #clearRestoredSettingsHooks(payload: Record<string, unknown>, ownSettings?: Record<string, unknown>) {
+    const hooks = Hooks.getSingleton();
+
+    Object.keys(payload).forEach((key) => {
+      const value = payload[key];
+
+      if (
+        (typeof value === 'function' || Array.isArray(value))
+        && !(ownSettings && key in ownSettings)
+        && (hooks.isRegistered(key) || hooks.isDeprecated(key))
+      ) {
+        hooks._removeFromSettings(key, this.hot as unknown as Record<string, unknown>);
+      }
+    });
   }
 
   /**

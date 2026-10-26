@@ -18,7 +18,9 @@ export interface HookEntry {
    * Whether a settings object registered the entry (`updateSettings()` or the grid's initial settings).
    * Only such an entry can be removed by a hook set to `null` in the settings (`removeFromSettings()`).
    * An entry that `add()` met again from any other registration, `addHook()` included, loses the mark,
-   * so the settings can never remove a listener that was added through the API.
+   * so the settings can never remove a listener that was added through the API. It also stops being the
+   * fixed settings entry (`initialHook`), so the next function the settings pass is added beside it instead
+   * of replacing it. A `runOnce` registration (`addHookOnce()`) is dropped as a duplicate and claims nothing.
    */
   fromSettings: boolean;
   /**
@@ -119,8 +121,9 @@ export class HooksBucket {
 
     for (let node = list.head; node !== null; node = node.next) {
       if (node.callback === callback) {
-        if (!fromSettings) {
+        if (!fromSettings && !options.runOnce) {
           node.fromSettings = false;
+          node.initialHook = false;
         }
 
         return;
@@ -177,15 +180,60 @@ export class HooksBucket {
    * `addHook()` call registered, or claimed by registering the same callback again, stays. Returns how many
    * entries were removed.
    *
+   * The entries go in one pass, and each removed entry is pointed at the next entry that stays (or `null`).
+   * A run that is in progress may hold a removed entry: one that sets its own hook to `null` from inside an
+   * array, for example. It then moves on to the entries that stay and skips the other removed ones.
+   *
    * @param {string} hookName The name of the hook.
    * @returns {number}
    */
   removeFromSettings(hookName: string): number {
-    let removed = 0;
+    const list = this.#hooks.get(hookName);
 
-    while (this.#removeWhere(hookName, node => node.fromSettings)) {
-      removed += 1;
+    if (!list) {
+      return 0;
     }
+
+    const pending: HookEntry[] = [];
+    let removed = 0;
+    let survivor: HookEntry | null = null;
+    let node = list.head;
+
+    list.head = null;
+
+    while (node !== null) {
+      const next: HookEntry | null = node.next;
+
+      if (node.fromSettings) {
+        pending.push(node);
+        removed += 1;
+      } else {
+        if (survivor) {
+          survivor.next = node;
+        } else {
+          list.head = node;
+        }
+
+        for (let i = 0; i < pending.length; i += 1) {
+          pending[i].next = node;
+        }
+
+        pending.length = 0;
+        survivor = node;
+      }
+
+      node = next;
+    }
+
+    for (let i = 0; i < pending.length; i += 1) {
+      pending[i].next = null;
+    }
+
+    if (survivor) {
+      survivor.next = null;
+    }
+
+    list.tail = survivor;
 
     return removed;
   }

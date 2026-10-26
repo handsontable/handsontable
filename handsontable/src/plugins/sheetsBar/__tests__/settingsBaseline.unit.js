@@ -136,6 +136,21 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       expect(hot.getSettings().colWidths).toBeNull();
     });
 
+    it('is taken from the settings a `beforeImport` listener writes', async() => {
+      const bar = buildWorkbook(sheets(), { importFile: true });
+
+      bar.setActiveSheet('Locked');
+      bar.setActiveSheet('Plain');
+      hot.addHook('beforeImport', () => {
+        hot.updateSettings({ readOnly: true });
+      });
+      await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', loadFixture('layout'));
+      bar.setActiveSheet('Locked');
+      bar.setActiveSheet('Plain');
+
+      expect(hot.getSettings().readOnly).toBe(true);
+    });
+
     it('does not replace the baseline when it is set on a sheet that declares the key', () => {
       const bar = buildWorkbook(sheets());
 
@@ -282,6 +297,49 @@ describe('SheetsBar settings baseline and lifecycle', () => {
       });
 
       expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha']);
+    });
+
+    it('reads a `Date` edited in place as a new workbook', () => {
+      const reviewedOn = new Date(2026, 0, 1);
+      const sheets = [{ name: 'Alpha', data: [['a']], settings: { reviewedOn } }];
+      const bar = buildWorkbook(sheets);
+
+      bar.addSheet('Runtime');
+      reviewedOn.setFullYear(2027);
+      hot.updateSettings({ sheetsBar: { sheets } });
+
+      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha']);
+    });
+
+    it('reads a new class instance with the same fields as a new workbook', () => {
+      class Engine {
+        constructor(level) {
+          this.level = level;
+        }
+      }
+      const data = [['a']];
+      const bar = buildWorkbook([{ name: 'Alpha', data, settings: { engine: new Engine(1) } }]);
+
+      bar.addSheet('Runtime');
+      hot.updateSettings({ sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { engine: new Engine(1) } }] } });
+
+      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha']);
+    });
+
+    it('keeps the workbook when the same class instance is sent again', () => {
+      class Engine {
+        constructor(level) {
+          this.level = level;
+        }
+      }
+      const engine = new Engine(1);
+      const data = [['a']];
+      const bar = buildWorkbook([{ name: 'Alpha', data, settings: { engine } }]);
+
+      bar.addSheet('Runtime');
+      hot.updateSettings({ sheetsBar: { sheets: [{ name: 'Alpha', data, settings: { engine } }] } });
+
+      expect(bar.getSheets().map(sheet => sheet.name)).toEqual(['Alpha', 'Runtime']);
     });
 
     it('applies the host\'s `sheets` array edited in place', () => {
@@ -485,6 +543,58 @@ describe('SheetsBar settings baseline and lifecycle', () => {
 
       expect(own).not.toHaveBeenCalled();
       expect(gridLevel).toHaveBeenCalled();
+    });
+  });
+
+  describe('a hook the grid sets as an array', () => {
+    const sheets = own => [
+      { name: 'Plain', data: [['a']] },
+      { name: 'Hooked', data: [['b']], settings: { afterChange: own } },
+    ];
+
+    it('does not run a sheet\'s own callback after a switch away from it', () => {
+      const gridLevel = jest.fn();
+      const own = jest.fn();
+      const bar = buildWorkbook(sheets(own), { afterChange: [gridLevel] });
+
+      bar.setActiveSheet('Hooked');
+      bar.setActiveSheet('Plain');
+      own.mockClear();
+      gridLevel.mockClear();
+      hot.setDataAtCell(0, 0, 'x');
+
+      expect(own).not.toHaveBeenCalled();
+      expect(gridLevel).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not run a sheet\'s own callback after a `sheetsBar: false` teardown', () => {
+      const gridLevel = jest.fn();
+      const own = jest.fn();
+      const bar = buildWorkbook(sheets(own), { afterChange: [gridLevel] });
+
+      bar.setActiveSheet('Hooked');
+      hot.updateSettings({ sheetsBar: false });
+      own.mockClear();
+      gridLevel.mockClear();
+      hot.setDataAtCell(0, 0, 'x');
+
+      expect(own).not.toHaveBeenCalled();
+      expect(gridLevel).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not run a sheet\'s own array after a switch to a sheet with the grid-level function', () => {
+      const gridLevel = jest.fn();
+      const own = jest.fn();
+      const bar = buildWorkbook(sheets([own]), { afterChange: gridLevel });
+
+      bar.setActiveSheet('Hooked');
+      bar.setActiveSheet('Plain');
+      own.mockClear();
+      gridLevel.mockClear();
+      hot.setDataAtCell(0, 0, 'x');
+
+      expect(own).not.toHaveBeenCalled();
+      expect(gridLevel).toHaveBeenCalledTimes(1);
     });
   });
 

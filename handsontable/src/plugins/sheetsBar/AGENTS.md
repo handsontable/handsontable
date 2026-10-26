@@ -82,11 +82,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `{ activeSheet: 2 }`) must be judged through the plugin's merged `getSetting('sheets')`, not
   the raw grid value, or every UI tweak would rebuild the workbook. "Structurally unchanged"
   compares each sheet's `settings` by content (a `Date` by its time value, two invalid dates
-  equal) and its `data` by reference — an equal fresh literal with stable data references keeps
+  equal, a class instance by reference: only object literals are walked, `isObjectLiteral`) and its `data` by reference — an equal fresh literal with stable data references keeps
   the workbook; recreated data arrays rebuild it (a rebuild re-activates the previous sheet by
   name when `activeSheet` itself did not change). The comparison is against a **snapshot** of the
   value the workbook was built from (`snapshotSheetsList`: the array and each entry copied, each
-  `settings` copied level by level, `data` by reference), never the host's own array: a host that
+  `settings` copied level by level with dates copied too, `data` by reference), never the host's own array: a host that
   edits its array or a sheet's `settings` in place and sends it again compared it with itself, and
   the change, the active sheet's new settings included, was ignored. `#pruneDeclaredSheet` splices
   the snapshot beside the host's array (`#lastBuiltEntries` maps the two), or the next re-send of
@@ -118,7 +118,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   describe the grid as the workbook started. Two limits ride along. The Vue wrapper sends only the keys
   that changed and almost never `sheetsBar`, so a grid-level value changed there while the active sheet
   declares the key never reaches the baseline. And the `updateSettings()` calls ImportFile makes while it
-  applies an import (`_isApplyingImport()`) are skipped: they carry the imported file's layout for the sheet
+  applies an import's result (`_isApplyingImport()`, which answers `false` while the `beforeImport` listeners run,
+  so a setting a listener changes is the host's own) are skipped: they carry the imported file's layout for the sheet
   shown, and as the baseline they spread its columns and widths to every sheet without its own. A value
   set while the active sheet declares the key, outside a payload naming `sheetsBar`, is kept nowhere: it
   shows until the user leaves the sheet. The neutral `fixedColumnsStart` is captured only
@@ -585,7 +586,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     every other key, for a function: core keeps one settings callback per hook name. A grid-level ARRAY
     of callbacks is added through `Hooks#add` instead and keeps running beside a sheet's callback on every
     sheet. No write the `cell` option makes is kept as cell meta the user set: core files it in the `cell`-option
-    bucket, which `getUserDefinedCellMetas()` does not read, at init or on a switch. A hook only sheets declare, with no grid-level
+    bucket, which `getUserDefinedCellMetas()` does not read, at init or on a switch. Restoring a grid-level hook value (a function or an array) on a sheet that does not declare the
+    hook first removes every callback the settings registered for it (`#clearRestoredSettingsHooks`, on a
+    switch and on a teardown): an array is added beside the earlier callbacks, so restoring `[g]` left a
+    sheet's own function running on every other sheet, and restoring a function left a sheet's own array
+    running. A hook only sheets declare, with no grid-level
     callback, is restored as `null`, and core removes the settings callback for a `null` hook
     (`registerSettingsHook` in `core.ts`), so it stops running on the sheets that do not declare it and after
     a `sheetsBar: false` teardown. Before that removal existed, `null` removed nothing and the hook ran
