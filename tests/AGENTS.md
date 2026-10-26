@@ -580,6 +580,15 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   current page's rows only (Pagination clamps the range in `beforeSelectColumns` and
   `beforeSetRangeEnd`), so a Delete after it empties that page and no other.
   `pagination-filter-sort.spec.ts` asserts both.
+- The fill handle of a cell on the grid's last row or column is not always on the cell's corner. When
+  that track ends at the holder's edge, the handle is lifted inside the cell and moved out of the
+  overlay scrollbar's strip (`Border#getCornerScrollbarShift`). The test browsers report a scrollbar
+  width of 0, so the strip applies on every leg, and the theme's track size decides whether the track
+  reaches the edge: in the 130px `formulas-object-columns.html` the handle of row 1 sits 1px from the
+  corner on `main` and `classic` and 20px inside the cell on `horizon`. A wait for the handle before a
+  drag accepts it anywhere along the lifted axis: on the last row, any point on the cell's inline-end
+  edge from its top to just past its bottom (`FormulasObjectColumnsPage.selectCell()`). The spec
+  declares `THEMES_TAG`.
 
 - The row resize handle is attached once and moved from header to header, so
   "the handle is visible" proves nothing about which header it is on:
