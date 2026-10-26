@@ -39,6 +39,7 @@
       'hidden-row': 'hidden-row',
       'read-only': 'read-only',
       'split-scroll': 'split-scroll',
+      shadow: 'shadow',
     })[htParams.get('variant') ?? 'default'];
     if (!window.htVariant) {
       throw new Error('Unknown ?variant= value: ' + JSON.stringify(htParams.get('variant')));
@@ -113,13 +114,50 @@
       'read-only': { settings: { cell: [{ row: 0, col: 2, readOnly: true }] } },
       // A pixel width and no height: the window scrolls the rows, the grid's holder the columns.
       'split-scroll': { settings: { width: 300, colWidths: 200 } },
+      // The grid inside an open shadow root, with its stylesheets linked inside it: document
+      // stylesheets do not reach the shadow tree, so every style the plugin generates must too.
+      shadow: { shadow: true },
     };
+
+    /**
+     * Moves the grid container into an open shadow root and links the grid's stylesheets there.
+     *
+     * @returns {Promise<void>} Resolves when both stylesheets have loaded.
+     */
+    async function mountInShadowRoot() {
+      const host = document.createElement('div');
+
+      host.setAttribute('data-testid', 'shadow-host');
+      container.replaceWith(host);
+
+      const shadowRoot = host.attachShadow({ mode: 'open' });
+      const loads = ['/handsontable/styles/handsontable.min.css', `/handsontable/styles/ht-theme-${window.htTheme}.min.css`]
+        .map((href) => {
+          const link = document.createElement('link');
+
+          link.rel = 'stylesheet';
+          link.href = href;
+          shadowRoot.appendChild(link);
+
+          return new Promise((resolve, reject) => {
+            link.addEventListener('load', resolve);
+            link.addEventListener('error', () => reject(new Error(`Failed to load ${href}`)));
+          });
+        });
+
+      shadowRoot.appendChild(container);
+      await Promise.all(loads);
+    }
 
     // The shared fixture contract: a failed module import or a constructor throw lands in
     // `window.htBuildError`, which `awaitFixtureBuilt()` rethrows with its stack.
     try {
       const FormulaBuilderModule = await import('/tests/node_modules/hyperformula-ui/dist/index.js');
       const variant = VARIANTS[window.htVariant];
+
+      if (variant.shadow) {
+        await mountInShadowRoot();
+      }
 
       window.FormulaBuilderModule = FormulaBuilderModule;
       window.hot = new Handsontable(container, Object.assign({

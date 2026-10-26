@@ -194,7 +194,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 - **The builder is built in the grid's document.** `rootDocument` is `hot.rootDocument`, so a grid in an
   iframe gets its selectors resolved and its styles injected there, and a grid in a shadow root passes the
   shadow root as `portalParent`, so the popups and the live region stay in the same tree as the editor and
-  its ARIA references resolve.
+  its ARIA references resolve. The adapter's generated highlight rules (the dashed border mask, the cell
+  tint) go in `hot.rootWrapperElement`, never the document head, which a shadow tree does not read; the
+  `shadow` fixture variant pins both (`formula-builder-layout.spec.ts`).
 - **Ctrl/Cmd+Enter fills the selection through the grid's editor.** The adapter's `commitFill()` calls
   `commitInlineEditToSelection()`, which saves through `finishEditing(false, true)`: the `ctrlDown` path of
   `BaseEditor#saveValue()`, shared with the grid's own fill (`selection/fillSelection.ts`). Alt+Enter inserts

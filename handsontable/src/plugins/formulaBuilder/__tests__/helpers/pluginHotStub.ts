@@ -46,6 +46,7 @@ export interface FormulasStub {
  */
 export interface PluginHotStubShape {
   rootElement: HTMLElement;
+  rootWrapperElement: HTMLElement;
   rootDocument: Document;
   rootWindow: Window & typeof globalThis;
   isDestroyed: boolean;
@@ -171,6 +172,7 @@ export function makePluginHotStub(
   const layoutManager = { register: jest.fn(), unregister: jest.fn() };
   const hot: PluginHotStubShape = {
     rootElement: document.createElement('div'),
+    rootWrapperElement: document.createElement('div'),
     rootDocument: document,
     rootWindow: window,
     isDestroyed: false,

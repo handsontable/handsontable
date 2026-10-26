@@ -276,3 +276,38 @@ test.describe('formulaBuilder in a grid the window scrolls vertically', { tag: [
     await expect(grid.editorInput).toHaveValue(/^=A1:[BC]1$/);
   });
 });
+
+// A grid inside a shadow root reads no document stylesheet, so the rules the plugin generates for
+// its highlights (the dashed border mask and the cell tint) must be mounted in the grid's own tree.
+test.describe('formulaBuilder in a shadow root', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle, 'shadow');
+    await grid.goto();
+  });
+
+  test('the reference highlights get their dashed border and their tint', async({ page }) => {
+    await grid.selectCellByApi(0, 2);
+    await page.keyboard.press('Enter');
+    await expect(grid.editorInput).toHaveValue('=A1+B1');
+    // The caret ends on `B1`, so B1 is the active reference: bordered and tinted.
+    await expect(grid.cell(0, 1)).toHaveClass(/ht-formula-ref-/);
+
+    await expect.poll(() => page.evaluate(() => {
+      const root = document.querySelector('[data-testid="shadow-host"]')?.shadowRoot;
+      const cell = root?.querySelector('[data-testid="cell-0-1"]');
+      const borders = Array.from(root?.querySelectorAll('.ht_master .wtBorder[class*="ht-formula-ref-"]') ?? []);
+
+      const input = root?.querySelector('.hfe-editor__input');
+
+      return {
+        tinted: !!cell && getComputedStyle(cell).backgroundImage !== 'none',
+        dashed: borders.length > 0 && borders.every(border => getComputedStyle(border).maskImage !== 'none'),
+        // The package stylesheet reaches the shadow root too: its text field overlays the
+        // highlighted text instead of showing the formula a second time.
+        inputOverlays: !!input && getComputedStyle(input).position === 'absolute',
+      };
+    })).toEqual({ tinted: true, dashed: true, inputOverlays: true });
+  });
+});

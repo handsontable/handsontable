@@ -14,7 +14,8 @@ export type FormulaBuilderVariant =
   | 'frozen'
   | 'hidden-row'
   | 'read-only'
-  | 'split-scroll';
+  | 'split-scroll'
+  | 'shadow';
 
 /**
  * The overlay a frozen cell is drawn in, by the class of its clone.
@@ -264,7 +265,12 @@ export class FormulaBuilderPage {
    */
   async focusedCellTestId(): Promise<string | null> {
     return this.page.evaluate(() => {
-      const active = document.activeElement;
+      let active = document.activeElement;
+
+      // The `shadow` variant: the document reports the shadow host, so descend into its tree.
+      while (active?.shadowRoot?.activeElement) {
+        active = active.shadowRoot.activeElement;
+      }
 
       return active?.tagName === 'TD' ? active.getAttribute('data-testid') : null;
     });

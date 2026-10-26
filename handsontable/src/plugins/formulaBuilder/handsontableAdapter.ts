@@ -1560,7 +1560,9 @@ export class HandsontableAdapter {
     if (this.#fillStyleEl === null) {
       this.#fillStyleEl = this.#hot.rootDocument.createElement('style');
       this.#fillStyleEl.setAttribute('data-hot-formula-ref-fills', '');
-      this.#hot.rootDocument.head.appendChild(this.#fillStyleEl);
+      // In the grid's own wrapper, not the document head: a grid inside a shadow root reads no
+      // document stylesheet, and the rules here draw its highlights (as `importFile` mounts its own).
+      this.#hot.rootWrapperElement.appendChild(this.#fillStyleEl);
     }
 
     const sheet = this.#fillStyleEl.sheet;

@@ -187,6 +187,7 @@ export interface HotStubShape extends GridSelectionApiStub {
   getFirstRenderedVisibleColumn: () => number;
   getLastRenderedVisibleColumn: () => number;
   rootDocument: Document;
+  rootWrapperElement: HTMLElement;
   rootWindow: Window & typeof globalThis;
   rootElement: HTMLElement;
   getCurrentThemeName: () => string | null;
@@ -257,6 +258,7 @@ export function makeHotStub(overrides: Partial<HotStubShape> = {}): HotInstance 
     rootDocument: document,
     rootWindow: window as Window & typeof globalThis,
     rootElement: document.body,
+    rootWrapperElement: document.body,
     getCurrentThemeName: () => null,
     isRtl: () => false,
     ...makeGridSelectionApiStub(),

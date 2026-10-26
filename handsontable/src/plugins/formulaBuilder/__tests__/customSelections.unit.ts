@@ -60,7 +60,7 @@ function customSelectionsOf(hot: ReturnType<typeof makeHotStub>): CustomSelectio
 describe('HandsontableAdapter custom-selection highlights', () => {
   afterEach(() => {
     document.body.replaceChildren();
-    document.head.querySelector('[data-hot-formula-ref-fills]')?.remove();
+    document.body.querySelector('[data-hot-formula-ref-fills]')?.remove();
   });
 
   it('registers one custom selection per highlight, frozen panes included', () => {
@@ -130,7 +130,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
     expect(filled.settings.className).toMatch(/^ht-formula-ref-fill-ht_teststub-\d+$/);
     expect(borderOnly.settings.className).toMatch(/^ht-formula-ref-line-ht_teststub-\d+$/);
 
-    const styleEl = document.head.querySelector('[data-hot-formula-ref-fills]');
+    const styleEl = document.body.querySelector('[data-hot-formula-ref-fills]');
     const rules = styleEl instanceof HTMLStyleElement && styleEl.sheet ?
       [...styleEl.sheet.cssRules].map(rule => rule.cssText).join('') : '';
 
@@ -235,12 +235,14 @@ describe('HandsontableAdapter custom-selection highlights', () => {
     adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'red', fill: true }]);
     adapter.highlightRange(range(2, 2, 3, 3), 'blue');
 
-    expect(document.head.querySelector('[data-hot-formula-ref-fills]')).not.toBeNull();
+    // In the grid's wrapper, never the document head, which a grid in a shadow root does not read.
+    expect(hot.rootWrapperElement.querySelector('[data-hot-formula-ref-fills]')).not.toBeNull();
+    expect(document.head.querySelector('[data-hot-formula-ref-fills]')).toBeNull();
 
     adapter.destroy();
 
     expect(customSelectionsOf(hot)).toHaveLength(0);
-    expect(document.head.querySelector('[data-hot-formula-ref-fills]')).toBeNull();
+    expect(document.body.querySelector('[data-hot-formula-ref-fills]')).toBeNull();
   });
 
   it('scopes generated class names per grid instance', () => {
@@ -385,7 +387,7 @@ describe('HandsontableAdapter custom-selection highlights', () => {
 
     expect(customSelectionsOf(hot)).toHaveLength(0);
 
-    const styleEl = document.head.querySelector('[data-hot-formula-ref-fills]');
+    const styleEl = document.body.querySelector('[data-hot-formula-ref-fills]');
     const rules = styleEl instanceof HTMLStyleElement && styleEl.sheet ?
       [...styleEl.sheet.cssRules].map(rule => rule.cssText).join('') : '';
 
