@@ -18,6 +18,7 @@ import {
   ViewportRowsCalculator,
 } from '../calculator';
 import type { default as Viewport } from './viewport';
+import { scrollbarAxisThickness } from '../overlay/scrollbarClearance';
 
 /**
  * Which viewport box a calculator reads from the layout snapshot. `'render'` is scrollbar-unaware
@@ -36,6 +37,7 @@ export interface CalculatorFactory {
     calculatorTypes?: string[], band?: ViewportBand, options?: { proposeOnly?: boolean }): ViewportColumnsCalculator;
   createCalculators(fastDraw?: boolean, options?: { stationaryBands?: boolean }): boolean;
   createVisibleCalculators(): void;
+  syncVisibleCalculatorsToHolderScrollbars(): void;
   usesLayoutSnapshotForCalculators(): boolean;
   allowsStationaryBands(): boolean;
   allowsRowRecycling(): boolean;
@@ -239,9 +241,18 @@ export const calculatorFactory: CalculatorFactory = {
 
     if (!useSnapshot) {
       const { geometryReader } = this.deps;
+      // The holder's horizontal gutter, not the document probe. The probe is one number for both
+      // axes and does not describe this scroller. A missing gutter stays 0 (overlay scrollbar, or
+      // the window owns this axis) rather than subtracting a predicted bar that is not there.
+      const measured = scrollbarAxisThickness(
+        geometryReader,
+        wtTable.holder,
+        'horizontal',
+        0,
+      );
 
-      if (geometryReader.clientHeight(wtTable.holder) !== geometryReader.offsetHeight(wtTable.holder)) {
-        scrollbarHeight = geometryReader.getScrollbarWidth(this.deps.rootDocument);
+      if (measured > 0) {
+        scrollbarHeight = measured;
       }
     }
 
@@ -327,9 +338,15 @@ export const calculatorFactory: CalculatorFactory = {
 
     if (!useSnapshot) {
       const { geometryReader } = this.deps;
+      const measured = scrollbarAxisThickness(
+        geometryReader,
+        wtTable.holder,
+        'vertical',
+        0,
+      );
 
-      if (geometryReader.clientWidth(wtTable.holder) !== geometryReader.offsetWidth(wtTable.holder)) {
-        width -= geometryReader.getScrollbarWidth(this.deps.rootDocument);
+      if (measured > 0) {
+        width -= measured;
       }
     }
 
@@ -443,6 +460,41 @@ export const calculatorFactory: CalculatorFactory = {
     this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible') ?? null;
     this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible') ?? null;
     this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible') ?? null;
+  },
+
+  /**
+   * Rebuilds the visible-range calculators when the holder's painted scrollbars are not the
+   * thicknesses the snapshot reserved.
+   *
+   * The snapshot is gathered at the start of the draw, often before the holder has a gutter, so it
+   * falls back to the document probe. That probe is one number and it is not this holder. By the
+   * time the hider has been written the gutter is real. This reads it once per axis (the overlay
+   * pass just above has already forced that layout) and rebuilds only when the numbers differ, so
+   * a default scrollbar, where the probe and the gutter match, does not rebuild.
+   *
+   * Off the snapshot path the calculators already subtract the measured gutter. Window scroll does
+   * not use the snapshot.
+   *
+   * @this Viewport
+   */
+  syncVisibleCalculatorsToHolderScrollbars(this: Viewport): void {
+    if (!this.usesLayoutSnapshotForCalculators()) {
+      return;
+    }
+
+    const { geometryReader } = this.deps;
+    const layout = this.getLayout();
+    const scrollbarWidth = scrollbarAxisThickness(
+      geometryReader, this.wtTable.holder, 'vertical', layout.scrollbarWidth);
+    const scrollbarHeight = scrollbarAxisThickness(
+      geometryReader, this.wtTable.holder, 'horizontal', layout.scrollbarHeight);
+
+    if (scrollbarWidth === layout.scrollbarWidth && scrollbarHeight === layout.scrollbarHeight) {
+      return;
+    }
+
+    this.invalidateLayout();
+    this.createVisibleCalculators();
   },
 
   /**

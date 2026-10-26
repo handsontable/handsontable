@@ -15,6 +15,7 @@ import type { default as Viewport } from './viewport';
 import { subtractReservedHeight } from './layoutReservation';
 import { isHTMLElement } from '../../../../helpers/dom/element';
 import { resolveWidthBoundingRoot } from '../overlay/axisOwner';
+import { scrollbarAxisThickness } from '../overlay/scrollbarClearance';
 import { boundWorkspaceWidth } from './rootWidthBound';
 
 /**
@@ -143,7 +144,16 @@ function measureHasHorizontalScroll(viewport: Viewport): boolean {
   // Only the holder's own vertical scrollbar narrows the horizontal scrollport. When the window owns
   // the vertical axis its scrollbar sits outside the grid's box.
   const holderHasVerticalScrollbar = !viewport.isVerticallyScrollableByWindow() && measureHasVerticalScroll(viewport);
-  const scrollbarWidth = holderHasVerticalScrollbar ? geometryReader.getScrollbarWidth() : 0;
+  // Predict with the probe only while the holder has not painted the bar yet. Once it has, the
+  // gutter is the width the horizontal check has to leave free.
+  const scrollbarWidth = holderHasVerticalScrollbar
+    ? scrollbarAxisThickness(
+      geometryReader,
+      viewport.wtTable.holder,
+      'vertical',
+      geometryReader.getScrollbarWidth(),
+    )
+    : 0;
 
   return hiderOffsetWidth > measureWorkspaceWidth(viewport) - scrollbarWidth;
 }

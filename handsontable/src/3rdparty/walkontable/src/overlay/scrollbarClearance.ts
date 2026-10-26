@@ -295,6 +295,32 @@ export function reservedScrollbarSpace(
 }
 
 /**
+ * The thickness to reserve for one scrollbar.
+ *
+ * The holder's own gutter wins once the browser has carved it out: that is the scrollbar the cells
+ * actually sit beside, and the two axes are not the same number. The document probe is only the
+ * prediction, used when there is no holder yet or this axis has no gutter but the layout still has
+ * to reserve a bar. `.wtHolder` has no border, so the gutter is the scrollbar (see
+ * `reservedScrollbarSpace`).
+ *
+ * @param {GeometryReader} geometryReader The geometry reader.
+ * @param {HTMLElement | null | undefined} holder The master holder, when it exists.
+ * @param {'vertical' | 'horizontal'} axis Which scrollbar. Vertical consumes width.
+ * @param {number} probe `getScrollbarWidth()` for this document. One number for both axes.
+ * @returns {number}
+ */
+export function scrollbarAxisThickness(
+  geometryReader: GeometryReader,
+  holder: HTMLElement | null | undefined,
+  axis: 'vertical' | 'horizontal',
+  probe: number,
+): number {
+  const gutter = holder ? reservedScrollbarSpace(geometryReader, holder, axis) : 0;
+
+  return gutter > 0 ? gutter : probe;
+}
+
+/**
  * Builds the `clip-path` that keeps an overlay out of the bands the scrollbars are drawn in.
  *
  * Clipping, rather than resizing, is what makes this free of side effects: every box the viewport

@@ -15,7 +15,8 @@ function input(overrides: Partial<LayoutInput> = {}): LayoutInput {
     workspaceHeight: 400,
     totalContentWidth: 300,
     totalContentHeight: 200,
-    scrollbarSize: 15,
+    scrollbarWidth: 15,
+    scrollbarHeight: 15,
     overflowX: 'auto',
     overflowY: 'auto',
     rowHeaderWidth: 0,
@@ -131,10 +132,11 @@ describe('resolveLayout', () => {
   });
 
   describe('element mode — overlay scrollbars (zero thickness)', () => {
-    it('should never induce the opposite scrollbar when scrollbarSize is 0', () => {
+    it('should never induce the opposite scrollbar when both thicknesses are 0', () => {
       // Content exactly equals the box on width; a 0px vertical scrollbar cannot push it over.
       const snapshot = resolveLayout(input({
-        scrollbarSize: 0,
+        scrollbarWidth: 0,
+        scrollbarHeight: 0,
         totalContentWidth: 500,
         totalContentHeight: 900,
       }));
@@ -145,6 +147,37 @@ describe('resolveLayout', () => {
   });
 
   describe('derived boxes', () => {
+    it('should reserve each axis its own scrollbar thickness', () => {
+      const snapshot = resolveLayout(input({
+        scrollbarWidth: 100,
+        scrollbarHeight: 10,
+        totalContentWidth: 900,
+        totalContentHeight: 900,
+      }));
+
+      expect(snapshot.hasVerticalScroll).toBe(true);
+      expect(snapshot.hasHorizontalScroll).toBe(true);
+      expect(snapshot.innerWidth).toBe(400);
+      expect(snapshot.innerHeight).toBe(390);
+      expect(snapshot.scrollbarWidth).toBe(100);
+      expect(snapshot.scrollbarHeight).toBe(10);
+    });
+
+    it('should induce a vertical scrollbar by the horizontal bar height, not the vertical bar width', () => {
+      // 395 fits in 400, and in 400 - 0, but not in 400 - 10. A 100px vertical bar must not be what
+      // decides the height.
+      const snapshot = resolveLayout(input({
+        scrollbarWidth: 100,
+        scrollbarHeight: 10,
+        totalContentWidth: 900,
+        totalContentHeight: 395,
+      }));
+
+      expect(snapshot.hasHorizontalScroll).toBe(true);
+      expect(snapshot.hasVerticalScroll).toBe(true);
+      expect(snapshot.innerHeight).toBe(390);
+    });
+
     it('should subtract the scrollbar from the inner box only on the present axis', () => {
       const snapshot = resolveLayout(input({ totalContentHeight: 900 })); // vertical only
 
