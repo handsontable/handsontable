@@ -237,11 +237,11 @@ export class CustomPlugin extends BasePlugin {
   updatePlugin() {
     // The `updatePlugin` method needs to contain all the code needed
     // to properly re-enable the plugin.
-    // In most cases simply disabling and enabling the plugin should
+    // In most cases, disabling and enabling the plugin should
     // do the trick.
     const { enabled, msg } = this.getUnifiedConfig();
 
-    // You can decide if updating the settings triggers the the
+    // You can decide if updating the settings triggers the
     // disable->enable routine or not.
     if (enabled === false && this.enabled === true) {
       this.disablePlugin();
@@ -312,7 +312,7 @@ export class CustomPlugin extends BasePlugin {
   * You can also use the alias to recognize the plugin's
   * options passed through the Setting object at Handsontable's initialization.
   *
-  * @returns {string}
+  * @returns The plugin alias.
   */
   static get PLUGIN_KEY() {
     return 'customPlugin';
@@ -325,7 +325,7 @@ export class CustomPlugin extends BasePlugin {
   * If you set SETTING_KEYS() to return `true`, your plugin updates on every `updateSettings()` call.
   * If you set SETTING_KEYS() to return `false`, your plugin never updates on any `updateSettings()` call.
   *
-  * @returns {Array|boolean}
+  * @returns The setting keys, or a boolean.
   */
   static get SETTING_KEYS() {
     return true;
@@ -450,11 +450,11 @@ export class CustomPlugin extends BasePlugin {
   updatePlugin() {
     // The `updatePlugin` method needs to contain all the code needed
     // to properly re-enable the plugin.
-    // In most cases simply disabling and enabling the plugin should
+    // In most cases, disabling and enabling the plugin should
     // do the trick.
     const { enabled, msg } = this.getUnifiedConfig();
 
-    // You can decide if updating the settings triggers the the
+    // You can decide if updating the settings triggers the
     // disable->enable routine or not.
     if (enabled === false && this.enabled === true) {
       this.disablePlugin();
@@ -506,7 +506,6 @@ export class CustomPlugin extends BasePlugin {
 
   </code-block>
 </code-group>
-
 
 ### 3. Register CustomPlugin
 
