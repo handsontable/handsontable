@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-24T04:02:44.789Z",
+  "generatedAt": "2026-10-26T07:46:53.453Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -20,7 +20,7 @@
       "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
       "line": null,
       "title": "js-only/sheetsBar/tabs-1",
-      "count7": 8,
+      "count7": 4,
       "count30": 20,
       "countAll": 20,
       "runs30": 6,
@@ -57,7 +57,7 @@
       "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
       "line": null,
       "title": "js-only/sheetsBar/tabs-2",
-      "count7": 8,
+      "count7": 4,
       "count30": 20,
       "countAll": 20,
       "runs30": 6,
@@ -665,42 +665,6 @@
       "needsTicket": true
     },
     {
-      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "tier": "playwright",
-      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
-      "line": 65,
-      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
-      "count7": 0,
-      "count30": 4,
-      "countAll": 11,
-      "runs30": 3,
-      "flakyRuns30": 3,
-      "branches30": 3,
-      "nightlyRuns30": 0,
-      "openBranches30": 3,
-      "legs": [
-        "e2e-classic-min",
-        "e2e-horizon",
-        "e2e-horizon-min",
-        "e2e-main"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-05T07:11:16Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37274312041",
-        "branch": "feature/HOT-14987_fixedColumnsEnd",
-        "leg": "e2e-horizon-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
       "key": "playwright|e2e/fixed-columns-end.spec.ts|fixedColumnsEnd keyboard navigation (rtl) › keeps the cell reached with the arrow key visible beside the end columns",
       "tier": "playwright",
       "file": "e2e/fixed-columns-end.spec.ts",
@@ -862,6 +826,42 @@
         "leg": "e2e-webkit",
         "status": "failed",
         "error": "Error: expect(locator).not.toHaveValue(expected) failed",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/unlaid-out-init-scroll-sync.spec.ts|grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
+      "tier": "playwright",
+      "file": "e2e/unlaid-out-init-scroll-sync.spec.ts",
+      "line": 65,
+      "title": "grid built into a container that has no layout yet › fills its container without any interaction once the unslotted container is laid out",
+      "count7": 0,
+      "count30": 2,
+      "countAll": 11,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "e2e-classic-min",
+        "e2e-horizon",
+        "e2e-horizon-min",
+        "e2e-main"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-05T07:11:16Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/37274312041",
+        "branch": "feature/HOT-14987_fixedColumnsEnd",
+        "leg": "e2e-horizon-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
@@ -4430,13 +4430,13 @@
       "line": null,
       "title": "Filters UI cooperation with ColumnSorting should filter values when sorting is applied",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 3,
-      "runs30": 1,
+      "runs30": 0,
       "flakyRuns30": 0,
-      "branches30": 1,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "UMD (theme: main)"
       ],
