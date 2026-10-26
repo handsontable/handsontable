@@ -47,10 +47,9 @@
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
-    /* The FormulaBuilder adapter clips its highlight overlay via overflow:hidden
-       on the grid root, which makes Handsontable treat the container as
-       size-defined - so the fixture gives it an explicit height, as real
-       integrations do. */
+    /* A fixed container height keeps the page layout the same on every leg. The
+       reference highlights are custom selections, and the plugin leaves the grid
+       root's styles alone, so nothing here is required by the plugin. */
     #grid { height: 320px; }
   </style>
 </head>
