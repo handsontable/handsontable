@@ -37,11 +37,12 @@
 
     try {
       hot = new Handsontable(container, {
-        data: Handsontable.helper.createSpreadsheetData(20, 6),
+        data: Handsontable.helper.createSpreadsheetData(20, 7),
         colHeaders: true,
         rowHeaders: true,
         comments: true,
         hiddenRows: { rows: [2] },
+        hiddenColumns: { columns: [6] },
         mergeCells: [
           { row: 1, col: 1, rowspan: 5, colspan: 2 },
           { row: 6, col: 1, rowspan: 2, colspan: 1 },
@@ -50,6 +51,8 @@
           { row: 6, col: 4, rowspan: 2, colspan: 1 },
           // Its first row is hidden, so the editor is anchored to the row above it.
           { row: 2, col: 5, rowspan: 2, colspan: 1 },
+          // Its column is hidden, so the editor is anchored to the column before it.
+          { row: 6, col: 6, rowspan: 2, colspan: 1 },
         ],
         afterRenderer: (td, row, col) => {
           td.setAttribute('data-testid', `cell-${row}-${col}`);
@@ -60,6 +63,7 @@
           { row: 4, col: 4, comment: { value: 'Comment on a plain cell.' } },
           { row: 5, col: 3, comment: { value: 'Comment on a merge one row tall.' } },
           { row: 2, col: 5, comment: { value: 'A merged range that starts on a hidden row.' } },
+          { row: 6, col: 6, comment: { value: 'A merged range in a hidden column.' } },
           {
             row: 6, col: 4, comment: { value: 'A merged range with a saved size.', style: { width: 200, height: 140 } },
           },

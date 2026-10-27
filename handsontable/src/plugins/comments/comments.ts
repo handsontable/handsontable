@@ -781,6 +781,8 @@ export class Comments extends BasePlugin {
     let renderableColumn = columnIndexMapper.getRenderableFromVisualIndex(visualColumn);
     // Used when the requested row is hidden, and the editor needs to be positioned on the previous row's coords.
     const targetingPreviousRow = renderableRow === null;
+    // Same for a hidden column: its anchor cell belongs to a column next to it.
+    const targetingOtherColumn = renderableColumn === null;
 
     // Reset the editor position to (0, 0) so the opening direction calculation wouldn't be influenced by its
     // previous position
@@ -834,9 +836,10 @@ export class Comments extends BasePlugin {
     } else {
       this.#editor.resetSize();
 
-      // A hidden row is anchored to the previous row's cell, which is not the range the comment belongs to.
+      // A hidden row or column is anchored to a neighbor's cell, which is not the range the comment belongs to.
       // The master table's cell spans the whole block. The topmost one can be an overlay's, cut at a frozen row.
-      const masterTD = targetingPreviousRow ? null : wt.getCell({ row: renderableRow, col: renderableColumn });
+      const masterTD = targetingPreviousRow || targetingOtherColumn ?
+        null : wt.getCell({ row: renderableRow, col: renderableColumn });
       const anchorHeight = isHTMLElement(masterTD) ?
         getEditorAnchorHeight(metaRowspan, masterTD.getBoundingClientRect().height) : undefined;
 

@@ -89,6 +89,16 @@ test.describe('Comment editor size - merged ranges', { tag: THEMES_TAG }, () => 
     await expect.poll(async() => (await grid.heights(1, 5)).editor).toBe(plain);
   });
 
+  test('keeps the default height for a range in a hidden column', async() => {
+    await grid.showEditorAt(4, 4);
+
+    const plain = (await grid.heights(4, 4)).editor;
+
+    await grid.showEditorAt(6, 6);
+
+    await expect.poll(async() => (await grid.heights(6, 5)).editor).toBe(plain);
+  });
+
   test('keeps a size the user saved', async() => {
     await grid.showEditorAt(6, 4);
 

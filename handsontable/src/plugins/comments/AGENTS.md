@@ -204,8 +204,9 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
   viewport clamp see the real height. Three rules. (1) **Read the height from the MASTER table's cell**
   (`wt.getCell(coords)`), not from the topmost one the rest of the method uses: with a frozen row across the
   block, the topmost cell is the top overlay's copy, cut at the freeze line, and the box came out as tall as
-  that part (58px for a 116px range). (2) **A hidden row keeps the default** (`targetingPreviousRow`): its
-  cell is the previous row's, which is not the range the comment belongs to. A one-row merge keeps it too, so
+  that part (58px for a 116px range). (2) **A hidden row or column keeps the default** (`targetingPreviousRow`,
+  `targetingOtherColumn`): the anchor is a neighbor's cell, which is not the range the comment belongs to, and
+  a one-row cell there would give the box its own height (29px). A one-row merge keeps it too, so
   it matches a plain cell. (3) The derived height is a display value that is never written to `META_STYLE`,
   because only `#onEditorResize()` writes it and the saved size wins. The `setHeight()` is synchronous, so
   unlike the clamp it does not depend on running before `observeSize()`. With `virtualized` the master block
