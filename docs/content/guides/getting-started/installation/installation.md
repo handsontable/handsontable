@@ -43,6 +43,12 @@ Install Handsontable DataGrid through your preferred package manager, and contro
 
 [[toc]]
 
+::: tip
+
+Do you want to use formulas? The `Formulas` plugin runs on HyperFormula, a separate package with its own license. To add it to your project, see [Formulas: Installation](@/guides/formulas/installation/installation.md).
+
+:::
+
 <div class="instalationPage">
 
 ::: only-for angular
