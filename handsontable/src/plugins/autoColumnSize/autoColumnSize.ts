@@ -501,11 +501,13 @@ export class AutoColumnSize extends BasePlugin {
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
+    this.addHook('beforeMergeCells', this.#onBeforeMergeChange);
+    this.addHook('beforeUnmergeCells', this.#onBeforeMergeChange);
     this.addHook('afterMergeCells', this.#onAfterMergeCells);
     this.addHook('afterUnmergeCells', this.#onAfterUnmergeCells);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
-    this.addHook('afterUndo', this.#onAfterUndoRedo);
-    this.addHook('afterRedo', this.#onAfterUndoRedo);
+    this.addHook('beforeUndo', this.#onBeforeUndoRedo);
+    this.addHook('beforeRedo', this.#onBeforeUndoRedo);
     this.addHook('beforeRender', this.#onBeforeRender);
     this.addHook('modifyColWidth', (width: number, col: number) => this.getColumnWidth(col, width), -10);
     this.addHook('init', this.#onInit);
@@ -1419,6 +1421,15 @@ export class AutoColumnSize extends BasePlugin {
   };
 
   /**
+   * Marks the drawn merges as changed before a merge or unmerge writes anything: MergeCells renders
+   * inside the call (clearing the covered cells), before its `after*` hook, and that render's fit must
+   * read the merges rather than reuse the groups of the previous fit.
+   */
+  #onBeforeMergeChange = () => {
+    this.#mergedCellsWidths.markLayoutChanged();
+  };
+
+  /**
    * Queues a full rescan of every column an unmerged area covers: its cells contribute samples again.
    */
   #onAfterUnmergeCells = (cellRange: CellRange) => {
@@ -1662,7 +1673,7 @@ export class AutoColumnSize extends BasePlugin {
     } else if (scope === 'texts') {
       this.#mergedCellsWidths.markStale();
     } else {
-      this.#mergedCellsWidths.markWidthsChanged();
+      this.#mergedCellsWidths.markLayoutChanged();
     }
   }
 
@@ -1686,11 +1697,14 @@ export class AutoColumnSize extends BasePlugin {
   };
 
   /**
-   * Asks for a fit after an undo or a redo, which can restore merges through MergeCells' state with no
-   * merge hook. The fit compares the merges with the ones it saw last and rescans what changed.
+   * Takes a snapshot of the merges right before an undo or a redo, which can restore merges through
+   * MergeCells' state with no merge hook. The undo renders before its `after*` hook fires, so the
+   * snapshot is taken before it, and the fit of that render reports and rescans what changed.
    */
-  #onAfterUndoRedo = () => {
-    this.#markMergedCellsChanged('refit');
+  #onBeforeUndoRedo = () => {
+    if (this.hot.getPlugin('mergeCells')?.enabled) {
+      this.#mergedCellsWidths.snapshotMerges();
+    }
   };
 
   /**

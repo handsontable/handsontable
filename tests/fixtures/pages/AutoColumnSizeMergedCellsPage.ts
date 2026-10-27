@@ -148,6 +148,16 @@ export class AutoColumnSizeMergedCellsPage {
   }
 
   /**
+   * Undoes or redoes the last action with no render after it, the way Ctrl+Z does: the undo renders
+   * by itself, so what it leaves on screen is what the user sees.
+   */
+  async undoRedo(action: 'undo' | 'redo'): Promise<void> {
+    await this.page.evaluate((name) => {
+      (window as unknown as FixtureWindow).hot.getPlugin('undoRedo')[name]!();
+    }, action);
+  }
+
+  /**
    * Inserts one column before the given one.
    */
   async insertColumnBefore(column: number): Promise<void> {

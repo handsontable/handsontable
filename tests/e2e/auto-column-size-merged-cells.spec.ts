@@ -419,11 +419,12 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
     await grid.unmerge(0, 0, 0, 2);
     await expect.poll(async() => (await grid.widths())[0]).toBe(control);
 
-    // The undo brings the merge back through MergeCells' state, with no merge hook.
-    await grid.callPlugin('undoRedo', 'undo');
+    // The undo brings the merge back through MergeCells' state, with no merge hook, and renders by
+    // itself: no render follows here, so the widths are the ones that render left.
+    await grid.undoRedo('undo');
     await expect.poll(async() => fitOf(await grid.widths(), 0, 3, control)).toEqual(FITS);
 
-    await grid.callPlugin('undoRedo', 'redo');
+    await grid.undoRedo('redo');
     await expect.poll(async() => (await grid.widths())[0]).toBe(control);
   });
 

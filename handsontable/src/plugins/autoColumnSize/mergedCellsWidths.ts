@@ -69,6 +69,15 @@ export interface MergedCellsFitResult {
 const NO_CHANGE: MergedCellsFitResult = { changed: false, mergesChangedIn: [] };
 
 /**
+ * The merges grouped for a fit: each drawing column, rightmost first, with the distinct spans drawn
+ * from it, and the measured text width of each lead column and span.
+ */
+interface ResolvedMerges {
+  contentWidths: Map<string, number>;
+  targets: Array<{ target: number, spans: MergedCellArea[] }>;
+}
+
+/**
  * The merges that start in one column with one span, as `MergedCellsWidths` measures them together.
  */
 interface MergeGroup {
@@ -143,20 +152,29 @@ export class MergedCellsWidths {
    */
   #groupWidths: Map<string, { width: number, signature: string }> = new Map();
   /**
-   * Every merge seen at the last fit, keyed by its physical first row and column and its span. The
-   * next fit compares the merges with it, so a merge that appeared or went away with no merge hook
-   * (MergeCells' undo and redo, a settings rebuild) is reported. `null` until the first fit.
+   * The merges taken by `snapshotMerges()`, keyed by their physical first row and column and their
+   * span. The next fit compares the merges with it, so a merge that appeared or went away with no
+   * merge hook (MergeCells' undo and redo) is reported. `null` when no snapshot waits for a fit, which
+   * keeps the comparison off every other fit.
    *
    * @type {Map<string, { physicalColumn: number, colspan: number }> | null}
    */
-  #areaKeys: Map<string, { physicalColumn: number, colspan: number }> | null = null;
+  #areaSnapshot: Map<string, { physicalColumn: number, colspan: number }> | null = null;
   /**
-   * `true` when the physical numbering may have changed, so the next fit takes the merges as the new
-   * baseline instead of comparing them with keys that no longer mean the same cells.
+   * `true` when the merges, the rows or columns they are drawn on, or their texts or styles may have
+   * changed since the last fit. Without it only widths changed, and a fit resolves the demands again
+   * from `#resolved`, without reading the merges.
    *
    * @type {boolean}
    */
-  #rebaseline = false;
+  #layoutDirty = true;
+  /**
+   * The groups the last full fit resolved: the merges' drawing columns from the rightmost one, the
+   * distinct spans drawn from each, and the measured text widths.
+   *
+   * @type {ResolvedMerges | null}
+   */
+  #resolved: ResolvedMerges | null = null;
   /**
    * `true` when an input of the demands changed since the last fit.
    *
@@ -229,6 +247,7 @@ export class MergedCellsWidths {
     }
 
     this.#pending = true;
+    this.#layoutDirty = true;
   }
 
   /**
@@ -246,19 +265,28 @@ export class MergedCellsWidths {
     }
 
     this.#pending = true;
+    this.#layoutDirty = true;
   }
 
   /**
-   * Records that merges were added or removed in a column through a merge hook. The hook's caller
-   * queues the rescans that change needs, so the next fit takes the merges as a new baseline rather
-   * than reporting them again (merges declared in the settings arrive after the init sweep's fit).
+   * Records that merges were added or removed in a column through a merge hook.
    *
    * @param {number} visualColumn The visual column index.
    */
   markMergesChanged(visualColumn: number): void {
     this.invalidateColumn(visualColumn);
     this.#hasMultiColumnMerges = true;
-    this.#rebaseline = true;
+  }
+
+  /**
+   * Records the merges as they are now and asks for a fit, which reports the columns of every merge
+   * that appeared or went away since. Call it right before a change that can add or remove merges with
+   * no merge hook.
+   */
+  snapshotMerges(): void {
+    this.#areaSnapshot = this.#collectAreaKeys(this.#host.getMergedAreas());
+    this.#pending = true;
+    this.#layoutDirty = true;
   }
 
   /**
@@ -270,12 +298,12 @@ export class MergedCellsWidths {
   }
 
   /**
-   * Records that the physical row or column numbering may have changed. Like `markStale()`, and the
-   * next fit also takes the merges as a new baseline instead of reporting them as changed.
+   * Records that the physical row or column numbering may have changed. Like `markStale()`, and a
+   * snapshot waiting for a fit is dropped, since its keys no longer name the same cells.
    */
   markRenumbered(): void {
     this.#stale = true;
-    this.#rebaseline = true;
+    this.#areaSnapshot = null;
   }
 
   /**
@@ -285,6 +313,16 @@ export class MergedCellsWidths {
   markStylesChanged(): void {
     this.#groupWidths.clear();
     this.#pending = true;
+    this.#layoutDirty = true;
+  }
+
+  /**
+   * Records that the drawn merges may have changed without a text change: rows or columns hidden,
+   * shown, or trimmed.
+   */
+  markLayoutChanged(): void {
+    this.#pending = true;
+    this.#layoutDirty = true;
   }
 
   /**
@@ -296,8 +334,9 @@ export class MergedCellsWidths {
     this.#pending = false;
     this.#stale = false;
     this.#hasMultiColumnMerges = false;
-    this.#areaKeys = null;
-    this.#rebaseline = false;
+    this.#areaSnapshot = null;
+    this.#layoutDirty = true;
+    this.#resolved = null;
   }
 
   /**
@@ -309,6 +348,7 @@ export class MergedCellsWidths {
     this.#demands.delete(physicalColumn);
     this.#texts.delete(physicalColumn);
     this.#bumpTextVersion(physicalColumn);
+    this.#layoutDirty = true;
   }
 
   /**
@@ -320,6 +360,14 @@ export class MergedCellsWidths {
     if (!this.#pending && !this.#stale) {
       return NO_CHANGE;
     }
+
+    if (!this.#layoutDirty && !this.#stale && this.#resolved !== null) {
+      this.#pending = false;
+
+      return { changed: this.#applyResolved(this.#resolved), mergesChangedIn: [] };
+    }
+
+    this.#layoutDirty = false;
 
     if (this.#stale) {
       this.#forgetTexts();
@@ -338,46 +386,34 @@ export class MergedCellsWidths {
     this.#hasMultiColumnMerges = multiColumnAreas.length > 0;
 
     if (areas.length === 0 && this.#demands.size === 0) {
+      this.#resolved = { contentWidths: new Map(), targets: [] };
+
       return { changed: false, mergesChangedIn };
     }
 
-    const previous = this.#demands;
+    this.#resolved = this.#resolveMerges(areas);
 
-    this.#demands = new Map();
-    this.#resolveDemands(areas);
-
-    return { changed: !haveSameEntries(previous, this.#demands), mergesChangedIn };
+    return { changed: this.#applyResolved(this.#resolved), mergesChangedIn };
   }
 
   /**
-   * Compares the merges with the ones the last fit saw and returns the visual columns spanned by a
-   * merge that appeared or went away. The first fit, and the first after a renumbering, only record.
+   * Compares the merges with the snapshot `snapshotMerges()` took and returns the visual columns
+   * spanned by a merge that appeared or went away. Without a snapshot it compares nothing.
    *
    * @param {MergedCellArea[]} areas Every merge the grid draws.
    * @returns {number[]}
    */
   #diffAreas(areas: MergedCellArea[]) {
-    const keys = new Map<string, { physicalColumn: number, colspan: number }>();
+    const previous = this.#areaSnapshot;
 
-    areas.forEach(({ row, col, rowspan, colspan }) => {
-      const physicalRow = this.#host.toPhysicalRow(row);
-      const physicalColumn = this.#host.toPhysicalColumn(col);
-
-      if (physicalRow !== null && physicalColumn !== null) {
-        keys.set(`${physicalRow}:${physicalColumn}:${rowspan}:${colspan}`, { physicalColumn, colspan });
-      }
-    });
-
-    const previous = this.#areaKeys;
-    const columns = new Set<number>();
-
-    this.#areaKeys = keys;
-
-    if (previous === null || this.#rebaseline) {
-      this.#rebaseline = false;
-
+    if (previous === null) {
       return [];
     }
+
+    const keys = this.#collectAreaKeys(areas);
+    const columns = new Set<number>();
+
+    this.#areaSnapshot = null;
 
     const addSpan = ({ physicalColumn, colspan }: { physicalColumn: number, colspan: number }) => {
       const visualColumn = this.#host.toVisualColumn(physicalColumn);
@@ -394,15 +430,36 @@ export class MergedCellsWidths {
   }
 
   /**
-   * Computes every demand from the rightmost drawing column leftwards, writing each one before the
-   * next is read, so a column's width already holds the demand of a merge drawn in it.
+   * Keys every merge by its physical first row and column and its span.
+   *
+   * @param {MergedCellArea[]} areas The merges.
+   * @returns {Map<string, object>}
+   */
+  #collectAreaKeys(areas: MergedCellArea[]) {
+    const keys = new Map<string, { physicalColumn: number, colspan: number }>();
+
+    areas.forEach(({ row, col, rowspan, colspan }) => {
+      const physicalRow = this.#host.toPhysicalRow(row);
+      const physicalColumn = this.#host.toPhysicalColumn(col);
+
+      if (physicalRow !== null && physicalColumn !== null) {
+        keys.set(`${physicalRow}:${physicalColumn}:${rowspan}:${colspan}`, { physicalColumn, colspan });
+      }
+    });
+
+    return keys;
+  }
+
+  /**
+   * Groups the merges by the column they are drawn from, rightmost first, keeping one merge per lead
+   * column and span (merges drawn alike need the same room, so a long list of group rows merged alike
+   * is one entry), and measures their texts.
    *
    * @param {MergedCellArea[]} areas The merges to fit.
+   * @returns {ResolvedMerges}
    */
-  #resolveDemands(areas: MergedCellArea[]) {
+  #resolveMerges(areas: MergedCellArea[]): ResolvedMerges {
     const contentWidths = this.#measureContent(areas);
-    // Merges drawn from the same column with the same lead column and span need the same room, so
-    // each such span is resolved once (a long list of group rows merged alike is one entry).
     const spansByTarget = new Map<number, Map<string, MergedCellArea>>();
 
     areas.forEach((area) => {
@@ -416,20 +473,38 @@ export class MergedCellsWidths {
       }
     });
 
-    Array.from(spansByTarget)
-      .sort(([left], [right]) => right - left)
-      .forEach(([target, spans]) => {
-        const physicalTarget = this.#host.toPhysicalColumn(target);
-        let demand = 0;
+    const targets = Array.from(spansByTarget, ([target, spans]) => ({ target, spans: Array.from(spans.values()) }))
+      .sort((left, right) => right.target - left.target);
 
-        spans.forEach((area) => {
-          demand = Math.max(demand, this.#getAreaDemand(area, target, contentWidths));
-        });
+    return { contentWidths, targets };
+  }
 
-        if (physicalTarget !== null && demand > 0) {
-          this.#demands.set(physicalTarget, demand);
-        }
+  /**
+   * Computes every demand from the rightmost drawing column leftwards, writing each one before the
+   * next is read, so a column's width already holds the demand of a merge drawn in it.
+   *
+   * @param {ResolvedMerges} resolved The grouped merges and their text widths.
+   * @returns {boolean} `true` when any demand changed.
+   */
+  #applyResolved({ contentWidths, targets }: ResolvedMerges) {
+    const previous = this.#demands;
+
+    this.#demands = new Map();
+
+    targets.forEach(({ target, spans }) => {
+      const physicalTarget = this.#host.toPhysicalColumn(target);
+      let demand = 0;
+
+      spans.forEach((area) => {
+        demand = Math.max(demand, this.#getAreaDemand(area, target, contentWidths));
       });
+
+      if (physicalTarget !== null && demand > 0) {
+        this.#demands.set(physicalTarget, demand);
+      }
+    });
+
+    return !haveSameEntries(previous, this.#demands);
   }
 
   /**

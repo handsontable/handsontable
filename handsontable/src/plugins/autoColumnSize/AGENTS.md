@@ -94,8 +94,10 @@ Eight rules hold this together.
      `#onBeforeChange` (before its "already queued" early return), an undo through `afterSetSourceDataAtCell`
      (control), and `afterSetCellMeta` (control). The Formulas value updates reach the same method, and no
      case pins them;
-   - a merge added or removed (`afterMergeCells`/`afterUnmergeCells`), and an undo or redo
-     (`afterUndo`/`afterRedo`), which can restore merges with no merge hook (rule 8, control);
+   - a merge added or removed: `beforeMergeCells`/`beforeUnmergeCells` mark the layout dirty, because
+     MergeCells renders inside the call (clearing the covered cells) before its `after*` hook, and that
+     render's fit must read the merges; `afterMergeCells`/`afterUnmergeCells` queue the rescans;
+   - an undo or redo, which can restore merges with no merge hook (rule 8, control);
    - a style change: a column re-measured from its cached samples to another width
      (`#replayedColumns`) makes every group measure again from its kept texts (control). A style change
      that moves no visible plain column goes unseen until another input arrives;
@@ -109,9 +111,14 @@ Eight rules hold this together.
    edit forgets one text. Hiding, showing, or trimming rows only changes which merges a group holds, so the
    group is measured again from the kept texts without reading a cell, and a style change does the same
    (`markStylesChanged()`). `markStale()` forgets every text: a settings update, an overwrite sweep, and
-   `enablePlugin()`. `markRenumbered()` also takes the merges as a new diff baseline (rule 8), for anything
-   that can renumber the physical rows or columns: a changed row or column sequence (a sort included, since
-   the cacheUpdated state cannot tell a sort from a remove and insert), `loadData()`, and `updateData()`.
+   `enablePlugin()`. `markRenumbered()` also drops a waiting merge snapshot (rule 8), for anything that can
+   renumber the physical rows or columns: a changed row or column sequence (a sort included, since the
+   cacheUpdated state cannot tell a sort from a remove and insert), `loadData()`, and `updateData()`.
+   **A fit after a width change alone reads no merge.** `markWidthsChanged()` is the only mark that keeps
+   `#layoutDirty` off, and such a fit resolves the demands again from the groups the last full fit kept
+   (`#resolved`): the widths are the only input that moved. Every other mark sets `#layoutDirty`, and a new
+   input that can change the drawn merges, their rows, or their texts must too, or the fast path keeps
+   the previous groups.
 6. **The "may have merges" flag gates the per-change reads, never the structural marks.**
    `mayHaveMultiColumnMerges()` counts every multi-column merge MergeCells reports, hidden rows included, and
    gates the meta reads of `#onBeforeChange`, `afterSetSourceDataAtCell`, `afterSetCellMeta`, and the column
@@ -127,15 +134,17 @@ Eight rules hold this together.
    column already scanned in the same `beforeRender` (`#scannedColumns`) or by an asynchronous chunk that
    started after the merge (`#mergeRescanQueuedAt`).
 
-8. **Each fit compares the merges with the ones it saw last.** MergeCells changes merges with no hook in
-   `restoreState()` (undo and redo) and `clearCollections()` (a settings rebuild, a disable), and the plugin
-   would otherwise keep samples taken under the old merges: an undone unmerge left the first column at the
-   whole text's width. A merge that appeared or went away, keyed by its physical first cell and span, has
-   every column it spans dropped from the samples cache and queued for a full rescan, which `#onBeforeRender`
-   runs in the same render. Two cases take the merges as a new baseline instead of reporting them: a
-   renumbering (the keys no longer name the same cells), and a merge hook (`markMergesChanged()`), whose
-   caller has queued the rescans already. Without the second, merges declared in the settings, which arrive
-   after the init sweep's fit, rescanned every column they span.
+8. **An undo or redo compares the merges before and after.** MergeCells restores merges with no hook in
+   `restoreState()`, and the plugin would otherwise keep samples taken under the old merges: an undone
+   unmerge left the first column at the whole text's width. `beforeUndo`/`beforeRedo` take a snapshot of
+   the merges (`snapshotMerges()`), keyed by their physical first cell and span; the undo renders before its
+   `after*` hook fires, so a snapshot taken there would miss that render. The fit of that render reports
+   every merge that appeared or went away, and every column it spans is dropped from the samples cache and
+   queued for a full rescan, which `#onBeforeRender` runs in the same render. Only that fit compares: a
+   comparison on every fit cost 4 to 6 ms per fit at 10k merges. A renumbering drops a waiting snapshot.
+   `clearCollections()` (a settings rebuild, a disable) is the other hook-less path; the settings update
+   reads every text again and the full render re-walks the visible columns, and a lingering demand never
+   exceeds the unmerged cell's own text.
 
 Known limit: a merge removed with no unmerge hook (`updateSettings({ mergeCells: false })`) keeps its demand
 until the next fit; the unmerged first cell is sampled again then, and its own text is never narrower than

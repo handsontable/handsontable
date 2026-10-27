@@ -175,13 +175,13 @@ describe('MergedCellsWidths', () => {
     tracker.markWidthsChanged();
     tracker.fit();
     state.hiddenRows.add(0);
-    tracker.markWidthsChanged();
+    tracker.markLayoutChanged();
     tracker.fit();
 
     expect(tracker.getWidth(0)).toBe(150);
 
     state.hiddenRows.delete(0);
-    tracker.markWidthsChanged();
+    tracker.markLayoutChanged();
     tracker.fit();
 
     expect(tracker.getWidth(0)).toBe(350);
@@ -298,7 +298,7 @@ describe('MergedCellsWidths', () => {
     tracker.markWidthsChanged();
     tracker.fit();
     state.areas = [];
-    tracker.markWidthsChanged();
+    tracker.markLayoutChanged();
 
     expect(tracker.fit().changed).toBe(true);
     expect(tracker.getWidth(0)).toBeUndefined();
@@ -335,41 +335,39 @@ describe('MergedCellsWidths', () => {
     expect(tracker.mayHaveMultiColumnMerges()).toBe(false);
   });
 
-  it('should report the columns of a merge that appeared or went away since the last fit', () => {
+  it('should report the columns of a merge that appeared or went away since a snapshot', () => {
     const merge = { row: 0, col: 1, rowspan: 1, colspan: 2 };
     const { tracker, state } = createTracker({ content: new Map([['0:1', 400]]) });
 
-    tracker.markWidthsChanged();
-
-    expect(tracker.fit().mergesChangedIn).toEqual([]);
-
+    tracker.snapshotMerges();
     state.areas = [merge];
-    tracker.markWidthsChanged();
 
     expect(tracker.fit().mergesChangedIn).toEqual([1, 2]);
 
+    tracker.snapshotMerges();
     state.areas = [];
-    tracker.markWidthsChanged();
 
     expect(tracker.fit().mergesChangedIn).toEqual([1, 2]);
   });
 
-  it('should not report a merge that a merge hook already reported', () => {
+  it('should compare the merges only in the fit that follows a snapshot', () => {
     const { tracker, state } = createTracker({ content: new Map([['0:0', 400]]) });
 
-    tracker.markWidthsChanged();
+    tracker.snapshotMerges();
     tracker.fit();
     state.areas = [{ row: 0, col: 0, rowspan: 1, colspan: 2 }];
-    tracker.markMergesChanged(0);
+    tracker.markWidthsChanged();
 
     expect(tracker.fit().mergesChangedIn).toEqual([]);
+    // One read for the snapshot and one for the first fit. The second fit follows a width change
+    // only, so it resolves the demands from the groups it kept and reads no merge.
+    expect(state.areaReads).toBe(2);
   });
 
-  it('should take the merges as a new baseline after a renumbering', () => {
+  it('should drop a waiting snapshot after a renumbering', () => {
     const { tracker, state } = createTracker({ content: new Map([['0:0', 400]]) });
 
-    tracker.markWidthsChanged();
-    tracker.fit();
+    tracker.snapshotMerges();
     state.areas = [{ row: 0, col: 0, rowspan: 1, colspan: 2 }];
     tracker.markRenumbered();
 
