@@ -3745,8 +3745,7 @@ export const REGISTERED_HOOKS = [
    * and `col` are physical indexes: every key set through `setCellMeta()` except `hidden`, `spanned` and `valid`,
    * internal keys starting with `_` included, and a `valid: false` entry for each cell marked invalid. Its
    * `customBorders` lists the borders on screen for reading only: the sheet's borders come back with `cellMeta`,
-   * so a change made to that list is not applied. Its `rowHeaders`, `collapsedColumns`, and `checkedRows`, and
-   * the physical rows and column of each `mergedCells` entry, are internal to the sheets bar and may change.
+   * so a change made to that list is not applied.
    * @param {string} source String that identifies source of hook call.
    */
   'afterSheetTabStateCapture',
@@ -3762,8 +3761,6 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterSheetTabStateRestore
    * @param {number} sheetId The id of the sheet the view state was restored to.
    * @param {object} viewState The restored view state. Its `sortConfig` names each column by its physical index.
-   * Its `rowHeaders`, `collapsedColumns`, and `checkedRows`, and the physical rows and column of each
-   * `mergedCells` entry, are internal to the sheets bar and may change.
    * @param {string} source String that identifies source of hook call.
    */
   'afterSheetTabStateRestore',
