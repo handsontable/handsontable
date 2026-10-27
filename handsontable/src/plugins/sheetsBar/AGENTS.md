@@ -968,11 +968,10 @@ The per-sheet view state captures and restores `fixedColumnsStart`, `fixedColumn
 the workbook starts), `resetViewState(hot, neutral)` takes all four, and `#restoreBaselineToGrid()` puts a runtime
 freeze back on teardown. It clears the four shadows first and compares the grid-level value with the neutral one,
 so a count goes into its `updateSettings()` payload only when the grid-level value itself differs. Compared against
-the shadow, a runtime freeze on a grid built with `fixedColumnsLeft` put `fixedColumnsStart` in the payload, and
-core threw because both names were used, leaving the tab strip in place. A `fixedColumnsLeft` key in the baseline
-covers the start count for the same reason. Known gap: a host that sets `fixedColumnsLeft` through
-`updateSettings()` while the bar is on still makes the teardown write `fixedColumnsStart` and throw, because core
-does not expose which name the grid uses. A freeze set at runtime on one sheet therefore does not follow the user onto a sheet they
+the shadow, a runtime freeze always read as a difference from the neutral count, so the teardown wrote a count
+the grid-level value already held (on a grid built with `fixedColumnsLeft` that write named `fixedColumnsStart`,
+and core threw). The teardown writes only `fixedColumnsStart`; which name the host used is core's concern, not
+the bar's. A freeze set at runtime on one sheet therefore does not follow the user onto a sheet they
 never visited. The rows were not tracked at first, so a frozen row carried over to every sheet.
 
 **Every switch takes the departing sheet's freeze shadows off the grid before the arriving settings land**
