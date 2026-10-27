@@ -287,6 +287,20 @@ test('Content-Security-Policy font-src allows the jsDelivr webfont loaded by the
   assert.ok(hasSource('https://fonts.gstatic.com'));
 });
 
+test('Content-Security-Policy connect-src allows the OData service called by the OData recipe', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(request('/docs/recipes/data-management/load-data-odata/'), env);
+  const csp = response.headers.get('Content-Security-Policy');
+  const connectSrc = csp.split(';').find((directive) => directive.trim().startsWith('connect-src'));
+
+  assert.ok(connectSrc, 'expected a connect-src directive in the Content-Security-Policy header');
+
+  const connectSrcSources = connectSrc.trim().split(/\s+/).slice(1); // drop the "connect-src" keyword
+
+  // The recipe's examples fetch rows and autocomplete suggestions from the public Northwind service.
+  assert.ok(connectSrcSources.includes('https://services.odata.org'));
+});
+
 test('keeps versioned demo redirects on historical disabled cells slugs', async() => {
   const worker = loadWorker();
 
