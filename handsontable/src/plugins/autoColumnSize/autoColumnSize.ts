@@ -385,7 +385,9 @@ export class AutoColumnSize extends BasePlugin {
     isRowHidden: row => this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)),
     isColumnHidden: column => this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(column)),
     toPhysicalColumn: column => this.hot.toPhysicalColumn(column),
-    getColumnWidth: column => this.hot.getColWidth(column),
+    // The width before the stretch, which StretchColumns computes from these widths afterwards. Read with
+    // the stretch, a fit that follows a stretched render left the merge short of its text.
+    getColumnWidth: column => this.hot.getColWidth(column, 'StretchColumns'),
     measureContentWidths: groups => this.#measureMergedCellsContent(groups),
   });
   /**

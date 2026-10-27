@@ -29,7 +29,8 @@ export interface MergedCellsWidthsHost {
    */
   toPhysicalColumn(column: number): number | null;
   /**
-   * Returns the width a column renders with, including the demand this class reports for it.
+   * Returns the width a column renders with before any stretch, including the demand this class
+   * reports for it.
    */
   getColumnWidth(column: number): number;
   /**

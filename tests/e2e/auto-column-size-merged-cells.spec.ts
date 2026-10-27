@@ -205,6 +205,23 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
     }).toBe(true);
   });
 
+  test('sizes a merge on a stretched grid from the widths before the stretch', async() => {
+    const [control] = await grid.build({ data: [[LONG]] });
+    const data = [['ab', '', '', '', '', '', '', ''], Array(8).fill('a')];
+    const merge = [{ row: 0, col: 0, rowspan: 1, colspan: 2 }];
+
+    // The grid settles stretched first, so the fit that the edit triggers finds the columns stretched.
+    await grid.build({ data, width: 600, stretchH: 'all', mergeCells: merge });
+    await grid.setDataAtCell(0, 0, LONG);
+
+    await expect.poll(async() => {
+      const [first, second] = await grid.widths();
+
+      return first + second >= control;
+    }).toBe(true);
+    expect(await grid.fitsOnOneLine(0, 0, 1)).toBe(true);
+  });
+
   test('keeps the widths of a stretched grid from one render to the next', async() => {
     const data = [[LONG, '', ''], ['a', 'b', 'c']];
 

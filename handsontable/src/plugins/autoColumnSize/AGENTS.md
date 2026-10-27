@@ -118,9 +118,13 @@ Six rules hold this together.
   merges reads no meta. An edit of a multi-column merge's first cell asks for a fit, not a rescan: the cell
   contributes no sample, so a rescan could not see its text.
 
-Known limits. With `stretchColumns`, the demand reads the stretched widths of the other spanned columns, and
-the stretch is recomputed after the demand widens its column, so the merge can end up a few pixels narrower or
-wider than its text. The widths stay stable from one render to the next, which the spec pins. A merge removed
+**The demand reads the widths before the stretch** (`getColWidth(column, 'StretchColumns')`, the source the
+StretchColumns calculator itself reads its base widths with). Read with the stretch, a fit that followed a
+stretched render subtracted the stretched widths, and once the wider first column turned the stretch off, the
+merge ended short of its text, on every theme of the spec's 600px grid. The stretch then only adds room on top. Pinned by the
+"widths before the stretch" case.
+
+Known limits. A merge removed
 with no unmerge hook (`updateSettings({ mergeCells: false })`) keeps its demand until the next fit; the
 unmerged first cell is sampled again then, and its own text is never narrower than the demand. A width set
 through the ManualColumnResize API (`setManualSize()`, a `manualColumnResize` array) fires no resize hook, so
