@@ -291,17 +291,23 @@ describe('external engine changes repaint formula cells', () => {
     });
 
     it('does not paint the editing grid when a row is moved', () => {
-      hot = mountGrid(container, [['=ROW()'], ['=ROW()'], ['=ROW()']], engine, 'Sheet1', () => {
+      hot = mountGrid(container, [['a', '=ROW()&A1'], ['b', '=ROW()&A2'], ['c', '=ROW()&A3']], engine, 'Sheet1', () => {
         renders += 1;
       }, { manualRowMove: true });
       renders = 0;
 
+      const shown = () => [0, 1, 2].map(row => hot.getCell(row, 1).textContent);
+
+      expect(shown()).toEqual(['1a', '2b', '3c']);
       expect(hot.getPlugin('manualRowMove').moveRows([0], 2)).toBe(true);
 
-      // `moveRows` does not paint. `=ROW()` changes in the engine, and the DOM stays on the first paint.
-      expect(hot.getDataAtCell(0, 0)).toBe(1);
-      expect(hot.getCell(0, 0).textContent).toBe('1');
+      expect(hot.getDataAtCol(1)).toEqual(['1b', '2c', '3a']);
+      expect(shown()).toEqual(['1a', '2b', '3c']);
       expect(renders).toBe(0);
+
+      hot.render();
+
+      expect(shown()).toEqual(['1b', '2c', '3a']);
     });
   });
 
