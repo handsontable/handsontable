@@ -436,6 +436,15 @@ names or signatures breaks the type check instead of the switch. Keep the captur
 and the restore on the automatic path (`mergeRange(range, true, true)`): SheetsBar relies on both.
 Pinned by `__tests__/mergedAreasApi.unit.js`.
 
+AutoColumnSize is the second consumer of `getVisibleMergedAreas()`: it sizes the column a merge spanning
+several columns is drawn from (`../autoColumnSize/mergedCellsWidths.ts`), and it listens to
+`afterMergeCells`/`afterUnmergeCells` to re-measure the columns a merge covers. A change to what the method
+returns (leaving out hidden rows, for example), or a new path that adds or removes merges without those
+hooks, changes the column widths too. Two paths already do without them: `clearCollections()` (a
+`mergeCells` settings update, a disable) and `restoreState()` (undo and redo of a merge). AutoColumnSize
+compares the merges at every fit and rescans the columns of any that changed, so a new hook-less path is
+caught there too, as long as something asks for a fit. See "Merged cells" in `../autoColumnSize/AGENTS.md`.
+
 ## `disablePlugin()` clears the field, so copy first
 
 `generateFromSettings()` needs to tell a **re-applied** area from a **newly declared** one, so the previous
