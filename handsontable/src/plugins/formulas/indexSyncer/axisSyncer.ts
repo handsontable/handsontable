@@ -1,6 +1,7 @@
 import { warn } from '../../../helpers/console';
 import { toUpperCaseFirst } from '../../../helpers/string';
 import { getMoves } from '../../../helpers/moves';
+import { getDecreasedIndexes, getIncreasedIndexes } from '../../../translations/maps/utils/actionsOnIndexes';
 import type { HyperFormulaEngine } from '../engine/types';
 
 interface AxisIndexMapper {
@@ -29,11 +30,13 @@ interface HfTranslationCache {
 
 /**
  * What an axis syncer knows about the engine's order: the physical indexes the engine holds, in its
- * own order, and the grid's sequence at the moment the engine's sheet was found empty.
+ * own order, the grid's sequence at the moment the engine's sheet was found empty, and the held
+ * indexes whose line was only added to carry an order (`paddedElements`).
  */
 export interface EngineOrder {
   sequence: number[];
   fillSequence: number[] | null;
+  paddedElements: number[];
 }
 
 interface ParentIndexSyncer {
@@ -163,6 +166,31 @@ class AxisSyncer {
         this.#translationCache = null;
       }
     });
+    // An insert or a removal renumbers the physical indexes the padded ones are kept by, the same way it
+    // renumbers the grid's sequence.
+    this.#indexMapper.addLocalHook('indexesInserted', (insertedIndexes: number[]) => {
+      this.#renumberPaddedElements(paddedElements => getIncreasedIndexes(paddedElements, insertedIndexes));
+    });
+    this.#indexMapper.addLocalHook('indexesRemoved', (removedIndexes: number[]) => {
+      const removed = new Set(removedIndexes);
+
+      this.#renumberPaddedElements(paddedElements => getDecreasedIndexes(
+        paddedElements.filter(physicalIndex => !removed.has(physicalIndex)),
+        removedIndexes,
+      ));
+    });
+  }
+
+  /**
+   * Replaces the padded elements with the list `renumber` returns for them. Nothing is built while there
+   * are none, which is nearly always.
+   *
+   * @param {Function} renumber Gets the padded elements, returns them as they are numbered now.
+   */
+  #renumberPaddedElements(renumber: (paddedElements: number[]) => number[]) {
+    if (this.#paddedElements.size > 0) {
+      this.#paddedElements = new Set(renumber(Array.from(this.#paddedElements)));
+    }
   }
 
   /**
@@ -301,6 +329,7 @@ class AxisSyncer {
     return {
       sequence: this.#indexesSequence.slice(),
       fillSequence: this.#fillSequence === null ? null : this.#fillSequence.slice(),
+      paddedElements: Array.from(this.#paddedElements),
     };
   }
 
@@ -314,7 +343,10 @@ class AxisSyncer {
     this.#indexesSequence = order.sequence.slice();
     this.#fillSequence = order.fillSequence === null ? null : order.fillSequence.slice();
     this.#adoptedWhileHeld = this.#orderHeld;
-    this.#paddedElements = new Set<number>();
+
+    const held = new Set<number>(order.sequence);
+
+    this.#paddedElements = new Set<number>(order.paddedElements.filter(physicalIndex => held.has(physicalIndex)));
     this.#translationCache = null;
   }
 
@@ -820,11 +852,11 @@ class AxisSyncer {
 
       // An insert, a removal or a move reaches the engine through its own call — `addRows`, `removeRows`,
       // `syncMoves` — and renumbers the physical indexes on both sides, so there is no order to send and
-      // the stored order takes the grid's new sequence. An insert or a removal renumbers the physical indexes
-      // the padded ones are kept by.
+      // the stored order takes the grid's new sequence. The padded elements stay, as the mapper renumbers
+      // them (see the constructor); any other change starts over.
       this.#indexesSequence = newSequence;
 
-      if (source !== 'move') {
+      if (source !== 'move' && source !== 'insert' && source !== 'remove') {
         this.#paddedElements = new Set<number>();
       }
     };

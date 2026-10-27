@@ -56,7 +56,7 @@ describe('AxisSyncer while the order is held', () => {
   it('translates through the order an empty sheet was filled in', () => {
     const axisSyncer = new AxisSyncer('row', createMockIndexMapper([0, 1, 2]), createMockIndexSyncer(null));
 
-    axisSyncer.adoptEngineOrder({ sequence: [], fillSequence: [2, 0, 1] });
+    axisSyncer.adoptEngineOrder({ sequence: [], fillSequence: [2, 0, 1], paddedElements: [] });
     axisSyncer.setOrderHeld(true);
 
     expect([0, 1, 2].map(physicalRow => axisSyncer.getHfIndexFromPhysicalIndex(physicalRow))).toEqual([1, 2, 0]);
@@ -109,7 +109,7 @@ describe('AxisSyncer while the order is held', () => {
     const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
 
     axisSyncer.setOrderHeld(true);
-    axisSyncer.adoptEngineOrder({ sequence: [2, 0, 1], fillSequence: null });
+    axisSyncer.adoptEngineOrder({ sequence: [2, 0, 1], fillSequence: null, paddedElements: [] });
     axisSyncer.storeMovesInformation([0, 1, 2], 0, true);
     indexMapper.state.indexesSequence = [2, 0, 1];
     axisSyncer.getIndexesChangeSyncMethod()('move');
@@ -148,7 +148,7 @@ describe('AxisSyncer while the order is held', () => {
     const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
 
     axisSyncer.setOrderHeld(true);
-    axisSyncer.adoptEngineOrder({ sequence: [2, 0, 1], fillSequence: null });
+    axisSyncer.adoptEngineOrder({ sequence: [2, 0, 1], fillSequence: null, paddedElements: [] });
     axisSyncer.setOrderHeld(false);
     axisSyncer.setOrderHeld(true);
     axisSyncer.storeMovesInformation([0], 2, true);
