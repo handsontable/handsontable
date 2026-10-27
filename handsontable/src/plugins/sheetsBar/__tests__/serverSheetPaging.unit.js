@@ -215,4 +215,75 @@ describe('SheetsBar server sheet paging', () => {
     });
   });
 
+  describe('the first visit to a server sheet', () => {
+    /**
+     * Builds two server sheets on a grid configured with `initialPage: 2` and `pageSize: 10`, and
+     * changes the first sheet's page size to 5.
+     *
+     * @returns {Promise<object>}
+     */
+    async function createTwoServerSheets() {
+      const orders = createProvider();
+      const customers = createProvider();
+
+      hot = new Handsontable(container, {
+        rowHeaders: true,
+        pagination: { pageSize: 10, initialPage: 2 },
+        sheetsBar: {
+          sheets: [
+            { name: 'Orders', data: [], settings: { dataProvider: orders.config, columns: [{ data: 'id' }] } },
+            { name: 'Customers', data: [], settings: { dataProvider: customers.config, columns: [{ data: 'id' }] } },
+          ],
+        },
+        licenseKey: LICENSE_KEY,
+      });
+      await settle();
+      await orders.resolveNext();
+
+      hot.getPlugin('pagination').setPageSize(5);
+      await settle();
+      await orders.resolveNext();
+
+      return { orders, customers };
+    }
+
+    it('fetches the configured initial page and page size, not the ones the previous sheet left', async() => {
+      const { customers } = await createTwoServerSheets();
+
+      hot.getPlugin('sheetsBar').setActiveSheet('Customers');
+      await settle();
+
+      expect(customers.calls).toHaveLength(1);
+      expect({ page: customers.calls[0].page, pageSize: customers.calls[0].pageSize })
+        .toEqual({ page: 2, pageSize: 10 });
+      expect(hot.getPlugin('pagination').getPaginationData()).toEqual(expect.objectContaining({
+        pageSize: 10,
+        totalPages: 1,
+      }));
+
+      await customers.resolveNext();
+
+      const { currentPage, pageSize, totalPages } = hot.getPlugin('pagination').getPaginationData();
+
+      expect({ currentPage, pageSize, totalPages }).toEqual({ currentPage: 2, pageSize: 10, totalPages: 3 });
+      expect(hot.getDataAtCell(0, 0)).toBe(11);
+      expect(hot.getRowHeader(0)).toBe(11);
+    });
+
+    it('brings the sheet that was left back on its own page size without fetching', async() => {
+      const { orders, customers } = await createTwoServerSheets();
+
+      hot.getPlugin('sheetsBar').setActiveSheet('Customers');
+      await settle();
+      await customers.resolveNext();
+      hot.getPlugin('sheetsBar').setActiveSheet('Orders');
+      await settle();
+
+      const { currentPage, pageSize, totalPages } = hot.getPlugin('pagination').getPaginationData();
+
+      expect(orders.calls).toHaveLength(2);
+      expect({ currentPage, pageSize, totalPages }).toEqual({ currentPage: 1, pageSize: 5, totalPages: 5 });
+      expect(hot.getRowHeader(0)).toBe(1);
+    });
+  });
 });

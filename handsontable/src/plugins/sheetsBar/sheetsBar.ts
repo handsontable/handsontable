@@ -2628,7 +2628,8 @@ export class SheetsBar extends BasePlugin {
    * holds already answer (so its sort, filters, pager, and row numbers come back even while a
    * fetch still runs, and a failure of that fetch leaves them in place). After that, its own
    * fetch still running is waited for, the fetch error that came after the response is shown,
-   * or a sheet without a response fetches for the first time.
+   * or a sheet without a response fetches for the first time, on the page and page size the
+   * DataProvider plugin put the pager back to.
    */
   #showServerSheet() {
     const dataProvider = this.#getDataProvider();
@@ -2665,7 +2666,7 @@ export class SheetsBar extends BasePlugin {
       return;
     }
 
-    dataProvider.fetchData({ page: 1 }).catch((error) => {
+    dataProvider.fetchData().catch((error) => {
       logError('Data fetch failed:', error);
     });
   }
