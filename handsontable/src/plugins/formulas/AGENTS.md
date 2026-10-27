@@ -769,8 +769,10 @@ Four rules ride along.
   involved), so a full reverse of a sheet whose formula refers to another column reads it.
 
 Still open: a move applied while the engine's sheet is empty reaches the engine through `syncMoves` but is
-not reflected in the stored order. A sheet past the engine's `maxRows` or `maxColumns` cannot be extended,
-and the reorder throws `SheetSizeLimitExceededError` with the engine left as it was.
+not reflected in the stored order. A sheet that the order would extend past the engine's
+`maxRows` or `maxColumns` is not extended: the sync warns, the engine keeps its order, and the stored order
+stays what the engine holds. The grid has already taken its order, so formulas read the wrong cells until
+the grid takes an order the engine can hold.
 
 ### A reload reads a jagged array, and the first row sets the column count (DEV-1143)
 

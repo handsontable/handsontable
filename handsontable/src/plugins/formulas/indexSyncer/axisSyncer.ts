@@ -1,3 +1,4 @@
+import { warn } from '../../../helpers/console';
 import { toUpperCaseFirst } from '../../../helpers/string';
 import { getMoves } from '../../../helpers/moves';
 import type { HyperFormulaEngine } from '../engine/types';
@@ -524,7 +525,8 @@ class AxisSyncer {
    * the engine's order is the grid's.
    *
    * @param {number[]} targetSequence The grid's sequence of physical indexes, in grid order.
-   * @returns {boolean} `true` when the engine holds the sequence's order, `false` when its sheet is empty.
+   * @returns {boolean} `true` when the engine holds the sequence's order, `false` when its sheet is empty or
+   * cannot be extended to hold it.
    */
   #syncOrderWithEngine(targetSequence: number[]): boolean {
     const engine = this.#indexSyncer.getEngine()!;
@@ -598,10 +600,10 @@ class AxisSyncer {
     // The engine records an undo entry and clears its redo stack for any order it is handed, so an order
     // that changes nothing costs the user their redo history. Compression makes that common: every sort
     // that leaves the engine's own elements in the same relative order ranks them identically.
-    this.#indexesSequence = reordered;
-    this.#fillSequence = null;
-
     if (engineOrder.every((rank, engineIndex) => rank === engineIndex)) {
+      this.#indexesSequence = reordered;
+      this.#fillSequence = null;
+
       return true;
     }
 
@@ -611,21 +613,32 @@ class AxisSyncer {
 
     if (heldSize === sizeForAxis) {
       setOrder();
+    } else {
+      // The engine ends a sheet at its content, and adding a row or column past it does not extend it.
+      // Writing the last needed cell and clearing it does, and the batch keeps that write out of the changes.
+      const lastCell = this.#axis === 'row'
+        ? { sheet: sheetId, row: heldSize - 1, col: 0 }
+        : { sheet: sheetId, row: 0, col: heldSize - 1 };
 
-      return true;
+      // The engine's `maxRows` and `maxColumns` cap the sheet. The grid has already taken its new order and
+      // cannot be handed back, so the engine keeps its own order and the two stay apart until the grid
+      // takes an order the engine can hold. The stored order stays what the engine holds.
+      if (!engine.isItPossibleToSetCellContents(lastCell)) {
+        warn(`The engine cannot hold ${heldSize} ${this.#axis}s, so it keeps its previous ${this.#axis} order. ` +
+          'Formulas may read the wrong cells until the order fits the engine\'s size limits.');
+
+        return false;
+      }
+
+      engine.batch(() => {
+        engine.setCellContents(lastCell, 0);
+        engine.setCellContents(lastCell, null);
+        setOrder();
+      });
     }
 
-    // The engine ends a sheet at its content, and adding a row or column past it does not extend it.
-    // Writing the last needed cell and clearing it does, and the batch keeps that write out of the changes.
-    const lastCell = this.#axis === 'row'
-      ? { sheet: sheetId, row: heldSize - 1, col: 0 }
-      : { sheet: sheetId, row: 0, col: heldSize - 1 };
-
-    engine.batch(() => {
-      engine.setCellContents(lastCell, 0);
-      engine.setCellContents(lastCell, null);
-      setOrder();
-    });
+    this.#indexesSequence = reordered;
+    this.#fillSequence = null;
 
     return true;
   }

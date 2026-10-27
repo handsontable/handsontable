@@ -79,6 +79,7 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
         dimensions.width = Math.max(dimensions.width, col + 1);
       }
     },
+    isItPossibleToSetCellContents: () => true,
     getSheetDimensions: () => ({ ...dimensions }),
     // The syncer asks for the name to tell a sheet the host removed from the engine; this one exists.
     getSheetName: () => 'Sheet1',
