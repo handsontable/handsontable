@@ -117,9 +117,12 @@ describe('the enforce step exports the verdict the approval keys on', () => {
     assert.ok(writesOutput < setsExitCode, 'a run that exits non-zero must still have exported its verdict');
   });
 
-  test('the composite exports the verdict and the report URL', () => {
+  test('the composite exports the verdict, its summary and the report URL', () => {
     assert.match(composite, /^ {2}verdict:\n(?: {4}.*\n)*? {4}value: \$\{\{ steps\.gate\.outputs\.verdict \}\}$/m);
+    assert.match(composite, /^ {2}summary:\n(?: {4}.*\n)*? {4}value: \$\{\{ steps\.gate\.outputs\.summary \}\}$/m);
     assert.match(composite, /^ {2}report-url:\n(?: {4}.*\n)*? {4}value: \$\{\{ steps\.report-url\.outputs\.pages_url \}\}$/m);
+    assert.match(read(GATE_SCRIPT), /verdict=\$\{result\.outcome\}\\nsummary=\$\{summary\}\\n/,
+      'the script writes both outputs the composite reads');
   });
 
   test('the run passes the base branch and base commit the verdict needs', () => {
@@ -142,7 +145,7 @@ describe('the approve job waits on the performance-approval environment', () => 
 
   test('the run job exports the composite\'s outputs', () => {
     assert.match(runJob, /^ {6}- uses: \.\/\.github\/actions\/performance-run\n {8}id: perf$/m);
-    assert.match(runJob, /^ {4}outputs:\n {6}verdict: \$\{\{ steps\.perf\.outputs\.verdict \}\}\n {6}report-url: \$\{\{ steps\.perf\.outputs\.report-url \}\}$/m);
+    assert.match(runJob, /^ {4}outputs:\n {6}verdict: \$\{\{ steps\.perf\.outputs\.verdict \}\}\n {6}summary: \$\{\{ steps\.perf\.outputs\.summary \}\}\n {6}report-url: \$\{\{ steps\.perf\.outputs\.report-url \}\}$/m);
   });
 
   test('approve runs only on a regressed pull request verdict, and never after a red run', () => {
@@ -156,7 +159,25 @@ describe('the approve job waits on the performance-approval environment', () => 
   test('approve waits on the environment, on a hosted runner, with the permission its assertion needs', () => {
     assert.match(approve, /^ {4}environment:\n {6}name: performance-approval\n/m);
     assert.match(approve, /^ {4}runs-on: ubuntu-/m, 'waiting must not hold the only self-hosted runner');
-    assert.match(approve, /^ {4}permissions:\n {6}actions: read$/m);
+    assert.match(approve, /^ {4}permissions:\n {6}actions: read\n {6}pull-requests: write$/m);
+  });
+
+  test('after an approval, approve rewrites the sticky comment that asked for it', () => {
+    const fromRecord = approve.slice(approve.indexOf('- name: Record the approval on the pull request'));
+
+    assert.ok(fromRecord.length > 0 && approve.includes('- name: Record the approval on the pull request'));
+    // `success()`: after a failed assertion this would announce an approval with an empty login.
+    assert.match(fromRecord, /^ {8}if: \$\{\{ success\(\) && github\.event_name == 'pull_request'$/m);
+    // Write-token runs only: a fork or Dependabot token cannot comment.
+    assert.match(fromRecord, /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/);
+    assert.match(fromRecord, /github\.actor != 'dependabot\[bot\]'/);
+    // The same sticky header as run's comment, so it replaces the request instead of adding a second.
+    assert.match(fromRecord, /^ {10}header: performance-tests$/m);
+    assert.match(read(COMPOSITE), /^ {8}header: performance-tests$/m);
+    assert.match(fromRecord, /@\$\{\{ steps\.assert\.outputs\.approved-by \}\}/);
+    assert.match(approve, /^ {8}id: assert$/m);
+    assert.match(approve, /core\.setOutput\('approved-by', approval\.user\.login\)/);
+    assert.match(fromRecord, /\$\{\{ needs\.run\.outputs\.summary \}\}/);
   });
 
   test('approve asserts a recorded approval instead of trusting the environment', () => {

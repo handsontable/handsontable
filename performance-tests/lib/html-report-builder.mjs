@@ -11,6 +11,7 @@ import {
   calcCv,
   classifyChange,
   heapThresholdFor,
+  isOverTimingLine,
   pctChange,
   relativeToShift,
   runShift,
@@ -118,12 +119,19 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
     const heap = buildHeapChartData(current, golden, isCrossWindow);
     // Per scenario: the horizontal-scroll scenarios carry a wider heap band (thresholds.mjs).
     const heapThreshold = heapThresholdFor(name);
-    const timingRegressed = totalChange != null && totalChange > REGRESSION_CALLOUT_THRESHOLD_TIMING;
+    // The gate's fail line, floor included (lib/gate.mjs), so the report counts what the gate fails.
+    const timingRegressed = totalChange != null && isOverTimingLine(goldenTotal, currentTotal);
     const heapRegressed = heap?.change != null && heap.change > heapThreshold;
     const isRegression = timingRegressed || heapRegressed;
     let { status } = classifyChange(totalChange);
 
-    // A JS-heap regression counts even when trace timing is flat, matching the markdown callouts.
+    // Over the line in percent but under the ms floor is timer rounding, which the gate does not
+    // fail, so it is not painted as a regression either.
+    if (status === 'regression' && !timingRegressed) {
+      status = 'neutral-up';
+    }
+
+    // A JS-heap regression counts even when trace timing is flat, matching the markdown comment.
     if (heapRegressed) {
       status = 'regression';
     }
@@ -853,7 +861,7 @@ function buildScript() {
         'div',
         'Run shift: ' + fmtPct(data.runShift) + ' \\u2014 the median delta across scenarios, i.e. how much'
           + ' faster or slower this runner ran than the baseline\\'s. "vs shift" figures remove it;'
-          + ' callouts use the raw delta.',
+          + ' the regression gate judges the raw delta.',
         'meta'
       ));
     }
@@ -1436,10 +1444,11 @@ function buildScript() {
     return t;
   }
 
+  // Mirrors fmtPct() in thresholds.mjs: a tiny negative reads "+0.0%", never "-0.0%".
   function fmtPct(pct) {
     if (pct == null) return '--';
-    const sign = pct >= 0 ? '+' : '';
-    return sign + pct.toFixed(1) + '%';
+    const rounded = Number(pct.toFixed(1)) + 0;
+    return (rounded >= 0 ? '+' : '') + rounded.toFixed(1) + '%';
   }
 
   // Mirrors classifyChange() in thresholds.mjs. The band edge is not restated here: it comes from

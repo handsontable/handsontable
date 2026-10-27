@@ -427,24 +427,23 @@ export default async function teardown() {
     // merge commit that exists on no branch. See the env block in performance-tests.yml.
     commit: process.env.PERF_COMMIT_SHA || process.env.GITHUB_SHA || null,
     runId: process.env.GITHUB_RUN_ID || null,
+    // Where a reviewer approves a regression, linked from the comment's headline.
+    runUrl: process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID
+      ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
+      : null,
+    // The gate acts on pull request runs only; the develop run's report states the verdict alone.
+    gated: mode === 'compare',
     environment,
     baselineUnavailable,
   };
 
   // Every verdict decided once; the comment renders from it and the annotations list from it.
   const assessment = assessReport(scenarioResults, golden, meta);
-  const report = buildReport(scenarioResults, golden, meta, assessment);
-  const htmlReport = buildHtmlReport(scenarioResults, golden, meta);
 
-  // Write to output/
-  await mkdir(OUTPUT_DIR, { recursive: true });
-  await writeFile(join(OUTPUT_DIR, 'result.md'), report, 'utf8');
-  await writeFile(join(OUTPUT_DIR, 'report.html'), htmlReport, 'utf8');
-
-  // The regression gate. The workflow's last step reads the verdict file and sets the job result
-  // from it; nothing here exits, so the reports and the comment are always published first. The
-  // newest develop golden is assessed against the same median so the gate can tell a level develop
-  // already shows from one this run introduced.
+  // The regression gate, decided before the reports because the comment leads with it. The
+  // workflow's last step reads the verdict file and acts on it; nothing here exits, so the reports
+  // and the comment are always published first. The newest develop golden is assessed against the
+  // same median so the gate can tell a level develop already shows from one this run introduced.
   const newestAssessment = newest && golden && !golden.isSelfCompare
     ? assessReport(newest.scenarios || {}, golden, {})
     : null;
@@ -468,6 +467,13 @@ export default async function teardown() {
     verdict = confirmVerdict(firstPass, verdict);
   }
 
+  const report = buildReport(scenarioResults, golden, meta, assessment, verdict);
+  const htmlReport = buildHtmlReport(scenarioResults, golden, meta);
+
+  // Write to output/
+  await mkdir(OUTPUT_DIR, { recursive: true });
+  await writeFile(join(OUTPUT_DIR, 'result.md'), report, 'utf8');
+  await writeFile(join(OUTPUT_DIR, 'report.html'), htmlReport, 'utf8');
   await writeFile(join(OUTPUT_DIR, GATE_VERDICT_FILE), `${JSON.stringify(verdict, null, 2)}\n`, 'utf8');
 
   // On develop, a regression against the trailing median is the develop push's own news. Annotate

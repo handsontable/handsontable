@@ -9,9 +9,11 @@
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildReport } from '../report-builder.mjs';
+import { assessReport, buildReport } from '../report-builder.mjs';
+import { confirmVerdict, decideGate } from '../gate.mjs';
 import {
   BASELINE_INCOMPLETE_LABEL,
+  CV_WARNING_THRESHOLD,
   INCOMPARABLE_LABELS,
   REGRESSION_CALLOUT_THRESHOLD_TIMING,
   REGRESSION_CALLOUT_THRESHOLD_HEAP,
@@ -60,6 +62,16 @@ function golden(scenarios, extra = {}) {
   return { timestamp: '2026-09-01T08:00:00.000Z', scenarios, ...extra };
 }
 
+/**
+ * @param {string} report
+ * @param {string} title -- the scenario's display title
+ * @returns {string | undefined} its row in the full table, folded under `<details>`, rather than
+ *   its row in the attention table above
+ */
+function fullTableRow(report, title) {
+  return report.slice(report.indexOf('<details>')).split('\n').find(line => line.startsWith(`| ${title} `));
+}
+
 describe('buildReport -- incomplete baseline', () => {
   test('withholds the total delta when the baseline missed a category', () => {
     // The filed defect, reproduced from the report data quoted in the task: the golden captured
@@ -99,7 +111,7 @@ describe('buildReport -- incomplete baseline', () => {
       golden({ sorting: goldenScenario() }),
       { crossWindowScenarios: ['sorting'] }
     );
-    const row = report.split('\n').find(line => line.includes('| Sorting'));
+    const row = fullTableRow(report, 'Sorting');
 
     // Named for what actually happened. The baseline captured everything here; it is the windows
     // that differ, so "baseline incomplete" would be both misleading and factually wrong.
@@ -115,7 +127,7 @@ describe('buildReport -- incomplete baseline', () => {
       golden({ sorting: goldenScenario() }),
       { crossWindowScenarios: ['sorting'] }
     );
-    const row = report.split('\n').find(line => line.includes('| Sorting'));
+    const row = fullTableRow(report, 'Sorting');
     const occurrences = row.split(INCOMPARABLE_LABELS['window-mismatch']).length - 1;
 
     assert.equal(occurrences, 2, `total and heap must both read window mismatch: ${row}`);
@@ -155,7 +167,7 @@ describe('buildReport -- reliability columns', () => {
       {}
     );
 
-    const row = report.split('\n').find(line => line.includes('| Sorting'));
+    const row = fullTableRow(report, 'Sorting');
 
     assert.ok(row.includes('n/a'), `expected n/a in the Sorting row: ${row}`);
   });
@@ -184,7 +196,7 @@ describe('buildReport -- reliability columns', () => {
       {}
     );
 
-    const row = report.split('\n').find(line => line.includes('| Sorting'));
+    const row = fullTableRow(report, 'Sorting');
 
     assert.ok(!row.includes('NaN'));
     assert.ok(row.includes('12.5%'), `expected the scripting-only spread in: ${row}`);
@@ -197,7 +209,7 @@ describe('buildReport -- reliability columns', () => {
       {}
     );
 
-    const row = report.split('\n').find(line => line.includes('| Sorting'));
+    const row = fullTableRow(report, 'Sorting');
 
     assert.ok(!row.includes('NaN'));
     assert.ok(row.includes('n/a'));
@@ -220,6 +232,27 @@ describe('buildReport -- reliability columns', () => {
 
     assert.ok(report.includes('Hook timing'));
     assert.ok(report.includes('47 ms'));
+  });
+
+  test('does not flag a hook\'s own spread, which some hooks are wide by construction', () => {
+    const report = buildReport(
+      {
+        'undo-edit': currentScenario({
+          hookTiming: 14,
+          _iterationValues: {
+            categories: { scripting: [19, 20, 21], rendering: [3, 3, 3], painting: [1, 1, 1] },
+            hookTiming: [2, 14, 26],
+          },
+        }),
+      },
+      golden({ 'undo-edit': goldenScenario({ hookTiming: 14 }) }),
+      {}
+    );
+    const hookRow = report.slice(report.indexOf('### Hook timing')).split('\n')
+      .find(line => line.startsWith('| Undo Edit'));
+
+    assert.match(hookRow, /\| 85\.7% +\|/, 'the spread is shown, above the warning line');
+    assert.ok(!hookRow.includes('⚠'));
   });
 
   test('omits the hook-timing section entirely when no scenario measures a hook', () => {
@@ -284,7 +317,7 @@ describe('buildReport -- callouts', () => {
       {}
     );
 
-    const row = report.split('\n').find(line => line.includes('| Sorting'));
+    const row = fullTableRow(report, 'Sorting');
 
     assert.ok(row.includes('\u{1F534}'), `heap delta of +${between}% must be flagged in the table: ${row}`);
   });
@@ -301,7 +334,7 @@ describe('buildReport -- callouts', () => {
       {}
     );
 
-    const row = report.split('\n').find(line => line.includes('| Sorting'));
+    const row = fullTableRow(report, 'Sorting');
 
     assert.ok(!row.includes('\u{1F534}'), `timing delta of +${between}% is below the timing band: ${row}`);
   });
@@ -390,7 +423,9 @@ describe('buildReport -- cross-window heap', () => {
       { crossWindowScenarios: ['sorting'] }
     );
 
-    assert.ok(!report.includes('JS heap'));
+    // A heap delta, not the words: the gate's rules line names JS heap on every comment.
+    assert.doesNotMatch(report, /JS heap [+-]\d/);
+    assert.ok(!report.includes('❌'), 'no scenario is listed as regressed');
     assert.ok(report.includes('Total delta not assessed'));
   });
 
@@ -407,7 +442,7 @@ describe('buildReport -- cross-window heap', () => {
       { crossWindowScenarios: ['sorting'] }
     );
 
-    const row = report.split('\n').find(line => line.includes('| Sorting'));
+    const row = fullTableRow(report, 'Sorting');
 
     assert.ok(!row.includes('+50.0%'), `heap delta must not be published: ${row}`);
     assert.ok(!row.includes('\u{1F534}'), `nothing in the row may be flagged red: ${row}`);
@@ -540,5 +575,182 @@ describe('buildReport -- no baseline', () => {
 
     assert.ok(!report.includes('Δ Total'));
     assert.ok(report.includes('CV run'));
+  });
+});
+
+describe('buildReport -- the gate\'s verdict leads', () => {
+  const NAMES = ['cell-editing', 'filtering', 'sorting', 'undo-sort', 'scroll-down', 'scroll-up'];
+  // Active time 24 ms (20 + 3 + 1); `slower(1.2)` is +20%, +4.8 ms.
+  // The whole slowdown lands in scripting, so rendering and painting stay comparable at 3 and 1.
+  const slower = factor => currentScenario({
+    categories: { scripting: 20 * factor + 4 * (factor - 1), rendering: 3, painting: 1 },
+  });
+  const quiet = (names = NAMES) => Object.fromEntries(names.map(name => [name, currentScenario()]));
+  const baseline = (names = NAMES) => golden(Object.fromEntries(names.map(name => [name, goldenScenario()])));
+  const verdictOf = (results, base, options = {}) => decideGate({
+    assessment: assessReport(results, base, {}), baseline: base, ...options,
+  });
+  // Everything a reader sees before opening the fold.
+  const visible = report => report.slice(0, report.indexOf('<details>'));
+
+  test('a quiet run says so in one line, and folds the full table away', () => {
+    const report = buildReport(quiet(), baseline(), {});
+
+    assert.match(report, /^## ⚡ Performance: ✅ all 6 scenarios within tolerance$/m);
+    assert.ok(!visible(report).includes('| Status'), 'no attention table when nothing needs attention');
+    assert.ok(report.includes('<details><summary>All 6 scenarios</summary>\n\n| Scenario'),
+      'the blank line after the summary is what lets GitHub render the table inside the fold');
+    assert.ok(report.trimEnd().endsWith('</details>'));
+  });
+
+  test('the visible part of a quiet comment does not grow with the number of scenarios', () => {
+    const few = ['sorting', 'filtering'];
+
+    assert.equal(
+      visible(buildReport(quiet(few), baseline(few), {})).split('\n').length,
+      visible(buildReport(quiet(), baseline(), {})).split('\n').length
+    );
+  });
+
+  test('a regression is counted in the headline and listed with what moved', () => {
+    const report = buildReport({ ...quiet(), sorting: slower(1.2) }, baseline(), {});
+
+    assert.match(report, /^## ⚡ Performance: ❌ 1 of 6 scenarios regressed$/m);
+    assert.match(
+      visible(report),
+      /^\| Sorting +\| ❌ regressed +\| \+20\.0% +\| \+4\.8 ms +\| \+0\.0% +\| Scripting \+24\.0% slower/m
+    );
+  });
+
+  test('a scenario above the watch line is listed, and the run stays within tolerance', () => {
+    const report = buildReport({ ...quiet(), filtering: slower(1.07) }, baseline(), {});
+
+    assert.match(report, /^## ⚡ Performance: ✅ all 6 scenarios within tolerance · 1 to watch$/m);
+    assert.match(visible(report), /^\| Filtering +\| 🟡 to watch +\| \+7\.0% /m);
+  });
+
+  test('a level the newest develop golden already shows is listed as such', () => {
+    const results = { ...quiet(), sorting: slower(1.2) };
+    const base = baseline();
+    const verdict = verdictOf(results, base, { newestAssessment: assessReport(results, base, {}) });
+    const report = buildReport(results, base, {}, undefined, verdict);
+
+    assert.match(report, /^## ⚡ Performance: ✅ all 6 scenarios within tolerance · 1 already on develop$/m);
+    assert.match(visible(report), /^\| Sorting +\| ➖ already on develop /m);
+  });
+
+  test('a pull request run in block mode says a reviewer approves on the run, or a fix is pushed', () => {
+    const results = { ...quiet(), sorting: slower(1.2) };
+    const verdict = verdictOf(results, baseline(), { mode: 'block' });
+    const report = buildReport(results, baseline(), { gated: true, runUrl: 'https://example.test/runs/7' },
+      undefined, verdict);
+
+    assert.ok(report.includes('Waiting for approval'));
+    assert.ok(report.includes('`performance-approval` deployment on the [workflow run](https://example.test/runs/7)'));
+  });
+
+  test('a pull request run in warn mode says nothing waits', () => {
+    const results = { ...quiet(), sorting: slower(1.2) };
+    const report = buildReport(results, baseline(), { gated: true }, undefined, verdictOf(results, baseline()));
+
+    assert.ok(report.includes('The gate is in warn mode, so nothing waits'));
+    assert.ok(!report.includes('Waiting for approval'));
+  });
+
+  test('a run the gate does not act on states the verdict alone', () => {
+    const results = { ...quiet(), sorting: slower(1.2) };
+    const verdict = verdictOf(results, baseline(), { mode: 'block' });
+    const report = buildReport(results, baseline(), {}, undefined, verdict);
+
+    assert.match(report, /❌ 1 of 6 scenarios regressed$/m);
+    assert.ok(!report.includes('approval'));
+  });
+
+  test('a pull request into another branch says it was not assessed, and why', () => {
+    const results = { ...quiet(), sorting: slower(2) };
+    const verdict = verdictOf(results, baseline(), { baseRef: 'prod-docs/18.1' });
+    const report = buildReport(results, baseline(), {}, undefined, verdict);
+
+    assert.match(report, /^## ⚡ Performance: ⏸ not assessed$/m);
+    assert.ok(report.includes('Not assessed: the pull request targets prod-docs/18.1, and the baseline is develop.'));
+    assert.ok(!visible(report).includes('❌'));
+  });
+
+  test('the re-run is shown: a confirmed regression, and one it cleared with its first numbers', () => {
+    const first = { ...quiet(), sorting: slower(1.2), filtering: slower(1.3) };
+    const second = { ...quiet(), sorting: slower(1.2) };
+    const verdict = confirmVerdict(verdictOf(first, baseline()), verdictOf(second, baseline()));
+    const report = buildReport(second, baseline(), {}, undefined, verdict);
+
+    assert.match(report, /^## ⚡ Performance: ❌ 1 of 6 scenarios regressed · 1 cleared on re-run$/m);
+    assert.match(visible(report), /^\| Sorting +\| ❌ regressed, confirmed on re-run /m);
+    assert.match(visible(report), /^\| Filtering +\| ✔️ cleared on re-run +\| \+30\.0% .*\| first run only +\|$/m);
+  });
+
+  test('a small scenario over the line in percent but under the ms floor is watched, not failed', () => {
+    // 13 ms -> 14.56 ms: +12%, but only +1.56 ms, under the gate's 2 ms floor.
+    const small = { categories: { scripting: 9, rendering: 3, painting: 1 } };
+    const report = buildReport(
+      { 'undo-sort': currentScenario({ categories: { scripting: 10.56, rendering: 3, painting: 1 } }) },
+      golden({ 'undo-sort': goldenScenario(small) }),
+      {}
+    );
+
+    assert.match(report, /^## ⚡ Performance: ✅ all 1 scenario within tolerance · 1 to watch$/m);
+    assert.match(visible(report), /^\| Undo Sort +\| 🟡 to watch /m);
+    assert.match(fullTableRow(report, 'Undo Sort'), /\| \+12\.0% 🟡 +\|/);
+    assert.ok(!report.includes('\u{1F534}'), 'nothing is painted red');
+  });
+
+  test('a heap-only regression lists the heap, not three flat timing categories', () => {
+    const report = buildReport({
+      ...quiet(),
+      sorting: currentScenario({ updateCounters: { jsHeapMaxBytes: 107_500_000, jsHeapMaxLabel: '108 MB' } }),
+    }, baseline(), {});
+    const row = visible(report).split('\n').find(line => line.startsWith('| Sorting '));
+
+    assert.match(row, /\| JS heap \+7\.5% larger +\|$/);
+    assert.ok(!row.includes('Scripting'));
+  });
+
+  test('the gate\'s rules are stated, and only where something was compared', () => {
+    assert.ok(buildReport(quiet(), baseline(), {}).includes('<sub>Gate: a scenario fails above +10% and +2 ms'));
+    assert.ok(!buildReport(quiet(), null, {}).includes('<sub>Gate:'));
+    assert.ok(!buildReport(quiet(), { ...baseline(), isSelfCompare: true }, {}).includes('<sub>Gate:'));
+  });
+});
+
+describe('buildReport -- markers only where the gate acts', () => {
+  test('a small change carries no marker, either way', () => {
+    const report = buildReport(
+      {
+        sorting: currentScenario({ categories: { scripting: 20.72, rendering: 3, painting: 1 } }),
+        filtering: currentScenario({ categories: { scripting: 19.28, rendering: 3, painting: 1 } }),
+      },
+      golden({ sorting: goldenScenario(), filtering: goldenScenario() }),
+      {}
+    );
+
+    assert.match(fullTableRow(report, 'Sorting'), /\| \+3\.0% +\|/);
+    assert.match(fullTableRow(report, 'Filtering'), /\| -3\.0% +\|/);
+    assert.ok(!report.includes('\u{1F535}'), 'no blue marker anywhere');
+    assert.ok(!report.includes('\u{1F7E1}'), 'no yellow marker under the watch line');
+  });
+
+  test('only the baseline spread is flagged, never the run\'s own', () => {
+    // A run whose iterations disagree by far more than the warning line, as undo-edit's always do.
+    const wide = currentScenario({
+      _iterationValues: { categories: { scripting: [5, 20, 35], rendering: [3, 3, 3], painting: [1, 1, 1] } },
+    });
+    const report = buildReport(
+      { sorting: wide },
+      golden({ sorting: goldenScenario({ spread: CV_WARNING_THRESHOLD + 5 }) }),
+      {}
+    );
+    const [, runCv, baseCv] = fullTableRow(report, 'Sorting').match(/\| ([\d.]+%[^/|]*)\/ ([\d.]+%[^|]*)\|/);
+
+    assert.ok(Number.parseFloat(runCv) > CV_WARNING_THRESHOLD, 'the run spread is above the line');
+    assert.ok(!runCv.includes('⚠'), `the run spread is not flagged: ${runCv}`);
+    assert.ok(baseCv.includes('⚠'), `the baseline spread is: ${baseCv}`);
   });
 });

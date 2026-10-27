@@ -34,6 +34,7 @@ jobs:
     # deployment links to.
     outputs:
       verdict: ${{ steps.perf.outputs.verdict }}
+      summary: ${{ steps.perf.outputs.summary }}
       report-url: ${{ steps.perf.outputs.report-url }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -131,11 +132,13 @@ jobs:
     # another reason and cannot go green whatever they click.
     if: ${{ !failure() && !cancelled() && github.event_name == 'pull_request'
       && needs.run.outputs.verdict == 'regressed' }}
-    # The approvals API below reads the run's environment approvals. Requested
-    # explicitly: a nested job-level request is validated against the caller's
-    # grant at run startup, and `run` already requests `actions: read` the same way.
+    # The approvals API below reads the run's environment approvals, and the last
+    # step rewrites the sticky comment. Requested explicitly: a nested job-level
+    # request is validated against the caller's grant at run startup, and `run`
+    # already requests both the same way.
     permissions:
       actions: read
+      pull-requests: write
     environment:
       name: performance-approval
       # The report is deployed for same-repo pull requests only; elsewhere the
@@ -143,6 +146,7 @@ jobs:
       url: ${{ needs.run.outputs.report-url || format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
     steps:
       - name: Assert a human approval is recorded for this run
+        id: assert
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
         with:
           script: |
@@ -176,5 +180,32 @@ jobs:
               return;
             }
 
+            core.setOutput('approved-by', approval.user.login);
             core.notice(`Performance regression approved by @${approval.user.login}`
               + `${approval.comment ? `: ${approval.comment}` : ''}.`);
+
+      # `run` posted a comment saying the run waits for an approval, and nothing
+      # else would take that back down: there is no re-run here to refresh it.
+      # Same sticky header, so this replaces that comment rather than adding a
+      # second one; the numbers stay in the run's job summary and report. Inline,
+      # because this job has no checkout and `run`'s result.md is on another
+      # runner. `success()`, not `!cancelled()`: the step above fails when no
+      # approval is recorded, and this one would then announce "approved by @"
+      # with an empty login -- the opposite of what happened. Write-token runs
+      # only, like `run`'s own comment step (see .ai/CI.md, "fork and Dependabot
+      # pull requests").
+      - name: Record the approval on the pull request
+        if: ${{ success() && github.event_name == 'pull_request'
+          && (github.event.pull_request.head.repo.full_name == github.repository
+              && github.actor != 'dependabot[bot]') }}
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
+        with:
+          header: performance-tests
+          message: |
+            ## ⚡ Performance: ✅ regression approved
+
+            @${{ steps.assert.outputs.approved-by }} approved this run's performance regression on the
+            [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}),
+            where the job summary and the report have the numbers: ${{ needs.run.outputs.summary }}.
+
+            Approval covers this run only: a new push measures again and asks again.

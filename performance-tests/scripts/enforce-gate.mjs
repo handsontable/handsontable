@@ -9,7 +9,7 @@
 import { appendFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { GATE_VERDICT_FILE, formatGateNotice } from '../lib/gate.mjs';
-import { enforcement } from '../lib/gate-enforce.mjs';
+import { OUTCOMES, describeFailure, enforcement } from '../lib/gate-enforce.mjs';
 
 const VERDICT_PATH = join(import.meta.dirname, '..', 'output', GATE_VERDICT_FILE);
 
@@ -30,7 +30,12 @@ const result = enforcement({ verdict });
 // Written BEFORE the exit code is set, so every run that gets this far exports a verdict: an unset
 // output skips `approve`, which is only safe on a run that is red anyway.
 if (process.env.GITHUB_OUTPUT) {
-  await appendFile(process.env.GITHUB_OUTPUT, `verdict=${result.outcome}\n`);
+  // What regressed, on one line, for the comment the `approve` job writes once a reviewer approved.
+  const summary = result.outcome === OUTCOMES.REGRESSED
+    ? describeFailure(verdict).replace(/[\r\n]+/g, ' ')
+    : '';
+
+  await appendFile(process.env.GITHUB_OUTPUT, `verdict=${result.outcome}\nsummary=${summary}\n`);
 }
 
 // One per pull request run, with the final verdict (after any confirm re-run): the warn period is

@@ -19,6 +19,9 @@ outputs:
   verdict:
     description: 'The regression gate outcome (performance-tests/lib/gate-enforce.mjs, OUTCOMES); `regressed` asks for an approval'
     value: ${{ steps.gate.outputs.verdict }}
+  summary:
+    description: 'What regressed, on one line, when `verdict` is `regressed`; empty otherwise'
+    value: ${{ steps.gate.outputs.summary }}
   report-url:
     description: 'The pull request report on GitHub Pages; empty where the report is not deployed (fork and Dependabot runs)'
     value: ${{ steps.report-url.outputs.pages_url }}

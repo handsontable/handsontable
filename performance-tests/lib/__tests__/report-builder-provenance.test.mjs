@@ -111,26 +111,30 @@ describe('buildReport -- run shift', () => {
     assert.match(rows[0], /-20\.0% 🟢 \| \+0\.0% /, 'raw -20% green, +0.0% vs shift');
   });
 
-  test('a row that moved on its own stands out from the shift, and the callout says so', () => {
+  test('a row that moved on its own stands out from the shift, and the gate fails it', () => {
     // Fast runner, and filtering genuinely 1.8x slower: raw +44%, relative to the -20% shift +80%.
     const { results, snapshot } = run(0.8, { filtering: 1.8 });
     const report = buildReport(results, snapshot, {});
 
     assert.ok(report.includes('Run shift: -20.0%'));
+    // The full table: the raw delta, then the delta with the shift removed.
     assert.match(report, /\| Filtering .*\+44\.0% 🔴 \| \+80\.0% /);
-    assert.ok(report.includes('**Filtering** regressed +44.0%'), 'the callout fires on the raw delta');
-    assert.ok(report.includes('+80.0% relative to this run\'s shift of -20.0%'));
+    // The gate fires on the raw delta.
+    assert.match(report, /^\| Filtering +\| ❌ regressed +\| \+44\.0% /m);
+    assert.match(report, /^## ⚡ Performance: ❌ 1 of \d+ scenarios regressed/m);
   });
 
-  test('the callout still fires on the raw delta when the shift explains it', () => {
+  test('the gate still fails on the raw delta when the shift explains it', () => {
     // A slow runner, +20% everywhere. The gate is on the raw delta on purpose (a change that slows
-    // every scenario alike looks exactly like this), so nine callouts fire and each says the row sits
-    // at +0.0% relative to the shift -- the reader is told, not overruled.
+    // every scenario alike looks exactly like this), so every scenario fails and the run-wide reason
+    // is named -- the reader is told, not overruled; the full table shows each row at +0.0% vs shift.
     const { results, snapshot } = run(1.2);
     const report = buildReport(results, snapshot, {});
+    const total = Object.keys(results).length;
 
-    assert.ok(report.includes('### Regressions'));
-    assert.ok(report.includes('+0.0% relative to this run\'s shift of +20.0%'));
+    assert.match(report, new RegExp(`^## ⚡ Performance: ❌ ${total} of ${total} scenarios regressed`, 'm'));
+    assert.ok(report.includes('every scenario ran slower: the run shift is +20.0%'));
+    assert.match(report, /\| Scroll Down .*\+20\.0% 🔴 \| \+0\.0% /);
   });
 
   test('is not estimated on a self-comparison or from too few comparable rows', () => {
@@ -268,22 +272,42 @@ describe('buildReport -- per-scenario heap threshold', () => {
       {}
     );
 
-    assert.ok(report.includes('**Sorting** regressed'), 'sorting is still on the shared threshold');
+    assert.match(report, /^\| Sorting +\| ❌ regressed /m, 'sorting is still on the shared threshold');
     assert.ok(report.includes('JS heap +7.5% larger'));
-    assert.ok(!report.includes('**Scroll Left** regressed'));
-    // The table cell agrees with the callout: yellow, not red.
-    assert.match(report, /\| Scroll Left .*\+7\.5% 🟡 \|$/m);
+    assert.doesNotMatch(report, /^\| Scroll Left +\| ❌/m);
+    // The table cells agree with the gate: red on sorting, and no marker on scroll-left, which sits
+    // under its own line (heap has no watch tier).
+    assert.match(report, /\| Scroll Left .*\| \+7\.5% +\|$/m);
     assert.match(report, /\| Sorting .*\+7\.5% 🔴 \|$/m);
   });
 
-  test('above its own threshold, the horizontal-scroll scenario is called out like any other', () => {
+  test('above its own threshold, the horizontal-scroll scenario is failed like any other', () => {
     const report = buildReport(
       { 'scroll-left': current(100, heapAt(heapThresholdFor('scroll-left') + 1)) },
       { timestamp: 't', scenarios: { 'scroll-left': golden(100) } },
       {}
     );
 
-    assert.ok(report.includes('**Scroll Left** regressed'));
+    assert.match(report, /^\| Scroll Left +\| ❌ regressed /m);
+  });
+});
+
+describe('collectRegressions -- the gate\'s floor', () => {
+  test('a small scenario over the line in percent but under the ms floor is not annotated', () => {
+    // Active 13 -> 14.56 ms: +12%, +1.56 ms. The develop annotations use the gate's line, floor included.
+    const small = collectRegressions(
+      { 'undo-sort': current(10.56) },
+      { timestamp: 't', scenarios: { 'undo-sort': golden(9) } },
+      {}
+    );
+    const large = collectRegressions(
+      { sorting: current(108.16) },
+      { timestamp: 't', scenarios: { sorting: golden(96) } },
+      {}
+    );
+
+    assert.deepEqual(small, []);
+    assert.deepEqual(large.map(r => r.name), ['sorting'], 'the same +12% on a 100 ms scenario is annotated');
   });
 });
 
@@ -350,6 +374,6 @@ describe('collectRegressions', () => {
     const regressions = collectRegressions(results, snapshot, {});
 
     assert.equal(regressions.length, 1);
-    assert.ok(report.includes(`**${regressions[0].title}** regressed`));
+    assert.match(report, new RegExp(`^\\| ${regressions[0].title} +\\| ❌ regressed `, 'm'));
   });
 });

@@ -520,3 +520,29 @@ describe('buildHtmlReport -- trace window row', () => {
     assert.equal(row.note, 'harness wall clock');
   });
 });
+
+describe('buildHtmlReport -- the gate\'s floor', () => {
+  test('a small scenario over the line in percent but under the ms floor is not a regression', () => {
+    // Active 13 -> 14.56 ms: +12%, +1.56 ms, under the gate's 2 ms floor.
+    const html = buildHtmlReport(
+      {
+        'undo-sort': currentScenario({ categories: { scripting: 10.56, rendering: 3, painting: 1 } }),
+        sorting: currentScenario({ categories: { scripting: 108.16, rendering: 3, painting: 1 } }),
+      },
+      {
+        timestamp: 't',
+        scenarios: {
+          'undo-sort': goldenScenario({ categories: { scripting: 9, rendering: 3, painting: 1 } }),
+          sorting: goldenScenario({ categories: { scripting: 96, rendering: 3, painting: 1 } }),
+        },
+      },
+      {}
+    );
+    const { scenarios, summary } = payloadOf(html);
+    const byName = Object.fromEntries(scenarios.map(s => [s.name, s]));
+
+    assert.equal(summary.regressions, 1, 'only the 100 ms scenario at +12% counts');
+    assert.equal(byName.sorting.status, 'regression');
+    assert.notEqual(byName['undo-sort'].status, 'regression');
+  });
+});

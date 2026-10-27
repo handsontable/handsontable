@@ -4,10 +4,10 @@
 // uses, and reports how often a no-change comparison would have fired a regression callout.
 //
 // Every develop golden measures develop, so any delta this produces is noise by construction. That
-// makes the output a direct read of the false-positive rate at a given callout threshold, which is
-// the only defensible way to pick one. Re-run it after any change to how the suite measures or to
-// which baseline it compares against, and move REGRESSION_CALLOUT_THRESHOLD_TIMING to the knee of
-// the curve it prints.
+// makes the output a direct read of the false-positive rate at a given threshold, which is the only
+// defensible way to pick one. Re-run it after any change to how the suite measures or to which
+// baseline it compares against, and move GATE_TIMING_THRESHOLD (which the reports' red band
+// follows) and REGRESSION_CALLOUT_THRESHOLD_HEAP to the knee of the curves it prints.
 //
 // It also replays the regression gate itself (lib/thresholds.mjs, GATE_*), rule for rule, and
 // counts runs as well as comparisons: the gate fails a whole job when any one scenario crosses its
@@ -32,7 +32,6 @@ import {
   GATE_TIMING_FLOOR_MS,
   GATE_TIMING_THRESHOLD,
   REGRESSION_CALLOUT_THRESHOLD_HEAP,
-  REGRESSION_CALLOUT_THRESHOLD_TIMING,
   WATCH_TIMING_THRESHOLD,
   calcCv,
   comparability,
@@ -698,8 +697,8 @@ async function main(argv) {
 
   console.log('TIMING');
   printCurve(deltas, 'timing', TIMING_THRESHOLDS, {
-    [REGRESSION_CALLOUT_THRESHOLD_TIMING]: 'callout',
-    [GATE_TIMING_THRESHOLD]: 'gate',
+    // The reports' red band is this same line (REGRESSION_CALLOUT_THRESHOLD_TIMING).
+    [GATE_TIMING_THRESHOLD]: 'gate and red band',
     [WATCH_TIMING_THRESHOLD]: 'watch',
   }, { floorMs });
 
