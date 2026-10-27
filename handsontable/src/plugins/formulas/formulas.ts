@@ -3757,9 +3757,16 @@ export class Formulas extends BasePlugin {
     // Fall back to the sheet this instance already owns. Without it every `loadData`/`updateData`
     // call adds a sheet and abandons the previous one - with its whole dependency graph - inside
     // the engine, which the engine then recalculates on every subsequent call.
-    const sheetName = setupSheet(
-      this.engine, this.#requestedSheetName() ?? this.sheetName ?? this.#readSheetNameSetting(),
+    const bindSheet = () => setupSheet(
+      this.engine!, this.#requestedSheetName() ?? this.sheetName ?? this.#readSheetNameSetting(),
     );
+    // Adding the sheet makes the engine re-resolve a formula in another grid that named it before it
+    // existed. The write that fills the sheet paints that grid through `renderDependentSheets`, so the
+    // listener must not paint it as well. A grid built from the sheet writes nothing, so it keeps the
+    // listener's paint.
+    const sheetName = this.#hotWasInitializedWithEmptyData
+      ? bindSheet()
+      : withPluginEngineWrite(this.engine, bindSheet);
 
     this.#updateSheetNameAndSheetId(sheetName);
     this.#followSheetNameSettingWhenBound();

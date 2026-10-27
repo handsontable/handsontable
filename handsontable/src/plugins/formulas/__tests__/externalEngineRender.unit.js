@@ -249,6 +249,36 @@ describe('external engine changes repaint formula cells', () => {
     });
   });
 
+  describe('a grid that joins an engine whose formulas already name its sheet', () => {
+    let containers;
+    let grids;
+    let renders1;
+
+    beforeEach(() => {
+      containers = [createContainer(), createContainer()];
+      grids = [];
+      renders1 = 0;
+    });
+
+    afterEach(() => {
+      grids.forEach(grid => grid.destroy());
+      containers.forEach(container => container.remove());
+    });
+
+    it('paints the grid that names the sheet once while the other grid registers it', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      grids.push(mountGrid(containers[0], [['Ford', 'Tesla'], ['Opel', '=Sheet2!A2']], engine, 'Sheet1', () => {
+        renders1 += 1;
+      }));
+      renders1 = 0;
+      grids.push(mountGrid(containers[1], [['Ford', 'Tesla'], ['Opel', '=Sheet1!B1']], engine, 'Sheet2', () => {}));
+
+      expect(renders1).toBe(1);
+      expect(grids[0].getCell(1, 1).textContent).toBe('Opel');
+    });
+  });
+
   describe('addSheet and engine settings', () => {
     let container;
     let hot;
