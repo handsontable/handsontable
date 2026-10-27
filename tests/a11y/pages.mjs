@@ -13,7 +13,7 @@
  *   `data-testid="grid"` unless the page has several grids). That grid's own portal
  *   (`rootPortalElement`, where menus and the comment editor render) is always included
  *   too; the rest of the fixture page is not the product and is left out.
- * - `state` names what the spec does before it scans (`STATES` in the spec): a menu
+ * - `state` names what the spec does before it scans (`STATES` in `harness.ts`): a menu
  *   or an editor opened from the keyboard on `cell`, the comment editor opened with
  *   Ctrl+Alt+M, a selection laid, a parked data-provider fetch released, or a cell left
  *   pending.
@@ -142,7 +142,7 @@ export function fixtureUrl(page, theme) {
 }
 
 /**
- * How to reach the state a page is scanned in, in words: the steps `STATES` in `axe.spec.ts`
+ * How to reach the state a page is scanned in, in words: the steps `STATES` in `harness.ts`
  * performs, for a person or an agent who opens the fixture by hand.
  *
  * @param {{state: string, cell?: [number, number]}} page The page.

@@ -12,7 +12,7 @@ tests/
 ├── playwright.a11y.config.ts # the axe scan's config: one project over a11y/, the e2e server inherited
 ├── playwright.screenreader.config.ts # the screen reader lane's config: one project per screen reader and browser, through Guidepup
 ├── e2e/                    # functional specs (*.spec.ts)
-├── a11y/                   # the axe scan: axe.spec.ts, pages.mjs (the curated pages), axe-baseline.json
+├── a11y/                   # the axe scan: axe.spec.ts, pages.mjs (the curated pages), axe-baseline.json; harness.ts (openers and guards shared with the checks beyond axe), evidence.ts
 ├── screenreader/           # the screen reader lane: screenreader.spec.ts (the runner), scenarios/*.scenario.json, goldens/<project>/
 ├── visual/                 # visual regression — destination for the current visual-tests/ suite
 ├── fixtures/

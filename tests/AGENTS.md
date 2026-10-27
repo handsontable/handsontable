@@ -1014,7 +1014,7 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
 - **The scan includes the grid's root container and that grid's own portal, nothing else.**
   `.include(root)` plus the instance's `rootPortalElement`, the `body`-level element the core
   appends for menus and the comment editor. The spec marks that element with a data attribute
-  before the scan (`markPortal()`) and includes the attribute, never the `.ht-portal` class:
+  before the scan (`markPortal()` in `a11y/harness.ts`) and includes the attribute, never the `.ht-portal` class:
   every instance appends a portal, so on a page with several grids the class would scan the other
   grids' menus too and key their findings to this page. The fixture page's own buttons, inputs
   and headings are not the product, and a finding on them would be baselined forever. A page
@@ -1152,7 +1152,7 @@ sorts a run into six sets, each with a one-line remedy:
 Add an entry to `a11y/pages.mjs`: `id` (a kebab-case slug that names the surface, not the
 fixture; one fixture can be scanned in several states), `fixture` (under `fixtures/demo/`),
 `query` (appended after the theme), `root` (when the fixture has several grids), `cell` (where a
-menu or an editor opens; `[1, 1]` when absent), `state` (one of `STATES` in the spec: add a new
+menu or an editor opens; `[1, 1]` when absent), `state` (one of `STATES` in `a11y/harness.ts`: add a new
 opener there for a new kind of surface, keyboard first), `device` (a Playwright device to emulate,
 for a surface that exists on a phone only) and `surface` (what it covers). Keep
 `{ id: '…'` at the start of the entry's first line: the check run annotates a new finding on that
@@ -1288,6 +1288,88 @@ validate exit 1; block mode exits 1 on a new finding and 0 when every finding is
 tooling problem prints as one escaped annotation. Every workflow command the a11y job prints goes
 through `workflowCommand()` in `lib/a11y-baseline.mjs`: a problem quotes the baseline, and an
 unescaped newline or `%` would cut the one line that explains a red job.
+
+## A11y: the checks beyond axe
+
+The axe scan reads the accessibility tree against axe's rules. It never presses a key, measures a
+focus ring, zooms the page, turns on forced colors or drags anything, and the published conformance
+report still marks criteria "Not Evaluated" for want of that evidence. The checks in `a11y/checks/`
+measure those. Each check is one Playwright project of `playwright.a11y-checks.config.ts`, named by its
+id, and each test of a check measures one target: a page of the catalog (`a11y/pages.mjs`) in a theme
+and a state, or a variant the check makes of it (dark, right to left, a phone). What a check measured
+lands in one evidence document per check, which the conformance report generator cites per
+criterion.
+
+- **Report-only, and the rule is one constant.** `EVIDENCE_MODE` in `lib/a11y-evidence.mjs` is
+  `report`, and `lib/__tests__/a11y-evidence.test.mjs` pins it. A finding is a row in the job summary,
+  an annotation and a `neutral` `A11y / <check> report` check run; `buildEvidenceCheckRun()` never
+  returns `failure`, so no check turns a pull request red. A test fails for tooling only (a fixture that
+  does not load, a state the keyboard did not reach), and the document records that test as a target
+  with `status: 'error'` and its error as a problem. A test that measured only on a retry is flagged
+  (`flaky`) and listed as a problem too. Flakiness is a finding against the check, not the product: fix
+  the measurement, never quarantine it. A check that starts gating changes the constant, its test and
+  this section together, after its findings have proven precise.
+- **One document per check, in one shape.** `test-results/a11y-checks/<check>.json`
+  (`mergeEvidence()`): `check`, `title`, `mode`, `criteria` (what the check evidences, from
+  `EVIDENCE_CHECKS`), `run` (the commit the run tested, the head on a pull request and never the merge
+  commit; the ref, the run URL, the browser and its version, the Handsontable version and build date),
+  `targets` (every target, measured or not, with the criteria it evaluated and the path of its detail
+  file), `findings`, `problems` and `summary`. A finding has a stable `id` (check, kind, page, theme,
+  variant and element or step, so two runs give the same finding the same id), `kind`, `criteria`,
+  `severity`, its target (`page`, `theme`, `state`, `variant`, `url`), a `selector` or a `step` or
+  both, `measured` (flat values), optionally `expected`, and a one-sentence `reason`. What a target
+  measured in full (every focus stop, every ratio) goes to `<check>/<page>--<theme>[--<variant>].json`
+  beside the document, so the document stays small enough to read. `summary.byCriterion` counts, per
+  criterion, the targets that evaluated it and the findings against it: a criterion evaluated on many
+  targets with no finding is the evidence of a pass, and that count is what the generator cites.
+  `schema` (`EVIDENCE_SCHEMA`) changes when a field is removed or renamed; `validateEvidence()` is what
+  a reader can rely on.
+- **Criteria are WCAG 2.2 ids from one table.** `WCAG_CRITERIA` lists every 2.2 success criterion with
+  its name and level, without the obsolete 4.1.1, and a finding naming any other id is refused. A
+  finding may name a criterion outside its check's list when the measurement shows it (a focus stop
+  with no name is a 4.1.2 fact the keyboard walker sees); it is then counted under that criterion with
+  no target evaluating it, because the check does not evaluate it everywhere.
+- **Severity is axe's scale plus one.** `critical`, `serious`, `moderate`, `minor`, as axe rates
+  impact, so a finding reads the same in every report, and `advisory` for a difference to review that
+  is not a failure on its own (a tab-order golden that moved). An advisory finding still makes the
+  check run neutral: someone has to look at it.
+- **The same pages, states and guards as the scan.** Every check opens its targets through
+  `a11y/harness.ts`: `openTarget()` loads the fixture and turns an uncaught page error, a missing theme
+  stylesheet or a constructor throw into a red test, and `reachState()` reaches the catalog state with
+  the keyboard (`STATES`) and marks the grid's own portal (`PORTAL`). A check therefore measures the DOM
+  a keyboard user reaches, the one the axe scan reads. A state a check needs and the catalog lacks gets
+  an opener in `STATES`, keyboard first. The `test()` calls stay in the spec, never in a helper: a test
+  declared from a helper reports the helper as its location.
+- **A test declares its target first and attaches its part last.** `declareTarget()` (`a11y/evidence.ts`)
+  writes the target as a test annotation before anything can fail, so the reporter can name a test that
+  failed before it measured; `attachEvidence()` attaches the part, with `readEnvironment()`'s browser
+  and build. An empty `findings` list is evidence too: the target was measured and nothing was found.
+- **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
+  it finds listed in its pull request; the product tasks are filed apart, and a fix later clears the
+  finding. A finding the check gets wrong is fixed in the check.
+- **Every report value is escaped.** The summary and the check run render values from the fixture DOM
+  (selectors, accessible names), so `renderEvidenceSummary()` escapes them the way
+  `escapeMarkdownText()` does for the scan, puts a selector in a `<code>` element, and links a URL only
+  when it is plain https.
+
+The merge, the validation, the summary and the check run are pure (`lib/a11y-evidence.mjs`, tested
+in `lib/__tests__/a11y-evidence.test.mjs` through the root `test:tooling`). The reporter
+(`reporters/a11y-checks.ts`) reads the last attempt of every test of each project that ran and writes
+the documents, the detail files and a `summary.md`; it never changes the run's status.
+`e2e/a11y-checks-reporter.spec.ts` (no browser, a few seconds) proves it on synthetic projects: the
+last attempt read, a failed test recorded as an error target, a retried one flagged, a detail written
+to its own file. `scripts/a11y-evidence-report.mjs` reads the documents and writes the job summary,
+or posts one check run per check with `--check-run` (`--dry-run` prints the payloads); a check the job
+ran that left no document (`A11Y_CHECKS`) gets a neutral tooling check run instead of none.
+
+### Adding a check
+
+Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs` (a title and the criteria it
+evidences), a project named by the entry's key to `playwright.a11y-checks.config.ts`, and its spec to
+`a11y/checks/`. Write the measurer or matcher as a pure function with a tooling test that is red
+before the function exists. Prove the check on the product with a planted defect (a fixture hook that
+removes a focus ring or a name), shown in the check run of its pull request, then reverted. Document
+its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.
 
 ## Screen readers: the NVDA lane
 

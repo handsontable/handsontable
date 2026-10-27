@@ -595,6 +595,12 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - CI: one job, `A11y / axe`, in warn mode — a finding that needs action is an annotation, a summary row and a neutral `A11y / axe report` check run, never a red job; the only reds are tooling failures. An HTML report that locates every element (fixture, steps, selector, DOM path, screenshot) opens from the run page, a sticky pull request comment links it, and `a11y-findings.json` gives an implementer agent the same findings, concise. The baseline moves only with the code: the change that fixes a finding deletes its entry
 - It is not a test of a change: a pull request that touches an accessible surface still proves its behavior with a Playwright spec in `tests/e2e/`. How to add a page, baseline a finding, and when warn mode flips: `tests/AGENTS.md` → "A11y: the axe scan and its baseline"
 
+**Accessibility checks beyond axe:**
+- Framework: Playwright, over the same catalog pages and keyboard-reached states as the axe scan (`tests/a11y/harness.ts`), one project per check
+- Location: `tests/a11y/checks/` (the specs), `tests/a11y/evidence.ts` (what a test declares and attaches); the evidence shape, the WCAG 2.2 criteria table, the summary and the check run are `tests/lib/a11y-evidence.mjs`, the reporter `tests/reporters/a11y-checks.ts`
+- Output: one evidence document per check, `tests/test-results/a11y-checks/<check>.json`, that the conformance report generator cites per criterion (the targets each criterion was evaluated on, and the findings against it), plus a detail file per target
+- Report-only: a finding is a summary row, an annotation and a neutral `A11y / <check> report` check run, never a red job or a `failure` check run; a test fails for tooling only, and a flaky check is a finding against the check. Product findings are recorded, never fixed in the check's change. How to add a check: `tests/AGENTS.md` → "A11y: the checks beyond axe"
+
 **Screen reader lane (NVDA, through Guidepup):**
 - Framework: Playwright + `@guidepup/playwright` (a real NVDA driven over the fixture pages, one Playwright project per screen reader and browser)
 - Location: `tests/screenreader/` — `screenreader.spec.ts` (the runner), `scenarios/<surface>.scenario.json` (data: the fixture, the setup, the ordered keys and the token groups each announcement must carry), `goldens/<project>/<scenario>.json` (the exact announcements per project, advisory)
