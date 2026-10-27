@@ -364,6 +364,21 @@ its rows back that way (`grid.removeSurplusRowsAndCols()`, see the DEV-2206 bull
 summary otherwise stays put while the rows below it go, and ends up at the wrong offset from the bottom. Do
 not widen the skip back to every `auto` action. `reversedRowCoordsAlter.unit.js` pins it.
 
+## A replaced data array gets its destination values back
+
+The plugin writes its results into the data array, so an array loaded again used to sum the previous result
+as input: a sheets bar round trip grew a total 3, 6, 9, and stored the grown total in the sheet's data.
+`#destinationWrites` records, per source row object and property, what a destination cell held before the
+first result and the result written last (from `afterChange` with the plugin's own sources). Right before the
+array is replaced (`beforeLoadData`, and `beforeUpdateData` with another array) the outgoing array gets the
+original values back, written straight into its rows: no hooks, no undo step, no render. A cell that no longer
+holds the last result (the user or the host replaced it) and a row no longer in the array are left alone.
+Three rules: the map outlives `updatePlugin()`, because a switch re-enables the plugin before its data loads;
+`updateData()` with the array the grid holds restores nothing, because the kept cell meta still keeps the
+result out of its range (a wrapper re-render must not churn the cell); and a grid with a `modifyRowData`
+listener (NestedRows) records nothing, because its physical rows are not array indexes. Pinned by
+`__tests__/replacedDataDestination.unit.js` and `tests/e2e/sheets-bar-column-summary-round-trip.spec.ts`.
+
 ## Where to look next
 
 - The formula engine this plugin queries for its own cells: `../formulas/AGENTS.md`.
