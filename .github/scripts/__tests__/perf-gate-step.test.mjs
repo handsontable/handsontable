@@ -1,26 +1,33 @@
-// Pins how the performance regression gate is wired into the pull request path
-// (.github/actions/performance-run/action.yml, called by performance.yml).
+// Pins how the performance regression gate is wired into the pull request path:
+// the composite's enforce step (.github/actions/performance-run/action.yml) and
+// performance.yml's `approve` job, which waits on the `performance-approval`
+// environment the way visual.yml's `approve` job waits on `visual-approval`.
 //
-// The gate's verdict is decided in the teardown and enforced by the composite's last step. Three
-// things break it silently: a step added after it (a red job would then hide whatever that step
-// publishes, or the step would not run), an `if:` that skips it after a failed step or runs it on a
-// cancelled job, and a body file the live read and the gate do not agree on (the accept marker would
-// then come from the frozen payload, which a re-run cannot update). The develop golden run must
-// never be gated: develop.yml says the performance job never gates the publish.
+// The ways it breaks silently: a step after the enforce step (a later failure
+// would hide behind it, or a later publish would not run); an enforce step that
+// can leave `verdict` unset on a GREEN job (`approve` would be skipped and a
+// regression would merge unreviewed); an `approve` job that runs after a red
+// `run` (a reviewer would bless a run that cannot go green) or trusts the
+// environment instead of asserting an approval (a missing environment is
+// auto-created unprotected); and the retired description token coming back as a
+// second, unreviewed way through. The develop golden run is never gated:
+// develop.yml says the performance job never gates the publish.
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
+import { job } from '../lib/workflow-text.mjs';
+import { OUTCOMES } from '../../../performance-tests/lib/gate-enforce.mjs';
 
 const root = repoRoot();
 const read = rel => readFileSync(path.join(root, rel), 'utf8');
 
 const COMPOSITE = '.github/actions/performance-run/action.yml';
+const CALLER = '.github/workflows/performance.yml';
 const GOLDEN = '.github/workflows/performance-tests.yml';
 const GATE_STEP = 'Enforce the performance gate';
-const BODY_STEP = 'Read the live pull-request body';
 const GATE_SCRIPT = 'performance-tests/scripts/enforce-gate.mjs';
 
 /**
@@ -40,7 +47,7 @@ function compositeSteps(source) {
 }
 
 /**
- * @param {string} body One step's text.
+ * @param {string} body One composite step's text.
  * @param {string} key A step key, such as `if` or `run`.
  * @returns {string | null} The key's value on its own line, at the step's six-space key indent.
  */
@@ -49,7 +56,7 @@ function stepKey(body, key) {
 }
 
 /**
- * @param {string} body One step's text.
+ * @param {string} body One composite step's text.
  * @param {string} name An environment variable.
  * @returns {string | null} Its value in the step's `env:` block.
  */
@@ -57,15 +64,24 @@ function stepEnv(body, name) {
   return (body.match(new RegExp(`^ {8}${name}: (.+)$`, 'm')) ?? [])[1] ?? null;
 }
 
-describe('the performance gate on the pull request path', () => {
-  const steps = compositeSteps(read(COMPOSITE));
+/**
+ * @param {string} source A workflow or action file.
+ * @returns {string} the file without its comment lines, so prose about a key never matches as one
+ */
+function code(source) {
+  return source.split('\n').filter(line => !line.trimStart().startsWith('#')).join('\n');
+}
+
+describe('the enforce step exports the verdict the approval keys on', () => {
+  const composite = read(COMPOSITE);
+  const steps = compositeSteps(composite);
   const names = steps.map(step => step.name);
   const gate = steps.find(step => step.name === GATE_STEP);
-  const body = steps.find(step => step.name === BODY_STEP);
   const run = steps.find(step => step.name === 'Run performance tests');
 
-  test('the enforce step exists and runs the gate script', () => {
+  test('the enforce step exists, carries the id the outputs read, and runs the gate script', () => {
     assert.ok(gate, `${COMPOSITE} has no "${GATE_STEP}" step`);
+    assert.equal(stepKey(gate.body, 'id'), 'gate');
     assert.equal(stepKey(gate.body, 'run'), `node ${GATE_SCRIPT}`);
     assert.ok(existsSync(path.join(root, GATE_SCRIPT)), `${GATE_SCRIPT} does not exist`);
   });
@@ -78,7 +94,6 @@ describe('the performance gate on the pull request path', () => {
       'Deploy PR report to GitHub Pages',
       'Write the performance summary to the job summary',
       'Post performance summary to pull request',
-      BODY_STEP,
     ]) {
       assert.ok(names.includes(earlier), `${COMPOSITE} no longer has "${earlier}"`);
       assert.ok(names.indexOf(earlier) < names.indexOf(GATE_STEP), `"${earlier}" must run before the gate`);
@@ -89,16 +104,22 @@ describe('the performance gate on the pull request path', () => {
     assert.equal(stepKey(gate.body, 'if'), "${{ !cancelled() && github.event_name == 'pull_request' }}");
   });
 
-  test('the live body read cannot fail the job, and writes the file the gate reads', () => {
-    assert.ok(body, `${COMPOSITE} has no "${BODY_STEP}" step`);
-    assert.equal(stepKey(body.body, 'continue-on-error'), 'true');
-    assert.equal(stepKey(body.body, 'if'), stepKey(gate.body, 'if'));
-    assert.equal(stepEnv(body.body, 'BODY_FILE'), stepEnv(gate.body, 'PERF_PR_BODY_FILE'));
-    assert.ok(body.body.includes('github.rest.pulls.get('), 'the body must be read live, not from the payload');
+  test('the enforce step cannot fail quietly: no continue-on-error, so an unset verdict means a red job', () => {
+    assert.doesNotMatch(gate.body, /^\s*continue-on-error:/m);
   });
 
-  test('the gate falls back to the payload body through the environment, never inline', () => {
-    assert.equal(stepEnv(gate.body, 'PERF_PR_BODY'), '${{ github.event.pull_request.body }}');
+  test('the script writes the verdict output before it sets the exit code', () => {
+    const script = read(GATE_SCRIPT);
+    const writesOutput = script.indexOf('GITHUB_OUTPUT');
+    const setsExitCode = script.indexOf('process.exitCode');
+
+    assert.ok(writesOutput > -1 && setsExitCode > -1, 'the script no longer has both halves');
+    assert.ok(writesOutput < setsExitCode, 'a run that exits non-zero must still have exported its verdict');
+  });
+
+  test('the composite exports the verdict and the report URL', () => {
+    assert.match(composite, /^ {2}verdict:\n(?: {4}.*\n)*? {4}value: \$\{\{ steps\.gate\.outputs\.verdict \}\}$/m);
+    assert.match(composite, /^ {2}report-url:\n(?: {4}.*\n)*? {4}value: \$\{\{ steps\.report-url\.outputs\.pages_url \}\}$/m);
   });
 
   test('the run passes the base branch and base commit the verdict needs', () => {
@@ -106,12 +127,60 @@ describe('the performance gate on the pull request path', () => {
     assert.equal(stepEnv(run.body, 'PERF_BASE_REF'), "${{ github.base_ref || '' }}");
     assert.equal(stepEnv(run.body, 'PERF_BASE_SHA'), "${{ github.event.pull_request.base.sha || '' }}");
   });
+
+  test('the retired description token is gone: an approval is the one way through', () => {
+    for (const file of [COMPOSITE, CALLER, GATE_SCRIPT, 'performance-tests/lib/gate-enforce.mjs']) {
+      assert.doesNotMatch(code(read(file)), /accept perf regression|PERF_PR_BODY/, file);
+    }
+  });
+});
+
+describe('the approve job waits on the performance-approval environment', () => {
+  const caller = read(CALLER);
+  const runJob = job(caller, 'run');
+  const approve = job(caller, 'approve');
+
+  test('the run job exports the composite\'s outputs', () => {
+    assert.match(runJob, /^ {6}- uses: \.\/\.github\/actions\/performance-run\n {8}id: perf$/m);
+    assert.match(runJob, /^ {4}outputs:\n {6}verdict: \$\{\{ steps\.perf\.outputs\.verdict \}\}\n {6}report-url: \$\{\{ steps\.perf\.outputs\.report-url \}\}$/m);
+  });
+
+  test('approve runs only on a regressed pull request verdict, and never after a red run', () => {
+    assert.ok(approve, `${CALLER} has no approve job`);
+    assert.match(approve, /^ {4}needs: \[ run \]$/m);
+    assert.match(approve, /^ {4}if: \$\{\{ !failure\(\) && !cancelled\(\) && github\.event_name == 'pull_request'\n {6}&& needs\.run\.outputs\.verdict == '(\w+)' \}\}$/m);
+    assert.equal(approve.match(/needs\.run\.outputs\.verdict == '(\w+)'/)[1], OUTCOMES.REGRESSED,
+      'the approve job must key on the outcome the enforce step exports for a regression');
+  });
+
+  test('approve waits on the environment, on a hosted runner, with the permission its assertion needs', () => {
+    assert.match(approve, /^ {4}environment:\n {6}name: performance-approval\n/m);
+    assert.match(approve, /^ {4}runs-on: ubuntu-/m, 'waiting must not hold the only self-hosted runner');
+    assert.match(approve, /^ {4}permissions:\n {6}actions: read$/m);
+  });
+
+  test('approve asserts a recorded approval instead of trusting the environment', () => {
+    assert.match(approve, /actions\/runs\/\{run_id\}\/approvals/,
+      'the approve job no longer reads the run approvals: it would fail OPEN on environment drift');
+    assert.match(approve, /environment\.name === 'performance-approval'/);
+    assert.match(approve, /state === 'approved'/);
+    assert.match(approve, /core\.setFailed/, 'the approve job no longer fails closed when no approval is recorded');
+    assert.doesNotMatch(approve, /^\s*continue-on-error:/m);
+  });
+
+  test('manual-qa, the visual approval and this one assert their approvals the same way', () => {
+    for (const other of [read('.github/workflows/manual-qa.yml'), job(read('.github/workflows/visual.yml'), 'approve')]) {
+      assert.match(other, /actions\/runs\/\{run_id\}\/approvals/);
+      assert.match(other, /state === 'approved'/);
+    }
+  });
 });
 
 describe('the develop golden run is never gated', () => {
-  test(`${GOLDEN} does not run the gate script`, () => {
-    const code = read(GOLDEN).split('\n').filter(line => !line.trimStart().startsWith('#')).join('\n');
+  test(`${GOLDEN} neither enforces the gate nor waits for an approval`, () => {
+    const golden = code(read(GOLDEN));
 
-    assert.ok(!code.includes('enforce-gate.mjs'));
+    assert.ok(!golden.includes('enforce-gate.mjs'));
+    assert.ok(!golden.includes('performance-approval'));
   });
 });

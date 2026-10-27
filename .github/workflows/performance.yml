@@ -30,6 +30,11 @@ jobs:
       contents: write
       pull-requests: write
       actions: read
+    # The regression gate's outcome, which `approve` keys on, and where its
+    # deployment links to.
+    outputs:
+      verdict: ${{ steps.perf.outputs.verdict }}
+      report-url: ${{ steps.perf.outputs.report-url }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
@@ -90,6 +95,86 @@ jobs:
       # reason, and its always() steps write the job summary and the sticky
       # comment, which would otherwise keep the previous push's numbers.
       - uses: ./.github/actions/performance-run
+        id: perf
         if: ${{ !cancelled() }}
         with:
           hot-prebuilt: ${{ inputs.hot-prebuilt }}
+
+  # The human decision on a regression, the same mechanism as visual.yml's
+  # `approve` job and manual-qa.yml. When the gate (performance-tests/lib/gate.mjs,
+  # block mode) finds a scenario slower than its line and the confirm re-run
+  # repeats it, this job pauses on the `performance-approval` ENVIRONMENT until
+  # someone on its reviewer list approves the run ("Review pending deployments"
+  # on the run page; GitHub notifies the reviewers, and "View deployment" opens
+  # the report). While it waits the Performance module never completes, so
+  # `CI Gate` -- which needs it -- cannot report; a rejection fails this job and
+  # turns `CI Gate` red. Approval is per run, so a new push measures again and
+  # asks again; it works for fork and Dependabot pull requests, because the
+  # reviewer's approval does not go through their token. In warn mode the gate
+  # never exports `regressed`, so this job never runs.
+  #
+  # Cutover (repo admin), before the gate moves to block mode: create the
+  # `performance-approval` environment WITH required reviewers and "Prevent
+  # self-review" OFF, as on the other approval environments (the reasoning, and
+  # the rule that an agent must never approve a deployment, are in `.ai/CI.md`).
+  # A job that references a missing environment silently auto-creates it
+  # UNPROTECTED and runs straight through, so the step below asserts the
+  # control's OUTCOME -- an approval recorded against this run -- and fails
+  # closed when none is.
+  approve:
+    name: approve
+    runs-on: ubuntu-26.04
+    needs: [ run ]
+    # `!failure()` as well as `!cancelled()`: an `if:` that contains a status
+    # function replaces the implicit `success()` on `needs` (see `.ai/CI.md`), so
+    # `!cancelled()` alone would ask a reviewer to approve a run that is red for
+    # another reason and cannot go green whatever they click.
+    if: ${{ !failure() && !cancelled() && github.event_name == 'pull_request'
+      && needs.run.outputs.verdict == 'regressed' }}
+    # The approvals API below reads the run's environment approvals. Requested
+    # explicitly: a nested job-level request is validated against the caller's
+    # grant at run startup, and `run` already requests `actions: read` the same way.
+    permissions:
+      actions: read
+    environment:
+      name: performance-approval
+      # The report is deployed for same-repo pull requests only; elsewhere the
+      # run page, which links the job summary and the artifact, stands in.
+      url: ${{ needs.run.outputs.report-url || format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
+    steps:
+      - name: Assert a human approval is recorded for this run
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            let approvals;
+
+            try {
+              // Raw request: the reusable workflow shares the parent's run id,
+              // and this endpoint lists the environment approvals for it.
+              const response = await github.request(
+                'GET /repos/{owner}/{repo}/actions/runs/{run_id}/approvals',
+                { owner, repo, run_id: context.runId },
+              );
+
+              approvals = response.data;
+            } catch (error) {
+              core.setFailed(`Could not read this run's approvals (${error.status} ${error.message}). `
+                + 'The performance gate cannot confirm a human approved the regression, so it fails closed. '
+                + 'If this is a token-permission error, grant `actions: read` to the Tests workflow.');
+              return;
+            }
+
+            const approval = approvals.find((entry) => entry.state === 'approved'
+              && (entry.environments || []).some((environment) => environment.name === 'performance-approval'));
+
+            if (!approval) {
+              core.setFailed('This job ran without a recorded performance-approval approval, which means the '
+                + '`performance-approval` environment has no required reviewers (a missing environment is '
+                + 'auto-created unprotected). Configure it -- required reviewers -- and re-run; the gate '
+                + 'is not enforcing anything until then.');
+              return;
+            }
+
+            core.notice(`Performance regression approved by @${approval.user.login}`
+              + `${approval.comment ? `: ${approval.comment}` : ''}.`);

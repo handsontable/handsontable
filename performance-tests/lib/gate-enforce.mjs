@@ -1,31 +1,27 @@
-// Turns the gate's verdict into the job's result: the workflow's last step, after the report is
-// deployed and the comment is posted, so a red job never hides the numbers that made it red.
+// Turns the gate's verdict into the job's outcome: the composite's last step, after the report is
+// deployed and the comment is posted, so nothing it decides can hide the numbers behind it.
 //
-// Kept apart from lib/gate.mjs, which decides the verdict inside the teardown. This side only reads
-// it back, together with the one input the teardown cannot see: the pull request's live description,
-// where an author accepts a slowdown on purpose.
+// Kept apart from lib/gate.mjs, which decides the verdict inside the teardown. This side reads it
+// back and says what the workflow does next. A regression in block mode does not fail the job: it
+// hands over to performance.yml's `approve` job, which waits on the `performance-approval`
+// environment, the same mechanism as the visual and manual QA gates. A reviewer approves an intended
+// slowdown there; rejecting it fails the job and `CI Gate` with it.
 
-import { stripHtmlComments } from '../../.github/scripts/lib/strip-html-comments.mjs';
 import { gateMode } from './gate.mjs';
 
-// Outside any HTML comment, like `[skip changelog]` and `[visual budget: N – reason]`: the pull
-// request template documents it inside a comment, and that example must never accept anything.
-const ACCEPT_MARKER = /\[accept perf regression:\s*([^\]]*\S)\s*\]/i;
+// What the step exports as its `verdict` output. `approve` runs on REGRESSED only.
+export const OUTCOMES = Object.freeze({
+  REGRESSED: 'regressed',
+  WARNED: 'warned',
+  PASSED: 'passed',
+  NOT_ASSESSED: 'not-assessed',
+  MISSING: 'missing',
+});
 
-export const ACCEPT_MARKER_TEMPLATE = '[accept perf regression: why the slowdown is intended]';
-
-/**
- * @param {string | null | undefined} body -- the pull request description
- * @returns {{ reason: string } | null} the accepted reason, or null when the description has none
- */
-export function readAcceptMarker(body) {
-  const match = ACCEPT_MARKER.exec(stripHtmlComments(body ?? ''));
-
-  return match ? { reason: match[1].trim() } : null;
-}
+export const APPROVAL_ENVIRONMENT = 'performance-approval';
 
 /**
- * A workflow command. The message is percent-encoded the way the runner expects, so a reason that
+ * A workflow command. The message is percent-encoded the way the runner expects, so a value that
  * holds a newline or a `%` stays one annotation.
  *
  * @param {'error' | 'warning' | 'notice'} level
@@ -75,61 +71,64 @@ export function describeFailure(verdict) {
 }
 
 /**
- * What the enforce step prints and how it exits.
+ * What the enforce step exports, prints, and how it exits.
  *
- * - No verdict: the teardown never wrote one, so nothing was judged. In block mode that fails (the
- *   gate never passes what it could not see); in warn mode it is a warning, since a run that died
- *   before its teardown is already red for its own reason.
- * - `fail` with the accept marker in the live description: passes, and says what was accepted.
- * - `fail` in block mode: fails. In warn mode: a warning that names what would have failed.
+ * - No verdict: the teardown never wrote one, so nothing was judged. In block mode that fails the
+ *   job (the gate never passes what it could not see); in warn mode it is a warning, since a run that
+ *   died before its teardown is already red for its own reason.
+ * - `fail` in block mode: REGRESSED, and the job stays green so `approve` can ask a reviewer.
+ * - `fail` in warn mode: WARNED, a warning that names what would have needed an approval.
  * - Everything else passes; `not-assessed` says why.
+ *
+ * Only a missing verdict in block mode exits non-zero, so an unset output never comes with a green
+ * job: an empty `verdict` skips `approve`, which is only safe when the run is red anyway.
  *
  * @param {object} input
  * @param {object | null} input.verdict -- the parsed verdict file, or null when it is missing
- * @param {string | null} [input.body] -- the pull request's live description
  * @param {Record<string, string | undefined>} [input.env] -- for the mode when there is no verdict
- * @returns {{ exitCode: 0 | 1, lines: string[] }}
+ * @returns {{ outcome: string, exitCode: 0 | 1, lines: string[] }}
  */
-export function enforcement({ verdict, body = null, env = process.env }) {
+export function enforcement({ verdict, env = process.env }) {
   if (!verdict) {
-    const mode = gateMode(env);
     const message = 'the performance teardown wrote no verdict, so nothing was judged. Check the '
       + '"Run performance tests" step.';
 
-    return mode === 'block'
-      ? { exitCode: 1, lines: [command('error', 'Performance gate', message)] }
-      : { exitCode: 0, lines: [command('warning', 'Performance gate', message)] };
+    return gateMode(env) === 'block'
+      ? { outcome: OUTCOMES.MISSING, exitCode: 1, lines: [command('error', 'Performance gate', message)] }
+      : { outcome: OUTCOMES.MISSING, exitCode: 0, lines: [command('warning', 'Performance gate', message)] };
   }
 
   if (verdict.status === 'fail') {
     const failure = describeFailure(verdict);
-    const accepted = readAcceptMarker(body);
-
-    if (accepted) {
-      return {
-        exitCode: 0,
-        lines: [command('notice', 'Performance gate', 'slowdown accepted in the pull request description '
-          + `("${accepted.reason}"): ${failure}`)],
-      };
-    }
 
     if (verdict.mode === 'block') {
       return {
-        exitCode: 1,
-        lines: [command('error', 'Performance gate', `${failure}. If the slowdown is intended, write `
-          + `${ACCEPT_MARKER_TEMPLATE} in the pull request description and re-run this job.`)],
+        outcome: OUTCOMES.REGRESSED,
+        exitCode: 0,
+        lines: [command('warning', 'Performance gate', `${failure}. Waiting for a reviewer on the `
+          + `${APPROVAL_ENVIRONMENT} environment: approve the pending deployment on this run if the `
+          + 'slowdown is intended, or push a fix.')],
       };
     }
 
     return {
+      outcome: OUTCOMES.WARNED,
       exitCode: 0,
-      lines: [command('warning', 'Performance gate (warn mode)', `would fail: ${failure}`)],
+      lines: [command('warning', 'Performance gate (warn mode)', `would need an approval: ${failure}`)],
     };
   }
 
   if (verdict.status === 'not-assessed') {
-    return { exitCode: 0, lines: [command('notice', 'Performance gate', `not assessed: ${verdict.reason}`)] };
+    return {
+      outcome: OUTCOMES.NOT_ASSESSED,
+      exitCode: 0,
+      lines: [command('notice', 'Performance gate', `not assessed: ${verdict.reason}`)],
+    };
   }
 
-  return { exitCode: 0, lines: [`Performance gate: ${verdict.status} (${verdict.mode} mode).`] };
+  return {
+    outcome: OUTCOMES.PASSED,
+    exitCode: 0,
+    lines: [`Performance gate: ${verdict.status} (${verdict.mode} mode).`],
+  };
 }

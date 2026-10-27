@@ -1,16 +1,16 @@
-// Unit tests for the step that turns the gate's verdict into the job's result.
+// Unit tests for the step that turns the gate's verdict into the job's outcome.
 //
-// What this pins: block mode fails the job on a regression and nowhere else; warn mode only warns;
-// a missing verdict fails closed in block mode; and the accept marker counts only outside an HTML
-// comment, because the pull request template documents it inside one.
+// What this pins: a regression in block mode exports `regressed` and keeps the job green, so the
+// `approve` job can ask a reviewer; warn mode never asks; a missing verdict fails the job in block
+// mode, which is the only non-zero exit, so an unset output always comes with a red job.
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  ACCEPT_MARKER_TEMPLATE,
+  APPROVAL_ENVIRONMENT,
+  OUTCOMES,
   describeFailure,
   enforcement,
-  readAcceptMarker,
 } from '../gate-enforce.mjs';
 
 /**
@@ -29,6 +29,7 @@ function verdict(overrides = {}) {
     notAssessed: [],
     shift: 0,
     shiftFailed: false,
+    rerun: null,
     ...overrides,
   };
 }
@@ -44,33 +45,6 @@ const SORTING = {
 };
 
 const failing = (mode = 'block') => verdict({ mode, status: 'fail', blocking: mode === 'block', failing: [SORTING] });
-
-describe('readAcceptMarker', () => {
-  test('reads the reason', () => {
-    assert.deepEqual(
-      readAcceptMarker('Moves sorting to a stable algorithm.\n\n[accept perf regression: stable sort costs ~10 ms]'),
-      { reason: 'stable sort costs ~10 ms' }
-    );
-  });
-
-  test('is case-insensitive and trims the reason', () => {
-    assert.deepEqual(readAcceptMarker('[Accept Perf Regression:   intended  ]'), { reason: 'intended' });
-  });
-
-  test('ignores a marker inside an HTML comment, like the template\'s example', () => {
-    assert.equal(readAcceptMarker(`<!-- write ${ACCEPT_MARKER_TEMPLATE} -->`), null);
-  });
-
-  test('needs a reason', () => {
-    assert.equal(readAcceptMarker('[accept perf regression: ]'), null);
-    assert.equal(readAcceptMarker('[accept perf regression]'), null);
-  });
-
-  test('tolerates no description', () => {
-    assert.equal(readAcceptMarker(null), null);
-    assert.equal(readAcceptMarker(undefined), null);
-  });
-});
 
 describe('describeFailure', () => {
   test('names each failing scenario with its delta', () => {
@@ -90,55 +64,62 @@ describe('describeFailure', () => {
 });
 
 describe('enforcement', () => {
-  test('block mode fails the job on a regression, and says how to accept it', () => {
-    const { exitCode, lines } = enforcement({ verdict: failing('block') });
+  test('block mode hands a regression to the approval, and keeps the job green for it', () => {
+    const { outcome, exitCode, lines } = enforcement({ verdict: failing('block') });
 
-    assert.equal(exitCode, 1);
+    assert.equal(outcome, OUTCOMES.REGRESSED);
+    assert.equal(outcome, 'regressed', 'performance.yml\'s approve job keys on this exact string');
+    assert.equal(exitCode, 0);
     assert.equal(lines.length, 1);
     // `%` is the workflow command's escape character, so it travels as %25 and displays as %.
-    assert.match(lines[0], /^::error title=Performance gate::Sorting \+26\.8%25 \(\+30\.0 ms\)\./);
-    assert.ok(lines[0].includes(ACCEPT_MARKER_TEMPLATE));
+    assert.match(lines[0], /^::warning title=Performance gate::Sorting \+26\.8%25 \(\+30\.0 ms\)\. Waiting/);
+    assert.ok(lines[0].includes(APPROVAL_ENVIRONMENT));
   });
 
-  test('warn mode only warns on a regression', () => {
-    const { exitCode, lines } = enforcement({ verdict: failing('warn') });
+  test('warn mode never asks for an approval', () => {
+    const { outcome, exitCode, lines } = enforcement({ verdict: failing('warn') });
 
+    assert.equal(outcome, OUTCOMES.WARNED);
     assert.equal(exitCode, 0);
-    assert.match(lines[0], /^::warning title=Performance gate \(warn mode\)::would fail: Sorting/);
+    assert.match(lines[0], /^::warning title=Performance gate \(warn mode\)::would need an approval: Sorting/);
   });
 
-  test('the accept marker in the live description passes a regression', () => {
-    const { exitCode, lines } = enforcement({
-      verdict: failing('block'),
-      body: '[accept perf regression: stable sort]',
-    });
+  test('a missing verdict fails the job in block mode and warns in warn mode', () => {
+    const block = enforcement({ verdict: null, env: { PERF_GATE_MODE: 'block' } });
 
-    assert.equal(exitCode, 0);
-    assert.match(lines[0], /^::notice title=Performance gate::slowdown accepted .*"stable sort".*Sorting/);
-  });
-
-  test('a commented marker does not', () => {
-    const { exitCode } = enforcement({
-      verdict: failing('block'),
-      body: '<!-- [accept perf regression: stable sort] -->',
-    });
-
-    assert.equal(exitCode, 1);
-  });
-
-  test('a missing verdict fails closed in block mode and warns in warn mode', () => {
-    assert.equal(enforcement({ verdict: null, env: { PERF_GATE_MODE: 'block' } }).exitCode, 1);
+    assert.deepEqual([block.outcome, block.exitCode], [OUTCOMES.MISSING, 1]);
+    assert.match(block.lines[0], /^::error title=Performance gate::the performance teardown wrote no verdict/);
 
     const warn = enforcement({ verdict: null, env: {} });
 
-    assert.equal(warn.exitCode, 0);
+    assert.deepEqual([warn.outcome, warn.exitCode], [OUTCOMES.MISSING, 0]);
     assert.match(warn.lines[0], /^::warning title=Performance gate::the performance teardown wrote no verdict/);
   });
 
-  test('passes, watches and not-assessed runs never fail, in either mode', () => {
+  test('passes, watches and not-assessed runs never ask and never fail, in either mode', () => {
     for (const mode of ['warn', 'block']) {
-      for (const status of ['pass', 'watch', 'not-assessed']) {
-        assert.equal(enforcement({ verdict: verdict({ mode, status, reason: 'x' }) }).exitCode, 0, `${mode}/${status}`);
+      for (const [status, expected] of [
+        ['pass', OUTCOMES.PASSED], ['watch', OUTCOMES.PASSED], ['not-assessed', OUTCOMES.NOT_ASSESSED],
+      ]) {
+        const result = enforcement({ verdict: verdict({ mode, status, reason: 'x' }) });
+
+        assert.deepEqual([result.outcome, result.exitCode], [expected, 0], `${mode}/${status}`);
+      }
+    }
+  });
+
+  test('only a missing verdict in block mode exits non-zero', () => {
+    const verdicts = [
+      null, failing('block'), failing('warn'),
+      verdict({ status: 'pass' }), verdict({ status: 'watch' }), verdict({ status: 'not-assessed', reason: 'x' }),
+    ];
+
+    for (const v of verdicts) {
+      for (const env of [{}, { PERF_GATE_MODE: 'block' }]) {
+        const { outcome, exitCode } = enforcement({ verdict: v, env });
+        const red = v === null && env.PERF_GATE_MODE === 'block';
+
+        assert.equal(exitCode, red ? 1 : 0, `${outcome} with ${JSON.stringify(env)}`);
       }
     }
   });
@@ -147,20 +128,15 @@ describe('enforcement', () => {
     const reason = 'the pull request targets master, and the baseline is develop';
     const { lines } = enforcement({ verdict: verdict({ status: 'not-assessed', reason }) });
 
-    assert.equal(lines[0], '::notice title=Performance gate::not assessed: the pull request targets master, and the '
-      + 'baseline is develop');
+    assert.equal(lines[0], `::notice title=Performance gate::not assessed: ${reason}`);
   });
 
   test('keeps a multi-line reason in one annotation', () => {
     const { lines } = enforcement({
-      verdict: failing('block'),
-      body: '[accept perf regression: 100% intended,\nsee the design doc]',
+      verdict: verdict({ status: 'not-assessed', reason: '100% sure,\nsecond line' }),
     });
 
     assert.equal(lines.length, 1);
-    assert.ok(
-      lines[0].includes('100%25 intended,%0Asee the design doc'), 'a % and a newline are percent-encoded'
-    );
-    assert.ok(!lines[0].includes('\n'));
+    assert.ok(lines[0].includes('100%25 sure,%0Asecond line'), 'a % and a newline are percent-encoded');
   });
 });

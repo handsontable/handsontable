@@ -1,15 +1,12 @@
 #!/usr/bin/env node
 //
-// The performance gate's enforce step: reads output/verdict.json and the pull request's description,
-// prints the annotation, and sets the exit code. The judgement is lib/gate-enforce.mjs.
-//
-// Environment:
-//   PERF_PR_BODY_FILE  the LIVE description, written by the workflow's github-script step
-//   PERF_PR_BODY       the event payload's description, used only when the live read failed
+// The performance gate's enforce step: reads output/verdict.json, exports the `verdict` output that
+// performance.yml's `approve` job keys on, prints the annotation, and sets the exit code. The
+// judgement is lib/gate-enforce.mjs.
 //
 // Usage: node performance-tests/scripts/enforce-gate.mjs
 
-import { readFile } from 'node:fs/promises';
+import { appendFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { GATE_VERDICT_FILE, formatGateNotice } from '../lib/gate.mjs';
 import { enforcement } from '../lib/gate-enforce.mjs';
@@ -27,23 +24,14 @@ async function readVerdict() {
   }
 }
 
-/**
- * @returns {Promise<string>} the live description, else the payload's, else ''
- */
-async function readBody() {
-  if (process.env.PERF_PR_BODY_FILE) {
-    try {
-      return await readFile(process.env.PERF_PR_BODY_FILE, 'utf8');
-    } catch {
-      // The live read was skipped or failed: fall back to the payload below.
-    }
-  }
-
-  return process.env.PERF_PR_BODY ?? '';
-}
-
 const verdict = await readVerdict();
-const { exitCode, lines } = enforcement({ verdict, body: await readBody() });
+const result = enforcement({ verdict });
+
+// Written BEFORE the exit code is set, so every run that gets this far exports a verdict: an unset
+// output skips `approve`, which is only safe on a run that is red anyway.
+if (process.env.GITHUB_OUTPUT) {
+  await appendFile(process.env.GITHUB_OUTPUT, `verdict=${result.outcome}\n`);
+}
 
 // One per pull request run, with the final verdict (after any confirm re-run): the warn period is
 // counted from these lines.
@@ -51,8 +39,8 @@ if (verdict) {
   console.log(formatGateNotice(verdict));
 }
 
-for (const line of lines) {
+for (const line of result.lines) {
   console.log(line);
 }
 
-process.exitCode = exitCode;
+process.exitCode = result.exitCode;

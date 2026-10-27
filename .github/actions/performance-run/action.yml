@@ -15,6 +15,14 @@ inputs:
     required: false
     default: 'false'
 
+outputs:
+  verdict:
+    description: 'The regression gate outcome (performance-tests/lib/gate-enforce.mjs, OUTCOMES); `regressed` asks for an approval'
+    value: ${{ steps.gate.outputs.verdict }}
+  report-url:
+    description: 'The pull request report on GitHub Pages; empty where the report is not deployed (fork and Dependabot runs)'
+    value: ${{ steps.report-url.outputs.pages_url }}
+
 runs:
   using: composite
   steps:
@@ -314,41 +322,18 @@ runs:
         header: performance-tests
         path: performance-tests/output/result.md
 
-    # The gate reads an author's `[accept perf regression: reason]` from the
-    # description, so it has to read the LIVE one, the way visual.yml's budget
-    # does: `github.event.pull_request.body` is frozen when the run starts, and a
-    # re-run replays the same payload. Read-only, so it works on the fork and
-    # Dependabot tokens; a failed read falls back to the payload body.
-    - name: Read the live pull-request body
-      if: ${{ !cancelled() && github.event_name == 'pull_request' }}
-      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
-      continue-on-error: true
-      env:
-        BODY_FILE: ${{ runner.temp }}/perf-pr-body.md
-      with:
-        script: |
-          try {
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner, repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-            });
-            require('node:fs').writeFileSync(process.env.BODY_FILE, pr.body || '');
-          } catch (error) {
-            core.warning(`Could not read the live PR body (${error.message}); `
-              + 'the performance gate falls back to the event payload.');
-          }
-
     # The regression gate. LAST, so the report, the job summary and the sticky
-    # comment are always published before the job result is set. It sets the
-    # result from output/verdict.json (decided in the teardown, lib/gate.mjs):
-    # in block mode a regression fails the job, and with it CI Gate; in warn mode
-    # it is a warning only. Needs no token, so fork pull requests are gated the
-    # same way. `!cancelled()` like its caller: it must run after a failed step,
-    # and a cancelled job must not read as a gate failure.
+    # comment are always published before it runs. It reads output/verdict.json
+    # (decided in the teardown, lib/gate.mjs) and exports `verdict`, which
+    # performance.yml's `approve` job keys on: in block mode a regression is
+    # `regressed`, and `approve` waits on the `performance-approval` environment.
+    # It never fails the job over a regression, only over a missing verdict in
+    # block mode, so an unset output always comes with a red job. No
+    # `continue-on-error` for the same reason. Needs no token, so fork pull
+    # requests are gated the same way. `!cancelled()` like its caller: it must run
+    # after a failed step, and a cancelled job must not read as a gate failure.
     - name: Enforce the performance gate
+      id: gate
       if: ${{ !cancelled() && github.event_name == 'pull_request' }}
       shell: bash
-      env:
-        PERF_PR_BODY_FILE: ${{ runner.temp }}/perf-pr-body.md
-        PERF_PR_BODY: ${{ github.event.pull_request.body }}
       run: node performance-tests/scripts/enforce-gate.mjs
