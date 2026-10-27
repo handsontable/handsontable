@@ -47,7 +47,7 @@ Install the `hyperformula-ui` package next to `hyperformula`. The plugin is test
 npm install hyperformula hyperformula-ui@0.3.6
 ```
 
-`hyperformula-ui` is licensed together with HyperFormula, under the same terms. See [HyperFormula license](@/guides/formulas/installation/installation.md#license-hyperformula) before you use it in your application.
+`hyperformula-ui` is published under the MIT license. The formulas it edits run on HyperFormula, which has its own license: see [HyperFormula license](@/guides/formulas/installation/installation.md#license-hyperformula).
 
 Import the `hyperformula-ui` module namespace, and pass it in the `formulaBuilder` configuration option next to an enabled `formulas` configuration. You can give the namespace any name:
 
@@ -406,7 +406,7 @@ The formula editor handles these keys while you edit a cell, either in place or 
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Commit the edit and move the selection the opposite way. |
 | <kbd>**Tab**</kbd> | <kbd>**Tab**</kbd> | Commit the edit and move the selection to the next cell, as set by [`tabMoves`](@/api/options.md#tabmoves): right by default, left in a right-to-left grid. With the autocomplete popup open, insert the highlighted suggestion. |
 | <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | Commit the edit and move the selection to the previous cell. |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Commit the edit to every selected cell, as in the grid's other editors. The selection stays where it is. |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Commit the edit to every selected cell, as in the grid's other editors. The ranges stay selected, and the focus moves within them the way <kbd>**Enter**</kbd> moves it. |
 | <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌥</kbd>+<kbd>**Enter**</kbd> | Insert a line break in the formula. |
 | <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | Close the open popup. With no popup open, leave point mode, or cancel the edit. The selection stays as it is. |
 | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | With the autocomplete popup open, move through the suggestions. |

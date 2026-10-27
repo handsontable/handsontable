@@ -221,8 +221,8 @@ The `hyperformula-ui` side of each is listed for the package maintainers (the re
 - The `formula` alias is registered by the first grid built with the plugin registered, so with the full
   bundle every page that builds a grid has it (the constructor trap above explains why).
 - The horizon theme's accent focus ring measures below 3:1; it is the theme token every grid surface uses.
-- `hyperformula-ui` is `GPL-3.0-only`, like HyperFormula. It is pinned to an exact version because the 0.x
-  line may break in a minor.
+- `hyperformula-ui` is MIT-licensed since 0.3.6 (0.3.5 and earlier were `GPL-3.0-only`). It is pinned to an
+  exact version because the 0.x line may break in a minor.
 
 ## Where to look next
 
