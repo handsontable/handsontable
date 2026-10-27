@@ -172,18 +172,21 @@ function orderedScenarioEntries(results) {
  * @param {object} current
  * @param {object | undefined} golden
  * @param {false | 'window-mismatch' | 'version-mismatch'} mismatch
- * @returns {{ change: number | null, incomplete: boolean }}
+ * @returns {{ change: number | null, baselineMs: number | null, currentMs: number | null,
+ *   incomplete: boolean }} the two totals only when the comparison is publishable
  */
 function totalDelta(current, golden, mismatch) {
+  const withheld = { change: null, baselineMs: null, currentMs: null };
+
   if (!golden) {
-    return { change: null, incomplete: false, label: null, shortLabel: null };
+    return { ...withheld, incomplete: false, label: null, shortLabel: null };
   }
 
   const verdict = comparability(golden.categories, current.categories, mismatch);
 
   if (!verdict.comparable) {
     return {
-      change: null, incomplete: true, label: verdict.label, shortLabel: verdict.shortLabel,
+      ...withheld, incomplete: true, label: verdict.label, shortLabel: verdict.shortLabel,
     };
   }
 
@@ -192,7 +195,12 @@ function totalDelta(current, golden, mismatch) {
   );
 
   return {
-    change: pctChange(baseline, currentTotal), incomplete: false, label: null, shortLabel: null,
+    change: pctChange(baseline, currentTotal),
+    baselineMs: baseline,
+    currentMs: currentTotal,
+    incomplete: false,
+    label: null,
+    shortLabel: null,
   };
 }
 
@@ -212,7 +220,9 @@ function assessScenarios(results, goldenScenarios, mismatches) {
     // A trace-level mismatch: the two sides bracket different slices (window) or different
     // definitions of the scenario (version). Both withhold everything derived from the trace.
     const traceMismatch = mismatches[name] ?? false;
-    const { change: totalPct, incomplete, label, shortLabel } = totalDelta(current, golden, traceMismatch);
+    const {
+      change: totalPct, baselineMs, currentMs, incomplete, label, shortLabel,
+    } = totalDelta(current, golden, traceMismatch);
     // Heap survives a missed timing category -- the two are measured independently -- but not a
     // trace mismatch: jsHeapMaxBytes is a maximum over the samples inside the window, so two
     // windows (or two definitions) sample two different things.
@@ -228,6 +238,8 @@ function assessScenarios(results, goldenScenarios, mismatches) {
       golden,
       traceMismatch,
       totalPct,
+      baselineMs,
+      currentMs,
       incomplete,
       label,
       shortLabel,

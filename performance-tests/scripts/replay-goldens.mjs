@@ -41,6 +41,7 @@ import {
   runShift,
   sumActive,
 } from '../lib/thresholds.mjs';
+import { GATE_RULES, classifyScenario, isShiftFail } from '../lib/gate.mjs';
 import {
   DEFAULT_MEASUREMENT_VERSION,
   baselineKey,
@@ -317,27 +318,31 @@ function thresholdCurve(deltas, key, thresholds, { floorMs = 0 } = {}) {
 }
 
 /**
- * Whether one comparison crosses the gate's fail line, on timing or on heap.
+ * A replayed delta in the shape the gate's own functions take.
  *
- * @param {{ scenario: string, timing: number | null, timingMs: number | null,
- *   baseMs: number | null, heap: number | null } | null} delta
- * @param {object} rules
- * @returns {{ timing: boolean, heap: boolean }}
+ * @param {string} scenario
+ * @param {{ timing: number | null, timingMs: number | null, baseMs: number | null,
+ *   heap: number | null } | null} delta
+ * @returns {object | null}
  */
-function overGateLine(delta, rules) {
+function asComparison(scenario, delta) {
   if (!delta) {
-    return { timing: false, heap: false };
+    return null;
   }
 
+  const timed = delta.timing != null && delta.baseMs != null && delta.timingMs != null;
+
   return {
-    timing: delta.timing != null
-      && isOverTimingLine(delta.baseMs, delta.baseMs + delta.timingMs, rules.timingThreshold, rules.floorMs),
-    heap: delta.heap != null && delta.heap > rules.heapThreshold(delta.scenario),
+    scenario,
+    baselineMs: timed ? delta.baseMs : null,
+    currentMs: timed ? delta.baseMs + delta.timingMs : null,
+    timingPct: delta.timing,
+    heapPct: delta.heap,
   };
 }
 
 /**
- * Replays the regression gate run by run, rule for rule:
+ * Replays the regression gate run by run, through the gate's own rules (lib/gate.mjs):
  *
  * - a scenario fails when its timing or heap delta crosses the fail line;
  * - unless the newest golden in the window crosses the same line against the same median, in which
@@ -356,14 +361,7 @@ function overGateLine(delta, rules) {
  *   shiftFailed: boolean }>} one entry per replayed run, oldest first
  */
 function replayGate(deltas, options = {}) {
-  const rules = {
-    timingThreshold: GATE_TIMING_THRESHOLD,
-    floorMs: GATE_TIMING_FLOOR_MS,
-    watchThreshold: WATCH_TIMING_THRESHOLD,
-    shiftThreshold: GATE_RUN_SHIFT_THRESHOLD,
-    heapThreshold: heapThresholdFor,
-    ...options,
-  };
+  const rules = { ...GATE_RULES, ...options };
   const byRun = new Map();
 
   for (const delta of deltas) {
@@ -380,23 +378,22 @@ function replayGate(deltas, options = {}) {
     const watching = [];
 
     for (const delta of rows) {
-      const own = overGateLine(delta, rules);
-      const newest = overGateLine(delta.newest && { ...delta.newest, scenario: delta.scenario }, rules);
-      const fails = (own.timing && !newest.timing) || (own.heap && !newest.heap);
+      const status = classifyScenario(
+        asComparison(delta.scenario, delta), asComparison(delta.scenario, delta.newest), rules
+      );
 
-      if (fails) {
+      if (status === 'fail') {
         failing.push(delta);
-      } else if (own.timing || own.heap) {
+      } else if (status === 'absorbed') {
         absorbed.push(delta);
-      } else if (delta.timing != null && delta.timing > rules.watchThreshold) {
+      } else if (status === 'watch') {
         watching.push(delta);
       }
     }
 
     const shift = runShift(rows.map(d => d.timing));
     const newestShift = runShift(rows.map(d => d.newest?.timing));
-    const shiftFailed = shift != null && shift > rules.shiftThreshold
-      && !(newestShift != null && newestShift > rules.shiftThreshold);
+    const shiftFailed = isShiftFail(shift, newestShift, rules);
 
     return {
       run,

@@ -12,6 +12,7 @@ import { HOOK_TIMING_FILE } from './hook-timing.mjs';
 import { readSidecar } from './sidecar.mjs';
 import { saveSnapshots, loadBaseline } from './snapshot-store.mjs';
 import { assessReport, buildReport, collectRegressions } from './report-builder.mjs';
+import { GATE_VERDICT_FILE, decideGate, formatGateNotice, gateMode } from './gate.mjs';
 import { buildHtmlReport } from './html-report-builder.mjs';
 import { HARNESS_VERSION } from './trace-runner.mjs';
 import {
@@ -330,6 +331,7 @@ export default async function teardown() {
 
   // Load golden for comparison
   let golden = null;
+  let newest = null;
   let baselineUnavailable = null;
 
   if (mode === 'compare' || mode === 'golden') {
@@ -352,6 +354,7 @@ export default async function teardown() {
     });
 
     golden = loaded.snapshot;
+    newest = loaded.newest ?? null;
     baselineUnavailable = loaded.unavailableReason;
 
     if (golden) {
@@ -432,12 +435,36 @@ export default async function teardown() {
   await writeFile(join(OUTPUT_DIR, 'result.md'), report, 'utf8');
   await writeFile(join(OUTPUT_DIR, 'report.html'), htmlReport, 'utf8');
 
+  // The regression gate. The workflow's last step reads the verdict file and sets the job result
+  // from it; nothing here exits, so the reports and the comment are always published first. The
+  // newest develop golden is assessed against the same median so the gate can tell a level develop
+  // already shows from one this run introduced.
+  const newestAssessment = newest && golden && !golden.isSelfCompare
+    ? assessReport(newest.scenarios || {}, golden, {})
+    : null;
+  const verdict = decideGate({
+    assessment,
+    newestAssessment,
+    baseline: golden,
+    newest,
+    baseRef: process.env.PERF_BASE_REF || null,
+    unavailableReason: baselineUnavailable,
+    mode: gateMode(),
+  });
+
+  await writeFile(join(OUTPUT_DIR, GATE_VERDICT_FILE), `${JSON.stringify(verdict, null, 2)}\n`, 'utf8');
+
+  // Pull request runs only: the warn period is counted from these lines.
+  if (process.env.GITHUB_ACTIONS && mode === 'compare') {
+    console.log(formatGateNotice(verdict));
+  }
+
   // On develop, a regression against the trailing median is the develop push's own news. Annotate
   // the run so it is seen where it happened; the snapshot is still deployed as recorded.
   if (mode === 'golden' && golden) {
     annotateRegressions(collectRegressions(scenarioResults, golden, meta, assessment), golden);
   }
 
-  console.log('\nReports written to output/result.md and output/report.html\n');
+  console.log(`\nReports written to output/result.md, output/report.html and output/${GATE_VERDICT_FILE}\n`);
   console.log(report);
 }
