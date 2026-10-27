@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the column menu building its first item list before every plugin was enabled, which made a `dropdownMenu` list naming Filters items warn about unresolved keys, and which kept `afterDropdownMenuDefaultOptions` and `beforeDropdownMenuSetItems` listeners from the settings from running for that list.",
+  "type": "fixed",
+  "issueOrPR": 14039,
+  "breaking": false,
+  "framework": "none"
+}
