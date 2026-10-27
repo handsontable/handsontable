@@ -327,6 +327,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
 
       expect(() => hot.rowIndexMapper.setIndexesSequence([2, 1, 0])).not.toThrow();
       expect(warnings).toHaveBeenCalledTimes(1);
+      expect(warnings).toHaveBeenCalledWith(expect.stringContaining('cannot hold 3 rows'));
       expect(engine.getSheetSerialized(sheetId)).toEqual(serialized);
       expect(engine.getSheetDimensions(sheetId).height).toBe(2);
 
@@ -352,6 +353,7 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
 
       expect(() => hot.columnIndexMapper.setIndexesSequence([2, 1, 0])).not.toThrow();
       expect(warnings).toHaveBeenCalledTimes(1);
+      expect(warnings).toHaveBeenCalledWith(expect.stringContaining('cannot hold 3 columns'));
       expect(engine.getSheetSerialized(sheetId)).toEqual(serialized);
       expect(engine.getSheetDimensions(sheetId).width).toBe(2);
 
