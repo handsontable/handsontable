@@ -643,6 +643,22 @@ describe('SheetsBar: the `sheets` array works like `data`', () => {
       expect(hot.getDataAtCol(0)).toEqual([1, 2, 3]);
     });
 
+    it('applies a new row order to a hidden sheet the user left sorted', () => {
+      const plugin = buildWorkbook([
+        { name: 'A', data: [[1]] },
+        { name: 'B', data: [[2], [3], [1]], settings: { columnSorting: true, manualRowMove: true } },
+      ]);
+
+      plugin.setActiveSheet('B');
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+      plugin.setActiveSheet('A');
+      plugin.updateSheetSettings('B', { manualRowMove: [1, 0, 2] });
+      plugin.setActiveSheet('B');
+
+      expect(hot.getDataAtCol(0)).toEqual([3, 2, 1]);
+      expect(hot.getPlugin('columnSorting').getSortConfig()).toEqual([]);
+    });
+
     it('applies a new page setup to a hidden sheet the user already visited', () => {
       const plugin = buildWorkbook([
         { name: 'A', data: [[1]] },

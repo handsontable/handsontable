@@ -188,12 +188,13 @@ const UNFILTERED_SETTING_KEYS = new Set([PLUGIN_KEY, 'data', 'dataProvider']);
 /**
  * The view-state parts each setting declares. A hidden sheet that `updateSheetSettings()` gives one of these
  * settings resets the parts on its next visit, so the new value applies, instead of restoring what the sheet
- * kept for them. A sort also takes the row order: the kept order is the sorted one, and a row order restored
- * without its sort clears the sort.
+ * kept for them. The sort and the row order go together: the kept order is the sorted one, a row order
+ * restored without its sort clears the sort, and a sort restored without its row order re-sorts the kept
+ * unsorted order over a new one.
  */
 const VIEW_STATE_PARTS_BY_SETTING: Partial<Record<string, ViewStatePart[]>> = {
   manualColumnMove: ['columnOrder'],
-  manualRowMove: ['rowOrder'],
+  manualRowMove: ['rowOrder', 'sort'],
   columnSorting: ['sort', 'rowOrder'],
   multiColumnSorting: ['sort', 'rowOrder'],
   filters: ['filters'],

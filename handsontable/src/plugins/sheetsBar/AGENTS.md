@@ -138,8 +138,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   `VIEW_STATE_PARTS_BY_SETTING` (sorting, order, filters, trimmed, hidden and collapsed rows, hidden columns,
   sizes, pagination) and marked in `#redeclaredParts`: the next return resets those parts before the sheet's
   settings apply (`resetViewState()` with the parts), as a first visit does, and restores only the others
-  (`restoreViewState()`/`restoreViewport()` with the rest). A sort takes the row order too, because the kept
-  order is the sorted one and a row order restored without its sort clears the sort. A frozen count is written
+  (`restoreViewState()`/`restoreViewport()` with the rest). The sort and the row order are always reset
+  together: the kept order is the sorted one, a row order restored without its sort clears the sort, and a
+  sort restored without its row order writes the kept unsorted order and sorts it again over a new
+  `manualRowMove`. A frozen count is written
   into the kept state instead, since one part holds all four. A new setting a view-state part keeps belongs in
   that map, or `updateSheetSettings()` on a visited hidden sheet silently loses it.
 - **A grid-level value set later through `updateSettings()` refreshes the baseline**
