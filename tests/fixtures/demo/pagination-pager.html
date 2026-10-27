@@ -250,6 +250,14 @@
         licenseKey: 'non-commercial-and-evaluation',
         ...settings,
       });
+      // PLANTED DEFECT (reverted in the next commit): the "next page" button loses its accessible name.
+      window.hot.addHook('afterRender', () => {
+        const next = container.querySelector('[aria-label="Go to next page"]');
+
+        next?.removeAttribute('aria-label');
+        next?.removeAttribute('title');
+      });
+      window.hot.render();
     } catch (error) {
       window.htBuildError = String(error && error.stack || error);
     }
