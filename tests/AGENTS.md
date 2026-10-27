@@ -1625,7 +1625,7 @@ drags (`pointer-state.ts`, `drag-runner.ts`); the verdicts are `lib/pointer.mjs`
   never an action: a press on a cell selects it by design. The controls in the grid's own cells and
   headers are judged through the data, the sort and the collapsed groups, never through their drawn
   `checked` or `aria-*` states: a press dragged off a cell scrolls the grid, and the scroll redraws
-  other rows into the same nodes (on CI this read a checkbox column as toggled).
+  other rows into the same nodes.
 - **With a menu, a dialog or an editor open, only the controls inside it are measured.** A press
   anywhere else dismisses what is open (and commits an editor) on the press, by design, and those
   controls are measured on the pages where nothing is open. A link counts its click instead of
