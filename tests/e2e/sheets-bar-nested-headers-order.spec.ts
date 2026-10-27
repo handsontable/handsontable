@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarNestedHeadersOrderPage } from '../fixtures/pages/SheetsBarNestedHeadersOrderPage';
 
 /**
@@ -7,7 +7,7 @@ import { SheetsBarNestedHeadersOrderPage } from '../fixtures/pages/SheetsBarNest
  * switch away and back the moved columns showed the headers of the columns that had been there before
  * the move.
  */
-test.describe('SheetsBar return to a sheet with nested headers and a moved column', () => {
+test.describe('SheetsBar return to a sheet with nested headers and a moved column', { tag: THEMES_TAG }, () => {
   let grid: SheetsBarNestedHeadersOrderPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
