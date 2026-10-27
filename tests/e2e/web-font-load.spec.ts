@@ -220,6 +220,136 @@ test.describe('Web font loaded after the first draw', { tag: [THEMES_TAG, CROSS_
     expect(await grid.cellTextFits(0, edited)).toBe(true);
   });
 
+  test('draws nothing inside the afterFontsLoad hook', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+
+    await grid.goto('&height=1');
+    await expectAligned(grid);
+
+    const before = await grid.geometry();
+
+    // A draw inside the hook runs before the other plugins and the user's own listeners have re-measured,
+    // and the grid draws again right after the hook anyway. On a small grid the first chunk ends the sweep,
+    // which used to draw once more from inside the hook.
+    await grid.countRendersInsideFontsLoadHook();
+    await grid.loadFont();
+
+    await expect.poll(() => grid.rendersInsideFontsLoadHook()).not.toBeNull();
+    expect(await grid.rendersInsideFontsLoadHook()).toBe(0);
+
+    // The draw that follows the hook still carries the re-measure, which is the positive control.
+    await expect.poll(async() => (await grid.geometry()).autoSizedCellWidth).toBeGreaterThan(before.autoSizedCellWidth);
+    await expectAligned(grid);
+  });
+
+  test('re-measures a column whose cell meta changed while the font re-measure runs on the next draw', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // A column on screen whose cells hold plain numbers, so the font alone does not widen it. The class adds
+    // padding to one of its cells, so the column has to grow on the draw that follows the change.
+    const column = 3;
+
+    await grid.goto('&wide=1&height=1');
+    await expectAligned(grid);
+
+    const before = await grid.columnWidth(column);
+
+    await grid.recordColumnWidthsAfterFontsLoad([column]);
+    await grid.setCellMetaDuringFontsLoad(0, column, 'className', 'ht-wide-cell');
+    await grid.loadFont();
+
+    // Without a font re-measure in progress, the draw after a meta change re-measures the columns on screen.
+    // The sweep used to hold that off until its own last draw, half a second or more on a large grid.
+    await expect.poll(async() => (await grid.recordedColumnWidths()).length).toBeGreaterThan(0);
+
+    const [firstRender] = await grid.recordedColumnWidths();
+
+    expect(firstRender[0]).toBeGreaterThan(before);
+  });
+
+  test('draws after an idle chunk only when it changed a width on screen', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+
+    await grid.goto('&wide=1&height=1');
+    await grid.trackFontsLoadHook();
+    await grid.loadFont();
+    await expect.poll(() => grid.fontsLoadHookRan()).toBe(true);
+    await expect.poll(() => grid.sweepInProgress('autoColumnSize')).toBe(false);
+
+    // The hook fires for every font the document loads, used by the grid or not. With the samples of the
+    // first 21 columns gone, the columns on screen (at least six, at 25000 rows) take two chunks, so the
+    // second one measures columns on screen from an idle task and finds every width unchanged, and it is not
+    // the last chunk either. Only the draw at the end remains.
+    expect(await grid.lastRenderedColumn()).toBeGreaterThanOrEqual(5);
+    await grid.dropSamplesOfColumns(Array.from({ length: 21 }, (_, column) => column));
+
+    expect(await grid.runFontsLoadHookCountingRenders()).toEqual({ sweepInProgress: true, gridVisible: true });
+    await expect.poll(() => grid.sweepInProgress('autoColumnSize')).toBe(false);
+    expect(await grid.renderCount()).toBe(1);
+  });
+
+  test('stops measuring while the grid is hidden and finishes once it is shown again', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    const offScreen = 39;
+
+    await grid.goto('&wide=1&height=1');
+    await expectAligned(grid);
+
+    const before = await grid.columnWidth(offScreen);
+
+    // The grid is hidden right after the sweep started, so every idle chunk would measure inside a hidden
+    // root, read a width of zero, and write the minimum width for the column.
+    await grid.hideGridDuringFontsLoad();
+    await grid.trackFontsLoadHook();
+    await grid.loadFont();
+    await expect.poll(() => grid.fontsLoadHookRan()).toBe(true);
+    await expect.poll(() => grid.sweepInProgress('autoColumnSize')).toBe(false);
+
+    await grid.setGridDisplayed(true);
+    await grid.render();
+
+    await expect.poll(() => grid.columnWidth(offScreen)).toBeGreaterThan(before);
+    await expect.poll(() => grid.sweepInProgress('autoColumnSize')).toBe(false);
+    await grid.scrollToColumn(offScreen);
+    expect(await grid.cellTextFits(3, offScreen)).toBe(true);
+  });
+
+  test('holds the row re-measure while the grid has no columns', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // A wrapped row far below the screen, which only a full sweep measures.
+    const sweptRow = 2000;
+
+    await grid.goto('&height=1&auto=1&many=1');
+    await expect.poll(() => grid.sweepInProgress('autoRowSize')).toBe(false);
+
+    const heightBefore = await grid.rowHeight(sweptRow) ?? 0;
+
+    expect(heightBefore).toBeGreaterThan(0);
+
+    // A font that loads while the grid has rows but no columns (a wrapper between two renders) used to
+    // measure every row from no cells and keep the near-empty heights once the columns came back.
+    await grid.setColumnsPresent(false);
+    await grid.runFontsLoadHookCountingRenders();
+    await grid.setColumnsPresent(true);
+
+    await expect.poll(() => grid.sweepInProgress('autoRowSize')).toBe(false);
+    expect(await grid.rowHeight(sweptRow) ?? 0).toBeGreaterThanOrEqual(heightBefore);
+  });
+
+  test('survives a listener that destroys the grid inside afterFontsLoad', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    const errors: Error[] = [];
+
+    page.on('pageerror', error => errors.push(error));
+
+    await grid.goto();
+    await grid.destroyGridDuringFontsLoad();
+    await grid.loadFont();
+    await grid.waitForFrames(5);
+
+    // The re-measure runs from a promise, so a throw after the hook surfaced only as an unhandled rejection.
+    expect(errors).toEqual([]);
+  });
+
   test('never drops a measured row height while autoRowSize re-measures', async({ page, theme, bundle }) => {
     const grid = new WebFontLoadPage(page, theme, bundle);
     // Past the 500 rows AutoRowSize measures at once, and above the rows on screen, so only the idle sweep

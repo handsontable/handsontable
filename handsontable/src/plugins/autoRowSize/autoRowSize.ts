@@ -350,6 +350,8 @@ export class AutoRowSize extends BasePlugin {
    * the engine's scroll draw, so a caller that clears the cache and then only scrolls gets nothing.
    * Every documented use of `clearCache()` pairs it with a redraw.
    *
+   * A font re-measure (`#onAfterFontsLoad`) that finds no columns owes its work the same way.
+   *
    * @type {boolean}
    */
   #fullRecalculationScheduled = false;
@@ -1059,9 +1061,17 @@ export class AutoRowSize extends BasePlugin {
    * Re-measures every row after the document loaded a web font. The heights are overwritten in place:
    * `clearCache()` would draw every row past the synchronous limit at the default height until the idle
    * sweep reaches it, which moves a grid scrolled far down to other rows. Core fires the hook only on a
-   * visible grid.
+   * visible grid. With no columns (a wrapper between two renders) the work is owed to a later render
+   * instead, as `#onBeforeRender` does: measured from no cells, every row would get a near-empty height
+   * that nothing corrects once the columns are back.
    */
   #onAfterFontsLoad = () => {
+    if (this.hot.countCols() === 0) {
+      this.#fullRecalculationScheduled = true;
+
+      return;
+    }
+
     this.recalculateAllRowsHeight();
   };
 

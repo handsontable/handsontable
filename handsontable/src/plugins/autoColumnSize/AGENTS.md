@@ -67,16 +67,37 @@ Every full sweep goes through `#sweepColumns()`. `calculateAllColumnsWidth()` ru
 columns, `viewportFirst` (the rendered columns come first in the queue) and `reuseSamples` (a column with cached
 samples is measured from them, at no sampling cost), so the first chunk – one `CALCULATION_STEP` of columns or one
 `CALCULATION_CELLS_BUDGET` of cells, run synchronously – covers what is on screen, and the rest waits for idle tasks.
-While that sweep runs, `#reMeasureSweep` makes `calculateVisibleColumnsWidth()` ignore `forceFullRender`: the forced
-render right after the hook otherwise re-walks every on-screen column without cached samples over the whole row
-range, which held the page for 0.7 s on a 100k × 20 grid, the same cost the chunking had just avoided. Four rules
-that sweep follows, each one a review finding:
+From the start of that sweep until the first render after it ends, `#reMeasureSweep` makes
+`calculateVisibleColumnsWidth()` ignore `forceFullRender`: the forced render right after the hook otherwise re-walks
+every on-screen column without cached samples over the whole row range, which held the page for 0.7 s on a
+100k × 20 grid, the same cost the chunking had just avoided, and the render after the last chunk would measure the
+on-screen columns a second time (`#onBeforeRender` drops the flag once a render with no sweep in progress used it;
+`#cancelSweep()` drops it at once, since a cancelled sweep measured only some of them). Seven rules that sweep
+follows, each one a review finding:
 
-- **A chunk that changed an on-screen column draws the grid, and so does the last chunk.** A width written from an
-  idle task reaches the screen only through a draw: the `columnWidthsMap` observer calls
+- **An idle chunk that changed the width of an on-screen column draws the grid, and so does the last chunk.** A
+  width written from an idle task reaches the screen only through a draw: the `columnWidthsMap` observer calls
   `invalidateColumnWidthCache()` and nothing else, so without it the on-screen columns past the first chunk kept
   the fallback-font width until an unrelated render. The draw at the end also covers columns scrolled into view
   while the sweep ran and consumes the refresh queue (`#refreshQueuedColumnsWidth()` waits for `inProgress`).
+  `flushGhostTable()` compares the widths before and after the write: the hook fires for every font the page loads
+  (an icon font too), and a chunk that measured on-screen columns to the same widths is no reason to draw.
+- **The chunk run by the caller never draws.** The font re-measure runs inside `afterFontsLoad`, which core
+  follows with a render, and a draw from inside the hook ran before AutoRowSize, NestedHeaders and the user's
+  listeners had re-measured, so the grid drew twice (three times on a small grid, where that chunk ends the
+  sweep). `loop(fromIdleTask)` draws only from an idle task.
+- **A change that makes the sweep's samples or widths stale ends it and owes a new one to the next render
+  (`#invalidateReMeasureSweep()`, `#reMeasureOwed`).** `#onAfterSetCellMeta`, `updatePlugin()` and the two
+  index-mapper listeners drop cached samples; with the forced render leaving the on-screen columns to the sweep,
+  a `setCellMeta(..., 'className', ...)` plus `render()` kept the old width on screen until the sweep's last draw.
+  `#onBeforeRender` starts the owed sweep before `calculateVisibleColumnsWidth()`, so the same render draws the
+  on-screen columns from it. A sweep that already ended only drops the flag: its last render re-walks them
+  itself. `#onAfterLoadData` drops the debt, since an owed sweep would take the new data's columns from the
+  previous data's samples.
+- **An idle chunk on a hidden grid cancels the sweep.** The ghost table measures inside the root element, so a
+  grid hidden after the sweep started (a tab switch) read a width of 0 for every remaining column and drew them at
+  the minimum width once shown again. A re-measure is owed to the first render of the visible grid; a sweep that
+  fills in missing widths leaves them missing, and a draw measures the on-screen ones like any width it lacks.
 - **"On screen" is `#onScreenColumns()`: the frozen columns at both edges plus the master table's rendered range.**
   Once the grid is scrolled sideways, `getFirstRenderedVisibleColumn()` starts past the frozen band, so the
   rendered range alone would queue the frozen columns behind it.
@@ -88,7 +109,9 @@ that sweep follows, each one a review finding:
 
 **Never pass `reuseSamples` to a sweep that follows a data change**: its cached samples describe the previous data.
 Pinned by `tests/e2e/web-font-load.spec.ts` ("measures the first columns on screen at once...", "measures a frozen
-column...", "samples a column edited while...").
+column...", "samples a column edited while...", "draws nothing inside the afterFontsLoad hook", "re-measures a
+column whose cell meta changed...", "draws after an idle chunk only when...", "stops measuring while the grid is
+hidden...").
 
 ## The sampling settings are re-read in `updatePlugin()`, and only a real change re-measures
 

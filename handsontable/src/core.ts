@@ -2784,6 +2784,12 @@ export default function Core(
     // AutoRowHeaderSize, NestedHeaders). Core does not name them, so a plugin added later only needs a hook.
     instance.runHooks('afterFontsLoad');
 
+    // A listener can destroy the grid (a framework teardown), and `destroy()` drops the instance. This runs
+    // from a promise, so a throw here surfaced only as an unhandled rejection.
+    if (!instance || instance.isDestroyed || !instance.view) {
+      return;
+    }
+
     // Walkontable's records of rows taller than the default stay: without AutoRowSize nothing else knows
     // the height of a row outside the rendered band, and dropping them would draw every such row above the
     // viewport at the default height, which moves a grid scrolled far down to other rows. The band is

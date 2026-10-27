@@ -13,7 +13,14 @@ interface FontLoadGrid {
   getCell(row: number, column: number, topmost?: boolean): HTMLElement | null;
   setDataAtCell(row: number, column: number, value: string): void;
   addHook(name: 'afterRender' | 'afterFontsLoad' | 'beforeRender', callback: () => void, orderIndex?: number): void;
+  runHooks(name: 'afterFontsLoad'): void;
   getPlugin(name: 'autoRowSize' | 'autoColumnSize'): { inProgress: boolean };
+  view: { isVisible(): boolean };
+  setCellMeta(row: number, column: number, key: string, value: unknown): void;
+  getSettings(): { columns?: unknown };
+  updateSettings(settings: Record<string, unknown>): void;
+  render(): void;
+  destroy(): void;
 }
 
 interface GridGeometry {
@@ -265,6 +272,176 @@ export class WebFontLoadPage {
         win.htEditedDuringFontsLoad = true;
       });
     }, [row, column, value]);
+  }
+
+  /**
+   * Sets a cell meta key right after the next font re-measure starts (the `afterFontsLoad` hook, after
+   * AutoColumnSize's own listener), so the change lands while the plugin's sweep is in progress.
+   */
+  async setCellMetaDuringFontsLoad(row: number, column: number, key: string, value: string): Promise<void> {
+    await this.page.evaluate(([visualRow, visualColumn, metaKey, metaValue]) => {
+      const win = window as unknown as { hot: FontLoadGrid };
+
+      win.hot.addHook('afterFontsLoad', () => {
+        win.hot.setCellMeta(visualRow as number, visualColumn as number, metaKey as string, metaValue);
+      });
+    }, [row, column, key, value]);
+  }
+
+  /**
+   * Hides the grid's container (`display: none`) right after the next font re-measure starts (the
+   * `afterFontsLoad` hook, after AutoColumnSize's own listener), so the sweep's idle chunks find the grid hidden.
+   */
+  async hideGridDuringFontsLoad(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { hot: FontLoadGrid }).hot.addHook('afterFontsLoad', () => {
+        (document.querySelector('[data-testid="grid"]') as HTMLElement).style.display = 'none';
+      });
+    });
+  }
+
+  /**
+   * Notes when the next `afterFontsLoad` hook has run, after the plugins' own listeners. Read it with
+   * `fontsLoadHookRan()`: the document's `fonts.ready` resolves for the test before the grid's own handler
+   * runs, so a wait on the sweep alone can pass before the re-measure has started.
+   */
+  async trackFontsLoadHook(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as unknown as { hot: FontLoadGrid, htFontsLoadHookRan: boolean };
+
+      win.htFontsLoadHookRan = false;
+      win.hot.addHook('afterFontsLoad', () => {
+        win.htFontsLoadHookRan = true;
+      });
+    });
+  }
+
+  /**
+   * Tells whether the hook `trackFontsLoadHook()` watches has run.
+   */
+  async fontsLoadHookRan(): Promise<boolean> {
+    return this.page.evaluate(() => (window as unknown as { htFontsLoadHookRan: boolean }).htFontsLoadHookRan);
+  }
+
+  /**
+   * Makes AutoColumnSize forget the samples it cached for `columns`, without a draw: setting any cell meta
+   * drops the column's samples, since the meta could change how the cell renders. The key set here changes
+   * nothing, so the widths stay as they are.
+   */
+  async dropSamplesOfColumns(columns: number[]): Promise<void> {
+    await this.page.evaluate((visualColumns) => {
+      const win = window as unknown as { hot: FontLoadGrid };
+
+      visualColumns.forEach(column => win.hot.setCellMeta(0, column, 'htSamplesDropped', true));
+    }, columns);
+  }
+
+  /**
+   * Destroys the grid from inside the next `afterFontsLoad` hook, the way a framework teardown can.
+   */
+  async destroyGridDuringFontsLoad(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as unknown as { hot: FontLoadGrid };
+
+      win.hot.addHook('afterFontsLoad', () => {
+        win.hot.destroy();
+      });
+    });
+  }
+
+  /**
+   * Counts the renders that happen inside the next `afterFontsLoad` hook: between a listener that runs ahead
+   * of the plugins' own (a negative hook order) and one that runs after them. Read the count with
+   * `rendersInsideFontsLoadHook()`.
+   */
+  async countRendersInsideFontsLoadHook(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as unknown as { hot: FontLoadGrid, htRendersInsideFontsLoadHook: number | null };
+      let renders = 0;
+      let rendersAtHookStart = 0;
+
+      win.htRendersInsideFontsLoadHook = null;
+      win.hot.addHook('afterRender', () => {
+        renders += 1;
+      });
+      win.hot.addHook('afterFontsLoad', () => {
+        rendersAtHookStart = renders;
+      }, -100);
+      win.hot.addHook('afterFontsLoad', () => {
+        win.htRendersInsideFontsLoadHook = renders - rendersAtHookStart;
+      });
+    });
+  }
+
+  /**
+   * Reads the count `countRendersInsideFontsLoadHook()` took, or `null` while the hook has not fired.
+   */
+  async rendersInsideFontsLoadHook(): Promise<number | null> {
+    return this.page.evaluate(() => (window as unknown as { htRendersInsideFontsLoadHook: number | null })
+      .htRendersInsideFontsLoadHook);
+  }
+
+  /**
+   * Fires the `afterFontsLoad` hook by hand, without a font load, so only the plugins' listeners run and the
+   * grid itself draws nothing afterwards. Counts the renders from then on; read the count with
+   * `renderCount()` once `sweepInProgress()` is false. Resolves with whether AutoColumnSize's sweep is still
+   * in progress once the hook returns, and whether the grid was visible, read in the same evaluation.
+   */
+  async runFontsLoadHookCountingRenders(): Promise<{ sweepInProgress: boolean, gridVisible: boolean }> {
+    return this.page.evaluate(() => {
+      const win = window as unknown as { hot: FontLoadGrid, htRenderCount: number };
+
+      win.htRenderCount = 0;
+      win.hot.addHook('afterRender', () => {
+        win.htRenderCount += 1;
+      });
+      win.hot.runHooks('afterFontsLoad');
+
+      return {
+        sweepInProgress: win.hot.getPlugin('autoColumnSize').inProgress,
+        gridVisible: win.hot.view.isVisible(),
+      };
+    });
+  }
+
+  /**
+   * Reads the count `runFontsLoadHookCountingRenders()` keeps.
+   */
+  async renderCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { htRenderCount: number }).htRenderCount);
+  }
+
+  /**
+   * Tells whether AutoColumnSize or AutoRowSize has a sweep in progress.
+   */
+  async sweepInProgress(plugin: 'autoColumnSize' | 'autoRowSize'): Promise<boolean> {
+    return this.page.evaluate(name => (window as unknown as { hot: FontLoadGrid }).hot.getPlugin(name).inProgress, plugin);
+  }
+
+  /**
+   * Takes every column away (`columns: []`), the way a wrapper can between two renders, or puts the
+   * fixture's columns back.
+   */
+  async setColumnsPresent(present: boolean): Promise<void> {
+    await this.page.evaluate((arePresent) => {
+      const win = window as unknown as { hot: FontLoadGrid, htColumns: unknown };
+
+      if (arePresent) {
+        win.hot.updateSettings({ columns: win.htColumns });
+      } else {
+        win.htColumns = win.hot.getSettings().columns;
+        win.hot.updateSettings({ columns: [] });
+      }
+    }, present);
+  }
+
+  /**
+   * Draws the grid again, the way an application does after it shows the grid's container.
+   */
+  async render(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as { hot: FontLoadGrid }).hot.render();
+    });
   }
 
   /**

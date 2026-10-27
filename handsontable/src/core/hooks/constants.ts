@@ -451,12 +451,13 @@ export const REGISTERED_HOOKS = [
   'beforeCompositionStart',
 
   /**
-   * Fired after the document finishes loading a web font, before Handsontable re-measures the grid and
-   * renders it. A font that loads after the grid renders changes the size of the text without changing the
-   * size of the container, so a plugin that caches sizes measured from text drops or re-measures them here.
+   * Fired after the document finishes loading a web font, before Handsontable renders the grid again. A font
+   * that loads after the grid renders changes the size of the text without changing the size of the
+   * container, so a plugin that caches sizes measured from text drops or re-measures them here. The sizing
+   * plugins that ship with Handsontable re-measure on this hook too, ahead of a listener added later.
    *
-   * The hook fires for every font the document loads, whether or not the grid uses it. On a hidden grid, it
-   * fires once the grid is shown again.
+   * The hook fires for every font the document loads, whether or not the grid uses it. On a grid that is
+   * hidden or outside the viewport, it fires once the grid comes into view.
    *
    * @event Hooks#afterFontsLoad
    * @since 19.0.0

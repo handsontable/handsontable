@@ -29,6 +29,8 @@
     .ht-late-font { font-family: 'HtLateFont', sans-serif !important; font-size: 15px !important; }
     /* `?headers=1`: every header label uses the late font, ghost tables included (they sit outside the grid). */
     body.ht-late-headers th { font-family: 'HtLateFont', sans-serif !important; font-size: 15px !important; }
+    /* A class a test sets on a cell while the font re-measure runs: it widens the cell without touching the font. */
+    .ht-wide-cell { padding-left: 100px !important; }
   </style>
 </head>
 <body>
