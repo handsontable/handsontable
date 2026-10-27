@@ -31,10 +31,12 @@ export class HotSettingsResolver {
    */
   private readonly appliedColumns = new WeakMap<ColumnSettings, { source: ColumnSettings, resolved: ColumnSettings }>();
   /**
-   * The editor components `resolveAppliedSettings()` created, by editor component type and then by the
-   * column they serve: its `data` binding, or its position when it has none. Every column object that
+   * The editor components of the sheets' columns, by editor component type and then by the column they
+   * serve: its `data` binding when that is a string or a number, or its position. Every column object that
    * names the same editor for the same column shares one component, so a sheet whose columns the host
-   * declares again with new objects, a duplicated sheet, and `updateSheetSettings()` create no new one.
+   * declares again with new objects, a duplicated sheet, and `updateSheetSettings()` create no new one. The
+   * ones a sheet of the `settings` input names are created by `applyCustomSettings()`, inside Angular's zone
+   * and before any switch, so the settings filter never creates a component in the middle of a switch.
    */
   private readonly appliedEditorRefs = new Map<Type<unknown>, Map<unknown, ComponentRef<HotCellEditorComponent<any>>>>();
   /**
@@ -42,11 +44,14 @@ export class HotSettingsResolver {
    */
   private readonly zoneWrappers = new WeakMap<Function, Function>();
   /**
-   * The hook callbacks the `settings` input declared, at grid level and in each sheet's own `settings`.
-   * `resolveAppliedSettings()` wraps only these: a callback the app hands to the instance itself
-   * (`hotInstance.updateSettings()`, `updateSheetSettings()`) is the app's own call, and runs as given.
+   * The last `settings` input, read by `isDeclaredHook()`. A hook callback counts as declared while the input,
+   * at grid level or in a sheet's own `settings`, names it: `resolveAppliedSettings()` wraps only those. A
+   * callback the app hands to the instance itself (`hotInstance.updateSettings()`, `updateSheetSettings()`) is
+   * the app's own call and runs as given, and one the input no longer names stops counting. The sheets bar
+   * writes a sheet added at runtime into the app's own `sheets` array, so that sheet's hooks count as declared
+   * from then on, the way its rows count as the app's data.
    */
-  private readonly declaredHooks = new WeakSet<Function>();
+  private declaredSettings: GridSettings | null = null;
 
   constructor(
     private readonly dynamicComponentService: DynamicComponentService,
@@ -70,7 +75,8 @@ export class HotSettingsResolver {
     // leaking them and cross-wiring a single editor component between tables.
     const mergedSettings: GridSettings = { ...settings };
 
-    this.rememberDeclaredHooks(settings);
+    this.declaredSettings = settings;
+    this.createDeclaredSheetEditors(settings);
 
     if (Array.isArray(mergedSettings.columns)) {
       mergedSettings.columns = mergedSettings.columns.map((column, index) => {
@@ -136,41 +142,82 @@ export class HotSettingsResolver {
   }
 
   /**
-   * Records the hook callbacks the `settings` input declares, at grid level and in each sheet's own
-   * `settings`. Nothing is copied or changed: the sheets bar writes into the app's `sheets` array.
+   * Tells whether the last `settings` input names a hook callback, at grid level or in a sheet's own
+   * `settings` (see `declaredSettings`).
+   *
+   * @param key The hook name.
+   * @param callback The callback.
+   * @returns `true` when the input declares it.
+   */
+  private isDeclaredHook(key: string, callback: Function): boolean {
+    const declared = this.declaredSettings;
+
+    if (declared === null) {
+      return false;
+    }
+
+    return (declared as Record<string, unknown>)[key] === callback ||
+      this.declaredSheetSettings(declared).some(own => own[key] === callback);
+  }
+
+  /**
+   * Returns the own `settings` of every sheet the `settings` input declares.
    *
    * @param settings The `settings` input.
+   * @returns The sheets' own settings objects.
    */
-  private rememberDeclaredHooks(settings: GridSettings): void {
-    const remember = (declared: unknown) => {
-      if (typeof declared !== 'object' || declared === null) {
-        return;
-      }
-
-      Object.keys(declared).forEach((key) => {
-        const option: unknown = (declared as Record<string, unknown>)[key];
-
-        if (!AVAILABLE_HOOKS_SET.has(key)) {
-          return;
-        }
-
-        (Array.isArray(option) ? option : [option]).forEach((callback: unknown) => {
-          if (typeof callback === 'function') {
-            this.declaredHooks.add(callback);
-          }
-        });
-      });
-    };
+  private declaredSheetSettings(settings: GridSettings): Record<string, unknown>[] {
     const sheetsBar: unknown = settings.sheetsBar;
     const sheets: unknown = typeof sheetsBar === 'object' && sheetsBar !== null
       ? (sheetsBar as { sheets?: unknown }).sheets
       : undefined;
 
-    remember(settings);
-
-    if (Array.isArray(sheets)) {
-      sheets.forEach(sheet => remember(sheet?.settings));
+    if (!Array.isArray(sheets)) {
+      return [];
     }
+
+    return sheets
+      .map((sheet: unknown) => (typeof sheet === 'object' && sheet !== null ? (sheet as { settings?: unknown }).settings : null))
+      .filter((own): own is Record<string, unknown> => typeof own === 'object' && own !== null);
+  }
+
+  /**
+   * Creates the editor components the columns of the declared sheets name, so the settings filter only looks
+   * them up when the sheets bar shows a sheet.
+   *
+   * @param settings The `settings` input.
+   */
+  private createDeclaredSheetEditors(settings: GridSettings): void {
+    this.declaredSheetSettings(settings).forEach((own) => {
+      const columns = own.columns;
+
+      if (!Array.isArray(columns)) {
+        return;
+      }
+
+      columns.forEach((column: ColumnSettings, index: number) => {
+        const editor = typeof column === 'object' && column !== null ? column.editor : undefined;
+
+        if (this.isEditorComponentRefType(editor) || this.isAdvancedEditorComponentRefType(editor)) {
+          this.appliedEditorRef(editor as Type<unknown>, this.editorColumnKey(column, index));
+        }
+      });
+    });
+  }
+
+  /**
+   * Returns the key the editor component of a column is shared by: the column's `data` binding when it is a
+   * string or a number, else its position. A function binding is a new value whenever the app builds the
+   * column again, so it would make a new component each time.
+   *
+   * @param column The column.
+   * @param index The column's position.
+   * @returns The key.
+   */
+  private editorColumnKey(column: ColumnSettings, index: number): unknown {
+    const data = (column as Handsontable.ColumnSettings).data;
+
+    return typeof data === 'string' || typeof data === 'number' ? data : index;
   }
 
   /**
@@ -204,7 +251,7 @@ export class HotSettingsResolver {
     }
 
     const resolved = { ...column };
-    const columnKey = (column as Handsontable.ColumnSettings).data ?? index;
+    const columnKey = this.editorColumnKey(column, index);
 
     this.resolveColumnRenderer(resolved);
     this.resolveColumnEditor(resolved, undefined, editorType => this.appliedEditorRef(editorType, columnKey));
@@ -229,11 +276,11 @@ export class HotSettingsResolver {
   }
 
   /**
-   * Returns the editor component `resolveAppliedSettings()` keeps for an editor type and a column,
-   * creating it the first time.
+   * Returns the editor component kept for an editor type and a column, creating it the first time, in the
+   * zone of the caller.
    *
    * @param editorType The editor component type.
-   * @param columnKey The column's `data` binding, or its position when it has none.
+   * @param columnKey The column's key (`editorColumnKey()`).
    * @returns The editor component.
    */
   private appliedEditorRef(editorType: Type<unknown>, columnKey: unknown): ComponentRef<HotCellEditorComponent<any>> {
@@ -244,7 +291,7 @@ export class HotSettingsResolver {
       return known;
     }
 
-    const created = this.ngZone.run(() => createComponent(editorType, { environmentInjector: this.environmentInjector }));
+    const created = createComponent(editorType, { environmentInjector: this.environmentInjector });
 
     byColumn.set(columnKey, created as ComponentRef<HotCellEditorComponent<any>>);
     this.appliedEditorRefs.set(editorType, byColumn);
@@ -280,7 +327,7 @@ export class HotSettingsResolver {
     Object.keys(settings).forEach((key) => {
       const option: unknown = settings[key as keyof SettingsUpdate];
       const zoned = AVAILABLE_HOOKS_SET.has(key)
-        ? this.zonedHookValue(option, callback => this.declaredHooks.has(callback))
+        ? this.zonedHookValue(option, callback => this.isDeclaredHook(key, callback))
         : option;
 
       if (zoned !== option) {
@@ -306,27 +353,19 @@ export class HotSettingsResolver {
   }
 
   /**
-   * Returns a hook value with its callbacks wrapped in Angular's zone: a function, or each function of an
-   * array. A callback that is already a wrapper, or that `shouldWrap` rejects, is kept.
+   * Returns a hook value with its callback wrapped in Angular's zone. Only a function is wrapped: an array of
+   * callbacks is kept as it is, so its callbacks run as given, outside the zone, which is the rule the
+   * `settings` input has always had (a per-cell hook given as an array stays free of change detection). A
+   * callback that is already a wrapper, or that `shouldWrap` rejects, is kept too.
    *
    * @param option The hook value.
    * @param shouldWrap Tells whether a callback is wrapped.
    * @returns The value to apply: `option` itself when nothing was wrapped.
    */
   private zonedHookValue(option: unknown, shouldWrap: (callback: Function) => boolean): unknown {
-    const zoned = (callback: unknown) => (
-      typeof callback === 'function' && !(callback as any)[HOT_ZONE_WRAPPED] && shouldWrap(callback)
-        ? this.zoneWrapped(callback)
-        : callback
-    );
-
-    if (!Array.isArray(option)) {
-      return zoned(option);
-    }
-
-    const items = option.map(zoned);
-
-    return items.every((item, index) => item === option[index]) ? option : items;
+    return typeof option === 'function' && !(option as any)[HOT_ZONE_WRAPPED] && shouldWrap(option)
+      ? this.zoneWrapped(option)
+      : option;
   }
 
   /**

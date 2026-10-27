@@ -240,12 +240,14 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    */
   ngOnDestroy(): void {
     this.ngZone.runOutsideAngular(() => {
-      if (!this.__hotInstance || this.__hotInstance.isDestroyed) {
+      if (!this.__hotInstance) {
         return;
       }
 
+      const isLive = !this.__hotInstance.isDestroyed;
+
       // Destroy renderer Angular components attached to table cells before HOT removes the DOM.
-      if (this.container) {
+      if (isLive && this.container) {
         this._dynamicComponentService.cleanupContainer(this.container.nativeElement, this.__hotInstance);
       }
 
@@ -254,9 +256,12 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
           column._editorComponentReference.destroy();
         }
       });
+      this._gridColumns = undefined;
       this._hotSettingsResolver.destroyAppliedEditors();
 
-      this.__hotInstance.destroy();
+      if (isLive) {
+        this.__hotInstance.destroy();
+      }
     });
   }
 

@@ -5489,7 +5489,7 @@ export default function Core(
    * what the one before returned. The SheetsBar plugin uses one to keep the visible sheet's own settings
    * when a grid-level value for the same key arrives (a framework wrapper sends every prop again on each
    * render), and the Angular wrapper one to turn the components a sheet's settings declare into what core
-   * reads. A filter returns the payload it was given when it has nothing to change, or a new object; it never
+   * reads and to run in Angular's zone the hook functions its `settings` input declares. A filter returns the payload it was given when it has nothing to change, or a new object; it never
    * changes the one it was given, which belongs to the caller. A payload a filter empties is not applied at
    * all by `updateSettings()`: no settings cycle runs and `afterUpdateSettings` does not fire, so the Vue
    * wrapper, which sends a key again whenever it differs from the grid's live value, does not pay one empty

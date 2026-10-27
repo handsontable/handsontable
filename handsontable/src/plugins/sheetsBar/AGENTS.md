@@ -111,7 +111,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   changing it does nothing until an unrelated rebuild. A sheet's own `settings` cannot carry a
   `sheetsBar` key.
 - **A sheet's own settings win over every grid-level `updateSettings()`** (`#filterGridSettings`,
-  added through core's `@private` `_addSettingsFilter()` on enable and removed with `_removeSettingsFilter()` on disable). The filter
+  added through core's `@private` `_addSettingsFilter()` at the start of `enablePlugin()`, so it runs after a
+  filter added before it, the Angular wrapper's included, and removed with `_removeSettingsFilter()` on disable, on
+  `destroy()`, and when building the workbook throws during the enable; it filters nothing while the plugin is
+  not enabled, so a failed enable cannot keep a half-built sheet's settings over later updates). The filter
   reads every payload before core applies it and takes out each key the visible sheet declares; the value
   taken out becomes the grid-level one (`#takeGridLevelValues`: the baseline, or `#takeGridColumnSummary` /
   `#takeGridCellOption`). Without it React and Angular, which send every prop on each render, and Vue, which
@@ -254,7 +257,8 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   follows the name `engine.addSheet()` reports back — the engine can normalize a name the
   model told apart. `sheetModel.duplicateSheet` copies a sheet's `settings` with
   `copySettingsValue()` (arrays and object literals level by level, with a cycle guard; every class
-  instance by reference), never `deepClone()`, which walks any object: a HyperFormula engine in
+  instance by reference; own `__proto__`, `constructor` and `prototype` keys left out, since a settings
+  object parsed from JSON can carry them), never `deepClone()`, which walks any object: a HyperFormula engine in
   `formulas` or an Angular `TemplateRef` renderer has a cyclic object graph, and the clone recursed
   until the stack overflowed (a cloned engine would be a broken object anyway).
 - **The engine keeps a sheet in the order the user left it, and a return takes it over.** The

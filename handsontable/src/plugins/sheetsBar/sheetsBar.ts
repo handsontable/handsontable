@@ -960,6 +960,9 @@ export class SheetsBar extends BasePlugin {
         this.#captureGridColumnSummary();
         this.#gridCellOption = this.hot.getSettings().cell;
         this.#buildInitialWorkbook();
+      } catch (error) {
+        this.hot._removeSettingsFilter(this.#filterGridSettings);
+        throw error;
       } finally {
         this.#isInitializing = false;
       }
@@ -1755,7 +1758,8 @@ export class SheetsBar extends BasePlugin {
    * the sheet. `data` and `dataProvider` keep their own rules (`#keepDeclaredSheetRows`, the `dataProvider`
    * gate), and the payload object the caller passed is never changed.
    *
-   * @param {object} settings The payload passed to `updateSettings()`.
+   * @param {object} settings The payload core is about to apply: from `updateSettings()`, or from the bar's
+   * own `_applySettingsAndData()` and `_replaceInitPassSettings()` calls.
    * @returns {object} The payload core applies.
    */
   #filterGridSettings = (settings: Record<string, unknown>): Record<string, unknown> => {
@@ -1791,13 +1795,14 @@ export class SheetsBar extends BasePlugin {
    * Tells whether `#filterGridSettings` acts on a payload. It stands aside for the bar's own writes (a switch,
    * the teardown's restore, the initial build, `updateSheetSettings()`), for the settings ImportFile applies
    * from an imported file to the sheet shown, and for a payload that turns the bar off or declares another
-   * workbook: those leave the visible sheet, so its settings no longer win.
+   * workbook: those leave the visible sheet, so its settings no longer win. A plugin that is not enabled, a
+   * build that threw for instance, filters nothing.
    *
-   * @param {object} settings The payload passed to `updateSettings()`.
+   * @param {object} settings The payload core is about to apply.
    * @returns {boolean}
    */
   #filtersGridSettings(settings: Record<string, unknown>): boolean {
-    if (this.#model === null || this.#isSwitching || this.#isRestoringBaseline || this.#isInitializing
+    if (!this.enabled || this.#model === null || this.#isSwitching || this.#isRestoringBaseline || this.#isInitializing
       || this.#isApplyingOwnSettings || this.hot.getPlugin('importFile')?._isApplyingImport()) {
       return false;
     }
@@ -1852,6 +1857,7 @@ export class SheetsBar extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.hot._removeSettingsFilter(this.#filterGridSettings);
     this.#releaseState();
     super.destroy();
   }

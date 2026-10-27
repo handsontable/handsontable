@@ -214,4 +214,14 @@ describe('SheetModel', () => {
     expect(copy.settings.columns[0].renderer).toBe(template);
     expect(copy.settings.columns[0].width).toBe(50);
   });
+
+  it('duplicateSheet leaves out an own `__proto__` key and keeps the copy a plain object', () => {
+    const model = new SheetModel();
+    const a = model.addSheet('Data', [['x']], JSON.parse('{ "colHeaders": true, "__proto__": { "polluted": true } }'));
+    const copy = model.duplicateSheet(a.id);
+
+    expect(Object.getPrototypeOf(copy.settings)).toBe(Object.prototype);
+    expect(copy.settings.polluted).toBeUndefined();
+    expect(copy.settings.colHeaders).toBe(true);
+  });
 });

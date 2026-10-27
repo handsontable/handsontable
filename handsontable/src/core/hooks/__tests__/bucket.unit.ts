@@ -402,14 +402,16 @@ describe('Bucket', () => {
       [FORWARDED_HOOK_CALLBACK]: callback,
     });
 
-    it('should not be added beside the callback it forwards to', () => {
+    it('should take the place of the callback it forwards to, not be added beside it', () => {
       const bucket = new HooksBucket();
       const callback = function() {};
+      const forwarding = forwardingTo(callback);
 
       bucket.add('afterChange', callback);
-      bucket.add('afterChange', forwardingTo(callback), { initialHook: true, fromSettings: true });
+      bucket.add('afterChange', forwarding, { initialHook: true, fromSettings: true });
 
-      expect(bucket.getHooks('afterChange').map(entry => entry.callback)).toEqual([callback]);
+      expect(bucket.getHooks('afterChange').map(entry => entry.callback)).toEqual([forwarding]);
+      expect(bucket.getHooks('afterChange')[0].fromSettings).toBe(false);
     });
 
     it('should keep the forwarding function when the callback is added after it', () => {
@@ -437,10 +439,39 @@ describe('Bucket', () => {
       const bucket = new HooksBucket();
       const callback = function() {};
 
-      bucket.add('afterChange', callback);
-      bucket.replaceFromSettings('afterChange', forwardingTo(callback));
+      const forwarding = forwardingTo(callback);
 
-      expect(bucket.getHooks('afterChange').map(entry => entry.callback)).toEqual([callback]);
+      bucket.add('afterChange', callback);
+      bucket.replaceFromSettings('afterChange', forwarding);
+
+      expect(bucket.getHooks('afterChange').map(entry => entry.callback)).toEqual([forwarding]);
+    });
+
+    it('should leave no earlier settings function running when the settings pass one already added', () => {
+      const bucket = new HooksBucket();
+      const first = function() {};
+      const second = function() {};
+
+      bucket.add('afterChange', forwardingTo(first), { initialHook: true, fromSettings: true });
+      bucket.add('afterChange', second);
+      bucket.add('afterChange', forwardingTo(second), { initialHook: true, fromSettings: true });
+
+      expect(bucket.getHooks('afterChange').map(entry => entry.callback === second || entry.identity === second))
+        .toEqual([true]);
+    });
+  });
+
+  describe('a settings function already added through `addHook()`', () => {
+    it('should stop the earlier settings function', () => {
+      const bucket = new HooksBucket();
+      const first = function() {};
+      const second = function() {};
+
+      bucket.add('afterChange', first, { initialHook: true, fromSettings: true });
+      bucket.add('afterChange', second);
+      bucket.add('afterChange', second, { initialHook: true, fromSettings: true });
+
+      expect(bucket.getHooks('afterChange').map(entry => entry.callback)).toEqual([second]);
     });
   });
 });

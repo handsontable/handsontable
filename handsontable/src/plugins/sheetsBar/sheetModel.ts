@@ -365,6 +365,11 @@ export function isObjectLiteral(value: unknown): boolean {
 }
 
 /**
+ * The keys `copySettingsValue()` leaves out of a copy.
+ */
+const UNCOPIED_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+/**
  * Copies a settings value for a snapshot: arrays and object literals are copied level by level, a date is
  * copied by its time value, and everything else is kept by reference. A class instance such as a
  * HyperFormula engine is not copied: its object graph has cycles, and copying it never ended. A kept
@@ -373,7 +378,12 @@ export function isObjectLiteral(value: unknown): boolean {
  *
  * `copies` maps every array and object literal already copied to its copy, so a value that refers to itself
  * is copied with the same shape instead of recursing until the stack overflows, and a sub-object two keys
- * share is copied once.
+ * share is copied once. The keys `__proto__`, `constructor` and `prototype` are left out, as `deepClone()`
+ * leaves them out: an own `__proto__` key (a literal parsed from JSON) would set the copy's prototype.
+ *
+ * @param {*} value The value to copy.
+ * @param {WeakMap} [copies] The copies made so far in this call.
+ * @returns {*} The copy, or `value` itself when it is kept by reference.
  */
 export function copySettingsValue(value: unknown, copies = new WeakMap<object, unknown>()): unknown {
   if (value instanceof Date) {
@@ -405,7 +415,9 @@ export function copySettingsValue(value: unknown, copies = new WeakMap<object, u
 
   copies.set(source, copy);
   Object.entries(source).forEach(([key, entry]) => {
-    copy[key] = copySettingsValue(entry, copies);
+    if (!UNCOPIED_KEYS.has(key)) {
+      copy[key] = copySettingsValue(entry, copies);
+    }
   });
 
   return copy;
