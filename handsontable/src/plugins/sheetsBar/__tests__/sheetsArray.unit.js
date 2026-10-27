@@ -699,6 +699,24 @@ describe('SheetsBar: the `sheets` array works like `data`', () => {
       expect([currentPage, pageSize]).toEqual([3, 2]);
     });
 
+    it('applies two `pagination` updates to a hidden sheet in the order they came', () => {
+      const plugin = buildWorkbook([
+        { name: 'A', data: [[1]] },
+        { name: 'B', data: [[1], [2], [3], [4], [5]], settings: { pagination: { pageSize: 1 } } },
+      ]);
+
+      plugin.setActiveSheet('B');
+      hot.getPlugin('pagination').setPage(4);
+      plugin.setActiveSheet('A');
+      plugin.updateSheetSettings('B', { pagination: { pageSize: 1, initialPage: 2 } });
+      plugin.updateSheetSettings('B', { pagination: { pageSize: 2 } });
+      plugin.setActiveSheet('B');
+
+      const { currentPage, pageSize } = hot.getPlugin('pagination').getPaginationData();
+
+      expect([currentPage, pageSize]).toEqual([2, 2]);
+    });
+
     it('refuses a sheet\'s `data`, which the sheets bar keeps itself', () => {
       const plugin = buildWorkbook([{ name: 'A', data: [[1, 2]] }, { name: 'B', data: [[3, 4]] }]);
 

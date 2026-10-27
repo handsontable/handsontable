@@ -145,8 +145,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   into the kept state instead, since one part holds all four. A new setting a view-state part keeps belongs in
   that map, or `updateSheetSettings()` on a visited hidden sheet silently loses it. Each of those settings was
   measured against `updateSettings()` on a plain grid after a user change, and they all replace what the user
-  did there too. Two deliberate exceptions: `pagination` without `initialPage` keeps the kept page in the new
-  page size, clamped (`#redeclaredPageSize`, `#withCurrentPageSize`), as the grid does; a new
+  did there too. Two deliberate exceptions: `pagination` is not a reset part. Each call moves the kept page to
+  its `initialPage`, when it has one, and the next visit shows the kept page in the new page size, clamped
+  (`#redeclarePage`, `#redeclaredPageSize`, `#withCurrentPageSize`), as calls in the same order do on the
+  grid; a reset part made one call with `initialPage` win over every later call without it. And a new
   `manualColumnMove`/`manualRowMove` shows exactly the declared order, while the plain grid applies the
   declared array on top of the user's moves, which depends on what the user did before.
 - **A grid-level value set later through `updateSettings()` refreshes the baseline**

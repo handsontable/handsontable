@@ -208,12 +208,6 @@ const VIEW_STATE_PARTS_BY_SETTING: Partial<Record<string, ViewStatePart[]>> = {
 };
 
 /**
- * The view-state part a `pagination` value with an `initialPage` declares: the page goes back to that page.
- * Without `initialPage` the kept page stays (`#redeclaredPageSize`).
- */
-const PAGINATION_PARTS: ViewStatePart[] = ['pagination'];
-
-/**
  * Whether a setting name is one of the four frozen counts.
  *
  * @param {string} key The setting name.
@@ -709,8 +703,9 @@ export class SheetsBar extends BasePlugin {
    */
   #redeclaredParts = new WeakMap<Sheet, Set<ViewStatePart>>();
   /**
-   * The hidden sheets `updateSheetSettings()` gave a `pagination` value without `initialPage`. The next visit
-   * keeps the page the user left, in the page size the new value sets, as `updateSettings()` does on the grid.
+   * The hidden sheets `updateSheetSettings()` gave a `pagination` value. The next visit shows the kept page in
+   * the page size the sheet's settings set then, as `updateSettings()` treats the page on the grid; a value with
+   * `initialPage` moves the kept page there first, the way that call moves the grid's page.
    */
   #redeclaredPageSize = new WeakSet<Sheet>();
   /**
@@ -3503,24 +3498,18 @@ export class SheetsBar extends BasePlugin {
     }
 
     keys.forEach((key) => {
+      const value = changes[key];
       const frozenKey = key === 'fixedColumnsLeft' ? 'fixedColumnsStart' : key;
 
       if (isFrozenCountKey(frozenKey)) {
-        const value = changes[key];
-
         sheet.viewState = { ...sheet.viewState, [frozenKey]: typeof value === 'number' ? value : undefined };
       }
 
-      const value = changes[key];
-      const redeclared = key === 'pagination' && isPlainObject(value) && value.initialPage !== undefined
-        ? PAGINATION_PARTS
-        : VIEW_STATE_PARTS_BY_SETTING[key];
-
-      if (key === 'pagination' && !redeclared) {
-        this.#redeclaredPageSize.add(sheet);
+      if (key === 'pagination') {
+        this.#redeclarePage(sheet, value);
       }
 
-      redeclared?.forEach((part) => {
+      VIEW_STATE_PARTS_BY_SETTING[key]?.forEach((part) => {
         const parts = this.#redeclaredParts.get(sheet) ?? new Set<ViewStatePart>();
 
         parts.add(part);
@@ -3530,10 +3519,29 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
+   * Applies a `pagination` value `updateSheetSettings()` gave a hidden sheet to the page the sheet kept, in the
+   * order the calls came: an `initialPage` moves the kept page there, as `updateSettings()` moves the grid's
+   * page, and the next visit shows the kept page in the new page size (`#withCurrentPageSize`). Resetting the
+   * page instead made one call with `initialPage` win over every later call without it.
+   *
+   * @param {Sheet} sheet The hidden sheet.
+   * @param {*} value The new `pagination` value.
+   */
+  #redeclarePage(sheet: Sheet, value: unknown) {
+    const kept = sheet.viewState?.pagination;
+
+    if (kept && isPlainObject(value) && typeof value.initialPage === 'number') {
+      sheet.viewState = { ...sheet.viewState, pagination: { ...kept, page: value.initialPage } };
+    }
+
+    this.#redeclaredPageSize.add(sheet);
+  }
+
+  /**
    * Returns the view state a return restores its viewport from. After `updateSheetSettings()` gave the sheet a
-   * `pagination` value without `initialPage`, the kept page comes back in the page size the sheet's settings
-   * now set, clamped to the pages there are, the way `updateSettings()` treats the page on the grid; the kept
-   * page size would otherwise win over the new one.
+   * `pagination` value, the kept page comes back in the page size the sheet's settings now set, clamped to the
+   * pages there are, the way `updateSettings()` treats the page on the grid; the kept page size would otherwise
+   * win over the new one.
    *
    * @param {Sheet} sheet The arriving sheet.
    * @param {object} viewState The sheet's kept view state.
