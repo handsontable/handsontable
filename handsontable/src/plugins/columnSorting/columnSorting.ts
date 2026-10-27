@@ -471,10 +471,8 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
-      this.indexesSequenceCache =
-        this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginKey, 'indexesSequence');
-      this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
+    if (currentSortConfig.length === 0) {
+      this.#capturePresortOrder();
     }
 
     if (sortPossible) {
@@ -488,6 +486,23 @@ export class ColumnSorting extends BasePlugin {
     if (sortPossible) {
       this.hot.render();
     }
+  }
+
+  /**
+   * Stores the current row order as the order the sort starts from and a cleared sort goes back to. It runs
+   * whenever sort states are put on an unsorted grid, never only the first time: while nothing is sorted the
+   * rows can move, and a data load re-initializes the stored order to the identity one, so an order kept
+   * from an earlier sort would bring back rows in a place they no longer hold. The map stays registered
+   * after a clear, because UndoRedo restores it with the rest of the row maps and drops its history when
+   * the set of map names changes.
+   */
+  #capturePresortOrder(): void {
+    if (this.indexesSequenceCache === null) {
+      this.indexesSequenceCache =
+        this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginKey, 'indexesSequence');
+    }
+
+    this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
   }
 
   /**
@@ -551,6 +566,12 @@ export class ColumnSorting extends BasePlugin {
     const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig);
 
     if (this.areValidSortConfigs(destinationSortConfigs)) {
+      const isUnsorted = this.columnStatesManager?.isListOfSortedColumnsEmpty();
+
+      if (isUnsorted && destinationSortConfigs.length > 0 && this.indexesSequenceCache !== null) {
+        this.#capturePresortOrder();
+      }
+
       this.columnStatesManager?.setSortStates(destinationSortConfigs);
     }
   }

@@ -25,6 +25,22 @@ The `columnMeta` map's initializer converts physical → visual and **falls back
 `toVisualColumn()` returns `null`**. Keep that fallback: during an alter the column may have no visual index
 yet.
 
+## The pre-sort order is taken whenever states go onto an unsorted grid
+
+`indexesSequenceCache` (the `columnSorting` row map) is the order the sort starts from and a cleared sort goes
+back to. `#capturePresortOrder()` writes it from the live sequence every time a `sort()` starts from empty
+states, and `setSortConfig()` does the same when it writes states onto an unsorted grid and the cache exists.
+Taking it only on the first sort was wrong twice: a row moved while nothing was sorted was lost on the next
+sort-and-clear, and `loadData()` re-initializes the registered map to the identity order (with the states
+emptied), so after a load the next clear put back the identity order instead of the one the rows had.
+
+**Do not unregister the map on a clear.** It looks like the clean fix (create on sort, drop on clear, the way
+`disablePlugin()` does), but UndoRedo captures this map with the other row maps and drops its whole history
+whenever the set of map names changes, and an undo of a clear restores its values. Keep it registered and
+rewrite its values. `setSortConfig()` does not create the map when it is missing, so the server-side pattern
+(`setSortConfig()` from `beforeColumnSort` on a grid that never sorted) registers nothing. Pinned by
+`__tests__/presortOrderCapture.unit.js` (both sorting plugins).
+
 ## Sort configs carry VISUAL column indexes
 
 `getColumnNextConfig()`, `sort()` and `getSortConfig()` all speak visual indexes, and

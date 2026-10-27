@@ -88,6 +88,13 @@ pay for. A new consumer lives in a plugin.
   indicator on another column), and translating ahead of the call, against the order being restored,
   is wrong for the same reason. Translate against whatever cache the plugin reads at that moment, which
   `hot.toVisualColumn()` does. The public layer relies on this: its `sort` part is physical too.
+- **A sort is cleared only when one is on, and a canceled re-apply gets its states back before the live order
+  is written.** `restoreAxisState()` and `resetViewState()` clear through `clearActiveSort()`, so a switch
+  between unsorted sheets fires no `beforeColumnSort`/`afterColumnSort`. The re-apply starts from empty
+  states, so the sorting plugin takes the unsorted order just written as its pre-sort cache.
+  `restoreCanceledSortStates()` runs right after a canceled `sort()`, while the rows are still in that
+  unsorted order, for the same reason: `setSortConfig()` takes the cache from the order it finds. Run after
+  the sorted `rowSequence` is written, a later clear left the rows sorted.
 - **`resetViewState()` runs no filter pass, and it clears the sizes of a DISABLED resize plugin too.** Its
   only caller is the sheets bar, which loads the arriving sheet's data right after it, and that load empties
   the condition collection and the Filters trimming map; the reset only drops the Filters fallback

@@ -707,7 +707,8 @@ function restoreHiddenState(hot: HotInstance, state: ViewState, covers: PartFilt
 }
 
 /**
- * Clears the sort when one is on and the grid sorts its own rows.
+ * Clears the sort when one is on and the grid sorts its own rows. A grid with no sort is left alone, so a
+ * switch between unsorted sheets fires no `beforeColumnSort`/`afterColumnSort`.
  */
 function clearActiveSort(hot: HotInstance) {
   const sorting = getSortingPlugin(hot);
@@ -740,14 +741,17 @@ function restoreSequence(
 /**
  * Restores the row/column order together with the sort state. The sorting plugin owns the
  * row order while a sort is on: it sorts from the order it cached before the first sort, and
- * resets the rows to that cache every time it sorts. So the sort is cleared first (dropping
- * the states the previous sheet left behind), the unsorted order is handed back, the sort is
- * re-applied on top of it, and only then the exact live order — which may carry manual moves
- * made after the sort — is written last.
+ * resets the rows to that cache every time it sorts. So a sort that is on is cleared first
+ * (dropping the states the previous sheet left behind), the unsorted order is handed back, the
+ * sort is re-applied on top of it — the plugin takes the order it finds as its cache, because the
+ * sort starts from empty states — and only then the exact live order, which may carry manual moves
+ * made after the sort, is written last.
  *
  * A `beforeColumnSort` listener can cancel either `sort()` call. The rows still land in the
  * captured order, which is written directly, so `restoreCanceledSortStates()` puts the sort
- * states back to match them.
+ * states back to match them. It runs right after the canceled call, while the rows are still in
+ * the unsorted order, because writing the states onto an unsorted grid is when the plugin takes
+ * its cache.
  *
  * Returns the order parts whose stored sequence no longer matched the data's length and was
  * therefore not written.
@@ -765,11 +769,17 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
   }
 
   if (sorting) {
-    sorting.sort([]);
+    clearActiveSort(hot);
 
     if (hasSortConfig) {
-      restoreSequence(hot.rowIndexMapper, state.unsortedRowSequence ?? state.rowSequence);
+      const isUnsortedOrderRestored =
+        restoreSequence(hot.rowIndexMapper, state.unsortedRowSequence ?? state.rowSequence);
+
       sorting.sort(toPluginSortConfig(hot, state.sortConfig));
+
+      if (isUnsortedOrderRestored && covers('rowOrder')) {
+        restoreCanceledSortStates(sorting, toPluginSortConfig(hot, state.sortConfig));
+      }
     }
   }
 
@@ -786,14 +796,8 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
     clearActiveSort(hot);
   }
 
-  const isRowOrderRestored = restoreSequence(hot.rowIndexMapper, state.rowSequence);
-
-  if (!isRowOrderRestored) {
+  if (!restoreSequence(hot.rowIndexMapper, state.rowSequence)) {
     notApplied.push('rowOrder');
-  }
-
-  if (sorting && hasSortConfig && isRowOrderRestored) {
-    restoreCanceledSortStates(sorting, toPluginSortConfig(hot, state.sortConfig));
   }
 
   return notApplied;
@@ -804,9 +808,11 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
  * `sort()`. A canceled call returns before the plugin records the states, and `loadData` has
  * already cleared them, so the header indicators and `getSortConfig()` would describe an unsorted
  * grid over the sorted rows. It goes through `setSortConfig()`, the pattern the sorting plugin
- * documents for a canceled sort. The caller runs it only once the captured row order is back: when
- * the sheet's data changed size while it was away, the order is skipped, the rows stay in the
- * `loadData` order, and an indicator would claim a sort they do not have.
+ * documents for a canceled sort, and it runs while the rows are in the captured unsorted order,
+ * which `setSortConfig()` then keeps as the order a later clear goes back to. The caller runs it
+ * only when that order and the row order are restored: when the sheet's data changed size while it
+ * was away, the order is skipped, the rows stay in the `loadData` order, and an indicator would
+ * claim a sort they do not have.
  *
  * Nothing is written when the states are no longer empty: the sort ran, or the listener that
  * canceled it set a config of its own, which stays. Nothing is written either while the plugin
@@ -1338,7 +1344,7 @@ export function resetViewState(
     }
 
     if (covers('sort')) {
-      getSortingPlugin(hot)?.sort([]);
+      clearActiveSort(hot);
     }
 
     if (covers('filters')) {

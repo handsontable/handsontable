@@ -500,8 +500,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   sheet's filter. A canceled filter leaves the rows unfiltered while the menu shows the sheet's own
   conditions: that is the listener's decision, not the restore's. A canceled `sort()` returns
   before the sort states are written, while `restoreSequence()` still writes the sorted rows, so
-  `restoreCanceledSortStates()` writes them back through `setSortConfig()`, and only once
-  `restoreSequence()` reports the captured row order written: a sheet whose data changed size keeps
+  `restoreCanceledSortStates()` writes them back through `setSortConfig()`. It runs right after the
+  canceled call, while the rows are still in the captured unsorted order: writing states onto an
+  unsorted grid is when the sorting plugin takes its pre-sort cache, so run after the sorted order is
+  written, a later clear kept the rows sorted. It runs only when `restoreSequence()` reports the
+  unsorted order written: a sheet whose data changed size keeps
   the `loadData` order, and an indicator over it would claim a sort it does not have. It writes nothing when
   the states are no longer empty (the listener set its own config) or while the plugin has no
   `indexesSequenceCache`. The sort only builds that cache from empty states, so states written
