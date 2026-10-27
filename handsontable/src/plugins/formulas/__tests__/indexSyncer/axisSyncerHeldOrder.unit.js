@@ -30,6 +30,7 @@ function createMockIndexSyncer(engine) {
     getEngine: () => engine,
     getSheetId: () => 0,
     getPostponeAction: () => () => {},
+    getOwnEngineWrite: () => (_, fn) => fn(),
   };
 }
 
@@ -91,7 +92,7 @@ describe('AxisSyncer while the order is held', () => {
     };
     const rows = createMockIndexMapper([0, 1]);
     const columns = createMockIndexMapper([0, 1]);
-    const indexSyncer = new IndexSyncer(rows, columns, () => {});
+    const indexSyncer = new IndexSyncer(rows, columns, () => {}, (_, fn) => fn());
 
     indexSyncer.setupSyncEndpoint(engine, 0);
     indexSyncer.setOrderHeld(true);

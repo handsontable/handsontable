@@ -192,11 +192,10 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   engine is emptied there with a warning, as the Formulas plugin does, instead of throwing out of
   the build. Sheet names are compared with plain `toLowerCase()`, as the engine compares them: a
   locale-aware lower case turned `ITEMS` into `ıtems` on a Turkish host. Every engine call the bar makes itself (add, feed, remove, the copied
-  named expressions) runs through `#withEngineRepaint()`, which collects the engine's
-  `valuesUpdated` changes and repaints the grids that read them (`Formulas#renderDependentSheets()`).
-  The call runs through `Formulas#runEngineWrite` on the engine being written, including while this
-  grid's Formulas plugin is not bound yet, so the Formulas listener does not paint that same change again. The repaint runs only while the bar's grid is bound to that engine, and a workbook
-  build repaints once when it ends (`#repaintAfterBuild`), not once per fed sheet while the grid
+  named expressions) runs through `#withEngineWrite()`, which is `Formulas#runEngineWrite` on the engine
+  being written. The grids on that engine whose sheet the call recalculated paint once when it ends, including a
+  standalone grid while this grid's Formulas plugin is off or bound to another engine. A workbook build
+  wraps its registration loop in one scope per engine (`#withEngineWrites()`), so it paints once, not once per fed sheet while the grid
   still shows the previous workbook. A removed sheet is removed
   from the engine; a duplicate binds to an engine sheet of its own, with its references to its
   own sheet name pointed at the copy and the original's sheet-scoped named expressions copied

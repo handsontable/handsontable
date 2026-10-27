@@ -18,6 +18,7 @@ function createMockIndexSyncer(engine, sheetId = 0) {
     getEngine: () => engine,
     getSheetId: () => sheetId,
     getPostponeAction: () => () => {},
+    getOwnEngineWrite: () => (_, fn) => fn(),
   };
 }
 

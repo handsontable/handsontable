@@ -1,43 +1,64 @@
 /**
- * Depth of plugin-owned writes, per engine.
+ * What the plugin writes to one engine right now: how deep the writes nest and which grids the
+ * engine's `valuesUpdated` events named meanwhile.
  *
- * HyperFormula emits `valuesUpdated` before the mutating call returns. Inside `batch()` the
- * emit happens after the callback, still before `batch()` returns, so the counter wraps that
- * call. A write to one engine does not count as a write to another.
+ * HyperFormula emits `valuesUpdated` before the mutating call returns. Inside `batch()` the emit
+ * happens after the callback, still before `batch()` returns, so a scope wraps that call.
  */
-const writeDepthByEngine = new WeakMap<object, number>();
+interface EngineWrite {
+  depth: number;
+  grids: Set<() => void>;
+}
+
+const writesByEngine = new WeakMap<object, EngineWrite>();
 
 /**
- * Runs an engine mutation this plugin owns.
+ * Runs an engine mutation this plugin owns. The grids the engine's events name while it runs are
+ * painted once, when the outermost mutation on that engine ends, whether it returns or throws. A
+ * write to one engine does not count as a write to another.
  *
  * @param {object} engine The engine being written.
  * @param {Function} fn The mutation.
  * @returns {*} What `fn` returns.
  */
 export function withPluginEngineWrite<T>(engine: object, fn: () => T): T {
-  writeDepthByEngine.set(engine, (writeDepthByEngine.get(engine) ?? 0) + 1);
+  let write = writesByEngine.get(engine);
+
+  if (write === undefined) {
+    write = { depth: 0, grids: new Set() };
+    writesByEngine.set(engine, write);
+  }
+
+  write.depth += 1;
 
   try {
     return fn();
   } finally {
-    const depth = (writeDepthByEngine.get(engine) ?? 1) - 1;
+    write.depth -= 1;
 
-    if (depth > 0) {
-      writeDepthByEngine.set(engine, depth);
-    } else {
-      writeDepthByEngine.delete(engine);
+    if (write.depth === 0) {
+      // Gone before the paints run, so an engine write a paint's `afterRender` makes is an external one.
+      writesByEngine.delete(engine);
+      write.grids.forEach(paint => paint());
     }
   }
 }
 
 /**
- * @param {object|null} engine The engine to check.
- * @returns {boolean} `true` while a plugin write to this engine is on the stack.
+ * Hands a grid's paint to the plugin write on the stack, when there is one.
+ *
+ * @param {object|null} engine The engine whose event named the grid.
+ * @param {Function} paint Paints the grid. The same function for the same grid, so it runs once.
+ * @returns {boolean} `false` when no plugin write is on the stack, and the caller paints itself.
  */
-export function isPluginEngineWrite(engine: object | null | undefined): boolean {
-  if (engine === null || engine === undefined) {
+export function deferPaintToPluginEngineWrite(engine: object | null | undefined, paint: () => void): boolean {
+  const write = engine === null || engine === undefined ? undefined : writesByEngine.get(engine);
+
+  if (write === undefined) {
     return false;
   }
 
-  return (writeDepthByEngine.get(engine) ?? 0) > 0;
+  write.grids.add(paint);
+
+  return true;
 }

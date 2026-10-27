@@ -1,7 +1,6 @@
 import { toUpperCaseFirst } from '../../../helpers/string';
 import { getMoves } from '../../../helpers/moves';
 import type { HyperFormulaEngine } from '../engine/types';
-import { withPluginEngineWrite } from './pluginEngineWrite';
 
 interface AxisIndexMapper {
   getVisualFromPhysicalIndex(physicalIndex: number): number | null;
@@ -40,6 +39,7 @@ interface ParentIndexSyncer {
   getEngine(): HyperFormulaEngine | null;
   getSheetId(): number | null;
   getPostponeAction(callback?: Function): Function;
+  getOwnEngineWrite(): <T>(engine: HyperFormulaEngine, fn: () => T) => T;
 }
 
 /**
@@ -415,7 +415,7 @@ class AxisSyncer {
       return;
     }
 
-    withPluginEngineWrite(engine, () => {
+    this.#indexSyncer.getOwnEngineWrite()(engine, () => {
       engine.batch(() => {
         moves.forEach((move: { from: number; to: number }) => {
           const moveToTheSamePosition = move.from !== move.to;
@@ -600,7 +600,7 @@ class AxisSyncer {
       return true;
     }
 
-    withPluginEngineWrite(engine, () => {
+    this.#indexSyncer.getOwnEngineWrite()(engine, () => {
       engine[`set${toUpperCaseFirst(this.#axis)}Order`](sheetId, engineOrder);
     });
 

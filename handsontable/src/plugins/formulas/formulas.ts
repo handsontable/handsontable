@@ -43,7 +43,7 @@ import { getValueGetterValue } from '../../utils/valueAccessors';
 import { quoteUnreadableSheetNames } from '../../utils/formulaReferences';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
-import { isPluginEngineWrite, withPluginEngineWrite } from './indexSyncer/pluginEngineWrite';
+import { deferPaintToPluginEngineWrite, withPluginEngineWrite } from './indexSyncer/pluginEngineWrite';
 import type AxisSyncer from './indexSyncer/axisSyncer';
 import type { EngineOrder } from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine, FormulasCellAddress, FormulasCellRange } from './engine/types';
@@ -73,6 +73,15 @@ interface HFCellChange {
  */
 function isHFCellChange(value: unknown): value is HFCellChange {
   return typeof value === 'object' && value !== null;
+}
+
+/**
+ * @param {Array} changes The engine's change list.
+ * @param {number} sheetId The engine id of a sheet.
+ * @returns {boolean} `true` when a change in the list is a cell of that sheet.
+ */
+function changesNameSheet(changes: unknown[], sheetId: number): boolean {
+  return changes.some(change => isHFCellChange(change) && change.address?.sheet === sheetId);
 }
 
 /**
@@ -670,10 +679,10 @@ export class Formulas extends BasePlugin {
   #sheetsNotNamingOwnSheet = new Set<number>();
 
   /**
-   * What the engine reported while this grid registered its sheet, owed to the paint of the write that
-   * fills it – see `#registerSheet()`. `renderDependentSheets()` takes it.
+   * How many of this grid's own engine writes are on the stack. The grid is not painted for the events
+   * they cause: the Core (or the write's caller) paints it – see `#writeOwnSheet()`.
    */
-  #registrationChanges: unknown[] = [];
+  #ownWriteDepth = 0;
 
   /**
    * The cells an undo or a redo recalculated when it reloaded the sheet, validated once the restore is
@@ -758,34 +767,42 @@ export class Formulas extends BasePlugin {
     this.#invalidateHyperlinkCells();
     this.#markCellsThatBecameHyperlinks(changes);
     this.hot.runHooks('afterFormulasValuesUpdate', exportedChanges);
-    this.#renderSheetFromExternalEngineChange(changes);
+    this.#paintGridFromEngineChange(changes);
   };
 
   /**
-   * Paints this grid when the engine changed a cell on its sheet outside a plugin write.
+   * Paints this grid when the engine changed a cell on its sheet.
    *
-   * A plugin write already paints. Depth is per engine, so a write to another engine still paints.
-   * Only this grid is painted: every instance on the engine hears the same event.
+   * An external write paints at once, once per event. During a plugin write the paint is handed to it
+   * and runs once, when the outermost write on this engine ends (see `withPluginEngineWrite()`). The
+   * grid whose own write it is does not paint: the Core, or the caller of that write, does.
    *
    * @param {Array} changes The engine's change list.
    */
-  #renderSheetFromExternalEngineChange(changes: unknown[]) {
-    if (isPluginEngineWrite(this.engine) || this.sheetId === null || this.hot.isDestroyed || !this.hot.view) {
+  #paintGridFromEngineChange(changes: unknown[]) {
+    if (this.#ownWriteDepth > 0 || this.sheetId === null || this.hot.isDestroyed || !this.hot.view) {
       return;
     }
 
     const sheetId = this.sheetId;
 
-    for (let index = 0; index < changes.length; index += 1) {
-      const change = changes[index];
+    if (!changesNameSheet(changes, sheetId)) {
+      return;
+    }
 
-      if (isHFCellChange(change) && change.address?.sheet === sheetId) {
-        this.hot.render();
-
-        return;
-      }
+    if (!deferPaintToPluginEngineWrite(this.engine, this.#paintGrid)) {
+      this.#paintGrid();
     }
   }
+
+  /**
+   * Paints this grid, unless it went away since the engine named it.
+   */
+  #paintGrid = () => {
+    if (!this.hot.isDestroyed && this.hot.view) {
+      this.hot.render();
+    }
+  };
 
   /**
    * Marks the updated cells that resolve to a hyperlink now. A cell that became a `HYPERLINK` while
@@ -1072,7 +1089,7 @@ export class Formulas extends BasePlugin {
           // be postponed.
           postponedAction();
         });
-      });
+      }, <T>(engine: HyperFormulaEngine, fn: () => T) => this.#writeOwnSheet(engine, fn));
 
     this.rowAxisSyncer = this.indexSyncer.getForAxis('row');
     this.columnAxisSyncer = this.indexSyncer.getForAxis('column');
@@ -1200,7 +1217,6 @@ export class Formulas extends BasePlugin {
     this.#sourceRowCountAtLastSync = null;
     this.#sheetIdAtLastSync = null;
     this.#sheetResyncPending = false;
-    this.#registrationChanges = [];
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -1488,7 +1504,6 @@ export class Formulas extends BasePlugin {
 
     this.engine = null;
     this.#ownSheetExists = null;
-    this.#registrationChanges = [];
 
     super.destroy();
   }
@@ -1586,13 +1601,17 @@ export class Formulas extends BasePlugin {
     }
 
     try {
-      const actualSheetName = this.engine!.addSheet(sheetName ?? undefined);
+      const engine = this.engine!;
 
-      if (sheetData) {
-        this.engine!.setSheetContent(this.engine!.getSheetId(actualSheetName), this.#readableSheet(sheetData));
-      }
+      return withPluginEngineWrite(engine, () => {
+        const actualSheetName = engine.addSheet(sheetName ?? undefined);
 
-      return actualSheetName;
+        if (sheetData) {
+          engine.setSheetContent(engine.getSheetId(actualSheetName), this.#readableSheet(sheetData));
+        }
+
+        return actualSheetName;
+      });
 
     } catch (e) {
       warn(e instanceof Error ? e.message : String(e));
@@ -2039,7 +2058,8 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Runs `fn` as a plugin write to `engine`, so the `valuesUpdated` listener does not paint it.
+   * Runs `fn` as a plugin write to `engine`: every grid on the engine whose sheet the engine's events
+   * name is painted once, when the outermost write ends.
    *
    * The engine is an argument because a caller can write it before this instance is bound to it.
    *
@@ -2053,41 +2073,21 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Renders dependent sheets (handsontable instances) based on the changes - list of the
-   * recalculated dependent cells, plus the ones `#registrationChanges` holds, which it consumes.
+   * Runs `fn` as a write to this grid's own sheet. Like `runEngineWrite()`, but this grid is left out
+   * of the paint: the Core paints it after the operation that made the write.
    *
-   * @private
-   * @param {object[]} dependentCells The values and location of applied changes within HF engine.
-   * @param {boolean} [renderSelf] `true` if it's supposed to render itself, `false` otherwise.
+   * @param {object} engine The engine `fn` writes.
+   * @param {Function} fn The mutation.
+   * @returns {*} What `fn` returns.
    */
-  renderDependentSheets(dependentCells: unknown[], renderSelf = false) {
-    const affectedSheetIds = new Set();
-    const changes = this.#registrationChanges.length > 0 ?
-      dependentCells.concat(this.#registrationChanges) : dependentCells;
+  #writeOwnSheet<T>(engine: object, fn: () => T): T {
+    this.#ownWriteDepth += 1;
 
-    this.#registrationChanges = [];
-
-    changes.forEach((change: unknown) => {
-      // For the Named expression the address is empty, hence the `sheetId` is undefined.
-      const sheetId = isHFCellChange(change) ? change.address?.sheet : undefined;
-
-      if (sheetId !== undefined && !affectedSheetIds.has(sheetId)) {
-        affectedSheetIds.add(sheetId);
-      }
-    });
-
-    if (!this.engine) {
-      return;
+    try {
+      return withPluginEngineWrite(engine, fn);
+    } finally {
+      this.#ownWriteDepth -= 1;
     }
-
-    getRegisteredHotInstances(this.engine).forEach((relatedHot, sheetId) => {
-      if (
-        (renderSelf || (sheetId !== this.sheetId)) &&
-        affectedSheetIds.has(sheetId)
-      ) {
-        relatedHot.render();
-      }
-    });
   }
 
   /**
@@ -2385,7 +2385,7 @@ export class Formulas extends BasePlugin {
     const engine = this.engine!;
     const isUndo = context.direction === 'undo';
     let keptEdited = false;
-    const changes = withPluginEngineWrite(engine, () => engine.batch(() => {
+    const changes = this.#writeOwnSheet(engine, () => engine.batch(() => {
       stepEnd.peerRewrites.forEach((rewrite) => {
         const expected = isUndo ? rewrite.after : rewrite.before;
         const text = isUndo ? rewrite.before : rewrite.after;
@@ -2429,7 +2429,6 @@ export class Formulas extends BasePlugin {
     changes.forEach((cell) => {
       this.#restoredDependentCells.push(cell);
     });
-    this.renderDependentSheets(changes);
     this.#syncPeerSources(stepEnd.peerRewrites);
   }
 
@@ -2523,15 +2522,14 @@ export class Formulas extends BasePlugin {
     this.#internalOperationPending = true;
 
     try {
-      const dependentCells = withPluginEngineWrite(this.engine!, () => (
-        this.engine!.setSheetContent(this.sheetId, snapshot.content)
-      ));
+      return this.#writeOwnSheet(this.engine!, () => {
+        const dependentCells = this.engine!.setSheetContent(this.sheetId, snapshot.content);
 
-      this.rowAxisSyncer!.adoptEngineOrder(snapshot.rowOrder);
-      this.columnAxisSyncer!.adoptEngineOrder(snapshot.columnOrder);
-      this.renderDependentSheets(dependentCells);
+        this.rowAxisSyncer!.adoptEngineOrder(snapshot.rowOrder);
+        this.columnAxisSyncer!.adoptEngineOrder(snapshot.columnOrder);
 
-      return dependentCells;
+        return dependentCells;
+      });
     } finally {
       this.#internalOperationPending = false;
     }
@@ -3607,12 +3605,13 @@ export class Formulas extends BasePlugin {
     try {
       this.#sheetWriteCount += 1;
 
-      dependentCells = withPluginEngineWrite(this.engine!, () => (
-        this.engine!.setSheetContent(this.sheetId, sourceDataArray)
-      ));
+      dependentCells = this.#writeOwnSheet(this.engine!, () => {
+        const changes = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
 
-      this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
-      this.renderDependentSheets(dependentCells);
+        this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+
+        return changes;
+      });
     } finally {
       this.#internalOperationPending = false;
     }
@@ -3638,10 +3637,13 @@ export class Formulas extends BasePlugin {
     let dependentCells: unknown[] = [];
 
     try {
-      dependentCells = withPluginEngineWrite(this.engine!, () => this.engine!.setSheetContent(this.sheetId, [[]]));
+      dependentCells = this.#writeOwnSheet(this.engine!, () => {
+        const changes = this.engine!.setSheetContent(this.sheetId, [[]]);
 
-      this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
-      this.renderDependentSheets(dependentCells);
+        this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+
+        return changes;
+      });
     } finally {
       this.#internalOperationPending = false;
     }
@@ -3774,63 +3776,44 @@ export class Formulas extends BasePlugin {
     const bindSheet = () => setupSheet(
       engine, this.#requestedSheetName() ?? this.sheetName ?? this.#readSheetNameSetting(),
     );
-    const sheetName = this.#hotWasInitializedWithEmptyData ? bindSheet() : this.#registerSheet(engine, bindSheet);
+    const bindAndLoad = () => {
+      this.#updateSheetNameAndSheetId(bindSheet());
+      this.#followSheetNameSettingWhenBound();
 
-    this.#updateSheetNameAndSheetId(sheetName);
-    this.#followSheetNameSettingWhenBound();
+      if (source === 'updateSettings') {
+        // For performance reasons, the initialization will be done in afterCellMetaReset hook
+        return;
+      }
 
-    if (source === 'updateSettings') {
-      // For performance reasons, the initialization will be done in afterCellMetaReset hook
-      return;
-    }
+      if (!this.#hotWasInitializedWithEmptyData && this.#pendingAdoption?.adopted === false
+        && this.#pendingAdoption.order.engine === this.engine && this.#pendingAdoption.order.sheetId === this.sheetId) {
+        this.#adoptEngineSheet(this.#pendingAdoption.order);
+        this.#pendingAdoption.adopted = true;
 
-    if (!this.#hotWasInitializedWithEmptyData && this.#pendingAdoption?.adopted === false
-      && this.#pendingAdoption.order.engine === this.engine && this.#pendingAdoption.order.sheetId === this.sheetId) {
-      this.#adoptEngineSheet(this.#pendingAdoption.order);
-      this.#pendingAdoption.adopted = true;
+        return;
+      }
 
-      return;
-    }
+      if (!this.#hotWasInitializedWithEmptyData) {
+        // Records the layout too, so a settings update this load ran inside of has no row-count change
+        // left to carry.
+        this.#loadSourceDataIntoSheet();
 
-    if (!this.#hotWasInitializedWithEmptyData) {
-      // Records the layout too, so a settings update this load ran inside of has no row-count change
-      // left to carry.
-      this.#loadSourceDataIntoSheet();
-
-    } else if (this.sheetName !== null) {
-      this.#loadSheet(this.sheetName);
-    }
-  };
-
-  /**
-   * Binds the grid's sheet, adding it to the engine when it is not there, for a grid whose data is
-   * written into that sheet right after (`#loadSourceDataIntoSheet()`, or `#resyncSheet()` when the
-   * load came from `updateSettings()`).
-   *
-   * Registering the sheet and filling it are one logical write that reaches the engine in two change
-   * lists. Adding the sheet makes the engine re-resolve a formula in another grid that named it first
-   * (`#REF!` becomes the cell's value, or empty), and that cell is in the first list alone when the
-   * fill leaves it empty. So the first list is not painted here: it is kept and handed to
-   * `renderDependentSheets()` with the fill's, and every grid that read the sheet paints once, after
-   * the data is in.
-   *
-   * @param {object} engine The engine the grid is bound to.
-   * @param {Function} bindSheet Adds the sheet when needed and returns its name.
-   * @returns {string} The sheet name.
-   */
-  #registerSheet(engine: HyperFormulaEngine, bindSheet: () => string): string {
-    const keepChanges = (changes: unknown[]) => {
-      this.#registrationChanges = this.#registrationChanges.concat(changes);
+      } else if (this.sheetName !== null) {
+        this.#loadSheet(this.sheetName);
+      }
     };
 
-    engine.on('valuesUpdated', keepChanges);
-
-    try {
-      return withPluginEngineWrite(engine, bindSheet);
-    } finally {
-      engine.off('valuesUpdated', keepChanges);
+    // Adding the sheet and filling it are one write: adding it makes the engine re-resolve a formula in
+    // another grid that named it first (`#REF!` becomes the cell's value, or empty), and that cell is
+    // in the first change list alone when the fill leaves it empty. One scope paints those grids once,
+    // after the data is in, or when the fill throws. A grid built from the sheet writes nothing, so the
+    // event of adding the sheet is its only paint.
+    if (this.#hotWasInitializedWithEmptyData) {
+      bindAndLoad();
+    } else {
+      this.#writeOwnSheet(engine, bindAndLoad);
     }
-  }
+  };
 
   /**
    * Binds the sheet a load brought back without writing the loaded data into it: the engine already holds
@@ -4200,17 +4183,15 @@ export class Formulas extends BasePlugin {
           return;
         }
 
-        const outOfBoundsDependentCells = withPluginEngineWrite(this.engine!, () => this.engine!.batch(() => {
+        // The Core painted before it created these rows, so this grid paints too.
+        withPluginEngineWrite(this.engine!, () => this.engine!.batch(() => {
           outOfBoundsChanges.forEach(([row, column, newValue]) => {
             this.syncChangeWithEngine(row, column, newValue);
           });
         }));
-
-        this.renderDependentSheets(outOfBoundsDependentCells, true);
       });
     }
 
-    this.renderDependentSheets(dependentCells);
     this.validateDependentCells(dependentCells, changedCells);
   };
 
@@ -4229,7 +4210,7 @@ export class Formulas extends BasePlugin {
 
     this.#markDataChanged();
 
-    const dependentCells = withPluginEngineWrite(this.engine!, () => this.engine!.batch(() => {
+    const dependentCells = this.#writeOwnSheet(this.engine!, () => this.engine!.batch(() => {
       changes.forEach(([visualRow, prop, oldValue, newValue]) => {
         if (typeof prop !== 'string' && typeof prop !== 'number') {
           return;
@@ -4309,21 +4290,23 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const restoredDependents = awaitingApply.sheetId !== null && awaitingApply.sheetId !== this.sheetId
-      ? this.#restoreSwitchedAwaySheet(awaitingApply.writtenCells, awaitingApply.sheetId)
-      : [];
-    const { dependentCells, changedCells } = this.#writeChangesToEngine(changes);
+    // One write, so a grid on another sheet that reads a restored cell and a written one paints once.
+    const { dependentCells, changedCells } = this.#writeOwnSheet(this.engine!, () => {
+      if (awaitingApply.sheetId !== null && awaitingApply.sheetId !== this.sheetId) {
+        this.#restoreSwitchedAwaySheet(awaitingApply.writtenCells, awaitingApply.sheetId);
+      }
+
+      return this.#writeChangesToEngine(changes);
+    });
 
     awaitingApply.writtenBack = true;
 
-    // A grid on another sheet that reads a restored cell has to repaint it too.
-    this.renderDependentSheets(restoredDependents.concat(dependentCells as unknown[]));
     this.validateDependentCells(dependentCells, changedCells);
   };
 
   /**
-   * Puts a sheet the grid switched away from back to the values a change set replaced in it, and
-   * answers the cells that recalculated.
+   * Puts a sheet the grid switched away from back to the values a change set replaced in it. It runs
+   * inside the plugin write of the change set, which paints the grids that read the sheet.
    *
    * `afterSetDataAtCell` writes a change into the sheet the grid shows at that moment. When the grid
    * switches to another sheet before the Core applies the (validated) change, the Core applies it to
@@ -4341,17 +4324,17 @@ export class Formulas extends BasePlugin {
    *
    * @param {Array} writtenCells The cells the first write reached.
    * @param {number} sheetId The engine id of the sheet the set was first written into.
-   * @returns {Array} The dependent cells the restore recalculated.
    */
-  #restoreSwitchedAwaySheet(writtenCells: WrittenCell[], sheetId: number): unknown[] {
+  #restoreSwitchedAwaySheet(writtenCells: WrittenCell[], sheetId: number) {
     const engine = this.engine!;
 
     if (engine.getSheetName(sheetId) === undefined || writtenCells.length === 0) {
-      return [];
+      return;
     }
 
     const metaManager = this.hot._getMetaManager();
-    const dependents = withPluginEngineWrite(engine, () => engine.batch(() => {
+
+    engine.batch(() => {
       writtenCells.forEach(({ address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue }) => {
         let previous = this.#getValueGetterValue(physicalRow, physicalColumn, oldValue);
 
@@ -4366,9 +4349,7 @@ export class Formulas extends BasePlugin {
           engine.setCellContents(address, previous ?? null);
         }
       });
-    }));
-
-    return Array.isArray(dependents) ? dependents : [];
+    });
   }
 
   /**
@@ -4488,10 +4469,9 @@ export class Formulas extends BasePlugin {
         });
       });
     } else {
-      withPluginEngineWrite(this.engine!, writeAll);
+      this.#writeOwnSheet(this.engine!, writeAll);
     }
 
-    this.renderDependentSheets(dependentCells, restored);
     this.validateDependentCells(dependentCells, changedCells);
   }
 
@@ -4864,14 +4844,13 @@ export class Formulas extends BasePlugin {
 
     this.#markStructureChanged();
 
-    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(this.engine!, () => (
+    const changes = this.#trackPeerRewrites(() => this.#writeOwnSheet(this.engine!, () => (
       this.engine!.addRows(this.sheetId, [
         this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount,
       ])
     )));
 
     this.#syncFormulasToSourceData();
-    this.renderDependentSheets(changes);
   };
 
   /**
@@ -4892,13 +4871,12 @@ export class Formulas extends BasePlugin {
 
     this.#markStructureChanged();
 
-    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(this.engine!, () => this.engine!.addColumns(
+    const changes = this.#trackPeerRewrites(() => this.#writeOwnSheet(this.engine!, () => this.engine!.addColumns(
       this.sheetId,
       [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]
     )));
 
     this.#syncFormulasToSourceData();
-    this.renderDependentSheets(changes);
   };
 
   /**
@@ -4922,12 +4900,11 @@ export class Formulas extends BasePlugin {
 
     const removedSpans = coalesceIndexesToSpans(this.rowAxisSyncer!.getRemovedHfIndexes());
 
-    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(this.engine!, () => this.engine!.batch(() => {
+    const changes = this.#trackPeerRewrites(() => this.#writeOwnSheet(this.engine!, () => this.engine!.batch(() => {
       this.#removeSpansFromEngine(removedSpans, 'removeRows');
     })));
 
     this.#syncFormulasToSourceData(true);
-    this.renderDependentSheets(changes);
   };
 
   /**
@@ -4951,12 +4928,11 @@ export class Formulas extends BasePlugin {
 
     const removedSpans = coalesceIndexesToSpans(this.columnAxisSyncer!.getRemovedHfIndexes());
 
-    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(this.engine!, () => this.engine!.batch(() => {
+    const changes = this.#trackPeerRewrites(() => this.#writeOwnSheet(this.engine!, () => this.engine!.batch(() => {
       this.#removeSpansFromEngine(removedSpans, 'removeColumns');
     })));
 
     this.#syncFormulasToSourceData(true);
-    this.renderDependentSheets(changes);
   };
 
   /**
@@ -5127,9 +5103,9 @@ export class Formulas extends BasePlugin {
       if (isCopy) {
         // copy() reads cell values and cannot run inside batch() (evaluation must not be suspended).
         this.engine.copy(source);
-        this.#moveCellsChanges = withPluginEngineWrite(this.engine!, () => this.engine!.paste(dest));
+        this.#moveCellsChanges = this.#writeOwnSheet(this.engine!, () => this.engine!.paste(dest));
       } else {
-        this.#moveCellsChanges = this.#trackPeerRewrites(() => withPluginEngineWrite(this.engine!, () => (
+        this.#moveCellsChanges = this.#trackPeerRewrites(() => this.#writeOwnSheet(this.engine!, () => (
           this.engine!.batch(() => {
             this.engine!.moveCells(source, dest);
           })
@@ -5195,8 +5171,9 @@ export class Formulas extends BasePlugin {
     // pointed at the moved range were rewritten by the engine too, and need the same catch-up.
     this.#syncFormulasToSourceData(true);
 
-    if (dependentCells !== null) {
-      this.renderDependentSheets(dependentCells, true);
+    // The move wrote the engine before the grid changed, so the engine's write left this grid unpainted.
+    if (dependentCells !== null && this.sheetId !== null && changesNameSheet(dependentCells, this.sheetId)) {
+      this.#paintGrid();
     }
   };
 
@@ -5332,7 +5309,7 @@ export class Formulas extends BasePlugin {
    *
    * `#nestedRowsDetachPending` is left open when a listener registered ahead of this plugin's own
    * throws out of `afterDetachChild` – see `#onBeforeDetachChild`. `#internalOperationPending` is
-   * left open by a throw from `setSheetContent`, `setupSyncEndpoint`, or `renderDependentSheets`,
+   * left open by a throw from `setSheetContent` or `setupSyncEndpoint`,
    * which the two handlers below open it across without a `try`/`finally`. Both leaks are silent:
    * the first suppresses `#syncFormulasToSourceData`, so the developer's array keeps stale formula
    * text, and the second makes the read hooks early-return, so formula cells report their raw text.
@@ -5386,7 +5363,7 @@ export class Formulas extends BasePlugin {
       // trimming map, under which the visual and physical row spaces genuinely differ.
       this.#escapeSourceDataArray(rowsData, finalElementRowIndex, 0);
 
-      withPluginEngineWrite(this.engine!, () => {
+      this.#writeOwnSheet(this.engine!, () => {
         rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
           row.forEach((value: unknown, colIndex: number) => {
             this.engine?.setCellContents({

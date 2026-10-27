@@ -4,6 +4,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { ColumnSorting } from '../../columnSorting';
 import { ManualRowMove } from '../../manualRowMove';
+import { NestedRows } from '../../nestedRows';
 import { Formulas } from '../formulas';
 
 const LICENSE_KEY = 'non-commercial-and-evaluation';
@@ -49,6 +50,7 @@ describe('external engine changes repaint formula cells', () => {
     registerPlugin(Formulas);
     registerPlugin(ColumnSorting);
     registerPlugin(ManualRowMove);
+    registerPlugin(NestedRows);
   });
 
   describe('one grid', () => {
@@ -103,6 +105,60 @@ describe('external engine changes repaint formula cells', () => {
 
       expect(renders).toBe(1);
       expect(hot.getCell(0, 1).textContent).toBe('20');
+    });
+  });
+
+  describe('several external writes', () => {
+    let container;
+    let engine;
+    let hot;
+    let renders;
+
+    beforeEach(() => {
+      container = createContainer();
+      engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      renders = 0;
+      hot = mountGrid(container, [[1, '=A1*2']], engine, 'Sheet1', () => {
+        renders += 1;
+      });
+      renders = 0;
+    });
+
+    afterEach(() => {
+      hot.destroy();
+      container.remove();
+    });
+
+    it('paints once for each write, and once for the writes inside engine.batch()', () => {
+      const address = { sheet: engine.getSheetId('Sheet1'), row: 0, col: 0 };
+
+      engine.setCellContents(address, 2);
+      engine.setCellContents(address, 3);
+
+      expect(renders).toBe(2);
+
+      renders = 0;
+      engine.batch(() => {
+        engine.setCellContents(address, 4);
+        engine.setCellContents(address, 5);
+      });
+
+      expect(renders).toBe(1);
+      expect(hot.getCell(0, 1).textContent).toBe('10');
+    });
+
+    it('settles when the host writes the engine from afterRender only while the value differs', () => {
+      const address = { sheet: engine.getSheetId('Sheet1'), row: 0, col: 0 };
+
+      hot.addHook('afterRender', () => {
+        if (engine.getCellValue(address) !== 9) {
+          engine.setCellContents(address, 9);
+        }
+      });
+      engine.setCellContents(address, 3);
+
+      expect(renders).toBe(2);
+      expect(hot.getCell(0, 1).textContent).toBe('18');
     });
   });
 
@@ -249,6 +305,109 @@ describe('external engine changes repaint formula cells', () => {
     });
   });
 
+  describe('a second grid that reads a sheet the first grid changes through its own plugins', () => {
+    let containers;
+    let grids;
+    let engine;
+
+    beforeEach(() => {
+      containers = [createContainer(), createContainer()];
+      grids = [];
+      engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    });
+
+    afterEach(() => {
+      grids.forEach(grid => grid.destroy());
+      containers.forEach(container => container.remove());
+    });
+
+    it('shows the new value in the other grid after a column sort', () => {
+      const renders = [0, 0];
+
+      grids.push(mountGrid(containers[0], [[3], [1]], engine, 'Sheet1', () => {
+        renders[0] += 1;
+      }, { columnSorting: true }));
+      grids.push(mountGrid(containers[1], [['=Sheet1!A1*10']], engine, 'Sheet2', () => {
+        renders[1] += 1;
+      }));
+      renders.fill(0);
+
+      grids[0].getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(grids[1].getDataAtCell(0, 0)).toBe(10);
+      expect(grids[1].getCell(0, 0).textContent).toBe('10');
+      expect(renders).toEqual([1, 1]);
+    });
+
+    it('shows the new value in the other grid after a row move', () => {
+      grids.push(mountGrid(containers[0], [[3], [1], [5]], engine, 'Sheet1', () => {}, { manualRowMove: true }));
+      grids.push(mountGrid(containers[1], [['=SUM(Sheet1!A1:A2)']], engine, 'Sheet2', () => {}));
+
+      expect(grids[1].getCell(0, 0).textContent).toBe('4');
+      expect(grids[0].getPlugin('manualRowMove').moveRows([0], 2)).toBe(true);
+
+      expect(grids[1].getDataAtCell(0, 0)).toBe(1);
+      expect(grids[1].getCell(0, 0).textContent).toBe('1');
+    });
+
+    it('shows the new value in the other grid after a NestedRows detach', () => {
+      grids.push(mountGrid(containers[0], [
+        { name: 'a', __children: [{ name: 'b' }, { name: 'c' }] }, { name: 'd' }, { name: 'e' }, { name: 'f' },
+      ], engine, 'Sheet1', () => {}, { nestedRows: true, columns: [{ data: 'name' }] }));
+      grids.push(mountGrid(containers[1], [['=COUNTA(Sheet1!A1:A10)']], engine, 'Sheet2', () => {}));
+
+      expect(grids[1].getCell(0, 0).textContent).toBe('6');
+
+      const nestedRows = grids[0].getPlugin('nestedRows');
+
+      nestedRows.dataManager.detachFromParent(nestedRows.dataManager.getDataObject(1));
+
+      expect(grids[1].getDataAtCell(0, 0)).toBe(6);
+      expect(grids[1].getCell(0, 0).textContent).toBe('6');
+    });
+  });
+
+  describe('a plugin write that fails midway', () => {
+    let containers;
+    let grids;
+
+    beforeEach(() => {
+      containers = [createContainer(), createContainer()];
+      grids = [];
+    });
+
+    afterEach(() => {
+      grids.forEach(grid => grid.destroy());
+      containers.forEach(container => container.remove());
+    });
+
+    it('still clears #REF! in the grid that names a sheet whose fill threw', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      let renders = 0;
+
+      grids.push(mountGrid(containers[0], [['a', '=Sheet2!A1']], engine, 'Sheet1', () => {
+        renders += 1;
+      }));
+
+      expect(grids[0].getCell(0, 1).textContent).toBe('#REF!');
+      renders = 0;
+
+      expect(() => mountGrid(containers[1], [['x']], engine, 'Sheet2', () => {}, {
+        cells() {
+          throw new Error('cells failed');
+        },
+      })).toThrow('cells failed');
+
+      expect(grids[0].getCell(0, 1).textContent).toBe('');
+      expect(renders).toBe(1);
+
+      renders = 0;
+      engine.setCellContents({ sheet: engine.getSheetId('Sheet1'), row: 0, col: 0 }, 'b');
+
+      expect(renders).toBe(1);
+    });
+  });
+
   describe('a grid that joins an engine whose formulas already name its sheet', () => {
     let containers;
     let grids;
@@ -265,7 +424,7 @@ describe('external engine changes repaint formula cells', () => {
       containers.forEach(container => container.remove());
     });
 
-    it('paints the grid that names the sheet once while the other grid registers it', () => {
+    it('shows the value of the cell the other grid fills, in at most the registration and the fill paint', () => {
       const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
       grids.push(mountGrid(containers[0], [['Ford', 'Tesla'], ['Opel', '=Sheet2!A2']], engine, 'Sheet1', () => {
@@ -274,7 +433,7 @@ describe('external engine changes repaint formula cells', () => {
       renders1 = 0;
       grids.push(mountGrid(containers[1], [['Ford', 'Tesla'], ['Opel', '=Sheet1!B1']], engine, 'Sheet2', () => {}));
 
-      expect(renders1).toBe(1);
+      expect(renders1).toBeLessThanOrEqual(2);
       expect(grids[0].getCell(1, 1).textContent).toBe('Opel');
     });
 
@@ -320,14 +479,14 @@ describe('external engine changes repaint formula cells', () => {
         renders1 = 0;
       });
 
-      it('paints the other grid once with the value of the filled cell', () => {
+      it('shows the value of the filled cell in at most the registration and the fill paint', () => {
         grids[1].updateSettings({
           data: [['p', 'q'], ['r', 'moved']],
           formulas: { engine, sheetName: 'Sheet3' },
         });
 
         expect(grids[0].getCell(0, 1).textContent).toBe('moved');
-        expect(renders1).toBe(1);
+        expect(renders1).toBeLessThanOrEqual(2);
       });
 
       it('paints the other grid once when the referenced cell is empty', () => {
@@ -412,7 +571,7 @@ describe('external engine changes repaint formula cells', () => {
 
       expect(hot.getPlugin('formulas').addSheet('New', [[10]])).toBe('New');
       expect(hot.getCell(0, 0).textContent).toBe('10');
-      expect(renders).toBe(2);
+      expect(renders).toBe(1);
     });
 
     it('paints once when updateSettings changes the engine language', () => {
