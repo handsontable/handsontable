@@ -635,6 +635,34 @@ describe('external engine changes repaint formula cells', () => {
       expect(error?.message).toBe('afterRender failed');
     });
 
+    it('binds a grid that turns Formulas back on to the sheet it registered, and reports the failed paint after the enable', () => {
+      containers.push(createContainer());
+      grids.push(mountGrid(containers[2], [['x']], engine, 'Sheet3', () => {}));
+
+      const plugin = grids[2].getPlugin('formulas');
+
+      plugin.disablePlugin();
+      engine.renameSheet(engine.getSheetId('Sheet3'), 'Renamed');
+      engine.setCellContents({ sheet: engine.getSheetId('Sheet1'), row: 0, col: 1 }, '=Sheet3!A1');
+      failNextRender = true;
+
+      let error;
+
+      try {
+        plugin.enablePlugin();
+      } catch (e) {
+        error = e;
+      }
+
+      expect(plugin.sheetId).toBe(engine.getSheetId('Sheet3'));
+
+      grids[2].setDataAtCell(0, 0, '=1+2');
+
+      expect(grids[2].getDataAtCell(0, 0)).toBe(3);
+      expect(grids[0].getDataAtCell(0, 1)).toBe(3);
+      expect(error?.message).toBe('afterRender failed');
+    });
+
     it('returns no name from addSheet for a sheet it did not add, and throws the failed paint for one it did', () => {
       const plugin = grids[1].getPlugin('formulas');
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
