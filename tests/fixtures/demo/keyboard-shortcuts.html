@@ -97,14 +97,6 @@
         afterPaste: () => { window.__a11yClipboard += 1; },
         licenseKey: 'non-commercial-and-evaluation',
       });
-      // PLANTED DEFECT (reverted in the next commit): two cells share an access key, a best practice only
-      // the axe discovery run checks.
-      window.hot.addHook('afterRenderer', (td, row, col) => {
-        if (row === 1 && col <= 1) {
-          td.setAttribute('accesskey', 'g');
-        }
-      });
-      window.hot.render();
     } catch (error) {
       window.htBuildError = String(error && error.message);
     }

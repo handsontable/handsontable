@@ -169,8 +169,7 @@ export const EVIDENCE_CHECKS = Object.freeze({
     title: 'axe discovery run',
     spec: 'axe-discovery.spec.ts',
     criteria: [],
-    // PLANTED DEFECT run (reverted in the next commit): on pull requests once, to show the planted access key.
-    pullRequest: true,
+    pullRequest: false,
     triage: true,
   },
 });
