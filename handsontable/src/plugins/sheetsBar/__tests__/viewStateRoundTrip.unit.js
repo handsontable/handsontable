@@ -216,6 +216,101 @@ describe('SheetsBar -> view state round trip', () => {
 
       expect(mergeCells.getVisibleMergedAreas()).toEqual([{ row: 0, col: 1, rowspan: 2, colspan: 2 }]);
     });
+
+    /**
+     * Returns six rows whose first column holds their own physical index.
+     *
+     * @returns {Array[]}
+     */
+    function createIndexedData() {
+      return Array.from({ length: 6 }, (_, row) => [row, `b${row}`, `c${row}`, `d${row}`]);
+    }
+
+    /**
+     * Merges, hides the merge's rows with a sort or a filter, optionally leaves the sheet and comes back, and
+     * undoes the sort or the filter. Returns the merged areas on screen at the end.
+     *
+     * @param {object} scenario The scenario.
+     * @param {number[]} scenario.merge The merge, as `merge()` takes it.
+     * @param {Function} scenario.hide Sorts or filters.
+     * @param {Function} scenario.reveal Undoes what `hide` did.
+     * @param {boolean} withRoundTrip Whether to switch sheets between `hide` and `reveal`.
+     * @returns {object[]}
+     */
+    function runScenario({ merge, hide, reveal }, withRoundTrip) {
+      const bar = build({ columnSorting: true, filters: true, mergeCells: true }, createIndexedData());
+      const mergeCells = hot.getPlugin('mergeCells');
+
+      mergeCells.merge(...merge);
+      hide();
+
+      if (withRoundTrip) {
+        roundTrip(bar);
+      }
+
+      reveal();
+
+      const areas = mergeCells.getVisibleMergedAreas();
+
+      hot.destroy();
+      hot = null;
+
+      return areas;
+    }
+
+    /**
+     * Filters the first column by one condition.
+     *
+     * @param {string} name The condition name.
+     * @param {Array} args The condition arguments.
+     */
+    function filterFirstColumn(name, args) {
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(0, name, args);
+      filters.filter();
+    }
+
+    /**
+     * Clears every filter condition.
+     */
+    function clearFilters() {
+      const filters = hot.getPlugin('filters');
+
+      filters.clearConditions();
+      filters.filter();
+    }
+
+    [
+      {
+        name: 'a sort pushes its rows past the last row',
+        merge: [0, 1, 1, 2],
+        hide: () => hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' }),
+        reveal: () => hot.getPlugin('columnSorting').clearSort(),
+        expected: [{ row: 0, col: 1, rowspan: 2, colspan: 2 }],
+      },
+      {
+        name: 'a filter leaves one of its cells visible',
+        merge: [0, 1, 1, 1],
+        hide: () => filterFirstColumn('neq', [1]),
+        reveal: clearFilters,
+        expected: [{ row: 0, col: 1, rowspan: 2, colspan: 1 }],
+      },
+      {
+        name: 'a filter hides all of its rows',
+        merge: [0, 1, 1, 2],
+        hide: () => filterFirstColumn('gt', [1]),
+        reveal: clearFilters,
+        expected: [{ row: 0, col: 1, rowspan: 2, colspan: 2 }],
+      },
+    ].forEach(({ name, expected, ...scenario }) => {
+      it(`keeps a merge after a round trip when ${name}, as the grid without one does`, () => {
+        const control = runScenario(scenario, false);
+
+        expect(control).toEqual(expected);
+        expect(runScenario(scenario, true)).toEqual(control);
+      });
+    });
   });
 
   describe('row headers', () => {

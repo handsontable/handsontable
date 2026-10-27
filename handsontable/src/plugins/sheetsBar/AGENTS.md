@@ -550,18 +550,21 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   init build) the bar runs nothing, and MergeCells' own `afterInit` builds the merges against the
   loaded sheet and clears the pending pass. The pass must run before the view-state restore: it sets MergeCells'
   `#initialized`, and the restored merges' anchors are captured only once that is set. Capture
-  keeps only merges the lookup matrix holds (`get(row, col) === merge`): a merge whose rows
-  are all trimmed stays in the collection's list at its last visual position, and restored
-  there it came back as a visible merge over unrelated rows, or won over a live merge,
-  depending on list order. Such a merge is therefore gone after a round trip, even once its
-  rows are untrimmed. The restore then drops a stored merge that no longer fits (the data is
-  the host's and can shrink while the sheet is away), and one that would overlap a merge
-  already on screen, which only a host listener adding merges during the load can produce,
-  since the automatic path skips the overlap check.
-  The rest go through `mergeRange(range, true, true)` inside `restoreMergedAreas()`, the path
-  MergeCells uses for merges declared in its settings: no out-of-bounds warning,
-  `beforeMergeCells`/`afterMergeCells` report `auto: true` (UndoRedo records nothing for that),
-  and no cell is written, where the public `merge()` rewrote every covered cell with `null`.
+  keeps every merge with a physical anchor, including one whose rows are all trimmed, and a
+  merge without an anchor only while the lookup matrix holds it (its stale position would name
+  unrelated rows). `restoreMergedAreas()` puts an anchored merge back the way the grid held it,
+  as an undo does: added to the collection with its anchor, outside the lookup matrix while none
+  of its rows is visible, then re-anchored. It never goes through `mergeRange()`, whose row
+  bounds and single-cell rule dropped a merge a sort drew past the last row, one a filter left
+  with one visible cell, and (with the old capture) one whose rows a filter hid all; each came
+  back after clearing the sort or the filter without a switch, and was gone after a round trip.
+  The restore drops a stored merge whose rows or columns no longer exist (the data is the host's
+  and can shrink while the sheet is away), and one drawn over a merge already on screen, which
+  only a host listener adding merges during the load can produce. A drawn merge fires
+  `beforeMergeCells`/`afterMergeCells` with `auto: true` (UndoRedo records nothing for that), and
+  no cell is written, where the public `merge()` rewrote every covered cell with `null`. An area
+  without an anchor goes through `mergeRange(range, true, true)`, the path MergeCells uses for
+  merges declared in its settings.
   The capture carries each merge's physical anchor and the restore runs once the restored row and
   column order is in the index cache (`../../utils/viewState/AGENTS.md`), so a merge on a sheet with a row
   or column move or a sort comes back over its own cells, and one whose rows a sort scattered keeps the

@@ -467,22 +467,29 @@ the cell values). The core rule itself is pinned by
 A sheet switch captures and restores merges around its `loadData()`. It calls
 `_exportMergedAreas()`, `clearCollections()`, `restoreMergedAreas()` and
 `runDeferredSettingsPass()` through the typed `getPlugin('mergeCells')`, so changing their
-names or signatures breaks the type check instead of the switch. Keep the capture reading the lookup matrix
-and the restore on the automatic path (`mergeRange(range, true, true)`): SheetsBar relies on both.
-Pinned by `__tests__/mergedAreasApi.unit.js` and `__tests__/anchoredMergedAreas.unit.js`.
+names or signatures breaks the type check instead of the switch. Pinned by `__tests__/mergedAreasApi.unit.js`
+and `__tests__/anchoredMergedAreas.unit.js`.
 
-**The capture carries each merge's anchor, and the restore places the merge from it.** `_exportMergedAreas()` is
-`getVisibleMergedAreas()` plus `physicalRows` and `physicalColumn` (a `PhysicalRowMergeSnapshot`; a copy of the
-anchor, left out for a merge with no anchor). `restoreMergedAreas()` places such an entry where the anchor draws
-under the index cache in force (`#placeAnchoredArea`: the first visible row, the count of visible rows, the
-column's visual index; the same rule as the re-anchor), merges that block on the automatic path, then gives the new
-merge the stored anchor. The last step matters for a merge whose rows a sort scattered: its drawn block covers
-other records' rows, and the anchor `afterMergeCells` captures from that block would hand it those rows for good.
-An anchor that names a row or column past the data (the host shrank a sheet's data while it was away) is skipped.
+**The capture carries each merge's anchor, and the restore puts the merge back the way the grid held it.**
+`_exportMergedAreas()` lists every merge with an anchor, with `physicalRows` and `physicalColumn` (a
+`PhysicalRowMergeSnapshot`; a copy of the anchor), including one whose rows are all trimmed: the anchor still
+names its cells. A merge with no anchor is listed only while the lookup matrix holds it, by its visual geometry,
+since its stale coordinates would name unrelated rows. `restoreMergedAreas()` adds an anchored entry the way the
+undo path (`#addRecordedMerge`) does, never through `mergeRange()`: `add(geometry, true)` at the block the anchor
+draws under the index cache in force (`#placeAnchoredArea`: the first visible row, the count of visible rows, the
+column's visual index), or `addOutsideMatrix()` when no row is visible; then it sets the stored anchor and runs
+`#reanchorMergesToVisibleRows()` once. `mergeRange()` refused three shapes the live grid holds: a merge a sort drew
+past the last row (its row bounds), one a filter left with a single visible cell (the auto path's single-cell
+rule), and one with every row hidden (no top-left). Each was gone after a round trip. Setting the stored anchor
+matters for a merge whose rows a sort scattered too: its drawn block covers other records' rows, and an anchor
+captured from that block would hand it those rows for good. A drawn entry still fires
+`beforeMergeCells`/`afterMergeCells` with `auto: true` and writes no cell; one kept outside the matrix fires none.
+An anchor that names a row or column past the data, or a merge whose columns now run past the last one (the host
+shrank a sheet's data while it was away), is skipped, and so is a drawn entry that overlaps a merge in the matrix.
 **The caller must run it with the restored order in the cache**, not inside a batch that wrote that order: the
 cache keeps the order from before the batch, and an area placed there, by visual coordinates or by anchor, lands
-on other cells (`../../utils/viewState/AGENTS.md`). An entry without an anchor (one a listener built) is placed by
-its visual geometry, as before. `getVisibleMergedAreas()` keeps its plain shape for AutoColumnSize.
+on other cells (`../../utils/viewState/AGENTS.md`). An entry without an anchor (one a listener built) is merged by
+its visual geometry on the automatic path (`mergeRange(range, true, true)`), skipped when it does not fit the grid. `getVisibleMergedAreas()` keeps its plain shape for AutoColumnSize.
 
 AutoColumnSize is the second consumer of `getVisibleMergedAreas()`: it sizes the column a merge spanning
 several columns is drawn from (`../autoColumnSize/mergedCellsWidths.ts`), and it listens to

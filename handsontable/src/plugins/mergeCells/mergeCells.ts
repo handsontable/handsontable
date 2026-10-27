@@ -1060,44 +1060,54 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Returns every merged cell the lookup matrix holds, like {@link MergeCells#getVisibleMergedAreas}, each with
-   * the physical rows it owns and its physical left column when the plugin has captured them. Its visual
-   * coordinates only describe it under the row and column order they were read with; the anchor still
-   * names the same cells after a sort, a move, or a data load that renumbered the visual rows.
+   * Returns every merged cell the plugin holds, each with the physical rows it owns and its physical left
+   * column when the plugin has captured them. Its visual coordinates only describe it under the row and
+   * column order they were read with; the anchor still names the same cells after a sort, a move, or a data
+   * load that renumbered the visual rows. A merge whose rows are all trimmed is kept when it has an anchor,
+   * which still names its cells. Without one, the lookup matrix no longer holds it and its stale position
+   * would name unrelated rows, so it is left out, as {@link MergeCells#getVisibleMergedAreas} leaves it out.
    *
    * @private
    * @returns {Array<MergeAreaGeometry|PhysicalRowMergeSnapshot>}
    */
   _exportMergedAreas(): Array<MergeAreaGeometry | PhysicalRowMergeSnapshot> {
     const collection = this.mergedCellsCollection;
+    const areas: Array<MergeAreaGeometry | PhysicalRowMergeSnapshot> = [];
 
-    return collection.mergedCells
-      .filter(mergedCell => collection.get(mergedCell.row, mergedCell.col) === mergedCell)
-      .map((mergedCell) => {
-        const { row, col, rowspan, colspan } = mergedCell;
-        const anchor = this.#mergeAnchors.get(mergedCell);
+    collection.mergedCells.forEach((mergedCell) => {
+      const { row, col, rowspan, colspan } = mergedCell;
+      const anchor = this.#mergeAnchors.get(mergedCell);
 
-        if (!anchor) {
-          return { row, col, rowspan, colspan };
-        }
-
-        return {
+      if (anchor) {
+        areas.push({
           row, col, rowspan, colspan, physicalRows: anchor.physicalRows.slice(), physicalColumn: anchor.physicalColumn,
-        };
-      });
+        });
+
+      } else if (collection.get(row, col) === mergedCell) {
+        areas.push({ row, col, rowspan, colspan });
+      }
+    });
+
+    return areas;
   }
 
   /**
-   * Merges the given areas through the automatic path, the one the settings use: no cell is
-   * written, and `beforeMergeCells`/`afterMergeCells` report `auto: true`. An area that carries a
-   * physical anchor ({@link MergeCells#_exportMergedAreas}) is placed where that anchor draws under the
-   * index cache in force now, the way {@link MergeCells#reanchorMergesToVisibleRows} places it, and keeps
-   * that anchor, so a merge whose rows a sort scattered still owns the same rows. Call it with the row and
-   * column order the merges belong to already in the cache: inside a batch the cache still holds the
-   * order from before it. An anchor that names a row or column past the data, or that has no visible
-   * top-left, is skipped. An area that does not fit the grid is skipped without the settings validation's
-   * warning, and so is one that overlaps a merge already in the lookup matrix, since the automatic path
-   * skips the overlap check.
+   * Restores the given areas. An area that carries a physical anchor ({@link MergeCells#_exportMergedAreas})
+   * comes back the way the grid holds a live merge, the way an undo puts one back: it is added to the
+   * collection with that anchor, drawn where the anchor places it under the index cache in force now (see
+   * {@link MergeCells#reanchorMergesToVisibleRows}), and kept outside the lookup matrix while none of its rows
+   * is visible, so it is drawn again once they return. A merge whose rows a sort drew past the last row, one a
+   * filter left with a single visible cell, and one whose rows a filter hid all come back whole. An area whose
+   * anchor names a row or column past the data, or whose columns run past the last one (the data shrank while it
+   * was stored), is skipped, and so is one drawn over a merge already in the lookup matrix. A restored merge that is drawn fires
+   * `beforeMergeCells`/`afterMergeCells` with `auto: true`, and no cell is written.
+   *
+   * An area without an anchor is merged by its visual geometry through the automatic path, the one the
+   * settings use: no cell is written, and the hooks report `auto: true`. It is skipped, without the settings
+   * validation's warning, when it does not fit the grid or overlaps a merge already in the lookup matrix.
+   *
+   * Call it with the row and column order the merges belong to already in the cache: inside a batch the cache
+   * still holds the order from before it.
    *
    * @private
    * @param {Array<MergeAreaGeometry|PhysicalRowMergeSnapshot>} areas The areas to merge, by visual indexes or
@@ -1106,47 +1116,102 @@ export class MergeCells extends BasePlugin {
   restoreMergedAreas(areas: Array<MergeAreaGeometry | PhysicalRowMergeSnapshot>): void {
     const rowCount = this.hot.countRows();
     const colCount = this.hot.countCols();
+    let hasRestoredAnchoredArea = false;
 
     areas.forEach((area) => {
-      const geometry = hasPhysicalAnchor(area) ? this.#placeAnchoredArea(area) : area;
+      if (hasPhysicalAnchor(area)) {
+        hasRestoredAnchoredArea = this.#restoreAnchoredArea(area) || hasRestoredAnchoredArea;
 
-      if (geometry === null ||
-          geometry.row + geometry.rowspan > rowCount || geometry.col + geometry.colspan > colCount) {
         return;
       }
 
-      const range = toMergeAreaRange(this.hot, geometry);
+      if (area.row + area.rowspan > rowCount || area.col + area.colspan > colCount) {
+        return;
+      }
+
+      const range = toMergeAreaRange(this.hot, area);
 
       if (this.mergedCellsCollection.getWithinRange(range, true).length > 0) {
         return;
       }
 
       this.mergeRange(range, true, true);
-
-      const merge = this.mergedCellsCollection.get(geometry.row, geometry.col);
-
-      if (merge && hasPhysicalAnchor(area)) {
-        this.#mergeAnchors.set(merge, { physicalRows: area.physicalRows.slice(), physicalColumn: area.physicalColumn });
-      }
     });
+
+    if (hasRestoredAnchoredArea) {
+      this.#reanchorMergesToVisibleRows();
+    }
+  }
+
+  /**
+   * Adds one anchored area back to the collection with its anchor, as {@link MergeCells#restoreMergedAreas}
+   * describes. The collection clips a span that runs past the grid; the re-anchor that follows gives every
+   * restored merge the span its anchor draws, as it does for a live merge.
+   *
+   * @param {PhysicalRowMergeSnapshot} area The area, with its anchor.
+   * @returns {boolean} `true` if the area was added.
+   */
+  #restoreAnchoredArea(area: PhysicalRowMergeSnapshot): boolean {
+    const { rowIndexMapper, columnIndexMapper } = this.hot;
+    const { physicalRows, physicalColumn, colspan } = area;
+
+    if (physicalColumn >= columnIndexMapper.getNumberOfIndexes() ||
+        physicalRows.some(physicalRow => physicalRow >= rowIndexMapper.getNumberOfIndexes())) {
+      return false;
+    }
+
+    const leftColumn = this.hot.toVisualColumn(physicalColumn);
+
+    if (leftColumn !== null && leftColumn + colspan > this.hot.countCols()) {
+      return false;
+    }
+
+    const collection = this.mergedCellsCollection;
+    const geometry = this.#placeAnchoredArea(area);
+    let merge: MergedCellCoords | false;
+
+    if (geometry === null) {
+      const { row, col, rowspan, colspan } = area;
+
+      merge = collection.addOutsideMatrix({ row, col, rowspan, colspan });
+
+    } else {
+      const isOverlapping = collection.mergedCells.some(mergedCell => (
+        collection.get(mergedCell.row, mergedCell.col) === mergedCell && areMergesOverlapping(geometry, mergedCell)
+      ));
+
+      if (isOverlapping) {
+        return false;
+      }
+
+      const range = toMergeAreaRange(this.hot, geometry);
+
+      this.hot.runHooks('beforeMergeCells', range, true);
+      merge = collection.add(geometry, true);
+
+      if (merge) {
+        this.hot.runHooks('afterMergeCells', range, geometry, true);
+      }
+    }
+
+    if (!merge) {
+      return false;
+    }
+
+    this.#mergeAnchors.set(merge, { physicalRows: physicalRows.slice(), physicalColumn });
+
+    return true;
   }
 
   /**
    * Returns where a merge with the given anchor draws under the current index cache: from the first of its rows
    * that is visible, as many rows as it has visible, and as many columns as it spans. Returns `null` for an
-   * anchor the data no longer covers (the data shrank while it was stored) or one with no visible top-left.
+   * anchor with no visible top-left.
    *
    * @param {PhysicalRowMergeSnapshot} area The merge, with its anchor.
    * @returns {MergeAreaGeometry|null}
    */
   #placeAnchoredArea({ physicalRows, physicalColumn, colspan }: PhysicalRowMergeSnapshot): MergeAreaGeometry | null {
-    const { rowIndexMapper, columnIndexMapper } = this.hot;
-
-    if (physicalColumn >= columnIndexMapper.getNumberOfIndexes() ||
-        physicalRows.some(physicalRow => physicalRow >= rowIndexMapper.getNumberOfIndexes())) {
-      return null;
-    }
-
     const col = this.hot.toVisualColumn(physicalColumn);
     const visualRows = physicalRows
       .map(physicalRow => this.hot.toVisualRow(physicalRow))

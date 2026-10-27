@@ -73,15 +73,17 @@ describe('MergeCells anchored merged areas', () => {
       expect(mergeCells._exportMergedAreas()[0].physicalRows).toEqual([1, 2]);
     });
 
-    it('leaves out a merge whose rows are all trimmed, as `getVisibleMergedAreas()` does', () => {
+    it('keeps a merge whose rows are all trimmed, with its anchor', () => {
       const mergeCells = createGrid({ trimRows: true });
 
       mergeCells.merge(0, 0, 1, 1);
       mergeCells.merge(3, 0, 4, 1);
       hot.getPlugin('trimRows').trimRows([3, 4]);
 
+      expect(mergeCells.getVisibleMergedAreas()).toEqual([{ row: 0, col: 0, rowspan: 2, colspan: 2 }]);
       expect(mergeCells._exportMergedAreas()).toEqual([
         { row: 0, col: 0, rowspan: 2, colspan: 2, physicalRows: [0, 1], physicalColumn: 0 },
+        { row: 3, col: 0, rowspan: 2, colspan: 2, physicalRows: [3, 4], physicalColumn: 0 },
       ]);
     });
   });
@@ -129,10 +131,71 @@ describe('MergeCells anchored merged areas', () => {
       mergeCells.restoreMergedAreas([
         { row: 4, col: 0, rowspan: 2, colspan: 2, physicalRows: [5, 6], physicalColumn: 0 },
         { row: 0, col: 3, rowspan: 2, colspan: 2, physicalRows: [0, 1], physicalColumn: 4 },
+        { row: 2, col: 3, rowspan: 2, colspan: 2, physicalRows: [2, 3], physicalColumn: 3 },
         { row: 0, col: 0, rowspan: 2, colspan: 2, physicalRows: [0, 1], physicalColumn: 0 },
       ]);
 
       expect(mergedAreas()).toEqual([[0, 0, 2, 2]]);
+    });
+
+    it('restores an anchored area whose rows a sort drew past the last row, as the grid holds it', () => {
+      const mergeCells = createGrid();
+
+      hot.rowIndexMapper.setIndexesSequence([5, 4, 3, 2, 1, 0]);
+      mergeCells.restoreMergedAreas([
+        { row: 0, col: 1, rowspan: 2, colspan: 2, physicalRows: [0, 1], physicalColumn: 1 },
+      ]);
+
+      expect(mergedAreas()).toEqual([[5, 1, 2, 2]]);
+
+      hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 3, 4, 5]);
+
+      expect(mergeCells.getVisibleMergedAreas()).toEqual([{ row: 0, col: 1, rowspan: 2, colspan: 2 }]);
+    });
+
+    it('restores an anchored area with one visible cell, and its full span once its rows return', () => {
+      const mergeCells = createGrid({ trimRows: true });
+
+      hot.getPlugin('trimRows').trimRows([1]);
+      mergeCells.restoreMergedAreas([
+        { row: 0, col: 1, rowspan: 2, colspan: 1, physicalRows: [0, 1], physicalColumn: 1 },
+      ]);
+
+      expect(mergeCells.getVisibleMergedAreas()).toEqual([{ row: 0, col: 1, rowspan: 1, colspan: 1 }]);
+
+      hot.getPlugin('trimRows').untrimAll();
+
+      expect(mergeCells.getVisibleMergedAreas()).toEqual([{ row: 0, col: 1, rowspan: 2, colspan: 1 }]);
+    });
+
+    it('restores an anchored area whose rows are all trimmed off the screen, and draws it once they return', () => {
+      const mergeCells = createGrid({ trimRows: true });
+
+      hot.getPlugin('trimRows').trimRows([0, 1]);
+      mergeCells.restoreMergedAreas([
+        { row: 0, col: 1, rowspan: 2, colspan: 2, physicalRows: [0, 1], physicalColumn: 1 },
+      ]);
+
+      expect(mergeCells.getVisibleMergedAreas()).toEqual([]);
+      expect(hot.getCellMeta(0, 1).spanned).toBeUndefined();
+      expect(mergeCells._exportMergedAreas()).toEqual([
+        { row: 0, col: 1, rowspan: 2, colspan: 2, physicalRows: [0, 1], physicalColumn: 1 },
+      ]);
+
+      hot.getPlugin('trimRows').untrimAll();
+
+      expect(mergeCells.getVisibleMergedAreas()).toEqual([{ row: 0, col: 1, rowspan: 2, colspan: 2 }]);
+    });
+
+    it('skips an anchored area that overlaps a merge already on screen', () => {
+      const mergeCells = createGrid();
+
+      mergeCells.merge(1, 1, 2, 2);
+      mergeCells.restoreMergedAreas([
+        { row: 0, col: 0, rowspan: 2, colspan: 2, physicalRows: [0, 1], physicalColumn: 0 },
+      ]);
+
+      expect(mergedAreas()).toEqual([[1, 1, 2, 2]]);
     });
 
     it('places an area without an anchor by its visual geometry', () => {

@@ -514,11 +514,11 @@ function getEnabledMergeCells(hot: HotInstance) {
 }
 
 /**
- * Captures the merged cell ranges on screen as `{row, col, rowspan, colspan}` records, each with the
- * physical rows it owns and its physical left column. Visual coordinates name cells only under the order
- * they were read with, and the restore runs under another one (see {@link restoreMergedCells}). A merge
- * whose rows are all trimmed is left out: restored at its stale position it would come back as a visible
- * merge over unrelated rows.
+ * Captures the merged cell ranges as `{row, col, rowspan, colspan}` records, each with the physical rows
+ * it owns and its physical left column. Visual coordinates name cells only under the order they were read
+ * with, and the restore runs under another one (see {@link restoreMergedCells}). A merge whose rows are all
+ * trimmed is captured by its anchor and restored off screen, so it is drawn again once its rows return. One
+ * without an anchor is captured only while it is on screen: its stale position would name unrelated rows.
  */
 function captureMergedCells(hot: HotInstance): MergedAreaState[] {
   return getEnabledMergeCells(hot)?._exportMergedAreas() ?? [];
@@ -1099,11 +1099,12 @@ export function clearMergedCells(hot: HotInstance): void {
 /**
  * Restores merged cell ranges into a collection {@link clearMergedCells} emptied before the
  * sheet's data load. The merges the sheet's settings declare are not built on this path.
- * MergeCells drops a stored merge that no longer fits — the sheet's data is the caller's own and
- * can shrink while the sheet is away — and one that would overlap a merge already on screen,
- * which a host listener can add during the load. The rest go through the automatic merge path,
- * like merges declared in the settings: the hooks report `auto`, so a listener can tell a restore
- * from a user's merge, and no cell is written, so the covered cells keep the values they hold.
+ * MergeCells drops a stored merge whose rows or columns no longer exist — the sheet's data is the
+ * caller's own and can shrink while the sheet is away — and one that would overlap a merge already
+ * on screen, which a host listener can add during the load. It puts an anchored merge back the way
+ * the grid held it, also one a sort drew past the last row or whose rows a filter hides. A merge it
+ * draws fires the merge hooks with `auto`, so a listener can tell a restore from a user's merge,
+ * and no cell is written, so the covered cells keep the values they hold.
  *
  * It runs after the restore's batch, once the index cache holds the restored row and column order: an area is
  * placed from its physical anchor through that cache, and a merge made inside the batch was placed through the
