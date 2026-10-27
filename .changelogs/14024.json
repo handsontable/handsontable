@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed an issue where formula cells did not repaint after the HyperFormula engine was changed from outside the grid, for example with `setCellContents()` on an external or shared engine.",
+  "title": "Fixed an issue where formula cells did not repaint after the HyperFormula engine was changed from outside the grid, for example with `setCellContents()` on an external or shared engine. To repaint once after several external writes, wrap them in `engine.batch()`.",
   "type": "fixed",
   "issueOrPR": 14024,
   "breaking": false,

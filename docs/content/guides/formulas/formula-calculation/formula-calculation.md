@@ -633,6 +633,24 @@ const hotSettings2 = ref({
 
 :::
 
+### Write to an external HyperFormula instance
+
+When you write to an external engine directly, for example with `setCellContents()`, the grids
+that read the changed cells repaint right away. A grid repaints once for each write, and the write
+is not copied into the grid's source data.
+
+To repaint once after several writes, wrap them in `engine.batch()`:
+
+```js
+hyperformulaInstance.batch(() => {
+  hyperformulaInstance.setCellContents({ sheet: 0, row: 0, col: 0 }, 10);
+  hyperformulaInstance.setCellContents({ sheet: 0, row: 1, col: 0 }, 20);
+});
+```
+
+Don't write to the engine unconditionally from an `afterRender` hook. Each write repaints the grid,
+which runs the hook again. Check that the value differs first.
+
 ## Available options and methods
 
 For the full list of configuration options and plugin methods, see the
