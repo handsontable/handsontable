@@ -78,6 +78,15 @@
 
     window.hot = hot;
 
+    // PLANTED DEFECT (reverted in the next commit): swallow Tab inside the grid, a keyboard trap the
+    // keyboard walker must report.
+    container.addEventListener('keydown', (event) => {
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }, true);
+
     document.querySelector('[data-testid="add-row"]').addEventListener('click', () => {
       hot.alter('insert_row_below', hot.countRows() - 1);
     });
