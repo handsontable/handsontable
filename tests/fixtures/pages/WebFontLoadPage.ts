@@ -12,6 +12,7 @@ interface FontLoadGrid {
   getColWidth(column: number): number;
   getCell(row: number, column: number, topmost?: boolean): HTMLElement | null;
   setDataAtCell(row: number, column: number, value: string): void;
+  setSourceDataAtCell(row: number, column: number, value: string): void;
   addHook(name: 'afterRender' | 'afterFontsLoad' | 'beforeRender', callback: () => void, orderIndex?: number): void;
   runHooks(name: 'afterFontsLoad'): void;
   getPlugin(name: 'autoRowSize' | 'autoColumnSize'): { inProgress: boolean };
@@ -286,6 +287,21 @@ export class WebFontLoadPage {
         win.hot.setCellMeta(visualRow as number, visualColumn as number, metaKey as string, metaValue);
       });
     }, [row, column, key, value]);
+  }
+
+  /**
+   * Writes `value` into the source data right after the next font re-measure starts (the `afterFontsLoad`
+   * hook, after AutoColumnSize's own listener). Unlike `setDataAtCell()`, a source write carries no per-cell
+   * change for the plugin's refresh queue; it drops every cached sample instead.
+   */
+  async setSourceDataDuringFontsLoad(row: number, column: number, value: string): Promise<void> {
+    await this.page.evaluate(([visualRow, visualColumn, newValue]) => {
+      const win = window as unknown as { hot: FontLoadGrid };
+
+      win.hot.addHook('afterFontsLoad', () => {
+        win.hot.setSourceDataAtCell(visualRow as number, visualColumn as number, newValue as string);
+      });
+    }, [row, column, value]);
   }
 
   /**

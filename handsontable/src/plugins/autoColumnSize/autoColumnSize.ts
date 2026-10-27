@@ -1577,7 +1577,7 @@ export class AutoColumnSize extends BasePlugin {
   #onBeforeRender = () => {
     this.#scannedColumns.clear();
 
-    if (this.#reMeasureOwed && this.hot.view.isVisible() && this.hot.countRows() > 0) {
+    if (this.#reMeasureOwed && this.hot.view.isVisible() && this.hot.countRows() > 0 && this.hot.countCols() > 0) {
       this.#startReMeasureSweep();
     }
 
@@ -1816,6 +1816,7 @@ export class AutoColumnSize extends BasePlugin {
    */
   #onAfterSetSourceDataAtCell = (changes: CellChange[]) => {
     this.#columnSamplesCache.clear();
+    this.#invalidateReMeasureSweep();
 
     // UndoRedo writes its values back through this path, so an undone edit of a merge's first cell
     // arrives here and not through `beforeChangeRender`.

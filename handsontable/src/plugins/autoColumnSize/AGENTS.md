@@ -184,13 +184,18 @@ follows, each one a review finding:
   listeners had re-measured, so the grid drew twice (three times on a small grid, where that chunk ends the
   sweep). `loop(fromIdleTask)` draws only from an idle task.
 - **A change that makes the sweep's samples or widths stale ends it and owes a new one to the next render
-  (`#invalidateReMeasureSweep()`, `#reMeasureOwed`).** `#onAfterSetCellMeta`, `updatePlugin()` and the two
-  index-mapper listeners drop cached samples; with the forced render leaving the on-screen columns to the sweep,
-  a `setCellMeta(..., 'className', ...)` plus `render()` kept the old width on screen until the sweep's last draw.
+  (`#invalidateReMeasureSweep()`, `#reMeasureOwed`).** `#onAfterSetCellMeta`, `#onAfterSetSourceDataAtCell`,
+  `updatePlugin()`, `#queueMergeRescan()` and the two index-mapper listeners drop cached samples; with the forced
+  render leaving the on-screen columns to the sweep, a `setCellMeta(..., 'className', ...)` or a
+  `setSourceDataAtCell()` plus `render()` kept the old width on screen until the sweep's last draw. Every site
+  that drops cached samples outside a sweep calls it: a new one that forgets to is the same bug again.
   `#onBeforeRender` starts the owed sweep before `calculateVisibleColumnsWidth()`, so the same render draws the
-  on-screen columns from it. A sweep that already ended only drops the flag: its last render re-walks them
-  itself. `#onAfterLoadData` drops the debt, since an owed sweep would take the new data's columns from the
-  previous data's samples.
+  on-screen columns from it, and holds the debt while the grid has no rows or no columns. A sweep that already
+  ended only drops the flag: its last render re-walks them itself. `#onAfterLoadData` drops the debt, since an
+  owed sweep would take the new data's columns from the previous data's samples.
+- **The sweep's cached-samples path adds the column to `#replayedColumns`.** `MergedCellsWidths` (DEV-548) reads
+  that set in `#updateColumnWidthsMapBasedOnGhostTable()`: the same samples rendered to another width mean the
+  styles changed (a web font is one), so the merges' kept widths are measured again at the end of the sweep.
 - **An idle chunk on a hidden grid cancels the sweep.** The ghost table measures inside the root element, so a
   grid hidden after the sweep started (a tab switch) read a width of 0 for every remaining column and drew them at
   the minimum width once shown again. A re-measure is owed to the first render of the visible grid; a sweep that

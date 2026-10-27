@@ -266,6 +266,30 @@ test.describe('Web font loaded after the first draw', { tag: [THEMES_TAG, CROSS_
     expect(firstRender[0]).toBeGreaterThan(before);
   });
 
+  test('re-measures a column whose source data changed while the font re-measure runs on the next draw', async({ page, theme, bundle }) => {
+    const grid = new WebFontLoadPage(page, theme, bundle);
+    // A column on screen whose cells hold plain numbers, so the font alone does not widen it.
+    const column = 3;
+    const longValue = 'A value far longer than every other one in this column';
+
+    await grid.goto('&wide=1&height=1');
+    await expectAligned(grid);
+
+    const before = await grid.columnWidth(column);
+
+    await grid.recordColumnWidthsAfterFontsLoad([column]);
+    await grid.setSourceDataDuringFontsLoad(0, column, longValue);
+    await grid.loadFont();
+
+    // A source write drops every cached sample and relies on the next draw to re-walk the columns on
+    // screen, which the sweep in progress used to hold off until its own last draw.
+    await expect.poll(async() => (await grid.recordedColumnWidths()).length).toBeGreaterThan(0);
+
+    const [firstRender] = await grid.recordedColumnWidths();
+
+    expect(firstRender[0]).toBeGreaterThan(before);
+  });
+
   test('draws after an idle chunk only when it changed a width on screen', async({ page, theme, bundle }) => {
     const grid = new WebFontLoadPage(page, theme, bundle);
 
