@@ -362,4 +362,20 @@ describe('Core.getLastFullyVisibleRow', () => {
 
     expect(mismatches).toEqual([]);
   }, 180000);
+
+  it('should match a later render when a modifyColumnHeaderHeight listener returns 50', async() => {
+    // A listener's number is the height the header row is given. The first draw used to add
+    // one gridline on top of it, so the band was 51 while the THEAD rendered 50.
+    const mismatches = await firstDrawMismatches({
+      data: createSpreadsheetData(40, 5),
+      width: 600,
+      colHeaders: true,
+      colWidths: 80,
+      modifyColumnHeaderHeight() {
+        return 50;
+      },
+    });
+
+    expect(mismatches).toEqual([]);
+  }, 180000);
 });
