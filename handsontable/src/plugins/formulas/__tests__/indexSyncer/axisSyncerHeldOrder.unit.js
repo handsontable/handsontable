@@ -47,6 +47,7 @@ function createRecordingEngine() {
     batch: callback => callback(),
     moveRows: (...args) => calls.push(['moveRows', ...args]),
     setRowOrder: (...args) => calls.push(['setRowOrder', ...args]),
+    isItPossibleToSetRowOrder: () => true,
     getSheetDimensions: () => ({ width: 1, height: 3 }),
     getSheetName: () => 'Sheet1',
   };
@@ -85,9 +86,11 @@ describe('AxisSyncer while the order is held', () => {
     const engine = {
       getSheetDimensions: () => ({ width: 2, height: 2 }),
       getSheetName: () => 'Sheet1',
+      isItPossibleToSetRowOrder: () => true,
       setRowOrder: () => {
         throw new Error('row order');
       },
+      isItPossibleToSetColumnOrder: () => true,
       setColumnOrder: (...args) => calls.push(args),
     };
     const rows = createMockIndexMapper([0, 1]);

@@ -167,30 +167,21 @@ class AxisSyncer {
       }
     });
     // An insert or a removal renumbers the physical indexes the padded ones are kept by, the same way it
-    // renumbers the grid's sequence.
+    // renumbers the grid's sequence. A row inserted into the engine is an empty line like a padded one, so it
+    // joins them. A removed index stays in the set: the engine line that carried it is not always removed with
+    // it (an undo removes the grid's row only), and what the set holds is a line that may be empty, not a row.
     this.#indexMapper.addLocalHook('indexesInserted', (insertedIndexes: number[]) => {
-      this.#renumberPaddedElements(paddedElements => getIncreasedIndexes(paddedElements, insertedIndexes));
+      if (this.#paddedElements.size > 0) {
+        this.#paddedElements = new Set(
+          getIncreasedIndexes(Array.from(this.#paddedElements), insertedIndexes).concat(insertedIndexes),
+        );
+      }
     });
     this.#indexMapper.addLocalHook('indexesRemoved', (removedIndexes: number[]) => {
-      const removed = new Set(removedIndexes);
-
-      this.#renumberPaddedElements(paddedElements => getDecreasedIndexes(
-        paddedElements.filter(physicalIndex => !removed.has(physicalIndex)),
-        removedIndexes,
-      ));
+      if (this.#paddedElements.size > 0) {
+        this.#paddedElements = new Set(getDecreasedIndexes(Array.from(this.#paddedElements), removedIndexes));
+      }
     });
-  }
-
-  /**
-   * Replaces the padded elements with the list `renumber` returns for them. Nothing is built while there
-   * are none, which is nearly always.
-   *
-   * @param {Function} renumber Gets the padded elements, returns them as they are numbered now.
-   */
-  #renumberPaddedElements(renumber: (paddedElements: number[]) => number[]) {
-    if (this.#paddedElements.size > 0) {
-      this.#paddedElements = new Set(renumber(Array.from(this.#paddedElements)));
-    }
   }
 
   /**
@@ -590,18 +581,28 @@ class AxisSyncer {
    * nothing.
    */
   #planOrder(engineElements: number[], targetSequence: number[], isEmpty: (engineIndex: number) => boolean) {
-    const positionOfPhysical = new Map<number, number>();
     const engineIndexOfPhysical = new Map<number, number>();
     const emptyLines = new Set<number>();
     const freedElements: number[] = [];
     let lastContentPosition = -1;
 
-    targetSequence.forEach((physicalIndex, position) => {
-      positionOfPhysical.set(physicalIndex, position);
-    });
     engineElements.forEach((physicalIndex, engineIndex) => {
       engineIndexOfPhysical.set(physicalIndex, engineIndex);
     });
+
+    // Only the lines the engine holds need a position, and the grid can have far more rows than that.
+    const positionOfEngineLine = new Array<number | undefined>(engineElements.length);
+
+    let found = 0;
+
+    for (let position = 0; position < targetSequence.length && found < engineElements.length; position += 1) {
+      const engineIndex = engineIndexOfPhysical.get(targetSequence[position]);
+
+      if (engineIndex !== undefined) {
+        positionOfEngineLine[engineIndex] = position;
+        found += 1;
+      }
+    }
 
     for (let position = targetSequence.length - 1; position >= 0 && lastContentPosition < 0; position -= 1) {
       const physicalIndex = targetSequence[position];
@@ -628,7 +629,7 @@ class AxisSyncer {
     const unplaced: number[] = [];
 
     for (let engineIndex = 0; engineIndex < heldSize; engineIndex += 1) {
-      const position = emptyLines.has(engineIndex) ? undefined : positionOfPhysical.get(engineElements[engineIndex]);
+      const position = emptyLines.has(engineIndex) ? undefined : positionOfEngineLine[engineIndex];
 
       if (position === undefined) {
         unplaced.push(engineIndex);
@@ -752,6 +753,14 @@ class AxisSyncer {
     // that changes nothing costs the user their redo history. Compression makes that common: every sort
     // that leaves the engine's own elements in the same relative order ranks them identically.
     if (engineOrder.some((place, engineIndex) => place !== engineIndex)) {
+      if (!this.#isOrderAllowed(engine, sheetId, engineOrder, sizeForAxis, sizeForOtherAxis)) {
+        warn(`The engine cannot reorder the ${this.#axis}s an array formula spans, so it keeps its previous ` +
+          `${this.#axis} order. Formulas may read the wrong cells until the grid takes an order that leaves ` +
+          'them in place.');
+
+        return false;
+      }
+
       const setOrder = () => {
         engine[`set${toUpperCaseFirst(this.#axis)}Order`](sheetId, engineOrder);
       };
@@ -768,6 +777,58 @@ class AxisSyncer {
     this.#paddedElements = padded;
 
     return true;
+  }
+
+  /**
+   * Tells whether the engine takes the order, before anything is written: it throws for an order that moves
+   * a line an array formula spans, and by then the sheet may be extended already. Only the lines the sheet
+   * has are checked, as the lines added to carry the order hold nothing. The engine checks the lines an
+   * order moves and ignores where they go, so a rotation of the same lines asks the same question.
+   *
+   * @param {HyperFormulaEngine} engine The engine.
+   * @param {number} sheetId The sheet the axis is synced with.
+   * @param {number[]} engineOrder The order to send, possibly longer than the sheet.
+   * @param {number} sizeForAxis Size of the engine's sheet along the synchronized axis.
+   * @param {number} sizeForOtherAxis Size of the sheet along the other axis.
+   * @returns {boolean}
+   */
+  #isOrderAllowed(
+    engine: HyperFormulaEngine,
+    sheetId: number,
+    engineOrder: number[],
+    sizeForAxis: number,
+    sizeForOtherAxis: number,
+  ) {
+    const movedLines: number[] = [];
+
+    for (let engineIndex = 0; engineIndex < sizeForAxis; engineIndex += 1) {
+      if (engineOrder[engineIndex] !== engineIndex) {
+        movedLines.push(engineIndex);
+      }
+    }
+
+    // A line cannot be rotated on its own, so the single line is read cell by cell.
+    if (movedLines.length === 1) {
+      for (let other = 0; other < sizeForOtherAxis; other += 1) {
+        const address = this.#axis === 'row'
+          ? { sheet: sheetId, row: movedLines[0], col: other }
+          : { sheet: sheetId, row: other, col: movedLines[0] };
+
+        if (engine.isCellPartOfArray(address)) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    const rotation = Array.from({ length: sizeForAxis }, (_, engineIndex) => engineIndex);
+
+    movedLines.forEach((engineIndex, position) => {
+      rotation[engineIndex] = movedLines[(position + 1) % movedLines.length];
+    });
+
+    return engine[`isItPossibleToSet${toUpperCaseFirst(this.#axis)}Order`](sheetId, rotation) as boolean;
   }
 
   /**
@@ -852,9 +913,11 @@ class AxisSyncer {
 
       // An insert, a removal or a move reaches the engine through its own call — `addRows`, `removeRows`,
       // `syncMoves` — and renumbers the physical indexes on both sides, so there is no order to send and
-      // the stored order takes the grid's new sequence. The padded elements stay, as the mapper renumbers
-      // them (see the constructor); any other change starts over.
+      // the stored order takes the grid's new sequence, which names every line the engine can gain, so
+      // `#fillSequence` has nothing to add. The padded elements stay, as the mapper renumbers them (see the
+      // constructor); any other change starts over.
       this.#indexesSequence = newSequence;
+      this.#fillSequence = null;
 
       if (source !== 'move' && source !== 'insert' && source !== 'remove') {
         this.#paddedElements = new Set<number>();

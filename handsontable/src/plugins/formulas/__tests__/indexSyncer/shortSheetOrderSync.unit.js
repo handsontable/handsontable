@@ -500,4 +500,87 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       warnings.mockRestore();
     });
   });
+
+  describe('when an array formula spans a line the order moves', () => {
+    let warnings;
+
+    beforeEach(() => {
+      warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnings.mockRestore();
+    });
+
+    it('should skip a padded reorder that moves an array row, warn, and leave the engine untouched', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      hot = new Handsontable(container, {
+        data: [[1, '=ARRAYFORMULA(A1:A2*2)'], [2, null], [null, null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const sheetId = engine.getSheetId('Sheet1');
+      const serialized = engine.getSheetSerialized(sheetId);
+
+      expect(engine.getSheetDimensions(sheetId).height).toBe(2);
+      expect(() => hot.rowIndexMapper.setIndexesSequence([2, 0, 1])).not.toThrow();
+      expect(warnings).toHaveBeenCalledTimes(1);
+      expect(warnings).toHaveBeenCalledWith(expect.stringContaining('array formula'));
+      expect(engine.getSheetSerialized(sheetId)).toEqual(serialized);
+      expect(engine.getSheetDimensions(sheetId).height).toBe(2);
+
+      hot.rowIndexMapper.setIndexesSequence([0, 1, 2]);
+
+      expect(hot.getData()).toEqual([[1, 2], [2, 4], [null, null]]);
+    });
+
+    it('should skip a padded reorder that moves an array column and warn', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      hot = new Handsontable(container, {
+        data: [[1, 2, '=ARRAYFORMULA(A1:B1*2)', null, null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const sheetId = engine.getSheetId('Sheet1');
+      const serialized = engine.getSheetSerialized(sheetId);
+
+      expect(engine.getSheetDimensions(sheetId).width).toBe(4);
+      expect(() => hot.columnIndexMapper.setIndexesSequence([4, 0, 1, 2, 3])).not.toThrow();
+      expect(warnings).toHaveBeenCalledTimes(1);
+      expect(engine.getSheetSerialized(sheetId)).toEqual(serialized);
+      expect(engine.getSheetDimensions(sheetId).width).toBe(4);
+    });
+
+    it('should skip an order without a pad that moves an array row and warn', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      hot = new Handsontable(container, {
+        data: [[1, '=ARRAYFORMULA(A1:A2*2)'], [2, null], [3, null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      expect(() => hot.rowIndexMapper.setIndexesSequence([2, 1, 0])).not.toThrow();
+      expect(warnings).toHaveBeenCalledTimes(1);
+    });
+
+    it('should still reorder rows an array formula does not span', () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      hot = new Handsontable(container, {
+        data: [[1, '=ARRAYFORMULA(A1:A2*2)'], [2, null], [3, null], [4, null], [null, null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.rowIndexMapper.setIndexesSequence([0, 1, 3, 2, 4]);
+
+      expect(warnings).not.toHaveBeenCalled();
+      expect(hot.getDataAtCol(0)).toEqual([1, 2, 4, 3, null]);
+    });
+  });
 });

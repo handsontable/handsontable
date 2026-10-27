@@ -774,12 +774,27 @@ These rules ride along.
   the order: `EngineOrder.paddedElements` carries it through an undo, a redo and a sheet switch
   (`adoptEngineOrder()` drops entries the restored sequence does not hold), and an insert or a removal
   re-keys it by the physical indexes the mapper reports (`indexesInserted`/`indexesRemoved` local hooks,
-  renumbered with the mapper's own `getIncreasedIndexes`/`getDecreasedIndexes`). Any other change that
-  is not a move clears it. Pinned in `paddedElementsTravel.unit.js` (2,000 rows: height 11 after each).
+  renumbered with the mapper's own `getIncreasedIndexes`/`getDecreasedIndexes`). An inserted line joins
+  the set (it is an empty engine line; an insert at visual 0 above the padded blank grew the sheet to the
+  grid's length otherwise), and a removed index is **not** dropped: an undo removes the grid's row but
+  leaves the engine line, so the line carrying that label is still there, still empty, and dropping it made
+  the next order count it as content and pad the sheet by one line per insert-and-undo. A stale entry
+  only ever sits on an empty line, which the plan frees anyway. Any other change that is not a move clears
+  it. Pinned in `paddedElementsTravel.unit.js` (2,000 rows: height 11 after each).
+- **An order that moves a line an array formula spans is refused before anything is written.** The engine
+  throws `SourceLocationHasArrayError` for it, and the padding write precedes the order, so a throw left the
+  sheet one line taller. `#isOrderAllowed()` asks the engine first (`isItPossibleToSetRowOrder` /
+  `isItPossibleToSetColumnOrder`) and `#syncOrderWithEngine()` warns and returns `false`, as for `maxRows`.
+  The engine checks the lines the order moves and ignores where they go, and the lines added to carry the
+  order hold nothing, so the check asks about a rotation of the moved lines the sheet already has. A single
+  moved line has nothing to rotate with and is read cell by cell with `isCellPartOfArray()`.
 - **Rows or columns the engine gains later are labelled by the sequence the grid had at the last sync.**
   A sync stores that sequence in `#fillSequence` unless the engine's own lines already sit where physical
   order puts them. The grid writes a new row at its sequence position, so labelling it by physical order
-  put a value typed into it on a different row after the next order.
+  put a value typed into it on a different row after the next order. An insert, a removal and a move store
+  the grid's whole new sequence as the engine's order, which already names every line the engine can gain,
+  so they reset `#fillSequence`; left set, `isEngineOrderPhysical()` stayed `false` after the order came
+  back to identity.
 - **A sync leaves the host's own engine batch alone.** `engine.batch()` resumes the evaluation
   unconditionally, so inside a batch of the host's, or after its `suspendEvaluation()`, it throws "Batch
   mode wasn't started" or ends the suspension early. The extension calls the three engine methods

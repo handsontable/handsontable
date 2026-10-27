@@ -36,6 +36,16 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
     }
   };
 
+  const canTakeOrder = (order, size, axisLabel) => {
+    try {
+      validate(order, size, axisLabel, axisLabel === 'rows' ? 'height' : 'width');
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
   // What the sheet holds, as labels the tests choose — so a test can assert where the engine's own rows
   // and columns ended up, not only which array was handed over.
   const held = { rows: [], columns: [] };
@@ -81,6 +91,11 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
         dimensions.width = Math.max(dimensions.width, col + 1);
       }
     },
+    isItPossibleToSetRowOrder: (sheetId, transformation) => canTakeOrder(transformation, dimensions.height, 'rows'),
+    isItPossibleToSetColumnOrder: (sheetId, transformation) => {
+      return canTakeOrder(transformation, dimensions.width, 'columns');
+    },
+    isCellPartOfArray: () => false,
     isItPossibleToSetCellContents: () => true,
     // The stub holds no cells, so a line is empty unless a test lists it in `occupied` as `row:col`.
     isCellEmpty: ({ row, col }) => !occupied.has(`${row}:${col}`),

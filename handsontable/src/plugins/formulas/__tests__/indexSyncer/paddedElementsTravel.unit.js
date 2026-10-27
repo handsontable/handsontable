@@ -120,6 +120,16 @@ describe('AxisSyncer: the padded blanks of the engine order', () => {
       expectContentAtTheTop();
     });
 
+    it('should keep the sheet short when a row is inserted above the padded blank at the top', () => {
+      buildGrid();
+      setSequence(lastRowFirst(ROWS));
+      hot.alter('insert_row_above', 0);
+      setSequence(identity(ROWS + 1));
+
+      expect(height()).toBe(CONTENT_ROWS + 2);
+      expectContentAtTheTop();
+    });
+
     it('should keep the sheet short when a row is inserted behind the padded blank in physical order', () => {
       buildGrid();
       setSequence(lastRowFirst(ROWS));
@@ -160,6 +170,27 @@ describe('AxisSyncer: the padded blanks of the engine order', () => {
       expectContentAtTheTop();
     });
 
+    it('should not grow the sheet with each row inserted and undone in a reordered grid', () => {
+      const rows = 7;
+
+      hot = new Handsontable(container, {
+        data: [[1, '=A1*2'], [2, '=A2*2'], ...new Array(rows - 2).fill(null).map(() => [null, null])],
+        formulas: { engine, sheetName: 'Sheet1' },
+        licenseKey: LICENSE_KEY,
+      });
+      setSequence(lastRowFirst(rows));
+
+      const heightAfterReorder = height();
+
+      for (let cycle = 0; cycle < 10; cycle += 1) {
+        hot.alter('insert_row_above', 3);
+        hot.getPlugin('undoRedo').undo();
+      }
+
+      expect(height()).toBe(heightAfterReorder);
+      expect(hot.getData().slice(0, 2)).toEqual([[null, null], [1, 2]]);
+    });
+
     it('should keep the sheet narrow when a column is inserted ahead of a padded blank column', () => {
       const columns = 300;
       const row = [1, '=A1*2', ...new Array(columns - 2).fill(null)];
@@ -175,6 +206,43 @@ describe('AxisSyncer: the padded blanks of the engine order', () => {
 
       expect(engine.getSheetDimensions(engine.getSheetId('Sheet1')).width).toBe(3);
       expect(hot.getDataAtRow(0).slice(0, 3)).toEqual([1, 2, null]);
+    });
+  });
+
+  describe('the order the grid goes back to after a move', () => {
+    it('should report the engine order as physical again once a move restores the first order', () => {
+      hot = new Handsontable(container, {
+        data: [[1, '=A1*2'], [2, '=A2*2'], [null, null], [null, null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+        manualRowMove: true,
+        licenseKey: LICENSE_KEY,
+      });
+      setSequence([1, 0, 3, 2]);
+
+      expect(hot.getPlugin('formulas').exportEngineOrder()).not.toBeNull();
+
+      hot.getPlugin('manualRowMove').moveRow(3, 2);
+      hot.getPlugin('manualRowMove').moveRow(1, 0);
+
+      expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3]);
+      expect(hot.getPlugin('formulas').exportEngineOrder()).toBeNull();
+    });
+
+    it('should report the engine order as physical again once a row inserted into a reordered grid is removed and the order is restored', () => {
+      hot = new Handsontable(container, {
+        data: [[1, '=A1*2'], [2, '=A2*2'], [null, null], [null, null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+        manualRowMove: true,
+        licenseKey: LICENSE_KEY,
+      });
+      setSequence([1, 0, 3, 2]);
+      hot.alter('insert_row_below', 3);
+      hot.alter('remove_row', 4);
+      hot.getPlugin('manualRowMove').moveRow(3, 2);
+      hot.getPlugin('manualRowMove').moveRow(1, 0);
+
+      expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3]);
+      expect(hot.getPlugin('formulas').exportEngineOrder()).toBeNull();
     });
   });
 
