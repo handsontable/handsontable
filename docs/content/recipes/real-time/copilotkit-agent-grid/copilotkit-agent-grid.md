@@ -33,7 +33,7 @@ In this tutorial, you will let an AI agent edit a Handsontable DataGrid through 
 
 [**Open in the demo runner**](https://demos.handsontable.com/share/346n1c5q61)
 
-The grid above is a normal Handsontable instance. An agent builds the sheet, then edits one cell: it calls `createSpreadsheet`, then `setCells`. The **Agent tool calls** panel lists each call, and **What the agent sees** is the read-only snapshot the agent reads before it acts. Edit a cell yourself, then press **Agent: undo** -- the same undo stack reverts your edit and the agent's alike. Every `=` cell is computed by HyperFormula; the agent writes the formula, never the number.
+The grid above is a normal Handsontable instance. An agent builds the sheet, then edits one cell: it calls `createSpreadsheet`, then `setCells`. Below the grid, the panel titled **"Agent tool calls"** logs each call as it runs, and **"What the agent sees"** shows the read-only snapshot the agent reads before acting. Edit a cell yourself, then press **Agent: undo** -- the same undo stack reverts your edit and the agent's alike. Every `=` cell is computed by HyperFormula; the agent writes the formula, never the number.
 
 **Note:** in this demo the agent's calls come from a fixed script that stands in for the model, so there is no backend and no API key. The last section shows where a real agent plugs in.
 
