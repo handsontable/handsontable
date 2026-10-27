@@ -770,9 +770,12 @@ These rules ride along.
   sequence, frees the padded blanks it meets there, and stops at the first element with content. Counting
   them as content made a blank moved to the top and back grow the sheet to the grid's full length (20,000
   rows measured: height 20,000 and 691 ms for the second `setIndexesSequence()`, against height 10 and
-  5 ms before the pad existed), and every later sort then sent a full-length order. The set is cleared
-  for every change that is not a move (an insert or a removal leaves the engine holding the grid's
-  sequence).
+  5 ms before the pad existed), and every later sort then sent a full-length order. The set travels with
+  the order: `EngineOrder.paddedElements` carries it through an undo, a redo and a sheet switch
+  (`adoptEngineOrder()` drops entries the restored sequence does not hold), and an insert or a removal
+  re-keys it by the physical indexes the mapper reports (`indexesInserted`/`indexesRemoved` local hooks,
+  renumbered with the mapper's own `getIncreasedIndexes`/`getDecreasedIndexes`). Any other change that
+  is not a move clears it. Pinned in `paddedElementsTravel.unit.js` (2,000 rows: height 11 after each).
 - **Rows or columns the engine gains later are labelled by the sequence the grid had at the last sync.**
   A sync stores that sequence in `#fillSequence` unless the engine's own lines already sit where physical
   order puts them. The grid writes a new row at its sequence position, so labelling it by physical order
@@ -795,9 +798,11 @@ Known limits of the pad:
 
 - **The pad keeps the sheet's height or width.** The engine never shrinks a sheet, so once content has
   sat at the end of a long axis the sheet stays that long, and every later order is sent at that length.
-  Moving only blank lines no longer grows it.
-- **A reference to a blank cell follows the engine line, not the label.** Padded blanks are relabeled, so
-  a formula that refers to a blank cell reads whichever blank row the engine holds at that place.
+  Moving only blank lines does not grow it, also after an undo, a sheet switch, an insert, or a removal.
+- **A reference to a padded blank line follows the engine line, not the label.** Padded blanks are
+  relabeled, so a formula that refers to one reads `#REF!` once the blank is freed or moved across
+  content. That is the engine's own rewrite in `setRowOrder`/`setColumnOrder`, the same as for any
+  reference moved across content.
 
 ### A reload reads a jagged array, and the first row sets the column count (DEV-1143)
 
