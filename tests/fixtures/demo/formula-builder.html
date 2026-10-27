@@ -41,6 +41,7 @@
       'split-scroll': 'split-scroll',
       shadow: 'shadow',
       menus: 'menus',
+      dropdown: 'dropdown',
     })[htParams.get('variant') ?? 'default'];
     if (!window.htVariant) {
       throw new Error('Unknown ?variant= value: ' + JSON.stringify(htParams.get('variant')));
@@ -90,6 +91,10 @@
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
+    const testIdDropdownRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.DropdownRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
 
     // Settings each variant adds over the default grid. `formulaBuilder` extras are merged
     // into the plugin settings, so the `builder` module stays the one imported below.
@@ -119,6 +124,12 @@
       shadow: { shadow: true },
       // A menu that is open when a pick starts must close, as on any other press in the grid.
       menus: { settings: { dropdownMenu: true } },
+      // Column B as a dropdown: a pick on its arrow must not open the cell's own editor.
+      dropdown: {
+        settings: {
+          columns: [{}, { type: 'dropdown', source: [2, 4, 6], renderer: testIdDropdownRenderer }, {}],
+        },
+      },
     };
 
     /**

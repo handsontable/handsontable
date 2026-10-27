@@ -155,6 +155,33 @@ describe('FormulaBuilder editing on a real grid', () => {
       expect(plugin.getActiveFormulaCell()).toEqual({ row: 1, col: 2 });
     });
 
+    it('reports the range the grid holds after a shift under a column selection', async() => {
+      injectRealCoreStyles();
+      createGrid({ data: [['=1', 'B1'], ['A2', 'B2'], ['A3', 'B3']], colHeaders: true });
+
+      const plugin = hot.getPlugin('formulaBuilder');
+      const reported: unknown[] = [];
+
+      plugin.onFormulaCellSelection(selection => reported.push(selection));
+      hot.selectColumns(0);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+
+      expect(isEditorOpened()).toBe(true);
+
+      // The grid keeps the range's `from` on the header and moves only `to`.
+      hot.alter('insert_row_above', 0);
+      hot.alter('remove_row', 2);
+      hot.getActiveEditor()?.finishEditing(true);
+      await settle();
+
+      const { from, to } = hot.getSelectedRangeActive()!;
+
+      expect(reported.at(-1)).toEqual({
+        active: plugin.getActiveFormulaCell(),
+        range: { startRow: 0, startCol: 0, endRow: to.row, endCol: Math.max(from.col, to.col) },
+      });
+    });
+
     it('honors a `beforeBeginEditing` veto', () => {
       createGrid({ beforeBeginEditing: () => false });
       hot.selectCell(1, 1);

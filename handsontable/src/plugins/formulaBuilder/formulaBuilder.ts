@@ -345,10 +345,6 @@ export class FormulaBuilder extends BasePlugin {
    */
   #barSelected: { row: number; col: number } | null = null;
   /**
-   * The selected range the formula bar tracks, in visual coordinates.
-   */
-  #barSelectedRange: VisualRange | null = null;
-  /**
    * Dedupe key for bar selection emits (anchor + focus + active together).
    */
   #lastEmittedSelectionCoords: {
@@ -1146,32 +1142,22 @@ export class FormulaBuilder extends BasePlugin {
    * an `alter()` the application makes inserts or removes rows or columns before the cell, and the
    * grid moves its selection under the `shift` source. Nothing is emitted, because the edit is still
    * open; `handleInlineEditClose()` reads the selection again and reports it once the edit closes.
-   * Without this, the pick controller compares a press with the cell's old coordinates.
+   * Without this, the pick controller compares a press with the cell's old coordinates. Only the
+   * active cell follows: the range is read from the grid when the bar selection is emitted, and
+   * under a header selection the grid keeps `from` and moves only `to`, so moving a stored range by
+   * the highlight's offset would describe a range the grid does not hold.
    */
   #followStructuralShift(): void {
-    const barSelected = this.#barSelected;
     const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
     if (
-      barSelected === null || this.hot.selection.getSelectionSource() !== 'shift' ||
+      this.#barSelected === null || this.hot.selection.getSelectionSource() !== 'shift' ||
       !highlight || highlight.row === null || highlight.col === null
     ) {
       return;
     }
 
-    const rowShift = highlight.row - barSelected.row;
-    const colShift = highlight.col - barSelected.col;
-
     this.#barSelected = { row: highlight.row, col: highlight.col };
-
-    if (this.#barSelectedRange) {
-      this.#barSelectedRange = {
-        startRow: this.#barSelectedRange.startRow + rowShift,
-        startCol: this.#barSelectedRange.startCol + colShift,
-        endRow: this.#barSelectedRange.endRow + rowShift,
-        endCol: this.#barSelectedRange.endCol + colShift,
-      };
-    }
   }
 
   /**
@@ -1184,7 +1170,6 @@ export class FormulaBuilder extends BasePlugin {
 
     this.#lastEmittedSelectionCoords = null;
     this.#barSelected = null;
-    this.#barSelectedRange = null;
     this.#barSelectionListeners.emit(null);
   }
 
@@ -1232,7 +1217,8 @@ export class FormulaBuilder extends BasePlugin {
 
     this.#lastEmittedSelectionCoords = { anchorRow, anchorCol, focusRow, focusCol, activeRow, activeCol };
     this.#barSelected = formulaCell ? { row: activeRow, col: activeCol } : null;
-    this.#barSelectedRange = formulaCell ?
+
+    const barSelectedRange = formulaCell ?
       {
         startRow: Math.min(anchorRow, focusRow),
         startCol: Math.min(anchorCol, focusCol),
@@ -1240,9 +1226,10 @@ export class FormulaBuilder extends BasePlugin {
         endCol: Math.max(anchorCol, focusCol),
       } :
       null;
+
     this.#barSelectionListeners.emit(
-      this.#barSelected && this.#barSelectedRange ?
-        { active: this.#barSelected, range: this.#barSelectedRange } :
+      this.#barSelected && barSelectedRange ?
+        { active: this.#barSelected, range: barSelectedRange } :
         null,
     );
   }
@@ -1886,7 +1873,6 @@ export class FormulaBuilder extends BasePlugin {
     this.#cellPick?.reset();
     this.#cellPick = null;
     this.#barSelected = null;
-    this.#barSelectedRange = null;
     this.#lastEmittedSelectionCoords = null;
   }
 

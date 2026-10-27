@@ -42,6 +42,10 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   flag to `false`, so `TableView` skips its selection handling and every `afterOnCell*` listener. Only the
   flag, never the shared `stopImmediatePropagation()` helper: it also sets `cancelBubble`, so the press never
   reached `document` and a context menu or dropdown menu open at that moment stayed open over the pick.
+  The press therefore still bubbles to every `rootElement` listener, and one that acts on it must check
+  `isImmediatePropagationStopped(event)`: the dropdown/autocomplete arrow (`autocompleteRenderer`) and the
+  multiSelect indicator (`multiSelectRenderer/utils/utils.ts`) do, or a pick on the arrow opened the
+  cell's own editor (`onCellDblClick`) and, with Cmd/Ctrl held, dropped the open formula edit.
   That is what keeps NestedHeaders from selecting a group span under a header pick, and what DragToScroll
   reads to stay out of a drag the pick's own edge auto-scroller drives. Plugin priority (265) is NOT enough: it orders only the
   first `enablePlugin()`, and a later `updatePlugin()` (a theme switch used to trigger one) re-registers the
@@ -120,7 +124,10 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   microtask after the deselect that ended it). One exception: a selection the grid moves under the `shift`
   source (an application `alter()` during the edit) moves `#barSelected` with it, without emitting
   (`#followStructuralShift()`). The pick controller compares every press with it, so a stale one turned a
-  pick on the cell that took the old coordinates into a switch to inline editing.
+  pick on the cell that took the old coordinates into a switch to inline editing. Only the active cell
+  follows; the range is built from the grid's own `from`/`to` when it is emitted and is not stored. Under
+  a header selection the grid keeps `from` and moves only `to`, so a range moved by the highlight's
+  offset described one the grid did not hold.
 - **Highlights follow every index change, applied before the next draw.** The adapter listens to the
   index mappers' `cacheUpdated` local hook (a sort, a move, hiding, trimming, an insert or removal, a
   page change, a data load) and re-derives the custom selections in `beforeViewRender`, because the

@@ -257,3 +257,38 @@ test.describe('formulaBuilder picking with a menu open', { tag: [THEMES_TAG, BUN
     await expect(grid.editorInput).toHaveValue('=B1');
   });
 });
+
+// A pick sets only the grid's own flag, so the press still bubbles to the dropdown arrow's listener on
+// the root element, which must leave a claimed press alone. Themes: the arrow's size and the cell's
+// padding place it. Engines: the modifier click.
+test.describe('formulaBuilder picking on a dropdown arrow', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  let grid: FormulaBuilderPage;
+
+  test.beforeEach(async({ page, theme, bundle }) => {
+    grid = new FormulaBuilderPage(page, theme, bundle, 'dropdown');
+    await grid.goto();
+    await grid.selectCellByApi(3, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+  });
+
+  test('a click on the arrow inserts the reference and keeps the formula edit', async({ page }) => {
+    await grid.countBeginEditing();
+    await grid.dropdownArrow(0, 1).click();
+    await expect(grid.editorInput).toHaveValue('=B1');
+    await expect(grid.editorInput).toBeFocused();
+    expect(await grid.beginEditingCount()).toBe(0);
+
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.sourceAt(3, 0)).toBe('=B1');
+  });
+
+  test('Ctrl/Cmd+click on the arrow inserts the reference and keeps the formula edit', async({ page }) => {
+    await grid.dropdownArrow(0, 1).click({ modifiers: ['ControlOrMeta'] });
+    await expect(grid.editorInput).toHaveValue('=B1');
+    await expect(grid.editorInput).toBeFocused();
+
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.sourceAt(3, 0)).toBe('=B1');
+  });
+});

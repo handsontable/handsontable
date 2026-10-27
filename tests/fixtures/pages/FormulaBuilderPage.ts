@@ -16,7 +16,8 @@ export type FormulaBuilderVariant =
   | 'read-only'
   | 'split-scroll'
   | 'shadow'
-  | 'menus';
+  | 'menus'
+  | 'dropdown';
 
 /**
  * The overlay a frozen cell is drawn in, by the class of its clone.
@@ -63,8 +64,10 @@ interface FixtureWindow {
     getCurrentThemeName(): string | null;
     useTheme(name: string): void;
     updateSettings(settings: Record<string, unknown>): void;
+    addHook(name: string, callback: () => void): void;
   };
   FormulaBuilderModule: unknown;
+  beginEditingCount?: number;
 }
 
 /**
@@ -182,6 +185,17 @@ export class FormulaBuilderPage {
    */
   cell(row: number, col: number): Locator {
     return this.grid.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
+  }
+
+  /**
+   * The arrow a dropdown cell draws (the `dropdown` variant).
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Locator}
+   */
+  dropdownArrow(row: number, col: number): Locator {
+    return this.cell(row, col).locator('.htAutocompleteArrow');
   }
 
   /**
@@ -402,6 +416,29 @@ export class FormulaBuilderPage {
       ([c, order]) => (window as unknown as FixtureWindow).hot.getPlugin('columnSorting')
         ?.sort?.({ column: c, sortOrder: order }),
       [column, sortOrder] as const);
+  }
+
+  /**
+   * Starts counting `beforeBeginEditing` calls, so a test can prove a press opened no editor of its own.
+   */
+  async countBeginEditing(): Promise<void> {
+    await this.page.evaluate(() => {
+      const fixtureWindow = window as unknown as FixtureWindow;
+
+      fixtureWindow.beginEditingCount = 0;
+      fixtureWindow.hot.addHook('beforeBeginEditing', () => {
+        fixtureWindow.beginEditingCount = (fixtureWindow.beginEditingCount ?? 0) + 1;
+      });
+    });
+  }
+
+  /**
+   * The `beforeBeginEditing` calls counted since `countBeginEditing()`.
+   *
+   * @returns {Promise<number>}
+   */
+  beginEditingCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).beginEditingCount ?? 0);
   }
 
   /**
