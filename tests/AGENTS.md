@@ -1497,9 +1497,10 @@ best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DI
 - **More states, in a list of its own.** `a11y/checks/discovery-pages.mjs` adds what no catalog page
   holds still: a cell focused from the keyboard, a hovered header button, the column menu of a sortable
   grid, a focused option of the filter value list, two selected ranges, a submenu inside a submenu
-  (`keyboard-shortcuts.html?menu=nested`), a sheet tab being renamed, a modal dialog holding the focus. A
-  page added there never reaches the gating scan's baseline. The openers are `DISCOVERY_STATES` in the
-  spec; the catalog's come from the harness.
+  (`keyboard-shortcuts.html?menu=nested`), a sheet tab being renamed, a modal dialog holding the focus,
+  and a column move and a column resize mid-drag, scanned with the pointer still held because their
+  guides exist only then. A page added there never reaches the gating scan's baseline. The openers are
+  `DISCOVERY_STATES` in the spec; the catalog's come from the harness.
 - **Every page in the dark scheme, right to left, and on a second phone.** Dark runs on every theme: a
   script installed before the fixture loads turns each `ht-theme-<name>` class the page or the grid writes
   into its dark form, so the grid and its portal are built dark (`?scheme=dark` reaches three fixtures
