@@ -5,8 +5,8 @@ import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { job, jobIds, steps } from '../lib/workflow-text.mjs';
 
-// tests/AGENTS.md ("Screen readers: the NVDA lane"): the screen reader lane is report-only and runs on
-// its own nightly, never in the pull-request Tests pipeline. Every link in that chain fails silently
+// tests/AGENTS.md ("Screen readers: the NVDA and VoiceOver lanes"): the screen reader lanes are report-only and run on
+// their own nightly, never in the pull-request Tests pipeline. Every link in that chain fails silently
 // when it breaks: a job that loses `continue-on-error` and starts failing the nightly on a wording
 // change, a run step that stops running the screen reader config, a transcript upload renamed into
 // the `playwright-report-*` glob the flake ledger reads, or an orchestrator that starts calling the
@@ -23,7 +23,7 @@ const LANE = '.github/workflows/screenreader.yml';
 const NIGHTLY = '.github/workflows/screenreader-nightly.yml';
 const TESTS = '.github/workflows/test.yml';
 const CONFIG = 'tests/playwright.screenreader.config.ts';
-const DOC = 'See tests/AGENTS.md, "Screen readers: the NVDA lane".';
+const DOC = 'See tests/AGENTS.md, "Screen readers: the NVDA and VoiceOver lanes".';
 
 /**
  * The grants of a job's `permissions` block, one `key: value` per line, in order.
@@ -39,10 +39,15 @@ function permissions(jobBody) {
   return block.slice(0, end === -1 ? block.length : end).map(line => line.trim()).filter(Boolean);
 }
 
-test('screenreader.yml is one NVDA job on Windows, one browser per job, report-only, running the screen reader config against the UMD artifact', () => {
+test('screenreader.yml is an NVDA job on Windows and a VoiceOver job on macOS, never a second project in one job', () => {
   const workflow = stripYamlComments(read(LANE));
 
-  assert.deepEqual(jobIds(workflow), ['nvda'], `${LANE} runs the NVDA lane; the VoiceOver lane joins as a second job. ${DOC}`);
+  assert.deepEqual(jobIds(workflow), ['nvda', 'voiceover'],
+    `${LANE} runs one job per screen reader: Guidepup drives one screen reader per machine. ${DOC}`);
+});
+
+test('the NVDA job: Windows, one browser per job, report-only, running the screen reader config against the UMD artifact', () => {
+  const workflow = stripYamlComments(read(LANE));
 
   const nvda = job(workflow, 'nvda');
   const stepsOf = steps(nvda);
@@ -98,6 +103,81 @@ test('screenreader.yml is one NVDA job on Windows, one browser per job, report-o
     `${LANE}: the check run goes on the head commit, never the merge commit.`);
 });
 
+test('the VoiceOver job: macOS, two browsers at most two at a time, report-only, with the setup recorded and the evidence uploaded', () => {
+  const workflow = stripYamlComments(read(LANE));
+  const voiceover = job(workflow, 'voiceover');
+  const nvda = job(workflow, 'nvda');
+  const stepsOf = steps(voiceover);
+  const step = name => stepsOf.find(entry => new RegExp(`^- name: ${name}$`, 'm').test(entry)) ?? '';
+  const checkout = stepsOf.find(entry => /^- uses: actions\/checkout@/m.test(entry)) ?? '';
+  const guardOf = body => (steps(body).find(entry => /^- name: Post the report check run$/m.test(entry)) ?? '').match(/^ {8}if: (.+)$/m)?.[1];
+
+  assert.match(voiceover, /^ {4}runs-on: macos-26$/m, `${LANE}: VoiceOver runs on the pinned macOS image. ${DOC}`);
+  assert.match(voiceover, /^ {4}continue-on-error: true$/m, `${LANE}: the lane is report-only; a red job must never fail the nightly. ${DOC}`);
+  assert.match(voiceover, /^ {8}browser: \[ webkit, chromium \]$/m, `${LANE}: one browser per job: Playwright's WebKit and Chromium. ${DOC}`);
+  assert.match(voiceover, /^ {6}max-parallel: 2$/m, `${LANE}: the organization runs at most five macOS jobs at once; the lane takes two. ${DOC}`);
+  assert.match(voiceover, /^ {6}fail-fast: false$/m, `${LANE}: one browser's failure never cancels the other's transcript.`);
+  assert.deepEqual(permissions(voiceover), ['contents: read', 'checks: write'],
+    `${LANE}: the job's token reads the repository and writes the report check run, nothing else; a grant added here reaches the npx-resolved setup CLI too.`);
+  assert.match(checkout, /^ {8}with:\n {10}persist-credentials: false$/m,
+    `${LANE}: nothing in the job pushes, so the checkout keeps the token out of .git/config, where the npx -y steps could read it.`);
+  assert.match(step('Download the Handsontable UMD build artifact'), /name: handsontable-build-umd/,
+    `${LANE}: the lane consumes the UMD build artifact the Build module uploads. ${DOC}`);
+  assert.match(step('Prepare the environment for screen reader automation'), /^ {8}run: cd tests && npx -y @guidepup\/setup@0\.29\.3 setup --ci --macos-record$/m,
+    `${LANE}: on macOS the setup grants the automation permissions and records the screen while it does, through the pinned CLI and npx, never installed (its recorder depends on a GPL-licensed ffmpeg build). ${DOC}`);
+  assert.match(step('Prepare the environment for screen reader automation'), /^ {8}timeout-minutes: 10$/m,
+    `${LANE}: a hung setup fails its own step, so the recording of it still uploads.`);
+  assert.match(step('Install the browser'), /^ {8}run: cd tests && npx playwright install \$\{\{ matrix\.browser \}\}$/m);
+  assert.match(step('Install VoiceOver'), /^ {8}run: cd tests && npx -y @guidepup\/setup@0\.29\.3 install voiceover$/m,
+    `${LANE}: VoiceOver's preferences bundle is installed from inside tests/, where @guidepup/guidepup resolves its manifest. ${DOC}`);
+  assert.match(step('Run the scenarios'), /^ {8}run: cd tests && npx playwright test --config playwright\.screenreader\.config\.ts --project=vo-\$\{\{ matrix\.browser \}\}$/m,
+    `${LANE}: the run step runs the screen reader config on the job's VoiceOver project and nothing else. ${DOC}`);
+  assert.match(step('Run the scenarios'), /^ {10}HOT_SR_UPDATE_GOLDENS: \$\{\{ inputs\.update-goldens && '1' \|\| '' \}\}$/m,
+    `${LANE}: the update-goldens input reaches the spec as HOT_SR_UPDATE_GOLDENS, '1' or empty. ${DOC}`);
+  assert.match(step('Run the scenarios'), /^ {8}timeout-minutes: 25$/m,
+    `${LANE}: the run step times out on its own: a step timeout is a step failure, so the transcripts, the recording, the summary and the check run still come. ${DOC}`);
+
+  const jobTimeout = Number(voiceover.match(/^ {4}timeout-minutes: (\d+)$/m)?.[1]);
+  const stepTimeouts = [...voiceover.matchAll(/^ {8}timeout-minutes: (\d+)$/gm)].reduce((sum, [, minutes]) => sum + Number(minutes), 0);
+
+  assert.ok(jobTimeout > stepTimeouts,
+    `${LANE}: the job's timeout (${jobTimeout}) is a backstop above its steps' own (${stepTimeouts} in all), so a step times out first and the evidence still uploads. ${DOC}`);
+
+  [
+    ['Upload the transcripts', 'screenreader-transcripts-vo-', 'tests\\/test-results\\/screenreader'],
+    ['Upload the Playwright report', 'screenreader-playwright-report-vo-', 'tests\\/playwright-report\\/screenreader'],
+    ['Upload the setup recording', 'screenreader-recordings-vo-', 'tests\\/recordings'],
+  ].forEach(([name, artifact, dir]) => {
+    const upload = step(name);
+
+    assert.match(upload, /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m, `${LANE}: "${name}" runs on a red run too; it is the evidence. ${DOC}`);
+    assert.match(upload, new RegExp(`^ {10}name: ${artifact}\\$\\{\\{ matrix\\.browser \\}\\}$`, 'm'),
+      `${LANE}: "${name}" is named per browser and outside the playwright-report-* glob test-health.yml reads. ${DOC}`);
+    assert.match(upload, new RegExp(`^ {10}path: ${dir}$`, 'm'), `${LANE}: "${name}" uploads ${dir.replaceAll('\\', '')}.`);
+  });
+
+  const goldens = step('Upload the recorded goldens');
+
+  assert.match(goldens, /^ {8}if: \$\{\{ !cancelled\(\) && inputs\.update-goldens \}\}$/m,
+    `${LANE}: the recorded goldens upload on an update-goldens run only, red or green. ${DOC}`);
+  assert.match(goldens, /^ {10}name: screenreader-goldens-vo-\$\{\{ matrix\.browser \}\}$/m,
+    `${LANE}: one goldens artifact per browser, the name tests/AGENTS.md tells you to download. ${DOC}`);
+  assert.match(step('Write the job summary'), /^ {8}run: node tests\/scripts\/screenreader-report\.mjs$/m);
+  assert.match(step('Write the job summary'), /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m);
+
+  const check = step('Post the report check run');
+
+  assert.match(check, /^ {8}continue-on-error: true$/m, `${LANE}: the check run reports, it never decides the job.`);
+  assert.match(check, /^ {8}run: node tests\/scripts\/screenreader-report\.mjs --check-run$/m);
+  assert.ok(guardOf(voiceover), `${LANE}: the VoiceOver check run carries an if: guard.`);
+  assert.equal(guardOf(voiceover), guardOf(nvda),
+    `${LANE}: the VoiceOver check run carries the NVDA job's guard, the canonical fork guard fork-guards.test.mjs reads on the first site of the step name. ${DOC}`);
+  assert.match(voiceover, /^ {6}SCREENREADER_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}$/m,
+    `${LANE}: the check run goes on the head commit, never the merge commit.`);
+  assert.match(voiceover, /^ {6}SCREENREADER_PROJECT: vo-\$\{\{ matrix\.browser \}\}$/m,
+    `${LANE}: a run that left no transcript is still reported under its project.`);
+});
+
 test('screenreader-nightly.yml calls the lane after the UMD build, on its own cron and from any ref, and the Tests pipeline never calls it', () => {
   const nightly = stripYamlComments(read(NIGHTLY));
 
@@ -145,10 +225,12 @@ test('the screen reader config keeps the lane serial, patient and outside the fl
   assert.doesNotMatch(config, /\['json'/, `${CONFIG}: no JSON reporter, so nothing here can feed the flake ledger.`);
   assert.match(config, /name: 'nvda-chromium'/);
   assert.match(config, /name: 'nvda-firefox'/);
-  assert.match(config, /name: 'vo-webkit'/, `${CONFIG}: the VoiceOver projects are named, for the next pull request.`);
-  assert.match(config, /name: 'vo-chromium'/);
-  assert.match(config, /if \(process\.platform === 'darwin'\) \{\s*throw new Error\(/,
-    `${CONFIG}: macOS has no default lane until the VoiceOver runner lands; defaulting to it would start VoiceOver only for the spec to throw. HOT_SR_LANE picks one explicitly.`);
+  assert.match(config, /name: 'vo-webkit', use: \{ \.\.\.devices\['Desktop Safari'\] \}/,
+    `${CONFIG}: vo-webkit is Playwright's WebKit with the Desktop Safari descriptor.`);
+  assert.match(config, /name: 'vo-chromium', use: \{ \.\.\.devices\['Desktop Chrome'\] \}/);
+  assert.match(config, /if \(process\.platform === 'win32'\) \{\s*return 'nvda';\s*\}/, `${CONFIG}: NVDA is Windows's lane.`);
+  assert.match(config, /if \(process\.platform === 'darwin'\) \{\s*return 'voiceover';\s*\}/,
+    `${CONFIG}: VoiceOver is macOS's lane, the one the macos-26 job runs. HOT_SR_LANE=dom-echo picks the echo explicitly.`);
 });
 
 test('the Guidepup setup CLI is never installed: its optional recording helper depends on a GPL-licensed ffmpeg build', () => {

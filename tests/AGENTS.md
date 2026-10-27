@@ -1289,7 +1289,7 @@ tooling problem prints as one escaped annotation. Every workflow command the a11
 through `workflowCommand()` in `lib/a11y-baseline.mjs`: a problem quotes the baseline, and an
 unescaped newline or `%` would cut the one line that explains a red job.
 
-## Screen readers: the NVDA lane
+## Screen readers: the NVDA and VoiceOver lanes
 
 `screenreader/screenreader.spec.ts` drives a real screen reader through Guidepup
 (`@guidepup/playwright` and `@guidepup/guidepup`, MIT, devDependencies of this package only; the

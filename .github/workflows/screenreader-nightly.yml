@@ -1,21 +1,24 @@
 name: Screen reader nightly
 
-# The screen reader lanes on develop, every weeknight (screenreader.yml: NVDA on Windows over the
-# scenarios of tests/screenreader/scenarios/; tests/AGENTS.md, "Screen readers: the NVDA lane").
+# The screen reader lanes on develop, every weeknight (screenreader.yml: NVDA on Windows and VoiceOver
+# on macOS over the scenarios of tests/screenreader/scenarios/; tests/AGENTS.md, "Screen readers: the
+# NVDA and VoiceOver lanes").
 # Report-only: nothing here gates a pull request, the called jobs carry `continue-on-error`, and the
 # verdict is each job's `Screen reader / <project> report` check run and summary. The transcripts
 # this run leaves are the evidence the Accessibility Conformance Report cites for what a screen reader
 # announces, which is why it runs on its own schedule rather than inside the pull-request pipeline:
-# a real screen reader on a headed Windows runner is minutes per browser, and the answer changes with
-# the core, the browser and NVDA, not with one pull request.
+# a real screen reader on a headed Windows or macOS runner is minutes per browser, and the answer
+# changes with the core, the browser and the screen reader, not with one pull request.
 #
 # Triage. A missing token group is a finding about the grid (the announcement lacks the cell text, a
 # position or a role) or a token list that is too strict: read the transcript, then fix the core or
 # widen the synonyms. A golden difference is a wording change: re-record with the `update-goldens`
-# input once the new wording is right. A red step inside a lane job is tooling (NVDA did not start, a
-# fixture did not load), never a finding, and it shows on that job's `failure` check run and summary:
+# input once the new wording is right. A red step inside a lane job is tooling (the screen reader did
+# not start, a fixture did not load), never a finding, and it shows on that job's `failure` check run and summary:
 # the jobs carry `continue-on-error`, so they report success to this run and nothing here reaches
-# Slack for them. Slack hears only of a run that never reached the lane (the `notify` job below).
+# Slack for them. Slack hears only of a run that never reached the lanes (the `notify` job below). A
+# VoiceOver job red in its setup step is the runner, not the lane (about one job in a hundred on
+# Guidepup's own CI): re-run that job from its page, and it passes.
 on:
   schedule:
     # 04:30 UTC Tue–Sat: after the E2E nightly (03:30), clear of the visual nightly (02:00), the
@@ -87,5 +90,5 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": ":red_circle: Screen reader nightly on ${{ github.ref_name }} never reached the NVDA lane: the UMD build failed, or the called workflow could not start. A red lane job is not reported here (its jobs carry continue-on-error); its verdict is each browser's Screen reader report check run.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTriage: tests/AGENTS.md, Screen readers: the NVDA lane."
+              "text": ":red_circle: Screen reader nightly on ${{ github.ref_name }} never reached the screen reader lanes: the UMD build failed, or the called workflow could not start. A red lane job is not reported here (its jobs carry continue-on-error); its verdict is each project's Screen reader report check run.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTriage: tests/AGENTS.md, Screen readers: the NVDA and VoiceOver lanes."
             }

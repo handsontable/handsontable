@@ -8,7 +8,7 @@
  * ordered steps a keyboard user takes, each with the phrase groups its announcement must carry. The
  * same file drives every screen reader lane (NVDA now, VoiceOver next), because what differs per
  * screen reader is the wording, which the goldens hold per project, not the path or the required
- * tokens (`tests/AGENTS.md`, "Screen readers: the NVDA lane").
+ * tokens (`tests/AGENTS.md`, "Screen readers: the NVDA and VoiceOver lanes").
  *
  * No I/O in here except `loadScenarios()`, which the spec and the tooling test share.
  */

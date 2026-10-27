@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { loadScenarios } from '../screenreader-scenario.mjs';
 import { GOLDEN_SCHEMA, normalizeAnnouncement } from '../screenreader-transcript.mjs';
 
-// tests/AGENTS.md ("Screen readers: the NVDA lane", "Recording goldens"): a golden is recorded on the
-// Windows runner and committed by hand, so nothing but this test reads it before the next nightly. A
+// tests/AGENTS.md ("Screen readers: the NVDA and VoiceOver lanes", "Recording goldens"): a golden is recorded on
+// the Windows or macOS runner and committed by hand, so nothing but this test reads it before the next nightly. A
 // golden whose steps no longer match its scenario (a step renamed, added, removed or reordered) would
 // show as golden differences on every night until it is re-recorded; this fails on the pull request
 // instead, and names what to re-record.
@@ -52,7 +52,7 @@ test('every committed golden belongs to a screen reader project and its scenario
   const scenarios = new Map(loadScenarios(SCENARIOS_DIR).map(({ scenario }) => [scenario.id, scenario]));
   const goldens = committedGoldens();
 
-  assert.ok(goldens.length > 0, 'the NVDA goldens are committed');
+  assert.ok(goldens.length > 0, 'the screen reader goldens are committed');
   assert.equal(existsSync(path.join(GOLDENS_DIR, DOM_ECHO_PROJECT)), false,
     `${DOM_ECHO_PROJECT} has no committed golden: the dom-echo lane reads the DOM, it says nothing about a screen reader`);
 
@@ -88,6 +88,10 @@ test('every committed golden belongs to a screen reader project and its scenario
 
     if (project.startsWith('nvda-')) {
       assert.match(String(golden.recorded?.screenReader), /^NVDA/, `${where}: an NVDA project's golden was recorded by NVDA`);
+    }
+    if (project.startsWith('vo-')) {
+      assert.match(String(golden.recorded?.screenReader), /^VoiceOver/, `${where}: a VoiceOver project's golden was recorded by VoiceOver`);
+      assert.match(String(golden.recorded?.platform), /^darwin /, `${where}: a VoiceOver project's golden was recorded on macOS`);
     }
   });
 });
