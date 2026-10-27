@@ -571,7 +571,17 @@ export class MergeCells extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    this.generateFromSettings(alreadyAppliedMerges, this.#restoreKeptMerges(keptMerges));
+    const keptMergeKeys = this.#restoreKeptMerges(keptMerges);
+
+    // `disablePlugin()` cleared the records, and a kept merge is not generated again, so nothing else
+    // writes its record back.
+    keptMergeKeys.forEach((key) => {
+      if (grownAreas.has(key)) {
+        this.#grownAreas.set(key, grownAreas.get(key)!);
+      }
+    });
+
+    this.generateFromSettings(alreadyAppliedMerges, keptMergeKeys);
     this.#initialized = true;
     this.#captureMergeAnchors();
 

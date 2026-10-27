@@ -201,4 +201,21 @@ describe('MergeCells declared in the settings while a row inside its span is tri
     expect(mergeGeometry()).toEqual([[2, 2, 4, 3]]);
     expect(hot.getSourceDataAtCell(3, 2)).toBe('C4');
   });
+
+  it('should keep the span through a sheet switch that follows a re-send which kept the merge', () => {
+    createGrid({ trimRows: [3], mergeCells: declared });
+
+    hot.getPlugin('trimRows').untrimAll();
+    hot.updateSettings({ mergeCells: declared.map(area => ({ ...area })) });
+
+    const plugin = hot.getPlugin('mergeCells');
+    const areas = plugin.getVisibleMergedAreas();
+
+    plugin.clearCollections();
+    plugin.restoreMergedAreas(areas);
+    hot.updateSettings({ mergeCells: declared.map(area => ({ ...area })) });
+
+    expect(mergeGeometry()).toEqual([[2, 2, 4, 3]]);
+    expect(hot.getSourceDataAtCell(3, 2)).toBe('C4');
+  });
 });
