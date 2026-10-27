@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed AutoColumnSize ignoring the content of merged cells, which wrapped long merged text into a narrow column.",
+  "type": "fixed",
+  "issueOrPR": 14026,
+  "breaking": false,
+  "framework": "none"
+}
