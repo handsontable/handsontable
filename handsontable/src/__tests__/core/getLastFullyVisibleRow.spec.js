@@ -271,4 +271,95 @@ describe('Core.getLastFullyVisibleRow', () => {
 
     expect(mismatches).toEqual([]);
   }, 180000);
+
+  /**
+   * Heights where the first draw disagrees with a later `render()`.
+   *
+   * Same reading as the content-sized sweep above. A header that is one pixel off moves the
+   * last fully visible row only at some heights, so the range is wider than one data row.
+   *
+   * @param {object} settings Handsontable settings, without `height`.
+   * @returns {Promise<object[]>}
+   */
+  async function firstDrawMismatches(settings) {
+    const mismatches = [];
+
+    for (let height = 250; height <= 320; height += 1) {
+      handsontable({
+        ...settings,
+        height,
+      });
+
+      const init = contentHeaderSnapshot(false);
+
+      await render();
+
+      const afterRender = contentHeaderSnapshot(false);
+
+      if (JSON.stringify(init) !== JSON.stringify(afterRender)) {
+        mismatches.push({ height, init, afterRender });
+      }
+
+      destroy();
+    }
+
+    return mismatches;
+  }
+
+  it('should match a later render when only the frozen start column header is two lines tall', async() => {
+    const columns = 20;
+    const colHeaders = [];
+
+    for (let column = 0; column < columns; column++) {
+      colHeaders.push(column === 0 ? 'A<br>B' : 'A');
+    }
+
+    // The rendered band walks backward until the viewport is full, and one column of render
+    // offset reaches a single frozen column. More columns than the viewport holds, and a
+    // render offset of 0, leave column 0 to the frozen-start range.
+    const mismatches = await firstDrawMismatches({
+      data: createSpreadsheetData(40, columns),
+      width: 600,
+      colWidths: 80,
+      colHeaders,
+      fixedColumnsStart: 1,
+      viewportColumnRenderingOffset: 0,
+    });
+
+    expect(mismatches).toEqual([]);
+  }, 180000);
+
+  it('should match a later render when a hidden column shifts the tall column header', async() => {
+    // One renderable column, so the index the probe walks is 0. That is visual column 1.
+    const mismatches = await firstDrawMismatches({
+      data: createSpreadsheetData(40, 2),
+      width: 600,
+      colWidths: 80,
+      colHeaders: ['A', 'A<br>B'],
+      hiddenColumns: { columns: [0] },
+    });
+
+    expect(mismatches).toEqual([]);
+  }, 180000);
+
+  it('should match a later render when only the frozen end column header is two lines tall', async() => {
+    const columns = 20;
+    const colHeaders = [];
+
+    for (let column = 0; column < columns; column++) {
+      colHeaders.push(column === columns - 1 ? 'A<br>B' : 'A');
+    }
+
+    // The scroll band and its one-column reach stop short of the last column. The frozen-end
+    // range is what measures it.
+    const mismatches = await firstDrawMismatches({
+      data: createSpreadsheetData(40, columns),
+      width: 600,
+      colWidths: 80,
+      colHeaders,
+      fixedColumnsEnd: 1,
+    });
+
+    expect(mismatches).toEqual([]);
+  }, 180000);
 });
