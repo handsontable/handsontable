@@ -339,6 +339,21 @@ test('every value the summary renders is escaped, and only a plain https link is
   assert.match(summary, /\| 2\.1\.2 No Keyboard Trap \| A \| 1 \| 1 \|/);
 });
 
+test('a check whose records name a rule summarizes them by rule, so one rule among thousands of records is found', () => {
+  const record = (rule, severity) => ({ kind: 'axe-violation', rule, criteria: [], severity, selector: `td.${rule}`, reason: rule });
+  const findings = [
+    ...Array.from({ length: 70 }, (_, index) => ({ ...record('aria-required-children', 'critical'), selector: `td.n${index}` })),
+    record('accesskeys', 'serious'),
+    record('accesskeys', 'serious'),
+  ];
+  const summary = renderEvidenceSummary(mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings })] }));
+
+  assert.match(summary, /\| Rule \| Records \| Worst \|/);
+  assert.match(summary, /\| aria-required-children \| 70 \| critical \|\n\| accesskeys \| 2 \| serious \|/);
+  assert.doesNotMatch(renderEvidenceSummary(mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [TRAP] })] })), /\| Rule \|/,
+    'a check whose findings name no rule has no rule table');
+});
+
 test('measured values read as key=value pairs, numbers to two decimals', () => {
   assert.equal(measuredText({ ratio: 2.4567, presses: 3, color: 'rgb(0, 0, 0)', box: { x: 1 } }), 'ratio=2.46, presses=3, color=rgb(0, 0, 0), box={"x":1}');
 });

@@ -589,6 +589,25 @@ export function renderEvidenceSummary(doc, { runUrl, artifactUrl } = {}) {
   }
   lines.push('');
 
+  // A check whose records name a rule (the axe discovery run) gets a table by rule first: among
+  // thousands of records sorted by severity, a rule with a few records would not reach the first sixty.
+  const rules = new Map();
+
+  for (const finding of doc.findings.filter(item => typeof item.rule === 'string')) {
+    const entry = rules.get(finding.rule) ?? { count: 0, worst: finding.severity };
+
+    entry.count += 1;
+    entry.worst = SEVERITIES.indexOf(finding.severity) < SEVERITIES.indexOf(entry.worst) ? finding.severity : entry.worst;
+    rules.set(finding.rule, entry);
+  }
+  if (rules.size > 0) {
+    lines.push('| Rule | Records | Worst |', '| --- | --: | --- |');
+    for (const [rule, entry] of [...rules].sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]))) {
+      lines.push(`| ${escape(rule)} | ${entry.count} | ${escape(entry.worst)} |`);
+    }
+    lines.push('');
+  }
+
   if (doc.findings.length > 0) {
     lines.push('| Severity | Criteria | Page | Theme | Where | Finding |', '| --- | --- | --- | --- | --- | --- |');
     for (const finding of doc.findings.slice(0, SUMMARY_FINDINGS)) {
