@@ -559,7 +559,8 @@ export class Dialog extends BasePlugin {
    *
    * @param {string | { title: string, description: string }} message The message to display in the dialog.
    * Can be a string or an object with `title` and `description` properties.
-   * @param {function(MouseEvent): void} [callback] The callback to trigger when the button is clicked.
+   * @param {function(MouseEvent): void} [callback] The callback to trigger when the button is clicked. The dialog stays
+   * open until you call {@link Dialog#hide}, usually from this callback.
    */
   showAlert(message?: string | Record<string, unknown>, callback?: (...args: unknown[]) => void): void {
     const {
@@ -594,6 +595,7 @@ export class Dialog extends BasePlugin {
    * Can be a string or an object with `title` and `description` properties.
    * @param {function(MouseEvent): void} [onOk] The callback to trigger when the OK button is clicked.
    * @param {function(MouseEvent): void} [onCancel] The callback to trigger when the Cancel button is clicked.
+   * The dialog stays open until you call {@link Dialog#hide}, usually from these callbacks.
    */
   showConfirm(
     message?: string | Record<string, unknown>,
