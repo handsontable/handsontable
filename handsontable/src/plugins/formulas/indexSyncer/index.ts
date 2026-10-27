@@ -36,7 +36,7 @@ class IndexSyncer {
    */
   readonly #postponeAction: Function;
   /**
-   * Runs a write to the engine as the grid's own (see `Formulas#runOwnEngineWrite()`).
+   * Runs a write to the engine as the grid's own (see `#writeOwnSheet()` in `Formulas`).
    *
    * @private
    * @type {Function}
