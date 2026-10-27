@@ -285,7 +285,8 @@ function macOSVersion(): string {
  *   `enter()` interacts with it (VO-Shift-Down), the way a VoiceOver user enters a table. The setup
  *   then puts the focus on a cell, and VoiceOver's cursor follows the keyboard focus onto it. The
  *   order matters: interacting once the focus is on a cell takes VoiceOver into the cell's text, and on
- *   Chromium it then followed no focus move at all (18 of 20 steps silent in the run that tried it).
+ *   Chromium it then announced no cell move at all (in the run that tried it, only the editor and an
+ *   API reselection were announced, 2 of 20 steps).
  *   What VoiceOver says on the way in goes to `entering`.
  * - **Each step**: VoiceOver keeps its last phrase, so a step it says nothing on would read as the
  *   previous step's phrase. Every capture starts with the step boundary as the last phrase

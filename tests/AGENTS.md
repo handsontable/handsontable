@@ -1408,7 +1408,8 @@ it.
   the focus on a cell, and VoiceOver's cursor follows the keyboard focus from there on; keys still go
   to the page through Playwright, so VoiceOver hears the page react, never the keystroke. The order is
   the rule: an `interact()` after the setup, with the focus already on a cell, took VoiceOver into the
-  cell's text, and on Chromium it then announced no focus move at all (18 of 20 steps silent). A run with
+  cell's text, and on Chromium it then announced no cell move at all (only the editor and an API
+  reselection, 2 of 20 steps). A run with
   no `interact()` read the same as the run with it, step for step, on both browsers, because the
   announcements come from the focus. After the last step of a complete run, `leave()` stops interacting
   (VO-Shift-Up). VoiceOver starts with two preferences off, merged into the bundle
