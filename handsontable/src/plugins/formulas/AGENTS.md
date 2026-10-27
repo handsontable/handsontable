@@ -736,7 +736,7 @@ site, `AxisSyncer#syncOrderWithEngine`:
   onto the elements the engine holds, keeping their relative order, rather than sent whole — sending it whole
   is what made sorting such a grid throw `InvalidArgumentsError` (DEV-2904).
 
-Four rules ride along.
+These rules ride along.
 
 - **The order must be a permutation of `0..size - 1`.** The engine validates entries as well as length, so an
   index the sequence no longer covers (the mid-batch state that used to produce `-1`) is ranked last rather
@@ -754,18 +754,70 @@ Four rules ride along.
   moment it was filled**. That sequence is captured when the empty sheet is found and used to extend the
   stored list, because the grid can have been reordered since — reading the current sequence there would
   conclude the engine already holds the new order and skip the sync that carries it.
-- **An order that cannot be reproduced is not sent.** The compression keeps the engine's own elements in
-  their relative order, which reproduces the grid exactly while they still occupy the sequence's leading
-  positions — a sheet shorter than the grid means the grid's extra rows are the empty tail the engine left
-  out. A reorder that moves one of those in FRONT of an element the engine holds is inexpressible: the engine
-  addresses its rows positionally and has no row to shift the others past. Approximating it would leave the
-  index translation (which reads HF index `i` as sequence position `i`) and the engine on different rows, so
-  nothing is sent. An order that would change nothing is skipped too, because the engine records an undo
-  entry and clears its redo stack for every order it is handed.
+- **The engine holds the grid's order up to the last element with content.** Translation reads HF index `i`
+  as sequence position `i`, so every index the engine holds sits where the grid shows it. The compression
+  keeps the engine's own elements in their relative order. The extra rows or columns of a sheet shorter
+  than the grid are an empty tail the engine left out, and one behind the last element with content needs
+  no row. One in front of it does, so the sheet is extended to the last index with content and the order
+  covers the empty ones. The engine ends a sheet at its content and `addRows`/`addColumns` past it do not
+  extend it, so the extension writes the last needed cell and clears it. That write and the order go in one
+  `engine.batch()`: one change list, which shows the cleared cell as a `null` change, and one undo step.
+  An order that would change nothing is skipped, because the engine records an undo entry and clears its
+  redo stack for every order it is handed.
+- **A padded blank is not content, and its label does not matter.** The sync remembers the elements it
+  added only to carry an order (`#paddedElements`). While such a line is still empty in the engine, the
+  next sync relabels it for what that order needs: `#planOrder()` walks back from the end of the target
+  sequence, frees the padded blanks it meets there, and stops at the first element with content. Counting
+  them as content made a blank moved to the top and back grow the sheet to the grid's full length (20,000
+  rows measured: height 20,000 and 691 ms for the second `setIndexesSequence()`, against height 10 and
+  5 ms before the pad existed), and every later sort then sent a full-length order. The set travels with
+  the order: `EngineOrder.paddedElements` carries it through an undo, a redo and a sheet switch
+  (`adoptEngineOrder()` drops entries the restored sequence does not hold), and an insert or a removal
+  re-keys it by the physical indexes the mapper reports (`indexesInserted`/`indexesRemoved` local hooks,
+  renumbered with the mapper's own `getIncreasedIndexes`/`getDecreasedIndexes`). An inserted line joins
+  the set (it is an empty engine line; an insert at visual 0 above the padded blank grew the sheet to the
+  grid's length otherwise), and a removed index is **not** dropped: an undo removes the grid's row but
+  leaves the engine line, so the line carrying that label is still there, still empty, and dropping it made
+  the next order count it as content and pad the sheet by one line per insert-and-undo. A stale entry
+  only ever sits on an empty line, which the plan frees anyway. Any other change that is not a move clears
+  it. Pinned in `paddedElementsTravel.unit.js` (2,000 rows: height 11 after each).
+- **An order that moves a line an array formula spans is refused before anything is written.** The engine
+  throws `SourceLocationHasArrayError` for it, and the padding write precedes the order, so a throw left the
+  sheet one line taller. `#isOrderAllowed()` asks the engine first (`isItPossibleToSetRowOrder` /
+  `isItPossibleToSetColumnOrder`) and `#syncOrderWithEngine()` warns and returns `false`, as for `maxRows`.
+  The engine checks the lines the order moves and ignores where they go, and the lines added to carry the
+  order hold nothing, so the check asks about a rotation of the moved lines the sheet already has. A single
+  moved line has nothing to rotate with and is read cell by cell with `isCellPartOfArray()`.
+- **Rows or columns the engine gains later are labelled by the sequence the grid had at the last sync.**
+  A sync stores that sequence in `#fillSequence` unless the engine's own lines already sit where physical
+  order puts them. The grid writes a new row at its sequence position, so labelling it by physical order
+  put a value typed into it on a different row after the next order. An insert, a removal and a move store
+  the grid's whole new sequence as the engine's order, which already names every line the engine can gain,
+  so they reset `#fillSequence`; left set, `isEngineOrderPhysical()` stayed `false` after the order came
+  back to identity.
+- **A sync leaves the host's own engine batch alone.** `engine.batch()` resumes the evaluation
+  unconditionally, so inside a batch of the host's, or after its `suspendEvaluation()`, it throws "Batch
+  mode wasn't started" or ends the suspension early. The extension calls the three engine methods
+  directly when `engine.isEvaluationSuspended()` is true. Pinned in `shortSheetOrderSync.unit.js`.
+- **A reorder that moves a formula across the cell it refers to can turn the reference into `#REF!`.**
+  That is the engine's own `setRowOrder`/`setColumnOrder`, measured on a plain engine with no extension
+  involved. A full reverse of a sheet whose formula refers to a cell in another column is an example.
 
 Still open: a move applied while the engine's sheet is empty reaches the engine through `syncMoves` but is
-not reflected in the stored order, and a sequence change that cannot be expressed leaves the engine behind
-the grid with no warning.
+not reflected in the stored order. A sheet that the order would extend past the engine's `maxRows` or
+`maxColumns` is not extended: the sync warns, the engine keeps its order, and the stored order stays what
+the engine holds. The grid has already taken its order, so formulas read the wrong cells until the grid
+takes an order the engine can hold.
+
+Known limits of the pad:
+
+- **The pad keeps the sheet's height or width.** The engine never shrinks a sheet, so once content has
+  sat at the end of a long axis the sheet stays that long, and every later order is sent at that length.
+  Moving only blank lines does not grow it, also after an undo, a sheet switch, an insert, or a removal.
+- **A reference to a padded blank line follows the engine line, not the label.** Padded blanks are
+  relabeled, so a formula that refers to one reads `#REF!` once the blank is freed or moved across
+  content. That is the engine's own rewrite in `setRowOrder`/`setColumnOrder`, the same as for any
+  reference moved across content.
 
 ### A reload reads a jagged array, and the first row sets the column count (DEV-1143)
 
