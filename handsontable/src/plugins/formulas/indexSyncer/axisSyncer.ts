@@ -589,24 +589,22 @@ class AxisSyncer {
   }
 
   /**
-   * Removes the rows or columns at the end of the engine's sheet that nothing needs. Replacing a sheet's
-   * content never shrinks it, so the line an insert added stays behind when an undo restores the sheet
-   * without it, and every insert and undo would add one more.
+   * Removes the rows or columns at the end of the engine's sheet that nothing needs, down to `minSize`.
+   * Replacing a sheet's content never shrinks it, so the line an insert added stays behind when an undo
+   * restores the sheet without it, and every insert and undo would add one more. The floor is the size the
+   * sheet had in the state that is restored, so only what the step added is taken away.
+   *
+   * @param {number} minSize The size along this axis the sheet keeps at least.
    */
-  trimUnusedTail() {
-    const engine = this.#indexSyncer.getEngine();
-    const sheetId = this.#indexSyncer.getSheetId();
-
-    if (engine === null || sheetId === null || this.#isSheetRemoved()) {
-      return;
-    }
-
+  trimUnusedTail(minSize: number) {
+    const engine = this.#indexSyncer.getEngine()!;
+    const sheetId = this.#indexSyncer.getSheetId()!;
     const { width, height } = engine.getSheetDimensions(sheetId);
     const isRowAxis = this.#axis === 'row';
     const size = isRowAxis ? height : width;
     let usedSize = size;
 
-    while (usedSize > 0 && this.#isEngineLineUnused(engine, sheetId, usedSize - 1, isRowAxis ? width : height)) {
+    while (usedSize > minSize && this.#isEngineLineUnused(engine, sheetId, usedSize - 1, isRowAxis ? width : height)) {
       usedSize -= 1;
     }
 

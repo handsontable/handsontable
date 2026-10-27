@@ -295,6 +295,10 @@ interface FormulasUndoState {
   readonly dataVersion: number;
   readonly engineSheet: EngineSheetSnapshot | null;
   /**
+   * The size of the engine's sheet when the state was captured, or `null` when the grid had no sheet.
+   */
+  readonly sheetSize: { readonly width: number; readonly height: number } | null;
+  /**
    * The formulas outside this grid's sheet that the step's engine calls rewrote.
    */
   readonly peerRewrites: readonly PeerRewrite[];
@@ -2097,10 +2101,14 @@ export class Formulas extends BasePlugin {
       return undefined;
     }
 
+    const sheetSize = this.#hasOwnSheet() ? this.engine.getSheetDimensions(this.sheetId!) : null;
+
     if (
       isFormulasUndoState(previous) &&
       previous.structureVersion === this.#structureVersion &&
       previous.dataVersion === this.#dataVersion &&
+      (sheetSize === null || (previous.sheetSize?.width === sheetSize.width &&
+        previous.sheetSize?.height === sheetSize.height)) &&
       this.#pendingPeerRewrites.size === 0
     ) {
       return previous;
@@ -2115,6 +2123,7 @@ export class Formulas extends BasePlugin {
       structureVersion: this.#structureVersion,
       dataVersion: this.#dataVersion,
       engineSheet: this.#captureEngineSheet(isFormulasUndoState(previous) ? previous.engineSheet : null),
+      sheetSize,
       peerRewrites,
     };
   }
@@ -2166,9 +2175,9 @@ export class Formulas extends BasePlugin {
 
     this.#restorePeerRewrites(state, context);
 
-    if (isStructureChanged) {
-      this.rowAxisSyncer!.trimUnusedTail();
-      this.columnAxisSyncer!.trimUnusedTail();
+    if (isStructureChanged && state.sheetSize !== null) {
+      this.rowAxisSyncer!.trimUnusedTail(state.sheetSize.height);
+      this.columnAxisSyncer!.trimUnusedTail(state.sheetSize.width);
     }
   }
 

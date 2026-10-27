@@ -158,6 +158,108 @@ describe('Formulas: an insert followed by an undo', () => {
     });
   });
 
+  describe('with a sheet the engine holds larger than its content', () => {
+    const buildGrid = () => {
+      const data = [[10, '=A1*2'], [20, '=A2*2']];
+
+      while (data.length < SIZE) {
+        data.push([null, null]);
+      }
+
+      hot = new Handsontable(container, {
+        data,
+        formulas: { engine, sheetName: 'Sheet1' },
+        undoRedo: true,
+        licenseKey: LICENSE_KEY,
+      });
+    };
+    const extendSheet = (row, col) => {
+      const address = { sheet: engine.getSheetId('Sheet1'), row, col };
+
+      engine.setCellContents(address, 0);
+      engine.setCellContents(address, null);
+    };
+
+    it('should give back only the row an insert added', () => {
+      buildGrid();
+      extendSheet(5, 1);
+
+      expect(dimensions()).toEqual({ width: 2, height: 6 });
+
+      hot.alter('insert_row_above', 1);
+      undo();
+
+      expect(dimensions()).toEqual({ width: 2, height: 6 });
+    });
+
+    it('should leave the width alone when a row is inserted and undone', () => {
+      buildGrid();
+      extendSheet(0, 6);
+
+      expect(dimensions()).toEqual({ width: 7, height: 2 });
+
+      hot.alter('insert_row_above', 1);
+      undo();
+
+      expect(dimensions()).toEqual({ width: 7, height: 2 });
+    });
+
+    it('should leave the height alone when a column is inserted and undone', () => {
+      buildGrid();
+      extendSheet(5, 1);
+
+      hot.alter('insert_col_start', 1);
+      undo();
+
+      expect(dimensions()).toEqual({ width: 2, height: 6 });
+    });
+  });
+
+  describe('with a formula that reads a whole column or row (known limit)', () => {
+    const CYCLES_PINNED = 5;
+
+    const buildGrid = (formula) => {
+      hot = new Handsontable(container, {
+        data: [[10, 20, formula], [20, null, null], [null, null, null], [null, null, null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+        undoRedo: true,
+        licenseKey: LICENSE_KEY,
+      });
+    };
+
+    // A whole-column reference depends on every cell of its column, so no row of it is unused and the
+    // trim leaves the sheet as it was on develop: one row more per insert and undo.
+    it('should keep the values and leave the sheet one row taller per cycle, as before the trim', () => {
+      buildGrid('=SUM(A:A)');
+
+      const values = hot.getData();
+      const { height } = dimensions();
+
+      for (let cycle = 0; cycle < CYCLES_PINNED; cycle += 1) {
+        hot.alter('insert_row_above', 1);
+        undo();
+      }
+
+      expect(hot.getData()).toEqual(values);
+      expect(dimensions().height).toBe(height + CYCLES_PINNED);
+    });
+
+    it('should keep the values and leave the sheet one column wider per cycle, as before the trim', () => {
+      buildGrid('=SUM(1:1)');
+
+      const values = hot.getData();
+      const { width } = dimensions();
+
+      for (let cycle = 0; cycle < CYCLES_PINNED; cycle += 1) {
+        hot.alter('insert_col_start', 1);
+        undo();
+      }
+
+      expect(hot.getData()).toEqual(values);
+      expect(dimensions().width).toBe(width + CYCLES_PINNED);
+    });
+  });
+
   describe('on columns', () => {
     const buildGrid = () => {
       const row = (value, formula) => [value, formula, ...blank().slice(2)];
