@@ -87,6 +87,22 @@ describe('external engine changes repaint formula cells', () => {
       expect(hot.getDataAtCell(0, 0)).toBe(1);
     });
 
+    it('paints the formula cell after engine.changeNamedExpression without a manual render', () => {
+      engine.addNamedExpression('ADDITIONAL_COST', 5);
+      hot.destroy();
+      hot = mountGrid(container, [[1, '=A1+ADDITIONAL_COST']], engine, 'Sheet1', () => {
+        renders += 1;
+      });
+      renders = 0;
+
+      expect(hot.getCell(0, 1).textContent).toBe('6');
+
+      engine.changeNamedExpression('ADDITIONAL_COST', 20);
+
+      expect(hot.getCell(0, 1).textContent).toBe('21');
+      expect(renders).toBe(1);
+    });
+
     it('paints a setDataAtCell edit once', () => {
       hot.setDataAtCell(0, 0, 10);
 
