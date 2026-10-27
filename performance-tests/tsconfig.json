@@ -7,7 +7,7 @@
     "strict": true,
     "skipLibCheck": true,
     "outDir": "dist",
-    "rootDir": ".",
+    "rootDir": "..",
     "allowJs": true
   },
   "include": ["scenarios/**/*.ts", "lib/**/*.mjs", "playwright.config.ts"],

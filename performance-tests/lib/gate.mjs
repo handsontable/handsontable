@@ -166,6 +166,8 @@ function describeScenario(row, rules) {
  * @param {object | null} [input.baseline] -- the baseline snapshot
  * @param {object | null} [input.newest] -- the newest develop golden behind it
  * @param {string | null} [input.baseRef] -- the pull request's base branch; empty off a pull request
+ * @param {string | null} [input.baseSha] -- the pull request's base commit, recorded beside the
+ *   newest golden's commit so a would-fail can be checked for a baseline that lags develop
  * @param {string | null} [input.unavailableReason] -- why there is no baseline, when there is none
  * @param {'warn' | 'block'} [input.mode]
  * @param {object} [input.rules]
@@ -177,6 +179,7 @@ export function decideGate({
   baseline = null,
   newest = null,
   baseRef = null,
+  baseSha = null,
   unavailableReason = null,
   mode = GATE_MODE,
   rules = GATE_RULES,
@@ -199,6 +202,7 @@ export function decideGate({
       timestamp: baseline?.timestamp ?? null,
       newestTimestamp: newest?.timestamp ?? null,
       newestCommit: newest?.commit ?? null,
+      baseSha,
     },
     rules: {
       timingThreshold: rules.timingThreshold,
@@ -279,13 +283,15 @@ export function decideGate({
  */
 export function formatGateNotice(verdict) {
   const names = list => (list.length > 0 ? list.map(item => item.name).join(',') : '-');
+  // `+ 0` turns a -0 left by rounding a tiny negative shift into 0, so it never prints as "-0.0".
+  const shift = value => (Number(value.toFixed(1)) + 0).toFixed(1);
   const parts = [
     `status=${verdict.status}`,
     `mode=${verdict.mode}`,
     `failing=${names(verdict.failing)}`,
     `absorbed=${names(verdict.absorbed)}`,
     `watching=${names(verdict.watching)}`,
-    `shift=${verdict.shift == null ? '-' : verdict.shift.toFixed(1)}`,
+    `shift=${verdict.shift == null ? '-' : shift(verdict.shift)}`,
   ];
 
   return `::notice title=perf-gate::${parts.join(' ')}`;

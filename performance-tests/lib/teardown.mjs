@@ -448,6 +448,7 @@ export default async function teardown() {
     baseline: golden,
     newest,
     baseRef: process.env.PERF_BASE_REF || null,
+    baseSha: process.env.PERF_BASE_SHA || null,
     unavailableReason: baselineUnavailable,
     mode: gateMode(),
   });

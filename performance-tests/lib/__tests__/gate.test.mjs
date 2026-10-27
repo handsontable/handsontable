@@ -209,6 +209,15 @@ describe('decideGate', () => {
     assert.equal(verdict.failing[0].overHeap, true);
   });
 
+  test('records the pull request\'s base commit beside the newest golden\'s', () => {
+    const verdict = gate({ extra: { baseSha: 'def5678' } });
+
+    assert.deepEqual(
+      [verdict.baseline.baseSha, verdict.baseline.newestCommit],
+      ['def5678', 'abc1234']
+    );
+  });
+
   test('a level the newest develop golden already shows is watched, not failed', () => {
     const verdict = gate({ current: { sorting: entry(130) }, newest: { sorting: entry(130) } });
 
@@ -309,6 +318,12 @@ describe('formatGateNotice', () => {
       '::notice title=perf-gate::status=fail mode=warn failing=sorting absorbed=- watching=filtering '
         + `shift=${verdict.shift.toFixed(1)}`
     );
+  });
+
+  test('prints a tiny negative shift as 0.0, never -0.0', () => {
+    const notice = formatGateNotice({ ...gate(), shift: -0.036 });
+
+    assert.match(notice, / shift=0\.0$/);
   });
 
   test('prints a dash for an unknown shift', () => {
