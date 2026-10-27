@@ -2470,7 +2470,8 @@ In 18.1, the [`Formulas`](@/api/formulas.md) plugin did not repaint the grid whe
 than the grid changed the HyperFormula engine, for example `setCellContents()` on an external or
 shared engine. In 19.0, every such write repaints the grids that use the engine. An
 [`afterRender`](@/api/hooks.md#afterrender) hook that writes to the engine on every call now triggers
-a repaint, which calls the hook again, and the loop never ends.
+a repaint, which calls the hook again. The grid repaints until the call stack overflows, and `Formulas`
+logs a warning that the grid failed to repaint.
 
 ### Who is affected
 
@@ -2478,7 +2479,7 @@ a repaint, which calls the hook again, and the loop never ends.
 
 ### How to migrate
 
-Write only when the value differs, or wrap several writes in `engine.batch()` so the grid repaints once.
+Write only when the value differs. Wrapping the write in `engine.batch()` does not stop the loop.
 
 **Before:**
 
@@ -2499,3 +2500,5 @@ afterRender() {
   }
 }
 ```
+
+Outside a hook, `engine.batch()` still makes several writes repaint the grid once instead of once per write.
