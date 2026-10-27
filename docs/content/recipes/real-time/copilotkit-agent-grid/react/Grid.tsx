@@ -56,7 +56,7 @@ function GridImpl({ hotRef, initialColumns, initialData, themeName = 'ht-theme-m
 }
 
 // Memoized with referentially stable props so the parent's snapshot re-renders never re-render the
-// grid. This is load-bearing: @handsontable/react-wrapper re-applies the data prop through
-// updateSettings on every render, which would overwrite the instance-owned data and reset the undo
+// grid. Without the memo, @handsontable/react-wrapper would re-apply the data prop through
+// updateSettings on every render, overwriting the instance-owned data and resetting the undo
 // stack. Keep the initial data in a ref and the handlers in useCallback so these props never change.
 export const Grid = memo(GridImpl);

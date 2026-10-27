@@ -65,7 +65,7 @@ That makes the grid the opposite of a controlled component. Handsontable owns th
 
 The agent writes columns, rows, and `=` formulas. The grid computes the numbers. The agent never does arithmetic.
 
-> This recipe is the tool-calling counterpart to the [agent-driven grid with A2UI](@/recipes/real-time/a2ui-agent-grid/a2ui-agent-grid.md). There, the agent *describes* the grid in a declarative protocol and the client renders it. Here, the agent *calls functions* against a grid your app already owns. The payoff of this approach is agent-driven undo: a tool can undo across both the agent's and the user's edits.
+> This recipe is the tool-calling counterpart to the [agent-driven grid with A2UI](@/recipes/real-time/a2ui-agent-grid/a2ui-agent-grid.md). There, the agent *describes* the grid in a declarative protocol and the client renders it. Here, the agent *calls functions* against a grid your app already owns. What this approach buys you is agent-driven undo: a tool can undo across both the agent's and the user's edits.
 
 **Difficulty:** Intermediate
 **Time:** ~25 minutes
@@ -101,7 +101,7 @@ Handsontable touches `window`, so render the grid on the client only. In the Nex
 
 **What's happening:** the grid takes its data once, through `initialData`, and never again. After mount, every change goes through the live instance, which the parent reaches with `hotRef`. `formulas: { engine: HyperFormula }` turns every cell that starts with `=` into a live formula. `afterChange` and the create and remove hooks call `onMutate`, so the parent can refresh its snapshot after any change, including one the user makes by hand.
 
-`Grid` is wrapped in `React.memo`, and this is load-bearing. `@handsontable/react-wrapper` re-applies the `data` prop through `updateSettings` on every render, which would overwrite the instance-owned data and reset the undo stack. Keeping the component from re-rendering is how the grid gets to own its data while you still use the official React wrapper, so pass it only referentially stable props: a `useRef` for the initial data, and `useCallback` handlers.
+`Grid` is wrapped in `React.memo`, and the memo is a correctness requirement, not an optimization. `@handsontable/react-wrapper` re-applies the `data` prop through `updateSettings` on every render, which would overwrite the instance-owned data and reset the undo stack. Keeping the component from re-rendering is how the grid gets to own its data while you still use the official React wrapper, so pass it only referentially stable props: a `useRef` for the initial data, and `useCallback` handlers.
 
 Sorting, filtering, and row or column moving stay off. Those plugins work on visual indexes and rewrite the in-grid aggregate formulas -- a sort turns a totals row's `=SUM(D1:D3)` into `=SUM(#REF!)`, and a manual row move silently mangles the range. See [Known limitations](#known-limitations).
 
@@ -113,7 +113,7 @@ Sorting, filtering, and row or column moving stay off. Those plugins work on vis
 
 :::
 
-**What's happening:** these functions take a Handsontable instance and change it. They know nothing about CopilotKit, so the demo's script and the agent's tools call the same code. Three details carry the pattern:
+**What's happening:** these functions take a Handsontable instance and change it. They know nothing about CopilotKit, so the demo's script and the agent's tools call the same code. Three details matter:
 
 - **`setDataAtCell`, not `setSourceDataAtCell`.** The source-data path skips the edit pipeline, so HyperFormula would not recompute and the change would not enter the undo stack. `setDataAtCell` takes visual coordinates, so each physical coordinate the agent sends is translated with `toVisualRow` and `toVisualColumn`.
 - **`alter` actions are directional.** The valid actions are `insert_row_above`, `insert_row_below`, `insert_col_start`, `insert_col_end`, `remove_row`, and `remove_col`. There is no bare `insert_row`.
