@@ -373,15 +373,37 @@ Use `htmlRenderer` when your output is trusted HTML and you intentionally render
 
 Skip the built-in renderer when your renderer fully controls cell output from scratch, for example the image-based `coverRenderer` in [Render custom HTML in cells](#render-custom-html-in-cells).
 
-Both of the following call styles are valid:
+The simplest way to write such a renderer is [`rendererFactory()`](@/guides/cell-functions/custom-cells/custom-cells.md#rendererfactory). It passes all the cell arguments to your callback as a single object, so you don't need `this` or `arguments`. It works with both regular and arrow functions:
 
 ```js
-// Legacy style, common in classic JavaScript examples.
-textRenderer.apply(this, arguments);
+import { rendererFactory, textRenderer } from "handsontable/renderers";
 
-// Direct invocation style, common in ESM and TypeScript examples.
-textRenderer(instance, td, row, column, prop, value, cellProperties);
+const customRenderer = rendererFactory(
+  ({ instance, td, row, column, prop, value, cellProperties }) => {
+    textRenderer(instance, td, row, column, prop, value, cellProperties);
+
+    td.style.fontWeight = "bold";
+  }
+);
 ```
+
+If you write a plain renderer function instead, you can call the built-in renderer in one of two ways:
+
+```js
+// Direct invocation style, common in ESM and TypeScript examples.
+// Works in a `function` declaration and in an arrow function.
+textRenderer(instance, td, row, column, prop, value, cellProperties);
+
+// Legacy style, common in classic JavaScript examples.
+// Works only in a `function` declaration or a `function` expression.
+textRenderer.apply(this, arguments);
+```
+
+::: warning
+
+Don't use `textRenderer.apply(this, arguments)` in an arrow function. An arrow function has no `this` or `arguments` of its own. Depending on where you define it, your renderer either throws a `ReferenceError` or passes the wrong values to the built-in renderer, and the grid doesn't render correctly. Use a `function` declaration, call the built-in renderer directly, or use [`rendererFactory()`](@/guides/cell-functions/custom-cells/custom-cells.md#rendererfactory).
+
+:::
 
 ### Handsontable runs `baseRenderer` for you
 
