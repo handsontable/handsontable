@@ -1,4 +1,5 @@
 import { BasePlugin } from '../base';
+import { withPluginEngineWrite } from '../formulas/indexSyncer';
 import { Hooks } from '../../core/hooks';
 import type { HookCallback } from '../../core/hooks/bucket';
 import { SheetModel, clampSheetName, type Sheet, type SheetDescriptor } from './sheetModel';
@@ -3706,11 +3707,11 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Runs an engine call the bar makes itself and repaints every grid on that engine whose sheet it
-   * recalculated. The Formulas plugin repaints only after the engine calls it makes, so a formula
-   * reading a sheet the bar removed or added kept painting its old value while `getDataAtCell()`
-   * already returned the new one. The changes are read from the engine's `valuesUpdated` event, which
-   * also reports the recalculation an added sheet triggers. The grids are repainted through the
-   * Formulas plugin of the bar's grid, so only while it is bound to the same engine.
+   * recalculated, once. The call runs inside `withPluginEngineWrite`, so the Formulas listener does
+   * not paint the same `valuesUpdated` (a build feeds several sheets, and a paint per feed drew the
+   * other grids once per sheet). The changes are read from that event, which also reports the
+   * recalculation an added sheet triggers, and painted through the Formulas plugin of the bar's grid,
+   * so only while it is bound to the same engine.
    *
    * @param {object} engine The engine.
    * @param {Function} run The engine call.
@@ -3724,7 +3725,7 @@ export class SheetsBar extends BasePlugin {
     engine.on?.('valuesUpdated', collect);
 
     try {
-      run();
+      withPluginEngineWrite(run);
     } finally {
       engine.off?.('valuesUpdated', collect);
     }

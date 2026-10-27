@@ -42,7 +42,7 @@ import { toUpperCaseFirst } from '../../helpers/string';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { quoteUnreadableSheetNames } from '../../utils/formulaReferences';
 import { Hooks } from '../../core/hooks';
-import IndexSyncer from './indexSyncer';
+import IndexSyncer, { isPluginEngineWrite, withPluginEngineWrite } from './indexSyncer';
 import type AxisSyncer from './indexSyncer/axisSyncer';
 import type { EngineOrder } from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine, FormulasCellAddress, FormulasCellRange } from './engine/types';
@@ -751,7 +751,35 @@ export class Formulas extends BasePlugin {
     this.#invalidateHyperlinkCells();
     this.#markCellsThatBecameHyperlinks(changes);
     this.hot.runHooks('afterFormulasValuesUpdate', exportedChanges);
+    this.#renderSheetFromExternalEngineChange(changes);
   };
+
+  /**
+   * Paints this grid when the engine changed a cell on its sheet from outside the plugin.
+   *
+   * A plugin write already paints, through `renderDependentSheets` or the Core, so it runs inside
+   * `withPluginEngineWrite` and this stays quiet. Painting `this.hot` only (never every registered
+   * grid) keeps one paint per affected instance: each instance hears the same engine-wide event.
+   *
+   * @param {Array} changes The engine's change list.
+   */
+  #renderSheetFromExternalEngineChange(changes: unknown[]) {
+    if (isPluginEngineWrite() || this.sheetId === null || this.hot.isDestroyed || !this.hot.view) {
+      return;
+    }
+
+    const sheetId = this.sheetId;
+
+    for (let index = 0; index < changes.length; index += 1) {
+      const change = changes[index];
+
+      if (isHFCellChange(change) && change.address?.sheet === sheetId) {
+        this.hot.render();
+
+        return;
+      }
+    }
+  }
 
   /**
    * Marks the updated cells that resolve to a hyperlink now. A cell that became a `HYPERLINK` while
@@ -2331,7 +2359,7 @@ export class Formulas extends BasePlugin {
     const engine = this.engine!;
     const isUndo = context.direction === 'undo';
     let keptEdited = false;
-    const changes = engine.batch(() => {
+    const changes = withPluginEngineWrite(() => engine.batch(() => {
       stepEnd.peerRewrites.forEach((rewrite) => {
         const expected = isUndo ? rewrite.after : rewrite.before;
         const text = isUndo ? rewrite.before : rewrite.after;
@@ -2365,7 +2393,7 @@ export class Formulas extends BasePlugin {
             engine.getNamedExpression(rewrite.name, rewrite.scope)?.options);
         }
       });
-    });
+    }));
 
     if (keptEdited) {
       warnOnce(this.hot, 'formulas.undoKeptEditedPeerFormula', toSingleLine`Formulas: an undo or a redo left\x20
@@ -2469,7 +2497,9 @@ export class Formulas extends BasePlugin {
     this.#internalOperationPending = true;
 
     try {
-      const dependentCells = this.engine!.setSheetContent(this.sheetId, snapshot.content);
+      const dependentCells = withPluginEngineWrite(
+        () => this.engine!.setSheetContent(this.sheetId, snapshot.content)
+      );
 
       this.rowAxisSyncer!.adoptEngineOrder(snapshot.rowOrder);
       this.columnAxisSyncer!.adoptEngineOrder(snapshot.columnOrder);
@@ -3551,7 +3581,9 @@ export class Formulas extends BasePlugin {
     try {
       this.#sheetWriteCount += 1;
 
-      dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
+      dependentCells = withPluginEngineWrite(
+        () => this.engine!.setSheetContent(this.sheetId, sourceDataArray)
+      );
 
       this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
       this.renderDependentSheets(dependentCells);
@@ -3580,7 +3612,7 @@ export class Formulas extends BasePlugin {
     let dependentCells: unknown[] = [];
 
     try {
-      dependentCells = this.engine!.setSheetContent(this.sheetId, [[]]);
+      dependentCells = withPluginEngineWrite(() => this.engine!.setSheetContent(this.sheetId, [[]]));
 
       this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
       this.renderDependentSheets(dependentCells);
@@ -4109,11 +4141,11 @@ export class Formulas extends BasePlugin {
           return;
         }
 
-        const outOfBoundsDependentCells = this.engine!.batch(() => {
+        const outOfBoundsDependentCells = withPluginEngineWrite(() => this.engine!.batch(() => {
           outOfBoundsChanges.forEach(([row, column, newValue]) => {
             this.syncChangeWithEngine(row, column, newValue);
           });
-        });
+        }));
 
         this.renderDependentSheets(outOfBoundsDependentCells, true);
       });
@@ -4138,7 +4170,7 @@ export class Formulas extends BasePlugin {
 
     this.#markDataChanged();
 
-    const dependentCells = this.engine!.batch(() => {
+    const dependentCells = withPluginEngineWrite(() => this.engine!.batch(() => {
       changes.forEach(([visualRow, prop, oldValue, newValue]) => {
         if (typeof prop !== 'string' && typeof prop !== 'number') {
           return;
@@ -4173,7 +4205,7 @@ export class Formulas extends BasePlugin {
 
         changedCells.push({ address });
       });
-    });
+    }));
 
     return { dependentCells, changedCells, outOfBoundsChanges, writtenCells };
   }
@@ -4260,7 +4292,7 @@ export class Formulas extends BasePlugin {
     }
 
     const metaManager = this.hot._getMetaManager();
-    const dependents = engine.batch(() => {
+    const dependents = withPluginEngineWrite(() => engine.batch(() => {
       writtenCells.forEach(({ address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue }) => {
         let previous = this.#getValueGetterValue(physicalRow, physicalColumn, oldValue);
 
@@ -4275,7 +4307,7 @@ export class Formulas extends BasePlugin {
           engine.setCellContents(address, previous ?? null);
         }
       });
-    });
+    }));
 
     return Array.isArray(dependents) ? dependents : [];
   }
@@ -4391,11 +4423,13 @@ export class Formulas extends BasePlugin {
     });
 
     if (restored) {
-      this.engine!.batch(writeAll).forEach((dependentCell: unknown) => {
-        dependentCells.push(dependentCell);
+      withPluginEngineWrite(() => {
+        this.engine!.batch(writeAll).forEach((dependentCell: unknown) => {
+          dependentCells.push(dependentCell);
+        });
       });
     } else {
-      writeAll();
+      withPluginEngineWrite(writeAll);
     }
 
     this.renderDependentSheets(dependentCells, restored);
@@ -4771,8 +4805,8 @@ export class Formulas extends BasePlugin {
 
     this.#markStructureChanged();
 
-    const changes = this.#trackPeerRewrites(() => this.engine!.addRows(this.sheetId,
-      [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount]));
+    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(() => this.engine!.addRows(this.sheetId,
+      [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount])));
 
     this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
@@ -4796,8 +4830,10 @@ export class Formulas extends BasePlugin {
 
     this.#markStructureChanged();
 
-    const changes = this.#trackPeerRewrites(() => this.engine!.addColumns(this.sheetId,
-      [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]));
+    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(() => this.engine!.addColumns(
+      this.sheetId,
+      [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]
+    )));
 
     this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
@@ -4824,9 +4860,9 @@ export class Formulas extends BasePlugin {
 
     const removedSpans = coalesceIndexesToSpans(this.rowAxisSyncer!.getRemovedHfIndexes());
 
-    const changes = this.#trackPeerRewrites(() => this.engine!.batch(() => {
+    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(() => this.engine!.batch(() => {
       this.#removeSpansFromEngine(removedSpans, 'removeRows');
-    }));
+    })));
 
     this.#syncFormulasToSourceData(true);
     this.renderDependentSheets(changes);
@@ -4853,9 +4889,9 @@ export class Formulas extends BasePlugin {
 
     const removedSpans = coalesceIndexesToSpans(this.columnAxisSyncer!.getRemovedHfIndexes());
 
-    const changes = this.#trackPeerRewrites(() => this.engine!.batch(() => {
+    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(() => this.engine!.batch(() => {
       this.#removeSpansFromEngine(removedSpans, 'removeColumns');
-    }));
+    })));
 
     this.#syncFormulasToSourceData(true);
     this.renderDependentSheets(changes);
@@ -5029,11 +5065,11 @@ export class Formulas extends BasePlugin {
       if (isCopy) {
         // copy() reads cell values and cannot run inside batch() (evaluation must not be suspended).
         this.engine.copy(source);
-        this.#moveCellsChanges = this.engine.paste(dest);
+        this.#moveCellsChanges = withPluginEngineWrite(() => this.engine!.paste(dest));
       } else {
-        this.#moveCellsChanges = this.#trackPeerRewrites(() => this.engine!.batch(() => {
+        this.#moveCellsChanges = this.#trackPeerRewrites(() => withPluginEngineWrite(() => this.engine!.batch(() => {
           this.engine!.moveCells(source, dest);
-        }));
+        })));
       }
     } catch (e) {
       const operation = isCopy ? 'copy/paste' : 'moveCells';
@@ -5286,13 +5322,15 @@ export class Formulas extends BasePlugin {
       // trimming map, under which the visual and physical row spaces genuinely differ.
       this.#escapeSourceDataArray(rowsData, finalElementRowIndex, 0);
 
-      rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
-        row.forEach((value: unknown, colIndex: number) => {
-          this.engine?.setCellContents({
-            col: colIndex,
-            row: finalElementRowIndex + relativeRowIndex,
-            sheet: this.sheetId
-          }, [[value]]);
+      withPluginEngineWrite(() => {
+        rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
+          row.forEach((value: unknown, colIndex: number) => {
+            this.engine?.setCellContents({
+              col: colIndex,
+              row: finalElementRowIndex + relativeRowIndex,
+              sheet: this.sheetId
+            }, [[value]]);
+          });
         });
       });
     } finally {

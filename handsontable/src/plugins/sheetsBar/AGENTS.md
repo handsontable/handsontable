@@ -193,11 +193,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   the build. Sheet names are compared with plain `toLowerCase()`, as the engine compares them: a
   locale-aware lower case turned `ITEMS` into `ıtems` on a Turkish host. Every engine call the bar makes itself (add, feed, remove, the copied
   named expressions) runs through `#withEngineRepaint()`, which collects the engine's
-  `valuesUpdated` changes and repaints the grids that read them (`Formulas#renderDependentSheets()`):
-  the Formulas plugin repaints only after its own engine calls, so a formula reading a sheet the bar
-  removed kept painting its old value. It repaints only while the bar's grid is bound to that
-  engine, and a workbook build repaints once when it ends (`#repaintAfterBuild`), not once per fed
-  sheet while the grid still shows the previous workbook. A removed sheet is removed
+  `valuesUpdated` changes and repaints the grids that read them (`Formulas#renderDependentSheets()`).
+  The call runs inside `withPluginEngineWrite`, so the Formulas listener does not paint that same
+  change again. The repaint runs only while the bar's grid is bound to that engine, and a workbook
+  build repaints once when it ends (`#repaintAfterBuild`), not once per fed sheet while the grid
+  still shows the previous workbook. A removed sheet is removed
   from the engine; a duplicate binds to an engine sheet of its own, with its references to its
   own sheet name pointed at the copy and the original's sheet-scoped named expressions copied
   before its content is fed (`#registerFormulaCopy()`); a runtime-added sheet with

@@ -922,6 +922,12 @@ can clip for as long as the mode is on. No render or settings change recalculate
 trade-off for keeping the toggle purely display-only rather than feeding the sampler a second, mode-
 dependent measurement path.
 
+## External engine changes
+
+`valuesUpdated` is engine-wide, and `#onEngineValuesUpdated` is the only place an engine write that did not come from this plugin can paint. The listener calls `hot.render()` once when the change list names this instance's sheet. It does not copy the engine value into source data, and it does not validate.
+
+A plugin write already paints, through `renderDependentSheets` or the Core. Those writes run inside `withPluginEngineWrite` (`indexSyncer/index.ts`), and the listener stays quiet while that depth is above zero. HyperFormula emits inside `batch()` before `batch()` returns, so the counter wraps the `batch()` call, not the `setCellContents` nested in it. `getEngine()` returns a proxy over the same counter because `axisSyncer.ts` writes the engine and is left unchanged. The SheetsBar plugin wraps its own engine calls in the same counter and paints once itself (`#withEngineRepaint`). The engine object the user holds stays raw, so `engine.setCellContents` from outside still paints. A second paint shows up when a new engine write is added without the counter.
+
 ## Testing
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='formulas'`
