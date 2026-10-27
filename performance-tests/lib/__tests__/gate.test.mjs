@@ -9,9 +9,12 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  CONFIRM_MAX_SCENARIOS,
   GATE_BASE_BRANCH,
   GATE_MODE,
   classifyScenario,
+  confirmCandidates,
+  confirmVerdict,
   decideGate,
   formatGateNotice,
   gateMode,
@@ -316,19 +319,85 @@ describe('formatGateNotice', () => {
     assert.equal(
       formatGateNotice(verdict),
       '::notice title=perf-gate::status=fail mode=warn failing=sorting absorbed=- watching=filtering '
-        + `shift=${verdict.shift.toFixed(1)}`
+        + `shift=${verdict.shift.toFixed(1)} rerun=- cleared=-`
     );
   });
 
   test('prints a tiny negative shift as 0.0, never -0.0', () => {
     const notice = formatGateNotice({ ...gate(), shift: -0.036 });
 
-    assert.match(notice, / shift=0\.0$/);
+    assert.match(notice, / shift=0\.0 /);
   });
 
   test('prints a dash for an unknown shift', () => {
     const verdict = gate({ extra: { baseRef: 'master' } });
 
-    assert.match(formatGateNotice(verdict), /^::notice title=perf-gate::status=not-assessed .* shift=-$/);
+    assert.match(formatGateNotice(verdict), /^::notice title=perf-gate::status=not-assessed .* shift=- /);
+  });
+
+  test('names what the confirm re-run re-ran and cleared', () => {
+    const first = gate({ current: { sorting: entry(130), filtering: entry(130) } });
+    const second = gate({ current: { sorting: entry(130) } });
+
+    // In the assessment's order, which is alphabetical.
+    assert.match(formatGateNotice(confirmVerdict(first, second)), / rerun=filtering,sorting cleared=filtering$/);
+  });
+});
+
+describe('confirmCandidates', () => {
+  const failing = count => ({ failing: NAMES.slice(0, count).map(name => ({ name })) });
+
+  test('re-runs every failing scenario up to the cap', () => {
+    assert.equal(CONFIRM_MAX_SCENARIOS, 4, 'test assumes a cap of 4');
+    assert.deepEqual(confirmCandidates(failing(1)), ['sorting']);
+    assert.deepEqual(confirmCandidates(failing(4)), NAMES.slice(0, 4));
+  });
+
+  test('re-runs nothing above the cap, and nothing when nothing failed', () => {
+    assert.deepEqual(confirmCandidates(failing(5)), []);
+    assert.deepEqual(confirmCandidates(failing(0)), []);
+    assert.deepEqual(confirmCandidates(null), []);
+  });
+
+  test('does not re-run a run that failed only on its shift', () => {
+    const slower = Object.fromEntries(NAMES.map(name => [name, entry(107)]));
+    const verdict = gate({ current: slower });
+
+    assert.equal(verdict.status, 'fail');
+    assert.deepEqual(confirmCandidates(verdict), []);
+  });
+});
+
+describe('confirmVerdict', () => {
+  test('a slowdown the re-run repeats still fails', () => {
+    const first = gate({ current: { sorting: entry(130) } });
+    const verdict = confirmVerdict(first, gate({ current: { sorting: entry(131) } }));
+
+    assert.equal(verdict.status, 'fail');
+    assert.deepEqual(verdict.rerun, { scenarios: ['sorting'], confirmed: ['sorting'], cleared: [] });
+  });
+
+  test('a slowdown the re-run does not repeat passes, and is listed with its first numbers', () => {
+    const first = gate({ current: { sorting: entry(130) } });
+    const verdict = confirmVerdict(first, gate());
+
+    assert.equal(verdict.status, 'pass');
+    assert.deepEqual(verdict.failing, []);
+    assert.deepEqual(verdict.rerun.confirmed, []);
+    assert.deepEqual(verdict.rerun.cleared.map(s => [s.name, s.deltaMs]), [['sorting', 30]]);
+  });
+
+  test('judges each re-run scenario on its own', () => {
+    const first = gate({ current: { sorting: entry(130), filtering: entry(130) } });
+    const verdict = confirmVerdict(first, gate({ current: { sorting: entry(130) } }));
+
+    assert.equal(verdict.status, 'fail');
+    assert.deepEqual(verdict.failing.map(s => s.name), ['sorting']);
+    assert.deepEqual(verdict.rerun.confirmed, ['sorting']);
+    assert.deepEqual(verdict.rerun.cleared.map(s => s.name), ['filtering']);
+  });
+
+  test('a run without a re-run says so', () => {
+    assert.equal(gate().rerun, null);
   });
 });

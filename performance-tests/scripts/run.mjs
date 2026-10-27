@@ -3,7 +3,7 @@
 // Usage:
 //   node scripts/run.mjs                    # run scenarios, generate report
 //   PERF_MODE=golden  node scripts/run.mjs  # run scenarios, save golden snapshots
-//   PERF_MODE=compare node scripts/run.mjs  # run scenarios, compare to golden
+//   PERF_MODE=compare node scripts/run.mjs  # run scenarios, compare to golden, re-run the failing ones
 
 import { exec, spawn } from 'node:child_process';
 import { readdir, mkdir, copyFile } from 'node:fs/promises';
@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { promisify } from 'node:util';
 
 import { exists } from '../lib/fs-utils.mjs';
+import { prepareConfirmPass } from '../lib/confirm-pass.mjs';
 
 const execAsync = promisify(exec);
 
@@ -82,29 +83,53 @@ if (await exists(stylesDir)) {
 console.log('\n=== Installing Playwright Chromium ===\n');
 await run('npx playwright install chromium', { cwd: ROOT });
 
-// 6. Run Playwright tests (stream output so GH Actions logs show progress)
+/**
+ * Runs Playwright, streaming its output so the GitHub Actions log shows progress.
+ *
+ * @param {string[]} [files] -- spec files to run; all of them when empty
+ * @param {Record<string, string>} [env] -- added to this process's environment
+ * @returns {Promise<void>}
+ */
+function runPlaywright(files = [], env = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn('npx', ['playwright', 'test', ...files], {
+      cwd: ROOT,
+      stdio: 'inherit',
+      shell: true,
+      env: { ...process.env, ...env },
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Playwright exited with code ${code}`));
+      }
+    });
+
+    child.on('error', reject);
+  });
+}
+
+// 6. Run Playwright tests
 console.log('\n=== Running performance scenarios ===\n');
-await new Promise((resolve, reject) => {
-  const child = spawn('npx', ['playwright', 'test'], {
-    cwd: ROOT,
-    stdio: 'inherit',
-    shell: true,
-  });
+await runPlaywright();
 
-  child.on('close', (code) => {
-    if (code === 0) {
-      resolve();
-    } else {
-      reject(new Error(`Playwright exited with code ${code}`));
-    }
-  });
-
-  child.on('error', reject);
-});
-
-// 7. If golden mode, copy snapshots
 const mode = process.env.PERF_MODE;
 
+// 7. Pull request runs: re-run the scenarios the regression gate failed, and let the verdict stand
+// only for those that fail again (lib/gate.mjs, CONFIRM_MAX_SCENARIOS). The re-run's own global
+// teardown writes the final reports and verdict.
+if (mode === 'compare') {
+  const confirmFiles = await prepareConfirmPass(join(ROOT, 'output'));
+
+  if (confirmFiles.length > 0) {
+    console.log(`\n=== Re-running ${confirmFiles.length} failing scenario(s) to confirm them ===\n`);
+    await runPlaywright(confirmFiles, { PERF_CONFIRM_PASS: '1' });
+  }
+}
+
+// 8. If golden mode, copy snapshots
 if (mode === 'golden') {
   const goldenDir = join(ROOT, 'golden');
   const snapshotsSource = join(ROOT, 'output', 'snapshots.json');

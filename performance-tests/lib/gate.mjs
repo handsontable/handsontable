@@ -27,6 +27,18 @@ export const GATE_BASE_BRANCH = 'develop';
 
 export const GATE_VERDICT_FILE = 'verdict.json';
 
+// The confirm re-run. A scenario that fails is run once more on its own before the verdict stands,
+// and it fails only when the second run fails too: the self-hosted runner has short slow spells
+// that move one scenario and nothing else (PR #13917, Scroll Down +21.4% at a run-to-run spread of
+// 0.6% and a run shift of +0.2%), and no replay of the develop goldens can see them. The cap keeps
+// the job's worst case bounded; a run with more failing scenarios than this is not one slow spell,
+// and its verdict stands. A run-shift failure is not re-run: it is already a median across every
+// scenario, which one slow spell does not move.
+export const CONFIRM_MAX_SCENARIOS = 4;
+// The first pass's verdict and traces, kept beside the confirmed ones for the artifact.
+export const GATE_FIRST_PASS_FILE = 'verdict-first-pass.json';
+export const GATE_FIRST_PASS_DIR = 'first-pass';
+
 export const GATE_RULES = Object.freeze({
   timingThreshold: GATE_TIMING_THRESHOLD,
   floorMs: GATE_TIMING_FLOOR_MS,
@@ -198,6 +210,8 @@ export function decideGate({
     shift: null,
     newestShift: null,
     shiftFailed: false,
+    // Set by confirmVerdict when failing scenarios were re-run.
+    rerun: null,
     baseline: {
       timestamp: baseline?.timestamp ?? null,
       newestTimestamp: newest?.timestamp ?? null,
@@ -276,6 +290,45 @@ export function decideGate({
 }
 
 /**
+ * The scenarios to re-run before a verdict stands: every failing one, unless there are more than
+ * the cap, in which case none (see CONFIRM_MAX_SCENARIOS).
+ *
+ * @param {object | null | undefined} verdict -- from decideGate
+ * @param {number} [max]
+ * @returns {string[]} scenario names, in the verdict's order
+ */
+export function confirmCandidates(verdict, max = CONFIRM_MAX_SCENARIOS) {
+  const names = (verdict?.failing ?? []).map(scenario => scenario.name);
+
+  return names.length <= max ? names : [];
+}
+
+/**
+ * The verdict after the re-run. The second pass judges every scenario on the data it holds -- the
+ * re-run traces for the scenarios that were re-run, the first pass's for the rest -- so a scenario
+ * fails only when it failed both times. A scenario the re-run cleared is listed with the first
+ * pass's numbers, which is what a reader of the warn period needs to tell a slow spell from noise.
+ *
+ * @param {object} firstPass -- the verdict that chose the scenarios to re-run
+ * @param {object} secondPass -- the verdict decided over the re-run data
+ * @returns {object} the second pass, with `rerun` set
+ */
+export function confirmVerdict(firstPass, secondPass) {
+  const scenarios = confirmCandidates(firstPass);
+  const stillFailing = new Set(secondPass.failing.map(scenario => scenario.name));
+
+  return {
+    ...secondPass,
+    rerun: {
+      scenarios,
+      confirmed: scenarios.filter(name => stillFailing.has(name)),
+      cleared: firstPass.failing.filter(scenario => scenarios.includes(scenario.name)
+        && !stillFailing.has(scenario.name)),
+    },
+  };
+}
+
+/**
  * One fixed-prefix line per run, so the warn period can be counted from the job logs.
  *
  * @param {object} verdict -- from decideGate
@@ -292,6 +345,8 @@ export function formatGateNotice(verdict) {
     `absorbed=${names(verdict.absorbed)}`,
     `watching=${names(verdict.watching)}`,
     `shift=${verdict.shift == null ? '-' : shift(verdict.shift)}`,
+    `rerun=${verdict.rerun?.scenarios.length ? verdict.rerun.scenarios.join(',') : '-'}`,
+    `cleared=${names(verdict.rerun?.cleared ?? [])}`,
   ];
 
   return `::notice title=perf-gate::${parts.join(' ')}`;

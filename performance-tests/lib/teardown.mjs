@@ -12,7 +12,13 @@ import { HOOK_TIMING_FILE } from './hook-timing.mjs';
 import { readSidecar } from './sidecar.mjs';
 import { saveSnapshots, loadBaseline } from './snapshot-store.mjs';
 import { assessReport, buildReport, collectRegressions } from './report-builder.mjs';
-import { GATE_VERDICT_FILE, decideGate, formatGateNotice, gateMode } from './gate.mjs';
+import {
+  GATE_FIRST_PASS_FILE,
+  GATE_VERDICT_FILE,
+  confirmVerdict,
+  decideGate,
+  gateMode,
+} from './gate.mjs';
 import { buildHtmlReport } from './html-report-builder.mjs';
 import { HARNESS_VERSION } from './trace-runner.mjs';
 import {
@@ -442,7 +448,7 @@ export default async function teardown() {
   const newestAssessment = newest && golden && !golden.isSelfCompare
     ? assessReport(newest.scenarios || {}, golden, {})
     : null;
-  const verdict = decideGate({
+  let verdict = decideGate({
     assessment,
     newestAssessment,
     baseline: golden,
@@ -453,12 +459,16 @@ export default async function teardown() {
     mode: gateMode(),
   });
 
-  await writeFile(join(OUTPUT_DIR, GATE_VERDICT_FILE), `${JSON.stringify(verdict, null, 2)}\n`, 'utf8');
+  // The confirm re-run's teardown (scripts/run.mjs re-runs the failing scenarios, and Playwright runs
+  // the global teardown again after them): judge the re-run data, then record which scenarios it
+  // confirmed and which it cleared.
+  if (process.env.PERF_CONFIRM_PASS) {
+    const firstPass = JSON.parse(await readFile(join(OUTPUT_DIR, GATE_FIRST_PASS_FILE), 'utf8'));
 
-  // Pull request runs only: the warn period is counted from these lines.
-  if (process.env.GITHUB_ACTIONS && mode === 'compare') {
-    console.log(formatGateNotice(verdict));
+    verdict = confirmVerdict(firstPass, verdict);
   }
+
+  await writeFile(join(OUTPUT_DIR, GATE_VERDICT_FILE), `${JSON.stringify(verdict, null, 2)}\n`, 'utf8');
 
   // On develop, a regression against the trailing median is the develop push's own news. Annotate
   // the run so it is seen where it happened; the snapshot is still deployed as recorded.

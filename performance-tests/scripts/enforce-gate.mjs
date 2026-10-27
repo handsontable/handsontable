@@ -11,7 +11,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { GATE_VERDICT_FILE } from '../lib/gate.mjs';
+import { GATE_VERDICT_FILE, formatGateNotice } from '../lib/gate.mjs';
 import { enforcement } from '../lib/gate-enforce.mjs';
 
 const VERDICT_PATH = join(import.meta.dirname, '..', 'output', GATE_VERDICT_FILE);
@@ -42,7 +42,14 @@ async function readBody() {
   return process.env.PERF_PR_BODY ?? '';
 }
 
-const { exitCode, lines } = enforcement({ verdict: await readVerdict(), body: await readBody() });
+const verdict = await readVerdict();
+const { exitCode, lines } = enforcement({ verdict, body: await readBody() });
+
+// One per pull request run, with the final verdict (after any confirm re-run): the warn period is
+// counted from these lines.
+if (verdict) {
+  console.log(formatGateNotice(verdict));
+}
 
 for (const line of lines) {
   console.log(line);

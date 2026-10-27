@@ -20,10 +20,12 @@ jobs:
     # itself allows, or a run whose scenarios time out is cancelled before its
     # teardown and reports nothing: setup (the slowest successful run took 19.3
     # minutes, a 10.7-minute pnpm cache restore), both download attempts, and 18
-    # scenarios run one at a time, each up to its 5-minute Playwright timeout.
+    # scenarios run one at a time, each up to its 5-minute Playwright timeout,
+    # plus the regression gate's confirm re-run of up to CONFIRM_MAX_SCENARIOS
+    # (performance-tests/lib/gate.mjs) failing ones at the same timeout.
     # perf-artifact-download.test.mjs derives that sum from the config and fails
     # when a scenario or a longer timeout outgrows this.
-    timeout-minutes: 126
+    timeout-minutes: 146
     permissions:
       contents: write
       pull-requests: write
