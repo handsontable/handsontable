@@ -215,6 +215,33 @@ describe('Formulas: an insert followed by an undo', () => {
     });
   });
 
+  describe('with a sheet the host grew after the last undo step was recorded', () => {
+    it('should keep the size the host gave the sheet when a row is inserted and undone', () => {
+      hot = new Handsontable(container, {
+        data: [[10, '=A1*2'], [20, '=A2*2'], [null, null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+        undoRedo: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      const address = { sheet: engine.getSheetId('Sheet1'), row: 5, col: 12 };
+
+      hot.setDataAtCell(0, 0, 11);
+      engine.setCellContents(address, 0);
+      engine.setCellContents(address, null);
+
+      const size = dimensions();
+
+      expect(size).toEqual({ width: 13, height: 6 });
+
+      hot.alter('insert_row_above', 1);
+      undo();
+
+      expect(dimensions()).toEqual(size);
+      expect(hot.getData()).toEqual([[11, 22], [20, 40], [null, null]]);
+    });
+  });
+
   describe('with a formula that reads a whole column or row (known limit)', () => {
     const CYCLES_PINNED = 5;
 
