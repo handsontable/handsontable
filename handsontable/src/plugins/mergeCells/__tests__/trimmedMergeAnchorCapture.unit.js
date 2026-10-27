@@ -184,12 +184,12 @@ describe('MergeCells anchor captured while rows are trimmed', () => {
     hot.getPlugin('trimRows').trimRows([2, 3]);
 
     // Visual rows 1 and 2 are the physical rows 1 and 4.
-    mergeCells.merge(1, 1, 2, 1);
+    mergeCells.merge(1, 0, 2, 0);
     hot.getPlugin('trimRows').untrimAll();
 
     // The second merge keeps the rows it covered and does not claim physical rows 2 and 3.
     expect(mergeCells.mergedCellsCollection.mergedCells.map(({ row, col, rowspan }) => [row, col, rowspan]))
-      .toEqual([[2, 0, 2], [1, 1, 2]]);
+      .toEqual([[2, 0, 2], [1, 0, 2]]);
   });
 
   it('should not take a stretch that holds a visible row the merge does not cover', () => {
@@ -206,5 +206,17 @@ describe('MergeCells anchor captured while rows are trimmed', () => {
 
     // The merge keeps the three rows it covered and takes no visible row it did not cover.
     expect(mergeGeometry().map(([, , rowspan]) => rowspan)).toEqual([3]);
+  });
+
+  it('should take a trimmed row that a merge in another column owns', () => {
+    createGrid({ trimRows: [2] });
+
+    const mergeCells = hot.getPlugin('mergeCells');
+
+    mergeCells.merge(1, 0, 3, 0);
+    mergeCells.merge(1, 1, 3, 1);
+    hot.getPlugin('trimRows').untrimAll();
+
+    expect(mergeGeometry()).toEqual([[1, 0, 4, 1], [1, 1, 4, 1]]);
   });
 });

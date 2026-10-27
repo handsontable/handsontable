@@ -1820,7 +1820,7 @@ export class MergeCells extends BasePlugin {
     }
 
     const drawnRows = this.#getDrawnPhysicalRows(merge);
-    const physicalRows = trimmingActive && takeTrimmedGaps ? this.#fillTrimmedGaps(drawnRows) : drawnRows;
+    const physicalRows = trimmingActive && takeTrimmedGaps ? this.#fillTrimmedGaps(merge, drawnRows) : drawnRows;
 
     if (physicalRows.length > 0) {
       this.#mergeAnchors.set(merge, { physicalRows, physicalColumn });
@@ -1836,7 +1836,7 @@ export class MergeCells extends BasePlugin {
    * @param {number[]} drawnRows The physical rows the merge covers on screen, in visual order.
    * @returns {number[]} The anchor's physical rows, in visual order.
    */
-  #fillTrimmedGaps(drawnRows: number[]): number[] {
+  #fillTrimmedGaps(merge: MergedCellCoords, drawnRows: number[]): number[] {
     if (drawnRows.length < 2) {
       return drawnRows;
     }
@@ -1852,7 +1852,7 @@ export class MergeCells extends BasePlugin {
 
     const stretch = sequence.slice(first, last + 1);
     const drawn = new Set(drawnRows);
-    const owned = this.#getAnchoredRows();
+    const owned = this.#getRowsOwnedBesides(merge);
 
     // Take the stretch only when every row in it is covered or trimmed and none belongs to another
     // merge. A visible row that is not covered means the index cache and the sequence disagree (inside
@@ -1864,15 +1864,21 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Returns the physical rows that the anchors of the merges list already own.
+   * Returns the physical rows that the anchors of the other merges own in the columns the given merge
+   * spans. A merge in another column owns the same rows without any conflict.
    *
+   * @param {MergedCellCoords} merge The merge that asks.
    * @returns {Set<number>}
    */
-  #getAnchoredRows(): Set<number> {
+  #getRowsOwnedBesides(merge: MergedCellCoords): Set<number> {
     const rows = new Set<number>();
 
-    this.mergedCellsCollection.mergedCells.forEach((merge) => {
-      this.#mergeAnchors.get(merge)?.physicalRows.forEach(row => rows.add(row));
+    this.mergedCellsCollection.mergedCells.forEach((other) => {
+      const sharesColumns = other.col < merge.col + merge.colspan && merge.col < other.col + other.colspan;
+
+      if (other !== merge && sharesColumns) {
+        this.#mergeAnchors.get(other)?.physicalRows.forEach(row => rows.add(row));
+      }
     });
 
     return rows;

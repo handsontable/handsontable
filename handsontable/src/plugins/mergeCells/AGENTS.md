@@ -163,10 +163,10 @@ trimmed, and the anchor is what create-then-trim produces. Four things to keep:
   trimmed keeps its values. `getData()` and an export still return them.
 - **The merge does not grow over a trimmed row above its first covered row or below its last one.** Only
   the stretch between them counts. `trimmedMergeAnchorCapture.unit.js` pins both edges.
-- **The stretch is taken only when every row in it is covered, or trimmed and owned by no other merge.**
+- **The stretch is taken only when every row in it is covered, or trimmed and owned by no other merge in the same columns.**
   A merge whose rows are all trimmed is purged from the lookup matrix, so `isOverlapping` lets a new merge
   be made over its rows, and filling them would put one row in two anchors that no later trim can pull
-  apart. A visible row that is not covered means the index cache and the sequence disagree (a row move
+  apart. A merge in other columns owns the same rows without conflict, so ownership is read per column span. A visible row that is not covered means the index cache and the sequence disagree (a row move
   or sort inside `hot.batch()`, where the cache refreshes at the end), so the old anchor is kept.
 
 The clipping is not cosmetic. A trimmed row has no visual index at all, so the visual row space is
