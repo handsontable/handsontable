@@ -258,6 +258,142 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
     expect(hot.getDataAtCell(0, 2)).toBe(100);
   });
 
+  describe('when blank rows are moved around a grid with little content', () => {
+    const buildLongGrid = (blankRows) => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      const data = [];
+
+      for (let row = 0; row < blankRows + 10; row += 1) {
+        data.push(row < 10 ? [row + 1, `=A${row + 1}*2`] : [null, null]);
+      }
+
+      hot = new Handsontable(container, {
+        data,
+        formulas: { engine, sheetName: 'Sheet1' },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      return engine;
+    };
+
+    it('should keep the engine sheet as short as the content needs when a blank row goes to the top and back', () => {
+      const engine = buildLongGrid(1990);
+      const sheetId = engine.getSheetId('Sheet1');
+      const setRowOrder = jest.spyOn(engine, 'setRowOrder');
+      const sequence = hot.rowIndexMapper.getIndexesSequence().slice();
+
+      hot.rowIndexMapper.setIndexesSequence([1999, ...sequence.filter(index => index !== 1999)]);
+
+      expect(engine.getSheetDimensions(sheetId).height).toBe(11);
+
+      hot.rowIndexMapper.setIndexesSequence(sequence);
+
+      expect(engine.getSheetDimensions(sheetId).height).toBe(11);
+
+      hot.rowIndexMapper.setIndexesSequence([1500, ...sequence.filter(index => index !== 1500)]);
+
+      expect(engine.getSheetDimensions(sheetId).height).toBe(11);
+      setRowOrder.mock.calls.forEach(([, order]) => expect(order.length).toBeLessThanOrEqual(11));
+      expect(hot.getData().slice(0, 12)).toEqual([
+        [null, null], [1, 2], [2, 4], [3, 6], [4, 8], [5, 10], [6, 12], [7, 14], [8, 16], [9, 18], [10, 20],
+        [null, null],
+      ]);
+    });
+
+    it('should keep what is typed into a blank row that was padded when the row moves back down', () => {
+      const engine = buildLongGrid(30);
+      const sequence = hot.rowIndexMapper.getIndexesSequence().slice();
+
+      hot.rowIndexMapper.setIndexesSequence([39, ...sequence.filter(index => index !== 39)]);
+      hot.setDataAtCell(0, 0, 77);
+      hot.setDataAtCell(0, 1, '=A1*2');
+      hot.rowIndexMapper.setIndexesSequence(sequence);
+
+      expect(hot.getDataAtCell(39, 0)).toBe(77);
+      expect(hot.getDataAtCell(39, 1)).toBe(154);
+      expect(hot.getDataAtCell(9, 1)).toBe(20);
+      expect(engine.getSheetDimensions(engine.getSheetId('Sheet1')).height).toBe(40);
+    });
+  });
+
+  it('should keep the engine sheet as narrow as the content needs when a blank column goes to the left and back', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const row = [1, '=A1*2', ...new Array(498).fill(null)];
+
+    hot = new Handsontable(container, {
+      data: [row, row.slice()],
+      formulas: { engine, sheetName: 'Sheet1' },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const sheetId = engine.getSheetId('Sheet1');
+    const setColumnOrder = jest.spyOn(engine, 'setColumnOrder');
+    const sequence = hot.columnIndexMapper.getIndexesSequence().slice();
+
+    hot.columnIndexMapper.setIndexesSequence([499, ...sequence.filter(index => index !== 499)]);
+    hot.columnIndexMapper.setIndexesSequence(sequence);
+    hot.columnIndexMapper.setIndexesSequence([300, ...sequence.filter(index => index !== 300)]);
+
+    expect(engine.getSheetDimensions(sheetId).width).toBe(3);
+    setColumnOrder.mock.calls.forEach(([, order]) => expect(order.length).toBeLessThanOrEqual(3));
+    expect(hot.getDataAtRow(0).slice(0, 4)).toEqual([null, 1, 2, null]);
+  });
+
+  describe('when rows appear in the engine after an order that padded it', () => {
+    const buildGrid = (data) => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      hot = new Handsontable(container, {
+        data,
+        formulas: { engine, sheetName: 'Sheet1' },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      return engine;
+    };
+
+    it('should keep a formula typed into a padded row valid when the grid goes to another order', () => {
+      buildGrid([[10, 20], [30, 40], [null, null], [null, null], [null, null]]);
+
+      hot.rowIndexMapper.setIndexesSequence([3, 1, 0, 4, 2]);
+      hot.setDataAtCell(4, 0, 99);
+      hot.setDataAtCell(4, 1, '=A5*2');
+      hot.rowIndexMapper.setIndexesSequence([1, 0, 2, 3, 4]);
+
+      expect(hot.getData()).toEqual([[30, 40], [10, 20], [99, 198], [null, null], [null, null]]);
+    });
+
+    it('should keep a formula typed into a row below a padded blank valid when the blanks swap back', () => {
+      buildGrid([[10, 20], [30, 40], [null, null], [null, null], [null, null]]);
+
+      hot.rowIndexMapper.setIndexesSequence([1, 0, 3, 2, 4]);
+      hot.setDataAtCell(2, 0, 99);
+      hot.setDataAtCell(2, 1, '=A3*2');
+      hot.setDataAtCell(3, 0, 7);
+      hot.rowIndexMapper.setIndexesSequence([0, 1, 3, 2, 4]);
+
+      expect(hot.getData()).toEqual([[10, 20], [30, 40], [99, 198], [7, null], [null, null]]);
+    });
+  });
+
+  it('should show the right values for an initial `manualRowMove` order that puts a blank row in front', () => {
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+    hot = new Handsontable(container, {
+      data: [['10', '=A1*2'], ['20', '=A2*2'], [null, null]],
+      formulas: { engine, sheetName: 'Sheet1' },
+      manualRowMove: [2, 0, 1],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    expect(hot.getData()).toEqual([[null, null], ['10', 20], ['20', 40]]);
+
+    hot.setDataAtCell(0, 0, 5);
+    hot.setDataAtCell(0, 1, '=A2+A3');
+
+    expect(hot.getDataAtCell(0, 1)).toBe(30);
+  });
+
   describe('when the host has the engine batched or suspended', () => {
     const buildGrid = () => {
       const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });

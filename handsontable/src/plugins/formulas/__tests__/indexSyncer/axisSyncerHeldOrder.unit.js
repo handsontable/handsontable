@@ -1,5 +1,6 @@
 import AxisSyncer from '../../indexSyncer/axisSyncer';
 import IndexSyncer from '../../indexSyncer';
+import { createMockEngine } from './helpers/mockEngine';
 
 /**
  * Builds an index mapper stub whose sequence a test can replace.
@@ -156,5 +157,25 @@ describe('AxisSyncer while the order is held', () => {
     axisSyncer.calculateAndSyncMoves(true, true);
 
     expect(engine.calls.map(([method]) => method)).toEqual(['moveRows']);
+  });
+
+  it('extends the sheet and sends the full order on release when the grid ended on a blank row in front', () => {
+    const engine = createMockEngine({ width: 1, height: 2 });
+    const indexMapper = createMockIndexMapper([0, 1, 2]);
+    const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer(engine));
+
+    engine.occupied.add('0:0');
+    engine.occupied.add('1:0');
+    axisSyncer.setOrderHeld(true);
+    indexMapper.state.indexesSequence = [2, 0, 1];
+    axisSyncer.getIndexesChangeSyncMethod()('update');
+
+    expect(engine.calls.setRowOrder).toEqual([]);
+
+    axisSyncer.setOrderHeld(false);
+
+    expect(engine.dimensions.height).toBe(3);
+    expect(engine.calls.setRowOrder).toEqual([{ sheetId: 0, transformation: [1, 2, 0] }]);
+    expect([0, 1, 2].map(physicalRow => axisSyncer.getHfIndexFromPhysicalIndex(physicalRow))).toEqual([1, 2, 0]);
   });
 });

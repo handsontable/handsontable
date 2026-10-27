@@ -39,6 +39,7 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
   // What the sheet holds, as labels the tests choose — so a test can assert where the engine's own rows
   // and columns ended up, not only which array was handed over.
   const held = { rows: [], columns: [] };
+  const occupied = new Set();
 
   const apply = (axis, transformation) => {
     const current = held[axis];
@@ -60,6 +61,7 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
     calls,
     dimensions,
     held,
+    occupied,
     setRowOrder: (sheetId, transformation) => {
       validate(transformation, dimensions.height, 'rows', 'height');
       apply('rows', transformation);
@@ -80,6 +82,8 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
       }
     },
     isItPossibleToSetCellContents: () => true,
+    // The stub holds no cells, so a line is empty unless a test lists it in `occupied` as `row:col`.
+    isCellEmpty: ({ row, col }) => !occupied.has(`${row}:${col}`),
     isEvaluationSuspended: () => false,
     getSheetDimensions: () => ({ ...dimensions }),
     // The syncer asks for the name to tell a sheet the host removed from the engine; this one exists.
