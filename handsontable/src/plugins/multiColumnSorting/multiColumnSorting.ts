@@ -242,6 +242,10 @@ export class MultiColumnSorting extends ColumnSorting {
    * Warn: Useful mainly for providing server side sort implementation (see in the example below). It doesn't sort the data set. It just sets sort configuration for all sorted columns.
    * Note: Please keep in mind that this method doesn't re-render the table.
    *
+   * When the grid was sorted before and its rows are unsorted now, this method also records the current row order
+   * as the order a later `clearSort()` returns to. Rows that `setSortConfig([])` leaves in sorted order keep the
+   * order the rows had before that sort, so a later `clearSort()` still returns to it.
+   *
    * @example
    * ```js
    * beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {

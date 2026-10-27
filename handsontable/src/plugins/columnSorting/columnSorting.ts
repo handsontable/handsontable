@@ -241,6 +241,14 @@ export class ColumnSorting extends BasePlugin {
    * @type {null|IndexesSequence}
    */
   indexesSequenceCache: IndexesSequence | null = null;
+  /**
+   * The row order the last applied sort produced, or `null` when the rows were put back in their pre-sort
+   * order since. Sort states can be emptied while the rows stay sorted (`setSortConfig([])`, removing the
+   * sorted column), so empty states do not tell whether the rows show a sort result. This order does.
+   *
+   * @type {number[]|null}
+   */
+  #sortedRowOrder: number[] | null = null;
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -359,6 +367,8 @@ export class ColumnSorting extends BasePlugin {
       }
     }, true);
 
+    this.#sortedRowOrder = null;
+
     this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
     this.columnStatesManager?.destroy();
     this.columnMetaCache = null;
@@ -471,13 +481,15 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    if (currentSortConfig.length === 0) {
+    if (currentSortConfig.length === 0 && !this.#rowsShowSortResult()) {
       this.#capturePresortOrder();
     }
 
     if (sortPossible) {
       this.columnStatesManager?.setSortStates(destinationSortConfigs);
       this.sortByPresetSortStates(destinationSortConfigs);
+      this.#sortedRowOrder = destinationSortConfigs.length > 0 ?
+        this.hot.rowIndexMapper.getIndexesSequence().slice() : null;
     }
 
     this.hot.runHooks('afterColumnSort',
@@ -489,10 +501,32 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
+   * Tells whether the rows still show the order the last applied sort produced. The sort states alone do
+   * not: `setSortConfig([])` and removing the sorted column empty them and leave the rows sorted, and the
+   * pre-sort order stored for that sort is still the one a clear goes back to. The live order is compared,
+   * not a flag, because UndoRedo and `loadData()` rewrite the row order without passing through the sort.
+   *
+   * @returns {boolean}
+   */
+  #rowsShowSortResult(): boolean {
+    const sortedRowOrder = this.#sortedRowOrder;
+
+    if (sortedRowOrder === null) {
+      return false;
+    }
+
+    const rowOrder = this.hot.rowIndexMapper.getIndexesSequence();
+
+    return rowOrder.length === sortedRowOrder.length &&
+      rowOrder.every((physicalRow, index) => physicalRow === sortedRowOrder[index]);
+  }
+
+  /**
    * Stores the current row order as the order the sort starts from and a cleared sort goes back to. It runs
-   * whenever sort states are put on an unsorted grid, never only the first time: while nothing is sorted the
-   * rows can move, and a data load re-initializes the stored order to the identity one, so an order kept
-   * from an earlier sort would bring back rows in a place they no longer hold. The map stays registered
+   * whenever a sort starts from rows that show no sort result, never only the first time: while nothing is
+   * sorted the rows can move, and a data load re-initializes the stored order to the identity one, so an
+   * order kept from an earlier sort would bring back rows in a place they no longer hold. Rows left sorted
+   * under emptied states keep the stored order, see `#rowsShowSortResult()`. The map stays registered
    * after a clear, because UndoRedo restores it with the rest of the row maps and drops its history when
    * the set of map names changes.
    */
@@ -542,6 +576,10 @@ export class ColumnSorting extends BasePlugin {
    * Warn: Useful mainly for providing server side sort implementation (see in the example below). It doesn't sort the data set. It just sets sort configuration for all sorted columns.
    * Note: Please keep in mind that this method doesn't re-render the table.
    *
+   * When the grid was sorted before and its rows are unsorted now, this method also records the current row order
+   * as the order a later `clearSort()` returns to. Rows that `setSortConfig([])` leaves in sorted order keep the
+   * order the rows had before that sort, so a later `clearSort()` still returns to it.
+   *
    * @example
    * ```js
    * beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
@@ -568,7 +606,8 @@ export class ColumnSorting extends BasePlugin {
     if (this.areValidSortConfigs(destinationSortConfigs)) {
       const isUnsorted = this.columnStatesManager?.isListOfSortedColumnsEmpty();
 
-      if (isUnsorted && destinationSortConfigs.length > 0 && this.indexesSequenceCache !== null) {
+      if (isUnsorted && destinationSortConfigs.length > 0 && this.indexesSequenceCache !== null &&
+          !this.#rowsShowSortResult()) {
         this.#capturePresortOrder();
       }
 

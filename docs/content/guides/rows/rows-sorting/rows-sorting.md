@@ -58,7 +58,7 @@ Both plugins sort the view only. The source data array is never modified. To per
 
 ## Sorting demo
 
-Click a column header to sort in ascending (↑) or descending (↓) order. Click again to return to the original order.
+Click a column header to sort in ascending (↑) or descending (↓) order. Click again to put the rows back in the order they had before the sort.
 
 ::: only-for javascript
 
@@ -882,7 +882,7 @@ ngAfterViewInit() {
 
 Use [`columnSorting.sort()`](@/api/columnSorting.md#sort) to sort programmatically. Pass an object with `column` (visual column index) and `sortOrder` (`'asc'` or `'desc'`). Each call replaces the previous sort order entirely.
 
-Use [`columnSorting.clearSort()`](@/api/columnSorting.md#clearsort) to remove the active sort and return rows to their original order.
+Use [`columnSorting.clearSort()`](@/api/columnSorting.md#clearsort) to remove the active sort and put the rows back in the order they had before the sort.
 
 ::: only-for javascript
 
@@ -892,7 +892,7 @@ const columnSorting = handsontableInstance.getPlugin('columnSorting');
 // sort column 0 in ascending order
 columnSorting.sort({ column: 0, sortOrder: 'asc' });
 
-// return rows to their original order
+// put the rows back in the order they had before the sort
 columnSorting.clearSort();
 ```
 
@@ -907,7 +907,7 @@ const columnSorting = hotTableComponentRef.current.hotInstance.getPlugin('column
 // sort column 0 in ascending order
 columnSorting.sort({ column: 0, sortOrder: 'asc' });
 
-// return rows to their original order
+// put the rows back in the order they had before the sort
 columnSorting.clearSort();
 ```
 
@@ -925,7 +925,7 @@ ngAfterViewInit() {
   // sort column 0 in ascending order
   columnSorting.sort({ column: 0, sortOrder: 'asc' });
 
-  // return rows to their original order
+  // put the rows back in the order they had before the sort
   columnSorting.clearSort();
 }
 ```
@@ -1255,7 +1255,7 @@ const configurationOptions: GridSettings = {
 
 Use [`multiColumnSorting.sort()`](@/api/multiColumnSorting.md#sort) to sort by multiple columns programmatically. Pass an array of sort config objects. The array order determines sort priority. Each call replaces the previous sort order entirely.
 
-Use [`multiColumnSorting.clearSort()`](@/api/multiColumnSorting.md#clearsort) to remove all sort criteria and return rows to their original order.
+Use [`multiColumnSorting.clearSort()`](@/api/multiColumnSorting.md#clearsort) to remove all sort criteria and put the rows back in the order they had before the sort.
 
 ::: only-for javascript
 
@@ -1268,7 +1268,7 @@ multiColumnSorting.sort([
   { column: 1, sortOrder: 'desc' },
 ]);
 
-// return rows to their original order
+// put the rows back in the order they had before the sort
 multiColumnSorting.clearSort();
 ```
 
@@ -1286,7 +1286,7 @@ multiColumnSorting.sort([
   { column: 1, sortOrder: 'desc' },
 ]);
 
-// return rows to their original order
+// put the rows back in the order they had before the sort
 multiColumnSorting.clearSort();
 ```
 
@@ -1307,7 +1307,7 @@ ngAfterViewInit() {
     { column: 1, sortOrder: 'desc' },
   ]);
 
-  // return rows to their original order
+  // put the rows back in the order they had before the sort
   multiColumnSorting.clearSort();
 }
 ```
@@ -1490,7 +1490,7 @@ These header-focused shortcuts work only when a column header is focused. Enable
 
 | Windows | macOS | Action | Excel | Sheets |
 | --- | --- | --- | :---: | :---: |
-| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Sort by the focused column, cycling through ascending, descending, and original order | &cross; | &cross; |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Sort by the focused column, cycling through ascending, descending, and the order before the sort | &cross; | &cross; |
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Append the focused column to the active sort criteria. Requires the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin. | &cross; | &cross; |
 
 ## Known limitations

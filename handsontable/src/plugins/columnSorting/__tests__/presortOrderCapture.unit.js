@@ -121,6 +121,77 @@ describe('ColumnSorting -> the pre-sort row order', () => {
 
         expect(hot.getDataAtCol(0)).toEqual([4, 1, 2, 3]);
       });
+
+      [
+        {
+          name: 'setSortConfig([])',
+          dropSortStates: sorting => sorting.setSortConfig([]),
+          tieColumn: 2,
+        },
+        {
+          name: 'the removal of the sorted column',
+          dropSortStates: () => hot.alter('remove_col', 1),
+          tieColumn: 1,
+        },
+      ].forEach(({ name, dropSortStates, tieColumn }) => {
+        describe(`when ${name} leaves the rows sorted with no sort states`, () => {
+          it('puts the rows back in their pre-sort order on a later clear', () => {
+            const sorting = buildGrid(pluginKey);
+
+            sorting.sort({ column: 1, sortOrder: 'asc' });
+            dropSortStates(sorting);
+            sorting.clearSort();
+
+            expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4]);
+          });
+
+          it('breaks ties of a later sort by the pre-sort order', () => {
+            const sorting = buildGrid(pluginKey, {
+              data: [[1, 'd', 'x'], [2, 'a', 'y'], [3, 'c', 'x'], [4, 'b', 'y']],
+            });
+
+            sorting.sort({ column: 1, sortOrder: 'asc' });
+            dropSortStates(sorting);
+            sorting.sort({ column: tieColumn, sortOrder: 'asc' });
+
+            expect(hot.getDataAtCol(0)).toEqual([1, 3, 2, 4]);
+
+            sorting.clearSort();
+
+            expect(hot.getDataAtCol(0)).toEqual([1, 2, 3, 4]);
+          });
+        });
+      });
+
+      it('keeps a row moved after a clear when the unsorted grid is cleared again', () => {
+        const sorting = buildGrid(pluginKey);
+
+        sorting.sort({ column: 2, sortOrder: 'asc' });
+        sorting.clearSort();
+        hot.getPlugin('manualRowMove').moveRow(3, 0);
+        hot.render();
+        sorting.clearSort();
+
+        expect(hot.getDataAtCol(0)).toEqual([4, 1, 2, 3]);
+      });
+
+      it('keeps a row moved after an undone sort when a later sort is cleared', () => {
+        const sorting = buildGrid(pluginKey, { undo: true });
+
+        sorting.sort({ column: 2, sortOrder: 'asc' });
+        sorting.clearSort();
+        hot.getPlugin('manualRowMove').moveRow(3, 0);
+        hot.render();
+        sorting.sort({ column: 2, sortOrder: 'desc' });
+        hot.getPlugin('undoRedo').undo();
+
+        expect(hot.getDataAtCol(0)).toEqual([4, 1, 2, 3]);
+
+        sorting.sort({ column: 1, sortOrder: 'asc' });
+        sorting.clearSort();
+
+        expect(hot.getDataAtCol(0)).toEqual([4, 1, 2, 3]);
+      });
     });
   });
 });

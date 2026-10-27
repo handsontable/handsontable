@@ -25,11 +25,21 @@ The `columnMeta` map's initializer converts physical → visual and **falls back
 `toVisualColumn()` returns `null`**. Keep that fallback: during an alter the column may have no visual index
 yet.
 
-## The pre-sort order is taken whenever states go onto an unsorted grid
+## The pre-sort order is taken whenever a sort starts from unsorted rows
 
 `indexesSequenceCache` (the `columnSorting` row map) is the order the sort starts from and a cleared sort goes
 back to. `#capturePresortOrder()` writes it from the live sequence every time a `sort()` starts from empty
-states, and `setSortConfig()` does the same when it writes states onto an unsorted grid and the cache exists.
+states on rows that show no sort result, and `setSortConfig()` does the same when it writes states onto such a
+grid and the cache exists.
+
+**Empty sort states do not mean unsorted rows.** `setSortConfig([])` and removing the sorted column empty the
+states and leave the rows in sorted order. Retaking the cache there makes the sorted order the one a later
+`clearSort()` returns to, and a later sort on another column breaks its ties by it. So `#sortedRowOrder` keeps
+a copy of the order the last applied sort produced (`null` after a clear), and `#rowsShowSortResult()` compares
+the live sequence with it: equal means the rows are still the sort result and the cache stays. Compare the
+order, do not keep a flag: UndoRedo and `loadData()` rewrite the sequence without going through `sort()`, and a
+flag would miss a row moved after an undone sort. Every path (both plugins, both ways of emptying the states,
+the tie-break, the undo) is pinned in `__tests__/presortOrderCapture.unit.js`.
 Taking it only on the first sort was wrong twice: a row moved while nothing was sorted was lost on the next
 sort-and-clear, and `loadData()` re-initializes the registered map to the identity order (with the states
 emptied), so after a load the next clear put back the identity order instead of the one the rows had.
