@@ -1,0 +1,91 @@
+name: Screen reader nightly
+
+# The screen reader lanes on develop, every weeknight (screenreader.yml: NVDA on Windows over the
+# scenarios of tests/screenreader/scenarios/; tests/AGENTS.md, "Screen readers: the NVDA lane").
+# Report-only: nothing here gates a pull request, the called jobs carry `continue-on-error`, and the
+# verdict is each job's `Screen reader / <project> report` check run and summary. The transcripts
+# this run leaves are the evidence the Accessibility Conformance Report cites for what a screen reader
+# announces, which is why it runs on its own schedule rather than inside the pull-request pipeline:
+# a real screen reader on a headed Windows runner is minutes per browser, and the answer changes with
+# the core, the browser and NVDA, not with one pull request.
+#
+# Triage. A missing token group is a finding about the grid (the announcement lacks the cell text, a
+# position or a role) or a token list that is too strict: read the transcript, then fix the core or
+# widen the synonyms. A golden difference is a wording change: re-record with the `update-goldens`
+# input once the new wording is right. A red step inside a lane job is tooling (NVDA did not start, a
+# fixture did not load), never a finding, and it shows on that job's `failure` check run and summary:
+# the jobs carry `continue-on-error`, so they report success to this run and nothing here reaches
+# Slack for them. Slack hears only of a run that never reached the lane (the `notify` job below).
+on:
+  schedule:
+    # 04:30 UTC Tue–Sat: after the E2E nightly (03:30), clear of the visual nightly (02:00), the
+    # visual stability run (02:30), the code-quality baseline (03:00) and the readme (04:00).
+    - cron: '30 4 * * 2-6'
+  # From any ref, deliberately: a dispatch from a feature branch is how a change to the scenarios, the
+  # runner or the workflow is proven before it merges, and how the goldens are recorded (the
+  # `update-goldens` input uploads them as an artifact to commit). Slack fires on develop only.
+  workflow_dispatch:
+    inputs:
+      update-goldens:
+        description: Record the goldens on the runner and upload them as an artifact instead of comparing.
+        type: boolean
+        default: false
+  # Self-validation, as e2e-nightly.yml does it: this file never runs on an ordinary pull request, so a
+  # broken workflow_call graph would first execute AFTER merging, on the next scheduled night. With
+  # this trigger a pull request that touches the file gets a startup-validated run whose jobs skip
+  # themselves.
+  pull_request:
+    paths: [ '.github/workflows/screenreader-nightly.yml' ]
+
+# NO permissions block — the parity rule of e2e-nightly.yml and visual-nightly.yml: the called workflow
+# validates its job-level grants against the default token this caller hands down.
+
+concurrency:
+  # Static prefix (never the workflow-name expression, which a called workflow resolves to the
+  # caller's name). A dispatch during the scheduled run queues behind it rather than cancelling a
+  # lane that is minutes from its transcript.
+  group: screenreader-nightly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/build.yml
+    with:
+      run-umd: true
+    secrets: inherit
+
+  screenreader:
+    name: Screen reader
+    needs: [ build ]
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/screenreader.yml
+    with:
+      update-goldens: ${{ github.event_name == 'workflow_dispatch' && inputs.update-goldens || false }}
+    # No `secrets: inherit`: the called workflow reads only secrets.GITHUB_TOKEN, which every job has.
+
+  # Optional Slack ping, develop only; fires only when the webhook secret exists (an absent secret is
+  # an empty string, so the step skips itself). The same webhook as the visual and E2E nightlies, on
+  # purpose: the channel that triages one nightly triages the other. The lane's jobs carry job-level
+  # `continue-on-error`, so they report success to this caller whatever happened inside them, and
+  # `failure()` here fires only when the UMD build failed or the called workflow could not start. A red
+  # lane job never reaches Slack: its verdict is the `Screen reader / <project> report` check runs.
+  notify:
+    name: Notify Slack
+    needs: [ screenreader ]
+    if: ${{ failure() && github.event_name != 'pull_request' && github.ref_name == 'develop' }}
+    runs-on: ubuntu-26.04
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
+    steps:
+      - name: Send the failure to Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ":red_circle: Screen reader nightly on ${{ github.ref_name }} never reached the NVDA lane: the UMD build failed, or the called workflow could not start. A red lane job is not reported here (its jobs carry continue-on-error); its verdict is each browser's Screen reader report check run.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTriage: tests/AGENTS.md, Screen readers: the NVDA lane."
+            }

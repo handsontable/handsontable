@@ -49,6 +49,7 @@
     `dataProvider: null` in its settings. `?activeSheet=<n>` opens the workbook on another sheet.
     `?frozenOrders=1` declares the Orders sheet's `data` as a frozen array (the shape an immutable store such as
     Immer hands over), exposed as `window.htOrdersData`, so a spec can prove nothing writes into it.
+    `?ordersBorders=1` makes the Orders sheet declare a `customBorders` array with one border at row 0, column 1.
     `?userErrorListeners=1` adds user `afterDataProviderFetchError` and `afterRowsMutationError` listeners that
     return values (a hook passes a non-`undefined` return on to the next listener as its first argument), so a spec
     can prove such listeners do not change how an off-screen failure is kept.
@@ -257,7 +258,16 @@
     window.htOrdersData = ordersData;
 
     const buildSheets = () => [
-      { name: 'Orders', data: ordersData, settings: { dataProvider: provider('ORD') } },
+      {
+        name: 'Orders',
+        data: ordersData,
+        settings: {
+          dataProvider: provider('ORD'),
+          ...(fixtureParams.has('ordersBorders')
+            ? { customBorders: [{ row: 0, col: 1, top: { width: 2, color: 'red' } }] }
+            : {}),
+        },
+      },
       {
         name: 'Notes',
         data: [{ id: 'NOTE-1', fetch: '-' }, { id: 'NOTE-2', fetch: '-' }, { id: 'NOTE-3', fetch: '-' }],

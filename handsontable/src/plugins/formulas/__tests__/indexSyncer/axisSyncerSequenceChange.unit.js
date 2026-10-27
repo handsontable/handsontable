@@ -72,7 +72,7 @@ describe('AxisSyncer sequence change sync', () => {
       // The engine holds the first two columns only, and swapping the two behind them leaves those in the
       // same relative order. The engine records an undo entry for every order it is handed, so an order
       // that would change nothing is not sent at all.
-      indexMapper.state.indexesSequence = [0, 2, 1, 3];
+      indexMapper.state.indexesSequence = [0, 1, 3, 2];
       axisSyncer.getIndexesChangeSyncMethod()('update');
 
       expect(engine.calls.setColumnOrder).toEqual([]);
@@ -179,19 +179,34 @@ describe('AxisSyncer sequence change sync', () => {
       expect(engine.held.columns).toEqual([0, 1, 2]);
     });
 
-    it('should send nothing when a column the engine does not hold moves in front of one it does', () => {
+    it('should give the engine a column for an index it does not hold that moves in front of one it does', () => {
       const engine = createMockEngine({ width: 3, height: 4 });
       const indexMapper = createMockIndexMapper([0, 1, 2, 3]);
       const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
 
       axisSyncer.init();
-      // Column 3 is the empty tail the engine left out of its sheet. The engine addresses its columns
-      // positionally and has no column to shift the others past, so the order cannot be reproduced —
-      // and an approximation would put the grid's index translation and the engine on different columns.
       indexMapper.state.indexesSequence = [3, 0, 1, 2];
       axisSyncer.getIndexesChangeSyncMethod()('update');
 
-      expect(engine.calls.setColumnOrder).toEqual([]);
+      expect(engine.dimensions.width).toBe(4);
+      expect(engine.calls.setColumnOrder).toEqual([
+        { sheetId: 0, transformation: [1, 2, 3, 0] },
+      ]);
+    });
+
+    it('should add columns only up to the last index the engine holds', () => {
+      const engine = createMockEngine({ width: 2, height: 4 });
+      const indexMapper = createMockIndexMapper([0, 1, 2, 3, 4]);
+      const axisSyncer = new AxisSyncer('column', indexMapper, createMockIndexSyncer(engine));
+
+      axisSyncer.init();
+      indexMapper.state.indexesSequence = [3, 1, 0, 4, 2];
+      axisSyncer.getIndexesChangeSyncMethod()('update');
+
+      expect(engine.dimensions.width).toBe(3);
+      expect(engine.calls.setColumnOrder).toEqual([
+        { sheetId: 0, transformation: [2, 1, 0] },
+      ]);
     });
 
     it('should rank an index the sequence no longer covers last instead of sending it as -1', () => {

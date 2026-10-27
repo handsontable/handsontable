@@ -45,8 +45,10 @@ export interface HyperFormulaEngine {
     name: string, expression: unknown, scope?: number, options?: Record<string, string | number | boolean>,
   ): unknown[];
   normalizeFormula(formula: string): string;
+  validateFormula(formula: string): boolean;
   getSheetDimensions(sheetId: number): { width: number; height: number };
   getCellType(address: { sheet: number | null; row: number; col: number }): unknown;
+  isCellEmpty(address: { sheet: number | null; row: number; col: number }): boolean;
   doesCellHaveFormula(address: { sheet: number | null; row: number; col: number }): boolean;
   getCellValue(address: { sheet: number | null; row: number; col: number }): unknown;
   getCellHyperlink(address: { sheet: number | null; row: number; col: number }): string | undefined;

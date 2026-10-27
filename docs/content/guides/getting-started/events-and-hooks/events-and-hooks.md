@@ -219,6 +219,8 @@ const hotSettings = ref({
 
 The first argument may be modified and passed on through the Handsontable hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
 
+A hook you pass in the settings stays registered until you replace or remove it. To replace it, pass another callback through [`updateSettings()`](@/api/core.md#updatesettings). To remove it, pass `null`: `hot.updateSettings({ afterChange: null })`. Passing `undefined` changes nothing, and neither call touches a listener you added with [`addHook()`](@/api/core.md#addhook). To remove one of those, call [`removeHook()`](@/api/core.md#removehook) with the same callback.
+
 ## Commonly used hooks
 
 Handsontable exposes hundreds of hooks. The ones below are the hooks you reach for most often, grouped by what they do. Unlike the [`source` argument list](#definition-for-source-argument) further down this page, this grouping is about purpose, not about which callbacks receive a `source` argument.
@@ -375,6 +377,8 @@ Note that some callbacks are checked on this page by default.
 
 It's worth mentioning that some Handsontable hooks are triggered from the Handsontable core and some from the plugins. In some situations, it is helpful to know what triggered the callback. Did Handsontable trigger it, or was it triggered by external code or a user action? That's why in crucial hooks, Handsontable delivers `source` as an argument informing you who triggered the action and providing detailed information about the source. Using the information retrieved in the `source`, you can create additional conditions.
 
+`source` helps tell actions apart. For example, `afterCreateRow` receives `'ContextMenu.rowAbove'` or `'ContextMenu.rowBelow'` when the user inserts a row from the context menu. It receives `'auto'` when Handsontable creates the row itself, for example when `minRows` or `minSpareRows` adds a row, or a paste reaches past the last row. For columns, `afterCreateCol` receives `'ContextMenu.columnLeft'` or `'ContextMenu.columnRight'`, and `'auto'` when `minCols` or `minSpareCols` adds a column, or a paste reaches past the last column. Don't confuse these values with the context menu item keys, such as `row_above` and `col_left`.
+
 `source` argument is optional. It takes the following values:
 
 | Value                                              | Description                                                                                                                                                                                                            |
@@ -505,6 +509,12 @@ hot.addHook('beforeKeyDown', (event) => {
   }
 });
 ```
+
+::: only-for angular
+
+During server rendering hydration or with incremental hydration, `stopImmediatePropagation()` in this hook does not block the shortcut. Return `false` instead ([Server-side rendering (SSR)](@/guides/getting-started/installation/installation.md#server-side-rendering-ssr)).
+
+:::
 
 ::: only-for javascript
 

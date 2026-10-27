@@ -1,5 +1,5 @@
 import { devices } from '@playwright/test';
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { TouchInteractiveCellPage } from '../fixtures/pages/TouchInteractiveCellPage';
 
 /**
@@ -11,13 +11,16 @@ import { TouchInteractiveCellPage } from '../fixtures/pages/TouchInteractiveCell
  * `THEMES_TAG`: which node a tap lands on depends on the theme's cell padding. Chromium's touch
  * adjustment moves a trusted tap toward a nearby control, so `elementFromPoint` does not predict
  * the target on its own.
+ *
+ * `BUNDLES_TAG`: nothing here differs by bundle, but the theme red reached `e2e-horizon-min` as well,
+ * and every leg a nightly red reached runs on pull requests (`scripts/leg-replay.mjs`).
  */
 test.use({
   ...devices['Pixel 7'],
   browserName: 'chromium',
 });
 
-test.describe('touch taps on interactive renderer elements', { tag: THEMES_TAG }, () => {
+test.describe('touch taps on interactive renderer elements', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   let grid: TouchInteractiveCellPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

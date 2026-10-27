@@ -589,11 +589,18 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - What earns a capture, and why a visual spec is in addition to, never instead of a Playwright assertion: `visual-tests/AGENTS.md` → Decision rule
 
 **Accessibility scan (axe):**
-- Framework: Playwright + `@axe-core/playwright` (axe-core, WCAG 2.2 A and AA rule tags)
+- Framework: Playwright + `@axe-core/playwright` (axe-core, WCAG 2.2 A and AA rule tags – the target level; the published conformance report states conformance per criterion)
 - Location: `tests/a11y/` — `axe.spec.ts` (the scan), `pages.mjs` (the curated fixture pages, one per accessible surface, each on the three themes), `axe-baseline.json` (the catalog of known issues, and where each shows: one entry per page, theme, rule and element, with its node count), `coverage.mjs` (how the scan covers each plugin and editor folder, enforced by `tests/lib/__tests__/a11y-coverage.test.mjs`)
 - Config: `tests/playwright.a11y.config.ts`; the comparator is `tests/lib/a11y-baseline.mjs`, the reporter `tests/reporters/a11y.ts`
 - CI: one job, `A11y / axe`, in warn mode — a finding that needs action is an annotation, a summary row and a neutral `A11y / axe report` check run, never a red job; the only reds are tooling failures. An HTML report that locates every element (fixture, steps, selector, DOM path, screenshot) opens from the run page, a sticky pull request comment links it, and `a11y-findings.json` gives an implementer agent the same findings, concise. The baseline moves only with the code: the change that fixes a finding deletes its entry
 - It is not a test of a change: a pull request that touches an accessible surface still proves its behavior with a Playwright spec in `tests/e2e/`. How to add a page, baseline a finding, and when warn mode flips: `tests/AGENTS.md` → "A11y: the axe scan and its baseline"
+
+**Screen reader lane (NVDA, through Guidepup):**
+- Framework: Playwright + `@guidepup/playwright` (a real NVDA driven over the fixture pages, one Playwright project per screen reader and browser)
+- Location: `tests/screenreader/` — `screenreader.spec.ts` (the runner), `scenarios/<surface>.scenario.json` (data: the fixture, the setup, the ordered keys and the token groups each announcement must carry), `goldens/<project>/<scenario>.json` (the exact announcements per project, advisory)
+- Config: `tests/playwright.screenreader.config.ts`; the schema is `tests/lib/screenreader-scenario.mjs`, the normalizer, matcher and golden diff `tests/lib/screenreader-transcript.mjs`, the report `tests/lib/screenreader-report.mjs`
+- CI: its own nightly (`Screen reader nightly`, NVDA on Windows, one job per browser), report-only — a missing token group or a golden difference is a summary row and a neutral `Screen reader / <project> report` check run, never a red job; the pull-request pipeline does not run it. The transcripts it uploads are the conformance report's evidence for what a screen reader announces
+- It is not a test of a change either: a change to something a user operates still proves its keyboard path and accessible names with a Playwright spec in `tests/e2e/`. How to add a scenario, record goldens, and what is advisory: `tests/AGENTS.md` → "Screen readers: the NVDA lane"
 
 ## Plugin Testing Requirements
 

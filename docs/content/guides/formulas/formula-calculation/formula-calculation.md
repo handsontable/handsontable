@@ -25,7 +25,7 @@ searchCategory: Guides
 category: Formulas
 menuTag: updated
 ---
-The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://hyperformula.handsontable.com/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
+The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://handsontable.com/hyperformula/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
 
 Filling formula cells with [autofill](@/guides/cell-features/autofill-values/autofill-values.md) adjusts relative references per target cell, the same way a spreadsheet application does. See [Autofill and formulas](@/guides/cell-features/autofill-values/autofill-values.md#autofill-and-formulas).
 
@@ -224,7 +224,7 @@ const hotSettings = ref({
 
 :::
 
-Pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://hyperformula.handsontable.com/api/interfaces/configparams.html).
+Pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://handsontable.com/docs/hyperformula/api/interfaces/configparams.html).
 
 ::: only-for javascript
 
@@ -965,7 +965,7 @@ new Handsontable(container, {
 References inside named expressions must use **absolute notation** (`$A$1`). The sheet name (e.g.
 `Sheet1!`) must match the `sheetName` passed to both `addSheet` and the Handsontable `formulas`
 config. See the
-[HyperFormula named expressions guide](https://hyperformula.handsontable.com/guide/named-expressions.html)
+[HyperFormula named expressions guide](https://handsontable.com/docs/hyperformula/guide/named-expressions.html)
 for the full naming rules and supported expression types.
 
 :::
@@ -1074,7 +1074,7 @@ HyperFormula instance. The "Totals" row references those names directly as `=Q1_
 :::
 
 For more information about named expressions, refer to the
-[HyperFormula named expressions docs](https://hyperformula.handsontable.com/guide/named-expressions.html).
+[HyperFormula named expressions docs](https://handsontable.com/docs/hyperformula/guide/named-expressions.html).
 
 ## Custom functions
 
@@ -1171,7 +1171,7 @@ each sales representative's commission amount.
 
 For the full argument type reference, error handling patterns, and advanced options such as
 function aliases and async functions, see the
-[HyperFormula custom functions guide](https://hyperformula.handsontable.com/guide/custom-functions.html).
+[HyperFormula custom functions guide](https://handsontable.com/docs/hyperformula/guide/custom-functions.html).
 
 ## Change the formula language
 
@@ -1211,7 +1211,7 @@ hot.updateSettings({
 ```
 
 For the full list of available language packs, see the
-[HyperFormula localizing functions guide](https://hyperformula.handsontable.com/guide/localizing-functions.html).
+[HyperFormula localizing functions guide](https://handsontable.com/docs/hyperformula/guide/localizing-functions.html).
 
 ## Preserve text values
 

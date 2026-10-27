@@ -6,8 +6,10 @@ and scroll. Read this before touching `viewState.ts`. Two callers share it, and 
 import it, so it stays out of a `handsontable/base` build:
 
 - SheetsBar (`plugins/sheetsBar/`) uses it on every sheet switch, with no part filter, so every step
-  runs (merges, custom borders, and the lazily served cell meta included). `ViewState` is published
-  only as the type `SheetsBarViewState`.
+  runs (merges and custom borders; the kept cell meta goes to core with the rows). The exception is a
+  return after `updateSheetSettings()` declared some parts anew: those are reset with
+  `resetViewState(hot, {}, parts)` and left out of the restore. `ViewState` is published only as the type
+  `SheetsBarViewState`.
 - The `ViewState` plugin (`plugins/viewState/`) is the public layer: it turns the internal state into
   the versioned, JSON-safe `GridViewState`, checks it, and passes the engine a set of parts. Its rules
   are in `plugins/viewState/AGENTS.md`.
@@ -24,8 +26,8 @@ pay for. A new consumer lives in a plugin.
 - **Order is load-bearing** in `restoreViewState()`:
   the column order goes before the sort re-apply, sort is cleared and re-applied around the
   row order (the sorting plugin resets rows to its own pre-sort cache on every `sort()`), filters and trimming re-apply before the
-  hidden sets (hidden indexes are stored as physical, and so are the tracked cell-meta
-  entries), and the selection and scroll run through `restoreViewport()` **after** the render
+  hidden sets (hidden indexes are stored as physical, and so are the kept cell-meta
+  entries, which the sheets bar hands to core with the rows instead of restoring here), and the selection and scroll run through `restoreViewport()` **after** the render
   batch, once the arriving sheet is painted at its own sizes. `restoreViewport()` puts the
   Pagination page and page size back first (`setPageSize()` then `setPage()`, each skipped when
   unchanged, the page clamped to the arriving count first): Pagination holds one page for the
@@ -93,7 +95,8 @@ pay for. A new consumer lives in a plugin.
   `afterFilter` for a sheet the user was leaving. A disabled ManualColumnResize or ManualRowResize keeps
   the sizes it had when it was turned off and replays them when turned on again, so `clearManualSizes()`
   reaches it through `getPlugin()`, not `getEnabledPlugin()`. A new caller that does not load data after
-  the reset needs the filter pass back.
+  the reset needs the filter pass back. With `parts` given, `resetViewState()` and `resetViewport()` touch
+  only those parts, the way the restore does.
 
 Tests: `__tests__/viewState.unit.js` (the engine), plus SheetsBar's own suites and
 `plugins/viewState/__tests__/viewState.unit.js` (the public layer through the engine).

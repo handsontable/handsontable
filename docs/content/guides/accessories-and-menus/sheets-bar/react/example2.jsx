@@ -26,28 +26,30 @@ const ratesData = [
   ['Service fee', 0.05],
 ];
 
+const sheets = [
+  {
+    name: 'Budget',
+    data: budgetData,
+    settings: {
+      colHeaders: ['Item • A', 'Net • B', 'VAT • C', 'Fee • D', 'Gross • E'],
+      formulas: { engine, sheetName: 'Budget' },
+    },
+  },
+  {
+    name: 'Rates',
+    data: ratesData,
+    settings: {
+      colHeaders: ['Rate • A', 'Value • B'],
+      formulas: { engine, sheetName: 'Rates' },
+    },
+  },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
       sheetsBar={{
-        sheets: [
-          {
-            name: 'Budget',
-            data: budgetData,
-            settings: {
-              colHeaders: ['Item • A', 'Net • B', 'VAT • C', 'Fee • D', 'Gross • E'],
-              formulas: { engine, sheetName: 'Budget' },
-            },
-          },
-          {
-            name: 'Rates',
-            data: ratesData,
-            settings: {
-              colHeaders: ['Rate • A', 'Value • B'],
-              formulas: { engine, sheetName: 'Rates' },
-            },
-          },
-        ],
+        sheets,
         activeSheet: 0,
       }}
       rowHeaders={true}

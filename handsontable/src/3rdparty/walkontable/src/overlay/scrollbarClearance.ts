@@ -295,6 +295,26 @@ export function reservedScrollbarSpace(
 }
 
 /**
+ * The thickness to reserve for one scrollbar.
+ *
+ * @param {GeometryReader} geometryReader The geometry reader.
+ * @param {HTMLElement | null | undefined} holder The master holder, when it exists.
+ * @param {'vertical' | 'horizontal'} axis Which scrollbar. Vertical consumes width.
+ * @param {number} probe The thickness to use when the holder has no gutter on this axis.
+ * @returns {number} The holder's gutter when it is above zero, otherwise `probe`.
+ */
+export function scrollbarAxisThickness(
+  geometryReader: GeometryReader,
+  holder: HTMLElement | null | undefined,
+  axis: 'vertical' | 'horizontal',
+  probe: number,
+): number {
+  const gutter = holder ? reservedScrollbarSpace(geometryReader, holder, axis) : 0;
+
+  return gutter > 0 ? gutter : probe;
+}
+
+/**
  * Builds the `clip-path` that keeps an overlay out of the bands the scrollbars are drawn in.
  *
  * Clipping, rather than resizing, is what makes this free of side effects: every box the viewport

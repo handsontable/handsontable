@@ -15,7 +15,64 @@ import type { default as Viewport } from './viewport';
 import { subtractReservedHeight } from './layoutReservation';
 import { isHTMLElement } from '../../../../helpers/dom/element';
 import { resolveWidthBoundingRoot } from '../overlay/axisOwner';
+import { scrollbarAxisThickness } from '../overlay/scrollbarClearance';
 import { boundWorkspaceWidth } from './rootWidthBound';
+import { renderedBottomBorderWidth } from '../axisSizing/hiderCompensation';
+import type { StylesHandler } from '../types';
+
+/**
+ * Column-header band height while the head section has no rows yet.
+ *
+ * The per-level height is the stylesheet border box (content plus the bottom gridline).
+ * The first head row also draws a top gridline, and a table row treats `height` as a
+ * minimum, so that pixel is part of `offsetHeight(THEAD)` once the rows exist. A level
+ * taller than the default is written as an inline height (`adjustColumnHeaderHeights`),
+ * and that border box already contains the top gridline.
+ *
+ * AutoRowSize is the exception. Its ghost measurement drops the bottom gridline, so the
+ * number is not a border box, and the rendered cell grows by that pixel. The viewport
+ * records that on `columnHeaderHeightOmitsBottomBorder`. The pixel is added here, to the
+ * band, and not to the number painted on each header level.
+ *
+ * Returns 0 when there is no styles handler to read the heights from. A bare Walkontable
+ * host may omit it, and the DOM measure stays the answer there.
+ *
+ * @param {Viewport} viewport The viewport whose header levels are summed.
+ * @returns {number}
+ */
+function knownColumnHeaderBandHeight(viewport: Viewport): number {
+  const stylesHandler = viewport.wtSettings.getSetting<StylesHandler | null>('stylesHandler');
+
+  if (typeof stylesHandler?.getDefaultRowHeight !== 'function') {
+    return 0;
+  }
+
+  const levels = viewport.wtSettings.getSetting<Function[]>('columnHeaders').length;
+  let height = 0;
+
+  for (let level = 0; level < levels; level++) {
+    height += viewport.wtTable.getColumnHeaderHeight(level) || 0;
+  }
+
+  if (height <= 0) {
+    return 0;
+  }
+
+  const defaultRowHeight = stylesHandler.getDefaultRowHeight() || 0;
+  const firstLevelHeight = viewport.wtTable.getColumnHeaderHeight(0) || 0;
+
+  // The inline height is the border box, so the top gridline is already inside it.
+  // A ghost measurement is not: the rendered cell is one gridline taller than the number.
+  if (firstLevelHeight > defaultRowHeight) {
+    if (viewport.columnHeaderHeightOmitsBottomBorder) {
+      return height + Math.round(renderedBottomBorderWidth(stylesHandler));
+    }
+
+    return height;
+  }
+
+  return height + Math.round(renderedBottomBorderWidth(stylesHandler));
+}
 
 /**
  * The sub-pixel remainder between a used height read from the computed style and the whole-pixel
@@ -143,7 +200,14 @@ function measureHasHorizontalScroll(viewport: Viewport): boolean {
   // Only the holder's own vertical scrollbar narrows the horizontal scrollport. When the window owns
   // the vertical axis its scrollbar sits outside the grid's box.
   const holderHasVerticalScrollbar = !viewport.isVerticallyScrollableByWindow() && measureHasVerticalScroll(viewport);
-  const scrollbarWidth = holderHasVerticalScrollbar ? geometryReader.getScrollbarWidth() : 0;
+  const scrollbarWidth = holderHasVerticalScrollbar
+    ? scrollbarAxisThickness(
+      geometryReader,
+      viewport.wtTable.holder,
+      'vertical',
+      geometryReader.getScrollbarWidth(),
+    )
+    : 0;
 
   return hiderOffsetWidth > measureWorkspaceWidth(viewport) - scrollbarWidth;
 }
@@ -442,8 +506,15 @@ export const workspaceSize: WorkspaceSize = {
       this.columnHeaderHeightFraction = 0;
     } else if (isNaN(this.columnHeaderHeight)) {
       const { THEAD } = this.wtTable;
+      const measured = THEAD ? this.deps.geometryReader.outerHeight(THEAD) : 0;
+      // The master draw resolves the layout snapshot before it renders head rows, so the
+      // first read sees an empty section and `offsetHeight` is 0. That 0 is not a real
+      // header height. A section that has rows and still measures 0 is a real 0.
+      const headRowsDrawn = !!THEAD && THEAD.rows.length > 0;
 
-      this.columnHeaderHeight = THEAD ? this.deps.geometryReader.outerHeight(THEAD) : 0;
+      this.columnHeaderHeight = (measured > 0 || headRowsDrawn)
+        ? measured
+        : knownColumnHeaderBandHeight(this);
       // `outerHeight` is `offsetHeight`, an integer, so below 100% zoom it drops up to a pixel of
       // the header's real height. Record what it dropped. Only the hider/content total consumes it —
       // the calculators keep the integer they have always been given.
@@ -462,7 +533,9 @@ export const workspaceSize: WorkspaceSize = {
       // is not, so subtracting one from the other under CSS zoom yields a large negative number and
       // shrinks the hider instead of growing it. The computed style is in the same space as
       // `offsetHeight` at any zoom.
-      this.columnHeaderHeightFraction = THEAD
+      // An empty section has no used height, so there is no remainder to record. The next
+      // draw measures the filled section.
+      this.columnHeaderHeightFraction = (THEAD && (measured > 0 || headRowsDrawn))
         ? measuredHeightFraction(this.deps.geometryReader.getComputedStyle(THEAD).height,
           this.columnHeaderHeight) : 0;
     }

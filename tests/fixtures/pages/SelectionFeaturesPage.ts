@@ -775,6 +775,13 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Read the last fully visible visual column.
+   */
+  async lastFullyVisibleColumn(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getLastFullyVisibleColumn());
+  }
+
+  /**
    * Scroll the target row to the bottom of the viewport.
    */
   async scrollRowToBottom(row: number): Promise<void> {
@@ -1040,6 +1047,11 @@ export class SelectionFeaturesPage {
   /** The master holder's vertical scroll offset. */
   async verticalScrollOffset(): Promise<number> {
     return this.page.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollTop);
+  }
+
+  /** The master holder's horizontal scroll offset. */
+  async horizontalScrollOffset(): Promise<number> {
+    return this.page.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollLeft);
   }
 
   /** Scroll the master holder to its top edge, and wait until the first row is rendered. */

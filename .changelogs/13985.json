@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed formulas that reference a sheet whose name HyperFormula reads only in quotes, such as `2026` or `Лист2`. The Formulas plugin now also feeds the engine the edits made while the plugin was off.",
+  "type": "fixed",
+  "issueOrPR": 13985,
+  "breaking": false,
+  "framework": "none"
+}

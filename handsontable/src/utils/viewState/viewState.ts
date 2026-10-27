@@ -5,9 +5,10 @@ import { clamp } from '../../helpers/number';
 import { safeBatch } from '../safeBatch';
 
 /**
- * One tracked explicit cell-meta write. The indexes are physical: a visual index only means
- * something against the row and column order in force when it was read, and the entries are
- * served lazily against whatever order is in force when the cell's meta is next read.
+ * One key of the cell meta a sheet's rows carried when the user left it: a key set through
+ * `setCellMeta()`, or `valid: false` for a cell whose last validation failed. The indexes are
+ * physical, so each entry goes back onto its record whatever row and column order the sheet
+ * returns with.
  */
 export interface TrackedCellMeta {
   row: number;
@@ -51,8 +52,19 @@ export interface ViewState {
   fixedColumnsEnd: number | undefined;
   fixedRowsTop?: number | undefined;
   fixedRowsBottom?: number | undefined;
+
+  /**
+   * The custom borders on screen, by visual coordinates, for a listener to read. A sheets bar return
+   * does not replay it: the borders come back with the sheet's kept cell meta, so a change made to this
+   * list is not applied.
+   */
   customBorders: Array<Record<string, unknown>>;
-  cellMeta: TrackedCellMeta[];
+
+  /**
+   * The cell meta the sheet keeps, by physical indexes. Absent when a server response replaced the
+   * sheet's rows while it was hidden, because the meta described the old rows.
+   */
+  cellMeta?: TrackedCellMeta[];
   pagination: PaginationState | null;
 
   /**
@@ -100,6 +112,28 @@ export type ViewStatePart =
   'pagination' |
   'selection' |
   'scroll';
+
+/**
+ * Every part, in the order a restore applies them.
+ */
+export const VIEW_STATE_PARTS: readonly ViewStatePart[] = [
+  'columnOrder',
+  'rowOrder',
+  'sort',
+  'filters',
+  'trimmedRows',
+  'hiddenRows',
+  'hiddenColumns',
+  'collapsedRows',
+  'columnWidths',
+  'rowHeights',
+  'mergedCells',
+  'frozen',
+  'customBorders',
+  'pagination',
+  'selection',
+  'scroll',
+];
 
 /**
  * Answers whether a restore covers a part. No set means every part.
@@ -800,14 +834,19 @@ function restoreCanceledSortStates(sorting: SortingPlugin, sortConfig: SortedCol
  * turned off and puts them back when it is turned on again, so a sheet with the plugin off between
  * a resized sheet and a never-visited one carried the resized sheet's sizes over to the new one.
  */
-function clearManualSizes(hot: HotInstance) {
+function clearManualSizes(hot: HotInstance, covers: PartFilter = () => true) {
   const manualColumnResize = hot.getPlugin('manualColumnResize') as
     { clearManualSizes: () => void } | undefined;
   const manualRowResize = hot.getPlugin('manualRowResize') as
     { clearManualSizes: () => void } | undefined;
 
-  manualColumnResize?.clearManualSizes();
-  manualRowResize?.clearManualSizes();
+  if (covers('columnWidths')) {
+    manualColumnResize?.clearManualSizes();
+  }
+
+  if (covers('rowHeights')) {
+    manualRowResize?.clearManualSizes();
+  }
 }
 
 /**
@@ -928,35 +967,33 @@ function restoreMergedCells(hot: HotInstance, state: ViewState) {
 }
 
 /**
- * The keys of a saved border record that describe its sides. The record also carries its
- * position and id, which `setBorders()` does not take, and the legacy `left`/`right` copies of
- * `start`/`end`, which `setBorders()` rejects next to them (and rejects outright in RTL).
+ * Restores custom borders from the `borders` cell meta, which is the record of a sheet's borders: the sheets
+ * bar keeps it with the sheet's other cell meta and core writes it back with the rows. The border list the
+ * view state captures (`customBorders`) is not replayed, because it holds visual coordinates only and so
+ * misses a border on a row the filters hide. The model keeps visual coordinates, so CustomBorders only marks
+ * it for a rebuild here, and the rebuild runs on the next model read or render, once the restore's batch
+ * has resumed the index cache with the restored sort and moves.
  */
-const BORDER_SIDES = ['top', 'bottom', 'start', 'end'];
+export function rebuildCustomBordersFromCellMeta(hot: HotInstance): void {
+  const customBorders = hot.getPlugin('customBorders');
+
+  if (customBorders?.enabled) {
+    customBorders._rebuildFromCellMeta();
+  }
+}
 
 /**
- * Restores custom borders, clearing the current set first.
+ * Removes every custom border, from the model and from the cell meta. The sheets bar runs it before a sheet
+ * comes back, while the grid still holds the departing sheet's rows: the arriving sheet's borders come back
+ * as its kept cell meta, and a departing border left in the model would be written onto the arriving rows
+ * when CustomBorders applies its settings.
  */
-function restoreCustomBorders(hot: HotInstance, state: ViewState) {
-  const customBorders = getEnabledPlugin(hot, 'customBorders') as
-    {
-      clearBorders: () => void,
-      setBorders: (ranges: unknown[], borderObject?: Record<string, unknown>) => void,
-    } | undefined;
+export function clearCustomBorders(hot: HotInstance): void {
+  const customBorders = hot.getPlugin('customBorders');
 
-  if (!customBorders) {
-    return;
+  if (customBorders?.enabled) {
+    customBorders.clearBorders();
   }
-
-  customBorders.clearBorders();
-  state.customBorders.forEach((border) => {
-    const { row, col } = border as { row: number, col: number };
-    const sides = Object.fromEntries(
-      BORDER_SIDES.filter(side => side in border).map(side => [side, border[side]]),
-    );
-
-    customBorders.setBorders([[row, col, row, col]], sides);
-  });
 }
 
 /**
@@ -967,10 +1004,9 @@ function restoreCustomBorders(hot: HotInstance, state: ViewState) {
  * of that visual space and a hidden child would no longer be found by its visual index; then
  * sizes, merges, freeze, and borders, none of which depend on each other.
  *
- * The tracked cell meta (`state.cellMeta`) is deliberately not replayed here: the plugin
- * serves it lazily from its `afterGetCellMeta` hook, so a switch pays nothing per entry and
- * no meta object is materialized for a cell nobody reads — replaying 130k validated-sheet
- * entries eagerly made a switch measurably slower and tripled the heap.
+ * The kept cell meta (`state.cellMeta`) is not replayed here: the sheets bar hands it to core's
+ * `_applySettingsAndData()` together with the sheet's rows, which writes it back before the cell
+ * types expand, so a `type` comes back with its renderer and validator.
  *
  * The selection and the scroll position are left to {@link restoreViewport}: both need the
  * grid painted with the arriving sheet's sizes, and this runs inside a render batch.
@@ -1018,7 +1054,7 @@ export function restoreViewState(
     }
 
     if (covers('customBorders')) {
-      restoreCustomBorders(hot, state);
+      rebuildCustomBordersFromCellMeta(hot);
     }
   });
 
@@ -1061,12 +1097,13 @@ export function restoreViewport(hot: HotInstance, state: ViewState, parts?: Read
 /**
  * Opens a never-visited sheet on the configured initial page and page size, instead of the page
  * and page size the previous sheet left behind. Runs after the render batch, like
- * {@link restoreViewport}, so the page count is the arriving sheet's.
+ * {@link restoreViewport}, so the page count is the arriving sheet's. With `parts` given, the page
+ * is reset only when they include `pagination`.
  */
-export function resetViewport(hot: HotInstance): void {
+export function resetViewport(hot: HotInstance, parts?: ReadonlySet<ViewStatePart>): void {
   const pagination = getLocalPagination(hot);
 
-  if (pagination) {
+  if (pagination && toPartFilter(parts)('pagination')) {
     applyPagination(hot, {
       page: pagination.getSetting('initialPage') as number,
       pageSize: pagination.getSetting('pageSize') as number | 'auto',
@@ -1278,22 +1315,46 @@ function setFrozenCount(hot: HotInstance, key: FrozenCountKey, value: number): v
  * the index maps still match the drawn rows: cleared after the trimmed and hidden rows came back,
  * the attributes were taken off another cell and the merged one kept its `rowspan`. With
  * MergeCells disabled for the arriving sheet, no render repaired it.
+ *
+ * With `parts` given, only those parts are reset, and every other part of the grid is left as it is.
  */
-export function resetViewState(hot: HotInstance, neutral: NeutralFrozenCounts = {}): void {
+export function resetViewState(
+  hot: HotInstance,
+  neutral: NeutralFrozenCounts = {},
+  parts?: ReadonlySet<ViewStatePart>,
+): void {
+  const covers = toPartFilter(parts);
   const state = createNeutralViewState();
 
   safeBatch(hot, () => {
     // An `undefined` neutral value means the grid never configured that freeze, so a freeze set at
     // runtime on another sheet is cleared back to none rather than left in force.
-    FROZEN_COUNT_KEYS.forEach(key => setFrozenCount(hot, key, neutral[key] ?? 0));
+    if (covers('frozen')) {
+      FROZEN_COUNT_KEYS.forEach(key => setFrozenCount(hot, key, neutral[key] ?? 0));
+    }
 
-    clearMergedCells(hot);
-    getSortingPlugin(hot)?.sort([]);
-    clearFilterBaseline(hot);
-    restoreTrimmedState(hot, state);
-    restoreHiddenState(hot, state);
-    clearManualSizes(hot);
-    restoreCustomBorders(hot, state);
+    if (covers('mergedCells')) {
+      clearMergedCells(hot);
+    }
+
+    if (covers('sort')) {
+      getSortingPlugin(hot)?.sort([]);
+    }
+
+    if (covers('filters')) {
+      clearFilterBaseline(hot);
+    }
+
+    if (covers('trimmedRows')) {
+      restoreTrimmedState(hot, state);
+    }
+
+    restoreHiddenState(hot, state, covers);
+    clearManualSizes(hot, covers);
+
+    if (covers('customBorders')) {
+      clearCustomBorders(hot);
+    }
   });
 
   hot.render();

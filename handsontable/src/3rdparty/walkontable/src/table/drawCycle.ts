@@ -302,6 +302,8 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
         wtViewport.createVisibleCalculators();
       }
 
+      wtViewport.syncVisibleCalculatorsToHolderScrollbars();
+
       wtOverlays.applyToDOM();
 
       wtSettings.getSetting('onDraw', true);

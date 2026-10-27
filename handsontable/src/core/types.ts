@@ -11,7 +11,7 @@ import type CellCoords from '../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../3rdparty/walkontable/src/cell/range';
 import type { Events, GridSettings } from './settings';
 import type { RenderChangeTracker } from './incrementalRender/renderChangeTracker';
-import type { CellProperties, ColumnDataGetterSetterFunction } from '../settings';
+import type { CellProperties, ColumnDataGetterSetterFunction, SettingsUpdate } from '../settings';
 import type { default as SelectionManager } from '../selection/selection';
 import type { default as ViewInstance } from '../tableView';
 import type { ShortcutManager } from '../shortcuts/manager';
@@ -39,6 +39,16 @@ export interface CellOptionMetaEntry {
   physicalColumn: number;
   key: string;
   value: unknown;
+}
+
+/**
+ * The cell meta a caller took away with a set of rows and brings back with them, addressed by physical
+ * indexes: the keys set through `setCellMeta()` (or an undo of one), and the cells whose meta holds
+ * `valid: false`, which the validation flow writes without `setCellMeta()`.
+ */
+export interface KeptCellMetas {
+  userDefined: CellOptionMetaEntry[];
+  invalid: Array<{ physicalRow: number, physicalColumn: number }>;
 }
 
 export interface RangeType {
@@ -118,7 +128,7 @@ export interface HotInstance {
 
   // Settings
   getSettings(): GridSettings;
-  updateSettings(settings: Partial<GridSettings>, init?: boolean): void;
+  updateSettings(settings: SettingsUpdate, init?: boolean): void;
 
   // Selection
   selection: SelectionManager;
@@ -322,12 +332,14 @@ export interface HotInstance {
   _getOperationScope(): OperationScope;
   _hasPendingValidation(): boolean;
   _applySettingsAndData(
-    settings: Partial<GridSettings>, data: unknown[], source: string, cellOptionMetas?: CellOptionMetaEntry[] | null
+    settings: Partial<GridSettings>, data: unknown[], source: string, cellOptionMetas?: CellOptionMetaEntry[] | null,
+    keptCellMetas?: KeptCellMetas | null
   ): void;
   _isDataWorkDeferred(): boolean;
   _isDataLoadPending(): boolean;
   _isHeldMetaPhaseRunning(): boolean;
   _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
+  _setSettingsFilter(filter: ((settings: SettingsUpdate) => SettingsUpdate) | null): void;
 
   // DOM references
   rootElement: HTMLElement;

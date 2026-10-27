@@ -31,7 +31,8 @@ Rules that hold this together:
 - **Format the value through `formatCellValue()`**, so the measured string is what the renderer will
   actually produce (cell-level `valueFormatter`, then the renderer's static). See the `renderCell.ts`
   bullet in `../../../AGENTS.md`.
-- Cells covered by a merged cell carry `null` and are skipped — they contribute no sample.
+- Cells covered by a merged cell carry `null` and are skipped — they contribute no sample. The merge's
+  own top-left cell is sampled only when the merge spans one column; see "Merged cells" below.
 - **List-cell columns (autocomplete, dropdown, handsontable) include the reserved arrow
   slot (DEV-348).** The real renderer adds `td.htAutocomplete`; the product CSS reserves the
   arrow as `padding-inline-end`. GhostTable therefore measures value plus arrow, and an
@@ -52,6 +53,102 @@ Rules that hold this together:
   width as a side effect. A test of this must restore the root through the grid's own ResizeObserver render:
   `render()` and `refreshDimensions()` both re-measure every column and hide the defect
   (`tests/e2e/auto-column-size-collapsed-root.spec.ts`).
+
+## Merged cells
+
+The content of a merge used to size no column at all: the sampler skipped every `spanned` cell, so a long
+text in a merge wrapped into a 50px column. Two rules replace that skip, split by the merge's shape.
+
+- **A merge that spans one column (rowspan only) is sampled like any cell.** Its text belongs to that
+  column alone, so the sample cache and the width-determiner probe need nothing extra.
+- **A merge that spans several columns stays out of the samples** and is fitted by `MergedCellsWidths`
+  (`mergedCellsWidths.ts`). Sampled as an ordinary value it made its first column as wide as the whole text
+  on its own (the 2015 symptom of GitHub issue #2667). The demand is the text width minus the widths of the
+  other spanned columns, and it lands on the first column of the span that is not hidden, the one MergeCells
+  draws the merge from (`mergeCells/renderer.ts`, `getNearestNotHiddenIndex`). `getColumnWidth()` returns the
+  larger of that demand and the measured width.
+
+Eight rules hold this together.
+
+1. **The demand lives apart from `columnWidthsMap`.** The probe compares new widths against the cached
+   width, and a demand written into it would never shrink back when a spanned column grows or the merge goes
+   away. It is a plain `Map` keyed by physical column, not a registered index map, so UndoRedo needs no
+   `DERIVED_INDEX_MAP_NAMES` entry for it.
+2. **The other spanned columns count at their width before the stretch, and a hidden one counts as 0.** The
+   host reads `getColWidth(column, 'StretchColumns')`, the source the StretchColumns calculator reads its base
+   widths with. Read with the stretch, a fit that followed a stretched render subtracted the stretched widths,
+   and once the wider first column turned the stretch off, the merge ended short of its text. A column is
+   skipped when `columnIndexMapper.isHidden()` says so, not when its width is 0: CollapsibleColumns hides
+   through its own hiding map and its columns keep their width. A settings `width` and a manual size count.
+3. **Demands are resolved from the rightmost drawing column leftwards, each written before the next is
+   read.** A demand reads only the columns to the right of its drawing column, so a merge that starts inside
+   another one's span is sized first. Merges with the same lead column and span are resolved once.
+4. **A fit runs only when an input changed, never on every render.** `forceFullRender` re-measures every
+   visible column on every `render()`, and a fit there read every merge on every edit. Each input below is
+   pinned by a case in `tests/e2e/auto-column-size-merged-cells.spec.ts`, and the ones marked (control) also
+   went red with the trigger removed:
+   - a stored width that changed (`#updateColumnWidthsMapBasedOnGhostTable` compares before it writes);
+   - any width map of the column axis changing (the column mapper's `change` local hook): a drag, the
+     ManualColumnResize API, the stretch, this plugin's own map (control: the API case);
+   - the text or meta of a merge's first cell (`#invalidateMergedCellText`): an edit through
+     `#onBeforeChange` (before its "already queued" early return), an undo through `afterSetSourceDataAtCell`
+     (control), and `afterSetCellMeta` (control). The Formulas value updates reach the same method, and no
+     case pins them;
+   - a merge added or removed: `beforeMergeCells`/`beforeUnmergeCells` mark the layout dirty, because
+     MergeCells renders inside the call (clearing the covered cells) before its `after*` hook, and that
+     render's fit must read the merges; `afterMergeCells`/`afterUnmergeCells` queue the rescans;
+   - an undo or redo, which can restore merges with no merge hook (rule 8, control);
+   - a style change: a column re-measured from its cached samples to another width
+     (`#replayedColumns`) makes every group measure again from its kept texts (control). A style change
+     that moves no visible plain column goes unseen until another input arrives;
+   - a settings update (`updatePlugin()`), which can restyle a merge's text (control);
+   - rows hidden, shown, or trimmed (control for shown), the rows sorted, a column inserted, moved, removed,
+     or hidden (control for hidden), `loadData()` and `updateData()` (control), and `enablePlugin()`
+     (control).
+5. **Each merge's text is kept, and only what changed is read again.** `MergedCellsWidths` keeps the
+   formatted text of every merge's first cell by physical row and column, and the width of each group of
+   merges (same lead column and span) by a signature of its physical rows and the column's text version. An
+   edit forgets one text. Hiding, showing, or trimming rows only changes which merges a group holds, so the
+   group is measured again from the kept texts without reading a cell, and a style change does the same
+   (`markStylesChanged()`). `markStale()` forgets every text: a settings update, an overwrite sweep, and
+   `enablePlugin()`. `markRenumbered()` also drops a waiting merge snapshot (rule 8), for anything that can
+   renumber the physical rows or columns: a changed row or column sequence (a sort included, since the
+   cacheUpdated state cannot tell a sort from a remove and insert), `loadData()`, and `updateData()`.
+   **A fit after a width change alone reads no merge.** `markWidthsChanged()` is the only mark that keeps
+   `#layoutDirty` off, and such a fit resolves the demands again from the groups the last full fit kept
+   (`#resolved`): the widths are the only input that moved. Every other mark sets `#layoutDirty`, and a new
+   input that can change the drawn merges, their rows, or their texts must too, or the fast path keeps
+   the previous groups.
+6. **The "may have merges" flag gates the per-change reads, never the structural marks.**
+   `mayHaveMultiColumnMerges()` counts every multi-column merge MergeCells reports, hidden rows included, and
+   gates the meta reads of `#onBeforeChange`, `afterSetSourceDataAtCell`, `afterSetCellMeta`, and the column
+   `change` hook, so a paste into a grid without such merges reads no meta. The index-mapper handlers ask
+   whether MergeCells is enabled instead: `getVisibleMergedAreas()` leaves out a merge whose rows are all
+   trimmed, so after a filter the flag reads `false`, and clearing the filter must still refit.
+7. **The fit runs after the ghost table is cleaned, once per sweep, and merges queue as little as they
+   need.** The fit measures through the ghost table too, so `#updateColumnWidthsMapBasedOnGhostTable()`
+   cleans it first. An idle chunk of the asynchronous sweep leaves the fit pending (`#deferMergedCellsFit`),
+   and the sweep fits once when it ends. A merge made by the user rescans every column it spans; a merge
+   applied from the settings (`auto`) rescans only its first column, whose text the init sweep measured
+   before the merge existed, since the grid never drew its covered values. A queued rescan is skipped for a
+   column already scanned in the same `beforeRender` (`#scannedColumns`) or by an asynchronous chunk that
+   started after the merge (`#mergeRescanQueuedAt`).
+
+8. **An undo or redo compares the merges before and after.** MergeCells restores merges with no hook in
+   `restoreState()`, and the plugin would otherwise keep samples taken under the old merges: an undone
+   unmerge left the first column at the whole text's width. `beforeUndo`/`beforeRedo` take a snapshot of
+   the merges (`snapshotMerges()`), keyed by their physical first cell and span; the undo renders before its
+   `after*` hook fires, so a snapshot taken there would miss that render. The fit of that render reports
+   every merge that appeared or went away, and every column it spans is dropped from the samples cache and
+   queued for a full rescan, which `#onBeforeRender` runs in the same render. Only that fit compares: a
+   comparison on every fit cost 4 to 6 ms per fit at 10k merges. A renumbering drops a waiting snapshot.
+   `clearCollections()` (a settings rebuild, a disable) is the other hook-less path; the settings update
+   reads every text again and the full render re-walks the visible columns, and a lingering demand never
+   exceeds the unmerged cell's own text.
+
+Known limit: a merge removed with no unmerge hook (`updateSettings({ mergeCells: false })`) keeps its demand
+until the next fit; the unmerged first cell is sampled again then, and its own text is never narrower than
+the demand. Unit cases for the class: `__tests__/mergedCellsWidths.unit.ts`.
 
 ## `syncLimit`, and what "sync" guarantees
 
@@ -141,6 +238,11 @@ silently ignored when they arrived through `updateSettings()` (DEV-2850). Four r
   in place — the same limitation `#onAfterLoadData` already has, and a smaller wrong than a grid of default
   widths. It also clears `#columnWidthsToRefresh`, so the header-change entries queued earlier in
   `updatePlugin()` are not measured a second time in the same render.
+- **A sampling change in the call that turns the plugin on again is measured too.** `BasePlugin` refreshes
+  the plugin settings before `enablePlugin()`, so `enablePlugin()` applies the new sampling settings and the
+  `updatePlugin()` of the same call sees no change. `enablePlugin()` therefore records a change it applied to
+  a plugin that measured before (`#samplingChangedOnEnable`), and `updatePlugin()` re-measures for it once.
+  The widths map survives a disable, so without it the widths measured under the old settings stayed.
 - **Re-measure only on a real change.** `updatePlugin()` runs on *every* `updateSettings()` call, and the
   React and Angular wrappers re-send unchanged settings on every update (React on every commit). An
   unconditional re-measure would walk every column on each of them — which the `skipUnchangedWrites` rule
@@ -221,6 +323,13 @@ width.
   itself now — see "The engine decides for itself when the overlays need resizing" in
   `../../3rdparty/walkontable/AGENTS.md`, and do not add the call back.
 - `requestAnimationFrame` batching in the codebase is thin, and this is one of the few files using it.
+- **`colWidths: null` names no width, on both sides.** `isEnabled()` reads it as unset (`!colWidths`), and
+  `_getColWidthFromSettings()` returns `undefined` for a `null` width, so `getColumnWidth()` takes the measured
+  size. It used to return the `null`, which `getColWidth()` passed through as a width and every column drew at
+  the default 50px while the plugin reported itself enabled. The sheets bar writes `null` for a key only some
+  sheets declare (its `undefined` baseline), so every sheet after one declaring `colWidths` was fixed at 50px,
+  and an xlsx export from it wrote one-character columns. Pinned by
+  `../sheetsBar/__tests__/settingsBaseline.unit.js`.
 - **`hot._getColWidthFromSettings()` takes a VISUAL index.** It translates the index to the physical one itself for the `colWidths` array and function (`colWidths` is addressed by physical index), and it reads `getCellMeta(0, col)`, which also takes a visual index. Pass the visual column at every call site; passing the physical one translates twice and reads another column's width once columns are moved.
 
 ## Notes for docs

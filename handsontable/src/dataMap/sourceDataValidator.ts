@@ -314,6 +314,27 @@ function hasStoredPerCellMeta(hotInstance: HotInstance, settings: GridSettings):
 }
 
 /**
+ * The keys of imperatively-set cell meta that can give a cell a `sourceDataValidator`: the validator
+ * itself, and a `type` whose definition carries one.
+ */
+const VALIDATOR_META_KEYS = new Set(['type', 'sourceDataValidator']);
+
+/**
+ * Tells whether persistent per-cell meta could give a cell a `sourceDataValidator` that no column has. The
+ * `cell` option counts whatever it holds, as in `hasStoredPerCellMeta()`. Imperatively-set meta counts
+ * only for a key in `VALIDATOR_META_KEYS`, so a `readOnly` or a comment set through `setCellMeta()` does not
+ * make a grid with no validator resolve the meta of every cell on every load.
+ *
+ * @param {HotInstance} hotInstance The Handsontable instance.
+ * @param {GridSettings} settings The resolved grid settings.
+ * @returns {boolean}
+ */
+function canStoredMetaAddValidator(hotInstance: HotInstance, settings: GridSettings): boolean {
+  return (Array.isArray(settings.cell) && settings.cell.length > 0) ||
+    hotInstance._getMetaManager().getUserDefinedCellMetas().some(({ key }) => VALIDATOR_META_KEYS.has(key));
+}
+
+/**
  * Runs source-data validators for all cells and emits one aggregated warning per cell type.
  *
  * Meta is resolved with `getCellMetaUncached`, so validation considers the global and column layers,
@@ -345,14 +366,13 @@ export function runSourceDataValidators(hotInstance: HotInstance, source?: strin
   const invalidByMessageType: InvalidItems = new Map();
   const columnMappings = collectColumnMappings(hotInstance, colSourceCount);
   const { fullScan, columns } = collectColumnValidators(hotInstance, columnMappings);
-  const hasStoredMeta = hasStoredPerCellMeta(hotInstance, settings);
 
   // Nothing carries (or could carry) a source-data validator — skip the scan entirely.
-  if (!fullScan && columns.length === 0 && !hasStoredMeta) {
+  if (!fullScan && columns.length === 0 && !canStoredMetaAddValidator(hotInstance, settings)) {
     return;
   }
 
-  if (fullScan || hasStoredMeta) {
+  if (fullScan || hasStoredPerCellMeta(hotInstance, settings)) {
     validatePerCell(hotInstance, dataSource, rowSourceCount, columnMappings, invalidByMessageType, source);
   } else {
     const toVisualRow = (row: number) => hotInstance.rowIndexMapper.getVisualFromPhysicalIndex(row);

@@ -92,7 +92,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ],
   columnSorting: true,
   columnSummary: [],
-  colWidths: oneOf(100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100))),
+  colWidths: oneOf(
+    100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100)),
+    null, [120, null, undefined], ((index: number) => oneOf(100, null, undefined)),
+  ),
   commentedCellClassName: 'foo',
   comments: true,
   contextMenu: true,
@@ -1184,6 +1187,11 @@ hot.updateSettings({
   beforeSheetTabChange: (oldSheetId, newSheetId, source) => false,
   afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
   afterSheetTabAdd: (sheetId, name, source) => {},
+});
+hot.updateSettings({
+  sheetsBar: {
+    sheets: [{ name: 'Employees', data: [{ name: 'Ana García', department: 'Engineering' }] }],
+  },
 });
 
 // DEV-2723: `modifyData` receives `null` as its column for a numeric property that names no column,

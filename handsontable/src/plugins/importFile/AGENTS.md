@@ -228,7 +228,7 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   stale, not as replaced. Only `loadData()` counts, not `updateData()`. Two loads take no ticket: a
   DataProvider fetch (source `'dataProvider'`, compared as a string, because the plugin may not import
   DataProvider), which reloads the data the import was started on, and a load a `beforeImport` listener
-  makes (`#isApplying` covers the hook too), the usual way to clear the grid before the result lands. Pinned by `importFile.unit.js` ›
+  makes (`#isApplying` covers the hook too), the usual way to clear the grid before the result lands. The sheets bar reads a narrower flag, `#isApplyingResult` (through `_isApplyingImport()`), set around `applyImportResult()` only: a setting a `beforeImport` listener changes is the host's own, and the bar keeps it as the grid-level value. Pinned by `importFile.unit.js` ›
   "ImportFile overlapping imports".
 - **Overlapping applying imports are ordered by when they STARTED, not when they finish (T90).** Each
   `apply: true` call takes a ticket from `#latestApplyTicket` before its first `await` (in

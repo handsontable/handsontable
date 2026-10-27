@@ -15,6 +15,7 @@ vue:
   metaTitle: Installation | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 ::: only-for angular
 
@@ -187,50 +188,9 @@ If you're using Angular 21 or newer, please note that older versions of `@handso
 
 ## Server-side rendering (SSR)
 
-Currently, `HotTable` cannot be rendered on the server-side. If your application uses SSR, render it only in the browser using the `@if` control flow block.
+You can include `<hot-table>` in a template that Angular renders on the server, and the server render doesn't throw. On the server, `HotTableComponent` doesn't create a grid, so `hotInstance` stays `null` and the server HTML contains no Handsontable grid. In the browser, the component creates the grid in `ngAfterViewInit`.
 
-```ts
-import { isPlatformBrowser } from "@angular/common";
-import { Component, inject, PLATFORM_ID } from "@angular/core";
-import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
-
-@Component({
-  standalone: true,
-  selector: "app-root",
-  imports: [HotTableModule],
-  templateUrl: "./app.html",
-  styleUrl: "./app.scss",
-})
-export class App {
-  private platformId = inject(PLATFORM_ID);
-  readonly isBrowser = isPlatformBrowser(this.platformId);
-
-  readonly data = [
-    ["SKU-4821", "Stainless Steel Water Bottle", "Harbor Goods", "Drinkware", "Seattle"],
-    ["SKU-0093", "Wireless Mouse", "Alpine Supply Co.", "Electronics", "Denver"],
-    ["SKU-1170", "Ergonomic Office Chair", "Cascade Distributors", "Furniture", "Portland"],
-    ["SKU-2208", "USB-C Charging Cable", "Summit Trading", "Electronics", "Austin"],
-    ["SKU-3341", "Aluminum Water Filter", "Northgate Wholesale", "Drinkware", "Minneapolis"],
-  ];
-  readonly gridSettings: GridSettings = {
-    rowHeaders: true,
-    colHeaders: ["SKU", "Product", "Supplier", "Category", "Warehouse"],
-    height: "auto",
-    autoWrapRow: true,
-    autoWrapCol: true,
-    manualRowResize: true,
-    manualColumnResize: true,
-  };
-}
-```
-
-```html
-<div>
-  @if (isBrowser) {
-    <hot-table [data]="data" [settings]="gridSettings" />
-  }
-</div>
-```
+While Angular's event dispatch contract is active, `stopImmediatePropagation()` inside a Handsontable hook does not stop Handsontable listeners above `body`. A shortcut or a selection can still run. The contract is active before `ApplicationRef.whenStable()`. With `withIncrementalHydration()`, it stays active for the whole app lifetime. [Return `false` from `beforeKeyDown`](@/guides/navigation/custom-shortcuts/custom-shortcuts.md#block-a-keyboard-shortcuts-actions) to block the key.
 
 ## Result
 

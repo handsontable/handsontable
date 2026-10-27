@@ -11,7 +11,7 @@ import React, {
   useContext,
 } from 'react';
 import { ScopeIdentifier, HotRendererProps } from './types';
-import { createPortal } from './helpers';
+import { createPortal, warnAboutClassicFunctionRenderer } from './helpers';
 import { RenderersPortalManagerRef } from './renderersPortalManager';
 
 export interface HotTableContextImpl {
@@ -148,6 +148,8 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const getRendererWrapper = useCallback((
     Renderer: ComponentType<HotRendererProps>
   ): typeof Handsontable.renderers.BaseRenderer => {
+    warnAboutClassicFunctionRenderer(Renderer);
+
     return function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const key = `${row}-${col}`;
 

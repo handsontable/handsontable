@@ -5,8 +5,11 @@ description: Use whenever a change touches anything a user can see or operate in
 
 # Accessibility in every development round
 
-The bar is **WCAG 2.2 Level A and AA**, the level the published conformance report claims
-(`docs/content/guides/accessibility/accessibility-conformance-report/`). The axe scan catches part
+The bar is **WCAG 2.2 Level A and AA**, the target level; the published conformance report
+(`docs/content/guides/accessibility/accessibility-conformance-report/`) states conformance per
+criterion. Public text says the grid "targets WCAG 2.2 Level A and AA" and links that report, and
+names a screen reader only when the tested matrix in `docs/content/data/accessibility.json` lists it
+(root `AGENTS.md`, "Accessibility"). The axe scan catches part
 of it after the fact; this skill makes the rest part of the round. Accessibility is planned with the
 change, built with core's helpers, proven in tests, and reviewed like any other dimension.
 

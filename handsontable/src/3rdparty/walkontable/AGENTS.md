@@ -914,6 +914,19 @@ The header level is **not** `columnHeaders.length - headerIndex`:
   into `style.right` puts the full-column / select-all highlight on the wrong side of the cell.
   Rows are top/height on both directions.
 
+## An empty column-header section measures as 0
+
+`beginDrawLayout` reads the column-header section before its rows exist, and an empty
+section measures as 0. On the snapshot path that 0 stays until the next render, so the
+empty section has to use the known header heights. Do not hide it with another calculator rebuild.
+
+AutoRowSize's ghost measurement omits the bottom gridline (`.htGhostTable table thead th`
+zeroes `border-bottom-width`). `knownColumnHeaderBandHeight` adds that pixel only when
+`columnHeaderHeightOmitsBottomBorder` is set and the first level is taller than the default
+row. The paint value stays the ghost number: putting the pixel into `style.height` makes
+every nested level after the first 1px taller. An explicit `columnHeaderHeight` and the
+first-draw content probe already include the gridline, so they do not get another pixel.
+
 ## Border ownership: the header owns its gridline, on both axes
 
 Both axes are settled, and they are now symmetric. On the column axis a row header `th` carries its
@@ -1610,6 +1623,12 @@ A paint outside `'onChange'` drops the element's stamp (`CellPainter#paint`,
 `deleteCellPaintStamp`): a TD that painted row 11 under `'onChange'`, then row 60 under `'always'`
 (a column-level override), then rotated back to row 11 would otherwise rebuild the same stamp field
 for field, match, and keep showing row 60. Pinned in `core/incrementalRender/__tests__/cellPainter.unit.js`.
+
+## Scrollbar thickness is per axis, and it is the holder's
+
+`getScrollbarWidth()` measures one throw-away div on `document.body` and caches it. That number is not the master holder's scrollbar, and the two axes are not the same number. The theme sets `scrollbar-color` on `.wtHolder`, so Chrome 121+ ignores a page `::-webkit-scrollbar` rule there while the probe (outside the theme, so its `scrollbar-color` variables do not resolve) follows the rule. A rule on the holder alone does the reverse.
+
+The layout input carries `scrollbarWidth` (vertical bar, consumes width) and `scrollbarHeight` (horizontal bar, consumes height). `scrollbarAxisThickness` in `overlay/scrollbarClearance.ts` uses the holder's gutter (`offset` minus `client`, the same read as `reservedScrollbarSpace`) when it is above zero, and the probe only when there is no holder or that axis has no gutter yet. Window scroll keeps the probe: the document owns those scrollbars and the calculators do not read the snapshot. `gatherLayoutInput` reads one offset/client pair per axis. On the snapshot path a full draw reads that pair again in `syncVisibleCalculatorsToHolderScrollbars`, after `adjustElementsSize`, because the first read runs before the hider exists. The second read rebuilds the visible range only when the gutter disagrees. Neither read is per cell. `.wtHolder` has no border, so the gutter is the scrollbar.
 
 ## Row recycling: a scroll keeps a row's TR
 

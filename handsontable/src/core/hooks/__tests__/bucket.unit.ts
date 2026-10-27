@@ -335,4 +335,64 @@ describe('Bucket', () => {
       }
     });
   });
+  describe('replaceFromSettings()', () => {
+    const callbacks = (bucket, hookName) => bucket.getHooks(hookName).map(entry => entry.callback);
+
+    it('swaps a function into the fixed settings entry in place', () => {
+      const bucket = new HooksBucket();
+      const settingsFn = function() {};
+      const listener = function() {};
+      const next = function() {};
+
+      bucket.add('afterChange', settingsFn, { initialHook: true, fromSettings: true });
+      bucket.add('afterChange', listener);
+      bucket.replaceFromSettings('afterChange', next);
+
+      expect(callbacks(bucket, 'afterChange')).toEqual([next, listener]);
+    });
+
+    it('removes the other settings entries when it sets a function', () => {
+      const bucket = new HooksBucket();
+      const arrayItem = function() {};
+      const listener = function() {};
+      const next = function() {};
+
+      bucket.add('afterChange', arrayItem, { fromSettings: true });
+      bucket.add('afterChange', listener);
+      bucket.replaceFromSettings('afterChange', next);
+
+      expect(callbacks(bucket, 'afterChange')).toEqual([listener, next]);
+      expect(bucket.getHooks('afterChange')[1].initialHook).toBe(true);
+    });
+
+    it('keeps the settings entries an array names, in place, and removes the rest', () => {
+      const bucket = new HooksBucket();
+      const kept = function() {};
+      const dropped = function() {};
+      const fixed = function() {};
+      const listener = function() {};
+      const added = function() {};
+
+      bucket.add('afterChange', fixed, { initialHook: true, fromSettings: true });
+      bucket.add('afterChange', kept, { fromSettings: true });
+      bucket.add('afterChange', listener);
+      bucket.add('afterChange', dropped, { fromSettings: true });
+      bucket.replaceFromSettings('afterChange', [kept, added]);
+
+      expect(callbacks(bucket, 'afterChange')).toEqual([kept, listener, added]);
+    });
+
+    it('leaves a listener an `addHook()` call registered for the same function', () => {
+      const bucket = new HooksBucket();
+      const fn = function() {};
+      const previous = function() {};
+
+      bucket.add('afterChange', previous, { initialHook: true, fromSettings: true });
+      bucket.add('afterChange', fn);
+      bucket.replaceFromSettings('afterChange', fn);
+
+      expect(callbacks(bucket, 'afterChange')).toEqual([fn]);
+      expect(bucket.getHooks('afterChange')[0].fromSettings).toBe(false);
+    });
+  });
 });

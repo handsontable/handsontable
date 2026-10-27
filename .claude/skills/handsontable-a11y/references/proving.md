@@ -62,5 +62,6 @@ stands in for the flow: it cannot see focus.
 The scan checks that a name exists, not that it means anything; it never presses a key, follows
 focus, hears an announcement, drags, or zooms. The flow in section 1 covers keys, focus and
 announcements. A new widget pattern, or a change to how one is announced, also gets a pass with a
-real screen reader (VoiceOver with Safari, NVDA with Chrome or Firefox): say what to listen for on
+real screen reader from the tested matrix in `docs/content/data/accessibility.json` (VoiceOver on macOS
+or iOS, NVDA on Windows with Chrome or Firefox): say what to listen for on
 the PR template's `MANUAL QA NEEDED` line.

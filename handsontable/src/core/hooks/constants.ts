@@ -282,6 +282,10 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created columns in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.columnLeft'` or `'ContextMenu.columnRight'` when the user
+   *                          inserts a column from the context menu, and `'auto'` when the `minCols` or
+   *                          `minSpareCols` option adds columns. These are not the context menu item keys
+   *                          (`col_left`, `col_right`).
    * @returns {*} If `false` then creating columns is canceled.
    * @example
    * ::: only-for javascript
@@ -353,6 +357,10 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created columns in the data source.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.columnLeft'` or `'ContextMenu.columnRight'` when the user
+   *                          inserts a column from the context menu, and `'auto'` when the `minCols` or
+   *                          `minSpareCols` option adds columns. These are not the context menu item keys
+   *                          (`col_left`, `col_right`).
    */
   'afterCreateCol',
 
@@ -366,6 +374,9 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of rows to be created.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.rowAbove'` or `'ContextMenu.rowBelow'` when the user inserts
+   *                          a row from the context menu, and `'auto'` when the `minRows` or `minSpareRows` option
+   *                          adds rows. These are not the context menu item keys (`row_above`, `row_below`).
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeCreateRow',
@@ -378,6 +389,9 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.rowAbove'` or `'ContextMenu.rowBelow'` when the user inserts
+   *                          a row from the context menu, and `'auto'` when the `minRows` or `minSpareRows` option
+   *                          adds rows. These are not the context menu item keys (`row_above`, `row_below`).
    */
   'afterCreateRow',
 
@@ -1671,11 +1685,13 @@ export const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterAsyncValueCancel
    * @since 19.0.0
-   * @param {number} physicalRow Physical row index of the cell, at the time of the cancellation.
+   * @param {number} physicalRow Physical row index of the cell, at the time of the cancellation. For a
+   * removal of several non-contiguous groups of rows, it is the index just before that row's own group is removed.
    * @param {string|number} prop The property of the cell's column.
    * @param {string} reason Why the request was canceled: `'edit'`, `'dependency'`, `'restart'`,
    * `'rowRemoved'`, `'columnsChanged'`, `'dataReplaced'`, `'manual'`, `'disabled'`, or `'vetoed'`.
    * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   * For a row that was removed or replaced, it is the id the row held before.
    */
   'afterAsyncValueCancel',
 
@@ -3739,6 +3755,11 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterSheetTabStateCapture
    * @param {number} sheetId The id of the sheet the view state was captured from.
    * @param {object} viewState The captured view state. Its `sortConfig` names each column by its physical index.
+   * Its `cellMeta` lists the cell meta the sheet keeps, one `{ row, col, key, value }` entry per key, where `row`
+   * and `col` are physical indexes: every key set through `setCellMeta()` except `hidden`, `spanned` and `valid`,
+   * internal keys starting with `_` included, and a `valid: false` entry for each cell marked invalid. Its
+   * `customBorders` lists the borders on screen for reading only: the sheet's borders come back with `cellMeta`,
+   * so a change made to that list is not applied.
    * @param {string} source String that identifies source of hook call.
    */
   'afterSheetTabStateCapture',
@@ -3773,7 +3794,7 @@ export const REGISTERED_HOOKS = [
    *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
-   * - [HyperFormula documentation: `valuesUpdated`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#valuesupdated)
+   * - [HyperFormula documentation: `valuesUpdated`](https://handsontable.com/docs/hyperformula/api/interfaces/listeners.html#valuesupdated)
    *
    * @since 9.0.0
    * @event Hooks#afterFormulasValuesUpdate
@@ -3788,7 +3809,7 @@ export const REGISTERED_HOOKS = [
    * because you called it directly or because you defined the `namedExpressions` configuration option.
    *
    * Read more:
-   * - [HyperFormula documentation: `addNamedExpression`](https://hyperformula.handsontable.com/api/classes/hyperformula.html#addnamedexpression)
+   * - [HyperFormula documentation: `addNamedExpression`](https://handsontable.com/docs/hyperformula/api/classes/hyperformula.html#addnamedexpression)
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionAdded
@@ -3803,7 +3824,7 @@ export const REGISTERED_HOOKS = [
    * This hook fires after the HyperFormula engine's `removeNamedExpression()` method runs.
    *
    * Read more:
-   * - [HyperFormula documentation: `removeNamedExpression`](https://hyperformula.handsontable.com/api/classes/hyperformula.html#removenamedexpression)
+   * - [HyperFormula documentation: `removeNamedExpression`](https://handsontable.com/docs/hyperformula/api/classes/hyperformula.html#removenamedexpression)
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionRemoved
@@ -3821,7 +3842,7 @@ export const REGISTERED_HOOKS = [
    *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
-   * - [HyperFormula documentation: `sheetAdded`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#sheetadded)
+   * - [HyperFormula documentation: `sheetAdded`](https://handsontable.com/docs/hyperformula/api/interfaces/listeners.html#sheetadded)
    *
    * @since 9.0.0
    * @event Hooks#afterSheetAdded
@@ -3834,7 +3855,7 @@ export const REGISTERED_HOOKS = [
    *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
-   * - [HyperFormula documentation: `sheetRenamed`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#sheetrenamed)
+   * - [HyperFormula documentation: `sheetRenamed`](https://handsontable.com/docs/hyperformula/api/interfaces/listeners.html#sheetrenamed)
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRenamed
@@ -3848,7 +3869,7 @@ export const REGISTERED_HOOKS = [
    *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
-   * - [HyperFormula documentation: `sheetRemoved`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#sheetremoved)
+   * - [HyperFormula documentation: `sheetRemoved`](https://handsontable.com/docs/hyperformula/api/interfaces/listeners.html#sheetremoved)
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRemoved

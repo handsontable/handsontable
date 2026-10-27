@@ -35,7 +35,8 @@ separate defects made this ordering necessary:
    replaced that template with a `TemplateSpec`, so the injection route is closed; the ordering stays
    because the WCAG reason below stands on its own.
 2. Even a *benign* custom id was wrong: two grids configured with the same one emit duplicate element ids
-   into a single document (WCAG 4.1.1), which a GUID cannot do.
+   into a single document, which a GUID cannot do. (WCAG 2.2 dropped 4.1.1 Parsing; duplicate ids break
+   1.3.1 Info and Relationships and 4.1.2 Name, Role, Value, where `aria-labelledby` resolves the wrong element.)
 
 Unknown keys inside `template` pass `SETTINGS_VALIDATORS` untouched — `BasePlugin` iterates the validator's
 own keys only — so a value the library itself must control has to be kept out of the caller's reach by

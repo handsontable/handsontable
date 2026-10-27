@@ -44,7 +44,7 @@
 &nbsp;&nbsp;✅&nbsp; [IME support](https://handsontable.com/docs/ime-support/) <br>
 &nbsp;&nbsp;✅&nbsp; [Internationalization](https://handsontable.com/docs/language/) <br>
 &nbsp;&nbsp;✅&nbsp; [RTL support](https://handsontable.com/docs/layout-direction/) <br>
-&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/accessibility/) <br>
+&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/accessibility/) ([targets WCAG 2.2 AA](https://handsontable.com/docs/javascript-data-grid/accessibility-conformance-report/)) <br>
 &nbsp;&nbsp;✅&nbsp; [Keyboard shortcuts](https://handsontable.com/docs/keyboard-shortcuts/) <br>
 &nbsp;&nbsp;✅&nbsp; [Sorting data](https://handsontable.com/docs/rows-sorting/) <br>
 &nbsp;&nbsp;✅&nbsp; [Filtering data](https://handsontable.com/docs/column-filter/) <br>
@@ -237,7 +237,7 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 Handsontable DataGrid and HyperFormula ship first-party resources for AI assistants and coding agents:
 
 - **Agent Skills** - official skills for Claude Code, Codex, and other coding agents, covering both products. Install in Claude Code with `/plugin marketplace add handsontable/handsontable-skills`.
-  → [github.com/handsontable/handsontable-skills](https://github.com/handsontable/handsontable-skills)
+  → [github.com/handsontable/handsontable-skills](https://github.com/handsontable/handsontable-skills) · [Skills for Claude Code guide](https://handsontable.com/docs/javascript-data-grid/skills-for-claude-code/)
 - **AI Docs Assistant** - ask questions in English (or any other language) and get cited answers from the live docs, right in the [documentation header](https://handsontable.com/docs/javascript-data-grid/ai-docs-assistant/).
 - **[Docs MCP server](https://handsontable.com/docs/javascript-data-grid/docs-mcp-server/)** - semantic search over the full Handsontable + HyperFormula knowledge base: docs guides, API reference, code recipes, release notes, blog posts, and GitHub issues, always current with the latest release.
   `claude mcp add --transport http handsontable-docs https://docs-assistant.handsontable.com/mcp`

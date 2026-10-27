@@ -615,9 +615,17 @@ export default (): Record<string, unknown> => {
     allowRemoveRow: true,
 
     /**
-     * If set to `true`, the accessibility-related ARIA tags will be added to the table. If set to `false`, they
-     * will be omitted.
-     * Defaults to `true`.
+     * The `ariaTags` option decides whether Handsontable adds the ARIA roles and attributes that describe
+     * the grid to assistive technologies: `role="treegrid"` on the grid, `role="row"` on each row,
+     * `role="gridcell"` on each cell, the header roles, `aria-sort`, `aria-expanded`, and the rest.
+     * It defaults to `true`. Set it to `false` only when you add your own ARIA markup. The option also
+     * removes the `tabindex` the grid puts on cells, headers, and menu items, so browser focus no longer
+     * moves onto them. The menu styles read `aria-expanded` too, so a menu item keeps its focus outline
+     * while its submenu is open.
+     *
+     * Read more:
+     * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md)
+     * - [Accessibility conformance report](@/guides/accessibility/accessibility-conformance-report/accessibility-conformance-report.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -625,6 +633,12 @@ export default (): Record<string, unknown> => {
      * @category Core
      * @configScope grid columns cells cell
      * @since 14.0.0
+     *
+     * @example
+     * ```js
+     * // turn the ARIA roles and attributes off (default: true)
+     * ariaTags: false,
+     * ```
      */
     ariaTags: true,
 
@@ -1557,6 +1571,13 @@ export default (): Record<string, unknown> => {
      * | An array    | Set widths separately for each column,<br>by physical column index                                   | `colWidths: [100, 120, undefined]`                                |
      * | A function  | Set column widths dynamically,<br>on each render, by physical column index                           | `colWidths(physicalColumnIndex) { return physicalColumnIndex * 10; }` |
      * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                            |
+     * | `null`      | Same as `undefined`: no width is set,<br>so the {@link AutoColumnSize} plugin sizes the columns        | `colWidths: null`                                                 |
+     *
+     * A `null` entry in the array and a `null` returned by the function also set no width: the
+     * [modifyColWidth](@/api/hooks.md#modifyColWidth) hook receives `undefined` for that column. The
+     * {@link AutoColumnSize} plugin stays off there, because any other `colWidths` value turns it off, so such a
+     * column gets the default 50px width. A column `width: null` behaves like `undefined` and falls back to
+     * `colWidths`.
      *
      * The array and the function address a column by its physical index, so a width stays with its column
      * when the user moves the column. The physical index doesn't change when columns are moved
@@ -5929,10 +5950,16 @@ export default (): Record<string, unknown> => {
     navigableHeaders: false,
 
     /**
-     * When set to `false`, the `tabNavigation` option changes the behavior of the
-     * <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts. The Handsontable
-     * no more captures that shortcuts to make the grid navigation available (`tabNavigation: true`)
-     * but returns control to the browser so the native page navigation is possible.
+     * The `tabNavigation` option decides what the <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd>
+     * keys do while the grid has the focus.
+     *
+     * | Setting          | Description                                                                                                                                                     |
+     * | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | The grid captures <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> and moves the selection between cells, so the grid is a set of tab stops (the spreadsheet mode). |
+     * | `false`          | The grid returns both keys to the browser, so <kbd>Tab</kbd> leaves the grid and the grid is one tab stop in the page's tab sequence (the data grid mode).          |
+     *
+     * Pair `tabNavigation: false` with [`navigableHeaders: true`](#navigableHeaders) for the data grid mode
+     * described in the [Accessibility](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation) guide.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -5946,10 +5973,10 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // you can't navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
+     * // Tab leaves the grid: one tab stop, the arrow keys move between cells
      * tabNavigation: false,
      *
-     * // default behavior: you can navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
+     * // default behavior: Tab and Shift+Tab move between cells
      * tabNavigation: true,
      * ```
      */
@@ -7558,8 +7585,8 @@ export default (): Record<string, unknown> => {
      *
      * | Option        | Possible settings                                  | Description                                                                                 |
      * | ------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-     * | `sheets`      | An array of `{ name, data, settings }` objects, or `null` | Defines the initial workbook. When omitted, the grid's own data becomes a single `Sheet1`     |
-     * | `activeSheet` | A number (default: `0`)                              | The index (within `sheets`) of the sheet to activate on initialization. Passed later through [`updateSettings()`](@/api/core.md#updatesettings) with a changed value, it switches the active sheet without rebuilding the workbook; a re-passed identical value is ignored |
+     * | `sheets`      | An array of `{ name, data, settings }` objects, or `null` | Defines the workbook. When omitted, the grid's own data becomes a single `Sheet1`. The array works like the [`data`](#data) option: the plugin writes into it, so a rename changes the entry's `name`, a sheet the user adds or duplicates is appended with its own `data`, and a removed sheet's entry is spliced out. Keep the array, its entries, and their `data` mutable and stable: the same array passed again keeps the workbook, while an array that describes other sheets rebuilds it. On a frozen array or entry, a rename, an add, a duplicate, or a removal is refused with a console warning before it changes anything, from the bar or from the API. A sheet's `settings` you change with [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings) are not written back into the entry |
+     * | `activeSheet` | A number (default: `0`)                              | The position, within `sheets`, of the sheet to activate on initialization. The position counts in the order of your `sheets` array, not in the order of the tabs, which the user can rearrange. Passed later through [`updateSettings()`](@/api/core.md#updatesettings) with a changed value, it switches the active sheet without rebuilding the workbook; a value equal to the one you passed last is ignored, also after a removal. When a sheet is removed in front of it, the plugin lowers its own copy of the value so it keeps naming the same sheet. With `sheetsBar: true`, which declares no `sheets`, it counts in the tab order |
      * | `controls`    | Boolean (default: `true`)                            | Controls visibility of the add-sheet and sheet-menu controls                                  |
      * | `paging`      | Boolean (default: `true`)                            | Controls visibility of the tab-scrolling controls, shown when tabs overflow the bar's width    |
      * | `position`    | `'top'` \| `'bottom'` (default: `'bottom'`)          | The edge of the grid the bar renders on                                                        |
