@@ -103,6 +103,21 @@ export interface ViewState {
    */
   selectionState: SelectionState | null;
   scroll: { row: number, col: number };
+
+  /**
+   * The collapsed CollapsibleColumns groups and the columns they hide, or `null` when the plugin is off.
+   * Absent from a view state the `ViewState` plugin built, which does not restore it.
+   */
+  collapsedColumns?: CollapsedColumnsState | null;
+}
+
+/**
+ * The collapsed CollapsibleColumns groups of one sheet, by header level and authored group identity,
+ * and the physical columns those collapses hide.
+ */
+export interface CollapsedColumnsState {
+  groups: Array<{ headerLevel: number, authoredColumnIndex: number }>;
+  columns: number[];
 }
 
 /**
@@ -116,7 +131,8 @@ export interface PaginationState {
 
 /**
  * One independently restorable part of a view state. A restore given a set of parts runs only
- * their steps, in the usual order; a restore given none runs every step.
+ * their steps, in the usual order; a restore given none runs every step. `collapsedColumns` is the
+ * sheets bar's own: the `ViewState` plugin never passes it.
  */
 export type ViewStatePart =
   'columnOrder' |
@@ -127,6 +143,7 @@ export type ViewStatePart =
   'hiddenRows' |
   'hiddenColumns' |
   'collapsedRows' |
+  'collapsedColumns' |
   'columnWidths' |
   'rowHeights' |
   'mergedCells' |
@@ -148,6 +165,7 @@ export const VIEW_STATE_PARTS: readonly ViewStatePart[] = [
   'hiddenRows',
   'hiddenColumns',
   'collapsedRows',
+  'collapsedColumns',
   'columnWidths',
   'rowHeights',
   'mergedCells',
@@ -345,6 +363,31 @@ function restoreCollapsedParents(hot: HotInstance, state: ViewState) {
     .filter((row): row is number => row !== null && dataManager.hasChildren(row));
 
   nestedRows.collapsingUI.toggleCollapsedRows(parents, 'collapse', false, false);
+}
+
+/**
+ * The part of the CollapsibleColumns plugin the view state talks to.
+ */
+interface CollapsibleColumnsPlugin {
+  _exportViewState: () => CollapsedColumnsState | null;
+  _importViewState: (state: CollapsedColumnsState | null) => void;
+}
+
+/**
+ * Captures the collapsed CollapsibleColumns groups. A data load rebuilds the header state with every
+ * group expanded, so a sheet switch would otherwise expand them all.
+ */
+function captureCollapsedColumns(hot: HotInstance): CollapsedColumnsState | null {
+  return (getEnabledPlugin(hot, 'collapsibleColumns') as CollapsibleColumnsPlugin | undefined)
+    ?._exportViewState() ?? null;
+}
+
+/**
+ * Collapses the stored groups again, with the collapse hooks off, and expands every other group.
+ */
+function restoreCollapsedColumns(hot: HotInstance, state: ViewState) {
+  (getEnabledPlugin(hot, 'collapsibleColumns') as CollapsibleColumnsPlugin | undefined)
+    ?._importViewState(state.collapsedColumns ?? null);
 }
 
 /**
@@ -674,6 +717,7 @@ export function captureViewState(
   return {
     ...captureAxisState(hot, covers),
     collapsedParents: covers('collapsedRows') ? captureCollapsedParents(hot) : neutral.collapsedParents,
+    collapsedColumns: covers('collapsedColumns') ? captureCollapsedColumns(hot) : neutral.collapsedColumns,
     colWidths,
     rowHeights,
     sortConfig: covers('sort') ? captureSortConfig(hot) : neutral.sortConfig,
@@ -1063,8 +1107,9 @@ export function clearCustomBorders(hot: HotInstance): void {
  * which decide the visual space; then the hidden sets, which are addressed in it; then the
  * collapsed NestedRows parents, after the hidden sets because collapsing trims the children out
  * of that visual space and a hidden child would no longer be found by its visual index; then
- * sizes, freeze, and borders, none of which depend on each other; and last, after the batch, the merges,
- * which are placed through the index cache and need the restored order in it (see {@link restoreMergedCells}).
+ * sizes, freeze, and borders, none of which depend on each other. After the batch come the merges,
+ * which are placed through the index cache and need the restored order in it (see {@link restoreMergedCells}),
+ * and the collapsed column groups, whose header tree is derived through the same cache.
  *
  * The kept cell meta (`state.cellMeta`) is not replayed here: the sheets bar hands it to core's
  * `_applySettingsAndData()` together with the sheet's rows, which writes it back before the cell
@@ -1120,9 +1165,20 @@ export function restoreViewState(
     safeBatch(hot, () => restoreMergedCells(hot, state));
   }
 
+  restorePluginStates(hot, state, covers);
   hot.render();
 
   return notApplied;
+}
+
+/**
+ * Puts back the collapsed column groups, the state CollapsibleColumns keeps for the data it shows and
+ * drops on every `loadData()`. Runs outside the restore batch (see {@link restoreViewState}).
+ */
+function restorePluginStates(hot: HotInstance, state: ViewState, covers: PartFilter) {
+  if (covers('collapsedColumns')) {
+    restoreCollapsedColumns(hot, state);
+  }
 }
 
 /**
@@ -1267,7 +1323,7 @@ export function keepSelectionOnPage(hot: HotInstance, follow: boolean): void {
 
 /**
  * Returns the view state a never-visited sheet opens with: nothing hidden, trimmed,
- * sorted, filtered, merged, bordered, or manually sized. The row/column sequences are
+ * sorted, filtered, merged, bordered, collapsed, or manually sized. The row/column sequences are
  * left empty because `loadData` has already reset both mappers by the time this runs.
  */
 export function createNeutralViewState(): ViewState {
@@ -1295,6 +1351,7 @@ export function createNeutralViewState(): ViewState {
     selection: undefined,
     selectionState: null,
     scroll: { row: 0, col: 0 },
+    collapsedColumns: null,
   };
 }
 
@@ -1420,5 +1477,6 @@ export function resetViewState(
     }
   });
 
+  restorePluginStates(hot, state, covers);
   hot.render();
 }

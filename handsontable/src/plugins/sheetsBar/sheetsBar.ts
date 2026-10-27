@@ -201,6 +201,8 @@ const VIEW_STATE_PARTS_BY_SETTING: Partial<Record<string, ViewStatePart[]>> = {
   hiddenRows: ['hiddenRows'],
   hiddenColumns: ['hiddenColumns'],
   nestedRows: ['collapsedRows'],
+  nestedHeaders: ['collapsedColumns'],
+  collapsibleColumns: ['collapsedColumns'],
   colWidths: ['columnWidths'],
   manualColumnResize: ['columnWidths'],
   rowHeights: ['rowHeights'],

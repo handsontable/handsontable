@@ -50,6 +50,12 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   clear that map (older behavior), so right after it the collapsed columns stay hidden with no group
   collapsed. The same config sent again (a wrapper re-render) is not another configuration: the version
   stays, so an undo and a redo across it put the group back with its hidden columns.
+- **The sheets bar keeps the collapsed groups per sheet through `_exportViewState()` and
+  `_importViewState()`**, because a data load rebuilds the header state with every group expanded. Unlike
+  `restoreState()`, which leaves the hidden columns to UndoRedo's index maps, `_importViewState()` writes this
+  plugin's hiding map too, since a load re-creates it empty. It runs no collapse hook and does not check the
+  config version: a sheet that changed its `nestedHeaders` or `collapsibleColumns` while hidden has the part
+  reset by the bar instead.
 - **`getStateColumns()` answers `[]`.** A group is recorded by header position, and the columns a
   collapse hides are in this plugin's hiding maps, which the UndoRedo check of a `columns` settings
   update reads column by column. Without the method a collapse step - and every step older than it -
