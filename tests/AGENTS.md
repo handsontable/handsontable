@@ -1607,6 +1607,47 @@ watches and captures; the verdicts are `lib/motion.mjs` (tested in `lib/__tests_
   the test, for the person who reads the report. Chromium's emulation applies the system colors the way
   Windows High Contrast does; the colors themselves are the emulation's, not a Windows theme's.
 
+### Pointer and drag alternatives
+
+`a11y/checks/pointer.spec.ts`, the `pointer` check: 2.5.1, 2.5.2 and 2.5.7 (and 2.1.1 for a drag no key
+can replace), on the main theme: a pointer works the same on every theme. The browser half presses and
+drags (`pointer-state.ts`, `drag-runner.ts`); the verdicts are `lib/pointer.mjs` (tested in
+`lib/__tests__/pointer.test.mjs`).
+
+- **Pointer cancellation is the press compared with the click.** On every catalog page in its state,
+  one control of each kind the grid and its portal draw (tag, first class and role; at most twelve) is
+  clicked on a page as it loads, which is the positive control: a control whose click changes nothing
+  the state reads is not measured. Then, on another page as it loads, it is pressed, the pointer moves
+  to a corner away from the grid and is released. What the press alone did is `activates-on-press`
+  (advisory when all it did is show a popup, which Escape takes back); doing what the click does after
+  the pointer left is `completes-after-pointer-left`. A selection, a focus move or a hover highlight is
+  never an action: a press on a cell selects it by design.
+- **With a menu, a dialog or an editor open, only the controls inside it are measured.** A press
+  anywhere else dismisses what is open (and commits an editor) on the press, by design, and those
+  controls are measured on the pages where nothing is open. A link counts its click instead of
+  navigating (`installSentinels()`).
+- **Every drag the product does is in `a11y/checks/drag-operations.mjs`**, with every way to do it
+  without a drag that the product has today: its input (`single-pointer`, `keyboard`, or
+  `pointer-modifier`, a click with a key held, which is neither), whether it covers the whole drag or a
+  part, and the steps that perform it. The spec performs the drag first, and a drag that does not have
+  the effect the entry names is a red test: the inventory is wrong. Each alternative then runs on a page
+  as it loads and is proven when it has the same effect and, for one that covers the whole drag, leaves
+  the compared field (the data, the selection, the sheet order) exactly as the drag left it. 2.5.7 needs
+  a proven single-pointer alternative that covers the whole drag; 2.1.1 a proven keyboard one; a listed
+  alternative that did not work is `alternative-does-not-work`. An operation with no alternative lists
+  none, and that absence is the finding.
+- **The tooling test keeps the inventory complete.** It reads `handsontable/src/plugins/`, and a plugin
+  that listens to `mousemove`, `pointermove` or `touchmove` must be in the inventory or in `NOT_DRAG`
+  with its reason; a reason for a plugin that no longer follows the pointer fails as stale. A new drag
+  is accounted for in the change that adds it. A path-based or multipoint gesture goes in with its
+  `gesture`, and 2.5.1 judges it like 2.5.7 judges a drag; the product has none today (a long press and
+  a double tap are time-based, single-point gestures).
+- **A step that acts on a timer is read until it lands.** The double-click autofit runs from a 500 ms
+  timer and a sheet tab settles after its transition, so the state after the last step is read until the
+  effect shows, for two seconds at most. Every step but the last sets up, and an alternative's `prepare`
+  sets up what a partial alternative undoes (a wide column for the autofit, empty cells for the
+  copy-down) through the API, never with a drag.
+
 ### Adding a check
 
 Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs` (a title and the criteria it
