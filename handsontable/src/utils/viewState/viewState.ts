@@ -23,7 +23,15 @@ export interface TrackedCellMeta {
  * them from those, so it covers the same cells whatever row and column order the sheet returns with.
  */
 export interface MergedAreaState extends MergeAreaGeometry {
+
+  /**
+   * The physical rows the area owns. Internal to the sheets bar, and its shape may change.
+   */
   physicalRows?: number[];
+
+  /**
+   * The physical left column of the area. Internal to the sheets bar, and its shape may change.
+   */
   physicalColumn?: number;
 }
 
@@ -47,7 +55,7 @@ export interface ViewState {
   /**
    * The row header number of every physical row, kept by the `'strict'` BindRowsWithHeaders strategy. Absent
    * when that strategy is off, since the other one numbers each row by its physical index. Part of the row
-   * order.
+   * order. Internal to the sheets bar, and its shape may change.
    */
   rowHeaders?: number[];
   unsortedRowSequence: number[];
@@ -106,13 +114,15 @@ export interface ViewState {
 
   /**
    * The collapsed CollapsibleColumns groups and the columns they hide, or `null` when the plugin is off.
-   * Absent from a view state the `ViewState` plugin built, which does not restore it.
+   * Absent from a view state the `ViewState` plugin built, which does not restore it. Internal to the sheets
+   * bar, and its shape may change.
    */
   collapsedColumns?: CollapsedColumnsState | null;
 
   /**
    * The rows checked through RowSelection, or `null` when the plugin is off or a bound checkbox column
-   * holds them. Absent from a view state the `ViewState` plugin built, which does not restore it.
+   * holds them. Absent from a view state the `ViewState` plugin built, which does not restore it. Internal to
+   * the sheets bar, and its shape may change.
    */
   checkedRows?: CheckedRowsState | null;
 }
