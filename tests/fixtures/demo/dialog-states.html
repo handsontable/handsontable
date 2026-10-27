@@ -127,5 +127,13 @@
       window.htBuildError = String(error && error.stack || error);
     }
   </script>
+  <!-- Planted defect (reverted in the next commit): the dialog's buttons act on the press, not the click. -->
+  <script>
+    document.addEventListener('mousedown', (event) => {
+      if (event.target.closest('.ht-dialog .ht-button') && window.hot) {
+        window.hot.getPlugin('dialog').hide();
+      }
+    }, true);
+  </script>
 </body>
 </html>
