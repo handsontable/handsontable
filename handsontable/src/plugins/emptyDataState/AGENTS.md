@@ -182,9 +182,13 @@ and restoring the selection is how the user keeps it there. Ask the core hook, n
 **`disablePlugin()` forgets the overlay**: `#isVisible` goes to `false` and the captured selection to
 `null`, like `destroy()`, and no hide hook fires. Left as they were, `isVisible()` answered `true` for a
 disabled plugin, and the next enable over rows ran `#hide()`: a phantom `afterEmptyDataStateHide` and a
-forced `selectCell(0, 0)`. `updatePlugin()` saves both before its own disable and puts them back before
+forced `selectCell(0, 0)`. `updatePlugin()` saves that state before its own disable and puts it back before
 the enable, so an update of the options keeps a visible overlay visible without a hide or show hook.
-Pinned by `__tests__/emptyDataStateLifecycle.unit.js`.
+**`#loadingActive` is part of that state.** `disablePlugin()` clears it, and an update that did not put it
+back dropped the loading overlay mid-fetch: "No data" over 0 rows, nothing over rows, and the fetch's
+`afterDataProviderFetch` then had no loading state left to clear. A sheet switch that re-sends an
+`emptyDataState` object took the same path. A new piece of overlay state belongs in that save and restore.
+Pinned by `__tests__/emptyDataStateLifecycle.unit.js` and `../dataProvider/__tests__/dataProviderLoadingSettle.unit.js`.
 
 ## Where to look next
 

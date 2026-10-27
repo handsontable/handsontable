@@ -1097,19 +1097,19 @@ export class DataProvider extends BasePlugin {
 
     const base = baseQuery ?? this.#queryFor(binding);
     const params = this.#mergeAndNormalizeFetchParams(overrides, base);
-    const controller = new AbortController();
-
-    this.#abortFetchesFor(binding.context, this.#createAbortReason());
-    this.#inFlight.set(binding.context, { binding, controller, params, skipLoading: overrides.skipLoading === true });
-
     const hookParams = this.#isVisible(binding) ? params : { ...params, skipLoading: true };
 
     if (this.hot.runHooks('beforeDataProviderFetch', hookParams) === false) {
-      this.#releaseInFlight(binding.context, controller);
+      this.#syncLoadingIfShown(binding);
       this.hot.render();
 
       return null;
     }
+
+    const controller = new AbortController();
+
+    this.#abortFetchesFor(binding.context, this.#createAbortReason());
+    this.#inFlight.set(binding.context, { binding, controller, params, skipLoading: overrides.skipLoading === true });
 
     const { signal } = controller;
 
@@ -1119,6 +1119,7 @@ export class DataProvider extends BasePlugin {
       if (signal.aborted) {
         this.#releaseInFlight(binding.context, controller);
         this.#runAfterDataProviderFetchAbort(params, undefined);
+        this.#syncLoadingIfShown(binding);
 
         return null;
       }
@@ -1152,6 +1153,7 @@ export class DataProvider extends BasePlugin {
 
       if (signal.aborted || (err instanceof Error && err.name === 'AbortError')) {
         this.#runAfterDataProviderFetchAbort(params, err);
+        this.#syncLoadingIfShown(binding);
 
         return null;
       }
@@ -1298,7 +1300,29 @@ export class DataProvider extends BasePlugin {
    */
   #abortFetchesAndSyncLoading(context: object | null): void {
     this.#abortFetchesFor(context);
+    this.#syncLoading();
+  }
+
+  /**
+   * Syncs EmptyDataState's loading overlay with what is still loading for the context shown.
+   */
+  #syncLoading(): void {
     this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching());
+  }
+
+  /**
+   * Syncs the loading overlay after a fetch for a binding ended without a response or an error: a listener canceled
+   * it, or it was aborted. Those endings fire no {@link Hooks#afterDataProviderFetch} and no
+   * {@link Hooks#afterDataProviderFetchError}, and the overlay its {@link Hooks#beforeDataProviderFetch} raised
+   * stayed up for good. A fetch whose context is not shown never raised it. A newer fetch that replaced this one
+   * keeps it up, because `isFetching()` answers for the newer one. Does nothing once the plugin was destroyed.
+   *
+   * @param {object} binding What the fetch was for.
+   */
+  #syncLoadingIfShown(binding: RequestBinding): void {
+    if (this.hot && this.#isVisible(binding)) {
+      this.#syncLoading();
+    }
   }
 
   /**

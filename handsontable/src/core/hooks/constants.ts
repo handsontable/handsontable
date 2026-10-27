@@ -582,6 +582,9 @@ export const REGISTERED_HOOKS = [
    * Fired after a dataProvider `fetchRows` request ends without loading data because it was aborted
    * (superseded by a newer fetch, `AbortSignal`, or plugin disable/destroy).
    *
+   * A newer fetch supersedes the running one only once it starts: when a {@link Hooks#beforeDataProviderFetch}
+   * listener cancels the newer fetch, the running one keeps going and this hook does not fire for it.
+   *
    * @event Hooks#afterDataProviderFetchAbort
    * @since 17.1.0
    * @param {object} queryParameters The query parameters that were used for the aborted request.
@@ -1984,6 +1987,10 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired before the dataProvider fetches data. Return `false` to cancel the fetch.
+   *
+   * A canceled fetch leaves a fetch that is already running alone: that fetch still loads its rows. The
+   * loading state of the [`emptyDataState`](@/api/options.md#emptydatastate) overlay is updated after a
+   * cancel, so the overlay shows loading only while a fetch still runs.
    *
    * @event Hooks#beforeDataProviderFetch
    * @since 17.1.0

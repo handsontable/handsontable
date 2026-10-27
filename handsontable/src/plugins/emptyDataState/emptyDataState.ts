@@ -393,11 +393,13 @@ export class EmptyDataState extends BasePlugin {
     const wasVisible = this.#isVisible;
     const selectionState = this.#selectionState;
     const isSelectionDataReplaced = this.#isSelectionDataReplaced;
+    const wasLoading = this.#loadingActive;
 
     this.disablePlugin();
     this.#isVisible = wasVisible;
     this.#selectionState = selectionState;
     this.#isSelectionDataReplaced = isSelectionDataReplaced;
+    this.#loadingActive = wasLoading;
     this.enablePlugin();
     this.#update();
 
@@ -416,7 +418,9 @@ export class EmptyDataState extends BasePlugin {
    * Disable plugin for this Handsontable instance. The overlay goes away with the plugin's UI, so the
    * plugin stops reporting it as visible and forgets the selection it kept for the hide. A later enable
    * then starts from a hidden overlay, and a grid with rows fires no `afterEmptyDataStateHide` and gets
-   * no selection it did not ask for. `updatePlugin()` keeps both across its own disable and enable.
+   * no selection it did not ask for. `updatePlugin()` keeps that state across its own disable and enable,
+   * the loading flag included, so an update of the options made while a fetch runs keeps the loading
+   * overlay up.
    */
   disablePlugin() {
     this.#loadingActive = false;
