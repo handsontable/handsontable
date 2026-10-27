@@ -371,6 +371,8 @@ declare global {
       getSheetSerialized(sheetId: number): unknown[][],
       /** DEV-2905 fixture: removes a sheet behind the Formulas plugin's back. */
       removeSheet(sheetId: number): unknown,
+      /** DEV-333 fixture: writes a cell on the engine the grid is bound to. */
+      setCellContents?(address: { sheet: number, row: number, col: number }, value: number | string): unknown,
     };
     /** DEV-2905 fixture: how many columns AutoColumnSize measured since the last reset, across every sweep. */
     measuredColumns?: number;
