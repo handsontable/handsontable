@@ -377,12 +377,14 @@ The colors of the references and of their highlights, the look of the highlights
 | `--hfe-selection-opacity` | `0.08` | The opacity of the tint that fills the referenced cells. |
 | `--hfe-color-error` | theme error color | The color of error text. |
 
-The default reference colors clear a 4.5:1 contrast ratio on the editor's light and dark backgrounds, and no two of them look alike. The theme declares `--hfe-color-error` on the grid's root element, the formula bar (`.hfe-formula-bar`), and the popup portal (`.hfe-popup-portal`). Declare your values on the same elements, because the popup portal is not inside the grid's container. The theme's declarations have no specificity, so yours take precedence whatever order the stylesheets load in:
+The default reference colors clear a 4.5:1 contrast ratio on the editor's light and dark backgrounds, and no two of them look alike. The theme declares `--hfe-color-error` on the grid's root element, the formula bar (`.hfe-formula-bar`), the popup portal (`.hfe-popup-portal`), and the two popups you can dock into your own container (`.hfe-suggestions`, `.hfe-fn-help`). Declare your values on the same elements, because the popup portal and a docked popup are not inside the grid's container. The theme's declarations have no specificity, so yours take precedence whatever order the stylesheets load in:
 
 ```css
 .handsontable,
 .hfe-formula-bar,
-.hfe-popup-portal {
+.hfe-popup-portal,
+.hfe-suggestions,
+.hfe-fn-help {
   --hfe-ref-1: #1d4ed8;
   --hfe-ref-2: #b45309;
   --hfe-reference-border-width: 2px;
@@ -390,7 +392,7 @@ The default reference colors clear a 4.5:1 contrast ratio on the editor's light 
 }
 ```
 
-Keep the contrast of each color at 4.5:1 or more against the editor background, because the colors are used for text. The plugin reads the border width when it draws the first highlight and keeps that value until the builder is rebuilt (a theme change or `updateSettings()`), so declare it in a stylesheet rather than changing it while the grid is open.
+Keep the contrast of each color at 4.5:1 or more against the editor background, because the colors are used for text. The plugin reads the border width when it draws the first highlight and keeps that value until it is enabled again - an [`updateSettings()`](@/api/core.md#updatesettings) call that changes a `formulaBuilder` or `formulas` value. A theme change does not re-read it. So declare it in a stylesheet rather than changing it while the grid is open.
 
 ## Language
 
