@@ -43,6 +43,7 @@ interface ParentIndexSyncer {
   getEngine(): HyperFormulaEngine | null;
   getSheetId(): number | null;
   getPostponeAction(callback?: Function): Function;
+  getOwnEngineWrite(): <T>(engine: HyperFormulaEngine, fn: () => T) => T;
 }
 
 /**
@@ -447,16 +448,18 @@ class AxisSyncer {
       return;
     }
 
-    engine.batch(() => {
-      moves.forEach((move: { from: number; to: number }) => {
-        const moveToTheSamePosition = move.from !== move.to;
-        // Moving from left to right (or top to bottom) to a line (drop index) right after already moved element.
-        const anotherMoveWithoutEffect = move.from + 1 !== move.to;
+    this.#indexSyncer.getOwnEngineWrite()(engine, () => {
+      engine.batch(() => {
+        moves.forEach((move: { from: number; to: number }) => {
+          const moveToTheSamePosition = move.from !== move.to;
+          // Moving from left to right (or top to bottom) to a line (drop index) right after already moved element.
+          const anotherMoveWithoutEffect = move.from + 1 !== move.to;
 
-        if (moveToTheSamePosition && anotherMoveWithoutEffect) {
-          engine[SYNC_MOVE_METHOD_NAME](this.#indexSyncer.getSheetId()!, move.from,
-            NUMBER_OF_MOVED_INDEXES, move.to);
-        }
+          if (moveToTheSamePosition && anotherMoveWithoutEffect) {
+            engine[SYNC_MOVE_METHOD_NAME](this.#indexSyncer.getSheetId()!, move.from,
+              NUMBER_OF_MOVED_INDEXES, move.to);
+          }
+        });
       });
     });
   }
@@ -765,9 +768,18 @@ class AxisSyncer {
         engine[`set${toUpperCaseFirst(this.#axis)}Order`](sheetId, engineOrder);
       };
 
-      if (heldSize === sizeForAxis) {
-        setOrder();
-      } else if (!this.#extendAndSetOrder(engine, sheetId, heldSize, setOrder)) {
+      // The pad and the order are one write of this grid's own, so the grids sharing the engine paint once.
+      const written = this.#indexSyncer.getOwnEngineWrite()(engine, () => {
+        if (heldSize === sizeForAxis) {
+          setOrder();
+
+          return true;
+        }
+
+        return this.#extendAndSetOrder(engine, sheetId, heldSize, setOrder);
+      });
+
+      if (!written) {
         return false;
       }
     }

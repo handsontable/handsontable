@@ -663,13 +663,6 @@ export class SheetsBar extends BasePlugin {
    */
   #isInitializing = false;
   /**
-   * The engine changes the feeds of a workbook build caused, repainted once the build ends
-   * (`#repaintAfterBuild`).
-   *
-   * @type {Array<object>}
-   */
-  #changesToRepaint: Array<{ engine: NonNullable<SheetFormulas['engine']>, changes: unknown[] }> = [];
-  /**
    * The ColumnSummary endpoints of each sheet the user left, at the positions they held then
    * (`#captureColumnSummary`).
    *
@@ -1016,15 +1009,9 @@ export class SheetsBar extends BasePlugin {
         this.#captureGridColumnSummary();
         this.#gridCellOption = this.hot.getSettings().cell;
         this.#buildInitialWorkbook();
-      } catch (error) {
-        this.#changesToRepaint = [];
-
-        throw error;
       } finally {
         this.#isInitializing = false;
       }
-
-      this.#repaintAfterBuild();
 
       this.#lastActiveSheetSetting = this.getSetting('activeSheet');
     }
@@ -2908,7 +2895,14 @@ export class SheetsBar extends BasePlugin {
 
       const targetSheet = model.getSheetById(target.id) as Sheet;
 
-      this.#sheetRecords().forEach(sheet => this.#registerFormulaSheet(sheet, { feed: sheet !== targetSheet }));
+      this.#withEngineWrites(
+        this.#sheetRecords().flatMap((sheet) => {
+          const engine = formulasSettingOf(sheet)?.engine;
+
+          return isEngineInstance(engine) ? [engine!] : [];
+        }),
+        () => this.#sheetRecords().forEach(sheet => this.#registerFormulaSheet(sheet, { feed: sheet !== targetSheet }))
+      );
 
       model.setActiveSheet(target.id);
 
@@ -4205,7 +4199,7 @@ export class SheetsBar extends BasePlugin {
 
     const engine = formulas.engine!;
 
-    this.#withEngineRepaint(engine, () => this.#feedFormulaSheet(sheet, formulas, engine, feed, beforeFeed));
+    this.#withEngineWrite(engine, () => this.#feedFormulaSheet(sheet, formulas, engine, feed, beforeFeed));
   }
 
   /**
@@ -4370,73 +4364,34 @@ export class SheetsBar extends BasePlugin {
     const sheetId = engine!.getSheetId!(formulas.sheetName);
 
     if (typeof sheetId === 'number') {
-      this.#withEngineRepaint(engine!, () => engine!.removeSheet!(sheetId));
+      this.#withEngineWrite(engine!, () => engine!.removeSheet!(sheetId));
     }
   }
 
   /**
-   * Runs an engine call the bar makes itself and repaints every grid on that engine whose sheet it
-   * recalculated. The Formulas plugin repaints only after the engine calls it makes, so a formula
-   * reading a sheet the bar removed or added kept painting its old value while `getDataAtCell()`
-   * already returned the new one. The changes are read from the engine's `valuesUpdated` event, which
-   * also reports the recalculation an added sheet triggers. The grids are repainted through the
-   * Formulas plugin of the bar's grid, so only while it is bound to the same engine.
+   * Runs an engine call the bar makes as one write: when it ends, every grid on that engine whose
+   * sheet the call recalculated paints once (see `Formulas#runEngineWrite`). The write is scoped
+   * through the bar's Formulas plugin even while that plugin is off or bound to another engine,
+   * so a standalone grid on `engine` paints too.
    *
    * @param {object} engine The engine.
    * @param {Function} run The engine call.
    */
-  #withEngineRepaint(engine: NonNullable<SheetFormulas['engine']>, run: () => void) {
-    let changes: unknown[] = [];
-    const collect = (updated: unknown[]) => {
-      changes = changes.concat(updated);
-    };
-
-    engine.on?.('valuesUpdated', collect);
-
-    try {
-      run();
-    } finally {
-      engine.off?.('valuesUpdated', collect);
-    }
-
-    if (this.#isInitializing) {
-      this.#changesToRepaint.push({ engine, changes });
-
-      return;
-    }
-
-    this.#repaintDependents(engine, changes, true);
-  }
-
-  /**
-   * Repaints the grids on `engine` whose sheets `changes` recalculated, through the Formulas plugin of the
-   * bar's grid, so only while it is bound to that engine.
-   *
-   * @param {object} engine The engine.
-   * @param {Array} changes The engine's changes.
-   * @param {boolean} renderSelf Whether the bar's own grid is repainted too.
-   */
-  #repaintDependents(engine: NonNullable<SheetFormulas['engine']>, changes: unknown[], renderSelf: boolean) {
+  #withEngineWrite<T>(engine: NonNullable<SheetFormulas['engine']>, run: () => T): T {
     const formulas = this.hot.getPlugin('formulas');
 
-    if (changes.length > 0 && this.hot.view && formulas?.enabled && formulas.engine === engine) {
-      formulas.renderDependentSheets(changes, renderSelf);
-    }
+    return formulas ? formulas.runEngineWrite(engine, run) : run();
   }
 
   /**
-   * Repaints, once, the other grids that read the sheets a workbook build fed. A build feeds every sheet
-   * while the grid still shows the previous workbook, so a repaint per feed drew stale data once per sheet;
-   * the bar's own grid is drawn when the opening sheet is applied.
+   * Runs `run` as one write on each distinct engine of `engines`, so a workbook build that feeds many
+   * sheets paints the other grids once per engine, not once per fed sheet.
+   *
+   * @param {Array<object>} engines The engines the build writes.
+   * @param {Function} run The build.
    */
-  #repaintAfterBuild() {
-    const byEngine = new Map<NonNullable<SheetFormulas['engine']>, unknown[]>();
-
-    this.#changesToRepaint.forEach(({ engine, changes }) => {
-      byEngine.set(engine, (byEngine.get(engine) ?? []).concat(changes));
-    });
-    this.#changesToRepaint = [];
-    byEngine.forEach((changes, engine) => this.#repaintDependents(engine, changes, false));
+  #withEngineWrites(engines: Array<NonNullable<SheetFormulas['engine']>>, run: () => void) {
+    [...new Set(engines)].reduceRight((inner, engine) => () => this.#withEngineWrite(engine, inner), run)();
   }
 
   /**
