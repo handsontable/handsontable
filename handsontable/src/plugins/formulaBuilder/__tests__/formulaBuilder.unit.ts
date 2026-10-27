@@ -829,12 +829,12 @@ describe('FormulaBuilder formula-cell scoping', () => {
     const stub = makeFullHotStub();
 
     stub.hot.getCellMetaTransient.mockImplementation(() => ({ editor: 'formula' }));
-    stub.hot.getSelectedRangeActive = () =>
-      makeCellRangeStub({ row: 0, col: 2 }, { row: -1, col: 2 }, { row: 5, col: 2 });
-
     const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
+    // Selected after the plugin enabled: an enable emits the selection it finds.
+    stub.hot.getSelectedRangeActive = () =>
+      makeCellRangeStub({ row: 0, col: 2 }, { row: -1, col: 2 }, { row: 5, col: 2 });
 
     const received: unknown[] = [];
 
@@ -851,11 +851,11 @@ describe('FormulaBuilder formula-cell scoping', () => {
     const stub = makeFullHotStub();
 
     stub.hot.getCellMetaTransient.mockImplementation(() => ({ editor: 'formula' }));
-    stub.hot.getSelectedRangeActive = () => makeCellRangeStub({ row: -1, col: 2 });
-
     const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
+    // Selected after the plugin enabled: an enable emits the selection it finds.
+    stub.hot.getSelectedRangeActive = () => makeCellRangeStub({ row: -1, col: 2 });
 
     const received: unknown[] = [];
 
@@ -870,12 +870,12 @@ describe('FormulaBuilder formula-cell scoping', () => {
     const stub = makeFullHotStub();
 
     stub.hot.getCellMetaTransient.mockImplementation(() => ({ editor: 'formula' }));
-    stub.hot.getSelectedRangeActive = () =>
-      makeCellRangeStub({ row: 4, col: 2 }, { row: 4, col: 2 }, { row: 1, col: 3 });
-
     const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
+    // Selected after the plugin enabled: an enable emits the selection it finds.
+    stub.hot.getSelectedRangeActive = () =>
+      makeCellRangeStub({ row: 4, col: 2 }, { row: 4, col: 2 }, { row: 1, col: 3 });
 
     const received: unknown[] = [];
 
@@ -892,11 +892,11 @@ describe('FormulaBuilder formula-cell scoping', () => {
     const stub = makeFullHotStub();
 
     stub.hot.getCellMetaTransient.mockImplementation(() => ({ editor: 'formula' }));
-    stub.hot.getSelectedRangeActive = () => makeCellRangeStub({ row: 2, col: 1 });
-
     const plugin = new FormulaBuilder(stub.instance);
 
     plugin.enablePlugin();
+    // Selected after the plugin enabled: an enable emits the selection it finds.
+    stub.hot.getSelectedRangeActive = () => makeCellRangeStub({ row: 2, col: 1 });
 
     const received: unknown[] = [];
     const selectionEnd = findHook(stub.hot, 'afterSelectionEnd');

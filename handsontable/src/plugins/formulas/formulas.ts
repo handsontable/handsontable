@@ -1160,6 +1160,10 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    // First, while the plugin is still whole: a listener may close an open edit (the FormulaBuilder
+    // plugin does), and that edit's render runs this plugin's `afterRenderer`, which would wrap the
+    // `HYPERLINK` anchors again after the cleanup below. The engine is still set here too.
+    this.#notifyEngineDetach();
     this.#unregisterToggleFormulasShortcut();
     this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
@@ -1172,7 +1176,6 @@ export class Formulas extends BasePlugin {
     this.#sourceRowCountAtLastSync = null;
     this.#sheetIdAtLastSync = null;
     this.#sheetResyncPending = false;
-    this.#notifyEngineDetach();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {

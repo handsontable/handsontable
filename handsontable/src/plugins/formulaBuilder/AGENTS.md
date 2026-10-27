@@ -70,7 +70,14 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   only at construction and uses it to parse references, list named expressions, and test the own sheet. So
   `afterLoadData`/`afterUpdateData` compare the Formulas sheet id with the one the builder was built with and
   rebuild the builder when they differ: a shared engine, a `sheetName` on a populated engine, and
-  `Formulas#switchSheet()`, which reloads the data.
+  `Formulas#switchSheet()`, which reloads the data. **Except to an empty sheet**: `#loadSheet()` loads
+  nothing then, so no data hook fires. `#followSheetBinding()` therefore runs from the same check in
+  `afterSelection` and `handleInlineEditStart()` too (outside an edit), and `#isConfigUnchanged()` compares
+  the sheet id, so a later `updatePlugin()` rebuilds as well. Without it the builder suggested the previous
+  sheet's scoped named expressions.
+- **`enablePlugin()` emits the bar selection once the setup succeeds.** The teardown of an `updatePlugin()`
+  rebuild clears `#barSelected` and the dedupe key, and no selection hook runs until the selection moves,
+  so a bar turned on with `updateSettings()` stayed empty over a selected formula cell.
 - **`updatePlugin()` keeps the built plugin when nothing it was built from changed.** `SETTING_KEYS` lists
   `formulas`, and the React and Angular wrappers re-send every object prop with a new identity on each
   render, so a full rebuild per render discarded the bar's focus and an open edit. `#isConfigUnchanged()`
@@ -133,7 +140,14 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   page change, a data load) and re-derives the custom selections in `beforeViewRender`, because the
   cache update can run mid-batch. A range splits into one selection per visual run, capped at
   `MAX_SELECTIONS_PER_HIGHLIGHT`, past which it draws its bounding box as a border only. A span over
-  every index of an axis (`A:A`) is the whole visual axis in any order.
+  every index of an axis (`A:A`) is the whole visual axis in any order. Any other span past
+  `MAX_HF_INDEX_SCAN` maps its two ends only. That band is exact because the Formulas plugin hands every
+  sort and move to the engine, so HyperFormula order follows the visual one. Ends that come back reversed
+  prove it does not (an engine order the grid could not express), so that run is drawn without a fill
+  (`VisualRun#approximate`).
+- **A highlight color reaches a generated stylesheet, so `#isSafeColor()` rejects `/*` as well as the
+  characters outside `SAFE_COLOR_PATTERN`.** `CSS.supports('color', 'red /* x')` is `true` (the comment is
+  dropped before parsing), and in the stylesheet text the open comment swallowed every later rule.
 - **Custom selections do not carry `aria-selected`.** The Walkontable scanner resolves custom-selection
   cells so their class names land, and the selection manager stamps the grid's selection `cellAttributes`
   only on cells of an area, fill or focus layer (`selectedCells` in `selection/manager.ts`). Otherwise a

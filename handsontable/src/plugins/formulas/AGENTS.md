@@ -842,9 +842,11 @@ registration point without treating it as a behavior change.
 ## Engine-detach listeners
 
 `addEngineDetachListener()` (`@private`) lets another plugin release what it subscribed on the engine
-before the engine goes away. The listeners run right before `unregisterEngine()` in `disablePlugin()`
-and `destroy()`, while the engine still works: an engine the plugin built itself is destroyed right
-after, when this grid was its last user. The FormulaBuilder plugin destroys its builder there. The
+before the engine goes away. In `disablePlugin()` they run FIRST, before any cleanup, and in `destroy()`
+right before `unregisterEngine()`; the engine still works in both: an engine the plugin built itself is
+destroyed right after, when this grid was its last user. The FormulaBuilder plugin destroys its builder
+there, and that cancels an open formula edit, whose render runs this plugin's `afterRenderer`. Run after
+the `HYPERLINK` cleanup, that render wrapped the anchors again and refilled `#hyperlinkCells`. The
 listener set lives on the plugin instance across enable cycles and is cleared in `destroy()`.
 
 ## Where to look next

@@ -109,6 +109,11 @@ interface VisualRun {
    * Last visual index of the run.
    */
   end: number;
+  /**
+   * Set when the run is only the span between two mapped endpoints, and the endpoints came back in
+   * reverse order: the indexes between them are not the referenced ones, so the run gets no fill.
+   */
+  approximate?: boolean;
 }
 
 /**
@@ -1444,7 +1449,7 @@ export class HandsontableAdapter {
       let colRuns = this.#visualRuns(
         Math.min(start.col, end.col), Math.max(start.col, end.col), hfToVisualCol, 'col',
       );
-      let fill = item.fill ?? fillDefault;
+      let fill = (item.fill ?? fillDefault) && ![...rowRuns, ...colRuns].some(run => run.approximate);
 
       if (rowRuns.length * colRuns.length > MAX_SELECTIONS_PER_HIGHLIGHT) {
         rowRuns = this.#boundingRun(rowRuns);
@@ -1620,7 +1625,10 @@ export class HandsontableAdapter {
       return true;
     }
 
-    if (!SAFE_COLOR_PATTERN.test(color)) {
+    // `/` and `*` stay allowed for `hsl(... / 0.9)` and `calc()`, but together they open a comment:
+    // `CSS.supports()` drops the comment before it parses the value and accepts it, while in the
+    // generated stylesheet it swallows the rest of the rule and every rule added after it.
+    if (!SAFE_COLOR_PATTERN.test(color) || color.includes('/*')) {
       return false;
     }
 
@@ -1810,7 +1818,13 @@ export class HandsontableAdapter {
       const startVisual = hfToVisual(first);
       const endVisual = hfToVisual(last);
 
-      return [{ start: Math.min(startVisual, endVisual), end: Math.max(startVisual, endVisual) }];
+      // The Formulas plugin hands every sort and move to the engine, so its order follows the grid and
+      // the span maps onto the band between the endpoints. Reversed endpoints prove it does not here.
+      return [{
+        start: Math.min(startVisual, endVisual),
+        end: Math.max(startVisual, endVisual),
+        ...(startVisual > endVisual && { approximate: true }),
+      }];
     }
 
     const visuals: number[] = [];

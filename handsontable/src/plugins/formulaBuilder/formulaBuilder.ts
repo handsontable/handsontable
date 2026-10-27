@@ -466,6 +466,9 @@ export class FormulaBuilder extends BasePlugin {
 
     if (setUpSucceeded) {
       super.enablePlugin();
+      // The teardown of an `updatePlugin()` cleared the bar selection, and no selection hook runs
+      // until the selection moves, so a formula cell selected now would leave the new bar empty.
+      this.#emitBarSelection();
     }
   }
 
@@ -557,6 +560,8 @@ export class FormulaBuilder extends BasePlugin {
    * or the Formulas plugin detached the engine) the shim mounts a plain textarea instead.
    */
   handleInlineEditStart(mount: HTMLElement, seed: string): boolean {
+    this.#followSheetBinding();
+
     if (this.#builder === null) {
       return false;
     }
@@ -1090,10 +1095,21 @@ export class FormulaBuilder extends BasePlugin {
    * the Formulas plugin has no sheet id yet, and `Formulas#switchSheet()` reloads the data too.
    */
   #onAfterDataLoad = (): void => {
-    if (this.#builder !== null && this.#sheetId !== this.#builtSheetId) {
+    this.#followSheetBinding();
+  };
+
+  /**
+   * Rebuilds the builder when the grid is bound to another engine sheet than the one it was built
+   * for, outside an edit. A data load reports most rebindings, but `Formulas#switchSheet()` loads
+   * nothing when the target sheet is empty, so the selection and edit-start paths ask too: without
+   * that, references, own-sheet checks and sheet-scoped named expressions kept resolving against the
+   * previous sheet.
+   */
+  #followSheetBinding(): void {
+    if (this.#builder !== null && !this.#isEditing() && this.#sheetId !== this.#builtSheetId) {
       this.#rebuildBuilder();
     }
-  };
+  }
 
   /**
    * `afterSelection` hook listener - mirrors the bar live during a drag or
@@ -1111,6 +1127,7 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
+    this.#followSheetBinding();
     this.#emitBarSelection();
   };
 
@@ -1512,6 +1529,7 @@ export class FormulaBuilder extends BasePlugin {
 
     return applied.core === current.core &&
       applied.engine === current.engine &&
+      this.#builtSheetId === this.#sheetId &&
       applied.showFormulaBar === current.showFormulaBar &&
       applied.direction === current.direction &&
       isSameSettingValue(applied.popups, current.popups);

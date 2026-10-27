@@ -97,6 +97,24 @@ describe('HandsontableAdapter custom-selection highlights', () => {
     adapter.destroy();
   });
 
+  it('drops a highlight whose color opens a CSS comment, and keeps a slash or an asterisk alone', () => {
+    const { adapter, hot } = makeAdapter();
+
+    // The browser's `CSS.supports('color', 'red /* x')` answers `true`: it drops the comment first.
+    adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'red /* x', fill: true }]);
+
+    expect(customSelectionsOf(hot)).toHaveLength(0);
+
+    adapter.setHighlights([
+      { range: range(0, 0, 0, 0), color: 'hsl(210 80% 55% / 0.9)' },
+      { range: range(1, 1, 1, 1), color: 'rgb(calc(255 * 0.5) 0 0)' },
+    ]);
+
+    expect(customSelectionsOf(hot)).toHaveLength(2);
+
+    adapter.destroy();
+  });
+
   it('splits a range fragmented in visual space into one selection per run', () => {
     // HF columns 0..3 map to visual 0,1,5,6 - two contiguous runs.
     const visualByHf: Record<number, number> = { 0: 0, 1: 1, 2: 5, 3: 6 };
@@ -589,6 +607,29 @@ describe('HandsontableAdapter custom-selection highlights', () => {
     });
 
     adapter.destroy();
+  });
+
+  it('draws a wide span without a fill when its endpoints map back in reverse order', () => {
+    // Only the endpoints of a span past the scan limit are mapped. Reversed, they prove the engine
+    // order does not follow the grid, so the band between them is not the referenced rows.
+    const reversed = makeAdapter({ mapping: { hfToVisualRow: hfRow => 4999 - hfRow } });
+
+    reversed.adapter.setHighlights([{ range: range(0, 0, 2999, 0), color: 'red', fill: true }]);
+
+    const [approximate] = customSelectionsOf(reversed.hot);
+
+    expect(approximate.visualCellRange.from).toEqual({ row: 2000, col: 0 });
+    expect(approximate.visualCellRange.to).toEqual({ row: 4999, col: 0 });
+    expect(approximate.settings.className).toMatch(/^ht-formula-ref-line-/);
+    reversed.adapter.destroy();
+
+    // The same span in the engine order the Formulas plugin keeps in step with the grid stays filled.
+    const inOrder = makeAdapter();
+
+    inOrder.adapter.setHighlights([{ range: range(0, 0, 2999, 0), color: 'red', fill: true }]);
+
+    expect(customSelectionsOf(inOrder.hot)[0].settings.className).toMatch(/^ht-formula-ref-fill-/);
+    inOrder.adapter.destroy();
   });
 
   it('drops a wide span whose every row is trimmed', () => {

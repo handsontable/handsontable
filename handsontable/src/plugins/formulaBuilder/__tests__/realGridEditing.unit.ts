@@ -182,6 +182,21 @@ describe('FormulaBuilder editing on a real grid', () => {
       });
     });
 
+    it('shows the selected formula cell in a bar turned on by a settings update', () => {
+      createGrid({
+        data: [['1', '2', '=A1+B1']],
+        formulaBuilder: { builder: core, showFormulaBar: false },
+      });
+      hot.selectCell(0, 2);
+      hot.updateSettings({ formulaBuilder: { builder: core, showFormulaBar: true } });
+
+      const bar = hot.rootElement.parentElement?.querySelector('.ht-formula-builder__formula-bar') ??
+        document.querySelector('.ht-formula-builder__formula-bar');
+
+      expect(hot.getPlugin('formulaBuilder').getActiveFormulaCell()).toEqual({ row: 0, col: 2 });
+      expect(bar?.textContent).toContain('=A1+B1');
+    });
+
     it('honors a `beforeBeginEditing` veto', () => {
       createGrid({ beforeBeginEditing: () => false });
       hot.selectCell(1, 1);
