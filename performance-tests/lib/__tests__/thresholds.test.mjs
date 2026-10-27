@@ -23,6 +23,10 @@ import {
   TRACE_MISMATCH_REASONS,
   activeTotalsPerIteration,
   heapThresholdFor,
+  GATE_TIMING_FLOOR_MS,
+  GATE_TIMING_THRESHOLD,
+  WATCH_TIMING_THRESHOLD,
+  isOverTimingLine,
   relativeToShift,
   runShift,
   traceMismatches,
@@ -48,6 +52,41 @@ describe('thresholds -- callout constants', () => {
 
   test('active categories are scripting, rendering and painting only', () => {
     assert.deepEqual(ACTIVE_CATEGORIES, ['scripting', 'rendering', 'painting']);
+  });
+});
+
+describe('isOverTimingLine', () => {
+  test('the watch line sits below the fail line', () => {
+    assert.ok(WATCH_TIMING_THRESHOLD < GATE_TIMING_THRESHOLD);
+  });
+
+  test('needs both the relative and the absolute part', () => {
+    // 100 -> 112 ms: +12%, +12 ms.
+    assert.equal(isOverTimingLine(100, 112), true);
+    // 13 -> 14.6 ms: +12.3%, but only +1.6 ms, under the floor.
+    assert.equal(isOverTimingLine(13, 14.6), false);
+    // 1000 -> 1050 ms: +50 ms, but only +5%.
+    assert.equal(isOverTimingLine(1000, 1050), false);
+  });
+
+  test('is strict at both edges', () => {
+    assert.equal(isOverTimingLine(100, 100 + GATE_TIMING_THRESHOLD), false);
+    assert.equal(isOverTimingLine(10, 10 + GATE_TIMING_FLOOR_MS), false);
+  });
+
+  test('takes another line and floor', () => {
+    assert.equal(isOverTimingLine(100, 106, 5, 0), true);
+    assert.equal(isOverTimingLine(100, 106, 5, 10), false);
+  });
+
+  test('is false when either side is missing or the baseline is zero', () => {
+    assert.equal(isOverTimingLine(null, 200), false);
+    assert.equal(isOverTimingLine(100, null), false);
+    assert.equal(isOverTimingLine(0, 200), false);
+  });
+
+  test('a speed-up is never over the line', () => {
+    assert.equal(isOverTimingLine(100, 50), false);
   });
 });
 

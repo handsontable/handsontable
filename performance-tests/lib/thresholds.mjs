@@ -19,6 +19,20 @@
 export const REGRESSION_CALLOUT_THRESHOLD_TIMING = 15;
 export const REGRESSION_CALLOUT_THRESHOLD_HEAP = 5;
 
+// The regression gate's lines. A scenario fails when its total active time is more than
+// GATE_TIMING_THRESHOLD percent AND more than GATE_TIMING_FLOOR_MS slower than the baseline; above
+// WATCH_TIMING_THRESHOLD it is only listed. The floor exists for the four 13-19 ms scenarios, where
+// 10% is 1.3-1.9 ms of timer rounding. A run whose shift (the median delta of every scenario) is
+// above GATE_RUN_SHIFT_THRESHOLD fails as a whole: every scenario slowing alike stays under the
+// per-scenario line, and on the single self-hosted runner the shift sits within +-1%.
+//
+// Derived from scripts/replay-goldens.mjs, which replays these exact rules (gate section of its
+// output). Re-derive them there whenever the runner, the measurement, or the baseline changes.
+export const GATE_TIMING_THRESHOLD = 10;
+export const GATE_TIMING_FLOOR_MS = 2;
+export const WATCH_TIMING_THRESHOLD = 5;
+export const GATE_RUN_SHIFT_THRESHOLD = 5;
+
 // Per-scenario heap overrides. `jsHeapMaxBytes` is the highest heap sample inside the window, and
 // on the two horizontal-scroll scenarios that peak depends on where V8 happened to schedule a GC
 // during 500 wheel-driven renders: replaying 42 develop goldens, their run-to-run heap CV is
@@ -143,6 +157,24 @@ export function pctChange(baseline, current) {
   }
 
   return ((current - baseline) / baseline) * 100;
+}
+
+/**
+ * Whether a timing comparison crosses a line that has both a relative and an absolute part. The
+ * gate and the replay that calibrates it both decide through this, so they cannot drift apart.
+ *
+ * @param {number | null} baselineMs
+ * @param {number | null} currentMs
+ * @param {number} [thresholdPct] -- the relative part, percent
+ * @param {number} [floorMs] -- the absolute part: the slowdown must also exceed this many ms
+ * @returns {boolean}
+ */
+export function isOverTimingLine(
+  baselineMs, currentMs, thresholdPct = GATE_TIMING_THRESHOLD, floorMs = GATE_TIMING_FLOOR_MS
+) {
+  const pct = pctChange(baselineMs, currentMs);
+
+  return pct != null && Number.isFinite(pct) && pct > thresholdPct && currentMs - baselineMs > floorMs;
 }
 
 /**
