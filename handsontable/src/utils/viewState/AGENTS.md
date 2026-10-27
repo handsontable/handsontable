@@ -45,6 +45,9 @@ pay for. A new consumer lives in a plugin.
   `beforePageChange` veto keeps the clamped page. A restored selection is followed to its page —
   one `setPage()` to the estimated page (the number page size as the page length, the shown
   span for `'auto'`), so a gap of many pages fires the page hooks once, then a one-page walk.
+  A jump that does not land on the estimate was vetoed, and the follow stops there and the
+  selection is deselected: walking on from the vetoed page fired the page hooks for every page in
+  between. The walk is only for a jump that landed but missed the row.
   Never re-estimate from each page reached: a short last page or `'auto'` pages of other
   lengths make repeated estimates bounce past the row; a selection that was not restored (one
   a plugin or a listener made during the switch), or one the follow could not reach, is

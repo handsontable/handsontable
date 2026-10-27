@@ -1329,6 +1329,8 @@ function stepTowardsRow(pagination: PaginationPlugin, row: number): boolean {
  * page, so a gap of many pages fires the page hooks once, and then walks one page at a time: a walk
  * cannot overshoot, where repeated estimates from pages of different lengths can bounce past the
  * row for ever. Stops when a step does not move the page, and after one pass over the page count.
+ * A jump that does not land on the estimate was vetoed by a `beforePageChange` listener, and the
+ * follow gives up there: walking on would fire the page hooks for every page in between.
  */
 function followRow(hot: HotInstance, pagination: PaginationPlugin, row: number): boolean {
   const { totalPages } = pagination.getPaginationData();
@@ -1336,6 +1338,10 @@ function followRow(hot: HotInstance, pagination: PaginationPlugin, row: number):
 
   if (estimate !== pagination.getCurrentPage()) {
     pagination.setPage(estimate);
+
+    if (pagination.getCurrentPage() !== estimate) {
+      return false;
+    }
   }
 
   for (let step = 0; step < totalPages && !isRowOnPage(pagination, row); step++) {
