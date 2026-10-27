@@ -256,7 +256,16 @@ export class DropdownMenu extends BasePlugin {
       this.menu.addLocalHook('executeCommand',
         (commandName: string, ...params: unknown[]) => this.executeCommand(commandName, ...params));
 
-      this.prepareMenuItems();
+      // A plugin that enables after this one (Filters, priority 250 against 230) has not registered
+      // its items yet, so a key naming one of them cannot resolve here. While the grid is being
+      // built the first list waits for `afterInit`, when every plugin has enabled. After that, a
+      // plugin enabling in the same `updateSettings()` pass can still come later, so this build
+      // skips an unresolved key without reporting it and the next `open()` reports.
+      if (this.hot.view) {
+        this.prepareMenuItems(false);
+      } else {
+        this.addHook('afterInit', this.#onAfterInit);
+      }
     });
   }
 
@@ -268,10 +277,11 @@ export class DropdownMenu extends BasePlugin {
    * `updateSettings` never reached the menu, and one disabled later kept entries that still ran.
    *
    * @private
+   * @param {boolean} [reportUnresolvedKeys=true] Whether a key that names no available item is reported.
    * @fires Hooks#afterDropdownMenuDefaultOptions
    * @fires Hooks#beforeDropdownMenuSetItems
    */
-  prepareMenuItems() {
+  prepareMenuItems(reportUnresolvedKeys = true) {
     // The menu is built once every plugin is ready, so an `open()` before that has nothing to
     // fill in yet.
     if (!this.menu) {
@@ -288,7 +298,7 @@ export class DropdownMenu extends BasePlugin {
     this.hot.runHooks('afterDropdownMenuDefaultOptions', predefinedItems);
 
     this.itemsFactory.setPredefinedItems(predefinedItems.items);
-    const menuItems = this.itemsFactory.getItems(settings);
+    const menuItems = this.itemsFactory.getItems(settings, reportUnresolvedKeys);
 
     this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
 
@@ -843,6 +853,13 @@ export class DropdownMenu extends BasePlugin {
    */
   #onBeforeViewportScrollHorizontally = (visualColumn: number) => {
     return this.#isButtonClicked ? null : visualColumn;
+  };
+
+  /**
+   * Builds the first item list once the grid is built and every plugin has enabled.
+   */
+  #onAfterInit = () => {
+    this.prepareMenuItems();
   };
 
   /**

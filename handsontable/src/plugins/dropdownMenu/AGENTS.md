@@ -25,6 +25,18 @@ fires in a real grid, the icon and the button rect have diverged again — treat
 tolerance to widen. `__tests__/helpers/helpers.js`'s `getDropdownMenuButtonIconOffset`/
 `getDropdownMenuButtonIconWidth` mirror the same fix and must stay in sync with this method's approach.
 
+## The first item list is built on `afterInit`, so a later plugin's keys resolve
+
+`DropdownMenu` (priority 230) enables before `Filters` (250), and `Filters` registers `afterDropdownMenuDefaultOptions` in its own `enablePlugin()`. A list built inside `DropdownMenu#enablePlugin()` therefore cannot resolve a Filters key, and the unresolved-key warning (`ItemsFactory#getItems()`, second pass) fired once per key of an explicit `dropdownMenu` list that named Filters items, although `filters` was on and the menu rendered every item. `callOnPluginsReady()` does not help: by the time a plugin's `enablePlugin()` runs, every plugin is already marked ready, so the callback runs at once.
+
+- **While the grid is being built (`!this.hot.view`), the first `prepareMenuItems()` runs from `afterInit`**, when every plugin has enabled. That keeps the init-time warning for a key whose plugin is off or misspelled.
+- **After the grid is built, `enablePlugin()` builds with `prepareMenuItems(false)`.** The key is still skipped, because a placeholder would register a dead command under the raw key and make `executeCommand()` think the key is known, but it is not reported: another plugin enabling later in the same `updateSettings()` pass can still contribute it. The next `open()` or `executeCommand()` reports it. So a misspelled key set by `updateSettings()` warns on the first open, not at the call.
+- A listener passed in the grid settings (`afterDropdownMenuDefaultOptions`, `beforeDropdownMenuSetItems`) is attached by the init-pass `updateSettings()`, after the plugins have enabled. The old enable-time build therefore ran before it existed and never reached it; the `afterInit` build does, so such a listener now runs once at init.
+- An `open()` or `executeCommand()` made before `afterInit` (from an `afterLoadData` listener, say) still builds with reporting on, so it can raise the same false positive. It needs a hook that fires mid-build and an unknown key, so it is left as it is.
+- `ContextMenu` is not affected: it builds on `open()` and `executeCommand()`, never in `enablePlugin()`.
+
+Pinned by `tests/e2e/menu-unresolved-key-warning.spec.ts` and `contextMenu/__tests__/itemsFactory.unit.js`.
+
 ## Where to look next
 
 - Full ContextMenu vs Column Menu comparison and the shared `Menu` class: `handsontable/src/plugins/contextMenu/AGENTS.md`.
