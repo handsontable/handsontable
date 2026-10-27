@@ -1,0 +1,122 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { CONDITIONS, clippingFindings, hoverFindings, orientationFindings, overlapFindings, viewportFindings } from '../reflow.mjs';
+import { EVIDENCE_SCHEMA, validatePart } from '../a11y-evidence.mjs';
+
+// tests/AGENTS.md ("A11y: the checks beyond axe", zoom, reflow, text spacing, hover content): the
+// verdicts behind 1.3.4, 1.4.4, 1.4.10, 1.4.12 and 1.4.13. The spec measures boxes under each condition;
+// what counts as lost content is decided here.
+
+test('each condition names its criterion and its viewport', () => {
+  assert.deepEqual(CONDITIONS, {
+    'reflow-320': { criteria: ['1.4.10'], viewport: { width: 320, height: 256 }, label: '320 CSS px wide (400% of 1280 by 1024)' },
+    'zoom-200': { criteria: ['1.4.4'], viewport: { width: 640, height: 512 }, label: '200% zoom (640 by 512 CSS px)' },
+    'text-spacing': { criteria: ['1.4.12'], viewport: { width: 1280, height: 720 }, label: 'the WCAG text-spacing override' },
+  });
+});
+
+const box = (fields = {}) => ({
+  selector: 'span.title', surface: 'dialog', text: 'Delete the selected rows?', overflowX: 'hidden', overflowY: 'visible', ellipsis: false,
+  scrollWidth: 100, clientWidth: 100, scrollHeight: 20, clientHeight: 20, ...fields,
+});
+
+test('text a clipping container cuts off is lost; text it ellipsizes is truncated; scrollable or fitting text is fine', () => {
+  const findings = clippingFindings({
+    condition: 'reflow-320',
+    boxes: [
+      box({ scrollWidth: 160, clientWidth: 100 }),
+      box({ selector: 'li.label', ellipsis: true, scrollWidth: 140, clientWidth: 100 }),
+      box({ selector: 'div.list', overflowX: 'auto', scrollWidth: 300, clientWidth: 100 }),
+      box({ selector: 'p.description', overflowY: 'hidden', scrollHeight: 31, clientHeight: 20 }),
+      box({ selector: 'span.fits', scrollWidth: 101, clientWidth: 100 }),
+    ],
+  });
+
+  assert.deepEqual(findings.map(item => [item.kind, item.criteria, item.severity, item.selector, item.measured.hidden]), [
+    ['text-clipped', ['1.4.10'], 'serious', 'span.title', 60],
+    ['text-truncated', ['1.4.10'], 'moderate', 'li.label', 40],
+    ['text-clipped', ['1.4.10'], 'serious', 'p.description', 11],
+  ], 'one pixel of rounding is not a clip');
+  assert.equal(findings[0].measured.text, 'Delete the selected rows?');
+});
+
+test('a fixed surface the viewport cuts off is out of reach; an absolute one below the fold is a vertical scroll away', () => {
+  const findings = viewportFindings({
+    condition: 'reflow-320',
+    viewport: { width: 320, height: 256, scrollWidth: 320, scrollHeight: 600 },
+    surfaces: [
+      { selector: 'div.ht-notification', surface: 'notification', left: 180, right: 420, top: 10, bottom: 200, fixed: true },
+      { selector: 'div.htMenu', surface: 'menu', left: 10, right: 300, top: 100, bottom: 560, fixed: false },
+      { selector: 'div.ht-pagination', surface: 'pagination', left: 0, right: 318, top: 10, bottom: 40, fixed: false },
+    ],
+  });
+
+  assert.deepEqual(findings.map(item => [item.kind, item.criteria, item.selector, item.measured.beyond]), [
+    ['outside-viewport', ['1.4.10'], 'div.ht-notification', 100],
+  ], 'vertical scrolling is allowed at 320 px');
+});
+
+test('a surface past the viewport on a page that cannot scroll there is out of reach', () => {
+  const findings = viewportFindings({
+    condition: 'zoom-200',
+    viewport: { width: 640, height: 512, scrollWidth: 640, scrollHeight: 512 },
+    surfaces: [{ selector: 'div.htMenu', surface: 'menu', left: 400, right: 700, top: 300, bottom: 620, fixed: false }],
+  });
+
+  assert.deepEqual(findings.map(item => [item.kind, item.criteria, item.measured.beyond]), [['outside-viewport', ['1.4.4'], 108]]);
+});
+
+test('a surface wider than the viewport that makes the page scroll sideways is a two-dimensional scroll', () => {
+  const findings = viewportFindings({
+    condition: 'reflow-320',
+    viewport: { width: 320, height: 256, scrollWidth: 512, scrollHeight: 256 },
+    surfaces: [{ selector: 'div.ht-sheets-bar', surface: 'sheets bar', left: 0, right: 512, top: 300, bottom: 330, fixed: false }],
+  });
+
+  assert.deepEqual(findings.map(item => [item.kind, item.criteria, item.severity, item.measured.beyond]),
+    [['needs-horizontal-scroll', ['1.4.10'], 'serious', 192]]);
+});
+
+test('controls drawn over each other are a finding; nested and touching ones are not', () => {
+  const findings = overlapFindings({
+    condition: 'text-spacing',
+    controls: [
+      { id: 0, selector: 'button.prev', left: 0, top: 0, right: 40, bottom: 30, within: [] },
+      { id: 1, selector: 'button.next', left: 30, top: 0, right: 70, bottom: 30, within: [] },
+      { id: 2, selector: 'button.last', left: 70, top: 0, right: 110, bottom: 30, within: [] },
+      { id: 3, selector: 'input.check', left: 5, top: 5, right: 15, bottom: 15, within: [5, 0] },
+    ],
+  });
+
+  assert.deepEqual(findings.map(item => [item.kind, item.criteria, item.selector, item.measured.with, item.measured.area]), [
+    ['controls-overlap', ['1.4.12'], 'button.prev', 'button.next', 300],
+  ]);
+});
+
+test('hover content must be dismissible, hoverable and persistent', () => {
+  assert.deepEqual(hoverFindings({ selector: '.htComments', appeared: true, dismissible: true, hoverable: true, persistent: true }), []);
+  assert.deepEqual(hoverFindings({ selector: '.htComments', appeared: true, dismissible: false, hoverable: false, persistent: false })
+    .map(item => [item.kind, item.criteria, item.severity]), [
+    ['hover-content-not-dismissible', ['1.4.13'], 'serious'],
+    ['hover-content-not-hoverable', ['1.4.13'], 'serious'],
+    ['hover-content-not-persistent', ['1.4.13'], 'serious'],
+  ]);
+  assert.deepEqual(hoverFindings({ selector: '.htComments', appeared: false }).map(item => item.kind), ['hover-content-did-not-appear'],
+    'content that never appeared is a problem with the setup, reported as advisory');
+});
+
+test('a grid shown in one orientation and not the other is locked to an orientation (1.3.4)', () => {
+  assert.deepEqual(orientationFindings({ portrait: { width: 390, height: 300 }, landscape: { width: 800, height: 300 } }), []);
+  assert.deepEqual(orientationFindings({ portrait: { width: 0, height: 0 }, landscape: { width: 800, height: 300 } })
+    .map(item => [item.kind, item.criteria, item.severity, item.step]), [['orientation-locked', ['1.3.4'], 'serious', 'portrait']]);
+});
+
+test('the check\'s findings are valid evidence', () => {
+  const findings = [
+    ...clippingFindings({ condition: 'zoom-200', boxes: [box({ scrollWidth: 160 })] }),
+    ...hoverFindings({ selector: '.htComments', appeared: true, dismissible: false, hoverable: true, persistent: true }),
+    ...orientationFindings({ portrait: { width: 0, height: 0 }, landscape: { width: 1, height: 1 } }),
+  ];
+
+  assert.deepEqual(validatePart({ schema: EVIDENCE_SCHEMA, target: { page: 'dialog', theme: 'main' }, durationMs: 1, findings }), []);
+});

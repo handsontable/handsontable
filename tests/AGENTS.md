@@ -1538,6 +1538,40 @@ captures pixels; the arithmetic and the verdicts are `lib/contrast.mjs` (tested 
   drawn by an overlay clone above the master, and sampling the master's copy read every frozen cell as
   hidden. A cell covered at every point is `focus-obscured`.
 
+### Zoom, reflow, text spacing and hover content
+
+`a11y/checks/reflow.spec.ts`, the `reflow` check: 1.3.4, 1.4.4, 1.4.10, 1.4.12 and 1.4.13 on every
+theme. The spec measures boxes; `lib/reflow.mjs` (tested in `lib/__tests__/reflow.test.mjs`) decides what
+counts as lost content.
+
+- **Three conditions, each a viewport** (`CONDITIONS`): 320 by 256 CSS px for 1.4.10 (a 1280 by 1024
+  window at 400%), 640 by 512 for 1.4.4 (200%), and the WCAG text-spacing override (`TEXT_SPACING_CSS`) for
+  1.4.12, injected as a stylesheet as soon as the document has a head, so the grid measures its rows with
+  it the way it would under a user's stylesheet. Each runs over every popup and bar of the catalog and the
+  plain grid.
+- **The grid body is exempt; everything around it is measured.** A data grid may scroll in two
+  dimensions, so the main grid's tables are left out. The menus, the editors' lists, the comment editor,
+  dialogs, notifications, the bars and the overlays are measured for text a clipping container cuts off
+  (`text-clipped`; `text-truncated`, moderate, when the container ends it with an ellipsis), surfaces the
+  viewport cuts off, and controls drawn over each other (`controls-overlap`, judged on the part of each
+  box its clipping ancestors leave on screen, and never between a control and one inside it).
+- **Where a surface is decides what reaching past the viewport means.** A surface positioned against the
+  viewport (`position: fixed`, read from the computed style) that reaches past it cannot be scrolled to
+  (`outside-viewport`). Any other surface past the right edge makes the page scroll sideways
+  (`needs-horizontal-scroll`, the second scroll direction 1.4.10 does not allow outside a data table);
+  past the bottom edge it is a vertical scroll away, which is allowed.
+- **A measurement is taken on a settled page.** The spec measures until two measurements three frames
+  apart agree (`settled` in the detail), and every check releases the data-provider fixture's parked
+  fetches until none is left (`releaseParkedFetches()` in the harness): the catalog's opener releases the
+  first fetch only, and whether the next one had landed changed what the bars showed between runs. The
+  gating axe scan does not call it, so the state its baseline was taken in is unchanged.
+- **Hover content** (1.4.13) is the comment of a commented cell: it must appear on hover, stay while the
+  pointer moves onto it and while it rests there, and hide on Escape with the pointer still on it. "Stays"
+  is measured on a fake clock (`page.clock`, installed once the comment shows), so the comment's own hide
+  timers run, and ten seconds pass without a wait.
+- **Orientation** (1.3.4): the grid's root must have an area on screen in a 390 by 844 and an 844 by 390
+  viewport.
+
 ### Adding a check
 
 Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs` (a title and the criteria it

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { test, expect, type CDPSession, type Page, type TestInfo } from '@playwright/test';
 import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { STATES, emulate, openTarget, reachState, type OpenedTarget } from '../harness';
+import { STATES, emulate, openTarget, reachState, releaseParkedFetches, type OpenedTarget } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import {
   diffTabOrder,
@@ -426,6 +426,7 @@ async function walkPage(page: Page, testInfo: TestInfo, entry: A11yPage): Promis
   const opened: OpenedTarget = await openTarget(page, entry, THEME);
 
   await reachState(page, entry, opened);
+  await releaseParkedFetches(page);
 
   const environment = await readEnvironment(page);
   const cdp = await openAxSession(page);

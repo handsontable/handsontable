@@ -286,3 +286,30 @@ export function emulate(name: string) {
 
   return options;
 }
+
+/**
+ * Releases every request the data-provider fixture parks (`window.htServer`), until none has been pending
+ * for two checks in a row. The catalog's `data-provider` opener releases the first fetch only, and a
+ * fetch the grid makes after it (the bars' count, a page) lands or not depending on timing, which changed
+ * what the bars showed from one run to the next. The checks beyond axe call this after `reachState()`;
+ * the gating axe scan does not, so the state its baseline was taken in stays as it was. Ten rounds at
+ * most; a page without the fixture server is left alone.
+ *
+ * @param page The page.
+ */
+export async function releaseParkedFetches(page: Page): Promise<void> {
+  let quiet = 0;
+
+  for (let round = 0; round < 10 && quiet < 2; round++) {
+    const released = await page.evaluate(async() => {
+      const server = (window as unknown as { htServer?: { release(prefix?: string): number } }).htServer;
+      const count = server ? server.release() : 0;
+
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+      return count;
+    });
+
+    quiet = released === 0 ? quiet + 1 : 0;
+  }
+}

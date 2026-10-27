@@ -169,6 +169,12 @@ export const EVIDENCE_CHECKS = Object.freeze({
     criteria: ['1.4.11', '2.4.7', '2.4.11'],
     pullRequest: true,
   },
+  reflow: {
+    title: 'Zoom, reflow, text spacing and hover content',
+    spec: 'reflow.spec.ts',
+    criteria: ['1.3.4', '1.4.4', '1.4.10', '1.4.12', '1.4.13'],
+    pullRequest: true,
+  },
   // Triage, not evidence: its records list what axe's wider rules found and could not decide, for a
   // person or the agent grader to sort, and the conformance report cites none of them as they stand.
   'axe-discovery': {

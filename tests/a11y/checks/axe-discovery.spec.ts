@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { test, expect, devices, type Page, type TestInfo } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { A11Y_PAGES, fixtureUrl, type A11yPage, type A11yState } from '../pages.mjs';
-import { PORTAL, STATES, emulate, highlightMenuItem, markPortal, openTarget, selectCell, type RootWrapper } from '../harness';
+import { PORTAL, STATES, emulate, highlightMenuItem, markPortal, openTarget, releaseParkedFetches, selectCell, type RootWrapper } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import { DISCOVERY_TAGS, discoveryFindings } from '../../lib/axe-discovery.mjs';
@@ -158,6 +158,7 @@ async function discover(page: Page, testInfo: TestInfo, entry: DiscoveryPage, th
   const opener = DISCOVERY_STATES[entry.state] ?? STATES[entry.state as A11yState];
 
   await opener(page, entry, root, cell);
+  await releaseParkedFetches(page);
   expect(opened.pageErrors, 'the page threw no error while it loaded and while the state was reached').toEqual([]);
   await markPortal(page, root);
 
