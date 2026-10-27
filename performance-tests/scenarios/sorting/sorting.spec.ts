@@ -29,6 +29,12 @@ test(config.name, async({ page }) => {
       await page.evaluate((order) => {
         const hot = (window as any).__hot;
         const sortPlugin = hot.getPlugin('columnSorting');
+        // DO NOT MERGE: a fixed 15 ms slowdown inside the measured window, to prove the regression gate.
+        const until = performance.now() + 15;
+
+        while (performance.now() < until) {
+          // spin
+        }
 
         sortPlugin.sort({ column: 0, sortOrder: order });
       }, sortOrder);

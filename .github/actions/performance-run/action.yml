@@ -143,6 +143,8 @@ runs:
         # can be checked for a baseline that lags develop.
         PERF_BASE_REF: ${{ github.base_ref || '' }}
         PERF_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+        # DO NOT MERGE: forces the gate's block mode for the proof run.
+        PERF_GATE_MODE: block
       run: PERF_MODE=$PERF_MODE node scripts/run.mjs
 
     - name: Upload performance-tests output
