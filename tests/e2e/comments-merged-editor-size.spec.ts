@@ -120,6 +120,18 @@ test.describe('Comment editor size - merged ranges', { tag: THEMES_TAG }, () => 
     }).toBeLessThanOrEqual(1);
   });
 
+  test('keeps the default height when only a cut overlay copy of the range is drawn', async() => {
+    await grid.showEditorAt(4, 4);
+
+    const plain = (await grid.heights(4, 4)).editor;
+
+    await grid.freezeTopRows(3);
+    await grid.scrollMasterToRow(12);
+    await grid.showEditorAt(1, 1);
+
+    await expect.poll(async() => (await grid.heights(1, 1)).editor).toBe(plain);
+  });
+
   test('takes the height of a range in a frozen column that the grid has scrolled away from', async() => {
     await grid.freezeFirstColumnAndScrollAway();
     await grid.showEditorAt(3, 0);

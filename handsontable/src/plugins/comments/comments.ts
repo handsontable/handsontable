@@ -841,7 +841,7 @@ export class Comments extends BasePlugin {
 
     // A hidden row or column is anchored to a neighbor's cell, which is not the range the comment belongs to.
     } else if (!targetingPreviousRow && !targetingOtherColumn) {
-      blockHeight = this.#getMergedBlockHeight(TD, renderableRow, renderableColumn, metaRowspan);
+      blockHeight = this.#getMergedBlockHeight(TD, visualRow, renderableRow, renderableColumn, metaRowspan);
 
       if (blockHeight !== undefined) {
         this.#editor.setHeight(blockHeight);
@@ -914,28 +914,52 @@ export class Comments extends BasePlugin {
   /**
    * Gets the height of the merged block a comment belongs to, when its box takes that height.
    *
-   * The master table's cell holds the whole block. The topmost one can be an overlay's copy, cut at a frozen
-   * row. The master has no cell for a block that sits wholly in a frozen band, and the overlay's copy is whole
-   * there. The cell's own `rowSpan` is what is drawn, which is smaller than the meta's when rows of the block
-   * are hidden.
+   * The master table's cell holds the whole block. The topmost one can be an overlay's copy, which keeps the
+   * block's `rowSpan` but is drawn only as tall as the overlay, so a block that crosses a freeze line is cut in
+   * it. The copy is used only when no master cell exists and no freeze line crosses the block: one in a frozen
+   * start column that the grid has scrolled away from, or one that sits wholly in the frozen rows. The count of
+   * rows is the visible ones, because hidden rows of the block are not drawn.
    *
    * @param {HTMLTableCellElement} anchorTD The topmost rendered cell of the comment.
+   * @param {number} visualRow Visual row index of the cell.
    * @param {number} renderableRow Renderable row index of the cell.
    * @param {number} renderableColumn Renderable column index of the cell.
    * @param {number} metaRowspan The rowspan value from the cell meta (1 for non-merged cells).
    * @returns {number | undefined} The height in pixels, or `undefined` when the default box height applies.
    */
   #getMergedBlockHeight(
-    anchorTD: HTMLTableCellElement, renderableRow: number, renderableColumn: number, metaRowspan: number
+    anchorTD: HTMLTableCellElement,
+    visualRow: number,
+    renderableRow: number,
+    renderableColumn: number,
+    metaRowspan: number
   ): number | undefined {
     if (metaRowspan === 1) {
       return undefined;
     }
 
     const masterTD = this.hot.view._wt.getCell({ row: renderableRow, col: renderableColumn });
-    const blockTD = isHTMLElement(masterTD) ? masterTD : anchorTD;
 
-    return getEditorAnchorHeight(blockTD.rowSpan, blockTD.getBoundingClientRect().height);
+    if (isHTMLElement(masterTD)) {
+      return getEditorAnchorHeight(masterTD.rowSpan, masterTD.getBoundingClientRect().height);
+    }
+
+    const { rowIndexMapper, view } = this.hot;
+    let visibleRows = 0;
+
+    for (let row = visualRow; row < visualRow + metaRowspan; row++) {
+      if (rowIndexMapper.getRenderableFromVisualIndex(row) !== null) {
+        visibleRows += 1;
+      }
+    }
+
+    const lastRow = renderableRow + visibleRows - 1;
+    const bottomBandStart = rowIndexMapper.getRenderableIndexesLength() - view.countNotHiddenFixedRowsBottom();
+    const freezeLines = [view.countNotHiddenFixedRowsTop(), bottomBandStart];
+    const crossesFreezeLine = freezeLines.some(line => renderableRow < line && lastRow >= line);
+
+    return crossesFreezeLine ?
+      undefined : getEditorAnchorHeight(visibleRows, anchorTD.getBoundingClientRect().height);
   }
 
   /**

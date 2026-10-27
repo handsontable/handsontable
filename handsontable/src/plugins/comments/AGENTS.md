@@ -205,10 +205,14 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
   `tests/e2e/comments-merged-editor-size.spec.ts` that goes red without it. (1) **Read the height from the
   MASTER table's cell** (`wt.getCell(coords)`), not from the topmost one the rest of the method uses: with a
   frozen row across the block, the topmost cell is the top overlay's copy, cut at the freeze line, and the box
-  came out as tall as that part (58px for a 116px range). (2) **Fall back to the topmost cell when the master
-  has none.** A block in a frozen start column that the grid has scrolled away from is drawn by the overlay
-  only (`getCell()` answers a negative code), and the overlay's copy is whole there. (3) **Use the DRAWN cell's
-  `rowSpan`, not the meta's.** Hidden rows shrink the cell, so `{ rowspan: 2 }` with its second row hidden is a
+  came out as tall as that part (58px for a 116px range). (2) **Fall back to the topmost cell only when the master has none AND no freeze line crosses the block.** A
+  block in a frozen start column that the grid has scrolled away from is drawn by the overlay only
+  (`getCell()` answers a negative code), and a block wholly in the frozen rows has no master cell once the grid
+  scrolls past them. The overlay's copy is whole in both. A block that crosses `fixedRowsTop` or
+  `fixedRowsBottom` keeps its `rowSpan` in the overlay but is drawn only as tall as the overlay, so the
+  `rowSpan` cannot tell a cut copy from a whole one: the check is the freeze line
+  (`countNotHiddenFixedRowsTop()` and the start of the bottom band, in renderable rows), and a crossing block
+  keeps the default. (3) **Count the DRAWN rows, not the meta's `rowspan`.** Hidden rows shrink the cell, so `{ rowspan: 2 }` with its second row hidden is a
   one-row cell, and a one-row cell keeps the default like a plain one. (4) **A hidden row or column keeps the
   default** (`targetingPreviousRow`, `targetingOtherColumn`): the anchor is a neighbor's cell, which is not the
   range the comment belongs to, and a one-row cell there would give the box its own height (29px). (5) **The

@@ -115,6 +115,21 @@ export class CommentsMergedEditorSizePage {
   }
 
   /**
+   * Scrolls the grid down until the master table no longer draws the frozen rows' own range of rows, so
+   * only the top overlay draws a block that starts in them.
+   *
+   * @param {number} row The row to scroll to the top of the master table.
+   */
+  async scrollMasterToRow(row: number): Promise<void> {
+    await this.page.evaluate((r) => {
+      (window as any).hot.scrollViewportTo({ row: r, col: 1, verticalSnap: 'top' });
+    }, row);
+    await expect.poll(() => this.page.evaluate(() => {
+      return (window as any).hot.view._wt.wtTable.getFirstRenderedRow();
+    })).toBeGreaterThan(5);
+  }
+
+  /**
    * Freezes the first column and scrolls the grid sideways until it is the only thing that draws that
    * column: the master table no longer has its cells.
    */
