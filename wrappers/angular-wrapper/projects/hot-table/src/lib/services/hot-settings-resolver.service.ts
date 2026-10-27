@@ -13,6 +13,12 @@ import { HotCellEditorAdvancedComponent } from '../editor/hot-cell-editor-advanc
 
 const AVAILABLE_HOOKS_SET = new Set<string>(Handsontable.hooks.getRegistered());
 const HOT_ZONE_WRAPPED = Symbol('hotZoneWrapped');
+/**
+ * The key under which a zone wrapper names the hook callback it runs. Core's hooks registry reads the same
+ * `Symbol.for()` key, so it treats the wrapper and the callback as one listener: a callback the app also
+ * registers with `addHook()` runs once, and `removeHook()` with the callback removes the wrapper.
+ */
+const FORWARDED_HOOK_CALLBACK = Symbol.for('handsontable.forwardedHookCallback');
 
 /**
  * Service to resolve and apply custom settings for Handsontable settings object.
@@ -20,9 +26,10 @@ const HOT_ZONE_WRAPPED = Symbol('hotZoneWrapped');
 @Injectable()
 export class HotSettingsResolver {
   /**
-   * The resolved copy of each column object `resolveAppliedSettings()` resolved.
+   * The resolved copy of each column object `resolveAppliedSettings()` resolved, with a shallow copy of the
+   * column as it was then, so a column the app edited in place and passes again is resolved again.
    */
-  private readonly appliedColumns = new WeakMap<ColumnSettings, ColumnSettings>();
+  private readonly appliedColumns = new WeakMap<ColumnSettings, { source: ColumnSettings, resolved: ColumnSettings }>();
   /**
    * The editor components `resolveAppliedSettings()` created, by editor component type and then by the
    * column they serve: its `data` binding, or its position when it has none. Every column object that
@@ -143,9 +150,15 @@ export class HotSettingsResolver {
       Object.keys(declared).forEach((key) => {
         const option: unknown = (declared as Record<string, unknown>)[key];
 
-        if (AVAILABLE_HOOKS_SET.has(key) && typeof option === 'function') {
-          this.declaredHooks.add(option);
+        if (!AVAILABLE_HOOKS_SET.has(key)) {
+          return;
         }
+
+        (Array.isArray(option) ? option : [option]).forEach((callback: unknown) => {
+          if (typeof callback === 'function') {
+            this.declaredHooks.add(callback);
+          }
+        });
       });
     };
     const sheetsBar: unknown = settings.sheetsBar;
@@ -186,8 +199,8 @@ export class HotSettingsResolver {
 
     const cached = this.appliedColumns.get(column);
 
-    if (cached) {
-      return cached;
+    if (cached && this.isShallowEqual(cached.source, column)) {
+      return cached.resolved;
     }
 
     const resolved = { ...column };
@@ -196,9 +209,23 @@ export class HotSettingsResolver {
     this.resolveColumnRenderer(resolved);
     this.resolveColumnEditor(resolved, undefined, editorType => this.appliedEditorRef(editorType, columnKey));
     this.resolveColumnValidator(resolved);
-    this.appliedColumns.set(column, resolved);
+    this.appliedColumns.set(column, { source: { ...column }, resolved });
 
     return resolved;
+  }
+
+  /**
+   * Tells whether two column objects hold the same keys with the same values.
+   *
+   * @param a A column.
+   * @param b Another column.
+   * @returns `true` when no key differs.
+   */
+  private isShallowEqual(a: ColumnSettings, b: ColumnSettings): boolean {
+    const aKeys = Object.keys(a);
+
+    return aKeys.length === Object.keys(b).length &&
+      aKeys.every(key => (a as Record<string, unknown>)[key] === (b as Record<string, unknown>)[key]);
   }
 
   /**
@@ -217,7 +244,7 @@ export class HotSettingsResolver {
       return known;
     }
 
-    const created = createComponent(editorType, { environmentInjector: this.environmentInjector });
+    const created = this.ngZone.run(() => createComponent(editorType, { environmentInjector: this.environmentInjector }));
 
     byColumn.set(columnKey, created as ComponentRef<HotCellEditorComponent<any>>);
     this.appliedEditorRefs.set(editorType, byColumn);
@@ -247,14 +274,17 @@ export class HotSettingsResolver {
    * @param settings The payload.
    * @returns The wrappers by hook name, or `null` when there is nothing to wrap.
    */
-  private zoneWrappedHooksOf(settings: SettingsUpdate): Record<string, Function> | null {
-    let wrapped: Record<string, Function> | null = null;
+  private zoneWrappedHooksOf(settings: SettingsUpdate): Record<string, unknown> | null {
+    let wrapped: Record<string, unknown> | null = null;
 
     Object.keys(settings).forEach((key) => {
       const option: unknown = settings[key as keyof SettingsUpdate];
+      const zoned = AVAILABLE_HOOKS_SET.has(key)
+        ? this.zonedHookValue(option, callback => this.declaredHooks.has(callback))
+        : option;
 
-      if (AVAILABLE_HOOKS_SET.has(key) && typeof option === 'function' && this.declaredHooks.has(option)) {
-        wrapped = { ...wrapped, [key]: this.zoneWrapped(option) };
+      if (zoned !== option) {
+        wrapped = { ...wrapped, [key]: zoned };
       }
     });
 
@@ -269,15 +299,34 @@ export class HotSettingsResolver {
   private wrapHooksInNgZone(settings: GridSettings): void {
     // Iterate only the keys actually present in settings instead of all ~100 registered HOT hooks.
     Object.keys(settings).forEach((key) => {
-      if (!AVAILABLE_HOOKS_SET.has(key)) {
-        return;
-      }
-      const option = settings[key];
-
-      if (typeof option === 'function' && !(option as any)[HOT_ZONE_WRAPPED]) {
-        settings[key] = this.zoneWrapped(option);
+      if (AVAILABLE_HOOKS_SET.has(key)) {
+        settings[key] = this.zonedHookValue(settings[key], () => true);
       }
     });
+  }
+
+  /**
+   * Returns a hook value with its callbacks wrapped in Angular's zone: a function, or each function of an
+   * array. A callback that is already a wrapper, or that `shouldWrap` rejects, is kept.
+   *
+   * @param option The hook value.
+   * @param shouldWrap Tells whether a callback is wrapped.
+   * @returns The value to apply: `option` itself when nothing was wrapped.
+   */
+  private zonedHookValue(option: unknown, shouldWrap: (callback: Function) => boolean): unknown {
+    const zoned = (callback: unknown) => (
+      typeof callback === 'function' && !(callback as any)[HOT_ZONE_WRAPPED] && shouldWrap(callback)
+        ? this.zoneWrapped(callback)
+        : callback
+    );
+
+    if (!Array.isArray(option)) {
+      return zoned(option);
+    }
+
+    const items = option.map(zoned);
+
+    return items.every((item, index) => item === option[index]) ? option : items;
   }
 
   /**
@@ -300,6 +349,7 @@ export class HotSettingsResolver {
     };
 
     (wrapped as any)[HOT_ZONE_WRAPPED] = true;
+    (wrapped as any)[FORWARDED_HOOK_CALLBACK] = callback;
     this.zoneWrappers.set(callback, wrapped);
 
     return wrapped;

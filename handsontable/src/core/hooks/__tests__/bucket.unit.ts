@@ -395,4 +395,52 @@ describe('Bucket', () => {
       expect(bucket.getHooks('afterChange')[0].fromSettings).toBe(false);
     });
   });
+
+  describe('a function that forwards to a callback', () => {
+    const FORWARDED_HOOK_CALLBACK = Symbol.for('handsontable.forwardedHookCallback');
+    const forwardingTo = (callback: () => void) => Object.assign(() => callback(), {
+      [FORWARDED_HOOK_CALLBACK]: callback,
+    });
+
+    it('should not be added beside the callback it forwards to', () => {
+      const bucket = new HooksBucket();
+      const callback = function() {};
+
+      bucket.add('afterChange', callback);
+      bucket.add('afterChange', forwardingTo(callback), { initialHook: true, fromSettings: true });
+
+      expect(bucket.getHooks('afterChange').map(entry => entry.callback)).toEqual([callback]);
+    });
+
+    it('should keep the forwarding function when the callback is added after it', () => {
+      const bucket = new HooksBucket();
+      const callback = function() {};
+      const forwarding = forwardingTo(callback);
+
+      bucket.add('afterChange', forwarding, { initialHook: true, fromSettings: true });
+      bucket.add('afterChange', callback);
+
+      expect(bucket.getHooks('afterChange').map(entry => entry.callback)).toEqual([forwarding]);
+    });
+
+    it('should be removed with the callback it forwards to', () => {
+      const bucket = new HooksBucket();
+      const callback = function() {};
+
+      bucket.add('afterChange', forwardingTo(callback), { initialHook: true, fromSettings: true });
+
+      expect(bucket.remove('afterChange', callback)).toBe(true);
+      expect(bucket.getHooks('afterChange')).toEqual([]);
+    });
+
+    it('should count as the callback when the settings replace their callbacks', () => {
+      const bucket = new HooksBucket();
+      const callback = function() {};
+
+      bucket.add('afterChange', callback);
+      bucket.replaceFromSettings('afterChange', forwardingTo(callback));
+
+      expect(bucket.getHooks('afterChange').map(entry => entry.callback)).toEqual([callback]);
+    });
+  });
 });

@@ -65,6 +65,25 @@ class CountedEditorComponent extends HotCellEditorComponent<string> {
 }
 
 /**
+ * An editor component that records whether it was created inside the Angular zone.
+ */
+@Component({
+  selector: 'hot-test-zone-editor',
+  template: '<input />',
+  standalone: true,
+})
+class ZoneRecordingEditorComponent extends HotCellEditorComponent<string> {
+  static zones: boolean[] = [];
+
+  constructor() {
+    super();
+    ZoneRecordingEditorComponent.zones.push(NgZone.isInAngularZone());
+  }
+
+  onFocus(): void {}
+}
+
+/**
  * Returns the grid's SheetsBar plugin, narrowed to its class.
  *
  * @param hot The grid.
@@ -530,6 +549,122 @@ describe('HotTableComponent with a sheets bar', () => {
 
       expect(hot.getSettings().afterSelection).toBe(callback);
       expect(zones).toEqual([false]);
+    });
+  });
+
+  describe('hooks and columns of a sheet', () => {
+    it('should run a sheet hook the app also passed to `addHook()` once, inside the Angular zone', () => {
+      const zones: boolean[] = [];
+      const callback = () => zones.push(NgZone.isInAngularZone());
+
+      fixture = createGrid({
+        sheetsBar: {
+          activeSheet: 1,
+          sheets: [
+            { name: 'Plain', data: [['a']] },
+            { name: 'Own', data: [['b']], settings: { afterSelection: callback } },
+          ],
+        },
+      });
+
+      const component = fixture.componentInstance;
+      const hot = component.hotInstance;
+
+      hot.addHook('afterSelection', callback);
+      component.ngZone.runOutsideAngular(() => hot.selectCell(0, 0));
+
+      expect(zones).toEqual([true]);
+    });
+
+    it('should run a sheet hook once when the app passed it to `addHook()` before the switch', () => {
+      const calls: boolean[] = [];
+      const callback = () => calls.push(true);
+
+      fixture = createGrid({
+        sheetsBar: {
+          sheets: [
+            { name: 'Plain', data: [['a']] },
+            { name: 'Own', data: [['b']], settings: { afterSelection: callback } },
+          ],
+        },
+      });
+
+      const component = fixture.componentInstance;
+      const hot = component.hotInstance;
+
+      hot.addHook('afterSelection', callback);
+      sheetsBarOf(hot).setActiveSheet('Own');
+      component.ngZone.runOutsideAngular(() => hot.selectCell(0, 0));
+
+      expect(calls).toEqual([true]);
+    });
+
+    it('should run every callback of a hook array inside the Angular zone, at grid level and on a sheet', () => {
+      const gridZones: boolean[] = [];
+      const sheetZones: boolean[] = [];
+
+      fixture = createGrid({
+        afterSelection: [() => gridZones.push(NgZone.isInAngularZone())],
+        sheetsBar: {
+          sheets: [
+            { name: 'Plain', data: [['a']] },
+            { name: 'Own', data: [['b']], settings: { afterSelectionEnd: [() => sheetZones.push(NgZone.isInAngularZone())] } },
+          ],
+        },
+      });
+
+      const component = fixture.componentInstance;
+      const hot = component.hotInstance;
+
+      sheetsBarOf(hot).setActiveSheet('Own');
+      component.ngZone.runOutsideAngular(() => hot.selectCell(0, 0));
+
+      expect(gridZones).toEqual([true]);
+      expect(sheetZones).toEqual([true]);
+    });
+
+    it('should resolve a sheet column again when the app edited it in place', () => {
+      const column: Record<string, unknown> = { renderer: SheetRendererComponent };
+
+      fixture = createGrid({
+        sheetsBar: {
+          activeSheet: 1,
+          sheets: [
+            { name: 'Plain', data: [['a']] },
+            { name: 'Own', data: [['b']], settings: { columns: [column] } },
+          ],
+        },
+      });
+
+      const hot = fixture.componentInstance.hotInstance;
+
+      column.readOnly = true;
+      sheetsBarOf(hot).updateSheetSettings('Own', { columns: [column] });
+
+      expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
+      expect(hot.getCell(0, 0)?.textContent).toContain('Sheet renderer: b');
+    });
+
+    it('should create a sheet\'s editor component inside the Angular zone', () => {
+      ZoneRecordingEditorComponent.zones = [];
+      fixture = createGrid({
+        sheetsBar: {
+          activeSheet: 1,
+          sheets: [
+            { name: 'Plain', data: [['a']] },
+            { name: 'Own', data: [['b']] },
+          ],
+        },
+      });
+
+      const component = fixture.componentInstance;
+      const hot = component.hotInstance;
+
+      component.ngZone.runOutsideAngular(() => {
+        sheetsBarOf(hot).updateSheetSettings('Own', { columns: [{ editor: ZoneRecordingEditorComponent }] });
+      });
+
+      expect(ZoneRecordingEditorComponent.zones).toEqual([true]);
     });
   });
 

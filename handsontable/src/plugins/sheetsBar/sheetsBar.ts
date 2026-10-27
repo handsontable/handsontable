@@ -1,7 +1,14 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import type { HookCallback } from '../../core/hooks/bucket';
-import { SheetModel, clampSheetName, type Sheet, type SheetDescriptor } from './sheetModel';
+import {
+  SheetModel,
+  clampSheetName,
+  copySettingsValue,
+  isObjectLiteral,
+  type Sheet,
+  type SheetDescriptor,
+} from './sheetModel';
 import { SheetsBarUI } from './ui/bar';
 import { TabStrip, type TabBox, type TabStripMotion } from './ui/tabStrip';
 import { resolveSwitchTransition, pillDurationMs, tabSlideDurationMs } from './ui/switchTiming';
@@ -342,70 +349,6 @@ function isSameSheetsList(a: unknown, b: unknown): boolean {
 }
 
 /**
- * Tells whether a value is an object literal: an object whose prototype is `Object.prototype` or `null`.
- * `isPlainObject` also answers `true` for a class instance such as a HyperFormula engine.
- *
- * @param {*} value The value to check.
- * @returns {boolean}
- */
-function isObjectLiteral(value: unknown): boolean {
-  if (!isPlainObject(value)) {
-    return false;
-  }
-
-  const prototype: unknown = Object.getPrototypeOf(value);
-
-  return prototype === Object.prototype || prototype === null;
-}
-
-/**
- * Copies a settings value for a snapshot: arrays and object literals are copied level by level, a date is
- * copied by its time value, and everything else is kept by reference. A class instance such as a
- * HyperFormula engine is not copied: its object graph has cycles, and copying it never ended. A kept
- * reference still compares equal to itself. A date is copied because the host can edit it in place
- * (`setFullYear()`) and send it again, and a kept reference would compare the edited date with itself.
- *
- * `copies` maps every array and object literal already copied to its copy, so a value that refers to itself
- * is copied with the same shape instead of recursing until the stack overflows, and a sub-object two keys
- * share is copied once.
- */
-function copySettingsValue(value: unknown, copies = new WeakMap<object, unknown>()): unknown {
-  if (value instanceof Date) {
-    return new Date(value.getTime());
-  }
-
-  if (!Array.isArray(value) && !isObjectLiteral(value)) {
-    return value;
-  }
-
-  const source = value as object;
-
-  if (copies.has(source)) {
-    return copies.get(source);
-  }
-
-  if (Array.isArray(source)) {
-    const copy: unknown[] = [];
-
-    copies.set(source, copy);
-    source.forEach((entry: unknown) => {
-      copy.push(copySettingsValue(entry, copies));
-    });
-
-    return copy;
-  }
-
-  const copy: Record<string, unknown> = {};
-
-  copies.set(source, copy);
-  Object.entries(source).forEach(([key, entry]) => {
-    copy[key] = copySettingsValue(entry, copies);
-  });
-
-  return copy;
-}
-
-/**
  * Takes a snapshot of a `sheets` value for {@link isSameSheetsList}: the array and each entry are copied,
  * each entry's `settings` level by level, and its `data` is kept by reference. A host that edits its own
  * array or a sheet's settings object in place and sends it again otherwise compares it with itself, and
@@ -614,6 +557,13 @@ export class SheetsBar extends BasePlugin {
    * @type {Sheet|null}
    */
   #loadingSheet: Sheet | null = null;
+  /**
+   * The hook sync the bar's next write owes, with the arriving sheet's own settings, or `null` when none is
+   * owed. `#filterGridSettings` runs it on the payload core is about to apply (`#runPendingHookSync`).
+   *
+   * @type {object|null}
+   */
+  #pendingHookSync: { ownSettings?: Record<string, unknown> } | null = null;
   /**
    * Whether a workbook change's before-hook is running. A listener of that hook cannot change the
    * workbook: the change it was told about would then run on another workbook state.
@@ -993,6 +943,7 @@ export class SheetsBar extends BasePlugin {
     }
 
     this.#getDataProvider()?._setContextOwner(this.#contextOwner);
+    this.hot._addSettingsFilter(this.#filterGridSettings);
     this.addHook('afterLoadData', this.#onAfterSheetLoad, -1);
 
     if (this.#preservedState) {
@@ -1156,8 +1107,6 @@ export class SheetsBar extends BasePlugin {
     this.addHook('afterDocumentKeyDown', this.#onKeyDownWithinBar, -1);
     this.addHook('beforeCompositionStart', this.#onKeyDownWithinBar, -1);
     this.addHook('afterRender', this.#onAfterRenderArmMotionGate);
-    this.hot._addSettingsFilter(this.#filterGridSettings);
-
     this.#refreshUI();
 
     if (this.#tabStripMotion !== null) {
@@ -1617,10 +1566,11 @@ export class SheetsBar extends BasePlugin {
 
     try {
       this.#isRestoringBaseline = true;
-      this.#syncSettingsHooks(restored);
+      this.#pendingHookSync = {};
       this.hot.updateSettings(restored);
     } finally {
       this.#isRestoringBaseline = false;
+      this.#pendingHookSync = null;
     }
   }
 
@@ -1809,6 +1759,8 @@ export class SheetsBar extends BasePlugin {
    * @returns {object} The payload core applies.
    */
   #filterGridSettings = (settings: Record<string, unknown>): Record<string, unknown> => {
+    this.#runPendingHookSync(settings);
+
     const own = this.#activeSheetRecord()?.settings;
 
     if (!isPlainObject(own) || !this.#filtersGridSettings(settings)) {
@@ -2985,13 +2937,14 @@ export class SheetsBar extends BasePlugin {
       this.#loadingSheet = sheet;
 
       try {
-        this.#syncSettingsHooks(payload, sheet.settings);
+        this.#pendingHookSync = { ownSettings: sheet.settings };
         this.hot._applySettingsAndData(
           payload as Partial<GridSettings>, sheet.data as unknown[], `${source}.switch`, cellOptionMetas,
           keptCellMetas,
         );
       } finally {
         this.#loadingSheet = null;
+        this.#pendingHookSync = null;
       }
 
       if (this.hot.view) {
@@ -3447,13 +3400,13 @@ export class SheetsBar extends BasePlugin {
       }
     });
 
-    this.#syncSettingsHooks(changes, ownSettings);
-
     try {
       this.#isApplyingOwnSettings = true;
+      this.#pendingHookSync = { ownSettings };
       this.hot.updateSettings(changes);
     } finally {
       this.#isApplyingOwnSettings = false;
+      this.#pendingHookSync = null;
     }
   }
 
@@ -3586,6 +3539,31 @@ export class SheetsBar extends BasePlugin {
    * leaves the order of the settings callback and the `addHook()` listeners alone. A grid-level array keeps
    * running beside a sheet's own callback, as it always did: it is registered again after the sheet's. A
    * `null` value needs nothing here, because core removes the settings callbacks for it.
+   *
+   * A switch, the baseline restore and `updateSheetSettings()` arm `#pendingHookSync` right before their
+   * write, and the sync runs from `#filterGridSettings`, which core calls with the payload the earlier
+   * filters returned. It must read that payload, not the one the bar built: the Angular wrapper's filter
+   * swaps a declared hook for the function that runs it in Angular's zone, and core then registers that
+   * function, so a sync of the raw callback left it in place and the hook ran outside the zone, or twice
+   * beside an `addHook()` registration of the same callback. The bar's filter is therefore added before the
+   * workbook is built, and it runs after every filter added before it.
+   *
+   * @param {object} payload The payload core is about to apply.
+   */
+  #runPendingHookSync(payload: Record<string, unknown>) {
+    const pending = this.#pendingHookSync;
+
+    if (pending === null) {
+      return;
+    }
+
+    this.#pendingHookSync = null;
+    this.#syncSettingsHooks(payload, pending.ownSettings);
+  }
+
+  /**
+   * Makes the settings callbacks of each hook the payload sets exactly the callbacks the arriving sheet runs
+   * with (see `#runPendingHookSync`).
    *
    * @param {object} payload The settings about to be applied.
    * @param {object} [ownSettings] The arriving sheet's own settings.

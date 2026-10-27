@@ -9,6 +9,39 @@ import { REGISTERED_HOOKS } from './constants';
  */
 export type HookCallback = (...args: never[]) => unknown;
 
+/**
+ * The key under which a function that only forwards to a hook callback names that callback. The Angular
+ * wrapper's zone wrapper sets it, so the bucket treats the wrapper and the callback as one listener: a
+ * callback the app registers twice, once through its settings and once through `addHook()`, still runs once,
+ * and `removeHook()` with the callback removes the wrapper too. `Symbol.for()` keeps the key the same across
+ * the separately bundled wrapper and core without an import.
+ */
+export const FORWARDED_HOOK_CALLBACK = Symbol.for('handsontable.forwardedHookCallback');
+
+/**
+ * Returns the callback a hook entry stands for: the callback a forwarding function names, or the function
+ * itself.
+ *
+ * @param {Function} callback The registered function.
+ * @returns {Function}
+ */
+function callbackIdentity(callback: HookCallback): unknown {
+  const forwarded: unknown = Reflect.get(callback, FORWARDED_HOOK_CALLBACK);
+
+  return typeof forwarded === 'function' ? forwarded : callback;
+}
+
+/**
+ * Tells whether two registered functions stand for the same hook callback.
+ *
+ * @param {Function} a A registered function.
+ * @param {Function} b Another registered function.
+ * @returns {boolean}
+ */
+function isSameCallback(a: HookCallback, b: HookCallback): boolean {
+  return a === b || callbackIdentity(a) === callbackIdentity(b);
+}
+
 export interface HookEntry {
   callback: HookCallback;
   orderIndex: number;
@@ -120,7 +153,7 @@ export class HooksBucket {
     const fromSettings = !!options.fromSettings;
 
     for (let node = list.head; node !== null; node = node.next) {
-      if (node.callback === callback) {
+      if (isSameCallback(node.callback, callback)) {
         if (!fromSettings && !options.runOnce) {
           node.fromSettings = false;
           node.initialHook = false;
@@ -171,7 +204,7 @@ export class HooksBucket {
    * @returns {boolean}
    */
   remove(hookName: string, callback: HookCallback): boolean {
-    return this.#removeWhere(hookName, node => node.callback === callback);
+    return this.#removeWhere(hookName, node => isSameCallback(node.callback, callback));
   }
 
   /**
@@ -206,9 +239,9 @@ export class HooksBucket {
    */
   replaceFromSettings(hookName: string, callback: HookCallback | HookCallback[]) {
     if (Array.isArray(callback)) {
-      const wanted = new Set<HookCallback>(callback);
+      const wanted = new Set<unknown>(callback.map(item => callbackIdentity(item)));
 
-      this.#removeSettingsEntries(hookName, node => wanted.has(node.callback));
+      this.#removeSettingsEntries(hookName, node => wanted.has(callbackIdentity(node.callback)));
       callback.forEach(item => this.add(hookName, item, { fromSettings: true }));
 
       return;
@@ -228,7 +261,7 @@ export class HooksBucket {
 
     const keptFixed = fixed as HookEntry | null;
     const claimed = this.getHooks(hookName)
-      .some(node => node !== keptFixed && node.callback === callback);
+      .some(node => node !== keptFixed && isSameCallback(node.callback, callback));
 
     if (keptFixed && !claimed) {
       keptFixed.callback = callback;
