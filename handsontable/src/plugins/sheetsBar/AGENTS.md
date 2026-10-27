@@ -72,6 +72,11 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   dragged tab's z-index instead: any new positioned child of a tab would bring the bug back. A
   hit test cannot see it during a drag, because every tab is `pointer-events: none` then; the
   spec turns pointer events back on for one `elementFromPoint` read.
+- **The frozen start count has one name inside the bar.** `#withBaselineFor` runs each sheet's settings
+  through core's `normalizeFixedColumnsAlias()`, so a sheet declaring the legacy `fixedColumnsLeft` is
+  baselined and applied as `fixedColumnsStart`, and the filter and `updateSheetSettings()` read it the same
+  way (`renameFixedColumnsLeft()`). Before, the baseline kept the legacy key and a switch sent both names in
+  one payload, which throws.
 - **Per-sheet `settings` go through `updateSettings()` with a baseline.** The grid-level value
   of every key any sheet overrides is captured the first time that key is applied
   (`#withBaselineFor`); `undefined` baselines are restored as `null`, because `updateSettings`

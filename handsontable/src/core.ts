@@ -107,6 +107,7 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import { OperationScope } from './core/operationScope';
+import { normalizeFixedColumnsAlias } from './core/fixedColumnsAlias';
 import {
   detachValue,
   recordCellChange,
@@ -1926,10 +1927,9 @@ export default function Core(
                 // `calcIndex` is -1 on a grid with no columns left: the removal took nothing, and a
                 // frozen count of 0 must not drop to -1.
                 if (calcIndex >= 0 && fixedColumnsStart >= calcIndex + 1) {
-                  // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
-                  // However, keeping the old name still in effect. When both option names are used together,
-                  // the error is thrown. To prevent that, the engine needs to modify the original option key
-                  // to bypass the validation.
+                  // Since 12.0.0, "fixedColumnsLeft" is a legacy alias of "fixedColumnsStart", and both names
+                  // read the "_fixedColumnsStart" backing field, so lowering that field lowers the count under
+                  // either name. Only the RTL check runs on a write through the alias.
                   (tableMeta as unknown as { _fixedColumnsStart: number })._fixedColumnsStart -=
                     Math.min(groupAmount, fixedColumnsStart - calcIndex);
                 }
@@ -5242,6 +5242,11 @@ export default function Core(
    * callback that settings passed for it and leaves `null` in {@link Core#getSettings}. A hook set to `undefined` is
    * left as it is. Listeners added with {@link Core#addHook} are not affected by either.
    *
+   * The legacy [`fixedColumnsLeft`](@/api/options.md#fixedcolumnsleft) option is applied as
+   * [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart), so the settings object that
+   * [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) receives names it `fixedColumnsStart`. Passing both
+   * names in one call throws an error. When you pass them in separate calls, the later value applies.
+   *
    * This method reinitializes the affected plugins and then renders, so it does more work than a plain
    * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
    * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
@@ -5266,9 +5271,10 @@ export default function Core(
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings: SettingsUpdate, init = false) {
-    const applied = !init && settingsFilter !== null ? settingsFilter(settings) : settings;
+    const normalized = normalizeFixedColumnsAlias(settings, instance.isRtl());
+    const applied = !init && settingsFilter !== null ? settingsFilter(normalized) : normalized;
 
-    if (applied !== settings && Object.keys(applied).length === 0) {
+    if (applied !== normalized && Object.keys(applied).length === 0) {
       return;
     }
 
@@ -5370,6 +5376,7 @@ export default function Core(
     cellOptionMetas: CellOptionMetaEntry[] | null = null,
     keptCellMetas: KeptCellMetas | null = null,
   ) {
+    const normalized = normalizeFixedColumnsAlias(settings, instance.isRtl());
     const suspendsRender = !!instance.view;
 
     if (suspendsRender) {
@@ -5387,7 +5394,7 @@ export default function Core(
 
         try {
           try {
-            const metaPhase = applySettings(settings, false, true, cellOptionMetas, keptCellMetas);
+            const metaPhase = applySettings(normalized, false, true, cellOptionMetas, keptCellMetas);
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
