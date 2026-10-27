@@ -73,8 +73,8 @@ class AxisSyncer {
    */
   readonly #indexSyncer;
   /**
-   * Physical indexes the engine's sheet holds, in the order the engine holds them. Empty means the visual
-   * sequence is still that order. Every order sent to the engine is relative to this list.
+   * Physical indexes the engine's sheet holds, in the order the engine holds them. Every order sent to the
+   * engine is relative to it, so it only ever advances when the engine accepts one.
    *
    * @private
    * @type {Array<number>}
@@ -187,7 +187,8 @@ class AxisSyncer {
    * Returns the physical indexes in the order the engine holds them, as long as the grid's sequence: the
    * elements the stored engine order names first, then the ones the order an empty sheet was filled in
    * names (`#fillSequence`), then every other physical index in ascending order, the order a sheet fed its
-   * content holds them in. The same order `#getEngineElements()` reads.
+   * content holds them in. The same order `#getEngineElements()` reads. Used while the order is held, when
+   * the grid's sequence and the engine's order can differ.
    *
    * @param {number[]} gridSequence The grid's sequence of physical indexes.
    * @returns {number[]}
@@ -517,12 +518,13 @@ class AxisSyncer {
    * trailing empty rows and columns out of the sheet's extent.
    *
    * The order is therefore built from the elements the engine holds, ranked by where the grid's sequence puts
-   * them. That reproduces the grid's order exactly as long as those elements still occupy the sequence's
-   * leading positions, which is what a sheet shorter than the grid means: the grid's extra rows or columns
-   * are the empty tail the engine left out.
+   * them. The grid's extra rows or columns are the empty tail the engine left out, and one behind the last
+   * element the engine holds needs no row of its own. One in front of it does, so the sheet is extended to
+   * hold it: translation reads HF index `i` as sequence position `i`, which finds the right row only while
+   * the engine's order is the grid's.
    *
    * @param {number[]} targetSequence The grid's sequence of physical indexes, in grid order.
-   * @returns {boolean} `true` when the engine holds the sequence's order, `false` when it could not be sent.
+   * @returns {boolean} `true` when the engine holds the sequence's order, `false` when its sheet is empty.
    */
   #syncOrderWithEngine(targetSequence: number[]): boolean {
     const engine = this.#indexSyncer.getEngine()!;
@@ -663,8 +665,8 @@ class AxisSyncer {
       }
 
       // An insert, a removal or a move reaches the engine through its own call — `addRows`, `removeRows`,
-      // `syncMoves` — and renumbers the physical indexes on both sides, so the engine ends up holding the
-      // grid's new sequence and the stored order has to follow it there.
+      // `syncMoves` — and renumbers the physical indexes on both sides, so there is no order to send and
+      // the stored order takes the grid's new sequence.
       this.#indexesSequence = newSequence;
     };
   }

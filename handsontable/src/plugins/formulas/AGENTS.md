@@ -754,20 +754,23 @@ Four rules ride along.
   moment it was filled**. That sequence is captured when the empty sheet is found and used to extend the
   stored list, because the grid can have been reordered since — reading the current sequence there would
   conclude the engine already holds the new order and skip the sync that carries it.
-- **An order that puts an empty index in front of one the engine holds is not sent.** The compression
-  keeps the engine's own elements in their relative order, which reproduces the grid exactly while they
-  still occupy the sequence's leading positions. A sheet shorter than the grid means the extra rows or
-  columns are the empty tail the engine left out. Moving one of those in front of a held element is not a permutation
-  of the sheet: the engine addresses its rows positionally and has no row for the empty index. Nothing is
-  sent. The stored slot list stays the physical indexes the engine already holds, in that order (recorded
-  on this path when the list was still empty). Translation reads that list, not the visual sequence, so
-  the empty index gets no slot and a held row keeps the value already in its slot. Reading the visual
-  sequence as the slot list is what showed another row's value on the blank and projected that row's
-  formula into it (DEV-845). An order that would change nothing is skipped too, because the engine records
-  an undo entry and clears its redo stack for every order it is handed.
+- **The engine holds the grid's order up to the last element it holds.** Translation reads HF index `i` as
+  sequence position `i`, so every index the engine holds sits where the grid shows it. The compression
+  keeps the engine's own elements in their relative order. The extra rows or columns of a sheet shorter
+  than the grid are an empty tail the engine left out, and one behind the last held element needs no row.
+  One in front of it does, so the sheet is extended to the last index it holds and the order covers the
+  empty ones. The engine ends a sheet at its content and `addRows`/`addColumns` past it do not extend it,
+  so the extension writes the last needed cell and clears it. That write and the order go in one
+  `engine.batch()`: one change list without the written cell, and one undo step. The sheet keeps that
+  size when a later order moves the content back. An order that would change nothing is skipped, because
+  the engine records an undo entry and clears its redo stack for every order it is handed.
+- **A reorder that moves a formula across the cell it refers to can turn the reference into `#REF!`.**
+  That is the engine's own `setRowOrder`/`setColumnOrder` (measured on a plain engine, with no extension
+  involved), so a full reverse of a sheet whose formula refers to another column reads it.
 
 Still open: a move applied while the engine's sheet is empty reaches the engine through `syncMoves` but is
-not reflected in the stored order.
+not reflected in the stored order. A sheet past the engine's `maxRows` or `maxColumns` cannot be extended,
+and the reorder throws `SheetSizeLimitExceededError` with the engine left as it was.
 
 ### A reload reads a jagged array, and the first row sets the column count (DEV-1143)
 
