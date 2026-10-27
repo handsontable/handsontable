@@ -114,8 +114,6 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
       licenseKey: 'non-commercial-and-evaluation',
     });
 
-    // Column 2 is the blank the engine left out. Putting it first, ahead of the value column,
-    // is the reorder the sheet cannot express as a visual-index order.
     hot.columnIndexMapper.setIndexesSequence([2, 0, 1]);
 
     expect(hot.getData()).toEqual([[null, '10', 20], [null, '20', 40]]);

@@ -73,8 +73,8 @@ class AxisSyncer {
    */
   readonly #indexSyncer;
   /**
-   * Physical indexes the engine's sheet holds, in the order the engine holds them. Every order sent to the
-   * engine is relative to it, so it only ever advances when the engine accepts one.
+   * Physical indexes the engine's sheet holds, in the order the engine holds them. Empty means the visual
+   * sequence is still that order. Every order sent to the engine is relative to this list.
    *
    * @private
    * @type {Array<number>}
@@ -164,13 +164,9 @@ class AxisSyncer {
   #getTranslationCache(): HfTranslationCache {
     if (this.#translationCache === null) {
       const gridSequence = this.#indexMapper.getIndexesSequence();
-      // The visual sequence names every index, including a blank the sheet never held. Reading it as the
-      // engine's slots gives that blank a slot that still holds another row (DEV-845). An empty slot list
-      // means no reorder has been stored, and the visual sequence is the slot list.
-      const slotsAreStored = this.#orderHeld
-        || this.#indexesSequence.length > 0
-        || this.#fillSequence !== null;
-      const physicalIndexOfHf = slotsAreStored ? this.#getHeldEngineSequence(gridSequence) : gridSequence;
+      const physicalIndexOfHf = this.#orderHeld || this.#indexesSequence.length > 0
+        ? this.#getHeldEngineSequence(gridSequence)
+        : gridSequence;
       const notTrimmedIndexes = this.#indexMapper.getNotTrimmedIndexes();
       const hfIndexOfPhysical: number[] = new Array<number>(physicalIndexOfHf.length);
       const visualIndexOfPhysical: number[] = new Array<number>(physicalIndexOfHf.length).fill(-1);
@@ -193,8 +189,7 @@ class AxisSyncer {
    * Returns the physical indexes in the order the engine holds them, as long as the grid's sequence: the
    * elements the stored engine order names first, then the ones the order an empty sheet was filled in
    * names (`#fillSequence`), then every other physical index in ascending order, the order a sheet fed its
-   * content holds them in. The same order `#getEngineElements()` reads. Used when those slots are not the
-   * visual sequence: while the order is held, and after a reorder the engine did not accept.
+   * content holds them in. The same order `#getEngineElements()` reads.
    *
    * @param {number[]} gridSequence The grid's sequence of physical indexes.
    * @returns {number[]}
@@ -526,10 +521,7 @@ class AxisSyncer {
    * The order is therefore built from the elements the engine holds, ranked by where the grid's sequence puts
    * them. That reproduces the grid's order exactly as long as those elements still occupy the sequence's
    * leading positions, which is what a sheet shorter than the grid means: the grid's extra rows or columns
-   * are the empty tail the engine left out. A reorder that moves one of them in front of an element the
-   * engine holds cannot be a permutation of the sheet. The engine addresses its rows positionally and has
-   * no row for the empty index, so nothing is sent. The stored slot list stays the list the engine already
-   * holds, and the translation reads that list, so the empty index is not given another row's slot.
+   * are the empty tail the engine left out.
    *
    * @param {number[]} targetSequence The grid's sequence of physical indexes, in grid order.
    * @returns {boolean} `true` when the engine holds the sequence's order, `false` when it could not be sent.
@@ -582,8 +574,6 @@ class AxisSyncer {
       .every(physicalIndex => held.has(physicalIndex));
 
     if (!leadingPositionsAreHeld) {
-      // The sheet did not move. Record the slots it already holds when nothing has recorded them, so
-      // translation does not read the new visual sequence as those slots.
       if (this.#indexesSequence.length === 0) {
         this.#indexesSequence = engineElements.slice();
       }
