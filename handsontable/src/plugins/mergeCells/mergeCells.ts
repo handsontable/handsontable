@@ -379,6 +379,16 @@ export class MergeCells extends BasePlugin {
   #mergeAreas: WeakMap<MergedCellCoords, { key: string, rowspan: number, footprint: string }> = new WeakMap();
 
   /**
+   * For each settings area whose merge took trimmed rows the area does not span, its `rowspan` and the
+   * footprint of that merge's anchor. A merge that `restoreMergedAreas()` or an undo creates again is a
+   * new object with no entry in `#mergeAreas`; `updatePlugin()` matches it to its area by
+   * this footprint, so a settings re-send keeps it instead of rebuilding it over the declared rows.
+   *
+   * @type {Map<string, { rowspan: number, footprint: string }>}
+   */
+  #grownAreas: Map<string, { rowspan: number, footprint: string }> = new Map();
+
+  /**
    * The rows of other records each merge drew over, and its physical columns, recorded right before
    * the row index mapper changes. A merge's drawn block can cover rows it does not own once a sort or
    * a move reorders them, and `afterGetCellMeta` stores `hidden`/`copyable` on those cells too.
@@ -504,6 +514,7 @@ export class MergeCells extends BasePlugin {
     this.#foreignRowsBeforeCacheUpdate = null;
     this.clearCollections();
     this.#appliedMergeKeys.clear();
+    this.#grownAreas.clear();
     this.#resetPasteState();
     this.unregisterShortcuts();
     this.hot.render();
@@ -536,6 +547,7 @@ export class MergeCells extends BasePlugin {
     // Copy before `disablePlugin()` clears the field, so `generateFromSettings()` can tell a
     // re-applied area from a newly declared one.
     const alreadyAppliedMerges = new Set(this.#appliedMergeKeys);
+    const grownAreas = new Map(this.#grownAreas);
 
     this.dropDeferredDataWork();
 
@@ -544,6 +556,7 @@ export class MergeCells extends BasePlugin {
       this.enablePlugin();
 
       alreadyAppliedMerges.forEach(key => this.#appliedMergeKeys.add(key));
+      grownAreas.forEach((area, key) => this.#grownAreas.set(key, area));
       this.deferDataWork();
 
       super.updatePlugin();
@@ -727,6 +740,12 @@ export class MergeCells extends BasePlugin {
 
       if (footprint) {
         this.#mergeAreas.set(createdMerge, { key: mergeAreaKey, rowspan, footprint });
+
+        if (this.#hasGrownPastArea(createdMerge, rowspan)) {
+          this.#grownAreas.set(mergeAreaKey, { rowspan, footprint });
+        } else {
+          this.#grownAreas.delete(mergeAreaKey);
+        }
       }
       // A first application clears the whole area, exactly as before. A re-applied one clears only
       // the cells that still hold a value: writing `null` over a cell that is already empty changes
@@ -797,6 +816,8 @@ export class MergeCells extends BasePlugin {
       }
     });
 
+    this.#adoptRecreatedMerges(declaredKeys, alreadyAppliedMerges);
+
     const candidates = this.mergedCellsCollection.mergedCells.filter((merge) => {
       const area = this.#mergeAreas.get(merge);
 
@@ -813,6 +834,39 @@ export class MergeCells extends BasePlugin {
     this.mergedCellsCollection.dropMerges(keptMerges);
 
     return keptMerges;
+  }
+
+  /**
+   * Gives a merge that `restoreMergedAreas()` or an undo created again the area entry its predecessor
+   * had. Such a merge is a new object, so `#mergeAreas` knows nothing about it, and the
+   * next re-send of the settings would rebuild it from the declared `rowspan`, drawing it over the row
+   * it took and clearing that row. It is matched to its area by the footprint of its anchor, and only
+   * for an area that is still declared, was applied before and took trimmed rows the area does not span.
+   *
+   * @param {Set<string>} declaredKeys Keys of the areas the settings declare now.
+   * @param {Set<string>} alreadyAppliedMerges Keys of the areas that were applied before.
+   */
+  #adoptRecreatedMerges(declaredKeys: Set<string>, alreadyAppliedMerges: Set<string>): void {
+    const areasByFootprint = new Map<string, { key: string, rowspan: number }>();
+
+    this.#grownAreas.forEach(({ rowspan, footprint }, key) => {
+      if (declaredKeys.has(key) && alreadyAppliedMerges.has(key)) {
+        areasByFootprint.set(footprint, { key, rowspan });
+      }
+    });
+
+    if (areasByFootprint.size === 0) {
+      return;
+    }
+
+    this.mergedCellsCollection.mergedCells.forEach((merge) => {
+      const footprint = this.#mergeAreas.has(merge) ? undefined : this.#getAnchorFootprint(merge);
+      const area = footprint === undefined ? undefined : areasByFootprint.get(footprint);
+
+      if (footprint !== undefined && area !== undefined) {
+        this.#mergeAreas.set(merge, { ...area, footprint });
+      }
+    });
   }
 
   /**

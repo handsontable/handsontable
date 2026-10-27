@@ -258,8 +258,11 @@ and not fixed:
 - It keeps its physical rows when the filter changes and the same area numbers are sent again, instead of
   being rebuilt on the rows on screen. A different area (any of row, col, rowspan or colspan) is rebuilt.
 - The state lives in `#mergeAreas`, keyed by merge object. A merge that `restoreMergedAreas()` (a sheet
-  switch) or an undo of an unmerge creates anew has no entry, so the next re-send rebuilds it from the
-  declared `rowspan`. A row insert or remove changes the footprint and does the same.
+  switch) or an undo of an unmerge creates anew is a new object with no entry. `#grownAreas` (area key,
+  declared `rowspan`, footprint of the grown anchor, set in `generateFromSettings()`) lets
+  `#adoptRecreatedMerges()` give it its entry back by footprint, so the re-send keeps it. Only an area
+  that took trimmed rows is tracked, and the footprint must match exactly: a row insert or remove changes
+  it, and the next re-send then rebuilds the merge from the declared `rowspan`, clearing the returning row.
 
 The row insert/remove hooks mirror the physical renumbering onto the anchors themselves rather than
 re-deriving them from the merges. They have to: the index mapper emits its cache update **before**

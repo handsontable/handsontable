@@ -163,4 +163,42 @@ describe('MergeCells declared in the settings while a row inside its span is tri
 
     expect(mergeGeometry()).toEqual([[2, 2, 2, 3]]);
   });
+
+  it('should keep the span when the same areas are sent again after a sheet switch restored the merge', () => {
+    createGrid({ trimRows: [3], mergeCells: declared });
+
+    hot.getPlugin('trimRows').untrimAll();
+
+    const plugin = hot.getPlugin('mergeCells');
+    const areas = plugin.getVisibleMergedAreas();
+
+    // What a sheet switch does: drop the merges, then merge the captured areas again.
+    plugin.clearCollections();
+    plugin.restoreMergedAreas(areas);
+
+    expect(mergeGeometry()).toEqual([[2, 2, 4, 3]]);
+
+    hot.updateSettings({ mergeCells: declared.map(area => ({ ...area })) });
+
+    expect(mergeGeometry()).toEqual([[2, 2, 4, 3]]);
+    expect(hot.getSourceDataAtCell(3, 2)).toBe('C4');
+  });
+
+  it('should keep the span when the same areas are sent again after an undo brought the merge back', () => {
+    createGrid({ trimRows: [3], mergeCells: declared, undo: true });
+
+    hot.getPlugin('trimRows').untrimAll();
+    hot.getPlugin('mergeCells').unmerge(2, 2, 5, 4);
+
+    expect(mergeGeometry()).toEqual([]);
+
+    hot.getPlugin('undoRedo').undo();
+
+    expect(mergeGeometry()).toEqual([[2, 2, 4, 3]]);
+
+    hot.updateSettings({ mergeCells: declared.map(area => ({ ...area })) });
+
+    expect(mergeGeometry()).toEqual([[2, 2, 4, 3]]);
+    expect(hot.getSourceDataAtCell(3, 2)).toBe('C4');
+  });
 });
