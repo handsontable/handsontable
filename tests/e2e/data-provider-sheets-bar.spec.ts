@@ -361,6 +361,30 @@ test.describe('dataProvider with sheetsBar', { tag: THEMES_TAG }, () => {
       expect(await grid.ids()).toEqual(['ORD-20', 'ORD-19', 'ORD-18', 'ORD-17', 'ORD-16']);
     });
 
+    test('a page fetch that fails after a return mid-fetch keeps the last page, sort, and row numbers', async() => {
+      await grid.sortByHeader(0, 'desc');
+      await grid.release('ORD');
+      await grid.goToPage(2);
+      await grid.release('ORD');
+      await expect(grid.cell(0, 0)).toHaveText('ORD-20');
+      await grid.goToPage(3);
+      await grid.failNext('ORD');
+      await grid.clickTab(1);
+      await grid.clickTab(0);
+
+      await expect(grid.loadingOverlayVisible()).toBeVisible();
+      expect(await grid.rowHeader(0)).toBe(6);
+
+      await grid.release('ORD');
+
+      await expect(grid.toast()).toBeVisible();
+      await expect(grid.loadingOverlayVisible()).toBeHidden();
+      expect(await grid.ids()).toEqual(['ORD-20', 'ORD-19', 'ORD-18', 'ORD-17', 'ORD-16']);
+      expect(await grid.sortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+      expect(await grid.pagination()).toEqual({ currentPage: 2, pageSize: 5, totalPages: 5 });
+      expect(await grid.rowHeader(0)).toBe(6);
+    });
+
     test('Refetch from the deferred toast loads the sheet', async() => {
       await grid.startFetch();
       await grid.failNext('ORD');
@@ -1405,7 +1429,7 @@ test.describe('dataProvider with sheetsBar', { tag: THEMES_TAG }, () => {
       await grid.clickTab(2);
       await grid.clickTab(0);
 
-      expect((await grid.pagination()).pageSize).toBe(10);
+      expect(await grid.pagination()).toEqual(expect.objectContaining({ currentPage: 1, pageSize: 5 }));
 
       const fetchesBefore = await grid.fetchCount('ORD');
 

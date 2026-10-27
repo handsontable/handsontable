@@ -2624,8 +2624,11 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Decides what a server sheet shows once a switch has brought it in: the error notifications
-   * its requests left while it was not shown, then its own fetch still running, its last response
-   * (with the fetch error that came after it, when there is one), or a first fetch.
+   * its requests left while it was not shown, then its last response, which the rows the grid
+   * holds already answer (so its sort, filters, pager, and row numbers come back even while a
+   * fetch still runs, and a failure of that fetch leaves them in place). After that, its own
+   * fetch still running is waited for, the fetch error that came after the response is shown,
+   * or a sheet without a response fetches for the first time.
    */
   #showServerSheet() {
     const dataProvider = this.#getDataProvider();
@@ -2644,6 +2647,10 @@ export class SheetsBar extends BasePlugin {
       failures.forEach(({ kind, error }) => dataProvider._showRequestError(kind, error));
     }
 
+    if (view?.lastResult) {
+      dataProvider._restoreFetchResult(view.lastResult);
+    }
+
     if (dataProvider.isFetching()) {
       return;
     }
@@ -2655,8 +2662,6 @@ export class SheetsBar extends BasePlugin {
     }
 
     if (view?.lastResult) {
-      dataProvider._restoreFetchResult(view.lastResult);
-
       return;
     }
 
@@ -2666,9 +2671,9 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Shows the fetch failure a server sheet kept while it was not shown: its last response comes
-   * back (so its sort, filters, and pager do), and the error notification appears, its Refetch
-   * action fetching the sheet. Nothing is fetched automatically.
+   * Shows the fetch failure a server sheet kept while it was not shown: the error notification
+   * appears over the sheet's last response, which the caller has already brought back, its
+   * Refetch action fetching the sheet. Nothing is fetched automatically.
    */
   #showStoredFetchFailure(dataProvider: DataProvider, view: ServerSheetView) {
     const { failure, lastResult } = view;
@@ -2676,9 +2681,7 @@ export class SheetsBar extends BasePlugin {
     view.failure = undefined;
     view.hasFailure = false;
 
-    if (lastResult) {
-      dataProvider._restoreFetchResult(lastResult);
-    } else {
+    if (!lastResult) {
       this.hot.render();
     }
 
