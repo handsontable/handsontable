@@ -585,6 +585,71 @@ describe('external engine changes repaint formula cells', () => {
     });
   });
 
+  describe('a dependent grid whose afterRender throws while this grid registers its sheet', () => {
+    let containers;
+    let grids;
+    let engine;
+    let failNextRender;
+
+    beforeEach(() => {
+      containers = [createContainer(), createContainer()];
+      grids = [];
+      engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      failNextRender = false;
+      grids.push(mountGrid(containers[0], [['=Sheet2!A1', '=Sheet3!A1']], engine, 'Sheet1', () => {
+        if (failNextRender) {
+          failNextRender = false;
+          throw new Error('afterRender failed');
+        }
+      }));
+      grids.push(mountGrid(containers[1], [['x']], engine, 'Sheet2', () => {}));
+    });
+
+    afterEach(() => {
+      grids.forEach(grid => grid.destroy());
+      containers.forEach(container => container.remove());
+    });
+
+    it('binds a grid that turns Formulas on to the sheet it registered, and reports the failed paint after the update', () => {
+      containers.push(createContainer());
+      grids.push(new Handsontable(containers[2], { data: [['x']], licenseKey: LICENSE_KEY }));
+      failNextRender = true;
+
+      let error;
+
+      try {
+        grids[2].updateSettings({ formulas: { engine, sheetName: 'Sheet3' } });
+      } catch (e) {
+        error = e;
+      }
+
+      const plugin = grids[2].getPlugin('formulas');
+
+      expect(plugin.sheetName).toBe('Sheet3');
+      expect(plugin.sheetId).toBe(engine.getSheetId('Sheet3'));
+
+      grids[2].setDataAtCell(0, 0, '=1+2');
+
+      expect(grids[2].getDataAtCell(0, 0)).toBe(3);
+      expect(grids[0].getDataAtCell(0, 1)).toBe(3);
+      expect(error?.message).toBe('afterRender failed');
+    });
+
+    it('returns no name from addSheet for a sheet it did not add, and throws the failed paint for one it did', () => {
+      const plugin = grids[1].getPlugin('formulas');
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      expect(plugin.addSheet('Sheet1')).toBe(false);
+      expect(warn).toHaveBeenCalledWith('Sheet with the provided name already exists.');
+      warn.mockRestore();
+
+      failNextRender = true;
+
+      expect(() => plugin.addSheet('Sheet3', [[1]])).toThrow('afterRender failed');
+      expect(engine.doesSheetExist('Sheet3')).toBe(true);
+    });
+  });
+
   describe('a plugin write that fails midway', () => {
     let containers;
     let grids;

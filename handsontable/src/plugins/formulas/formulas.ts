@@ -1038,17 +1038,21 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    let sheetPaintErrors: unknown[] = [];
+
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
     if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
       const sourceDataArray = this.#getProcessedSourceDataArray();
 
       this.#escapeSourceDataArray(sourceDataArray);
 
-      const newSheetName = this.addSheet(this.sheetName, sourceDataArray);
+      const { addedSheetName, paintErrors } = this.#addSheet(this.sheetName, sourceDataArray);
 
-      if (typeof newSheetName === 'string') {
-        this.#updateSheetNameAndSheetId(newSheetName);
+      if (typeof addedSheetName === 'string') {
+        this.#updateSheetNameAndSheetId(addedSheetName);
       }
+
+      sheetPaintErrors = paintErrors;
 
     } else if (this.sheetName !== null && this.hot.view && !this.#hotWasInitializedWithEmptyData
       && !this.isDataLoadPending()) {
@@ -1210,6 +1214,10 @@ export class Formulas extends BasePlugin {
     }
 
     super.enablePlugin();
+
+    if (sheetPaintErrors.length > 0) {
+      throw sheetPaintErrors[0];
+    }
   }
 
   /**
@@ -1285,6 +1293,8 @@ export class Formulas extends BasePlugin {
    * @param {object} newSettings New set of settings passed to the `updateSettings` method.
    */
   updatePlugin(newSettings: Record<string, unknown>) {
+    let sheetPaintErrors: unknown[] = [];
+
     this.#followEngineChange(newSettings);
 
     const newEngineSettings = getEngineSettingsWithOverrides(this.hot.getSettings());
@@ -1333,17 +1343,23 @@ export class Formulas extends BasePlugin {
 
         this.#escapeSourceDataArray(sourceDataArray);
 
-        const newSheetName = this.addSheet(sheetName ?? undefined, sourceDataArray);
+        const { addedSheetName, paintErrors } = this.#addSheet(sheetName ?? undefined, sourceDataArray);
 
-        if (typeof newSheetName === 'string') {
-          this.#updateSheetNameAndSheetId(newSheetName);
+        if (typeof addedSheetName === 'string') {
+          this.#updateSheetNameAndSheetId(addedSheetName);
         }
+
+        sheetPaintErrors = paintErrors;
       }
     }
 
     this.#refreshHyperlinksSetting();
 
     super.updatePlugin(newSettings);
+
+    if (sheetPaintErrors.length > 0) {
+      throw sheetPaintErrors[0];
+    }
   }
 
   /**
@@ -1596,39 +1612,69 @@ export class Formulas extends BasePlugin {
    * @param {Array} [sheetData] Data passed to the shared HyperFormula instance. Has to be declared as an array of
    * arrays - array of objects is not supported in this scenario.
    * @returns {boolean|string} `false` if the data format is unusable or it is impossible to add a new sheet to the
-   * engine, the created sheet name otherwise.
+   * engine, the created sheet name otherwise. When a grid that repaints because of the new sheet throws, the
+   * sheet is already added and the error is rethrown once every grid has repainted.
    */
   addSheet(sheetName?: string | null, sheetData?: unknown[][]): string | boolean {
+    const { addedSheetName, paintErrors } = this.#addSheet(sheetName, sheetData);
+
+    if (paintErrors.length > 0) {
+      throw paintErrors[0];
+    }
+
+    return addedSheetName;
+  }
+
+  /**
+   * Adds the sheet to the engine and tells what the engine did, apart from what the grids that repaint did.
+   * A repaint that throws once the sheet is in the engine does not make the registration fail: the caller
+   * binds the sheet first and then reports the error, so the grid is never left unbound to a sheet that
+   * exists.
+   *
+   * @param {string|null} [sheetName] The name of the sheet.
+   * @param {Array} [sheetData] Data passed to the engine, as an array of arrays.
+   * @returns {{ addedSheetName: string|false, paintErrors: unknown[] }} The created sheet's name, or `false`
+   * when the engine did not take it, and the errors the grids' repaints threw.
+   */
+  #addSheet(sheetName?: string | null, sheetData?: unknown[][]) {
+    const paintErrors: unknown[] = [];
+
     if (isDefined(sheetData) && !isArrayOfArrays(sheetData)) {
       warn('The provided data should be an array of arrays.');
 
-      return false;
+      return { addedSheetName: false as const, paintErrors };
     }
 
     if (sheetName !== undefined && sheetName !== null && this.engine?.doesSheetExist(sheetName)) {
       warn('Sheet with the provided name already exists.');
 
-      return false;
+      return { addedSheetName: false as const, paintErrors };
     }
 
-    try {
-      const engine = this.engine!;
+    const engine = this.engine!;
+    let registered: string | undefined;
 
-      return withPluginEngineWrite(engine, () => {
+    try {
+      withPluginEngineWrite(engine, () => {
         const actualSheetName = engine.addSheet(sheetName ?? undefined);
 
         if (sheetData) {
           engine.setSheetContent(engine.getSheetId(actualSheetName), this.#readableSheet(sheetData));
         }
 
-        return actualSheetName;
+        registered = actualSheetName;
       });
-
     } catch (e) {
-      warn(e instanceof Error ? e.message : String(e));
+      if (registered === undefined) {
+        warn(e instanceof Error ? e.message : String(e));
 
-      return false;
+        return { addedSheetName: false as const, paintErrors };
+      }
+
+      paintErrors.push(e);
     }
+
+    return { addedSheetName: registered ?? (false as const), paintErrors };
   }
 
   /**
