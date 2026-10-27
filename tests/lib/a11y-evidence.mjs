@@ -147,7 +147,8 @@ export const WCAG_CRITERIA = Object.freeze({
  * fact the keyboard walker sees), but a target counts as evaluating only the check's own criteria
  * unless it says otherwise. `pullRequest` says whether the check also runs on pull requests next to
  * the axe scan, which a check earns by finishing in under two minutes; every check runs in the A11y
- * nightly. Each pull request that adds a check adds its entry.
+ * nightly. A `triage` check evidences no criterion: its records are for sorting, not for the report to
+ * cite. Each pull request that adds a check adds its entry.
  */
 export const EVIDENCE_CHECKS = Object.freeze({
   'keyboard-walker': {
@@ -161,6 +162,15 @@ export const EVIDENCE_CHECKS = Object.freeze({
     spec: 'tree-snapshots.spec.ts',
     criteria: ['1.3.1', '1.3.2', '4.1.2'],
     pullRequest: true,
+  },
+  // Triage, not evidence: its records list what axe's wider rules found and could not decide, for a
+  // person or the agent grader to sort, and the conformance report cites none of them as they stand.
+  'axe-discovery': {
+    title: 'axe discovery run',
+    spec: 'axe-discovery.spec.ts',
+    criteria: [],
+    pullRequest: false,
+    triage: true,
   },
 });
 /**
@@ -259,7 +269,11 @@ export function targetKey(target) {
  * @returns {string} The id.
  */
 export function findingId(check, finding) {
-  return [check, finding.kind, finding.page, finding.theme, finding.variant ?? '', finding.selector ?? finding.step ?? ''].join('|');
+  // A finding that names the rule it came from (the axe discovery run) keeps two rules on one element apart, and so
+  // does the reason of a needs-review result.
+  const rule = finding.rule ? [finding.rule, ...(finding.kind === 'axe-needs-review' ? [finding.reason] : [])] : [];
+
+  return [check, finding.kind, ...rule, finding.page, finding.theme, finding.variant ?? '', finding.selector ?? finding.step ?? ''].join('|');
 }
 
 /**
@@ -454,6 +468,7 @@ function summarize({ criteria, targets, findings }) {
     errors: targets.length - measured.length,
     flaky: targets.filter(target => target.flaky).length,
     findings: findings.length,
+    withoutCriterion: findings.filter(finding => finding.criteria.length === 0).length,
     bySeverity: Object.fromEntries(SEVERITIES.map(severity => [severity, findings.filter(finding => finding.severity === severity).length])),
     byKind: countBy(findings, finding => finding.kind),
     byCriterion,
@@ -573,7 +588,7 @@ export function renderEvidenceSummary(doc, { runUrl, artifactUrl } = {}) {
     for (const finding of doc.findings.slice(0, SUMMARY_FINDINGS)) {
       const page = finding.variant ? `${finding.page} (${finding.variant})` : finding.page;
 
-      lines.push(`| ${escape(finding.severity)} | ${escape(finding.criteria.join(', '))} | ${escape(page)} | ${escape(finding.theme)} | ${where(finding)} | ${escape(findingText(finding))} |`);
+      lines.push(`| ${escape(finding.severity)} | ${finding.criteria.length > 0 ? escape(finding.criteria.join(', ')) : '—'} | ${escape(page)} | ${escape(finding.theme)} | ${where(finding)} | ${escape(findingText(finding))} |`);
     }
     if (doc.findings.length > SUMMARY_FINDINGS) {
       lines.push('', `… and ${doc.findings.length - SUMMARY_FINDINGS} more in \`test-results/a11y-checks/${escape(doc.check)}.json\`.`);
@@ -648,7 +663,7 @@ export function buildEvidenceCheckRun({ doc, check, problems = [], pages = new M
       start_line: line,
       end_line: line,
       annotation_level: finding.severity === 'advisory' || finding.severity === 'minor' ? 'notice' : 'warning',
-      title: `${finding.criteria.join(', ')} ${finding.kind}`.slice(0, 250),
+      title: `${finding.criteria.length > 0 ? `${finding.criteria.join(', ')} ` : ''}${finding.kind}${finding.rule ? ` ${finding.rule}` : ''}`.slice(0, 250),
       message: `${finding.page} on ${finding.theme}${finding.variant ? ` (${finding.variant})` : ''}: ${findingText(finding)}${locationText(finding)}`,
     };
   });
@@ -778,8 +793,9 @@ function findingProblems(finding, label) {
   if (typeof finding.kind !== 'string' || !KIND_ID.test(finding.kind)) {
     problems.push(`${label}.kind is not a kebab-case id`);
   }
-  if (!Array.isArray(finding.criteria) || finding.criteria.length === 0) {
-    problems.push(`${label}.criteria is not a non-empty array`);
+  // An empty list is a finding no WCAG criterion covers (an axe best practice), counted apart.
+  if (!Array.isArray(finding.criteria)) {
+    problems.push(`${label}.criteria is not an array`);
   } else {
     problems.push(...criteriaProblems(finding.criteria, `${label}.criteria`));
   }

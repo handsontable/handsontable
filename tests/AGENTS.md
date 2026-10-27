@@ -1032,7 +1032,8 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
   `wcag21aa` and `wcag22aa`, the target level; the published conformance report
   (`docs/content/guides/accessibility/accessibility-conformance-report/`) states conformance per
   criterion. Best-practice rules are
-  not in it, on purpose. An `incomplete` result (axe could not decide, most often a contrast it
+  not in it, on purpose; the nightly axe discovery run (below, "A11y: the checks beyond axe") runs them
+  for triage. An `incomplete` result (axe could not decide, most often a contrast it
   could not compute) is counted in the raw scan JSON and the report, and is never a finding.
 - **One bundle, three themes, and the variants on pages of their own.** The scan runs on the plain
   UMD bundle: the minified full bundle renders the same DOM. It runs on `main`, `horizon` and
@@ -1474,6 +1475,38 @@ half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs
   names, so one theme keeps the goldens and every theme is judged. A difference is
   `tree-snapshot-changed`, with the first line that differs. Record with `HOT_A11Y_UPDATE_GOLDENS=1`
   (the same switch as the tab-order goldens) and read the diff before committing.
+
+### The axe discovery run
+
+`a11y/checks/axe-discovery.spec.ts`, the `axe-discovery` check, nightly only: axe with the
+best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DISCOVERY_TAGS` in
+`lib/axe-discovery.mjs`, tested in `lib/__tests__/axe-discovery.test.mjs`).
+
+- **Triage, never the gate.** It reads and writes nothing of `a11y/axe-baseline.json` and never posts to
+  `A11y / axe report`; its verdict is `A11y / axe-discovery report`. Its registry entry is `triage: true`
+  with no criteria, because what it lists is for a person or the agent grader to sort, not for the
+  conformance report to cite as it stands. A rule the gating scan already runs shows here too (on states
+  and variants the scan does not reach), and each record names its family (`wcag-a-aa`, `wcag-aaa`,
+  `best-practice`, `experimental`).
+- **Every "needs review" result is listed with axe's reason.** `incomplete` is what axe could not decide;
+  the gating scan only counts it. Here each one is an advisory `axe-needs-review` record per rule,
+  element shape and reason (`nodeReason()`: the first message of its checks), with the node count and an
+  example selector. A violation is an `axe-violation` record per rule and element shape, at axe's impact.
+  A best-practice rule maps to no WCAG criterion, so its record carries an empty `criteria` list, which the
+  evidence shape allows for that reason and counts as `summary.withoutCriterion`.
+- **More states, in a list of its own.** `a11y/checks/discovery-pages.mjs` adds what no catalog page
+  holds still: a cell focused from the keyboard, a hovered header button, the column menu of a sortable
+  grid, a focused option of the filter value list, two selected ranges, a submenu inside a submenu
+  (`keyboard-shortcuts.html?menu=nested`), a sheet tab being renamed, a modal dialog holding the focus. A
+  page added there never reaches the gating scan's baseline. The openers are `DISCOVERY_STATES` in the
+  spec; the catalog's come from the harness.
+- **Every page in the dark scheme, right to left, and on a second phone.** Dark runs on every theme: a
+  script installed before the fixture loads turns each `ht-theme-<name>` class the page or the grid writes
+  into its dark form, so the grid and its portal are built dark (`?scheme=dark` reaches three fixtures
+  only). Right to left runs on the main theme: the fixture is served with `dir="rtl"` on `<html>` and with
+  the query it reads (`?dir=rtl`, `?rtl=1`, `?direction=rtl`, found in its source). The phone page runs on a
+  Pixel 7 beside the iPhone 13. A record of a variant that did not apply says so (`variantApplied` in its
+  detail) and carries no findings.
 
 ### Adding a check
 

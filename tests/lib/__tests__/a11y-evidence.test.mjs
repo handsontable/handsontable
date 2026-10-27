@@ -76,7 +76,8 @@ test('every registered check names a spec that exists, criteria from the table, 
   for (const [id, check] of Object.entries(EVIDENCE_CHECKS)) {
     assert.match(id, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     assert.ok(specs.includes(check.spec), `${id}: a11y/checks/${check.spec} exists`);
-    assert.ok(check.criteria.length > 0 && check.criteria.every(criterion => criterionInfo(criterion)), `${id}: WCAG 2.2 criteria`);
+    assert.ok((check.criteria.length > 0 || check.triage === true) && check.criteria.every(criterion => criterionInfo(criterion)),
+      `${id}: WCAG 2.2 criteria, or none for a triage check`);
     assert.equal(typeof check.pullRequest, 'boolean', `${id}: says whether pull requests run it`);
   }
 });
@@ -120,7 +121,7 @@ test('a well-formed part has no problems, and every malformed field is named', (
     findings: [
       { ...TRAP, severity: 'blocker' },
       { ...TRAP, criteria: ['4.1.1'] },
-      { ...TRAP, criteria: [] },
+      { ...TRAP, criteria: undefined },
       { kind: 'Not Kebab', criteria: ['2.1.1'], severity: 'minor', reason: ' ' },
       { ...TRAP, measured: 'forty' },
       { ...TRAP, file: '../outside.json', line: 0 },
@@ -135,7 +136,7 @@ test('a well-formed part has no problems, and every malformed field is named', (
     'criteria names "9.9.9", which is not a WCAG 2.2 criterion',
     'findings[0].severity is "blocker", not one of critical, serious, moderate, minor, advisory',
     'findings[1].criteria names "4.1.1", which is not a WCAG 2.2 criterion',
-    'findings[2].criteria is not a non-empty array',
+    'findings[2].criteria is not an array',
     'findings[3].kind is not a kebab-case id',
     'findings[3].reason is empty',
     'findings[3] names neither a selector nor a step',
@@ -183,6 +184,16 @@ test('merging the parts counts every criterion a measured target evaluated, find
   assert.deepEqual(doc.summary.bySeverity, { critical: 0, serious: 1, moderate: 0, minor: 0, advisory: 1 });
   assert.deepEqual(doc.summary.byKind, { 'keyboard-trap': 1, 'tab-order-changed': 1 });
   assert.deepEqual(doc.problems, []);
+});
+
+test('a finding that maps to no WCAG criterion (an axe best practice) is valid and counted apart', () => {
+  const practice = { kind: 'axe-violation', criteria: [], severity: 'moderate', selector: 'div.x', reason: 'region' };
+  const doc = mergeEvidence({ check: 'demo-check', checks: CHECKS, parts: [part({ findings: [practice, TRAP] })] });
+
+  assert.deepEqual(validatePart(part({ findings: [practice] })), []);
+  assert.deepEqual(validateEvidence(doc, { checks: CHECKS }), []);
+  assert.equal(doc.summary.withoutCriterion, 1);
+  assert.match(renderEvidenceSummary(doc), /\| moderate \| — \| grid \|/);
 });
 
 test('a finding outside the check\'s criteria is counted under its own criterion, evaluated by none', () => {
