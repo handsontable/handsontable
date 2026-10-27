@@ -50,6 +50,11 @@ interface MarkOversizedRowsOptions {
  * frozen-region header) is not clipped - it still expands to its content, which the frozen-overlay
  * sync then reads. Runs on the master and every clone so all overlays get the same floor.
  *
+ * A level whose provided height falls back to the default drops the height an earlier draw wrote on
+ * its first cell. The header cells are reused across draws, so a height left there kept a header row
+ * that once held multi-line labels tall after they went back to one line, and the render-size probe
+ * then measured that height back into the funnel on every draw.
+ *
  * @param {Table} table The table (master or clone) whose THEAD rows receive the heights.
  */
 export function adjustColumnHeaderHeights(table: Table): void {
@@ -60,16 +65,27 @@ export function adjustColumnHeaderHeights(table: Table): void {
 
   for (let i = 0, len = columnHeaders.length; i < len; i++) {
     const headerHeight = table.getColumnHeaderHeight(i);
+    const isRaised = headerHeight > defaultRowHeight;
 
-    if (headerHeight > defaultRowHeight) {
-      if (!children[i] || children[i].childNodes.length === 0) {
+    if (!children[i] || children[i].childNodes.length === 0) {
+      if (isRaised) {
         return;
       }
-      const firstChild = children[i].childNodes[0];
 
-      if (isHTMLElement(firstChild)) {
-        firstChild.style.height = `${headerHeight}px`;
-      }
+      continue;
+    }
+
+    const firstChild = children[i].childNodes[0];
+
+    if (!isHTMLElement(firstChild)) {
+      continue;
+    }
+
+    if (isRaised) {
+      firstChild.style.height = `${headerHeight}px`;
+
+    } else if (firstChild.style.height !== '') {
+      firstChild.style.height = '';
     }
   }
 }

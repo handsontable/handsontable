@@ -466,6 +466,11 @@ class TableView {
       this.#refreshEffectiveFixed(isFullRender);
 
       this.#drawRenderedCells = false;
+
+      if (isFullRender) {
+        this.#dropRaisedColumnHeaderHeights();
+      }
+
       this.#measureContentColumnHeader();
       this._wt.draw(!isFullRender);
       this.#redrawOnceWhenEffectiveFixedMoved(isFullRender);
@@ -473,6 +478,24 @@ class TableView {
 
       this.hot.runHooks('afterRender', isFullRender);
       this.hot.forceFullRender = false;
+    }
+  }
+
+  /**
+   * Drops the column-header heights the render-size probe measured on the previous draw when one of them
+   * is taller than the default, so a full draw measures the headers it is about to paint. A full draw can
+   * change the header content (`colHeaders`, `nestedHeaders`, a sheet switch), and the stored height feeds
+   * the `columnHeaderHeight` funnel, which writes it on the header cells, where the probe then measured it
+   * back: a header row that once held multi-line labels stayed tall after they went back to one line. With
+   * the heights gone, the ghost-table pre-measure (`#measureContentColumnHeader`) takes the new content
+   * before the draw, and the probe measures the drawn headers after it. Grids whose headers are all at the
+   * default height keep their stored heights and pay nothing.
+   */
+  #dropRaisedColumnHeaderHeights(): void {
+    const defaultRowHeight = this.hot.stylesHandler.getDefaultRowHeight() ?? 0;
+
+    if (this.renderSizeProbe.hasColumnHeaderTallerThan(defaultRowHeight)) {
+      this.renderSizeProbe.columnHeaderHeights.clear();
     }
   }
 
