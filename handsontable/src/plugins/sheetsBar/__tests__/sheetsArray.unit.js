@@ -118,39 +118,45 @@ describe('SheetsBar: the `sheets` array works like `data`', () => {
       expect(sheets.map(entry => entry.name)).toEqual(['A', 'B']);
     });
 
-    it('throws on an add into a frozen array before anything changes', () => {
+    it('refuses an add into a frozen array with a warning, before anything changes', () => {
       const sheets = Object.freeze([{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }]);
       const plugin = buildWorkbook(sheets);
       const added = jest.fn();
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
       hot.addHook('afterSheetTabAdd', added);
 
-      expect(() => plugin.addSheet('New')).toThrow();
+      expect(plugin.addSheet('New')).toBe(null);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('frozen'));
       expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B']);
       expect(added).not.toHaveBeenCalled();
     });
 
-    it('throws on a duplicate into a frozen array before anything changes', () => {
+    it('refuses a duplicate into a frozen array with a warning, before anything changes', () => {
       const sheets = Object.freeze([{ name: 'A', data: [[1]] }, { name: 'B', data: [[2]] }]);
       const plugin = buildWorkbook(sheets);
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-      expect(() => plugin.duplicateSheet(idOf(plugin, 'A'))).toThrow();
+      expect(plugin.duplicateSheet(idOf(plugin, 'A'))).toBe(null);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('frozen'));
       expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B']);
     });
 
-    it('throws on a rename of a frozen entry before anything changes', () => {
+    it('refuses a rename of a frozen entry with a warning, before anything changes', () => {
       const sheets = [Object.freeze({ name: 'A', data: [[1]] }), { name: 'B', data: [[2]] }];
       const plugin = buildWorkbook(sheets);
       const renamed = jest.fn();
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
       hot.addHook('afterSheetTabRename', renamed);
 
-      expect(() => plugin.renameSheet(idOf(plugin, 'A'), 'A2')).toThrow();
+      expect(plugin.renameSheet(idOf(plugin, 'A'), 'A2')).toBe(false);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('frozen'));
       expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B']);
       expect(renamed).not.toHaveBeenCalled();
     });
 
-    it('throws on a removal from a frozen array before anything changes', () => {
+    it('refuses a removal from a frozen array with a warning, before anything changes', () => {
       const sheets = Object.freeze([
         { name: 'A', data: [[1]] },
         { name: 'B', data: [[2]] },
@@ -158,10 +164,12 @@ describe('SheetsBar: the `sheets` array works like `data`', () => {
       ]);
       const plugin = buildWorkbook(sheets, { activeSheet: 1 });
       const removed = jest.fn();
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
       hot.addHook('afterSheetTabRemove', removed);
 
-      expect(() => plugin.removeSheet(idOf(plugin, 'B'))).toThrow();
+      expect(plugin.removeSheet(idOf(plugin, 'B'))).toBe(false);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('frozen'));
       expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['A', 'B', 'C']);
       expect(activeName(plugin)).toBe('B');
       expect(removed).not.toHaveBeenCalled();
@@ -672,6 +680,23 @@ describe('SheetsBar: the `sheets` array works like `data`', () => {
       plugin.setActiveSheet('B');
 
       expect(hot.getPlugin('pagination').getPaginationData().currentPage).toBe(2);
+    });
+
+    it('keeps the page a hidden sheet was left on, in the page size a new `pagination` sets', () => {
+      const plugin = buildWorkbook([
+        { name: 'A', data: [[1]] },
+        { name: 'B', data: [[1], [2], [3], [4], [5]], settings: { pagination: { pageSize: 1 } } },
+      ]);
+
+      plugin.setActiveSheet('B');
+      hot.getPlugin('pagination').setPage(4);
+      plugin.setActiveSheet('A');
+      plugin.updateSheetSettings('B', { pagination: { pageSize: 2 } });
+      plugin.setActiveSheet('B');
+
+      const { currentPage, pageSize } = hot.getPlugin('pagination').getPaginationData();
+
+      expect([currentPage, pageSize]).toEqual([3, 2]);
     });
 
     it('refuses a sheet\'s `data`, which the sheets bar keeps itself', () => {

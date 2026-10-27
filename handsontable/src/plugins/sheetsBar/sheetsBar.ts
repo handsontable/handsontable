@@ -47,7 +47,6 @@ import {
 } from './formulaSheetData';
 import type { FormulaTextChange, SheetLayoutSettings } from './formulaSheetData';
 import { error as logError, warn, warnOnce } from '../../helpers/console';
-import { throwWithCause } from '../../helpers/errors';
 import { isHTMLElement } from '../../helpers/dom/element';
 import { syncIcon } from '../../themes/engine/icons';
 import type { CellOptionMetaEntry, HotInstance, KeptCellMetas } from '../../core/types';
@@ -98,8 +97,8 @@ const ACTIVE_SHEET_REFUSED_WARNING = 'The `activeSheet` setting was not applied 
   'switch has finished or the cell is saved.';
 
 /**
- * The error a rename, an add, a duplicate or a removal throws, before anything changes, when the `sheets`
- * array or the sheet's entry is frozen.
+ * The warning a rename, an add, a duplicate or a removal logs when it is refused, before anything changes,
+ * because the `sheets` array or the sheet's entry is frozen.
  */
 const SHEETS_NOT_WRITABLE_ERROR = 'The sheets bar writes renamed, added and removed sheets into the ' +
   '`sheetsBar.sheets` array, and that array or its entry is frozen. Pass a mutable array.';
@@ -206,8 +205,13 @@ const VIEW_STATE_PARTS_BY_SETTING: Partial<Record<string, ViewStatePart[]>> = {
   manualColumnResize: ['columnWidths'],
   rowHeights: ['rowHeights'],
   manualRowResize: ['rowHeights'],
-  pagination: ['pagination'],
 };
+
+/**
+ * The view-state part a `pagination` value with an `initialPage` declares: the page goes back to that page.
+ * Without `initialPage` the kept page stays (`#redeclaredPageSize`).
+ */
+const PAGINATION_PARTS: ViewStatePart[] = ['pagination'];
 
 /**
  * Whether a setting name is one of the four frozen counts.
@@ -704,6 +708,11 @@ export class SheetsBar extends BasePlugin {
    * resets those parts and lets the declared settings apply, as on a first visit, and restores the rest.
    */
   #redeclaredParts = new WeakMap<Sheet, Set<ViewStatePart>>();
+  /**
+   * The hidden sheets `updateSheetSettings()` gave a `pagination` value without `initialPage`. The next visit
+   * keeps the page the user left, in the page size the new value sets, as `updateSettings()` does on the grid.
+   */
+  #redeclaredPageSize = new WeakSet<Sheet>();
   /**
    * The grid-level `cell` option, taken when the workbook starts and refreshed by a grid-level update
    * (`#refreshGridCellOption`). A sheet that declares no `cell` of its own restates it on a switch.
@@ -1343,14 +1352,10 @@ export class SheetsBar extends BasePlugin {
    * Toolkit, `Object.freeze`) used to throw halfway: the tab was in the model, the strip, the formula engine
    * and the after-hook were not. A workbook that declares no array has nothing to write.
    *
-   * @param {string} source The source of the change.
    * @returns {boolean} `true` when the arrays can be written.
    */
-  #canWriteSheetArrays(source: string): boolean {
-    return this.#refuseUnwritable(
-      this.#configuredSheetArrays().every(sheets => Object.isExtensible(sheets)),
-      source,
-    );
+  #canWriteSheetArrays(): boolean {
+    return this.#refuseUnwritable(this.#configuredSheetArrays().every(sheets => Object.isExtensible(sheets)));
   }
 
   /**
@@ -1358,10 +1363,9 @@ export class SheetsBar extends BasePlugin {
    * `name`, for the same reason as `#canWriteSheetArrays`.
    *
    * @param {number} id The sheet about to be renamed.
-   * @param {string} source The source of the change.
    * @returns {boolean} `true` when the entry can be written.
    */
-  #canWriteDeclaredName(id: number, source: string): boolean {
+  #canWriteDeclaredName(id: number): boolean {
     const entry = this.#declaredEntries.get(id);
 
     if (!entry) {
@@ -1373,25 +1377,19 @@ export class SheetsBar extends BasePlugin {
       ? descriptor.writable === true || typeof descriptor.set === 'function'
       : Object.isExtensible(entry);
 
-    return this.#refuseUnwritable(isWritable, source);
+    return this.#refuseUnwritable(isWritable);
   }
 
   /**
-   * Turns a `sheets` array the bar cannot write into the answer its caller expects. An API call throws, as a
-   * frozen `data` array does on an edit, so the host learns about it where it can catch it. A gesture in the
-   * bar is refused with a warning instead: thrown from an event listener, the error reached no host code, and
-   * a rename left its tab with the input in place of the label.
+   * Refuses a change the bar cannot write into the host's `sheets` array, with a warning. A throw reached no
+   * host code from a gesture in the bar, and a rename left its tab with the input in place of the label; an API
+   * call answers the same way, so a frozen array never leaves the workbook half changed whichever path asked.
    *
    * @param {boolean} isWritable Whether the arrays or the entry can be written.
-   * @param {string} source The source of the change.
-   * @returns {boolean} `isWritable`, when the call does not throw.
+   * @returns {boolean} `isWritable`.
    */
-  #refuseUnwritable(isWritable: boolean, source: string): boolean {
+  #refuseUnwritable(isWritable: boolean): boolean {
     if (!isWritable) {
-      if (source !== SOURCE_UI) {
-        throwWithCause(SHEETS_NOT_WRITABLE_ERROR);
-      }
-
       warn(SHEETS_NOT_WRITABLE_ERROR);
     }
 
@@ -1402,7 +1400,7 @@ export class SheetsBar extends BasePlugin {
    * Writes a sheet the bar created (an add or a duplicate) into the host's `sheets` arrays, at their end,
    * the way core appends a row past the last source row: `{ name, data }`, plus `settings` when the sheet has
    * any. Its `data` is the array the sheet holds, so the host's array reads the rows the user types into it.
-   * A frozen array throws, as a frozen `data` array does on an edit.
+   * A frozen array never gets here: `#canWriteSheetArrays` refuses the change first.
    *
    * @param {object} sheet The created sheet.
    */
@@ -1990,8 +1988,9 @@ export class SheetsBar extends BasePlugin {
    *
    * Returns `false` when the id is unknown, the name is blank or unchanged, another sheet
    * already uses the name (in the bar or in the sheet's formula engine), a
-   * `beforeSheetTabRename` listener cancels the rename, or it is called from a listener of a
-   * workbook change's before-hook. A name that changes only the case of the letters is a rename.
+   * `beforeSheetTabRename` listener cancels the rename, the sheet's entry in your `sheets` array is frozen
+   * (with a console warning), or it is called from a listener of a workbook change's before-hook. A name
+   * that changes only the case of the letters is a rename.
    *
    * With the `Formulas` plugin, the references to the sheet are rewritten in the data of every sheet
    * that shares its formula engine, and the rename is one undo step.
@@ -2011,7 +2010,8 @@ export class SheetsBar extends BasePlugin {
    * The copy gets a deep clone of the sheet's data and settings, and a name based on the
    * original's. The `formulas` setting is not cloned: the copy shares the original's engine,
    * under a sheet name of its own. Returns `null` when the id is unknown, a `beforeSheetTabAdd` listener
-   * cancels the copy, or it is called from a listener of a workbook change's before-hook.
+   * cancels the copy, your `sheets` array is frozen (with a console warning), or it is called from a
+   * listener of a workbook change's before-hook.
    *
    * @param {number} id The sheet to copy.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -2026,8 +2026,9 @@ export class SheetsBar extends BasePlugin {
    *
    * Removing the active sheet first switches to its nearest neighbor. Returns `false` when the
    * id is unknown, the sheet is the last one, a `beforeSheetTabRemove` listener cancels the
-   * removal, the switch to the neighbor is rejected, or it is called from a listener of a
-   * workbook change's before-hook, such as `beforeSheetTabChange`.
+   * removal, the switch to the neighbor is rejected, your `sheets` array is frozen (with a console
+   * warning), or it is called from a listener of a workbook change's before-hook, such as
+   * `beforeSheetTabChange`.
    *
    * @param {number} id The sheet to remove.
    * @param {string} [source='SheetsBar.api'] Operation source tag, passed on to the hooks.
@@ -2387,7 +2388,8 @@ export class SheetsBar extends BasePlugin {
 
   /**
    * Appends a sheet and returns its descriptor, or `null` when a `beforeSheetTabAdd`
-   * listener cancels it or it is called from a listener of a workbook change's before-hook.
+   * listener cancels it, your `sheets` array is frozen (with a console warning), or it is called from a
+   * listener of a workbook change's before-hook.
    *
    * Without `settings`, the new sheet joins the workbook's shared formula engine, if there is
    * one, under its own name. Formulas and cross-sheet references then work on it right away.
@@ -2407,7 +2409,7 @@ export class SheetsBar extends BasePlugin {
   ): SheetDescriptor | null {
     const model = this.#model;
 
-    if (model === null || !this.#canWriteSheetArrays(source)) {
+    if (model === null || !this.#canWriteSheetArrays()) {
       return null;
     }
 
@@ -2858,7 +2860,7 @@ export class SheetsBar extends BasePlugin {
             resetViewport(this.hot, redeclaredParts);
           }
 
-          selectionRestored = restoreViewport(this.hot, viewState, keptParts);
+          selectionRestored = restoreViewport(this.hot, this.#withCurrentPageSize(newSheet, viewState), keptParts);
 
           if (!selectionRestored) {
             this.hot.deselectCell();
@@ -2869,6 +2871,8 @@ export class SheetsBar extends BasePlugin {
       });
       keepSelectionOnPage(this.hot, selectionRestored);
     }
+
+    this.#redeclaredPageSize.delete(newSheet);
 
     if (viewState) {
       this.#runBeforeChangeHook(() => {
@@ -3507,13 +3511,42 @@ export class SheetsBar extends BasePlugin {
         sheet.viewState = { ...sheet.viewState, [frozenKey]: typeof value === 'number' ? value : undefined };
       }
 
-      VIEW_STATE_PARTS_BY_SETTING[key]?.forEach((part) => {
+      const value = changes[key];
+      const redeclared = key === 'pagination' && isPlainObject(value) && value.initialPage !== undefined
+        ? PAGINATION_PARTS
+        : VIEW_STATE_PARTS_BY_SETTING[key];
+
+      if (key === 'pagination' && !redeclared) {
+        this.#redeclaredPageSize.add(sheet);
+      }
+
+      redeclared?.forEach((part) => {
         const parts = this.#redeclaredParts.get(sheet) ?? new Set<ViewStatePart>();
 
         parts.add(part);
         this.#redeclaredParts.set(sheet, parts);
       });
     });
+  }
+
+  /**
+   * Returns the view state a return restores its viewport from. After `updateSheetSettings()` gave the sheet a
+   * `pagination` value without `initialPage`, the kept page comes back in the page size the sheet's settings
+   * now set, clamped to the pages there are, the way `updateSettings()` treats the page on the grid; the kept
+   * page size would otherwise win over the new one.
+   *
+   * @param {Sheet} sheet The arriving sheet.
+   * @param {object} viewState The sheet's kept view state.
+   * @returns {object}
+   */
+  #withCurrentPageSize(sheet: Sheet, viewState: ViewState): ViewState {
+    const pagination = this.hot.getPlugin('pagination');
+
+    if (!this.#redeclaredPageSize.has(sheet) || !viewState.pagination || !pagination?.enabled) {
+      return viewState;
+    }
+
+    return { ...viewState, pagination: { ...viewState.pagination, pageSize: pagination.getCurrentPageSize() } };
   }
 
   /**
@@ -3718,7 +3751,7 @@ export class SheetsBar extends BasePlugin {
     const trimmed = clampSheetName(newName);
     const canAttempt = trimmed !== '' && trimmed !== oldName
       && !this.#renameCollidesInEngine(sheet, oldName, trimmed)
-      && this.#canWriteDeclaredName(id, source);
+      && this.#canWriteDeclaredName(id);
 
     const committed = canAttempt && this.#commit(
       'beforeSheetTabRename',
@@ -3753,7 +3786,7 @@ export class SheetsBar extends BasePlugin {
   /**
    * Writes a sheet's new name into its entry of the host's `sheets` array, the way an edit writes into the
    * host's `data`, so the array the host keeps describes the workbook as it is. The entry is the host's own
-   * object; a frozen one throws.
+   * object; a frozen one never gets here (`#canWriteDeclaredName` refuses the rename first).
    *
    * @param {number} id The renamed sheet.
    * @param {string} name Its new name.
@@ -3824,7 +3857,7 @@ export class SheetsBar extends BasePlugin {
     const model = this.#model as SheetModel;
     const sheets = model.getSheets();
 
-    if (sheets.length <= 1 || !sheets.some(sheet => sheet.id === id) || !this.#canWriteSheetArrays(source)) {
+    if (sheets.length <= 1 || !sheets.some(sheet => sheet.id === id) || !this.#canWriteSheetArrays()) {
       return false;
     }
 
@@ -3990,7 +4023,7 @@ export class SheetsBar extends BasePlugin {
 
     this.#syncActiveSheetData();
 
-    if (!this.#canWriteSheetArrays(source)) {
+    if (!this.#canWriteSheetArrays()) {
       return null;
     }
 

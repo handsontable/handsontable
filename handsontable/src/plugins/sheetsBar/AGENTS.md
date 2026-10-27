@@ -136,14 +136,19 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   meta plus a flag (`#redeclaredMerges`, `#redeclaredBorders`) that makes the next return build the declared
   value instead of skipping it. Every other setting a view-state part holds is mapped in
   `VIEW_STATE_PARTS_BY_SETTING` (sorting, order, filters, trimmed, hidden and collapsed rows, hidden columns,
-  sizes, pagination) and marked in `#redeclaredParts`: the next return resets those parts before the sheet's
+  sizes) and marked in `#redeclaredParts`: the next return resets those parts before the sheet's
   settings apply (`resetViewState()` with the parts), as a first visit does, and restores only the others
   (`restoreViewState()`/`restoreViewport()` with the rest). The sort and the row order are always reset
   together: the kept order is the sorted one, a row order restored without its sort clears the sort, and a
   sort restored without its row order writes the kept unsorted order and sorts it again over a new
   `manualRowMove`. A frozen count is written
   into the kept state instead, since one part holds all four. A new setting a view-state part keeps belongs in
-  that map, or `updateSheetSettings()` on a visited hidden sheet silently loses it.
+  that map, or `updateSheetSettings()` on a visited hidden sheet silently loses it. Each of those settings was
+  measured against `updateSettings()` on a plain grid after a user change, and they all replace what the user
+  did there too. Two deliberate exceptions: `pagination` without `initialPage` keeps the kept page in the new
+  page size, clamped (`#redeclaredPageSize`, `#withCurrentPageSize`), as the grid does; a new
+  `manualColumnMove`/`manualRowMove` shows exactly the declared order, while the plain grid applies the
+  declared array on top of the user's moves, which depends on what the user did before.
 - **A grid-level value set later through `updateSettings()` refreshes the baseline**
   (`#refreshSettingsBaseline`, the first step of `#onAfterUpdateSettings` at `orderIndex` -1, so it
   runs before BasePlugin's own listener tears the bar down or rebuilds it in the same call). Only
@@ -384,13 +389,12 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
   configured array (`#configuredSheetArrays`: the grid-level and the merged one, usually one object). Each
   write ends in `#recordBuiltSheets`, so the snapshot stays the array as the bar left it. The host never has
   to copy a change back, and the host's own edits of the array are not watched. A frozen array or entry
-  throws from an API call, as a frozen `data` array does on an edit, and the docs say so. The check runs before
-  anything changes (`#canWriteSheetArrays`, `#canWriteDeclaredName`, called ahead of the model change in
-  add, duplicate, remove and the rename commit): thrown from the write itself, it left the tab added or
-  removed with no hook fired and no record in the array. A gesture in the bar (`SOURCE_UI`: the add button,
-  the tab menu, an inline rename) is refused with a console warning instead (`#refuseUnwritable`): thrown
-  from an event listener, the error reached no host code, and a rename left the tab with its input in place of
-  the label and no `button` role, because the tab strip had already ended the edit. An added entry is read back from the array after
+  refuses the change with a console warning (`#refuseUnwritable`), from the bar and from the API alike, and
+  the docs say so. The check runs before anything changes (`#canWriteSheetArrays`, `#canWriteDeclaredName`,
+  called ahead of the model change in add, duplicate, remove and the rename commit): thrown from the write
+  itself, it left the tab added or removed with no hook fired and no record in the array. Do not turn it back
+  into a throw: from a gesture in the bar the error reached no host code, and a rename left the tab with its
+  input in place of the label and no `button` role, because the tab strip had already ended the edit. An added entry is read back from the array after
   the push, so a Vue reactive proxy, not the raw object, is what later renames write into (a write into the
   raw object never reached the app's template). Tab order is NOT written: a move is
   internal, like a row move. Instead `#physicalOrder` keeps the sheet ids in the host array's order (filled by
