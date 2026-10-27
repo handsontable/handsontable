@@ -1,6 +1,7 @@
 import { toUpperCaseFirst } from '../../../helpers/string';
 import { getMoves } from '../../../helpers/moves';
 import type { HyperFormulaEngine } from '../engine/types';
+import { withPluginEngineWrite } from './pluginEngineWrite';
 
 interface AxisIndexMapper {
   getVisualFromPhysicalIndex(physicalIndex: number): number | null;
@@ -414,16 +415,18 @@ class AxisSyncer {
       return;
     }
 
-    engine.batch(() => {
-      moves.forEach((move: { from: number; to: number }) => {
-        const moveToTheSamePosition = move.from !== move.to;
-        // Moving from left to right (or top to bottom) to a line (drop index) right after already moved element.
-        const anotherMoveWithoutEffect = move.from + 1 !== move.to;
+    withPluginEngineWrite(engine, () => {
+      engine.batch(() => {
+        moves.forEach((move: { from: number; to: number }) => {
+          const moveToTheSamePosition = move.from !== move.to;
+          // Moving from left to right (or top to bottom) to a line (drop index) right after already moved element.
+          const anotherMoveWithoutEffect = move.from + 1 !== move.to;
 
-        if (moveToTheSamePosition && anotherMoveWithoutEffect) {
-          engine[SYNC_MOVE_METHOD_NAME](this.#indexSyncer.getSheetId()!, move.from,
-            NUMBER_OF_MOVED_INDEXES, move.to);
-        }
+          if (moveToTheSamePosition && anotherMoveWithoutEffect) {
+            engine[SYNC_MOVE_METHOD_NAME](this.#indexSyncer.getSheetId()!, move.from,
+              NUMBER_OF_MOVED_INDEXES, move.to);
+          }
+        });
       });
     });
   }
@@ -597,7 +600,9 @@ class AxisSyncer {
       return true;
     }
 
-    engine[`set${toUpperCaseFirst(this.#axis)}Order`](sheetId, engineOrder);
+    withPluginEngineWrite(engine, () => {
+      engine[`set${toUpperCaseFirst(this.#axis)}Order`](sheetId, engineOrder);
+    });
 
     return true;
   }

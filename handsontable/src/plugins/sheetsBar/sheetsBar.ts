@@ -1,5 +1,4 @@
 import { BasePlugin } from '../base';
-import { withPluginEngineWrite } from '../formulas/indexSyncer';
 import { Hooks } from '../../core/hooks';
 import type { HookCallback } from '../../core/hooks/bucket';
 import { SheetModel, clampSheetName, type Sheet, type SheetDescriptor } from './sheetModel';
@@ -3706,12 +3705,14 @@ export class SheetsBar extends BasePlugin {
   }
 
   /**
-   * Runs an engine call the bar makes itself and repaints every grid on that engine whose sheet it
-   * recalculated, once. The call runs inside `withPluginEngineWrite`, so the Formulas listener does
-   * not paint the same `valuesUpdated` (a build feeds several sheets, and a paint per feed drew the
-   * other grids once per sheet). The changes are read from that event, which also reports the
-   * recalculation an added sheet triggers, and painted through the Formulas plugin of the bar's grid,
-   * so only while it is bound to the same engine.
+   * Runs an engine call the bar makes and then repaints, once, every grid on that engine whose
+   * sheet the call recalculated.
+   *
+   * The Formulas listener paints every `valuesUpdated` that is not a plugin write, and a workbook
+   * build emits one event per sheet. The mutation goes through `Formulas#runEngineWrite` on the
+   * engine being written. A build feeds sheets before this grid's Formulas plugin is bound, while
+   * other grids on that engine are already listening. The bar paints the collected changes once,
+   * through this grid's Formulas plugin, so only while that plugin is bound to the same engine.
    *
    * @param {object} engine The engine.
    * @param {Function} run The engine call.
@@ -3721,11 +3722,16 @@ export class SheetsBar extends BasePlugin {
     const collect = (updated: unknown[]) => {
       changes = changes.concat(updated);
     };
+    const formulas = this.hot.getPlugin('formulas');
 
     engine.on?.('valuesUpdated', collect);
 
     try {
-      withPluginEngineWrite(run);
+      if (formulas) {
+        formulas.runEngineWrite(engine, run);
+      } else {
+        run();
+      }
     } finally {
       engine.off?.('valuesUpdated', collect);
     }

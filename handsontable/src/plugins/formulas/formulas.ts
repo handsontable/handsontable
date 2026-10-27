@@ -42,7 +42,8 @@ import { toUpperCaseFirst } from '../../helpers/string';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { quoteUnreadableSheetNames } from '../../utils/formulaReferences';
 import { Hooks } from '../../core/hooks';
-import IndexSyncer, { isPluginEngineWrite, withPluginEngineWrite } from './indexSyncer';
+import IndexSyncer from './indexSyncer';
+import { isPluginEngineWrite, withPluginEngineWrite } from './indexSyncer/pluginEngineWrite';
 import type AxisSyncer from './indexSyncer/axisSyncer';
 import type { EngineOrder } from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine, FormulasCellAddress, FormulasCellRange } from './engine/types';
@@ -755,16 +756,15 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * Paints this grid when the engine changed a cell on its sheet from outside the plugin.
+   * Paints this grid when the engine changed a cell on its sheet outside a plugin write.
    *
-   * A plugin write already paints, through `renderDependentSheets` or the Core, so it runs inside
-   * `withPluginEngineWrite` and this stays quiet. Painting `this.hot` only (never every registered
-   * grid) keeps one paint per affected instance: each instance hears the same engine-wide event.
+   * A plugin write already paints. Depth is per engine, so a write to another engine still paints.
+   * Only this grid is painted: every instance on the engine hears the same event.
    *
    * @param {Array} changes The engine's change list.
    */
   #renderSheetFromExternalEngineChange(changes: unknown[]) {
-    if (isPluginEngineWrite() || this.sheetId === null || this.hot.isDestroyed || !this.hot.view) {
+    if (isPluginEngineWrite(this.engine) || this.sheetId === null || this.hot.isDestroyed || !this.hot.view) {
       return;
     }
 
@@ -2031,6 +2031,20 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Runs `fn` as a plugin write to `engine`, so the `valuesUpdated` listener does not paint it.
+   *
+   * The engine is an argument because a caller can write it before this instance is bound to it.
+   *
+   * @private
+   * @param {object} engine The engine `fn` writes.
+   * @param {Function} fn The mutation.
+   * @returns {*} What `fn` returns.
+   */
+  runEngineWrite<T>(engine: object, fn: () => T): T {
+    return withPluginEngineWrite(engine, fn);
+  }
+
+  /**
    * Renders dependent sheets (handsontable instances) based on the changes - list of the
    * recalculated dependent cells.
    *
@@ -2359,7 +2373,7 @@ export class Formulas extends BasePlugin {
     const engine = this.engine!;
     const isUndo = context.direction === 'undo';
     let keptEdited = false;
-    const changes = withPluginEngineWrite(() => engine.batch(() => {
+    const changes = withPluginEngineWrite(engine, () => engine.batch(() => {
       stepEnd.peerRewrites.forEach((rewrite) => {
         const expected = isUndo ? rewrite.after : rewrite.before;
         const text = isUndo ? rewrite.before : rewrite.after;
@@ -2497,9 +2511,9 @@ export class Formulas extends BasePlugin {
     this.#internalOperationPending = true;
 
     try {
-      const dependentCells = withPluginEngineWrite(
-        () => this.engine!.setSheetContent(this.sheetId, snapshot.content)
-      );
+      const dependentCells = withPluginEngineWrite(this.engine!, () => (
+        this.engine!.setSheetContent(this.sheetId, snapshot.content)
+      ));
 
       this.rowAxisSyncer!.adoptEngineOrder(snapshot.rowOrder);
       this.columnAxisSyncer!.adoptEngineOrder(snapshot.columnOrder);
@@ -3581,9 +3595,9 @@ export class Formulas extends BasePlugin {
     try {
       this.#sheetWriteCount += 1;
 
-      dependentCells = withPluginEngineWrite(
-        () => this.engine!.setSheetContent(this.sheetId, sourceDataArray)
-      );
+      dependentCells = withPluginEngineWrite(this.engine!, () => (
+        this.engine!.setSheetContent(this.sheetId, sourceDataArray)
+      ));
 
       this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
       this.renderDependentSheets(dependentCells);
@@ -3612,7 +3626,7 @@ export class Formulas extends BasePlugin {
     let dependentCells: unknown[] = [];
 
     try {
-      dependentCells = withPluginEngineWrite(() => this.engine!.setSheetContent(this.sheetId, [[]]));
+      dependentCells = withPluginEngineWrite(this.engine!, () => this.engine!.setSheetContent(this.sheetId, [[]]));
 
       this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
       this.renderDependentSheets(dependentCells);
@@ -4141,7 +4155,7 @@ export class Formulas extends BasePlugin {
           return;
         }
 
-        const outOfBoundsDependentCells = withPluginEngineWrite(() => this.engine!.batch(() => {
+        const outOfBoundsDependentCells = withPluginEngineWrite(this.engine!, () => this.engine!.batch(() => {
           outOfBoundsChanges.forEach(([row, column, newValue]) => {
             this.syncChangeWithEngine(row, column, newValue);
           });
@@ -4170,7 +4184,7 @@ export class Formulas extends BasePlugin {
 
     this.#markDataChanged();
 
-    const dependentCells = withPluginEngineWrite(() => this.engine!.batch(() => {
+    const dependentCells = withPluginEngineWrite(this.engine!, () => this.engine!.batch(() => {
       changes.forEach(([visualRow, prop, oldValue, newValue]) => {
         if (typeof prop !== 'string' && typeof prop !== 'number') {
           return;
@@ -4292,7 +4306,7 @@ export class Formulas extends BasePlugin {
     }
 
     const metaManager = this.hot._getMetaManager();
-    const dependents = withPluginEngineWrite(() => engine.batch(() => {
+    const dependents = withPluginEngineWrite(engine, () => engine.batch(() => {
       writtenCells.forEach(({ address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue }) => {
         let previous = this.#getValueGetterValue(physicalRow, physicalColumn, oldValue);
 
@@ -4423,13 +4437,13 @@ export class Formulas extends BasePlugin {
     });
 
     if (restored) {
-      withPluginEngineWrite(() => {
+      withPluginEngineWrite(this.engine!, () => {
         this.engine!.batch(writeAll).forEach((dependentCell: unknown) => {
           dependentCells.push(dependentCell);
         });
       });
     } else {
-      withPluginEngineWrite(writeAll);
+      withPluginEngineWrite(this.engine!, writeAll);
     }
 
     this.renderDependentSheets(dependentCells, restored);
@@ -4805,8 +4819,11 @@ export class Formulas extends BasePlugin {
 
     this.#markStructureChanged();
 
-    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(() => this.engine!.addRows(this.sheetId,
-      [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount])));
+    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(this.engine!, () => (
+      this.engine!.addRows(this.sheetId, [
+        this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount,
+      ])
+    )));
 
     this.#syncFormulasToSourceData();
     this.renderDependentSheets(changes);
@@ -4830,7 +4847,7 @@ export class Formulas extends BasePlugin {
 
     this.#markStructureChanged();
 
-    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(() => this.engine!.addColumns(
+    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(this.engine!, () => this.engine!.addColumns(
       this.sheetId,
       [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]
     )));
@@ -4860,7 +4877,7 @@ export class Formulas extends BasePlugin {
 
     const removedSpans = coalesceIndexesToSpans(this.rowAxisSyncer!.getRemovedHfIndexes());
 
-    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(() => this.engine!.batch(() => {
+    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(this.engine!, () => this.engine!.batch(() => {
       this.#removeSpansFromEngine(removedSpans, 'removeRows');
     })));
 
@@ -4889,7 +4906,7 @@ export class Formulas extends BasePlugin {
 
     const removedSpans = coalesceIndexesToSpans(this.columnAxisSyncer!.getRemovedHfIndexes());
 
-    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(() => this.engine!.batch(() => {
+    const changes = this.#trackPeerRewrites(() => withPluginEngineWrite(this.engine!, () => this.engine!.batch(() => {
       this.#removeSpansFromEngine(removedSpans, 'removeColumns');
     })));
 
@@ -5065,11 +5082,13 @@ export class Formulas extends BasePlugin {
       if (isCopy) {
         // copy() reads cell values and cannot run inside batch() (evaluation must not be suspended).
         this.engine.copy(source);
-        this.#moveCellsChanges = withPluginEngineWrite(() => this.engine!.paste(dest));
+        this.#moveCellsChanges = withPluginEngineWrite(this.engine!, () => this.engine!.paste(dest));
       } else {
-        this.#moveCellsChanges = this.#trackPeerRewrites(() => withPluginEngineWrite(() => this.engine!.batch(() => {
-          this.engine!.moveCells(source, dest);
-        })));
+        this.#moveCellsChanges = this.#trackPeerRewrites(() => withPluginEngineWrite(this.engine!, () => (
+          this.engine!.batch(() => {
+            this.engine!.moveCells(source, dest);
+          })
+        )));
       }
     } catch (e) {
       const operation = isCopy ? 'copy/paste' : 'moveCells';
@@ -5322,7 +5341,7 @@ export class Formulas extends BasePlugin {
       // trimming map, under which the visual and physical row spaces genuinely differ.
       this.#escapeSourceDataArray(rowsData, finalElementRowIndex, 0);
 
-      withPluginEngineWrite(() => {
+      withPluginEngineWrite(this.engine!, () => {
         rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
           row.forEach((value: unknown, colIndex: number) => {
             this.engine?.setCellContents({

@@ -924,9 +924,9 @@ dependent measurement path.
 
 ## External engine changes
 
-`valuesUpdated` is engine-wide, and `#onEngineValuesUpdated` is the only place an engine write that did not come from this plugin can paint. The listener calls `hot.render()` once when the change list names this instance's sheet. It does not copy the engine value into source data, and it does not validate.
+`valuesUpdated` is engine-wide. `#onEngineValuesUpdated` paints this grid once when the change list names this instance's sheet and the write is not a plugin write to this engine. The listener does not copy the engine value into source data, and it does not validate.
 
-A plugin write already paints, through `renderDependentSheets` or the Core. Those writes run inside `withPluginEngineWrite` (`indexSyncer/index.ts`), and the listener stays quiet while that depth is above zero. HyperFormula emits inside `batch()` before `batch()` returns, so the counter wraps the `batch()` call, not the `setCellContents` nested in it. `getEngine()` returns a proxy over the same counter because `axisSyncer.ts` writes the engine and is left unchanged. The SheetsBar plugin wraps its own engine calls in the same counter and paints once itself (`#withEngineRepaint`). The engine object the user holds stays raw, so `engine.setCellContents` from outside still paints. A second paint shows up when a new engine write is added without the counter.
+A plugin write already paints, through `renderDependentSheets` or the Core. Those writes run inside `withPluginEngineWrite` (`indexSyncer/pluginEngineWrite.ts`). Depth is per engine, so a write to another engine still paints. HyperFormula emits inside `batch()` before `batch()` returns, so the counter wraps the `batch()` call, not a `setCellContents` nested in it. The axis syncer wraps the two writes that emit: `batch` in `syncMoves`, and `setRowOrder` / `setColumnOrder`. The SheetsBar plugin calls `Formulas#runEngineWrite` for its own engine calls and paints once itself (`#withEngineRepaint`). `addSheet` is not wrapped: it does not paint, so the listener is the paint for a grid that already reads the new sheet. `updateConfig` is not wrapped: it does not emit `valuesUpdated`. A second paint shows up when a new engine write is added without the counter.
 
 ## Testing
 

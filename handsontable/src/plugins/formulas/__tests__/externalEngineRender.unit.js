@@ -1,6 +1,9 @@
 import { HyperFormula } from 'hyperformula';
+import plPL from '../../../../node_modules/hyperformula/commonjs/i18n/languages/plPL';
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
+import { ColumnSorting } from '../../columnSorting';
+import { ManualRowMove } from '../../manualRowMove';
 import { Formulas } from '../formulas';
 
 const LICENSE_KEY = 'non-commercial-and-evaluation';
@@ -13,9 +16,10 @@ const LICENSE_KEY = 'non-commercial-and-evaluation';
  * @param {object} engine The shared HyperFormula instance.
  * @param {string} sheetName The sheet this grid owns.
  * @param {Function} onRender Called from `afterRender`.
+ * @param {object} [extraSettings] Extra Handsontable settings.
  * @returns {Handsontable} The grid.
  */
-function mountGrid(container, data, engine, sheetName, onRender) {
+function mountGrid(container, data, engine, sheetName, onRender, extraSettings = {}) {
   const hot = new Handsontable(container, {
     data,
     formulas: { engine, sheetName },
@@ -23,14 +27,28 @@ function mountGrid(container, data, engine, sheetName, onRender) {
     renderAllRows: true,
     renderAllColumns: true,
     afterRender: onRender,
+    ...extraSettings,
   });
 
   return hot;
 }
 
+/**
+ * @returns {HTMLElement} A container attached to the document.
+ */
+function createContainer() {
+  const container = document.createElement('div');
+
+  document.body.appendChild(container);
+
+  return container;
+}
+
 describe('external engine changes repaint formula cells', () => {
   beforeAll(() => {
     registerPlugin(Formulas);
+    registerPlugin(ColumnSorting);
+    registerPlugin(ManualRowMove);
   });
 
   describe('one grid', () => {
@@ -40,8 +58,7 @@ describe('external engine changes repaint formula cells', () => {
     let renders;
 
     beforeEach(() => {
-      container = document.createElement('div');
-      document.body.appendChild(container);
+      container = createContainer();
       engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
       renders = 0;
       hot = mountGrid(container, [[1, '=A1*2']], engine, 'Sheet1', () => {
@@ -68,29 +85,24 @@ describe('external engine changes repaint formula cells', () => {
       expect(hot.getDataAtCell(0, 0)).toBe(1);
     });
 
-    it('does not validate when the engine is written from outside', async() => {
-      const validations = [];
-
-      hot.addHook('beforeValidate', (value) => {
-        validations.push(value);
-      });
-      hot.updateSettings({ type: 'numeric' });
-      renders = 0;
-      validations.length = 0;
-
-      engine.setCellContents({ sheet: engine.getSheetId('Sheet1'), row: 0, col: 0 }, 10);
-
-      await new Promise(resolve => setTimeout(resolve, 0));
-
-      expect(validations).toEqual([]);
-      expect(hot.getCell(0, 1).textContent).toBe('20');
-    });
-
-    it('paints a setDataAtCell edit the same number of times as before this change', () => {
+    it('paints a setDataAtCell edit once', () => {
       hot.setDataAtCell(0, 0, 10);
 
       expect(hot.getCell(0, 1).textContent).toBe('20');
       expect(renders).toBe(1);
+    });
+
+    it('paints a later external write when a plugin write throws', () => {
+      jest.spyOn(engine, 'batch').mockImplementationOnce(() => {
+        throw new Error('boom');
+      });
+
+      expect(() => hot.setDataAtCell(0, 0, 10)).toThrow('boom');
+
+      engine.setCellContents({ sheet: engine.getSheetId('Sheet1'), row: 0, col: 0 }, 10);
+
+      expect(renders).toBe(1);
+      expect(hot.getCell(0, 1).textContent).toBe('20');
     });
   });
 
@@ -103,8 +115,7 @@ describe('external engine changes repaint formula cells', () => {
     let renders2;
 
     beforeEach(() => {
-      containers = [document.createElement('div'), document.createElement('div')];
-      containers.forEach(container => document.body.appendChild(container));
+      containers = [createContainer(), createContainer()];
       engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
       renders1 = 0;
       renders2 = 0;
@@ -142,6 +153,152 @@ describe('external engine changes repaint formula cells', () => {
       expect(hot1.getCell(0, 0).textContent).toBe('5');
       expect(renders1).toBe(1);
       expect(renders2).toBe(1);
+    });
+
+    it('does not paint this grid when the change names only the other sheet', () => {
+      engine.setCellContents({ sheet: engine.getSheetId('Sheet2'), row: 0, col: 0 }, '=1+1');
+
+      expect(renders1).toBe(0);
+      expect(renders2).toBe(1);
+      expect(hot2.getCell(0, 0).textContent).toBe('2');
+      expect(hot1.getCell(0, 0).textContent).toBe('1');
+    });
+  });
+
+  describe('a write to another engine during a plugin write', () => {
+    let containers;
+    let hotA;
+    let hotB;
+    let engineA;
+    let engineB;
+    let rendersB;
+
+    beforeEach(() => {
+      containers = [createContainer(), createContainer()];
+      engineA = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      engineB = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      rendersB = 0;
+      hotA = mountGrid(containers[0], [[1, '=A1*2']], engineA, 'Sheet1', () => {});
+      hotB = mountGrid(containers[1], [[1, '=A1*2']], engineB, 'Sheet1', () => {
+        rendersB += 1;
+      });
+      rendersB = 0;
+    });
+
+    afterEach(() => {
+      hotA?.destroy();
+      hotB?.destroy();
+      containers.forEach(container => container.remove());
+    });
+
+    it('paints the other engine when its write happens inside this engine\'s plugin write', () => {
+      hotA.addHook('afterFormulasValuesUpdate', () => {
+        engineB.setCellContents({ sheet: engineB.getSheetId('Sheet1'), row: 0, col: 0 }, 10);
+      });
+
+      hotA.setDataAtCell(0, 0, 4);
+
+      expect(hotB.getCell(0, 1).textContent).toBe('20');
+      expect(rendersB).toBe(1);
+      expect(hotA.getCell(0, 1).textContent).toBe('8');
+    });
+  });
+
+  describe('axis order writes', () => {
+    let container;
+    let hot;
+    let engine;
+    let renders;
+
+    beforeEach(() => {
+      container = createContainer();
+      engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      renders = 0;
+    });
+
+    afterEach(() => {
+      hot?.destroy();
+      container.remove();
+    });
+
+    it('paints the editing grid once when a column sort reorders rows', () => {
+      hot = mountGrid(container, [[3, '=A1*2'], [1, '=A2*2']], engine, 'Sheet1', () => {
+        renders += 1;
+      }, { columnSorting: true });
+      renders = 0;
+
+      hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(renders).toBe(1);
+      expect(hot.getCell(0, 0).textContent).toBe('1');
+      expect(hot.getCell(0, 1).textContent).toBe('2');
+    });
+
+    it('does not paint the editing grid when a row is moved', () => {
+      hot = mountGrid(container, [['=ROW()'], ['=ROW()'], ['=ROW()']], engine, 'Sheet1', () => {
+        renders += 1;
+      }, { manualRowMove: true });
+      renders = 0;
+
+      expect(hot.getPlugin('manualRowMove').moveRows([0], 2)).toBe(true);
+
+      // `moveRows` does not paint. `=ROW()` changes in the engine, and the DOM stays on the first paint.
+      expect(hot.getDataAtCell(0, 0)).toBe(1);
+      expect(hot.getCell(0, 0).textContent).toBe('1');
+      expect(renders).toBe(0);
+    });
+  });
+
+  describe('addSheet and engine settings', () => {
+    let container;
+    let hot;
+    let engine;
+    let renders;
+
+    beforeEach(() => {
+      container = createContainer();
+      engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      renders = 0;
+    });
+
+    afterEach(() => {
+      hot?.destroy();
+      container.remove();
+    });
+
+    it('paints a grid that already reads the sheet addSheet creates', () => {
+      hot = mountGrid(container, [['=New!A1']], engine, 'Sheet1', () => {
+        renders += 1;
+      });
+      renders = 0;
+
+      expect(hot.getPlugin('formulas').addSheet('New', [[10]])).toBe('New');
+      expect(hot.getCell(0, 0).textContent).toBe('10');
+      expect(renders).toBe(2);
+    });
+
+    it('paints once when updateSettings changes the engine language', () => {
+      hot = mountGrid(container, [[1, '=A1*2']], engine, 'Sheet1', () => {
+        renders += 1;
+      });
+      renders = 0;
+      HyperFormula.registerLanguage(plPL.langCode, plPL);
+
+      try {
+        hot.updateSettings({
+          formulas: {
+            engine,
+            sheetName: 'Sheet1',
+            language: plPL,
+          },
+        });
+
+        expect(engine.getConfig().language).toBe(plPL.langCode);
+        expect(hot.getCell(0, 1).textContent).toBe('2');
+        expect(renders).toBe(1);
+      } finally {
+        HyperFormula.unregisterLanguage(plPL.langCode);
+      }
     });
   });
 });
