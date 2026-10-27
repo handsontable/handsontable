@@ -258,6 +258,59 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
     expect(hot.getDataAtCell(0, 2)).toBe(100);
   });
 
+  describe('when the host has the engine batched or suspended', () => {
+    const buildGrid = () => {
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
+      hot = new Handsontable(container, {
+        data: [['10', '=A1*2'], ['20', '=A2*2'], [null, null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      return engine;
+    };
+
+    it('should leave the host\'s own batch open and let the host end it', () => {
+      const engine = buildGrid();
+      let suspendedInsideTheBatch;
+
+      expect(() => {
+        engine.batch(() => {
+          hot.rowIndexMapper.setIndexesSequence([2, 1, 0]);
+          suspendedInsideTheBatch = engine.isEvaluationSuspended();
+        });
+      }).not.toThrow();
+
+      expect(suspendedInsideTheBatch).toBe(true);
+      expect(engine.isEvaluationSuspended()).toBe(false);
+      expect(hot.getData()).toEqual([[null, null], ['20', 40], ['10', 20]]);
+    });
+
+    it('should keep the evaluation suspended until the host resumes it', () => {
+      const engine = buildGrid();
+
+      engine.suspendEvaluation();
+      hot.rowIndexMapper.setIndexesSequence([2, 1, 0]);
+
+      expect(engine.isEvaluationSuspended()).toBe(true);
+
+      engine.resumeEvaluation();
+
+      expect(hot.getData()).toEqual([[null, null], ['20', 40], ['10', 20]]);
+    });
+
+    it('should still fold the write and the order into one engine batch when the host has none', () => {
+      const engine = buildGrid();
+      const batch = jest.spyOn(engine, 'batch');
+
+      hot.rowIndexMapper.setIndexesSequence([2, 1, 0]);
+
+      expect(batch).toHaveBeenCalledTimes(1);
+      expect(engine.isEvaluationSuspended()).toBe(false);
+    });
+  });
+
   describe('when the engine cannot hold the rows or columns the order needs', () => {
     it('should warn instead of throwing and leave the engine as it was when a row is out of the engine\'s `maxRows`', () => {
       const warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});

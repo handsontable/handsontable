@@ -615,8 +615,9 @@ class AxisSyncer {
       setOrder();
     } else {
       // The engine ends a sheet at its content, and adding a row or column past it does not extend it.
-      // Writing the last needed cell and clearing it does. The batch folds the write and the order into one
-      // change list and one undo step; the cleared cell shows in it as a `null` change.
+      // Writing the last needed cell and clearing it does. Outside a batch of the host's, one `engine.batch()`
+      // folds the write and the order into one change list and one undo step; the cleared cell shows in it as
+      // a `null` change.
       const lastCell = this.#axis === 'row'
         ? { sheet: sheetId, row: heldSize - 1, col: 0 }
         : { sheet: sheetId, row: 0, col: heldSize - 1 };
@@ -631,11 +632,20 @@ class AxisSyncer {
         return false;
       }
 
-      engine.batch(() => {
+      const extendAndSetOrder = () => {
         engine.setCellContents(lastCell, 0);
         engine.setCellContents(lastCell, null);
         setOrder();
-      });
+      };
+
+      // A batch of the host's (or a `suspendEvaluation()`) is already open then, and `engine.batch()` would
+      // end it: it resumes the evaluation the host suspended and commits a batch mode the host's own commit
+      // then finds closed. The three calls are made directly, and the host's batch folds them.
+      if (engine.isEvaluationSuspended()) {
+        extendAndSetOrder();
+      } else {
+        engine.batch(extendAndSetOrder);
+      }
     }
 
     this.#indexesSequence = reordered;
