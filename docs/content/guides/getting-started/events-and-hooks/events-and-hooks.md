@@ -510,6 +510,12 @@ hot.addHook('beforeKeyDown', (event) => {
 });
 ```
 
+::: only-for angular
+
+During server rendering hydration or with incremental hydration, `stopImmediatePropagation()` in this hook does not block the shortcut. Return `false` instead ([Server-side rendering (SSR)](@/guides/getting-started/installation/installation.md#server-side-rendering-ssr)).
+
+:::
+
 ::: only-for javascript
 
 ::: example #example2 --js 1 --ts 2

@@ -234,6 +234,18 @@ class EventManager {
  * @returns {Event}
  */
 function extendEvent(event: Event): Event {
+  const ownStop = Object.getOwnPropertyDescriptor(event, 'stopImmediatePropagation');
+
+  // Angular's `prepareEventForBubbling` defines `stopImmediatePropagation` with
+  // `Object.defineProperty` and leaves it non-writable, so assigning throws.
+  // Replayed events never reach Handsontable listeners: Angular replays straight
+  // to its own handlers, with no DOM re-dispatch. This branch runs only for a
+  // live event while that contract is alive and the listener sits above `body`.
+  // Listeners compare this event by identity, so this returns the same object.
+  if (ownStop !== undefined && ownStop.writable !== true && typeof ownStop.set !== 'function') {
+    return event;
+  }
+
   const nativeStopImmediatePropagation = event.stopImmediatePropagation;
 
   event.stopImmediatePropagation = function() {
