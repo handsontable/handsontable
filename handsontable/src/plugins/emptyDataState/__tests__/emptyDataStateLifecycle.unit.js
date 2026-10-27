@@ -35,7 +35,7 @@ describe('EmptyDataState lifecycle', () => {
   });
 
   describe('a data replacement while the overlay is shown', () => {
-    it('selects the first cell of the new data instead of the selection made on the replaced data', () => {
+    it('selects nothing on the new data when a selection was made on the replaced data', () => {
       hot = new Handsontable(container, {
         data: [['a1', 'a2'], ['a3', 'a4'], ['a5', 'a6']],
         emptyDataState: true,
@@ -46,6 +46,22 @@ describe('EmptyDataState lifecycle', () => {
       hot.loadData([]);
 
       expect(hot.getPlugin('emptyDataState').isVisible()).toBe(true);
+
+      hot.loadData([['b1', 'b2'], ['b3', 'b4'], ['b5', 'b6']]);
+
+      expect(hot.getPlugin('emptyDataState').isVisible()).toBe(false);
+      expect(readSelection(hot)).toBeNull();
+    });
+
+    it('still selects the first cell when data arrives on a grid that had no selection', () => {
+      hot = new Handsontable(container, {
+        data: [],
+        emptyDataState: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      expect(hot.getPlugin('emptyDataState').isVisible()).toBe(true);
+      expect(readSelection(hot)).toBeNull();
 
       hot.loadData([['b1', 'b2'], ['b3', 'b4'], ['b5', 'b6']]);
 
@@ -108,7 +124,7 @@ describe('EmptyDataState lifecycle', () => {
       expect(readSelection(hot)).toEqual([[2, 1, 2, 1]]);
     });
 
-    it('opens a sheet the user never visited on its first cell, not on the selection of the sheet they emptied', async() => {
+    it('opens a sheet the user never visited with nothing selected, not with the selection of the sheet they emptied', async() => {
       hot = new Handsontable(container, {
         emptyDataState: true,
         sheetsBar: {
@@ -129,7 +145,7 @@ describe('EmptyDataState lifecycle', () => {
       await flush();
 
       expect(hot.getPlugin('emptyDataState').isVisible()).toBe(false);
-      expect(readSelection(hot)).toEqual([[0, 0, 0, 0]]);
+      expect(readSelection(hot)).toBeNull();
     });
   });
 

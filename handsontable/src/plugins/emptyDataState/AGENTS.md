@@ -167,10 +167,13 @@ Only when nothing was captured — no ranges — does it fall back to selecting 
 is suppressed**. That is deliberate: a scroll-into-view on an arriving dataset would jump the viewport.
 Either way, `afterEmptyDataStateHide` fires last.
 
-**A `loadData()` drops the captured selection** (`#onBeforeLoadData`), so the hide after it takes the
-`(0, 0)` fallback. The coordinates addressed the replaced rows, and restoring them put a selection on
-unrelated cells of the new data; under the sheets bar a sheet the user never visited opened with the
-departing sheet's selection. Two loads keep it, on purpose. One made while `hasExternalDataSource`
+**A `loadData()` drops the captured selection** (`#onBeforeLoadData`). The coordinates addressed the
+replaced rows, and restoring them put a selection on unrelated cells of the new data; under the sheets bar
+a sheet the user never visited opened with the departing sheet's selection. When a selection was captured,
+the drop also sets `#isSelectionDataReplaced`, and the hide after it then leaves the selection alone, as
+`#hide(false)` does for a view change: neither the old cells nor the first cell belong to the new data, and
+a sheet switch opens a never-visited sheet with nothing selected. Only a hide with nothing captured (a grid
+built empty) still takes the `(0, 0)` fallback. Two loads keep it, on purpose. One made while `hasExternalDataSource`
 answers `true`: a server-backed grid replaces its rows with `loadData()` on every page, sort and filter,
 and restoring the selection is how the user keeps it there. Ask the core hook, never the plugin behind it
 (`releasedPluginsViewAgnostic.unit.js`). And `updateData()`, which keeps the dataset's state by design

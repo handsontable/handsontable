@@ -284,6 +284,11 @@ export class EmptyDataState extends BasePlugin {
    * @type {SelectionState | null}
    */
   #selectionState: SelectionState | null = null;
+  /**
+   * Whether a `loadData()` replaced the data the kept selection addressed. The next hide then leaves the
+   * selection alone, as a view change does, instead of selecting the first cell.
+   */
+  #isSelectionDataReplaced = false;
 
   /**
    * Whether the DataProvider-driven loading branch of the overlay is active.
@@ -387,10 +392,12 @@ export class EmptyDataState extends BasePlugin {
       this.hot.getFocusScopeManager().getActiveScopeId() === PLUGIN_KEY;
     const wasVisible = this.#isVisible;
     const selectionState = this.#selectionState;
+    const isSelectionDataReplaced = this.#isSelectionDataReplaced;
 
     this.disablePlugin();
     this.#isVisible = wasVisible;
     this.#selectionState = selectionState;
+    this.#isSelectionDataReplaced = isSelectionDataReplaced;
     this.enablePlugin();
     this.#update();
 
@@ -415,6 +422,7 @@ export class EmptyDataState extends BasePlugin {
     this.#loadingActive = false;
     this.#isVisible = false;
     this.#selectionState = null;
+    this.#isSelectionDataReplaced = false;
 
     this.#unregisterShortcuts();
     this.#unregisterFocusScope();
@@ -463,6 +471,7 @@ export class EmptyDataState extends BasePlugin {
 
     if (isViewChange && this.#isVisible) {
       this.#selectionState = this.hot.selection.exportSelection();
+      this.#isSelectionDataReplaced = false;
     }
 
     if (isLoading) {
@@ -684,6 +693,7 @@ export class EmptyDataState extends BasePlugin {
     this.#updateLayout();
 
     this.#selectionState = this.hot.selection.exportSelection();
+    this.#isSelectionDataReplaced = false;
     this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
 
     this.hot.runHooks('afterEmptyDataStateShow');
@@ -722,7 +732,8 @@ export class EmptyDataState extends BasePlugin {
    * Hides the emptyDataState overlay.
    *
    * @param {boolean} [restoresSelection=true] Whether to restore the selection kept when the overlay appeared,
-   * or select the first cell when none was kept. With `false`, the selection is left as it is.
+   * or select the first cell when none was kept. With `false`, the selection is left as it is, and so it is
+   * after a `loadData()` replaced the data the kept selection addressed.
    */
   #hide(restoresSelection = true) {
     if (!this.#isVisible) {
@@ -738,8 +749,9 @@ export class EmptyDataState extends BasePlugin {
     // here as well - two rollbacks eventually disagree, and this one cannot know what it displaced.
     this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
 
-    if (!restoresSelection) {
+    if (!restoresSelection || this.#isSelectionDataReplaced) {
       this.#selectionState = null;
+      this.#isSelectionDataReplaced = false;
     } else if (this.#selectionState && this.#selectionState.ranges.length > 0) {
       this.hot.selection.importSelection({
         ...this.#selectionState,
@@ -806,16 +818,23 @@ export class EmptyDataState extends BasePlugin {
 
   /**
    * Forgets the selection kept for the hide when `loadData()` replaces the data. The kept coordinates
-   * address the replaced rows, so restoring them put a selection on unrelated cells of the new data; the
-   * hide then falls back to the first cell, as it does when nothing was kept. A grid with an external
-   * data source keeps it: its loads bring another page or order of the same records, and restoring the
-   * selection is how the user keeps it across them. `updateData()` keeps the dataset's state by design,
-   * so it keeps the selection too.
+   * address the replaced rows, so restoring them put a selection on unrelated cells of the new data. When a
+   * selection was kept, the hide then leaves the selection alone, as a view change does: the user selected
+   * cells of other data, so neither those cells nor the first cell is theirs. When none was kept, the hide
+   * still selects the first cell. A grid with an external data source keeps the selection: its loads bring
+   * another page or order of the same records, and restoring the selection is how the user keeps it across
+   * them. `updateData()` keeps the dataset's state by design, so it keeps the selection too.
    */
   #onBeforeLoadData = () => {
-    if (this.hot.runHooks('hasExternalDataSource') !== true) {
-      this.#selectionState = null;
+    if (this.hot.runHooks('hasExternalDataSource') === true) {
+      return;
     }
+
+    if (this.#selectionState && this.#selectionState.ranges.length > 0) {
+      this.#isSelectionDataReplaced = true;
+    }
+
+    this.#selectionState = null;
   };
 
   /**
@@ -844,6 +863,7 @@ export class EmptyDataState extends BasePlugin {
     this.#ui = null;
     this.#hasFilterConditions = false;
     this.#selectionState = null;
+    this.#isSelectionDataReplaced = false;
 
     super.destroy();
   }
