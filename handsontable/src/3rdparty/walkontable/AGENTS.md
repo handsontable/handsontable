@@ -914,6 +914,19 @@ The header level is **not** `columnHeaders.length - headerIndex`:
   into `style.right` puts the full-column / select-all highlight on the wrong side of the cell.
   Rows are top/height on both directions.
 
+## An empty column-header section measures as 0
+
+`beginDrawLayout` reads the column-header section before its rows exist, and an empty
+section measures as 0. On the snapshot path that 0 stays until the next render, so the
+empty section has to use the known header heights. Do not hide it with another calculator rebuild.
+
+AutoRowSize's ghost measurement omits the bottom gridline (`.htGhostTable table thead th`
+zeroes `border-bottom-width`). `knownColumnHeaderBandHeight` adds that pixel only when
+`columnHeaderHeightOmitsBottomBorder` is set and the first level is taller than the default
+row. The paint value stays the ghost number: putting the pixel into `style.height` makes
+every nested level after the first 1px taller. An explicit `columnHeaderHeight` and the
+first-draw content probe already include the gridline, so they do not get another pixel.
+
 ## Border ownership: the header owns its gridline, on both axes
 
 Both axes are settled, and they are now symmetric. On the column axis a row header `th` carries its
