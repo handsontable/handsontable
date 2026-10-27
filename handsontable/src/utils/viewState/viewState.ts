@@ -33,6 +33,13 @@ export interface SortedColumn {
  */
 export interface ViewState {
   rowSequence: number[];
+
+  /**
+   * The row header number of every physical row, kept by the `'strict'` BindRowsWithHeaders strategy. Absent
+   * when that strategy is off, since the other one numbers each row by its physical index. Part of the row
+   * order.
+   */
+  rowHeaders?: number[];
   unsortedRowSequence: number[];
   columnSequence: number[];
   hiddenRows: number[];
@@ -217,6 +224,7 @@ function captureAxisState(hot: HotInstance, covers: PartFilter = () => true) {
   // request for a scroll position on a million-row grid must not pay for.
   return {
     rowSequence: covers('rowOrder') ? hot.rowIndexMapper.getIndexesSequence().slice() : [],
+    rowHeaders: covers('rowOrder') ? captureStrictRowHeaders(hot) : undefined,
     unsortedRowSequence: covers('sort') ? captureUnsortedRowSequence(hot) : [],
     columnSequence: covers('columnOrder') ? hot.columnIndexMapper.getIndexesSequence().slice() : [],
     hiddenRows: covers('hiddenRows') ? hiddenRowsMap?.getHiddenIndexes() ?? [] : [],
@@ -224,6 +232,24 @@ function captureAxisState(hot: HotInstance, covers: PartFilter = () => true) {
       (hiddenColumnsPlugin?.getHiddenColumns() ?? []).map(col => hot.toPhysicalColumn(col)) : [],
     trimmedRows: covers('trimmedRows') ? trimRowsPlugin?.getTrimmedRows() ?? [] : [],
   };
+}
+
+/**
+ * Returns the BindRowsWithHeaders plugin when it is enabled. Read through the typed `getPlugin()` overload, so
+ * a change to the methods the view state calls on it fails the type check.
+ */
+function getEnabledBindRowsWithHeaders(hot: HotInstance) {
+  const bindRowsWithHeaders = hot.getPlugin('bindRowsWithHeaders');
+
+  return bindRowsWithHeaders?.enabled ? bindRowsWithHeaders : undefined;
+}
+
+/**
+ * Captures the row header numbers the `'strict'` BindRowsWithHeaders strategy keeps, by physical row. A data
+ * load re-initializes them to the physical indexes, so a sheet switch would renumber every inserted row.
+ */
+function captureStrictRowHeaders(hot: HotInstance): number[] | undefined {
+  return getEnabledBindRowsWithHeaders(hot)?._exportStrictHeaders() ?? undefined;
 }
 
 /**
@@ -798,6 +824,12 @@ function restoreAxisState(hot: HotInstance, state: ViewState, covers: PartFilter
 
   if (!restoreSequence(hot.rowIndexMapper, state.rowSequence)) {
     notApplied.push('rowOrder');
+
+    return notApplied;
+  }
+
+  if (state.rowHeaders) {
+    getEnabledBindRowsWithHeaders(hot)?._importStrictHeaders(state.rowHeaders);
   }
 
   return notApplied;
@@ -1217,6 +1249,7 @@ export function keepSelectionOnPage(hot: HotInstance, follow: boolean): void {
 export function createNeutralViewState(): ViewState {
   return {
     rowSequence: [],
+    rowHeaders: undefined,
     unsortedRowSequence: [],
     columnSequence: [],
     hiddenRows: [],

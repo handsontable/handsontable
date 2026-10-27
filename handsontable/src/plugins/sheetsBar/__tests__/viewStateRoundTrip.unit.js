@@ -172,6 +172,33 @@ describe('SheetsBar -> view state round trip', () => {
     });
   });
 
+  describe('row headers', () => {
+    it('keeps the strict numbers of a moved and an inserted row after a round trip', () => {
+      const bar = build({ rowHeaders: true, manualRowMove: true, bindRowsWithHeaders: 'strict' }, createData());
+
+      hot.getPlugin('manualRowMove').moveRow(3, 0);
+      hot.render();
+      hot.alter('insert_row_above', 0, 1);
+
+      const headersBefore = [0, 1, 2, 3, 4].map(row => hot.getRowHeader(row));
+
+      expect(headersBefore).toEqual([5, 4, 1, 2, 3]);
+
+      roundTrip(bar);
+
+      expect([0, 1, 2, 3, 4].map(row => hot.getRowHeader(row))).toEqual(headersBefore);
+    });
+
+    it('numbers a sheet that never used the strict strategy by its physical rows', () => {
+      const bar = build({ rowHeaders: true, manualRowMove: true, bindRowsWithHeaders: true }, createData());
+
+      hot.alter('insert_row_above', 0, 1);
+      roundTrip(bar);
+
+      expect([0, 1, 2, 3, 4].map(row => hot.getRowHeader(row))).toEqual([1, 2, 3, 4, 5]);
+    });
+  });
+
   describe('nested headers', () => {
     it('labels a moved column with its own header after a round trip', () => {
       const bar = build({

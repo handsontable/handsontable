@@ -95,6 +95,12 @@ pay for. A new consumer lives in a plugin.
   `restoreCanceledSortStates()` runs right after a canceled `sort()`, while the rows are still in that
   unsorted order, for the same reason: `setSortConfig()` takes the cache from the order it finds. Run after
   the sorted `rowSequence` is written, a later clear left the rows sorted.
+- **The strict row header numbers ride with the row order** (`rowHeaders`, optional). A data load sets the
+  BindRowsWithHeaders map back to the physical indexes, so `captureAxisState()` keeps the `'strict'`
+  strategy's numbers (`_exportStrictHeaders()`, through the typed `getPlugin()`) under the `rowOrder` part, and
+  `restoreAxisState()` writes them back right after the row order, only when that order was written (a sheet
+  whose data changed size keeps the physical numbers). The loose strategy needs nothing: its numbers are the
+  physical indexes. The public layer does not serialize the field, so its `rowOrder` leaves the numbers alone.
 - **`resetViewState()` runs no filter pass, and it clears the sizes of a DISABLED resize plugin too.** Its
   only caller is the sheets bar, which loads the arriving sheet's data right after it, and that load empties
   the condition collection and the Filters trimming map; the reset only drops the Filters fallback
