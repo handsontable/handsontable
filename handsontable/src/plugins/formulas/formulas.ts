@@ -1488,6 +1488,7 @@ export class Formulas extends BasePlugin {
 
     this.engine = null;
     this.#ownSheetExists = null;
+    this.#registrationChanges = [];
 
     super.destroy();
   }
@@ -2053,7 +2054,7 @@ export class Formulas extends BasePlugin {
 
   /**
    * Renders dependent sheets (handsontable instances) based on the changes - list of the
-   * recalculated dependent cells.
+   * recalculated dependent cells, plus the ones `#registrationChanges` holds, which it consumes.
    *
    * @private
    * @param {object[]} dependentCells The values and location of applied changes within HF engine.

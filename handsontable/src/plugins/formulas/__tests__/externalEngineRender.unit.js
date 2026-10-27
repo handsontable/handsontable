@@ -341,6 +341,38 @@ describe('external engine changes repaint formula cells', () => {
       });
     });
 
+    describe('after the other grid registered its sheet', () => {
+      let engine;
+
+      beforeEach(() => {
+        engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+        grids.push(mountGrid(containers[0], [['a', '=Sheet2!A2']], engine, 'Sheet1', () => {
+          renders1 += 1;
+        }));
+        grids.push(mountGrid(containers[1], [['x', 'y'], ['z', 'w']], engine, 'Sheet2', () => {}));
+        renders1 = 0;
+      });
+
+      it('does not paint the grid that names the sheet when the registering grid edits an unrelated cell', () => {
+        grids[1].setDataAtCell(0, 0, 'q');
+
+        expect(grids[0].getCell(0, 1).textContent).toBe('z');
+        expect(renders1).toBe(0);
+      });
+
+      it('does not paint the grid that names the sheet again when the registering grid writes after an external write', () => {
+        engine.setCellContents({ sheet: engine.getSheetId('Sheet1'), row: 0, col: 0 }, 'b');
+
+        expect(renders1).toBe(1);
+
+        renders1 = 0;
+        grids[1].setDataAtCell(0, 0, 'q');
+
+        expect(grids[0].getCell(0, 1).textContent).toBe('z');
+        expect(renders1).toBe(0);
+      });
+    });
+
     it('paints the grid that names the sheet once when a grid built without data registers it', () => {
       const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
