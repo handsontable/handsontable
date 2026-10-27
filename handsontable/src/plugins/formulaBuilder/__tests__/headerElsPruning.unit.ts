@@ -118,6 +118,54 @@ describe('HandsontableAdapter header element pruning', () => {
     overlayHost.remove();
   });
 
+  it('stops tinting a column header the grid reused for another column', () => {
+    const { hot, hooks } = makeHot();
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+    const th = document.createElement('th');
+
+    overlayHost.appendChild(th);
+    hooks.afterGetColHeader?.[0]?.(2, th);
+    // A horizontal scroll renders column 10 into the same element.
+    hooks.afterGetColHeader?.[0]?.(10, th);
+
+    adapter.setHighlights([wholeColHighlight(2)]);
+
+    expect(th.style.backgroundColor).toBe('');
+
+    adapter.setHighlights([wholeColHighlight(10)]);
+
+    expect(th.style.backgroundColor).not.toBe('');
+
+    adapter.destroy();
+    overlayHost.remove();
+  });
+
+  it('stops tinting a row header the grid reused for another row', () => {
+    const { hot, hooks } = makeHot();
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+    const th = document.createElement('th');
+
+    overlayHost.appendChild(th);
+    hooks.afterGetRowHeader?.[0]?.(2, th);
+    // A vertical scroll renders row 21 into the same element.
+    hooks.afterGetRowHeader?.[0]?.(21, th);
+
+    adapter.setHighlights([wholeRowHighlight(2)]);
+
+    expect(th.style.backgroundColor).toBe('');
+
+    adapter.destroy();
+    overlayHost.remove();
+  });
+
   it('removes the pruning hook on destroy', () => {
     const { hot, hooks } = makeHot();
     const overlayHost = document.createElement('div');

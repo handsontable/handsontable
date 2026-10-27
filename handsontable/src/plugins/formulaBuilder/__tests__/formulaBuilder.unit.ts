@@ -1374,6 +1374,18 @@ describe('FormulaBuilder settings validation', () => {
     },
   );
 
+  it('enables with a module that has no member the plugin does not call', () => {
+    const { EventManager: _eventManager, parseCellInput: _parseCellInput, ...withoutUnused } =
+      core as unknown as Record<string, unknown>;
+    const stub = makeFullHotStub({ builder: withoutUnused });
+    const plugin = new FormulaBuilder(stub.instance);
+
+    plugin.enablePlugin();
+
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(plugin.enabled).toBe(true);
+  });
+
   it('names every missing member in one warning', () => {
     const { formatRef: _formatRef, stepCell: _stepCell, ...incomplete } =
       core as unknown as Record<string, unknown>;

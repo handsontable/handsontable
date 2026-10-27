@@ -40,6 +40,7 @@
       'read-only': 'read-only',
       'split-scroll': 'split-scroll',
       shadow: 'shadow',
+      menus: 'menus',
     })[htParams.get('variant') ?? 'default'];
     if (!window.htVariant) {
       throw new Error('Unknown ?variant= value: ' + JSON.stringify(htParams.get('variant')));
@@ -116,6 +117,8 @@
       // The grid inside an open shadow root, with its stylesheets linked inside it: document
       // stylesheets do not reach the shadow tree, so every style the plugin generates must too.
       shadow: { shadow: true },
+      // A menu that is open when a pick starts must close, as on any other press in the grid.
+      menus: { settings: { dropdownMenu: true } },
     };
 
     /**

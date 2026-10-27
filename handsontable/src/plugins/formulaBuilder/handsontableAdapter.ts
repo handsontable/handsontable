@@ -390,6 +390,12 @@ export class HandsontableAdapter {
    */
   readonly #rowHeaderEls = new Map<number, Set<HTMLElement>>();
   /**
+   * The visual index each tracked header element was last rendered for. Walkontable reuses its `<th>`
+   * elements in place on scroll, so an element tracked again under another index has to leave the set
+   * of its old one, or the old index's tint lands on it.
+   */
+  readonly #trackedHeaderIndex = new WeakMap<HTMLElement, number>();
+  /**
    * Bound `afterGetColHeader` listener (removed in `destroy`).
    */
   readonly #colHeaderHook: (col: number, th: HTMLElement, headerLevel?: number) => void;
@@ -1240,6 +1246,20 @@ export class HandsontableAdapter {
    * @param {HTMLElement} headerEl The header element.
    */
   #trackHeader(headerEls: Map<number, Set<HTMLElement>>, visualIndex: number, headerEl: HTMLElement): void {
+    const previousIndex = this.#trackedHeaderIndex.get(headerEl);
+
+    if (previousIndex !== undefined && previousIndex !== visualIndex) {
+      const previousCopies = headerEls.get(previousIndex);
+
+      previousCopies?.delete(headerEl);
+
+      if (previousCopies?.size === 0) {
+        headerEls.delete(previousIndex);
+      }
+    }
+
+    this.#trackedHeaderIndex.set(headerEl, visualIndex);
+
     let copies = headerEls.get(visualIndex);
 
     if (copies === undefined) {
@@ -1565,21 +1585,20 @@ export class HandsontableAdapter {
       this.#hot.rootWrapperElement.appendChild(this.#fillStyleEl);
     }
 
-    const sheet = this.#fillStyleEl.sheet;
-
-    sheet?.insertRule(
+    // Written as text, not through `insertRule()`: rules added to the CSSOM are lost when the element
+    // leaves the document and comes back (a framework moving the grid between tabs or portals), while
+    // the text is parsed again on every insertion.
+    this.#fillStyleEl.appendChild(this.#hot.rootDocument.createTextNode(
       `.handsontable .wtBorder.${className}{` +
-      `-webkit-mask-image:${BORDER_DASH_MASK};mask-image:${BORDER_DASH_MASK};}`,
-      sheet.cssRules.length,
-    );
+      `-webkit-mask-image:${BORDER_DASH_MASK};mask-image:${BORDER_DASH_MASK};}\n`,
+    ));
 
     if (fill) {
       const tint = this.#core.fillColor(color);
 
-      sheet?.insertRule(
-        `.handsontable td.${className}{background-image:linear-gradient(${tint},${tint});}`,
-        sheet.cssRules.length,
-      );
+      this.#fillStyleEl.appendChild(this.#hot.rootDocument.createTextNode(
+        `.handsontable td.${className}{background-image:linear-gradient(${tint},${tint});}\n`,
+      ));
     }
 
     this.#refClassByKey.set(key, className);

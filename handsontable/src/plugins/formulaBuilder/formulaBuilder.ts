@@ -895,8 +895,9 @@ export class FormulaBuilder extends BasePlugin {
     const isFormulaCell = row >= 0 && col >= 0 && isFormulaEditor(cellProperties.editor);
     const hfRow = isFormulaCell ? this.#visualToHfRow(row) : -1;
     const hfCol = isFormulaCell ? this.#visualToHfCol(col) : -1;
+    const sheetId = isFormulaCell ? this.#readableSheetId() : null;
 
-    if (hfRow < 0 || hfCol < 0) {
+    if (hfRow < 0 || hfCol < 0 || sheetId === null) {
       // The grid recycles cell elements, so one that showed an error for another cell keeps the
       // mark until something clears it.
       if (cellEl.hasAttribute(CELL_ERROR_ATTRIBUTE)) {
@@ -909,7 +910,7 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    const cellValue = this.#engine?.getCellValue({ sheet: this.#sheetId, row: hfRow, col: hfCol });
+    const cellValue = this.#engine?.getCellValue({ sheet: sheetId, row: hfRow, col: hfCol });
 
     this.#builder?.markCell(cellEl, cellValue);
 
@@ -1109,6 +1110,8 @@ export class FormulaBuilder extends BasePlugin {
    */
   #onAfterSelection = (): void => {
     if (this.#isEditing()) {
+      this.#followStructuralShift();
+
       return;
     }
 
@@ -1137,6 +1140,39 @@ export class FormulaBuilder extends BasePlugin {
       this.#hostEditor()?.refreshDimensions?.(true);
     }
   };
+
+  /**
+   * Moves the bar selection with the edited cell when the grid shifts the selection during an edit:
+   * an `alter()` the application makes inserts or removes rows or columns before the cell, and the
+   * grid moves its selection under the `shift` source. Nothing is emitted, because the edit is still
+   * open; `handleInlineEditClose()` reads the selection again and reports it once the edit closes.
+   * Without this, the pick controller compares a press with the cell's old coordinates.
+   */
+  #followStructuralShift(): void {
+    const barSelected = this.#barSelected;
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+
+    if (
+      barSelected === null || this.hot.selection.getSelectionSource() !== 'shift' ||
+      !highlight || highlight.row === null || highlight.col === null
+    ) {
+      return;
+    }
+
+    const rowShift = highlight.row - barSelected.row;
+    const colShift = highlight.col - barSelected.col;
+
+    this.#barSelected = { row: highlight.row, col: highlight.col };
+
+    if (this.#barSelectedRange) {
+      this.#barSelectedRange = {
+        startRow: this.#barSelectedRange.startRow + rowShift,
+        startCol: this.#barSelectedRange.startCol + colShift,
+        endRow: this.#barSelectedRange.endRow + rowShift,
+        endCol: this.#barSelectedRange.endCol + colShift,
+      };
+    }
+  }
 
   /**
    * Clears the bar selection (and the dedupe key) and tells the listeners.
@@ -1321,6 +1357,23 @@ export class FormulaBuilder extends BasePlugin {
   }
 
   /**
+   * The engine sheet id the plugin may read from, or `null` while no sheet is bound or after an
+   * application removed the bound sheet from a shared engine. The Formulas plugin keeps the old id
+   * then, and the engine throws `NoSheetWithIdError` for every read through it.
+   *
+   * @returns {number | null}
+   */
+  #readableSheetId(): number | null {
+    const sheetId = this.#formulasPlugin?.sheetId ?? null;
+
+    if (sheetId === null || this.#engine?.getSheetName(sheetId) === undefined) {
+      return null;
+    }
+
+    return sheetId;
+  }
+
+  /**
    * Maps a visual row index to its HyperFormula row index.
    *
    * @param {number} visualRow The visual row index.
@@ -1369,14 +1422,15 @@ export class FormulaBuilder extends BasePlugin {
    */
   #readCellText(hfRow: number, hfCol: number): string {
     const engine = this.#engine;
+    const sheetId = this.#readableSheetId();
 
-    if (!engine || !this.#core || hfRow < 0 || hfCol < 0) {
+    if (!engine || !this.#core || sheetId === null || hfRow < 0 || hfCol < 0) {
       return '';
     }
 
     return this.#core.readCellText(
       engine as unknown as Parameters<CoreModule['readCellText']>[0],
-      { sheet: this.#sheetId, row: hfRow, col: hfCol },
+      { sheet: sheetId, row: hfRow, col: hfCol },
     );
   }
 
@@ -1583,7 +1637,8 @@ export class FormulaBuilder extends BasePlugin {
           hfToVisualCol: col => this.#hfToVisualCol(col),
         },
         getSheetDimensions: () => {
-          const dimensions = this.#engine?.getSheetDimensions(this.#sheetId);
+          const sheetId = this.#readableSheetId();
+          const dimensions = sheetId === null ? null : this.#engine?.getSheetDimensions(sheetId);
 
           return dimensions ? { rows: dimensions.height, cols: dimensions.width } : null;
         },
@@ -1809,6 +1864,7 @@ export class FormulaBuilder extends BasePlugin {
    */
   #teardownPluginState(): void {
     this.#rebuildAfterEdit = false;
+    this.#clearCellErrorMarks();
     this.#removeEngineDetachListener?.();
     this.#removeEngineDetachListener = null;
     this.#destroyBuilder();
@@ -1832,6 +1888,19 @@ export class FormulaBuilder extends BasePlugin {
     this.#barSelected = null;
     this.#barSelectedRange = null;
     this.#lastEmittedSelectionCoords = null;
+  }
+
+  /**
+   * Takes the error marks and the descriptions the plugin wrote off every rendered cell. The grid's
+   * render resets classes and ARIA attributes but not `data-*`, and once the plugin is off no
+   * `afterRenderer` clears the mark, so a cell element reused on scroll would carry it to other cells.
+   */
+  #clearCellErrorMarks(): void {
+    this.hot.rootElement?.querySelectorAll<HTMLTableCellElement>(`td[${CELL_ERROR_ATTRIBUTE}]`)
+      .forEach((cellEl) => {
+        cellEl.removeAttribute(CELL_ERROR_ATTRIBUTE);
+        this.#describeCellError(cellEl);
+      });
   }
 
   /**

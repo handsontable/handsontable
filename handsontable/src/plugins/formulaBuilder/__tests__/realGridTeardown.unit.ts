@@ -88,6 +88,27 @@ describe('FormulaBuilder teardown on a real grid', () => {
     hot.destroy();
   });
 
+  it('takes its error marks off the cells when the plugin is turned off', () => {
+    const hot = new Handsontable(container, {
+      data: [['=1/0', 2]],
+      editor: 'formula',
+      formulas: { engine: HyperFormula },
+      formulaBuilder: { builder: core },
+      licenseKey: 'non-commercial-and-evaluation',
+    } as Handsontable.GridSettings);
+
+    expect(hot.getCell(0, 0)?.getAttribute('data-hfe-error')).toBe('#DIV/0!');
+
+    hot.updateSettings({ formulaBuilder: false } as Handsontable.GridSettings);
+
+    // The grid's render resets classes and ARIA attributes but not `data-*`, and it reuses cell
+    // elements, so a mark left behind would move to other cells on scroll.
+    expect(hot.rootElement.querySelectorAll('[data-hfe-error]')).toHaveLength(0);
+    expect(hot.getCell(0, 0)?.hasAttribute('aria-description')).toBe(false);
+
+    hot.destroy();
+  });
+
   it('removes the builder\'s body nodes when only the FormulaBuilder plugin is disabled', () => {
     const before = countBodyNodes();
     const hot = createGrid();

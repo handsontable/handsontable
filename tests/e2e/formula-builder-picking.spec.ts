@@ -237,3 +237,23 @@ test.describe('formulaBuilder picking on a sorted grid', { tag: [THEMES_TAG, BUN
     await expect.poll(() => grid.dataAt(3, 0)).toBe(6);
   });
 });
+
+// A pick claims the press from the grid's own handlers, but not from the document: a menu that
+// closes on an outside press has to close on a pick too. The legs are the spec's own (one set per
+// spec): themes size the menu and the cells it may cover, and engines dispatch the press to the document.
+test.describe('formulaBuilder picking with a menu open', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('a pick closes an open dropdown menu and still inserts the reference', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle, 'menus');
+
+    await grid.goto();
+    await grid.selectCellByApi(3, 0);
+    await page.keyboard.press('=');
+    await expect(grid.editorInput).toBeFocused();
+
+    await grid.openDropdownMenuByApi();
+    await grid.cell(0, 1).click();
+
+    await expect(grid.dropdownMenu).toBeHidden();
+    await expect(grid.editorInput).toHaveValue('=B1');
+  });
+});

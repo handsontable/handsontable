@@ -15,7 +15,8 @@ export type FormulaBuilderVariant =
   | 'hidden-row'
   | 'read-only'
   | 'split-scroll'
-  | 'shadow';
+  | 'shadow'
+  | 'menus';
 
 /**
  * The overlay a frozen cell is drawn in, by the class of its clone.
@@ -57,6 +58,7 @@ interface FixtureWindow {
     getPlugin(name: string): {
       getSortConfig?: () => unknown[];
       sort?: (config: { column: number; sortOrder: 'asc' | 'desc' }) => void;
+      open?: (position: { left: number; top: number }) => void;
     } | undefined;
     getCurrentThemeName(): string | null;
     useTheme(name: string): void;
@@ -127,6 +129,10 @@ export class FormulaBuilderPage {
    * The error popup a focused or hovered error cell opens.
    */
   readonly errorPopup: Locator;
+  /**
+   * The DropdownMenu plugin's menu (the `menus` variant).
+   */
+  readonly dropdownMenu: Locator;
 
   constructor(page: Page, theme = 'main', bundle: Bundle = 'umd', variant: FormulaBuilderVariant = 'default') {
     this.page = page;
@@ -150,6 +156,7 @@ export class FormulaBuilderPage {
     this.fnHelp = page.locator('.hfe-fn-help[role="dialog"]:not([hidden])');
     this.suggestionsHost = page.getByTestId('suggestions-host');
     this.errorPopup = page.locator('.hfe-error');
+    this.dropdownMenu = page.locator('.htDropdownMenu');
   }
 
   /**
@@ -395,6 +402,16 @@ export class FormulaBuilderPage {
       ([c, order]) => (window as unknown as FixtureWindow).hot.getPlugin('columnSorting')
         ?.sort?.({ column: c, sortOrder: order }),
       [column, sortOrder] as const);
+  }
+
+  /**
+   * Opens the DropdownMenu plugin's menu through its API (the `menus` variant), at a point away from
+   * the cells a test picks.
+   */
+  async openDropdownMenuByApi(): Promise<void> {
+    await this.page.evaluate(
+      () => (window as unknown as FixtureWindow).hot.getPlugin('dropdownMenu')?.open?.({ left: 400, top: 40 }));
+    await expect(this.dropdownMenu).toBeVisible();
   }
 
   /**

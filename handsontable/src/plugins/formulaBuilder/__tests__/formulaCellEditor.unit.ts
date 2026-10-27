@@ -179,6 +179,20 @@ describe('registerFormulaEditor in a fresh module registry', () => {
       expect(editorModule.isFormulaEditor(ForeignFormulaEditor)).toBe(true);
     });
   });
+
+  it('does not treat an application editor registered under the alias as the formula editor', () => {
+    withFreshModules(({ registry, editorModule }) => {
+      class ApplicationEditor {}
+
+      registry.registerEditor(FORMULA_EDITOR_ALIAS, ApplicationEditor as never);
+      editorModule.registerFormulaEditor();
+
+      // Those cells use the application's editor, as the plugin's warning says, so the plugin
+      // must not mark them, describe them, or drive them from the formula bar.
+      expect(editorModule.isFormulaEditor(FORMULA_EDITOR_ALIAS)).toBe(false);
+      expect(editorModule.isFormulaEditor(ApplicationEditor)).toBe(false);
+    });
+  });
 });
 
 describe('isFormulaEditor', () => {
@@ -335,12 +349,11 @@ describe('getValue fallback alignment', () => {
     expect(editor.getValue()).toBe('=A1+B2');
   });
 
-  it('closes unbalanced parens before reading the committed value', () => {
+  it('reads the value without closing unbalanced parens', () => {
     const editor = makeShimEditor('=SUM(A1');
 
-    editor.getValue();
-
-    expect(editor.closeUnbalancedParensSpy).toHaveBeenCalledTimes(1);
+    expect(editor.getValue()).toBe('=SUM(A1');
+    expect(editor.closeUnbalancedParensSpy).not.toHaveBeenCalled();
   });
 
   it('falls back to the original cell value when the overlay editor is gone', () => {

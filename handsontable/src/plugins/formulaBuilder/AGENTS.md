@@ -38,10 +38,12 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   then restore the link.
 - **A reference pick claims the whole mouse gesture, and it has to run first.** The three cell mouse
   listeners are registered at order index `-1` (`CELL_MOUSE_HOOK_ORDER`). A pick sets every controller flag,
-  calls `preventDefault()` (the editor keeps the focus), and calls `stopImmediatePropagation()`, so
-  `TableView` skips its selection handling and every `afterOnCell*` listener. That is what keeps
-  NestedHeaders from selecting a group span under a header pick, and what DragToScroll reads to stay out
-  of a drag the pick's own edge auto-scroller drives. Plugin priority (265) is NOT enough: it orders only the
+  calls `preventDefault()` (the editor keeps the focus), and sets the event's `isImmediatePropagationEnabled`
+  flag to `false`, so `TableView` skips its selection handling and every `afterOnCell*` listener. Only the
+  flag, never the shared `stopImmediatePropagation()` helper: it also sets `cancelBubble`, so the press never
+  reached `document` and a context menu or dropdown menu open at that moment stayed open over the pick.
+  That is what keeps NestedHeaders from selecting a group span under a header pick, and what DragToScroll
+  reads to stay out of a drag the pick's own edge auto-scroller drives. Plugin priority (265) is NOT enough: it orders only the
   first `enablePlugin()`, and a later `updatePlugin()` (a theme switch used to trigger one) re-registers the
   hooks at the tail of each list, behind NestedHeaders. Two shortcuts that were tried and are wrong:
   teaching NestedHeaders to skip its span when `controller.column` was already set (ColumnSorting sets it
@@ -56,7 +58,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `formula` before any grid exists (`../../settingsSchema/AGENTS.md`). The registration stays silent when
   an application owns the alias: the warning about it comes from `enablePlugin()` (`warnOnce` per grid),
   because with the full bundle every grid runs the constructor, and a grid that never sets `formulaBuilder`
-  has no conflict to report.
+  has no conflict to report. `isFormulaEditor()` answers `false` for such an alias and its class (the shim
+  class carries `FORMULA_SHIM_MARK`), so the plugin neither marks those cells nor drives them from the bar,
+  as the warning says.
 - **The builder is bound to one engine sheet, and the sheet id is not known at enable time.** The plugin
   enables before the first data load, while `Formulas#sheetId` is still `null`. The builder takes `sheetId`
   only at construction and uses it to parse references, list named expressions, and test the own sheet. So
@@ -113,7 +117,10 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   Tab and Enter wrap the focus between layers. Whether the bar edits a formula is decided by the
   highlighted cell, and a header-anchored range is clamped to cells. The selection hooks are ignored
   while an edit is open, so `handleInlineEditClose()` re-reads the selection (a validated edit closes a
-  microtask after the deselect that ended it).
+  microtask after the deselect that ended it). One exception: a selection the grid moves under the `shift`
+  source (an application `alter()` during the edit) moves `#barSelected` with it, without emitting
+  (`#followStructuralShift()`). The pick controller compares every press with it, so a stale one turned a
+  pick on the cell that took the old coordinates into a switch to inline editing.
 - **Highlights follow every index change, applied before the next draw.** The adapter listens to the
   index mappers' `cacheUpdated` local hook (a sort, a move, hiding, trimming, an insert or removal, a
   page change, a data load) and re-derives the custom selections in `beforeViewRender`, because the
@@ -136,7 +143,16 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `aria-invalid` that `markCell()` writes when `ariaTags` is `false`. Clearing a mark
   (`markCell(cell, null)`) removes `aria-invalid` whoever wrote it, the base renderer's `valid: false`
   included, so `#keepValidatorInvalid()` writes it back for a cell a validator rejected; without that a
-  rejected cell kept `htInvalid` while a screen reader heard it as valid.
+  rejected cell kept `htInvalid` while a screen reader heard it as valid. The teardown takes every mark
+  and the plugin's descriptions off the rendered cells (`#clearCellErrorMarks()`): the grid's render resets
+  classes and ARIA attributes but not `data-*`, so after `formulaBuilder: false` a mark moved with the
+  recycled elements.
+- **Every engine read goes through `#readableSheetId()`.** An application on a shared engine can remove
+  the grid's sheet; the Formulas plugin keeps the old id, and the engine throws `NoSheetWithIdError` for
+  the package's `readCellText()` (the formula bar's selection sync threw on every select) and for
+  `getSheetDimensions()`. `getCellValue()` returns a `#REF!` there instead of throwing, but the
+  `afterRenderer` read takes the same guard. `#sheetId` (with its `?? 0`) is only what the builder is built
+  with.
 - **Two coordinate spaces, and the public API speaks only one.** Every public method takes and returns
   VISUAL indexes (`getRawCellText` included). The adapter speaks HyperFormula space to the package and
   translates at its boundary, guarding every `-1` (a trimmed or unresolvable index) before it reaches
@@ -154,6 +170,10 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 - **The tracked column header level comes from `TableView#getColumnHeadersCount()`, not from the levels
   seen.** A deepest-level-seen rule only grows, so `updateSettings({ nestedHeaders: false })` (which does
   not rebuild the adapter) left level 0 untracked and the column headers untinted for good.
+- **Walkontable reuses its header elements in place on scroll.** A `<th>` tracked for column C shows
+  column K after a horizontal scroll, and the old set kept it, so `=SUM(C:C)` tinted K. `#trackHeader()`
+  remembers each element's last index (`#trackedHeaderIndex`) and moves it out of the old set; the
+  `isConnected` prune catches only detached elements.
 - **The editor's text field must carry `data-hot-input`.** After every selection change the focus
   manager focuses the selected cell and blurs the focused element unless `isOutsideInput()` says it is a
   grid input, which it reads from that attribute. The text editor sets it on its `TEXTAREA`; the
@@ -203,7 +223,13 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   shadow root as `portalParent`, so the popups and the live region stay in the same tree as the editor and
   its ARIA references resolve. The adapter's generated highlight rules (the dashed border mask, the cell
   tint) go in `hot.rootWrapperElement`, never the document head, which a shadow tree does not read; the
-  `shadow` fixture variant pins both (`formula-builder-layout.spec.ts`).
+  `shadow` fixture variant pins both (`formula-builder-layout.spec.ts`). They are written as text nodes,
+  not through `insertRule()`: CSSOM-only rules are lost when the element leaves the document and comes
+  back (a framework moving the grid between tabs or portals), while the class cache keeps the names.
+- **Unbalanced parens are closed on the commit path, never in `getValue()`.** `getValue()` is public through
+  `hot.getActiveEditor()`, and closing them there changed the buffer under a plain read. The shim's
+  `finishEditing()` closes them for an edit that is saved (state `EDITING`, no `restoreOriginalValue`), which
+  is what a native commit (an outside click) needs; the formula editor's own commit keys close them too.
 - **Ctrl/Cmd+Enter fills the selection through the grid's editor.** The adapter's `commitFill()` calls
   `commitInlineEditToSelection()`, which saves through `finishEditing(false, true)`: the `ctrlDown` path of
   `BaseEditor#saveValue()`, shared with the grid's own fill (`selection/fillSelection.ts`). After a

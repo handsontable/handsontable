@@ -6,7 +6,6 @@ import {
   getTouchPointById,
   hasTouchList,
   isLeftClick,
-  stopImmediatePropagation,
 } from '../../helpers/dom/event';
 import { getDeepActiveElement, isHTMLElement } from '../../helpers/dom/element';
 import type { HandsontableAdapter } from './handsontableAdapter';
@@ -691,7 +690,10 @@ export class CellPickController {
     }
 
     event.preventDefault();
-    stopImmediatePropagation(event);
+    // Only the grid's own flag, which `TableView` and DragToScroll read. The shared
+    // `stopImmediatePropagation()` helper also sets `cancelBubble`, so the press would never reach
+    // `document`, and a context menu or dropdown menu open at that moment would stay open over the pick.
+    (event as MouseEvent & { isImmediatePropagationEnabled: boolean }).isImmediatePropagationEnabled = false;
   }
 
   /**

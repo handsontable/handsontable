@@ -428,11 +428,8 @@ export function createFormulaCellEditor(): BaseEditorCtor {
       const activeEditor = resolvePlugin(editor)?.getActiveEditor();
 
       if (activeEditor) {
-        // Handsontable reads this only on the commit path (`finishEditing`), so close
-        // unbalanced parens first - the keyboard commit does the same, but a
-        // native commit (outside-grid click) would otherwise save `=SUM(A1` as-is.
-        activeEditor.closeUnbalancedParens();
-
+        // A plain read: `getValue()` is public through `getActiveEditor()`, so it must not change
+        // the buffer. The parens are closed on the commit path, in `finishEditing()` below.
         return activeEditor.getValue();
       }
 
@@ -476,16 +473,33 @@ export function createFormulaCellEditor(): BaseEditorCtor {
     EditorClass as unknown as {
       prototype: ScrollAwareEditor & {
         refreshDimensions(force?: boolean): void;
+        finishEditing(restoreOriginalValue?: boolean, ...rest: unknown[]): void;
       };
     }
   ).prototype;
   const baseRefreshDimensions = prototype.refreshDimensions;
+  const baseFinishEditing = prototype.finishEditing;
 
   prototype.refreshDimensions = function refreshDimensions(
     this: ScrollAwareEditor,
     force = false,
   ): void {
     refreshFormulaEditorDimensions(this, baseRefreshDimensions, force);
+  };
+
+  // The formula editor's own commit keys close unbalanced parens, but a native commit (an outside
+  // click) reads the value through `getValue()` and would save `=SUM(A1` as-is. Closing them here,
+  // and only for an edit that is saved, keeps a plain `getValue()` read from changing the buffer.
+  prototype.finishEditing = function finishEditing(
+    this: ScrollAwareEditor,
+    restoreOriginalValue?: boolean,
+    ...rest: unknown[]
+  ): void {
+    if (!restoreOriginalValue && this.state === EDITOR_STATE.EDITING && !this._fallbackInput) {
+      resolvePlugin(this)?.getActiveEditor()?.closeUnbalancedParens();
+    }
+
+    baseFinishEditing.call(this, restoreOriginalValue, ...rest);
   };
 
   (EditorClass as unknown as Record<symbol, boolean>)[FORMULA_SHIM_MARK] = true;
@@ -496,13 +510,20 @@ export function createFormulaCellEditor(): BaseEditorCtor {
 let formulaEditorClass: BaseEditorCtor | null = null;
 
 /**
- * Checks whether the given editor (alias or class) is the formula editor.
+ * Checks whether the given editor (alias or class) is the formula editor. An application editor
+ * registered under the alias is not: its cells use that editor, as the plugin's warning says, so the
+ * plugin must not mark them, describe them, or drive them from the formula bar.
  *
  * @param {unknown} editor The editor alias or class.
  * @returns {boolean}
  */
 export function isFormulaEditor(editor: unknown): boolean {
-  return editor === FORMULA_EDITOR_ALIAS || (editor !== undefined && editor === formulaEditorClass);
+  if (editor === FORMULA_EDITOR_ALIAS) {
+    return !isFormulaAliasForeign();
+  }
+
+  return editor !== undefined && editor === formulaEditorClass &&
+    (editor as Record<symbol, boolean>)[FORMULA_SHIM_MARK] === true;
 }
 
 /**

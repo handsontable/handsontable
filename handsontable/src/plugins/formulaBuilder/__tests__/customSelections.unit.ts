@@ -245,6 +245,28 @@ describe('HandsontableAdapter custom-selection highlights', () => {
     expect(document.body.querySelector('[data-hot-formula-ref-fills]')).toBeNull();
   });
 
+  it('keeps the generated rules when the grid is detached and attached again', () => {
+    const { adapter, hot } = makeAdapter();
+
+    adapter.setHighlights([{ range: range(0, 0, 0, 0), color: 'red', fill: true }]);
+
+    const [filled] = customSelectionsOf(hot);
+    const styleEl = hot.rootWrapperElement.querySelector('[data-hot-formula-ref-fills]');
+    const parent = hot.rootWrapperElement.parentElement as HTMLElement;
+
+    // A framework that moves the grid between tabs or portals takes it out of the document.
+    hot.rootWrapperElement.remove();
+    parent.appendChild(hot.rootWrapperElement);
+
+    const rules = styleEl instanceof HTMLStyleElement && styleEl.sheet ?
+      [...styleEl.sheet.cssRules].map(rule => rule.cssText).join('') : '';
+
+    expect(rules).toContain(`td.${filled.settings.className as string} {background-image:`);
+    expect(rules).toContain(`.wtBorder.${filled.settings.className as string}`);
+
+    adapter.destroy();
+  });
+
   it('scopes generated class names per grid instance', () => {
     const hotA = makeHotStub();
     const hotB = makeHotStub({ guid: 'ht_other' } as Parameters<typeof makeHotStub>[0]);

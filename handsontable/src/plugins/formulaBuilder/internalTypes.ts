@@ -17,7 +17,6 @@ type CoreModule = typeof import('hyperformula-ui');
  */
 export const REQUIRED_CORE_MEMBERS = [
   'FormulaBuilder',
-  'EventManager',
   'PickEmitter',
   'RangeDragTracker',
   'HeaderDragTracker',
@@ -27,7 +26,6 @@ export const REQUIRED_CORE_MEMBERS = [
   'findDataEdge',
   'formatRef',
   'normalizeRange',
-  'parseCellInput',
   'readCellText',
   'stepCell',
 ] as const satisfies readonly (keyof CoreModule)[];

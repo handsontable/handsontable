@@ -6,6 +6,7 @@ import { HiddenRows } from '../../hiddenRows';
 import { FormulaBuilder } from '../formulaBuilder';
 import { getFormulaBuilderAdapter } from '../handsontableAdapter';
 import type { HandsontableAdapter } from '../handsontableAdapter';
+import { injectRealCoreStyles, removeRealCoreStyles } from '../../../../test/helpers/realCoreStyles';
 
 type CoreModule = typeof import('hyperformula-ui');
 
@@ -44,6 +45,7 @@ describe('FormulaBuilder editing on a real grid', () => {
   afterEach(() => {
     hot?.destroy();
     container.remove();
+    removeRealCoreStyles();
   });
 
   /**
@@ -102,6 +104,55 @@ describe('FormulaBuilder editing on a real grid', () => {
 
       expect(adapter().beginEdit({ sheet: '', row: 1, col: 1 }, '=1+1')).toBe(true);
       expect(isEditorOpened()).toBe(true);
+    });
+
+    it('reads the value without closing its parens, and closes them on a native commit', async() => {
+      createGrid();
+      hot.selectCell(1, 1);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+
+      const formulaEditor = hot.getPlugin('formulaBuilder').getActiveEditor();
+
+      formulaEditor?.setValue('=SUM(A1');
+
+      // `getValue()` is public through `getActiveEditor()`: a plain read must not change the buffer.
+      expect(hot.getActiveEditor()?.getValue()).toBe('=SUM(A1');
+      expect(formulaEditor?.getValue()).toBe('=SUM(A1');
+
+      // A commit that does not go through the formula editor's keys (an outside click) still saves a
+      // balanced formula.
+      hot.getActiveEditor()?.finishEditing();
+      await settle();
+
+      expect(hot.getSourceDataAtCell(1, 1)).toBe('=SUM(A1)');
+    });
+
+    it('follows the edited cell when the application inserts or removes rows and columns during the edit', () => {
+      // The stub stylesheet renders two rows only; the edited cell has to stay rendered.
+      injectRealCoreStyles();
+      createGrid();
+      hot.selectCell(1, 1);
+      hot._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+
+      const plugin = hot.getPlugin('formulaBuilder');
+
+      expect(isEditorOpened()).toBe(true);
+      expect(plugin.getActiveFormulaCell()).toEqual({ row: 1, col: 1 });
+
+      hot.alter('insert_row_above', 0);
+
+      // The edited cell is B3 now; a pick on the cell now at B2 must not read as a press on it.
+      expect(isEditorOpened()).toBe(true);
+      expect(plugin.getActiveFormulaCell()).toEqual({ row: 2, col: 1 });
+
+      hot.alter('insert_col_start', 0);
+
+      expect(plugin.getActiveFormulaCell()).toEqual({ row: 2, col: 2 });
+
+      hot.alter('remove_row', 0);
+
+      expect(isEditorOpened()).toBe(true);
+      expect(plugin.getActiveFormulaCell()).toEqual({ row: 1, col: 2 });
     });
 
     it('honors a `beforeBeginEditing` veto', () => {

@@ -454,6 +454,16 @@ describe('CellPickController gesture claim', () => {
     expect(isImmediatePropagationStopped(event)).toBe(true);
   });
 
+  it('lets a pick mousedown bubble to the document, so an open menu closes', () => {
+    const { controller } = makeHarness();
+    const { event } = pressCell(controller, { row: 1, col: 2 });
+
+    // Only the grid's own flag: `cancelBubble` would keep the press from the document listener
+    // that closes a context menu or a dropdown menu.
+    expect(isImmediatePropagationStopped(event)).toBe(true);
+    expect(event.cancelBubble).toBe(false);
+  });
+
   it('does not stop a mousedown that falls through to native handling', () => {
     const { controller } = makeHarness({ refSelectionActive: false });
     const { event } = pressCell(controller, { row: 1, col: 2 });
