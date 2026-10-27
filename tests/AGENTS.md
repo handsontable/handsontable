@@ -1508,6 +1508,36 @@ best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DI
   Pixel 7 beside the iPhone 13. A record of a variant that did not apply says so (`variantApplied` in its
   detail) and carries no findings.
 
+### Focus appearance and non-text contrast
+
+`a11y/checks/focus-contrast.spec.ts`, the `focus-contrast` check: 2.4.7, 2.4.11 and 1.4.11 on every
+theme, light and dark (the dark variant is the discovery run's, `a11y/checks/variants.ts`). The spec
+captures pixels; the arithmetic and the verdicts are `lib/contrast.mjs` (tested in
+`lib/__tests__/contrast.test.mjs`). `PLAN` in the spec says which page is measured for what.
+
+- **Pixels, not computed styles.** The themes paint with translucent colors and `color-mix()`, so the
+  color a user sees is the composited pixel. A capture is a `page.screenshot()` clip decoded by the page's
+  own canvas; the device scale factor is 1, so a clip pixel is a CSS pixel. WCAG 2.2's relative luminance
+  (the 0.04045 threshold) and a strict `< 3`: 2.996:1 fails although it rounds to 3.00.
+- **A focus indicator is what changed.** The same area is captured before the focus arrives and after it
+  arrives by the keyboard (an arrow key for a cell; a key press, then the focus, for a control, which is
+  what makes `:focus-visible` match), and the changed pixels are the indicator (`indicatorChange()`).
+  Nothing changed is `focus-not-visible` (2.4.7). A ring or an outline is judged against the colors next
+  to it (`adjacentRatio`, the most common unchanged pixel), because a ring drawn over a grid line would
+  read 1.92:1 against the line and 3.08:1 against the cell beside it, and 1.4.11 asks for the second. A
+  highlight that repaints the element itself (a menu item) is judged against what it replaced. Under 3:1
+  is `focus-indicator-contrast`.
+- **Parts that identify a component or its state**: checkboxes, icons, the selection outline and the grid
+  lines, each the strongest pixel against the area's dominant color (`strongestPixel()`). A part another
+  element covers at its center, a disabled control (1.4.11 exempts it) and a part that draws nothing
+  (`isDrawn()`: an arrow under the open editor, a grid line a theme leaves out) are skipped. A grid line is
+  `moderate`: it identifies a cell only where nothing else does.
+- **2.4.11 walks the focus.** On the pages with frozen panes and bars, the keyboard moves the focus across
+  the grid and into its far corner and back; after each key 25 points of the focused cell are sampled with
+  `elementFromPoint()`. The cell sampled is the topmost copy (`getCell(row, col, true)`): a frozen row is
+  drawn by an overlay clone above the master, and sampling the master's copy read every frozen cell as
+  hidden. A cell covered at every point is `focus-obscured`.
+
 ### Adding a check
 
 Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs` (a title and the criteria it

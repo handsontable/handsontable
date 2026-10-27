@@ -163,6 +163,12 @@ export const EVIDENCE_CHECKS = Object.freeze({
     criteria: ['1.3.1', '1.3.2', '4.1.2'],
     pullRequest: true,
   },
+  'focus-contrast': {
+    title: 'Focus appearance and non-text contrast',
+    spec: 'focus-contrast.spec.ts',
+    criteria: ['1.4.11', '2.4.7', '2.4.11'],
+    pullRequest: true,
+  },
   // Triage, not evidence: its records list what axe's wider rules found and could not decide, for a
   // person or the agent grader to sort, and the conformance report cites none of them as they stand.
   'axe-discovery': {
