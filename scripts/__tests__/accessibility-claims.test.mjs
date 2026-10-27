@@ -85,19 +85,26 @@ test('the validator requires a version for a tested screen reader and rejects in
 });
 
 test('a matrix entry tested in its own browsers names them, and only a tested entry may', () => {
-  const nightly = data.matrix
-    .find(entry => entry.name === 'VoiceOver' && entry.howTested.includes('automated-nightly'));
+  const nightly = name => data.matrix
+    .find(entry => entry.name === name && entry.howTested.includes('automated-nightly'));
 
-  assert.ok(nightly, 'the VoiceOver nightly (tests/AGENTS.md, "Screen readers") is in the matrix');
-  assert.deepEqual(nightly.browsers, ['WebKit (Playwright)', 'Chromium'],
+  // tests/AGENTS.md, "Screen readers": both lanes run on the screen reader nightly, each in
+  // Playwright's own browser builds rather than the audit's Chrome and Firefox.
+  assert.deepEqual(nightly('VoiceOver')?.browsers, ['WebKit (Playwright)', 'Chromium'],
     'the VoiceOver nightly runs in Playwright\'s WebKit and Chromium, not in the audit\'s browsers');
+  assert.deepEqual(nightly('NVDA')?.browsers, ['Chromium', 'Firefox (Playwright)'],
+    'the NVDA nightly runs in Chromium and Playwright\'s Firefox, not in the audit\'s browsers');
   assert.match(matrixList(data),
     /^- VoiceOver on macOS 26, in WebKit \(Playwright\) and Chromium: automated nightly run\.$/m,
     'the list says which browsers the nightly ran in, so it never reads as the audit\'s Chrome and Firefox');
+  assert.match(matrixList(data),
+    /^- NVDA 2026\.2 on Windows Server 2025, in Chromium and Firefox \(Playwright\): automated nightly run\.$/m);
   assert.match(matrixTable(data),
     /^\| VoiceOver \| macOS 26 \| macOS \(WebKit \(Playwright\) and Chromium\) \| Automated nightly run \|$/m);
   assert.match(matrixList(data), /^- NVDA 2025\.3 on Windows 11: external audit/m,
     'an entry without browsers renders as before');
+  assert.equal(screenReadersSentence(data), 'VoiceOver (macOS and iOS) and NVDA (Windows)',
+    'a nightly on a platform family the audit already covers adds nothing to the sentence the website reads');
 
   [[], [''], 'Chromium', [3]].forEach((browsers) => {
     const broken = structuredClone(data);

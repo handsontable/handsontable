@@ -57,6 +57,13 @@
       "howTested": ["audit"]
     },
     {
+      "name": "NVDA",
+      "version": "2026.2",
+      "platform": "Windows Server 2025",
+      "browsers": ["Chromium", "Firefox (Playwright)"],
+      "howTested": ["automated-nightly"]
+    },
+    {
       "name": "JAWS",
       "version": null,
       "platform": "Windows",
