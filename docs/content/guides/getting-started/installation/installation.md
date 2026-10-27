@@ -190,7 +190,7 @@ If you're using Angular 21 or newer, please note that older versions of `@handso
 
 You can include `<hot-table>` in a template that Angular renders on the server, and the server render doesn't throw. On the server, `HotTableComponent` doesn't create a grid, so `hotInstance` stays `null` and the server HTML contains no Handsontable grid. In the browser, the component creates the grid in `ngAfterViewInit`.
 
-While Angular's event dispatch contract is active (before `ApplicationRef.whenStable()`, or for the whole app lifetime with `withIncrementalHydration()`), `event.stopImmediatePropagation()` does not stop Handsontable listeners above `body`, so a shortcut or a selection can still run. [Return `false` from `beforeKeyDown`](@/guides/navigation/custom-shortcuts/custom-shortcuts.md#block-a-keyboard-shortcut-s-actions) to block the key.
+While Angular's event dispatch contract is active, `stopImmediatePropagation()` inside a Handsontable hook does not stop Handsontable listeners above `body`. A shortcut or a selection can still run. The contract is active before `ApplicationRef.whenStable()`. With `withIncrementalHydration()`, it stays active for the whole app lifetime. [Return `false` from `beforeKeyDown`](@/guides/navigation/custom-shortcuts/custom-shortcuts.md#block-a-keyboard-shortcuts-actions) to block the key.
 
 ## Result
 
