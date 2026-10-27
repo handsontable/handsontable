@@ -1932,7 +1932,7 @@ describe('SheetsBar plugin', () => {
     expect(formulas.sheetName).toBe('Budget');
 
     loadSources.length = 0;
-    hot.updateSettings({ formulas: { engine, sheetName: 'Rates' } });
+    hot.getPlugin('sheetsBar').updateSheetSettings('Budget', { formulas: { engine, sheetName: 'Rates' } });
 
     expect(loadSources).toEqual(['Formulas.switchSheet']);
     expect(formulas.sheetName).toBe('Rates');
@@ -4954,11 +4954,15 @@ describe('SheetsBar plugin', () => {
     });
 
     hot.getPlugin('sheetsBar').addSheet('Extra');
+
+    const extra = hot.getSettings().sheetsBar.sheets[2];
+
     hot.updateSettings({
       sheetsBar: {
         sheets: [
           { name: 'A', data: dataA, settings: { readOnly: true, colWidths: [120] } },
           { name: 'B', data: dataB },
+          { name: 'Extra', data: extra.data },
         ],
       },
     });
