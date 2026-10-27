@@ -68,6 +68,7 @@ const CORNER_CELL_CLASS = 'htRowSelectionCorner';
 const CHECKBOX_ONLY_CELL_CLASS = 'htRowSelectionCheckboxOnly';
 const SELECTED_ROW_CLASS = 'htRowSelected';
 const HIDDEN_CHECKBOX_CLASS = 'htRowSelectionCheckboxHidden';
+const ROW_HEADER_CONTAINER_CLASS = 'htRowSelectionRowHeaderContainer';
 const DEFAULT_CHECKBOX_SIZE = 16;
 const DEFAULT_CELL_PADDING = 8;
 const BOUND_WRITE_SOURCE = 'RowSelection.change';
@@ -907,6 +908,10 @@ export class RowSelection extends BasePlugin {
    * Resolves the bound column (`checkboxLocation: { column }`). {@link RowSelection#getBoundColumn}
    * keeps the result until the settings, the data, or the columns change.
    *
+   * The fallback warning is skipped once the grid settings no longer turn the plugin on: an update
+   * that turns it off and drops the column renders the new columns before the plugin is disabled,
+   * and the warning would then describe a configuration that is already gone.
+   *
    * @returns {number|null}
    */
   #resolveBoundColumn(): number | null {
@@ -922,7 +927,7 @@ export class RowSelection extends BasePlugin {
 
     if (typeof visualColumn !== 'number' || visualColumn < 0 || visualColumn >= this.hot.countCols() ||
       !isCheckboxMeta(this.hot.getColumnMeta(visualColumn) as CheckboxMeta)) {
-      if (!this.#boundColumnWarningShown) {
+      if (!this.#boundColumnWarningShown && this.isEnabled()) {
         this.#boundColumnWarningShown = true;
         warn(`RowSelection: \`checkboxLocation.column\` (${String(column)}) is not a checkbox column. ` +
           'The selection falls back to the row header location.');
@@ -1350,12 +1355,17 @@ export class RowSelection extends BasePlugin {
    * Tells whether the grid is backed by a server through the DataProvider plugin. Its rows then
    * come one page at a time, and every page replaces the data.
    *
+   * The bound column is resolved last: resolving it warns when the column is not a checkbox column,
+   * and this check runs while settings and data change together (a sheet switch, an update that
+   * turns the plugin off and drops the column), when the column is not final yet. A grid without
+   * DataProvider never needs the answer.
+   *
    * @returns {boolean}
    */
   #isServerMode(): boolean {
     // A bound column keeps the selection in the data, which the server already persists.
-    return this.getBoundColumn() === null && this.hot.getPlugin('dataProvider')?.enabled === true &&
-      this.hot.runHooks('hasExternalDataSource') === true;
+    return this.hot.getPlugin('dataProvider')?.enabled === true &&
+      this.hot.runHooks('hasExternalDataSource') === true && this.getBoundColumn() === null;
   }
 
   /**
@@ -2467,16 +2477,22 @@ export class RowSelection extends BasePlugin {
   /**
    * Renders one cell of the plugin's row header column.
    *
+   * Walkontable reuses header cells across renders, so the cell may still hold core's row header
+   * (a `.relative` container with the `.rowHeader` label) or another column's content. Only a
+   * container this plugin built, marked with its own class, is kept; anything else is emptied, so
+   * no stale row number shows in this column, and core rebuilds its own label in a cell this plugin
+   * left (core's `appendRowHeader()` empties a container without `.rowHeader`).
+   *
    * @param {number|null} visualRow Visual row index.
    * @param {HTMLTableCellElement} TH The header cell.
    */
   #renderRowHeaderCell(visualRow: number | null, TH: HTMLTableCellElement) {
     let container = TH.firstChild as HTMLElement | null;
 
-    if (!container || !hasClass(container, 'relative')) {
+    if (!container || !hasClass(container, ROW_HEADER_CONTAINER_CLASS)) {
       empty(TH);
       container = this.hot.rootDocument.createElement('div');
-      container.className = 'relative';
+      container.className = `relative ${ROW_HEADER_CONTAINER_CLASS}`;
       TH.appendChild(container);
     }
 

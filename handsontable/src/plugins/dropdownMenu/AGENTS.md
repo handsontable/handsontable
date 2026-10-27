@@ -43,6 +43,14 @@ per header. The mousedown gate in `#onBeforeOnCellMouseDown` matches the button 
 Pinned by "a runtime icons remap reaches the reused header button, filters select, and select editor
 icons" in `tests/e2e/icon-elements.spec.ts`.
 
+## `aria-haspopup` is set on every header render, not only with the button
+
+Core strips every `aria-*` attribute off a column header cell on each render (`columnHeaders.ts`), and
+the button survives, so the reuse path of `#onAfterGetColHeader` sets `aria-haspopup="menu"` on the cell
+again (with `ariaTags` on). Set only where the button was created, it was gone after the first
+`render()`, `updateSettings()`, `loadData()` or sheet switch. Pinned by
+`tests/e2e/plugin-ui-teardown.spec.ts`.
+
 ## `DropdownMenuSettings` lists the keys `validateSettings()` accepts
 
 `src/settingsSchema` reads the exported `DropdownMenuSettings` interface in `dropdownMenu.ts` as the full key list of
