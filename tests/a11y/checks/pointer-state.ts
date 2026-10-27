@@ -130,7 +130,7 @@ export async function targetPoints(page: Page, root: string, id: number) {
 /**
  * The walker's grid snapshot (`walker.ts`), plus what a pointer press can change that a key press does
  * not reach: the dialog, the notifications, any popup with a role, the sheet, the page, and the checked,
- * pressed and expanded states of the controls.
+ * pressed and expanded states of the controls outside the grid's cells and headers.
  *
  * @param page The page.
  * @param root The root container selector.
@@ -165,7 +165,10 @@ export async function pointerState(page: Page, root: string): Promise<PointerSta
       popups: all('[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]').filter(shown).length,
       sheet: all('[role="tab"][aria-selected="true"]').map(tab => (tab.textContent ?? '').trim()).join('|') || null,
       pageNumber: plugin('pagination')?.getPaginationData?.()?.currentPage ?? null,
+      // The controls drawn in the grid's own cells and headers are left out: their states follow the data,
+      // the sort and the collapsed groups (read above), and a scroll redraws other rows into the same nodes.
       states: all('[aria-checked], [aria-pressed], [aria-expanded], input[type="checkbox"], input[type="radio"]')
+        .filter(el => !(container?.contains(el) && el.closest('.htCore')))
         .map(el => `${el.getAttribute('aria-checked') ?? ''}${el.getAttribute('aria-pressed') ?? ''}${el.getAttribute('aria-expanded') ?? ''}${(el as HTMLInputElement).checked ?? ''}`)
         .join(','),
     };
