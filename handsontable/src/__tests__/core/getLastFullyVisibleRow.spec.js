@@ -378,4 +378,47 @@ describe('Core.getLastFullyVisibleRow', () => {
 
     expect(mismatches).toEqual([]);
   }, 180000);
+
+  it('should let a modifyColumnHeaderHeight listener replace the auto row size header', async() => {
+    // The listener is registered after AutoRowSize, so its return replaces the ghost
+    // measurement. 50 is the border box the THEAD renders, and the band must not grow it.
+    handsontable({
+      data: createSpreadsheetData(40, 5),
+      width: 600,
+      height: 300,
+      colHeaders: true,
+      colWidths: 80,
+      autoRowSize: true,
+      modifyColumnHeaderHeight() {
+        return 50;
+      },
+    });
+
+    const thead = spec().$container.find('.ht_master table.htCore thead')[0];
+
+    expect(thead.offsetHeight).toBe(50);
+    expect(getPlugin('autoRowSize').getColumnHeaderHeight()).not.toBe(50);
+
+    const afterInit = getLastFullyVisibleRow();
+
+    await render();
+
+    expect(thead.offsetHeight).toBe(50);
+    expect(getLastFullyVisibleRow()).toBe(afterInit);
+
+    destroy();
+
+    const mismatches = await firstDrawMismatches({
+      data: createSpreadsheetData(40, 5),
+      width: 600,
+      colHeaders: true,
+      colWidths: 80,
+      autoRowSize: true,
+      modifyColumnHeaderHeight() {
+        return 50;
+      },
+    });
+
+    expect(mismatches).toEqual([]);
+  }, 180000);
 });

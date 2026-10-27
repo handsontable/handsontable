@@ -196,6 +196,27 @@ function resolveHeaderSizeSetting(
 }
 
 /**
+ * Whether the winning `modifyColumnHeaderHeight` number is AutoRowSize's ghost height.
+ *
+ * That measurement omits the bottom gridline. Any other listener returns the border box the
+ * header row is given. The hook chain keeps only the winning return, so the ghost is recognized
+ * by equality with the enabled plugin's measured height.
+ *
+ * @param {Handsontable} hot The instance whose AutoRowSize plugin measured the header.
+ * @param {*} hookHeight The winning `modifyColumnHeaderHeight` return.
+ * @returns {boolean}
+ */
+function hookHeightOmitsBottomBorder(hot: HotInstance, hookHeight: unknown): boolean {
+  if (typeof hookHeight !== 'number') {
+    return false;
+  }
+
+  const autoRowSize = hot.getPlugin('autoRowSize');
+
+  return autoRowSize?.enabled === true && hookHeight === autoRowSize.getColumnHeaderHeight();
+}
+
+/**
  * @class TableView
  * @private
  */
@@ -2234,6 +2255,7 @@ class TableView {
         const configured = resolveHeaderSizeSetting(
           this.settings.columnHeaderHeight, this, 'columnHeaderHeight'
         );
+        const hookOmitsBottomBorder = hookHeightOmitsBottomBorder(this.hot, hookHeight);
         const probe = this.renderSizeProbe.columnHeaderHeights;
         // Merge the three provided-height sources per header level: the `columnHeaderHeight` option
         // (scalar or per-level array), the `modifyColumnHeaderHeight` hook (AutoRowSize), and the
@@ -2242,12 +2264,13 @@ class TableView {
           Array.isArray(configured) ? configured.length : 0,
           probe.size ? Math.max(...probe.keys()) + 1 : 0,
         );
-        // AutoRowSize's number omits the bottom gridline. An explicit option and a winning probe
-        // already include it. Recorded for the band, not added to the value returned here.
+        // Only AutoRowSize's ghost height omits the bottom gridline. An explicit option, a winning
+        // probe, and any other `modifyColumnHeaderHeight` number already include it. Recorded for
+        // the band, not added to the value returned here.
         let omitsBottomBorder = false;
 
         if (levels === 0) {
-          omitsBottomBorder = typeof hookHeight === 'number' &&
+          omitsBottomBorder = hookOmitsBottomBorder &&
             !(typeof configured === 'number' && configured > 0);
 
           if (this._wt) {
@@ -2273,7 +2296,7 @@ class TableView {
             base = configuredAtLevel;
           } else if (typeof hookHeight === 'number') {
             base = hookHeight;
-            fromHook = true;
+            fromHook = hookOmitsBottomBorder;
           }
 
           const probeAtLevel = probe.get(level);
