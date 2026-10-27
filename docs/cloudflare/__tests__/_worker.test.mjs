@@ -296,9 +296,10 @@ test('Content-Security-Policy connect-src allows the OData service called by the
   assert.ok(connectSrc, 'expected a connect-src directive in the Content-Security-Policy header');
 
   const connectSrcSources = connectSrc.trim().split(/\s+/).slice(1); // drop the "connect-src" keyword
+  const hasSource = (source) => connectSrcSources.some((entry) => entry === source);
 
   // The recipe's examples fetch rows and autocomplete suggestions from the public Northwind service.
-  assert.ok(connectSrcSources.includes('https://services.odata.org'));
+  assert.ok(hasSource('https://services.odata.org'));
 });
 
 test('keeps versioned demo redirects on historical disabled cells slugs', async() => {
