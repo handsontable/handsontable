@@ -761,7 +761,7 @@ Four rules ride along.
   One in front of it does, so the sheet is extended to the last index it holds and the order covers the
   empty ones. The engine ends a sheet at its content and `addRows`/`addColumns` past it do not extend it,
   so the extension writes the last needed cell and clears it. That write and the order go in one
-  `engine.batch()`: one change list without the written cell, and one undo step. The sheet keeps that
+  `engine.batch()`: one change list, which shows the cleared cell as a `null` change, and one undo step. The sheet keeps that
   size when a later order moves the content back. An order that would change nothing is skipped, because
   the engine records an undo entry and clears its redo stack for every order it is handed.
 - **A reorder that moves a formula across the cell it refers to can turn the reference into `#REF!`.**

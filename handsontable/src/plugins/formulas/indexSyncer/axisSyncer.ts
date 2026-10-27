@@ -615,7 +615,8 @@ class AxisSyncer {
       setOrder();
     } else {
       // The engine ends a sheet at its content, and adding a row or column past it does not extend it.
-      // Writing the last needed cell and clearing it does, and the batch keeps that write out of the changes.
+      // Writing the last needed cell and clearing it does. The batch folds the write and the order into one
+      // change list and one undo step; the cleared cell shows in it as a `null` change.
       const lastCell = this.#axis === 'row'
         ? { sheet: sheetId, row: heldSize - 1, col: 0 }
         : { sheet: sheetId, row: 0, col: heldSize - 1 };
