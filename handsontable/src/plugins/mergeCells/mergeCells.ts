@@ -1691,15 +1691,18 @@ export class MergeCells extends BasePlugin {
    *
    * @param {CellRange} _cellRange The merged range (unused).
    * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergeParent The merged cell.
+   * @param {boolean} [auto] `true` when the plugin made the merge itself, from the `mergeCells` settings
+   * or to restore one, which describe the rows on screen.
    */
   #onAfterMergeCellsCapture = (
     _cellRange: CellRange,
-    mergeParent: { row: number, col: number, rowspan: number, colspan: number }
+    mergeParent: { row: number, col: number, rowspan: number, colspan: number },
+    auto?: boolean
   ) => {
     const merge = this.mergedCellsCollection.get(mergeParent.row, mergeParent.col);
 
     if (merge) {
-      this.#captureAnchorOf(merge);
+      this.#captureAnchorOf(merge, this.#isRowTrimmingActive(), auto !== true);
     }
   };
 
@@ -1771,13 +1774,21 @@ export class MergeCells extends BasePlugin {
    * re-deriving the physical rows from it would shrink the authoritative anchor captured earlier — the
    * previously stored `physicalRows` are kept instead. The column is never distorted by row trimming,
    * so it is always refreshed (covering column insert/remove performed while a filter is active). A
-   * merge with no anchor yet (e.g. created during an active filter) is captured from its current,
-   * visible position, which is exactly the set of rows it covers.
+   * merge with no anchor yet (e.g. created during an active filter) is captured from the rows it
+   * covers on screen. A merge a user or the API makes under a trim also owns the trimmed rows between
+   * them (see {@link MergeCells#fillTrimmedGaps}): it draws one continuous block, so an anchor that left
+   * such a row out would draw over it once the rows come back, and stop short of its own last row.
    *
    * @param {MergedCellCoords} merge The merge to capture.
    * @param {boolean} [trimmingActive] Whether row trimming is currently active (computed if omitted).
+   * @param {boolean} [takeTrimmedGaps] Whether a new anchor takes the trimmed rows between the rows the
+   * merge covers. Only a merge made at runtime does: a settings-declared area describes rows on screen.
    */
-  #captureAnchorOf(merge: MergedCellCoords, trimmingActive: boolean = this.#isRowTrimmingActive()) {
+  #captureAnchorOf(
+    merge: MergedCellCoords,
+    trimmingActive: boolean = this.#isRowTrimmingActive(),
+    takeTrimmedGaps: boolean = false
+  ) {
     const physicalColumn = this.hot.toPhysicalColumn(merge.col);
 
     if (physicalColumn === null) {
@@ -1792,11 +1803,38 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const physicalRows = this.#getDrawnPhysicalRows(merge);
+    const drawnRows = this.#getDrawnPhysicalRows(merge);
+    const physicalRows = trimmingActive && takeTrimmedGaps ? this.#fillTrimmedGaps(drawnRows) : drawnRows;
 
     if (physicalRows.length > 0) {
       this.#mergeAnchors.set(merge, { physicalRows, physicalColumn });
     }
+  }
+
+  /**
+   * Adds to the rows a merge covers on screen the trimmed rows between them. The covered rows are
+   * consecutive in the visual order, which is the row index sequence without its trimmed rows, so every
+   * row of the sequence between the first covered row and the last one is either covered or trimmed.
+   * The anchor is that stretch of the sequence, which is the order the rows take once trimming is lifted.
+   *
+   * @param {number[]} drawnRows The physical rows the merge covers on screen, in visual order.
+   * @returns {number[]} The anchor's physical rows, in visual order.
+   */
+  #fillTrimmedGaps(drawnRows: number[]): number[] {
+    if (drawnRows.length < 2) {
+      return drawnRows;
+    }
+
+    const sequence = this.hot.rowIndexMapper.getIndexesSequence();
+    const first = sequence.indexOf(drawnRows[0]);
+    const last = sequence.indexOf(drawnRows[drawnRows.length - 1]);
+
+    // Nothing sits between the covered rows, or the sequence does not hold them (not expected).
+    if (first === -1 || last <= first || last - first + 1 === drawnRows.length) {
+      return drawnRows;
+    }
+
+    return sequence.slice(first, last + 1);
   }
 
   /**
@@ -2433,7 +2471,8 @@ export class MergeCells extends BasePlugin {
    * merge up to its highest visible row lets two of them collide in the lookup matrix.
    *
    * A merge whose visible physical rows are not consecutive in the visual order (only reachable by
-   * sorting or moving rows, never by trimming alone) still spans one continuous visual block from its
+   * sorting or moving rows: the anchor of a merge made under a trim already holds the trimmed rows
+   * between its own, see {@link MergeCells#fillTrimmedGaps}) still spans one continuous visual block from its
    * first visible row, as it did before this derivation was introduced.
    */
   #reanchorMergesToVisibleRows() {
