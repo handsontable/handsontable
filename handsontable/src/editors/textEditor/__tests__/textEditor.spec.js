@@ -666,11 +666,10 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    // The cell sits behind a row header, so the editor spans the cell plus the gridline the
-    // header draws on its inline-start side - the same 1px overlap every other column has
-    // always had (#6673).
+    // The row header owns the gridline in front of the cell, and the inline-start overlay paints
+    // over it, so the editor is exactly as wide as the cell and does not reach under the header.
     expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().e2eTextEditorTextareaHeightSingleLinePx());
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('51px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
   it('should render textarea editor in specified size at cell 0, 0 when headers are selected', async() => {
@@ -684,11 +683,10 @@ describe('TextEditor', () => {
     await selectAll();
     await keyDownUp('enter');
 
-    // The cell sits behind a row header, so the editor spans the cell plus the gridline the
-    // header draws on its inline-start side - the same 1px overlap every other column has
-    // always had (#6673).
+    // The row header owns the gridline in front of the cell, and the inline-start overlay paints
+    // over it, so the editor is exactly as wide as the cell and does not reach under the header.
     expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().e2eTextEditorTextareaHeightSingleLinePx());
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('51px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
   it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', async() => {

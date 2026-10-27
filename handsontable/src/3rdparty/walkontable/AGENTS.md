@@ -1011,9 +1011,9 @@ Consequences worth knowing:
 - **Anything positioning an element over a cell must read the cell's border, not its index.** Which
   cells own an inline-start border is no longer "column 0": with row headers none of them do, and
   `htFirstDatasetColumnNotRendered` takes it off the first rendered column too. `BaseEditor#getEditedCellRect`
-  keys both the editor's width and its inline-start offset off the same computed border for exactly
-  that reason — key them off different things and the editor is a pixel wider than where it starts,
-  overhanging the next column.
+  keys both the editor's width and its inline-start offset off the same value (the computed border, or a
+  row-header previous sibling, see the next bullet) for exactly that reason — key them off different
+  things and the editor is a pixel wider than where it starts, overhanging the next column.
 - **Reading the border is not enough for anything the overlays paint over.** The shared pixel in front
   of column 0 belongs to the inline-start overlay, which is z-index 120 against the selection border
   layer's 10, so an affordance centred on that gridline is *geometrically* right and *invisible*.
@@ -1021,7 +1021,10 @@ Consequences worth knowing:
   inline-start border **or** has a row-header `th` as its previous sibling. That second test is what
   keeps a selection on column 0 visible; without it the edge lands at `rowHeaderWidth - 1` and
   disappears behind the row header. The `customBorders` specs cannot catch it — they count visible
-  elements, and the element is there, just covered.
+  elements, and the element is there, just covered. The editor holder is the second such affordance
+  (z-index 100 against 120): `BaseEditor#getEditedCellRect` applies the same row-header test, so the
+  editor of a cell behind a row header starts on the cell's own edge and is exactly as wide as the cell,
+  where an editor reaching into the shared pixel shows 1px of its 2px start border.
 
   The row axis has the same branch and a wider z-gap: `.ht_clone_top` is 160 (the corner 180) against
   the same border layer's 10. `standsBelowColumnHeader(cellElement)` in `selection/border/utils.ts` is

@@ -757,15 +757,21 @@ export class BaseEditor {
 
     const cellComputedStyle = rootWindow.getComputedStyle(TD);
     const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
-    const inlineStartBorderCompensation = Number.parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
+    const ownsInlineStartBorder = Number.parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0;
+    // The row header owns the gridline in front of its cell. That gridline is the last pixel of the
+    // inline-start overlay, which paints above the editor holder, so an editor that reached into it
+    // would show 1px of its own start border.
+    const standsBehindRowHeader = TD.previousElementSibling?.nodeName === 'TH';
+    const inlineStartBorderCompensation = ownsInlineStartBorder || standsBehindRowHeader ? 0 : 1;
 
     // The position above shifted the editor 1px towards the inline start so that it covers the
     // gridline the previous cell draws on its inline-end side. A cell that draws its OWN
     // inline-start border keeps that gridline inside its box, so there is nothing to cover and the
-    // shift is canceled here. Which cells those are is not a fixed index: with row headers the
-    // header owns the gridline and column 0 draws none (#6673), and `htFirstDatasetColumnNotRendered`
-    // takes it off the first rendered column too - so read the border rather than the index, and
-    // key it off the same value that sizes the editor below, or the two disagree by a pixel.
+    // shift is canceled here. So does a cell behind a row header: its gridline belongs to the
+    // header and is painted over the editor. Which cells those are is not a fixed index:
+    // `htFirstDatasetColumnNotRendered` takes the border off the first rendered column too - so read
+    // the DOM rather than the index, and key it off the same value that sizes the editor below, or
+    // the two disagree by a pixel.
     if (inlineStartBorderCompensation === 0) {
       inlineStartPos += 1;
     }

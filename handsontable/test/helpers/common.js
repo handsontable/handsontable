@@ -635,10 +635,11 @@ export function getInnerEditorListBox() {
  *
  * `BaseEditor#getEditedCellRect` moves the editor 1px towards the inline start whenever the edited
  * cell draws no inline-start border of its own, so that the editor covers the gridline its
- * inline-start neighbour draws. With row headers on that is EVERY cell, because the row header owns
- * the gridline in front of column 0 (#6673), and `htFirstDatasetColumnNotRendered` takes the border
- * off the first rendered column too. The rule is read off the edited cell's computed border, exactly
- * as the editor reads it, so no spec has to restate which columns it applies to.
+ * inline-start neighbour draws. `htFirstDatasetColumnNotRendered` takes the border off the first
+ * rendered column, so that column draws none. With row headers on, the row header owns the gridline
+ * in front of column 0 (#6673), but that gridline is painted over the editor, so the editor takes no
+ * shift there. The rule is read off the edited cell's computed border and its previous sibling,
+ * exactly as the editor reads them, so no spec has to restate which columns it applies to.
  *
  * The top axis is deliberately left to the caller: `getEditedCellRect` decides that one from the
  * row's position in the overlays, not from a border, so there is no single value to fold in here.
@@ -655,7 +656,9 @@ export function editorInlineStartOffset($editor) {
       'inline start only in LTR. The RTL specs mirror the offset themselves.');
   }
 
-  return $editor.offset().left + (Number.parseInt(style.borderLeftWidth, 10) > 0 ? 0 : 1);
+  const standsBehindRowHeader = TD.previousElementSibling?.nodeName === 'TH';
+
+  return $editor.offset().left + (Number.parseInt(style.borderLeftWidth, 10) > 0 || standsBehindRowHeader ? 0 : 1);
 }
 
 /**

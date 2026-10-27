@@ -16,11 +16,14 @@ describe('HandsontableEditor (RTL mode)', () => {
     // The editor spans the cell plus the gridline on the cell's inline-start side - its physical
     // right in RTL - and grows in that direction, so its left edge lines up with the cell's. When
     // the cell draws that gridline itself there is nothing to cover and the editor is exactly as
-    // wide as the cell. Read the border off the cell rather than taking it from the caller: which
-    // cells own it is not a fixed index (with row headers the header owns it, #6673).
+    // wide as the cell. A cell behind a row header gets no shift either: the header owns the
+    // gridline (#6673) and paints over the editor. Read both off the DOM rather than taking them
+    // from the caller: which cells they apply to is not a fixed index.
     const ownsInlineStartBorder = parseInt($cell.css('border-right-width'), 10) > 0;
+    const standsBehindRowHeader = cell.previousElementSibling?.nodeName === 'TH';
 
-    offset.left = offset.left - editorWidth + $cell.outerWidth() + (ownsInlineStartBorder ? 0 : 1);
+    offset.left = offset.left - editorWidth + $cell.outerWidth() +
+      (ownsInlineStartBorder || standsBehindRowHeader ? 0 : 1);
 
     return offset;
   }
