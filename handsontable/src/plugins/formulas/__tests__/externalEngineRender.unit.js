@@ -1,5 +1,5 @@
 import { HyperFormula } from 'hyperformula';
-import plPL from '../../../../node_modules/hyperformula/commonjs/i18n/languages/plPL';
+import plPL from 'hyperformula/commonjs/i18n/languages/plPL';
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { ColumnSorting } from '../../columnSorting';
