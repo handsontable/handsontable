@@ -1260,19 +1260,25 @@ export function restoreViewport(hot: HotInstance, state: ViewState, parts?: Read
 }
 
 /**
- * Opens a never-visited sheet on the configured initial page and page size, instead of the page
- * and page size the previous sheet left behind. Runs after the render batch, like
- * {@link restoreViewport}, so the page count is the arriving sheet's. With `parts` given, the page
- * is reset only when they include `pagination`.
+ * Opens a never-visited sheet on the configured initial page and page size, and scrolled to its first
+ * row and column, instead of the page, the page size, and the scroll offset the previous sheet left
+ * behind: `loadData` keeps the holder's scroll offset. Runs after the render batch, like
+ * {@link restoreViewport}, so the page count and the column widths are the arriving sheet's. With
+ * `parts` given, only the page and the scroll position those parts name are reset.
  */
 export function resetViewport(hot: HotInstance, parts?: ReadonlySet<ViewStatePart>): void {
+  const covers = toPartFilter(parts);
   const pagination = getLocalPagination(hot);
 
-  if (pagination && toPartFilter(parts)('pagination')) {
+  if (pagination && covers('pagination')) {
     applyPagination(hot, {
       page: pagination.getSetting('initialPage') as number,
       pageSize: pagination.getSetting('pageSize') as number | 'auto',
     });
+  }
+
+  if (covers('scroll')) {
+    hot.scrollViewportTo({ row: 0, col: 0, verticalSnap: 'top', horizontalSnap: 'start' });
   }
 }
 

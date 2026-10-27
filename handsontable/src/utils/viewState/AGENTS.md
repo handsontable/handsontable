@@ -34,7 +34,9 @@ pay for. A new consumer lives in a plugin.
   whole grid and clamps it on every load, so a switch through a shorter sheet moves it, and a
   selection or scroll aimed at a row on another page lands on a hidden row and does nothing. A
   never-visited sheet gets `resetViewport()` instead — the configured `initialPage` and
-  `pageSize`. Both go through the public API, so the page hooks fire on a switch that changes
+  `pageSize`, and a scroll to row 0 and column 0 with the same snaps the restore uses: `loadData`
+  keeps the holder's scroll offset, so without it a new or never-visited sheet opened at the
+  departing sheet's offset. Both go through the public API, so the page hooks fire on a switch that changes
   the page. With an external data source (`hasExternalDataSource`) the page is neither captured
   nor restored: DataProvider answers a page change with a fetch, and the result would load into
   whichever sheet is active when it resolves. After that batch `keepSelectionOnPage()` checks the
