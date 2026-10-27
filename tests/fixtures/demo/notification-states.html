@@ -37,8 +37,6 @@
     window.htAnimation = htPick('animation', { 0: false, 1: true }, '0');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
-  <!-- Planted defect (reverted in the next commit): a toast that spins forever, whatever the user prefers. -->
-  <style> @keyframes planted-spin { to { transform: rotate(360deg); } } .ht-notification__toast { animation: planted-spin 2s linear infinite; } </style>
 </head>
 <body>
   <!--
