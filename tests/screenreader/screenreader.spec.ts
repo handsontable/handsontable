@@ -101,6 +101,19 @@ const NVDA_SETTINGS = {
   virtualBuffers: { passThroughAudioIndication: false },
 };
 /**
+ * VoiceOver preferences for a reproducible transcript, merged into the bundle `@guidepup/setup install
+ * voiceover` installed. Usage hints off: VoiceOver says "You are currently on a cell, inside of a
+ * table…" a second after every move, which is about VoiceOver, not the grid, and doubled every step's
+ * time (about 10 s against 4 s). The mouse pointer no longer follows VoiceOver's cursor: with it on,
+ * an opened context menu puts VoiceOver's cursor on the menu, the pointer lands in the menu's middle,
+ * and the hover selects the item under it ("Remove column"), so every later ArrowDown started from
+ * there. A keyboard user's pointer stays where it was.
+ */
+const VOICEOVER_SETTINGS = {
+  SCRShouldOutputVOInstructions: false,
+  SCRConfigurationCursorTrackingMToVO: false,
+};
+/**
  * What `ready()` records in `entering` when the mode toggle named no mode: the run goes on, and the
  * transcript says the mode was never confirmed.
  */
@@ -268,10 +281,12 @@ function macOSVersion(): string {
  * - **Into the page**: Guidepup's `navigateToWebContent()` activates the browser, picks "web content"
  *   in VoiceOver's item chooser and interacts with it (VO-Shift-Down), so VoiceOver works inside the
  *   page and not on the browser's toolbar.
- * - **Into the grid**: the setup puts the focus on a cell, and VoiceOver's cursor follows the keyboard
- *   focus onto it. `ready()` then interacts (VO-Shift-Down) once more, the way a VoiceOver user enters
- *   a table, so every step is read from inside the grid. What VoiceOver says on the way in goes to
- *   `entering`.
+ * - **Into the grid**: Guidepup leaves VoiceOver's cursor on the first item of the page, the grid, and
+ *   `enter()` interacts with it (VO-Shift-Down), the way a VoiceOver user enters a table. The setup
+ *   then puts the focus on a cell, and VoiceOver's cursor follows the keyboard focus onto it. The
+ *   order matters: interacting once the focus is on a cell takes VoiceOver into the cell's text, and on
+ *   Chromium it then followed no focus move at all (18 of 20 steps silent in the run that tried it).
+ *   What VoiceOver says on the way in goes to `entering`.
  * - **Each step**: VoiceOver keeps its last phrase, so a step it says nothing on would read as the
  *   previous step's phrase. Every capture starts with the step boundary as the last phrase
  *   (`markStepBoundary()`), and `stripStepBoundary()` removes it from what the capture read: a
@@ -287,12 +302,11 @@ function voiceOverReader(screenReader: ScreenReaderPlaywright): Reader {
     name: `${screenReader.name} (macOS ${macOSVersion()})`,
     async enter() {
       await screenReader.navigateToWebContent();
+      await screenReader.interact({ capture: true });
     },
     async ready() {
       const entering = [...(await screenReader.spokenPhraseLog())];
 
-      await screenReader.interact({ capture: true });
-      entering.push(await screenReader.lastSpokenPhrase());
       await markStepBoundary();
       await screenReader.clearSpokenPhraseLog();
 
@@ -602,10 +616,10 @@ const scenarios = loadScenarios(SCENARIOS_DIR, { fixtures: FIXTURES });
 // One scenario at a time on a screen reader lane comes from the config: `withGuidepup` pins one worker
 // and no parallelism, because a screen reader is one per machine. The dom-echo lane drives no screen
 // reader and keeps the base config's parallelism. No serial mode on top: it would skip every scenario
-// after a red one, and re-run the scenarios that passed on a retry. NVDA starts with the settings above;
-// VoiceOver starts with the preferences bundle `@guidepup/setup install voiceover` installed.
+// after a red one, and re-run the scenarios that passed on a retry. Each screen reader starts with its
+// settings above: Guidepup starts NVDA on Windows and VoiceOver on macOS.
 screenReaderTest.use({
-  screenReaderStartOptions: { capture: true, settings: process.platform === 'win32' ? NVDA_SETTINGS : undefined },
+  screenReaderStartOptions: { capture: true, settings: process.platform === 'win32' ? NVDA_SETTINGS : VOICEOVER_SETTINGS },
 });
 
 // A scenario file that does not validate is a red test, not a skipped one: the tooling test refuses
