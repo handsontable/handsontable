@@ -131,17 +131,17 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
     });
 
     hot.alter('insert_col_end');
-    hot.columnIndexMapper.setIndexesSequence([3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([3, 0, 1, 2]);
 
     expect(hot.getData()).toEqual([
-      [null, 20, null, '10'],
-      [null, 40, null, '20'],
-      [null, 60, null, '30'],
+      [null, '10', null, 20],
+      [null, '20', null, 40],
+      [null, '30', null, 60],
     ]);
     expect(hot.getSourceData()).toEqual([
-      ['10', null, '=D1*2', null],
-      ['20', null, '=D2*2', null],
-      ['30', null, '=D3*2', null],
+      ['10', null, '=B1*2', null],
+      ['20', null, '=B2*2', null],
+      ['30', null, '=B3*2', null],
     ]);
   });
 

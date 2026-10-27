@@ -164,9 +164,7 @@ class AxisSyncer {
   #getTranslationCache(): HfTranslationCache {
     if (this.#translationCache === null) {
       const gridSequence = this.#indexMapper.getIndexesSequence();
-      const physicalIndexOfHf = this.#orderHeld || this.#indexesSequence.length > 0
-        ? this.#getHeldEngineSequence(gridSequence)
-        : gridSequence;
+      const physicalIndexOfHf = this.#orderHeld ? this.#getHeldEngineSequence(gridSequence) : gridSequence;
       const notTrimmedIndexes = this.#indexMapper.getNotTrimmedIndexes();
       const hfIndexOfPhysical: number[] = new Array<number>(physicalIndexOfHf.length);
       const visualIndexOfPhysical: number[] = new Array<number>(physicalIndexOfHf.length).fill(-1);
@@ -544,6 +542,23 @@ class AxisSyncer {
 
     const engineElements = this.#getEngineElements(sizeForAxis, targetSequence);
     const held = new Set<number>(engineElements);
+    let lastHeldPosition = -1;
+
+    targetSequence.forEach((physicalIndex, position) => {
+      if (held.has(physicalIndex)) {
+        lastHeldPosition = position;
+      }
+    });
+
+    // The grid shows these ahead of an element the engine holds, so the engine needs a row or column
+    // for each of them. They are empty: the sheet left them out because it ends at its content.
+    for (let position = 0; position < lastHeldPosition; position += 1) {
+      if (!held.has(targetSequence[position])) {
+        engineElements.push(targetSequence[position]);
+        held.add(targetSequence[position]);
+      }
+    }
+
     const rankOfEngineIndex = new Map<number, number>();
     const engineIndexOfPhysical = new Map<number, number>();
 
@@ -569,20 +584,9 @@ class AxisSyncer {
       }
     });
 
-    const leadingPositionsAreHeld = targetSequence
-      .slice(0, sizeForAxis)
-      .every(physicalIndex => held.has(physicalIndex));
-
-    if (!leadingPositionsAreHeld) {
-      if (this.#indexesSequence.length === 0) {
-        this.#indexesSequence = engineElements.slice();
-      }
-
-      return false;
-    }
-
-    const engineOrder: number[] = new Array<number>(sizeForAxis);
-    const reordered: number[] = new Array<number>(sizeForAxis);
+    const heldSize = engineElements.length;
+    const engineOrder: number[] = new Array<number>(heldSize);
+    const reordered: number[] = new Array<number>(heldSize);
 
     rankOfEngineIndex.forEach((rank, engineIndex) => {
       engineOrder[engineIndex] = rank;
@@ -599,7 +603,27 @@ class AxisSyncer {
       return true;
     }
 
-    engine[`set${toUpperCaseFirst(this.#axis)}Order`](sheetId, engineOrder);
+    const setOrder = () => {
+      engine[`set${toUpperCaseFirst(this.#axis)}Order`](sheetId, engineOrder);
+    };
+
+    if (heldSize === sizeForAxis) {
+      setOrder();
+
+      return true;
+    }
+
+    // The engine ends a sheet at its content, and adding a row or column past it does not extend it.
+    // Writing the last needed cell and clearing it does, and the batch keeps that write out of the changes.
+    const lastCell = this.#axis === 'row'
+      ? { sheet: sheetId, row: heldSize - 1, col: 0 }
+      : { sheet: sheetId, row: 0, col: heldSize - 1 };
+
+    engine.batch(() => {
+      engine.setCellContents(lastCell, 0);
+      engine.setCellContents(lastCell, null);
+      setOrder();
+    });
 
     return true;
   }

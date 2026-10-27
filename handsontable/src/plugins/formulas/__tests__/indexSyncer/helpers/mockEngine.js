@@ -72,6 +72,13 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
 
       calls.setColumnOrder.push({ sheetId, transformation });
     },
+    // Like the engine, a write past the sheet's content widens the sheet, and an empty write does not.
+    setCellContents: ({ row, col }, value) => {
+      if (value !== null) {
+        dimensions.height = Math.max(dimensions.height, row + 1);
+        dimensions.width = Math.max(dimensions.width, col + 1);
+      }
+    },
     getSheetDimensions: () => ({ ...dimensions }),
     // The syncer asks for the name to tell a sheet the host removed from the engine; this one exists.
     getSheetName: () => 'Sheet1',
