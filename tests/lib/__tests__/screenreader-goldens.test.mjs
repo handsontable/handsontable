@@ -95,3 +95,15 @@ test('every committed golden belongs to a screen reader project and its scenario
     }
   });
 });
+
+test('every screen reader project of the config has its goldens, one per scenario', () => {
+  const scenarioIds = loadScenarios(SCENARIOS_DIR).map(({ scenario }) => scenario.id).sort();
+
+  configProjects().filter(project => project !== DOM_ECHO_PROJECT).forEach((project) => {
+    const dir = path.join(GOLDENS_DIR, project);
+    const recorded = existsSync(dir) ? readdirSync(dir).map(name => name.replace(/\.json$/, '')).sort() : [];
+
+    assert.deepEqual(recorded, scenarioIds,
+      `screenreader/goldens/${project}/: a golden per scenario, recorded by the nightly's update-goldens dispatch. A new scenario or a new project lands with its goldens.`);
+  });
+});

@@ -8,7 +8,7 @@ import { ACTIONS, PRESS_PATTERN, SCENARIO_FILE_SUFFIX, loadScenarios, scenarioUr
 import { stepLines } from '../screenreader-report.mjs';
 import { SCREENREADER_MODE, SCREENREADER_MODES } from '../screenreader-transcript.mjs';
 
-// tests/AGENTS.md ("Screen readers: the NVDA and VoiceOver lanes"): a scenario is data the Windows job reads, and a
+// tests/AGENTS.md ("Screen readers: the NVDA and VoiceOver lanes"): a scenario is data the Windows and macOS jobs read, and a
 // mistake in it would surface inside a 30-minute job on the next nightly. The committed files are
 // validated here, on every pull request, against the schema the spec loads them with.
 

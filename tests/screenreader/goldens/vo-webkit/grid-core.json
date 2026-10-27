@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "scenario": "grid-core",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-10-27T09:24:04.208Z"
+  },
+  "steps": {
+    "arrow-right": "age 34",
+    "arrow-down": "age 28",
+    "arrow-left": "name bruno",
+    "arrow-up": "name alice",
+    "into-column-header": "name",
+    "back-to-cell": "name alice",
+    "into-row-header": "1",
+    "back-from-row-header": "name alice",
+    "open-editor": "alice",
+    "close-editor": "",
+    "open-context-menu": "insert row above menu item group table 1 column 18 rows",
+    "menu-arrow-down": "insert row below menu item group table 1 column 18 rows",
+    "menu-arrow-down-again": "insert column left menu item group table 1 column 18 rows",
+    "close-context-menu": "handsontable screen reader fixture web content",
+    "reselect-cell": "name alice table 4 columns",
+    "extend-range": "",
+    "extend-range-again": "",
+    "up-to-header-for-sort": "name",
+    "sort-ascending": "",
+    "sort-descending": ""
+  }
+}
