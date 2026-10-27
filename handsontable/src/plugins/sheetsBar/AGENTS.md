@@ -331,10 +331,18 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
     the original is shown, what it left with otherwise. The selection and the scroll position are reset to the
     neutral values, because the copy is a tab the user has not been on; everything else (order, sort, filters,
     hidden, trimmed and collapsed indexes, sizes, merges, freeze, page, checked rows) comes along, so the copy's
-    first visit is a restore and fires `afterSheetTabStateRestore`. The state is deep-cloned, the meta entry by
-    entry (`#cloneCellMeta`: a plain object or array value is deep-cloned, a class instance at the top level is
-    shared, because a clone would lose its prototype, and one nested inside an object value comes out as a
-    plain object). The meta is copied even when empty, so the copy does not take declared borders its original
+    first visit is a restore and fires `afterSheetTabStateRestore`. Every value is copied, but not all through
+    `deepClone()` (`#cloneViewStateParts`): the flat index arrays (`FLAT_VIEW_STATE_KEYS`) are `slice()`d and
+    the size pairs (`SIZE_PAIR_VIEW_STATE_KEYS`) copied pair by pair, because the recursive `deepClone()` over
+    arrays the length of the row count made a 100k-row duplicate about 70% slower in jsdom. A new flat number
+    array in `ViewState` belongs in that set; anything nested stays on `deepClone()`. The meta is copied entry
+    by entry (`#cloneCellMeta`: a plain object or array value is deep-cloned, a class instance at the top level
+    is shared, because a clone would lose its prototype, and one nested inside an object value comes out as a
+    plain object). A duplicate of a hidden original also takes its `updateSheetSettings()` marks
+    (`#copyRedeclaredState`: `#redeclaredParts`, `#redeclaredMerges`, `#redeclaredBorders`,
+    `#redeclaredPageSize`). Its settings are the new ones but its view state is the kept one, so without the
+    marks its first visit restored the old hidden columns, merges, borders, or page size over the new
+    settings. A new per-sheet mark set by `#dropKeptStateFor` belongs in that method too. The meta is copied even when empty, so the copy does not take declared borders its original
     no longer has. An original that was never shown has no view state, and its copy opens the way the
     original would. The copy's engine order (`#engineOrders`) is not copied: the copy has an engine sheet of
     its own, seeded with the duplicated data.

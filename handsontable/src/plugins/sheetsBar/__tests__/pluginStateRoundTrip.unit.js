@@ -106,6 +106,36 @@ describe('SheetsBar plugin state across sheet switches', () => {
       expect(hot.columnIndexMapper.isHidden(1)).toBe(false);
       expect(collapsible.getCollapsedColumns()).toEqual([]);
     });
+
+    it('expands the groups of a hidden sheet updateSheetSettings() gave new `nestedHeaders`', () => {
+      const bar = build(collapsibleSettings, [{ name: 'A', data: rows() }, { name: 'B', data: rows() }]);
+
+      hot.getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 0 });
+      bar.setActiveSheet('B');
+      bar.updateSheetSettings(idOf(bar, 'A'), {
+        nestedHeaders: [[{ label: 'H', colspan: 2 }, 'z'], ['x', 'y', 'z']],
+      });
+      bar.setActiveSheet('A');
+
+      expect(hot.columnIndexMapper.isHidden(1)).toBe(false);
+      expect(hot.getPlugin('collapsibleColumns').getCollapsedColumns()).toEqual([]);
+      expect(hot.getPlugin('nestedHeaders').getStateManager().exportCollapsedGroups()).toEqual([]);
+    });
+
+    it('expands the groups of a hidden sheet updateSheetSettings() gave new `collapsibleColumns`', () => {
+      const bar = build(collapsibleSettings, [{ name: 'A', data: rows() }, { name: 'B', data: rows() }]);
+
+      hot.getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 0 });
+      bar.setActiveSheet('B');
+      bar.updateSheetSettings(idOf(bar, 'A'), {
+        collapsibleColumns: [{ row: -2, col: 0, collapsible: true }],
+      });
+      bar.setActiveSheet('A');
+
+      expect(hot.columnIndexMapper.isHidden(1)).toBe(false);
+      expect(hot.getPlugin('collapsibleColumns').getCollapsedColumns()).toEqual([]);
+      expect(hot.getPlugin('nestedHeaders').getStateManager().exportCollapsedGroups()).toEqual([]);
+    });
   });
 
   describe('RowSelection', () => {
@@ -443,6 +473,88 @@ describe('SheetsBar plugin state across sheet switches', () => {
       bar.setActiveSheet('A');
 
       expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([2]);
+    });
+
+    it('gives a copy of a hidden sheet the `hiddenColumns` updateSheetSettings() declared while it was hidden', () => {
+      const bar = build({ colHeaders: true }, [
+        { name: 'Alpha', data: rows(), settings: { hiddenColumns: { columns: [1] } } },
+        { name: 'Beta', data: rows() },
+      ]);
+      const alphaId = idOf(bar, 'Alpha');
+
+      bar.setActiveSheet('Beta');
+      bar.updateSheetSettings(alphaId, { hiddenColumns: { columns: [0] } });
+
+      const copy = bar.duplicateSheet(alphaId);
+
+      bar.setActiveSheet(copy.id);
+
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([0]);
+
+      bar.setActiveSheet(alphaId);
+
+      expect(hot.getPlugin('hiddenColumns').getHiddenColumns()).toEqual([0]);
+    });
+
+    it('gives a copy of a hidden sheet the `mergeCells` updateSheetSettings() declared while it was hidden', () => {
+      const bar = build({ colHeaders: true }, [
+        { name: 'Alpha', data: rows(), settings: { mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }] } },
+        { name: 'Beta', data: rows() },
+      ]);
+      const alphaId = idOf(bar, 'Alpha');
+
+      bar.setActiveSheet('Beta');
+      bar.updateSheetSettings(alphaId, { mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }] });
+
+      const copy = bar.duplicateSheet(alphaId);
+
+      bar.setActiveSheet(copy.id);
+
+      expect(hot.getPlugin('mergeCells').getVisibleMergedAreas())
+        .toEqual([{ row: 1, col: 1, rowspan: 2, colspan: 2 }]);
+
+      bar.setActiveSheet(alphaId);
+
+      expect(hot.getPlugin('mergeCells').getVisibleMergedAreas())
+        .toEqual([{ row: 1, col: 1, rowspan: 2, colspan: 2 }]);
+    });
+
+    it('gives a copy of a hidden sheet the `customBorders` updateSheetSettings() declared while it was hidden', () => {
+      const border = (row, col) => [{ row, col, top: { width: 2, color: 'blue' } }];
+      const bar = build({ colHeaders: true }, [
+        { name: 'Alpha', data: rows(), settings: { customBorders: border(0, 0) } },
+        { name: 'Beta', data: rows() },
+      ]);
+      const alphaId = idOf(bar, 'Alpha');
+
+      bar.setActiveSheet('Beta');
+      bar.updateSheetSettings(alphaId, { customBorders: border(1, 1) });
+
+      const copy = bar.duplicateSheet(alphaId);
+
+      bar.setActiveSheet(copy.id);
+
+      expect(hot.getPlugin('customBorders').getBorders().map(entry => [entry.row, entry.col])).toEqual([[1, 1]]);
+    });
+
+    it('gives a copy of a hidden sheet the page size updateSheetSettings() declared while it was hidden', () => {
+      const bar = build({ colHeaders: true }, [
+        { name: 'Alpha', data: [[1], [2], [3], [4], [5]], settings: { pagination: { pageSize: 1 } } },
+        { name: 'Beta', data: rows() },
+      ]);
+      const alphaId = idOf(bar, 'Alpha');
+
+      hot.getPlugin('pagination').setPage(4);
+      bar.setActiveSheet('Beta');
+      bar.updateSheetSettings(alphaId, { pagination: { pageSize: 2 } });
+
+      const copy = bar.duplicateSheet(alphaId);
+
+      bar.setActiveSheet(copy.id);
+
+      const { currentPage, pageSize } = hot.getPlugin('pagination').getPaginationData();
+
+      expect([currentPage, pageSize]).toEqual([3, 2]);
     });
 
     it('gives a copy of a never-visited copy the cell meta of its original', () => {

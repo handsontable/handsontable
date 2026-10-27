@@ -181,6 +181,19 @@ const SELF_BASELINED_KEYS = new Set(['dataProvider', 'columnSummary', 'cell']);
 const UNFILTERED_SETTING_KEYS = new Set([PLUGIN_KEY, 'data', 'dataProvider']);
 
 /**
+ * The view-state keys that hold flat arrays of numbers, which a duplicate copies with `slice()`.
+ */
+const FLAT_VIEW_STATE_KEYS = new Set([
+  'rowSequence', 'rowHeaders', 'unsortedRowSequence', 'columnSequence', 'hiddenRows', 'hiddenColumns',
+  'trimmedRows',
+]);
+
+/**
+ * The view-state keys that hold `[physicalIndex, size]` pairs, which a duplicate copies pair by pair.
+ */
+const SIZE_PAIR_VIEW_STATE_KEYS = new Set(['colWidths', 'rowHeights']);
+
+/**
  * Keys `updateSheetSettings()` does not take: the bar itself, which a sheet cannot reconfigure, and `data`,
  * which is the sheet's `data` in the host's `sheets` array, not one of its settings.
  */
@@ -3204,9 +3217,77 @@ export class SheetsBar extends BasePlugin {
     };
 
     copy.viewState = {
-      ...deepClone(parts),
+      ...SheetsBar.#cloneViewStateParts(parts),
       ...(cellMeta ? { cellMeta: SheetsBar.#cloneCellMeta(cellMeta) } : {}),
     } as unknown as Record<string, unknown>;
+
+    if (!isOriginalShown) {
+      this.#copyRedeclaredState(original, copy);
+    }
+  }
+
+  /**
+   * Gives a duplicate of a hidden sheet the marks `updateSheetSettings()` left on its original
+   * (`#dropKeptStateFor`): the view-state parts, the merges, the borders, and the page size declared anew
+   * while the original was hidden. The copy takes the original's settings and its kept view state, so
+   * without the marks its first visit restored the kept parts over the new settings, and the copy showed
+   * what the original showed before the update.
+   *
+   * @param {object} original The hidden sheet that was duplicated.
+   * @param {object} copy The duplicate.
+   */
+  #copyRedeclaredState(original: Sheet, copy: Sheet) {
+    const parts = this.#redeclaredParts.get(original);
+
+    if (parts) {
+      this.#redeclaredParts.set(copy, new Set(parts));
+    }
+
+    if (this.#redeclaredMerges.has(original)) {
+      this.#redeclaredMerges.add(copy);
+    }
+
+    if (this.#redeclaredBorders.has(original)) {
+      this.#redeclaredBorders.add(copy);
+    }
+
+    if (this.#redeclaredPageSize.has(original)) {
+      this.#redeclaredPageSize.add(copy);
+    }
+  }
+
+  /**
+   * Copies the view-state parts for a duplicate. The index arrays hold numbers, so `slice()` copies them, and
+   * each size pair is copied on its own; only the nested parts go through `deepClone()`, which walks every
+   * item and is several times slower over arrays the length of the row count.
+   *
+   * @param {object} parts The view-state parts, without the cell meta.
+   * @returns {object}
+   */
+  static #cloneViewStateParts(parts: Record<string, unknown>): Record<string, unknown> {
+    const copy: Record<string, unknown> = {};
+
+    Object.keys(parts).forEach((key) => {
+      const value = parts[key];
+
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        return;
+      }
+
+      if (Array.isArray(value) && FLAT_VIEW_STATE_KEYS.has(key)) {
+        copy[key] = value.slice();
+
+      } else if (Array.isArray(value) && SIZE_PAIR_VIEW_STATE_KEYS.has(key)) {
+        copy[key] = (value as unknown[]).map(
+          (pair): unknown => (Array.isArray(pair) ? (pair as unknown[]).slice() : deepClone(pair)),
+        );
+
+      } else {
+        copy[key] = deepClone(value);
+      }
+    });
+
+    return copy;
   }
 
   /**
