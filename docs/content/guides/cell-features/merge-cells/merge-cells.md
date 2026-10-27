@@ -445,6 +445,15 @@ new Handsontable(container, {
 });
 ```
 
+## Column widths
+
+When the [`autoColumnSize`](@/api/options.md#autocolumnsize) option sizes the columns to their content, it measures the content of merged cells too:
+
+- A merged cell that spans one column sizes that column, like any other cell.
+- A merged cell that spans several columns widens the first visible column it spans, until the spanned columns fit the content together. When the other spanned columns are wide enough already, no column changes.
+
+A spanned column with a fixed [`width`](@/api/options.md#width) or a width you dragged keeps it, and a hidden spanned column counts as zero.
+
 ## Effect on viewport getter methods
 
 With merged cells, the rendered range extends to fit any merged cell that crosses the viewport edge. This is the same expansion that the `virtualized` option turns off. As a result, the rendered-range getters can return indexes beyond what you see on the screen:

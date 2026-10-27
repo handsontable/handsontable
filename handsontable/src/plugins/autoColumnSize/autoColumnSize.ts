@@ -11,6 +11,8 @@ import { formatCellValue } from '../../renderers/renderCell';
 import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import type { CellChange } from '../../settings';
+import type CellRange from '../../3rdparty/walkontable/src/cell/range';
+import { MergedCellsWidths, isMultiColumnMerge } from './mergedCellsWidths';
 
 Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
 
@@ -284,7 +286,10 @@ export class AutoColumnSize extends BasePlugin {
       return false;
     }
 
-    if (!cellMeta.spanned) {
+    // A merged cell that spans one column is that column's own content. One that spans several
+    // columns would make its first column as wide as the whole text, so it is left out here and
+    // `MergedCellsWidths` widens the column it is drawn from by what the spanned columns lack instead.
+    if (!cellMeta.spanned || !isMultiColumnMerge(cellMeta.colspan)) {
       // Format through the same precedence as the render path (cell-level `valueFormatter`, then
       // the renderer's own static), so the measured string matches what the renderer produces.
       cellValue = formatCellValue(
@@ -364,6 +369,33 @@ export class AutoColumnSize extends BasePlugin {
    */
   #columnSamplesCache: Map<number, ColumnSamples> = new Map();
   /**
+   * The widths that merged cells spanning several columns need from the column they are drawn in.
+   * They are kept apart from `columnWidthsMap`, which holds what a column's own cells need, so the
+   * width-determiner probe keeps comparing against that, and a demand can shrink again when a
+   * spanned column grows or the merge goes away.
+   *
+   * @type {MergedCellsWidths}
+   */
+  #mergedCellsWidths = new MergedCellsWidths({
+    getMergedAreas: () => {
+      const mergeCells = this.hot.getPlugin('mergeCells');
+
+      return mergeCells?.enabled ? mergeCells.getVisibleMergedAreas() : [];
+    },
+    isRowHidden: row => this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)),
+    isColumnHidden: column => this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(column)),
+    toPhysicalColumn: column => this.hot.toPhysicalColumn(column),
+    getColumnWidth: column => this.hot.getColWidth(column),
+    measureContentWidths: groups => this.#measureMergedCellsContent(groups),
+  });
+  /**
+   * The visual columns sampled over the whole row range since the last render began. A full rescan
+   * queued for one of them in the same render would sample the same rows again.
+   *
+   * @type {Set<number>}
+   */
+  #scannedColumns: Set<number> = new Set();
+  /**
    * The `useHeaders` option value as this plugin last applied it.
    *
    * Kept separately from the ghost table's own copy of the setting, which `#measureCellsWidth()`
@@ -436,12 +468,19 @@ export class AutoColumnSize extends BasePlugin {
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
+    this.addHook('afterMergeCells', this.#onAfterMergeChange);
+    this.addHook('afterUnmergeCells', this.#onAfterMergeChange);
+    this.addHook('afterColumnResize', this.#onAfterColumnResize);
+    this.addHook('afterUpdateData', this.#onAfterUpdateData);
     this.addHook('beforeRender', this.#onBeforeRender);
     this.addHook('modifyColWidth', (width: number, col: number) => this.getColumnWidth(col, width), -10);
     this.addHook('init', this.#onInit);
 
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexMapperCacheUpdate);
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdate);
+    // Nothing reached the merged cell widths while the plugin was off, and the measured widths that
+    // survive a disable would not change on the next render, so no other input would fit them.
+    this.#mergedCellsWidths.markStale();
 
     this.#disposeMapObserver = this.hot.columnIndexMapper
       .observeMapChange(this.columnWidthsMap, () => {
@@ -535,6 +574,7 @@ export class AutoColumnSize extends BasePlugin {
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexMapperCacheUpdate);
     this.hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdate);
     this.#cancelSweep();
+    this.#mergedCellsWidths.clear();
 
     super.disablePlugin();
 
@@ -604,7 +644,6 @@ export class AutoColumnSize extends BasePlugin {
     if (this.ghostTable.columns.length) {
       this.#updateColumnWidthsMapBasedOnGhostTable();
       this.measuredColumns = columnsRange.to + 1;
-      this.ghostTable.clean();
     }
   }
 
@@ -702,7 +741,6 @@ export class AutoColumnSize extends BasePlugin {
       if (this.ghostTable.columns.length) {
         this.#updateColumnWidthsMapBasedOnGhostTable();
         this.measuredColumns = currentColumn;
-        this.ghostTable.clean();
       }
     };
 
@@ -791,13 +829,16 @@ export class AutoColumnSize extends BasePlugin {
       const rowsRange = { from: 0, to: totalRows - 1 };
 
       fullRescanColumns.forEach((visualColumn) => {
-        this.#fillGhostTableWithSamples(visualColumn, rowsRange);
+        // A merge queues its columns for a rescan, and a full render may have sampled them
+        // already with the settled meta, earlier in the same `beforeRender`.
+        if (!this.#scannedColumns.has(visualColumn)) {
+          this.#fillGhostTableWithSamples(visualColumn, rowsRange);
+        }
       });
     }
 
     if (this.ghostTable.columns.length) {
       this.#updateColumnWidthsMapBasedOnGhostTable();
-      this.ghostTable.clean();
     }
   }
 
@@ -870,6 +911,8 @@ export class AutoColumnSize extends BasePlugin {
           this.columnWidthsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), width);
         });
       }, true);
+      this.#mergedCellsWidths.markWidthsChanged();
+      this.#fitMergedCells();
     }
   }
 
@@ -999,6 +1042,7 @@ export class AutoColumnSize extends BasePlugin {
     samples.forEach((sample, column) => {
       const physicalColumn = this.hot.toPhysicalColumn(column);
 
+      this.#scannedColumns.add(column);
       this.#addGhostTableColumn(column, sample);
       this.#columnSamplesCache.set(physicalColumn === null ? column : physicalColumn, sample);
     });
@@ -1017,17 +1061,57 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Updates the column widths map with calculated widths from the ghost table.
-   *
+   * Updates the column widths map with calculated widths from the ghost table, empties the ghost
+   * table, and then fits the merged cells again when a width changed. The fit measures through the
+   * ghost table too, so it has to run after the clean.
    */
   #updateColumnWidthsMapBasedOnGhostTable() {
     this.hot.batchExecution(() => {
       this.ghostTable.getWidths((visualColumn: number, width: number) => {
         const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
+        if (this.columnWidthsMap.getValueAtIndex(physicalColumn) !== width) {
+          this.#mergedCellsWidths.markWidthsChanged();
+        }
+
         this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
       });
     }, true);
+    this.ghostTable.clean();
+    this.#fitMergedCells();
+  }
+
+  /**
+   * Fits the widths that merged cells spanning several columns need, when anything they depend on
+   * changed since the last fit.
+   *
+   * @returns {boolean} `true` when a demand changed.
+   */
+  #fitMergedCells() {
+    const changed = this.#mergedCellsWidths.fit();
+
+    if (changed) {
+      this.hot.view?.invalidateColumnWidthCache();
+    }
+
+    return changed;
+  }
+
+  /**
+   * Measures the widest rendered text of the given cells per column, the way the samples are
+   * measured. It feeds `MergedCellsWidths` with the text of merged cells.
+   *
+   * @param {object[]} groups The visual `column` and `rows` of the cells to measure.
+   * @returns {Map<number, number>} The widths keyed by visual column index.
+   */
+  #measureMergedCellsContent(groups: Array<{ column: number, rows: number[] }>) {
+    return this.#measureCellsWidth(groups.map(({ column, rows }) => ({
+      visualColumn: column,
+      samples: this.samplesGenerator.generateSampleFromValues('col', rows.map(row => ({
+        index: row,
+        value: this.#formatProbeValue(row, column, this.hot.getDataAtCell(row, column)),
+      }))),
+    })));
   }
 
   /**
@@ -1039,6 +1123,8 @@ export class AutoColumnSize extends BasePlugin {
       // queued after this point (e.g. edits made while the asynchronous part is running)
       // accumulate again and are consumed as usual.
       this.#columnWidthsToRefresh.clear();
+      // An overwrite sweep follows a theme or style change too, which changes the merges' text width.
+      this.#mergedCellsWidths.markStale();
       this.calculateAllColumnsWidth({ from: 0, to: this.hot.countRows() - 1 }, true);
       // The synchronous part of the sweep runs inside `init`/`afterLoadData` hook cascades,
       // before other plugins re-apply their cell meta (e.g. MergeCells' `spanned`/`hidden`
@@ -1081,6 +1167,10 @@ export class AutoColumnSize extends BasePlugin {
   /**
    * Gets the calculated column width.
    *
+   * The width fits the column's own cells and, with the {@link MergeCells} plugin enabled, the merged
+   * cells drawn from the column: a merged cell that spans several columns makes this column wide
+   * enough for its content together with the other columns it spans.
+   *
    * @param {number} column Visual column index.
    * @param {number} [defaultWidth] Default column width. It will be picked up if no calculated width found.
    * @param {boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
@@ -1090,7 +1180,14 @@ export class AutoColumnSize extends BasePlugin {
     let width = defaultWidth;
 
     if (width === undefined) {
-      width = this.columnWidthsMap.getValueAtIndex<number>(this.hot.toPhysicalColumn(column));
+      const physicalColumn = this.hot.toPhysicalColumn(column);
+      const mergedCellWidth = this.#mergedCellsWidths.getWidth(physicalColumn);
+
+      width = this.columnWidthsMap.getValueAtIndex<number>(physicalColumn);
+
+      if (mergedCellWidth !== undefined) {
+        width = Math.max(width ?? 0, mergedCellWidth);
+      }
 
       if (keepMinimum && typeof width === 'number') {
         width = Math.max(width, DEFAULT_COLUMN_WIDTH);
@@ -1172,12 +1269,14 @@ export class AutoColumnSize extends BasePlugin {
         physicalColumns.forEach((physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
           this.#columnSamplesCache.delete(physicalIndex);
+          this.#mergedCellsWidths.clearColumn(physicalIndex);
         });
       }, true);
 
     } else {
       this.columnWidthsMap.clear();
       this.#columnSamplesCache.clear();
+      this.#mergedCellsWidths.clear();
     }
   }
 
@@ -1196,11 +1295,40 @@ export class AutoColumnSize extends BasePlugin {
    * width refresh queue populated by data, header, or row-set changes.
    */
   #onBeforeRender = () => {
+    this.#scannedColumns.clear();
     this.calculateVisibleColumnsWidth();
 
     if (!this.inProgress) {
       this.#refreshQueuedColumnsWidth();
     }
+
+    // A merge's text that changed without a width change (an edit of its first cell) is fitted here.
+    this.#fitMergedCells();
+  };
+
+  /**
+   * Queues a full rescan of every column a merged area covers after it is merged or unmerged. The
+   * merge changes which of the column's cells contribute a sample (its first cell, and the cells
+   * it covers), so neither the cached samples nor the width-determiner probe describe it.
+   */
+  #onAfterMergeChange = (cellRange: CellRange) => {
+    const from = cellRange.getTopStartCorner().col;
+    const to = cellRange.getBottomEndCorner().col;
+
+    if (from === null || to === null) {
+      return;
+    }
+
+    rangeEach(from, to, (visualColumn) => {
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+      if (physicalColumn !== null) {
+        this.#columnSamplesCache.delete(physicalColumn);
+      }
+
+      this.#columnWidthsToRefresh.set(visualColumn, null);
+      this.#mergedCellsWidths.markMergesChanged(visualColumn);
+    });
   };
 
   /**
@@ -1238,6 +1366,7 @@ export class AutoColumnSize extends BasePlugin {
     // not visible and no sweep runs), so a pending entry that survived a suspended render
     // can never feed the width-determiner probe with stale coordinates.
     this.#columnWidthsToRefresh.clear();
+    this.#mergedCellsWidths.markStale();
 
     if (!isFirstLoad) {
       this.recalculateAllColumnsWidth();
@@ -1258,6 +1387,10 @@ export class AutoColumnSize extends BasePlugin {
       const visualColumn = this.hot.propToCol(columnProperty);
 
       if (visualColumn === null || !Number.isInteger(visualColumn)) {
+        return;
+      }
+
+      if (this.#invalidateMergedCellText(row, visualColumn)) {
         return;
       }
 
@@ -1283,9 +1416,46 @@ export class AutoColumnSize extends BasePlugin {
    * `beforeChangeRender`, so there is no per-cell change information to refresh the samples
    * with — the render that follows falls back to full scans for the visible columns.
    */
-  #onAfterSetSourceDataAtCell = () => {
+  #onAfterSetSourceDataAtCell = (changes: CellChange[]) => {
     this.#columnSamplesCache.clear();
+
+    // UndoRedo writes its values back through this path, so an undone edit of a merge's first cell
+    // arrives here and not through `beforeChangeRender`.
+    if (this.#mergedCellsWidths.mayHaveMultiColumnMerges()) {
+      changes.forEach(([physicalRow, columnProperty]) => {
+        const visualRow = this.hot.toVisualRow(physicalRow);
+        const visualColumn = typeof columnProperty === 'function' ? null : this.hot.propToCol(columnProperty);
+
+        if (visualRow !== null && Number.isInteger(visualColumn)) {
+          this.#invalidateMergedCellText(visualRow, Number(visualColumn));
+        }
+      });
+    }
   };
+
+  /**
+   * Asks for a fit when the cell is the first cell of a merge that spans several columns. That cell
+   * contributes no sample, so neither the probe nor a rescan can see its text.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {boolean} `true` when the cell is such a first cell.
+   */
+  #invalidateMergedCellText(row: number, column: number) {
+    if (!this.#mergedCellsWidths.mayHaveMultiColumnMerges()) {
+      return false;
+    }
+
+    const cellMeta = this.hot.getCellMetaTransient(row, column);
+
+    if (cellMeta.spanned && isMultiColumnMerge(cellMeta.colspan)) {
+      this.#mergedCellsWidths.invalidateColumn(column);
+
+      return true;
+    }
+
+    return false;
+  }
 
   /**
    * Drops the cached samples of a column whose cell meta changed. Meta keys like
@@ -1293,12 +1463,14 @@ export class AutoColumnSize extends BasePlugin {
    * cached sample strings (formatted when they were sampled) would replay the previous meta
    * on the next re-measure — the next full render re-walks the column instead.
    */
-  #onAfterSetCellMeta = (_row: number, column: number) => {
+  #onAfterSetCellMeta = (row: number, column: number) => {
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     if (physicalColumn !== null) {
       this.#columnSamplesCache.delete(physicalColumn);
     }
+
+    this.#invalidateMergedCellText(row, column);
   };
 
   /**
@@ -1314,6 +1486,10 @@ export class AutoColumnSize extends BasePlugin {
 
     if (indexesSequenceChanged || trimmedIndexesChanged || hiddenIndexesChanged) {
       this.#columnSamplesCache.clear();
+
+      // A removed, trimmed, or hidden row can take a merge out of the drawn grid or bring one back,
+      // and MergeCells fires no merge hook for either.
+      this.#markMergedCellsStale();
     }
   };
 
@@ -1322,10 +1498,57 @@ export class AutoColumnSize extends BasePlugin {
    * moved) — the cache is keyed by physical column index, and a structural change would leave
    * the samples associated with the wrong columns.
    */
-  #onColumnIndexMapperCacheUpdate = (indexesChangesState: { indexesSequenceChanged: boolean }) => {
-    if (indexesChangesState.indexesSequenceChanged) {
+  #onColumnIndexMapperCacheUpdate = (indexesChangesState: {
+    indexesSequenceChanged: boolean, trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean
+  }) => {
+    const { indexesSequenceChanged, trimmedIndexesChanged, hiddenIndexesChanged } = indexesChangesState;
+
+    if (indexesSequenceChanged) {
       this.#columnSamplesCache.clear();
     }
+
+    // The demands are keyed by physical column, read the widths of the other spanned columns, and land
+    // on the first visible column of the span, so a moved, inserted, removed, hidden, or trimmed column
+    // invalidates them. They are fitted again on the next render, after MergeCells has moved its merges.
+    if (indexesSequenceChanged || trimmedIndexesChanged || hiddenIndexesChanged) {
+      this.#markMergedCellsStale();
+    }
+  };
+
+  /**
+   * Marks the merged cell widths stale while MergeCells is enabled. It does not ask whether merges
+   * exist, because a change that brings rows or columns back can bring back merges the last fit
+   * did not see.
+   */
+  #markMergedCellsStale() {
+    if (this.hot.getPlugin('mergeCells')?.enabled) {
+      this.#mergedCellsWidths.markStale();
+    }
+  }
+
+  /**
+   * Fits the merged cells again after a column was resized by hand, since a merge's demand reads
+   * the widths of the columns it spans. The resize gesture renders before it fires this hook, so a
+   * demand that moved needs a render of its own.
+   */
+  #onAfterColumnResize = () => {
+    if (!this.#mergedCellsWidths.mayHaveMultiColumnMerges()) {
+      return;
+    }
+
+    this.#mergedCellsWidths.markWidthsChanged();
+
+    if (this.#fitMergedCells()) {
+      this.hot.render();
+    }
+  };
+
+  /**
+   * Fits every merged cell again after `updateData()` replaced the data, which keeps the merges
+   * but may change their text.
+   */
+  #onAfterUpdateData = () => {
+    this.#markMergedCellsStale();
   };
 
   /**
@@ -1389,14 +1612,18 @@ export class AutoColumnSize extends BasePlugin {
         return;
       }
 
+      const visualRow = Number.isInteger(physicalRow) ? this.hot.toVisualRow(physicalRow) : null;
+
+      if (visualRow !== null && this.#invalidateMergedCellText(visualRow, visualColumn)) {
+        return;
+      }
+
       const entry = this.#columnWidthsToRefresh.get(visualColumn);
 
       // The column is already queued for a full rescan.
       if (entry === null) {
         return;
       }
-
-      const visualRow = Number.isInteger(physicalRow) ? this.hot.toVisualRow(physicalRow) : null;
 
       // Without an addressable row the probe cannot measure the changed cell — fall back to
       // a full column rescan.
