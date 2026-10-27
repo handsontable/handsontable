@@ -2286,6 +2286,8 @@ export class Formulas extends BasePlugin {
 
     this.#restorePeerRewrites(state, context);
 
+    // Deliberately not in a `finally`: after a half-applied restore, lines still to be filled look unused,
+    // and a throw here would mask the original error.
     if (isStructureChanged && state.sheetSize !== null) {
       this.rowAxisSyncer!.trimUnusedTail(state.sheetSize.height);
       this.columnAxisSyncer!.trimUnusedTail(state.sheetSize.width);

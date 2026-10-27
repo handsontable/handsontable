@@ -127,6 +127,11 @@ The trim takes away only what the step added:
   `isCellEmpty()`. The trim runs after `#restorePeerRewrites()` because a peer's formula still names the
   shifted line before that. The scan starts at the last line and stops at the first used one, so a sheet
   without a leak pays one line's check.
+- **The trim runs outside `#writeOwnSheet()` on purpose.** Removing lines nothing reads changes no value, so
+  the engine emits no `valuesUpdated` for it and nothing is repainted (measured: the same render count on the
+  grid and on a second grid, with and without the trim). It is not in a `finally`: a half-applied restore
+  leaves lines still to be filled that look unused, and a throw there would mask the original error. If a
+  future engine version makes the removal emit, wrap it in the axis syncer's `getOwnEngineWrite()`.
 - **Known limit: a whole-column or whole-row reference (`SUM(A:A)`, `SUM(1:1)`) is never trimmed.** It
   depends on every cell of its column or row, so no line is unused and the sheet grows by one line per
   insert and undo, exactly as on develop. Pinned as such in `__tests__/insertUndoEngineSize.unit.js`;

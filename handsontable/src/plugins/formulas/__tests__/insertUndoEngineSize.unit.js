@@ -242,6 +242,44 @@ describe('Formulas: an insert followed by an undo', () => {
     });
   });
 
+  describe('with a second grid on the same engine', () => {
+    it('should not repaint another grid on the engine or emit a second value update when the row is given back', () => {
+      const otherContainer = document.createElement('div');
+      let otherRenders = 0;
+      let valueUpdates = 0;
+
+      document.body.appendChild(otherContainer);
+      hot = new Handsontable(container, {
+        data: [[10, '=A1*2'], [20, '=A2*2'], [null, null], [null, null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+        undoRedo: true,
+        licenseKey: LICENSE_KEY,
+      });
+
+      const other = new Handsontable(otherContainer, {
+        data: [['=Sheet1!A1', 2]],
+        formulas: { engine, sheetName: 'Sheet2' },
+        afterRender: () => { otherRenders += 1; },
+        licenseKey: LICENSE_KEY,
+      });
+
+      hot.alter('insert_row_above', 1);
+      engine.on('valuesUpdated', () => { valueUpdates += 1; });
+      otherRenders = 0;
+
+      expect(dimensions().height).toBe(3);
+
+      undo();
+
+      expect(dimensions().height).toBe(2);
+      expect(valueUpdates).toBe(1);
+      expect(otherRenders).toBe(0);
+
+      other.destroy();
+      otherContainer.remove();
+    });
+  });
+
   describe('with a formula that reads a whole column or row (known limit)', () => {
     const CYCLES_PINNED = 5;
 
