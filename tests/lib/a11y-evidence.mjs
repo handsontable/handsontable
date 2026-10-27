@@ -140,13 +140,43 @@ export const WCAG_CRITERIA = Object.freeze({
 });
 
 /**
- * The checks this tier runs: one Playwright project each, named by the key. `criteria` is what the
- * check evidences, and what the conformance report generator cites it for; a finding may name a
- * criterion outside the list when the measurement shows it (a focus stop with no name is a 4.1.2
+ * The checks this tier runs: one Playwright project each, named by the key, running `spec` under
+ * `a11y/checks/` (`playwright.a11y-checks.config.ts` builds its projects from this list). `criteria` is
+ * what the check evidences, and what the conformance report generator cites it for; a finding may name
+ * a criterion outside the list when the measurement shows it (a focus stop with no name is a 4.1.2
  * fact the keyboard walker sees), but a target counts as evaluating only the check's own criteria
- * unless it says otherwise. Each pull request that adds a check adds its entry.
+ * unless it says otherwise. `pullRequest` says whether the check also runs on pull requests next to
+ * the axe scan, which a check earns by finishing in under two minutes; every check runs in the A11y
+ * nightly. Each pull request that adds a check adds its entry.
  */
-export const EVIDENCE_CHECKS = Object.freeze({});
+export const EVIDENCE_CHECKS = Object.freeze({
+  'keyboard-walker': {
+    title: 'Keyboard walker',
+    spec: 'keyboard-walker.spec.ts',
+    criteria: ['2.1.1', '2.1.2', '2.1.4', '2.4.3', '3.2.1', '3.2.2'],
+    pullRequest: true,
+  },
+});
+/**
+ * Which checks a run covers: `pull-request` (the checks with `pullRequest`, next to the axe scan) or
+ * `nightly` (every check). Read from `HOT_A11Y_CHECKS_SUITE`; a run without it covers every check.
+ */
+export const CHECK_SUITES = ['pull-request', 'nightly'];
+
+/**
+ * The checks a suite runs.
+ *
+ * @param {string|undefined} suite The suite (`HOT_A11Y_CHECKS_SUITE`); empty or unset means every check.
+ * @param {Record<string, {pullRequest?: boolean}>} [checks] The registry; defaults to `EVIDENCE_CHECKS`.
+ * @returns {string[]} The check ids, in registry order.
+ */
+export function checksForSuite(suite, checks = EVIDENCE_CHECKS) {
+  if (suite !== undefined && suite !== '' && !CHECK_SUITES.includes(suite)) {
+    throw new Error(`HOT_A11Y_CHECKS_SUITE must be one of ${CHECK_SUITES.join(', ')}, received "${suite}".`);
+  }
+
+  return Object.entries(checks).filter(([, check]) => suite !== 'pull-request' || check.pullRequest === true).map(([id]) => id);
+}
 
 /**
  * A criterion's name and level, or `null` for an id WCAG 2.2 does not have.
@@ -249,6 +279,9 @@ export function validatePart(part) {
   if (part.criteria !== undefined) {
     problems.push(...criteriaProblems(part.criteria, 'criteria'));
   }
+  if (part.problems !== undefined && (!Array.isArray(part.problems) || part.problems.some(item => typeof item !== 'string'))) {
+    problems.push('problems is not an array of strings');
+  }
   if (!Array.isArray(part.findings)) {
     problems.push('findings is not an array');
   } else {
@@ -307,6 +340,13 @@ export function mergeEvidence({ check, parts, failures = [], run = {}, problems 
     detail: part.detail === undefined ? null : `${check}/${targetFileName(part.target)}`,
   }));
 
+  // A test can measure its target and still hit a tooling problem on one of its steps (a probe whose
+  // setup never came); it reports the step as a problem and keeps its findings.
+  for (const part of valid) {
+    for (const problem of part.problems ?? []) {
+      all.push(`${describeTarget(part.target)}: ${problem}`);
+    }
+  }
   for (const failure of failures.filter(item => !item.flaky)) {
     targets.push({
       page: failure.target?.page ?? null,

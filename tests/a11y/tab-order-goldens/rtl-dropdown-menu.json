@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "page": "rtl-dropdown-menu",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "portal",
+        "role": "menuitem",
+        "name": "Insert column left"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "C1",
+        "cell": [
+          0,
+          2
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "D1",
+        "cell": [
+          0,
+          3
+        ]
+      },
+      {
+        "region": "end"
+      }
+    ]
+  }
+}

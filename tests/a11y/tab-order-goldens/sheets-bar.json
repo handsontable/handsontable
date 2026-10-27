@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "page": "sheets-bar",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "A1",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "A2",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Add sheet"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "All sheets"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Alpha"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Beta"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Gamma"
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Gamma"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Beta"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Alpha"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "All sheets"
+      },
+      {
+        "region": "grid",
+        "role": "button",
+        "name": "Add sheet"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "A2",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "A1",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}

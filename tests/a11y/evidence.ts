@@ -93,9 +93,11 @@ export async function readEnvironment(page: Page): Promise<EvidenceEnvironment> 
  * @param part.findings The findings; an empty list is evidence that nothing was found.
  * @param part.criteria The criteria this target evaluated, when it is fewer than the check's.
  * @param part.detail Everything measured, written to the target's detail file beside the document.
+ * @param part.problems Steps the test could not take (a probe whose setup never came): tooling problems
+ *   the document lists, while the findings of the steps that ran are kept.
  */
 export async function attachEvidence(testInfo: TestInfo, {
-  target, startedAt, environment, findings, criteria, detail,
+  target, startedAt, environment, findings, criteria, detail, problems,
 }: {
   target: EvidenceTarget;
   startedAt: number;
@@ -103,6 +105,7 @@ export async function attachEvidence(testInfo: TestInfo, {
   findings: EvidenceFinding[];
   criteria?: string[];
   detail?: unknown;
+  problems?: string[];
 }): Promise<void> {
   const part = {
     schema: EVIDENCE_SCHEMA,
@@ -111,6 +114,7 @@ export async function attachEvidence(testInfo: TestInfo, {
     environment,
     ...(criteria ? { criteria } : {}),
     findings,
+    ...(problems && problems.length > 0 ? { problems } : {}),
     ...(detail === undefined ? {} : { detail }),
   };
   const file = testInfo.outputPath('evidence.json');

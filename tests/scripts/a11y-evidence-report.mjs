@@ -10,8 +10,9 @@
  * `.github/workflows/a11y.yml`, with `continue-on-error`. `--dry-run` prints the payloads instead and
  * needs no token. A check run is never a failure: the checks are report-only.
  *
- * Environment: `A11Y_CHECKS` (the checks the job ran, comma-separated: one that left no document gets a
- * neutral tooling check run instead of none), `A11Y_EVIDENCE_URL` (the uploaded evidence artifact),
+ * Environment: `HOT_A11Y_CHECKS_SUITE` (the suite the job ran: a check of it that left no document gets a
+ * neutral tooling check run instead of none; `A11Y_CHECKS`, comma-separated, names the checks instead),
+ * `A11Y_EVIDENCE_URL` (the uploaded evidence artifact),
  * and for the post `GITHUB_TOKEN` (with `checks: write`), `GITHUB_REPOSITORY` and `A11Y_HEAD_SHA` (the
  * pull request's head on a pull request, `github.sha` otherwise), plus the optional `GITHUB_API_URL`,
  * `GITHUB_SERVER_URL` and `GITHUB_RUN_ID`.
@@ -20,7 +21,7 @@ import { appendFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pageLines } from '../lib/a11y-check-run.mjs';
-import { buildEvidenceCheckRun, renderEvidenceSummary, validateEvidence } from '../lib/a11y-evidence.mjs';
+import { buildEvidenceCheckRun, checksForSuite, renderEvidenceSummary, validateEvidence } from '../lib/a11y-evidence.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -37,7 +38,10 @@ const artifactUrl = env.A11Y_EVIDENCE_URL || undefined;
 const pages = pageLines(readFileSync(path.join(TESTS_ROOT, 'a11y/pages.mjs'), 'utf8'));
 // Playwright keeps its own `.last-run.json` in the same folder; a check's document never starts with a dot.
 const files = existsSync(OUTPUT_DIR) ? readdirSync(OUTPUT_DIR).filter(name => name.endsWith('.json') && !name.startsWith('.')).sort() : [];
-const expected = (env.A11Y_CHECKS ?? '').split(',').map(name => name.trim()).filter(Boolean);
+// The checks the run covered: `A11Y_CHECKS` when given, otherwise the suite's (`HOT_A11Y_CHECKS_SUITE`).
+const expected = env.A11Y_CHECKS
+  ? env.A11Y_CHECKS.split(',').map(name => name.trim()).filter(Boolean)
+  : checksForSuite(env.HOT_A11Y_CHECKS_SUITE);
 const reports = files.map((name) => {
   const check = name.slice(0, -'.json'.length);
 

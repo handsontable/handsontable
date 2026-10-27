@@ -26,6 +26,7 @@ npm run test:types                 # TypeScript type checking only
 # New Playwright E2E (from the repo root):
 cd tests && npm test               # Playwright functional E2E (visual regression is the separate visual-tests/ package)
 cd tests && npm run test:a11y      # axe-core scan over the curated fixture pages, three themes, compared with tests/a11y/axe-baseline.json
+cd tests && npm run test:a11y-checks  # the accessibility checks beyond axe (keyboard walker, ...): one evidence document per check
 
 # From monorepo root (npm --prefix):
 npm --prefix handsontable run test:unit
@@ -599,6 +600,8 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Framework: Playwright, over the same catalog pages and keyboard-reached states as the axe scan (`tests/a11y/harness.ts`), one project per check
 - Location: `tests/a11y/checks/` (the specs), `tests/a11y/evidence.ts` (what a test declares and attaches); the evidence shape, the WCAG 2.2 criteria table, the summary and the check run are `tests/lib/a11y-evidence.mjs`, the reporter `tests/reporters/a11y-checks.ts`
 - Output: one evidence document per check, `tests/test-results/a11y-checks/<check>.json`, that the conformance report generator cites per criterion (the targets each criterion was evaluated on, and the findings against it), plus a detail file per target
+- CI: the `checks` job of `A11y` beside the axe scan (the checks that finish in under two minutes) and the `A11y nightly` (every check, evidence kept 30 days)
+- Checks: the keyboard walker (`keyboard-walker`: Tab walks with traps, focus order, Escape out of popups, the APG grid keys, every documented shortcut from `tests/a11y/checks/keyboard-shortcuts.mjs`, character keys, focus and input context changes; tab-order goldens in `tests/a11y/tab-order-goldens/`)
 - Report-only: a finding is a summary row, an annotation and a neutral `A11y / <check> report` check run, never a red job or a `failure` check run; a test fails for tooling only, and a flaky check is a finding against the check. Product findings are recorded, never fixed in the check's change. How to add a check: `tests/AGENTS.md` → "A11y: the checks beyond axe"
 
 **Screen reader lane (NVDA, through Guidepup):**

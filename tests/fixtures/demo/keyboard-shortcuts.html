@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Keyboard shortcuts a11y fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // `?scheme=dark` adds the theme's dark class (`ht-theme-<theme>-dark`), which the theme stylesheet
+    // already carries; the default is the light scheme. An unknown value throws, like the theme's.
+    window.htScheme = ({ light: '', dark: '-dark' })[htParams.get('scheme') ?? 'light'];
+    if (window.htScheme === undefined) {
+      throw new Error('Unknown ?scheme= value: ' + JSON.stringify(htParams.get('scheme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; } </style>
+</head>
+<body>
+  <!--
+    The keyboard walker's probe page (tests/a11y/checks/keyboard-walker.spec.ts): one grid with every
+    plugin whose documented shortcut the walker presses here, so each row of the keyboard shortcuts guide
+    is tried on a grid that has the feature on. 60 rows by 12 columns, so Page Up, Page Down and the
+    jumps to an edge move the selection and scroll; row 1 column 1 carries a comment. The walker also
+    counts copies, cuts and pastes (`window.__a11yClipboard`) and opened links (`window.__a11yLinks`).
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}${window.htScheme}`;
+    window.__a11yClipboard = 0;
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: Handsontable.helper.createSpreadsheetData(60, 12),
+        colHeaders: true,
+        rowHeaders: true,
+        height: 360,
+        width: 720,
+        navigableHeaders: true,
+        contextMenu: true,
+        dropdownMenu: true,
+        filters: true,
+        multiColumnSorting: true,
+        comments: true,
+        mergeCells: true,
+        undo: true,
+        cell: [{ row: 1, col: 1, comment: { value: 'A note on B2' } }],
+        afterCopy: () => { window.__a11yClipboard += 1; },
+        afterCut: () => { window.__a11yClipboard += 1; },
+        afterPaste: () => { window.__a11yClipboard += 1; },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    } catch (error) {
+      window.htBuildError = String(error && error.message);
+    }
+  </script>
+</body>
+</html>

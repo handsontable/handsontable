@@ -1362,6 +1362,88 @@ to its own file. `scripts/a11y-evidence-report.mjs` reads the documents and writ
 or posts one check run per check with `--check-run` (`--dry-run` prints the payloads); a check the job
 ran that left no document (`A11Y_CHECKS`) gets a neutral tooling check run instead of none.
 
+- **Where they run.** `a11y.yml` has a second job, `checks`, beside `axe`: the same Playwright
+  container and UMD artifact, `continue-on-error` on the job and on its run step, and one
+  `A11y / <check> report` check run per check on the pull request's head commit (behind the canonical
+  fork guard). `HOT_A11Y_CHECKS_SUITE` picks the checks: a pull request runs the ones with
+  `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two minutes), and the
+  `A11y nightly` (`a11y-nightly.yml`, weeknights on develop, and a dispatch from any branch) runs them
+  all with `nightly: true`. The evidence goes up as `a11y-checks-evidence`, outside the
+  `playwright-report-*` glob the flake ledger reads, for 30 days from the nightly (what the report
+  cites) and 7 from a pull request. `EVIDENCE_CHECKS` is the one list: the config builds its projects
+  from it (`checksForSuite()`), and the report script posts a neutral tooling check run for a check of
+  the suite that left no document. Locally: `npm --prefix tests run test:a11y-checks`, every check, or
+  `-- --project=<check>`; the reporter writes the documents only when the config's reporters run, so do
+  not pass `--reporter` on the command line.
+
+### The keyboard walker
+
+`a11y/checks/keyboard-walker.spec.ts`, the `keyboard-walker` check: 2.1.1, 2.1.2, 2.1.4, 2.4.3, 3.2.1
+and 3.2.2, measured with real keys. The browser half records (`a11y/checks/walker.ts`), the pure half
+judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test.mjs`).
+
+- **Every catalog page, on the main theme.** A theme is CSS: it moves no tab stop and changes no key,
+  so the walker runs each page of `a11y/pages.mjs` once, in its state, on `main`. The dark and
+  right-to-left pages are in the catalog already.
+- **A walk covers the grid and nothing else.** A focusable sentinel goes right before and right after the
+  grid's root container, and a walk presses Tab from the first until the focus reaches the second
+  (Shift+Tab back). The fixture page's own buttons are not the product and are never walked. Each stop
+  records its region (`grid`, `portal`, a sentinel, `outside`, or `body` when the focus left the
+  document), the role and name Chromium's accessibility tree gives the focused element (read over CDP
+  with `Accessibility.getPartialAXTree`, because the DOM cannot say what a screen reader gets), and its
+  cell. **A stop is keyed by its cell, never by its element**: Walkontable reuses a `<td>` for another
+  cell after a scroll, so keying by element would read a scroll as a cycle.
+- **A trap is a walk that never gets out, and a long walk is not a trap.** With `tabNavigation` (the
+  default) every cell is a tab stop and Tab leaves the grid from a row's last cell; with `autoWrapRow`
+  Tab wraps rows and leaves from the last cell of the grid, so a walk can run out of presses (the
+  column count plus 40) with nothing wrong. The walker then tries the way out the shortcut guide
+  documents, Ctrl+End then Tab (Ctrl+Home then Shift+Tab back): a walk that gets out that way is an
+  advisory `tab-walk-needs-shortcut`, one that does not is a `keyboard-trap`. A modal dialog holds the
+  focus by design: a cycle inside one is a trap only when neither Escape nor a button in it lets the
+  keyboard out, and a Tab that walks out of an open modal to the content behind it is a
+  `focus-leaves-modal` finding.
+- **A popup is judged by Escape.** On a menu, an editor or the comment editor, Escape (pressed up to three
+  times: a submenu takes two) must close it and give the focus back to the cell it opened on. Then the
+  popup opens again and Tab walks inside it, judged per stop. A focus that lands on `body` after the
+  popup closed is `focus-not-returned`: the grid often still listens, so the next arrow key brings the
+  focus back, but a screen reader has nothing focused until then.
+- **Per stop:** a product stop the accessibility tree gives no role is `focus-stop-without-role`, one whose
+  role needs a name (a button, a menu item, a text field, a header) and has none is
+  `focus-stop-unnamed` (both 4.1.2: the walker sees them, the tree snapshots own the criterion); a grid
+  cell needs no name, because an empty cell's empty name is its value. A press that also opened a menu,
+  a dialog or an editor, or navigated, is `context-change-on-focus` (3.2.1). Every form control a walk
+  stopped on then gets an input (Space, ArrowDown, a letter), and an input that navigates, opens a popup
+  or moves the focus away is `context-change-on-input` (3.2.2).
+- **The APG grid keys** (arrows, Home, End, Page Up, Page Down, Ctrl+Home, Enter, F2, Escape) are pressed
+  on every grid at rest, each from the page's cell. A key that moves the focus out of the grid is a
+  finding; one that does nothing is advisory, because an edge cell, a frozen band or a hidden column can
+  make that right. A key the start cell is already at the edge for is skipped, and so are Enter and F2
+  on a cell that is read-only, has no editor, or is a checkbox (which toggles instead).
+- **Every documented shortcut is accounted for.** `a11y/checks/keyboard-shortcuts.mjs` has one entry per
+  row of the keyboard shortcuts guide, by section, Windows keys and ordinal (what `parseShortcutTables()`
+  reads from the page): a `probe` (the page, where the focus starts, the steps before, the keys, the
+  effect the guide describes) or a `notProbed` reason. The tooling test fails on a documented row with no
+  entry and on an entry whose row is gone, so a shortcut added to the guide is probed, or its reason
+  written, in the same change. The probes run on `fixtures/demo/keyboard-shortcuts.html` (one grid with
+  menus, filters, comments, merging, undo, clipboard, multi-column sorting and navigable headers) or on
+  the catalog page that draws the feature. The verdict compares two snapshots of the grid
+  (`effectsBetween()`): nothing changed is `shortcut-does-nothing` (2.1.1), the focus leaving the grid is
+  `shortcut-moves-focus-out` (2.4.3), another effect is advisory. **Every probe starts from the page as it
+  loaded**: a probe that changed the data, the merges, the sort, the filters, the collapsed groups, the
+  frozen counts or the row selection makes the walker load the page again, because a cleared cell or a
+  collapsed row made the next probe report a shortcut as dead. Write a probe from a cell the key can
+  move from (the start cell of an arrow is not on the edge it moves toward), and read the fixture first:
+  a read-only cell, a list that keeps the focus on its input (`aria-activedescendant`, which the
+  snapshot counts as a move), a freeze bar that takes one arrow axis only.
+- **2.1.4 is measured, not assumed.** With the focus on the sentinel outside the grid, printable keys must
+  change nothing; and a documented shortcut that is a single character with no modifier
+  (`singleCharacterShortcuts()`; none today) is listed as advisory, because it must work only while the
+  grid has the focus.
+- **The tab order has goldens, advisory.** `a11y/tab-order-goldens/<page>.json` holds every walk's stops as
+  a reviewer reads them (region, role, name, cell). A difference is `tab-order-changed` (advisory, 2.4.3),
+  a page without one `tab-order-golden-missing`. Record them with `HOT_A11Y_UPDATE_GOLDENS=1` and read
+  the diff before committing: a golden pins what the grid does, findings included.
+
 ### Adding a check
 
 Add its entry to `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs` (a title and the criteria it

@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "page": "auto-link",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "https://example.com/one",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "https://example.com/optout",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "go https://example.com/marked",
+        "cell": [
+          0,
+          2
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "user link",
+        "cell": [
+          0,
+          3
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "https://example.com/memo",
+        "cell": [
+          0,
+          4
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "HF label",
+        "cell": [
+          0,
+          5
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "https://example.com/whole",
+        "cell": [
+          0,
+          6
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "google.com",
+        "cell": [
+          0,
+          7
+        ]
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "google.com",
+        "cell": [
+          0,
+          7
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "https://example.com/whole",
+        "cell": [
+          0,
+          6
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "HF label",
+        "cell": [
+          0,
+          5
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "https://example.com/memo",
+        "cell": [
+          0,
+          4
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "user link",
+        "cell": [
+          0,
+          3
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "go https://example.com/marked",
+        "cell": [
+          0,
+          2
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "https://example.com/optout",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "https://example.com/one",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}

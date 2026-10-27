@@ -1,0 +1,303 @@
+{
+  "schema": 1,
+  "page": "freeze-bar",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "A1",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "B1",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "C1",
+        "cell": [
+          0,
+          2
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "D1",
+        "cell": [
+          0,
+          3
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "E1",
+        "cell": [
+          0,
+          4
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "F1",
+        "cell": [
+          0,
+          5
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "G1",
+        "cell": [
+          0,
+          6
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "H1",
+        "cell": [
+          0,
+          7
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "I1",
+        "cell": [
+          0,
+          8
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "J1",
+        "cell": [
+          0,
+          9
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "K1",
+        "cell": [
+          0,
+          10
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "L1",
+        "cell": [
+          0,
+          11
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "M1",
+        "cell": [
+          0,
+          12
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "N1",
+        "cell": [
+          0,
+          13
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "O1",
+        "cell": [
+          0,
+          14
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "separator",
+        "name": "Frozen columns at the start"
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "separator",
+        "name": "Frozen columns at the start"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "O1",
+        "cell": [
+          0,
+          14
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "N1",
+        "cell": [
+          0,
+          13
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "M1",
+        "cell": [
+          0,
+          12
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "L1",
+        "cell": [
+          0,
+          11
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "K1",
+        "cell": [
+          0,
+          10
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "J1",
+        "cell": [
+          0,
+          9
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "I1",
+        "cell": [
+          0,
+          8
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "H1",
+        "cell": [
+          0,
+          7
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "G1",
+        "cell": [
+          0,
+          6
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "F1",
+        "cell": [
+          0,
+          5
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "E1",
+        "cell": [
+          0,
+          4
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "D1",
+        "cell": [
+          0,
+          3
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "C1",
+        "cell": [
+          0,
+          2
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "B1",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "A1",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}

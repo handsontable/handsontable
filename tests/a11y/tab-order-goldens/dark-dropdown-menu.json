@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "page": "dark-dropdown-menu",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "portal",
+        "role": "menuitem",
+        "name": "Insert column left"
+      },
+      {
+        "region": "portal",
+        "role": "listbox",
+        "name": ""
+      },
+      {
+        "region": "portal",
+        "role": "textbox",
+        "name": "Search"
+      },
+      {
+        "region": "portal",
+        "role": "button",
+        "name": "Select all"
+      },
+      {
+        "region": "portal",
+        "role": "button",
+        "name": "Clear"
+      },
+      {
+        "region": "portal",
+        "role": "button",
+        "name": "OK"
+      },
+      {
+        "region": "portal",
+        "role": "button",
+        "name": "Cancel"
+      },
+      {
+        "region": "portal",
+        "role": "menuitem",
+        "name": "Insert column left"
+      }
+    ]
+  }
+}
