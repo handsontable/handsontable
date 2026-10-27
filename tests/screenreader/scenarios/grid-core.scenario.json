@@ -1,0 +1,346 @@
+{
+  "schema": 1,
+  "id": "grid-core",
+  "surface": "The grid body and its headers, the cell editor, the context menu, a range and a sort, through the keyboard alone.",
+  "fixture": "screenreader-grid.html",
+  "setup": [
+    {
+      "selectCell": [
+        0,
+        0
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "arrow-right",
+      "action": {
+        "press": "ArrowRight"
+      },
+      "expect": [
+        [
+          "34"
+        ],
+        [
+          "age"
+        ],
+        [
+          "row 2"
+        ],
+        [
+          "column 3"
+        ]
+      ],
+      "note": "The cell to the right: its value, the column header the cell is described by, and its position."
+    },
+    {
+      "id": "arrow-down",
+      "action": {
+        "press": "ArrowDown"
+      },
+      "expect": [
+        [
+          "28"
+        ],
+        [
+          "age"
+        ],
+        [
+          "row 3"
+        ],
+        [
+          "column 3"
+        ]
+      ]
+    },
+    {
+      "id": "arrow-left",
+      "action": {
+        "press": "ArrowLeft"
+      },
+      "expect": [
+        [
+          "bruno"
+        ],
+        [
+          "name"
+        ],
+        [
+          "row 3"
+        ],
+        [
+          "column 2"
+        ]
+      ]
+    },
+    {
+      "id": "arrow-up",
+      "action": {
+        "press": "ArrowUp"
+      },
+      "expect": [
+        [
+          "alice"
+        ],
+        [
+          "name"
+        ],
+        [
+          "row 2"
+        ],
+        [
+          "column 2"
+        ]
+      ]
+    },
+    {
+      "id": "into-column-header",
+      "action": {
+        "press": "ArrowUp"
+      },
+      "expect": [
+        [
+          "name"
+        ],
+        [
+          "column header"
+        ],
+        [
+          "row 1"
+        ],
+        [
+          "column 2"
+        ]
+      ],
+      "note": "navigableHeaders: ArrowUp from the first row enters the column header. Finding: NVDA with Chromium announces the header row as `row 7` (its committed golden), so `row 1` misses there."
+    },
+    {
+      "id": "back-to-cell",
+      "action": {
+        "press": "ArrowDown"
+      },
+      "expect": [
+        [
+          "alice"
+        ]
+      ]
+    },
+    {
+      "id": "into-row-header",
+      "action": {
+        "press": "ArrowLeft"
+      },
+      "expect": [
+        [
+          "1"
+        ],
+        [
+          "row header"
+        ],
+        [
+          "row 2"
+        ],
+        [
+          "column 1"
+        ]
+      ],
+      "note": "navigableHeaders: ArrowLeft from the first column enters the row header. Finding: NVDA with Chromium announces the row header's row as `row 8` (its committed golden), so `row 2` misses there."
+    },
+    {
+      "id": "back-from-row-header",
+      "action": {
+        "press": "ArrowRight"
+      },
+      "expect": [
+        [
+          "alice"
+        ]
+      ]
+    },
+    {
+      "id": "open-editor",
+      "action": {
+        "press": "Enter"
+      },
+      "expect": [
+        [
+          "alice"
+        ],
+        [
+          "edit",
+          "editable",
+          "text area",
+          "textarea",
+          "multi line",
+          "multiline"
+        ]
+      ],
+      "note": "Enter opens the text editor on the cell: the editor's value and its editable role."
+    },
+    {
+      "id": "close-editor",
+      "action": {
+        "press": "Escape"
+      },
+      "expect": [
+        [
+          "alice"
+        ]
+      ],
+      "note": "Escape leaves the editor and the focus returns to the cell. Finding: NVDA says nothing here on both browsers (the committed goldens are empty)."
+    },
+    {
+      "id": "open-context-menu",
+      "action": {
+        "press": "Shift+F10"
+      },
+      "after": {
+        "visible": ".htContextMenu .ht_master .htCore tbody td"
+      },
+      "expect": [
+        [
+          "insert row above"
+        ],
+        [
+          "menu"
+        ]
+      ],
+      "note": "Shift+F10 opens the context menu with its first item highlighted. Finding: NVDA announces the menu as a table; Chromium said `menu` only in the run that recorded its golden, and Firefox says it last."
+    },
+    {
+      "id": "menu-arrow-down",
+      "action": {
+        "press": "ArrowDown"
+      },
+      "expect": [
+        [
+          "insert row below"
+        ]
+      ]
+    },
+    {
+      "id": "menu-arrow-down-again",
+      "action": {
+        "press": "ArrowDown"
+      },
+      "expect": [
+        [
+          "insert column left"
+        ]
+      ]
+    },
+    {
+      "id": "close-context-menu",
+      "action": {
+        "press": "Escape"
+      },
+      "after": {
+        "hidden": ".htContextMenu .ht_master .htCore tbody td"
+      },
+      "expect": [
+        [
+          "alice"
+        ]
+      ],
+      "note": "Escape closes the menu, and the focus should return to the cell that opened it. Finding: NVDA announces the document instead on both browsers (the committed goldens): the focus leaves the grid."
+    },
+    {
+      "id": "reselect-cell",
+      "action": {
+        "selectCell": [
+          0,
+          0
+        ]
+      },
+      "expect": [
+        [
+          "alice"
+        ],
+        [
+          "name"
+        ],
+        [
+          "row 2"
+        ],
+        [
+          "column 2"
+        ]
+      ],
+      "note": "The API selection a host makes after the menu: the focus is back on the cell whatever the previous step left, so the range steps start from a known state."
+    },
+    {
+      "id": "extend-range",
+      "action": {
+        "press": "Shift+ArrowRight"
+      },
+      "expect": [
+        [
+          "34"
+        ],
+        [
+          "selected"
+        ]
+      ],
+      "note": "Shift+ArrowRight extends the selection, so the new end cell and its selected state are each required. Finding: NVDA says nothing on both browsers (the committed goldens are empty), because the focus stays on the anchor cell."
+    },
+    {
+      "id": "extend-range-again",
+      "action": {
+        "press": "Shift+ArrowRight"
+      },
+      "expect": [
+        [
+          "oslo"
+        ],
+        [
+          "selected"
+        ]
+      ],
+      "note": "The next cell joins the range: its value and the selected state are each required. Finding: NVDA says nothing on both browsers (the committed goldens are empty)."
+    },
+    {
+      "id": "up-to-header-for-sort",
+      "action": {
+        "press": "ArrowUp"
+      },
+      "expect": [
+        [
+          "name"
+        ],
+        [
+          "column header"
+        ],
+        [
+          "row 1"
+        ],
+        [
+          "column 2"
+        ]
+      ],
+      "note": "ArrowUp from the range's anchor cell enters its column header, to sort it. Finding: NVDA with Chromium announces the header row as `row 7` (its committed golden), so `row 1` misses there."
+    },
+    {
+      "id": "sort-ascending",
+      "action": {
+        "press": "Enter"
+      },
+      "expect": [
+        [
+          "ascending"
+        ]
+      ],
+      "note": "Enter on a sortable header sorts the column; aria-sort changes on the focused header."
+    },
+    {
+      "id": "sort-descending",
+      "action": {
+        "press": "Enter"
+      },
+      "expect": [
+        [
+          "descending"
+        ]
+      ]
+    }
+  ]
+}

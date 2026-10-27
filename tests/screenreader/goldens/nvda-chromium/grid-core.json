@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "scenario": "grid-core",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-10-22T14:20:45.051Z"
+  },
+  "steps": {
+    "arrow-right": "34 age row 2 name column 3",
+    "arrow-down": "28 age row 3 name column 3",
+    "arrow-left": "bruno name row 3 column 2",
+    "arrow-up": "alice name row 2 column 2",
+    "into-column-header": "name column header row 7 column 2",
+    "back-to-cell": "alice name row 2 column 2",
+    "into-row-header": "1 row header row 8 column 1",
+    "back-from-row-header": "alice name row 2 column 2",
+    "open-editor": "edit multi line alice",
+    "close-editor": "",
+    "open-context-menu": "menu table insert row above",
+    "menu-arrow-down": "insert row below",
+    "menu-arrow-down-again": "insert column left",
+    "close-context-menu": "handsontable screen reader fixture document",
+    "reselect-cell": "table alice name row 2 column 2",
+    "extend-range": "",
+    "extend-range-again": "",
+    "up-to-header-for-sort": "name column header row 7 column 2",
+    "sort-ascending": "sorted ascending",
+    "sort-descending": "sorted descending"
+  }
+}
