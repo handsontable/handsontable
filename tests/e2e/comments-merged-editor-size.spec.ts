@@ -99,6 +99,67 @@ test.describe('Comment editor size - merged ranges', { tag: THEMES_TAG }, () => 
     await expect.poll(async() => (await grid.heights(6, 5)).editor).toBe(plain);
   });
 
+  test('keeps the default height when the rows of the range that remain visible are one', async() => {
+    await grid.showEditorAt(4, 4);
+
+    const plain = (await grid.heights(4, 4)).editor;
+
+    await grid.showEditorAt(1, 0);
+
+    await expect.poll(async() => (await grid.heights(1, 0)).editor).toBe(plain);
+  });
+
+  test('takes the height of a range that sits wholly in the frozen rows', async() => {
+    await grid.freezeTopRows(3);
+    await grid.showEditorAt(0, 3);
+
+    await expect.poll(async() => {
+      const { editor, cell } = await grid.heights(0, 3);
+
+      return Math.abs(editor - cell);
+    }).toBeLessThanOrEqual(1);
+  });
+
+  test('takes the height of a range in a frozen column that the grid has scrolled away from', async() => {
+    await grid.freezeFirstColumnAndScrollAway();
+    await grid.showEditorAt(3, 0);
+
+    await expect.poll(async() => {
+      const { editor, cell } = await grid.heights(3, 0);
+
+      return Math.abs(editor - cell);
+    }).toBeLessThanOrEqual(1);
+  });
+
+  test('does not carry the height of a merged range to a comment saved with a width only', async() => {
+    await grid.showEditorAt(4, 4);
+
+    const plain = (await grid.heights(4, 4)).editor;
+
+    await grid.showEditorAt(6, 1);
+    await grid.showEditorAt(3, 4);
+
+    await expect.poll(async() => (await grid.heights(3, 4)).editor).toBe(plain);
+  });
+
+  test('ends a flipped box at the bottom of a range that a frozen row cuts', async({ page }) => {
+    await grid.freezeTopRows(3);
+
+    const { cell } = await grid.verticalExtents(1, 1);
+
+    // A window that ends just above the range's bottom makes the box flip upward.
+    await page.setViewportSize({ width: 1280, height: Math.floor(cell.bottom) - 4 });
+    await grid.showEditorAt(1, 1);
+
+    const after = await grid.verticalExtents(1, 1);
+
+    // Flipped by the part of the box that sticks out below the range, not by the part of the range
+    // the frozen rows cut off: that would lift the box clear of the range, over the rows above it.
+    // The window's own margin keeps the box within about 15px of the range's top.
+    await expect.poll(async() => (await grid.verticalExtents(1, 1)).editor.top)
+      .toBeGreaterThan(after.cell.top - 30);
+  });
+
   test('keeps a size the user saved', async() => {
     await grid.showEditorAt(6, 4);
 

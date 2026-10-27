@@ -200,20 +200,27 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
 - **The default height follows a merged range that spans more than one row.** The box is a fixed `88px`
   textarea (`_comments.scss`), so on a merged range it stuck out below a short one and ended short of a tall
   one. With no saved `style`, `refreshEditor()` sizes it to the merged block through
-  `getEditorAnchorHeight()` (`utils.ts`), after `resetSize()` and before `getSize()`, so the flip and the
-  viewport clamp see the real height. Three rules. (1) **Read the height from the MASTER table's cell**
-  (`wt.getCell(coords)`), not from the topmost one the rest of the method uses: with a frozen row across the
-  block, the topmost cell is the top overlay's copy, cut at the freeze line, and the box came out as tall as
-  that part (58px for a 116px range). (2) **A hidden row or column keeps the default** (`targetingPreviousRow`,
-  `targetingOtherColumn`): the anchor is a neighbor's cell, which is not the range the comment belongs to, and
-  a one-row cell there would give the box its own height (29px). A one-row merge keeps it too, so
-  it matches a plain cell. (3) The derived height is a display value that is never written to `META_STYLE`,
-  because only `#onEditorResize()` writes it and the saved size wins. The `setHeight()` is synchronous, so
-  unlike the clamp it does not depend on running before `observeSize()`. With `virtualized` the master block
-  is clamped to the rendered band (`../mergeCells/AGENTS.md`), so the box is as tall as the rendered part
-  there. No minimum height: a two-row merge on a compact theme gives a short box that the user can still
-  resize. Pinned by `tests/e2e/comments-merged-editor-size.spec.ts`, whose frozen-row and hidden-row cases
-  each go red without their rule.
+  `#getMergedBlockHeight()` and `getEditorAnchorHeight()` (`utils.ts`), after `resetSize()` and before
+  `getSize()`, so the flip and the viewport clamp see the real height. Five rules, each pinned by a case of
+  `tests/e2e/comments-merged-editor-size.spec.ts` that goes red without it. (1) **Read the height from the
+  MASTER table's cell** (`wt.getCell(coords)`), not from the topmost one the rest of the method uses: with a
+  frozen row across the block, the topmost cell is the top overlay's copy, cut at the freeze line, and the box
+  came out as tall as that part (58px for a 116px range). (2) **Fall back to the topmost cell when the master
+  has none.** A block in a frozen start column that the grid has scrolled away from is drawn by the overlay
+  only (`getCell()` answers a negative code), and the overlay's copy is whole there. (3) **Use the DRAWN cell's
+  `rowSpan`, not the meta's.** Hidden rows shrink the cell, so `{ rowspan: 2 }` with its second row hidden is a
+  one-row cell, and a one-row cell keeps the default like a plain one. (4) **A hidden row or column keeps the
+  default** (`targetingPreviousRow`, `targetingOtherColumn`): the anchor is a neighbor's cell, which is not the
+  range the comment belongs to, and a one-row cell there would give the box its own height (29px). (5) **The
+  flip reads the block's height, not the topmost cell's** (`blockHeight ?? cellHeight`): the flip moves the box
+  up by what sticks out below the range, and the cut copy made that the cut part as well.
+  `resetSize()` runs first, always: a saved `style` holding only one size sets nothing, and used to leave the
+  previous comment's derived height on the next box. The derived height is a display value that is never
+  written to `META_STYLE`, because only `#onEditorResize()` writes it and the saved size wins. It is
+  synchronous, so unlike the clamp it does not depend on running before `observeSize()`. With `virtualized`
+  the master block is clamped to the rendered band (`../mergeCells/AGENTS.md`), so the box is as tall as the
+  rendered part there. There is no minimum height, and no maximum beyond the viewport clamp: a range taller
+  than the window gives a window-tall box.
 - **A hidden row is positioned against the previous row's coords.** There is a standing
   `// TODO: Probably using hot.getCell would be the best` on this, with the note that showing an editor for
   a hidden cell might be removable altogether — a spec currently passes for it, so it stays.

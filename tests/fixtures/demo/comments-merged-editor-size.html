@@ -19,7 +19,7 @@
   </script>
   <style>
     body { font-family: sans-serif; margin: 0; padding: 8px; }
-    #grid { width: 420px; height: 260px; overflow: hidden; }
+    #grid { width: 420px; height: 360px; overflow: hidden; }
   </style>
 </head>
 <body>
@@ -53,6 +53,12 @@
           { row: 2, col: 5, rowspan: 2, colspan: 1 },
           // Its column is hidden, so the editor is anchored to the column before it.
           { row: 6, col: 6, rowspan: 2, colspan: 1 },
+          // Its second row is hidden, so the cell is drawn one row tall.
+          { row: 1, col: 0, rowspan: 2, colspan: 1 },
+          // The first column: once a spec freezes it and scrolls sideways, only its overlay draws it.
+          { row: 3, col: 0, rowspan: 2, colspan: 1 },
+          // It sits wholly inside the frozen rows once a spec freezes three.
+          { row: 0, col: 3, rowspan: 2, colspan: 1 },
         ],
         afterRenderer: (td, row, col) => {
           td.setAttribute('data-testid', `cell-${row}-${col}`);
@@ -64,6 +70,10 @@
           { row: 5, col: 3, comment: { value: 'Comment on a merge one row tall.' } },
           { row: 2, col: 5, comment: { value: 'A merged range that starts on a hidden row.' } },
           { row: 6, col: 6, comment: { value: 'A merged range in a hidden column.' } },
+          { row: 1, col: 0, comment: { value: 'A merged range with a hidden row inside.' } },
+          { row: 0, col: 3, comment: { value: 'A merged range inside the frozen rows.' } },
+          { row: 3, col: 0, comment: { value: 'A merged range in a frozen column.' } },
+          { row: 3, col: 4, comment: { value: 'A comment with a width only.', style: { width: 300 } } },
           {
             row: 6, col: 4, comment: { value: 'A merged range with a saved size.', style: { width: 200, height: 140 } },
           },

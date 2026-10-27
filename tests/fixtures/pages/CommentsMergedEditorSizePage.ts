@@ -64,13 +64,40 @@ export class CommentsMergedEditorSizePage {
    */
   async heights(row: number, col: number): Promise<{ editor: number, cell: number }> {
     return this.page.evaluate(({ testId }) => {
-      // The master table's cell spans the whole merged block. A frozen overlay draws its own, shorter copy.
-      const cell = document.querySelector(`.ht_master [data-testid="${testId}"]`) as HTMLElement;
+      // The master table's cell spans the whole merged block. A frozen overlay draws its own copy, cut at
+      // the freeze line, and is the only one there is for a block that sits wholly in the frozen rows.
+      const cell = (document.querySelector(`.ht_master [data-testid="${testId}"]`)
+        ?? document.querySelector(`[data-testid="${testId}"]`)) as HTMLElement;
       const textarea = document.querySelector('.htCommentTextArea') as HTMLElement;
 
       return {
         editor: textarea.getBoundingClientRect().height,
         cell: cell.getBoundingClientRect().height,
+      };
+    }, { testId: `cell-${row}-${col}` });
+  }
+
+  /**
+   * The vertical extent of the rendered cell and of the editor's textarea, in viewport pixels, read in
+   * one evaluation.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {Promise<{ cell: { top: number, bottom: number }, editor: { top: number, bottom: number } }>}
+   */
+  async verticalExtents(row: number, col: number): Promise<{
+    cell: { top: number, bottom: number },
+    editor: { top: number, bottom: number },
+  }> {
+    return this.page.evaluate(({ testId }) => {
+      const cell = (document.querySelector(`.ht_master [data-testid="${testId}"]`)
+        ?? document.querySelector(`[data-testid="${testId}"]`)) as HTMLElement;
+      const cellBox = cell.getBoundingClientRect();
+      const editorBox = (document.querySelector('.htCommentTextArea') as HTMLElement).getBoundingClientRect();
+
+      return {
+        cell: { top: cellBox.top, bottom: cellBox.bottom },
+        editor: { top: editorBox.top, bottom: editorBox.bottom },
       };
     }, { testId: `cell-${row}-${col}` });
   }
@@ -85,6 +112,22 @@ export class CommentsMergedEditorSizePage {
       (window as any).hot.updateSettings({ fixedRowsTop: rows });
     }, count);
     await expect(this.page.locator('.ht_clone_top [data-testid="cell-1-1"]')).toBeAttached();
+  }
+
+  /**
+   * Freezes the first column and scrolls the grid sideways until it is the only thing that draws that
+   * column: the master table no longer has its cells.
+   */
+  async freezeFirstColumnAndScrollAway(): Promise<void> {
+    await this.page.evaluate(() => {
+      const hot = (window as any).hot;
+
+      hot.updateSettings({ fixedColumnsStart: 1, colWidths: 120, width: 300 });
+      hot.scrollViewportTo({ row: 1, col: 5, horizontalSnap: 'start' });
+    });
+    await expect.poll(() => this.page.evaluate(() => {
+      return (window as any).hot.view._wt.wtTable.getFirstRenderedColumn();
+    })).toBeGreaterThan(1);
   }
 
   /**

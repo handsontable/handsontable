@@ -830,21 +830,21 @@ export class Comments extends BasePlugin {
       height: cellHeight,
     } = TD.getBoundingClientRect();
 
+    // Always reset first: a saved style that holds only one of the sizes sets nothing, and would leave the
+    // size of the previous comment's box on this one.
+    this.#editor.resetSize();
+
+    let blockHeight: number | undefined;
+
     if (commentStyle) {
       this.#editor.setSize(commentStyle.width, commentStyle.height);
 
-    } else {
-      this.#editor.resetSize();
+    // A hidden row or column is anchored to a neighbor's cell, which is not the range the comment belongs to.
+    } else if (!targetingPreviousRow && !targetingOtherColumn) {
+      blockHeight = this.#getMergedBlockHeight(TD, renderableRow, renderableColumn, metaRowspan);
 
-      // A hidden row or column is anchored to a neighbor's cell, which is not the range the comment belongs to.
-      // The master table's cell spans the whole block. The topmost one can be an overlay's, cut at a frozen row.
-      const masterTD = targetingPreviousRow || targetingOtherColumn ?
-        null : wt.getCell({ row: renderableRow, col: renderableColumn });
-      const anchorHeight = isHTMLElement(masterTD) ?
-        getEditorAnchorHeight(metaRowspan, masterTD.getBoundingClientRect().height) : undefined;
-
-      if (anchorHeight !== undefined) {
-        this.#editor.setHeight(anchorHeight);
+      if (blockHeight !== undefined) {
+        this.#editor.setHeight(blockHeight);
       }
     }
 
@@ -878,7 +878,7 @@ export class Comments extends BasePlugin {
     }
 
     if (top + editorHeight > innerHeight - horizontalScrollbarWidth) {
-      y -= (editorHeight - cellHeight + 1);
+      y -= (editorHeight - (blockHeight ?? cellHeight) + 1);
     }
 
     // Cap the display size to the viewport. This setSize MUST happen before
@@ -909,6 +909,33 @@ export class Comments extends BasePlugin {
     this.#editor.setPosition(clamped.x, clamped.y);
     this.#editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY) ?? false);
     this.#editor.observeSize();
+  }
+
+  /**
+   * Gets the height of the merged block a comment belongs to, when its box takes that height.
+   *
+   * The master table's cell holds the whole block. The topmost one can be an overlay's copy, cut at a frozen
+   * row. The master has no cell for a block that sits wholly in a frozen band, and the overlay's copy is whole
+   * there. The cell's own `rowSpan` is what is drawn, which is smaller than the meta's when rows of the block
+   * are hidden.
+   *
+   * @param {HTMLTableCellElement} anchorTD The topmost rendered cell of the comment.
+   * @param {number} renderableRow Renderable row index of the cell.
+   * @param {number} renderableColumn Renderable column index of the cell.
+   * @param {number} metaRowspan The rowspan value from the cell meta (1 for non-merged cells).
+   * @returns {number | undefined} The height in pixels, or `undefined` when the default box height applies.
+   */
+  #getMergedBlockHeight(
+    anchorTD: HTMLTableCellElement, renderableRow: number, renderableColumn: number, metaRowspan: number
+  ): number | undefined {
+    if (metaRowspan === 1) {
+      return undefined;
+    }
+
+    const masterTD = this.hot.view._wt.getCell({ row: renderableRow, col: renderableColumn });
+    const blockTD = isHTMLElement(masterTD) ? masterTD : anchorTD;
+
+    return getEditorAnchorHeight(blockTD.rowSpan, blockTD.getBoundingClientRect().height);
   }
 
   /**

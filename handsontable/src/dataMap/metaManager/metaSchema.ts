@@ -1698,7 +1698,7 @@ export default (): Record<string, unknown> => {
      * | -------------- | --------------------------- | --------------------------------------------------- |
      * | `displayDelay` | A number (default: `250`)   | Display comments after a delay (in milliseconds)    |
      * | `readOnly`     | `true` \| `false` (default) | `true`: Make comments read-only                     |
-     * | `style`        | An object                   | Set comment boxes' `width` and `height` (in pixels). Without it, a comment box on a merged cell that spans more than one row takes the height of the merged range |
+     * | `style`        | An object                   | Set comment boxes' `width` and `height` (in pixels) |
      *
      * Read more:
      * - [Comments](@/guides/cell-features/comments/comments.md)
