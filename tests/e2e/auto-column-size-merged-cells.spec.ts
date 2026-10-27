@@ -151,6 +151,19 @@ test.describe('autoColumnSize and merged cells', { tag: THEMES_TAG }, () => {
     expect(await grid.fitsOnOneLine(0, 0, 1)).toBe(true);
   });
 
+  test('fits a merge again after the data is updated in place', async() => {
+    const [control] = await grid.build({ data: [[LONG, ''], ['a', 'b']] });
+
+    await grid.build({ data: [['ab', ''], ['a', 'b']], mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 2 }] });
+    await grid.updateData([[LONG, ''], ['a', 'b']]);
+
+    await expect.poll(async() => {
+      const [first, second] = await grid.widths();
+
+      return first + second >= control;
+    }).toBe(true);
+  });
+
   test('widens the first visible column when the merge\'s first column is hidden', async() => {
     const data = [[LONG, '', ''], ['a', 'b', 'c']];
     const [control] = await grid.build({ data });

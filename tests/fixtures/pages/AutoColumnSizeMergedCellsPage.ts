@@ -33,6 +33,7 @@ interface FixtureHot {
   getCell(row: number, column: number): HTMLElement | null;
   alter(action: string, index: number): void;
   loadData(data: unknown[][]): void;
+  updateData(data: unknown[][]): void;
   updateSettings(settings: Record<string, unknown>): void;
   rootElement: HTMLElement;
   render(): void;
@@ -148,6 +149,13 @@ export class AutoColumnSizeMergedCellsPage {
    */
   async loadData(data: unknown[][]): Promise<void> {
     await this.page.evaluate(rows => (window as unknown as FixtureWindow).hot.loadData(rows), data);
+  }
+
+  /**
+   * Replaces the data through `updateData()`, which keeps the merges (the wrappers' path).
+   */
+  async updateData(data: unknown[][]): Promise<void> {
+    await this.page.evaluate(rows => (window as unknown as FixtureWindow).hot.updateData(rows), data);
   }
 
   /**
