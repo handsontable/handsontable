@@ -257,4 +257,56 @@ describe('AxisSyncer against a sheet shorter than the grid', () => {
 
     expect(hot.getDataAtCell(0, 2)).toBe(100);
   });
+
+  describe('when the engine cannot hold the rows or columns the order needs', () => {
+    it('should warn instead of throwing and leave the engine as it was when a row is out of the engine\'s `maxRows`', () => {
+      const warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', maxRows: 2 });
+
+      hot = new Handsontable(container, {
+        data: [['10', '=A1*2'], ['20', '=A2*2'], [null, null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const sheetId = engine.getSheetId('Sheet1');
+      const serialized = engine.getSheetSerialized(sheetId);
+
+      expect(() => hot.rowIndexMapper.setIndexesSequence([2, 1, 0])).not.toThrow();
+      expect(warnings).toHaveBeenCalledTimes(1);
+      expect(engine.getSheetSerialized(sheetId)).toEqual(serialized);
+      expect(engine.getSheetDimensions(sheetId).height).toBe(2);
+
+      hot.rowIndexMapper.setIndexesSequence([0, 1, 2]);
+
+      expect(hot.getData()).toEqual([['10', 20], ['20', 40], [null, null]]);
+
+      warnings.mockRestore();
+    });
+
+    it('should warn instead of throwing and leave the engine as it was when a column is out of the engine\'s `maxColumns`', () => {
+      const warnings = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable', maxColumns: 2 });
+
+      hot = new Handsontable(container, {
+        data: [['10', '=A1*2', null], ['20', '=A2*2', null]],
+        formulas: { engine, sheetName: 'Sheet1' },
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      const sheetId = engine.getSheetId('Sheet1');
+      const serialized = engine.getSheetSerialized(sheetId);
+
+      expect(() => hot.columnIndexMapper.setIndexesSequence([2, 1, 0])).not.toThrow();
+      expect(warnings).toHaveBeenCalledTimes(1);
+      expect(engine.getSheetSerialized(sheetId)).toEqual(serialized);
+      expect(engine.getSheetDimensions(sheetId).width).toBe(2);
+
+      hot.columnIndexMapper.setIndexesSequence([0, 1, 2]);
+
+      expect(hot.getData()).toEqual([['10', 20, null], ['20', 40, null]]);
+
+      warnings.mockRestore();
+    });
+  });
 });
